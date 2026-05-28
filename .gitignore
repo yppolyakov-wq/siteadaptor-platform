@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+.Python
+build/
+dist/
+*.whl
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+locale/*/LC_MESSAGES/*.mo
+
+# Environments
+.env
+.env.local
+.env.*.local
+
+# Coverage / tests
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.cache/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+nano.*.save
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / lockfiles for tools we don't commit
+uv.lock

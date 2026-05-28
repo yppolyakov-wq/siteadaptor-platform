@@ -1,0 +1,199 @@
+import environ
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+env = environ.Env()
+env.read_env(BASE_DIR / ".env")
+
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env.bool("DEBUG", default=False)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
+
+# ---------------------------------------------------------------------------
+# django-tenants: SHARED vs TENANT apps
+# ---------------------------------------------------------------------------
+SHARED_APPS = [
+    "django_tenants",
+    "apps.tenants",
+    # Django built-ins
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "unfold",  # должен быть до admin
+    "django.contrib.admin",
+    "django.contrib.sites",
+    # Third-party shared
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "django_celery_beat",
+    "django_celery_results",
+    "djstripe",
+    # SHARED apps платформы
+    "apps.aggregator",
+    "apps.global_categories",
+]
+
+TENANT_APPS = [
+    # Django built-ins (нужны и в tenant schema)
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    # TENANT apps платформы
+    "apps.core",
+    "apps.catalog",
+    "apps.promotions",
+    "apps.subscriptions",
+    "apps.publishing",
+    "apps.notifications",
+    "apps.billing",
+]
+
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
+TENANT_MODEL = "tenants.Tenant"
+TENANT_DOMAIN_MODEL = "tenants.Domain"
+
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
+DATABASES = {
+    "default": {
+        "ENGINE": "django_tenants.postgresql_backend",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST", default="localhost"),
+        "PORT": env("DB_PORT", default="5432"),
+    }
+}
+
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+
+# ---------------------------------------------------------------------------
+# Middleware
+# ---------------------------------------------------------------------------
+MIDDLEWARE = [
+    "django_tenants.middleware.main.TenantMainMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
+]
+
+ROOT_URLCONF = "config.urls_tenant"
+PUBLIC_SCHEMA_URLCONF = "config.urls_public"
+
+WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
+
+# ---------------------------------------------------------------------------
+# Templates
+# ---------------------------------------------------------------------------
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
+            ],
+        },
+    },
+]
+
+# ---------------------------------------------------------------------------
+# i18n
+# ---------------------------------------------------------------------------
+LANGUAGE_CODE = "de"
+LANGUAGES = [
+    ("de", "Deutsch"),
+    ("en", "English"),
+]
+USE_I18N = True
+USE_TZ = True
+TIME_ZONE = "Europe/Berlin"
+LOCALE_PATHS = [BASE_DIR / "locale"]
+
+# ---------------------------------------------------------------------------
+# Static & Media
+# ---------------------------------------------------------------------------
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# ---------------------------------------------------------------------------
+# Auth (allauth)
+# ---------------------------------------------------------------------------
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+SITE_ID = 1
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+# ---------------------------------------------------------------------------
+# Celery
+# ---------------------------------------------------------------------------
+CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_TASK_DEFAULT_QUEUE = "default"
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_TIMEZONE = TIME_ZONE
+
+# ---------------------------------------------------------------------------
+# Email (Resend через django-anymail)
+# ---------------------------------------------------------------------------
+ANYMAIL = {
+    "RESEND_API_KEY": env("RESEND_API_KEY", default=""),
+}
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@platform.local")
+
+# ---------------------------------------------------------------------------
+# Stripe (dj-stripe)
+# ---------------------------------------------------------------------------
+STRIPE_LIVE_MODE = env.bool("STRIPE_LIVE_MODE", default=False)
+STRIPE_TEST_PUBLIC_KEY = env("STRIPE_TEST_PUBLIC_KEY", default="")
+STRIPE_TEST_SECRET_KEY = env("STRIPE_TEST_SECRET_KEY", default="")
+DJSTRIPE_WEBHOOK_SECRET = env("DJSTRIPE_WEBHOOK_SECRET", default="")
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+
+# ---------------------------------------------------------------------------
+# Storage (S3-compatible Hetzner Object Storage в production)
+# ---------------------------------------------------------------------------
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": env("AWS_ACCESS_KEY_ID", default=""),
+            "secret_key": env("AWS_SECRET_ACCESS_KEY", default=""),
+            "bucket_name": env("AWS_STORAGE_BUCKET_NAME", default=""),
+            "endpoint_url": env("AWS_S3_ENDPOINT_URL", default=""),
+            "region_name": env("AWS_S3_REGION_NAME", default="eu-central"),
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
