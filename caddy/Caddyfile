@@ -21,7 +21,10 @@
 	# реализован (apps/core/health.verify_domain): разрешает siteadaptor.de,
 	# *.siteadaptor.de и любые домены из модели Domain.
 	on_demand_tls {
-		ask http://web:8000/internal/verify-domain
+		# Запрос идёт с Host: siteadaptor.de (через сетевой алиас web-контейнера),
+		# т.к. этот хост резолвится в public-схему и verify_domain отвечает 200.
+		# Прямой http://web:8000 слал бы Host: web → 404 (нет такого арендатора).
+		ask http://siteadaptor.de:8000/internal/verify-domain
 	}
 }
 

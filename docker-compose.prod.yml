@@ -44,11 +44,17 @@ services:
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60"
     expose:
       - "8000"
+    networks:
+      default:
+        # Алиас, чтобы Caddy слал on-demand TLS ask-запрос с Host: siteadaptor.de
+        # (резолвится в public-схему → verify_domain отвечает 200).
+        aliases:
+          - siteadaptor.de
     depends_on:
       - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health/"]
+      test: ["CMD", "curl", "-fsS", "-H", "Host: siteadaptor.de", "http://localhost:8000/health/"]
       interval: 30s
       timeout: 5s
       retries: 3
