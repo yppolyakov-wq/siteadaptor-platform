@@ -1,35 +1,42 @@
-# Production Caddyfile.
+# Production Caddyfile — HTTP-01 challenge, без wildcard.
 #
-# Wildcard TLS для всех субдоменов арендаторов (*.siteadaptor.de) выпускается
-# через DNS-01 challenge — поэтому нужен DNS-плагин (см. caddy/Dockerfile) и токен
-# DNS-провайдера в .env.prod (HETZNER_DNS_API_TOKEN).
+# Домен siteadaptor.de обслуживается в Hostinger (NS dns-parking.com), где нет
+# Caddy DNS-плагина → wildcard через DNS-01 недоступен. Поэтому сертификаты
+# выпускаются по HTTP-01: главный домен — явно, субдомены арендаторов — через
+# on-demand TLS (сертификат на каждый субдомен при первом обращении).
+#
+# Требуется только: A-записи (@ и *) на IP сервера + открытые порты 80/443.
+# Ни DNS-API-токена, ни смены провайдера не нужно.
 #
 # `web` — имя сервиса из docker-compose.prod.yml (Django/gunicorn на :8000).
+#
+# ⚠️ Лимит Let's Encrypt: ~50 сертификатов/неделя на домен. Для dev и десятков
+# арендаторов хватает с запасом. Для боевого масштаба — перейти на wildcard
+# через Cloudflare DNS (сменить NS + плагин caddy-dns/cloudflare).
 
 {
 	email admin@siteadaptor.de
+	# Авторизация субдоменов для on-demand TLS: Caddy спрашивает Django,
+	# можно ли выпускать сертификат для запрошенного хоста. Endpoint уже
+	# реализован (apps/core/health.verify_domain): разрешает siteadaptor.de,
+	# *.siteadaptor.de и любые домены из модели Domain.
+	on_demand_tls {
+		ask http://web:8000/internal/verify-domain
+	}
 }
 
-siteadaptor.de, *.siteadaptor.de {
+# Главный домен — сертификат по HTTP-01 автоматически.
+siteadaptor.de {
 	encode zstd gzip
-	tls {
-		dns hetzner {env.HETZNER_DNS_API_TOKEN}
-	}
 	reverse_proxy web:8000
 }
 
-# --- Phase 2: custom-домены арендаторов/порталов через on-demand TLS ---
-# Раскомментируй, когда дойдёшь до мультидоменных порталов (см.
-# docs/references/patterns не требуется; план §5.6). verify-domain уже реализован.
-#
-# {
-# 	on_demand_tls {
-# 		ask http://web:8000/internal/verify-domain
-# 	}
-# }
-# https:// {
-# 	tls {
-# 		on_demand
-# 	}
-# 	reverse_proxy web:8000
-# }
+# Субдомены арендаторов ({slug}.siteadaptor.de) и будущие custom-домены —
+# сертификат выпускается on-demand при первом запросе (с проверкой через ask).
+https:// {
+	encode zstd gzip
+	tls {
+		on_demand
+	}
+	reverse_proxy web:8000
+}

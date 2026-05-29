@@ -355,8 +355,10 @@ Claude Code на прод **не ставится**.
 cd ~/projects/siteadaptor-platform     # или /opt/... при первом clone
 cp .env.prod.example .env.prod         # заполни все CHANGE-ME; для single: DB_HOST=db
 
-# DNS: A-записи  siteadaptor.de  и  *.siteadaptor.de  → публичный IP сервера.
-# Caddy выпускает wildcard-сертификат через DNS-01 (нужен HETZNER_DNS_API_TOKEN).
+# DNS: A-записи  @ (siteadaptor.de)  и  * (*.siteadaptor.de)  → публичный IP сервера.
+# Caddy выпускает сертификаты по HTTP-01 (главный домен) + on-demand (субдомены).
+# Нужны только порты 80/443 открыты; DNS-API-токен НЕ требуется.
+# (Wildcard через DNS-01 — опция на будущее, требует Cloudflare/др. провайдера.)
 
 # Первый запуск (SINGLE — поднимает локальный Postgres):
 docker compose -f docker-compose.prod.yml --profile single build
@@ -405,8 +407,11 @@ $C exec web python manage.py shell
 на приватный IP, `pg_hba.conf` для `10.0.0.0/16`, бэкап `pg_dump`→Object Storage
 по cron — см. `hetzner-claude-code-setup.md`.
 
-> **DNS-провайдер:** `caddy/Dockerfile` собран с плагином Hetzner DNS. Другой
-> провайдер → поменяй `--with github.com/caddy-dns/<provider>` и токен в `.env.prod`.
+> **TLS:** сейчас HTTP-01 + on-demand (стоковый Caddy, без DNS-плагина) — нужны
+> лишь A-записи и порты 80/443. Для боевого масштаба (>~50 серт./нед) перейди на
+> wildcard через DNS-01: смени NS на Cloudflare, собери Caddy с
+> `--with github.com/caddy-dns/cloudflare` (см. `caddy/Dockerfile`), верни
+> `tls { dns ... }` в Caddyfile и токен в `.env.prod`.
 
 ---
 
