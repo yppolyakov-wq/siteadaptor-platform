@@ -32,6 +32,7 @@ SHARED_APPS = [
     "django_celery_beat",
     "django_celery_results",
     "djstripe",
+    "widget_tweaks",  # template-теги для форм (без БД)
     # SHARED apps платформы (раскомментируются по мере прохождения спринтов)
     # "apps.aggregator",       # Sprint 5
     # "apps.global_categories",  # Sprint 5
@@ -170,6 +171,9 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 SITE_ID = 1
+# Базовый домен для генерации URL арендаторов (онбординг, ссылки на субдомены).
+# В dev переопределяется на "siteadaptor.de:8000" (см. development.py).
+TENANT_DOMAIN_BASE = env("TENANT_DOMAIN_BASE", default="siteadaptor.de")
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"

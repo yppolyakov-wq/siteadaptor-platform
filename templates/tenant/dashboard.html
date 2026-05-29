@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Dashboard" %} · {{ request.tenant.name }}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex">
+  <aside class="w-60 bg-white border-r border-gray-200 p-5 hidden md:block">
+    <div class="font-bold text-lg mb-6">{{ request.tenant.name }}</div>
+    <nav class="space-y-1 text-sm">
+      <a href="/" class="block px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium">{% trans "Dashboard" %}</a>
+      <span class="block px-3 py-2 rounded-lg text-gray-400">{% trans "Catalog" %} · {% trans "soon" %}</span>
+      <span class="block px-3 py-2 rounded-lg text-gray-400">{% trans "Promotions" %} · {% trans "soon" %}</span>
+      <span class="block px-3 py-2 rounded-lg text-gray-400">{% trans "Settings" %} · {% trans "soon" %}</span>
+    </nav>
+  </aside>
+
+  <div class="flex-1 flex flex-col">
+    <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+      <span class="text-sm text-gray-500">{{ request.tenant.city }}</span>
+      <div class="text-sm">
+        <span class="text-gray-600 mr-3">{{ user.email }}</span>
+        <a href="{% url 'account_logout' %}" class="text-indigo-600 hover:underline">{% trans "Sign out" %}</a>
+      </div>
+    </header>
+
+    <main class="p-6">
+      <h1 class="text-2xl font-bold mb-2">{% trans "Welcome" %} 👋</h1>
+      <p class="text-gray-600">
+        {% blocktrans with status=request.tenant.subscription_status %}
+        Your business is set up. Subscription status: {{ status }}.
+        {% endblocktrans %}
+      </p>
+      <p class="text-gray-400 text-sm mt-4">{% trans "Catalog and promotions arrive in the next sprints." %}</p>
+    </main>
+  </div>
+</div>
+{% endblock %}

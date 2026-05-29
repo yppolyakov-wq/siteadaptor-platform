@@ -8,9 +8,12 @@
 from django.urls import include, path
 
 from apps.core import health
+from apps.core.views import dashboard
 
 urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("health/", health.liveness, name="health"),
     path("health/ready/", health.readiness, name="health-ready"),
+    # Кабинет владельца на субдомене бизнеса.
+    path("", dashboard, name="dashboard"),
 ]

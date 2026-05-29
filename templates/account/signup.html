@@ -1,0 +1,21 @@
+{% extends "account/base_auth.html" %}
+{% load i18n widget_tweaks %}
+{% block title %}{% trans "Sign up" %}{% endblock %}
+{% block auth_title %}{% trans "Sign up" %}{% endblock %}
+
+{% block auth_content %}
+<form method="post" action="{% url 'account_signup' %}" class="space-y-4">
+  {% csrf_token %}
+  {% for field in form %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" %}
+      {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+  {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
+  <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700">
+    {% trans "Sign up" %}
+  </button>
+</form>
+{% endblock %}

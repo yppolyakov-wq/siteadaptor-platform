@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.core import health
+from apps.tenants.views import BusinessSignupView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -16,4 +17,6 @@ urlpatterns = [
     path("health/ready/", health.readiness, name="health-ready"),
     # Phase 2: авторизация custom-доменов для Caddy on-demand TLS.
     path("internal/verify-domain", health.verify_domain, name="verify-domain"),
+    # Онбординг: регистрация бизнеса → создаёт Tenant + Domain + владельца.
+    path("", BusinessSignupView.as_view(), name="business-signup"),
 ]
