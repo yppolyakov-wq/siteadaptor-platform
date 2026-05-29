@@ -23,7 +23,8 @@ class Command(BaseCommand):
         port_suffix = ":8000" if settings.DEBUG else ""
 
         # Public tenant (admin, агрегатор) — должен существовать.
-        if not Tenant.objects.filter(schema_name="public").exists():
+        public = Tenant.objects.filter(schema_name="public").first()
+        if public is None:
             public = Tenant(
                 schema_name="public",
                 name="Public",
@@ -37,6 +38,17 @@ class Command(BaseCommand):
                 is_primary=True,
             )
             self.stdout.write(self.style.SUCCESS(f"Created public tenant on {base_domain}"))
+
+        # Служебные хосты → public-схема. Без них django-tenants отдаёт 404 на:
+        #   - внутренний запрос Caddy on-demand TLS (Host: web)
+        #   - healthcheck контейнера (Host: localhost)
+        for svc_host in ("web", "localhost"):
+            _, created = Domain.objects.get_or_create(
+                domain=svc_host,
+                defaults={"tenant": public, "is_primary": False},
+            )
+            if created:
+                self.stdout.write(self.style.SUCCESS(f"Mapped service host '{svc_host}' → public"))
 
         # Тестовый tenant
         if not Tenant.objects.filter(schema_name="baeckerei_test").exists():

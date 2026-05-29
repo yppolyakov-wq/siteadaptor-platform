@@ -36,7 +36,12 @@ services:
     env_file: .env.prod
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60
+    # collectstatic при старте самого web-контейнера: одноразовый `run --rm`
+    # складывал статику в эфемерный контейнер, а у gunicorn /app/staticfiles был
+    # пуст → ManifestStaticFilesStorage падал 500 на /admin/.
+    command: >-
+      sh -c "python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60"
     expose:
       - "8000"
     depends_on:
