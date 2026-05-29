@@ -1,10 +1,36 @@
-# Production stack для app-сервера (CPX21).
-# PostgreSQL живёт на отдельном db-сервере (CCX13) — задаётся через DB_HOST в .env.prod.
-# Redis и Caddy крутятся здесь же.
+# Production stack.
 #
-# Деплой: ./scripts/deploy.sh  (см. docs/DEVELOPMENT-GUIDE.md → раздел Деплой)
+# Два режима запуска:
+#   1) Один сервер (dev/тест): Postgres крутится здесь же, в Docker.
+#        docker compose -f docker-compose.prod.yml --profile single up -d
+#        (в .env.prod:  DB_HOST=db)
+#   2) Прод: Postgres на отдельном db-сервере (CCX13), сюда НЕ поднимается.
+#        docker compose -f docker-compose.prod.yml up -d
+#        (в .env.prod:  DB_HOST=<приватный IP db-сервера>)
+#
+# Redis и Caddy крутятся здесь в обоих режимах.
+# Деплой: ./scripts/deploy.sh [single]  (см. docs/DEVELOPMENT-GUIDE.md → Деплой)
 
 services:
+  # Локальный Postgres — только в режиме single (профиль). На проде с отдельным
+  # db-сервером этот сервис не стартует.
+  db:
+    image: postgres:16-alpine
+    profiles: ["single"]
+    env_file: .env.prod
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   web:
     build: .
     env_file: .env.prod
@@ -63,6 +89,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  pgdata:        # данные Postgres в режиме single; деплой их не стирает
   redisdata:
   caddy_data:
   caddy_config:
