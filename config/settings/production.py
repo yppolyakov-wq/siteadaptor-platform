@@ -8,6 +8,13 @@ from .base import env
 DEBUG = False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
+# CSRF: Django требует доверенные origins для HTTPS-POST. Берём из env, по
+# умолчанию — главный домен и все субдомены арендаторов.
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=["https://siteadaptor.de", "https://*.siteadaptor.de"],
+)
+
 # Security
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
