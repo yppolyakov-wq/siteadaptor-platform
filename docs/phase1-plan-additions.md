@@ -56,9 +56,11 @@ class AuditEvent(TimestampedModel):
 
 Полная спецификация: `docs/references/patterns/soft-delete.md`.
 
-### 1.4 Outgoing webhooks scaffold
+### 1.4 Outgoing webhooks scaffold (DONE)
 
 Создать `apps/integrations/webhooks/` с моделями `OutgoingWebhook` и `WebhookDelivery`. Реализация отправки появится в Phase 2, но модели и admin готовы.
+
+Реализовано (SHARED-приложение): `OutgoingWebhook` (url, secret через `token_hex(32)`, event_types, is_active), `WebhookDelivery` (event_id как idempotency-ключ, status, attempts, next_retry_at), read-only-friendly admin, миграция `0001_initial`. Доставка/HMAC/ретраи — Phase 2.
 
 Полная спецификация: `docs/references/patterns/webhook-hmac-signing.md`.
 

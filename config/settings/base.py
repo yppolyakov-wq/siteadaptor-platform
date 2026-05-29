@@ -35,6 +35,7 @@ SHARED_APPS = [
     "djstripe",
     "widget_tweaks",  # template-теги для форм (без БД)
     "apps.audit",  # журнал действий (SHARED), дополнение 1.1
+    "apps.integrations.webhooks",  # scaffold исходящих вебхуков (SHARED), доп. 1.4
     # SHARED apps платформы (раскомментируются по мере прохождения спринтов)
     # "apps.aggregator",       # Sprint 5
     # "apps.global_categories",  # Sprint 5
