@@ -1,20 +1,35 @@
-# Production Caddyfile (placeholder; будет уточнён в Sprint 6 / deploy).
+# Production Caddyfile.
 #
-# Wildcard для subdomain + custom domains через on-demand TLS.
-
-*.platform.com, platform.com {
-    reverse_proxy web:8000
-}
+# Wildcard TLS для всех субдоменов арендаторов (*.siteadaptor.de) выпускается
+# через DNS-01 challenge — поэтому нужен DNS-плагин (см. caddy/Dockerfile) и токен
+# DNS-провайдера в .env.prod (HETZNER_DNS_API_TOKEN).
+#
+# `web` — имя сервиса из docker-compose.prod.yml (Django/gunicorn на :8000).
 
 {
-    on_demand_tls {
-        ask https://platform.com/api/verify-domain
-    }
+	email admin@siteadaptor.de
 }
 
-:443 {
-    tls {
-        on_demand
-    }
-    reverse_proxy web:8000
+siteadaptor.de, *.siteadaptor.de {
+	encode zstd gzip
+	tls {
+		dns hetzner {env.HETZNER_DNS_API_TOKEN}
+	}
+	reverse_proxy web:8000
 }
+
+# --- Phase 2: custom-домены арендаторов/порталов через on-demand TLS ---
+# Раскомментируй, когда дойдёшь до мультидоменных порталов (см.
+# docs/references/patterns не требуется; план §5.6). verify-domain уже реализован.
+#
+# {
+# 	on_demand_tls {
+# 		ask http://web:8000/internal/verify-domain
+# 	}
+# }
+# https:// {
+# 	tls {
+# 		on_demand
+# 	}
+# 	reverse_proxy web:8000
+# }

@@ -5,6 +5,10 @@ promotions with reservations, auto-publishing to channels, local aggregator.
 
 See `docs/` for full vision and Phase 1 spec.
 
+> 👉 **Start here:** [`docs/DEVELOPMENT-GUIDE.md`](docs/DEVELOPMENT-GUIDE.md) — единая
+> пошаговая инструкция: setup, полный чеклист задач по спринтам (план + дополнения),
+> git-флоу, деплой и команды.
+
 ## Stack
 
 Python 3.12+ · Django 5.1 · django-tenants (schema-per-tenant) · PostgreSQL 16 ·

@@ -64,6 +64,22 @@ class Tenant(TenantMixin):
     auto_create_schema = True
     auto_drop_schema = False  # для безопасности — не удалять автоматически
 
+    class Meta:
+        indexes = [
+            # Агрегатор: подбор активных арендаторов по городу.
+            models.Index(fields=["city", "is_active"], name="tenant_city_active_idx"),
+            # Вертикальные порталы (baeckerei.de и т.п.): выборка по типу
+            # бизнеса в городе.
+            models.Index(
+                fields=["business_type", "city"], name="tenant_btype_city_idx"
+            ),
+            # Биллинг-cron: «у кого истекает триал / подписка».
+            models.Index(
+                fields=["subscription_status", "trial_ends_at"],
+                name="tenant_substatus_trial_idx",
+            ),
+        ]
+
     def __str__(self):
         return f"{self.name} ({self.schema_name})"
 
