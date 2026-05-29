@@ -1661,7 +1661,7 @@ class Command(BaseCommand):
    - Polling worker через Celery beat
    - Auth flow: customer вводит код в боте → linked
 4. Stripe integration через dj-stripe:
-   - SubscriptionPlan seed (один план: "Standard 30€/мес")
+   - SubscriptionPlan seed (один план: "Standard 39€/мес")
    - Stripe Checkout integration
    - Webhook handler для subscription events
    - Customer Portal redirect
@@ -1717,7 +1717,7 @@ class Command(BaseCommand):
 6. Tests с mock bot
 
 Под-задача 6C: Billing
-1. SubscriptionPlan seed: один план "Standard" — 30€/мес, stripe_price_id
+1. SubscriptionPlan seed: один план "Standard" — 39€/мес, stripe_price_id
 2. Stripe Checkout view: create session, redirect
 3. dj-stripe webhook handler:
    - customer.subscription.created → Tenant.subscription_status='active'
