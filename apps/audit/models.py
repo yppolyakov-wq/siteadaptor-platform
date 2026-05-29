@@ -34,8 +34,8 @@ class AuditEvent(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["resource_type", "resource_id"]),
-            models.Index(fields=["tenant_schema", "-created_at"]),
+            models.Index(fields=["resource_type", "resource_id"], name="audit_resource_idx"),
+            models.Index(fields=["tenant_schema", "-created_at"], name="audit_tenant_created_idx"),
         ]
         ordering = ["-created_at"]
 
