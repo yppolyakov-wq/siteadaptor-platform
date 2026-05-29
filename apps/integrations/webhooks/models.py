@@ -27,7 +27,9 @@ class OutgoingWebhook(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        indexes = [models.Index(fields=["tenant_schema", "is_active"])]
+        indexes = [
+            models.Index(fields=["tenant_schema", "is_active"], name="webhook_tenant_active_idx")
+        ]
 
     def __str__(self):
         return f"{self.tenant_schema} → {self.url}"
@@ -58,7 +60,9 @@ class WebhookDelivery(models.Model):
     next_retry_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class Meta:
-        indexes = [models.Index(fields=["status", "next_retry_at"])]
+        indexes = [
+            models.Index(fields=["status", "next_retry_at"], name="webhook_delivery_status_idx")
+        ]
         ordering = ["-created_at"]
 
     def __str__(self):
