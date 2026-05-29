@@ -67,10 +67,36 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST", default="localhost"),
         "PORT": env("DB_PORT", default="5432"),
+        # Persistent connections: при schema-per-tenant каждый запрос делает
+        # SET search_path, поэтому пересоздавать соединение на каждый request
+        # дорого. CONN_MAX_AGE переиспользует соединение, health checks
+        # отбраковывают «протухшие».
+        # ВНИМАНИЕ: при использовании PgBouncer допустим только session-pooling
+        # режим — transaction-pooling несовместим с search_path арендатора.
+        "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=60),
+        "CONN_HEALTH_CHECKS": True,
     }
 }
 
 DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+
+# ---------------------------------------------------------------------------
+# Cache & sessions (Redis)
+# ---------------------------------------------------------------------------
+# Redis уже есть в стеке. Без явного CACHES Django падает на LocMemCache,
+# который не шарится между gunicorn-воркерами. Отдельный db-индекс (/1),
+# чтобы не пересекаться с Celery broker (/0).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": env("REDIS_CACHE_URL", default="redis://localhost:6379/1"),
+    }
+}
+
+# Сессии — в кэш (Redis), а не в БД shared-схемы (меньше write-нагрузки
+# на каждый запрос аутентифицированного арендатора).
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
 # ---------------------------------------------------------------------------
 # Middleware
@@ -154,7 +180,11 @@ LOGOUT_REDIRECT_URL = "/"
 # Celery
 # ---------------------------------------------------------------------------
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = "django-db"
+# Результаты задач — в Redis с TTL, а не в Postgres ("django-db"): тот писал
+# строку на КАЖДУЮ задачу (рассылки, публикации) → bloat + write-нагрузка.
+CELERY_RESULT_BACKEND = env("REDIS_RESULT_URL", default="redis://localhost:6379/2")
+CELERY_RESULT_EXPIRES = 60 * 60  # 1 час
+CELERY_RESULT_EXTENDED = True
 CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TIMEZONE = TIME_ZONE
