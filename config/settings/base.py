@@ -179,7 +179,10 @@ SITE_ID = 1
 TENANT_DOMAIN_BASE = env("TENANT_DOMAIN_BASE", default="siteadaptor.de")
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+# mandatory требует рабочей отправки почты (Resend). Пока RESEND_API_KEY не
+# настроен, держим optional через env, иначе вход падает 500 на отправке письма.
+# На боевом проде с настроенным Resend → ACCOUNT_EMAIL_VERIFICATION=mandatory.
+ACCOUNT_EMAIL_VERIFICATION = env("ACCOUNT_EMAIL_VERIFICATION", default="optional")
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
@@ -199,10 +202,14 @@ CELERY_TIMEZONE = TIME_ZONE
 # ---------------------------------------------------------------------------
 # Email (Resend через django-anymail)
 # ---------------------------------------------------------------------------
-ANYMAIL = {
-    "RESEND_API_KEY": env("RESEND_API_KEY", default=""),
-}
-EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+_RESEND_API_KEY = env("RESEND_API_KEY", default="")
+ANYMAIL = {"RESEND_API_KEY": _RESEND_API_KEY}
+# Без ключа Resend письма слать нечем → используем консольный бэкенд, иначе
+# любая отправка (напр. верификация email при signup) падает 500.
+if _RESEND_API_KEY:
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@platform.local")
 
 # ---------------------------------------------------------------------------
