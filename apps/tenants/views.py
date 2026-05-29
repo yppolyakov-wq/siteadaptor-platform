@@ -31,7 +31,6 @@ class BusinessSignupView(View):
         )
         messages.success(
             request,
-            _("Business '%(name)s' created. Sign in on your subdomain.")
-            % {"name": tenant.name},
+            _("Business '%(name)s' created. Sign in on your subdomain.") % {"name": tenant.name},
         )
         return redirect(login_url)

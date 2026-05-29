@@ -36,9 +36,7 @@ class Command(BaseCommand):
                 tenant=public,
                 is_primary=True,
             )
-            self.stdout.write(
-                self.style.SUCCESS(f"Created public tenant on {base_domain}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Created public tenant on {base_domain}"))
 
         # Тестовый tenant
         if not Tenant.objects.filter(schema_name="baeckerei_test").exists():

@@ -45,18 +45,29 @@ def test_create_business_creates_tenant_domain_and_owner():
 @pytest.mark.django_db
 def test_signup_form_rejects_reserved_and_bad_slug():
     base = {
-        "business_name": "X", "business_type": "bakery", "city": "Y",
-        "email": "a@b.test", "password1": "longenough1", "password2": "longenough1",
+        "business_name": "X",
+        "business_type": "bakery",
+        "city": "Y",
+        "email": "a@b.test",
+        "password1": "longenough1",
+        "password2": "longenough1",
     }
-    assert not BusinessSignupForm({**base, "slug": "admin"}).is_valid()      # reserved
-    assert not BusinessSignupForm({**base, "slug": "Bad_Slug"}).is_valid()   # invalid chars
+    assert not BusinessSignupForm({**base, "slug": "admin"}).is_valid()  # reserved
+    assert not BusinessSignupForm({**base, "slug": "Bad_Slug"}).is_valid()  # invalid chars
 
 
 @pytest.mark.django_db
 def test_signup_form_password_mismatch():
-    form = BusinessSignupForm({
-        "business_name": "X", "slug": "shop", "business_type": "bakery", "city": "Y",
-        "email": "a@b.test", "password1": "longenough1", "password2": "different2",
-    })
+    form = BusinessSignupForm(
+        {
+            "business_name": "X",
+            "slug": "shop",
+            "business_type": "bakery",
+            "city": "Y",
+            "email": "a@b.test",
+            "password1": "longenough1",
+            "password2": "different2",
+        }
+    )
     assert not form.is_valid()
     assert "password2" in form.errors

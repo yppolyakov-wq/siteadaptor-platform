@@ -21,8 +21,14 @@ class TenantAdmin(ModelAdmin):
 
     fieldsets = (
         (None, {"fields": ("name", "slug", "schema_name", "business_type", "is_active")}),
-        ("Location", {"fields": ("country", "city", "district", "address", "latitude", "longitude")}),
-        ("Localization", {"fields": ("default_locale", "enabled_locales", "default_currency", "timezone")}),
+        (
+            "Location",
+            {"fields": ("country", "city", "district", "address", "latitude", "longitude")},
+        ),
+        (
+            "Localization",
+            {"fields": ("default_locale", "enabled_locales", "default_currency", "timezone")},
+        ),
         ("Region / Modules", {"fields": ("data_region", "enabled_modules")}),
         ("Branding", {"fields": ("logo_url", "primary_color")}),
         (

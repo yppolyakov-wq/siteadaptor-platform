@@ -44,8 +44,18 @@ def test_domain_factory_links_to_tenant():
 @pytest.mark.django_db
 def test_tenant_business_type_choices():
     choices = dict(Tenant.BUSINESS_TYPES)
-    for key in ("bakery", "butcher", "grocery", "clothing", "restaurant", "cafe",
-                "retail", "tour_operator", "hotel", "other"):
+    for key in (
+        "bakery",
+        "butcher",
+        "grocery",
+        "clothing",
+        "restaurant",
+        "cafe",
+        "retail",
+        "tour_operator",
+        "hotel",
+        "other",
+    ):
         assert key in choices
 
 

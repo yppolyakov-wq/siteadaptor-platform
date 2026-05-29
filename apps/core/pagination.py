@@ -27,8 +27,9 @@ class Page:
     has_more: bool
 
 
-def paginate(qs, *, order_field: str, limit: int = 20,
-             cursor: str | None = None, descending: bool = True) -> Page:
+def paginate(
+    qs, *, order_field: str, limit: int = 20, cursor: str | None = None, descending: bool = True
+) -> Page:
     """Keyset-пагинация по (order_field, pk)."""
     limit = max(1, min(limit, 100))  # защита от выгрузки всего
     sign = "-" if descending else ""

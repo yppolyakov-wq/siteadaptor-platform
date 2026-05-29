@@ -21,9 +21,7 @@ class BusinessSignupForm(forms.Form):
         max_length=100,
         help_text=_("{slug}.siteadaptor.de — only a-z, 0-9 and hyphen."),
     )
-    business_type = forms.ChoiceField(
-        label=_("Business type"), choices=Tenant.BUSINESS_TYPES
-    )
+    business_type = forms.ChoiceField(label=_("Business type"), choices=Tenant.BUSINESS_TYPES)
     city = forms.CharField(label=_("City"), max_length=100)
     email = forms.EmailField(label=_("Your email"))
     password1 = forms.CharField(label=_("Password"), widget=forms.PasswordInput, min_length=8)

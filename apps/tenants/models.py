@@ -70,9 +70,7 @@ class Tenant(TenantMixin):
             models.Index(fields=["city", "is_active"], name="tenant_city_active_idx"),
             # Вертикальные порталы (baeckerei.de и т.п.): выборка по типу
             # бизнеса в городе.
-            models.Index(
-                fields=["business_type", "city"], name="tenant_btype_city_idx"
-            ),
+            models.Index(fields=["business_type", "city"], name="tenant_btype_city_idx"),
             # Биллинг-cron: «у кого истекает триал / подписка».
             models.Index(
                 fields=["subscription_status", "trial_ends_at"],
