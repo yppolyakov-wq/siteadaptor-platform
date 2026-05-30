@@ -51,3 +51,6 @@ Thumbs.db
 # Build / lockfiles for tools we don't commit
 uv.lock
 .venv-ci/
+
+# Redis dump from local test runs
+dump.rdb
