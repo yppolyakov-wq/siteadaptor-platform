@@ -1,0 +1,53 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Catalog" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-bold">{% trans "Products" %}</h1>
+  <a href="{% url 'catalog:product-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+    + {% trans "New product" %}
+  </a>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm p-4">
+  <div class="flex flex-wrap gap-3 mb-4">
+    <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Search…' %}"
+           class="flex-1 min-w-[200px] rounded-lg border border-gray-300 px-3 py-2"
+           hx-get="{% url 'catalog:product-list' %}"
+           hx-trigger="keyup changed delay:300ms, search"
+           hx-target="#product-rows" hx-include="[name='category'],[name='active']">
+    <select name="category" class="rounded-lg border border-gray-300 px-3 py-2"
+            hx-get="{% url 'catalog:product-list' %}" hx-target="#product-rows"
+            hx-include="[name='q'],[name='active']">
+      <option value="">{% trans "All categories" %}</option>
+      {% for c in categories %}
+        <option value="{{ c.pk }}" {% if selected_category == c.pk|stringformat:'s' %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    <select name="active" class="rounded-lg border border-gray-300 px-3 py-2"
+            hx-get="{% url 'catalog:product-list' %}" hx-target="#product-rows"
+            hx-include="[name='q'],[name='category']">
+      <option value="">{% trans "Any status" %}</option>
+      <option value="1" {% if active == '1' %}selected{% endif %}>{% trans "Active" %}</option>
+      <option value="0" {% if active == '0' %}selected{% endif %}>{% trans "Inactive" %}</option>
+    </select>
+  </div>
+
+  <table class="w-full text-sm">
+    <thead class="text-left text-gray-500 border-b">
+      <tr>
+        <th class="py-2">{% trans "Name" %}</th>
+        <th class="py-2">{% trans "SKU" %}</th>
+        <th class="py-2">{% trans "Category" %}</th>
+        <th class="py-2">{% trans "Price" %}</th>
+        <th class="py-2">{% trans "Active" %}</th>
+        <th class="py-2"></th>
+      </tr>
+    </thead>
+    <tbody id="product-rows">
+      {% include "catalog/_product_rows.html" %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

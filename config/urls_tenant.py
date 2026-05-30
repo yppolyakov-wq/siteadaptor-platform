@@ -14,6 +14,8 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("health/", health.liveness, name="health"),
     path("health/ready/", health.readiness, name="health-ready"),
+    # Каталог в кабинете владельца.
+    path("catalog/", include("apps.catalog.urls")),
     # Кабинет владельца на субдомене бизнеса.
     path("", dashboard, name="dashboard"),
 ]

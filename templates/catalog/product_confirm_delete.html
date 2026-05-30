@@ -1,0 +1,17 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Delete product" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-md">
+  <h1 class="text-2xl font-bold mb-4">{% trans "Delete product" %}</h1>
+  <p class="text-gray-600 mb-4">
+    {% blocktrans with name=product %}Delete “{{ name }}”? It can be restored from the admin.{% endblocktrans %}
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-700">{% trans "Delete" %}</button>
+    <a href="{% url 'catalog:product-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

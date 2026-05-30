@@ -6,5 +6,5 @@ from django.shortcuts import render
 
 @login_required
 def dashboard(request):
-    """Плейсхолдер кабинета владельца. Каталог/акции — следующие спринты."""
-    return render(request, "tenant/dashboard.html")
+    """Главная кабинета владельца."""
+    return render(request, "tenant/dashboard.html", {"nav": "dashboard"})

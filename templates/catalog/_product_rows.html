@@ -1,0 +1,16 @@
+{% load i18n %}
+{% for p in products %}
+<tr class="border-b last:border-0">
+  <td class="py-2 font-medium">{{ p }}</td>
+  <td class="py-2 text-gray-500">{{ p.sku|default:"—" }}</td>
+  <td class="py-2 text-gray-500">{{ p.category|default:"—" }}</td>
+  <td class="py-2">{{ p.base_price }} {{ p.currency }}</td>
+  <td class="py-2">{% if p.is_active %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
+  <td class="py-2 text-right whitespace-nowrap">
+    <a href="{% url 'catalog:product-edit' p.pk %}" class="text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+    <a href="{% url 'catalog:product-delete' p.pk %}" class="text-red-600 hover:underline ml-3">{% trans "Delete" %}</a>
+  </td>
+</tr>
+{% empty %}
+<tr><td colspan="6" class="py-6 text-center text-gray-400">{% trans "No products yet." %}</td></tr>
+{% endfor %}
