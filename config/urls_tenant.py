@@ -5,7 +5,9 @@
 отдельный HTMX-UI (Sprint 2), а не Django admin.
 """
 
+from django.conf import settings
 from django.urls import include, path
+from django.views.static import serve
 
 from apps.core import health
 from apps.core.views import dashboard
@@ -19,3 +21,9 @@ urlpatterns = [
     # Кабинет владельца на субдомене бизнеса.
     path("", dashboard, name="dashboard"),
 ]
+
+# Раздача загруженных медиа Django, когда нет S3 (single-сервер).
+if getattr(settings, "SERVE_MEDIA", False):
+    urlpatterns += [
+        path("media/<path:path>", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]

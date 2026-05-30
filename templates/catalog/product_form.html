@@ -8,7 +8,41 @@
     {% if is_create %}{% trans "New product" %}{% else %}{% trans "Edit product" %}{% endif %}
   </h1>
 
-  <form method="post" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {# Существующие картинки (только в режиме редактирования) #}
+  {% if product and product.images %}
+    <div class="mb-4">
+      <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
+      <div class="flex flex-wrap gap-3">
+        {% for img in product.images %}
+          <div class="relative w-24 border rounded-lg overflow-hidden {% if img.is_primary %}ring-2 ring-indigo-500{% endif %}">
+            <img src="{{ img.url }}" alt="" class="w-24 h-24 object-cover">
+            <div class="flex text-xs">
+              {% if not img.is_primary %}
+              <form method="post" action="{% url 'catalog:product-image-primary' product.pk img.id %}" class="flex-1">
+                {% csrf_token %}
+                <button class="w-full py-1 text-indigo-600 hover:bg-indigo-50">★</button>
+              </form>
+              {% else %}
+              <span class="flex-1 py-1 text-center text-indigo-600">{% trans "Main" %}</span>
+              {% endif %}
+              <form method="post" action="{% url 'catalog:product-image-delete' product.pk img.id %}">
+                {% csrf_token %}
+                <button class="px-2 py-1 text-red-600 hover:bg-red-50">✕</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
     {% csrf_token %}
     {% for field in form %}
       <div>
@@ -18,6 +52,14 @@
       </div>
     {% endfor %}
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
+
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
+      <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple
+             class="w-full text-sm">
+      <p class="text-xs text-gray-400 mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
+    </div>
+
     <div class="flex gap-3">
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
       <a href="{% url 'catalog:product-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>

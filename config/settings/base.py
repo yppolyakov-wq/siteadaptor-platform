@@ -222,19 +222,33 @@ DJSTRIPE_WEBHOOK_SECRET = env("DJSTRIPE_WEBHOOK_SECRET", default="")
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 # ---------------------------------------------------------------------------
-# Storage (S3-compatible Hetzner Object Storage в production)
+# Media & storage
 # ---------------------------------------------------------------------------
-STORAGES = {
-    "default": {
+MEDIA_URL = "/media/"
+MEDIA_ROOT = env("MEDIA_ROOT", default=str(BASE_DIR / "media"))
+
+# S3 (Hetzner Object Storage), если задан ключ; иначе — локальная ФС.
+# Так single-сервер без S3 хранит загрузки на диске (медиа-том в compose),
+# а полноценный прод с ключами — в объектном хранилище.
+_AWS_KEY = env("AWS_ACCESS_KEY_ID", default="")
+if _AWS_KEY:
+    _default_storage = {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
-            "access_key": env("AWS_ACCESS_KEY_ID", default=""),
+            "access_key": _AWS_KEY,
             "secret_key": env("AWS_SECRET_ACCESS_KEY", default=""),
             "bucket_name": env("AWS_STORAGE_BUCKET_NAME", default=""),
             "endpoint_url": env("AWS_S3_ENDPOINT_URL", default=""),
             "region_name": env("AWS_S3_REGION_NAME", default="eu-central"),
         },
-    },
+    }
+    SERVE_MEDIA = False  # отдаёт S3/CDN
+else:
+    _default_storage = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+    SERVE_MEDIA = True  # Django сам отдаёт /media/ (single-сервер)
+
+STORAGES = {
+    "default": _default_storage,
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },

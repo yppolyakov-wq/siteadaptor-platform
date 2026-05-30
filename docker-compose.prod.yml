@@ -44,6 +44,8 @@ services:
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60"
     expose:
       - "8000"
+    volumes:
+      - media:/app/media  # загруженные картинки переживают передеплой
     networks:
       default:
         # Алиас, чтобы Caddy слал on-demand TLS ask-запрос с Host: siteadaptor.de

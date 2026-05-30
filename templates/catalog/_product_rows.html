@@ -1,6 +1,11 @@
 {% load i18n %}
 {% for p in products %}
 <tr class="border-b last:border-0">
+  <td class="py-2">
+    {% with img=p.primary_image %}
+      {% if img %}<img src="{{ img.url }}" alt="" class="w-10 h-10 rounded object-cover">{% else %}<div class="w-10 h-10 rounded bg-gray-100"></div>{% endif %}
+    {% endwith %}
+  </td>
   <td class="py-2 font-medium">{{ p }}</td>
   <td class="py-2 text-gray-500">{{ p.sku|default:"—" }}</td>
   <td class="py-2 text-gray-500">{{ p.category|default:"—" }}</td>
@@ -12,5 +17,5 @@
   </td>
 </tr>
 {% empty %}
-<tr><td colspan="6" class="py-6 text-center text-gray-400">{% trans "No products yet." %}</td></tr>
+<tr><td colspan="7" class="py-6 text-center text-gray-400">{% trans "No products yet." %}</td></tr>
 {% endfor %}

@@ -4,8 +4,10 @@
 Django admin живёт ТОЛЬКО здесь (платформенный суперадмин), не на субдоменах.
 """
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from django.views.static import serve
 
 from apps.core import health
 from apps.tenants.views import BusinessSignupView
@@ -20,3 +22,9 @@ urlpatterns = [
     # Онбординг: регистрация бизнеса → создаёт Tenant + Domain + владельца.
     path("", BusinessSignupView.as_view(), name="business-signup"),
 ]
+
+# Раздача загруженных медиа Django, когда нет S3 (single-сервер).
+if getattr(settings, "SERVE_MEDIA", False):
+    urlpatterns += [
+        path("media/<path:path>", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]
