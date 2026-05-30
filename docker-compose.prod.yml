@@ -103,6 +103,7 @@ services:
 
 volumes:
   pgdata:        # данные Postgres в режиме single; деплой их не стирает
+  media:         # загруженные картинки товаров (переживают передеплой)
   redisdata:
   caddy_data:
   caddy_config:
