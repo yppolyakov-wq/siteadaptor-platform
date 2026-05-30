@@ -80,6 +80,6 @@ select = ["E", "F", "W", "I", "B", "UP", "DJ"]
 ignore = ["E501"]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings.development"
+DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py", "tests.py"]
 addopts = "-ra --strict-markers"
