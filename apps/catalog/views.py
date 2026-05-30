@@ -16,8 +16,9 @@ def _filtered_products(request):
     qs = Product.objects.select_related("category").all()
     q = (request.GET.get("q") or "").strip()
     if q:
-        # поиск по i18n-name (JSONField) и sku
-        qs = qs.filter(Q(name__icontains=q) | Q(sku__icontains=q))
+        # Поиск по i18n-name (по ключам JSONField — icontains по jsonb не
+        # поддерживается Postgres напрямую) и по sku.
+        qs = qs.filter(Q(name__de__icontains=q) | Q(name__en__icontains=q) | Q(sku__icontains=q))
     category = request.GET.get("category")
     if category:
         qs = qs.filter(category_id=category)
