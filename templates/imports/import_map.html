@@ -1,0 +1,49 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Map columns" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-semibold">{% trans "Map columns" %}</h1>
+</div>
+
+<form method="post" class="max-w-2xl space-y-5">
+  {% csrf_token %}
+  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-500 text-left">
+        <tr>
+          <th class="px-4 py-2">{% trans "CSV column" %}</th>
+          <th class="px-4 py-2">{% trans "Product field" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for header in headers %}
+        <tr class="border-t border-gray-100">
+          <td class="px-4 py-2 font-mono">{{ header }}</td>
+          <td class="px-4 py-2">
+            <select name="map__{{ header }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+              <option value="">{% trans "— ignore —" %}</option>
+              {% for value, label in fields %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">{% trans "No columns detected." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <label class="flex items-center gap-2 text-sm">
+    <input type="checkbox" name="update_existing" class="rounded border-gray-300" />
+    {% trans "Update existing products by SKU" %}
+  </label>
+
+  <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">
+    {% trans "Start preview" %}
+  </button>
+</form>
+{% endblock %}

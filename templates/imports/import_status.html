@@ -1,0 +1,12 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Import status" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-semibold">{% trans "Import status" %}</h1>
+  <a href="{% url 'imports:start' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Back to imports" %}</a>
+</div>
+
+{% include "imports/_status_card.html" %}
+{% endblock %}
