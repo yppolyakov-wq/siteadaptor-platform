@@ -230,8 +230,10 @@ MEDIA_ROOT = env("MEDIA_ROOT", default=str(BASE_DIR / "media"))
 # S3 (Hetzner Object Storage), если задан ключ; иначе — локальная ФС.
 # Так single-сервер без S3 хранит загрузки на диске (медиа-том в compose),
 # а полноценный прод с ключами — в объектном хранилище.
-_AWS_KEY = env("AWS_ACCESS_KEY_ID", default="")
-if _AWS_KEY:
+_AWS_KEY = env("AWS_ACCESS_KEY_ID", default="").strip()
+# Плейсхолдер CHANGE-ME из .env.prod.example НЕ считается настоящим ключом,
+# иначе S3 выбирается с фейковыми кредами и загрузка падает InvalidAccessKeyId.
+if _AWS_KEY and not _AWS_KEY.upper().startswith("CHANGE-ME"):
     _default_storage = {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
