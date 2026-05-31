@@ -1,0 +1,24 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">{% trans "Current offers" %}</h1>
+
+<div class="space-y-4">
+  {% for p in promotions %}
+    <a href="{% url 'storefront-promotion' p.pk %}" class="block bg-white rounded-2xl shadow-sm p-5 hover:shadow">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-semibold">{{ p.title_text }}</h2>
+          <p class="text-sm text-gray-500 mt-1">{{ p.description_text }}</p>
+        </div>
+        {% if p.available_quantity is not None %}
+          <span class="text-xs text-gray-400">{{ p.available_quantity }} {% trans "left" %}</span>
+        {% endif %}
+      </div>
+    </a>
+  {% empty %}
+    <p class="text-gray-400">{% trans "No current offers." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

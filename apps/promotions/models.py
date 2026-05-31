@@ -75,6 +75,14 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     def __str__(self):
         return self.get_i18n("title") or str(self.pk)
 
+    @property
+    def title_text(self) -> str:
+        return self.get_i18n("title")
+
+    @property
+    def description_text(self) -> str:
+        return self.get_i18n("description")
+
 
 class Reservation(TimestampedModel):
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name="reservations")
