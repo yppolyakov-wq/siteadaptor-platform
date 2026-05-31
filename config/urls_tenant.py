@@ -20,6 +20,8 @@ urlpatterns = [
     path("catalog/", include("apps.catalog.urls")),
     # CSV-импорт товаров.
     path("imports/", include("apps.imports.urls")),
+    # Акции и брони в кабинете владельца.
+    path("promotions/", include("apps.promotions.urls")),
     # Кабинет владельца на субдомене бизнеса.
     path("", dashboard, name="dashboard"),
 ]

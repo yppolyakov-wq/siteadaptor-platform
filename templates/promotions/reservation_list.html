@@ -1,0 +1,83 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Reservations" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-bold">{% trans "Reservations" %}</h1>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="bg-white rounded-2xl shadow-sm p-4">
+  <form method="get" class="flex flex-wrap gap-3 mb-4">
+    <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="">{% trans "Any status" %}</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <select name="promotion" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="">{% trans "All promotions" %}</option>
+      {% for p in promotions %}
+        <option value="{{ p.pk }}" {% if selected_promotion == p.pk|stringformat:'s' %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <table class="w-full text-sm">
+    <thead class="text-left text-gray-500 border-b">
+      <tr>
+        <th class="py-2">{% trans "Code" %}</th>
+        <th class="py-2">{% trans "Promotion" %}</th>
+        <th class="py-2">{% trans "Customer" %}</th>
+        <th class="py-2">{% trans "Qty" %}</th>
+        <th class="py-2">{% trans "Status" %}</th>
+        <th class="py-2">{% trans "Expires" %}</th>
+        <th class="py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reservations %}
+        <tr class="border-b last:border-0">
+          <td class="py-2 font-mono">{{ r.reference_code }}</td>
+          <td class="py-2">{{ r.promotion }}</td>
+          <td class="py-2">{{ r.customer }}<div class="text-xs text-gray-400">{{ r.customer.email }} {{ r.customer.phone }}</div></td>
+          <td class="py-2">{{ r.quantity }}</td>
+          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ r.status }}</span></td>
+          <td class="py-2 text-gray-500">{{ r.expires_at|default:"—" }}</td>
+          <td class="py-2 text-right whitespace-nowrap">
+            {% if r.status == 'pending' %}
+              <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="inline">
+                {% csrf_token %}<input type="hidden" name="action" value="confirm">
+                <button class="text-green-700 hover:underline">{% trans "Confirm" %}</button>
+              </form>
+              <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="inline ml-2">
+                {% csrf_token %}<input type="hidden" name="action" value="cancel">
+                <button class="text-red-600 hover:underline">{% trans "Cancel" %}</button>
+              </form>
+            {% elif r.status == 'confirmed' %}
+              <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="inline">
+                {% csrf_token %}<input type="hidden" name="action" value="fulfill">
+                <button class="text-indigo-600 hover:underline">{% trans "Fulfill" %}</button>
+              </form>
+              <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="inline ml-2">
+                {% csrf_token %}<input type="hidden" name="action" value="cancel">
+                <button class="text-red-600 hover:underline">{% trans "Cancel" %}</button>
+              </form>
+            {% else %}
+              <span class="text-gray-300">—</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="py-6 text-center text-gray-400">{% trans "No reservations." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
