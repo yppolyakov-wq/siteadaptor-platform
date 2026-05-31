@@ -6,8 +6,10 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.catalog.images import delete_stored_image, save_product_image
 from apps.core.fsm import IllegalTransition
 
 from . import services
@@ -35,6 +37,27 @@ def _promo_actions(promo):
     ]
 
 
+def _handle_promo_uploads(request, promo) -> None:
+    """Сохраняет загруженные файлы в promo.images (FileRef-envelope)."""
+    files = request.FILES.getlist("images")
+    if not files:
+        return
+    images = list(promo.images or [])
+    has_primary = any(img.get("is_primary") for img in images)
+    for f in files:
+        try:
+            ref = save_product_image(
+                f, is_primary=not has_primary, sort_order=len(images), folder="promotions"
+            )
+        except ValidationError as exc:
+            messages.error(request, f"{f.name}: {'; '.join(exc.messages)}")
+            continue
+        has_primary = True
+        images.append(ref)
+    promo.images = images
+    promo.save(update_fields=["images", "updated_at"])
+
+
 @login_required
 def promotion_list(request):
     promos = Promotion.objects.select_related("product").all()
@@ -50,9 +73,10 @@ def promotion_list(request):
 
 @login_required
 def promotion_create(request):
-    form = PromotionForm(request.POST or None)
+    form = PromotionForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         promo = form.save()
+        _handle_promo_uploads(request, promo)
         return redirect("promotions:promotion-edit", pk=promo.pk)
     return render(
         request,
@@ -64,9 +88,10 @@ def promotion_create(request):
 @login_required
 def promotion_edit(request, pk):
     promo = get_object_or_404(Promotion, pk=pk)
-    form = PromotionForm(request.POST or None, instance=promo)
+    form = PromotionForm(request.POST or None, request.FILES or None, instance=promo)
     if request.method == "POST" and form.is_valid():
         promo = form.save()
+        _handle_promo_uploads(request, promo)
         return redirect("promotions:promotion-edit", pk=promo.pk)
     return render(
         request,
@@ -79,6 +104,37 @@ def promotion_edit(request, pk):
             "nav": "promotions",
         },
     )
+
+
+@login_required
+def promotion_image_delete(request, pk, image_id):
+    promo = get_object_or_404(Promotion, pk=pk)
+    if request.method == "POST":
+        images = list(promo.images or [])
+        kept, removed_primary = [], False
+        for img in images:
+            if img.get("id") == image_id:
+                delete_stored_image(img)
+                removed_primary = img.get("is_primary", False)
+            else:
+                kept.append(img)
+        if removed_primary and kept:
+            kept[0]["is_primary"] = True
+        promo.images = kept
+        promo.save(update_fields=["images", "updated_at"])
+    return redirect("promotions:promotion-edit", pk=pk)
+
+
+@login_required
+def promotion_image_primary(request, pk, image_id):
+    promo = get_object_or_404(Promotion, pk=pk)
+    if request.method == "POST":
+        images = list(promo.images or [])
+        for img in images:
+            img["is_primary"] = img.get("id") == image_id
+        promo.images = images
+        promo.save(update_fields=["images", "updated_at"])
+    return redirect("promotions:promotion-edit", pk=pk)
 
 
 @login_required

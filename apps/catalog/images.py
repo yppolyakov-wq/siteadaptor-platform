@@ -34,10 +34,10 @@ def validate_image(uploaded) -> str:
     return fmt
 
 
-def save_product_image(uploaded, *, is_primary=False, sort_order=0) -> dict:
+def save_product_image(uploaded, *, is_primary=False, sort_order=0, folder="products") -> dict:
     """Валидирует, сохраняет в storage и возвращает FileRef-dict."""
     fmt = validate_image(uploaded)
-    name = f"products/{uuid.uuid4().hex}.{_EXT[fmt]}"
+    name = f"{folder}/{uuid.uuid4().hex}.{_EXT[fmt]}"
     saved_name = default_storage.save(name, uploaded)
     return {
         "id": uuid.uuid4().hex,
