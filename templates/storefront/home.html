@@ -2,23 +2,49 @@
 {% load i18n %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">{% trans "Current offers" %}</h1>
+<h1 class="text-2xl md:text-3xl font-bold mb-6">{% trans "Current offers" %}</h1>
 
-<div class="space-y-4">
+{% if promotions %}
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
   {% for p in promotions %}
-    <a href="{% url 'storefront-promotion' p.pk %}" class="block bg-white rounded-2xl shadow-sm p-5 hover:shadow">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="font-semibold">{{ p.title_text }}</h2>
-          <p class="text-sm text-gray-500 mt-1">{{ p.description_text }}</p>
-        </div>
+    <a href="{% url 'storefront-promotion' p.pk %}"
+       class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+      <div class="relative aspect-square bg-gray-100">
+        {% with img=p.primary_image %}
+          {% if img %}
+            <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy"
+                 class="w-full h-full object-cover group-hover:scale-[1.02] transition">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% if p.has_discount %}
+          <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
+            {% if p.discount_percent_display %}−{{ p.discount_percent_display }} %{% else %}−{{ p.discount_amount }} €{% endif %}
+          </span>
+        {% endif %}
+      </div>
+      <div class="p-3 md:p-4">
+        <h2 class="font-semibold leading-tight line-clamp-2">{{ p.title_text }}</h2>
+        <div class="mt-2">{% include "storefront/_price.html" with promo=p %}</div>
         {% if p.available_quantity is not None %}
-          <span class="text-xs text-gray-400">{{ p.available_quantity }} {% trans "left" %}</span>
+          <p class="mt-1 text-xs {% if p.available_quantity <= 3 %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">
+            {% blocktrans count n=p.available_quantity %}Only {{ n }} left{% plural %}Only {{ n }} left{% endblocktrans %}
+          </p>
+        {% endif %}
+        {% if p.show_countdown and p.ends_at %}
+          <p class="mt-1 text-xs text-gray-500">
+            {% trans "Ends in" %}
+            <span class="font-mono font-medium" data-countdown="{{ p.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
+          </p>
         {% endif %}
       </div>
     </a>
-  {% empty %}
-    <p class="text-gray-400">{% trans "No current offers." %}</p>
   {% endfor %}
 </div>
+{% else %}
+  <p class="text-gray-400">{% trans "No current offers." %}</p>
+{% endif %}
 {% endblock %}

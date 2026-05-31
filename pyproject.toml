@@ -39,6 +39,9 @@ dependencies = [
     "django-import-export>=4.2",
     "openpyxl>=3.1",
 
+    # QR-коды (витрина/погашение)
+    "segno>=1.6",
+
     # API (для будущего)
     "djangorestframework>=3.15",
     "drf-spectacular>=0.27",

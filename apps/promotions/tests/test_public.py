@@ -17,6 +17,23 @@ def _req(request):
 
 
 @pytest.mark.django_db
+def test_promotion_qr_returns_svg():
+    promo = PromotionFactory(status="active")
+    resp = public_views.promotion_qr(_req(RequestFactory().get("/")), pk=promo.pk)
+    assert resp.status_code == 200
+    assert resp["Content-Type"] == "image/svg+xml"
+    assert b"<svg" in resp.content
+
+
+def test_set_language_sets_cookie():
+    from django.conf import settings
+
+    resp = public_views.set_language(RequestFactory().get("/lang/", {"lang": "en"}))
+    assert resp.status_code == 302
+    assert resp.cookies[settings.LANGUAGE_COOKIE_NAME].value == "en"
+
+
+@pytest.mark.django_db
 def test_storefront_home_lists_active():
     PromotionFactory(status="active", title={"de": "Sommeraktion"})
     PromotionFactory(status="draft", title={"de": "Versteckt"})

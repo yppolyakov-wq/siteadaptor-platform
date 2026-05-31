@@ -27,8 +27,10 @@ urlpatterns = [
     path("promotions/", include("apps.promotions.urls")),
     # --- Публичная витрина (без логина), на корне субдомена ---
     path("", public_views.storefront_home, name="storefront-home"),
+    path("lang/", public_views.set_language, name="storefront-set-language"),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
+    path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),
     path("r/<str:code>/", public_views.reservation_confirmation, name="storefront-confirmation"),
 ]
 
