@@ -212,7 +212,15 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.roll_promotion_statuses",
         "schedule": 300.0,  # каждые 5 минут — scheduled→active, active→ended
     },
+    "purge-reservation-pii": {
+        "task": "apps.promotions.tasks.purge_reservation_pii",
+        "schedule": 86400.0,  # раз в сутки — DSGVO-обезличивание старых контактов
+    },
 }
+
+# DSGVO: через сколько дней после последней активности обезличивать контакты
+# клиентов без активных броней (см. apps/promotions/tasks.py::purge_due_customers).
+RESERVATION_PII_RETENTION_DAYS = env.int("RESERVATION_PII_RETENTION_DAYS", default=90)
 
 # ---------------------------------------------------------------------------
 # Email (Resend через django-anymail)
