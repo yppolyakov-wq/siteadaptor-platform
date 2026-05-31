@@ -101,6 +101,10 @@ class Promotion(SoftDeleteMixin, I18nMixin):
 
     # --- цена и скидка --------------------------------------------------
 
+    @staticmethod
+    def _dec(value):
+        return None if value is None else Decimal(str(value))
+
     @property
     def currency(self) -> str:
         return self.product.currency if self.product_id and self.product else "EUR"
@@ -109,9 +113,9 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     def old_price(self):
         """Старая цена: compare_at_price, иначе base_price товара, иначе None."""
         if self.compare_at_price is not None:
-            return self.compare_at_price
+            return self._dec(self.compare_at_price)
         if self.product_id and self.product:
-            return self.product.base_price
+            return self._dec(self.product.base_price)
         return None
 
     @property
@@ -119,7 +123,7 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         """Новая цена: price_override, иначе old_price со скидкой %, иначе old_price."""
         old = self.old_price
         if self.price_override is not None:
-            return self.price_override
+            return self._dec(self.price_override)
         if self.discount_percent and old is not None:
             factor = (Decimal(100) - Decimal(int(self.discount_percent))) / Decimal(100)
             return (old * factor).quantize(_CENTS, rounding=ROUND_HALF_UP)
