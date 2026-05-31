@@ -49,7 +49,7 @@ TENANT_APPS = [
     "apps.core",  # Task 1.3 — абстрактные миксины/утилиты, без своих таблиц
     "apps.catalog",  # Sprint 2 — каталог товаров/категорий
     "apps.imports",  # Sprint 2 — CSV-импорт товаров
-    # "apps.promotions",
+    "apps.promotions",  # Sprint 3 — акции и резервирование
     # "apps.subscriptions",
     # "apps.publishing",
     # "apps.notifications",
