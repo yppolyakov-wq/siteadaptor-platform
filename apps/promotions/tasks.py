@@ -9,15 +9,22 @@ helper'ы (expire_due_reservations / roll_due_promotions), работающие 
 здесь даёт единое имя и совместимость с dedupe-механизмом.
 """
 
+from datetime import timedelta
+
+from django.conf import settings
+from django.db.models import Max
 from django.utils import timezone
 from django_tenants.utils import get_tenant_model, schema_context
 
 from apps.core.jobs import idempotent_task
 
-from .models import Promotion, Reservation
+from .models import Customer, Promotion, Reservation
 from .notifications import send_reservation_email  # noqa: F401 — регистрация Celery-таска
 from .services import expire
 from .state_machine import PromotionSM
+
+# значение, которым затираем обезличенные контакты
+_ANONYMIZED_NAME = "—"
 
 
 def _iter_tenant_schemas():
@@ -89,3 +96,47 @@ def roll_promotion_statuses():
             activated += res["activated"]
             ended += res["ended"]
     return {"activated": activated, "ended": ended}
+
+
+def purge_due_customers(now=None) -> int:
+    """DSGVO: обезличить контакты клиентов без активных броней (в текущей схеме).
+
+    Кандидат — клиент, у которого нет pending/confirmed броней и чья последняя
+    активность по броням старше RESERVATION_PII_RETENTION_DAYS. Сама строка
+    Customer остаётся (для агрегатной статистики), но PII затирается.
+    """
+    now = now or timezone.now()
+    cutoff = now - timedelta(days=settings.RESERVATION_PII_RETENTION_DAYS)
+
+    active_customer_ids = Reservation.objects.filter(
+        status__in=["pending", "confirmed"]
+    ).values_list("customer_id", flat=True)
+
+    stale = (
+        Customer.objects.exclude(id__in=active_customer_ids)
+        .annotate(last_activity=Max("reservations__updated_at"))
+        .filter(last_activity__isnull=False, last_activity__lt=cutoff)
+        # уже обезличенные не трогаем повторно
+        .exclude(name=_ANONYMIZED_NAME, email="", phone="", note="")
+    )
+
+    count = 0
+    for customer in stale:
+        customer.name = _ANONYMIZED_NAME
+        customer.email = ""
+        customer.phone = ""
+        customer.note = ""
+        customer.save(update_fields=["name", "email", "phone", "note", "updated_at"])
+        count += 1
+    return count
+
+
+@idempotent_task()
+def purge_reservation_pii():
+    """Beat: DSGVO-обезличивание старых контактов во всех схемах арендаторов."""
+    total = 0
+    now = timezone.now()
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += purge_due_customers(now)
+    return {"purged": total}
