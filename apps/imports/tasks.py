@@ -12,9 +12,9 @@ from django_tenants.utils import schema_context
 
 from apps.core.jobs import idempotent_task
 
-from .csvutil import apply_mapping, read_rows
 from .models import ImportJob, ImportRow
 from .processors import get_processor
+from .tabular import apply_mapping, read_rows
 
 BATCH_SIZE = 500
 

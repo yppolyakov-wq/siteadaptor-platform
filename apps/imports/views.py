@@ -9,9 +9,9 @@ from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .csvutil import read_headers
 from .forms import ImportUploadForm
 from .models import ImportJob
+from .tabular import read_headers
 from .tasks import preview_import, run_import
 
 # логические поля товара для маппинга колонок

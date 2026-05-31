@@ -6,13 +6,15 @@
 
 from django import forms
 
+ALLOWED_SUFFIXES = (".csv", ".xlsx", ".xlsm")
+
 
 class ImportUploadForm(forms.Form):
-    source_file = forms.FileField(label="CSV-файл")
+    source_file = forms.FileField(label="CSV- oder Excel-Datei")
 
     def clean_source_file(self):
         f = self.cleaned_data["source_file"]
         name = (f.name or "").lower()
-        if not name.endswith(".csv"):
-            raise forms.ValidationError("Только файлы .csv поддерживаются.")
+        if not name.endswith(ALLOWED_SUFFIXES):
+            raise forms.ValidationError("Nur .csv, .xlsx oder .xlsm werden unterstützt.")
         return f

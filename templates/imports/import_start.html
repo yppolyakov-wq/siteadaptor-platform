@@ -9,14 +9,15 @@
 </div>
 
 <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 max-w-xl">
-  <h2 class="font-medium mb-4">{% trans "Upload a CSV file" %}</h2>
+  <h2 class="font-medium mb-4">{% trans "Upload a CSV or Excel file" %}</h2>
   <form method="post" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
     {% if form.non_field_errors %}
       <div class="text-sm text-red-600">{{ form.non_field_errors }}</div>
     {% endif %}
     <div>
-      {% render_field form.source_file class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
+      {% render_field form.source_file accept=".csv,.xlsx,.xlsm" class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
+      <p class="text-xs text-gray-400 mt-1">{% trans "Supported: .csv, .xlsx, .xlsm" %}</p>
       {% if form.source_file.errors %}
         <p class="text-sm text-red-600 mt-1">{{ form.source_file.errors|striptags }}</p>
       {% endif %}
