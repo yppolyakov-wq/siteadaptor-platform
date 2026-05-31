@@ -48,6 +48,7 @@ TENANT_APPS = [
     # TENANT apps платформы (раскомментируются по мере прохождения спринтов)
     "apps.core",  # Task 1.3 — абстрактные миксины/утилиты, без своих таблиц
     "apps.catalog",  # Sprint 2 — каталог товаров/категорий
+    "apps.imports",  # Sprint 2 — CSV-импорт товаров
     # "apps.promotions",
     # "apps.subscriptions",
     # "apps.publishing",

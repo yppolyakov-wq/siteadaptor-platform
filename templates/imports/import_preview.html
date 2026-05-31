@@ -1,0 +1,59 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Preview" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-semibold">{% trans "Import preview" %}</h1>
+</div>
+
+<div class="grid grid-cols-3 gap-4 mb-6 max-w-xl">
+  <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+    <div class="text-2xl font-semibold">{{ job.total_rows }}</div>
+    <div class="text-xs text-gray-500">{% trans "Total" %}</div>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+    <div class="text-2xl font-semibold text-green-600">{{ job.ok_rows }}</div>
+    <div class="text-xs text-gray-500">{% trans "Valid" %}</div>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+    <div class="text-2xl font-semibold text-red-600">{{ job.error_rows }}</div>
+    <div class="text-xs text-gray-500">{% trans "Errors" %}</div>
+  </div>
+</div>
+
+{% if job.status != "previewed" %}
+  <p class="text-sm text-gray-500 mb-6">{% trans "Status" %}: {{ job.status }} — {% trans "preview is being prepared…" %}</p>
+{% endif %}
+
+{% if error_rows %}
+<h2 class="font-medium mb-3">{% trans "Rows with errors" %}</h2>
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-gray-500 text-left">
+      <tr>
+        <th class="px-4 py-2">{% trans "Line" %}</th>
+        <th class="px-4 py-2">{% trans "Errors" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in error_rows %}
+      <tr class="border-t border-gray-100">
+        <td class="px-4 py-2">{{ row.line_no }}</td>
+        <td class="px-4 py-2 text-red-600">{{ row.errors|join:"; " }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if job.status == "previewed" %}
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">
+    {% trans "Run import" %} ({{ job.ok_rows }})
+  </button>
+</form>
+{% endif %}
+{% endblock %}

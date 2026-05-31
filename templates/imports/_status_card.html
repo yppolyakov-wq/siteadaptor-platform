@@ -1,0 +1,42 @@
+{% load i18n %}
+<div
+  id="import-status-card"
+  class="bg-white border border-gray-200 rounded-xl p-6 max-w-xl"
+  {% if job.status == "running" %}
+    hx-get="{% url 'imports:status' job.pk %}"
+    hx-trigger="every 2s"
+    hx-target="#import-status-card"
+    hx-swap="outerHTML"
+  {% endif %}
+>
+  <div class="flex items-center justify-between mb-4">
+    <span class="font-medium">{% trans "Status" %}</span>
+    <span class="text-sm px-2 py-1 rounded-lg
+      {% if job.status == 'completed' %}bg-green-50 text-green-700
+      {% elif job.status == 'failed' %}bg-red-50 text-red-700
+      {% else %}bg-gray-100 text-gray-700{% endif %}">{{ job.status }}</span>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 text-center">
+    <div>
+      <div class="text-xl font-semibold">{{ job.total_rows }}</div>
+      <div class="text-xs text-gray-500">{% trans "Total" %}</div>
+    </div>
+    <div>
+      <div class="text-xl font-semibold text-green-600">{{ job.ok_rows }}</div>
+      <div class="text-xs text-gray-500">{% trans "Valid" %}</div>
+    </div>
+    <div>
+      <div class="text-xl font-semibold text-red-600">{{ job.error_rows }}</div>
+      <div class="text-xs text-gray-500">{% trans "Errors" %}</div>
+    </div>
+    <div>
+      <div class="text-xl font-semibold">{{ job.processed_rows }}</div>
+      <div class="text-xs text-gray-500">{% trans "Written" %}</div>
+    </div>
+  </div>
+
+  {% if job.error_summary %}
+  <pre class="mt-4 text-xs text-red-600 whitespace-pre-wrap">{{ job.error_summary }}</pre>
+  {% endif %}
+</div>

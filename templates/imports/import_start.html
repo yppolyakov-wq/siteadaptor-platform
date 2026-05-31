@@ -1,0 +1,57 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+{% block dash_title %}{% trans "Imports" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-semibold">{% trans "Product import" %}</h1>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 max-w-xl">
+  <h2 class="font-medium mb-4">{% trans "Upload a CSV file" %}</h2>
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="text-sm text-red-600">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div>
+      {% render_field form.source_file class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
+      {% if form.source_file.errors %}
+        <p class="text-sm text-red-600 mt-1">{{ form.source_file.errors|striptags }}</p>
+      {% endif %}
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">
+      {% trans "Upload and continue" %}
+    </button>
+  </form>
+</div>
+
+<h2 class="font-medium mb-3">{% trans "Recent imports" %}</h2>
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-gray-500 text-left">
+      <tr>
+        <th class="px-4 py-2">{% trans "Created" %}</th>
+        <th class="px-4 py-2">{% trans "Status" %}</th>
+        <th class="px-4 py-2">{% trans "Rows" %}</th>
+        <th class="px-4 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr class="border-t border-gray-100">
+        <td class="px-4 py-2">{{ job.created_at|date:"d.m.Y H:i" }}</td>
+        <td class="px-4 py-2">{{ job.status }}</td>
+        <td class="px-4 py-2">{{ job.ok_rows }} / {{ job.total_rows }}</td>
+        <td class="px-4 py-2 text-right">
+          <a href="{% url 'imports:status' job.pk %}" class="text-indigo-600 hover:underline">{% trans "View" %}</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="px-4 py-6 text-center text-gray-400">{% trans "No imports yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
