@@ -9,6 +9,17 @@
 
 <form method="post" class="max-w-2xl space-y-5">
   {% csrf_token %}
+
+  <div>
+    <label class="block text-sm font-medium mb-1">{% trans "CSV delimiter" %}</label>
+    <select name="delimiter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+      {% for value, label in delimiters %}
+      <option value="{{ value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+    <p class="text-xs text-gray-400 mt-1">{% trans "If columns look wrong, pick the delimiter and reload via Start preview." %}</p>
+  </div>
+
   <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
     <table class="w-full text-sm">
       <thead class="bg-gray-50 text-gray-500 text-left">
@@ -39,8 +50,18 @@
 
   <label class="flex items-center gap-2 text-sm">
     <input type="checkbox" name="update_existing" class="rounded border-gray-300" />
-    {% trans "Update existing products by SKU" %}
+    {% trans "Update existing products instead of creating duplicates" %}
   </label>
+
+  <div>
+    <label class="block text-sm font-medium mb-1">{% trans "Match existing by" %}</label>
+    <select name="match_field" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+      {% for value, label in match_fields %}
+      <option value="{{ value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Used only when 'Update existing' is on." %}</p>
+  </div>
 
   <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">
     {% trans "Start preview" %}

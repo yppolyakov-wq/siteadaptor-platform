@@ -43,8 +43,11 @@ def preview_import(dedupe_key=None, schema_name=None, job_id=None):
             # перезапуск превью не должен задваивать строки
             job.rows.all().delete()
 
+            delimiter = (job.options or {}).get("delimiter")
             total = ok = error = 0
-            for line_no, raw in enumerate(read_rows(job.source_file), start=1):
+            for line_no, raw in enumerate(
+                read_rows(job.source_file, delimiter_key=delimiter), start=1
+            ):
                 data = apply_mapping(raw, job.column_mapping)
                 errors = processor.validate(data)
                 ImportRow.objects.create(
@@ -86,6 +89,7 @@ def run_import(dedupe_key=None, schema_name=None, job_id=None):
             job = ImportJob.objects.get(id=job_id)
             processor = get_processor(job.resource_type)
             update_existing = bool(job.options.get("update_existing", False))
+            match_field = (job.options or {}).get("match_field") or "sku"
 
             job.status = "running"
             job.processed_rows = 0
@@ -98,7 +102,9 @@ def run_import(dedupe_key=None, schema_name=None, job_id=None):
                 with transaction.atomic():
                     for row in batch:
                         data = apply_mapping(row.raw, job.column_mapping)
-                        obj = processor.create_or_update(data, update_existing=update_existing)
+                        obj = processor.create_or_update(
+                            data, update_existing=update_existing, match_field=match_field
+                        )
                         row.created_object_id = str(obj.pk)
                     ImportRow.objects.bulk_update(batch, ["created_object_id"])
                 processed += len(batch)

@@ -59,7 +59,7 @@ class ProductProcessor(BaseProcessor):
 
         return errors
 
-    def create_or_update(self, data: dict, *, update_existing: bool):
+    def create_or_update(self, data: dict, *, update_existing: bool, match_field: str = "sku"):
         name = {}
         if data.get("name_de"):
             name["de"] = str(data["name_de"]).strip()
@@ -102,11 +102,17 @@ class ProductProcessor(BaseProcessor):
             "category": category,
         }
 
-        if update_existing and sku:
-            existing = Product.objects.filter(sku=sku).first()
+        if update_existing:
+            # Поле синхронизации: по нему ищем существующий товар.
+            existing = None
+            if match_field == "name_de" and name.get("de"):
+                existing = Product.objects.filter(name__de=name["de"]).first()
+            elif sku:  # по умолчанию — sku
+                existing = Product.objects.filter(sku=sku).first()
             if existing is not None:
                 for key, value in fields.items():
                     setattr(existing, key, value)
+                existing.sku = sku or existing.sku
                 existing.save()
                 return existing
 

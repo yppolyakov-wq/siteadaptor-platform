@@ -28,6 +28,21 @@ PRODUCT_FIELDS = [
     ("is_active", "Aktiv"),
 ]
 
+# Выбор разделителя CSV (значение → подпись).
+DELIMITER_CHOICES = [
+    ("auto", "Auto"),
+    ("comma", "Komma  ,"),
+    ("semicolon", "Semikolon  ;"),
+    ("tab", "Tab"),
+    ("pipe", "Pipe  |"),
+]
+
+# Поле, по которому ищем существующий товар при обновлении.
+MATCH_FIELD_CHOICES = [
+    ("sku", "SKU"),
+    ("name_de", "Name (DE)"),
+]
+
 
 @login_required
 def import_start(request):
@@ -53,18 +68,21 @@ def import_start(request):
 @login_required
 def import_map(request, pk):
     job = get_object_or_404(ImportJob, pk=pk)
-    headers = read_headers(job.source_file)
 
     if request.method == "POST":
+        delimiter = request.POST.get("delimiter", "auto")
         mapping = {}
-        for header in headers:
+        # заголовки читаем уже выбранным разделителем
+        for header in read_headers(job.source_file, delimiter_key=delimiter):
             logical = request.POST.get(f"map__{header}", "").strip()
             if logical:
                 mapping[header] = logical
         job.column_mapping = mapping
         job.options = {
             **(job.options or {}),
+            "delimiter": delimiter,
             "update_existing": bool(request.POST.get("update_existing")),
+            "match_field": request.POST.get("match_field", "sku"),
         }
         job.status = "mapped"
         job.save(update_fields=["column_mapping", "options", "status", "updated_at"])
@@ -76,6 +94,8 @@ def import_map(request, pk):
         )
         return redirect("imports:preview", pk=job.pk)
 
+    # GET: показываем заголовки по авто-определённому разделителю
+    headers = read_headers(job.source_file)
     return render(
         request,
         "imports/import_map.html",
@@ -83,6 +103,8 @@ def import_map(request, pk):
             "job": job,
             "headers": headers,
             "fields": PRODUCT_FIELDS,
+            "delimiters": DELIMITER_CHOICES,
+            "match_fields": MATCH_FIELD_CHOICES,
             "nav": "imports",
         },
     )
