@@ -1,0 +1,56 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n widget_tweaks %}
+{% block dash_title %}{% if is_create %}{% trans "New promotion" %}{% else %}{% trans "Edit promotion" %}{% endif %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-xl">
+  <h1 class="text-2xl font-bold mb-4">
+    {% if is_create %}{% trans "New promotion" %}{% else %}{% trans "Edit promotion" %}{% endif %}
+  </h1>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {# Текущий статус и кнопки переходов (только при редактировании) #}
+  {% if promotion %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+      <div class="flex items-center gap-2 mb-2 text-sm">
+        <span class="text-gray-500">{% trans "Status" %}:</span>
+        <span class="px-2 py-0.5 rounded-full bg-gray-100 font-medium">{{ promotion.status }}</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        {% for target, label in actions %}
+          <form method="post" action="{% url 'promotions:promotion-transition' promotion.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="target" value="{{ target }}">
+            <button class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">{{ label }}</button>
+          </form>
+        {% empty %}
+          <span class="text-xs text-gray-400">{% trans "No transitions available." %}</span>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
+    {% csrf_token %}
+    {% for field in form %}
+      <div>
+        <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+        {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
+
+    <div class="flex gap-3">
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      <a href="{% url 'promotions:promotion-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Promotions" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-bold">{% trans "Promotions" %}</h1>
+  <a href="{% url 'promotions:promotion-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+    + {% trans "New promotion" %}
+  </a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="bg-white rounded-2xl shadow-sm p-4">
+  <form method="get" class="mb-4">
+    <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="">{% trans "Any status" %}</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <table class="w-full text-sm">
+    <thead class="text-left text-gray-500 border-b">
+      <tr>
+        <th class="py-2">{% trans "Title" %}</th>
+        <th class="py-2">{% trans "Type" %}</th>
+        <th class="py-2">{% trans "Status" %}</th>
+        <th class="py-2">{% trans "Available" %}</th>
+        <th class="py-2">{% trans "Window" %}</th>
+        <th class="py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in promotions %}
+        <tr class="border-b last:border-0">
+          <td class="py-2">{{ p }}</td>
+          <td class="py-2">{{ p.promo_type }}</td>
+          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ p.status }}</span></td>
+          <td class="py-2">{% if p.available_quantity is None %}∞{% else %}{{ p.available_quantity }}{% endif %}</td>
+          <td class="py-2 text-gray-500">{{ p.starts_at|default:"—" }} → {{ p.ends_at|default:"—" }}</td>
+          <td class="py-2 text-right">
+            <a href="{% url 'promotions:promotion-edit' p.pk %}" class="text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="py-6 text-center text-gray-400">{% trans "No promotions yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
