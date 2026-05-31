@@ -7,9 +7,14 @@
 Прямые присваивания obj.status = ... запрещены — двигаем через FSM.
 """
 
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.db import models
+from django.utils import timezone
 
 from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel
+
+_CENTS = Decimal("0.01")
 
 
 class Customer(TimestampedModel):
@@ -47,8 +52,15 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     )
 
     promo_type = models.CharField(max_length=20, choices=PROMO_TYPES, default=RESERVATION)
+    # Скидку владелец задаёт ЛИБО в %, ЛИБО новой ценой (price_override) —
+    # остальное считаем (см. свойства old_price/new_price/discount_*).
     discount_percent = models.PositiveSmallIntegerField(null=True, blank=True)
     price_override = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # Старая (зачёркнутая) цена: если пусто — фолбэк на base_price товара.
+    compare_at_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # Картинки акции (FileRef-envelope, как у товара). Если пусто — фолбэк на фото товара.
+    images = models.JSONField(default=list, blank=True)
 
     # null = без лимита (для discount); для reservation задаёт остаток
     available_quantity = models.IntegerField(null=True, blank=True)
@@ -57,6 +69,10 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # настройки брони
     reservation_ttl_hours = models.PositiveIntegerField(default=24)
     auto_confirm = models.BooleanField(default=False)
+
+    # витрина: показывать обратный отсчёт и зачёркивать старую цену
+    show_countdown = models.BooleanField(default=False)
+    strikethrough_old_price = models.BooleanField(default=True)
 
     status = models.CharField(max_length=20, default="draft", db_index=True)
     starts_at = models.DateTimeField(null=True, blank=True)
@@ -82,6 +98,80 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     @property
     def description_text(self) -> str:
         return self.get_i18n("description")
+
+    # --- цена и скидка --------------------------------------------------
+
+    @staticmethod
+    def _dec(value):
+        return None if value is None else Decimal(str(value))
+
+    @property
+    def currency(self) -> str:
+        return self.product.currency if self.product_id and self.product else "EUR"
+
+    @property
+    def old_price(self):
+        """Старая цена: compare_at_price, иначе base_price товара, иначе None."""
+        if self.compare_at_price is not None:
+            return self._dec(self.compare_at_price)
+        if self.product_id and self.product:
+            return self._dec(self.product.base_price)
+        return None
+
+    @property
+    def new_price(self):
+        """Новая цена: price_override, иначе old_price со скидкой %, иначе old_price."""
+        old = self.old_price
+        if self.price_override is not None:
+            return self._dec(self.price_override)
+        if self.discount_percent and old is not None:
+            factor = (Decimal(100) - Decimal(int(self.discount_percent))) / Decimal(100)
+            return (old * factor).quantize(_CENTS, rounding=ROUND_HALF_UP)
+        return old
+
+    @property
+    def has_discount(self) -> bool:
+        old, new = self.old_price, self.new_price
+        return old is not None and new is not None and new < old
+
+    @property
+    def discount_amount(self):
+        if not self.has_discount:
+            return None
+        return (self.old_price - self.new_price).quantize(_CENTS)
+
+    @property
+    def discount_percent_display(self):
+        """Целый процент скидки для бейджа (−XX %)."""
+        if self.discount_percent:
+            return int(self.discount_percent)
+        if self.has_discount and self.old_price > 0:
+            pct = (Decimal(1) - (self.new_price / self.old_price)) * Decimal(100)
+            return int(pct.to_integral_value(rounding=ROUND_HALF_UP))
+        return None
+
+    # --- витрина: медиа и таймер ---------------------------------------
+
+    @property
+    def primary_image(self):
+        """Главное фото акции; фолбэк на главное фото привязанного товара."""
+        imgs = self.images or []
+        for img in imgs:
+            if img.get("is_primary"):
+                return img
+        if imgs:
+            return imgs[0]
+        if self.product_id and self.product:
+            return self.product.primary_image
+        return None
+
+    @property
+    def seconds_left(self):
+        """Секунд до ends_at (для обратного отсчёта). None если конца нет."""
+        if not self.ends_at:
+            return None
+        delta = (self.ends_at - timezone.now()).total_seconds()
+        return int(delta) if delta > 0 else 0
 
 
 class Reservation(TimestampedModel):
