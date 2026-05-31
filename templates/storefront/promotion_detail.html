@@ -1,41 +1,102 @@
 {% extends "storefront/_base.html" %}
 {% load i18n widget_tweaks %}
 {% block title %}{{ promotion.title_text }} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
+{% block meta_description %}{{ promotion.description_text|default:promotion.title_text }}{% endblock %}
+
+{% block og %}
+  <meta property="og:type" content="product">
+  <meta property="og:title" content="{{ promotion.title_text }}">
+  <meta property="og:description" content="{{ promotion.description_text|default:promotion.title_text }}">
+  <meta property="og:url" content="{{ share_url }}">
+  {% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}
+  <meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
+{% endblock %}
 
 {% block content %}
-<a href="{% url 'storefront-home' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Back" %}</a>
+<a href="{% url 'storefront-home' %}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline mb-4">← {% trans "Back" %}</a>
 
-<div class="bg-white rounded-2xl shadow-sm p-6 mt-3">
-  <h1 class="text-2xl font-bold">{{ promotion.title_text }}</h1>
-  {% if promotion.description_text %}
-    <p class="text-gray-600 mt-2">{{ promotion.description_text }}</p>
-  {% endif %}
-  {% if promotion.available_quantity is not None %}
-    <p class="text-sm text-gray-400 mt-2">{{ promotion.available_quantity }} {% trans "available" %}</p>
-  {% endif %}
-</div>
-
-<div class="bg-white rounded-2xl shadow-sm p-6 mt-4">
-  <h2 class="font-semibold mb-4">{% trans "Reserve" %}</h2>
-  <form method="post" action="{% url 'storefront-reserve' promotion.pk %}" class="space-y-4">
-    {% csrf_token %}
-    {# honeypot: скрытое поле, люди его не заполняют #}
-    <div style="position:absolute;left:-9999px" aria-hidden="true">
-      {{ form.website }}
+<div class="grid md:grid-cols-2 gap-6 md:gap-10">
+  {# Фото #}
+  <div class="relative">
+    <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
+      {% with img=promotion.primary_image %}
+        {% if img %}
+          <img src="{{ img.url }}" alt="{{ promotion.title_text }}" class="w-full h-full object-cover">
+        {% else %}
+          <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          </div>
+        {% endif %}
+      {% endwith %}
     </div>
-    {{ form.form_token }}
-    {% for field in form %}
-      {% if field.name != 'website' and field.name != 'form_token' %}
-        <div>
-          <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-          {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+    {% if promotion.has_discount %}
+      <span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">
+        {% if promotion.discount_percent_display %}−{{ promotion.discount_percent_display }} %{% else %}−{{ promotion.discount_amount }} €{% endif %}
+      </span>
+    {% endif %}
+  </div>
+
+  {# Инфо #}
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold">{{ promotion.title_text }}</h1>
+
+    <div class="mt-3 text-2xl">{% include "storefront/_price.html" with promo=promotion %}</div>
+
+    {% if promotion.available_quantity is not None %}
+      <p class="mt-2 text-sm {% if promotion.available_quantity <= 3 %}text-red-600 font-medium{% else %}text-gray-500{% endif %}">
+        {% blocktrans count n=promotion.available_quantity %}Only {{ n }} left{% plural %}Only {{ n }} left{% endblocktrans %}
+      </p>
+    {% endif %}
+
+    {% if promotion.show_countdown and promotion.ends_at %}
+      <div class="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-800 rounded-lg px-3 py-1.5 text-sm">
+        ⏳ {% trans "Ends in" %}
+        <span class="font-mono font-semibold" aria-live="polite" data-countdown="{{ promotion.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
+      </div>
+    {% elif promotion.ends_at %}
+      <p class="mt-3 text-sm text-gray-500">{% blocktrans with d=promotion.ends_at|date:"d.m.Y H:i" %}Valid until {{ d }}{% endblocktrans %}</p>
+    {% endif %}
+
+    {% if promotion.description_text %}
+      <p class="mt-4 text-gray-600 whitespace-pre-line">{{ promotion.description_text }}</p>
+    {% endif %}
+
+    {# Резервирование #}
+    <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
+      <h2 class="font-semibold mb-4">{% trans "Reserve" %}</h2>
+      <form method="post" action="{% url 'storefront-reserve' promotion.pk %}" class="space-y-4">
+        {% csrf_token %}
+        <div style="position:absolute;left:-9999px" aria-hidden="true">{{ form.website }}</div>
+        {{ form.form_token }}
+        {% for field in form %}
+          {% if field.name != 'website' and field.name != 'form_token' %}
+            <div>
+              <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500" %}
+              {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+          {% trans "Reserve now" %}
+        </button>
+      </form>
+    </div>
+
+    {# Поделиться + QR #}
+    <div class="mt-5 flex flex-wrap items-center gap-2">
+      <a href="https://wa.me/?text={{ promotion.title_text|urlencode }}%20{{ share_url|urlencode }}"
+         target="_blank" rel="noopener" class="text-sm px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Share on WhatsApp" %}</a>
+      <button type="button" data-copy="{{ share_url }}" data-copied="{% trans 'Copied!' %}"
+              class="text-sm px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Copy link" %}</button>
+      <details class="w-full mt-1">
+        <summary class="text-sm text-gray-500 cursor-pointer">{% trans "Show QR code" %}</summary>
+        <div class="mt-2 inline-block bg-white p-3 rounded-xl border border-gray-200">
+          <img src="{{ qr_url }}" width="160" height="160" alt="{% trans 'QR code for this offer' %}">
+          <a href="{{ qr_url }}" download="aktion-{{ promotion.pk }}.svg" class="block text-center text-xs text-indigo-600 mt-1 hover:underline">{% trans "Download" %}</a>
         </div>
-      {% endif %}
-    {% endfor %}
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
-      {% trans "Reserve now" %}
-    </button>
-  </form>
+      </details>
+    </div>
+  </div>
 </div>
 {% endblock %}
