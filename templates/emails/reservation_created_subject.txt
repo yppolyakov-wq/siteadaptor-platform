@@ -1,0 +1,1 @@
+Reservierung eingegangen — {{ promotion.title_text }}

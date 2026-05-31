@@ -1,0 +1,1 @@
+Neue Reservierung — {{ promotion.title_text }}

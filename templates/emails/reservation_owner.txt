@@ -1,0 +1,7 @@
+Neue Reservierung:
+
+Aktion: {{ promotion.title_text }}
+Kunde: {{ customer.name }} ({{ customer.email }} {{ customer.phone }})
+Menge: {{ reservation.quantity }}
+Code: {{ reservation.reference_code }}
+Status: {{ reservation.status }}

@@ -1,0 +1,3 @@
+Hallo {{ customer.name }},
+
+Ihre Reservierung ({{ reservation.reference_code }}) für „{{ promotion.title_text }}" ist abgelaufen.

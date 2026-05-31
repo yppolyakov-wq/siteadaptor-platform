@@ -13,6 +13,7 @@ from django.db.models import F, Sum
 from django.utils import timezone
 
 from .models import Customer, Promotion, Reservation
+from .notifications import enqueue_reservation_email
 from .state_machine import ReservationSM
 
 # алфавит без похожих символов (0/O, 1/I) — код диктуется голосом на выдаче
@@ -93,7 +94,7 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note=""):
 
     initial_status = "confirmed" if promotion.auto_confirm else "pending"
     now = timezone.now()
-    return Reservation.objects.create(
+    reservation = Reservation.objects.create(
         promotion=promotion,
         customer=customer,
         reference_code=_unique_reference_code(),
@@ -103,6 +104,9 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note=""):
         confirmed_at=now if initial_status == "confirmed" else None,
         note=note,
     )
+    # письмо клиенту/владельцу — после коммита транзакции
+    enqueue_reservation_email(reservation, "created")
+    return reservation
 
 
 def confirm(reservation, *, actor=None):
