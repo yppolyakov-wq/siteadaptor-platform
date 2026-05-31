@@ -1,0 +1,1 @@
+Reservierung storniert — {{ promotion.title_text }}

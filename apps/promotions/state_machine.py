@@ -43,3 +43,9 @@ class ReservationSM(StateMachine):
             Promotion.objects.filter(
                 id=instance.promotion_id, available_quantity__isnull=False
             ).update(available_quantity=F("available_quantity") + instance.quantity)
+
+        # email-уведомление клиенту (ставится в очередь после коммита)
+        if t.dst in ("confirmed", "cancelled", "expired"):
+            from .notifications import enqueue_reservation_email
+
+            enqueue_reservation_email(instance, t.dst)

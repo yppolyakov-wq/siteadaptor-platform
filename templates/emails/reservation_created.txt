@@ -1,0 +1,10 @@
+Hallo {{ customer.name }},
+
+vielen Dank für Ihre Reservierung.
+
+Aktion: {{ promotion.title_text }}
+Menge: {{ reservation.quantity }}
+Referenz-Code: {{ reservation.reference_code }}
+
+Bitte zeigen Sie diesen Code bei der Abholung vor.
+{% if reservation.status == 'pending' %}Status: wird vom Geschäft bestätigt.{% else %}Status: bestätigt.{% endif %}
