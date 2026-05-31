@@ -1,0 +1,55 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Categories" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-bold">{% trans "Categories" %}</h1>
+  <a href="{% url 'catalog:category-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+    + {% trans "New category" %}
+  </a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="bg-white rounded-2xl shadow-sm p-4">
+  <table class="w-full text-sm">
+    <thead class="text-left text-gray-500 border-b">
+      <tr>
+        <th class="py-2">{% trans "Name" %}</th>
+        <th class="py-2">{% trans "Slug" %}</th>
+        <th class="py-2">{% trans "Products" %}</th>
+        <th class="py-2">{% trans "Active" %}</th>
+        <th class="py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in categories %}
+        <tr class="border-b last:border-0">
+          <td class="py-2">
+            <span style="padding-left: {{ c.level }}.5rem">
+              {% if c.level %}<span class="text-gray-300">└ </span>{% endif %}
+              {% if c.icon %}<span class="mr-1">{{ c.icon }}</span>{% endif %}{{ c }}
+            </span>
+          </td>
+          <td class="py-2 font-mono text-gray-500">{{ c.slug }}</td>
+          <td class="py-2">{{ c.product_count }}</td>
+          <td class="py-2">
+            {% if c.is_active %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}
+          </td>
+          <td class="py-2 text-right whitespace-nowrap">
+            <a href="{% url 'catalog:category-edit' c.pk %}" class="text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+            <a href="{% url 'catalog:category-delete' c.pk %}" class="ml-3 text-red-600 hover:underline">{% trans "Delete" %}</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="py-6 text-center text-gray-400">{% trans "No categories yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

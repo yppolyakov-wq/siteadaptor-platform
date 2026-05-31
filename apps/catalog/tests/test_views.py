@@ -14,7 +14,8 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.catalog import views
-from apps.catalog.models import Product
+from apps.catalog.forms import CategoryForm
+from apps.catalog.models import Category, Product
 from apps.catalog.tests.factories import CategoryFactory, ProductFactory
 
 
@@ -122,3 +123,103 @@ def test_search_filters_by_sku(user):
     assert resp.status_code == 200
     assert b"AAA" in resp.content
     assert b"BBB" not in resp.content
+
+
+# --- категории ------------------------------------------------------------
+
+
+def _post(url, data, user):
+    req = RequestFactory().post(url, data)
+    _attach_session_user(req, user)
+    return req
+
+
+@pytest.mark.django_db
+def test_create_category_autoslug(user):
+    req = _post(
+        "/catalog/categories/new/",
+        {"name_de": "Brot & Brötchen", "name_en": "", "slug": "", "icon": "", "sort_order": "0"},
+        user,
+    )
+    resp = views.category_create(req)
+    assert resp.status_code == 302
+    cat = Category.objects.get()
+    assert cat.name["de"] == "Brot & Brötchen"
+    assert cat.slug == "brot-brotchen"  # сгенерирован из name_de
+
+
+@pytest.mark.django_db
+def test_category_list_is_nested(user):
+    parent = CategoryFactory(name={"de": "Backwaren"}, slug="backwaren")
+    CategoryFactory(name={"de": "Kuchen"}, slug="kuchen", parent=parent)
+    req = RequestFactory().get("/catalog/categories/")
+    _attach_session_user(req, user)
+    resp = views.category_list(req)
+    assert resp.status_code == 200
+    assert b"Backwaren" in resp.content
+    assert b"Kuchen" in resp.content
+
+
+@pytest.mark.django_db
+def test_parent_cycle_rejected():
+    parent = CategoryFactory()
+    child = CategoryFactory(parent=parent)
+    form = CategoryForm(
+        data={
+            "name_de": "X",
+            "name_en": "",
+            "slug": "",
+            "icon": "",
+            "sort_order": "0",
+            "parent": str(child.pk),  # потомок как родитель → цикл
+        },
+        instance=parent,
+    )
+    assert not form.is_valid()
+    assert "parent" in form.errors
+
+
+@pytest.mark.django_db
+def test_delete_simple_category_is_soft(user):
+    cat = CategoryFactory()
+    pk = cat.pk
+    resp = views.category_delete(_post(f"/catalog/categories/{pk}/delete/", {}, user), pk=pk)
+    assert resp.status_code == 302
+    assert not Category.objects.filter(pk=pk).exists()
+    assert Category.all_objects.filter(pk=pk).exists()
+
+
+@pytest.mark.django_db
+def test_delete_reparent(user):
+    grandparent = CategoryFactory(slug="gp")
+    parent = CategoryFactory(slug="p", parent=grandparent)
+    child = CategoryFactory(slug="c", parent=parent)
+    prod = ProductFactory(category=parent)
+
+    resp = views.category_delete(
+        _post(f"/catalog/categories/{parent.pk}/delete/", {"strategy": "reparent"}, user),
+        pk=parent.pk,
+    )
+    assert resp.status_code == 302
+    assert not Category.objects.filter(pk=parent.pk).exists()  # parent soft-deleted
+    child.refresh_from_db()
+    assert child.parent_id == grandparent.pk  # ребёнок поднят к деду
+    prod.refresh_from_db()
+    assert prod.category_id is None  # товар отвязан
+
+
+@pytest.mark.django_db
+def test_delete_cascade(user):
+    parent = CategoryFactory(slug="p")
+    child = CategoryFactory(slug="c", parent=parent)
+    prod = ProductFactory(category=child)
+
+    resp = views.category_delete(
+        _post(f"/catalog/categories/{parent.pk}/delete/", {"strategy": "cascade"}, user),
+        pk=parent.pk,
+    )
+    assert resp.status_code == 302
+    assert not Category.objects.filter(pk__in=[parent.pk, child.pk]).exists()
+    assert Category.all_objects.filter(pk=child.pk).exists()  # soft, не hard
+    prod.refresh_from_db()
+    assert prod.category_id is None

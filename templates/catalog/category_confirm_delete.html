@@ -1,0 +1,50 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Delete category" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-lg">
+  <h1 class="text-2xl font-bold mb-4">{% trans "Delete category" %}</h1>
+
+  {% if not has_dependencies %}
+    <p class="text-gray-600 mb-4">
+      {% blocktrans with name=category %}Delete “{{ name }}”? It can be restored from the admin.{% endblocktrans %}
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-700">{% trans "Delete" %}</button>
+      <a href="{% url 'catalog:category-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+    </form>
+  {% else %}
+    <div class="bg-amber-50 text-amber-800 rounded-lg px-4 py-3 text-sm mb-4">
+      <p class="font-medium mb-1">{% blocktrans with name=category %}“{{ name }}” is not empty.{% endblocktrans %}</p>
+      <ul class="list-disc list-inside">
+        {% if children %}<li>{% blocktrans count n=children|length %}{{ n }} direct subcategory{% plural %}{{ n }} direct subcategories{% endblocktrans %} ({% blocktrans count d=descendant_count %}{{ d }} in total{% plural %}{{ d }} in total{% endblocktrans %})</li>{% endif %}
+        {% if product_count %}<li>{% blocktrans count p=product_count %}{{ p }} product directly attached{% plural %}{{ p }} products directly attached{% endblocktrans %}</li>{% endif %}
+        {% if descendant_product_count %}<li>{% blocktrans count dp=descendant_product_count %}{{ dp }} product in this branch{% plural %}{{ dp }} products in this branch{% endblocktrans %}</li>{% endif %}
+      </ul>
+    </div>
+
+    <p class="text-gray-600 mb-3 text-sm">{% trans "Choose how to proceed:" %}</p>
+    <div class="space-y-3">
+      <form method="post" class="bg-white border border-gray-200 rounded-xl p-4">
+        {% csrf_token %}
+        <input type="hidden" name="strategy" value="reparent">
+        <p class="text-sm font-medium">{% trans "Move subcategories up & detach products" %}</p>
+        <p class="text-xs text-gray-500 mb-2">{% trans "Subcategories are re-parented to this category's parent; attached products keep existing but lose this category." %}</p>
+        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Re-parent & delete" %}</button>
+      </form>
+
+      <form method="post" class="bg-white border border-gray-200 rounded-xl p-4">
+        {% csrf_token %}
+        <input type="hidden" name="strategy" value="cascade">
+        <p class="text-sm font-medium">{% trans "Delete the whole branch" %}</p>
+        <p class="text-xs text-gray-500 mb-2">{% trans "This category and all its subcategories are deleted (soft). Products in the branch are detached, not deleted." %}</p>
+        <button type="submit" class="bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-700">{% trans "Delete branch" %}</button>
+      </form>
+
+      <a href="{% url 'catalog:category-list' %}" class="inline-block px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

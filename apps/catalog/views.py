@@ -7,10 +7,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 
-from .forms import ProductForm
+from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
 from .models import Category, Product
 
@@ -143,3 +144,144 @@ def product_image_primary(request, pk, image_id):
         product.images = images
         product.save(update_fields=["images", "updated_at"])
     return redirect("catalog:product-edit", pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Категории (CRUD + иерархия)
+# ---------------------------------------------------------------------------
+
+
+def _category_tree() -> list:
+    """Плоский список живых категорий в порядке дерева.
+
+    Каждой записи проставляем .level (глубина) и .product_count. Категории,
+    чей родитель удалён/отсутствует, показываем как корневые (не теряем их).
+    """
+    cats = list(Category.objects.all())
+    alive_ids = {c.pk for c in cats}
+    children_map: dict = {}
+    for c in cats:
+        key = c.parent_id if c.parent_id in alive_ids else None
+        children_map.setdefault(key, []).append(c)
+
+    counts = dict(
+        Product.objects.values("category_id")
+        .annotate(n=Count("id"))
+        .values_list("category_id", "n")
+    )
+
+    rows: list = []
+
+    def walk(parent_key, level):
+        for c in sorted(children_map.get(parent_key, []), key=lambda x: (x.sort_order, x.slug)):
+            c.level = level
+            c.product_count = counts.get(c.pk, 0)
+            rows.append(c)
+            walk(c.pk, level + 1)
+
+    walk(None, 0)
+    return rows
+
+
+def _descendants(category) -> list:
+    """Все живые потомки категории (без неё самой)."""
+    result: list = []
+    stack = list(Category.objects.filter(parent=category))
+    while stack:
+        node = stack.pop()
+        result.append(node)
+        stack.extend(Category.objects.filter(parent=node))
+    return result
+
+
+@login_required
+def category_list(request):
+    return render(
+        request,
+        "catalog/category_list.html",
+        {"nav": "categories", "categories": _category_tree()},
+    )
+
+
+@login_required
+def category_create(request):
+    form = CategoryForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("catalog:category-list")
+    return render(
+        request,
+        "catalog/category_form.html",
+        {"form": form, "is_create": True, "nav": "categories"},
+    )
+
+
+@login_required
+def category_edit(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    form = CategoryForm(request.POST or None, instance=category)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("catalog:category-list")
+    return render(
+        request,
+        "catalog/category_form.html",
+        {"form": form, "is_create": False, "category": category, "nav": "categories"},
+    )
+
+
+@login_required
+def category_delete(request, pk):
+    """Удаление категории (soft).
+
+    Если есть подкатегории или товары — даём выбрать стратегию:
+    reparent (перевесить детей на родителя, товары отвязать), cascade
+    (удалить ветку целиком, товары отвязать) или cancel.
+    """
+    category = get_object_or_404(Category, pk=pk)
+    children = list(Category.objects.filter(parent=category))
+    product_count = Product.objects.filter(category=category).count()
+    descendants = _descendants(category)
+    branch = [category, *descendants]
+    descendant_product_count = Product.objects.filter(category__in=branch).count()
+    has_dependencies = bool(children) or product_count > 0
+
+    if request.method == "POST":
+        strategy = request.POST.get("strategy", "")
+
+        if not has_dependencies:
+            category.delete()
+            messages.success(request, _("Category deleted."))
+            return redirect("catalog:category-list")
+
+        if strategy == "reparent":
+            Category.objects.filter(parent=category).update(parent=category.parent)
+            Product.objects.filter(category=category).update(category=None)
+            category.delete()
+            messages.success(
+                request, _("Category deleted; subcategories moved up and products detached.")
+            )
+            return redirect("catalog:category-list")
+
+        if strategy == "cascade":
+            Product.objects.filter(category__in=branch).update(category=None)
+            Category.objects.filter(pk__in=[c.pk for c in branch]).delete()  # bulk soft-delete
+            messages.success(request, _("Category and its subcategories deleted."))
+            return redirect("catalog:category-list")
+
+        # cancel / неизвестная стратегия — ничего не делаем
+        return redirect("catalog:category-list")
+
+    return render(
+        request,
+        "catalog/category_confirm_delete.html",
+        {
+            "category": category,
+            "children": children,
+            "product_count": product_count,
+            "descendant_count": len(descendants),
+            "descendant_product_count": descendant_product_count,
+            "has_dependencies": has_dependencies,
+            "nav": "categories",
+        },
+    )

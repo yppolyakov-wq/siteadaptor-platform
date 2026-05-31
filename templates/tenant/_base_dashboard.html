@@ -11,6 +11,7 @@
     <nav class="space-y-1 text-sm">
       <a href="/" class="block px-3 py-2 rounded-lg {% if nav == 'dashboard' %}bg-indigo-50 text-indigo-700 font-medium{% else %}hover:bg-gray-50{% endif %}">{% trans "Dashboard" %}</a>
       <a href="{% url 'catalog:product-list' %}" class="block px-3 py-2 rounded-lg {% if nav == 'catalog' %}bg-indigo-50 text-indigo-700 font-medium{% else %}hover:bg-gray-50{% endif %}">{% trans "Catalog" %}</a>
+      <a href="{% url 'catalog:category-list' %}" class="block px-3 py-2 rounded-lg {% if nav == 'categories' %}bg-indigo-50 text-indigo-700 font-medium{% else %}hover:bg-gray-50{% endif %}">{% trans "Categories" %}</a>
       <a href="{% url 'imports:start' %}" class="block px-3 py-2 rounded-lg {% if nav == 'imports' %}bg-indigo-50 text-indigo-700 font-medium{% else %}hover:bg-gray-50{% endif %}">{% trans "Imports" %}</a>
       <span class="block px-3 py-2 rounded-lg text-gray-400">{% trans "Promotions" %} · {% trans "soon" %}</span>
       <span class="block px-3 py-2 rounded-lg text-gray-400">{% trans "Settings" %} · {% trans "soon" %}</span>
