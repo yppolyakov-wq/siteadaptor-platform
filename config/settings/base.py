@@ -184,7 +184,8 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 # настроен, держим optional через env, иначе вход падает 500 на отправке письма.
 # На боевом проде с настроенным Resend → ACCOUNT_EMAIL_VERIFICATION=mandatory.
 ACCOUNT_EMAIL_VERIFICATION = env("ACCOUNT_EMAIL_VERIFICATION", default="optional")
-LOGIN_REDIRECT_URL = "/"
+# после логина — в кабинет владельца; после выхода — на публичную витрину
+LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 
 # ---------------------------------------------------------------------------

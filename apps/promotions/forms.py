@@ -82,3 +82,18 @@ class PromotionForm(forms.ModelForm):
         if commit:
             promo.save()
         return promo
+
+
+class PublicReservationForm(forms.Form):
+    """Публичная форма брони на витрине (без логина).
+
+    website — honeypot (должно остаться пустым). form_token — для
+    идемпотентности сабмита (защита от двойной отправки по F5).
+    """
+
+    name = forms.CharField(label=_("Your name"), max_length=200)
+    email = forms.EmailField(label=_("Email"), required=False)
+    phone = forms.CharField(label=_("Phone"), max_length=40, required=False)
+    quantity = forms.IntegerField(label=_("Quantity"), min_value=1, initial=1)
+    website = forms.CharField(required=False, widget=forms.HiddenInput)
+    form_token = forms.CharField(required=False, widget=forms.HiddenInput)

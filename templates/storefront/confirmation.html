@@ -1,0 +1,27 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Reservation confirmed" %}{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-sm p-8 text-center">
+  <div class="text-4xl mb-3">✅</div>
+  <h1 class="text-2xl font-bold mb-2">{% trans "Reservation received" %}</h1>
+  <p class="text-gray-600">{{ reservation.promotion.title_text }}</p>
+
+  <div class="mt-6 inline-block bg-gray-50 rounded-xl px-6 py-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">{% trans "Reference code" %}</p>
+    <p class="text-2xl font-mono font-bold">{{ reservation.reference_code }}</p>
+  </div>
+
+  <p class="text-sm text-gray-500 mt-6">
+    {% trans "Please keep this code and show it when you pick up your reservation." %}
+  </p>
+  {% if reservation.status == 'pending' %}
+    <p class="text-sm text-amber-700 mt-2">{% trans "Status: awaiting confirmation by the business." %}</p>
+  {% elif reservation.status == 'confirmed' %}
+    <p class="text-sm text-green-700 mt-2">{% trans "Status: confirmed." %}</p>
+  {% endif %}
+
+  <a href="{% url 'storefront-home' %}" class="inline-block mt-6 text-indigo-600 hover:underline">{% trans "Back to offers" %}</a>
+</div>
+{% endblock %}

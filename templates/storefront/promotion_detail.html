@@ -1,0 +1,41 @@
+{% extends "storefront/_base.html" %}
+{% load i18n widget_tweaks %}
+{% block title %}{{ promotion.title_text }} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'storefront-home' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Back" %}</a>
+
+<div class="bg-white rounded-2xl shadow-sm p-6 mt-3">
+  <h1 class="text-2xl font-bold">{{ promotion.title_text }}</h1>
+  {% if promotion.description_text %}
+    <p class="text-gray-600 mt-2">{{ promotion.description_text }}</p>
+  {% endif %}
+  {% if promotion.available_quantity is not None %}
+    <p class="text-sm text-gray-400 mt-2">{{ promotion.available_quantity }} {% trans "available" %}</p>
+  {% endif %}
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm p-6 mt-4">
+  <h2 class="font-semibold mb-4">{% trans "Reserve" %}</h2>
+  <form method="post" action="{% url 'storefront-reserve' promotion.pk %}" class="space-y-4">
+    {% csrf_token %}
+    {# honeypot: скрытое поле, люди его не заполняют #}
+    <div style="position:absolute;left:-9999px" aria-hidden="true">
+      {{ form.website }}
+    </div>
+    {{ form.form_token }}
+    {% for field in form %}
+      {% if field.name != 'website' and field.name != 'form_token' %}
+        <div>
+          <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+          {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+      {% trans "Reserve now" %}
+    </button>
+  </form>
+</div>
+{% endblock %}
