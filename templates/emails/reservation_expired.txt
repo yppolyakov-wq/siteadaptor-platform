@@ -1,3 +1,7 @@
 Hallo {{ customer.name }},
 
 Ihre Reservierung ({{ reservation.reference_code }}) für „{{ promotion.title_text }}" ist abgelaufen.
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

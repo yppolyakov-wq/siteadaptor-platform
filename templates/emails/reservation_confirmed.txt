@@ -7,3 +7,7 @@ Menge: {{ reservation.quantity }}
 Referenz-Code: {{ reservation.reference_code }}
 
 Bitte zeigen Sie diesen Code bei der Abholung vor.
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

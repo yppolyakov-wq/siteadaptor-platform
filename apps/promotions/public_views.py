@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .forms import PublicReservationForm
-from .models import Promotion, Reservation
+from .models import Customer, Promotion, Reservation
 from .services import OutOfStock, ReservationLimitReached, reserve
 
 RL_LIMIT = 5  # попыток
@@ -131,6 +131,15 @@ def reservation_create(request, pk):
 def reservation_confirmation(request, code):
     res = get_object_or_404(Reservation.objects.select_related("promotion"), reference_code=code)
     return render(request, "storefront/confirmation.html", {"reservation": res})
+
+
+def unsubscribe(request, token):
+    """Быстрая отписка от писем по токену (one-click, GET и POST)."""
+    customer = Customer.objects.filter(unsubscribe_token=token).first()
+    if customer is not None and not customer.unsubscribed:
+        customer.unsubscribed = True
+        customer.save(update_fields=["unsubscribed", "updated_at"])
+    return render(request, "storefront/unsubscribed.html", {"ok": customer is not None})
 
 
 def _legal_page(request, title, body):
