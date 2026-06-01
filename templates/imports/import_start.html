@@ -16,6 +16,14 @@
       <div class="text-sm text-red-600">{{ form.non_field_errors }}</div>
     {% endif %}
     <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Import type" %}</label>
+      <select name="resource_type" class="block w-full text-sm border border-gray-300 rounded-lg p-2">
+        {% for value, label in resources %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
       {% render_field form.source_file accept=".csv,.xlsx,.xlsm" class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
       <p class="text-xs text-gray-400 mt-1">{% trans "Supported: .csv, .xlsx, .xlsm" %}</p>
       {% if form.source_file.errors %}
