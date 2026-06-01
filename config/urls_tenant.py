@@ -36,6 +36,7 @@ urlpatterns = [
     path("impressum/", public_views.impressum, name="storefront-impressum"),
     path("datenschutz/", public_views.privacy, name="storefront-privacy"),
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),
+    path("u/<uuid:token>/", public_views.unsubscribe, name="storefront-unsubscribe"),
 ]
 
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).

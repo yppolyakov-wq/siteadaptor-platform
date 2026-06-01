@@ -7,6 +7,7 @@
 Прямые присваивания obj.status = ... запрещены — двигаем через FSM.
 """
 
+import uuid
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import models
@@ -24,6 +25,10 @@ class Customer(TimestampedModel):
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=40, blank=True)
     note = models.TextField(blank=True)
+
+    # быстрая отписка от писем (one-click): токен в ссылке + флаг
+    unsubscribed = models.BooleanField(default=False)
+    unsubscribe_token = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
 
     class Meta:
         ordering = ["-created_at"]
