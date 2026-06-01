@@ -2,9 +2,11 @@
 
 from .base import BaseProcessor
 from .product import ProductProcessor
+from .promotion import PromotionProcessor
 
 PROCESSORS = {
     "product": ProductProcessor,
+    "promotion": PromotionProcessor,
 }
 
 
