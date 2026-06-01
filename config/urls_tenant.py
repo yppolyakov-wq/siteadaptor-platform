@@ -10,7 +10,7 @@ from django.urls import include, path
 from django.views.static import serve
 
 from apps.core import health
-from apps.core.views import dashboard
+from apps.core.views import dashboard, settings_view
 from apps.promotions import public_views
 
 urlpatterns = [
@@ -19,6 +19,7 @@ urlpatterns = [
     path("health/ready/", health.readiness, name="health-ready"),
     # --- Кабинет владельца (под логином) ---
     path("dashboard/", dashboard, name="dashboard"),
+    path("dashboard/settings/", settings_view, name="settings"),
     # Каталог в кабинете владельца.
     path("catalog/", include("apps.catalog.urls")),
     # CSV-импорт товаров.
@@ -32,6 +33,9 @@ urlpatterns = [
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),
     path("r/<str:code>/", public_views.reservation_confirmation, name="storefront-confirmation"),
+    path("impressum/", public_views.impressum, name="storefront-impressum"),
+    path("datenschutz/", public_views.privacy, name="storefront-privacy"),
+    path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),
 ]
 
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).

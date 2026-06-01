@@ -46,3 +46,38 @@ class BusinessSignupForm(forms.Form):
         if p1 and p2 and p1 != p2:
             self.add_error("password2", _("Passwords do not match."))
         return cleaned
+
+
+class BusinessSettingsForm(forms.ModelForm):
+    """Настройки бизнеса: контакты + правовые тексты (редактирует владелец)."""
+
+    class Meta:
+        model = Tenant
+        fields = [
+            "name",
+            "address",
+            "city",
+            "contact_email",
+            "contact_phone",
+            "website_url",
+            "opening_hours",
+            "map_url",
+            "vat_id",
+            "register_entry",
+            "legal_responsible",
+            "impressum",
+            "privacy_policy",
+            "withdrawal_policy",
+        ]
+        widgets = {
+            "address": forms.Textarea(attrs={"rows": 2}),
+            "opening_hours": forms.Textarea(attrs={"rows": 3}),
+            "impressum": forms.Textarea(attrs={"rows": 5}),
+            "privacy_policy": forms.Textarea(attrs={"rows": 6}),
+            "withdrawal_policy": forms.Textarea(attrs={"rows": 4}),
+        }
+        help_texts = {
+            "impressum": _("Leave blank to generate from the fields above."),
+            "privacy_policy": _("Leave blank for a default template (please adapt)."),
+            "withdrawal_policy": _("Leave blank for a default template (please adapt)."),
+        }
