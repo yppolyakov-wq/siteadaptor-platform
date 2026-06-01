@@ -31,9 +31,21 @@
   </main>
 
   <footer class="border-t border-gray-100 bg-white">
-    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400 flex flex-wrap gap-x-4 gap-y-1">
-      <span>© {% now "Y" %} {{ request.tenant.name|default:"" }}</span>
-      {% block footer_legal %}{% endblock %}
+    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-500 space-y-3">
+      {% if request.tenant %}
+        <div class="flex flex-wrap gap-x-6 gap-y-1">
+          {% if request.tenant.address %}<span>📍 {{ request.tenant.address }}</span>{% endif %}
+          {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">📞 {{ request.tenant.public_phone }}</a>{% endif %}
+          {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a>{% endif %}
+        </div>
+        {% if request.tenant.opening_hours %}<div class="whitespace-pre-line text-gray-400">🕒 {{ request.tenant.opening_hours }}</div>{% endif %}
+      {% endif %}
+      <div class="flex flex-wrap gap-x-4 gap-y-1 text-gray-400 pt-1 border-t border-gray-100">
+        <span>© {% now "Y" %} {{ request.tenant.name|default:"" }}</span>
+        <a href="{% url 'storefront-impressum' %}" class="hover:underline">{% trans "Imprint" %}</a>
+        <a href="{% url 'storefront-privacy' %}" class="hover:underline">{% trans "Privacy" %}</a>
+        <a href="{% url 'storefront-withdrawal' %}" class="hover:underline">{% trans "Cancellation" %}</a>
+      </div>
     </div>
   </footer>
 

@@ -131,3 +131,19 @@ def reservation_create(request, pk):
 def reservation_confirmation(request, code):
     res = get_object_or_404(Reservation.objects.select_related("promotion"), reference_code=code)
     return render(request, "storefront/confirmation.html", {"reservation": res})
+
+
+def _legal_page(request, title, body):
+    return render(request, "storefront/legal.html", {"legal_title": title, "legal_body": body})
+
+
+def impressum(request):
+    return _legal_page(request, "Impressum", request.tenant.impressum_text())
+
+
+def privacy(request):
+    return _legal_page(request, "Datenschutz", request.tenant.privacy_text())
+
+
+def withdrawal(request):
+    return _legal_page(request, "Widerruf", request.tenant.withdrawal_text())

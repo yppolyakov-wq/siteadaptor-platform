@@ -1,0 +1,49 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n widget_tweaks %}
+{% block dash_title %}{% trans "Settings" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-4">{% trans "Business settings" %}</h1>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <legend class="font-semibold mb-2">{% trans "Contact & hours" %}</legend>
+      {% for field in form %}
+        {% if field.name == 'name' or field.name == 'address' or field.name == 'city' or field.name == 'contact_email' or field.name == 'contact_phone' or field.name == 'website_url' or field.name == 'opening_hours' or field.name == 'map_url' %}
+          <div>
+            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <legend class="font-semibold mb-2">{% trans "Legal (Impressum / Datenschutz / Widerruf)" %}</legend>
+      {% for field in form %}
+        {% if field.name == 'vat_id' or field.name == 'register_entry' or field.name == 'legal_responsible' or field.name == 'impressum' or field.name == 'privacy_policy' or field.name == 'withdrawal_policy' %}
+          <div>
+            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </fieldset>
+
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</div>
+{% endblock %}
