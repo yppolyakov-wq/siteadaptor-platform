@@ -29,10 +29,10 @@
         {% endif %}
       {% endwith %}
     </div>
-    {% if promotion.has_discount %}
-      <span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">
-        {% if promotion.discount_percent_display %}−{{ promotion.discount_percent_display }} %{% else %}−{{ promotion.discount_amount }} €{% endif %}
-      </span>
+    {% if promotion.discount_percent_display %}
+      <span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promotion.discount_percent_display }} %</span>
+    {% elif promotion.has_discount %}
+      <span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promotion.discount_amount }} €</span>
     {% endif %}
   </div>
 
