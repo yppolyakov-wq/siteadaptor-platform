@@ -2,10 +2,24 @@
 {% load i18n %}
 
 {% block content %}
-<h1 class="text-2xl md:text-3xl font-bold mb-6">{% trans "Current offers" %}</h1>
+<div class="flex items-center justify-between mb-6 gap-3">
+  <h1 class="text-2xl md:text-3xl font-bold">{% trans "Current offers" %}</h1>
+  {# Переключатель плотности плитки — только на мобиле #}
+  <div class="flex sm:hidden items-center gap-1 shrink-0" role="group" aria-label="{% trans 'Layout' %}">
+    <button type="button" data-cols="1" aria-label="{% trans '1 per row' %}"
+            class="grid-btn w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="5" width="16" height="6" rx="1"/><rect x="4" y="13" width="16" height="6" rx="1"/></svg>
+    </button>
+    <button type="button" data-cols="2" aria-label="{% trans '2 per row' %}"
+            class="grid-btn w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+    </button>
+  </div>
+</div>
+<span class="hidden grid-cols-1 grid-cols-2" aria-hidden="true"></span>
 
 {% if promotions %}
-<div class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+<div id="promo-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
   {% for p in promotions %}
     <a href="{% url 'storefront-promotion' p.pk %}"
        class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
@@ -47,4 +61,29 @@
 {% else %}
   <p class="text-gray-400">{% trans "No current offers." %}</p>
 {% endif %}
+
+<script>
+(function () {
+  var grid = document.getElementById("promo-grid");
+  if (!grid) return;
+  var btns = document.querySelectorAll(".grid-btn");
+  function apply(n) {
+    grid.classList.remove("grid-cols-1", "grid-cols-2");
+    grid.classList.add(n === "1" ? "grid-cols-1" : "grid-cols-2");
+    btns.forEach(function (b) {
+      var on = b.getAttribute("data-cols") === n;
+      b.classList.toggle("bg-gray-900", on);
+      b.classList.toggle("text-white", on);
+      b.classList.toggle("text-gray-600", !on);
+    });
+    try { localStorage.setItem("promo_grid_cols", n); } catch (e) {}
+  }
+  var saved = "2";
+  try { saved = localStorage.getItem("promo_grid_cols") || "2"; } catch (e) {}
+  apply(saved);
+  btns.forEach(function (b) {
+    b.addEventListener("click", function () { apply(b.getAttribute("data-cols")); });
+  });
+})();
+</script>
 {% endblock %}
