@@ -42,6 +42,7 @@ class PromotionForm(forms.ModelForm):
         fields = [
             "product",
             "promo_type",
+            "compare_at_price",
             "discount_percent",
             "price_override",
             "available_quantity",
@@ -50,7 +51,20 @@ class PromotionForm(forms.ModelForm):
             "auto_confirm",
             "starts_at",
             "ends_at",
+            "strikethrough_old_price",
+            "show_countdown",
         ]
+        labels = {
+            "compare_at_price": _("Old price (struck through)"),
+            "discount_percent": _("Discount %"),
+            "price_override": _("New price"),
+            "strikethrough_old_price": _("Strike through the old price"),
+            "show_countdown": _("Show countdown to end"),
+        }
+        help_texts = {
+            "compare_at_price": _("Leave blank to use the linked product's price."),
+            "discount_percent": _("Either a % or a new price — the rest is computed."),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
