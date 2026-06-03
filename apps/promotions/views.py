@@ -192,3 +192,56 @@ def reservation_action(request, pk):
             except IllegalTransition:
                 messages.error(request, f"Cannot {action} a reservation in status “{res.status}”.")
     return redirect("promotions:reservation-list")
+
+
+# ---------------------------------------------------------------------------
+# Погашение брони (Einlösen): скан QR / ручной ввод кода → выдача
+# ---------------------------------------------------------------------------
+
+
+@login_required
+def redeem_home(request):
+    """Страница погашения: браузерный сканер + ручной ввод кода."""
+    if request.method == "POST":
+        code = (request.POST.get("code") or "").strip().upper()
+        if code:
+            return redirect("promotions:redeem-detail", code=code)
+        messages.error(request, "Bitte einen Code eingeben.")
+    return render(request, "promotions/redeem.html", {"nav": "redeem"})
+
+
+@login_required
+def redeem_detail(request, code):
+    code = code.strip().upper()
+    res = (
+        Reservation.objects.select_related("promotion", "customer")
+        .filter(reference_code=code)
+        .first()
+    )
+    return render(
+        request,
+        "promotions/redeem_detail.html",
+        {"reservation": res, "code": code, "nav": "redeem"},
+    )
+
+
+@login_required
+def redeem_action(request, code):
+    code = code.strip().upper()
+    res = get_object_or_404(Reservation, reference_code=code)
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        handler = {
+            "confirm": services.confirm,
+            "fulfill": services.fulfill,
+            "cancel": services.cancel,
+        }.get(action)
+        if handler is None:
+            messages.error(request, "Unknown action.")
+        else:
+            try:
+                handler(res, actor=request.user)
+                messages.success(request, f"{code}: {action} ✓")
+            except IllegalTransition:
+                messages.error(request, f"Status „{res.status}“ — Aktion „{action}“ nicht möglich.")
+    return redirect("promotions:redeem-detail", code=code)

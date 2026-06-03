@@ -13,8 +13,14 @@
     <p class="text-2xl font-mono font-bold">{{ reservation.reference_code }}</p>
   </div>
 
-  <p class="text-sm text-gray-500 mt-6">
-    {% trans "Please keep this code and show it when you pick up your reservation." %}
+  {# Персональный QR — показать на выдаче #}
+  <div class="mt-5">
+    <img src="{% url 'storefront-reservation-qr' reservation.reference_code %}" width="180" height="180"
+         alt="{% trans 'Your reservation QR code' %}" class="inline-block bg-white p-2 rounded-xl border border-gray-200">
+  </div>
+
+  <p class="text-sm text-gray-500 mt-4">
+    {% trans "Please show this code or QR when you pick up your reservation." %}
   </p>
   {% if reservation.status == 'pending' %}
     <p class="text-sm text-amber-700 mt-2">{% trans "Status: awaiting confirmation by the business." %}</p>

@@ -21,4 +21,7 @@ urlpatterns = [
     ),
     path("reservations/", views.reservation_list, name="reservation-list"),
     path("reservations/<uuid:pk>/action/", views.reservation_action, name="reservation-action"),
+    path("redeem/", views.redeem_home, name="redeem"),
+    path("redeem/<str:code>/", views.redeem_detail, name="redeem-detail"),
+    path("redeem/<str:code>/action/", views.redeem_action, name="redeem-action"),
 ]

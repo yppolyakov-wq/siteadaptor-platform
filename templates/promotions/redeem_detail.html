@@ -1,0 +1,49 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Redeem" %} {{ code }}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-lg">
+  <a href="{% url 'promotions:redeem' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Scan another" %}</a>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mt-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if reservation %}
+    <div class="bg-white rounded-2xl shadow-sm p-6 mt-3">
+      <div class="flex items-center justify-between">
+        <span class="font-mono text-lg font-bold">{{ reservation.reference_code }}</span>
+        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-sm">{{ reservation.status }}</span>
+      </div>
+      <dl class="mt-4 text-sm space-y-1">
+        <div class="flex justify-between"><dt class="text-gray-500">{% trans "Offer" %}</dt><dd class="font-medium text-right">{{ reservation.promotion.title_text }}</dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">{% trans "Quantity" %}</dt><dd>{{ reservation.quantity }}</dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">{% trans "Customer" %}</dt><dd class="text-right">{{ reservation.customer }}</dd></div>
+        {% if reservation.customer.phone %}<div class="flex justify-between"><dt class="text-gray-500">{% trans "Phone" %}</dt><dd>{{ reservation.customer.phone }}</dd></div>{% endif %}
+      </dl>
+
+      <div class="mt-5 flex flex-wrap gap-2">
+        {% if reservation.status == 'pending' %}
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="confirm"><button class="bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-green-700">{% trans "Confirm" %}</button></form>
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="fulfill"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Hand out" %}</button></form>
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="cancel"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Cancel" %}</button></form>
+        {% elif reservation.status == 'confirmed' %}
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="fulfill"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Hand out" %}</button></form>
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="cancel"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Cancel" %}</button></form>
+        {% elif reservation.status == 'fulfilled' %}
+          <p class="text-sm text-green-700">✓ {% trans "Already handed out." %}</p>
+        {% else %}
+          <p class="text-sm text-gray-400">{% trans "No actions available." %}</p>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="bg-white rounded-2xl shadow-sm p-6 mt-3 text-center">
+      <p class="text-gray-600">{% blocktrans %}No reservation found for code {{ code }}.{% endblocktrans %}</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

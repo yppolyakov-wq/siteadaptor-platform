@@ -33,6 +33,7 @@ urlpatterns = [
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),
     path("r/<str:code>/", public_views.reservation_confirmation, name="storefront-confirmation"),
+    path("r/<str:code>/qr.svg", public_views.reservation_qr, name="storefront-reservation-qr"),
     path("impressum/", public_views.impressum, name="storefront-impressum"),
     path("datenschutz/", public_views.privacy, name="storefront-privacy"),
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),

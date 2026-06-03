@@ -78,6 +78,17 @@ def promotion_qr(request, pk):
     return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
 
 
+def reservation_qr(request, code):
+    """Персональный QR брони. Кодирует ссылку погашения в кабинете —
+    сотрудник сканирует штатной камерой и попадает на страницу выдачи."""
+    code = code.strip().upper()
+    get_object_or_404(Reservation, reference_code=code)
+    redeem_url = request.build_absolute_uri(reverse("promotions:redeem-detail", args=[code]))
+    buf = io.BytesIO()
+    segno.make(redeem_url, error="m").save(buf, kind="svg", scale=6, border=2)
+    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+
+
 def reservation_create(request, pk):
     promo = get_object_or_404(Promotion, pk=pk, status="active")
     if request.method != "POST":
