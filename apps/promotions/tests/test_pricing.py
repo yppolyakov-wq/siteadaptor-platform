@@ -44,6 +44,14 @@ def test_no_discount_when_no_prices():
 
 
 @pytest.mark.django_db
+def test_percent_only_badge_without_prices():
+    # скидка задана только в %, без старой цены — бейдж −20 % всё равно есть
+    p = PromotionFactory(product=None, compare_at_price=None, discount_percent=20)
+    assert p.has_discount is False  # абсолютной цены нет
+    assert p.discount_percent_display == 20  # но бейдж показываем
+
+
+@pytest.mark.django_db
 def test_primary_image_falls_back_to_product():
     prod = ProductFactory(images=[{"id": "1", "url": "/x.jpg", "is_primary": True}])
     p = PromotionFactory(product=prod, images=[])
