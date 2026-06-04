@@ -62,6 +62,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "website_url",
             "opening_hours",
             "map_url",
+            "auto_redeem_on_scan",
             "vat_id",
             "register_entry",
             "legal_responsible",
@@ -76,7 +77,13 @@ class BusinessSettingsForm(forms.ModelForm):
             "privacy_policy": forms.Textarea(attrs={"rows": 6}),
             "withdrawal_policy": forms.Textarea(attrs={"rows": 4}),
         }
+        labels = {
+            "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
+        }
         help_texts = {
+            "auto_redeem_on_scan": _(
+                "When on, opening a redemption QR as logged-in staff redeems immediately."
+            ),
             "impressum": _("Leave blank to generate from the fields above."),
             "privacy_policy": _("Leave blank for a default template (please adapt)."),
             "withdrawal_policy": _("Leave blank for a default template (please adapt)."),

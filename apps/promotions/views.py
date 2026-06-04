@@ -229,6 +229,18 @@ def redeem_detail(request, code):
         .filter(reference_code=code)
         .first()
     )
+    # авто-погашение по скану (если включено у бизнеса): сотрудник открыл QR →
+    # бронь сразу выдаётся. Идемпотентно (повторный скан выданной — no-op).
+    auto = getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False)
+    if res is not None and auto and res.status in ("pending", "confirmed"):
+        try:
+            if res.status == "pending":
+                services.confirm(res, actor=request.user)
+            services.fulfill(res, actor=request.user)
+            res.refresh_from_db()
+            messages.success(request, f"{code}: ausgegeben ✓ (Auto)")
+        except IllegalTransition:
+            pass
     return render(
         request,
         "promotions/redeem_detail.html",
@@ -302,6 +314,15 @@ def voucher_redeem(request):
 
     code = (request.GET.get("code") or "").strip().upper()
     voucher = Voucher.objects.filter(code=code).first() if code else None
+    # авто-погашение по скану, если включено у бизнеса
+    auto = getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False)
+    if voucher is not None and auto and voucher.is_redeemable:
+        try:
+            voucher = services.redeem_voucher(code)
+            messages.success(request, f"{voucher.code}: {voucher.label} ✓ (Auto)")
+        except services.VoucherError as exc:
+            messages.error(request, _VOUCHER_ERRORS.get(exc.reason, exc.reason))
+            voucher = Voucher.objects.filter(code=code).first()
     return render(
         request,
         "promotions/voucher_redeem.html",

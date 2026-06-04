@@ -18,7 +18,7 @@
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
       <legend class="font-semibold mb-2">{% trans "Contact & hours" %}</legend>
       {% for field in form %}
-        {% if field.name == 'name' or field.name == 'address' or field.name == 'city' or field.name == 'contact_email' or field.name == 'contact_phone' or field.name == 'website_url' or field.name == 'opening_hours' or field.name == 'map_url' %}
+        {% if field.name == 'name' or field.name == 'address' or field.name == 'city' or field.name == 'contact_email' or field.name == 'contact_phone' or field.name == 'website_url' or field.name == 'opening_hours' or field.name == 'map_url' or field.name == 'auto_redeem_on_scan' %}
           <div>
             <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}

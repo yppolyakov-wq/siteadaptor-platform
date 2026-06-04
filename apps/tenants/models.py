@@ -62,6 +62,10 @@ class Tenant(TenantMixin):
     opening_hours = models.TextField(blank=True)  # свободный текст / по строкам
     map_url = models.URLField(blank=True)  # ссылка на карту (Google/OSM)
 
+    # Если включено — залогиненный сотрудник, открыв QR-ссылку погашения,
+    # гасит бронь/ваучер сразу (без кнопки подтверждения).
+    auto_redeem_on_scan = models.BooleanField(default=False)
+
     # Правовые данные (DACH/EU). Свободный текст имеет приоритет; если пусто —
     # генерируем из структурированных полей (см. *_text()).
     vat_id = models.CharField(max_length=30, blank=True)  # USt-IdNr.
