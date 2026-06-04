@@ -7,7 +7,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -112,9 +112,46 @@ def promotion_edit(request, pk):
             "channel_stats": channel_stats,
             "preset_channels": preset_channels,
             "waitlist_count": promo.waitlist.count(),
+            "stats": _promo_stats(promo),
             "nav": "promotions",
         },
     )
+
+
+def _conversion(n_res, views):
+    return round(n_res / views * 100, 1) if views else None
+
+
+def _promo_stats(promo) -> dict:
+    """Аналитика акции: просмотры, брони по статусам, конверсия, выдачи."""
+    by_status = dict(promo.reservations.values_list("status").annotate(n=Count("id")).order_by())
+    total = sum(by_status.values())
+    return {
+        "views": promo.views,
+        "by_status": by_status,
+        "total": total,
+        "fulfilled": by_status.get("fulfilled", 0),
+        "conversion": _conversion(total, promo.views),
+    }
+
+
+@login_required
+def analytics_overview(request):
+    promos = Promotion.objects.annotate(
+        n_res=Count("reservations"),
+        n_fulfilled=Count("reservations", filter=Q(reservations__status="fulfilled")),
+    ).order_by("-views")
+    rows = [
+        {
+            "promo": p,
+            "views": p.views,
+            "n_res": p.n_res,
+            "n_fulfilled": p.n_fulfilled,
+            "conversion": _conversion(p.n_res, p.views),
+        }
+        for p in promos
+    ]
+    return render(request, "promotions/analytics.html", {"rows": rows, "nav": "analytics"})
 
 
 @login_required

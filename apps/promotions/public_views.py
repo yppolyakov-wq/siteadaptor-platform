@@ -12,6 +12,7 @@ import segno
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
+from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -66,6 +67,8 @@ def storefront_home(request):
 def promotion_detail(request, pk):
     promo = get_object_or_404(Promotion, pk=pk, status="active")
     ch = _capture_channel(request)
+    # аналитика: атомарный счётчик просмотров (не блокирует рендер)
+    Promotion.objects.filter(pk=promo.pk).update(views=F("views") + 1)
     form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex, "channel": ch})
     return render(request, "storefront/promotion_detail.html", _detail_ctx(request, promo, form))
 

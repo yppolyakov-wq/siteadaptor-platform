@@ -28,4 +28,5 @@ urlpatterns = [
     path("vouchers/redeem/", views.voucher_redeem, name="voucher-redeem"),
     path("loyalty/", views.loyalty_list, name="loyalty-list"),
     path("loyalty/<uuid:program_id>/stamp/", views.loyalty_stamp, name="loyalty-stamp"),
+    path("analytics/", views.analytics_overview, name="analytics"),
 ]

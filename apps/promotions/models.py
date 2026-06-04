@@ -83,6 +83,9 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)
 
+    # аналитика: счётчик просмотров публичной страницы акции
+    views = models.PositiveIntegerField(default=0)
+
     metadata = models.JSONField(default=dict, blank=True)
 
     class Meta:
