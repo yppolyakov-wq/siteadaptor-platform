@@ -9,13 +9,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from apps.catalog.images import delete_stored_image, save_product_image
 from apps.core.fsm import IllegalTransition
 
 from . import services
-from .forms import PromotionForm, VoucherCreateForm
-from .models import Promotion, Reservation, Voucher
+from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
+from .models import Customer, LoyaltyCard, LoyaltyProgram, Promotion, Reservation, Voucher
 from .state_machine import PromotionSM
 
 PROMO_STATUSES = ["draft", "scheduled", "active", "paused", "ended", "archived"]
@@ -305,4 +306,75 @@ def voucher_redeem(request):
         request,
         "promotions/voucher_redeem.html",
         {"code": code, "voucher": voucher, "nav": "vouchers"},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Лояльность (штампы)
+# ---------------------------------------------------------------------------
+
+
+@login_required
+def loyalty_list(request):
+    form = LoyaltyProgramForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Programm erstellt.")
+        return redirect("promotions:loyalty-list")
+    return render(
+        request,
+        "promotions/loyalty.html",
+        {"form": form, "programs": LoyaltyProgram.objects.all(), "nav": "loyalty"},
+    )
+
+
+def _resolve_card(program, *, token="", email=""):
+    if token:
+        return (
+            LoyaltyCard.objects.filter(program=program, token=token)
+            .select_related("customer")
+            .first()
+        )
+    if email:
+        customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
+        if customer is None:
+            customer = Customer.objects.create(email=email, name="")
+        return services.get_or_create_card(program, customer)
+    return None
+
+
+@login_required
+def loyalty_stamp(request, program_id):
+    program = get_object_or_404(LoyaltyProgram, pk=program_id)
+
+    if request.method == "POST":
+        card = (
+            LoyaltyCard.objects.filter(pk=request.POST.get("card_id"))
+            .select_related("program")
+            .first()
+        )
+        if card is not None:
+            try:
+                card, reward = services.add_stamp(card)
+                msg = f"Stempel +1 ({card.stamps}/{program.stamps_required})"
+                if reward is not None:
+                    msg += f" — Belohnung: {reward.label} [{reward.code}]"
+                messages.success(request, msg)
+            except services.LoyaltyError:
+                messages.error(request, "Zu schnell — bitte kurz warten.")
+            return redirect(
+                f"{reverse('promotions:loyalty-stamp', args=[program.pk])}?card={card.token}"
+            )
+        messages.error(request, "Karte nicht gefunden.")
+        return redirect("promotions:loyalty-stamp", program_id=program.pk)
+
+    card = _resolve_card(
+        program,
+        token=(request.GET.get("card") or "").strip(),
+        email=(request.GET.get("email") or "").strip().lower(),
+    )
+    return render(
+        request,
+        "promotions/loyalty_stamp.html",
+        {"program": program, "card": card, "nav": "loyalty"},
     )

@@ -1,0 +1,48 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n widget_tweaks %}
+{% block dash_title %}{% trans "Loyalty" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-4">{% trans "Loyalty programs" %}</h1>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 grid sm:grid-cols-2 gap-4 max-w-2xl">
+  {% csrf_token %}
+  {% for field in form %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+      {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+  <div class="sm:col-span-2">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create program" %}</button>
+  </div>
+</form>
+
+<div class="bg-white rounded-2xl shadow-sm p-4">
+  <table class="w-full text-sm">
+    <thead class="text-left text-gray-500 border-b">
+      <tr><th class="py-2">{% trans "Program" %}</th><th class="py-2">{% trans "Stamps" %}</th><th class="py-2">{% trans "Reward" %}</th><th class="py-2">{% trans "Active" %}</th><th class="py-2"></th></tr>
+    </thead>
+    <tbody>
+      {% for p in programs %}
+        <tr class="border-b last:border-0">
+          <td class="py-2">{{ p.label }}</td>
+          <td class="py-2">{{ p.stamps_required }}</td>
+          <td class="py-2">{{ p.reward_label }}</td>
+          <td class="py-2">{% if p.is_active %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
+          <td class="py-2 text-right"><a href="{% url 'promotions:loyalty-stamp' p.pk %}" class="text-indigo-600 hover:underline">{% trans "Add stamp" %}</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="py-6 text-center text-gray-400">{% trans "No programs yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

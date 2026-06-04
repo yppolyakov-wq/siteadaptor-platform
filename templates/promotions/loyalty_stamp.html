@@ -1,0 +1,45 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{{ program.label }} — {% trans "Add stamp" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-lg">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{{ program.label }}</h1>
+    <a href="{% url 'promotions:loyalty-list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "All programs" %}</a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if card %}
+    <div class="bg-white rounded-2xl shadow-sm p-6 mb-4">
+      <p class="text-sm text-gray-500">{{ card.customer }}{% if card.customer.email %} · {{ card.customer.email }}{% endif %}</p>
+      <p class="text-3xl font-bold mt-2">{{ card.stamps }}<span class="text-gray-400 text-xl"> / {{ program.stamps_required }}</span></p>
+      {% if card.rewards_earned %}<p class="text-xs text-green-700 mt-1">{% blocktrans count n=card.rewards_earned %}{{ n }} reward earned{% plural %}{{ n }} rewards earned{% endblocktrans %}</p>{% endif %}
+      <form method="post" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="card_id" value="{{ card.pk }}">
+        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-indigo-700">+1 {% trans "Stamp" %}</button>
+      </form>
+      <details class="mt-4">
+        <summary class="text-sm text-gray-500 cursor-pointer">{% trans "Customer QR" %}</summary>
+        <img class="mt-2" src="{% url 'storefront-loyalty-qr' card.token %}" width="150" height="150" alt="{% trans 'Loyalty card QR' %}">
+      </details>
+    </div>
+  {% endif %}
+
+  <form method="get" class="bg-white rounded-2xl shadow-sm p-5">
+    <label class="block text-sm font-medium mb-1" for="email">{% trans "Find card by email" %}</label>
+    <div class="flex gap-2">
+      <input id="email" name="email" type="email" placeholder="kunde@example.de"
+             class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
+      <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Open" %}</button>
+    </div>
+    <p class="text-xs text-gray-400 mt-2">{% trans "Or scan the customer's loyalty QR with your phone camera." %}</p>
+  </form>
+</div>
+{% endblock %}

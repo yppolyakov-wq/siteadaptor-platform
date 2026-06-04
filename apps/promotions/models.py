@@ -269,3 +269,50 @@ class Voucher(TimestampedModel):
         if self.expires_at and self.expires_at < timezone.now():
             return False
         return not (self.max_uses and self.used_count >= self.max_uses)
+
+
+class LoyaltyProgram(TimestampedModel):
+    """Программа лояльности (штампы): N штампов → награда."""
+
+    label = models.CharField(max_length=120)  # "Kaffee-Karte"
+    stamps_required = models.PositiveSmallIntegerField(default=10)
+    reward_label = models.CharField(max_length=120)  # "Gratis Kaffee"
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.label
+
+
+class LoyaltyCard(TimestampedModel):
+    """Карта клиента в программе. token — для QR/скана при начислении."""
+
+    program = models.ForeignKey(LoyaltyProgram, on_delete=models.CASCADE, related_name="cards")
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="loyalty_cards")
+    stamps = models.PositiveIntegerField(default=0)
+    rewards_earned = models.PositiveIntegerField(default=0)
+    token = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["program", "customer"], name="uniq_loyaltycard_program_customer"
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.customer_id} · {self.program_id}: {self.stamps}/{self.program.stamps_required}"
+        )
+
+
+class StampEvent(TimestampedModel):
+    """Лог начисления штампа (аудит + анти-дабл по кулдауну)."""
+
+    card = models.ForeignKey(LoyaltyCard, on_delete=models.CASCADE, related_name="events")
+
+    class Meta:
+        ordering = ["-created_at"]

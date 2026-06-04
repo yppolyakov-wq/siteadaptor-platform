@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .forms import PublicReservationForm, WaitlistForm
-from .models import Customer, Promotion, Reservation, Voucher, WaitlistEntry
+from .models import Customer, LoyaltyCard, Promotion, Reservation, Voucher, WaitlistEntry
 from .services import OutOfStock, ReservationLimitReached, reserve
 
 RL_LIMIT = 5  # попыток
@@ -214,3 +214,16 @@ def privacy(request):
 
 def withdrawal(request):
     return _legal_page(request, "Widerruf", request.tenant.withdrawal_text())
+
+
+def loyalty_card_qr(request, token):
+    """QR карты лояльности: кодирует ссылку начисления штампа в кабинете."""
+    card = get_object_or_404(LoyaltyCard.objects.select_related("program"), token=token)
+    stamp_url = (
+        request.build_absolute_uri(reverse("promotions:loyalty-stamp", args=[card.program_id]))
+        + "?card="
+        + str(card.token)
+    )
+    buf = io.BytesIO()
+    segno.make(stamp_url, error="m").save(buf, kind="svg", scale=6, border=2)
+    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")

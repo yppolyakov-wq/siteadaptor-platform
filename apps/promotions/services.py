@@ -201,3 +201,54 @@ def redeem_voucher(code):
     Voucher.objects.filter(pk=voucher.pk).update(used_count=F("used_count") + 1)
     voucher.refresh_from_db(fields=["used_count"])
     return voucher
+
+
+# ---------------------------------------------------------------------------
+# Лояльность (штампы)
+# ---------------------------------------------------------------------------
+
+STAMP_COOLDOWN_SECONDS = 30  # анти-дабл: не чаще одного штампа за это время
+
+
+class LoyaltyError(Exception):
+    """Штамп нельзя начислить. reason: cooldown."""
+
+    def __init__(self, reason):
+        super().__init__(reason)
+        self.reason = reason
+
+
+def get_or_create_card(program, customer):
+    from .models import LoyaltyCard
+
+    card, _ = LoyaltyCard.objects.get_or_create(program=program, customer=customer)
+    return card
+
+
+@transaction.atomic
+def add_stamp(card, *, cooldown_seconds=STAMP_COOLDOWN_SECONDS):
+    """Начислить штамп. При достижении порога — награда (Voucher) + сброс.
+
+    Возвращает (card, reward_voucher|None). Бросает LoyaltyError('cooldown')
+    при слишком частом начислении (анти-дабл).
+    """
+    from .models import LoyaltyCard, StampEvent
+
+    card = LoyaltyCard.objects.select_for_update().select_related("program").get(pk=card.pk)
+
+    last = card.events.order_by("-created_at").first()
+    if last and (timezone.now() - last.created_at).total_seconds() < cooldown_seconds:
+        raise LoyaltyError("cooldown")
+
+    StampEvent.objects.create(card=card)
+    card.stamps += 1
+
+    reward = None
+    required = card.program.stamps_required
+    if required and card.stamps >= required:
+        card.stamps -= required
+        card.rewards_earned += 1
+        reward = generate_vouchers(label=card.program.reward_label, count=1, max_uses=1)[0]
+
+    card.save(update_fields=["stamps", "rewards_earned", "updated_at"])
+    return card, reward

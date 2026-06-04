@@ -36,6 +36,7 @@ urlpatterns = [
     path("r/<str:code>/", public_views.reservation_confirmation, name="storefront-confirmation"),
     path("r/<str:code>/qr.svg", public_views.reservation_qr, name="storefront-reservation-qr"),
     path("v/<str:code>/qr.svg", public_views.voucher_qr, name="storefront-voucher-qr"),
+    path("c/<uuid:token>/qr.svg", public_views.loyalty_card_qr, name="storefront-loyalty-qr"),
     path("impressum/", public_views.impressum, name="storefront-impressum"),
     path("datenschutz/", public_views.privacy, name="storefront-privacy"),
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),

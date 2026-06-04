@@ -1,7 +1,15 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import Customer, Promotion, Reservation, Voucher, WaitlistEntry
+from .models import (
+    Customer,
+    LoyaltyCard,
+    LoyaltyProgram,
+    Promotion,
+    Reservation,
+    Voucher,
+    WaitlistEntry,
+)
 
 
 @admin.register(Customer)
@@ -43,3 +51,18 @@ class VoucherAdmin(ModelAdmin):
     list_filter = ("is_active",)
     search_fields = ("code", "label")
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(LoyaltyProgram)
+class LoyaltyProgramAdmin(ModelAdmin):
+    list_display = ("label", "stamps_required", "reward_label", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("label", "reward_label")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(LoyaltyCard)
+class LoyaltyCardAdmin(ModelAdmin):
+    list_display = ("customer", "program", "stamps", "rewards_earned")
+    raw_id_fields = ("program", "customer")
+    readonly_fields = ("created_at", "updated_at", "token")

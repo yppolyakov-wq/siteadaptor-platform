@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Product
 
-from .models import Promotion
+from .models import LoyaltyProgram, Promotion
 
 _DT_FMT = "%Y-%m-%dT%H:%M"
 
@@ -133,3 +133,14 @@ class VoucherCreateForm(forms.Form):
         label=_("Uses per voucher (0 = unlimited)"), min_value=0, initial=1
     )
     expires_at = _DateTimeLocal(label=_("Expires at"))
+
+
+class LoyaltyProgramForm(forms.ModelForm):
+    class Meta:
+        model = LoyaltyProgram
+        fields = ["label", "stamps_required", "reward_label", "is_active"]
+        labels = {
+            "label": _("Program name"),
+            "stamps_required": _("Stamps required"),
+            "reward_label": _("Reward"),
+        }
