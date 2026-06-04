@@ -178,6 +178,11 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         delta = (self.ends_at - timezone.now()).total_seconds()
         return int(delta) if delta > 0 else 0
 
+    @property
+    def is_sold_out(self) -> bool:
+        """Лимитированная акция распродана (остаток 0)."""
+        return self.available_quantity is not None and self.available_quantity <= 0
+
 
 class Reservation(TimestampedModel):
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name="reservations")
@@ -207,3 +212,25 @@ class Reservation(TimestampedModel):
 
     def __str__(self):
         return self.reference_code
+
+
+class WaitlistEntry(TimestampedModel):
+    """Запись в лист ожидания, когда акция распродана.
+
+    Контакт берём с согласия для одного уведомления о наличии (DSGVO).
+    """
+
+    promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name="waitlist")
+    name = models.CharField(max_length=200, blank=True)
+    email = models.EmailField()
+    notified = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        constraints = [
+            # один email в листе ожидания на акцию
+            models.UniqueConstraint(fields=["promotion", "email"], name="uniq_waitlist_promo_email")
+        ]
+
+    def __str__(self):
+        return f"{self.email} → {self.promotion_id}"

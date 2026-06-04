@@ -85,6 +85,13 @@
     </div>
   </form>
 
+  {% if promotion and waitlist_count %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
+      <p class="text-sm font-medium">{% trans "Waitlist" %}: <span class="font-bold">{{ waitlist_count }}</span></p>
+      <p class="text-xs text-gray-400 mt-1">{% trans "Customers waiting for this offer to be back in stock." %}</p>
+    </div>
+  {% endif %}
+
   {# QR-код акции для печати + QR по каналам (атрибуция) #}
   {% if promotion and promotion.status == 'active' %}
     <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">

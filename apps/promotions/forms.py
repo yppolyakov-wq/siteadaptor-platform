@@ -112,3 +112,11 @@ class PublicReservationForm(forms.Form):
     website = forms.CharField(required=False, widget=forms.HiddenInput)
     form_token = forms.CharField(required=False, widget=forms.HiddenInput)
     channel = forms.CharField(required=False, widget=forms.HiddenInput)  # атрибуция источника
+
+
+class WaitlistForm(forms.Form):
+    """Лист ожидания для распроданной акции."""
+
+    name = forms.CharField(label=_("Your name"), max_length=200, required=False)
+    email = forms.EmailField(label=_("Email"))
+    website = forms.CharField(required=False, widget=forms.HiddenInput)  # honeypot

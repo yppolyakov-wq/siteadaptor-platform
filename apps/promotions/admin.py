@@ -1,7 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import Customer, Promotion, Reservation
+from .models import Customer, Promotion, Reservation, WaitlistEntry
 
 
 @admin.register(Customer)
@@ -25,4 +25,13 @@ class ReservationAdmin(ModelAdmin):
     list_filter = ("status",)
     search_fields = ("reference_code",)
     raw_id_fields = ("promotion", "customer")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(WaitlistEntry)
+class WaitlistEntryAdmin(ModelAdmin):
+    list_display = ("email", "name", "promotion", "notified", "created_at")
+    list_filter = ("notified",)
+    search_fields = ("email", "name")
+    raw_id_fields = ("promotion",)
     readonly_fields = ("created_at", "updated_at")

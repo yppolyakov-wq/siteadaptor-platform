@@ -61,7 +61,26 @@
       <p class="mt-4 text-gray-600 whitespace-pre-line">{{ promotion.description_text }}</p>
     {% endif %}
 
-    {# Резервирование #}
+    {# Резервирование / лист ожидания при sold-out #}
+    {% if promotion.is_sold_out %}
+    <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
+      <h2 class="font-semibold mb-1">{% trans "Sold out" %}</h2>
+      <p class="text-sm text-gray-500 mb-4">{% trans "Leave your email and we'll notify you when it's available again." %}</p>
+      <form method="post" action="{% url 'storefront-waitlist' promotion.pk %}" class="space-y-4">
+        {% csrf_token %}
+        <div style="position:absolute;left:-9999px" aria-hidden="true">{{ waitlist_form.website }}</div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="{{ waitlist_form.name.id_for_label }}">{{ waitlist_form.name.label }}</label>
+          {% render_field waitlist_form.name class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="{{ waitlist_form.email.id_for_label }}">{{ waitlist_form.email.label }}</label>
+          {% render_field waitlist_form.email class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        </div>
+        <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-3 font-medium hover:bg-black">{% trans "Notify me" %}</button>
+      </form>
+    </div>
+    {% else %}
     <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
       <h2 class="font-semibold mb-4">{% trans "Reserve" %}</h2>
       <form method="post" action="{% url 'storefront-reserve' promotion.pk %}" class="space-y-4">
@@ -83,6 +102,7 @@
         </button>
       </form>
     </div>
+    {% endif %}
 
     {# Поделиться + QR #}
     <div class="mt-5 flex flex-wrap items-center gap-2">
