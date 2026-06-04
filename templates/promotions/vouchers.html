@@ -1,0 +1,54 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n widget_tweaks %}
+{% block dash_title %}{% trans "Vouchers" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-bold">{% trans "Vouchers" %}</h1>
+  <a href="{% url 'promotions:voucher-redeem' %}" class="text-sm px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Redeem" %}</a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 grid sm:grid-cols-2 gap-4 max-w-2xl">
+  {% csrf_token %}
+  {% for field in form %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+      {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+      {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+  <div class="sm:col-span-2">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Generate" %}</button>
+  </div>
+</form>
+
+<div class="bg-white rounded-2xl shadow-sm p-4">
+  <table class="w-full text-sm">
+    <thead class="text-left text-gray-500 border-b">
+      <tr><th class="py-2">{% trans "Code" %}</th><th class="py-2">{% trans "Label" %}</th><th class="py-2">{% trans "Uses" %}</th><th class="py-2">{% trans "Active" %}</th><th class="py-2"></th></tr>
+    </thead>
+    <tbody>
+      {% for v in vouchers %}
+        <tr class="border-b last:border-0">
+          <td class="py-2 font-mono">{{ v.code }}</td>
+          <td class="py-2">{{ v.label }}</td>
+          <td class="py-2">{{ v.used_count }}{% if v.max_uses %}/{{ v.max_uses }}{% else %}/∞{% endif %}</td>
+          <td class="py-2">{% if v.is_redeemable %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
+          <td class="py-2 text-right">
+            <a href="{% url 'storefront-voucher-qr' v.code %}" download="voucher-{{ v.code }}.svg" class="text-indigo-600 hover:underline">QR ↓</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="py-6 text-center text-gray-400">{% trans "No vouchers yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

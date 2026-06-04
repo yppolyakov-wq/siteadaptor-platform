@@ -120,3 +120,16 @@ class WaitlistForm(forms.Form):
     name = forms.CharField(label=_("Your name"), max_length=200, required=False)
     email = forms.EmailField(label=_("Email"))
     website = forms.CharField(required=False, widget=forms.HiddenInput)  # honeypot
+
+
+class VoucherCreateForm(forms.Form):
+    """Генерация пачки ваучеров."""
+
+    label = forms.CharField(
+        label=_("Label"), max_length=120, help_text=_("e.g. −10 % or Free coffee")
+    )
+    count = forms.IntegerField(label=_("How many"), min_value=1, max_value=200, initial=1)
+    max_uses = forms.IntegerField(
+        label=_("Uses per voucher (0 = unlimited)"), min_value=0, initial=1
+    )
+    expires_at = _DateTimeLocal(label=_("Expires at"))

@@ -234,3 +234,38 @@ class WaitlistEntry(TimestampedModel):
 
     def __str__(self):
         return f"{self.email} → {self.promotion_id}"
+
+
+class Voucher(TimestampedModel):
+    """Ваучер/промокод: код, который владелец раздаёт и гасит при выдаче.
+
+    max_uses=0 — безлимит. Гашение атомарно (см. services.redeem_voucher).
+    """
+
+    code = models.CharField(max_length=12, unique=True)
+    label = models.CharField(max_length=120)  # что даёт ваучер ("−10 %", "Gratis Kaffee")
+    max_uses = models.PositiveIntegerField(default=1)
+    used_count = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.code
+
+    @property
+    def uses_left(self):
+        """Сколько осталось гашений (None — безлимит)."""
+        if not self.max_uses:
+            return None
+        return max(0, self.max_uses - self.used_count)
+
+    @property
+    def is_redeemable(self) -> bool:
+        if not self.is_active:
+            return False
+        if self.expires_at and self.expires_at < timezone.now():
+            return False
+        return not (self.max_uses and self.used_count >= self.max_uses)

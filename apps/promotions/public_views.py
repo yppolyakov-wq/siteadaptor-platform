@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .forms import PublicReservationForm, WaitlistForm
-from .models import Customer, Promotion, Reservation, WaitlistEntry
+from .models import Customer, Promotion, Reservation, Voucher, WaitlistEntry
 from .services import OutOfStock, ReservationLimitReached, reserve
 
 RL_LIMIT = 5  # попыток
@@ -99,6 +99,18 @@ def reservation_qr(request, code):
     code = code.strip().upper()
     get_object_or_404(Reservation, reference_code=code)
     redeem_url = request.build_absolute_uri(reverse("promotions:redeem-detail", args=[code]))
+    buf = io.BytesIO()
+    segno.make(redeem_url, error="m").save(buf, kind="svg", scale=6, border=2)
+    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+
+
+def voucher_qr(request, code):
+    """QR ваучера. Кодирует ссылку погашения в кабинете (сотрудник сканирует)."""
+    code = code.strip().upper()
+    get_object_or_404(Voucher, code=code)
+    redeem_url = (
+        request.build_absolute_uri(reverse("promotions:voucher-redeem")) + "?code=" + quote(code)
+    )
     buf = io.BytesIO()
     segno.make(redeem_url, error="m").save(buf, kind="svg", scale=6, border=2)
     return HttpResponse(buf.getvalue(), content_type="image/svg+xml")

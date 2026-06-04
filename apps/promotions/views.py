@@ -14,8 +14,8 @@ from apps.catalog.images import delete_stored_image, save_product_image
 from apps.core.fsm import IllegalTransition
 
 from . import services
-from .forms import PromotionForm
-from .models import Promotion, Reservation
+from .forms import PromotionForm, VoucherCreateForm
+from .models import Promotion, Reservation, Voucher
 from .state_machine import PromotionSM
 
 PROMO_STATUSES = ["draft", "scheduled", "active", "paused", "ended", "archived"]
@@ -255,3 +255,54 @@ def redeem_action(request, code):
             except IllegalTransition:
                 messages.error(request, f"Status „{res.status}“ — Aktion „{action}“ nicht möglich.")
     return redirect("promotions:redeem-detail", code=code)
+
+
+# ---------------------------------------------------------------------------
+# Ваучеры / промокоды
+# ---------------------------------------------------------------------------
+
+_VOUCHER_ERRORS = {
+    "not_found": "Code nicht gefunden.",
+    "inactive": "Voucher deaktiviert.",
+    "expired": "Voucher abgelaufen.",
+    "used_up": "Voucher bereits eingelöst.",
+}
+
+
+@login_required
+def voucher_list(request):
+    form = VoucherCreateForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        created = services.generate_vouchers(
+            label=form.cleaned_data["label"],
+            count=form.cleaned_data["count"],
+            max_uses=form.cleaned_data["max_uses"],
+            expires_at=form.cleaned_data.get("expires_at"),
+        )
+        messages.success(request, f"{len(created)} Voucher erstellt.")
+        return redirect("promotions:voucher-list")
+    return render(
+        request,
+        "promotions/vouchers.html",
+        {"form": form, "vouchers": Voucher.objects.all()[:200], "nav": "vouchers"},
+    )
+
+
+@login_required
+def voucher_redeem(request):
+    if request.method == "POST":
+        try:
+            voucher = services.redeem_voucher(request.POST.get("code", ""))
+            uses = f" ({voucher.used_count}/{voucher.max_uses})" if voucher.max_uses else ""
+            messages.success(request, f"{voucher.code}: {voucher.label} ✓{uses}")
+        except services.VoucherError as exc:
+            messages.error(request, _VOUCHER_ERRORS.get(exc.reason, exc.reason))
+        return redirect("promotions:voucher-redeem")
+
+    code = (request.GET.get("code") or "").strip().upper()
+    voucher = Voucher.objects.filter(code=code).first() if code else None
+    return render(
+        request,
+        "promotions/voucher_redeem.html",
+        {"code": code, "voucher": voucher, "nav": "vouchers"},
+    )

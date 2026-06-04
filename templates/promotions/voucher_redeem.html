@@ -1,0 +1,94 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Redeem voucher" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-lg">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{% trans "Redeem voucher" %}</h1>
+    <a href="{% url 'promotions:voucher-list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "All vouchers" %}</a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if voucher %}
+    <div class="bg-white rounded-2xl shadow-sm p-6 mb-4">
+      <div class="flex items-center justify-between">
+        <span class="font-mono text-lg font-bold">{{ voucher.code }}</span>
+        <span class="text-sm">{{ voucher.used_count }}{% if voucher.max_uses %}/{{ voucher.max_uses }}{% else %}/∞{% endif %}</span>
+      </div>
+      <p class="mt-1 text-gray-700">{{ voucher.label }}</p>
+      <form method="post" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="code" value="{{ voucher.code }}">
+        <button type="submit" {% if not voucher.is_redeemable %}disabled{% endif %}
+                class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">
+          {% trans "Redeem" %}
+        </button>
+        {% if not voucher.is_redeemable %}<span class="ml-2 text-xs text-red-600">{% trans "Not redeemable" %}</span>{% endif %}
+      </form>
+    </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'promotions:voucher-redeem' %}" class="bg-white rounded-2xl shadow-sm p-5 mb-4">
+    {% csrf_token %}
+    <label class="block text-sm font-medium mb-1" for="code">{% trans "Enter code" %}</label>
+    <div class="flex gap-2">
+      <input id="code" name="code" placeholder="V-XXXXXX" autocomplete="off" autocapitalize="characters"
+             class="flex-1 rounded-lg border border-gray-300 px-3 py-2 font-mono uppercase">
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Redeem" %}</button>
+    </div>
+  </form>
+
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-medium">{% trans "Scan QR with camera" %}</span>
+      <button id="scan-toggle" type="button" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Start camera" %}</button>
+    </div>
+    <video id="scan-video" class="w-full rounded-lg bg-black hidden" muted playsinline></video>
+    <p id="scan-msg" class="text-xs text-gray-400 mt-2">{% trans "Or scan the voucher QR with your phone camera." %}</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var toggle = document.getElementById("scan-toggle"), video = document.getElementById("scan-video"),
+      msg = document.getElementById("scan-msg"), stream = null, detector = null, raf = null;
+  if (!("BarcodeDetector" in window)) {
+    toggle.disabled = true; toggle.classList.add("opacity-50");
+    msg.textContent = "{% trans 'In-app scanner not supported here — use the code field above.' %}";
+    return;
+  }
+  async function start() {
+    try {
+      detector = new BarcodeDetector({ formats: ["qr_code"] });
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      video.srcObject = stream; video.classList.remove("hidden"); await video.play();
+      toggle.textContent = "{% trans 'Stop' %}"; loop();
+    } catch (e) { msg.textContent = "" + e; }
+  }
+  function stop() {
+    if (raf) cancelAnimationFrame(raf);
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    video.classList.add("hidden"); toggle.textContent = "{% trans 'Start camera' %}"; stream = null;
+  }
+  async function loop() {
+    try {
+      var codes = await detector.detect(video);
+      if (codes && codes.length) {
+        var val = codes[0].rawValue || ""; stop();
+        if (/^https?:\/\//.test(val)) { location.href = val; }
+        else { location.href = "{% url 'promotions:voucher-redeem' %}?code=" + encodeURIComponent(val); }
+        return;
+      }
+    } catch (e) {}
+    raf = requestAnimationFrame(loop);
+  }
+  toggle.addEventListener("click", function () { stream ? stop() : start(); });
+})();
+</script>
+{% endblock %}

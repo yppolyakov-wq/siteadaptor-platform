@@ -12,7 +12,7 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 
-from .models import Customer, Promotion, Reservation
+from .models import Customer, Promotion, Reservation, Voucher
 from .notifications import enqueue_reservation_email
 from .state_machine import ReservationSM
 
@@ -26,6 +26,14 @@ class OutOfStock(Exception):
 
 class ReservationLimitReached(Exception):
     """Превышен Promotion.max_per_customer для этого клиента."""
+
+
+class VoucherError(Exception):
+    """Ваучер нельзя погасить. reason: not_found/inactive/expired/used_up."""
+
+    def __init__(self, reason):
+        super().__init__(reason)
+        self.reason = reason
 
 
 def _unique_reference_code() -> str:
@@ -146,3 +154,50 @@ def expire(reservation, *, actor=None):
         if res.status not in ("pending", "confirmed"):
             return res
         return ReservationSM().apply(res, "expired", actor=actor)
+
+
+# ---------------------------------------------------------------------------
+# Ваучеры / промокоды
+# ---------------------------------------------------------------------------
+
+
+def _unique_voucher_code() -> str:
+    for _ in range(10):
+        code = "V-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
+        if not Voucher.objects.filter(code=code).exists():
+            return code
+    raise RuntimeError("could not generate unique voucher code")
+
+
+def generate_vouchers(*, label, count=1, max_uses=1, expires_at=None):
+    """Сгенерировать count ваучеров с уникальными кодами. Вернуть список."""
+    count = max(1, min(int(count), 200))  # разумный потолок на пачку
+    created = []
+    for _ in range(count):
+        created.append(
+            Voucher.objects.create(
+                code=_unique_voucher_code(),
+                label=label,
+                max_uses=max_uses,
+                expires_at=expires_at,
+            )
+        )
+    return created
+
+
+@transaction.atomic
+def redeem_voucher(code):
+    """Погасить ваучер (одно использование). Бросает VoucherError с reason."""
+    code = (code or "").strip().upper()
+    voucher = Voucher.objects.select_for_update().filter(code=code).first()
+    if voucher is None:
+        raise VoucherError("not_found")
+    if not voucher.is_active:
+        raise VoucherError("inactive")
+    if voucher.expires_at and voucher.expires_at < timezone.now():
+        raise VoucherError("expired")
+    if voucher.max_uses and voucher.used_count >= voucher.max_uses:
+        raise VoucherError("used_up")
+    Voucher.objects.filter(pk=voucher.pk).update(used_count=F("used_count") + 1)
+    voucher.refresh_from_db(fields=["used_count"])
+    return voucher
