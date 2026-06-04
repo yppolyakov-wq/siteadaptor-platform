@@ -16,8 +16,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from .forms import PublicReservationForm
-from .models import Customer, Promotion, Reservation
+from .forms import PublicReservationForm, WaitlistForm
+from .models import Customer, Promotion, Reservation, WaitlistEntry
 from .services import OutOfStock, ReservationLimitReached, reserve
 
 RL_LIMIT = 5  # попыток
@@ -42,6 +42,7 @@ def _detail_ctx(request, promo, form) -> dict:
     return {
         "promotion": promo,
         "form": form,
+        "waitlist_form": WaitlistForm(),
         "share_url": _abs_promo_url(request, promo.pk),
         "qr_url": reverse("storefront-promotion-qr", args=[promo.pk]),
         "og_image": og_image,
@@ -153,6 +154,24 @@ def reservation_create(request, pk):
         return render(request, "storefront/promotion_detail.html", ctx)
 
     return redirect("storefront-confirmation", code=res.reference_code)
+
+
+def waitlist_join(request, pk):
+    """Записать в лист ожидания распроданной акции."""
+    promo = get_object_or_404(Promotion, pk=pk, status="active")
+    if request.method != "POST" or request.POST.get("website"):
+        return redirect("storefront-promotion", pk=pk)
+    form = WaitlistForm(request.POST)
+    if form.is_valid():
+        WaitlistEntry.objects.get_or_create(
+            promotion=promo,
+            email=form.cleaned_data["email"].lower(),
+            defaults={"name": form.cleaned_data.get("name", "")},
+        )
+        messages.success(request, "Wir benachrichtigen Sie, sobald wieder verfügbar.")
+    else:
+        messages.error(request, "Bitte eine gültige E-Mail angeben.")
+    return redirect("storefront-promotion", pk=pk)
 
 
 def reservation_confirmation(request, code):

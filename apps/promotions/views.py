@@ -110,6 +110,7 @@ def promotion_edit(request, pk):
             "actions": _promo_actions(promo),
             "channel_stats": channel_stats,
             "preset_channels": preset_channels,
+            "waitlist_count": promo.waitlist.count(),
             "nav": "promotions",
         },
     )
