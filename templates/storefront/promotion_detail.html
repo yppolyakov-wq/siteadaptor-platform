@@ -68,8 +68,9 @@
         {% csrf_token %}
         <div style="position:absolute;left:-9999px" aria-hidden="true">{{ form.website }}</div>
         {{ form.form_token }}
+        {{ form.channel }}
         {% for field in form %}
-          {% if field.name != 'website' and field.name != 'form_token' %}
+          {% if field.name != 'website' and field.name != 'form_token' and field.name != 'channel' %}
             <div>
               <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
               {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500" %}

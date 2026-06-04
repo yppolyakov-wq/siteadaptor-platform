@@ -85,12 +85,55 @@
     </div>
   </form>
 
-  {# QR-код акции для печати (в магазине/на ценнике) #}
+  {# QR-код акции для печати + QR по каналам (атрибуция) #}
   {% if promotion and promotion.status == 'active' %}
     <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "QR code (print for your shop)" %}</p>
       <img src="{% url 'storefront-promotion-qr' promotion.pk %}" width="140" height="140" alt="{% trans 'QR code' %}">
       <a href="{% url 'storefront-promotion-qr' promotion.pk %}" download="aktion-{{ promotion.pk }}.svg" class="block text-xs text-indigo-600 mt-1 hover:underline">{% trans "Download SVG" %}</a>
+
+      <hr class="my-4 border-gray-100">
+      <p class="text-sm font-medium mb-2">{% trans "Per-channel QR (track where customers come from)" %}</p>
+      <div class="flex flex-wrap gap-2">
+        {% for ch in preset_channels %}
+          <a href="{% url 'storefront-promotion-qr' promotion.pk %}?ch={{ ch }}" download="aktion-{{ promotion.pk }}-{{ ch }}.svg"
+             class="text-xs px-2.5 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">{{ ch }} ↓</a>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 mt-3">
+        <input id="ch-input" placeholder="{% trans 'custom channel' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+        <a id="ch-link" href="#" target="_blank" class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 pointer-events-none opacity-50">{% trans "Open QR" %}</a>
+      </div>
+      <script>
+        (function () {
+          var inp = document.getElementById("ch-input"), link = document.getElementById("ch-link");
+          var base = "{% url 'storefront-promotion-qr' promotion.pk %}";
+          inp.addEventListener("input", function () {
+            var v = inp.value.trim();
+            if (v) { link.href = base + "?ch=" + encodeURIComponent(v); link.classList.remove("pointer-events-none","opacity-50"); }
+            else { link.href = "#"; link.classList.add("pointer-events-none","opacity-50"); }
+          });
+        })();
+      </script>
+    </div>
+
+    {# Атрибуция: брони по каналам #}
+    <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
+      <p class="text-sm font-medium mb-2">{% trans "Reservations by channel" %}</p>
+      {% if channel_stats %}
+        <table class="w-full text-sm">
+          <tbody>
+            {% for row in channel_stats %}
+              <tr class="border-t border-gray-100 first:border-0">
+                <td class="py-1.5">{{ row.source_channel|default:"— direkt —" }}</td>
+                <td class="py-1.5 text-right font-medium">{{ row.n }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-xs text-gray-400">{% trans "No reservations yet." %}</p>
+      {% endif %}
     </div>
   {% endif %}
 </div>
