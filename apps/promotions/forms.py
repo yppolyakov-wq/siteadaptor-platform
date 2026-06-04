@@ -111,3 +111,4 @@ class PublicReservationForm(forms.Form):
     quantity = forms.IntegerField(label=_("Quantity"), min_value=1, initial=1)
     website = forms.CharField(required=False, widget=forms.HiddenInput)
     form_token = forms.CharField(required=False, widget=forms.HiddenInput)
+    channel = forms.CharField(required=False, widget=forms.HiddenInput)  # атрибуция источника

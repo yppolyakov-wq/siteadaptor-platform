@@ -195,6 +195,9 @@ class Reservation(TimestampedModel):
 
     note = models.TextField(blank=True)
 
+    # канал привлечения (?ch= в ссылке/QR): instagram, flyer, schaufenster…
+    source_channel = models.CharField(max_length=50, blank=True, db_index=True)
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [

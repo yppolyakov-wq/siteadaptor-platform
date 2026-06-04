@@ -52,7 +52,7 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
 
 
 @transaction.atomic
-def reserve(promotion, *, name, email="", phone="", quantity=1, note=""):
+def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_channel=""):
     """Создать бронь, атомарно списав остаток акции.
 
     Бросает OutOfStock, если остатка не хватило/акция не active, и
@@ -103,6 +103,7 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note=""):
         expires_at=now + timedelta(hours=promotion.reservation_ttl_hours),
         confirmed_at=now if initial_status == "confirmed" else None,
         note=note,
+        source_channel=(source_channel or "")[:50],
     )
     # письмо клиенту/владельцу — после коммита транзакции
     enqueue_reservation_email(reservation, "created")

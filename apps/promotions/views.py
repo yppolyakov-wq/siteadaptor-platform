@@ -7,6 +7,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.catalog.images import delete_stored_image, save_product_image
@@ -93,6 +94,12 @@ def promotion_edit(request, pk):
         promo = form.save()
         _handle_promo_uploads(request, promo)
         return redirect("promotions:promotion-edit", pk=promo.pk)
+    # атрибуция: брони по каналам привлечения
+    channel_stats = list(
+        promo.reservations.values("source_channel").annotate(n=Count("id")).order_by("-n")
+    )
+    # предустановленные каналы для генерации QR
+    preset_channels = ["instagram", "facebook", "flyer", "schaufenster", "website"]
     return render(
         request,
         "promotions/promotion_form.html",
@@ -101,6 +108,8 @@ def promotion_edit(request, pk):
             "is_create": False,
             "promotion": promo,
             "actions": _promo_actions(promo),
+            "channel_stats": channel_stats,
+            "preset_channels": preset_channels,
             "nav": "promotions",
         },
     )

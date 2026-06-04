@@ -6,6 +6,7 @@
 
 import io
 import uuid
+from urllib.parse import quote
 
 import segno
 from django.conf import settings
@@ -47,14 +48,24 @@ def _detail_ctx(request, promo, form) -> dict:
     }
 
 
+def _capture_channel(request) -> str:
+    """Канал из ?ch= запоминаем в сессии, чтобы донести до момента брони."""
+    ch = (request.GET.get("ch") or "").strip()[:50]
+    if ch:
+        request.session["src_ch"] = ch
+    return ch or request.session.get("src_ch", "")
+
+
 def storefront_home(request):
+    _capture_channel(request)
     promos = Promotion.objects.filter(status="active").order_by("-created_at")
     return render(request, "storefront/home.html", {"promotions": promos})
 
 
 def promotion_detail(request, pk):
     promo = get_object_or_404(Promotion, pk=pk, status="active")
-    form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex})
+    ch = _capture_channel(request)
+    form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex, "channel": ch})
     return render(request, "storefront/promotion_detail.html", _detail_ctx(request, promo, form))
 
 
@@ -69,12 +80,15 @@ def set_language(request):
 
 
 def promotion_qr(request, pk):
-    """SVG QR-код на публичную страницу акции (для печати в магазине/на ценнике)."""
+    """SVG QR акции. С ?ch=<канал> кодирует ссылку с меткой источника
+    (instagram/flyer/schaufenster…) — для печати на каждый канал свой QR."""
     promo = get_object_or_404(Promotion, pk=pk, status="active")
+    url = _abs_promo_url(request, promo.pk)
+    ch = (request.GET.get("ch") or "").strip()
+    if ch:
+        url += ("&" if "?" in url else "?") + "ch=" + quote(ch)
     buf = io.BytesIO()
-    segno.make(_abs_promo_url(request, promo.pk), error="m").save(
-        buf, kind="svg", scale=6, border=2
-    )
+    segno.make(url, error="m").save(buf, kind="svg", scale=6, border=2)
     return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
 
 
@@ -117,6 +131,7 @@ def reservation_create(request, pk):
     if token_key and not cache.add(token_key, "1", TOKEN_TTL):
         return redirect("storefront-promotion", pk=pk)  # дубль сабмита
 
+    channel = (form.cleaned_data.get("channel") or request.session.get("src_ch") or "").strip()
     try:
         res = reserve(
             promo,
@@ -124,6 +139,7 @@ def reservation_create(request, pk):
             email=form.cleaned_data.get("email", ""),
             phone=form.cleaned_data.get("phone", ""),
             quantity=form.cleaned_data["quantity"],
+            source_channel=channel,
         )
     except OutOfStock:
         if token_key:
