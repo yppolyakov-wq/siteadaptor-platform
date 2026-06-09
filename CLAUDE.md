@@ -56,10 +56,10 @@ Python 3.12, менеджер uv.
   Stripe-ключи — `.env.prod` по `docs/billing-stripe-setup.md` (оплата после ключей).
 - **Sprint 4 — Авто-публикация + локальный агрегатор (в работе, ветка
   `claude/sprint4-aggregator`):** детальное ТЗ — `docs/roadmap-next-sprints.md` §Sprint 4.
-  - S4.1 ⬜ агрегатор: AggregatorListing (SHARED) + sync-задача + хук PromotionSM.
-  - S4.2 ⬜ агрегатор: публичные страницы `/entdecken/<city>/[<business_type>/]`.
-  - S4.3 ⬜ фреймворк каналов: Channel/Publication/SM + задачи (TENANT).
-  - S4.4 ⬜ кабинет: тумблеры каналов + статус публикаций.
+  - S4.1 ✅ агрегатор: AggregatorListing (SHARED) + sync-задача + хук PromotionSM.
+  - S4.2 ✅ агрегатор: публичные страницы `/entdecken/<city>/[<business_type>/]`.
+  - S4.3 ✅ фреймворк каналов: Channel/Publication/SM + задачи (TENANT).
+  - S4.4 ✅ кабинет: тумблеры каналов + статус публикаций.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

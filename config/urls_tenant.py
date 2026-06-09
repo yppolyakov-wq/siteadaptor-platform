@@ -13,6 +13,7 @@ from apps.billing import views as billing_views
 from apps.core import health
 from apps.core.views import dashboard, settings_view
 from apps.promotions import public_views
+from apps.publishing import views as publishing_views
 
 urlpatterns = [
     path("accounts/", include("allauth.urls")),
@@ -25,6 +26,9 @@ urlpatterns = [
     path("dashboard/billing/", billing_views.billing, name="billing"),
     path("dashboard/billing/checkout/", billing_views.checkout, name="billing-checkout"),
     path("dashboard/billing/portal/", billing_views.portal, name="billing-portal"),
+    # Каналы публикации (Sprint 4).
+    path("dashboard/channels/", publishing_views.channels, name="channels"),
+    path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
     # Каталог в кабинете владельца.
     path("catalog/", include("apps.catalog.urls")),
     # CSV-импорт товаров.
