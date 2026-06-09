@@ -82,3 +82,27 @@ def sync_listing(tenant_schema, promotion_id) -> str:
 def sync_aggregator_listing(*, tenant_schema, promotion_id):
     """Beat/hook: материализовать листинг акции в агрегаторе."""
     return {"result": sync_listing(tenant_schema, promotion_id)}
+
+
+def reconcile_schema(tenant_schema) -> int:
+    """Привести агрегатор к полному соответствию для одной схемы.
+
+    Upsert всех активных акций + удаление устаревших листингов. Хук материализует
+    по будущим переходам; это — для бэкофилла/реконсиляции (команда sync_aggregator).
+    Возвращает число активных акций. AggregatorListing — SHARED (public).
+    """
+    from apps.promotions.models import Promotion
+
+    from .models import AggregatorListing
+
+    with schema_context(tenant_schema):
+        active_ids = [
+            str(pid)
+            for pid in Promotion.objects.filter(status="active").values_list("id", flat=True)
+        ]
+    for promo_id in active_ids:
+        sync_listing(tenant_schema, promo_id)
+    AggregatorListing.objects.filter(tenant_schema=tenant_schema).exclude(
+        promo_uuid__in=active_ids
+    ).delete()
+    return len(active_ids)
