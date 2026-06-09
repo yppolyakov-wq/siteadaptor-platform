@@ -1,4 +1,4 @@
-from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.messages.storage.cookie import CookieStorage
 from django.http import HttpResponse
 from django.test import RequestFactory
 
@@ -19,7 +19,7 @@ def _mw():
 def _request(method, path, tenant):
     request = getattr(RequestFactory(), method.lower())(path)
     request.tenant = tenant
-    request._messages = FallbackStorage(request)
+    request._messages = CookieStorage(request)
     return request
 
 
