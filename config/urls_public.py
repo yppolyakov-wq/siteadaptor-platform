@@ -9,6 +9,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.static import serve
 
+from apps.billing.webhooks import stripe_webhook
 from apps.core import health
 from apps.tenants.views import BusinessSignupView
 
@@ -17,6 +18,8 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("health/", health.liveness, name="health"),
     path("health/ready/", health.readiness, name="health-ready"),
+    # Stripe-вебхук (один URL на всю платформу, public-схема).
+    path("stripe/webhook/", stripe_webhook, name="stripe-webhook"),
     # Phase 2: авторизация custom-доменов для Caddy on-demand TLS.
     path("internal/verify-domain", health.verify_domain, name="verify-domain"),
     # Онбординг: регистрация бизнеса → создаёт Tenant + Domain + владельца.

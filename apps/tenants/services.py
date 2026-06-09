@@ -4,9 +4,12 @@
 django.contrib.auth — это TENANT_APP (у каждого бизнеса свои пользователи).
 """
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils import timezone
 from django_tenants.utils import schema_context, tenant_context
 
 from .models import Domain, Tenant
@@ -34,6 +37,8 @@ def create_business(*, business_name, slug, business_type, city, email, password
         city=city,
         owner_email=email,
         subscription_status="trial",
+        # Дедлайн триала — основа для beat-просрочки (trial→trial_expired→suspended).
+        trial_ends_at=timezone.now() + timedelta(days=settings.BILLING_TRIAL_DAYS),
         enabled_modules=["catalog", "promotions", "publishing"],
         enabled_locales=["de", "en"],
     )
