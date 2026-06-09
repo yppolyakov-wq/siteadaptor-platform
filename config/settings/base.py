@@ -53,7 +53,7 @@ TENANT_APPS = [
     "apps.promotions",  # Sprint 3 — акции и резервирование
     # "apps.subscriptions",
     "apps.publishing",  # Sprint 4 — каналы публикации (TENANT)
-    # "apps.notifications",
+    "apps.notifications",  # Sprint 6 — уведомления (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
