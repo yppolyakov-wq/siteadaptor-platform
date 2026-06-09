@@ -64,9 +64,9 @@ Python 3.12, менеджер uv.
   детальное ТЗ — `docs/roadmap-next-sprints.md` §Sprint 6.
   - S6.1 ✅ apps.notifications (TENANT): Notification + NotificationSM (БД-dedupe).
   - S6.2 ✅ send_notification + рефактор писем брони через Notification.
-  - S6.3 ⬜ Resend в проде + зрелые шаблоны (DE/EN).
-  - S6.4 ⬜ waitlist: авто-уведомление при возврате остатка (флаг notified).
-  - S6.5 ⬜ (опц.) WhatsApp-адаптер.
+  - S6.3 ✅ HTML+text шаблоны писем (multipart); Resend включается ключом в проде.
+  - S6.4 ✅ waitlist: авто-уведомление при возврате остатка (одно письмо на запись).
+  - S6.5 ⬜ (опц.) WhatsApp-адаптер — по готовности провайдера (Meta-верификация).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -118,10 +118,18 @@ Python 3.12, менеджер uv.
 2. Sprint 4 — авто-публикация + локальный агрегатор (apps.publishing Channel/
    Publication+FSM, хуки PromotionSM, apps.aggregator по city/business_type).
 3. Sprint 6 — уведомления (Notification + БД-dedupe, Resend в проде, опц. WhatsApp).
-4. Hardening (параллельно): Resend-ключ, отдельный Postgres, ротация секретов,
+4. **Track B — быстрые победы DE-рынка** (после Sprint 6, порядок утверждён):
+   B1 Google Business Profile адаптер → B2 «Überraschungstüte»/анти-waste →
+   B3 recurring promotions + пресеты по вертикалям → B4 QR-постер PDF →
+   B5 local SEO (schema.org). Детали — roadmap §Track B.
+5. Hardening (параллельно): Resend-ключ, отдельный Postgres, ротация секретов,
    бэкапы, Sentry, нагрузочный тест anti-oversell, DSGVO-ревизия, rate-limit.
-5. Phase 2 — мульти-доменные агрегаторы, SEO, клиентские аккаунты, монетизация
+6. Phase 2 — мульти-доменные агрегаторы, SEO, клиентские аккаунты, монетизация
    портала, платежи клиента, отзывы, поиск, мобайл.
+
+UX-принцип (владелец, 2026-06-09): для конечного потребителя — максимально
+просто, понятно и без навязчивости (бронь без аккаунта, one-click отписка,
+Double-Opt-In по UWG §7 до маркетинговых рассылок, без трекинг-куки на витрине).
 
 ## 8. Деплой / инфраструктура
 - Сервер Hetzner `siteadaptor-dev` (178.105.206.209), режим single (bundled
