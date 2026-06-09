@@ -36,6 +36,7 @@ SHARED_APPS = [
     "widget_tweaks",  # template-теги для форм (без БД)
     "apps.audit",  # журнал действий (SHARED), дополнение 1.1
     "apps.integrations.webhooks",  # scaffold исходящих вебхуков (SHARED), доп. 1.4
+    "apps.billing",  # Sprint 5 — биллинг/подписки (SHARED: статус подписки на Tenant)
     # SHARED apps платформы (раскомментируются по мере прохождения спринтов)
     # "apps.aggregator",       # Sprint 5
     # "apps.global_categories",  # Sprint 5
@@ -53,7 +54,6 @@ TENANT_APPS = [
     # "apps.subscriptions",
     # "apps.publishing",
     # "apps.notifications",
-    # "apps.billing",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
@@ -243,6 +243,12 @@ STRIPE_TEST_PUBLIC_KEY = env("STRIPE_TEST_PUBLIC_KEY", default="")
 STRIPE_TEST_SECRET_KEY = env("STRIPE_TEST_SECRET_KEY", default="")
 DJSTRIPE_WEBHOOK_SECRET = env("DJSTRIPE_WEBHOOK_SECRET", default="")
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+
+# Тариф Standard (39 €/мес) и длительности жизненного цикла подписки.
+# trial_ends_at + BILLING_GRACE_DAYS = день перехода trial_expired → suspended.
+STRIPE_PRICE_ID = env("STRIPE_PRICE_ID", default="")
+BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=14)
+BILLING_GRACE_DAYS = env.int("BILLING_GRACE_DAYS", default=7)
 
 # ---------------------------------------------------------------------------
 # Media & storage
