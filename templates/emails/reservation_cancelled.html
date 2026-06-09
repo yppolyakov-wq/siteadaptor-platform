@@ -1,0 +1,7 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2 style="margin:0 0 16px;font-size:20px;">Reservierung storniert</h2>
+<p style="margin:0;">Hallo {{ customer.name }},</p>
+<p style="margin:8px 0 0;">Ihre Reservierung „{{ promotion.title_text }}“ (Code {{ reservation.reference_code }}) wurde storniert.</p>
+<p style="margin:8px 0 0;">Schauen Sie gern wieder vorbei — neue Angebote kommen regelmäßig.</p>
+{% endblock %}

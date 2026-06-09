@@ -1,0 +1,9 @@
+Hallo{% if entry.name %} {{ entry.name }}{% endif %},
+
+gute Nachrichten: „{{ promotion.title_text }}“ ist wieder verfügbar.
+
+{% if promo_url %}Jetzt reservieren: {{ promo_url }}
+
+{% endif %}Schnell sein lohnt sich — die Menge ist begrenzt.
+
+Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste).

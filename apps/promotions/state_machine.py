@@ -64,6 +64,13 @@ class ReservationSM(StateMachine):
                 id=instance.promotion_id, available_quantity__isnull=False
             ).update(available_quantity=F("available_quantity") + instance.quantity)
 
+            # Лист ожидания: место освободилось → одно письмо на запись (S6.4).
+            from .services import notify_waitlist_available
+
+            promo = Promotion.objects.filter(id=instance.promotion_id).first()
+            if promo is not None:
+                notify_waitlist_available(promo)
+
         # email-уведомление клиенту (ставится в очередь после коммита)
         if t.dst in ("confirmed", "cancelled", "expired"):
             from .notifications import enqueue_reservation_email

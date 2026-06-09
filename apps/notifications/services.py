@@ -19,11 +19,14 @@ def notify(
     recipient: str,
     subject: str = "",
     body: str = "",
+    html: str = "",
     headers: dict | None = None,
     channel: str = Notification.EMAIL,
 ) -> Notification | None:
     """Создать уведомление (если ещё нет) и поставить доставку. None = дубль."""
     payload = {"body": body}
+    if html:
+        payload["html"] = html
     if headers:
         payload["headers"] = headers
 

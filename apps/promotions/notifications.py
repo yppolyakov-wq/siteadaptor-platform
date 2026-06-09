@@ -9,6 +9,7 @@ patterns/notification-dedupe.md; Redis-lock задачи доставки — о
 """
 
 from django.db import connection
+from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django_tenants.utils import get_tenant_model, schema_context
@@ -48,10 +49,15 @@ def _base_url(schema_name) -> str:
         return ""
 
 
-def _render(template_base, ctx) -> tuple[str, str]:
+def _render(template_base, ctx) -> tuple[str, str, str]:
+    """Рендер subject + text + (опц.) HTML-альтернативы письма."""
     subject = render_to_string(f"emails/{template_base}_subject.txt", ctx).strip()
     body = render_to_string(f"emails/{template_base}.txt", ctx)
-    return subject, body
+    try:
+        html = render_to_string(f"emails/{template_base}.html", ctx)
+    except TemplateDoesNotExist:
+        html = ""
+    return subject, body, html
 
 
 def enqueue_reservation_email(reservation, event):
@@ -69,7 +75,7 @@ def enqueue_reservation_email(reservation, event):
             if base
             else ""
         )
-        subject, body = _render(template_base, {**ctx, "unsubscribe_url": unsub})
+        subject, body, html = _render(template_base, {**ctx, "unsubscribe_url": unsub})
         headers = None
         if unsub:
             # one-click отписка (RFC 8058)
@@ -83,6 +89,7 @@ def enqueue_reservation_email(reservation, event):
             recipient=customer.email,
             subject=subject,
             body=body,
+            html=html,
             headers=headers,
         )
 
@@ -90,11 +97,31 @@ def enqueue_reservation_email(reservation, event):
     if event == "created":
         owner = _owner_email(_tenant(schema))
         if owner:
-            subject, body = _render("reservation_owner", {**ctx, "unsubscribe_url": ""})
+            subject, body, html = _render("reservation_owner", {**ctx, "unsubscribe_url": ""})
             notify(
                 dedupe_key=f"resv:{reservation.id}:created:owner",
                 type="reservation_created_owner",
                 recipient=owner,
                 subject=subject,
                 body=body,
+                html=html,
             )
+
+
+def enqueue_waitlist_available(entry):
+    """Письмо «снова в наличии» записи листа ожидания (одно на запись, S6.4)."""
+    schema = connection.schema_name
+    base = _base_url(schema)
+    promo_url = (
+        f"{base}{reverse('storefront-promotion', args=[entry.promotion_id])}" if base else ""
+    )
+    ctx = {"entry": entry, "promotion": entry.promotion, "promo_url": promo_url}
+    subject, body, html = _render("waitlist_available", ctx)
+    notify(
+        dedupe_key=f"waitlist:{entry.id}:available",
+        type="waitlist_available",
+        recipient=entry.email,
+        subject=subject,
+        body=body,
+        html=html,
+    )

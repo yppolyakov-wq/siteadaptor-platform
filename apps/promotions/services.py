@@ -12,8 +12,8 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 
-from .models import Customer, Promotion, Reservation, Voucher
-from .notifications import enqueue_reservation_email
+from .models import Customer, Promotion, Reservation, Voucher, WaitlistEntry
+from .notifications import enqueue_reservation_email, enqueue_waitlist_available
 from .state_machine import ReservationSM
 
 # алфавит без похожих символов (0/O, 1/I) — код диктуется голосом на выдаче
@@ -252,3 +252,30 @@ def add_stamp(card, *, cooldown_seconds=STAMP_COOLDOWN_SECONDS):
 
     card.save(update_fields=["stamps", "rewards_earned", "updated_at"])
     return card, reward
+
+
+def notify_waitlist_available(promotion) -> int:
+    """Уведомить лист ожидания о возврате остатка (S6.4).
+
+    Каждая запись получает РОВНО одно письмо: флаг notified + unique dedupe_key
+    в Notification. Уведомляем не больше, чем доступно сейчас (по очереди
+    created_at), и только для активной акции. Вызывается из ReservationSM после
+    возврата остатка (cancelled/expired).
+    """
+    if promotion.status != "active":
+        return 0
+    promotion.refresh_from_db(fields=["available_quantity"])
+    available = promotion.available_quantity or 0
+    if available <= 0:
+        return 0
+
+    count = 0
+    pending = WaitlistEntry.objects.filter(promotion=promotion, notified=False).order_by(
+        "created_at"
+    )[:available]
+    for entry in pending:
+        enqueue_waitlist_available(entry)
+        entry.notified = True
+        entry.save(update_fields=["notified", "updated_at"])
+        count += 1
+    return count

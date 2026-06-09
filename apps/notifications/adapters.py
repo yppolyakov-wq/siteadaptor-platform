@@ -6,17 +6,21 @@ Email — базовый (тело и заголовки письма лежат
 """
 
 from django.conf import settings
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 
 
 def _send_email(notification) -> None:
-    EmailMessage(
+    message = EmailMultiAlternatives(
         notification.subject,
         notification.payload.get("body", ""),
         settings.DEFAULT_FROM_EMAIL,
         [notification.recipient],
         headers=notification.payload.get("headers") or None,
-    ).send()
+    )
+    html = notification.payload.get("html")
+    if html:
+        message.attach_alternative(html, "text/html")
+    message.send()
 
 
 _SENDERS = {

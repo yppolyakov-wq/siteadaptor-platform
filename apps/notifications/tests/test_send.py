@@ -51,6 +51,12 @@ def test_deliver_missing_is_safe():
     assert deliver(str(uuid.uuid4())) == "missing"
 
 
+def test_deliver_sends_html_alternative(mailoutbox):
+    n = _notif(payload={"body": "Text", "html": "<p>HTML</p>"})
+    deliver(str(n.id))
+    assert mailoutbox[0].alternatives == [("<p>HTML</p>", "text/html")]
+
+
 def test_adapter_error_marks_failed(monkeypatch):
     def _boom(notification):
         raise RuntimeError("smtp down")
