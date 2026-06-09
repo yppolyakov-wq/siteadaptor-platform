@@ -48,16 +48,69 @@
 
 ---
 
-## Sprint 4 — Авто-публикация и локальный агрегатор
-Мульти-домен агрегатора → Phase 2 (seam `AggregatorPortal` уже абстрагирует).
+## Sprint 4 — Авто-публикация и локальный агрегатор   ⟵ текущий
 
-- [ ] 4.1 `apps.publishing` (TENANT): `Channel` (type/is_enabled/config), `Publication` (promotion, channel, status, external_ref, unique `dedupe_key`, last_error), `PublicationSM` (queued→published→removed / failed→queued).
-- [ ] 4.2 Хуки `PromotionSM`: `→active` → publish на каждый включённый канал; `→ended/paused/archived` → remove. Только через очередь, `dedupe_key=publish:{promo}:{channel}`.
-- [ ] 4.3 Celery (idempotent_task): `publish_to_channel` / `remove_from_channel`, ретраи+backoff, статусы/ошибки, `schema_context`.
-- [ ] 4.4 `apps.aggregator` (SHARED-чтение): выборка активных акций по `city`/`business_type` (индексы Tenant уже есть); `AggregatorListing` (материализация) или запрос-на-лету; `sync_aggregator_listing` по переходам; публичные страницы `/<город>/`, `/<город>/<категория>/`.
-- [ ] 4.5 Кабинет: тумблеры каналов + панель статуса публикаций.
-- [ ] 4.6 Тесты: публикация при активации, снятие при ended, идемпотентность, агрегатная выборка.
-- **DoD:** активировал → видно в агрегаторе; завершил → исчезло; задача идемпотентна.
+Цель: акция, став `active`, автоматически попадает в **локальный агрегатор**
+(городские страницы на основном домене) и — через расширяемый фреймворк
+**каналов** — во внешние площадки; при завершении/паузе снимается. Всё через
+очередь, идемпотентно.
+
+Архитектура: агрегатор — встроенная SHARED-витрина (материализованные
+`AggregatorListing` в public-схеме, т.к. акции живут в TENANT-схемах и кросс-
+схемный запрос дорог). Каналы — расширяемый механизм для внешних площадок
+(адаптеры Instagram/GBP — Phase 2). Мульти-доменные порталы → Phase 2
+(`AggregatorPortal`).
+
+### S4.1 — Агрегатор: модель + sync-задача + хук PromotionSM (бэкенд)
+- [ ] `apps.aggregator` (SHARED): `AggregatorListing` (public-схема) —
+  денормализованная активная акция: `tenant_schema`, `tenant_slug`,
+  `business_name`, `business_type`, `city`, `promo_uuid`, `title`, `teaser`,
+  ценовые поля, `starts_at`/`ends_at`, `image_url`, `detail_url`, `is_active`;
+  `unique(tenant_schema, promo_uuid)`; индексы `(city, is_active)`,
+  `(business_type, city)`.
+- [ ] `sync_aggregator_listing(tenant_schema, promotion_id)` (idempotent_task): в
+  `schema_context` читает акцию + контакты тенанта; `active` → upsert листинга в
+  public, иначе → удаление.
+- [ ] Хук `PromotionSM.on_transition`: `→active` → enqueue upsert;
+  `→ended/paused/archived` → enqueue remove; `dedupe_key=agg:{promo}:{dst}`,
+  схема из `connection.schema_name`.
+- [ ] Settings: `apps.aggregator` в SHARED_APPS; миграция `aggregator/0001`.
+- [ ] Тесты: active→листинг есть; ended→нет; идемпотентность; чтение из схемы.
+- DoD: переход акции отражается в `AggregatorListing` (ещё без UI).
+
+### S4.2 — Агрегатор: публичные страницы (видимый результат)
+- [ ] Вьюхи на основном домене (public-схема, `urls_public`): `/entdecken/`
+  (индекс городов), `/entdecken/<city>/`, `/entdecken/<city>/<business_type>/` —
+  активные листинги, ссылка на акцию на субдомене бизнеса.
+- [ ] Шаблоны: grid карточек (цена/скидка/город/бизнес), A11y, DE/EN, пустое
+  состояние, cursor-пагинация (есть в `apps.core`).
+- [ ] Тесты: фильтр по `city`/`business_type`, только активные (RequestFactory).
+- DoD: `/entdecken/<city>/` показывает активные акции города; клик → акция.
+
+### S4.3 — Фреймворк каналов: Channel + Publication + SM + задачи (TENANT)
+- [ ] `apps.publishing` (TENANT): `Channel` (type, is_enabled, config),
+  `Publication` (promotion, channel, status, external_ref, `dedupe_key` unique,
+  last_error, ts), `PublicationSM` (queued→published→removed; failed→queued;
+  published→removed).
+- [ ] Задачи (idempotent_task, schema_context, ретраи+backoff):
+  `publish_to_channel` / `remove_from_channel` — статус/last_error; встроенный
+  адаптер `log` (внешние адаптеры — Phase 2).
+- [ ] Хук `PromotionSM`: `→active` → publish во включённые каналы;
+  `→ended/paused/archived` → remove; `dedupe_key=publish:{promo}:{channel}`.
+- [ ] Settings: `apps.publishing` в TENANT_APPS; миграция `publishing/0001`.
+- [ ] Тесты: SM-переходы, enqueue, идемпотентность, last_error.
+- DoD: активация → Publication на канал; ended → removed; идемпотентно.
+
+### S4.4 — Кабинет: тумблеры каналов + статус публикаций
+- [ ] `/dashboard/channels/`: каналы с тумблером `is_enabled` + панель статусов
+  Publication (последние/ошибки); пункт меню.
+- [ ] Тесты: тумблер меняет `is_enabled`; панель показывает статусы.
+- DoD: владелец включает/выключает каналы и видит статусы.
+
+Порядок: S4.1 → S4.2 (рабочий агрегатор, точка деплой-проверки) → S4.3 → S4.4.
+Миграции: `aggregator/0001` (public) + `publishing/0001` (tenant) — деплой
+(`deploy.sh single`) применит во всех схемах. Один инкремент на подзадачу, ветка
+`claude/<кратко>`, CI на git зелёный → мерж.
 
 ---
 

@@ -49,12 +49,17 @@ Python 3.12, менеджер uv.
 - Инструменты: waitlist, ваучеры, лояльность (штампы), аналитика акций.
   → всё в `main` (commit 6dd8bc3), задеплоено на dev-сервере.
 - Миграции по порядку: promotions 0001…0008, tenants 0001…0004.
-- **Sprint 5 — Биллинг/Stripe (в работе, ветка `claude/billing-stripe`):**
-  - S5.0 ✅ фундамент: apps.billing (SHARED), SubscriptionSM, plans (39 €/мес), настройки.
-  - S5.1 ✅ Stripe services + свой webhook-эндпоинт (подпись + дедуп) + провижининг trial_ends_at.
-  - S5.2 ✅ гейтинг middleware (suspended/trial_expired = read-only) + trial/suspended-баннер.
-  - S5.3 ✅ billing-страница: Stripe Checkout + Customer Portal (views/urls/nav).
-  - S5.4 ✅ beat-просрочка: trial→trial_expired→suspended, past_due→suspended + напоминания д11/13/14.
+- **Sprint 5 — Биллинг/Stripe (✅ в `main`, commit 485c0ed):** apps.billing (SHARED),
+  SubscriptionSM, Stripe services + свой webhook-эндпоинт, гейтинг middleware
+  (suspended/trial_expired = read-only) + баннер, billing-страница (Checkout +
+  Customer Portal), beat-просрочка + напоминания. Без новых моделей/миграций.
+  Stripe-ключи — `.env.prod` по `docs/billing-stripe-setup.md` (оплата после ключей).
+- **Sprint 4 — Авто-публикация + локальный агрегатор (в работе, ветка
+  `claude/sprint4-aggregator`):** детальное ТЗ — `docs/roadmap-next-sprints.md` §Sprint 4.
+  - S4.1 ⬜ агрегатор: AggregatorListing (SHARED) + sync-задача + хук PromotionSM.
+  - S4.2 ⬜ агрегатор: публичные страницы `/entdecken/<city>/[<business_type>/]`.
+  - S4.3 ⬜ фреймворк каналов: Channel/Publication/SM + задачи (TENANT).
+  - S4.4 ⬜ кабинет: тумблеры каналов + статус публикаций.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
