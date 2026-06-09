@@ -23,6 +23,21 @@ class PromotionSM(StateMachine):
         Transition("paused", "ended", "promotion.ended"),
     ]
 
+    def on_transition(self, instance, t, **kw):
+        # Авто-публикация в локальный агрегатор: active → upsert листинга,
+        # ended/paused/archived → удаление. Через очередь; схема — из текущего
+        # соединения (акция живёт в TENANT-схеме). Сам upsert/remove решает задача.
+        if t.dst in ("active", "ended", "paused", "archived"):
+            from django.db import connection
+
+            from apps.aggregator.tasks import sync_aggregator_listing
+
+            sync_aggregator_listing.delay(
+                dedupe_key=f"agg:{instance.id}:{t.dst}",
+                tenant_schema=connection.schema_name,
+                promotion_id=str(instance.id),
+            )
+
 
 class ReservationSM(StateMachine):
     transitions = [

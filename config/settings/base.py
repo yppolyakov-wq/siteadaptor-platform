@@ -38,7 +38,7 @@ SHARED_APPS = [
     "apps.integrations.webhooks",  # scaffold исходящих вебхуков (SHARED), доп. 1.4
     "apps.billing",  # Sprint 5 — биллинг/подписки (SHARED: статус подписки на Tenant)
     # SHARED apps платформы (раскомментируются по мере прохождения спринтов)
-    # "apps.aggregator",       # Sprint 5
+    "apps.aggregator",  # Sprint 4 — локальный агрегатор (SHARED, материализованные листинги)
     # "apps.global_categories",  # Sprint 5
 ]
 
