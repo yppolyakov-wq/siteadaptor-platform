@@ -43,6 +43,6 @@ class SubscriptionGatingMiddleware:
                 request,
                 _("Ihr Abo ist inaktiv. Bitte aktivieren Sie es, um Änderungen vorzunehmen."),
             )
-            return redirect("dashboard")
+            return redirect("billing")
 
         return self.get_response(request)

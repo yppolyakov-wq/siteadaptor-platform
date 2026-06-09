@@ -52,7 +52,7 @@ Python 3.12, менеджер uv.
 - **Sprint 5 — Биллинг/Stripe (в работе, ветка `claude/billing-stripe`):**
   - S5.0 ✅ фундамент: apps.billing (SHARED), SubscriptionSM, plans (39 €/мес), настройки.
   - S5.1 ✅ Stripe services + свой webhook-эндпоинт (подпись + дедуп) + провижининг trial_ends_at.
-  - S5.2 ⬜ гейтинг middleware (suspended/trial_expired = read-only) + trial/suspended-баннер.
+  - S5.2 ✅ гейтинг middleware (suspended/trial_expired = read-only) + trial/suspended-баннер.
   - S5.3 ⬜ billing-страница: Stripe Checkout + Customer Portal (views/urls/nav).
   - S5.4 ⬜ beat-просрочка: trial→trial_expired→suspended, past_due→suspended + напоминания д11/13/14.
 

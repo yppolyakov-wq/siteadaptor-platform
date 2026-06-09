@@ -9,6 +9,7 @@ from django.conf import settings
 from django.urls import include, path
 from django.views.static import serve
 
+from apps.billing import views as billing_views
 from apps.core import health
 from apps.core.views import dashboard, settings_view
 from apps.promotions import public_views
@@ -20,6 +21,10 @@ urlpatterns = [
     # --- Кабинет владельца (под логином) ---
     path("dashboard/", dashboard, name="dashboard"),
     path("dashboard/settings/", settings_view, name="settings"),
+    # Биллинг/подписка (Sprint 5).
+    path("dashboard/billing/", billing_views.billing, name="billing"),
+    path("dashboard/billing/checkout/", billing_views.checkout, name="billing-checkout"),
+    path("dashboard/billing/portal/", billing_views.portal, name="billing-portal"),
     # Каталог в кабинете владельца.
     path("catalog/", include("apps.catalog.urls")),
     # CSV-импорт товаров.
