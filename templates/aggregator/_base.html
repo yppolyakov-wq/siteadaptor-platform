@@ -1,0 +1,26 @@
+{% load i18n %}<!doctype html>
+<html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% trans "Local offers near you" %} — siteadaptor{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{% trans "Discover current offers from local shops near you." %}{% endblock %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="{% url 'aggregator-index' %}" class="text-lg font-bold tracking-tight">siteadaptor</a>
+      <span class="text-sm text-gray-500">{% trans "Local offers" %}</span>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:py-10">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-gray-100 bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400">© {% now "Y" %} siteadaptor</div>
+  </footer>
+</body>
+</html>

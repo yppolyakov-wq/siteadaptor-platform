@@ -1,0 +1,17 @@
+{% extends "aggregator/_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1 class="text-2xl md:text-3xl font-bold mb-6">{% trans "Discover offers by city" %}</h1>
+
+{% if cities %}
+<div class="flex flex-wrap gap-2">
+  {% for c in cities %}
+    <a href="{% url 'aggregator-city' city=c %}"
+       class="px-4 py-2 rounded-full bg-white border border-gray-200 hover:border-indigo-400 hover:text-indigo-700 text-sm font-medium shadow-sm">{{ c }}</a>
+  {% endfor %}
+</div>
+{% else %}
+  <p class="text-gray-400">{% trans "No offers yet." %}</p>
+{% endif %}
+{% endblock %}

@@ -9,6 +9,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.static import serve
 
+from apps.aggregator import views as aggregator_views
 from apps.billing.webhooks import stripe_webhook
 from apps.core import health
 from apps.tenants.views import BusinessSignupView
@@ -22,6 +23,14 @@ urlpatterns = [
     path("stripe/webhook/", stripe_webhook, name="stripe-webhook"),
     # Phase 2: авторизация custom-доменов для Caddy on-demand TLS.
     path("internal/verify-domain", health.verify_domain, name="verify-domain"),
+    # Локальный агрегатор (Sprint 4): городские страницы на основном домене.
+    path("entdecken/", aggregator_views.discover_index, name="aggregator-index"),
+    path("entdecken/<str:city>/", aggregator_views.city_listing, name="aggregator-city"),
+    path(
+        "entdecken/<str:city>/<str:business_type>/",
+        aggregator_views.city_listing,
+        name="aggregator-city-type",
+    ),
     # Онбординг: регистрация бизнеса → создаёт Tenant + Domain + владельца.
     path("", BusinessSignupView.as_view(), name="business-signup"),
 ]

@@ -9,8 +9,10 @@
 
 from django.db import models
 
+from apps.core.models import I18nMixin
 
-class AggregatorListing(models.Model):
+
+class AggregatorListing(I18nMixin, models.Model):
     # --- источник (тенант + акция) ---
     tenant_schema = models.CharField(max_length=63)
     tenant_slug = models.SlugField(max_length=100)
@@ -49,3 +51,11 @@ class AggregatorListing(models.Model):
 
     def __str__(self):
         return f"{self.business_name}: {(self.title or {}).get('de') or self.promo_uuid}"
+
+    @property
+    def title_text(self) -> str:
+        return self.get_i18n("title")
+
+    @property
+    def teaser_text(self) -> str:
+        return self.get_i18n("teaser")

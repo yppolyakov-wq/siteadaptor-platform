@@ -58,8 +58,14 @@
 Архитектура: агрегатор — встроенная SHARED-витрина (материализованные
 `AggregatorListing` в public-схеме, т.к. акции живут в TENANT-схемах и кросс-
 схемный запрос дорог). Каналы — расширяемый механизм для внешних площадок
-(адаптеры Instagram/GBP — Phase 2). Мульти-доменные порталы → Phase 2
-(`AggregatorPortal`).
+(адаптеры Instagram/GBP — Phase 2).
+
+Мульти-доменные порталы → **Phase 2 P2.1** (`AggregatorPortal`): супер-админ
+управляет доменами-порталами (`kind` vertical/city/region + фильтры + брендинг +
+SEO, middleware host→портал) **поверх того же пула** `AggregatorListing` — это и
+есть «агрегатор агрегаторов». Поэтому страницы основного домена в S4.2 — «портал
+по умолчанию», а выборку выносим в `listings_for(filters)` для переиспользования
+порталами (без хардкода под основной домен).
 
 ### S4.1 — Агрегатор: модель + sync-задача + хук PromotionSM (бэкенд)
 - [ ] `apps.aggregator` (SHARED): `AggregatorListing` (public-схема) —
@@ -187,3 +193,31 @@
 - Миграции последовательные; стек-ветки ребейзить перед PR.
 - После пачки мержей с миграциями — `git pull origin main && ./scripts/deploy.sh single`.
 - Тесты django-tenants: вьюхи — RequestFactory; новые TENANT-приложения видны в `config/settings/test.py` автоматически.
+
+---
+
+## Отложено / заметки на будущее
+
+Ремарки, всплывшие по ходу работы. Фиксируем сразу, чтобы не терять между сессиями.
+
+**Биллинг (Sprint 5):**
+- Гейтинг S5.2 блокирует запись в кабинете владельца; публичная витрина (брони
+  клиентов) при `suspended` НЕ блокируется — решить, паузить ли витрину при неоплате
+  (Hardening / продуктовое решение).
+- Напоминания о триале — дедуп через `idempotent_task` (Redis); БД-гарантия от
+  дублей — в Sprint 6 (`Notification` с unique `dedupe_key`).
+- Webhook `customer.subscription.deleted/canceled` → `past_due` (grace → suspended),
+  не мгновенный suspend; при необходимости уточнить политику отмены.
+- Live-режим Stripe: `STRIPE_LIVE_MODE=True` + `STRIPE_LIVE_SECRET_KEY` + live Price
+  + live webhook-secret (см. `docs/billing-stripe-setup.md`).
+
+**Агрегатор (Sprint 4):**
+- `kind=region` (Phase 2 P2.1) потребует поле региона у Tenant/листинга (сейчас есть
+  `city`/`district`/`country`).
+- Картинка листинга — относительный `/media/...` работает на single-server (общий
+  `MEDIA_ROOT`); при мульти-сервере/S3 нужен абсолютный URL.
+- Листинги сортируются по `created_at` без отдельного индекса; для масштаба — составной
+  индекс `(city, is_active, created_at)`.
+- На основном домене нет переключателя языка (нет публичного `set_language`) — язык по
+  `Accept-Language`; переключатель/`hreflang` — Phase 2 (SEO/i18n).
+- Каналы (S4.3) — встроенный адаптер `log`; реальные адаптеры Instagram/GBP — Phase 2 P2.9.
