@@ -95,6 +95,7 @@ Python 3.12, менеджер uv.
   csv-import-wizard, magic-link-auth.
 - `DEVELOPMENT-GUIDE.md`, `phase1-*.md`, `monetization-unit-economics.md`,
   `hetzner-claude-code-setup.md`.
+- `billing-stripe-setup.md` — настройка Stripe (ключи, Price 39 €, webhook) в `.env.prod`.
 
 ## 7. Дальше (порядок из roadmap)
 1. **Sprint 5 — Биллинг/Stripe** (в работе): dj-stripe, SubscriptionSM, Checkout +
