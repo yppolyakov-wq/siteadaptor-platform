@@ -60,13 +60,15 @@ Python 3.12, менеджер uv.
   каналов Channel/Publication/SM (TENANT, адаптер `log`); кабинет каналов. Миграции
   `aggregator/0001` + `publishing/0001`. Деплой: `deploy.sh single` + один раз
   `manage.py sync_aggregator`.
-- **Sprint 6 — Уведомления (в работе, ветка `claude/sprint6-notifications`):**
-  детальное ТЗ — `docs/roadmap-next-sprints.md` §Sprint 6.
-  - S6.1 ✅ apps.notifications (TENANT): Notification + NotificationSM (БД-dedupe).
-  - S6.2 ✅ send_notification + рефактор писем брони через Notification.
-  - S6.3 ✅ HTML+text шаблоны писем (multipart); Resend включается ключом в проде.
-  - S6.4 ✅ waitlist: авто-уведомление при возврате остатка (одно письмо на запись).
-  - S6.5 ⬜ (опц.) WhatsApp-адаптер — по готовности провайдера (Meta-верификация).
+- **Sprint 6 — Уведомления (✅ в `main`, commit f68c6a6):** apps.notifications
+  (TENANT): Notification + NotificationSM (unique dedupe_key = БД-гарантия без
+  дублей), generic-доставка send_notification, письма брони через Notification,
+  HTML+text multipart шаблоны, waitlist «снова в наличии» (одно письмо на
+  запись). Resend включается ключом в проде. Миграция `notifications/0001` —
+  нужен деплой. S6.5 (WhatsApp) — опционально, по готовности Meta-провайдера.
+- **Track B — DE quick wins (в работе):** B1 GBP-адаптер — ветка
+  `claude/track-b1-gbp` (тип канала google_business, Google Posts, конфиг в
+  кабинете; настройка — `docs/gbp-setup.md`). Дальше B2–B5 по roadmap §Track B.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
