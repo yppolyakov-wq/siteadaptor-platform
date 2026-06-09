@@ -219,6 +219,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.purge_reservation_pii",
         "schedule": 86400.0,  # раз в сутки — DSGVO-обезличивание старых контактов
     },
+    "roll-subscriptions": {
+        "task": "apps.billing.tasks.roll_subscriptions",
+        "schedule": 86400.0,  # раз в сутки — жизненный цикл подписок + напоминания
+    },
 }
 
 # DSGVO: через сколько дней после последней активности обезличивать контакты
