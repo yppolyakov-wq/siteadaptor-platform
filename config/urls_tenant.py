@@ -29,6 +29,7 @@ urlpatterns = [
     # Каналы публикации (Sprint 4).
     path("dashboard/channels/", publishing_views.channels, name="channels"),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
+    path("dashboard/channels/config/", publishing_views.channel_config, name="channel-config"),
     # Каталог в кабинете владельца.
     path("catalog/", include("apps.catalog.urls")),
     # CSV-импорт товаров.

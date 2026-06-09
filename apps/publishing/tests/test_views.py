@@ -36,3 +36,32 @@ def test_toggle_enables_then_disables():
 
     views.channel_toggle(_req("post", "/dashboard/channels/toggle/", {"type": "log"}))
     assert Channel.objects.get(type="log").is_enabled is False
+
+
+def test_channel_config_saves_and_keeps_secret_on_blank():
+    Channel.objects.get_or_create(type="google_business")
+    views.channel_config(
+        _req(
+            "post",
+            "/dashboard/channels/config/",
+            {
+                "type": "google_business",
+                "location": "accounts/1/locations/2",
+                "refresh_token": "rt",
+            },
+        )
+    )
+    channel = Channel.objects.get(type="google_business")
+    assert channel.config == {"location": "accounts/1/locations/2", "refresh_token": "rt"}
+
+    # пустой refresh_token при повторном сохранении не затирает сохранённый
+    views.channel_config(
+        _req(
+            "post",
+            "/dashboard/channels/config/",
+            {"type": "google_business", "location": "accounts/1/locations/3", "refresh_token": ""},
+        )
+    )
+    channel.refresh_from_db()
+    assert channel.config["refresh_token"] == "rt"
+    assert channel.config["location"] == "accounts/1/locations/3"

@@ -261,6 +261,12 @@ BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=14)
 BILLING_GRACE_DAYS = env.int("BILLING_GRACE_DAYS", default=7)
 
 # ---------------------------------------------------------------------------
+# Google OAuth (адаптер Google Business Profile, Track B1)
+# ---------------------------------------------------------------------------
+GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
+GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+
+# ---------------------------------------------------------------------------
 # Media & storage
 # ---------------------------------------------------------------------------
 MEDIA_URL = "/media/"

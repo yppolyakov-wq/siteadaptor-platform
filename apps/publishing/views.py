@@ -42,3 +42,27 @@ def channel_toggle(request):
         channel.save(update_fields=["is_enabled", "updated_at"])
         messages.success(request, _("Channel updated."))
     return redirect("channels")
+
+
+# Конфиг-ключи, редактируемые со страницы каналов (per type).
+_CONFIG_FIELDS = {
+    Channel.GOOGLE_BUSINESS: ("location", "refresh_token"),
+}
+
+
+@login_required
+@require_POST
+def channel_config(request):
+    """Сохранить настройки канала. Пустое значение не затирает сохранённое."""
+    channel = Channel.objects.filter(type=request.POST.get("type", "")).first()
+    fields = _CONFIG_FIELDS.get(channel.type) if channel else None
+    if channel is not None and fields:
+        config = dict(channel.config or {})
+        for key in fields:
+            value = request.POST.get(key, "").strip()
+            if value:
+                config[key] = value
+        channel.config = config
+        channel.save(update_fields=["config", "updated_at"])
+        messages.success(request, _("Channel configuration saved."))
+    return redirect("channels")

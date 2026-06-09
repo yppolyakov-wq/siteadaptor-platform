@@ -12,7 +12,12 @@ from apps.core.models import TimestampedModel
 
 class Channel(TimestampedModel):
     LOG = "log"
-    CHANNEL_TYPES = [(LOG, "Log (internal)")]  # внешние адаптеры — Phase 2
+    GOOGLE_BUSINESS = "google_business"
+    CHANNEL_TYPES = [
+        (LOG, "Log (internal)"),
+        # Track B1: Google Posts; настройка — docs/gbp-setup.md
+        (GOOGLE_BUSINESS, "Google Business Profile"),
+    ]
 
     type = models.CharField(max_length=30, choices=CHANNEL_TYPES, default=LOG)
     name = models.CharField(max_length=100, blank=True)
