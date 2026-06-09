@@ -54,12 +54,19 @@ Python 3.12, менеджер uv.
   (suspended/trial_expired = read-only) + баннер, billing-страница (Checkout +
   Customer Portal), beat-просрочка + напоминания. Без новых моделей/миграций.
   Stripe-ключи — `.env.prod` по `docs/billing-stripe-setup.md` (оплата после ключей).
-- **Sprint 4 — Авто-публикация + локальный агрегатор (в работе, ветка
-  `claude/sprint4-aggregator`):** детальное ТЗ — `docs/roadmap-next-sprints.md` §Sprint 4.
-  - S4.1 ✅ агрегатор: AggregatorListing (SHARED) + sync-задача + хук PromotionSM.
-  - S4.2 ✅ агрегатор: публичные страницы `/entdecken/<city>/[<business_type>/]`.
-  - S4.3 ✅ фреймворк каналов: Channel/Publication/SM + задачи (TENANT).
-  - S4.4 ✅ кабинет: тумблеры каналов + статус публикаций.
+- **Sprint 4 — Авто-публикация + локальный агрегатор (✅ в `main`, commit eb1e8c0):**
+  агрегатор `AggregatorListing` (SHARED) + sync-задача/бэкофилл (`sync_aggregator`) +
+  хук PromotionSM; публичные страницы `/entdecken/<city>/[<type>/]`; фреймворк
+  каналов Channel/Publication/SM (TENANT, адаптер `log`); кабинет каналов. Миграции
+  `aggregator/0001` + `publishing/0001`. Деплой: `deploy.sh single` + один раз
+  `manage.py sync_aggregator`.
+- **Sprint 6 — Уведомления (в работе, ветка `claude/sprint6-notifications`):**
+  детальное ТЗ — `docs/roadmap-next-sprints.md` §Sprint 6.
+  - S6.1 ⬜ apps.notifications (TENANT): Notification + NotificationSM (БД-dedupe).
+  - S6.2 ⬜ send_notification + рефактор писем брони через Notification.
+  - S6.3 ⬜ Resend в проде + зрелые шаблоны (DE/EN).
+  - S6.4 ⬜ waitlist: авто-уведомление при возврате остатка (флаг notified).
+  - S6.5 ⬜ (опц.) WhatsApp-адаптер.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

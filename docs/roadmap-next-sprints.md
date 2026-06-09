@@ -120,13 +120,64 @@ SEO, middleware host→портал) **поверх того же пула** `Ag
 
 ---
 
-## Sprint 6 — Зрелость уведомлений
-- [ ] 6.1 `Notification` (уровень-1 dedupe): unique `dedupe_key`, type, recipient, status (FSM pending→sent→failed), payload, scheduled_at, priority.
-- [ ] 6.2 Рефактор писем брони через `Notification` (БД-дедуп, не только Redis-lock).
-- [ ] 6.3 Resend в проде (anymail подключён; сейчас console-fallback); зрелые шаблоны.
-- [ ] 6.4 Лист ожидания → авто-уведомление при возврате остатка (флаг `notified`).
-- [ ] 6.5 (опц.) WhatsApp (провайдер + согласие + шаблоны).
-- **DoD:** письма через Resend; дубли невозможны (БД-unique + Redis).
+## Sprint 6 — Зрелость уведомлений   ⟵ текущий
+
+Цель: надёжные уведомления с гарантией без дублей. Единая модель `Notification`
+(БД-dedup = гарантия, поверх Redis-lock = оптимизация) + FSM, рефактор писем
+брони/waitlist через неё, Resend в проде, авто-уведомление листа ожидания при
+возврате остатка.
+
+Архитектура: `apps.notifications` (TENANT) — уведомления тенант-скоупные (клиенты/
+брони в схеме арендатора). Триал-напоминания биллинга (Sprint 5, public) остаются
+на Redis-dedup. Паттерн — `docs/references/patterns/notification-dedupe.md`:
+unique `dedupe_key` в БД + проверка статуса перед отправкой = гарантия.
+
+### S6.1 — Notification + NotificationSM (бэкенд)
+- [ ] `apps.notifications` (TENANT): `Notification` — `dedupe_key` (unique), `type`
+  (reservation_confirmed/cancelled/expired, waitlist_available), `channel`
+  (email/whatsapp), `recipient`, `subject`, `payload` (JSON), `status`
+  (pending/sent/failed), `scheduled_at`, `sent_at`, `attempts`, `last_error`,
+  `priority`; `NotificationSM` (pending→sent/failed; failed→pending).
+- [ ] Settings: `apps.notifications` в TENANT_APPS; миграция `notifications/0001`.
+- [ ] Тесты: SM-переходы, дедуп (повтор dedupe_key → одна строка).
+- DoD: уведомление с гарантией уникальности + управляемый статус.
+
+### S6.2 — Диспетч-задача + рефактор писем брони
+- [ ] `send_notification` (idempotent_task, schema_context): pending → рендер +
+  отправка через адаптер канала → sent/failed (last_error, attempts++).
+- [ ] Рефактор `apps.promotions.notifications` (confirmed/cancelled/expired):
+  `get_or_create(Notification, dedupe_key=reservation:{res}:{status})` + enqueue
+  вместо прямого письма + Redis-lock. Хук ReservationSM — точка постановки.
+- [ ] Тесты: переход брони → одна Notification; двойной триггер → одна строка;
+  send → sent; повторный send → skip.
+- DoD: письма брони через Notification, дубль невозможен.
+
+### S6.3 — Resend в проде + зрелые шаблоны
+- [ ] Email-адаптер: anymail Resend при `RESEND_API_KEY` (иначе console).
+- [ ] Зрелые HTML+text шаблоны (подтверждение брони код/QR/детали, отмена,
+  waitlist-доступно), DE/EN; `DEFAULT_FROM_EMAIL` + домен (SPF/DKIM — Hardening H1).
+- [ ] Тесты: рендер, выбор backend (в CI — console).
+- DoD: в проде письма через Resend (после ключа); шаблоны зрелые.
+
+### S6.4 — Waitlist: авто-уведомление при возврате остатка
+- [ ] `WaitlistEntry.notified` (флаг) — миграция `promotions/0009`.
+- [ ] Возврат остатка (ReservationSM cancelled/expired → anti-oversell) → для
+  непрошедших entries в пределах вернувшегося qty: enqueue `waitlist_available`,
+  `notified=True`, `dedupe_key=waitlist:{entry}:available`.
+- [ ] Тесты: возврат остатка → уведомлён; идемпотентно (флаг + dedupe).
+- DoD: освободилось место → ждущие получают письмо ровно один раз.
+
+### S6.5 — (опц.) WhatsApp
+- [ ] Адаптер канала WhatsApp (провайдер Twilio/Meta) + согласие
+  `Customer.whatsapp_opt_in` + шаблоны; за флагом/config. Тем же ядром Notification.
+- [ ] Опционально / по готовности провайдера (внешние блокеры: аккаунт, шаблоны
+  Meta, opt-in, стоимость). Web-push — Phase 2 (низкий приоритет: бронь разовая).
+- DoD: при согласии — уведомление в WhatsApp через тот же Notification.
+
+Порядок: S6.1 → S6.2 (ядро+рефактор) → S6.3 (Resend) → S6.4 (waitlist) → S6.5 (опц.).
+Миграции: `notifications/0001` + `promotions/0009`. H1 (Resend-ключ + SPF/DKIM) —
+параллельно для боевых писем. Один инкремент = ветка → CI зелёный → мерж.
+**DoD спринта:** письма брони/waitlist через Resend; дубли невозможны (БД-unique + Redis).
 
 ---
 
