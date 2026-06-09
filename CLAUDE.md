@@ -49,10 +49,12 @@ Python 3.12, менеджер uv.
 - Инструменты: waitlist, ваучеры, лояльность (штампы), аналитика акций.
   → всё в `main` (commit 6dd8bc3), задеплоено на dev-сервере.
 - Миграции по порядку: promotions 0001…0008, tenants 0001…0004.
-- **Sprint 5 (в работе, ветка `claude/billing-stripe`):** фундамент — apps.billing
-  (SHARED), SubscriptionSM (trial→active→past_due→suspended + trial_expired),
-  plans (39 €/мес → enabled_modules), настройки (STRIPE_PRICE_ID, trial 14д,
-  grace 7д). Дальше: services (Checkout/Portal) → webhooks → гейтинг → beat → тесты.
+- **Sprint 5 — Биллинг/Stripe (в работе, ветка `claude/billing-stripe`):**
+  - S5.0 ✅ фундамент: apps.billing (SHARED), SubscriptionSM, plans (39 €/мес), настройки.
+  - S5.1 ✅ Stripe services + свой webhook-эндпоинт (подпись + дедуп) + провижининг trial_ends_at.
+  - S5.2 ⬜ гейтинг middleware (suspended/trial_expired = read-only) + trial/suspended-баннер.
+  - S5.3 ⬜ billing-страница: Stripe Checkout + Customer Portal (views/urls/nav).
+  - S5.4 ⬜ beat-просрочка: trial→trial_expired→suspended, past_due→suspended + напоминания д11/13/14.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -67,9 +69,12 @@ Python 3.12, менеджер uv.
   CI на git показал красный (для воспроизведения/отладки).
 - CI (`.github/workflows/ci.yml`) гоняется на push в `main` и `claude/**` + на PR:
   `ruff check .`, `ruff format --check .`, `pytest -ra` на Postgres16 + Redis7.
-- Рабочий цикл: ветка `claude/<кратко>` → push → CI на git зелёный → мерж в `main`.
-  Создание/мерж PR через GitHub API недоступны (права интеграции, 403) → мержим
-  **git-only push в `main`** (main не защищён, FF/cherry-pick).
+- **Рабочий цикл (по подзадачам):** крупную задачу разбиваем на подзадачи и
+  показываем разбивку владельцу. Одна подзадача = один инкремент: ветка
+  `claude/<кратко>` → push → **CI на git зелёный** → **чекпоинт с владельцем**
+  (показать, что дальше; опц. деплой на сервер `./scripts/deploy.sh single` и
+  проверка там) → следующая подзадача. Создание/мерж PR через GitHub API
+  недоступны (403) → в `main` мержим git-only push (main не защищён, FF/cherry-pick).
 - После мержа с миграциями — деплой на сервере (вручную владельцем):
   `git pull origin main && ./scripts/deploy.sh single`.
 - Миграции последовательные; новые TENANT-приложения — в base.py TENANT_APPS
