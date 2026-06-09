@@ -38,6 +38,11 @@ class PromotionSM(StateMachine):
                 promotion_id=str(instance.id),
             )
 
+            # Каналы публикации (S4.3): active → publish, ended/paused/archived → remove.
+            from apps.publishing.services import on_promotion_transition
+
+            on_promotion_transition(instance, t.dst)
+
 
 class ReservationSM(StateMachine):
     transitions = [
