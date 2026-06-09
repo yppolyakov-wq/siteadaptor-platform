@@ -62,8 +62,8 @@ Python 3.12, менеджер uv.
   `manage.py sync_aggregator`.
 - **Sprint 6 — Уведомления (в работе, ветка `claude/sprint6-notifications`):**
   детальное ТЗ — `docs/roadmap-next-sprints.md` §Sprint 6.
-  - S6.1 ⬜ apps.notifications (TENANT): Notification + NotificationSM (БД-dedupe).
-  - S6.2 ⬜ send_notification + рефактор писем брони через Notification.
+  - S6.1 ✅ apps.notifications (TENANT): Notification + NotificationSM (БД-dedupe).
+  - S6.2 ✅ send_notification + рефактор писем брони через Notification.
   - S6.3 ⬜ Resend в проде + зрелые шаблоны (DE/EN).
   - S6.4 ⬜ waitlist: авто-уведомление при возврате остатка (флаг notified).
   - S6.5 ⬜ (опц.) WhatsApp-адаптер.

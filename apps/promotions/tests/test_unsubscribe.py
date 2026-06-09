@@ -3,25 +3,23 @@
 import pytest
 from django.test import RequestFactory
 
+from apps.notifications.models import Notification
 from apps.promotions import public_views
 from apps.promotions.models import Customer
-from apps.promotions.notifications import send_reservation_email
+from apps.promotions.notifications import enqueue_reservation_email
 from apps.promotions.services import reserve
 from apps.promotions.tests.factories import PromotionFactory
 
 
 @pytest.mark.django_db
-def test_unsubscribed_customer_gets_no_email(mailoutbox):
+def test_unsubscribed_customer_gets_no_email():
     promo = PromotionFactory(available_quantity=5)
     res = reserve(promo, name="Anna", email="anna@test.de")
     res.customer.unsubscribed = True
     res.customer.save(update_fields=["unsubscribed"])
 
-    out = send_reservation_email(
-        dedupe_key=None, schema_name="public", reservation_id=str(res.id), event="created"
-    )
-    assert out["sent"] == 0
-    assert len(mailoutbox) == 0
+    enqueue_reservation_email(res, "confirmed")
+    assert not Notification.objects.filter(dedupe_key=f"resv:{res.id}:confirmed:customer").exists()
 
 
 @pytest.mark.django_db

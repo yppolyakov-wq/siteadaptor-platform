@@ -1,22 +1,19 @@
-"""Email-уведомления по броням.
+"""Письма по броням — через apps.notifications (Sprint 6).
 
-Отправка — через idempotent_task с детерминированным dedupe_key (см.
-patterns/notification-dedupe.md, уровень 2: Redis-лок как ранний отсев;
-полноценная таблица Notification — Sprint 6).
-
-Задача ставится в очередь ПОСЛЕ коммита транзакции (transaction.on_commit),
-чтобы воркер гарантированно увидел сохранённую бронь. Письма уходят клиенту
-(если есть email) и владельцу (на created).
+Рендер происходит при создании уведомления (мы в схеме арендатора, весь контекст
+под рукой); тело и заголовки хранятся в Notification.payload. Гарантия без
+дублей — unique dedupe_key в БД (`resv:{id}:{event}:{role}`), см.
+patterns/notification-dedupe.md; Redis-lock задачи доставки — оптимизация.
+Вызывается из ReservationSM.on_transition и services.reserve (внутри транзакции:
+строка Notification атомарна с событием, доставка — после коммита).
 """
 
-from django.conf import settings
-from django.core.mail import EmailMessage
-from django.db import connection, transaction
+from django.db import connection
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django_tenants.utils import get_tenant_model, schema_context
 
-from apps.core.jobs import idempotent_task
+from apps.notifications.services import notify
 
 # событие -> базовое имя шаблона письма клиенту
 _CUSTOMER_TEMPLATES = {
@@ -25,22 +22,6 @@ _CUSTOMER_TEMPLATES = {
     "cancelled": "reservation_cancelled",
     "expired": "reservation_expired",
 }
-
-
-def enqueue_reservation_email(reservation, event):
-    """Поставить письмо в очередь после коммита текущей транзакции."""
-    schema = connection.schema_name
-    rid = str(reservation.id)
-
-    def _send():
-        send_reservation_email.delay(
-            dedupe_key=f"resv_email:{rid}:{event}",
-            schema_name=schema,
-            reservation_id=rid,
-            event=event,
-        )
-
-    transaction.on_commit(_send)
 
 
 def _tenant(schema_name):
@@ -67,50 +48,53 @@ def _base_url(schema_name) -> str:
         return ""
 
 
-def _send(template_base, ctx, recipient, *, unsubscribe_url="") -> None:
-    body_ctx = {**ctx, "unsubscribe_url": unsubscribe_url}
-    subject = render_to_string(f"emails/{template_base}_subject.txt", body_ctx).strip()
-    body = render_to_string(f"emails/{template_base}.txt", body_ctx)
-    headers = {}
-    if unsubscribe_url:
-        # one-click отписка (RFC 8058)
-        headers["List-Unsubscribe"] = f"<{unsubscribe_url}>"
-        headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
-    EmailMessage(subject, body, settings.DEFAULT_FROM_EMAIL, [recipient], headers=headers).send()
+def _render(template_base, ctx) -> tuple[str, str]:
+    subject = render_to_string(f"emails/{template_base}_subject.txt", ctx).strip()
+    body = render_to_string(f"emails/{template_base}.txt", ctx)
+    return subject, body
 
 
-@idempotent_task()
-def send_reservation_email(schema_name=None, reservation_id=None, event=None):
-    from .models import Reservation
+def enqueue_reservation_email(reservation, event):
+    """Создать Notification(ы) события брони (БД-дедуп) и поставить доставку."""
+    schema = connection.schema_name
+    customer = reservation.customer
+    ctx = {"reservation": reservation, "promotion": reservation.promotion, "customer": customer}
 
-    with schema_context(schema_name):
-        res = (
-            Reservation.objects.select_related("promotion", "customer")
-            .filter(id=reservation_id)
-            .first()
+    template_base = _CUSTOMER_TEMPLATES.get(event)
+    # клиенту — если есть email и он не отписался
+    if template_base and customer.email and not customer.unsubscribed:
+        base = _base_url(schema)
+        unsub = (
+            f"{base}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
+            if base
+            else ""
         )
-        if res is None:
-            return {"skipped": "missing"}
+        subject, body = _render(template_base, {**ctx, "unsubscribe_url": unsub})
+        headers = None
+        if unsub:
+            # one-click отписка (RFC 8058)
+            headers = {
+                "List-Unsubscribe": f"<{unsub}>",
+                "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            }
+        notify(
+            dedupe_key=f"resv:{reservation.id}:{event}:customer",
+            type=f"reservation_{event}",
+            recipient=customer.email,
+            subject=subject,
+            body=body,
+            headers=headers,
+        )
 
-        ctx = {"reservation": res, "promotion": res.promotion, "customer": res.customer}
-        sent = 0
-
-        template_base = _CUSTOMER_TEMPLATES.get(event)
-        # клиенту — если есть email и он не отписался
-        if template_base and res.customer.email and not res.customer.unsubscribed:
-            base = _base_url(schema_name)
-            unsub = (
-                f"{base}{reverse('storefront-unsubscribe', args=[res.customer.unsubscribe_token])}"
-                if base
-                else ""
+    # владельцу — только при создании брони
+    if event == "created":
+        owner = _owner_email(_tenant(schema))
+        if owner:
+            subject, body = _render("reservation_owner", {**ctx, "unsubscribe_url": ""})
+            notify(
+                dedupe_key=f"resv:{reservation.id}:created:owner",
+                type="reservation_created_owner",
+                recipient=owner,
+                subject=subject,
+                body=body,
             )
-            _send(template_base, ctx, res.customer.email, unsubscribe_url=unsub)
-            sent += 1
-
-        if event == "created":
-            owner = _owner_email(_tenant(schema_name))
-            if owner:
-                _send("reservation_owner", ctx, owner)
-                sent += 1
-
-    return {"sent": sent}

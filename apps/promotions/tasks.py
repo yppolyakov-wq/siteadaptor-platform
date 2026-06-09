@@ -19,7 +19,6 @@ from django_tenants.utils import get_tenant_model, schema_context
 from apps.core.jobs import idempotent_task
 
 from .models import Customer, Promotion, Reservation
-from .notifications import send_reservation_email  # noqa: F401 — регистрация Celery-таска
 from .services import expire
 from .state_machine import PromotionSM
 
