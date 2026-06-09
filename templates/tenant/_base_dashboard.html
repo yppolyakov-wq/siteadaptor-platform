@@ -43,6 +43,15 @@
       </div>
     </header>
     <main class="p-4 md:p-6">
+      {% if subscription_gated %}
+        <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+          {% trans "Your subscription is inactive — the dashboard is read-only. Please activate it to continue." %}
+        </div>
+      {% elif subscription_status == 'trial' and trial_days_left is not None %}
+        <div class="mb-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
+          {% blocktrans count days=trial_days_left %}Trial: {{ days }} day left.{% plural %}Trial: {{ days }} days left.{% endblocktrans %}
+        </div>
+      {% endif %}
       {% block dash_content %}{% endblock %}
     </main>
   </div>
