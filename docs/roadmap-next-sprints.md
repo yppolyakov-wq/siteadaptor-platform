@@ -295,8 +295,8 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 — в P2.1d.
 
 **Разбивка (инкременты; ветка → CI зелёный → чекпоинт):**
-- [ ] **P2.1a** — модель `AggregatorPortal` + миграция 0003 + резолвер-middleware
-  (`request.portal`, кэш + сигнал-сброс) + тесты. _(код готов, ветка `claude/p2-1a-portal-model` → CI/merge)_
+- [x] **P2.1a** — модель `AggregatorPortal` + миграция 0003 + резолвер-middleware
+  (`request.portal`, кэш + сигнал-сброс) + тесты. _(✅ в `main`, 2d28be2, CI run 39 зелёный)_
 - [ ] **P2.1b** — `config/urls_portal.py` + `portal_home` (корень портала = листинги его фильтра)
   + уточнение по 2-й оси (город→тип / тип→город) + брендированный base-шаблон; подмена `request.urlconf`.
 - [ ] **P2.1c** — SEO портала: meta + JSON-LD (CollectionPage/ItemList) + canonical + sitemap/robots

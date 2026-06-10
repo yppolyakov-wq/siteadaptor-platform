@@ -79,16 +79,28 @@ Python 3.12, менеджер uv.
     (—/daily/weekly, миграция 0010) + beat `roll_recurring_promotions` (раз в час)
     — завершившаяся повторяющаяся акция даёт один scheduled-наследник со сдвигом
     окна, recurrence уходит к наследнику (цепочка не ветвится). Нужен деплой.
-  - B4 QR-постер PDF (ветка `claude/track-b4-qr-poster`, CI→merge):
+  - B4 QR-постер PDF (✅ в `main`, f9d38f1):
     `apps/promotions/poster.py` (`build_shop_poster_pdf` — segno QR→PNG + reportlab
     A4), вьюха `shop_poster_pdf` + `/promotions/poster/`, кнопка на странице акций;
     QR несёт `?ch=schaufenster` (атрибуция). Новая зависимость `reportlab`.
-  - B5 Local SEO (ветка `claude/track-b5-local-seo`, CI→merge): `apps/core/seo.py`
+  - B5 Local SEO (✅ в `main`, 6cf697a+2187527): `apps/core/seo.py`
     (localbusiness_ld/offer_ld/itemlist_ld); LocalBusiness в `<head>` витрины
     (тег `{% localbusiness_jsonld %}`) + Offer на акции + ItemList на странице
     города; `sitemap.xml`/`robots.txt` для витрины (субдомен) и агрегатора
     (основной домен) без django.contrib.sites (домен из request).
-  - Track B завершён (B1–B5). Дальше — Hardening и Phase 2 (§7).
+  - Track B завершён (B1–B5), ВЕСЬ в `main` (e5fa29a, CI зелёный). Нужен деплой
+    (миграции promotions 0009/0010, aggregator 0002 + зависимость reportlab).
+- **Phase 2 — P2.1 мульти-доменные порталы (в работе):** подход согласован
+  (2026-06-10): поддомены `*.siteadaptor.de`, kind city/vertical/combo, фильтры
+  city+business_type через сем `listings_for`; custom-домены позже через
+  verify-domain. Детали — roadmap §P2.1.
+  - P2.1a (✅ в `main`, 2d28be2): модель `AggregatorPortal` (SHARED, миграция
+    aggregator/0003) + `AggregatorPortalMiddleware` (host→`request.portal` на
+    public-схеме, Redis-кэш карты хостов + сигнал-сброс) + тесты. urlconf пока
+    не подменяется — это P2.1b.
+  - Дальше: P2.1b (`config/urls_portal.py` + `portal_home` + брендированный
+    шаблон + подмена `request.urlconf`) → P2.1c (SEO портала) → P2.1d
+    (unfold-admin + команда `create_portal` + строка Domain на public).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -143,12 +155,14 @@ Python 3.12, менеджер uv.
 4. **Track B — быстрые победы DE-рынка** — ✅ ВЕСЬ ГОТОВ (порядок утверждён):
    ✅ B1 Google Business Profile → ✅ B2 «Überraschungstüte»/анти-waste →
    ✅ B3 recurring + пресеты по вертикалям → ✅ B4 QR-постер PDF →
-   ✅ B5 local SEO (schema.org + sitemap). B1–B3 в `main`; B4, B5 — на ветках,
-   ждут подтверждения CI и мержа. Детали — roadmap §Track B.
-5. **Hardening (следующее)**: Resend-ключ, отдельный Postgres, ротация секретов,
-   бэкапы, Sentry, нагрузочный тест anti-oversell, DSGVO-ревизия, rate-limit.
-6. Phase 2 — мульти-доменные агрегаторы, SEO, клиентские аккаунты, монетизация
-   портала, платежи клиента, отзывы, поиск, мобайл.
+   ✅ B5 local SEO (schema.org + sitemap). Весь в `main`. Детали — roadmap §Track B.
+5. **Phase 2 (выбор владельца, 2026-06-10) — в работе**: P2.1 мульти-доменные
+   порталы (P2.1a в `main`; дальше P2.1b→c→d, см. §3 и roadmap §P2.1), затем
+   SEO, клиентские аккаунты, монетизация портала, платежи, отзывы, поиск, мобайл.
+6. Hardening — инфра-часть на владельце (.env.prod: SENTRY_DSN — код уже вшит в
+   production.py, RESEND_API_KEY; отдельный Postgres, бэкапы, ротация секретов).
+   Код-часть (rate-limit waitlist, нагрузочный тест anti-oversell, DSGVO-ревизия)
+   отложена — после P2.1.
 
 UX-принцип (владелец, 2026-06-09): для конечного потребителя — максимально
 просто, понятно и без навязчивости (бронь без аккаунта, one-click отписка,
