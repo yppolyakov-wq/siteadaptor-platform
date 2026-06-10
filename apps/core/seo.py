@@ -88,15 +88,33 @@ def offer_ld(promo, *, url: str, image_url: str = "") -> str:
     return _dumps(data)
 
 
-def itemlist_ld(items) -> str:
-    """JSON-LD ItemList из [(name, url), …] для страниц агрегатора (или '')."""
-    elements = [
+def _itemlist_elements(items) -> list:
+    return [
         {"@type": "ListItem", "position": i, "name": name, "url": url}
         for i, (name, url) in enumerate(items, start=1)
         if url
     ]
+
+
+def itemlist_ld(items) -> str:
+    """JSON-LD ItemList из [(name, url), …] для страниц агрегатора (или '')."""
+    elements = _itemlist_elements(items)
     if not elements:
         return ""
     return _dumps(
         {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": elements}
     )
+
+
+def collectionpage_ld(*, name: str, url: str, items) -> str:
+    """JSON-LD CollectionPage (+ вложенный ItemList) для страниц портала (P2.1c)."""
+    data = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": name,
+        "url": url,
+    }
+    elements = _itemlist_elements(items)
+    if elements:
+        data["mainEntity"] = {"@type": "ItemList", "itemListElement": elements}
+    return _dumps(data)

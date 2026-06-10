@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ portal.title_text }}{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}{{ portal.tagline_text|default:portal.title_text }}{% endblock %}">
+  <meta name="description" content="{% block meta_description %}{{ portal.tagline_text|default:portal.intro_text|default:portal.title_text }}{% endblock %}">
+  {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
   {% block structured_data %}{% endblock %}
   <script src="https://cdn.tailwindcss.com"></script>
   <style>:root { --portal-color: {{ portal.primary_color|default:"#111827" }}; }</style>

@@ -2,6 +2,8 @@
 {% load i18n %}
 {% block title %}{% if facet_label %}{{ facet_label }} — {% endif %}{{ portal.title_text }}{% endblock %}
 
+{% block structured_data %}{% if ld_collection %}<script type="application/ld+json">{{ ld_collection|safe }}</script>{% endif %}{% endblock %}
+
 {% block content %}
 <div class="mb-6">
   {% if facet %}<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>{% endif %}

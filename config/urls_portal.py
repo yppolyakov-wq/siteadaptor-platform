@@ -19,6 +19,9 @@ urlpatterns = [
     # Стоят до <facet>, иначе сегмент ушёл бы в уточнение и дал 404.
     path("health/", health.liveness, name="health"),
     path("health/ready/", health.readiness, name="health-ready"),
+    # SEO портала (P2.1c): sitemap/robots по хосту портала.
+    path("sitemap.xml", portal_views.portal_sitemap_xml, name="portal-sitemap"),
+    path("robots.txt", portal_views.portal_robots_txt, name="portal-robots"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 
