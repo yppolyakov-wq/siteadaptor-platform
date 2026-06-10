@@ -1,7 +1,8 @@
 """Публичная витрина брони (без логина), на корне субдомена бизнеса.
 
-Защита публичной формы: honeypot (website), rate-limit по IP+акции и
-идемпотентность сабмита (form_token) против двойной отправки по F5.
+Защита публичных форм: honeypot (website), rate-limit по IP (apps.core.ratelimit,
+Hardening H8 — бронь/waitlist по IP+акции, QR-вьюхи по IP против перебора кодов)
+и идемпотентность сабмита (form_token) против двойной отправки по F5.
 """
 
 import io
@@ -17,22 +18,22 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from apps.core import ratelimit
 from apps.core.seo import offer_ld
 
 from .forms import PublicReservationForm, WaitlistForm
 from .models import Customer, LoyaltyCard, Promotion, Reservation, Voucher, WaitlistEntry
 from .services import OutOfStock, ReservationLimitReached, reserve
 
-RL_LIMIT = 5  # попыток
+RL_LIMIT = 5  # попыток (бронь/waitlist на IP+акцию)
 RL_WINDOW = 600  # за 10 минут
+QR_RL_LIMIT = 60  # QR-вьюх на IP (страница подтверждения рендерит их легитимно)
 TOKEN_TTL = 600
 
 
-def _client_ip(request) -> str:
-    xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "") or ""
+def _qr_limited(request) -> bool:
+    """Общий лимит QR-вьюх по IP — против перебора кодов броней/ваучеров/карт."""
+    return ratelimit.hit("qr", ratelimit.client_ip(request), limit=QR_RL_LIMIT, window=RL_WINDOW)
 
 
 def _abs_promo_url(request, pk) -> str:
@@ -103,6 +104,8 @@ def promotion_qr(request, pk):
 def reservation_qr(request, code):
     """Персональный QR брони. Кодирует ссылку погашения в кабинете —
     сотрудник сканирует штатной камерой и попадает на страницу выдачи."""
+    if _qr_limited(request):
+        return HttpResponse(status=429)
     code = code.strip().upper()
     get_object_or_404(Reservation, reference_code=code)
     redeem_url = request.build_absolute_uri(reverse("promotions:redeem-detail", args=[code]))
@@ -113,6 +116,8 @@ def reservation_qr(request, code):
 
 def voucher_qr(request, code):
     """QR ваучера. Кодирует ссылку погашения в кабинете (сотрудник сканирует)."""
+    if _qr_limited(request):
+        return HttpResponse(status=429)
     code = code.strip().upper()
     get_object_or_404(Voucher, code=code)
     redeem_url = (
@@ -137,12 +142,11 @@ def reservation_create(request, pk):
     if not form.is_valid():
         return render(request, "storefront/promotion_detail.html", ctx)
 
-    # rate-limit по IP+акции
-    rl_key = f"resv_rl:{_client_ip(request)}:{pk}"
-    if cache.get(rl_key, 0) >= RL_LIMIT:
+    # rate-limit по IP+акции (атомарный, см. apps.core.ratelimit)
+    rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
+    if ratelimit.hit("resv", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
         messages.error(request, "Zu viele Versuche. Bitte später erneut.")
         return render(request, "storefront/promotion_detail.html", ctx)
-    cache.set(rl_key, cache.get(rl_key, 0) + 1, RL_WINDOW)
 
     # идемпотентность: токен «занимаем» на время попытки, на успехе оставляем,
     # на ошибке освобождаем (чтобы клиент мог повторить с другими данными)
@@ -179,6 +183,10 @@ def waitlist_join(request, pk):
     """Записать в лист ожидания распроданной акции."""
     promo = get_object_or_404(Promotion, pk=pk, status="active")
     if request.method != "POST" or request.POST.get("website"):
+        return redirect("storefront-promotion", pk=pk)
+    rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
+    if ratelimit.hit("waitlist", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
+        messages.error(request, "Zu viele Versuche. Bitte später erneut.")
         return redirect("storefront-promotion", pk=pk)
     form = WaitlistForm(request.POST)
     if form.is_valid():
@@ -225,6 +233,8 @@ def withdrawal(request):
 
 def loyalty_card_qr(request, token):
     """QR карты лояльности: кодирует ссылку начисления штампа в кабинете."""
+    if _qr_limited(request):
+        return HttpResponse(status=429)
     card = get_object_or_404(LoyaltyCard.objects.select_related("program"), token=token)
     stamp_url = (
         request.build_absolute_uri(reverse("promotions:loyalty-stamp", args=[card.program_id]))
