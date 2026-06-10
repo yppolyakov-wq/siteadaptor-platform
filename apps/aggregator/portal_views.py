@@ -103,9 +103,7 @@ def portal_sitemap_xml(request):
         raise Http404
     urls = [request.build_absolute_uri(reverse("portal-home"))]
     _, facets = _facet_choices(portal)
-    urls += [
-        request.build_absolute_uri(reverse("portal-facet", args=[v])) for v, _label in facets
-    ]
+    urls += [request.build_absolute_uri(reverse("portal-facet", args=[v])) for v, _label in facets]
     body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'
@@ -118,6 +116,4 @@ def portal_sitemap_xml(request):
 def portal_robots_txt(request):
     """robots.txt портала: всё открыто + ссылка на sitemap его хоста."""
     sitemap = request.build_absolute_uri(reverse("portal-sitemap"))
-    return HttpResponse(
-        f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n", content_type="text/plain"
-    )
+    return HttpResponse(f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n", content_type="text/plain")
