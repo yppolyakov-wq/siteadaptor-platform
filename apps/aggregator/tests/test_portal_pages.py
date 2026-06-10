@@ -192,3 +192,12 @@ def test_combo_portal_filters_both_axes_and_rejects_facet():
 def test_portal_home_404_without_portal():
     with pytest.raises(Http404):
         portal_views.portal_home(_get(None))
+
+
+def test_portal_urlconf_keeps_health_probes():
+    from django.urls import resolve
+
+    from apps.core import health
+
+    assert resolve("/health/", urlconf="config.urls_portal").func is health.liveness
+    assert resolve("/health/ready/", urlconf="config.urls_portal").func is health.readiness
