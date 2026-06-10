@@ -297,8 +297,10 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 **Разбивка (инкременты; ветка → CI зелёный → чекпоинт):**
 - [x] **P2.1a** — модель `AggregatorPortal` + миграция 0003 + резолвер-middleware
   (`request.portal`, кэш + сигнал-сброс) + тесты. _(✅ в `main`, 2d28be2, CI run 39 зелёный)_
-- [ ] **P2.1b** — `config/urls_portal.py` + `portal_home` (корень портала = листинги его фильтра)
-  + уточнение по 2-й оси (город→тип / тип→город) + брендированный base-шаблон; подмена `request.urlconf`.
+- [x] **P2.1b** — `config/urls_portal.py` + `portal_home` (корень портала = листинги его фильтра)
+  + уточнение по 2-й оси (город→тип / тип→город) + брендированный base-шаблон; подмена
+  `request.urlconf`; health-пробы и media-фолбэк на хосте портала. _(✅ в `main`,
+  4d09b76+c9f79b2, CI runs 42/43 зелёные; без миграций)_
 - [ ] **P2.1c** — SEO портала: meta + JSON-LD (CollectionPage/ItemList) + canonical + sitemap/robots
   по хосту портала.
 - [ ] **P2.1d** — провижининг: unfold-admin + команда `create_portal` (+ `Domain`) +

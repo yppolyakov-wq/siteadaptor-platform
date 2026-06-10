@@ -96,10 +96,17 @@ Python 3.12, менеджер uv.
   verify-domain. Детали — roadmap §P2.1.
   - P2.1a (✅ в `main`, 2d28be2): модель `AggregatorPortal` (SHARED, миграция
     aggregator/0003) + `AggregatorPortalMiddleware` (host→`request.portal` на
-    public-схеме, Redis-кэш карты хостов + сигнал-сброс) + тесты. urlconf пока
-    не подменяется — это P2.1b.
-  - Дальше: P2.1b (`config/urls_portal.py` + `portal_home` + брендированный
-    шаблон + подмена `request.urlconf`) → P2.1c (SEO портала) → P2.1d
+    public-схеме, Redis-кэш карты хостов + сигнал-сброс) + тесты.
+  - P2.1b (✅ в `main`, 4d09b76+c9f79b2): middleware подменяет `request.urlconf`
+    → `config/urls_portal.py` (portal-home `/`, уточнение `/<facet>/` по
+    свободной оси: city-портал → тип, vertical → город, combo — без; health-пробы,
+    media-фолбэк); `portal_views.portal_home` (сем `listings_for`, курсорная
+    пагинация, мусорный facet → 404); брендированный `portal_base.html`
+    (title/tagline/intro/logo/primary_color) + `portal_home.html`; карточки
+    листингов в общем `_cards.html`. Без миграций. Смотреть пока не на что:
+    нужен AggregatorPortal + строка Domain(host→public) — провижининг в P2.1d.
+  - Дальше: P2.1c (SEO портала: canonical + CollectionPage/ItemList +
+    sitemap/robots по хосту — ветка `claude/p2-1c-portal-seo`) → P2.1d
     (unfold-admin + команда `create_portal` + строка Domain на public).
 
 ## 4. Маршруты
