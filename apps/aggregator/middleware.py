@@ -1,13 +1,11 @@
-"""Резолвер мульти-доменных порталов агрегатора (P2.1a).
+"""Резолвер мульти-доменных порталов агрегатора (P2.1a/b).
 
-На public-схеме сопоставляет request.get_host() → AggregatorPortal и кладёт его в
-request.portal (или None). Карта host→id кэшируется в Redis и сбрасывается
-сигналом при изменении портала (см. apps.py::ready). На субдоменах бизнеса
-(tenant-схема) и на основном домене без портала request.portal = None — поведение
-текущих страниц не меняется.
-
-Подмена request.urlconf на config.urls_portal добавится в P2.1b вместе с
-портальными вьюхами; здесь — только атрибут request.portal.
+На public-схеме сопоставляет request.get_host() → AggregatorPortal: кладёт его в
+request.portal и подменяет request.urlconf на config.urls_portal (корень хоста =
+страницы портала). Карта host→id кэшируется в Redis и сбрасывается сигналом при
+изменении портала (см. apps.py::ready). На субдоменах бизнеса (tenant-схема) и
+на основном домене без портала request.portal = None — поведение текущих
+страниц не меняется.
 """
 
 from django.core.cache import cache
@@ -53,11 +51,13 @@ def resolve_portal(request):
 
 
 class AggregatorPortalMiddleware:
-    """Кладёт request.portal. Ставится сразу после TenantMainMiddleware."""
+    """Кладёт request.portal (+ urlconf портала). Сразу после TenantMainMiddleware."""
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         request.portal = resolve_portal(request)
+        if request.portal is not None:
+            request.urlconf = "config.urls_portal"
         return self.get_response(request)

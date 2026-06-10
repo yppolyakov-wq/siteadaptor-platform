@@ -68,9 +68,9 @@ class AggregatorPortal(I18nMixin, models.Model):
 
     Привязан к своему хосту (поддомен *.siteadaptor.de или custom-домен) и сужает
     выдачу по городу и/или типу бизнеса. Резолвер (apps.aggregator.middleware)
-    сопоставляет request.get_host() → портал и кладёт его в request.portal.
-    SHARED (public-схема), как и листинги. Подмена request.urlconf на
-    config.urls_portal и портальные вьюхи — в P2.1b.
+    сопоставляет request.get_host() → портал: кладёт его в request.portal и
+    подменяет request.urlconf на config.urls_portal (страницы — portal_views).
+    SHARED (public-схема), как и листинги.
     """
 
     KIND_CITY = "city"

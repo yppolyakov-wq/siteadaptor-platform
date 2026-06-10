@@ -1,0 +1,31 @@
+{% load i18n %}<!doctype html>{# Брендированный base портального хоста (P2.1b): ожидает portal. #}
+<html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ portal.title_text }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ portal.tagline_text|default:portal.title_text }}{% endblock %}">
+  {% block structured_data %}{% endblock %}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>:root { --portal-color: {{ portal.primary_color|default:"#111827" }}; }</style>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-2" style="border-color: var(--portal-color)">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0">
+        {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
+        <span class="text-lg font-bold tracking-tight truncate" style="color: var(--portal-color)">{{ portal.title_text }}</span>
+      </a>
+      {% if portal.tagline_text %}<span class="hidden sm:block text-sm text-gray-500 truncate ml-4">{{ portal.tagline_text }}</span>{% endif %}
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:py-10">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-gray-100 bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400">© {% now "Y" %} {{ portal.title_text }} · siteadaptor</div>
+  </footer>
+</body>
+</html>
