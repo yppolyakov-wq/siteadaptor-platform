@@ -40,3 +40,27 @@ class ReserveConcurrencyTest(TransactionTestCase):
         self.assertEqual(results.count(False), 50)  # ровно 50 отказов
         self.assertEqual(promo.available_quantity, 0)  # ноль перепродаж
         self.assertEqual(Reservation.objects.filter(promotion=promo).count(), 50)
+
+    def test_no_oversell_with_quantity_2_and_odd_stock(self):
+        """Списание по 2 при остатке 7: 3 брони, хвост 1 — не в минус (H6)."""
+        promo = Promotion.objects.create(
+            title={"de": "Aktion"},
+            status="active",
+            available_quantity=7,
+            auto_confirm=True,
+        )
+
+        def worker(i):
+            connection.close()
+            try:
+                reserve(promo, name=f"D{i}", email=f"d{i}@load.test", quantity=2)
+                return 2
+            except OutOfStock:
+                return 0
+
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            sold = list(pool.map(worker, range(12)))
+
+        promo.refresh_from_db()
+        self.assertEqual(sum(sold), 6)  # 3 брони по 2
+        self.assertEqual(promo.available_quantity, 1)  # хвост остался, минуса нет
