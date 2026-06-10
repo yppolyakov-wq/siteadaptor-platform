@@ -30,6 +30,9 @@ def _create(**extra):
 
 def test_creates_portal_and_domain_on_public():
     public = _public()
+    # Основной домен public уже есть (как в проде) — портальный не должен стать
+    # primary (DomainMixin сам делает primary первый домен тенанта).
+    DomainFactory(domain="siteadaptor.de", tenant=public, is_primary=True)
     _create(tagline_de="Lokale Deals")
     portal = AggregatorPortal.objects.get(host=_HOST)
     assert portal.kind == "city"
