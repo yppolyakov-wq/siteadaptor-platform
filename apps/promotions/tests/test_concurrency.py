@@ -47,6 +47,7 @@ class ReserveConcurrencyTest(TransactionTestCase):
             title={"de": "Aktion"},
             status="active",
             available_quantity=7,
+            max_per_customer=2,  # default=1 зарубил бы quantity=2 до проверки остатка
             auto_confirm=True,
         )
 
