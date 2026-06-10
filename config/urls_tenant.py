@@ -51,6 +51,9 @@ urlpatterns = [
     path("datenschutz/", public_views.privacy, name="storefront-privacy"),
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),
     path("u/<uuid:token>/", public_views.unsubscribe, name="storefront-unsubscribe"),
+    # Local SEO (Track B5): sitemap + robots на корне витрины.
+    path("sitemap.xml", public_views.sitemap_xml, name="storefront-sitemap"),
+    path("robots.txt", public_views.robots_txt, name="storefront-robots"),
 ]
 
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).
