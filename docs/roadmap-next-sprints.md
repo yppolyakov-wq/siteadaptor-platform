@@ -217,10 +217,21 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
     праздникам (бронь), Mode/Retail waitlist по размерам (waitlist есть),
     Hofladen/Bio «frisch geerntet ab …» (scheduled), Hotel/Tour Last-Minute
     (бронь-заявка; полный booking — Phase 2/3).
-- [ ] B4 **QR-постер PDF (A4)** для витрины магазина («Scan & Angebote sichern»)
-  — кнопка «Скачать постер» в кабинете; QR уже есть, добавить PDF-шаблон.
-- [ ] B5 **Local SEO**: schema.org LocalBusiness/Offer + sitemap на витринах и
-  в агрегаторе (вынесено вперёд из P2.2) — малые выигрывают локальную выдачу.
+- [x] B4 **QR-постер PDF (A4)** для витрины магазина («Scan & Angebote sichern»)
+  — кнопка «Скачать постер» в кабинете; QR уже есть, добавить PDF-шаблон. ✅
+  ветка `claude/track-b4-qr-poster`: `apps/promotions/poster.py`
+  (`build_shop_poster_pdf` — segno QR в PNG + reportlab A4, слоган + название +
+  URL + футер «без приложения»), вьюха `shop_poster_pdf` + `/promotions/poster/`,
+  кнопка на странице акций. QR несёт `?ch=schaufenster` → сканы с постера идут в
+  атрибуцию каналов. Зависимость `reportlab`.
+- [x] B5 **Local SEO**: schema.org LocalBusiness/Offer + sitemap на витринах и
+  в агрегаторе (вынесено вперёд из P2.2) — малые выигрывают локальную выдачу. ✅
+  ветка `claude/track-b5-local-seo`: `apps/core/seo.py` (localbusiness_ld/
+  offer_ld/itemlist_ld); B5a — LocalBusiness в `<head>` витрины (тег
+  `{% localbusiness_jsonld %}`) + Offer на странице акции + `sitemap.xml`/
+  `robots.txt` витрины; B5b — ItemList на городской странице агрегатора +
+  `sitemap.xml`/`robots.txt` основного домена (без django.contrib.sites: домен
+  из request, мульти-тенант-safe).
 
 **UX-принципы конечного потребителя (зафиксировано владельцем): просто,
 понятно, без навязчивости.**
