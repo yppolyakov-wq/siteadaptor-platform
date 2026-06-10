@@ -17,6 +17,7 @@ from apps.core.fsm import IllegalTransition
 from . import services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
 from .models import Customer, LoyaltyCard, LoyaltyProgram, Promotion, Reservation, Voucher
+from .presets import preset_initial, presets_for
 from .state_machine import PromotionSM
 
 PROMO_STATUSES = ["draft", "scheduled", "active", "paused", "ended", "archived"]
@@ -75,7 +76,11 @@ def promotion_list(request):
 
 @login_required
 def promotion_create(request):
-    form = PromotionForm(request.POST or None, request.FILES or None)
+    business_type = getattr(request.tenant, "business_type", "")
+    initial = {}
+    if request.method == "GET" and request.GET.get("preset"):
+        initial = preset_initial(business_type, request.GET["preset"])
+    form = PromotionForm(request.POST or None, request.FILES or None, initial=initial or None)
     if request.method == "POST" and form.is_valid():
         promo = form.save()
         _handle_promo_uploads(request, promo)
@@ -83,7 +88,12 @@ def promotion_create(request):
     return render(
         request,
         "promotions/promotion_form.html",
-        {"form": form, "is_create": True, "nav": "promotions"},
+        {
+            "form": form,
+            "is_create": True,
+            "nav": "promotions",
+            "presets": presets_for(business_type),
+        },
     )
 
 
