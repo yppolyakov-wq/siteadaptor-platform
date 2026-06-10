@@ -31,6 +31,9 @@ urlpatterns = [
         aggregator_views.city_listing,
         name="aggregator-city-type",
     ),
+    # Local SEO (Track B5): sitemap + robots основного домена.
+    path("sitemap.xml", aggregator_views.sitemap_xml, name="aggregator-sitemap"),
+    path("robots.txt", aggregator_views.robots_txt, name="aggregator-robots"),
     # Онбординг: регистрация бизнеса → создаёт Tenant + Domain + владельца.
     path("", BusinessSignupView.as_view(), name="business-signup"),
 ]
