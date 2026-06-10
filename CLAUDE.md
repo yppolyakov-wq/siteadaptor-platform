@@ -66,9 +66,20 @@ Python 3.12, менеджер uv.
   HTML+text multipart шаблоны, waitlist «снова в наличии» (одно письмо на
   запись). Resend включается ключом в проде. Миграция `notifications/0001` —
   нужен деплой. S6.5 (WhatsApp) — опционально, по готовности Meta-провайдера.
-- **Track B — DE quick wins (в работе):** B1 GBP-адаптер — ветка
-  `claude/track-b1-gbp` (тип канала google_business, Google Posts, конфиг в
-  кабинете; настройка — `docs/gbp-setup.md`). Дальше B2–B5 по roadmap §Track B.
+- **Track B — DE quick wins (в работе):**
+  - B1 GBP-адаптер (✅ в `main`, 3030af0): тип канала google_business, адаптер
+    Google Posts (publish/remove, OAuth refresh-token из config), конфиг в
+    кабинете; настройка — `docs/gbp-setup.md`. Боевое — после Google API-доступа.
+  - B2 «Überraschungstüte»/анти-waste (✅ в `main`, 9edc310): `Promotion.is_surprise`
+    (миграция 0009) + бейдж на витрине и в агрегаторе (`AggregatorListing.is_surprise`,
+    aggregator/0002). Поверх обычной брони, отдельной механики нет. Нужен деплой.
+  - B3 Recurring + пресеты по вертикалям (ветка `claude/track-b3-recurring`,
+    CI→merge): B3a `apps/promotions/presets.py` (`?preset=<key>` пред-заполняет
+    форму по business_type, кнопки быстрого старта); B3b `Promotion.recurrence`
+    (—/daily/weekly, миграция 0010) + beat `roll_recurring_promotions` (раз в час)
+    — завершившаяся повторяющаяся акция даёт один scheduled-наследник со сдвигом
+    окна, recurrence уходит к наследнику (цепочка не ветвится). Нужен деплой.
+  - Дальше B4 (QR-постер PDF), B5 (local SEO) по roadmap §Track B.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -121,9 +132,9 @@ Python 3.12, менеджер uv.
    Publication+FSM, хуки PromotionSM, apps.aggregator по city/business_type).
 3. Sprint 6 — уведомления (Notification + БД-dedupe, Resend в проде, опц. WhatsApp).
 4. **Track B — быстрые победы DE-рынка** (после Sprint 6, порядок утверждён):
-   B1 Google Business Profile адаптер → B2 «Überraschungstüte»/анти-waste →
-   B3 recurring promotions + пресеты по вертикалям → B4 QR-постер PDF →
-   B5 local SEO (schema.org). Детали — roadmap §Track B.
+   ✅ B1 Google Business Profile → ✅ B2 «Überraschungstüte»/анти-waste →
+   ✅ B3 recurring promotions + пресеты по вертикалям → **B4 QR-постер PDF
+   (следующее)** → B5 local SEO (schema.org). Детали — roadmap §Track B.
 5. Hardening (параллельно): Resend-ключ, отдельный Postgres, ротация секретов,
    бэкапы, Sentry, нагрузочный тест anti-oversell, DSGVO-ревизия, rate-limit.
 6. Phase 2 — мульти-доменные агрегаторы, SEO, клиентские аккаунты, монетизация
