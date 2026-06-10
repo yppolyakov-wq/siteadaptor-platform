@@ -76,7 +76,10 @@ def promotion_list(request):
 
 @login_required
 def promotion_create(request):
-    business_type = getattr(request.tenant, "business_type", "")
+    # request.tenant может отсутствовать (напр. в unit-тестах через RequestFactory),
+    # поэтому достаём его защитно — пресеты просто схлопнутся к универсальным.
+    tenant = getattr(request, "tenant", None)
+    business_type = getattr(tenant, "business_type", "") or ""
     initial = {}
     if request.method == "GET" and request.GET.get("preset"):
         initial = preset_initial(business_type, request.GET["preset"])
