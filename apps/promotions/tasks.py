@@ -97,6 +97,93 @@ def roll_promotion_statuses():
     return {"activated": activated, "ended": ended}
 
 
+# Поля, переносимые в наследника при авто-повторе (всё, кроме идентичности,
+# окна, статуса и аналитики — те задаются заново).
+_RECUR_CLONE_FIELDS = (
+    "title",
+    "description",
+    "product_id",
+    "promo_type",
+    "discount_percent",
+    "price_override",
+    "compare_at_price",
+    "images",
+    "available_quantity",
+    "max_per_customer",
+    "reservation_ttl_hours",
+    "auto_confirm",
+    "show_countdown",
+    "strikethrough_old_price",
+    "is_surprise",
+    "metadata",
+)
+
+
+def _next_window(starts, ends, recurrence, now):
+    """Окно следующего повтора: сдвиг на интервал, пропуская прошедшие циклы."""
+    delta = timedelta(days=1) if recurrence == Promotion.DAILY else timedelta(weeks=1)
+    new_starts, new_ends = starts + delta, ends + delta
+    # если beat молчал несколько циклов — перескакиваем к ближайшему будущему
+    # окну (ровно один наследник, без «навёрстывания» пачкой)
+    while new_ends <= now:
+        new_starts += delta
+        new_ends += delta
+    return new_starts, new_ends
+
+
+def _spawn_recurrence(promo, now):
+    """Создать запланированного наследника завершившейся повторяющейся акции.
+
+    recurrence уходит к наследнику, у родителя гасится → цепочка одиночная.
+    """
+    new_starts, new_ends = _next_window(promo.starts_at, promo.ends_at, promo.recurrence, now)
+    heir = Promotion(
+        status="draft",
+        starts_at=new_starts,
+        ends_at=new_ends,
+        recurrence=promo.recurrence,
+        **{f: getattr(promo, f) for f in _RECUR_CLONE_FIELDS},
+    )
+    heir.save()
+    PromotionSM().apply(heir, "scheduled")
+
+    promo.recurrence = Promotion.NO_RECUR
+    promo.save(update_fields=["recurrence", "updated_at"])
+    return heir
+
+
+def roll_due_recurring(now=None) -> int:
+    """Размножить завершившиеся повторяющиеся акции (в текущей схеме).
+
+    Кандидат — status=ended с заданным recurrence и полным окном. Наследник
+    встаёт scheduled на следующее окно; у родителя recurrence гасится, поэтому
+    одна акция даёт ровно одного наследника. Возвращает число наследников.
+    """
+    now = now or timezone.now()
+    due = Promotion.objects.filter(
+        status="ended",
+        recurrence__in=[Promotion.DAILY, Promotion.WEEKLY],
+        starts_at__isnull=False,
+        ends_at__isnull=False,
+    )
+    spawned = 0
+    for promo in due:
+        _spawn_recurrence(promo, now)
+        spawned += 1
+    return spawned
+
+
+@idempotent_task()
+def roll_recurring_promotions():
+    """Beat: авто-повтор завершившихся акций по всем схемам арендаторов."""
+    now = timezone.now()
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += roll_due_recurring(now)
+    return {"spawned": total}
+
+
 def purge_due_customers(now=None) -> int:
     """DSGVO: обезличить контакты клиентов без активных броней (в текущей схеме).
 

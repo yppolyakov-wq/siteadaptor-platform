@@ -83,6 +83,13 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # Поверх обычной брони — отдельная механика не нужна, только пресет + бейдж.
     is_surprise = models.BooleanField(default=False)
 
+    # Авто-повтор акции (Track B3b): beat клонирует завершившуюся со сдвигом окна
+    # на интервал. Наследник один (recurrence уходит к нему, у родителя гасится),
+    # поэтому цепочка не ветвится.
+    NO_RECUR, DAILY, WEEKLY = "", "daily", "weekly"
+    RECURRENCE = [(NO_RECUR, "—"), (DAILY, "Täglich"), (WEEKLY, "Wöchentlich")]
+    recurrence = models.CharField(max_length=10, choices=RECURRENCE, default=NO_RECUR, blank=True)
+
     status = models.CharField(max_length=20, default="draft", db_index=True)
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)

@@ -54,6 +54,7 @@ class PromotionForm(forms.ModelForm):
             "strikethrough_old_price",
             "show_countdown",
             "is_surprise",
+            "recurrence",
         ]
         labels = {
             "compare_at_price": _("Old price (struck through)"),
@@ -62,12 +63,16 @@ class PromotionForm(forms.ModelForm):
             "strikethrough_old_price": _("Strike through the old price"),
             "show_countdown": _("Show countdown to end"),
             "is_surprise": _("Surprise bag (rescue leftovers, anti-waste)"),
+            "recurrence": _("Repeat automatically"),
         }
         help_texts = {
             "compare_at_price": _("Leave blank to use the linked product's price."),
             "discount_percent": _("Either a % or a new price — the rest is computed."),
             "is_surprise": _(
                 "Shows an „Überraschungstüte“ badge on your storefront and the aggregator."
+            ),
+            "recurrence": _(
+                "When it ends, a copy is scheduled for the next day/week automatically."
             ),
         }
 

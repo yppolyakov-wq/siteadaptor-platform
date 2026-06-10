@@ -215,6 +215,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.roll_promotion_statuses",
         "schedule": 300.0,  # каждые 5 минут — scheduled→active, active→ended
     },
+    "roll-recurring-promotions": {
+        "task": "apps.promotions.tasks.roll_recurring_promotions",
+        "schedule": 3600.0,  # раз в час — авто-повтор завершившихся акций (Track B3b)
+    },
     "purge-reservation-pii": {
         "task": "apps.promotions.tasks.purge_reservation_pii",
         "schedule": 86400.0,  # раз в сутки — DSGVO-обезличивание старых контактов
