@@ -73,13 +73,22 @@ Python 3.12, менеджер uv.
   - B2 «Überraschungstüte»/анти-waste (✅ в `main`, 9edc310): `Promotion.is_surprise`
     (миграция 0009) + бейдж на витрине и в агрегаторе (`AggregatorListing.is_surprise`,
     aggregator/0002). Поверх обычной брони, отдельной механики нет. Нужен деплой.
-  - B3 Recurring + пресеты по вертикалям (ветка `claude/track-b3-recurring`,
-    CI→merge): B3a `apps/promotions/presets.py` (`?preset=<key>` пред-заполняет
-    форму по business_type, кнопки быстрого старта); B3b `Promotion.recurrence`
+  - B3 Recurring + пресеты по вертикалям (✅ в `main`, b052fef): B3a
+    `apps/promotions/presets.py` (`?preset=<key>` пред-заполняет форму по
+    business_type, кнопки быстрого старта); B3b `Promotion.recurrence`
     (—/daily/weekly, миграция 0010) + beat `roll_recurring_promotions` (раз в час)
     — завершившаяся повторяющаяся акция даёт один scheduled-наследник со сдвигом
     окна, recurrence уходит к наследнику (цепочка не ветвится). Нужен деплой.
-  - Дальше B4 (QR-постер PDF), B5 (local SEO) по roadmap §Track B.
+  - B4 QR-постер PDF (ветка `claude/track-b4-qr-poster`, CI→merge):
+    `apps/promotions/poster.py` (`build_shop_poster_pdf` — segno QR→PNG + reportlab
+    A4), вьюха `shop_poster_pdf` + `/promotions/poster/`, кнопка на странице акций;
+    QR несёт `?ch=schaufenster` (атрибуция). Новая зависимость `reportlab`.
+  - B5 Local SEO (ветка `claude/track-b5-local-seo`, CI→merge): `apps/core/seo.py`
+    (localbusiness_ld/offer_ld/itemlist_ld); LocalBusiness в `<head>` витрины
+    (тег `{% localbusiness_jsonld %}`) + Offer на акции + ItemList на странице
+    города; `sitemap.xml`/`robots.txt` для витрины (субдомен) и агрегатора
+    (основной домен) без django.contrib.sites (домен из request).
+  - Track B завершён (B1–B5). Дальше — Hardening и Phase 2 (§7).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -131,11 +140,12 @@ Python 3.12, менеджер uv.
 2. Sprint 4 — авто-публикация + локальный агрегатор (apps.publishing Channel/
    Publication+FSM, хуки PromotionSM, apps.aggregator по city/business_type).
 3. Sprint 6 — уведомления (Notification + БД-dedupe, Resend в проде, опц. WhatsApp).
-4. **Track B — быстрые победы DE-рынка** (после Sprint 6, порядок утверждён):
+4. **Track B — быстрые победы DE-рынка** — ✅ ВЕСЬ ГОТОВ (порядок утверждён):
    ✅ B1 Google Business Profile → ✅ B2 «Überraschungstüte»/анти-waste →
-   ✅ B3 recurring promotions + пресеты по вертикалям → **B4 QR-постер PDF
-   (следующее)** → B5 local SEO (schema.org). Детали — roadmap §Track B.
-5. Hardening (параллельно): Resend-ключ, отдельный Postgres, ротация секретов,
+   ✅ B3 recurring + пресеты по вертикалям → ✅ B4 QR-постер PDF →
+   ✅ B5 local SEO (schema.org + sitemap). B1–B3 в `main`; B4, B5 — на ветках,
+   ждут подтверждения CI и мержа. Детали — roadmap §Track B.
+5. **Hardening (следующее)**: Resend-ключ, отдельный Postgres, ротация секретов,
    бэкапы, Sentry, нагрузочный тест anti-oversell, DSGVO-ревизия, rate-limit.
 6. Phase 2 — мульти-доменные агрегаторы, SEO, клиентские аккаунты, монетизация
    портала, платежи клиента, отзывы, поиск, мобайл.
