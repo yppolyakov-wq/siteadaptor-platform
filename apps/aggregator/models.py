@@ -33,6 +33,7 @@ class AggregatorListing(I18nMixin, models.Model):
     ends_at = models.DateTimeField(null=True, blank=True)
     detail_url = models.URLField()
 
+    is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

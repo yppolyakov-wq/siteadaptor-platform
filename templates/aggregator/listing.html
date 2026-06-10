@@ -41,6 +41,7 @@
       </div>
       <div class="p-3 md:p-4">
         <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}</p>
+        {% if l.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>{% endif %}
         <h2 class="font-semibold leading-tight line-clamp-2">{{ l.title_text }}</h2>
         {% if l.new_price is not None %}
           <div class="mt-2 flex items-baseline gap-2">

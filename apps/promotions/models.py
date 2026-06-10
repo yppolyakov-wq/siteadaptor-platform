@@ -79,6 +79,10 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     show_countdown = models.BooleanField(default=False)
     strikethrough_old_price = models.BooleanField(default=True)
 
+    # «Überraschungstüte» / анти-waste: сюрприз-пакет уценённых остатков (Track B2).
+    # Поверх обычной брони — отдельная механика не нужна, только пресет + бейдж.
+    is_surprise = models.BooleanField(default=False)
+
     status = models.CharField(max_length=20, default="draft", db_index=True)
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)

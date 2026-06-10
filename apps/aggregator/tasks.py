@@ -34,6 +34,7 @@ def _snapshot(promotion_id):
         "discount_percent": promo.discount_percent_display,
         "starts_at": promo.starts_at,
         "ends_at": promo.ends_at,
+        "is_surprise": promo.is_surprise,
     }
 
 
@@ -72,6 +73,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "starts_at": snap["starts_at"],
             "ends_at": snap["ends_at"],
             "detail_url": f"{_scheme()}://{tenant.slug}.{base}/p/{promotion_id}/",
+            "is_surprise": snap["is_surprise"],
             "is_active": True,
         },
     )
