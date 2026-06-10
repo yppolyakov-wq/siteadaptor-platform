@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -17,6 +18,7 @@ from apps.core.fsm import IllegalTransition
 from . import services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
 from .models import Customer, LoyaltyCard, LoyaltyProgram, Promotion, Reservation, Voucher
+from .poster import build_shop_poster_pdf
 from .presets import preset_initial, presets_for
 from .state_machine import PromotionSM
 
@@ -72,6 +74,20 @@ def promotion_list(request):
         "promotions/promotion_list.html",
         {"promotions": promos, "statuses": PROMO_STATUSES, "status": status, "nav": "promotions"},
     )
+
+
+@login_required
+def shop_poster_pdf(request):
+    """A4-постер с QR на витрину для печати (Track B4). Кабинет — на субдомене
+    бизнеса, поэтому корень витрины берём с того же хоста."""
+    tenant = getattr(request, "tenant", None)
+    business_name = getattr(tenant, "name", "") or "Unser Shop"
+    storefront_url = request.build_absolute_uri(reverse("storefront-home"))
+    pdf = build_shop_poster_pdf(business_name, storefront_url)
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    slug = getattr(tenant, "slug", "") or "shop"
+    resp["Content-Disposition"] = f'attachment; filename="schaufenster-poster-{slug}.pdf"'
+    return resp
 
 
 @login_required

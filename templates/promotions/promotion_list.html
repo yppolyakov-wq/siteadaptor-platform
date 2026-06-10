@@ -5,9 +5,15 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4">
   <h1 class="text-2xl font-bold">{% trans "Promotions" %}</h1>
-  <a href="{% url 'promotions:promotion-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
-    + {% trans "New promotion" %}
-  </a>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'promotions:shop-poster' %}" target="_blank" rel="noopener"
+       class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50">
+      🖨 {% trans "Shop poster (PDF)" %}
+    </a>
+    <a href="{% url 'promotions:promotion-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+      + {% trans "New promotion" %}
+    </a>
+  </div>
 </div>
 
 {% if messages %}
