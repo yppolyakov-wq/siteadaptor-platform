@@ -108,6 +108,9 @@ SESSION_CACHE_ALIAS = "default"
 # ---------------------------------------------------------------------------
 MIDDLEWARE = [
     "django_tenants.middleware.main.TenantMainMiddleware",
+    # Резолвер мульти-доменных порталов агрегатора (P2.1): кладёт request.portal
+    # на public-схеме. Должен идти сразу после TenantMainMiddleware (нужен tenant).
+    "apps.aggregator.middleware.AggregatorPortalMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

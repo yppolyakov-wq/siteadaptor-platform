@@ -10,6 +10,7 @@
 from django.db import models
 
 from apps.core.models import I18nMixin
+from apps.tenants.models import Tenant
 
 
 class AggregatorListing(I18nMixin, models.Model):
@@ -60,3 +61,63 @@ class AggregatorListing(I18nMixin, models.Model):
     @property
     def teaser_text(self) -> str:
         return self.get_i18n("teaser")
+
+
+class AggregatorPortal(I18nMixin, models.Model):
+    """Брендированный мульти-доменный портал над пулом AggregatorListing (P2.1).
+
+    Привязан к своему хосту (поддомен *.siteadaptor.de или custom-домен) и сужает
+    выдачу по городу и/или типу бизнеса. Резолвер (apps.aggregator.middleware)
+    сопоставляет request.get_host() → портал и кладёт его в request.portal.
+    SHARED (public-схема), как и листинги. Подмена request.urlconf на
+    config.urls_portal и портальные вьюхи — в P2.1b.
+    """
+
+    KIND_CITY = "city"
+    KIND_VERTICAL = "vertical"
+    KIND_COMBO = "combo"
+    KINDS = [
+        (KIND_CITY, "City"),
+        (KIND_VERTICAL, "Vertical"),
+        (KIND_COMBO, "City + type"),
+    ]
+
+    host = models.CharField(max_length=253, unique=True)  # полный хост — ключ резолвера
+    kind = models.CharField(max_length=20, choices=KINDS, default=KIND_CITY)
+
+    # Фильтры выдачи. Любой может быть пустым (тогда портал шире по этой оси).
+    city = models.CharField(max_length=100, blank=True)
+    business_type = models.CharField(max_length=50, blank=True, choices=Tenant.BUSINESS_TYPES)
+
+    # Брендинг (i18n-JSON {"de": "...", "en": "..."}).
+    title = models.JSONField(default=dict)
+    tagline = models.JSONField(default=dict, blank=True)
+    intro = models.JSONField(default=dict, blank=True)
+    logo_url = models.URLField(blank=True)
+    primary_color = models.CharField(max_length=7, default="#111827")
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["host"]
+        indexes = [
+            models.Index(fields=["is_active"], name="agg_portal_active_idx"),
+        ]
+
+    def __str__(self):
+        scope = self.city or (self.get_business_type_display() if self.business_type else "") or "—"
+        return f"{self.host} ({scope})"
+
+    @property
+    def title_text(self) -> str:
+        return self.get_i18n("title")
+
+    @property
+    def tagline_text(self) -> str:
+        return self.get_i18n("tagline")
+
+    @property
+    def intro_text(self) -> str:
+        return self.get_i18n("intro")

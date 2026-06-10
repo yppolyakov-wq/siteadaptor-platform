@@ -267,9 +267,42 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 трафик/лиды. Seam `AggregatorPortal` заложен в Phase 1 — здесь он становится мульти-доменным.
 
 ## P2.1 Мульти-доменные порталы
-- [ ] `AggregatorPortal` (SHARED): `domain`, `kind` (vertical: bakery / city / region), `filters` (business_type/city/region), branding, SEO-поля, `is_active`.
-- [ ] Резолвинг хоста → портал (middleware по аналогии с `TenantMainMiddleware`) + отдельный `urls_portal`.
-- [ ] Свои домены (`baeckerei.de`, `metzgerei.de`, городские) — каждый тянет тенантов по фильтру; TLS on-demand (Caddy уже умеет).
+
+**Согласованный подход (2026-06-10):** мульти-домен на **поддоменах `*.siteadaptor.de`**
+(DNS-wildcard уже есть). Custom-домены (`baeckerei.de`, `angebote-muenchen.de`) — поверх,
+через готовый `internal/verify-domain` + Caddy on-demand TLS. Path-based вариант
+(`/b/<vertical>/`, `/c/<city>/` на основном домене) рассмотрен и **отклонён** — нужны
+отдельные брендированные хосты.
+
+**Типы порталов (`kind`):** `city` (город), `vertical` (тип бизнеса), `combo` (город+тип).
+**Фильтры выдачи:** `city` + `business_type` — переиспользуют сем
+`listings_for(*, city, business_type)` (`apps/aggregator/views.py`), без новых кросс-схемных
+запросов (читаем общий пул `AggregatorListing`).
+
+**Модель `AggregatorPortal`** (SHARED, public; миграция `aggregator/0003`):
+- `host` — полный хост, уникальный ключ резолвера; `kind`; фильтры `city` + `business_type`.
+- Брендинг: `title`/`tagline`/`intro` (i18n-JSON), `logo_url`, `primary_color`; `is_active`.
+- Индекс `agg_portal_active_idx`.
+
+**Резолвер `AggregatorPortalMiddleware`** (сразу после `TenantMainMiddleware`): host → портал
+на public-схеме → `request.portal` (или None). Карта `host→id` кэшируется в Redis (TTL 300 c
++ сигнал-сброс на save/delete портала). На основном домене и на субдоменах бизнеса
+`request.portal = None` — поведение текущих страниц не меняется. Подмена
+`request.urlconf → config.urls_portal` — в P2.1b.
+
+**Провижининг:** на каждый портал — строка `Domain(host → public tenant)` (иначе
+`TenantMainMiddleware` отдаёт 404). Команда `create_portal` (портал + Domain) и unfold-admin
+— в P2.1d.
+
+**Разбивка (инкременты; ветка → CI зелёный → чекпоинт):**
+- [ ] **P2.1a** — модель `AggregatorPortal` + миграция 0003 + резолвер-middleware
+  (`request.portal`, кэш + сигнал-сброс) + тесты. _(код готов, ветка `claude/p2-1a-portal-model` → CI/merge)_
+- [ ] **P2.1b** — `config/urls_portal.py` + `portal_home` (корень портала = листинги его фильтра)
+  + уточнение по 2-й оси (город→тип / тип→город) + брендированный base-шаблон; подмена `request.urlconf`.
+- [ ] **P2.1c** — SEO портала: meta + JSON-LD (CollectionPage/ItemList) + canonical + sitemap/robots
+  по хосту портала.
+- [ ] **P2.1d** — провижининг: unfold-admin + команда `create_portal` (+ `Domain`) +
+  `docs/portal-setup.md` (DNS, Caddy on-demand TLS, custom-домены).
 
 ## P2.2 SEO и контент порталов
 - [ ] Sitemaps, мета, **schema.org** (LocalBusiness/Offer), hreflang (DE/EN).
