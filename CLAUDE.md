@@ -109,8 +109,15 @@ Python 3.12, менеджер uv.
     портала, meta description (tagline→intro→title), JSON-LD CollectionPage с
     ItemList (`apps/core/seo.py::collectionpage_ld`), `sitemap.xml`/`robots.txt`
     по хосту портала (корень + страницы свободной оси; домен из request).
-  - Дальше: P2.1d (unfold-admin + команда `create_portal` + строка Domain на
-    public + `docs/portal-setup.md`) — ветка `claude/p2-1d-portal-admin`.
+  - P2.1d (✅ в `main`, 223de16+c5f6e8c): unfold-админка `AggregatorPortal`
+    (admin на public) + команда `create_portal` (валидация kind/фильтров,
+    атомарно портал + `Domain(host→public)`; чужой домен → отказ) +
+    `docs/portal-setup.md` (DNS/Caddy/custom-домены) + тесты команды.
+  - **P2.1 завершён (a–d), весь в `main`, без новых миграций после
+    aggregator/0003.** Нужен деплой; после него портал заводится одной
+    командой `create_portal` (см. docs/portal-setup.md).
+  - Дальше по плану Phase 2: P2.2 SEO/контент порталов → P2.3 клиентские
+    аккаунты → P2.4 монетизация (порядок — roadmap).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

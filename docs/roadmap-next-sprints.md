@@ -303,8 +303,9 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
   4d09b76+c9f79b2, CI runs 42/43 зелёные; без миграций)_
 - [x] **P2.1c** — SEO портала: meta + JSON-LD (CollectionPage/ItemList) + canonical + sitemap/robots
   по хосту портала. _(✅ в `main`, 18c1c09+5e27113, CI run 46 зелёный; без миграций)_
-- [ ] **P2.1d** — провижининг: unfold-admin + команда `create_portal` (+ `Domain`) +
-  `docs/portal-setup.md` (DNS, Caddy on-demand TLS, custom-домены).
+- [x] **P2.1d** — провижининг: unfold-admin + команда `create_portal` (+ `Domain`) +
+  `docs/portal-setup.md` (DNS, Caddy on-demand TLS, custom-домены). _(✅ в `main`,
+  223de16+c5f6e8c, CI run 50 зелёный; без миграций)_
 
 ## P2.2 SEO и контент порталов
 - [ ] Sitemaps, мета, **schema.org** (LocalBusiness/Offer), hreflang (DE/EN).
