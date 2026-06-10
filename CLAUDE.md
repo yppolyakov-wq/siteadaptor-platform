@@ -105,9 +105,12 @@ Python 3.12, менеджер uv.
     (title/tagline/intro/logo/primary_color) + `portal_home.html`; карточки
     листингов в общем `_cards.html`. Без миграций. Смотреть пока не на что:
     нужен AggregatorPortal + строка Domain(host→public) — провижининг в P2.1d.
-  - Дальше: P2.1c (SEO портала: canonical + CollectionPage/ItemList +
-    sitemap/robots по хосту — ветка `claude/p2-1c-portal-seo`) → P2.1d
-    (unfold-admin + команда `create_portal` + строка Domain на public).
+  - P2.1c (✅ в `main`, 18c1c09+5e27113): SEO портала — canonical на хост
+    портала, meta description (tagline→intro→title), JSON-LD CollectionPage с
+    ItemList (`apps/core/seo.py::collectionpage_ld`), `sitemap.xml`/`robots.txt`
+    по хосту портала (корень + страницы свободной оси; домен из request).
+  - Дальше: P2.1d (unfold-admin + команда `create_portal` + строка Domain на
+    public + `docs/portal-setup.md`) — ветка `claude/p2-1d-portal-admin`.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

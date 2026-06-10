@@ -301,8 +301,8 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
   + уточнение по 2-й оси (город→тип / тип→город) + брендированный base-шаблон; подмена
   `request.urlconf`; health-пробы и media-фолбэк на хосте портала. _(✅ в `main`,
   4d09b76+c9f79b2, CI runs 42/43 зелёные; без миграций)_
-- [ ] **P2.1c** — SEO портала: meta + JSON-LD (CollectionPage/ItemList) + canonical + sitemap/robots
-  по хосту портала.
+- [x] **P2.1c** — SEO портала: meta + JSON-LD (CollectionPage/ItemList) + canonical + sitemap/robots
+  по хосту портала. _(✅ в `main`, 18c1c09+5e27113, CI run 46 зелёный; без миграций)_
 - [ ] **P2.1d** — провижининг: unfold-admin + команда `create_portal` (+ `Domain`) +
   `docs/portal-setup.md` (DNS, Caddy on-demand TLS, custom-домены).
 
