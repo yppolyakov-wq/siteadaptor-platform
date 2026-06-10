@@ -118,6 +118,15 @@ Python 3.12, менеджер uv.
     командой `create_portal` (см. docs/portal-setup.md).
   - Дальше по плану Phase 2: P2.2 SEO/контент порталов → P2.3 клиентские
     аккаунты → P2.4 монетизация (порядок — roadmap).
+- **Hardening, код-часть (✅ в `main`, 8c43a43+549bc9c+b6b84a4+be36f06,
+  CI runs 52/54/55 зелёные, без миграций):**
+  - H8 rate-limit: `apps/core/ratelimit.py` (атомарный Redis INCR, fail-open) —
+    бронь/waitlist 5/10мин на IP+акцию, QR-вьюхи кодов 60/10мин на IP → 429.
+  - H6 нагрузочный: `scripts/load/anti_oversell.js` (k6) + `scripts/load/README.md`
+    (прогон на железе — на владельце) + кейс конкурентности с остатком 7.
+  - H7 DSGVO: команда `dsgvo_customer --schema --email [--delete]` (экспорт
+    Art. 15/20 / стирание Art. 17) + `docs/dsgvo-review.md` (орг-пункты — AVV
+    и пр. — на владельце).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -173,13 +182,14 @@ Python 3.12, менеджер uv.
    ✅ B1 Google Business Profile → ✅ B2 «Überraschungstüte»/анти-waste →
    ✅ B3 recurring + пресеты по вертикалям → ✅ B4 QR-постер PDF →
    ✅ B5 local SEO (schema.org + sitemap). Весь в `main`. Детали — roadmap §Track B.
-5. **Phase 2 (выбор владельца, 2026-06-10) — в работе**: P2.1 мульти-доменные
-   порталы (P2.1a в `main`; дальше P2.1b→c→d, см. §3 и roadmap §P2.1), затем
-   SEO, клиентские аккаунты, монетизация портала, платежи, отзывы, поиск, мобайл.
-6. Hardening — инфра-часть на владельце (.env.prod: SENTRY_DSN — код уже вшит в
-   production.py, RESEND_API_KEY; отдельный Postgres, бэкапы, ротация секретов).
-   Код-часть (rate-limit waitlist, нагрузочный тест anti-oversell, DSGVO-ревизия)
-   отложена — после P2.1.
+5. **Phase 2 (выбор владельца, 2026-06-10) — в работе**: ✅ P2.1 мульти-доменные
+   порталы (a–d в `main`, задеплоено, первый портал muenchen.siteadaptor.de
+   создан). Дальше: P2.2 SEO/контент порталов → клиентские аккаунты →
+   монетизация портала → платежи, отзывы, поиск, мобайл.
+6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
+   см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
+   production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
+   AVV (docs/dsgvo-review.md), прогон k6 на сервере (scripts/load/README.md).
 
 UX-принцип (владелец, 2026-06-09): для конечного потребителя — максимально
 просто, понятно и без навязчивости (бронь без аккаунта, one-click отписка,

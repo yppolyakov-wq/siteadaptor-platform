@@ -254,9 +254,12 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 - [ ] H3 Ротация секретов (SECRET_KEY/DB/API), инвалидация сессий.
 - [ ] H4 Бэкапы (`pg_dump` cron + offsite) + регулярный restore-drill.
 - [ ] H5 Sentry в проде (релизы/перформанс) + внешний uptime-чек + алерты.
-- [ ] H6 Нагрузочный тест anti-oversell на реальном железе (k6/locust): 0 перепродаж + latency.
-- [ ] H7 DSGVO-ревизия: retention (есть), экспорт/удаление по запросу, cookie-баннер при трекинге, AV-Verträge (Resend/Stripe/Hetzner).
-- [ ] H8 Rate-limit на все публичные эндпоинты (reserve/waitlist/voucher/loyalty) — расширить текущий per-IP.
+- [x] H6 Нагрузочный тест anti-oversell: код ✅ в `main` (549bc9c+b6b84a4 — k6-скрипт
+  `scripts/load/anti_oversell.js` + README + кейс конкурентности); сам прогон на железе — на владельце.
+- [x] H7 DSGVO-ревизия: код ✅ в `main` (be36f06 — команда `dsgvo_customer` экспорт/удаление,
+  `docs/dsgvo-review.md`); cookie-баннер не нужен (нет трекинга); AV-Verträge (Resend/Stripe/Hetzner) — на владельце.
+- [x] H8 Rate-limit публичных эндпоинтов ✅ в `main` (8c43a43 — `apps/core/ratelimit.py`:
+  бронь/waitlist на IP+акцию, QR-вьюхи кодов на IP → 429).
 
 ---
 
