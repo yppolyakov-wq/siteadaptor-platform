@@ -86,3 +86,17 @@ def offer_ld(promo, *, url: str, image_url: str = "") -> str:
             offer["priceValidUntil"] = promo.ends_at.date().isoformat()
         data["offers"] = offer
     return _dumps(data)
+
+
+def itemlist_ld(items) -> str:
+    """JSON-LD ItemList из [(name, url), …] для страниц агрегатора (или '')."""
+    elements = [
+        {"@type": "ListItem", "position": i, "name": name, "url": url}
+        for i, (name, url) in enumerate(items, start=1)
+        if url
+    ]
+    if not elements:
+        return ""
+    return _dumps(
+        {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": elements}
+    )

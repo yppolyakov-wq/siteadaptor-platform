@@ -4,9 +4,12 @@
 (seam для мульти-доменных порталов Phase 2 P2.1). Курсорная пагинация (apps.core).
 """
 
+from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
 
 from apps.core.pagination import paginate
+from apps.core.seo import itemlist_ld
 from apps.tenants.models import Tenant
 
 from .models import AggregatorListing
@@ -58,5 +61,43 @@ def city_listing(request, city, business_type=None):
             "business_type_label": _BTYPE_LABELS.get(business_type, business_type),
             "types": [(t, _BTYPE_LABELS.get(t, t)) for t in types],
             "page": page,
+            "ld_itemlist": itemlist_ld([(it.title_text, it.detail_url) for it in page.items]),
         },
     )
+
+
+def sitemap_xml(request):
+    """Sitemap агрегатора (Track B5): /entdecken + города + город/тип.
+
+    Карточки ведут на витрины тенантов (у каждой свой sitemap) — здесь только
+    публичные посадочные страницы основного домена.
+    """
+    from xml.sax.saxutils import escape
+
+    active = AggregatorListing.objects.filter(is_active=True)
+    urls = [request.build_absolute_uri(reverse("aggregator-index"))]
+    urls += [
+        request.build_absolute_uri(reverse("aggregator-city", args=[c]))
+        for c in active.exclude(city="").values_list("city", flat=True).distinct().order_by("city")
+    ]
+    urls += [
+        request.build_absolute_uri(reverse("aggregator-city-type", args=[c, bt]))
+        for c, bt in active.exclude(city="")
+        .exclude(business_type="")
+        .values_list("city", "business_type")
+        .distinct()
+        .order_by("city", "business_type")
+    ]
+    body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        f"{body}</urlset>"
+    )
+    return HttpResponse(xml, content_type="application/xml")
+
+
+def robots_txt(request):
+    """robots.txt основного домена: всё открыто + ссылка на sitemap агрегатора."""
+    sitemap = request.build_absolute_uri(reverse("aggregator-sitemap"))
+    return HttpResponse(f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n", content_type="text/plain")
