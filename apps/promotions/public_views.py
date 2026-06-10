@@ -17,6 +17,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from apps.core.seo import offer_ld
+
 from .forms import PublicReservationForm, WaitlistForm
 from .models import Customer, LoyaltyCard, Promotion, Reservation, Voucher, WaitlistEntry
 from .services import OutOfStock, ReservationLimitReached, reserve
@@ -40,13 +42,15 @@ def _abs_promo_url(request, pk) -> str:
 def _detail_ctx(request, promo, form) -> dict:
     img = promo.primary_image
     og_image = request.build_absolute_uri(img["url"]) if img and img.get("url") else ""
+    share_url = _abs_promo_url(request, promo.pk)
     return {
         "promotion": promo,
         "form": form,
         "waitlist_form": WaitlistForm(),
-        "share_url": _abs_promo_url(request, promo.pk),
+        "share_url": share_url,
         "qr_url": reverse("storefront-promotion-qr", args=[promo.pk]),
         "og_image": og_image,
+        "ld_offer": offer_ld(promo, url=share_url, image_url=og_image),
     }
 
 
@@ -230,3 +234,32 @@ def loyalty_card_qr(request, token):
     buf = io.BytesIO()
     segno.make(stamp_url, error="m").save(buf, kind="svg", scale=6, border=2)
     return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+
+
+def sitemap_xml(request):
+    """Sitemap витрины (Track B5): главная + активные акции, абсолютные URL хоста.
+
+    Без django.contrib.sitemaps (мульти-тенант: домен берём из request, не из
+    Sites). Простой и тестируемый XML.
+    """
+    from xml.sax.saxutils import escape
+
+    urls = [request.build_absolute_uri(reverse("storefront-home"))]
+    urls += [
+        request.build_absolute_uri(reverse("storefront-promotion", args=[pk]))
+        for pk in Promotion.objects.filter(status="active").values_list("pk", flat=True)
+    ]
+    body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        f"{body}</urlset>"
+    )
+    return HttpResponse(xml, content_type="application/xml")
+
+
+def robots_txt(request):
+    """robots.txt витрины: всё открыто + ссылка на sitemap (Track B5)."""
+    sitemap = request.build_absolute_uri(reverse("storefront-sitemap"))
+    body = f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n"
+    return HttpResponse(body, content_type="text/plain")

@@ -12,6 +12,8 @@
   <meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
 {% endblock %}
 
+{% block structured_data %}{% if ld_offer %}<script type="application/ld+json">{{ ld_offer|safe }}</script>{% endif %}{% endblock %}
+
 {% block content %}
 <a href="{% url 'storefront-home' %}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline mb-4">← {% trans "Back" %}</a>
 

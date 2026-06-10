@@ -1,4 +1,4 @@
-{% load i18n %}<!doctype html>
+{% load i18n seo %}<!doctype html>
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -6,6 +6,8 @@
   <title>{% block title %}{{ request.tenant.name|default:"Shop" }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{{ request.tenant.name|default:'' }}{% endblock %}">
   {% block og %}{% endblock %}
+  {% localbusiness_jsonld %}
+  {% block structured_data %}{% endblock %}
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
