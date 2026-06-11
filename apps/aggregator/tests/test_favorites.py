@@ -4,12 +4,17 @@ import uuid
 
 import pytest
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import RequestFactory, override_settings
+from django.test import RequestFactory
 
 from apps.aggregator import account_views, auth, portal_views
 from apps.aggregator.models import AggregatorListing, AggregatorPortal, FavoriteListing, PortalUser
 
-pytestmark = [pytest.mark.django_db, override_settings(ROOT_URLCONF="config.urls_portal")]
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _portal_urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
 
 
 def _portal():
