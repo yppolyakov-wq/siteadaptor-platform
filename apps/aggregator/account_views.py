@@ -81,6 +81,8 @@ def account(request):
             "-favorited_by__created_at"
         )
     )
+    from .account_services import reservations_for_email
+
     return render(
         request,
         "aggregator/portal_account.html",
@@ -89,6 +91,7 @@ def account(request):
             "user": user,
             "favorites": favorites,
             "fav_ids": {listing.pk for listing in favorites},
+            "reservations": reservations_for_email(user.email),
         },
     )
 

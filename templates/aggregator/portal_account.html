@@ -20,6 +20,31 @@
   {% else %}
     <p class="text-sm text-gray-400">{% trans "Nothing saved yet — tap the heart on any offer." %}</p>
   {% endif %}
-  {# P2.3c: здесь появятся брони по всем бизнесам. #}
+</div>
+
+<div class="max-w-5xl mx-auto mt-10">
+  <h2 class="text-xl font-bold mb-4">{% trans "My reservations" %}</h2>
+  {% if reservations %}
+    <div class="space-y-3">
+      {% for r in reservations %}
+        <a href="{{ r.url }}" class="block bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-xs text-gray-400">{{ r.business }} · {{ r.created_at|date:"d.m.Y" }}</p>
+              <p class="font-semibold truncate">{{ r.title }}</p>
+              <p class="text-xs text-gray-500 mt-0.5">{{ r.code }} · {{ r.quantity }}×</p>
+            </div>
+            <span class="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full
+              {% if r.status == 'fulfilled' %}bg-gray-100 text-gray-600
+              {% elif r.status == 'confirmed' %}bg-green-100 text-green-800
+              {% elif r.status == 'pending' %}bg-amber-100 text-amber-800
+              {% else %}bg-red-50 text-red-600{% endif %}">{{ r.status }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-sm text-gray-400">{% trans "No reservations yet. Book any offer — no account needed, it will show up here by email." %}</p>
+  {% endif %}
 </div>
 {% endblock %}
