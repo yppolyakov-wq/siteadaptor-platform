@@ -18,6 +18,7 @@ from apps.core.views import (
     domain_verify,
     domains_view,
     settings_view,
+    site_view,
 )
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
@@ -29,6 +30,8 @@ urlpatterns = [
     # --- Кабинет владельца (под логином) ---
     path("dashboard/", dashboard, name="dashboard"),
     path("dashboard/settings/", settings_view, name="settings"),
+    # Конструктор витрины v1 (Track C2).
+    path("dashboard/site/", site_view, name="site"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),
     path("dashboard/domains/add/", domain_add, name="domain-add"),

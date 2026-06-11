@@ -66,17 +66,33 @@ def _capture_channel(request) -> str:
 
 def storefront_home(request):
     _capture_channel(request)
-    promos = Promotion.objects.filter(status="active").order_by("-created_at")
-    # Превью каталога (Track C1): featured вперёд, дальше новинки.
-    from apps.catalog.models import Product
+    # Конструктор витрины v1 (Track C2): главная собирается из секций конфига.
+    from apps.tenants import siteconfig
 
-    products_preview = Product.objects.filter(is_active=True).order_by(
-        "-is_featured", "-created_at"
-    )[:8]
+    site = siteconfig.normalize(request.tenant.site_config)
+    sections = [s["key"] for s in site["sections"] if s["enabled"]]
+
+    promos = (
+        Promotion.objects.filter(status="active").order_by("-created_at")
+        if "promotions" in sections
+        else Promotion.objects.none()
+    )
+    products_preview = []
+    if "products" in sections:
+        from apps.catalog.models import Product
+
+        products_preview = Product.objects.filter(is_active=True).order_by(
+            "-is_featured", "-created_at"
+        )[:8]
     return render(
         request,
         "storefront/home.html",
-        {"promotions": promos, "products_preview": products_preview},
+        {
+            "sections": sections,
+            "site": site,
+            "promotions": promos,
+            "products_preview": products_preview,
+        },
     )
 
 

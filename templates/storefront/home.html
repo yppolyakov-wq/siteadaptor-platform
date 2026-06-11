@@ -2,104 +2,13 @@
 {% load i18n %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6 gap-3">
-  <h1 class="text-2xl md:text-3xl font-bold">{% trans "Current offers" %}</h1>
-  {# Переключатель плотности плитки — только на мобиле #}
-  <div class="flex sm:hidden items-center gap-1 shrink-0" role="group" aria-label="{% trans 'Layout' %}">
-    <button type="button" data-cols="1" aria-label="{% trans '1 per row' %}"
-            class="grid-btn w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="5" width="16" height="6" rx="1"/><rect x="4" y="13" width="16" height="6" rx="1"/></svg>
-    </button>
-    <button type="button" data-cols="2" aria-label="{% trans '2 per row' %}"
-            class="grid-btn w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
-    </button>
-  </div>
-</div>
-<span class="hidden grid-cols-1 grid-cols-2" aria-hidden="true"></span>
-
-{% if promotions %}
-<div id="promo-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-  {% for p in promotions %}
-    <a href="{% url 'storefront-promotion' p.pk %}"
-       class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
-      <div class="relative aspect-square bg-gray-100">
-        {% with img=p.primary_image %}
-          {% if img %}
-            <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy"
-                 class="w-full h-full object-cover group-hover:scale-[1.02] transition">
-          {% else %}
-            <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
-            </div>
-          {% endif %}
-        {% endwith %}
-        {% if p.discount_percent_display %}
-          <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ p.discount_percent_display }} %</span>
-        {% elif p.has_discount %}
-          <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ p.discount_amount }} €</span>
-        {% endif %}
-      </div>
-      <div class="p-3 md:p-4">
-        {% if p.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>{% endif %}
-        <h2 class="font-semibold leading-tight line-clamp-2">{{ p.title_text }}</h2>
-        <div class="mt-2">{% include "storefront/_price.html" with promo=p %}</div>
-        {% if p.available_quantity is not None %}
-          <p class="mt-1 text-xs {% if p.available_quantity <= 3 %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">
-            {% blocktrans count n=p.available_quantity %}Only {{ n }} left{% plural %}Only {{ n }} left{% endblocktrans %}
-          </p>
-        {% endif %}
-        {% if p.show_countdown and p.ends_at %}
-          <p class="mt-1 text-xs text-gray-500">
-            {% trans "Ends in" %}
-            <span class="font-mono font-medium" data-countdown="{{ p.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
-          </p>
-        {% endif %}
-      </div>
-    </a>
-  {% endfor %}
-</div>
-{% else %}
-  <p class="text-gray-400">{% trans "No current offers." %}</p>
-{% endif %}
-
-{# Track C1: превью каталога — витрина больше, чем лента акций. #}
-{% if products_preview %}
-<div class="mt-12">
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-xl md:text-2xl font-bold">{% trans "Our products" %}</h2>
-    <a href="{% url 'storefront-products' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>
-  </div>
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-    {% for p in products_preview %}
-      {% include "storefront/_product_card.html" %}
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
-<script>
-(function () {
-  var grid = document.getElementById("promo-grid");
-  if (!grid) return;
-  var btns = document.querySelectorAll(".grid-btn");
-  function apply(n) {
-    grid.classList.remove("grid-cols-1", "grid-cols-2");
-    grid.classList.add(n === "1" ? "grid-cols-1" : "grid-cols-2");
-    btns.forEach(function (b) {
-      var on = b.getAttribute("data-cols") === n;
-      b.classList.toggle("bg-gray-900", on);
-      b.classList.toggle("text-white", on);
-      b.classList.toggle("text-gray-600", !on);
-    });
-    try { localStorage.setItem("promo_grid_cols", n); } catch (e) {}
-  }
-  var saved = "2";
-  try { saved = localStorage.getItem("promo_grid_cols") || "2"; } catch (e) {}
-  apply(saved);
-  btns.forEach(function (b) {
-    b.addEventListener("click", function () { apply(b.getAttribute("data-cols")); });
-  });
-})();
-</script>
+{# Track C2: главная собирается из секций site_config (порядок/видимость — кабинет «Site»). #}
+{% for s in sections %}
+  {% if s == "hero" %}{% include "storefront/sections/_hero.html" %}
+  {% elif s == "promotions" %}{% include "storefront/sections/_promotions.html" %}
+  {% elif s == "products" %}{% include "storefront/sections/_products.html" %}
+  {% elif s == "about" %}{% include "storefront/sections/_about.html" %}
+  {% elif s == "contact" %}{% include "storefront/sections/_contact.html" %}
+  {% endif %}
+{% endfor %}
 {% endblock %}

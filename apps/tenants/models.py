@@ -66,6 +66,10 @@ class Tenant(TenantMixin):
     # гасит бронь/ваучер сразу (без кнопки подтверждения).
     auto_redeem_on_scan = models.BooleanField(default=False)
 
+    # Конструктор витрины v1 (Track C2): порядок/видимость секций главной +
+    # тексты hero/about. Схема и нормализация — apps.tenants.siteconfig.
+    site_config = models.JSONField(default=dict, blank=True)
+
     # Правовые данные (DACH/EU). Свободный текст имеет приоритет; если пусто —
     # генерируем из структурированных полей (см. *_text()).
     vat_id = models.CharField(max_length=30, blank=True)  # USt-IdNr.

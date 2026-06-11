@@ -1,0 +1,70 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Site" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{% trans "Your site" %}</h1>
+    <a href="/" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline">{% trans "View site" %} →</a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Homepage sections" %}</legend>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Choose which blocks appear on your homepage and in what order (smaller number = higher)." %}</p>
+      <div class="space-y-3">
+        {% for s in sections %}
+          <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3">
+            <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="9"
+                   class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
+            <label class="flex items-center gap-2 text-sm font-medium flex-1">
+              <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
+                     class="rounded border-gray-300">
+              {{ s.label }}
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <legend class="font-semibold mb-2">{% trans "Welcome banner" %}</legend>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_title">{% trans "Headline" %}</label>
+        <input id="id_hero_title" name="hero_title" type="text" value="{{ config.hero_title }}"
+               placeholder="{{ request.tenant.name }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_text">{% trans "Text" %}</label>
+        <textarea id="id_hero_text" name="hero_text" rows="2"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ config.hero_text }}</textarea>
+      </div>
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <legend class="font-semibold mb-2">{% trans "About us" %}</legend>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_about_title">{% trans "Headline" %}</label>
+        <input id="id_about_title" name="about_title" type="text" value="{{ config.about_title }}"
+               class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_about_text">{% trans "Text" %}</label>
+        <textarea id="id_about_text" name="about_text" rows="4"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ config.about_text }}</textarea>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</div>
+{% endblock %}

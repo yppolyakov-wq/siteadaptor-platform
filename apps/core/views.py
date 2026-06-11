@@ -30,6 +30,46 @@ def settings_view(request):
 
 
 @login_required
+def site_view(request):
+    """Конструктор витрины v1 (Track C2): секции главной + тексты hero/about."""
+    from apps.tenants import siteconfig
+
+    if request.method == "POST":
+        rows = []
+        for key, _label, _default in siteconfig.SECTIONS:
+            try:
+                order = int(request.POST.get(f"order_{key}", "0"))
+            except (TypeError, ValueError):
+                order = 0
+            rows.append((order, key, request.POST.get(f"enabled_{key}") == "on"))
+        rows.sort(key=lambda row: row[0])
+        config = {"sections": [{"key": key, "enabled": on} for _o, key, on in rows]}
+        for field in siteconfig.TEXT_FIELDS:
+            config[field] = request.POST.get(field, "")
+        request.tenant.site_config = siteconfig.normalize(config)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Gespeichert.")
+        return redirect("site")
+
+    config = siteconfig.normalize(request.tenant.site_config)
+    labels = {key: label for key, label, _default in siteconfig.SECTIONS}
+    sections = [
+        {
+            "key": s["key"],
+            "label": labels[s["key"]],
+            "enabled": s["enabled"],
+            "order": index,
+        }
+        for index, s in enumerate(config["sections"], start=1)
+    ]
+    return render(
+        request,
+        "tenant/site.html",
+        {"nav": "site", "sections": sections, "config": config},
+    )
+
+
+@login_required
 def domains_view(request):
     """Список custom-доменов бизнеса + форма добавления и DNS-инструкция."""
     return render(
