@@ -10,7 +10,7 @@ from django.conf import settings
 from django.urls import path
 from django.views.static import serve
 
-from apps.aggregator import portal_views
+from apps.aggregator import account_views, portal_views
 from apps.core import health
 
 urlpatterns = [
@@ -22,6 +22,11 @@ urlpatterns = [
     # SEO портала (P2.1c): sitemap/robots по хосту портала.
     path("sitemap.xml", portal_views.portal_sitemap_xml, name="portal-sitemap"),
     path("robots.txt", portal_views.portal_robots_txt, name="portal-robots"),
+    # Клиентский аккаунт (P2.3a): magic-link вход. Тоже до <facet>.
+    path("konto/", account_views.account, name="portal-account"),
+    path("konto/login/", account_views.login_view, name="portal-login"),
+    path("konto/login/verify/", account_views.login_verify, name="portal-login-verify"),
+    path("konto/logout/", account_views.logout_view, name="portal-logout"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

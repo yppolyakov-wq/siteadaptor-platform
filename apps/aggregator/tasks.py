@@ -86,6 +86,30 @@ def sync_aggregator_listing(*, tenant_schema, promotion_id):
     return {"result": sync_listing(tenant_schema, promotion_id)}
 
 
+@idempotent_task()
+def send_magic_link_email(*, email, url):
+    """Письмо со ссылкой входа на портал (P2.3a). dedupe_key — хэш токена.
+
+    Шлём напрямую (send_mail), не через apps.notifications: та модель — TENANT,
+    а клиент портала живёт на public-схеме. Дедуп даёт idempotent_task.
+    """
+    from django.conf import settings
+    from django.core.mail import send_mail
+
+    send_mail(
+        subject="Ihr Anmelde-Link",
+        message=(
+            "Guten Tag,\n\n"
+            f"mit diesem Link melden Sie sich an: {url}\n\n"
+            "Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\n"
+            "Falls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+    )
+    return {"sent": email}
+
+
 def resync_on_promotion_save(sender, instance, **kwargs):
     """post_save Promotion: правка активной акции → обновить её листинг.
 

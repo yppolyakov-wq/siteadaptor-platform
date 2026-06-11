@@ -1,0 +1,23 @@
+{% extends "aggregator/portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sign in" %} — {{ portal.title_text }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-2xl shadow-sm p-6 md:p-8">
+  <h1 class="text-2xl font-bold mb-2">{% trans "Sign in" %}</h1>
+  <p class="text-sm text-gray-500 mb-6">{% trans "No password needed. We’ll email you a one-time sign-in link." %}</p>
+
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
+      <input id="id_email" name="email" type="email" required autocomplete="email"
+             class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    {# honeypot — скрытое поле против ботов, как на витрине #}
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <button type="submit" class="w-full text-white rounded-lg px-4 py-2.5 text-sm font-medium"
+            style="background-color: var(--portal-color)">{% trans "Email me a sign-in link" %}</button>
+  </form>
+</div>
+{% endblock %}

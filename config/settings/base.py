@@ -148,6 +148,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
                 "apps.billing.context.subscription",
+                # Клиент портала (P2.3a): portal_user в шаблонах портальных хостов.
+                "apps.aggregator.context.portal_user",
             ],
         },
     },

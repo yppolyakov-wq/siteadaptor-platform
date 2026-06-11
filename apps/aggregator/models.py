@@ -121,3 +121,27 @@ class AggregatorPortal(I18nMixin, models.Model):
     @property
     def intro_text(self) -> str:
         return self.get_i18n("intro")
+
+
+class PortalUser(models.Model):
+    """Клиентская идентичность на порталах (P2.3, SHARED/public).
+
+    Конечный потребитель агрегатора — НЕ django.contrib.auth.User (те — владельцы
+    бизнесов в tenant-схемах). Входит по magic-link (apps.aggregator.auth):
+    пароля нет, переход по ссылке из письма = подтверждение email. Живёт в
+    лёгкой сессии (request.session["portal_user_id"]). Cross-tenant: один
+    аккаунт видит свои данные по всем бизнесам (брони подтянутся в P2.3c по
+    email-связке с per-tenant Customer).
+    """
+
+    email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=True)
+    last_login_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.email

@@ -25,7 +25,14 @@
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
         <span class="text-lg font-bold tracking-tight truncate" style="color: var(--portal-color)">{{ portal.title_text }}</span>
       </a>
-      {% if portal.tagline_text %}<span class="hidden sm:block text-sm text-gray-500 truncate ml-4">{{ portal.tagline_text }}</span>{% endif %}
+      <div class="flex items-center gap-4 ml-4 shrink-0">
+        {% if portal.tagline_text %}<span class="hidden sm:block text-sm text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
+        {% if portal_user %}
+          <a href="{% url 'portal-account' %}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)">{% trans "My account" %}</a>
+        {% else %}
+          <a href="{% url 'portal-login' %}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)">{% trans "Sign in" %}</a>
+        {% endif %}
+      </div>
     </div>
   </header>
 
