@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from apps.core import ratelimit
 
 from . import auth
+from .models import AggregatorListing, FavoriteListing
 from .tasks import send_magic_link_email
 
 IP_RL_LIMIT = 5
@@ -75,7 +76,44 @@ def account(request):
     user = auth.current_portal_user(request)
     if user is None:
         return redirect("portal-login")
-    return render(request, "aggregator/portal_account.html", {"portal": portal, "user": user})
+    favorites = list(
+        AggregatorListing.objects.filter(favorited_by__user=user, is_active=True).order_by(
+            "-favorited_by__created_at"
+        )
+    )
+    return render(
+        request,
+        "aggregator/portal_account.html",
+        {
+            "portal": portal,
+            "user": user,
+            "favorites": favorites,
+            "fav_ids": {listing.pk for listing in favorites},
+        },
+    )
+
+
+@require_POST
+def favorite_toggle(request):
+    """Сохранить/убрать листинг из избранного; редирект назад (next)."""
+    _portal_or_404(request)
+    user = auth.current_portal_user(request)
+    if user is None:
+        return redirect("portal-login")
+    try:
+        listing_pk = int(request.POST.get("listing", ""))
+    except (TypeError, ValueError):
+        listing_pk = None
+    listing = AggregatorListing.objects.filter(pk=listing_pk, is_active=True).first()
+    if listing is not None:
+        favorite, created = FavoriteListing.objects.get_or_create(user=user, listing=listing)
+        if not created:
+            favorite.delete()
+    next_url = request.POST.get("next", "")
+    # только локальный путь — внешние редиректы через next не пускаем
+    if not next_url.startswith("/") or next_url.startswith("//"):
+        next_url = reverse("portal-home")
+    return redirect(next_url)
 
 
 @require_POST

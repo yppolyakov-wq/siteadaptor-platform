@@ -84,6 +84,17 @@ def portal_home(request, facet=None):
         (f"{request.scheme}://{p.host}/", p.title_text)
         for p in AggregatorPortal.objects.filter(is_active=True).exclude(pk=portal.pk)[:12]
     ]
+    # Сердечки избранного (P2.3b) — только вошедшим; анонимы получают эту
+    # страницу из кэша (cache_public_page пропускает непустые сессии мимо).
+    from . import auth
+    from .models import FavoriteListing
+
+    user = auth.current_portal_user(request)
+    fav_ids = (
+        set(FavoriteListing.objects.filter(user=user).values_list("listing_id", flat=True))
+        if user
+        else set()
+    )
     return render(
         request,
         "aggregator/portal_home.html",
@@ -95,6 +106,7 @@ def portal_home(request, facet=None):
             "facet_label": facet_label,
             "canonical": canonical,
             "other_portals": other_portals,
+            "fav_ids": fav_ids,
             "ld_collection": collectionpage_ld(
                 name=page_name,
                 url=canonical,

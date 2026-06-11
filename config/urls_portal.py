@@ -27,6 +27,8 @@ urlpatterns = [
     path("konto/login/", account_views.login_view, name="portal-login"),
     path("konto/login/verify/", account_views.login_verify, name="portal-login-verify"),
     path("konto/logout/", account_views.logout_view, name="portal-logout"),
+    # Избранное (P2.3b).
+    path("konto/favoriten/", account_views.favorite_toggle, name="portal-favorite-toggle"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

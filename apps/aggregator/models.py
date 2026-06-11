@@ -145,3 +145,26 @@ class PortalUser(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class FavoriteListing(models.Model):
+    """Избранное клиента портала (P2.3b, SHARED/public).
+
+    CASCADE по листингу сознательно: листинг исчезает из агрегатора вместе с
+    завершением акции — «сохранённое предложение» по природе временное.
+    """
+
+    user = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="favorites")
+    listing = models.ForeignKey(
+        AggregatorListing, on_delete=models.CASCADE, related_name="favorited_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "listing"], name="favorite_uniq"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} → {self.listing_id}"

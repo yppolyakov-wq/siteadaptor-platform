@@ -22,7 +22,10 @@ def cache_public_page(view):
     @wraps(view)
     def wrapped(request, *args, **kwargs):
         ttl = getattr(settings, "PUBLIC_PAGE_CACHE_TTL", 0)
-        if not ttl or request.method != "GET" or request.GET:
+        # Непустая сессия = персонализированная страница (вход клиента портала,
+        # P2.3) — мимо кэша; анонимы и краулеры сессии не имеют.
+        has_session = hasattr(request, "session") and not request.session.is_empty()
+        if not ttl or request.method != "GET" or request.GET or has_session:
             return view(request, *args, **kwargs)
 
         lang = getattr(request, "LANGUAGE_CODE", "de")

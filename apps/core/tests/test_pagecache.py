@@ -89,3 +89,18 @@ def test_non_200_not_cached():
     view(req)
     view(req)
     assert len(calls) == 2
+
+
+@override_settings(PUBLIC_PAGE_CACHE_TTL=60)
+def test_session_bypasses_cache():
+    """Вошедший клиент портала (P2.3) видит персональную страницу, не кэш."""
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    view, calls = _view_with_counter()
+    host = f"{uuid.uuid4().hex}.test"
+    for _ in range(2):
+        req = RequestFactory().get("/x/", HTTP_HOST=host)
+        SessionMiddleware(lambda r: None).process_request(req)
+        req.session["portal_user_id"] = 1
+        view(req)
+    assert len(calls) == 2  # оба раза рендер, кэш не использован

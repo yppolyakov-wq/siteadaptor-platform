@@ -7,12 +7,19 @@
   <h1 class="text-2xl font-bold mb-1">{% trans "My account" %}</h1>
   <p class="text-sm text-gray-500 mb-6">{{ user.email }}</p>
 
-  {# P2.3b/c: здесь появятся избранное и брони по всем бизнесам. #}
-  <p class="text-sm text-gray-400 mb-6">{% trans "Saved offers and your reservations will appear here soon." %}</p>
-
   <form method="post" action="{% url 'portal-logout' %}">
     {% csrf_token %}
     <button type="submit" class="text-sm text-red-600 hover:underline">{% trans "Sign out" %}</button>
   </form>
+</div>
+
+<div class="max-w-5xl mx-auto mt-10">
+  <h2 class="text-xl font-bold mb-4">{% trans "Saved offers" %}</h2>
+  {% if favorites %}
+    {% include "aggregator/_cards.html" with items=favorites %}
+  {% else %}
+    <p class="text-sm text-gray-400">{% trans "Nothing saved yet — tap the heart on any offer." %}</p>
+  {% endif %}
+  {# P2.3c: здесь появятся брони по всем бизнесам. #}
 </div>
 {% endblock %}
