@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 
+from apps.core.pagecache import cache_public_page
 from apps.core.pagination import paginate
 from apps.core.seo import itemlist_ld
 from apps.tenants.models import Tenant
@@ -27,6 +28,7 @@ def listings_for(*, city=None, business_type=None):
     return qs
 
 
+@cache_public_page
 def discover_index(request):
     cities = (
         AggregatorListing.objects.filter(is_active=True)
@@ -38,6 +40,7 @@ def discover_index(request):
     return render(request, "aggregator/index.html", {"cities": cities})
 
 
+@cache_public_page
 def city_listing(request, city, business_type=None):
     page = paginate(
         listings_for(city=city, business_type=business_type),

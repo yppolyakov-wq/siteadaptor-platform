@@ -16,6 +16,9 @@ from .base import BASE_DIR, SHARED_APPS, STORAGES, TENANT_APPS
 DEBUG = False
 ALLOWED_HOSTS = ["*"]
 TENANT_DOMAIN_BASE = "siteadaptor.de"
+# Кэш публичной выдачи выключен: тесты вьюх иначе перекрёстно загрязняются
+# отрендеренным HTML (общий Redis). Сам кэш тестируется с override_settings.
+PUBLIC_PAGE_CACHE_TTL = 0
 
 # Все tenant-приложения видны и как shared → их таблицы создаются в public.
 SHARED_APPS = list(SHARED_APPS) + [a for a in TENANT_APPS if a not in SHARED_APPS]

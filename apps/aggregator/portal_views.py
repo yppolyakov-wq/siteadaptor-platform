@@ -12,6 +12,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 
+from apps.core.pagecache import cache_public_page
 from apps.core.pagination import paginate
 from apps.core.seo import collectionpage_ld
 from apps.tenants.models import Tenant
@@ -48,6 +49,7 @@ def _facet_choices(portal) -> tuple[str | None, list[tuple[str, str]]]:
     return None, []
 
 
+@cache_public_page
 def portal_home(request, facet=None):
     portal = getattr(request, "portal", None)
     if portal is None:  # urlconf портала без резолва хоста (прямой вызов)

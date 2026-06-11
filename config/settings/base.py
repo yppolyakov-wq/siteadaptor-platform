@@ -188,6 +188,9 @@ TENANT_DOMAIN_BASE = env("TENANT_DOMAIN_BASE", default="siteadaptor.de")
 # A-запись своего домена, мы сверяем и активируем (apps.tenants.domains). Пусто →
 # страница доменов показывает «недоступно» вместо проверки.
 CUSTOM_DOMAIN_TARGET_IP = env("CUSTOM_DOMAIN_TARGET_IP", default="")
+# Кэш публичной выдачи агрегатора/порталов, сек (apps.core.pagecache);
+# 0 — выключен (так в тестах, см. settings/test.py).
+PUBLIC_PAGE_CACHE_TTL = env.int("PUBLIC_PAGE_CACHE_TTL", default=120)
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 # mandatory требует рабочей отправки почты (Resend). Пока RESEND_API_KEY не
