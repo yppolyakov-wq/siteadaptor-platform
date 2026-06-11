@@ -51,6 +51,9 @@ urlpatterns = [
     # --- Публичная витрина (без логина), на корне субдомена ---
     path("", public_views.storefront_home, name="storefront-home"),
     path("lang/", public_views.set_language, name="storefront-set-language"),
+    # Каталог товаров на витрине (Track C1).
+    path("sortiment/", public_views.product_list, name="storefront-products"),
+    path("sortiment/<int:pk>/", public_views.product_detail, name="storefront-product"),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),

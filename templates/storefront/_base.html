@@ -14,6 +14,10 @@
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
       <a href="{% url 'storefront-home' %}" class="text-lg font-bold tracking-tight">{{ request.tenant.name|default:"Shop" }}</a>
+      <nav class="text-sm flex items-center gap-3">
+        <a href="{% url 'storefront-home' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Offers" %}</a>
+        <a href="{% url 'storefront-products' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Products" %}</a>
+      </nav>
       <nav aria-label="{% trans 'Language' %}" class="text-sm flex items-center gap-1">
         <a href="{% url 'storefront-set-language' %}?lang=de&next={{ request.get_full_path|urlencode }}"
            class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'de' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="de">DE</a>

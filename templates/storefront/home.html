@@ -63,6 +63,21 @@
   <p class="text-gray-400">{% trans "No current offers." %}</p>
 {% endif %}
 
+{# Track C1: превью каталога — витрина больше, чем лента акций. #}
+{% if products_preview %}
+<div class="mt-12">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl md:text-2xl font-bold">{% trans "Our products" %}</h2>
+    <a href="{% url 'storefront-products' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+  </div>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    {% for p in products_preview %}
+      {% include "storefront/_product_card.html" %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 <script>
 (function () {
   var grid = document.getElementById("promo-grid");

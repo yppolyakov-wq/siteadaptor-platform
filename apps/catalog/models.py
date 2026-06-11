@@ -81,6 +81,14 @@ class Product(SoftDeleteMixin, I18nMixin):
         return self.get_i18n("name") or self.sku or str(self.pk)
 
     @property
+    def name_text(self) -> str:
+        return self.get_i18n("name")
+
+    @property
+    def description_text(self) -> str:
+        return self.get_i18n("description")
+
+    @property
     def primary_image(self) -> dict | None:
         imgs = self.images or []
         for img in imgs:

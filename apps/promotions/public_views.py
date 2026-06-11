@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from apps.core import ratelimit
+from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
 
 from .forms import PublicReservationForm, WaitlistForm
@@ -66,7 +67,60 @@ def _capture_channel(request) -> str:
 def storefront_home(request):
     _capture_channel(request)
     promos = Promotion.objects.filter(status="active").order_by("-created_at")
-    return render(request, "storefront/home.html", {"promotions": promos})
+    # Превью каталога (Track C1): featured вперёд, дальше новинки.
+    from apps.catalog.models import Product
+
+    products_preview = Product.objects.filter(is_active=True).order_by(
+        "-is_featured", "-created_at"
+    )[:8]
+    return render(
+        request,
+        "storefront/home.html",
+        {"promotions": promos, "products_preview": products_preview},
+    )
+
+
+def product_list(request):
+    """Публичный каталог витрины (Track C1): активные товары + фильтр категории."""
+    from apps.catalog.models import Category, Product
+
+    products = Product.objects.filter(is_active=True).order_by("-is_featured", "-created_at")
+    category = None
+    slug = request.GET.get("kategorie", "")
+    if slug:
+        category = Category.objects.filter(slug=slug, is_active=True).first()
+        if category is None:
+            return redirect("storefront-products")
+        products = products.filter(category=category)
+    categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
+    page = paginate(products, order_field="created_at", limit=24, cursor=request.GET.get("cursor"))
+    return render(
+        request,
+        "storefront/products.html",
+        {
+            "page": page,
+            "categories": categories,
+            "current_category": category,
+        },
+    )
+
+
+def product_detail(request, pk):
+    from apps.catalog.models import Product
+
+    product = get_object_or_404(Product, pk=pk, is_active=True)
+    related = (
+        Product.objects.filter(is_active=True, category=product.category)
+        .exclude(pk=product.pk)
+        .order_by("-is_featured", "-created_at")[:4]
+        if product.category_id
+        else []
+    )
+    return render(
+        request,
+        "storefront/product_detail.html",
+        {"product": product, "related": related},
+    )
 
 
 def promotion_detail(request, pk):
@@ -259,6 +313,16 @@ def sitemap_xml(request):
         request.build_absolute_uri(reverse("storefront-promotion", args=[pk]))
         for pk in Promotion.objects.filter(status="active").values_list("pk", flat=True)
     ]
+    # Каталог витрины (Track C1).
+    from apps.catalog.models import Product
+
+    product_pks = list(Product.objects.filter(is_active=True).values_list("pk", flat=True))
+    if product_pks:
+        urls.append(request.build_absolute_uri(reverse("storefront-products")))
+        urls += [
+            request.build_absolute_uri(reverse("storefront-product", args=[pk]))
+            for pk in product_pks
+        ]
     body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'
