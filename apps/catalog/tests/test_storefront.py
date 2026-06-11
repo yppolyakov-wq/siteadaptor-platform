@@ -61,7 +61,7 @@ def test_product_detail_renders_price_and_contacts():
     body = public_views.product_detail(_req(f"/sortiment/{product.pk}/"), pk=product.pk)
     body = body.content.decode()
     assert "Roggenbrot" in body
-    assert "4.20" in body
+    assert "4,20" in body  # DE-локаль: запятая
     assert "Frisch gebacken" in body
     assert "Hauptstr. 1" in body  # офлайн-покупка: контакты бизнеса
 
