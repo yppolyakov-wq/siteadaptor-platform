@@ -85,6 +85,9 @@ def test_verify_activates_on_matching_a_record(settings, monkeypatch):
     settings.CUSTOM_DOMAIN_TARGET_IP = TARGET
     monkeypatch.setattr(domains, "_resolve_ipv4", lambda d, **k: [TARGET])
     custom = _pending()
+    # субдомен бизнеса существует с онбординга и остаётся primary — иначе
+    # DomainMixin сам сделает primary первый домен тенанта
+    DomainFactory(domain="shop.siteadaptor.de", tenant=custom.tenant, is_primary=True)
 
     assert domains.verify(custom) is True
     custom.refresh_from_db()
