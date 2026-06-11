@@ -127,13 +127,24 @@ Python 3.12, менеджер uv.
   - H7 DSGVO: команда `dsgvo_customer --schema --email [--delete]` (экспорт
     Art. 15/20 / стирание Art. 17) + `docs/dsgvo-review.md` (орг-пункты — AVV
     и пр. — на владельце).
+- **Фиксы/мелкое (✅ в `main`):** ресинк листинга агрегатора при правке активной
+  акции (aa9db2c — фото/цены подтягиваются без смены статуса; post_save-сигнал).
+- **Self-service custom-доменов (✅ в `main`, b9c321c+d338441, CI run 62
+  зелёный, миграция tenants/0005):** `/dashboard/domains/` — владелец добавляет
+  домен → ставит A-запись на наш IP → «Проверить»; владение = A-запись указывает
+  на `CUSTOM_DOMAIN_TARGET_IP` (нужно прописать в `.env.prod`, см.
+  `.env.prod.example`), тогда создаётся `Domain(домен→тенант)` и Caddy выпускает
+  сертификат. Модель `CustomDomain` (заявка pending/active/failed) отдельно от
+  `Domain` — чужой домен занять нельзя. Логика — `apps/tenants/domains.py`.
+  Canonical-политика (какой хост главный для SEO) — отложено (roadmap §Отложено).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
   waitlist `/p/<uuid>/waitlist/`, подтверждение `/r/<code>/`, QR `…/qr.svg`,
   отписка `/u/<token>/`, право `/impressum /datenschutz /widerruf`.
 - Кабинет (под логином): `/dashboard/`, `/catalog/`, `/promotions/` (+ redeem/,
-  vouchers/, loyalty/, analytics/), `/imports/`, `/dashboard/settings/`.
+  vouchers/, loyalty/, analytics/), `/imports/`, `/dashboard/settings/`,
+  `/dashboard/domains/` (custom-домены).
 - Django admin — только на public (urls_public).
 
 ## 5. Конвенции
