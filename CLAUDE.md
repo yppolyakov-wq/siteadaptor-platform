@@ -174,8 +174,13 @@ Python 3.12, менеджер uv.
     normalize переживает расширение схемы); кабинет `/dashboard/site/`
     (порядок числом + чекбоксы + тексты hero/about), пункт меню «Site»;
     шаблоны секций — `templates/storefront/sections/`.
-  - Дальше: C3 CRM-минимум «Клиенты» (`apps/crm`, Customer.tags promotions/0011)
-    → возврат к P2.3d.
+  - C3 (✅ в `main`, 2d8f4ae, CI run 84 зелёный, миграции crm/0001 +
+    promotions/0011): CRM-минимум «Клиенты» — `apps/crm` (TENANT): кабинет
+    `/crm/` (список с поиском вкл. по тегу, карточка: контакты/теги/заметки
+    CustomerNote, брони readonly), ручное добавление клиента без брони;
+    `Customer.tags`; tags/crm_notes — в DSGVO-экспорте/стирании.
+  - **Track C завершён (C1–C3), весь в `main`.** Нужен деплой (миграции
+    tenants/0006, promotions/0011, crm/0001). Дальше — возврат к плану: P2.3d.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
