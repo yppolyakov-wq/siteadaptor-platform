@@ -61,3 +61,29 @@ def test_promotion_sm_active_enqueues_sync(monkeypatch):
     PromotionSM().apply(promo, "active")
     assert calls and calls[0]["promotion_id"] == str(promo.id)
     assert calls[0]["dedupe_key"] == f"agg:{promo.id}:active"
+
+
+def test_editing_active_promotion_enqueues_resync(monkeypatch, django_capture_on_commit_callbacks):
+    calls = []
+    monkeypatch.setattr(tasks.sync_aggregator_listing, "delay", lambda **kw: calls.append(kw))
+    with django_capture_on_commit_callbacks(execute=True):
+        promo = Promotion.objects.create(status="active", title={"de": "A"})
+    assert calls  # создание сразу активной — тоже ресинк
+    calls.clear()
+
+    with django_capture_on_commit_callbacks(execute=True):
+        promo.title = {"de": "B"}  # правка без смены статуса (фото/цены/тексты)
+        promo.save()
+    assert len(calls) == 1
+    assert calls[0]["promotion_id"] == str(promo.id)
+    assert calls[0]["dedupe_key"].startswith(f"agg:{promo.id}:edit:")
+
+
+def test_editing_draft_promotion_does_not_resync(monkeypatch, django_capture_on_commit_callbacks):
+    calls = []
+    monkeypatch.setattr(tasks.sync_aggregator_listing, "delay", lambda **kw: calls.append(kw))
+    with django_capture_on_commit_callbacks(execute=True):
+        promo = Promotion.objects.create(status="draft", title={"de": "A"})
+        promo.title = {"de": "B"}
+        promo.save()
+    assert calls == []

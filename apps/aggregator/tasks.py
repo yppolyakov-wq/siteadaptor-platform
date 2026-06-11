@@ -86,6 +86,30 @@ def sync_aggregator_listing(*, tenant_schema, promotion_id):
     return {"result": sync_listing(tenant_schema, promotion_id)}
 
 
+def resync_on_promotion_save(sender, instance, **kwargs):
+    """post_save Promotion: правка активной акции → обновить её листинг.
+
+    SM-хук ловит только переходы статуса; фото/цена/текст, изменённые у уже
+    активной акции, иначе оставались бы в листинге устаревшим снимком. dedupe —
+    по updated_at (повтор того же сохранения отсекается, новое — проходит);
+    enqueue после коммита, чтобы задача не прочитала несохранённые данные.
+    Подключение — apps.py::ready (post_save живёт в TENANT-схеме акции).
+    """
+    if instance.status != "active":
+        return
+    from django.db import connection, transaction
+
+    schema = connection.schema_name
+    dedupe = f"agg:{instance.id}:edit:{instance.updated_at.timestamp()}"
+    transaction.on_commit(
+        lambda: sync_aggregator_listing.delay(
+            dedupe_key=dedupe,
+            tenant_schema=schema,
+            promotion_id=str(instance.id),
+        )
+    )
+
+
 def reconcile_schema(tenant_schema) -> int:
     """Привести агрегатор к полному соответствию для одной схемы.
 
