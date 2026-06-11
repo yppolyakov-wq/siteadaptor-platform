@@ -8,6 +8,12 @@
 **Sprint 4 (авто-публикация)** → **Sprint 6 (уведомления)** → Hardening (параллельно).
 Биллинг раньше публикации — раньше появляется выручка.
 
+**Актуальный фокус (решение владельца 2026-06-11):** Track A/B/C и Phase 2 (P2.1–P2.3c)
+— в `main`. По итогам разбора двух концепт-ТЗ «Business OS» выбран курс
+**гибрид/секвенсинг** → следующая очередь **Track D** (кирпичи Business OS):
+**D1 CRM-lite → D2 Click&Collect → D3 Booking-календарь → D4 Light-Finance.**
+Полное ТЗ — `docs/track-d-business-os-spec.md`.
+
 ---
 
 ## 0. Сделано
@@ -330,13 +336,43 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 - [ ] **C2 — конструктор витрины v1 (секции):** `Tenant.site_config` (JSON, миграция
   tenants/0006): порядок/видимость секций главной (hero / акции / товары / о нас /
   контакты+часы) + тексты hero/about; страница «Site» в кабинете (без drag-and-drop).
-- [ ] **C3 — CRM-минимум «Клиенты»:** отдельный блок ведения клиентов в кабинете,
-  не привязанный к товарам/заказам: список с поиском, карточка (контакты, теги,
-  заметки), ручное добавление; история броней — readonly-справка. `Customer.tags`
-  (promotions/0011) + `apps/crm` CustomerNote (TENANT, crm/0001). Лиды/воронки/
-  канбан — следующий шаг (Модуль 9).
+- [~] **C3 — CRM-минимум «Клиенты»:** ⟶ **перенесён и расширен в Track D / D1**
+  (CRM-lite «Kunden»). Подробности и ТЗ — ниже + `docs/track-d-business-os-spec.md`.
 
-После Track C — возврат к плану: P2.3d → P2.4 монетизация.
+C2 (конструктор витрины) остаётся в Track C; по решению 2026-06-11 приоритет —
+Track D (ниже). После Track D — возврат к C2 / P2.3d → P2.4 монетизация.
+
+## Track D — Кирпичи Business OS (гибрид/секвенсинг, решение владельца 2026-06-11)
+
+По итогам разбора двух концепт-ТЗ «Universal Business OS» (CRM+ERP+Marketplace+
+Dropshipping+Booking+Склад+Бухгалтерия+Биржа услуг+AI). Видение на 1–2 порядка больше
+текущего продукта; берём только узкие срезы, которые нужны нише DACH-SMB **и**
+переиспользуют готовые примитивы (`Customer`, движок reserve/redeem, FSM,
+notifications, reportlab). Тяжёлый ERP/маркетплейс/дропшип/биржа — осознанно
+отложены (конфликт с schema-per-tenant — кросс-тенантный граф заказов; см. ТЗ).
+**Полное ТЗ:** `docs/track-d-business-os-spec.md`.
+
+- [ ] **D1 — CRM-lite «Kunden»** (vision Модуль 9, заменяет C3). Кабинет
+  `/dashboard/customers/`: список (поиск/теги/курсор), карточка 360° (контакты,
+  теги, заметки, история броней/лояльности readonly), ручное добавление, CSV-экспорт.
+  `apps/crm` (`CustomerNote`, crm/0001) + `Customer.tags/marketing_opt_in/created_source`
+  (promotions/0011). Данные уже есть → чистая надстройка. Подзадачи D1a→D1b→D1c.
+- [ ] **D2 — Click&Collect / Заказы-lite** (vision Модуль 11). Заказ товара из
+  `/sortiment/` к самовывозу: корзина-сессия → `Order/OrderItem` + `OrderSM`
+  (new→confirmed→ready→picked_up), кабинет `/dashboard/orders/`, письма по статусам.
+  `apps/orders` (orders/0001). v1 без stock и без онлайн-оплаты (оплата в магазине;
+  онлайн — позже, связь с P2.5). Переиспускает reserve/redeem-движок. D2a→D2b→D2c.
+- [ ] **D3 — Booking-календарь** (vision Модуль 16). Запись по времени (столик/услуга/
+  мастер/комната): `apps/booking` (`Resource`/`Schedule`/`Booking` + `BookingSM` +
+  anti-double-book по интервалам), публичная запись `/termin/`, кабинет-календарь,
+  напоминания (beat). booking/0001. Самый новый домен. D3a→D3b→D3c.
+- [ ] **D4 — Light-Finance + DATEV** (vision Модуль 13). Журнал выручки + Rechnung-PDF
+  + экспорт DATEV/CSV (не полный бухучёт). `apps/finance` (`RevenueEntry`/`Invoice`
+  с последовательной нумерацией, finance/0001); хук `Order.picked_up`/
+  `Reservation.fulfilled`→RevenueEntry; PDF на reportlab; §19 Kleinunternehmer-флаг.
+  Кабинет `/dashboard/finance/`. D4a→D4b→D4c.
+- _Кандидат вне очереди:_ **D5 AI-контент** (узкий срез Модуля 18) — авто-описания/
+  SEO/посты поверх `apps/publishing` (актуальные модели Claude). Дёшево, кросс-модульно.
 
 ## P2.3 Клиентские аккаунты (cross-tenant)
 Разбивка согласована (2026-06-11): a) magic-link идентичность → b) избранное →

@@ -168,8 +168,17 @@ Python 3.12, менеджер uv.
     товаров — `/sortiment/` (чипы категорий, курсорная пагинация) + страница
     товара (цена/описание/контакты, related) + секция и навигация на главной +
     товары в sitemap. Без корзины: покупка офлайн.
-  - Дальше: C2 конструктор витрины v1 (`Tenant.site_config`, миграция
-    tenants/0006) → C3 CRM-минимум «Клиенты» (`apps/crm`) → возврат к P2.3d.
+  - C3 (CRM-минимум) → перенесён и расширен в Track D / D1 (см. ниже).
+  - C2 (конструктор витрины) остаётся, но приоритет ниже Track D.
+- **Track D — кирпичи Business OS (решение владельца 2026-06-11, курс
+  «гибрид/секвенсинг»; ТЗ — `docs/track-d-business-os-spec.md`):** по итогам разбора
+  двух концепт-ТЗ «Universal Business OS» (CRM+ERP+Marketplace+Dropshipping+Booking+
+  Склад+Бухгалтерия+Биржа) берём только узкие срезы под нишу DACH-SMB, переиспуская
+  готовые примитивы; тяжёлый ERP/маркетплейс/дропшип отложены (конфликт со
+  schema-per-tenant). **Очередь: D1 CRM-lite «Kunden» (`apps/crm`, расширяет
+  `Customer`) → D2 Click&Collect/заказы-lite (`apps/orders`) → D3 Booking-календарь
+  (`apps/booking`) → D4 Light-Finance+DATEV (`apps/finance`).** Кандидат вне очереди —
+  D5 AI-контент поверх `apps/publishing`. Ещё не начато (только ТЗ).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -214,6 +223,8 @@ Python 3.12, менеджер uv.
 - `DEVELOPMENT-GUIDE.md`, `phase1-*.md`, `monetization-unit-economics.md`,
   `hetzner-claude-code-setup.md`.
 - `billing-stripe-setup.md` — настройка Stripe (ключи, Price 39 €, webhook) в `.env.prod`.
+- **`track-d-business-os-spec.md`** — ТЗ Track D (кирпичи Business OS: D1 CRM-lite,
+  D2 Click&Collect, D3 Booking, D4 Light-Finance) + что осознанно откладываем.
 
 ## 7. Дальше (порядок из roadmap)
 1. **Sprint 5 — Биллинг/Stripe** (в работе): dj-stripe, SubscriptionSM, Checkout +
@@ -234,6 +245,11 @@ Python 3.12, менеджер uv.
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
    AVV (docs/dsgvo-review.md), прогон k6 на сервере (scripts/load/README.md).
+7. **Track D — кирпичи Business OS (ТЕКУЩАЯ ОЧЕРЕДЬ, решение владельца 2026-06-11,
+   курс «гибрид/секвенсинг»):** D1 CRM-lite «Kunden» → D2 Click&Collect/заказы-lite →
+   D3 Booking-календарь → D4 Light-Finance+DATEV (+кандидат D5 AI-контент). Узкие
+   срезы Business OS под нишу DACH-SMB поверх готовых примитивов; тяжёлый ERP/
+   маркетплейс/дропшип отложены. Полное ТЗ — `docs/track-d-business-os-spec.md`.
 
 UX-принцип (владелец, 2026-06-09): для конечного потребителя — максимально
 просто, понятно и без навязчивости (бронь без аккаунта, one-click отписка,
