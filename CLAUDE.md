@@ -176,10 +176,15 @@ Python 3.12, менеджер uv.
   Склад+Бухгалтерия+Биржа) берём только узкие срезы под нишу DACH-SMB, переиспользуя
   готовые примитивы; тяжёлый ERP/маркетплейс/дропшип отложены по продукту/объёму,
   НЕ по архитектуре (ревизия 2026-06-11: граф заказов ляжет на SHARED-паттерн
-  агрегатора — ТЗ §«Архитектурная заметка»). **Очередь: D1 CRM-lite «Kunden» (`apps/crm`, расширяет
-  `Customer`) → D2 Click&Collect/заказы-lite (`apps/orders`) → D3 Booking-календарь
-  (`apps/booking`) → D4 Light-Finance+DATEV (`apps/finance`).** Кандидат вне очереди —
-  D5 AI-контент поверх `apps/publishing`. Ещё не начато (только ТЗ).
+  агрегатора — ТЗ §«Архитектурная заметка»). **Очередь: D0 Modul-Framework+Onboarding
+  → D1 CRM-lite «Kunden» (`apps/crm`, расширяет `Customer`) → D2 Click&Collect/
+  заказы-lite (`apps/orders`) → D3 Booking-календарь (`apps/booking`) → D4 Light-
+  Finance+DATEV (`apps/finance`).** Кандидат вне очереди — D5 AI-контент поверх
+  `apps/publishing`. **D0 (решения 2026-06-11):** модули = включаемые блоки —
+  реестр `apps/core/modules.py` + feature-flags (НЕ рантайм-плагины),
+  `Tenant.disabled_modules` (активно = entitlement∩реестр−disabled), навигация из
+  реестра вместо 14 хардкод-ссылок, `ModuleGatingMiddleware`, дефолты по
+  business_type, пошаговый Onboarding-Wizard. Ещё не начато (только ТЗ).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -224,7 +229,8 @@ Python 3.12, менеджер uv.
 - `DEVELOPMENT-GUIDE.md`, `phase1-*.md`, `monetization-unit-economics.md`,
   `hetzner-claude-code-setup.md`.
 - `billing-stripe-setup.md` — настройка Stripe (ключи, Price 39 €, webhook) в `.env.prod`.
-- **`track-d-business-os-spec.md`** — ТЗ Track D (кирпичи Business OS: D1 CRM-lite,
+- **`track-d-business-os-spec.md`** — ТЗ Track D (D0 Modul-Framework+Onboarding,
+  кирпичи Business OS: D1 CRM-lite,
   D2 Click&Collect, D3 Booking, D4 Light-Finance) + что осознанно откладываем.
 
 ## 7. Дальше (порядок из roadmap)
@@ -247,8 +253,10 @@ Python 3.12, менеджер uv.
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
    AVV (docs/dsgvo-review.md), прогон k6 на сервере (scripts/load/README.md).
 7. **Track D — кирпичи Business OS (ТЕКУЩАЯ ОЧЕРЕДЬ, решение владельца 2026-06-11,
-   курс «гибрид/секвенсинг»):** D1 CRM-lite «Kunden» → D2 Click&Collect/заказы-lite →
-   D3 Booking-календарь → D4 Light-Finance+DATEV (+кандидат D5 AI-контент). Узкие
+   курс «гибрид/секвенсинг»):** D0 Modul-Framework+Onboarding (реестр+feature-flags,
+   включаемые блоки, пошаговый мастер) → D1 CRM-lite «Kunden» → D2 Click&Collect/
+   заказы-lite → D3 Booking-календарь → D4 Light-Finance+DATEV (+кандидат D5
+   AI-контент). Узкие
    срезы Business OS под нишу DACH-SMB поверх готовых примитивов; тяжёлый ERP/
    маркетплейс/дропшип отложены. Полное ТЗ — `docs/track-d-business-os-spec.md`.
 

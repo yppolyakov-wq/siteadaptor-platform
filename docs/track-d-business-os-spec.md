@@ -38,9 +38,88 @@
 1. нужно текущему клиенту (пекарня/мясная/кафе/ритейл DACH), и
 2. переиспользует существующую архитектуру (schema-per-tenant, FSM, notifications).
 
-Порядок (подтверждён владельцем): **D1 CRM-lite → D2 Click&Collect → D3 Booking-
-календарь → D4 Light-Finance.** Финансы после заказов — Order/Reservation служат
-источником выручки.
+Порядок (подтверждён владельцем 2026-06-11): **D0 Modul-Framework+Onboarding →
+D1 CRM-lite → D2 Click&Collect → D3 Booking-календарь → D4 Light-Finance.** D0 режет
+«шов» блочности один раз, остальные модули в него встраиваются. Финансы после
+заказов — Order/Reservation служат источником выручки.
+
+---
+
+## D0 — Modul-Framework + Onboarding (шов под весь Track D)
+
+**Зачем.** Бизнесу нужны не все модули: пекарне — каталог/акции/Click&Collect, кафе —
+бронь столиков, кому-то CRM не нужен вовсе. Сейчас навигация кабинета
+(`templates/tenant/_base_dashboard.html:19-35`) — **14 ссылок хардкодом, всегда
+видимы**; `Tenant.enabled_modules` существует, но пишет его только биллинг
+(entitlement тарифа), а nav его игнорирует. +4 модуля Track D = 18+ пунктов →
+перегруз. D0 делает модули **включаемыми блоками** и даёт **пошаговую настройку**.
+
+**Решения владельца (2026-06-11).**
+- **Реестр + feature-flags, НЕ рантайм-плагины.** Приложения остаются в коде
+  (`TENANT_APPS`); тумблер переключает видимость/доступ, а не загружает код.
+  Маркетплейс сторонних плагинов — Phase 4, если вообще.
+- **Полный D0 до D1.**
+
+### D0a — Реестр модулей + entitlement∩preference + гейтинг
+
+- `apps/core/modules.py` — реестр (только код, без таблиц): на модуль
+  `ModuleSpec(key, label_de, icon, nav_items=[(url_name, label, nav_key)],
+  url_prefix, depends_on=[], recommended_for=[business_type...], core: bool)`.
+  Core-модули (`catalog`, `settings`, `billing`) — выключить нельзя.
+- Два смысла, разведены (ключевое):
+  - `Tenant.enabled_modules` (есть) = **entitlement** (что разрешает тариф) —
+    остаётся за биллингом.
+  - Новое `Tenant.disabled_modules` (`JSONField(default=list)`, миграция
+    `tenants/000x`) = **выбор владельца** (что он выключил). Храним именно
+    «выключенное», а не «включённое» — новый модуль появляется у всех без правки
+    каждого тенанта.
+  - **Активно = (entitlement ∩ реестр) − disabled.** Хелпер
+    `tenant.is_module_active(key)` / `active_modules()` в core.
+- Навигация из реестра ∩ active: context-processor `active_modules` → nav
+  рендерится списком (заменяет 14 хардкод-ссылок), пункты сгруппированы по модулю.
+- `ModuleGatingMiddleware` (зеркало `apps/billing/middleware.py:SubscriptionGating`):
+  запрос к `url_prefix` неактивного модуля → 404 (core — всегда пропускаем).
+- Тесты: nav показывает только active; выключенный модуль → 404; core не
+  выключается; entitlement∩preference.
+
+### D0b — Дефолты по вертикали + страница «Module» в кабинете
+
+- `business_type → стартовый набор` (через `recommended_for` в реестре):
+
+  | business_type | стартовые блоки |
+  |---|---|
+  | bakery / butcher / grocery | Catalog · Promotions · Loyalty · Click&Collect |
+  | cafe / restaurant | Booking · Promotions · Loyalty |
+  | retail / clothing | Catalog · Click&Collect · Promotions |
+  | hotel / tour_operator | Booking · CRM |
+  | other | Catalog · Promotions |
+
+  (CRM, Finance — опциональные «добавь, когда дорастёшь».)
+- При онбординге `disabled_modules` инициализируется как
+  (опциональные − рекомендованные-для-типа).
+- `/dashboard/modules/` — тумблеры опциональных модулей (core задизейблены) с
+  пояснением «что это даёт»; запись в `disabled_modules`. Ручной путь, дополняет
+  мастер. Гейтинг billing применяется (read-only при suspended).
+
+### D0c — Onboarding-Wizard (пошагово, по-человечески)
+
+Сейчас онбординг = одна форма `BusinessSignupForm` (имя/slug/тип/город/email/пароль)
+— создаёт, но не настраивает. Добавляем мастер после регистрации: резюмируемый,
+пропускаемый, ≤5 шагов, одно решение на шаг, простой DE-копирайтинг, мобайл.
+- Шаги: 1) **Was machst du?** (business_type → предвыбор блоков) → 2) **Was willst
+  du anbieten?** (тумблеры блоков, человеческим языком: «Online bestellen &
+  abholen», «Tische/Termine reservieren», «Kundenliste führen», «Rechnungen
+  schreiben» — пишет `disabled_modules`) → 3) **Basics** (логотип/адрес/часы — поля
+  `Tenant` уже есть) → 4) **Erster Inhalt** (стартовая акция/товар в один клик через
+  `apps/promotions/presets.py`) → 5) Готово.
+- Состояние мастера — `Tenant.site_config["onboarding"]` (шаг/пропущенные); на
+  dashboard — плашка «Setup-Fortschritt N/5» (чеклист, как у Shopify).
+- Тесты: прохождение/пропуск/возобновление; дефолты по типу.
+
+**Зависимости D0:** нет (поверх существующих Tenant/nav/onboarding). **Все D1–D4
+после D0 объявляют себя в реестре и уважают гейт** — шов режется один раз.
+
+---
 
 ---
 
