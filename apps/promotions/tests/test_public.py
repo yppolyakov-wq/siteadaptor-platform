@@ -35,9 +35,13 @@ def test_set_language_sets_cookie():
 
 @pytest.mark.django_db
 def test_storefront_home_lists_active():
+    from apps.tenants.tests.factories import TenantFactory
+
     PromotionFactory(status="active", title={"de": "Sommeraktion"})
     PromotionFactory(status="draft", title={"de": "Versteckt"})
-    resp = public_views.storefront_home(_req(RequestFactory().get("/")))
+    req = _req(RequestFactory().get("/"))
+    req.tenant = TenantFactory.build()  # главная читает site_config (Track C2)
+    resp = public_views.storefront_home(req)
     assert resp.status_code == 200
     assert b"Sommeraktion" in resp.content
     assert b"Versteckt" not in resp.content  # черновик не показываем
