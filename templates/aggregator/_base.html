@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% trans "Local offers near you" %} — siteadaptor{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{% trans "Discover current offers from local shops near you." %}{% endblock %}">
+  {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+  {# OpenGraph/Twitter (P2.2a): превью при шаринге городских страниц. #}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="siteadaptor">
+  <meta property="og:title" content="{% block og_title %}{% trans "Local offers near you" %}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{% trans "Discover current offers from local shops near you." %}{% endblock %}">
+  {% if canonical %}<meta property="og:url" content="{{ canonical }}">{% endif %}
+  <meta name="twitter:card" content="summary">
   {% block structured_data %}{% endblock %}
   <script src="https://cdn.tailwindcss.com"></script>
 </head>

@@ -75,6 +75,13 @@ def portal_home(request, facet=None):
     )
     canonical = request.build_absolute_uri(request.path)
     page_name = f"{facet_label} — {portal.title_text}" if facet_label else portal.title_text
+    # Перелинковка сети (P2.2a): ссылки на остальные активные порталы.
+    from .models import AggregatorPortal
+
+    other_portals = [
+        (f"{request.scheme}://{p.host}/", p.title_text)
+        for p in AggregatorPortal.objects.filter(is_active=True).exclude(pk=portal.pk)[:12]
+    ]
     return render(
         request,
         "aggregator/portal_home.html",
@@ -85,6 +92,7 @@ def portal_home(request, facet=None):
             "facet": facet,
             "facet_label": facet_label,
             "canonical": canonical,
+            "other_portals": other_portals,
             "ld_collection": collectionpage_ld(
                 name=page_name,
                 url=canonical,

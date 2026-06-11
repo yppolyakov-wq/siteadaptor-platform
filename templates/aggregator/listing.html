@@ -1,6 +1,7 @@
 {% extends "aggregator/_base.html" %}
 {% load i18n %}
 {% block title %}{{ city }} — siteadaptor{% endblock %}
+{% block og_title %}{% blocktrans %}Offers in {{ city }}{% endblocktrans %}{% endblock %}
 
 {% block structured_data %}{% if ld_itemlist %}<script type="application/ld+json">{{ ld_itemlist|safe }}</script>{% endif %}{% endblock %}
 
@@ -34,5 +35,25 @@
 {% endif %}
 {% else %}
   <p class="text-gray-400">{% trans "No offers in this city yet." %}</p>
+{% endif %}
+
+{# Перелинковка (P2.2a): портал города + соседние города пула. #}
+{% if city_portal_url %}
+<div class="mt-10 bg-indigo-50 border border-indigo-100 rounded-2xl p-5 text-sm">
+  {% blocktrans with title=city_portal_title %}All offers in one place: {{ title }}{% endblocktrans %}
+  — <a href="{{ city_portal_url }}" class="font-medium text-indigo-700 hover:underline">{{ city_portal_url }}</a>
+</div>
+{% endif %}
+
+{% if other_cities %}
+<div class="mt-10 border-t border-gray-100 pt-6">
+  <p class="text-sm font-semibold text-gray-500 mb-3">{% trans "Offers in other cities" %}</p>
+  <div class="flex flex-wrap gap-2">
+    {% for c in other_cities %}
+      <a href="{% url 'aggregator-city' city=c %}"
+         class="px-3 py-1.5 rounded-full text-sm bg-white border border-gray-200 text-gray-600 hover:border-indigo-400 hover:text-indigo-700">{{ c }}</a>
+    {% endfor %}
+  </div>
+</div>
 {% endif %}
 {% endblock %}

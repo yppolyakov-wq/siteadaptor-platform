@@ -52,6 +52,20 @@ def city_listing(request, city, business_type=None):
         .distinct()
         .order_by("business_type")
     )
+    # Перелинковка (P2.2a): соседние города пула + брендированный портал города.
+    from .models import AggregatorPortal
+
+    other_cities = (
+        AggregatorListing.objects.filter(is_active=True)
+        .exclude(city="")
+        .exclude(city__iexact=city)
+        .values_list("city", flat=True)
+        .distinct()
+        .order_by("city")[:12]
+    )
+    city_portal = AggregatorPortal.objects.filter(
+        is_active=True, kind=AggregatorPortal.KIND_CITY, city__iexact=city
+    ).first()
     return render(
         request,
         "aggregator/listing.html",
@@ -61,6 +75,10 @@ def city_listing(request, city, business_type=None):
             "business_type_label": _BTYPE_LABELS.get(business_type, business_type),
             "types": [(t, _BTYPE_LABELS.get(t, t)) for t in types],
             "page": page,
+            "canonical": request.build_absolute_uri(request.path),
+            "other_cities": other_cities,
+            "city_portal_url": f"{request.scheme}://{city_portal.host}/" if city_portal else "",
+            "city_portal_title": city_portal.title_text if city_portal else "",
             "ld_itemlist": itemlist_ld([(it.title_text, it.detail_url) for it in page.items]),
         },
     )
