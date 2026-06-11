@@ -40,6 +40,7 @@ def _export_payload(email: str) -> dict:
                 "email": c.email,
                 "phone": c.phone,
                 "note": c.note,
+                "tags": c.tags,
                 "unsubscribed": c.unsubscribed,
                 "created_at": c.created_at.isoformat(),
                 "loyalty_cards": [
@@ -76,6 +77,11 @@ def _export_payload(email: str) -> dict:
             {"type": n.type, "status": n.status, "created_at": n.created_at.isoformat()}
             for n in notifications
         ],
+        "crm_notes": [
+            {"text": n.text, "created_at": n.created_at.isoformat()}
+            for c in customers
+            for n in c.crm_notes.all()
+        ],
     }
 
 
@@ -93,20 +99,25 @@ def _erase(email: str) -> dict:
             "выполнить или отменить их (Art. 17 (3): исполнение договора)."
         )
 
+    from apps.crm.models import CustomerNote
+
     with transaction.atomic():
         notes = Reservation.objects.filter(customer__in=customers).exclude(note="").update(note="")
+        crm_notes, _ = CustomerNote.objects.filter(customer__in=customers).delete()
         for c in customers:
             c.name = _ANONYMIZED_NAME
             c.email = ""
             c.phone = ""
             c.note = ""
-            c.save(update_fields=["name", "email", "phone", "note", "updated_at"])
+            c.tags = []
+            c.save(update_fields=["name", "email", "phone", "note", "tags", "updated_at"])
         waitlist, _ = WaitlistEntry.objects.filter(email__iexact=email).delete()
         recipients = Notification.objects.filter(recipient__iexact=email).update(recipient="")
 
     return {
         "customers_anonymized": len(customers),
         "reservation_notes_cleared": notes,
+        "crm_notes_deleted": crm_notes,
         "waitlist_deleted": waitlist,
         "notification_recipients_cleared": recipients,
     }

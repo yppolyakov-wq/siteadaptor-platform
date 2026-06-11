@@ -1,0 +1,74 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n widget_tweaks %}
+{% block dash_title %}{{ customer }}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'crm:customer-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Customers" %}</a>
+<div class="flex items-center gap-3 mt-1 mb-4">
+  <h1 class="text-2xl font-bold">{{ customer }}</h1>
+  {% for t in customer.tags %}
+    <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ t }}</span>
+  {% endfor %}
+  {% if customer.unsubscribed %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-red-50 text-red-600">{% trans "unsubscribed" %}</span>{% endif %}
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid lg:grid-cols-2 gap-6 items-start">
+  <div class="space-y-6">
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      {% csrf_token %}
+      {% for field in form %}
+        <div>
+          <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+          {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+          {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    </form>
+
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h2 class="font-semibold mb-3">{% trans "Notes" %}</h2>
+      <form method="post" action="{% url 'crm:note-add' customer.pk %}" class="mb-4">
+        {% csrf_token %}
+        <textarea name="text" rows="2" required placeholder="{% trans 'Add a note…' %}"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+        <button type="submit" class="mt-2 text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add note" %}</button>
+      </form>
+      {% for n in notes %}
+        <div class="border-t border-gray-100 py-3">
+          <p class="text-xs text-gray-400">{{ n.created_at|date:"d.m.Y H:i" }}</p>
+          <p class="text-sm whitespace-pre-line">{{ n.text }}</p>
+        </div>
+      {% empty %}
+        <p class="text-sm text-gray-400">{% trans "No notes yet." %}</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="font-semibold mb-3">{% trans "Reservations" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
+    {% for r in reservations %}
+      <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm font-medium truncate">{{ r.promotion.title_text }}</p>
+          <p class="text-xs text-gray-400">{{ r.reference_code }} · {{ r.quantity }}× · {{ r.created_at|date:"d.m.Y" }}</p>
+        </div>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0
+          {% if r.status == 'fulfilled' %}bg-gray-100 text-gray-600
+          {% elif r.status == 'confirmed' %}bg-green-100 text-green-800
+          {% elif r.status == 'pending' %}bg-amber-100 text-amber-800
+          {% else %}bg-red-50 text-red-600{% endif %}">{{ r.status }}</span>
+      </div>
+    {% empty %}
+      <p class="text-sm text-gray-400">{% trans "No reservations — that's fine, a customer doesn't need one." %}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

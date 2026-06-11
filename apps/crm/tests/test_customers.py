@@ -1,0 +1,106 @@
+"""Track C3: CRM-минимум «Клиенты» — список/поиск, карточка, теги, заметки."""
+
+import pytest
+from django.contrib.auth import get_user_model
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
+
+from apps.crm import views
+from apps.crm.models import CustomerNote
+from apps.promotions.models import Customer
+from apps.promotions.services import reserve
+from apps.promotions.tests.factories import PromotionFactory
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _tenant_urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+def _req(method="get", path="/crm/", data=None):
+    import uuid
+
+    request = getattr(RequestFactory(), method)(path, data or {})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = get_user_model().objects.create_user(
+        username=f"o{uuid.uuid4().hex[:10]}", email="o@test.de", password="pw12345678"
+    )
+    return request
+
+
+def test_list_and_search():
+    Customer.objects.create(name="Anna Schmidt", email="anna@test.de")
+    Customer.objects.create(name="Boris Müller", phone="+49 170 1", tags=["vip"])
+
+    body = views.customer_list(_req()).content.decode()
+    assert "Anna Schmidt" in body
+    assert "Boris Müller" in body
+
+    body = views.customer_list(_req(data={"q": "anna"})).content.decode()
+    assert "Anna Schmidt" in body
+    assert "Boris Müller" not in body
+
+    body = views.customer_list(_req(data={"q": "vip"})).content.decode()  # поиск по тегу
+    assert "Boris Müller" in body
+    assert "Anna Schmidt" not in body
+
+
+def test_create_customer_with_tags():
+    data = {
+        "name": "Clara Neu",
+        "email": "clara@test.de",
+        "phone": "",
+        "note": "",
+        "tags_input": "VIP, stammkunde, vip,  ",
+    }
+    resp = views.customer_create(_req("post", "/crm/new/", data))
+    assert resp.status_code == 302
+    customer = Customer.objects.get(name="Clara Neu")
+    assert customer.tags == ["vip", "stammkunde"]  # lower + dedupe + trim
+
+
+def test_detail_updates_and_shows_reservations():
+    promo = PromotionFactory(status="active", available_quantity=5, title={"de": "KartenBrot"})
+    res = reserve(promo, name="Dora", email="dora@test.de", quantity=1)
+    customer = Customer.objects.get(email="dora@test.de")
+
+    body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
+    body = body.content.decode()
+    assert "KartenBrot" in body
+    assert res.reference_code in body
+
+    data = {
+        "name": "Dora Lang",
+        "email": "dora@test.de",
+        "phone": "",
+        "note": "",
+        "tags_input": "stammkunde",
+    }
+    resp = views.customer_detail(_req("post", f"/crm/{customer.pk}/", data), pk=customer.pk)
+    assert resp.status_code == 302
+    customer.refresh_from_db()
+    assert customer.name == "Dora Lang"
+    assert customer.tags == ["stammkunde"]
+
+
+def test_note_add_and_render():
+    customer = Customer.objects.create(name="Emil")
+    resp = views.note_add(
+        _req("post", f"/crm/{customer.pk}/notes/", {"text": "Mag Roggenbrot."}), pk=customer.pk
+    )
+    assert resp.status_code == 302
+    assert CustomerNote.objects.filter(customer=customer, text="Mag Roggenbrot.").exists()
+
+    body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
+    assert "Mag Roggenbrot." in body.content.decode()
+
+
+def test_customer_without_reservation_is_fine():
+    customer = Customer.objects.create(name="Frei Stehend")
+    body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
+    assert body.status_code == 200
+    assert "Frei Stehend" in body.content.decode()

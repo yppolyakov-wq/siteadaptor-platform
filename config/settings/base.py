@@ -54,6 +54,7 @@ TENANT_APPS = [
     # "apps.subscriptions",
     "apps.publishing",  # Sprint 4 — каналы публикации (TENANT)
     "apps.notifications",  # Sprint 6 — уведомления (TENANT)
+    "apps.crm",  # Track C3 — CRM-минимум «Клиенты» (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]

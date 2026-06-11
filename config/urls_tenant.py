@@ -51,6 +51,8 @@ urlpatterns = [
     path("imports/", include("apps.imports.urls")),
     # Акции и брони в кабинете владельца.
     path("promotions/", include("apps.promotions.urls")),
+    # CRM-минимум «Клиенты» (Track C3).
+    path("crm/", include("apps.crm.urls")),
     # --- Публичная витрина (без логина), на корне субдомена ---
     path("", public_views.storefront_home, name="storefront-home"),
     path("lang/", public_views.set_language, name="storefront-set-language"),

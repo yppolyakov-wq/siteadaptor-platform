@@ -19,12 +19,17 @@ _CENTS = Decimal("0.01")
 
 
 class Customer(TimestampedModel):
-    """Покупатель. Создаётся при первой брони, переиспользуется по email."""
+    """Покупатель. Создаётся при первой брони, переиспользуется по email.
+
+    CRM-минимум (Track C3): клиентов можно заводить и вручную (без брони),
+    вешать теги и заметки (apps.crm) — «клиент» не привязан к товару/заказу.
+    """
 
     name = models.CharField(max_length=200)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=40, blank=True)
     note = models.TextField(blank=True)
+    tags = models.JSONField(default=list, blank=True)  # ["stammkunde", "vip", …]
 
     # быстрая отписка от писем (one-click): токен в ссылке + флаг
     unsubscribed = models.BooleanField(default=False)
