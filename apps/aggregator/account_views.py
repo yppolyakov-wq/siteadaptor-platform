@@ -124,3 +124,25 @@ def logout_view(request):
     _portal_or_404(request)
     auth.logout(request)
     return redirect("portal-home")
+
+
+@require_POST
+def notifications_toggle(request):
+    """Центральная (от)подписка от писем бизнесов (P2.3d)."""
+    from django.utils import timezone
+
+    from .tasks import apply_marketing_opt_out
+
+    _portal_or_404(request)
+    user = auth.current_portal_user(request)
+    if user is None:
+        return redirect("portal-login")
+    user.marketing_opt_out = not user.marketing_opt_out
+    user.save(update_fields=["marketing_opt_out", "updated_at"])
+    # dedupe по состоянию+минуте: дабл-клик не плодит задачи, смена выбора проходит
+    apply_marketing_opt_out.delay(
+        dedupe_key=f"optout:{user.pk}:{user.marketing_opt_out}:{timezone.now():%Y%m%d%H%M}",
+        email=user.email,
+        opt_out=user.marketing_opt_out,
+    )
+    return redirect("portal-account")

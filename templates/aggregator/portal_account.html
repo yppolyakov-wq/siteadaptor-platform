@@ -7,6 +7,23 @@
   <h1 class="text-2xl font-bold mb-1">{% trans "My account" %}</h1>
   <p class="text-sm text-gray-500 mb-6">{{ user.email }}</p>
 
+  <div class="border-t border-gray-100 pt-4 mb-6">
+    <h2 class="font-semibold text-sm mb-1">{% trans "Email notifications" %}</h2>
+    {% if user.marketing_opt_out %}
+      <p class="text-xs text-gray-500 mb-2">{% trans "You are unsubscribed from marketing emails of all businesses. Booking confirmations are always sent." %}</p>
+    {% else %}
+      <p class="text-xs text-gray-500 mb-2">{% trans "Businesses you booked with may email you about offers. Unsubscribe from all of them at once here." %}</p>
+    {% endif %}
+    <form method="post" action="{% url 'portal-notifications-toggle' %}">
+      {% csrf_token %}
+      {% if user.marketing_opt_out %}
+        <button type="submit" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Subscribe again" %}</button>
+      {% else %}
+        <button type="submit" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-red-400 text-red-600">{% trans "Unsubscribe from all" %}</button>
+      {% endif %}
+    </form>
+  </div>
+
   <form method="post" action="{% url 'portal-logout' %}">
     {% csrf_token %}
     <button type="submit" class="text-sm text-red-600 hover:underline">{% trans "Sign out" %}</button>

@@ -29,6 +29,12 @@ urlpatterns = [
     path("konto/logout/", account_views.logout_view, name="portal-logout"),
     # Избранное (P2.3b).
     path("konto/favoriten/", account_views.favorite_toggle, name="portal-favorite-toggle"),
+    # Настройки уведомлений (P2.3d).
+    path(
+        "konto/benachrichtigungen/",
+        account_views.notifications_toggle,
+        name="portal-notifications-toggle",
+    ),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

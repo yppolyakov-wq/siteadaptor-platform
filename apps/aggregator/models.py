@@ -136,6 +136,10 @@ class PortalUser(models.Model):
 
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
+    # Центральная отписка от писем бизнесов (P2.3d): источник истины для
+    # порталов; синхронизируется в per-tenant Customer.unsubscribed задачей
+    # apply_marketing_opt_out. Транзакционные письма (бронь) идут всегда.
+    marketing_opt_out = models.BooleanField(default=False)
     last_login_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

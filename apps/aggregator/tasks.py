@@ -110,6 +110,33 @@ def send_magic_link_email(*, email, url):
     return {"sent": email}
 
 
+def sync_marketing_opt_out(email: str, opt_out: bool, *, tenants=None) -> int:
+    """Разнести центральную (от)подписку по схемам: Customer.unsubscribed.
+
+    PortalUser.marketing_opt_out — источник истины на порталах; здесь оно
+    доводится до per-tenant Customer (его уважают рассылки бизнесов и
+    one-click `/u/<token>/`). tenants инжектится в тестах (физических
+    схем там нет — как в reconcile_schema).
+    """
+    from django_tenants.utils import get_public_schema_name, get_tenant_model
+
+    from apps.promotions.models import Customer
+
+    if tenants is None:
+        tenants = get_tenant_model().objects.exclude(schema_name=get_public_schema_name())
+    updated = 0
+    for tenant in tenants:
+        with schema_context(tenant.schema_name):
+            updated += Customer.objects.filter(email__iexact=email).update(unsubscribed=opt_out)
+    return updated
+
+
+@idempotent_task()
+def apply_marketing_opt_out(*, email, opt_out):
+    """Celery: применить выбор клиента из /konto/ ко всем бизнесам."""
+    return {"updated": sync_marketing_opt_out(email, opt_out)}
+
+
 def resync_on_promotion_save(sender, instance, **kwargs):
     """post_save Promotion: правка активной акции → обновить её листинг.
 
