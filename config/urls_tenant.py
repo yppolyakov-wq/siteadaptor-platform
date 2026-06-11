@@ -11,7 +11,14 @@ from django.views.static import serve
 
 from apps.billing import views as billing_views
 from apps.core import health
-from apps.core.views import dashboard, settings_view
+from apps.core.views import (
+    dashboard,
+    domain_add,
+    domain_remove,
+    domain_verify,
+    domains_view,
+    settings_view,
+)
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
 
@@ -22,6 +29,11 @@ urlpatterns = [
     # --- Кабинет владельца (под логином) ---
     path("dashboard/", dashboard, name="dashboard"),
     path("dashboard/settings/", settings_view, name="settings"),
+    # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
+    path("dashboard/domains/", domains_view, name="domains"),
+    path("dashboard/domains/add/", domain_add, name="domain-add"),
+    path("dashboard/domains/<int:pk>/verify/", domain_verify, name="domain-verify"),
+    path("dashboard/domains/<int:pk>/remove/", domain_remove, name="domain-remove"),
     # Биллинг/подписка (Sprint 5).
     path("dashboard/billing/", billing_views.billing, name="billing"),
     path("dashboard/billing/checkout/", billing_views.checkout, name="billing-checkout"),

@@ -1,0 +1,87 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Domains" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-1">{% trans "Custom domain" %}</h1>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Connect your own domain (e.g. bakery.de) to your storefront." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {# --- Шаг 1: добавить домен --- #}
+  <form method="post" action="{% url 'domain-add' %}" class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex gap-3 items-end">
+    {% csrf_token %}
+    <div class="flex-1">
+      <label class="block text-sm font-medium mb-1" for="id_domain">{% trans "Domain" %}</label>
+      <input id="id_domain" name="domain" type="text" required placeholder="angebote.meine-baeckerei.de"
+             class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add" %}</button>
+  </form>
+
+  {# --- Шаг 2: DNS-инструкция --- #}
+  <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-6 text-sm">
+    <p class="font-semibold mb-2">{% trans "How to connect" %}</p>
+    <ol class="list-decimal list-inside space-y-1 text-gray-600">
+      <li>{% trans "At your domain registrar, create an A record:" %}</li>
+    </ol>
+    {% if target_ip %}
+      <div class="mt-2 font-mono text-xs bg-white border border-gray-200 rounded-lg px-3 py-2">
+        <div>{% trans "Type:" %} <b>A</b></div>
+        <div>{% trans "Name:" %} <b>@</b> {% trans "(or your subdomain)" %}</div>
+        <div>{% trans "Value:" %} <b>{{ target_ip }}</b></div>
+      </div>
+      <p class="mt-2 text-gray-500">{% trans "Then click “Verify”. DNS changes can take up to 24 h. The HTTPS certificate is issued automatically on the first visit." %}</p>
+    {% else %}
+      <p class="mt-2 text-amber-700">{% trans "Domain verification is currently unavailable. Please contact support." %}</p>
+    {% endif %}
+  </div>
+
+  {# --- Шаг 3: список доменов --- #}
+  {% if domains %}
+    <div class="space-y-3">
+      {% for d in domains %}
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-medium truncate">{{ d.domain }}</span>
+              {% if d.status == 'active' %}
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">{% trans "active" %}</span>
+              {% elif d.status == 'failed' %}
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">{% trans "failed" %}</span>
+              {% else %}
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{% trans "pending" %}</span>
+              {% endif %}
+            </div>
+            {% if d.status == 'active' %}
+              <a href="https://{{ d.domain }}/" class="text-xs text-indigo-600 hover:underline">https://{{ d.domain }}/</a>
+            {% elif d.last_check_error %}
+              <p class="text-xs text-gray-500 mt-0.5">{{ d.last_check_error }}</p>
+            {% endif %}
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            {% if d.status != 'active' %}
+              <form method="post" action="{% url 'domain-verify' d.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Verify" %}</button>
+              </form>
+            {% endif %}
+            <form method="post" action="{% url 'domain-remove' d.pk %}"
+                  onsubmit="return confirm('{% trans "Remove this domain?" %}')">
+              {% csrf_token %}
+              <button type="submit" class="text-sm text-red-600 hover:underline px-2">{% trans "Remove" %}</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-400 text-sm">{% trans "No custom domain yet." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

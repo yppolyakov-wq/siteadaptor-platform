@@ -164,3 +164,37 @@ class Tenant(TenantMixin):
 
 class Domain(DomainMixin):
     pass
+
+
+class CustomDomain(models.Model):
+    """Заявка бизнеса на собственный домен (self-service, SHARED/public).
+
+    Жизненный цикл заявки отдельно от django-tenants `Domain`: `Domain` = живой
+    роутинг + авторизация TLS (Caddy on-demand), поэтому его строку создаём
+    только ПОСЛЕ подтверждения владения (A-запись домена указывает на наш IP —
+    см. apps.tenants.domains.verify). Пока pending — домен никуда не маршрутизи-
+    руется и сертификат не выпускается, так что чужой домен «занять» нельзя.
+    """
+
+    PENDING = "pending"
+    ACTIVE = "active"
+    FAILED = "failed"
+    STATUSES = [(PENDING, "Pending"), (ACTIVE, "Active"), (FAILED, "Failed")]
+
+    domain = models.CharField(max_length=253, unique=True)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="custom_domains")
+    status = models.CharField(max_length=20, choices=STATUSES, default=PENDING)
+    last_check_error = models.CharField(max_length=255, blank=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.domain} → {self.tenant.schema_name} ({self.status})"
+
+    @property
+    def is_active(self) -> bool:
+        return self.status == self.ACTIVE

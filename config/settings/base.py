@@ -184,6 +184,10 @@ SITE_ID = 1
 # Базовый домен для генерации URL арендаторов (онбординг, ссылки на субдомены).
 # В dev переопределяется на "siteadaptor.de:8000" (см. development.py).
 TENANT_DOMAIN_BASE = env("TENANT_DOMAIN_BASE", default="siteadaptor.de")
+# Публичный IP сервера для self-service custom-доменов: владелец ставит на него
+# A-запись своего домена, мы сверяем и активируем (apps.tenants.domains). Пусто →
+# страница доменов показывает «недоступно» вместо проверки.
+CUSTOM_DOMAIN_TARGET_IP = env("CUSTOM_DOMAIN_TARGET_IP", default="")
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 # mandatory требует рабочей отправки почты (Resend). Пока RESEND_API_KEY не
