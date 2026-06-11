@@ -146,6 +146,15 @@ Python 3.12, менеджер uv.
   - P2.2b: кэш публичной выдачи `apps/core/pagecache.py` (HTML в Redis, GET
     без query, ключ host+path+язык, `PUBLIC_PAGE_CACHE_TTL` default 120с,
     в тестах 0) — на portal_home / city_listing / discover_index.
+- **P2.3 — клиентские аккаунты (в работе, разбивка a–d согласована):**
+  - P2.3a (✅ в `main`, 5730386, CI run 68 зелёный, миграция aggregator/0004):
+    `PortalUser` (public, отдельно от auth.User) + magic-link вход по
+    `docs/references/patterns/magic-link-auth.md` (Redis-токен SHA-256/15мин/
+    одноразовый, анти-энумерация, honeypot, лимиты email 3/час + IP 5/10мин);
+    `/konto/` на порталах (login/verify/logout, страница-задел), письмо —
+    Celery `send_magic_link_email`, контекст-процессор `portal_user` + шапка.
+  - Дальше: P2.3b избранное → P2.3c история броней (email-связка с per-tenant
+    Customer) → P2.3d настройки уведомлений.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
