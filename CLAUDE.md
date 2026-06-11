@@ -137,6 +137,15 @@ Python 3.12, менеджер uv.
   сертификат. Модель `CustomDomain` (заявка pending/active/failed) отдельно от
   `Domain` — чужой домен занять нельзя. Логика — `apps/tenants/domains.py`.
   Canonical-политика (какой хост главный для SEO) — отложено (roadmap §Отложено).
+- **P2.2 — SEO/контент порталов (✅ в `main`, a573b35+75ba11d, CI runs 64/65
+  зелёные, без миграций):**
+  - P2.2a: OpenGraph/Twitter-теги на порталах (логотип как og:image) и
+    страницах агрегатора; canonical на городских страницах; перелинковка сети:
+    городская страница → портал города + соседние города, портал → остальные
+    активные порталы. hreflang сознательно не делаем (язык в cookie, не в URL).
+  - P2.2b: кэш публичной выдачи `apps/core/pagecache.py` (HTML в Redis, GET
+    без query, ключ host+path+язык, `PUBLIC_PAGE_CACHE_TTL` default 120с,
+    в тестах 0) — на portal_home / city_listing / discover_index.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
