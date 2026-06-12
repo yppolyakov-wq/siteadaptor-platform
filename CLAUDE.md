@@ -267,8 +267,17 @@ Python 3.12, менеджер uv.
     слот (?slot= раскрывает форму) → POST buchen (honeypot+rate-limit, слот
     валидируется по сетке, гонку закрывает services.book) → /t/<code>/;
     ссылка «Book» в шапке витрины при активном модуле (флаг в CP modules_nav).
-  - Дальше Track D: D3c кабинет-календарь + письма/напоминания (beat) → D4
-    Light-Finance; параллельно можно P2.4b (featured-оплата как модуль).
+  - D3c — кабинет-календарь + письма/напоминания (✅ в `main`, e57bf8f, CI run
+    119 зелёный, без миграций): `/dashboard/booking/` (nav «Booking») —
+    календарь-день, Confirm/Arrived/No-show/Cancel, перенос (services.move,
+    anti-double-book без себя), ручная запись (сразу confirmed);
+    `/dashboard/booking/ressourcen/` — ресурсы/недельные правила/выходные;
+    письма клиенту (created/confirmed/cancelled через BookingSM) и владельцу
+    (новая заявка), напоминание за `BOOKING_REMINDER_HOURS` (default 24) —
+    beat `send_booking_reminders` раз в час, одно на запись.
+  - **D3 завершён (a–c), весь в `main`** (миграция только booking/0001 из D3a).
+    Дальше Track D: D4 Light-Finance (RevenueEntry+журнал+хуки → Invoice+PDF →
+    DATEV/CSV); параллельно можно P2.4b (featured-оплата как модуль).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
