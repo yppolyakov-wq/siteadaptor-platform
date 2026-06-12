@@ -166,7 +166,17 @@ Python 3.12, менеджер uv.
     («Отписаться от всех / Подписаться снова») + Celery-синк
     `apply_marketing_opt_out` в per-tenant `Customer.unsubscribed`;
     транзакционные письма (бронь) не затрагиваются.
-  - **P2.3 завершён (a–d), весь в `main`.** Дальше: P2.4 монетизация портала.
+  - **P2.3 завершён (a–d), весь в `main`.**
+- **P2.4 — монетизация портала (в работе, разбивка с учётом Track D):**
+  - P2.4a (✅ в `main`, c6ad8f9+2befa88, CI run 94 зелёный, миграция
+    aggregator/0007): featured-листинги — `AggregatorListing.featured_until`,
+    закрепление сверху первой страницы выдачи (портал + /entdecken) с бейджем
+    «★ Empfohlen», без дублей в keyset-ленте; админка листингов → продажа
+    продвижения вручную уже возможна; sync срок не трогает.
+  - Дальше: P2.4b самообслуживание оплаты (Stripe one-time Checkout) — ПОСЛЕ
+    D0 Track D (впишется в Modul-Framework как модуль). Track D (Business OS:
+    D0→D1→D2→D3→D4, ТЗ `docs/track-d-business-os-spec.md`) ведёт параллельная
+    сессия (ветка claude/peaceful-cerf-bgifg8).
 - **Track C — витрина сайта, конструктор v1, CRM-минимум (решение владельца
   2026-06-11, разбивка — roadmap §Track C; чат покупатель↔бизнес — в Отложено):**
   - C1 (✅ в `main`, be17d17+d2ece12, CI run 77 зелёный, без миграций): витрина
