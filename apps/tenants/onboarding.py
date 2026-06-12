@@ -50,6 +50,20 @@ def advance(tenant, *, skip: bool = False) -> dict:
     return state
 
 
+def back(tenant) -> dict:
+    """Вернуться на шаг назад (сравнить варианты, поменять тип бизнеса).
+
+    Возврат не «раз-завершает» мастер: completed остаётся, плашка прогресса
+    на дашборде не воскресает из-за просмотра прежних шагов.
+    """
+    state = get_state(tenant)
+    if state["step"] > 1:
+        state["step"] -= 1
+        state["skipped"] = [s for s in state["skipped"] if s != state["step"]]
+        save_state(tenant, state)
+    return state
+
+
 def progress(tenant) -> tuple[int, int]:
     """(пройдено, всего) для плашки «Setup-Fortschritt N/5» на дашборде."""
     state = get_state(tenant)

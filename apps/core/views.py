@@ -51,13 +51,26 @@ def setup_view(request):
         if request.POST.get("action") == "skip":
             onboarding.advance(tenant, skip=True)
             return redirect("setup")
+        if request.POST.get("action") == "back":
+            onboarding.back(tenant)
+            return redirect("setup")
         if step == 1:
             business_type = request.POST.get("business_type", "")
             if business_type in dict(Tenant.BUSINESS_TYPES):
+                # Пресет блоков по вертикали применяем ТОЛЬКО если владелец ещё
+                # не настраивал модули сам (текущий набор == пресету прежнего
+                # типа). Действующие компании (легаси [] = всё включено) и
+                # ручные конфигурации мастер не перезаписывает — иначе у них
+                # «пропадают» разделы кабинета (hotfix после деплоя D0–D3).
+                untouched_preset = sorted(tenant.disabled_modules or []) == sorted(
+                    registry.default_disabled_for(tenant.business_type)
+                )
                 tenant.business_type = business_type
-                # Предвыбор блоков по вертикали — шаг 2 покажет его тумблерами.
-                tenant.disabled_modules = registry.default_disabled_for(business_type)
-                tenant.save(update_fields=["business_type", "disabled_modules", "updated_at"])
+                update_fields = ["business_type", "updated_at"]
+                if untouched_preset:
+                    tenant.disabled_modules = registry.default_disabled_for(business_type)
+                    update_fields.insert(1, "disabled_modules")
+                tenant.save(update_fields=update_fields)
         elif step == 2:
             enabled_keys = set(request.POST.getlist("modules"))
             tenant.disabled_modules = [

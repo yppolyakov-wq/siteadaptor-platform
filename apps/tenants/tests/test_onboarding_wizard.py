@@ -137,3 +137,47 @@ def test_site_view_save_keeps_wizard_state():
     tenant.refresh_from_db()
     assert tenant.site_config["hero_title"] == "Hallo"
     assert onboarding.get_state(tenant)["step"] == 2
+
+
+def test_step1_keeps_custom_modules_of_existing_tenant():
+    """Hotfix: мастер не сбрасывает модули у действующих/настроенных компаний.
+
+    Легаси-тенант (disabled_modules=[] = всё включено) проходит шаг 1 —
+    разделы кабинета (CRM/Analytics/Channels) не должны «пропасть».
+    """
+    tenant = TenantFactory(business_type="bakery", disabled_modules=[])
+    core_views.setup_view(_req("post", {"business_type": "bakery"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.disabled_modules == []  # конфигурация не тронута
+
+    # Ручная конфигурация (отличается от пресета) тоже переживает смену типа.
+    tenant2 = TenantFactory(business_type="bakery", disabled_modules=["crm"])
+    core_views.setup_view(_req("post", {"business_type": "cafe"}, tenant2))
+    tenant2.refresh_from_db()
+    assert tenant2.business_type == "cafe"
+    assert tenant2.disabled_modules == ["crm"]
+
+
+def test_step1_reapplies_untouched_preset_on_type_change():
+    """Новый тенант ещё на пресете → смена типа на шаге 1 пересчитывает пресет."""
+    preset = modules.default_disabled_for("bakery")
+    tenant = TenantFactory(business_type="bakery", disabled_modules=preset)
+    core_views.setup_view(_req("post", {"business_type": "cafe"}, tenant))
+    tenant.refresh_from_db()
+    assert sorted(tenant.disabled_modules) == sorted(modules.default_disabled_for("cafe"))
+
+
+def test_back_button_steps_back_and_unskips():
+    tenant = TenantFactory()
+    onboarding.save_state(tenant, {"step": 3, "skipped": [2], "completed": False})
+    core_views.setup_view(_req("post", {"action": "back"}, tenant))
+    assert onboarding.get_state(tenant) == {"step": 2, "skipped": [], "completed": False}
+    # с первого шага назад некуда
+    onboarding.save_state(tenant, {"step": 1, "skipped": [], "completed": False})
+    core_views.setup_view(_req("post", {"action": "back"}, tenant))
+    assert onboarding.get_state(tenant)["step"] == 1
+    # «Zurück» с финального экрана не раз-завершает мастер
+    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": True})
+    core_views.setup_view(_req("post", {"action": "back"}, tenant))
+    state = onboarding.get_state(tenant)
+    assert state["step"] == 4 and state["completed"] is True
