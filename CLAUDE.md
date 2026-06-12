@@ -290,9 +290,15 @@ Python 3.12, менеджер uv.
     секции «Weitere Bausteine» с ⚠ на /dashboard/modules/ и шаге 2 мастера,
     warning при включении неподходящего (не запрет); смена типа на шаге 1
     заново применяет пресет вертикали, тот же тип — конфигурацию не трогает.
-    Дальше: фоновая регистрация (в работе, ветка claude/async-signup) → D4
-    Light-Finance (D4a начат, WIP в stash ветки claude/track-d4a-finance) →
-    P2.4b.
+  - Фоновая регистрация (✅ в `main`, 779c09a, CI run 126 зелёный, миграция
+    tenants/0008): `Tenant.provisioning_status`; регистрация отвечает мгновенно
+    → `/anmeldung/<slug>/` (спиннер, meta-refresh 4с) → Celery
+    `provision_business` (схема + владелец, пароль хэшем в брокер) → редирект
+    на логин + письмо «Ihre Website ist bereit». Email-бэкенд: Resend → свой
+    SMTP (EMAIL_HOST/USER/PASSWORD, напр. Hostinger-ящик) → console.
+    `create_business` (синхронный) остался для тестов/CLI.
+    Дальше: D4 Light-Finance (D4a начат, WIP в stash ветки
+    claude/track-d4a-finance) → P2.4b.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
