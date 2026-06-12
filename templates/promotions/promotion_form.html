@@ -35,6 +35,26 @@
     </div>
   {% endif %}
 
+  {# Платное продвижение в агрегаторе (P2.4b): видно у активных акций, если оплата настроена #}
+  {% if promotion and promotion.status == 'active' and featured_enabled %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm font-medium">★ {% trans "Featured in the directory" %}</p>
+          {% if featured_listing and featured_listing.is_featured_now %}
+            <p class="text-xs text-amber-700">{% trans "Active until" %} {{ featured_listing.featured_until|date:"d.m.Y" }}</p>
+          {% else %}
+            <p class="text-xs text-gray-500">{% trans "More visibility on the city page." %}</p>
+          {% endif %}
+        </div>
+        <a href="{% url 'promotions:promotion-feature' promotion.pk %}"
+           class="text-sm px-3 py-1.5 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50 whitespace-nowrap">
+          {% if featured_listing and featured_listing.is_featured_now %}{% trans "Extend" %}{% else %}{% trans "Promote" %}{% endif %}
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
   {# Существующие фото акции (только при редактировании) #}
   {% if promotion and promotion.images %}
     <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">

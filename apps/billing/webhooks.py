@@ -52,6 +52,21 @@ def _tenant_from_object(obj: dict) -> Tenant | None:
 
 def handle_event(event_type: str, obj: dict) -> None:
     """Применить эффект события к арендатору (идемпотентно через SM)."""
+    meta = obj.get("metadata") or {}
+
+    # Разовый платёж за продвижение листинга (P2.4b) — не подписка: ставим срок
+    # на сам листинг (public-схема), статус подписки не трогаем. Различаем по
+    # metadata.kind, проставленному в create_featured_checkout_session.
+    if event_type == "checkout.session.completed" and meta.get("kind") == "featured":
+        ok = services.apply_featured_purchase(
+            tenant_schema=meta.get("tenant_schema", ""),
+            promo_uuid=meta.get("promo_uuid", ""),
+            days=meta.get("days", 0),
+        )
+        if not ok:
+            logger.warning("stripe webhook featured: listing not found %s", meta)
+        return
+
     tenant = _tenant_from_object(obj)
     if tenant is None:
         logger.warning("stripe webhook %s: tenant not resolved", event_type)

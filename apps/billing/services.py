@@ -61,6 +61,86 @@ def create_billing_portal_session(tenant: Tenant, *, return_url: str) -> str:
     return session["url"]
 
 
+def create_featured_checkout_session(
+    tenant: Tenant,
+    *,
+    promo_uuid: str,
+    days: int,
+    title: str,
+    success_url: str,
+    cancel_url: str,
+) -> str:
+    """Разовый Checkout (mode="payment") за продвижение листинга акции (P2.4b).
+
+    Сумму передаём inline price_data (без заведения Price в Stripe). Эффект —
+    в metadata (kind/tenant_schema/promo_uuid/days): вебхук на public-схеме
+    проставит featured_until нужному листингу. Привязываем к Customer арендатора,
+    чтобы платёж попал в его историю/чеки. Возвращает URL оплаты.
+    """
+    from .featured import get_plan
+
+    plan = get_plan(days)
+    if plan is None:
+        raise ValueError(f"unknown featured plan: {days}")
+    customer_id = ensure_stripe_customer(tenant)
+    meta = {
+        "kind": "featured",
+        "tenant_id": str(tenant.id),
+        "tenant_schema": tenant.schema_name,
+        "promo_uuid": str(promo_uuid),
+        "days": str(plan.days),
+    }
+    session = _client().checkout.Session.create(
+        mode="payment",
+        customer=customer_id,
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "eur",
+                    "unit_amount": plan.amount_cents,
+                    "product_data": {"name": f"Empfehlung {plan.days} Tage – {title}"[:250]},
+                },
+                "quantity": 1,
+            }
+        ],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        client_reference_id=str(tenant.id),
+        metadata=meta,
+        payment_intent_data={"metadata": meta},
+    )
+    return session["url"]
+
+
+def apply_featured_purchase(*, tenant_schema: str, promo_uuid: str, days) -> bool:
+    """Оплата прошла → продлить featured_until листинга (public-схема, P2.4b).
+
+    Срок продлеваем от max(now, текущий) — повторная покупка добавляет дни, а не
+    сбрасывает. Идемпотентность одного платежа — на уровне вебхука (дедуп по
+    event.id). Листинг существует, только пока акция active (sync_listing); если
+    его нет (акция уже завершилась) — no-op, возвращаем False.
+    """
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.aggregator.models import AggregatorListing
+
+    days = int(days or 0)
+    if days <= 0:
+        return False
+    listing = AggregatorListing.objects.filter(
+        tenant_schema=tenant_schema, promo_uuid=promo_uuid
+    ).first()
+    if listing is None:
+        return False
+    now = timezone.now()
+    base = listing.featured_until if listing.is_featured_now else now
+    listing.featured_until = base + timedelta(days=days)
+    listing.save(update_fields=["featured_until", "updated_at"])
+    return True
+
+
 def activate_subscription(tenant: Tenant, *, ends_at=None) -> None:
     """Оплата прошла → active: SM-переход + полный набор модулей (+ дата конца)."""
     SubscriptionSM().apply(tenant, ACTIVE)

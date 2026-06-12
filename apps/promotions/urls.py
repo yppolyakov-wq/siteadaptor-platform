@@ -9,6 +9,13 @@ urlpatterns = [
     path("new/", views.promotion_create, name="promotion-create"),
     path("<uuid:pk>/edit/", views.promotion_edit, name="promotion-edit"),
     path("<uuid:pk>/transition/", views.promotion_transition, name="promotion-transition"),
+    # Платное продвижение акции в агрегаторе (P2.4b): страница + Stripe-Checkout.
+    path("<uuid:pk>/feature/", views.promotion_feature, name="promotion-feature"),
+    path(
+        "<uuid:pk>/feature/checkout/",
+        views.promotion_feature_checkout,
+        name="promotion-feature-checkout",
+    ),
     path(
         "<uuid:pk>/images/<str:image_id>/delete/",
         views.promotion_image_delete,

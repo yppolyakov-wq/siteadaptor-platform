@@ -1,0 +1,68 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Promote" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-xl">
+  <a href="{% url 'promotions:promotion-edit' promotion.pk %}" class="text-sm text-indigo-600 hover:underline">&larr; {% trans "Back to promotion" %}</a>
+  <h1 class="text-2xl font-bold mt-2 mb-1">{% trans "Boost visibility" %}</h1>
+  <p class="text-gray-600 mb-4 text-sm">{{ promotion.title_text|default:promotion }}</p>
+
+  {% if checkout_status == 'success' %}
+    <div class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm">
+      Zahlung eingegangen — Ihre Aktion wird gleich oben im Verzeichnis hervorgehoben.
+    </div>
+  {% elif checkout_status == 'cancel' %}
+    <div class="mb-4 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 text-sm">
+      {% trans "Checkout cancelled." %}
+    </div>
+  {% endif %}
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4">
+    <p class="text-sm text-gray-700">
+      Mit einer Empfehlung steht Ihre Aktion im Stadt-Verzeichnis ganz oben — mit dem Hinweis
+      <span class="whitespace-nowrap font-medium text-amber-700">★ Empfohlen</span>.
+    </p>
+    {% if listing and listing.is_featured_now %}
+      <p class="mt-3 text-sm font-medium text-amber-700">
+        ★ Aktiv beworben bis {{ listing.featured_until|date:"d.m.Y H:i" }}
+      </p>
+      <p class="text-xs text-gray-500">Ein weiterer Kauf verlängert die Laufzeit.</p>
+    {% endif %}
+  </div>
+
+  {% if not is_listed %}
+    <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
+      Nur aktive Aktionen erscheinen im Verzeichnis und können beworben werden.
+      Aktivieren Sie die Aktion zuerst.
+    </div>
+  {% elif not featured_enabled %}
+    <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
+      Zahlungen sind noch nicht eingerichtet. Bitte später erneut versuchen.
+    </div>
+  {% else %}
+    <div class="grid gap-3 sm:grid-cols-3">
+      {% for plan in plans %}
+        <form method="post" action="{% url 'promotions:promotion-feature-checkout' promotion.pk %}"
+              class="bg-white border border-gray-200 rounded-2xl p-4 text-center hover:border-indigo-400 transition">
+          {% csrf_token %}
+          <input type="hidden" name="days" value="{{ plan.days }}">
+          <div class="text-lg font-semibold">{{ plan.label }}</div>
+          <div class="text-2xl font-bold text-indigo-600 my-2">{{ plan.amount_eur }}</div>
+          <button type="submit"
+                  class="w-full bg-indigo-600 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-700">
+            {% trans "Buy" %}
+          </button>
+        </form>
+      {% endfor %}
+    </div>
+    <p class="text-xs text-gray-500 mt-3">Einmalzahlung über Stripe. Keine Abo-Bindung.</p>
+  {% endif %}
+</div>
+{% endblock %}

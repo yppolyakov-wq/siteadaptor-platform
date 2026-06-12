@@ -11,6 +11,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from apps.catalog.images import delete_stored_image, save_product_image
 from apps.core.fsm import IllegalTransition
@@ -130,6 +131,8 @@ def promotion_edit(request, pk):
     )
     # предустановленные каналы для генерации QR
     preset_channels = ["instagram", "facebook", "flyer", "schaufenster", "website"]
+    from apps.billing import featured as billing_featured
+
     return render(
         request,
         "promotions/promotion_form.html",
@@ -142,9 +145,88 @@ def promotion_edit(request, pk):
             "preset_channels": preset_channels,
             "waitlist_count": promo.waitlist.count(),
             "stats": _promo_stats(promo),
+            # Платное продвижение в агрегаторе (P2.4b): карточка-ссылка на странице
+            # акции. Листинг есть, только пока акция active.
+            "featured_listing": _featured_listing(promo),
+            "featured_enabled": billing_featured.is_enabled(),
             "nav": "promotions",
         },
     )
+
+
+def _featured_listing(promo):
+    """Листинг агрегатора этой акции (SHARED/public) или None.
+
+    Листинг материализуется, только пока акция active (sync_listing);
+    featured_until на нём — то, что продаёт P2.4b. Ключ — (схема тенанта,
+    promo_uuid). В unit-тестах без tenant-миддлвари схемы листинга нет → None.
+    """
+    from django.db import connection
+
+    from apps.aggregator.models import AggregatorListing
+
+    return AggregatorListing.objects.filter(
+        tenant_schema=connection.schema_name, promo_uuid=promo.id
+    ).first()
+
+
+@login_required
+def promotion_feature(request, pk):
+    """Страница продвижения акции в агрегаторе (P2.4b): планы, цена, статус."""
+    from apps.billing import featured as billing_featured
+
+    promo = get_object_or_404(Promotion, pk=pk)
+    listing = _featured_listing(promo)
+    return render(
+        request,
+        "promotions/promotion_feature.html",
+        {
+            "promotion": promo,
+            "listing": listing,
+            "plans": billing_featured.get_plans(),
+            "featured_enabled": billing_featured.is_enabled(),
+            "is_listed": promo.status == "active" and listing is not None,
+            "checkout_status": request.GET.get("status", ""),
+            "nav": "promotions",
+        },
+    )
+
+
+@login_required
+@require_POST
+def promotion_feature_checkout(request, pk):
+    """Разовый Stripe-Checkout за продвижение акции → редирект на оплату (P2.4b)."""
+    from apps.billing import featured as billing_featured
+    from apps.billing import services as billing_services
+
+    promo = get_object_or_404(Promotion, pk=pk)
+    days_raw = request.POST.get("days", "")
+    plan = billing_featured.get_plan(int(days_raw)) if days_raw.isdigit() else None
+    if not billing_featured.is_enabled() or plan is None:
+        messages.error(request, "Empfehlung ist derzeit nicht verfügbar.")
+        return redirect("promotions:promotion-feature", pk=pk)
+    if promo.status != "active":
+        messages.error(request, "Nur aktive Aktionen können beworben werden.")
+        return redirect("promotions:promotion-feature", pk=pk)
+
+    # Гарантируем листинг к моменту оплаты (синк мог не успеть отработать);
+    # featured_until при ресинке сохраняется (P2.4a).
+    from django.db import connection
+
+    from apps.aggregator.tasks import sync_listing
+
+    sync_listing(connection.schema_name, str(promo.id))
+
+    base = request.build_absolute_uri(reverse("promotions:promotion-feature", args=[promo.pk]))
+    url = billing_services.create_featured_checkout_session(
+        request.tenant,
+        promo_uuid=str(promo.id),
+        days=plan.days,
+        title=promo.get_i18n("title") or "Aktion",
+        success_url=f"{base}?status=success",
+        cancel_url=f"{base}?status=cancel",
+    )
+    return redirect(url)
 
 
 def _conversion(n_res, views):

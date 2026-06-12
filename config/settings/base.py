@@ -300,6 +300,11 @@ STRIPE_PRICE_ID = env("STRIPE_PRICE_ID", default="")
 BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=14)
 BILLING_GRACE_DAYS = env.int("BILLING_GRACE_DAYS", default=7)
 
+# Featured-продвижение листинга в агрегаторе (P2.4b): разовый Stripe-платёж.
+# Дни→центы; пусто = дефолты apps.billing.featured. Формат env:
+# BILLING_FEATURED_PRICES="7=900,14=1500,30=2500".
+BILLING_FEATURED_PRICES = env.dict("BILLING_FEATURED_PRICES", default={})
+
 # ---------------------------------------------------------------------------
 # Google OAuth (адаптер Google Business Profile, Track B1)
 # ---------------------------------------------------------------------------

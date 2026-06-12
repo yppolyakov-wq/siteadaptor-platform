@@ -38,6 +38,26 @@ STRIPE_WEBHOOK_SECRET=whsec_...
    → Webhooks → Recent deliveries).
 3. «Manage subscription» → Customer Portal (карта/инвойсы/отмена).
 
+## 4. Featured-продвижение листинга (P2.4b)
+Самообслуживание: владелец активной акции из кабинета (`/promotions/<pk>/feature/`)
+покупает закрепление листинга наверху агрегатора/порталов («★ Empfohlen»).
+
+- **Отдельной настройки Stripe не требует** — суммы передаём inline `price_data`
+  (никаких новых Product/Price в дашборде). Достаточно тех же ключей Stripe и
+  вебхука, что и для подписки. Кнопка покупки появляется, когда задан
+  `STRIPE_TEST_SECRET_KEY` (или live-ключ при `STRIPE_LIVE_MODE=True`).
+- **Тот же вебхук** `checkout.session.completed`: события различаем по
+  `metadata.kind` (`featured` → `featured_until` листинга; иначе — подписка).
+  Доп. событий в Stripe включать не нужно.
+- **Цены/сроки** — в коде (`apps/billing/featured.py`), дефолт 7/14/30 дн. =
+  9/15/25 €. Оверрайд в `.env.prod` (формат «дни=центы»):
+  ```dotenv
+  BILLING_FEATURED_PRICES=7=900,14=1500,30=2500
+  ```
+- Проверка: активная акция → «Bewerben» → Checkout (тестовая карта
+  `4242 4242 4242 4242`) → после оплаты листинг закреплён наверху на городской
+  странице (бейдж «★ Empfohlen»). Повторная покупка продлевает срок.
+
 ## Заметки
 - Вебхук-эндпоинт живёт на основном домене (public-схема), не на субдомене:
   `https://siteadaptor.de/stripe/webhook/`. Должен быть доступен по HTTPS (Caddy).
