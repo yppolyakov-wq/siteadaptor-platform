@@ -68,14 +68,17 @@ def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, 
     )
     total = Decimal("0")
     for product, qty in items:
+        # DecimalField не приводит атрибут у не перезагруженных из БД
+        # инстансов — нормализуем явно.
+        unit_price = Decimal(str(product.base_price))
         OrderItem.objects.create(
             order=order,
             product=product,
             qty=qty,
-            unit_price=product.base_price,
+            unit_price=unit_price,
             title_snapshot=str(product)[:200],
         )
-        total += product.base_price * qty
+        total += unit_price * qty
     order.total = total
     order.save(update_fields=["total", "updated_at"])
     return order

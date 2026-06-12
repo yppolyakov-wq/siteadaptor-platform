@@ -85,7 +85,8 @@ def checkout(request):
     _require_orders_active(request)
     if request.POST.get("website"):  # honeypot
         return redirect("storefront-cart")
-    if not ratelimit.hit("order", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
+    # hit() == True → лимит превышен (см. apps.core.ratelimit)
+    if ratelimit.hit("order", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
 
     name = request.POST.get("name", "").strip()
