@@ -64,7 +64,7 @@ def test_datev_csv_format_and_accounts():
     assert lines[0].startswith("Umsatz;Soll/Haben-Kennzeichen;WKZ Umsatz;Konto;Gegenkonto")
     # десятичная запятая, Kasse 1000, счёт по ставке, Belegdatum TTMM
     assert "11,90;S;EUR;1000;8400;0306" in lines[1]
-    assert "21,40;S;EUR;1000;8300;0505" in lines[2]
+    assert "21,40;S;EUR;1000;8300;0506" in lines[2]
     assert "5,00;S;EUR;1000;8195;0706" in lines[3]
     assert len(lines) == 4  # запись вне периода не попала
 
