@@ -133,3 +133,36 @@ def test_manual_create_sets_source_and_consent():
     body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
     body = body.content.decode()
     assert "Marketing" in body and "Manual" in body
+
+
+def test_detail_shows_loyalty_cards():
+    """D1b: карточка 360° — карты лояльности клиента (readonly)."""
+    from apps.promotions.models import LoyaltyCard, LoyaltyProgram
+
+    customer = Customer.objects.create(name="Ines Stempel")
+    program = LoyaltyProgram.objects.create(
+        label="Kaffee-Karte", stamps_required=10, reward_label="Gratis Kaffee"
+    )
+    LoyaltyCard.objects.create(program=program, customer=customer, stamps=4, rewards_earned=1)
+
+    body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
+    body = body.content.decode()
+    assert "Kaffee-Karte" in body
+    assert "🎁 1" in body
+
+
+def test_export_csv_respects_filter():
+    """D1c: CSV-экспорт уважает поисковый фильтр и содержит поля D1."""
+    Customer.objects.create(name="Jana Vip", email="jana@test.de", tags=["vip"])
+    Customer.objects.create(name="Karl Ohne", email="karl@test.de", marketing_opt_in=True)
+
+    resp = views.customer_export_csv(_req(path="/crm/export.csv"))
+    assert resp["Content-Type"].startswith("text/csv")
+    body = resp.content.decode()
+    assert "Jana Vip" in body and "Karl Ohne" in body
+    assert body.splitlines()[0].startswith("name,email,phone,tags,marketing_opt_in")
+    assert "yes" in body  # согласие Karl
+
+    resp = views.customer_export_csv(_req(path="/crm/export.csv", data={"q": "vip"}))
+    body = resp.content.decode()
+    assert "Jana Vip" in body and "Karl Ohne" not in body

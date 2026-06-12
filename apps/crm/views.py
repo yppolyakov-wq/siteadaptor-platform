@@ -18,8 +18,8 @@ from .forms import CustomerForm, NoteForm
 from .models import CustomerNote
 
 
-@login_required
-def customer_list(request):
+def _filtered_customers(request):
+    """Клиенты по поисковому запросу ?q= — общий фильтр списка и CSV-экспорта."""
     customers = Customer.objects.all()
     query = request.GET.get("q", "").strip()
     if query:
@@ -30,12 +30,51 @@ def customer_list(request):
             # тег — точным совпадением (JSONB containment; теги хранятся lower)
             | Q(tags__contains=[query.lower()])
         )
+    return customers, query
+
+
+@login_required
+def customer_list(request):
+    customers, query = _filtered_customers(request)
     page = paginate(customers, order_field="created_at", limit=25, cursor=request.GET.get("cursor"))
     return render(
         request,
         "crm/customer_list.html",
         {"nav": "crm", "page": page, "query": query},
     )
+
+
+@login_required
+def customer_export_csv(request):
+    """CSV-экспорт списка клиентов по текущему фильтру (D1c).
+
+    Персональные данные — файл для владельца (Verantwortlicher по DSGVO);
+    индивидуальные запросы клиентов — командой dsgvo_customer.
+    """
+    import csv
+
+    from django.http import HttpResponse
+
+    customers, _query = _filtered_customers(request)
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="kunden.csv"'
+    writer = csv.writer(response)
+    writer.writerow(
+        ["name", "email", "phone", "tags", "marketing_opt_in", "created_source", "created_at"]
+    )
+    for c in customers.order_by("-created_at").iterator():
+        writer.writerow(
+            [
+                c.name,
+                c.email,
+                c.phone,
+                ", ".join(c.tags or []),
+                "yes" if c.marketing_opt_in else "no",
+                c.created_source,
+                c.created_at.date().isoformat(),
+            ]
+        )
+    return response
 
 
 @login_required
@@ -69,6 +108,8 @@ def customer_detail(request, pk):
             "note_form": NoteForm(),
             "notes": customer.crm_notes.all()[:50],
             "reservations": reservations,
+            # 360° (D1b): карты лояльности — readonly-справка.
+            "loyalty_cards": customer.loyalty_cards.select_related("program"),
         },
     )
 
