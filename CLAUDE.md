@@ -219,9 +219,17 @@ Python 3.12, менеджер uv.
     («Modules» в settings-модуле) — тумблеры опциональных блоков с
     `description_de`, бейджи Recommended/inactive, подсказка зависимостей,
     core задизейблены; read-only при gated — существующий SubscriptionGating.
-  - Дальше: D0c (Onboarding-Wizard ≤5 шагов, Setup-Fortschritt,
-    `Tenant.site_config["onboarding"]`) → D1 CRM-lite (поверх apps/crm) →
-    D2 Click&Collect → D3 Booking → D4 Light-Finance.
+  - D0c (✅ в `main`, 4a177b4, CI run 100 зелёный, без миграций):
+    Onboarding-Wizard `/dashboard/setup/` — 5 шагов (тип бизнеса → предвыбор
+    блоков; тумблеры модулей; basics адрес/часы/контакты; первый контент через
+    пресеты `?preset=` B3a + «Produkt anlegen»; Geschafft), каждый шаг
+    пропускаем, резюмируется; состояние — `Tenant.site_config["onboarding"]`
+    (`apps/tenants/onboarding.py`; siteconfig.normalize и site_view ключ
+    сохраняют); плашка «Setup-Fortschritt N/5» на дашборде до завершения.
+  - **D0 завершён (a–c), весь в `main`** (миграция только tenants/0007 из D0a).
+    Дальше Track D: D1 CRM-lite (поверх apps/crm) → D2 Click&Collect →
+    D3 Booking → D4 Light-Finance; параллельно можно P2.4b (featured-оплата
+    как модуль реестра).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
