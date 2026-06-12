@@ -57,9 +57,10 @@ def test_expired_featured_is_ordinary():
 
 
 def test_featured_not_duplicated_in_feed():
-    _listing(featured_hours=24, title={"de": "EinmalBitte"})
-    body = views.city_listing(RequestFactory().get("/entdecken/Hilden/"), "Hilden")
-    assert body.content.decode().count("EinmalBitte") == 1
+    listing = _listing(featured_hours=24, title={"de": "EinmalBitte"})
+    featured, rest = views.split_featured(views.listings_for(city="Hilden"), first_page=True)
+    assert [obj.pk for obj in featured] == [listing.pk]
+    assert listing.pk not in [obj.pk for obj in rest]  # из ленты исключён
 
 
 def test_cursor_pages_skip_featured_block():
