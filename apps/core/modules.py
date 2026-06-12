@@ -112,6 +112,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Kunden bestellen online und holen im Laden ab.",
     ),
     ModuleSpec(
+        key="booking",
+        label_de="Reservierungen nach Zeit (Booking)",
+        icon="📅",
+        nav_items=(),  # кабинет-календарь — D3c; пока модуль гейтит только пути
+        url_prefixes=("/dashboard/booking/",),
+        recommended_for=("cafe", "restaurant", "hotel", "tour_operator"),
+        description_de="Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen.",
+    ),
+    ModuleSpec(
         key="loyalty",
         label_de="Treue & Gutscheine",
         icon="💝",
