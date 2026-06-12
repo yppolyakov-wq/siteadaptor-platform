@@ -1,0 +1,1 @@
+Reservierungsanfrage erhalten — {{ booking.reference_code }}

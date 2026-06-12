@@ -90,7 +90,7 @@ def book(
         raise SlotTaken()
 
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
-    return Booking.objects.create(
+    booking = Booking.objects.create(
         resource=resource,
         customer=customer,
         reference_code=_unique_booking_code(),
@@ -101,3 +101,23 @@ def book(
         note=note,
         source_channel=(source_channel or "")[:50],
     )
+    # письмо «заявка принята» — Notification в этой же транзакции (D3c)
+    from .notifications import enqueue_booking_email
+
+    enqueue_booking_email(booking, "created")
+    return booking
+
+
+@transaction.atomic
+def move(booking, *, start, end):
+    """Перенос записи на новый интервал с той же anti-double-book проверкой."""
+    if end <= start:
+        raise ValueError("end must be after start")
+    resource = Resource.objects.select_for_update().get(id=booking.resource_id)
+    overlaps = overlapping(resource, start, end).exclude(pk=booking.pk)
+    if overlaps.count() >= resource.capacity:
+        raise SlotTaken()
+    booking.start = start
+    booking.end = end
+    booking.save(update_fields=["start", "end", "updated_at"])
+    return booking

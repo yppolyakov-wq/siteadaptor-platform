@@ -1,0 +1,84 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Booking" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Booking" %}</h1>
+  <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Resources & hours" %} →</a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="flex items-center justify-between mb-4 max-w-md">
+  <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>
+  <span class="font-semibold">{{ day|date:"l, d.m.Y" }}</span>
+  <a href="?tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
+</div>
+
+{% if bookings %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+  {% for b in bookings %}
+    <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <p class="font-medium">{{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }} · {{ b.resource.name }}
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1
+            {% if b.status == 'confirmed' %}bg-green-100 text-green-800
+            {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
+            {% elif b.status == 'fulfilled' %}bg-gray-100 text-gray-600
+            {% else %}bg-red-50 text-red-600{% endif %}">{{ b.get_status_display }}</span>
+        </p>
+        <p class="text-xs text-gray-400">{{ b.customer }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %} · {{ b.reference_code }}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
+      </div>
+      <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
+        {% csrf_token %}
+        {% if b.status == 'pending' %}
+          <button name="action" value="confirmed" class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Confirm" %}</button>
+        {% elif b.status == 'confirmed' %}
+          <button name="action" value="fulfilled" class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Arrived" %}</button>
+          <button name="action" value="no_show" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "No-show" %}</button>
+        {% endif %}
+        {% if b.status == 'pending' or b.status == 'confirmed' %}
+          <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
+          <button name="action" value="cancelled" class="text-sm border border-red-200 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Cancel" %}</button>
+        {% endif %}
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500 mb-6">{% trans "No bookings on this day." %}</p>
+{% endif %}
+
+<form method="post" action="{% url 'booking:booking-create' %}" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Resource" %}</label>
+      <select name="resource" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        {% for r in resources %}<option value="{{ r.pk }}">{{ r.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Start" %}</label>
+      <input type="datetime-local" name="start" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Minutes" %}</label>
+      <input type="number" name="minutes" value="60" min="5" max="1440" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <input name="name" type="text" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
+</form>
+{% endblock %}

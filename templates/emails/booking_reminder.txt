@@ -1,0 +1,12 @@
+Hallo {{ customer.name }},
+
+kleine Erinnerung an Ihre Reservierung:
+
+{{ resource.name }}
+{{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}{% if booking.party_size > 1 %} · {{ booking.party_size }} Personen{% endif %}
+
+Bis bald!
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

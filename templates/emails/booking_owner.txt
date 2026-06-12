@@ -1,0 +1,8 @@
+Neue Reservierungsanfrage!
+
+{{ resource.name }} · {{ booking.start|date:"l, d.m.Y" }} {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}
+Gast: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}{% if booking.party_size > 1 %} · {{ booking.party_size }} Personen{% endif %}
+Code: {{ booking.reference_code }}
+{% if booking.note %}Notiz: {{ booking.note }}{% endif %}
+
+Bestätigen im Dashboard: /dashboard/booking/

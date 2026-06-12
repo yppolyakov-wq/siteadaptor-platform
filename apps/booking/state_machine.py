@@ -2,7 +2,7 @@
 
 pending → confirmed → fulfilled; отмена из pending/confirmed; no_show из
 confirmed. Отмена освобождает слот сама собой: пересечения считаются только по
-ACTIVE_STATUSES. Письма (подтверждение/напоминание) — D3c через notifications.
+ACTIVE_STATUSES. confirmed/cancelled шлют письмо клиенту (notifications dedupe).
 """
 
 from apps.core.fsm import StateMachine, Transition
@@ -16,3 +16,9 @@ class BookingSM(StateMachine):
         Transition("confirmed", "cancelled", "booking.cancelled"),
         Transition("confirmed", "no_show", "booking.no_show"),
     ]
+
+    def on_transition(self, instance, t, **kw):
+        if t.dst in ("confirmed", "cancelled"):
+            from .notifications import enqueue_booking_email
+
+            enqueue_booking_email(instance, t.dst)

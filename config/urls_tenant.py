@@ -51,6 +51,8 @@ urlpatterns = [
     path("dashboard/billing/portal/", billing_views.portal, name="billing-portal"),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),
+    # Кабинет записи по времени (Track D / D3c).
+    path("dashboard/booking/", include("apps.booking.urls")),
     # Каналы публикации (Sprint 4).
     path("dashboard/channels/", publishing_views.channels, name="channels"),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),

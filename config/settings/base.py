@@ -246,7 +246,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.billing.tasks.roll_subscriptions",
         "schedule": 86400.0,  # раз в сутки — жизненный цикл подписок + напоминания
     },
+    "send-booking-reminders": {
+        "task": "apps.booking.tasks.send_booking_reminders",
+        "schedule": 3600.0,  # раз в час — напоминание за N часов до записи (D3c)
+    },
 }
+
+# За сколько часов до начала записи слать напоминание (Track D / D3c).
+BOOKING_REMINDER_HOURS = env.int("BOOKING_REMINDER_HOURS", default=24)
 
 # DSGVO: через сколько дней после последней активности обезличивать контакты
 # клиентов без активных броней (см. apps/promotions/tasks.py::purge_due_customers).
