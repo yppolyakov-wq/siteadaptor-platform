@@ -10,6 +10,7 @@ from django.urls import include, path
 from django.views.static import serve
 
 from apps.billing import views as billing_views
+from apps.booking import public_views as booking_public
 from apps.core import health
 from apps.core.views import (
     dashboard,
@@ -74,6 +75,11 @@ urlpatterns = [
     path("warenkorb/remove/", orders_public.cart_remove, name="storefront-cart-remove"),
     path("warenkorb/bestellen/", orders_public.checkout, name="storefront-checkout"),
     path("bestellung/<str:code>/", orders_public.order_confirmation, name="storefront-order"),
+    # Запись по времени (Track D / D3b): ресурс → день → слот → форма.
+    path("termin/", booking_public.termin_index, name="storefront-termin"),
+    path("termin/<uuid:pk>/", booking_public.termin_slots, name="storefront-termin-slots"),
+    path("termin/<uuid:pk>/buchen/", booking_public.termin_book, name="storefront-termin-book"),
+    path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),
