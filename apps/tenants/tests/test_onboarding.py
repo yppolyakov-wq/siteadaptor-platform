@@ -30,9 +30,12 @@ def test_create_business_creates_tenant_domain_and_owner():
     try:
         assert tenant.schema_name == "mueller"
         assert tenant.subscription_status == "trial"
-        # D0b: стартовый набор блоков по вертикали (bakery → promotions/loyalty
-        # включены, остальные опциональные выключены).
-        assert sorted(tenant.disabled_modules) == ["analytics", "crm", "publishing"]
+        # D0b: стартовый набор блоков по вертикали — ровно формула реестра
+        # (точные наборы по вертикалям проверяет apps/core/tests/test_modules.py).
+        from apps.core import modules
+
+        assert sorted(tenant.disabled_modules) == sorted(modules.default_disabled_for("bakery"))
+        assert "promotions" not in tenant.disabled_modules  # рекомендованное включено
         assert Domain.objects.filter(tenant=tenant, is_primary=True).exists()
         assert "mueller." in login_url and login_url.endswith("/accounts/login/")
 
