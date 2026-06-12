@@ -39,3 +39,38 @@ def record_revenue(
         source=source, source_ref=source_ref, defaults=defaults
     )
     return entry if created else None
+
+
+def compute_totals(lines, vat_rate, *, small_business=False):
+    """(net, vat, gross) из снимка позиций; §19 Kleinunternehmer — без НДС."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    net = sum(
+        (Decimal(str(line["unit_price"])) * int(line.get("qty", 1)) for line in lines),
+        start=Decimal("0"),
+    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    rate = Decimal("0") if small_business else Decimal(str(vat_rate))
+    vat = (net * rate / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return net, vat, net + vat
+
+
+def issue_invoice(invoice):
+    """draft → issued: последовательный номер под блокировкой счётчика.
+
+    Номер выдаётся только здесь — черновики не нумеруются, поэтому удаление
+    черновика дыру в нумерации не оставляет (GoBD-последовательность).
+    """
+    from django.db import transaction
+    from django.utils import timezone as tz
+
+    from .models import InvoiceCounter
+    from .state_machine import InvoiceSM
+
+    with transaction.atomic():
+        counter, _created = InvoiceCounter.objects.select_for_update().get_or_create(pk=1)
+        counter.last_number += 1
+        counter.save(update_fields=["last_number"])
+        invoice.number = counter.last_number
+        invoice.issued_at = tz.now()
+        invoice.save(update_fields=["number", "issued_at", "updated_at"])
+        return InvoiceSM().apply(invoice, "issued")

@@ -4,7 +4,10 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Revenue journal" %}</h1>
+  <div>
+    <h1 class="text-2xl font-bold">{% trans "Revenue journal" %}</h1>
+    <a href="{% url 'finance:invoices' %}" class="text-sm text-indigo-600 hover:underline">Rechnungen →</a>
+  </div>
   <form method="get" class="flex items-center gap-2 text-sm">
     <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
     <span class="text-gray-400">–</span>

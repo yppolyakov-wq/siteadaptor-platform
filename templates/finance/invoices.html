@@ -1,0 +1,75 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}Rechnungen{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'finance:journal' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Revenue journal" %}</a>
+<h1 class="text-2xl font-bold mt-1 mb-4">Rechnungen</h1>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if invoices %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+  {% for inv in invoices %}
+    <a href="{% url 'finance:invoice-detail' inv.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+      <div class="min-w-0">
+        <p class="font-medium">{{ inv.number_display }}{% if inv.recipient %} · {{ inv.recipient|truncatechars:40 }}{% endif %}</p>
+        <p class="text-xs text-gray-400">{{ inv.created_at|date:"d.m.Y" }}</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="font-semibold">{{ inv.gross }} EUR</span>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full
+          {% if inv.status == 'paid' %}bg-green-100 text-green-800
+          {% elif inv.status == 'issued' %}bg-indigo-100 text-indigo-800
+          {% elif inv.status == 'draft' %}bg-amber-100 text-amber-800
+          {% else %}bg-red-50 text-red-600{% endif %}">{{ inv.get_status_display }}</span>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
+  {% csrf_token %}
+  <h2 class="font-semibold">Neue Rechnung (Entwurf)</h2>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
+      <select name="customer" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <option value="">—</option>
+        {% for c in customers %}<option value="{{ c.pk }}">{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
+      {% if small_business %}
+        <p class="text-sm text-gray-500 py-2">0 % — § 19 UStG (Kleinunternehmer)</p>
+      {% else %}
+        <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          {% for rate in vat_rates %}<option value="{{ rate }}">{{ rate }} %</option>{% endfor %}
+        </select>
+      {% endif %}
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1">Empfänger (Name, Adresse)</label>
+    <textarea name="recipient" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  </div>
+  <div class="space-y-2">
+    <p class="text-sm font-medium">Positionen <span class="text-xs text-gray-400 font-normal">(Preis netto)</span></p>
+    {% for i in "12345"|make_list %}
+      <div class="flex gap-2">
+        <input name="line_text_{{ forloop.counter }}" type="text" placeholder="Bezeichnung" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <input name="line_qty_{{ forloop.counter }}" type="number" value="1" min="1" class="w-20 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="Menge">
+        <input name="line_price_{{ forloop.counter }}" type="text" inputmode="decimal" placeholder="0,00" class="w-28 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="Einzelpreis">
+      </div>
+    {% endfor %}
+  </div>
+  <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">Entwurf anlegen</button>
+</form>
+{% endblock %}

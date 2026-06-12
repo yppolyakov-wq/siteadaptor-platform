@@ -77,6 +77,10 @@ class Tenant(TenantMixin):
     # Правовые данные (DACH/EU). Свободный текст имеет приоритет; если пусто —
     # генерируем из структурированных полей (см. *_text()).
     vat_id = models.CharField(max_length=30, blank=True)  # USt-IdNr.
+    # Light-Finance (D4b): Steuernummer (если нет USt-IdNr.) и режим
+    # Kleinunternehmer §19 UStG — счета без НДС, с обязательным Hinweis.
+    tax_number = models.CharField(max_length=30, blank=True)
+    small_business = models.BooleanField(default=False)
     register_entry = models.CharField(max_length=120, blank=True)  # Handelsregister
     legal_responsible = models.CharField(max_length=200, blank=True)  # Verantwortlich i.S.d.
     impressum = models.TextField(blank=True)

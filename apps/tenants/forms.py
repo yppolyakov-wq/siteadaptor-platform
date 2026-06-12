@@ -64,6 +64,8 @@ class BusinessSettingsForm(forms.ModelForm):
             "map_url",
             "auto_redeem_on_scan",
             "vat_id",
+            "tax_number",
+            "small_business",
             "register_entry",
             "legal_responsible",
             "impressum",

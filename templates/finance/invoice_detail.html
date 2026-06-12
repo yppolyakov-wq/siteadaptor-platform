@@ -1,0 +1,50 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{{ invoice.number_display }}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'finance:invoices' %}" class="text-sm text-gray-500 hover:underline">← Rechnungen</a>
+<div class="flex items-center gap-3 mt-1 mb-4">
+  <h1 class="text-2xl font-bold">{{ invoice.number_display }}</h1>
+  <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ invoice.get_status_display }}</span>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid lg:grid-cols-2 gap-6 items-start">
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    {% if invoice.recipient %}<p class="text-sm text-gray-600 whitespace-pre-line mb-3">{{ invoice.recipient }}</p>{% endif %}
+    <div class="divide-y divide-gray-100 border-y border-gray-100">
+      {% for line in invoice.lines %}
+        <div class="flex items-center justify-between py-2 text-sm">
+          <span>{{ line.qty }}× {{ line.text }}</span>
+          <span>{{ line.unit_price }} EUR</span>
+        </div>
+      {% endfor %}
+      <div class="py-2 text-sm flex items-center justify-between"><span>Netto</span><span>{{ invoice.net }} EUR</span></div>
+      <div class="py-2 text-sm flex items-center justify-between"><span>USt. {{ invoice.vat_rate }} %</span><span>{{ invoice.vat_amount }} EUR</span></div>
+      <div class="py-2 font-bold flex items-center justify-between"><span>Gesamt</span><span>{{ invoice.gross }} EUR</span></div>
+    </div>
+    {% if invoice.note %}<p class="text-sm text-gray-500 mt-3">📝 {{ invoice.note }}</p>{% endif %}
+    {% if not invoice.is_editable %}<p class="text-xs text-gray-400 mt-3">{% trans "Issued invoices are immutable (GoBD). Use Storno if needed." %}</p>{% endif %}
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+    <a href="{% url 'finance:invoice-pdf' invoice.pk %}" target="_blank"
+       class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">PDF öffnen</a>
+    <form method="post" class="flex flex-wrap gap-2">
+      {% csrf_token %}
+      {% if invoice.is_editable %}
+        <button name="action" value="issue" class="text-sm font-medium rounded-lg px-4 py-2 bg-green-600 text-white hover:bg-green-700">Rechnung stellen</button>
+        <button name="action" value="delete" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">Entwurf löschen</button>
+      {% endif %}
+      {% if "paid" in allowed %}<button name="action" value="paid" class="text-sm font-medium rounded-lg px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">Als bezahlt markieren</button>{% endif %}
+      {% if "cancelled" in allowed %}<button name="action" value="cancelled" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">Stornieren</button>{% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}
