@@ -164,10 +164,10 @@ def test_gating_skips_public_schema():
     ("business_type", "disabled"),
     [
         ("bakery", {"crm", "analytics", "publishing"}),
-        ("restaurant", {"crm", "analytics", "publishing"}),
+        ("restaurant", {"crm", "orders", "analytics", "publishing"}),
         ("retail", {"crm", "loyalty", "analytics", "publishing"}),
-        ("hotel", {"promotions", "loyalty", "analytics", "publishing"}),
-        ("other", {"crm", "loyalty", "analytics", "publishing"}),
+        ("hotel", {"promotions", "orders", "loyalty", "analytics", "publishing"}),
+        ("other", {"crm", "orders", "loyalty", "analytics", "publishing"}),
     ],
 )
 def test_default_disabled_for_vertical(business_type, disabled):

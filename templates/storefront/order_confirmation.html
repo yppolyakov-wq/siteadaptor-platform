@@ -1,0 +1,30 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Order received" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "Thank you! Your order is in." %} 🎉</h1>
+    <p class="text-gray-600 mb-4">{% trans "Show this code when you pick up:" %}</p>
+    <p class="text-3xl font-mono font-bold tracking-wider mb-6">{{ order.reference_code }}</p>
+
+    <div class="divide-y divide-gray-100 border-y border-gray-100 mb-4">
+      {% for item in order.items.all %}
+        <div class="flex items-center justify-between py-2 text-sm">
+          <span>{{ item.qty }}× {{ item.title_snapshot }}</span>
+          <span>{{ item.line_total }} {{ order.currency }}</span>
+        </div>
+      {% endfor %}
+      <div class="flex items-center justify-between py-2 font-bold">
+        <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
+      </div>
+    </div>
+    <p class="text-sm text-gray-500">{% trans "Pay in store at pickup." %}</p>
+    {% if request.tenant.opening_hours %}
+      <p class="text-sm text-gray-500 mt-2">{{ request.tenant.opening_hours|linebreaksbr }}</p>
+    {% endif %}
+    {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-2">{{ request.tenant.address }}</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

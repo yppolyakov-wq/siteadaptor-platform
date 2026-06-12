@@ -37,10 +37,12 @@ class Customer(TimestampedModel):
     SOURCE_RESERVATION = "reservation"
     SOURCE_MANUAL = "manual"
     SOURCE_IMPORT = "import"
+    SOURCE_ORDER = "order"  # Click & Collect (Track D / D2)
     CREATED_SOURCES = [
         (SOURCE_RESERVATION, "Reservation"),
         (SOURCE_MANUAL, "Manual"),
         (SOURCE_IMPORT, "Import"),
+        (SOURCE_ORDER, "Order"),
     ]
     created_source = models.CharField(
         max_length=20, choices=CREATED_SOURCES, default=SOURCE_RESERVATION

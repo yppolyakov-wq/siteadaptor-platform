@@ -135,7 +135,12 @@ def product_detail(request, pk):
     return render(
         request,
         "storefront/product_detail.html",
-        {"product": product, "related": related},
+        {
+            "product": product,
+            "related": related,
+            # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
+            "orders_enabled": request.tenant.is_module_active("orders"),
+        },
     )
 
 

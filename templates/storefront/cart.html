@@ -1,0 +1,63 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Your order" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Your order" %}</h1>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if items %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+  {% for product, qty in items %}
+    <div class="flex items-center justify-between gap-3 px-4 py-3">
+      <div class="min-w-0">
+        <p class="font-medium truncate">{{ product }}</p>
+        <p class="text-xs text-gray-400">{{ qty }}× {{ product.base_price }} {{ product.currency }}</p>
+      </div>
+      <form method="post" action="{% url 'storefront-cart-remove' %}">
+        {% csrf_token %}
+        <input type="hidden" name="product" value="{{ product.pk }}">
+        <button type="submit" class="text-sm text-gray-400 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
+      </form>
+    </div>
+  {% endfor %}
+  <div class="flex items-center justify-between px-4 py-3 font-bold">
+    <span>{% trans "Total" %}</span><span>{{ total }} {{ currency }}</span>
+  </div>
+</div>
+
+<form method="post" action="{% url 'storefront-checkout' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "Pick up in store" %}</h2>
+  <p class="text-sm text-gray-500">{% trans "Pay when you pick up. We'll prepare your order." %}</p>
+  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
+    <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
+      <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
+      <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
+    <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  </div>
+  <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Place order" %}</button>
+</form>
+{% else %}
+<p class="text-gray-500">{% trans "Your order is empty." %}</p>
+<a href="{% url 'storefront-products' %}" class="inline-block mt-4 text-indigo-600 hover:underline">{% trans "Our products" %} →</a>
+{% endif %}
+{% endblock %}

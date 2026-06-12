@@ -103,6 +103,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie.",
     ),
     ModuleSpec(
+        key="orders",
+        label_de="Bestellungen (Click & Collect)",
+        icon="🛍️",
+        nav_items=(),  # кабинет заказов — D2b; пока модуль гейтит только пути
+        url_prefixes=("/dashboard/orders/",),
+        recommended_for=("bakery", "butcher", "grocery", "retail", "clothing"),
+        description_de="Kunden bestellen online und holen im Laden ab.",
+    ),
+    ModuleSpec(
         key="loyalty",
         label_de="Treue & Gutscheine",
         icon="💝",
