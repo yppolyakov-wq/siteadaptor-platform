@@ -28,6 +28,21 @@ def listings_for(*, city=None, business_type=None):
     return qs
 
 
+def split_featured(qs, *, first_page: bool, limit: int = 6):
+    """(featured, остальная лента) — платное продвижение (P2.4a).
+
+    Featured закреплены сверху ПЕРВОЙ страницы выдачи (с бейджем) и исключены
+    из обычной ленты, чтобы keyset-пагинация не давала дублей; на cursor-страницах
+    блок не повторяется.
+    """
+    from django.utils import timezone
+
+    featured_qs = qs.filter(featured_until__gt=timezone.now()).order_by("featured_until", "pk")
+    featured = list(featured_qs[:limit]) if first_page else []
+    rest = qs.exclude(pk__in=featured_qs.values_list("pk", flat=True))
+    return featured, rest
+
+
 @cache_public_page
 def discover_index(request):
     cities = (
@@ -42,12 +57,11 @@ def discover_index(request):
 
 @cache_public_page
 def city_listing(request, city, business_type=None):
-    page = paginate(
-        listings_for(city=city, business_type=business_type),
-        order_field="created_at",
-        limit=24,
-        cursor=request.GET.get("cursor"),
+    cursor = request.GET.get("cursor")
+    featured, rest = split_featured(
+        listings_for(city=city, business_type=business_type), first_page=not cursor
     )
+    page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
     types = (
         listings_for(city=city)
         .exclude(business_type="")
@@ -69,6 +83,7 @@ def city_listing(request, city, business_type=None):
     city_portal = AggregatorPortal.objects.filter(
         is_active=True, kind=AggregatorPortal.KIND_CITY, city__iexact=city
     ).first()
+    cards = featured + page.items  # продвинутые — сверху первой страницы
     return render(
         request,
         "aggregator/listing.html",
@@ -78,11 +93,12 @@ def city_listing(request, city, business_type=None):
             "business_type_label": _BTYPE_LABELS.get(business_type, business_type),
             "types": [(t, _BTYPE_LABELS.get(t, t)) for t in types],
             "page": page,
+            "cards": cards,
             "canonical": request.build_absolute_uri(request.path),
             "other_cities": other_cities,
             "city_portal_url": f"{request.scheme}://{city_portal.host}/" if city_portal else "",
             "city_portal_title": city_portal.title_text if city_portal else "",
-            "ld_itemlist": itemlist_ld([(it.title_text, it.detail_url) for it in page.items]),
+            "ld_itemlist": itemlist_ld([(it.title_text, it.detail_url) for it in cards]),
         },
     )
 

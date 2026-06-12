@@ -16,6 +16,9 @@
         {% if l.discount_percent %}
           <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ l.discount_percent }} %</span>
         {% endif %}
+        {% if l.is_featured_now %}
+          <span class="absolute bottom-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★ Empfohlen</span>
+        {% endif %}
       </div>
       <div class="p-3 md:p-4">
         <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}</p>

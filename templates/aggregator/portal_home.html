@@ -24,8 +24,8 @@
 </div>
 {% endif %}
 
-{% if page.items %}
-{% include "aggregator/_cards.html" with items=page.items %}
+{% if cards %}
+{% include "aggregator/_cards.html" with items=cards %}
 
 {% if page.has_more %}
 <div class="mt-8 text-center">

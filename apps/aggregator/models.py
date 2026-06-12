@@ -35,6 +35,10 @@ class AggregatorListing(I18nMixin, models.Model):
     detail_url = models.URLField()
 
     is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
+    # Платное продвижение (P2.4a): до этого момента листинг закреплён сверху
+    # выдачи с бейджем «Empfohlen». Срок ставит супер-админ (P2.4b добавит
+    # самообслуживание через Stripe). sync_listing поле не трогает.
+    featured_until = models.DateTimeField(null=True, blank=True, db_index=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -61,6 +65,12 @@ class AggregatorListing(I18nMixin, models.Model):
     @property
     def teaser_text(self) -> str:
         return self.get_i18n("teaser")
+
+    @property
+    def is_featured_now(self) -> bool:
+        from django.utils import timezone
+
+        return bool(self.featured_until and self.featured_until > timezone.now())
 
 
 class AggregatorPortal(I18nMixin, models.Model):

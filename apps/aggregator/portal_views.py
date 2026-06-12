@@ -69,12 +69,14 @@ def portal_home(request, facet=None):
         else:
             city = facet
 
-    page = paginate(
-        listings_for(city=city, business_type=business_type),
-        order_field="created_at",
-        limit=24,
-        cursor=request.GET.get("cursor"),
+    from .views import split_featured
+
+    cursor = request.GET.get("cursor")
+    featured, rest = split_featured(
+        listings_for(city=city, business_type=business_type), first_page=not cursor
     )
+    page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+    cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
     canonical = request.build_absolute_uri(request.path)
     page_name = f"{facet_label} — {portal.title_text}" if facet_label else portal.title_text
     # Перелинковка сети (P2.2a): ссылки на остальные активные порталы.
@@ -101,6 +103,7 @@ def portal_home(request, facet=None):
         {
             "portal": portal,
             "page": page,
+            "cards": cards,
             "facets": facets,
             "facet": facet,
             "facet_label": facet_label,
@@ -110,7 +113,7 @@ def portal_home(request, facet=None):
             "ld_collection": collectionpage_ld(
                 name=page_name,
                 url=canonical,
-                items=[(it.title_text, it.detail_url) for it in page.items],
+                items=[(it.title_text, it.detail_url) for it in cards],
             ),
         },
     )

@@ -9,7 +9,26 @@ Django admin живёт только на public (config/urls_public.py). Вни
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import AggregatorPortal
+from .models import AggregatorListing, AggregatorPortal
+
+
+@admin.register(AggregatorListing)
+class AggregatorListingAdmin(ModelAdmin):
+    """Листинги: продажа продвижения вручную (P2.4a) — выставить featured_until.
+
+    Карточные поля редактировать незачем — их перезаписывает sync_listing;
+    featured_until синк не трогает.
+    """
+
+    list_display = ("business_name", "city", "business_type", "featured_until", "is_active")
+    search_fields = ("business_name", "city", "tenant_slug")
+    list_filter = ("is_active", "business_type")
+    fields = ("business_name", "city", "business_type", "detail_url", "featured_until")
+    readonly_fields = ("business_name", "city", "business_type", "detail_url")
+    ordering = ("-updated_at",)
+
+    def has_add_permission(self, request):
+        return False  # листинги создаёт только sync_listing
 
 
 @admin.register(AggregatorPortal)
