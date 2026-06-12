@@ -59,7 +59,11 @@ def test_normalize_preserves_onboarding():
 
 
 def test_full_walkthrough_sets_fields_and_completes():
-    tenant = TenantFactory(business_type="other")
+    # Новый тенант: create_business ставит пресет вертикали (D0b) — мастер
+    # вправе пересчитать его при смене типа на шаге 1.
+    tenant = TenantFactory(
+        business_type="other", disabled_modules=modules.default_disabled_for("other")
+    )
     # Шаг 1: тип бизнеса → предвыбор блоков.
     response = core_views.setup_view(_req("post", {"business_type": "cafe"}, tenant))
     assert response.status_code == 302
