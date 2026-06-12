@@ -1,0 +1,20 @@
+{% load i18n %}{# Строка модуля (страница «Module», D0b/гибрид): тумблер + бейджи + «Geeignet für». #}
+<div class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-start gap-3">
+  <label class="flex items-start gap-3 flex-1 {% if row.spec.core %}opacity-60{% endif %}">
+    <input type="checkbox" name="modules" value="{{ row.spec.key }}"
+           {% if row.enabled %}checked{% endif %} {% if row.spec.core %}disabled{% endif %}
+           class="mt-1 rounded border-gray-300">
+    <span>
+      <span class="font-medium text-sm">{{ row.spec.icon }} {{ row.spec.label_de }}</span>
+      {% if row.spec.core %}<span class="ml-1 text-[11px] text-gray-400 uppercase">{% trans "always on" %}</span>{% endif %}
+      {% if row.recommended and not row.spec.core %}<span class="ml-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Recommended" %}</span>{% endif %}
+      {% if untypical %}<span class="ml-1 bg-amber-50 text-amber-700 text-[11px] font-medium px-2 py-0.5 rounded-full">⚠ Untypisch für deinen Geschäftstyp</span>{% endif %}
+      {% if row.enabled and not row.active and not row.spec.core %}<span class="ml-1 bg-amber-50 text-amber-700 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "inactive" %}</span>{% endif %}
+      <span class="block text-xs text-gray-500 mt-0.5">{{ row.spec.description_de }}</span>
+      {% if not row.spec.core %}<span class="block text-[11px] text-gray-400 mt-0.5">{{ row.suited_label }}</span>{% endif %}
+      {% if row.depends_on %}
+        <span class="block text-[11px] text-gray-400 mt-0.5">{% trans "Requires:" %} {{ row.depends_on|join:", " }}</span>
+      {% endif %}
+    </span>
+  </label>
+</div>

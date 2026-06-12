@@ -144,22 +144,16 @@ def test_site_view_save_keeps_wizard_state():
 
 
 def test_step1_keeps_custom_modules_of_existing_tenant():
-    """Hotfix: мастер не сбрасывает модули у действующих/настроенных компаний.
+    """Hotfix: тот же тип на шаге 1 не сбрасывает модули настроенных компаний.
 
-    Легаси-тенант (disabled_modules=[] = всё включено) проходит шаг 1 —
-    разделы кабинета (CRM/Analytics/Channels) не должны «пропасть».
+    Легаси-тенант (disabled_modules=[] = всё включено) подтверждает свой тип —
+    разделы кабинета (CRM/Analytics/Channels) не должны «пропасть». Смена типа
+    — другое дело (гибрид): набор подстраивается, см. тест ниже.
     """
     tenant = TenantFactory(business_type="bakery", disabled_modules=[])
     core_views.setup_view(_req("post", {"business_type": "bakery"}, tenant))
     tenant.refresh_from_db()
     assert tenant.disabled_modules == []  # конфигурация не тронута
-
-    # Ручная конфигурация (отличается от пресета) тоже переживает смену типа.
-    tenant2 = TenantFactory(business_type="bakery", disabled_modules=["crm"])
-    core_views.setup_view(_req("post", {"business_type": "cafe"}, tenant2))
-    tenant2.refresh_from_db()
-    assert tenant2.business_type == "cafe"
-    assert tenant2.disabled_modules == ["crm"]
 
 
 def test_step1_reapplies_untouched_preset_on_type_change():
@@ -185,3 +179,17 @@ def test_back_button_steps_back_and_unskips():
     core_views.setup_view(_req("post", {"action": "back"}, tenant))
     state = onboarding.get_state(tenant)
     assert state["step"] == 4 and state["completed"] is True
+
+
+def test_step1_type_change_reapplies_preset_even_for_custom_config():
+    """Гибрид: смена типа на шаге 1 = «я такой бизнес» → набор подстраивается
+    под тип даже у настроенного тенанта (магазину Booking выключится)."""
+    tenant = TenantFactory(business_type="cafe", disabled_modules=["crm"])  # ручной набор
+    core_views.setup_view(_req("post", {"business_type": "retail"}, tenant))
+    tenant.refresh_from_db()
+    assert sorted(tenant.disabled_modules) == sorted(modules.default_disabled_for("retail"))
+    # тот же тип без изменений — ручной набор не трогаем
+    tenant2 = TenantFactory(business_type="bakery", disabled_modules=["crm"])
+    core_views.setup_view(_req("post", {"business_type": "bakery"}, tenant2))
+    tenant2.refresh_from_db()
+    assert tenant2.disabled_modules == ["crm"]

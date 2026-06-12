@@ -241,3 +241,82 @@ class TestModulesView:
             "publishing",
         }
         assert modules.is_module_active(tenant, "catalog")  # core живёт
+
+
+# --- гибрид: suited_for + предупреждение (решение владельца 2026-06-12) -------
+
+
+def test_is_suited_for_union_and_universal():
+    booking = modules.get_module("booking")
+    assert modules.is_suited_for(booking, "cafe")  # пресет
+    assert modules.is_suited_for(booking, "retail")  # suited_for (Beratungstermin)
+    assert not modules.is_suited_for(booking, "bakery")  # неподходящий
+    analytics = modules.get_module("analytics")
+    assert modules.is_suited_for(analytics, "bakery")  # универсальный
+
+
+def test_suited_label_lists_and_universal():
+    label = modules.suited_label(modules.get_module("booking"))
+    assert label.startswith("Geeignet für:") and "Cafe" in label
+    # promotions: пресет(8) + suited(2) = все типы → универсальная подпись
+    assert modules.suited_label(modules.get_module("promotions")) == "Für alle Geschäftstypen"
+    assert modules.suited_label(modules.get_module("analytics")) == "Für alle Geschäftstypen"
+
+
+def test_default_disabled_unchanged_by_suited_for():
+    # suited_for НЕ влияет на пресет: у пекарни booking по-прежнему выключен.
+    assert "booking" in modules.default_disabled_for("bakery")
+    assert "booking" not in modules.default_disabled_for("cafe")
+
+
+@pytest.mark.django_db
+def test_modules_view_warns_on_untypical_enable(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    import uuid as _uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages import get_messages
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.core.views import modules_view
+
+    def _request(tenant, data):
+        request = RequestFactory().post("/dashboard/modules/", data)
+        SessionMiddleware(lambda r: None).process_request(request)
+        MessageMiddleware(lambda r: None).process_request(request)
+        request.tenant = tenant
+        owner = _uuid.uuid4().hex[:8]
+        request.user = get_user_model().objects.create_user(username=f"o-{owner}", password="pw")
+        return request
+
+    # Пекарня включает Booking (untypical) — сохраняется, но с предупреждением.
+    tenant = TenantFactory(business_type="bakery", disabled_modules=["booking"])
+    request = _request(
+        tenant,
+        {
+            "modules": [
+                "promotions",
+                "crm",
+                "orders",
+                "booking",
+                "loyalty",
+                "analytics",
+                "publishing",
+            ]
+        },
+    )
+    modules_view(request)
+    tenant.refresh_from_db()
+    assert "booking" not in tenant.disabled_modules
+    texts = [str(m) for m in get_messages(request)]
+    assert any("Booking" in t and "untypical" in t.lower() for t in texts)
+
+    # GET: untypical-блок ушёл в other_rows с подписью «Geeignet für…»
+    get_request = RequestFactory().get("/dashboard/modules/")
+    SessionMiddleware(lambda r: None).process_request(get_request)
+    MessageMiddleware(lambda r: None).process_request(get_request)
+    get_request.tenant = tenant
+    get_request.user = request.user
+    body = modules_view(get_request).content.decode()
+    assert "Weitere Bausteine" in body and "Geeignet für:" in body

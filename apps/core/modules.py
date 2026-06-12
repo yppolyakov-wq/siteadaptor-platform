@@ -43,6 +43,10 @@ class ModuleSpec:
     url_prefixes: tuple[str, ...]
     depends_on: tuple[str, ...] = ()
     recommended_for: tuple[str, ...] = ()  # business_type → стартовый набор (D0b)
+    # Кому модуль ПОДХОДИТ сверх пресета (гибрид, решение владельца 2026-06-12):
+    # включается без предупреждения, но не входит в стартовый набор. Оба поля
+    # пустые = универсальный блок (подходит всем).
+    suited_for: tuple[str, ...] = ()
     core: bool = False  # выключить нельзя, entitlement не применяется
     premium: bool = False  # требует key в Tenant.enabled_modules (тариф)
     description_de: str = ""  # «что это даёт» — пояснение на странице «Module» (D0b)
@@ -91,6 +95,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "clothing",
             "other",
         ),
+        suited_for=("hotel", "tour_operator"),
         description_de="Aktionen erstellen, Reservierungen annehmen und im Laden einlösen.",
     ),
     ModuleSpec(
@@ -100,6 +105,16 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("crm:customer-list", _("Customers"), "crm"),),
         url_prefixes=("/crm/",),
         recommended_for=("hotel", "tour_operator"),
+        suited_for=(
+            "bakery",
+            "butcher",
+            "grocery",
+            "cafe",
+            "restaurant",
+            "retail",
+            "clothing",
+            "other",
+        ),
         description_de="Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie.",
     ),
     ModuleSpec(
@@ -109,6 +124,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("orders:order-list", _("Orders"), "orders"),),
         url_prefixes=("/dashboard/orders/",),
         recommended_for=("bakery", "butcher", "grocery", "retail", "clothing"),
+        suited_for=("cafe", "restaurant", "other"),
         description_de="Kunden bestellen online und holen im Laden ab.",
     ),
     ModuleSpec(
@@ -118,6 +134,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("booking:calendar", _("Booking"), "booking"),),
         url_prefixes=("/dashboard/booking/",),
         recommended_for=("cafe", "restaurant", "hotel", "tour_operator"),
+        suited_for=("retail", "clothing", "other"),
         description_de="Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen.",
     ),
     ModuleSpec(
@@ -131,6 +148,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=("/promotions/vouchers/", "/promotions/loyalty/"),
         depends_on=("promotions",),
         recommended_for=("bakery", "butcher", "grocery", "cafe", "restaurant"),
+        suited_for=("retail", "clothing", "other"),
         description_de="Gutscheine und Stempelkarten für Stammkunden.",
     ),
     ModuleSpec(
@@ -215,6 +233,30 @@ def active_modules(tenant) -> list[ModuleSpec]:
 def optional_modules() -> list[ModuleSpec]:
     """Выключаемые модули (для тумблеров страницы «Module»)."""
     return [spec for spec in REGISTRY if not spec.core]
+
+
+def is_suited_for(spec: ModuleSpec, business_type: str) -> bool:
+    """Подходит ли модуль вертикали (гибрид, решение владельца 2026-06-12).
+
+    Подходит = recommended_for (пресет) ∪ suited_for. Оба пустые —
+    универсальный блок (Analytics/Channels), подходит всем. Неподходящий
+    включить можно, но UI предупреждает (осознанный выбор, не запрет).
+    """
+    if not spec.recommended_for and not spec.suited_for:
+        return True
+    return business_type in spec.recommended_for or business_type in spec.suited_for
+
+
+def suited_label(spec: ModuleSpec) -> str:
+    """«Geeignet für: Bäckerei, Metzgerei…» / «Für alle Geschäftstypen»."""
+    from apps.tenants.models import Tenant
+
+    labels = dict(Tenant.BUSINESS_TYPES)
+    union = dict.fromkeys((*spec.recommended_for, *spec.suited_for))  # порядок без дублей
+    if not union or len(union) >= len(labels):
+        return "Für alle Geschäftstypen"
+    names = [str(labels.get(bt, bt)).split("/")[-1].strip() for bt in union]
+    return "Geeignet für: " + ", ".join(names)
 
 
 def default_disabled_for(business_type: str) -> list[str]:

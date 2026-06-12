@@ -57,17 +57,18 @@ def setup_view(request):
         if step == 1:
             business_type = request.POST.get("business_type", "")
             if business_type in dict(Tenant.BUSINESS_TYPES):
-                # Пресет блоков по вертикали применяем ТОЛЬКО если владелец ещё
-                # не настраивал модули сам (текущий набор == пресету прежнего
-                # типа). Действующие компании (легаси [] = всё включено) и
-                # ручные конфигурации мастер не перезаписывает — иначе у них
-                # «пропадают» разделы кабинета (hotfix после деплоя D0–D3).
+                # Гибрид (решение владельца 2026-06-12): набор блоков должен
+                # подходить типу — при СМЕНЕ типа пресет вертикали применяется
+                # заново (магазину Booking выключится). Если тип не менялся,
+                # ручную/легаси конфигурацию не трогаем (hotfix run 122) —
+                # кроме случая, когда набор ещё равен пресету (нечего терять).
                 untouched_preset = sorted(tenant.disabled_modules or []) == sorted(
                     registry.default_disabled_for(tenant.business_type)
                 )
+                type_changed = business_type != tenant.business_type
                 tenant.business_type = business_type
                 update_fields = ["business_type", "updated_at"]
-                if untouched_preset:
+                if type_changed or untouched_preset:
                     tenant.disabled_modules = registry.default_disabled_for(business_type)
                     update_fields.insert(1, "disabled_modules")
                 tenant.save(update_fields=update_fields)
@@ -97,13 +98,24 @@ def setup_view(request):
     if step == 1:
         context["business_types"] = Tenant.BUSINESS_TYPES
     elif step == 2:
-        context["module_rows"] = [
-            {
+
+        def _row(spec):
+            return {
                 "spec": spec,
                 "enabled": spec.key not in (tenant.disabled_modules or []),
                 "recommended": tenant.business_type in spec.recommended_for,
+                "suited_label": registry.suited_label(spec),
             }
-            for spec in registry.optional_modules()
+
+        optional = registry.optional_modules()
+        # Гибрид: подходящие типу — сверху, остальные — «Weitere Bausteine».
+        context["module_rows"] = [
+            _row(spec) for spec in optional if registry.is_suited_for(spec, tenant.business_type)
+        ]
+        context["other_module_rows"] = [
+            _row(spec)
+            for spec in optional
+            if not registry.is_suited_for(spec, tenant.business_type)
         ]
     elif step == 4:
         context["presets"] = presets.presets_for(tenant.business_type)
@@ -177,28 +189,60 @@ def modules_view(request):
     """
     from apps.core import modules as registry
 
+    tenant = request.tenant
     optional = registry.optional_modules()
     if request.method == "POST":
         enabled_keys = set(request.POST.getlist("modules"))
-        request.tenant.disabled_modules = [
-            spec.key for spec in optional if spec.key not in enabled_keys
+        previously_disabled = set(tenant.disabled_modules or [])
+        tenant.disabled_modules = [spec.key for spec in optional if spec.key not in enabled_keys]
+        tenant.save(update_fields=["disabled_modules", "updated_at"])
+        # Гибрид: включение неподходящего вертикали блока — с предупреждением
+        # (осознанный выбор, не запрет).
+        odd = [
+            spec.label_de
+            for spec in optional
+            if spec.key in enabled_keys
+            and spec.key in previously_disabled
+            and not registry.is_suited_for(spec, tenant.business_type)
         ]
-        request.tenant.save(update_fields=["disabled_modules", "updated_at"])
+        if odd:
+            messages.warning(
+                request,
+                _("Note: %(modules)s is untypical for your business type — enabled anyway.")
+                % {"modules": ", ".join(odd)},
+            )
         messages.success(request, "Gespeichert.")
         return redirect("modules")
 
     dep_labels = {spec.key: spec.label_de for spec in registry.REGISTRY}
-    rows = [
-        {
+
+    def _row(spec):
+        return {
             "spec": spec,
-            "active": registry.is_module_active(request.tenant, spec.key),
-            "enabled": spec.core or spec.key not in (request.tenant.disabled_modules or []),
+            "active": registry.is_module_active(tenant, spec.key),
+            "enabled": spec.core or spec.key not in (tenant.disabled_modules or []),
             "depends_on": [dep_labels[dep] for dep in spec.depends_on],
-            "recommended": request.tenant.business_type in spec.recommended_for,
+            "recommended": tenant.business_type in spec.recommended_for,
+            "suited_label": registry.suited_label(spec),
         }
+
+    # Гибрид: подходящие вертикали (и универсальные) — сверху, остальные — в
+    # секции «Weitere Bausteine» с пометкой, для кого они.
+    suited = [
+        _row(spec)
         for spec in registry.REGISTRY
+        if spec.core or registry.is_suited_for(spec, tenant.business_type)
     ]
-    return render(request, "tenant/modules.html", {"nav": "modules", "rows": rows})
+    other = [
+        _row(spec)
+        for spec in registry.REGISTRY
+        if not spec.core and not registry.is_suited_for(spec, tenant.business_type)
+    ]
+    return render(
+        request,
+        "tenant/modules.html",
+        {"nav": "modules", "rows": suited, "other_rows": other},
+    )
 
 
 @login_required
