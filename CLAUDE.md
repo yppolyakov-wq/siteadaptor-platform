@@ -251,9 +251,19 @@ Python 3.12, менеджер uv.
     `enqueue_order_email`, дедуп `order:{id}:{event}:{role}`), владельцу — на
     новый заказ; DE-шаблоны `emails/order_*.txt`; блок «Orders» в 360° CRM.
   - **D2 завершён (a–b), весь в `main`** (миграции orders/0001 +
-    promotions/0013 из D2a). Дальше Track D: D3 Booking (календарь/слоты —
-    разбивку показать владельцу) → D4 Light-Finance; параллельно можно P2.4b
-    (featured-оплата как модуль реестра).
+    promotions/0013 из D2a).
+  - D3a — Booking, ядро (✅ в `main`, 6e50811+76555c7, CI run 114 зелёный,
+    миграция booking/0001): apps.booking (TENANT) — Resource (тип, capacity =
+    параллельные записи), AvailabilityRule (недельные окна + шаг слота),
+    ClosedDate, Booking (интервал, party_size, код T-XXXXXX, reminder_sent_at
+    под beat D3c); services.book — anti-double-book (select_for_update на
+    ресурсе + пересечения [start,end) < capacity), отмена освобождает слот;
+    BookingSM (pending→confirmed→fulfilled, cancelled, no_show); модуль
+    «booking» в реестре (recommended: cafe/restaurant/hotel/tour_operator).
+    Урок run 112: тесты дефолтов сверять с default_disabled_for, не хардкодом.
+  - Дальше Track D: D3b публичная запись /termin/ (ресурс → день → свободные
+    слоты → форма) → D3c кабинет-календарь + напоминания (beat) → D4
+    Light-Finance; параллельно можно P2.4b (featured-оплата как модуль).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
