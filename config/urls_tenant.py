@@ -17,6 +17,7 @@ from apps.core.views import (
     domain_remove,
     domain_verify,
     domains_view,
+    modules_view,
     settings_view,
     site_view,
 )
@@ -32,6 +33,8 @@ urlpatterns = [
     path("dashboard/settings/", settings_view, name="settings"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
+    # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
+    path("dashboard/modules/", modules_view, name="modules"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),
     path("dashboard/domains/add/", domain_add, name="domain-add"),

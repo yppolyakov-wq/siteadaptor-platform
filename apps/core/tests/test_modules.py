@@ -155,3 +155,81 @@ def test_gating_skips_public_schema():
     public = _tenant(disabled_modules=["crm"])
     public.schema_name = "public"
     assert _mw_response(public, "/crm/").status_code == 200
+
+
+# --- D0b: дефолты по вертикали + страница «Module» ---------------------------
+
+
+@pytest.mark.parametrize(
+    ("business_type", "disabled"),
+    [
+        ("bakery", {"crm", "analytics", "publishing"}),
+        ("restaurant", {"crm", "analytics", "publishing"}),
+        ("retail", {"crm", "loyalty", "analytics", "publishing"}),
+        ("hotel", {"promotions", "loyalty", "analytics", "publishing"}),
+        ("other", {"crm", "loyalty", "analytics", "publishing"}),
+    ],
+)
+def test_default_disabled_for_vertical(business_type, disabled):
+    assert set(modules.default_disabled_for(business_type)) == disabled
+
+
+def test_default_disabled_never_touches_core():
+    for business_type, _label in [("bakery", ""), ("hotel", ""), ("other", "")]:
+        core = {s.key for s in modules.REGISTRY if s.core}
+        assert core.isdisjoint(modules.default_disabled_for(business_type))
+
+
+@pytest.mark.django_db
+class TestModulesView:
+    def _request(self, tenant, method="get", data=None):
+        from django.contrib.auth import get_user_model
+        from django.contrib.messages.middleware import MessageMiddleware
+        from django.contrib.sessions.middleware import SessionMiddleware
+
+        request = getattr(RequestFactory(), method)("/dashboard/modules/", data or {})
+        SessionMiddleware(lambda r: None).process_request(request)
+        MessageMiddleware(lambda r: None).process_request(request)
+        import uuid
+
+        request.tenant = tenant
+        owner = uuid.uuid4().hex[:8]
+        request.user = get_user_model().objects.create_user(
+            username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+        )
+        return request
+
+    def test_get_lists_registry_with_states(self, settings):
+        settings.ROOT_URLCONF = "config.urls_tenant"
+        from apps.core.views import modules_view
+
+        tenant = TenantFactory(disabled_modules=["crm"])
+        response = modules_view(self._request(tenant))
+        html = response.content.decode()
+        assert "Kunden (CRM)" in html and "Stempelkarten" in html
+        # Core-чекбокс задизейблен, выключенный crm — без checked.
+        assert html.count("disabled") >= 4
+
+    def test_post_writes_disabled_modules(self, settings):
+        settings.ROOT_URLCONF = "config.urls_tenant"
+        from apps.core.views import modules_view
+
+        tenant = TenantFactory(disabled_modules=["crm"])
+        # Владелец оставил только promotions и loyalty.
+        response = modules_view(
+            self._request(tenant, "post", {"modules": ["promotions", "loyalty"]})
+        )
+        assert response.status_code == 302
+        tenant.refresh_from_db()
+        assert set(tenant.disabled_modules) == {"crm", "analytics", "publishing"}
+        # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
+        response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
+        tenant.refresh_from_db()
+        assert set(tenant.disabled_modules) == {
+            "promotions",
+            "crm",
+            "loyalty",
+            "analytics",
+            "publishing",
+        }
+        assert modules.is_module_active(tenant, "catalog")  # core живёт

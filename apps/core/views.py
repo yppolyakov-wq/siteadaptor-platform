@@ -70,6 +70,40 @@ def site_view(request):
 
 
 @login_required
+def modules_view(request):
+    """Страница «Module» (Track D / D0b): тумблеры опциональных блоков кабинета.
+
+    Core-модули показаны задизейбленными; запись — в Tenant.disabled_modules
+    (храним выключенное). Read-only при gated-подписке обеспечивает
+    SubscriptionGatingMiddleware (путь под /dashboard/).
+    """
+    from apps.core import modules as registry
+
+    optional = registry.optional_modules()
+    if request.method == "POST":
+        enabled_keys = set(request.POST.getlist("modules"))
+        request.tenant.disabled_modules = [
+            spec.key for spec in optional if spec.key not in enabled_keys
+        ]
+        request.tenant.save(update_fields=["disabled_modules", "updated_at"])
+        messages.success(request, "Gespeichert.")
+        return redirect("modules")
+
+    dep_labels = {spec.key: spec.label_de for spec in registry.REGISTRY}
+    rows = [
+        {
+            "spec": spec,
+            "active": registry.is_module_active(request.tenant, spec.key),
+            "enabled": spec.core or spec.key not in (request.tenant.disabled_modules or []),
+            "depends_on": [dep_labels[dep] for dep in spec.depends_on],
+            "recommended": request.tenant.business_type in spec.recommended_for,
+        }
+        for spec in registry.REGISTRY
+    ]
+    return render(request, "tenant/modules.html", {"nav": "modules", "rows": rows})
+
+
+@login_required
 def domains_view(request):
     """Список custom-доменов бизнеса + форма добавления и DNS-инструкция."""
     return render(

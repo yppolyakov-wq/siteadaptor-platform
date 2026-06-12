@@ -12,6 +12,8 @@ from django.db import transaction
 from django.utils import timezone
 from django_tenants.utils import schema_context, tenant_context
 
+from apps.core import modules
+
 from .models import Domain, Tenant
 
 
@@ -40,6 +42,9 @@ def create_business(*, business_name, slug, business_type, city, email, password
         # Дедлайн триала — основа для beat-просрочки (trial→trial_expired→suspended).
         trial_ends_at=timezone.now() + timedelta(days=settings.BILLING_TRIAL_DAYS),
         enabled_modules=["catalog", "promotions", "publishing"],
+        # Стартовый набор блоков по вертикали (Track D / D0b): нерекомендованные
+        # опциональные модули выключены, владелец включает на /dashboard/modules/.
+        disabled_modules=modules.default_disabled_for(business_type),
         enabled_locales=["de", "en"],
     )
     tenant.save()  # auto_create_schema=True → создаётся схема + миграции TENANT_APPS

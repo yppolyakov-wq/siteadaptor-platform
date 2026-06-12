@@ -30,6 +30,9 @@ def test_create_business_creates_tenant_domain_and_owner():
     try:
         assert tenant.schema_name == "mueller"
         assert tenant.subscription_status == "trial"
+        # D0b: стартовый набор блоков по вертикали (bakery → promotions/loyalty
+        # включены, остальные опциональные выключены).
+        assert sorted(tenant.disabled_modules) == ["analytics", "crm", "publishing"]
         assert Domain.objects.filter(tenant=tenant, is_primary=True).exists()
         assert "mueller." in login_url and login_url.endswith("/accounts/login/")
 

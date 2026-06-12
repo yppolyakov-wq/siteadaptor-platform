@@ -45,6 +45,7 @@ class ModuleSpec:
     recommended_for: tuple[str, ...] = ()  # business_type → стартовый набор (D0b)
     core: bool = False  # выключить нельзя, entitlement не применяется
     premium: bool = False  # требует key в Tenant.enabled_modules (тариф)
+    description_de: str = ""  # «что это даёт» — пояснение на странице «Module» (D0b)
 
 
 REGISTRY: tuple[ModuleSpec, ...] = (
@@ -55,6 +56,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("dashboard", _("Dashboard"), "dashboard"),),
         url_prefixes=("/dashboard/",),
         core=True,
+        description_de="Überblick über Ihr Geschäft.",
     ),
     ModuleSpec(
         key="catalog",
@@ -67,6 +69,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         ),
         url_prefixes=("/catalog/", "/imports/"),
         core=True,
+        description_de="Produkte und Kategorien pflegen, Import aus CSV/Excel.",
     ),
     ModuleSpec(
         key="promotions",
@@ -88,6 +91,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "clothing",
             "other",
         ),
+        description_de="Aktionen erstellen, Reservierungen annehmen und im Laden einlösen.",
     ),
     ModuleSpec(
         key="crm",
@@ -96,6 +100,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("crm:customer-list", _("Customers"), "crm"),),
         url_prefixes=("/crm/",),
         recommended_for=("hotel", "tour_operator"),
+        description_de="Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie.",
     ),
     ModuleSpec(
         key="loyalty",
@@ -108,6 +113,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=("/promotions/vouchers/", "/promotions/loyalty/"),
         depends_on=("promotions",),
         recommended_for=("bakery", "butcher", "grocery", "cafe", "restaurant"),
+        description_de="Gutscheine und Stempelkarten für Stammkunden.",
     ),
     ModuleSpec(
         key="analytics",
@@ -116,6 +122,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("promotions:analytics", _("Analytics"), "analytics"),),
         url_prefixes=("/promotions/analytics/",),
         depends_on=("promotions",),
+        description_de="Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen.",
     ),
     ModuleSpec(
         key="publishing",
@@ -123,6 +130,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         icon="📣",
         nav_items=(NavItem("channels", _("Channels"), "channels"),),
         url_prefixes=("/dashboard/channels/",),
+        description_de="Aktionen automatisch auf Kanälen veröffentlichen (z. B. Google).",
     ),
     ModuleSpec(
         key="settings",
@@ -132,9 +140,16 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             NavItem("site", _("Site"), "site"),
             NavItem("settings", _("Settings"), "settings"),
             NavItem("domains", _("Domains"), "domains"),
+            NavItem("modules", _("Modules"), "modules"),
         ),
-        url_prefixes=("/dashboard/site/", "/dashboard/settings/", "/dashboard/domains/"),
+        url_prefixes=(
+            "/dashboard/site/",
+            "/dashboard/settings/",
+            "/dashboard/domains/",
+            "/dashboard/modules/",
+        ),
         core=True,
+        description_de="Einstellungen, Website-Baukasten, Domains, Module.",
     ),
     ModuleSpec(
         key="billing",
@@ -143,6 +158,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("billing", _("Billing"), "billing"),),
         url_prefixes=("/dashboard/billing/",),
         core=True,
+        description_de="Abo und Zahlung.",
     ),
 )
 
@@ -176,6 +192,20 @@ def is_module_active(tenant, key: str) -> bool:
 
 def active_modules(tenant) -> list[ModuleSpec]:
     return [spec for spec in REGISTRY if is_module_active(tenant, spec.key)]
+
+
+def optional_modules() -> list[ModuleSpec]:
+    """Выключаемые модули (для тумблеров страницы «Module»)."""
+    return [spec for spec in REGISTRY if not spec.core]
+
+
+def default_disabled_for(business_type: str) -> list[str]:
+    """Стартовый disabled_modules при онбординге (D0b): опциональные −
+    рекомендованные-для-вертикали (recommended_for). Лёгкий старт — лишние
+    блоки владелец добавляет позже на /dashboard/modules/."""
+    return [
+        spec.key for spec in REGISTRY if not spec.core and business_type not in spec.recommended_for
+    ]
 
 
 def module_for_path(path: str) -> ModuleSpec | None:
