@@ -19,6 +19,7 @@ from apps.core.views import (
     domains_view,
     modules_view,
     settings_view,
+    setup_view,
     site_view,
 )
 from apps.promotions import public_views
@@ -30,6 +31,8 @@ urlpatterns = [
     path("health/ready/", health.readiness, name="health-ready"),
     # --- Кабинет владельца (под логином) ---
     path("dashboard/", dashboard, name="dashboard"),
+    # Onboarding-Wizard (Track D / D0c): пошаговая настройка после регистрации.
+    path("dashboard/setup/", setup_view, name="setup"),
     path("dashboard/settings/", settings_view, name="settings"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),

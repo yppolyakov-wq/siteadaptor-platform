@@ -3,6 +3,13 @@
 {% block dash_title %}{% trans "Dashboard" %}{% endblock %}
 
 {% block dash_content %}
+{% if not setup_completed %}
+  {# Setup-Fortschritt (Track D / D0c): чеклист-плашка, пока мастер не пройден. #}
+  <a href="{% url 'setup' %}" class="block mb-4 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 hover:bg-indigo-100">
+    <span class="text-sm font-medium text-indigo-800">Setup-Fortschritt: {{ setup_done }}/{{ setup_total }} — weiter einrichten →</span>
+    <span class="block mt-2 h-1.5 bg-indigo-100 rounded-full"><span class="block h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio setup_done setup_total 100 %}%"></span></span>
+  </a>
+{% endif %}
 <h1 class="text-2xl font-bold mb-2">{% trans "Welcome" %} 👋</h1>
 <p class="text-gray-600">
   {% blocktrans with status=request.tenant.subscription_status %}

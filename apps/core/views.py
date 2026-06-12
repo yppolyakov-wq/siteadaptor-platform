@@ -15,7 +15,86 @@ from apps.tenants.models import CustomDomain
 @login_required
 def dashboard(request):
     """Главная кабинета владельца."""
-    return render(request, "tenant/dashboard.html", {"nav": "dashboard"})
+    from apps.tenants import onboarding
+
+    setup_done, setup_total = onboarding.progress(request.tenant)
+    return render(
+        request,
+        "tenant/dashboard.html",
+        {
+            "nav": "dashboard",
+            "setup_done": setup_done,
+            "setup_total": setup_total,
+            "setup_completed": onboarding.get_state(request.tenant)["completed"],
+        },
+    )
+
+
+@login_required
+def setup_view(request):
+    """Onboarding-Wizard (Track D / D0c): пошаговая настройка после регистрации.
+
+    ≤5 шагов, одно решение на шаг, «Überspringen» на каждом; состояние в
+    Tenant.site_config["onboarding"] (apps.tenants.onboarding) — мастер
+    резюмируется с текущего шага.
+    """
+    from apps.core import modules as registry
+    from apps.promotions import presets
+    from apps.tenants import onboarding
+    from apps.tenants.models import Tenant
+
+    tenant = request.tenant
+    state = onboarding.get_state(tenant)
+    step = state["step"]
+
+    if request.method == "POST":
+        if request.POST.get("action") == "skip":
+            onboarding.advance(tenant, skip=True)
+            return redirect("setup")
+        if step == 1:
+            business_type = request.POST.get("business_type", "")
+            if business_type in dict(Tenant.BUSINESS_TYPES):
+                tenant.business_type = business_type
+                # Предвыбор блоков по вертикали — шаг 2 покажет его тумблерами.
+                tenant.disabled_modules = registry.default_disabled_for(business_type)
+                tenant.save(update_fields=["business_type", "disabled_modules", "updated_at"])
+        elif step == 2:
+            enabled_keys = set(request.POST.getlist("modules"))
+            tenant.disabled_modules = [
+                spec.key for spec in registry.optional_modules() if spec.key not in enabled_keys
+            ]
+            tenant.save(update_fields=["disabled_modules", "updated_at"])
+        elif step == 3:
+            for field in ("address", "opening_hours", "contact_phone", "contact_email"):
+                setattr(tenant, field, request.POST.get(field, "").strip())
+            tenant.save(
+                update_fields=[
+                    "address",
+                    "opening_hours",
+                    "contact_phone",
+                    "contact_email",
+                    "updated_at",
+                ]
+            )
+        # Шаг 4 — кнопки пресетов уводят в форму акции; «Weiter» просто двигает дальше.
+        onboarding.advance(tenant)
+        return redirect("setup")
+
+    context = {"nav": "dashboard", "step": step, "total": onboarding.TOTAL_STEPS, "state": state}
+    if step == 1:
+        context["business_types"] = Tenant.BUSINESS_TYPES
+    elif step == 2:
+        context["module_rows"] = [
+            {
+                "spec": spec,
+                "enabled": spec.key not in (tenant.disabled_modules or []),
+                "recommended": tenant.business_type in spec.recommended_for,
+            }
+            for spec in registry.optional_modules()
+        ]
+    elif step == 4:
+        context["presets"] = presets.presets_for(tenant.business_type)
+    return render(request, "tenant/setup.html", context)
 
 
 @login_required
@@ -46,6 +125,12 @@ def site_view(request):
         config = {"sections": [{"key": key, "enabled": on} for _o, key, on in rows]}
         for field in siteconfig.TEXT_FIELDS:
             config[field] = request.POST.get(field, "")
+        # Не затираем состояние Onboarding-Wizard (D0c) — оно в том же JSON.
+        previous = (
+            request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+        )
+        if isinstance(previous.get("onboarding"), dict):
+            config["onboarding"] = previous["onboarding"]
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=["site_config", "updated_at"])
         messages.success(request, "Gespeichert.")

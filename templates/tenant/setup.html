@@ -1,0 +1,97 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Setup" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-xl">
+  <p class="text-xs text-gray-400 mb-2">{% blocktrans %}Step {{ step }} of {{ total }}{% endblocktrans %}</p>
+  <div class="h-1.5 bg-gray-200 rounded-full mb-6" role="progressbar" aria-valuenow="{{ step }}" aria-valuemin="1" aria-valuemax="{{ total }}">
+    <div class="h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio step total 100 %}%"></div>
+  </div>
+
+  {% if step == 1 %}
+    <h1 class="text-2xl font-bold mb-1">Was machst du?</h1>
+    <p class="text-sm text-gray-500 mb-4">Wir schlagen dir die passenden Bausteine vor.</p>
+    <form method="post" class="space-y-2">
+      {% csrf_token %}
+      {% for value, label in business_types %}
+        <label class="flex items-center gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer hover:ring-1 hover:ring-indigo-300">
+          <input type="radio" name="business_type" value="{{ value }}"
+                 {% if request.tenant.business_type == value %}checked{% endif %} class="border-gray-300">
+          <span class="text-sm font-medium">{{ label }}</span>
+        </label>
+      {% endfor %}
+      {% include "tenant/_setup_buttons.html" %}
+    </form>
+
+  {% elif step == 2 %}
+    <h1 class="text-2xl font-bold mb-1">Was willst du anbieten?</h1>
+    <p class="text-sm text-gray-500 mb-4">Du kannst Bausteine später jederzeit unter „Modules“ ändern.</p>
+    <form method="post" class="space-y-2">
+      {% csrf_token %}
+      {% for row in module_rows %}
+        <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer">
+          <input type="checkbox" name="modules" value="{{ row.spec.key }}" {% if row.enabled %}checked{% endif %}
+                 class="mt-1 rounded border-gray-300">
+          <span>
+            <span class="text-sm font-medium">{{ row.spec.icon }} {{ row.spec.label_de }}</span>
+            {% if row.recommended %}<span class="ml-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Recommended" %}</span>{% endif %}
+            <span class="block text-xs text-gray-500 mt-0.5">{{ row.spec.description_de }}</span>
+          </span>
+        </label>
+      {% endfor %}
+      {% include "tenant/_setup_buttons.html" %}
+    </form>
+
+  {% elif step == 3 %}
+    <h1 class="text-2xl font-bold mb-1">Die Basics</h1>
+    <p class="text-sm text-gray-500 mb-4">Adresse und Öffnungszeiten erscheinen auf deiner Website.</p>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_address">Adresse</label>
+        <textarea id="id_address" name="address" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ request.tenant.address }}</textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_opening_hours">Öffnungszeiten</label>
+        <textarea id="id_opening_hours" name="opening_hours" rows="3" placeholder="Mo–Fr 8–18 Uhr&#10;Sa 8–13 Uhr" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ request.tenant.opening_hours }}</textarea>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_contact_phone">Telefon</label>
+          <input id="id_contact_phone" name="contact_phone" type="text" value="{{ request.tenant.contact_phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_contact_email">E-Mail</label>
+          <input id="id_contact_email" name="contact_email" type="email" value="{{ request.tenant.contact_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+      </div>
+      {% include "tenant/_setup_buttons.html" %}
+    </form>
+
+  {% elif step == 4 %}
+    <h1 class="text-2xl font-bold mb-1">Dein erster Inhalt</h1>
+    <p class="text-sm text-gray-500 mb-4">Starte mit einer typischen Aktion — ein Klick, fertig ausgefüllt.</p>
+    <div class="space-y-2 mb-4">
+      {% for p in presets %}
+        <a href="{% url 'promotions:promotion-create' %}?preset={{ p.key }}"
+           class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ p.label }} →</a>
+      {% endfor %}
+      <a href="{% url 'catalog:product-create' %}"
+         class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">Produkt anlegen →</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% include "tenant/_setup_buttons.html" %}
+    </form>
+
+  {% else %}
+    <h1 class="text-2xl font-bold mb-1">Geschafft! 🎉</h1>
+    <p class="text-sm text-gray-500 mb-4">Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen.</p>
+    <div class="flex gap-3">
+      <a href="{% url 'dashboard' %}" class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700">Zum Dashboard</a>
+      <a href="{% url 'modules' %}" class="text-sm text-indigo-600 px-3 py-2.5 hover:underline">Module ansehen</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

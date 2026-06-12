@@ -9,6 +9,7 @@ site_config = {
     "sections": [{"key": "promotions", "enabled": true}, ...],  # в порядке показа
     "hero_title": "...", "hero_text": "...",
     "about_title": "...", "about_text": "...",
+    "onboarding": {...},  # состояние Onboarding-Wizard (D0c, apps.tenants.onboarding)
 }
 """
 
@@ -53,6 +54,10 @@ def normalize(config) -> dict:
     for field in TEXT_FIELDS:
         value = config.get(field, "")
         normalized[field] = value.strip() if isinstance(value, str) else ""
+    # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
+    # конструктора не должно его затирать.
+    if isinstance(config.get("onboarding"), dict):
+        normalized["onboarding"] = config["onboarding"]
     return normalized
 
 
