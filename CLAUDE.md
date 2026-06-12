@@ -196,6 +196,23 @@ Python 3.12, менеджер uv.
     `Customer.tags`; tags/crm_notes — в DSGVO-экспорте/стирании.
   - **Track C завершён (C1–C3), весь в `main`.** Нужен деплой (миграции
     tenants/0006, promotions/0011, crm/0001). Дальше — возврат к плану: P2.3d.
+- **Track D — Business OS (в работе; ТЗ — ветка claude/peaceful-cerf-bgifg8,
+  код по решению владельца 2026-06-12 пишет эта сессия):**
+  - D0a (✅ в `main`, 008a3f7, CI run 96 зелёный, миграция tenants/0007):
+    реестр модулей кабинета `apps/core/modules.py` (ModuleSpec: nav_items,
+    url_prefixes, depends_on, recommended_for, core/premium; core: dashboard/
+    catalog+imports/settings/billing) + `Tenant.disabled_modules` (выбор
+    владельца; формула «Активно = (entitlement ∩ реестр) − disabled», core —
+    всегда; loyalty/analytics зависят от promotions); навигация кабинета из
+    реестра (CP `apps.core.context.modules_nav`, `_base_dashboard.html` —
+    цикл вместо 16 хардкод-ссылок); `ModuleGatingMiddleware` — путь
+    неактивного модуля → 404, матчинг по самому длинному префиксу.
+    Отступление от ТЗ: entitlement (`enabled_modules`) применяется только к
+    premium-модулям (пока таких нет) — иначе строгое пересечение выключило бы
+    loyalty/analytics/crm у существующих тенантов.
+  - Дальше: D0b (дефолты по business_type + `/dashboard/modules/`) → D0c
+    (Onboarding-Wizard ≤5 шагов) → D1 CRM-lite (поверх apps/crm) → D2
+    Click&Collect → D3 Booking → D4 Light-Finance.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
