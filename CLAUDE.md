@@ -227,9 +227,16 @@ Python 3.12, менеджер uv.
     (`apps/tenants/onboarding.py`; siteconfig.normalize и site_view ключ
     сохраняют); плашка «Setup-Fortschritt N/5» на дашборде до завершения.
   - **D0 завершён (a–c), весь в `main`** (миграция только tenants/0007 из D0a).
-    Дальше Track D: D1 CRM-lite (поверх apps/crm) → D2 Click&Collect →
-    D3 Booking → D4 Light-Finance; параллельно можно P2.4b (featured-оплата
-    как модуль реестра).
+  - **D1 CRM-lite (✅ в `main`, b27c1d1+c57e5c4, CI runs 102/103 зелёные,
+    миграция promotions/0012):** дельта поверх Track C3 (список/карточка/
+    заметки/теги уже были): `Customer.marketing_opt_in` (UWG §7, чекбокс в
+    форме, DSGVO-экспорт, стирание отзывает согласие) + `created_source`
+    (reservation/manual/import/order; ручное создание → manual); карточка 360°
+    — блок карт лояльности; `/crm/export.csv` (фильтр ?q= общий со списком).
+    Ваучеры в 360° отложены: Voucher не связан с клиентом (standalone-коды).
+  - Дальше Track D: D2 Click&Collect (D2a — ветка claude/track-d2a-orders,
+    ждёт CI) → D2b кабинет заказов → D3 Booking → D4 Light-Finance;
+    параллельно можно P2.4b (featured-оплата как модуль реестра).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
