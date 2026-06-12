@@ -1,0 +1,13 @@
+Hallo {{ customer.name }},
+
+vielen Dank für Ihre Bestellung! Wir melden uns, sobald sie bestätigt ist.
+
+{% for item in items %}{{ item.qty }}× {{ item.title_snapshot }} — {{ item.line_total }} {{ order.currency }}
+{% endfor %}Gesamt: {{ order.total }} {{ order.currency }}
+Abhol-Code: {{ order.reference_code }}
+
+Bezahlt wird bei der Abholung im Laden.
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

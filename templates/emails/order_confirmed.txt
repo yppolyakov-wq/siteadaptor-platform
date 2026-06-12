@@ -1,0 +1,9 @@
+Hallo {{ customer.name }},
+
+Ihre Bestellung wurde bestätigt. Wir geben Bescheid, sobald sie abholbereit ist.
+
+Abhol-Code: {{ order.reference_code }}
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

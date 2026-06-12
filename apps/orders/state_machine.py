@@ -1,7 +1,7 @@
 """FSM заказа Click & Collect (Track D / D2). База — apps.core.fsm.
 
 new → confirmed → ready → picked_up; отмена — из любого незавершённого статуса.
-Внешние эффекты (письма клиенту по статусам) — D2b, через notifications dedupe.
+Каждый переход шлёт письмо клиенту через notifications dedupe (D2b).
 """
 
 from apps.core.fsm import StateMachine, Transition
@@ -16,3 +16,8 @@ class OrderSM(StateMachine):
         Transition("ready", "picked_up", "order.picked_up"),
         Transition("ready", "cancelled", "order.cancelled"),
     ]
+
+    def on_transition(self, instance, t, **kw):
+        from .notifications import enqueue_order_email
+
+        enqueue_order_email(instance, t.dst)

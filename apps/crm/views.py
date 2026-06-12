@@ -110,6 +110,8 @@ def customer_detail(request, pk):
             "reservations": reservations,
             # 360° (D1b): карты лояльности — readonly-справка.
             "loyalty_cards": customer.loyalty_cards.select_related("program"),
+            # 360° (D2b): заказы Click & Collect.
+            "orders": customer.orders.prefetch_related("items").order_by("-created_at")[:20],
         },
     )
 

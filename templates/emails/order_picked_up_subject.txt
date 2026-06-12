@@ -1,0 +1,1 @@
+Danke für Ihren Einkauf! — {{ order.reference_code }}

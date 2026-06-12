@@ -1,0 +1,65 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{{ order.reference_code }}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'orders:order-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Orders" %}</a>
+<div class="flex items-center gap-3 mt-1 mb-4">
+  <h1 class="text-2xl font-bold">{{ order.reference_code }}</h1>
+  <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ order.get_status_display }}</span>
+  {% if order.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>{% endif %}
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid lg:grid-cols-2 gap-6 items-start">
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="font-semibold mb-3">{% trans "Items" %}</h2>
+    <div class="divide-y divide-gray-100 border-y border-gray-100 mb-3">
+      {% for item in items %}
+        <div class="flex items-center justify-between py-2 text-sm">
+          <span>{{ item.qty }}× {{ item.title_snapshot }}</span>
+          <span>{{ item.line_total }} {{ order.currency }}</span>
+        </div>
+      {% endfor %}
+      <div class="flex items-center justify-between py-2 font-bold">
+        <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
+      </div>
+    </div>
+    {% if order.note %}<p class="text-sm text-gray-600 whitespace-pre-line">📝 {{ order.note }}</p>{% endif %}
+    <p class="text-xs text-gray-400 mt-2">{{ order.created_at }}{% if order.source_channel %} · {{ order.source_channel }}{% endif %}</p>
+  </div>
+
+  <div class="space-y-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h2 class="font-semibold mb-3">{% trans "Customer" %}</h2>
+      <p class="text-sm font-medium">{{ order.customer }}</p>
+      {% if order.customer.email %}<p class="text-sm text-gray-500">{{ order.customer.email }}</p>{% endif %}
+      {% if order.customer.phone %}<p class="text-sm text-gray-500">{{ order.customer.phone }}</p>{% endif %}
+      <a href="{% url 'crm:customer-detail' order.customer.pk %}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h2 class="font-semibold mb-3">{% trans "Actions" %}</h2>
+      <form method="post" action="{% url 'orders:order-action' order.pk %}" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        {% for target in allowed_targets %}
+          <button type="submit" name="action" value="{{ target }}"
+                  class="text-sm font-medium rounded-lg px-4 py-2 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
+            {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready for pickup" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% else %}{% trans "Cancel" %}{% endif %}
+          </button>
+        {% endfor %}
+        {% if order.payment_state != 'paid' %}
+          <button type="submit" name="action" value="mark_paid"
+                  class="text-sm font-medium rounded-lg px-4 py-2 border border-gray-300 hover:border-indigo-400">{% trans "Mark as paid" %}</button>
+        {% endif %}
+      </form>
+      <p class="text-xs text-gray-400 mt-3">{% trans "The customer gets an email on every status change." %}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

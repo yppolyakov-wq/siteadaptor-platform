@@ -69,6 +69,22 @@
     {% endfor %}
   </div>
 
+  {# Заказы Click & Collect (D2b, 360°): ведение — в кабинете Orders. #}
+  {% if orders %}
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="font-semibold mb-3">{% trans "Orders" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
+    {% for o in orders %}
+      <a href="{% url 'orders:order-detail' o.pk %}" class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
+        <div class="min-w-0">
+          <p class="text-sm font-medium">{{ o.reference_code }} · {{ o.total }} {{ o.currency }}</p>
+          <p class="text-xs text-gray-400 truncate">{% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        </div>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 shrink-0">{{ o.get_status_display }}</span>
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   {# Карты лояльности клиента (D1b, 360°): readonly-справка, начисление — в Loyalty. #}
   <div class="bg-white rounded-2xl shadow-sm p-6">
     <h2 class="font-semibold mb-3">{% trans "Loyalty" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>

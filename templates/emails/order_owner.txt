@@ -1,0 +1,9 @@
+Neue Click-&-Collect-Bestellung!
+
+Kunde: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}
+{% for item in items %}{{ item.qty }}× {{ item.title_snapshot }} — {{ item.line_total }} {{ order.currency }}
+{% endfor %}Gesamt: {{ order.total }} {{ order.currency }}
+Code: {{ order.reference_code }}
+{% if order.note %}Notiz: {{ order.note }}{% endif %}
+
+Bestellung im Dashboard bestätigen: /dashboard/orders/

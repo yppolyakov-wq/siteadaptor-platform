@@ -1,0 +1,1 @@
+Bestellung bestätigt — {{ order.reference_code }}

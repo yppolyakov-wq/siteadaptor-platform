@@ -1,0 +1,50 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Orders" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3">
+  <h1 class="text-2xl font-bold">{% trans "Orders" %}</h1>
+  <form method="get">
+    <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="">{% trans "All statuses" %}</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if orders %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+  {% for o in orders %}
+    <a href="{% url 'orders:order-detail' o.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+      <div class="min-w-0">
+        <p class="font-medium">{{ o.reference_code }} · {{ o.customer }}</p>
+        <p class="text-xs text-gray-400 truncate">
+          {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-sm font-medium">{{ o.total }} {{ o.currency }}</span>
+        {% if o.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>{% endif %}
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full
+          {% if o.status == 'picked_up' %}bg-gray-100 text-gray-600
+          {% elif o.status == 'ready' %}bg-indigo-100 text-indigo-800
+          {% elif o.status == 'confirmed' %}bg-green-100 text-green-800
+          {% elif o.status == 'new' %}bg-amber-100 text-amber-800
+          {% else %}bg-red-50 text-red-600{% endif %}">{{ o.get_status_display }}</span>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">{% trans "No orders yet. Customers order from your product pages." %}</p>
+{% endif %}
+{% endblock %}

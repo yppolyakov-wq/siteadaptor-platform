@@ -1,0 +1,1 @@
+Abholbereit! — {{ order.reference_code }}

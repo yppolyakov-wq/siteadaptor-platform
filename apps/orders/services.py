@@ -81,4 +81,9 @@ def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, 
         total += unit_price * qty
     order.total = total
     order.save(update_fields=["total", "updated_at"])
+    # письма клиенту/владельцу — Notification в этой же транзакции,
+    # доставка после коммита (D2b)
+    from .notifications import enqueue_order_email
+
+    enqueue_order_email(order, "created")
     return order

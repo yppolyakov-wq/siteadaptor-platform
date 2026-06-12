@@ -1,0 +1,8 @@
+Hallo {{ customer.name }},
+
+Ihre Bestellung {{ order.reference_code }} wurde leider storniert.
+Bei Fragen melden Sie sich gern direkt im Laden.
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}
