@@ -221,13 +221,14 @@ class TestModulesView:
         )
         assert response.status_code == 302
         tenant.refresh_from_db()
-        assert set(tenant.disabled_modules) == {"crm", "analytics", "publishing"}
+        assert set(tenant.disabled_modules) == {"crm", "orders", "analytics", "publishing"}
         # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
         response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
         tenant.refresh_from_db()
         assert set(tenant.disabled_modules) == {
             "promotions",
             "crm",
+            "orders",
             "loyalty",
             "analytics",
             "publishing",
