@@ -52,10 +52,7 @@ def journal(request):
             messages.success(request, _("Entry added."))
         return redirect("finance:journal")
 
-    today = timezone.localdate()
-    von = _parse_date(request.GET.get("von"), today.replace(day=1))
-    bis = _parse_date(request.GET.get("bis"), today)
-    entries = RevenueEntry.objects.filter(date__gte=von, date__lte=bis).select_related("customer")
+    von, bis, entries = _period_entries(request)
     by_vat = entries.values("vat_rate").annotate(sum=Sum("amount")).order_by("-vat_rate")
     return render(
         request,
@@ -68,9 +65,50 @@ def journal(request):
             "total": entries.aggregate(s=Sum("amount"))["s"] or Decimal("0"),
             "by_vat": by_vat,
             "vat_rates": RevenueEntry.VAT_RATES,
-            "today": today,
+            "today": timezone.localdate(),
         },
     )
+
+
+def _period_entries(request):
+    """(von, bis, queryset) по ?von=&bis= — общий фильтр журнала и экспортов."""
+    today = timezone.localdate()
+    von = _parse_date(request.GET.get("von"), today.replace(day=1))
+    bis = _parse_date(request.GET.get("bis"), today)
+    entries = RevenueEntry.objects.filter(date__gte=von, date__lte=bis).select_related("customer")
+    return von, bis, entries
+
+
+@login_required
+def journal_export_csv(request):
+    """Обычный CSV за период (D4c); utf-8-sig — чтобы Excel понял умляуты."""
+    from django.http import HttpResponse
+
+    from .exports import plain_csv
+
+    von, bis, entries = _period_entries(request)
+    response = HttpResponse(
+        plain_csv(entries.order_by("date")).encode("utf-8-sig"),
+        content_type="text/csv; charset=utf-8",
+    )
+    response["Content-Disposition"] = f'attachment; filename="umsatz_{von}_{bis}.csv"'
+    return response
+
+
+@login_required
+def journal_export_datev(request):
+    """DATEV-CSV за период (D4c): упрощённый Buchungsstapel, cp1252."""
+    from django.http import HttpResponse
+
+    from .exports import datev_csv
+
+    von, bis, entries = _period_entries(request)
+    response = HttpResponse(
+        datev_csv(entries.order_by("date")).encode("cp1252", errors="replace"),
+        content_type="text/csv; charset=windows-1252",
+    )
+    response["Content-Disposition"] = f'attachment; filename="datev_{von}_{bis}.csv"'
+    return response
 
 
 @login_required
