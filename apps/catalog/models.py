@@ -67,6 +67,13 @@ class Product(SoftDeleteMixin, I18nMixin):
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
 
+    # Lebensmittel-Kennzeichnung (LMIV, R4): аллергены (коды из apps.catalog.food),
+    # происхождение и список ингредиентов. Заполняется для еды; на витрине
+    # показывается только при наличии.
+    allergens = models.JSONField(default=list, blank=True)
+    origin = models.CharField(max_length=120, blank=True)
+    ingredients = models.TextField(blank=True)
+
     metadata = models.JSONField(default=dict, blank=True)
 
     class Meta:
@@ -95,3 +102,10 @@ class Product(SoftDeleteMixin, I18nMixin):
             if img.get("is_primary"):
                 return img
         return imgs[0] if imgs else None
+
+    @property
+    def allergen_labels(self) -> list[str]:
+        """Подписи аллергенов (DE) для витрины — из кодов self.allergens."""
+        from .food import allergen_labels
+
+        return allergen_labels(self.allergens)

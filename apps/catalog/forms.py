@@ -6,6 +6,7 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from .food import ALLERGENS
 from .models import Category, Product
 
 
@@ -100,6 +101,13 @@ class ProductForm(forms.ModelForm):
     description_en = forms.CharField(
         label=_("Description (EN)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
     )
+    # Lebensmittel-Kennzeichnung (LMIV, R4): аллергены чекбоксами (JSONField на модели).
+    allergens = forms.MultipleChoiceField(
+        label=_("Allergens"),
+        choices=ALLERGENS,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     class Meta:
         model = Product
@@ -109,6 +117,8 @@ class ProductForm(forms.ModelForm):
             "currency",
             "sku",
             "stock_quantity",
+            "origin",
+            "ingredients",
             "is_active",
             "is_featured",
         ]
@@ -123,6 +133,7 @@ class ProductForm(forms.ModelForm):
             self.fields["name_en"].initial = (self.instance.name or {}).get("en", "")
             self.fields["description_de"].initial = (self.instance.description or {}).get("de", "")
             self.fields["description_en"].initial = (self.instance.description or {}).get("en", "")
+            self.fields["allergens"].initial = list(self.instance.allergens or [])
 
     def clean_base_price(self):
         price = self.cleaned_data["base_price"]
@@ -140,6 +151,7 @@ class ProductForm(forms.ModelForm):
             "de": self.cleaned_data.get("description_de", ""),
             "en": self.cleaned_data.get("description_en", ""),
         }
+        product.allergens = self.cleaned_data.get("allergens", [])
         if commit:
             product.save()
         return product
