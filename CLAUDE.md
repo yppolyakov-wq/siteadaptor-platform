@@ -243,8 +243,16 @@ Python 3.12, менеджер uv.
     `/bestellung/<code>/`; Customer reuse по email, новый → created_source=
     order; модуль «orders» в реестре (recommended: bakery/butcher/grocery/
     retail/clothing). Решения ТЗ: v1 без stock и без онлайн-оплаты.
-  - Дальше Track D: D2b кабинет заказов (список/статусы/письма, nav «Orders»,
-    заказы в 360°) → D3 Booking → D4 Light-Finance; параллельно можно P2.4b
+  - D2b — кабинет заказов (✅ в `main`, 86aefce, CI run 110 зелёный, без
+    миграций): `/dashboard/orders/` (nav «Orders» из реестра) — список с
+    фильтром по статусу, карточка (позиции/итог/клиент), действия Confirm/
+    Ready/Picked up/Cancel (кнопки из `allowed_targets`) + «Mark as paid»;
+    письма клиенту на created и каждый переход (`OrderSM.on_transition` →
+    `enqueue_order_email`, дедуп `order:{id}:{event}:{role}`), владельцу — на
+    новый заказ; DE-шаблоны `emails/order_*.txt`; блок «Orders» в 360° CRM.
+  - **D2 завершён (a–b), весь в `main`** (миграции orders/0001 +
+    promotions/0013 из D2a). Дальше Track D: D3 Booking (календарь/слоты —
+    разбивку показать владельцу) → D4 Light-Finance; параллельно можно P2.4b
     (featured-оплата как модуль реестра).
 
 ## 4. Маршруты
