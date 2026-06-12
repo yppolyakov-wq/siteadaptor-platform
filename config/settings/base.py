@@ -305,6 +305,11 @@ BILLING_GRACE_DAYS = env.int("BILLING_GRACE_DAYS", default=7)
 # BILLING_FEATURED_PRICES="7=900,14=1500,30=2500".
 BILLING_FEATURED_PRICES = env.dict("BILLING_FEATURED_PRICES", default={})
 
+# P2.5 Stripe Connect: application fee платформы ПО ТИПУ БИЗНЕСА (%, дефолт 0 для
+# всех — настройка существует, монетизацию включаем позже). Ключ "" — дефолт для
+# всех типов. Формат env: BILLING_APPLICATION_FEE_PERCENT="hotel=3,tour_operator=5".
+BILLING_APPLICATION_FEE_PERCENT = env.dict("BILLING_APPLICATION_FEE_PERCENT", default={})
+
 # ---------------------------------------------------------------------------
 # Google OAuth (адаптер Google Business Profile, Track B1)
 # ---------------------------------------------------------------------------
