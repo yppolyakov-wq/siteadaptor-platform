@@ -261,8 +261,13 @@ Python 3.12, менеджер uv.
     BookingSM (pending→confirmed→fulfilled, cancelled, no_show); модуль
     «booking» в реестре (recommended: cafe/restaurant/hotel/tour_operator).
     Урок run 112: тесты дефолтов сверять с default_disabled_for, не хардкодом.
-  - Дальше Track D: D3b публичная запись /termin/ (ресурс → день → свободные
-    слоты → форма) → D3c кабинет-календарь + напоминания (beat) → D4
+  - D3b — публичная запись /termin/ (✅ в `main`, 7badd30, CI run 117 зелёный,
+    без миграций): availability.free_slots (сетка правил − ClosedDate −
+    занятость − прошедшее), флоу без JS: ресурс → день (±, горизонт 30 дн.) →
+    слот (?slot= раскрывает форму) → POST buchen (honeypot+rate-limit, слот
+    валидируется по сетке, гонку закрывает services.book) → /t/<code>/;
+    ссылка «Book» в шапке витрины при активном модуле (флаг в CP modules_nav).
+  - Дальше Track D: D3c кабинет-календарь + письма/напоминания (beat) → D4
     Light-Finance; параллельно можно P2.4b (featured-оплата как модуль).
 
 ## 4. Маршруты
