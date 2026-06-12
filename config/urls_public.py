@@ -12,7 +12,7 @@ from django.views.static import serve
 from apps.aggregator import views as aggregator_views
 from apps.billing.webhooks import stripe_webhook
 from apps.core import health
-from apps.tenants.views import BusinessSignupView
+from apps.tenants.views import BusinessSignupView, signup_waiting
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -36,6 +36,8 @@ urlpatterns = [
     path("robots.txt", aggregator_views.robots_txt, name="aggregator-robots"),
     # Онбординг: регистрация бизнеса → создаёт Tenant + Domain + владельца.
     path("", BusinessSignupView.as_view(), name="business-signup"),
+    # Ожидание фонового провижининга: «Ihre Website wird eingerichtet…».
+    path("anmeldung/<slug:slug>/", signup_waiting, name="signup-waiting"),
 ]
 
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).

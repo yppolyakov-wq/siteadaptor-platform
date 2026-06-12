@@ -83,6 +83,22 @@ class Tenant(TenantMixin):
     privacy_policy = models.TextField(blank=True)
     withdrawal_policy = models.TextField(blank=True)
 
+    # Фоновый провижининг (создание PG-схемы ~1 мин — выносится в Celery,
+    # решение владельца 2026-06-12): pending → ready/failed. Существующие
+    # тенанты — ready (default). Витрина/кабинет до ready не работают (схемы
+    # ещё нет), страница ожидания — tenants.views.signup_waiting.
+    PROVISIONING_PENDING = "pending"
+    PROVISIONING_READY = "ready"
+    PROVISIONING_FAILED = "failed"
+    PROVISIONING_STATUSES = [
+        (PROVISIONING_PENDING, "Pending"),
+        (PROVISIONING_READY, "Ready"),
+        (PROVISIONING_FAILED, "Failed"),
+    ]
+    provisioning_status = models.CharField(
+        max_length=10, choices=PROVISIONING_STATUSES, default=PROVISIONING_READY
+    )
+
     # Meta
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

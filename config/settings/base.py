@@ -264,10 +264,19 @@ RESERVATION_PII_RETENTION_DAYS = env.int("RESERVATION_PII_RETENTION_DAYS", defau
 # ---------------------------------------------------------------------------
 _RESEND_API_KEY = env("RESEND_API_KEY", default="")
 ANYMAIL = {"RESEND_API_KEY": _RESEND_API_KEY}
-# Без ключа Resend письма слать нечем → используем консольный бэкенд, иначе
-# любая отправка (напр. верификация email при signup) падает 500.
+# «Свои письма без Resend»: достаточно EMAIL_HOST/USER/PASSWORD в .env.prod —
+# обычный SMTP-бэкенд Django (например, ящик Hostinger; порт 465 → SSL, иначе TLS).
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_SSL = EMAIL_PORT == 465
+EMAIL_USE_TLS = not EMAIL_USE_SSL
+# Приоритет: Resend → SMTP → console (без почты отправка не должна падать 500).
 if _RESEND_API_KEY:
     EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+elif EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@platform.local")

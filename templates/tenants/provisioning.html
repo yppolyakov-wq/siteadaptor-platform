@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if failed %}{% trans "Something went wrong" %}{% else %}{% trans "Setting up your website…" %}{% endif %}{% endblock %}
+
+{% block extra_head %}
+  {% if not failed %}<meta http-equiv="refresh" content="4">{% endif %}
+{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
+    {% if failed %}
+      <h1 class="text-2xl font-bold mb-2">{% trans "Something went wrong" %} 😕</h1>
+      <p class="text-gray-600">{% blocktrans with name=tenant.name %}We couldn't finish setting up "{{ name }}". We're on it — please try again later or contact us.{% endblocktrans %}</p>
+    {% else %}
+      <div class="mx-auto mb-5 h-12 w-12 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" aria-hidden="true"></div>
+      <h1 class="text-2xl font-bold mb-2">{% blocktrans with name=tenant.name %}"{{ name }}" wird eingerichtet…{% endblocktrans %}</h1>
+      <p class="text-gray-600 mb-6">{% trans "This takes about a minute. The page refreshes automatically — you'll also get an email with your sign-in link." %}</p>
+      <ul class="text-left text-sm text-gray-500 space-y-2 max-w-xs mx-auto">
+        <li>✅ {% trans "Account created" %}</li>
+        <li class="animate-pulse">⏳ {% trans "Preparing your database…" %}</li>
+        <li>🌐 {{ tenant.slug }}.siteadaptor.de</li>
+      </ul>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

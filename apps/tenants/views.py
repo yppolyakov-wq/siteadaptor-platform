@@ -1,12 +1,11 @@
 """Публичные вьюхи онбординга (живут в public-схеме, см. urls_public)."""
 
-from django.contrib import messages
-from django.shortcuts import redirect, render
-from django.utils.translation import gettext as _
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from .forms import BusinessSignupForm
-from .services import create_business
+from .models import Tenant
+from .services import login_url_for, start_business_provisioning
 
 
 class BusinessSignupView(View):
@@ -21,7 +20,9 @@ class BusinessSignupView(View):
             return render(request, self.template_name, {"form": form})
 
         cd = form.cleaned_data
-        tenant, login_url = create_business(
+        # Мгновенный ответ: схема строится в фоне (~1 мин), пользователь ждёт
+        # на странице с автообновлением — UX-решение владельца 2026-06-12.
+        tenant = start_business_provisioning(
             business_name=cd["business_name"],
             slug=cd["slug"],
             business_type=cd["business_type"],
@@ -29,8 +30,22 @@ class BusinessSignupView(View):
             email=cd["email"],
             password=cd["password1"],
         )
-        messages.success(
-            request,
-            _("Business '%(name)s' created. Sign in on your subdomain.") % {"name": tenant.name},
-        )
-        return redirect(login_url)
+        return redirect("signup-waiting", slug=tenant.slug)
+
+
+def signup_waiting(request, slug):
+    """Страница «Ihre Website wird eingerichtet…»: meta-refresh каждые 4 сек,
+    по готовности — редирект на логин субдомена; письмо со ссылкой уходит
+    параллельно (tasks._send_ready_email)."""
+    tenant = get_object_or_404(Tenant, slug=slug)
+    if tenant.provisioning_status == Tenant.PROVISIONING_READY:
+        return redirect(login_url_for(tenant))
+    return render(
+        request,
+        "tenants/provisioning.html",
+        {
+            "tenant": tenant,
+            "failed": tenant.provisioning_status == Tenant.PROVISIONING_FAILED,
+        },
+        status=200,
+    )
