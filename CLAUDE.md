@@ -210,9 +210,18 @@ Python 3.12, менеджер uv.
     Отступление от ТЗ: entitlement (`enabled_modules`) применяется только к
     premium-модулям (пока таких нет) — иначе строгое пересечение выключило бы
     loyalty/analytics/crm у существующих тенантов.
-  - Дальше: D0b (дефолты по business_type + `/dashboard/modules/`) → D0c
-    (Onboarding-Wizard ≤5 шагов) → D1 CRM-lite (поверх apps/crm) → D2
-    Click&Collect → D3 Booking → D4 Light-Finance.
+  - D0b (✅ в `main`, 8dd12f0, CI run 98 зелёный, без миграций): дефолты
+    модулей по вертикали — `modules.default_disabled_for(business_type)`
+    (опциональные − recommended_for; bakery/butcher/grocery/cafe/restaurant →
+    promotions+loyalty, retail/clothing/other → promotions, hotel/tour_operator
+    → crm), `create_business` инициализирует `disabled_modules` (существующие
+    тенанты не затронуты: [] = всё включено); страница `/dashboard/modules/`
+    («Modules» в settings-модуле) — тумблеры опциональных блоков с
+    `description_de`, бейджи Recommended/inactive, подсказка зависимостей,
+    core задизейблены; read-only при gated — существующий SubscriptionGating.
+  - Дальше: D0c (Onboarding-Wizard ≤5 шагов, Setup-Fortschritt,
+    `Tenant.site_config["onboarding"]`) → D1 CRM-lite (поверх apps/crm) →
+    D2 Click&Collect → D3 Booking → D4 Light-Finance.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
