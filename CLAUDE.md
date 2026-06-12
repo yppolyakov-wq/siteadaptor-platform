@@ -234,9 +234,18 @@ Python 3.12, менеджер uv.
     (reservation/manual/import/order; ручное создание → manual); карточка 360°
     — блок карт лояльности; `/crm/export.csv` (фильтр ?q= общий со списком).
     Ваучеры в 360° отложены: Voucher не связан с клиентом (standalone-коды).
-  - Дальше Track D: D2 Click&Collect (D2a — ветка claude/track-d2a-orders,
-    ждёт CI) → D2b кабинет заказов → D3 Booking → D4 Light-Finance;
-    параллельно можно P2.4b (featured-оплата как модуль реестра).
+  - **D2a — Click&Collect, витрина (✅ в `main`, 714140c+55121af+c4b0258,
+    CI run 107 зелёный, миграции orders/0001 + promotions/0013):** apps.orders
+    (TENANT): Order (UUID-pk, customer PROTECT, код O-XXXXXX, payment_state
+    вручную, total/снимки в OrderItem) + OrderSM (new→confirmed→ready→
+    picked_up, +cancelled); витрина — кнопка на странице товара (при активном
+    модуле) → корзина-сессия `/warenkorb/` → checkout (honeypot+rate-limit) →
+    `/bestellung/<code>/`; Customer reuse по email, новый → created_source=
+    order; модуль «orders» в реестре (recommended: bakery/butcher/grocery/
+    retail/clothing). Решения ТЗ: v1 без stock и без онлайн-оплаты.
+  - Дальше Track D: D2b кабинет заказов (список/статусы/письма, nav «Orders»,
+    заказы в 360°) → D3 Booking → D4 Light-Finance; параллельно можно P2.4b
+    (featured-оплата как модуль реестра).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
