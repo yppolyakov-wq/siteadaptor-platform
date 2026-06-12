@@ -306,8 +306,20 @@ Python 3.12, менеджер uv.
     (без цены — записи нет); кабинет `/dashboard/finance/` — журнал за период
     (von/bis, default месяц), итог + разбивка по НДС, ручное добавление.
     Модуль «finance» в реестре: универсальный, по умолчанию выключен.
-    Дальше: D4b Invoice+PDF Rechnung (последовательная нумерация, §19) →
-    D4c DATEV/CSV-экспорт → Track D закрыт; затем P2.4b.
+  - D4b — Rechnung + PDF (✅ в `main`, da8123d, миграции finance/0002 +
+    tenants/0009): Invoice (снимок позиций/получателя §14 UStG, net/vat/gross,
+    InvoiceSM draft→issued→paid + Storno с сохранением номера), InvoiceCounter
+    — номер только при issue под select_for_update (черновики без номера →
+    нумерация без дыр, GoBD), issued иммутабелен; PDF (reportlab, водяной
+    знак STORNIERT); Tenant.small_business (§19, НДС 0 + Hinweis) +
+    tax_number в Settings; кабинет /dashboard/finance/rechnungen/.
+  - D4c — экспорт (✅ в `main`, b6f352d+dae0acf, CI run 132 зелёный, без
+    миграций): кнопки CSV (utf-8-sig) и DATEV в журнале — упрощённый
+    Buchungsstapel (`;`, десятичная запятая, Belegdatum TTMM, cp1252,
+    SKR03: Kasse 1000 → 8400/8300/8195 по ставке), период общий с журналом.
+  - **D4 завершён (a–c) → ВЕСЬ Track D (D0–D4) закрыт, всё в `main`.**
+    Деплой: миграции tenants/0008+0009, finance/0001+0002 (+ всё с прошлого
+    деплоя). Дальше по плану: P2.4b (featured-оплата Stripe) → P2.5.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
