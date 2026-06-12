@@ -42,7 +42,9 @@ def customer_list(request):
 def customer_create(request):
     form = CustomerForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        customer = form.save()
+        customer = form.save(commit=False)
+        customer.created_source = Customer.SOURCE_MANUAL  # D1: источник записи
+        customer.save()
         messages.success(request, _("Customer created."))
         return redirect("crm:customer-detail", pk=customer.pk)
     return render(request, "crm/customer_form.html", {"nav": "crm", "form": form})

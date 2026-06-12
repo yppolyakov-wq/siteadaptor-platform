@@ -31,6 +31,22 @@ class Customer(TimestampedModel):
     note = models.TextField(blank=True)
     tags = models.JSONField(default=list, blank=True)  # ["stammkunde", "vip", …]
 
+    # CRM-lite (Track D / D1): откуда появилась запись и явное согласие на
+    # маркетинг (UWG §7: рассылать можно только при opt-in; one-click отписка
+    # unsubscribed — отдельный флаг и работает поверх).
+    SOURCE_RESERVATION = "reservation"
+    SOURCE_MANUAL = "manual"
+    SOURCE_IMPORT = "import"
+    CREATED_SOURCES = [
+        (SOURCE_RESERVATION, "Reservation"),
+        (SOURCE_MANUAL, "Manual"),
+        (SOURCE_IMPORT, "Import"),
+    ]
+    created_source = models.CharField(
+        max_length=20, choices=CREATED_SOURCES, default=SOURCE_RESERVATION
+    )
+    marketing_opt_in = models.BooleanField(default=False)
+
     # быстрая отписка от писем (one-click): токен в ссылке + флаг
     unsubscribed = models.BooleanField(default=False)
     unsubscribe_token = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)

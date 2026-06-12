@@ -104,3 +104,32 @@ def test_customer_without_reservation_is_fine():
     body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
     assert body.status_code == 200
     assert "Frei Stehend" in body.content.decode()
+
+
+def test_manual_create_sets_source_and_consent():
+    """D1: ручное создание помечается manual; согласие — только явной галкой."""
+    data = {
+        "name": "Greta Optin",
+        "email": "greta@test.de",
+        "phone": "",
+        "note": "",
+        "tags_input": "",
+        "marketing_opt_in": "on",
+    }
+    resp = views.customer_create(_req("post", "/crm/new/", data))
+    assert resp.status_code == 302
+    customer = Customer.objects.get(name="Greta Optin")
+    assert customer.created_source == Customer.SOURCE_MANUAL
+    assert customer.marketing_opt_in is True
+
+    # Клиент из брони — источник по умолчанию reservation, без согласия.
+    promo = PromotionFactory(status="active", available_quantity=5)
+    reserve(promo, name="Hans", email="hans@test.de", quantity=1)
+    hans = Customer.objects.get(email="hans@test.de")
+    assert hans.created_source == Customer.SOURCE_RESERVATION
+    assert hans.marketing_opt_in is False
+
+    # Бейджи на карточке: источник и согласие видны владельцу.
+    body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
+    body = body.content.decode()
+    assert "Marketing" in body and "Manual" in body

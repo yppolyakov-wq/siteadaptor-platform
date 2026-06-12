@@ -41,6 +41,8 @@ def _export_payload(email: str) -> dict:
                 "phone": c.phone,
                 "note": c.note,
                 "tags": c.tags,
+                "marketing_opt_in": c.marketing_opt_in,
+                "created_source": c.created_source,
                 "unsubscribed": c.unsubscribed,
                 "created_at": c.created_at.isoformat(),
                 "loyalty_cards": [
@@ -110,7 +112,18 @@ def _erase(email: str) -> dict:
             c.phone = ""
             c.note = ""
             c.tags = []
-            c.save(update_fields=["name", "email", "phone", "note", "tags", "updated_at"])
+            c.marketing_opt_in = False  # согласие отзывается вместе со стиранием
+            c.save(
+                update_fields=[
+                    "name",
+                    "email",
+                    "phone",
+                    "note",
+                    "tags",
+                    "marketing_opt_in",
+                    "updated_at",
+                ]
+            )
         waitlist, _ = WaitlistEntry.objects.filter(email__iexact=email).delete()
         recipients = Notification.objects.filter(recipient__iexact=email).update(recipient="")
 

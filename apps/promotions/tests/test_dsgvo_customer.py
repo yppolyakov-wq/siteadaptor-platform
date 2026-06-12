@@ -46,6 +46,9 @@ def test_export_contains_all_customer_data():
     assert payload["email"] == EMAIL
     assert payload["customers"][0]["name"] == "Kunde K"
     assert payload["customers"][0]["phone"] == "+49 1"
+    # CRM-lite (D1): согласие и источник записи — тоже персональные данные.
+    assert payload["customers"][0]["marketing_opt_in"] is False
+    assert payload["customers"][0]["created_source"] == "reservation"
     assert payload["reservations"][0]["note"] == "ohne Zwiebeln"
     assert payload["waitlist"][0]["name"] == "Kunde K"
     # точное число зависит от хуков брони — важно, что лог уведомлений попал
@@ -55,10 +58,12 @@ def test_export_contains_all_customer_data():
 def test_delete_erases_pii_everywhere():
     _tenant()
     customer = _customer_with_history()
+    Customer.objects.filter(pk=customer.pk).update(marketing_opt_in=True)
     notifications_before = Notification.objects.count()
     _run(delete=True)
 
     customer.refresh_from_db()
+    assert customer.marketing_opt_in is False  # согласие отзывается со стиранием
     assert customer.email == ""
     assert customer.phone == ""
     assert customer.name != "Kunde K"

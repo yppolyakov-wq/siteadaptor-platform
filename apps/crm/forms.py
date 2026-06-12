@@ -15,7 +15,13 @@ class CustomerForm(forms.ModelForm):
 
     class Meta:
         model = Customer
-        fields = ["name", "email", "phone", "note"]
+        fields = ["name", "email", "phone", "note", "marketing_opt_in"]
+        labels = {"marketing_opt_in": _("Marketing consent")}
+        help_texts = {
+            "marketing_opt_in": _(
+                "Only tick if the customer explicitly agreed to receive offers (UWG §7)."
+            )
+        }
         widgets = {"note": forms.Textarea(attrs={"rows": 3})}
 
     def __init__(self, *args, **kwargs):
