@@ -40,6 +40,10 @@ class Tenant(TenantMixin):
     # Modules (для billing tiers)
     enabled_modules = models.JSONField(default=list)
     # ['catalog', 'promotions', 'publishing', 'aggregator']
+    # Выбор владельца (Track D / D0a): какие модули он сам выключил. Храним
+    # «выключенное», а не «включённое» — новый модуль реестра появляется у всех
+    # без правки каждого тенанта. Формула активности — apps.core.modules.
+    disabled_modules = models.JSONField(default=list, blank=True)
 
     # Branding
     logo_url = models.URLField(blank=True)
@@ -104,6 +108,18 @@ class Tenant(TenantMixin):
 
     def __str__(self):
         return f"{self.name} ({self.schema_name})"
+
+    # --- модули кабинета (Track D / D0a, реестр — apps.core.modules) ------
+
+    def is_module_active(self, key: str) -> bool:
+        from apps.core import modules
+
+        return modules.is_module_active(self, key)
+
+    def active_modules(self) -> list:
+        from apps.core import modules
+
+        return modules.active_modules(self)
 
     # --- публичные контакты / право (для витрины) -----------------------
 

@@ -123,6 +123,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     # Гейтинг подписки: suspended/trial_expired → кабинет read-only (Sprint 5).
     "apps.billing.middleware.SubscriptionGatingMiddleware",
+    # Гейтинг модулей (Track D / D0a): неактивный модуль кабинета → 404.
+    "apps.core.middleware.ModuleGatingMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
@@ -149,6 +151,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
                 "apps.billing.context.subscription",
+                # Навигация кабинета из реестра модулей (Track D / D0a).
+                "apps.core.context.modules_nav",
                 # Клиент портала (P2.3a): portal_user в шаблонах портальных хостов.
                 "apps.aggregator.context.portal_user",
             ],
