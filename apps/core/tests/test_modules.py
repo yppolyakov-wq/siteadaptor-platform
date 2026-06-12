@@ -163,11 +163,11 @@ def test_gating_skips_public_schema():
 @pytest.mark.parametrize(
     ("business_type", "disabled"),
     [
-        ("bakery", {"crm", "booking", "analytics", "publishing"}),
-        ("restaurant", {"crm", "orders", "analytics", "publishing"}),
-        ("retail", {"crm", "booking", "loyalty", "analytics", "publishing"}),
-        ("hotel", {"promotions", "orders", "loyalty", "analytics", "publishing"}),
-        ("other", {"crm", "orders", "booking", "loyalty", "analytics", "publishing"}),
+        ("bakery", {"crm", "booking", "analytics", "publishing", "finance"}),
+        ("restaurant", {"crm", "orders", "analytics", "publishing", "finance"}),
+        ("retail", {"crm", "booking", "loyalty", "analytics", "publishing", "finance"}),
+        ("hotel", {"promotions", "orders", "loyalty", "analytics", "publishing", "finance"}),
+        ("other", {"crm", "orders", "booking", "loyalty", "analytics", "publishing", "finance"}),
     ],
 )
 def test_default_disabled_for_vertical(business_type, disabled):
@@ -227,6 +227,7 @@ class TestModulesView:
             "booking",
             "analytics",
             "publishing",
+            "finance",
         }
         # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
         response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
@@ -239,6 +240,7 @@ class TestModulesView:
             "loyalty",
             "analytics",
             "publishing",
+            "finance",
         }
         assert modules.is_module_active(tenant, "catalog")  # core живёт
 

@@ -1,0 +1,73 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Finance" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Revenue journal" %}</h1>
+  <form method="get" class="flex items-center gap-2 text-sm">
+    <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <span class="text-gray-400">–</span>
+    <input type="date" name="bis" value="{{ bis|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Show" %}</button>
+  </form>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid sm:grid-cols-3 gap-4 mb-6 max-w-2xl">
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-400">{% trans "Total (gross)" %}</p>
+    <p class="text-2xl font-bold">{{ total }} EUR</p>
+  </div>
+  {% for row in by_vat %}
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <p class="text-xs text-gray-400">{% trans "VAT" %} {{ row.vat_rate }} %</p>
+      <p class="text-2xl font-bold">{{ row.sum }} EUR</p>
+    </div>
+  {% endfor %}
+</div>
+
+{% if entries %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+  {% for e in entries %}
+    <div class="px-4 py-3 flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-sm font-medium">{{ e.date|date:"d.m.Y" }} · {{ e.note|default:e.get_source_display }}</p>
+        <p class="text-xs text-gray-400">{{ e.get_source_display }}{% if e.customer %} · {{ e.customer }}{% endif %} · {% trans "VAT" %} {{ e.vat_rate }} %</p>
+      </div>
+      <span class="font-semibold shrink-0">{{ e.amount }} {{ e.currency }}</span>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500 mb-6">{% trans "No entries in this period. Picked-up orders and fulfilled reservations land here automatically." %}</p>
+{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "Add entry" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. counter sale" %})</span></h2>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Amount (gross)" %}</label>
+      <input name="amount" type="text" inputmode="decimal" required placeholder="12,50" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
+      <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        {% for rate in vat_rates %}<option value="{{ rate }}">{{ rate }} %</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Date" %}</label>
+      <input name="date" type="date" value="{{ today|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add" %}</button>
+</form>
+{% endblock %}

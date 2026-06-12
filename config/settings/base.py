@@ -57,6 +57,7 @@ TENANT_APPS = [
     "apps.crm",  # Track C3 — CRM-минимум «Клиенты» (TENANT)
     "apps.orders",  # Track D / D2 — Click & Collect (TENANT)
     "apps.booking",  # Track D / D3 — запись по времени (TENANT)
+    "apps.finance",  # Track D / D4 — журнал выручки (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]

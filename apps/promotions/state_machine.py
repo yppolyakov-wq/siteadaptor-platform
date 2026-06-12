@@ -76,3 +76,19 @@ class ReservationSM(StateMachine):
             from .notifications import enqueue_reservation_email
 
             enqueue_reservation_email(instance, t.dst)
+
+        # Выдана → запись в журнал выручки (Track D / D4a): цена акции × количество.
+        # Без цены (акция-анонс) выручку не угадываем — запись не создаём.
+        if t.dst == "fulfilled":
+            from apps.finance.services import record_revenue
+
+            price = instance.promotion.new_price
+            if price:
+                record_revenue(
+                    source="reservation",
+                    source_ref=str(instance.id),
+                    amount=price * instance.quantity,
+                    currency=instance.promotion.currency,
+                    customer=instance.customer,
+                    note=instance.reference_code,
+                )

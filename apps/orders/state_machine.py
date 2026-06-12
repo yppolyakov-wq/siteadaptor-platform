@@ -21,3 +21,16 @@ class OrderSM(StateMachine):
         from .notifications import enqueue_order_email
 
         enqueue_order_email(instance, t.dst)
+
+        # Выдан → запись в журнал выручки (D4a, идемпотентно по source_ref).
+        if t.dst == "picked_up":
+            from apps.finance.services import record_revenue
+
+            record_revenue(
+                source="order",
+                source_ref=str(instance.id),
+                amount=instance.total,
+                currency=instance.currency,
+                customer=instance.customer,
+                note=instance.reference_code,
+            )

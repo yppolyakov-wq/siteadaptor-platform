@@ -169,6 +169,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Aktionen automatisch auf Kanälen veröffentlichen (z. B. Google).",
     ),
     ModuleSpec(
+        key="finance",
+        label_de="Finanzen (Umsatz)",
+        icon="💶",
+        nav_items=(NavItem("finance:journal", _("Finance"), "finance"),),
+        url_prefixes=("/dashboard/finance/",),
+        # «добавь, когда дорастёшь» (ТЗ D0b) — по умолчанию выключен у всех вертикалей
+        description_de="Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell.",
+    ),
+    ModuleSpec(
         key="settings",
         label_de="Einstellungen",
         icon="⚙️",
