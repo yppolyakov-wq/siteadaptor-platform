@@ -297,8 +297,17 @@ Python 3.12, менеджер uv.
     на логин + письмо «Ihre Website ist bereit». Email-бэкенд: Resend → свой
     SMTP (EMAIL_HOST/USER/PASSWORD, напр. Hostinger-ящик) → console.
     `create_business` (синхронный) остался для тестов/CLI.
-    Дальше: D4 Light-Finance (D4a начат, WIP в stash ветки
-    claude/track-d4a-finance) → P2.4b.
+  - **D4a — журнал выручки (✅ в `main`, 65bc660, CI run 128 зелёный,
+    миграция finance/0001):** apps.finance (TENANT): RevenueEntry (source
+    order/reservation/manual + source_ref — уникальность пары = идемпотентность
+    хуков; amount брутто, vat_rate 19/7/0, date, customer SET_NULL, note);
+    record_revenue (повтор хука = no-op, amount<=0 не пишем); хуки OrderSM
+    picked_up → order.total и ReservationSM fulfilled → new_price×quantity
+    (без цены — записи нет); кабинет `/dashboard/finance/` — журнал за период
+    (von/bis, default месяц), итог + разбивка по НДС, ручное добавление.
+    Модуль «finance» в реестре: универсальный, по умолчанию выключен.
+    Дальше: D4b Invoice+PDF Rechnung (последовательная нумерация, §19) →
+    D4c DATEV/CSV-экспорт → Track D закрыт; затем P2.4b.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
