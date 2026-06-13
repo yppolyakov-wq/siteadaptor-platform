@@ -550,6 +550,23 @@ Python 3.12, менеджер uv.
   - **Деплой G11:** миграция jobs/0002. **A9 Werkstatt → ~95 % (симбиоз
     booking+catalog+orders+jobs закрыт); весь бэклог G1–G11 закрыт, кроме G9
     (курс с вместимостью + абонемент).**
+- **G9 — Курс с вместимостью + Mehrfachkarte (A3, A6; ✅ ВЕСЬ в `main`):**
+  последний пункт сквозного бэклога. Движок брони уже атомарно держит capacity
+  (`Resource.capacity` + `services.book`), G9 — дельта поверх. Разбивка G9a/G9b:
+  - G9a групповые курсы, видимая вместимость (✅ `2c08f5c`, без миграций):
+    `availability.free_slots_with_spots` → [(start, end, spots_left)] (`free_slots`
+    стал тонкой обёрткой, прочие вызывающие не затронуты); витрина `/termin/` при
+    capacity>1 показывает «N spots» на слоте; бронь до заполнения уже атомарна.
+  - G9b Mehrfachkarte / 10er-Karte (✅ `d77d572`, миграция booking/0004): модель
+    `Pass` (TENANT: customer/label/code «K-XXXXXX»/credits_total+used/valid_until;
+    credits_left + is_valid) + `Booking.card` (SET_NULL); `issue_pass` +
+    `redeem_pass` (атомарно select_for_update, guard → PassInvalid); кабинет
+    `/dashboard/booking/karten/` (выпуск/баланс X/N/ручное −1/деактивация); витрина —
+    опц. поле «Mehrfachkarte-Code» в форме записи (термин+услуга): валидный код
+    гасит визит вместо депозита/оплаты, невалидный → бронь остаётся, на оплату не
+    уводим. Онлайн-продажа карты (Stripe) и привязка карты к курсу — отложено.
+  - **Деплой G9:** миграция booking/0004. **Весь сквозной бэклог G1–G11 закрыт
+    целиком.**
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -625,10 +642,10 @@ Python 3.12, менеджер uv.
      (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C, ✅ P2.5-fee) и
      **✅ Track E date-range booking / Übernachtung (G5, E1–E4)** — отели/ретриты/
      Ferienwohnung (см. §3), **✅ G8 отзывы+рейтинги+гео-карта** (агрегатор),
-     **✅ G10 bookable services** (услуга=цена+длительность) и **✅ G11 расходники
-     catalog→job/stock** — A9 Werkstatt → ~95 % (симбиоз закрыт). **Весь бэклог
-     G1–G11 закрыт, кроме G9** (курс с вместимостью + абонемент/Mehrfachkarte).
-     Бэклог — `micro-business-verticals.md` §бэклог G1–G11.
+     **✅ G10 bookable services** (услуга=цена+длительность), **✅ G11 расходники
+     catalog→job/stock** (A9 Werkstatt → ~95 %, симбиоз закрыт) и **✅ G9 курс с
+     вместимостью + Mehrfachkarte** (A3/A6). **Весь сквозной бэклог G1–G11 закрыт
+     целиком.** Бэклог — `micro-business-verticals.md` §бэклог G1–G11.
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
