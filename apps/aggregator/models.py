@@ -182,3 +182,60 @@ class FavoriteListing(models.Model):
 
     def __str__(self):
         return f"{self.user.email} → {self.listing_id}"
+
+
+class BusinessReview(models.Model):
+    """Отзыв клиента портала о бизнесе (G8, SHARED/public).
+
+    Привязан к бизнесу (tenant_schema), а не к отдельной акции — один автор
+    (PortalUser) оставляет один отзыв на бизнес. Авто-публикация; супер-админ
+    может скрыть (status=hidden, модерация). Агрегат — BusinessRating.
+    """
+
+    STATUS_PUBLISHED = "published"
+    STATUS_HIDDEN = "hidden"
+    STATUSES = [(STATUS_PUBLISHED, "Published"), (STATUS_HIDDEN, "Hidden")]
+
+    tenant_schema = models.CharField(max_length=63)
+    tenant_slug = models.SlugField(max_length=100)
+    business_name = models.CharField(max_length=200, blank=True)  # снимок для админки
+    author = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveSmallIntegerField()  # 1..5 (валидируется во вьюхе)
+    comment = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_PUBLISHED)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["author", "tenant_schema"], name="review_author_business_uniq"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["tenant_schema", "status"], name="review_business_status_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.business_name or self.tenant_slug}: {self.rating}★"
+
+    @property
+    def stars(self) -> str:
+        return "★" * self.rating + "☆" * (5 - self.rating)
+
+
+class BusinessRating(models.Model):
+    """Денормализованный агрегат рейтинга бизнеса (G8) — быстрые звёзды в выдаче.
+
+    Одна строка на tenant_schema; пересчитывается при создании/модерации отзыва
+    (apps.aggregator.reviews.recompute_rating). Листинги джойнятся по схеме.
+    """
+
+    tenant_schema = models.CharField(max_length=63, unique=True)
+    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)  # 0.00–5.00
+    review_count = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.tenant_schema}: {self.avg_rating} ({self.review_count})"

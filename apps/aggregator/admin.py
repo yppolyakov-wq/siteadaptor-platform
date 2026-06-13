@@ -9,7 +9,7 @@ Django admin живёт только на public (config/urls_public.py). Вни
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import AggregatorListing, AggregatorPortal
+from .models import AggregatorListing, AggregatorPortal, BusinessReview
 
 
 @admin.register(AggregatorListing)
@@ -29,6 +29,28 @@ class AggregatorListingAdmin(ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # листинги создаёт только sync_listing
+
+
+@admin.register(BusinessReview)
+class BusinessReviewAdmin(ModelAdmin):
+    """Модерация отзывов (G8): супер-админ скрывает абьюз (status=hidden).
+
+    После смены статуса агрегат пересчитывается (save_model)."""
+
+    list_display = ("business_name", "rating", "status", "created_at")
+    search_fields = ("business_name", "tenant_slug", "comment")
+    list_filter = ("status", "rating")
+    readonly_fields = ("tenant_schema", "tenant_slug", "business_name", "author", "created_at")
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request):
+        return False  # отзывы создают клиенты на порталах
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from .reviews import recompute_rating
+
+        recompute_rating(obj.tenant_schema)
 
 
 @admin.register(AggregatorPortal)

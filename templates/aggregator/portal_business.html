@@ -1,0 +1,69 @@
+{% extends "aggregator/portal_base.html" %}
+{% load i18n %}
+{% block title %}{{ business.name }} — {{ portal.title_text }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mt-3 mb-1 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="mt-1 mb-6">
+  <h1 class="text-2xl md:text-3xl font-bold">{{ business.name }}</h1>
+  <p class="text-gray-500 mt-1">
+    {% if business.city %}{{ business.city }}{% endif %}
+    {% if rating and rating.review_count %}<span class="ml-2 text-amber-500 font-medium">★ {{ rating.avg_rating }}</span> <span class="text-gray-400">· {% blocktrans count n=rating.review_count %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</span>{% endif %}
+  </p>
+  <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-gray-500">
+    {% if business.address %}<span>📍 {{ business.address }}</span>{% endif %}
+    {% if business.public_phone %}<a href="tel:{{ business.public_phone }}" class="hover:underline">📞 {{ business.public_phone }}</a>{% endif %}
+    {% if business.map_url %}<a href="{{ business.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a>{% endif %}
+  </div>
+</div>
+
+{# активные предложения бизнеса #}
+{% if listings %}
+  <h2 class="font-semibold mb-3">{% trans "Current offers" %}</h2>
+  {% include "aggregator/_cards.html" with items=listings %}
+{% endif %}
+
+{# отзывы #}
+<div class="mt-10 border-t border-gray-100 pt-6">
+  <h2 class="text-xl font-bold mb-4">{% trans "Reviews" %}</h2>
+
+  {% if review_user %}
+    <form method="post" action="{% url 'portal-business-review' slug=business.slug %}" class="bg-white rounded-2xl shadow-sm p-5 mb-6 max-w-xl space-y-3">
+      {% csrf_token %}
+      <p class="font-medium text-sm">{% if my_review %}{% trans "Update your review" %}{% else %}{% trans "Leave a review" %}{% endif %}</p>
+      <div>
+        <label class="block text-sm text-gray-500 mb-1" for="id_rating">{% trans "Rating" %}</label>
+        <select id="id_rating" name="rating" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          {% for n in "54321"|make_list %}
+            <option value="{{ n }}" {% if my_review and my_review.rating|stringformat:'s' == n %}selected{% endif %}>{{ n }} ★</option>
+          {% endfor %}
+        </select>
+      </div>
+      <textarea name="comment" rows="3" placeholder="{% trans 'Your experience (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{% if my_review %}{{ my_review.comment }}{% endif %}</textarea>
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Submit review" %}</button>
+    </form>
+  {% else %}
+    <p class="text-sm text-gray-500 mb-6"><a href="{% url 'portal-login' %}" class="text-indigo-600 hover:underline">{% trans "Log in" %}</a> {% trans "to leave a review." %}</p>
+  {% endif %}
+
+  {% if reviews %}
+    <div class="space-y-4">
+      {% for r in reviews %}
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <p class="text-amber-500">{{ r.stars }} <span class="text-xs text-gray-400 ml-1">{{ r.created_at|date:"d.m.Y" }}</span></p>
+          {% if r.comment %}<p class="text-sm text-gray-700 mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-400 text-sm">{% trans "No reviews yet — be the first." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

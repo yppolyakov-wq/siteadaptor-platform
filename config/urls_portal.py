@@ -10,7 +10,7 @@ from django.conf import settings
 from django.urls import path
 from django.views.static import serve
 
-from apps.aggregator import account_views, portal_views
+from apps.aggregator import account_views, portal_views, reviews_views
 from apps.core import health
 
 urlpatterns = [
@@ -34,6 +34,13 @@ urlpatterns = [
         "konto/benachrichtigungen/",
         account_views.notifications_toggle,
         name="portal-notifications-toggle",
+    ),
+    # Страница бизнеса + отзывы (G8a). До <facet>: 2-сегментный путь, не коллизит.
+    path("unternehmen/<slug:slug>/", reviews_views.business_page, name="portal-business"),
+    path(
+        "unternehmen/<slug:slug>/bewerten/",
+        reviews_views.submit_review,
+        name="portal-business-review",
     ),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
