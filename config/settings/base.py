@@ -59,6 +59,7 @@ TENANT_APPS = [
     "apps.booking",  # Track D / D3 — запись по времени (TENANT)
     "apps.finance",  # Track D / D4 — журнал выручки (TENANT)
     "apps.stays",  # Track E — date-range-бронь / Übernachtung (TENANT)
+    "apps.jobs",  # G6 — Aufträge/Angebote / смета Handwerker (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]

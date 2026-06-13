@@ -1,0 +1,101 @@
+"""Сервисы заявок/смет Handwerker (G6 / F1).
+
+create_job — заявка (Anfrage) с переиспользованием Customer по email; set_lines —
+заменить позиции сметы и пересчитать суммы снимком (через finance.compute_totals,
+§19 Kleinunternehmer → НДС 0). Письма/PDF/Rechnung — F2/F3.
+"""
+
+import secrets
+import string
+from decimal import Decimal
+
+from django.db import transaction
+
+from apps.promotions.models import Customer
+
+from .models import Job, JobLine
+
+_ALPHABET = string.ascii_uppercase + string.digits
+
+
+def _unique_job_code() -> str:
+    for _ in range(10):
+        code = "A-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
+        if not Job.objects.filter(reference_code=code).exists():
+            return code
+    raise RuntimeError("could not generate unique job reference code")
+
+
+def _get_or_create_customer(*, name, email, phone) -> Customer:
+    if email:
+        customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
+        if customer is not None:
+            if not customer.phone and phone:
+                customer.phone = phone
+                customer.save(update_fields=["phone", "updated_at"])
+            return customer
+    return Customer.objects.create(name=name, email=email, phone=phone)
+
+
+def create_job(
+    *,
+    title,
+    name,
+    email="",
+    phone="",
+    description="",
+    site_address="",
+    source_channel="",
+) -> Job:
+    """Создать заявку (Anfrage). Customer переиспускается по email."""
+    customer = _get_or_create_customer(name=name, email=email, phone=phone)
+    return Job.objects.create(
+        customer=customer,
+        reference_code=_unique_job_code(),
+        title=(title or "").strip()[:200] or "Anfrage",
+        description=(description or "").strip()[:5000],
+        site_address=(site_address or "").strip()[:2000],
+        source_channel=(source_channel or "")[:50],
+    )
+
+
+def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
+    """Заменить позиции сметы и пересчитать суммы (снимок).
+
+    ``lines`` — список dict ``{"text", "qty", "unit_price"}``. Пустые строки
+    (без текста) пропускаются. Суммы считаются через finance.compute_totals.
+    """
+    from apps.finance.services import compute_totals
+
+    with transaction.atomic():
+        job.lines.all().delete()
+        objs = []
+        for i, line in enumerate(lines):
+            text = (line.get("text") or "").strip()
+            if not text:
+                continue
+            objs.append(
+                JobLine(
+                    job=job,
+                    position=i,
+                    text=text[:300],
+                    qty=line.get("qty", 1),
+                    unit_price=line.get("unit_price", 0),
+                )
+            )
+        JobLine.objects.bulk_create(objs)
+
+        if vat_rate is not None:
+            job.vat_rate = Decimal(str(vat_rate))
+        dict_lines = [{"text": o.text, "qty": o.qty, "unit_price": str(o.unit_price)} for o in objs]
+        net, vat, gross = compute_totals(dict_lines, job.vat_rate, small_business=small_business)
+        job.net, job.vat_amount, job.gross = net, vat, gross
+        job.save(update_fields=["vat_rate", "net", "vat_amount", "gross", "updated_at"])
+    return job
+
+
+def lines_snapshot(job) -> list[dict]:
+    """Позиции сметы в формате finance (для Rechnung-снимка / PDF)."""
+    return [
+        {"text": ln.text, "qty": ln.qty, "unit_price": str(ln.unit_price)} for ln in job.lines.all()
+    ]
