@@ -100,7 +100,9 @@ def test_journal_filters_period_and_totals():
 
     body = views.journal(_req(data={"von": "2026-06-01", "bis": "2026-06-30"})).content.decode()
     assert "17,00" in body or "17.00" in body  # итог периода
-    assert "99" not in body
+    # Запись вне периода (99,00) не показана. Проверяем формат с разделителем, а не
+    # голую «99» — случайный CSRF-токен в HTML может содержать «99» (флака CI).
+    assert "99,00" not in body and "99.00" not in body
 
 
 def test_journal_manual_add():
