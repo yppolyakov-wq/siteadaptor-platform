@@ -567,6 +567,27 @@ Python 3.12, менеджер uv.
     уводим. Онлайн-продажа карты (Stripe) и привязка карты к курсу — отложено.
   - **Деплой G9:** миграция booking/0004. **Весь сквозной бэклог G1–G11 закрыт
     целиком.**
+- **Отложенные quick-wins (✅ ВЕСЬ в `main`, выбор владельца после G9):** мелочи
+  из roadmap §Отложено, каждая — отдельный инкремент с CI-зелёным.
+  - JSON-LD AggregateRating (G8, ✅ `98a1ed4`, без миграций): звёзды бизнеса в
+    Google-сниппете — `seo.localbusiness_ld(aggregate_rating=(avg,count))`; витрина
+    (тег `{% localbusiness_jsonld %}` тянет BusinessRating тенанта ленивым импортом,
+    core не зависит от aggregator на уровне модуля) + страница `/unternehmen/<slug>/`
+    (block structured_data).
+  - Booking-полировка (✅ `7d4d324`, миграция booking/0005): (1) бронь, оплаченная
+    Mehrfachkarte, авто-confirm (если ресурс не require_manual_confirm) — карта =
+    оплачено; (2) `Resource.counts_party_size` — групповой курс считает места по
+    СУММЕ party_size («ich + 3 Freunde» = 4), default False (столы/мастера/залы не
+    затронуты: бронь = 1 единица); учтено в `free_slots_with_spots` и
+    `services.book/move` (`_would_overfill`), тумблер в кабинете ресурсов.
+  - Verified-бейдж отзывов (G8, ✅ `38534b9`, без миграций): «✓ Verified guest»,
+    если у автора есть Customer в схеме бизнеса (`reviews.verified_emails` —
+    кросс-схемно через schema_context, ошибки гасим). Бейдж на `/unternehmen/<slug>/`.
+  - Ваучеры в CRM 360° (D1, ✅ `cd72e93`, миграция promotions/0014):
+    `Voucher.customer` (SET_NULL — код переживает удаление клиента) +
+    `generate_vouchers(customer=)`; блок «Vouchers» и форма выдачи в карточке
+    `/crm/<pk>/`.
+  - **Деплой quick-wins:** миграции booking/0005 + promotions/0014.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
