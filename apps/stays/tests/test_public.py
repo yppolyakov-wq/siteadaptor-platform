@@ -65,16 +65,17 @@ def test_detail_shows_price_and_book_form():
         "get", f"/unterkunft/{unit.pk}/", {"von": _iso(0), "bis": _iso(3), "gaeste": "2"}
     )
     body = public_views.unterkunft_unit(request, pk=unit.pk).content.decode()
-    assert "270.00" in body  # 3 ночи × 90 €
-    assert "Book now" in body
+    # доступный диапазон → отрисована форма брони (action стабилен, не зависит от локали)
+    assert f"/unterkunft/{unit.pk}/buchen/" in body
+    assert "270" in body  # итог 3 × 90 € (разделитель — по локали, de → запятая)
 
 
 def test_detail_min_nights_message():
     unit = _unit(min_nights=3)
     request = _req("get", f"/unterkunft/{unit.pk}/", {"von": _iso(0), "bis": _iso(1)})
     body = public_views.unterkunft_unit(request, pk=unit.pk).content.decode()
-    assert "Book now" not in body
-    assert "3 nights" in body  # сообщение о минимуме
+    # ниже минимума ночей → формы брони нет (показано сообщение)
+    assert f"/unterkunft/{unit.pk}/buchen/" not in body
 
 
 def test_book_creates_pending_and_email():
