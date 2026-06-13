@@ -138,6 +138,16 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen.",
     ),
     ModuleSpec(
+        key="stays",
+        label_de="Übernachtung (nach Datum)",
+        icon="🛏️",
+        nav_items=(NavItem("stays:calendar", _("Stays"), "stays"),),
+        url_prefixes=("/dashboard/stays/",),
+        recommended_for=("hotel",),
+        suited_for=("tour_operator", "other"),
+        description_de="Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen.",
+    ),
+    ModuleSpec(
         key="loyalty",
         label_de="Treue & Gutscheine",
         icon="💝",

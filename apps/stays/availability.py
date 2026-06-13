@@ -64,3 +64,37 @@ def free_units(arrival, departure, *, guests=1) -> list:
         for unit in StayUnit.objects.filter(is_active=True, max_guests__gte=guests)
         if nights >= unit.min_nights and range_available(unit, arrival, departure)
     ]
+
+
+def occupancy_grid(units, start_day, num_days):
+    """Календарь загрузки для кабинета (E2): ``(days, rows)``.
+
+    ``days`` — список дат окна; ``rows`` — список ``(unit, cells)``, где cell =
+    ``{day, free, blocked}`` (free = quantity − занятость ночи, blocked — есть
+    блокировка). Один запрос броней + блоков на юнит, занятость считаем в памяти.
+    """
+    end_day = start_day + timedelta(days=num_days)
+    days = [start_day + timedelta(days=i) for i in range(num_days)]
+    rows = []
+    for unit in units:
+        stays = list(
+            StayBooking.objects.filter(
+                unit=unit,
+                status__in=StayBooking.ACTIVE_STATUSES,
+                arrival__lt=end_day,
+                departure__gt=start_day,
+            ).values_list("arrival", "departure")
+        )
+        blocks = list(
+            UnitBlock.objects.filter(
+                unit=unit, start_date__lt=end_day, end_date__gte=start_day
+            ).values_list("start_date", "end_date")
+        )
+        cells = []
+        for day in days:
+            occupied = sum(1 for s_arr, s_dep in stays if s_arr <= day < s_dep)
+            blocked = any(b_start <= day <= b_end for b_start, b_end in blocks)
+            occupied += sum(1 for b_start, b_end in blocks if b_start <= day <= b_end)
+            cells.append({"day": day, "free": max(0, unit.quantity - occupied), "blocked": blocked})
+        rows.append((unit, cells))
+    return days, rows

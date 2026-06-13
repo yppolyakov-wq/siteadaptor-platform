@@ -56,6 +56,10 @@ class StayUnit(TimestampedModel):
     def price_eur(self) -> float:
         return self.price_cents / 100
 
+    @property
+    def deposit_eur(self) -> float:
+        return self.deposit_cents / 100
+
 
 class UnitBlock(TimestampedModel):
     """Блокировка дат юнита (ремонт/своё проживание/Wartung). Занимает ночи

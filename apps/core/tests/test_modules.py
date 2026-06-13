@@ -79,6 +79,8 @@ def test_entitlement_applies_only_to_premium():
         ("/promotions/loyalty/", "loyalty"),
         ("/promotions/analytics/", "analytics"),
         ("/dashboard/", "dashboard"),
+        ("/dashboard/stays/", "stays"),
+        ("/dashboard/stays/units/", "stays"),
         ("/dashboard/channels/", "publishing"),
         ("/dashboard/billing/checkout/", "billing"),
         ("/dashboard/settings/", "settings"),
@@ -163,11 +165,15 @@ def test_gating_skips_public_schema():
 @pytest.mark.parametrize(
     ("business_type", "disabled"),
     [
-        ("bakery", {"crm", "booking", "analytics", "publishing", "finance"}),
-        ("restaurant", {"crm", "orders", "analytics", "publishing", "finance"}),
-        ("retail", {"crm", "booking", "loyalty", "analytics", "publishing", "finance"}),
+        ("bakery", {"crm", "booking", "stays", "analytics", "publishing", "finance"}),
+        ("restaurant", {"crm", "orders", "stays", "analytics", "publishing", "finance"}),
+        ("retail", {"crm", "booking", "stays", "loyalty", "analytics", "publishing", "finance"}),
+        # hotel: stays рекомендован вертикали → НЕ в дефолтном disabled.
         ("hotel", {"promotions", "orders", "loyalty", "analytics", "publishing", "finance"}),
-        ("other", {"crm", "orders", "booking", "loyalty", "analytics", "publishing", "finance"}),
+        (
+            "other",
+            {"crm", "orders", "booking", "stays", "loyalty", "analytics", "publishing", "finance"},
+        ),
     ],
 )
 def test_default_disabled_for_vertical(business_type, disabled):
@@ -225,6 +231,7 @@ class TestModulesView:
             "crm",
             "orders",
             "booking",
+            "stays",
             "analytics",
             "publishing",
             "finance",
@@ -237,6 +244,7 @@ class TestModulesView:
             "crm",
             "orders",
             "booking",
+            "stays",
             "loyalty",
             "analytics",
             "publishing",

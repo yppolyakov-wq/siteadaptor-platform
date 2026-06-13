@@ -1,0 +1,121 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Units" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Units & blocked dates" %}</h1>
+  <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{# --- список юнитов --------------------------------------------------------- #}
+<div class="space-y-4 mb-8">
+  {% for u in units %}
+    <div class="bg-white rounded-2xl shadow-sm p-5 {% if not u.is_active %}opacity-60{% endif %}">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+        <h2 class="font-semibold">{{ u.name }} <span class="text-xs text-gray-400">· {{ u.get_type_display }}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</span></h2>
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="action" value="toggle"><input type="hidden" name="unit" value="{{ u.pk }}">
+          <button class="text-sm text-gray-500 hover:underline">{% if u.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+        </form>
+      </div>
+
+      <form method="post" class="grid sm:grid-cols-3 gap-3 items-end">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="unit_settings"><input type="hidden" name="unit" value="{{ u.pk }}">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
+          <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Quantity (identical units)" %}</label>
+          <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</label>
+          <input name="min_nights" type="number" min="1" value="{{ u.min_nights }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. guests" %}</label>
+          <input name="max_guests" type="number" min="1" value="{{ u.max_guests }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</label>
+          <input name="deposit_eur" type="text" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <label class="flex items-center gap-2 text-sm text-gray-600">
+          <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
+        </label>
+        <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      </form>
+
+      {# блокировки дат #}
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Blocked dates" %}</p>
+        {% for bl in u.blocks.all %}
+          <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
+            <span>{{ bl.start_date|date:"d.m.Y" }} – {{ bl.end_date|date:"d.m.Y" }}{% if bl.reason %} · {{ bl.reason }}{% endif %}</span>
+            <form method="post" class="inline">{% csrf_token %}
+              <input type="hidden" name="action" value="block_delete"><input type="hidden" name="block" value="{{ bl.pk }}">
+              <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+            </form>
+          </div>
+        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
+        <form method="post" class="flex items-end gap-2 flex-wrap mt-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="block"><input type="hidden" name="unit" value="{{ u.pk }}">
+          <input type="date" name="start_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="date" name="end_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="text" name="reason" placeholder="{% trans 'Reason' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Block" %}</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-gray-500">{% trans "No units yet — create your first below." %}</p>
+  {% endfor %}
+</div>
+
+{# --- новый юнит ------------------------------------------------------------ #}
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="unit">
+  <h2 class="font-semibold">{% trans "New unit" %}</h2>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Type" %}</label>
+      <select name="type" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        {% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Price / night (€)" %}</label>
+      <input name="price_eur" type="text" placeholder="80" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Quantity (identical units)" %}</label>
+      <input name="quantity" type="number" min="1" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Max. guests" %}</label>
+      <input name="max_guests" type="number" min="1" value="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Min. nights" %}</label>
+      <input name="min_nights" type="number" min="1" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
+      <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create unit" %}</button>
+</form>
+{% endblock %}

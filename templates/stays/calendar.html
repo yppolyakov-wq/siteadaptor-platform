@@ -1,0 +1,129 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Stays" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Stays" %}</h1>
+  <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Units & blocked dates" %} →</a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{# --- Belegungskalender: юниты × ночи --------------------------------------- #}
+<div class="flex items-center justify-between mb-3 max-w-md">
+  <a href="?von={{ prev|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {% trans "Previous" %}</a>
+  <span class="font-semibold text-sm">{{ start|date:"d.m.Y" }} – {{ days|last|date:"d.m.Y" }}</span>
+  <a href="?von={{ next|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{% trans "Next" %} →</a>
+</div>
+
+{% if rows %}
+<div class="bg-white rounded-2xl shadow-sm overflow-x-auto mb-6">
+  <table class="text-xs border-collapse">
+    <thead>
+      <tr class="text-gray-400">
+        <th class="sticky left-0 bg-white text-left font-medium px-3 py-2 z-10">{% trans "Unit" %}</th>
+        {% for d in days %}
+          <th class="px-1 py-2 font-medium text-center min-w-[1.6rem] {% if d == today %}text-indigo-600{% endif %}">{{ d|date:"d" }}<br><span class="text-[10px] text-gray-300">{{ d|date:"D"|slice:":2" }}</span></th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for unit, cells in rows %}
+        <tr class="border-t border-gray-50">
+          <td class="sticky left-0 bg-white px-3 py-1.5 font-medium whitespace-nowrap z-10">{{ unit.name }}{% if unit.quantity > 1 %} <span class="text-gray-400">×{{ unit.quantity }}</span>{% endif %}</td>
+          {% for c in cells %}
+            <td class="px-1 py-1.5 text-center
+              {% if c.blocked %}bg-gray-200 text-gray-400
+              {% elif c.free == 0 %}bg-red-100 text-red-500
+              {% else %}bg-green-50 text-green-700{% endif %}"
+              title="{{ c.day|date:'d.m.Y' }}">{% if c.blocked %}✕{% else %}{{ c.free }}{% endif %}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-gray-400 mb-6">{% trans "Number = free units that night · ✕ = blocked" %}</p>
+{% else %}
+<p class="text-gray-500 mb-6">{% trans "No units yet." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Create a unit" %} →</a></p>
+{% endif %}
+
+{# --- брони в окне ---------------------------------------------------------- #}
+<h2 class="font-semibold mb-3">{% trans "Bookings in this period" %}</h2>
+{% if bookings %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+  {% for b in bookings %}
+    <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <p class="font-medium">{{ b.arrival|date:"d.m." }}–{{ b.departure|date:"d.m.Y" }} · {{ b.unit.name }}
+          <span class="text-xs text-gray-400">({{ b.nights }} {% trans "nights" %})</span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1
+            {% if b.status == 'confirmed' %}bg-green-100 text-green-800
+            {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
+            {% else %}bg-gray-100 text-gray-600{% endif %}">{{ b.get_status_display }}</span>
+          {% if b.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-emerald-100 text-emerald-800">💶 {% trans "Paid" %}</span>
+          {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
+          {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
+        </p>
+        <p class="text-xs text-gray-400">{{ b.customer }}{% if b.guests > 1 %} · {{ b.guests }} {% trans "guests" %}{% endif %} · {{ b.reference_code }}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
+      </div>
+      <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
+        {% csrf_token %}
+        {% if b.status == 'pending' %}
+          <button name="action" value="confirmed" class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Confirm" %}</button>
+        {% elif b.status == 'confirmed' %}
+          <button name="action" value="fulfilled" class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Checked out" %}</button>
+          <button name="action" value="no_show" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "No-show" %}</button>
+        {% endif %}
+        {% if b.status == 'pending' or b.status == 'confirmed' %}
+          <input type="date" name="arrival" value="{{ b.arrival|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="date" name="departure" value="{{ b.departure|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
+          <button name="action" value="cancelled" class="text-sm border border-red-200 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Cancel" %}</button>
+        {% endif %}
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500 mb-6">{% trans "No bookings in this period." %}</p>
+{% endif %}
+
+{# --- ручная бронь ---------------------------------------------------------- #}
+{% if units %}
+<form method="post" action="{% url 'stays:stay-create' %}" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div class="sm:col-span-2">
+      <label class="block text-sm font-medium mb-1">{% trans "Unit" %}</label>
+      <select name="unit" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Arrival" %}</label>
+      <input type="date" name="arrival" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Departure" %}</label>
+      <input type="date" name="departure" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-4 gap-4">
+    <input name="name" type="text" placeholder="{% trans 'Name' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <input name="guests" type="number" min="1" value="1" placeholder="{% trans 'Guests' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
+</form>
+{% endif %}
+{% endblock %}

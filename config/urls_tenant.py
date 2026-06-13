@@ -65,6 +65,8 @@ urlpatterns = [
     path("dashboard/orders/", include("apps.orders.urls")),
     # Кабинет записи по времени (Track D / D3c).
     path("dashboard/booking/", include("apps.booking.urls")),
+    # Кабинет date-range-броней / Übernachtung (Track E / E2).
+    path("dashboard/stays/", include("apps.stays.urls")),
     # Журнал выручки Light-Finance (Track D / D4a).
     path("dashboard/finance/", include("apps.finance.urls")),
     # Каналы публикации (Sprint 4).
