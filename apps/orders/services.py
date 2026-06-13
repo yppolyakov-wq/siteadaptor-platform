@@ -46,14 +46,18 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
 
 @transaction.atomic
 def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, source_channel=""):
-    """Создать заказ из [(product, qty), …] со снимками цены/названия.
+    """Создать заказ из позиций со снимками цены/названия.
 
-    Бросает EmptyOrder без позиций и ValueError при qty < 1.
+    items — кортежи (product, qty) ИЛИ (product, variant, qty); variant=None =
+    товар без вариантов. Бросает EmptyOrder без позиций и ValueError при qty < 1.
     """
-    items = [(product, int(qty)) for product, qty in items]
-    if not items:
+    norm = []
+    for item in items:
+        product, variant, qty = item if len(item) == 3 else (item[0], None, item[1])
+        norm.append((product, variant, int(qty)))
+    if not norm:
         raise EmptyOrder()
-    if any(qty < 1 for _product, qty in items):
+    if any(qty < 1 for _p, _v, qty in norm):
         raise ValueError("qty must be >= 1")
 
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
@@ -64,19 +68,24 @@ def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, 
         pickup_slot=pickup_slot,
         source_channel=(source_channel or "")[:50],
         total=Decimal("0"),
-        currency=items[0][0].currency,
+        currency=norm[0][0].currency,
     )
     total = Decimal("0")
-    for product, qty in items:
+    for product, variant, qty in norm:
         # DecimalField не приводит атрибут у не перезагруженных из БД
-        # инстансов — нормализуем явно.
-        unit_price = Decimal(str(product.base_price))
+        # инстансов — нормализуем явно. Цена варианта: своя или base_price.
+        base = variant.price_value if variant is not None else product.base_price
+        unit_price = Decimal(str(base))
+        label = variant.label if variant is not None else ""
+        title = f"{product} · {label}" if label else str(product)
         OrderItem.objects.create(
             order=order,
             product=product,
+            variant=variant,
+            variant_label=label,
             qty=qty,
             unit_price=unit_price,
-            title_snapshot=str(product)[:200],
+            title_snapshot=title[:200],
         )
         total += unit_price * qty
     order.total = total

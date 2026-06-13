@@ -39,26 +39,68 @@ def _cart(request) -> dict:
 
 
 def _cart_items(request):
-    """[(product, qty), …] по корзине; исчезнувшие/неактивные товары отбрасываем."""
-    from apps.catalog.models import Product
+    """[(product, variant|None, qty), …]; исчезнувшие/неактивные позиции отбрасываем.
+
+    Ключ корзины — «pid:vid» (vid пустой = товар без варианта; старые ключи без
+    «:» читаются как без варианта).
+    """
+    from apps.catalog.models import Product, ProductVariant
 
     cart = _cart(request)
-    products = {str(p.pk): p for p in Product.objects.filter(pk__in=cart.keys(), is_active=True)}
-    return [(products[pid], qty) for pid, qty in cart.items() if pid in products]
+    parsed = [(key.partition(":")[0], key.partition(":")[2], qty) for key, qty in cart.items()]
+    products = {
+        str(p.pk): p
+        for p in Product.objects.filter(pk__in={pid for pid, _v, _q in parsed}, is_active=True)
+    }
+    variant_ids = {vid for _p, vid, _q in parsed if vid}
+    variants = {
+        str(v.pk): v for v in ProductVariant.objects.filter(pk__in=variant_ids, is_active=True)
+    }
+    items = []
+    for pid, vid, qty in parsed:
+        product = products.get(pid)
+        if product is None:
+            continue
+        variant = variants.get(vid) if vid else None
+        if vid and (variant is None or variant.product_id != product.pk):
+            continue  # вариант исчез/чужой — позицию отбрасываем
+        items.append((product, variant, qty))
+    return items
+
+
+def _line_price(product, variant):
+    return variant.price_value if variant is not None else product.base_price
 
 
 @require_POST
 def cart_add(request):
     _require_orders_active(request)
-    from apps.catalog.models import Product
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.models import Product, ProductVariant
 
     product = get_object_or_404(Product, pk=request.POST.get("product"), is_active=True)
+    variant = None
+    if product.has_variants:
+        vid = (request.POST.get("variant") or "").strip()
+        try:
+            variant = (
+                ProductVariant.objects.filter(pk=vid, product=product, is_active=True).first()
+                if vid
+                else None
+            )
+        except (ValidationError, ValueError):
+            variant = None
+        if variant is None:
+            messages.error(request, _("Please choose an option."))
+            return redirect("storefront-product", pk=product.pk)
     try:
         qty = max(1, min(int(request.POST.get("qty", "1")), MAX_QTY))
     except (TypeError, ValueError):
         qty = 1
+    key = f"{product.pk}:{variant.pk if variant else ''}"
     cart = _cart(request)
-    cart[str(product.pk)] = min(cart.get(str(product.pk), 0) + qty, MAX_QTY)
+    cart[key] = min(cart.get(key, 0) + qty, MAX_QTY)
     request.session[CART_SESSION_KEY] = cart
     messages.success(request, _("Added to your order."))
     return redirect("storefront-cart")
@@ -68,19 +110,32 @@ def cart_add(request):
 def cart_remove(request):
     _require_orders_active(request)
     cart = _cart(request)
-    cart.pop(str(request.POST.get("product", "")), None)
+    cart.pop(request.POST.get("item", ""), None)
     request.session[CART_SESSION_KEY] = cart
     return redirect("storefront-cart")
 
 
 def cart_view(request):
     _require_orders_active(request)
+    from decimal import Decimal
+
     items = _cart_items(request)
-    total = sum((product.base_price * qty for product, qty in items), start=0)
+    rows = [
+        {
+            "product": product,
+            "variant": variant,
+            "qty": qty,
+            "key": f"{product.pk}:{variant.pk if variant else ''}",
+            "unit_price": _line_price(product, variant),
+            "line_total": _line_price(product, variant) * qty,
+        }
+        for product, variant, qty in items
+    ]
+    total = sum((r["line_total"] for r in rows), start=Decimal("0"))
     return render(
         request,
         "storefront/cart.html",
-        {"items": items, "total": total, "currency": items[0][0].currency if items else "EUR"},
+        {"rows": rows, "total": total, "currency": items[0][0].currency if items else "EUR"},
     )
 
 

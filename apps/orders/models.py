@@ -67,6 +67,15 @@ class OrderItem(TimestampedModel):
     product = models.ForeignKey(
         "catalog.Product", on_delete=models.PROTECT, related_name="order_items"
     )
+    # Вариант (R1): null = товар без вариантов. label — снимок (как title/price).
+    variant = models.ForeignKey(
+        "catalog.ProductVariant",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="order_items",
+    )
+    variant_label = models.CharField(max_length=100, blank=True)
     qty = models.PositiveIntegerField(default=1)
     # Снимки цены/названия: заказ показывает то, что видел клиент.
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)

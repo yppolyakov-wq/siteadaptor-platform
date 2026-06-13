@@ -11,17 +11,17 @@
   {% endfor %}
 {% endif %}
 
-{% if items %}
+{% if rows %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
-  {% for product, qty in items %}
+  {% for r in rows %}
     <div class="flex items-center justify-between gap-3 px-4 py-3">
       <div class="min-w-0">
-        <p class="font-medium truncate">{{ product }}</p>
-        <p class="text-xs text-gray-400">{{ qty }}× {{ product.base_price }} {{ product.currency }}</p>
+        <p class="font-medium truncate">{{ r.product }}{% if r.variant %} · {{ r.variant.label }}{% endif %}</p>
+        <p class="text-xs text-gray-400">{{ r.qty }}× {{ r.unit_price }} {{ currency }}</p>
       </div>
       <form method="post" action="{% url 'storefront-cart-remove' %}">
         {% csrf_token %}
-        <input type="hidden" name="product" value="{{ product.pk }}">
+        <input type="hidden" name="item" value="{{ r.key }}">
         <button type="submit" class="text-sm text-gray-400 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
       </form>
     </div>
