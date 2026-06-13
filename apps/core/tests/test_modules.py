@@ -81,6 +81,7 @@ def test_entitlement_applies_only_to_premium():
         ("/dashboard/", "dashboard"),
         ("/dashboard/stays/", "stays"),
         ("/dashboard/stays/units/", "stays"),
+        ("/dashboard/auftraege/", "jobs"),
         ("/dashboard/channels/", "publishing"),
         ("/dashboard/billing/checkout/", "billing"),
         ("/dashboard/settings/", "settings"),
@@ -165,14 +166,31 @@ def test_gating_skips_public_schema():
 @pytest.mark.parametrize(
     ("business_type", "disabled"),
     [
-        ("bakery", {"crm", "booking", "stays", "analytics", "publishing", "finance"}),
-        ("restaurant", {"crm", "orders", "stays", "analytics", "publishing", "finance"}),
-        ("retail", {"crm", "booking", "stays", "loyalty", "analytics", "publishing", "finance"}),
-        # hotel: stays рекомендован вертикали → НЕ в дефолтном disabled.
-        ("hotel", {"promotions", "orders", "loyalty", "analytics", "publishing", "finance"}),
+        # jobs — universal opt-in (recommended_for=()) → disabled у всех вертикалей.
+        ("bakery", {"crm", "booking", "stays", "jobs", "analytics", "publishing", "finance"}),
+        ("restaurant", {"crm", "orders", "stays", "jobs", "analytics", "publishing", "finance"}),
+        (
+            "retail",
+            {"crm", "booking", "stays", "jobs", "loyalty", "analytics", "publishing", "finance"},
+        ),
+        # hotel: stays рекомендован вертикали → НЕ в дефолтном disabled (jobs — да).
+        (
+            "hotel",
+            {"promotions", "orders", "jobs", "loyalty", "analytics", "publishing", "finance"},
+        ),
         (
             "other",
-            {"crm", "orders", "booking", "stays", "loyalty", "analytics", "publishing", "finance"},
+            {
+                "crm",
+                "orders",
+                "booking",
+                "stays",
+                "jobs",
+                "loyalty",
+                "analytics",
+                "publishing",
+                "finance",
+            },
         ),
     ],
 )
@@ -232,6 +250,7 @@ class TestModulesView:
             "orders",
             "booking",
             "stays",
+            "jobs",
             "analytics",
             "publishing",
             "finance",
@@ -245,6 +264,7 @@ class TestModulesView:
             "orders",
             "booking",
             "stays",
+            "jobs",
             "loyalty",
             "analytics",
             "publishing",

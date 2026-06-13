@@ -179,6 +179,16 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Aktionen automatisch auf Kanälen veröffentlichen (z. B. Google).",
     ),
     ModuleSpec(
+        key="jobs",
+        label_de="Aufträge & Angebote",
+        icon="🧰",
+        nav_items=(NavItem("jobs:list", _("Jobs"), "jobs"),),
+        url_prefixes=("/dashboard/auftraege/",),
+        # Выездной сервис/Handwerk — opt-in, универсальный (в business_type нет
+        # ремесленных типов; включают вручную, как finance).
+        description_de="Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen.",
+    ),
+    ModuleSpec(
         key="finance",
         label_de="Finanzen (Umsatz)",
         icon="💶",

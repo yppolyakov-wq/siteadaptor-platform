@@ -1,0 +1,59 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Jobs" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-4">{% trans "Jobs & quotes" %}</h1>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="flex flex-wrap gap-2 mb-4 text-sm">
+  <a href="?" class="px-3 py-1 rounded-full {% if not active_status %}bg-indigo-600 text-white{% else %}bg-white border border-gray-300 hover:border-indigo-400{% endif %}">{% trans "All" %}</a>
+  {% for value, label in statuses %}
+    <a href="?status={{ value }}" class="px-3 py-1 rounded-full {% if active_status == value %}bg-indigo-600 text-white{% else %}bg-white border border-gray-300 hover:border-indigo-400{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if jobs %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-8">
+  {% for j in jobs %}
+    <a href="{% url 'jobs:detail' j.pk %}" class="block px-4 py-3 hover:bg-gray-50">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div class="min-w-0">
+          <p class="font-medium truncate">{{ j.title }}
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1
+              {% if j.status == 'accepted' %}bg-green-100 text-green-800
+              {% elif j.status == 'quoted' %}bg-blue-100 text-blue-800
+              {% elif j.status == 'new' %}bg-amber-100 text-amber-800
+              {% elif j.status == 'done' or j.status == 'invoiced' %}bg-gray-100 text-gray-600
+              {% else %}bg-red-50 text-red-600{% endif %}">{{ j.get_status_display }}</span>
+          </p>
+          <p class="text-xs text-gray-400">{{ j.customer }} · {{ j.reference_code }}{% if j.site_address %} · 📍 {{ j.site_address|truncatechars:40 }}{% endif %}</p>
+        </div>
+        {% if j.gross %}<span class="text-sm font-semibold whitespace-nowrap">{{ j.gross|floatformat:2 }} €</span>{% endif %}
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500 mb-8">{% trans "No requests yet." %}</p>
+{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "New request" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
+  <input name="title" type="text" required placeholder="{% trans 'Short title (e.g. Bad streichen)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <div class="grid sm:grid-cols-3 gap-4">
+    <input name="name" type="text" required placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <input name="site_address" type="text" placeholder="{% trans 'Job address (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <textarea name="description" rows="2" placeholder="{% trans 'Description (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create request" %}</button>
+</form>
+{% endblock %}

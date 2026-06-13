@@ -1,0 +1,101 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{{ job.reference_code }}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'jobs:list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All jobs" %}</a>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mt-3 mb-1 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="flex items-center justify-between gap-3 flex-wrap mt-1 mb-4">
+  <h1 class="text-2xl font-bold">{{ job.title }}
+    <span class="text-sm font-medium px-2 py-0.5 rounded-full ml-1
+      {% if job.status == 'accepted' %}bg-green-100 text-green-800
+      {% elif job.status == 'quoted' %}bg-blue-100 text-blue-800
+      {% elif job.status == 'new' %}bg-amber-100 text-amber-800
+      {% elif job.status == 'done' or job.status == 'invoiced' %}bg-gray-100 text-gray-600
+      {% else %}bg-red-50 text-red-600{% endif %}">{{ job.get_status_display }}</span>
+  </h1>
+  <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Angebot PDF" %} ↗</a>
+</div>
+
+{# контакты / заявка #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-6 text-sm space-y-1">
+  <p class="font-medium">{{ job.customer }} <span class="text-gray-400">· {{ job.reference_code }}</span></p>
+  {% if job.customer.email %}<p class="text-gray-500">✉ {{ job.customer.email }}</p>{% endif %}
+  {% if job.customer.phone %}<p class="text-gray-500">📞 {{ job.customer.phone }}</p>{% endif %}
+  {% if job.site_address %}<p class="text-gray-500">📍 {{ job.site_address }}</p>{% endif %}
+  {% if job.description %}<p class="text-gray-600 mt-2 whitespace-pre-line">{{ job.description }}</p>{% endif %}
+  {% if job.invoice_id %}<p class="mt-2"><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">→ {% trans "Open invoice" %}</a></p>{% endif %}
+</div>
+
+{# конструктор сметы #}
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="save_lines">
+  <h2 class="font-semibold mb-3">{% trans "Quote / Kostenvoranschlag" %}</h2>
+  <div class="space-y-2">
+    <div class="hidden sm:grid grid-cols-12 gap-2 text-xs text-gray-400 font-medium">
+      <span class="col-span-7">{% trans "Description" %}</span>
+      <span class="col-span-2 text-right">{% trans "Qty" %}</span>
+      <span class="col-span-3 text-right">{% trans "Unit price (net)" %}</span>
+    </div>
+    {% for row in rows %}
+      <div class="grid grid-cols-12 gap-2">
+        <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="col-span-7 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input name="line_qty_{{ row.i }}" type="number" min="1" value="{% if row.line %}{{ row.line.qty }}{% else %}1{% endif %}" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        <input name="line_price_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.unit_price|stringformat:'.2f' }}{% endif %}" placeholder="0,00" class="col-span-3 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+      </div>
+    {% endfor %}
+  </div>
+  <div class="flex items-end gap-4 mt-4 flex-wrap">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "VAT" %}</label>
+      <select name="vat_rate" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for rate in vat_rates %}<option value="{{ rate }}" {% if job.vat_rate == rate %}selected{% endif %}>{{ rate|floatformat:0 }} %</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</label>
+      <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save quote" %}</button>
+  </div>
+  {% if job.gross %}
+    <div class="mt-4 text-sm text-right text-gray-600 space-y-0.5">
+      <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>
+      {% if not small_business %}<p>{% trans "VAT" %} {{ job.vat_rate|floatformat:0 }} %: {{ job.vat_amount|floatformat:2 }} €</p>{% endif %}
+      <p class="font-bold text-gray-900">{% trans "Total" %}: {{ job.gross|floatformat:2 }} €</p>
+    </div>
+  {% endif %}
+</form>
+
+{# действия по статусу #}
+<div class="flex flex-wrap gap-2">
+  {% if 'quoted' in allowed %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="quoted"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Send quote" %}</button></form>
+  {% endif %}
+  {% if 'accepted' in allowed %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="accepted"><button class="bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-green-700">{% trans "Mark as ordered" %}</button></form>
+  {% endif %}
+  {% if 'declined' in allowed %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="declined"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:border-indigo-400">{% trans "Declined" %}</button></form>
+  {% endif %}
+  {% if 'done' in allowed %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="done"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Mark as done" %}</button></form>
+  {% endif %}
+  {% if 'invoiced' in allowed %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="invoice"><button class="bg-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-emerald-700">{% trans "Create invoice" %}</button></form>
+  {% endif %}
+  {% if 'cancelled' in allowed %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="cancelled"><button class="border border-red-200 text-red-600 rounded-lg px-4 py-2 text-sm hover:bg-red-50">{% trans "Cancel" %}</button></form>
+  {% endif %}
+  {% if job.status == 'new' or job.status == 'declined' or job.status == 'cancelled' %}
+    <form method="post" action="{% url 'jobs:delete' job.pk %}">{% csrf_token %}<button class="text-gray-400 hover:text-red-600 text-sm px-3 py-2">{% trans "Delete" %}</button></form>
+  {% endif %}
+</div>
+{% endblock %}

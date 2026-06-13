@@ -99,3 +99,33 @@ def lines_snapshot(job) -> list[dict]:
     return [
         {"text": ln.text, "qty": ln.qty, "unit_price": str(ln.unit_price)} for ln in job.lines.all()
     ]
+
+
+def quote_to_invoice(job, *, small_business=False):
+    """Создать черновик Rechnung (apps.finance.Invoice) из позиций сметы заявки.
+
+    Снимок позиций + получатель (клиент + адрес работ); суммы пересчитываются
+    через finance.compute_totals (§19 → НДС 0), чтобы Rechnung совпала со сметой.
+    Возвращает Invoice; ставит job.invoice_id. Переход done→invoiced — на вызове.
+    """
+    from apps.finance.models import Invoice
+    from apps.finance.services import compute_totals
+
+    lines = lines_snapshot(job)
+    recipient = str(job.customer)
+    if job.site_address:
+        recipient = f"{recipient}\n{job.site_address}"
+    net, vat, gross = compute_totals(lines, job.vat_rate, small_business=small_business)
+    invoice = Invoice.objects.create(
+        customer=job.customer,
+        recipient=recipient[:500],
+        lines=lines,
+        vat_rate=Decimal("0") if small_business else job.vat_rate,
+        net=net,
+        vat_amount=vat,
+        gross=gross,
+        note=f"Auftrag {job.reference_code}: {job.title}"[:200],
+    )
+    job.invoice_id = invoice.id
+    job.save(update_fields=["invoice_id", "updated_at"])
+    return invoice

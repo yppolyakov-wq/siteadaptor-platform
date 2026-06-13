@@ -1,0 +1,154 @@
+"""G6 / F2: кабинет Aufträge — ручная заявка, конструктор сметы, переходы
+статусов, Angebot-PDF, создание Rechnung из сметы."""
+
+import uuid
+from decimal import Decimal
+
+import pytest
+from django.contrib.auth import get_user_model
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
+
+from apps.finance.models import Invoice
+from apps.jobs import services, views
+from apps.jobs.models import Job
+from apps.jobs.state_machine import JobSM
+from apps.tenants.tests.factories import TenantFactory
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+def _req(method="get", path="/dashboard/auftraege/", data=None, tenant=None):
+    request = getattr(RequestFactory(), method)(path, data or {})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    owner = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    )
+    request.tenant = tenant if tenant is not None else TenantFactory.build()
+    return request
+
+
+def _job(**kwargs):
+    kwargs.setdefault("title", "Bad streichen")
+    kwargs.setdefault("name", "Kunde")
+    return services.create_job(**kwargs)
+
+
+# --- список / ручная заявка -------------------------------------------------------
+
+
+def test_manual_request_creates_job():
+    resp = views.job_list(
+        _req("post", data={"title": "Zaun bauen", "name": "Herr Meyer", "email": "m@t.de"})
+    )
+    assert resp.status_code == 302
+    job = Job.objects.get(title="Zaun bauen")
+    assert job.status == "new" and job.source_channel == "manual"
+    assert str(job.pk) in resp.url
+
+
+def test_list_renders_and_filters():
+    job = _job()
+    body = views.job_list(_req(data={"status": "new"})).content.decode()
+    assert job.reference_code in body
+
+
+def test_detail_renders_with_lines():
+    job = _job()
+    services.set_lines(job, [{"text": "Arbeit", "qty": 2, "unit_price": "40.00"}])
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert job.title in body and "Arbeit" in body
+
+
+# --- конструктор сметы ------------------------------------------------------------
+
+
+def test_save_lines_computes_totals():
+    job = _job()
+    resp = views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_text_1": "Arbeit",
+                "line_qty_1": "8",
+                "line_price_1": "50,00",
+                "line_text_2": "Material",
+                "line_qty_2": "1",
+                "line_price_2": "120,00",
+                "vat_rate": "19.00",
+                "valid_until": "2026-12-31",
+            },
+        ),
+        pk=job.pk,
+    )
+    assert resp.status_code == 302
+    job.refresh_from_db()
+    assert job.net == Decimal("520.00") and job.gross == Decimal("618.80")
+    assert job.lines.count() == 2
+    assert str(job.valid_until) == "2026-12-31"
+
+
+# --- статусы + Rechnung -----------------------------------------------------------
+
+
+def test_status_transitions_set_timestamps():
+    job = _job()
+    views.job_detail(_req("post", data={"action": "quoted"}), pk=job.pk)
+    job.refresh_from_db()
+    assert job.status == "quoted" and job.quoted_at is not None
+    views.job_detail(_req("post", data={"action": "accepted"}), pk=job.pk)
+    job.refresh_from_db()
+    assert job.status == "accepted" and job.accepted_at is not None
+
+
+def test_create_invoice_from_done_job():
+    job = _job()
+    services.set_lines(job, [{"text": "Pauschale", "qty": 1, "unit_price": "500.00"}])
+    sm = JobSM()
+    for dst in ("quoted", "accepted", "done"):
+        sm.apply(job, dst)
+
+    resp = views.job_detail(_req("post", data={"action": "invoice"}), pk=job.pk)
+    assert resp.status_code == 302
+    job.refresh_from_db()
+    assert job.status == "invoiced" and job.invoice_id is not None
+    invoice = Invoice.objects.get(pk=job.invoice_id)
+    assert invoice.gross == Decimal("595.00")  # 500 + 19 %
+    assert f"/dashboard/finance/rechnungen/{invoice.pk}/" in resp.url
+
+
+def test_invoice_blocked_before_done():
+    job = _job()
+    services.set_lines(job, [{"text": "X", "qty": 1, "unit_price": "10.00"}])
+    JobSM().apply(job, "quoted")  # ещё не done
+    views.job_detail(_req("post", data={"action": "invoice"}), pk=job.pk)
+    job.refresh_from_db()
+    assert job.status == "quoted" and job.invoice_id is None
+    assert not Invoice.objects.exists()
+
+
+# --- PDF + удаление ---------------------------------------------------------------
+
+
+def test_angebot_pdf_renders():
+    job = _job()
+    services.set_lines(job, [{"text": "Arbeit", "qty": 2, "unit_price": "40.00"}])
+    resp = views.job_pdf(_req(), pk=job.pk)
+    assert resp["Content-Type"] == "application/pdf"
+    assert resp.content[:4] == b"%PDF"
+
+
+def test_delete_new_job():
+    job = _job()
+    resp = views.job_delete(_req("post"), pk=job.pk)
+    assert resp.status_code == 302
+    assert not Job.objects.filter(pk=job.pk).exists()
