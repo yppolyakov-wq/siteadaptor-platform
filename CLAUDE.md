@@ -361,7 +361,16 @@ Python 3.12, менеджер uv.
   авто-confirm, либо pending при `require_manual_confirm`). Витрина `/termin/`:
   депозит → Stripe Checkout, иначе обычная бронь; кабинет: настройка депозита/
   флага у ресурса, бейдж оплаты, **отмена оплаченной → refund (анти-фрод)**.
-  Дальше: P2.5c предоплата C&C → P2.5-fee (учёт оборота + строка Nutzungsgebühr).
+- **P2.5c — предоплата Click&Collect (✅ в `main`, e2d9541, CI run 153, миграции
+  tenants/0011 + orders/0002):** опциональная онлайн-предоплата C&C. `Tenant.
+  orders_prepay` (тумблер в кабинете заказов); `Order.stripe_payment_intent` +
+  payment_state «refunded». `orders.payments`: `order_checkout_url` (Checkout на
+  connected account, вариант B → application_fee=0) + `mark_order_paid` (вебхук
+  `kind=order_payment`, кросс-схемно: paid + new→confirmed). Витрина: при
+  orders_prepay+payments_enabled оформление → Stripe Checkout, иначе оплата при
+  получении; статус на `/bestellung/<code>/`. Кабинет: бейджи paid/refunded,
+  **отмена оплаченного → refund**. Дальше: P2.5-fee (учёт оборота + строка
+  Nutzungsgebühr, вариант B) → retail R1 варианты → R2 Grundpreis → R3 остаток.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -427,7 +436,7 @@ Python 3.12, менеджер uv.
    монетизация портала → платежи, отзывы, поиск, мобайл.
    - **Вертикали микробизнеса (2026-06-13, см. `micro-business-verticals.md`):**
      retail-пакет R1–R4 (✅ R4 LMIV) и P2.5 онлайн-оплата (✅ P2.5a Connect,
-     ✅ P2.5b депозит брони/термина). Очередь: P2.5c предоплата C&C → P2.5-fee
+     ✅ P2.5b депозит брони/термина, ✅ P2.5c предоплата C&C). Очередь: P2.5-fee
      (вариант B) → R1 варианты → R2 Grundpreis → R3 остаток; затем date-range
      booking (отели/ретриты), отзывы+гео (агрегатор).
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
