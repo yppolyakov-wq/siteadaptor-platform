@@ -35,6 +35,45 @@ def _parse_date(raw):
         return None
 
 
+def _catalog_parts():
+    """G11: активные товары/варианты для пикера расходников (value/label + остаток).
+
+    value кодирует вид: ``p:<pk>`` товар без вариантов, ``v:<pk>`` вариант. Остаток
+    в подписи — int (локаль-стабильно), только при учёте склада."""
+    from apps.catalog.models import Product
+
+    parts = []
+    for p in Product.objects.filter(is_active=True).prefetch_related("variants"):
+        variants = [v for v in p.variants.all() if v.is_active]
+        if variants:
+            for v in variants:
+                label = f"{p.name_text} · {v.label}"
+                if v.stock_quantity is not None:
+                    label += f" (Lager: {v.stock_quantity})"
+                parts.append({"value": f"v:{v.pk}", "label": label})
+        else:
+            label = p.name_text
+            if p.stock_quantity is not None:
+                label += f" (Lager: {p.stock_quantity})"
+            parts.append({"value": f"p:{p.pk}", "label": label})
+    return parts
+
+
+def _resolve_part(raw, products, variants):
+    """value пикера → (product, variant) инстансы или (None, None).
+
+    pk — UUID-строка (каталог на UUID-PK), словари ключим по str(pk)."""
+    kind, _, pk = (raw or "").partition(":")
+    if not pk:
+        return None, None
+    if kind == "v":
+        v = variants.get(pk)
+        return (v.product if v else None), v
+    if kind == "p":
+        return products.get(pk), None
+    return None, None
+
+
 @login_required
 def job_list(request):
     if request.method == "POST":  # ручная заявка (телефон/личный контакт)
@@ -86,11 +125,17 @@ def job_detail(request, pk):
         return redirect("jobs:detail", pk=job.pk)
 
     existing = list(job.lines.all())
-    # Пред-заполненные строки конструктора (индекс + позиция или None).
-    rows = [
-        {"i": i, "line": existing[i - 1] if i <= len(existing) else None}
-        for i in range(1, MAX_LINES + 1)
-    ]
+    # Пред-заполненные строки конструктора (индекс + позиция или None) + текущая
+    # привязка к расходнику (part_value) для пред-выбора в пикере (G11).
+    rows = []
+    for i in range(1, MAX_LINES + 1):
+        line = existing[i - 1] if i <= len(existing) else None
+        part_value = ""
+        if line and line.variant_id:
+            part_value = f"v:{line.variant_id}"
+        elif line and line.product_id:
+            part_value = f"p:{line.product_id}"
+        rows.append({"i": i, "line": line, "part_value": part_value})
     return render(
         request,
         "jobs/detail.html",
@@ -98,6 +143,7 @@ def job_detail(request, pk):
             "nav": "jobs",
             "job": job,
             "rows": rows,
+            "parts": _catalog_parts(),  # G11: пикер расходников из каталога
             "vat_rates": RevenueEntry.VAT_RATES,
             "allowed": JobSM().allowed_targets(job.status),
             "small_business": request.tenant.small_business,
@@ -106,20 +152,46 @@ def job_detail(request, pk):
 
 
 def _save_lines(request, job):
+    from apps.catalog.models import Product, ProductVariant
+
+    # Резолв привязок одним проходом (≤12 строк): str(pk) → инстанс (UUID-PK).
+    products = {str(p.pk): p for p in Product.objects.filter(is_active=True)}
+    variants = {
+        str(v.pk): v
+        for v in ProductVariant.objects.filter(is_active=True).select_related("product")
+    }
+
     lines = []
     for index in range(1, MAX_LINES + 1):
+        product, variant = _resolve_part(
+            request.POST.get(f"line_part_{index}", ""), products, variants
+        )
         text = request.POST.get(f"line_text_{index}", "").strip()
+        # G11: расходник из каталога без текста → снимок названия товара/варианта.
+        if product and not text:
+            text = f"{product.name_text} · {variant.label}" if variant else product.name_text
         if not text:
             continue
+        price_raw = str(request.POST.get(f"line_price_{index}", "")).strip()
         try:
             qty = max(1, min(int(request.POST.get(f"line_qty_{index}", "1") or 1), 9999))
-            unit_price = Decimal(
-                str(request.POST.get(f"line_price_{index}", "0")).replace(",", ".")
-            )
+            # Цена пуста + выбран расходник → снимок цены товара/варианта.
+            if product and not price_raw:
+                unit_price = variant.price_value if variant else product.base_price
+            else:
+                unit_price = Decimal(price_raw.replace(",", ".") or "0")
         except (InvalidOperation, ValueError):
             messages.error(request, _("Invalid amount."))
             return redirect("jobs:detail", pk=job.pk)
-        lines.append({"text": text, "qty": qty, "unit_price": str(unit_price)})
+        lines.append(
+            {
+                "text": text,
+                "qty": qty,
+                "unit_price": str(unit_price),
+                "product": product,
+                "variant": variant,
+            }
+        )
 
     vat_raw = request.POST.get("vat_rate", "19.00")
     vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("19.00"))

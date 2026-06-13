@@ -10,6 +10,8 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
+from apps.catalog.models import ProductVariant
+from apps.catalog.tests.factories import ProductFactory
 from apps.finance.models import Invoice
 from apps.jobs import services, views
 from apps.jobs.models import Job
@@ -95,6 +97,61 @@ def test_save_lines_computes_totals():
     assert job.net == Decimal("520.00") and job.gross == Decimal("618.80")
     assert job.lines.count() == 2
     assert str(job.valid_until) == "2026-12-31"
+
+
+# --- G11b: пикер расходников из каталога -------------------------------------------
+
+
+def test_detail_shows_part_picker():
+    ProductFactory(base_price="49.00", stock_quantity=5)
+    job = _job()
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert "line_part_1" in body  # колонка пикера расходников отрисована
+
+
+def test_save_lines_links_part_and_snapshots():
+    product = ProductFactory(base_price="49.00", stock_quantity=10)
+    job = _job()
+    views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_part_1": f"p:{product.pk}",
+                "line_text_1": "",  # пусто → снимок названия
+                "line_price_1": "",  # пусто → снимок цены
+                "line_qty_1": "2",
+                "vat_rate": "19.00",
+            },
+        ),
+        pk=job.pk,
+    )
+    line = job.lines.get()
+    assert line.product_id == product.id
+    assert line.text == product.name_text and line.unit_price == Decimal("49.00")
+    assert line.qty == 2
+
+
+def test_save_lines_links_variant():
+    product = ProductFactory(base_price="10.00")
+    variant = ProductVariant.objects.create(
+        product=product, label="M", price="14.00", stock_quantity=3
+    )
+    job = _job()
+    views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_part_1": f"v:{variant.pk}",
+                "line_qty_1": "1",
+                "vat_rate": "19.00",
+            },
+        ),
+        pk=job.pk,
+    )
+    line = job.lines.get()
+    assert line.variant_id == variant.id and line.unit_price == Decimal("14.00")
 
 
 # --- статусы + Rechnung -----------------------------------------------------------

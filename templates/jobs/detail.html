@@ -40,18 +40,31 @@
   <h2 class="font-semibold mb-3">{% trans "Quote / Kostenvoranschlag" %}</h2>
   <div class="space-y-2">
     <div class="hidden sm:grid grid-cols-12 gap-2 text-xs text-gray-400 font-medium">
-      <span class="col-span-7">{% trans "Description" %}</span>
+      {% if parts %}<span class="col-span-3">{% trans "Part (catalog)" %}</span>{% endif %}
+      <span class="{% if parts %}col-span-4{% else %}col-span-7{% endif %}">{% trans "Description" %}</span>
       <span class="col-span-2 text-right">{% trans "Qty" %}</span>
       <span class="col-span-3 text-right">{% trans "Unit price (net)" %}</span>
     </div>
     {% for row in rows %}
       <div class="grid grid-cols-12 gap-2">
-        <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="col-span-7 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        {% if parts %}
+          <select name="line_part_{{ row.i }}" class="col-span-3 rounded-lg border border-gray-300 px-2 py-1.5 text-sm bg-white">
+            <option value="">— {% trans "Free text" %} —</option>
+            {% for p in parts %}<option value="{{ p.value }}" {% if p.value == row.part_value %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
+          </select>
+        {% endif %}
+        <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="{% if parts %}col-span-4{% else %}col-span-7{% endif %} rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         <input name="line_qty_{{ row.i }}" type="number" min="1" value="{% if row.line %}{{ row.line.qty }}{% else %}1{% endif %}" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         <input name="line_price_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.unit_price|stringformat:'.2f' }}{% endif %}" placeholder="0,00" class="col-span-3 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
       </div>
     {% endfor %}
   </div>
+  {% if parts %}
+    <p class="text-xs text-gray-400 mt-2">
+      {% if job.stock_committed %}✓ {% trans "Stock for catalog parts has been booked." %}
+      {% else %}ℹ {% trans "Catalog parts are deducted from stock when the job is marked done." %}{% endif %}
+    </p>
+  {% endif %}
   <div class="flex items-end gap-4 mt-4 flex-wrap">
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "VAT" %}</label>
