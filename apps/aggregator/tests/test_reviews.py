@@ -10,8 +10,9 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import Http404
 from django.test import RequestFactory
 
-from apps.aggregator import auth, reviews, reviews_views
+from apps.aggregator import auth, portal_views, reviews, reviews_views, views
 from apps.aggregator.models import (
+    AggregatorListing,
     AggregatorPortal,
     BusinessRating,
     BusinessReview,
@@ -139,3 +140,42 @@ def test_ratings_for_batch_skips_unreviewed():
     result = reviews.ratings_for([b1.schema_name, b2.schema_name])
     assert b1.schema_name in result
     assert b2.schema_name not in result  # без отзывов — нет строки рейтинга
+
+
+# --- G8b: звёзды в выдаче ---------------------------------------------------------
+
+
+def _listing(schema, slug, **kw):
+    defaults = {
+        "tenant_schema": schema,
+        "tenant_slug": slug,
+        "business_name": "Werkstatt Müller",
+        "business_type": "other",
+        "city": "München",
+        "promo_uuid": uuid.uuid4(),
+        "title": {"de": "Ölwechsel-Aktion"},
+        "detail_url": "https://x.siteadaptor.de/p/1/",
+        "is_active": True,
+    }
+    defaults.update(kw)
+    return AggregatorListing.objects.create(**defaults)
+
+
+def test_portal_home_shows_stars_and_business_link():
+    business = _business()
+    _listing(schema=business.schema_name, slug=business.slug)
+    BusinessRating.objects.create(
+        tenant_schema=business.schema_name, avg_rating=Decimal("4.50"), review_count=3
+    )
+    body = portal_views.portal_home(_req("get", "/")).content.decode()
+    assert "4.5" in body  # звёзды на карточке
+    assert f"/unternehmen/{business.slug}/" in body  # ссылка на страницу бизнеса
+
+
+def test_city_listing_shows_stars(settings):
+    settings.ROOT_URLCONF = "config.urls_public"
+    _listing(schema="t9", slug="x9", city="Hilden")
+    BusinessRating.objects.create(tenant_schema="t9", avg_rating=Decimal("4.00"), review_count=2)
+    request = RequestFactory().get("/entdecken/Hilden/")
+    body = views.city_listing(request, city="Hilden").content.decode()
+    assert "4.0" in body

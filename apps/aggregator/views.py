@@ -84,6 +84,9 @@ def city_listing(request, city, business_type=None):
         is_active=True, kind=AggregatorPortal.KIND_CITY, city__iexact=city
     ).first()
     cards = featured + page.items  # продвинутые — сверху первой страницы
+    from . import reviews
+
+    reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
     return render(
         request,
         "aggregator/listing.html",

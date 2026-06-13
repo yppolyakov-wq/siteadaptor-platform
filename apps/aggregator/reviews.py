@@ -29,3 +29,11 @@ def ratings_for(schemas) -> dict:
         r.tenant_schema: r
         for r in BusinessRating.objects.filter(tenant_schema__in=set(schemas), review_count__gt=0)
     }
+
+
+def attach_ratings(cards):
+    """Прикрепить .business_rating к каждой карточке (G8b) — звёзды в выдаче."""
+    ratings = ratings_for({c.tenant_schema for c in cards})
+    for card in cards:
+        card.business_rating = ratings.get(card.tenant_schema)
+    return cards

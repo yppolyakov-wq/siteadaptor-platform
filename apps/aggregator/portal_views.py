@@ -77,6 +77,9 @@ def portal_home(request, facet=None):
     )
     page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
     cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
+    from . import reviews
+
+    reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
     canonical = request.build_absolute_uri(request.path)
     page_name = f"{facet_label} — {portal.title_text}" if facet_label else portal.title_text
     # Перелинковка сети (P2.2a): ссылки на остальные активные порталы.
@@ -107,6 +110,7 @@ def portal_home(request, facet=None):
             "facets": facets,
             "facet": facet,
             "facet_label": facet_label,
+            "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса
             "canonical": canonical,
             "other_portals": other_portals,
             "fav_ids": fav_ids,

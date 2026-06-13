@@ -22,6 +22,7 @@
       </div>
       <div class="p-3 md:p-4">
         <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}</p>
+        {% if l.business_rating %}<p class="text-xs text-amber-500 mb-0.5">★ {{ l.business_rating.avg_rating }} <span class="text-gray-300">({{ l.business_rating.review_count }})</span></p>{% endif %}
         {% if l.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>{% endif %}
         <h2 class="font-semibold leading-tight line-clamp-2">{{ l.title_text }}</h2>
         {% if l.new_price is not None %}
@@ -47,6 +48,10 @@
                   class="w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-400 hover:text-red-500 hover:scale-110 transition">♡</button>
         {% endif %}
       </form>
+    {% endif %}
+    {% if business_link and l.business_rating %}
+      <a href="{% url 'portal-business' slug=l.tenant_slug %}"
+         class="absolute bottom-3 right-3 z-10 bg-white/90 shadow rounded-full px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-white">★ {% trans "Reviews" %}</a>
     {% endif %}
     </div>
   {% endfor %}
