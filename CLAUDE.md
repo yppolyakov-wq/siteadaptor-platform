@@ -486,7 +486,7 @@ Python 3.12, менеджер uv.
     итог с доставкой; подтверждение показывает способ/адрес/трек. Предоплата (P2.5c)
     уже считает total с доставкой.
   - **Деплой G4:** миграции tenants/0014 + orders/0004.
-- **G8 — Отзывы/рейтинги + гео-карта агрегатора (A8, в работе):** доводит
+- **G8 — Отзывы/рейтинги + гео-карта агрегатора (A8, ✅ ВЕСЬ в `main`):** довёл
   агрегатор до доверия/маркетплейса. Разбивка G8a/G8b/G8c:
   - G8a отзывы + страница бизнеса (✅ `0a6b513`, CI run в стеке 197, миграция
     aggregator/0008): `BusinessReview` (SHARED; автор=`PortalUser`, привязка к
@@ -500,9 +500,15 @@ Python 3.12, менеджер uv.
     карточках `/entdecken` и порталов; на порталах ссылка «★ Reviews» →
     `/unternehmen/<slug>/` (сиблинг карточки, без вложенных `<a>`). **Урок (снова):**
     `{{ Decimal }}` в локали de = «4,50» — тесты проверяют счётчик (int), не avg.
-  - G8c гео: карта + «рядом» — **TODO** (denorm lat/lng на листинг + Leaflet/OSM +
-    сортировка по дистанции). JSON-LD AggregateRating — отложено.
-  - **Деплой G8 (на сейчас):** миграция aggregator/0008.
+  - G8c гео: карта + «рядом» (✅ `cb3c38a`, CI run 201 зелёный, миграция
+    aggregator/0009): `AggregatorListing` += lat/lng (denorm из Tenant в
+    `sync_listing`; бэкофилл — `sync_aggregator`); `geo.py` (haversine/parse_latlng/
+    nearest/map_points); city_listing + portal_home — near-режим при `?lat&lng`
+    (ближайшие сверху) + `_map.html` (Leaflet/OSM, маркеры + «Near me» по
+    геолокации). pagecache не мешает (GET с query не кэшируется). JSON-LD
+    AggregateRating — отложено.
+  - **Деплой G8:** миграции aggregator/0008 + 0009 (+ прогон `manage.py
+    sync_aggregator` для бэкофилла lat/lng в существующие листинги).
 - Werkstatt (A9) зафиксирован в `micro-business-verticals.md` (симбиоз booking+
   catalog+orders+jobs) + бэклог G10 bookable services / G11 расходники catalog→job.
 
