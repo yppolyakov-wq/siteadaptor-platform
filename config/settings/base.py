@@ -256,10 +256,17 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.booking.tasks.send_booking_reminders",
         "schedule": 3600.0,  # раз в час — напоминание за N часов до записи (D3c)
     },
+    "send-stay-reminders": {
+        "task": "apps.stays.tasks.send_stay_reminders",
+        "schedule": 86400.0,  # раз в сутки — напоминание о заезде (Track E / E3)
+    },
 }
 
 # За сколько часов до начала записи слать напоминание (Track D / D3c).
 BOOKING_REMINDER_HOURS = env.int("BOOKING_REMINDER_HOURS", default=24)
+
+# За сколько дней до заезда слать напоминание о брони (Track E / E3).
+STAY_REMINDER_DAYS = env.int("STAY_REMINDER_DAYS", default=1)
 
 # DSGVO: через сколько дней после последней активности обезличивать контакты
 # клиентов без активных броней (см. apps/promotions/tasks.py::purge_due_customers).

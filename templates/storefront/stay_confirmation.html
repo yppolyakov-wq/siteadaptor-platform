@@ -1,0 +1,25 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Booking received" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "Thank you! Your booking is in." %} 🎉</h1>
+    <p class="text-gray-600">{{ booking.unit.name }}</p>
+    <p class="text-lg font-semibold mt-1">{{ booking.arrival|date:"l, d.m.Y" }} → {{ booking.departure|date:"l, d.m.Y" }}</p>
+    <p class="text-sm text-gray-500 mt-1">{% blocktrans count n=booking.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}{% if booking.guests > 1 %} · {% blocktrans with g=booking.guests %}{{ g }} guests{% endblocktrans %}{% endif %}</p>
+    <p class="text-sm text-gray-500 mt-4">{% trans "Your reference code:" %}</p>
+    <p class="text-2xl font-mono font-bold tracking-wider">{{ booking.reference_code }}</p>
+    {% if booking.payment_state == 'paid' %}
+      <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 mt-4">✓ {% trans "Deposit paid." %}</p>
+    {% elif booking.payment_state == 'pending' %}
+      <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "Your deposit payment is still pending." %}</p>
+    {% endif %}
+    {% if booking.status == 'pending' %}
+      <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "We'll confirm your booking shortly." %}</p>
+    {% endif %}
+    {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-4">{{ request.tenant.address }}</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -26,6 +26,7 @@ from apps.core.views import (
 from apps.orders import public_views as orders_public
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
+from apps.stays import public_views as stays_public
 
 urlpatterns = [
     path("accounts/", include("allauth.urls")),
@@ -98,6 +99,15 @@ urlpatterns = [
     path("termin/<uuid:pk>/", booking_public.termin_slots, name="storefront-termin-slots"),
     path("termin/<uuid:pk>/buchen/", booking_public.termin_book, name="storefront-termin-book"),
     path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
+    # Übernachtung / date-range-бронь (Track E / E3): юнит → даты → форма.
+    path("unterkunft/", stays_public.unterkunft_index, name="storefront-unterkunft"),
+    path("unterkunft/<uuid:pk>/", stays_public.unterkunft_unit, name="storefront-unterkunft-unit"),
+    path(
+        "unterkunft/<uuid:pk>/buchen/",
+        stays_public.unterkunft_book,
+        name="storefront-unterkunft-book",
+    ),
+    path("s/<str:code>/", stays_public.unterkunft_confirmation, name="storefront-stay-ok"),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),

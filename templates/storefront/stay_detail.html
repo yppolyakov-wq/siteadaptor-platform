@@ -1,0 +1,79 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{{ unit.name }} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'storefront-unterkunft' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All accommodation" %}</a>
+<h1 class="text-2xl md:text-3xl font-bold mt-1 mb-1">{{ unit.name }}</h1>
+<p class="text-gray-500 mb-4">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %} · {% blocktrans with p=unit.price_eur|floatformat:2 %}{{ p }} € / night{% endblocktrans %}{% if unit.min_nights > 1 %} · {% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}{% endif %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if unit.description %}<p class="text-gray-600 mb-6 max-w-2xl whitespace-pre-line">{{ unit.description }}</p>{% endif %}
+
+{# выбор дат (GET) #}
+<form method="get" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mb-6">
+  <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
+      <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
+      <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_gaeste">{% trans "Guests" %}</label>
+      <input id="id_gaeste" name="gaeste" type="number" min="1" max="{{ unit.max_guests }}" value="{{ guests }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
+</form>
+
+{% if quote %}
+  {% if quote.available %}
+    <form method="post" action="{% url 'storefront-unterkunft-book' unit.pk %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
+      {% csrf_token %}
+      <div class="flex items-baseline justify-between">
+        <h2 class="font-semibold">{{ quote.von|date:"d.m.Y" }} → {{ quote.bis|date:"d.m.Y" }}</h2>
+        <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
+      </div>
+      <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €</p>
+      <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">
+      <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
+      <input type="hidden" name="gaeste" value="{{ quote.guests }}">
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
+          <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
+          <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
+        <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
+        <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Book now" %}</button>
+    </form>
+  {% else %}
+    <div class="bg-amber-50 text-amber-800 rounded-2xl px-5 py-4 text-sm max-w-xl">
+      {% if quote.reason == 'min_nights' %}{% blocktrans with n=unit.min_nights %}This place requires at least {{ n }} nights.{% endblocktrans %}
+      {% elif quote.reason == 'guests' %}{% blocktrans with n=unit.max_guests %}This place fits up to {{ n }} guests.{% endblocktrans %}
+      {% else %}{% trans "Sorry, these dates are not available. Please try another range." %}{% endif %}
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

@@ -18,10 +18,12 @@ from apps.promotions.models import Customer
 class RevenueEntry(TimestampedModel):
     SOURCE_ORDER = "order"
     SOURCE_RESERVATION = "reservation"
+    SOURCE_STAY = "stay"
     SOURCE_MANUAL = "manual"
     SOURCES = [
         (SOURCE_ORDER, "Order"),
         (SOURCE_RESERVATION, "Reservation"),
+        (SOURCE_STAY, "Stay"),
         (SOURCE_MANUAL, "Manual"),
     ]
     # Ставки НДС DE: 19 стандарт, 7 еда/печать, 0 — §19 Kleinunternehmer и пр.

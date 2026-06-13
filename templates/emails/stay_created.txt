@@ -1,0 +1,11 @@
+Hallo {{ customer.name }},
+
+vielen Dank für Ihre Anfrage — wir melden uns, sobald sie bestätigt ist.
+
+{{ unit.name }}
+{{ booking.arrival|date:"l, d.m.Y" }} → {{ booking.departure|date:"l, d.m.Y" }} ({{ booking.nights }} Nächte){% if booking.guests > 1 %} · {{ booking.guests }} Gäste{% endif %}
+Referenz-Code: {{ booking.reference_code }}
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

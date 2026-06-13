@@ -1,0 +1,14 @@
+Hallo {{ customer.name }},
+
+wir freuen uns auf Ihre Anreise!
+
+{{ unit.name }}
+Anreise: {{ booking.arrival|date:"l, d.m.Y" }}
+Abreise: {{ booking.departure|date:"l, d.m.Y" }}{% if booking.guests > 1 %} · {{ booking.guests }} Gäste{% endif %}
+Referenz-Code: {{ booking.reference_code }}
+
+Bis bald!
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

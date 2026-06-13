@@ -96,6 +96,10 @@ def book_stay(
         note=note,
         source_channel=(source_channel or "")[:50],
     )
+    # письмо «Anfrage erhalten» — Notification в этой же транзакции (E3)
+    from .notifications import enqueue_stay_email
+
+    enqueue_stay_email(booking, "created")
     return booking
 
 

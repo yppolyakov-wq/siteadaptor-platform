@@ -13,6 +13,7 @@ def modules_nav(request):
         return {}
     return {
         "nav_modules": modules.active_modules(tenant),
-        # Флаг для шапки публичной витрины (ссылка «Termin», D3b).
+        # Флаги для шапки публичной витрины (ссылки «Termin» D3b / «Übernachten» E3).
         "storefront_booking_enabled": modules.is_module_active(tenant, "booking"),
+        "storefront_stays_enabled": modules.is_module_active(tenant, "stays"),
     }
