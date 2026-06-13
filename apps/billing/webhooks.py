@@ -94,6 +94,20 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook order_payment: order not found %s", meta)
         return
 
+    # Депозит за date-range-бронь / Übernachtung (Track E / E4): Checkout на
+    # connected account → бронь оплачена (кросс-схемно, статус подписки не трогаем).
+    if event_type == "checkout.session.completed" and meta.get("kind") == "stay_deposit":
+        from apps.stays.payments import mark_stay_paid
+
+        ok = mark_stay_paid(
+            tenant_schema=meta.get("tenant_schema", ""),
+            booking_id=meta.get("booking_id", ""),
+            payment_intent=obj.get("payment_intent", ""),
+        )
+        if not ok:
+            logger.warning("stripe webhook stay_deposit: booking not found %s", meta)
+        return
+
     # Stripe Connect (P2.5): статус connected-аккаунта бизнеса. obj — это Account,
     # его id == Tenant.stripe_connect_id. Подписку не трогаем.
     if event_type == "account.updated":

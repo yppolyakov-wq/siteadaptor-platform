@@ -1,13 +1,15 @@
-"""Публичная date-range-бронь на витрине (Track E / E3): /unterkunft/.
+"""Публичная date-range-бронь на витрине (Track E / E3+E4): /unterkunft/.
 
 Флоу без JS: список юнитов → юнит (выбор Anreise/Abreise/Gäste через GET-форму,
 показ доступности + цены) → POST buchen (honeypot + rate-limit по IP, диапазон
 ре-валидируется, гонку закрывает services.book_stay) → подтверждение /s/<code>/.
-Модуль stays выключен → 404. Онлайн-депозит — E4.
+Модуль stays выключен → 404. Депозит (E4): при заданном депозите и подключённом
+Stripe Connect ведём на оплату, иначе обычная бронь.
 """
 
 from datetime import date, timedelta
 
+import stripe
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,9 +17,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from apps.billing import connect
 from apps.core import ratelimit
 
-from . import availability, services
+from . import availability, payments, services
 from .models import StayBooking, StayUnit
 
 RL_LIMIT = 5  # попыток брони на IP
@@ -81,6 +84,8 @@ def unterkunft_unit(request, pk):
             "available": available,
             "reason": reason,
         }
+    tenant = getattr(request, "tenant", None)
+    deposit_required = unit.deposit_cents > 0 and getattr(tenant, "payments_enabled", False)
     return render(
         request,
         "storefront/stay_detail.html",
@@ -92,6 +97,8 @@ def unterkunft_unit(request, pk):
             "bis": bis,
             "guests": guests,
             "quote": quote,
+            "deposit_required": deposit_required,
+            "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
         },
     )
 
@@ -151,6 +158,33 @@ def unterkunft_book(request, pk):
         )
         return redirect(back)
 
+    # Депозит (E4): если у юнита задан и бизнес принимает оплату — ведём на
+    # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.
+    tenant = getattr(request, "tenant", None)
+    if (
+        unit.deposit_cents > 0
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+    ):
+        booking.deposit_cents = unit.deposit_cents
+        booking.payment_state = StayBooking.PAYMENT_PENDING
+        booking.save(update_fields=["deposit_cents", "payment_state", "updated_at"])
+        ok_url = (
+            request.build_absolute_uri(reverse("storefront-stay-ok", args=[booking.reference_code]))
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse("storefront-unterkunft-unit", args=[unit.pk])
+        )
+        try:
+            return redirect(
+                payments.stay_deposit_checkout_url(
+                    booking, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            # оплата временно недоступна — бронь остаётся (pending), не теряем её
+            pass
     return redirect("storefront-stay-ok", code=booking.reference_code)
 
 

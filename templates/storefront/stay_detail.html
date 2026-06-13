@@ -66,7 +66,10 @@
         <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
         <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
       </div>
-      <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Book now" %}</button>
+      {% if deposit_required %}
+        <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
+      {% endif %}
+      <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
     </form>
   {% else %}
     <div class="bg-amber-50 text-amber-800 rounded-2xl px-5 py-4 text-sm max-w-xl">
