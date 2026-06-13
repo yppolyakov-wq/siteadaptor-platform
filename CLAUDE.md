@@ -511,6 +511,26 @@ Python 3.12, менеджер uv.
     sync_aggregator` для бэкофилла lat/lng в существующие листинги).
 - Werkstatt (A9) зафиксирован в `micro-business-verticals.md` (симбиоз booking+
   catalog+orders+jobs) + бэклог G10 bookable services / G11 расходники catalog→job.
+- **G10 — Bookable services / услуга = цена+длительность (A3, A9; ✅ ВЕСЬ в
+  `main`):** онлайн-запись на платную услугу («Ölwechsel 30 мин, 49 €») —
+  обобщает A3 (Friseur/Massage/Werkstatt). Разбивка G10a/G10b:
+  - G10a ядро (✅ `1a11cb5`, миграции booking/0003 + finance/0004): модель
+    `Service` (TENANT: name/duration_minutes/price_cents/deposit_cents,
+    бизнес-уровень — не привязана к мастеру); `Booking.service` (SET_NULL) +
+    `price_cents` (снимок); `availability.free_slots(…, duration_minutes)` +
+    `service_slots` (объединённые старты по всем активным ресурсам) +
+    `assign_resource` (первый свободный); `services.book(service=, price_cents=)`;
+    `BookingSM` fulfilled → выручка в `finance` (НДС 19 %, source «booking»,
+    идемпотентно), без цены — записи нет.
+  - G10b кабинет + витрина (✅ `ec73569`, CI run 206 зелёный, без миграций):
+    `/dashboard/booking/leistungen/` (nav «Services») — CRUD услуг (депозит — при
+    создании, инлайн-правка только длительность+цена); витрина `termin_index` при
+    активных услугах → выбор услуги (иначе прежний выбор ресурса), новые
+    `service_slots`/`service_book` (honeypot+rate-limit, валидация старта по
+    сетке, авто-подбор ресурса, снимок цены, депозит → Stripe Checkout как
+    P2.5b) → `/t/<code>/`; маршруты `termin/leistung/<uuid:pk>/[buchen/]`.
+  - **Деплой G10:** миграции booking/0003 + finance/0004. **A9 Werkstatt → ~85 %,
+    остаётся G11 (расходники catalog→job/stock).**
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -585,8 +605,10 @@ Python 3.12, менеджер uv.
      ✅ R2 Grundpreis, ✅ R3 остаток), P2.5 онлайн-оплата **закрыта целиком**
      (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C, ✅ P2.5-fee) и
      **✅ Track E date-range booking / Übernachtung (G5, E1–E4)** — отели/ретриты/
-     Ferienwohnung (см. §3). Дальше (новые сегменты): отзывы+рейтинги + гео-карта
-     агрегатора (G8). Бэклог — `micro-business-verticals.md` §бэклог G1–G9.
+     Ferienwohnung (см. §3), **✅ G8 отзывы+рейтинги+гео-карта** (агрегатор) и
+     **✅ G10 bookable services** (услуга=цена+длительность, A3/A9 Werkstatt → ~85 %).
+     Дальше: G11 (расходники catalog→job/stock) и G9 (курс с вместимостью +
+     абонемент). Бэклог — `micro-business-verticals.md` §бэклог G1–G11.
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
