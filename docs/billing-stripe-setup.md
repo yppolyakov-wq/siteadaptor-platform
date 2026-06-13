@@ -58,6 +58,27 @@ STRIPE_WEBHOOK_SECRET=whsec_...
   `4242 4242 4242 4242`) → после оплаты листинг закреплён наверху на городской
   странице (бейдж «★ Empfohlen»). Повторная покупка продлевает срок.
 
+## 5. Оплата конечного клиента — Stripe Connect (P2.5a)
+Бизнес подключает свой Stripe-аккаунт (**Standard**), чтобы принимать оплату от
+клиентов напрямую (кабинет `/dashboard/billing/payments/`). Деньги идут бизнесу,
+комиссия платформы — отдельной строкой в счёте за систему (вариант B, см. ниже).
+
+Настройка платформы (один раз):
+1. Stripe Dashboard → **Connect** → включить (Get started).
+2. Settings → Connect → **OAuth/redirect** — зарегистрировать redirect URI вида
+   `https://<subdomena>.siteadaptor.de/dashboard/billing/payments/callback/`
+   (для множества субдоменов — согласовать стратегию redirect; известное
+   ограничение, см. roadmap §Отложено).
+3. Скопировать **Connect client_id** (`ca_...`) → в `.env.prod`:
+   ```dotenv
+   STRIPE_CONNECT_CLIENT_ID=ca_...
+   ```
+   Без него кнопка «Mit Stripe verbinden» скрыта (`is_connect_configured()=False`).
+- **Вебхук** — тот же эндпоинт; событие `account.updated` → `Tenant.payments_enabled`.
+- **Комиссия (вариант B):** `BILLING_APPLICATION_FEE_PERCENT` — % по типу бизнеса
+  (`hotel=3,tour_operator=5`), сейчас 0. Выставляется продавцу в счёте за систему
+  (отдельная подзадача P2.5-fee), в платеже клиента НЕ удерживается.
+
 ## Заметки
 - Вебхук-эндпоинт живёт на основном домене (public-схема), не на субдомене:
   `https://siteadaptor.de/stripe/webhook/`. Должен быть доступен по HTTPS (Caddy).
