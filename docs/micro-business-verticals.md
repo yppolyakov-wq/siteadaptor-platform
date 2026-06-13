@@ -107,20 +107,22 @@ Catering, mobiler Friseur, Schädlingsbekämpfung.
 **До полноты:** единая корзина по бизнесам (тяжёлое, опц.); JSON-LD AggregateRating
 (минорное SEO).
 
-### A9. Kfz-Werkstatt / автосервис и ремонт (симбиоз движков) — ~85%
+### A9. Kfz-Werkstatt / автосервис и ремонт (симбиоз движков) — ~95%
 **Кто:** Kfz-Werkstatt, Reifenservice, Autoglas, мото/вело-сервис, Handy/PC-Reparatur.
 **Цикл:** Termin (запись на пост) → услуга (Ölwechsel: цена+время) ИЛИ ремонт по
 смете (Arbeit + Teile) → расходники со склада → Rechnung; плюс продажа запчастей
 онлайн. **Не новый движок — симбиоз: `booking` + `catalog` + `orders` + `jobs`.**
 **У нас:** Termine ✅ (`booking`), смета+Rechnung ✅ (`jobs` G6), продажа/доставка
 запчастей ✅ (`catalog`+`orders`+G4), остаток ✅ (R3).
-**До полноты (остался 1 «клей»):**
+**Симбиоз закрыт (оба «клея» готовы):**
 - **G10 bookable services ✅** (`apps.booking.Service`) — услуга с ценой+
   длительностью («Ölwechsel 30 мин, 49 €»), бронируемая онлайн (+ депозит P2.5b);
   бизнес-уровень (любой свободный ресурс), снимок цены → выручка при выполнении.
   Обобщил весь A3 (Friseur/Massage/Nagel/Werkstatt).
-- **G11 расходники catalog→job/stock** — `JobLine`/OrderItem ссылается на
-  `catalog.Product` и списывает остаток (R3), детали со склада попадают в Rechnung.
+- **G11 расходники catalog→job/stock ✅** (`JobLine.product`/`variant`) — деталь
+  (Teile) в смете берётся из каталога; при erledigt остаток списывается атомарно
+  (R3-паттерн, клампим в 0, идемпотентно), детали попадают в Rechnung через снимок
+  позиций. OrderItem→catalog был готов ранее (R3).
 
 ## 2. Сквозной бэклог: что закрывает несколько архетипов
 
@@ -136,7 +138,7 @@ Catering, mobiler Friseur, Schädlingsbekämpfung.
 | **G8** | Отзывы/рейтинги + гео-карта ✅ (`apps.aggregator`) | A8 (+доверие всем) | завершает агрегатор |
 | **G9** | Курс с вместимостью + абонемент | A3,A6 | йога/курсы/Nachhilfe |
 | **G10** | Bookable services ✅ (`apps.booking.Service`) | A3,A9 | салоны+автосервис |
-| **G11** | Расходники: JobLine/OrderItem → catalog.Product + остаток | A7,A9 | Handwerker+Werkstatt |
+| **G11** | Расходники ✅ (`JobLine`→catalog + остаток) | A7,A9 | Handwerker+Werkstatt |
 
 ## 3. Порядок завершения по левериджу (предложение, не план)
 
