@@ -331,6 +331,27 @@ Python 3.12, менеджер uv.
   - **D4 завершён (a–c) → ВЕСЬ Track D (D0–D4) закрыт, всё в `main`.**
     Деплой: миграции tenants/0008+0009, finance/0001+0002 (+ всё с прошлого
     деплоя). Дальше по плану: ✅ P2.4b (featured-оплата Stripe, см. §P2.4) → P2.5.
+- **Карта микробизнес-вертикалей (✅ в `main`, 2026-06-13):**
+  `docs/micro-business-verticals.md` — ~40 типов микробизнесов DACH по 3 «движкам»
+  (retail/каталог · booking по времени · booking по датам), потребности каждого до
+  «логической полноты» + сквозной бэклог G1–G9. Source of truth по вертикалям.
+- **Retail-пакет R4 — LMIV (✅ в `main`, 60f703f, CI run 141):** маркировка товара —
+  `Product.allergens` (14 EU, `apps/catalog/food.py`) + `origin` + `ingredients`
+  (миграция catalog/0002), форма + вывод на витрине только при заполнении. Остаток
+  retail по порядку: R1 варианты → R2 Grundpreis/весовая цена (PAngV) → R3 остаток
+  с atomic-списанием.
+- **P2.5 Онлайн-оплата — старт (✅ в `main`, 51b0c74, CI run 144, миграция
+  tenants/0010):** Stripe Connect, аккаунты **Standard** (онбординг OAuth) — клиент
+  платит бизнесу напрямую. `apps/billing/connect.py`: OAuth (authorize/complete),
+  `set_connect_status` (вебхук `account.updated` → `Tenant.payments_enabled`),
+  application fee **по типу бизнеса** (`BILLING_APPLICATION_FEE_PERCENT`, сейчас 0);
+  кабинет `/dashboard/billing/payments/`. **Монетизация = вариант B** (решение
+  2026-06-13): комиссию выставляем продавцу строкой «Nutzungsgebühr» в счёте за
+  систему, в платеже клиента НЕ удерживаем (application_fee=0; A — хук на будущее;
+  option 3 «платформа собирает + payout» — резерв под маркетплейс). Инфра:
+  `STRIPE_CONNECT_CLIENT_ID` + Connect в Stripe (`docs/billing-stripe-setup.md §5`;
+  caveat redirect-URI субдоменов — roadmap §Отложено). Дальше: P2.5b депозит
+  брони/термина → P2.5c предоплата C&C → P2.5-fee (учёт оборота + строка в инвойс).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -374,7 +395,10 @@ Python 3.12, менеджер uv.
   csv-import-wizard, magic-link-auth.
 - `DEVELOPMENT-GUIDE.md`, `phase1-*.md`, `monetization-unit-economics.md`,
   `hetzner-claude-code-setup.md`.
-- `billing-stripe-setup.md` — настройка Stripe (ключи, Price 39 €, webhook) в `.env.prod`.
+- `billing-stripe-setup.md` — настройка Stripe (ключи, Price 39 €, webhook, §4
+  featured, §5 Connect/оплата клиента) в `.env.prod`.
+- **`micro-business-verticals.md`** — карта вертикалей DACH (потребности → полнота,
+  бэклог G1–G9, порядок retail-пакета и P2.5).
 
 ## 7. Дальше (порядок из roadmap)
 1. **Sprint 5 — Биллинг/Stripe** (в работе): dj-stripe, SubscriptionSM, Checkout +
@@ -391,6 +415,11 @@ Python 3.12, менеджер uv.
    порталы (a–d в `main`, задеплоено, первый портал muenchen.siteadaptor.de
    создан). Дальше: P2.2 SEO/контент порталов → клиентские аккаунты →
    монетизация портала → платежи, отзывы, поиск, мобайл.
+   - **Вертикали микробизнеса (2026-06-13, см. `micro-business-verticals.md`):**
+     retail-пакет R1–R4 (✅ R4 LMIV) и P2.5 онлайн-оплата (✅ старт P2.5a Connect).
+     Очередь: P2.5b депозит → P2.5c предоплата C&C → P2.5-fee (вариант B) →
+     R1 варианты → R2 Grundpreis → R3 остаток; затем date-range booking (отели/
+     ретриты), отзывы+гео (агрегатор).
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
