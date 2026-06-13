@@ -62,6 +62,18 @@ class Product(SoftDeleteMixin, I18nMixin):
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default="EUR")
 
+    # PAngV (R2): Grundpreis (€/kg|l). unit — единица контента, content_amount —
+    # количество (250 г, 0.75 л). Stück/пусто → без Grundpreis (несчётные товары).
+    UNIT_CHOICES = [
+        ("", "Stück / —"),
+        ("g", "Gramm"),
+        ("kg", "Kilogramm"),
+        ("ml", "Milliliter"),
+        ("l", "Liter"),
+    ]
+    unit = models.CharField(max_length=4, blank=True, choices=UNIT_CHOICES)
+    content_amount = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
+
     stock_quantity = models.IntegerField(null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
@@ -118,6 +130,13 @@ class Product(SoftDeleteMixin, I18nMixin):
         return min(prices) if prices else self.base_price
 
     @property
+    def grundpreis(self):
+        """PAngV (value, ref) или None — для товара без вариантов."""
+        from .pricing import grundpreis
+
+        return grundpreis(self.base_price, self.unit, self.content_amount)
+
+    @property
     def allergen_labels(self) -> list[str]:
         """Подписи аллергенов (DE) для витрины — из кодов self.allergens."""
         from .food import allergen_labels
@@ -137,6 +156,9 @@ class ProductVariant(TimestampedModel):
     label = models.CharField(max_length=100)  # «100 g», «M», «6er-Pack»
     sku = models.CharField(max_length=100, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # PAngV (R2): контент варианта для Grundpreis (чай 100 г vs 250 г); пусто →
+    # берётся Product.content_amount. Единица (unit) — на товаре.
+    content_amount = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
     stock_quantity = models.IntegerField(null=True, blank=True)
     sort_order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -154,3 +176,13 @@ class ProductVariant(TimestampedModel):
     def price_value(self):
         """Цена варианта: своя или фолбэк на base_price товара."""
         return self.price if self.price is not None else self.product.base_price
+
+    @property
+    def grundpreis(self):
+        """PAngV (value, ref) или None: своя content_amount или товара; unit товара."""
+        from .pricing import grundpreis
+
+        content = (
+            self.content_amount if self.content_amount is not None else self.product.content_amount
+        )
+        return grundpreis(self.price_value, self.product.unit, content)

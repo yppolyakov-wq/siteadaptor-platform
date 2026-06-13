@@ -115,6 +115,8 @@ class ProductForm(forms.ModelForm):
             "category",
             "base_price",
             "currency",
+            "unit",
+            "content_amount",
             "sku",
             "stock_quantity",
             "origin",

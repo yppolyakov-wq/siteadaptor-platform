@@ -147,6 +147,7 @@ def variant_add(request, pk):
             label=label,
             sku=(request.POST.get("sku") or "").strip(),
             price=_parse_price(request.POST.get("price")),
+            content_amount=_parse_price(request.POST.get("content")),
             stock_quantity=_parse_int(request.POST.get("stock")),
             sort_order=_parse_int(request.POST.get("sort")) or 0,
         )
@@ -159,10 +160,20 @@ def variant_add(request, pk):
 def variant_update(request, pk, vid):
     variant = get_object_or_404(ProductVariant, pk=vid, product_id=pk)
     variant.price = _parse_price(request.POST.get("price"))
+    variant.content_amount = _parse_price(request.POST.get("content"))
     variant.stock_quantity = _parse_int(request.POST.get("stock"))
     variant.sort_order = _parse_int(request.POST.get("sort")) or 0
     variant.is_active = bool(request.POST.get("is_active"))
-    variant.save(update_fields=["price", "stock_quantity", "sort_order", "is_active", "updated_at"])
+    variant.save(
+        update_fields=[
+            "price",
+            "content_amount",
+            "stock_quantity",
+            "sort_order",
+            "is_active",
+            "updated_at",
+        ]
+    )
     messages.success(request, _("Variant updated."))
     return redirect("catalog:product-edit", pk=pk)
 

@@ -19,6 +19,7 @@
   <div class="p-3 md:p-4">
     {% if p.category %}<p class="text-xs text-gray-400 mb-0.5">{{ p.category }}</p>{% endif %}
     <h3 class="font-semibold leading-tight line-clamp-2">{{ p }}</h3>
-    <div class="mt-2 font-bold">{{ p.base_price }} {{ p.currency }}</div>
+    <div class="mt-2 font-bold">{% if p.has_variants %}{% trans "from" %} {{ p.price_from }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency }}</div>
+    {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-xs text-gray-400">{{ gp.0 }} {{ p.currency }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
   </div>
 </a>
