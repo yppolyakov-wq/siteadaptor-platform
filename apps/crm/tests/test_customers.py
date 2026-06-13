@@ -151,6 +151,33 @@ def test_detail_shows_loyalty_cards():
     assert "🎁 1" in body
 
 
+def test_issue_voucher_to_customer():
+    """D1: ваучер из карточки клиента привязывается к нему (360°)."""
+    from apps.promotions.models import Voucher
+
+    customer = Customer.objects.create(name="Lena Gutschein")
+    resp = views.customer_detail(
+        _req(
+            "post",
+            f"/crm/{customer.pk}/",
+            {"action": "issue_voucher", "label": "−10 %", "max_uses": "3"},
+        ),
+        pk=customer.pk,
+    )
+    assert resp.status_code == 302
+    voucher = Voucher.objects.get(customer=customer)
+    assert voucher.label == "−10 %" and voucher.max_uses == 3 and voucher.code.startswith("V-")
+
+
+def test_card_shows_customer_vouchers():
+    from apps.promotions.services import generate_vouchers
+
+    customer = Customer.objects.create(name="Mara")
+    generate_vouchers(label="Gratis Kaffee", count=1, customer=customer)
+    body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk).content.decode()
+    assert "Gratis Kaffee" in body
+
+
 def test_export_csv_respects_filter():
     """D1c: CSV-экспорт уважает поисковый фильтр и содержит поля D1."""
     Customer.objects.create(name="Jana Vip", email="jana@test.de", tags=["vip"])

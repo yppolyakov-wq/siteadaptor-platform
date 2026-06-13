@@ -285,6 +285,16 @@ class Voucher(TimestampedModel):
     used_count = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     expires_at = models.DateTimeField(null=True, blank=True)
+    # D1: ваучер, выданный конкретному клиенту (опц.) — для карточки 360° в CRM.
+    # SET_NULL: код переживает удаление клиента (остаётся валидным как артефакт
+    # бизнеса, не PII). null = обычный раздаточный код без привязки.
+    customer = models.ForeignKey(
+        "promotions.Customer",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="vouchers",
+    )
 
     class Meta:
         ordering = ["-created_at"]

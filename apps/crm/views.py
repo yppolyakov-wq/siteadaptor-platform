@@ -92,6 +92,9 @@ def customer_create(request):
 @login_required
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
+    # D1: выдать ваучер этому клиенту (отдельное действие — не сохранение формы).
+    if request.method == "POST" and request.POST.get("action") == "issue_voucher":
+        return _issue_voucher(request, customer)
     form = CustomerForm(request.POST or None, instance=customer)
     if request.method == "POST" and form.is_valid():
         form.save()
@@ -112,8 +115,26 @@ def customer_detail(request, pk):
             "loyalty_cards": customer.loyalty_cards.select_related("program"),
             # 360° (D2b): заказы Click & Collect.
             "orders": customer.orders.prefetch_related("items").order_by("-created_at")[:20],
+            # 360° (D1): ваучеры, выданные клиенту.
+            "vouchers": customer.vouchers.all()[:50],
         },
     )
+
+
+def _issue_voucher(request, customer):
+    from apps.promotions.services import generate_vouchers
+
+    label = request.POST.get("label", "").strip()
+    if label:
+        try:
+            max_uses = max(1, min(int(request.POST.get("max_uses", "1") or 1), 999))
+        except (TypeError, ValueError):
+            max_uses = 1
+        generate_vouchers(label=label[:120], count=1, max_uses=max_uses, customer=customer)
+        messages.success(request, _("Voucher issued."))
+    else:
+        messages.error(request, _("Please describe what the voucher gives."))
+    return redirect("crm:customer-detail", pk=customer.pk)
 
 
 @login_required

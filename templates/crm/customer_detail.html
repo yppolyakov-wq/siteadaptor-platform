@@ -102,6 +102,28 @@
       <p class="text-sm text-gray-400">{% trans "No loyalty cards yet." %}</p>
     {% endfor %}
   </div>
+
+  {# Ваучеры клиента (D1, 360°): список + выдача нового. #}
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="font-semibold mb-3">{% trans "Vouchers" %}</h2>
+    {% for v in vouchers %}
+      <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 {% if not v.is_redeemable %}opacity-60{% endif %}">
+        <div class="min-w-0">
+          <p class="text-sm font-medium truncate">{{ v.label }}</p>
+          <p class="text-xs font-mono text-indigo-700">{{ v.code }}{% if v.expires_at %} · {% trans "until" %} {{ v.expires_at|date:"d.m.Y" }}{% endif %}</p>
+        </div>
+        <span class="text-xs text-gray-400 shrink-0">{% if v.uses_left == None %}∞{% else %}{{ v.uses_left }}/{{ v.max_uses }}{% endif %}</span>
+      </div>
+    {% empty %}
+      <p class="text-sm text-gray-400">{% trans "No vouchers yet." %}</p>
+    {% endfor %}
+    <form method="post" class="mt-4 flex flex-wrap items-center gap-2">{% csrf_token %}
+      <input type="hidden" name="action" value="issue_voucher">
+      <input name="label" type="text" required placeholder="{% trans 'e.g. −10 %, free coffee' %}" class="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="max_uses" type="number" min="1" value="1" class="w-16 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="{% trans 'Max uses' %}">
+      <button class="bg-indigo-600 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Issue" %}</button>
+    </form>
+  </div>
   </div>
 </div>
 {% endblock %}
