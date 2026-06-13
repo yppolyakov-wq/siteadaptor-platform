@@ -292,6 +292,8 @@ STRIPE_LIVE_SECRET_KEY = env("STRIPE_LIVE_SECRET_KEY", default="")
 DJSTRIPE_WEBHOOK_SECRET = env("DJSTRIPE_WEBHOOK_SECRET", default="")
 # Секрет подписи Stripe-вебхука (наш эндпоинт apps.billing.webhooks.stripe_webhook).
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
+# P2.5 Stripe Connect (Standard-аккаунты, онбординг через OAuth): client_id платформы.
+STRIPE_CONNECT_CLIENT_ID = env("STRIPE_CONNECT_CLIENT_ID", default="")
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 # Тариф Standard (39 €/мес) и длительности жизненного цикла подписки.

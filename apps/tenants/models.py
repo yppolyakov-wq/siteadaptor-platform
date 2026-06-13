@@ -55,6 +55,12 @@ class Tenant(TenantMixin):
     trial_ends_at = models.DateTimeField(null=True, blank=True)
     subscription_ends_at = models.DateTimeField(null=True, blank=True)
 
+    # P2.5 Stripe Connect: connected account бизнеса (Standard, OAuth) для приёма
+    # оплаты от его клиентов напрямую. payments_enabled = charges_enabled (ставит
+    # вебхук account.updated). application fee — apps.billing.connect (пока 0).
+    stripe_connect_id = models.CharField(max_length=100, blank=True)
+    payments_enabled = models.BooleanField(default=False)
+
     # Owner contact
     owner_email = models.EmailField(blank=True)
     owner_phone = models.CharField(max_length=30, blank=True)

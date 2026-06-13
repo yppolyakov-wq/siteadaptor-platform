@@ -1,6 +1,9 @@
-"""P2.5: конфиг application fee по типу бизнеса (дефолт 0, настройка существует)."""
+"""P2.5: application fee по типу бизнеса + Connect-онбординг (OAuth) и статус."""
 
 from decimal import Decimal
+
+import pytest
+import stripe
 
 from apps.billing import connect
 
@@ -51,3 +54,47 @@ def test_fee_cents_computed_and_floored(settings):
 def test_fee_cents_zero_for_nonpositive_amount(settings):
     settings.BILLING_APPLICATION_FEE_PERCENT = {"hotel": "3"}
     assert connect.application_fee_cents(0, "hotel") == 0
+
+
+# --- Connect onboarding (Standard, OAuth) ---------------------------------
+
+
+def test_is_connect_configured(settings):
+    settings.STRIPE_LIVE_MODE = False
+    settings.STRIPE_TEST_SECRET_KEY = ""
+    settings.STRIPE_CONNECT_CLIENT_ID = ""
+    assert connect.is_connect_configured() is False
+    settings.STRIPE_TEST_SECRET_KEY = "sk_test_x"
+    settings.STRIPE_CONNECT_CLIENT_ID = "ca_x"
+    assert connect.is_connect_configured() is True
+
+
+def test_oauth_authorize_url(settings):
+    settings.STRIPE_CONNECT_CLIENT_ID = "ca_test"
+    url = connect.oauth_authorize_url(state="s1", redirect_uri="https://app/cb")
+    assert url.startswith("https://connect.stripe.com/oauth/authorize?")
+    assert "client_id=ca_test" in url
+    assert "state=s1" in url
+    assert "redirect_uri=https%3A%2F%2Fapp%2Fcb" in url
+    assert "scope=read_write" in url
+
+
+def test_complete_oauth_returns_account_id(monkeypatch):
+    monkeypatch.setattr(stripe.OAuth, "token", lambda **kw: {"stripe_user_id": "acct_123"})
+    assert connect.complete_oauth("code_abc") == "acct_123"
+
+
+@pytest.mark.django_db
+def test_set_connect_status_updates_tenant():
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(stripe_connect_id="acct_1", payments_enabled=False)
+    assert connect.set_connect_status("acct_1", True) is True
+    t.refresh_from_db()
+    assert t.payments_enabled is True
+
+
+@pytest.mark.django_db
+def test_set_connect_status_unknown_account_is_noop():
+    assert connect.set_connect_status("acct_missing", True) is False
+    assert connect.set_connect_status("", True) is False

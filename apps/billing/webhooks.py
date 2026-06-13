@@ -19,7 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.tenants.models import Tenant
 
-from . import services
+from . import connect, services
 
 logger = logging.getLogger("billing")
 
@@ -65,6 +65,12 @@ def handle_event(event_type: str, obj: dict) -> None:
         )
         if not ok:
             logger.warning("stripe webhook featured: listing not found %s", meta)
+        return
+
+    # Stripe Connect (P2.5): статус connected-аккаунта бизнеса. obj — это Account,
+    # его id == Tenant.stripe_connect_id. Подписку не трогаем.
+    if event_type == "account.updated":
+        connect.set_connect_status(obj.get("id", ""), bool(obj.get("charges_enabled")))
         return
 
     tenant = _tenant_from_object(obj)
