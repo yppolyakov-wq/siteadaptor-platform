@@ -58,6 +58,9 @@ class Job(TimestampedModel):
     accepted_at = models.DateTimeField(null=True, blank=True)
     # Связанный счёт (apps.finance.Invoice в той же схеме) — без жёсткого FK.
     invoice_id = models.UUIDField(null=True, blank=True)
+    # G11: остаток за расходники (Teile из каталога) списан — один раз, при
+    # переходе в done (erledigt). Гард идемпотентности (как у заказов R3).
+    stock_committed = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]
@@ -81,6 +84,24 @@ class JobLine(TimestampedModel):
     text = models.CharField(max_length=300)
     qty = models.PositiveSmallIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # нетто за ед.
+
+    # G11: расходник (Teile) из каталога — null = свободная строка (Arbeit/работа).
+    # SET_NULL: удаление товара не трогает смету (text/unit_price — снимок). При
+    # erledigt списывается остаток только по строкам с привязкой и учётом склада.
+    product = models.ForeignKey(
+        "catalog.Product",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="job_lines",
+    )
+    variant = models.ForeignKey(
+        "catalog.ProductVariant",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="job_lines",
+    )
 
     class Meta:
         ordering = ["position", "created_at"]

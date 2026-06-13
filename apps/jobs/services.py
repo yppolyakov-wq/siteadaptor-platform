@@ -81,6 +81,9 @@ def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
                     text=text[:300],
                     qty=line.get("qty", 1),
                     unit_price=line.get("unit_price", 0),
+                    # G11: привязка строки к расходнику каталога (опц.).
+                    product=line.get("product"),
+                    variant=line.get("variant"),
                 )
             )
         JobLine.objects.bulk_create(objs)
@@ -92,6 +95,38 @@ def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
         job.net, job.vat_amount, job.gross = net, vat, gross
         job.save(update_fields=["vat_rate", "net", "vat_amount", "gross", "updated_at"])
     return job
+
+
+def commit_stock(job) -> None:
+    """G11: списать остаток за расходники сметы (Teile) — один раз, при erledigt.
+
+    Списываем только строки с привязкой к каталогу (product/variant) и учётом
+    остатка (stock_quantity не null). Работа уже выполнена → не блокируем при
+    нехватке, а клампим в 0 (паттерн R3 по атомарности, но без OutOfStock).
+    Идемпотентно: гард ``job.stock_committed`` под select_for_update. Возврата при
+    отмене нет — cancelled достижим только до done (см. JobSM).
+    """
+    from apps.catalog.models import Product, ProductVariant
+
+    with transaction.atomic():
+        locked = Job.objects.select_for_update().get(pk=job.pk)
+        if locked.stock_committed:
+            return
+        for line in locked.lines.all():
+            if line.variant_id:
+                row = ProductVariant.objects.select_for_update().get(pk=line.variant_id)
+            elif line.product_id:
+                # all_objects: списываем и со снятого с витрины (soft-deleted) товара.
+                row = Product.all_objects.select_for_update().get(pk=line.product_id)
+            else:
+                continue  # свободная строка (Arbeit) — склад не трогаем
+            if row.stock_quantity is None:
+                continue  # без учёта остатка
+            row.stock_quantity = max(0, row.stock_quantity - line.qty)
+            row.save(update_fields=["stock_quantity", "updated_at"])
+        locked.stock_committed = True
+        locked.save(update_fields=["stock_committed", "updated_at"])
+    job.stock_committed = True
 
 
 def lines_snapshot(job) -> list[dict]:

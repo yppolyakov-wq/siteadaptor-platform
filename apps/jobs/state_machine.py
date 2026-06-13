@@ -22,7 +22,12 @@ class JobSM(StateMachine):
     ]
 
     def on_transition(self, instance, t, **kw):
+        from . import services
         from .notifications import enqueue_job_email
+
+        # G11: расходники (Teile) списываются со склада при erledigt (один раз).
+        if t.dst == "done":
+            services.commit_stock(instance)
 
         if t.dst == "quoted":
             # Ссылку на публичное Angebot строим только при известном домене
