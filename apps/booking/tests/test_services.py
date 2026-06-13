@@ -6,12 +6,17 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from django.contrib.auth import get_user_model
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
 from django.utils import timezone
 
-from apps.booking import availability, services
-from apps.booking.models import AvailabilityRule, Resource, Service
+from apps.booking import availability, public_views, services, views
+from apps.booking.models import AvailabilityRule, Booking, Resource, Service
 from apps.booking.state_machine import BookingSM
 from apps.finance.models import RevenueEntry
+from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -123,3 +128,93 @@ def test_fulfilled_without_price_no_revenue():
     sm = BookingSM()
     sm.apply(sm.apply(booking, "confirmed"), "fulfilled")
     assert not RevenueEntry.objects.filter(source="booking").exists()
+
+
+# --- G10b: кабинет + витрина ------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+def _cab_req(method="get", data=None):
+    request = getattr(RequestFactory(), method)("/dashboard/booking/leistungen/", data or {})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    owner = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    )
+    return request
+
+
+def _pub_req(method="get", path="/termin/", data=None):
+    request = getattr(RequestFactory(), method)(path, data or {})
+    request.META["REMOTE_ADDR"] = f"10.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}.7"
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = TenantFactory.build(disabled_modules=[])  # booking активен
+    return request
+
+
+def test_cabinet_creates_and_updates_service():
+    resp = views.services_view(
+        _cab_req(
+            "post",
+            {"action": "create", "name": "Haarschnitt", "duration": "45", "price_eur": "25,00"},
+        )
+    )
+    assert resp.status_code == 302
+    svc = Service.objects.get(name="Haarschnitt")
+    assert svc.duration_minutes == 45 and svc.price_cents == 2500
+    views.services_view(
+        _cab_req(
+            "post",
+            {"action": "update", "service": str(svc.pk), "duration": "60", "price_eur": "30"},
+        )
+    )
+    svc.refresh_from_db()
+    assert svc.duration_minutes == 60 and svc.price_cents == 3000
+
+
+def test_termin_index_shows_services():
+    Service.objects.create(name="Ölwechsel", duration_minutes=30, price_cents=4900)
+    body = public_views.termin_index(_pub_req()).content.decode()
+    assert "Ölwechsel" in body
+
+
+def test_service_book_assigns_resource_and_snapshots_price():
+    resource = _resource()
+    day = _future_day()
+    _rule(resource, day)
+    service = _service(duration_minutes=30, price_cents=2500)
+    start = availability.service_slots(service, day)[0]
+    resp = public_views.service_book(
+        _pub_req(
+            "post",
+            f"/termin/leistung/{service.pk}/buchen/",
+            {"start": start.isoformat(), "name": "Gast"},
+        ),
+        pk=service.pk,
+    )
+    booking = Booking.objects.get(service=service)
+    assert booking.resource == resource and booking.price_cents == 2500
+    assert resp.url == f"/t/{booking.reference_code}/"
+
+
+def test_service_book_rejects_unavailable_time():
+    resource = _resource()
+    day = _future_day()
+    _rule(resource, day, "09:00", "12:00")
+    service = _service(duration_minutes=30)
+    bad = _aware(day, 3)  # вне окна правил
+    public_views.service_book(
+        _pub_req(
+            "post",
+            f"/termin/leistung/{service.pk}/buchen/",
+            {"start": bad.isoformat(), "name": "Gast"},
+        ),
+        pk=service.pk,
+    )
+    assert not Booking.objects.filter(service=service).exists()

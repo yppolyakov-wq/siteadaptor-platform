@@ -1,0 +1,66 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Services" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Services" %}</h1>
+  <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<p class="text-sm text-gray-500 mb-4">{% trans "Bookable services with price and duration — customers pick a service and a time on /termin/." %}</p>
+
+<div class="space-y-3 mb-8">
+  {% for s in services %}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-4 grid sm:grid-cols-5 gap-3 items-end {% if not s.is_active %}opacity-60{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update"><input type="hidden" name="service" value="{{ s.pk }}">
+      <div class="sm:col-span-2">
+        <span class="font-medium">{{ s.name }}</span>{% if not s.is_active %} <span class="text-xs text-gray-400">· {% trans "inactive" %}</span>{% endif %}
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">{% trans "Duration (min)" %}</label>
+        <input name="duration" type="number" min="5" value="{{ s.duration_minutes }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</label>
+        <input name="price_eur" type="text" value="{{ s.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button name="action" value="toggle" class="text-xs text-gray-500 hover:underline">{% if s.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</button>
+      </div>
+    </form>
+  {% empty %}
+    <p class="text-gray-500">{% trans "No services yet." %}</p>
+  {% endfor %}
+</div>
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="create">
+  <h2 class="font-semibold">{% trans "New service" %}</h2>
+  <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</label>
+      <input name="duration" type="number" min="5" value="30" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
+      <input name="price_eur" type="text" placeholder="49" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
+      <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create service" %}</button>
+</form>
+{% endblock %}

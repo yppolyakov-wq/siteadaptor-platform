@@ -9,4 +9,5 @@ urlpatterns = [
     path("new/", views.booking_create, name="booking-create"),
     path("<uuid:pk>/action/", views.booking_action, name="booking-action"),
     path("ressourcen/", views.resources, name="resources"),
+    path("leistungen/", views.services_view, name="services"),
 ]

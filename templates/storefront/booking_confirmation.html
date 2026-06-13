@@ -6,7 +6,7 @@
 <div class="max-w-xl">
   <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "Thank you! Your booking is in." %} 🎉</h1>
-    <p class="text-gray-600">{{ booking.resource.name }}</p>
+    <p class="text-gray-600">{% if booking.service %}{{ booking.service.name }}{% if booking.price_cents %} · {{ booking.price_eur|floatformat:2 }} €{% endif %}{% else %}{{ booking.resource.name }}{% endif %}</p>
     <p class="text-lg font-semibold mt-1">{{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}</p>
     {% if booking.party_size > 1 %}<p class="text-sm text-gray-500 mt-1">{% blocktrans with n=booking.party_size %}{{ n }} guests{% endblocktrans %}</p>{% endif %}
     <p class="text-sm text-gray-500 mt-4">{% trans "Your reference code:" %}</p>

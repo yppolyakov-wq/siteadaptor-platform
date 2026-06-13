@@ -169,3 +169,7 @@ class Booking(TimestampedModel):
 
     def __str__(self):
         return f"{self.reference_code} {self.resource} {self.start:%d.%m %H:%M}"
+
+    @property
+    def price_eur(self) -> float:
+        return self.price_cents / 100

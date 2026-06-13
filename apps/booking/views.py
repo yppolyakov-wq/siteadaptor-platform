@@ -221,3 +221,45 @@ def resources(request):
             "weekdays": AvailabilityRule.WEEKDAYS,
         },
     )
+
+
+@login_required
+def services_view(request):
+    """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами."""
+    from .models import Service
+
+    def _int(raw, default, lo, hi):
+        try:
+            return max(lo, min(int(raw), hi))
+        except (TypeError, ValueError):
+            return default
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "create":
+            name = request.POST.get("name", "").strip()
+            if name:
+                Service.objects.create(
+                    name=name,
+                    duration_minutes=_int(request.POST.get("duration"), 30, 5, 1440),
+                    price_cents=_eur_to_cents(request.POST.get("price_eur")),
+                    deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
+                )
+                messages.success(request, _("Service created."))
+        elif action == "update":  # инлайн: длительность + цена (депозит — при создании)
+            service = get_object_or_404(Service, pk=request.POST.get("service"))
+            service.duration_minutes = _int(request.POST.get("duration"), 30, 5, 1440)
+            service.price_cents = _eur_to_cents(request.POST.get("price_eur"))
+            service.save(update_fields=["duration_minutes", "price_cents", "updated_at"])
+            messages.success(request, _("Service saved."))
+        elif action == "toggle":
+            service = get_object_or_404(Service, pk=request.POST.get("service"))
+            service.is_active = not service.is_active
+            service.save(update_fields=["is_active", "updated_at"])
+        return redirect("booking:services")
+
+    return render(
+        request,
+        "booking/services.html",
+        {"nav": "booking", "services": Service.objects.order_by("-is_active", "name")},
+    )

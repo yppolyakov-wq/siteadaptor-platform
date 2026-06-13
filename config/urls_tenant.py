@@ -101,6 +101,15 @@ urlpatterns = [
     path("termin/", booking_public.termin_index, name="storefront-termin"),
     path("termin/<uuid:pk>/", booking_public.termin_slots, name="storefront-termin-slots"),
     path("termin/<uuid:pk>/buchen/", booking_public.termin_book, name="storefront-termin-book"),
+    # Запись на услугу (G10): услуга → слот (по всем ресурсам) → форма.
+    path(
+        "termin/leistung/<uuid:pk>/", booking_public.service_slots, name="storefront-service-slots"
+    ),
+    path(
+        "termin/leistung/<uuid:pk>/buchen/",
+        booking_public.service_book,
+        name="storefront-service-book",
+    ),
     path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
     # Übernachtung / date-range-бронь (Track E / E3): юнит → даты → форма.
     path("unterkunft/", stays_public.unterkunft_index, name="storefront-unterkunft"),

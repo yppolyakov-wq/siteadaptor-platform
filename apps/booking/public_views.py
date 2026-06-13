@@ -20,7 +20,7 @@ from apps.billing import connect
 from apps.core import ratelimit
 
 from . import availability, payments, services
-from .models import Booking, Resource
+from .models import Booking, Resource, Service
 
 RL_LIMIT = 5  # попыток записи на IP
 RL_WINDOW = 600  # за 10 минут
@@ -44,10 +44,117 @@ def _parse_day(raw) -> date:
 
 def termin_index(request):
     _require_booking_active(request)
+    services_qs = Service.objects.filter(is_active=True)
+    if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
+        return render(request, "storefront/service_index.html", {"services": services_qs})
     resources = Resource.objects.filter(is_active=True)
     if resources.count() == 1:  # один ресурс — сразу к слотам
         return redirect("storefront-termin-slots", pk=resources.first().pk)
     return render(request, "storefront/booking_index.html", {"resources": resources})
+
+
+def service_slots(request, pk):
+    """G10: свободные старты под услугу (по всем ресурсам), форма брони."""
+    _require_booking_active(request)
+    service = get_object_or_404(Service, pk=pk, is_active=True)
+    day = _parse_day(request.GET.get("tag"))
+    today = timezone.localdate()
+    starts = availability.service_slots(service, day)
+    selected = None
+    raw = request.GET.get("slot", "")
+    if raw:
+        selected = next((s for s in starts if s.isoformat() == raw), None)
+    tenant = getattr(request, "tenant", None)
+    return render(
+        request,
+        "storefront/service_slots.html",
+        {
+            "service": service,
+            "day": day,
+            "starts": starts,
+            "selected": selected,
+            "deposit_required": service.deposit_cents > 0
+            and getattr(tenant, "payments_enabled", False),
+            "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
+            "prev_day": day - timedelta(days=1) if day > today else None,
+            "next_day": day + timedelta(days=1)
+            if day < today + timedelta(days=MAX_DAYS_AHEAD)
+            else None,
+        },
+    )
+
+
+def service_book(request, pk):
+    _require_booking_active(request)
+    if request.method != "POST":
+        return redirect("storefront-service-slots", pk=pk)
+    service = get_object_or_404(Service, pk=pk, is_active=True)
+    if request.POST.get("website"):  # honeypot
+        return redirect("storefront-service-slots", pk=pk)
+    if ratelimit.hit("termin", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
+        return HttpResponse(status=429)
+    try:
+        start = datetime.fromisoformat(request.POST.get("start", ""))
+    except ValueError:
+        raise Http404 from None
+    if start not in availability.service_slots(service, start.date()):
+        messages.error(request, _("This time is no longer available. Please pick another."))
+        return redirect("storefront-service-slots", pk=pk)
+    resource = availability.assign_resource(service, start)
+    name = request.POST.get("name", "").strip()
+    if resource is None or not name:
+        messages.error(
+            request,
+            _("This time is no longer available. Please pick another.")
+            if resource is None
+            else _("Please tell us your name."),
+        )
+        return redirect("storefront-service-slots", pk=pk)
+    try:
+        booking = services.book(
+            resource,
+            start=start,
+            end=start + timedelta(minutes=service.duration_minutes),
+            name=name,
+            email=request.POST.get("email", "").strip(),
+            phone=request.POST.get("phone", "").strip(),
+            note=request.POST.get("note", "").strip()[:2000],
+            source_channel=(request.GET.get("ch") or "")[:50],
+            service=service,
+            price_cents=service.price_cents,
+        )
+    except (services.SlotTaken, services.ResourceClosed):
+        messages.error(request, _("This time is no longer available. Please pick another."))
+        return redirect("storefront-service-slots", pk=pk)
+
+    # Депозит услуги (P2.5b): на Stripe Checkout, иначе обычная запись.
+    tenant = getattr(request, "tenant", None)
+    if (
+        service.deposit_cents > 0
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+    ):
+        booking.deposit_cents = service.deposit_cents
+        booking.payment_state = Booking.PAYMENT_PENDING
+        booking.save(update_fields=["deposit_cents", "payment_state", "updated_at"])
+        ok_url = (
+            request.build_absolute_uri(
+                reverse("storefront-termin-ok", args=[booking.reference_code])
+            )
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse("storefront-service-slots", args=[service.pk])
+        )
+        try:
+            return redirect(
+                payments.deposit_checkout_url(
+                    booking, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            pass
+    return redirect("storefront-termin-ok", code=booking.reference_code)
 
 
 def termin_slots(request, pk):
