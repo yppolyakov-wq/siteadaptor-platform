@@ -1,0 +1,43 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Customer payments" %}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'billing' %}" class="text-sm text-indigo-600 hover:underline">&larr; {% trans "Billing" %}</a>
+<h1 class="text-2xl font-bold mt-2 mb-4">{% trans "Customer payments" %}</h1>
+
+{% if status == 'connected' %}
+  <div class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm">
+    Stripe verbunden — Sie können jetzt Zahlungen Ihrer Kunden annehmen.
+  </div>
+{% endif %}
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="bg-white border border-gray-200 rounded-2xl p-5 max-w-xl">
+  <p class="text-sm text-gray-700">
+    Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an
+    (z. B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht direkt an Sie.
+  </p>
+
+  {% if not connect_configured %}
+    <p class="mt-4 text-sm text-amber-700">{% trans "Online payments are not configured yet." %}</p>
+  {% elif connected and payments_enabled %}
+    <p class="mt-4 text-sm font-medium text-green-700">✓ {% trans "Stripe connected — payments active." %}</p>
+  {% elif connected %}
+    <p class="mt-4 text-sm text-amber-700">{% trans "Connection pending — please finish setup in Stripe." %}</p>
+  {% else %}
+    <form method="post" action="{% url 'billing-payments-connect' %}" class="mt-4">
+      {% csrf_token %}
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+        {% trans "Connect with Stripe" %}
+      </button>
+    </form>
+  {% endif %}
+
+  <p class="mt-4 text-xs text-gray-500">{% trans "Platform fee" %}: {{ fee_percent }} %</p>
+</div>
+{% endblock %}

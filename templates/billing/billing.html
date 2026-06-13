@@ -48,4 +48,10 @@
     {% endif %}
   {% endif %}
 </div>
+
+<p class="mt-4 text-sm">
+  <a href="{% url 'billing-payments' %}" class="text-indigo-600 hover:underline">
+    {% trans "Accept customer payments (Stripe Connect)" %} &rarr;
+  </a>
+</p>
 {% endblock %}

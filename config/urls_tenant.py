@@ -49,6 +49,18 @@ urlpatterns = [
     path("dashboard/billing/", billing_views.billing, name="billing"),
     path("dashboard/billing/checkout/", billing_views.checkout, name="billing-checkout"),
     path("dashboard/billing/portal/", billing_views.portal, name="billing-portal"),
+    # Приём оплаты от клиентов через Stripe Connect (P2.5a).
+    path("dashboard/billing/payments/", billing_views.payments, name="billing-payments"),
+    path(
+        "dashboard/billing/payments/connect/",
+        billing_views.payments_connect,
+        name="billing-payments-connect",
+    ),
+    path(
+        "dashboard/billing/payments/callback/",
+        billing_views.payments_callback,
+        name="billing-payments-callback",
+    ),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),
     # Кабинет записи по времени (Track D / D3c).
