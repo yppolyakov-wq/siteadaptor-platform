@@ -147,6 +147,50 @@ def test_book_with_pass_code_redeems_and_skips_deposit():
     assert resp.url == f"/t/{booking.reference_code}/"
 
 
+def test_pass_booking_auto_confirms():
+    resource, day = _resource_with_rule()
+    card = services.issue_pass(name="Yogi", credits=10)
+    start, end = availability.free_slots(resource, day)[0]
+    public_views.termin_book(
+        _pub_req(
+            "post",
+            f"/termin/{resource.pk}/buchen/",
+            {
+                "start": start.isoformat(),
+                "end": end.isoformat(),
+                "name": "Yogi",
+                "pass_code": card.code,
+            },
+        ),
+        pk=resource.pk,
+    )
+    booking = Booking.objects.get(resource=resource)
+    assert booking.status == Booking.STATUS_CONFIRMED  # карта = оплачено → confirmed
+
+
+def test_pass_booking_manual_confirm_stays_pending():
+    resource, day = _resource_with_rule()
+    resource.require_manual_confirm = True
+    resource.save()
+    card = services.issue_pass(name="Yogi", credits=10)
+    start, end = availability.free_slots(resource, day)[0]
+    public_views.termin_book(
+        _pub_req(
+            "post",
+            f"/termin/{resource.pk}/buchen/",
+            {
+                "start": start.isoformat(),
+                "end": end.isoformat(),
+                "name": "Yogi",
+                "pass_code": card.code,
+            },
+        ),
+        pk=resource.pk,
+    )
+    booking = Booking.objects.get(resource=resource)
+    assert booking.status == Booking.STATUS_PENDING and booking.card is not None
+
+
 def test_invalid_pass_code_keeps_booking_no_charge():
     resource, day = _resource_with_rule()
     start, end = availability.free_slots(resource, day)[0]

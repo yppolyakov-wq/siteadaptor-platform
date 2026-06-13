@@ -170,6 +170,7 @@ def resources(request):
                     name=name,
                     type=request.POST.get("type", Resource.TYPE_TABLE),
                     capacity=max(1, min(int(request.POST.get("capacity", "1") or 1), 100)),
+                    counts_party_size=bool(request.POST.get("counts_party_size")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                     require_manual_confirm=bool(request.POST.get("require_manual_confirm")),
                 )
@@ -206,7 +207,15 @@ def resources(request):
             resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
             resource.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
             resource.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
-            resource.save(update_fields=["deposit_cents", "require_manual_confirm", "updated_at"])
+            resource.counts_party_size = bool(request.POST.get("counts_party_size"))
+            resource.save(
+                update_fields=[
+                    "deposit_cents",
+                    "require_manual_confirm",
+                    "counts_party_size",
+                    "updated_at",
+                ]
+            )
             messages.success(request, _("Deposit settings saved."))
         return redirect("booking:resources")
 

@@ -59,11 +59,16 @@ def free_slots_with_spots(
             status__in=Booking.ACTIVE_STATUSES,
             start__lt=day_end,
             end__gt=day_start,
-        ).values_list("start", "end")
+        ).values_list("start", "end", "party_size")
     )
+    by_party = resource.counts_party_size  # G9: места = сумма party_size
     result = []
     for start, end in grid:
-        taken = sum(1 for b_start, b_end in bookings if b_start < end and b_end > start)
+        taken = sum(
+            (party if by_party else 1)
+            for b_start, b_end, party in bookings
+            if b_start < end and b_end > start
+        )
         if taken < resource.capacity:
             result.append((start, end, resource.capacity - taken))
     return result

@@ -51,6 +51,7 @@
             <input name="deposit_eur" type="text" inputmode="decimal" value="{% widthratio r.deposit_cents 100 1 %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
           </label>
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="require_manual_confirm" {% if r.require_manual_confirm %}checked{% endif %}> {% trans "Manual review" %}</label>
+          <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="counts_party_size" {% if r.counts_party_size %}checked{% endif %}> {% trans "Count per person (group course)" %}</label>
           <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
         </form>
       </div>
@@ -74,6 +75,7 @@
         <input name="deposit_eur" type="text" inputmode="decimal" placeholder="{% trans 'Deposit € (0 = none)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
         <label class="text-sm flex items-center gap-1 whitespace-nowrap"><input type="checkbox" name="require_manual_confirm"> {% trans "Manual review" %}</label>
       </div>
+      <label class="text-sm flex items-center gap-1"><input type="checkbox" name="counts_party_size"> {% trans "Count per person (group course — guests use up spots)" %}</label>
       <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create" %}</button>
     </form>
 

@@ -60,6 +60,18 @@ def overlapping(resource, start, end):
     )
 
 
+def _would_overfill(resource, qs, party_size) -> bool:
+    """G9: превысит ли capacity добавление брони на party_size. При
+    counts_party_size считаем по сумме party_size (групповой курс), иначе — по
+    числу броней (стол/мастер/зал = 1 единица на бронь)."""
+    if resource.counts_party_size:
+        from django.db.models import Sum
+
+        current = qs.aggregate(s=Sum("party_size"))["s"] or 0
+        return current + party_size > resource.capacity
+    return qs.count() >= resource.capacity
+
+
 @transaction.atomic
 def book(
     resource,
@@ -92,7 +104,7 @@ def book(
     if closed.exists():
         raise ResourceClosed()
 
-    if overlapping(resource, start, end).count() >= resource.capacity:
+    if _would_overfill(resource, overlapping(resource, start, end), party_size):
         raise SlotTaken()
 
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
@@ -160,7 +172,7 @@ def move(booking, *, start, end):
         raise ValueError("end must be after start")
     resource = Resource.objects.select_for_update().get(id=booking.resource_id)
     overlaps = overlapping(resource, start, end).exclude(pk=booking.pk)
-    if overlaps.count() >= resource.capacity:
+    if _would_overfill(resource, overlaps, booking.party_size):
         raise SlotTaken()
     booking.start = start
     booking.end = end

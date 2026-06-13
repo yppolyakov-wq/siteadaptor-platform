@@ -11,7 +11,7 @@ from django.http import Http404
 from django.test import RequestFactory
 from django.utils import timezone
 
-from apps.booking import availability, public_views
+from apps.booking import availability, public_views, services
 from apps.booking.models import AvailabilityRule, Booking, ClosedDate, Resource
 from apps.tenants.tests.factories import TenantFactory
 
@@ -128,6 +128,29 @@ def test_group_slots_page_shows_spots():
         _req(path=f"/termin/{resource.pk}/", data={"tag": DAY.isoformat()}), pk=resource.pk
     ).content.decode()
     assert "Group course" in body and "3 spots" in body  # int-счётчик локаль-стабилен
+
+
+def test_party_size_counts_as_spots_when_flag_on():
+    resource = _resource(capacity=5)
+    resource.counts_party_size = True
+    resource.save()
+    start, end, _ = availability.free_slots_with_spots(resource, DAY)[0]
+    services.book(resource, start=start, end=end, name="A", party_size=3)
+    spots = next(
+        sp for s, _e, sp in availability.free_slots_with_spots(resource, DAY) if s == start
+    )
+    assert spots == 2  # 5 − 3 занятых
+    with pytest.raises(services.SlotTaken):  # ещё 3 не влезут (3+3 > 5)
+        services.book(resource, start=start, end=end, name="B", party_size=3)
+
+
+def test_party_size_ignored_when_flag_off():
+    resource = _resource(capacity=2)  # counts_party_size False — бронь = 1 единица
+    start, end, _ = availability.free_slots_with_spots(resource, DAY)[0]
+    services.book(resource, start=start, end=end, name="A", party_size=9)
+    services.book(resource, start=start, end=end, name="B", party_size=9)  # 2-я ок
+    with pytest.raises(services.SlotTaken):  # capacity 2 исчерпана по числу броней
+        services.book(resource, start=start, end=end, name="C", party_size=1)
 
 
 def test_book_flow_creates_booking():

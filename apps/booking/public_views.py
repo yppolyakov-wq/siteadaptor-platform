@@ -18,9 +18,11 @@ from django.utils.translation import gettext as _
 
 from apps.billing import connect
 from apps.core import ratelimit
+from apps.core.fsm import IllegalTransition
 
 from . import availability, payments, services
 from .models import Booking, Pass, Resource, Service
+from .state_machine import BookingSM
 
 RL_LIMIT = 5  # попыток записи на IP
 RL_WINDOW = 600  # за 10 минут
@@ -58,6 +60,13 @@ def _redeem_pass_if_code(request, booking) -> bool:
     try:
         services.redeem_pass(card, booking=booking)
         messages.success(request, _("Pass applied — one visit redeemed."))
+        # Карта = оплачено → авто-подтверждаем бронь (если ресурс не требует
+        # ручного подтверждения), как при оплаченном депозите.
+        if not booking.resource.require_manual_confirm:
+            try:
+                BookingSM().apply(booking, "confirmed")
+            except IllegalTransition:
+                pass
     except services.PassInvalid:
         messages.error(request, _("This pass has no visits left or has expired."))
     return True

@@ -31,6 +31,10 @@ class Resource(TimestampedModel):
     # Сколько записей допустимо на один и тот же интервал (стол/мастер = 1,
     # зал/групповая услуга = N).
     capacity = models.PositiveSmallIntegerField(default=1)
+    # G9: считать вместимость по сумме party_size (групповой курс: «ich + 3
+    # Freunde» = 4 места), а не по числу броней. False (умолч.) — стол/мастер/зал,
+    # где бронь = 1 единица, party_size информативен (не ломаем рестораны).
+    counts_party_size = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     # P2.5b: депозит за запись (центы; 0 = без депозита). Анти-no-show.
     deposit_cents = models.PositiveIntegerField(default=0)
