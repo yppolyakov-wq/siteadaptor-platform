@@ -405,14 +405,57 @@ Python 3.12, менеджер uv.
   кнопки, disabled-опции распроданных вариантов, бейдж на карточке. **Весь
   retail-пакет R1–R4 закрыт.** Дальше (вне retail): date-range booking
   (отели/ретриты), отзывы+гео (агрегатор).
+- **Track E — date-range booking / Übernachtung (G5, ✅ ВЕСЬ в `main`):** движок
+  «по ночам» для размещения (отели/ретриты/Ferienwohnung) — параллель `apps.booking`
+  (по времени суток). Разбивка E1–E4, каждая ветка → CI зелёный → FF в `main`:
+  - E1 ядро (✅ `33f9b18`, CI run 174, миграции stays/0001 + tenants/0012):
+    `apps.stays` (TENANT) — `StayUnit` (тип/`quantity` идентичных юнитов/цена-ночь
+    `price_cents`/`min_nights`/`max_guests`/депозит) + `UnitBlock` (блок дат, ночи
+    включительно) + `StayBooking` (`arrival`/`departure` DateField, код S-XXXXXX,
+    снимок цены, payment-поля); `services.book_stay` — atomic anti-overbook
+    (`select_for_update` на юните + пер-ночная занятость `range_available` <
+    quantity; день выезда свободен) + `move_stay`; `StayBookingSM`
+    (pending→confirmed→fulfilled, cancel, no_show). tenants/0012 — opt-out
+    существующих не-hotel тенантов из модуля (лёгкий старт). `apps.stays` в
+    TENANT_APPS.
+  - E2 кабинет (✅ `508a471`, CI run 176, без миграций): модуль «stays» в реестре
+    (`recommended_for=hotel`, `suited_for=tour_operator/other`, nav «Stays»,
+    `/dashboard/stays/`); `/dashboard/stays/` — Belegungskalender (юниты × ночи,
+    свободно/занято/блок, `availability.occupancy_grid`) + список броней окна +
+    действия по FSM (confirm/checked-out/no_show/cancel) + перенос дат + ручная
+    бронь (auto-confirm); `/dashboard/stays/units/` — CRUD юнитов + блокировки дат.
+    Обновлены хардкод-наборы дефолтов в test_modules (добавлен stays).
+  - E3 витрина + письма + finance (✅ `0e8f996`+фикс `c774afc`, CI run 180,
+    миграция finance/0003): публичная `/unterkunft/` (список → юнит: GET-форма дат
+    → цена/доступность → POST buchen honeypot+rate-limit → `/s/<code>/`), гейтинг
+    модуля → 404; `StayBookingSM.on_transition`: confirmed/cancelled → письмо
+    клиенту (Notification dedupe), fulfilled (выезд) → выручка в `finance`
+    (**НДС 7 % Beherbergung**, идемпотентно); `apps/stays/notifications.py` +
+    DE-шаблоны `emails/stay_*`; beat `send_stay_reminders` (раз в сутки,
+    `STAY_REMINDER_DAYS` default 1, одно на бронь); finance source «stay»; ссылка
+    «Übernachten» в шапке витрины. **Урок:** floatformat рендерит цену в локали de
+    («270,00»), тесты витрины проверяют стабильный URL формы, не число.
+  - E4 онлайн-депозит (✅ `d3d6671`, CI run 180 зелёный, без миграций): зеркало
+    P2.5b — `payments.stay_deposit_checkout_url` (Checkout на connected account,
+    metadata `kind=stay_deposit`, вариант B → application_fee=0) +
+    `mark_stay_paid` (вебхук кросс-схемно: paid + авто-confirm или pending при
+    `require_manual_confirm`); ветка вебхука в `apps/billing/webhooks.py`; витрина
+    при депозите+`payments_enabled`+Connect → Stripe Checkout, отмена оплаченной →
+    refund (кабинет). Гейтится `payments_enabled` + Connect, как весь P2.5.
+  - **Деплой Track E:** миграции stays/0001, tenants/0012, finance/0003.
+    Дальше (новые сегменты): отзывы+рейтинги + гео-карта агрегатора (G8).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
   waitlist `/p/<uuid>/waitlist/`, подтверждение `/r/<code>/`, QR `…/qr.svg`,
   отписка `/u/<token>/`, право `/impressum /datenschutz /widerruf`.
+- Витрина-бронь по времени `/termin/` → `/t/<code>/`; по датам (Übernachtung)
+  `/unterkunft/` (юнит → даты → buchen) → `/s/<code>/`; Click&Collect `/warenkorb/`
+  → `/bestellung/<code>/`.
 - Кабинет (под логином): `/dashboard/`, `/catalog/`, `/promotions/` (+ redeem/,
   vouchers/, loyalty/, analytics/), `/imports/`, `/dashboard/settings/`,
-  `/dashboard/domains/` (custom-домены).
+  `/dashboard/domains/` (custom-домены), `/dashboard/booking/` (по времени),
+  `/dashboard/stays/` (по датам), `/dashboard/orders/`, `/dashboard/finance/`.
 - Django admin — только на public (urls_public).
 
 ## 5. Конвенции
@@ -470,10 +513,11 @@ Python 3.12, менеджер uv.
    монетизация портала → платежи, отзывы, поиск, мобайл.
    - **Вертикали микробизнеса (2026-06-13, см. `micro-business-verticals.md`):**
      **retail-пакет R1–R4 закрыт целиком** (✅ R4 LMIV, ✅ R1 варианты,
-     ✅ R2 Grundpreis, ✅ R3 остаток) и P2.5 онлайн-оплата **закрыта целиком**
-     (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C, ✅ P2.5-fee).
-     Дальше (новые сегменты): date-range booking (отели/ретриты) → отзывы+гео
-     (агрегатор, G8). Бэклог — `micro-business-verticals.md` §бэклог G1–G9.
+     ✅ R2 Grundpreis, ✅ R3 остаток), P2.5 онлайн-оплата **закрыта целиком**
+     (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C, ✅ P2.5-fee) и
+     **✅ Track E date-range booking / Übernachtung (G5, E1–E4)** — отели/ретриты/
+     Ferienwohnung (см. §3). Дальше (новые сегменты): отзывы+рейтинги + гео-карта
+     агрегатора (G8). Бэклог — `micro-business-verticals.md` §бэклог G1–G9.
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
