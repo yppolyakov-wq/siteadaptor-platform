@@ -1,0 +1,10 @@
+Neue Anfrage!
+
+{{ job.title }}
+Kunde: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}
+{% if job.site_address %}Adresse: {{ job.site_address }}
+{% endif %}{% if job.description %}
+{{ job.description }}
+{% endif %}Code: {{ job.reference_code }}
+
+Angebot erstellen im Dashboard: /dashboard/auftraege/

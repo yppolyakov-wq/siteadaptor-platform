@@ -1,0 +1,1 @@
+Angebot {{ job.reference_code }} angenommen

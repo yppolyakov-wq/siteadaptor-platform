@@ -1,0 +1,6 @@
+{{ customer.name }} hat das Angebot {{ job.reference_code }} angenommen.
+
+{{ job.title }}
+Gesamt: {{ job.gross }} EUR
+
+Auftrag im Dashboard: /dashboard/auftraege/

@@ -1,0 +1,3 @@
+{{ customer.name }} hat das Angebot {{ job.reference_code }} abgelehnt.
+
+{{ job.title }}

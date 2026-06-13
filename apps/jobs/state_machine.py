@@ -1,8 +1,9 @@
-"""FSM заявки/сметы Handwerker (G6). База — apps.core.fsm.
+"""FSM заявки/сметы Handwerker (G6, side-effects — F3). База — apps.core.fsm.
 
 new (Anfrage) → quoted (Angebot) → accepted (beauftragt) → done (erledigt) →
 invoiced (abgerechnet); выходы declined (клиент отклонил смету) и cancelled.
-Side-effects (письма клиенту/владельцу, timestamps, Rechnung) — F2/F3.
+quoted → письмо клиенту со ссылкой на публичное Angebot; accepted/declined →
+письмо владельцу (notifications dedupe).
 """
 
 from apps.core.fsm import StateMachine, Transition
@@ -19,3 +20,24 @@ class JobSM(StateMachine):
         Transition("accepted", "cancelled", "job.cancelled"),
         Transition("done", "invoiced", "job.invoiced"),
     ]
+
+    def on_transition(self, instance, t, **kw):
+        from .notifications import enqueue_job_email
+
+        if t.dst == "quoted":
+            # Ссылку на публичное Angebot строим только при известном домене
+            # (есть Domain) — в тестах base пуст, reverse не зовём.
+            from django.db import connection
+            from django.urls import reverse
+
+            from apps.promotions.notifications import _base_url
+
+            base = _base_url(connection.schema_name)
+            url = (
+                f"{base}{reverse('storefront-angebot', args=[instance.public_token])}"
+                if base
+                else ""
+            )
+            enqueue_job_email(instance, "quoted", angebot_url=url)
+        elif t.dst in ("accepted", "declined"):
+            enqueue_job_email(instance, t.dst)

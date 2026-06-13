@@ -1,0 +1,46 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Request a quote" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Request a quote" %}</h1>
+<p class="text-gray-500 mb-6">{% trans "Tell us what you need — we'll send you a quote." %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
+  {% csrf_token %}
+  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_title">{% trans "What do you need?" %} *</label>
+    <input id="id_title" name="title" type="text" required placeholder="{% trans 'e.g. paint two rooms' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_desc">{% trans "Details (optional)" %}</label>
+    <textarea id="id_desc" name="description" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_addr">{% trans "Job address (optional)" %}</label>
+    <input id="id_addr" name="site_address" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
+      <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
+      <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
+      <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Send request" %}</button>
+</form>
+{% endblock %}

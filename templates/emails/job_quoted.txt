@@ -1,0 +1,11 @@
+Hallo {{ customer.name }},
+
+vielen Dank für Ihre Anfrage — hier ist Ihr Angebot:
+
+{{ job.title }}
+Gesamt: {{ job.gross }} EUR{% if job.valid_until %} (gültig bis {{ job.valid_until|date:"d.m.Y" }}){% endif %}
+Angebots-Nr.: {{ job.reference_code }}
+{% if angebot_url %}
+Angebot ansehen und annehmen:
+{{ angebot_url }}
+{% endif %}

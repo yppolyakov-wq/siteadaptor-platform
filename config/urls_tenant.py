@@ -23,6 +23,7 @@ from apps.core.views import (
     setup_view,
     site_view,
 )
+from apps.jobs import public_views as jobs_public
 from apps.orders import public_views as orders_public
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
@@ -110,6 +111,9 @@ urlpatterns = [
         name="storefront-unterkunft-book",
     ),
     path("s/<str:code>/", stays_public.unterkunft_confirmation, name="storefront-stay-ok"),
+    # Handwerker: заявка + публичное Angebot (G6 / F3).
+    path("anfrage/", jobs_public.anfrage, name="storefront-anfrage"),
+    path("angebot/<uuid:token>/", jobs_public.angebot, name="storefront-angebot"),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),
