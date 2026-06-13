@@ -443,7 +443,32 @@ Python 3.12, менеджер uv.
     при депозите+`payments_enabled`+Connect → Stripe Checkout, отмена оплаченной →
     refund (кабинет). Гейтится `payments_enabled` + Connect, как весь P2.5.
   - **Деплой Track E:** миграции stays/0001, tenants/0012, finance/0003.
-    Дальше (новые сегменты): отзывы+рейтинги + гео-карта агрегатора (G8).
+- **G6 — Aufträge & Angebote / смета Handwerker (A7, ✅ ВЕСЬ в `main`):** новый
+  движок `apps.jobs` (TENANT) для выездного сервиса (Maler/Elektriker/SHK/Garten/
+  Umzug/Catering…): цикл **Anfrage → Angebot (Kostenvoranschlag) → Auftrag →
+  Rechnung** одной моделью Job. Разбивка F1–F3, ветка → CI зелёный → FF в `main`:
+  - F1 ядро (✅ `831cbcb`, CI run 184, миграции jobs/0001 + tenants/0013):
+    `Job` (customer PROTECT, код A-XXXXXX, title/description/site_address, status,
+    public_token, valid_until, снимок net/vat/gross, invoice_id) + `JobLine`
+    (позиции, целочисленный qty) + `JobSM` (new→quoted→accepted→done→invoiced +
+    declined/cancelled); `services` create_job (reuse Customer) / set_lines
+    (суммы через `finance.compute_totals`, §19 → НДС 0) / lines_snapshot.
+    tenants/0013 — opt-out существующих из модуля (opt-in универсальный, как finance).
+  - F2 кабинет (✅ `843b744`, CI run в стеке 186, без миграций): модуль «jobs»
+    (nav «Jobs», `/dashboard/auftraege/`); список по статусу + ручная заявка;
+    карточка — конструктор позиций сметы (до 12 строк, vat 19/7/0, valid_until),
+    действия FSM, **Angebot-PDF** (`apps/jobs/pdf.py::build_quote_pdf` — зеркало
+    finance.pdf), **«Rechnung erstellen»** (done→invoiced) → `finance.Invoice`
+    (draft) из позиций (`services.quote_to_invoice`).
+  - F3 витрина + публичное Angebot + письма (✅ `f671d5a`, CI run 186 зелёный,
+    без миграций): `/anfrage/` (форма заявки honeypot+rate-limit → Job(new) +
+    письмо владельцу) + `/angebot/<token>/` (клиент принимает/отклоняет смету
+    онлайн без аккаунта → JobSM); `JobSM.on_transition` (quoted → письмо клиенту
+    со ссылкой; accepted/declined → владельцу), DE-шаблоны `emails/job_*`; ссылка
+    «Request a quote» в шапке витрины.
+  - **Деплой G6:** миграции jobs/0001 + tenants/0013.
+    Дальше (новые сегменты): отзывы+рейтинги + гео-карта агрегатора (G8); либо
+    G4 доставка/Versand (добивает интернет-магазин A2).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -451,11 +476,13 @@ Python 3.12, менеджер uv.
   отписка `/u/<token>/`, право `/impressum /datenschutz /widerruf`.
 - Витрина-бронь по времени `/termin/` → `/t/<code>/`; по датам (Übernachtung)
   `/unterkunft/` (юнит → даты → buchen) → `/s/<code>/`; Click&Collect `/warenkorb/`
-  → `/bestellung/<code>/`.
+  → `/bestellung/<code>/`; Handwerker `/anfrage/` (заявка) + `/angebot/<token>/`
+  (публичная смета: принять/отклонить).
 - Кабинет (под логином): `/dashboard/`, `/catalog/`, `/promotions/` (+ redeem/,
   vouchers/, loyalty/, analytics/), `/imports/`, `/dashboard/settings/`,
   `/dashboard/domains/` (custom-домены), `/dashboard/booking/` (по времени),
-  `/dashboard/stays/` (по датам), `/dashboard/orders/`, `/dashboard/finance/`.
+  `/dashboard/stays/` (по датам), `/dashboard/auftraege/` (Aufträge/Angebote),
+  `/dashboard/orders/`, `/dashboard/finance/`.
 - Django admin — только на public (urls_public).
 
 ## 5. Конвенции

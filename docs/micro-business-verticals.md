@@ -85,14 +85,16 @@ Stadtführung/Exkursion, Tour-Operator, kleine Konzerte/Events.
 **До полноты:** платный билет (G1), список участников/анкеты, ретрит — date-range
 (G5) + микромодуль «программа», тур — гид/транспорт.
 
-### A7. Выездной Handwerker (заявка → смета → работа → счёт) — ~35%
+### A7. Выездной Handwerker (заявка → смета → работа → счёт) — ~75% (движок ✅ G6)
 **Кто:** Maler, Elektriker, SHK/Klempner, Fliesenleger, Schreiner,
 Garten-/Landschaftsbau, Gebäudereinigung, Hausmeisterservice, Umzug, Schlüsseldienst,
 Catering, mobiler Friseur, Schädlingsbekämpfung.
 **Цикл (другой!):** Anfrage → **Angebot/Kostenvoranschlag** → Termin/Auftrag → Rechnung.
-**У нас:** контакт=`crm` ✅, Rechnung ✅; нет связки Anfrage→Angebot→Auftrag.
-**До полноты:** форма заявки на витрине, Angebot/Kostenvoranschlag PDF (движок PDF
-уже есть от Rechnung), статусы заказа-работы (G6). Общая дыра для всех ремесленников.
+**У нас:** ✅ `apps.jobs` (G6): форма заявки на витрине `/anfrage/`, конструктор сметы
++ Angebot-PDF, публичное принятие сметы `/angebot/<token>/`, статусы (JobSM),
+«Rechnung erstellen» из позиций (finance.Invoice), письма. Контакт=`crm` ✅.
+**До полноты:** Anzahlung онлайн за смету (Handwerker платят по счёту — отложено),
+дробные часы/единицы в позициях, фото к заявке, привязка Termin под работу (booking).
 
 ### A8. Агрегатор / Marktplatz (дальний конец спектра)
 **Что:** городской портал, где все архетипы находятся, а потребитель сам
@@ -111,7 +113,7 @@ Catering, mobiler Friseur, Schädlingsbekämpfung.
 | **G3** | Реальный остаток на товаре/заказе | A1,A2,A4 | розница+гастро |
 | **G4** | Доставка/Versand (адрес, тарифы, лейбл) | A2 (+доставка A4) | «настоящий магазин» |
 | **G5** | Date-range booking ✅ (Track E, `apps.stays`) | A5,A6 | семья «размещение» |
-| **G6** | Anfrage→Angebot→Auftrag (смета) | A7 | все Handwerker |
+| **G6** | Anfrage→Angebot→Auftrag (смета) ✅ (`apps.jobs`) | A7 | все Handwerker |
 | **G7** | Аллергены/LMIV + Herkunft | A1,A4 (еда) | правовое для еды |
 | **G8** | Отзывы/рейтинги + гео-карта | A8 (+доверие всем) | завершает агрегатор |
 | **G9** | Курс с вместимостью + абонемент | A3,A6 | йога/курсы/Nachhilfe |
