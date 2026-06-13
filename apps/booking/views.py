@@ -8,6 +8,7 @@
 
 from datetime import datetime, time, timedelta
 
+import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,11 +17,34 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.billing import connect
 from apps.core.fsm import IllegalTransition
 
 from . import services
 from .models import AvailabilityRule, Booking, ClosedDate, Resource
 from .state_machine import BookingSM
+
+
+def _eur_to_cents(raw) -> int:
+    """«5» / «5,50» → центы (анти-кривой ввод → 0)."""
+    try:
+        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _refund_deposit(request, booking):
+    """Анти-фрод: вернуть депозит при отмене оплаченной брони (Stripe Connect)."""
+    try:
+        connect.refund(
+            connect_id=request.tenant.stripe_connect_id,
+            payment_intent=booking.stripe_payment_intent,
+        )
+        booking.payment_state = Booking.PAYMENT_REFUNDED
+        booking.save(update_fields=["payment_state", "updated_at"])
+        messages.success(request, _("Deposit refunded."))
+    except stripe.error.StripeError:
+        messages.error(request, _("Refund failed — please check Stripe."))
 
 
 @login_required
@@ -81,9 +105,17 @@ def booking_action(request, pk):
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:
             BookingSM().apply(booking, action, actor=request.user)
-            messages.success(request, _("Booking updated."))
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
+            return redirect(back)
+        messages.success(request, _("Booking updated."))
+        # анти-фрод: отмена оплаченной брони возвращает депозит
+        if (
+            action == "cancelled"
+            and booking.payment_state == Booking.PAYMENT_PAID
+            and booking.stripe_payment_intent
+        ):
+            _refund_deposit(request, booking)
     else:
         messages.error(request, _("Unknown action."))
     return redirect(back)
@@ -138,6 +170,8 @@ def resources(request):
                     name=name,
                     type=request.POST.get("type", Resource.TYPE_TABLE),
                     capacity=max(1, min(int(request.POST.get("capacity", "1") or 1), 100)),
+                    deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
+                    require_manual_confirm=bool(request.POST.get("require_manual_confirm")),
                 )
                 messages.success(request, _("Resource created."))
         elif action == "rule":
@@ -168,6 +202,12 @@ def resources(request):
             resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
             resource.is_active = not resource.is_active
             resource.save(update_fields=["is_active", "updated_at"])
+        elif action == "resource_settings":
+            resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
+            resource.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
+            resource.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
+            resource.save(update_fields=["deposit_cents", "require_manual_confirm", "updated_at"])
+            messages.success(request, _("Deposit settings saved."))
         return redirect("booking:resources")
 
     return render(

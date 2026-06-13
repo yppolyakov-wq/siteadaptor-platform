@@ -160,3 +160,62 @@ def test_booking_module_gated():
     resource = _resource()
     with pytest.raises(Http404):
         public_views.termin_slots(_req(tenant=tenant), pk=resource.pk)
+
+
+# --- P2.5b: депозит ----------------------------------------------------------------
+
+
+def _resource_with_deposit(cents=1000):
+    resource = _resource()
+    resource.deposit_cents = cents
+    resource.save(update_fields=["deposit_cents"])
+    return resource
+
+
+def test_book_with_deposit_redirects_to_stripe(monkeypatch, settings):
+    settings.STRIPE_LIVE_MODE = False
+    settings.STRIPE_TEST_SECRET_KEY = "sk_test_x"
+    settings.STRIPE_CONNECT_CLIENT_ID = "ca_x"
+    resource = _resource_with_deposit()
+    tenant = TenantFactory.build(
+        business_type="cafe", payments_enabled=True, stripe_connect_id="acct_1"
+    )
+    start, end = availability.free_slots(resource, DAY)[0]
+    monkeypatch.setattr(
+        public_views.payments, "deposit_checkout_url", lambda b, t, **kw: "https://stripe/checkout"
+    )
+    request = _req(
+        "post",
+        f"/termin/{resource.pk}/buchen/",
+        {"start": start.isoformat(), "end": end.isoformat(), "name": "Karla", "email": "k@test.de"},
+        tenant=tenant,
+    )
+    response = public_views.termin_book(request, pk=resource.pk)
+    assert response.status_code == 302
+    assert response.url == "https://stripe/checkout"
+    booking = Booking.objects.get(customer__email="k@test.de")
+    assert booking.payment_state == "pending"
+    assert booking.deposit_cents == 1000
+
+
+def test_book_with_deposit_but_no_payments_is_normal(monkeypatch):
+    resource = _resource_with_deposit()
+    tenant = TenantFactory.build(business_type="cafe", payments_enabled=False)
+    start, end = availability.free_slots(resource, DAY)[0]
+    called = {"stripe": False}
+    monkeypatch.setattr(
+        public_views.payments,
+        "deposit_checkout_url",
+        lambda b, t, **kw: called.__setitem__("stripe", True) or "x",
+    )
+    request = _req(
+        "post",
+        f"/termin/{resource.pk}/buchen/",
+        {"start": start.isoformat(), "end": end.isoformat(), "name": "Ben", "email": "b@test.de"},
+        tenant=tenant,
+    )
+    response = public_views.termin_book(request, pk=resource.pk)
+    booking = Booking.objects.get(customer__email="b@test.de")
+    assert response.url.endswith(f"/t/{booking.reference_code}/")  # обычная бронь
+    assert called["stripe"] is False
+    assert booking.payment_state == "none"

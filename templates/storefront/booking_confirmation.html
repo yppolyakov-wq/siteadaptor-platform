@@ -11,6 +11,11 @@
     {% if booking.party_size > 1 %}<p class="text-sm text-gray-500 mt-1">{% blocktrans with n=booking.party_size %}{{ n }} guests{% endblocktrans %}</p>{% endif %}
     <p class="text-sm text-gray-500 mt-4">{% trans "Your reference code:" %}</p>
     <p class="text-2xl font-mono font-bold tracking-wider">{{ booking.reference_code }}</p>
+    {% if booking.payment_state == 'paid' %}
+      <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 mt-4">✓ {% trans "Deposit paid." %}</p>
+    {% elif booking.payment_state == 'pending' %}
+      <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "Your deposit payment is still pending." %}</p>
+    {% endif %}
     {% if booking.status == 'pending' %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "We'll confirm your booking shortly." %}</p>
     {% endif %}

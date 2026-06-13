@@ -44,6 +44,15 @@
           <input type="number" name="slot_minutes" value="30" min="5" max="480" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Minutes' %}">
           <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add" %}</button>
         </form>
+        {# Депозит за запись (P2.5b) + ручная проверка (анти-фрод) #}
+        <form method="post" class="mt-2 flex flex-wrap items-center gap-2 text-sm border-t border-gray-100 pt-2">{% csrf_token %}
+          <input type="hidden" name="action" value="resource_settings"><input type="hidden" name="resource" value="{{ r.pk }}">
+          <label class="text-gray-600">{% trans "Deposit €" %}
+            <input name="deposit_eur" type="text" inputmode="decimal" value="{% widthratio r.deposit_cents 100 1 %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
+          </label>
+          <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="require_manual_confirm" {% if r.require_manual_confirm %}checked{% endif %}> {% trans "Manual review" %}</label>
+          <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
+        </form>
       </div>
     {% empty %}
       <p class="text-gray-500">{% trans "Create your first resource — a table, a staff member or a room." %}</p>
@@ -60,6 +69,10 @@
           {% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select>
         <input name="capacity" type="number" value="1" min="1" max="100" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Capacity' %}">
+      </div>
+      <div class="flex items-center gap-3">
+        <input name="deposit_eur" type="text" inputmode="decimal" placeholder="{% trans 'Deposit € (0 = none)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
+        <label class="text-sm flex items-center gap-1 whitespace-nowrap"><input type="checkbox" name="require_manual_confirm"> {% trans "Manual review" %}</label>
       </div>
       <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create" %}</button>
     </form>

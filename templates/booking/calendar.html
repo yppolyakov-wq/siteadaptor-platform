@@ -31,6 +31,9 @@
             {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
             {% elif b.status == 'fulfilled' %}bg-gray-100 text-gray-600
             {% else %}bg-red-50 text-red-600{% endif %}">{{ b.get_status_display }}</span>
+          {% if b.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-emerald-100 text-emerald-800">💶 {% trans "Paid" %}</span>
+          {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
+          {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
         </p>
         <p class="text-xs text-gray-400">{{ b.customer }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %} · {{ b.reference_code }}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
       </div>

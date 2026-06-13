@@ -8,15 +8,18 @@
 
 from datetime import date, datetime, timedelta
 
+import stripe
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from apps.billing import connect
 from apps.core import ratelimit
 
-from . import availability, services
+from . import availability, payments, services
 from .models import Booking, Resource
 
 RL_LIMIT = 5  # попыток записи на IP
@@ -69,6 +72,9 @@ def termin_slots(request, pk):
             "day": day,
             "slots": slots,
             "selected": selected,
+            "deposit_required": resource.deposit_cents > 0
+            and getattr(getattr(request, "tenant", None), "payments_enabled", False),
+            "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
             "prev_day": day - timedelta(days=1) if day > today else None,
             "next_day": day + timedelta(days=1)
             if day < today + timedelta(days=MAX_DAYS_AHEAD)
@@ -120,6 +126,36 @@ def termin_book(request, pk):
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
         return redirect("storefront-termin-slots", pk=pk)
+
+    # Депозит (P2.5b): если у ресурса задан и бизнес принимает оплату — ведём на
+    # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.
+    tenant = getattr(request, "tenant", None)
+    if (
+        resource.deposit_cents > 0
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+    ):
+        booking.deposit_cents = resource.deposit_cents
+        booking.payment_state = Booking.PAYMENT_PENDING
+        booking.save(update_fields=["deposit_cents", "payment_state", "updated_at"])
+        ok_url = (
+            request.build_absolute_uri(
+                reverse("storefront-termin-ok", args=[booking.reference_code])
+            )
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse("storefront-termin-slots", args=[resource.pk])
+        )
+        try:
+            return redirect(
+                payments.deposit_checkout_url(
+                    booking, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            # оплата временно недоступна — бронь остаётся (pending), не теряем её
+            pass
     return redirect("storefront-termin-ok", code=booking.reference_code)
 
 

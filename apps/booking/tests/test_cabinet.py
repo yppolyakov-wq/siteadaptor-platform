@@ -15,6 +15,7 @@ from apps.booking import services, tasks, views
 from apps.booking.models import Booking, Resource
 from apps.booking.state_machine import BookingSM
 from apps.notifications.models import Notification
+from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -167,3 +168,42 @@ def test_resources_page_creates_resource_and_rule():
 
     body = views.resources(_req(path="/dashboard/booking/ressourcen/")).content.decode()
     assert "Saal" in body and "10:00" in body
+
+
+# --- P2.5b: депозит в кабинете ----------------------------------------------------
+
+
+def test_cancel_paid_booking_refunds(monkeypatch):
+    booking = _booking(email="paid@t.de")
+    BookingSM().apply(booking, "confirmed")
+    booking.payment_state = Booking.PAYMENT_PAID
+    booking.stripe_payment_intent = "pi_x"
+    booking.save(update_fields=["payment_state", "stripe_payment_intent"])
+    captured = {}
+    monkeypatch.setattr(views.connect, "refund", lambda **kw: captured.update(kw))
+    request = _req("post", data={"action": "cancelled"})
+    request.tenant = TenantFactory.build(stripe_connect_id="acct_1")
+    views.booking_action(request, pk=booking.pk)
+    booking.refresh_from_db()
+    assert booking.status == "cancelled"
+    assert booking.payment_state == Booking.PAYMENT_REFUNDED
+    assert captured == {"connect_id": "acct_1", "payment_intent": "pi_x"}
+
+
+def test_resource_settings_saves_deposit():
+    resource = _resource()
+    views.resources(
+        _req(
+            "post",
+            "/dashboard/booking/ressourcen/",
+            {
+                "action": "resource_settings",
+                "resource": str(resource.pk),
+                "deposit_eur": "5,50",
+                "require_manual_confirm": "on",
+            },
+        )
+    )
+    resource.refresh_from_db()
+    assert resource.deposit_cents == 550
+    assert resource.require_manual_confirm is True
