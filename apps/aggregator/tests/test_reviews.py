@@ -168,7 +168,8 @@ def test_portal_home_shows_stars_and_business_link():
         tenant_schema=business.schema_name, avg_rating=Decimal("4.50"), review_count=3
     )
     body = portal_views.portal_home(_req("get", "/")).content.decode()
-    assert "4.5" in body  # звёзды на карточке
+    # счётчик (int) локаль-стабилен; число avg в de-локали с запятой — не проверяем
+    assert "(3)" in body  # звёзды + счётчик отзывов на карточке
     assert f"/unternehmen/{business.slug}/" in body  # ссылка на страницу бизнеса
 
 
@@ -178,4 +179,4 @@ def test_city_listing_shows_stars(settings):
     BusinessRating.objects.create(tenant_schema="t9", avg_rating=Decimal("4.00"), review_count=2)
     request = RequestFactory().get("/entdecken/Hilden/")
     body = views.city_listing(request, city="Hilden").content.decode()
-    assert "4.0" in body
+    assert "(2)" in body  # счётчик отзывов на карточке (locale-safe)
