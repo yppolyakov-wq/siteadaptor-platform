@@ -59,7 +59,9 @@
     <div class="space-y-4">
       {% for r in reviews %}
         <div class="bg-white rounded-2xl shadow-sm p-4">
-          <p class="text-amber-500">{{ r.stars }} <span class="text-xs text-gray-400 ml-1">{{ r.created_at|date:"d.m.Y" }}</span></p>
+          <p class="text-amber-500">{{ r.stars }}
+            {% if r.author.email|lower in verified_emails %}<span class="text-xs text-green-700 bg-green-50 rounded-full px-2 py-0.5 ml-1 align-middle">✓ {% trans "Verified guest" %}</span>{% endif %}
+            <span class="text-xs text-gray-400 ml-1">{{ r.created_at|date:"d.m.Y" }}</span></p>
           {% if r.comment %}<p class="text-sm text-gray-700 mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
         </div>
       {% endfor %}

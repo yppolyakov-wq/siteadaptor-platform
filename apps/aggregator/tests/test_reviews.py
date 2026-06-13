@@ -119,6 +119,20 @@ def test_business_page_emits_aggregaterating_jsonld():
     assert "AggregateRating" in body and '"reviewCount":1' in body
 
 
+def test_verified_emails_matches_customer_case_insensitive():
+    from django.db import connection
+
+    from apps.promotions.models import Customer
+
+    Customer.objects.create(name="Gast", email="Gast@Test.de")
+    result = reviews.verified_emails(connection.schema_name, ["gast@test.de", "nobody@x.de"])
+    assert result == {"gast@test.de"}
+
+
+def test_verified_emails_empty_on_bad_schema():
+    assert reviews.verified_emails("schema_does_not_exist_xyz", ["a@b.de"]) == set()
+
+
 # --- агрегат / модерация ----------------------------------------------------------
 
 

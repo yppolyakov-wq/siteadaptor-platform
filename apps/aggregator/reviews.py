@@ -37,3 +37,30 @@ def attach_ratings(cards):
     for card in cards:
         card.business_rating = ratings.get(card.tenant_schema)
     return cards
+
+
+def verified_emails(tenant_schema: str, emails) -> set:
+    """Подмножество email'ов, у которых есть Customer в схеме бизнеса (G8).
+
+    Customer создаётся при реальной сделке (бронь/заказ/запись/смета) → наличие =
+    «Verifizierter Gast». Кросс-схемно (schema_context). Сравнение без регистра.
+    Ошибки/пустой ввод → пустое множество (бейдж просто не показываем).
+    """
+    wanted = {e.strip().lower() for e in emails if e}
+    if not wanted:
+        return set()
+    try:
+        from django.db.models.functions import Lower
+        from django_tenants.utils import schema_context
+
+        from apps.promotions.models import Customer
+
+        with schema_context(tenant_schema):
+            found = (
+                Customer.objects.annotate(le=Lower("email"))
+                .filter(le__in=wanted)
+                .values_list("le", flat=True)
+            )
+            return set(found)
+    except Exception:  # noqa: BLE001 — бейдж необязателен, не роняем страницу
+        return set()

@@ -45,6 +45,11 @@ def business_page(request, slug):
         if rating and rating.review_count
         else None,
     )
+    review_list = list(
+        BusinessReview.objects.filter(
+            tenant_schema=business.schema_name, status=BusinessReview.STATUS_PUBLISHED
+        ).select_related("author")
+    )
     return render(
         request,
         "aggregator/portal_business.html",
@@ -55,9 +60,11 @@ def business_page(request, slug):
             "listings": AggregatorListing.objects.filter(tenant_slug=slug, is_active=True).order_by(
                 "-updated_at"
             ),
-            "reviews": BusinessReview.objects.filter(
-                tenant_schema=business.schema_name, status=BusinessReview.STATUS_PUBLISHED
-            ).select_related("author"),
+            "reviews": review_list,
+            # G8: «Verifizierter Gast» — у автора есть реальная сделка в бизнесе.
+            "verified_emails": reviews.verified_emails(
+                business.schema_name, [r.author.email for r in review_list]
+            ),
             "rating": rating,
             "review_user": user,
             "my_review": (
