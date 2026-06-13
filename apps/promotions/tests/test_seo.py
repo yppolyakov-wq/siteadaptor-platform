@@ -42,6 +42,24 @@ def test_localbusiness_ld_none_is_empty():
     assert localbusiness_ld(None, url="https://x.de/") == ""
 
 
+def test_localbusiness_ld_includes_aggregate_rating():
+    from decimal import Decimal
+
+    t = TenantFactory.build(name="X", business_type="cafe")
+    data = json.loads(
+        localbusiness_ld(t, url="https://x.de/", aggregate_rating=(Decimal("4.50"), 12))
+    )
+    ar = data["aggregateRating"]
+    assert ar["@type"] == "AggregateRating"
+    assert ar["ratingValue"] == "4.5" and ar["reviewCount"] == 12
+
+
+def test_localbusiness_ld_skips_rating_when_zero_count():
+    t = TenantFactory.build(name="X")
+    data = json.loads(localbusiness_ld(t, url="https://x.de/", aggregate_rating=(0, 0)))
+    assert "aggregateRating" not in data
+
+
 # --- Offer / Product ----------------------------------------------------------
 
 
@@ -77,6 +95,22 @@ def test_localbusiness_tag_renders_script():
     assert 'type="application/ld+json"' in out
     assert "Bäckerei Müller" in out
     assert '"@type":"Bakery"' in out
+
+
+def test_localbusiness_tag_includes_aggregate_rating():
+    from decimal import Decimal
+
+    from django.db import connection
+
+    from apps.aggregator.models import BusinessRating
+
+    BusinessRating.objects.create(
+        tenant_schema=connection.schema_name, avg_rating=Decimal("4.50"), review_count=8
+    )
+    req = RequestFactory().get("/")
+    req.tenant = TenantFactory.build(name="Y", business_type="cafe")
+    out = Template("{% load seo %}{% localbusiness_jsonld %}").render(Context({"request": req}))
+    assert "AggregateRating" in out and '"reviewCount":8' in out
 
 
 def test_localbusiness_tag_without_tenant_is_blank():

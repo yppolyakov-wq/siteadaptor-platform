@@ -2,6 +2,8 @@
 {% load i18n %}
 {% block title %}{{ business.name }} — {{ portal.title_text }}{% endblock %}
 
+{% block structured_data %}{% if business_jsonld %}<script type="application/ld+json">{{ business_jsonld|safe }}</script>{% endif %}{% endblock %}
+
 {% block content %}
 <a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>
 

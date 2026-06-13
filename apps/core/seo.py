@@ -25,8 +25,11 @@ def _dumps(data: dict) -> str:
     return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
 
-def localbusiness_ld(tenant, *, url: str) -> str:
-    """JSON-LD LocalBusiness из полей тенанта (или '' если тенанта нет)."""
+def localbusiness_ld(tenant, *, url: str, aggregate_rating=None) -> str:
+    """JSON-LD LocalBusiness из полей тенанта (или '' если тенанта нет).
+
+    aggregate_rating (G8): (avg, count) — добавляет schema.org AggregateRating
+    (звёзды в Google-сниппете). None/нулевой count — не добавляем."""
     if tenant is None:
         return ""
     data = {
@@ -52,6 +55,16 @@ def localbusiness_ld(tenant, *, url: str) -> str:
     lat, lng = getattr(tenant, "latitude", None), getattr(tenant, "longitude", None)
     if lat is not None and lng is not None:
         data["geo"] = {"@type": "GeoCoordinates", "latitude": str(lat), "longitude": str(lng)}
+    if aggregate_rating is not None:
+        value, count = aggregate_rating
+        if count:
+            data["aggregateRating"] = {
+                "@type": "AggregateRating",
+                "ratingValue": f"{float(value):.1f}",
+                "reviewCount": int(count),
+                "bestRating": "5",
+                "worstRating": "1",
+            }
     return _dumps(data)
 
 

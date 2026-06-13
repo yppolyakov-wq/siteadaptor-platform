@@ -11,6 +11,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core.seo import localbusiness_ld
 from apps.tenants.models import Tenant
 
 from . import auth, reviews
@@ -35,19 +36,29 @@ def business_page(request, slug):
     portal = _portal_or_404(request)
     business = _business_or_404(slug)
     user = auth.current_portal_user(request)
+    rating = BusinessRating.objects.filter(tenant_schema=business.schema_name).first()
+    # G8: LocalBusiness + AggregateRating в <head> — звёзды бизнеса в сниппете.
+    business_jsonld = localbusiness_ld(
+        business,
+        url=request.build_absolute_uri(),
+        aggregate_rating=(rating.avg_rating, rating.review_count)
+        if rating and rating.review_count
+        else None,
+    )
     return render(
         request,
         "aggregator/portal_business.html",
         {
             "portal": portal,
             "business": business,
+            "business_jsonld": business_jsonld,
             "listings": AggregatorListing.objects.filter(tenant_slug=slug, is_active=True).order_by(
                 "-updated_at"
             ),
             "reviews": BusinessReview.objects.filter(
                 tenant_schema=business.schema_name, status=BusinessReview.STATUS_PUBLISHED
             ).select_related("author"),
-            "rating": BusinessRating.objects.filter(tenant_schema=business.schema_name).first(),
+            "rating": rating,
             "review_user": user,
             "my_review": (
                 BusinessReview.objects.filter(

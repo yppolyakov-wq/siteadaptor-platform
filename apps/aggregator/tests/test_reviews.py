@@ -112,6 +112,13 @@ def test_business_page_renders_with_reviews():
     assert "Werkstatt Müller" in body and "GuterService" in body
 
 
+def test_business_page_emits_aggregaterating_jsonld():
+    business, user = _business(), _user()
+    reviews_views.submit_review(_req("post", data={"rating": "4"}, user=user), slug=business.slug)
+    body = reviews_views.business_page(_req(user=user), slug=business.slug).content.decode()
+    assert "AggregateRating" in body and '"reviewCount":1' in body
+
+
 # --- агрегат / модерация ----------------------------------------------------------
 
 
