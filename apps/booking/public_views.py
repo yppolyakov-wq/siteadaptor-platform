@@ -162,12 +162,13 @@ def termin_slots(request, pk):
     resource = get_object_or_404(Resource, pk=pk, is_active=True)
     day = _parse_day(request.GET.get("tag"))
     today = timezone.localdate()
-    slots = availability.free_slots(resource, day)
+    # G9: слоты с остатком мест; для групповых курсов (capacity>1) → «N frei».
+    slots = availability.free_slots_with_spots(resource, day)
     # Выбранный слот (?slot=<start iso>) раскрывает форму контактов — без JS.
     selected = None
     raw_slot = request.GET.get("slot", "")
     if raw_slot:
-        for start, end in slots:
+        for start, end, _spots in slots:
             if start.isoformat() == raw_slot:
                 selected = (start, end)
                 break
@@ -178,6 +179,7 @@ def termin_slots(request, pk):
             "resource": resource,
             "day": day,
             "slots": slots,
+            "group": resource.capacity > 1,
             "selected": selected,
             "deposit_required": resource.deposit_cents > 0
             and getattr(getattr(request, "tenant", None), "payments_enabled", False),

@@ -22,11 +22,15 @@ def is_closed(resource, day) -> bool:
     )
 
 
-def free_slots(resource, day, duration_minutes=None) -> list[tuple[datetime, datetime]]:
-    """[(start, end), …] свободных слотов ресурса на дату (aware, локальная TZ).
+def free_slots_with_spots(
+    resource, day, duration_minutes=None
+) -> list[tuple[datetime, datetime, int]]:
+    """[(start, end, spots_left), …] свободных слотов с остатком мест (G9).
 
-    duration_minutes (G10): длина слота = длительность услуги, шаг = slot_minutes
-    правила (старты каждые slot_minutes). None — длина = шаг (общая бронь, D3b)."""
+    spots_left = capacity − активные пересечения; включаем только слоты, где есть
+    место (spots_left > 0). Для групповых курсов (capacity>1) витрина показывает
+    «N Plätze frei». duration_minutes (G10): длина слота = длительность услуги.
+    """
     if is_closed(resource, day):
         return []
 
@@ -57,12 +61,17 @@ def free_slots(resource, day, duration_minutes=None) -> list[tuple[datetime, dat
             end__gt=day_start,
         ).values_list("start", "end")
     )
-    return [
-        (start, end)
-        for start, end in grid
-        if sum(1 for b_start, b_end in bookings if b_start < end and b_end > start)
-        < resource.capacity
-    ]
+    result = []
+    for start, end in grid:
+        taken = sum(1 for b_start, b_end in bookings if b_start < end and b_end > start)
+        if taken < resource.capacity:
+            result.append((start, end, resource.capacity - taken))
+    return result
+
+
+def free_slots(resource, day, duration_minutes=None) -> list[tuple[datetime, datetime]]:
+    """[(start, end), …] свободных слотов (тонкая обёртка над free_slots_with_spots)."""
+    return [(s, e) for s, e, _spots in free_slots_with_spots(resource, day, duration_minutes)]
 
 
 def service_slots(service, day) -> list[datetime]:

@@ -107,6 +107,29 @@ def test_slots_page_renders_and_selects():
     assert 'name="start"' in body and "Book now" in body
 
 
+# --- G9: групповые курсы (видимая вместимость) ------------------------------------
+
+
+def test_free_slots_with_spots_counts_remaining():
+    resource = _resource(capacity=3)
+    slots = availability.free_slots_with_spots(resource, DAY)
+    assert slots and all(spots == 3 for _s, _e, spots in slots)
+    start, end, _ = slots[0]
+    Booking.objects.create(
+        resource=resource, customer=_customer(), reference_code="T-GRP001", start=start, end=end
+    )
+    after = availability.free_slots_with_spots(resource, DAY)
+    assert next(sp for s, _e, sp in after if s == start) == 2  # одно место занято
+
+
+def test_group_slots_page_shows_spots():
+    resource = _resource(capacity=3)
+    body = public_views.termin_slots(
+        _req(path=f"/termin/{resource.pk}/", data={"tag": DAY.isoformat()}), pk=resource.pk
+    ).content.decode()
+    assert "Group course" in body and "3 spots" in body  # int-счётчик локаль-стабилен
+
+
 def test_book_flow_creates_booking():
     resource = _resource()
     start, end = availability.free_slots(resource, DAY)[0]
