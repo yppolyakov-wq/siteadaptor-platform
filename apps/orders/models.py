@@ -30,7 +30,12 @@ class Order(TimestampedModel):
     ]
     PAYMENT_UNPAID = "unpaid"
     PAYMENT_PAID = "paid"
-    PAYMENT_STATES = [(PAYMENT_UNPAID, "Unpaid"), (PAYMENT_PAID, "Paid")]
+    PAYMENT_REFUNDED = "refunded"
+    PAYMENT_STATES = [
+        (PAYMENT_UNPAID, "Unpaid"),
+        (PAYMENT_PAID, "Paid"),
+        (PAYMENT_REFUNDED, "Refunded"),
+    ]
 
     # PROTECT, как у Reservation: клиента с заказами нельзя удалить молча
     # (DSGVO-стирание анонимизирует Customer, не удаляя записи).
@@ -42,6 +47,7 @@ class Order(TimestampedModel):
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_UNPAID)
+    stripe_payment_intent = models.CharField(max_length=200, blank=True)  # P2.5c: для refund
     # Снимок суммы на момент заказа — цены каталога могут меняться.
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, default="EUR")

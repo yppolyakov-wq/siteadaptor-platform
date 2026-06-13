@@ -81,6 +81,19 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook booking_deposit: booking not found %s", meta)
         return
 
+    # Предоплата заказа Click&Collect (P2.5c): Checkout на connected account.
+    if event_type == "checkout.session.completed" and meta.get("kind") == "order_payment":
+        from apps.orders.payments import mark_order_paid
+
+        ok = mark_order_paid(
+            tenant_schema=meta.get("tenant_schema", ""),
+            order_id=meta.get("order_id", ""),
+            payment_intent=obj.get("payment_intent", ""),
+        )
+        if not ok:
+            logger.warning("stripe webhook order_payment: order not found %s", meta)
+        return
+
     # Stripe Connect (P2.5): статус connected-аккаунта бизнеса. obj — это Account,
     # его id == Tenant.stripe_connect_id. Подписку не трогаем.
     if event_type == "account.updated":

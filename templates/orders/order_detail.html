@@ -7,7 +7,8 @@
 <div class="flex items-center gap-3 mt-1 mb-4">
   <h1 class="text-2xl font-bold">{{ order.reference_code }}</h1>
   <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ order.get_status_display }}</span>
-  {% if order.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>{% endif %}
+  {% if order.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>
+  {% elif order.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "refunded" %}</span>{% endif %}
 </div>
 
 {% if messages %}

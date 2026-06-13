@@ -60,6 +60,8 @@ class Tenant(TenantMixin):
     # вебхук account.updated). application fee — apps.billing.connect (пока 0).
     stripe_connect_id = models.CharField(max_length=100, blank=True)
     payments_enabled = models.BooleanField(default=False)
+    # P2.5c: онлайн-предоплата Click&Collect (иначе — оплата при получении).
+    orders_prepay = models.BooleanField(default=False)
 
     # Owner contact
     owner_email = models.EmailField(blank=True)

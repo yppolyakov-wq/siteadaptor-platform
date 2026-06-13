@@ -6,14 +6,18 @@
 просто нет (404), кнопка на витрине тоже скрыта.
 """
 
+import stripe
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.billing import connect
 from apps.core import ratelimit
 
+from . import payments as order_payments
 from .models import Order
 from .services import EmptyOrder, create_order
 
@@ -106,10 +110,35 @@ def checkout(request):
         messages.error(request, _("Your order is empty."))
         return redirect("storefront-cart")
     request.session[CART_SESSION_KEY] = {}
+
+    # Онлайн-предоплата (P2.5c): если включена у бизнеса и оплата подключена — на
+    # Stripe Checkout (на счёт бизнеса). Иначе — оплата при получении (как раньше).
+    tenant = getattr(request, "tenant", None)
+    if (
+        getattr(tenant, "orders_prepay", False)
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+        and order.total > 0
+    ):
+        order_url = request.build_absolute_uri(
+            reverse("storefront-order", args=[order.reference_code])
+        )
+        try:
+            return redirect(
+                order_payments.order_checkout_url(
+                    order, tenant, success_url=order_url + "?paid=1", cancel_url=order_url
+                )
+            )
+        except stripe.error.StripeError:
+            pass  # оплата временно недоступна — заказ остаётся (оплата при получении)
     return redirect("storefront-order", code=order.reference_code)
 
 
 def order_confirmation(request, code):
     _require_orders_active(request)
     order = get_object_or_404(Order, reference_code=code)
-    return render(request, "storefront/order_confirmation.html", {"order": order})
+    return render(
+        request,
+        "storefront/order_confirmation.html",
+        {"order": order, "just_paid": request.GET.get("paid") == "1"},
+    )
