@@ -19,7 +19,7 @@ from apps.core import ratelimit
 
 from . import payments as order_payments
 from .models import Order
-from .services import EmptyOrder, OutOfStock, create_order
+from .services import EmptyOrder, OutOfStock, create_order, shipping_cost
 
 CART_SESSION_KEY = "cart"
 RL_LIMIT = 5  # оформлений на IP
@@ -132,11 +132,18 @@ def cart_view(request):
         for product, variant, qty in items
     ]
     total = sum((r["line_total"] for r in rows), start=Decimal("0"))
-    return render(
-        request,
-        "storefront/cart.html",
-        {"rows": rows, "total": total, "currency": items[0][0].currency if items else "EUR"},
-    )
+    tenant = getattr(request, "tenant", None)
+    delivery_enabled = getattr(tenant, "delivery_enabled", False)
+    ctx = {"rows": rows, "total": total, "currency": items[0][0].currency if items else "EUR"}
+    if delivery_enabled:
+        ctx["delivery_enabled"] = True
+        ctx["delivery_fee_eur"] = f"{getattr(tenant, 'delivery_fee_cents', 0) / 100:.2f}"
+        ctx["delivery_free_eur"] = f"{getattr(tenant, 'delivery_free_cents', 0) / 100:.2f}"
+        ctx["delivery_free_cents"] = getattr(tenant, "delivery_free_cents", 0)
+        ctx["delivery_min_eur"] = f"{getattr(tenant, 'delivery_min_cents', 0) / 100:.2f}"
+        ctx["delivery_min_cents"] = getattr(tenant, "delivery_min_cents", 0)
+        ctx["delivery_area"] = getattr(tenant, "delivery_area", "")
+    return render(request, "storefront/cart.html", ctx)
 
 
 @require_POST
@@ -152,6 +159,36 @@ def checkout(request):
     if not name:
         messages.error(request, _("Please tell us your name."))
         return redirect("storefront-cart")
+
+    # G4: способ получения. delivery только если бизнес включил доставку.
+    tenant = getattr(request, "tenant", None)
+    from decimal import Decimal
+
+    delivery = request.POST.get("fulfillment") == "delivery" and getattr(
+        tenant, "delivery_enabled", False
+    )
+    shipping_cents = 0
+    shipping_address = ""
+    if delivery:
+        items = _cart_items(request)
+        subtotal_cents = int(sum((_line_price(p, v) * q for p, v, q in items), Decimal("0")) * 100)
+        street = request.POST.get("street", "").strip()
+        plz = request.POST.get("plz", "").strip()
+        city = request.POST.get("city", "").strip()
+        if not (street and plz and city):
+            messages.error(request, _("Please enter your full delivery address."))
+            return redirect("storefront-cart")
+        min_c = getattr(tenant, "delivery_min_cents", 0) or 0
+        if min_c and subtotal_cents < min_c:
+            messages.error(
+                request,
+                _("Minimum order for delivery is %(min)s €.")
+                % {"min": f"{min_c / 100:.2f}".replace(".", ",")},
+            )
+            return redirect("storefront-cart")
+        shipping_cents = shipping_cost(tenant, subtotal_cents)
+        shipping_address = f"{street}\n{plz} {city}"
+
     try:
         order = create_order(
             items=_cart_items(request),
@@ -160,6 +197,9 @@ def checkout(request):
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
+            fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
+            shipping_address=shipping_address,
+            shipping_cents=shipping_cents,
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))

@@ -6,7 +6,7 @@
 <div class="max-w-xl">
   <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "Thank you! Your order is in." %} 🎉</h1>
-    <p class="text-gray-600 mb-4">{% trans "Show this code when you pick up:" %}</p>
+    <p class="text-gray-600 mb-4">{% if order.is_delivery %}{% trans "Your order reference:" %}{% else %}{% trans "Show this code when you pick up:" %}{% endif %}</p>
     <p class="text-3xl font-mono font-bold tracking-wider mb-6">{{ order.reference_code }}</p>
 
     <div class="divide-y divide-gray-100 border-y border-gray-100 mb-4">
@@ -16,14 +16,25 @@
           <span>{{ item.line_total }} {{ order.currency }}</span>
         </div>
       {% endfor %}
+      {% if order.is_delivery %}
+        <div class="flex items-center justify-between py-2 text-sm text-gray-500">
+          <span>🚚 {% trans "Delivery" %}</span><span>{{ order.shipping_eur }} {{ order.currency }}</span>
+        </div>
+      {% endif %}
       <div class="flex items-center justify-between py-2 font-bold">
         <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
       </div>
     </div>
+    {% if order.is_delivery and order.shipping_address %}
+      <p class="text-sm text-gray-500 mb-2">📍 {{ order.shipping_address|linebreaksbr }}</p>
+    {% endif %}
+    {% if order.tracking_code %}<p class="text-sm text-gray-600 mb-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
     {% if order.payment_state == 'paid' %}
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>
     {% elif just_paid %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Payment received — we'll confirm shortly." %}</p>
+    {% elif order.is_delivery %}
+      <p class="text-sm text-gray-500">{% trans "Pay on delivery." %}</p>
     {% else %}
       <p class="text-sm text-gray-500">{% trans "Pay in store at pickup." %}</p>
     {% endif %}

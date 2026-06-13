@@ -33,9 +33,38 @@
 
 <form method="post" action="{% url 'storefront-checkout' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
   {% csrf_token %}
-  <h2 class="font-semibold">{% trans "Pick up in store" %}</h2>
-  <p class="text-sm text-gray-500">{% trans "Pay when you pick up. We'll prepare your order." %}</p>
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+
+  {% if delivery_enabled %}
+    <div>
+      <h2 class="font-semibold mb-2">{% trans "How would you like to get it?" %}</h2>
+      <div class="space-y-2">
+        <label class="flex items-center gap-2 text-sm"><input type="radio" name="fulfillment" value="pickup" checked> {% trans "Pick up in store" %}</label>
+        <label class="flex items-center gap-2 text-sm"><input type="radio" name="fulfillment" value="delivery"> 🚚 {% trans "Delivery" %}
+          <span class="text-gray-400">· {% blocktrans with f=delivery_fee_eur %}{{ f }} €{% endblocktrans %}{% if delivery_free_cents %} · {% blocktrans with f=delivery_free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>
+        </label>
+      </div>
+      {% if delivery_min_cents %}<p class="text-xs text-gray-400 mt-1">{% blocktrans with m=delivery_min_eur %}Min. order for delivery: {{ m }} €{% endblocktrans %}</p>{% endif %}
+      {% if delivery_area %}<p class="text-xs text-gray-400">{% trans "Delivery area" %}: {{ delivery_area }}</p>{% endif %}
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-medium mb-1" for="id_street">{% trans "Street & no. (for delivery)" %}</label>
+        <input id="id_street" name="street" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_plz">{% trans "Postal code" %}</label>
+        <input id="id_plz" name="plz" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_city">{% trans "City" %}</label>
+        <input id="id_city" name="city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+    </div>
+  {% else %}
+    <h2 class="font-semibold">{% trans "Pick up in store" %}</h2>
+    <p class="text-sm text-gray-500">{% trans "Pay when you pick up. We'll prepare your order." %}</p>
+  {% endif %}
   <div>
     <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
     <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
