@@ -20,7 +20,7 @@ from apps.billing import connect
 from apps.core import ratelimit
 
 from . import availability, payments, services
-from .models import Booking, Resource, Service
+from .models import Booking, Pass, Resource, Service
 
 RL_LIMIT = 5  # попыток записи на IP
 RL_WINDOW = 600  # за 10 минут
@@ -40,6 +40,31 @@ def _parse_day(raw) -> date:
     except ValueError:
         return today
     return min(max(day, today), today + timedelta(days=MAX_DAYS_AHEAD))
+
+
+def _redeem_pass_if_code(request, booking) -> bool:
+    """G9: если предъявлен Mehrfachkarte-Code — гасим один визит. Возвращает True,
+    когда код был предъявлен (тогда депозит/оплату пропускаем — карта вместо денег).
+
+    Невалидный/исчерпанный код: бронь остаётся, на оплату НЕ уводим (не списываем
+    деньги при ошибке карты), показываем сообщение — владелец разберётся."""
+    code = request.POST.get("pass_code", "").strip()
+    if not code:
+        return False
+    card = Pass.objects.filter(code__iexact=code, is_active=True).first()
+    if card is None:
+        messages.error(request, _("This pass code is not valid."))
+        return True
+    try:
+        services.redeem_pass(card, booking=booking)
+        messages.success(request, _("Pass applied — one visit redeemed."))
+    except services.PassInvalid:
+        messages.error(request, _("This pass has no visits left or has expired."))
+    return True
+
+
+def _passes_enabled() -> bool:
+    return Pass.objects.filter(is_active=True).exists()
 
 
 def termin_index(request):
@@ -76,6 +101,7 @@ def service_slots(request, pk):
             "deposit_required": service.deposit_cents > 0
             and getattr(tenant, "payments_enabled", False),
             "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
+            "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
             "prev_day": day - timedelta(days=1) if day > today else None,
             "next_day": day + timedelta(days=1)
             if day < today + timedelta(days=MAX_DAYS_AHEAD)
@@ -126,6 +152,10 @@ def service_book(request, pk):
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
         return redirect("storefront-service-slots", pk=pk)
+
+    # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
+    if _redeem_pass_if_code(request, booking):
+        return redirect("storefront-termin-ok", code=booking.reference_code)
 
     # Депозит услуги (P2.5b): на Stripe Checkout, иначе обычная запись.
     tenant = getattr(request, "tenant", None)
@@ -184,6 +214,7 @@ def termin_slots(request, pk):
             "deposit_required": resource.deposit_cents > 0
             and getattr(getattr(request, "tenant", None), "payments_enabled", False),
             "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
+            "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
             "prev_day": day - timedelta(days=1) if day > today else None,
             "next_day": day + timedelta(days=1)
             if day < today + timedelta(days=MAX_DAYS_AHEAD)
@@ -235,6 +266,10 @@ def termin_book(request, pk):
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
         return redirect("storefront-termin-slots", pk=pk)
+
+    # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
+    if _redeem_pass_if_code(request, booking):
+        return redirect("storefront-termin-ok", code=booking.reference_code)
 
     # Депозит (P2.5b): если у ресурса задан и бизнес принимает оплату — ведём на
     # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.

@@ -263,3 +263,58 @@ def services_view(request):
         "booking/services.html",
         {"nav": "booking", "services": Service.objects.order_by("-is_active", "name")},
     )
+
+
+@login_required
+def passes_view(request):
+    """Mehrfachkarten / 10er-Karten (G9): выпуск, баланс, ручное погашение."""
+    from datetime import date as _date
+
+    from .models import Pass
+
+    def _int(raw, default, lo, hi):
+        try:
+            return max(lo, min(int(raw), hi))
+        except (TypeError, ValueError):
+            return default
+
+    def _vu(raw):  # valid_until: пусто/кривое → бессрочно (None)
+        try:
+            return _date.fromisoformat(raw or "")
+        except (TypeError, ValueError):
+            return None
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "issue":
+            name = request.POST.get("name", "").strip()
+            if name:
+                services.issue_pass(
+                    name=name,
+                    email=request.POST.get("email", "").strip(),
+                    phone=request.POST.get("phone", "").strip(),
+                    label=request.POST.get("label", "").strip() or "Mehrfachkarte",
+                    credits=_int(request.POST.get("credits"), 10, 1, 100),
+                    valid_until=_vu(request.POST.get("valid_until")),
+                )
+                messages.success(request, _("Pass issued."))
+            else:
+                messages.error(request, _("Please enter the customer's name."))
+        elif action == "redeem":  # ручное погашение (walk-in / при визите)
+            card = get_object_or_404(Pass, pk=request.POST.get("pass"))
+            try:
+                services.redeem_pass(card)
+                messages.success(request, _("One visit redeemed."))
+            except services.PassInvalid:
+                messages.error(request, _("This pass has no visits left or has expired."))
+        elif action == "toggle":
+            card = get_object_or_404(Pass, pk=request.POST.get("pass"))
+            card.is_active = not card.is_active
+            card.save(update_fields=["is_active", "updated_at"])
+        return redirect("booking:passes")
+
+    return render(
+        request,
+        "booking/passes.html",
+        {"nav": "booking", "passes": Pass.objects.select_related("customer")[:300]},
+    )

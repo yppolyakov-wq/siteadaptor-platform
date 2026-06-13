@@ -54,6 +54,13 @@
     <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
     <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   </div>
+  {% if passes_enabled %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_pass">{% trans "Pass code (optional)" %}</label>
+      <input id="id_pass" name="pass_code" type="text" placeholder="K-XXXXXX" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <p class="text-xs text-gray-400 mt-1">{% trans "Have a multi-visit pass? Enter the code to redeem one visit." %}</p>
+    </div>
+  {% endif %}
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
   {% endif %}

@@ -14,9 +14,13 @@ from django.db.models import Q
 
 from apps.promotions.models import Customer
 
-from .models import Booking, ClosedDate, Resource
+from .models import Booking, ClosedDate, Pass, Resource
 
 _ALPHABET = string.ascii_uppercase + string.digits
+
+
+class PassInvalid(Exception):
+    """Mehrfachkarte недействительна: аннулирована, просрочена или исчерпана."""
 
 
 class SlotTaken(Exception):
@@ -110,6 +114,43 @@ def book(
 
     enqueue_booking_email(booking, "created")
     return booking
+
+
+def _unique_pass_code() -> str:
+    for _ in range(10):
+        code = "K-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
+        if not Pass.objects.filter(code=code).exists():
+            return code
+    raise RuntimeError("could not generate unique pass code")
+
+
+def issue_pass(*, name, email="", phone="", label="Mehrfachkarte", credits=10, valid_until=None):
+    """G9: выпустить Mehrfachkarte клиенту (Customer переиспользуется по email)."""
+    customer = _get_or_create_customer(name=name, email=email, phone=phone)
+    return Pass.objects.create(
+        customer=customer,
+        code=_unique_pass_code(),
+        label=(label or "Mehrfachkarte").strip()[:120] or "Mehrfachkarte",
+        credits_total=max(1, int(credits or 1)),
+        valid_until=valid_until,
+    )
+
+
+@transaction.atomic
+def redeem_pass(card, *, booking=None):
+    """G9: атомарно списать один визит с карты. PassInvalid — карта недействительна.
+
+    Блокируем строку карты (select_for_update), перепроверяем валидность, списываем
+    кредит; при booking — привязываем визит к карте (booking.card)."""
+    locked = Pass.objects.select_for_update().get(pk=card.pk)
+    if not locked.is_valid:
+        raise PassInvalid()
+    locked.credits_used += 1
+    locked.save(update_fields=["credits_used", "updated_at"])
+    if booking is not None:
+        booking.card = locked
+        booking.save(update_fields=["card", "updated_at"])
+    return locked
 
 
 @transaction.atomic

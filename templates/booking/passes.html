@@ -1,0 +1,72 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Passes" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Passes / 10er-Karten" %}</h1>
+  <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<p class="text-sm text-gray-500 mb-4">{% trans "Multi-visit passes: issue a card, the customer redeems online with the code or you punch it here at each visit." %}</p>
+
+<div class="space-y-2 mb-8">
+  {% for p in passes %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3 flex-wrap {% if not p.is_active %}opacity-60{% endif %}">
+      <div>
+        <span class="font-medium">{{ p.label }}</span>
+        <span class="font-mono text-sm text-indigo-700 ml-1">{{ p.code }}</span>
+        <span class="text-sm text-gray-500 block">{{ p.customer }}{% if p.valid_until %} · {% trans "valid until" %} {{ p.valid_until|date:"d.m.Y" }}{% endif %}</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-semibold {% if p.credits_left %}text-gray-800{% else %}text-red-600{% endif %}">{{ p.credits_left }}/{{ p.credits_total }} {% trans "left" %}</span>
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="redeem"><input type="hidden" name="pass" value="{{ p.pk }}">
+          <button {% if not p.is_valid %}disabled{% endif %} class="bg-indigo-600 disabled:opacity-40 text-white rounded-lg px-3 py-1.5 text-sm hover:bg-indigo-700">−1 {% trans "Visit" %}</button>
+        </form>
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="pass" value="{{ p.pk }}">
+          <button class="text-xs text-gray-500 hover:underline">{% if p.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-gray-500">{% trans "No passes yet." %}</p>
+  {% endfor %}
+</div>
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="issue">
+  <h2 class="font-semibold">{% trans "Issue a pass" %}</h2>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Customer name" %} *</label>
+      <input name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Email" %}</label>
+      <input name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Label" %}</label>
+      <input name="label" type="text" placeholder="10er-Karte Yoga" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Visits" %}</label>
+      <input name="credits" type="number" min="1" max="100" value="10" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Valid until (optional)" %}</label>
+      <input name="valid_until" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Issue pass" %}</button>
+</form>
+{% endblock %}

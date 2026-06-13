@@ -8,6 +8,7 @@
 """
 
 from django.db import models
+from django.utils import timezone
 
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
@@ -110,6 +111,39 @@ class ClosedDate(TimestampedModel):
         return f"{self.date} ({self.reason or 'geschlossen'})"
 
 
+class Pass(TimestampedModel):
+    """Mehrfachkarte / 10er-Karte (G9): пакет визитов клиента.
+
+    Владелец выпускает карту (продажа офлайн/на стойке), клиент гасит по коду
+    онлайн при записи или владелец вручную в кабинете. Один кредит = один визит;
+    списание атомарно (services.redeem_pass). Привязка к курсу/услуге — отложено
+    (карта общая)."""
+
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="passes")
+    label = models.CharField(max_length=120, default="Mehrfachkarte")
+    code = models.CharField(max_length=12, unique=True)  # "K-XXXXXX"
+    credits_total = models.PositiveSmallIntegerField(default=10)
+    credits_used = models.PositiveSmallIntegerField(default=0)
+    valid_until = models.DateField(null=True, blank=True)  # пусто = бессрочно
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.label} {self.code} ({self.credits_left}/{self.credits_total})"
+
+    @property
+    def credits_left(self) -> int:
+        return max(0, self.credits_total - self.credits_used)
+
+    @property
+    def is_valid(self) -> bool:
+        if not self.is_active or self.credits_left <= 0:
+            return False
+        return self.valid_until is None or self.valid_until >= timezone.localdate()
+
+
 class Booking(TimestampedModel):
     STATUS_PENDING = "pending"
     STATUS_CONFIRMED = "confirmed"
@@ -133,6 +167,11 @@ class Booking(TimestampedModel):
         Service, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
     )
     price_cents = models.PositiveIntegerField(default=0)  # снимок цены услуги
+    # G9: Mehrfachkarte, которой оплачен визит (SET_NULL — карту можно аннулировать,
+    # бронь остаётся). null = обычная оплата/депозит/без карты.
+    card = models.ForeignKey(
+        "Pass", on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
+    )
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="bookings")
     reference_code = models.CharField(max_length=12, unique=True)  # "T-XXXXXX"
     start = models.DateTimeField()
