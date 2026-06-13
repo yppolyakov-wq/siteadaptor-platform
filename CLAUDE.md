@@ -380,6 +380,14 @@ Python 3.12, менеджер uv.
   сутки, прошлый месяц, активные тенанты). **Сейчас % = 0 → не начисляется**;
   включается через `BILLING_APPLICATION_FEE_PERCENT`. **Весь P2.5 (a/b/c/fee)
   закрыт.** Дальше: retail R1 варианты → R2 Grundpreis/весовая цена → R3 остаток.
+- **Retail R1 — варианты товара (✅ в `main`, 1feb5db+c03d98e, CI run 162,
+  миграции catalog/0003 + orders/0003):** `ProductVariant` (FK Product, `label`
+  «100 g»/«M», цена-оверрайд пусто→base_price, `stock_quantity` под R3, `sku`,
+  уникальность product+label); `Product.has_variants`/`price_from`. Кабинет — CRUD
+  вариантов на странице товара. Витрина — селектор + цена «ab X €». Корзина C&C
+  variant-aware (ключ `pid:vid`), `OrderItem.variant`+`variant_label` снимок,
+  `create_order` принимает (product,variant,qty) и (product,qty) (обратная совм.).
+  Дальше: R2 Grundpreis/весовая цена (PAngV) → R3 остаток с atomic-списанием.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -444,10 +452,10 @@ Python 3.12, менеджер uv.
    создан). Дальше: P2.2 SEO/контент порталов → клиентские аккаунты →
    монетизация портала → платежи, отзывы, поиск, мобайл.
    - **Вертикали микробизнеса (2026-06-13, см. `micro-business-verticals.md`):**
-     retail-пакет R1–R4 (✅ R4 LMIV) и P2.5 онлайн-оплата **закрыта целиком**
-     (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C, ✅ P2.5-fee).
-     Очередь: R1 варианты → R2 Grundpreis → R3 остаток; затем date-range booking
-     (отели/ретриты), отзывы+гео (агрегатор).
+     retail-пакет (✅ R4 LMIV, ✅ R1 варианты) и P2.5 онлайн-оплата **закрыта
+     целиком** (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C,
+     ✅ P2.5-fee). Очередь: R2 Grundpreis/весовая цена → R3 остаток с atomic-
+     списанием; затем date-range booking (отели/ретриты), отзывы+гео (агрегатор).
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
