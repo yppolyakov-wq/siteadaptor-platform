@@ -69,9 +69,11 @@ def book(
     note="",
     source_channel="",
     auto_confirm=False,
+    service=None,
+    price_cents=0,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
-    ResourceClosed / ValueError (кривой интервал)."""
+    ResourceClosed / ValueError (кривой интервал). service/price_cents — G10."""
     if end <= start:
         raise ValueError("end must be after start")
 
@@ -92,6 +94,8 @@ def book(
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = Booking.objects.create(
         resource=resource,
+        service=service,
+        price_cents=int(price_cents or 0),
         customer=customer,
         reference_code=_unique_booking_code(),
         start=start,

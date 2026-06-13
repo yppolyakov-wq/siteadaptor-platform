@@ -44,6 +44,30 @@ class Resource(TimestampedModel):
         return self.name
 
 
+class Service(TimestampedModel):
+    """Услуга с ценой и длительностью (G10): «Ölwechsel — 30 мин, 49 €».
+
+    Бизнес-уровень: бронируется на любом свободном ресурсе под её длительность
+    (привязка к конкретным мастерам/постам — отложено). Цена → выручка при
+    выполнении (fulfilled); депозит — как у Resource (анти-no-show, P2.5b)."""
+
+    name = models.CharField(max_length=120)
+    duration_minutes = models.PositiveSmallIntegerField(default=30)
+    price_cents = models.PositiveIntegerField(default=0)
+    deposit_cents = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def price_eur(self) -> float:
+        return self.price_cents / 100
+
+
 class AvailabilityRule(TimestampedModel):
     """Недельное правило работы ресурса: weekday + окно + шаг слота."""
 
@@ -103,6 +127,12 @@ class Booking(TimestampedModel):
     ACTIVE_STATUSES = (STATUS_PENDING, STATUS_CONFIRMED)
 
     resource = models.ForeignKey(Resource, on_delete=models.PROTECT, related_name="bookings")
+    # G10: услуга (опц.) — null = общая бронь по времени (стол/комната). SET_NULL:
+    # удаление услуги не трогает брони, снимок цены остаётся.
+    service = models.ForeignKey(
+        Service, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
+    )
+    price_cents = models.PositiveIntegerField(default=0)  # снимок цены услуги
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="bookings")
     reference_code = models.CharField(max_length=12, unique=True)  # "T-XXXXXX"
     start = models.DateTimeField()

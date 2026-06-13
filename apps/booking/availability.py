@@ -22,8 +22,11 @@ def is_closed(resource, day) -> bool:
     )
 
 
-def free_slots(resource, day) -> list[tuple[datetime, datetime]]:
-    """[(start, end), …] свободных слотов ресурса на дату (aware, локальная TZ)."""
+def free_slots(resource, day, duration_minutes=None) -> list[tuple[datetime, datetime]]:
+    """[(start, end), …] свободных слотов ресурса на дату (aware, локальная TZ).
+
+    duration_minutes (G10): длина слота = длительность услуги, шаг = slot_minutes
+    правила (старты каждые slot_minutes). None — длина = шаг (общая бронь, D3b)."""
     if is_closed(resource, day):
         return []
 
@@ -34,9 +37,10 @@ def free_slots(resource, day) -> list[tuple[datetime, datetime]]:
         cursor = datetime.combine(day, rule.start_time, tzinfo=tz)
         window_end = datetime.combine(day, rule.end_time, tzinfo=tz)
         step = timedelta(minutes=rule.slot_minutes)
-        while cursor + step <= window_end:
+        length = timedelta(minutes=duration_minutes) if duration_minutes else step
+        while cursor + length <= window_end:
             if cursor > now:  # прошедшие слоты сегодня не предлагаем
-                grid.append((cursor, cursor + step))
+                grid.append((cursor, cursor + length))
             cursor += step
 
     if not grid:
@@ -59,3 +63,30 @@ def free_slots(resource, day) -> list[tuple[datetime, datetime]]:
         if sum(1 for b_start, b_end in bookings if b_start < end and b_end > start)
         < resource.capacity
     ]
+
+
+def service_slots(service, day) -> list[datetime]:
+    """G10: объединённые свободные старты по всем активным ресурсам под услугу.
+
+    Услуга бизнес-уровня — старт доступен, если ХОТЯ БЫ один ресурс свободен на
+    [start, start+duration). Ресурс к старту назначается при брони (assign_resource)."""
+    from .models import Resource
+
+    starts = set()
+    for resource in Resource.objects.filter(is_active=True):
+        for start, _end in free_slots(resource, day, duration_minutes=service.duration_minutes):
+            starts.add(start)
+    return sorted(starts)
+
+
+def assign_resource(service, start):
+    """G10: первый активный ресурс, свободный на [start, start+duration); или None."""
+    from .models import Resource
+
+    end = start + timedelta(minutes=service.duration_minutes)
+    for resource in Resource.objects.filter(is_active=True):
+        if (start, end) in free_slots(
+            resource, start.date(), duration_minutes=service.duration_minutes
+        ):
+            return resource
+    return None
