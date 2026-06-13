@@ -467,8 +467,27 @@ Python 3.12, менеджер uv.
     со ссылкой; accepted/declined → владельцу), DE-шаблоны `emails/job_*`; ссылка
     «Request a quote» в шапке витрины.
   - **Деплой G6:** миграции jobs/0001 + tenants/0013.
-    Дальше (новые сегменты): отзывы+рейтинги + гео-карта агрегатора (G8); либо
-    G4 доставка/Versand (добивает интернет-магазин A2).
+- **G4 — Доставка / Versand (✅ ВЕСЬ в `main`):** расширение `apps.orders`
+  (Click&Collect был только самовывоз) доставкой по адресу — открывает интернет-
+  магазин (A2). Разбивка G4a/G4b, ветка → CI зелёный → FF в `main`:
+  - G4a backend + кабинет (✅ `d39ac5d`, CI run в стеке 191, миграции tenants/0014
+    + orders/0004): `Tenant` конфиг доставки (`delivery_enabled`/`fee_cents`/
+    `free_cents` бесплатно-от/`min_cents` Mindestbestellwert/`area` текст; зоны по
+    PLZ — отложено); `Order` += `fulfillment` (pickup/delivery), `shipping_address`/
+    `shipping_cents`/`tracking_code`/`shipped_at` + статус `shipped`; `OrderSM`
+    ready→shipped (finance-выручка + письмо клиенту и на shipped; доставка в total);
+    `services.shipping_cost` + `create_order(fulfillment/адрес/доставка)`. Кабинет
+    `/dashboard/orders/`: настройки доставки (отдельная форма — не сбрасывает
+    prepay), бейдж 🚚, блок доставки + «Versandt» с трек-номером; DE-шаблон
+    `order_shipped`.
+  - G4b витрина (✅ `9fb6554`, CI run 191 зелёный, без миграций): checkout
+    `/warenkorb/` — выбор Abholung/Lieferung (при `delivery_enabled`), адрес
+    (Straße/PLZ/Ort), серверный расчёт `shipping_cost` + проверка Mindestbestellwert,
+    итог с доставкой; подтверждение показывает способ/адрес/трек. Предоплата (P2.5c)
+    уже считает total с доставкой.
+  - **Деплой G4:** миграции tenants/0014 + orders/0004.
+    Дальше (новые сегменты): отзывы+рейтинги + гео-карта агрегатора (G8);
+    G9 курсы+абонемент.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

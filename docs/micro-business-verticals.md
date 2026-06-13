@@ -40,15 +40,16 @@ Unverpackt-Laden, Kiosk/Späti.
 **До полноты:** варианты товара (G2), весовая/единичная цена + Grundpreis €/кг (G2),
 реальный остаток на товаре (G3), онлайн-оплата (G1), аллергены/LMIV (G7).
 
-### A2. Интернет-магазин / Versand (чистый онлайн) — ~45%
+### A2. Интернет-магазин / Versand (чистый онлайн) — ~75% (доставка ✅ G4)
 **Кто:** Direktvermarkter (vegane Wurst, Honig/Imkerei, Hofprodukte),
 Kaffeerösterei-Versand, Handmade/Etsy-тип (Schmuck, Keramik, Kerzen, Seife,
 Stricksachen), Nahrungsergänzung, kleine Manufaktur.
 **Цикл:** каталог → корзина → **доставка по адресу** → онлайн-оплата → счёт/трек.
 **У нас:** каталог + корзина (заточена под самовывоз) ✅ частично.
-**До полноты:** доставка/Versand (адрес, тарифы зон, лейбл/трек) (G4), онлайн-оплата
-(G1), варианты (G2), остаток (G3), возвраты/Widerruf. Самый «тяжёлый» retail —
-превращает локальный pickup в Versand.
+**У нас:** ✅ доставка/Versand (G4): адрес, плоский тариф + бесплатно-от +
+Mindestbestellwert + зона-текст, статус «versandt» + трек-номер, оплата (P2.5c).
+**До полноты:** зоны по PLZ-таблице, лейбл через API перевозчика + Lieferschein,
+возвраты/Widerruf — отложено (см. roadmap).
 
 ### A3. Termin / услуга по записи (time-slot) — ~85%
 **Кто:** Friseur, Barber, Kosmetik/Nagel/Wimpern/Waxing, Massage, Fußpflege/Podologie,
@@ -111,7 +112,7 @@ Catering, mobiler Friseur, Schädlingsbekämpfung.
 | **G1** | Онлайн-оплата (P2.5) | A2,A4,A5,A6,A8 + депозиты A3 | 🔥 максимум |
 | **G2** | Варианты + весовая цена + Grundpreis (PAngV) | A1,A2 | масса розницы |
 | **G3** | Реальный остаток на товаре/заказе | A1,A2,A4 | розница+гастро |
-| **G4** | Доставка/Versand (адрес, тарифы, лейбл) | A2 (+доставка A4) | «настоящий магазин» |
+| **G4** | Доставка/Versand (адрес, тарифы, лейбл) ✅ (`apps.orders`) | A2 (+доставка A4) | «настоящий магазин» |
 | **G5** | Date-range booking ✅ (Track E, `apps.stays`) | A5,A6 | семья «размещение» |
 | **G6** | Anfrage→Angebot→Auftrag (смета) ✅ (`apps.jobs`) | A7 | все Handwerker |
 | **G7** | Аллергены/LMIV + Herkunft | A1,A4 (еда) | правовое для еды |
