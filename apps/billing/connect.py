@@ -116,3 +116,53 @@ def set_connect_status(account_id: str, charges_enabled: bool) -> bool:
         tenant.payments_enabled = charges_enabled
         tenant.save(update_fields=["payments_enabled", "updated_at"])
     return True
+
+
+# --- Платежи на connected account (P2.5b/c) -------------------------------
+
+
+def connected_checkout_session(
+    *,
+    connect_id: str,
+    amount_cents: int,
+    product_name: str,
+    metadata: dict,
+    success_url: str,
+    cancel_url: str,
+    business_type: str = "",
+    currency: str = "eur",
+) -> str:
+    """Checkout (mode=payment) НА connected account бизнеса — деньги идут ему.
+
+    application_fee удерживаем только при ненулевом проценте типа (вариант A);
+    при варианте B (процент 0, текущая модель) комиссия не удерживается — бизнес
+    получает 100 %. Возвращает URL оплаты.
+    """
+    intent_data: dict = {"metadata": dict(metadata)}
+    fee = application_fee_cents(amount_cents, business_type)
+    if fee > 0:
+        intent_data["application_fee_amount"] = fee
+    session = _client().checkout.Session.create(
+        stripe_account=connect_id,
+        mode="payment",
+        line_items=[
+            {
+                "price_data": {
+                    "currency": currency,
+                    "unit_amount": amount_cents,
+                    "product_data": {"name": product_name[:250]},
+                },
+                "quantity": 1,
+            }
+        ],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata=metadata,
+        payment_intent_data=intent_data,
+    )
+    return session["url"]
+
+
+def refund(*, connect_id: str, payment_intent: str) -> None:
+    """Полный возврат платежа на connected account (анти-фрод при отмене)."""
+    _client().Refund.create(payment_intent=payment_intent, stripe_account=connect_id)

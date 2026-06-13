@@ -31,6 +31,11 @@ class Resource(TimestampedModel):
     # зал/групповая услуга = N).
     capacity = models.PositiveSmallIntegerField(default=1)
     is_active = models.BooleanField(default=True)
+    # P2.5b: депозит за запись (центы; 0 = без депозита). Анти-no-show.
+    deposit_cents = models.PositiveIntegerField(default=0)
+    # Анти-фрод: даже после оплаты держать бронь pending до ручного подтверждения
+    # бизнесом (по умолчанию оплата сразу авто-подтверждает).
+    require_manual_confirm = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["name"]
@@ -108,6 +113,21 @@ class Booking(TimestampedModel):
     source_channel = models.CharField(max_length=50, blank=True)
     # Напоминание (D3c, beat): чтобы слать ровно одно.
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
+
+    # P2.5b: онлайн-депозит через Stripe Connect (деньги → бизнесу напрямую).
+    PAYMENT_NONE = "none"
+    PAYMENT_PENDING = "pending"
+    PAYMENT_PAID = "paid"
+    PAYMENT_REFUNDED = "refunded"
+    PAYMENT_STATES = [
+        (PAYMENT_NONE, "None"),
+        (PAYMENT_PENDING, "Pending"),
+        (PAYMENT_PAID, "Paid"),
+        (PAYMENT_REFUNDED, "Refunded"),
+    ]
+    deposit_cents = models.PositiveIntegerField(default=0)  # снимок с ресурса
+    payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)
+    stripe_payment_intent = models.CharField(max_length=200, blank=True)  # для refund
 
     class Meta:
         ordering = ["start"]

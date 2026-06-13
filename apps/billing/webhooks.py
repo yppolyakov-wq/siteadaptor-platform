@@ -67,6 +67,20 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook featured: listing not found %s", meta)
         return
 
+    # Депозит за бронь (P2.5b): Checkout на connected account → бронь оплачена.
+    # Бронь живёт в TENANT-схеме (tenant_schema из metadata), статус подписки не трогаем.
+    if event_type == "checkout.session.completed" and meta.get("kind") == "booking_deposit":
+        from apps.booking.payments import mark_deposit_paid
+
+        ok = mark_deposit_paid(
+            tenant_schema=meta.get("tenant_schema", ""),
+            booking_id=meta.get("booking_id", ""),
+            payment_intent=obj.get("payment_intent", ""),
+        )
+        if not ok:
+            logger.warning("stripe webhook booking_deposit: booking not found %s", meta)
+        return
+
     # Stripe Connect (P2.5): статус connected-аккаунта бизнеса. obj — это Account,
     # его id == Tenant.stripe_connect_id. Подписку не трогаем.
     if event_type == "account.updated":

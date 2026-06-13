@@ -98,3 +98,60 @@ def test_set_connect_status_updates_tenant():
 def test_set_connect_status_unknown_account_is_noop():
     assert connect.set_connect_status("acct_missing", True) is False
     assert connect.set_connect_status("", True) is False
+
+
+# --- платежи на connected account (P2.5b/c) -------------------------------
+
+
+def test_connected_checkout_on_account_no_fee(monkeypatch, settings):
+    settings.BILLING_APPLICATION_FEE_PERCENT = {}  # вариант B: комиссия 0
+    captured = {}
+
+    def _create(**kw):
+        captured.update(kw)
+        return {"url": "https://checkout/booking"}
+
+    monkeypatch.setattr(stripe.checkout.Session, "create", _create)
+    url = connect.connected_checkout_session(
+        connect_id="acct_1",
+        amount_cents=500,
+        product_name="Anzahlung T-1",
+        metadata={"kind": "booking_deposit", "booking_id": "b1"},
+        success_url="https://s",
+        cancel_url="https://c",
+        business_type="cafe",
+    )
+    assert url == "https://checkout/booking"
+    assert captured["stripe_account"] == "acct_1"
+    assert captured["mode"] == "payment"
+    assert captured["line_items"][0]["price_data"]["unit_amount"] == 500
+    assert captured["metadata"]["kind"] == "booking_deposit"
+    assert "application_fee_amount" not in captured["payment_intent_data"]
+
+
+def test_connected_checkout_includes_fee_when_set(monkeypatch, settings):
+    settings.BILLING_APPLICATION_FEE_PERCENT = {"cafe": "10"}  # вариант A
+    captured = {}
+
+    def _create(**kw):
+        captured.update(kw)
+        return {"url": "u"}
+
+    monkeypatch.setattr(stripe.checkout.Session, "create", _create)
+    connect.connected_checkout_session(
+        connect_id="acct_1",
+        amount_cents=1000,
+        product_name="x",
+        metadata={},
+        success_url="s",
+        cancel_url="c",
+        business_type="cafe",
+    )
+    assert captured["payment_intent_data"]["application_fee_amount"] == 100  # 10 % от 1000
+
+
+def test_refund_calls_stripe_on_account(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(stripe.Refund, "create", lambda **kw: captured.update(kw))
+    connect.refund(connect_id="acct_1", payment_intent="pi_9")
+    assert captured == {"payment_intent": "pi_9", "stripe_account": "acct_1"}
