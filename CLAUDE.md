@@ -369,8 +369,17 @@ Python 3.12, менеджер uv.
   `kind=order_payment`, кросс-схемно: paid + new→confirmed). Витрина: при
   orders_prepay+payments_enabled оформление → Stripe Checkout, иначе оплата при
   получении; статус на `/bestellung/<code>/`. Кабинет: бейджи paid/refunded,
-  **отмена оплаченного → refund**. Дальше: P2.5-fee (учёт оборота + строка
-  Nutzungsgebühr, вариант B) → retail R1 варианты → R2 Grundpreis → R3 остаток.
+  **отмена оплаченного → refund**.
+- **P2.5-fee — Nutzungsgebühr строкой в счёт (✅ в `main`, 56a4744, CI run 157,
+  миграция billing/0001):** помесячная плата за пользование (вариант B). Оборот
+  через платформу (`finance.RevenueEntry` source order+reservation) × % по типу
+  бизнеса → `services.create_usage_invoice_item` (Stripe InvoiceItem в счёт
+  подписки). `billing.usage` (period_bounds/previous_period/tenant_gmv_cents
+  кросс-схемно/bill_tenant идемпотентно), `billing.UsageFeeRecord` (запись на
+  tenant+период = идемпотентность beat'а + аудит), beat `bill_usage_fees` (раз в
+  сутки, прошлый месяц, активные тенанты). **Сейчас % = 0 → не начисляется**;
+  включается через `BILLING_APPLICATION_FEE_PERCENT`. **Весь P2.5 (a/b/c/fee)
+  закрыт.** Дальше: retail R1 варианты → R2 Grundpreis/весовая цена → R3 остаток.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -435,10 +444,10 @@ Python 3.12, менеджер uv.
    создан). Дальше: P2.2 SEO/контент порталов → клиентские аккаунты →
    монетизация портала → платежи, отзывы, поиск, мобайл.
    - **Вертикали микробизнеса (2026-06-13, см. `micro-business-verticals.md`):**
-     retail-пакет R1–R4 (✅ R4 LMIV) и P2.5 онлайн-оплата (✅ P2.5a Connect,
-     ✅ P2.5b депозит брони/термина, ✅ P2.5c предоплата C&C). Очередь: P2.5-fee
-     (вариант B) → R1 варианты → R2 Grundpreis → R3 остаток; затем date-range
-     booking (отели/ретриты), отзывы+гео (агрегатор).
+     retail-пакет R1–R4 (✅ R4 LMIV) и P2.5 онлайн-оплата **закрыта целиком**
+     (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C, ✅ P2.5-fee).
+     Очередь: R1 варианты → R2 Grundpreis → R3 остаток; затем date-range booking
+     (отели/ретриты), отзывы+гео (агрегатор).
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
