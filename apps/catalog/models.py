@@ -8,7 +8,7 @@
 
 from django.db import models
 
-from apps.core.models import I18nMixin, SoftDeleteMixin
+from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel
 
 
 class Category(SoftDeleteMixin, I18nMixin):
@@ -104,8 +104,53 @@ class Product(SoftDeleteMixin, I18nMixin):
         return imgs[0] if imgs else None
 
     @property
+    def active_variants(self):
+        return self.variants.filter(is_active=True)
+
+    @property
+    def has_variants(self) -> bool:
+        return self.active_variants.exists()
+
+    @property
+    def price_from(self):
+        """Минимальная цена среди активных вариантов («ab X €») или base_price."""
+        prices = [v.price_value for v in self.active_variants]
+        return min(prices) if prices else self.base_price
+
+    @property
     def allergen_labels(self) -> list[str]:
         """Подписи аллергенов (DE) для витрины — из кодов self.allergens."""
         from .food import allergen_labels
 
         return allergen_labels(self.allergens)
+
+
+class ProductVariant(TimestampedModel):
+    """Вариант товара (R1): чай 100/250 г, размер одежды, фасовка.
+
+    Один уровень (label) — мульти-измерения (цвет×размер) в v1 не делаем. Цена
+    пустая → берётся Product.base_price. stock_quantity — на варианте (atomic-
+    списание при заказе — R3). label уникален в пределах товара.
+    """
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
+    label = models.CharField(max_length=100)  # «100 g», «M», «6er-Pack»
+    sku = models.CharField(max_length=100, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    stock_quantity = models.IntegerField(null=True, blank=True)
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["product", "label"], name="variant_product_label_uniq"),
+        ]
+
+    def __str__(self):
+        return f"{self.product} · {self.label}"
+
+    @property
+    def price_value(self):
+        """Цена варианта: своя или фолбэк на base_price товара."""
+        return self.price if self.price is not None else self.product.base_price

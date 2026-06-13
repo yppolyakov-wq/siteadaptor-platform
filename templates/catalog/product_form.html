@@ -65,5 +65,36 @@
       <a href="{% url 'catalog:product-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
     </div>
   </form>
+
+  {# Варианты товара (R1): только в режиме редактирования #}
+  {% if product %}
+    <div class="mt-6 bg-white p-6 rounded-2xl shadow-sm">
+      <p class="text-sm font-medium mb-1">{% trans "Variants" %}</p>
+      <p class="text-xs text-gray-400 mb-3">{% trans "E.g. 100 g / 250 g, sizes. Empty price = base price." %}</p>
+
+      {% for v in variants %}
+        <form method="post" action="{% url 'catalog:variant-update' product.pk v.pk %}"
+              class="flex flex-wrap items-center gap-2 text-sm mb-2 {% if not v.is_active %}opacity-50{% endif %}">
+          {% csrf_token %}
+          <span class="w-28 font-medium truncate">{{ v.label }}</span>
+          <input name="price" type="text" inputmode="decimal" value="{{ v.price|default_if_none:'' }}" placeholder="{{ product.base_price }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Price' %}">
+          <input name="stock" type="number" value="{{ v.stock_quantity|default_if_none:'' }}" placeholder="∞" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Stock' %}">
+          <input name="sort" type="number" value="{{ v.sort_order }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
+          <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="is_active" {% if v.is_active %}checked{% endif %}> {% trans "Active" %}</label>
+          <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
+          <button formaction="{% url 'catalog:variant-delete' product.pk v.pk %}" class="text-red-600 hover:bg-red-50 rounded-lg px-2 py-1.5" aria-label="{% trans 'Remove' %}">✕</button>
+        </form>
+      {% endfor %}
+
+      <form method="post" action="{% url 'catalog:variant-add' product.pk %}" class="flex flex-wrap items-center gap-2 text-sm mt-3 border-t border-gray-100 pt-3">
+        {% csrf_token %}
+        <input name="label" type="text" required placeholder="{% trans 'Label (e.g. 100 g)' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="price" type="text" inputmode="decimal" placeholder="{% trans 'Price' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="stock" type="number" placeholder="{% trans 'Stock' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="sort" type="number" value="0" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
+        <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add variant" %}</button>
+      </form>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}

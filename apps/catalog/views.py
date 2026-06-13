@@ -4,16 +4,38 @@
 Все вьюхи требуют логина владельца (логин на субдомене своей схемы).
 """
 
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
-from .models import Category, Product
+from .models import Category, Product, ProductVariant
+
+
+def _parse_price(raw):
+    """«4,90» / «4.90» / пусто → Decimal или None (пусто/мусор/отрицательное)."""
+    raw = (raw or "").strip().replace(",", ".")
+    if not raw:
+        return None
+    try:
+        value = Decimal(raw)
+    except (InvalidOperation, ValueError):
+        return None
+    return value if value >= 0 else None
+
+
+def _parse_int(raw):
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
 
 
 def _filtered_products(request):
@@ -95,8 +117,62 @@ def product_edit(request, pk):
     return render(
         request,
         "catalog/product_form.html",
-        {"form": form, "is_create": False, "product": product, "nav": "catalog"},
+        {
+            "form": form,
+            "is_create": False,
+            "product": product,
+            "variants": product.variants.all(),
+            "nav": "catalog",
+        },
     )
+
+
+# ---------------------------------------------------------------------------
+# Варианты товара (R1): чай 100/250 г, размеры — CRUD на странице товара
+# ---------------------------------------------------------------------------
+
+
+@login_required
+@require_POST
+def variant_add(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    label = (request.POST.get("label") or "").strip()
+    if not label:
+        messages.error(request, _("Variant label is required."))
+    elif ProductVariant.objects.filter(product=product, label=label).exists():
+        messages.error(request, _("A variant with this label already exists."))
+    else:
+        ProductVariant.objects.create(
+            product=product,
+            label=label,
+            sku=(request.POST.get("sku") or "").strip(),
+            price=_parse_price(request.POST.get("price")),
+            stock_quantity=_parse_int(request.POST.get("stock")),
+            sort_order=_parse_int(request.POST.get("sort")) or 0,
+        )
+        messages.success(request, _("Variant added."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def variant_update(request, pk, vid):
+    variant = get_object_or_404(ProductVariant, pk=vid, product_id=pk)
+    variant.price = _parse_price(request.POST.get("price"))
+    variant.stock_quantity = _parse_int(request.POST.get("stock"))
+    variant.sort_order = _parse_int(request.POST.get("sort")) or 0
+    variant.is_active = bool(request.POST.get("is_active"))
+    variant.save(update_fields=["price", "stock_quantity", "sort_order", "is_active", "updated_at"])
+    messages.success(request, _("Variant updated."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def variant_delete(request, pk, vid):
+    get_object_or_404(ProductVariant, pk=vid, product_id=pk).delete()
+    messages.success(request, _("Variant removed."))
+    return redirect("catalog:product-edit", pk=pk)
 
 
 @login_required
