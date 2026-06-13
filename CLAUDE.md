@@ -486,8 +486,25 @@ Python 3.12, менеджер uv.
     итог с доставкой; подтверждение показывает способ/адрес/трек. Предоплата (P2.5c)
     уже считает total с доставкой.
   - **Деплой G4:** миграции tenants/0014 + orders/0004.
-    Дальше (новые сегменты): отзывы+рейтинги + гео-карта агрегатора (G8);
-    G9 курсы+абонемент.
+- **G8 — Отзывы/рейтинги + гео-карта агрегатора (A8, в работе):** доводит
+  агрегатор до доверия/маркетплейса. Разбивка G8a/G8b/G8c:
+  - G8a отзывы + страница бизнеса (✅ `0a6b513`, CI run в стеке 197, миграция
+    aggregator/0008): `BusinessReview` (SHARED; автор=`PortalUser`, привязка к
+    бизнесу `tenant_schema`, rating 1-5, comment, status published/hidden; unique
+    author+бизнес) + `BusinessRating` (денорм avg+count, `reviews.recompute_rating`/
+    `ratings_for`). Портал `/unternehmen/<slug>/` — хаб (контакты + листинги +
+    отзывы + форма, только вошедшему PortalUser, как favorites); unfold-админка
+    BusinessReview (модерация hidden → recompute). verified-бейдж — отложено.
+  - G8b звёзды в выдаче (✅ `8a27972`+фикс `fae428f`, CI run 197 зелёный, без
+    миграций): `reviews.attach_ratings(cards)` → звёзды «★ avg (count)» на
+    карточках `/entdecken` и порталов; на порталах ссылка «★ Reviews» →
+    `/unternehmen/<slug>/` (сиблинг карточки, без вложенных `<a>`). **Урок (снова):**
+    `{{ Decimal }}` в локали de = «4,50» — тесты проверяют счётчик (int), не avg.
+  - G8c гео: карта + «рядом» — **TODO** (denorm lat/lng на листинг + Leaflet/OSM +
+    сортировка по дистанции). JSON-LD AggregateRating — отложено.
+  - **Деплой G8 (на сейчас):** миграция aggregator/0008.
+- Werkstatt (A9) зафиксирован в `micro-business-verticals.md` (симбиоз booking+
+  catalog+orders+jobs) + бэклог G10 bookable services / G11 расходники catalog→job.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
