@@ -19,7 +19,7 @@ from apps.core import ratelimit
 
 from . import payments as order_payments
 from .models import Order
-from .services import EmptyOrder, create_order
+from .services import EmptyOrder, OutOfStock, create_order
 
 CART_SESSION_KEY = "cart"
 RL_LIMIT = 5  # оформлений на IP
@@ -163,6 +163,12 @@ def checkout(request):
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))
+        return redirect("storefront-cart")
+    except OutOfStock as exc:
+        messages.error(
+            request,
+            _("Sorry, “%(item)s” is no longer available in this quantity.") % {"item": exc.title},
+        )
         return redirect("storefront-cart")
     request.session[CART_SESSION_KEY] = {}
 

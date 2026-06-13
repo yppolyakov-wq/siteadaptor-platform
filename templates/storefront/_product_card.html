@@ -15,6 +15,9 @@
     {% if p.is_featured %}
       <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>
     {% endif %}
+    {% if not p.in_stock %}
+      <span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>
+    {% endif %}
   </div>
   <div class="p-3 md:p-4">
     {% if p.category %}<p class="text-xs text-gray-400 mb-0.5">{{ p.category }}</p>{% endif %}

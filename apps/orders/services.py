@@ -23,6 +23,40 @@ class EmptyOrder(Exception):
     """Оформление пустой корзины."""
 
 
+class OutOfStock(Exception):
+    """Не хватает остатка на товар/вариант (R3)."""
+
+    def __init__(self, title="", available=0):
+        self.title = title
+        self.available = available
+        super().__init__(f"out of stock: {title} (available {available})")
+
+
+def _reserve_stock(norm):
+    """Атомарно списать остаток по позициям (R3, паттерн anti-oversell).
+
+    Блокируем строку товара/варианта (select_for_update), проверяем и списываем.
+    null = без учёта (не трогаем). Вызывается внутри транзакции create_order;
+    при нехватке бросает OutOfStock → заказ не создаётся (откат).
+    """
+    from apps.catalog.models import Product, ProductVariant
+
+    # Стабильный порядок блокировок — меньше шанс дедлока при конкуренции.
+    for product, variant, qty in sorted(norm, key=lambda i: str(i[1].pk if i[1] else i[0].pk)):
+        if variant is not None:
+            row = ProductVariant.objects.select_for_update().get(pk=variant.pk)
+            title = f"{product} · {variant.label}"
+        else:
+            row = Product.objects.select_for_update().get(pk=product.pk)
+            title = str(product)
+        if row.stock_quantity is None:
+            continue  # без учёта остатка
+        if row.stock_quantity < qty:
+            raise OutOfStock(title=title, available=row.stock_quantity)
+        row.stock_quantity -= qty
+        row.save(update_fields=["stock_quantity", "updated_at"])
+
+
 def _unique_order_code() -> str:
     for _ in range(10):
         code = "O-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
@@ -60,6 +94,7 @@ def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, 
     if any(qty < 1 for _p, _v, qty in norm):
         raise ValueError("qty must be >= 1")
 
+    _reserve_stock(norm)  # R3: атомарное списание; OutOfStock → откат, заказа нет
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     order = Order.objects.create(
         customer=customer,

@@ -124,6 +124,14 @@ class Product(SoftDeleteMixin, I18nMixin):
         return self.active_variants.exists()
 
     @property
+    def in_stock(self) -> bool:
+        """Доступен ли к заказу (R3). Untracked (null) → всегда True. С вариантами
+        — есть ли хоть один доступный вариант."""
+        if self.has_variants:
+            return any(v.in_stock for v in self.active_variants)
+        return self.stock_quantity is None or self.stock_quantity > 0
+
+    @property
     def price_from(self):
         """Минимальная цена среди активных вариантов («ab X €») или base_price."""
         prices = [v.price_value for v in self.active_variants]
@@ -176,6 +184,10 @@ class ProductVariant(TimestampedModel):
     def price_value(self):
         """Цена варианта: своя или фолбэк на base_price товара."""
         return self.price if self.price is not None else self.product.base_price
+
+    @property
+    def in_stock(self) -> bool:
+        return self.stock_quantity is None or self.stock_quantity > 0
 
     @property
     def grundpreis(self):

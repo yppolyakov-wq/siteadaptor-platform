@@ -22,6 +22,23 @@ class OrderSM(StateMachine):
 
         enqueue_order_email(instance, t.dst)
 
+        # Отмена → возврат остатка на склад (R3). cancelled терминальный →
+        # срабатывает один раз. Только по позициям с учётом (stock_quantity не null).
+        if t.dst == "cancelled":
+            from django.db.models import F
+
+            from apps.catalog.models import Product, ProductVariant
+
+            for item in instance.items.all():
+                if item.variant_id:
+                    ProductVariant.objects.filter(
+                        pk=item.variant_id, stock_quantity__isnull=False
+                    ).update(stock_quantity=F("stock_quantity") + item.qty)
+                else:
+                    Product.objects.filter(pk=item.product_id, stock_quantity__isnull=False).update(
+                        stock_quantity=F("stock_quantity") + item.qty
+                    )
+
         # Выдан → запись в журнал выручки (D4a, идемпотентно по source_ref).
         if t.dst == "picked_up":
             from apps.finance.services import record_revenue
