@@ -1,7 +1,8 @@
-"""FSM заказа Click & Collect (Track D / D2). База — apps.core.fsm.
+"""FSM заказа Click & Collect / доставка (Track D / D2, G4). База — apps.core.fsm.
 
-new → confirmed → ready → picked_up; отмена — из любого незавершённого статуса.
-Каждый переход шлёт письмо клиенту через notifications dedupe (D2b).
+new → confirmed → ready → picked_up (самовывоз) | shipped (доставка); отмена — из
+любого незавершённого статуса. Каждый переход шлёт письмо клиенту (notifications
+dedupe); picked_up/shipped пишут выручку (finance).
 """
 
 from apps.core.fsm import StateMachine, Transition
@@ -14,6 +15,7 @@ class OrderSM(StateMachine):
         Transition("confirmed", "ready", "order.ready"),
         Transition("confirmed", "cancelled", "order.cancelled"),
         Transition("ready", "picked_up", "order.picked_up"),
+        Transition("ready", "shipped", "order.shipped"),  # G4: доставка → versandt
         Transition("ready", "cancelled", "order.cancelled"),
     ]
 
@@ -39,8 +41,9 @@ class OrderSM(StateMachine):
                         stock_quantity=F("stock_quantity") + item.qty
                     )
 
-        # Выдан → запись в журнал выручки (D4a, идемпотентно по source_ref).
-        if t.dst == "picked_up":
+        # Выдан/отправлен → запись в журнал выручки (D4a, идемпотентно по
+        # source_ref). Доставка включена в total → попадает в выручку.
+        if t.dst in ("picked_up", "shipped"):
             from apps.finance.services import record_revenue
 
             record_revenue(

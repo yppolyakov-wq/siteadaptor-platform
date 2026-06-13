@@ -1,0 +1,12 @@
+Hallo {{ customer.name }},
+
+Ihre Bestellung {{ order.reference_code }} ist unterwegs! 🚚
+{% if order.tracking_code %}
+Sendungsnummer: {{ order.tracking_code }}
+{% endif %}{% if order.shipping_address %}
+Lieferadresse:
+{{ order.shipping_address }}
+{% endif %}
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

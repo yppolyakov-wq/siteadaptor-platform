@@ -33,12 +33,46 @@
   {% endif %}
 </form>
 
+{# G4: настройки доставки/Versand #}
+<form method="post" action="{% url 'orders:order-settings' %}" class="mb-6 bg-white rounded-2xl shadow-sm p-4 space-y-3 text-sm">
+  {% csrf_token %}
+  <input type="hidden" name="form" value="delivery">
+  <label class="flex items-center gap-2 font-medium">
+    <input type="checkbox" name="delivery_enabled" {% if delivery_enabled %}checked{% endif %}>
+    {% trans "Offer delivery (Versand)" %}
+  </label>
+  <div class="grid sm:grid-cols-3 gap-3">
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">{% trans "Delivery fee (€)" %}</label>
+      <input name="delivery_fee_eur" type="text" value="{{ delivery_fee_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">{% trans "Free from (€, 0=never)" %}</label>
+      <input name="delivery_free_eur" type="text" value="{{ delivery_free_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">{% trans "Min. order (€, 0=none)" %}</label>
+      <input name="delivery_min_eur" type="text" value="{{ delivery_min_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs text-gray-500 mb-1">{% trans "Delivery area (shown to customers, e.g. PLZ)" %}</label>
+    <input name="delivery_area" type="text" value="{{ delivery_area }}" placeholder="z. B. nur 40721, 40724" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save delivery settings" %}</button>
+  {% if delivery_enabled and not payments_enabled %}
+    <p class="text-xs text-amber-700">{% trans "Tip: enable online prepayment above so delivery orders are paid upfront." %}</p>
+  {% endif %}
+</form>
+
 {% if orders %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
   {% for o in orders %}
     <a href="{% url 'orders:order-detail' o.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
       <div class="min-w-0">
-        <p class="font-medium">{{ o.reference_code }} · {{ o.customer }}</p>
+        <p class="font-medium">{{ o.reference_code }} · {{ o.customer }}
+          {% if o.is_delivery %}<span class="text-xs text-gray-400">· 🚚 {% trans "Delivery" %}</span>{% endif %}
+        </p>
         <p class="text-xs text-gray-400 truncate">
           {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}
         </p>

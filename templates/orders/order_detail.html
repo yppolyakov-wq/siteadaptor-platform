@@ -27,6 +27,11 @@
           <span>{{ item.line_total }} {{ order.currency }}</span>
         </div>
       {% endfor %}
+      {% if order.is_delivery %}
+        <div class="flex items-center justify-between py-2 text-sm text-gray-500">
+          <span>🚚 {% trans "Delivery" %}</span><span>{{ order.shipping_eur }} {{ order.currency }}</span>
+        </div>
+      {% endif %}
       <div class="flex items-center justify-between py-2 font-bold">
         <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
       </div>
@@ -44,20 +49,43 @@
       <a href="{% url 'crm:customer-detail' order.customer.pk %}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>
     </div>
 
+    {% if order.is_delivery %}
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h2 class="font-semibold mb-3">🚚 {% trans "Delivery" %}</h2>
+      {% if order.shipping_address %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ order.shipping_address }}</p>{% endif %}
+      {% if order.tracking_code %}<p class="text-sm text-gray-500 mt-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
+      {% if order.shipped_at %}<p class="text-xs text-gray-400 mt-1">{% trans "Shipped" %}: {{ order.shipped_at }}</p>{% endif %}
+    </div>
+    {% endif %}
+
     <div class="bg-white rounded-2xl shadow-sm p-6">
       <h2 class="font-semibold mb-3">{% trans "Actions" %}</h2>
-      <form method="post" action="{% url 'orders:order-action' order.pk %}" class="flex flex-wrap gap-2">
+      <form method="post" action="{% url 'orders:order-action' order.pk %}" class="space-y-3">
         {% csrf_token %}
-        {% for target in allowed_targets %}
-          <button type="submit" name="action" value="{{ target }}"
-                  class="text-sm font-medium rounded-lg px-4 py-2 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
-            {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready for pickup" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% else %}{% trans "Cancel" %}{% endif %}
-          </button>
-        {% endfor %}
-        {% if order.payment_state != 'paid' %}
-          <button type="submit" name="action" value="mark_paid"
-                  class="text-sm font-medium rounded-lg px-4 py-2 border border-gray-300 hover:border-indigo-400">{% trans "Mark as paid" %}</button>
+        {# G4: для доставки на статусе ready показываем «Versandt» с трек-номером #}
+        {% if 'shipped' in allowed_targets and order.is_delivery %}
+          <div class="flex flex-wrap items-end gap-2">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">{% trans "Tracking number (optional)" %}</label>
+              <input name="tracking_code" type="text" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+            <button type="submit" name="action" value="shipped" class="text-sm font-medium rounded-lg px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">{% trans "Mark as shipped" %}</button>
+          </div>
         {% endif %}
+        <div class="flex flex-wrap gap-2">
+          {% for target in allowed_targets %}
+            {% if target == 'picked_up' and order.is_delivery %}{% elif target == 'shipped' %}{% else %}
+              <button type="submit" name="action" value="{{ target }}"
+                      class="text-sm font-medium rounded-lg px-4 py-2 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
+                {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% else %}{% trans "Cancel" %}{% endif %}
+              </button>
+            {% endif %}
+          {% endfor %}
+          {% if order.payment_state != 'paid' %}
+            <button type="submit" name="action" value="mark_paid"
+                    class="text-sm font-medium rounded-lg px-4 py-2 border border-gray-300 hover:border-indigo-400">{% trans "Mark as paid" %}</button>
+          {% endif %}
+        </div>
       </form>
       <p class="text-xs text-gray-400 mt-3">{% trans "The customer gets an email on every status change." %}</p>
     </div>

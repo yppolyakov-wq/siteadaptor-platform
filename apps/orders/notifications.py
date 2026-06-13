@@ -17,6 +17,7 @@ _CUSTOMER_TEMPLATES = {
     "confirmed": "order_confirmed",
     "ready": "order_ready",
     "picked_up": "order_picked_up",
+    "shipped": "order_shipped",  # G4: versandt (с трек-номером)
     "cancelled": "order_cancelled",
 }
 

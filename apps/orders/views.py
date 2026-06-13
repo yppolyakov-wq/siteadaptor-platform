@@ -50,6 +50,11 @@ def order_list(request):
             "status": status,
             "orders_prepay": getattr(tenant, "orders_prepay", False),
             "payments_enabled": getattr(tenant, "payments_enabled", False),
+            "delivery_enabled": getattr(tenant, "delivery_enabled", False),
+            "delivery_fee_eur": f"{getattr(tenant, 'delivery_fee_cents', 0) / 100:.2f}",
+            "delivery_free_eur": f"{getattr(tenant, 'delivery_free_cents', 0) / 100:.2f}",
+            "delivery_min_eur": f"{getattr(tenant, 'delivery_min_cents', 0) / 100:.2f}",
+            "delivery_area": getattr(tenant, "delivery_area", ""),
             "nav": "orders",
         },
     )
@@ -80,7 +85,13 @@ def order_action(request, pk):
         order.payment_state = Order.PAYMENT_PAID
         order.save(update_fields=["payment_state", "updated_at"])
         messages.success(request, _("Marked as paid."))
-    elif action in ("confirmed", "ready", "picked_up", "cancelled"):
+    elif action in ("confirmed", "ready", "picked_up", "shipped", "cancelled"):
+        if action == "shipped":  # G4: трек-номер до перехода (письмо его включает)
+            from django.utils import timezone
+
+            order.tracking_code = request.POST.get("tracking_code", "").strip()[:100]
+            order.shipped_at = timezone.now()
+            order.save(update_fields=["tracking_code", "shipped_at", "updated_at"])
         try:
             OrderSM().apply(order, action, actor=request.user)
         except IllegalTransition:
@@ -99,11 +110,39 @@ def order_action(request, pk):
     return redirect("orders:order-detail", pk=order.pk)
 
 
+def _eur_to_cents(raw) -> int:
+    try:
+        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
+    except (TypeError, ValueError):
+        return 0
+
+
 @login_required
 @require_POST
 def order_settings(request):
-    """Тумблер онлайн-предоплаты Click&Collect (P2.5c)."""
-    request.tenant.orders_prepay = bool(request.POST.get("orders_prepay"))
-    request.tenant.save(update_fields=["orders_prepay", "updated_at"])
+    """Настройки заказов: онлайн-предоплата (P2.5c) ИЛИ доставка/Versand (G4).
+
+    Две независимые формы; различаем по hidden ``form`` — чтобы сохранение одной
+    не сбрасывало другую."""
+    tenant = request.tenant
+    if request.POST.get("form") == "delivery":
+        tenant.delivery_enabled = bool(request.POST.get("delivery_enabled"))
+        tenant.delivery_fee_cents = _eur_to_cents(request.POST.get("delivery_fee_eur"))
+        tenant.delivery_free_cents = _eur_to_cents(request.POST.get("delivery_free_eur"))
+        tenant.delivery_min_cents = _eur_to_cents(request.POST.get("delivery_min_eur"))
+        tenant.delivery_area = request.POST.get("delivery_area", "").strip()[:2000]
+        tenant.save(
+            update_fields=[
+                "delivery_enabled",
+                "delivery_fee_cents",
+                "delivery_free_cents",
+                "delivery_min_cents",
+                "delivery_area",
+                "updated_at",
+            ]
+        )
+    else:
+        tenant.orders_prepay = bool(request.POST.get("orders_prepay"))
+        tenant.save(update_fields=["orders_prepay", "updated_at"])
     messages.success(request, _("Settings saved."))
     return redirect("orders:order-list")

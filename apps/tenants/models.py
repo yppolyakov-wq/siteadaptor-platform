@@ -63,6 +63,14 @@ class Tenant(TenantMixin):
     # P2.5c: онлайн-предоплата Click&Collect (иначе — оплата при получении).
     orders_prepay = models.BooleanField(default=False)
 
+    # G4: доставка/Versand для заказов (иначе только самовывоз). Плоский тариф +
+    # бесплатно-от + Mindestbestellwert + текст зоны (зоны по PLZ — отложено).
+    delivery_enabled = models.BooleanField(default=False)
+    delivery_fee_cents = models.PositiveIntegerField(default=0)  # плоский тариф
+    delivery_free_cents = models.PositiveIntegerField(default=0)  # бесплатно от суммы; 0=нет
+    delivery_min_cents = models.PositiveIntegerField(default=0)  # мин. сумма заказа; 0=нет
+    delivery_area = models.TextField(blank=True)  # зона/PLZ — текст для клиента
+
     # Owner contact
     owner_email = models.EmailField(blank=True)
     owner_phone = models.CharField(max_length=30, blank=True)

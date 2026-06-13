@@ -57,6 +57,20 @@ def _reserve_stock(norm):
         row.save(update_fields=["stock_quantity", "updated_at"])
 
 
+def shipping_cost(tenant, subtotal_cents: int) -> int:
+    """Стоимость доставки в центах (G4): плоский тариф, бесплатно от порога.
+
+    0, если доставка выключена или сумма ≥ порога бесплатной доставки.
+    Mindestbestellwert проверяется на витрине (checkout), не здесь.
+    """
+    if not getattr(tenant, "delivery_enabled", False):
+        return 0
+    free = getattr(tenant, "delivery_free_cents", 0) or 0
+    if free and subtotal_cents >= free:
+        return 0
+    return getattr(tenant, "delivery_fee_cents", 0) or 0
+
+
 def _unique_order_code() -> str:
     for _ in range(10):
         code = "O-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
@@ -79,11 +93,24 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
 
 
 @transaction.atomic
-def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, source_channel=""):
+def create_order(
+    *,
+    items,
+    name,
+    email="",
+    phone="",
+    note="",
+    pickup_slot=None,
+    source_channel="",
+    fulfillment=Order.FULFILLMENT_PICKUP,
+    shipping_address="",
+    shipping_cents=0,
+):
     """Создать заказ из позиций со снимками цены/названия.
 
     items — кортежи (product, qty) ИЛИ (product, variant, qty); variant=None =
-    товар без вариантов. Бросает EmptyOrder без позиций и ValueError при qty < 1.
+    товар без вариантов. Для доставки (fulfillment=delivery) total включает
+    shipping_cents. Бросает EmptyOrder без позиций и ValueError при qty < 1.
     """
     norm = []
     for item in items:
@@ -96,6 +123,8 @@ def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, 
 
     _reserve_stock(norm)  # R3: атомарное списание; OutOfStock → откат, заказа нет
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
+    delivery = fulfillment == Order.FULFILLMENT_DELIVERY
+    shipping = int(shipping_cents) if delivery else 0
     order = Order.objects.create(
         customer=customer,
         reference_code=_unique_order_code(),
@@ -104,6 +133,9 @@ def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, 
         source_channel=(source_channel or "")[:50],
         total=Decimal("0"),
         currency=norm[0][0].currency,
+        fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
+        shipping_address=(shipping_address or "").strip()[:1000] if delivery else "",
+        shipping_cents=shipping,
     )
     total = Decimal("0")
     for product, variant, qty in norm:
@@ -123,7 +155,7 @@ def create_order(*, items, name, email="", phone="", note="", pickup_slot=None, 
             title_snapshot=title[:200],
         )
         total += unit_price * qty
-    order.total = total
+    order.total = total + Decimal(shipping) / 100  # G4: доставка в итог
     order.save(update_fields=["total", "updated_at"])
     # письма клиенту/владельцу — Notification в этой же транзакции,
     # доставка после коммита (D2b)

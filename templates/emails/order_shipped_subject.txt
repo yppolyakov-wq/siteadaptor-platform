@@ -1,0 +1,1 @@
+Bestellung {{ order.reference_code }} versandt

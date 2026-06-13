@@ -20,14 +20,20 @@ class Order(TimestampedModel):
     STATUS_CONFIRMED = "confirmed"
     STATUS_READY = "ready"
     STATUS_PICKED_UP = "picked_up"
+    STATUS_SHIPPED = "shipped"  # G4: versandt (для доставки)
     STATUS_CANCELLED = "cancelled"
     STATUSES = [
         (STATUS_NEW, "New"),
         (STATUS_CONFIRMED, "Confirmed"),
-        (STATUS_READY, "Ready for pickup"),
+        (STATUS_READY, "Ready"),
         (STATUS_PICKED_UP, "Picked up"),
+        (STATUS_SHIPPED, "Shipped"),
         (STATUS_CANCELLED, "Cancelled"),
     ]
+    # G4: способ получения. pickup — самовывоз (как раньше); delivery — доставка.
+    FULFILLMENT_PICKUP = "pickup"
+    FULFILLMENT_DELIVERY = "delivery"
+    FULFILLMENTS = [(FULFILLMENT_PICKUP, "Pickup"), (FULFILLMENT_DELIVERY, "Delivery")]
     PAYMENT_UNPAID = "unpaid"
     PAYMENT_PAID = "paid"
     PAYMENT_REFUNDED = "refunded"
@@ -52,6 +58,13 @@ class Order(TimestampedModel):
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, default="EUR")
 
+    # G4: доставка. fulfillment=pickup по умолчанию (обратная совместимость).
+    fulfillment = models.CharField(max_length=10, choices=FULFILLMENTS, default=FULFILLMENT_PICKUP)
+    shipping_address = models.TextField(blank=True)
+    shipping_cents = models.PositiveIntegerField(default=0)  # снимок стоимости доставки
+    tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
+    shipped_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [
@@ -60,6 +73,16 @@ class Order(TimestampedModel):
 
     def __str__(self):
         return self.reference_code
+
+    @property
+    def is_delivery(self) -> bool:
+        return self.fulfillment == self.FULFILLMENT_DELIVERY
+
+    @property
+    def shipping_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.shipping_cents) / 100
 
 
 class OrderItem(TimestampedModel):
