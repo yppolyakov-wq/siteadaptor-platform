@@ -247,6 +247,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.billing.tasks.roll_subscriptions",
         "schedule": 86400.0,  # раз в сутки — жизненный цикл подписок + напоминания
     },
+    "bill-usage-fees": {
+        "task": "apps.billing.tasks.bill_usage_fees",
+        "schedule": 86400.0,  # раз в сутки — Nutzungsgebühr за прошлый месяц (P2.5-fee)
+    },
     "send-booking-reminders": {
         "task": "apps.booking.tasks.send_booking_reminders",
         "schedule": 3600.0,  # раз в час — напоминание за N часов до записи (D3c)

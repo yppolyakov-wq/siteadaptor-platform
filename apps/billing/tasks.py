@@ -100,3 +100,26 @@ def roll_subscriptions():
     result = roll_subscription_lifecycle(now)
     result["reminders"] = enqueue_trial_reminders(now)
     return result
+
+
+@idempotent_task()
+def bill_usage_fees():
+    """Beat (раз в сутки): Nutzungsgebühr за прошлый месяц (вариант B, P2.5-fee).
+
+    Идём по активным арендаторам, выставляем плату за завершённый месяц. Период
+    бьётся один раз (UsageFeeRecord по tenant+период), поэтому ежедневный запуск
+    безопасен. При проценте 0 (текущая настройка) — ничего не начисляем.
+    """
+    from django_tenants.utils import get_public_schema_name
+
+    from .state_machine import ACTIVE
+    from .usage import bill_tenant, previous_period
+
+    period = previous_period()
+    billed = 0
+    for tenant in Tenant.objects.filter(subscription_status=ACTIVE).exclude(
+        schema_name=get_public_schema_name()
+    ):
+        if bill_tenant(tenant, period) == "billed":
+            billed += 1
+    return {"period": period, "billed": billed}

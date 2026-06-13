@@ -61,6 +61,24 @@ def create_billing_portal_session(tenant: Tenant, *, return_url: str) -> str:
     return session["url"]
 
 
+def create_usage_invoice_item(
+    tenant: Tenant, *, amount_cents: int, description: str, currency: str = "eur"
+) -> str:
+    """Строка Nutzungsgebühr в Stripe-счёт подписки бизнеса (вариант B, P2.5-fee).
+
+    InvoiceItem без явного invoice попадает в следующий счёт подписки (тот же
+    Customer/карта). Возвращает id позиции.
+    """
+    customer_id = ensure_stripe_customer(tenant)
+    item = _client().InvoiceItem.create(
+        customer=customer_id,
+        amount=amount_cents,
+        currency=currency,
+        description=description,
+    )
+    return item["id"]
+
+
 def create_featured_checkout_session(
     tenant: Tenant,
     *,
