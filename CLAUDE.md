@@ -396,6 +396,15 @@ Python 3.12, менеджер uv.
   пусто/0 → None); `Product.grundpreis`/`Variant.grundpreis`. Кабинет: unit+content
   в форме товара и у вариантов. Витрина: Grundpreis под ценой и в опциях вариантов,
   на карточке. Дальше: R3 остаток с atomic-списанием.
+- **Retail R3 — остаток с atomic-списанием (✅ в `main`, 4c5ea8c, CI run 170, без
+  миграций):** anti-oversell для Click&Collect. `services._reserve_stock` —
+  атомарное списание под `select_for_update` при создании заказа (нехватка →
+  `OutOfStock` → откат, заказа нет); `null` = без учёта; учитывает вариант или
+  товар. `OrderSM` cancelled → возврат остатка (`F()`, только по позициям с
+  учётом). `Product/Variant.in_stock`; витрина — «Nur noch X»/«ausverkauft», блок
+  кнопки, disabled-опции распроданных вариантов, бейдж на карточке. **Весь
+  retail-пакет R1–R4 закрыт.** Дальше (вне retail): date-range booking
+  (отели/ретриты), отзывы+гео (агрегатор).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
@@ -460,10 +469,11 @@ Python 3.12, менеджер uv.
    создан). Дальше: P2.2 SEO/контент порталов → клиентские аккаунты →
    монетизация портала → платежи, отзывы, поиск, мобайл.
    - **Вертикали микробизнеса (2026-06-13, см. `micro-business-verticals.md`):**
-     retail-пакет (✅ R4 LMIV, ✅ R1 варианты, ✅ R2 Grundpreis) и P2.5
-     онлайн-оплата **закрыта целиком** (✅ P2.5a Connect, ✅ P2.5b депозит,
-     ✅ P2.5c предоплата C&C, ✅ P2.5-fee). Очередь: R3 остаток с atomic-списанием
-     (последний в retail); затем date-range booking (отели/ретриты), отзывы+гео.
+     **retail-пакет R1–R4 закрыт целиком** (✅ R4 LMIV, ✅ R1 варианты,
+     ✅ R2 Grundpreis, ✅ R3 остаток) и P2.5 онлайн-оплата **закрыта целиком**
+     (✅ P2.5a Connect, ✅ P2.5b депозит, ✅ P2.5c предоплата C&C, ✅ P2.5-fee).
+     Дальше (новые сегменты): date-range booking (отели/ретриты) → отзывы+гео
+     (агрегатор, G8). Бэклог — `micro-business-verticals.md` §бэклог G1–G9.
 6. Hardening — код-часть ✅ в `main` (H8 rate-limit, H6 k6-скрипт, H7 DSGVO —
    см. §3). Инфра-часть на владельце: .env.prod (SENTRY_DSN — код уже вшит в
    production.py, RESEND_API_KEY), отдельный Postgres, бэкапы, ротация секретов,
