@@ -63,6 +63,8 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "business_name": tenant.name,
             "business_type": tenant.business_type,
             "city": tenant.city,
+            "latitude": tenant.latitude,  # G8c: гео для карты/«рядом»
+            "longitude": tenant.longitude,
             "title": snap["title"],
             "teaser": snap["teaser"],
             "image": snap["image"],

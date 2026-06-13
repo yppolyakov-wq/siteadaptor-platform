@@ -57,11 +57,18 @@ def discover_index(request):
 
 @cache_public_page
 def city_listing(request, city, business_type=None):
-    cursor = request.GET.get("cursor")
-    featured, rest = split_featured(
-        listings_for(city=city, business_type=business_type), first_page=not cursor
-    )
-    page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+    from . import geo
+
+    pool = listings_for(city=city, business_type=business_type)
+    near_lat, near_lng = geo.parse_latlng(request)
+    if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
+        cards = geo.nearest(pool, near_lat, near_lng)
+        page = None
+    else:
+        cursor = request.GET.get("cursor")
+        featured, rest = split_featured(pool, first_page=not cursor)
+        page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+        cards = featured + page.items  # продвинутые — сверху первой страницы
     types = (
         listings_for(city=city)
         .exclude(business_type="")
@@ -83,7 +90,8 @@ def city_listing(request, city, business_type=None):
     city_portal = AggregatorPortal.objects.filter(
         is_active=True, kind=AggregatorPortal.KIND_CITY, city__iexact=city
     ).first()
-    cards = featured + page.items  # продвинутые — сверху первой страницы
+    import json
+
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
@@ -97,6 +105,8 @@ def city_listing(request, city, business_type=None):
             "types": [(t, _BTYPE_LABELS.get(t, t)) for t in types],
             "page": page,
             "cards": cards,
+            "near_active": near_lat is not None,  # G8c
+            "map_points_json": json.dumps(geo.map_points(cards)),
             "canonical": request.build_absolute_uri(request.path),
             "other_cities": other_cities,
             "city_portal_url": f"{request.scheme}://{city_portal.host}/" if city_portal else "",

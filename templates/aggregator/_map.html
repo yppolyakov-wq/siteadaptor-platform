@@ -1,0 +1,41 @@
+{% load i18n %}{# Карта листингов (G8c): ожидает map_points_json + near_active. Leaflet/OSM, без API-ключа. #}
+<div class="mb-4 flex items-center gap-3">
+  <button type="button" id="agg-near-me" class="hidden text-sm font-medium rounded-lg px-4 py-2 bg-white border border-gray-300 hover:border-indigo-400">📍 {% trans "Near me" %}</button>
+  {% if near_active %}<a href="?" class="text-sm text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}
+</div>
+{% if map_points_json and map_points_json != "[]" %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <div id="agg-map" class="w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0"></div>
+  <script type="application/json" id="agg-map-data">{{ map_points_json|safe }}</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endif %}
+<script>
+(function () {
+  var btn = document.getElementById("agg-near-me");
+  if (btn && navigator.geolocation) {
+    btn.classList.remove("hidden");
+    btn.addEventListener("click", function () {
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        var u = new URL(window.location.href);
+        u.searchParams.set("lat", pos.coords.latitude.toFixed(5));
+        u.searchParams.set("lng", pos.coords.longitude.toFixed(5));
+        u.searchParams.delete("cursor");
+        window.location.href = u.toString();
+      });
+    });
+  }
+  var dataEl = document.getElementById("agg-map-data");
+  if (dataEl && window.L) {
+    var pts = JSON.parse(dataEl.textContent || "[]");
+    if (pts.length) {
+      var map = L.map("agg-map");
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+      var group = L.featureGroup(pts.map(function (p) {
+        return L.marker([p.lat, p.lng]).bindPopup('<a href="' + p.url + '">' + p.title + "</a>");
+      })).addTo(map);
+      map.fitBounds(group.getBounds().pad(0.2));
+    }
+  }
+})();
+</script>

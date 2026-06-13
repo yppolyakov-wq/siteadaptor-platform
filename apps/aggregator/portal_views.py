@@ -69,14 +69,21 @@ def portal_home(request, facet=None):
         else:
             city = facet
 
+    import json
+
+    from . import geo
     from .views import split_featured
 
-    cursor = request.GET.get("cursor")
-    featured, rest = split_featured(
-        listings_for(city=city, business_type=business_type), first_page=not cursor
-    )
-    page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
-    cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
+    pool = listings_for(city=city, business_type=business_type)
+    near_lat, near_lng = geo.parse_latlng(request)
+    if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
+        cards = geo.nearest(pool, near_lat, near_lng)
+        page = None
+    else:
+        cursor = request.GET.get("cursor")
+        featured, rest = split_featured(pool, first_page=not cursor)
+        page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+        cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
@@ -111,6 +118,8 @@ def portal_home(request, facet=None):
             "facet": facet,
             "facet_label": facet_label,
             "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса
+            "near_active": near_lat is not None,  # G8c
+            "map_points_json": json.dumps(geo.map_points(cards)),
             "canonical": canonical,
             "other_portals": other_portals,
             "fav_ids": fav_ids,

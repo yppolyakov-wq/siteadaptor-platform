@@ -34,6 +34,10 @@ class AggregatorListing(I18nMixin, models.Model):
     ends_at = models.DateTimeField(null=True, blank=True)
     detail_url = models.URLField()
 
+    # Гео (G8c): denorm координат бизнеса из Tenant (для карты + «рядом»).
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+
     is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
     # Платное продвижение (P2.4a): до этого момента листинг закреплён сверху
     # выдачи с бейджем «Empfohlen». Срок ставит супер-админ (P2.4b добавит
