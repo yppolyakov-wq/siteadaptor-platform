@@ -21,6 +21,7 @@
         <a href="{% url 'storefront-products' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Products" %}</a>
         {% if storefront_booking_enabled %}<a href="{% url 'storefront-termin' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Book" %}</a>{% endif %}
         {% if storefront_stays_enabled %}<a href="{% url 'storefront-unterkunft' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Stay" %}</a>{% endif %}
+        {% if storefront_events_enabled %}<a href="{% url 'storefront-events' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Events" %}</a>{% endif %}
         {% if storefront_jobs_enabled %}<a href="{% url 'storefront-anfrage' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Request a quote" %}</a>{% endif %}
         {% if storefront_inbox_enabled %}<a href="{% url 'storefront-message' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Ask a question" %}</a>{% endif %}
       </nav>

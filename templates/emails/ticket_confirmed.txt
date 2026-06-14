@@ -1,0 +1,11 @@
+Hallo {{ customer.name }},
+
+Ihre Teilnahme an „{{ event.title }}“ ist bestätigt.
+{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %}
+Plätze: {{ ticket.quantity }} · Ticket-Code: {{ ticket.reference_code }}
+
+Bis bald!
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr: {{ unsubscribe_url }}
+{% endif %}

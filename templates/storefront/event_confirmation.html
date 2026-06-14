@@ -1,0 +1,25 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Registration received" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "You're in!" %} 🎉</h1>
+    <p class="text-gray-600 mb-1">{{ event.title }}</p>
+    <p class="text-gray-500 mb-4">{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %}</p>
+    <p class="text-sm text-gray-500 mb-1">{% trans "Your ticket code:" %}</p>
+    <p class="text-3xl font-mono font-bold tracking-wider mb-4">{{ ticket.reference_code }}</p>
+    <p class="text-sm text-gray-500 mb-4">{% trans "Seats" %}: {{ ticket.quantity }}</p>
+
+    {% if ticket.payment_state == 'paid' %}
+      <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>
+    {% elif just_paid %}
+      <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Payment received — we'll confirm shortly." %}</p>
+    {% elif ticket.status == 'pending' %}
+      <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "We'll confirm your spot shortly." %}</p>
+    {% endif %}
+  </div>
+  {% include "storefront/_telegram_cta.html" %}
+</div>
+{% endblock %}

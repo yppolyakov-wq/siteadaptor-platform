@@ -1,0 +1,41 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{{ event.title }} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8 mt-3">
+    <h1 class="text-2xl font-bold mb-1">{{ event.title }}</h1>
+    <p class="text-gray-500 mb-4">
+      {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.ends_at %} – {{ event.ends_at|date:"H:i" }}{% endif %}
+      {% if event.location %}<br>📍 {{ event.location }}{% endif %}
+    </p>
+    {% if event.description %}<p class="text-gray-700 whitespace-pre-line mb-4">{{ event.description }}</p>{% endif %}
+    <p class="text-lg font-semibold mb-4">{% if event.price_cents %}{{ event.price_eur }} € {% trans "per seat" %}{% else %}{% trans "Free" %}{% endif %}</p>
+
+    {% if event.is_sold_out %}
+      <p class="text-red-600 font-medium">{% trans "Sold out" %}</p>
+    {% else %}
+      <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3">
+        {% csrf_token %}
+        <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+        <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+        <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+        <label class="block text-sm text-gray-600">{% trans "Seats" %}
+          <input name="quantity" type="number" min="1" value="1" class="mt-1 w-24 rounded-lg border border-gray-300 px-3 py-2.5">
+        </label>
+        {% for q in event.questions %}
+          <label class="block text-sm text-gray-600">{{ q }}
+            <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          </label>
+        {% endfor %}
+        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">
+          {% if event.price_cents %}{% trans "Book & pay" %}{% else %}{% trans "Register" %}{% endif %}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -23,6 +23,7 @@ from apps.core.views import (
     setup_view,
     site_view,
 )
+from apps.events import public_views as events_public
 from apps.inbox import public_views as inbox_public
 from apps.jobs import public_views as jobs_public
 from apps.orders import public_views as orders_public
@@ -135,6 +136,15 @@ urlpatterns = [
         name="storefront-unterkunft-book",
     ),
     path("s/<str:code>/", stays_public.unterkunft_confirmation, name="storefront-stay-ok"),
+    # События/билеты (A6c): список → событие → покупка → подтверждение.
+    path("veranstaltung/", events_public.veranstaltung_index, name="storefront-events"),
+    path("veranstaltung/<uuid:pk>/", events_public.veranstaltung_detail, name="storefront-event"),
+    path(
+        "veranstaltung/<uuid:pk>/buchen/",
+        events_public.veranstaltung_book,
+        name="storefront-event-book",
+    ),
+    path("e/<str:code>/", events_public.veranstaltung_confirmation, name="storefront-ticket-ok"),
     # Handwerker: заявка + публичное Angebot (G6 / F3).
     path("anfrage/", jobs_public.anfrage, name="storefront-anfrage"),
     path("angebot/<uuid:token>/", jobs_public.angebot, name="storefront-angebot"),

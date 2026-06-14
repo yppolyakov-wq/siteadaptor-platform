@@ -783,8 +783,20 @@ Python 3.12, менеджер uv.
     (payment_state=paid, авто-confirm pending), ручная запись участника
     (book_ticket auto_confirm), CSV-ростер (utf-8-sig, колонки по вопросам анкеты).
     Тесты `events/test_cabinet`.
-  - Дальше: A6c витрина `/veranstaltung/` + покупка билета (анкета) с оплатой
-    через Stripe Connect (как E4/P2.5b) + письма.
+  - A6c витрина + оплата + письма (✅ в `main`, CI зелёный, без миграций):
+    публичная `/veranstaltung/` (список опубликованных будущих) → `/veranstaltung/
+    <pk>/` (страница + форма билета: имя/почта/тел/кол-во + поля анкеты `q0..`) →
+    POST `buchen/` (honeypot+rate-limit, гейтинг events). Бесплатное → сразу
+    confirmed; платное + `payments_enabled` + Connect → Stripe Checkout на счёт
+    бизнеса (metadata `kind=event_ticket`, вариант B), иначе pending; вебхук
+    `mark_ticket_paid` (кросс-схемно: paid + авто-confirm, если событие не требует
+    ручного). `/e/<code>/` — подтверждение (код/статус/Telegram-CTA).
+    `events/notifications.py` + DE-шаблоны `emails/ticket_*`: TicketSM на
+    confirmed/cancelled шлёт письмо клиенту (+ Telegram TG3), на created — клиенту
+    и владельцу. Ссылка «Events» в шапке витрины (`storefront_events_enabled`).
+    Тесты `events/test_storefront`.
+  - **A6 завершён (a+b+c) → архетип A6 ~60 %→~90 %.** Деплой: миграции events/0001
+    + finance/0005 + `apps.events` в TENANT_APPS.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

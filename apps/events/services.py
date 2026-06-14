@@ -94,6 +94,10 @@ def book_ticket(
         note=note,
         source_channel=(source_channel or "")[:50],
     )
+    # письмо «Anmeldung erhalten» — Notification в этой же транзакции (A6c)
+    from .notifications import enqueue_ticket_email
+
+    enqueue_ticket_email(ticket, "created")
     # auto_confirm (ручная запись/оплата) → переводим FSM-ом, чтобы сработал
     # finance-хук (выручка пишется на pending→confirmed, идемпотентно).
     if auto_confirm:

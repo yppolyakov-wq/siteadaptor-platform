@@ -27,6 +27,12 @@ class TicketSM(StateMachine):
     ]
 
     def on_transition(self, instance, t, **kw):
+        # Письмо клиенту/владельцу (A6c) на подтверждение/отмену.
+        if t.dst in ("confirmed", "cancelled"):
+            from .notifications import enqueue_ticket_email
+
+            enqueue_ticket_email(instance, t.dst)
+
         # Продажа билета (подтверждён/оплачен) → выручка. НДС 19 % (стандарт; для
         # культурных мероприятий может быть 7 % — настраиваемо позже).
         if t.dst == "confirmed":

@@ -1,0 +1,6 @@
+Neue Ticket-Anmeldung für „{{ event.title }}“.
+
+Kunde: {{ customer.name }}{% if customer.email %} · {{ customer.email }}{% endif %}{% if customer.phone %} · {{ customer.phone }}{% endif %}
+Plätze: {{ ticket.quantity }} · Code: {{ ticket.reference_code }}{% if ticket.total_cents %} · {{ ticket.total_eur }}{% endif %}
+
+Teilnehmerliste im Dashboard: /dashboard/events/

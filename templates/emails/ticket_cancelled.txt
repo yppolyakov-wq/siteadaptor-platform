@@ -1,0 +1,7 @@
+Hallo {{ customer.name }},
+
+Ihre Anmeldung zu „{{ event.title }}“ ({{ ticket.reference_code }}) wurde storniert.
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr: {{ unsubscribe_url }}
+{% endif %}

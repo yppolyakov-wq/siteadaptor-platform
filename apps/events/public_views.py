@@ -1,0 +1,135 @@
+"""Витрина событий (A6c): список → страница события → покупка билета → оплата.
+
+Гейтится модулем events (иначе 404). Защита формы — honeypot + rate-limit по IP
+(как бронь/stays). Платное событие при подключённой оплате → Stripe Checkout на
+счёт бизнеса (Connect, вариант B); бесплатное — сразу подтверждено; платное без
+оплаты онлайн — pending (оплата на месте / подтверждает владелец).
+"""
+
+import stripe
+from django.contrib import messages
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import gettext as _
+
+from apps.billing import connect
+from apps.core import ratelimit
+
+from . import payments, services
+from .models import Event, Ticket
+
+RL_LIMIT = 5
+RL_WINDOW = 600
+
+
+def _require_events_active(request):
+    tenant = getattr(request, "tenant", None)
+    if tenant is None or not tenant.is_module_active("events"):
+        raise Http404
+
+
+def veranstaltung_index(request):
+    _require_events_active(request)
+    events = Event.objects.filter(
+        status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+    ).order_by("starts_at")
+    return render(request, "storefront/event_index.html", {"events": events})
+
+
+def veranstaltung_detail(request, pk):
+    _require_events_active(request)
+    event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
+    return render(request, "storefront/event_detail.html", {"event": event})
+
+
+def veranstaltung_book(request, pk):
+    _require_events_active(request)
+    if request.method != "POST":
+        return redirect("storefront-event", pk=pk)
+    event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
+    if request.POST.get("website"):  # honeypot
+        return redirect("storefront-event", pk=pk)
+    if ratelimit.hit("event", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
+        return HttpResponse(status=429)
+
+    name = request.POST.get("name", "").strip()
+    if not name:
+        messages.error(request, _("Please tell us your name."))
+        return redirect("storefront-event", pk=pk)
+    try:
+        qty = max(1, min(int(request.POST.get("quantity", "1")), 50))
+    except (TypeError, ValueError):
+        qty = 1
+    answers = {
+        q: request.POST.get(f"q{i}", "").strip() for i, q in enumerate(event.questions or [])
+    }
+
+    try:
+        ticket = services.book_ticket(
+            event,
+            name=name,
+            email=request.POST.get("email", "").strip(),
+            phone=request.POST.get("phone", "").strip(),
+            quantity=qty,
+            answers=answers,
+            source_channel=(request.GET.get("ch") or "")[:50],
+            auto_confirm=(event.price_cents == 0),  # бесплатная регистрация — сразу
+        )
+    except services.SoldOut as exc:
+        messages.error(
+            request,
+            _("Sorry, only %(n)s seats left.") % {"n": exc.available}
+            if exc.available
+            else _("Sorry, this event is sold out."),
+        )
+        return redirect("storefront-event", pk=pk)
+    except (services.EventNotBookable, ValueError):
+        messages.error(request, _("This event is not available."))
+        return redirect("storefront-event", pk=pk)
+
+    # Платное событие + подключённая оплата → Stripe Checkout (на счёт бизнеса).
+    tenant = getattr(request, "tenant", None)
+    if (
+        event.price_cents > 0
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+    ):
+        ticket.payment_state = Ticket.PAYMENT_PENDING
+        ticket.save(update_fields=["payment_state", "updated_at"])
+        ok_url = (
+            request.build_absolute_uri(
+                reverse("storefront-ticket-ok", args=[ticket.reference_code])
+            )
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(reverse("storefront-event", args=[event.pk]))
+        try:
+            return redirect(
+                payments.ticket_checkout_url(
+                    ticket, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            pass  # оплата недоступна — билет остаётся (pending)
+    return redirect("storefront-ticket-ok", code=ticket.reference_code)
+
+
+def veranstaltung_confirmation(request, code):
+    _require_events_active(request)
+    ticket = get_object_or_404(
+        Ticket.objects.select_related("event", "customer"), reference_code=code
+    )
+    from apps.telegram.notify import deep_link
+
+    return render(
+        request,
+        "storefront/event_confirmation.html",
+        {
+            "ticket": ticket,
+            "event": ticket.event,
+            "just_paid": request.GET.get("paid") == "1",
+            "telegram_link": deep_link(ticket.customer),
+        },
+    )

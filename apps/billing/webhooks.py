@@ -108,6 +108,19 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook stay_deposit: booking not found %s", meta)
         return
 
+    # Билет на событие (A6c) — TENANT-схема, статус подписки не трогаем.
+    if event_type == "checkout.session.completed" and meta.get("kind") == "event_ticket":
+        from apps.events.payments import mark_ticket_paid
+
+        ok = mark_ticket_paid(
+            tenant_schema=meta.get("tenant_schema", ""),
+            ticket_id=meta.get("ticket_id", ""),
+            payment_intent=obj.get("payment_intent", ""),
+        )
+        if not ok:
+            logger.warning("stripe webhook event_ticket: ticket not found %s", meta)
+        return
+
     # Stripe Connect (P2.5): статус connected-аккаунта бизнеса. obj — это Account,
     # его id == Tenant.stripe_connect_id. Подписку не трогаем.
     if event_type == "account.updated":
