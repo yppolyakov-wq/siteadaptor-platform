@@ -176,7 +176,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         icon="📣",
         nav_items=(NavItem("channels", _("Channels"), "channels"),),
         url_prefixes=("/dashboard/channels/",),
-        description_de="Aktionen automatisch auf Kanälen veröffentlichen (z. B. Google).",
+        description_de="Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, Instagram).",
     ),
     ModuleSpec(
         key="jobs",

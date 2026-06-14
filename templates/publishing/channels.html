@@ -46,6 +46,49 @@
             </div>
           </form>
         </details>
+      {% elif ch.type == 'facebook' %}
+        <details class="mt-3 border-t border-gray-100 pt-3">
+          <summary class="text-sm text-gray-500 cursor-pointer select-none">
+            {% trans "Configuration" %}
+            {% if ch.config.page_id and ch.config.access_token %}<span class="text-green-600">· {% trans "connected" %}</span>{% endif %}
+          </summary>
+          <form method="post" action="{% url 'channel-config' %}" class="mt-3 space-y-2">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="{{ ch.type }}">
+            <input type="text" name="page_id" value="{{ ch.config.page_id|default:'' }}"
+                   placeholder="{% trans 'Facebook Page ID' %}" aria-label="Page ID"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <input type="password" name="access_token" value=""
+                   placeholder="{% trans 'Page access token (leave blank to keep current)' %}" aria-label="Access token"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <div class="flex items-center gap-3">
+              <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Save" %}</button>
+              <span class="text-xs text-gray-400">{% trans "Setup guide" %}: docs/meta-social-setup.md</span>
+            </div>
+          </form>
+        </details>
+      {% elif ch.type == 'instagram' %}
+        <details class="mt-3 border-t border-gray-100 pt-3">
+          <summary class="text-sm text-gray-500 cursor-pointer select-none">
+            {% trans "Configuration" %}
+            {% if ch.config.ig_user_id and ch.config.access_token %}<span class="text-green-600">· {% trans "connected" %}</span>{% endif %}
+          </summary>
+          <form method="post" action="{% url 'channel-config' %}" class="mt-3 space-y-2">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="{{ ch.type }}">
+            <input type="text" name="ig_user_id" value="{{ ch.config.ig_user_id|default:'' }}"
+                   placeholder="{% trans 'Instagram Business account ID' %}" aria-label="Instagram user ID"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <input type="password" name="access_token" value=""
+                   placeholder="{% trans 'Access token (leave blank to keep current)' %}" aria-label="Access token"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <p class="text-xs text-gray-400">{% trans "Instagram posts require a promotion image." %}</p>
+            <div class="flex items-center gap-3">
+              <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Save" %}</button>
+              <span class="text-xs text-gray-400">{% trans "Setup guide" %}: docs/meta-social-setup.md</span>
+            </div>
+          </form>
+        </details>
       {% endif %}
     </div>
   {% endfor %}

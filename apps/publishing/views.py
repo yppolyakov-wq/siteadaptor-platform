@@ -47,6 +47,8 @@ def channel_toggle(request):
 # Конфиг-ключи, редактируемые со страницы каналов (per type).
 _CONFIG_FIELDS = {
     Channel.GOOGLE_BUSINESS: ("location", "refresh_token"),
+    Channel.FACEBOOK: ("page_id", "access_token"),
+    Channel.INSTAGRAM: ("ig_user_id", "access_token"),
 }
 
 

@@ -13,10 +13,15 @@ from apps.core.models import TimestampedModel
 class Channel(TimestampedModel):
     LOG = "log"
     GOOGLE_BUSINESS = "google_business"
+    FACEBOOK = "facebook"
+    INSTAGRAM = "instagram"
     CHANNEL_TYPES = [
         (LOG, "Log (internal)"),
         # Track B1: Google Posts; настройка — docs/gbp-setup.md
         (GOOGLE_BUSINESS, "Google Business Profile"),
+        # M23a: соц-постинг (Meta Graph API); настройка — docs/meta-social-setup.md
+        (FACEBOOK, "Facebook"),
+        (INSTAGRAM, "Instagram"),
     ]
 
     type = models.CharField(max_length=30, choices=CHANNEL_TYPES, default=LOG)

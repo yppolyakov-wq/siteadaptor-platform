@@ -3,9 +3,12 @@
 `log` — внутренний (ничего наружу не шлёт). `google_business` — Google Business
 Profile (Track B1): акция публикуется локальным постом (Google Posts, classic
 v4 API) с CTA-ссылкой на страницу акции; настройка и получение доступа —
-docs/gbp-setup.md. Остальные внешние адаптеры (Instagram и т.п.) — Phase 2
-(P2.9). Адаптер возвращает external_ref при publish и бросает исключение при
-ошибке (задача переведёт публикацию в failed + last_error).
+docs/gbp-setup.md. `facebook`/`instagram` (M23a) — соц-постинг через Meta Graph
+API: акция → пост на странице Facebook / в Instagram, завершение акции → пост
+снимается (FB удаляется, IG — no-op: Graph API не умеет удалять органические
+посты); настройка — docs/meta-social-setup.md. Адаптер возвращает external_ref
+при publish и бросает исключение при ошибке (задача переведёт публикацию в
+failed + last_error).
 """
 
 import logging
@@ -109,10 +112,140 @@ def _gbp_remove(publication) -> None:
         response.raise_for_status()
 
 
+# --- Meta: Facebook Pages / Instagram (M23a, Graph API) ----------------------
+
+_META_API = "https://graph.facebook.com"
+_IG_CAPTION_LIMIT = 2200  # лимит Instagram на текст подписи
+
+
+def _meta_version() -> str:
+    return getattr(settings, "META_GRAPH_API_VERSION", "v21.0")
+
+
+def _promo_caption(promotion) -> str:
+    text = promotion.title_text
+    if promotion.description_text:
+        text = f"{text}\n\n{promotion.description_text}"
+    return text
+
+
+def _promo_image_url(promotion) -> str:
+    """Абсолютный URL главного фото акции (для фетча Meta). '' если фото нет.
+
+    Относительный `/media/...` достраиваем доменом арендатора (public-схема),
+    как и ссылку на акцию.
+    """
+    img = promotion.primary_image
+    url = img.get("url") if img else None
+    if not url:
+        return ""
+    if url.startswith(("http://", "https://")):
+        return url
+
+    from apps.tenants.models import Domain
+
+    schema = connection.schema_name
+    with schema_context("public"):
+        domain = (
+            Domain.objects.filter(tenant__schema_name=schema, is_primary=True).first()
+            or Domain.objects.filter(tenant__schema_name=schema).first()
+        )
+    return f"https://{domain.domain}{url}" if domain else ""
+
+
+def _fb_publish(publication) -> str:
+    config = publication.channel.config or {}
+    missing = [key for key in ("page_id", "access_token") if not config.get(key)]
+    if missing:
+        raise RuntimeError(f"Facebook nicht konfiguriert: {', '.join(missing)} fehlt")
+
+    promotion = publication.promotion
+    version = _meta_version()
+    token = config["access_token"]
+    caption = _promo_caption(promotion)
+    link = _promo_public_url(promotion)
+    image = _promo_image_url(promotion)
+
+    if image:
+        # /photos не принимает link → ссылку добавляем в текст подписи
+        message = f"{caption}\n\n{link}".strip() if link else caption
+        endpoint = f"{_META_API}/{version}/{config['page_id']}/photos"
+        data = {"url": image, "caption": message, "access_token": token}
+    else:
+        endpoint = f"{_META_API}/{version}/{config['page_id']}/feed"
+        data = {"message": caption, "access_token": token}
+        if link:
+            data["link"] = link
+
+    response = requests.post(endpoint, data=data, timeout=20)
+    response.raise_for_status()
+    payload = response.json()
+    return payload.get("post_id") or payload.get("id", "")
+
+
+def _fb_remove(publication) -> None:
+    config = publication.channel.config or {}
+    # нет поста или канал разобран — снятие идемпотентно
+    if not publication.external_ref or not config.get("access_token"):
+        return
+    response = requests.delete(
+        f"{_META_API}/{_meta_version()}/{publication.external_ref}",
+        params={"access_token": config["access_token"]},
+        timeout=20,
+    )
+    if response.status_code != 404:  # 404 = пост уже удалён
+        response.raise_for_status()
+
+
+def _ig_publish(publication) -> str:
+    config = publication.channel.config or {}
+    missing = [key for key in ("ig_user_id", "access_token") if not config.get(key)]
+    if missing:
+        raise RuntimeError(f"Instagram nicht konfiguriert: {', '.join(missing)} fehlt")
+
+    promotion = publication.promotion
+    image = _promo_image_url(promotion)
+    if not image:
+        raise RuntimeError("Instagram benötigt ein Bild für die Aktion")
+
+    version = _meta_version()
+    ig_user = config["ig_user_id"]
+    token = config["access_token"]
+    caption = _promo_caption(promotion)
+    link = _promo_public_url(promotion)
+    if link:  # IG-Captions ohne klickbaren Link — URL als Text
+        caption = f"{caption}\n\n{link}"
+
+    # 1) контейнер медиа
+    create = requests.post(
+        f"{_META_API}/{version}/{ig_user}/media",
+        data={"image_url": image, "caption": caption[:_IG_CAPTION_LIMIT], "access_token": token},
+        timeout=20,
+    )
+    create.raise_for_status()
+    creation_id = create.json()["id"]
+
+    # 2) публикация контейнера
+    publish = requests.post(
+        f"{_META_API}/{version}/{ig_user}/media_publish",
+        data={"creation_id": creation_id, "access_token": token},
+        timeout=20,
+    )
+    publish.raise_for_status()
+    return publish.json().get("id", "")
+
+
+def _ig_remove(publication) -> None:
+    # Graph API не удаляет органические IG-посты → снятие no-op (идемпотентно).
+    return
+
+
 # type → (publish, remove)
 _ADAPTERS = {
     "log": (_log_publish, _log_remove),
     "google_business": (_gbp_publish, _gbp_remove),
+    "facebook": (_fb_publish, _fb_remove),
+    "instagram": (_ig_publish, _ig_remove),
 }
 
 

@@ -334,6 +334,12 @@ GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
 GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
 
 # ---------------------------------------------------------------------------
+# Meta Graph API (соц-постинг Facebook/Instagram, M23a)
+# Токены доступа — per-канал в кабинете; настройка — docs/meta-social-setup.md
+# ---------------------------------------------------------------------------
+META_GRAPH_API_VERSION = env("META_GRAPH_API_VERSION", default="v21.0")
+
+# ---------------------------------------------------------------------------
 # Media & storage
 # ---------------------------------------------------------------------------
 MEDIA_URL = "/media/"
