@@ -137,6 +137,35 @@ class AggregatorPortal(I18nMixin, models.Model):
         return self.get_i18n("intro")
 
 
+class PortalBot(models.Model):
+    """Telegram-бот портала агрегатора (TG4, SHARED/public).
+
+    Один бот на портал; webhook на хосте портала /tg/<secret>/. На /start бот
+    открывает выдачу портала как Telegram Mini App. Токен из @BotFather задаётся
+    в unfold-админке (порталы — admin/команда-managed, кабинета у них нет).
+    """
+
+    portal = models.OneToOneField(
+        AggregatorPortal, on_delete=models.CASCADE, related_name="telegram_bot"
+    )
+    token = models.CharField(max_length=100, blank=True)
+    bot_username = models.CharField(max_length=64, blank=True)
+    webhook_secret = models.CharField(max_length=48, blank=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.portal.host}: {self.bot_username or 'bot'}"
+
+    def save(self, *args, **kwargs):
+        if not self.webhook_secret:
+            import secrets
+
+            self.webhook_secret = secrets.token_urlsafe(24)
+        super().save(*args, **kwargs)
+
+
 class PortalUser(models.Model):
     """Клиентская идентичность на порталах (P2.3, SHARED/public).
 

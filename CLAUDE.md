@@ -686,9 +686,18 @@ Python 3.12, менеджер uv.
       `_send_telegram` — токен бота арендатора, recipient=chat_id). Заказы
       (`enqueue_order_email`) дублируют событие в Telegram; на странице
       подтверждения заказа — кнопка «Get updates on Telegram». Тесты `test_notify`.
-    - Дальше TG: TG4 боты агрегатор-порталов (SHARED); booking/stays-уведомления в
-      Telegram (как у заказов) — по желанию. Деплой TG: миграции telegram/0001+0002
-      + notifications/0002 + `apps.telegram` в TENANT_APPS.
+    - TG4 боты агрегатор-порталов (✅ в `main`, CI зелёный, миграция aggregator/0010):
+      `PortalBot` (SHARED, OneToOne AggregatorPortal: token/bot_username/
+      webhook_secret/is_active); `apps/aggregator/telegram_bot.py` — webhook
+      `/tg/<secret>/` на хосте портала (urls_portal, csrf-exempt), на /start бот
+      открывает выдачу портала как Mini App (`web_app`→portal-home); `connect_bot`
+      (getMe+setWebhook на `https://<portal.host>/tg/<secret>/`) / `disconnect_bot`.
+      Generic Bot API переиспользован из `apps.telegram.services`. unfold-админка
+      `PortalBot` (public) с действиями Connect/Disconnect (токен — write-only
+      поле). Тесты `test_portal_bot`. Боевое — после токена бота портала.
+    - Дальше TG (по желанию): booking/stays-уведомления в Telegram (как у заказов).
+      **Деплой TG:** миграции telegram/0001+0002 + notifications/0002 +
+      aggregator/0010 + `apps.telegram` в TENANT_APPS.
   - Дальше M23 после Telegram: M23c платная реклама (Campaign/AdInsight). TikTok
     отложен (видео + аудит API — низкий fit).
 - **Зашифрованные ключи интеграций в админке (✅ в `main`, CI зелёный, миграция

@@ -6,10 +6,11 @@ Django admin живёт только на public (config/urls_public.py). Вни
 админку строку Domain нужно добавить вручную (см. docs/portal-setup.md).
 """
 
-from django.contrib import admin
+from django import forms
+from django.contrib import admin, messages
 from unfold.admin import ModelAdmin
 
-from .models import AggregatorListing, AggregatorPortal, BusinessReview
+from .models import AggregatorListing, AggregatorPortal, BusinessReview, PortalBot
 
 
 @admin.register(AggregatorListing)
@@ -67,3 +68,54 @@ class AggregatorPortalAdmin(ModelAdmin):
         ("Branding", {"fields": ("title", "tagline", "intro", "logo_url", "primary_color")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
+
+
+class PortalBotForm(forms.ModelForm):
+    token_input = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label="Bot token",
+        help_text="From @BotFather. Leave blank to keep current. Save, then run «Connect».",
+    )
+
+    class Meta:
+        model = PortalBot
+        fields = ("portal",)
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        raw = self.cleaned_data.get("token_input")
+        if raw:
+            obj.token = raw
+        if commit:
+            obj.save()
+        return obj
+
+
+@admin.register(PortalBot)
+class PortalBotAdmin(ModelAdmin):
+    """Telegram-бот портала (TG4): задать токен → действие «Connect» ставит webhook."""
+
+    form = PortalBotForm
+    list_display = ("portal", "bot_username", "is_active", "updated_at")
+    readonly_fields = ("bot_username", "is_active", "created_at", "updated_at")
+    actions = ("connect_selected", "disconnect_selected")
+
+    @admin.action(description="Connect bot (verify token + set webhook)")
+    def connect_selected(self, request, queryset):
+        from .telegram_bot import connect_bot
+
+        for bot in queryset:
+            try:
+                connect_bot(bot)
+                self.message_user(request, f"{bot.portal.host}: connected.", messages.SUCCESS)
+            except Exception as exc:  # noqa: BLE001 — показать ошибку в админке
+                self.message_user(request, f"{bot.portal.host}: {exc}", messages.ERROR)
+
+    @admin.action(description="Disconnect bot (remove webhook)")
+    def disconnect_selected(self, request, queryset):
+        from .telegram_bot import disconnect_bot
+
+        for bot in queryset:
+            disconnect_bot(bot)
+        self.message_user(request, "Disconnected.", messages.SUCCESS)

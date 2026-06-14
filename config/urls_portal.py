@@ -11,6 +11,7 @@ from django.urls import path
 from django.views.static import serve
 
 from apps.aggregator import account_views, portal_views, reviews_views
+from apps.aggregator import telegram_bot as portal_telegram
 from apps.core import health
 
 urlpatterns = [
@@ -42,6 +43,8 @@ urlpatterns = [
         reviews_views.submit_review,
         name="portal-business-review",
     ),
+    # Telegram-бот портала (TG4): публичный webhook на хосте портала.
+    path("tg/<str:secret>/", portal_telegram.webhook, name="portal-telegram-webhook"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 
