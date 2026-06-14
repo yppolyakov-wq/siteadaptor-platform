@@ -77,9 +77,22 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 - **Ротация:** после смены `SECRETS_ENCRYPTION_KEY` сохранённые значения нужно
   ввести заново в админке (старый шифротекст не расшифруется новым ключом).
 
+## 5a. In-app OAuth (подключение каналов одной кнопкой)
+Вместо ручного ввода токенов — кнопка «Connect» в кабинете каналов
+(`/dashboard/channels/`). Поток (`apps/publishing/oauth.py`): кабинет → провайдер
+→ **единый callback на основном домене** `/oauth/<provider>/callback/` (подписанный
+`state` несёт схему арендатора, обходит redirect-URI-на-субдоменах) → обмен code
+на токен → токен в `Channel.config` зашифрованным.
+
+- Готово: **Google Business Profile**, **Pinterest** (OAuth-A).
+- Дальше: **Meta (FB/IG)** — нужен обмен на page-токен + выбор страницы (OAuth-B).
+- Платформенные креды OAuth-приложений (в админ-сторе / `.env`):
+  `google_oauth_client_id`/`secret`, `pinterest_client_id`/`secret`.
+- В консоли провайдера зарегистрировать **redirect_uri** =
+  `https://<основной-домен>/oauth/<provider>/callback/` (или `OAUTH_CALLBACK_BASE`).
+
 ## 6. Отложено
-- In-app OAuth-подключение одной кнопкой (GBP/Meta/Pinterest) вместо ручного
-  ввода токенов.
+- OAuth-B: Meta (FB/IG) one-click (page-токен + выбор страницы/IG-аккаунта).
 - Версионирование/аудит изменений секретов.
 - ✅ Шифрование per-tenant токенов at-rest (`Channel.config`, `TelegramBot.token`)
   — сделано (см. §1.B).

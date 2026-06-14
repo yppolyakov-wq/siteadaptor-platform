@@ -349,6 +349,14 @@ META_GRAPH_API_VERSION = env("META_GRAPH_API_VERSION", default="v21.0")
 SECRETS_ENCRYPTION_KEY = env("SECRETS_ENCRYPTION_KEY", default="")
 
 # ---------------------------------------------------------------------------
+# In-app OAuth подключение каналов (OAuth-A). Callback — единый на основном
+# домене; провайдер-креды читаются из apps.secrets (фолбэк на эти .env).
+# ---------------------------------------------------------------------------
+OAUTH_CALLBACK_BASE = env("OAUTH_CALLBACK_BASE", default="")  # пусто → https://TENANT_DOMAIN_BASE
+PINTEREST_CLIENT_ID = env("PINTEREST_CLIENT_ID", default="")
+PINTEREST_CLIENT_SECRET = env("PINTEREST_CLIENT_SECRET", default="")
+
+# ---------------------------------------------------------------------------
 # Media & storage
 # ---------------------------------------------------------------------------
 MEDIA_URL = "/media/"

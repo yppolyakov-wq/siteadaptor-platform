@@ -84,6 +84,12 @@ urlpatterns = [
     path("dashboard/channels/", publishing_views.channels, name="channels"),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
     path("dashboard/channels/config/", publishing_views.channel_config, name="channel-config"),
+    # In-app OAuth (OAuth-A): старт из кабинета → провайдер → callback на public.
+    path(
+        "dashboard/channels/connect/<str:provider>/",
+        publishing_views.oauth_start,
+        name="channel-oauth-start",
+    ),
     # Каталог в кабинете владельца.
     path("catalog/", include("apps.catalog.urls")),
     # CSV-импорт товаров.

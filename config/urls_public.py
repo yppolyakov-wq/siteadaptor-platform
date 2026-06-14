@@ -12,6 +12,7 @@ from django.views.static import serve
 from apps.aggregator import views as aggregator_views
 from apps.billing.webhooks import stripe_webhook
 from apps.core import health
+from apps.publishing import views as publishing_views
 from apps.tenants.views import BusinessSignupView, signup_waiting
 
 urlpatterns = [
@@ -21,6 +22,12 @@ urlpatterns = [
     path("health/ready/", health.readiness, name="health-ready"),
     # Stripe-вебхук (один URL на всю платформу, public-схема).
     path("stripe/webhook/", stripe_webhook, name="stripe-webhook"),
+    # In-app OAuth каналов (OAuth-A): единый callback на основном домене.
+    path(
+        "oauth/<str:provider>/callback/",
+        publishing_views.oauth_callback,
+        name="channel-oauth-callback",
+    ),
     # Phase 2: авторизация custom-доменов для Caddy on-demand TLS.
     path("internal/verify-domain", health.verify_domain, name="verify-domain"),
     # Локальный агрегатор (Sprint 4): городские страницы на основном домене.

@@ -732,6 +732,21 @@ Python 3.12, менеджер uv.
   читают расшифрованным; кабинет шифрует только новые значения, не двойно).
   Тесты `secrets/test_fields`, `publishing/test_config_secrets`. Деплой:
   миграция telegram/0003.
+- **In-app OAuth подключение каналов — OAuth-A (✅ в `main`, CI зелёный, без
+  миграций):** «Connect одной кнопкой» для **GBP** и **Pinterest** (выбор
+  владельца после пропуска рекламы M23c). `apps/publishing/oauth.py`: реестр
+  PROVIDERS (authorize/token URL, scope, креды из стора/.env, какое поле токена
+  и куда в config), подписанный `state→схема` (signing, 10 мин), authorize из
+  кабинета → провайдер → **единый callback на основном домене** `/oauth/<prov>/
+  callback/` (urls_public; обходит redirect-URI-на-субдоменах, master-plan §8) →
+  `exchange_code` (Google — params, Pinterest — Basic auth) → токен в
+  `Channel.config` **зашифрованным** (как ручной ввод) → редирект назад на каналы
+  арендатора. Вьюхи `oauth_start`(кабинет)/`oauth_callback`(public); кнопки
+  «Connect with Google/Pinterest» в кабинете каналов (ручной ввод остаётся
+  фолбэком). Креды: `pinterest_client_id/secret` (стор/.env), `OAUTH_CALLBACK_BASE`
+  (пусто→https://TENANT_DOMAIN_BASE). Тесты `publishing/test_oauth`. **Боевое —
+  после регистрации OAuth-приложений у Google/Pinterest** (redirect_uri = callback).
+  **OAuth-B (дальше):** Meta (FB/IG) — нужен обмен на page-токен + выбор страницы.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,
