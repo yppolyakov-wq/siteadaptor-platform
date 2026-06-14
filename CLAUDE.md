@@ -630,8 +630,12 @@ Python 3.12, менеджер uv.
   роль/БД). Автоматически — SessionStart-хук (`.claude/hooks/session-start.sh`).
 
 ## 6. Документация (docs/)
-- **`roadmap-next-sprints.md`** — ГЛАВНЫЙ план (Sprint 5/4/6, Hardening, Phase 2).
-- **`platform-core-architecture.md`** — архитектура ядра; `full-platform-vision.md`.
+- **`master-plan.md`** — 🧭 КАНОНИЧЕСКИЙ мастер-план (сводит vision+roadmap+verticals;
+  стадии: архетипы→100% + Phase 2 → глобальные функции; модули M1–M22; архитектурные
+  швы под миграции). Создан 2026-06-14. Верхний уровень планирования.
+- **`roadmap-next-sprints.md`** — операционный план (Sprint 5/4/6, Hardening, Phase 2 P2.x).
+- **`platform-core-architecture.md`** — архитектура ядра; `full-platform-vision.md`
+  (северная звезда, модули M1–M21, Phase 1–4+).
 - `references/patterns/` — state-machine, anti-oversell, notification-dedupe,
   audit-log, soft-delete, cursor-pagination, webhook-hmac-signing,
   csv-import-wizard, magic-link-auth.
