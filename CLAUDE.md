@@ -588,6 +588,16 @@ Python 3.12, менеджер uv.
     `generate_vouchers(customer=)`; блок «Vouchers» и форма выдачи в карточке
     `/crm/<pk>/`.
   - **Деплой quick-wins:** миграции booking/0005 + promotions/0014.
+- **Мастер-план + архитектурные швы (✅ в `main`, 2026-06-14):** новый канонический
+  `docs/master-plan.md` (сводит vision+roadmap+verticals; модули M1–M23; стадии
+  архетипы→100% + Phase 2 → глобальные; M22 чат/поддержка/тикеты, M23 маркетинг/
+  соцсети/реклама). Порядок работ (владелец): швы → M22 → M23 → A4 Gastro.
+  - Швы (✅ `8bfd3ae`, миграции core/0001 + orders/0005): `apps.core.Membership`
+    (роли owner/admin/staff, TENANT) + `roles.role_of()` (дефолт owner, без
+    backfill; владелец = owner при провижининге) — шов M6 multi-user, гейтинг во
+    вьюхах пока не включён; `Order.parent_order` (self-FK) + `supplier_tenant_schema`
+    — пассивные хуки dropshipping/маркетплейс (M11→M14/M15). Логики нет — только швы.
+  - **Деплой:** миграции core/0001 + orders/0005.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
