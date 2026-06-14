@@ -14,7 +14,8 @@ from apps.core.models import TimestampedModel
 class Notification(TimestampedModel):
     EMAIL = "email"
     WHATSAPP = "whatsapp"
-    CHANNELS = [(EMAIL, "Email"), (WHATSAPP, "WhatsApp")]
+    TELEGRAM = "telegram"
+    CHANNELS = [(EMAIL, "Email"), (WHATSAPP, "WhatsApp"), (TELEGRAM, "Telegram")]
 
     # publish:{...} / reservation:{res}:{status} / waitlist:{entry}:available
     dedupe_key = models.CharField(max_length=200, unique=True)

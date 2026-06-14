@@ -29,3 +29,26 @@ class TelegramBot(TimestampedModel):
 
     def __str__(self):
         return self.bot_username or "TelegramBot"
+
+
+class TelegramLink(TimestampedModel):
+    """Привязка клиента ↔ Telegram chat_id (TG3) для доставки уведомлений.
+
+    Deep-link `t.me/<bot>?start=<link_token>` ведёт в бота; на /start <token> бот
+    находит запись по токену и проставляет chat_id. link_token — короткий
+    url-safe (без ':' и в пределах 64 символов лимита Telegram start-payload).
+    chat_id пустой = клиент ещё не нажал /start (привязка «в ожидании»).
+    """
+
+    customer = models.OneToOneField(
+        "promotions.Customer", on_delete=models.CASCADE, related_name="telegram_link"
+    )
+    link_token = models.CharField(max_length=48, unique=True)
+    chat_id = models.CharField(max_length=40, blank=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.customer_id} ↔ {self.chat_id or 'pending'}"
+
+    @property
+    def is_linked(self) -> bool:
+        return bool(self.chat_id)

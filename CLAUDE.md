@@ -676,9 +676,19 @@ Python 3.12, менеджер uv.
       `storefront/_base.html`; внутри Telegram (есть `initData`) — `ready()`+
       `expand()` и класс `in-telegram` на `<html>` (хук под стили); вне Telegram —
       no-op. Тест в `catalog/test_storefront`. MainButton/тема per-page — позже.
-    - Дальше TG: TG3 уведомления в Telegram (доставка notifications, привязка
-      Customer↔chat_id по deep-link) → TG4 боты агрегатор-порталов (SHARED).
-      Деплой TG1: миграция telegram/0001 + `apps.telegram` в TENANT_APPS.
+    - TG3 уведомления в Telegram + привязка клиента (✅ в `main`, CI зелёный,
+      миграции telegram/0002 + notifications/0002): модель `TelegramLink`
+      (Customer↔chat_id, `link_token` url-safe для deep-link); `apps/telegram/
+      notify.py` — `deep_link(customer)` (t.me/<bot>?start=<token>), `link_from_start`
+      (на /start <token> webhook проставляет chat_id), `send_to_customer` (ставит
+      Notification channel=telegram, если клиент привязан и бот активен; дополняет
+      email, не заменяет). Канал `telegram` в `apps.notifications` (+ адаптер
+      `_send_telegram` — токен бота арендатора, recipient=chat_id). Заказы
+      (`enqueue_order_email`) дублируют событие в Telegram; на странице
+      подтверждения заказа — кнопка «Get updates on Telegram». Тесты `test_notify`.
+    - Дальше TG: TG4 боты агрегатор-порталов (SHARED); booking/stays-уведомления в
+      Telegram (как у заказов) — по желанию. Деплой TG: миграции telegram/0001+0002
+      + notifications/0002 + `apps.telegram` в TENANT_APPS.
   - Дальше M23 после Telegram: M23c платная реклама (Campaign/AdInsight). TikTok
     отложен (видео + аудит API — низкий fit).
 - **Зашифрованные ключи интеграций в админке (✅ в `main`, CI зелёный, миграция

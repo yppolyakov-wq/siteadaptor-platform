@@ -20,8 +20,15 @@ def handle_update(bot, update: dict, request) -> str:
 
     shop_url = request.build_absolute_uri(reverse("storefront-home"))
     markup = {"inline_keyboard": [[{"text": _("🛍 Open shop"), "web_app": {"url": shop_url}}]]}
+    # /start <token> — привязка клиента к боту (TG3): дальше шлём ему уведомления.
     if text.startswith("/start"):
-        body = _("Welcome! Tap below to open the shop.")
+        from .notify import link_from_start
+
+        payload = text[len("/start") :].strip()
+        if payload and link_from_start(payload, chat_id):
+            body = _("✅ Connected! You'll get your updates here.")
+        else:
+            body = _("Welcome! Tap below to open the shop.")
     else:
         body = _("Tap below to open the shop.")
     services.send_message(bot.token, chat_id, body, reply_markup=markup)

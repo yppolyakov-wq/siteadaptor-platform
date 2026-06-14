@@ -284,8 +284,15 @@ def checkout(request):
 def order_confirmation(request, code):
     _require_orders_active(request)
     order = get_object_or_404(Order, reference_code=code)
+    from apps.telegram.notify import deep_link
+
     return render(
         request,
         "storefront/order_confirmation.html",
-        {"order": order, "just_paid": request.GET.get("paid") == "1"},
+        {
+            "order": order,
+            "just_paid": request.GET.get("paid") == "1",
+            # TG3: кнопка привязки к Telegram-боту (пусто, если бот не настроен).
+            "telegram_link": deep_link(order.customer),
+        },
     )

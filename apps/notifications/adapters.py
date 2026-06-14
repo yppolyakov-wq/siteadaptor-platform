@@ -23,8 +23,26 @@ def _send_email(notification) -> None:
     message.send()
 
 
+def _send_telegram(notification) -> None:
+    """Доставка в Telegram (TG3): recipient = chat_id, токен — бота арендатора.
+
+    Работает в schema_context арендатора (как и задача доставки), поэтому берёт
+    активного TelegramBot текущей схемы. Нет активного бота → ошибка (в failed).
+    """
+    from apps.telegram import services as tg_services
+    from apps.telegram.notify import active_bot
+
+    bot = active_bot()
+    if bot is None:
+        raise RuntimeError("kein aktiver Telegram-Bot")
+    tg_services.send_message(
+        bot.token, notification.recipient, notification.payload.get("body", "")
+    )
+
+
 _SENDERS = {
     "email": _send_email,
+    "telegram": _send_telegram,
 }
 
 
