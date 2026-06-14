@@ -609,9 +609,20 @@ Python 3.12, менеджер uv.
     (nav «Inbox», бейдж непрочитанного, тред+ответ+статус+приоритет). Модуль
     «inbox» — универсальный, из коробки (recommended_for=все типы). **Урок:**
     новый optional-модуль → обновить хардкод-наборы в test_modules (disabled).
-  - Дальше: M22b витрина-виджет «Frage stellen» + публичный тред + письма через
-    `notifications`; M22c платформенная техподдержка (SHARED).
-  - **Деплой M22a:** миграция inbox/0001.
+  - M22b витрина + публичный тред + письма (✅ `02b4ba7`, без миграций): публичная
+    форма `/nachricht/` (honeypot+rate-limit, гейтинг inbox) → тред (reuse Customer
+    по email, привязка ref из `?kind/id/label`) → публичный `/nachricht/<token>/`
+    (клиент видит/отвечает по токену); письма `apps/inbox/notifications.py` (дедуп
+    `inbox:msg:<id>:role`): ответ владельца → клиенту, вопрос клиента → владельцу,
+    вшито в `post_message`. Ссылка «Ask a question» в шапке витрины
+    (`storefront_inbox_enabled`) + «Frage zum Produkt» на товаре.
+  - M22c платформенная техподдержка (✅ `25949dc`, миграция support/0001):
+    SHARED-app `apps.support` (`SupportThread` tenant↔SiteAdaptor + `SupportMessage`
+    owner/platform); кабинет владельца `/dashboard/help/` (nav «Help» в core-модуле
+    settings) — создание/список/ответ своих тикетов; платформа отвечает из
+    unfold-админки на public. Отдельно от inbox (клиент↔бизнес).
+  - **M22 закрыт (a+b+c).** Деплой: миграции inbox/0001 + support/0001. Дальше по
+    плану владельца: M23 (соц-постинг акций) → A4 (Gastro-модификаторы).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
