@@ -84,15 +84,17 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 `state` несёт схему арендатора, обходит redirect-URI-на-субдоменах) → обмен code
 на токен → токен в `Channel.config` зашифрованным.
 
-- Готово: **Google Business Profile**, **Pinterest** (OAuth-A).
-- Дальше: **Meta (FB/IG)** — нужен обмен на page-токен + выбор страницы (OAuth-B).
+- Готово: **Google Business Profile**, **Pinterest** (OAuth-A), **Meta FB+IG**
+  (OAuth-B — один поток подключает обе; берёт первую страницу + её IG-аккаунт,
+  page-токен не истекает).
 - Платформенные креды OAuth-приложений (в админ-сторе / `.env`):
-  `google_oauth_client_id`/`secret`, `pinterest_client_id`/`secret`.
+  `google_oauth_client_id`/`secret`, `pinterest_client_id`/`secret`,
+  `meta_app_id`/`meta_app_secret`.
 - В консоли провайдера зарегистрировать **redirect_uri** =
   `https://<основной-домен>/oauth/<provider>/callback/` (или `OAUTH_CALLBACK_BASE`).
 
 ## 6. Отложено
-- OAuth-B: Meta (FB/IG) one-click (page-токен + выбор страницы/IG-аккаунта).
+- OAuth: UI выбора страницы Meta при нескольких страницах (сейчас берём первую).
 - Версионирование/аудит изменений секретов.
 - ✅ Шифрование per-tenant токенов at-rest (`Channel.config`, `TelegramBot.token`)
   — сделано (см. §1.B).

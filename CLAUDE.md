@@ -746,7 +746,18 @@ Python 3.12, менеджер uv.
   фолбэком). Креды: `pinterest_client_id/secret` (стор/.env), `OAUTH_CALLBACK_BASE`
   (пусто→https://TENANT_DOMAIN_BASE). Тесты `publishing/test_oauth`. **Боевое —
   после регистрации OAuth-приложений у Google/Pinterest** (redirect_uri = callback).
-  **OAuth-B (дальше):** Meta (FB/IG) — нужен обмен на page-токен + выбор страницы.
+- **OAuth-B — Meta (FB/IG) one-click (✅ в `main`, CI зелёный, без миграций):**
+  один поток подключает оба канала. Провайдер `facebook` в реестре OAuth
+  (authorize `facebook.com/{version}/dialog/oauth`, scope pages_*/instagram_*);
+  диспетчер `oauth.complete()` для Meta вызывает `_meta_complete`: code →
+  short-lived user-токен → long-lived (`fb_exchange_token`) → `/me/accounts`
+  (fields id,name,access_token,instagram_business_account) → **первая страница**
+  (мультивыбор — следующая итерация): page_id + page-токен в канал facebook, при
+  наличии IG-аккаунта — ig_user_id + тот же page-токен в канал instagram, токены
+  **зашифрованы at-rest**. Кнопка «Connect with Facebook (also links Instagram)»
+  в кабинете. Креды `meta_app_id`/`meta_app_secret` (стор/.env META_APP_ID/SECRET).
+  Тесты `publishing/test_oauth_meta`. Боевое — после Meta App Review + регистрации
+  redirect_uri. **Дальше (опц.):** UI выбора страницы при нескольких страницах.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

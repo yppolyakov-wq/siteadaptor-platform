@@ -104,11 +104,8 @@ def oauth_callback(request, provider):
     if not schema or not code:
         return HttpResponse(_("Authorization failed. Please try again."), status=400)
     try:
-        token = oauth.exchange_code(provider, code)
+        oauth.complete(provider, schema, code)
     except Exception:  # noqa: BLE001 — показать аккуратную ошибку, не 500
         return HttpResponse(_("Could not complete the connection."), status=502)
-    if not token:
-        return HttpResponse(_("No token received. Please try again."), status=502)
-    oauth.store_token(provider, schema, token)
     back = oauth.tenant_channels_url(schema)
     return redirect(back) if back else HttpResponse(_("Connected. You can close this tab."))

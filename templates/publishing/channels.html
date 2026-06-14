@@ -57,7 +57,12 @@
             {% trans "Configuration" %}
             {% if ch.config.page_id and ch.config.access_token %}<span class="text-green-600">· {% trans "connected" %}</span>{% endif %}
           </summary>
-          <form method="post" action="{% url 'channel-config' %}" class="mt-3 space-y-2">
+          <a href="{% url 'channel-oauth-start' 'facebook' %}"
+             class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+            🔗 {% trans "Connect with Facebook (also links Instagram)" %}
+          </a>
+          <p class="text-xs text-gray-400 mt-1">{% trans "Or enter the page and token manually:" %}</p>
+          <form method="post" action="{% url 'channel-config' %}" class="mt-2 space-y-2">
             {% csrf_token %}
             <input type="hidden" name="type" value="{{ ch.type }}">
             <input type="text" name="page_id" value="{{ ch.config.page_id|default:'' }}"

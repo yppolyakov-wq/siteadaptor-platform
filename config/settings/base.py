@@ -355,6 +355,9 @@ SECRETS_ENCRYPTION_KEY = env("SECRETS_ENCRYPTION_KEY", default="")
 OAUTH_CALLBACK_BASE = env("OAUTH_CALLBACK_BASE", default="")  # пусто → https://TENANT_DOMAIN_BASE
 PINTEREST_CLIENT_ID = env("PINTEREST_CLIENT_ID", default="")
 PINTEREST_CLIENT_SECRET = env("PINTEREST_CLIENT_SECRET", default="")
+# Meta-приложение для OAuth-B (FB/IG one-click); креды также в admin-сторе.
+META_APP_ID = env("META_APP_ID", default="")
+META_APP_SECRET = env("META_APP_SECRET", default="")
 
 # ---------------------------------------------------------------------------
 # Media & storage
