@@ -653,11 +653,20 @@ Python 3.12, менеджер uv.
     вьюхи `modifier_group_*`/`modifier_option_*` + URLs. Модификаторы — часть
     catalog (core-модуль), без нового модуля; для не-гастро просто пусто. Тесты
     `test_modifiers`. Деплой: миграция catalog/0005.
-  - A4b (следующий инкремент): витрина — выбор модификаторов на странице товара
-    (radio/checkbox по min/max, валидация min/max/required на сервере); корзина
-    C&C — ключ позиции включает выбор опций; `OrderItem` — снимок выбранных опций
-    (label + delta) + надбавка в `unit_price`/`line_total`. Затем (A4): доставка
-    гастро (reuse orders G4 — уже есть), опц. KDS.
+  - A4b витрина + корзина + заказ (✅ в `main`, `9238d7b`, CI run 256 зелёный,
+    миграция orders/0006): `apps/catalog/modifiers.py` — `validate_selection`
+    (серверная проверка min/max/required по группам), `options_from_ids`
+    (восстановление из корзины), `options_delta`. Витрина (product_detail):
+    селекторы — single (max==1) через `<select>`, multi через checkbox, оба шлют
+    `mod` (без JS); скрыто без модификаторов. Корзина: ключ `pid:vid:o1,o2`
+    (**разделитель опций — запятая, НЕ дефис: UUID содержит дефисы**), разные
+    наборы Extras = разные позиции; `_cart_items` восстанавливает опции,
+    `_line_price` учитывает надбавки; выбор показан в корзине.
+    `create_order(items=(product,variant,qty,options))` — `unit_price` = base +
+    Σ delta; `OrderItem.modifiers` снимок `[{label,delta}]` + `modifiers_label`
+    в подтверждении/кабинете заказов/письмах. Тесты `test_modifier_flow`.
+  - **A4 завершён (a+b).** A4 ~75 %→~90 %: доставка гастро уже есть (reuse orders
+    G4), остаётся опц. KDS. Деплой: миграции catalog/0005 + orders/0006.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
