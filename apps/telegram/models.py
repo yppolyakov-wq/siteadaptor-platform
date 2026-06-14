@@ -13,10 +13,11 @@ import secrets
 from django.db import models
 
 from apps.core.models import TimestampedModel
+from apps.secrets.fields import EncryptedTextField
 
 
 class TelegramBot(TimestampedModel):
-    token = models.CharField(max_length=100, blank=True)  # из @BotFather
+    token = EncryptedTextField(blank=True, default="")  # из @BotFather, шифруется at-rest
     bot_username = models.CharField(max_length=64, blank=True)
     # Секрет в URL вебхука + заголовок X-Telegram-Bot-Api-Secret-Token.
     webhook_secret = models.CharField(max_length=48, blank=True)

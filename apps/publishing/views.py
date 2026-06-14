@@ -61,11 +61,16 @@ def channel_config(request):
     channel = Channel.objects.filter(type=request.POST.get("type", "")).first()
     fields = _CONFIG_FIELDS.get(channel.type) if channel else None
     if channel is not None and fields:
+        from apps.secrets import crypto
+
+        from .secrets import SECRET_KEYS
+
         config = dict(channel.config or {})
         for key in fields:
             value = request.POST.get(key, "").strip()
             if value:
-                config[key] = value
+                # секретные подключи шифруем at-rest; неизменённые остаются как есть
+                config[key] = crypto.encrypt(value) if key in SECRET_KEYS else value
         channel.config = config
         channel.save(update_fields=["config", "updated_at"])
         messages.success(request, _("Channel configuration saved."))

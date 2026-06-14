@@ -18,6 +18,8 @@ from django.conf import settings
 from django.db import connection
 from django_tenants.utils import schema_context
 
+from .secrets import decrypted_config
+
 logger = logging.getLogger("publishing")
 
 # --- log (внутренний) --------------------------------------------------------
@@ -76,7 +78,7 @@ def _gbp_access_token(config) -> str:
 
 
 def _gbp_publish(publication) -> str:
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     missing = [key for key in ("location", "refresh_token") if not config.get(key)]
     if missing:
         raise RuntimeError(f"GBP nicht konfiguriert: {', '.join(missing)} fehlt")
@@ -106,7 +108,7 @@ def _gbp_publish(publication) -> str:
 
 
 def _gbp_remove(publication) -> None:
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     # нет поста или канал разобран — снятие считаем выполненным (идемпотентно)
     if not publication.external_ref or not config.get("refresh_token"):
         return
@@ -162,7 +164,7 @@ def _promo_image_url(promotion) -> str:
 
 
 def _fb_publish(publication) -> str:
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     missing = [key for key in ("page_id", "access_token") if not config.get(key)]
     if missing:
         raise RuntimeError(f"Facebook nicht konfiguriert: {', '.join(missing)} fehlt")
@@ -192,7 +194,7 @@ def _fb_publish(publication) -> str:
 
 
 def _fb_remove(publication) -> None:
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     # нет поста или канал разобран — снятие идемпотентно
     if not publication.external_ref or not config.get("access_token"):
         return
@@ -206,7 +208,7 @@ def _fb_remove(publication) -> None:
 
 
 def _ig_publish(publication) -> str:
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     missing = [key for key in ("ig_user_id", "access_token") if not config.get(key)]
     if missing:
         raise RuntimeError(f"Instagram nicht konfiguriert: {', '.join(missing)} fehlt")
@@ -259,7 +261,7 @@ def _tg_publish(publication) -> str:
     external_ref = «chat_id:message_id» (для удаления). С фото → sendPhoto,
     иначе sendMessage; ссылка на акцию — в тексте (Telegram кликабелен).
     """
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     missing = [key for key in ("bot_token", "chat_id") if not config.get(key)]
     if missing:
         raise RuntimeError(f"Telegram nicht konfiguriert: {', '.join(missing)} fehlt")
@@ -286,7 +288,7 @@ def _tg_publish(publication) -> str:
 
 
 def _tg_remove(publication) -> None:
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     if not publication.external_ref or not config.get("bot_token"):
         return
     chat_id, _, message_id = publication.external_ref.rpartition(":")
@@ -309,7 +311,7 @@ _PINTEREST_API = "https://api.pinterest.com/v5"
 
 def _pinterest_publish(publication) -> str:
     """Создать Pin (картинка + ссылка на акцию). Pinterest требует изображение."""
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     missing = [key for key in ("access_token", "board_id") if not config.get(key)]
     if missing:
         raise RuntimeError(f"Pinterest nicht konfiguriert: {', '.join(missing)} fehlt")
@@ -339,7 +341,7 @@ def _pinterest_publish(publication) -> str:
 
 
 def _pinterest_remove(publication) -> None:
-    config = publication.channel.config or {}
+    config = decrypted_config(publication.channel)
     if not publication.external_ref or not config.get("access_token"):
         return
     response = requests.delete(

@@ -715,6 +715,18 @@ Python 3.12, менеджер uv.
   сторонними либами на старте — остаются в .env). Тесты `secrets/test_secrets`.
   Деплой: миграция secrets/0001 + `apps.secrets` в SHARED_APPS; в проде задать
   `SECRETS_ENCRYPTION_KEY` (Fernet.generate_key()).
+- **Per-tenant токены — шифрование at-rest (✅ в `main`, CI зелёный, миграция
+  telegram/0003):** `apps/secrets/fields.py::EncryptedTextField` — прозрачное
+  Fernet-шифрование в БД, открытый текст в Python, **толерантно к легаси-
+  плейнтексту** (нерасшифровываемое читается как есть, шифруется при следующем
+  save — ленивая миграция без data-миграции; не фильтровать по значению —
+  Fernet недетерминирован, только `exclude(field="")`). Применено к
+  `TelegramBot.token`. Для `Channel.config` (jsonb, тип не меняем) — секретные
+  подключи (`refresh_token`/`access_token`/`bot_token`) шифруются точечно:
+  `apps/publishing/secrets.py` (`SECRET_KEYS`, `decrypted_config` — адаптеры
+  читают расшифрованным; кабинет шифрует только новые значения, не двойно).
+  Тесты `secrets/test_fields`, `publishing/test_config_secrets`. Деплой:
+  миграция telegram/0003.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

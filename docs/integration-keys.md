@@ -22,8 +22,14 @@
 ### B. Ключи на уровне бизнеса (per-tenant)
 Токены подключений конкретного бизнеса (каналы публикации, Telegram-бот). Их
 владелец вводит **в кабинете** (self-service), хранятся в схеме арендатора. В UI
-маскируются (поле-пароль, пустой ввод не затирает). Шифрование at-rest этих
-полей — отложенный пункт (см. §5).
+маскируются (поле-пароль, пустой ввод не затирает) и **зашифрованы at-rest**
+(Fernet, тот же мастер-ключ):
+- `TelegramBot.token` — через `apps/secrets/fields.py::EncryptedTextField`
+  (прозрачно: открытый текст в Python, шифротекст в БД).
+- `Channel.config` секретные подключи (`refresh_token`/`access_token`/`bot_token`)
+  — точечно (`apps/publishing/secrets.py`; остальные подключи не секретны).
+- Толерантно к легаси: незашифрованные старые значения читаются как есть и
+  шифруются при следующем сохранении (без отдельной data-миграции).
 
 ## 2. Как добавить платформенный ключ (в админке)
 1. Войти в Django-админку на основном домене (public): `…/admin/`.
@@ -72,10 +78,11 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
   ввести заново в админке (старый шифротекст не расшифруется новым ключом).
 
 ## 6. Отложено
-- Шифрование per-tenant токенов at-rest (`Channel.config`, `TelegramBot.token`).
 - In-app OAuth-подключение одной кнопкой (GBP/Meta/Pinterest) вместо ручного
   ввода токенов.
 - Версионирование/аудит изменений секретов.
+- ✅ Шифрование per-tenant токенов at-rest (`Channel.config`, `TelegramBot.token`)
+  — сделано (см. §1.B).
 
 См. также: `docs/gbp-setup.md`, `docs/meta-social-setup.md`,
 `docs/billing-stripe-setup.md`.

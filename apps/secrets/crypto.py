@@ -37,3 +37,16 @@ def decrypt(token: str) -> str:
         return _fernet().decrypt(token.encode()).decode()
     except (InvalidToken, ValueError):
         return ""
+
+
+def try_decrypt(token: str) -> str | None:
+    """Расшифровать или None, если значение не является нашим шифротекстом.
+
+    Для прозрачных полей/конфигов: None = легаси-плейнтекст (читаем как есть,
+    зашифруем при следующей записи)."""
+    if not token:
+        return None
+    try:
+        return _fernet().decrypt(token.encode()).decode()
+    except (InvalidToken, ValueError):
+        return None

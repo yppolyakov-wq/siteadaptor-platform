@@ -52,7 +52,12 @@ def test_channel_config_saves_and_keeps_secret_on_blank():
         )
     )
     channel = Channel.objects.get(type="google_business")
-    assert channel.config == {"location": "accounts/1/locations/2", "refresh_token": "rt"}
+    # location — плейнтекст; refresh_token — шифротекст at-rest (apps.secrets)
+    assert channel.config["location"] == "accounts/1/locations/2"
+    from apps.secrets import crypto
+
+    assert crypto.try_decrypt(channel.config["refresh_token"]) == "rt"
+    stored = channel.config["refresh_token"]
 
     # пустой refresh_token при повторном сохранении не затирает сохранённый
     views.channel_config(
@@ -63,5 +68,5 @@ def test_channel_config_saves_and_keeps_secret_on_blank():
         )
     )
     channel.refresh_from_db()
-    assert channel.config["refresh_token"] == "rt"
+    assert channel.config["refresh_token"] == stored  # не затёрт и не пере-шифрован
     assert channel.config["location"] == "accounts/1/locations/3"
