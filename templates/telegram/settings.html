@@ -1,0 +1,44 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Telegram" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-1">{% trans "Telegram bot" %}</h1>
+<p class="text-sm text-gray-500 mb-6">{% trans "Your customers open your shop right inside Telegram (Mini App)." %}</p>
+
+<div class="bg-white border border-gray-200 rounded-lg p-5 max-w-xl">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="font-medium">
+        {% if bot.is_active %}
+          <span class="text-green-600">● {% trans "Connected" %}</span>
+          {% if bot_link %}<a href="{{ bot_link }}" class="text-indigo-600 hover:underline ml-1" target="_blank" rel="noopener">@{{ bot.bot_username }}</a>{% endif %}
+        {% else %}
+          <span class="text-gray-400">○ {% trans "Not connected" %}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% if bot.is_active %}
+      <form method="post" action="{% url 'telegram-disconnect' %}">
+        {% csrf_token %}
+        <button type="submit" class="text-sm text-red-600 hover:bg-red-50 rounded-lg px-3 py-1.5">{% trans "Disconnect" %}</button>
+      </form>
+    {% endif %}
+  </div>
+
+  <ol class="text-sm text-gray-600 list-decimal pl-5 space-y-1 mb-4">
+    <li>{% blocktrans %}Open <b>@BotFather</b> in Telegram and send <b>/newbot</b>.{% endblocktrans %}</li>
+    <li>{% trans "Copy the bot token it gives you and paste it below." %}</li>
+  </ol>
+
+  <form method="post" action="{% url 'telegram-connect' %}" class="space-y-2">
+    {% csrf_token %}
+    <input type="password" name="token" value=""
+           placeholder="{% trans 'Bot token (123456:ABC… )' %}" aria-label="{% trans 'Bot token' %}"
+           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+      {% if bot.is_active %}{% trans "Update token" %}{% else %}{% trans "Connect" %}{% endif %}
+    </button>
+  </form>
+</div>
+{% endblock %}

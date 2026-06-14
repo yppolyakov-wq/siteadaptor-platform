@@ -29,6 +29,8 @@ from apps.orders import public_views as orders_public
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
 from apps.stays import public_views as stays_public
+from apps.telegram import public_views as telegram_public
+from apps.telegram import views as telegram_views
 
 urlpatterns = [
     path("accounts/", include("allauth.urls")),
@@ -148,6 +150,11 @@ urlpatterns = [
     path("robots.txt", public_views.robots_txt, name="storefront-robots"),
     # Каталог-фид (M23b): Google Merchant / Meta Commerce — загрузка по URL.
     path("feed/google.xml", public_views.product_feed_xml, name="storefront-product-feed"),
+    # Telegram-бот (M23/TG1): кабинет + публичный webhook на домене арендатора.
+    path("dashboard/telegram/", telegram_views.settings_view, name="telegram-settings"),
+    path("dashboard/telegram/connect/", telegram_views.connect, name="telegram-connect"),
+    path("dashboard/telegram/disconnect/", telegram_views.disconnect, name="telegram-disconnect"),
+    path("tg/<str:secret>/", telegram_public.webhook, name="telegram-webhook"),
 ]
 
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).

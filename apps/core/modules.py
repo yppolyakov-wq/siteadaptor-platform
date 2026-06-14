@@ -220,6 +220,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell.",
     ),
     ModuleSpec(
+        key="telegram",
+        label_de="Telegram-Bot",
+        icon="✈️",
+        nav_items=(NavItem("telegram-settings", _("Telegram"), "telegram"),),
+        url_prefixes=("/dashboard/telegram/",),
+        # Универсальный opt-in (как finance/jobs) — выключен по умолчанию у всех.
+        description_de="Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram.",
+    ),
+    ModuleSpec(
         key="settings",
         label_de="Einstellungen",
         icon="⚙️",

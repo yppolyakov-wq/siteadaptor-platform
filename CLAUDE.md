@@ -657,10 +657,26 @@ Python 3.12, менеджер uv.
     (`bot_token`/`chat_id`) и pinterest (`access_token`/`board_id`). Токены —
     per-канал вручную (как GBP/Meta). Тесты `test_channels_extra`. Боевое — после
     Telegram-бота/Pinterest-токенов. Деплой: миграция publishing/0004.
-  - Дальше M23 (решения владельца 2026-06-14): **Telegram-бот для бизнесов** (свой
-    бот на тенанта + боты агрегатор-порталов, объём v1 = **Mini App** — витрина
-    внутри Telegram; отдельный модуль, разбить на инкременты) → M23c платная
-    реклама (Campaign/AdInsight). TikTok отложен (видео + аудит API — низкий fit).
+  - **Telegram-бот для бизнесов (в работе; решение владельца: свой бот на тенанта +
+    боты агрегатор-порталов, объём v1 = Mini App):**
+    - TG1 ядро бизнес-бота (✅ в `main`, CI зелёный, миграция telegram/0001): новое
+      `apps.telegram` (TENANT) — модель `TelegramBot` (token из @BotFather,
+      bot_username, webhook_secret, is_active; одна строка на тенанта). Публичный
+      webhook `/tg/<secret>/` (csrf-exempt, на домене арендатора — TenantMain
+      резолвит схему по хосту; опц. заголовок X-Telegram-Bot-Api-Secret-Token;
+      всегда 200). `webhook.handle_update`: на /start (и любое сообщение) бот шлёт
+      кнопку «Open shop» с `web_app` → витрина как **Telegram Mini App**. Кабинет
+      `/dashboard/telegram/` (nav «Telegram»): ввод токена → getMe + setWebhook,
+      тумблер connect/disconnect. Модуль «telegram» — universal opt-in (как
+      finance/jobs, выкл. по умолчанию). DSGVO: chat_id/переписка = PII (не-EU),
+      в AVV; v1 чат не хранит. Тесты `test_telegram`. **Урок (снова):** новый
+      optional-модуль → дополнить хардкод-наборы в test_modules (+telegram).
+    - Дальше TG: TG2 Mini App polish (telegram-web-app.js, MainButton, initData) →
+      TG3 уведомления в Telegram (доставка notifications, привязка Customer↔chat_id
+      по deep-link) → TG4 боты агрегатор-порталов (SHARED). Деплой TG1: миграция
+      telegram/0001 + `apps.telegram` в TENANT_APPS.
+  - Дальше M23 после Telegram: M23c платная реклама (Campaign/AdInsight). TikTok
+    отложен (видео + аудит API — низкий fit).
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

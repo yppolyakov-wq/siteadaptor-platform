@@ -167,16 +167,41 @@ def test_gating_skips_public_schema():
     ("business_type", "disabled"),
     [
         # jobs — universal opt-in (recommended_for=()) → disabled у всех вертикалей.
-        ("bakery", {"crm", "booking", "stays", "jobs", "analytics", "publishing", "finance"}),
-        ("restaurant", {"crm", "orders", "stays", "jobs", "analytics", "publishing", "finance"}),
+        (
+            "bakery",
+            {"crm", "booking", "stays", "jobs", "analytics", "publishing", "finance", "telegram"},
+        ),
+        (
+            "restaurant",
+            {"crm", "orders", "stays", "jobs", "analytics", "publishing", "finance", "telegram"},
+        ),
         (
             "retail",
-            {"crm", "booking", "stays", "jobs", "loyalty", "analytics", "publishing", "finance"},
+            {
+                "crm",
+                "booking",
+                "stays",
+                "jobs",
+                "loyalty",
+                "analytics",
+                "publishing",
+                "finance",
+                "telegram",
+            },
         ),
         # hotel: stays рекомендован вертикали → НЕ в дефолтном disabled (jobs — да).
         (
             "hotel",
-            {"promotions", "orders", "jobs", "loyalty", "analytics", "publishing", "finance"},
+            {
+                "promotions",
+                "orders",
+                "jobs",
+                "loyalty",
+                "analytics",
+                "publishing",
+                "finance",
+                "telegram",
+            },
         ),
         (
             "other",
@@ -190,6 +215,7 @@ def test_gating_skips_public_schema():
                 "analytics",
                 "publishing",
                 "finance",
+                "telegram",
             },
         ),
     ],
@@ -255,6 +281,7 @@ class TestModulesView:
             "publishing",
             "finance",
             "inbox",
+            "telegram",
         }
         # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
         response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
@@ -271,6 +298,7 @@ class TestModulesView:
             "publishing",
             "finance",
             "inbox",
+            "telegram",
         }
         assert modules.is_module_active(tenant, "catalog")  # core живёт
 
