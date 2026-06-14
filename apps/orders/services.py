@@ -42,7 +42,9 @@ def _reserve_stock(norm):
     from apps.catalog.models import Product, ProductVariant
 
     # Стабильный порядок блокировок — меньше шанс дедлока при конкуренции.
-    for product, variant, qty in sorted(norm, key=lambda i: str(i[1].pk if i[1] else i[0].pk)):
+    for product, variant, qty, _options in sorted(
+        norm, key=lambda i: str(i[1].pk if i[1] else i[0].pk)
+    ):
         if variant is not None:
             row = ProductVariant.objects.select_for_update().get(pk=variant.pk)
             title = f"{product} · {variant.label}"
@@ -108,17 +110,24 @@ def create_order(
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
-    items — кортежи (product, qty) ИЛИ (product, variant, qty); variant=None =
-    товар без вариантов. Для доставки (fulfillment=delivery) total включает
-    shipping_cents. Бросает EmptyOrder без позиций и ValueError при qty < 1.
+    items — кортежи (product, qty) ИЛИ (product, variant, qty) ИЛИ
+    (product, variant, qty, options); variant=None = товар без вариантов,
+    options — список ModifierOption (A4b, надбавка к цене позиции). Для доставки
+    (fulfillment=delivery) total включает shipping_cents. Бросает EmptyOrder без
+    позиций и ValueError при qty < 1.
     """
     norm = []
     for item in items:
-        product, variant, qty = item if len(item) == 3 else (item[0], None, item[1])
-        norm.append((product, variant, int(qty)))
+        if len(item) == 4:
+            product, variant, qty, options = item
+        elif len(item) == 3:
+            product, variant, qty, options = item[0], item[1], item[2], []
+        else:
+            product, variant, qty, options = item[0], None, item[1], []
+        norm.append((product, variant, int(qty), list(options)))
     if not norm:
         raise EmptyOrder()
-    if any(qty < 1 for _p, _v, qty in norm):
+    if any(qty < 1 for _p, _v, qty, _o in norm):
         raise ValueError("qty must be >= 1")
 
     _reserve_stock(norm)  # R3: атомарное списание; OutOfStock → откат, заказа нет
@@ -138,11 +147,14 @@ def create_order(
         shipping_cents=shipping,
     )
     total = Decimal("0")
-    for product, variant, qty in norm:
+    for product, variant, qty, options in norm:
         # DecimalField не приводит атрибут у не перезагруженных из БД
         # инстансов — нормализуем явно. Цена варианта: своя или base_price.
         base = variant.price_value if variant is not None else product.base_price
-        unit_price = Decimal(str(base))
+        # A4b: надбавки модификаторов входят в unit_price; снимок — отдельно.
+        deltas = sum((Decimal(str(o.price_delta)) for o in options), Decimal("0"))
+        unit_price = Decimal(str(base)) + deltas
+        modifiers = [{"label": o.label, "delta": str(o.price_delta)} for o in options]
         label = variant.label if variant is not None else ""
         title = f"{product} · {label}" if label else str(product)
         OrderItem.objects.create(
@@ -153,6 +165,7 @@ def create_order(
             qty=qty,
             unit_price=unit_price,
             title_snapshot=title[:200],
+            modifiers=modifiers,
         )
         total += unit_price * qty
     order.total = total + Decimal(shipping) / 100  # G4: доставка в итог

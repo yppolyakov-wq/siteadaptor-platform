@@ -17,6 +17,7 @@
     <div class="flex items-center justify-between gap-3 px-4 py-3">
       <div class="min-w-0">
         <p class="font-medium truncate">{{ r.product }}{% if r.variant %} · {{ r.variant.label }}{% endif %}</p>
+        {% if r.options %}<p class="text-xs text-gray-500">{% for o in r.options %}{{ o.label }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
         <p class="text-xs text-gray-400">{{ r.qty }}× {{ r.unit_price }} {{ currency }}</p>
       </div>
       <form method="post" action="{% url 'storefront-cart-remove' %}">

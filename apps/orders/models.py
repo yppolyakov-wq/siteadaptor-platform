@@ -112,6 +112,9 @@ class OrderItem(TimestampedModel):
     # Снимки цены/названия: заказ показывает то, что видел клиент.
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     title_snapshot = models.CharField(max_length=200)
+    # Снимок выбранных модификаторов/Extras (A4b): [{"label","delta"}]. Надбавка
+    # уже включена в unit_price; список — для отображения в заказе/письмах.
+    modifiers = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["created_at"]
@@ -122,3 +125,8 @@ class OrderItem(TimestampedModel):
     @property
     def line_total(self):
         return self.unit_price * self.qty
+
+    @property
+    def modifiers_label(self) -> str:
+        """«Pommes, Käse» — выбранные модификаторы для отображения (A4b)."""
+        return ", ".join(m.get("label", "") for m in (self.modifiers or []))

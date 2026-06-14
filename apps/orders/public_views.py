@@ -38,38 +38,69 @@ def _cart(request) -> dict:
     return cart if isinstance(cart, dict) else {}
 
 
-def _cart_items(request):
-    """[(product, variant|None, qty), …]; исчезнувшие/неактивные позиции отбрасываем.
+def _split_key(key):
+    """Ключ корзины «pid:vid:o1-o2» → (pid, vid, [option_ids]).
 
-    Ключ корзины — «pid:vid» (vid пустой = товар без варианта; старые ключи без
-    «:» читаются как без варианта).
+    Сегменты опциональны (обратная совместимость): «pid», «pid:vid», «pid:vid:».
+    """
+    parts = key.split(":")
+    pid = parts[0]
+    vid = parts[1] if len(parts) > 1 else ""
+    # Разделитель опций — запятая (НЕ дефис: UUID содержит дефисы).
+    opt_ids = parts[2].split(",") if len(parts) > 2 and parts[2] else []
+    return pid, vid, opt_ids
+
+
+def _cart_key(product, variant, options) -> str:
+    """«pid:vid» или «pid:vid:o1-o2» — разные наборы Extras = разные позиции.
+
+    Без опций третий сегмент не добавляем (совместимость со старыми ключами).
+    """
+    base = f"{product.pk}:{variant.pk if variant else ''}"
+    if not options:
+        return base
+    return base + ":" + ",".join(sorted(str(o.pk) for o in options))
+
+
+def _cart_items(request):
+    """[(product, variant|None, [options], qty), …]; мёртвые позиции отбрасываем.
+
+    Ключ корзины — «pid:vid:o1-o2» (vid пустой = без варианта; третий сегмент —
+    выбранные опции модификаторов, A4b). Старые ключи «pid»/«pid:vid» читаются.
     """
     from apps.catalog.models import Product, ProductVariant
+    from apps.catalog.modifiers import options_from_ids
 
     cart = _cart(request)
-    parsed = [(key.partition(":")[0], key.partition(":")[2], qty) for key, qty in cart.items()]
+    parsed = [(*_split_key(key), qty) for key, qty in cart.items()]
     products = {
         str(p.pk): p
-        for p in Product.objects.filter(pk__in={pid for pid, _v, _q in parsed}, is_active=True)
+        for p in Product.objects.filter(
+            pk__in={pid for pid, _v, _o, _q in parsed}, is_active=True
+        ).prefetch_related("modifier_groups__options")
     }
-    variant_ids = {vid for _p, vid, _q in parsed if vid}
+    variant_ids = {vid for _p, vid, _o, _q in parsed if vid}
     variants = {
         str(v.pk): v for v in ProductVariant.objects.filter(pk__in=variant_ids, is_active=True)
     }
     items = []
-    for pid, vid, qty in parsed:
+    for pid, vid, opt_ids, qty in parsed:
         product = products.get(pid)
         if product is None:
             continue
         variant = variants.get(vid) if vid else None
         if vid and (variant is None or variant.product_id != product.pk):
             continue  # вариант исчез/чужой — позицию отбрасываем
-        items.append((product, variant, qty))
+        options = options_from_ids(product, opt_ids) if opt_ids else []
+        items.append((product, variant, options, qty))
     return items
 
 
-def _line_price(product, variant):
-    return variant.price_value if variant is not None else product.base_price
+def _line_price(product, variant, options=()):
+    from apps.catalog.modifiers import options_delta
+
+    base = variant.price_value if variant is not None else product.base_price
+    return base + options_delta(options)
 
 
 @require_POST
@@ -94,11 +125,20 @@ def cart_add(request):
         if variant is None:
             messages.error(request, _("Please choose an option."))
             return redirect("storefront-product", pk=product.pk)
+    # Модификаторы/Extras (A4b): валидируем выбор по правилам групп на сервере.
+    options = []
+    if product.has_modifiers:
+        from apps.catalog.modifiers import validate_selection
+
+        options, error = validate_selection(product, request.POST.getlist("mod"))
+        if error:
+            messages.error(request, error)
+            return redirect("storefront-product", pk=product.pk)
     try:
         qty = max(1, min(int(request.POST.get("qty", "1")), MAX_QTY))
     except (TypeError, ValueError):
         qty = 1
-    key = f"{product.pk}:{variant.pk if variant else ''}"
+    key = _cart_key(product, variant, options)
     cart = _cart(request)
     cart[key] = min(cart.get(key, 0) + qty, MAX_QTY)
     request.session[CART_SESSION_KEY] = cart
@@ -124,12 +164,13 @@ def cart_view(request):
         {
             "product": product,
             "variant": variant,
+            "options": options,
             "qty": qty,
-            "key": f"{product.pk}:{variant.pk if variant else ''}",
-            "unit_price": _line_price(product, variant),
-            "line_total": _line_price(product, variant) * qty,
+            "key": _cart_key(product, variant, options),
+            "unit_price": _line_price(product, variant, options),
+            "line_total": _line_price(product, variant, options) * qty,
         }
-        for product, variant, qty in items
+        for product, variant, options, qty in items
     ]
     total = sum((r["line_total"] for r in rows), start=Decimal("0"))
     tenant = getattr(request, "tenant", None)
@@ -171,7 +212,9 @@ def checkout(request):
     shipping_address = ""
     if delivery:
         items = _cart_items(request)
-        subtotal_cents = int(sum((_line_price(p, v) * q for p, v, q in items), Decimal("0")) * 100)
+        subtotal_cents = int(
+            sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0")) * 100
+        )
         street = request.POST.get("street", "").strip()
         plz = request.POST.get("plz", "").strip()
         city = request.POST.get("city", "").strip()
@@ -189,9 +232,12 @@ def checkout(request):
         shipping_cents = shipping_cost(tenant, subtotal_cents)
         shipping_address = f"{street}\n{plz} {city}"
 
+    # _cart_items даёт (product, variant, options, qty); create_order ждёт
+    # (product, variant, qty, options) — переставляем.
+    order_items = [(p, v, q, o) for p, v, o, q in _cart_items(request)]
     try:
         order = create_order(
-            items=_cart_items(request),
+            items=order_items,
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),

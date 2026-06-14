@@ -23,7 +23,7 @@
     <div class="divide-y divide-gray-100 border-y border-gray-100 mb-3">
       {% for item in items %}
         <div class="flex items-center justify-between py-2 text-sm">
-          <span>{{ item.qty }}× {{ item.title_snapshot }}</span>
+          <span>{{ item.qty }}× {{ item.title_snapshot }}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
           <span>{{ item.line_total }} {{ order.currency }}</span>
         </div>
       {% endfor %}

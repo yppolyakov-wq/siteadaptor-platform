@@ -57,6 +57,33 @@
               {% endfor %}
             </select>
           {% endif %}
+          {% if product.has_modifiers %}
+            {# A4b: модификаторы/Extras. single (max 1) — select; multi — checkbox; оба шлют «mod». #}
+            <div class="w-full space-y-3">
+              {% for g in product.modifier_groups_active %}
+                <div>
+                  <p class="text-sm font-medium text-gray-700">{{ g.name }}{% if g.is_required %} <span class="text-red-500">*</span>{% endif %}</p>
+                  {% if g.is_multi %}
+                    <div class="mt-1 space-y-1">
+                      {% for o in g.active_options %}
+                        <label class="flex items-center gap-2 text-sm text-gray-700">
+                          <input type="checkbox" name="mod" value="{{ o.pk }}">
+                          {{ o.label }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ product.currency }}</span>{% endif %}
+                        </label>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <select name="mod" {% if g.is_required %}required{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{{ g.name }}">
+                      {% if g.is_required %}<option value="" disabled selected>— {% trans "please choose" %} —</option>{% else %}<option value="">— {% trans "none" %} —</option>{% endif %}
+                      {% for o in g.active_options %}
+                        <option value="{{ o.pk }}">{{ o.label }}{% if o.price_delta %} (+{{ o.price_delta }} {{ product.currency }}){% endif %}</option>
+                      {% endfor %}
+                    </select>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
           <input type="number" name="qty" value="1" min="1" max="50" class="w-20 rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Quantity' %}">
           <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Order for pickup" %}</button>
         </form>
