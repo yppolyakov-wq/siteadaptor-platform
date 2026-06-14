@@ -53,11 +53,19 @@ def _promo_public_url(promotion) -> str:
 
 
 def _gbp_access_token(config) -> str:
+    # Платформенные ключи Google OAuth — из зашифрованного стора (админка) с
+    # фолбэком на settings/.env (apps.secrets); per-tenant refresh_token — в config.
+    from apps.secrets import store as secret_store
+
     response = requests.post(
         _GBP_TOKEN_URL,
         data={
-            "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
-            "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
+            "client_id": secret_store.get_or_setting(
+                "google_oauth_client_id", "GOOGLE_OAUTH_CLIENT_ID"
+            ),
+            "client_secret": secret_store.get_or_setting(
+                "google_oauth_client_secret", "GOOGLE_OAUTH_CLIENT_SECRET"
+            ),
             "refresh_token": config["refresh_token"],
             "grant_type": "refresh_token",
         },

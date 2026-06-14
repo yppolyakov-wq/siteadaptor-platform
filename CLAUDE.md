@@ -671,12 +671,31 @@ Python 3.12, менеджер uv.
       finance/jobs, выкл. по умолчанию). DSGVO: chat_id/переписка = PII (не-EU),
       в AVV; v1 чат не хранит. Тесты `test_telegram`. **Урок (снова):** новый
       optional-модуль → дополнить хардкод-наборы в test_modules (+telegram).
-    - Дальше TG: TG2 Mini App polish (telegram-web-app.js, MainButton, initData) →
-      TG3 уведомления в Telegram (доставка notifications, привязка Customer↔chat_id
-      по deep-link) → TG4 боты агрегатор-порталов (SHARED). Деплой TG1: миграция
-      telegram/0001 + `apps.telegram` в TENANT_APPS.
+    - TG2 Mini App polish (✅ в `main`, CI зелёный, без миграций): витрина
+      подключает Telegram Web App SDK (`telegram.org/js/telegram-web-app.js`) в
+      `storefront/_base.html`; внутри Telegram (есть `initData`) — `ready()`+
+      `expand()` и класс `in-telegram` на `<html>` (хук под стили); вне Telegram —
+      no-op. Тест в `catalog/test_storefront`. MainButton/тема per-page — позже.
+    - Дальше TG: TG3 уведомления в Telegram (доставка notifications, привязка
+      Customer↔chat_id по deep-link) → TG4 боты агрегатор-порталов (SHARED).
+      Деплой TG1: миграция telegram/0001 + `apps.telegram` в TENANT_APPS.
   - Дальше M23 после Telegram: M23c платная реклама (Campaign/AdInsight). TikTok
     отложен (видео + аудит API — низкий fit).
+- **Зашифрованные ключи интеграций в админке (✅ в `main`, CI зелёный, миграция
+  secrets/0001):** новое SHARED-приложение `apps.secrets` — модель `PlatformSecret`
+  (key + value зашифрован Fernet + description). Управляется в unfold-админке на
+  public: значение **write-only** (PasswordInput, в UI не показывается; пустой ввод
+  не затирает), список — признак «задан» + дата. `apps/secrets/crypto.py` (Fernet;
+  мастер-ключ `SECRETS_ENCRYPTION_KEY` из .env, фолбэк из SECRET_KEY для dev/CI;
+  битый токен → '' без падения). Аксессор `apps/secrets/store.py`: `get(key)` и
+  `get_or_setting(key, settings_attr)` — **читает в schema_context("public")**
+  (безопасно из схемы арендатора), **фолбэк на settings/.env** (прод не ломается,
+  пока секрет не задан). Первый потребитель — GBP Google OAuth client_id/secret
+  (`_gbp_access_token` → `get_or_setting`). Платформенные ключи, читаемые в рантайме
+  нашим кодом, мигрируются в стор по мере надобности (Stripe/email читаются
+  сторонними либами на старте — остаются в .env). Тесты `secrets/test_secrets`.
+  Деплой: миграция secrets/0001 + `apps.secrets` в SHARED_APPS; в проде задать
+  `SECRETS_ENCRYPTION_KEY` (Fernet.generate_key()).
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

@@ -37,6 +37,7 @@ SHARED_APPS = [
     "apps.audit",  # журнал действий (SHARED), дополнение 1.1
     "apps.integrations.webhooks",  # scaffold исходящих вебхуков (SHARED), доп. 1.4
     "apps.billing",  # Sprint 5 — биллинг/подписки (SHARED: статус подписки на Tenant)
+    "apps.secrets",  # M23+ — зашифрованные ключи интеграций, управляемые из админки (SHARED)
     # SHARED apps платформы (раскомментируются по мере прохождения спринтов)
     "apps.aggregator",  # Sprint 4 — локальный агрегатор (SHARED, материализованные листинги)
     "apps.support",  # M22c — платформенная техподдержка тенант↔SiteAdaptor (SHARED)
@@ -339,6 +340,13 @@ GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
 # Токены доступа — per-канал в кабинете; настройка — docs/meta-social-setup.md
 # ---------------------------------------------------------------------------
 META_GRAPH_API_VERSION = env("META_GRAPH_API_VERSION", default="v21.0")
+
+# ---------------------------------------------------------------------------
+# Шифрование платформенных секретов (apps.secrets). Если пусто — ключ выводится
+# из SECRET_KEY (dev/CI); в проде задаём отдельный Fernet-ключ в .env.prod:
+#   python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
+# ---------------------------------------------------------------------------
+SECRETS_ENCRYPTION_KEY = env("SECRETS_ENCRYPTION_KEY", default="")
 
 # ---------------------------------------------------------------------------
 # Media & storage
