@@ -64,6 +64,7 @@ TENANT_APPS = [
     "apps.jobs",  # G6 — Aufträge/Angebote / смета Handwerker (TENANT)
     "apps.inbox",  # M22 — чат/поддержка/тикеты клиент↔бизнес (TENANT)
     "apps.telegram",  # M23/TG1 — Telegram-бот бизнеса (Mini App) (TENANT)
+    "apps.events",  # A6 — события/ретриты: платный билет + ростер (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]

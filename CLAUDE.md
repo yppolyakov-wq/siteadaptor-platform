@@ -758,6 +758,27 @@ Python 3.12, менеджер uv.
   в кабинете. Креды `meta_app_id`/`meta_app_secret` (стор/.env META_APP_ID/SECRET).
   Тесты `publishing/test_oauth_meta`. Боевое — после Meta App Review + регистрации
   redirect_uri. **Дальше (опц.):** UI выбора страницы при нескольких страницах.
+- **A6 — событие/ретрит: платный билет + ростер (в работе; крупнейшая дыра
+  архетипа A6 ~60 %→):**
+  - A6a ядро (✅ в `main`, CI зелёный, миграции events/0001 + finance/0005): новое
+    `apps.events` (TENANT) — `Event` (title/starts_at/ends_at/`capacity` 0=безлимит/
+    `price_cents` за место/`questions` анкета/status draft-published-cancelled/
+    require_manual_confirm) + `Ticket` (event/customer PROTECT, код E-XXXXXX,
+    `quantity` мест, снимок price_cents, `answers` анкеты, payment-поля, status
+    pending-confirmed-attended-cancelled; ACTIVE_STATUSES занимают места);
+    `EventSM`/`TicketSM` (core.fsm); `services.book_ticket` — анти-овердрафт мест
+    под `select_for_update` на Event (capacity vs Σ quantity активных; безлимит=skip),
+    reuse Customer; `auto_confirm` создаёт pending и проводит FSM-ом (срабатывает
+    finance-хук). `TicketSM` confirmed → выручка в finance (source «event», **НДС
+    19 %**, идемпотентно; бесплатные/amount 0 — пропуск). Модуль «events» —
+    universal opt-in (как finance/jobs; suited_for tour_operator/other) + минимальный
+    кабинет `/dashboard/events/` (список; полный CRUD/ростер — A6b). Тесты
+    `events/test_events`. **Урок (снова):** новый optional-модуль → дополнить
+    хардкод-наборы test_modules (+events). Деплой: миграции events/0001 +
+    finance/0005 + `apps.events` в TENANT_APPS.
+  - Дальше: A6b кабинет (CRUD событий, ростер участников, CSV-экспорт, отметка
+    оплаты/посещения) → A6c витрина `/veranstaltung/` + покупка билета (анкета) с
+    оплатой через Stripe Connect (как E4/P2.5b) + письма.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

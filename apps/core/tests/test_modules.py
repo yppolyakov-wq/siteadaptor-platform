@@ -169,11 +169,31 @@ def test_gating_skips_public_schema():
         # jobs — universal opt-in (recommended_for=()) → disabled у всех вертикалей.
         (
             "bakery",
-            {"crm", "booking", "stays", "jobs", "analytics", "publishing", "finance", "telegram"},
+            {
+                "crm",
+                "booking",
+                "stays",
+                "jobs",
+                "analytics",
+                "publishing",
+                "finance",
+                "telegram",
+                "events",
+            },
         ),
         (
             "restaurant",
-            {"crm", "orders", "stays", "jobs", "analytics", "publishing", "finance", "telegram"},
+            {
+                "crm",
+                "orders",
+                "stays",
+                "jobs",
+                "analytics",
+                "publishing",
+                "finance",
+                "telegram",
+                "events",
+            },
         ),
         (
             "retail",
@@ -187,6 +207,7 @@ def test_gating_skips_public_schema():
                 "publishing",
                 "finance",
                 "telegram",
+                "events",
             },
         ),
         # hotel: stays рекомендован вертикали → НЕ в дефолтном disabled (jobs — да).
@@ -201,6 +222,7 @@ def test_gating_skips_public_schema():
                 "publishing",
                 "finance",
                 "telegram",
+                "events",
             },
         ),
         (
@@ -216,6 +238,7 @@ def test_gating_skips_public_schema():
                 "publishing",
                 "finance",
                 "telegram",
+                "events",
             },
         ),
     ],
@@ -282,6 +305,7 @@ class TestModulesView:
             "finance",
             "inbox",
             "telegram",
+            "events",
         }
         # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
         response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
@@ -299,6 +323,7 @@ class TestModulesView:
             "finance",
             "inbox",
             "telegram",
+            "events",
         }
         assert modules.is_module_active(tenant, "catalog")  # core живёт
 

@@ -189,6 +189,17 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen.",
     ),
     ModuleSpec(
+        key="events",
+        label_de="Veranstaltungen (Tickets)",
+        icon="🎟️",
+        nav_items=(NavItem("events:list", _("Events"), "events"),),
+        url_prefixes=("/dashboard/events/",),
+        # Билеты на мероприятия/ретриты — opt-in, универсальный (как finance/jobs);
+        # подходит студиям/гидам/организаторам сверх пресета.
+        suited_for=("tour_operator", "other"),
+        description_de="Veranstaltungen mit bezahlten Tickets und Teilnehmerliste.",
+    ),
+    ModuleSpec(
         key="inbox",
         label_de="Nachrichten (Chat & Support)",
         icon="💬",
