@@ -94,3 +94,11 @@ def test_sitemap_includes_products():
 def test_sitemap_without_products_skips_section():
     body = public_views.sitemap_xml(_req("/sitemap.xml")).content.decode()
     assert "/sortiment/" not in body
+
+
+def test_storefront_includes_telegram_miniapp_sdk():
+    """TG2: витрина подключает Telegram Web App SDK (Mini App)."""
+    ProductFactory(name={"de": "AktivBrot"})
+    body = public_views.product_list(_req()).content.decode()
+    assert "telegram.org/js/telegram-web-app.js" in body
+    assert "in-telegram" in body  # init-скрипт присутствует
