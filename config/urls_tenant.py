@@ -146,6 +146,8 @@ urlpatterns = [
     # Local SEO (Track B5): sitemap + robots на корне витрины.
     path("sitemap.xml", public_views.sitemap_xml, name="storefront-sitemap"),
     path("robots.txt", public_views.robots_txt, name="storefront-robots"),
+    # Каталог-фид (M23b): Google Merchant / Meta Commerce — загрузка по URL.
+    path("feed/google.xml", public_views.product_feed_xml, name="storefront-product-feed"),
 ]
 
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).

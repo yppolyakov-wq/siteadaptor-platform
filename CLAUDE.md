@@ -639,8 +639,19 @@ Python 3.12, менеджер uv.
     (как GBP; in-app OAuth — следующая итерация). Тесты `test_meta` (Graph API
     застаблен), настройка — `docs/meta-social-setup.md`. **Боевое — после доступа
     Meta** (App Review prod-permissions). Деплой: миграция publishing/0003.
-  - Дальше M23: M23b каталог-фид (Meta Commerce/Google Merchant) → M23c платная
-    реклама (Campaign/AdInsight).
+  - M23b каталог-фид (✅ в `main`, CI зелёный, без миграций): витрина отдаёт
+    product-feed `/feed/google.xml` (RSS 2.0 namespace `g:`, ест Google Merchant
+    Center и Meta Commerce Manager по URL). `apps/catalog/feed.py::build_google_feed`
+    (чистый билдер: URL-функции снаружи — домен из request, мульти-тенант); вьюха
+    `promotions.public_views.product_feed_xml` + маршрут `storefront-product-feed`.
+    Активные товары; варианты R1 — отдельные `item` с общим `g:item_group_id`;
+    наличие из R3; цена base/variant; фото абсолютизируется доменом арендатора.
+    Тесты `catalog/test_feed`. Подключение — `docs/meta-social-setup.md §M23b`.
+  - Дальше M23 (решения владельца 2026-06-14): доп.каналы постинга **Pinterest +
+    Telegram-канал** (адаптеры publishing, как FB/IG) → **Telegram-бот для бизнесов**
+    (свой бот на тенанта + боты агрегатор-порталов, объём v1 = **Mini App** —
+    витрина внутри Telegram; отдельный модуль) → M23c платная реклама
+    (Campaign/AdInsight). TikTok отложен (видео + аудит API — низкий fit).
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

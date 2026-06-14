@@ -17,6 +17,7 @@ from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from apps.core import ratelimit
 from apps.core.pagination import paginate
@@ -358,3 +359,30 @@ def robots_txt(request):
     sitemap = request.build_absolute_uri(reverse("storefront-sitemap"))
     body = f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n"
     return HttpResponse(body, content_type="text/plain")
+
+
+def product_feed_xml(request):
+    """Product-feed (M23b): Google Merchant / Meta Commerce RSS по активным товарам.
+
+    Публичный URL на субдомене бизнеса; площадки тянут по расписанию. Домен —
+    из request (мульти-тенант). Без фото/идентификатора товар всё равно в фиде.
+    """
+    from apps.catalog.feed import build_google_feed
+    from apps.catalog.models import Product
+
+    products = (
+        Product.objects.filter(is_active=True).prefetch_related("variants").order_by("-created_at")
+    )
+    tenant = getattr(request, "tenant", None)
+    name = getattr(tenant, "name", "") or "Shop"
+    xml = build_google_feed(
+        products=products,
+        title=name,
+        link=request.build_absolute_uri(reverse("storefront-home")),
+        description=_("Products from %(name)s") % {"name": name},
+        product_url=lambda p: request.build_absolute_uri(
+            reverse("storefront-product", args=[p.pk])
+        ),
+        absolutize=request.build_absolute_uri,
+    )
+    return HttpResponse(xml, content_type="application/xml")
