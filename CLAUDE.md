@@ -640,7 +640,24 @@ Python 3.12, менеджер uv.
     застаблен), настройка — `docs/meta-social-setup.md`. **Боевое — после доступа
     Meta** (App Review prod-permissions). Деплой: миграция publishing/0003.
   - Дальше M23: M23b каталог-фид (Meta Commerce/Google Merchant) → M23c платная
-    реклама (Campaign/AdInsight). Сейчас по плану владельца — A4 (Gastro-модификаторы).
+    реклама (Campaign/AdInsight).
+- **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
+  - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
+    catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,
+    sort, is_active) + `ModifierOption` (FK group, `label`, `price_delta` Decimal —
+    надбавка к цене позиции, sort, active). Правило выбора: min>=1 — обязательная;
+    max==1 — одиночный (radio); max>1 — до N (checkbox); max==0 — без предела
+    (валидация на витрине — A4b). `Product.has_modifiers`/`modifier_groups_active`;
+    `ModifierGroup.is_required`/`is_multi`/`active_options`. Кабинет: CRUD групп и
+    опций на странице товара (`catalog/product_form.html`, паттерн variant CRUD),
+    вьюхи `modifier_group_*`/`modifier_option_*` + URLs. Модификаторы — часть
+    catalog (core-модуль), без нового модуля; для не-гастро просто пусто. Тесты
+    `test_modifiers`. Деплой: миграция catalog/0005.
+  - A4b (следующий инкремент): витрина — выбор модификаторов на странице товара
+    (radio/checkbox по min/max, валидация min/max/required на сервере); корзина
+    C&C — ключ позиции включает выбор опций; `OrderItem` — снимок выбранных опций
+    (label + delta) + надбавка в `unit_price`/`line_total`. Затем (A4): доставка
+    гастро (reuse orders G4 — уже есть), опц. KDS.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
