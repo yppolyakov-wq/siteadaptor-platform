@@ -15,6 +15,8 @@ class Channel(TimestampedModel):
     GOOGLE_BUSINESS = "google_business"
     FACEBOOK = "facebook"
     INSTAGRAM = "instagram"
+    TELEGRAM = "telegram"
+    PINTEREST = "pinterest"
     CHANNEL_TYPES = [
         (LOG, "Log (internal)"),
         # Track B1: Google Posts; настройка — docs/gbp-setup.md
@@ -22,6 +24,9 @@ class Channel(TimestampedModel):
         # M23a: соц-постинг (Meta Graph API); настройка — docs/meta-social-setup.md
         (FACEBOOK, "Facebook"),
         (INSTAGRAM, "Instagram"),
+        # M23 доп.каналы: постинг в Telegram-канал бизнеса и Pinterest
+        (TELEGRAM, "Telegram"),
+        (PINTEREST, "Pinterest"),
     ]
 
     type = models.CharField(max_length=30, choices=CHANNEL_TYPES, default=LOG)

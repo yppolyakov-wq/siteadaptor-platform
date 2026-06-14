@@ -49,6 +49,8 @@ _CONFIG_FIELDS = {
     Channel.GOOGLE_BUSINESS: ("location", "refresh_token"),
     Channel.FACEBOOK: ("page_id", "access_token"),
     Channel.INSTAGRAM: ("ig_user_id", "access_token"),
+    Channel.TELEGRAM: ("bot_token", "chat_id"),
+    Channel.PINTEREST: ("access_token", "board_id"),
 }
 
 

@@ -647,11 +647,20 @@ Python 3.12, менеджер uv.
     Активные товары; варианты R1 — отдельные `item` с общим `g:item_group_id`;
     наличие из R3; цена base/variant; фото абсолютизируется доменом арендатора.
     Тесты `catalog/test_feed`. Подключение — `docs/meta-social-setup.md §M23b`.
-  - Дальше M23 (решения владельца 2026-06-14): доп.каналы постинга **Pinterest +
-    Telegram-канал** (адаптеры publishing, как FB/IG) → **Telegram-бот для бизнесов**
-    (свой бот на тенанта + боты агрегатор-порталов, объём v1 = **Mini App** —
-    витрина внутри Telegram; отдельный модуль) → M23c платная реклама
-    (Campaign/AdInsight). TikTok отложен (видео + аудит API — низкий fit).
+  - M23 доп.каналы Telegram-канал + Pinterest (✅ в `main`, CI зелёный, миграция
+    publishing/0004): новые типы `Channel` telegram/pinterest поверх того же
+    фреймворка. `_tg_publish` (Bot API sendPhoto при фото, иначе sendMessage,
+    ссылка в тексте; бот = админ канала; external_ref «chat_id:message_id») +
+    `_tg_remove` (deleteMessage; нет ref / 400 = no-op); `_pinterest_publish`
+    (API v5 POST /pins, **требует фото**, board_id+ссылка) + `_pinterest_remove`
+    (DELETE /pins/{id}, 404 = no-op). Кабинет Channels: конфиг telegram
+    (`bot_token`/`chat_id`) и pinterest (`access_token`/`board_id`). Токены —
+    per-канал вручную (как GBP/Meta). Тесты `test_channels_extra`. Боевое — после
+    Telegram-бота/Pinterest-токенов. Деплой: миграция publishing/0004.
+  - Дальше M23 (решения владельца 2026-06-14): **Telegram-бот для бизнесов** (свой
+    бот на тенанта + боты агрегатор-порталов, объём v1 = **Mini App** — витрина
+    внутри Telegram; отдельный модуль, разбить на инкременты) → M23c платная
+    реклама (Campaign/AdInsight). TikTok отложен (видео + аудит API — низкий fit).
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

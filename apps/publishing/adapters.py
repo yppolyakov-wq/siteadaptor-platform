@@ -240,12 +240,117 @@ def _ig_remove(publication) -> None:
     return
 
 
+# --- Telegram-канал бизнеса (M23, Bot API) -----------------------------------
+
+_TG_API = "https://api.telegram.org"
+
+
+def _tg_publish(publication) -> str:
+    """Пост в Telegram-канал бизнеса. Бот должен быть админом канала.
+
+    external_ref = «chat_id:message_id» (для удаления). С фото → sendPhoto,
+    иначе sendMessage; ссылка на акцию — в тексте (Telegram кликабелен).
+    """
+    config = publication.channel.config or {}
+    missing = [key for key in ("bot_token", "chat_id") if not config.get(key)]
+    if missing:
+        raise RuntimeError(f"Telegram nicht konfiguriert: {', '.join(missing)} fehlt")
+
+    promotion = publication.promotion
+    text = _promo_caption(promotion)
+    link = _promo_public_url(promotion)
+    if link:
+        text = f"{text}\n\n{link}"
+    image = _promo_image_url(promotion)
+    token, chat_id = config["bot_token"], config["chat_id"]
+
+    if image:
+        endpoint = f"{_TG_API}/bot{token}/sendPhoto"
+        data = {"chat_id": chat_id, "photo": image, "caption": text}
+    else:
+        endpoint = f"{_TG_API}/bot{token}/sendMessage"
+        data = {"chat_id": chat_id, "text": text}
+    response = requests.post(endpoint, data=data, timeout=20)
+    response.raise_for_status()
+    result = response.json().get("result", {})
+    message_id = result.get("message_id", "")
+    return f"{chat_id}:{message_id}" if message_id else ""
+
+
+def _tg_remove(publication) -> None:
+    config = publication.channel.config or {}
+    if not publication.external_ref or not config.get("bot_token"):
+        return
+    chat_id, _, message_id = publication.external_ref.rpartition(":")
+    if not message_id:
+        return
+    response = requests.post(
+        f"{_TG_API}/bot{config['bot_token']}/deleteMessage",
+        data={"chat_id": chat_id, "message_id": message_id},
+        timeout=20,
+    )
+    # 400 = сообщение уже удалено/недоступно → идемпотентно
+    if response.status_code not in (200, 400):
+        response.raise_for_status()
+
+
+# --- Pinterest (M23, API v5) -------------------------------------------------
+
+_PINTEREST_API = "https://api.pinterest.com/v5"
+
+
+def _pinterest_publish(publication) -> str:
+    """Создать Pin (картинка + ссылка на акцию). Pinterest требует изображение."""
+    config = publication.channel.config or {}
+    missing = [key for key in ("access_token", "board_id") if not config.get(key)]
+    if missing:
+        raise RuntimeError(f"Pinterest nicht konfiguriert: {', '.join(missing)} fehlt")
+
+    promotion = publication.promotion
+    image = _promo_image_url(promotion)
+    if not image:
+        raise RuntimeError("Pinterest benötigt ein Bild für die Aktion")
+
+    body = {
+        "board_id": config["board_id"],
+        "title": promotion.title_text[:100],
+        "description": promotion.description_text[:800],
+        "media_source": {"source_type": "image_url", "url": image},
+    }
+    link = _promo_public_url(promotion)
+    if link:
+        body["link"] = link
+    response = requests.post(
+        f"{_PINTEREST_API}/pins",
+        json=body,
+        headers={"Authorization": f"Bearer {config['access_token']}"},
+        timeout=20,
+    )
+    response.raise_for_status()
+    return response.json().get("id", "")
+
+
+def _pinterest_remove(publication) -> None:
+    config = publication.channel.config or {}
+    if not publication.external_ref or not config.get("access_token"):
+        return
+    response = requests.delete(
+        f"{_PINTEREST_API}/pins/{publication.external_ref}",
+        headers={"Authorization": f"Bearer {config['access_token']}"},
+        timeout=20,
+    )
+    if response.status_code != 404:  # 404 = пин уже удалён
+        response.raise_for_status()
+
+
 # type → (publish, remove)
 _ADAPTERS = {
     "log": (_log_publish, _log_remove),
     "google_business": (_gbp_publish, _gbp_remove),
     "facebook": (_fb_publish, _fb_remove),
     "instagram": (_ig_publish, _ig_remove),
+    "telegram": (_tg_publish, _tg_remove),
+    "pinterest": (_pinterest_publish, _pinterest_remove),
 }
 
 
