@@ -48,6 +48,13 @@ def provision(tenant_id, email, password_hash) -> str:
             if not User.objects.filter(username=email).exists():
                 owner = User(username=email, email=email, password=password_hash)
                 owner.save()
+            # Роль владельца (M6-шов): идемпотентно, переживает повторный провижининг.
+            from apps.core.models import Membership
+
+            Membership.objects.get_or_create(
+                user=User.objects.get(username=email),
+                defaults={"role": Membership.ROLE_OWNER},
+            )
         tenant.provisioning_status = Tenant.PROVISIONING_READY
         tenant.save(update_fields=["provisioning_status", "updated_at"])
     except Exception:

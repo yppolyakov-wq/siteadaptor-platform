@@ -65,6 +65,15 @@ class Order(TimestampedModel):
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
     shipped_at = models.DateTimeField(null=True, blank=True)
 
+    # Швы под маркетплейс/dropshipping (M11→M14/M15, master-plan §7) — ПАССИВНЫЕ,
+    # логики наследования пока нет. parent_order — дочерний заказ в цепочке (в этой
+    # же схеме; кросс-тенантную привязку добавим с модулем); supplier_tenant_schema —
+    # схема бизнеса-поставщика, исполняющего заказ (кросс-тенантно, как у aggregator).
+    parent_order = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="child_orders"
+    )
+    supplier_tenant_schema = models.CharField(max_length=63, blank=True)
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [

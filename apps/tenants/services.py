@@ -99,10 +99,13 @@ def create_business(*, business_name, slug, business_type, city, email, password
     domain_host = f"{slug}.{base.split(':')[0]}"  # без порта в самой записи Domain
     Domain.objects.create(domain=domain_host, tenant=tenant, is_primary=True)
 
-    # Первый пользователь — внутри схемы арендатора.
+    # Первый пользователь — внутри схемы арендатора, с ролью владельца (M6-шов).
     User = get_user_model()
     with tenant_context(tenant):
-        User.objects.create_user(username=email, email=email, password=password)
+        from apps.core.models import Membership
+
+        owner = User.objects.create_user(username=email, email=email, password=password)
+        Membership.objects.get_or_create(user=owner, defaults={"role": Membership.ROLE_OWNER})
 
     return tenant, login_url_for(tenant)
 

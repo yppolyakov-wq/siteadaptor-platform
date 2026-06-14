@@ -89,6 +89,10 @@ def test_provision_creates_schema_owner_and_emails():
         with tenant_context(tenant):
             owner = User.objects.get(username=EMAIL)
             assert owner.check_password("s3cretpass")  # хэш доехал корректно
+            # M6-шов: владелец получает роль owner при провижининге
+            from apps.core.models import Membership
+
+            assert Membership.objects.get(user=owner).role == Membership.ROLE_OWNER
 
         ready = [m for m in mail.outbox if "bereit" in m.subject]
         assert ready and "/accounts/login/" in ready[0].body

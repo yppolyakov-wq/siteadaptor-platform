@@ -4,11 +4,13 @@
 - TimestampedModel / I18nMixin — phase1-implementation-guide.md, Часть 2
 - SoftDeleteMixin            — docs/references/patterns/soft-delete.md
 
-Все модели абстрактные → миграций в этом приложении нет.
+Миксины абстрактные; единственная конкретная таблица — Membership (шов ролей
+multi-user, M6 / master-plan §7).
 """
 
 import uuid
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import get_language
@@ -103,3 +105,30 @@ class SoftDeleteMixin(TimestampedModel):
     @property
     def is_deleted(self) -> bool:
         return self.deleted_at is not None
+
+
+class Membership(TimestampedModel):
+    """Роль пользователя в тенанте (M6 / master-plan §7, шов multi-user).
+
+    TENANT-scope: пользователи пер-тенантные (`django.contrib.auth` — TENANT_APP),
+    поэтому членство живёт в схеме бизнеса. Сейчас ролевой гейтинг во вьюхах НЕ
+    применяется (один владелец = owner); модель + `roles.role_of()` — точка
+    централизации под будущее приглашение сотрудников (admin/staff), чтобы
+    добавление прав было аддитивным, без ретрофита логики.
+    """
+
+    ROLE_OWNER = "owner"
+    ROLE_ADMIN = "admin"
+    ROLE_STAFF = "staff"
+    ROLES = [(ROLE_OWNER, "Owner"), (ROLE_ADMIN, "Admin"), (ROLE_STAFF, "Staff")]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="membership"
+    )
+    role = models.CharField(max_length=20, choices=ROLES, default=ROLE_OWNER)
+
+    class Meta:
+        ordering = ["role"]
+
+    def __str__(self):
+        return f"{self.user} · {self.role}"

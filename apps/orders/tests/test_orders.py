@@ -156,3 +156,21 @@ def test_product_page_hides_order_button_when_disabled():
         _req(path=f"/sortiment/{product.pk}/", tenant=tenant_off), pk=product.pk
     ).content.decode()
     assert "warenkorb/add" not in off
+
+
+def test_order_marketplace_hooks_persist():
+    """Швы dropshipping/маркетплейс (master-plan §7) — пассивные, но сохраняются."""
+    from apps.orders.models import Order
+    from apps.promotions.models import Customer
+
+    customer = Customer.objects.create(name="Kette")
+    parent = Order.objects.create(customer=customer, reference_code="O-PAR001")
+    child = Order.objects.create(
+        customer=customer,
+        reference_code="O-CHI001",
+        parent_order=parent,
+        supplier_tenant_schema="lieferant_x",
+    )
+    assert child.parent_order_id == parent.id
+    assert list(parent.child_orders.all()) == [child]
+    assert child.supplier_tenant_schema == "lieferant_x"
