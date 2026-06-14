@@ -1,0 +1,76 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{{ event.title }}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-1">
+  <h1 class="text-2xl font-bold">{{ event.title }}</h1>
+  <a href="{% url 'events:edit' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+</div>
+<p class="text-sm text-gray-500 mb-4">
+  {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %}
+  · {{ event.price_eur }} €
+  {% if event.capacity %}· {{ event.seats_sold }}/{{ event.capacity }} {% trans "seats" %}{% else %}· {{ event.seats_sold }} {% trans "tickets" %}{% endif %}
+</p>
+
+{# Статус события + действия #}
+<form method="post" action="{% url 'events:action' event.pk %}" class="flex items-center gap-2 mb-6">
+  {% csrf_token %}
+  <span class="text-sm {% if event.is_published %}text-green-600{% else %}text-gray-400{% endif %}">{{ event.get_status_display }}</span>
+  {% if event.status == 'draft' %}
+    <button name="target" value="published" class="text-sm bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700">{% trans "Publish" %}</button>
+  {% elif event.status == 'published' %}
+    <button name="target" value="draft" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5">{% trans "Unpublish" %}</button>
+    <button name="target" value="cancelled" class="text-sm text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Cancel event" %}</button>
+  {% endif %}
+</form>
+
+<div class="flex items-center justify-between mb-2">
+  <h2 class="text-lg font-semibold">{% trans "Attendees" %}</h2>
+  <a href="{% url 'events:roster-csv' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Export CSV" %}</a>
+</div>
+
+{% if tickets %}
+<div class="overflow-x-auto bg-white border border-gray-200 rounded-lg">
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-gray-400 border-b">
+      <th class="py-2 px-3">{% trans "Code" %}</th><th class="px-3">{% trans "Name" %}</th>
+      <th class="px-3">{% trans "Seats" %}</th><th class="px-3">{% trans "Status" %}</th>
+      <th class="px-3">{% trans "Paid" %}</th><th class="px-3"></th>
+    </tr></thead>
+    <tbody>
+      {% for t in tickets %}
+        <tr class="border-b border-gray-50">
+          <td class="py-2 px-3 font-mono text-xs">{{ t.reference_code }}</td>
+          <td class="px-3">{{ t.customer.name }}<div class="text-xs text-gray-400">{{ t.customer.email }}</div></td>
+          <td class="px-3">{{ t.quantity }}</td>
+          <td class="px-3">{{ t.get_status_display }}</td>
+          <td class="px-3">{% if t.payment_state == 'paid' %}<span class="text-green-600">✓</span>{% else %}{{ t.get_payment_state_display }}{% endif %}</td>
+          <td class="px-3 py-2">
+            <form method="post" action="{% url 'events:ticket-action' event.pk t.pk %}" class="flex flex-wrap gap-1 justify-end">
+              {% csrf_token %}
+              {% if t.status == 'pending' %}<button name="target" value="confirmed" class="text-xs border rounded px-2 py-1">{% trans "Confirm" %}</button>{% endif %}
+              {% if t.status == 'confirmed' %}<button name="target" value="attended" class="text-xs border rounded px-2 py-1">{% trans "Attended" %}</button>{% endif %}
+              {% if t.payment_state != 'paid' and t.status != 'cancelled' %}<button name="target" value="paid" class="text-xs border rounded px-2 py-1">{% trans "Paid" %}</button>{% endif %}
+              {% if t.status != 'cancelled' and t.status != 'attended' %}<button name="target" value="cancelled" class="text-xs text-red-600 border border-red-200 rounded px-2 py-1">✕</button>{% endif %}
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="text-gray-400 text-sm mb-4">{% trans "No attendees yet." %}</p>
+{% endif %}
+
+{# Ручная запись участника #}
+<form method="post" action="{% url 'events:ticket-add' event.pk %}" class="mt-4 flex flex-wrap items-end gap-2 bg-white border border-gray-200 rounded-lg p-4">
+  {% csrf_token %}
+  <input name="name" required placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  <input name="phone" placeholder="{% trans 'Phone' %}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  <input name="quantity" type="number" min="1" value="1" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Seats' %}">
+  <button class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Add attendee" %}</button>
+</form>
+{% endblock %}

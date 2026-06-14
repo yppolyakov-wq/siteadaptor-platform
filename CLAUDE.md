@@ -776,9 +776,15 @@ Python 3.12, менеджер uv.
     `events/test_events`. **Урок (снова):** новый optional-модуль → дополнить
     хардкод-наборы test_modules (+events). Деплой: миграции events/0001 +
     finance/0005 + `apps.events` в TENANT_APPS.
-  - Дальше: A6b кабинет (CRUD событий, ростер участников, CSV-экспорт, отметка
-    оплаты/посещения) → A6c витрина `/veranstaltung/` + покупка билета (анкета) с
-    оплатой через Stripe Connect (как E4/P2.5b) + письма.
+  - A6b кабинет (✅ в `main`, CI зелёный, без миграций): `/dashboard/events/` —
+    CRUD событий (`EventForm`: цена в € → cents, анкета построчно → questions,
+    datetime-local), карточка с ростером участников + действия EventSM
+    (publish/unpublish/cancel) и TicketSM (confirm/attended/cancel) + «mark paid»
+    (payment_state=paid, авто-confirm pending), ручная запись участника
+    (book_ticket auto_confirm), CSV-ростер (utf-8-sig, колонки по вопросам анкеты).
+    Тесты `events/test_cabinet`.
+  - Дальше: A6c витрина `/veranstaltung/` + покупка билета (анкета) с оплатой
+    через Stripe Connect (как E4/P2.5b) + письма.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,
