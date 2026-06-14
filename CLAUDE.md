@@ -598,6 +598,20 @@ Python 3.12, менеджер uv.
     вьюхах пока не включён; `Order.parent_order` (self-FK) + `supplier_tenant_schema`
     — пассивные хуки dropshipping/маркетплейс (M11→M14/M15). Логики нет — только швы.
   - **Деплой:** миграции core/0001 + orders/0005.
+- **M22 — Чат/поддержка/тикеты (в работе):** новый `apps.inbox` (TENANT).
+  - M22a ядро + кабинет (✅ `37916be`, CI run в стеке, миграция inbox/0001):
+    `Conversation` (тред=тикет: customer/subject/status-FSM/priority/assignee/
+    channel/ref_* мягкая привязка/public_token/unread_for_staff; швы realtime/AI
+    — `ai_handled`/`external_ref`) + `Message` (staff/customer/system);
+    `ConversationSM` (open↔pending↔resolved→closed, reopen); `services.
+    start_conversation`/`post_message` (reuse Customer по email; ответ клиента в
+    resolved/closed переоткрывает тред + unread). Кабинет `/dashboard/inbox/`
+    (nav «Inbox», бейдж непрочитанного, тред+ответ+статус+приоритет). Модуль
+    «inbox» — универсальный, из коробки (recommended_for=все типы). **Урок:**
+    новый optional-модуль → обновить хардкод-наборы в test_modules (disabled).
+  - Дальше: M22b витрина-виджет «Frage stellen» + публичный тред + письма через
+    `notifications`; M22c платформенная техподдержка (SHARED).
+  - **Деплой M22a:** миграция inbox/0001.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
