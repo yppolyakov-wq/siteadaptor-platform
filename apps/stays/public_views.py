@@ -191,4 +191,10 @@ def unterkunft_book(request, pk):
 def unterkunft_confirmation(request, code):
     _require_stays_active(request)
     booking = get_object_or_404(StayBooking.objects.select_related("unit"), reference_code=code)
-    return render(request, "storefront/stay_confirmation.html", {"booking": booking})
+    from apps.telegram.notify import deep_link
+
+    return render(
+        request,
+        "storefront/stay_confirmation.html",
+        {"booking": booking, "telegram_link": deep_link(booking.customer)},
+    )

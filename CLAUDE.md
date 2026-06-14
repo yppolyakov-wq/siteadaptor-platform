@@ -695,8 +695,13 @@ Python 3.12, менеджер uv.
       Generic Bot API переиспользован из `apps.telegram.services`. unfold-админка
       `PortalBot` (public) с действиями Connect/Disconnect (токен — write-only
       поле). Тесты `test_portal_bot`. Боевое — после токена бота портала.
-    - Дальше TG (по желанию): booking/stays-уведомления в Telegram (как у заказов).
-      **Деплой TG:** миграции telegram/0001+0002 + notifications/0002 +
+    - TG3+ booking/stays-уведомления в Telegram (✅ в `main`, CI зелёный, без
+      миграций): `enqueue_booking_email`/`enqueue_stay_email` дублируют событие
+      клиенту в Telegram (`send_to_customer`, дедуп `booking|stay:{id}:{event}:tg`);
+      кнопка «Get updates on Telegram» на страницах подтверждения брони/
+      Übernachtung (общий partial `storefront/_telegram_cta.html`, заказ тоже на
+      нём). Тесты `test_notify_booking_stays`.
+    - **Деплой TG:** миграции telegram/0001+0002+0003 + notifications/0002 +
       aggregator/0010 + `apps.telegram` в TENANT_APPS.
   - Дальше M23 после Telegram: M23c платная реклама (Campaign/AdInsight). TikTok
     отложен (видео + аудит API — низкий fit).

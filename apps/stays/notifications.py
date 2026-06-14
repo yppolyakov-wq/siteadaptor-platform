@@ -51,6 +51,18 @@ def enqueue_stay_email(booking, event):
             headers=headers,
         )
 
+    # TG3: то же событие — в Telegram, если клиент привязал бота (дополняет email).
+    if template_base and customer:
+        from apps.telegram.notify import send_to_customer
+
+        subject_tg, body_tg, _html = _render(template_base, {**ctx, "unsubscribe_url": ""})
+        send_to_customer(
+            customer,
+            type=f"stay_{event}",
+            dedupe_key=f"stay:{booking.id}:{event}:tg",
+            text=subject_tg or body_tg,
+        )
+
     # владельцу — только при новой заявке
     if event == "created":
         owner = _owner_email(_tenant(schema))

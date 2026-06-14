@@ -1,0 +1,7 @@
+{% load i18n %}
+{% if telegram_link %}
+  <a href="{{ telegram_link }}" target="_blank" rel="noopener"
+     class="mt-4 flex items-center justify-center gap-2 bg-[#229ED9] text-white rounded-lg px-4 py-3 font-medium hover:opacity-90">
+    🔔 {% trans "Get updates on Telegram" %}
+  </a>
+{% endif %}

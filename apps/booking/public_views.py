@@ -315,4 +315,10 @@ def termin_book(request, pk):
 def termin_confirmation(request, code):
     _require_booking_active(request)
     booking = get_object_or_404(Booking.objects.select_related("resource"), reference_code=code)
-    return render(request, "storefront/booking_confirmation.html", {"booking": booking})
+    from apps.telegram.notify import deep_link
+
+    return render(
+        request,
+        "storefront/booking_confirmation.html",
+        {"booking": booking, "telegram_link": deep_link(booking.customer)},
+    )

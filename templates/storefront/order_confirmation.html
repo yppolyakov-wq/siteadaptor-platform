@@ -44,11 +44,6 @@
     {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-2">{{ request.tenant.address }}</p>{% endif %}
   </div>
 
-  {% if telegram_link %}
-    <a href="{{ telegram_link }}" target="_blank" rel="noopener"
-       class="mt-4 flex items-center justify-center gap-2 bg-[#229ED9] text-white rounded-lg px-4 py-3 font-medium hover:opacity-90">
-      🔔 {% trans "Get updates on Telegram" %}
-    </a>
-  {% endif %}
+  {% include "storefront/_telegram_cta.html" %}
 </div>
 {% endblock %}
