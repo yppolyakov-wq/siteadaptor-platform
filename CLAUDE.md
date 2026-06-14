@@ -623,6 +623,24 @@ Python 3.12, менеджер uv.
     unfold-админки на public. Отдельно от inbox (клиент↔бизнес).
   - **M22 закрыт (a+b+c).** Деплой: миграции inbox/0001 + support/0001. Дальше по
     плану владельца: M23 (соц-постинг акций) → A4 (Gastro-модификаторы).
+- **M23 — Маркетинг/соцсети (в работе; расширяет M3 publishing, P2.9):**
+  - M23a соц-постинг акций Facebook/Instagram (✅ в `main`, `1880e9c`, CI run 247
+    зелёный, миграция publishing/0003): новые типы `Channel` facebook/instagram
+    поверх фреймворка `apps.publishing` (паттерн B1 GBP) — на активации акции
+    PromotionSM ставит публикацию, на завершении снимает. `adapters`: `_fb_publish`
+    (page `/feed`, либо `/photos` при фото — ссылка в `link`/тексте) + `_fb_remove`
+    (DELETE поста; нет ref / 404 = no-op); `_ig_publish` (контейнер `/media` →
+    `/media_publish`, **требует фото**, URL текстом в подписи — IG без кликабельных
+    ссылок) + `_ig_remove` (**no-op** — Graph API не удаляет органические IG-посты);
+    `_promo_image_url` достраивает относительный `/media` доменом арендатора.
+    Кабинет Channels: конфиг facebook (`page_id`/`access_token`) и instagram
+    (`ig_user_id`/`access_token`), пустое не затирает секрет. `settings.
+    META_GRAPH_API_VERSION` (default v21.0). Токены — per-канал, вводятся вручную
+    (как GBP; in-app OAuth — следующая итерация). Тесты `test_meta` (Graph API
+    застаблен), настройка — `docs/meta-social-setup.md`. **Боевое — после доступа
+    Meta** (App Review prod-permissions). Деплой: миграция publishing/0003.
+  - Дальше M23: M23b каталог-фид (Meta Commerce/Google Merchant) → M23c платная
+    реклама (Campaign/AdInsight). Сейчас по плану владельца — A4 (Gastro-модификаторы).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
