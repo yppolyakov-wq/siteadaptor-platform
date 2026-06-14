@@ -97,6 +97,60 @@
         <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add variant" %}</button>
       </form>
     </div>
+
+    {# Модификаторы / Extras блюда (A4 Gastro) #}
+    <div class="mt-6 bg-white p-6 rounded-2xl shadow-sm">
+      <p class="text-sm font-medium mb-1">{% trans "Modifiers / Extras" %}</p>
+      <p class="text-xs text-gray-400 mb-3">{% trans "E.g. size, side dish, extras. Min/max = how many options the guest may pick (max 0 = no limit, 1 = single choice). Surcharge adds to the item price." %}</p>
+
+      {% for g in modifier_groups %}
+        <div class="border border-gray-200 rounded-xl p-4 mb-3">
+          <form method="post" action="{% url 'catalog:modifier-group-update' product.pk g.pk %}"
+                class="flex flex-wrap items-center gap-2 text-sm {% if not g.is_active %}opacity-50{% endif %}">
+            {% csrf_token %}
+            <input name="name" type="text" value="{{ g.name }}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 font-medium" aria-label="{% trans 'Group name' %}">
+            <label class="text-gray-500">{% trans "min" %} <input name="min" type="number" min="0" value="{{ g.min_select }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
+            <label class="text-gray-500">{% trans "max" %} <input name="max" type="number" min="0" value="{{ g.max_select }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
+            <input name="sort" type="number" value="{{ g.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
+            <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="is_active" {% if g.is_active %}checked{% endif %}> {% trans "Active" %}</label>
+            <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
+            <button formaction="{% url 'catalog:modifier-group-delete' product.pk g.pk %}" class="text-red-600 hover:bg-red-50 rounded-lg px-2 py-1.5" aria-label="{% trans 'Remove' %}">✕</button>
+          </form>
+
+          <div class="mt-3 pl-3 border-l-2 border-gray-100 space-y-2">
+            {% for o in g.options.all %}
+              <form method="post" action="{% url 'catalog:modifier-option-update' product.pk g.pk o.pk %}"
+                    class="flex flex-wrap items-center gap-2 text-sm {% if not o.is_active %}opacity-50{% endif %}">
+                {% csrf_token %}
+                <input name="label" type="text" value="{{ o.label }}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Option' %}">
+                <span class="text-gray-400">+</span>
+                <input name="delta" type="text" inputmode="decimal" value="{{ o.price_delta }}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Surcharge' %}">
+                <input name="sort" type="number" value="{{ o.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
+                <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="is_active" {% if o.is_active %}checked{% endif %}> {% trans "Active" %}</label>
+                <button class="border border-gray-300 rounded-lg px-2 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
+                <button formaction="{% url 'catalog:modifier-option-delete' product.pk g.pk o.pk %}" class="text-red-600 hover:bg-red-50 rounded-lg px-2 py-1" aria-label="{% trans 'Remove' %}">✕</button>
+              </form>
+            {% endfor %}
+
+            <form method="post" action="{% url 'catalog:modifier-option-add' product.pk g.pk %}" class="flex flex-wrap items-center gap-2 text-sm pt-1">
+              {% csrf_token %}
+              <input name="label" type="text" required placeholder="{% trans 'Option (e.g. Pommes)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
+              <span class="text-gray-400">+</span>
+              <input name="delta" type="text" inputmode="decimal" placeholder="0" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Surcharge' %}">
+              <button class="bg-gray-100 text-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-200">{% trans "Add option" %}</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+
+      <form method="post" action="{% url 'catalog:modifier-group-add' product.pk %}" class="flex flex-wrap items-center gap-2 text-sm mt-3 border-t border-gray-100 pt-3">
+        {% csrf_token %}
+        <input name="name" type="text" required placeholder="{% trans 'Group (e.g. Size)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
+        <label class="text-gray-500">{% trans "min" %} <input name="min" type="number" min="0" value="0" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
+        <label class="text-gray-500">{% trans "max" %} <input name="max" type="number" min="0" value="1" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
+        <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add group" %}</button>
+      </form>
+    </div>
   {% endif %}
 </div>
 {% endblock %}

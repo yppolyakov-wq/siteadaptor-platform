@@ -145,6 +145,15 @@ class Product(SoftDeleteMixin, I18nMixin):
         return grundpreis(self.base_price, self.unit, self.content_amount)
 
     @property
+    def modifier_groups_active(self):
+        """Активные группы модификаторов (Gastro-Extras, A4) с активными опциями."""
+        return self.modifier_groups.filter(is_active=True)
+
+    @property
+    def has_modifiers(self) -> bool:
+        return any(g.active_options for g in self.modifier_groups_active)
+
+    @property
     def allergen_labels(self) -> list[str]:
         """Подписи аллергенов (DE) для витрины — из кодов self.allergens."""
         from .food import allergen_labels
@@ -198,3 +207,59 @@ class ProductVariant(TimestampedModel):
             self.content_amount if self.content_amount is not None else self.product.content_amount
         )
         return grundpreis(self.price_value, self.product.unit, content)
+
+
+class ModifierGroup(TimestampedModel):
+    """Группа модификаторов блюда (A4 Gastro): «Größe», «Beilage», «Extras».
+
+    Привязана к товару (блюду). min_select/max_select задают правило выбора:
+    min>=1 — обязательная; max==1 — одиночный выбор (radio); max>1 — до N
+    (checkbox); max==0 — без верхнего предела. Валидируется на витрине при заказе
+    (A4b). Цена опций — надбавка к цене позиции.
+    """
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="modifier_groups")
+    name = models.CharField(max_length=100)  # «Größe», «Extras»
+    min_select = models.PositiveIntegerField(default=0)
+    max_select = models.PositiveIntegerField(default=1)  # 0 = без предела
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "created_at"]
+
+    def __str__(self):
+        return f"{self.product} · {self.name}"
+
+    @property
+    def active_options(self):
+        return list(self.options.filter(is_active=True))
+
+    @property
+    def is_required(self) -> bool:
+        return self.min_select >= 1
+
+    @property
+    def is_multi(self) -> bool:
+        """Множественный выбор (checkbox) против одиночного (radio)."""
+        return self.max_select != 1
+
+
+class ModifierOption(TimestampedModel):
+    """Опция группы модификаторов: «Pommes (+2,50)», «Groß (+1,00)».
+
+    price_delta — надбавка к цене позиции (Decimal евро, как остальной каталог);
+    0 = без надбавки. Снимок (label + delta) уходит в заказ при оформлении (A4b).
+    """
+
+    group = models.ForeignKey(ModifierGroup, on_delete=models.CASCADE, related_name="options")
+    label = models.CharField(max_length=100)
+    price_delta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "created_at"]
+
+    def __str__(self):
+        return f"{self.label} (+{self.price_delta})"

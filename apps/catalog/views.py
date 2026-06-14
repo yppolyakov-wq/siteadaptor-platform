@@ -16,7 +16,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
-from .models import Category, Product, ProductVariant
+from .models import Category, ModifierGroup, ModifierOption, Product, ProductVariant
 
 
 def _parse_price(raw):
@@ -122,6 +122,7 @@ def product_edit(request, pk):
             "is_create": False,
             "product": product,
             "variants": product.variants.all(),
+            "modifier_groups": product.modifier_groups.prefetch_related("options"),
             "nav": "catalog",
         },
     )
@@ -183,6 +184,93 @@ def variant_update(request, pk, vid):
 def variant_delete(request, pk, vid):
     get_object_or_404(ProductVariant, pk=vid, product_id=pk).delete()
     messages.success(request, _("Variant removed."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Модификаторы / Extras блюда (A4 Gastro): группы + опции — CRUD на товаре
+# ---------------------------------------------------------------------------
+
+
+@login_required
+@require_POST
+def modifier_group_add(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    name = (request.POST.get("name") or "").strip()
+    if not name:
+        messages.error(request, _("Group name is required."))
+    else:
+        ModifierGroup.objects.create(
+            product=product,
+            name=name,
+            min_select=_parse_int(request.POST.get("min")) or 0,
+            max_select=_parse_int(request.POST.get("max")) or 0,
+            sort_order=_parse_int(request.POST.get("sort")) or 0,
+        )
+        messages.success(request, _("Modifier group added."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def modifier_group_update(request, pk, gid):
+    group = get_object_or_404(ModifierGroup, pk=gid, product_id=pk)
+    group.name = (request.POST.get("name") or group.name).strip()
+    group.min_select = _parse_int(request.POST.get("min")) or 0
+    group.max_select = _parse_int(request.POST.get("max")) or 0
+    group.sort_order = _parse_int(request.POST.get("sort")) or 0
+    group.is_active = bool(request.POST.get("is_active"))
+    group.save(
+        update_fields=["name", "min_select", "max_select", "sort_order", "is_active", "updated_at"]
+    )
+    messages.success(request, _("Modifier group updated."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def modifier_group_delete(request, pk, gid):
+    get_object_or_404(ModifierGroup, pk=gid, product_id=pk).delete()
+    messages.success(request, _("Modifier group removed."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def modifier_option_add(request, pk, gid):
+    group = get_object_or_404(ModifierGroup, pk=gid, product_id=pk)
+    label = (request.POST.get("label") or "").strip()
+    if not label:
+        messages.error(request, _("Option label is required."))
+    else:
+        ModifierOption.objects.create(
+            group=group,
+            label=label,
+            price_delta=_parse_price(request.POST.get("delta")) or Decimal("0"),
+            sort_order=_parse_int(request.POST.get("sort")) or 0,
+        )
+        messages.success(request, _("Option added."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def modifier_option_update(request, pk, gid, oid):
+    option = get_object_or_404(ModifierOption, pk=oid, group_id=gid, group__product_id=pk)
+    option.label = (request.POST.get("label") or option.label).strip()
+    option.price_delta = _parse_price(request.POST.get("delta")) or Decimal("0")
+    option.sort_order = _parse_int(request.POST.get("sort")) or 0
+    option.is_active = bool(request.POST.get("is_active"))
+    option.save(update_fields=["label", "price_delta", "sort_order", "is_active", "updated_at"])
+    messages.success(request, _("Option updated."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def modifier_option_delete(request, pk, gid, oid):
+    get_object_or_404(ModifierOption, pk=oid, group_id=gid, group__product_id=pk).delete()
+    messages.success(request, _("Option removed."))
     return redirect("catalog:product-edit", pk=pk)
 
 
