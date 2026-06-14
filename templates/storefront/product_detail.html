@@ -69,6 +69,9 @@
       {% if request.tenant.opening_hours %}<br>{{ request.tenant.opening_hours|linebreaksbr }}{% endif %}
     </p>
     {% if request.tenant.address %}<p class="mt-2 text-sm text-gray-500">{{ request.tenant.address }}</p>{% endif %}
+    {% if storefront_inbox_enabled %}
+      <p class="mt-3"><a href="{% url 'storefront-message' %}?kind=product&id={{ product.pk }}&label={{ product|urlencode }}" class="text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question about this product" %}</a></p>
+    {% endif %}
   </div>
 </div>
 

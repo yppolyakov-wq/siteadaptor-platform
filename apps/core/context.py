@@ -17,4 +17,5 @@ def modules_nav(request):
         "storefront_booking_enabled": modules.is_module_active(tenant, "booking"),
         "storefront_stays_enabled": modules.is_module_active(tenant, "stays"),
         "storefront_jobs_enabled": modules.is_module_active(tenant, "jobs"),
+        "storefront_inbox_enabled": modules.is_module_active(tenant, "inbox"),  # M22b
     }

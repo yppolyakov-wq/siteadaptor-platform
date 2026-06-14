@@ -1,0 +1,1 @@
+{% if business %}Neue Antwort von {{ business }}{% else %}Neue Antwort auf Ihre Nachricht{% endif %}

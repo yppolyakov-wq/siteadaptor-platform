@@ -1,0 +1,35 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Your message" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <h1 class="text-2xl font-bold mb-1">{{ conversation.subject|default:_("Your message") }}</h1>
+  <p class="text-sm text-gray-500 mb-5">{% trans "Keep this page bookmarked to follow the conversation." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="space-y-3 mb-6">
+    {% for m in messages_list %}
+      <div class="flex {% if m.author_role == 'customer' %}justify-end{% endif %}">
+        <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'customer' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
+          <p class="whitespace-pre-line">{{ m.body }}</p>
+          <p class="text-xs {% if m.author_role == 'customer' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m. H:i" }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-4">{% csrf_token %}
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <textarea name="body" rows="3" required placeholder="{% trans 'Write a reply…' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    <div class="text-right mt-2">
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Send" %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

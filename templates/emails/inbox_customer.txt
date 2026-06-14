@@ -1,0 +1,10 @@
+Hallo,
+
+Sie haben eine neue Antwort{% if business %} von {{ business }}{% endif %}{% if conversation.subject %} zu „{{ conversation.subject }}“{% endif %}:
+
+{{ message.body }}
+{% if thread_url %}
+Antworten / Verlauf ansehen:
+{{ thread_url }}
+{% endif %}
+Mit freundlichen Grüßen

@@ -23,6 +23,7 @@ from apps.core.views import (
     setup_view,
     site_view,
 )
+from apps.inbox import public_views as inbox_public
 from apps.jobs import public_views as jobs_public
 from apps.orders import public_views as orders_public
 from apps.promotions import public_views
@@ -125,6 +126,9 @@ urlpatterns = [
     # Handwerker: заявка + публичное Angebot (G6 / F3).
     path("anfrage/", jobs_public.anfrage, name="storefront-anfrage"),
     path("angebot/<uuid:token>/", jobs_public.angebot, name="storefront-angebot"),
+    # Чат/вопрос клиента (M22b): форма «Frage stellen» + публичный тред по токену.
+    path("nachricht/", inbox_public.contact, name="storefront-message"),
+    path("nachricht/<uuid:token>/", inbox_public.thread, name="storefront-message-thread"),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),

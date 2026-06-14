@@ -1,0 +1,5 @@
+Neue Nachricht von {{ conversation.customer|default:"einem Gast" }}{% if conversation.ref_label %} ({{ conversation.ref_label }}){% endif %}:
+
+{{ message.body }}
+{% if thread_url %}
+Im Postfach öffnen (Dashboard → Inbox).{% endif %}

@@ -1,0 +1,1 @@
+Neue Kundennachricht{% if conversation.subject %}: {{ conversation.subject }}{% endif %}

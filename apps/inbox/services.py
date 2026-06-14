@@ -77,4 +77,9 @@ def post_message(
     else:  # ответ владельца — для клиента «pending» (ждём его), у владельца прочитано
         conversation.unread_for_staff = False
     conversation.save(update_fields=["last_message_at", "unread_for_staff", "status", "updated_at"])
+
+    # Письмо второй стороне (M22b): клиенту на ответ владельца, владельцу на вопрос.
+    from .notifications import enqueue_message_email
+
+    enqueue_message_email(message)
     return message
