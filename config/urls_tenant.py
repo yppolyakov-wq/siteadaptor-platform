@@ -73,6 +73,8 @@ urlpatterns = [
     path("dashboard/auftraege/", include("apps.jobs.urls")),
     # Журнал выручки Light-Finance (Track D / D4a).
     path("dashboard/finance/", include("apps.finance.urls")),
+    # Inbox: чат/поддержка/тикеты клиент↔бизнес (M22a).
+    path("dashboard/inbox/", include("apps.inbox.urls")),
     # Каналы публикации (Sprint 4).
     path("dashboard/channels/", publishing_views.channels, name="channels"),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),

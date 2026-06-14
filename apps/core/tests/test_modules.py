@@ -254,6 +254,7 @@ class TestModulesView:
             "analytics",
             "publishing",
             "finance",
+            "inbox",
         }
         # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
         response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
@@ -269,6 +270,7 @@ class TestModulesView:
             "analytics",
             "publishing",
             "finance",
+            "inbox",
         }
         assert modules.is_module_active(tenant, "catalog")  # core живёт
 

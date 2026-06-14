@@ -1,0 +1,41 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Inbox" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Inbox" %}{% if open_count %} <span class="text-sm font-medium align-middle bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5">{{ open_count }} {% trans "open" %}</span>{% endif %}</h1>
+</div>
+
+<div class="flex flex-wrap gap-2 mb-4 text-sm">
+  <a href="?" class="px-3 py-1.5 rounded-lg border {% if not active_status %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300{% endif %}">{% trans "All" %}</a>
+  {% for value, label in statuses %}
+    <a href="?status={{ value }}" class="px-3 py-1.5 rounded-lg border {% if active_status == value %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300 hover:border-indigo-400{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+  {% for c in conversations %}
+    <a href="{% url 'inbox:thread' c.pk %}" class="flex items-center justify-between gap-3 p-4 hover:bg-gray-50">
+      <div class="min-w-0">
+        <p class="font-medium truncate">
+          {% if c.unread_for_staff %}<span class="inline-block w-2 h-2 rounded-full bg-indigo-600 align-middle mr-1"></span>{% endif %}
+          {{ c.subject|default:"—" }}
+          {% if c.priority == 'high' %}<span class="text-xs text-red-600 ml-1">⚑ {% trans "High" %}</span>{% endif %}
+        </p>
+        <p class="text-sm text-gray-500 truncate">{{ c.customer|default:_("Guest") }}{% if c.ref_label %} · {{ c.ref_label }}{% endif %}</p>
+      </div>
+      <div class="text-right shrink-0">
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full
+          {% if c.status == 'open' %}bg-amber-100 text-amber-800
+          {% elif c.status == 'pending' %}bg-blue-100 text-blue-800
+          {% elif c.status == 'resolved' %}bg-green-100 text-green-800
+          {% else %}bg-gray-100 text-gray-600{% endif %}">{{ c.get_status_display }}</span>
+        <p class="text-xs text-gray-400 mt-1">{{ c.last_message_at|date:"d.m. H:i"|default:"" }}</p>
+      </div>
+    </a>
+  {% empty %}
+    <p class="p-6 text-gray-500">{% trans "No messages yet." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

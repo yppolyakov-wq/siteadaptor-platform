@@ -189,6 +189,28 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen.",
     ),
     ModuleSpec(
+        key="inbox",
+        label_de="Nachrichten (Chat & Support)",
+        icon="💬",
+        nav_items=(NavItem("inbox:list", _("Inbox"), "inbox"),),
+        url_prefixes=("/dashboard/inbox/",),
+        # Коммуникация — универсальный блок, включён из коробки у всех вертикалей
+        # (recommended_for=все типы → не попадает в default_disabled_for).
+        recommended_for=(
+            "bakery",
+            "butcher",
+            "grocery",
+            "cafe",
+            "restaurant",
+            "retail",
+            "clothing",
+            "hotel",
+            "tour_operator",
+            "other",
+        ),
+        description_de="Kundennachrichten und Support-Tickets an einem Ort beantworten.",
+    ),
+    ModuleSpec(
         key="finance",
         label_de="Finanzen (Umsatz)",
         icon="💶",
