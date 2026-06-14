@@ -76,6 +76,8 @@ urlpatterns = [
     path("dashboard/finance/", include("apps.finance.urls")),
     # Inbox: чат/поддержка/тикеты клиент↔бизнес (M22a).
     path("dashboard/inbox/", include("apps.inbox.urls")),
+    # Hilfe: платформенная техподдержка тенант↔SiteAdaptor (M22c).
+    path("dashboard/help/", include("apps.support.urls")),
     # Каналы публикации (Sprint 4).
     path("dashboard/channels/", publishing_views.channels, name="channels"),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),

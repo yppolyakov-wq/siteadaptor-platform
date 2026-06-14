@@ -1,0 +1,40 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Help & Support" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-1">{% trans "Help & Support" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Questions or problems? Write to the SiteAdaptor team." %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-8">
+  {% for t in threads %}
+    <a href="{% url 'support:thread' t.pk %}" class="flex items-center justify-between gap-3 p-4 hover:bg-gray-50">
+      <div class="min-w-0">
+        <p class="font-medium truncate">{% if t.unread_for_owner %}<span class="inline-block w-2 h-2 rounded-full bg-indigo-600 align-middle mr-1"></span>{% endif %}{{ t.subject }}</p>
+        <p class="text-xs text-gray-400">{{ t.last_message_at|date:"d.m.Y H:i"|default:"" }}</p>
+      </div>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0
+        {% if t.status == 'open' %}bg-amber-100 text-amber-800
+        {% elif t.status == 'pending' %}bg-blue-100 text-blue-800
+        {% elif t.status == 'resolved' %}bg-green-100 text-green-800
+        {% else %}bg-gray-100 text-gray-600{% endif %}">{{ t.get_status_display }}</span>
+    </a>
+  {% empty %}
+    <p class="p-6 text-gray-500">{% trans "No requests yet." %}</p>
+  {% endfor %}
+</div>
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "New request" %}</h2>
+  <input name="subject" type="text" required placeholder="{% trans 'Subject' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <textarea name="body" rows="4" required placeholder="{% trans 'How can we help?' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Send to support" %}</button>
+</form>
+{% endblock %}

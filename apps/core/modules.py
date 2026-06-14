@@ -228,15 +228,17 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             NavItem("settings", _("Settings"), "settings"),
             NavItem("domains", _("Domains"), "domains"),
             NavItem("modules", _("Modules"), "modules"),
+            NavItem("support:help", _("Help"), "support"),  # M22c — техподдержка
         ),
         url_prefixes=(
             "/dashboard/site/",
             "/dashboard/settings/",
             "/dashboard/domains/",
             "/dashboard/modules/",
+            "/dashboard/help/",
         ),
         core=True,
-        description_de="Einstellungen, Website-Baukasten, Domains, Module.",
+        description_de="Einstellungen, Website-Baukasten, Domains, Module, Hilfe.",
     ),
     ModuleSpec(
         key="billing",

@@ -39,6 +39,7 @@ SHARED_APPS = [
     "apps.billing",  # Sprint 5 — биллинг/подписки (SHARED: статус подписки на Tenant)
     # SHARED apps платформы (раскомментируются по мере прохождения спринтов)
     "apps.aggregator",  # Sprint 4 — локальный агрегатор (SHARED, материализованные листинги)
+    "apps.support",  # M22c — платформенная техподдержка тенант↔SiteAdaptor (SHARED)
     # "apps.global_categories",  # Sprint 5
 ]
 
