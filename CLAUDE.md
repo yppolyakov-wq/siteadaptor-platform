@@ -859,6 +859,32 @@ Python 3.12, менеджер uv.
     в подтверждении/кабинете заказов/письмах. Тесты `test_modifier_flow`.
   - **A4 завершён (a+b).** A4 ~75 %→~90 %: доставка гастро уже есть (reuse orders
     G4), остаётся опц. KDS. Деплой: миграции catalog/0005 + orders/0006.
+- **Админка + кабинет — UX-переработка (✅ в `main`, S1+S2 `9c8da4d`, S3 `05ad375`,
+  CI зелёный, без миграций):** платформенная админка `/admin` (django-unfold) была
+  не настроена (словаря `UNFOLD` не было) → голый список приложений Django; tenant-
+  разделы ломались на public-схеме. (unfold сам подменяет `admin.site` на
+  `UnfoldAdminSite` в своём app-ready, поэтому `SIDEBAR`/`DASHBOARD_CALLBACK` читаются.)
+  - S1 конфиг + чистка: `UNFOLD` в `config/settings/base.py` — брендинг (акцент
+    indigo, как кабинет), `SITE_*`, сгруппированный сворачиваемый мобильный сайдбар
+    (Geschäfte / Aggregator / Support / Plattform), только SHARED-модели. Tenant-
+    модели (catalog, promotions) сняты с регистрации в public-админке (их таблиц нет
+    в схеме) — снятие в `CoreConfig.ready()` ПОСЛЕ `admin.autodiscover`
+    (`apps/core/admin.py::tidy_platform_admin`; apps.core грузится позже этих TENANT-
+    приложений, поэтому на уровне импорта снять нельзя).
+  - S2 KPI-дашборд: `apps/core/admin_dashboard.py::dashboard_callback`
+    (`UNFOLD["DASHBOARD_CALLBACK"]`) + `templates/admin/index.html` (переопределяет
+    пакетный index unfold) — карточки Betriebe / Aktive Abos / Im Test / Offene
+    Tickets (+ алерт при past_due/trial_expired/suspended) и списки «Neueste
+    Betriebe» / «Offene Tickets». Все данные — SHARED-модели на public. **Урок:**
+    классы в `templates/admin/index.html` — только из скомпилированного CSS unfold
+    (нет JIT: `sm:`-сетки нет, есть `md:`/`lg:`; токены base/primary/font-*).
+  - S3 кабинет: `templates/tenant/_base_dashboard.html` — иконки модулей
+    (`ModuleSpec.icon`) у пунктов + групп-заголовки (`label_de`) для многопунктовых
+    модулей; адаптивность (бургер/оверлей) без изменений.
+  - Шаблоны витрины под тип бизнеса (галерея пресетов `site_config`) — **отложено**
+    (решение владельца: вернуться вместе с M20 drag-drop конструктором, Stage 3).
+  - Тесты `apps/core/tests/test_admin_dashboard.py` + `test_cabinet_nav.py`. Без
+    миграций → деплой обычный (`deploy.sh single`), новых зависимостей нет.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
