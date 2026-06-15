@@ -211,6 +211,19 @@ def test_delete_new_job():
     assert not Job.objects.filter(pk=job.pk).exists()
 
 
+def test_vehicle_field_on_create_and_save():
+    """A9 Werkstatt: Fahrzeug/Kennzeichen на заявке (создание + правка в кабинете)."""
+    job = services.create_job(title="Inspektion", name="Kunde", vehicle="VW Golf · M-AB 1234")
+    assert job.vehicle == "VW Golf · M-AB 1234"
+    # правка через форму сметы (_save_lines)
+    views.job_detail(
+        _req("post", data={"action": "save_lines", "vat_rate": "19.00", "vehicle": "BMW · K-XY 9"}),
+        pk=job.pk,
+    )
+    job.refresh_from_db()
+    assert job.vehicle == "BMW · K-XY 9"
+
+
 def test_link_and_unlink_booking():
     """A7d: привязка/отвязка выездного Termin к заявке."""
     from datetime import timedelta

@@ -41,6 +41,8 @@ class Job(TimestampedModel):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     site_address = models.TextField(blank=True)  # адрес работ (может ≠ адрес клиента)
+    # A9 Werkstatt: автомобиль/Kennzeichen клиента (свободный текст «VW Golf · M-AB 12»).
+    vehicle = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_NEW)
     source_channel = models.CharField(max_length=50, blank=True)
     # Публичная Angebot-страница: клиент принимает/отклоняет смету онлайн (F3).

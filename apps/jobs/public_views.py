@@ -51,6 +51,7 @@ def anfrage(request):
             description=request.POST.get("description", "").strip(),
             site_address=request.POST.get("site_address", "").strip(),
             source_channel=(request.GET.get("ch") or "")[:50],
+            vehicle=request.POST.get("vehicle", "").strip(),
         )
         services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
         enqueue_job_email(job, "new")  # владельцу — новый лид

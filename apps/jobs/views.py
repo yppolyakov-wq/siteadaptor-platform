@@ -90,6 +90,7 @@ def job_list(request):
             description=request.POST.get("description", "").strip(),
             site_address=request.POST.get("site_address", "").strip(),
             source_channel="manual",
+            vehicle=request.POST.get("vehicle", "").strip(),
         )
         messages.success(request, _("Request created."))
         return redirect("jobs:detail", pk=job.pk)
@@ -232,6 +233,7 @@ def _save_lines(request, job):
     vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("19.00"))
     services.set_lines(job, lines, vat_rate=vat_rate, small_business=request.tenant.small_business)
     job.valid_until = _parse_date(request.POST.get("valid_until"))
+    job.vehicle = request.POST.get("vehicle", job.vehicle).strip()[:120]  # A9 Werkstatt
     # A7c: Anzahlung (€ → cents). 0 / пусто = без депозита.
     try:
         job.deposit_cents = max(
@@ -240,7 +242,7 @@ def _save_lines(request, job):
         )
     except (TypeError, ValueError):
         job.deposit_cents = 0
-    job.save(update_fields=["valid_until", "deposit_cents", "updated_at"])
+    job.save(update_fields=["valid_until", "deposit_cents", "vehicle", "updated_at"])
     messages.success(request, _("Quote saved."))
     return redirect("jobs:detail", pk=job.pk)
 

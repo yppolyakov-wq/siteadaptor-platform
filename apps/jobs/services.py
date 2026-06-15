@@ -46,6 +46,7 @@ def create_job(
     description="",
     site_address="",
     source_channel="",
+    vehicle="",
 ) -> Job:
     """Создать заявку (Anfrage). Customer переиспускается по email."""
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
@@ -56,6 +57,7 @@ def create_job(
         description=(description or "").strip()[:5000],
         site_address=(site_address or "").strip()[:2000],
         source_channel=(source_channel or "")[:50],
+        vehicle=(vehicle or "").strip()[:120],
     )
 
 

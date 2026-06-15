@@ -29,6 +29,7 @@
   {% if job.customer.email %}<p class="text-gray-500">✉ {{ job.customer.email }}</p>{% endif %}
   {% if job.customer.phone %}<p class="text-gray-500">📞 {{ job.customer.phone }}</p>{% endif %}
   {% if job.site_address %}<p class="text-gray-500">📍 {{ job.site_address }}</p>{% endif %}
+  {% if job.vehicle %}<p class="text-gray-500">🚗 {{ job.vehicle }}</p>{% endif %}
   {% if job.description %}<p class="text-gray-600 mt-2 whitespace-pre-line">{{ job.description }}</p>{% endif %}
   {% if job.invoice_id %}<p class="mt-2"><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">→ {% trans "Open invoice" %}</a></p>{% endif %}
   {% if job.photos.all %}
@@ -103,6 +104,10 @@
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</label>
       <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Vehicle / plate" %}</label>
+      <input name="vehicle" type="text" value="{{ job.vehicle }}" placeholder="VW Golf · M-AB 1234" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</label>
