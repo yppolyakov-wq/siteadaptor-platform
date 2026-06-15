@@ -18,13 +18,21 @@ from .models import AggregatorListing
 _BTYPE_LABELS = dict(Tenant.BUSINESS_TYPES)
 
 
-def listings_for(*, city=None, business_type=None):
-    """Активные листинги по фильтру. Переиспользуется порталами Phase 2."""
+def listings_for(*, city=None, business_type=None, q=None):
+    """Активные листинги по фильтру. Переиспользуется порталами Phase 2.
+
+    q — текстовый поиск (P2.7) по названию бизнеса, заголовку акции и городу;
+    icontains по JSON-полю title матчит сериализованный текст (для v1 достаточно).
+    """
     qs = AggregatorListing.objects.filter(is_active=True)
     if city:
         qs = qs.filter(city__iexact=city)
     if business_type:
         qs = qs.filter(business_type=business_type)
+    if q:
+        from django.db.models import Q
+
+        qs = qs.filter(Q(business_name__icontains=q) | Q(title__icontains=q) | Q(city__icontains=q))
     return qs
 
 
@@ -43,16 +51,67 @@ def split_featured(qs, *, first_page: bool, limit: int = 6):
     return featured, rest
 
 
-@cache_public_page
-def discover_index(request):
-    cities = (
+def _distinct_cities():
+    return (
         AggregatorListing.objects.filter(is_active=True)
         .exclude(city="")
         .values_list("city", flat=True)
         .distinct()
         .order_by("city")
     )
-    return render(request, "aggregator/index.html", {"cities": cities})
+
+
+def _distinct_types():
+    types = (
+        AggregatorListing.objects.filter(is_active=True)
+        .exclude(business_type="")
+        .values_list("business_type", flat=True)
+        .distinct()
+        .order_by("business_type")
+    )
+    return [(t, _BTYPE_LABELS.get(t, t)) for t in types]
+
+
+@cache_public_page
+def discover_index(request):
+    # P2.7: поиск/фильтры. При q/city/type — страница результатов (cache_public_page
+    # кэширует только GET без query, поэтому результаты не кэшируются); иначе —
+    # индекс городов.
+    q = (request.GET.get("q") or "").strip()
+    city = (request.GET.get("city") or "").strip()
+    btype = (request.GET.get("type") or "").strip()
+    if q or city or btype:
+        from urllib.parse import urlencode
+
+        from . import reviews
+
+        pool = listings_for(city=city or None, business_type=btype or None, q=q or None)
+        cursor = request.GET.get("cursor")
+        featured, rest = split_featured(pool, first_page=not cursor)
+        page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+        cards = featured + page.items
+        reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
+        base_qs = urlencode([(k, v) for k, v in (("q", q), ("city", city), ("type", btype)) if v])
+        return render(
+            request,
+            "aggregator/search.html",
+            {
+                "q": q,
+                "city": city,
+                "type": btype,
+                "cities": _distinct_cities(),
+                "types": _distinct_types(),
+                "cards": cards,
+                "page": page,
+                "base_qs": base_qs,
+                "canonical": request.build_absolute_uri(request.path),
+            },
+        )
+    return render(
+        request,
+        "aggregator/index.html",
+        {"cities": _distinct_cities(), "types": _distinct_types()},
+    )
 
 
 @cache_public_page

@@ -4,6 +4,8 @@
 {% block content %}
 <h1 class="text-2xl md:text-3xl font-bold mb-6">{% trans "Discover offers by city" %}</h1>
 
+{% include "aggregator/_search_form.html" %}
+
 {% if cities %}
 <div class="flex flex-wrap gap-2">
   {% for c in cities %}

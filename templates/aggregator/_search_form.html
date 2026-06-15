@@ -1,0 +1,16 @@
+{% load i18n %}{# P2.7: поиск + фильтры выдачи агрегатора. GET → discover_index. #}
+<form method="get" action="{% url 'aggregator-index' %}" class="mb-6 flex flex-wrap gap-2 items-end">
+  <div class="flex-1 min-w-[12rem]">
+    <input name="q" value="{{ q|default:'' }}" placeholder="{% trans 'Search offers, shops…' %}"
+           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  </div>
+  <select name="city" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <option value="">{% trans "All cities" %}</option>
+    {% for c in cities %}<option value="{{ c }}" {% if c == city %}selected{% endif %}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="type" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <option value="">{% trans "All types" %}</option>
+    {% for val, label in types %}<option value="{{ val }}" {% if val == type %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Search" %}</button>
+</form>
