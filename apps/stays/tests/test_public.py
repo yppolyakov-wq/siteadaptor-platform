@@ -118,3 +118,19 @@ def test_single_unit_index_redirects_to_detail():
     unit = _unit()
     resp = public_views.unterkunft_index(_req())
     assert resp.status_code == 302 and str(unit.pk) in resp.url
+
+
+def test_ical_export_returns_calendar():
+    unit = _unit()
+    services.book_stay(unit, arrival=D0, departure=D0 + timedelta(days=3), name="A")
+    token = public_views.ical_token(unit)
+    resp = public_views.unterkunft_ical(_req(path=f"/stays/ical/{token}.ics"), token=token)
+    assert resp.status_code == 200
+    assert resp["Content-Type"].startswith("text/calendar")
+    assert b"BEGIN:VCALENDAR" in resp.content
+
+
+def test_ical_export_rejects_bad_token():
+    request = _req(path="/stays/ical/bogus.ics")
+    with pytest.raises(Http404):
+        public_views.unterkunft_ical(request, token="bogus")

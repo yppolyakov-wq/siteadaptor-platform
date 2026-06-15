@@ -200,3 +200,35 @@ def unterkunft_confirmation(request, code):
         "storefront/stay_confirmation.html",
         {"booking": booking, "telegram_link": deep_link(booking.customer)},
     )
+
+
+_ICAL_SALT = "stay-ical"
+
+
+def ical_token(unit) -> str:
+    from django.core import signing
+
+    return signing.dumps(str(unit.pk), salt=_ICAL_SALT)
+
+
+def unterkunft_ical(request, token):
+    """Публичный iCal-фид занятости юнита (A5b) — Booking.com/Airbnb/Google.
+
+    Токен подписан (signing) и несёт pk юнита; гейтинг модулем stays. Отдаёт
+    активные брони + блоки как all-day VEVENT.
+    """
+    _require_stays_active(request)
+    from django.core import signing
+
+    from . import ical
+    from .models import UnitBlock
+
+    try:
+        unit_pk = signing.loads(token, salt=_ICAL_SALT)
+    except signing.BadSignature as exc:
+        raise Http404 from exc
+    unit = get_object_or_404(StayUnit, pk=unit_pk)
+    bookings = StayBooking.objects.filter(unit=unit, status__in=StayBooking.ACTIVE_STATUSES)
+    blocks = UnitBlock.objects.filter(unit=unit)
+    body = ical.build_feed(unit, bookings, blocks, host=request.get_host())
+    return HttpResponse(body, content_type="text/calendar; charset=utf-8")

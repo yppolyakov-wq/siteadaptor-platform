@@ -99,6 +99,9 @@ class UnitBlock(TimestampedModel):
     start_date = models.DateField()
     end_date = models.DateField()  # последняя заблокированная ночь (включительно)
     reason = models.CharField(max_length=120, blank=True)
+    # A5b: источник блока. "" = ручной; иначе pk ICalSource (импортированные блоки
+    # пересоздаются при синке, ручные не трогаем).
+    source_id_ref = models.CharField(max_length=40, blank=True, db_index=True)
 
     class Meta:
         ordering = ["start_date"]
@@ -175,3 +178,21 @@ class StayBooking(TimestampedModel):
         from decimal import Decimal
 
         return Decimal(self.total_cents) / 100
+
+
+class ICalSource(TimestampedModel):
+    """Внешний iCal-фид (Booking.com/Airbnb) для юнита (A5b). Синк заводит блоки
+    на занятые диапазоны (UnitBlock с source_id_ref=pk), анти-двойная-бронь."""
+
+    unit = models.ForeignKey(StayUnit, on_delete=models.CASCADE, related_name="ical_sources")
+    label = models.CharField(max_length=80, blank=True)  # «Booking.com», «Airbnb»
+    url = models.URLField(max_length=500)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    last_status = models.CharField(max_length=120, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["label"]
+
+    def __str__(self):
+        return f"{self.unit}: {self.label or self.url}"

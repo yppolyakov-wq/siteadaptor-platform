@@ -266,6 +266,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.stays.tasks.send_stay_reminders",
         "schedule": 86400.0,  # раз в сутки — напоминание о заезде (Track E / E3)
     },
+    "sync-ical-sources": {
+        "task": "apps.stays.tasks.sync_ical_sources",
+        "schedule": 3600.0,  # раз в час — импорт занятости Booking.com/Airbnb (A5b)
+    },
 }
 
 # За сколько часов до начала записи слать напоминание (Track D / D3c).

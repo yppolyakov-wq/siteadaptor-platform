@@ -103,6 +103,37 @@
           <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add rate" %}</button>
         </form>
       </div>
+
+      {# iCal-синхронизация (A5b): экспорт занятости + импорт Booking.com/Airbnb #}
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Calendar sync (iCal)" %}</p>
+        <div class="text-xs text-gray-600 mb-3">
+          <p class="mb-1">{% trans "Export this unit's availability — paste this link into Booking.com / Airbnb / Google:" %}</p>
+          <input type="text" readonly value="{{ u.ical_export_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px]">
+        </div>
+        {% trans "Import external calendars — booked dates will block this unit:" as import_hint %}
+        <p class="text-xs text-gray-500 mb-2">{{ import_hint }}</p>
+        {% for s in u.ical_sources.all %}
+          <div class="flex items-center gap-2 text-sm text-gray-600 mb-1 flex-wrap">
+            <span>{{ s.label|default:"iCal" }} · <span class="text-xs text-gray-400">{% if s.last_synced_at %}{{ s.last_synced_at|date:"d.m.Y H:i" }} · {{ s.last_status }}{% else %}{% trans "not synced yet" %}{% endif %}</span></span>
+            <form method="post" class="inline">{% csrf_token %}
+              <input type="hidden" name="action" value="ical_sync"><input type="hidden" name="source" value="{{ s.pk }}">
+              <button class="text-indigo-600 hover:underline text-xs">{% trans "Sync now" %}</button>
+            </form>
+            <form method="post" class="inline">{% csrf_token %}
+              <input type="hidden" name="action" value="ical_delete"><input type="hidden" name="source" value="{{ s.pk }}">
+              <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+            </form>
+          </div>
+        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
+        <form method="post" class="flex items-end gap-2 flex-wrap mt-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="ical_add"><input type="hidden" name="unit" value="{{ u.pk }}">
+          <input type="url" name="url" required placeholder="https://…/calendar.ics" class="flex-1 min-w-[16rem] rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="text" name="label" placeholder="{% trans 'Booking.com / Airbnb' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add source" %}</button>
+        </form>
+      </div>
     </div>
   {% empty %}
     <p class="text-gray-500">{% trans "No units yet — create your first below." %}</p>

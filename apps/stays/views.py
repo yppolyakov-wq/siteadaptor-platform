@@ -21,7 +21,8 @@ from apps.billing import connect
 from apps.core.fsm import IllegalTransition
 
 from . import availability, services
-from .models import SeasonRate, StayBooking, StayUnit, UnitBlock
+from .models import ICalSource, SeasonRate, StayBooking, StayUnit, UnitBlock
+from .public_views import ical_token
 from .state_machine import StayBookingSM
 
 HORIZON_DAYS = 30  # ширина окна календаря загрузки
@@ -257,16 +258,45 @@ def units(request):
                 messages.error(request, _("Invalid dates."))
         elif action == "block_delete":
             UnitBlock.objects.filter(pk=request.POST.get("block")).delete()
+        elif action == "ical_add":  # A5b: подписка на внешний iCal-фид
+            unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
+            url = request.POST.get("url", "").strip()
+            if url:
+                ICalSource.objects.create(
+                    unit=unit,
+                    label=request.POST.get("label", "").strip()[:80],
+                    url=url[:500],
+                )
+                messages.success(request, _("Calendar source added — will sync shortly."))
+            else:
+                messages.error(request, _("Please enter the calendar URL."))
+        elif action == "ical_delete":
+            src = ICalSource.objects.filter(pk=request.POST.get("source")).first()
+            if src is not None:
+                # убрать заведённые им блоки вместе с источником
+                UnitBlock.objects.filter(unit=src.unit, source_id_ref=str(src.pk)).delete()
+                src.delete()
+        elif action == "ical_sync":
+            src = get_object_or_404(ICalSource, pk=request.POST.get("source"))
+            n = services.sync_ical_source(src)
+            messages.success(request, _("Synced: %(n)d blocked range(s).") % {"n": n})
         return redirect("stays:units")
 
+    units = list(
+        StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources").order_by(
+            "-is_active", "name"
+        )
+    )
+    for u in units:
+        u.ical_export_url = request.build_absolute_uri(
+            reverse("storefront-stay-ical", args=[ical_token(u)])
+        )
     return render(
         request,
         "stays/units.html",
         {
             "nav": "stays",
-            "units": StayUnit.objects.prefetch_related("blocks", "season_rates").order_by(
-                "-is_active", "name"
-            ),
+            "units": units,
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),
         },

@@ -49,3 +49,17 @@ def send_stay_reminders():
         with schema_context(schema):
             total += send_due_stay_reminders()
     return total
+
+
+@shared_task
+def sync_ical_sources():
+    """Beat (раз в час): тянуть внешние iCal-фиды и обновлять блоки (A5b)."""
+    from .models import ICalSource
+    from .services import sync_ical_source
+
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            for source in ICalSource.objects.filter(is_active=True):
+                total += sync_ical_source(source)
+    return total

@@ -136,6 +136,8 @@ urlpatterns = [
         name="storefront-unterkunft-book",
     ),
     path("s/<str:code>/", stays_public.unterkunft_confirmation, name="storefront-stay-ok"),
+    # iCal-фид занятости юнита (A5b): Booking.com/Airbnb/Google подписываются.
+    path("stays/ical/<str:token>.ics", stays_public.unterkunft_ical, name="storefront-stay-ical"),
     # События/билеты (A6c): список → событие → покупка → подтверждение.
     path("veranstaltung/", events_public.veranstaltung_index, name="storefront-events"),
     path("veranstaltung/<uuid:pk>/", events_public.veranstaltung_detail, name="storefront-event"),

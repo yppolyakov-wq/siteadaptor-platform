@@ -119,3 +119,51 @@ def move_stay(booking, *, arrival, departure):
     booking.total_cents = pricing.quote_total_cents(unit, arrival, departure)  # A5a: пересчёт
     booking.save(update_fields=["arrival", "departure", "total_cents", "updated_at"])
     return booking
+
+
+def sync_ical_source(source) -> int:
+    """Стянуть внешний iCal и пересоздать блоки этого источника (A5b).
+
+    Идемпотентно: удаляем прежние блоки source_id_ref=source.pk и заводим заново
+    по событиям фида (DTEND эксклюзивно → end_date = DTEND-1, наш включительный
+    формат). Возвращает число заведённых блоков. Сетевые/парс-ошибки —
+    last_status, блоки не трогаем.
+    """
+    from datetime import timedelta
+
+    import requests
+    from django.utils import timezone
+
+    from . import ical
+    from .models import UnitBlock
+
+    src = str(source.pk)
+    try:
+        resp = requests.get(source.url, timeout=20)
+        resp.raise_for_status()
+        events = ical.parse_events(resp.text)
+    except Exception as exc:  # noqa: BLE001 — сбой фида не должен ронять синк
+        source.last_status = str(exc)[:120]
+        source.last_synced_at = timezone.now()
+        source.save(update_fields=["last_status", "last_synced_at", "updated_at"])
+        return 0
+
+    with transaction.atomic():
+        UnitBlock.objects.filter(unit=source.unit, source_id_ref=src).delete()
+        created = 0
+        for _uid, start, end in events:
+            last_night = end - timedelta(days=1)  # DTEND эксклюзивно → включительно
+            if last_night < start:
+                continue
+            UnitBlock.objects.create(
+                unit=source.unit,
+                start_date=start,
+                end_date=last_night,
+                reason=f"iCal: {source.label or 'extern'}"[:120],
+                source_id_ref=src,
+            )
+            created += 1
+        source.last_status = f"OK: {created}"
+        source.last_synced_at = timezone.now()
+        source.save(update_fields=["last_status", "last_synced_at", "updated_at"])
+    return created
