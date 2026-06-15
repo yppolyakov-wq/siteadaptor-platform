@@ -25,8 +25,10 @@ SECTIONS = [
     ("cta", _("Call to action"), False),
     ("testimonials", _("Testimonials"), False),
     ("faq", _("FAQ"), False),
+    ("gallery", _("Photo gallery"), False),
     ("contact", _("Contact & opening hours"), True),
 ]
+_MAX_GALLERY = 24  # потолок фото в галерее
 _KNOWN = {key for key, _label, _on in SECTIONS}
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
@@ -159,6 +161,15 @@ def normalize(config) -> dict:
         "button_label": _s(cta.get("button_label")),
         "button_url": _s(cta.get("button_url")),
     }
+    # Галерея (M20 ⑤b): список FileRef-dict'ов (как Product.images); грузятся
+    # через apps.catalog.images.save_product_image, хранятся в site_config.
+    gallery = []
+    for ref in config.get("gallery") if isinstance(config.get("gallery"), list) else []:
+        if isinstance(ref, dict) and ref.get("url"):
+            gallery.append(ref)
+        if len(gallery) >= _MAX_GALLERY:
+            break
+    normalized["gallery"] = gallery
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):

@@ -1,0 +1,14 @@
+{% load i18n %}{# Секция «галерея фото» (M20 ⑤b): сетка изображений из site_config. #}
+{% if site.gallery %}
+<section class="mb-10">
+  <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Gallery" %}</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    {% for img in site.gallery %}
+      <div class="aspect-square rounded-xl overflow-hidden bg-gray-100">
+        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy"
+             class="w-full h-full object-cover hover:scale-[1.02] transition">
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

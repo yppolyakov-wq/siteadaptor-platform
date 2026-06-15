@@ -135,6 +135,56 @@ def settings_view(request):
     return render(request, "tenant/settings.html", {"form": form, "nav": "settings"})
 
 
+def _upload_gallery_images(request) -> None:
+    """Сохранить загруженные фото в site_config['gallery'] (M20 ⑤b).
+
+    Переиспользуем catalog.images.save_product_image (валидация Pillow + storage);
+    галерея — FileRef-список в site_config, как Product.images.
+    """
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.images import save_product_image
+    from apps.tenants import siteconfig
+
+    files = request.FILES.getlist("images")
+    if not files:
+        return
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    gallery = list(cfg.get("gallery") or [])
+    for f in files:
+        if len(gallery) >= siteconfig._MAX_GALLERY:
+            messages.info(request, "Galerie-Limit erreicht.")
+            break
+        try:
+            gallery.append(save_product_image(f, sort_order=len(gallery), folder="gallery"))
+        except ValidationError as exc:
+            messages.error(request, f"{f.name}: {'; '.join(exc.messages)}")
+    cfg["gallery"] = gallery
+    request.tenant.site_config = siteconfig.normalize(cfg)
+    request.tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, "Bilder hochgeladen.")
+
+
+def _delete_gallery_image(request, image_id: str) -> None:
+    """Удалить одно фото галереи (из storage + site_config)."""
+    from apps.catalog.images import delete_stored_image
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    gallery, removed = [], None
+    for ref in cfg.get("gallery") or []:
+        if ref.get("id") == image_id:
+            removed = ref
+        else:
+            gallery.append(ref)
+    if removed is not None:
+        delete_stored_image(removed)
+        cfg["gallery"] = gallery
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Bild gelöscht.")
+
+
 @login_required
 def site_view(request):
     """Конструктор витрины v1 (Track C2): секции главной + тексты hero/about.
@@ -165,12 +215,20 @@ def site_view(request):
             else:
                 messages.info(request, "Keine Demo-Inhalte vorhanden.")
             return redirect("site")
+        # Галерея (M20 ⑤b): загрузка/удаление фото (multipart, отдельно от save).
+        if request.POST.get("action") == "upload_gallery":
+            _upload_gallery_images(request)
+            return redirect("site")
+        if request.POST.get("action") == "delete_gallery_image":
+            _delete_gallery_image(request, request.POST.get("image_id", ""))
+            return redirect("site")
         rows = []
         for key, _label, _default in siteconfig.SECTIONS:
+            # Не присланный порядок (старая форма/новая секция) → в конец, не в начало.
             try:
-                order = int(request.POST.get(f"order_{key}", "0"))
+                order = int(request.POST.get(f"order_{key}", "999"))
             except (TypeError, ValueError):
-                order = 0
+                order = 999
             rows.append((order, key, request.POST.get(f"enabled_{key}") == "on"))
         rows.sort(key=lambda row: row[0])
         config = {"sections": [{"key": key, "enabled": on} for _o, key, on in rows]}
@@ -181,9 +239,9 @@ def site_view(request):
         nav_rows = []
         for key, _label, _url, _module in siteconfig.NAV_ITEMS:
             try:
-                order = int(request.POST.get(f"nav_order_{key}", "0"))
+                order = int(request.POST.get(f"nav_order_{key}", "999"))
             except (TypeError, ValueError):
-                order = 0
+                order = 999
             nav_rows.append((order, key, request.POST.get(f"nav_enabled_{key}") == "on"))
         nav_rows.sort(key=lambda row: row[0])
         config["nav"] = {
@@ -210,6 +268,8 @@ def site_view(request):
             config["onboarding"] = previous["onboarding"]
         if isinstance(previous.get("demo"), dict):
             config["demo"] = previous["demo"]
+        if isinstance(previous.get("gallery"), list):
+            config["gallery"] = previous["gallery"]  # фото грузятся отдельной формой
         request.tenant.site_config = siteconfig.normalize(config)
         update_fields = ["site_config", "updated_at"]
         # Акцентный цвет (#rrggbb) → Tenant.primary_color (читает витрина для hero).

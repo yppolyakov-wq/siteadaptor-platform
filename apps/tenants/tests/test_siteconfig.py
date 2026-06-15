@@ -41,9 +41,20 @@ def _owner():
 def test_normalize_empty_gives_defaults():
     config = siteconfig.normalize({})
     keys = [s["key"] for s in config["sections"]]
-    assert keys == ["hero", "promotions", "products", "about", "contact"]
+    # порядок реестра SECTIONS (M20 ⑤ добавил cta/testimonials/faq/gallery — выкл)
+    assert keys == [
+        "hero",
+        "promotions",
+        "products",
+        "about",
+        "cta",
+        "testimonials",
+        "faq",
+        "gallery",
+        "contact",
+    ]
     enabled = {s["key"] for s in config["sections"] if s["enabled"]}
-    assert enabled == {"promotions", "products", "contact"}
+    assert enabled == {"promotions", "products", "contact"}  # новые — по умолчанию выкл
     assert config["hero_title"] == ""
 
 
@@ -54,7 +65,7 @@ def test_normalize_drops_unknown_and_appends_missing():
     keys = [s["key"] for s in config["sections"]]
     assert "evil" not in keys
     assert keys[0] == "about"  # сохранённый порядок — впереди
-    assert set(keys) == {"hero", "promotions", "products", "about", "contact"}
+    assert set(keys) == {k for k, _l, _d in siteconfig.SECTIONS}
     assert config["hero_title"] == ""  # не-строка затёрта
 
 
