@@ -74,3 +74,22 @@ def test_storefront_nav_filters_disabled_and_inactive_modules():
     assert "booking" not in keys  # модуль неактивен
     assert style == "classic" and sticky is True
     assert all("url" in i and "label" in i for i in items)
+
+
+def test_storefront_header_does_not_leak_template_comment():
+    """Регрессия: многострочный {# #} утекал текстом в шапку витрины.
+    Урок CLAUDE.md — многострочные комментарии только {% comment %}."""
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build(name="Bäckerei X")
+    body = public_views.storefront_home(req).content.decode()
+    assert "classic/centered/minimal" not in body  # текст комментария не виден
+    assert "M20" not in body

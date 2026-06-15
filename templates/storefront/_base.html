@@ -15,9 +15,9 @@
   <style>:root { --accent: {{ request.tenant.primary_color|default:"#4f46e5" }}; }</style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
-  {# M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и пункты
-     из настроек (storefront_nav). Мобильный бургер раскрывает меню на телефоне;
-     стиль minimal прячет ссылки и на десктопе (всё в бургере). #}
+  {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
+  пункты из настроек (storefront_nav). Мобильный бургер раскрывает меню на
+  телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}
   {% with style=storefront_nav_style|default:'classic' %}
   <header class="{% if storefront_nav_sticky %}sticky top-0 {% endif %}z-20 bg-white/90 backdrop-blur border-b border-gray-100">
     <div class="max-w-5xl mx-auto px-4 {% if style == 'centered' %}py-2{% else %}h-14{% endif %} flex items-center {% if style == 'centered' %}flex-col gap-1{% else %}justify-between{% endif %}">
