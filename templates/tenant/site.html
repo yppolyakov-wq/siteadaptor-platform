@@ -15,6 +15,24 @@
     {% endfor %}
   {% endif %}
 
+  {# Демо-контент (M20): наполнить витрину примерами, чтобы увидеть результат. #}
+  <section class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex items-center justify-between gap-3 flex-wrap">
+    <div>
+      <h2 class="font-semibold mb-0.5">{% trans "Demo content" %}</h2>
+      <p class="text-xs text-gray-400">{% trans "Fill your site with example products and an offer to see how it looks. Remove it any time." %}</p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% if has_demo %}
+        <input type="hidden" name="action" value="clear_demo">
+        <button type="submit" class="text-sm border border-red-200 text-red-700 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Delete demo content" %}</button>
+      {% else %}
+        <input type="hidden" name="action" value="load_demo">
+        <button type="submit" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Load demo content" %}</button>
+      {% endif %}
+    </form>
+  </section>
+
   {# Галерея шаблонов витрины (ранний срез M20): выбор готовой раскладки. #}
   <section class="bg-white rounded-2xl shadow-sm p-6 mb-6">
     <h2 class="font-semibold mb-1">{% trans "Templates" %}</h2>

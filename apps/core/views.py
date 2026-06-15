@@ -142,7 +142,7 @@ def site_view(request):
     Сверху — галерея шаблонов (ранний срез M20, apps.tenants.sitetemplates):
     выбор готовой раскладки в один клик поверх того же секционного движка.
     """
-    from apps.tenants import siteconfig, sitetemplates
+    from apps.tenants import demo, siteconfig, sitetemplates
 
     if request.method == "POST":
         # Применение шаблона витрины (галерея).
@@ -151,6 +151,19 @@ def site_view(request):
                 messages.success(request, "Vorlage übernommen.")
             else:
                 messages.error(request, "Unbekannte Vorlage.")
+            return redirect("site")
+        # Демо-контент (M20): отдельные кнопки загрузки/удаления.
+        if request.POST.get("action") == "load_demo":
+            if demo.load_demo(request.tenant):
+                messages.success(request, "Demo-Inhalte geladen.")
+            else:
+                messages.info(request, "Demo-Inhalte sind bereits vorhanden.")
+            return redirect("site")
+        if request.POST.get("action") == "clear_demo":
+            if demo.clear_demo(request.tenant):
+                messages.success(request, "Demo-Inhalte gelöscht.")
+            else:
+                messages.info(request, "Keine Demo-Inhalte vorhanden.")
             return redirect("site")
         rows = []
         for key, _label, _default in siteconfig.SECTIONS:
@@ -214,6 +227,7 @@ def site_view(request):
             "sections": sections,
             "config": config,
             "site_templates": site_templates,
+            "has_demo": demo.has_demo(request.tenant),
         },
     )
 

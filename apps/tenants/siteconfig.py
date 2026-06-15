@@ -66,6 +66,10 @@ def normalize(config) -> dict:
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):
         normalized["onboarding"] = config["onboarding"]
+    # Реестр id демо-контента (M20, apps.tenants.demo) — чтобы «Demo löschen»
+    # удалил ровно созданное. Тоже переживает сохранение конструктора.
+    if isinstance(config.get("demo"), dict):
+        normalized["demo"] = config["demo"]
     return normalized
 
 
