@@ -90,6 +90,40 @@
       </div>
     </fieldset>
 
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Navigation menu" %}</legend>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Header style, and which links appear (in what order). Links for inactive modules are hidden automatically." %}</p>
+      <div class="flex flex-wrap items-center gap-4 mb-4">
+        <label class="flex items-center gap-2 text-sm">
+          <span class="text-gray-600">{% trans "Style" %}</span>
+          <select name="nav_style" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+            {% for s in nav_styles %}
+              <option value="{{ s }}" {% if s == nav_style %}selected{% endif %}>
+                {% if s == 'classic' %}{% trans "Classic (logo left)" %}{% elif s == 'centered' %}{% trans "Centered logo" %}{% else %}{% trans "Minimal (burger menu)" %}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex items-center gap-2 text-sm font-medium">
+          <input type="checkbox" name="nav_sticky" {% if nav_sticky %}checked{% endif %} class="rounded border-gray-300">
+          {% trans "Sticky header (stays on top when scrolling)" %}
+        </label>
+      </div>
+      <div class="space-y-2">
+        {% for item in nav_items %}
+          <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-2.5">
+            <input type="number" name="nav_order_{{ item.key }}" value="{{ item.order }}" min="1" max="9"
+                   class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
+            <label class="flex items-center gap-2 text-sm font-medium flex-1">
+              <input type="checkbox" name="nav_enabled_{{ item.key }}" {% if item.enabled %}checked{% endif %} class="rounded border-gray-300">
+              {{ item.label }}
+            </label>
+            {% if item.module %}<span class="text-[11px] text-gray-400">{% trans "module" %}: {{ item.module }}</span>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
       <legend class="font-semibold mb-2">{% trans "Welcome banner" %}</legend>
       <div>

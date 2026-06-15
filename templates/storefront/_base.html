@@ -15,26 +15,53 @@
   <style>:root { --accent: {{ request.tenant.primary_color|default:"#4f46e5" }}; }</style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
-  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">
-    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-      <a href="{% url 'storefront-home' %}" class="text-lg font-bold tracking-tight">{{ request.tenant.name|default:"Shop" }}</a>
-      <nav class="text-sm flex items-center gap-3">
-        <a href="{% url 'storefront-home' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Offers" %}</a>
-        <a href="{% url 'storefront-products' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Products" %}</a>
-        {% if storefront_booking_enabled %}<a href="{% url 'storefront-termin' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Book" %}</a>{% endif %}
-        {% if storefront_stays_enabled %}<a href="{% url 'storefront-unterkunft' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Stay" %}</a>{% endif %}
-        {% if storefront_events_enabled %}<a href="{% url 'storefront-events' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Events" %}</a>{% endif %}
-        {% if storefront_jobs_enabled %}<a href="{% url 'storefront-anfrage' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Request a quote" %}</a>{% endif %}
-        {% if storefront_inbox_enabled %}<a href="{% url 'storefront-message' %}" class="text-gray-600 hover:text-gray-900 font-medium">{% trans "Ask a question" %}</a>{% endif %}
-      </nav>
-      <nav aria-label="{% trans 'Language' %}" class="text-sm flex items-center gap-1">
-        <a href="{% url 'storefront-set-language' %}?lang=de&next={{ request.get_full_path|urlencode }}"
-           class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'de' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="de">DE</a>
-        <a href="{% url 'storefront-set-language' %}?lang=en&next={{ request.get_full_path|urlencode }}"
-           class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'en' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="en">EN</a>
+  {# M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и пункты
+     из настроек (storefront_nav). Мобильный бургер раскрывает меню на телефоне;
+     стиль minimal прячет ссылки и на десктопе (всё в бургере). #}
+  {% with style=storefront_nav_style|default:'classic' %}
+  <header class="{% if storefront_nav_sticky %}sticky top-0 {% endif %}z-20 bg-white/90 backdrop-blur border-b border-gray-100">
+    <div class="max-w-5xl mx-auto px-4 {% if style == 'centered' %}py-2{% else %}h-14{% endif %} flex items-center {% if style == 'centered' %}flex-col gap-1{% else %}justify-between{% endif %}">
+      <div class="w-full flex items-center justify-between {% if style == 'centered' %}sm:justify-center{% endif %}">
+        <a href="{% url 'storefront-home' %}" class="text-lg font-bold tracking-tight">{{ request.tenant.name|default:"Shop" }}</a>
+        <div class="flex items-center gap-2">
+          <nav aria-label="{% trans 'Language' %}" class="text-sm flex items-center gap-1">
+            <a href="{% url 'storefront-set-language' %}?lang=de&next={{ request.get_full_path|urlencode }}"
+               class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'de' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="de">DE</a>
+            <a href="{% url 'storefront-set-language' %}?lang=en&next={{ request.get_full_path|urlencode }}"
+               class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'en' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="en">EN</a>
+          </nav>
+          {# Бургер: на мобильном всегда, на десктопе — только в стиле minimal. #}
+          <button id="sf-nav-toggle" type="button" aria-label="{% trans 'Menu' %}" aria-expanded="false"
+                  class="text-2xl leading-none text-gray-700 {% if style != 'minimal' %}sm:hidden{% endif %}">☰</button>
+        </div>
+      </div>
+      {# Десктоп-меню: скрыто в minimal; в centered — по центру. #}
+      <nav class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-3 {% if style == 'centered' %}justify-center{% endif %}">
+        {% for item in storefront_nav %}
+          <a href="{{ item.url }}" class="text-gray-600 hover:text-gray-900 font-medium">{{ item.label }}</a>
+        {% endfor %}
       </nav>
     </div>
+    {# Раскрывающееся меню (мобильный + minimal-десктоп). #}
+    <nav id="sf-nav-mobile" class="hidden border-t border-gray-100 px-4 py-2 {% if style != 'minimal' %}sm:hidden{% endif %}">
+      {% for item in storefront_nav %}
+        <a href="{{ item.url }}" class="block py-2 text-gray-700 hover:text-gray-900 font-medium">{{ item.label }}</a>
+      {% endfor %}
+    </nav>
   </header>
+  {% endwith %}
+  <script>
+  (function () {
+    var btn = document.getElementById("sf-nav-toggle");
+    var menu = document.getElementById("sf-nav-mobile");
+    if (btn && menu) {
+      btn.addEventListener("click", function () {
+        var open = menu.classList.toggle("hidden") === false;
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    }
+  })();
+  </script>
 
   <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:py-10">
     {% if messages %}

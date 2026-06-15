@@ -177,12 +177,28 @@ def site_view(request):
         for field in siteconfig.TEXT_FIELDS:
             config[field] = request.POST.get(field, "")
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
-        # Не затираем состояние Onboarding-Wizard (D0c) — оно в том же JSON.
+        # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок числом).
+        nav_rows = []
+        for key, _label, _url, _module in siteconfig.NAV_ITEMS:
+            try:
+                order = int(request.POST.get(f"nav_order_{key}", "0"))
+            except (TypeError, ValueError):
+                order = 0
+            nav_rows.append((order, key, request.POST.get(f"nav_enabled_{key}") == "on"))
+        nav_rows.sort(key=lambda row: row[0])
+        config["nav"] = {
+            "style": request.POST.get("nav_style", "classic"),
+            "sticky": request.POST.get("nav_sticky") == "on",
+            "items": [{"key": key, "enabled": on} for _o, key, on in nav_rows],
+        }
+        # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
         )
         if isinstance(previous.get("onboarding"), dict):
             config["onboarding"] = previous["onboarding"]
+        if isinstance(previous.get("demo"), dict):
+            config["demo"] = previous["demo"]
         request.tenant.site_config = siteconfig.normalize(config)
         update_fields = ["site_config", "updated_at"]
         # Акцентный цвет (#rrggbb) → Tenant.primary_color (читает витрина для hero).
@@ -219,6 +235,19 @@ def site_view(request):
         }
         for t in sitetemplates.templates_for(business_type)
     ]
+    # Навигация витрины (M20 ④): пункты в порядке владельца + метки/гейтинг.
+    nav_labels = {key: label for key, label, _u, _m in siteconfig.NAV_ITEMS}
+    nav_modules_map = {key: mod for key, _l, _u, mod in siteconfig.NAV_ITEMS}
+    nav_items = [
+        {
+            "key": item["key"],
+            "label": nav_labels[item["key"]],
+            "enabled": item["enabled"],
+            "order": index,
+            "module": nav_modules_map[item["key"]] or "",
+        }
+        for index, item in enumerate(config["nav"]["items"], start=1)
+    ]
     return render(
         request,
         "tenant/site.html",
@@ -227,6 +256,10 @@ def site_view(request):
             "sections": sections,
             "config": config,
             "site_templates": site_templates,
+            "nav_items": nav_items,
+            "nav_style": config["nav"]["style"],
+            "nav_sticky": config["nav"]["sticky"],
+            "nav_styles": siteconfig.NAV_STYLES,
             "has_demo": demo.has_demo(request.tenant),
         },
     )

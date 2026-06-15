@@ -33,6 +33,31 @@ TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
 # выглядит как раньше.
 HERO_STYLES = ("plain", "accent")
 
+# Навигация витрины (M20 ④): пункты шапки, их порядок и стиль.
+# (key, подпись, url_name, требуемый модуль | None). offers/products — всегда
+# доступны; остальные показываются только при активном модуле.
+NAV_ITEMS = [
+    ("offers", _("Offers"), "storefront-home", None),
+    ("products", _("Products"), "storefront-products", None),
+    ("booking", _("Book"), "storefront-termin", "booking"),
+    ("stays", _("Stay"), "storefront-unterkunft", "stays"),
+    ("events", _("Events"), "storefront-events", "events"),
+    ("jobs", _("Request a quote"), "storefront-anfrage", "jobs"),
+    ("inbox", _("Ask a question"), "storefront-message", "inbox"),
+]
+_NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
+# Стиль шапки: classic (лого слева + ссылки справа, как было), centered (лого
+# по центру, ссылки под ним), minimal (только лого, всё меню в бургере).
+NAV_STYLES = ("classic", "centered", "minimal")
+
+
+def default_nav() -> dict:
+    return {
+        "style": "classic",
+        "sticky": True,
+        "items": [{"key": key, "enabled": True} for key, _l, _u, _m in NAV_ITEMS],
+    }
+
 
 def default_sections() -> list[dict]:
     return [{"key": key, "enabled": enabled} for key, _label, enabled in SECTIONS]
@@ -62,6 +87,25 @@ def normalize(config) -> dict:
         normalized[field] = value.strip() if isinstance(value, str) else ""
     hero_style = config.get("hero_style")
     normalized["hero_style"] = hero_style if hero_style in HERO_STYLES else "plain"
+    # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок владельца,
+    # неизвестные отброшены, недостающие дописаны включёнными). Легаси без nav →
+    # дефолт (classic/sticky/все включены) = текущее поведение, без регрессии.
+    nav_in = config.get("nav") if isinstance(config.get("nav"), dict) else {}
+    nav_items, nav_seen = [], set()
+    for item in nav_in.get("items", []):
+        key = item.get("key") if isinstance(item, dict) else None
+        if key in _NAV_KNOWN and key not in nav_seen:
+            nav_items.append({"key": key, "enabled": bool(item.get("enabled"))})
+            nav_seen.add(key)
+    for key, _l, _u, _m in NAV_ITEMS:
+        if key not in nav_seen:
+            nav_items.append({"key": key, "enabled": True})
+    nav_style = nav_in.get("style")
+    normalized["nav"] = {
+        "style": nav_style if nav_style in NAV_STYLES else "classic",
+        "sticky": bool(nav_in.get("sticky", True)),
+        "items": nav_items,
+    }
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):
