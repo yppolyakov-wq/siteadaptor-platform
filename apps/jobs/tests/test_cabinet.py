@@ -209,3 +209,33 @@ def test_delete_new_job():
     resp = views.job_delete(_req("post"), pk=job.pk)
     assert resp.status_code == 302
     assert not Job.objects.filter(pk=job.pk).exists()
+
+
+def test_link_and_unlink_booking():
+    """A7d: привязка/отвязка выездного Termin к заявке."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.booking.models import Booking, Resource
+
+    job = services.create_job(title="Reparatur", name="Kunde", email="k@t.de")
+    resource = Resource.objects.create(name="Team")
+    start = timezone.now() + timedelta(days=1)
+    booking = Booking.objects.create(
+        resource=resource,
+        customer=job.customer,
+        reference_code="T-AAA111",
+        start=start,
+        end=start + timedelta(hours=1),
+        status="confirmed",
+    )
+    views.job_detail(
+        _req("post", data={"action": "link_booking", "booking": str(booking.pk)}), pk=job.pk
+    )
+    job.refresh_from_db()
+    assert job.booking_id == booking.pk
+
+    views.job_detail(_req("post", data={"action": "unlink_booking"}), pk=job.pk)
+    job.refresh_from_db()
+    assert job.booking_id is None

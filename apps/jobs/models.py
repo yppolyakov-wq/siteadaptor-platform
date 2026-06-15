@@ -75,6 +75,16 @@ class Job(TimestampedModel):
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_UNPAID)
     stripe_payment_intent = models.CharField(max_length=64, blank=True)
 
+    # A7d: выездной Termin (apps.booking) для заявки — мастер видит запись из сметы.
+    # SET_NULL: удаление брони не трогает заявку.
+    booking = models.ForeignKey(
+        "booking.Booking",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="jobs",
+    )
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [

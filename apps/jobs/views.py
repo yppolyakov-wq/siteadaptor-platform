@@ -121,6 +121,8 @@ def job_detail(request, pk):
             return _make_invoice(request, job)
         if action in ("quoted", "accepted", "declined", "done", "cancelled"):
             return _transition(request, job, action)
+        if action in ("link_booking", "unlink_booking"):
+            return _link_booking(request, job, attach=action == "link_booking")
         messages.error(request, _("Unknown action."))
         return redirect("jobs:detail", pk=job.pk)
 
@@ -149,8 +151,35 @@ def job_detail(request, pk):
             "small_business": request.tenant.small_business,
             "deposit_eur": f"{job.deposit_cents / 100:.2f}",
             "payments_enabled": getattr(request.tenant, "payments_enabled", False),
+            "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
         },
     )
+
+
+def _customer_bookings(job):
+    """A7d: брони этого клиента для выпадающего списка привязки Termin (или []
+    если модуль booking выключен)."""
+    from apps.booking.models import Booking
+
+    return list(
+        Booking.objects.filter(customer=job.customer)
+        .select_related("resource")
+        .order_by("-start")[:20]
+    )
+
+
+def _link_booking(request, job, *, attach):
+    from apps.booking.models import Booking
+
+    if attach:
+        job.booking = Booking.objects.filter(
+            pk=request.POST.get("booking") or None, customer=job.customer
+        ).first()
+    else:
+        job.booking = None
+    job.save(update_fields=["booking", "updated_at"])
+    messages.success(request, _("Saved."))
+    return redirect("jobs:detail", pk=job.pk)
 
 
 def _save_lines(request, job):
