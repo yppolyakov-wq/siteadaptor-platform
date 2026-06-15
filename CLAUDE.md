@@ -897,6 +897,13 @@ Python 3.12, менеджер uv.
   своим дефолтом-вкл). Рекомендованные типу — первыми, с бейджем. Полноценный
   drag-drop конструктор — по-прежнему Stage 3. Тесты
   `apps/tenants/tests/test_sitetemplates.py`.
+  - Акцентный цвет + стиль hero: каждый шаблон несёт `accent` (→ `Tenant.primary_color`)
+    и `hero_style` (`plain`/`accent`); витрина `_base.html` задаёт `--accent` из
+    primary_color, `sections/_hero.html` рисует цветной баннер при `hero_style=accent`.
+    Гейтим цветной фон ФЛАГОМ `hero_style`, а не самим primary_color (у легаси он
+    `#000000` → без флага витрина как раньше, без регрессии). `siteconfig.normalize`
+    добавил `hero_style` (default `plain`). Кабинет «Site»: палитра цвета + чекбокс
+    «цветной баннер» в форме hero (валидация `#rrggbb`); фото-hero — на будущее.
   - Хотфикс S3: многострочный `{# … #}` в `_base_dashboard.html` Django НЕ считает
     комментарием — текст утекал в сайдбар; заменён на `{% comment %}…{% endcomment %}`
     + регрессия в `test_cabinet_nav.py`. **Урок: многострочные шаблонные комментарии —
