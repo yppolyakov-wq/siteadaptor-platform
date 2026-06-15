@@ -199,8 +199,10 @@ def site_view(request):
             "label": t["label"],
             "description": t["description_de"],
             "recommended": business_type in t["recommended_for"],
-            "sections": [labels[s] for s in t["sections"]],  # подписи для превью
+            # для мини-превью раскладки: ключ (стиль) + человеческая подпись
+            "sections": [{"key": s, "label": labels[s]} for s in t["sections"]],
             "accent": t.get("accent", ""),
+            "hero_style": t.get("hero_style", "plain"),
         }
         for t in sitetemplates.templates_for(business_type)
     ]
