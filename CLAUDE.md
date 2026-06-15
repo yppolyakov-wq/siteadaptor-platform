@@ -833,6 +833,33 @@ Python 3.12, менеджер uv.
     (action + гейтинг). Деплой: миграция stays/0005.
   - Дальше A5: листинг date-range в агрегаторе (крупный отдельный инкремент —
     агрегатор завязан на promotions/promo_uuid).
+- **A5/A6 — date-range листинг отелей/событий в агрегаторе (в работе, ветка
+  `claude/stage1-finish-tkf22i`; решение владельца 2026-06-15: расширить
+  AggregatorListing, без фильтра доступности stays в v1, авто-листинг как акции):**
+  главная дыра A5/A6 — размещение (apps.stays) и события (apps.events) не попадали
+  в `/entdecken`/порталы (агрегатор был завязан на акции через promo_uuid).
+  - A5/A6-1 ядро + sync (✅ ветка, миграция aggregator/0011): `AggregatorListing`
+    += `listing_kind` (promotion/stay/event) + `source_ref` (единый ключ источника,
+    str pk); `promo_uuid` → nullable; новый unique `(tenant_schema, listing_kind,
+    source_ref)` + backfill (`source_ref=str(promo_uuid)`); `save()` выводит
+    source_ref из promo_uuid (инвариант, защита legacy-создания). Sync-задачи
+    `sync_stay_listing`/`sync_event_listing` (кросс-схемно, зеркало sync_listing,
+    гейтинг по `is_module_active`): stay = «ab price_cents/Nacht» пока `is_active`;
+    event = published + будущее, цена за место + `starts_at`. Хуки: `StayUnit`
+    post_save/post_delete, `EventSM.on_transition` (published→upsert, draft/
+    cancelled→remove) + `Event` post_save (правка). `reconcile_schema` +
+    `sync_aggregator` покрывают все три вида. `listings_for`/featured/гео/звёзды/
+    порталы/SEO — без изменений (один пул). Тесты `test_stay_event_listings`.
+  - A5/A6-2 выдача + карточки + фильтр (✅ ветка, без миграций): `listings_for(kind=)`
+    фильтрует вид + всегда скрывает истёкшие события (`starts_at<now`); `discover_index`
+    принимает `?kind=` (мусор игнор), чип вида (Angebote/Übernachten/Events) в
+    `_search_form`; `_cards.html` — бейдж 🛏/🎫 по `listing_kind`, stay → «ab X €/
+    Nacht», event → цена + дата. Тесты `test_kind_filter`.
+  - Картинок у StayUnit/Event пока нет → карточки с placeholder (опц. позже:
+    фото юнита/события или логотип бизнеса). Фильтр доступности stays по датам —
+    отложено (тяжёлый кросс-схемный календарь); карточка ведёт на витрину `/unterkunft/`.
+  - **Деплой A5/A6:** миграция aggregator/0011 + один раз `manage.py sync_aggregator`
+    (бэкофилл листингов stays/events в существующих тенантах).
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,
