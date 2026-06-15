@@ -37,6 +37,19 @@ DELIMITER_CHOICES = [
     ("pipe", "Pipe  |"),
 ]
 
+# логические поля варианта товара (R1, A1): родитель + атрибуты варианта
+VARIANT_FIELDS = [
+    ("product_sku", "Produkt-SKU *"),
+    ("product_name_de", "Produkt-Name (DE) *"),
+    ("label", "Variante (z. B. 100 g, M) *"),
+    ("sku", "Varianten-SKU"),
+    ("gtin", "EAN/GTIN"),
+    ("price", "Preis (leer = Grundpreis)"),
+    ("content_amount", "Inhalt (Grundpreis)"),
+    ("stock_quantity", "Lagerbestand"),
+    ("is_active", "Aktiv"),
+]
+
 # логические поля акции для маппинга колонок
 PROMOTION_FIELDS = [
     ("title_de", "Titel (DE) *"),
@@ -62,13 +75,23 @@ MATCH_FIELD_CHOICES = [
     ("name_de", "Name (DE)"),
 ]
 
-RESOURCE_CHOICES = [("product", "Produkte"), ("promotion", "Aktionen")]
-RESOURCE_FIELDS = {"product": PRODUCT_FIELDS, "promotion": PROMOTION_FIELDS}
+RESOURCE_CHOICES = [
+    ("product", "Produkte"),
+    ("product_variant", "Produktvarianten"),
+    ("promotion", "Aktionen"),
+]
+RESOURCE_FIELDS = {
+    "product": PRODUCT_FIELDS,
+    "product_variant": VARIANT_FIELDS,
+    "promotion": PROMOTION_FIELDS,
+}
 RESOURCE_MATCH_FIELDS = {
     "product": MATCH_FIELD_CHOICES,
+    # Вариант всегда upsert по (товар, label) — поле синхронизации не выбирается.
+    "product_variant": [("label", "Variante (label)")],
     "promotion": [("title_de", "Titel (DE)")],
 }
-RESOURCE_DEFAULT_MATCH = {"product": "sku", "promotion": "title_de"}
+RESOURCE_DEFAULT_MATCH = {"product": "sku", "product_variant": "label", "promotion": "title_de"}
 
 
 @login_required

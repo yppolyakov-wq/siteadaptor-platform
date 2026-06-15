@@ -1,11 +1,12 @@
 """Реестр процессоров импорта по resource_type."""
 
 from .base import BaseProcessor
-from .product import ProductProcessor
+from .product import ProductProcessor, ProductVariantProcessor
 from .promotion import PromotionProcessor
 
 PROCESSORS = {
     "product": ProductProcessor,
+    "product_variant": ProductVariantProcessor,
     "promotion": PromotionProcessor,
 }
 

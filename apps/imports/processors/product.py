@@ -1,8 +1,8 @@
-"""Процессор импорта товаров (catalog.Product)."""
+"""Процессоры импорта товаров (catalog.Product) и их вариантов (ProductVariant)."""
 
 from decimal import Decimal, InvalidOperation
 
-from apps.catalog.models import Category, Product
+from apps.catalog.models import Category, Product, ProductVariant
 
 from .base import BaseProcessor
 
@@ -117,3 +117,74 @@ class ProductProcessor(BaseProcessor):
                 return existing
 
         return Product.objects.create(sku=sku, **fields)
+
+
+def _parse_int(value):
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        return int(str(value).strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def _find_parent_product(data: dict):
+    """Найти родительский товар по product_sku или product_name_de (sku в приоритете)."""
+    psku = (str(data["product_sku"]).strip() if data.get("product_sku") else "") or ""
+    if psku:
+        product = Product.objects.filter(sku=psku).first()
+        if product is not None:
+            return product
+    pname = (str(data["product_name_de"]).strip() if data.get("product_name_de") else "") or ""
+    if pname:
+        return Product.objects.filter(name__de=pname).first()
+    return None
+
+
+class ProductVariantProcessor(BaseProcessor):
+    """Массовый импорт вариантов товара (R1, A1): чай 100/250 г, размеры одежды.
+
+    Родитель ищется по product_sku или product_name_de; вариант уникален в
+    пределах товара по label (variant_product_label_uniq) — повтор label
+    обновляет существующий вариант (upsert), что и нужно для массовой правки
+    цен/остатков. Пустая цена варианта → берётся Product.base_price (R1).
+    """
+
+    model = ProductVariant
+
+    def validate(self, data: dict) -> list[str]:
+        errors: list[str] = []
+        if not (
+            (data.get("product_sku") or "").strip() or (data.get("product_name_de") or "").strip()
+        ):
+            errors.append("product_sku or product_name_de is required")
+        elif _find_parent_product(data) is None:
+            errors.append("parent product not found")
+        if not (data.get("label") or "").strip():
+            errors.append("label is required")
+        raw_price = data.get("price")
+        if raw_price not in (None, "") and _parse_decimal(raw_price) is None:
+            errors.append("price is not a valid number")
+        return errors
+
+    def create_or_update(self, data: dict, *, update_existing: bool, match_field: str = "label"):
+        product = _find_parent_product(data)
+        if product is None:  # validate уже отсеял; страховка на гонку
+            raise ValueError("parent product not found")
+        label = str(data["label"]).strip()
+
+        fields = {
+            "sku": (str(data["sku"]).strip() if data.get("sku") else "") or "",
+            "gtin": (str(data["gtin"]).strip() if data.get("gtin") else "") or "",
+            "price": _parse_decimal(data.get("price")),  # None → наследует base_price
+            "content_amount": _parse_decimal(data.get("content_amount")),
+            "stock_quantity": _parse_int(data.get("stock_quantity")),
+            "is_active": _parse_bool(data.get("is_active"), default=True),
+        }
+        # Вариант уникален по (product, label) — upsert по этой паре всегда
+        # (label — естественный ключ варианта; не плодим дубли при повторном импорте).
+        variant, _created = ProductVariant.objects.get_or_create(product=product, label=label)
+        for key, value in fields.items():
+            setattr(variant, key, value)
+        variant.save()
+        return variant
