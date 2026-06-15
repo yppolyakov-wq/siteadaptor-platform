@@ -44,6 +44,7 @@ class Category(SoftDeleteMixin, I18nMixin):
 
 class Product(SoftDeleteMixin, I18nMixin):
     sku = models.CharField(max_length=100, blank=True, db_index=True)
+    gtin = models.CharField(max_length=14, blank=True)  # A1: EAN/GTIN (штрихкод) для фидов
     name = models.JSONField(default=dict)
     description = models.JSONField(default=dict)
 
@@ -172,6 +173,7 @@ class ProductVariant(TimestampedModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
     label = models.CharField(max_length=100)  # «100 g», «M», «6er-Pack»
     sku = models.CharField(max_length=100, blank=True)
+    gtin = models.CharField(max_length=14, blank=True)  # A1: EAN/GTIN варианта
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     # PAngV (R2): контент варианта для Grundpreis (чай 100 г vs 250 г); пусто →
     # берётся Product.content_amount. Единица (unit) — на товаре.

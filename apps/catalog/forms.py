@@ -118,12 +118,14 @@ class ProductForm(forms.ModelForm):
             "unit",
             "content_amount",
             "sku",
+            "gtin",
             "stock_quantity",
             "origin",
             "ingredients",
             "is_active",
             "is_featured",
         ]
+        labels = {"gtin": _("EAN / GTIN (barcode)")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

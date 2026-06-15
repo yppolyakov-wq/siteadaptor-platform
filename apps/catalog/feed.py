@@ -36,7 +36,8 @@ def _entries(product, *, product_url, absolutize):
     description = product.description_text or title
     brand = product.metadata.get("brand") if isinstance(product.metadata, dict) else ""
 
-    def base(item_id, item_title, price, available):
+    def base(item_id, item_title, price, available, gtin=""):
+        eff_gtin = gtin or product.gtin or ""  # A1: вариантный EAN перебивает товарный
         return {
             "id": item_id,
             "title": item_title,
@@ -47,15 +48,22 @@ def _entries(product, *, product_url, absolutize):
             "price": _money(price, product.currency),
             "brand": brand,
             "condition": "new",
+            "gtin": eff_gtin,
             "mpn": product.sku or "",
-            "identifier_exists": "no" if not (product.sku or brand) else "",
+            "identifier_exists": "no" if not (eff_gtin or product.sku or brand) else "",
         }
 
     variants = list(product.active_variants)
     if variants:
         return [
             {
-                **base(f"{product.pk}:{v.pk}", f"{title} – {v.label}", v.price_value, v.in_stock),
+                **base(
+                    f"{product.pk}:{v.pk}",
+                    f"{title} – {v.label}",
+                    v.price_value,
+                    v.in_stock,
+                    gtin=v.gtin,
+                ),
                 "item_group_id": str(product.pk),
             }
             for v in variants

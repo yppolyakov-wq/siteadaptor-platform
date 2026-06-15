@@ -147,6 +147,7 @@ def variant_add(request, pk):
             product=product,
             label=label,
             sku=(request.POST.get("sku") or "").strip(),
+            gtin=(request.POST.get("gtin") or "").strip(),
             price=_parse_price(request.POST.get("price")),
             content_amount=_parse_price(request.POST.get("content")),
             stock_quantity=_parse_int(request.POST.get("stock")),
@@ -164,6 +165,7 @@ def variant_update(request, pk, vid):
     variant.content_amount = _parse_price(request.POST.get("content"))
     variant.stock_quantity = _parse_int(request.POST.get("stock"))
     variant.sort_order = _parse_int(request.POST.get("sort")) or 0
+    variant.gtin = (request.POST.get("gtin") or "").strip()
     variant.is_active = bool(request.POST.get("is_active"))
     variant.save(
         update_fields=[
@@ -171,6 +173,7 @@ def variant_update(request, pk, vid):
             "content_amount",
             "stock_quantity",
             "sort_order",
+            "gtin",
             "is_active",
             "updated_at",
         ]

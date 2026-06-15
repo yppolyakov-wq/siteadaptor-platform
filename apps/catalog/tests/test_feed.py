@@ -56,6 +56,25 @@ def test_feed_image_absolutized():
     assert "<g:image_link>https://shop.test/media/p.jpg</g:image_link>" in _build([product])
 
 
+def test_feed_includes_gtin():
+    """A1: EAN/GTIN в фид + identifier_exists не «no»."""
+    product = ProductFactory(base_price=Decimal("9.90"), name={"de": "Brot"}, gtin="4006381333931")
+    xml = _build([product])
+    assert "<g:gtin>4006381333931</g:gtin>" in xml
+    assert "<g:identifier_exists>no</g:identifier_exists>" not in xml
+
+
+def test_feed_variant_gtin_overrides_product():
+    product = ProductFactory(base_price=Decimal("5.00"), name={"de": "Tee"}, gtin="1111111111111")
+    ProductVariant.objects.create(
+        product=product, label="100 g", price=Decimal("5.00"), gtin="2222222222222"
+    )
+    ProductVariant.objects.create(product=product, label="250 g", price=Decimal("12.00"))
+    xml = _build([product])
+    assert "<g:gtin>2222222222222</g:gtin>" in xml  # вариантный EAN
+    assert "<g:gtin>1111111111111</g:gtin>" in xml  # 250 g без своего → товарный
+
+
 def test_feed_view_renders_xml():
     product = ProductFactory(name={"de": "Brot"})
     from apps.promotions import public_views
