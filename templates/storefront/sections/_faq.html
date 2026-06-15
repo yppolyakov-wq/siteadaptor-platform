@@ -1,0 +1,17 @@
+{% load i18n %}{# Секция FAQ (M20 ⑤a): вопрос/ответ из site_config (нативный <details>). #}
+{% if site.faq %}
+<section class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
+  <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Frequently asked questions" %}</h2>
+  <div class="divide-y divide-gray-100">
+    {% for f in site.faq %}
+      <details class="py-3 group">
+        <summary class="cursor-pointer font-medium text-gray-800 flex items-center justify-between">
+          <span>{{ f.q }}</span>
+          <span class="text-gray-400 group-open:rotate-180 transition">⌄</span>
+        </summary>
+        {% if f.a %}<p class="mt-2 text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+      </details>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

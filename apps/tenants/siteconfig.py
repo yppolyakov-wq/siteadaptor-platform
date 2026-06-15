@@ -21,6 +21,10 @@ SECTIONS = [
     ("promotions", _("Current offers"), True),
     ("products", _("Products"), True),
     ("about", _("About us"), False),
+    # M20 ⑤a: контент-секции (по умолчанию выключены — легаси не затронут).
+    ("cta", _("Call to action"), False),
+    ("testimonials", _("Testimonials"), False),
+    ("faq", _("FAQ"), False),
     ("contact", _("Contact & opening hours"), True),
 ]
 _KNOWN = {key for key, _label, _on in SECTIONS}
@@ -49,6 +53,45 @@ _NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
 # Стиль шапки: classic (лого слева + ссылки справа, как было), centered (лого
 # по центру, ссылки под ним), minimal (только лого, всё меню в бургере).
 NAV_STYLES = ("classic", "centered", "minimal")
+
+
+_MAX_ITEMS = 12  # потолок строк для FAQ/Testimonials (анти-флуд)
+
+
+def _s(value) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _clean_pairs(value, key_a: str, key_b: str) -> list[dict]:
+    """Список dict'ов {key_a, key_b} из произвольного value — обе строки, первая
+    непустая (иначе пропуск); максимум _MAX_ITEMS. Для FAQ/Testimonials."""
+    out = []
+    for item in value if isinstance(value, list) else []:
+        if not isinstance(item, dict):
+            continue
+        a, b = _s(item.get(key_a)), _s(item.get(key_b))
+        if a:
+            out.append({key_a: a, key_b: b})
+        if len(out) >= _MAX_ITEMS:
+            break
+    return out
+
+
+def pairs_to_text(items, key_a: str, key_b: str) -> str:
+    """Сериализация пар в textarea кабинета: «A | B» по строке."""
+    return "\n".join(f"{i.get(key_a, '')} | {i.get(key_b, '')}".rstrip(" |") for i in items or [])
+
+
+def text_to_pairs(text: str, key_a: str, key_b: str) -> list[dict]:
+    """Парс textarea кабинета: строка «A | B» → {key_a, key_b} (первое « | » — разделитель)."""
+    pairs = []
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        a, _sep, b = line.partition("|")
+        pairs.append({key_a: a.strip(), key_b: b.strip()})
+    return pairs[:_MAX_ITEMS]
 
 
 def default_nav() -> dict:
@@ -105,6 +148,16 @@ def normalize(config) -> dict:
         "style": nav_style if nav_style in NAV_STYLES else "classic",
         "sticky": bool(nav_in.get("sticky", True)),
         "items": nav_items,
+    }
+    # Контент-секции (M20 ⑤a): FAQ, отзывы, CTA. Все опциональны; пустое — пропуск.
+    normalized["faq"] = _clean_pairs(config.get("faq"), "q", "a")
+    normalized["testimonials"] = _clean_pairs(config.get("testimonials"), "name", "text")
+    cta = config.get("cta") if isinstance(config.get("cta"), dict) else {}
+    normalized["cta"] = {
+        "title": _s(cta.get("title")),
+        "text": _s(cta.get("text")),
+        "button_label": _s(cta.get("button_label")),
+        "button_url": _s(cta.get("button_url")),
     }
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.

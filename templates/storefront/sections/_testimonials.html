@@ -1,0 +1,14 @@
+{% load i18n %}{# Секция отзывов (M20 ⑤a): имя + текст из site_config. #}
+{% if site.testimonials %}
+<section class="mb-10">
+  <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "What our customers say" %}</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {% for t in site.testimonials %}
+      <figure class="bg-white rounded-2xl shadow-sm p-5">
+        <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
+        {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+      </figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

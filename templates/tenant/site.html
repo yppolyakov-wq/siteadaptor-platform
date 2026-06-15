@@ -164,6 +164,29 @@
       </div>
     </fieldset>
 
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <legend class="font-semibold mb-1">{% trans "Call to action" %}</legend>
+      <p class="text-xs text-gray-400">{% trans "A highlighted banner with a button (e.g. “Book now”). Shown when the CTA section is enabled above." %}</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input name="cta_title" type="text" value="{{ config.cta.title }}" placeholder="{% trans 'Headline' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+        <input name="cta_button_label" type="text" value="{{ config.cta.button_label }}" placeholder="{% trans 'Button text' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <textarea name="cta_text" rows="2" placeholder="{% trans 'Text (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ config.cta.text }}</textarea>
+      <input name="cta_button_url" type="text" value="{{ config.cta.button_url }}" placeholder="https://… {% trans 'or' %} /termin/" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-2">
+      <legend class="font-semibold mb-1">{% trans "Testimonials" %}</legend>
+      <p class="text-xs text-gray-400">{% trans "One per line: Name | Text. Shown when the Testimonials section is enabled." %}</p>
+      <textarea name="testimonials_text" rows="4" placeholder="Anna M. | Toller Service, immer wieder gern!" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ testimonials_text }}</textarea>
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-2">
+      <legend class="font-semibold mb-1">{% trans "FAQ" %}</legend>
+      <p class="text-xs text-gray-400">{% trans "One per line: Question | Answer. Shown when the FAQ section is enabled." %}</p>
+      <textarea name="faq_text" rows="4" placeholder="Habt ihr Parkplätze? | Ja, direkt vor dem Laden." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ faq_text }}</textarea>
+    </fieldset>
+
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </div>

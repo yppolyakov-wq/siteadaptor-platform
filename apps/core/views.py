@@ -191,6 +191,17 @@ def site_view(request):
             "sticky": request.POST.get("nav_sticky") == "on",
             "items": [{"key": key, "enabled": on} for _o, key, on in nav_rows],
         }
+        # Контент-секции (M20 ⑤a): CTA / отзывы / FAQ.
+        config["cta"] = {
+            "title": request.POST.get("cta_title", ""),
+            "text": request.POST.get("cta_text", ""),
+            "button_label": request.POST.get("cta_button_label", ""),
+            "button_url": request.POST.get("cta_button_url", ""),
+        }
+        config["faq"] = siteconfig.text_to_pairs(request.POST.get("faq_text", ""), "q", "a")
+        config["testimonials"] = siteconfig.text_to_pairs(
+            request.POST.get("testimonials_text", ""), "name", "text"
+        )
         # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
@@ -260,6 +271,8 @@ def site_view(request):
             "nav_style": config["nav"]["style"],
             "nav_sticky": config["nav"]["sticky"],
             "nav_styles": siteconfig.NAV_STYLES,
+            "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
+            "testimonials_text": siteconfig.pairs_to_text(config["testimonials"], "name", "text"),
             "has_demo": demo.has_demo(request.tenant),
         },
     )
