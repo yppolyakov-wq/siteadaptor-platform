@@ -855,11 +855,20 @@ Python 3.12, менеджер uv.
     принимает `?kind=` (мусор игнор), чип вида (Angebote/Übernachten/Events) в
     `_search_form`; `_cards.html` — бейдж 🛏/🎫 по `listing_kind`, stay → «ab X €/
     Nacht», event → цена + дата. Тесты `test_kind_filter`.
-  - Картинок у StayUnit/Event пока нет → карточки с placeholder (опц. позже:
-    фото юнита/события или логотип бизнеса). Фильтр доступности stays по датам —
-    отложено (тяжёлый кросс-схемный календарь); карточка ведёт на витрину `/unterkunft/`.
-  - **Деплой A5/A6:** миграция aggregator/0011 + один раз `manage.py sync_aggregator`
-    (бэкофилл листингов stays/events в существующих тенантах).
+  - A5/A6/A8-хвосты (✅ в `main`, 2026-06-15; T1+T2 без миграций, T3 — events/0002):
+    - **T1 P2.7+ рекомендации (A8):** `apps/aggregator/recommendations.py::ending_soon`
+      — акции с близким `ends_at` + события с близким `starts_at` в порядке
+      срочности; рейл «Ending soon» на `/entdecken` (landing). Тесты
+      `test_recommendations`.
+    - **T2 фото карточек stays/events (A5/A6):** карточка без своего фото берёт
+      `Tenant.logo_url` (фолбэк вместо placeholder, `_logo_image` в sync). Своё
+      фото юнита/события — позже.
+    - **T3 «Programm» ретрита (A6):** `Event.program` (список пунктов агенды,
+      построчно в форме как questions) + блок «Programme» на странице события.
+  - Фильтр доступности stays по датам — отложено (тяжёлый кросс-схемный календарь;
+    карточка ведёт на витрину `/unterkunft/`); единая корзина агрегатора — Stage 3.
+  - **Деплой A5/A6:** миграции aggregator/0011 + events/0002 + один раз
+    `manage.py sync_aggregator` (бэкофилл листингов stays/events).
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

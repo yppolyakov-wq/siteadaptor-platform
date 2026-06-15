@@ -82,10 +82,10 @@ webhook + стратегия Connect redirect-URI, отдельный Postgres +
 | **A2 Versand** | ~100% | ✅ зоны по PLZ (A2a) + ✅ Lieferschein-PDF/этикетка (A2b) + ✅ возвраты/Widerruf (A2c) + ✅ отдельные мин-суммы pickup/доставка. Реальный лейбл перевозчика (DHL API) — при необходимости. |
 | **A3 Termin** | ~100% | ✅ онлайн-продажа Mehrfachkarte (Stripe Connect) + ✅ привязка карты к услуге/курсу. |
 | **A4 Gastro** | ~100% | **модификаторы/Extras блюда** ✅ (A4a+A4b в `main`), доставка гастро ✅ (reuse orders G4), ✅ KDS Küchen-Display (HTMX-доска заказов). |
-| **A5 Übernachtung** | ~99% | ✅ rate-plans (A5a) + ✅ iCal экспорт/импорт Booking.com/Airbnb (A5b) + ✅ авто-Rechnung на бронь (A5c) + ✅ date-range листинг в агрегаторе (A5/A6, listing_kind=stay); опц. фильтр доступности по датам в выдаче — отложено. |
-| **A6 Событие/ретрит** | ~95% | ✅ платный билет (Stripe Connect) + ростер/анкеты + CSV (apps.events, A6a–c) + ✅ листинг событий в агрегаторе (A5/A6, listing_kind=event); остаётся ретрит=date-range+«программа», тур (гид/транспорт). |
+| **A5 Übernachtung** | ~99% | ✅ rate-plans (A5a) + ✅ iCal экспорт/импорт Booking.com/Airbnb (A5b) + ✅ авто-Rechnung на бронь (A5c) + ✅ date-range листинг в агрегаторе (A5/A6, listing_kind=stay, фото=логотип); опц. фильтр доступности по датам в выдаче — отложено (Stage 3). |
+| **A6 Событие/ретрит** | ~98% | ✅ платный билет (Stripe Connect) + ростер/анкеты + CSV (apps.events, A6a–c) + ✅ листинг событий в агрегаторе + ✅ «Programm»/Ablauf ретрита; остаётся тур (гид/транспорт). |
 | **A7 Handwerker** | ~100% | ✅ дробные часы (A7a) + ✅ онлайн-Anzahlung за смету (A7c) + ✅ фото к заявке (A7b) + ✅ привязка Termin↔Job (A7d). |
-| **A8 Агрегатор** | ~95% | ✅ поиск/фильтры/ранжирование (P2.7, featured-first + recency); единая корзина (тяжёлое — в Stage 3). |
+| **A8 Агрегатор** | ~97% | ✅ поиск/фильтры/ранжирование (P2.7, featured-first + recency) + ✅ рекомендации «Endet bald» (P2.7+); единая корзина (тяжёлое — в Stage 3). |
 | **A9 Werkstatt** | ~100% | ✅ поле Fahrzeug/Kennzeichen на Job; опц. подменный авто (booking) — отложено. |
 
 Дыры-кандидаты №1 (наибольший разрыв до 100%): **A4 модификаторы блюд**, **A6 платный
@@ -200,8 +200,8 @@ Phase 2: P2.1 ✅ · P2.2 ✅ · P2.3 ✅ · P2.4 ✅ · P2.5 ✅ · P2.6 ✅ (=
 
 ## 5. Архетип × текущая полнота (рыночная оптика)
 
-A1 ~100 (✅ EAN/GTIN + CSV-импорт вариантов) · A2 ~100 (✅ зоны/Lieferschein/возвраты) · A3 ~100 (✅ Mehrfachkarte online) · A4 ~100 (✅ модификаторы + KDS) · A5 ~99 (✅ rate-plans + iCal + авто-Rechnung + агрегатор) · A6 ~95 (✅ билеты + агрегатор) · A7 ~100 (✅ часы/Anzahlung/фото/Termin) · A8 ~95 (✅ поиск/фильтры P2.7) · A9 ~100 (✅ Kennzeichen).
-Stage 1 практически закрыт: A1–A4, A7, A9 = 100%; A5 ~99, A6 ~95, A8 ~95 (остатки — крупные/Stage 3). Детали — `micro-business-verticals.md`.
+A1 ~100 (✅ EAN/GTIN + CSV-импорт вариантов) · A2 ~100 (✅ зоны/Lieferschein/возвраты) · A3 ~100 (✅ Mehrfachkarte online) · A4 ~100 (✅ модификаторы + KDS) · A5 ~99 (✅ rate-plans + iCal + авто-Rechnung + агрегатор) · A6 ~98 (✅ билеты + агрегатор + Programm) · A7 ~100 (✅ часы/Anzahlung/фото/Termin) · A8 ~97 (✅ поиск/фильтры/рекомендации P2.7+) · A9 ~100 (✅ Kennzeichen).
+Stage 1 закрыт: A1–A4, A7, A9 = 100%; A5 ~99, A6 ~98, A8 ~97 (остатки — крупные/Stage 3: per-night availability, единая корзина, тур). Детали — `micro-business-verticals.md`.
 
 ---
 
