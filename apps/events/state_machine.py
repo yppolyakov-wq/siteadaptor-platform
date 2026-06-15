@@ -17,6 +17,21 @@ class EventSM(StateMachine):
         Transition("published", "draft", "event.unpublished"),
     ]
 
+    def on_transition(self, instance, t, **kw):
+        # Авто-листинг в агрегатор (A6): published → upsert, draft/cancelled →
+        # remove. Через очередь; схема — из соединения (событие в TENANT-схеме);
+        # сам upsert/remove решает задача (учитывает модуль + будущую дату).
+        if t.dst in ("published", "draft", "cancelled"):
+            from django.db import connection
+
+            from apps.aggregator.tasks import sync_aggregator_event
+
+            sync_aggregator_event.delay(
+                dedupe_key=f"agg-event:{instance.id}:{t.dst}",
+                tenant_schema=connection.schema_name,
+                event_id=str(instance.id),
+            )
+
 
 class TicketSM(StateMachine):
     transitions = [

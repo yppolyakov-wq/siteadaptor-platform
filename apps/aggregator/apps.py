@@ -29,3 +29,16 @@ class AggregatorConfig(AppConfig):
         post_save.connect(
             resync_on_promotion_save, sender=Promotion, dispatch_uid="agg_resync_promo_save"
         )
+
+        # A5/A6: листинги по датам (размещение/события). StayUnit без FSM —
+        # синкаем по save/delete; Event — по save + EventSM-хуку (state_machine).
+        from apps.events.models import Event
+        from apps.stays.models import StayUnit
+
+        from .tasks import resync_on_event_save, resync_on_stay_delete, resync_on_stay_save
+
+        post_save.connect(resync_on_stay_save, sender=StayUnit, dispatch_uid="agg_resync_stay_save")
+        post_delete.connect(
+            resync_on_stay_delete, sender=StayUnit, dispatch_uid="agg_resync_stay_delete"
+        )
+        post_save.connect(resync_on_event_save, sender=Event, dispatch_uid="agg_resync_event_save")

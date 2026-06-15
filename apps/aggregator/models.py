@@ -14,13 +14,29 @@ from apps.tenants.models import Tenant
 
 
 class AggregatorListing(I18nMixin, models.Model):
-    # --- источник (тенант + акция) ---
+    # Вид листинга (A5/A6): акция / размещение по ночам / событие. Один пул, один
+    # шаблон карточки; цена/дата/detail_url наполняются по-разному в sync-задачах.
+    KIND_PROMOTION = "promotion"
+    KIND_STAY = "stay"
+    KIND_EVENT = "event"
+    KINDS = [
+        (KIND_PROMOTION, "Promotion"),
+        (KIND_STAY, "Stay"),
+        (KIND_EVENT, "Event"),
+    ]
+
+    # --- источник (тенант + объект) ---
     tenant_schema = models.CharField(max_length=63)
     tenant_slug = models.SlugField(max_length=100)
     business_name = models.CharField(max_length=200)
     business_type = models.CharField(max_length=50, blank=True)
     city = models.CharField(max_length=100, blank=True)
-    promo_uuid = models.UUIDField()
+    listing_kind = models.CharField(max_length=20, choices=KINDS, default=KIND_PROMOTION)
+    # str(pk) объекта-источника: promo_uuid / StayUnit.pk / Event.pk. Единый ключ
+    # листинга вместе с (tenant_schema, listing_kind).
+    source_ref = models.CharField(max_length=64, blank=True)
+    # Legacy-ключ акций (== source_ref для promotion); nullable — у stay/event пусто.
+    promo_uuid = models.UUIDField(null=True, blank=True)
 
     # --- денормализованная карточка ---
     title = models.JSONField(default=dict)  # {"de": "...", "en": "..."}
@@ -51,16 +67,25 @@ class AggregatorListing(I18nMixin, models.Model):
         ordering = ["-updated_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["tenant_schema", "promo_uuid"], name="agg_listing_uniq"
+                fields=["tenant_schema", "listing_kind", "source_ref"],
+                name="agg_listing_src_uniq",
             ),
         ]
         indexes = [
             models.Index(fields=["city", "is_active"], name="agg_city_active_idx"),
             models.Index(fields=["business_type", "city"], name="agg_btype_city_idx"),
+            models.Index(fields=["listing_kind", "is_active"], name="agg_kind_active_idx"),
         ]
 
     def __str__(self):
         return f"{self.business_name}: {(self.title or {}).get('de') or self.promo_uuid}"
+
+    def save(self, *args, **kwargs):
+        # Инвариант: source_ref — единый ключ источника. У акций он равен
+        # str(promo_uuid); выводим автоматически, если задан только legacy-uuid.
+        if not self.source_ref and self.promo_uuid:
+            self.source_ref = str(self.promo_uuid)
+        super().save(*args, **kwargs)
 
     @property
     def title_text(self) -> str:
