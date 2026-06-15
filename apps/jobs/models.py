@@ -62,6 +62,19 @@ class Job(TimestampedModel):
     # переходе в done (erledigt). Гард идемпотентности (как у заказов R3).
     stock_committed = models.BooleanField(default=False)
 
+    # A7c: онлайн-Anzahlung за смету (Stripe Connect, зеркало P2.5b booking).
+    PAYMENT_UNPAID = "unpaid"
+    PAYMENT_PAID = "paid"
+    PAYMENT_REFUNDED = "refunded"
+    PAYMENT_STATES = [
+        (PAYMENT_UNPAID, "Unpaid"),
+        (PAYMENT_PAID, "Paid"),
+        (PAYMENT_REFUNDED, "Refunded"),
+    ]
+    deposit_cents = models.PositiveIntegerField(default=0)  # 0 = без Anzahlung
+    payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_UNPAID)
+    stripe_payment_intent = models.CharField(max_length=64, blank=True)
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [

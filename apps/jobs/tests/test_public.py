@@ -106,3 +106,58 @@ def test_angebot_accept_only_from_quoted():
     public_views.angebot(request, token=job.public_token)
     job.refresh_from_db()
     assert job.status == "accepted"  # повторное решение игнорируется
+
+
+# --- A7c: онлайн-Anzahlung за смету ----------------------------------------------
+
+
+def _with_deposit(job, cents=5000):
+    job.deposit_cents = cents
+    job.save(update_fields=["deposit_cents", "updated_at"])
+    return job
+
+
+def test_mark_deposit_paid_accepts_quote():
+    from django.db import connection
+
+    from apps.jobs import payments
+
+    job = _with_deposit(_quoted_job())
+    ok = payments.mark_deposit_paid(
+        tenant_schema=connection.schema_name, job_id=str(job.id), payment_intent="pi_1"
+    )
+    assert ok
+    job.refresh_from_db()
+    assert job.payment_state == "paid"
+    assert job.status == "accepted" and job.accepted_at is not None
+    assert job.stripe_payment_intent == "pi_1"
+    # идемпотентно (повтор вебхука)
+    assert payments.mark_deposit_paid(tenant_schema=connection.schema_name, job_id=str(job.id))
+
+
+def test_angebot_accept_with_deposit_redirects_to_checkout(monkeypatch):
+    from apps.billing import connect
+    from apps.jobs import payments
+
+    job = _with_deposit(_quoted_job())
+    monkeypatch.setattr(connect, "is_connect_configured", lambda: True)
+    monkeypatch.setattr(payments, "deposit_checkout_url", lambda *a, **k: "https://stripe.test/pay")
+    tenant = _tenant(payments_enabled=True, stripe_connect_id="acct_1")
+    request = _req(
+        "post", path=f"/angebot/{job.public_token}/", data={"action": "accept"}, tenant=tenant
+    )
+    resp = public_views.angebot(request, token=job.public_token)
+    assert resp.status_code == 302 and resp.url == "https://stripe.test/pay"
+    job.refresh_from_db()
+    assert job.status == "quoted"  # принятие — только после оплаты (вебхук)
+
+
+def test_angebot_accept_deposit_but_payments_off_is_direct():
+    job = _with_deposit(_quoted_job())
+    tenant = _tenant(payments_enabled=False)  # оплата не подключена → прямой accept
+    request = _req(
+        "post", path=f"/angebot/{job.public_token}/", data={"action": "accept"}, tenant=tenant
+    )
+    public_views.angebot(request, token=job.public_token)
+    job.refresh_from_db()
+    assert job.status == "accepted"

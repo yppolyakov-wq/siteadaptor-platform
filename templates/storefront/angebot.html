@@ -36,6 +36,7 @@
       <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>
       {% if job.vat_amount %}<p>{% trans "VAT" %} {{ job.vat_rate|floatformat:0 }} %: {{ job.vat_amount|floatformat:2 }} €</p>{% endif %}
       <p class="text-lg font-bold text-gray-900">{% trans "Total" %}: {{ job.gross|floatformat:2 }} €</p>
+      {% if job.deposit_cents %}<p class="text-sm text-gray-500">{% trans "Deposit on acceptance" %}: {{ deposit_eur }} €</p>{% endif %}
     </div>
     {% else %}
     <p class="text-gray-500 mt-4">{% trans "The quote is being prepared." %}</p>
@@ -45,7 +46,7 @@
     <div class="flex gap-3 mt-6">
       <form method="post" class="flex-1">{% csrf_token %}
         <input type="hidden" name="action" value="accept">
-        <button class="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-green-700">{% trans "Accept quote" %}</button>
+        <button class="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-green-700">{% if job.deposit_cents %}{% trans "Accept & pay deposit" %}{% else %}{% trans "Accept quote" %}{% endif %}</button>
       </form>
       <form method="post">{% csrf_token %}
         <input type="hidden" name="action" value="decline">

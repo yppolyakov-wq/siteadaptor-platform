@@ -76,6 +76,11 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</label>
       <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</label>
+      <input name="deposit_eur" type="text" value="{{ deposit_eur }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      {% if job.deposit_cents and not payments_enabled %}<p class="text-xs text-amber-700 mt-1">{% trans "Enable online payments to collect it." %}</p>{% endif %}
+    </div>
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save quote" %}</button>
   </div>
   {% if job.gross %}
@@ -83,6 +88,11 @@
       <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>
       {% if not small_business %}<p>{% trans "VAT" %} {{ job.vat_rate|floatformat:0 }} %: {{ job.vat_amount|floatformat:2 }} €</p>{% endif %}
       <p class="font-bold text-gray-900">{% trans "Total" %}: {{ job.gross|floatformat:2 }} €</p>
+      {% if job.deposit_cents %}
+        <p class="text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €
+          {% if job.payment_state == 'paid' %}<span class="ml-1 inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">✓ {% trans "paid" %}</span>{% endif %}
+        </p>
+      {% endif %}
     </div>
   {% endif %}
 </form>

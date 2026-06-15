@@ -941,8 +941,16 @@ Python 3.12, менеджер uv.
     рендерят qty без хвостовых нулей; кабинет — input `step=0.01`, парс Decimal
     0,01..9999; `commit_stock` (G11) списывает `ceil(qty)` (склад целочисленный).
     Тесты `test_jobs_core` (3,5 Std × 50 = 175).
-  - Дальше: A7b фото к заявке; A7c онлайн-Anzahlung за смету (Stripe Connect,
-    зеркало P2.5b); A7d привязка Termin↔Job.
+  - A7c — онлайн-Anzahlung за смету (✅ в `main`, CI зелёный, миграция jobs/0004):
+    зеркало P2.5b. `Job.deposit_cents`/`payment_state`/`stripe_payment_intent`;
+    `apps/jobs/payments.py` — `deposit_checkout_url` (Checkout на connected account
+    бизнеса, metadata `kind=job_deposit`, вариант B → application_fee=0) +
+    `mark_deposit_paid` (вебхук кросс-схемно: paid + принятие сметы quoted→accepted,
+    идемпотентно). Ветка `job_deposit` в `apps/billing/webhooks.py`. Публичное
+    Angebot: при депозите + `payments_enabled` + Connect «Annehmen» → Stripe
+    Checkout (принятие — после оплаты), иначе прямой accept. Кабинет сметы: поле
+    Anzahlung (€) + бейдж paid. Тесты `test_public`.
+  - Дальше: A7b фото к заявке; A7d привязка Termin↔Job.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

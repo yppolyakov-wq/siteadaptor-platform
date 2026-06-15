@@ -147,6 +147,8 @@ def job_detail(request, pk):
             "vat_rates": RevenueEntry.VAT_RATES,
             "allowed": JobSM().allowed_targets(job.status),
             "small_business": request.tenant.small_business,
+            "deposit_eur": f"{job.deposit_cents / 100:.2f}",
+            "payments_enabled": getattr(request.tenant, "payments_enabled", False),
         },
     )
 
@@ -201,7 +203,15 @@ def _save_lines(request, job):
     vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("19.00"))
     services.set_lines(job, lines, vat_rate=vat_rate, small_business=request.tenant.small_business)
     job.valid_until = _parse_date(request.POST.get("valid_until"))
-    job.save(update_fields=["valid_until", "updated_at"])
+    # A7c: Anzahlung (€ → cents). 0 / пусто = без депозита.
+    try:
+        job.deposit_cents = max(
+            0,
+            round(float(str(request.POST.get("deposit_eur", "0") or "0").replace(",", ".")) * 100),
+        )
+    except (TypeError, ValueError):
+        job.deposit_cents = 0
+    job.save(update_fields=["valid_until", "deposit_cents", "updated_at"])
     messages.success(request, _("Quote saved."))
     return redirect("jobs:detail", pk=job.pk)
 
