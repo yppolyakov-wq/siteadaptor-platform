@@ -6,6 +6,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 
 from apps.core.views import site_view
+from apps.promotions import public_views
 from apps.tenants import siteconfig, sitetemplates
 from apps.tenants.tests.factories import TenantFactory
 
@@ -44,6 +45,8 @@ def test_apply_template_sets_layout_and_keeps_texts_and_onboarding():
     assert _enabled(tenant) == ["hero", "contact"]  # раскладка «minimal»
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["hero_title"] == "Mein Laden"  # непустой текст сохранён
+    assert cfg["hero_style"] == "plain"  # minimal — белый баннер
+    assert tenant.primary_color == "#111827"  # акцент шаблона
     assert tenant.site_config["onboarding"] == {"step": 2}  # onboarding не затёрт
 
 
@@ -52,7 +55,10 @@ def test_apply_template_fills_empty_texts():
     sitetemplates.apply_template(tenant, "laden")
     tenant.refresh_from_db()
     assert _enabled(tenant) == ["hero", "promotions", "products", "about", "contact"]
-    assert siteconfig.normalize(tenant.site_config)["hero_title"]  # дефолт шаблона подставлен
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["hero_title"]  # дефолт шаблона подставлен
+    assert cfg["hero_style"] == "accent"
+    assert tenant.primary_color == "#4f46e5"
 
 
 def test_apply_unknown_template_is_noop():
@@ -81,3 +87,45 @@ def test_site_view_gallery_renders(rf, settings):
     html = site_view(_request(rf, "get", user, tenant)).content.decode()
     assert "Klassischer Laden" in html  # карточка шаблона в галерее
     assert "Café &amp; Restaurant" in html
+
+
+def test_site_view_manual_save_sets_accent_and_hero_style(rf, settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(schema_name="t_acc", business_type="bakery", site_config={})
+    user = get_user_model().objects.create_user("ua", "ua@test.de", "pw12345678")
+    data = {"hero_accent": "on", "accent_color": "#0e7490", "enabled_hero": "on", "order_hero": "1"}
+
+    resp = site_view(_request(rf, "post", user, tenant, data))
+    assert resp.status_code in (301, 302)
+    tenant.refresh_from_db()
+    assert tenant.primary_color == "#0e7490"
+    assert siteconfig.normalize(tenant.site_config)["hero_style"] == "accent"
+
+
+def test_site_view_rejects_invalid_accent(rf, settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        schema_name="t_acc2", business_type="bakery", primary_color="#123456", site_config={}
+    )
+    user = get_user_model().objects.create_user("ub", "ub@test.de", "pw12345678")
+
+    site_view(_request(rf, "post", user, tenant, {"accent_color": "rot"}))
+    tenant.refresh_from_db()
+    assert tenant.primary_color == "#123456"  # невалидный hex проигнорирован
+
+
+def test_accent_hero_renders_in_storefront(rf, settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory.build(
+        name="Hero Co",
+        primary_color="#0e7490",
+        site_config={"hero_style": "accent", "sections": [{"key": "hero", "enabled": True}]},
+    )
+    request = rf.get("/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+
+    body = public_views.storefront_home(request).content.decode()
+    assert "var(--accent" in body  # цветной hero использует CSS-переменную
+    assert "#0e7490" in body  # переменная определена из primary_color

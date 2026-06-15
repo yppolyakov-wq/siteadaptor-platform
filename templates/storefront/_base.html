@@ -11,6 +11,8 @@
   {% localbusiness_jsonld %}
   {% block structured_data %}{% endblock %}
   <script src="https://cdn.tailwindcss.com"></script>
+  {# Акцентный цвет витрины (шаблоны/настройки Site). Использует только hero со стилем accent. #}
+  <style>:root { --accent: {{ request.tenant.primary_color|default:"#4f46e5" }}; }</style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">

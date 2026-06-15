@@ -27,6 +27,12 @@ _KNOWN = {key for key, _label, _on in SECTIONS}
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
 
+# Стиль hero-баннера: plain — белая карточка (дефолт, как было), accent —
+# фон акцентным цветом (Tenant.primary_color). Гейтим цветной фон флагом, а не
+# самим primary_color: у легаси-тенантов он "#000000" и без флага витрина
+# выглядит как раньше.
+HERO_STYLES = ("plain", "accent")
+
 
 def default_sections() -> list[dict]:
     return [{"key": key, "enabled": enabled} for key, _label, enabled in SECTIONS]
@@ -54,6 +60,8 @@ def normalize(config) -> dict:
     for field in TEXT_FIELDS:
         value = config.get(field, "")
         normalized[field] = value.strip() if isinstance(value, str) else ""
+    hero_style = config.get("hero_style")
+    normalized["hero_style"] = hero_style if hero_style in HERO_STYLES else "plain"
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):

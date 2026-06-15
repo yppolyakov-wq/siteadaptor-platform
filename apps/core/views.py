@@ -1,5 +1,7 @@
 """Общие tenant-facing вьюхи (живут в схеме арендатора)."""
 
+import re
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -161,6 +163,7 @@ def site_view(request):
         config = {"sections": [{"key": key, "enabled": on} for _o, key, on in rows]}
         for field in siteconfig.TEXT_FIELDS:
             config[field] = request.POST.get(field, "")
+        config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
         # Не затираем состояние Onboarding-Wizard (D0c) — оно в том же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
@@ -168,7 +171,13 @@ def site_view(request):
         if isinstance(previous.get("onboarding"), dict):
             config["onboarding"] = previous["onboarding"]
         request.tenant.site_config = siteconfig.normalize(config)
-        request.tenant.save(update_fields=["site_config", "updated_at"])
+        update_fields = ["site_config", "updated_at"]
+        # Акцентный цвет (#rrggbb) → Tenant.primary_color (читает витрина для hero).
+        accent = request.POST.get("accent_color", "").strip()
+        if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != request.tenant.primary_color:
+            request.tenant.primary_color = accent
+            update_fields.insert(1, "primary_color")
+        request.tenant.save(update_fields=update_fields)
         messages.success(request, "Gespeichert.")
         return redirect("site")
 
@@ -191,6 +200,7 @@ def site_view(request):
             "description": t["description_de"],
             "recommended": business_type in t["recommended_for"],
             "sections": [labels[s] for s in t["sections"]],  # подписи для превью
+            "accent": t.get("accent", ""),
         }
         for t in sitetemplates.templates_for(business_type)
     ]

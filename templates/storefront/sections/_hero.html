@@ -1,5 +1,12 @@
 {% load i18n %}{# Секция hero (Track C2): приветственный баннер из site_config. #}
+{% if site.hero_style == "accent" %}
+<section class="mb-10 rounded-2xl shadow-sm p-8 md:p-12 text-center text-white" style="background: var(--accent, #4f46e5);">
+  <h1 class="text-3xl md:text-4xl font-bold">{{ site.hero_title|default:request.tenant.name }}</h1>
+  {% if site.hero_text %}<p class="mt-3 text-white/90 max-w-2xl mx-auto whitespace-pre-line">{{ site.hero_text }}</p>{% endif %}
+</section>
+{% else %}
 <section class="mb-10 bg-white rounded-2xl shadow-sm p-8 md:p-12 text-center">
   <h1 class="text-3xl md:text-4xl font-bold">{{ site.hero_title|default:request.tenant.name }}</h1>
   {% if site.hero_text %}<p class="mt-3 text-gray-600 max-w-2xl mx-auto whitespace-pre-line">{{ site.hero_text }}</p>{% endif %}
 </section>
+{% endif %}

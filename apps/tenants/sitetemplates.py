@@ -19,7 +19,8 @@ from . import siteconfig
 
 # key · label · описание (DE) · recommended_for (типы бизнеса — рекомендация и
 # сортировка; пусто = универсальный) · sections (включённые, в порядке показа) ·
-# texts (дефолтные hero/about, подставляются только в пустые поля).
+# texts (дефолтные hero/about, подставляются только в пустые поля) · accent (hex
+# → Tenant.primary_color) · hero_style (plain/accent — фон баннера).
 TEMPLATES = [
     {
         "key": "laden",
@@ -33,6 +34,8 @@ TEMPLATES = [
             "about_title": "Über uns",
             "about_text": "",
         },
+        "accent": "#4f46e5",  # indigo
+        "hero_style": "accent",
     },
     {
         "key": "gastro",
@@ -46,6 +49,8 @@ TEMPLATES = [
             "about_title": "",
             "about_text": "",
         },
+        "accent": "#b45309",  # amber/warm
+        "hero_style": "accent",
     },
     {
         "key": "dienstleister",
@@ -59,6 +64,8 @@ TEMPLATES = [
             "about_title": "Über uns",
             "about_text": "",
         },
+        "accent": "#0f766e",  # teal
+        "hero_style": "accent",
     },
     {
         "key": "gastgeber",
@@ -72,6 +79,8 @@ TEMPLATES = [
             "about_title": "Ihr Aufenthalt",
             "about_text": "",
         },
+        "accent": "#0e7490",  # cyan/sea
+        "hero_style": "accent",
     },
     {
         "key": "minimal",
@@ -80,6 +89,8 @@ TEMPLATES = [
         "recommended_for": (),  # универсальный
         "sections": ["hero", "contact"],
         "texts": {"hero_title": "", "hero_text": "", "about_title": "", "about_text": ""},
+        "accent": "#111827",  # нейтральный графит
+        "hero_style": "plain",  # минимал — белый баннер
     },
 ]
 
@@ -116,9 +127,16 @@ def apply_template(tenant, key) -> bool:
     for field in siteconfig.TEXT_FIELDS:
         # Непустой текст владельца не трогаем; пустой — заполняем дефолтом шаблона.
         config[field] = current.get(field) or template["texts"].get(field, "")
+    config["hero_style"] = template.get("hero_style", "plain")
     if isinstance(current.get("onboarding"), dict):
         config["onboarding"] = current["onboarding"]
 
     tenant.site_config = siteconfig.normalize(config)
-    tenant.save(update_fields=["site_config", "updated_at"])
+    update_fields = ["site_config", "updated_at"]
+    # Акцентный цвет шаблона → Tenant.primary_color (его читает витрина для hero).
+    accent = template.get("accent")
+    if accent:
+        tenant.primary_color = accent
+        update_fields.insert(1, "primary_color")
+    tenant.save(update_fields=update_fields)
     return True
