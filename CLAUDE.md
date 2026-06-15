@@ -908,6 +908,19 @@ Python 3.12, менеджер uv.
     комментарием — текст утекал в сайдбар; заменён на `{% comment %}…{% endcomment %}`
     + регрессия в `test_cabinet_nav.py`. **Урок: многострочные шаблонные комментарии —
     только `{% comment %}`, `{# #}` строго однострочный.**
+- **A2 Versand → 100% (в работе; Stage 1 архетип A2):** добиваем доставку поверх
+  готового G4 (apps.orders). Разбивка A2a/A2b/A2c:
+  - A2a — PLZ-зоны + отдельный мин самовывоза (✅ в `main`, CI зелёный, миграция
+    tenants/0015): `Tenant.delivery_zones` (JSON `[{plz,fee_cents,free_cents,
+    min_cents}]`) + `delivery_restrict_to_zones` + `pickup_min_cents`. `services.
+    delivery_quote(tenant, subtotal, plz)` — зона с самым длинным совпавшим PLZ-
+    префиксом переопределяет плоский тариф/порог/мин; при restrict и непустых зонах
+    без совпадения → `deliverable=False`; `shipping_cost` стал обёрткой (обратная
+    совместимость, 2 арг.). Витрина checkout: недоставляемый PLZ → отказ, отдельная
+    проверка Mindestbestellwert для самовывоза. Кабинет заказов: таблица зон (6
+    строк) + чекбокс «только эти PLZ» + мин самовывоза. Тесты `test_delivery`.
+  - Дальше: A2b Lieferschein-PDF + этикетка; A2c возвраты/Widerruf (refund + возврат
+    остатка).
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
