@@ -795,8 +795,20 @@ Python 3.12, менеджер uv.
     confirmed/cancelled шлёт письмо клиенту (+ Telegram TG3), на created — клиенту
     и владельцу. Ссылка «Events» в шапке витрины (`storefront_events_enabled`).
     Тесты `events/test_storefront`.
-  - **A6 завершён (a+b+c) → архетип A6 ~60 %→~90 %.** Деплой: миграции events/0001
+  - **A6 завершён (a+b+c) →архетип A6 ~60 %→~90 %.** Деплой: миграции events/0001
     + finance/0005 + `apps.events` в TENANT_APPS.
+- **A5 — Übernachtung: сезонные/выходные тарифы (rate-plans) (в работе, ~80 %→):**
+  - A5a движок цен (✅ в `main`, CI зелёный, миграции stays/0002+0003): `SeasonRate`
+    (юнит/диапазон дат [start,end]/цена-ночь — перебивает базу и выходные) +
+    `StayUnit.weekend_price_cents` (Fr+Sa, 0=как база); `apps/stays/pricing.py`
+    (`nightly_price_cents` приоритет season→weekend→base, `quote_total_cents`
+    сумма по ночам). `StayBooking.total_cents` теперь **хранимое поле** (было
+    свойство price×nights) — `book_stay`/`move_stay` считают через quote_total;
+    backfill старых броней (stays/0003). Витрина-quote и finance-хук берут новый
+    total. Кабинет `/dashboard/stays/units/`: weekend-цена + CRUD сезонных тарифов.
+    Тесты `stays/test_pricing`. Деплой: миграции stays/0002+0003.
+  - Дальше A5: A5b iCal (экспорт броней фидом + импорт Booking.com/Airbnb →
+    блокировка дат); опц. авто-Rechnung на бронь.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

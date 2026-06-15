@@ -14,7 +14,7 @@ from django.db import transaction
 
 from apps.promotions.models import Customer
 
-from . import availability
+from . import availability, pricing
 from .models import StayBooking, StayUnit
 
 _ALPHABET = string.ascii_uppercase + string.digits
@@ -92,6 +92,7 @@ def book_stay(
         departure=departure,
         guests=guests,
         price_cents=unit.price_cents,
+        total_cents=pricing.quote_total_cents(unit, arrival, departure),  # A5a: сезон/выходные
         status=StayBooking.STATUS_CONFIRMED if auto_confirm else StayBooking.STATUS_PENDING,
         note=note,
         source_channel=(source_channel or "")[:50],
@@ -115,5 +116,6 @@ def move_stay(booking, *, arrival, departure):
         raise StayUnavailable()
     booking.arrival = arrival
     booking.departure = departure
-    booking.save(update_fields=["arrival", "departure", "updated_at"])
+    booking.total_cents = pricing.quote_total_cents(unit, arrival, departure)  # A5a: пересчёт
+    booking.save(update_fields=["arrival", "departure", "total_cents", "updated_at"])
     return booking

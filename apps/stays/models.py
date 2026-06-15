@@ -38,6 +38,9 @@ class StayUnit(TimestampedModel):
     quantity = models.PositiveSmallIntegerField(default=1)
     # Цена за ночь (центы, брутто; Stripe-native). Итого = ночи × price_cents.
     price_cents = models.PositiveIntegerField(default=0)
+    # A5a: цена за ночь в Fr/Sa, если задана (0 = как обычная). Сезонные окна —
+    # в SeasonRate (перебивают и базу, и выходные).
+    weekend_price_cents = models.PositiveIntegerField(default=0)
     min_nights = models.PositiveSmallIntegerField(default=1)
     max_guests = models.PositiveSmallIntegerField(default=2)
     is_active = models.BooleanField(default=True)
@@ -59,6 +62,32 @@ class StayUnit(TimestampedModel):
     @property
     def deposit_eur(self) -> float:
         return self.deposit_cents / 100
+
+    @property
+    def weekend_price_eur(self) -> float:
+        return self.weekend_price_cents / 100
+
+
+class SeasonRate(TimestampedModel):
+    """Сезонный тариф юнита (A5a): цена за ночь на диапазон дат [start, end]
+    включительно. Перебивает базовую и выходную цену. Окна не должны
+    пересекаться (гард — на стороне кабинета); при пересечении берётся первое."""
+
+    unit = models.ForeignKey(StayUnit, on_delete=models.CASCADE, related_name="season_rates")
+    label = models.CharField(max_length=120, blank=True)  # «Hochsaison», «Weihnachten»
+    start_date = models.DateField()
+    end_date = models.DateField()  # включительно
+    price_cents = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["start_date"]
+
+    def __str__(self):
+        return f"{self.unit}: {self.start_date}–{self.end_date}"
+
+    @property
+    def price_eur(self) -> float:
+        return self.price_cents / 100
 
 
 class UnitBlock(TimestampedModel):
@@ -107,6 +136,9 @@ class StayBooking(TimestampedModel):
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     # Снимок цены за ночь (центы) на момент брони — цена юнита может меняться.
     price_cents = models.PositiveIntegerField(default=0)
+    # Снимок ИТОГА (центы) — с учётом сезонных/выходных тарифов (A5a). Считается
+    # в services.book_stay/move_stay (pricing.quote_total); finance берёт его.
+    total_cents = models.PositiveIntegerField(default=0)
 
     # P2.5b/c reuse: депозит/предоплата через Stripe Connect (деньги → бизнесу).
     PAYMENT_NONE = "none"
@@ -139,5 +171,7 @@ class StayBooking(TimestampedModel):
         return (self.departure - self.arrival).days
 
     @property
-    def total_cents(self) -> int:
-        return self.price_cents * self.nights
+    def total_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.total_cents) / 100

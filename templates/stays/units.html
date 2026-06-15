@@ -34,6 +34,10 @@
           <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         </div>
         <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Weekend / night (€, Fr+Sa; 0 = same)" %}</label>
+          <input name="weekend_price_eur" type="text" value="{{ u.weekend_price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Quantity (identical units)" %}</label>
           <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         </div>
@@ -74,6 +78,29 @@
           <input type="date" name="end_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <input type="text" name="reason" placeholder="{% trans 'Reason' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Block" %}</button>
+        </form>
+      </div>
+
+      {# сезонные тарифы (A5a) #}
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Season rates (€/night for a date range)" %}</p>
+        {% for r in u.season_rates.all %}
+          <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
+            <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }} · {{ r.price_eur|stringformat:".2f" }} €{% if r.label %} · {{ r.label }}{% endif %}</span>
+            <form method="post" class="inline">{% csrf_token %}
+              <input type="hidden" name="action" value="rate_delete"><input type="hidden" name="rate" value="{{ r.pk }}">
+              <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+            </form>
+          </div>
+        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
+        <form method="post" class="flex items-end gap-2 flex-wrap mt-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="rate"><input type="hidden" name="unit" value="{{ u.pk }}">
+          <input type="date" name="start_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="date" name="end_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="text" name="price_eur" required placeholder="€/Nacht" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="text" name="label" placeholder="{% trans 'Label' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add rate" %}</button>
         </form>
       </div>
     </div>

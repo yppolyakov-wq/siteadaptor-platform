@@ -50,7 +50,9 @@ def _quote(unit, von, bis, guests):
         return nights, 0, False, "guests"
     if not availability.range_available(unit, von, bis):
         return nights, 0, False, "unavailable"
-    return nights, unit.price_cents * nights, True, None
+    from . import pricing
+
+    return nights, pricing.quote_total_cents(unit, von, bis), True, None
 
 
 def unterkunft_index(request):

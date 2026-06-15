@@ -21,7 +21,7 @@ from apps.billing import connect
 from apps.core.fsm import IllegalTransition
 
 from . import availability, services
-from .models import StayBooking, StayUnit, UnitBlock
+from .models import SeasonRate, StayBooking, StayUnit, UnitBlock
 from .state_machine import StayBookingSM
 
 HORIZON_DAYS = 30  # ширина окна календаря загрузки
@@ -187,6 +187,7 @@ def units(request):
                     type=request.POST.get("type", StayUnit.TYPE_ROOM),
                     quantity=_int(request.POST.get("quantity", "1"), 1, 1, 999),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
+                    weekend_price_cents=_eur_to_cents(request.POST.get("weekend_price_eur")),
                     min_nights=_int(request.POST.get("min_nights", "1"), 1, 1, 365),
                     max_guests=_int(request.POST.get("max_guests", "2"), 2, 1, 99),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
@@ -196,6 +197,7 @@ def units(request):
         elif action == "unit_settings":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
+            unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
             unit.quantity = _int(request.POST.get("quantity", "1"), 1, 1, 999)
             unit.min_nights = _int(request.POST.get("min_nights", "1"), 1, 1, 365)
             unit.max_guests = _int(request.POST.get("max_guests", "2"), 2, 1, 99)
@@ -204,6 +206,7 @@ def units(request):
             unit.save(
                 update_fields=[
                     "price_cents",
+                    "weekend_price_cents",
                     "quantity",
                     "min_nights",
                     "max_guests",
@@ -213,6 +216,25 @@ def units(request):
                 ]
             )
             messages.success(request, _("Unit saved."))
+        elif action == "rate":  # A5a: сезонный тариф
+            unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
+            try:
+                start_date = date.fromisoformat(request.POST.get("start_date", ""))
+                end_date = date.fromisoformat(request.POST.get("end_date", ""))
+                if end_date < start_date:
+                    raise ValueError
+                SeasonRate.objects.create(
+                    unit=unit,
+                    label=request.POST.get("label", "").strip()[:120],
+                    start_date=start_date,
+                    end_date=end_date,
+                    price_cents=_eur_to_cents(request.POST.get("price_eur")),
+                )
+                messages.success(request, _("Season rate added."))
+            except (TypeError, ValueError):
+                messages.error(request, _("Invalid dates."))
+        elif action == "rate_delete":
+            SeasonRate.objects.filter(pk=request.POST.get("rate")).delete()
         elif action == "toggle":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             unit.is_active = not unit.is_active
@@ -242,7 +264,9 @@ def units(request):
         "stays/units.html",
         {
             "nav": "stays",
-            "units": StayUnit.objects.prefetch_related("blocks").order_by("-is_active", "name"),
+            "units": StayUnit.objects.prefetch_related("blocks", "season_rates").order_by(
+                "-is_active", "name"
+            ),
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),
         },
