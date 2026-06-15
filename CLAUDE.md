@@ -886,6 +886,21 @@ Python 3.12, менеджер uv.
     полноценный drag-drop конструктор остаётся Stage 3.
   - Тесты `apps/core/tests/test_admin_dashboard.py` + `test_cabinet_nav.py`. Без
     миграций → деплой обычный (`deploy.sh single`), новых зависимостей нет.
+- **Шаблоны витрины — галерея (ранний срез M20, ✅ в `main`, CI зелёный, без
+  миграций):** на `/dashboard/site/` сверху галерея из 5 готовых раскладок под тип
+  бизнеса/архетип (`apps/tenants/sitetemplates.py`): Klassischer Laden · Café &
+  Restaurant · Dienstleister & Termine · Übernachtung & Gastgeber · Minimal.
+  Шаблон = пресет `site_config` поверх секционного движка Track C2 (набор/порядок
+  секций + дефолтные hero/about). `apply_template` переписывает раскладку, **пустые
+  тексты заполняет, непустые тексты владельца и onboarding не трогает**, и выставляет
+  ВСЕ известные секции явно (иначе `siteconfig.normalize` дописал бы выключенные со
+  своим дефолтом-вкл). Рекомендованные типу — первыми, с бейджем. Полноценный
+  drag-drop конструктор — по-прежнему Stage 3. Тесты
+  `apps/tenants/tests/test_sitetemplates.py`.
+  - Хотфикс S3: многострочный `{# … #}` в `_base_dashboard.html` Django НЕ считает
+    комментарием — текст утекал в сайдбар; заменён на `{% comment %}…{% endcomment %}`
+    + регрессия в `test_cabinet_nav.py`. **Урок: многострочные шаблонные комментарии —
+    только `{% comment %}`, `{# #}` строго однострочный.**
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
