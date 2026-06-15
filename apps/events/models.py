@@ -35,6 +35,9 @@ class Event(TimestampedModel):
     price_cents = models.PositiveIntegerField(default=0)  # за одно место (брутто)
     # Анкета участника: список вопросов (метки). Ответы — в Ticket.answers.
     questions = models.JSONField(default=list, blank=True)
+    # A6: программа ретрита/мероприятия — список строк-пунктов (агенда). Показ
+    # на странице события; пусто = блок скрыт.
+    program = models.JSONField(default=list, blank=True)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_DRAFT)
     # Даже после оплаты держать билет pending до ручного подтверждения.
     require_manual_confirm = models.BooleanField(default=False)

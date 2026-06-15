@@ -99,3 +99,24 @@ def test_roster_csv_lists_attendees_with_answers():
     resp = views.roster_csv(_req("get"), pk=event.pk)
     body = resp.content.decode("utf-8-sig")
     assert "Anna" in body and "Allergien?" in body and "Nüsse" in body
+
+
+def test_event_form_roundtrips_program_lines():
+    from apps.events.forms import EventForm
+
+    form = EventForm(
+        data={
+            "title": "Retreat",
+            "starts_at": "2099-01-01T10:00",
+            "capacity": 0,
+            "price_eur": "0",
+            "program_text": "Tag 1: Ankunft\nTag 2: Yoga\n\nTag 3: Abreise",
+        }
+    )
+    assert form.is_valid(), form.errors
+    event = form.save()
+    assert event.program == ["Tag 1: Ankunft", "Tag 2: Yoga", "Tag 3: Abreise"]
+    # повторная инициализация формой подставляет построчно
+    assert EventForm(instance=event).fields["program_text"].initial == (
+        "Tag 1: Ankunft\nTag 2: Yoga\nTag 3: Abreise"
+    )

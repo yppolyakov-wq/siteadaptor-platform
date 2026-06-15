@@ -12,6 +12,14 @@
       {% if event.location %}<br>📍 {{ event.location }}{% endif %}
     </p>
     {% if event.description %}<p class="text-gray-700 whitespace-pre-line mb-4">{{ event.description }}</p>{% endif %}
+    {% if event.program %}
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">{% trans "Programme" %}</h2>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+          {% for p in event.program %}<li>{{ p }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
     <p class="text-lg font-semibold mb-4">{% if event.price_cents %}{{ event.price_eur }} € {% trans "per seat" %}{% else %}{% trans "Free" %}{% endif %}</p>
 
     {% if event.is_sold_out %}

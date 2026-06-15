@@ -16,6 +16,11 @@ class EventForm(forms.ModelForm):
         widget=forms.Textarea(attrs={"rows": 3}),
         label="Anmelde-Fragen (eine pro Zeile)",
     )
+    program_text = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+        label="Programm / Ablauf (ein Punkt pro Zeile)",
+    )
 
     class Meta:
         model = Event
@@ -45,6 +50,7 @@ class EventForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields["price_eur"].initial = self.instance.price_eur
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
+            self.fields["program_text"].initial = "\n".join(self.instance.program or [])
 
     def save(self, commit=True):
         event = super().save(commit=False)
@@ -56,6 +62,11 @@ class EventForm(forms.ModelForm):
             q.strip()
             for q in (self.cleaned_data.get("questions_text") or "").splitlines()
             if q.strip()
+        ]
+        event.program = [
+            p.strip()
+            for p in (self.cleaned_data.get("program_text") or "").splitlines()
+            if p.strip()
         ]
         if commit:
             event.save()
