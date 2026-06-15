@@ -886,6 +886,14 @@ Python 3.12, менеджер uv.
     в подтверждении/кабинете заказов/письмах. Тесты `test_modifier_flow`.
   - **A4 завершён (a+b).** A4 ~75 %→~90 %: доставка гастро уже есть (reuse orders
     G4), остаётся опц. KDS. Деплой: миграции catalog/0005 + orders/0006.
+  - A4 KDS — Küchen-Display (✅ ветка `claude/stage1-finish-tkf22i`, без миграций):
+    экран кухни `/dashboard/orders/kitchen/` — доска активных заказов (new/confirmed,
+    FIFO по created_at) с HTMX-поллингом каждые 8с (`_kitchen_board` партиал) +
+    кнопки Annehmen (new→confirmed) и Fertig (confirmed→ready) через `kitchen_action`
+    → OrderSM, возврат обновлённого партиала (swap без перезагрузки), illegal-
+    переход = no-op (другой экран мог сменить статус). Кнопка «Kitchen Display» на
+    `/dashboard/orders/`. Поверх apps.orders, гейтинг модуля orders. Тесты
+    `orders/test_kitchen`. **A4 ~90 %→~100 %.**
 - **Админка + кабинет — UX-переработка (✅ в `main`, S1+S2 `9c8da4d`, S3 `05ad375`,
   CI зелёный, без миграций):** платформенная админка `/admin` (django-unfold) была
   не настроена (словаря `UNFOLD` не было) → голый список приложений Django; tenant-
@@ -1007,6 +1015,14 @@ Python 3.12, менеджер uv.
   `identifier_exists` учитывает gtin. Галерея фото в кабинете уже была (мульти-
   загрузка + primary/delete). Тесты `catalog/test_feed`. **A1 ~95 %→~99 %**
   (остаётся опц. массовый импорт вариантов CSV).
+- **A1 — массовый импорт вариантов из CSV/Excel (✅ ветка
+  `claude/stage1-finish-tkf22i`, без миграций):** новый `ProductVariantProcessor`
+  (`resource_type=product_variant`) в wizard'е `apps.imports`: родитель ищется по
+  `product_sku`/`product_name_de`, вариант — upsert по (товар, label) (естественный
+  ключ R1 `variant_product_label_uniq`, повтор импорта не плодит дубли); поля
+  label/sku/gtin/price(пусто=base_price)/content_amount/stock/is_active. `VARIANT_FIELDS`
+  + пункт «Produktvarianten» в выборе ресурса импорта. Тесты `imports/
+  test_variant_processor`. **A1 ~99 %→~100 %.**
 - **A3 — онлайн-продажа Mehrfachkarte + привязка к курсу (✅ в `main`, CI зелёный,
   миграция booking/0006):** `PassPlan` (покупаемый тариф: label/credits/price_cents/
   valid_days/service) + `Pass.service` (привязка карты к услуге) + `Pass.

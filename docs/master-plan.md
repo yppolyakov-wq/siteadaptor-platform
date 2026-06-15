@@ -78,10 +78,10 @@ webhook + стратегия Connect redirect-URI, отдельный Postgres +
 
 | Архетип | Сейчас | Что закрыть до 100% |
 |---|---|---|
-| **A1 Laden** | ~99% | ✅ EAN/GTIN (фид g:gtin) + ✅ галерея фото (уже была); остаётся опц. массовый импорт вариантов CSV. |
+| **A1 Laden** | ~100% | ✅ EAN/GTIN (фид g:gtin) + ✅ галерея фото + ✅ массовый импорт вариантов из CSV/Excel (apps.imports, ProductVariantProcessor). |
 | **A2 Versand** | ~100% | ✅ зоны по PLZ (A2a) + ✅ Lieferschein-PDF/этикетка (A2b) + ✅ возвраты/Widerruf (A2c) + ✅ отдельные мин-суммы pickup/доставка. Реальный лейбл перевозчика (DHL API) — при необходимости. |
 | **A3 Termin** | ~100% | ✅ онлайн-продажа Mehrfachkarte (Stripe Connect) + ✅ привязка карты к услуге/курсу. |
-| **A4 Gastro** | ~90% | **модификаторы/Extras блюда** ✅ (A4a ядро+кабинет, A4b витрина+корзина+заказ — оба в `main`), доставка гастро ✅ (reuse orders G4); остаётся опц. KDS. |
+| **A4 Gastro** | ~100% | **модификаторы/Extras блюда** ✅ (A4a+A4b в `main`), доставка гастро ✅ (reuse orders G4), ✅ KDS Küchen-Display (HTMX-доска заказов). |
 | **A5 Übernachtung** | ~99% | ✅ rate-plans (A5a) + ✅ iCal экспорт/импорт Booking.com/Airbnb (A5b) + ✅ авто-Rechnung на бронь (A5c) + ✅ date-range листинг в агрегаторе (A5/A6, listing_kind=stay); опц. фильтр доступности по датам в выдаче — отложено. |
 | **A6 Событие/ретрит** | ~95% | ✅ платный билет (Stripe Connect) + ростер/анкеты + CSV (apps.events, A6a–c) + ✅ листинг событий в агрегаторе (A5/A6, listing_kind=event); остаётся ретрит=date-range+«программа», тур (гид/транспорт). |
 | **A7 Handwerker** | ~100% | ✅ дробные часы (A7a) + ✅ онлайн-Anzahlung за смету (A7c) + ✅ фото к заявке (A7b) + ✅ привязка Termin↔Job (A7d). |
@@ -200,8 +200,8 @@ Phase 2: P2.1 ✅ · P2.2 ✅ · P2.3 ✅ · P2.4 ✅ · P2.5 ✅ · P2.6 ✅ (=
 
 ## 5. Архетип × текущая полнота (рыночная оптика)
 
-A1 ~99 (✅ EAN/GTIN) · A2 ~100 (✅ зоны/Lieferschein/возвраты) · A3 ~100 (✅ Mehrfachkarte online) · A4 ~90 (✅ модификаторы) · A5 ~99 (✅ rate-plans + iCal + авто-Rechnung + агрегатор) · A6 ~95 (✅ билеты + агрегатор) · A7 ~100 (✅ часы/Anzahlung/фото/Termin) · A8 ~95 (✅ поиск/фильтры P2.7) · A9 ~100 (✅ Kennzeichen).
-6 из 9 — пилот-готовы. Цель Stage 1 — все на 100%. Детали — `micro-business-verticals.md`.
+A1 ~100 (✅ EAN/GTIN + CSV-импорт вариантов) · A2 ~100 (✅ зоны/Lieferschein/возвраты) · A3 ~100 (✅ Mehrfachkarte online) · A4 ~100 (✅ модификаторы + KDS) · A5 ~99 (✅ rate-plans + iCal + авто-Rechnung + агрегатор) · A6 ~95 (✅ билеты + агрегатор) · A7 ~100 (✅ часы/Anzahlung/фото/Termin) · A8 ~95 (✅ поиск/фильтры P2.7) · A9 ~100 (✅ Kennzeichen).
+Stage 1 практически закрыт: A1–A4, A7, A9 = 100%; A5 ~99, A6 ~95, A8 ~95 (остатки — крупные/Stage 3). Детали — `micro-business-verticals.md`.
 
 ---
 
