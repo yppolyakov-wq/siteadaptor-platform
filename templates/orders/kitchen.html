@@ -1,0 +1,15 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Kitchen Display" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3">
+  <h1 class="text-2xl font-bold">{% trans "Kitchen Display" %}</h1>
+  <a href="{% url 'orders:order-list' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Orders" %}</a>
+</div>
+
+{# Доска перезагружается каждые 8 с (HTMX-поллинг) + после действий-кнопок. #}
+<div hx-get="{% url 'orders:kitchen-board' %}" hx-trigger="every 8s" hx-target="#kds-board" hx-swap="outerHTML">
+  {% include "orders/_kitchen_board.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% load i18n %}{# Доска KDS (A4): активные заказы (new/confirmed). HTMX-партиал — перерисовывается поллингом и после действий. #}
+<div id="kds-board" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  {% for o in orders %}
+    <div class="bg-white rounded-2xl shadow-sm border-l-4 {% if o.status == 'new' %}border-amber-400{% else %}border-sky-500{% endif %} p-4 flex flex-col">
+      <div class="flex items-center justify-between mb-2">
+        <span class="font-bold text-lg">{{ o.reference_code }}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full {% if o.status == 'new' %}bg-amber-100 text-amber-800{% else %}bg-sky-100 text-sky-800{% endif %}">
+          {% if o.status == 'new' %}{% trans "New" %}{% else %}{% trans "In preparation" %}{% endif %}
+        </span>
+      </div>
+      <p class="text-xs text-gray-400 mb-1">
+        {{ o.created_at|date:"H:i" }}
+        {% if o.is_delivery %}· 🚚 {% trans "Delivery" %}{% else %}· 🛍 {% trans "Pickup" %}{% endif %}
+        {% if o.customer %}· {{ o.customer.name|default:o.customer.email }}{% endif %}
+      </p>
+      <ul class="text-sm space-y-1 mb-3 flex-1">
+        {% for it in o.items.all %}
+          <li>
+            <span class="font-semibold">{{ it.qty }}×</span> {{ it.title_snapshot }}{% if it.variant_label %} ({{ it.variant_label }}){% endif %}
+            {% if it.modifiers_label %}<span class="block text-xs text-gray-500 pl-5">+ {{ it.modifiers_label }}</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      <form hx-post="{% url 'orders:kitchen-action' o.pk %}" hx-target="#kds-board" hx-swap="outerHTML">
+        {% csrf_token %}
+        {% if o.status == 'new' %}
+          <button name="action" value="confirmed" class="w-full rounded-lg bg-sky-600 text-white px-3 py-2 text-sm font-medium hover:bg-sky-700">{% trans "Accept" %}</button>
+        {% else %}
+          <button name="action" value="ready" class="w-full rounded-lg bg-green-600 text-white px-3 py-2 text-sm font-medium hover:bg-green-700">{% trans "Ready" %}</button>
+        {% endif %}
+      </form>
+    </div>
+  {% empty %}
+    <p class="text-gray-400 col-span-full text-center py-12">{% trans "No open orders." %}</p>
+  {% endfor %}
+</div>

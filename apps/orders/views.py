@@ -64,6 +64,53 @@ def order_list(request):
     )
 
 
+def _active_kitchen_orders():
+    """Заказы в работе для KDS: принятые/новые, старые сверху (FIFO кухни)."""
+    return (
+        Order.objects.filter(status__in=(Order.STATUS_NEW, Order.STATUS_CONFIRMED))
+        .select_related("customer")
+        .prefetch_related("items")
+        .order_by("created_at")
+    )
+
+
+@login_required
+def kitchen(request):
+    """Küchen-Display (KDS, A4): экран очереди заказов с авто-обновлением.
+
+    Полная страница; доска заказов перезагружается HTMX-поллингом (_kitchen_board).
+    Гейтинг модуля «orders» — ModuleGatingMiddleware по префиксу из реестра.
+    """
+    return render(
+        request,
+        "orders/kitchen.html",
+        {"orders": _active_kitchen_orders(), "nav": "orders"},
+    )
+
+
+@login_required
+def kitchen_board(request):
+    """HTMX-партиал доски KDS (поллинг каждые несколько секунд)."""
+    return render(request, "orders/_kitchen_board.html", {"orders": _active_kitchen_orders()})
+
+
+@login_required
+@require_POST
+def kitchen_action(request, pk):
+    """Действие с доски KDS (Annehmen new→confirmed / Fertig confirmed→ready).
+
+    Возвращает обновлённый партиал доски для HTMX-swap (без перезагрузки экрана).
+    """
+    order = get_object_or_404(Order, pk=pk)
+    action = request.POST.get("action", "")
+    if action in ("confirmed", "ready"):
+        try:
+            OrderSM().apply(order, action, actor=request.user)
+        except IllegalTransition:
+            pass  # статус уже сменился (другой экран) — просто перерисуем доску
+    return render(request, "orders/_kitchen_board.html", {"orders": _active_kitchen_orders()})
+
+
 @login_required
 def order_detail(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)

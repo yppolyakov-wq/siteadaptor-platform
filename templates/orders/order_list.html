@@ -5,6 +5,8 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3">
   <h1 class="text-2xl font-bold">{% trans "Orders" %}</h1>
+  <div class="flex items-center gap-3">
+  <a href="{% url 'orders:kitchen' %}" class="rounded-lg bg-gray-800 text-white px-3 py-2 text-sm font-medium hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
   <form method="get">
     <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <option value="">{% trans "All statuses" %}</option>
@@ -13,6 +15,7 @@
       {% endfor %}
     </select>
   </form>
+  </div>
 </div>
 
 {% if messages %}
