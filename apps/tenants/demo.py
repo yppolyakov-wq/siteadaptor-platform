@@ -163,13 +163,23 @@ def _eur(value) -> Decimal:
 def load_demo(tenant) -> bool:
     """Создать демо-контент под тип бизнеса в текущей (tenant) схеме. False — уже есть.
 
-    Контент создаётся только для активных модулей: товары/категория — всегда
-    (catalog — core); акции — при активном promotions; услуги — booking; номера —
-    stays; события — events. Хуки сами материализуют листинги в агрегатор.
+    Атомарно (всё или ничего): при сбое любого шага создание откатывается, чтобы
+    не оставить осиротевшие объекты без записи в site_config["demo"].
     """
     if has_demo(tenant):
         return False
+    from django.db import transaction
 
+    with transaction.atomic():
+        _seed_demo(tenant)
+    return True
+
+
+def _seed_demo(tenant) -> None:
+    """Создание объектов демо (внутри transaction.atomic). Контент — только для
+    активных модулей: товары/категория всегда (catalog — core); акции — promotions;
+    услуги — booking; номера — stays; события — events. Хуки материализуют листинги.
+    """
     from apps.catalog.models import Category, Product
 
     is_active = tenant.is_module_active
@@ -264,7 +274,6 @@ def load_demo(tenant) -> bool:
     cfg["demo"] = refs
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
-    return True
 
 
 def clear_demo(tenant) -> bool:
