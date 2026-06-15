@@ -950,7 +950,12 @@ Python 3.12, менеджер uv.
     Angebot: при депозите + `payments_enabled` + Connect «Annehmen» → Stripe
     Checkout (принятие — после оплаты), иначе прямой accept. Кабинет сметы: поле
     Anzahlung (€) + бейдж paid. Тесты `test_public`.
-  - Дальше: A7b фото к заявке; A7d привязка Termin↔Job.
+  - A7b — фото к заявке (✅ в `main`, CI зелёный, миграция jobs/0005): модель
+    `JobPhoto` (FK Job, ImageField `job_photos/%Y/%m/`); публичная `/anfrage/` —
+    multipart-форма, до 5 изображений ≤8 МБ (`services.add_job_photos` фильтрует
+    по content_type/размеру); кабинет сметы показывает миниатюры. Тесты
+    `test_public` (фото создаётся; не-изображение отброшено).
+  - Дальше: A7d привязка Termin↔Job.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

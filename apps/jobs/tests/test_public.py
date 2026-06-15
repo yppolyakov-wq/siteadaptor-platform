@@ -161,3 +161,41 @@ def test_angebot_accept_deposit_but_payments_off_is_direct():
     public_views.angebot(request, token=job.public_token)
     job.refresh_from_db()
     assert job.status == "accepted"
+
+
+# --- A7b: фото к заявке ----------------------------------------------------------
+
+
+def _png_upload(name="damage.png"):
+    import io
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (8, 8), "blue").save(buf, format="PNG")
+    return SimpleUploadedFile(name, buf.getvalue(), content_type="image/png")
+
+
+def test_anfrage_with_photo_creates_jobphoto(settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    from apps.jobs.models import JobPhoto
+
+    request = _req(
+        "post", path="/anfrage/", data={"title": "Wand", "name": "Kunde", "photos": _png_upload()}
+    )
+    public_views.anfrage(request)
+    job = Job.objects.get()
+    assert JobPhoto.objects.filter(job=job).count() == 1
+
+
+def test_anfrage_skips_non_image(settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from apps.jobs.models import JobPhoto
+
+    bad = SimpleUploadedFile("note.txt", b"hello", content_type="text/plain")
+    request = _req("post", path="/anfrage/", data={"title": "Wand", "name": "Kunde", "photos": bad})
+    public_views.anfrage(request)
+    assert JobPhoto.objects.count() == 0  # не-изображение отброшено

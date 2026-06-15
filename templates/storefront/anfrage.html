@@ -12,7 +12,7 @@
   {% endfor %}
 {% endif %}
 
-<form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
   {% csrf_token %}
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
@@ -40,6 +40,11 @@
       <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
       <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_photos">{% trans "Photos (optional, up to 5)" %}</label>
+    <input id="id_photos" name="photos" type="file" accept="image/*" multiple class="w-full text-sm text-gray-600">
+    <p class="text-xs text-gray-400 mt-1">{% trans "A photo of the job helps us quote faster." %}</p>
   </div>
   <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Send request" %}</button>
 </form>

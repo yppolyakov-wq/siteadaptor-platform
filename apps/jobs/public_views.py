@@ -52,6 +52,7 @@ def anfrage(request):
             site_address=request.POST.get("site_address", "").strip(),
             source_channel=(request.GET.get("ch") or "")[:50],
         )
+        services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
         enqueue_job_email(job, "new")  # владельцу — новый лид
         messages.success(
             request, _("Thank you! Your request has arrived — we'll get back to you soon.")

@@ -124,3 +124,17 @@ class JobLine(TimestampedModel):
     @property
     def line_total(self) -> Decimal:
         return self.unit_price * self.qty
+
+
+class JobPhoto(TimestampedModel):
+    """Фото к заявке (A7b): клиент прикладывает на /anfrage/, мастер видит их в
+    кабинете при подготовке сметы (повреждение/объём работ)."""
+
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="photos")
+    image = models.ImageField(upload_to="job_photos/%Y/%m/")
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Photo {self.pk} for {self.job_id}"

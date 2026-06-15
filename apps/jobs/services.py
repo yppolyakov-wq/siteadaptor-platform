@@ -132,6 +132,26 @@ def commit_stock(job) -> None:
     job.stock_committed = True
 
 
+MAX_PHOTOS = 5
+MAX_PHOTO_BYTES = 8 * 1024 * 1024  # 8 МБ на файл
+
+
+def add_job_photos(job, files, *, max_count=MAX_PHOTOS) -> int:
+    """A7b: сохранить загруженные фото к заявке. Берём только изображения до 8 МБ,
+    не больше max_count. Возвращает число сохранённых."""
+    from .models import JobPhoto
+
+    saved = 0
+    for f in (files or [])[:max_count]:
+        if not getattr(f, "content_type", "").startswith("image/"):
+            continue
+        if f.size and f.size > MAX_PHOTO_BYTES:
+            continue
+        JobPhoto.objects.create(job=job, image=f)
+        saved += 1
+    return saved
+
+
 def lines_snapshot(job) -> list[dict]:
     """Позиции сметы в формате finance (для Rechnung-снимка / PDF)."""
     return [
