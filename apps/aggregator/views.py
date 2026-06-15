@@ -132,10 +132,19 @@ def discover_index(request):
                 "canonical": request.build_absolute_uri(request.path),
             },
         )
+    from . import recommendations, reviews
+
+    ending = recommendations.ending_soon(listings_for(), days=3, limit=12)
+    reviews.attach_ratings(ending)
     return render(
         request,
         "aggregator/index.html",
-        {"cities": _distinct_cities(), "types": _distinct_types(), "kinds": _KIND_LABELS},
+        {
+            "cities": _distinct_cities(),
+            "types": _distinct_types(),
+            "kinds": _KIND_LABELS,
+            "ending_soon": ending,
+        },
     )
 
 

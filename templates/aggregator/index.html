@@ -6,6 +6,14 @@
 
 {% include "aggregator/_search_form.html" %}
 
+{% if ending_soon %}
+<section class="mb-8">
+  <h2 class="text-lg font-semibold mb-3">⏳ {% trans "Ending soon" %}</h2>
+  {% include "aggregator/_cards.html" with items=ending_soon %}
+</section>
+<h2 class="text-lg font-semibold mb-3">{% trans "By city" %}</h2>
+{% endif %}
+
 {% if cities %}
 <div class="flex flex-wrap gap-2">
   {% for c in cities %}

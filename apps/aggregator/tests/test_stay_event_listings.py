@@ -15,10 +15,18 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 
-def _tenant():
+def _tenant(**kw):
     return TenantFactory(
-        schema_name="public", slug="x", name="X", city="Hilden", business_type="hotel"
+        schema_name="public", slug="x", name="X", city="Hilden", business_type="hotel", **kw
     )
+
+
+def test_stay_listing_uses_business_logo_as_image():
+    _tenant(logo_url="https://cdn.example.de/logo.png")
+    unit = StayUnit.objects.create(name="Zimmer", price_cents=5000, is_active=True)
+    tasks.sync_stay_listing("public", str(unit.id))
+    listing = AggregatorListing.objects.get(source_ref=str(unit.id))
+    assert listing.image == {"url": "https://cdn.example.de/logo.png"}
 
 
 # --- stays --------------------------------------------------------------------

@@ -38,6 +38,14 @@ def _snapshot(promotion_id):
     }
 
 
+def _logo_image(tenant) -> dict:
+    """Карточка stay/event без своего фото — фолбэк на логотип бизнеса (A5/A6).
+
+    Шаблон карточки ждёт FileRef-конверт {"url": ...}; пусто → placeholder.
+    """
+    return {"url": tenant.logo_url} if getattr(tenant, "logo_url", "") else {}
+
+
 def _tenant_base_defaults(tenant) -> dict:
     """Денормализованные поля бизнеса, общие для всех видов листинга."""
     return {
@@ -150,7 +158,7 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
-            "image": {},
+            "image": _logo_image(tenant),
             "new_price": snap["new_price"],
             "old_price": None,
             "discount_percent": None,
@@ -219,7 +227,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
-            "image": {},
+            "image": _logo_image(tenant),
             "new_price": snap["new_price"],
             "old_price": None,
             "discount_percent": None,
