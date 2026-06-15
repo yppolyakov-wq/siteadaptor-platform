@@ -135,10 +135,21 @@ def settings_view(request):
 
 @login_required
 def site_view(request):
-    """Конструктор витрины v1 (Track C2): секции главной + тексты hero/about."""
-    from apps.tenants import siteconfig
+    """Конструктор витрины v1 (Track C2): секции главной + тексты hero/about.
+
+    Сверху — галерея шаблонов (ранний срез M20, apps.tenants.sitetemplates):
+    выбор готовой раскладки в один клик поверх того же секционного движка.
+    """
+    from apps.tenants import siteconfig, sitetemplates
 
     if request.method == "POST":
+        # Применение шаблона витрины (галерея).
+        if request.POST.get("action") == "apply_template":
+            if sitetemplates.apply_template(request.tenant, request.POST.get("template", "")):
+                messages.success(request, "Vorlage übernommen.")
+            else:
+                messages.error(request, "Unbekannte Vorlage.")
+            return redirect("site")
         rows = []
         for key, _label, _default in siteconfig.SECTIONS:
             try:
@@ -172,10 +183,26 @@ def site_view(request):
         }
         for index, s in enumerate(config["sections"], start=1)
     ]
+    business_type = request.tenant.business_type
+    site_templates = [
+        {
+            "key": t["key"],
+            "label": t["label"],
+            "description": t["description_de"],
+            "recommended": business_type in t["recommended_for"],
+            "sections": [labels[s] for s in t["sections"]],  # подписи для превью
+        }
+        for t in sitetemplates.templates_for(business_type)
+    ]
     return render(
         request,
         "tenant/site.html",
-        {"nav": "site", "sections": sections, "config": config},
+        {
+            "nav": "site",
+            "sections": sections,
+            "config": config,
+            "site_templates": site_templates,
+        },
     )
 
 
