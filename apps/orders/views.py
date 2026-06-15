@@ -9,6 +9,7 @@ ModuleGatingMiddleware по префиксу из реестра.
 import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -111,6 +112,20 @@ def order_action(request, pk):
     else:
         messages.error(request, _("Unknown action."))
     return redirect("orders:order-detail", pk=order.pk)
+
+
+@login_required
+def delivery_note_pdf(request, pk):
+    """Lieferschein-PDF заказа (A2b) — накладная + адресная этикетка."""
+    from .pdf import build_delivery_note_pdf
+
+    order = get_object_or_404(
+        Order.objects.select_related("customer").prefetch_related("items"), pk=pk
+    )
+    pdf = build_delivery_note_pdf(order, request.tenant)
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = f'inline; filename="Lieferschein-{order.reference_code}.pdf"'
+    return resp
 
 
 def _eur_to_cents(raw) -> int:

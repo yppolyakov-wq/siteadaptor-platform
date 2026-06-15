@@ -9,4 +9,5 @@ urlpatterns = [
     path("settings/", views.order_settings, name="order-settings"),
     path("<uuid:pk>/", views.order_detail, name="order-detail"),
     path("<uuid:pk>/action/", views.order_action, name="order-action"),
+    path("<uuid:pk>/lieferschein.pdf", views.delivery_note_pdf, name="order-delivery-note"),
 ]

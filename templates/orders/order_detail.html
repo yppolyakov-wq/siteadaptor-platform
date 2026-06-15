@@ -55,6 +55,8 @@
       {% if order.shipping_address %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ order.shipping_address }}</p>{% endif %}
       {% if order.tracking_code %}<p class="text-sm text-gray-500 mt-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
       {% if order.shipped_at %}<p class="text-xs text-gray-400 mt-1">{% trans "Shipped" %}: {{ order.shipped_at }}</p>{% endif %}
+      <a href="{% url 'orders:order-delivery-note' order.pk %}" target="_blank" rel="noopener"
+         class="inline-block mt-3 text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Delivery note (PDF)" %}</a>
     </div>
     {% endif %}
 

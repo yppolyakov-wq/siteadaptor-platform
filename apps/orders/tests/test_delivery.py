@@ -334,3 +334,32 @@ def test_delivery_settings_save_zones_and_pickup_min():
         {"plz": "40, 41", "fee_cents": 490, "free_cents": 4000, "min_cents": 1500}
     ]
     assert tenant.orders_prepay is True  # другая форма не сброшена
+
+
+# --- A2b: Lieferschein-PDF --------------------------------------------------------
+
+
+def test_delivery_note_pdf_builds():
+    from apps.orders.pdf import build_delivery_note_pdf
+
+    order = _delivery_order()
+    tenant = TenantFactory.build(name="Bäckerei X", address="Hauptstr. 1", city="Hilden")
+    pdf = build_delivery_note_pdf(order, tenant)
+    assert pdf[:4] == b"%PDF"  # валидный PDF
+
+
+def test_delivery_note_view_returns_pdf():
+    order = _delivery_order()
+    request = RequestFactory().get(f"/dashboard/orders/{order.pk}/lieferschein.pdf")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{uuid.uuid4().hex[:8]}",
+        email=f"{uuid.uuid4().hex[:8]}@t.de",
+        password="pw1234567",
+    )
+    request.tenant = TenantFactory.build(name="X", address="Str. 1", city="Hilden")
+    resp = views.delivery_note_pdf(request, pk=order.pk)
+    assert resp.status_code == 200
+    assert resp["Content-Type"] == "application/pdf"
+    assert resp.content[:4] == b"%PDF"
