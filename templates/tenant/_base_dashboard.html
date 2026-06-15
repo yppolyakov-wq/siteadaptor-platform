@@ -16,11 +16,21 @@
       <span class="font-bold text-lg">{{ request.tenant.name }}</span>
       <button id="sidebar-close" class="md:hidden text-gray-400 text-xl leading-none" aria-label="{% trans 'Close menu' %}">✕</button>
     </div>
-    {# Навигация из реестра модулей (Track D / D0a, apps.core.modules): только активные модули тенанта, пункты сгруппированы по модулю. #}
-    <nav class="space-y-1 text-sm">
+    {# Навигация из реестра модулей (Track D / D0a, apps.core.modules): только
+       активные модули тенанта. Иконка модуля у каждого пункта; модули с
+       несколькими пунктами (Katalog, Aktionen, Einstellungen…) получают
+       групп-заголовок (S3). #}
+    <nav class="space-y-0.5 text-sm">
       {% for module in nav_modules %}
+        {% if module.nav_items|length > 1 %}
+          <p class="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">{{ module.label_de }}</p>
+        {% endif %}
         {% for item in module.nav_items %}
-          <a href="{% url item.url_name %}" class="block px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}hover:bg-gray-50{% endif %}">{{ item.label }}</a>
+          <a href="{% url item.url_name %}"
+             class="flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+            <span class="w-5 shrink-0 text-center text-base leading-none">{{ module.icon }}</span>
+            <span class="truncate">{{ item.label }}</span>
+          </a>
         {% endfor %}
       {% endfor %}
     </nav>
