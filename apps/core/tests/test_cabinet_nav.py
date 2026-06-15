@@ -39,3 +39,7 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # Групп-заголовки модулей с несколькими пунктами (& → &amp; в HTML).
     assert "Katalog &amp; Import" in html
     assert "Aktionen &amp; Reservierung" in html
+    # Регрессия: текст шаблонного комментария не должен утекать в разметку
+    # (многострочный {# #} не комментарий — нужен {% comment %}).
+    assert "apps.core.modules" not in html
+    assert "групп-заголовок" not in html

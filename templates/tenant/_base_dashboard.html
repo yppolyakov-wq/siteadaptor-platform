@@ -16,10 +16,11 @@
       <span class="font-bold text-lg">{{ request.tenant.name }}</span>
       <button id="sidebar-close" class="md:hidden text-gray-400 text-xl leading-none" aria-label="{% trans 'Close menu' %}">✕</button>
     </div>
-    {# Навигация из реестра модулей (Track D / D0a, apps.core.modules): только
-       активные модули тенанта. Иконка модуля у каждого пункта; модули с
-       несколькими пунктами (Katalog, Aktionen, Einstellungen…) получают
-       групп-заголовок (S3). #}
+    {% comment %}
+    Навигация из реестра модулей (Track D / D0a, apps.core.modules): только
+    активные модули тенанта. Иконка модуля у каждого пункта; модули с несколькими
+    пунктами (Katalog, Aktionen, Einstellungen…) получают групп-заголовок (S3).
+    {% endcomment %}
     <nav class="space-y-0.5 text-sm">
       {% for module in nav_modules %}
         {% if module.nav_items|length > 1 %}
