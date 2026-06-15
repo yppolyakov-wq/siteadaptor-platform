@@ -64,12 +64,19 @@ class Tenant(TenantMixin):
     orders_prepay = models.BooleanField(default=False)
 
     # G4: доставка/Versand для заказов (иначе только самовывоз). Плоский тариф +
-    # бесплатно-от + Mindestbestellwert + текст зоны (зоны по PLZ — отложено).
+    # бесплатно-от + Mindestbestellwert + текст зоны.
     delivery_enabled = models.BooleanField(default=False)
     delivery_fee_cents = models.PositiveIntegerField(default=0)  # плоский тариф
     delivery_free_cents = models.PositiveIntegerField(default=0)  # бесплатно от суммы; 0=нет
     delivery_min_cents = models.PositiveIntegerField(default=0)  # мин. сумма заказа; 0=нет
     delivery_area = models.TextField(blank=True)  # зона/PLZ — текст для клиента
+    # A2a: зоны по PLZ — переопределяют плоский тариф для совпавшего индекса.
+    # [{"plz": "40,41", "fee_cents": int, "free_cents": int, "min_cents": int}]
+    delivery_zones = models.JSONField(default=list, blank=True)
+    # Доставлять только в перечисленные зоны (иначе зоны лишь уточняют тариф).
+    delivery_restrict_to_zones = models.BooleanField(default=False)
+    # Отдельный Mindestbestellwert для самовывоза (0=нет).
+    pickup_min_cents = models.PositiveIntegerField(default=0)
 
     # Owner contact
     owner_email = models.EmailField(blank=True)

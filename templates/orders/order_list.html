@@ -59,6 +59,29 @@
     <label class="block text-xs text-gray-500 mb-1">{% trans "Delivery area (shown to customers, e.g. PLZ)" %}</label>
     <input name="delivery_area" type="text" value="{{ delivery_area }}" placeholder="z. B. nur 40721, 40724" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   </div>
+  <div>
+    <label class="block text-xs text-gray-500 mb-1">{% trans "Min. order for pickup (€, 0=none)" %}</label>
+    <input name="pickup_min_eur" type="text" value="{{ pickup_min_eur }}" class="w-full sm:w-1/3 rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+
+  <div class="border-t border-gray-100 pt-3">
+    <p class="font-medium mb-1">{% trans "Delivery zones by postal code" %}</p>
+    <p class="text-xs text-gray-400 mb-2">{% trans "Optional. A matching PLZ zone overrides the flat fee / free-from / min above. Leave empty to use the flat rate everywhere." %}</p>
+    <div class="space-y-2">
+      {% for z in delivery_zone_rows %}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <input name="zone_plz_{{ z.i }}" type="text" value="{{ z.plz }}" placeholder="{% trans 'PLZ e.g. 40, 41' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+          <input name="zone_fee_{{ z.i }}" type="text" value="{{ z.fee_eur }}" placeholder="{% trans 'Fee €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+          <input name="zone_free_{{ z.i }}" type="text" value="{{ z.free_eur }}" placeholder="{% trans 'Free from €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+          <input name="zone_min_{{ z.i }}" type="text" value="{{ z.min_eur }}" placeholder="{% trans 'Min €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+        </div>
+      {% endfor %}
+    </div>
+    <label class="flex items-center gap-2 mt-2 text-xs">
+      <input type="checkbox" name="delivery_restrict_to_zones" {% if delivery_restrict_to_zones %}checked{% endif %}>
+      {% trans "Deliver only to the postal codes listed above" %}
+    </label>
+  </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save delivery settings" %}</button>
   {% if delivery_enabled and not payments_enabled %}
     <p class="text-xs text-amber-700">{% trans "Tip: enable online prepayment above so delivery orders are paid upfront." %}</p>

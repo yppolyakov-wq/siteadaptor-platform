@@ -241,3 +241,96 @@ def test_order_confirmation_renders_delivery():
     request.tenant = _delivery_tenant()
     body = public_views.order_confirmation(request, code=order.reference_code).content.decode()
     assert order.reference_code in body and "Hilden" in body
+
+
+# --- A2a: PLZ-зоны + отдельный мин самовывоза ------------------------------------
+
+
+def test_delivery_quote_zone_overrides_flat():
+    tenant = TenantFactory.build(
+        delivery_enabled=True,
+        delivery_fee_cents=390,
+        delivery_zones=[{"plz": "40, 41", "fee_cents": 990}],
+    )
+    assert services.delivery_quote(tenant, 2000, "40721")["fee_cents"] == 990  # зона
+    assert services.delivery_quote(tenant, 2000, "50667")["fee_cents"] == 390  # вне зоны → флэт
+
+
+def test_delivery_quote_longest_prefix_wins():
+    tenant = TenantFactory.build(
+        delivery_enabled=True,
+        delivery_fee_cents=390,
+        delivery_zones=[{"plz": "40", "fee_cents": 990}, {"plz": "407", "fee_cents": 590}],
+    )
+    assert services.delivery_quote(tenant, 2000, "40721")["fee_cents"] == 590  # «407» длиннее
+
+
+def test_delivery_quote_restrict_blocks_unlisted_plz():
+    tenant = TenantFactory.build(
+        delivery_enabled=True,
+        delivery_fee_cents=390,
+        delivery_zones=[{"plz": "40", "fee_cents": 490}],
+        delivery_restrict_to_zones=True,
+    )
+    assert services.delivery_quote(tenant, 2000, "40721")["deliverable"] is True
+    assert services.delivery_quote(tenant, 2000, "50667")["deliverable"] is False
+
+
+def test_delivery_quote_zone_free_threshold():
+    tenant = TenantFactory.build(
+        delivery_enabled=True,
+        delivery_fee_cents=390,
+        delivery_zones=[{"plz": "40", "fee_cents": 990, "free_cents": 1500}],
+    )
+    assert services.delivery_quote(tenant, 2000, "40721")["fee_cents"] == 0  # ≥ 15 € → бесплатно
+
+
+def test_checkout_rejects_unserved_plz():
+    product = ProductFactory(base_price=Decimal("10.00"))
+    request = _pub_req(
+        {"name": "K", "fulfillment": "delivery", **_ADDR},  # 40721
+        tenant=_delivery_tenant(
+            delivery_zones=[{"plz": "50", "fee_cents": 390}],
+            delivery_restrict_to_zones=True,
+        ),
+        session={"cart": {str(product.pk): 2}},
+    )
+    public_views.checkout(request)
+    assert not Order.objects.exists()  # 40721 вне разрешённых зон
+
+
+def test_checkout_pickup_below_min_rejected():
+    product = ProductFactory(base_price=Decimal("10.00"))
+    request = _pub_req(
+        {"name": "K", "fulfillment": "pickup"},
+        tenant=_delivery_tenant(pickup_min_cents=5000),  # самовывоз от 50 €
+        session={"cart": {str(product.pk): 2}},  # 20 € < 50
+    )
+    public_views.checkout(request)
+    assert not Order.objects.exists()
+
+
+def test_delivery_settings_save_zones_and_pickup_min():
+    tenant = TenantFactory(orders_prepay=True)
+    request = _cab_req(
+        {
+            "form": "delivery",
+            "delivery_enabled": "on",
+            "delivery_fee_eur": "3,90",
+            "pickup_min_eur": "12",
+            "delivery_restrict_to_zones": "on",
+            "zone_plz_0": "40, 41",
+            "zone_fee_0": "4,90",
+            "zone_free_0": "40",
+            "zone_min_0": "15",
+        }
+    )
+    request.tenant = tenant
+    views.order_settings(request)
+    tenant.refresh_from_db()
+    assert tenant.pickup_min_cents == 1200
+    assert tenant.delivery_restrict_to_zones is True
+    assert tenant.delivery_zones == [
+        {"plz": "40, 41", "fee_cents": 490, "free_cents": 4000, "min_cents": 1500}
+    ]
+    assert tenant.orders_prepay is True  # другая форма не сброшена

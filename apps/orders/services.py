@@ -6,6 +6,7 @@ email), но клиент из заказа помечается created_source=
 инкремент D2c).
 """
 
+import re
 import secrets
 import string
 from decimal import Decimal
@@ -59,18 +60,59 @@ def _reserve_stock(norm):
         row.save(update_fields=["stock_quantity", "updated_at"])
 
 
-def shipping_cost(tenant, subtotal_cents: int) -> int:
-    """Стоимость доставки в центах (G4): плоский тариф, бесплатно от порога.
+def _plz_prefixes(raw) -> list[str]:
+    """«40, 41 235» → ['40','41235'] (только цифры, по запятым/пробелам)."""
+    parts = re.split(r"[,\s]+", str(raw or "").strip())
+    return [d for d in (re.sub(r"\D", "", p) for p in parts) if d]
 
-    0, если доставка выключена или сумма ≥ порога бесплатной доставки.
-    Mindestbestellwert проверяется на витрине (checkout), не здесь.
+
+def _zone_for_plz(tenant, plz):
+    """Зона доставки с самым длинным совпавшим PLZ-префиксом (или None)."""
+    digits = re.sub(r"\D", "", str(plz or ""))
+    best, best_len = None, -1
+    for zone in getattr(tenant, "delivery_zones", None) or []:
+        if not isinstance(zone, dict):
+            continue
+        for prefix in _plz_prefixes(zone.get("plz", "")):
+            if digits and digits.startswith(prefix) and len(prefix) > best_len:
+                best, best_len = zone, len(prefix)
+    return best
+
+
+def delivery_quote(tenant, subtotal_cents: int, plz: str = "") -> dict:
+    """Доставка для (суммы, PLZ): {deliverable, fee_cents, min_cents, free_cents}.
+
+    Зона с самым длинным совпавшим PLZ-префиксом переопределяет плоский тариф/
+    порог/Mindestbestellwert. При delivery_restrict_to_zones и непустом списке
+    зон без совпадения — не доставляем. Бесплатно при subtotal ≥ free.
     """
+    none = {"deliverable": False, "fee_cents": 0, "min_cents": 0, "free_cents": 0}
     if not getattr(tenant, "delivery_enabled", False):
-        return 0
-    free = getattr(tenant, "delivery_free_cents", 0) or 0
+        return none
+    zones = getattr(tenant, "delivery_zones", None) or []
+    zone = _zone_for_plz(tenant, plz)
+    if zone is None and zones and getattr(tenant, "delivery_restrict_to_zones", False):
+        return none
+
+    def _from(key, fallback):
+        if zone is not None and zone.get(key) not in (None, ""):
+            try:
+                return max(0, int(zone[key]))
+            except (TypeError, ValueError):
+                return fallback
+        return fallback
+
+    fee = _from("fee_cents", getattr(tenant, "delivery_fee_cents", 0) or 0)
+    free = _from("free_cents", getattr(tenant, "delivery_free_cents", 0) or 0)
+    min_c = _from("min_cents", getattr(tenant, "delivery_min_cents", 0) or 0)
     if free and subtotal_cents >= free:
-        return 0
-    return getattr(tenant, "delivery_fee_cents", 0) or 0
+        fee = 0
+    return {"deliverable": True, "fee_cents": fee, "min_cents": min_c, "free_cents": free}
+
+
+def shipping_cost(tenant, subtotal_cents: int, plz: str = "") -> int:
+    """Стоимость доставки в центах — обёртка над delivery_quote (0, если недоступна)."""
+    return delivery_quote(tenant, subtotal_cents, plz)["fee_cents"]
 
 
 def _unique_order_code() -> str:

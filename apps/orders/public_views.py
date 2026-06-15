@@ -19,7 +19,7 @@ from apps.core import ratelimit
 
 from . import payments as order_payments
 from .models import Order
-from .services import EmptyOrder, OutOfStock, create_order, shipping_cost
+from .services import EmptyOrder, OutOfStock, create_order, delivery_quote
 
 CART_SESSION_KEY = "cart"
 RL_LIMIT = 5  # оформлений на IP
@@ -201,36 +201,51 @@ def checkout(request):
         messages.error(request, _("Please tell us your name."))
         return redirect("storefront-cart")
 
-    # G4: способ получения. delivery только если бизнес включил доставку.
+    # G4/A2a: способ получения. delivery только если бизнес включил доставку.
     tenant = getattr(request, "tenant", None)
     from decimal import Decimal
 
+    items = _cart_items(request)
+    subtotal_cents = int(
+        sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0")) * 100
+    )
     delivery = request.POST.get("fulfillment") == "delivery" and getattr(
         tenant, "delivery_enabled", False
     )
     shipping_cents = 0
     shipping_address = ""
     if delivery:
-        items = _cart_items(request)
-        subtotal_cents = int(
-            sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0")) * 100
-        )
         street = request.POST.get("street", "").strip()
         plz = request.POST.get("plz", "").strip()
         city = request.POST.get("city", "").strip()
         if not (street and plz and city):
             messages.error(request, _("Please enter your full delivery address."))
             return redirect("storefront-cart")
-        min_c = getattr(tenant, "delivery_min_cents", 0) or 0
-        if min_c and subtotal_cents < min_c:
+        quote = delivery_quote(tenant, subtotal_cents, plz)
+        if not quote["deliverable"]:
+            messages.error(
+                request,
+                _("Sorry, we don't deliver to postal code %(plz)s.") % {"plz": plz},
+            )
+            return redirect("storefront-cart")
+        if quote["min_cents"] and subtotal_cents < quote["min_cents"]:
             messages.error(
                 request,
                 _("Minimum order for delivery is %(min)s €.")
-                % {"min": f"{min_c / 100:.2f}".replace(".", ",")},
+                % {"min": f"{quote['min_cents'] / 100:.2f}".replace(".", ",")},
             )
             return redirect("storefront-cart")
-        shipping_cents = shipping_cost(tenant, subtotal_cents)
+        shipping_cents = quote["fee_cents"]
         shipping_address = f"{street}\n{plz} {city}"
+    else:
+        pickup_min = getattr(tenant, "pickup_min_cents", 0) or 0
+        if pickup_min and subtotal_cents < pickup_min:
+            messages.error(
+                request,
+                _("Minimum order for pickup is %(min)s €.")
+                % {"min": f"{pickup_min / 100:.2f}".replace(".", ",")},
+            )
+            return redirect("storefront-cart")
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
