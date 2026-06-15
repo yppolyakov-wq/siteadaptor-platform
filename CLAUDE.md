@@ -797,7 +797,7 @@ Python 3.12, менеджер uv.
     Тесты `events/test_storefront`.
   - **A6 завершён (a+b+c) →архетип A6 ~60 %→~90 %.** Деплой: миграции events/0001
     + finance/0005 + `apps.events` в TENANT_APPS.
-- **A5 — Übernachtung: сезонные/выходные тарифы (rate-plans) (в работе, ~80 %→):**
+- **A5 — Übernachtung: тарифы + iCal-синхронизация (✅ a+b, ~80 %→~95 %):**
   - A5a движок цен (✅ в `main`, CI зелёный, миграции stays/0002+0003): `SeasonRate`
     (юнит/диапазон дат [start,end]/цена-ночь — перебивает базу и выходные) +
     `StayUnit.weekend_price_cents` (Fr+Sa, 0=как база); `apps/stays/pricing.py`
@@ -807,8 +807,21 @@ Python 3.12, менеджер uv.
     backfill старых броней (stays/0003). Витрина-quote и finance-хук берут новый
     total. Кабинет `/dashboard/stays/units/`: weekend-цена + CRUD сезонных тарифов.
     Тесты `stays/test_pricing`. Деплой: миграции stays/0002+0003.
-  - Дальше A5: A5b iCal (экспорт броней фидом + импорт Booking.com/Airbnb →
-    блокировка дат); опц. авто-Rechnung на бронь.
+  - A5b iCal экспорт/импорт (✅ в `main`, CI зелёный, миграция stays/0004):
+    канал-менеджмент без внешних либ (`apps/stays/ical.py` — build_feed/
+    parse_events, all-day VEVENT). **Экспорт:** подписной фид занятости юнита
+    (брони ACTIVE + блоки) по подписанному токену `/stays/ical/<token>.ics`
+    (`public_views.unterkunft_ical`, гейтинг stays) — Booking.com/Airbnb/Google
+    подписываются и блокируют даты. **Импорт:** `ICalSource` (внешний фид на юнит) →
+    `services.sync_ical_source` тянет requests, заводит `UnitBlock` на занятые
+    диапазоны (DTEND эксклюзивно → end_date=DTEND−1 включительно), помечает
+    `UnitBlock.source_id_ref=str(pk)`; идемпотентно (пересоздаёт ТОЛЬКО свои блоки,
+    ручные source_id_ref="" не трогает), сбой сети/парса → last_status, блоки
+    целы. Beat `sync_ical_sources` раз в час по всем схемам. Кабинет
+    `/dashboard/stays/units/`: копируемый экспорт-URL + CRUD источников + «Sync
+    now». Тесты `stays/test_ical` + export-вьюха в `test_public`. Деплой:
+    миграция stays/0004.
+  - Дальше A5: опц. авто-Rechnung на бронь; листинг date-range в агрегаторе.
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,
