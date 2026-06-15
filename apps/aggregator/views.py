@@ -17,22 +17,38 @@ from .models import AggregatorListing
 
 _BTYPE_LABELS = dict(Tenant.BUSINESS_TYPES)
 
+# Подписи видов листинга для чипов фильтра (A5/A6). DE — рынок DACH.
+_KIND_LABELS = [
+    (AggregatorListing.KIND_PROMOTION, "Angebote"),
+    (AggregatorListing.KIND_STAY, "Übernachten"),
+    (AggregatorListing.KIND_EVENT, "Events"),
+]
 
-def listings_for(*, city=None, business_type=None, q=None):
+
+def listings_for(*, city=None, business_type=None, q=None, kind=None):
     """Активные листинги по фильтру. Переиспользуется порталами Phase 2.
 
     q — текстовый поиск (P2.7) по названию бизнеса, заголовку акции и городу;
     icontains по JSON-полю title матчит сериализованный текст (для v1 достаточно).
+    kind — вид листинга (promotion/stay/event, A5/A6); пусто = все.
+
+    Прошедшие события (event со starts_at в прошлом) скрываем всегда — sync
+    удаляет их по правке, но дата может «истечь» без события-триггера.
     """
+    from django.db.models import Q
+    from django.utils import timezone
+
     qs = AggregatorListing.objects.filter(is_active=True)
     if city:
         qs = qs.filter(city__iexact=city)
     if business_type:
         qs = qs.filter(business_type=business_type)
+    if kind:
+        qs = qs.filter(listing_kind=kind)
     if q:
-        from django.db.models import Q
-
         qs = qs.filter(Q(business_name__icontains=q) | Q(title__icontains=q) | Q(city__icontains=q))
+    # Истёкшие события вон (у прочих видов starts_at либо null, либо окно акции).
+    qs = qs.exclude(listing_kind=AggregatorListing.KIND_EVENT, starts_at__lt=timezone.now())
     return qs
 
 
@@ -80,18 +96,25 @@ def discover_index(request):
     q = (request.GET.get("q") or "").strip()
     city = (request.GET.get("city") or "").strip()
     btype = (request.GET.get("type") or "").strip()
-    if q or city or btype:
+    kind = (request.GET.get("kind") or "").strip()
+    if kind not in dict(AggregatorListing.KINDS):
+        kind = ""
+    if q or city or btype or kind:
         from urllib.parse import urlencode
 
         from . import reviews
 
-        pool = listings_for(city=city or None, business_type=btype or None, q=q or None)
+        pool = listings_for(
+            city=city or None, business_type=btype or None, q=q or None, kind=kind or None
+        )
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
         page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
         cards = featured + page.items
         reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
-        base_qs = urlencode([(k, v) for k, v in (("q", q), ("city", city), ("type", btype)) if v])
+        base_qs = urlencode(
+            [(k, v) for k, v in (("q", q), ("city", city), ("type", btype), ("kind", kind)) if v]
+        )
         return render(
             request,
             "aggregator/search.html",
@@ -99,6 +122,8 @@ def discover_index(request):
                 "q": q,
                 "city": city,
                 "type": btype,
+                "kind": kind,
+                "kinds": _KIND_LABELS,
                 "cities": _distinct_cities(),
                 "types": _distinct_types(),
                 "cards": cards,
@@ -110,7 +135,7 @@ def discover_index(request):
     return render(
         request,
         "aggregator/index.html",
-        {"cities": _distinct_cities(), "types": _distinct_types()},
+        {"cities": _distinct_cities(), "types": _distinct_types(), "kinds": _KIND_LABELS},
     )
 
 

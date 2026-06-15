@@ -24,12 +24,22 @@
         <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}</p>
         {% if l.business_rating %}<p class="text-xs text-amber-500 mb-0.5">★ {{ l.business_rating.avg_rating }} <span class="text-gray-300">({{ l.business_rating.review_count }})</span></p>{% endif %}
         {% if l.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>{% endif %}
+        {% if l.listing_kind == 'stay' %}<span class="inline-block mb-1 bg-sky-100 text-sky-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🛏 Übernachten</span>{% endif %}
+        {% if l.listing_kind == 'event' %}<span class="inline-block mb-1 bg-violet-100 text-violet-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🎫 Event</span>{% endif %}
         <h2 class="font-semibold leading-tight line-clamp-2">{{ l.title_text }}</h2>
+        {% if l.listing_kind == 'event' and l.starts_at %}
+          <p class="text-xs text-gray-500 mt-1">{{ l.starts_at|date:"D, d.m.Y · H:i" }}</p>
+        {% endif %}
         {% if l.new_price is not None %}
           <div class="mt-2 flex items-baseline gap-2">
-            <span class="font-bold">{{ l.new_price }} {{ l.currency }}</span>
-            {% if l.old_price and l.old_price > l.new_price %}
-              <span class="text-sm text-gray-400 line-through">{{ l.old_price }} {{ l.currency }}</span>
+            {% if l.listing_kind == 'stay' %}
+              <span class="font-bold">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
+              <span class="text-xs text-gray-400">/ {% trans "night" %}</span>
+            {% else %}
+              <span class="font-bold">{{ l.new_price }} {{ l.currency }}</span>
+              {% if l.old_price and l.old_price > l.new_price %}
+                <span class="text-sm text-gray-400 line-through">{{ l.old_price }} {{ l.currency }}</span>
+              {% endif %}
             {% endif %}
           </div>
         {% endif %}

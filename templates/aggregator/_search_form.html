@@ -12,5 +12,11 @@
     <option value="">{% trans "All types" %}</option>
     {% for val, label in types %}<option value="{{ val }}" {% if val == type %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
+  {% if kinds %}
+  <select name="kind" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <option value="">{% trans "All offers" %}</option>
+    {% for val, label in kinds %}<option value="{{ val }}" {% if val == kind %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  {% endif %}
   <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Search" %}</button>
 </form>
