@@ -49,3 +49,45 @@ def test_book_stay_stores_total_with_rates():
     # Fr+Sa = 2×150 €
     assert booking.total_cents == 30000
     assert StayBooking.objects.get(pk=booking.pk).total_cents == 30000
+
+
+def test_stay_to_invoice_backs_out_gross_to_net():
+    from apps.finance.models import Invoice
+    from apps.stays.services import stay_to_invoice
+
+    unit = _unit(price_cents=10700)  # 107 € брутто/ночь
+    booking = book_stay(
+        unit, arrival=date(2026, 6, 15), departure=date(2026, 6, 16), name="K", email="k@test.de"
+    )
+    inv = stay_to_invoice(booking)
+    # 107 € брутто при 7 % → нетто 100, НДС 7
+    assert inv.gross == 107
+    assert inv.net == 100
+    assert inv.vat_amount == 7
+    assert inv.vat_rate == 7
+    assert inv.status == Invoice.STATUS_DRAFT
+    booking.refresh_from_db()
+    assert booking.invoice_id == inv.id
+
+
+def test_stay_to_invoice_is_idempotent():
+    from apps.stays.services import stay_to_invoice
+
+    unit = _unit(price_cents=9000)
+    booking = book_stay(
+        unit, arrival=date(2026, 7, 1), departure=date(2026, 7, 3), name="K", email="k@test.de"
+    )
+    first = stay_to_invoice(booking)
+    second = stay_to_invoice(booking)
+    assert first.id == second.id
+
+
+def test_stay_to_invoice_small_business_no_vat():
+    from apps.stays.services import stay_to_invoice
+
+    unit = _unit(price_cents=10000)
+    booking = book_stay(
+        unit, arrival=date(2026, 8, 1), departure=date(2026, 8, 2), name="K", email="k@test.de"
+    )
+    inv = stay_to_invoice(booking, small_business=True)
+    assert inv.gross == 100 and inv.net == 100 and inv.vat_amount == 0 and inv.vat_rate == 0

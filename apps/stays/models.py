@@ -157,6 +157,8 @@ class StayBooking(TimestampedModel):
     deposit_cents = models.PositiveIntegerField(default=0)  # снимок с юнита
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # для refund
+    # A5: выставленная Rechnung (finance.Invoice.id) — гард от двойного счёта.
+    invoice_id = models.UUIDField(null=True, blank=True)
 
     class Meta:
         ordering = ["arrival"]

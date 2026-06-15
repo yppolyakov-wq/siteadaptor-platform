@@ -237,3 +237,29 @@ def test_cancel_paid_stay_refunds(monkeypatch):
     assert booking.status == "cancelled"
     assert booking.payment_state == StayBooking.PAYMENT_REFUNDED
     assert captured == {"connect_id": "acct_1", "payment_intent": "pi_x"}
+
+
+def test_invoice_action_creates_draft(monkeypatch):
+    unit = _unit(price_cents=10700)
+    booking = _book(unit, 1, 2, email="g@test.de")
+    StayBookingSM().apply(booking, "confirmed")
+    request = _req("post", data={"action": "invoice"})
+    request.tenant = TenantFactory.build(small_business=False)
+    monkeypatch.setattr(request.tenant, "is_module_active", lambda m: m == "finance")
+    resp = views.stay_action(request, pk=booking.pk)
+    assert resp.status_code == 302 and "/rechnungen/" in resp.url
+    booking.refresh_from_db()
+    assert booking.invoice_id is not None
+
+
+def test_invoice_action_blocked_when_finance_off(monkeypatch):
+    from apps.finance.models import Invoice
+
+    unit = _unit()
+    booking = _book(unit, 1, 2)
+    StayBookingSM().apply(booking, "confirmed")
+    request = _req("post", data={"action": "invoice"})
+    request.tenant = TenantFactory.build()
+    monkeypatch.setattr(request.tenant, "is_module_active", lambda m: False)
+    views.stay_action(request, pk=booking.pk)
+    assert not Invoice.objects.exists()

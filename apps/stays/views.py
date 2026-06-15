@@ -43,6 +43,11 @@ def _eur_to_cents(raw) -> int:
         return 0
 
 
+def _finance_active(request) -> bool:
+    tenant = getattr(request, "tenant", None)
+    return bool(tenant is not None and tenant.is_module_active("finance"))
+
+
 def _parse_day(raw) -> date:
     try:
         return date.fromisoformat(raw or "")
@@ -92,6 +97,7 @@ def calendar(request):
             "rows": rows,
             "bookings": bookings,
             "units": units,
+            "finance_active": _finance_active(request),
         },
     )
 
@@ -102,6 +108,13 @@ def stay_action(request, pk):
     booking = get_object_or_404(StayBooking, pk=pk)
     action = request.POST.get("action", "")
     back = f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}"
+    if action == "invoice":  # A5: черновик Rechnung из брони (модуль finance)
+        if not _finance_active(request):
+            messages.error(request, _("Enable the Finance module first."))
+            return redirect(back)
+        small_business = getattr(request.tenant, "small_business", False)
+        invoice = services.stay_to_invoice(booking, small_business=small_business)
+        return redirect(reverse("finance:invoice-detail", args=[invoice.pk]))
     if action == "move":
         try:
             arrival = date.fromisoformat(request.POST.get("arrival", ""))

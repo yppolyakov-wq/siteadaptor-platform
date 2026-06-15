@@ -821,7 +821,18 @@ Python 3.12, менеджер uv.
     `/dashboard/stays/units/`: копируемый экспорт-URL + CRUD источников + «Sync
     now». Тесты `stays/test_ical` + export-вьюха в `test_public`. Деплой:
     миграция stays/0004.
-  - Дальше A5: опц. авто-Rechnung на бронь; листинг date-range в агрегаторе.
+  - A5c авто-Rechnung на бронь (✅ в `main`, CI зелёный, миграция stays/0005):
+    `services.stay_to_invoice(booking, small_business=)` → черновик `finance.Invoice`
+    из брони. Цена брони — **брутто** (вкл. 7 % Beherbergung), нетто вычисляется
+    обратным счётом (gross/(1+rate) → net, vat=gross−net), чтобы итог счёта совпал
+    с оплаченным; §19 → НДС 0. `StayBooking.invoice_id` (UUID) — гард от двойного
+    счёта (повтор вернёт существующий). Кабинет `/dashboard/stays/`: кнопка «Create
+    invoice» у confirmed-броней (гейтинг модуля finance, `_finance_active`) →
+    редирект на finance invoice-detail; бейдж «✓ Invoice created». Тесты в
+    `stays/test_pricing` (back-out НДС/идемпотентность/§19) + `test_cabinet`
+    (action + гейтинг). Деплой: миграция stays/0005.
+  - Дальше A5: листинг date-range в агрегаторе (крупный отдельный инкремент —
+    агрегатор завязан на promotions/promo_uuid).
 - **A4 — Gastro-модификаторы/Extras блюда (в работе; главная дыра A4, ~70 %→):**
   - A4a ядро + кабинет (✅ в `main`, `3377125`, CI run 251 зелёный, миграция
     catalog/0005): `ModifierGroup` (FK Product, `name`, `min_select`/`max_select`,

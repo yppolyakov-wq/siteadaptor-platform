@@ -86,6 +86,13 @@
           <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
           <button name="action" value="cancelled" class="text-sm border border-red-200 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Cancel" %}</button>
         {% endif %}
+        {% if finance_active and b.status == 'confirmed' %}
+          {% if b.invoice_id %}
+            <span class="text-xs text-green-700">✓ {% trans "Invoice created" %}</span>
+          {% else %}
+            <button name="action" value="invoice" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Create invoice" %}</button>
+          {% endif %}
+        {% endif %}
       </form>
     </div>
   {% endfor %}

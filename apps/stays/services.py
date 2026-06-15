@@ -121,6 +121,53 @@ def move_stay(booking, *, arrival, departure):
     return booking
 
 
+def stay_to_invoice(booking, *, small_business=False):
+    """Создать черновик Rechnung (finance.Invoice) из брони (A5, опц.).
+
+    Цена брони — брутто (вкл. 7 % Beherbergung), поэтому нетто вычисляем обратным
+    счётом, чтобы gross в счёте совпал с оплаченным. §19 → НДС 0 (gross == net).
+    Идемпотентно: повторный вызов вернёт уже существующий счёт. Ставит
+    booking.invoice_id; статус draft (выпуск/нумерация — в кабинете finance).
+    """
+    from decimal import ROUND_HALF_UP, Decimal
+
+    from apps.finance.models import Invoice
+
+    if booking.invoice_id:
+        existing = Invoice.objects.filter(pk=booking.invoice_id).first()
+        if existing is not None:
+            return existing
+
+    gross = Decimal(booking.total_cents) / 100
+    rate = Decimal("0") if small_business else Decimal("7")
+    if rate:
+        net = (gross / (1 + rate / 100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    else:
+        net = gross
+    vat = gross - net
+    line = {
+        "text": (
+            f"Übernachtung {booking.unit.name}: {booking.nights} "
+            f"Nächte ({booking.arrival:%d.%m.%Y}–{booking.departure:%d.%m.%Y})"
+        ),
+        "qty": 1,
+        "unit_price": str(net),
+    }
+    invoice = Invoice.objects.create(
+        customer=booking.customer,
+        recipient=str(booking.customer)[:500],
+        lines=[line],
+        vat_rate=rate,
+        net=net,
+        vat_amount=vat,
+        gross=gross,
+        note=f"Buchung {booking.reference_code}"[:200],
+    )
+    booking.invoice_id = invoice.id
+    booking.save(update_fields=["invoice_id", "updated_at"])
+    return invoice
+
+
 def sync_ical_source(source) -> int:
     """Стянуть внешний iCal и пересоздать блоки этого источника (A5b).
 
