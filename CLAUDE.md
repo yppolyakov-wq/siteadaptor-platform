@@ -833,12 +833,12 @@ Python 3.12, менеджер uv.
     (action + гейтинг). Деплой: миграция stays/0005.
   - Дальше A5: листинг date-range в агрегаторе (крупный отдельный инкремент —
     агрегатор завязан на promotions/promo_uuid).
-- **A5/A6 — date-range листинг отелей/событий в агрегаторе (в работе, ветка
-  `claude/stage1-finish-tkf22i`; решение владельца 2026-06-15: расширить
+- **A5/A6 — date-range листинг отелей/событий в агрегаторе (✅ в `main`,
+  решение владельца 2026-06-15: расширить
   AggregatorListing, без фильтра доступности stays в v1, авто-листинг как акции):**
   главная дыра A5/A6 — размещение (apps.stays) и события (apps.events) не попадали
   в `/entdecken`/порталы (агрегатор был завязан на акции через promo_uuid).
-  - A5/A6-1 ядро + sync (✅ ветка, миграция aggregator/0011): `AggregatorListing`
+  - A5/A6-1 ядро + sync (✅ в `main`, миграция aggregator/0011): `AggregatorListing`
     += `listing_kind` (promotion/stay/event) + `source_ref` (единый ключ источника,
     str pk); `promo_uuid` → nullable; новый unique `(tenant_schema, listing_kind,
     source_ref)` + backfill (`source_ref=str(promo_uuid)`); `save()` выводит
@@ -850,7 +850,7 @@ Python 3.12, менеджер uv.
     cancelled→remove) + `Event` post_save (правка). `reconcile_schema` +
     `sync_aggregator` покрывают все три вида. `listings_for`/featured/гео/звёзды/
     порталы/SEO — без изменений (один пул). Тесты `test_stay_event_listings`.
-  - A5/A6-2 выдача + карточки + фильтр (✅ ветка, без миграций): `listings_for(kind=)`
+  - A5/A6-2 выдача + карточки + фильтр (✅ в `main`, без миграций): `listings_for(kind=)`
     фильтрует вид + всегда скрывает истёкшие события (`starts_at<now`); `discover_index`
     принимает `?kind=` (мусор игнор), чип вида (Angebote/Übernachten/Events) в
     `_search_form`; `_cards.html` — бейдж 🛏/🎫 по `listing_kind`, stay → «ab X €/
@@ -886,7 +886,7 @@ Python 3.12, менеджер uv.
     в подтверждении/кабинете заказов/письмах. Тесты `test_modifier_flow`.
   - **A4 завершён (a+b).** A4 ~75 %→~90 %: доставка гастро уже есть (reuse orders
     G4), остаётся опц. KDS. Деплой: миграции catalog/0005 + orders/0006.
-  - A4 KDS — Küchen-Display (✅ ветка `claude/stage1-finish-tkf22i`, без миграций):
+  - A4 KDS — Küchen-Display (✅ в `main`, без миграций):
     экран кухни `/dashboard/orders/kitchen/` — доска активных заказов (new/confirmed,
     FIFO по created_at) с HTMX-поллингом каждые 8с (`_kitchen_board` партиал) +
     кнопки Annehmen (new→confirmed) и Fertig (confirmed→ready) через `kitchen_action`
@@ -1015,8 +1015,8 @@ Python 3.12, менеджер uv.
   `identifier_exists` учитывает gtin. Галерея фото в кабинете уже была (мульти-
   загрузка + primary/delete). Тесты `catalog/test_feed`. **A1 ~95 %→~99 %**
   (остаётся опц. массовый импорт вариантов CSV).
-- **A1 — массовый импорт вариантов из CSV/Excel (✅ ветка
-  `claude/stage1-finish-tkf22i`, без миграций):** новый `ProductVariantProcessor`
+- **A1 — массовый импорт вариантов из CSV/Excel (✅ в `main`, без миграций):**
+  новый `ProductVariantProcessor`
   (`resource_type=product_variant`) в wizard'е `apps.imports`: родитель ищется по
   `product_sku`/`product_name_de`, вариант — upsert по (товар, label) (естественный
   ключ R1 `variant_product_label_uniq`, повтор импорта не плодит дубли); поля
