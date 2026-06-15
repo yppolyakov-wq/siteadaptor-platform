@@ -78,8 +78,8 @@
           {% for target in allowed_targets %}
             {% if target == 'picked_up' and order.is_delivery %}{% elif target == 'shipped' %}{% else %}
               <button type="submit" name="action" value="{{ target }}"
-                      class="text-sm font-medium rounded-lg px-4 py-2 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
-                {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% else %}{% trans "Cancel" %}{% endif %}
+                      class="text-sm font-medium rounded-lg px-4 py-2 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% elif target == 'returned' %}border border-amber-200 text-amber-700 hover:bg-amber-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
+                {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% elif target == 'returned' %}{% trans "Mark as returned" %}{% else %}{% trans "Cancel" %}{% endif %}
               </button>
             {% endif %}
           {% endfor %}

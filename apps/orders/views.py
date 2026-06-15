@@ -89,7 +89,7 @@ def order_action(request, pk):
         order.payment_state = Order.PAYMENT_PAID
         order.save(update_fields=["payment_state", "updated_at"])
         messages.success(request, _("Marked as paid."))
-    elif action in ("confirmed", "ready", "picked_up", "shipped", "cancelled"):
+    elif action in ("confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"):
         if action == "shipped":  # G4: трек-номер до перехода (письмо его включает)
             from django.utils import timezone
 
@@ -102,9 +102,9 @@ def order_action(request, pk):
             messages.error(request, _("This step is not possible in the current status."))
             return redirect("orders:order-detail", pk=order.pk)
         messages.success(request, _("Order updated."))
-        # анти-фрод: отмена оплаченного заказа возвращает оплату
+        # Отмена/возврат оплаченного заказа возвращает оплату (Widerruf/анти-фрод).
         if (
-            action == "cancelled"
+            action in ("cancelled", "returned")
             and order.payment_state == Order.PAYMENT_PAID
             and order.stripe_payment_intent
         ):

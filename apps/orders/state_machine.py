@@ -17,6 +17,9 @@ class OrderSM(StateMachine):
         Transition("ready", "picked_up", "order.picked_up"),
         Transition("ready", "shipped", "order.shipped"),  # G4: доставка → versandt
         Transition("ready", "cancelled", "order.cancelled"),
+        # A2c: возврат уже выданного/отправленного заказа (Widerruf).
+        Transition("picked_up", "returned", "order.returned"),
+        Transition("shipped", "returned", "order.returned"),
     ]
 
     def on_transition(self, instance, t, **kw):
@@ -24,22 +27,10 @@ class OrderSM(StateMachine):
 
         enqueue_order_email(instance, t.dst)
 
-        # Отмена → возврат остатка на склад (R3). cancelled терминальный →
-        # срабатывает один раз. Только по позициям с учётом (stock_quantity не null).
-        if t.dst == "cancelled":
-            from django.db.models import F
-
-            from apps.catalog.models import Product, ProductVariant
-
-            for item in instance.items.all():
-                if item.variant_id:
-                    ProductVariant.objects.filter(
-                        pk=item.variant_id, stock_quantity__isnull=False
-                    ).update(stock_quantity=F("stock_quantity") + item.qty)
-                else:
-                    Product.objects.filter(pk=item.product_id, stock_quantity__isnull=False).update(
-                        stock_quantity=F("stock_quantity") + item.qty
-                    )
+        # Отмена/возврат → возврат остатка на склад (R3). Терминальные →
+        # срабатывают один раз. Только по позициям с учётом (stock_quantity не null).
+        if t.dst in ("cancelled", "returned"):
+            _restore_stock(instance)
 
         # Выдан/отправлен → запись в журнал выручки (D4a, идемпотентно по
         # source_ref). Доставка включена в total → попадает в выручку.
@@ -53,4 +44,35 @@ class OrderSM(StateMachine):
                 currency=instance.currency,
                 customer=instance.customer,
                 note=instance.reference_code,
+            )
+
+        # Возврат → сторно выручки (отрицательная запись, идемпотентно).
+        if t.dst == "returned":
+            from apps.finance.services import record_reversal
+
+            record_reversal(
+                source="order",
+                source_ref=f"{instance.id}:return",
+                amount=instance.total,
+                currency=instance.currency,
+                customer=instance.customer,
+                note=f"Storno {instance.reference_code}",
+            )
+
+
+def _restore_stock(instance):
+    """Вернуть остаток по позициям заказа (R3); учитываются только товары/варианты
+    со складским учётом (stock_quantity не null)."""
+    from django.db.models import F
+
+    from apps.catalog.models import Product, ProductVariant
+
+    for item in instance.items.all():
+        if item.variant_id:
+            ProductVariant.objects.filter(pk=item.variant_id, stock_quantity__isnull=False).update(
+                stock_quantity=F("stock_quantity") + item.qty
+            )
+        else:
+            Product.objects.filter(pk=item.product_id, stock_quantity__isnull=False).update(
+                stock_quantity=F("stock_quantity") + item.qty
             )

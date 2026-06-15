@@ -363,3 +363,59 @@ def test_delivery_note_view_returns_pdf():
     assert resp.status_code == 200
     assert resp["Content-Type"] == "application/pdf"
     assert resp.content[:4] == b"%PDF"
+
+
+# --- A2c: возврат / Widerruf ------------------------------------------------------
+
+
+def test_return_restores_stock_and_reverses_revenue():
+    product = ProductFactory(base_price=Decimal("10.00"), stock_quantity=5)
+    order = services.create_order(
+        items=[(product, 2)],
+        name="K",
+        email="k@t.de",
+        fulfillment="delivery",
+        shipping_address="A\n40721 Hilden",
+        shipping_cents=390,
+    )
+    product.refresh_from_db()
+    assert product.stock_quantity == 3  # списано при создании (R3)
+
+    sm = OrderSM()
+    for dst in ("confirmed", "ready", "shipped", "returned"):
+        order = sm.apply(order, dst)
+    assert order.status == "returned"
+
+    product.refresh_from_db()
+    assert product.stock_quantity == 5  # остаток возвращён
+    entries = RevenueEntry.objects.filter(source="order", source_ref__startswith=str(order.id))
+    assert sum(e.amount for e in entries) == Decimal("0.00")  # +23.90 и сторно −23.90
+    assert Notification.objects.filter(dedupe_key=f"order:{order.id}:returned:customer").exists()
+
+
+def test_return_not_allowed_before_fulfilled():
+    from apps.core.fsm import IllegalTransition
+
+    order = _delivery_order()
+    with pytest.raises(IllegalTransition):
+        OrderSM().apply(order, "returned")  # из new нельзя
+
+
+def test_cabinet_return_refunds_paid_order(monkeypatch):
+    order = _delivery_order()
+    order.payment_state = Order.PAYMENT_PAID
+    order.stripe_payment_intent = "pi_123"
+    order.save(update_fields=["payment_state", "stripe_payment_intent", "updated_at"])
+    for dst in ("confirmed", "ready", "shipped"):
+        OrderSM().apply(order, dst)
+
+    refunds = []
+    monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: refunds.append(kw))
+    request = _cab_req({"action": "returned"})
+    request.tenant = TenantFactory.build(stripe_connect_id="acct_1")
+    views.order_action(request, pk=order.pk)
+
+    order.refresh_from_db()
+    assert order.status == "returned"
+    assert order.payment_state == "refunded"
+    assert refunds  # Stripe-refund вызван

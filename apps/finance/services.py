@@ -41,6 +41,28 @@ def record_revenue(
     return entry if created else None
 
 
+def record_reversal(*, source, source_ref, amount, currency="EUR", customer=None, note=""):
+    """Сторно-запись возврата: отрицательная сумма, идемпотентно по source_ref.
+
+    Для возвратов (A2c): на ту же сумму, что была проведена при выдаче/отправке,
+    но со знаком минус — чистая выручка по документу становится нулевой.
+    """
+    if amount is None or amount <= 0:
+        return None
+    entry, created = RevenueEntry.objects.get_or_create(
+        source=source,
+        source_ref=source_ref,
+        defaults={
+            "amount": -amount,
+            "currency": currency,
+            "date": timezone.localdate(),
+            "customer": customer,
+            "note": note[:200],
+        },
+    )
+    return entry if created else None
+
+
 def compute_totals(lines, vat_rate, *, small_business=False):
     """(net, vat, gross) из снимка позиций; §19 Kleinunternehmer — без НДС."""
     from decimal import ROUND_HALF_UP, Decimal

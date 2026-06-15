@@ -1,0 +1,9 @@
+Hallo {{ customer.name }},
+
+wir haben die Rücksendung Ihrer Bestellung {{ order.reference_code }} erfasst.
+Eine eventuell geleistete Zahlung wird erstattet. Bei Fragen melden Sie sich
+gern direkt bei uns.
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

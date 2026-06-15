@@ -22,6 +22,7 @@ class Order(TimestampedModel):
     STATUS_PICKED_UP = "picked_up"
     STATUS_SHIPPED = "shipped"  # G4: versandt (для доставки)
     STATUS_CANCELLED = "cancelled"
+    STATUS_RETURNED = "returned"  # A2c: возврат после выдачи/отправки (Widerruf)
     STATUSES = [
         (STATUS_NEW, "New"),
         (STATUS_CONFIRMED, "Confirmed"),
@@ -29,6 +30,7 @@ class Order(TimestampedModel):
         (STATUS_PICKED_UP, "Picked up"),
         (STATUS_SHIPPED, "Shipped"),
         (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_RETURNED, "Returned"),
     ]
     # G4: способ получения. pickup — самовывоз (как раньше); delivery — доставка.
     FULFILLMENT_PICKUP = "pickup"
