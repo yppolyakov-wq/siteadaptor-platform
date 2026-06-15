@@ -908,8 +908,8 @@ Python 3.12, менеджер uv.
     комментарием — текст утекал в сайдбар; заменён на `{% comment %}…{% endcomment %}`
     + регрессия в `test_cabinet_nav.py`. **Урок: многострочные шаблонные комментарии —
     только `{% comment %}`, `{# #}` строго однострочный.**
-- **A2 Versand → 100% (в работе; Stage 1 архетип A2):** добиваем доставку поверх
-  готового G4 (apps.orders). Разбивка A2a/A2b/A2c:
+- **A2 Versand → 100% (✅ ВЕСЬ в `main`; Stage 1 архетип A2 ~85 %→~100 %):** добили
+  доставку поверх готового G4 (apps.orders). Разбивка A2a/A2b/A2c:
   - A2a — PLZ-зоны + отдельный мин самовывоза (✅ в `main`, CI зелёный, миграция
     tenants/0015): `Tenant.delivery_zones` (JSON `[{plz,fee_cents,free_cents,
     min_cents}]`) + `delivery_restrict_to_zones` + `pickup_min_cents`. `services.
@@ -919,8 +919,19 @@ Python 3.12, менеджер uv.
     совместимость, 2 арг.). Витрина checkout: недоставляемый PLZ → отказ, отдельная
     проверка Mindestbestellwert для самовывоза. Кабинет заказов: таблица зон (6
     строк) + чекбокс «только эти PLZ» + мин самовывоза. Тесты `test_delivery`.
-  - Дальше: A2b Lieferschein-PDF + этикетка; A2c возвраты/Widerruf (refund + возврат
-    остатка).
+  - A2b — Lieferschein-PDF + адресная этикетка (✅ в `main`, CI зелёный, без
+    миграций): `apps/orders/pdf.py::build_delivery_note_pdf` (reportlab, зеркало
+    jobs.pdf) — шапка-отправитель из Tenant, получатель/адрес из Order, позиции
+    (кол-во + название, без цен) + вырезаемая адресная этикетка; вьюха
+    `delivery_note_pdf` + маршрут `…/lieferschein.pdf` + кнопка в карточке заказа.
+  - A2c — возвраты/Widerruf (✅ в `main`, CI зелёный, миграция orders/0007):
+    `Order.STATUS_RETURNED`; `OrderSM` picked_up/shipped → returned. on_transition
+    returned → возврат остатка (общий `_restore_stock`, R3) + **сторно выручки**
+    (`finance.services.record_reversal` — отрицательная запись, source_ref
+    `{id}:return`, идемпотентно → нетто 0) + письмо клиенту (`order_returned`).
+    Кабинет: кнопка «Mark as returned» (из allowed_targets), оплаченный заказ →
+    Stripe-refund (как отмена). Тесты `test_delivery`.
+  - **A2 завершён (a+b+c).** Деплой: миграции tenants/0015 + orders/0007.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,
