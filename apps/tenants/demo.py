@@ -1,14 +1,14 @@
 """Демо-контент витрины (M20 — кнопки «Demo-Inhalte laden» / «Demo löschen»).
 
-Чтобы после выбора шаблона витрина сразу выглядела живой, а не пустой. Создаёт
-показательный каталог (категория + товары) и одну активную акцию в схеме
-тенанта. Идемпотентно и обратимо: id созданных объектов хранятся в
-``Tenant.site_config["demo"]`` (переживает normalize, см. siteconfig), «Demo
-löschen» удаляет ровно их (hard-delete) и зачищает листинг агрегатора. Без
-новых моделей/миграций.
+Наполняет витрину как настоящий сайт под тип бизнеса: до ~10 товаров, несколько
+акций, а также услуги (booking), номера (stays) и события (events) — там, где
+соответствующий модуль активен. Идемпотентно и обратимо: id всех созданных
+объектов хранятся в ``Tenant.site_config["demo"]`` (переживает normalize),
+«Demo löschen» удаляет ровно их (hard-delete) и зачищает листинги агрегатора.
+Без новых моделей/миграций.
 
-Решения владельца (2026-06-15): отдельные кнопки загрузки/удаления (не авто
-при шаблоне); демо нельзя оставлять в проде → удаление обязательно и точное.
+Решения владельца: отдельные кнопки загрузки/удаления; демо нельзя оставлять в
+проде → удаление точное; контент — реалистичный, по типу бизнеса (2026-06-15).
 """
 
 from datetime import timedelta
@@ -18,48 +18,90 @@ from django.utils import timezone
 
 from . import siteconfig
 
-# Наборы товаров по типу бизнеса: (name_de, price_eur, description_de).
-# Подобраны узнаваемо под вертикаль; для незнакомого типа — общий fallback.
+# --- Товары по типу бизнеса: (name_de, price_eur, description_de) --------------
 _PRODUCTS = {
     "bakery": [
         ("Roggenbrot", "3.20", "Kräftiges Roggenbrot aus dem Steinofen."),
+        ("Bauernbrot", "3.80", "Knusprige Kruste, saftige Krume."),
         ("Butter-Croissant", "1.80", "Frisch gebacken, jeden Morgen."),
+        ("Schoko-Croissant", "2.00", "Mit zarter Schokoladenfüllung."),
         ("Käsebrötchen", "1.50", "Knusprig mit Gouda überbacken."),
+        ("Laugenbrezel", "1.20", "Klassisch mit grobem Salz."),
         ("Apfeltasche", "2.40", "Mit fruchtiger Apfelfüllung."),
+        ("Vollkornbrötchen", "0.60", "Mit Sonnenblumenkernen."),
+        ("Nussschnecke", "2.20", "Saftig mit Haselnüssen."),
+        ("Bienenstich", "2.80", "Mit Mandeln und Vanillecreme."),
     ],
     "butcher": [
-        ("Rinderhackfleisch", "9.90", "Frisch gewolft, 100 % Rind."),
+        ("Rinderhackfleisch", "9.90", "Frisch gewolft, 100 % Rind (pro kg)."),
+        ("Schweineschnitzel", "12.90", "Aus der Oberschale (pro kg)."),
         ("Bratwurst (4 St.)", "5.50", "Hausgemacht nach altem Rezept."),
-        ("Schweineschnitzel", "12.90", "Aus der Oberschale, paniert oder natur."),
+        ("Rinderfilet", "29.90", "Zart und mager (pro kg)."),
+        ("Hähnchenbrust", "11.50", "Ohne Haut, küchenfertig (pro kg)."),
+        ("Leberkäse", "6.90", "Hausgemacht, am Stück (pro kg)."),
+        ("Grillplatte", "18.90", "Bunte Auswahl für 2 Personen."),
+        ("Wiener Würstchen (Paar)", "4.50", "Im Saitling, mild geräuchert."),
     ],
     "grocery": [
         ("Bio-Eier (6 St.)", "2.80", "Aus regionaler Freilandhaltung."),
         ("Bergkäse 200 g", "4.20", "Würzig gereift."),
-        ("Honig 250 g", "5.90", "Vom Imker aus der Region."),
+        ("Imker-Honig 250 g", "5.90", "Aus der Region."),
+        ("Vollmilch 1 L", "1.29", "Frische Weidemilch."),
+        ("Bio-Äpfel 1 kg", "2.99", "Knackig und süß."),
+        ("Kartoffeln 2 kg", "3.49", "Festkochend."),
+        ("Tomaten 500 g", "2.49", "Sonnengereift."),
+        ("Bauernbutter 250 g", "2.79", "Mild gesäuert."),
+        ("Olivenöl 0,5 L", "8.90", "Nativ extra."),
+        ("Vollkornnudeln 500 g", "1.99", "Aus Hartweizengrieß."),
     ],
     "cafe": [
         ("Cappuccino", "3.20", "Mit cremigem Milchschaum."),
+        ("Latte Macchiato", "3.50", "In Schichten serviert."),
+        ("Espresso", "2.20", "Kräftig und aromatisch."),
         ("Käsekuchen", "3.80", "Hausgemacht, Stück."),
+        ("Apfelstrudel", "3.90", "Warm mit Vanillesauce."),
         ("Frühstücksteller", "8.50", "Mit Ei, Käse und frischem Brot."),
+        ("Heiße Schokolade", "3.40", "Mit Sahnehaube."),
+        ("Croissant", "1.80", "Buttrig und frisch."),
     ],
     "restaurant": [
         ("Tagesgericht", "11.90", "Wechselnd – fragen Sie unser Team."),
         ("Hausburger", "13.50", "Mit Pommes und Salat."),
-        ("Tiramisu", "5.50", "Nach Familienrezept."),
+        ("Schnitzel mit Pommes", "14.90", "Knusprig paniert."),
+        ("Caesar Salad", "9.90", "Mit Hähnchen und Parmesan."),
+        ("Pasta Bolognese", "11.50", "Nach Familienrezept."),
+        ("Flammkuchen", "10.90", "Elsässer Art."),
+        ("Rumpsteak", "22.90", "200 g, mit Kräuterbutter."),
+        ("Tomatensuppe", "5.50", "Mit Basilikum."),
+        ("Tiramisu", "5.50", "Hausgemacht."),
+        ("Pizza Margherita", "9.50", "Mit Mozzarella und Basilikum."),
     ],
     "clothing": [
         ("Basic T-Shirt", "19.90", "Weiche Bio-Baumwolle."),
         ("Strickpullover", "49.90", "Warm für die kalte Jahreszeit."),
         ("Leinenhemd", "39.90", "Leicht und luftig."),
+        ("Jeans Slim Fit", "59.90", "Stretch-Denim."),
+        ("Sommerkleid", "45.00", "Leicht fallend."),
+        ("Kapuzenpullover", "39.90", "Kuschelig weich."),
+        ("Wollschal", "24.90", "Aus Merinowolle."),
+        ("Sneaker", "69.90", "Bequem für jeden Tag."),
+        ("Ledergürtel", "29.90", "Echtes Leder."),
+        ("Strickmütze", "14.90", "Warm und weich."),
     ],
     "retail": [
         ("Geschenkset", "24.90", "Schön verpackt – ideal zum Verschenken."),
         ("Duftkerze", "12.90", "Handgegossen, lange Brenndauer."),
         ("Notizbuch A5", "9.90", "Mit festem Einband."),
+        ("Keramiktasse", "11.90", "Handbemalt."),
+        ("Wolldecke", "39.90", "Kuschelig warm."),
+        ("Pflanzentopf", "8.90", "Aus Keramik."),
+        ("Holzbrett", "19.90", "Aus heimischem Holz."),
+        ("Seifenset", "16.90", "Natürliche Pflege."),
     ],
     "hotel": [
-        ("Frühstück für Gäste", "14.00", "Reichhaltiges Buffet, pro Person."),
+        ("Frühstücksbuffet", "14.00", "Reichhaltig, pro Person."),
         ("Late Check-out", "20.00", "Bis 14 Uhr, je nach Verfügbarkeit."),
+        ("Flasche Hauswein", "19.00", "Rot oder weiß, 0,75 L."),
     ],
 }
 _PRODUCTS_FALLBACK = [
@@ -68,81 +110,169 @@ _PRODUCTS_FALLBACK = [
     ("Beispiel-Produkt 3", "19.90", "Demo-Inhalt — jederzeit löschbar."),
 ]
 
+# --- Услуги (booking): (name, duration_min, price_eur) -------------------------
+_SERVICES = {
+    "tour_operator": [
+        ("Stadtführung", 90, "25.00"),
+        ("Tagesausflug", 480, "89.00"),
+        ("Weinprobe", 120, "45.00"),
+        ("Fahrradtour", 180, "35.00"),
+    ],
+    "other": [
+        ("Beratungsgespräch", 60, "60.00"),
+        ("Premium-Service", 90, "95.00"),
+        ("Basis-Service", 30, "40.00"),
+    ],
+}
+
+# --- Номера (stays): (name, type, quantity, price_eur, max_guests) -------------
+_STAY_UNITS = {
+    "hotel": [
+        ("Einzelzimmer", "room", 3, "59.00", 1),
+        ("Doppelzimmer", "room", 5, "89.00", 2),
+        ("Familienzimmer", "room", 2, "129.00", 4),
+        ("Suite", "room", 1, "189.00", 2),
+    ],
+}
+
+# --- События (events): (title, in_days, capacity, price_eur) -------------------
+_EVENTS = {
+    "tour_operator": [
+        ("Geführte Altstadt-Tour", 7, 20, "15.00"),
+        ("Weinabend", 14, 30, "39.00"),
+    ],
+    "other": [("Workshop: Basics", 10, 12, "49.00")],
+    "hotel": [("Candle-Light-Dinner", 5, 20, "59.00")],
+}
+
 _CATEGORY_NAME = {"de": "Beliebt"}
-_DEMO_DISCOUNT = 20  # % скидки демо-акции
+_MAX_PROMOS = 3
+_PROMO_DISCOUNTS = [20, 15, 25]  # % для первых демо-акций
 
 
 def has_demo(tenant) -> bool:
-    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-    demo = cfg.get("demo") or {}
-    return bool(demo.get("products") or demo.get("promotions") or demo.get("category"))
+    demo = (tenant.site_config or {}).get("demo") if isinstance(tenant.site_config, dict) else None
+    demo = demo or {}
+    return any(demo.get(k) for k in ("products", "promotions", "services", "stay_units", "events"))
 
 
-def _products_for(business_type) -> list:
-    return _PRODUCTS.get(business_type, _PRODUCTS_FALLBACK)
+def _eur(value) -> Decimal:
+    return Decimal(value)
 
 
 def load_demo(tenant) -> bool:
-    """Создать демо-каталог + акцию в текущей (tenant) схеме. False — уже есть.
+    """Создать демо-контент под тип бизнеса в текущей (tenant) схеме. False — уже есть.
 
-    Вызывать в контексте схемы тенанта (как и весь кабинет). Хук post_save
-    Promotion сам материализует листинг в агрегатор (active → upsert).
+    Контент создаётся только для активных модулей: товары/категория — всегда
+    (catalog — core); акции — при активном promotions; услуги — booking; номера —
+    stays; события — events. Хуки сами материализуют листинги в агрегатор.
     """
     if has_demo(tenant):
         return False
 
     from apps.catalog.models import Category, Product
-    from apps.promotions.models import Promotion
 
+    is_active = tenant.is_module_active
+    refs = {
+        "category": "",
+        "products": [],
+        "promotions": [],
+        "services": [],
+        "stay_units": [],
+        "events": [],
+    }
+
+    # --- каталог (всегда) ---
+    products = _PRODUCTS.get(tenant.business_type, _PRODUCTS_FALLBACK)
     category = Category.objects.create(name=_CATEGORY_NAME, slug="demo-beliebt", is_active=True)
-    product_ids = []
-    first_product = None
-    for i, (name, price, desc) in enumerate(_products_for(tenant.business_type)):
+    refs["category"] = str(category.pk)
+    created_products = []
+    for i, (name, price, desc) in enumerate(products):
         product = Product.objects.create(
             name={"de": name},
             description={"de": desc},
-            base_price=Decimal(price),
+            base_price=_eur(price),
             category=category,
             is_active=True,
-            is_featured=(i == 0),
+            is_featured=(i < 3),
             metadata={"demo": True},
         )
-        product_ids.append(str(product.pk))
-        if first_product is None:
-            first_product = product
+        created_products.append(product)
+        refs["products"].append(str(product.pk))
 
-    # Одна активная демо-акция (скидка на первый товар) — наполняет секцию
-    # «Aktuelle Angebote» и попадает в агрегатор как настоящая.
-    now = timezone.now()
-    promo = Promotion.objects.create(
-        title={"de": f"{first_product.name['de']} –{_DEMO_DISCOUNT} %"},
-        description={"de": "Demo-Angebot — zum Ausprobieren."},
-        product=first_product,
-        promo_type=Promotion.DISCOUNT,
-        discount_percent=_DEMO_DISCOUNT,
-        status="active",
-        starts_at=now,
-        ends_at=now + timedelta(days=14),
-        metadata={"demo": True},
-    )
+    # --- акции (если модуль активен и есть товары) ---
+    if is_active("promotions") and created_products:
+        from apps.promotions.models import Promotion
+
+        now = timezone.now()
+        for i, product in enumerate(created_products[:_MAX_PROMOS]):
+            discount = _PROMO_DISCOUNTS[i % len(_PROMO_DISCOUNTS)]
+            promo = Promotion.objects.create(
+                title={"de": f"{product.name['de']} –{discount} %"},
+                description={"de": "Demo-Angebot — zum Ausprobieren."},
+                product=product,
+                promo_type=Promotion.DISCOUNT,
+                discount_percent=discount,
+                status="active",
+                starts_at=now,
+                ends_at=now + timedelta(days=14),
+                metadata={"demo": True},
+            )
+            refs["promotions"].append(str(promo.pk))
+
+    # --- услуги (booking) ---
+    if is_active("booking") and _SERVICES.get(tenant.business_type):
+        from apps.booking.models import Service
+
+        for name, minutes, price in _SERVICES[tenant.business_type]:
+            svc = Service.objects.create(
+                name=name, duration_minutes=minutes, price_cents=int(_eur(price) * 100)
+            )
+            refs["services"].append(str(svc.pk))
+
+    # --- номера (stays) ---
+    if is_active("stays") and _STAY_UNITS.get(tenant.business_type):
+        from apps.stays.models import StayUnit
+
+        for name, utype, qty, price, guests in _STAY_UNITS[tenant.business_type]:
+            unit = StayUnit.objects.create(
+                name=name,
+                type=utype,
+                quantity=qty,
+                price_cents=int(_eur(price) * 100),
+                max_guests=guests,
+                is_active=True,
+            )
+            refs["stay_units"].append(str(unit.pk))
+
+    # --- события (events) ---
+    if is_active("events") and _EVENTS.get(tenant.business_type):
+        from apps.events.models import Event
+
+        now = timezone.now()
+        for title, in_days, capacity, price in _EVENTS[tenant.business_type]:
+            event = Event.objects.create(
+                title=title,
+                starts_at=now + timedelta(days=in_days),
+                capacity=capacity,
+                price_cents=int(_eur(price) * 100),
+                status=Event.STATUS_PUBLISHED,
+            )
+            refs["events"].append(str(event.pk))
 
     cfg = siteconfig.normalize(tenant.site_config)
-    cfg["demo"] = {
-        "category": str(category.pk),
-        "products": product_ids,
-        "promotions": [str(promo.pk)],
-    }
+    cfg["demo"] = refs
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     return True
 
 
 def clear_demo(tenant) -> bool:
-    """Удалить ровно демо-объекты (hard-delete) + зачистить листинг агрегатора.
+    """Удалить ровно демо-объекты (hard-delete) + зачистить листинги агрегатора.
 
-    False — демо не было. Промо/товары/категория — SoftDelete, поэтому
-    hard_delete через all_objects, чтобы реально убрать (демо не должно остаться).
-    """
+    False — демо не было. Порядок: акции → товары (Promotion.product=SET_NULL, но
+    листинг удобнее снять до товаров) → услуги/номера/события. Листинги
+    агрегатора снимаются явным sync (источник исчез → remove)."""
     cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     demo = cfg.get("demo") or {}
     if not has_demo(tenant):
@@ -150,19 +280,46 @@ def clear_demo(tenant) -> bool:
 
     from django.db import connection
 
-    from apps.aggregator.tasks import sync_listing
-    from apps.catalog.models import Category, Product
-    from apps.promotions.models import Promotion
+    schema = connection.schema_name
 
     promo_ids = list(demo.get("promotions") or [])
-    Promotion.all_objects.filter(pk__in=promo_ids).hard_delete()
-    # Акция удалена → убрать её листинг из агрегатора (sync видит отсутствие).
-    for pid in promo_ids:
-        sync_listing(connection.schema_name, pid)
+    if promo_ids:
+        from apps.aggregator.tasks import sync_listing
+        from apps.promotions.models import Promotion
 
-    Product.all_objects.filter(pk__in=demo.get("products") or []).hard_delete()
-    if demo.get("category"):
-        Category.all_objects.filter(pk=demo["category"]).hard_delete()
+        Promotion.all_objects.filter(pk__in=promo_ids).hard_delete()
+        for pid in promo_ids:
+            sync_listing(schema, pid)
+
+    if demo.get("products") or demo.get("category"):
+        from apps.catalog.models import Category, Product
+
+        Product.all_objects.filter(pk__in=demo.get("products") or []).hard_delete()
+        if demo.get("category"):
+            Category.all_objects.filter(pk=demo["category"]).hard_delete()
+
+    if demo.get("services"):
+        from apps.booking.models import Service
+
+        Service.objects.filter(pk__in=demo["services"]).delete()
+
+    stay_ids = list(demo.get("stay_units") or [])
+    if stay_ids:
+        from apps.aggregator.tasks import sync_stay_listing
+        from apps.stays.models import StayUnit
+
+        StayUnit.objects.filter(pk__in=stay_ids).delete()
+        for uid in stay_ids:
+            sync_stay_listing(schema, uid)
+
+    event_ids = list(demo.get("events") or [])
+    if event_ids:
+        from apps.aggregator.tasks import sync_event_listing
+        from apps.events.models import Event
+
+        Event.objects.filter(pk__in=event_ids).delete()
+        for eid in event_ids:
+            sync_event_listing(schema, eid)
 
     cfg = siteconfig.normalize(tenant.site_config)
     cfg.pop("demo", None)
