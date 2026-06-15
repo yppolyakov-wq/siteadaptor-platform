@@ -980,6 +980,17 @@ Python 3.12, менеджер uv.
   `identifier_exists` учитывает gtin. Галерея фото в кабинете уже была (мульти-
   загрузка + primary/delete). Тесты `catalog/test_feed`. **A1 ~95 %→~99 %**
   (остаётся опц. массовый импорт вариантов CSV).
+- **A3 — онлайн-продажа Mehrfachkarte + привязка к курсу (✅ в `main`, CI зелёный,
+  миграция booking/0006):** `PassPlan` (покупаемый тариф: label/credits/price_cents/
+  valid_days/service) + `Pass.service` (привязка карты к услуге) + `Pass.
+  stripe_payment_intent` (идемпотентность выпуска). `pass_payments`: зеркало P2.5b —
+  `pass_checkout_url` (Checkout на connected account, metadata `kind=pass_purchase`)
+  + `purchase_pass` (вебхук кросс-схемно: выпуск Pass + письмо с кодом, идемпотентно
+  по payment_intent). `redeem_pass` гасит бронь только совпавшей услуги (карта с
+  `service` ≠ бронь другой услуги → PassInvalid). Витрина `/karten/` (список тарифов
+  → форма имя/почта → Stripe; иначе «купить на месте») + ссылка с `/termin/`. Кабинет
+  `/dashboard/booking/karten/`: CRUD тарифов (+ привязка к услуге). Тесты `test_passes`.
+  **A3 ~95 %→~100 %.**
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

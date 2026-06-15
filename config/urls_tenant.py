@@ -127,6 +127,9 @@ urlpatterns = [
         name="storefront-service-book",
     ),
     path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
+    # A3: онлайн-продажа Mehrfachkarte.
+    path("karten/", booking_public.karten, name="storefront-karten"),
+    path("karten/<uuid:pk>/kaufen/", booking_public.karte_kaufen, name="storefront-karte-kaufen"),
     # Übernachtung / date-range-бронь (Track E / E3): юнит → даты → форма.
     path("unterkunft/", stays_public.unterkunft_index, name="storefront-unterkunft"),
     path("unterkunft/<uuid:pk>/", stays_public.unterkunft_unit, name="storefront-unterkunft-unit"),

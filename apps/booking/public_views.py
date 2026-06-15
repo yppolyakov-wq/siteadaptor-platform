@@ -78,13 +78,70 @@ def _passes_enabled() -> bool:
 
 def termin_index(request):
     _require_booking_active(request)
+    from .models import PassPlan
+
+    has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
     services_qs = Service.objects.filter(is_active=True)
     if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
-        return render(request, "storefront/service_index.html", {"services": services_qs})
+        return render(
+            request,
+            "storefront/service_index.html",
+            {"services": services_qs, "has_pass_plans": has_pass_plans},
+        )
     resources = Resource.objects.filter(is_active=True)
-    if resources.count() == 1:  # один ресурс — сразу к слотам
+    if resources.count() == 1 and not has_pass_plans:  # один ресурс — сразу к слотам
         return redirect("storefront-termin-slots", pk=resources.first().pk)
-    return render(request, "storefront/booking_index.html", {"resources": resources})
+    return render(
+        request,
+        "storefront/booking_index.html",
+        {"resources": resources, "has_pass_plans": has_pass_plans},
+    )
+
+
+def karten(request):
+    """A3: публичная покупка Mehrfachkarte — список тарифов (PassPlan)."""
+    _require_booking_active(request)
+    from .models import PassPlan
+
+    tenant = getattr(request, "tenant", None)
+    can_buy = getattr(tenant, "payments_enabled", False) and connect.is_connect_configured()
+    plans = PassPlan.objects.filter(is_active=True).select_related("service")
+    return render(request, "storefront/passes.html", {"plans": plans, "can_buy": can_buy})
+
+
+def karte_kaufen(request, pk):
+    """A3: купить тариф абонемента → Stripe Checkout на счёт бизнеса."""
+    _require_booking_active(request)
+    from . import pass_payments
+    from .models import PassPlan
+
+    if request.method != "POST":
+        return redirect("storefront-karten")
+    if request.POST.get("website"):  # honeypot
+        return redirect("storefront-karten")
+    if ratelimit.hit("karte", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
+        return HttpResponse(status=429)
+    plan = get_object_or_404(PassPlan, pk=pk, is_active=True)
+    tenant = getattr(request, "tenant", None)
+    name = request.POST.get("name", "").strip()
+    email = request.POST.get("email", "").strip()
+    if not (name and email):
+        messages.error(request, _("Please enter your name and email."))
+        return redirect("storefront-karten")
+    if not (getattr(tenant, "payments_enabled", False) and connect.is_connect_configured()):
+        messages.error(request, _("Online purchase isn't available — please buy on site."))
+        return redirect("storefront-karten")
+    ok_url = request.build_absolute_uri(reverse("storefront-karten")) + "?bought=1"
+    cancel_url = request.build_absolute_uri(reverse("storefront-karten"))
+    try:
+        return redirect(
+            pass_payments.pass_checkout_url(
+                plan, tenant, name=name, email=email, success_url=ok_url, cancel_url=cancel_url
+            )
+        )
+    except stripe.error.StripeError:
+        messages.error(request, _("Payment could not be started — please try again."))
+        return redirect("storefront-karten")
 
 
 def service_slots(request, pk):

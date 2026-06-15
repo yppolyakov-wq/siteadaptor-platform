@@ -69,4 +69,57 @@
   </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Issue pass" %}</button>
 </form>
+
+{# A3: тарифы для онлайн-продажи Mehrfachkarte #}
+<h2 class="font-semibold mt-10 mb-2">{% trans "Card plans (online sale)" %}</h2>
+<p class="text-sm text-gray-500 mb-4">{% trans "Plans customers can buy online (paid into your account). Requires connected payments." %}</p>
+<div class="space-y-2 mb-6">
+  {% for plan in plans %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3 flex-wrap {% if not plan.is_active %}opacity-60{% endif %}">
+      <div>
+        <span class="font-medium">{{ plan.label }}</span>
+        <span class="text-sm text-gray-500 block">{{ plan.credits }}× · {{ plan.price_eur|floatformat:2 }} €{% if plan.service %} · {{ plan.service.name }}{% endif %}{% if plan.valid_days %} · {{ plan.valid_days }} {% trans "days" %}{% endif %}</span>
+      </div>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="plan_toggle"><input type="hidden" name="plan" value="{{ plan.pk }}">
+        <button class="text-xs text-gray-500 hover:underline">{% if plan.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+      </form>
+    </div>
+  {% empty %}
+    <p class="text-gray-500">{% trans "No plans yet." %}</p>
+  {% endfor %}
+</div>
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="plan_add">
+  <h3 class="font-semibold">{% trans "Add card plan" %}</h3>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Label" %}</label>
+      <input name="label" type="text" placeholder="10er-Karte Yoga" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Bind to service (optional)" %}</label>
+      <select name="service" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <option value="">{% trans "Any service" %}</option>
+        {% for s in services %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Visits" %}</label>
+      <input name="credits" type="number" min="1" max="100" value="10" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
+      <input name="price" type="text" inputmode="decimal" placeholder="99,00" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Valid days (0=∞)" %}</label>
+      <input name="valid_days" type="number" min="0" max="3650" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add plan" %}</button>
+</form>
 {% endblock %}

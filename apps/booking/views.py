@@ -279,13 +279,19 @@ def passes_view(request):
     """Mehrfachkarten / 10er-Karten (G9): выпуск, баланс, ручное погашение."""
     from datetime import date as _date
 
-    from .models import Pass
+    from .models import Pass, PassPlan, Service
 
     def _int(raw, default, lo, hi):
         try:
             return max(lo, min(int(raw), hi))
         except (TypeError, ValueError):
             return default
+
+    def _cents(raw):
+        try:
+            return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
+        except (TypeError, ValueError):
+            return 0
 
     def _vu(raw):  # valid_until: пусто/кривое → бессрочно (None)
         try:
@@ -320,10 +326,30 @@ def passes_view(request):
             card = get_object_or_404(Pass, pk=request.POST.get("pass"))
             card.is_active = not card.is_active
             card.save(update_fields=["is_active", "updated_at"])
+        elif action == "plan_add":  # A3: тариф для онлайн-продажи
+            label = request.POST.get("label", "").strip() or "Mehrfachkarte"
+            svc = Service.objects.filter(pk=request.POST.get("service") or None).first()
+            PassPlan.objects.create(
+                label=label[:120],
+                credits=_int(request.POST.get("credits"), 10, 1, 100),
+                price_cents=_cents(request.POST.get("price")),
+                valid_days=_int(request.POST.get("valid_days"), 0, 0, 3650),
+                service=svc,
+            )
+            messages.success(request, _("Card plan added."))
+        elif action == "plan_toggle":
+            plan = get_object_or_404(PassPlan, pk=request.POST.get("plan"))
+            plan.is_active = not plan.is_active
+            plan.save(update_fields=["is_active", "updated_at"])
         return redirect("booking:passes")
 
     return render(
         request,
         "booking/passes.html",
-        {"nav": "booking", "passes": Pass.objects.select_related("customer")[:300]},
+        {
+            "nav": "booking",
+            "passes": Pass.objects.select_related("customer")[:300],
+            "plans": PassPlan.objects.select_related("service"),
+            "services": Service.objects.filter(is_active=True),
+        },
     )

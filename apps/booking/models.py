@@ -130,6 +130,12 @@ class Pass(TimestampedModel):
     credits_used = models.PositiveSmallIntegerField(default=0)
     valid_until = models.DateField(null=True, blank=True)  # пусто = бессрочно
     is_active = models.BooleanField(default=True)
+    # A3: карта может быть привязана к конкретной услуге/курсу (null = любая).
+    service = models.ForeignKey(
+        "Service", on_delete=models.SET_NULL, null=True, blank=True, related_name="passes"
+    )
+    # A3: онлайн-продажа (Stripe) — id платежа для идемпотентности выпуска.
+    stripe_payment_intent = models.CharField(max_length=64, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -146,6 +152,34 @@ class Pass(TimestampedModel):
         if not self.is_active or self.credits_left <= 0:
             return False
         return self.valid_until is None or self.valid_until >= timezone.localdate()
+
+
+class PassPlan(TimestampedModel):
+    """A3: покупаемый онлайн тариф Mehrfachkarte (бизнес задаёт в кабинете).
+
+    Покупка через Stripe Connect выпускает клиенту Pass с этими параметрами
+    (credits/срок/привязка к услуге)."""
+
+    label = models.CharField(max_length=120, default="Mehrfachkarte")
+    credits = models.PositiveSmallIntegerField(default=10)
+    price_cents = models.PositiveIntegerField(default=0)
+    valid_days = models.PositiveSmallIntegerField(default=0)  # 0 = бессрочно
+    service = models.ForeignKey(
+        "Service", on_delete=models.SET_NULL, null=True, blank=True, related_name="pass_plans"
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["price_cents", "label"]
+
+    def __str__(self):
+        return f"{self.label} ({self.credits}× / {self.price_cents / 100:.2f})"
+
+    @property
+    def price_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.price_cents) / 100
 
 
 class Booking(TimestampedModel):

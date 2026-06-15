@@ -211,3 +211,95 @@ def test_invalid_pass_code_keeps_booking_no_charge():
     assert booking.card_id is None  # карта не привязана
     assert booking.payment_state == Booking.PAYMENT_NONE
     assert resp.url == f"/t/{booking.reference_code}/"  # бронь есть, на оплату не уводили
+
+
+# --- A3: онлайн-продажа Mehrfachkarte + привязка к услуге --------------------------
+
+
+def test_purchase_pass_issues_card_and_is_idempotent():
+    from django.db import connection
+
+    from apps.booking import pass_payments
+    from apps.booking.models import PassPlan
+
+    plan = PassPlan.objects.create(label="10er Yoga", credits=10, price_cents=9900)
+    ok = pass_payments.purchase_pass(
+        tenant_schema=connection.schema_name,
+        plan_id=str(plan.id),
+        name="Yogi",
+        email="y@t.de",
+        payment_intent="pi_1",
+    )
+    assert ok
+    card = Pass.objects.get()
+    assert card.credits_total == 10
+    assert card.customer.email == "y@t.de"
+    assert card.stripe_payment_intent == "pi_1"
+    # повтор вебхука → второй карты нет
+    pass_payments.purchase_pass(
+        tenant_schema=connection.schema_name,
+        plan_id=str(plan.id),
+        name="Yogi",
+        email="y@t.de",
+        payment_intent="pi_1",
+    )
+    assert Pass.objects.count() == 1
+
+
+def test_purchase_pass_binds_service_and_validity():
+    from django.db import connection
+
+    from apps.booking import pass_payments
+    from apps.booking.models import PassPlan, Service
+
+    svc = Service.objects.create(name="Yoga", duration_minutes=60, price_cents=1500)
+    plan = PassPlan.objects.create(
+        label="Yoga 5", credits=5, price_cents=5000, valid_days=30, service=svc
+    )
+    pass_payments.purchase_pass(
+        tenant_schema=connection.schema_name,
+        plan_id=str(plan.id),
+        name="Y",
+        email="y2@t.de",
+        payment_intent="pi_2",
+    )
+    card = Pass.objects.get()
+    assert card.service_id == svc.id and card.valid_until is not None
+
+
+def test_redeem_respects_service_binding():
+    from apps.booking.models import Service
+
+    svc_a = Service.objects.create(name="Yoga", duration_minutes=60)
+    svc_b = Service.objects.create(name="Massage", duration_minutes=60)
+    card = services.issue_pass(name="Y", credits=5, service=svc_a)
+    resource, day = _resource_with_rule()
+    slots = availability.free_slots(resource, day)
+    b_b = services.book(resource, start=slots[0][0], end=slots[0][1], name="Y", service=svc_b)
+    with pytest.raises(services.PassInvalid):
+        services.redeem_pass(card, booking=b_b)  # карта A ≠ услуга B
+    b_a = services.book(resource, start=slots[1][0], end=slots[1][1], name="Y", service=svc_a)
+    services.redeem_pass(card, booking=b_a)  # услуга совпала
+    card.refresh_from_db()
+    assert card.credits_used == 1
+
+
+def test_cabinet_adds_pass_plan():
+    from apps.booking.models import PassPlan
+
+    views.passes_view(
+        _cab_req(
+            "post",
+            {"action": "plan_add", "label": "10er", "credits": "10", "price": "99,00"},
+        )
+    )
+    plan = PassPlan.objects.get()
+    assert plan.credits == 10 and plan.price_cents == 9900
+
+
+def test_public_karten_lists_plans():
+    from apps.booking.models import PassPlan
+
+    PassPlan.objects.create(label="10er Yoga", credits=10, price_cents=9900)
+    body = public_views.karten(_pub_req("get", "/karten/")).content.decode()
+    assert "10er Yoga" in body

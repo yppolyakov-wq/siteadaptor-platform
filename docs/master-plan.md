@@ -80,7 +80,7 @@ webhook + стратегия Connect redirect-URI, отдельный Postgres +
 |---|---|---|
 | **A1 Laden** | ~99% | ✅ EAN/GTIN (фид g:gtin) + ✅ галерея фото (уже была); остаётся опц. массовый импорт вариантов CSV. |
 | **A2 Versand** | ~100% | ✅ зоны по PLZ (A2a) + ✅ Lieferschein-PDF/этикетка (A2b) + ✅ возвраты/Widerruf (A2c) + ✅ отдельные мин-суммы pickup/доставка. Реальный лейбл перевозчика (DHL API) — при необходимости. |
-| **A3 Termin** | ~95% | онлайн-продажа Mehrfachkarte (Stripe), привязка карты к курсу. |
+| **A3 Termin** | ~100% | ✅ онлайн-продажа Mehrfachkarte (Stripe Connect) + ✅ привязка карты к услуге/курсу. |
 | **A4 Gastro** | ~90% | **модификаторы/Extras блюда** ✅ (A4a ядро+кабинет, A4b витрина+корзина+заказ — оба в `main`), доставка гастро ✅ (reuse orders G4); остаётся опц. KDS. |
 | **A5 Übernachtung** | ~97% | ✅ rate-plans (A5a) + ✅ iCal экспорт/импорт Booking.com/Airbnb (A5b) + ✅ авто-Rechnung на бронь (A5c); остаётся листинг в агрегаторе (date-range, крупный — агрегатор завязан на promotions). |
 | **A6 Событие/ретрит** | ~90% | ✅ платный билет (Stripe Connect) + ростер/анкеты + CSV (apps.events, A6a–c); остаётся ретрит=date-range+«программа», тур (гид/транспорт). |
@@ -200,7 +200,7 @@ Phase 2: P2.1 ✅ · P2.2 ✅ · P2.3 ✅ · P2.4 ✅ · P2.5 ✅ · P2.6 ✅ (=
 
 ## 5. Архетип × текущая полнота (рыночная оптика)
 
-A1 ~99 (✅ EAN/GTIN) · A2 ~100 (✅ зоны/Lieferschein/возвраты) · A3 ~95 · A4 ~90 (✅ модификаторы) · A5 ~97 (✅ rate-plans + iCal + авто-Rechnung) · A6 ~90 (✅ билеты) · A7 ~100 (✅ часы/Anzahlung/фото/Termin) · A8 ~95 (✅ поиск/фильтры P2.7) · A9 ~100 (✅ Kennzeichen).
+A1 ~99 (✅ EAN/GTIN) · A2 ~100 (✅ зоны/Lieferschein/возвраты) · A3 ~100 (✅ Mehrfachkarte online) · A4 ~90 (✅ модификаторы) · A5 ~97 (✅ rate-plans + iCal + авто-Rechnung) · A6 ~90 (✅ билеты) · A7 ~100 (✅ часы/Anzahlung/фото/Termin) · A8 ~95 (✅ поиск/фильтры P2.7) · A9 ~100 (✅ Kennzeichen).
 6 из 9 — пилот-готовы. Цель Stage 1 — все на 100%. Детали — `micro-business-verticals.md`.
 
 ---

@@ -121,6 +121,21 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook job_deposit: job not found %s", meta)
         return
 
+    # Покупка Mehrfachkarte онлайн (A3) — TENANT-схема, статус подписки не трогаем.
+    if event_type == "checkout.session.completed" and meta.get("kind") == "pass_purchase":
+        from apps.booking.pass_payments import purchase_pass
+
+        ok = purchase_pass(
+            tenant_schema=meta.get("tenant_schema", ""),
+            plan_id=meta.get("plan_id", ""),
+            name=meta.get("name", ""),
+            email=meta.get("email", ""),
+            payment_intent=obj.get("payment_intent", ""),
+        )
+        if not ok:
+            logger.warning("stripe webhook pass_purchase: plan not found %s", meta)
+        return
+
     # Билет на событие (A6c) — TENANT-схема, статус подписки не трогаем.
     if event_type == "checkout.session.completed" and meta.get("kind") == "event_ticket":
         from apps.events.payments import mark_ticket_paid

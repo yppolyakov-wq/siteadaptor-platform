@@ -136,8 +136,20 @@ def _unique_pass_code() -> str:
     raise RuntimeError("could not generate unique pass code")
 
 
-def issue_pass(*, name, email="", phone="", label="Mehrfachkarte", credits=10, valid_until=None):
-    """G9: выпустить Mehrfachkarte клиенту (Customer переиспользуется по email)."""
+def issue_pass(
+    *,
+    name,
+    email="",
+    phone="",
+    label="Mehrfachkarte",
+    credits=10,
+    valid_until=None,
+    service=None,
+    stripe_payment_intent="",
+):
+    """G9/A3: выпустить Mehrfachkarte клиенту (Customer переиспользуется по email).
+
+    service — привязка к услуге/курсу (None = универсальная карта)."""
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     return Pass.objects.create(
         customer=customer,
@@ -145,6 +157,8 @@ def issue_pass(*, name, email="", phone="", label="Mehrfachkarte", credits=10, v
         label=(label or "Mehrfachkarte").strip()[:120] or "Mehrfachkarte",
         credits_total=max(1, int(credits or 1)),
         valid_until=valid_until,
+        service=service,
+        stripe_payment_intent=stripe_payment_intent or "",
     )
 
 
@@ -156,6 +170,9 @@ def redeem_pass(card, *, booking=None):
     кредит; при booking — привязываем визит к карте (booking.card)."""
     locked = Pass.objects.select_for_update().get(pk=card.pk)
     if not locked.is_valid:
+        raise PassInvalid()
+    # A3: карта, привязанная к услуге, гасит только бронь этой услуги.
+    if locked.service_id and booking is not None and booking.service_id != locked.service_id:
         raise PassInvalid()
     locked.credits_used += 1
     locked.save(update_fields=["credits_used", "updated_at"])
