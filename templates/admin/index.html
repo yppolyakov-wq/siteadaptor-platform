@@ -1,0 +1,85 @@
+{% extends "admin/base.html" %}
+
+{% comment %}
+KPI-дашборд платформенной админки (переопределяет unfold/templates/admin/index.html;
+project templates DIRS имеют приоритет над пакетными). Данные — apps.core.admin_dashboard
+.dashboard_callback (UNFOLD["DASHBOARD_CALLBACK"]). Ниже карточек — стандартный
+список приложений unfold (быстрый доступ) + история. Классы — только из
+скомпилированного CSS unfold (responsive-сетка md/lg, токены base/primary/font).
+{% endcomment %}
+
+{% load i18n unfold %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+    {% if kpi_cards %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            {% for card in kpi_cards %}
+                <a href="{{ card.link }}"
+                   class="bg-white flex items-center justify-between gap-4 p-6 rounded-default shadow-xs border border-base-200 cursor-pointer transition-all hover:border-base-300 hover:shadow-md dark:bg-base-900 dark:border-base-800">
+                    <div class="flex flex-col">
+                        <span class="text-font-subtle-light text-sm font-medium dark:text-base-400">{{ card.title }}</span>
+                        <span class="text-font-important-light text-3xl font-semibold mt-1 dark:text-font-important-dark">{{ card.value }}</span>
+                        <span class="text-font-subtle-light text-xs mt-1 dark:text-base-400">{{ card.hint }}</span>
+                    </div>
+                    <span class="material-symbols-outlined text-primary-600 text-4xl shrink-0">{{ card.icon }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if kpi_alert %}
+        <a href="{{ kpi_alert.link }}"
+           class="bg-white flex items-center justify-between gap-4 p-6 rounded-default shadow-xs border border-red-200 cursor-pointer transition-all hover:shadow-md mb-4 dark:bg-base-900 dark:border-base-800">
+            <div class="flex flex-col">
+                <span class="text-red-600 text-sm font-medium">{{ kpi_alert.title }}</span>
+                <span class="text-red-600 text-3xl font-semibold mt-1">{{ kpi_alert.value }}</span>
+                <span class="text-font-subtle-light text-xs mt-1 dark:text-base-400">{{ kpi_alert.hint }}</span>
+            </div>
+            <span class="material-symbols-outlined text-red-600 text-4xl shrink-0">warning</span>
+        </a>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800">
+            <h2 class="font-semibold text-important mb-4">{% trans "Newest businesses" %}</h2>
+            <div class="flex flex-col text-sm">
+                {% for row in recent_tenants %}
+                    <a href="{{ row.link }}"
+                       class="flex items-center justify-between gap-3 py-1 border-base-200 hover:text-primary-600 dark:border-base-800">
+                        <span class="truncate text-font-default-light dark:text-base-300">{{ row.name }}</span>
+                        <span class="text-font-subtle-light text-xs shrink-0 dark:text-base-400">{{ row.meta }}</span>
+                    </a>
+                {% empty %}
+                    <span class="text-font-subtle-light dark:text-base-400">{% trans "Nothing yet." %}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800">
+            <h2 class="font-semibold text-important mb-4">{% trans "Open support tickets" %}</h2>
+            <div class="flex flex-col text-sm">
+                {% for row in open_tickets %}
+                    <a href="{{ row.link }}"
+                       class="flex items-center justify-between gap-3 py-1 hover:text-primary-600">
+                        <span class="truncate text-font-default-light dark:text-base-300">{{ row.subject }}</span>
+                        <span class="text-font-subtle-light text-xs shrink-0 dark:text-base-400">{{ row.meta }}</span>
+                    </a>
+                {% empty %}
+                    <span class="text-font-subtle-light dark:text-base-400">{% trans "Nothing open." %}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row lg:gap-8">
+        <div class="grow">
+            {% include "unfold/helpers/app_list_default.html" %}
+        </div>
+
+        {% include "unfold/helpers/history.html" %}
+    </div>
+{% endblock %}

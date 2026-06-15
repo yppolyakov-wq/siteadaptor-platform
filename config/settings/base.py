@@ -428,3 +428,147 @@ LOGGING = {
         "audit": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }
+
+# ---------------------------------------------------------------------------
+# django-unfold — платформенная админка (только public, config/urls_public).
+# Без этого блока unfold показывает голый список приложений Django. Здесь:
+# брендинг, акцент в indigo (как кабинет), сгруппированный мобильный сайдбар и
+# KPI-дашборд (DASHBOARD_CALLBACK + templates/admin/index.html). В сайдбаре —
+# только платформенные (SHARED) модели; tenant-модели сняты с регистрации в
+# apps.core.admin (их таблиц нет в public-схеме). Сами URL берём через
+# reverse_lazy, т.к. settings грузятся раньше urlconf.
+# ---------------------------------------------------------------------------
+from django.urls import reverse_lazy  # noqa: E402
+from django.utils.translation import gettext_lazy as _  # noqa: E402
+
+UNFOLD = {
+    "SITE_TITLE": "SiteAdaptor Admin",
+    "SITE_HEADER": "SiteAdaptor",
+    "SITE_SUBHEADER": _("Platform administration"),
+    "SITE_SYMBOL": "rocket_launch",  # Material Symbol рядом с заголовком
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": False,  # платформенные модели без публичной страницы
+    "DASHBOARD_CALLBACK": "apps.core.admin_dashboard.dashboard_callback",
+    "COLORS": {
+        # Акцент indigo — как в кабинете владельца (indigo-600 = #4f46e5).
+        "primary": {
+            "50": "#eef2ff",
+            "100": "#e0e7ff",
+            "200": "#c7d2fe",
+            "300": "#a5b4fc",
+            "400": "#818cf8",
+            "500": "#6366f1",
+            "600": "#4f46e5",
+            "700": "#4338ca",
+            "800": "#3730a3",
+            "900": "#312e81",
+            "950": "#1e1b4b",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,  # только курируемая навигация ниже
+        "navigation": [
+            {
+                "title": _("Overview"),
+                "separator": False,
+                "items": [
+                    {
+                        "title": _("Dashboard"),
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": _("Businesses"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Tenants"),
+                        "icon": "storefront",
+                        "link": reverse_lazy("admin:tenants_tenant_changelist"),
+                    },
+                    {
+                        "title": _("Domains"),
+                        "icon": "dns",
+                        "link": reverse_lazy("admin:tenants_domain_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Aggregator & portals"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Portals"),
+                        "icon": "public",
+                        "link": reverse_lazy("admin:aggregator_aggregatorportal_changelist"),
+                    },
+                    {
+                        "title": _("Listings"),
+                        "icon": "format_list_bulleted",
+                        "link": reverse_lazy("admin:aggregator_aggregatorlisting_changelist"),
+                    },
+                    {
+                        "title": _("Reviews"),
+                        "icon": "reviews",
+                        "link": reverse_lazy("admin:aggregator_businessreview_changelist"),
+                    },
+                    {
+                        "title": _("Portal bots"),
+                        "icon": "smart_toy",
+                        "link": reverse_lazy("admin:aggregator_portalbot_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Support"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Support tickets"),
+                        "icon": "support_agent",
+                        "link": reverse_lazy("admin:support_supportthread_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Platform"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Secrets"),
+                        "icon": "key",
+                        "link": reverse_lazy("admin:secrets_platformsecret_changelist"),
+                    },
+                    {
+                        "title": _("Audit log"),
+                        "icon": "history",
+                        "link": reverse_lazy("admin:audit_auditevent_changelist"),
+                    },
+                    {
+                        "title": _("Webhooks"),
+                        "icon": "webhook",
+                        "link": reverse_lazy("admin:webhooks_outgoingwebhook_changelist"),
+                    },
+                    {
+                        "title": _("Webhook deliveries"),
+                        "icon": "send",
+                        "link": reverse_lazy("admin:webhooks_webhookdelivery_changelist"),
+                    },
+                    {
+                        "title": _("Users"),
+                        "icon": "person",
+                        "link": reverse_lazy("admin:auth_user_changelist"),
+                    },
+                    {
+                        "title": _("Groups"),
+                        "icon": "group",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
+}
