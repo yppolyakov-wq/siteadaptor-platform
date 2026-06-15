@@ -75,10 +75,10 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     c.setFont("Helvetica", 9)
     for line in invoice.lines:
         y -= 6 * mm
-        qty = int(line.get("qty", 1))
+        qty = Decimal(str(line.get("qty", 1)))  # A7a: дробное кол-во
         unit_price = Decimal(str(line["unit_price"]))
         c.drawString(x, y, str(line["text"])[:70])
-        c.drawRightString(page_w - x - 60 * mm, y, str(qty))
+        c.drawRightString(page_w - x - 60 * mm, y, f"{qty:.2f}".rstrip("0").rstrip("."))
         c.drawRightString(page_w - x - 30 * mm, y, _money(unit_price))
         c.drawRightString(page_w - x, y, _money(unit_price * qty))
 

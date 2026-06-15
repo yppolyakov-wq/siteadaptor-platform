@@ -19,6 +19,12 @@ def _money(value) -> str:
     return f"{Decimal(value):.2f}".replace(".", ",") + " EUR"
 
 
+def _qty(value) -> str:
+    """Дробное кол-во без хвостовых нулей: 3,50→«3,5», 2,00→«2»."""
+    s = f"{Decimal(value):.2f}".rstrip("0").rstrip(".")
+    return s.replace(".", ",")
+
+
 def build_quote_pdf(job, tenant) -> bytes:
     buffer = io.BytesIO()
     page_w, page_h = A4
@@ -83,7 +89,7 @@ def build_quote_pdf(job, tenant) -> bytes:
     for line in job.lines.all():
         y -= 6 * mm
         c.drawString(x, y, str(line.text)[:70])
-        c.drawRightString(page_w - x - 60 * mm, y, str(line.qty))
+        c.drawRightString(page_w - x - 60 * mm, y, _qty(line.qty))
         c.drawRightString(page_w - x - 30 * mm, y, _money(line.unit_price))
         c.drawRightString(page_w - x, y, _money(line.line_total))
 

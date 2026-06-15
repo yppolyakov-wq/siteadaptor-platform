@@ -73,16 +73,15 @@ class Job(TimestampedModel):
 
 
 class JobLine(TimestampedModel):
-    """Позиция сметы (Angebot): текст, количество (целое), цена за единицу нетто.
+    """Позиция сметы (Angebot): текст, количество, цена за единицу нетто.
 
-    Целочисленный qty — для точного совпадения суммы сметы и Rechnung (обе через
-    finance.compute_totals, который приводит qty к int); дробные часы/единицы —
-    отложено (см. roadmap)."""
+    qty — Decimal (A7a): дробные часы/единицы Handwerker (3,5 Std). Суммы сметы и
+    Rechnung считаются одним finance.compute_totals (qty как Decimal) — совпадают."""
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="lines")
     position = models.PositiveSmallIntegerField(default=0)  # порядок отображения
     text = models.CharField(max_length=300)
-    qty = models.PositiveSmallIntegerField(default=1)
+    qty = models.DecimalField(max_digits=7, decimal_places=2, default=1)  # дробное (A7a)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # нетто за ед.
 
     # G11: расходник (Teile) из каталога — null = свободная строка (Arbeit/работа).

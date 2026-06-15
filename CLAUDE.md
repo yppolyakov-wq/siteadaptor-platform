@@ -932,6 +932,17 @@ Python 3.12, менеджер uv.
     Кабинет: кнопка «Mark as returned» (из allowed_targets), оплаченный заказ →
     Stripe-refund (как отмена). Тесты `test_delivery`.
   - **A2 завершён (a+b+c).** Деплой: миграции tenants/0015 + orders/0007.
+- **A7 Handwerker → 100% (в работе; Stage 1 архетип A7 ~85 %→):** добиваем смету/
+  Auftrag поверх apps.jobs. Разбивка A7a–d:
+  - A7a — дробные часы/единицы (✅ в `main`, CI зелёный, миграция jobs/0003):
+    `JobLine.qty` → Decimal(7,2); `finance.compute_totals` считает qty как Decimal
+    (через `_to_decimal`; целочисленные вызовы не затронуты); `lines_snapshot`
+    отдаёт qty строкой (JSON-safe в `Invoice.lines`); `finance.pdf`/`jobs.pdf`
+    рендерят qty без хвостовых нулей; кабинет — input `step=0.01`, парс Decimal
+    0,01..9999; `commit_stock` (G11) списывает `ceil(qty)` (склад целочисленный).
+    Тесты `test_jobs_core` (3,5 Std × 50 = 175).
+  - Дальше: A7b фото к заявке; A7c онлайн-Anzahlung за смету (Stripe Connect,
+    зеркало P2.5b); A7d привязка Termin↔Job.
 
 ## 4. Маршруты
 - Корень субдомена `/` = витрина; акция `/p/<uuid>/`, бронь `/p/<uuid>/reserve/`,

@@ -174,7 +174,11 @@ def _save_lines(request, job):
             continue
         price_raw = str(request.POST.get(f"line_price_{index}", "")).strip()
         try:
-            qty = max(1, min(int(request.POST.get(f"line_qty_{index}", "1") or 1), 9999))
+            # A7a: дробное кол-во (часы/единицы). Ограничиваем 0,01..9999.
+            qty_raw = str(request.POST.get(f"line_qty_{index}", "1") or "1").replace(",", ".")
+            qty = min(max(Decimal(qty_raw), Decimal("0.01")), Decimal("9999")).quantize(
+                Decimal("0.01")
+            )
             # Цена пуста + выбран расходник → снимок цены товара/варианта.
             if product and not price_raw:
                 unit_price = variant.price_value if variant else product.base_price

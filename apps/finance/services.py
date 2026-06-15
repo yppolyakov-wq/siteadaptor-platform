@@ -63,12 +63,24 @@ def record_reversal(*, source, source_ref, amount, currency="EUR", customer=None
     return entry if created else None
 
 
+def _to_decimal(value, default="1"):
+    from decimal import Decimal, InvalidOperation
+
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(default)
+
+
 def compute_totals(lines, vat_rate, *, small_business=False):
-    """(net, vat, gross) из снимка позиций; §19 Kleinunternehmer — без НДС."""
+    """(net, vat, gross) из снимка позиций; §19 Kleinunternehmer — без НДС.
+
+    qty может быть дробным (A7a, часы/единицы Handwerker) — считаем как Decimal.
+    """
     from decimal import ROUND_HALF_UP, Decimal
 
     net = sum(
-        (Decimal(str(line["unit_price"])) * int(line.get("qty", 1)) for line in lines),
+        (_to_decimal(line["unit_price"], "0") * _to_decimal(line.get("qty", 1)) for line in lines),
         start=Decimal("0"),
     ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     rate = Decimal("0") if small_business else Decimal(str(vat_rate))

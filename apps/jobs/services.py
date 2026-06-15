@@ -122,7 +122,10 @@ def commit_stock(job) -> None:
                 continue  # свободная строка (Arbeit) — склад не трогаем
             if row.stock_quantity is None:
                 continue  # без учёта остатка
-            row.stock_quantity = max(0, row.stock_quantity - line.qty)
+            # Склад целочисленный: дробное кол-во расходника округляем вверх.
+            from math import ceil
+
+            row.stock_quantity = max(0, row.stock_quantity - ceil(line.qty))
             row.save(update_fields=["stock_quantity", "updated_at"])
         locked.stock_committed = True
         locked.save(update_fields=["stock_committed", "updated_at"])
@@ -132,7 +135,8 @@ def commit_stock(job) -> None:
 def lines_snapshot(job) -> list[dict]:
     """Позиции сметы в формате finance (для Rechnung-снимка / PDF)."""
     return [
-        {"text": ln.text, "qty": ln.qty, "unit_price": str(ln.unit_price)} for ln in job.lines.all()
+        {"text": ln.text, "qty": str(ln.qty), "unit_price": str(ln.unit_price)}
+        for ln in job.lines.all()
     ]
 
 

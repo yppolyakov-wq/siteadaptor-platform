@@ -56,6 +56,24 @@ def test_set_lines_computes_totals_19():
     assert job.gross == Decimal("618.80")
 
 
+def test_set_lines_fractional_qty():
+    """A7a: дробные часы/единицы (3,5 Std)."""
+    job = _job()
+    services.set_lines(
+        job,
+        [
+            {"text": "Arbeitsstunden", "qty": "3.5", "unit_price": "50.00"},
+            {"text": "Anfahrt", "qty": "0.5", "unit_price": "40.00"},
+        ],
+    )
+    job.refresh_from_db()
+    assert job.net == Decimal("195.00")  # 3,5×50 + 0,5×40 = 175 + 20
+    assert job.vat_amount == Decimal("37.05")  # 19 %
+    line = job.lines.get(text="Arbeitsstunden")
+    assert line.qty == Decimal("3.50")
+    assert line.line_total == Decimal("175.00")
+
+
 def test_set_lines_kleinunternehmer_no_vat():
     job = _job()
     services.set_lines(
@@ -86,7 +104,8 @@ def test_lines_snapshot_format():
     job = _job()
     services.set_lines(job, [{"text": "X", "qty": 3, "unit_price": "5.00"}])
     snap = services.lines_snapshot(job)
-    assert snap == [{"text": "X", "qty": 3, "unit_price": "5.00"}]
+    # qty — JSON-safe строка (A7a: дробное кол-во), unit_price тоже строкой.
+    assert snap == [{"text": "X", "qty": "3.00", "unit_price": "5.00"}]
 
 
 # --- FSM --------------------------------------------------------------------------
