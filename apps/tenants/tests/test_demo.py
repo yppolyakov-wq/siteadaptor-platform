@@ -79,6 +79,24 @@ def test_clear_demo_noop_when_absent():
     assert demo.clear_demo(tenant) is False
 
 
+def test_load_demo_self_heals_orphan_category():
+    """Регрессия: прерванная прошлая загрузка оставила категорию demo-beliebt
+    (UNIQUE uniq_category_slug_alive) → повторный «Demo laden» 500-ил.
+    Теперь load_demo подчищает осиротевшие демо-объекты и проходит."""
+    from apps.catalog.models import Category
+
+    tenant = _tenant("bakery")
+    # осиротевшие остатки (refs в site_config НЕ сохранены → has_demo False)
+    Category.objects.create(name={"de": "Beliebt"}, slug="demo-beliebt", is_active=True)
+    orphan = Product.objects.create(name={"de": "Alt"}, base_price=1, metadata={"demo": True})
+
+    assert demo.has_demo(tenant) is False
+    assert demo.load_demo(tenant) is True  # больше не падает на слаге
+    assert Category.objects.filter(slug="demo-beliebt").count() == 1  # без дублей
+    assert not Product.objects.filter(pk=orphan.pk).exists()  # сирота убрана
+    assert Product.objects.filter(metadata__demo=True).count() == 10  # свежий набор
+
+
 def test_fallback_products_for_unknown_type():
     tenant = _tenant("other")
     demo.load_demo(tenant)

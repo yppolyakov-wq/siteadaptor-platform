@@ -175,12 +175,44 @@ def load_demo(tenant) -> bool:
     return True
 
 
+def _purge_orphan_demo() -> None:
+    """Убрать демо-объекты от прерванной прошлой загрузки (self-heal).
+
+    Срабатывает только когда has_demo()==False (вызывается из _seed_demo после
+    guard'а) — значит в site_config нет валидных ссылок, а в БД могли остаться
+    «осиротевшие» демо-объекты (напр., категория demo-beliebt от старой
+    не-атомарной загрузки, упавшей до сохранения refs). Иначе повторное
+    «Demo laden» вечно падало бы на UNIQUE-слаге категории."""
+    from django.db import connection
+
+    from apps.catalog.models import Category, Product
+    from apps.promotions.models import Promotion
+
+    schema = connection.schema_name
+    promo_ids = [
+        str(pid)
+        for pid in Promotion.all_objects.filter(metadata__demo=True).values_list("id", flat=True)
+    ]
+    if promo_ids:
+        from apps.aggregator.tasks import sync_listing
+
+        Promotion.all_objects.filter(pk__in=promo_ids).hard_delete()
+        for pid in promo_ids:
+            sync_listing(schema, pid)
+    Product.all_objects.filter(metadata__demo=True).hard_delete()
+    # Категория demo-beliebt маркера не имеет (нет metadata) → чистим по слагу
+    # (включая soft-deleted, чтобы освободить даже alive-уникальность наверняка).
+    Category.all_objects.filter(slug="demo-beliebt").hard_delete()
+
+
 def _seed_demo(tenant) -> None:
     """Создание объектов демо (внутри transaction.atomic). Контент — только для
     активных модулей: товары/категория всегда (catalog — core); акции — promotions;
     услуги — booking; номера — stays; события — events. Хуки материализуют листинги.
     """
     from apps.catalog.models import Category, Product
+
+    _purge_orphan_demo()  # self-heal: убрать остатки прерванной прошлой загрузки
 
     is_active = tenant.is_module_active
     refs = {
