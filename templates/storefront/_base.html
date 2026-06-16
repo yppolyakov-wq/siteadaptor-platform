@@ -14,13 +14,13 @@
   {# Акцентный цвет витрины (шаблоны/настройки Site). Использует только hero со стилем accent. #}
   <style>:root { --accent: {{ request.tenant.primary_color|default:"#4f46e5" }}; }</style>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden">
   {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
   пункты из настроек (storefront_nav). Мобильный бургер раскрывает меню на
   телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}
   {% with style=storefront_nav_style|default:'classic' %}
   <header class="{% if storefront_nav_sticky %}sticky top-0 {% endif %}z-20 bg-white/90 backdrop-blur border-b border-gray-100">
-    <div class="max-w-5xl mx-auto px-4 {% if style == 'centered' %}py-2{% else %}h-14{% endif %} flex items-center {% if style == 'centered' %}flex-col gap-1{% else %}justify-between{% endif %}">
+    <div class="max-w-7xl mx-auto px-4 {% if style == 'centered' %}py-2{% else %}h-14{% endif %} flex items-center {% if style == 'centered' %}flex-col gap-1{% else %}justify-between{% endif %}">
       <div class="w-full flex items-center justify-between {% if style == 'centered' %}sm:justify-center{% endif %}">
         <a href="{% url 'storefront-home' %}" class="text-lg font-bold tracking-tight">{{ request.tenant.name|default:"Shop" }}</a>
         <div class="flex items-center gap-2">
@@ -63,7 +63,7 @@
   })();
   </script>
 
-  <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:py-10">
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:py-10">
     {% if messages %}
       {% for m in messages %}
         <div role="status" class="mb-4 rounded-xl px-4 py-3 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
@@ -73,7 +73,7 @@
   </main>
 
   <footer class="border-t border-gray-100 bg-white">
-    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-500 space-y-3">
+    <div class="max-w-7xl mx-auto px-4 py-6 text-xs text-gray-500 space-y-3">
       {% if request.tenant %}
         <div class="flex flex-wrap gap-x-6 gap-y-1">
           {% if request.tenant.address %}<span>📍 {{ request.tenant.address }}</span>{% endif %}

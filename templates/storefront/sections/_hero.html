@@ -1,10 +1,13 @@
 {% load i18n %}{# Секция hero (Track C2): приветственный баннер из site_config. #}
 {% if site.hero_image %}
-<section class="mb-10 rounded-2xl shadow-sm overflow-hidden relative bg-gray-800 text-white text-center"
-         style="background-image:url('{{ site.hero_image }}'); background-size:cover; background-position:center;">
-  <div class="bg-black/45 p-8 md:p-16">
-    <h1 class="text-3xl md:text-5xl font-bold drop-shadow">{{ site.hero_title|default:request.tenant.name }}</h1>
-    {% if site.hero_text %}<p class="mt-3 text-white/90 max-w-2xl mx-auto whitespace-pre-line drop-shadow">{{ site.hero_text }}</p>{% endif %}
+{# Фото-баннер: на всю ширину экрана (full-bleed), высотой ~1/3 экрана. #}
+<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10 min-h-[38vh] md:min-h-[42vh]
+                flex items-center justify-center text-center text-white bg-gray-800 bg-cover bg-center"
+         style="background-image:url('{{ site.hero_image }}');">
+  <div class="absolute inset-0 bg-black/45"></div>
+  <div class="relative px-4 py-12 max-w-4xl">
+    <h1 class="text-4xl md:text-6xl font-bold drop-shadow-lg">{{ site.hero_title|default:request.tenant.name }}</h1>
+    {% if site.hero_text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow">{{ site.hero_text }}</p>{% endif %}
   </div>
 </section>
 {% elif site.hero_style == "accent" %}

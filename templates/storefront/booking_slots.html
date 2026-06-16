@@ -3,8 +3,17 @@
 {% block title %}{{ resource.name }} — {% trans "Book a slot" %}{% endblock %}
 
 {% block content %}
-<a href="{% url 'storefront-termin' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Book a slot" %}</a>
-<h1 class="text-2xl md:text-3xl font-bold mt-1 mb-4">{{ resource.name }}</h1>
+{# Тематическая шапка брони (акцентный цвет витрины). #}
+<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-6 text-white bg-cover bg-center"
+         style="background: var(--accent);">
+  <div class="bg-black/15">
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-12">
+      <a href="{% url 'storefront-termin' %}" class="text-sm text-white/80 hover:text-white">← {% trans "Back" %}</a>
+      <h1 class="text-3xl md:text-4xl font-bold mt-1 drop-shadow">🍽 {{ resource.name }}</h1>
+      <p class="mt-1 text-white/90">{% trans "Reserve your spot online — pick a day and time." %}</p>
+    </div>
+  </div>
+</section>
 
 {% if messages %}
   {% for m in messages %}
@@ -14,11 +23,11 @@
 
 <div class="flex items-center justify-between mb-4 max-w-md">
   {% if prev_day %}
-    <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>
+    <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="hover:underline text-sm" style="color: var(--accent);">← {{ prev_day|date:"D d.m." }}</a>
   {% else %}<span></span>{% endif %}
   <span class="font-semibold">{{ day|date:"l, d.m.Y" }}</span>
   {% if next_day %}
-    <a href="?tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
+    <a href="?tag={{ next_day|date:'Y-m-d' }}" class="hover:underline text-sm" style="color: var(--accent);">{{ next_day|date:"D d.m." }} →</a>
   {% else %}<span></span>{% endif %}
 </div>
 
@@ -28,7 +37,8 @@
   {% for start, end, spots in slots %}
     <a href="?tag={{ day|date:'Y-m-d' }}&slot={{ start.isoformat|urlencode }}"
        class="px-4 py-2 rounded-lg text-sm font-medium border
-              {% if selected and selected.0 == start %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300 hover:border-indigo-400{% endif %}">
+              {% if selected and selected.0 == start %}text-white border-transparent{% else %}bg-white border-gray-300 hover:border-gray-400{% endif %}"
+       {% if selected and selected.0 == start %}style="background: var(--accent);"{% endif %}>
       {{ start|time:"H:i" }}{% if group %} <span class="text-xs opacity-75">· {% blocktrans count n=spots %}{{ n }} spot{% plural %}{{ n }} spots{% endblocktrans %}</span>{% endif %}
     </a>
   {% endfor %}
@@ -78,7 +88,7 @@
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
   {% endif %}
-  <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
+  <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
 </form>
 {% elif slots %}
 <p class="text-sm text-gray-400">{% trans "Pick a time to continue." %}</p>
