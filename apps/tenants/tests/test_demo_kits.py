@@ -47,3 +47,25 @@ def test_apply_restaurant_kit_builds_full_site():
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert {"hero", "products", "promotions", "gallery", "faq", "cta"} <= enabled
     assert cfg["nav"]["style"] == "centered"
+
+
+def test_restaurant_kit_seeds_bookable_table():
+    """Бронь столика работает: ресурс + недельное расписание → /termin/ даёт слоты."""
+    from apps.booking import availability
+    from apps.booking.models import AvailabilityRule, Resource
+
+    tenant = _tenant()
+    demo_kits.apply_kit(tenant, "restaurant")
+    assert Resource.objects.filter(is_active=True).count() == 1
+    assert AvailabilityRule.objects.count() == 7  # все дни недели
+    resource = Resource.objects.first()
+    # на ближайший день недельного окна есть свободные слоты
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    found = any(
+        availability.free_slots_with_spots(resource, (timezone.localdate() + timedelta(days=d)))
+        for d in range(1, 8)
+    )
+    assert found

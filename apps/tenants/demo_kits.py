@@ -59,6 +59,9 @@ class DemoKit:
     services: list = field(default_factory=list)  # (name, minutes, price_eur)
     stay_units: list = field(default_factory=list)  # (name, type, qty, price_eur, guests)
     events: list = field(default_factory=list)  # (title, in_days, capacity, price_eur)
+    # booking-ресурсы (стол/мастер/зал) с недельным расписанием — чтобы /termin/
+    # сразу показывал слоты. dict: name/type/capacity/counts_party/start/end/slot.
+    resources: list = field(default_factory=list)
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?[(label,price)], allergens?[codes]}
@@ -110,6 +113,18 @@ RESTAURANT = DemoKit(
         "button_label": "Zur Speisekarte",
         "button_url": "/sortiment/",
     },
+    resources=[
+        {
+            "name": "Tisch",
+            "type": "table",
+            "capacity": 40,  # места в зале; party_size суммируется
+            "counts_party_size": True,
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 60,
+            "weekdays": range(0, 7),
+        }
+    ],
     categories=[
         (
             "Vorspeisen",
@@ -393,8 +408,33 @@ def apply_kit(tenant, key: str) -> bool:
 
 
 def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
-    """Услуги/номера/события кита (под активный модуль)."""
+    """Услуги/ресурсы/номера/события кита (под активный модуль)."""
+    from datetime import time
+
     is_active = tenant.is_module_active
+    if kit.resources and is_active("booking"):
+        from apps.booking.models import AvailabilityRule, Resource
+
+        refs["resources"] = []
+        for r in kit.resources:
+            sh, sm = (int(x) for x in r["start"].split(":"))
+            eh, em = (int(x) for x in r["end"].split(":"))
+            resource = Resource.objects.create(
+                name=r["name"],
+                type=r.get("type", "table"),
+                capacity=r.get("capacity", 1),
+                counts_party_size=r.get("counts_party_size", False),
+                is_active=True,
+            )
+            for wd in r.get("weekdays", range(0, 7)):
+                AvailabilityRule.objects.create(
+                    resource=resource,
+                    weekday=wd,
+                    start_time=time(sh, sm),
+                    end_time=time(eh, em),
+                    slot_minutes=r.get("slot", 30),
+                )
+            refs["resources"].append(str(resource.pk))
     if kit.services and is_active("booking"):
         from apps.booking.models import Service
 
