@@ -59,3 +59,33 @@ def test_storefront_home_renders_faq_when_enabled():
     resp = public_views.storefront_home(req)
     assert resp.status_code == 200
     assert b"Habt ihr Parkpl" in resp.content
+
+
+def test_normalize_keeps_hero_image():
+    cfg = siteconfig.normalize({"hero_image": "  https://img.test/x.jpg  "})
+    assert cfg["hero_image"] == "https://img.test/x.jpg"
+    assert siteconfig.normalize({})["hero_image"] == ""
+
+
+def test_storefront_home_renders_hero_photo_banner():
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(
+        site_config={
+            "sections": [{"key": "hero", "enabled": True}],
+            "hero_title": "Willkommen",
+            "hero_image": "https://img.test/banner.jpg",
+        }
+    )
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    resp = public_views.storefront_home(req)
+    assert resp.status_code == 200
+    assert b"https://img.test/banner.jpg" in resp.content

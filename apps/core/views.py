@@ -235,6 +235,7 @@ def site_view(request):
         for field in siteconfig.TEXT_FIELDS:
             config[field] = request.POST.get(field, "")
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
+        config["hero_image"] = request.POST.get("hero_image", "").strip()
         # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок числом).
         nav_rows = []
         for key, _label, _url, _module in siteconfig.NAV_ITEMS:

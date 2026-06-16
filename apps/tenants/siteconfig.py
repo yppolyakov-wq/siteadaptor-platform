@@ -132,6 +132,8 @@ def normalize(config) -> dict:
         normalized[field] = value.strip() if isinstance(value, str) else ""
     hero_style = config.get("hero_style")
     normalized["hero_style"] = hero_style if hero_style in HERO_STYLES else "plain"
+    # Фон-фото hero (M20 demo): URL картинки-баннера; пусто → как раньше (accent/plain).
+    normalized["hero_image"] = _s(config.get("hero_image"))
     # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок владельца,
     # неизвестные отброшены, недостающие дописаны включёнными). Легаси без nav →
     # дефолт (classic/sticky/все включены) = текущее поведение, без регрессии.

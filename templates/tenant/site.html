@@ -167,6 +167,11 @@
         <textarea id="id_hero_text" name="hero_text" rows="2"
                   class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ config.hero_text }}</textarea>
       </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_image">{% trans "Banner background image (URL)" %}</label>
+        <input id="id_hero_image" name="hero_image" type="text" value="{{ config.hero_image }}"
+               placeholder="https://… {% trans '(optional photo banner)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
       <div class="flex flex-wrap items-center gap-4 pt-1">
         <label class="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" name="hero_accent" {% if config.hero_style == 'accent' %}checked{% endif %}
