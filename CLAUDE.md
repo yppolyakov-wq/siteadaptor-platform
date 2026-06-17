@@ -989,6 +989,45 @@ Python 3.12, менеджер uv.
     Тесты `test_gallery` (+ правка `test_siteconfig` под новый набор секций).
   - **M20-итерация ①–⑤ закрыта** (без миграций). Осталось опц.: drag-drop порядка
     секций (владелец выбрал «позже»), фото-hero. Деплой — обычный (без миграций).
+- **Демо-сайты по архетипам (showcase, в работе; решение владельца 2026-06-15/16):**
+  отдельные демо-тенанты на субдоменах с полным наполнением.
+  - hero-фото (✅ в `main`): `site_config.hero_image` (URL) → фон-баннер; full-bleed
+    + ~⅓ экрана; витрина шире (`max-w-7xl`); страница брони тематична (акцент).
+  - Фреймворк китов (✅ в `main`, `apps/tenants/demo_kits.py`): `DemoKit` + хелпер
+    тематичных фото `demo_image` (loremflickr, внешний — решение владельца) +
+    кит «Restaurant» (4 кат., 30 блюд с фото/вариантами/аллергенами, акции,
+    галерея, FAQ, отзывы, CTA, **бронь столика** Resource+расписание, команда,
+    «как мы работаем», знаки доверия, часы); `apply_kit` собирает каталог+
+    site_config; команда `seed_demo_tenants [--kit/--recreate/--delete]` (reuse
+    create_business) → `<kit>-demo.<base>`. Логин `<kit>-demo@example.de` /
+    `demo-12345678`. Тесты `test_demo_kits`.
+- **Модернизация витрины (тренды 2025–2026; deep-research → план P1–P5; в работе):**
+  направления: F производительность/CWV, C мобильная конверсия, A+B шрифты+
+  анимации, D+E тёмная тема+доверие. Порядок «всё по порядку».
+  - **P1 мобильная конверсия (✅ в `main`):** P1a — липкий мобильный action-bar
+    (`context._storefront_actions`: звонок tel: / главное действие по модулю /
+    маршрут; `_action_bar.html`, fixed bottom, цели ≥56px). P1b — структурные
+    часы `Tenant.opening_hours_structured` (миграция tenants/0016) +
+    `apps/tenants/openinghours.py` (open_status/today_label) + live-бейдж
+    `_open_badge.html` «Jetzt geöffnet/geschlossen» в контактах + редактор 7 дней
+    в кабинете «Settings». Тесты `test_action_bar`, `test_opening_hours`.
+  - **P2 типографика+анимации (✅ ветка):** P2a — `site_config.font`
+    (system/serif/rounded, ТОЛЬКО системные стеки → GDPR-safe; Google Fonts через
+    CDN = риск GDPR в DE, источник в research) + `siteconfig.FONTS/font_stacks` →
+    CSS-переменные `--font-body/--font-head`; выбор шрифта в «Site». P2b —
+    scroll-reveal (IntersectionObserver под `.js-reveal`, head-скрипт без
+    мигания; gating `prefers-reduced-motion` = WCAG 2.3.3) + hover-lift карточек
+    (`motion-safe:`). Тесты `test_typography`.
+  - **P3 доверие (✅ ветка):** секция `trust` (выкл по умолч.): авто-звёзды из
+    SHARED `BusinessRating` (тег `business_rating`) + «Seit …» + знаки
+    (Meisterbetrieb/Bio/TÜV); кабинет-редактор. **Тёмная тема (D+E) перенесена в
+    P5** — чистое покрытие `dark:` только со сборкой Tailwind (сейчас CDN).
+  - **P4 контент (✅ ветка):** секции `process` («как мы работаем», нумерованные
+    шаги) и `team` (имя/роль/фото); кабинет-редакторы; в демо-ресторане включены.
+  - **P5 (дальше):** Tailwind-сборка вместо CDN (CWV) + responsive-картинки +
+    тёмная тема. **Урок:** новая секция в `siteconfig.SECTIONS` → обновить
+    хардкод-список в `test_siteconfig::test_normalize_empty_gives_defaults`.
+    **Урок:** Google Fonts только self-host (GDPR DE). Деплой P1: tenants/0016.
 - **A2 Versand → 100% (✅ ВЕСЬ в `main`; Stage 1 архетип A2 ~85 %→~100 %):** добили
   доставку поверх готового G4 (apps.orders). Разбивка A2a/A2b/A2c:
   - A2a — PLZ-зоны + отдельный мин самовывоза (✅ в `main`, CI зелёный, миграция
