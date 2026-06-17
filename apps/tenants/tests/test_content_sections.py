@@ -119,3 +119,40 @@ def test_storefront_home_renders_trust_section():
     req.tenant = tenant
     body = public_views.storefront_home(req).content.decode()
     assert "Meisterbetrieb" in body and "1998" in body
+
+
+def test_normalize_process_and_team():
+    cfg = siteconfig.normalize(
+        {
+            "process": [{"title": "Reservieren", "text": "online"}],
+            "team": [{"name": "Maria", "role": "Chefin", "photo": "x.jpg"}, {"name": ""}],
+        }
+    )
+    assert cfg["process"] == [{"title": "Reservieren", "text": "online"}]
+    assert cfg["team"] == [
+        {"name": "Maria", "role": "Chefin", "photo": "x.jpg"}
+    ]  # пустое имя выкинуто
+
+
+def test_storefront_home_renders_process_and_team():
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(
+        site_config={
+            "sections": [{"key": "process", "enabled": True}, {"key": "team", "enabled": True}],
+            "process": [{"title": "Reservieren", "text": "online"}],
+            "team": [{"name": "Maria Rossi", "role": "Küchenchefin", "photo": ""}],
+        }
+    )
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert "How it works" in body and "Reservieren" in body
+    assert "Our team" in body and "Maria Rossi" in body

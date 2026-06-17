@@ -21,6 +21,9 @@ SECTIONS = [
     ("promotions", _("Current offers"), True),
     ("products", _("Products"), True),
     ("about", _("About us"), False),
+    # P4: «как мы работаем» (шаги) и команда — по умолчанию выключены.
+    ("process", _("How it works"), False),
+    ("team", _("Team"), False),
     # M20 ⑤a: контент-секции (по умолчанию выключены — легаси не затронут).
     ("cta", _("Call to action"), False),
     ("testimonials", _("Testimonials"), False),
@@ -181,6 +184,20 @@ def normalize(config) -> dict:
     # Контент-секции (M20 ⑤a): FAQ, отзывы, CTA. Все опциональны; пустое — пропуск.
     normalized["faq"] = _clean_pairs(config.get("faq"), "q", "a")
     normalized["testimonials"] = _clean_pairs(config.get("testimonials"), "name", "text")
+    # P4: шаги «как мы работаем» (заголовок|текст) и команда (имя/роль/фото).
+    normalized["process"] = _clean_pairs(config.get("process"), "title", "text")
+    team = []
+    for item in config.get("team") or []:
+        if not isinstance(item, dict):
+            continue
+        name = _s(item.get("name"))
+        if name:
+            team.append(
+                {"name": name, "role": _s(item.get("role")), "photo": _s(item.get("photo"))}
+            )
+        if len(team) >= _MAX_ITEMS:
+            break
+    normalized["team"] = team
     # Знаки доверия (P3): год основания + список меток (Meisterbetrieb/Bio/TÜV…).
     trust_in = config.get("trust") if isinstance(config.get("trust"), dict) else {}
     marks = [_s(m) for m in (trust_in.get("marks") or []) if isinstance(m, str) and _s(m)]

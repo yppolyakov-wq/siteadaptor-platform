@@ -227,6 +227,18 @@
       <textarea name="testimonials_text" rows="4" placeholder="Anna M. | Toller Service, immer wieder gern!" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ testimonials_text }}</textarea>
     </fieldset>
 
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-2">
+      <legend class="font-semibold mb-1">{% trans "How it works" %}</legend>
+      <p class="text-xs text-gray-400">{% trans "One step per line: Title | Description. Shown when the section is enabled." %}</p>
+      <textarea name="process_text" rows="3" placeholder="Reservieren | Tisch online sichern&#10;Genießen | Frisch zubereitet&#10;Wiederkommen | Wir freuen uns" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ process_text }}</textarea>
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-2">
+      <legend class="font-semibold mb-1">{% trans "Team" %}</legend>
+      <p class="text-xs text-gray-400">{% trans "One per line: Name | Role. Shown when the Team section is enabled." %}</p>
+      <textarea name="team_text" rows="3" placeholder="Maria Rossi | Küchenchefin&#10;Luca Bianchi | Service" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ team_text }}</textarea>
+    </fieldset>
+
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
       <legend class="font-semibold mb-1">{% trans "Trust & credentials" %}</legend>
       <p class="text-xs text-gray-400">{% trans "Shown when the Trust section is enabled. Star rating appears automatically from your reviews." %}</p>

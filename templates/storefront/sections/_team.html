@@ -1,0 +1,23 @@
+{% load i18n %}{# Секция «Команда» (P4): имя/роль/фото из site_config. #}
+{% if site.team %}
+<section data-reveal class="mb-10">
+  <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "Our team" %}</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+    {% for m in site.team %}
+      <figure class="bg-white rounded-2xl shadow-sm overflow-hidden text-center">
+        <div class="aspect-square bg-gray-100">
+          {% if m.photo %}
+            <img src="{{ m.photo }}" alt="{{ m.name }}" loading="lazy" class="w-full h-full object-cover">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-300" aria-hidden="true">{{ m.name|first }}</div>
+          {% endif %}
+        </div>
+        <figcaption class="p-3">
+          <p class="font-semibold leading-tight">{{ m.name }}</p>
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+        </figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

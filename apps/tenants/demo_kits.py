@@ -51,6 +51,9 @@ class DemoKit:
     gallery_kw: list = field(default_factory=list)
     faq: list = field(default_factory=list)
     testimonials: list = field(default_factory=list)
+    process: list = field(default_factory=list)  # (title, text) — «как мы работаем»
+    team: list = field(default_factory=list)  # (name, role, photo_keyword)
+    trust: dict = field(default_factory=dict)  # {"since": "1998", "marks": [...]}
     cta: dict = field(default_factory=dict)
     about_title: str = ""
     about_text: str = ""
@@ -114,6 +117,17 @@ RESTAURANT = DemoKit(
         ("Familie Schmidt", "Bestes Restaurant der Stadt — wir kommen immer wieder!"),
         ("Laura K.", "Die Pizza ist ein Traum, der Service top."),
     ],
+    process=[
+        ("Reservieren", "Tisch online in 30 Sekunden sichern."),
+        ("Genießen", "Frisch zubereitet aus regionalen Zutaten."),
+        ("Wiederkommen", "Stammgäste erwartet immer etwas Besonderes."),
+    ],
+    team=[
+        ("Maria Rossi", "Küchenchefin", "chef,woman"),
+        ("Luca Bianchi", "Restaurantleiter", "waiter,man"),
+        ("Sofia Conti", "Patissière", "pastry,chef"),
+    ],
+    trust={"since": "1998", "marks": ["Slow Food", "Regional", "Familienbetrieb"]},
     cta={
         "title": "Hunger bekommen?",
         "text": "Bestellen Sie online zur Abholung oder reservieren Sie einen Tisch.",
@@ -316,8 +330,11 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "hero", "enabled": True},
         {"key": "promotions", "enabled": True},
         {"key": "products", "enabled": True},
+        {"key": "process", "enabled": bool(kit.process)},
+        {"key": "team", "enabled": bool(kit.team)},
         {"key": "gallery", "enabled": bool(kit.gallery_kw)},
         {"key": "testimonials", "enabled": bool(kit.testimonials)},
+        {"key": "trust", "enabled": bool(kit.trust)},
         {"key": "faq", "enabled": bool(kit.faq)},
         {"key": "cta", "enabled": bool(kit.cta)},
         {"key": "about", "enabled": bool(kit.about_text)},
@@ -400,6 +417,12 @@ def apply_kit(tenant, key: str) -> bool:
             "cta": kit.cta,
             "faq": [{"q": q, "a": a} for q, a in kit.faq],
             "testimonials": [{"name": n, "text": t} for n, t in kit.testimonials],
+            "process": [{"title": t, "text": x} for t, x in kit.process],
+            "team": [
+                {"name": n, "role": r, "photo": demo_image(kw, w=600, h=600, lock=700 + i)}
+                for i, (n, r, kw) in enumerate(kit.team)
+            ],
+            "trust": kit.trust or {"since": "", "marks": []},
             "gallery": [
                 {"url": demo_image(kw, lock=500 + i), "alt": {"de": kit.label}}
                 for i, kw in enumerate(kit.gallery_kw)

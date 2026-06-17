@@ -1,0 +1,15 @@
+{% load i18n %}{# Секция «Как мы работаем» (P4): нумерованные шаги из site_config. #}
+{% if site.process %}
+<section data-reveal class="mb-10">
+  <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "How it works" %}</h2>
+  <div class="grid gap-4 sm:grid-cols-3">
+    {% for step in site.process %}
+      <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold mb-3" style="background: var(--accent);">{{ forloop.counter }}</div>
+        <h3 class="font-semibold mb-1">{{ step.title }}</h3>
+        {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

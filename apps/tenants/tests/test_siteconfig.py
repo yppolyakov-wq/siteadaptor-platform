@@ -47,6 +47,8 @@ def test_normalize_empty_gives_defaults():
         "promotions",
         "products",
         "about",
+        "process",
+        "team",
         "cta",
         "testimonials",
         "trust",

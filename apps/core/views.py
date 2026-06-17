@@ -299,6 +299,14 @@ def site_view(request):
         config["testimonials"] = siteconfig.text_to_pairs(
             request.POST.get("testimonials_text", ""), "name", "text"
         )
+        # P4: «как мы работаем» (title|text) и команда (name|role); фото — позже/демо.
+        config["process"] = siteconfig.text_to_pairs(
+            request.POST.get("process_text", ""), "title", "text"
+        )
+        config["team"] = [
+            {"name": p["name"], "role": p["text"], "photo": ""}
+            for p in siteconfig.text_to_pairs(request.POST.get("team_text", ""), "name", "text")
+        ]
         # Знаки доверия (P3): год + метки построчно.
         config["trust"] = {
             "since": request.POST.get("trust_since", "").strip(),
@@ -383,6 +391,10 @@ def site_view(request):
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
             "testimonials_text": siteconfig.pairs_to_text(config["testimonials"], "name", "text"),
             "trust_marks_text": "\n".join(config["trust"]["marks"]),
+            "process_text": siteconfig.pairs_to_text(config["process"], "title", "text"),
+            "team_text": "\n".join(
+                f"{m['name']} | {m['role']}".rstrip(" |") for m in config["team"]
+            ),
             "has_demo": demo.has_demo(request.tenant),
         },
     )
