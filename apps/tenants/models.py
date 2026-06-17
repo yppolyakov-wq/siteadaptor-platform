@@ -87,6 +87,10 @@ class Tenant(TenantMixin):
     contact_phone = models.CharField(max_length=30, blank=True)
     website_url = models.URLField(blank=True)
     opening_hours = models.TextField(blank=True)  # свободный текст / по строкам
+    # Структурные часы работы (P1b): {"0":["09:00","18:00"], …} по дням недели
+    # (0=Пн … 6=Вс, как date.weekday()); один интервал на день в v1. Источник
+    # для live-статуса «Jetzt geöffnet» и JSON-LD openingHoursSpecification.
+    opening_hours_structured = models.JSONField(default=dict, blank=True)
     map_url = models.URLField(blank=True)  # ссылка на карту (Google/OSM)
 
     # Если включено — залогиненный сотрудник, открыв QR-ссылку погашения,
@@ -173,6 +177,21 @@ class Tenant(TenantMixin):
     @property
     def public_phone(self) -> str:
         return self.contact_phone or self.owner_phone
+
+    def open_status(self) -> dict | None:
+        """Live-статус «открыто сейчас» из структурных часов (P1b). None — не заданы."""
+        from django.utils import timezone
+
+        from . import openinghours
+
+        return openinghours.open_status(self.opening_hours_structured, timezone.localtime())
+
+    def todays_hours(self) -> str:
+        from django.utils import timezone
+
+        from . import openinghours
+
+        return openinghours.today_label(self.opening_hours_structured, timezone.localtime())
 
     def impressum_text(self) -> str:
         """Свободный Impressum или сгенерированный из структурированных полей."""

@@ -1,7 +1,10 @@
 {% load i18n %}{# Секция контактов (Track C2): адрес/часы/связь из настроек бизнеса. #}
-{% if request.tenant.address or request.tenant.opening_hours or request.tenant.public_phone or request.tenant.public_email %}
+{% if request.tenant.address or request.tenant.opening_hours or request.tenant.public_phone or request.tenant.public_email or request.tenant.open_status %}
 <section class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
-  <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Contact & opening hours" %}</h2>
+  <div class="flex items-center gap-3 mb-4 flex-wrap">
+    <h2 class="text-xl md:text-2xl font-bold">{% trans "Contact & opening hours" %}</h2>
+    {% with st=request.tenant.open_status %}{% include "storefront/_open_badge.html" %}{% endwith %}
+  </div>
   <div class="grid sm:grid-cols-2 gap-6 text-sm text-gray-600">
     <div>
       {% if request.tenant.address %}<p class="whitespace-pre-line">{{ request.tenant.address }}</p>{% endif %}
@@ -9,10 +12,11 @@
       {% if request.tenant.public_email %}<p class="mt-1"><a href="mailto:{{ request.tenant.public_email }}" class="hover:underline">{{ request.tenant.public_email }}</a></p>{% endif %}
       {% if request.tenant.map_url %}<p class="mt-2"><a href="{{ request.tenant.map_url }}" rel="noopener" class="text-indigo-600 hover:underline">{% trans "Open map" %} →</a></p>{% endif %}
     </div>
-    {% if request.tenant.opening_hours %}
+    {% if request.tenant.opening_hours or request.tenant.open_status %}
       <div>
         <p class="font-medium text-gray-700 mb-1">{% trans "Opening hours" %}</p>
-        <p class="whitespace-pre-line">{{ request.tenant.opening_hours }}</p>
+        {% if request.tenant.open_status %}<p>{% trans "Today" %}: {{ request.tenant.todays_hours }}</p>{% endif %}
+        {% if request.tenant.opening_hours %}<p class="whitespace-pre-line">{{ request.tenant.opening_hours }}</p>{% endif %}
       </div>
     {% endif %}
   </div>

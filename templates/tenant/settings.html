@@ -29,6 +29,21 @@
       {% endfor %}
     </fieldset>
 
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Opening hours (for live status)" %}</legend>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
+      <div class="space-y-2">
+        {% for r in opening_hours_rows %}
+          <div class="flex items-center gap-3">
+            <span class="w-10 text-sm font-medium text-gray-600">{{ r.label }}</span>
+            <input type="time" name="oh_{{ r.wd }}_open" value="{{ r.open }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <span class="text-gray-400">–</span>
+            <input type="time" name="oh_{{ r.wd }}_close" value="{{ r.close }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
       <legend class="font-semibold mb-2">{% trans "Legal (Impressum / Datenschutz / Widerruf)" %}</legend>
       {% for field in form %}

@@ -1,0 +1,12 @@
+{% load i18n %}{# P1b: live-статус «Jetzt geöffnet/geschlossen» из структурных часов. Ожидает st=request.tenant.open_status. #}
+{% if st %}
+  {% if st.open %}
+    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1">
+      <span class="w-2 h-2 rounded-full bg-green-500" aria-hidden="true"></span>{% trans "Open now" %}{% if st.until %} · {% blocktrans with t=st.until %}until {{ t }}{% endblocktrans %}{% endif %}
+    </span>
+  {% else %}
+    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1">
+      <span class="w-2 h-2 rounded-full bg-gray-400" aria-hidden="true"></span>{% trans "Closed" %}{% if st.next %} · {% blocktrans with d=st.next.0 t=st.next.1 %}from {{ d }} {{ t }}{% endblocktrans %}{% endif %}
+    </span>
+  {% endif %}
+{% endif %}

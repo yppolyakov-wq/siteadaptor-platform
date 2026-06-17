@@ -124,15 +124,52 @@ def setup_view(request):
     return render(request, "tenant/setup.html", context)
 
 
+def _parse_opening_hours(request) -> dict:
+    """Структурные часы из формы (P1b): по дню оба поля заполнены → интервал."""
+    out = {}
+    for wd in range(7):
+        o = (request.POST.get(f"oh_{wd}_open") or "").strip()
+        c = (request.POST.get(f"oh_{wd}_close") or "").strip()
+        if o and c:
+            out[str(wd)] = [o, c]
+    from apps.tenants import openinghours
+
+    return openinghours.normalize(out)  # валидация (open<close, формат)
+
+
+def _opening_hours_rows(tenant) -> list:
+    """7 строк для редактора часов: (индекс, DE-метка, open, close)."""
+    from apps.tenants import openinghours
+
+    hours = openinghours.normalize(tenant.opening_hours_structured)
+    rows = []
+    for wd in range(7):
+        rng = hours.get(str(wd)) or ["", ""]
+        rows.append(
+            {"wd": wd, "label": openinghours.WEEKDAYS_DE[wd], "open": rng[0], "close": rng[1]}
+        )
+    return rows
+
+
 @login_required
 def settings_view(request):
-    """Настройки бизнеса: контакты и правовые тексты для витрины."""
+    """Настройки бизнеса: контакты, часы работы (структурно) и правовые тексты."""
     form = BusinessSettingsForm(request.POST or None, instance=request.tenant)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        tenant = form.save(commit=False)
+        tenant.opening_hours_structured = _parse_opening_hours(request)
+        tenant.save()
         messages.success(request, "Gespeichert.")
         return redirect("settings")
-    return render(request, "tenant/settings.html", {"form": form, "nav": "settings"})
+    return render(
+        request,
+        "tenant/settings.html",
+        {
+            "form": form,
+            "nav": "settings",
+            "opening_hours_rows": _opening_hours_rows(request.tenant),
+        },
+    )
 
 
 def _upload_gallery_images(request) -> None:

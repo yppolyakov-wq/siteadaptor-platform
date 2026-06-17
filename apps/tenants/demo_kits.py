@@ -56,6 +56,10 @@ class DemoKit:
     about_text: str = ""
     nav_style: str = "classic"
     promo_count: int = 3
+    address: str = ""
+    opening_hours_text: str = ""
+    # Структурные часы для live-статуса: {weekday(0-6): ("HH:MM","HH:MM")}.
+    opening_hours: dict = field(default_factory=dict)
     services: list = field(default_factory=list)  # (name, minutes, price_eur)
     stay_units: list = field(default_factory=list)  # (name, type, qty, price_eur, guests)
     events: list = field(default_factory=list)  # (title, in_days, capacity, price_eur)
@@ -87,6 +91,9 @@ RESTAURANT = DemoKit(
     about_title="Über uns",
     about_text="Seit 1998 kochen wir mit Leidenschaft und frischen Zutaten aus der Region.",
     nav_style="centered",
+    address="Hauptstraße 12, 40721 Hilden",
+    opening_hours_text="Mo–So 11:00–22:00",
+    opening_hours={d: ("11:00", "22:00") for d in range(7)},
     gallery_kw=[
         "restaurant,food",
         "pizza",
@@ -403,7 +410,17 @@ def apply_kit(tenant, key: str) -> bool:
     )
     tenant.site_config = cfg
     tenant.primary_color = kit.accent
-    tenant.save(update_fields=["site_config", "primary_color", "updated_at"])
+    update_fields = ["site_config", "primary_color", "updated_at"]
+    if kit.address:
+        tenant.address = kit.address
+        update_fields.append("address")
+    if kit.opening_hours_text:
+        tenant.opening_hours = kit.opening_hours_text
+        update_fields.append("opening_hours")
+    if kit.opening_hours:
+        tenant.opening_hours_structured = {str(d): list(r) for d, r in kit.opening_hours.items()}
+        update_fields.append("opening_hours_structured")
+    tenant.save(update_fields=update_fields)
     return True
 
 
