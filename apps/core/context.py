@@ -7,6 +7,47 @@
 from . import modules
 
 
+def _storefront_actions(tenant):
+    """Действия для липкой мобильной панели (P1): звонок + главное действие
+    по активному модулю + маршрут. Высокий ROI для локального бизнеса
+    (click-to-call, бронь/заказ в один тап). Иконки — emoji, без ассетов."""
+    from django.urls import NoReverseMatch, reverse
+    from django.utils.translation import gettext as _
+
+    actions = []
+    phone = (getattr(tenant, "public_phone", "") or "").strip()
+    if phone:
+        actions.append({"kind": "call", "label": _("Call"), "url": f"tel:{phone}", "icon": "📞"})
+
+    # Одно главное действие по самому релевантному активному модулю.
+    primary = None
+    if modules.is_module_active(tenant, "booking"):
+        primary = ("storefront-termin", _("Book"), "📅")
+    elif modules.is_module_active(tenant, "orders"):
+        primary = ("storefront-products", _("Order"), "🛒")
+    elif modules.is_module_active(tenant, "stays"):
+        primary = ("storefront-unterkunft", _("Stay"), "🛏")
+    elif modules.is_module_active(tenant, "events"):
+        primary = ("storefront-events", _("Events"), "🎫")
+    if primary:
+        try:
+            actions.append(
+                {
+                    "kind": "primary",
+                    "label": primary[1],
+                    "url": reverse(primary[0]),
+                    "icon": primary[2],
+                }
+            )
+        except NoReverseMatch:
+            pass
+
+    map_url = (getattr(tenant, "map_url", "") or "").strip()
+    if map_url:
+        actions.append({"kind": "route", "label": _("Directions"), "url": map_url, "icon": "🗺"})
+    return actions
+
+
 def _storefront_nav(tenant):
     """Готовые пункты шапки витрины (M20 ④): порядок владельца, только
     включённые и с активным модулем. Возвращает (items, style, sticky)."""
@@ -47,4 +88,6 @@ def modules_nav(request):
         "storefront_nav": nav_items,
         "storefront_nav_style": nav_style,
         "storefront_nav_sticky": nav_sticky,
+        # P1: липкая мобильная панель действий (звонок/бронь/маршрут).
+        "storefront_actions": _storefront_actions(tenant),
     }
