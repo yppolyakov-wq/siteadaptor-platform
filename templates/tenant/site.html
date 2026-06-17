@@ -227,6 +227,19 @@
       <textarea name="testimonials_text" rows="4" placeholder="Anna M. | Toller Service, immer wieder gern!" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ testimonials_text }}</textarea>
     </fieldset>
 
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+      <legend class="font-semibold mb-1">{% trans "Trust & credentials" %}</legend>
+      <p class="text-xs text-gray-400">{% trans "Shown when the Trust section is enabled. Star rating appears automatically from your reviews." %}</p>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_trust_since">{% trans "Founded in (year)" %}</label>
+        <input id="id_trust_since" name="trust_since" type="text" value="{{ config.trust.since }}" placeholder="1998" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_trust_marks">{% trans "Credentials (one per line)" %}</label>
+        <textarea id="id_trust_marks" name="trust_marks" rows="3" placeholder="Meisterbetrieb&#10;Bio-zertifiziert&#10;TÜV-geprüft" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ trust_marks_text }}</textarea>
+      </div>
+    </fieldset>
+
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-2">
       <legend class="font-semibold mb-1">{% trans "FAQ" %}</legend>
       <p class="text-xs text-gray-400">{% trans "One per line: Question | Answer. Shown when the FAQ section is enabled." %}</p>

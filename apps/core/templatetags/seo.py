@@ -27,6 +27,12 @@ def _tenant_rating():
         return None
 
 
+@register.simple_tag
+def business_rating():
+    """(avg, count) рейтинга текущего тенанта или None — для звёзд на витрине (P3)."""
+    return _tenant_rating()
+
+
 @register.simple_tag(takes_context=True)
 def localbusiness_jsonld(context):
     """Готовый <script type=application/ld+json> с LocalBusiness текущего тенанта.

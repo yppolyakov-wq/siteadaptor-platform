@@ -41,7 +41,7 @@ def _owner():
 def test_normalize_empty_gives_defaults():
     config = siteconfig.normalize({})
     keys = [s["key"] for s in config["sections"]]
-    # порядок реестра SECTIONS (M20 ⑤ добавил cta/testimonials/faq/gallery — выкл)
+    # порядок реестра SECTIONS (M20 ⑤ + P3 trust — все новые по умолчанию выкл)
     assert keys == [
         "hero",
         "promotions",
@@ -49,6 +49,7 @@ def test_normalize_empty_gives_defaults():
         "about",
         "cta",
         "testimonials",
+        "trust",
         "faq",
         "gallery",
         "contact",

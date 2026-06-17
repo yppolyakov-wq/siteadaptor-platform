@@ -24,10 +24,12 @@ SECTIONS = [
     # M20 ⑤a: контент-секции (по умолчанию выключены — легаси не затронут).
     ("cta", _("Call to action"), False),
     ("testimonials", _("Testimonials"), False),
+    ("trust", _("Trust & credentials"), False),  # P3: рейтинг + знаки + «Seit …»
     ("faq", _("FAQ"), False),
     ("gallery", _("Photo gallery"), False),
     ("contact", _("Contact & opening hours"), True),
 ]
+_MAX_MARKS = 8  # потолок знаков доверия
 _MAX_GALLERY = 24  # потолок фото в галерее
 _KNOWN = {key for key, _label, _on in SECTIONS}
 
@@ -179,6 +181,10 @@ def normalize(config) -> dict:
     # Контент-секции (M20 ⑤a): FAQ, отзывы, CTA. Все опциональны; пустое — пропуск.
     normalized["faq"] = _clean_pairs(config.get("faq"), "q", "a")
     normalized["testimonials"] = _clean_pairs(config.get("testimonials"), "name", "text")
+    # Знаки доверия (P3): год основания + список меток (Meisterbetrieb/Bio/TÜV…).
+    trust_in = config.get("trust") if isinstance(config.get("trust"), dict) else {}
+    marks = [_s(m) for m in (trust_in.get("marks") or []) if isinstance(m, str) and _s(m)]
+    normalized["trust"] = {"since": _s(trust_in.get("since")), "marks": marks[:_MAX_MARKS]}
     cta = config.get("cta") if isinstance(config.get("cta"), dict) else {}
     normalized["cta"] = {
         "title": _s(cta.get("title")),

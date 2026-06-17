@@ -299,6 +299,15 @@ def site_view(request):
         config["testimonials"] = siteconfig.text_to_pairs(
             request.POST.get("testimonials_text", ""), "name", "text"
         )
+        # Знаки доверия (P3): год + метки построчно.
+        config["trust"] = {
+            "since": request.POST.get("trust_since", "").strip(),
+            "marks": [
+                m.strip()
+                for m in (request.POST.get("trust_marks", "") or "").splitlines()
+                if m.strip()
+            ],
+        }
         # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
@@ -373,6 +382,7 @@ def site_view(request):
             "font_choices": list(siteconfig.FONTS),
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
             "testimonials_text": siteconfig.pairs_to_text(config["testimonials"], "name", "text"),
+            "trust_marks_text": "\n".join(config["trust"]["marks"]),
             "has_demo": demo.has_demo(request.tenant),
         },
     )

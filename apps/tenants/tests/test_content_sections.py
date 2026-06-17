@@ -89,3 +89,33 @@ def test_storefront_home_renders_hero_photo_banner():
     resp = public_views.storefront_home(req)
     assert resp.status_code == 200
     assert b"https://img.test/banner.jpg" in resp.content
+
+
+def test_normalize_trust_section():
+    cfg = siteconfig.normalize(
+        {"trust": {"since": " 1998 ", "marks": ["Meisterbetrieb", "", "Bio"]}}
+    )
+    assert cfg["trust"] == {"since": "1998", "marks": ["Meisterbetrieb", "Bio"]}
+    assert siteconfig.normalize({})["trust"] == {"since": "", "marks": []}
+
+
+def test_storefront_home_renders_trust_section():
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(
+        site_config={
+            "sections": [{"key": "trust", "enabled": True}],
+            "trust": {"since": "1998", "marks": ["Meisterbetrieb"]},
+        }
+    )
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert "Meisterbetrieb" in body and "1998" in body

@@ -1,0 +1,27 @@
+{% load i18n seo %}{# Секция доверия (P3): рейтинг Google + год основания + знаки качества. #}
+{% business_rating as rating %}
+{% if rating or site.trust.since or site.trust.marks %}
+<section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
+  <div class="flex flex-wrap items-center gap-x-8 gap-y-4 justify-center text-center">
+    {% if rating %}
+      <div>
+        <div class="text-amber-500 text-2xl leading-none">★ {{ rating.0 }}</div>
+        <p class="text-xs text-gray-500 mt-1">{% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</p>
+      </div>
+    {% endif %}
+    {% if site.trust.since %}
+      <div>
+        <div class="text-2xl font-bold" style="color: var(--accent);">{% blocktrans with y=site.trust.since %}Since {{ y }}{% endblocktrans %}</div>
+        <p class="text-xs text-gray-500 mt-1">{% trans "Family business" %}</p>
+      </div>
+    {% endif %}
+    {% if site.trust.marks %}
+      <div class="flex flex-wrap gap-2 justify-center">
+        {% for m in site.trust.marks %}
+          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium px-3 py-1.5">✓ {{ m }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
