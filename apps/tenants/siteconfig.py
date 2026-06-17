@@ -56,6 +56,26 @@ _NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
 # по центру, ссылки под ним), minimal (только лого, всё меню в бургере).
 NAV_STYLES = ("classic", "centered", "minimal")
 
+# Шрифты витрины (P2a). ТОЛЬКО системные стеки — без загрузки веб-шрифтов
+# (Google Fonts через CDN = риск GDPR в DE; self-host WOFF2 — отдельно, когда
+# будут файлы). (body_stack, head_stack) для CSS-переменных --font-body/--font-head.
+_SANS = (
+    'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, '
+    '"Helvetica Neue", Arial, sans-serif'
+)
+_SERIF = 'Georgia, Cambria, "Times New Roman", Times, serif'
+_ROUNDED = 'ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", system-ui, sans-serif'
+FONTS = {
+    "system": (_SANS, _SANS),  # дефолт — как было
+    "serif": (_SANS, _SERIF),  # элегантные serif-заголовки + sans-тело
+    "rounded": (_ROUNDED, _ROUNDED),  # мягкий округлый
+}
+
+
+def font_stacks(font_key: str) -> tuple[str, str]:
+    """(body_stack, head_stack) по ключу шрифта; неизвестный → system."""
+    return FONTS.get(font_key, FONTS["system"])
+
 
 _MAX_ITEMS = 12  # потолок строк для FAQ/Testimonials (анти-флуд)
 
@@ -134,6 +154,9 @@ def normalize(config) -> dict:
     normalized["hero_style"] = hero_style if hero_style in HERO_STYLES else "plain"
     # Фон-фото hero (M20 demo): URL картинки-баннера; пусто → как раньше (accent/plain).
     normalized["hero_image"] = _s(config.get("hero_image"))
+    # Шрифт витрины (P2a): системный стек по ключу; неизвестный → system.
+    font = config.get("font")
+    normalized["font"] = font if font in FONTS else "system"
     # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок владельца,
     # неизвестные отброшены, недостающие дописаны включёнными). Легаси без nav →
     # дефолт (classic/sticky/все включены) = текущее поведение, без регрессии.

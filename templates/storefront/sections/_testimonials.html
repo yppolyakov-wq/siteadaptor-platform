@@ -1,6 +1,6 @@
 {% load i18n %}{# Секция отзывов (M20 ⑤a): имя + текст из site_config. #}
 {% if site.testimonials %}
-<section class="mb-10">
+<section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "What our customers say" %}</h2>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     {% for t in site.testimonials %}

@@ -273,6 +273,7 @@ def site_view(request):
             config[field] = request.POST.get(field, "")
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
         config["hero_image"] = request.POST.get("hero_image", "").strip()
+        config["font"] = request.POST.get("font", "system")  # P2a: шрифт витрины
         # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок числом).
         nav_rows = []
         for key, _label, _url, _module in siteconfig.NAV_ITEMS:
@@ -369,6 +370,7 @@ def site_view(request):
             "nav_style": config["nav"]["style"],
             "nav_sticky": config["nav"]["sticky"],
             "nav_styles": siteconfig.NAV_STYLES,
+            "font_choices": list(siteconfig.FONTS),
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
             "testimonials_text": siteconfig.pairs_to_text(config["testimonials"], "name", "text"),
             "has_demo": demo.has_demo(request.tenant),

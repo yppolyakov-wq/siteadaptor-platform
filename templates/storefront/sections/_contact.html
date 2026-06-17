@@ -1,6 +1,6 @@
 {% load i18n %}{# Секция контактов (Track C2): адрес/часы/связь из настроек бизнеса. #}
 {% if request.tenant.address or request.tenant.opening_hours or request.tenant.public_phone or request.tenant.public_email or request.tenant.open_status %}
-<section class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
+<section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
   <div class="flex items-center gap-3 mb-4 flex-wrap">
     <h2 class="text-xl md:text-2xl font-bold">{% trans "Contact & opening hours" %}</h2>
     {% with st=request.tenant.open_status %}{% include "storefront/_open_badge.html" %}{% endwith %}

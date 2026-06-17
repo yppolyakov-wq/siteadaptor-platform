@@ -11,8 +11,31 @@
   {% localbusiness_jsonld %}
   {% block structured_data %}{% endblock %}
   <script src="https://cdn.tailwindcss.com"></script>
-  {# Акцентный цвет витрины (шаблоны/настройки Site). Использует только hero со стилем accent. #}
-  <style>:root { --accent: {{ request.tenant.primary_color|default:"#4f46e5" }}; }</style>
+  {# Акцентный цвет + шрифты витрины (P2a, системные стеки — без веб-шрифтов/GDPR). #}
+  <style>
+    :root {
+      --accent: {{ request.tenant.primary_color|default:"#4f46e5" }};
+      --font-body: {{ storefront_font_body|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
+      --font-head: {{ storefront_font_head|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
+    }
+    body { font-family: var(--font-body); }
+    h1, h2, h3, h4, .font-head { font-family: var(--font-head); }
+    /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
+    h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
+    /* P2b: scroll-reveal — только при разрешённом движении (WCAG 2.3.3). Скрытое
+       начальное состояние под .js-reveal (класс ставит head-скрипт синхронно,
+       без мигания); без JS / reduced-motion контент виден сразу. */
+    @media (prefers-reduced-motion: no-preference) {
+      .js-reveal [data-reveal] { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+      .js-reveal [data-reveal].is-visible { opacity: 1; transform: none; }
+    }
+  </style>
+  <script>
+    // Ставим класс до отрисовки body → начальное скрытие без «мигания».
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+      document.documentElement.classList.add("js-reveal");
+    }
+  </script>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden">
   {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
@@ -93,6 +116,24 @@
 
   {% include "storefront/_action_bar.html" %}
 
+  <script>
+    // P2b: scroll-reveal через IntersectionObserver (только если движение разрешено).
+    (function () {
+      if (!document.documentElement.classList.contains("js-reveal")) return;
+      var els = document.querySelectorAll("[data-reveal]");
+      if (!els.length) return;
+      if (!("IntersectionObserver" in window)) {
+        els.forEach(function (e) { e.classList.add("is-visible"); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add("is-visible"); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px -10% 0px", threshold: 0.05 });
+      els.forEach(function (e) { io.observe(e); });
+    })();
+  </script>
   <script>
     // TG2: внутри Telegram витрина работает как Mini App (ready/expand + тема).
     (function () {

@@ -1,6 +1,6 @@
 {% load i18n %}{# Секция CTA (M20 ⑤a): заголовок + кнопка-ссылка. Акцентный фон. #}
 {% if site.cta.title or site.cta.button_label %}
-<section class="mb-10 rounded-2xl shadow-sm p-6 md:p-10 text-center text-white" style="background: var(--accent);">
+<section data-reveal class="mb-10 rounded-2xl shadow-sm p-6 md:p-10 text-center text-white" style="background: var(--accent);">
   {% if site.cta.title %}<h2 class="text-xl md:text-2xl font-bold mb-2">{{ site.cta.title }}</h2>{% endif %}
   {% if site.cta.text %}<p class="opacity-90 mb-5 whitespace-pre-line">{{ site.cta.text }}</p>{% endif %}
   {% if site.cta.button_label and site.cta.button_url %}

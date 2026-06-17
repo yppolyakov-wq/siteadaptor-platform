@@ -76,6 +76,10 @@ def modules_nav(request):
     if tenant is None or getattr(tenant, "schema_name", "public") == "public":
         return {}
     nav_items, nav_style, nav_sticky = _storefront_nav(tenant)
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    font_body, font_head = siteconfig.font_stacks(cfg["font"])
     return {
         "nav_modules": modules.active_modules(tenant),
         # Флаги для шапки публичной витрины (ссылки «Termin» D3b / «Übernachten» E3).
@@ -90,4 +94,7 @@ def modules_nav(request):
         "storefront_nav_sticky": nav_sticky,
         # P1: липкая мобильная панель действий (звонок/бронь/маршрут).
         "storefront_actions": _storefront_actions(tenant),
+        # P2a: системные шрифт-стеки витрины (тело/заголовки).
+        "storefront_font_body": font_body,
+        "storefront_font_head": font_head,
     }

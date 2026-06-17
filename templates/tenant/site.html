@@ -139,6 +139,16 @@
           <input type="checkbox" name="nav_sticky" {% if nav_sticky %}checked{% endif %} class="rounded border-gray-300">
           {% trans "Sticky header (stays on top when scrolling)" %}
         </label>
+        <label class="flex items-center gap-2 text-sm">
+          <span class="text-gray-600">{% trans "Font" %}</span>
+          <select name="font" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+            {% for f in font_choices %}
+              <option value="{{ f }}" {% if f == config.font %}selected{% endif %}>
+                {% if f == 'system' %}{% trans "Standard (Sans)" %}{% elif f == 'serif' %}{% trans "Elegant (Serif headings)" %}{% else %}{% trans "Soft (Rounded)" %}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
       </div>
       <div class="space-y-2">
         {% for item in nav_items %}
