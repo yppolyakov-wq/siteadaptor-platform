@@ -1043,7 +1043,15 @@ Python 3.12, менеджер uv.
       агрегатора/команда — `decoding=async` к уже стоявшему `loading=lazy`. Тесты
       `test_responsive_images`. Без resize-пайплайна (одно хранимое фото) `srcset`
       по плотностям отложен — нужен генератор миниатюр.
-    - P5c (дальше): тёмная тема (`dark:` поверх собранного Tailwind).
+    - P5c тёмная тема витрины (✅ ветка): `darkMode:"class"`. Вместо `dark:`-
+      вариантов в ~40 шаблонах — **централизованная карта переопределений** в
+      `static/src/app.css` (`.dark .bg-white{…}` и т.п.; специфичность `.dark .x`
+      (0,2,0) > утилиты (0,1,0)). Класс `.dark` ставит только витрина (no-FOUC
+      init в `<head>`: localStorage `sf-theme` → системная тема), кабинет/
+      агрегатор грузят тот же CSS, но `.dark` не выставляют → светлые.
+      Переключатель ☀️/🌙 в шапке (persist в localStorage). Карта покрывает фон/
+      текст/границы/плашки сообщений; акценты (var(--accent)/indigo) не трогаем.
+      Тесты `test_dark_mode`. **P5 закрыт (a+b+c).**
     **Урок:** новая секция в `siteconfig.SECTIONS` → обновить хардкод-список в
     `test_siteconfig::test_normalize_empty_gives_defaults`. **Урок:** Google Fonts
     только self-host (GDPR DE). Деплой P1: tenants/0016; P5 — без миграций.

@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────────────────────
+   P5c: тёмная тема витрины (Tailwind darkMode:"class").
+
+   Вместо dark:-вариантов в каждом из ~40 шаблонов витрины — централизованная
+   карта переопределений базовых цветов под `.dark` на <html>. Одно место,
+   полное покрытие, переживает добавление новых страниц. Специфичность
+   `.dark .bg-white` (0,2,0) выше одиночной утилиты (0,1,0) — порядок не важен.
+   Класс `.dark` ставит только витрина (storefront/_base.html); кабинет и
+   агрегатор грузят тот же CSS, но `.dark` не выставляют → остаются светлыми.
+   ─────────────────────────────────────────────────────────────────────────── */
+.dark body,
+.dark .bg-gray-50 {
+  background-color: #0b1120;
+}
+.dark .bg-white {
+  background-color: #111827;
+}
+.dark .bg-white\/90 {
+  background-color: rgb(17 24 39 / 0.9);
+}
+.dark .bg-gray-100 {
+  background-color: #1f2937;
+}
+
+.dark .text-gray-900 {
+  color: #f3f4f6;
+}
+.dark .text-gray-800 {
+  color: #e5e7eb;
+}
+.dark .text-gray-700 {
+  color: #d1d5db;
+}
+.dark .text-gray-600 {
+  color: #cbd5e1;
+}
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: #94a3b8;
+}
+.dark .text-gray-300 {
+  color: #64748b;
+}
+
+.dark .border-gray-100 {
+  border-color: #1f2937;
+}
+.dark .border-gray-200 {
+  border-color: #374151;
+}
+
+/* Лёгкие плашки сообщений на тёмном фоне — приглушаем подложку, текст светлее. */
+.dark .bg-green-50 {
+  background-color: #064e3b;
+}
+.dark .text-green-800 {
+  color: #d1fae5;
+}
+.dark .bg-red-50 {
+  background-color: #7f1d1d;
+}
+.dark .text-red-700 {
+  color: #fee2e2;
+}
