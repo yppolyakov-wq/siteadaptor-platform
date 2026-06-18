@@ -5,7 +5,7 @@
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
     {% for img in site.gallery %}
       <div class="aspect-square rounded-xl overflow-hidden bg-gray-100">
-        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy"
+        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
              class="w-full h-full object-cover hover:scale-[1.02] transition">
       </div>
     {% endfor %}

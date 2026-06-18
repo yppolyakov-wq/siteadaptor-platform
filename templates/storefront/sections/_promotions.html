@@ -24,7 +24,7 @@
       <div class="relative aspect-square bg-gray-100">
         {% with img=p.primary_image %}
           {% if img %}
-            <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy"
+            <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"
                  class="w-full h-full object-cover group-hover:scale-[1.02] transition">
           {% else %}
             <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">

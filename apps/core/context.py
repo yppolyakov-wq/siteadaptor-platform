@@ -80,6 +80,11 @@ def modules_nav(request):
 
     cfg = siteconfig.normalize(tenant.site_config)
     font_body, font_head = siteconfig.font_stacks(cfg["font"])
+    # P5: hero-фото — LCP-кандидат. Браузер находит background-image поздно
+    # (после CSS+layout), поэтому отдаём URL для <link rel=preload> в <head>.
+    # Только если секция hero включена (иначе зря тянем картинку).
+    hero_enabled = any(s["key"] == "hero" and s["enabled"] for s in cfg["sections"])
+    hero_preload = cfg["hero_image"] if hero_enabled else ""
     return {
         "nav_modules": modules.active_modules(tenant),
         # Флаги для шапки публичной витрины (ссылки «Termin» D3b / «Übernachten» E3).
@@ -97,4 +102,6 @@ def modules_nav(request):
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,
+        # P5: preload hero-фото (LCP) — пусто, если секция выключена/без фото.
+        "storefront_hero_preload": hero_preload,
     }

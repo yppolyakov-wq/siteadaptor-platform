@@ -10,6 +10,8 @@
   {% block og %}{% endblock %}
   {% localbusiness_jsonld %}
   {% block structured_data %}{% endblock %}
+  {# P5: ранний fetch hero-фото (LCP) — background-image иначе находится поздно. #}
+  {% if storefront_hero_preload %}<link rel="preload" as="image" href="{{ storefront_hero_preload }}" fetchpriority="high">{% endif %}
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {# Акцентный цвет + шрифты витрины (P2a, системные стеки — без веб-шрифтов/GDPR). #}
   <style>

@@ -1024,10 +1024,29 @@ Python 3.12, менеджер uv.
     P5** — чистое покрытие `dark:` только со сборкой Tailwind (сейчас CDN).
   - **P4 контент (✅ ветка):** секции `process` («как мы работаем», нумерованные
     шаги) и `team` (имя/роль/фото); кабинет-редакторы; в демо-ресторане включены.
-  - **P5 (дальше):** Tailwind-сборка вместо CDN (CWV) + responsive-картинки +
-    тёмная тема. **Урок:** новая секция в `siteconfig.SECTIONS` → обновить
-    хардкод-список в `test_siteconfig::test_normalize_empty_gives_defaults`.
-    **Урок:** Google Fonts только self-host (GDPR DE). Деплой P1: tenants/0016.
+  - **P5 производительность/CWV (в работе):**
+    - P5a Tailwind-сборка вместо CDN (✅ в `main`, `0252db4`, CI run 353 зелёный,
+      без миграций): витрина/кабинет/агрегатор грузили `cdn.tailwindcss.com` (JIT
+      в рантайме — бьёт по Core Web Vitals) → собранный purged CSS. `package.json`
+      (`npm run build:css`) + `tailwind.config.js` (content `templates/**`+`apps/**/
+      templates/**`, `darkMode:"class"` под тёмную тему) + `static/src/app.css`
+      → минифицированный `static/css/app.css` (артефакт коммитим — прод без Node).
+      4 base-шаблона: `<script cdn>` → `<link {% static 'css/app.css' %}>`. CI:
+      Node 22 + `npm ci` + `npm run build:css` + `git diff --exit-code` (гейт
+      свежести). `test.py`: `STORAGES["staticfiles"]=StaticFilesStorage` (тесты
+      рендерят `{% static %}` без collectstatic). `.gitignore`: `node_modules/`.
+    - P5b responsive images (✅ ветка): hero-фото = LCP, но `background-image`
+      браузер находит поздно → `<link rel=preload as=image fetchpriority=high>` в
+      `<head>` витрины (контекст `storefront_hero_preload`: URL только при
+      включённой секции hero); главное фото товара `fetchpriority=high
+      decoding=async` (LCP страницы товара, eager); карточки/галерея/промо/листинги
+      агрегатора/команда — `decoding=async` к уже стоявшему `loading=lazy`. Тесты
+      `test_responsive_images`. Без resize-пайплайна (одно хранимое фото) `srcset`
+      по плотностям отложен — нужен генератор миниатюр.
+    - P5c (дальше): тёмная тема (`dark:` поверх собранного Tailwind).
+    **Урок:** новая секция в `siteconfig.SECTIONS` → обновить хардкод-список в
+    `test_siteconfig::test_normalize_empty_gives_defaults`. **Урок:** Google Fonts
+    только self-host (GDPR DE). Деплой P1: tenants/0016; P5 — без миграций.
 - **A2 Versand → 100% (✅ ВЕСЬ в `main`; Stage 1 архетип A2 ~85 %→~100 %):** добили
   доставку поверх готового G4 (apps.orders). Разбивка A2a/A2b/A2c:
   - A2a — PLZ-зоны + отдельный мин самовывоза (✅ в `main`, CI зелёный, миграция
