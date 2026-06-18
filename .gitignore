@@ -54,3 +54,4 @@ uv.lock
 
 # Redis dump from local test runs
 dump.rdb
+node_modules/

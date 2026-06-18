@@ -1,0 +1,12 @@
+{
+  "name": "siteadaptor-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Tailwind CSS build for storefront/cabinet/aggregator (P5: replace CDN).",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/src/app.css -o ./static/css/app.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

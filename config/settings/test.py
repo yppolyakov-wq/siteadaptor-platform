@@ -33,5 +33,10 @@ STORAGES["default"] = {
     "BACKEND": "django.core.files.storage.FileSystemStorage",
     "OPTIONS": {"location": str(BASE_DIR / "media")},
 }
+# Статика без манифеста: тесты рендерят {% static 'css/app.css' %} без
+# collectstatic — ManifestStaticFilesStorage иначе требует манифест и падает.
+STORAGES["staticfiles"] = {
+    "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+}
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

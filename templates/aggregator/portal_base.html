@@ -1,4 +1,4 @@
-{% load i18n %}<!doctype html>{# Брендированный base портального хоста (P2.1b): ожидает portal. #}
+{% load i18n static %}<!doctype html>{# Брендированный base портального хоста (P2.1b): ожидает portal. #}
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -15,7 +15,7 @@
   {% if portal.logo_url %}<meta property="og:image" content="{{ portal.logo_url }}">{% endif %}
   <meta name="twitter:card" content="summary">
   {% block structured_data %}{% endblock %}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <style>:root { --portal-color: {{ portal.primary_color|default:"#111827" }}; }</style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">

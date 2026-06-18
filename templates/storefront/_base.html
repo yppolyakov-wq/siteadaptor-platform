@@ -1,4 +1,4 @@
-{% load i18n seo %}<!doctype html>
+{% load i18n seo static %}<!doctype html>
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -10,7 +10,7 @@
   {% block og %}{% endblock %}
   {% localbusiness_jsonld %}
   {% block structured_data %}{% endblock %}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {# Акцентный цвет + шрифты витрины (P2a, системные стеки — без веб-шрифтов/GDPR). #}
   <style>
     :root {

@@ -1,4 +1,4 @@
-{% load i18n %}<!doctype html>
+{% load i18n static %}<!doctype html>
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -14,7 +14,7 @@
   {% if canonical %}<meta property="og:url" content="{{ canonical }}">{% endif %}
   <meta name="twitter:card" content="summary">
   {% block structured_data %}{% endblock %}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">
