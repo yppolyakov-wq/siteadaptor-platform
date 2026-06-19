@@ -32,6 +32,8 @@
     </div>
     {% if order.is_delivery and order.shipping_address %}
       <p class="text-sm text-gray-500 mb-2">📍 {{ order.shipping_address|linebreaksbr }}</p>
+    {% elif order.pickup_location %}
+      <p class="text-sm text-gray-600 mb-2">📍 {% trans "Pick up at" %}: <span class="font-medium">{{ order.pickup_location }}</span></p>
     {% endif %}
     {% if order.tracking_code %}<p class="text-sm text-gray-600 mb-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
     {% if order.payment_state == 'paid' %}

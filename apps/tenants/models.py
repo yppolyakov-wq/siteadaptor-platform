@@ -77,6 +77,9 @@ class Tenant(TenantMixin):
     delivery_restrict_to_zones = models.BooleanField(default=False)
     # Отдельный Mindestbestellwert для самовывоза (0=нет).
     pickup_min_cents = models.PositiveIntegerField(default=0)
+    # Точки самовывоза (лёгкая версия): [{"name","address"}]. Пусто = один пункт
+    # у адреса бизнеса (селектор в корзине не показываем). Полные филиалы — позже.
+    pickup_locations = models.JSONField(default=list, blank=True)
 
     # Owner contact
     owner_email = models.EmailField(blank=True)
@@ -177,6 +180,20 @@ class Tenant(TenantMixin):
     @property
     def public_phone(self) -> str:
         return self.contact_phone or self.owner_phone
+
+    @property
+    def pickup_points(self) -> list[dict]:
+        """Нормализованные точки самовывоза [{name,address}] (только с name)."""
+        out = []
+        for p in self.pickup_locations or []:
+            if isinstance(p, dict) and (p.get("name") or "").strip():
+                out.append(
+                    {
+                        "name": (p["name"]).strip()[:120],
+                        "address": (p.get("address") or "").strip()[:200],
+                    }
+                )
+        return out
 
     def open_status(self) -> dict | None:
         """Live-статус «открыто сейчас» из структурных часов (P1b). None — не заданы."""

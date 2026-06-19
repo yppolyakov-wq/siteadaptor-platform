@@ -59,6 +59,9 @@ def order_list(request):
             "pickup_min_eur": f"{getattr(tenant, 'pickup_min_cents', 0) / 100:.2f}",
             "delivery_restrict_to_zones": getattr(tenant, "delivery_restrict_to_zones", False),
             "delivery_zone_rows": _zone_rows(tenant),
+            "pickup_locations_text": "\n".join(
+                f"{p['name']} | {p['address']}".rstrip(" |") for p in tenant.pickup_points
+            ),
             "nav": "orders",
         },
     )
@@ -209,6 +212,20 @@ def _eur_to_cents(raw) -> int:
         return 0
 
 
+def _parse_pickup_locations(request) -> list[dict]:
+    """Текст «Name | Adresse» построчно → [{name,address}] (только с name, до 10)."""
+    out = []
+    for line in (request.POST.get("pickup_locations", "") or "").splitlines():
+        if not line.strip():
+            continue
+        name, _, address = line.partition("|")
+        if name.strip():
+            out.append({"name": name.strip()[:120], "address": address.strip()[:200]})
+        if len(out) >= 10:
+            break
+    return out
+
+
 ZONE_ROWS = 6  # A2a: число строк-зон в форме доставки
 
 
@@ -265,6 +282,7 @@ def order_settings(request):
         tenant.pickup_min_cents = _eur_to_cents(request.POST.get("pickup_min_eur"))
         tenant.delivery_restrict_to_zones = bool(request.POST.get("delivery_restrict_to_zones"))
         tenant.delivery_zones = _parse_delivery_zones(request)
+        tenant.pickup_locations = _parse_pickup_locations(request)
         tenant.save(
             update_fields=[
                 "delivery_enabled",
@@ -275,6 +293,7 @@ def order_settings(request):
                 "pickup_min_cents",
                 "delivery_restrict_to_zones",
                 "delivery_zones",
+                "pickup_locations",
                 "updated_at",
             ]
         )

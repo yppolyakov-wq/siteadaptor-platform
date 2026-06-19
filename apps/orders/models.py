@@ -55,6 +55,8 @@ class Order(TimestampedModel):
     note = models.TextField(blank=True)
     # T2a: номер стола для QR-заказа со стола (Dine-in). Пусто = самовывоз/доставка.
     table_number = models.CharField(max_length=20, blank=True)
+    # Точка самовывоза (снимок, если у бизнеса их несколько). Пусто = единственный пункт.
+    pickup_location = models.CharField(max_length=200, blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_UNPAID)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # P2.5c: для refund

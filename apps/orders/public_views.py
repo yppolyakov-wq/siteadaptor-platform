@@ -413,6 +413,8 @@ def cart_view(request):
         "currency": currency,
         # R5: центы для JS-реактивности доставки (итог меняется при выборе).
         "grand_cents": int((total - discount) * 100),
+        # Точки самовывоза (селектор в корзине при наличии нескольких).
+        "pickup_points": getattr(tenant, "pickup_points", []),
     }
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
@@ -492,7 +494,8 @@ def checkout(request):
             return redirect("storefront-cart")
         shipping_cents = quote["fee_cents"]
         shipping_address = f"{street}\n{plz} {city}"
-    else:
+    pickup_location = ""
+    if not delivery:
         pickup_min = getattr(tenant, "pickup_min_cents", 0) or 0
         if pickup_min and subtotal_cents < pickup_min:
             messages.error(
@@ -501,6 +504,17 @@ def checkout(request):
                 % {"min": f"{pickup_min / 100:.2f}".replace(".", ",")},
             )
             return redirect("storefront-cart")
+        # Точка самовывоза (если у бизнеса их несколько): валидируем по списку.
+        points = getattr(tenant, "pickup_points", [])
+        if len(points) > 1:
+            chosen = (request.POST.get("pickup_location") or "").strip()
+            valid = {p["name"] for p in points}
+            if chosen not in valid:
+                messages.error(request, _("Please choose where to pick up."))
+                return redirect("storefront-cart")
+            pickup_location = chosen
+        elif len(points) == 1:
+            pickup_location = points[0]["name"]
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
@@ -515,6 +529,7 @@ def checkout(request):
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
             table_number="" if delivery else request.session.get("table", ""),
+            pickup_location=pickup_location,
             source_channel=(request.GET.get("ch") or "")[:50],
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
             shipping_address=shipping_address,

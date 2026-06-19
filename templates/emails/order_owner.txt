@@ -5,6 +5,7 @@ Kunde: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endi
 {% endfor %}Gesamt: {{ order.total }} {{ order.currency }}
 Code: {{ order.reference_code }}
 {% if order.table_number %}Tisch: {{ order.table_number }}{% endif %}
+{% if order.pickup_location %}Abholort: {{ order.pickup_location }}{% endif %}
 {% if order.note %}Notiz: {{ order.note }}{% endif %}
 
 Bestellung im Dashboard bestätigen: /dashboard/orders/

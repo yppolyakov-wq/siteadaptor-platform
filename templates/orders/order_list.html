@@ -67,6 +67,11 @@
     <label class="block text-xs text-gray-500 mb-1">{% trans "Min. order for pickup (€, 0=none)" %}</label>
     <input name="pickup_min_eur" type="text" value="{{ pickup_min_eur }}" class="w-full sm:w-1/3 rounded-lg border border-gray-300 px-3 py-2">
   </div>
+  <div>
+    <label class="block text-xs text-gray-500 mb-1">📍 {% trans "Pickup points (one per line: Name | Address)" %}</label>
+    <textarea name="pickup_locations" rows="3" placeholder="Filiale Mitte | Hauptstr. 12&#10;Filiale Süd | Bahnhofweg 3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ pickup_locations_text }}</textarea>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Leave empty for a single pickup at your address. Several lines = customer chooses in cart." %}</p>
+  </div>
 
   <div class="border-t border-gray-100 pt-3">
     <p class="font-medium mb-1">{% trans "Delivery zones by postal code" %}</p>

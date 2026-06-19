@@ -98,6 +98,16 @@
           <input type="hidden" name="fulfillment" value="pickup">
         {% endif %}
 
+        {% if pickup_points|length > 1 %}
+          {# Несколько точек самовывоза — выбор «откуда забрать» (скрыт при доставке). #}
+          <div id="pickup-select" class="{% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
+            <label class="block text-sm font-medium mb-1" for="id_pickup">📍 {% trans "Pick up at" %}</label>
+            <select id="id_pickup" name="pickup_location" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+              {% for p in pickup_points %}<option value="{{ p.name }}">{{ p.name }}{% if p.address %} — {{ p.address }}{% endif %}</option>{% endfor %}
+            </select>
+          </div>
+        {% endif %}
+
         <div class="grid sm:grid-cols-2 gap-3 {% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
@@ -157,6 +167,7 @@
             var sum = document.getElementById("order-summary");
             if (!sum) return;
             var addr = document.getElementById("delivery-address");
+            var pickupSel = document.getElementById("pickup-select");
             var line = document.getElementById("summary-delivery");
             var feeEl = sum.querySelector("[data-delivery-fee]");
             var totEl = sum.querySelector("[data-grand-total]");
@@ -167,6 +178,7 @@
               var d = document.querySelector('input[name=fulfillment]:checked');
               var delivery = d && d.value === "delivery";
               if (addr) addr.classList.toggle("hidden", !delivery);
+              if (pickupSel) pickupSel.classList.toggle("hidden", delivery);
               var f = delivery ? (free && grand >= free ? 0 : fee) : 0;
               line.classList.toggle("hidden", !delivery);
               line.classList.toggle("flex", delivery);
