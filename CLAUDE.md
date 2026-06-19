@@ -903,6 +903,33 @@ Python 3.12, менеджер uv.
     переход = no-op (другой экран мог сменить статус). Кнопка «Kitchen Display» на
     `/dashboard/orders/`. Поверх apps.orders, гейтинг модуля orders. Тесты
     `orders/test_kitchen`. **A4 ~90 %→~100 %.**
+- **Ресторанный пакет — Gastro UX + комбо + промокоды (✅ ВЕСЬ в `main`, 2026-06-19):**
+  усиление архетипа A4 поверх готовых orders/catalog. Разбивка по веткам → CI → FF:
+  - T2a QR-Bestellung am Tisch (миграция orders/0008): `Order.table_number`; захват
+    `?tisch=N` в сессию (context-processor `storefront_table`, как `?ch=`), checkout
+    пишет стол (кроме доставки); вывод на KDS/карточке заказа/письме владельцу/в
+    корзине; кабинет `/dashboard/orders/tisch-qr/` — печатный лист QR столов (segno).
+  - T2b мобильный нижний таб-бар (без миграций): `_storefront_bottom_nav` развивает
+    P1 action-bar — Speisekarte · Aktionen(#aktionen) · 🛒 Korb (акцент+бейдж) ·
+    Anruf, адаптивно по модулям, cap 5. ТЗ настройки в кабинете — roadmap §Отложено.
+  - T2c быстрый заказ с карточки (без миграций): «+» на карточке → bottom-sheet
+    модалка-конфигуратор (vanilla fetch, без HTMX ради CWV) с размером/ингредиентами;
+    общий партиал `_add_to_cart_form.html`; простой товар → «+» = прямое добавление.
+    Тоггл `site_config.quick_add` в кабинете Site («как раньше» = карточка→страница).
+  - Комбо-наборы (миграции catalog/0008 + orders/0009): `Combo`/`ComboGroup`/
+    `ComboOption` (catalog) — фикс-цена + группы выбора (фикс = 1 опция, выбор =
+    несколько, надбавка за апгрейд); `apps/catalog/combos.py` (price/validate/snapshot);
+    кабинет `/catalog/combos/` (nav «Combos»); витрина `/kombi/` + конфигуратор →
+    `combo_cart` в сессии → заказ одной OrderItem (product=null, combo FK, состав в
+    modifiers). Сток компонентов комбо v1 не списываем (отложено).
+  - Промокоды = расширение `Voucher` (миграции promotions/0015 + orders/0010): по
+    решению владельца переиспользуем существующий Voucher, не новая модель.
+    `Voucher.discount_percent/discount_cents/min_order_cents` + `discount_for()`;
+    кабинет «Gutscheine» — поля скидки %/€; на чекауте поле кода → `create_order
+    (voucher_code=)` считает скидку и гасит код под блокировкой (анти-двойное-
+    списание), `Order.voucher_code/discount_cents`; скидка в корзине/подтверждении/
+    кабинете. Пустые поля скидки = прежний ручной ваучер-метка (без регрессии).
+  - **Деплой:** миграции orders/0008+0009+0010, catalog/0008, promotions/0015.
 - **Админка + кабинет — UX-переработка (✅ в `main`, S1+S2 `9c8da4d`, S3 `05ad375`,
   CI зелёный, без миграций):** платформенная админка `/admin` (django-unfold) была
   не настроена (словаря `UNFOLD` не было) → голый список приложений Django; tenant-
