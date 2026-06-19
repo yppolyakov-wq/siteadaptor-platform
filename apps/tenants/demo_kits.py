@@ -80,7 +80,7 @@ class DemoKit:
 
 # Товар: dict {name, price, desc, img(keyword), variants?[(label,price)],
 #   allergens?[codes], modifiers?[{name,min,max,options:[(label,delta)]}]}
-def _p(name, price, desc, img, variants=None, allergens=None, modifiers=None):
+def _p(name, price, desc, img, variants=None, allergens=None, modifiers=None, badge=""):
     return {
         "name": name,
         "price": price,
@@ -89,6 +89,7 @@ def _p(name, price, desc, img, variants=None, allergens=None, modifiers=None):
         "variants": variants or [],
         "allergens": allergens or [],
         "modifiers": modifiers or [],
+        "badge": badge,
     }
 
 
@@ -298,6 +299,7 @@ RESTAURANT = DemoKit(
                     "Hausgemacht, im Ofen überbacken.",
                     "lasagne",
                     allergens=["gluten", "milch", "eier"],
+                    badge="tagesgericht",
                 ),
                 _p("Risotto Funghi", "13.50", "Mit Steinpilzen.", "risotto", allergens=["milch"]),
                 _p(
@@ -361,6 +363,7 @@ RESTAURANT = DemoKit(
                     variants=[("klein 26cm", "11.90"), ("groß 32cm", "14.90")],
                     allergens=["gluten", "milch"],
                     modifiers=PIZZA_MODIFIERS,
+                    badge="neu",
                 ),
             ],
         ),
@@ -470,6 +473,7 @@ def apply_kit(tenant, key: str) -> bool:
                 category=category,
                 images=[_image_ref(item["img"], lock, item["name"])],
                 allergens=item["allergens"],
+                badge=item.get("badge", ""),
                 is_active=True,
                 is_featured=(len(created_products) < 3),
                 metadata={"demo": True},

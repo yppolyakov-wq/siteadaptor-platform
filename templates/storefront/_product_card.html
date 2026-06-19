@@ -12,7 +12,9 @@
         </div>
       {% endif %}
     {% endwith %}
-    {% if p.is_featured %}
+    {% if p.badge_label %}
+      <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
+    {% elif p.is_featured %}
       <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>
     {% endif %}
     {% if not p.in_stock %}

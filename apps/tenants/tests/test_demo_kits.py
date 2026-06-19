@@ -77,6 +77,15 @@ def test_restaurant_kit_seeds_pizza_modifiers():
     assert ModifierGroup.objects.filter(is_active=True).count() >= 5
 
 
+def test_restaurant_kit_sets_dish_badges():
+    """T1: бейджи блюд (Tagesgericht/Neu) проставлены в демо."""
+    tenant = _tenant()
+    demo_kits.apply_kit(tenant, "restaurant")
+    assert Product.objects.get(name__de="Lasagne").badge == "tagesgericht"
+    pizza_veg = Product.objects.get(name__de="Pizza Vegetariana")
+    assert pizza_veg.badge == "neu" and pizza_veg.badge_label == "Neu"
+
+
 def test_restaurant_kit_enables_orders_and_delivery():
     """Демо-ресторан показывает онлайн-заказ: модуль orders включён + доставка с зонами."""
     tenant = _tenant()

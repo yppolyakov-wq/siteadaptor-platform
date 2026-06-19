@@ -64,6 +64,18 @@ def test_kitchen_action_accept_then_ready():
     assert order.reference_code not in resp.content.decode()
 
 
+def test_kitchen_board_shows_order_note():
+    """T1: комментарий к заказу (повару) виден на KDS-доске."""
+    order = services.create_order(
+        items=[(ProductFactory(name={"de": "Pizza"}), 1)],
+        name="Kunde K",
+        email=f"k-{uuid.uuid4().hex[:8]}@test.de",
+        note="Bitte ohne Zwiebeln",
+    )
+    body = views.kitchen(_req()).content.decode()
+    assert "Bitte ohne Zwiebeln" in body
+
+
 def test_kitchen_action_illegal_is_noop():
     order = _order()
     order.status = Order.STATUS_PICKED_UP

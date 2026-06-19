@@ -80,6 +80,17 @@ class Product(SoftDeleteMixin, I18nMixin):
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
 
+    # Маркетинговый бейдж на витрине (T1): «Tagesgericht», «Neu», «Beliebt».
+    # Пусто = без бейджа. is_featured (популярные на главной) — отдельно.
+    BADGE_CHOICES = [
+        ("", "—"),
+        ("tagesgericht", "Tagesgericht"),
+        ("neu", "Neu"),
+        ("beliebt", "Beliebt"),
+        ("empfehlung", "Empfehlung"),
+    ]
+    badge = models.CharField(max_length=20, blank=True, choices=BADGE_CHOICES)
+
     # Lebensmittel-Kennzeichnung (LMIV, R4): аллергены (коды из apps.catalog.food),
     # происхождение и список ингредиентов. Заполняется для еды; на витрине
     # показывается только при наличии.
@@ -99,6 +110,11 @@ class Product(SoftDeleteMixin, I18nMixin):
 
     def __str__(self):
         return self.get_i18n("name") or self.sku or str(self.pk)
+
+    @property
+    def badge_label(self) -> str:
+        """Человекочитаемый бейдж («Tagesgericht») или '' если не задан."""
+        return dict(self.BADGE_CHOICES).get(self.badge, "") if self.badge else ""
 
     @property
     def name_text(self) -> str:
