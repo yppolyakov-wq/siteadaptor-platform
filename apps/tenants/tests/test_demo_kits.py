@@ -41,8 +41,8 @@ def test_apply_restaurant_kit_builds_full_site():
     # варианты (Pizza klein/groß) и аллергены проставлены
     assert ProductVariant.objects.count() >= 6
     assert products.filter(allergens__contains=["gluten"]).exists()
-    # акции
-    assert Promotion.objects.filter(metadata__demo=True).count() == 3
+    # акции (4 — сетка кратна 2)
+    assert Promotion.objects.filter(metadata__demo=True).count() == 4
 
     # site_config: фото-hero, акцент, галерея, контент-секции
     cfg = tenant.site_config

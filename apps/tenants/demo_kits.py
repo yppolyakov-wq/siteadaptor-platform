@@ -178,6 +178,7 @@ RESTAURANT = DemoKit(
     trust={"since": "1998", "marks": ["Slow Food", "Regional", "Familienbetrieb"]},
     # онлайн-заказ+доставка (orders), события (events), кейтеринг-Anfrage (jobs)
     enable_modules=["orders", "events", "jobs"],
+    promo_count=4,  # 4 акции — сетка кратна 2 (красивее)
     loyalty={"label": "Stempelkarte", "stamps": 10, "reward": "1 Gratis-Pizza"},
     events=[
         ("Live-Musik: Italienische Nacht", 5, 40, "0"),
@@ -244,6 +245,13 @@ RESTAURANT = DemoKit(
                 ),
                 _p("Antipasti-Teller", "12.90", "Auswahl italienischer Vorspeisen.", "antipasti"),
                 _p(
+                    "Insalata Mista",
+                    "6.90",
+                    "Gemischter Salat — klein oder groß.",
+                    "salad,bowl",
+                    variants=[("klein", "6.90"), ("groß", "9.90")],
+                ),
+                _p(
                     "Minestrone",
                     "6.90",
                     "Klassische Gemüsesuppe.",
@@ -304,6 +312,14 @@ RESTAURANT = DemoKit(
                     badge="tagesgericht",
                 ),
                 _p("Risotto Funghi", "13.50", "Mit Steinpilzen.", "risotto", allergens=["milch"]),
+                _p(
+                    "Lasagne al Forno",
+                    "11.90",
+                    "Hausgemacht mit Béchamel — normale oder große Portion.",
+                    "lasagne",
+                    variants=[("normale Portion", "11.90"), ("große Portion", "14.90")],
+                    allergens=["gluten", "milch"],
+                ),
                 _p(
                     "Saltimbocca",
                     "18.90",
@@ -393,6 +409,13 @@ RESTAURANT = DemoKit(
                 _p("Mineralwasser 0,5 L", "3.20", "Still oder sprudelnd.", "water,bottle"),
                 _p("Limonata 0,33 L", "3.50", "Italienische Zitronenlimo.", "lemonade"),
                 _p("Bier vom Fass 0,5 L", "4.20", "Frisch gezapft.", "beer", allergens=["gluten"]),
+                _p(
+                    "Cola",
+                    "3.20",
+                    "Eisgekühlt — 0,33 L oder 0,5 L.",
+                    "cola,glass",
+                    variants=[("0,33 L", "3.20"), ("0,5 L", "4.20")],
+                ),
             ],
         ),
         (
@@ -505,7 +528,7 @@ def apply_kit(tenant, key: str) -> bool:
     from apps.promotions.models import Promotion
 
     now = timezone.now()
-    discounts = [20, 15, 25]
+    discounts = [20, 15, 25, 30]
     for i, product in enumerate(created_products[: kit.promo_count]):
         d = discounts[i % len(discounts)]
         promo = Promotion.objects.create(

@@ -3,7 +3,10 @@
 {% block title %}{% trans "Your order" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Your order" %}</h1>
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl md:text-3xl font-bold">{% trans "Your order" %}</h1>
+  <a href="{% url 'storefront-products' %}" class="text-sm font-medium" style="color: var(--accent);">+ {% trans "Add more" %}</a>
+</div>
 
 {% if storefront_table %}
   <div class="mb-4 rounded-lg bg-amber-50 text-amber-900 px-4 py-2 text-sm font-medium">🪑 {% trans "Order for table" %} {{ storefront_table }}</div>
@@ -16,117 +19,126 @@
 {% endif %}
 
 {% if rows or combo_rows %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
-  {% for r in rows %}
-    <div class="flex items-center justify-between gap-3 px-4 py-3">
-      <div class="min-w-0">
-        <p class="font-medium truncate">{{ r.product }}{% if r.variant %} · {{ r.variant.label }}{% endif %}</p>
-        {% if r.options %}<p class="text-xs text-gray-500">{% for o in r.options %}{{ o.label }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
-        <p class="text-xs text-gray-400">{{ r.qty }}× {{ r.unit_price }} {{ currency }}</p>
+<div class="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+  {# Левая колонка: позиции + форма оформления #}
+  <div class="lg:col-span-2 space-y-4">
+    <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+      {% for r in rows %}
+        <div class="flex items-center justify-between gap-3 px-4 py-2.5">
+          <div class="min-w-0">
+            <p class="font-medium truncate">{{ r.product }}{% if r.variant %} · {{ r.variant.label }}{% endif %}</p>
+            {% if r.options %}<p class="text-xs text-gray-500 truncate">{% for o in r.options %}{{ o.label }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+            <p class="text-xs text-gray-400">{{ r.qty }}× {{ r.unit_price }} {{ currency }}</p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="text-sm font-semibold">{{ r.line_total }} {{ currency }}</span>
+            <form method="post" action="{% url 'storefront-cart-remove' %}">
+              {% csrf_token %}<input type="hidden" name="item" value="{{ r.key }}">
+              <button type="submit" class="text-gray-300 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+      {% for cr in combo_rows %}
+        <div class="flex items-center justify-between gap-3 px-4 py-2.5">
+          <div class="min-w-0">
+            <p class="font-medium truncate">🍔 {{ cr.combo.name }}</p>
+            {% if cr.options %}<p class="text-xs text-gray-500 truncate">{% for o in cr.options %}{{ o.product }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+            <p class="text-xs text-gray-400">{{ cr.qty }}× {{ cr.unit_price }} {{ currency }}</p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="text-sm font-semibold">{{ cr.line_total }} {{ currency }}</span>
+            <form method="post" action="{% url 'storefront-combo-remove' %}">
+              {% csrf_token %}<input type="hidden" name="item" value="{{ cr.key }}">
+              <button type="submit" class="text-gray-300 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <form id="checkout-form" method="post" action="{% url 'storefront-checkout' %}" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+      {% csrf_token %}
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+
+      {% if delivery_enabled %}
+        <div>
+          <h2 class="font-semibold mb-2">{% trans "How would you like to get it?" %}</h2>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2 cursor-pointer"><input type="radio" name="fulfillment" value="pickup" checked> {% trans "Pickup" %}</label>
+            <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2 cursor-pointer"><input type="radio" name="fulfillment" value="delivery"> 🚚 {% trans "Delivery" %}</label>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{% blocktrans with f=delivery_fee_eur %}Delivery {{ f }} €{% endblocktrans %}{% if delivery_free_cents %} · {% blocktrans with f=delivery_free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}{% if delivery_min_cents %} · {% blocktrans with m=delivery_min_eur %}min. {{ m }} €{% endblocktrans %}{% endif %}</p>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3 border-t border-gray-100 pt-4">
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium mb-1" for="id_street">{% trans "Street & no. (for delivery)" %}</label>
+            <input id="id_street" name="street" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_plz">{% trans "Postal code" %}</label>
+            <input id="id_plz" name="plz" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_city">{% trans "City" %}</label>
+            <input id="id_city" name="city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="grid sm:grid-cols-2 gap-3 {% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
+          <input id="id_name" name="name" type="text" required value="{{ account_customer.name|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
+          <input id="id_email" name="email" type="email" value="{{ account_customer.email|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
+          <input id="id_phone" name="phone" type="text" value="{{ account_customer.phone|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
+          <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+        </div>
       </div>
-      <form method="post" action="{% url 'storefront-cart-remove' %}">
-        {% csrf_token %}
-        <input type="hidden" name="item" value="{{ r.key }}">
-        <button type="submit" class="text-sm text-gray-400 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
-      </form>
-    </div>
-  {% endfor %}
-  {% for cr in combo_rows %}
-    <div class="flex items-center justify-between gap-3 px-4 py-3">
-      <div class="min-w-0">
-        <p class="font-medium truncate">🍔 {{ cr.combo.name }}</p>
-        {% if cr.options %}<p class="text-xs text-gray-500">{% for o in cr.options %}{{ o.product }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
-        <p class="text-xs text-gray-400">{{ cr.qty }}× {{ cr.unit_price }} {{ currency }}</p>
-      </div>
-      <form method="post" action="{% url 'storefront-combo-remove' %}">
-        {% csrf_token %}
-        <input type="hidden" name="item" value="{{ cr.key }}">
-        <button type="submit" class="text-sm text-gray-400 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
-      </form>
-    </div>
-  {% endfor %}
-  {% if discount %}
-    <div class="flex items-center justify-between px-4 py-2 text-sm text-green-700">
-      <span>{% trans "Discount" %} ({{ promo_code }})</span><span>−{{ discount }} {{ currency }}</span>
-    </div>
-  {% endif %}
-  <div class="flex items-center justify-between px-4 py-3 font-bold">
-    <span>{% trans "Total" %}</span><span>{{ grand_total|default:total }} {{ currency }}</span>
+    </form>
   </div>
+
+  {# Правая колонка: липкая сводка заказа + промокод + CTA #}
+  <aside class="mt-4 lg:mt-0 lg:sticky lg:top-24">
+    <div class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+      {# промокод #}
+      {% if promo_code and discount %}
+        <form method="post" action="{% url 'storefront-cart-code-remove' %}" class="flex items-center justify-between gap-3 text-sm">
+          {% csrf_token %}
+          <span>🏷 <span class="font-mono font-medium">{{ promo_code }}</span></span>
+          <button class="text-gray-400 hover:text-red-500">{% trans "Remove" %}</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'storefront-cart-code' %}" class="flex items-center gap-2">
+          {% csrf_token %}
+          <input name="code" placeholder="{% trans 'Voucher code' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase">
+          <button class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Apply" %}</button>
+        </form>
+        {% if promo_min_not_met %}<p class="text-xs text-amber-600">{% trans "This code needs a higher order total." %}</p>{% endif %}
+      {% endif %}
+
+      <div class="space-y-1.5 border-t border-gray-100 pt-4 text-sm">
+        <div class="flex items-center justify-between text-gray-600"><span>{% trans "Subtotal" %}</span><span>{{ total }} {{ currency }}</span></div>
+        {% if discount %}<div class="flex items-center justify-between text-green-700"><span>{% trans "Discount" %}</span><span>−{{ discount }} {{ currency }}</span></div>{% endif %}
+        <div class="flex items-center justify-between font-bold text-base pt-1"><span>{% trans "Total" %}</span><span>{{ grand_total|default:total }} {{ currency }}</span></div>
+        {% if delivery_enabled %}<p class="text-xs text-gray-400">{% trans "Delivery fee added for delivery orders." %}</p>{% endif %}
+      </div>
+
+      <button type="submit" form="checkout-form" class="w-full text-white rounded-lg px-4 py-3 font-semibold shadow-sm" style="background: var(--accent);">{% trans "Place order" %}</button>
+      <p class="text-xs text-gray-400 text-center">🔒 {% trans "Secure order — your data stays private." %}</p>
+    </div>
+  </aside>
 </div>
 
-{# A4 промокод: ввод/снятие кода #}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-6 max-w-xl">
-  {% if promo_code and discount %}
-    <form method="post" action="{% url 'storefront-cart-code-remove' %}" class="flex items-center justify-between gap-3 text-sm">
-      {% csrf_token %}
-      <span>🏷 {% trans "Code applied" %}: <span class="font-mono font-medium">{{ promo_code }}</span></span>
-      <button class="text-gray-400 hover:text-red-500">{% trans "Remove" %}</button>
-    </form>
-  {% else %}
-    <form method="post" action="{% url 'storefront-cart-code' %}" class="flex items-center gap-2">
-      {% csrf_token %}
-      <input name="code" placeholder="{% trans 'Voucher code' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase">
-      <button class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Apply" %}</button>
-    </form>
-    {% if promo_min_not_met %}<p class="text-xs text-amber-600 mt-1">{% trans "This code needs a higher order total." %}</p>{% endif %}
-  {% endif %}
-</div>
-
-<form method="post" action="{% url 'storefront-checkout' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
-  {% csrf_token %}
-  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
-
-  {% if delivery_enabled %}
-    <div>
-      <h2 class="font-semibold mb-2">{% trans "How would you like to get it?" %}</h2>
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-sm"><input type="radio" name="fulfillment" value="pickup" checked> {% trans "Pick up in store" %}</label>
-        <label class="flex items-center gap-2 text-sm"><input type="radio" name="fulfillment" value="delivery"> 🚚 {% trans "Delivery" %}
-          <span class="text-gray-400">· {% blocktrans with f=delivery_fee_eur %}{{ f }} €{% endblocktrans %}{% if delivery_free_cents %} · {% blocktrans with f=delivery_free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>
-        </label>
-      </div>
-      {% if delivery_min_cents %}<p class="text-xs text-gray-400 mt-1">{% blocktrans with m=delivery_min_eur %}Min. order for delivery: {{ m }} €{% endblocktrans %}</p>{% endif %}
-      {% if delivery_area %}<p class="text-xs text-gray-400">{% trans "Delivery area" %}: {{ delivery_area }}</p>{% endif %}
-    </div>
-    <div class="grid sm:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
-      <div class="sm:col-span-2">
-        <label class="block text-sm font-medium mb-1" for="id_street">{% trans "Street & no. (for delivery)" %}</label>
-        <input id="id_street" name="street" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="id_plz">{% trans "Postal code" %}</label>
-        <input id="id_plz" name="plz" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="id_city">{% trans "City" %}</label>
-        <input id="id_city" name="city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-      </div>
-    </div>
-  {% else %}
-    <h2 class="font-semibold">{% trans "Pick up in store" %}</h2>
-    <p class="text-sm text-gray-500">{% trans "Pay when you pick up. We'll prepare your order." %}</p>
-  {% endif %}
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
-    <input id="id_name" name="name" type="text" required value="{{ account_customer.name|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-  </div>
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-      <input id="id_email" name="email" type="email" value="{{ account_customer.email|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-      <input id="id_phone" name="phone" type="text" value="{{ account_customer.phone|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-  </div>
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
-    <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
-  </div>
-  <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Place order" %}</button>
-</form>
 {% if upsell %}
   <section class="mt-10">
     <h2 class="text-lg font-bold mb-4">{% trans "Goes well with this" %}</h2>
@@ -135,8 +147,12 @@
     </div>
   </section>
 {% endif %}
+
 {% else %}
-<p class="text-gray-500">{% trans "Your order is empty." %}</p>
-<a href="{% url 'storefront-products' %}" class="inline-block mt-4 text-indigo-600 hover:underline">{% trans "Our products" %} →</a>
+<div class="text-center py-16">
+  <div class="text-5xl mb-3">🛒</div>
+  <p class="text-gray-500 mb-4">{% trans "Your order is empty." %}</p>
+  <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg px-5 py-2.5 text-white font-medium" style="background: var(--accent);">{% trans "Browse the menu" %} →</a>
+</div>
 {% endif %}
 {% endblock %}
