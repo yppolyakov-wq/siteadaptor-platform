@@ -103,6 +103,23 @@ def _line_price(product, variant, options=()):
     return base + options_delta(options)
 
 
+def quick_add_form(request, pk):
+    """T2c: фрагмент модалки быстрого заказа (размер+ингредиенты) для карточки.
+
+    Загружается vanilla-fetch'ем по клику «+» на карточке; форма постит в
+    cart_add (как со страницы товара). Гейтинг модуля orders — 404 иначе.
+    """
+    _require_orders_active(request)
+    from apps.catalog.models import Product
+
+    product = get_object_or_404(
+        Product.objects.prefetch_related("modifier_groups__options", "variants"),
+        pk=pk,
+        is_active=True,
+    )
+    return render(request, "storefront/_quick_add.html", {"product": product})
+
+
 @require_POST
 def cart_add(request):
     _require_orders_active(request)

@@ -150,6 +150,30 @@
 
   {% include "storefront/_action_bar.html" %}
 
+  {# T2c: контейнер модалки быстрого заказа (наполняется vanilla-fetch'ем). #}
+  <div id="quick-modal"></div>
+  <script>
+    // T2c: быстрый заказ — «+» на карточке грузит модалку-конфигуратор (fetch,
+    // без HTMX ради CWV). Форма внутри постит в cart_add как со страницы товара.
+    (function () {
+      var modal = document.getElementById("quick-modal");
+      if (!modal) return;
+      function close() { modal.innerHTML = ""; }
+      document.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-quick-url]");
+        if (btn) {
+          e.preventDefault();
+          fetch(btn.dataset.quickUrl, { headers: { "X-Requested-With": "fetch" } })
+            .then(function (r) { return r.ok ? r.text() : ""; })
+            .then(function (html) { if (html) modal.innerHTML = html; });
+          return;
+        }
+        if (e.target.closest("[data-quick-close]")) { close(); }
+      });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    })();
+  </script>
+
   <script>
     // P2b: scroll-reveal через IntersectionObserver (только если движение разрешено).
     (function () {

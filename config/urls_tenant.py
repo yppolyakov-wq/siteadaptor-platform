@@ -110,6 +110,7 @@ urlpatterns = [
     # Click & Collect (Track D / D2a): корзина-сессия + оформление самовывоза.
     path("warenkorb/", orders_public.cart_view, name="storefront-cart"),
     path("warenkorb/add/", orders_public.cart_add, name="storefront-cart-add"),
+    path("warenkorb/quick/<uuid:pk>/", orders_public.quick_add_form, name="storefront-quick-add"),
     path("warenkorb/remove/", orders_public.cart_remove, name="storefront-cart-remove"),
     path("warenkorb/bestellen/", orders_public.checkout, name="storefront-checkout"),
     path("bestellung/<str:code>/", orders_public.order_confirmation, name="storefront-order"),

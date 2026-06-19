@@ -87,6 +87,28 @@ def test_create_order_with_modifier_surcharge_and_snapshot():
     assert order.total == Decimal("19.00")  # 9.50 × 2
 
 
+# --- T2c быстрый заказ (модалка-конфигуратор) --------------------------------------
+
+
+def test_quick_add_modal_renders_form_with_options():
+    product = ProductFactory(base_price=Decimal("9.00"))
+    g = _group(product, "Größe", min_select=1, max_select=1)
+    _opt(g, "Klein", "0")
+    body = public_views.quick_add_form(_req(method="get"), pk=product.pk).content.decode()
+    assert "/warenkorb/add/" in body  # форма постит в cart_add
+    assert "Größe" in body and 'name="mod"' in body
+
+
+def test_quick_add_404_when_orders_inactive():
+    from django.http import Http404
+
+    product = ProductFactory()
+    req = _req(method="get")
+    req.tenant = TenantFactory.build(disabled_modules=["orders"])
+    with pytest.raises(Http404):
+        public_views.quick_add_form(req, pk=product.pk)
+
+
 # --- корзина / оформление ----------------------------------------------------------
 
 

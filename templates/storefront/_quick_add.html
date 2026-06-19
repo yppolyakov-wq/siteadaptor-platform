@@ -1,0 +1,19 @@
+{% load i18n %}{# T2c: содержимое модалки быстрого заказа (vanilla fetch → #quick-modal). Ожидает product. #}
+<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+  <div class="absolute inset-0 bg-black/50" data-quick-close></div>
+  <div class="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-5 max-h-[85vh] overflow-y-auto"
+       role="dialog" aria-modal="true" aria-label="{{ product }}">
+    <button type="button" data-quick-close
+            class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl leading-none" aria-label="{% trans 'Close' %}">&times;</button>
+    <div class="flex items-center gap-3 pr-8">
+      {% with img=product.primary_image %}{% if img %}
+        <img src="{{ img.url }}" alt="{{ product }}" class="w-16 h-16 rounded-xl object-cover" decoding="async">
+      {% endif %}{% endwith %}
+      <div>
+        <h3 class="font-bold leading-tight">{{ product }}</h3>
+        <p class="text-sm font-semibold mt-0.5">{% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}{{ product.base_price }}{% endif %} {{ product.currency }}</p>
+      </div>
+    </div>
+    {% include "storefront/_add_to_cart_form.html" %}
+  </div>
+</div>

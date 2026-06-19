@@ -105,6 +105,7 @@ def modules_nav(request):
         "storefront_jobs_enabled": modules.is_module_active(tenant, "jobs"),
         "storefront_inbox_enabled": modules.is_module_active(tenant, "inbox"),  # M22b
         "storefront_events_enabled": modules.is_module_active(tenant, "events"),  # A6c
+        "storefront_orders_enabled": modules.is_module_active(tenant, "orders"),  # T2c quick-add
         # M20 ④: готовая навигация витрины (стиль/sticky/пункты).
         "storefront_nav": nav_items,
         "storefront_nav_style": nav_style,

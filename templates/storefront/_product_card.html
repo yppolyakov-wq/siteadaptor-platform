@@ -1,30 +1,48 @@
-{% load i18n %}{# Карточка товара витрины (Track C1): ожидает p (Product). #}
-<a href="{% url 'storefront-product' p.pk %}"
-   class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition motion-safe:hover:-translate-y-1">
-  <div class="relative aspect-square bg-gray-100">
-    {% with img=p.primary_image %}
-      {% if img %}
-        <img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async"
-             class="w-full h-full object-cover group-hover:scale-[1.02] transition">
-      {% else %}
-        <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
-        </div>
+{% load i18n %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c: «+» быстрый заказ. #}
+<div class="relative group">
+  <a href="{% url 'storefront-product' p.pk %}"
+     class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition motion-safe:hover:-translate-y-1">
+    <div class="relative aspect-square bg-gray-100">
+      {% with img=p.primary_image %}
+        {% if img %}
+          <img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async"
+               class="w-full h-full object-cover group-hover:scale-[1.02] transition">
+        {% else %}
+          <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% if p.badge_label %}
+        <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
+      {% elif p.is_featured %}
+        <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>
       {% endif %}
-    {% endwith %}
-    {% if p.badge_label %}
-      <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
-    {% elif p.is_featured %}
-      <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>
+      {% if not p.in_stock %}
+        <span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>
+      {% endif %}
+    </div>
+    <div class="p-3 md:p-4">
+      {% if p.category %}<p class="text-xs text-gray-400 mb-0.5">{{ p.category }}</p>{% endif %}
+      <h3 class="font-semibold leading-tight line-clamp-2">{{ p }}</h3>
+      <div class="mt-2 font-bold">{% if p.has_variants %}{% trans "from" %} {{ p.price_from }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency }}</div>
+      {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-xs text-gray-400">{{ gp.0 }} {{ p.currency }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
+    </div>
+  </a>
+  {% if storefront_orders_enabled and p.in_stock %}
+    {% if p.has_variants or p.has_modifiers %}
+      <button type="button" data-quick-url="{% url 'storefront-quick-add' p.pk %}"
+              class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-indigo-600 text-white text-2xl leading-none shadow-lg hover:bg-indigo-700 flex items-center justify-center"
+              aria-label="{% trans 'Add to cart' %}">+</button>
+    {% else %}
+      <form method="post" action="{% url 'storefront-cart-add' %}" class="absolute bottom-3 right-3">
+        {% csrf_token %}
+        <input type="hidden" name="product" value="{{ p.pk }}">
+        <input type="hidden" name="qty" value="1">
+        <button type="submit"
+                class="w-10 h-10 rounded-full bg-indigo-600 text-white text-2xl leading-none shadow-lg hover:bg-indigo-700 flex items-center justify-center"
+                aria-label="{% trans 'Add to cart' %}">+</button>
+      </form>
     {% endif %}
-    {% if not p.in_stock %}
-      <span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>
-    {% endif %}
-  </div>
-  <div class="p-3 md:p-4">
-    {% if p.category %}<p class="text-xs text-gray-400 mb-0.5">{{ p.category }}</p>{% endif %}
-    <h3 class="font-semibold leading-tight line-clamp-2">{{ p }}</h3>
-    <div class="mt-2 font-bold">{% if p.has_variants %}{% trans "from" %} {{ p.price_from }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency }}</div>
-    {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-xs text-gray-400">{{ gp.0 }} {{ p.currency }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
-  </div>
-</a>
+  {% endif %}
+</div>
