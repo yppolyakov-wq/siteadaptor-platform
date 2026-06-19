@@ -7,45 +7,49 @@
 from . import modules
 
 
-def _storefront_actions(tenant):
-    """Действия для липкой мобильной панели (P1): звонок + главное действие
-    по активному модулю + маршрут. Высокий ROI для локального бизнеса
-    (click-to-call, бронь/заказ в один тап). Иконки — emoji, без ассетов."""
+def _storefront_bottom_nav(request, tenant):
+    """Мобильный нижний таб-бар витрины (T2b, развивает P1 action-bar).
+
+    Адаптивный набор по активным модулям (иконка+подпись, emoji — без ассетов):
+    Speisekarte · Aktionen · главное действие (Корзина с бейджем / Termin / …) ·
+    Anruf. Корзина — акцент (kind=primary). Полная настройка владельцем —
+    отдельная итерация (ТЗ «нижнее меню в кабинете», roadmap §Отложено); пока
+    дефолт по доступности. Cap 5 (узкий мобайл).
+    """
     from django.urls import NoReverseMatch, reverse
     from django.utils.translation import gettext as _
 
-    actions = []
+    items = []
+
+    def add(name_or_url, label, icon, *, kind="default", badge=0, is_url=False):
+        url = name_or_url
+        if not is_url:
+            try:
+                url = reverse(name_or_url)
+            except NoReverseMatch:
+                return
+        items.append({"url": url, "label": label, "icon": icon, "kind": kind, "badge": badge})
+
+    add("storefront-products", _("Menu"), "🍽")
+    if modules.is_module_active(tenant, "promotions"):
+        add("/#aktionen", _("Deals"), "🔥", is_url=True)
+
+    # Главное действие по самому релевантному активному модулю.
+    if modules.is_module_active(tenant, "orders"):
+        cart = request.session.get("cart") if hasattr(request, "session") else None
+        count = sum(v for v in cart.values() if isinstance(v, int)) if isinstance(cart, dict) else 0
+        add("storefront-cart", _("Cart"), "🛒", kind="primary", badge=count)
+    elif modules.is_module_active(tenant, "booking"):
+        add("storefront-termin", _("Book"), "📅", kind="primary")
+    elif modules.is_module_active(tenant, "stays"):
+        add("storefront-unterkunft", _("Stay"), "🛏", kind="primary")
+    elif modules.is_module_active(tenant, "events"):
+        add("storefront-events", _("Events"), "🎫", kind="primary")
+
     phone = (getattr(tenant, "public_phone", "") or "").strip()
     if phone:
-        actions.append({"kind": "call", "label": _("Call"), "url": f"tel:{phone}", "icon": "📞"})
-
-    # Одно главное действие по самому релевантному активному модулю.
-    primary = None
-    if modules.is_module_active(tenant, "booking"):
-        primary = ("storefront-termin", _("Book"), "📅")
-    elif modules.is_module_active(tenant, "orders"):
-        primary = ("storefront-products", _("Order"), "🛒")
-    elif modules.is_module_active(tenant, "stays"):
-        primary = ("storefront-unterkunft", _("Stay"), "🛏")
-    elif modules.is_module_active(tenant, "events"):
-        primary = ("storefront-events", _("Events"), "🎫")
-    if primary:
-        try:
-            actions.append(
-                {
-                    "kind": "primary",
-                    "label": primary[1],
-                    "url": reverse(primary[0]),
-                    "icon": primary[2],
-                }
-            )
-        except NoReverseMatch:
-            pass
-
-    map_url = (getattr(tenant, "map_url", "") or "").strip()
-    if map_url:
-        actions.append({"kind": "route", "label": _("Directions"), "url": map_url, "icon": "🗺"})
-    return actions
+        add(f"tel:{phone}", _("Call"), "📞", is_url=True)
+    return items[:5]
 
 
 def _storefront_nav(tenant):
@@ -105,8 +109,8 @@ def modules_nav(request):
         "storefront_nav": nav_items,
         "storefront_nav_style": nav_style,
         "storefront_nav_sticky": nav_sticky,
-        # P1: липкая мобильная панель действий (звонок/бронь/маршрут).
-        "storefront_actions": _storefront_actions(tenant),
+        # P1→T2b: липкий мобильный таб-бар (Menu/Deals/Cart/Call, адаптивно).
+        "storefront_bottom_nav": _storefront_bottom_nav(request, tenant),
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,

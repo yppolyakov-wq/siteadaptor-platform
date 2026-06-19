@@ -1,11 +1,15 @@
-"""P1: липкая мобильная панель действий витрины (_storefront_actions)."""
+"""T2b: липкий мобильный нижний таб-бар витрины (_storefront_bottom_nav)."""
+
+from types import SimpleNamespace
 
 import pytest
 
-from apps.core.context import _storefront_actions
+from apps.core.context import _storefront_bottom_nav
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
+
+ALL_OPTIONAL_OFF = ["promotions", "orders", "booking", "stays", "events"]
 
 
 @pytest.fixture(autouse=True)
@@ -13,40 +17,49 @@ def _tenant_urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"  # storefront-* для reverse()
 
 
-def test_call_and_directions_from_tenant_fields():
+def _req(cart=None):
+    """Лёгкий request: с сессией (для бейджа корзины) или без."""
+    return SimpleNamespace(session={"cart": cart}) if cart is not None else SimpleNamespace()
+
+
+def test_menu_item_always_present():
+    t = TenantFactory.build(business_type="other", disabled_modules=ALL_OPTIONAL_OFF)
+    nav = _storefront_bottom_nav(_req(), t)
+    assert any(i["url"].endswith("/sortiment/") for i in nav)
+
+
+def test_cart_is_primary_with_badge_when_orders_active():
+    t = TenantFactory.build(business_type="restaurant")  # orders активен (disabled=[])
+    nav = _storefront_bottom_nav(_req(cart={"a": 2, "b": 1}), t)
+    primary = [i for i in nav if i["kind"] == "primary"]
+    assert primary and primary[0]["url"].endswith("/warenkorb/")
+    assert primary[0]["badge"] == 3
+
+
+def test_primary_falls_back_to_booking_without_orders():
+    t = TenantFactory.build(business_type="other", disabled_modules=["orders", "stays", "events"])
+    nav = _storefront_bottom_nav(_req(), t)
+    primary = [i for i in nav if i["kind"] == "primary"]
+    assert primary and primary[0]["url"].endswith("/termin/")
+
+
+def test_deals_only_when_promotions_active():
+    off = TenantFactory.build(business_type="other", disabled_modules=ALL_OPTIONAL_OFF)
+    assert not any(i["url"] == "/#aktionen" for i in _storefront_bottom_nav(_req(), off))
+    on = TenantFactory.build(business_type="other", disabled_modules=["orders", "booking"])
+    assert any(i["url"] == "/#aktionen" for i in _storefront_bottom_nav(_req(), on))
+
+
+def test_call_added_when_phone_set():
     t = TenantFactory.build(
         business_type="other",
-        contact_phone="+49 211 1234567",  # public_phone — property поверх него
-        map_url="https://maps.example/abc",
-        disabled_modules=["booking", "orders", "stays", "events"],
+        contact_phone="+49 211 1234567",
+        disabled_modules=ALL_OPTIONAL_OFF,
     )
-    actions = _storefront_actions(t)
-    kinds = {a["kind"] for a in actions}
-    assert "call" in kinds and "route" in kinds
-    call = next(a for a in actions if a["kind"] == "call")
-    assert call["url"] == "tel:+49 211 1234567"
+    nav = _storefront_bottom_nav(_req(), t)
+    assert any(i["url"] == "tel:+49 211 1234567" for i in nav)
 
 
-def test_primary_action_is_booking_when_active():
-    t = TenantFactory.build(business_type="restaurant")
-    primary = [a for a in _storefront_actions(t) if a["kind"] == "primary"]
-    assert len(primary) == 1
-    assert primary[0]["url"].endswith("/termin/")  # booking активен у restaurant
-
-
-def test_primary_falls_back_to_orders_when_no_booking():
-    # retail: booking не рекомендован, orders — да
-    t = TenantFactory.build(business_type="retail", disabled_modules=["booking"])
-    primary = [a for a in _storefront_actions(t) if a["kind"] == "primary"]
-    assert primary and primary[0]["url"].endswith("/sortiment/")
-
-
-def test_no_actions_when_nothing_configured():
-    t = TenantFactory.build(
-        business_type="other",
-        contact_phone="",
-        owner_phone="",
-        map_url="",
-        disabled_modules=["booking", "orders", "stays", "events"],
-    )
-    assert _storefront_actions(t) == []
+def test_capped_at_five():
+    t = TenantFactory.build(business_type="restaurant", contact_phone="+49 1")
+    assert len(_storefront_bottom_nav(_req(cart={"a": 1}), t)) <= 5
