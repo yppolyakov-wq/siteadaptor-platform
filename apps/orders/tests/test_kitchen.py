@@ -66,7 +66,7 @@ def test_kitchen_action_accept_then_ready():
 
 def test_kitchen_board_shows_order_note():
     """T1: комментарий к заказу (повару) виден на KDS-доске."""
-    order = services.create_order(
+    services.create_order(
         items=[(ProductFactory(name={"de": "Pizza"}), 1)],
         name="Kunde K",
         email=f"k-{uuid.uuid4().hex[:8]}@test.de",
