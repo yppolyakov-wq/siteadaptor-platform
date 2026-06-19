@@ -78,4 +78,10 @@ def account_home(request):
     customer = auth.current_customer(request)
     if customer is None:
         return redirect("account-login")
-    return render(request, "konto/home.html", {"customer": customer})
+    from .account_data import sections_for
+
+    return render(
+        request,
+        "konto/home.html",
+        {"customer": customer, "sections": sections_for(request, customer)},
+    )
