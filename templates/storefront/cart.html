@@ -15,7 +15,7 @@
   {% endfor %}
 {% endif %}
 
-{% if rows %}
+{% if rows or combo_rows %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
   {% for r in rows %}
     <div class="flex items-center justify-between gap-3 px-4 py-3">
@@ -27,6 +27,20 @@
       <form method="post" action="{% url 'storefront-cart-remove' %}">
         {% csrf_token %}
         <input type="hidden" name="item" value="{{ r.key }}">
+        <button type="submit" class="text-sm text-gray-400 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
+      </form>
+    </div>
+  {% endfor %}
+  {% for cr in combo_rows %}
+    <div class="flex items-center justify-between gap-3 px-4 py-3">
+      <div class="min-w-0">
+        <p class="font-medium truncate">🍔 {{ cr.combo.name }}</p>
+        {% if cr.options %}<p class="text-xs text-gray-500">{% for o in cr.options %}{{ o.product }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+        <p class="text-xs text-gray-400">{{ cr.qty }}× {{ cr.unit_price }} {{ currency }}</p>
+      </div>
+      <form method="post" action="{% url 'storefront-combo-remove' %}">
+        {% csrf_token %}
+        <input type="hidden" name="item" value="{{ cr.key }}">
         <button type="submit" class="text-sm text-gray-400 hover:text-red-500" aria-label="{% trans 'Remove' %}">✕</button>
       </form>
     </div>

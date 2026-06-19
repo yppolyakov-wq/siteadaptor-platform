@@ -100,8 +100,21 @@ class Order(TimestampedModel):
 
 class OrderItem(TimestampedModel):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    # null = комбо-позиция (товара нет, есть combo). Иначе обычный товар.
     product = models.ForeignKey(
-        "catalog.Product", on_delete=models.PROTECT, related_name="order_items"
+        "catalog.Product",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="order_items",
+    )
+    # Комбо-набор (A4): позиция-набор; состав — снимок в modifiers.
+    combo = models.ForeignKey(
+        "catalog.Combo",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_items",
     )
     # Вариант (R1): null = товар без вариантов. label — снимок (как title/price).
     variant = models.ForeignKey(

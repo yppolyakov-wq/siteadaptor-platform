@@ -150,6 +150,7 @@ def create_order(
     fulfillment=Order.FULFILLMENT_PICKUP,
     shipping_address="",
     shipping_cents=0,
+    combos=(),
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -168,15 +169,18 @@ def create_order(
         else:
             product, variant, qty, options = item[0], None, item[1], []
         norm.append((product, variant, int(qty), list(options)))
-    if not norm:
+    # Комбо-набор (A4): (combo, [options], qty). Снимок состава — в modifiers.
+    combo_norm = [(c, list(opts), int(q)) for c, opts, q in combos]
+    if not norm and not combo_norm:
         raise EmptyOrder()
-    if any(qty < 1 for _p, _v, qty, _o in norm):
+    if any(qty < 1 for _p, _v, qty, _o in norm) or any(q < 1 for _c, _o, q in combo_norm):
         raise ValueError("qty must be >= 1")
 
     _reserve_stock(norm)  # R3: атомарное списание; OutOfStock → откат, заказа нет
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     delivery = fulfillment == Order.FULFILLMENT_DELIVERY
     shipping = int(shipping_cents) if delivery else 0
+    currency = norm[0][0].currency if norm else (combo_norm[0][0].currency or "EUR")
     order = Order.objects.create(
         customer=customer,
         reference_code=_unique_order_code(),
@@ -185,7 +189,7 @@ def create_order(
         pickup_slot=pickup_slot,
         source_channel=(source_channel or "")[:50],
         total=Decimal("0"),
-        currency=norm[0][0].currency,
+        currency=currency,
         fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
         shipping_address=(shipping_address or "").strip()[:1000] if delivery else "",
         shipping_cents=shipping,
@@ -212,6 +216,22 @@ def create_order(
             modifiers=modifiers,
         )
         total += unit_price * qty
+    # Комбо-позиции (A4): одна OrderItem на набор, product=None, состав в modifiers.
+    if combo_norm:
+        from apps.catalog.combos import combo_price, combo_snapshot
+
+        for combo, options, qty in combo_norm:
+            unit_price = combo_price(combo, options)
+            OrderItem.objects.create(
+                order=order,
+                product=None,
+                combo=combo,
+                qty=qty,
+                unit_price=unit_price,
+                title_snapshot=str(combo.name)[:200],
+                modifiers=combo_snapshot(combo, options),
+            )
+            total += unit_price * qty
     order.total = total + Decimal(shipping) / 100  # G4: доставка в итог
     order.save(update_fields=["total", "updated_at"])
     # письма клиенту/владельцу — Notification в этой же транзакции,

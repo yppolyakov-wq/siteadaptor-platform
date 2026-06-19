@@ -112,6 +112,11 @@ urlpatterns = [
     path("warenkorb/add/", orders_public.cart_add, name="storefront-cart-add"),
     path("warenkorb/quick/<uuid:pk>/", orders_public.quick_add_form, name="storefront-quick-add"),
     path("warenkorb/remove/", orders_public.cart_remove, name="storefront-cart-remove"),
+    path("warenkorb/combo-remove/", orders_public.combo_remove, name="storefront-combo-remove"),
+    # Комбо-наборы (A4): витрина + конфигуратор → корзина.
+    path("kombi/", orders_public.combo_list_public, name="storefront-combos"),
+    path("kombi/add/", orders_public.combo_add, name="storefront-combo-add"),
+    path("kombi/<uuid:pk>/", orders_public.combo_detail_public, name="storefront-combo"),
     path("warenkorb/bestellen/", orders_public.checkout, name="storefront-checkout"),
     path("bestellung/<str:code>/", orders_public.order_confirmation, name="storefront-order"),
     # Запись по времени (Track D / D3b): ресурс → день → слот → форма.

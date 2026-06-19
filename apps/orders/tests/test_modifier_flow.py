@@ -109,6 +109,49 @@ def test_quick_add_404_when_orders_inactive():
         public_views.quick_add_form(req, pk=product.pk)
 
 
+# --- A4 комбо-наборы (витрина/корзина/заказ) ---------------------------------------
+
+
+def _combo_with_drink():
+    from apps.catalog.models import Combo, ComboGroup, ComboOption
+
+    combo = Combo.objects.create(name="Menü 1", price=Decimal("9.90"))
+    g = ComboGroup.objects.create(combo=combo, label="Getränk", min_select=1, max_select=1)
+    cola = ComboOption.objects.create(
+        group=g, product=ProductFactory(), price_delta=Decimal("1.00")
+    )
+    return combo, cola
+
+
+def test_combo_detail_renders_options():
+    combo, _ = _combo_with_drink()
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert "Getränk" in body
+
+
+def test_combo_add_and_checkout_creates_combo_line():
+    combo, cola = _combo_with_drink()
+    add = _req(data={"combo": str(combo.pk), "opt": [str(cola.pk)], "qty": "1"})
+    public_views.combo_add(add)
+    cc = add.session["combo_cart"]
+    assert cc  # комбо добавлено в сессию
+
+    public_views.checkout(_req(data={"name": "Kunde"}, session={"combo_cart": cc}))
+    order = Order.objects.get()
+    item = order.items.get()
+    assert item.product_id is None and item.combo_id == combo.pk
+    assert item.unit_price == Decimal("10.90")  # 9,90 + 1,00 (Groß/Cola)
+    assert order.total == Decimal("10.90")
+    assert len(item.modifiers) == 1  # снимок состава
+
+
+def test_combo_add_missing_required_choice_blocks():
+    combo, _ = _combo_with_drink()  # группа min_select=1
+    add = _req(data={"combo": str(combo.pk), "qty": "1"})  # без выбора напитка
+    public_views.combo_add(add)
+    assert add.session.get("combo_cart", {}) == {}  # не добавлено
+
+
 # --- корзина / оформление ----------------------------------------------------------
 
 

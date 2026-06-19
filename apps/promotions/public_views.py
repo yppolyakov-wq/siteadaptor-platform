@@ -111,6 +111,12 @@ def product_list(request):
         products = products.filter(category=category)
     categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
     page = paginate(products, order_field="created_at", limit=24, cursor=request.GET.get("cursor"))
+    # A4: ссылка на комбо-наборы, если они есть и модуль orders активен.
+    from apps.catalog.models import Combo
+
+    has_combos = (
+        request.tenant.is_module_active("orders") and Combo.objects.filter(is_active=True).exists()
+    )
     return render(
         request,
         "storefront/products.html",
@@ -118,6 +124,7 @@ def product_list(request):
             "page": page,
             "categories": categories,
             "current_category": category,
+            "has_combos": has_combos,
         },
     )
 

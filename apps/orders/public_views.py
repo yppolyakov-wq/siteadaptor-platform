@@ -8,6 +8,7 @@
 
 import stripe
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -103,6 +104,47 @@ def _line_price(product, variant, options=()):
     return base + options_delta(options)
 
 
+# --- Комбо-наборы (A4) в корзине -------------------------------------------------
+
+COMBO_SESSION_KEY = "combo_cart"
+
+
+def _combo_cart(request) -> dict:
+    cc = request.session.get(COMBO_SESSION_KEY)
+    return cc if isinstance(cc, dict) else {}
+
+
+def _combo_key(combo, options) -> str:
+    """«comboid» или «comboid|o1,o2» — разные наборы опций = разные позиции."""
+    base = str(combo.pk)
+    if not options:
+        return base
+    return base + "|" + ",".join(sorted(str(o.pk) for o in options))
+
+
+def _split_combo_key(key):
+    parts = key.split("|")
+    opt_ids = parts[1].split(",") if len(parts) > 1 and parts[1] else []
+    return parts[0], opt_ids
+
+
+def _combo_items(request):
+    """[(combo, [options], qty)] из сессии; мёртвые/невалидные ключи отбрасываем."""
+    from apps.catalog.combos import get_active, options_from_ids
+
+    out = []
+    for key, qty in _combo_cart(request).items():
+        cid, opt_ids = _split_combo_key(key)
+        try:
+            combo = get_active(cid)
+        except (ValueError, ValidationError):
+            combo = None
+        if combo is None:
+            continue
+        out.append((combo, options_from_ids(combo, opt_ids), qty))
+    return out
+
+
 def quick_add_form(request, pk):
     """T2c: фрагмент модалки быстрого заказа (размер+ингредиенты) для карточки.
 
@@ -120,10 +162,61 @@ def quick_add_form(request, pk):
     return render(request, "storefront/_quick_add.html", {"product": product})
 
 
+def combo_list_public(request):
+    """Витрина комбо-наборов (A4): /kombi/. Гейтинг orders → 404."""
+    _require_orders_active(request)
+    from apps.catalog.combos import active_combos
+
+    return render(request, "storefront/combos.html", {"combos": active_combos()})
+
+
+def combo_detail_public(request, pk):
+    """Конфигуратор набора (выбор напитка/гарнира) → POST в combo_add."""
+    _require_orders_active(request)
+    from apps.catalog.combos import get_active
+
+    combo = get_active(pk)
+    if combo is None:
+        raise Http404
+    return render(request, "storefront/combo_detail.html", {"combo": combo})
+
+
+@require_POST
+def combo_add(request):
+    _require_orders_active(request)
+    from apps.catalog.combos import get_active, validate_selection
+
+    combo = get_active(request.POST.get("combo"))
+    if combo is None:
+        raise Http404
+    options, error = validate_selection(combo, request.POST.getlist("opt"))
+    if error:
+        messages.error(request, error)
+        return redirect("storefront-combo", pk=combo.pk)
+    try:
+        qty = max(1, min(int(request.POST.get("qty", "1")), MAX_QTY))
+    except (TypeError, ValueError):
+        qty = 1
+    key = _combo_key(combo, options)
+    cc = _combo_cart(request)
+    cc[key] = min(cc.get(key, 0) + qty, MAX_QTY)
+    request.session[COMBO_SESSION_KEY] = cc
+    messages.success(request, _("Added to your order."))
+    return redirect("storefront-cart")
+
+
+@require_POST
+def combo_remove(request):
+    _require_orders_active(request)
+    cc = _combo_cart(request)
+    cc.pop(request.POST.get("item", ""), None)
+    request.session[COMBO_SESSION_KEY] = cc
+    return redirect("storefront-cart")
+
+
 @require_POST
 def cart_add(request):
     _require_orders_active(request)
-    from django.core.exceptions import ValidationError
 
     from apps.catalog.models import Product, ProductVariant
 
@@ -189,10 +282,29 @@ def cart_view(request):
         }
         for product, variant, options, qty in items
     ]
-    total = sum((r["line_total"] for r in rows), start=Decimal("0"))
+    # Комбо-наборы (A4): отдельные строки корзины со снимком состава.
+    from apps.catalog.combos import combo_price
+
+    combo_rows = [
+        {
+            "combo": combo,
+            "options": options,
+            "qty": qty,
+            "key": _combo_key(combo, options),
+            "unit_price": combo_price(combo, options),
+            "line_total": combo_price(combo, options) * qty,
+        }
+        for combo, options, qty in _combo_items(request)
+    ]
+    total = sum((r["line_total"] for r in rows + combo_rows), start=Decimal("0"))
     tenant = getattr(request, "tenant", None)
     delivery_enabled = getattr(tenant, "delivery_enabled", False)
-    ctx = {"rows": rows, "total": total, "currency": items[0][0].currency if items else "EUR"}
+    currency = (
+        items[0][0].currency
+        if items
+        else (combo_rows[0]["combo"].currency if combo_rows else "EUR")
+    )
+    ctx = {"rows": rows, "combo_rows": combo_rows, "total": total, "currency": currency}
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
         from apps.catalog.models import Product
@@ -233,9 +345,12 @@ def checkout(request):
     from decimal import Decimal
 
     items = _cart_items(request)
-    subtotal_cents = int(
-        sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0")) * 100
-    )
+    from apps.catalog.combos import combo_price
+
+    combo_items = _combo_items(request)
+    subtotal = sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0"))
+    subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
+    subtotal_cents = int(subtotal * 100)
     delivery = request.POST.get("fulfillment") == "delivery" and getattr(
         tenant, "delivery_enabled", False
     )
@@ -277,9 +392,11 @@ def checkout(request):
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
     order_items = [(p, v, q, o) for p, v, o, q in _cart_items(request)]
+    order_combos = [(c, o, q) for c, o, q in combo_items]
     try:
         order = create_order(
             items=order_items,
+            combos=order_combos,
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
@@ -300,6 +417,7 @@ def checkout(request):
         )
         return redirect("storefront-cart")
     request.session[CART_SESSION_KEY] = {}
+    request.session[COMBO_SESSION_KEY] = {}
 
     # Онлайн-предоплата (P2.5c): если включена у бизнеса и оплата подключена — на
     # Stripe Checkout (на счёт бизнеса). Иначе — оплата при получении (как раньше).
