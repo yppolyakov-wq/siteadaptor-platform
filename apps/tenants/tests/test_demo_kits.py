@@ -2,7 +2,13 @@
 
 import pytest
 
-from apps.catalog.models import Category, Product, ProductVariant
+from apps.catalog.models import (
+    Category,
+    ModifierGroup,
+    ModifierOption,
+    Product,
+    ProductVariant,
+)
 from apps.promotions.models import Promotion
 from apps.tenants import demo_kits
 from apps.tenants.tests.factories import TenantFactory
@@ -47,6 +53,44 @@ def test_apply_restaurant_kit_builds_full_site():
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert {"hero", "products", "promotions", "gallery", "faq", "cta"} <= enabled
     assert cfg["nav"]["style"] == "centered"
+
+
+def test_restaurant_kit_seeds_pizza_modifiers():
+    """Конструктор блюда (A4): пицца получает группы модификаторов с опциями."""
+    tenant = _tenant()
+    demo_kits.apply_kit(tenant, "restaurant")
+
+    pizza = Product.objects.get(name__de="Pizza Margherita")
+    groups = list(pizza.modifier_groups.filter(is_active=True).order_by("sort_order"))
+    names = [g.name for g in groups]
+    assert "Teig" in names and "Beläge hinzufügen" in names
+    # обязательная одиночная группа Teig (radio), множественная Beläge
+    teig = next(g for g in groups if g.name == "Teig")
+    assert teig.is_required and not teig.is_multi
+    belaege = next(g for g in groups if g.name == "Beläge hinzufügen")
+    assert belaege.is_multi and not belaege.is_required
+    # надбавка цены у опции (Dick +1,00)
+    assert ModifierOption.objects.filter(group=teig, label="Dick", price_delta=1).exists()
+    # стейк тоже имеет конструктор (Beilage обязательна)
+    steak = Product.objects.get(name__de="Rumpsteak")
+    assert steak.modifier_groups.filter(name="Beilage", min_select__gte=1).exists()
+    assert ModifierGroup.objects.filter(is_active=True).count() >= 5
+
+
+def test_restaurant_kit_enables_orders_and_delivery():
+    """Демо-ресторан показывает онлайн-заказ: модуль orders включён + доставка с зонами."""
+    tenant = _tenant()
+    demo_kits.apply_kit(tenant, "restaurant")
+
+    assert "orders" not in (tenant.disabled_modules or [])
+    assert tenant.is_module_active("orders")
+    assert tenant.delivery_enabled is True
+    assert tenant.delivery_fee_cents == 290
+    assert tenant.delivery_free_cents == 2500
+    assert tenant.delivery_min_cents == 1500
+    # PLZ-зоны A2a
+    plz = {z["plz"] for z in tenant.delivery_zones}
+    assert {"40721", "40724"} <= plz
 
 
 def test_restaurant_kit_seeds_bookable_table():

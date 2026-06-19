@@ -69,10 +69,16 @@ class DemoKit:
     # booking-ресурсы (стол/мастер/зал) с недельным расписанием — чтобы /termin/
     # сразу показывал слоты. dict: name/type/capacity/counts_party/start/end/slot.
     resources: list = field(default_factory=list)
+    # Модули, которые кит включает у демо-тенанта сверх пресета по типу (orders,
+    # events, jobs … — иначе демо не покажет онлайн-заказ/события/кейтеринг).
+    enable_modules: list = field(default_factory=list)
+    # Конфиг доставки (Click&Collect + Lieferung) — задаётся на Tenant при apply_kit.
+    delivery: dict = field(default_factory=dict)
 
 
-# Товар: dict {name, price, desc, img(keyword), variants?[(label,price)], allergens?[codes]}
-def _p(name, price, desc, img, variants=None, allergens=None):
+# Товар: dict {name, price, desc, img(keyword), variants?[(label,price)],
+#   allergens?[codes], modifiers?[{name,min,max,options:[(label,delta)]}]}
+def _p(name, price, desc, img, variants=None, allergens=None, modifiers=None):
     return {
         "name": name,
         "price": price,
@@ -80,7 +86,44 @@ def _p(name, price, desc, img, variants=None, allergens=None):
         "img": img,
         "variants": variants or [],
         "allergens": allergens or [],
+        "modifiers": modifiers or [],
     }
+
+
+# Конструктор блюда (A4): группа модификаторов.
+#   min/max — правило выбора (min>=1 обязательная; max==1 radio; max>1/0 checkbox).
+def _mg(name, options, *, min=0, max=1):
+    return {"name": name, "min": min, "max": max, "options": options}
+
+
+# Готовые наборы модификаторов для пиццы (Teigdicke / Extra Käse / Beläge / Ohne).
+PIZZA_MODIFIERS = [
+    _mg(
+        "Teig",
+        [("Klassisch", "0.00"), ("Dünn", "0.00"), ("Dick", "1.00")],
+        min=1,
+        max=1,
+    ),
+    _mg("Extra Käse", [("Extra Käse", "1.50")], min=0, max=1),
+    _mg(
+        "Beläge hinzufügen",
+        [
+            ("Pilze", "1.00"),
+            ("Schinken", "1.50"),
+            ("Paprika", "1.00"),
+            ("Oliven", "1.00"),
+            ("Rucola", "1.00"),
+        ],
+        min=0,
+        max=0,  # без верхнего предела
+    ),
+    _mg(
+        "Ohne",
+        [("ohne Zwiebeln", "0.00"), ("ohne Knoblauch", "0.00")],
+        min=0,
+        max=0,
+    ),
+]
 
 
 RESTAURANT = DemoKit(
@@ -128,6 +171,20 @@ RESTAURANT = DemoKit(
         ("Sofia Conti", "Patissière", "pastry,chef"),
     ],
     trust={"since": "1998", "marks": ["Slow Food", "Regional", "Familienbetrieb"]},
+    enable_modules=["orders"],  # онлайн-заказ + доставка (events/jobs — T0-2)
+    delivery={
+        "enabled": True,
+        "fee_cents": 290,  # 2,90 € плоско
+        "free_cents": 2500,  # бесплатно от 25 €
+        "min_cents": 1500,  # Mindestbestellwert 15 €
+        "pickup_min_cents": 0,
+        "area": "Wir liefern im Umkreis von 5 km um Hilden.",
+        # PLZ-зоны (A2a): ближняя бесплатно, дальняя дороже.
+        "zones": [
+            {"plz": "40721", "fee_cents": 0, "free_cents": 0, "min_cents": 1500},
+            {"plz": "40724", "fee_cents": 390, "free_cents": 3000, "min_cents": 2000},
+        ],
+    },
     cta={
         "title": "Hunger bekommen?",
         "text": "Bestellen Sie online zur Abholung oder reservieren Sie einen Tisch.",
@@ -200,6 +257,7 @@ RESTAURANT = DemoKit(
                     "pizza,margherita",
                     variants=[("klein 26cm", "9.50"), ("groß 32cm", "12.50")],
                     allergens=["gluten", "milch"],
+                    modifiers=PIZZA_MODIFIERS,
                 ),
                 _p(
                     "Pizza Salami",
@@ -208,6 +266,7 @@ RESTAURANT = DemoKit(
                     "pizza,salami",
                     variants=[("klein 26cm", "11.50"), ("groß 32cm", "14.50")],
                     allergens=["gluten", "milch"],
+                    modifiers=PIZZA_MODIFIERS,
                 ),
                 _p(
                     "Pasta Bolognese",
@@ -238,7 +297,31 @@ RESTAURANT = DemoKit(
                     "saltimbocca",
                     allergens=["milch"],
                 ),
-                _p("Rumpsteak", "23.90", "250 g mit Rosmarinkartoffeln.", "steak", allergens=[]),
+                _p(
+                    "Rumpsteak",
+                    "23.90",
+                    "250 g mit Rosmarinkartoffeln.",
+                    "steak",
+                    allergens=[],
+                    modifiers=[
+                        _mg(
+                            "Beilage",
+                            [
+                                ("Rosmarinkartoffeln", "0.00"),
+                                ("Pommes", "0.00"),
+                                ("Beilagensalat", "1.50"),
+                            ],
+                            min=1,
+                            max=1,
+                        ),
+                        _mg(
+                            "Garstufe",
+                            [("Medium", "0.00"), ("Medium Well", "0.00"), ("Well Done", "0.00")],
+                            min=1,
+                            max=1,
+                        ),
+                    ],
+                ),
                 _p(
                     "Lachsfilet",
                     "19.50",
@@ -267,6 +350,7 @@ RESTAURANT = DemoKit(
                     "pizza,vegetables",
                     variants=[("klein 26cm", "11.90"), ("groß 32cm", "14.90")],
                     allergens=["gluten", "milch"],
+                    modifiers=PIZZA_MODIFIERS,
                 ),
             ],
         ),
@@ -352,7 +436,13 @@ def apply_kit(tenant, key: str) -> bool:
     if kit is None:
         return False
 
-    from apps.catalog.models import Category, Product, ProductVariant
+    from apps.catalog.models import (
+        Category,
+        ModifierGroup,
+        ModifierOption,
+        Product,
+        ProductVariant,
+    )
 
     lock = 1
     refs = {"kit": key, "categories": [], "products": [], "promotions": []}
@@ -379,6 +469,19 @@ def apply_kit(tenant, key: str) -> bool:
                 ProductVariant.objects.create(
                     product=product, label=vlabel, price=Decimal(vprice), sort_order=vsort
                 )
+            for gsort, group in enumerate(item.get("modifiers", [])):
+                mg = ModifierGroup.objects.create(
+                    product=product,
+                    name=group["name"],
+                    min_select=group.get("min", 0),
+                    max_select=group.get("max", 1),
+                    sort_order=gsort,
+                    is_active=True,
+                )
+                for osort, (olabel, odelta) in enumerate(group["options"]):
+                    ModifierOption.objects.create(
+                        group=mg, label=olabel, price_delta=Decimal(odelta), sort_order=osort
+                    )
             created_products.append(product)
             refs["products"].append(str(product.pk))
 
@@ -401,6 +504,13 @@ def apply_kit(tenant, key: str) -> bool:
             metadata={"demo": True},
         )
         refs["promotions"].append(str(promo.pk))
+
+    # Включаем нужные киту модули (orders/events/jobs…) сверх пресета по типу —
+    # в памяти ДО сидера (он гейтится по is_module_active) и в final save.
+    if kit.enable_modules:
+        tenant.disabled_modules = [
+            m for m in (tenant.disabled_modules or []) if m not in kit.enable_modules
+        ]
 
     _seed_kit_modules(tenant, kit, refs)
 
@@ -434,6 +544,26 @@ def apply_kit(tenant, key: str) -> bool:
     tenant.site_config = cfg
     tenant.primary_color = kit.accent
     update_fields = ["site_config", "primary_color", "updated_at"]
+    if kit.enable_modules:
+        update_fields.append("disabled_modules")
+    if kit.delivery.get("enabled"):
+        d = kit.delivery
+        tenant.delivery_enabled = True
+        tenant.delivery_fee_cents = d.get("fee_cents", 0)
+        tenant.delivery_free_cents = d.get("free_cents", 0)
+        tenant.delivery_min_cents = d.get("min_cents", 0)
+        tenant.delivery_area = d.get("area", "")
+        tenant.delivery_zones = d.get("zones", [])
+        tenant.pickup_min_cents = d.get("pickup_min_cents", 0)
+        update_fields += [
+            "delivery_enabled",
+            "delivery_fee_cents",
+            "delivery_free_cents",
+            "delivery_min_cents",
+            "delivery_area",
+            "delivery_zones",
+            "pickup_min_cents",
+        ]
     if kit.address:
         tenant.address = kit.address
         update_fields.append("address")
