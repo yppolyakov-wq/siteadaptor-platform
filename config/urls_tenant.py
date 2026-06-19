@@ -101,6 +101,8 @@ urlpatterns = [
     path("promotions/", include("apps.promotions.urls")),
     # CRM-минимум «Клиенты» (Track C3).
     path("crm/", include("apps.crm.urls")),
+    # ЛК клиента на витрине (CA1): magic-link вход (гейтинг модуля во вьюхах).
+    path("konto/", include("apps.account.urls")),
     # --- Публичная витрина (без логина), на корне субдомена ---
     path("", public_views.storefront_home, name="storefront-home"),
     path("lang/", public_views.set_language, name="storefront-set-language"),

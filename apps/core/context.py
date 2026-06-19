@@ -46,6 +46,8 @@ def _storefront_bottom_nav(request, tenant):
     elif modules.is_module_active(tenant, "events"):
         add("storefront-events", _("Events"), "🎫", kind="primary")
 
+    if modules.is_module_active(tenant, "customer_account"):
+        add("account-home", _("Account"), "👤")
     phone = (getattr(tenant, "public_phone", "") or "").strip()
     if phone:
         add(f"tel:{phone}", _("Call"), "📞", is_url=True)
@@ -106,6 +108,8 @@ def modules_nav(request):
         "storefront_inbox_enabled": modules.is_module_active(tenant, "inbox"),  # M22b
         "storefront_events_enabled": modules.is_module_active(tenant, "events"),  # A6c
         "storefront_orders_enabled": modules.is_module_active(tenant, "orders"),  # T2c quick-add
+        # CA1: ЛК клиента (ссылка «Mein Konto» в шапке/таб-баре при активном модуле).
+        "storefront_account_enabled": modules.is_module_active(tenant, "customer_account"),
         # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
         "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
         # M20 ④: готовая навигация витрины (стиль/sticky/пункты).

@@ -239,6 +239,7 @@ def test_gating_skips_public_schema():
                 "finance",
                 "telegram",
                 "events",
+                "customer_account",
             },
         ),
     ],
@@ -306,6 +307,7 @@ class TestModulesView:
             "inbox",
             "telegram",
             "events",
+            "customer_account",
         }
         # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
         response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
@@ -324,6 +326,7 @@ class TestModulesView:
             "inbox",
             "telegram",
             "events",
+            "customer_account",
         }
         assert modules.is_module_active(tenant, "catalog")  # core живёт
 

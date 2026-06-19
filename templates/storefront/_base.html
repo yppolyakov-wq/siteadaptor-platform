@@ -72,6 +72,9 @@
             <a href="{% url 'storefront-set-language' %}?lang=en&next={{ request.get_full_path|urlencode }}"
                class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'en' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="en">EN</a>
           </nav>
+          {% if storefront_account_enabled %}
+            <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900" aria-label="{% trans 'My account' %}">👤 <span>{% trans "Account" %}</span></a>
+          {% endif %}
           {# Бургер: на мобильном всегда, на десктопе — только в стиле minimal. #}
           <button id="sf-nav-toggle" type="button" aria-label="{% trans 'Menu' %}" aria-expanded="false"
                   class="text-2xl leading-none text-gray-700 {% if style != 'minimal' %}sm:hidden{% endif %}">☰</button>

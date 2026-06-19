@@ -241,6 +241,30 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram.",
     ),
     ModuleSpec(
+        key="customer_account",
+        label_de="Kundenkonto (Login für Kunden)",
+        icon="👤",
+        # Витринный модуль: в кабинете нет своего пункта; /konto/ гейтится во
+        # вьюхах (не ModuleGatingMiddleware). Default ВКЛ у транзакционных типов
+        # (recommended_for), ВЫКЛ у чистых витрин (other → default_disabled_for).
+        nav_items=(),
+        url_prefixes=(),
+        recommended_for=(
+            "bakery",
+            "butcher",
+            "grocery",
+            "cafe",
+            "restaurant",
+            "retail",
+            "clothing",
+            "hotel",
+            "tour_operator",
+        ),
+        suited_for=("other",),
+        description_de="Kunden melden sich per E-Mail-Link an und sehen Bestellungen, "
+        "Termine, Rechnungen und Bonuskarten.",
+    ),
+    ModuleSpec(
         key="settings",
         label_de="Einstellungen",
         icon="⚙️",

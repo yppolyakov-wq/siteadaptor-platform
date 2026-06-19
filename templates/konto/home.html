@@ -1,0 +1,14 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "My account" %} · {{ request.tenant.name }}{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl md:text-3xl font-bold">{% trans "My account" %}</h1>
+  <form method="post" action="{% url 'account-logout' %}">{% csrf_token %}
+    <button class="text-sm text-gray-500 hover:text-gray-800">{% trans "Log out" %}</button>
+  </form>
+</div>
+<p class="text-gray-600 mb-6">{% blocktrans with e=customer.email %}Signed in as {{ e }}{% endblocktrans %}</p>
+{# CA2 наполнит разделами (заказы/брони/счета/…) по активным модулям. #}
+{% block account_sections %}{% endblock %}
+{% endblock %}

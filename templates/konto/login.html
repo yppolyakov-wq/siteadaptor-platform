@@ -1,0 +1,17 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "My account" %} · {{ request.tenant.name }}{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+  <h1 class="text-2xl font-bold mb-2">{% trans "My account" %}</h1>
+  <p class="text-gray-600 mb-6">{% trans "Enter your e-mail — we'll send you a login link. No password needed." %}</p>
+  {% if messages %}{% for m in messages %}<div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>{% endfor %}{% endif %}
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+    {% csrf_token %}
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <input name="email" type="email" required placeholder="{% trans 'Your e-mail' %}"
+           class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+    <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Send login link" %}</button>
+  </form>
+</div>
+{% endblock %}
