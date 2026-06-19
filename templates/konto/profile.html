@@ -1,0 +1,52 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Profile & data" %} · {{ request.tenant.name }}{% endblock %}
+{% block content %}
+<a href="{% url 'account-home' %}" class="text-sm text-gray-500">&larr; {% trans "My account" %}</a>
+<h1 class="text-2xl md:text-3xl font-bold mt-2 mb-6">{% trans "Profile & data" %}</h1>
+
+{% if messages %}{% for m in messages %}
+  <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+{% endfor %}{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-lg">
+  {% csrf_token %}
+  <div>
+    <label class="block text-sm font-medium mb-1">{% trans "E-mail" %}</label>
+    <input value="{{ customer.email }}" disabled class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-gray-500">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %}</label>
+    <input id="id_name" name="name" value="{{ customer.name }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
+    <input id="id_phone" name="phone" value="{{ customer.phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+  </div>
+  <label class="flex items-center gap-2 text-sm">
+    <input type="checkbox" name="marketing" {% if customer.marketing_opt_in and not customer.unsubscribed %}checked{% endif %} class="rounded border-gray-300">
+    {% trans "Send me offers and news by e-mail" %}
+  </label>
+  <button type="submit" class="text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Save" %}</button>
+</form>
+
+{% if telegram_link %}
+<div class="bg-white rounded-2xl shadow-sm p-6 mt-6 max-w-lg">
+  <h2 class="font-semibold mb-2">{% trans "Telegram" %}</h2>
+  <p class="text-sm text-gray-600 mb-3">{% trans "Get your order and booking updates in Telegram." %}</p>
+  <a href="{{ telegram_link }}" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">✈️ {% trans "Connect Telegram" %}</a>
+</div>
+{% endif %}
+
+<div class="bg-white rounded-2xl shadow-sm p-6 mt-6 max-w-lg">
+  <h2 class="font-semibold mb-2">{% trans "Your data (GDPR)" %}</h2>
+  <div class="flex flex-wrap items-center gap-3">
+    <a href="{% url 'account-export' %}" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">⬇ {% trans "Export my data" %}</a>
+    <form method="post" action="{% url 'account-delete' %}"
+          onsubmit="return confirm('{% trans "Delete all your data? This cannot be undone." %}');">
+      {% csrf_token %}
+      <button class="rounded-lg border border-red-200 text-red-600 px-4 py-2 text-sm font-medium hover:bg-red-50">{% trans "Delete my data" %}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

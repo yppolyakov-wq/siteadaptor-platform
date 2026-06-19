@@ -4,9 +4,12 @@
 {% block content %}
 <div class="flex items-center justify-between mb-2">
   <h1 class="text-2xl md:text-3xl font-bold">{% trans "My account" %}</h1>
-  <form method="post" action="{% url 'account-logout' %}">{% csrf_token %}
-    <button class="text-sm text-gray-500 hover:text-gray-800">{% trans "Log out" %}</button>
-  </form>
+  <div class="flex items-center gap-4">
+    <a href="{% url 'account-profile' %}" class="text-sm text-gray-500 hover:text-gray-800">{% trans "Profile & data" %}</a>
+    <form method="post" action="{% url 'account-logout' %}">{% csrf_token %}
+      <button class="text-sm text-gray-500 hover:text-gray-800">{% trans "Log out" %}</button>
+    </form>
+  </div>
 </div>
 <p class="text-gray-600 mb-6">{% blocktrans with e=customer.email %}Signed in as {{ e }}{% endblocktrans %}</p>
 

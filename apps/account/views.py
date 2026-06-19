@@ -5,9 +5,11 @@
 """
 
 from django import forms
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.core import ratelimit
@@ -85,3 +87,72 @@ def account_home(request):
         "konto/home.html",
         {"customer": customer, "sections": sections_for(request, customer)},
     )
+
+
+def profile_view(request):
+    """CA3: профиль + согласие на маркетинг + DSGVO (экспорт/удаление)."""
+    _require_account_active(request)
+    customer = auth.current_customer(request)
+    if customer is None:
+        return redirect("account-login")
+    if request.method == "POST":
+        customer.name = request.POST.get("name", "").strip()[:200]
+        customer.phone = request.POST.get("phone", "").strip()[:40]
+        # UWG §7: галка = получать рассылки (opt_in + снять one-click отписку).
+        opt = request.POST.get("marketing") == "on"
+        customer.marketing_opt_in = opt
+        if opt:
+            customer.unsubscribed = False
+        customer.save(
+            update_fields=["name", "phone", "marketing_opt_in", "unsubscribed", "updated_at"]
+        )
+        messages.success(request, _("Saved."))
+        return redirect("account-profile")
+    from apps.telegram.notify import deep_link
+
+    return render(
+        request,
+        "konto/profile.html",
+        {"customer": customer, "telegram_link": deep_link(customer)},
+    )
+
+
+def export_data(request):
+    """CA3: экспорт данных клиента (DSGVO Art. 15/20) — JSON-загрузка."""
+    _require_account_active(request)
+    customer = auth.current_customer(request)
+    if customer is None or not customer.email:
+        return redirect("account-login")
+    import json
+
+    from django.http import HttpResponse
+
+    from apps.promotions.management.commands.dsgvo_customer import _export_payload
+
+    payload = _export_payload(customer.email)
+    resp = HttpResponse(
+        json.dumps(payload, ensure_ascii=False, indent=2), content_type="application/json"
+    )
+    resp["Content-Disposition"] = 'attachment; filename="meine-daten.json"'
+    return resp
+
+
+@require_POST
+def delete_account(request):
+    """CA3: удаление/анонимизация данных (DSGVO Art. 17) → выход."""
+    _require_account_active(request)
+    customer = auth.current_customer(request)
+    if customer is None or not customer.email:
+        return redirect("account-login")
+    from django.core.management.base import CommandError
+
+    from apps.promotions.management.commands.dsgvo_customer import _erase
+
+    try:
+        _erase(customer.email)
+    except CommandError as exc:
+        messages.error(request, str(exc))
+        return redirect("account-profile")
+    auth.logout(request)
+    messages.success(request, _("Your data has been deleted."))
+    return redirect("storefront-home")
