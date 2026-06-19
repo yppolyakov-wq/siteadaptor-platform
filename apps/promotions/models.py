@@ -295,6 +295,12 @@ class Voucher(TimestampedModel):
         blank=True,
         related_name="vouchers",
     )
+    # Промокод на онлайн-заказе (A4): структурная скидка. Применяется на
+    # чекауте Click&Collect, если задана (percent ИЛИ cents). Оба пустые =
+    # обычный «ручной» ваучер (label-метка, гасится сотрудником, как раньше).
+    discount_percent = models.PositiveSmallIntegerField(null=True, blank=True)
+    discount_cents = models.PositiveIntegerField(null=True, blank=True)
+    min_order_cents = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["-created_at"]
@@ -316,6 +322,27 @@ class Voucher(TimestampedModel):
         if self.expires_at and self.expires_at < timezone.now():
             return False
         return not (self.max_uses and self.used_count >= self.max_uses)
+
+    @property
+    def has_order_discount(self) -> bool:
+        """Несёт ли ваучер скидку для онлайн-заказа (А4-промокод)."""
+        return bool(self.discount_percent) or bool(self.discount_cents)
+
+    def discount_for(self, subtotal_cents: int) -> int:
+        """Скидка в центах для суммы заказа (0, если не применима/не достигнут мин).
+
+        percent → %·subtotal; cents → фикс. Капается суммой заказа (не уходит в
+        минус). Сам факт погашения/лимиты — отдельно (services.redeem_voucher).
+        """
+        if not self.has_order_discount or not self.is_redeemable:
+            return 0
+        if subtotal_cents < (self.min_order_cents or 0):
+            return 0
+        if self.discount_percent:
+            value = subtotal_cents * int(self.discount_percent) // 100
+        else:
+            value = int(self.discount_cents or 0)
+        return max(0, min(value, subtotal_cents))
 
 
 class LoyaltyProgram(TimestampedModel):

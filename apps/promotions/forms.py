@@ -143,6 +143,30 @@ class VoucherCreateForm(forms.Form):
         label=_("Uses per voucher (0 = unlimited)"), min_value=0, initial=1
     )
     expires_at = _DateTimeLocal(label=_("Expires at"))
+    # A4 промокод на онлайн-заказе: скидка % ИЛИ € + мин-заказ (опц.).
+    discount_percent = forms.IntegerField(
+        label=_("Discount % (online order)"), min_value=1, max_value=100, required=False
+    )
+    discount_eur = forms.DecimalField(
+        label=_("Discount € (online order)"),
+        min_value=0,
+        decimal_places=2,
+        max_digits=10,
+        required=False,
+    )
+    min_order_eur = forms.DecimalField(
+        label=_("Minimum order €"),
+        min_value=0,
+        decimal_places=2,
+        max_digits=10,
+        required=False,
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("discount_percent") and cleaned.get("discount_eur"):
+            raise forms.ValidationError(_("Use either % or € discount, not both."))
+        return cleaned
 
 
 class LoyaltyProgramForm(forms.ModelForm):

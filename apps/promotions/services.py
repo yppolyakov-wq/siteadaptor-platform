@@ -169,10 +169,22 @@ def _unique_voucher_code() -> str:
     raise RuntimeError("could not generate unique voucher code")
 
 
-def generate_vouchers(*, label, count=1, max_uses=1, expires_at=None, customer=None):
+def generate_vouchers(
+    *,
+    label,
+    count=1,
+    max_uses=1,
+    expires_at=None,
+    customer=None,
+    discount_percent=None,
+    discount_cents=None,
+    min_order_cents=0,
+):
     """Сгенерировать count ваучеров с уникальными кодами. Вернуть список.
 
-    customer (D1): опц. привязка к клиенту — ваучер появится в карточке 360° CRM."""
+    customer (D1): опц. привязка к клиенту — ваучер появится в карточке 360° CRM.
+    discount_percent/discount_cents (A4): структурная скидка для онлайн-заказа
+    (промокод на чекауте); оба пустые = ручной ваучер-метка как раньше."""
     count = max(1, min(int(count), 200))  # разумный потолок на пачку
     created = []
     for _ in range(count):
@@ -183,6 +195,9 @@ def generate_vouchers(*, label, count=1, max_uses=1, expires_at=None, customer=N
                 max_uses=max_uses,
                 expires_at=expires_at,
                 customer=customer,
+                discount_percent=discount_percent or None,
+                discount_cents=discount_cents or None,
+                min_order_cents=min_order_cents or 0,
             )
         )
     return created
