@@ -1,0 +1,15 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Delete combo" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-lg">
+  <h1 class="text-2xl font-bold mb-4">{% trans "Delete combo" %}?</h1>
+  <p class="mb-6">{{ combo.name }}</p>
+  <form method="post" class="flex gap-3">
+    {% csrf_token %}
+    <button class="rounded-lg bg-red-600 text-white px-4 py-2 font-medium hover:bg-red-700">{% trans "Delete" %}</button>
+    <a href="{% url 'catalog:combo-edit' combo.pk %}" class="rounded-lg border border-gray-300 px-4 py-2">{% trans "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

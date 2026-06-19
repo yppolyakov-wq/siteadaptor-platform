@@ -1,0 +1,28 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Combos" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3">
+  <h1 class="text-2xl font-bold">{% trans "Combos" %}</h1>
+  <a href="{% url 'catalog:combo-create' %}" class="rounded-lg bg-indigo-600 text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700">+ {% trans "New combo" %}</a>
+</div>
+<p class="text-sm text-gray-500 mb-4">{% trans "Fixed-price meal deals (e.g. Burger + fries + drink). Choice groups let guests pick a drink or side." %}</p>
+
+{% if combos %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+  {% for c in combos %}
+    <a href="{% url 'catalog:combo-edit' c.pk %}" class="flex items-center justify-between p-4 hover:bg-gray-50">
+      <div>
+        <span class="font-medium">{{ c.name }}</span>
+        {% if not c.is_active %}<span class="ml-2 text-xs text-gray-400">({% trans "inactive" %})</span>{% endif %}
+        <span class="block text-xs text-gray-400">{{ c.groups.count }} {% trans "groups" %}</span>
+      </div>
+      <span class="font-bold">{{ c.price }} {{ c.currency }}</span>
+    </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">{% trans "No combos yet." %}</p>
+{% endif %}
+{% endblock %}

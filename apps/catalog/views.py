@@ -16,7 +16,16 @@ from django.views.decorators.http import require_POST
 
 from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
-from .models import Category, ModifierGroup, ModifierOption, Product, ProductVariant
+from .models import (
+    Category,
+    Combo,
+    ComboGroup,
+    ComboOption,
+    ModifierGroup,
+    ModifierOption,
+    Product,
+    ProductVariant,
+)
 
 
 def _parse_price(raw):
@@ -463,3 +472,145 @@ def category_delete(request, pk):
             "nav": "categories",
         },
     )
+
+
+# --- Combo-наборы (A4 Gastro): кабинет CRUD ----------------------------------------
+
+
+@login_required
+def combo_list(request):
+    combos = Combo.objects.prefetch_related("groups__options").order_by("sort_order", "created_at")
+    return render(request, "catalog/combo_list.html", {"combos": combos, "nav": "combos"})
+
+
+@login_required
+def combo_create(request):
+    if request.method == "POST":
+        name = (request.POST.get("name") or "").strip()
+        price = _parse_price(request.POST.get("price"))
+        if not name or price is None:
+            messages.error(request, _("Name and price are required."))
+        else:
+            combo = Combo.objects.create(
+                name=name,
+                description=(request.POST.get("description") or "").strip(),
+                price=price,
+                sort_order=_parse_int(request.POST.get("sort")) or 0,
+                is_active=bool(request.POST.get("is_active")),
+            )
+            return redirect("catalog:combo-edit", pk=combo.pk)
+    return render(request, "catalog/combo_form.html", {"combo": None, "nav": "combos"})
+
+
+@login_required
+def combo_edit(request, pk):
+    combo = get_object_or_404(Combo.objects.prefetch_related("groups__options"), pk=pk)
+    if request.method == "POST":
+        combo.name = (request.POST.get("name") or combo.name).strip()
+        price = _parse_price(request.POST.get("price"))
+        if price is not None:
+            combo.price = price
+        combo.description = (request.POST.get("description") or "").strip()
+        combo.sort_order = _parse_int(request.POST.get("sort")) or 0
+        combo.is_active = bool(request.POST.get("is_active"))
+        combo.save(
+            update_fields=["name", "price", "description", "sort_order", "is_active", "updated_at"]
+        )
+        messages.success(request, _("Saved."))
+        return redirect("catalog:combo-edit", pk=pk)
+    products = Product.objects.filter(is_active=True).order_by("name")
+    return render(
+        request,
+        "catalog/combo_form.html",
+        {"combo": combo, "products": products, "nav": "combos"},
+    )
+
+
+@login_required
+def combo_delete(request, pk):
+    combo = get_object_or_404(Combo, pk=pk)
+    if request.method == "POST":
+        combo.delete()  # soft-delete
+        return redirect("catalog:combo-list")
+    return render(request, "catalog/combo_confirm_delete.html", {"combo": combo, "nav": "combos"})
+
+
+@login_required
+@require_POST
+def combo_group_add(request, pk):
+    combo = get_object_or_404(Combo, pk=pk)
+    label = (request.POST.get("label") or "").strip()
+    if not label:
+        messages.error(request, _("Group name is required."))
+    else:
+        ComboGroup.objects.create(
+            combo=combo,
+            label=label,
+            min_select=_parse_int(request.POST.get("min")) or 0,
+            max_select=_parse_int(request.POST.get("max")) or 0,
+            sort_order=_parse_int(request.POST.get("sort")) or 0,
+        )
+        messages.success(request, _("Group added."))
+    return redirect("catalog:combo-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def combo_group_update(request, pk, gid):
+    group = get_object_or_404(ComboGroup, pk=gid, combo_id=pk)
+    group.label = (request.POST.get("label") or group.label).strip()
+    group.min_select = _parse_int(request.POST.get("min")) or 0
+    group.max_select = _parse_int(request.POST.get("max")) or 0
+    group.sort_order = _parse_int(request.POST.get("sort")) or 0
+    group.is_active = bool(request.POST.get("is_active"))
+    group.save(
+        update_fields=["label", "min_select", "max_select", "sort_order", "is_active", "updated_at"]
+    )
+    messages.success(request, _("Group updated."))
+    return redirect("catalog:combo-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def combo_group_delete(request, pk, gid):
+    get_object_or_404(ComboGroup, pk=gid, combo_id=pk).delete()
+    messages.success(request, _("Group removed."))
+    return redirect("catalog:combo-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def combo_option_add(request, pk, gid):
+    group = get_object_or_404(ComboGroup, pk=gid, combo_id=pk)
+    product = Product.objects.filter(pk=request.POST.get("product"), is_active=True).first()
+    if product is None:
+        messages.error(request, _("Please choose a product."))
+    else:
+        ComboOption.objects.create(
+            group=group,
+            product=product,
+            price_delta=_parse_price(request.POST.get("delta")) or Decimal("0"),
+            sort_order=_parse_int(request.POST.get("sort")) or 0,
+        )
+        messages.success(request, _("Option added."))
+    return redirect("catalog:combo-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def combo_option_update(request, pk, gid, oid):
+    option = get_object_or_404(ComboOption, pk=oid, group_id=gid, group__combo_id=pk)
+    option.price_delta = _parse_price(request.POST.get("delta")) or Decimal("0")
+    option.sort_order = _parse_int(request.POST.get("sort")) or 0
+    option.is_active = bool(request.POST.get("is_active"))
+    option.save(update_fields=["price_delta", "sort_order", "is_active", "updated_at"])
+    messages.success(request, _("Option updated."))
+    return redirect("catalog:combo-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def combo_option_delete(request, pk, gid, oid):
+    get_object_or_404(ComboOption, pk=oid, group_id=gid, group__combo_id=pk).delete()
+    messages.success(request, _("Option removed."))
+    return redirect("catalog:combo-edit", pk=pk)

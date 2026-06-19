@@ -66,4 +66,35 @@ urlpatterns = [
     path("categories/new/", views.category_create, name="category-create"),
     path("categories/<uuid:pk>/edit/", views.category_edit, name="category-edit"),
     path("categories/<uuid:pk>/delete/", views.category_delete, name="category-delete"),
+    # Комбо-наборы (A4 Gastro): набор + группы выбора + опции.
+    path("combos/", views.combo_list, name="combo-list"),
+    path("combos/new/", views.combo_create, name="combo-create"),
+    path("combos/<uuid:pk>/edit/", views.combo_edit, name="combo-edit"),
+    path("combos/<uuid:pk>/delete/", views.combo_delete, name="combo-delete"),
+    path("combos/<uuid:pk>/groups/add/", views.combo_group_add, name="combo-group-add"),
+    path(
+        "combos/<uuid:pk>/groups/<uuid:gid>/update/",
+        views.combo_group_update,
+        name="combo-group-update",
+    ),
+    path(
+        "combos/<uuid:pk>/groups/<uuid:gid>/delete/",
+        views.combo_group_delete,
+        name="combo-group-delete",
+    ),
+    path(
+        "combos/<uuid:pk>/groups/<uuid:gid>/options/add/",
+        views.combo_option_add,
+        name="combo-option-add",
+    ),
+    path(
+        "combos/<uuid:pk>/groups/<uuid:gid>/options/<uuid:oid>/update/",
+        views.combo_option_update,
+        name="combo-option-update",
+    ),
+    path(
+        "combos/<uuid:pk>/groups/<uuid:gid>/options/<uuid:oid>/delete/",
+        views.combo_option_delete,
+        name="combo-option-delete",
+    ),
 ]

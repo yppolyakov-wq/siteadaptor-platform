@@ -281,3 +281,79 @@ class ModifierOption(TimestampedModel):
 
     def __str__(self):
         return f"{self.label} (+{self.price_delta})"
+
+
+class Combo(SoftDeleteMixin):
+    """Комбо-набор (A4 Gastro): несколько позиций по фикс-цене (Menü/Deal).
+
+    Состав — группы выбора (ComboGroup): фиксированная позиция = группа с одной
+    опцией; выбор = группа с несколькими («выбери напиток/гарнир»). Итоговая
+    цена = price + Σ надбавок выбранных опций (ComboOption.price_delta).
+    """
+
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default="EUR")
+    is_active = models.BooleanField(default=True)
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "created_at"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def groups_active(self):
+        return [g for g in self.groups.all() if g.is_active]
+
+
+class ComboGroup(TimestampedModel):
+    """Группа выбора внутри комбо: «Getränk» (выбери 1), «Hauptgericht» (фикс)."""
+
+    combo = models.ForeignKey(Combo, on_delete=models.CASCADE, related_name="groups")
+    label = models.CharField(max_length=100)
+    min_select = models.PositiveSmallIntegerField(default=1)
+    max_select = models.PositiveSmallIntegerField(default=1)
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "created_at"]
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def is_required(self) -> bool:
+        return self.min_select >= 1
+
+    @property
+    def is_multi(self) -> bool:
+        return self.max_select != 1
+
+    @property
+    def options_active(self):
+        return [
+            o for o in self.options.all() if o.is_active and o.product_id and o.product.is_active
+        ]
+
+
+class ComboOption(TimestampedModel):
+    """Опция группы комбо: товар-выбор + опц. надбавка («Groß +1,00»)."""
+
+    group = models.ForeignKey(ComboGroup, on_delete=models.CASCADE, related_name="options")
+    # SET_NULL: комбо переживает удаление товара (мёртвая опция отфильтровывается).
+    product = models.ForeignKey(
+        Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    price_delta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "created_at"]
+
+    def __str__(self):
+        return f"{self.product} (+{self.price_delta})"

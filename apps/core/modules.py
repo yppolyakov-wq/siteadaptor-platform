@@ -69,6 +69,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(
             NavItem("catalog:product-list", _("Catalog"), "catalog"),
             NavItem("catalog:category-list", _("Categories"), "categories"),
+            NavItem("catalog:combo-list", _("Combos"), "combos"),
             NavItem("imports:start", _("Imports"), "imports"),
         ),
         url_prefixes=("/catalog/", "/imports/"),
