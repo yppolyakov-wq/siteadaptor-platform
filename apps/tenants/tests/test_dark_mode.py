@@ -34,6 +34,9 @@ def test_storefront_has_theme_toggle_and_init():
     # ранний init без мигания: localStorage + системная тема
     assert 'localStorage.getItem("sf-theme")' in body
     assert "prefers-color-scheme: dark" in body
+    # регресс: многострочный {# #} утекает текстом — комментарий не должен
+    # попадать в HTML (используем {% comment %}).
+    assert "ставим класс до отрисовки" not in body
 
 
 def test_compiled_css_has_dark_override_map():
