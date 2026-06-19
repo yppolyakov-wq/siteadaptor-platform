@@ -214,6 +214,48 @@ def combo_remove(request):
     return redirect("storefront-cart")
 
 
+PROMO_SESSION_KEY = "promo_code"
+
+
+@require_POST
+def cart_apply_code(request):
+    """A4: применить промокод (Voucher со скидкой) к корзине — в сессию."""
+    _require_orders_active(request)
+    from apps.promotions.models import Voucher
+
+    code = (request.POST.get("code") or "").strip().upper()[:12]
+    voucher = Voucher.objects.filter(code=code).first() if code else None
+    if voucher is None or not voucher.has_order_discount or not voucher.is_redeemable:
+        request.session.pop(PROMO_SESSION_KEY, None)
+        messages.error(request, _("This code is invalid or expired."))
+    else:
+        request.session[PROMO_SESSION_KEY] = code
+        messages.success(request, _("Code applied."))
+    return redirect("storefront-cart")
+
+
+@require_POST
+def cart_remove_code(request):
+    _require_orders_active(request)
+    request.session.pop(PROMO_SESSION_KEY, None)
+    return redirect("storefront-cart")
+
+
+def _cart_discount(request, subtotal):
+    """(voucher, скидка Decimal) для применённого промокода на subtotal (Decimal)."""
+    from decimal import Decimal
+
+    from apps.promotions.models import Voucher
+
+    code = request.session.get(PROMO_SESSION_KEY, "")
+    if not code:
+        return None, Decimal("0")
+    voucher = Voucher.objects.filter(code=code).first()
+    if voucher is None or not voucher.has_order_discount:
+        return None, Decimal("0")
+    return voucher, Decimal(voucher.discount_for(int(subtotal * 100))) / 100
+
+
 @require_POST
 def cart_add(request):
     _require_orders_active(request)
@@ -304,7 +346,18 @@ def cart_view(request):
         if items
         else (combo_rows[0]["combo"].currency if combo_rows else "EUR")
     )
-    ctx = {"rows": rows, "combo_rows": combo_rows, "total": total, "currency": currency}
+    # A4 промокод: скидка на subtotal (товары+комбо), итог к оплате.
+    voucher, discount = _cart_discount(request, total)
+    ctx = {
+        "rows": rows,
+        "combo_rows": combo_rows,
+        "total": total,
+        "discount": discount,
+        "grand_total": total - discount,
+        "promo_code": request.session.get(PROMO_SESSION_KEY, ""),
+        "promo_min_not_met": bool(voucher and discount == 0 and voucher.min_order_cents),
+        "currency": currency,
+    }
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
         from apps.catalog.models import Product
@@ -406,6 +459,7 @@ def checkout(request):
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
             shipping_address=shipping_address,
             shipping_cents=shipping_cents,
+            voucher_code=request.session.get(PROMO_SESSION_KEY, ""),
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))
@@ -418,6 +472,7 @@ def checkout(request):
         return redirect("storefront-cart")
     request.session[CART_SESSION_KEY] = {}
     request.session[COMBO_SESSION_KEY] = {}
+    request.session.pop(PROMO_SESSION_KEY, None)
 
     # Онлайн-предоплата (P2.5c): если включена у бизнеса и оплата подключена — на
     # Stripe Checkout (на счёт бизнеса). Иначе — оплата при получении (как раньше).

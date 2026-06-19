@@ -151,6 +151,7 @@ def create_order(
     shipping_address="",
     shipping_cents=0,
     combos=(),
+    voucher_code="",
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -232,8 +233,26 @@ def create_order(
                 modifiers=combo_snapshot(combo, options),
             )
             total += unit_price * qty
-    order.total = total + Decimal(shipping) / 100  # G4: доставка в итог
-    order.save(update_fields=["total", "updated_at"])
+    # Промокод (A4): скидка на сумму товаров+комбо (до доставки). Гашение под
+    # блокировкой (redeem_voucher) — анти-двойное-списание; сбой → без скидки.
+    discount = Decimal("0")
+    if voucher_code:
+        from apps.promotions.models import Voucher
+        from apps.promotions.services import VoucherError, redeem_voucher
+
+        voucher = Voucher.objects.filter(code=voucher_code).first()
+        if voucher is not None and voucher.has_order_discount:
+            disc_cents = voucher.discount_for(int(total * 100))
+            if disc_cents > 0:
+                try:
+                    redeem_voucher(voucher_code)
+                    discount = Decimal(disc_cents) / 100
+                    order.voucher_code = voucher_code[:12]
+                    order.discount_cents = disc_cents
+                except VoucherError:
+                    discount = Decimal("0")
+    order.total = total - discount + Decimal(shipping) / 100  # G4: доставка в итог
+    order.save(update_fields=["total", "voucher_code", "discount_cents", "updated_at"])
     # письма клиенту/владельцу — Notification в этой же транзакции,
     # доставка после коммита (D2b)
     from .notifications import enqueue_order_email

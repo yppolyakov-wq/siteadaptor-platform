@@ -66,6 +66,9 @@ class Order(TimestampedModel):
     fulfillment = models.CharField(max_length=10, choices=FULFILLMENTS, default=FULFILLMENT_PICKUP)
     shipping_address = models.TextField(blank=True)
     shipping_cents = models.PositiveIntegerField(default=0)  # снимок стоимости доставки
+    # Промокод (A4): применённый код + скидка в центах (снимок, уже учтён в total).
+    voucher_code = models.CharField(max_length=12, blank=True)
+    discount_cents = models.PositiveIntegerField(default=0)
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
     shipped_at = models.DateTimeField(null=True, blank=True)
 
@@ -96,6 +99,12 @@ class Order(TimestampedModel):
         from decimal import Decimal
 
         return Decimal(self.shipping_cents) / 100
+
+    @property
+    def discount_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.discount_cents) / 100
 
 
 class OrderItem(TimestampedModel):

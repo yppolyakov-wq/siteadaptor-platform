@@ -45,9 +45,32 @@
       </form>
     </div>
   {% endfor %}
+  {% if discount %}
+    <div class="flex items-center justify-between px-4 py-2 text-sm text-green-700">
+      <span>{% trans "Discount" %} ({{ promo_code }})</span><span>−{{ discount }} {{ currency }}</span>
+    </div>
+  {% endif %}
   <div class="flex items-center justify-between px-4 py-3 font-bold">
-    <span>{% trans "Total" %}</span><span>{{ total }} {{ currency }}</span>
+    <span>{% trans "Total" %}</span><span>{{ grand_total|default:total }} {{ currency }}</span>
   </div>
+</div>
+
+{# A4 промокод: ввод/снятие кода #}
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-6 max-w-xl">
+  {% if promo_code and discount %}
+    <form method="post" action="{% url 'storefront-cart-code-remove' %}" class="flex items-center justify-between gap-3 text-sm">
+      {% csrf_token %}
+      <span>🏷 {% trans "Code applied" %}: <span class="font-mono font-medium">{{ promo_code }}</span></span>
+      <button class="text-gray-400 hover:text-red-500">{% trans "Remove" %}</button>
+    </form>
+  {% else %}
+    <form method="post" action="{% url 'storefront-cart-code' %}" class="flex items-center gap-2">
+      {% csrf_token %}
+      <input name="code" placeholder="{% trans 'Voucher code' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase">
+      <button class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Apply" %}</button>
+    </form>
+    {% if promo_min_not_met %}<p class="text-xs text-amber-600 mt-1">{% trans "This code needs a higher order total." %}</p>{% endif %}
+  {% endif %}
 </div>
 
 <form method="post" action="{% url 'storefront-checkout' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">

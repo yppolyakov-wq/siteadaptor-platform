@@ -21,6 +21,11 @@
           <span>🚚 {% trans "Delivery" %}</span><span>{{ order.shipping_eur }} {{ order.currency }}</span>
         </div>
       {% endif %}
+      {% if order.discount_cents %}
+        <div class="flex items-center justify-between py-2 text-sm text-green-700">
+          <span>🏷 {% trans "Discount" %}{% if order.voucher_code %} ({{ order.voucher_code }}){% endif %}</span><span>−{{ order.discount_eur }} {{ order.currency }}</span>
+        </div>
+      {% endif %}
       <div class="flex items-center justify-between py-2 font-bold">
         <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
       </div>

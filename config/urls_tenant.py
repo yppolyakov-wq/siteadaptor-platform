@@ -113,6 +113,10 @@ urlpatterns = [
     path("warenkorb/quick/<uuid:pk>/", orders_public.quick_add_form, name="storefront-quick-add"),
     path("warenkorb/remove/", orders_public.cart_remove, name="storefront-cart-remove"),
     path("warenkorb/combo-remove/", orders_public.combo_remove, name="storefront-combo-remove"),
+    path("warenkorb/code/", orders_public.cart_apply_code, name="storefront-cart-code"),
+    path(
+        "warenkorb/code-remove/", orders_public.cart_remove_code, name="storefront-cart-code-remove"
+    ),
     # Комбо-наборы (A4): витрина + конфигуратор → корзина.
     path("kombi/", orders_public.combo_list_public, name="storefront-combos"),
     path("kombi/add/", orders_public.combo_add, name="storefront-combo-add"),

@@ -152,6 +152,36 @@ def test_combo_add_missing_required_choice_blocks():
     assert add.session.get("combo_cart", {}) == {}  # не добавлено
 
 
+# --- A4 промокод на чекауте --------------------------------------------------------
+
+
+def test_checkout_applies_voucher_discount_and_redeems():
+    from apps.promotions.models import Voucher
+
+    voucher = Voucher.objects.create(code="MINUS10", label="−10 %", discount_percent=10, max_uses=1)
+    product = ProductFactory(base_price=Decimal("20.00"))
+    add = _req(data={"product": str(product.pk), "qty": "1"})
+    public_views.cart_add(add)
+    cart = add.session["cart"]
+    public_views.checkout(_req(data={"name": "K"}, session={"cart": cart, "promo_code": "MINUS10"}))
+    order = Order.objects.get()
+    assert order.discount_cents == 200 and order.voucher_code == "MINUS10"
+    assert order.total == Decimal("18.00")  # 20,00 − 10 %
+    voucher.refresh_from_db()
+    assert voucher.used_count == 1  # погашен
+
+
+def test_checkout_ignores_invalid_voucher():
+    product = ProductFactory(base_price=Decimal("10.00"))
+    add = _req(data={"product": str(product.pk), "qty": "1"})
+    public_views.cart_add(add)
+    public_views.checkout(
+        _req(data={"name": "K"}, session={"cart": add.session["cart"], "promo_code": "NOPE"})
+    )
+    order = Order.objects.get()
+    assert order.discount_cents == 0 and order.total == Decimal("10.00")
+
+
 # --- корзина / оформление ----------------------------------------------------------
 
 
