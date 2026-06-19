@@ -1,4 +1,4 @@
-{% load i18n %}{# T2c: содержимое модалки быстрого заказа (vanilla fetch → #quick-modal). Ожидает product. #}
+{% load i18n %}{% load siteui %}{# T2c: содержимое модалки быстрого заказа (vanilla fetch → #quick-modal). Ожидает product. #}
 <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
   <div class="absolute inset-0 bg-black/50" data-quick-close></div>
   <div class="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-5 max-h-[85vh] overflow-y-auto"
@@ -11,7 +11,7 @@
       {% endif %}{% endwith %}
       <div>
         <h3 class="font-bold leading-tight">{{ product }}</h3>
-        <p class="text-sm font-semibold mt-0.5">{% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}{{ product.base_price }}{% endif %} {{ product.currency }}</p>
+        <p class="text-sm font-semibold mt-0.5">{% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}{{ product.base_price }}{% endif %} {{ product.currency|cursym }}</p>
       </div>
     </div>
     {% include "storefront/_add_to_cart_form.html" %}

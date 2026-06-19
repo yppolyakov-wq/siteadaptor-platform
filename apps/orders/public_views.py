@@ -411,6 +411,8 @@ def cart_view(request):
         "promo_code": request.session.get(PROMO_SESSION_KEY, ""),
         "promo_min_not_met": bool(voucher and discount == 0 and voucher.min_order_cents),
         "currency": currency,
+        # R5: центы для JS-реактивности доставки (итог меняется при выборе).
+        "grand_cents": int((total - discount) * 100),
     }
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
@@ -424,6 +426,7 @@ def cart_view(request):
         )
     if delivery_enabled:
         ctx["delivery_enabled"] = True
+        ctx["delivery_fee_cents"] = getattr(tenant, "delivery_fee_cents", 0)
         ctx["delivery_fee_eur"] = f"{getattr(tenant, 'delivery_fee_cents', 0) / 100:.2f}"
         ctx["delivery_free_eur"] = f"{getattr(tenant, 'delivery_free_cents', 0) / 100:.2f}"
         ctx["delivery_free_cents"] = getattr(tenant, "delivery_free_cents", 0)
@@ -443,6 +446,9 @@ def checkout(request):
         return HttpResponse(status=429)
 
     name = request.POST.get("name", "").strip()
+    table = request.session.get("table", "")
+    if not name and table:
+        name = f"Tisch {table}"  # dine-in: стол идентифицирует, имя не спрашиваем
     if not name:
         messages.error(request, _("Please tell us your name."))
         return redirect("storefront-cart")

@@ -1,13 +1,14 @@
+{% load siteui %}
 {% comment %}Блок цены. Вход: promo.{% endcomment %}
 {% spaceless %}
 {% if promo.has_discount %}
   <div class="flex items-baseline gap-2">
     {% if promo.strikethrough_old_price %}
-      <span class="text-gray-400 line-through text-sm">{{ promo.old_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency }}{% endif %}</span>
+      <span class="text-gray-400 line-through text-sm">{{ promo.old_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
     {% endif %}
-    <span class="text-xl font-extrabold text-red-600">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency }}{% endif %}</span>
+    <span class="text-xl font-extrabold text-red-600">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
   </div>
 {% elif promo.new_price is not None %}
-  <span class="text-xl font-extrabold">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency }}{% endif %}</span>
+  <span class="text-xl font-extrabold">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
 {% endif %}
 {% endspaceless %}

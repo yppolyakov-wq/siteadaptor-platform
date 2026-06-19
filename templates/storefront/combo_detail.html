@@ -1,12 +1,12 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}
+{% load i18n %}{% load siteui %}
 {% block title %}{{ combo.name }} · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
 <a href="{% url 'storefront-combos' %}" class="text-sm text-gray-500">&larr; {% trans "Combos" %}</a>
 <h1 class="text-2xl md:text-3xl font-bold mt-2 mb-2">{{ combo.name }}</h1>
 {% if combo.description %}<p class="text-gray-600 mb-4">{{ combo.description }}</p>{% endif %}
-<p class="text-xl font-bold mb-6">{% trans "from" %} {{ combo.price }} {{ combo.currency }}</p>
+<p class="text-xl font-bold mb-6">{% trans "from" %} {{ combo.price }} {{ combo.currency|cursym }}</p>
 
 {% if messages %}
   {% for m in messages %}
@@ -29,7 +29,7 @@
             {% else %}
               <input type="radio" name="opt" value="{{ o.pk }}" {% if g.is_required and forloop.first %}required{% endif %} class="border-gray-300">
             {% endif %}
-            {{ o.product }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ combo.currency }}</span>{% endif %}
+            {{ o.product }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ combo.currency|cursym }}</span>{% endif %}
           </label>
         {% endfor %}
       </div>

@@ -1,11 +1,11 @@
-{% load i18n %}{# Форма «в корзину» (Click&Collect): варианты + модификаторы + qty. Ожидает product. Используется на странице товара и в модалке быстрого заказа (T2c). #}
+{% load i18n %}{% load siteui %}{# Форма «в корзину» (Click&Collect): варианты + модификаторы + qty. Ожидает product. Используется на странице товара и в модалке быстрого заказа (T2c). #}
 <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form mt-4 flex flex-wrap items-center gap-3">
   {% csrf_token %}
   <input type="hidden" name="product" value="{{ product.pk }}">
   {% if product.has_variants %}
     <select name="variant" required class="rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Option' %}">
       {% for v in product.active_variants %}
-        <option value="{{ v.pk }}"{% if not v.in_stock %} disabled{% endif %}>{{ v.label }} — {{ v.price_value }} {{ product.currency }}{% with gp=v.grundpreis %}{% if gp %} ({{ gp.0 }} {{ product.currency }}/{{ gp.1 }}){% endif %}{% endwith %}{% if not v.in_stock %} — {% trans "sold out" %}{% endif %}</option>
+        <option value="{{ v.pk }}"{% if not v.in_stock %} disabled{% endif %}>{{ v.label }} — {{ v.price_value }} {{ product.currency|cursym }}{% with gp=v.grundpreis %}{% if gp %} ({{ gp.0 }} {{ product.currency|cursym }}/{{ gp.1 }}){% endif %}{% endwith %}{% if not v.in_stock %} — {% trans "sold out" %}{% endif %}</option>
       {% endfor %}
     </select>
   {% endif %}
@@ -20,7 +20,7 @@
               {% for o in g.active_options %}
                 <label class="flex items-center gap-2 text-sm text-gray-700">
                   <input type="checkbox" name="mod" value="{{ o.pk }}">
-                  {{ o.label }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ product.currency }}</span>{% endif %}
+                  {{ o.label }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
                 </label>
               {% endfor %}
             </div>
@@ -28,7 +28,7 @@
             <select name="mod" {% if g.is_required %}required{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{{ g.name }}">
               {% if g.is_required %}<option value="" disabled selected>— {% trans "please choose" %} —</option>{% else %}<option value="">— {% trans "none" %} —</option>{% endif %}
               {% for o in g.active_options %}
-                <option value="{{ o.pk }}">{{ o.label }}{% if o.price_delta %} (+{{ o.price_delta }} {{ product.currency }}){% endif %}</option>
+                <option value="{{ o.pk }}">{{ o.label }}{% if o.price_delta %} (+{{ o.price_delta }} {{ product.currency|cursym }}){% endif %}</option>
               {% endfor %}
             </select>
           {% endif %}

@@ -12,7 +12,7 @@
       <span class="text-[19px] leading-none" aria-hidden="true">{{ a.icon }}</span>
       <span class="leading-tight">{{ a.label }}</span>
       {% if a.kind == 'primary' %}
-        <span data-cart-badge class="absolute top-0.5 right-[20%] min-w-[17px] h-[17px] px-1 rounded-full bg-red-600 text-white text-[10px] leading-[17px] text-center {% if not a.badge %}hidden{% endif %}">{{ a.badge }}</span>
+        <span data-cart-badge class="absolute top-0.5 right-[20%] min-w-[17px] h-[17px] px-1 rounded-full bg-white text-gray-900 text-[10px] font-bold leading-[17px] text-center shadow {% if not a.badge %}hidden{% endif %}">{{ a.badge }}</span>
       {% endif %}
     </a>
   {% endfor %}

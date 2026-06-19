@@ -1,7 +1,6 @@
-{% load i18n %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c: «+» быстрый заказ. #}
-<div class="relative group">
-  <a href="{% url 'storefront-product' p.pk %}"
-     class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition motion-safe:hover:-translate-y-1">
+{% load i18n %}{% load siteui %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c/R5: цена+кнопка в одну линию. #}
+<div class="relative group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
+  <a href="{% url 'storefront-product' p.pk %}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
     <div class="relative aspect-square bg-gray-100">
       {% with img=p.primary_image %}
         {% if img %}
@@ -22,33 +21,36 @@
         <span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>
       {% endif %}
     </div>
-    <div class="p-3 md:p-4">
-      {% if p.category %}<p class="text-xs text-gray-400 mb-0.5">{{ p.category }}</p>{% endif %}
-      <h3 class="font-semibold leading-tight line-clamp-2">{{ p }}</h3>
-      <div class="mt-2 font-bold">{% if p.has_variants %}{% trans "from" %} {{ p.price_from }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency }}</div>
-      {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-xs text-gray-400">{{ gp.0 }} {{ p.currency }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
+    <div class="px-3 pt-3 md:px-4">
+      {% if p.category %}<p class="text-xs text-gray-400 mb-0.5 truncate">{{ p.category }}</p>{% endif %}
+      <h3 class="font-semibold leading-tight truncate">{{ p }}</h3>
     </div>
   </a>
-  {% if storefront_quick_add and p.in_stock %}
-    {% if p.has_variants or p.has_modifiers %}
-      {# Товар с опциями: кнопка-«ползунки» открывает конфигуратор-модалку. #}
-      <button type="button" data-quick-url="{% url 'storefront-quick-add' p.pk %}"
-              class="js-add-btn absolute bottom-3 right-3 w-11 h-11 rounded-full bg-white text-gray-800 ring-1 ring-gray-200 shadow-lg hover:bg-gray-50 active:scale-90 transition flex items-center justify-center"
-              style="color: var(--accent);" aria-label="{% trans 'Choose options' %}" title="{% trans 'Choose options' %}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.4" fill="white"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.4" fill="white"/></svg>
-      </button>
-    {% else %}
-      {# Простой товар: «+корзина», добавляется без перехода (AJAX). #}
-      <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form absolute bottom-3 right-3">
-        {% csrf_token %}
-        <input type="hidden" name="product" value="{{ p.pk }}">
-        <input type="hidden" name="qty" value="1">
-        <button type="submit"
-                class="js-add-btn w-11 h-11 rounded-full text-white shadow-lg active:scale-90 transition flex items-center justify-center"
-                style="background: var(--accent);" aria-label="{% trans 'Add to cart' %}" title="{% trans 'Add to cart' %}">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+  {# R5: цена + кнопка в одну линию (кнопка вне ссылки — валидная вёрстка). #}
+  <div class="px-3 md:px-4 pb-3 pt-1.5 mt-auto flex items-center justify-between gap-2">
+    <div class="min-w-0">
+      <div class="font-bold leading-tight">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {% endif %}{{ p.price_from|default:p.base_price }} {{ p.currency|cursym }}</div>
+      {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-[11px] text-gray-400 leading-tight">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
+    </div>
+    {% if storefront_quick_add and p.in_stock %}
+      {% if p.has_variants or p.has_modifiers %}
+        <button type="button" data-quick-url="{% url 'storefront-quick-add' p.pk %}"
+                class="js-add-btn shrink-0 w-10 h-10 rounded-full bg-white ring-1 ring-gray-200 shadow hover:bg-gray-50 active:scale-90 transition flex items-center justify-center"
+                style="color: var(--accent);" aria-label="{% trans 'Choose options' %}" title="{% trans 'Choose options' %}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.4" fill="white"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.4" fill="white"/></svg>
         </button>
-      </form>
+      {% else %}
+        <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form shrink-0">
+          {% csrf_token %}
+          <input type="hidden" name="product" value="{{ p.pk }}">
+          <input type="hidden" name="qty" value="1">
+          <button type="submit"
+                  class="js-add-btn w-10 h-10 rounded-full text-white shadow active:scale-90 transition flex items-center justify-center"
+                  style="background: var(--accent);" aria-label="{% trans 'Add to cart' %}" title="{% trans 'Add to cart' %}">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+          </button>
+        </form>
+      {% endif %}
     {% endif %}
-  {% endif %}
+  </div>
 </div>

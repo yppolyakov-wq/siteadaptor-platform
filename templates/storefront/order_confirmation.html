@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}
+{% load i18n %}{% load siteui %}
 {% block title %}{% trans "Order received" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -13,21 +13,21 @@
       {% for item in order.items.all %}
         <div class="flex items-center justify-between py-2 text-sm">
           <span>{{ item.qty }}× {{ item.title_snapshot }}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
-          <span>{{ item.line_total }} {{ order.currency }}</span>
+          <span>{{ item.line_total }} {{ order.currency|cursym }}</span>
         </div>
       {% endfor %}
       {% if order.is_delivery %}
         <div class="flex items-center justify-between py-2 text-sm text-gray-500">
-          <span>🚚 {% trans "Delivery" %}</span><span>{{ order.shipping_eur }} {{ order.currency }}</span>
+          <span>🚚 {% trans "Delivery" %}</span><span>{{ order.shipping_eur }} {{ order.currency|cursym }}</span>
         </div>
       {% endif %}
       {% if order.discount_cents %}
         <div class="flex items-center justify-between py-2 text-sm text-green-700">
-          <span>🏷 {% trans "Discount" %}{% if order.voucher_code %} ({{ order.voucher_code }}){% endif %}</span><span>−{{ order.discount_eur }} {{ order.currency }}</span>
+          <span>🏷 {% trans "Discount" %}{% if order.voucher_code %} ({{ order.voucher_code }}){% endif %}</span><span>−{{ order.discount_eur }} {{ order.currency|cursym }}</span>
         </div>
       {% endif %}
       <div class="flex items-center justify-between py-2 font-bold">
-        <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
+        <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency|cursym }}</span>
       </div>
     </div>
     {% if order.is_delivery and order.shipping_address %}
