@@ -90,6 +90,18 @@ def test_create_order_with_modifier_surcharge_and_snapshot():
 # --- корзина / оформление ----------------------------------------------------------
 
 
+def test_cart_shows_upsell_suggestions():
+    """T1: корзина показывает «Passt dazu» — товары не из корзины."""
+    in_cart = ProductFactory(base_price=Decimal("9.00"), name={"de": "Pizza"})
+    ProductFactory(base_price=Decimal("2.50"), name={"de": "Cola"}, is_featured=True)
+    add = _req(data={"product": str(in_cart.pk), "qty": "1"})
+    public_views.cart_add(add)
+    body = public_views.cart_view(
+        _req(method="get", session={"cart": add.session["cart"]})
+    ).content.decode()
+    assert "Cola" in body  # upsell-предложение присутствует
+
+
 def test_cart_add_with_modifiers_keys_by_selection():
     product = ProductFactory(base_price=Decimal("8.00"))
     g = _group(product, "Extras", min_select=0, max_select=0)

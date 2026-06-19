@@ -176,6 +176,16 @@ def cart_view(request):
     tenant = getattr(request, "tenant", None)
     delivery_enabled = getattr(tenant, "delivery_enabled", False)
     ctx = {"rows": rows, "total": total, "currency": items[0][0].currency if items else "EUR"}
+    # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
+    if rows:
+        from apps.catalog.models import Product
+
+        in_cart_ids = {r["product"].pk for r in rows}
+        ctx["upsell"] = list(
+            Product.objects.filter(is_active=True)
+            .exclude(pk__in=in_cart_ids)
+            .order_by("-is_featured", "-created_at")[:4]
+        )
     if delivery_enabled:
         ctx["delivery_enabled"] = True
         ctx["delivery_fee_eur"] = f"{getattr(tenant, 'delivery_fee_cents', 0) / 100:.2f}"

@@ -96,6 +96,23 @@ def test_sitemap_without_products_skips_section():
     assert "/sortiment/" not in body
 
 
+def test_contact_section_embeds_map_with_coords():
+    """T1: при заданных координатах в секции контактов встроена карта Leaflet."""
+    from decimal import Decimal
+
+    req = _req("/")
+    req.tenant.latitude = Decimal("51.1700000")
+    req.tenant.longitude = Decimal("6.9400000")
+    body = public_views.storefront_home(req).content.decode()
+    assert "sf-contact-map" in body
+    assert "leaflet" in body.lower()
+
+
+def test_contact_section_without_coords_has_no_map():
+    body = public_views.storefront_home(_req("/")).content.decode()
+    assert "sf-contact-map" not in body
+
+
 def test_storefront_includes_telegram_miniapp_sdk():
     """TG2: витрина подключает Telegram Web App SDK (Mini App)."""
     ProductFactory(name={"de": "AktivBrot"})
