@@ -60,7 +60,8 @@ def order_list(request):
             "delivery_restrict_to_zones": getattr(tenant, "delivery_restrict_to_zones", False),
             "delivery_zone_rows": _zone_rows(tenant),
             "pickup_locations_text": "\n".join(
-                f"{p['name']} | {p['address']}".rstrip(" |") for p in tenant.pickup_points
+                f"{p['name']} | {p['address']}".rstrip(" |")
+                for p in getattr(tenant, "pickup_points", [])
             ),
             "nav": "orders",
         },
