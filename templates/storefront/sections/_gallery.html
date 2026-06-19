@@ -1,7 +1,8 @@
-{% load i18n %}{# Секция «галерея фото» (M20 ⑤b): сетка изображений из site_config. #}
-{% if site.gallery %}
+{% load i18n siteui %}{# Секция «галерея фото/видео» (M20 ⑤b + T1): сетка изображений + опц. видео. #}
+{% if site.gallery or site.gallery_video %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Gallery" %}</h2>
+  {% if site.gallery %}
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
     {% for img in site.gallery %}
       <div class="aspect-square rounded-xl overflow-hidden bg-gray-100">
@@ -10,5 +11,47 @@
       </div>
     {% endfor %}
   </div>
+  {% endif %}
+  {% with v=site.gallery_video|video_embed %}
+    {% if v %}
+      <div class="mt-4">
+        {% if v.kind == "file" %}
+          <video src="{{ v.src }}" controls preload="none" class="w-full max-w-3xl rounded-2xl"></video>
+        {% elif v.kind == "link" %}
+          <a href="{{ v.src }}" target="_blank" rel="noopener"
+             class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">🎬 {% trans "Watch video" %}</a>
+        {% else %}
+          {# 2-Klick (GDPR): iframe грузится только по клику. #}
+          <div class="js-video-embed w-full max-w-3xl aspect-video rounded-2xl bg-gray-900 text-white flex items-center justify-center cursor-pointer relative overflow-hidden"
+               data-src="{{ v.src }}" role="button" tabindex="0"
+               aria-label="{% trans 'Load and play video' %}">
+            <span class="text-center px-4">
+              <span class="block text-4xl">▶</span>
+              <span class="block text-sm mt-2">{% trans "Click to load video" %}</span>
+              <span class="block text-xs text-gray-300 mt-1">{% trans "External content — only loaded on click." %}</span>
+            </span>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endwith %}
 </section>
+<script>
+(function () {
+  document.querySelectorAll(".js-video-embed").forEach(function (el) {
+    function load() {
+      var f = document.createElement("iframe");
+      f.src = el.dataset.src + "?autoplay=1";
+      f.title = "Video";
+      f.allow = "autoplay; encrypted-media; fullscreen";
+      f.setAttribute("allowfullscreen", "");
+      f.className = "w-full h-full absolute inset-0 border-0";
+      el.innerHTML = "";
+      el.appendChild(f);
+    }
+    el.addEventListener("click", load);
+    el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); load(); } });
+  });
+})();
+</script>
 {% endif %}

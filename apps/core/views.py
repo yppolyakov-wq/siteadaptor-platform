@@ -316,6 +316,8 @@ def site_view(request):
                 if m.strip()
             ],
         }
+        # T1: видео в галерее — один URL (YouTube/Vimeo/файл).
+        config["gallery_video"] = request.POST.get("gallery_video", "").strip()
         # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}

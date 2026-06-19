@@ -218,6 +218,9 @@ def normalize(config) -> dict:
         if len(gallery) >= _MAX_GALLERY:
             break
     normalized["gallery"] = gallery
+    # T1: видео в галерее — один URL (YouTube/Vimeo/прямой файл). Рендерится
+    # GDPR-дружелюбно (2-Klick / youtube-nocookie) в секции галереи.
+    normalized["gallery_video"] = _s(config.get("gallery_video"))
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):

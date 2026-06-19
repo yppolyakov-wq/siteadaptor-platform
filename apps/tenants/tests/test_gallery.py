@@ -50,3 +50,9 @@ def test_gallery_section_registered_default_off():
     cfg = siteconfig.normalize({})
     off = {s["key"]: s["enabled"] for s in cfg["sections"]}
     assert off["gallery"] is False
+
+
+def test_normalize_keeps_gallery_video_url():
+    cfg = siteconfig.normalize({"gallery_video": "  https://youtu.be/abc12345678  "})
+    assert cfg["gallery_video"] == "https://youtu.be/abc12345678"
+    assert siteconfig.normalize({})["gallery_video"] == ""

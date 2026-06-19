@@ -49,6 +49,7 @@ class DemoKit:
     # категории: (название_de, slug-суффикс, [товары])
     categories: list = field(default_factory=list)
     gallery_kw: list = field(default_factory=list)
+    gallery_video: str = ""  # T1: видео в секции галереи (YouTube/Vimeo/файл)
     faq: list = field(default_factory=list)
     testimonials: list = field(default_factory=list)
     process: list = field(default_factory=list)  # (title, text) — «как мы работаем»
@@ -151,6 +152,7 @@ RESTAURANT = DemoKit(
         "dessert",
         "restaurant,table",
     ],
+    gallery_video="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     faq=[
         ("Kann ich einen Tisch reservieren?", "Ja, online über «Termin» oder telefonisch."),
         (
@@ -551,6 +553,7 @@ def apply_kit(tenant, key: str) -> bool:
                 {"url": demo_image(kw, lock=500 + i), "alt": {"de": kit.label}}
                 for i, kw in enumerate(kit.gallery_kw)
             ],
+            "gallery_video": kit.gallery_video,
             "nav": {**siteconfig.default_nav(), "style": kit.nav_style},
             "demo": refs,
         }

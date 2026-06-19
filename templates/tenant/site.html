@@ -104,6 +104,14 @@
     {% csrf_token %}
 
     <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Gallery video" %}</legend>
+      <p class="text-xs text-gray-400 mb-3">{% trans "Optional video URL (YouTube, Vimeo or direct .mp4). Shown in the gallery section. Loaded only on click (GDPR-friendly)." %}</p>
+      <input name="gallery_video" type="url" value="{{ config.gallery_video }}"
+             placeholder="https://youtu.be/…"
+             class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
       <legend class="font-semibold mb-1">{% trans "Homepage sections" %}</legend>
       <p class="text-xs text-gray-400 mb-4">{% trans "Choose which blocks appear on your homepage and in what order (smaller number = higher)." %}</p>
       <div class="space-y-3">

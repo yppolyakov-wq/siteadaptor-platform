@@ -11,6 +11,7 @@
       {% if request.tenant.public_phone %}<p class="mt-2"><a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
       {% if request.tenant.public_email %}<p class="mt-1"><a href="mailto:{{ request.tenant.public_email }}" class="hover:underline">{{ request.tenant.public_email }}</a></p>{% endif %}
       {% if request.tenant.map_url %}<p class="mt-2"><a href="{{ request.tenant.map_url }}" rel="noopener" class="text-indigo-600 hover:underline">{% trans "Open map" %} →</a></p>{% endif %}
+      {% if storefront_inbox_enabled %}<p class="mt-2"><a href="{% url 'storefront-message' %}?kind=callback&amp;label={% filter urlencode %}{% trans 'Callback request' %}{% endfilter %}" class="text-indigo-600 hover:underline">📞 {% trans "Request a callback" %}</a></p>{% endif %}
     </div>
     {% if request.tenant.opening_hours or request.tenant.open_status %}
       <div>

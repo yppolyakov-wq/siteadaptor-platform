@@ -50,6 +50,7 @@ def test_apply_restaurant_kit_builds_full_site():
     assert tenant.primary_color == "#b45309"
     assert len(cfg["gallery"]) == 6
     assert cfg["faq"] and cfg["testimonials"] and cfg["cta"]["button_url"] == "/sortiment/"
+    assert cfg["gallery_video"].startswith("https://")  # T1: видео в галерее
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert {"hero", "products", "promotions", "gallery", "faq", "cta"} <= enabled
     assert cfg["nav"]["style"] == "centered"
