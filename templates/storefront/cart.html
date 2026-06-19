@@ -109,16 +109,16 @@
   {% endif %}
   <div>
     <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
-    <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <input id="id_name" name="name" type="text" required value="{{ account_customer.name|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-      <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_email" name="email" type="email" value="{{ account_customer.email|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-      <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_phone" name="phone" type="text" value="{{ account_customer.phone|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
   <div>

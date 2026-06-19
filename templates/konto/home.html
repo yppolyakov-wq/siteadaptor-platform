@@ -25,7 +25,20 @@
                 <p class="font-medium truncate">{% if it.url %}<a href="{{ it.url }}" class="hover:underline">{{ it.title }}</a>{% else %}{{ it.title }}{% endif %}</p>
                 {% if it.sub %}<p class="text-xs text-gray-500 truncate">{{ it.sub }}</p>{% endif %}
               </div>
-              {% if it.status %}<span class="shrink-0 text-xs rounded-full bg-gray-100 px-2.5 py-1 text-gray-600">{{ it.status }}</span>{% endif %}
+              <div class="shrink-0 flex items-center gap-2">
+                {% if it.reorder %}
+                  <form method="post" action="{% url 'storefront-reorder' it.reorder %}">{% csrf_token %}
+                    <button class="text-xs rounded-lg border border-gray-300 px-2.5 py-1 hover:bg-gray-50">{% trans "Order again" %}</button>
+                  </form>
+                {% endif %}
+                {% if it.cancel %}
+                  <form method="post" action="{% url 'account-cancel-booking' it.cancel %}"
+                        onsubmit="return confirm('{% trans "Cancel this booking?" %}');">{% csrf_token %}
+                    <button class="text-xs rounded-lg border border-red-200 text-red-600 px-2.5 py-1 hover:bg-red-50">{% trans "Cancel" %}</button>
+                  </form>
+                {% endif %}
+                {% if it.status %}<span class="text-xs rounded-full bg-gray-100 px-2.5 py-1 text-gray-600">{{ it.status }}</span>{% endif %}
+              </div>
             </div>
           {% endfor %}
         </div>

@@ -138,6 +138,44 @@ def export_data(request):
 
 
 @require_POST
+def cancel_booking(request, code):
+    """CA4: клиент отменяет свой Termin из ЛК (BookingSM cancel + возврат депозита)."""
+    _require_account_active(request)
+    customer = auth.current_customer(request)
+    if customer is None:
+        return redirect("account-login")
+    from apps.booking.models import Booking
+    from apps.booking.state_machine import BookingSM
+    from apps.core.fsm import IllegalTransition
+
+    booking = Booking.objects.filter(reference_code=code, customer=customer).first()
+    if booking is None:
+        raise Http404
+    try:
+        BookingSM().apply(booking, "cancelled", actor=None)
+    except IllegalTransition:
+        messages.error(request, _("This booking can no longer be cancelled."))
+        return redirect("account-home")
+    # Возврат депозита (анти-фрод, как в кабинете), если был оплачен.
+    if booking.payment_state == Booking.PAYMENT_PAID and booking.stripe_payment_intent:
+        import stripe
+
+        from apps.billing import connect
+
+        try:
+            connect.refund(
+                connect_id=request.tenant.stripe_connect_id,
+                payment_intent=booking.stripe_payment_intent,
+            )
+            booking.payment_state = Booking.PAYMENT_REFUNDED
+            booking.save(update_fields=["payment_state", "updated_at"])
+        except stripe.error.StripeError:
+            pass  # отмена состоялась; возврат владелец доведёт вручную в Stripe
+    messages.success(request, _("Your booking was cancelled."))
+    return redirect("account-home")
+
+
+@require_POST
 def delete_account(request):
     """CA3: удаление/анонимизация данных (DSGVO Art. 17) → выход."""
     _require_account_active(request)

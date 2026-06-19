@@ -20,6 +20,13 @@ def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
+@pytest.fixture(autouse=True)
+def _clear_cache():
+    from django.core.cache import cache
+
+    cache.clear()  # rate-limit/токены magic-link живут в Redis — изолируем тесты
+
+
 def _req(method="get", path="/konto/", data=None, session=None, disabled=None):
     request = getattr(RequestFactory(), method)(path, data or {})
     request.META["REMOTE_ADDR"] = f"10.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}.7"

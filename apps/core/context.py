@@ -82,6 +82,12 @@ def modules_nav(request):
     if tenant is None or getattr(tenant, "schema_name", "public") == "public":
         return {}
     nav_items, nav_style, nav_sticky = _storefront_nav(tenant)
+    # CA4: вошедший клиент (для автозаполнения форм заказа/брони именем/почтой).
+    account_customer = None
+    if modules.is_module_active(tenant, "customer_account"):
+        from apps.account.auth import current_customer
+
+        account_customer = current_customer(request)
     # T2a QR-Bestellung am Tisch: ?tisch=N запоминаем в сессии, чтобы донести
     # номер стола до оформления заказа (как ?ch= для атрибуции).
     storefront_table = ""
@@ -110,6 +116,8 @@ def modules_nav(request):
         "storefront_orders_enabled": modules.is_module_active(tenant, "orders"),  # T2c quick-add
         # CA1: ЛК клиента (ссылка «Mein Konto» в шапке/таб-баре при активном модуле).
         "storefront_account_enabled": modules.is_module_active(tenant, "customer_account"),
+        # CA4: вошедший клиент (автозаполнение форм; None если не вошёл/модуль выкл).
+        "account_customer": account_customer,
         # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
         "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
         # M20 ④: готовая навигация витрины (стиль/sticky/пункты).

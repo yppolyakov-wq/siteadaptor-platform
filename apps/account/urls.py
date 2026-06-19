@@ -10,4 +10,5 @@ urlpatterns = [
     path("profil/", views.profile_view, name="account-profile"),
     path("export/", views.export_data, name="account-export"),
     path("loeschen/", views.delete_account, name="account-delete"),
+    path("termin/<str:code>/stornieren/", views.cancel_booking, name="account-cancel-booking"),
 ]

@@ -257,6 +257,29 @@ def _cart_discount(request, subtotal):
 
 
 @require_POST
+def reorder(request, code):
+    """CA4: «Nochmal bestellen» — товарные позиции заказа обратно в корзину.
+
+    Восстанавливаем product+variant по снимку (модификаторы/комбо v1 не
+    переносим — у снимка нет id опций; клиент донастроит). Заказ ищем по коду.
+    """
+    _require_orders_active(request)
+    order = get_object_or_404(Order.objects.prefetch_related("items"), reference_code=code)
+    cart = _cart(request)
+    added = 0
+    for item in order.items.all():
+        if item.product_id is None:  # комбо-позиция — пропускаем
+            continue
+        key = f"{item.product_id}:{item.variant_id or ''}"
+        cart[key] = min(cart.get(key, 0) + item.qty, MAX_QTY)
+        added += 1
+    request.session[CART_SESSION_KEY] = cart
+    if added:
+        messages.success(request, _("Added to your order."))
+    return redirect("storefront-cart")
+
+
+@require_POST
 def cart_add(request):
     _require_orders_active(request)
 

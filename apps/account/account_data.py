@@ -80,6 +80,7 @@ def _orders(customer):
             "sub": f"{o.total} {o.currency} · {o.created_at:%d.%m.%Y}",
             "status": o.get_status_display(),
             "url": reverse("storefront-order", args=[o.reference_code]),
+            "reorder": o.reference_code,  # CA4: «Nochmal bestellen»
         }
         for o in Order.objects.filter(customer=customer).order_by("-created_at")[:LIMIT]
     ]
@@ -89,12 +90,15 @@ def _orders(customer):
 def _bookings(customer):
     from apps.booking.models import Booking
 
+    cancelable = (Booking.STATUS_PENDING, Booking.STATUS_CONFIRMED)
     items = [
         {
             "title": f"{b.start:%d.%m.%Y %H:%M}",
             "sub": str(getattr(b, "service", "") or b.resource or ""),
             "status": b.get_status_display(),
             "url": reverse("storefront-termin-ok", args=[b.reference_code]),
+            # CA4: отмена — только для будущих неотменённых/невыполненных.
+            "cancel": b.reference_code if b.status in cancelable else "",
         }
         for b in Booking.objects.filter(customer=customer).order_by("-start")[:LIMIT]
     ]
