@@ -1,0 +1,30 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Table QR codes" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-4 print:hidden">
+    <h1 class="text-2xl font-bold">{% trans "Table QR codes" %}</h1>
+    <div class="flex items-center gap-3">
+      <form method="get" class="flex items-center gap-2">
+        <label class="text-sm text-gray-600">{% trans "Tables" %}</label>
+        <input name="count" type="number" min="1" max="60" value="{{ count }}"
+               class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <button class="text-sm rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Update" %}</button>
+      </form>
+      <button onclick="window.print()" class="text-sm rounded-lg bg-indigo-600 text-white px-3 py-1.5 hover:bg-indigo-700">🖨 {% trans "Print" %}</button>
+    </div>
+  </div>
+  <p class="text-sm text-gray-500 mb-6 print:hidden">{% trans "Print, cut out and place a QR code on each table. Guests scan it to open the menu and order — the order is linked to the table." %}</p>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+    {% for t in tables %}
+      <div class="border border-gray-200 rounded-2xl p-4 text-center break-inside-avoid">
+        <img src="{{ t.data_uri }}" alt="QR Tisch {{ t.n }}" class="w-full max-w-[160px] mx-auto">
+        <p class="mt-2 font-bold text-lg">{% trans "Table" %} {{ t.n }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

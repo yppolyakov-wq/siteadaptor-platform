@@ -76,6 +76,13 @@ def test_kitchen_board_shows_order_note():
     assert "Bitte ohne Zwiebeln" in body
 
 
+def test_table_qr_page_renders_codes():
+    """T2a: лист QR-кодов столов рендерит N кодов."""
+    req = _req(path="/dashboard/orders/tisch-qr/", data={"count": "3"})
+    body = views.table_qr(req).content.decode()
+    assert body.count("data:image/svg+xml") >= 3
+
+
 def test_kitchen_action_illegal_is_noop():
     order = _order()
     order.status = Order.STATUS_PICKED_UP

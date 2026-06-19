@@ -10,7 +10,7 @@
       </div>
       <p class="text-xs text-gray-400 mb-1">
         {{ o.created_at|date:"H:i" }}
-        {% if o.is_delivery %}· 🚚 {% trans "Delivery" %}{% else %}· 🛍 {% trans "Pickup" %}{% endif %}
+        {% if o.table_number %}· 🪑 {% trans "Table" %} {{ o.table_number }}{% elif o.is_delivery %}· 🚚 {% trans "Delivery" %}{% else %}· 🛍 {% trans "Pickup" %}{% endif %}
         {% if o.customer %}· {{ o.customer.name|default:o.customer.email }}{% endif %}
       </p>
       <ul class="text-sm space-y-1 mb-3 flex-1">

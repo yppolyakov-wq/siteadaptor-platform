@@ -76,6 +76,14 @@ def modules_nav(request):
     if tenant is None or getattr(tenant, "schema_name", "public") == "public":
         return {}
     nav_items, nav_style, nav_sticky = _storefront_nav(tenant)
+    # T2a QR-Bestellung am Tisch: ?tisch=N запоминаем в сессии, чтобы донести
+    # номер стола до оформления заказа (как ?ch= для атрибуции).
+    storefront_table = ""
+    if hasattr(request, "session"):
+        table = (request.GET.get("tisch") or "").strip()[:20]
+        if table:
+            request.session["table"] = table
+        storefront_table = request.session.get("table", "")
     from apps.tenants import siteconfig
 
     cfg = siteconfig.normalize(tenant.site_config)
@@ -104,4 +112,6 @@ def modules_nav(request):
         "storefront_font_head": font_head,
         # P5: preload hero-фото (LCP) — пусто, если секция выключена/без фото.
         "storefront_hero_preload": hero_preload,
+        # T2a: текущий стол (из ?tisch=, в сессии) — для баннера витрины/checkout.
+        "storefront_table": storefront_table,
     }

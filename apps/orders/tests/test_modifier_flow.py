@@ -102,6 +102,17 @@ def test_cart_shows_upsell_suggestions():
     assert "Cola" in body  # upsell-предложение присутствует
 
 
+def test_checkout_persists_table_number_from_session():
+    """T2a: номер стола из сессии (?tisch=) попадает в заказ."""
+    product = ProductFactory(base_price=Decimal("8.00"))
+    add = _req(data={"product": str(product.pk), "qty": "1"})
+    public_views.cart_add(add)
+    public_views.checkout(
+        _req(data={"name": "Kunde"}, session={"cart": add.session["cart"], "table": "7"})
+    )
+    assert Order.objects.get().table_number == "7"
+
+
 def test_cart_add_with_modifiers_keys_by_selection():
     product = ProductFactory(base_price=Decimal("8.00"))
     g = _group(product, "Extras", min_select=0, max_select=0)

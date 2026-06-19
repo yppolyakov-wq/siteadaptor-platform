@@ -4,6 +4,7 @@ Kunde: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endi
 {% for item in items %}{{ item.qty }}× {{ item.title_snapshot }}{% if item.modifiers_label %} ({{ item.modifiers_label }}){% endif %} — {{ item.line_total }} {{ order.currency }}
 {% endfor %}Gesamt: {{ order.total }} {{ order.currency }}
 Code: {{ order.reference_code }}
+{% if order.table_number %}Tisch: {{ order.table_number }}{% endif %}
 {% if order.note %}Notiz: {{ order.note }}{% endif %}
 
 Bestellung im Dashboard bestätigen: /dashboard/orders/

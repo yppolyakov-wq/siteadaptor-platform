@@ -89,6 +89,33 @@ def kitchen(request):
 
 
 @login_required
+def table_qr(request):
+    """T2a: печатный лист QR-кодов столов. Каждый QR ведёт на витрину с
+    ?tisch=N&ch=qr — гость сканирует, заказывает, заказ привязан к столу.
+
+    Кабинет на домене арендатора → build_absolute_uri даёт верный хост витрины.
+    Гейтинг модуля «orders» — ModuleGatingMiddleware.
+    """
+    import segno
+
+    try:
+        count = int(request.GET.get("count", "12"))
+    except (TypeError, ValueError):
+        count = 12
+    count = max(1, min(count, 60))
+    tables = []
+    for n in range(1, count + 1):
+        url = request.build_absolute_uri(f"/?tisch={n}&ch=qr")
+        data_uri = segno.make(url, error="m").svg_data_uri(scale=4, border=2)
+        tables.append({"n": n, "data_uri": data_uri})
+    return render(
+        request,
+        "orders/table_qr.html",
+        {"tables": tables, "count": count, "nav": "orders"},
+    )
+
+
+@login_required
 def kitchen_board(request):
     """HTMX-партиал доски KDS (поллинг каждые несколько секунд)."""
     return render(request, "orders/_kitchen_board.html", {"orders": _active_kitchen_orders()})

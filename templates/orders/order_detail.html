@@ -36,6 +36,7 @@
         <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
       </div>
     </div>
+    {% if order.table_number %}<p class="text-sm font-medium text-gray-700">🪑 {% trans "Table" %} {{ order.table_number }}</p>{% endif %}
     {% if order.note %}<p class="text-sm text-gray-600 whitespace-pre-line">📝 {{ order.note }}</p>{% endif %}
     <p class="text-xs text-gray-400 mt-2">{{ order.created_at }}{% if order.source_channel %} · {{ order.source_channel }}{% endif %}</p>
   </div>

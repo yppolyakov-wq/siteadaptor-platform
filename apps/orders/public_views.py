@@ -267,6 +267,7 @@ def checkout(request):
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
+            table_number="" if delivery else request.session.get("table", ""),
             source_channel=(request.GET.get("ch") or "")[:50],
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
             shipping_address=shipping_address,
