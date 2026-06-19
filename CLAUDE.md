@@ -930,6 +930,38 @@ Python 3.12, менеджер uv.
     списание), `Order.voucher_code/discount_cents`; скидка в корзине/подтверждении/
     кабинете. Пустые поля скидки = прежний ручной ваучер-метка (без регрессии).
   - **Деплой:** миграции orders/0008+0009+0010, catalog/0008, promotions/0015.
+- **Личный кабинет клиента на витрине (CA1–CA4, ✅ ВЕСЬ в `main`, 2026-06-19):**
+  ЛК клиента **на витрине бизнеса** (per-tenant, отдельно от PortalUser агрегатора
+  и auth.User владельца). Личность = существующий `promotions.Customer` по email —
+  новых моделей нет. `apps/account` (TENANT, без моделей; app label=customer_account,
+  т.к. «account» занят allauth). Решение владельца: ЛК **отключаемый** — витрина-
+  визитка / заказ в зале без регистрации → ЛК не нужен.
+  - CA1 ядро (тумблер + вход): модуль-тумблер `customer_account` в реестре — **ВКЛ
+    по умолчанию у транзакционных типов** (recommended_for), **ВЫКЛ у чистых витрин**
+    (other → default_disabled_for); владелец переключает в `/dashboard/modules/`
+    («Kundenkonto»). Вход без пароля (magic-link, зеркало агрегатора:
+    `apps/account/auth.py`, Redis-токен SHA-256/15мин/одноразовый, сессия
+    account_customer_id, get_or_create Customer; анти-энумерация + rate-limit
+    email/IP, honeypot). Маршруты `/konto/` (login/verify/logout/home), шаблоны
+    `templates/konto/` (НЕ templates/account — там allauth). Письмо — Celery
+    `send_customer_magic_link`. Ссылка «Account» в шапке + 👤 в нижнем таб-баре при
+    активном модуле. Data-миграция **tenants/0017**: существующим
+    нетранзакционным тенантам дописать customer_account в disabled_modules.
+  - CA2 содержимое (`account_data.sections_for`): разделы Bestellungen (orders),
+    Termine + Mehrfachkarten (booking), Übernachtungen (stays), Tickets (events),
+    Angebote & Aufträge (jobs), Rechnungen (finance), Reservierungen + Gutscheine
+    (promotions), Bonuskarten (loyalty), Nachrichten (inbox) — каждый виден только
+    при активном модуле; ссылки на существующие публичные страницы статуса (по
+    коду/токену); каждая выборка в try/except (сбой не рушит ЛК).
+  - CA3 профиль + DSGVO (`/konto/profil/`): имя/тел (email=логин read-only),
+    Marketing-Opt-in (UWG §7), экспорт (Art. 15/20 JSON) и удаление/анонимизация
+    (Art. 17) — переиспользуют `_export_payload`/`_erase` из команды
+    dsgvo_customer; привязка Telegram (deep_link).
+  - CA4 действия: повтор заказа (reorder → корзина, комбо/модификаторы v1 не
+    переносим), отмена брони из ЛК (BookingSM cancel + возврат депозита Stripe
+    Connect, как в кабинете), автозаполнение формы чекаута именем/почтой/тел
+    вошедшего (context `account_customer`; бронь/событие — следующая итерация).
+  - **Деплой:** миграция tenants/0017 + `apps.account` в TENANT_APPS (без моделей).
 - **Админка + кабинет — UX-переработка (✅ в `main`, S1+S2 `9c8da4d`, S3 `05ad375`,
   CI зелёный, без миграций):** платформенная админка `/admin` (django-unfold) была
   не настроена (словаря `UNFOLD` не было) → голый список приложений Django; tenant-
