@@ -7,6 +7,17 @@
 from . import modules
 
 
+def _cart_count(request) -> int:
+    """Всего позиций в корзине (товары + комбо) — для бейджа иконки корзины."""
+    total = 0
+    if hasattr(request, "session"):
+        for key in ("cart", "combo_cart"):
+            d = request.session.get(key)
+            if isinstance(d, dict):
+                total += sum(v for v in d.values() if isinstance(v, int))
+    return total
+
+
 def _storefront_bottom_nav(request, tenant):
     """Мобильный нижний таб-бар витрины (T2b, развивает P1 action-bar).
 
@@ -36,9 +47,7 @@ def _storefront_bottom_nav(request, tenant):
 
     # Главное действие по самому релевантному активному модулю.
     if modules.is_module_active(tenant, "orders"):
-        cart = request.session.get("cart") if hasattr(request, "session") else None
-        count = sum(v for v in cart.values() if isinstance(v, int)) if isinstance(cart, dict) else 0
-        add("storefront-cart", _("Cart"), "🛒", kind="primary", badge=count)
+        add("storefront-cart", _("Cart"), "🛒", kind="primary", badge=_cart_count(request))
     elif modules.is_module_active(tenant, "booking"):
         add("storefront-termin", _("Book"), "📅", kind="primary")
     elif modules.is_module_active(tenant, "stays"):
@@ -118,6 +127,8 @@ def modules_nav(request):
         "storefront_account_enabled": modules.is_module_active(tenant, "customer_account"),
         # CA4: вошедший клиент (автозаполнение форм; None если не вошёл/модуль выкл).
         "account_customer": account_customer,
+        # R1: всего позиций в корзине — бейдж иконки корзины в шапке.
+        "storefront_cart_count": _cart_count(request),
         # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
         "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
         # M20 ④: готовая навигация витрины (стиль/sticky/пункты).

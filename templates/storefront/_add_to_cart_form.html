@@ -1,5 +1,5 @@
 {% load i18n %}{# Форма «в корзину» (Click&Collect): варианты + модификаторы + qty. Ожидает product. Используется на странице товара и в модалке быстрого заказа (T2c). #}
-<form method="post" action="{% url 'storefront-cart-add' %}" class="mt-4 flex flex-wrap items-center gap-3">
+<form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form mt-4 flex flex-wrap items-center gap-3">
   {% csrf_token %}
   <input type="hidden" name="product" value="{{ product.pk }}">
   {% if product.has_variants %}

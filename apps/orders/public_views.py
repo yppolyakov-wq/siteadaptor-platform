@@ -279,6 +279,40 @@ def reorder(request, code):
     return redirect("storefront-cart")
 
 
+def _is_ajax(request) -> bool:
+    return request.headers.get("X-Requested-With") == "fetch"
+
+
+def _cart_total_count(request) -> int:
+    total = 0
+    for key in (CART_SESSION_KEY, COMBO_SESSION_KEY):
+        d = request.session.get(key)
+        if isinstance(d, dict):
+            total += sum(v for v in d.values() if isinstance(v, int))
+    return total
+
+
+def _added_response(request):
+    """R1: AJAX → JSON со счётчиком (без перехода); иначе — редирект в корзину."""
+    if _is_ajax(request):
+        from django.http import JsonResponse
+
+        return JsonResponse({"ok": True, "count": _cart_total_count(request)})
+    messages.success(request, _("Added to your order."))
+    return redirect("storefront-cart")
+
+
+def _add_error(request, msg, *, product_pk=None, fallback="storefront-cart"):
+    if _is_ajax(request):
+        from django.http import JsonResponse
+
+        return JsonResponse({"ok": False, "error": str(msg)}, status=400)
+    messages.error(request, msg)
+    if product_pk is not None:
+        return redirect("storefront-product", pk=product_pk)
+    return redirect(fallback)
+
+
 @require_POST
 def cart_add(request):
     _require_orders_active(request)
@@ -298,8 +332,7 @@ def cart_add(request):
         except (ValidationError, ValueError):
             variant = None
         if variant is None:
-            messages.error(request, _("Please choose an option."))
-            return redirect("storefront-product", pk=product.pk)
+            return _add_error(request, _("Please choose an option."), product_pk=product.pk)
     # Модификаторы/Extras (A4b): валидируем выбор по правилам групп на сервере.
     options = []
     if product.has_modifiers:
@@ -307,8 +340,7 @@ def cart_add(request):
 
         options, error = validate_selection(product, request.POST.getlist("mod"))
         if error:
-            messages.error(request, error)
-            return redirect("storefront-product", pk=product.pk)
+            return _add_error(request, error, product_pk=product.pk)
     try:
         qty = max(1, min(int(request.POST.get("qty", "1")), MAX_QTY))
     except (TypeError, ValueError):
@@ -317,8 +349,7 @@ def cart_add(request):
     cart = _cart(request)
     cart[key] = min(cart.get(key, 0) + qty, MAX_QTY)
     request.session[CART_SESSION_KEY] = cart
-    messages.success(request, _("Added to your order."))
-    return redirect("storefront-cart")
+    return _added_response(request)
 
 
 @require_POST

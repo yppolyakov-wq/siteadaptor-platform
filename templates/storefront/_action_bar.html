@@ -5,18 +5,18 @@
             flex" style="padding-bottom: env(safe-area-inset-bottom);">
   {% for a in storefront_bottom_nav %}
     <a href="{{ a.url }}"
-       class="relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] text-xs font-medium
+       class="relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 min-h-[48px] text-[11px] font-medium
               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]
-              {% if a.kind == 'primary' %}text-white{% else %}text-gray-700 active:bg-gray-100{% endif %}"
+              {% if a.kind == 'primary' %}text-white{% else %}text-gray-600 active:bg-gray-100{% endif %}"
        {% if a.kind == 'primary' %}style="background: var(--accent);"{% endif %}>
-      <span class="text-lg leading-none" aria-hidden="true">{{ a.icon }}</span>
-      <span>{{ a.label }}</span>
-      {% if a.badge %}
-        <span class="absolute top-1 right-[22%] min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] leading-[18px] text-center">{{ a.badge }}</span>
+      <span class="text-[19px] leading-none" aria-hidden="true">{{ a.icon }}</span>
+      <span class="leading-tight">{{ a.label }}</span>
+      {% if a.kind == 'primary' %}
+        <span data-cart-badge class="absolute top-0.5 right-[20%] min-w-[17px] h-[17px] px-1 rounded-full bg-red-600 text-white text-[10px] leading-[17px] text-center {% if not a.badge %}hidden{% endif %}">{{ a.badge }}</span>
       {% endif %}
     </a>
   {% endfor %}
 </nav>
-{# Спейсер, чтобы контент не прятался под фиксированной панелью на мобайле. #}
-<div class="sm:hidden h-16" aria-hidden="true"></div>
+{# Спейсер по высоте бара (компактнее), чтобы контент не прятался под панелью. #}
+<div class="sm:hidden h-12" aria-hidden="true"></div>
 {% endif %}

@@ -75,6 +75,13 @@
           {% if storefront_account_enabled %}
             <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900" aria-label="{% trans 'My account' %}">👤 <span>{% trans "Account" %}</span></a>
           {% endif %}
+          {% if storefront_orders_enabled %}
+            {# R1: иконка корзины в шапке + бейдж кол-ва (обновляется AJAX'ом). #}
+            <a href="{% url 'storefront-cart' %}" class="relative inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-700 hover:bg-gray-100" aria-label="{% trans 'Cart' %}">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+              <span data-cart-badge class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] leading-[18px] text-center {% if not storefront_cart_count %}hidden{% endif %}">{{ storefront_cart_count }}</span>
+            </a>
+          {% endif %}
           {# Бургер: на мобильном всегда, на десктопе — только в стиле minimal. #}
           <button id="sf-nav-toggle" type="button" aria-label="{% trans 'Menu' %}" aria-expanded="false"
                   class="text-2xl leading-none text-gray-700 {% if style != 'minimal' %}sm:hidden{% endif %}">☰</button>
@@ -155,6 +162,46 @@
 
   {# T2c: контейнер модалки быстрого заказа (наполняется vanilla-fetch'ем). #}
   <div id="quick-modal"></div>
+  {# R1: тост подтверждения добавления в корзину. #}
+  <div id="sf-toast" role="status" aria-live="polite"></div>
+  <script>
+    // R1: добавление в корзину без перехода — перехватываем js-add-form, постим
+    // AJAX'ом, обновляем бейдж корзины (анимация) + тост; модалку закрываем.
+    (function () {
+      function setBadges(n) {
+        document.querySelectorAll("[data-cart-badge]").forEach(function (b) {
+          b.textContent = n;
+          b.classList.toggle("hidden", !n);
+          b.classList.remove("cart-bump"); void b.offsetWidth; b.classList.add("cart-bump");
+        });
+      }
+      function toast(msg) {
+        var t = document.getElementById("sf-toast");
+        if (!t) return;
+        t.textContent = msg; t.classList.add("show");
+        clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("show"); }, 1800);
+      }
+      document.addEventListener("submit", function (e) {
+        var form = e.target.closest("form.js-add-form");
+        if (!form) return;
+        e.preventDefault();
+        fetch(form.action, {
+          method: "POST", body: new FormData(form), headers: { "X-Requested-With": "fetch" },
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (res.ok && res.j.ok) {
+              setBadges(res.j.count);
+              var modal = document.getElementById("quick-modal"); if (modal) modal.innerHTML = "";
+              toast("{% trans 'Added to your order.' %}");
+            } else {
+              toast(res.j.error || "{% trans 'Please choose an option.' %}");
+            }
+          })
+          .catch(function () { form.submit(); });  // нет JSON/сети → обычная отправка
+      });
+    })();
+  </script>
   <script>
     // T2c: быстрый заказ — «+» на карточке грузит модалку-конфигуратор (fetch,
     // без HTMX ради CWV). Форма внутри постит в cart_add как со страницы товара.

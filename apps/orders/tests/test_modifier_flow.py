@@ -197,6 +197,22 @@ def test_cart_shows_upsell_suggestions():
     assert "Cola" in body  # upsell-предложение присутствует
 
 
+def test_cart_add_ajax_returns_json_count():
+    """R1: AJAX-добавление возвращает JSON со счётчиком, без редиректа."""
+    import json
+
+    product = ProductFactory(base_price=Decimal("5.00"))
+    req = RequestFactory().post(
+        "/warenkorb/add/", {"product": str(product.pk), "qty": "2"}, HTTP_X_REQUESTED_WITH="fetch"
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build()
+    resp = public_views.cart_add(req)
+    data = json.loads(resp.content)
+    assert resp.status_code == 200 and data["ok"] and data["count"] == 2
+
+
 def test_checkout_persists_table_number_from_session():
     """T2a: номер стола из сессии (?tisch=) попадает в заказ."""
     product = ProductFactory(base_price=Decimal("8.00"))
