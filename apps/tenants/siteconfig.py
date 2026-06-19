@@ -221,6 +221,10 @@ def normalize(config) -> dict:
     # T1: видео в галерее — один URL (YouTube/Vimeo/прямой файл). Рендерится
     # GDPR-дружелюбно (2-Klick / youtube-nocookie) в секции галереи.
     normalized["gallery_video"] = _s(config.get("gallery_video"))
+    # T2c: быстрый заказ («+»/модалка-конфигуратор) на карточках витрины.
+    # Дефолт True (поведение по умолчанию); владелец может вернуть «как раньше»
+    # (карточка просто ведёт на страницу товара, без «+»).
+    normalized["quick_add"] = bool(config.get("quick_add", True))
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):

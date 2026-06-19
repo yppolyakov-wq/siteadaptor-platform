@@ -318,6 +318,8 @@ def site_view(request):
         }
         # T1: видео в галерее — один URL (YouTube/Vimeo/файл).
         config["gallery_video"] = request.POST.get("gallery_video", "").strip()
+        # T2c: быстрый заказ («+»/модалка) на карточках — тумблер владельца.
+        config["quick_add"] = request.POST.get("quick_add") == "on"
         # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}

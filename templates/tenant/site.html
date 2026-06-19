@@ -171,6 +171,11 @@
           </div>
         {% endfor %}
       </div>
+      <label class="flex items-center gap-2 text-sm font-medium mt-4 pt-4 border-t border-gray-100">
+        <input type="checkbox" name="quick_add" {% if config.quick_add %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Quick order on cards (+ button / configurator)" %}
+      </label>
+      <p class="text-xs text-gray-400 ml-6">{% trans "Off: cards just link to the product page (as before)." %}</p>
     </fieldset>
 
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">

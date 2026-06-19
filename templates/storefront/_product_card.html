@@ -29,7 +29,7 @@
       {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-xs text-gray-400">{{ gp.0 }} {{ p.currency }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
     </div>
   </a>
-  {% if storefront_orders_enabled and p.in_stock %}
+  {% if storefront_quick_add and p.in_stock %}
     {% if p.has_variants or p.has_modifiers %}
       <button type="button" data-quick-url="{% url 'storefront-quick-add' p.pk %}"
               class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-indigo-600 text-white text-2xl leading-none shadow-lg hover:bg-indigo-700 flex items-center justify-center"

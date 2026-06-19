@@ -106,6 +106,8 @@ def modules_nav(request):
         "storefront_inbox_enabled": modules.is_module_active(tenant, "inbox"),  # M22b
         "storefront_events_enabled": modules.is_module_active(tenant, "events"),  # A6c
         "storefront_orders_enabled": modules.is_module_active(tenant, "orders"),  # T2c quick-add
+        # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
+        "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
         # M20 ④: готовая навигация витрины (стиль/sticky/пункты).
         "storefront_nav": nav_items,
         "storefront_nav_style": nav_style,

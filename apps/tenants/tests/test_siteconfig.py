@@ -38,6 +38,12 @@ def _owner():
 # --- normalize -----------------------------------------------------------------
 
 
+def test_quick_add_defaults_true_and_can_disable():
+    # T2c: быстрый заказ включён по умолчанию; владелец может вернуть «как раньше».
+    assert siteconfig.normalize({})["quick_add"] is True
+    assert siteconfig.normalize({"quick_add": False})["quick_add"] is False
+
+
 def test_normalize_empty_gives_defaults():
     config = siteconfig.normalize({})
     keys = [s["key"] for s in config["sections"]]
