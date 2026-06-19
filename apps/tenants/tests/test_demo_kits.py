@@ -93,6 +93,29 @@ def test_restaurant_kit_enables_orders_and_delivery():
     assert {"40721", "40724"} <= plz
 
 
+def test_restaurant_kit_seeds_events_catering_loyalty():
+    """Демо-ресторан показывает события, кейтеринг (jobs) и лояльность."""
+    from apps.events.models import Event
+    from apps.promotions.models import LoyaltyProgram
+
+    tenant = _tenant()
+    demo_kits.apply_kit(tenant, "restaurant")
+
+    # события опубликованы и в будущем
+    events = Event.objects.filter(status=Event.STATUS_PUBLISHED)
+    assert events.count() == 4
+    assert events.filter(title="Live-Musik: Italienische Nacht").exists()
+    # бесплатное (price 0) и платные
+    assert events.filter(price_cents=0).exists() and events.filter(price_cents=3500).exists()
+
+    # кейтеринг = модуль jobs активен (форма /anfrage/)
+    assert tenant.is_module_active("jobs")
+
+    # программа лояльности (штампы)
+    program = LoyaltyProgram.objects.get(is_active=True)
+    assert program.stamps_required == 10 and program.reward_label == "1 Gratis-Pizza"
+
+
 def test_restaurant_kit_seeds_bookable_table():
     """Бронь столика работает: ресурс + недельное расписание → /termin/ даёт слоты."""
     from apps.booking import availability

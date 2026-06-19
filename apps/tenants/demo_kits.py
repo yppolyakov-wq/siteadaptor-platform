@@ -74,6 +74,8 @@ class DemoKit:
     enable_modules: list = field(default_factory=list)
     # Конфиг доставки (Click&Collect + Lieferung) — задаётся на Tenant при apply_kit.
     delivery: dict = field(default_factory=dict)
+    # Программа лояльности (штампы): {"label","stamps","reward"} — при активном loyalty.
+    loyalty: dict = field(default_factory=dict)
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?[(label,price)],
@@ -171,7 +173,15 @@ RESTAURANT = DemoKit(
         ("Sofia Conti", "Patissière", "pastry,chef"),
     ],
     trust={"since": "1998", "marks": ["Slow Food", "Regional", "Familienbetrieb"]},
-    enable_modules=["orders"],  # онлайн-заказ + доставка (events/jobs — T0-2)
+    # онлайн-заказ+доставка (orders), события (events), кейтеринг-Anfrage (jobs)
+    enable_modules=["orders", "events", "jobs"],
+    loyalty={"label": "Stempelkarte", "stamps": 10, "reward": "1 Gratis-Pizza"},
+    events=[
+        ("Live-Musik: Italienische Nacht", 5, 40, "0"),
+        ("Sonntags-Brunch Buffet", 3, 60, "24.90"),
+        ("Wein-Tasting mit Sommelier", 12, 20, "35"),
+        ("Pizza-Backkurs für Anfänger", 20, 12, "49"),
+    ],
     delivery={
         "enabled": True,
         "fee_cents": 290,  # 2,90 € плоско
@@ -628,6 +638,16 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 is_active=True,
             )
             refs["stay_units"].append(str(unit.pk))
+    if kit.loyalty and is_active("loyalty"):
+        from apps.promotions.models import LoyaltyProgram
+
+        program = LoyaltyProgram.objects.create(
+            label=kit.loyalty["label"],
+            stamps_required=kit.loyalty.get("stamps", 10),
+            reward_label=kit.loyalty.get("reward", ""),
+            is_active=True,
+        )
+        refs["loyalty"] = [str(program.pk)]
     if kit.events and is_active("events"):
         from apps.events.models import Event
 
