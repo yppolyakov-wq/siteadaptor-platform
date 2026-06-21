@@ -100,6 +100,10 @@ class DemoKit:
     # Наполнить кабинет примерами транзакций (заказы/заявки/брони/билеты) по
     # активным архетипам — чтобы демо было «как настоящее». Адреса @example.de.
     seed_records: bool = False
+    # Тематические заявки/сметы (jobs) для seed_records: список dict'ов
+    #   {title, name, email, phone?, description, lines:[{text,qty,unit_price}], vat_rate}.
+    # Пусто → дефолтные Catering-заявки (ресторан). Werkstatt → Fahrzeug-Angebote.
+    job_samples: list = field(default_factory=list)
     # Скрыть тизеры этих архетипов из секции «Unsere Bereiche» (напр. пустой
     # catalog/booking у отеля). catalog — core, выключить нельзя, только скрыть.
     hide_archetypes: list = field(default_factory=list)
@@ -1125,11 +1129,304 @@ AKTIONSMARKT = DemoKit(
     ],
 )
 
+FRISEUR_MENUS = {
+    "top": {
+        "style": "centered",
+        "sticky": True,
+        "items": [
+            {"label": "Termin", "type": "archetype", "target": "booking"},
+            {"label": "Produkte", "type": "archetype", "target": "catalog"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Termin", "type": "archetype", "target": "booking", "icon": "✂️"},
+            {"label": "Produkte", "type": "archetype", "target": "catalog", "icon": "🛍"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty", "icon": "💝"},
+        ],
+    },
+}
+
+FRISEUR = DemoKit(
+    key="friseur",
+    label="Salon Schöngut",
+    business_type="other",
+    subdomain="friseur",
+    accent="#9333ea",  # Violett
+    hero_image_kw="hair,salon",
+    hero_title="Salon Schöngut",
+    hero_text="Ihr Friseur in der Altstadt — Schnitt, Farbe und Styling von Profis. "
+    "Termin in 30 Sekunden online buchen.",
+    about_title="Über den Salon",
+    about_text="Seit 2012 verwöhnen wir Sie mit modernen Schnitten, schonenden Farben und "
+    "ehrlicher Beratung. Buchen Sie Ihren Wunschtermin bequem online.",
+    nav_style="centered",
+    address="Altstadtgasse 7, 79098 Freiburg",
+    opening_hours_text="Di–Sa 9:00–18:00",
+    opening_hours={d: ("09:00", "18:00") for d in range(1, 6)},
+    gallery_kw=["hairdresser", "haircut", "hair,color", "salon,interior", "barber", "hairstyle"],
+    faq=[
+        (
+            "Wie buche ich einen Termin?",
+            "Über «Termin» wählen Sie Leistung, Tag und Uhrzeit online.",
+        ),
+        (
+            "Kann ich eine Leistung auswählen?",
+            "Ja — jede Leistung hat eine feste Dauer und einen Preis.",
+        ),
+        ("Bekomme ich eine Erinnerung?", "Ja, vor dem Termin erhalten Sie eine Erinnerung."),
+        ("Verkauft ihr Pflegeprodukte?", "Ja, hochwertige Produkte gibt es im Salon und online."),
+    ],
+    testimonials=[
+        ("Sandra K.", "Bester Schnitt seit Jahren — und so unkompliziert zu buchen!"),
+        ("Michael B.", "Tolle Beratung, faire Preise, immer pünktlich."),
+    ],
+    process=[
+        ("Leistung wählen", "Schnitt, Farbe oder Styling — mit Dauer und Preis."),
+        ("Termin buchen", "Freien Slot online sichern."),
+        ("Wohlfühlen", "Entspannen und neu aussehen."),
+    ],
+    team=[
+        ("Lea Schöngut", "Inhaberin & Stylistin", "hairstylist,woman"),
+        ("Jonas Feld", "Barbier", "barber,man"),
+        ("Mia Roth", "Coloristin", "hair,colorist"),
+    ],
+    trust={"since": "2012", "marks": ["Meisterbetrieb", "Schonende Farben", "Online-Termin"]},
+    cta={
+        "title": "Zeit für etwas Neues?",
+        "text": "Buchen Sie jetzt Ihren Wunschtermin online.",
+        "button_label": "Termin buchen",
+        "button_url": "/termin/",
+    },
+    enable_modules=["booking", "loyalty", "orders"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=FRISEUR_MENUS,
+    loyalty={"label": "Treuekarte", "stamps": 10, "reward": "1× Waschen & Föhnen gratis"},
+    archetype_covers={
+        "booking": {
+            "intro": "Wählen Sie Ihre Leistung und buchen Sie einen freien Termin.",
+            "hero_kw": "hair,salon",
+            "gallery_kw": ["haircut", "hair,color", "hairstyle"],
+        },
+        "catalog": {
+            "intro": "Pflegeprodukte für schönes Haar — auch für zuhause.",
+            "hero_kw": "hair,products",
+        },
+    },
+    services=[
+        ("Haarschnitt Damen", 45, "39"),
+        ("Haarschnitt Herren", 30, "25"),
+        ("Waschen & Föhnen", 30, "19"),
+        ("Färben", 90, "69"),
+        ("Strähnen / Highlights", 120, "89"),
+        ("Bart trimmen", 15, "12"),
+    ],
+    resources=[
+        {
+            "name": "Stuhl 1",
+            "type": "table",
+            "capacity": 1,
+            "start": "09:00",
+            "end": "18:00",
+            "slot": 30,
+            "weekdays": range(1, 6),
+        },
+        {
+            "name": "Stuhl 2",
+            "type": "table",
+            "capacity": 1,
+            "start": "09:00",
+            "end": "18:00",
+            "slot": 30,
+            "weekdays": range(1, 6),
+        },
+    ],
+    categories=[
+        (
+            "Pflegeprodukte",
+            "pflege",
+            [
+                _p("Shampoo Repair 250 ml", "12.90", "Für strapaziertes Haar.", "shampoo"),
+                _p("Spülung Glanz 250 ml", "12.90", "Für seidigen Glanz.", "hair,conditioner"),
+                _p("Haaröl 50 ml", "16.90", "Pflege für Spitzen.", "hair,oil"),
+                _p("Hitzeschutz-Spray", "14.90", "Vor dem Föhnen.", "hair,spray"),
+            ],
+        ),
+    ],
+)
+
+WERKSTATT_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Termin", "type": "archetype", "target": "booking"},
+            {"label": "Kostenvoranschlag", "type": "archetype", "target": "jobs"},
+            {"label": "Teile & Zubehör", "type": "archetype", "target": "catalog"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Termin", "type": "archetype", "target": "booking", "icon": "📅"},
+            {"label": "Angebot", "type": "archetype", "target": "jobs", "icon": "🧰"},
+            {"label": "Teile", "type": "archetype", "target": "catalog", "icon": "🔧"},
+        ],
+    },
+}
+
+WERKSTATT = DemoKit(
+    key="werkstatt",
+    label="KFZ-Werkstatt Dreyer",
+    business_type="other",
+    subdomain="werkstatt",
+    accent="#1d4ed8",  # Werkstatt-Blau
+    hero_image_kw="car,workshop",
+    hero_title="KFZ-Werkstatt Dreyer",
+    hero_text="Ihre Meisterwerkstatt für alle Marken — Termin online buchen oder "
+    "unverbindlichen Kostenvoranschlag anfordern.",
+    about_title="Über die Werkstatt",
+    about_text="Seit 1995 kümmern wir uns um Ihr Fahrzeug: Inspektion, Reparatur, HU/AU und "
+    "mehr — schnell, fair und meisterlich. Termin und Angebot bequem online.",
+    nav_style="classic",
+    address="Industriestraße 22, 44137 Dortmund",
+    opening_hours_text="Mo–Fr 8:00–17:00",
+    opening_hours={d: ("08:00", "17:00") for d in range(5)},
+    gallery_kw=["car,repair", "mechanic", "car,workshop", "car,engine", "tire,change", "garage"],
+    faq=[
+        ("Wie buche ich einen Termin?", "Über «Termin» Leistung und freien Slot online wählen."),
+        (
+            "Was ist ein Kostenvoranschlag?",
+            "Über «Kostenvoranschlag» schildern Sie Ihr Anliegen — "
+            "Sie erhalten ein unverbindliches Angebot mit Fahrzeugangabe.",
+        ),
+        ("Repariert ihr alle Marken?", "Ja, wir sind eine markenoffene Meisterwerkstatt."),
+        ("Bekomme ich Ersatzteile?", "Originalteile und Zubehör führen wir im Shop."),
+    ],
+    testimonials=[
+        ("Familie Ünal", "Schnell, ehrlich und fair — endlich eine Werkstatt zum Vertrauen."),
+        ("Peter S.", "Kostenvoranschlag online angefragt, Termin gebucht, alles top."),
+    ],
+    process=[
+        ("Anliegen schildern", "Termin buchen oder Kostenvoranschlag mit Fahrzeug anfragen."),
+        ("Angebot erhalten", "Transparenter Preis, bevor wir loslegen."),
+        ("Fahren", "Fertig — sicher zurück auf die Straße."),
+    ],
+    team=[
+        ("Frank Dreyer", "Werkstattmeister", "mechanic,man"),
+        ("Sven Klar", "KFZ-Techniker", "car,mechanic"),
+    ],
+    trust={"since": "1995", "marks": ["Meisterbetrieb", "Markenoffen", "HU/AU vor Ort"]},
+    cta={
+        "title": "Klappert, leuchtet oder zieht?",
+        "text": "Buchen Sie einen Termin oder fordern Sie ein Angebot an.",
+        "button_label": "Termin buchen",
+        "button_url": "/termin/",
+    },
+    enable_modules=["booking", "jobs", "orders"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=WERKSTATT_MENUS,
+    job_samples=[
+        {
+            "title": "Kostenvoranschlag: Inspektion + Bremsen vorne",
+            "name": "Markus Vogel",
+            "email": "vogel@example.de",
+            "phone": "0231 1234567",
+            "vehicle": "VW Golf VII · DO-MV 1234",
+            "description": "Inspektion fällig, Bremsen vorne quietschen. Bitte Angebot.",
+            "lines": [
+                {"text": "Inspektion lt. Hersteller", "qty": 1, "unit_price": "149.00"},
+                {"text": "Bremsbeläge vorne (Teile)", "qty": 1, "unit_price": "44.90"},
+                {"text": "Arbeitslohn Bremsen (Std.)", "qty": 1.5, "unit_price": "65.00"},
+            ],
+            "vat_rate": 19,
+        },
+        {
+            "title": "Kostenvoranschlag: Klimaanlage prüfen & warten",
+            "name": "Sabine Koch",
+            "email": "koch@example.de",
+            "vehicle": "BMW 320d · DO-SK 88",
+            "description": "Klima kühlt nicht mehr richtig. Bitte prüfen und warten.",
+            "lines": [
+                {"text": "Klima-Service inkl. Kältemittel", "qty": 1, "unit_price": "119.00"},
+                {"text": "Innenraumfilter (Teile)", "qty": 1, "unit_price": "24.90"},
+            ],
+            "vat_rate": 19,
+        },
+    ],
+    archetype_covers={
+        "booking": {
+            "intro": "Wählen Sie eine Leistung und buchen Sie einen freien Werkstatt-Termin.",
+            "hero_kw": "car,workshop",
+            "gallery_kw": ["car,repair", "tire,change", "car,engine"],
+        },
+        "jobs": {
+            "intro": "Schildern Sie Ihr Anliegen mit Fahrzeug — Sie erhalten ein unverbindliches "
+            "Angebot (Kostenvoranschlag).",
+            "hero_kw": "mechanic",
+        },
+        "catalog": {
+            "intro": "Ersatzteile und Zubehör — Originalqualität.",
+            "hero_kw": "car,parts",
+        },
+    },
+    services=[
+        ("Ölwechsel", 30, "49"),
+        ("Inspektion", 120, "149"),
+        ("Reifenwechsel", 45, "39"),
+        ("HU/AU (TÜV)", 60, "89"),
+        ("Bremsen-Check", 30, "0"),
+    ],
+    resources=[
+        {
+            "name": "Hebebühne 1",
+            "type": "table",
+            "capacity": 1,
+            "start": "08:00",
+            "end": "17:00",
+            "slot": 30,
+            "weekdays": range(0, 5),
+        },
+        {
+            "name": "Hebebühne 2",
+            "type": "table",
+            "capacity": 1,
+            "start": "08:00",
+            "end": "17:00",
+            "slot": 30,
+            "weekdays": range(0, 5),
+        },
+    ],
+    categories=[
+        (
+            "Teile & Zubehör",
+            "teile",
+            [
+                _p("Motoröl 5W-30 5 L", "39.90", "Vollsynthetisch.", "motor,oil"),
+                _p("Wischerblätter-Set", "19.90", "Für klare Sicht.", "wiper,blade"),
+                _p("Bremsbeläge vorne", "44.90", "Markenqualität.", "brake,pad"),
+                _p("Luftfilter", "16.90", "Passend für viele Modelle.", "air,filter"),
+                _p("Scheibenfrostschutz 3 L", "8.90", "Bis −20 °C.", "antifreeze"),
+            ],
+        ),
+    ],
+)
+
 KITS = {
     RESTAURANT.key: RESTAURANT,
     PRANASY.key: PRANASY,
     HOTEL.key: HOTEL,
     AKTIONSMARKT.key: AKTIONSMARKT,
+    FRISEUR.key: FRISEUR,
+    WERKSTATT.key: WERKSTATT,
 }
 
 
@@ -1503,21 +1800,19 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             except Exception:
                 pass
 
-    # Aufträge & Angebote (Catering / Vorbestellung)
+    # Aufträge & Angebote (Catering / Vorbestellung по умолчанию; kit.job_samples
+    # переопределяет тематически — напр. Fahrzeug-Angebote у Werkstatt).
     if is_active("jobs"):
         from apps.jobs.services import create_job, set_lines
 
-        try:
-            j1 = create_job(
-                title="Catering Firmenfeier (25 Personen)",
-                name="Eventbüro Schmidt",
-                email="events@example.de",
-                phone="0211 1234567",
-                description="Veganes Fingerfood-Buffet für 25 Gäste, inkl. Lieferung & Aufbau.",
-            )
-            set_lines(
-                j1,
-                [
+        jobs = kit.job_samples or [
+            {
+                "title": "Catering Firmenfeier (25 Personen)",
+                "name": "Eventbüro Schmidt",
+                "email": "events@example.de",
+                "phone": "0211 1234567",
+                "description": "Veganes Fingerfood-Buffet für 25 Gäste, inkl. Lieferung & Aufbau.",
+                "lines": [
                     {
                         "text": "Veganes Fingerfood-Buffet (25 Pers.)",
                         "qty": 1,
@@ -1525,24 +1820,31 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     },
                     {"text": "Lieferung & Aufbau", "qty": 1, "unit_price": "60.00"},
                 ],
-                vat_rate=19,
-            )
-        except Exception:
-            pass
-        try:
-            j2 = create_job(
-                title="Vorbestellung: 50 Falafel-Wraps",
-                name="Kanzlei Wolf",
-                email="office@example.de",
-                description="50 Falafel-Wraps zur Abholung am Freitag, 12 Uhr.",
-            )
-            set_lines(
-                j2,
-                [{"text": "Falafel-Wrap (vorbestellt)", "qty": 50, "unit_price": "6.50"}],
-                vat_rate=7,
-            )
-        except Exception:
-            pass
+                "vat_rate": 19,
+            },
+            {
+                "title": "Vorbestellung: 50 Falafel-Wraps",
+                "name": "Kanzlei Wolf",
+                "email": "office@example.de",
+                "description": "50 Falafel-Wraps zur Abholung am Freitag, 12 Uhr.",
+                "lines": [{"text": "Falafel-Wrap (vorbestellt)", "qty": 50, "unit_price": "6.50"}],
+                "vat_rate": 7,
+            },
+        ]
+        for spec in jobs:
+            try:
+                job = create_job(
+                    title=spec["title"],
+                    name=spec["name"],
+                    email=spec["email"],
+                    phone=spec.get("phone", ""),
+                    description=spec.get("description", ""),
+                    vehicle=spec.get("vehicle", ""),
+                    site_address=spec.get("site_address", ""),
+                )
+                set_lines(job, spec.get("lines", []), vat_rate=spec.get("vat_rate", 19))
+            except Exception:
+                pass
 
     # Tischreservierungen
     if is_active("booking") and refs.get("resources"):

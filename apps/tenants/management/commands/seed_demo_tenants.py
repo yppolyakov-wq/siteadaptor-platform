@@ -8,6 +8,8 @@
     python manage.py seed_demo_tenants --kit pranasy    # → pranasy.<base>
     python manage.py seed_demo_tenants --kit hotel      # → hotel.<base> (stays)
     python manage.py seed_demo_tenants --kit aktionsmarkt  # все типы акций
+    python manage.py seed_demo_tenants --kit friseur    # → friseur.<base> (booking-услуги)
+    python manage.py seed_demo_tenants --kit werkstatt  # → werkstatt.<base> (booking+jobs)
     python manage.py seed_demo_tenants --recreate      # пересоздать
     python manage.py seed_demo_tenants --delete        # удалить демо-тенанты
 

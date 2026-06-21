@@ -267,3 +267,31 @@ def test_apply_aktionsmarkt_kit_covers_all_promo_types():
     assert LoyaltyProgram.objects.filter(is_active=True).exists()
     faq_q = " ".join(p["q"] for p in tenant.site_config["faq"])
     assert "Überraschungstüte" in faq_q and "Countdown" in faq_q and "Gutschein" in faq_q
+
+
+def test_apply_friseur_kit_booking_services():
+    """Friseur: booking-услуги (цена+длительность) + ресурсы + брони в кабинете."""
+    from apps.booking.models import Booking, Resource, Service
+
+    tenant = TenantFactory(schema_name="public", slug="fr", name="FR", business_type="other")
+    assert demo_kits.apply_kit(tenant, "friseur") is True
+    assert Service.objects.filter(is_active=True).count() == 6
+    assert Service.objects.filter(name="Färben", price_cents=6900, duration_minutes=90).exists()
+    assert Resource.objects.filter(is_active=True).count() == 2  # 2 Stühle
+    assert Booking.objects.filter(status=Booking.STATUS_CONFIRMED).exists()  # seed_records
+    for m in ("booking", "loyalty", "orders"):
+        assert tenant.is_module_active(m)
+
+
+def test_apply_werkstatt_kit_jobs_booking_catalog():
+    """Werkstatt: симбиоз jobs (смета) + booking (услуги) + catalog (Teile)."""
+    from apps.booking.models import Service
+    from apps.jobs.models import Job
+
+    tenant = TenantFactory(schema_name="public", slug="we", name="WE", business_type="other")
+    assert demo_kits.apply_kit(tenant, "werkstatt") is True
+    assert Service.objects.filter(name="Ölwechsel", price_cents=4900).exists()
+    assert Product.objects.filter(metadata__demo=True).count() == 5  # Teile & Zubehör
+    assert Job.objects.count() >= 2  # seed_records → Kostenvoranschläge
+    for m in ("booking", "jobs", "orders"):
+        assert tenant.is_module_active(m)
