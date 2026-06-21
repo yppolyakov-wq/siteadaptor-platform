@@ -1,0 +1,49 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Preview" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+  <div class="flex items-center gap-3">
+    <h1 class="text-2xl font-bold">{% trans "Preview" %}</h1>
+    <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
+  </div>
+  <div class="flex items-center gap-2">
+    {# Переключатель ширины (эмуляция устройства). #}
+    <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm" role="group" aria-label="{% trans 'Device' %}">
+      <button type="button" data-w="100%" class="dev-btn px-3 py-1.5">🖥 {% trans "Desktop" %}</button>
+      <button type="button" data-w="768px" class="dev-btn px-3 py-1.5 border-l border-gray-300">▭ {% trans "Tablet" %}</button>
+      <button type="button" data-w="390px" class="dev-btn px-3 py-1.5 border-l border-gray-300">📱 {% trans "Mobile" %}</button>
+    </div>
+    <button id="prev-reload" type="button" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-100">↻ {% trans "Reload" %}</button>
+    <a href="/" target="_blank" rel="noopener" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-100">{% trans "Open" %} ↗</a>
+  </div>
+</div>
+<p class="text-xs text-gray-400 mb-3">{% trans "Shows your live site. Changes appear after you save them in the builders." %}</p>
+
+<div class="bg-gray-100 rounded-2xl p-3 flex justify-center">
+  <div id="prev-shell" class="bg-white rounded-xl shadow-sm overflow-hidden transition-all" style="width:100%;">
+    <iframe id="prev-frame" src="/" title="{% trans 'Storefront preview' %}"
+            class="w-full" style="height:75vh; border:0;"></iframe>
+  </div>
+</div>
+
+<script>
+(function () {
+  var shell = document.getElementById("prev-shell");
+  var frame = document.getElementById("prev-frame");
+  document.querySelectorAll(".dev-btn").forEach(function (b) {
+    b.addEventListener("click", function () {
+      shell.style.width = b.getAttribute("data-w");
+      document.querySelectorAll(".dev-btn").forEach(function (x) {
+        x.classList.remove("bg-gray-900", "text-white");
+      });
+      b.classList.add("bg-gray-900", "text-white");
+    });
+  });
+  document.getElementById("prev-reload").addEventListener("click", function () {
+    frame.contentWindow.location.reload();
+  });
+})();
+</script>
+{% endblock %}

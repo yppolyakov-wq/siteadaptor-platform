@@ -111,6 +111,15 @@
              class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </fieldset>
 
+    <a href="{% url 'site-preview' %}"
+       class="flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition">
+      <span>
+        <span class="block font-semibold">👁 {% trans "Preview" %}</span>
+        <span class="block text-xs text-gray-400 mt-1">{% trans "See your live site with desktop / tablet / mobile widths." %}</span>
+      </span>
+      <span class="text-indigo-600 font-medium text-sm whitespace-nowrap">{% trans "Open" %} →</span>
+    </a>
+
     <a href="{% url 'site-home' %}"
        class="flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition">
       <span>

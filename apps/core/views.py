@@ -519,6 +519,14 @@ def _delete_cover_image(request, key: str, image_id: str) -> None:
 
 
 @login_required
+def site_preview(request):
+    """Live-предпросмотр витрины (Z): актуальный сайт в iframe + переключатель
+    ширины (Desktop/Tablet/Mobile). Отражает сохранённое состояние; правки в
+    билдерах видны после «Speichern». (Live-до-сохранения — следующий этап.)"""
+    return render(request, "tenant/site_preview.html", {"nav": "site"})
+
+
+@login_required
 def sections_view(request):
     """Обложки разделов (S3): интро-текст + hero-фото на каждый лендинг архетипа.
     Рендерятся поверх его публичной страницы (storefront/_archetype_cover.html).

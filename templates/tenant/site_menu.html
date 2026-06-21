@@ -6,7 +6,10 @@
 <div class="max-w-2xl">
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-2xl font-bold">{% trans "Navigation menu" %}</h1>
-    <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
+    <span class="flex items-center gap-3">
+      <a href="{% url 'site-preview' %}" class="text-sm text-indigo-600 hover:underline">👁 {% trans "Preview" %}</a>
+      <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
+    </span>
   </div>
   <p class="text-sm text-gray-500 mb-4">{% trans "Build your header and bottom menu. Drag-free: use ↑/↓ to reorder. Sub-items appear as a dropdown on desktop." %}</p>
 
