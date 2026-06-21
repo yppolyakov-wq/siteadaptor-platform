@@ -35,12 +35,13 @@
 
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
-        <p class="text-xs text-gray-400 mb-4">{% trans "Smaller number = higher on the page. Untick to hide a block." %}</p>
-        <div class="space-y-3">
+        <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
+        <div id="home-blocks" class="space-y-3">
           {% for s in sections %}
-            <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3">
+            <div class="home-block flex items-center gap-3 border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
+              <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" title="{% trans 'Drag to reorder' %}">⠿</span>
               <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
-                     class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
+                     class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
               <label class="flex items-center gap-2 text-sm font-medium flex-1">
                 <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
                        class="rounded border-gray-300">
@@ -143,6 +144,32 @@
 
   form.addEventListener("input", schedule);
   form.addEventListener("change", schedule);
+
+  // V2: drag-drop порядка блоков (нативный HTML5 DnD, без библиотек).
+  var list = document.getElementById("home-blocks");
+  if (list) {
+    var dragged = null;
+    function renumber() {
+      list.querySelectorAll(".order-input").forEach(function (inp, i) { inp.value = i + 1; });
+      schedule();  // обновить live-preview
+    }
+    list.querySelectorAll(".home-block").forEach(function (row) {
+      row.addEventListener("dragstart", function () { dragged = row; row.classList.add("opacity-50"); });
+      row.addEventListener("dragend", function () { row.classList.remove("opacity-50"); renumber(); });
+    });
+    list.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      if (!dragged) return;
+      var after = null;
+      list.querySelectorAll(".home-block:not(.opacity-50)").forEach(function (row) {
+        var box = row.getBoundingClientRect();
+        if (e.clientY < box.top + box.height / 2 && after === null) after = row;
+      });
+      if (after) list.insertBefore(dragged, after);
+      else list.appendChild(dragged);
+    });
+  }
+
   push();  // первичный рендер черновика
 })();
 </script>
