@@ -189,3 +189,20 @@ def test_pranasy_menu_resolves_categories_and_promo_groups(settings):
     # Aktionen → promo_group резолвится (есть активная акция в группе)
     aktionen_children = {c["label"] for c in by["Aktionen"]["children"]}
     assert "Fastfood-Aktionen" in aktionen_children
+
+
+def test_pranasy_seeds_records_for_all_archetypes():
+    """seed_records: кабинет демо наполнен примерами по всем архетипам."""
+    from apps.booking.models import Booking
+    from apps.events.models import Ticket
+    from apps.jobs.models import Job
+    from apps.orders.models import Order
+
+    tenant = TenantFactory(schema_name="public", slug="pr", name="PR", business_type="restaurant")
+    demo_kits.apply_kit(tenant, "pranasy")
+
+    assert Order.objects.count() >= 3  # заказы Click & Collect
+    jobs = Job.objects.all()
+    assert jobs.count() >= 2 and jobs.filter(gross__gt=0).exists()  # сметы с суммами
+    assert Booking.objects.filter(status=Booking.STATUS_CONFIRMED).count() >= 1  # брони столика
+    assert Ticket.objects.count() >= 1  # билеты на событие

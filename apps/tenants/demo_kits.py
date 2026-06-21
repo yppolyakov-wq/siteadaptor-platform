@@ -89,6 +89,9 @@ class DemoKit:
     storefront_root: str = "home"  # S4: стартовая страница (home или ключ архетипа)
     # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
     subdomain: str = ""
+    # Наполнить кабинет примерами транзакций (заказы/заявки/брони/билеты) по
+    # активным архетипам — чтобы демо было «как настоящее». Адреса @example.de.
+    seed_records: bool = False
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?[(label,price)],
@@ -564,6 +567,7 @@ PRANASY = DemoKit(
     loyalty={"label": "Pranasy-Stempelkarte", "stamps": 10, "reward": "1 Gratis-Burger"},
     enable_archetypes_section=True,
     storefront_root="home",
+    seed_records=True,
     menus=PRANASY_MENUS,
     archetype_covers={
         "catalog": {
@@ -870,6 +874,7 @@ def apply_kit(tenant, key: str) -> bool:
         ]
 
     _seed_kit_modules(tenant, kit, refs)
+    _seed_kit_records(tenant, kit, refs, created_products)
 
     # S3: обложки разделов — интро + hero-фото + галерея на архетип.
     archetypes_cfg = {}
@@ -1029,3 +1034,119 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 status=Event.STATUS_PUBLISHED,
             )
             refs["events"].append(str(event.pk))
+
+
+def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
+    """Примеры транзакций по активным архетипам (заказы/заявки/брони/билеты) —
+    чтобы кабинет демо был наполнен «как настоящий». Демо-тенант одноразовый
+    (схема дропается), спец-маркировка не нужна. Адреса @example.de (RFC 2606) —
+    реальным людям письма не уходят. Каждый блок изолирован (сбой не рушит сид)."""
+    if not kit.seed_records:
+        return
+    is_active = tenant.is_module_active
+
+    # Bestellungen (Click & Collect)
+    if is_active("orders") and products:
+        from apps.orders.services import create_order
+
+        samples = [
+            ("Max Mustermann", "max@example.de", [(products[0], 2)]),
+            ("Lena Vogt", "lena@example.de", [(products[1 % len(products)], 1), (products[0], 1)]),
+            ("Tom Berg", "tom@example.de", [(products[2 % len(products)], 3)]),
+        ]
+        for name, email, items in samples:
+            try:
+                create_order(items=items, name=name, email=email, phone="0151 2345678")
+            except Exception:
+                pass
+
+    # Aufträge & Angebote (Catering / Vorbestellung)
+    if is_active("jobs"):
+        from apps.jobs.services import create_job, set_lines
+
+        try:
+            j1 = create_job(
+                title="Catering Firmenfeier (25 Personen)",
+                name="Eventbüro Schmidt",
+                email="events@example.de",
+                phone="0211 1234567",
+                description="Veganes Fingerfood-Buffet für 25 Gäste, inkl. Lieferung & Aufbau.",
+            )
+            set_lines(
+                j1,
+                [
+                    {
+                        "text": "Veganes Fingerfood-Buffet (25 Pers.)",
+                        "qty": 1,
+                        "unit_price": "375.00",
+                    },
+                    {"text": "Lieferung & Aufbau", "qty": 1, "unit_price": "60.00"},
+                ],
+                vat_rate=19,
+            )
+        except Exception:
+            pass
+        try:
+            j2 = create_job(
+                title="Vorbestellung: 50 Falafel-Wraps",
+                name="Kanzlei Wolf",
+                email="office@example.de",
+                description="50 Falafel-Wraps zur Abholung am Freitag, 12 Uhr.",
+            )
+            set_lines(
+                j2,
+                [{"text": "Falafel-Wrap (vorbestellt)", "qty": 50, "unit_price": "6.50"}],
+                vat_rate=7,
+            )
+        except Exception:
+            pass
+
+    # Tischreservierungen
+    if is_active("booking") and refs.get("resources"):
+        from datetime import datetime, time, timedelta
+
+        from django.utils import timezone
+
+        from apps.booking.models import Resource
+        from apps.booking.services import book
+
+        try:
+            res = Resource.objects.get(pk=refs["resources"][0])
+            day = timezone.localdate() + timedelta(days=1)
+            for hh, who, mail, party in [
+                (12, "Familie Klein", "klein@example.de", 4),
+                (19, "Sara Hoff", "sara@example.de", 2),
+            ]:
+                start = timezone.make_aware(datetime.combine(day, time(hh, 0)))
+                try:
+                    book(
+                        res,
+                        start=start,
+                        end=start + timedelta(hours=1),
+                        name=who,
+                        email=mail,
+                        party_size=party,
+                        auto_confirm=True,
+                    )
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    # Event-Tickets
+    if is_active("events") and refs.get("events"):
+        from apps.events.models import Event
+        from apps.events.services import book_ticket
+
+        try:
+            ev = Event.objects.get(pk=refs["events"][0])
+            for who, mail, qty in [
+                ("Nina Roth", "nina@example.de", 2),
+                ("Paul Adam", "paul@example.de", 1),
+            ]:
+                try:
+                    book_ticket(ev, name=who, email=mail, quantity=qty, auto_confirm=True)
+                except Exception:
+                    pass
+        except Exception:
+            pass
