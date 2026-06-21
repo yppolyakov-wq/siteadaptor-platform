@@ -146,3 +146,46 @@ def test_restaurant_kit_seeds_bookable_table():
         for d in range(1, 8)
     )
     assert found
+
+
+def test_apply_pranasy_kit_uses_constructor_features():
+    """Демо «Pranasy» использует конструктор: группы акций, секция «Bereiche»,
+    многоуровневое меню, обложки разделов."""
+    tenant = TenantFactory(schema_name="public", slug="p", name="P", business_type="restaurant")
+    assert demo_kits.apply_kit(tenant, "pranasy") is True
+    cfg = tenant.site_config
+
+    # направления = категории каталога
+    assert Category.objects.filter(slug="demo-fastfood").exists()
+    assert Category.objects.filter(slug="demo-fertig").exists()
+    # S6: обе группы акций представлены
+    groups = set(Promotion.objects.filter(metadata__demo=True).values_list("group", flat=True))
+    assert {"Fastfood", "Fertiggerichte"} <= groups
+    # S2: секция «Unsere Bereiche» включена
+    assert "archetypes" in {s["key"] for s in cfg["sections"] if s["enabled"]}
+    # S7: многоуровневое меню с подменю Speisekarte → Fastfood/Fertiggerichte
+    speise = next(i for i in cfg["menus"]["top"]["items"] if i["label"] == "Speisekarte")
+    assert [c["label"] for c in speise["children"]] == ["Fastfood", "Fertiggerichte"]
+    assert cfg["menus"]["bottom"]["enabled"] is True
+    # S3: обложка раздела catalog (интро + галерея)
+    assert cfg["archetypes"]["catalog"]["intro"]
+    assert cfg["archetypes"]["catalog"]["gallery"]
+    # модули направлений активны
+    for m in ("orders", "events", "jobs", "loyalty"):
+        assert tenant.is_module_active(m)
+
+
+def test_pranasy_menu_resolves_categories_and_promo_groups(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.tenants import menu
+
+    tenant = TenantFactory(schema_name="public", slug="p2", name="P2", business_type="restaurant")
+    demo_kits.apply_kit(tenant, "pranasy")
+    items = menu.resolve_menu(tenant, "top")
+    by = {i["label"]: i for i in items}
+    # Speisekarte → дети-категории резолвятся
+    child_urls = {c["url"] for c in by["Speisekarte"]["children"]}
+    assert "/sortiment/?kategorie=demo-fastfood" in child_urls
+    # Aktionen → promo_group резолвится (есть активная акция в группе)
+    aktionen_children = {c["label"] for c in by["Aktionen"]["children"]}
+    assert "Fastfood-Aktionen" in aktionen_children

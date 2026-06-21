@@ -77,6 +77,18 @@ class DemoKit:
     delivery: dict = field(default_factory=dict)
     # Программа лояльности (штампы): {"label","stamps","reward"} — при активном loyalty.
     loyalty: dict = field(default_factory=dict)
+    # --- Конструктор витрины (S1–S8): новые возможности демо ------------------
+    enable_archetypes_section: bool = False  # секция «Unsere Bereiche» (тизеры)
+    # Обложки разделов (S3): key архетипа → {"intro","hero_kw","gallery_kw":[...]}.
+    archetype_covers: dict = field(default_factory=dict)
+    # Многоуровневое меню (S7): готовая структура menus (top/bottom) с подменю,
+    # ссылками на категории (slug «demo-…») и группы акций. Пусто → легаси nav.
+    menus: dict = field(default_factory=dict)
+    # S6: тег группы акции = название категории её товара (Fastfood/Fertiggerichte).
+    group_promos_by_category: bool = False
+    storefront_root: str = "home"  # S4: стартовая страница (home или ключ архетипа)
+    # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
+    subdomain: str = ""
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?[(label,price)],
@@ -443,13 +455,302 @@ RESTAURANT = DemoKit(
     ],
 )
 
-KITS = {RESTAURANT.key: RESTAURANT}
+VEGAN_BURGER_MODIFIERS = [
+    _mg(
+        "Brötchen", [("Sesam", "0.00"), ("Vollkorn", "0.00"), ("Glutenfrei", "1.00")], min=1, max=1
+    ),
+    _mg("Extra Patty", [("Extra Patty", "2.50")], min=0, max=1),
+    _mg(
+        "Toppings",
+        [
+            ("Avocado", "1.50"),
+            ("Vegan Bacon", "1.50"),
+            ("Jalapeños", "0.80"),
+            ("Röstzwiebeln", "0.80"),
+            ("Vegan Cheese", "1.20"),
+        ],
+        min=0,
+        max=0,
+    ),
+    _mg("Ohne", [("ohne Zwiebeln", "0.00"), ("ohne Sauce", "0.00")], min=0, max=0),
+]
+
+# Многоуровневое меню (S7): подменю Speisekarte/Aktionen + архетипы. Категории по
+# slug «demo-…» (apply_kit префиксует), группы акций — по названию категории (S6).
+PRANASY_MENUS = {
+    "top": {
+        "style": "centered",
+        "sticky": True,
+        "items": [
+            {
+                "label": "Speisekarte",
+                "type": "group",
+                "children": [
+                    {"label": "Fastfood", "type": "category", "target": "demo-fastfood"},
+                    {"label": "Fertiggerichte", "type": "category", "target": "demo-fertig"},
+                ],
+            },
+            {
+                "label": "Aktionen",
+                "type": "group",
+                "children": [
+                    {"label": "Fastfood-Aktionen", "type": "promo_group", "target": "Fastfood"},
+                    {"label": "Fertig-Aktionen", "type": "promo_group", "target": "Fertiggerichte"},
+                ],
+            },
+            {"label": "Tisch", "type": "archetype", "target": "booking"},
+            {"label": "Events", "type": "archetype", "target": "events"},
+            {"label": "Catering", "type": "archetype", "target": "jobs"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Menü", "type": "archetype", "target": "catalog", "icon": "🍔"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🛒"},
+            {"label": "Tisch", "type": "archetype", "target": "booking", "icon": "📅"},
+            {"label": "Events", "type": "archetype", "target": "events", "icon": "🎫"},
+        ],
+    },
+}
+
+PRANASY = DemoKit(
+    key="pranasy",
+    label="Pranasy — Vegan Fastfood",
+    business_type="restaurant",
+    subdomain="pranasy",  # → pranasy.<base> (а не pranasy-demo)
+    accent="#16a34a",  # frisches Grün
+    hero_image_kw="vegan,burger",
+    hero_title="Pranasy",
+    hero_text="100 % pflanzlich. Fastfood ohne schlechtes Gewissen — frisch, schnell, lecker.",
+    about_title="Über Pranasy",
+    about_text="Wir machen veganes Fastfood, das schmeckt: saftige Burger, knusprige Wraps "
+    "und frische Bowls — alles pflanzlich, regional und mit Liebe gemacht.",
+    nav_style="centered",
+    address="Mittelstraße 8, 40213 Düsseldorf",
+    opening_hours_text="Mo–So 11:00–22:00",
+    opening_hours={d: ("11:00", "22:00") for d in range(7)},
+    gallery_kw=["vegan,burger", "vegan,bowl", "vegan,wrap", "smoothie", "vegan,food", "fries"],
+    faq=[
+        ("Ist alles wirklich vegan?", "Ja — 100 % pflanzlich, ohne Ausnahme."),
+        (
+            "Kann ich vorbestellen?",
+            "Klar, online über «Online bestellen» zur Abholung oder Lieferung.",
+        ),
+        (
+            "Macht ihr Catering?",
+            "Ja! Stell über «Catering» eine Anfrage — wir melden uns mit Angebot.",
+        ),
+    ],
+    testimonials=[
+        ("Jana", "Endlich veganes Fastfood, das richtig knallt. Der Burger ist der Hammer!"),
+        ("Tom & Lisa", "Schnell, frisch, lecker — unser neuer Lieblingsladen."),
+    ],
+    process=[
+        ("Wählen", "Stell dir dein Menü zusammen — mit Extras nach Wunsch."),
+        ("Bestellen", "Online zur Abholung oder Lieferung, oder direkt am Tisch."),
+        ("Genießen", "Frisch zubereitet, in wenigen Minuten."),
+    ],
+    team=[
+        ("Nour El-Amin", "Gründerin & Köchin", "chef,woman"),
+        ("Ben Krause", "Küche", "cook,man"),
+    ],
+    trust={"since": "2021", "marks": ["100 % Vegan", "Regional", "Bio"]},
+    enable_modules=["orders", "events", "jobs", "loyalty"],
+    promo_count=4,
+    group_promos_by_category=True,
+    loyalty={"label": "Pranasy-Stempelkarte", "stamps": 10, "reward": "1 Gratis-Burger"},
+    enable_archetypes_section=True,
+    storefront_root="home",
+    menus=PRANASY_MENUS,
+    archetype_covers={
+        "catalog": {
+            "intro": "Unsere ganze Karte — Fastfood und Fertiggerichte, alles pflanzlich.",
+            "hero_kw": "vegan,burger",
+            "gallery_kw": ["vegan,burger", "vegan,wrap", "fries", "vegan,bowl"],
+        },
+        "booking": {
+            "intro": "Reserviere deinen Tisch — wir halten dir einen Platz frei.",
+            "hero_kw": "restaurant,table",
+        },
+        "events": {
+            "intro": "Vegane Events, Street-Food-Festivals und Kochkurse.",
+            "hero_kw": "food,festival",
+            "gallery_kw": ["food,festival", "cooking,class"],
+        },
+        "jobs": {
+            "intro": "Catering & Vorbestellung für Feiern, Büro und Events. Sag uns, was du "
+            "brauchst — du bekommst ein unverbindliches Angebot.",
+            "hero_kw": "catering,buffet",
+        },
+        "loyalty": {
+            "intro": "Sammle Stempel bei jedem Besuch — der 10. Burger geht aufs Haus.",
+            "hero_kw": "vegan,burger",
+        },
+    },
+    events=[
+        ("Vegan Street-Food Festival", 7, 200, "0"),
+        ("Vegan Burger Battle", 14, 60, "15"),
+        ("Kochkurs: Veganes Fastfood selbst machen", 21, 12, "49"),
+        ("Sommer-Retreat: Plant-Based Weekend", 40, 30, "129"),
+    ],
+    delivery={
+        "enabled": True,
+        "fee_cents": 290,
+        "free_cents": 2500,
+        "min_cents": 1200,
+        "pickup_min_cents": 0,
+        "area": "Lieferung im Umkreis von 4 km um Düsseldorf-Mitte.",
+        "zones": [
+            {"plz": "40213", "fee_cents": 0, "free_cents": 0, "min_cents": 1200},
+            {"plz": "40215", "fee_cents": 290, "free_cents": 2500, "min_cents": 1500},
+        ],
+    },
+    cta={
+        "title": "Hunger?",
+        "text": "Bestell jetzt online zur Abholung oder Lieferung.",
+        "button_label": "Zur Speisekarte",
+        "button_url": "/sortiment/",
+    },
+    resources=[
+        {
+            "name": "Tisch",
+            "type": "table",
+            "capacity": 24,
+            "counts_party_size": True,
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 60,
+            "weekdays": range(0, 7),
+        }
+    ],
+    categories=[
+        (
+            "Fastfood",
+            "fastfood",
+            [
+                _p(
+                    "Classic Vegan Burger",
+                    "8.90",
+                    "Saftiges Pflanzen-Patty, Salat, Tomate, hausgemachte Sauce.",
+                    "vegan,burger",
+                    variants=[("Single", "8.90"), ("Double", "11.90")],
+                    allergens=["gluten", "soja", "senf"],
+                    modifiers=VEGAN_BURGER_MODIFIERS,
+                    badge="beliebt",
+                ),
+                _p(
+                    "Crispy Chick’n Burger",
+                    "9.50",
+                    "Knuspriges Soja-Filet, Coleslaw, vegane Mayo.",
+                    "vegan,chicken,burger",
+                    allergens=["gluten", "soja"],
+                    modifiers=VEGAN_BURGER_MODIFIERS,
+                ),
+                _p(
+                    "Falafel Wrap",
+                    "7.50",
+                    "Falafel, Hummus, Salat, Granatapfel.",
+                    "falafel,wrap",
+                    allergens=["gluten", "sesam"],
+                ),
+                _p(
+                    "Loaded Fries",
+                    "6.90",
+                    "Pommes mit veganem Käse, Jalapeños und Röstzwiebeln.",
+                    "loaded,fries",
+                    variants=[("klein", "6.90"), ("groß", "9.90")],
+                    allergens=["soja"],
+                ),
+                _p(
+                    "Vegan Hotdog",
+                    "6.50",
+                    "Karotten-Hotdog mit Senf, Ketchup, Gurke.",
+                    "hotdog",
+                    allergens=["gluten", "senf"],
+                ),
+                _p(
+                    "Buddha Bowl",
+                    "10.90",
+                    "Quinoa, geröstetes Gemüse, Avocado, Tahini.",
+                    "vegan,bowl",
+                    allergens=["sesam"],
+                    badge="neu",
+                ),
+                _p(
+                    "Sweet Potato Fries",
+                    "5.50",
+                    "Süßkartoffel-Pommes mit Aioli.",
+                    "sweet,potato,fries",
+                ),
+                _p(
+                    "Mango Smoothie",
+                    "4.50",
+                    "Mango, Banane, Hafermilch.",
+                    "mango,smoothie",
+                    variants=[("0,3 L", "4.50"), ("0,5 L", "5.90")],
+                ),
+            ],
+        ),
+        (
+            "Fertiggerichte",
+            "fertig",
+            [
+                _p(
+                    "Vegan Chili sin Carne",
+                    "7.90",
+                    "Meal-Prep-Box, 500 g — einfach aufwärmen.",
+                    "vegan,chili",
+                    allergens=["soja"],
+                ),
+                _p(
+                    "Linsen-Dal mit Reis",
+                    "7.50",
+                    "Cremiges Dal, fertig portioniert.",
+                    "lentil,dal",
+                ),
+                _p(
+                    "Vegane Lasagne",
+                    "8.90",
+                    "Mit Linsen-Bolognese und Cashew-Béchamel.",
+                    "vegan,lasagne",
+                    allergens=["gluten", "nuss"],
+                ),
+                _p(
+                    "Curry-Bowl to go",
+                    "8.50",
+                    "Gemüse-Curry mit Kokosmilch und Reis.",
+                    "curry,bowl",
+                ),
+                _p(
+                    "Pasta Pesto Box",
+                    "7.90",
+                    "Vollkorn-Pasta mit Basilikum-Pesto.",
+                    "pasta,pesto",
+                    allergens=["gluten", "nuss"],
+                ),
+                _p(
+                    "Overnight Oats",
+                    "4.90",
+                    "Haferflocken, Chia, Beeren — perfekt fürs Frühstück.",
+                    "overnight,oats",
+                    allergens=["gluten"],
+                ),
+            ],
+        ),
+    ],
+)
+
+KITS = {RESTAURANT.key: RESTAURANT, PRANASY.key: PRANASY}
 
 
 def _kit_sections(kit: DemoKit) -> list[dict]:
     """Раскладка секций кита: фото-hero, меню, акции, галерея, отзывы, FAQ, CTA, контакты."""
     return [
         {"key": "hero", "enabled": True},
+        {"key": "archetypes", "enabled": kit.enable_archetypes_section},  # S2: «Unsere Bereiche»
         {"key": "promotions", "enabled": True},
         {"key": "products", "enabled": True},
         {"key": "process", "enabled": bool(kit.process)},
@@ -485,11 +786,13 @@ def apply_kit(tenant, key: str) -> bool:
     lock = 1
     refs = {"kit": key, "categories": [], "products": [], "promotions": []}
     created_products = []
+    category_firsts = []  # первый товар каждой категории — для акций по группам (S6)
     for sort, (cat_name, slug, items) in enumerate(kit.categories):
         category = Category.objects.create(
             name={"de": cat_name}, slug=f"demo-{slug}", sort_order=sort, is_active=True
         )
         refs["categories"].append(str(category.pk))
+        first_in_cat = True
         for item in items:
             product = Product.objects.create(
                 name={"de": item["name"]},
@@ -523,14 +826,28 @@ def apply_kit(tenant, key: str) -> bool:
                     )
             created_products.append(product)
             refs["products"].append(str(product.pk))
+            if first_in_cat:
+                category_firsts.append(product)
+                first_in_cat = False
 
     # Акции: скидки на первые товары.
     from apps.promotions.models import Promotion
 
     now = timezone.now()
     discounts = [20, 15, 25, 30]
-    for i, product in enumerate(created_products[: kit.promo_count]):
+    # S6: при group_promos_by_category берём по первому товару каждой категории
+    # (каждая группа представлена), добираем остальными до promo_count.
+    if kit.group_promos_by_category:
+        rest = [p for p in created_products if p not in category_firsts]
+        promo_products = (category_firsts + rest)[: max(kit.promo_count, len(category_firsts))]
+    else:
+        promo_products = created_products[: kit.promo_count]
+    for i, product in enumerate(promo_products):
         d = discounts[i % len(discounts)]
+        # Группа акции = название категории товара (S6) — для /aktionen/ и меню.
+        group = ""
+        if kit.group_promos_by_category and product.category:
+            group = (product.category.name or {}).get("de", "")
         promo = Promotion.objects.create(
             title={"de": f"{product.name['de']} –{d} %"},
             description={"de": "Aktion der Woche."},
@@ -540,6 +857,7 @@ def apply_kit(tenant, key: str) -> bool:
             status="active",
             starts_at=now,
             ends_at=now + timedelta(days=14),
+            group=group,
             metadata={"demo": True},
         )
         refs["promotions"].append(str(promo.pk))
@@ -553,10 +871,29 @@ def apply_kit(tenant, key: str) -> bool:
 
     _seed_kit_modules(tenant, kit, refs)
 
+    # S3: обложки разделов — интро + hero-фото + галерея на архетип.
+    archetypes_cfg = {}
+    for cov_i, (akey, cov) in enumerate(kit.archetype_covers.items()):
+        archetypes_cfg[akey] = {
+            "intro": cov.get("intro", ""),
+            "hero_image": (
+                demo_image(cov["hero_kw"], w=1600, h=600, lock=800 + cov_i)
+                if cov.get("hero_kw")
+                else ""
+            ),
+            "gallery": [
+                {"url": demo_image(kw, lock=820 + cov_i * 10 + j), "id": f"cov-{akey}-{j}"}
+                for j, kw in enumerate(cov.get("gallery_kw", []))
+            ],
+        }
+
     # --- site_config: раскладка + hero-фото + контент-секции + навигация ---
     cfg = siteconfig.normalize(
         {
             "sections": _kit_sections(kit),
+            "archetypes": archetypes_cfg,  # S3 обложки разделов
+            "menus": kit.menus or None,  # S7 меню (пусто → выводится из nav, без регрессии)
+            "storefront_root": kit.storefront_root,  # S4 стартовая страница
             "hero_title": kit.hero_title,
             "hero_text": kit.hero_text,
             "hero_image": demo_image(kit.hero_image_kw, w=1600, h=600, lock=999),

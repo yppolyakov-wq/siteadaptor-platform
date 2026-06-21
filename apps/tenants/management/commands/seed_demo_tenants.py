@@ -5,10 +5,12 @@
 
     python manage.py seed_demo_tenants                 # все киты
     python manage.py seed_demo_tenants --kit restaurant
+    python manage.py seed_demo_tenants --kit pranasy    # → pranasy.<base>
     python manage.py seed_demo_tenants --recreate      # пересоздать
     python manage.py seed_demo_tenants --delete        # удалить демо-тенанты
 
-Долго (миграции схемы на тенант ~1 мин). Демо одноразовы — удаляются дропом схемы.
+Поддомен = kit.subdomain или «<kit>-demo». Долго (миграции схемы на тенант
+~1 мин). Демо одноразовы — удаляются дропом схемы.
 """
 
 from django.core.management.base import BaseCommand
@@ -34,7 +36,7 @@ class Command(BaseCommand):
             if key not in demo_kits.KITS:
                 self.stderr.write(f"Unbekannter Kit: {key}")
                 continue
-            slug = f"{key}-demo"
+            slug = demo_kits.KITS[key].subdomain or f"{key}-demo"
             existing = Tenant.objects.filter(slug=slug).first()
 
             if options["delete"]:
