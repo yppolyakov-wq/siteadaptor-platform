@@ -205,6 +205,7 @@ RESTAURANT = DemoKit(
     # онлайн-заказ+доставка (orders), события (events), кейтеринг-Anfrage (jobs)
     enable_modules=["orders", "events", "jobs"],
     promo_count=4,  # 4 акции — сетка кратна 2 (красивее)
+    seed_records=True,  # наполнить кабинет (заказы/кейтеринг/брони/билеты)
     loyalty={"label": "Stempelkarte", "stamps": 10, "reward": "1 Gratis-Pizza"},
     events=[
         ("Live-Musik: Italienische Nacht", 5, 40, "0"),
