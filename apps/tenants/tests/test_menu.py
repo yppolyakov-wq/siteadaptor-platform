@@ -126,7 +126,7 @@ def test_resolve_url_anchor_and_group():
                                 {
                                     "label": "Tot",
                                     "type": "archetype",
-                                    "target": "loyalty",
+                                    "target": "analytics",
                                 },  # без landing → нет
                             ],
                         },

@@ -24,7 +24,15 @@ from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
 
 from .forms import PublicReservationForm, WaitlistForm
-from .models import Customer, LoyaltyCard, Promotion, Reservation, Voucher, WaitlistEntry
+from .models import (
+    Customer,
+    LoyaltyCard,
+    LoyaltyProgram,
+    Promotion,
+    Reservation,
+    Voucher,
+    WaitlistEntry,
+)
 from .services import OutOfStock, ReservationLimitReached, reserve
 
 RL_LIMIT = 5  # попыток (бронь/waitlist на IP+акцию)
@@ -131,6 +139,27 @@ def promotion_list(request):
         request,
         "storefront/promotions_list.html",
         {"promotions": qs, "groups": groups, "selected_group": selected},
+    )
+
+
+def loyalty_page(request):
+    """Публичная страница программы лояльности /treue/ (S5).
+
+    Описывает активные штамп-карты и приглашает завести аккаунт (если включён
+    модуль customer_account) для сбора штампов. Гейтинг модуля loyalty → 404.
+    """
+    from apps.core import modules
+
+    if not modules.is_module_active(request.tenant, "loyalty"):
+        raise Http404
+    programs = LoyaltyProgram.objects.filter(is_active=True).order_by("label")
+    return render(
+        request,
+        "storefront/loyalty.html",
+        {
+            "programs": programs,
+            "account_enabled": modules.is_module_active(request.tenant, "customer_account"),
+        },
     )
 
 

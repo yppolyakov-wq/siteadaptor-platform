@@ -188,6 +188,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         recommended_for=("bakery", "butcher", "grocery", "cafe", "restaurant"),
         suited_for=("retail", "clothing", "other"),
         description_de="Gutscheine und Stempelkarten für Stammkunden.",
+        storefront_label="Treueprogramm",
+        storefront_blurb="Stempel sammeln und Prämien sichern.",
+        storefront_landing="storefront-loyalty",
+        storefront_icon="💝",
     ),
     ModuleSpec(
         key="analytics",

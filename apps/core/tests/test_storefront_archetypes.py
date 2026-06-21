@@ -20,11 +20,10 @@ def _keys(tenant):
 def test_default_tenant_lists_archetypes_with_landing():
     keys = _keys(_tenant())
     # Архетипы с публичной страницей попадают в список…
-    for expected in ("catalog", "orders", "booking", "stays", "events", "jobs"):
-        assert expected in keys
+    for expected in ("catalog", "orders", "booking", "stays", "events", "jobs", "loyalty"):
+        assert expected in keys  # loyalty получил публичную /treue/ в S5
     # …а модули без публичной «главной» — нет.
     assert "promotions" not in keys  # инлайн на главной, своей страницы нет
-    assert "loyalty" not in keys  # публичная страница появится в S5
     assert "analytics" not in keys  # чисто кабинетный
     assert "finance" not in keys
 
