@@ -9,4 +9,13 @@
   {% if archetype_cover.intro %}
     <p class="text-gray-600 max-w-2xl leading-relaxed whitespace-pre-line">{{ archetype_cover.intro }}</p>
   {% endif %}
+  {% if archetype_cover.gallery %}
+    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-4">
+      {% for img in archetype_cover.gallery %}
+        <div class="aspect-square rounded-xl overflow-hidden bg-gray-100">
+          <img src="{{ img.url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover">
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 </section>

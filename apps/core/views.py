@@ -457,6 +457,67 @@ def home_builder_view(request):
     )
 
 
+def _cover_archetype_keys(tenant) -> set:
+    from apps.tenants import storefront
+
+    return {s["key"] for s in storefront.cover_specs(tenant)}
+
+
+def _upload_cover_gallery(request, key: str) -> None:
+    """S3b: загрузить фото в галерею раздела key (site_config['archetypes'][key])."""
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.images import save_product_image
+    from apps.tenants import siteconfig
+
+    if key not in _cover_archetype_keys(request.tenant):
+        return
+    files = request.FILES.getlist("images")
+    if not files:
+        return
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    arch = dict(cfg.get("archetypes") or {})
+    cur = dict(arch.get(key) or {})
+    gallery = list(cur.get("gallery") or [])
+    for f in files:
+        if len(gallery) >= siteconfig._MAX_COVER_GALLERY:
+            messages.info(request, "Galerie-Limit erreicht.")
+            break
+        try:
+            gallery.append(save_product_image(f, sort_order=len(gallery), folder="cover"))
+        except ValidationError as exc:
+            messages.error(request, f"{f.name}: {'; '.join(exc.messages)}")
+    cur["gallery"] = gallery
+    arch[key] = cur
+    cfg["archetypes"] = arch
+    request.tenant.site_config = siteconfig.normalize(cfg)
+    request.tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, "Bilder hochgeladen.")
+
+
+def _delete_cover_image(request, key: str, image_id: str) -> None:
+    from apps.catalog.images import delete_stored_image
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    arch = dict(cfg.get("archetypes") or {})
+    cur = dict(arch.get(key) or {})
+    gallery, removed = [], None
+    for ref in cur.get("gallery") or []:
+        if ref.get("id") == image_id:
+            removed = ref
+        else:
+            gallery.append(ref)
+    if removed is not None:
+        delete_stored_image(removed)
+        cur["gallery"] = gallery
+        arch[key] = cur
+        cfg["archetypes"] = arch
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Bild gelöscht.")
+
+
 @login_required
 def sections_view(request):
     """Обложки разделов (S3): интро-текст + hero-фото на каждый лендинг архетипа.
@@ -465,6 +526,16 @@ def sections_view(request):
     from apps.tenants import siteconfig, storefront
 
     if request.method == "POST":
+        # S3b: загрузка/удаление фото галереи раздела (multipart, отдельно).
+        action = request.POST.get("action")
+        if action == "upload_cover_gallery":
+            _upload_cover_gallery(request, request.POST.get("archetype", ""))
+            return redirect("site-sections")
+        if action == "delete_cover_image":
+            _delete_cover_image(
+                request, request.POST.get("archetype", ""), request.POST.get("image_id", "")
+            )
+            return redirect("site-sections")
         config = siteconfig.normalize(request.tenant.site_config)
         arch = dict(config.get("archetypes") or {})
         for spec in storefront.cover_specs(request.tenant):

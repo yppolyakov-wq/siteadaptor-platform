@@ -38,6 +38,7 @@ SECTIONS = [
 _MAX_MARKS = 8  # потолок знаков доверия
 _MAX_GALLERY = 24  # потолок фото в галерее
 _MAX_ARCHETYPES = 30  # потолок пер-архетипных оверрайдов тизеров (S2)
+_MAX_COVER_GALLERY = 12  # потолок фото в галерее раздела (S3b)
 _KNOWN = {key for key, _label, _on in SECTIONS}
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
@@ -201,6 +202,17 @@ def _s(value) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
+def _clean_gallery(value, cap: int) -> list[dict]:
+    """FileRef-список (dict'ы с непустым url), не длиннее cap. Для галерей."""
+    out = []
+    for ref in value if isinstance(value, list) else []:
+        if isinstance(ref, dict) and ref.get("url"):
+            out.append(ref)
+        if len(out) >= cap:
+            break
+    return out
+
+
 def _clean_pairs(value, key_a: str, key_b: str) -> list[dict]:
     """Список dict'ов {key_a, key_b} из произвольного value — обе строки, первая
     непустая (иначе пропуск); максимум _MAX_ITEMS. Для FAQ/Testimonials."""
@@ -356,6 +368,8 @@ def normalize(config) -> dict:
                 # S3: «обложка» раздела — интро-текст и hero-фото над лендингом.
                 "intro": _s(ov.get("intro")),
                 "hero_image": _s(ov.get("hero_image")),
+                # S3b: галерея раздела (FileRef-список, как галерея главной).
+                "gallery": _clean_gallery(ov.get("gallery"), _MAX_COVER_GALLERY),
             }
     normalized["archetypes"] = archetypes
     # T2c: быстрый заказ («+»/модалка-конфигуратор) на карточках витрины.

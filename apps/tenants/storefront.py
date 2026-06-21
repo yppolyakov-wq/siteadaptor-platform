@@ -52,6 +52,7 @@ def cover_specs(tenant) -> list[dict]:
                 "icon": arch.icon,
                 "intro": ov.get("intro", ""),
                 "hero_image": ov.get("hero_image", ""),
+                "gallery": ov.get("gallery", []),
             }
         )
     return specs

@@ -16,21 +16,51 @@
     {% endfor %}
   {% endif %}
 
-  <form method="post" class="space-y-4">
-    {% csrf_token %}
+  <div class="space-y-4">
     {% for a in cover_specs %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-5">
         <legend class="font-semibold mb-2">{{ a.icon }} {{ a.label }}</legend>
-        <label class="block text-sm font-medium mb-1" for="intro_{{ a.key }}">{% trans "Intro text" %}</label>
-        <textarea id="intro_{{ a.key }}" name="intro_{{ a.key }}" rows="2"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-3">{{ a.intro }}</textarea>
-        <label class="block text-sm font-medium mb-1" for="hero_{{ a.key }}">{% trans "Banner image URL" %}</label>
-        <input id="hero_{{ a.key }}" name="hero_{{ a.key }}" type="text" value="{{ a.hero_image }}"
-               placeholder="https://…/banner.jpg"
-               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+
+        {# Текст/баннер: общая форма сохранения (все разделы сразу). #}
+        <form method="post" class="mb-4">
+          {% csrf_token %}
+          <label class="block text-sm font-medium mb-1" for="intro_{{ a.key }}">{% trans "Intro text" %}</label>
+          <textarea id="intro_{{ a.key }}" name="intro_{{ a.key }}" rows="2"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-3">{{ a.intro }}</textarea>
+          <label class="block text-sm font-medium mb-1" for="hero_{{ a.key }}">{% trans "Banner image URL" %}</label>
+          <input id="hero_{{ a.key }}" name="hero_{{ a.key }}" type="text" value="{{ a.hero_image }}"
+                 placeholder="https://…/banner.jpg"
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-3">
+          <button type="submit" class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        </form>
+
+        {# Галерея раздела (S3b): миниатюры + загрузка. #}
+        {% if a.gallery %}
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-3">
+            {% for img in a.gallery %}
+              <div class="relative group">
+                <img src="{{ img.url }}" alt="" class="w-full aspect-square object-cover rounded-lg">
+                <form method="post" class="absolute top-1 right-1">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_cover_image">
+                  <input type="hidden" name="archetype" value="{{ a.key }}">
+                  <input type="hidden" name="image_id" value="{{ img.id }}">
+                  <button type="submit" title="{% trans 'Remove' %}"
+                          class="w-6 h-6 rounded-full bg-black/60 text-white text-xs leading-none">✕</button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data" class="flex items-center gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="upload_cover_gallery">
+          <input type="hidden" name="archetype" value="{{ a.key }}">
+          <input type="file" name="images" accept="image/*" multiple class="text-sm">
+          <button type="submit" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload photos" %}</button>
+        </form>
       </fieldset>
     {% endfor %}
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-  </form>
+  </div>
 </div>
 {% endblock %}

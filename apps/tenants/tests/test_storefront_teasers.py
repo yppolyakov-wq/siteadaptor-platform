@@ -77,5 +77,6 @@ def test_normalize_sanitizes_archetype_overrides():
         "hidden": True,
         "intro": "",
         "hero_image": "",
+        "gallery": [],
     }
     assert "bad" not in cfg["archetypes"]  # значение не-dict отброшено

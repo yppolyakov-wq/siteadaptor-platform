@@ -126,8 +126,12 @@ def modules_nav(request):
     if rm is not None:
         ckey = modules.archetype_by_landing(getattr(rm, "url_name", "") or "")
         ov = cfg["archetypes"].get(ckey) if ckey else None
-        if ov and (ov.get("intro") or ov.get("hero_image")):
-            archetype_cover = {"intro": ov.get("intro", ""), "hero_image": ov.get("hero_image", "")}
+        if ov and (ov.get("intro") or ov.get("hero_image") or ov.get("gallery")):
+            archetype_cover = {
+                "intro": ov.get("intro", ""),
+                "hero_image": ov.get("hero_image", ""),
+                "gallery": ov.get("gallery", []),
+            }
     # S7: нижнее меню — кастомное (из menus.bottom) либо авто таб-бар (T2b).
     if menu_mod.bottom_enabled(tenant):
         bottom_nav = [
