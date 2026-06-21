@@ -424,13 +424,20 @@ def home_builder_view(request):
                 "hidden": request.POST.get(f"arch_visible_{key}") != "on",
             }
         config["archetypes"] = arch
+        # S4: стартовая страница витрины (общая главная или один архетип).
+        config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=["site_config", "updated_at"])
         messages.success(request, "Gespeichert.")
         return redirect("site-home")
 
+    from apps.core import modules
+
     config = siteconfig.normalize(request.tenant.site_config)
     labels = {key: label for key, label, _default in siteconfig.SECTIONS}
+    root_options = [{"key": "home", "label": _("Combined homepage")}] + [
+        {"key": a.key, "label": a.label} for a in modules.storefront_archetypes(request.tenant)
+    ]
     sections = [
         {"key": s["key"], "label": labels[s["key"]], "enabled": s["enabled"], "order": index}
         for index, s in enumerate(config["sections"], start=1)
@@ -444,6 +451,8 @@ def home_builder_view(request):
             "sections": sections,
             "archetype_specs": storefront.teaser_specs(request.tenant),
             "archetypes_enabled": archetypes_enabled,
+            "root_options": root_options,
+            "storefront_root": config.get("storefront_root", "home"),
         },
     )
 

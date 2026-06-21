@@ -20,6 +20,16 @@
     {% csrf_token %}
 
     <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
+      <p class="text-xs text-gray-400 mb-3">{% trans "What visitors see first. “Combined homepage” shows the blocks below; or jump straight into one section." %}</p>
+      <select name="storefront_root" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for o in root_options %}
+          <option value="{{ o.key }}" {% if o.key == storefront_root %}selected{% endif %}>{{ o.label }}</option>
+        {% endfor %}
+      </select>
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
       <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
       <p class="text-xs text-gray-400 mb-4">{% trans "Smaller number = higher on the page. Untick to hide a block." %}</p>
       <div class="space-y-3">

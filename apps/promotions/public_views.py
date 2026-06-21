@@ -16,7 +16,7 @@ from django.core.cache import cache
 from django.db.models import F
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 
 from apps.core import ratelimit
@@ -71,6 +71,18 @@ def storefront_home(request):
     from apps.tenants import siteconfig
 
     site = siteconfig.normalize(request.tenant.site_config)
+    # S4: standalone-режим — корень `/` ведёт на лендинг выбранного архетипа
+    # (если он активен и имеет публичную страницу), иначе обычная главная.
+    root = site.get("storefront_root", "home")
+    if root and root != "home":
+        from apps.core import modules
+
+        spec = modules.get_module(root)
+        if spec and spec.storefront_landing and modules.is_module_active(request.tenant, root):
+            try:
+                return redirect(reverse(spec.storefront_landing))
+            except NoReverseMatch:
+                pass
     sections = [s["key"] for s in site["sections"] if s["enabled"]]
 
     promos = (

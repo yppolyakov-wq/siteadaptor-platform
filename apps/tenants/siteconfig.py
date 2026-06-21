@@ -362,6 +362,10 @@ def normalize(config) -> dict:
     # Дефолт True (поведение по умолчанию); владелец может вернуть «как раньше»
     # (карточка просто ведёт на страницу товара, без «+»).
     normalized["quick_add"] = bool(config.get("quick_add", True))
+    # S4: стартовая страница витрины — "home" (общая главная, дефолт) либо ключ
+    # архетипа (standalone: корень `/` ведёт на его лендинг). Валидность (активен
+    # ли архетип) проверяется при рендере; здесь просто строка.
+    normalized["storefront_root"] = _s(config.get("storefront_root")) or "home"
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):
