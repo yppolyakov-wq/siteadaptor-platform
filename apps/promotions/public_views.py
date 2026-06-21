@@ -85,6 +85,12 @@ def storefront_home(request):
         products_preview = Product.objects.filter(is_active=True).order_by(
             "-is_featured", "-created_at"
         )[:8]
+    # S2: сетка тизеров активных архетипов («Наши разделы»).
+    archetype_teasers = []
+    if "archetypes" in sections:
+        from apps.tenants import storefront
+
+        archetype_teasers = storefront.archetype_teasers(request.tenant)
     return render(
         request,
         "storefront/home.html",
@@ -93,6 +99,7 @@ def storefront_home(request):
             "site": site,
             "promotions": promos,
             "products_preview": products_preview,
+            "archetype_teasers": archetype_teasers,
         },
     )
 

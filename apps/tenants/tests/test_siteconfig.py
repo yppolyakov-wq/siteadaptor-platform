@@ -52,6 +52,7 @@ def test_normalize_empty_gives_defaults():
         "hero",
         "promotions",
         "products",
+        "archetypes",
         "about",
         "process",
         "team",

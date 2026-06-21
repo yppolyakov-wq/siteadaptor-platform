@@ -129,6 +129,30 @@
       </div>
     </fieldset>
 
+    {% if archetype_specs %}
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Shown when the “Our offerings” section is enabled. Leave a field empty to use the default text." %}</p>
+      <div class="space-y-3">
+        {% for a in archetype_specs %}
+          <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+            <label class="flex items-center gap-2 text-sm font-medium">
+              <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
+                     class="rounded border-gray-300">
+              <span>{{ a.icon }} {{ a.default_label }}</span>
+            </label>
+            <div class="grid sm:grid-cols-2 gap-2">
+              <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
+                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
+              <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
+                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <fieldset class="bg-white rounded-2xl shadow-sm p-6">
       <legend class="font-semibold mb-1">{% trans "Navigation menu" %}</legend>
       <p class="text-xs text-gray-400 mb-4">{% trans "Header style, and which links appear (in what order). Links for inactive modules are hidden automatically." %}</p>

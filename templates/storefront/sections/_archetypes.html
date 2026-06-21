@@ -1,0 +1,21 @@
+{% load i18n %}{# S2: сетка тизеров активных архетипов («Наши разделы»). #}
+{% if archetype_teasers %}
+<section data-reveal class="mb-10">
+  <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Our offerings" %}</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    {% for t in archetype_teasers %}
+      <a href="{% url t.url_name %}"
+         class="group flex items-start gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 transition motion-safe:hover:-translate-y-1 hover:shadow-md">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+              style="background: color-mix(in srgb, var(--accent) 14%, transparent);">{{ t.icon }}</span>
+        <span class="min-w-0">
+          <span class="block font-semibold">{{ t.label }}</span>
+          {% if t.blurb %}<span class="block text-sm text-gray-600 mt-0.5">{{ t.blurb }}</span>{% endif %}
+          <span class="mt-2 inline-block text-sm font-medium group-hover:underline"
+                style="color: var(--accent);">{% trans "Discover" %} →</span>
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

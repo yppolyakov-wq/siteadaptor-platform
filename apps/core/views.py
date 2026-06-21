@@ -229,7 +229,7 @@ def site_view(request):
     Сверху — галерея шаблонов (ранний срез M20, apps.tenants.sitetemplates):
     выбор готовой раскладки в один клик поверх того же секционного движка.
     """
-    from apps.tenants import demo, siteconfig, sitetemplates
+    from apps.tenants import demo, siteconfig, sitetemplates, storefront
 
     if request.method == "POST":
         # Применение шаблона витрины (галерея).
@@ -320,6 +320,23 @@ def site_view(request):
         config["gallery_video"] = request.POST.get("gallery_video", "").strip()
         # T2c: быстрый заказ («+»/модалка) на карточках — тумблер владельца.
         config["quick_add"] = request.POST.get("quick_add") == "on"
+        # S2: пер-архетипные оверрайды тизеров «Наши разделы». Форма показывает
+        # только активные тизер-архетипы; оверрайды для сейчас-неактивных
+        # сохраняем (стартуем из прежних), чтобы не терять их при выкл/вкл модуля.
+        prev_cfg = (
+            request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+        )
+        arch_overrides = (
+            dict(prev_cfg["archetypes"]) if isinstance(prev_cfg.get("archetypes"), dict) else {}
+        )
+        for spec in storefront.teaser_specs(request.tenant):
+            key = spec["key"]
+            arch_overrides[key] = {
+                "label": request.POST.get(f"arch_label_{key}", "").strip(),
+                "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
+                "hidden": request.POST.get(f"arch_visible_{key}") != "on",
+            }
+        config["archetypes"] = arch_overrides
         # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
@@ -387,6 +404,8 @@ def site_view(request):
             "sections": sections,
             "config": config,
             "site_templates": site_templates,
+            # S2: тизер-архетипы для блока «Unsere Bereiche» (заголовок/описание/видимость).
+            "archetype_specs": storefront.teaser_specs(request.tenant),
             "nav_items": nav_items,
             "nav_style": config["nav"]["style"],
             "nav_sticky": config["nav"]["sticky"],

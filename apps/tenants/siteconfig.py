@@ -20,6 +20,9 @@ SECTIONS = [
     ("hero", _("Welcome banner"), False),
     ("promotions", _("Current offers"), True),
     ("products", _("Products"), True),
+    # S2: сетка тизеров активных архетипов («Наши разделы / Unsere Bereiche»).
+    # По умолчанию выкл — легаси-витрины не затронуты; включают в кабинете/демо.
+    ("archetypes", _("Our offerings"), False),
     ("about", _("About us"), False),
     # P4: «как мы работаем» (шаги) и команда — по умолчанию выключены.
     ("process", _("How it works"), False),
@@ -34,6 +37,7 @@ SECTIONS = [
 ]
 _MAX_MARKS = 8  # потолок знаков доверия
 _MAX_GALLERY = 24  # потолок фото в галерее
+_MAX_ARCHETYPES = 30  # потолок пер-архетипных оверрайдов тизеров (S2)
 _KNOWN = {key for key, _label, _on in SECTIONS}
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
@@ -221,6 +225,23 @@ def normalize(config) -> dict:
     # T1: видео в галерее — один URL (YouTube/Vimeo/прямой файл). Рендерится
     # GDPR-дружелюбно (2-Klick / youtube-nocookie) в секции галереи.
     normalized["gallery_video"] = _s(config.get("gallery_video"))
+    # S2: пер-архетипные оверрайды тизеров секции «Наши разделы». Ключ —
+    # ключ модуля (catalog/booking/…); значения переопределяют дефолт из реестра
+    # (storefront_label/blurb) и прячут отдельный тизер. Картинка тизера — в S3
+    # (обложка архетипа). Список активных архетипов витрина берёт из реестра;
+    # здесь только оверрайды, поэтому набор ключей не валидируем по тенанту.
+    archetypes = {}
+    raw_arch = config.get("archetypes")
+    if isinstance(raw_arch, dict):
+        for key, ov in list(raw_arch.items())[:_MAX_ARCHETYPES]:
+            if not isinstance(key, str) or not isinstance(ov, dict):
+                continue
+            archetypes[key] = {
+                "label": _s(ov.get("label")),
+                "blurb": _s(ov.get("blurb")),
+                "hidden": bool(ov.get("hidden")),
+            }
+    normalized["archetypes"] = archetypes
     # T2c: быстрый заказ («+»/модалка-конфигуратор) на карточках витрины.
     # Дефолт True (поведение по умолчанию); владелец может вернуть «как раньше»
     # (карточка просто ведёт на страницу товара, без «+»).
