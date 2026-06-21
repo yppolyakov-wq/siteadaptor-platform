@@ -206,3 +206,29 @@ def test_pranasy_seeds_records_for_all_archetypes():
     assert jobs.count() >= 2 and jobs.filter(gross__gt=0).exists()  # сметы с суммами
     assert Booking.objects.filter(status=Booking.STATUS_CONFIRMED).count() >= 1  # брони столика
     assert Ticket.objects.count() >= 1  # билеты на событие
+
+
+def test_apply_hotel_kit_builds_stays_site():
+    """Hotel-кит: движок stays — номера, обложка, меню, брони в кабинете."""
+    from apps.stays.models import StayBooking, StayUnit
+
+    tenant = TenantFactory(schema_name="public", slug="ho", name="HO", business_type="hotel")
+    assert demo_kits.apply_kit(tenant, "hotel") is True
+    cfg = tenant.site_config
+
+    # номера заведены
+    assert StayUnit.objects.filter(is_active=True).count() == 4
+    assert StayUnit.objects.filter(name="Familienzimmer", max_guests=4).exists()
+    # брони в кабинете (подтверждённые)
+    assert StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED).count() >= 1
+    # секции акций/товаров выключены (нет каталога), архетипы — включены
+    enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
+    assert "archetypes" in enabled
+    assert "promotions" not in enabled and "products" not in enabled
+    # пустые архетипы скрыты из «Bereiche», stays — виден
+    assert cfg["archetypes"]["catalog"]["hidden"] is True
+    assert cfg["archetypes"]["booking"]["hidden"] is True
+    assert not cfg["archetypes"].get("stays", {}).get("hidden")
+    # меню ведёт на номера
+    assert any(i["target"] == "stays" for i in cfg["menus"]["top"]["items"])
+    assert tenant.is_module_active("stays")

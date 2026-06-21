@@ -92,6 +92,9 @@ class DemoKit:
     # Наполнить кабинет примерами транзакций (заказы/заявки/брони/билеты) по
     # активным архетипам — чтобы демо было «как настоящее». Адреса @example.de.
     seed_records: bool = False
+    # Скрыть тизеры этих архетипов из секции «Unsere Bereiche» (напр. пустой
+    # catalog/booking у отеля). catalog — core, выключить нельзя, только скрыть.
+    hide_archetypes: list = field(default_factory=list)
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?[(label,price)],
@@ -747,7 +750,90 @@ PRANASY = DemoKit(
     ],
 )
 
-KITS = {RESTAURANT.key: RESTAURANT, PRANASY.key: PRANASY}
+HOTEL_MENUS = {
+    "top": {
+        "style": "centered",
+        "sticky": True,
+        "items": [
+            {"label": "Zimmer", "type": "archetype", "target": "stays"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Zimmer", "type": "archetype", "target": "stays", "icon": "🛏"},
+            {"label": "Über uns", "type": "page", "target": "about", "icon": "ℹ️"},
+        ],
+    },
+}
+
+HOTEL = DemoKit(
+    key="hotel",
+    label="Pension Seeblick",
+    business_type="hotel",
+    subdomain="hotel",  # → hotel.<base>
+    accent="#0e7490",  # cyan/See
+    hero_image_kw="hotel,room",
+    hero_title="Pension Seeblick",
+    hero_text="Ihr gemütliches Zuhause am See — komfortable Zimmer, herzlicher Service "
+    "und ein reichhaltiges Frühstück.",
+    about_title="Über uns",
+    about_text="Seit 1985 begrüßen wir Gäste aus aller Welt in unserer familiengeführten "
+    "Pension direkt am See. Ruhe, Natur und persönliche Betreuung — dafür stehen wir.",
+    nav_style="centered",
+    address="Seestraße 5, 88662 Überlingen",
+    opening_hours_text="Rezeption täglich 7:00–21:00",
+    opening_hours={d: ("07:00", "21:00") for d in range(7)},
+    gallery_kw=["hotel,room", "hotel,lobby", "breakfast", "lake,view", "hotel,bathroom", "terrace"],
+    faq=[
+        ("Wann ist Check-in / Check-out?", "Check-in ab 15:00, Check-out bis 11:00."),
+        ("Ist Frühstück inklusive?", "Ja, ein reichhaltiges Frühstücksbuffet ist inklusive."),
+        ("Gibt es Parkplätze?", "Kostenlose Parkplätze sind direkt am Haus verfügbar."),
+        ("Sind Haustiere erlaubt?", "Hunde sind auf Anfrage herzlich willkommen."),
+    ],
+    testimonials=[
+        ("Herr & Frau Bauer", "Traumhafte Lage am See, herzliche Gastgeber — wir kommen wieder!"),
+        ("Julia M.", "Sauber, ruhig und das Frühstück ein Gedicht."),
+    ],
+    process=[
+        ("Anfragen", "Verfügbarkeit online prüfen — in 30 Sekunden."),
+        ("Buchen", "Zimmer mit wenigen Klicks sichern."),
+        ("Wohlfühlen", "Ankommen, durchatmen, genießen."),
+    ],
+    team=[
+        ("Familie Keller", "Ihre Gastgeber", "hotel,owner"),
+        ("Petra Lang", "Rezeption", "receptionist,woman"),
+    ],
+    trust={"since": "1985", "marks": ["Familienbetrieb", "Direkt am See", "Frühstück inklusive"]},
+    enable_modules=["stays"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=HOTEL_MENUS,
+    hide_archetypes=["catalog", "booking"],  # пустые у отеля — скрыть из «Bereiche»
+    archetype_covers={
+        "stays": {
+            "intro": "Unsere Zimmer und Ferienwohnungen — alle mit Seeblick oder Gartenblick.",
+            "hero_kw": "hotel,room",
+            "gallery_kw": ["hotel,room", "lake,view", "breakfast", "hotel,bathroom"],
+        },
+    },
+    cta={
+        "title": "Bereit für eine Auszeit?",
+        "text": "Prüfen Sie jetzt die Verfügbarkeit und buchen Sie Ihr Zimmer.",
+        "button_label": "Zimmer ansehen",
+        "button_url": "/unterkunft/",
+    },
+    stay_units=[
+        ("Doppelzimmer Seeblick", "room", 4, "89", 2),
+        ("Einzelzimmer", "room", 3, "69", 1),
+        ("Familienzimmer", "room", 2, "129", 4),
+        ("Ferienwohnung am Garten", "apartment", 1, "149", 4),
+    ],
+)
+
+KITS = {RESTAURANT.key: RESTAURANT, PRANASY.key: PRANASY, HOTEL.key: HOTEL}
 
 
 def _kit_sections(kit: DemoKit) -> list[dict]:
@@ -755,8 +841,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
     return [
         {"key": "hero", "enabled": True},
         {"key": "archetypes", "enabled": kit.enable_archetypes_section},  # S2: «Unsere Bereiche»
-        {"key": "promotions", "enabled": True},
-        {"key": "products", "enabled": True},
+        # Акции/товары — только если у кита есть каталог (иначе пустые секции).
+        {"key": "promotions", "enabled": bool(kit.categories)},
+        {"key": "products", "enabled": bool(kit.categories)},
         {"key": "process", "enabled": bool(kit.process)},
         {"key": "team", "enabled": bool(kit.team)},
         {"key": "gallery", "enabled": bool(kit.gallery_kw)},
@@ -891,6 +978,11 @@ def apply_kit(tenant, key: str) -> bool:
                 for j, kw in enumerate(cov.get("gallery_kw", []))
             ],
         }
+    # Скрыть пустые архетипы из секции «Unsere Bereiche» (catalog/booking у отеля).
+    for hk in kit.hide_archetypes:
+        cur = dict(archetypes_cfg.get(hk) or {})
+        cur["hidden"] = True
+        archetypes_cfg[hk] = cur
 
     # --- site_config: раскладка + hero-фото + контент-секции + навигация ---
     cfg = siteconfig.normalize(
@@ -1150,3 +1242,34 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     pass
         except Exception:
             pass
+
+    # Übernachtungen (stays)
+    if is_active("stays"):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.stays.models import StayUnit
+        from apps.stays.services import book_stay
+
+        units = list(StayUnit.objects.filter(is_active=True).order_by("id"))
+        if units:
+            today = timezone.localdate()
+            samples = [
+                (units[0], 5, 3, "Anna Berg", "anna@example.de", 2),
+                (units[min(1, len(units) - 1)], 20, 5, "Familie Lang", "lang@example.de", 4),
+            ]
+            for unit, in_days, nights, who, mail, guests in samples:
+                arrival = today + timedelta(days=in_days)
+                try:
+                    book_stay(
+                        unit,
+                        arrival=arrival,
+                        departure=arrival + timedelta(days=nights),
+                        name=who,
+                        email=mail,
+                        guests=guests,
+                        auto_confirm=True,
+                    )
+                except Exception:
+                    pass

@@ -6,6 +6,7 @@
     python manage.py seed_demo_tenants                 # все киты
     python manage.py seed_demo_tenants --kit restaurant
     python manage.py seed_demo_tenants --kit pranasy    # → pranasy.<base>
+    python manage.py seed_demo_tenants --kit hotel      # → hotel.<base> (stays)
     python manage.py seed_demo_tenants --recreate      # пересоздать
     python manage.py seed_demo_tenants --delete        # удалить демо-тенанты
 
