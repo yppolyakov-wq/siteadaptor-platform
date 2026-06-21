@@ -325,3 +325,18 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert Product.objects.filter(metadata__demo=True).count() == 4
     for m in ("events", "booking", "orders"):
         assert tenant.is_module_active(m)
+
+
+def test_seed_command_unknown_kit_warns_clearly():
+    """Неизвестный кит → заметное предупреждение со списком доступных + подсказкой
+    про пересборку контейнера (частая причина в Docker), без обращения к БД."""
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    err = StringIO()
+    call_command("seed_demo_tenants", kit="does-not-exist", stderr=err)
+    out = err.getvalue()
+    assert "Unbekannter Kit" in out and "does-not-exist" in out
+    assert "Verfügbare Kits" in out and "restaurant" in out
+    assert "deploy.sh single" in out  # подсказка про старый образ

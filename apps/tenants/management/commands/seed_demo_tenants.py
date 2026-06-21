@@ -39,7 +39,20 @@ class Command(BaseCommand):
         keys = [options["kit"]] if options.get("kit") else list(demo_kits.KITS)
         for key in keys:
             if key not in demo_kits.KITS:
-                self.stderr.write(f"Unbekannter Kit: {key}")
+                # Заметное предупреждение: при запуске в Docker частая причина —
+                # контейнер на старом образе (нужен ./scripts/deploy.sh single
+                # для пересборки) ИЛИ опечатка в ключе. Не теряем среди логов.
+                available = ", ".join(demo_kits.KITS)
+                self.stderr.write(
+                    self.style.ERROR(
+                        f"\n  ✗ Unbekannter Kit: «{key}» — wird übersprungen.\n"
+                        f"    Verfügbare Kits: {available}\n"
+                        f"    Fehlt Ihr Kit? Der Container läuft evtl. auf einem alten "
+                        f"Image — erst neu bauen:\n"
+                        f"      ./scripts/deploy.sh single   "
+                        f"(git pull + docker compose build + up -d)\n"
+                    )
+                )
                 continue
             slug = demo_kits.KITS[key].subdomain or f"{key}-demo"
             existing = Tenant.objects.filter(slug=slug).first()
