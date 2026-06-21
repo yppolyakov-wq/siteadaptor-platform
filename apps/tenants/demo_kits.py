@@ -86,6 +86,14 @@ class DemoKit:
     menus: dict = field(default_factory=dict)
     # S6: тег группы акции = название категории её товара (Fastfood/Fertiggerichte).
     group_promos_by_category: bool = False
+    # Богатая спецификация акций всех типов (вместо авто-скидок). Список dict'ов:
+    #   {title, desc, product (индекс в created_products|None), type
+    #    percent|price|reservation|surprise, percent, new_price, compare_at,
+    #    available_quantity, countdown(bool), recurrence(daily|weekly), group,
+    #    ends_in_days}. Пусто → авто-скидки (как раньше).
+    promotions_spec: list = field(default_factory=list)
+    # Ваучеры/промокоды: {code, label, percent|cents, min_order(eur), max_uses}.
+    vouchers: list = field(default_factory=list)
     storefront_root: str = "home"  # S4: стартовая страница (home или ключ архетипа)
     # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
     subdomain: str = ""
@@ -833,7 +841,295 @@ HOTEL = DemoKit(
     ],
 )
 
-KITS = {RESTAURANT.key: RESTAURANT, PRANASY.key: PRANASY, HOTEL.key: HOTEL}
+AKTIONSMARKT_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {
+                "label": "Aktionen",
+                "type": "group",
+                "children": [
+                    {"label": "Wochenangebote", "type": "promo_group", "target": "Wochenangebote"},
+                    {"label": "Dauertiefpreis", "type": "promo_group", "target": "Dauertiefpreis"},
+                    {"label": "Räumung", "type": "promo_group", "target": "Räumung"},
+                    {
+                        "label": "Anti-Food-Waste",
+                        "type": "promo_group",
+                        "target": "Anti-Food-Waste",
+                    },
+                ],
+            },
+            {"label": "Sortiment", "type": "archetype", "target": "catalog"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Aktionen", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🛒"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty", "icon": "💝"},
+        ],
+    },
+}
+
+AKTIONSMARKT = DemoKit(
+    key="aktionsmarkt",
+    label="Aktionsmarkt Sparfuchs",
+    business_type="grocery",
+    subdomain="aktionsmarkt",
+    accent="#dc2626",  # Sale-Rot
+    hero_image_kw="supermarket,sale",
+    hero_title="Aktionsmarkt Sparfuchs",
+    hero_text="Jede Woche neue Angebote — sparen bei allem, was Sie täglich brauchen.",
+    about_title="Über den Aktionsmarkt",
+    about_text="Beim Aktionsmarkt Sparfuchs dreht sich alles um gute Angebote: "
+    "Wochenangebote, Dauertiefpreise, Räumungsaktionen und gerettete Lebensmittel als "
+    "Überraschungstüten. Hier sehen Sie alle Aktionsarten, die unser Shop nutzen kann — "
+    "von Prozent-Rabatten über Festpreise bis zu limitierten und wiederkehrenden Aktionen.",
+    nav_style="classic",
+    address="Marktstraße 1, 50667 Köln",
+    opening_hours_text="Mo–Sa 8:00–20:00",
+    opening_hours={d: ("08:00", "20:00") for d in range(6)},
+    gallery_kw=["supermarket", "grocery,shelf", "vegetables", "bakery", "shopping,cart", "sale"],
+    process=[
+        ("Aktionen entdecken", "Stöbern Sie durch Wochenangebote, Räumung und mehr."),
+        ("Code & Karte nutzen", "Gutschein-Code im Warenkorb, Stempel bei jedem Einkauf."),
+        ("Sparen", "Frische Ware zum besten Preis — jede Woche neu."),
+    ],
+    testimonials=[
+        ("Herr Wagner", "Die Überraschungstüten sind unschlagbar günstig!"),
+        ("Frau Demir", "Endlich ein Markt, bei dem man jede Woche wirklich spart."),
+    ],
+    trust={"since": "2009", "marks": ["Anti-Food-Waste", "Regional", "Faire Preise"]},
+    faq=[
+        ("Rabatt in %", "Ein fester Prozent-Rabatt auf den Originalpreis — z. B. −20 % auf Äpfel."),
+        (
+            "Neuer Festpreis",
+            "Statt Prozenten ein fixer Aktionspreis, der alte Preis wird durchgestrichen — "
+            "z. B. Brot für 0,99 € statt 1,99 €.",
+        ),
+        (
+            "Limitierte Aktion (Reservierung)",
+            "Nur eine begrenzte Menge verfügbar («Nur noch X»). Online sichern, bevor sie weg ist.",
+        ),
+        (
+            "Überraschungstüte (Anti-Food-Waste)",
+            "Gerettete Lebensmittel als günstige Überraschungstüte — z. B. 5 € statt 15 €.",
+        ),
+        (
+            "Countdown-Aktion",
+            "Zeitlich stark begrenzt, mit sichtbarem Countdown bis zum Ende — schnell sein lohnt sich.",
+        ),
+        (
+            "Wiederkehrende Aktionen",
+            "Automatisch wiederkehrend, täglich oder wöchentlich — z. B. Brötchen jeden Abend −50 %.",
+        ),
+        (
+            "Gutschein-Codes",
+            "Rabatt-Codes für den Warenkorb: WILLKOMMEN10 für −10 %, SOMMER5 für 5 € ab 30 € Einkauf.",
+        ),
+        (
+            "Stempelkarte (Treue)",
+            "Bei jedem Einkauf Stempel sammeln — die volle Karte bringt ein Gratis-Brot.",
+        ),
+        (
+            "Aktionsgruppen",
+            "Wir bündeln Aktionen in Gruppen: Wochenangebote, Dauertiefpreis, Räumung und "
+            "Anti-Food-Waste — filterbar unter «Aktionen».",
+        ),
+    ],
+    cta={
+        "title": "Verpassen Sie kein Angebot",
+        "text": "Stöbern Sie durch alle aktuellen Aktionen.",
+        "button_label": "Zu den Aktionen",
+        "button_url": "/aktionen/",
+    },
+    enable_modules=["orders", "loyalty"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=AKTIONSMARKT_MENUS,
+    loyalty={"label": "Sammelkarte", "stamps": 10, "reward": "1× Gratis-Brot"},
+    vouchers=[
+        {"code": "WILLKOMMEN10", "label": "−10 % für Neukunden", "percent": 10, "max_uses": 200},
+        {
+            "code": "SOMMER5",
+            "label": "5 € Rabatt ab 30 €",
+            "cents": 500,
+            "min_order": 30,
+            "max_uses": 200,
+        },
+    ],
+    promotions_spec=[
+        {
+            "title": "Äpfel −20 %",
+            "product": 0,
+            "percent": 20,
+            "group": "Wochenangebote",
+            "ends_in_days": 7,
+            "desc": "Knackige Äpfel aus der Region.",
+        },
+        {
+            "title": "Croissant −30 % – nur heute!",
+            "product": 6,
+            "percent": 30,
+            "countdown": True,
+            "ends_in_days": 2,
+            "group": "Wochenangebote",
+        },
+        {
+            "title": "Brot zum Festpreis 0,99 €",
+            "product": 4,
+            "new_price": "0.99",
+            "compare_at": "1.99",
+            "group": "Dauertiefpreis",
+        },
+        {
+            "title": "Cola Dauertiefpreis 0,79 €",
+            "product": 9,
+            "new_price": "0.79",
+            "group": "Dauertiefpreis",
+        },
+        {
+            "title": "Gemahlener Kaffee −25 % (limitiert)",
+            "product": 10,
+            "type": "reservation",
+            "percent": 25,
+            "available_quantity": 10,
+            "group": "Wochenangebote",
+        },
+        {
+            "title": "Backwaren-Überraschungstüte 5 € statt 15 €",
+            "product": 14,
+            "surprise": True,
+            "new_price": "5.00",
+            "compare_at": "15.00",
+            "group": "Anti-Food-Waste",
+            "desc": "Geretteten Backwaren ein zweites Leben geben.",
+        },
+        {
+            "title": "Obst & Gemüse-Überraschungstüte 4 € statt 12 €",
+            "product": 15,
+            "surprise": True,
+            "new_price": "4.00",
+            "compare_at": "12.00",
+            "group": "Anti-Food-Waste",
+        },
+        {
+            "title": "Brötchen am Abend −50 %",
+            "product": 5,
+            "percent": 50,
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "group": "Anti-Food-Waste",
+            "desc": "Jeden Abend ab 18 Uhr.",
+        },
+        {
+            "title": "Mineralwasser −15 % (jede Woche)",
+            "product": 8,
+            "percent": 15,
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Wochenangebote",
+        },
+        {"title": "Waschmittel −40 % (Räumung)", "product": 13, "percent": 40, "group": "Räumung"},
+        {
+            "title": "Toilettenpapier −35 % – Countdown",
+            "product": 12,
+            "percent": 35,
+            "countdown": True,
+            "ends_in_days": 1,
+            "group": "Räumung",
+        },
+        {
+            "title": "Bio-Gemüsekiste −20 % – nur 5 Stück",
+            "product": 3,
+            "type": "reservation",
+            "percent": 20,
+            "available_quantity": 5,
+            "group": "Wochenangebote",
+        },
+    ],
+    categories=[
+        (
+            "Obst & Gemüse",
+            "obst-gemuese",
+            [
+                _p("Äpfel 1 kg", "2.49", "Knackig und regional.", "apples"),
+                _p("Bananen 1 kg", "1.79", "Fair gehandelt.", "bananas"),
+                _p("Tomaten 500 g", "2.99", "Sonnengereift.", "tomatoes"),
+                _p("Bio-Gemüsekiste", "24.90", "Bunte Auswahl der Saison.", "vegetable,box"),
+            ],
+        ),
+        (
+            "Backwaren",
+            "backwaren",
+            [
+                _p(
+                    "Bauernbrot 750 g",
+                    "1.99",
+                    "Täglich frisch gebacken.",
+                    "bread",
+                    allergens=["gluten"],
+                ),
+                _p(
+                    "Brötchen 6er",
+                    "0.60",
+                    "Knusprig und frisch.",
+                    "bread,rolls",
+                    allergens=["gluten"],
+                ),
+                _p(
+                    "Croissant",
+                    "1.50",
+                    "Buttrig und zart.",
+                    "croissant",
+                    allergens=["gluten", "milch"],
+                ),
+            ],
+        ),
+        (
+            "Getränke",
+            "getraenke",
+            [
+                _p("Orangensaft 1 L", "2.49", "100 % Direktsaft.", "orange,juice"),
+                _p("Mineralwasser 1,5 L", "0.79", "Spritzig oder still.", "water,bottle"),
+                _p("Cola 1,5 L", "1.49", "Eisgekühlt am besten.", "cola,bottle"),
+                _p("Gemahlener Kaffee 500 g", "6.90", "Kräftige Röstung.", "coffee,ground"),
+            ],
+        ),
+        (
+            "Haushalt",
+            "haushalt",
+            [
+                _p("Spülmittel 500 ml", "1.99", "Fettlöser-Power.", "dish,soap"),
+                _p("Toilettenpapier 10er", "4.99", "Weich und ergiebig.", "toilet,paper"),
+                _p("Waschmittel 2 kg", "8.99", "Für 40 Wäschen.", "laundry,detergent"),
+            ],
+        ),
+        (
+            "Überraschungstüten",
+            "ueberraschungstueten",
+            [
+                _p("Backwaren-Tüte", "15.00", "Wert ca. 15 € — Anti-Food-Waste.", "bakery,bag"),
+                _p(
+                    "Obst & Gemüse-Tüte", "12.00", "Wert ca. 12 € — Anti-Food-Waste.", "grocery,bag"
+                ),
+            ],
+        ),
+    ],
+)
+
+KITS = {
+    RESTAURANT.key: RESTAURANT,
+    PRANASY.key: PRANASY,
+    HOTEL.key: HOTEL,
+    AKTIONSMARKT.key: AKTIONSMARKT,
+}
 
 
 def _kit_sections(kit: DemoKit) -> list[dict]:
@@ -921,37 +1217,91 @@ def apply_kit(tenant, key: str) -> bool:
                 category_firsts.append(product)
                 first_in_cat = False
 
-    # Акции: скидки на первые товары.
+    # Акции.
     from apps.promotions.models import Promotion
 
     now = timezone.now()
-    discounts = [20, 15, 25, 30]
-    # S6: при group_promos_by_category берём по первому товару каждой категории
-    # (каждая группа представлена), добираем остальными до promo_count.
-    if kit.group_promos_by_category:
-        rest = [p for p in created_products if p not in category_firsts]
-        promo_products = (category_firsts + rest)[: max(kit.promo_count, len(category_firsts))]
+    if kit.promotions_spec:
+        # Богатая спецификация — все типы/виды акций (showcase).
+        for spec in kit.promotions_spec:
+            idx = spec.get("product")
+            product = (
+                created_products[idx]
+                if isinstance(idx, int) and idx < len(created_products)
+                else None
+            )
+            fields = {
+                "title": {"de": spec["title"]},
+                "description": {"de": spec.get("desc", "")},
+                "product": product,
+                "promo_type": Promotion.RESERVATION
+                if spec.get("type") == "reservation"
+                else Promotion.DISCOUNT,
+                "status": "active",
+                "starts_at": now,
+                "ends_at": now + timedelta(days=spec.get("ends_in_days", 14)),
+                "group": spec.get("group", ""),
+                "show_countdown": bool(spec.get("countdown")),
+                "is_surprise": bool(spec.get("surprise")),
+                "recurrence": spec.get("recurrence", ""),
+                "metadata": {"demo": True},
+            }
+            if spec.get("percent"):
+                fields["discount_percent"] = spec["percent"]
+            if spec.get("new_price"):
+                fields["price_override"] = Decimal(str(spec["new_price"]))
+            if spec.get("compare_at"):
+                fields["compare_at_price"] = Decimal(str(spec["compare_at"]))
+            if spec.get("type") == "reservation":
+                fields["available_quantity"] = spec.get("available_quantity", 10)
+            if spec.get("image"):
+                lock += 1
+                fields["images"] = [_image_ref(spec["image"], lock, spec["title"])]
+            promo = Promotion.objects.create(**fields)
+            refs["promotions"].append(str(promo.pk))
     else:
-        promo_products = created_products[: kit.promo_count]
-    for i, product in enumerate(promo_products):
-        d = discounts[i % len(discounts)]
-        # Группа акции = название категории товара (S6) — для /aktionen/ и меню.
-        group = ""
-        if kit.group_promos_by_category and product.category:
-            group = (product.category.name or {}).get("de", "")
-        promo = Promotion.objects.create(
-            title={"de": f"{product.name['de']} –{d} %"},
-            description={"de": "Aktion der Woche."},
-            product=product,
-            promo_type=Promotion.DISCOUNT,
-            discount_percent=d,
-            status="active",
-            starts_at=now,
-            ends_at=now + timedelta(days=14),
-            group=group,
-            metadata={"demo": True},
-        )
-        refs["promotions"].append(str(promo.pk))
+        # Авто-скидки на первые товары (как раньше).
+        discounts = [20, 15, 25, 30]
+        if kit.group_promos_by_category:
+            rest = [p for p in created_products if p not in category_firsts]
+            promo_products = (category_firsts + rest)[: max(kit.promo_count, len(category_firsts))]
+        else:
+            promo_products = created_products[: kit.promo_count]
+        for i, product in enumerate(promo_products):
+            d = discounts[i % len(discounts)]
+            group = ""
+            if kit.group_promos_by_category and product.category:
+                group = (product.category.name or {}).get("de", "")
+            promo = Promotion.objects.create(
+                title={"de": f"{product.name['de']} –{d} %"},
+                description={"de": "Aktion der Woche."},
+                product=product,
+                promo_type=Promotion.DISCOUNT,
+                discount_percent=d,
+                status="active",
+                starts_at=now,
+                ends_at=now + timedelta(days=14),
+                group=group,
+                metadata={"demo": True},
+            )
+            refs["promotions"].append(str(promo.pk))
+
+    # Ваучеры/промокоды (фикс-коды, чтобы описание ссылалось на них).
+    if kit.vouchers:
+        from apps.promotions.models import Voucher
+
+        for v in kit.vouchers:
+            Voucher.objects.get_or_create(
+                code=v["code"],
+                defaults={
+                    "label": v.get("label", ""),
+                    "discount_percent": v.get("percent"),
+                    "discount_cents": v.get("cents"),
+                    "min_order_cents": int(Decimal(str(v.get("min_order", 0))) * 100),
+                    "max_uses": v.get("max_uses", 100),
+                    "is_active": True,
+                },
+            )
 
     # Включаем нужные киту модули (orders/events/jobs…) сверх пресета по типу —
     # в памяти ДО сидера (он гейтится по is_module_active) и в final save.

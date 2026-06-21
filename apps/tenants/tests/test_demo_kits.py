@@ -232,3 +232,38 @@ def test_apply_hotel_kit_builds_stays_site():
     # меню ведёт на номера
     assert any(i["target"] == "stays" for i in cfg["menus"]["top"]["items"])
     assert tenant.is_module_active("stays")
+
+
+def test_apply_aktionsmarkt_kit_covers_all_promo_types():
+    """Aktionsmarkt: акции всех типов/видов + ваучеры + описание в FAQ."""
+    from apps.promotions.models import LoyaltyProgram, Promotion, Voucher
+
+    tenant = TenantFactory(schema_name="public", slug="am", name="AM", business_type="grocery")
+    assert demo_kits.apply_kit(tenant, "aktionsmarkt") is True
+
+    promos = Promotion.objects.filter(status="active")
+    assert promos.count() >= 12
+    # все типы/виды представлены
+    assert promos.filter(discount_percent__gt=0).exists()  # %-скидка
+    assert promos.filter(price_override__gt=0).exists()  # новый festпрайс
+    assert promos.filter(
+        promo_type=Promotion.RESERVATION, available_quantity__gt=0
+    ).exists()  # лимит
+    assert promos.filter(is_surprise=True).exists()  # Überraschungstüte
+    assert promos.filter(show_countdown=True).exists()  # countdown
+    assert (
+        promos.filter(recurrence="daily").exists() and promos.filter(recurrence="weekly").exists()
+    )
+    # группы акций
+    groups = set(promos.values_list("group", flat=True))
+    assert {"Wochenangebote", "Dauertiefpreis", "Räumung", "Anti-Food-Waste"} <= groups
+
+    # ваучеры/промокоды (фикс-коды)
+    assert Voucher.objects.filter(code="WILLKOMMEN10", discount_percent=10).exists()
+    sommer = Voucher.objects.get(code="SOMMER5")
+    assert sommer.discount_cents == 500 and sommer.min_order_cents == 3000
+
+    # лояльность + описание типов в FAQ
+    assert LoyaltyProgram.objects.filter(is_active=True).exists()
+    faq_q = " ".join(p["q"] for p in tenant.site_config["faq"])
+    assert "Überraschungstüte" in faq_q and "Countdown" in faq_q and "Gutschein" in faq_q
