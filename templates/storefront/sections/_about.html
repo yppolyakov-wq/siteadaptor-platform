@@ -1,7 +1,7 @@
 {% load i18n %}{# Секция «о нас» (Track C2): текст из site_config. #}
 {% if site.about_title or site.about_text %}
 <section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
-  <h2 class="text-xl md:text-2xl font-bold mb-3">{% if site.about_title %}{{ site.about_title }}{% else %}{% trans "About us" %}{% endif %}</h2>
-  <p class="text-gray-600 whitespace-pre-line">{{ site.about_text }}</p>
+  <h2 class="text-xl md:text-2xl font-bold mb-3" data-edit="about_title">{% if site.about_title %}{{ site.about_title }}{% else %}{% trans "About us" %}{% endif %}</h2>
+  <p class="text-gray-600 whitespace-pre-line" data-edit="about_text">{{ site.about_text }}</p>
 </section>
 {% endif %}

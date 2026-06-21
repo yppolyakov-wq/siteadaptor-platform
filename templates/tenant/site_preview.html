@@ -19,7 +19,8 @@
     <a href="/" target="_blank" rel="noopener" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-100">{% trans "Open" %} ↗</a>
   </div>
 </div>
-<p class="text-xs text-gray-400 mb-3">{% trans "Shows your live site. Changes appear after you save them in the builders." %}</p>
+<p class="text-xs text-gray-400 mb-3">{% trans "Shows your live site." %}
+  <span class="text-indigo-600">✏️ {% trans "Click a heading or text to edit it directly — it saves on blur." %}</span></p>
 
 <div class="bg-gray-100 rounded-2xl p-3 flex justify-center">
   <div id="prev-shell" class="bg-white rounded-xl shadow-sm overflow-hidden transition-all" style="width:100%;">
@@ -43,6 +44,34 @@
   });
   document.getElementById("prev-reload").addEventListener("click", function () {
     frame.contentWindow.location.reload();
+  });
+
+  // V3 inline-edit: на загрузке iframe делаем [data-edit] редактируемыми;
+  // на blur сохраняем поле в site_config (тот же origin → доступ к contentDocument).
+  var editUrl = "{% url 'site-inline-edit' %}";
+  var token = "{{ csrf_token }}";
+  var status = document.createElement("span");
+  status.className = "text-xs text-green-600 ml-2";
+  document.querySelector("h1").after(status);
+  frame.addEventListener("load", function () {
+    var doc;
+    try { doc = frame.contentDocument; } catch (e) { return; }
+    if (!doc) return;
+    doc.querySelectorAll("[data-edit]").forEach(function (el) {
+      el.setAttribute("contenteditable", "plaintext-only");
+      el.style.outline = "1px dashed rgba(99,102,241,.5)";
+      el.style.outlineOffset = "2px";
+      el.style.cursor = "text";
+      el.addEventListener("blur", function () {
+        fetch(editUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+          body: JSON.stringify({ field: el.getAttribute("data-edit"), value: el.innerText }),
+        }).then(function (r) {
+          if (r.ok) { status.textContent = "{% trans 'Saved' %} ✓"; setTimeout(function () { status.textContent = ""; }, 1500); }
+        });
+      });
+    });
   });
 })();
 </script>

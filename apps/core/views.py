@@ -568,6 +568,33 @@ def site_preview_draft(request):
 
 
 @login_required
+@require_POST
+def site_inline_edit(request):
+    """V3 inline-edit: сохранить одно текстовое поле, отредактированное прямо на
+    превью (contenteditable). Белый список полей — тексты hero/about; запись в
+    site_config. Возврат 204."""
+    import json
+
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    from apps.tenants import siteconfig
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest()
+    field = data.get("field")
+    if field not in siteconfig.TEXT_FIELDS:
+        return HttpResponseBadRequest()
+    value = data.get("value", "")
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    cfg[field] = value.strip() if isinstance(value, str) else ""
+    request.tenant.site_config = siteconfig.normalize(cfg)
+    request.tenant.save(update_fields=["site_config", "updated_at"])
+    return HttpResponse(status=204)
+
+
+@login_required
 def sections_view(request):
     """Обложки разделов (S3): интро-текст + hero-фото на каждый лендинг архетипа.
     Рендерятся поверх его публичной страницы (storefront/_archetype_cover.html).

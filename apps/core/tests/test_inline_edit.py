@@ -1,0 +1,66 @@
+"""V3: inline-редактирование текста на превью — endpoint + data-edit маркеры."""
+
+import json
+from types import SimpleNamespace
+
+import pytest
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
+
+from apps.core import views
+from apps.promotions import public_views
+from apps.tenants import siteconfig
+from apps.tenants.tests.factories import TenantFactory
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+def _post(field, value, tenant):
+    body = json.dumps({"field": field, "value": value})
+    req = RequestFactory().post(
+        "/dashboard/site/preview/edit/", body, content_type="application/json"
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    return views.site_inline_edit(req)
+
+
+def test_inline_edit_saves_whitelisted_field():
+    tenant = TenantFactory(schema_name="public", slug="ie", name="IE")
+    resp = _post("hero_title", "  Pranasy ist da  ", tenant)
+    assert resp.status_code == 204
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["hero_title"] == "Pranasy ist da"
+
+
+def test_inline_edit_rejects_unknown_field():
+    tenant = TenantFactory(schema_name="public", slug="ie2", name="IE2")
+    assert _post("status", "hacked", tenant).status_code == 400  # не в TEXT_FIELDS
+    tenant.refresh_from_db()
+    assert "status" not in tenant.site_config
+
+
+def test_hero_about_carry_data_edit_markers():
+    tenant = TenantFactory.build(
+        site_config={
+            "sections": [
+                {"key": "hero", "enabled": True},
+                {"key": "about", "enabled": True},
+            ],
+            "hero_title": "H",
+            "about_title": "A",
+            "about_text": "B",
+        }
+    )
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert 'data-edit="hero_title"' in body
+    assert 'data-edit="about_title"' in body and 'data-edit="about_text"' in body

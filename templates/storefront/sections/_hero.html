@@ -6,18 +6,18 @@
          style="background-image:url('{{ site.hero_image }}');">
   <div class="absolute inset-0 bg-black/45"></div>
   <div class="relative px-4 py-12 max-w-4xl">
-    <h1 class="text-4xl md:text-6xl font-bold drop-shadow-lg">{{ site.hero_title|default:request.tenant.name }}</h1>
-    {% if site.hero_text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow">{{ site.hero_text }}</p>{% endif %}
+    <h1 class="text-4xl md:text-6xl font-bold drop-shadow-lg" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
+    {% if site.hero_text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}
   </div>
 </section>
 {% elif site.hero_style == "accent" %}
 <section class="mb-10 rounded-2xl shadow-sm p-8 md:p-12 text-center text-white" style="background: var(--accent, #4f46e5);">
-  <h1 class="text-3xl md:text-4xl font-bold">{{ site.hero_title|default:request.tenant.name }}</h1>
-  {% if site.hero_text %}<p class="mt-3 text-white/90 max-w-2xl mx-auto whitespace-pre-line">{{ site.hero_text }}</p>{% endif %}
+  <h1 class="text-3xl md:text-4xl font-bold" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
+  {% if site.hero_text %}<p class="mt-3 text-white/90 max-w-2xl mx-auto whitespace-pre-line" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}
 </section>
 {% else %}
 <section class="mb-10 bg-white rounded-2xl shadow-sm p-8 md:p-12 text-center">
-  <h1 class="text-3xl md:text-4xl font-bold">{{ site.hero_title|default:request.tenant.name }}</h1>
-  {% if site.hero_text %}<p class="mt-3 text-gray-600 max-w-2xl mx-auto whitespace-pre-line">{{ site.hero_text }}</p>{% endif %}
+  <h1 class="text-3xl md:text-4xl font-bold" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
+  {% if site.hero_text %}<p class="mt-3 text-gray-600 max-w-2xl mx-auto whitespace-pre-line" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}
 </section>
 {% endif %}

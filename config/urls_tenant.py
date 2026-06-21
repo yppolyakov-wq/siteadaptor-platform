@@ -24,6 +24,7 @@ from apps.core.views import (
     sections_view,
     settings_view,
     setup_view,
+    site_inline_edit,
     site_preview,
     site_preview_draft,
     site_view,
@@ -54,6 +55,7 @@ urlpatterns = [
     path("dashboard/site/sections/", sections_view, name="site-sections"),
     path("dashboard/site/preview/", site_preview, name="site-preview"),
     path("dashboard/site/preview/draft/", site_preview_draft, name="site-preview-draft"),
+    path("dashboard/site/preview/edit/", site_inline_edit, name="site-inline-edit"),
     # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
     path("dashboard/modules/", modules_view, name="modules"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
