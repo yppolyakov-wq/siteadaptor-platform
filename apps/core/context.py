@@ -90,7 +90,12 @@ def modules_nav(request):
     tenant = getattr(request, "tenant", None)
     if tenant is None or getattr(tenant, "schema_name", "public") == "public":
         return {}
-    nav_items, nav_style, nav_sticky = _storefront_nav(tenant)
+    from apps.tenants import menu as menu_mod
+
+    nav_items, _legacy_style, _legacy_sticky = _storefront_nav(tenant)
+    # S7: многоуровневое меню — top (дерево с подменю) + опц. кастомный bottom.
+    storefront_menu = menu_mod.resolve_menu(tenant, "top")
+    nav_style, nav_sticky = menu_mod.top_meta(tenant)
     # CA4: вошедший клиент (для автозаполнения форм заказа/брони именем/почтой).
     account_customer = None
     if modules.is_module_active(tenant, "customer_account"):
@@ -114,6 +119,21 @@ def modules_nav(request):
     # Только если секция hero включена (иначе зря тянем картинку).
     hero_enabled = any(s["key"] == "hero" and s["enabled"] for s in cfg["sections"])
     hero_preload = cfg["hero_image"] if hero_enabled else ""
+    # S7: нижнее меню — кастомное (из menus.bottom) либо авто таб-бар (T2b).
+    if menu_mod.bottom_enabled(tenant):
+        bottom_nav = [
+            {
+                "url": i["url"],
+                "label": i["label"],
+                "icon": i["icon"] or "•",
+                "kind": "default",
+                "badge": 0,
+            }
+            for i in menu_mod.resolve_menu(tenant, "bottom")
+            if i["url"]
+        ][:5]
+    else:
+        bottom_nav = _storefront_bottom_nav(request, tenant)
     return {
         "nav_modules": modules.active_modules(tenant),
         # S1: витринные «лица» активных архетипов — для тизеров главной (S2) и
@@ -134,12 +154,14 @@ def modules_nav(request):
         "storefront_cart_count": _cart_count(request),
         # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
         "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
-        # M20 ④: готовая навигация витрины (стиль/sticky/пункты).
+        # M20 ④: легаси-навигация (плоская) — на случай старых шаблонов.
         "storefront_nav": nav_items,
+        # S7: многоуровневое меню витрины (дерево с подменю) + стиль/sticky.
+        "storefront_menu": storefront_menu,
         "storefront_nav_style": nav_style,
         "storefront_nav_sticky": nav_sticky,
-        # P1→T2b: липкий мобильный таб-бар (Menu/Deals/Cart/Call, адаптивно).
-        "storefront_bottom_nav": _storefront_bottom_nav(request, tenant),
+        # P1→T2b: липкий мобильный таб-бар — кастомный (menus.bottom) или авто.
+        "storefront_bottom_nav": bottom_nav,
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,

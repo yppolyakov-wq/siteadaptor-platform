@@ -87,17 +87,37 @@
                   class="text-2xl leading-none text-gray-700 {% if style != 'minimal' %}sm:hidden{% endif %}">☰</button>
         </div>
       </div>
-      {# Десктоп-меню: скрыто в minimal; в centered — по центру. #}
+      {# S7: десктоп-меню с подменю (выпадает по hover); minimal — скрыто. #}
       <nav class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-3 {% if style == 'centered' %}justify-center{% endif %}">
-        {% for item in storefront_nav %}
-          <a href="{{ item.url }}" class="text-gray-600 hover:text-gray-900 font-medium">{{ item.label }}</a>
+        {% for item in storefront_menu %}
+          {% if item.children %}
+            <div class="relative group">
+              {% if item.url %}<a href="{{ item.url }}"{% else %}<span{% endif %} class="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium cursor-pointer">{{ item.label }} <span class="text-[10px]">▾</span>{% if item.url %}</a>{% else %}</span>{% endif %}
+              <div class="absolute left-0 top-full pt-2 hidden group-hover:block z-30">
+                <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[180px]">
+                  {% for c in item.children %}
+                    <a href="{{ c.url }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">{{ c.label }}</a>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <a href="{{ item.url }}" class="text-gray-600 hover:text-gray-900 font-medium">{{ item.label }}</a>
+          {% endif %}
         {% endfor %}
       </nav>
     </div>
-    {# Раскрывающееся меню (мобильный + minimal-десктоп). #}
+    {# Раскрывающееся меню (мобильный + minimal-десктоп): дети с отступом. #}
     <nav id="sf-nav-mobile" class="hidden border-t border-gray-100 px-4 py-2 {% if style != 'minimal' %}sm:hidden{% endif %}">
-      {% for item in storefront_nav %}
-        <a href="{{ item.url }}" class="block py-2 text-gray-700 hover:text-gray-900 font-medium">{{ item.label }}</a>
+      {% for item in storefront_menu %}
+        {% if item.url %}
+          <a href="{{ item.url }}" class="block py-2 text-gray-700 hover:text-gray-900 font-medium">{{ item.label }}</a>
+        {% else %}
+          <div class="pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ item.label }}</div>
+        {% endif %}
+        {% for c in item.children %}
+          <a href="{{ c.url }}" class="block py-2 pl-4 text-gray-600 hover:text-gray-900">{{ c.label }}</a>
+        {% endfor %}
       {% endfor %}
     </nav>
   </header>

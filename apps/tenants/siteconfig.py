@@ -65,6 +65,114 @@ _NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
 # по центру, ссылки под ним), minimal (только лого, всё меню в бургере).
 NAV_STYLES = ("classic", "centered", "minimal")
 
+# S7: многоуровневое меню. Узел = {label, type, target, enabled, icon, children}.
+# type определяет, как строится ссылка (резолв — apps.tenants.menu):
+#   archetype  → target = ключ модуля (catalog/booking/…), ссылка из реестра;
+#   category   → target = slug категории каталога (/sortiment/?kategorie=…);
+#   promo_group→ target = группа акций (S6; до S6 ссылки нет);
+#   page       → target = спец-страница витрины (home/offers; loyalty — S5);
+#   url        → target = произвольный URL (внешний/относительный);
+#   anchor     → target = якорь секции главной (#aktionen);
+#   group      → без своей ссылки, только родитель выпадающего подменю.
+MENU_NODE_TYPES = ("archetype", "category", "promo_group", "page", "url", "anchor", "group")
+_MAX_MENU_ITEMS = 20  # потолок пунктов на уровень
+_MENU_MAX_DEPTH = 2  # глубина вложенности (родитель + дети)
+# Соответствие легаси-пунктов nav → узлы меню (для вывода menus.top из nav).
+_NAV_KEY_TO_NODE = {
+    "offers": ("page", "home"),
+    "products": ("archetype", "catalog"),
+    "booking": ("archetype", "booking"),
+    "stays": ("archetype", "stays"),
+    "events": ("archetype", "events"),
+    "jobs": ("archetype", "jobs"),
+    "inbox": ("archetype", "inbox"),
+}
+
+
+def _clean_menu_node(raw, depth: int):
+    """Узел меню из произвольного value; None — если без подписи. Глубина
+    ограничена _MENU_MAX_DEPTH (дети дальше не разбираются)."""
+    if not isinstance(raw, dict):
+        return None
+    label = _s(raw.get("label"))
+    if not label:
+        return None
+    ntype = raw.get("type") if raw.get("type") in MENU_NODE_TYPES else "url"
+    node = {
+        "label": label,
+        "type": ntype,
+        "target": _s(raw.get("target")),
+        "enabled": bool(raw.get("enabled", True)),
+        "icon": _s(raw.get("icon"))[:8],
+        "children": [],
+    }
+    if depth < _MENU_MAX_DEPTH and isinstance(raw.get("children"), list):
+        for child in raw["children"][:_MAX_MENU_ITEMS]:
+            cleaned = _clean_menu_node(child, depth + 1)
+            if cleaned is not None:
+                node["children"].append(cleaned)
+    return node
+
+
+def _clean_menu_items(raw):
+    out = []
+    if isinstance(raw, list):
+        for item in raw[:_MAX_MENU_ITEMS]:
+            node = _clean_menu_node(item, 1)
+            if node is not None:
+                out.append(node)
+    return out
+
+
+def _nav_to_menu_nodes(nav: dict) -> list[dict]:
+    """Вывести узлы top-меню из легаси-nav (та же плоская шапка)."""
+    labels = {key: label for key, label, _u, _m in NAV_ITEMS}
+    nodes = []
+    for item in nav["items"]:
+        mapping = _NAV_KEY_TO_NODE.get(item["key"])
+        if mapping is None:
+            continue
+        ntype, target = mapping
+        nodes.append(
+            {
+                "label": str(labels.get(item["key"], item["key"])),
+                "type": ntype,
+                "target": target,
+                "enabled": bool(item["enabled"]),
+                "icon": "",
+                "children": [],
+            }
+        )
+    return nodes
+
+
+def _normalize_menus(raw, nav: dict) -> dict:
+    """top/bottom меню. Нет `menus` → top из nav, bottom выключен (авто таб-бар)."""
+    if not isinstance(raw, dict):
+        return {
+            "top": {
+                "style": nav["style"],
+                "sticky": nav["sticky"],
+                "items": _nav_to_menu_nodes(nav),
+            },
+            "bottom": {"enabled": False, "items": []},
+        }
+    top = raw.get("top") if isinstance(raw.get("top"), dict) else {}
+    bottom = raw.get("bottom") if isinstance(raw.get("bottom"), dict) else {}
+    top_style = top.get("style")
+    return {
+        "top": {
+            "style": top_style if top_style in NAV_STYLES else nav["style"],
+            "sticky": bool(top.get("sticky", nav["sticky"])),
+            "items": _clean_menu_items(top.get("items")),
+        },
+        "bottom": {
+            "enabled": bool(bottom.get("enabled", False)),
+            "items": _clean_menu_items(bottom.get("items")),
+        },
+    }
+
+
 # Шрифты витрины (P2a). ТОЛЬКО системные стеки — без загрузки веб-шрифтов
 # (Google Fonts через CDN = риск GDPR в DE; self-host WOFF2 — отдельно, когда
 # будут файлы). (body_stack, head_stack) для CSS-переменных --font-body/--font-head.
@@ -185,6 +293,11 @@ def normalize(config) -> dict:
         "sticky": bool(nav_in.get("sticky", True)),
         "items": nav_items,
     }
+    # S7: многоуровневое меню (top + bottom). Дерево узлов с привязкой к
+    # архетипам/категориям/страницам/URL/якорям; глубина 2. Легаси без `menus`
+    # → top выводим из `nav` (та же плоская шапка, без регрессии), bottom —
+    # выключен (используется авто таб-бар T2b).
+    normalized["menus"] = _normalize_menus(config.get("menus"), normalized["nav"])
     # Контент-секции (M20 ⑤a): FAQ, отзывы, CTA. Все опциональны; пустое — пропуск.
     normalized["faq"] = _clean_pairs(config.get("faq"), "q", "a")
     normalized["testimonials"] = _clean_pairs(config.get("testimonials"), "name", "text")
