@@ -1090,6 +1090,23 @@ Python 3.12, менеджер uv.
     site_config; команда `seed_demo_tenants [--kit/--recreate/--delete]` (reuse
     create_business) → `<kit>-demo.<base>`. Логин `<kit>-demo@example.de` /
     `demo-12345678`. Тесты `test_demo_kits`.
+  - **5 китов (✅ `apps/tenants/demo_kits.py`): restaurant, baeckerei (bakery,
+    orders+доставка+loyalty), cafe (orders+бронь столика), friseur (other,
+    booking+услуги+мастера), hotel (stays: номера+Ferienwohnung).** Новые киты
+    сделаны «так же», как restaurant (та же `DemoKit`-структура: hero-фото,
+    каталог, акции, контент-секции, движок под тип). `scripts/seed-demos.sh` —
+    все киты одной командой.
+  - **Команда сидинга на ПРОДЕ (через docker compose, в контейнере `web`):**
+    ```
+    # СОЗДАТЬ (по умолчанию; существующие демо НЕ трогает):
+    docker compose -f docker-compose.prod.yml exec web python manage.py seed_demo_tenants
+    # один кит:
+    docker compose -f docker-compose.prod.yml exec web python manage.py seed_demo_tenants --kit restaurant
+    # ПЕРЕсоздать (дроп схемы + заново) — только осознанно:
+    docker compose -f docker-compose.prod.yml exec web python manage.py seed_demo_tenants --recreate
+    ```
+    **По умолчанию — создание, НЕ `--recreate`** (recreate дропает схему демо).
+    На сервере нет алиаса `python` — команды только внутри контейнера (как выше).
 - **Модернизация витрины (тренды 2025–2026; deep-research → план P1–P5; в работе):**
   направления: F производительность/CWV, C мобильная конверсия, A+B шрифты+
   анимации, D+E тёмная тема+доверие. Порядок «всё по порядку».

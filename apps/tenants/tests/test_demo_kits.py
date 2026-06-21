@@ -24,6 +24,28 @@ def test_unknown_kit_returns_false():
     assert demo_kits.apply_kit(_tenant(), "nope") is False
 
 
+@pytest.mark.parametrize("key", [k for k in demo_kits.KITS if k != "restaurant"])
+def test_apply_additional_kit_builds_site(key):
+    """Каждый кит (Bäckerei/Café/Friseur/Hotel) собирается без ошибок."""
+    kit = demo_kits.KITS[key]
+    tenant = TenantFactory(
+        schema_name="public", slug=f"{key}-x", name=key, business_type=kit.business_type
+    )
+    assert demo_kits.apply_kit(tenant, key) is True
+    tenant.refresh_from_db()
+    assert tenant.site_config.get("sections")  # раскладка собрана
+    assert tenant.primary_color == kit.accent
+    # движок кита материализован под активным модулем
+    if kit.services:
+        from apps.booking.models import Service
+
+        assert Service.objects.count() == len(kit.services)
+    if kit.stay_units:
+        from apps.stays.models import StayUnit
+
+        assert StayUnit.objects.count() == len(kit.stay_units)
+
+
 def test_demo_image_is_themed_and_deterministic():
     url = demo_kits.demo_image("pizza margherita", lock=5)
     assert url == "https://loremflickr.com/800/600/pizza,margherita?lock=5"
