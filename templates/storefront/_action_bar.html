@@ -7,12 +7,12 @@
     <a href="{{ a.url }}"
        class="relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 min-h-[48px] text-[11px] font-medium
               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]
-              {% if a.kind == 'primary' %}text-white{% else %}text-gray-600 active:bg-gray-100{% endif %}"
-       {% if a.kind == 'primary' %}style="background: var(--accent);"{% endif %}>
+              text-gray-600 active:bg-gray-100">
       <span class="text-[19px] leading-none" aria-hidden="true">{{ a.icon }}</span>
       <span class="leading-tight">{{ a.label }}</span>
       {% if a.kind == 'primary' %}
-        <span data-cart-badge class="absolute top-0.5 right-[20%] min-w-[17px] h-[17px] px-1 rounded-full bg-white text-gray-900 text-[10px] font-bold leading-[17px] text-center shadow {% if not a.badge %}hidden{% endif %}">{{ a.badge }}</span>
+        {# Счётчик корзины — акцентная «таблетка» (как в шапке), без заливки всего блока. #}
+        <span data-cart-badge class="absolute top-0.5 right-[20%] min-w-[17px] h-[17px] px-1 rounded-full text-white text-[10px] font-bold leading-[17px] text-center shadow {% if not a.badge %}hidden{% endif %}" style="background: var(--accent);">{{ a.badge }}</span>
       {% endif %}
     </a>
   {% endfor %}
