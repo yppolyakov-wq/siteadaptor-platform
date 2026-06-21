@@ -18,6 +18,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.core import ratelimit
 from apps.core.pagination import paginate
@@ -73,6 +74,10 @@ def _capture_channel(request) -> str:
     return ch or request.session.get("src_ch", "")
 
 
+# Same-origin framing разрешён: кабинет владельца (тот же субдомен-origin)
+# показывает витрину в iframe (live-preview конструктора + страница Preview).
+# Прод ставит X-Frame-Options: DENY глобально — это бы блокировало iframe.
+@xframe_options_sameorigin
 def storefront_home(request):
     _capture_channel(request)
     # Конструктор витрины v1 (Track C2): главная собирается из секций конфига.

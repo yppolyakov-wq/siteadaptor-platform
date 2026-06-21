@@ -96,3 +96,13 @@ def test_preview_skips_standalone_redirect():
     req.session["site_preview_draft"] = draft
     req.tenant = tenant
     assert public_views.storefront_home(req).status_code == 200  # без редиректа
+
+
+def test_storefront_home_allows_same_origin_framing():
+    """Кабинет (тот же origin) показывает витрину в iframe — прод-DENY бы блокировал
+    live-preview. Витрина отдаёт X-Frame-Options: SAMEORIGIN."""
+    tenant = TenantFactory.build()
+    req = _session(RequestFactory().get("/"))
+    req.tenant = tenant
+    resp = public_views.storefront_home(req)
+    assert resp.headers.get("X-Frame-Options") == "SAMEORIGIN"
