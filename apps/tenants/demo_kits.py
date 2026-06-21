@@ -66,7 +66,10 @@ class DemoKit:
     opening_hours: dict = field(default_factory=dict)
     services: list = field(default_factory=list)  # (name, minutes, price_eur)
     stay_units: list = field(default_factory=list)  # (name, type, qty, price_eur, guests)
-    events: list = field(default_factory=list)  # (title, in_days, capacity, price_eur)
+    # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
+    #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
+    #    description, location, program:[...], questions:[...]}.
+    events: list = field(default_factory=list)
     # booking-ресурсы (стол/мастер/зал) с недельным расписанием — чтобы /termin/
     # сразу показывал слоты. dict: name/type/capacity/counts_party/start/end/slot.
     resources: list = field(default_factory=list)
@@ -1420,6 +1423,208 @@ WERKSTATT = DemoKit(
     ],
 )
 
+RETREAT_MENUS = {
+    "top": {
+        "style": "centered",
+        "sticky": True,
+        "items": [
+            {"label": "Events", "type": "archetype", "target": "events"},
+            {"label": "Einzelsitzung", "type": "archetype", "target": "booking"},
+            {"label": "Shop", "type": "archetype", "target": "catalog"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Events", "type": "archetype", "target": "events", "icon": "🎫"},
+            {"label": "Sitzung", "type": "archetype", "target": "booking", "icon": "🧘"},
+            {"label": "Shop", "type": "archetype", "target": "catalog", "icon": "🛍"},
+        ],
+    },
+}
+
+# Анкета участника ретрита (LMIV/безопасность/уровень) — общая для событий.
+_RETREAT_QUESTIONS = [
+    "Ernährung (vegan / vegetarisch / alles)",
+    "Yoga-Erfahrung (Anfänger / Mittel / Fortgeschritten)",
+    "Notfallkontakt (Name & Telefon)",
+]
+
+RETREAT = DemoKit(
+    key="retreat",
+    label="Waldlicht Retreat",
+    business_type="other",
+    subdomain="retreat",
+    accent="#15803d",  # Wald-Grün
+    hero_image_kw="yoga,forest",
+    hero_title="Waldlicht Retreat",
+    hero_text="Achtsamkeit, Yoga und Natur — Wochenend-Retreats, Tagesworkshops und "
+    "Abende, die guttun. Sichern Sie sich Ihren Platz online.",
+    about_title="Über uns",
+    about_text="Seit 2016 schaffen wir Räume zum Durchatmen — am Waldrand bei Freiburg. "
+    "Kleine Gruppen, erfahrene Begleitung, ehrliche Achtsamkeit ohne Esoterik-Kitsch.",
+    nav_style="centered",
+    address="Am Waldrand 3, 79117 Freiburg",
+    opening_hours_text="Büro: Mo–Fr 10:00–16:00",
+    opening_hours={d: ("10:00", "16:00") for d in range(5)},
+    gallery_kw=[
+        "yoga,nature",
+        "meditation",
+        "forest,path",
+        "retreat,group",
+        "candles",
+        "tea,ceremony",
+    ],
+    faq=[
+        (
+            "Wie buche ich einen Platz?",
+            "Über «Events» wählen Sie ein Datum und buchen direkt online.",
+        ),
+        (
+            "Was ist im Preis enthalten?",
+            "Programm, Begleitung und Materialien; Verpflegung je nach Event.",
+        ),
+        ("Brauche ich Vorerfahrung?", "Nein — unsere Events sind für alle Levels geeignet."),
+        (
+            "Kann ich eine Einzelsitzung buchen?",
+            "Ja, über «Einzelsitzung» buchen Sie einen 1:1-Termin.",
+        ),
+    ],
+    testimonials=[
+        ("Johanna P.", "Zwei Tage, die mich geerdet haben. Ich komme wieder."),
+        ("Daniel R.", "Kleine Gruppe, viel Raum, herzliche Begleitung. Sehr empfehlenswert."),
+    ],
+    process=[
+        ("Event wählen", "Wochenend-Retreat, Tagesworkshop oder Abend — mit Programm und Preis."),
+        ("Platz buchen", "Online buchen, kurze Anmelde-Anfrage ausfüllen."),
+        ("Ankommen", "Loslassen, auftanken, sich selbst begegnen."),
+    ],
+    team=[
+        ("Mara Lind", "Retreatleitung & Yogalehrerin", "yoga,teacher,woman"),
+        ("Felix Sturm", "Achtsamkeits-Coach", "meditation,man"),
+    ],
+    trust={"since": "2016", "marks": ["Kleine Gruppen", "Zertifizierte Leitung", "Naturnah"]},
+    cta={
+        "title": "Zeit für dich.",
+        "text": "Finde dein nächstes Retreat und sichere dir einen Platz.",
+        "button_label": "Events ansehen",
+        "button_url": "/veranstaltung/",
+    },
+    enable_modules=["events", "booking", "orders"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=RETREAT_MENUS,
+    archetype_covers={
+        "events": {
+            "intro": "Wochenend-Retreats, Tagesworkshops und Achtsamkeits-Abende — mit Programm.",
+            "hero_kw": "yoga,forest",
+            "gallery_kw": ["meditation", "retreat,group", "forest,path"],
+        },
+        "booking": {
+            "intro": "Lieber 1:1? Buchen Sie eine Einzelsitzung mit fester Dauer und Preis.",
+            "hero_kw": "yoga,studio",
+        },
+        "catalog": {
+            "intro": "Kleines Sortiment für deine Praxis zuhause.",
+            "hero_kw": "yoga,products",
+        },
+    },
+    events=[
+        {
+            "title": "Waldlicht Wochenend-Retreat",
+            "in_days": 21,
+            "hour": 16,
+            "duration_days": 2,
+            "capacity": 18,
+            "price": "290",
+            "location": "Am Waldrand 3, Freiburg",
+            "description": "Zwei Tage Yoga, Meditation und Waldspaziergänge in kleiner Gruppe. "
+            "Inklusive Programm, Begleitung und Tee-Pausen.",
+            "program": [
+                "Fr 16:00 — Ankommen & Auftakt-Meditation",
+                "Sa 08:00 — Morgen-Yoga · 10:00 Achtsamkeitswanderung · 16:00 Klangschalen",
+                "So 09:00 — Yin-Yoga · 12:00 Abschlusskreis",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+        },
+        {
+            "title": "Yoga & Achtsamkeit — Tagesworkshop",
+            "in_days": 10,
+            "hour": 10,
+            "duration_hours": 6,
+            "capacity": 25,
+            "price": "89",
+            "description": "Ein Tag zum Auftanken: Yoga, Atemübungen und Achtsamkeit für alle Levels.",
+            "program": [
+                "10:00 — Hatha-Yoga",
+                "12:30 — Pause & veganer Imbiss",
+                "14:00 — Atem & Meditation · 16:00 Ausklang",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+        },
+        {
+            "title": "Klangschalen-Meditation am Abend",
+            "in_days": 7,
+            "hour": 19,
+            "duration_hours": 2,
+            "capacity": 30,
+            "price": "25",
+            "description": "Tiefenentspannung mit Klangschalen — ein ruhiger Abend zum Loslassen.",
+        },
+        {
+            "title": "Sommer-Festival der Achtsamkeit",
+            "in_days": 45,
+            "hour": 11,
+            "duration_hours": 8,
+            "capacity": 0,  # без лимита мест
+            "price": "15",
+            "location": "Stadtpark Freiburg",
+            "description": "Ein Tag voller Workshops, Live-Musik und Ständen rund um Achtsamkeit.",
+            "program": [
+                "11:00 — Eröffnung & Mitmach-Yoga",
+                "13:00 — Workshops (Atem, Journaling, Klang)",
+                "18:00 — Live-Musik & Ausklang",
+            ],
+        },
+    ],
+    services=[
+        ("Einzel-Yogastunde (1:1)", 60, "55"),
+        ("Achtsamkeits-Coaching", 60, "75"),
+        ("Schnupperstunde", 30, "0"),
+    ],
+    resources=[
+        {
+            "name": "Studio",
+            "type": "table",
+            "capacity": 1,
+            "start": "10:00",
+            "end": "18:00",
+            "slot": 30,
+            "weekdays": range(0, 5),
+        },
+    ],
+    categories=[
+        (
+            "Shop",
+            "shop",
+            [
+                _p(
+                    "Yogamatte Natur",
+                    "49.00",
+                    "Rutschfest, aus Naturkautschuk.",
+                    "yoga,mat",
+                    variants=[("Standard", "49.00"), ("Extra dick", "59.00")],
+                ),
+                _p("Bio-Kräutertee 100 g", "9.90", "Beruhigende Mischung.", "herbal,tea"),
+                _p("Räucherstäbchen-Set", "12.90", "Für die Praxis zuhause.", "incense"),
+                _p("Achtsamkeits-Journal", "16.90", "Geführtes Tagebuch.", "journal,book"),
+            ],
+        ),
+    ],
+)
+
 KITS = {
     RESTAURANT.key: RESTAURANT,
     PRANASY.key: PRANASY,
@@ -1427,6 +1632,7 @@ KITS = {
     AKTIONSMARKT.key: AKTIONSMARKT,
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
+    RETREAT.key: RETREAT,
 }
 
 
@@ -1765,14 +1971,43 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
 
         now = timezone.now()
         refs["events"] = []
-        for title, in_days, capacity, price in kit.events:
-            event = Event.objects.create(
-                title=title,
-                starts_at=now + timedelta(days=in_days),
-                capacity=capacity,
-                price_cents=int(Decimal(price) * 100),
-                status=Event.STATUS_PUBLISHED,
-            )
+        for spec in kit.events:
+            # Поддерживаем и краткий кортеж (title, in_days, capacity, price), и
+            # богатый dict (с Programm/анкетой/описанием/длительностью).
+            if isinstance(spec, dict):
+                in_days = spec.get("in_days", 7)
+                hour = spec.get("hour", 10)
+                starts = (now + timedelta(days=in_days)).replace(
+                    hour=hour, minute=0, second=0, microsecond=0
+                )
+                duration_days = spec.get("duration_days")
+                duration_hours = spec.get("duration_hours")
+                ends = None
+                if duration_days:
+                    ends = starts + timedelta(days=duration_days)
+                elif duration_hours:
+                    ends = starts + timedelta(hours=duration_hours)
+                event = Event.objects.create(
+                    title=spec["title"],
+                    description=spec.get("description", ""),
+                    location=spec.get("location", ""),
+                    starts_at=starts,
+                    ends_at=ends,
+                    capacity=spec.get("capacity", 0),
+                    price_cents=int(Decimal(str(spec.get("price", "0"))) * 100),
+                    questions=list(spec.get("questions", [])),
+                    program=list(spec.get("program", [])),
+                    status=Event.STATUS_PUBLISHED,
+                )
+            else:
+                title, in_days, capacity, price = spec
+                event = Event.objects.create(
+                    title=title,
+                    starts_at=now + timedelta(days=in_days),
+                    capacity=capacity,
+                    price_cents=int(Decimal(price) * 100),
+                    status=Event.STATUS_PUBLISHED,
+                )
             refs["events"].append(str(event.pk))
 
 

@@ -295,3 +295,33 @@ def test_apply_werkstatt_kit_jobs_booking_catalog():
     assert Job.objects.count() >= 2  # seed_records → Kostenvoranschläge
     for m in ("booking", "jobs", "orders"):
         assert tenant.is_module_active(m)
+
+
+def test_apply_retreat_kit_events_program_and_tickets():
+    """Retreat: события с Programm/анкетой + проданные билеты + finance-выручка."""
+    from apps.events.models import Event, Ticket
+    from apps.finance.models import RevenueEntry
+
+    tenant = TenantFactory(schema_name="public", slug="rt", name="RT", business_type="other")
+    assert demo_kits.apply_kit(tenant, "retreat") is True
+
+    published = Event.objects.filter(status=Event.STATUS_PUBLISHED)
+    assert published.count() == 4
+    # богатый dict-спек: Programm, анкета, длительность, безлимит мест
+    retreat = Event.objects.get(title="Waldlicht Wochenend-Retreat")
+    assert retreat.program and len(retreat.program) == 3
+    assert retreat.questions and retreat.ends_at is not None
+    assert retreat.capacity == 18 and retreat.price_cents == 29000
+    assert Event.objects.get(title="Sommer-Festival der Achtsamkeit").capacity == 0
+
+    # seed_records → проданные билеты (auto_confirm) → finance НДС 19 %
+    assert Ticket.objects.filter(status=Ticket.STATUS_CONFIRMED).exists()
+    assert RevenueEntry.objects.filter(source="event").exists()
+
+    # композиция архетипов: booking-услуги + catalog (Shop)
+    from apps.booking.models import Service
+
+    assert Service.objects.filter(name="Einzel-Yogastunde (1:1)", price_cents=5500).exists()
+    assert Product.objects.filter(metadata__demo=True).count() == 4
+    for m in ("events", "booking", "orders"):
+        assert tenant.is_module_active(m)
