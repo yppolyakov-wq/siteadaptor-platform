@@ -131,25 +131,20 @@ def test_home_contact_section_shows_tenant_data():
 # --- кабинет «Site» ------------------------------------------------------------
 
 
-def test_site_view_get_renders_sections():
+def test_site_view_get_links_to_homepage_builder():
+    # S2b: композиция секций уехала на /dashboard/site/home/ — на «Site»
+    # остаётся ссылка-карточка на конструктор главной.
     body = core_views.site_view(_req("get", "/dashboard/site/", user=_owner())).content.decode()
-    assert "Homepage sections" in body
-    assert 'name="enabled_promotions"' in body
-    assert 'name="order_hero"' in body
+    assert "Homepage builder" in body
+    assert "site/home/" in body
 
 
-def test_site_view_post_saves_order_and_texts():
-    tenant = TenantFactory()
+def test_site_view_post_saves_texts_and_preserves_sections():
+    # S2b: site_view сохраняет тексты/дизайн, но НЕ перестраивает секции из
+    # своей формы — композицию ведёт home_builder. Пустые order_/enabled_ не
+    # должны гасить блоки.
+    tenant = TenantFactory(site_config={"sections": [{"key": "promotions", "enabled": True}]})
     data = {
-        "order_hero": "1",
-        "enabled_hero": "on",
-        "order_about": "2",
-        "enabled_about": "on",
-        "order_promotions": "3",
-        "enabled_promotions": "on",
-        "order_products": "4",
-        "order_contact": "5",
-        "enabled_contact": "on",
         "hero_title": "Willkommen!",
         "hero_text": "  Schön, dass Sie da sind.  ",
         "about_title": "",
@@ -161,10 +156,7 @@ def test_site_view_post_saves_order_and_texts():
     assert resp.status_code == 302
     tenant.refresh_from_db()
     config = tenant.site_config
-    keys = [s["key"] for s in config["sections"]]
-    assert keys[:3] == ["hero", "about", "promotions"]
     assert config["hero_title"] == "Willkommen!"
     assert config["hero_text"] == "Schön, dass Sie da sind."  # trim
     enabled = {s["key"] for s in config["sections"] if s["enabled"]}
-    assert "products" not in enabled  # чекбокс снят
-    assert "hero" in enabled
+    assert "promotions" in enabled  # секция не погашена пустой формой

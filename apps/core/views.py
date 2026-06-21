@@ -259,16 +259,11 @@ def site_view(request):
         if request.POST.get("action") == "delete_gallery_image":
             _delete_gallery_image(request, request.POST.get("image_id", ""))
             return redirect("site")
-        rows = []
-        for key, _label, _default in siteconfig.SECTIONS:
-            # Не присланный порядок (старая форма/новая секция) → в конец, не в начало.
-            try:
-                order = int(request.POST.get(f"order_{key}", "999"))
-            except (TypeError, ValueError):
-                order = 999
-            rows.append((order, key, request.POST.get(f"enabled_{key}") == "on"))
-        rows.sort(key=lambda row: row[0])
-        config = {"sections": [{"key": key, "enabled": on} for _o, key, on in rows]}
+        # S2b: композиция главной (порядок/видимость секций + тизеры архетипов)
+        # живёт на отдельной странице «Startseite» (home_builder_view). Здесь —
+        # дизайн/контент/навигация; секции и оверрайды тизеров переносим как есть.
+        current = siteconfig.normalize(request.tenant.site_config)
+        config = {"sections": current["sections"], "archetypes": current["archetypes"]}
         for field in siteconfig.TEXT_FIELDS:
             config[field] = request.POST.get(field, "")
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
@@ -320,23 +315,6 @@ def site_view(request):
         config["gallery_video"] = request.POST.get("gallery_video", "").strip()
         # T2c: быстрый заказ («+»/модалка) на карточках — тумблер владельца.
         config["quick_add"] = request.POST.get("quick_add") == "on"
-        # S2: пер-архетипные оверрайды тизеров «Наши разделы». Форма показывает
-        # только активные тизер-архетипы; оверрайды для сейчас-неактивных
-        # сохраняем (стартуем из прежних), чтобы не терять их при выкл/вкл модуля.
-        prev_cfg = (
-            request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
-        )
-        arch_overrides = (
-            dict(prev_cfg["archetypes"]) if isinstance(prev_cfg.get("archetypes"), dict) else {}
-        )
-        for spec in storefront.teaser_specs(request.tenant):
-            key = spec["key"]
-            arch_overrides[key] = {
-                "label": request.POST.get(f"arch_label_{key}", "").strip(),
-                "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
-                "hidden": request.POST.get(f"arch_visible_{key}") != "on",
-            }
-        config["archetypes"] = arch_overrides
         # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
         previous = (
             request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
@@ -419,6 +397,63 @@ def site_view(request):
                 f"{m['name']} | {m['role']}".rstrip(" |") for m in config["team"]
             ),
             "has_demo": demo.has_demo(request.tenant),
+        },
+    )
+
+
+@login_required
+def home_builder_view(request):
+    """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
+    архетипов. Отдельная страница — «подключать/выключать выведение блоков».
+
+    Контент блоков (тексты hero/about, FAQ, галерея, цвета, шрифты, навигация)
+    правится на «Site»; здесь — только композиция главной. Сохранение мёржит в
+    текущий site_config (остальные настройки не затрагиваются).
+    """
+    from apps.tenants import siteconfig, storefront
+
+    if request.method == "POST":
+        config = siteconfig.normalize(request.tenant.site_config)
+        rows = []
+        for key, _label, _default in siteconfig.SECTIONS:
+            # Не присланный порядок (новая секция) → в конец, не в начало.
+            try:
+                order = int(request.POST.get(f"order_{key}", "999"))
+            except (TypeError, ValueError):
+                order = 999
+            rows.append((order, key, request.POST.get(f"enabled_{key}") == "on"))
+        rows.sort(key=lambda row: row[0])
+        config["sections"] = [{"key": key, "enabled": on} for _o, key, on in rows]
+        # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
+        arch = dict(config.get("archetypes") or {})
+        for spec in storefront.teaser_specs(request.tenant):
+            key = spec["key"]
+            arch[key] = {
+                "label": request.POST.get(f"arch_label_{key}", "").strip(),
+                "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
+                "hidden": request.POST.get(f"arch_visible_{key}") != "on",
+            }
+        config["archetypes"] = arch
+        request.tenant.site_config = siteconfig.normalize(config)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Gespeichert.")
+        return redirect("site-home")
+
+    config = siteconfig.normalize(request.tenant.site_config)
+    labels = {key: label for key, label, _default in siteconfig.SECTIONS}
+    sections = [
+        {"key": s["key"], "label": labels[s["key"]], "enabled": s["enabled"], "order": index}
+        for index, s in enumerate(config["sections"], start=1)
+    ]
+    archetypes_enabled = any(s["key"] == "archetypes" and s["enabled"] for s in config["sections"])
+    return render(
+        request,
+        "tenant/site_home.html",
+        {
+            "nav": "site",
+            "sections": sections,
+            "archetype_specs": storefront.teaser_specs(request.tenant),
+            "archetypes_enabled": archetypes_enabled,
         },
     )
 

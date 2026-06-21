@@ -111,47 +111,14 @@
              class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </fieldset>
 
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-      <legend class="font-semibold mb-1">{% trans "Homepage sections" %}</legend>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Choose which blocks appear on your homepage and in what order (smaller number = higher)." %}</p>
-      <div class="space-y-3">
-        {% for s in sections %}
-          <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3">
-            <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="9"
-                   class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
-            <label class="flex items-center gap-2 text-sm font-medium flex-1">
-              <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
-                     class="rounded border-gray-300">
-              {{ s.label }}
-            </label>
-          </div>
-        {% endfor %}
-      </div>
-    </fieldset>
-
-    {% if archetype_specs %}
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-      <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Shown when the “Our offerings” section is enabled. Leave a field empty to use the default text." %}</p>
-      <div class="space-y-3">
-        {% for a in archetype_specs %}
-          <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
-            <label class="flex items-center gap-2 text-sm font-medium">
-              <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
-                     class="rounded border-gray-300">
-              <span>{{ a.icon }} {{ a.default_label }}</span>
-            </label>
-            <div class="grid sm:grid-cols-2 gap-2">
-              <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
-                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
-              <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
-                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </fieldset>
-    {% endif %}
+    <a href="{% url 'site-home' %}"
+       class="flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition">
+      <span>
+        <span class="block font-semibold">🧩 {% trans "Homepage builder" %}</span>
+        <span class="block text-xs text-gray-400 mt-1">{% trans "Choose which blocks appear on your homepage, in what order, and edit the “Our offerings” cards." %}</span>
+      </span>
+      <span class="text-indigo-600 font-medium text-sm whitespace-nowrap">{% trans "Open" %} →</span>
+    </a>
 
     <fieldset class="bg-white rounded-2xl shadow-sm p-6">
       <legend class="font-semibold mb-1">{% trans "Navigation menu" %}</legend>

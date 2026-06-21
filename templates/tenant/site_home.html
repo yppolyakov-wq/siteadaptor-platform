@@ -1,0 +1,70 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Homepage" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{% trans "Build your homepage" %}</h1>
+    <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
+  </div>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Pick which blocks appear on your homepage and in what order. Edit the content of each block (texts, photos, colors) on the “Site” page." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Smaller number = higher on the page. Untick to hide a block." %}</p>
+      <div class="space-y-3">
+        {% for s in sections %}
+          <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3">
+            <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
+                   class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
+            <label class="flex items-center gap-2 text-sm font-medium flex-1">
+              <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
+                     class="rounded border-gray-300">
+              {{ s.label }}
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {% if archetype_specs %}
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
+      {% if not archetypes_enabled %}
+        <p class="text-xs text-amber-600 mb-3">{% trans "Tip: enable the “Our offerings” block above to show these cards on your homepage." %}</p>
+      {% endif %}
+      <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
+      <div class="space-y-3">
+        {% for a in archetype_specs %}
+          <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+            <label class="flex items-center gap-2 text-sm font-medium">
+              <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
+                     class="rounded border-gray-300">
+              <span>{{ a.icon }} {{ a.default_label }}</span>
+            </label>
+            <div class="grid sm:grid-cols-2 gap-2">
+              <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
+                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
+              <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
+                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</div>
+{% endblock %}
