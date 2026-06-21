@@ -116,6 +116,9 @@ def modules_nav(request):
     hero_preload = cfg["hero_image"] if hero_enabled else ""
     return {
         "nav_modules": modules.active_modules(tenant),
+        # S1: витринные «лица» активных архетипов — для тизеров главной (S2) и
+        # конструктора меню (S7). Источник правды — реестр модулей.
+        "storefront_archetypes": modules.storefront_archetypes(tenant),
         # Флаги для шапки публичной витрины (ссылки «Termin» D3b / «Übernachten» E3).
         "storefront_booking_enabled": modules.is_module_active(tenant, "booking"),
         "storefront_stays_enabled": modules.is_module_active(tenant, "stays"),

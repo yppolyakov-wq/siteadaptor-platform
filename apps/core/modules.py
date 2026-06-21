@@ -50,6 +50,17 @@ class ModuleSpec:
     core: bool = False  # выключить нельзя, entitlement не применяется
     premium: bool = False  # требует key в Tenant.enabled_modules (тариф)
     description_de: str = ""  # «что это даёт» — пояснение на странице «Module» (D0b)
+    # --- Витринный (storefront) презентационный слой (S1) ----------------------
+    # «Лицо» архетипа для ПОСЕТИТЕЛЯ сайта (не кабинета). Источник правды и для
+    # тизеров главной (секция «Наши разделы», S2), и для конструктора меню (S7).
+    # Пусто = у модуля нет публичной «главной» → он не появляется в конструкторе
+    # витрины (напр. promotions рендерятся инлайн на главной; loyalty — публичная
+    # страница появится в S5).
+    storefront_label: str = ""  # заголовок для клиента (DE); фолбэк — label_de
+    storefront_blurb: str = ""  # короткое описание под заголовком
+    storefront_landing: str = ""  # url_name публичной страницы-«главной» архетипа
+    storefront_icon: str = ""  # emoji тизера/пункта меню; фолбэк — icon
+    storefront_teaser: bool = True  # показывать в сетке «Наши разделы» по умолчанию
 
 
 REGISTRY: tuple[ModuleSpec, ...] = (
@@ -75,6 +86,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=("/catalog/", "/imports/"),
         core=True,
         description_de="Produkte und Kategorien pflegen, Import aus CSV/Excel.",
+        storefront_label="Sortiment",
+        storefront_blurb="Stöbern Sie in unserem Angebot.",
+        storefront_landing="storefront-products",
+        storefront_icon="🍽️",
     ),
     ModuleSpec(
         key="promotions",
@@ -127,6 +142,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         recommended_for=("bakery", "butcher", "grocery", "retail", "clothing"),
         suited_for=("cafe", "restaurant", "other"),
         description_de="Kunden bestellen online und holen im Laden ab.",
+        storefront_label="Online bestellen",
+        storefront_blurb="Bestellen und im Laden abholen oder liefern lassen.",
+        storefront_landing="storefront-cart",
+        storefront_icon="🛍️",
     ),
     ModuleSpec(
         key="booking",
@@ -137,6 +156,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         recommended_for=("cafe", "restaurant", "hotel", "tour_operator"),
         suited_for=("retail", "clothing", "other"),
         description_de="Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen.",
+        storefront_label="Termin buchen",
+        storefront_blurb="Reservieren Sie online Ihren Tisch oder Termin.",
+        storefront_landing="storefront-termin",
+        storefront_icon="📅",
     ),
     ModuleSpec(
         key="stays",
@@ -147,6 +170,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         recommended_for=("hotel",),
         suited_for=("tour_operator", "other"),
         description_de="Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen.",
+        storefront_label="Übernachten",
+        storefront_blurb="Verfügbarkeit prüfen und Übernachtung buchen.",
+        storefront_landing="storefront-unterkunft",
+        storefront_icon="🛏️",
     ),
     ModuleSpec(
         key="loyalty",
@@ -188,6 +215,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # Выездной сервис/Handwerk — opt-in, универсальный (в business_type нет
         # ремесленных типов; включают вручную, как finance).
         description_de="Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen.",
+        storefront_label="Angebot anfragen",
+        storefront_blurb="Fordern Sie online einen Kostenvoranschlag an.",
+        storefront_landing="storefront-anfrage",
+        storefront_icon="🧰",
     ),
     ModuleSpec(
         key="events",
@@ -199,6 +230,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # подходит студиям/гидам/организаторам сверх пресета.
         suited_for=("tour_operator", "other"),
         description_de="Veranstaltungen mit bezahlten Tickets und Teilnehmerliste.",
+        storefront_label="Veranstaltungen",
+        storefront_blurb="Tickets für unsere Events sichern.",
+        storefront_landing="storefront-events",
+        storefront_icon="🎟️",
     ),
     ModuleSpec(
         key="inbox",
@@ -221,6 +256,11 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "other",
         ),
         description_de="Kundennachrichten und Support-Tickets an einem Ort beantworten.",
+        storefront_label="Kontakt",
+        storefront_blurb="Stellen Sie uns eine Frage.",
+        storefront_landing="storefront-message",
+        storefront_icon="💬",
+        storefront_teaser=False,  # утилитарная ссылка, не «направление» в сетке
     ),
     ModuleSpec(
         key="finance",
@@ -263,6 +303,11 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         suited_for=("other",),
         description_de="Kunden melden sich per E-Mail-Link an und sehen Bestellungen, "
         "Termine, Rechnungen und Bonuskarten.",
+        storefront_label="Mein Konto",
+        storefront_blurb="Bestellungen, Termine und Bonuskarten einsehen.",
+        storefront_landing="account-home",
+        storefront_icon="👤",
+        storefront_teaser=False,  # вход в ЛК, не «направление» в сетке
     ),
     ModuleSpec(
         key="settings",
@@ -364,6 +409,47 @@ def default_disabled_for(business_type: str) -> list[str]:
     return [
         spec.key for spec in REGISTRY if not spec.core and business_type not in spec.recommended_for
     ]
+
+
+@dataclass(frozen=True)
+class StorefrontArchetype:
+    """Витринное «лицо» активного архетипа (S1) — данные для тизера/пункта меню.
+
+    url_name НЕ резолвим здесь: шаблон делает {% url %}, чтобы не падать на
+    маршруте, недоступном в текущем urlconf (портал/агрегатор используют свой).
+    """
+
+    key: str
+    label: str
+    blurb: str
+    icon: str
+    url_name: str
+    teaser: bool
+
+
+def storefront_archetypes(tenant) -> list[StorefrontArchetype]:
+    """Витринные «лица» активных архетипов для конструктора витрины.
+
+    Источник правды для тизеров главной («Наши разделы», S2) и конструктора
+    меню (S7). Берём только активные модули с публичной страницей
+    (``storefront_landing`` задан); порядок — как в реестре. Новый архетип
+    подключается к конструктору одной декларацией здесь, без правок витрины.
+    """
+    out = []
+    for spec in REGISTRY:
+        if not spec.storefront_landing or not is_module_active(tenant, spec.key):
+            continue
+        out.append(
+            StorefrontArchetype(
+                key=spec.key,
+                label=spec.storefront_label or spec.label_de,
+                blurb=spec.storefront_blurb,
+                icon=spec.storefront_icon or spec.icon,
+                url_name=spec.storefront_landing,
+                teaser=spec.storefront_teaser,
+            )
+        )
+    return out
 
 
 def module_for_path(path: str) -> ModuleSpec | None:
