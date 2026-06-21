@@ -165,6 +165,94 @@ PIZZA_MODIFIERS = [
 ]
 
 
+# Анкета участника ретрита (LMIV/безопасность/уровень) — общая для событий.
+_RETREAT_QUESTIONS = [
+    "Ernährung (vegan / vegetarisch / alles)",
+    "Yoga-Erfahrung (Anfänger / Mittel / Fortgeschritten)",
+    "Notfallkontakt (Name & Telefon)",
+]
+
+# Развёрнутый «ретрит-лендинг» (Event.details) — демо. Переиспользуется ретрит-
+# китом и Pranasy; «photo» у hosts — ключ для тематичного демо-фото (см. sed в
+# _seed_kit_modules). Полная структура — apps/events/details.py.
+_RETREAT_LANDING = {
+    "promise": "Drei Tage Yoga, Stille und Natur — Auftanken, durchatmen, zu dir zurückkehren.",
+    "for_whom": [
+        "du dem Stadttrubel entfliehen willst",
+        "du Müdigkeit und Stress spürst",
+        "du Yoga und Meditation ausprobieren möchtest",
+        "du einen ruhigen Ort suchst",
+        "du das Wochenende in der Natur verbringen willst",
+        "du allein anreist und Gleichgesinnte kennenlernen möchtest",
+    ],
+    "idea": "Kein Sportcamp und keine laute Party. Ein sanfter Raum zum Erholen — "
+    "langsamer werden, in der Natur sein, Yoga, Atem und Meditation üben und zu sich finden.",
+    "includes": [
+        ("Yoga", "Sanfte Praxis morgens und abends."),
+        ("Meditation", "Einfache Techniken für innere Ruhe."),
+        ("Atemübungen", "Entspannung, Fokus, Regeneration."),
+        ("Natur", "Spaziergänge, See, Wald, Lagerfeuer."),
+        ("Verpflegung", "Vegane & vegetarische Küche."),
+        ("Kreativität", "Arts, Mandalas, Musik, Tanz."),
+        ("Gemeinschaft", "Kennenlern-Kreis, Abendgespräche."),
+    ],
+    "venue": "Seminarhaus am Waldrand, ca. 30 Min. von Köln (NRW). Mit dem Auto über die A4 "
+    "(kostenlose Parkplätze) oder mit Bahn + Abholung ab Bahnhof. Großer Praxisraum, "
+    "Garten, direkter Zugang zu See und Wald.",
+    "accommodation": [
+        "Einzelzimmer (Aufpreis)",
+        "Doppelzimmer",
+        "Gemeinschaftszimmer",
+        "Bettwäsche & Handtücher inklusive",
+        "Geteilte Bäder & Duschen",
+    ],
+    "food": "Drei vegane/vegetarische Mahlzeiten pro Tag aus regionalen Zutaten, plus Tee & "
+    "Wasser. Allergien und Unverträglichkeiten berücksichtigen wir gern — einfach bei der "
+    "Anmeldung angeben.",
+    "hosts": [
+        ("Mara Lind", "Retreatleitung & Yogalehrerin", "yoga,teacher,woman"),
+        ("Felix Sturm", "Achtsamkeits-Coach", "meditation,man"),
+    ],
+    "price_includes": [
+        "Unterkunft (2 Nächte)",
+        "Alle Mahlzeiten",
+        "Alle Praktiken & Mastery-Sessions",
+        "Materialien",
+    ],
+    "price_excludes": ["Anreise", "persönliche Ausgaben", "Zusatzleistungen"],
+    "price_note": "Frühbucher bis 30 Tage vorher 260 € · danach 290 €. Ratenzahlung auf "
+    "Anfrage möglich.",
+    "bring": [
+        "bequeme Kleidung",
+        "Yogamatte",
+        "warme Decke",
+        "Trinkflasche",
+        "warme Sachen für abends",
+        "Badesachen (See)",
+        "Taschenlampe",
+        "persönliche Hygieneartikel",
+    ],
+    "faq": [
+        ("Für Anfänger geeignet?", "Ja — alle Level sind willkommen, keine Vorerfahrung nötig."),
+        ("Kann ich allein kommen?", "Klar, viele reisen allein an — der Kreis verbindet schnell."),
+        ("Kann ich mit Kindern kommen?", "Dieses Retreat ist für Erwachsene gedacht."),
+        (
+            "Was, wenn das Wetter schlecht ist?",
+            "Wir haben einen großen Innenraum — es findet statt.",
+        ),
+        ("Wie komme ich hin?", "Auto (Parkplätze) oder Bahn + Abholung ab Bahnhof."),
+        ("Kann ich in Raten zahlen?", "Ja, Ratenzahlung ist auf Anfrage möglich."),
+        ("Gibt es Dusche und WC?", "Ja, geteilte Bäder und Duschen sind vorhanden."),
+        ("Sind Haustiere erlaubt?", "Leider nein — aus Rücksicht auf alle Teilnehmenden."),
+    ],
+    "testimonials": [
+        ("Johanna P.", "Köln", "Zwei Tage, die mich geerdet haben. Ich komme wieder."),
+        ("Daniel R.", "Düsseldorf", "Kleine Gruppe, viel Raum, herzliche Begleitung."),
+        ("Sandra K.", "Bonn", "Genau die Pause, die ich gebraucht habe."),
+    ],
+}
+_RETREAT_PHOTOS = ["yoga,forest", "meditation,nature", "lake,forest", "campfire,night"]
+
 RESTAURANT = DemoKit(
     key="restaurant",
     label="Restaurant «Bella Vista»",
@@ -619,7 +707,25 @@ PRANASY = DemoKit(
         ("Vegan Street-Food Festival", 7, 200, "0"),
         ("Vegan Burger Battle", 14, 60, "15"),
         ("Kochkurs: Veganes Fastfood selbst machen", 21, 12, "49"),
-        ("Sommer-Retreat: Plant-Based Weekend", 40, 30, "129"),
+        {
+            "title": "Sommer-Retreat: Plant-Based Weekend",
+            "in_days": 40,
+            "hour": 16,
+            "duration_days": 2,
+            "capacity": 15,
+            "price": "129",
+            "location": "Seminarhaus am Waldrand, NRW (ca. 30 Min. von Köln)",
+            "description": "Ein Wochenende voller pflanzlicher Küche, Yoga und Natur — "
+            "kochen, entspannen, auftanken.",
+            "program": [
+                "Fr 16:00 — Ankommen & gemeinsames Abendessen",
+                "Sa — Yoga · Plant-Based-Kochworkshop · Waldspaziergang · Lagerfeuer",
+                "So — Morgen-Yoga · Brunch · Abschlusskreis",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "photos": ["vegan,food", "yoga,forest", "campfire,night", "cooking,class"],
+            "details": _RETREAT_LANDING,
+        },
     ],
     delivery={
         "enabled": True,
@@ -1485,13 +1591,6 @@ RETREAT_MENUS = {
     },
 }
 
-# Анкета участника ретрита (LMIV/безопасность/уровень) — общая для событий.
-_RETREAT_QUESTIONS = [
-    "Ernährung (vegan / vegetarisch / alles)",
-    "Yoga-Erfahrung (Anfänger / Mittel / Fortgeschritten)",
-    "Notfallkontakt (Name & Telefon)",
-]
-
 RETREAT = DemoKit(
     key="retreat",
     label="Waldlicht Retreat",
@@ -1589,6 +1688,8 @@ RETREAT = DemoKit(
                 "So 09:00 — Yin-Yoga · 12:00 Abschlusskreis",
             ],
             "questions": _RETREAT_QUESTIONS,
+            "photos": _RETREAT_PHOTOS,
+            "details": _RETREAT_LANDING,
         },
         {
             "title": "Yoga & Achtsamkeit — Tagesworkshop",
@@ -2035,7 +2136,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
 
         now = timezone.now()
         refs["events"] = []
-        for spec in kit.events:
+        for idx, spec in enumerate(kit.events):
             # Поддерживаем и краткий кортеж (title, in_days, capacity, price), и
             # богатый dict (с Programm/анкетой/описанием/длительностью).
             if isinstance(spec, dict):
@@ -2051,6 +2152,28 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     ends = starts + timedelta(days=duration_days)
                 elif duration_hours:
                     ends = starts + timedelta(hours=duration_hours)
+                imgs = [
+                    _image_ref(kw, 9200 + idx * 10 + j, spec["title"])
+                    for j, kw in enumerate(spec.get("photos", []))
+                ]
+                for j, ref in enumerate(imgs):
+                    ref["is_primary"] = j == 0
+                    ref["sort_order"] = j
+                # «Ретрит-лендинг»: hosts.photo как тематичное демо-фото по ключу.
+                from apps.events import details as _evdetails
+
+                raw_details = dict(spec.get("details") or {})
+                hosts = []
+                for h in raw_details.get("hosts", []):
+                    if isinstance(h, (list, tuple)):
+                        name, role, photo = (list(h) + ["", "", ""])[:3]
+                    else:
+                        name, role, photo = h.get("name"), h.get("role"), h.get("photo")
+                    if photo and not str(photo).startswith("http"):
+                        photo = demo_image(photo, w=200, h=200, lock=9300 + len(hosts))
+                    hosts.append({"name": name or "", "role": role or "", "photo": photo or ""})
+                if hosts:
+                    raw_details["hosts"] = hosts
                 event = Event.objects.create(
                     title=spec["title"],
                     description=spec.get("description", ""),
@@ -2061,6 +2184,8 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     price_cents=int(Decimal(str(spec.get("price", "0"))) * 100),
                     questions=list(spec.get("questions", [])),
                     program=list(spec.get("program", [])),
+                    images=imgs,
+                    details=_evdetails.normalize(raw_details),
                     status=Event.STATUS_PUBLISHED,
                 )
             else:

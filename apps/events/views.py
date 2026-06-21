@@ -15,6 +15,40 @@ from .services import book_ticket
 from .state_machine import EventSM, TicketSM
 
 
+def _add_event_photos(event, uploaded) -> None:
+    """Сохранить загруженные фото места/мероприятия (до 12). Первое — обложка,
+    если фото ещё нет. Переиспускаем catalog.images (Pillow + storage)."""
+    from apps.catalog.images import save_product_image
+
+    if not uploaded:
+        return
+    images = list(event.images or [])
+    for f in uploaded[:12]:
+        try:
+            ref = save_product_image(
+                f, is_primary=not images, sort_order=len(images), folder="events"
+            )
+        except Exception:
+            continue
+        images.append(ref)
+    if images != list(event.images or []):
+        event.images = images[:24]
+        event.save(update_fields=["images"])
+
+
+def _delete_event_photo(event, ref_id) -> None:
+    from apps.catalog.images import delete_stored_image
+
+    keep = [i for i in event.images if str(i.get("id")) != str(ref_id)]
+    for i in event.images:
+        if str(i.get("id")) == str(ref_id):
+            delete_stored_image(i)
+    if keep and not any(i.get("is_primary") for i in keep):
+        keep[0]["is_primary"] = True
+    event.images = keep
+    event.save(update_fields=["images"])
+
+
 @login_required
 def event_list(request):
     events = Event.objects.all().order_by("-starts_at")
@@ -26,6 +60,7 @@ def event_create(request):
     form = EventForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         event = form.save()
+        _add_event_photos(event, request.FILES.getlist("photos"))
         messages.success(request, _("Event created."))
         return redirect("events:detail", pk=event.pk)
     return render(request, "events/event_form.html", {"form": form, "nav": "events"})
@@ -37,6 +72,9 @@ def event_edit(request, pk):
     form = EventForm(request.POST or None, instance=event)
     if request.method == "POST" and form.is_valid():
         form.save()
+        _add_event_photos(event, request.FILES.getlist("photos"))
+        if request.POST.get("delete_image"):
+            _delete_event_photo(event, request.POST["delete_image"])
         messages.success(request, _("Event saved."))
         return redirect("events:detail", pk=event.pk)
     return render(

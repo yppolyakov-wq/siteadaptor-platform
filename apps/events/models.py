@@ -41,6 +41,12 @@ class Event(TimestampedModel):
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_DRAFT)
     # Даже после оплаты держать билет pending до ручного подтверждения.
     require_manual_confirm = models.BooleanField(default=False)
+    # Фото места/мероприятия: FileRef-список (как catalog.Product.images).
+    images = models.JSONField(default=list, blank=True)
+    # Развёрнутый «ретрит-лендинг»: опциональные блоки (для кого, идея, что
+    # входит, проживание, питание, ведущие, что взять, отзывы …). Схема и
+    # санитайз — apps/events/details.py. Пусто = старая короткая страница.
+    details = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ["starts_at"]
@@ -54,6 +60,21 @@ class Event(TimestampedModel):
     @property
     def is_published(self) -> bool:
         return self.status == self.STATUS_PUBLISHED
+
+    @property
+    def image_url(self) -> str:
+        """URL обложки (primary или первое фото); пусто, если фото нет."""
+        if not self.images:
+            return ""
+        primary = next((i for i in self.images if i.get("is_primary")), self.images[0])
+        return primary.get("url", "")
+
+    @property
+    def landing(self) -> dict:
+        """Нормализованные блоки ретрит-лендинга (см. apps/events/details.py)."""
+        from . import details
+
+        return details.normalize(self.details)
 
     @property
     def price_eur(self):

@@ -5,7 +5,7 @@
 {% block dash_content %}
 <h1 class="text-2xl font-bold mb-6">{% if event %}{% trans "Edit event" %}{% else %}{% trans "New event" %}{% endif %}</h1>
 
-<form method="post" class="bg-white p-6 rounded-2xl shadow-sm max-w-2xl space-y-4">
+<form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-2xl shadow-sm max-w-2xl space-y-4">
   {% csrf_token %}
   {% for field in form %}
     <div>
@@ -15,6 +15,22 @@
       {% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
     </div>
   {% endfor %}
+
+  <div>
+    <label class="block text-sm font-medium mb-1">{% trans "Photos (venue, past events)" %}</label>
+    <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
+    {% if event.images %}
+      <div class="mt-2 flex flex-wrap gap-2">
+        {% for img in event.images %}
+          <label class="relative cursor-pointer" title="{% trans 'Tick to remove on save' %}">
+            <img src="{{ img.url }}" alt="" class="w-16 h-16 object-cover rounded-lg border border-gray-200">
+            <input type="radio" name="delete_image" value="{{ img.id }}" class="absolute -top-2 -right-2">
+          </label>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
   <div class="flex items-center gap-3">
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     {% if event %}<a href="{% url 'events:detail' event.pk %}" class="text-sm text-gray-500">{% trans "Cancel" %}</a>{% endif %}

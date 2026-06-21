@@ -3,37 +3,211 @@
 {% block title %}{{ event.title }} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-xl">
+{% with L=event.landing %}
+<div class="max-w-3xl mx-auto">
   <a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>
-  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8 mt-3">
-    <h1 class="text-2xl font-bold mb-1">{{ event.title }}</h1>
-    <p class="text-gray-500 mb-4">
-      {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.ends_at %} – {{ event.ends_at|date:"H:i" }}{% endif %}
-      {% if event.location %}<br>📍 {{ event.location }}{% endif %}
-    </p>
-    {% if event.description %}<p class="text-gray-700 whitespace-pre-line mb-4">{{ event.description }}</p>{% endif %}
-    {% if event.program %}
-      <div class="mb-4">
-        <h2 class="font-semibold mb-2">{% trans "Programme" %}</h2>
-        <ul class="list-disc list-inside text-gray-700 space-y-1">
-          {% for p in event.program %}<li>{{ p }}</li>{% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-    <p class="text-lg font-semibold mb-4">{% if event.price_cents %}{{ event.price_eur }} € {% trans "per seat" %}{% else %}{% trans "Free" %}{% endif %}</p>
 
+  {# 1. Erster Bildschirm / Hero #}
+  <div class="bg-white rounded-2xl shadow-sm overflow-hidden mt-3">
+    {% if event.image_url %}<img src="{{ event.image_url }}" alt="{{ event.title }}" fetchpriority="high" decoding="async" class="w-full h-56 md:h-72 object-cover">{% endif %}
+    <div class="p-6 md:p-8">
+      <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ event.title }}</h1>
+      {% if L.promise %}<p class="text-lg text-gray-700 mb-3">{{ L.promise }}</p>{% endif %}
+      <p class="text-gray-500 mb-4">
+        🗓 {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.ends_at %} – {{ event.ends_at|date:"d.m.Y H:i" }}{% endif %}
+        {% if event.location %}<br>📍 {{ event.location }}{% endif %}
+      </p>
+      <div class="flex items-center gap-4">
+        <span class="text-xl font-semibold">{% if event.price_cents %}{{ event.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>
+        {% if not event.is_sold_out %}<a href="#buchen" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-indigo-700">{% trans "Reserve a spot" %}</a>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if event.description %}<p class="text-gray-700 whitespace-pre-line mt-6">{{ event.description }}</p>{% endif %}
+
+  {# 2. Für wen #}
+  {% if L.for_whom %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Is this retreat right for you?" %}</h2>
+    <ul class="space-y-2 text-gray-700">
+      {% for it in L.for_whom %}<li class="flex gap-2"><span class="text-indigo-600">✓</span><span>{{ it }}</span></li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {# 3. Idee / Atmosphäre #}
+  {% if L.idea %}
+  <section class="mt-8 bg-indigo-50 rounded-2xl p-6">
+    <h2 class="text-xl font-bold mb-2">{% trans "The idea" %}</h2>
+    <p class="text-gray-700 whitespace-pre-line">{{ L.idea }}</p>
+  </section>
+  {% endif %}
+
+  {# 4. Was ist im Programm #}
+  {% if L.includes %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "What's included" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-3">
+      {% for c in L.includes %}
+        <div class="bg-white rounded-xl shadow-sm p-4">
+          <h3 class="font-semibold">{{ c.title }}</h3>
+          {% if c.text %}<p class="text-sm text-gray-600 mt-1">{{ c.text }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 5. Ablauf / Programm #}
+  {% if event.program %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Schedule" %}</h2>
+    <ul class="space-y-2 text-gray-700">
+      {% for p in event.program %}<li class="border-l-2 border-indigo-200 pl-3">{{ p }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {# 6. Ort / Veranstaltungsort + Galerie #}
+  {% if L.venue or event.images|length > 1 %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Venue" %}</h2>
+    {% if L.venue %}<p class="text-gray-700 whitespace-pre-line mb-3">{{ L.venue }}</p>{% endif %}
+    {% if event.images|length > 1 %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {% for img in event.images %}{% if not forloop.first %}<img src="{{ img.url }}" alt="" loading="lazy" decoding="async" class="w-full h-32 object-cover rounded-xl">{% endif %}{% endfor %}
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# 7. Unterkunft #}
+  {% if L.accommodation %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Accommodation" %}</h2>
+    <ul class="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-gray-700">
+      {% for it in L.accommodation %}<li class="flex gap-2"><span class="text-gray-400">·</span><span>{{ it }}</span></li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {# 8. Verpflegung #}
+  {% if L.food %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-2">{% trans "Food" %}</h2>
+    <p class="text-gray-700 whitespace-pre-line">{{ L.food }}</p>
+  </section>
+  {% endif %}
+
+  {# 9. Leitung / Organisatoren #}
+  {% if L.hosts %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Your hosts" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for h in L.hosts %}
+        <div class="flex items-center gap-3 bg-white rounded-xl shadow-sm p-3">
+          {% if h.photo %}<img src="{{ h.photo }}" alt="{{ h.name }}" loading="lazy" class="w-14 h-14 rounded-full object-cover">{% endif %}
+          <div>
+            <p class="font-semibold">{{ h.name }}</p>
+            {% if h.role %}<p class="text-sm text-gray-500">{{ h.role }}</p>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 10. Preis / Leistungen #}
+  {% if L.price_includes or L.price_excludes or L.price_note %}
+  <section class="mt-8 bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="text-xl font-bold mb-1">{% trans "Price" %}</h2>
+    <p class="text-2xl font-bold mb-4">{% if event.price_cents %}{{ event.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</p>
+    <div class="grid sm:grid-cols-2 gap-6">
+      {% if L.price_includes %}
+      <div>
+        <p class="font-medium mb-2">{% trans "Included" %}</p>
+        <ul class="space-y-1 text-gray-700">{% for it in L.price_includes %}<li class="flex gap-2"><span class="text-green-600">✓</span><span>{{ it }}</span></li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+      {% if L.price_excludes %}
+      <div>
+        <p class="font-medium mb-2">{% trans "Not included" %}</p>
+        <ul class="space-y-1 text-gray-500">{% for it in L.price_excludes %}<li class="flex gap-2"><span class="text-gray-400">–</span><span>{{ it }}</span></li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+    </div>
+    {% if L.price_note %}<p class="text-sm text-gray-500 mt-4">{{ L.price_note }}</p>{% endif %}
+  </section>
+  {% endif %}
+
+  {# 11. Was mitbringen #}
+  {% if L.bring %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "What to bring" %}</h2>
+    <ul class="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-gray-700">
+      {% for it in L.bring %}<li class="flex gap-2"><span class="text-gray-400">•</span><span>{{ it }}</span></li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {# 12. FAQ #}
+  {% if L.faq %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Frequently asked questions" %}</h2>
+    <div class="space-y-2">
+      {% for f in L.faq %}
+        <details class="bg-white rounded-xl shadow-sm p-4">
+          <summary class="font-medium cursor-pointer">{{ f.q }}</summary>
+          {% if f.a %}<p class="text-gray-600 mt-2">{{ f.a }}</p>{% endif %}
+        </details>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 13. Stimmen / Fotos #}
+  {% if L.testimonials %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "What guests say" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for t in L.testimonials %}
+        <blockquote class="bg-white rounded-xl shadow-sm p-4">
+          <p class="text-gray-700 italic">“{{ t.text }}”</p>
+          <footer class="text-sm text-gray-500 mt-2">— {{ t.name }}{% if t.city %}, {{ t.city }}{% endif %}</footer>
+        </blockquote>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 14. Begrenzte Plätze #}
+  {% if event.seats_left %}
+  <p class="mt-8 text-center text-amber-700 bg-amber-50 rounded-xl px-4 py-3 font-medium">
+    {% blocktrans with n=event.seats_left %}Limited spots — only {{ n }} left. We keep groups small for a personal atmosphere.{% endblocktrans %}
+  </p>
+  {% endif %}
+
+  {# 15. Anfrage / Buchung #}
+  <section id="buchen" class="mt-8 bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h2 class="text-xl font-bold mb-1">{% trans "Reserve your spot" %}</h2>
+    {% if messages %}
+      {% for m in messages %}<div class="my-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>{% endfor %}
+    {% endif %}
     {% if event.is_sold_out %}
-      <p class="text-red-600 font-medium">{% trans "Sold out" %}</p>
+      <p class="text-red-600 font-medium mt-2">{% trans "Sold out" %}</p>
     {% else %}
-      <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3">
+      <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3 mt-3">
         {% csrf_token %}
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-        <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-        <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-        <label class="block text-sm text-gray-600">{% trans "Seats" %}
-          <input name="quantity" type="number" min="1" value="1" class="mt-1 w-24 rounded-lg border border-gray-300 px-3 py-2.5">
-        </label>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <label class="block text-sm text-gray-600">{% trans "Seats" %}
+            <input name="quantity" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          </label>
+        </div>
         {% for q in event.questions %}
           <label class="block text-sm text-gray-600">{{ q }}
             <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
@@ -44,6 +218,7 @@
         </button>
       </form>
     {% endif %}
-  </div>
+  </section>
 </div>
+{% endwith %}
 {% endblock %}

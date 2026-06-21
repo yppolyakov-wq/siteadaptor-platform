@@ -44,6 +44,39 @@ def _event(**kw):
     return Event.objects.create(**defaults)
 
 
+def test_detail_renders_retreat_landing_blocks():
+    """Развёрнутый ретрит-лендинг: блоки из Event.details рендерятся на странице."""
+    ev = _event(
+        title="Retreat",
+        images=[{"id": "x", "url": "https://img/1.jpg", "is_primary": True}],
+        details={
+            "promise": "Auftanken am See",
+            "for_whom": ["du Stress spürst"],
+            "includes": [{"title": "Yoga", "text": "morgens"}],
+            "price_includes": ["Unterkunft"],
+            "faq": [{"q": "Für Anfänger?", "a": "Ja"}],
+            "hosts": [{"name": "Mara", "role": "Leitung", "photo": "https://img/h.jpg"}],
+        },
+    )
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert "Auftanken am See" in body  # hero-обещание
+    assert "du Stress spürst" in body  # «für wen»
+    assert "Yoga" in body and "Für Anfänger?" in body  # карточки + FAQ
+    assert "Mara" in body and "https://img/1.jpg" in body  # ведущие + фото
+
+
+def test_detail_normalizes_messy_details():
+    """details.normalize терпим к мусору: строки «A | B», лишние ключи отброшены."""
+    from apps.events import details
+
+    out = details.normalize(
+        {"includes": ["Yoga | sanft", "Meditation"], "junk": 1, "for_whom": "a\nb"}
+    )
+    assert out["includes"][0] == {"title": "Yoga", "text": "sanft"}
+    assert out["includes"][1] == {"title": "Meditation", "text": ""}
+    assert out["for_whom"] == ["a", "b"] and "junk" not in out
+
+
 def test_index_requires_module():
     tenant = TenantFactory.build(disabled_modules=["events"])
     with pytest.raises(Http404):

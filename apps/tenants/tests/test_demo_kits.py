@@ -320,6 +320,12 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert retreat.capacity == 18 and retreat.price_cents == 29000
     assert Event.objects.get(title="Sommer-Festival der Achtsamkeit").capacity == 0
 
+    # «ретрит-лендинг»: развёрнутые блоки + фото места на главном событии
+    assert retreat.images and retreat.image_url.startswith("https://")
+    L = retreat.landing
+    assert L["for_whom"] and L["includes"] and L["faq"] and L["price_includes"]
+    assert L["hosts"] and L["hosts"][0]["photo"].startswith("https://")
+
     # seed_records → проданные билеты (auto_confirm) → finance НДС 19 %
     assert Ticket.objects.filter(status=Ticket.STATUS_CONFIRMED).exists()
     assert RevenueEntry.objects.filter(source="event").exists()
