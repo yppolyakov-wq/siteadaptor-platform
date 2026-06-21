@@ -67,6 +67,7 @@
   var styleSel = document.getElementById("top-style");
   var stickyCb = document.getElementById("top-sticky");
   var bottomCb = document.getElementById("bottom-enabled");
+  var dragNode = null, dragSide = "", dragChild = false;  // состояние drag-drop
 
   function opt(value, label, sel) {
     var o = document.createElement("option");
@@ -105,6 +106,18 @@
     var line = document.createElement("div");
     line.className = "flex flex-wrap items-center gap-2";
 
+    var handle = document.createElement("span");
+    handle.textContent = "⠿"; handle.title = "{% trans 'Drag to reorder' %}";
+    handle.setAttribute("draggable", "true");
+    handle.className = "drag-handle cursor-grab select-none text-gray-400 px-1";
+    handle.addEventListener("dragstart", function (e) {
+      e.stopPropagation();
+      dragNode = node; dragSide = side; dragChild = isChild;
+      wrap.classList.add("opacity-50");
+      if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", ""); }
+    });
+    handle.addEventListener("dragend", function () { wrap.classList.remove("opacity-50"); dragNode = null; });
+
     var label = document.createElement("input");
     label.type = "text"; label.value = node.label || ""; label.placeholder = "{% trans 'Title' %}";
     label.className = "f-label rounded-lg border border-gray-300 px-2 py-1.5 text-sm flex-1 min-w-[120px]";
@@ -127,7 +140,7 @@
     enCb.type = "checkbox"; enCb.className = "f-enabled rounded border-gray-300"; enCb.checked = node.enabled !== false;
     en.appendChild(enCb); en.appendChild(document.createTextNode("{% trans 'On' %}"));
 
-    line.appendChild(label); line.appendChild(type); line.appendChild(targetCell); line.appendChild(en);
+    line.appendChild(handle); line.appendChild(label); line.appendChild(type); line.appendChild(targetCell); line.appendChild(en);
 
     // действия
     var actions = document.createElement("div");
@@ -138,16 +151,29 @@
       b.className = "w-7 h-7 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm leading-none";
       b.addEventListener("click", fn); return b;
     }
-    var arr = listFor(node, side, isChild);
-    actions.appendChild(btn("↑", function () { move(arr, node, -1); }));
-    actions.appendChild(btn("↓", function () { move(arr, node, 1); }));
+    actions.appendChild(btn("↑", function () { reorder(node, side, isChild, -1); }));
+    actions.appendChild(btn("↓", function () { reorder(node, side, isChild, 1); }));
     if (side === "top" && !isChild) {
       actions.appendChild(btn("+", function () { syncFromDom(); node.children.push(blankNode()); render(); }, "{% trans 'Add sub-item' %}"));
     }
-    actions.appendChild(btn("✕", function () { syncFromDom(); var i = arr.indexOf(node); if (i > -1) arr.splice(i, 1); render(); }, "{% trans 'Remove' %}"));
+    actions.appendChild(btn("✕", function () { syncFromDom(); var a = listFor(node, side, isChild); var i = a.indexOf(node); if (i > -1) a.splice(i, 1); render(); }, "{% trans 'Remove' %}"));
     line.appendChild(actions);
     wrap.appendChild(line);
     wrap._node = node;
+
+    // drag-drop: переставляем только в пределах одного списка (того же родителя).
+    wrap.addEventListener("dragover", function (e) { if (dragNode) e.preventDefault(); });
+    wrap.addEventListener("drop", function (e) {
+      if (!dragNode) return;
+      e.preventDefault(); e.stopPropagation();
+      syncFromDom();
+      var src = listFor(dragNode, dragSide, dragChild), dst = listFor(node, side, isChild);
+      if (src === dst && dragNode !== node) {
+        var from = src.indexOf(dragNode), to = dst.indexOf(node);
+        if (from > -1 && to > -1) { dst.splice(to, 0, src.splice(from, 1)[0]); render(); }
+      }
+      dragNode = null;
+    });
 
     if (side === "top" && !isChild) {
       var kids = document.createElement("div");
@@ -165,8 +191,11 @@
     var p = M.top.items.find(function (it) { return (it.children || []).indexOf(node) > -1; });
     return p ? p.children : [];
   }
-  function move(arr, node, d) {
+  function reorder(node, side, isChild, d) {
+    // Перепривязываем массив из M ПОСЛЕ syncFromDom (он пересоздаёт M.*.items —
+    // захваченная заранее ссылка стала бы устаревшей, и порядок не применился бы).
     syncFromDom();
+    var arr = listFor(node, side, isChild);
     var i = arr.indexOf(node), j = i + d;
     if (i > -1 && j >= 0 && j < arr.length) { arr.splice(j, 0, arr.splice(i, 1)[0]); render(); }
   }
