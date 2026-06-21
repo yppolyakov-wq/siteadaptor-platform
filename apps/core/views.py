@@ -269,20 +269,10 @@ def site_view(request):
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
         config["hero_image"] = request.POST.get("hero_image", "").strip()
         config["font"] = request.POST.get("font", "system")  # P2a: шрифт витрины
-        # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок числом).
-        nav_rows = []
-        for key, _label, _url, _module in siteconfig.NAV_ITEMS:
-            try:
-                order = int(request.POST.get(f"nav_order_{key}", "999"))
-            except (TypeError, ValueError):
-                order = 999
-            nav_rows.append((order, key, request.POST.get(f"nav_enabled_{key}") == "on"))
-        nav_rows.sort(key=lambda row: row[0])
-        config["nav"] = {
-            "style": request.POST.get("nav_style", "classic"),
-            "sticky": request.POST.get("nav_sticky") == "on",
-            "items": [{"key": key, "enabled": on} for _o, key, on in nav_rows],
-        }
+        # S7b: навигация витрины правится в билдере меню (/dashboard/site/menu/).
+        # Легаси-nav здесь только переносим (из него выводится menus для тенантов,
+        # ещё не трогавших билдер) — пустая форма «Site» не должна его гасить.
+        config["nav"] = current["nav"]
         # Контент-секции (M20 ⑤a): CTA / отзывы / FAQ.
         config["cta"] = {
             "title": request.POST.get("cta_title", ""),
@@ -456,6 +446,63 @@ def home_builder_view(request):
             "archetypes_enabled": archetypes_enabled,
         },
     )
+
+
+@login_required
+def menu_builder_view(request):
+    """Билдер меню витрины (S7b): дерево пунктов top + bottom, привязка к
+    архетипам/категориям/страницам/URL/якорям, вложенность 2 уровня.
+
+    Редактор — на клиенте (ванильный JS): модель сериализуется в скрытый JSON,
+    сервер санитайзит через siteconfig.normalize (источник правды по схеме).
+    Сохранение мёржит в текущий site_config, прочие настройки не затрагивая.
+    """
+    import json
+
+    from apps.core import modules
+    from apps.tenants import siteconfig
+
+    if request.method == "POST":
+        try:
+            data = json.loads(request.POST.get("menus_json", "") or "{}")
+        except (ValueError, TypeError):
+            data = None
+        config = siteconfig.normalize(request.tenant.site_config)
+        # Битый/пустой payload не трогает меню (не затираем при сбое редактора);
+        # валидное дерево (есть top/bottom) — пишем, normalize санитайзит.
+        if isinstance(data, dict) and ("top" in data or "bottom" in data):
+            config["menus"] = data
+        request.tenant.site_config = siteconfig.normalize(config)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Gespeichert.")
+        return redirect("site-menu")
+
+    tenant = request.tenant
+    menus = siteconfig.normalize(tenant.site_config)["menus"]
+    # Доступные цели для выпадашек редактора.
+    archetype_targets = [
+        {"value": s.key, "label": s.storefront_label or s.label_de}
+        for s in modules.active_modules(tenant)
+        if s.storefront_landing
+    ]
+    category_targets = []
+    if modules.is_module_active(tenant, "catalog"):
+        from apps.catalog.models import Category
+
+        category_targets = [
+            {"value": c.slug, "label": c.name}
+            for c in Category.objects.filter(is_active=True).order_by("name")
+        ]
+    page_targets = [{"value": "home", "label": "Startseite"}]
+    builder = {
+        "menus": menus,
+        "types": list(siteconfig.MENU_NODE_TYPES),
+        "archetypes": archetype_targets,
+        "categories": category_targets,
+        "pages": page_targets,
+        "styles": list(siteconfig.NAV_STYLES),
+    }
+    return render(request, "tenant/site_menu.html", {"nav": "site", "builder": builder})
 
 
 @login_required

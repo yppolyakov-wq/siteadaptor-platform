@@ -19,6 +19,7 @@ from apps.core.views import (
     domain_verify,
     domains_view,
     home_builder_view,
+    menu_builder_view,
     modules_view,
     settings_view,
     setup_view,
@@ -46,6 +47,7 @@ urlpatterns = [
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
     path("dashboard/site/home/", home_builder_view, name="site-home"),
+    path("dashboard/site/menu/", menu_builder_view, name="site-menu"),
     # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
     path("dashboard/modules/", modules_view, name="modules"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.

@@ -120,24 +120,19 @@
       <span class="text-indigo-600 font-medium text-sm whitespace-nowrap">{% trans "Open" %} →</span>
     </a>
 
+    <a href="{% url 'site-menu' %}"
+       class="flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition">
+      <span>
+        <span class="block font-semibold">🧭 {% trans "Navigation menu" %}</span>
+        <span class="block text-xs text-gray-400 mt-1">{% trans "Build the header and bottom menu with sub-menus and links to any part of your site." %}</span>
+      </span>
+      <span class="text-indigo-600 font-medium text-sm whitespace-nowrap">{% trans "Open" %} →</span>
+    </a>
+
     <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-      <legend class="font-semibold mb-1">{% trans "Navigation menu" %}</legend>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Header style, and which links appear (in what order). Links for inactive modules are hidden automatically." %}</p>
-      <div class="flex flex-wrap items-center gap-4 mb-4">
-        <label class="flex items-center gap-2 text-sm">
-          <span class="text-gray-600">{% trans "Style" %}</span>
-          <select name="nav_style" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
-            {% for s in nav_styles %}
-              <option value="{{ s }}" {% if s == nav_style %}selected{% endif %}>
-                {% if s == 'classic' %}{% trans "Classic (logo left)" %}{% elif s == 'centered' %}{% trans "Centered logo" %}{% else %}{% trans "Minimal (burger menu)" %}{% endif %}
-              </option>
-            {% endfor %}
-          </select>
-        </label>
-        <label class="flex items-center gap-2 text-sm font-medium">
-          <input type="checkbox" name="nav_sticky" {% if nav_sticky %}checked{% endif %} class="rounded border-gray-300">
-          {% trans "Sticky header (stays on top when scrolling)" %}
-        </label>
+      <legend class="font-semibold mb-1">{% trans "Design" %}</legend>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Font and storefront behaviour. The menu (style, links, sub-menus) is built under “Navigation menu” above." %}</p>
+      <div class="flex flex-wrap items-center gap-4">
         <label class="flex items-center gap-2 text-sm">
           <span class="text-gray-600">{% trans "Font" %}</span>
           <select name="font" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
@@ -148,19 +143,6 @@
             {% endfor %}
           </select>
         </label>
-      </div>
-      <div class="space-y-2">
-        {% for item in nav_items %}
-          <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-2.5">
-            <input type="number" name="nav_order_{{ item.key }}" value="{{ item.order }}" min="1" max="9"
-                   class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
-            <label class="flex items-center gap-2 text-sm font-medium flex-1">
-              <input type="checkbox" name="nav_enabled_{{ item.key }}" {% if item.enabled %}checked{% endif %} class="rounded border-gray-300">
-              {{ item.label }}
-            </label>
-            {% if item.module %}<span class="text-[11px] text-gray-400">{% trans "module" %}: {{ item.module }}</span>{% endif %}
-          </div>
-        {% endfor %}
       </div>
       <label class="flex items-center gap-2 text-sm font-medium mt-4 pt-4 border-t border-gray-100">
         <input type="checkbox" name="quick_add" {% if config.quick_add %}checked{% endif %} class="rounded border-gray-300">
