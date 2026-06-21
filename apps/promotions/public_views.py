@@ -142,6 +142,14 @@ def promotion_list(request):
     )
 
 
+def about_page(request):
+    """Отдельная страница «О компании» /ueber-uns/ (S8): тексты about + контакты."""
+    from apps.tenants import siteconfig
+
+    site = siteconfig.normalize(request.tenant.site_config)
+    return render(request, "storefront/about.html", {"site": site, "sections": []})
+
+
 def loyalty_page(request):
     """Публичная страница программы лояльности /treue/ (S5).
 

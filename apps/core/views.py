@@ -602,7 +602,10 @@ def menu_builder_view(request):
             {"value": c.slug, "label": c.name}
             for c in Category.objects.filter(is_active=True).order_by("name")
         ]
-    page_targets = [{"value": "home", "label": "Startseite"}]
+    page_targets = [
+        {"value": "home", "label": "Startseite"},
+        {"value": "about", "label": "Über uns"},
+    ]
     promo_group_targets = []
     if modules.is_module_active(tenant, "promotions"):
         from apps.promotions.models import Promotion

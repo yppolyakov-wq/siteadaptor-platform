@@ -13,7 +13,11 @@ from apps.core import modules
 
 from . import siteconfig
 
-_PAGE_URL_NAMES = {"home": "storefront-home", "offers": "storefront-home"}
+_PAGE_URL_NAMES = {
+    "home": "storefront-home",
+    "offers": "storefront-home",
+    "about": "storefront-about",
+}
 
 
 def _reverse(name: str):
