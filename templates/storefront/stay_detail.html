@@ -13,6 +13,15 @@
   {% endfor %}
 {% endif %}
 
+{% if unit.images %}
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6 max-w-3xl">
+  {% for img in unit.images %}
+    <img src="{{ img.url }}" alt="{{ unit.name }}" loading="lazy" decoding="async"
+         class="w-full h-40 object-cover rounded-xl {% if forloop.first %}col-span-2 sm:col-span-3 h-64{% endif %}">
+  {% endfor %}
+</div>
+{% endif %}
+
 {% if unit.description %}<p class="text-gray-600 mb-6 max-w-2xl whitespace-pre-line">{{ unit.description }}</p>{% endif %}
 
 {# выбор дат (GET) #}

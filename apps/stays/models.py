@@ -48,12 +48,23 @@ class StayUnit(TimestampedModel):
     deposit_cents = models.PositiveIntegerField(default=0)
     # Даже после оплаты держать бронь pending до ручного подтверждения бизнесом.
     require_manual_confirm = models.BooleanField(default=False)
+    # Фото номера: список FileRef-конвертов (как catalog.Product.images):
+    # {"id","url","alt","is_primary","sort_order"}. Первое/primary — обложка.
+    images = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self):
         return self.name
+
+    @property
+    def image_url(self) -> str:
+        """URL обложки (primary или первое фото); пусто, если фото нет."""
+        if not self.images:
+            return ""
+        primary = next((i for i in self.images if i.get("is_primary")), self.images[0])
+        return primary.get("url", "")
 
     @property
     def price_eur(self) -> float:

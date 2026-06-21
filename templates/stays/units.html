@@ -26,9 +26,13 @@
         </form>
       </div>
 
-      <form method="post" class="grid sm:grid-cols-3 gap-3 items-end">
+      <form method="post" enctype="multipart/form-data" class="grid sm:grid-cols-3 gap-3 items-end">
         {% csrf_token %}
         <input type="hidden" name="action" value="unit_settings"><input type="hidden" name="unit" value="{{ u.pk }}">
+        <div class="sm:col-span-3">
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</label>
+          <textarea name="description" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea>
+        </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
           <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -56,8 +60,27 @@
         <label class="flex items-center gap-2 text-sm text-gray-600">
           <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
         </label>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</label>
+          <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
+        </div>
         <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
       </form>
+
+      {# фото номера: миниатюры + удаление (отдельные формы — не вкладывать в settings) #}
+      {% if u.images %}
+      <div class="mt-3 flex flex-wrap gap-2">
+        {% for img in u.images %}
+          <div class="relative">
+            <img src="{{ img.url }}" alt="" class="w-20 h-20 object-cover rounded-lg border border-gray-200">
+            <form method="post" class="absolute -top-2 -right-2">{% csrf_token %}
+              <input type="hidden" name="action" value="photo_delete"><input type="hidden" name="unit" value="{{ u.pk }}"><input type="hidden" name="image" value="{{ img.id }}">
+              <button title="{% trans 'Remove' %}" class="w-5 h-5 rounded-full bg-red-500 text-white text-xs leading-none">×</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
 
       {# блокировки дат #}
       <div class="mt-4 pt-4 border-t border-gray-100">
@@ -141,12 +164,13 @@
 </div>
 
 {# --- новый юнит ------------------------------------------------------------ #}
-<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
   {% csrf_token %}
   <input type="hidden" name="action" value="unit">
   <h2 class="font-semibold">{% trans "New unit" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <textarea name="description" rows="2" placeholder="{% trans 'Description (amenities, view …)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></textarea>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Type" %}</label>
       <select name="type" class="w-full rounded-lg border border-gray-300 px-3 py-2">
@@ -172,6 +196,10 @@
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
       <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block text-sm font-medium mb-1">{% trans "Photos (optional)" %}</label>
+      <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
     </div>
   </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create unit" %}</button>

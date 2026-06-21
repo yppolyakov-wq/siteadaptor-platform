@@ -48,6 +48,27 @@ def _finance_active(request) -> bool:
     return bool(tenant is not None and tenant.is_module_active("finance"))
 
 
+def _add_unit_photos(unit, uploaded) -> None:
+    """Сохранить загруженные фото номера (до 8 на юнит). Первое фото — обложка,
+    если у юнита ещё нет фото. Переиспускаем catalog.images (Pillow + storage)."""
+    from apps.catalog.images import save_product_image
+
+    if not uploaded:
+        return
+    images = list(unit.images or [])
+    for f in uploaded[:8]:
+        try:
+            ref = save_product_image(
+                f, is_primary=not images, sort_order=len(images), folder="stays"
+            )
+        except Exception:
+            continue
+        images.append(ref)
+    if images != list(unit.images or []):
+        unit.images = images[:24]
+        unit.save(update_fields=["images", "updated_at"])
+
+
 def _parse_day(raw) -> date:
     try:
         return date.fromisoformat(raw or "")
@@ -196,9 +217,10 @@ def units(request):
         if action == "unit":
             name = request.POST.get("name", "").strip()
             if name:
-                StayUnit.objects.create(
+                unit = StayUnit.objects.create(
                     name=name,
                     type=request.POST.get("type", StayUnit.TYPE_ROOM),
+                    description=request.POST.get("description", "").strip()[:5000],
                     quantity=_int(request.POST.get("quantity", "1"), 1, 1, 999),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     weekend_price_cents=_eur_to_cents(request.POST.get("weekend_price_eur")),
@@ -207,9 +229,11 @@ def units(request):
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                     require_manual_confirm=bool(request.POST.get("require_manual_confirm")),
                 )
+                _add_unit_photos(unit, request.FILES.getlist("photos"))
                 messages.success(request, _("Unit created."))
         elif action == "unit_settings":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
+            unit.description = request.POST.get("description", "").strip()[:5000]
             unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
             unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
             unit.quantity = _int(request.POST.get("quantity", "1"), 1, 1, 999)
@@ -219,6 +243,7 @@ def units(request):
             unit.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
             unit.save(
                 update_fields=[
+                    "description",
                     "price_cents",
                     "weekend_price_cents",
                     "quantity",
@@ -229,7 +254,21 @@ def units(request):
                     "updated_at",
                 ]
             )
+            _add_unit_photos(unit, request.FILES.getlist("photos"))
             messages.success(request, _("Unit saved."))
+        elif action == "photo_delete":
+            unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
+            from apps.catalog.images import delete_stored_image
+
+            ref_id = request.POST.get("image")
+            keep = [i for i in unit.images if str(i.get("id")) != str(ref_id)]
+            for i in unit.images:
+                if str(i.get("id")) == str(ref_id):
+                    delete_stored_image(i)
+            if keep and not any(i.get("is_primary") for i in keep):
+                keep[0]["is_primary"] = True  # обложка не должна потеряться
+            unit.images = keep
+            unit.save(update_fields=["images", "updated_at"])
         elif action == "rate":  # A5a: сезонный тариф
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             try:

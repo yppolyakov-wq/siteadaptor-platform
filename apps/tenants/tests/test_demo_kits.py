@@ -216,9 +216,15 @@ def test_apply_hotel_kit_builds_stays_site():
     assert demo_kits.apply_kit(tenant, "hotel") is True
     cfg = tenant.site_config
 
-    # номера заведены
+    # номера заведены — с описанием и фото (разные категории)
     assert StayUnit.objects.filter(is_active=True).count() == 4
-    assert StayUnit.objects.filter(name="Familienzimmer", max_guests=4).exists()
+    fam = StayUnit.objects.get(name="Familienzimmer")
+    assert fam.max_guests == 4 and fam.min_nights == 2 and fam.description
+    assert len(fam.images) == 3 and fam.images[0]["is_primary"] is True
+    assert fam.image_url.startswith("https://")
+    # у каждого номера есть описание и хотя бы одно фото
+    for u in StayUnit.objects.all():
+        assert u.description and u.images
     # брони в кабинете (подтверждённые)
     assert StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED).count() >= 1
     # секции акций/товаров выключены (нет каталога), архетипы — включены

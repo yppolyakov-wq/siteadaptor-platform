@@ -65,7 +65,9 @@ class DemoKit:
     # Структурные часы для live-статуса: {weekday(0-6): ("HH:MM","HH:MM")}.
     opening_hours: dict = field(default_factory=dict)
     services: list = field(default_factory=list)  # (name, minutes, price_eur)
-    stay_units: list = field(default_factory=list)  # (name, type, qty, price_eur, guests)
+    # Юниты размещения: (name, type, qty, price_eur, guests) ИЛИ богатый dict
+    #   {name, type, qty, price, guests, min_nights, description, photos:[kw,…]}.
+    stay_units: list = field(default_factory=list)
     # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
@@ -842,10 +844,49 @@ HOTEL = DemoKit(
         "button_url": "/unterkunft/",
     },
     stay_units=[
-        ("Doppelzimmer Seeblick", "room", 4, "89", 2),
-        ("Einzelzimmer", "room", 3, "69", 1),
-        ("Familienzimmer", "room", 2, "129", 4),
-        ("Ferienwohnung am Garten", "apartment", 1, "149", 4),
+        {
+            "name": "Doppelzimmer Seeblick",
+            "type": "room",
+            "qty": 4,
+            "price": "89",
+            "guests": 2,
+            "description": "Helles Doppelzimmer mit direktem Blick auf den See, "
+            "französischem Balkon, Queensize-Bett, Smart-TV und modernem Bad mit Regendusche. "
+            "Inklusive Frühstücksbuffet.",
+            "photos": ["hotel,room", "hotel,bed", "lake,view"],
+        },
+        {
+            "name": "Einzelzimmer Komfort",
+            "type": "room",
+            "qty": 3,
+            "price": "69",
+            "guests": 1,
+            "description": "Gemütliches Einzelzimmer mit Boxspringbett, Schreibtisch und "
+            "schnellem WLAN — ideal für Geschäftsreisende. Inklusive Frühstück.",
+            "photos": ["hotel,single,room", "hotel,bathroom"],
+        },
+        {
+            "name": "Familienzimmer",
+            "type": "room",
+            "qty": 2,
+            "price": "129",
+            "guests": 4,
+            "min_nights": 2,
+            "description": "Großzügiges Familienzimmer mit Doppelbett und zwei Einzelbetten, "
+            "Sitzecke und extra Stauraum. Platz für die ganze Familie.",
+            "photos": ["family,hotel,room", "hotel,interior", "kids,room"],
+        },
+        {
+            "name": "Ferienwohnung am Garten",
+            "type": "apartment",
+            "qty": 1,
+            "price": "149",
+            "guests": 4,
+            "min_nights": 3,
+            "description": "Komplett ausgestattete Ferienwohnung (55 m²) mit eigener Küche, "
+            "Wohnzimmer, Schlafzimmer und Terrasse zum Garten. Perfekt für längere Aufenthalte.",
+            "photos": ["apartment,living", "apartment,kitchen", "garden,terrace"],
+        },
     ],
 )
 
@@ -1946,15 +1987,38 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         from apps.stays.models import StayUnit
 
         refs["stay_units"] = []
-        for name, utype, qty, price, guests in kit.stay_units:
-            unit = StayUnit.objects.create(
-                name=name,
-                type=utype,
-                quantity=qty,
-                price_cents=int(Decimal(price) * 100),
-                max_guests=guests,
-                is_active=True,
-            )
+        for idx, spec in enumerate(kit.stay_units):
+            # Краткий кортеж (name, type, qty, price, guests) ИЛИ богатый dict
+            # (с описанием и фото номера).
+            if isinstance(spec, dict):
+                imgs = [
+                    _image_ref(kw, 8400 + idx * 10 + j, spec["name"])
+                    for j, kw in enumerate(spec.get("photos", []))
+                ]
+                for j, ref in enumerate(imgs):
+                    ref["is_primary"] = j == 0
+                    ref["sort_order"] = j
+                unit = StayUnit.objects.create(
+                    name=spec["name"],
+                    type=spec.get("type", "room"),
+                    description=spec.get("description", ""),
+                    quantity=spec.get("qty", 1),
+                    price_cents=int(Decimal(str(spec.get("price", "0"))) * 100),
+                    min_nights=spec.get("min_nights", 1),
+                    max_guests=spec.get("guests", 2),
+                    images=imgs,
+                    is_active=True,
+                )
+            else:
+                name, utype, qty, price, guests = spec
+                unit = StayUnit.objects.create(
+                    name=name,
+                    type=utype,
+                    quantity=qty,
+                    price_cents=int(Decimal(price) * 100),
+                    max_guests=guests,
+                    is_active=True,
+                )
             refs["stay_units"].append(str(unit.pk))
     if kit.loyalty and is_active("loyalty"):
         from apps.promotions.models import LoyaltyProgram
