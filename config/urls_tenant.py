@@ -109,6 +109,7 @@ urlpatterns = [
     path("konto/", include("apps.account.urls")),
     # --- Публичная витрина (без логина), на корне субдомена ---
     path("", public_views.storefront_home, name="storefront-home"),
+    path("aktionen/", public_views.promotion_list, name="storefront-aktionen"),
     path("lang/", public_views.set_language, name="storefront-set-language"),
     # Каталог товаров на витрине (Track C1).
     path("sortiment/", public_views.product_list, name="storefront-products"),

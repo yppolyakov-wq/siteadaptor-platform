@@ -43,12 +43,29 @@ def _category_url(tenant, slug: str):
     return f"{base}?kategorie={slug}" if base else None
 
 
+def _promo_group_url(tenant, group: str):
+    if not group or not modules.is_module_active(tenant, "promotions"):
+        return None
+    from apps.promotions.models import Promotion
+
+    if not Promotion.objects.filter(status="active", group=group).exists():
+        return None
+    base = _reverse("storefront-aktionen")
+    if not base:
+        return None
+    from urllib.parse import quote
+
+    return f"{base}?gruppe={quote(group)}"
+
+
 def _node_url(tenant, node: dict):
     ntype, target = node["type"], node["target"]
     if ntype == "archetype":
         return _archetype_url(tenant, target)
     if ntype == "category":
         return _category_url(tenant, target)
+    if ntype == "promo_group":
+        return _promo_group_url(tenant, target)
     if ntype == "page":
         name = _PAGE_URL_NAMES.get(target)
         return _reverse(name) if name else None
@@ -58,7 +75,7 @@ def _node_url(tenant, node: dict):
         if not target:
             return None
         return target if target.startswith(("#", "/")) else f"/#{target}"
-    # group / promo_group (S6): своей ссылки нет — держится на детях.
+    # group: своей ссылки нет — родитель выпадающего подменю, держится на детях.
     return None
 
 

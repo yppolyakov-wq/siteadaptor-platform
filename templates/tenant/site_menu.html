@@ -76,6 +76,7 @@
     var t = node.type, list = null;
     if (t === "archetype") list = D.archetypes;
     else if (t === "category") list = D.categories;
+    else if (t === "promo_group") list = D.promo_groups;
     else if (t === "page") list = D.pages;
     if (list) {
       var s = document.createElement("select");

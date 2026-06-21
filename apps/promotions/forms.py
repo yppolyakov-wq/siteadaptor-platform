@@ -55,8 +55,10 @@ class PromotionForm(forms.ModelForm):
             "show_countdown",
             "is_surprise",
             "recurrence",
+            "group",
         ]
         labels = {
+            "group": _("Section / group"),
             "compare_at_price": _("Old price (struck through)"),
             "discount_percent": _("Discount %"),
             "price_override": _("New price"),
@@ -73,6 +75,10 @@ class PromotionForm(forms.ModelForm):
             ),
             "recurrence": _(
                 "When it ends, a copy is scheduled for the next day/week automatically."
+            ),
+            "group": _(
+                "Optional. Groups offers into sections (e.g. „Fastfood“, „Fertiggerichte“) — "
+                "shown as filters on /aktionen/ and selectable in the menu builder."
             ),
         }
 

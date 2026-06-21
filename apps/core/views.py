@@ -494,12 +494,24 @@ def menu_builder_view(request):
             for c in Category.objects.filter(is_active=True).order_by("name")
         ]
     page_targets = [{"value": "home", "label": "Startseite"}]
+    promo_group_targets = []
+    if modules.is_module_active(tenant, "promotions"):
+        from apps.promotions.models import Promotion
+
+        groups = (
+            Promotion.objects.filter(status="active")
+            .exclude(group="")
+            .values_list("group", flat=True)
+            .distinct()
+        )
+        promo_group_targets = [{"value": g, "label": g} for g in sorted(set(groups))]
     builder = {
         "menus": menus,
         "types": list(siteconfig.MENU_NODE_TYPES),
         "archetypes": archetype_targets,
         "categories": category_targets,
         "pages": page_targets,
+        "promo_groups": promo_group_targets,
         "styles": list(siteconfig.NAV_STYLES),
     }
     return render(request, "tenant/site_menu.html", {"nav": "site", "builder": builder})

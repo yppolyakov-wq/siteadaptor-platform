@@ -14,7 +14,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.db.models import F
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -101,6 +101,24 @@ def storefront_home(request):
             "products_preview": products_preview,
             "archetype_teasers": archetype_teasers,
         },
+    )
+
+
+def promotion_list(request):
+    """Публичный список акций /aktionen/ (S6) с фильтром по группе/направлению."""
+    from apps.core import modules
+
+    if not modules.is_module_active(request.tenant, "promotions"):
+        raise Http404
+    qs = Promotion.objects.filter(status="active").order_by("-created_at")
+    groups = sorted({g for g in qs.values_list("group", flat=True) if g})
+    selected = (request.GET.get("gruppe") or "").strip()
+    if selected:
+        qs = qs.filter(group=selected)
+    return render(
+        request,
+        "storefront/promotions_list.html",
+        {"promotions": qs, "groups": groups, "selected_group": selected},
     )
 
 

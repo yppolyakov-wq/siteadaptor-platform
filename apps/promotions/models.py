@@ -113,6 +113,11 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     RECURRENCE = [(NO_RECUR, "—"), (DAILY, "Täglich"), (WEEKLY, "Wöchentlich")]
     recurrence = models.CharField(max_length=10, choices=RECURRENCE, default=NO_RECUR, blank=True)
 
+    # S6: группа/направление акции («Fastfood», «Fertiggerichte»…) — для отдельных
+    # подразделов витрины (/aktionen/?gruppe=…) и целей меню (promo_group).
+    # Свободный текст: набор групп определяет владелец, фильтр — по точному значению.
+    group = models.CharField(max_length=50, blank=True, default="", db_index=True)
+
     status = models.CharField(max_length=20, default="draft", db_index=True)
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)
