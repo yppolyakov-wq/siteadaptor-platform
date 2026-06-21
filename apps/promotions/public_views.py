@@ -78,11 +78,18 @@ def storefront_home(request):
     # Конструктор витрины v1 (Track C2): главная собирается из секций конфига.
     from apps.tenants import siteconfig
 
-    site = siteconfig.normalize(request.tenant.site_config)
+    # V1 live-preview: при ?preview=1 и черновике в сессии (из конструктора
+    # главной) рендерим несохранённое состояние. Только для вошедшего владельца
+    # (черновик в его сессии); standalone-редирект в превью пропускаем.
+    preview = request.GET.get("preview") == "1"
+    raw = request.tenant.site_config
+    if preview and isinstance(request.session.get("site_preview_draft"), dict):
+        raw = request.session["site_preview_draft"]
+    site = siteconfig.normalize(raw)
     # S4: standalone-режим — корень `/` ведёт на лендинг выбранного архетипа
     # (если он активен и имеет публичную страницу), иначе обычная главная.
     root = site.get("storefront_root", "home")
-    if root and root != "home":
+    if root and root != "home" and not preview:
         from apps.core import modules
 
         spec = modules.get_module(root)

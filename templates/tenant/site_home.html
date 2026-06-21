@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Homepage" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-2xl">
+<div>
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-2xl font-bold">{% trans "Build your homepage" %}</h1>
     <span class="flex items-center gap-3">
@@ -11,7 +11,7 @@
       <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
     </span>
   </div>
-  <p class="text-sm text-gray-500 mb-4">{% trans "Pick which blocks appear on your homepage and in what order. Edit the content of each block (texts, photos, colors) on the “Site” page." %}</p>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Pick which blocks appear on your homepage and in what order. The preview updates live as you edit — click Save to keep your changes." %}</p>
 
   {% if messages %}
     {% for m in messages %}
@@ -19,65 +19,131 @@
     {% endfor %}
   {% endif %}
 
-  <form method="post" class="space-y-6">
-    {% csrf_token %}
+  <div class="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+    <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
+      {% csrf_token %}
 
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-      <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
-      <p class="text-xs text-gray-400 mb-3">{% trans "What visitors see first. “Combined homepage” shows the blocks below; or jump straight into one section." %}</p>
-      <select name="storefront_root" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        {% for o in root_options %}
-          <option value="{{ o.key }}" {% if o.key == storefront_root %}selected{% endif %}>{{ o.label }}</option>
-        {% endfor %}
-      </select>
-    </fieldset>
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+        <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
+        <p class="text-xs text-gray-400 mb-3">{% trans "What visitors see first. “Combined homepage” shows the blocks below; or jump straight into one section." %}</p>
+        <select name="storefront_root" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          {% for o in root_options %}
+            <option value="{{ o.key }}" {% if o.key == storefront_root %}selected{% endif %}>{{ o.label }}</option>
+          {% endfor %}
+        </select>
+      </fieldset>
 
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-      <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Smaller number = higher on the page. Untick to hide a block." %}</p>
-      <div class="space-y-3">
-        {% for s in sections %}
-          <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3">
-            <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
-                   class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
-            <label class="flex items-center gap-2 text-sm font-medium flex-1">
-              <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
-                     class="rounded border-gray-300">
-              {{ s.label }}
-            </label>
-          </div>
-        {% endfor %}
-      </div>
-    </fieldset>
-
-    {% if archetype_specs %}
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-      <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
-      {% if not archetypes_enabled %}
-        <p class="text-xs text-amber-600 mb-3">{% trans "Tip: enable the “Our offerings” block above to show these cards on your homepage." %}</p>
-      {% endif %}
-      <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
-      <div class="space-y-3">
-        {% for a in archetype_specs %}
-          <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
-            <label class="flex items-center gap-2 text-sm font-medium">
-              <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
-                     class="rounded border-gray-300">
-              <span>{{ a.icon }} {{ a.default_label }}</span>
-            </label>
-            <div class="grid sm:grid-cols-2 gap-2">
-              <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
-                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
-              <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
-                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+        <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
+        <p class="text-xs text-gray-400 mb-4">{% trans "Smaller number = higher on the page. Untick to hide a block." %}</p>
+        <div class="space-y-3">
+          {% for s in sections %}
+            <div class="flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3">
+              <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
+                     class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
+              <label class="flex items-center gap-2 text-sm font-medium flex-1">
+                <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
+                       class="rounded border-gray-300">
+                {{ s.label }}
+              </label>
             </div>
-          </div>
-        {% endfor %}
-      </div>
-    </fieldset>
-    {% endif %}
+          {% endfor %}
+        </div>
+      </fieldset>
 
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-  </form>
+      {% if archetype_specs %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+        <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
+        {% if not archetypes_enabled %}
+          <p class="text-xs text-amber-600 mb-3">{% trans "Tip: enable the “Our offerings” block above to show these cards on your homepage." %}</p>
+        {% endif %}
+        <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
+        <div class="space-y-3">
+          {% for a in archetype_specs %}
+            <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+              <label class="flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
+                       class="rounded border-gray-300">
+                <span>{{ a.icon }} {{ a.default_label }}</span>
+              </label>
+              <div class="grid sm:grid-cols-2 gap-2">
+                <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
+                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
+                <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
+                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endif %}
+
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    </form>
+
+    {# V1 live-preview: показывает несохранённое состояние (?preview=1 + черновик в сессии). #}
+    <div class="hidden lg:block sticky top-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-500">{% trans "Live preview" %}</span>
+        <span id="home-prev-status" class="text-xs text-gray-400"></span>
+      </div>
+      <div class="bg-gray-100 rounded-2xl p-2">
+        <iframe id="home-prev-frame" title="{% trans 'Live preview' %}"
+                class="w-full bg-white rounded-xl" style="height:78vh; border:0;"></iframe>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+(function () {
+  var form = document.getElementById("home-form");
+  var frame = document.getElementById("home-prev-frame");
+  if (!form || !frame) return;
+  var status = document.getElementById("home-prev-status");
+  var url = form.getAttribute("data-draft-url");
+  var token = (form.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "";
+
+  function collect() {
+    var rows = [];
+    form.querySelectorAll("input[name^='order_']").forEach(function (inp) {
+      var key = inp.name.slice(6);
+      var en = form.querySelector("input[name='enabled_" + key + "']");
+      rows.push({ key: key, order: parseInt(inp.value, 10) || 999, enabled: !!(en && en.checked) });
+    });
+    rows.sort(function (a, b) { return a.order - b.order; });
+    var sections = rows.map(function (r) { return { key: r.key, enabled: r.enabled }; });
+    var archetypes = {};
+    form.querySelectorAll("input[name^='arch_visible_']").forEach(function (vis) {
+      var key = vis.name.slice(13);
+      var lab = form.querySelector("input[name='arch_label_" + key + "']");
+      var bl = form.querySelector("input[name='arch_blurb_" + key + "']");
+      archetypes[key] = {
+        hidden: !vis.checked,
+        label: lab ? lab.value : "",
+        blurb: bl ? bl.value : "",
+      };
+    });
+    return { sections: sections, archetypes: archetypes };
+  }
+
+  var timer = null;
+  function push() {
+    if (status) status.textContent = "…";
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+      body: JSON.stringify(collect()),
+    }).then(function () {
+      frame.contentWindow.location.replace("/?preview=1");
+      if (status) status.textContent = "{% trans 'Unsaved preview' %}";
+    }).catch(function () { if (status) status.textContent = ""; });
+  }
+  function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }
+
+  form.addEventListener("input", schedule);
+  form.addEventListener("change", schedule);
+  push();  // первичный рендер черновика
+})();
+</script>
 {% endblock %}

@@ -521,9 +521,50 @@ def _delete_cover_image(request, key: str, image_id: str) -> None:
 @login_required
 def site_preview(request):
     """Live-предпросмотр витрины (Z): актуальный сайт в iframe + переключатель
-    ширины (Desktop/Tablet/Mobile). Отражает сохранённое состояние; правки в
-    билдерах видны после «Speichern». (Live-до-сохранения — следующий этап.)"""
+    ширины (Desktop/Tablet/Mobile)."""
     return render(request, "tenant/site_preview.html", {"nav": "site"})
+
+
+@login_required
+@require_POST
+def site_preview_draft(request):
+    """V1 live-preview: принять черновик композиции главной (sections +
+    оверрайды тизеров) из конструктора, смёржить в текущий site_config и
+    положить в сессию. Витрина `/?preview=1` рендерит этот черновик — без записи
+    в БД. Возврат 204."""
+    import json
+
+    from django.http import HttpResponse
+
+    from apps.tenants import siteconfig
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        data = {}
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    if isinstance(data.get("sections"), list):
+        known = {k for k, _l, _d in siteconfig.SECTIONS}
+        seen, rows = set(), []
+        for item in data["sections"]:
+            key = item.get("key") if isinstance(item, dict) else None
+            if key in known and key not in seen:
+                rows.append({"key": key, "enabled": bool(item.get("enabled"))})
+                seen.add(key)
+        if rows:
+            cfg["sections"] = rows
+    if isinstance(data.get("archetypes"), dict):
+        arch = dict(cfg.get("archetypes") or {})
+        for key, ov in data["archetypes"].items():
+            if isinstance(ov, dict):
+                cur = dict(arch.get(key) or {})
+                cur["label"] = str(ov.get("label", "")).strip()
+                cur["blurb"] = str(ov.get("blurb", "")).strip()
+                cur["hidden"] = bool(ov.get("hidden"))
+                arch[key] = cur
+        cfg["archetypes"] = arch
+    request.session["site_preview_draft"] = siteconfig.normalize(cfg)
+    return HttpResponse(status=204)
 
 
 @login_required

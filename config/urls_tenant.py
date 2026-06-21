@@ -25,6 +25,7 @@ from apps.core.views import (
     settings_view,
     setup_view,
     site_preview,
+    site_preview_draft,
     site_view,
 )
 from apps.events import public_views as events_public
@@ -52,6 +53,7 @@ urlpatterns = [
     path("dashboard/site/menu/", menu_builder_view, name="site-menu"),
     path("dashboard/site/sections/", sections_view, name="site-sections"),
     path("dashboard/site/preview/", site_preview, name="site-preview"),
+    path("dashboard/site/preview/draft/", site_preview_draft, name="site-preview-draft"),
     # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
     path("dashboard/modules/", modules_view, name="modules"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
