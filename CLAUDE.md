@@ -1090,6 +1090,42 @@ Python 3.12, менеджер uv.
     site_config; команда `seed_demo_tenants [--kit/--recreate/--delete]` (reuse
     create_business) → `<kit>-demo.<base>`. Логин `<kit>-demo@example.de` /
     `demo-12345678`. Тесты `test_demo_kits`.
+- **Конструктор витрины-из-архетипов (S1–S8 + D, ✅ ветка
+  `claude/restaurant-site-features-egvl5p`, CI зелёный, миграция только
+  promotions/0016):** превращает готовые архетипы в компонуемый конструктор —
+  каждый модуль живёт сам по себе ИЛИ собирается на одной витрине; главная кратко
+  агрегирует разделы. Решение владельца: «по правильному» на базе реестра модулей
+  (лёгкое, масштабируется — новый архетип подключается одной декларацией).
+  - **S1** витринный слой реестра: `ModuleSpec.storefront_*` (label/blurb/landing/
+    icon/teaser) + `modules.storefront_archetypes(tenant)` — источник правды для
+    тизеров и меню. **S2** секция «Unsere Bereiche» (сетка тизеров активных
+    архетипов, оверрайды `site_config["archetypes"]`) + **отдельный конструктор
+    главной** `/dashboard/site/home/` (порядок/видимость блоков). **S3** обложки
+    разделов: intro+hero (a) + галерея на раздел (b) — рендер в `_base.html` по
+    `url_name` (`modules.archetype_by_landing`), кабинет `/dashboard/site/sections/`.
+    **S4** режим корня `storefront_root` (standalone ↔ общая главная). **S5**
+    публичная лояльность `/treue/` (loyalty стал архетипом). **S6** `Promotion.group`
+    + `/aktionen/` с фильтром-чипами (Fastfood/Fertiggerichte). **S7** многоуровневое
+    меню `site_config["menus"]` (top/bottom, дерево узлов archetype/category/
+    promo_group/page/url/anchor/group, глубина 2; `apps/tenants/menu.py` резолвер
+    с гейтингом; легаси `nav`→`menus` без регрессии) + витрина с подменю (hover) +
+    визуальный JS-билдер `/dashboard/site/menu/`. **S8** страница «О компании»
+    `/ueber-uns/`.
+  - На `/dashboard/site/` — карточки-ссылки Homepage builder / Navigation menu /
+    Section covers + блок Design (шрифт, quick-add); старый плоский nav-редактор
+    убран (меню правится в билдере). Всё на коде+JSON.
+  - **D** демо-кит «Pranasy» (vegan Fastfood, `subdomain="pranasy"` →
+    pranasy.<base>): Fastfood/Fertiggerichte, группы акций, бронь столика, события-
+    ретриты, Catering/Vorbestellung (jobs), лояльность, многоуровневое меню с
+    подменю, обложки разделов, секция «Bereiche». DemoKit += enable_archetypes_section/
+    archetype_covers/menus/group_promos_by_category/storefront_root/subdomain (пустые
+    → старое поведение, Restaurant-кит не затронут). Деплой демо:
+    `manage.py seed_demo_tenants --kit pranasy` (+ DNS/Caddy для pranasy.siteadaptor.de).
+  - Урок: новая секция в `siteconfig.SECTIONS` → обновить хардкод-список в
+    `test_siteconfig`; оверрайды архетипа (S2/S3) с exact-match в тестах — дописывать
+    новые поля; после правок шаблонов с новыми классами — `npm run build:css`.
+  - Дальше (отложено): визуальный drag-drop/inline-редактор (заложена основа —
+    JSON-схема + реестр секций + live-preview-эндпоинт следующим этапом).
 - **Модернизация витрины (тренды 2025–2026; deep-research → план P1–P5; в работе):**
   направления: F производительность/CWV, C мобильная конверсия, A+B шрифты+
   анимации, D+E тёмная тема+доверие. Порядок «всё по порядку».
