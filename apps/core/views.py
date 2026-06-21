@@ -449,6 +449,35 @@ def home_builder_view(request):
 
 
 @login_required
+def sections_view(request):
+    """Обложки разделов (S3): интро-текст + hero-фото на каждый лендинг архетипа.
+    Рендерятся поверх его публичной страницы (storefront/_archetype_cover.html).
+    Сохранение мёржит в site_config, сохраняя оверрайды тизеров (label/blurb)."""
+    from apps.tenants import siteconfig, storefront
+
+    if request.method == "POST":
+        config = siteconfig.normalize(request.tenant.site_config)
+        arch = dict(config.get("archetypes") or {})
+        for spec in storefront.cover_specs(request.tenant):
+            key = spec["key"]
+            cur = dict(arch.get(key) or {})
+            cur["intro"] = request.POST.get(f"intro_{key}", "").strip()
+            cur["hero_image"] = request.POST.get(f"hero_{key}", "").strip()
+            arch[key] = cur
+        config["archetypes"] = arch
+        request.tenant.site_config = siteconfig.normalize(config)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Gespeichert.")
+        return redirect("site-sections")
+
+    return render(
+        request,
+        "tenant/site_sections.html",
+        {"nav": "site", "cover_specs": storefront.cover_specs(request.tenant)},
+    )
+
+
+@login_required
 def menu_builder_view(request):
     """Билдер меню витрины (S7b): дерево пунктов top + bottom, привязка к
     архетипам/категориям/страницам/URL/якорям, вложенность 2 уровня.

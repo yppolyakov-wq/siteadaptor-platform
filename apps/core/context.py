@@ -119,6 +119,15 @@ def modules_nav(request):
     # Только если секция hero включена (иначе зря тянем картинку).
     hero_enabled = any(s["key"] == "hero" and s["enabled"] for s in cfg["sections"])
     hero_preload = cfg["hero_image"] if hero_enabled else ""
+    # S3: «обложка» раздела — интро/hero над лендингом архетипа (по текущему
+    # url_name). Рендерится один раз в _base.html, поверх любого лендинга.
+    archetype_cover = {}
+    rm = getattr(request, "resolver_match", None)
+    if rm is not None:
+        ckey = modules.archetype_by_landing(getattr(rm, "url_name", "") or "")
+        ov = cfg["archetypes"].get(ckey) if ckey else None
+        if ov and (ov.get("intro") or ov.get("hero_image")):
+            archetype_cover = {"intro": ov.get("intro", ""), "hero_image": ov.get("hero_image", "")}
     # S7: нижнее меню — кастомное (из menus.bottom) либо авто таб-бар (T2b).
     if menu_mod.bottom_enabled(tenant):
         bottom_nav = [
@@ -167,6 +176,8 @@ def modules_nav(request):
         "storefront_font_head": font_head,
         # P5: preload hero-фото (LCP) — пусто, если секция выключена/без фото.
         "storefront_hero_preload": hero_preload,
+        # S3: обложка раздела (интро/hero) — пусто вне лендинга архетипа.
+        "archetype_cover": archetype_cover,
         # T2a: текущий стол (из ?tisch=, в сессии) — для баннера витрины/checkout.
         "storefront_table": storefront_table,
     }

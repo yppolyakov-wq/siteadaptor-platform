@@ -452,6 +452,16 @@ def storefront_archetypes(tenant) -> list[StorefrontArchetype]:
     return out
 
 
+def archetype_by_landing(url_name: str) -> str | None:
+    """Ключ архетипа по url_name его публичной «главной» (S3 — обложки)."""
+    if not url_name:
+        return None
+    for spec in REGISTRY:
+        if spec.storefront_landing and spec.storefront_landing == url_name:
+            return spec.key
+    return None
+
+
 def module_for_path(path: str) -> ModuleSpec | None:
     """Модуль-владелец пути кабинета: самый длинный совпавший префикс.
 

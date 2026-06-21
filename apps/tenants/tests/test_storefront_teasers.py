@@ -70,5 +70,12 @@ def test_normalize_sanitizes_archetype_overrides():
     cfg = siteconfig.normalize(
         {"archetypes": {"catalog": {"label": "X", "blurb": 5, "hidden": "yes"}, "bad": "nope"}}
     )
-    assert cfg["archetypes"]["catalog"] == {"label": "X", "blurb": "", "hidden": True}
+    # S3 добавил поля обложки (intro/hero_image) — пустые по умолчанию.
+    assert cfg["archetypes"]["catalog"] == {
+        "label": "X",
+        "blurb": "",
+        "hidden": True,
+        "intro": "",
+        "hero_image": "",
+    }
     assert "bad" not in cfg["archetypes"]  # значение не-dict отброшено

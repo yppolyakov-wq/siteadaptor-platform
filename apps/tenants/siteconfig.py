@@ -353,6 +353,9 @@ def normalize(config) -> dict:
                 "label": _s(ov.get("label")),
                 "blurb": _s(ov.get("blurb")),
                 "hidden": bool(ov.get("hidden")),
+                # S3: «обложка» раздела — интро-текст и hero-фото над лендингом.
+                "intro": _s(ov.get("intro")),
+                "hero_image": _s(ov.get("hero_image")),
             }
     normalized["archetypes"] = archetypes
     # T2c: быстрый заказ («+»/модалка-конфигуратор) на карточках витрины.

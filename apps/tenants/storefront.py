@@ -38,6 +38,25 @@ def archetype_teasers(tenant) -> list[dict]:
     return teasers
 
 
+def cover_specs(tenant) -> list[dict]:
+    """Обложки разделов (S3) — на каждый активный архетип с публичной страницей:
+    интро-текст и hero-фото (поверх его лендинга). Для формы кабинета «Bereiche»."""
+    overrides = siteconfig.normalize(tenant.site_config).get("archetypes", {})
+    specs = []
+    for arch in modules.storefront_archetypes(tenant):
+        ov = overrides.get(arch.key, {})
+        specs.append(
+            {
+                "key": arch.key,
+                "label": arch.label,
+                "icon": arch.icon,
+                "intro": ov.get("intro", ""),
+                "hero_image": ov.get("hero_image", ""),
+            }
+        )
+    return specs
+
+
 def teaser_specs(tenant) -> list[dict]:
     """Все тизер-способные активные архетипы + текущий оверрайд — для формы
     кабинета (`/dashboard/site/`): владелец правит заголовок/описание/видимость.

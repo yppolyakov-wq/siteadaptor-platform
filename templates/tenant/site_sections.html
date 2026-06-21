@@ -1,0 +1,36 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Sections" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{% trans "Section covers" %}</h1>
+    <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
+  </div>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Add an intro text and a banner image to the top of each part of your site (menu, booking, offers …)." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% for a in cover_specs %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-5">
+        <legend class="font-semibold mb-2">{{ a.icon }} {{ a.label }}</legend>
+        <label class="block text-sm font-medium mb-1" for="intro_{{ a.key }}">{% trans "Intro text" %}</label>
+        <textarea id="intro_{{ a.key }}" name="intro_{{ a.key }}" rows="2"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-3">{{ a.intro }}</textarea>
+        <label class="block text-sm font-medium mb-1" for="hero_{{ a.key }}">{% trans "Banner image URL" %}</label>
+        <input id="hero_{{ a.key }}" name="hero_{{ a.key }}" type="text" value="{{ a.hero_image }}"
+               placeholder="https://…/banner.jpg"
+               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </fieldset>
+    {% endfor %}
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</div>
+{% endblock %}

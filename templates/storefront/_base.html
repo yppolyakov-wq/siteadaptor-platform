@@ -156,6 +156,7 @@
         <div role="status" class="mb-4 rounded-xl px-4 py-3 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
       {% endfor %}
     {% endif %}
+    {% if archetype_cover %}{% include "storefront/_archetype_cover.html" %}{% endif %}
     {% block content %}{% endblock %}
   </main>
 

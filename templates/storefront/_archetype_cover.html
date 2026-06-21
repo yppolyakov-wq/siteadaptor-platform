@@ -1,0 +1,12 @@
+{# S3: обложка раздела — hero-фото + интро над лендингом архетипа. #}
+<section data-reveal class="mb-6">
+  {% if archetype_cover.hero_image %}
+    <div class="relative rounded-2xl overflow-hidden mb-4 aspect-[16/6] bg-gray-100">
+      <img src="{{ archetype_cover.hero_image }}" alt="" decoding="async"
+           class="absolute inset-0 w-full h-full object-cover">
+    </div>
+  {% endif %}
+  {% if archetype_cover.intro %}
+    <p class="text-gray-600 max-w-2xl leading-relaxed whitespace-pre-line">{{ archetype_cover.intro }}</p>
+  {% endif %}
+</section>
