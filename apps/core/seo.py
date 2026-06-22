@@ -25,11 +25,12 @@ def _dumps(data: dict) -> str:
     return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
 
-def localbusiness_ld(tenant, *, url: str, aggregate_rating=None) -> str:
+def localbusiness_ld(tenant, *, url: str, aggregate_rating=None, price_range="", image="") -> str:
     """JSON-LD LocalBusiness из полей тенанта (или '' если тенанта нет).
 
     aggregate_rating (G8): (avg, count) — добавляет schema.org AggregateRating
-    (звёзды в Google-сниппете). None/нулевой count — не добавляем."""
+    (звёзды в Google-сниппете). None/нулевой count — не добавляем.
+    price_range/image (H6): для отелей — диапазон цен «ab …€» и фото (Hotel-rich)."""
     if tenant is None:
         return ""
     data = {
@@ -38,6 +39,10 @@ def localbusiness_ld(tenant, *, url: str, aggregate_rating=None) -> str:
         "name": getattr(tenant, "name", "") or "",
         "url": url,
     }
+    if price_range:
+        data["priceRange"] = price_range
+    if image:
+        data["image"] = image
     address = getattr(tenant, "address", "") or ""
     city = getattr(tenant, "city", "") or ""
     if address or city:

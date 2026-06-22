@@ -313,6 +313,22 @@ def unterkunft_confirmation(request, code):
     )
 
 
+def hausordnung(request):
+    """H6: страница «Hausordnung» (правила проживания) — свободный текст из
+    StaySettings + Kurtaxe-инфо. Гейт модулем stays; нет текста → 404."""
+    _require_stays_active(request)
+    from .models import StaySettings
+
+    settings_obj = StaySettings.load()
+    if not (settings_obj.house_rules or "").strip():
+        raise Http404
+    return render(
+        request,
+        "storefront/stay_hausordnung.html",
+        {"settings": settings_obj},
+    )
+
+
 _CANCEL_SALT = "stay-cancel"
 
 

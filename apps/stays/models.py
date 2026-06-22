@@ -345,6 +345,8 @@ class StaySettings(TimestampedModel):
     kurtaxe_cents = models.PositiveIntegerField(default=0)
     kurtaxe_label = models.CharField(max_length=80, default="Kurtaxe")
     kurtaxe_children_free = models.BooleanField(default=True)
+    # H6: Hausordnung / правила проживания (свободный текст; пусто = страницы нет).
+    house_rules = models.TextField(blank=True)
 
     class Meta:
         verbose_name = "Stay settings"

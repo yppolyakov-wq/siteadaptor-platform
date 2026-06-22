@@ -1,0 +1,14 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "House rules" %} — {{ request.tenant.name }}{% endblock %}
+{% block meta_description %}{% trans "House rules" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "House rules" %}</h1>
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8 text-gray-700 whitespace-pre-line leading-relaxed">{{ settings.house_rules }}</div>
+  {% if settings.kurtaxe_cents %}
+    <p class="text-sm text-gray-500 mt-4">{% blocktrans with k=settings.kurtaxe_eur|floatformat:2 l=settings.kurtaxe_label %}{{ l }}: {{ k }} € per adult / night.{% endblocktrans %}</p>
+  {% endif %}
+</div>
+{% endblock %}

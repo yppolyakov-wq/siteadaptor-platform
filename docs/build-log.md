@@ -1373,3 +1373,15 @@
   подтверждении. Demo-кит `hotel`: промокод `SOMMER10` (−10 %). Миграция `stays/0011`.
   Тесты — `test_promo_cancel.py` (скидка не на Kurtaxe, гашение, невалидный/исчерпан,
   политика отмены flexible/non-refundable/неактивная, подпись токена). План — H4.
+- **H6 — SEO (Hotel JSON-LD) + Hausordnung (✅, A5/hotel):**
+  **SEO:** `core.seo.localbusiness_ld` расширен `price_range`/`image`; тег
+  `localbusiness_jsonld` для отеля (активный stays) добавляет в `Hotel`-разметку
+  `priceRange` («ab …€»/диапазон по активным номерам) и `image` (фото номера) —
+  helper `_stays_seo`. Тип `Hotel`/гео/`aggregateRating` уже были (B5/G8).
+  **Hausordnung:** `StaySettings.house_rules` (текст) + публичная страница
+  `/hausordnung/` (гейт stays; пусто → 404), ссылка в футере витрины
+  (`{% house_rules_present %}`), редактирование в кабинете
+  `/dashboard/stays/units/` (объединённая карточка «Kurtaxe & house rules»).
+  Demo-кит `hotel`: заполнены Check-in/out, Ruhezeiten, Haustiere, Rauchen,
+  Kaution, Kinder, Stornierung. Миграция `stays/0012`. Тесты —
+  `test_seo_hausordnung.py` (priceRange/image в JSON-LD; страница 200/404/гейт). План — H6.

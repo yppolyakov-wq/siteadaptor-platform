@@ -75,6 +75,8 @@ class DemoKit:
     kurtaxe: str = ""
     # Промокод для брони (H4a): {code, label, percent}. Пусто = нет.
     stay_promo: dict = field(default_factory=dict)
+    # Hausordnung (H6): правила проживания, свободный текст. Пусто = нет страницы.
+    house_rules: str = ""
     # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
@@ -1104,6 +1106,15 @@ HOTEL = DemoKit(
     ],
     kurtaxe="2.50",  # H9: Kurtaxe pro Erwachsenem/Nacht (Überlingen/Bodensee)
     stay_promo={"code": "SOMMER10", "label": "−10 % Sommer", "percent": 10},  # H4a
+    house_rules=(  # H6: Hausordnung
+        "Check-in: ab 15:00 Uhr · Check-out: bis 11:00 Uhr\n"
+        "Ruhezeiten: 22:00–7:00 Uhr\n"
+        "Haustiere: kleine Hunde auf Anfrage (15 € / Nacht)\n"
+        "Rauchen: nur auf dem Balkon / der Terrasse\n"
+        "Kaution: 30 € bei Anreise (bar oder Karte), Rückgabe bei Abreise\n"
+        "Kinder: bis 6 Jahre kostenfrei im Bett der Eltern\n"
+        "Stornierung: gemäß gewähltem Tarif (siehe Buchung)"
+    ),
 )
 
 AKTIONSMARKT_MENUS = {
@@ -2607,12 +2618,15 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     is_active=True,
                 )
             refs["stay_units"].append(str(unit.pk))
-    if kit.kurtaxe and is_active("stays"):  # H9 Kurtaxe (на тенанта)
+    if (kit.kurtaxe or kit.house_rules) and is_active("stays"):  # H9 Kurtaxe + H6 Hausordnung
         from apps.stays.models import StaySettings
 
         settings_obj = StaySettings.load()
-        settings_obj.kurtaxe_cents = int(Decimal(str(kit.kurtaxe)) * 100)
-        settings_obj.save(update_fields=["kurtaxe_cents", "updated_at"])
+        if kit.kurtaxe:
+            settings_obj.kurtaxe_cents = int(Decimal(str(kit.kurtaxe)) * 100)
+        if kit.house_rules:
+            settings_obj.house_rules = kit.house_rules
+        settings_obj.save(update_fields=["kurtaxe_cents", "house_rules", "updated_at"])
     if kit.stay_promo and is_active("stays"):  # H4a промокод брони
         from apps.loyalty.models import Voucher
 

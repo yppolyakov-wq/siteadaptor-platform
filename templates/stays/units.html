@@ -16,8 +16,8 @@
 
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
 <div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">{% trans "Kurtaxe / tourist tax" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Per adult per night, added to every booking (0 = off). Children are free. Shown separately to the guest and on the invoice." %}</p>
+  <h2 class="font-semibold mb-1">{% trans "Kurtaxe & house rules" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %}</p>
   <form method="post" class="flex items-end gap-3 flex-wrap">
     {% csrf_token %}
     <input type="hidden" name="action" value="kurtaxe">
@@ -28,6 +28,10 @@
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label" %}</label>
       <input name="kurtaxe_label" type="text" value="{{ stay_settings.kurtaxe_label }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div class="w-full">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</label>
+      <textarea name="house_rules" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea>
     </div>
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>

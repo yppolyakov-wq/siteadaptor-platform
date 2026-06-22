@@ -175,6 +175,7 @@
         <a href="{% url 'storefront-impressum' %}" class="hover:underline">{% trans "Imprint" %}</a>
         <a href="{% url 'storefront-privacy' %}" class="hover:underline">{% trans "Privacy" %}</a>
         <a href="{% url 'storefront-withdrawal' %}" class="hover:underline">{% trans "Cancellation" %}</a>
+        {% house_rules_present as hr %}{% if hr %}<a href="{% url 'storefront-hausordnung' %}" class="hover:underline">{% trans "House rules" %}</a>{% endif %}
       </div>
     </div>
   </footer>

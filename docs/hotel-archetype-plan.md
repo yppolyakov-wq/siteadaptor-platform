@@ -147,7 +147,7 @@ Balkon/Klimaanlage/Bad/…). Блок Ausstattung-иконок и условий
 тарифом), снимок в `StayBooking`, витрина «inkl. X € Kurtaxe», Rechnung-строка.
 **Зависит от H5** (нужны adults/children).
 
-### H6 — SEO отеля + Hausordnung
+### H6 — SEO отеля + Hausordnung — ✅ сделано (`stays/0012`)
 **Зачем:** ТЗ §13 микроразметка `Hotel`/`LodgingBusiness`, §2.10 правила проживания,
 §14 юр-страницы (Impressum/Datenschutz/AGB уже есть на платформе).
 **Что:** JSON-LD `LodgingBusiness`/`Hotel` (адрес/гео/цена «ab»/рейтинг из reviews) на

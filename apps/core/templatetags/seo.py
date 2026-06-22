@@ -27,6 +27,50 @@ def _tenant_rating():
         return None
 
 
+def _stays_seo(tenant):
+    """(price_range, image) для отеля/пансиона (H6): диапазон цен «ab …€» и фото
+    из активных номеров. Только при активном модуле stays; ошибки гасим (SEO не
+    должен ронять <head>)."""
+    try:
+        from apps.core import modules
+
+        if not modules.is_module_active(tenant, "stays"):
+            return "", ""
+        from apps.stays.models import StayUnit
+
+        units = list(StayUnit.objects.filter(is_active=True, price_cents__gt=0))
+        if not units:
+            return "", ""
+        prices = sorted(u.price_cents for u in units)
+        lo, hi = prices[0] // 100, prices[-1] // 100
+        price_range = f"ab {lo} €" if lo == hi else f"{lo}–{hi} €"
+        image = next((u.image_url for u in units if u.image_url), "")
+        return price_range, image
+    except Exception:  # noqa: BLE001 — SEO-обвязка не должна ломать страницу
+        return "", ""
+
+
+@register.simple_tag(takes_context=True)
+def house_rules_present(context):
+    """True, если у активного модуля stays задана Hausordnung (H6) — для ссылки в
+    футере. Ошибки гасим (футер не должен ломаться)."""
+    try:
+        from django.db import connection
+
+        from apps.core import modules
+        from apps.stays.models import StaySettings
+
+        request = context.get("request")
+        tenant = getattr(request, "tenant", None) if request is not None else None
+        if tenant is None or connection.schema_name == "public":
+            return False
+        if not modules.is_module_active(tenant, "stays"):
+            return False
+        return bool((StaySettings.load().house_rules or "").strip())
+    except Exception:  # noqa: BLE001
+        return False
+
+
 @register.simple_tag
 def business_rating():
     """(avg, count) рейтинга текущего тенанта или None — для звёзд на витрине (P3)."""
@@ -81,8 +125,14 @@ def localbusiness_jsonld(context):
     tenant = getattr(request, "tenant", None) if request is not None else None
     if tenant is None:
         return ""
+    # H6: для отелей/пансионов добавляем priceRange («ab …€») и фото из номеров.
+    price_range, image = _stays_seo(tenant)
     payload = localbusiness_ld(
-        tenant, url=request.build_absolute_uri("/"), aggregate_rating=_tenant_rating()
+        tenant,
+        url=request.build_absolute_uri("/"),
+        aggregate_rating=_tenant_rating(),
+        price_range=price_range,
+        image=image,
     )
     if not payload:
         return ""

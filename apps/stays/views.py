@@ -373,14 +373,17 @@ def units(request):
             rp.save(update_fields=["is_active", "updated_at"])
         elif action == "rateplan_delete":
             RatePlan.objects.filter(pk=request.POST.get("rateplan")).delete()
-        elif action == "kurtaxe":  # H9: курортный сбор (на тенанта)
+        elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung (на тенанта)
             settings_obj = StaySettings.load()
             settings_obj.kurtaxe_cents = _eur_to_cents(request.POST.get("kurtaxe_eur"))
             settings_obj.kurtaxe_label = (
                 request.POST.get("kurtaxe_label", "").strip()[:80] or "Kurtaxe"
             )
-            settings_obj.save(update_fields=["kurtaxe_cents", "kurtaxe_label", "updated_at"])
-            messages.success(request, _("Kurtaxe saved."))
+            settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
+            settings_obj.save(
+                update_fields=["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
+            )
+            messages.success(request, _("Settings saved."))
         return redirect("stays:units")
 
     units = list(
