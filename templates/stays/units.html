@@ -14,6 +14,76 @@
   {% endfor %}
 {% endif %}
 
+{# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
+  <h2 class="font-semibold mb-1">{% trans "Rate plans" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Ways to sell the same rooms — base, non-refundable, with breakfast, half board… Guests pick a rate when booking. Apply to all rooms." %}</p>
+  {% for r in rate_plans %}
+    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2 {% if not r.is_active %}opacity-50{% endif %}">
+      <div>
+        <span class="font-medium">{{ r.name }}</span>
+        {% if r.percent_adjust %}<span class="text-xs text-gray-500">· {% if r.percent_adjust > 0 %}+{% endif %}{{ r.percent_adjust }} %</span>{% endif %}
+        {% if r.surcharge_cents %}<span class="text-xs text-gray-500">· +{{ r.surcharge_eur|stringformat:".2f" }} €/{% trans "night" %}</span>{% endif %}
+        {% if r.meal_included %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ r.get_meal_plan_display }}</span>{% endif %}
+        <span class="text-xs text-gray-400">· {{ r.get_cancellation_display }}{% if r.cancellation == 'flexible' and r.free_cancel_days %} ({{ r.free_cancel_days }} {% trans "days" %}){% endif %}</span>
+        {% if r.description %}<span class="block text-xs text-gray-400">{{ r.description }}</span>{% endif %}
+      </div>
+      <div class="flex items-center gap-2 whitespace-nowrap">
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="action" value="rateplan_toggle"><input type="hidden" name="rateplan" value="{{ r.pk }}">
+          <button class="text-gray-500 hover:underline text-xs">{% if r.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+        </form>
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="action" value="rateplan_delete"><input type="hidden" name="rateplan" value="{{ r.pk }}">
+          <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No rate plans yet — guests book at the room's base price." %}</p>{% endfor %}
+
+  <form method="post" class="grid sm:grid-cols-2 gap-3 items-end mt-4 pt-4 border-t border-gray-100">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="rateplan">
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Name" %}</label>
+      <input name="name" type="text" required placeholder="{% trans 'e.g. Nicht erstattbar, Mit Frühstück' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Short description (optional)" %}</label>
+      <input name="description" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. -10)" %}</label>
+      <input name="percent_adjust" type="number" min="-90" max="200" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Surcharge / night (€, e.g. breakfast)" %}</label>
+      <input name="surcharge_eur" type="text" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Board" %}</label>
+      <select name="meal_plan" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for value, label in meals %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Cancellation" %}</label>
+      <select name="cancellation" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for value, label in cancellations %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Free cancel until (days before, flexible only)" %}</label>
+      <input name="free_cancel_days" type="number" min="0" max="365" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Sort order" %}</label>
+      <input name="sort_order" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
+  </form>
+</div>
+
 {# --- список юнитов --------------------------------------------------------- #}
 <div class="space-y-4 mb-8">
   {% for u in units %}

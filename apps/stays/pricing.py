@@ -1,7 +1,8 @@
-"""Цена за ночь с учётом сезонных/выходных тарифов (A5a).
+"""Цена за ночь с учётом сезонных/выходных тарифов (A5a) и тарифа-плана (H1).
 
-Приоритет: SeasonRate (диапазон дат) → выходная цена (Fr/Sa, если задана) →
-базовая цена юнита. quote_total суммирует по ночам [arrival, departure).
+Приоритет посуточной базы: SeasonRate (диапазон дат) → выходная цена (Fr/Sa, если
+задана) → базовая цена юнита. Поверх базы — модификатор RatePlan (процент + надбавка
+за ночь). quote_total суммирует по ночам [arrival, departure).
 """
 
 from .availability import nights_between
@@ -19,9 +20,22 @@ def nightly_price_cents(unit, day, seasons=None) -> int:
     return unit.price_cents
 
 
-def quote_total_cents(unit, arrival, departure) -> int:
-    """Итог за диапазон с учётом тарифов (сумма по ночам)."""
+def apply_rate_plan(base_cents, rate_plan) -> int:
+    """Наложить тариф (H1) на посуточную базу: процент, затем надбавка за ночь.
+    ``rate_plan`` — RatePlan или duck-объект с ``percent_adjust``/``surcharge_cents``
+    (снимок при переносе); None → база без изменений. Не уходит ниже нуля."""
+    if rate_plan is None:
+        return base_cents
+    percent = getattr(rate_plan, "percent_adjust", 0) or 0
+    surcharge = getattr(rate_plan, "surcharge_cents", 0) or 0
+    adjusted = round(base_cents * (100 + percent) / 100) + surcharge
+    return max(0, adjusted)
+
+
+def quote_total_cents(unit, arrival, departure, rate_plan=None) -> int:
+    """Итог за диапазон с учётом сезон/выходных тарифов и тарифа-плана (сумма по ночам)."""
     seasons = list(unit.season_rates.all())
     return sum(
-        nightly_price_cents(unit, day, seasons) for day in nights_between(arrival, departure)
+        apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
+        for day in nights_between(arrival, departure)
     )

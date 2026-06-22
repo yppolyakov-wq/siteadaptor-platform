@@ -21,7 +21,7 @@ from apps.billing import connect
 from apps.core.fsm import IllegalTransition
 
 from . import availability, services
-from .models import ICalSource, SeasonRate, StayBooking, StayUnit, UnitBlock
+from .models import ICalSource, RatePlan, SeasonRate, StayBooking, StayUnit, UnitBlock
 from .public_views import ical_token
 from .state_machine import StayBookingSM
 
@@ -332,6 +332,28 @@ def units(request):
             src = get_object_or_404(ICalSource, pk=request.POST.get("source"))
             n = services.sync_ical_source(src)
             messages.success(request, _("Synced: %(n)d blocked range(s).") % {"n": n})
+        elif action == "rateplan":  # H1: тариф (на тенанта, для всех номеров)
+            name = request.POST.get("name", "").strip()
+            if name:
+                RatePlan.objects.create(
+                    name=name[:120],
+                    description=request.POST.get("description", "").strip()[:300],
+                    percent_adjust=_int(request.POST.get("percent_adjust", "0"), 0, -90, 200),
+                    surcharge_cents=_eur_to_cents(request.POST.get("surcharge_eur")),
+                    meal_plan=request.POST.get("meal_plan", RatePlan.MEAL_NONE),
+                    cancellation=request.POST.get("cancellation", RatePlan.CANCEL_FLEXIBLE),
+                    free_cancel_days=_int(request.POST.get("free_cancel_days", "0"), 0, 0, 365),
+                    sort_order=_int(request.POST.get("sort_order", "0"), 0, 0, 999),
+                )
+                messages.success(request, _("Rate plan added."))
+            else:
+                messages.error(request, _("Please enter a rate plan name."))
+        elif action == "rateplan_toggle":
+            rp = get_object_or_404(RatePlan, pk=request.POST.get("rateplan"))
+            rp.is_active = not rp.is_active
+            rp.save(update_fields=["is_active", "updated_at"])
+        elif action == "rateplan_delete":
+            RatePlan.objects.filter(pk=request.POST.get("rateplan")).delete()
         return redirect("stays:units")
 
     units = list(
@@ -351,5 +373,8 @@ def units(request):
             "units": units,
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),
+            "rate_plans": list(RatePlan.objects.all()),  # H1
+            "meals": RatePlan.MEALS,
+            "cancellations": RatePlan.CANCELLATIONS,
         },
     )

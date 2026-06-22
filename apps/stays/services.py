@@ -40,6 +40,38 @@ def _unique_stay_code() -> str:
     raise RuntimeError("could not generate unique stay reference code")
 
 
+def _rate_snapshot(rate_plan) -> dict:
+    """Снимок тарифа (H1) для брони: переживает удаление/правку RatePlan и несёт
+    модификаторы для пересчёта при переносе."""
+    if rate_plan is None:
+        return {}
+    return {
+        "name": rate_plan.name,
+        "meal_plan": rate_plan.meal_plan,
+        "meal_label": rate_plan.get_meal_plan_display(),
+        "cancellation": rate_plan.cancellation,
+        "cancellation_label": rate_plan.get_cancellation_display(),
+        "free_cancel_days": rate_plan.free_cancel_days,
+        "percent_adjust": rate_plan.percent_adjust,
+        "surcharge_cents": rate_plan.surcharge_cents,
+    }
+
+
+def _rate_for_booking(booking):
+    """Тариф для пересчёта брони: живой RatePlan, иначе duck-объект из снимка."""
+    if booking.rate_plan_id and booking.rate_plan:
+        return booking.rate_plan
+    snap = booking.rate_snapshot or {}
+    if snap:
+        from types import SimpleNamespace
+
+        return SimpleNamespace(
+            percent_adjust=snap.get("percent_adjust", 0),
+            surcharge_cents=snap.get("surcharge_cents", 0),
+        )
+    return None
+
+
 def _get_or_create_customer(*, name, email, phone) -> Customer:
     if email:
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
@@ -65,10 +97,12 @@ def book_stay(
     source_channel="",
     auto_confirm=False,
     extras=None,
+    rate_plan=None,
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable.
-    extras (#7) — снимок выбранных доп-услуг [{label, price_cents}]; сумма в total."""
+    extras (#7) — снимок выбранных доп-услуг [{label, price_cents}]; сумма в total.
+    rate_plan (H1) — выбранный тариф (RatePlan|None): модификатор цены + снимок."""
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
     if guests < 1:
@@ -97,10 +131,12 @@ def book_stay(
         departure=departure,
         guests=guests,
         price_cents=unit.price_cents,
-        # A5a сезон/выходные + #7 Extras (снимок уже с учётом ночей).
-        total_cents=pricing.quote_total_cents(unit, arrival, departure)
+        # A5a сезон/выходные + H1 тариф + #7 Extras (снимок уже с учётом ночей).
+        total_cents=pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan)
         + extras_engine.total_cents(extras_snap),
         extras=extras_snap,
+        rate_plan=rate_plan,
+        rate_snapshot=_rate_snapshot(rate_plan),
         status=StayBooking.STATUS_CONFIRMED if auto_confirm else StayBooking.STATUS_PENDING,
         note=note,
         source_channel=(source_channel or "")[:50],
@@ -126,9 +162,9 @@ def move_stay(booking, *, arrival, departure):
 
     booking.arrival = arrival
     booking.departure = departure
-    # A5a пересчёт базы + #7 сохранённые Extras (снимок не меняем при переносе).
+    # A5a пересчёт базы + H1 тариф (снимок) + #7 сохранённые Extras (снимки не меняем).
     booking.total_cents = pricing.quote_total_cents(
-        unit, arrival, departure
+        unit, arrival, departure, rate_plan=_rate_for_booking(booking)
     ) + extras_engine.total_cents(booking.extras)
     booking.save(update_fields=["arrival", "departure", "total_cents", "updated_at"])
     return booking

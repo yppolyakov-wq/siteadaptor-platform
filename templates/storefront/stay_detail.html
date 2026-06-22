@@ -52,8 +52,31 @@
         <h2 class="font-semibold">{{ quote.von|date:"d.m.Y" }} → {{ quote.bis|date:"d.m.Y" }}</h2>
         <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
       </div>
-      <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €
-        {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
+      {% if rate_options %}
+        <fieldset class="space-y-2">
+          <legend class="text-sm font-medium mb-1">{% trans "Choose your rate" %}</legend>
+          {% for ro in rate_options %}
+            <label class="flex items-start justify-between gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer hover:border-indigo-400 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/40">
+              <span class="flex items-start gap-2">
+                <input type="radio" name="rate_plan" value="{{ ro.rate.pk }}" {% if forloop.first %}checked{% endif %} class="mt-1 border-gray-300">
+                <span>
+                  <span class="font-medium">{{ ro.rate.name }}</span>
+                  {% if ro.rate.meal_included %}<span class="ml-1 text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ ro.rate.get_meal_plan_display }}</span>{% endif %}
+                  <span class="block text-xs mt-0.5 {% if ro.rate.cancellation == 'flexible' %}text-emerald-700{% else %}text-gray-500{% endif %}">
+                    {% if ro.rate.cancellation == 'flexible' %}{% if ro.rate.free_cancel_days %}{% blocktrans with d=ro.rate.free_cancel_days %}Free cancellation up to {{ d }} days before arrival{% endblocktrans %}{% else %}{% trans "Free cancellation" %}{% endif %}{% else %}{% trans "Non-refundable" %}{% endif %}
+                  </span>
+                  {% if ro.rate.description %}<span class="block text-xs text-gray-400 mt-0.5">{{ ro.rate.description }}</span>{% endif %}
+                </span>
+              </span>
+              <span class="font-semibold whitespace-nowrap">{{ ro.total_eur|floatformat:2 }} €</span>
+            </label>
+          {% endfor %}
+          {% if extras %}<p class="text-xs text-gray-500">{% trans "+ extras below" %}</p>{% endif %}
+        </fieldset>
+      {% else %}
+        <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €
+          {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
+      {% endif %}
       <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">
       <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
       <input type="hidden" name="gaeste" value="{{ quote.guests }}">

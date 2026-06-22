@@ -79,6 +79,60 @@ class StayUnit(TimestampedModel):
         return self.weekend_price_cents / 100
 
 
+class RatePlan(TimestampedModel):
+    """Тариф (Rate Plan, H1) — альтернативный способ продать те же номера: Basis,
+    Nicht-stornierbar, mit Frühstück, Halbpension, Frühbucher, Flexibel. На тенанта
+    (применяется ко всем юнитам). Цена = посуточная (база/сезон/выходные) с
+    модификатором тарифа ``percent_adjust`` (%) + надбавкой за ночь ``surcharge_cents``
+    (напр. завтрак +12 €/ночь). Условия отмены показываем гостю ДО оплаты."""
+
+    MEAL_NONE = "none"
+    MEAL_BREAKFAST = "breakfast"
+    MEAL_HALF = "half_board"
+    MEAL_FULL = "full_board"
+    MEALS = [
+        (MEAL_NONE, "Ohne Verpflegung"),
+        (MEAL_BREAKFAST, "Frühstück"),
+        (MEAL_HALF, "Halbpension"),
+        (MEAL_FULL, "Vollpension"),
+    ]
+
+    CANCEL_FLEXIBLE = "flexible"
+    CANCEL_NONREF = "non_refundable"
+    CANCELLATIONS = [
+        (CANCEL_FLEXIBLE, "Kostenlose Stornierung"),
+        (CANCEL_NONREF, "Nicht erstattbar"),
+    ]
+
+    name = models.CharField(max_length=120)
+    description = models.CharField(max_length=300, blank=True)
+    # Модификатор посуточной цены, % со знаком: −10 = тариф дешевле на 10 %,
+    # +5 = надбавка. 0 = базовая цена.
+    percent_adjust = models.SmallIntegerField(default=0)
+    # Надбавка за ночь (центы) — питание/сервис. Складывается после процента.
+    surcharge_cents = models.PositiveIntegerField(default=0)
+    meal_plan = models.CharField(max_length=20, choices=MEALS, default=MEAL_NONE)
+    cancellation = models.CharField(max_length=20, choices=CANCELLATIONS, default=CANCEL_FLEXIBLE)
+    # Бесплатная отмена до N дней до заезда (для flexible; 0 = до дня заезда).
+    free_cancel_days = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def meal_included(self) -> bool:
+        return self.meal_plan != self.MEAL_NONE
+
+    @property
+    def surcharge_eur(self) -> float:
+        return self.surcharge_cents / 100
+
+
 class SeasonRate(TimestampedModel):
     """Сезонный тариф юнита (A5a): цена за ночь на диапазон дат [start, end]
     включительно. Перебивает базовую и выходную цену. Окна не должны
@@ -156,6 +210,15 @@ class StayBooking(TimestampedModel):
     # #7: снимок выбранных Extras (Frühstück/Parkplatz …): [{label, price_cents}].
     # Сумма уже включена в total_cents. Переживает изменение/удаление Extra.
     extras = models.JSONField(default=list, blank=True)
+    # H1: выбранный тариф (для статистики; SET_NULL — тариф можно удалить).
+    rate_plan = models.ForeignKey(
+        "RatePlan", null=True, blank=True, on_delete=models.SET_NULL, related_name="bookings"
+    )
+    # H1: снимок тарифа на момент брони — переживает удаление/правку RatePlan и
+    # несёт модификаторы для пересчёта при переносе (move_stay). Ключи: name,
+    # meal_plan/meal_label, cancellation/cancellation_label, free_cancel_days,
+    # percent_adjust, surcharge_cents. Сумма уже в total_cents.
+    rate_snapshot = models.JSONField(default=dict, blank=True)
 
     # P2.5b/c reuse: депозит/предоплата через Stripe Connect (деньги → бизнесу).
     PAYMENT_NONE = "none"

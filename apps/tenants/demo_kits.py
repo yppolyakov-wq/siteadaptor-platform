@@ -68,6 +68,9 @@ class DemoKit:
     # Юниты размещения: (name, type, qty, price_eur, guests) ИЛИ богатый dict
     #   {name, type, qty, price, guests, min_nights, description, photos:[kw,…]}.
     stay_units: list = field(default_factory=list)
+    # Тарифы (Rate Plans, H1): список dict {name, percent, surcharge, meal,
+    #   cancellation, free_cancel_days, sort, description?}. На тенанта (все номера).
+    rate_plans: list = field(default_factory=list)
     # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
@@ -1047,6 +1050,40 @@ HOTEL = DemoKit(
             "description": "Komplett ausgestattete Ferienwohnung (55 m²) mit eigener Küche, "
             "Wohnzimmer, Schlafzimmer und Terrasse zum Garten. Perfekt für längere Aufenthalte.",
             "photos": ["apartment,living", "apartment,kitchen", "garden,terrace"],
+        },
+    ],
+    rate_plans=[  # H1: тарифы для всех номеров (гость выбирает при брони)
+        {
+            "name": "Basistarif",
+            "description": "Flexibel & ohne Risiko buchen.",
+            "cancellation": "flexible",
+            "free_cancel_days": 7,
+            "sort": 0,
+        },
+        {
+            "name": "Mit Frühstück",
+            "description": "Inkl. reichhaltigem Frühstücksbuffet.",
+            "surcharge": "12",
+            "meal": "breakfast",
+            "cancellation": "flexible",
+            "free_cancel_days": 3,
+            "sort": 1,
+        },
+        {
+            "name": "Halbpension",
+            "description": "Frühstück & Abendessen inklusive.",
+            "surcharge": "28",
+            "meal": "half_board",
+            "cancellation": "flexible",
+            "free_cancel_days": 3,
+            "sort": 2,
+        },
+        {
+            "name": "Sparpreis (nicht erstattbar)",
+            "description": "Günstiger buchen — keine Stornierung möglich.",
+            "percent": -12,
+            "cancellation": "non_refundable",
+            "sort": 3,
         },
     ],
 )
@@ -2547,6 +2584,21 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     is_active=True,
                 )
             refs["stay_units"].append(str(unit.pk))
+    if kit.rate_plans and is_active("stays"):  # H1 тарифы (на тенанта)
+        from apps.stays.models import RatePlan
+
+        for spec in kit.rate_plans:
+            RatePlan.objects.create(
+                name=spec["name"],
+                description=spec.get("description", ""),
+                percent_adjust=int(spec.get("percent", 0)),
+                surcharge_cents=int(Decimal(str(spec.get("surcharge", "0"))) * 100),
+                meal_plan=spec.get("meal", "none"),
+                cancellation=spec.get("cancellation", "flexible"),
+                free_cancel_days=int(spec.get("free_cancel_days", 0)),
+                sort_order=int(spec.get("sort", 0)),
+                is_active=True,
+            )
     if kit.loyalty and is_active("loyalty"):
         from apps.loyalty.models import LoyaltyProgram
 
@@ -2786,22 +2838,25 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
 
         from django.utils import timezone
 
-        from apps.stays.models import StayUnit
+        from apps.stays.models import RatePlan, StayUnit
         from apps.stays.services import book_stay
 
         units = list(StayUnit.objects.filter(is_active=True).order_by("id"))
         if units:
             today = timezone.localdate()
+            rate_plans = list(RatePlan.objects.filter(is_active=True))
             samples = [
                 (units[0], 5, 3, "Anna Berg", "anna@example.de", 2),
                 (units[min(1, len(units) - 1)], 20, 5, "Familie Lang", "lang@example.de", 4),
             ]
-            for unit, in_days, nights, who, mail, guests in samples:
+            for idx, (unit, in_days, nights, who, mail, guests) in enumerate(samples):
                 arrival = today + timedelta(days=in_days)
                 # Бронь должна быть валидной независимо от порядка юнитов (pk —
                 # UUID): гостей не больше вместимости, ночей не меньше минимума.
                 guests = max(1, min(guests, unit.max_guests))
                 nights = max(nights, unit.min_nights)
+                # H1: разные тарифы у демо-броней, если они заведены.
+                rate_plan = rate_plans[idx % len(rate_plans)] if rate_plans else None
                 try:
                     book_stay(
                         unit,
@@ -2811,6 +2866,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         email=mail,
                         guests=guests,
                         auto_confirm=True,
+                        rate_plan=rate_plan,
                     )
                 except Exception:
                     pass

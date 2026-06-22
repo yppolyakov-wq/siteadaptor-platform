@@ -1305,3 +1305,18 @@
   `_delete_gallery_image` с «Site» (Pillow-валидация, FileRef в site_config.gallery).
   Левая колонка билдера обёрнута, превью-колонка не задета. Тест:
   test_home_builder_gallery_upload_and_delete. **M20 закрыт по основным слоям.**
+- **H1 — тарифы отеля (Rate Plans) + питание (✅, A5/hotel):** новая модель
+  `stays.RatePlan` (на тенанта, применима ко всем номерам): `percent_adjust` (±%),
+  `surcharge_cents` (надбавка за ночь, напр. завтрак), `meal_plan` (ohne/Frühstück/
+  Halb-/Vollpension), `cancellation` (flexibel/nicht erstattbar + `free_cancel_days`),
+  `is_active`/`sort_order`. `pricing.apply_rate_plan` (процент → надбавка, клампим в 0)
+  + `quote_total_cents(rate_plan=…)`. `services.book_stay(rate_plan=…)` пишет FK
+  (`StayBooking.rate_plan`, SET_NULL) + снимок `rate_snapshot` (несёт модификаторы для
+  пересчёта); `move_stay` пересчитывает по живому RatePlan или из снимка. Витрина
+  `/unterkunft/<unit>/`: выбор тарифа (radio) с ценой за диапазон + условия отмены/
+  питание ВИДНЫ до брони (ТЗ §20); подтверждение `/s/<code>/` показывает выбранный
+  тариф. Кабинет `/dashboard/stays/units/`: секция «Rate plans» (CRUD + toggle).
+  Demo-kit `hotel`: 4 тарифа (Basis/Frühstück/Halbpension/Sparpreis nicht erstattbar),
+  применены к демо-броням. Миграция `stays/0008`. Тесты: `test_rate_plans.py` (pricing,
+  снимок, extras-сумма, move с живым тарифом и из снимка после удаления). План —
+  `docs/hotel-archetype-plan.md` (H1 из H1–H8).

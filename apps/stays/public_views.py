@@ -21,7 +21,7 @@ from apps.billing import connect
 from apps.core import ratelimit
 
 from . import availability, payments, services
-from .models import StayBooking, StayUnit
+from .models import RatePlan, StayBooking, StayUnit
 
 RL_LIMIT = 5  # попыток брони на IP
 RL_WINDOW = 600  # за 10 минут
@@ -74,7 +74,9 @@ def unterkunft_unit(request, pk):
     except (TypeError, ValueError):
         guests = 2
 
+    rate_plans = list(RatePlan.objects.filter(is_active=True))
     quote = None
+    rate_options = []
     if von and bis and von >= today and bis > von:
         nights, total_cents, available, reason = _quote(unit, von, bis, guests)
         quote = {
@@ -86,6 +88,16 @@ def unterkunft_unit(request, pk):
             "available": available,
             "reason": reason,
         }
+        if available and rate_plans:
+            from . import pricing
+
+            for rp in rate_plans:
+                rate_options.append(
+                    {
+                        "rate": rp,
+                        "total_eur": pricing.quote_total_cents(unit, von, bis, rate_plan=rp) / 100,
+                    }
+                )
     tenant = getattr(request, "tenant", None)
     deposit_required = unit.deposit_cents > 0 and getattr(tenant, "payments_enabled", False)
     from apps.core import extras as extras_engine
@@ -101,6 +113,7 @@ def unterkunft_unit(request, pk):
             "bis": bis,
             "guests": guests,
             "quote": quote,
+            "rate_options": rate_options,  # H1 тарифы для выбранного диапазона
             "extras": extras_engine.active_for("stays"),  # #7 доп-услуги
             "deposit_required": deposit_required,
             "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
@@ -144,6 +157,13 @@ def unterkunft_book(request, pk):
     extras_snap = extras_engine.snapshot(
         request.POST.getlist("extra"), "stays", nights=(bis - von).days
     )
+    # H1: выбранный тариф (если бизнес завёл тарифы). Невалидный/чужой pk → None
+    # (бронь по базовой цене), но если тарифы есть — берём первый по порядку.
+    rate_plan = None
+    active_rates = list(RatePlan.objects.filter(is_active=True))
+    if active_rates:
+        rate_pk = request.POST.get("rate_plan")
+        rate_plan = next((r for r in active_rates if str(r.pk) == str(rate_pk)), active_rates[0])
     try:
         booking = services.book_stay(
             unit,
@@ -156,6 +176,7 @@ def unterkunft_book(request, pk):
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
             extras=extras_snap,
+            rate_plan=rate_plan,
         )
     except services.MinStay:
         messages.error(request, _("Please book at least the minimum number of nights."))
