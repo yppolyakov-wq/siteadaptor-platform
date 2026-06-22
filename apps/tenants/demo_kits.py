@@ -2338,6 +2338,10 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             ]
             for unit, in_days, nights, who, mail, guests in samples:
                 arrival = today + timedelta(days=in_days)
+                # Бронь должна быть валидной независимо от порядка юнитов (pk —
+                # UUID): гостей не больше вместимости, ночей не меньше минимума.
+                guests = max(1, min(guests, unit.max_guests))
+                nights = max(nights, unit.min_nights)
                 try:
                     book_stay(
                         unit,
