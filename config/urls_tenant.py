@@ -173,6 +173,10 @@ urlpatterns = [
     path("stornieren/<str:token>/", stays_public.unterkunft_cancel, name="storefront-stay-cancel"),
     # H6: Hausordnung / правила проживания.
     path("hausordnung/", stays_public.hausordnung, name="storefront-hausordnung"),
+    # G1: Geschenkgutscheine (продажа подарочных сертификатов).
+    path("gutschein/", stays_public.gutschein_index, name="storefront-gutschein"),
+    path("gutschein/kaufen/", stays_public.gutschein_buy, name="storefront-gutschein-buy"),
+    path("gutschein/danke/", stays_public.gutschein_confirmation, name="storefront-gutschein-ok"),
     # iCal-фид занятости юнита (A5b): Booking.com/Airbnb/Google подписываются.
     path("stays/ical/<str:token>.ics", stays_public.unterkunft_ical, name="storefront-stay-ical"),
     # События/билеты (A6c): список → событие → покупка → подтверждение.

@@ -1,0 +1,57 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Gift voucher" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Gift voucher" %}</h1>
+  <p class="text-gray-500 mb-6">{% trans "Give a stay as a gift — pay securely online and receive the code by email." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" action="{% url 'storefront-gutschein-buy' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_amount">{% trans "Amount (€)" %}</label>
+      <div class="flex flex-wrap gap-2 mb-2">
+        {% for p in presets_eur %}
+          <button type="button" class="gift-preset px-3 py-1.5 rounded-lg border border-gray-300 text-sm hover:border-indigo-400" data-eur="{{ p }}">{{ p }} €</button>
+        {% endfor %}
+      </div>
+      <input id="id_amount" name="amount_eur" type="number" min="10" max="2000" step="1" required value="100" class="w-40 rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Your name" %} *</label>
+        <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Your email" %} *</label>
+        <input id="id_email" name="email" type="email" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_recipient">{% trans "Recipient name (optional)" %}</label>
+      <input id="id_recipient" name="recipient" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_message">{% trans "Message (optional)" %}</label>
+      <textarea id="id_message" name="message" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    </div>
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Continue to payment" %}</button>
+    <p class="text-xs text-gray-400">{% trans "The voucher code is valid for direct bookings on this site." %}</p>
+  </form>
+</div>
+<script>
+  document.querySelectorAll(".gift-preset").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.getElementById("id_amount").value = b.dataset.eur;
+    });
+  });
+</script>
+{% endblock %}

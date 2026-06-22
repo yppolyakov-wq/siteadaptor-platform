@@ -88,6 +88,7 @@ def unterkunft_index(request):
     adults, children = _parse_guests(request.GET)
     guests = adults + children
 
+    tenant = getattr(request, "tenant", None)
     searched = bool(von and bis and von >= today and bis > von)
     # Один юнит без поиска — сразу на его страницу (как было); с датами — прокинем их.
     if len(units) == 1 and not searched:
@@ -127,6 +128,8 @@ def unterkunft_index(request):
             "children": children,
             "searched": searched,
             "results": results,
+            "gift_active": getattr(tenant, "payments_enabled", False)
+            and connect.is_connect_configured(),  # G1 ссылка на гутшайны
         },
     )
 
@@ -327,6 +330,83 @@ def hausordnung(request):
         "storefront/stay_hausordnung.html",
         {"settings": settings_obj},
     )
+
+
+# --- G1: Geschenkgutscheine (продажа подарочных сертификатов) ---------------------
+
+GIFT_PRESETS_CENTS = (5000, 10000, 15000, 20000)  # 50/100/150/200 €
+
+
+def _require_gift_active(request):
+    """Гутшайны доступны, если активен stays И бизнес принимает онлайн-оплату."""
+    _require_stays_active(request)
+    tenant = getattr(request, "tenant", None)
+    if not getattr(tenant, "payments_enabled", False) or not connect.is_connect_configured():
+        raise Http404
+
+
+def gutschein_index(request):
+    _require_gift_active(request)
+    return render(
+        request,
+        "storefront/gift_voucher.html",
+        {"presets_eur": [c // 100 for c in GIFT_PRESETS_CENTS]},
+    )
+
+
+def gutschein_buy(request):
+    _require_gift_active(request)
+    if request.method != "POST":
+        return redirect("storefront-gutschein")
+    if request.POST.get("website"):  # honeypot
+        return redirect("storefront-gutschein")
+    if ratelimit.hit("gift", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
+        return HttpResponse(status=429)
+
+    from apps.loyalty import gift
+
+    try:
+        amount_cents = round(float(request.POST.get("amount_eur", "0").replace(",", ".")) * 100)
+    except (TypeError, ValueError):
+        amount_cents = 0
+    try:
+        gv = gift.create_gift_voucher(
+            buyer_name=request.POST.get("name", ""),
+            buyer_email=request.POST.get("email", ""),
+            amount_cents=amount_cents,
+            recipient_name=request.POST.get("recipient", ""),
+            message=request.POST.get("message", ""),
+        )
+    except ValueError:
+        messages.error(request, _("Please enter your name, email and a valid amount."))
+        return redirect("storefront-gutschein")
+
+    tenant = request.tenant
+    ok_url = request.build_absolute_uri(reverse("storefront-gutschein-ok"))
+    cancel_url = request.build_absolute_uri(reverse("storefront-gutschein"))
+    try:
+        url = connect.connected_checkout_session(
+            connect_id=tenant.stripe_connect_id,
+            amount_cents=gv.amount_cents,
+            product_name=f"Geschenkgutschein {gv.amount_eur:.0f} €",
+            metadata={
+                "kind": "gift_voucher",
+                "tenant_schema": tenant.schema_name,
+                "gift_id": str(gv.id),
+            },
+            success_url=ok_url,
+            cancel_url=cancel_url,
+            business_type=getattr(tenant, "business_type", ""),
+        )
+    except stripe.error.StripeError:
+        messages.error(request, _("Payment is temporarily unavailable. Please try again later."))
+        return redirect("storefront-gutschein")
+    return redirect(url)
+
+
+def gutschein_confirmation(request):
+    _require_gift_active(request)
+    return render(request, "storefront/gift_voucher_ok.html", {})
 
 
 _CANCEL_SALT = "stay-cancel"

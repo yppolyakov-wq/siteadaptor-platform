@@ -1,0 +1,13 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Thank you" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "Thank you for your purchase!" %} 🎁</h1>
+    <p class="text-gray-600">{% trans "Your gift voucher code will arrive by email shortly. You can use it as a promo code when booking on this site." %}</p>
+    <a href="{% url 'storefront-home' %}" class="inline-block mt-5 text-sm text-indigo-600 hover:underline">← {% trans "Back to home" %}</a>
+  </div>
+</div>
+{% endblock %}

@@ -1409,3 +1409,15 @@
   «X € / N Nächte» в `_cards.html`. Тесты — `test_hotel_portal.py` (доступность:
   cheapest/занято/min_nights/вместимость; рендер портала с датами — фильтр+цена+диплинк).
   **H8 (агрегатор отелей) полностью закрыт; план H1–H9 выполнен (H7 свёрнут).**
+- **G1 — Geschenkgutscheine (подарочные сертификаты) (✅, A5/hotel, growth):**
+  новая `loyalty.GiftVoucher` (buyer/recipient/сумма/сообщение/payment_state/
+  stripe_payment_intent/выпущенный `voucher`). `loyalty/gift.py`:
+  `create_gift_voucher` (валидация суммы 10–2000 €), `mark_gift_voucher_paid`
+  (вебхук, кросс-схемно, идемпотентно: выпускает `Voucher` фикс-сумма/1 исп. + письмо).
+  Витрина `/gutschein/` (форма с пресетами → Stripe Connect Checkout → `/gutschein/danke/`),
+  оплата подтверждается тем же вебхуком, что депозиты (`billing.webhooks`, kind=
+  `gift_voucher`). Погашение — уже готовой механикой H4a (поле промокода в брони).
+  Письмо покупателю (`emails/gift_voucher.txt`). Ссылка «🎁 Gutschein verschenken» на
+  `/unterkunft/` при включённой онлайн-оплате. Гейт: stays + payments + Stripe Connect.
+  Миграция `loyalty/0002`. Тесты — `loyalty/tests/test_gift.py` (валидация, выпуск+
+  идемпотентность, погашение как промокод). План — `docs/hotel-growth-plan.md` (G1).

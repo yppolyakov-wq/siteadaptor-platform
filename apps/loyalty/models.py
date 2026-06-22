@@ -93,6 +93,42 @@ class Voucher(TimestampedModel):
         return max(0, min(value, subtotal_cents))
 
 
+class GiftVoucher(TimestampedModel):
+    """Подарочный сертификат (G1): покупается онлайн, после оплаты выпускается
+    `Voucher` (фикс-сумма, 1 использование), который гасится как обычный промокод
+    (H4a — поле промокода в брони). Здесь — только покупка/выпуск/доставка кода."""
+
+    PAYMENT_PENDING = "pending"
+    PAYMENT_PAID = "paid"
+    PAYMENT_STATES = [(PAYMENT_PENDING, "Pending"), (PAYMENT_PAID, "Paid")]
+
+    buyer_name = models.CharField(max_length=120)
+    buyer_email = models.EmailField()
+    recipient_name = models.CharField(max_length=120, blank=True)
+    message = models.CharField(max_length=300, blank=True)
+    amount_cents = models.PositiveIntegerField()
+    payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_PENDING)
+    stripe_payment_intent = models.CharField(max_length=200, blank=True)
+    # Выпущенный код (после оплаты). SET_NULL: код-артефакт переживает удаление записи.
+    voucher = models.ForeignKey(
+        "loyalty.Voucher",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="gift_purchase",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Gutschein {self.amount_eur} € · {self.buyer_email}"
+
+    @property
+    def amount_eur(self) -> float:
+        return self.amount_cents / 100
+
+
 class LoyaltyProgram(TimestampedModel):
     """Программа лояльности (штампы): N штампов → награда."""
 

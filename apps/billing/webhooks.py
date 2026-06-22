@@ -108,6 +108,19 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook stay_deposit: booking not found %s", meta)
         return
 
+    # Подарочный сертификат (G1) — Checkout на connected account → выпуск Voucher.
+    if event_type == "checkout.session.completed" and meta.get("kind") == "gift_voucher":
+        from apps.loyalty.gift import mark_gift_voucher_paid
+
+        ok = mark_gift_voucher_paid(
+            tenant_schema=meta.get("tenant_schema", ""),
+            gift_id=meta.get("gift_id", ""),
+            payment_intent=obj.get("payment_intent", ""),
+        )
+        if not ok:
+            logger.warning("stripe webhook gift_voucher: record not found %s", meta)
+        return
+
     # Anzahlung за смету Handwerker (A7c) — TENANT-схема, статус подписки не трогаем.
     if event_type == "checkout.session.completed" and meta.get("kind") == "job_deposit":
         from apps.jobs.payments import mark_deposit_paid as mark_job_deposit_paid

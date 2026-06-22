@@ -1,0 +1,12 @@
+Hallo {{ gift.buyer_name }},
+
+vielen Dank für Ihren Geschenkgutschein über {{ gift.amount_eur|floatformat:0 }} €.
+
+Gutscheincode: {{ code }}
+
+Dieser Code kann als Promo-Code bei einer Buchung auf unserer Website eingelöst werden.
+{% if gift.recipient_name %}
+Für: {{ gift.recipient_name }}{% endif %}{% if gift.message %}
+Nachricht: {{ gift.message }}{% endif %}
+
+Herzliche Grüße

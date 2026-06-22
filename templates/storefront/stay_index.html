@@ -6,6 +6,8 @@
 <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Stay with us" %}</h1>
 <p class="text-gray-500 mb-6">{% trans "Pick your dates and we'll show what's available." %}</p>
 
+{% if gift_active %}<a href="{% url 'storefront-gutschein' %}" class="inline-block mb-6 text-sm bg-amber-50 text-amber-800 rounded-lg px-3 py-2 hover:bg-amber-100">🎁 {% trans "Give a stay as a gift — buy a voucher" %}</a>{% endif %}
+
 {% if messages %}
   {% for m in messages %}
     <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
