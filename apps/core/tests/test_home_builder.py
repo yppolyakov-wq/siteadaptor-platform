@@ -76,6 +76,32 @@ def test_home_builder_get_renders():
     body = resp.content.decode()
     assert "order_hero" in body  # форма секций отрисована
     assert "arch_visible_catalog" in body  # карточки архетипов
+    assert 'name="accent"' in body and 'name="font"' in body  # M20f: контролы дизайна
+
+
+def test_home_builder_saves_design():
+    """M20f: билдер сохраняет шрифт/стиль hero (site_config) и акцент (Tenant)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbd",
+        name="HBD",
+        site_config={"sections": [{"key": "hero", "enabled": True}]},
+        primary_color="#000000",
+    )
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "font": "serif",
+        "hero_accent": "on",
+        "accent": "#ff8800",
+        "storefront_root": "home",
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["font"] == "serif" and cfg["hero_style"] == "accent"
+    assert tenant.primary_color == "#ff8800"
 
 
 def test_site_view_does_not_wipe_homepage_composition():

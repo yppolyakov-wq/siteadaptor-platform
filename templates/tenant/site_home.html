@@ -35,6 +35,29 @@
       </fieldset>
 
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+        <legend class="font-semibold mb-1">{% trans "Design" %}</legend>
+        <p class="text-xs text-gray-400 mb-4">{% trans "Accent colour, font and banner style — the preview updates as you change them." %}</p>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <label class="text-sm">
+            <span class="block font-medium mb-1">{% trans "Accent colour" %}</span>
+            <input type="color" name="accent" value="{{ accent }}" class="h-10 w-full rounded-lg border border-gray-300 p-1">
+          </label>
+          <label class="text-sm">
+            <span class="block font-medium mb-1">{% trans "Font" %}</span>
+            <select name="font" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {% for key, label in font_options %}
+                <option value="{{ key }}" {% if key == font %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="flex items-center gap-2 text-sm sm:pt-6">
+            <input type="checkbox" name="hero_accent" {% if hero_accent %}checked{% endif %} class="rounded border-gray-300">
+            {% trans "Accent banner background" %}
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
         <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
         <div id="home-blocks" class="space-y-3">
@@ -126,7 +149,17 @@
         blurb: bl ? bl.value : "",
       };
     });
-    return { sections: sections, archetypes: archetypes };
+    // M20f: дизайн вживую — шрифт, стиль hero, акцент.
+    var fontEl = form.querySelector("[name=font]");
+    var heroEl = form.querySelector("[name=hero_accent]");
+    var accentEl = form.querySelector("[name=accent]");
+    return {
+      sections: sections,
+      archetypes: archetypes,
+      font: fontEl ? fontEl.value : "system",
+      hero_style: heroEl && heroEl.checked ? "accent" : "plain",
+      accent: accentEl ? accentEl.value : "",
+    };
   }
 
   var timer = null;

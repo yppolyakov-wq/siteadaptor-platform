@@ -472,8 +472,16 @@ def home_builder_view(request):
         config["archetypes"] = arch
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
+        # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
+        config["font"] = request.POST.get("font", config.get("font", "system"))
+        config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
+        update_fields = ["site_config", "updated_at"]
+        accent = (request.POST.get("accent") or "").strip()
+        if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != request.tenant.primary_color:
+            request.tenant.primary_color = accent
+            update_fields.insert(1, "primary_color")
         request.tenant.site_config = siteconfig.normalize(config)
-        request.tenant.save(update_fields=["site_config", "updated_at"])
+        request.tenant.save(update_fields=update_fields)
         messages.success(request, "Gespeichert.")
         return redirect("site-home")
 
@@ -499,6 +507,15 @@ def home_builder_view(request):
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,
             "storefront_root": config.get("storefront_root", "home"),
+            # M20f: дизайн вживую — текущие значения + варианты шрифта.
+            "font": config.get("font", "system"),
+            "font_options": [
+                ("system", _("System")),
+                ("serif", _("Serif")),
+                ("rounded", _("Rounded")),
+            ],
+            "hero_accent": config.get("hero_style") == "accent",
+            "accent": request.tenant.primary_color or "#4f46e5",
         },
     )
 
@@ -609,7 +626,18 @@ def site_preview_draft(request):
                 cur["hidden"] = bool(ov.get("hidden"))
                 arch[key] = cur
         cfg["archetypes"] = arch
-    request.session["site_preview_draft"] = siteconfig.normalize(cfg)
+    # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
+    if data.get("font") in siteconfig.FONTS:
+        cfg["font"] = data["font"]
+    if data.get("hero_style") in siteconfig.HERO_STYLES:
+        cfg["hero_style"] = data["hero_style"]
+    draft = siteconfig.normalize(cfg)
+    # Акцент — отдельное поле Tenant; кладём override в черновик как `_accent`
+    # (валидный hex), читается context-процессором под ?preview=1.
+    accent = data.get("accent")
+    if isinstance(accent, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", accent.strip()):
+        draft["_accent"] = accent.strip()
+    request.session["site_preview_draft"] = draft
     return HttpResponse(status=204)
 
 

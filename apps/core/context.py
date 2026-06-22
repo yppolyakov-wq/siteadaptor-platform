@@ -112,7 +112,20 @@ def modules_nav(request):
         storefront_table = request.session.get("table", "")
     from apps.tenants import siteconfig
 
-    cfg = siteconfig.normalize(tenant.site_config)
+    # M20 live-preview: под ?preview=1 владелец видит несохранённый черновик из
+    # конструктора (тот же источник, что и storefront_home) — значит и дизайн
+    # (шрифт/hero/акцент) превьюится вживую. Вне превью — сохранённый конфиг.
+    _draft = None
+    if request.GET.get("preview") == "1" and hasattr(request, "session"):
+        d = request.session.get("site_preview_draft")
+        if isinstance(d, dict):
+            _draft = d
+    cfg = siteconfig.normalize(_draft if _draft is not None else tenant.site_config)
+    # Акцент — поле Tenant (не в site_config); в превью отдаём override из черновика
+    # (`_accent`), иначе пусто → шаблон берёт tenant.primary_color.
+    storefront_accent = ""
+    if _draft is not None and isinstance(_draft.get("_accent"), str):
+        storefront_accent = _draft["_accent"]
     font_body, font_head = siteconfig.font_stacks(cfg["font"])
     # P5: hero-фото — LCP-кандидат. Браузер находит background-image поздно
     # (после CSS+layout), поэтому отдаём URL для <link rel=preload> в <head>.
@@ -178,6 +191,8 @@ def modules_nav(request):
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,
+        # M20: override акцента в live-preview (пусто → tenant.primary_color).
+        "storefront_accent": storefront_accent,
         # P5: preload hero-фото (LCP) — пусто, если секция выключена/без фото.
         "storefront_hero_preload": hero_preload,
         # S3: обложка раздела (интро/hero) — пусто вне лендинга архетипа.

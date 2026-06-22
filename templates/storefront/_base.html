@@ -30,7 +30,7 @@
   {# Акцентный цвет + шрифты витрины (P2a, системные стеки — без веб-шрифтов/GDPR). #}
   <style>
     :root {
-      --accent: {{ request.tenant.primary_color|default:"#4f46e5" }};
+      --accent: {{ storefront_accent|default:request.tenant.primary_color|default:"#4f46e5" }};
       --font-body: {{ storefront_font_body|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
       --font-head: {{ storefront_font_head|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
     }

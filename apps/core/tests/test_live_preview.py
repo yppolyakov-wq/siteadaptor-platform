@@ -57,6 +57,63 @@ def test_draft_endpoint_merges_into_session():
     ) == {} or "catalog" not in tenant.site_config.get("archetypes", {})
 
 
+def test_draft_endpoint_includes_design():
+    """M20f: шрифт/стиль hero/акцент попадают в черновик (акцент — как `_accent`)."""
+    tenant = TenantFactory(schema_name="public", slug="dd", name="DD")
+    body = json.dumps(
+        {
+            "sections": [{"key": "hero", "enabled": True}],
+            "font": "rounded",
+            "hero_style": "accent",
+            "accent": "#123456",
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    assert draft["font"] == "rounded" and draft["hero_style"] == "accent"
+    assert draft["_accent"] == "#123456"
+
+
+def test_draft_endpoint_rejects_bad_design():
+    """Неизвестный шрифт и кривой акцент игнорируются (дефолты, без _accent)."""
+    tenant = TenantFactory(schema_name="public", slug="dd2", name="DD2")
+    body = json.dumps(
+        {"sections": [{"key": "hero", "enabled": True}], "font": "comic", "accent": "red"}
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    views.site_preview_draft(req)
+    draft = req.session["site_preview_draft"]
+    assert draft["font"] == "system" and "_accent" not in draft
+
+
+def test_modules_nav_previews_draft_design():
+    """Context-процессор под ?preview=1 отдаёт шрифт/акцент из черновика."""
+    from apps.core.context import modules_nav
+
+    tenant = TenantFactory(schema_name="t", slug="mn", name="MN", primary_color="#000000")
+    draft = siteconfig.normalize({"font": "serif"})
+    draft["_accent"] = "#abcdef"
+    req = _session(RequestFactory().get("/?preview=1"))
+    req.session["site_preview_draft"] = draft
+    req.tenant = tenant
+    ctx = modules_nav(req)
+    assert ctx["storefront_accent"] == "#abcdef"
+    assert "Georgia" in ctx["storefront_font_head"]  # serif-стек заголовков
+
+
 def _home(req, tenant):
     req = _session(req)
     req.tenant = tenant

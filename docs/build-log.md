@@ -1281,3 +1281,12 @@
   path в `site_inline_edit`), `data-edit` в `_cta.html`. Тесты test_inline_edit
   (nested save/reject + cta-маркеры). Без новых моделей. Осталось по M20: палитра
   секций + панель свойств в билдере (M20d), медиа (M20e), тема вживую (M20f).
+- **M20f — тема вживую (✅):** контролы дизайна (акцент-цвет / шрифт / стиль hero)
+  добавлены в конструктор `site_home.html` с live-preview. Ключевое: context-
+  процессор `modules_nav` сделан preview-aware — под `?preview=1` шрифт/hero/акцент
+  берутся из черновика сессии (раньше превью отражало только секции/тексты, не
+  дизайн). Акцент = поле Tenant.primary_color → в черновике override `_accent`,
+  `_base.html` берёт `storefront_accent|default:primary_color`. site_preview_draft
+  принимает font(FONTS)/hero_style(HERO_STYLES)/accent(hex); home_builder_view
+  сохраняет font+hero_style в site_config и accent в Tenant.primary_color. Тесты:
+  draft includes/rejects design, modules_nav preview, home_builder saves design.

@@ -13,8 +13,14 @@
   сам билдер** (WYSIWYG: клик по заголовку/тексту в превью → правка → save на blur)
   и **расширен на секцию CTA** (вложенные поля `cta.title`/`cta.text` через белый
   список `NESTED_TEXT_FIELDS`). Поля hero/about/cta несут `data-edit`.
+- ✅ **M20f (тема вживую)** — контролы дизайна (акцент-цвет, шрифт, стиль hero) в
+  билдере с live-preview. Сделано preview-aware и сам context-процессор
+  (`modules_nav`): под `?preview=1` шрифт/hero/акцент берутся из черновика —
+  раньше превью не отражало дизайн. Акцент (поле Tenant) — override `_accent` в
+  черновике. Сохранение билдера пишет font/hero_style в site_config, accent в
+  Tenant.primary_color.
 - ⏭ Осталось: M20d (палитра секций + панель свойств секции в билдере), M20e (медиа
-  в билдере), M20f (тема вживую). См. ниже.
+  в билдере). См. ниже.
 
 ## 0. Что уже есть (фундамент, не переделываем)
 - `Tenant.site_config` (JSON) — секции, тексты, nav, menus, archetypes, gallery,
