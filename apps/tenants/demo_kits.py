@@ -998,7 +998,9 @@ HOTEL = DemoKit(
         ("Haustier", "15", "stays", False),
     ],
     enable_modules=["stays"],
-    enable_archetypes_section=True,
+    # Карточки номеров показываем напрямую (секция stay_rooms), поэтому тизер-
+    # секция «Unsere Bereiche» для отеля не нужна (была бы дублем).
+    enable_archetypes_section=False,
     storefront_root="home",
     seed_records=True,
     menus=HOTEL_MENUS,
@@ -2194,6 +2196,8 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "hero", "enabled": True},
         # H2: поиск размещения по датам сразу под hero — для отелей/пансионов.
         {"key": "stay_search", "enabled": bool(kit.stay_units)},
+        # Карточки номеров прямо на главной — для отелей/пансионов.
+        {"key": "stay_rooms", "enabled": bool(kit.stay_units)},
         {"key": "archetypes", "enabled": kit.enable_archetypes_section},  # S2: «Unsere Bereiche»
         # Акции/товары — только если у кита есть каталог (иначе пустые секции).
         {"key": "promotions", "enabled": bool(kit.categories)},

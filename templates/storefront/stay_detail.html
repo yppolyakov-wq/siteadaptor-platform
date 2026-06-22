@@ -4,29 +4,158 @@
 
 {% block content %}
 <a href="{% url 'storefront-unterkunft' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All accommodation" %}</a>
-<h1 class="text-2xl md:text-3xl font-bold mt-1 mb-1">{{ unit.name }}</h1>
-<p class="text-gray-500 mb-4">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %} · {% blocktrans with p=unit.price_eur|floatformat:2 %}{{ p }} € / night{% endblocktrans %}{% if unit.min_nights > 1 %} · {% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}{% endif %}</p>
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div class="mt-2 mb-1 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
-{% if unit.images %}
-<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6 max-w-3xl">
-  {% for img in unit.images %}
-    <img src="{{ img.url }}" alt="{{ unit.name }}" loading="lazy" decoding="async" data-lightbox="{{ img.url }}"
-         class="w-full h-40 object-cover rounded-xl bg-gray-100 cursor-zoom-in hover:opacity-95 transition {% if forloop.first %}col-span-2 sm:col-span-3 h-56 sm:h-64{% endif %}">
-  {% endfor %}
+{# Двухколоночная раскладка: слева — фото/галерея, справа — название, цена и бронь. #}
+<div class="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start mt-3">
+  {# ЛЕВО: галерея (кликабельна — лайтбокс) #}
+  <div class="lg:col-span-7">
+    {% if unit.images %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {% for img in unit.images %}
+        <img src="{{ img.url }}" alt="{{ unit.name }}" loading="lazy" decoding="async" data-lightbox="{{ img.url }}"
+             class="w-full h-40 object-cover rounded-xl bg-gray-100 cursor-zoom-in hover:opacity-95 transition {% if forloop.first %}col-span-2 sm:col-span-3 h-64 sm:h-80{% endif %}">
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {# ПРАВО: название, цена, опции (выбор дат + бронь) #}
+  <div class="lg:col-span-5 space-y-4 lg:sticky lg:top-20">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold">{{ unit.name }}</h1>
+      <p class="text-gray-500 mt-1">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if unit.area_sqm %} · {{ unit.area_sqm }} m²{% endif %}{% if unit.bed_type %} · {{ unit.bed_type }}{% endif %}</p>
+      <p class="mt-2 text-xl font-bold">{% blocktrans with p=unit.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
+      {% if unit.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
+    </div>
+
+    {# выбор дат (GET) #}
+    <form method="get" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+      {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
+      <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
+          <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
+          <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>
+          <input id="id_erw" name="erw" type="number" min="1" max="{{ unit.max_guests }}" value="{{ adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_kinder">{% trans "Children" %}</label>
+          <input id="id_kinder" name="kinder" type="number" min="0" max="{{ unit.max_guests }}" value="{{ children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
+    </form>
+
+    {% if quote %}
+      {% if quote.available %}
+        <form method="post" action="{% url 'storefront-unterkunft-book' unit.pk %}" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+          {% csrf_token %}
+          <div class="flex items-baseline justify-between">
+            <h2 class="font-semibold">{{ quote.von|date:"d.m.Y" }} → {{ quote.bis|date:"d.m.Y" }}</h2>
+            <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
+          </div>
+          {% if rate_options %}
+            <fieldset class="space-y-2">
+              <legend class="text-sm font-medium mb-1">{% trans "Choose your rate" %}</legend>
+              {% for ro in rate_options %}
+                <label class="flex items-start justify-between gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer hover:border-indigo-400 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/40">
+                  <span class="flex items-start gap-2">
+                    <input type="radio" name="rate_plan" value="{{ ro.rate.pk }}" {% if forloop.first %}checked{% endif %} class="mt-1 border-gray-300">
+                    <span>
+                      <span class="font-medium">{{ ro.rate.name }}</span>
+                      {% if ro.rate.meal_included %}<span class="ml-1 text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ ro.rate.get_meal_plan_display }}</span>{% endif %}
+                      <span class="block text-xs mt-0.5 {% if ro.rate.cancellation == 'flexible' %}text-emerald-700{% else %}text-gray-500{% endif %}">
+                        {% if ro.rate.cancellation == 'flexible' %}{% if ro.rate.free_cancel_days %}{% blocktrans with d=ro.rate.free_cancel_days %}Free cancellation up to {{ d }} days before arrival{% endblocktrans %}{% else %}{% trans "Free cancellation" %}{% endif %}{% else %}{% trans "Non-refundable" %}{% endif %}
+                      </span>
+                      {% if ro.rate.description %}<span class="block text-xs text-gray-400 mt-0.5">{{ ro.rate.description }}</span>{% endif %}
+                    </span>
+                  </span>
+                  <span class="font-semibold whitespace-nowrap">{{ ro.total_eur|floatformat:2 }} €</span>
+                </label>
+              {% endfor %}
+              {% if extras %}<p class="text-xs text-gray-500">{% trans "+ extras below" %}</p>{% endif %}
+            </fieldset>
+          {% else %}
+            <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €
+              {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
+          {% endif %}
+          {% if kurtaxe_eur %}<p class="text-xs text-gray-500">{% blocktrans with k=kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
+          <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">
+          <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
+          <input type="hidden" name="erw" value="{{ adults }}">
+          <input type="hidden" name="kinder" value="{{ children }}">
+          {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
+          {% if extras %}
+          <fieldset class="space-y-2 border-t border-gray-100 pt-3">
+            <legend class="text-sm font-medium mb-1">{% trans "Extras (optional)" %}</legend>
+            {% for e in extras %}
+              <label class="flex items-center justify-between gap-3 text-sm">
+                <span class="flex items-center gap-2">
+                  <input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300">
+                  {{ e.label }}</span>
+                <span class="text-gray-600 whitespace-nowrap">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %}</span>
+              </label>
+            {% endfor %}
+          </fieldset>
+          {% endif %}
+          <div class="border-t border-gray-100 pt-3">
+            <label class="block text-sm font-medium mb-1" for="id_voucher">{% trans "Promo code (optional)" %}</label>
+            <input id="id_voucher" name="voucher_code" type="text" autocapitalize="characters" placeholder="{% trans 'e.g. SOMMER10' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
+          </div>
+          <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
+              <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
+              <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
+            <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
+            <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+          </div>
+          {% if deposit_required %}
+            <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
+          {% endif %}
+          <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
+        </form>
+      {% else %}
+        <div class="bg-amber-50 text-amber-800 rounded-2xl px-5 py-4 text-sm">
+          {% if quote.reason == 'min_nights' %}{% blocktrans with n=unit.min_nights %}This place requires at least {{ n }} nights.{% endblocktrans %}
+          {% elif quote.reason == 'guests' %}{% blocktrans with n=unit.max_guests %}This place fits up to {{ n }} guests.{% endblocktrans %}
+          {% else %}{% trans "Sorry, these dates are not available. Please try another range." %}{% endif %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
 </div>
-{% endif %}
 
-{% if unit.description %}<p class="text-gray-600 mb-6 max-w-2xl whitespace-pre-line">{{ unit.description }}</p>{% endif %}
+{# Описание + оснащение (под фото и бронью, по ширине контейнера) #}
+{% if unit.description %}<p class="text-gray-600 mt-8 mb-6 max-w-3xl whitespace-pre-line">{{ unit.description }}</p>{% endif %}
 
 {# H3: ключевые факты + Ausstattung #}
 {% if unit.area_sqm or unit.bed_type or unit.amenity_badges %}
-<div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 max-w-2xl">
+<div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 max-w-3xl">
   <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600 mb-3">
     <span>👥 {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</span>
     {% if unit.area_sqm %}<span>📐 {{ unit.area_sqm }} m²</span>{% endif %}
@@ -43,125 +172,11 @@
 </div>
 {% endif %}
 
-{# выбор дат (GET) #}
-<form method="get" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mb-6">
-  {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
-  <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
-  <div class="grid sm:grid-cols-4 gap-4">
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
-      <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
-      <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>
-      <input id="id_erw" name="erw" type="number" min="1" max="{{ unit.max_guests }}" value="{{ adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_kinder">{% trans "Children" %}</label>
-      <input id="id_kinder" name="kinder" type="number" min="0" max="{{ unit.max_guests }}" value="{{ children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-  </div>
-  <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
-</form>
-
-{% if quote %}
-  {% if quote.available %}
-    <form method="post" action="{% url 'storefront-unterkunft-book' unit.pk %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
-      {% csrf_token %}
-      <div class="flex items-baseline justify-between">
-        <h2 class="font-semibold">{{ quote.von|date:"d.m.Y" }} → {{ quote.bis|date:"d.m.Y" }}</h2>
-        <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
-      </div>
-      {% if rate_options %}
-        <fieldset class="space-y-2">
-          <legend class="text-sm font-medium mb-1">{% trans "Choose your rate" %}</legend>
-          {% for ro in rate_options %}
-            <label class="flex items-start justify-between gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer hover:border-indigo-400 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/40">
-              <span class="flex items-start gap-2">
-                <input type="radio" name="rate_plan" value="{{ ro.rate.pk }}" {% if forloop.first %}checked{% endif %} class="mt-1 border-gray-300">
-                <span>
-                  <span class="font-medium">{{ ro.rate.name }}</span>
-                  {% if ro.rate.meal_included %}<span class="ml-1 text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ ro.rate.get_meal_plan_display }}</span>{% endif %}
-                  <span class="block text-xs mt-0.5 {% if ro.rate.cancellation == 'flexible' %}text-emerald-700{% else %}text-gray-500{% endif %}">
-                    {% if ro.rate.cancellation == 'flexible' %}{% if ro.rate.free_cancel_days %}{% blocktrans with d=ro.rate.free_cancel_days %}Free cancellation up to {{ d }} days before arrival{% endblocktrans %}{% else %}{% trans "Free cancellation" %}{% endif %}{% else %}{% trans "Non-refundable" %}{% endif %}
-                  </span>
-                  {% if ro.rate.description %}<span class="block text-xs text-gray-400 mt-0.5">{{ ro.rate.description }}</span>{% endif %}
-                </span>
-              </span>
-              <span class="font-semibold whitespace-nowrap">{{ ro.total_eur|floatformat:2 }} €</span>
-            </label>
-          {% endfor %}
-          {% if extras %}<p class="text-xs text-gray-500">{% trans "+ extras below" %}</p>{% endif %}
-        </fieldset>
-      {% else %}
-        <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €
-          {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
-      {% endif %}
-      {% if kurtaxe_eur %}<p class="text-xs text-gray-500">{% blocktrans with k=kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
-      <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">
-      <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
-      <input type="hidden" name="erw" value="{{ adults }}">
-      <input type="hidden" name="kinder" value="{{ children }}">
-      {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
-      {% if extras %}
-      <fieldset class="space-y-2 border-t border-gray-100 pt-3">
-        <legend class="text-sm font-medium mb-1">{% trans "Extras (optional)" %}</legend>
-        {% for e in extras %}
-          <label class="flex items-center justify-between gap-3 text-sm">
-            <span class="flex items-center gap-2">
-              <input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300">
-              {{ e.label }}</span>
-            <span class="text-gray-600 whitespace-nowrap">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %}</span>
-          </label>
-        {% endfor %}
-      </fieldset>
-      {% endif %}
-      <div class="border-t border-gray-100 pt-3">
-        <label class="block text-sm font-medium mb-1" for="id_voucher">{% trans "Promo code (optional)" %}</label>
-        <input id="id_voucher" name="voucher_code" type="text" autocapitalize="characters" placeholder="{% trans 'e.g. SOMMER10' %}" class="w-full sm:w-60 rounded-lg border border-gray-300 px-3 py-2 uppercase">
-      </div>
-      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
-      <div class="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
-          <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-          <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-        </div>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-        <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
-        <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
-      </div>
-      {% if deposit_required %}
-        <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
-      {% endif %}
-      <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
-    </form>
-  {% else %}
-    <div class="bg-amber-50 text-amber-800 rounded-2xl px-5 py-4 text-sm max-w-xl">
-      {% if quote.reason == 'min_nights' %}{% blocktrans with n=unit.min_nights %}This place requires at least {{ n }} nights.{% endblocktrans %}
-      {% elif quote.reason == 'guests' %}{% blocktrans with n=unit.max_guests %}This place fits up to {{ n }} guests.{% endblocktrans %}
-      {% else %}{% trans "Sorry, these dates are not available. Please try another range." %}{% endif %}
-    </div>
-  {% endif %}
-{% endif %}
-
 {# H3: похожие номера #}
 {% if similar %}
-<section class="mt-10 max-w-3xl">
+<section class="mt-10">
   <h2 class="font-semibold text-lg mb-3">{% trans "Similar rooms" %}</h2>
-  <div class="grid sm:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
     {% for s in similar %}
       <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}{% elif embed %}?embed=1{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
         {% if s.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}

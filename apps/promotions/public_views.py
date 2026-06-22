@@ -121,6 +121,14 @@ def storefront_home(request):
         from apps.tenants import storefront
 
         archetype_teasers = storefront.archetype_teasers(request.tenant)
+    # Карточки номеров на главной (только при активном модуле stays).
+    from apps.core import modules
+
+    stay_rooms = []
+    if "stay_rooms" in sections and modules.is_module_active(request.tenant, "stays"):
+        from apps.stays.models import StayUnit
+
+        stay_rooms = list(StayUnit.objects.filter(is_active=True))
     return render(
         request,
         "storefront/home.html",
@@ -130,6 +138,7 @@ def storefront_home(request):
             "promotions": promos,
             "products_preview": products_preview,
             "archetype_teasers": archetype_teasers,
+            "stay_rooms": stay_rooms,
         },
     )
 

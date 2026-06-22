@@ -206,11 +206,13 @@
       var out = [];
       container.querySelectorAll(":scope > .menu-row").forEach(function (r) {
         var n = r._node;
-        n.label = r.querySelector(":scope > div > .f-label").value;
-        n.type = r.querySelector(":scope > div > .f-type").value;
-        var tg = r.querySelector(":scope > div > div > .f-target");
+        var line = r.querySelector(":scope > div");  // строка с полями (без детей)
+        n.label = line.querySelector(".f-label").value;
+        n.type = line.querySelector(".f-type").value;
+        var tg = line.querySelector(".f-target");
         n.target = tg && !tg.dataset.empty ? (tg.value || "") : "";
-        n.enabled = r.querySelector(":scope > div > .f-enabled").checked;
+        // .f-enabled лежит внутри <label> → ищем по строке, а не как прямого ребёнка.
+        n.enabled = line.querySelector(".f-enabled").checked;
         var kc = r.querySelector(":scope > [data-kids]");
         n.children = kc ? readRows(kc) : (n.children || []);
         out.push(n);

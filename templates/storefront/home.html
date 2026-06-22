@@ -11,9 +11,10 @@
 {% for s in sections %}
   {% if s == "hero" %}{% include "storefront/sections/_hero.html" %}
   {% elif s == "stay_search" %}<div id="buchen" class="scroll-mt-24">{% include "storefront/sections/_stay_search.html" %}</div>
+  {% elif s == "stay_rooms" %}<div id="zimmer" class="scroll-mt-24">{% include "storefront/sections/_stay_rooms.html" %}</div>
   {% elif s == "promotions" %}{% include "storefront/sections/_promotions.html" %}
   {% elif s == "products" %}{% include "storefront/sections/_products.html" %}
-  {% elif s == "archetypes" %}<div id="zimmer" class="scroll-mt-24">{% include "storefront/sections/_archetypes.html" %}</div>
+  {% elif s == "archetypes" %}<div class="scroll-mt-24">{% include "storefront/sections/_archetypes.html" %}</div>
   {% elif s == "about" %}<div id="ueber-uns" class="scroll-mt-24">{% include "storefront/sections/_about.html" %}</div>
   {% elif s == "process" %}{% include "storefront/sections/_process.html" %}
   {% elif s == "team" %}{% include "storefront/sections/_team.html" %}

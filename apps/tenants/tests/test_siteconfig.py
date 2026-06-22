@@ -51,6 +51,7 @@ def test_normalize_empty_gives_defaults():
     assert keys == [
         "hero",
         "stay_search",
+        "stay_rooms",
         "promotions",
         "products",
         "archetypes",

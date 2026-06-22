@@ -266,14 +266,15 @@ def test_apply_hotel_kit_builds_stays_site():
     assert confirmed.count() >= 1
     b = confirmed.first()
     assert b.adults >= 1 and b.kurtaxe_cents > 0
-    # секции акций/товаров выключены (нет каталога), архетипы — включены
+    # секции акций/товаров выключены (нет каталога); карточки номеров на главной
+    # включены, а тизер-секция «Bereiche» для отеля выключена (был бы дубль).
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
-    assert "archetypes" in enabled
+    assert "stay_rooms" in enabled
+    assert "archetypes" not in enabled
     assert "promotions" not in enabled and "products" not in enabled
-    # пустые архетипы скрыты из «Bereiche», stays — виден
+    # пустые архетипы по-прежнему помечены скрытыми в конфиге (на случай включения)
     assert cfg["archetypes"]["catalog"]["hidden"] is True
     assert cfg["archetypes"]["booking"]["hidden"] is True
-    assert not cfg["archetypes"].get("stays", {}).get("hidden")
     # меню ведёт на номера
     assert any(i["target"] == "stays" for i in cfg["menus"]["top"]["items"])
     assert tenant.is_module_active("stays")
