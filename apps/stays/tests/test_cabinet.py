@@ -263,3 +263,13 @@ def test_invoice_action_blocked_when_finance_off(monkeypatch):
     monkeypatch.setattr(request.tenant, "is_module_active", lambda m: False)
     views.stay_action(request, pk=booking.pk)
     assert not Invoice.objects.exists()
+
+
+def test_reports_view_renders(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    unit = _unit(price_cents=10000, quantity=2)
+    _book(unit, 1, 4)  # бронь в текущем окне (book_stay)
+    resp = views.reports(_req(path="/dashboard/stays/reports/"))
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert "RevPAR" in body and "%" in body

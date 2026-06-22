@@ -1430,3 +1430,11 @@
   Pre-stay reminder уже был (E3). Расписание в `CELERY_BEAT_SCHEDULE`
   (`STAY_POSTSTAY_DAYS`, дефолт 1). Миграция `stays/0013`. Тесты —
   `test_post_stay.py` (одно письмо, окно, отмена/старое — пропуск). План G2.
+- **G9 — отчёты загрузки/выручки (✅, A5/hotel, growth):** чистый модуль
+  `stays/reports.py::occupancy_report(start, end)` — Belegung % (проданные/доступные
+  ночи), ADR (Zimmer-Umsatz/ночь), RevPAR, Zimmer-Umsatz (итог − Kurtaxe − Extras),
+  общий Umsatz; выручка через границы периода пропорциональна ночам; считаются
+  pending/confirmed/fulfilled, отменённые/no-show исключены. Кабинет
+  `/dashboard/stays/reports/` (помесячно, ←/→) + ссылка с календаря. Тесты —
+  `test_reports.py` (occupancy/ADR, пропорция через край месяца, исключения
+  Kurtaxe/Extras/cancelled) + рендер во `test_cabinet`. План G9.

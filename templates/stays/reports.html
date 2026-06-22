@@ -1,0 +1,49 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Reports" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Occupancy & revenue" %}</h1>
+  <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+</div>
+
+<div class="flex items-center gap-3 mb-6">
+  <a href="?month={{ prev_month }}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">←</a>
+  <span class="font-semibold">{{ start|date:"F Y" }}</span>
+  {% if not is_current %}<a href="?month={{ next_month }}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">→</a>{% endif %}
+</div>
+
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-500 mb-1">{% trans "Occupancy (Belegung)" %}</p>
+    <p class="text-2xl font-bold">{{ occupancy_pct }} %</p>
+    <p class="text-xs text-gray-400 mt-1">{{ report.sold_nights }} / {{ report.available_nights }} {% trans "room-nights" %}</p>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-500 mb-1">{% trans "ADR (Ø rate / night)" %}</p>
+    {% widthratio report.adr_cents 100 1 as adr_eur %}
+    <p class="text-2xl font-bold">{{ adr_eur }} €</p>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-500 mb-1">RevPAR</p>
+    {% widthratio report.revpar_cents 100 1 as revpar_eur %}
+    <p class="text-2xl font-bold">{{ revpar_eur }} €</p>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-500 mb-1">{% trans "Room revenue" %}</p>
+    {% widthratio report.room_revenue_cents 100 1 as room_eur %}
+    <p class="text-2xl font-bold">{{ room_eur }} €</p>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-500 mb-1">{% trans "Total revenue (incl. extras, Kurtaxe)" %}</p>
+    {% widthratio report.total_revenue_cents 100 1 as total_eur %}
+    <p class="text-2xl font-bold">{{ total_eur }} €</p>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-500 mb-1">{% trans "Bookings" %}</p>
+    <p class="text-2xl font-bold">{{ report.bookings }}</p>
+  </div>
+</div>
+<p class="text-xs text-gray-400 mt-4 max-w-2xl">{% trans "Counts pending/confirmed/fulfilled bookings; revenue across month edges is prorated by nights. Room revenue excludes extras and Kurtaxe." %}</p>
+{% endblock %}

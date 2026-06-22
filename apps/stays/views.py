@@ -410,3 +410,39 @@ def units(request):
             "stay_settings": StaySettings.load(),  # H9 Kurtaxe
         },
     )
+
+
+def _month_bounds(raw):
+    """(start, end, label) месяца из 'YYYY-MM' (или текущий при кривом вводе)."""
+    today = timezone.localdate()
+    try:
+        y, m = (int(x) for x in (raw or "").split("-", 1))
+        start = date(y, m, 1)
+    except (TypeError, ValueError):
+        start = today.replace(day=1)
+    end = date(start.year + (start.month == 12), (start.month % 12) + 1, 1)
+    return start, end
+
+
+@login_required
+def reports(request):
+    """G9: отчёт загрузки/выручки за месяц (Belegung %, ADR, RevPAR, Umsatz)."""
+    from . import reports as reports_mod
+
+    start, end = _month_bounds(request.GET.get("month"))
+    data = reports_mod.occupancy_report(start, end)
+    prev_m = (start - timedelta(days=1)).replace(day=1)
+    nxt = end  # первое число следующего месяца
+    return render(
+        request,
+        "stays/reports.html",
+        {
+            "nav": "stays",
+            "start": start,
+            "report": data,
+            "occupancy_pct": round(data["occupancy"] * 100, 1),
+            "prev_month": prev_m.strftime("%Y-%m"),
+            "next_month": nxt.strftime("%Y-%m"),
+            "is_current": start == timezone.localdate().replace(day=1),
+        },
+    )
