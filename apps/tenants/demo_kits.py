@@ -114,9 +114,26 @@ class DemoKit:
     hide_archetypes: list = field(default_factory=list)
 
 
-# Товар: dict {name, price, desc, img(keyword), variants?[(label,price)],
-#   allergens?[codes], modifiers?[{name,min,max,options:[(label,delta)]}]}
-def _p(name, price, desc, img, variants=None, allergens=None, modifiers=None, badge=""):
+# Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
+#   badge?, unit?, content?, stock?, gtin?, sku?}.
+#   variants — список (label, price) ИЛИ dict {label, price, stock, content, gtin, sku}
+#     (R1 варианты; per-variant остаток/Grundpreis/EAN).
+#   unit/content — Grundpreis (R2, €/kg|l); stock — остаток (R3); gtin — EAN (A1).
+def _p(
+    name,
+    price,
+    desc,
+    img,
+    variants=None,
+    allergens=None,
+    modifiers=None,
+    badge="",
+    unit="",
+    content=None,
+    stock=None,
+    gtin="",
+    sku="",
+):
     return {
         "name": name,
         "price": price,
@@ -126,6 +143,11 @@ def _p(name, price, desc, img, variants=None, allergens=None, modifiers=None, ba
         "allergens": allergens or [],
         "modifiers": modifiers or [],
         "badge": badge,
+        "unit": unit,
+        "content": content,
+        "stock": stock,
+        "gtin": gtin,
+        "sku": sku,
     }
 
 
@@ -1767,6 +1789,247 @@ RETREAT = DemoKit(
     ],
 )
 
+SHOP_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Sortiment", "type": "archetype", "target": "catalog"},
+            {"label": "Aktionen", "type": "archetype", "target": "promotions"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🛒"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+        ],
+    },
+}
+
+# Retail-кит «Hofladen Sonnenfeld» — интернет-магазин: варианты (R1),
+# Grundpreis €/kg|l (R2), остаток (R3), GTIN/EAN (A1), доставка с PLZ-зонами (A2).
+SHOP = DemoKit(
+    key="shop",
+    label="Hofladen Sonnenfeld",
+    business_type="retail",
+    subdomain="shop",
+    accent="#65a30d",  # Hofladen-Grün
+    hero_image_kw="farm,shop",
+    hero_title="Hofladen Sonnenfeld",
+    hero_text="Frisch vom Hof — Obst, Gemüse und Spezialitäten aus der Region. "
+    "Online bestellen, abholen oder liefern lassen.",
+    about_title="Über den Hofladen",
+    about_text="Seit drei Generationen bauen wir an, was bei uns im Laden liegt. "
+    "Regional, saisonal und ehrlich — jetzt auch online.",
+    nav_style="classic",
+    address="Feldweg 1, 40221 Düsseldorf",
+    opening_hours_text="Mo–Sa 8:00–18:00",
+    opening_hours={d: ("08:00", "18:00") for d in range(6)},
+    gallery_kw=["farm,vegetables", "market,stall", "fresh,fruit", "farm,field", "cheese", "honey"],
+    faq=[
+        (
+            "Wie funktioniert die Lieferung?",
+            "In unserem Liefergebiet bringen wir Ihre Bestellung "
+            "nach Hause — die Kosten richten sich nach Ihrer PLZ.",
+        ),
+        (
+            "Gibt es einen Mindestbestellwert?",
+            "Ja, für die Lieferung; zur Abholung gibt es keinen.",
+        ),
+        ("Sind die Produkte bio?", "Vieles ist bio-zertifiziert — am Produkt ausgewiesen."),
+        ("Kann ich auch abholen?", "Ja, Click & Collect ist kostenlos."),
+    ],
+    testimonials=[
+        ("Familie Becker", "Endlich Hofqualität bequem nach Hause. Top!"),
+        ("Renate W.", "Frischer geht's nicht — und die Lieferung ist super zuverlässig."),
+    ],
+    process=[
+        ("Aussuchen", "Im Sortiment stöbern und in den Korb legen."),
+        ("Bestellen", "Abholung oder Lieferung wählen."),
+        ("Genießen", "Frische vom Hof — ganz bequem."),
+    ],
+    trust={"since": "1962", "marks": ["Eigener Anbau", "Bio-zertifiziert", "Regional"]},
+    cta={
+        "title": "Frisch vom Feld in Ihren Korb",
+        "text": "Stöbern Sie im Sortiment und lassen Sie sich beliefern.",
+        "button_label": "Zum Sortiment",
+        "button_url": "/sortiment/",
+    },
+    enable_modules=["orders", "loyalty"],
+    storefront_root="home",
+    seed_records=True,
+    menus=SHOP_MENUS,
+    loyalty={"label": "Hof-Stempelkarte", "stamps": 10, "reward": "1 kg Äpfel gratis"},
+    delivery={
+        "enabled": True,
+        "fee_cents": 490,
+        "free_cents": 4000,  # ab 40 € frei
+        "min_cents": 2000,  # Mindestbestellwert Lieferung 20 €
+        "pickup_min_cents": 0,
+        "area": "Düsseldorf und Umgebung (PLZ 40xxx, 41xxx)",
+        # PLZ-зоны (A2a): своя цена/порог/мин по префиксу; самый длинный выигрывает.
+        "zones": [
+            {"plz": "402", "fee_cents": 290, "free_cents": 3500, "min_cents": 1500},
+            {"plz": "40", "fee_cents": 490, "free_cents": 4000, "min_cents": 2000},
+            {"plz": "41", "fee_cents": 690, "free_cents": 5000, "min_cents": 3000},
+        ],
+    },
+    categories=[
+        (
+            "Obst & Gemüse",
+            "obst-gemuese",
+            [
+                # весовой товар: Grundpreis €/kg, остаток в kg, EAN
+                _p(
+                    "Äpfel 'Elstar'",
+                    "3.90",
+                    "Knackig-süß, vom eigenen Hof.",
+                    "apples",
+                    unit="kg",
+                    content=1,
+                    stock=45,
+                    gtin="4012345000019",
+                    badge="Bio",
+                ),
+                _p(
+                    "Kartoffeln, 2-kg-Sack",
+                    "3.20",
+                    "Festkochend, regional.",
+                    "potatoes",
+                    unit="kg",
+                    content=2,
+                    stock=30,
+                    gtin="4012345000026",
+                ),
+                _p(
+                    "Bio-Tomaten, 500 g",
+                    "2.80",
+                    "Sonnengereift.",
+                    "tomatoes",
+                    unit="kg",
+                    content=0.5,
+                    stock=12,
+                    gtin="4012345000033",
+                    badge="Bio",
+                ),
+                _p(
+                    "Karotten, 1-kg-Bund",
+                    "1.90",
+                    "Mit Grün, erntefrisch.",
+                    "carrots",
+                    unit="kg",
+                    content=1,
+                    stock=20,
+                    gtin="4012345000040",
+                ),
+            ],
+        ),
+        (
+            "Hofladen-Spezialitäten",
+            "spezialitaeten",
+            [
+                # варианты с собственным остатком/Grundpreis/EAN (R1+R2+R3+A1)
+                _p(
+                    "Bio-Honig",
+                    "5.90",
+                    "Aus eigener Imkerei.",
+                    "honey,jar",
+                    unit="kg",
+                    content=0.25,
+                    gtin="4012345000057",
+                    badge="Bio",
+                    variants=[
+                        {
+                            "label": "250 g",
+                            "price": "5.90",
+                            "content": 0.25,
+                            "stock": 24,
+                            "gtin": "4012345000057",
+                        },
+                        {
+                            "label": "500 g",
+                            "price": "9.90",
+                            "content": 0.5,
+                            "stock": 8,
+                            "gtin": "4012345000064",
+                        },
+                    ],
+                ),
+                _p(
+                    "Naturtrüber Apfelsaft, 1 L",
+                    "2.40",
+                    "100 % Direktsaft.",
+                    "apple,juice",
+                    unit="l",
+                    content=1,
+                    stock=40,
+                    gtin="4012345000071",
+                ),
+                _p(
+                    "Eier vom Hof, 10er",
+                    "3.50",
+                    "Aus Freilandhaltung.",
+                    "eggs",
+                    stock=15,
+                    gtin="4012345000088",
+                ),
+                _p(
+                    "Erdbeer-Marmelade, 340 g",
+                    "3.90",
+                    "Hausgemacht.",
+                    "jam,jar",
+                    unit="kg",
+                    content=0.34,
+                    stock=6,
+                    gtin="4012345000095",
+                ),
+            ],
+        ),
+        (
+            "Käse & Wurst",
+            "kaese-wurst",
+            [
+                _p(
+                    "Bergkäse am Stück, 400 g",
+                    "6.80",
+                    "Würzig gereift.",
+                    "cheese,wheel",
+                    unit="kg",
+                    content=0.4,
+                    stock=10,
+                    gtin="4012345000101",
+                    allergens=["milk"],
+                ),
+                _p(
+                    "Landwurst",
+                    "4.50",
+                    "Luftgetrocknet, nach Hausrezept.",
+                    "sausage",
+                    stock=14,
+                    gtin="4012345000118",
+                    variants=[
+                        {"label": "150 g", "price": "4.50", "content": 0.15, "stock": 14},
+                        {"label": "300 g", "price": "8.20", "content": 0.3, "stock": 7},
+                    ],
+                ),
+                _p(
+                    "Bauernbutter, 250 g",
+                    "2.60",
+                    "Frisch gebuttert.",
+                    "butter",
+                    unit="kg",
+                    content=0.25,
+                    stock=18,
+                    gtin="4012345000125",
+                    allergens=["milk"],
+                ),
+            ],
+        ),
+    ],
+)
+
 KITS = {
     RESTAURANT.key: RESTAURANT,
     PRANASY.key: PRANASY,
@@ -1775,6 +2038,7 @@ KITS = {
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
     RETREAT.key: RETREAT,
+    SHOP.key: SHOP,
 }
 
 
@@ -1827,6 +2091,8 @@ def apply_kit(tenant, key: str) -> bool:
         refs["categories"].append(str(category.pk))
         first_in_cat = True
         for item in items:
+            content = item.get("content")
+            stock = item.get("stock")
             product = Product.objects.create(
                 name={"de": item["name"]},
                 description={"de": item["desc"]},
@@ -1835,15 +2101,35 @@ def apply_kit(tenant, key: str) -> bool:
                 images=[_image_ref(item["img"], lock, item["name"])],
                 allergens=item["allergens"],
                 badge=item.get("badge", ""),
+                unit=item.get("unit", ""),  # R2 Grundpreis
+                content_amount=Decimal(str(content)) if content is not None else None,
+                stock_quantity=stock,  # R3 остаток (None = без учёта)
+                gtin=item.get("gtin", ""),  # A1 EAN
+                sku=item.get("sku", ""),
                 is_active=True,
                 is_featured=(len(created_products) < 3),
                 metadata={"demo": True},
             )
             lock += 1
-            for vsort, (vlabel, vprice) in enumerate(item["variants"]):
-                ProductVariant.objects.create(
-                    product=product, label=vlabel, price=Decimal(vprice), sort_order=vsort
-                )
+            for vsort, v in enumerate(item["variants"]):
+                # Вариант — кортеж (label, price) ИЛИ dict с остатком/Grundpreis/EAN.
+                if isinstance(v, dict):
+                    vc = v.get("content")
+                    ProductVariant.objects.create(
+                        product=product,
+                        label=v["label"],
+                        price=Decimal(str(v["price"])),
+                        content_amount=Decimal(str(vc)) if vc is not None else None,
+                        stock_quantity=v.get("stock"),
+                        gtin=v.get("gtin", ""),
+                        sku=v.get("sku", ""),
+                        sort_order=vsort,
+                    )
+                else:
+                    vlabel, vprice = v
+                    ProductVariant.objects.create(
+                        product=product, label=vlabel, price=Decimal(vprice), sort_order=vsort
+                    )
             for gsort, group in enumerate(item.get("modifiers", [])):
                 mg = ModifierGroup.objects.create(
                     product=product,
@@ -2211,6 +2497,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
 
     # Bestellungen (Click & Collect)
     if is_active("orders") and products:
+        from apps.orders.models import Order
         from apps.orders.services import create_order
 
         samples = [
@@ -2221,6 +2508,20 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
         for name, email, items in samples:
             try:
                 create_order(items=items, name=name, email=email, phone="0151 2345678")
+            except Exception:
+                pass
+        # При активной доставке — ещё один заказ с доставкой (показать кабинет A2).
+        if kit.delivery.get("enabled"):
+            try:
+                create_order(
+                    items=[(products[0], 3)],
+                    name="Sabine Lieb",
+                    email="sabine@example.de",
+                    phone="0151 9988776",
+                    fulfillment=Order.FULFILLMENT_DELIVERY,
+                    shipping_address="Beispielstraße 5, 40221 Düsseldorf",
+                    shipping_cents=kit.delivery.get("fee_cents", 0),
+                )
             except Exception:
                 pass
 

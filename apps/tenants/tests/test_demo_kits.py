@@ -339,6 +339,34 @@ def test_apply_retreat_kit_events_program_and_tickets():
         assert tenant.is_module_active(m)
 
 
+def test_apply_shop_kit_retail_features():
+    """Retail-кит: варианты (R1), Grundpreis (R2), остаток (R3), GTIN (A1),
+    доставка с PLZ-зонами (A2) + заказ с доставкой в кабинете."""
+    from apps.catalog.models import Product, ProductVariant
+    from apps.orders.models import Order
+
+    tenant = TenantFactory(schema_name="public", slug="sh", name="SH", business_type="retail")
+    assert demo_kits.apply_kit(tenant, "shop") is True
+
+    # R2 Grundpreis: весовой товар (€/kg)
+    honig = Product.objects.get(name__de="Bio-Honig")
+    assert honig.unit == "kg" and honig.grundpreis is not None
+    assert honig.gtin == "4012345000057"  # A1 EAN
+    # R1 варианты с собственным остатком/EAN (R3/A1)
+    vars_ = ProductVariant.objects.filter(product=honig).order_by("sort_order")
+    assert vars_.count() == 2
+    assert vars_[0].stock_quantity == 24 and vars_[1].stock_quantity == 8
+    assert vars_[1].gtin == "4012345000064"
+    # R3 остаток на простом товаре
+    assert Product.objects.get(name__de="Eier vom Hof, 10er").stock_quantity == 15
+
+    # A2 доставка + PLZ-зоны на тенанте
+    assert tenant.delivery_enabled and len(tenant.delivery_zones) == 3
+    # seed_records → заказ с доставкой в кабинете
+    assert Order.objects.filter(fulfillment=Order.FULFILLMENT_DELIVERY).exists()
+    assert tenant.is_module_active("orders")
+
+
 def test_seed_command_unknown_kit_warns_clearly():
     """Неизвестный кит → заметное предупреждение со списком доступных + подсказкой
     про пересборку контейнера (частая причина в Docker), без обращения к БД."""
