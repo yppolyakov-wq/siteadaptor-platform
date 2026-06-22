@@ -2151,6 +2151,8 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
     """Раскладка секций кита: фото-hero, меню, акции, галерея, отзывы, FAQ, CTA, контакты."""
     return [
         {"key": "hero", "enabled": True},
+        # H2: поиск размещения по датам сразу под hero — для отелей/пансионов.
+        {"key": "stay_search", "enabled": bool(kit.stay_units)},
         {"key": "archetypes", "enabled": kit.enable_archetypes_section},  # S2: «Unsere Bereiche»
         # Акции/товары — только если у кита есть каталог (иначе пустые секции).
         {"key": "promotions", "enabled": bool(kit.categories)},

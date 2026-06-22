@@ -5,6 +5,7 @@
 {# Track C2: главная собирается из секций site_config (порядок/видимость — кабинет «Site»). #}
 {% for s in sections %}
   {% if s == "hero" %}{% include "storefront/sections/_hero.html" %}
+  {% elif s == "stay_search" %}{% include "storefront/sections/_stay_search.html" %}
   {% elif s == "promotions" %}{% include "storefront/sections/_promotions.html" %}
   {% elif s == "products" %}{% include "storefront/sections/_products.html" %}
   {% elif s == "archetypes" %}{% include "storefront/sections/_archetypes.html" %}

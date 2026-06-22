@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Stay with us" %}</h1>
-<p class="text-gray-500 mb-6">{% trans "Pick a place and your dates." %}</p>
+<p class="text-gray-500 mb-6">{% trans "Pick your dates and we'll show what's available." %}</p>
 
 {% if messages %}
   {% for m in messages %}
@@ -12,22 +12,73 @@
   {% endfor %}
 {% endif %}
 
-{% if units %}
-<div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
-  {% for u in units %}
-    <a href="{% url 'storefront-unterkunft-unit' u.pk %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-      {% if u.image_url %}<img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover">{% endif %}
-      <div class="p-5">
-      <h2 class="font-semibold text-lg">{{ u.name }}</h2>
-      <p class="text-sm text-gray-500">{{ u.get_type_display }} · {% blocktrans with n=u.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
-      {% if u.description %}<p class="text-sm text-gray-600 mt-2 line-clamp-3">{{ u.description }}</p>{% endif %}
-      <p class="mt-3 font-semibold">{% blocktrans with p=u.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
-      {% if u.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=u.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
-      </div>
-    </a>
-  {% endfor %}
-</div>
+{# --- быстрый поиск по датам (H2) ------------------------------------------- #}
+<form method="get" class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 max-w-3xl">
+  <div class="grid sm:grid-cols-4 gap-3 items-end">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
+      <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
+      <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_gaeste">{% trans "Guests" %}</label>
+      <input id="id_gaeste" name="gaeste" type="number" min="1" value="{{ guests }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-indigo-700">{% trans "Check availability" %}</button>
+  </div>
+</form>
+
+{% if searched %}
+  {# --- результаты поиска с ценой за диапазон --------------------------------- #}
+  <p class="text-sm text-gray-500 mb-3">{{ von|date:"d.m.Y" }} → {{ bis|date:"d.m.Y" }} · {% blocktrans count n=results.0.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</p>
+  <div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
+    {% for r in results %}
+      {% if r.available %}
+        <a href="{% url 'storefront-unterkunft-unit' r.unit.pk %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&gaeste={{ guests }}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+          {% if r.unit.image_url %}<img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover">{% endif %}
+          <div class="p-5">
+            <h2 class="font-semibold text-lg">{{ r.unit.name }}</h2>
+            <p class="text-sm text-gray-500">{{ r.unit.get_type_display }} · {% blocktrans with n=r.unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
+            <p class="mt-3 font-semibold">{% blocktrans with p=r.from_eur|floatformat:2 %}from {{ p }} € total{% endblocktrans %}</p>
+            <span class="inline-block mt-2 text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5">{% trans "Select" %}</span>
+          </div>
+        </a>
+      {% else %}
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden opacity-60">
+          {% if r.unit.image_url %}<img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover grayscale">{% endif %}
+          <div class="p-5">
+            <h2 class="font-semibold text-lg">{{ r.unit.name }}</h2>
+            <p class="text-sm text-gray-500">{{ r.unit.get_type_display }} · {% blocktrans with n=r.unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
+            <p class="mt-3 text-sm text-amber-700">
+              {% if r.reason == 'min_nights' %}{% blocktrans with n=r.unit.min_nights %}min. {{ n }} nights{% endblocktrans %}
+              {% elif r.reason == 'guests' %}{% blocktrans with n=r.unit.max_guests %}fits up to {{ n }} guests{% endblocktrans %}
+              {% else %}{% trans "Not available for these dates" %}{% endif %}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% elif units %}
+  {# --- без поиска: обзор номеров (как было) ---------------------------------- #}
+  <div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
+    {% for u in units %}
+      <a href="{% url 'storefront-unterkunft-unit' u.pk %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        {% if u.image_url %}<img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover">{% endif %}
+        <div class="p-5">
+          <h2 class="font-semibold text-lg">{{ u.name }}</h2>
+          <p class="text-sm text-gray-500">{{ u.get_type_display }} · {% blocktrans with n=u.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
+          {% if u.description %}<p class="text-sm text-gray-600 mt-2 line-clamp-3">{{ u.description }}</p>{% endif %}
+          <p class="mt-3 font-semibold">{% blocktrans with p=u.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
+          {% if u.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=u.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
 {% else %}
-<p class="text-gray-500">{% trans "No accommodation available right now." %}</p>
+  <p class="text-gray-500">{% trans "No accommodation available right now." %}</p>
 {% endif %}
 {% endblock %}

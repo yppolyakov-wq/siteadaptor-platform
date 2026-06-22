@@ -120,6 +120,29 @@ def test_single_unit_index_redirects_to_detail():
     assert resp.status_code == 302 and str(unit.pk) in resp.url
 
 
+# --- H2: поиск по датам на /unterkunft/ -------------------------------------------
+
+
+def test_index_search_lists_available_with_total_price():
+    free = _unit(price_cents=9000)
+    busy = _unit(price_cents=8000)
+    services.book_stay(busy, arrival=D0, departure=D0 + timedelta(days=3), name="A")
+    request = _req("get", "/unterkunft/", {"von": _iso(0), "bis": _iso(3), "gaeste": "2"})
+    body = public_views.unterkunft_index(request).content.decode()
+    # свободный юнит — со ссылкой-диалплинком (даты прокинуты) и итогом 3×90 = 270
+    assert f"/unterkunft/{free.pk}/?von={_iso(0)}" in body
+    assert "270" in body
+
+
+def test_index_search_single_unit_does_not_redirect():
+    # с датами даже один юнит остаётся на странице результатов (не редирект)
+    _unit()
+    resp = public_views.unterkunft_index(
+        _req("get", "/unterkunft/", {"von": _iso(0), "bis": _iso(3)})
+    )
+    assert resp.status_code == 200
+
+
 def test_ical_export_returns_calendar():
     unit = _unit()
     services.book_stay(unit, arrival=D0, departure=D0 + timedelta(days=3), name="A")

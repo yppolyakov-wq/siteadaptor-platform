@@ -55,12 +55,66 @@ def _quote(unit, von, bis, guests):
     return nights, pricing.quote_total_cents(unit, von, bis), True, None
 
 
+def _unit_from_price_cents(unit, von, bis, rate_plans):
+    """Минимальная цена за диапазон (H2): дешевейший тариф, иначе база (H1)."""
+    from . import pricing
+
+    if rate_plans:
+        return min(pricing.quote_total_cents(unit, von, bis, rate_plan=rp) for rp in rate_plans)
+    return pricing.quote_total_cents(unit, von, bis)
+
+
 def unterkunft_index(request):
     _require_stays_active(request)
-    units = StayUnit.objects.filter(is_active=True)
-    if units.count() == 1:
-        return redirect("storefront-unterkunft-unit", pk=units.first().pk)
-    return render(request, "storefront/stay_index.html", {"units": units})
+    units = list(StayUnit.objects.filter(is_active=True))
+    today = timezone.localdate()
+    von = _parse_date(request.GET.get("von"))
+    bis = _parse_date(request.GET.get("bis"))
+    try:
+        guests = max(1, min(int(request.GET.get("gaeste", "2")), 50))
+    except (TypeError, ValueError):
+        guests = 2
+
+    searched = bool(von and bis and von >= today and bis > von)
+    # Один юнит без поиска — сразу на его страницу (как было); с датами — прокинем их.
+    if len(units) == 1 and not searched:
+        return redirect("storefront-unterkunft-unit", pk=units[0].pk)
+
+    results = None
+    if searched:
+        rate_plans = list(RatePlan.objects.filter(is_active=True))
+        nights = (bis - von).days
+        rows = []
+        for unit in units:
+            _nights_q, _total_cents, available, reason = _quote(unit, von, bis, guests)
+            from_cents = _unit_from_price_cents(unit, von, bis, rate_plans) if available else 0
+            rows.append(
+                {
+                    "unit": unit,
+                    "available": available,
+                    "reason": reason,
+                    "from_eur": from_cents / 100,
+                    "nights": nights,
+                }
+            )
+        # Доступные — вперёд (UX); внутри — дешевле сверху.
+        rows.sort(key=lambda r: (not r["available"], r["from_eur"]))
+        results = rows
+
+    return render(
+        request,
+        "storefront/stay_index.html",
+        {
+            "units": units,
+            "today": today,
+            "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
+            "von": von,
+            "bis": bis,
+            "guests": guests,
+            "searched": searched,
+            "results": results,
+        },
+    )
 
 
 def unterkunft_unit(request, pk):

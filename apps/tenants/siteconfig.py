@@ -18,6 +18,9 @@ from django.utils.translation import gettext_lazy as _
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
     ("hero", _("Welcome banner"), False),
+    # H2: быстрый поиск размещения по датам (для отелей/пансионов). По умолчанию
+    # выкл — показывается, только если включён и активен модуль stays.
+    ("stay_search", _("Booking search (stays)"), False),
     ("promotions", _("Current offers"), True),
     ("products", _("Products"), True),
     # S2: сетка тизеров активных архетипов («Наши разделы / Unsere Bereiche»).
