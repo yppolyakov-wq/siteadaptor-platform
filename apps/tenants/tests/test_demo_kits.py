@@ -298,7 +298,7 @@ def test_apply_friseur_kit_booking_services():
     waschen = Service.objects.get(name="Waschen & Föhnen")
     assert PassPlan.objects.filter(credits=10, service=waschen).exists()  # привязка к услуге
     assert Pass.objects.filter(credits_total=10).exists()  # выдана клиенту
-    for m in ("booking", "loyalty", "orders"):
+    for m in ("booking", "loyalty", "orders", "customer_account"):
         assert tenant.is_module_active(m)
 
 
@@ -312,7 +312,7 @@ def test_apply_werkstatt_kit_jobs_booking_catalog():
     assert Service.objects.filter(name="Ölwechsel", price_cents=4900).exists()
     assert Product.objects.filter(metadata__demo=True).count() == 5  # Teile & Zubehör
     assert Job.objects.count() >= 2  # seed_records → Kostenvoranschläge
-    for m in ("booking", "jobs", "orders"):
+    for m in ("booking", "jobs", "orders", "customer_account"):
         assert tenant.is_module_active(m)
 
 
@@ -348,7 +348,7 @@ def test_apply_retreat_kit_events_program_and_tickets():
 
     assert Service.objects.filter(name="Einzel-Yogastunde (1:1)", price_cents=5500).exists()
     assert Product.objects.filter(metadata__demo=True).count() == 4
-    for m in ("events", "booking", "orders"):
+    for m in ("events", "booking", "orders", "customer_account"):
         assert tenant.is_module_active(m)
 
 
