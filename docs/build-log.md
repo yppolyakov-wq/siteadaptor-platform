@@ -1265,3 +1265,10 @@
   извлечена в `docs/build-log.md` (этот файл) — CLAUDE.md 1377→~170 строк (быстрее
   грузится как память проекта). Добавлен `docs/audit-2026-06-22.md` (срез/оценка),
   `kit-archetype-coverage.md` помечен закрытым. Конвенция: новые инкременты — строкой сюда.
+- **Рефактор ядра — apps.loyalty (✅ в `main`, `3c9242d`, CI зелёный, миграции
+  promotions/0017 + loyalty/0001 state-only):** штампы+ваучеры (Voucher/
+  LoyaltyProgram/LoyaltyCard/StampEvent) вынесены из перегруженного promotions
+  (8→4 модели) в новое TENANT-приложение apps.loyalty. db_table сохранены
+  (promotions_*), перенос через SeparateDatabaseAndState БЕЗ DDL (данные тенантов
+  целы). Customer — общая идентичность, остаётся в promotions. Сервисы/вьюхи
+  лояльности пока в promotions (импортируют модели из loyalty). 1143 теста зелёные.
