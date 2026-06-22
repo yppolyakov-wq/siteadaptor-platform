@@ -169,6 +169,8 @@ urlpatterns = [
         name="storefront-unterkunft-book",
     ),
     path("s/<str:code>/", stays_public.unterkunft_confirmation, name="storefront-stay-ok"),
+    # H4b: самостоятельная отмена брони гостем по подписанной ссылке.
+    path("stornieren/<str:token>/", stays_public.unterkunft_cancel, name="storefront-stay-cancel"),
     # iCal-фид занятости юнита (A5b): Booking.com/Airbnb/Google подписываются.
     path("stays/ical/<str:token>.ics", stays_public.unterkunft_ical, name="storefront-stay-ical"),
     # События/билеты (A6c): список → событие → покупка → подтверждение.

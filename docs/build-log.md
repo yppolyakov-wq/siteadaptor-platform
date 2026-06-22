@@ -1358,3 +1358,18 @@
   карточка настройки Kurtaxe. Demo-кит `hotel`: 2,50 €/Erw./Nacht. Тесты —
   `test_kurtaxe.py` (разбивка гостей, вместимость, legacy-контракт, расчёт сбора,
   пересчёт при переносе, отдельная строка в счёте без НДС). План — H5+H9.
+- **H4 — промокоды + самоотмена брони (✅, A5/hotel):**
+  **H4a промокод:** переиспользован `apps.loyalty.Voucher` (percent/cents/min/лимиты)
+  и атомарное гашение `promotions.services.redeem_voucher`. `book_stay(voucher_code=)`
+  применяет скидку к проживанию+услугам (НЕ к Kurtaxe), кладёт снимок
+  `StayBooking.discount_cents`/`voucher_code`, гасит ваучер в той же транзакции
+  (откат при сбое); код задан, но не применим → `PromoInvalid`. Поле промокода на
+  витрине брони, скидка видна на подтверждении. `move_stay` держит снимок скидки.
+  **H4b самоотмена:** подписанная ссылка `/stornieren/<token>/` (signing, как iCal/
+  unsubscribe) → страница с политикой отмены (из снимка тарифа H1) → POST отменяет
+  через `StayBookingSM`; при бесплатной отмене (flexible до `free_cancel_days`) и
+  оплаченном депозите — возврат через Stripe Connect. `services.cancellation_state`
+  (can_cancel/free). Ссылка «Stornieren» в письмах created/confirmed и на
+  подтверждении. Demo-кит `hotel`: промокод `SOMMER10` (−10 %). Миграция `stays/0011`.
+  Тесты — `test_promo_cancel.py` (скидка не на Kurtaxe, гашение, невалидный/исчерпан,
+  политика отмены flexible/non-refundable/неактивная, подпись токена). План — H4.

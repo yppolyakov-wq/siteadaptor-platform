@@ -118,6 +118,10 @@
         {% endfor %}
       </fieldset>
       {% endif %}
+      <div class="border-t border-gray-100 pt-3">
+        <label class="block text-sm font-medium mb-1" for="id_voucher">{% trans "Promo code (optional)" %}</label>
+        <input id="id_voucher" name="voucher_code" type="text" autocapitalize="characters" placeholder="{% trans 'e.g. SOMMER10' %}" class="w-full sm:w-60 rounded-lg border border-gray-300 px-3 py-2 uppercase">
+      </div>
       <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
       <div class="grid sm:grid-cols-2 gap-4">
         <div>

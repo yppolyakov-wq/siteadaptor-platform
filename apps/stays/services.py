@@ -32,6 +32,10 @@ class MaxGuests(Exception):
     """Гостей больше вместимости юнита (max_guests)."""
 
 
+class PromoInvalid(Exception):
+    """Промокод указан, но не применим (нет такого/просрочен/исчерпан/не достигнут мин)."""
+
+
 def _unique_stay_code() -> str:
     for _ in range(10):
         code = "S-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
@@ -72,6 +76,27 @@ def _rate_for_booking(booking):
     return None
 
 
+def _apply_voucher(code, base_cents):
+    """(discount_cents, code_snapshot) для промокода (H4a). Пусто → (0, "").
+    Код задан, но не применим (нет/просрочен/исчерпан/не достигнут мин) → PromoInvalid.
+    Гасит ваучер атомарно (used_count += 1) — откатится, если транзакция упадёт."""
+    code = (code or "").strip().upper()
+    if not code:
+        return 0, ""
+    from apps.loyalty.models import Voucher
+    from apps.promotions.services import VoucherError, redeem_voucher
+
+    voucher = Voucher.objects.filter(code=code).first()
+    discount = voucher.discount_for(base_cents) if voucher else 0
+    if not voucher or discount <= 0:
+        raise PromoInvalid()
+    try:
+        redeem_voucher(code)  # атомарно проверит лимиты/срок и инкрементнёт
+    except VoucherError as exc:
+        raise PromoInvalid() from exc
+    return discount, code
+
+
 def _get_or_create_customer(*, name, email, phone) -> Customer:
     if email:
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
@@ -100,13 +125,16 @@ def book_stay(
     auto_confirm=False,
     extras=None,
     rate_plan=None,
+    voucher_code="",
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
-    ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable.
+    ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable, PromoInvalid.
     extras (#7) — снимок выбранных доп-услуг [{label, price_cents}]; сумма в total.
     rate_plan (H1) — выбранный тариф (RatePlan|None): модификатор цены + снимок.
     adults/children (H5) — разбивка гостей; guests = adults + children (если задан
-    adults). Kurtaxe (H9) считается по adults и включается в total."""
+    adults). Kurtaxe (H9) считается по adults и включается в total.
+    voucher_code (H4a) — промокод (Voucher): скидка на проживание+услуги (не на
+    Kurtaxe), атомарно гасится; задан, но не применим → PromoInvalid."""
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
     # H5: adults задан → guests = adults + children; иначе старый контракт (guests).
@@ -135,6 +163,11 @@ def book_stay(
     extras_snap = list(extras or [])
     nights = (departure - arrival).days
     kurtaxe = pricing.kurtaxe_total_cents(adults, nights)  # H9
+    # H4a: промокод применяется к проживанию+услугам (не к Kurtaxe).
+    lodging_cents = pricing.quote_total_cents(
+        unit, arrival, departure, rate_plan=rate_plan
+    ) + extras_engine.total_cents(extras_snap)
+    discount_cents, voucher_code_snap = _apply_voucher(voucher_code, lodging_cents)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = StayBooking.objects.create(
         unit=unit,
@@ -146,11 +179,11 @@ def book_stay(
         adults=adults,
         children=children,
         price_cents=unit.price_cents,
-        # A5a сезон/выходные + H1 тариф + #7 Extras + H9 Kurtaxe (всё в итоге).
-        total_cents=pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan)
-        + extras_engine.total_cents(extras_snap)
-        + kurtaxe,
+        # A5a сезон/выходные + H1 тариф + #7 Extras − H4a скидка + H9 Kurtaxe.
+        total_cents=lodging_cents - discount_cents + kurtaxe,
         kurtaxe_cents=kurtaxe,
+        discount_cents=discount_cents,
+        voucher_code=voucher_code_snap,
         extras=extras_snap,
         rate_plan=rate_plan,
         rate_snapshot=_rate_snapshot(rate_plan),
@@ -179,18 +212,39 @@ def move_stay(booking, *, arrival, departure):
 
     booking.arrival = arrival
     booking.departure = departure
-    # A5a база + H1 тариф (снимок) + #7 Extras (снимки) + H9 Kurtaxe (пересчёт по ночам).
+    # A5a база + H1 тариф (снимок) + #7 Extras (снимки) − H4a скидка (снимок) +
+    # H9 Kurtaxe (пересчёт по ночам). Промокод не перегашиваем — держим снимок скидки.
     nights = (departure - arrival).days
     booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
-    booking.total_cents = (
-        pricing.quote_total_cents(unit, arrival, departure, rate_plan=_rate_for_booking(booking))
-        + extras_engine.total_cents(booking.extras)
-        + booking.kurtaxe_cents
-    )
+    lodging_cents = pricing.quote_total_cents(
+        unit, arrival, departure, rate_plan=_rate_for_booking(booking)
+    ) + extras_engine.total_cents(booking.extras)
+    booking.total_cents = max(0, lodging_cents - booking.discount_cents) + booking.kurtaxe_cents
     booking.save(
         update_fields=["arrival", "departure", "total_cents", "kurtaxe_cents", "updated_at"]
     )
     return booking
+
+
+def cancellation_state(booking, today=None) -> dict:
+    """Политика отмены брони по снимку тарифа H1 (H4b): {can_cancel, free}.
+
+    Активная бронь (pending/confirmed) отменяема всегда; «free» (без штрафа/с
+    возвратом депозита) — для flexible до ``free_cancel_days`` дней до заезда;
+    non_refundable → отмена без возврата. fulfilled/cancelled — нельзя."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    if today is None:
+        today = timezone.localdate()
+    if booking.status not in StayBooking.ACTIVE_STATUSES:
+        return {"can_cancel": False, "free": False}
+    snap = booking.rate_snapshot or {}
+    if snap.get("cancellation") == "non_refundable":
+        return {"can_cancel": True, "free": False}
+    days = int(snap.get("free_cancel_days", 0) or 0)
+    return {"can_cancel": True, "free": today <= booking.arrival - timedelta(days=days)}
 
 
 def stay_to_invoice(booking, *, small_business=False):

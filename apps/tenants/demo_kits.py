@@ -73,6 +73,8 @@ class DemoKit:
     rate_plans: list = field(default_factory=list)
     # Kurtaxe (H9): сбор за взрослого за ночь, € (строка/число). 0/пусто = выключено.
     kurtaxe: str = ""
+    # Промокод для брони (H4a): {code, label, percent}. Пусто = нет.
+    stay_promo: dict = field(default_factory=dict)
     # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
@@ -1101,6 +1103,7 @@ HOTEL = DemoKit(
         },
     ],
     kurtaxe="2.50",  # H9: Kurtaxe pro Erwachsenem/Nacht (Überlingen/Bodensee)
+    stay_promo={"code": "SOMMER10", "label": "−10 % Sommer", "percent": 10},  # H4a
 )
 
 AKTIONSMARKT_MENUS = {
@@ -2610,6 +2613,20 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         settings_obj = StaySettings.load()
         settings_obj.kurtaxe_cents = int(Decimal(str(kit.kurtaxe)) * 100)
         settings_obj.save(update_fields=["kurtaxe_cents", "updated_at"])
+    if kit.stay_promo and is_active("stays"):  # H4a промокод брони
+        from apps.loyalty.models import Voucher
+
+        Voucher.objects.get_or_create(
+            code=kit.stay_promo["code"],
+            defaults={
+                "label": kit.stay_promo.get("label", "")[:120],
+                "discount_percent": kit.stay_promo.get("percent") or None,
+                "discount_cents": int(Decimal(str(kit.stay_promo["cents"])) * 100)
+                if kit.stay_promo.get("cents")
+                else None,
+                "max_uses": 0,  # безлимит для демо
+            },
+        )
     if kit.rate_plans and is_active("stays"):  # H1 тарифы (на тенанта)
         from apps.stays.models import RatePlan
 

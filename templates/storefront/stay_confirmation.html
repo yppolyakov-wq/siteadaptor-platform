@@ -20,7 +20,8 @@
         {% for e in booking.extras %}<li>+ {{ e.label }}</li>{% endfor %}
       </ul>
     {% endif %}
-    {% if booking.kurtaxe_cents %}<p class="text-xs text-gray-500 mt-2">{% blocktrans with k=booking.kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
+    {% if booking.discount_cents %}<p class="text-xs text-emerald-700 mt-2">{% blocktrans with d=booking.discount_eur|floatformat:2 c=booking.voucher_code %}Discount {{ c }}: −{{ d }} €{% endblocktrans %}</p>{% endif %}
+    {% if booking.kurtaxe_cents %}<p class="text-xs text-gray-500 mt-1">{% blocktrans with k=booking.kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
     <p class="text-sm font-semibold mt-2">{% blocktrans with t=booking.total_eur|floatformat:2 %}Total: {{ t }} €{% endblocktrans %}</p>
     <p class="text-sm text-gray-500 mt-4">{% trans "Your reference code:" %}</p>
     <p class="text-2xl font-mono font-bold tracking-wider">{{ booking.reference_code }}</p>
@@ -33,6 +34,9 @@
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "We'll confirm your booking shortly." %}</p>
     {% endif %}
     {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-4">{{ request.tenant.address }}</p>{% endif %}
+    {% if cancel_url and booking.status != 'cancelled' %}
+      <p class="text-xs text-gray-400 mt-4">{% trans "Plans changed?" %} <a href="{{ cancel_url }}" class="underline hover:text-gray-600">{% trans "Cancel booking" %}</a></p>
+    {% endif %}
   </div>
   {% include "storefront/_telegram_cta.html" %}
 </div>

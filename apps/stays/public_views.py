@@ -250,12 +250,16 @@ def unterkunft_book(request, pk):
             source_channel=(request.GET.get("ch") or "")[:50],
             extras=extras_snap,
             rate_plan=rate_plan,
+            voucher_code=request.POST.get("voucher_code", "").strip(),
         )
     except services.MinStay:
         messages.error(request, _("Please book at least the minimum number of nights."))
         return redirect(back)
     except services.MaxGuests:
         messages.error(request, _("Too many guests for this unit."))
+        return redirect(back)
+    except services.PromoInvalid:
+        messages.error(request, _("This promo code is not valid for this booking."))
         return redirect(back)
     except (services.StayUnavailable, ValueError):
         messages.error(
@@ -301,7 +305,78 @@ def unterkunft_confirmation(request, code):
     return render(
         request,
         "storefront/stay_confirmation.html",
-        {"booking": booking, "telegram_link": deep_link(booking.customer)},
+        {
+            "booking": booking,
+            "telegram_link": deep_link(booking.customer),
+            "cancel_url": cancel_url(booking),  # H4b
+        },
+    )
+
+
+_CANCEL_SALT = "stay-cancel"
+
+
+def cancel_token(booking) -> str:
+    from django.core import signing
+
+    return signing.dumps(str(booking.pk), salt=_CANCEL_SALT)
+
+
+def cancel_url(booking) -> str:
+    return reverse("storefront-stay-cancel", args=[cancel_token(booking)])
+
+
+def unterkunft_cancel(request, token):
+    """H4b: самостоятельная отмена брони гостем по подписанной ссылке.
+
+    GET — показать политику отмены (из снимка тарифа H1) и кнопку. POST —
+    отменить через FSM; при бесплатной отмене (flexible до дедлайна) и оплаченном
+    депозите вернуть его (Stripe Connect). Невозвратный тариф — отмена без возврата.
+    """
+    _require_stays_active(request)
+    from django.core import signing
+
+    try:
+        pk = signing.loads(token, salt=_CANCEL_SALT)
+    except signing.BadSignature as exc:
+        raise Http404 from exc
+    booking = get_object_or_404(StayBooking.objects.select_related("unit"), pk=pk)
+    state = services.cancellation_state(booking)
+
+    if request.method == "POST" and state["can_cancel"]:
+        from apps.core.fsm import IllegalTransition
+
+        from .state_machine import StayBookingSM
+
+        try:
+            StayBookingSM().apply(booking, "cancelled")
+        except IllegalTransition:
+            messages.error(request, _("This booking can no longer be cancelled."))
+            return redirect(reverse("storefront-stay-cancel", args=[token]))
+        # Возврат депозита: только при бесплатной отмене и оплаченном депозите.
+        tenant = getattr(request, "tenant", None)
+        if (
+            state["free"]
+            and booking.payment_state == StayBooking.PAYMENT_PAID
+            and booking.stripe_payment_intent
+            and getattr(tenant, "stripe_connect_id", "")
+        ):
+            try:
+                connect.refund(
+                    connect_id=tenant.stripe_connect_id,
+                    payment_intent=booking.stripe_payment_intent,
+                )
+                booking.payment_state = StayBooking.PAYMENT_REFUNDED
+                booking.save(update_fields=["payment_state", "updated_at"])
+            except stripe.error.StripeError:
+                pass  # отмена состоялась; возврат можно довести вручную в кабинете
+        messages.success(request, _("Your booking has been cancelled."))
+        return redirect(reverse("storefront-stay-cancel", args=[token]))
+
+    return render(
+        request,
+        "storefront/stay_cancel.html",
+        {"booking": booking, "state": state, "token": token},
     )
 
 

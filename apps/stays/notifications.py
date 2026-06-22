@@ -34,7 +34,15 @@ def enqueue_stay_email(booking, event):
             if base
             else ""
         )
-        subject, body, html = _render(template_base, {**ctx, "unsubscribe_url": unsub})
+        # H4b: ссылка на самоотмену в письмах о брони (created/confirmed).
+        cancel_link = ""
+        if base and event in ("created", "confirmed"):
+            from .public_views import cancel_token
+
+            cancel_link = f"{base}{reverse('storefront-stay-cancel', args=[cancel_token(booking)])}"
+        subject, body, html = _render(
+            template_base, {**ctx, "unsubscribe_url": unsub, "cancel_url": cancel_link}
+        )
         headers = None
         if unsub:
             headers = {

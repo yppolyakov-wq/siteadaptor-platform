@@ -278,6 +278,10 @@ class StayBooking(TimestampedModel):
     # H9: снимок Kurtaxe (курортный сбор) на бронь, центы. Уже включён в total_cents;
     # хранится отдельно для отдельной строки счёта (часто без 7 % Beherbergung-НДС).
     kurtaxe_cents = models.PositiveIntegerField(default=0)
+    # H4a: применённый промокод (Voucher) — снимок кода и суммы скидки (центы).
+    # Скидка уже вычтена из total_cents; снимок переживает изменение/удаление ваучера.
+    voucher_code = models.CharField(max_length=12, blank=True)
+    discount_cents = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["arrival"]
@@ -305,6 +309,12 @@ class StayBooking(TimestampedModel):
         from decimal import Decimal
 
         return Decimal(self.kurtaxe_cents) / 100
+
+    @property
+    def discount_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.discount_cents) / 100
 
 
 class ICalSource(TimestampedModel):
