@@ -1342,3 +1342,19 @@
   у 4 номеров заполнены area/bed/amenities. Миграция `stays/0009`. Тесты —
   `test_rooms.py` (порядок/фильтр бейджей, рендер фактов+Ausstattung, похожие номера
   тем же типом вперёд, отсутствие блока у одиночного). План — H3.
+- **H5 — гости: взрослые + дети (✅, A5/hotel, минимально):** `StayBooking.adults`/
+  `children` (вместимость = adults+children ≤ max_guests); `guests` остаётся итогом
+  для совместимости. `book_stay(adults=, children=)` (фолбэк на legacy `guests`).
+  Витрина (поиск на `/unterkunft/`, секция главной, форма номера) и диплинки — поля
+  «Erwachsene»/«Kinder» (`erw`/`kinder`, фолбэк `gaeste`). Подтверждение показывает
+  разбивку. БЕЗ возрастных тарифов (ТЗ §5.2). Миграция `stays/0010`.
+- **H9 — Kurtaxe / Tourismusabgabe (✅, A5/hotel, DACH-обязательное):** настройка на
+  тенанта `stays.StaySettings` (синглтон, `load()`): сбор за взрослого за ночь
+  (`kurtaxe_cents`, дети бесплатно). `pricing.kurtaxe_total_cents(adults, nights)`;
+  `book_stay`/`move_stay` считают и кладут снимок `StayBooking.kurtaxe_cents`, сумма
+  включена в `total_cents`. Витрина: «inkl. X € Kurtaxe» в котировке и подтверждении.
+  `stay_to_invoice` выставляет Kurtaxe отдельной строкой без 7 % (durchlaufender
+  Posten; база Beherbergung = итог − Kurtaxe). Кабинет `/dashboard/stays/units/` —
+  карточка настройки Kurtaxe. Demo-кит `hotel`: 2,50 €/Erw./Nacht. Тесты —
+  `test_kurtaxe.py` (разбивка гостей, вместимость, legacy-контракт, расчёт сбора,
+  пересчёт при переносе, отдельная строка в счёте без НДС). План — H5+H9.

@@ -6,7 +6,7 @@
   <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 max-w-3xl mx-auto">
     <h2 class="font-semibold text-lg mb-3">{% trans "Check availability" %}</h2>
     <form method="get" action="{% url 'storefront-unterkunft' %}">
-      <div class="grid sm:grid-cols-4 gap-3 items-end">
+      <div class="grid sm:grid-cols-5 gap-3 items-end">
         <div>
           <label class="block text-sm font-medium mb-1" for="hs_von">{% trans "Arrival" %}</label>
           <input id="hs_von" name="von" type="date" required min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
@@ -16,8 +16,12 @@
           <input id="hs_bis" name="bis" type="date" required min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" for="hs_gaeste">{% trans "Guests" %}</label>
-          <input id="hs_gaeste" name="gaeste" type="number" min="1" value="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <label class="block text-sm font-medium mb-1" for="hs_erw">{% trans "Adults" %}</label>
+          <input id="hs_erw" name="erw" type="number" min="1" value="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="hs_kinder">{% trans "Children" %}</label>
+          <input id="hs_kinder" name="kinder" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-indigo-700">{% trans "Search" %}</button>
       </div>

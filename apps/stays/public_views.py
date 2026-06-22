@@ -41,6 +41,21 @@ def _parse_date(raw):
         return None
 
 
+def _parse_guests(params):
+    """(adults, children) из GET/POST (H5). Поля erw/kinder; фолбэк на legacy
+    `gaeste` (= adults, 0 детей) — диплинки H2 продолжают работать."""
+
+    def _i(key, default):
+        try:
+            return max(0, min(int(params.get(key, "")), 50))
+        except (TypeError, ValueError):
+            return default
+
+    if params.get("erw") is not None or params.get("kinder") is not None:
+        return max(1, _i("erw", 2)), _i("kinder", 0)
+    return max(1, _i("gaeste", 2)), 0
+
+
 def _quote(unit, von, bis, guests):
     """(nights, total_cents, available, reason) для выбранного диапазона."""
     nights = (bis - von).days
@@ -70,10 +85,8 @@ def unterkunft_index(request):
     today = timezone.localdate()
     von = _parse_date(request.GET.get("von"))
     bis = _parse_date(request.GET.get("bis"))
-    try:
-        guests = max(1, min(int(request.GET.get("gaeste", "2")), 50))
-    except (TypeError, ValueError):
-        guests = 2
+    adults, children = _parse_guests(request.GET)
+    guests = adults + children
 
     searched = bool(von and bis and von >= today and bis > von)
     # Один юнит без поиска — сразу на его страницу (как было); с датами — прокинем их.
@@ -110,7 +123,8 @@ def unterkunft_index(request):
             "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
             "von": von,
             "bis": bis,
-            "guests": guests,
+            "adults": adults,
+            "children": children,
             "searched": searched,
             "results": results,
         },
@@ -123,35 +137,33 @@ def unterkunft_unit(request, pk):
     today = timezone.localdate()
     von = _parse_date(request.GET.get("von"))
     bis = _parse_date(request.GET.get("bis"))
-    try:
-        guests = max(1, min(int(request.GET.get("gaeste", "2")), 50))
-    except (TypeError, ValueError):
-        guests = 2
+    adults, children = _parse_guests(request.GET)
+    guests = adults + children
+
+    from . import pricing
 
     rate_plans = list(RatePlan.objects.filter(is_active=True))
     quote = None
     rate_options = []
+    kurtaxe_eur = 0
     if von and bis and von >= today and bis > von:
         nights, total_cents, available, reason = _quote(unit, von, bis, guests)
+        # H9: Kurtaxe (adults × ночи × ставка) — поверх проживания, в итог брони.
+        kurtaxe_cents = pricing.kurtaxe_total_cents(adults, nights) if available else 0
+        kurtaxe_eur = kurtaxe_cents / 100
         quote = {
             "von": von,
             "bis": bis,
             "guests": guests,
             "nights": nights,
-            "total_eur": total_cents / 100,
+            "total_eur": (total_cents + kurtaxe_cents) / 100,
             "available": available,
             "reason": reason,
         }
         if available and rate_plans:
-            from . import pricing
-
             for rp in rate_plans:
-                rate_options.append(
-                    {
-                        "rate": rp,
-                        "total_eur": pricing.quote_total_cents(unit, von, bis, rate_plan=rp) / 100,
-                    }
-                )
+                rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp)
+                rate_options.append({"rate": rp, "total_eur": (rp_cents + kurtaxe_cents) / 100})
     tenant = getattr(request, "tenant", None)
     deposit_required = unit.deposit_cents > 0 and getattr(tenant, "payments_enabled", False)
     from apps.core import extras as extras_engine
@@ -170,9 +182,12 @@ def unterkunft_unit(request, pk):
             "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
             "von": von,
             "bis": bis,
+            "adults": adults,
+            "children": children,
             "guests": guests,
             "quote": quote,
             "rate_options": rate_options,  # H1 тарифы для выбранного диапазона
+            "kurtaxe_eur": kurtaxe_eur,  # H9 (в total уже включена)
             "extras": extras_engine.active_for("stays"),  # #7 доп-услуги
             "deposit_required": deposit_required,
             "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
@@ -181,10 +196,10 @@ def unterkunft_unit(request, pk):
     )
 
 
-def _back_to_unit(pk, von, bis, guests):
+def _back_to_unit(pk, von, bis, adults, children):
     url = reverse("storefront-unterkunft-unit", args=[pk])
     if von and bis:
-        return f"{url}?von={von}&bis={bis}&gaeste={guests}"
+        return f"{url}?von={von}&bis={bis}&erw={adults}&kinder={children}"
     return url
 
 
@@ -200,13 +215,10 @@ def unterkunft_book(request, pk):
 
     von = _parse_date(request.POST.get("von"))
     bis = _parse_date(request.POST.get("bis"))
-    try:
-        guests = max(1, min(int(request.POST.get("gaeste", "2")), 50))
-    except (TypeError, ValueError):
-        guests = 2
+    adults, children = _parse_guests(request.POST)
     if not (von and bis):
         raise Http404
-    back = _back_to_unit(pk, von, bis, guests)
+    back = _back_to_unit(pk, von, bis, adults, children)
 
     name = request.POST.get("name", "").strip()
     if not name:
@@ -232,7 +244,8 @@ def unterkunft_book(request, pk):
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
-            guests=guests,
+            adults=adults,
+            children=children,
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
             extras=extras_snap,

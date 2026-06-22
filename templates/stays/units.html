@@ -14,6 +14,25 @@
   {% endfor %}
 {% endif %}
 
+{# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
+  <h2 class="font-semibold mb-1">{% trans "Kurtaxe / tourist tax" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Per adult per night, added to every booking (0 = off). Children are free. Shown separately to the guest and on the invoice." %}</p>
+  <form method="post" class="flex items-end gap-3 flex-wrap">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="kurtaxe">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amount / adult / night (€)" %}</label>
+      <input name="kurtaxe_eur" type="text" value="{{ stay_settings.kurtaxe_eur|stringformat:'.2f' }}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label" %}</label>
+      <input name="kurtaxe_label" type="text" value="{{ stay_settings.kurtaxe_label }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</div>
+
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
   <h2 class="font-semibold mb-1">{% trans "Rate plans" %}</h2>

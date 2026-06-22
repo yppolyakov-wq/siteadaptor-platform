@@ -71,6 +71,8 @@ class DemoKit:
     # Тарифы (Rate Plans, H1): список dict {name, percent, surcharge, meal,
     #   cancellation, free_cancel_days, sort, description?}. На тенанта (все номера).
     rate_plans: list = field(default_factory=list)
+    # Kurtaxe (H9): сбор за взрослого за ночь, € (строка/число). 0/пусто = выключено.
+    kurtaxe: str = ""
     # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
@@ -1098,6 +1100,7 @@ HOTEL = DemoKit(
             "sort": 3,
         },
     ],
+    kurtaxe="2.50",  # H9: Kurtaxe pro Erwachsenem/Nacht (Überlingen/Bodensee)
 )
 
 AKTIONSMARKT_MENUS = {
@@ -2601,6 +2604,12 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     is_active=True,
                 )
             refs["stay_units"].append(str(unit.pk))
+    if kit.kurtaxe and is_active("stays"):  # H9 Kurtaxe (на тенанта)
+        from apps.stays.models import StaySettings
+
+        settings_obj = StaySettings.load()
+        settings_obj.kurtaxe_cents = int(Decimal(str(kit.kurtaxe)) * 100)
+        settings_obj.save(update_fields=["kurtaxe_cents", "updated_at"])
     if kit.rate_plans and is_active("stays"):  # H1 тарифы (на тенанта)
         from apps.stays.models import RatePlan
 

@@ -231,7 +231,11 @@ class StayBooking(TimestampedModel):
     reference_code = models.CharField(max_length=12, unique=True)  # "S-XXXXXX"
     arrival = models.DateField()
     departure = models.DateField()
-    guests = models.PositiveSmallIntegerField(default=1)
+    guests = models.PositiveSmallIntegerField(default=1)  # итого (adults + children)
+    # H5: разбивка гостей (вместимость = adults + children ≤ max_guests). guests
+    # держим как итог для совместимости; adults/children — для Kurtaxe и отображения.
+    adults = models.PositiveSmallIntegerField(default=1)
+    children = models.PositiveSmallIntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
@@ -271,6 +275,9 @@ class StayBooking(TimestampedModel):
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # для refund
     # A5: выставленная Rechnung (finance.Invoice.id) — гард от двойного счёта.
     invoice_id = models.UUIDField(null=True, blank=True)
+    # H9: снимок Kurtaxe (курортный сбор) на бронь, центы. Уже включён в total_cents;
+    # хранится отдельно для отдельной строки счёта (часто без 7 % Beherbergung-НДС).
+    kurtaxe_cents = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["arrival"]
@@ -293,6 +300,12 @@ class StayBooking(TimestampedModel):
 
         return Decimal(self.total_cents) / 100
 
+    @property
+    def kurtaxe_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.kurtaxe_cents) / 100
+
 
 class ICalSource(TimestampedModel):
     """Внешний iCal-фид (Booking.com/Airbnb) для юнита (A5b). Синк заводит блоки
@@ -310,3 +323,34 @@ class ICalSource(TimestampedModel):
 
     def __str__(self):
         return f"{self.unit}: {self.label or self.url}"
+
+
+class StaySettings(TimestampedModel):
+    """Настройки размещения на тенанта (H9) — синглтон в схеме тенанта.
+
+    Kurtaxe/Tourismusabgabe: сбор за взрослого за ночь (центы; 0 = выключено). Дети
+    по умолчанию бесплатно (малый отель — без возрастных сеток). Сумма брони =
+    adults × nights × kurtaxe_cents."""
+
+    kurtaxe_cents = models.PositiveIntegerField(default=0)
+    kurtaxe_label = models.CharField(max_length=80, default="Kurtaxe")
+    kurtaxe_children_free = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Stay settings"
+        verbose_name_plural = "Stay settings"
+
+    def __str__(self):
+        return "Stay settings"
+
+    @classmethod
+    def load(cls):
+        """Единственная строка настроек схемы (создаёт дефолтную при первом обращении)."""
+        obj = cls.objects.first()
+        if obj is None:
+            obj = cls.objects.create()
+        return obj
+
+    @property
+    def kurtaxe_eur(self) -> float:
+        return self.kurtaxe_cents / 100

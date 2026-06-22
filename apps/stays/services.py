@@ -93,6 +93,8 @@ def book_stay(
     email="",
     phone="",
     guests=1,
+    adults=None,
+    children=0,
     note="",
     source_channel="",
     auto_confirm=False,
@@ -102,9 +104,18 @@ def book_stay(
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable.
     extras (#7) — снимок выбранных доп-услуг [{label, price_cents}]; сумма в total.
-    rate_plan (H1) — выбранный тариф (RatePlan|None): модификатор цены + снимок."""
+    rate_plan (H1) — выбранный тариф (RatePlan|None): модификатор цены + снимок.
+    adults/children (H5) — разбивка гостей; guests = adults + children (если задан
+    adults). Kurtaxe (H9) считается по adults и включается в total."""
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
+    # H5: adults задан → guests = adults + children; иначе старый контракт (guests).
+    if adults is not None:
+        adults = max(1, int(adults))
+        children = max(0, int(children))
+        guests = adults + children
+    else:
+        adults, children = guests, 0
     if guests < 1:
         raise ValueError("guests must be >= 1")
 
@@ -122,6 +133,8 @@ def book_stay(
     from apps.core import extras as extras_engine
 
     extras_snap = list(extras or [])
+    nights = (departure - arrival).days
+    kurtaxe = pricing.kurtaxe_total_cents(adults, nights)  # H9
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = StayBooking.objects.create(
         unit=unit,
@@ -130,10 +143,14 @@ def book_stay(
         arrival=arrival,
         departure=departure,
         guests=guests,
+        adults=adults,
+        children=children,
         price_cents=unit.price_cents,
-        # A5a сезон/выходные + H1 тариф + #7 Extras (снимок уже с учётом ночей).
+        # A5a сезон/выходные + H1 тариф + #7 Extras + H9 Kurtaxe (всё в итоге).
         total_cents=pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan)
-        + extras_engine.total_cents(extras_snap),
+        + extras_engine.total_cents(extras_snap)
+        + kurtaxe,
+        kurtaxe_cents=kurtaxe,
         extras=extras_snap,
         rate_plan=rate_plan,
         rate_snapshot=_rate_snapshot(rate_plan),
@@ -162,11 +179,17 @@ def move_stay(booking, *, arrival, departure):
 
     booking.arrival = arrival
     booking.departure = departure
-    # A5a пересчёт базы + H1 тариф (снимок) + #7 сохранённые Extras (снимки не меняем).
-    booking.total_cents = pricing.quote_total_cents(
-        unit, arrival, departure, rate_plan=_rate_for_booking(booking)
-    ) + extras_engine.total_cents(booking.extras)
-    booking.save(update_fields=["arrival", "departure", "total_cents", "updated_at"])
+    # A5a база + H1 тариф (снимок) + #7 Extras (снимки) + H9 Kurtaxe (пересчёт по ночам).
+    nights = (departure - arrival).days
+    booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
+    booking.total_cents = (
+        pricing.quote_total_cents(unit, arrival, departure, rate_plan=_rate_for_booking(booking))
+        + extras_engine.total_cents(booking.extras)
+        + booking.kurtaxe_cents
+    )
+    booking.save(
+        update_fields=["arrival", "departure", "total_cents", "kurtaxe_cents", "updated_at"]
+    )
     return booking
 
 
@@ -188,24 +211,33 @@ def stay_to_invoice(booking, *, small_business=False):
             return existing
 
     gross = Decimal(booking.total_cents) / 100
+    # H9: Kurtaxe — durchlaufender Posten, отдельной строкой без 7 % Beherbergung-НДС;
+    # из базы НДС её исключаем (gross_beh = итог − Kurtaxe).
+    kurtaxe = Decimal(booking.kurtaxe_cents) / 100
+    gross_beh = gross - kurtaxe
     rate = Decimal("0") if small_business else Decimal("7")
     if rate:
-        net = (gross / (1 + rate / 100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        net_beh = (gross_beh / (1 + rate / 100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     else:
-        net = gross
-    vat = gross - net
-    line = {
-        "text": (
-            f"Übernachtung {booking.unit.name}: {booking.nights} "
-            f"Nächte ({booking.arrival:%d.%m.%Y}–{booking.departure:%d.%m.%Y})"
-        ),
-        "qty": 1,
-        "unit_price": str(net),
-    }
+        net_beh = gross_beh
+    vat = gross_beh - net_beh
+    net = net_beh + kurtaxe  # Kurtaxe без НДС → net == gross по этой строке
+    lines = [
+        {
+            "text": (
+                f"Übernachtung {booking.unit.name}: {booking.nights} "
+                f"Nächte ({booking.arrival:%d.%m.%Y}–{booking.departure:%d.%m.%Y})"
+            ),
+            "qty": 1,
+            "unit_price": str(net_beh),
+        }
+    ]
+    if kurtaxe:
+        lines.append({"text": "Kurtaxe (ohne USt.)", "qty": 1, "unit_price": str(kurtaxe)})
     invoice = Invoice.objects.create(
         customer=booking.customer,
         recipient=str(booking.customer)[:500],
-        lines=[line],
+        lines=lines,
         vat_rate=rate,
         net=net,
         vat_amount=vat,

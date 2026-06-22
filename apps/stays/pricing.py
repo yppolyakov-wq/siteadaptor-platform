@@ -39,3 +39,14 @@ def quote_total_cents(unit, arrival, departure, rate_plan=None) -> int:
         apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
         for day in nights_between(arrival, departure)
     )
+
+
+def kurtaxe_total_cents(adults, nights, settings=None) -> int:
+    """Kurtaxe за бронь (H9): adults × ночи × ставка. Дети бесплатно (по умолчанию).
+    settings — StaySettings (грузим, если не передан); 0/выключено → 0."""
+    if settings is None:
+        from .models import StaySettings
+
+        settings = StaySettings.load()
+    rate = getattr(settings, "kurtaxe_cents", 0) or 0
+    return max(0, int(adults)) * max(0, int(nights)) * rate

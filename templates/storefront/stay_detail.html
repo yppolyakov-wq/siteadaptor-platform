@@ -46,7 +46,7 @@
 {# выбор дат (GET) #}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mb-6">
   <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
-  <div class="grid sm:grid-cols-3 gap-4">
+  <div class="grid sm:grid-cols-4 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
       <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
@@ -56,8 +56,12 @@
       <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_gaeste">{% trans "Guests" %}</label>
-      <input id="id_gaeste" name="gaeste" type="number" min="1" max="{{ unit.max_guests }}" value="{{ guests }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>
+      <input id="id_erw" name="erw" type="number" min="1" max="{{ unit.max_guests }}" value="{{ adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_kinder">{% trans "Children" %}</label>
+      <input id="id_kinder" name="kinder" type="number" min="0" max="{{ unit.max_guests }}" value="{{ children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
   <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
@@ -96,9 +100,11 @@
         <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €
           {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
       {% endif %}
+      {% if kurtaxe_eur %}<p class="text-xs text-gray-500">{% blocktrans with k=kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
       <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">
       <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
-      <input type="hidden" name="gaeste" value="{{ quote.guests }}">
+      <input type="hidden" name="erw" value="{{ adults }}">
+      <input type="hidden" name="kinder" value="{{ children }}">
       {% if extras %}
       <fieldset class="space-y-2 border-t border-gray-100 pt-3">
         <legend class="text-sm font-medium mb-1">{% trans "Extras (optional)" %}</legend>
@@ -151,7 +157,7 @@
   <h2 class="font-semibold text-lg mb-3">{% trans "Similar rooms" %}</h2>
   <div class="grid sm:grid-cols-3 gap-4">
     {% for s in similar %}
-      <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&gaeste={{ guests }}{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+      <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
         {% if s.image_url %}<img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full h-32 object-cover">{% endif %}
         <div class="p-4">
           <h3 class="font-medium">{{ s.name }}</h3>
