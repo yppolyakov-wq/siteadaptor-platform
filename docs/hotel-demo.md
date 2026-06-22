@@ -6,13 +6,26 @@
 
 ## 1. Как поднять демо
 
-На сервере (схема-на-тенанта, ~1 мин на миграции):
+**Одна команда после деплоя** (схема-на-тенанта, ~1 мин на миграции) — создаёт
+витрину отеля, наполняет всем функционалом, **материализует листинги в пул
+агрегатора и поднимает вертикальный hotel-портал**:
 
 ```bash
-python manage.py seed_demo_tenants --kit hotel        # → https://hotel.<base>/
-python manage.py seed_demo_tenants --kit hotel --recreate   # пересоздать
-python manage.py seed_demo_tenants --kit hotel --delete     # удалить
+# на сервере (prod, Docker):
+docker compose -f docker-compose.prod.yml exec web \
+  python manage.py seed_demo_tenants --kit hotel --recreate
+
+# или без Docker:
+python manage.py seed_demo_tenants --kit hotel --recreate
 ```
+
+Результат:
+- `https://hotel.<base>/` — сайт отеля «Pension Seeblick»;
+- `https://hotels.<base>/` — **агрегатор-портал «Hotels & Pensionen»** (H8a);
+- логин владельца — из вывода команды (пароль демо `demo-12345678`).
+
+Флаги: `--recreate` пересоздать, `--delete` удалить. Команда идемпотентна по порталу
+(get_or_create). Предполагает wildcard-DNS/Caddy on-demand TLS на поддомены `<base>`.
 
 - Витрина публична: `https://hotel.<base>/`.
 - Кабинет владельца: логин из вывода команды; пароль демо — `demo-12345678`.
@@ -114,6 +127,20 @@ python manage.py seed_demo_tenants --kit hotel --delete     # удалить
 | Языки DE/EN, мобильная версия | базовые витрины |
 | Каналы Booking.com/Airbnb (занятость) | iCal импорт/экспорт (A5b) |
 | Юр-страницы (Impressum/Datenschutz/AGB) | базовые витрины |
+
+## 5a. Агрегатор отелей (H8a) — `https://hotels.<base>/`
+
+Вертикальный портал-поиск поверх готового движка порталов (`AggregatorPortal
+kind=vertical`, `business_type=hotel`) и денормализованного пула `KIND_STAY`:
+- одна **карточка на отель** (номера схлопнуты, показывается дешевейший «ab …€» и
+  «N Zimmertypen») — `portal_views._collapse_hotels`;
+- фасеты по городу, гео-карта/«рядом», рейтинги/отзвы, избранное, SEO
+  (CollectionPage), перелинковка сети — всё из движка порталов;
+- карточка ведёт в прямое бронирование отеля (без комиссии OTA).
+
+Создаётся той же командой сидинга (reconcile листингов + `_ensure_hotel_portal`).
+**H8b (следующее):** живой поиск по датам на портале (обход схем + кеш) —
+карточки только со свободными на выбранные даты номерами.
 
 ## 6. Вне демо (сознательно, ТЗ §5.2/§6)
 

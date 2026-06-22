@@ -79,6 +79,14 @@ class Command(BaseCommand):
             )
             with schema_context(tenant.schema_name):
                 demo_kits.apply_kit(tenant, key)
+            # Материализовать листинги в общий пул агрегатора (акции/номера/события).
+            from apps.aggregator.tasks import reconcile_schema
+
+            reconcile_schema(tenant.schema_name)
+            # H8a: для отеля — вертикальный портал-поиск «Hotelsuche» (свой агрегатор
+            # на архетип) поверх KIND_STAY + kind=vertical.
+            if key == "hotel":
+                self._ensure_hotel_portal()
             host = (
                 Domain.objects.filter(tenant=tenant, is_primary=True)
                 .values_list("domain", flat=True)
@@ -87,6 +95,29 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(f"{slug}: создан → https://{host}/  (login: {login_url})")
             )
+
+    def _ensure_hotel_portal(self):
+        """H8a: вертикальный hotel-портал на ``hotels.<base>`` (идемпотентно)."""
+        from django.conf import settings
+
+        from apps.aggregator.models import AggregatorPortal
+
+        base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
+        host = f"hotels.{base}"
+        portal, created = AggregatorPortal.objects.get_or_create(
+            host=host,
+            defaults={
+                "kind": AggregatorPortal.KIND_VERTICAL,
+                "business_type": "hotel",
+                "title": {"de": "Hotels & Pensionen", "en": "Hotels & guesthouses"},
+                "tagline": {"de": "Direkt buchen — ohne Provision."},
+            },
+        )
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"  hotel-Portal: {'erstellt' if created else 'vorhanden'} → https://{host}/"
+            )
+        )
 
     def _drop(self, tenant, slug):
         if tenant is None:

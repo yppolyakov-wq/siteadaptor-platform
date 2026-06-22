@@ -25,6 +25,7 @@
         {% if l.business_rating %}<p class="text-xs text-amber-500 mb-0.5">★ {{ l.business_rating.avg_rating }} <span class="text-gray-300">({{ l.business_rating.review_count }})</span></p>{% endif %}
         {% if l.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>{% endif %}
         {% if l.listing_kind == 'stay' %}<span class="inline-block mb-1 bg-sky-100 text-sky-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🛏 Übernachten</span>{% endif %}
+        {% if l.room_count and l.room_count > 1 %}<span class="inline-block mb-1 ml-1 text-[11px] text-gray-500">· {% blocktrans count n=l.room_count %}{{ n }} room type{% plural %}{{ n }} room types{% endblocktrans %}</span>{% endif %}
         {% if l.listing_kind == 'event' %}<span class="inline-block mb-1 bg-violet-100 text-violet-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🎫 Event</span>{% endif %}
         <h2 class="font-semibold leading-tight line-clamp-2">{{ l.title_text }}</h2>
         {% if l.listing_kind == 'event' and l.starts_at %}

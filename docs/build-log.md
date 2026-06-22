@@ -1385,3 +1385,15 @@
   Demo-кит `hotel`: заполнены Check-in/out, Ruhezeiten, Haustiere, Rauchen,
   Kaution, Kinder, Stornierung. Миграция `stays/0012`. Тесты —
   `test_seo_hausordnung.py` (priceRange/image в JSON-LD; страница 200/404/гейт). План — H6.
+- **H8a — агрегатор отелей (вертикальный портал «Hotelsuche») (✅, A5/hotel):**
+  поверх готового движка порталов (`AggregatorPortal kind=vertical`,
+  `business_type="hotel"`) и пула `KIND_STAY`. `portal_views._collapse_hotels`:
+  для hotel-портала листинги номеров схлопываются в **одну карточку на отель**
+  (дешевейший номер «ab …€», заголовок = имя отеля, `room_count` = типов номеров),
+  не-stay карточки не трогаются, порядок сохраняется. Бейдж «N Zimmertypen» в
+  `_cards.html`. `seed_demo_tenants` теперь после `apply_kit` вызывает
+  `reconcile_schema` (материализация листингов в пул) и `_ensure_hotel_portal`
+  (идемпотентно создаёт `hotels.<base>`), так что **одна команда после деплоя**
+  поднимает и сайт отеля, и агрегатор. Тесты — `aggregator/tests/test_hotel_portal.py`
+  (схлопывание: cheapest/порядок/не-stay; рендер портала — одна карточка на отель).
+  Демо-дока — `docs/hotel-demo.md` §1/§5a. H8b (живой поиск по датам) — следующее.

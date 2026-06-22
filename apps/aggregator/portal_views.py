@@ -49,6 +49,32 @@ def _facet_choices(portal) -> tuple[str | None, list[tuple[str, str]]]:
     return None, []
 
 
+def _collapse_hotels(cards):
+    """H8a: для hotel-портала схлопнуть листинги номеров (KIND_STAY) в одну карточку
+    на отель — дешёвый номер («ab …€») как представитель, заголовок = имя отеля,
+    ``room_count`` = сколько типов номеров. Не-stay карточки проходят как есть.
+    Порядок — по первому появлению (featured/гео сохраняются)."""
+    out, by_tenant = [], {}
+    for c in cards:
+        if c.listing_kind != c.KIND_STAY:
+            out.append(c)
+            continue
+        key = c.tenant_schema
+        rep = by_tenant.get(key)
+        if rep is None:
+            c.room_count = 1
+            c.title = {"de": c.business_name}  # карточка про отель, не про номер
+            by_tenant[key] = c
+            out.append(c)
+        else:
+            rep.room_count += 1
+            # дешевейший номер как «ab …€»
+            if c.new_price is not None and (rep.new_price is None or c.new_price < rep.new_price):
+                rep.new_price = c.new_price
+                rep.detail_url = c.detail_url
+    return out
+
+
 @cache_public_page
 def portal_home(request, facet=None):
     portal = getattr(request, "portal", None)
@@ -84,6 +110,9 @@ def portal_home(request, facet=None):
         featured, rest = split_featured(pool, first_page=not cursor)
         page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
         cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
+    # H8a: вертикальный hotel-портал — карточка на отель (а не на каждый номер).
+    if (portal.business_type or business_type) == "hotel":
+        cards = _collapse_hotels(cards)
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
