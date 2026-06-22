@@ -121,11 +121,14 @@ def modules_nav(request):
         if isinstance(d, dict):
             _draft = d
     cfg = siteconfig.normalize(_draft if _draft is not None else tenant.site_config)
-    # Акцент — поле Tenant (не в site_config); в превью отдаём override из черновика
-    # (`_accent`), иначе пусто → шаблон берёт tenant.primary_color.
-    storefront_accent = ""
-    if _draft is not None and isinstance(_draft.get("_accent"), str):
+    # Акцент — поле Tenant (не в site_config). Отдаём готовое значение: в превью —
+    # override из черновика (`_accent`), иначе tenant.primary_color. Шаблон НЕ
+    # обращается к request.tenant сам (в фильтре-аргументе это падало бы на
+    # запросах без tenant, напр. в юнит-тестах витрины).
+    if _draft is not None and isinstance(_draft.get("_accent"), str) and _draft["_accent"]:
         storefront_accent = _draft["_accent"]
+    else:
+        storefront_accent = tenant.primary_color or ""
     font_body, font_head = siteconfig.font_stacks(cfg["font"])
     # P5: hero-фото — LCP-кандидат. Браузер находит background-image поздно
     # (после CSS+layout), поэтому отдаём URL для <link rel=preload> в <head>.
