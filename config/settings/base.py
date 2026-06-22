@@ -272,6 +272,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.stays.tasks.sync_ical_sources",
         "schedule": 3600.0,  # раз в час — импорт занятости Booking.com/Airbnb (A5b)
     },
+    "send-stay-post-stay": {
+        "task": "apps.stays.tasks.send_stay_post_stay",
+        "schedule": 86400.0,  # раз в сутки — post-stay письмо + запрос отзыва (G2)
+    },
 }
 
 # За сколько часов до начала записи слать напоминание (Track D / D3c).

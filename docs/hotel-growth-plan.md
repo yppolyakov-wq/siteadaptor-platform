@@ -17,7 +17,7 @@ docs до кода, по подзадачам с CI-чекпоинтом.
 | # | Фича | Зачем (рынок) | Опора | Усилие |
 |---|---|---|---|---|
 | **G1** | **Geschenkgutscheine** — продажа подарочных сертификатов онлайн | топ-ревенью малых отелей DACH, особенно к праздникам | `loyalty.Voucher` (погашение уже есть, H4a) + Stripe Connect + `notifications` | низкое 🔥 |
-| **G2** | **Pre-/post-stay письма + запрос отзыва** | стандарт движков; upsell + отзывы → SEO `aggregateRating` | `notifications` + beat (как stay-reminder) | низкое 🔥 |
+| **G2 ✅** | **Pre-/post-stay письма + запрос отзыва** | стандарт движков; upsell + отзывы → SEO `aggregateRating` | `notifications` + beat (как stay-reminder) | низкое 🔥 |
 | **G3** | **Рассылки гостям (Newsletter-кампании)** | ТЗ §4/§10; прямой канал без OTA | DOI-opt-in, `Customer`, `notifications` | среднее |
 | **G4** | **LOS-скидки + авто Frühbucher/Last-Minute** | ТЗ §7 (12–13); ключевой ценовой инструмент | надстройка над `RatePlan`/`pricing` | среднее |
 | **G5** | **Мультикомнатное бронирование** | ТЗ §3.4; семьи/группы | `book_stay` → родитель-бронь | среднее |

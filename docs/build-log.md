@@ -1421,3 +1421,12 @@
   `/unterkunft/` при включённой онлайн-оплате. Гейт: stays + payments + Stripe Connect.
   Миграция `loyalty/0002`. Тесты — `loyalty/tests/test_gift.py` (валидация, выпуск+
   идемпотентность, погашение как промокод). План — `docs/hotel-growth-plan.md` (G1).
+- **G2 — post-stay письмо + запрос отзыва (✅, A5/hotel, growth):** beat-задача
+  `stays.tasks.send_stay_post_stay` (раз в сутки, по всем схемам) шлёт ровно одно
+  письмо после выезда (`StayBooking.post_stay_sent_at`, окно подхвата 7 дней,
+  только confirmed/fulfilled). Шаблон `emails/stay_post_stay*` — благодарность +
+  приглашение бронировать напрямую + **ссылка на отзыв** (`_review_url`: страница
+  бизнеса в hotel-портале, читается под `schema_context('public')`, best-effort).
+  Pre-stay reminder уже был (E3). Расписание в `CELERY_BEAT_SCHEDULE`
+  (`STAY_POSTSTAY_DAYS`, дефолт 1). Миграция `stays/0013`. Тесты —
+  `test_post_stay.py` (одно письмо, окно, отмена/старое — пропуск). План G2.

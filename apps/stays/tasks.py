@@ -51,6 +51,38 @@ def send_stay_reminders():
     return total
 
 
+def send_due_post_stay(today=None) -> int:
+    """G2: post-stay письмо после выезда — ровно одно на бронь. Окно [departure не
+    раньше N+7 дней назад … departure ≤ N дней назад], только состоявшиеся брони."""
+    today = today or timezone.localdate()
+    days = getattr(settings, "STAY_POSTSTAY_DAYS", 1)
+    upper = today - timezone.timedelta(days=days)  # выехали хотя бы N дней назад
+    lower = upper - timezone.timedelta(days=7)  # окно подхвата пропусков
+    due = StayBooking.objects.filter(
+        status__in=(StayBooking.STATUS_CONFIRMED, StayBooking.STATUS_FULFILLED),
+        post_stay_sent_at__isnull=True,
+        departure__gte=lower,
+        departure__lte=upper,
+    )
+    sent = 0
+    for booking in due:
+        enqueue_stay_email(booking, "post_stay")
+        booking.post_stay_sent_at = timezone.now()
+        booking.save(update_fields=["post_stay_sent_at", "updated_at"])
+        sent += 1
+    return sent
+
+
+@shared_task
+def send_stay_post_stay():
+    """Beat (раз в сутки): post-stay письма по всем схемам арендаторов (G2)."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_post_stay()
+    return total
+
+
 @shared_task
 def sync_ical_sources():
     """Beat (раз в час): тянуть внешние iCal-фиды и обновлять блоки (A5b)."""

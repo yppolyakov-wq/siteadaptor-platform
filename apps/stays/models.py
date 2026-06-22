@@ -241,6 +241,8 @@ class StayBooking(TimestampedModel):
     source_channel = models.CharField(max_length=50, blank=True)
     # Напоминание перед заездом (beat, E3): чтобы слать ровно одно.
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
+    # G2: post-stay письмо (благодарность + запрос отзыва) после выезда — ровно одно.
+    post_stay_sent_at = models.DateTimeField(null=True, blank=True)
     # Снимок цены за ночь (центы) на момент брони — цена юнита может меняться.
     price_cents = models.PositiveIntegerField(default=0)
     # Снимок ИТОГА (центы) — с учётом сезонных/выходных тарифов (A5a). Считается

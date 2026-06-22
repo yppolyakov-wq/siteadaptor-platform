@@ -1,0 +1,13 @@
+Hallo {{ customer.name }},
+
+vielen Dank für Ihren Aufenthalt bei uns ({{ unit.name }}, {{ booking.arrival|date:"d.m.Y" }}–{{ booking.departure|date:"d.m.Y" }}).
+Wir hoffen, es hat Ihnen gefallen!
+{% if review_url %}
+Würden Sie uns eine kurze Bewertung hinterlassen? {{ review_url }}
+{% endif %}
+Wir freuen uns, Sie bald wieder begrüßen zu dürfen — am besten direkt über unsere Website.
+
+Herzliche Grüße
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}
