@@ -43,6 +43,9 @@ class Event(TimestampedModel):
     require_manual_confirm = models.BooleanField(default=False)
     # Фото места/мероприятия: FileRef-список (как catalog.Product.images).
     images = models.JSONField(default=list, blank=True)
+    # A6 ценовые тиры билета: [{label, price_cents}] (Frühbucher/Standard/Kind).
+    # Пусто = единая цена price_cents. Вместимость общая (per-tier — позже).
+    tiers = models.JSONField(default=list, blank=True)
     # Развёрнутый «ретрит-лендинг»: опциональные блоки (для кого, идея, что
     # входит, проживание, питание, ведущие, что взять, отзывы …). Схема и
     # санитайз — apps/events/details.py. Пусто = старая короткая страница.
@@ -75,6 +78,40 @@ class Event(TimestampedModel):
         from . import details
 
         return details.normalize(self.details)
+
+    @property
+    def tier_list(self) -> list:
+        """Нормализованные тиры [{label, price_cents}] (см. details.normalize_tiers)."""
+        from . import details
+
+        return details.normalize_tiers(self.tiers)
+
+    @property
+    def has_tiers(self) -> bool:
+        return bool(self.tier_list)
+
+    @property
+    def tiers_display(self) -> list:
+        """Тиры с ценой в евро для шаблона: [{label, price_cents, price_eur}]."""
+        return [{**t, "price_eur": Decimal(t["price_cents"]) / 100} for t in self.tier_list]
+
+    def price_for_tier(self, label):
+        """Цена выбранного тира (центы); без тиров / без совпадения → price_cents."""
+        if label:
+            for t in self.tier_list:
+                if t["label"] == label:
+                    return t["price_cents"]
+        return self.price_cents
+
+    @property
+    def from_price_cents(self) -> int:
+        """Минимальная цена (для «ab X €» на витрине): мин. тир или price_cents."""
+        prices = [t["price_cents"] for t in self.tier_list]
+        return min(prices) if prices else self.price_cents
+
+    @property
+    def from_price_eur(self):
+        return Decimal(self.from_price_cents) / 100
 
     @property
     def price_eur(self):
@@ -119,6 +156,7 @@ class Ticket(TimestampedModel):
     reference_code = models.CharField(max_length=12, unique=True)  # "E-XXXXXX"
     quantity = models.PositiveSmallIntegerField(default=1)  # мест в билете
     price_cents = models.PositiveIntegerField(default=0)  # снимок цены за место
+    tier_label = models.CharField(max_length=120, blank=True)  # A6: снимок тира
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     answers = models.JSONField(default=dict, blank=True)  # ответы на анкету события
     note = models.TextField(blank=True)

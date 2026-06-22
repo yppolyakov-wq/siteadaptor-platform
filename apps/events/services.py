@@ -60,9 +60,11 @@ def book_ticket(
     note="",
     source_channel="",
     auto_confirm=False,
+    tier_label="",
 ):
     """Создать билет, атомарно проверив наличие мест. Бросает ValueError,
-    EventNotBookable, SoldOut."""
+    EventNotBookable, SoldOut. tier_label (A6) — выбранный ценовой тир: цена
+    билета берётся из него (иначе event.price_cents)."""
     if quantity < 1:
         raise ValueError("quantity must be >= 1")
 
@@ -82,13 +84,17 @@ def book_ticket(
         if quantity > available:
             raise SoldOut(available=max(available, 0))
 
+    # Цена из выбранного тира (Frühbucher/Standard…), иначе единая цена события.
+    matched_tier = next((t for t in event.tier_list if t["label"] == tier_label), None)
+    price_cents = matched_tier["price_cents"] if matched_tier else event.price_cents
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     ticket = Ticket.objects.create(
         event=event,
         customer=customer,
         reference_code=_unique_ticket_code(),
         quantity=quantity,
-        price_cents=event.price_cents,
+        price_cents=price_cents,
+        tier_label=matched_tier["label"] if matched_tier else "",
         status=Ticket.STATUS_PENDING,
         answers=answers or {},
         note=note,

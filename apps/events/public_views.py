@@ -65,6 +65,9 @@ def veranstaltung_book(request, pk):
     answers = {
         q: request.POST.get(f"q{i}", "").strip() for i, q in enumerate(event.questions or [])
     }
+    # A6 ценовой тир: цена/решение об оплате — по выбранному тиру (иначе единой цене).
+    tier_label = request.POST.get("tier", "").strip()
+    resolved_price = event.price_for_tier(tier_label)
 
     try:
         ticket = services.book_ticket(
@@ -75,7 +78,8 @@ def veranstaltung_book(request, pk):
             quantity=qty,
             answers=answers,
             source_channel=(request.GET.get("ch") or "")[:50],
-            auto_confirm=(event.price_cents == 0),  # бесплатная регистрация — сразу
+            auto_confirm=(resolved_price == 0),  # бесплатный тир/событие — сразу
+            tier_label=tier_label,
         )
     except services.SoldOut as exc:
         messages.error(
@@ -89,10 +93,10 @@ def veranstaltung_book(request, pk):
         messages.error(request, _("This event is not available."))
         return redirect("storefront-event", pk=pk)
 
-    # Платное событие + подключённая оплата → Stripe Checkout (на счёт бизнеса).
+    # Платный билет + подключённая оплата → Stripe Checkout (на счёт бизнеса).
     tenant = getattr(request, "tenant", None)
     if (
-        event.price_cents > 0
+        ticket.price_cents > 0
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     ):

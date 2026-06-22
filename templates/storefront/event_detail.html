@@ -18,7 +18,10 @@
         {% if event.location %}<br>📍 {{ event.location }}{% endif %}
       </p>
       <div class="flex items-center gap-4">
-        <span class="text-xl font-semibold">{% if event.price_cents %}{{ event.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>
+        <span class="text-xl font-semibold">
+          {% if event.has_tiers %}{% blocktrans with p=event.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}
+          {% elif event.price_cents %}{{ event.price_eur }} €{% else %}{% trans "Free" %}{% endif %}
+        </span>
         {% if not event.is_sold_out %}<a href="#buchen" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-indigo-700">{% trans "Reserve a spot" %}</a>{% endif %}
       </div>
     </div>
@@ -200,6 +203,20 @@
       <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3 mt-3">
         {% csrf_token %}
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+        {% if event.has_tiers %}
+          <fieldset class="space-y-2">
+            <legend class="text-sm font-medium mb-1">{% trans "Ticket" %}</legend>
+            {% for t in event.tiers_display %}
+              <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-indigo-300">
+                <span class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="tier" value="{{ t.label }}" {% if forloop.first %}checked{% endif %} required>
+                  {{ t.label }}
+                </span>
+                <span class="font-semibold text-sm">{% if t.price_cents %}{{ t.price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</span>
+              </label>
+            {% endfor %}
+          </fieldset>
+        {% endif %}
         <div class="grid sm:grid-cols-2 gap-3">
           <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
           <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">

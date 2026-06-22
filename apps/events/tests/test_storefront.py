@@ -65,6 +65,33 @@ def test_detail_renders_retreat_landing_blocks():
     assert "Mara" in body and "https://img/1.jpg" in body  # ведущие + фото
 
 
+def test_book_with_tier_uses_tier_price():
+    """A6 ценовые тиры: бронь по выбранному тиру берёт его цену + снимок label."""
+    ev = _event(
+        title="Retreat",
+        price_cents=29000,
+        tiers=[
+            {"label": "Frühbucher", "price_cents": 26000},
+            {"label": "Standard", "price_cents": 29000},
+        ],
+    )
+    req = _req(data={"name": "Mara", "email": "m@example.de", "tier": "Frühbucher", "quantity": 2})
+    public_views.veranstaltung_book(req, ev.pk)
+    t = Ticket.objects.get(event=ev)
+    assert t.price_cents == 26000 and t.tier_label == "Frühbucher"
+    assert t.total_cents == 52000  # цена тира × 2
+
+
+def test_normalize_tiers_parses_and_sanitizes():
+    from apps.events import details
+
+    out = details.normalize_tiers(["Frühbucher | 79", {"label": "Kind", "price_cents": 0}, "  | 5"])
+    assert out == [
+        {"label": "Frühbucher", "price_cents": 7900},
+        {"label": "Kind", "price_cents": 0},
+    ]  # пустой label отброшен
+
+
 def test_detail_normalizes_messy_details():
     """details.normalize терпим к мусору: строки «A | B», лишние ключи отброшены."""
     from apps.events import details

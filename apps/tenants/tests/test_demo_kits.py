@@ -331,6 +331,9 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert retreat.program and len(retreat.program) == 3
     assert retreat.questions and retreat.ends_at is not None
     assert retreat.capacity == 18 and retreat.price_cents == 29000
+    # A6 ценовые тиры билета
+    assert retreat.has_tiers and len(retreat.tier_list) == 3
+    assert retreat.from_price_cents == 23000  # Mehrbettzimmer — минимальный тир
     assert Event.objects.get(title="Sommer-Festival der Achtsamkeit").capacity == 0
 
     # «ретрит-лендинг»: развёрнутые блоки + фото места на главном событии

@@ -26,6 +26,11 @@ class EventForm(forms.ModelForm):
     program_text = forms.CharField(
         required=False, widget=_ta(4), label="Ablauf / Programm (ein Punkt pro Zeile)"
     )
+    tiers_text = forms.CharField(
+        required=False,
+        widget=_ta(3, "Frühbucher | 79\nStandard | 99\nKind | 0"),
+        label="Preiskategorien (Label | Preis €, eine pro Zeile; leer = einheitlicher Preis)",
+    )
     # --- Retreat-Landing (alles optional) ---------------------------------
     promise = forms.CharField(required=False, label="Kurzversprechen (Hero)")
     for_whom_text = forms.CharField(
@@ -111,6 +116,7 @@ class EventForm(forms.ModelForm):
             self.fields["price_eur"].initial = self.instance.price_eur
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
             self.fields["program_text"].initial = "\n".join(self.instance.program or [])
+            self.fields["tiers_text"].initial = details_mod.tiers_to_text(self.instance.tiers)
             d = self.instance.landing
             for key in self._SCALAR_FIELDS:
                 self.fields[key].initial = d.get(key, "")
@@ -141,6 +147,9 @@ class EventForm(forms.ModelForm):
         for fname, (key, _rec) in self._LIST_FIELDS.items():
             raw[key] = (self.cleaned_data.get(fname) or "").splitlines()
         event.details = details_mod.normalize(raw)
+        event.tiers = details_mod.normalize_tiers(
+            (self.cleaned_data.get("tiers_text") or "").splitlines()
+        )
         if commit:
             event.save()
         return event

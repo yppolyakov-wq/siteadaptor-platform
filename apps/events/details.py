@@ -81,6 +81,51 @@ def normalize(raw) -> dict:
     return out
 
 
+def normalize_tiers(raw) -> list[dict]:
+    """Ценовые тиры билета → [{label, price_cents}] (label непустой, цена >= 0).
+
+    Принимает list[dict] {label, price_cents|price} или строки «Label | Preis(€)».
+    """
+    out = []
+    for item in raw or []:
+        if isinstance(item, dict):
+            label = _s(item.get("label"), 120)
+            if "price_cents" in item:
+                cents = item.get("price_cents") or 0
+            else:
+                cents = _eur_to_cents(item.get("price"))
+        elif isinstance(item, (list, tuple)):
+            label = _s(item[0], 120) if item else ""
+            cents = _eur_to_cents(item[1]) if len(item) > 1 else 0
+        else:
+            parts = str(item).split(_SEP)
+            label = _s(parts[0], 120)
+            cents = _eur_to_cents(parts[1]) if len(parts) > 1 else 0
+        try:
+            cents = max(0, int(cents))
+        except (TypeError, ValueError):
+            cents = 0
+        if label:
+            out.append({"label": label, "price_cents": cents})
+        if len(out) >= 12:
+            break
+    return out
+
+
+def _eur_to_cents(value) -> int:
+    try:
+        return max(0, round(float(str(value or "0").replace(",", ".").strip()) * 100))
+    except (TypeError, ValueError):
+        return 0
+
+
+def tiers_to_text(raw) -> str:
+    """[{label, price_cents}] → «Label | 12.50» построчно (для формы кабинета)."""
+    return "\n".join(
+        f"{t['label']} {_SEP} {t['price_cents'] / 100:.2f}" for t in normalize_tiers(raw)
+    )
+
+
 def is_rich(details) -> bool:
     """Есть ли хоть один заполненный блок (нужен ли богатый рендер)."""
     d = normalize(details)

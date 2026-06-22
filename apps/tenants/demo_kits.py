@@ -1723,6 +1723,12 @@ RETREAT = DemoKit(
             "duration_days": 2,
             "capacity": 18,
             "price": "290",
+            # A6 ценовые тиры: ранняя цена / стандарт / шеринг-вариант
+            "tiers": [
+                ("Frühbucher (bis 30 Tage)", "260"),
+                ("Standard", "290"),
+                ("Mehrbettzimmer", "230"),
+            ],
             "location": "Am Waldrand 3, Freiburg",
             "description": "Zwei Tage Yoga, Meditation und Waldspaziergänge in kleiner Gruppe. "
             "Inklusive Programm, Begleitung und Tee-Pausen.",
@@ -2522,6 +2528,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     program=list(spec.get("program", [])),
                     images=imgs,
                     details=_evdetails.normalize(raw_details),
+                    tiers=_evdetails.normalize_tiers(spec.get("tiers", [])),  # A6 ценовые тиры
                     status=Event.STATUS_PUBLISHED,
                 )
             else:
