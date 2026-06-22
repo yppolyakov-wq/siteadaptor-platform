@@ -235,6 +235,12 @@ def test_apply_hotel_kit_builds_stays_site():
     revs = storefront_reviews(6)  # тег читает SHARED по connection.schema_name (public)
     assert len(revs) == 3 and revs[0]["stars"].count("★") >= 4
 
+    # #7 универсальные Extras к брони (Frühstück/Parkplatz …)
+    from apps.core.models import Extra
+
+    assert Extra.objects.filter(scope="stays").count() == 4
+    assert Extra.objects.get(label="Frühstücksbuffet").per_night is True
+
     # E4 депозит + A5a сезонный тариф на Doppelzimmer
     from apps.stays.models import SeasonRate
 

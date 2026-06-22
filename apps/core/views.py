@@ -15,6 +15,50 @@ from apps.tenants.models import CustomDomain
 
 
 @login_required
+def extras_view(request):
+    """#7: универсальные доп-услуги (Extra) — CRUD на одной странице.
+
+    Один движок на все архетипы (stays/booking/events); scope ограничивает
+    применимость. Сейчас на витрине подключены stays."""
+    from apps.core.models import Extra
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "add":
+            label = request.POST.get("label", "").strip()[:120]
+            if label:
+                try:
+                    cents = max(0, round(float(request.POST.get("price", "0").replace(",", ".")) * 100))
+                except (TypeError, ValueError):
+                    cents = 0
+                Extra.objects.create(
+                    label=label,
+                    price_cents=cents,
+                    scope=request.POST.get("scope", Extra.SCOPE_ALL),
+                    per_night=bool(request.POST.get("per_night")),
+                )
+                messages.success(request, _("Extra added."))
+        elif action == "toggle":
+            extra = get_object_or_404(Extra, pk=request.POST.get("extra"))
+            extra.is_active = not extra.is_active
+            extra.save(update_fields=["is_active", "updated_at"])
+        elif action == "delete":
+            Extra.objects.filter(pk=request.POST.get("extra")).delete()
+            messages.success(request, _("Extra removed."))
+        return redirect("extras")
+
+    return render(
+        request,
+        "tenant/extras.html",
+        {
+            "nav": "extras",
+            "extras": Extra.objects.all(),
+            "scopes": Extra.SCOPES,
+        },
+    )
+
+
+@login_required
 def dashboard(request):
     """Главная кабинета владельца."""
     from apps.tenants import onboarding

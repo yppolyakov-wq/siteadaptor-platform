@@ -320,6 +320,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(
             NavItem("site", _("Site"), "site"),
             NavItem("settings", _("Settings"), "settings"),
+            NavItem("extras", _("Extras"), "extras"),  # #7 универсальные доп-услуги
             NavItem("domains", _("Domains"), "domains"),
             NavItem("modules", _("Modules"), "modules"),
             NavItem("support:help", _("Help"), "support"),  # M22c — техподдержка
@@ -327,6 +328,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=(
             "/dashboard/site/",
             "/dashboard/settings/",
+            "/dashboard/extras/",
             "/dashboard/domains/",
             "/dashboard/modules/",
             "/dashboard/help/",

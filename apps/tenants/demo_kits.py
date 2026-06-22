@@ -105,6 +105,9 @@ class DemoKit:
     # G8/#6: отзывы клиентов (SHARED BusinessReview) — (rating, comment, email).
     # Seed создаёт PortalUser + отзыв + включает секцию «reviews» на витрине.
     reviews_seed: list = field(default_factory=list)
+    # #7 универсальные Extras: (label, price_eur, scope, per_night). Seed создаёт
+    # apps.core.Extra — гость отмечает при бронировании (сейчас на stays).
+    extras: list = field(default_factory=list)
     storefront_root: str = "home"  # S4: стартовая страница (home или ключ архетипа)
     # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
     subdomain: str = ""
@@ -966,6 +969,12 @@ HOTEL = DemoKit(
         ),
         (5, "Sauber, ruhig und das Frühstück ein Gedicht.", "hotel.julia@example.de"),
         (4, "Schöne Zimmer mit tollem Seeblick, sehr entspannt.", "hotel.klaus@example.de"),
+    ],
+    extras=[  # #7 доп-услуги к брони (per_night=True → за ночь)
+        ("Frühstücksbuffet", "12", "stays", True),
+        ("Parkplatz", "8", "stays", True),
+        ("Später Check-out (bis 14 Uhr)", "20", "stays", False),
+        ("Haustier", "15", "stays", False),
     ],
     enable_modules=["stays"],
     enable_archetypes_section=True,
@@ -2296,6 +2305,18 @@ def apply_kit(tenant, key: str) -> bool:
     _seed_kit_modules(tenant, kit, refs)
     _seed_kit_records(tenant, kit, refs, created_products)
     _seed_kit_reviews(tenant, kit)
+    if kit.extras:  # #7 универсальные доп-услуги (Extra)
+        from apps.core.models import Extra
+
+        for sort, (label, price, scope, per_night) in enumerate(kit.extras):
+            Extra.objects.create(
+                label=label,
+                price_cents=int(Decimal(str(price)) * 100),
+                scope=scope,
+                per_night=per_night,
+                sort_order=sort,
+                is_active=True,
+            )
 
     # S3: обложки разделов — интро + hero-фото + галерея на архетип.
     archetypes_cfg = {}

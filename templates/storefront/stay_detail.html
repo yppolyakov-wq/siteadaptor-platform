@@ -52,10 +52,24 @@
         <h2 class="font-semibold">{{ quote.von|date:"d.m.Y" }} → {{ quote.bis|date:"d.m.Y" }}</h2>
         <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
       </div>
-      <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €</p>
+      <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €
+        {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
       <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">
       <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
       <input type="hidden" name="gaeste" value="{{ quote.guests }}">
+      {% if extras %}
+      <fieldset class="space-y-2 border-t border-gray-100 pt-3">
+        <legend class="text-sm font-medium mb-1">{% trans "Extras (optional)" %}</legend>
+        {% for e in extras %}
+          <label class="flex items-center justify-between gap-3 text-sm">
+            <span class="flex items-center gap-2">
+              <input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300">
+              {{ e.label }}</span>
+            <span class="text-gray-600 whitespace-nowrap">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %}</span>
+          </label>
+        {% endfor %}
+      </fieldset>
+      {% endif %}
       <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
       <div class="grid sm:grid-cols-2 gap-4">
         <div>

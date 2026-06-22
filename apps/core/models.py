@@ -9,6 +9,7 @@ multi-user, M6 / master-plan §7).
 """
 
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
@@ -132,3 +133,42 @@ class Membership(TimestampedModel):
 
     def __str__(self):
         return f"{self.user} · {self.role}"
+
+
+class Extra(TimestampedModel):
+    """Универсальная платная доп-услуга к брони (#7, TENANT).
+
+    Одна механика на все движки записи: бизнес задаёт Extras (Frühstück, Parkplatz,
+    Späte Abreise …), гость отмечает их при бронировании, цена идёт в total и
+    finance. `scope` ограничивает, к какому архетипу применима (или ко всем).
+    Привязки/цена снимаются в JSON-поле брони (StayBooking.extras и т.п.) —
+    Extra может меняться/удаляться, исторические брони не затрагиваются."""
+
+    SCOPE_ALL = "all"
+    SCOPE_STAYS = "stays"
+    SCOPE_BOOKING = "booking"
+    SCOPE_EVENTS = "events"
+    SCOPES = [
+        (SCOPE_ALL, "Alle"),
+        (SCOPE_STAYS, "Übernachtung"),
+        (SCOPE_BOOKING, "Termin"),
+        (SCOPE_EVENTS, "Event"),
+    ]
+
+    label = models.CharField(max_length=120)
+    price_cents = models.PositiveIntegerField(default=0)
+    scope = models.CharField(max_length=10, choices=SCOPES, default=SCOPE_ALL)
+    # Для stays: цена за ночь (× кол-во ночей), иначе разовая за бронь.
+    per_night = models.BooleanField(default=False)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "label"]
+
+    def __str__(self):
+        return f"{self.label} (+{self.price_cents / 100:.2f})"
+
+    @property
+    def price_eur(self):
+        return Decimal(self.price_cents) / 100

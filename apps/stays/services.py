@@ -64,9 +64,11 @@ def book_stay(
     note="",
     source_channel="",
     auto_confirm=False,
+    extras=None,
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
-    ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable."""
+    ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable.
+    extras (#7) — снимок выбранных доп-услуг [{label, price_cents}]; сумма в total."""
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
     if guests < 1:
@@ -83,6 +85,9 @@ def book_stay(
     if not availability.range_available(unit, arrival, departure):
         raise StayUnavailable()
 
+    from apps.core import extras as extras_engine
+
+    extras_snap = list(extras or [])
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = StayBooking.objects.create(
         unit=unit,
@@ -92,7 +97,10 @@ def book_stay(
         departure=departure,
         guests=guests,
         price_cents=unit.price_cents,
-        total_cents=pricing.quote_total_cents(unit, arrival, departure),  # A5a: сезон/выходные
+        # A5a сезон/выходные + #7 Extras (снимок уже с учётом ночей).
+        total_cents=pricing.quote_total_cents(unit, arrival, departure)
+        + extras_engine.total_cents(extras_snap),
+        extras=extras_snap,
         status=StayBooking.STATUS_CONFIRMED if auto_confirm else StayBooking.STATUS_PENDING,
         note=note,
         source_channel=(source_channel or "")[:50],
@@ -114,9 +122,14 @@ def move_stay(booking, *, arrival, departure):
         raise MinStay()
     if not availability.range_available(unit, arrival, departure, exclude_pk=booking.pk):
         raise StayUnavailable()
+    from apps.core import extras as extras_engine
+
     booking.arrival = arrival
     booking.departure = departure
-    booking.total_cents = pricing.quote_total_cents(unit, arrival, departure)  # A5a: пересчёт
+    # A5a пересчёт базы + #7 сохранённые Extras (снимок не меняем при переносе).
+    booking.total_cents = pricing.quote_total_cents(
+        unit, arrival, departure
+    ) + extras_engine.total_cents(booking.extras)
     booking.save(update_fields=["arrival", "departure", "total_cents", "updated_at"])
     return booking
 

@@ -1,0 +1,63 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Extras" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-1">{% trans "Extras" %}</h1>
+  <p class="text-sm text-gray-500 mb-5">{% trans "Optional paid add-ons guests can pick when booking (breakfast, parking, late checkout …). One engine for all booking types; “scope” limits where it applies. Currently shown on Übernachtung." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+    {% for e in extras %}
+      <div class="flex items-center justify-between gap-3 p-4">
+        <div>
+          <p class="font-medium {% if not e.is_active %}text-gray-400 line-through{% endif %}">{{ e.label }}</p>
+          <p class="text-xs text-gray-400">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <form method="post">{% csrf_token %}
+            <input type="hidden" name="action" value="toggle"><input type="hidden" name="extra" value="{{ e.pk }}">
+            <button class="text-xs border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50">{% if e.is_active %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}</button>
+          </form>
+          <form method="post" onsubmit="return confirm('{% trans "Remove this extra?" %}');">{% csrf_token %}
+            <input type="hidden" name="action" value="delete"><input type="hidden" name="extra" value="{{ e.pk }}">
+            <button class="text-xs text-red-600 hover:underline">{% trans "Remove" %}</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <p class="p-4 text-sm text-gray-400">{% trans "No extras yet — add your first below." %}</p>
+    {% endfor %}
+  </div>
+
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add">
+    <h2 class="font-semibold">{% trans "New extra" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <input name="label" type="text" required placeholder="{% trans 'Name (e.g. Frühstück)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
+        <input name="price" type="text" placeholder="12" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">{% trans "Applies to" %}</label>
+        <select name="scope" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          {% for value, label in scopes %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="per_night" class="rounded border-gray-300">
+      {% trans "Price per night (Übernachtung) — otherwise once per booking" %}
+    </label>
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add extra" %}</button>
+  </form>
+</div>
+{% endblock %}

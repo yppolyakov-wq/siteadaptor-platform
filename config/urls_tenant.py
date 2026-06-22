@@ -18,6 +18,7 @@ from apps.core.views import (
     domain_remove,
     domain_verify,
     domains_view,
+    extras_view,
     home_builder_view,
     menu_builder_view,
     modules_view,
@@ -48,6 +49,7 @@ urlpatterns = [
     # Onboarding-Wizard (Track D / D0c): пошаговая настройка после регистрации.
     path("dashboard/setup/", setup_view, name="setup"),
     path("dashboard/settings/", settings_view, name="settings"),
+    path("dashboard/extras/", extras_view, name="extras"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
     path("dashboard/site/home/", home_builder_view, name="site-home"),

@@ -88,6 +88,8 @@ def unterkunft_unit(request, pk):
         }
     tenant = getattr(request, "tenant", None)
     deposit_required = unit.deposit_cents > 0 and getattr(tenant, "payments_enabled", False)
+    from apps.core import extras as extras_engine
+
     return render(
         request,
         "storefront/stay_detail.html",
@@ -99,6 +101,7 @@ def unterkunft_unit(request, pk):
             "bis": bis,
             "guests": guests,
             "quote": quote,
+            "extras": extras_engine.active_for("stays"),  # #7 доп-услуги
             "deposit_required": deposit_required,
             "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
         },
@@ -136,6 +139,11 @@ def unterkunft_book(request, pk):
     if not name:
         messages.error(request, _("Please tell us your name."))
         return redirect(back)
+    from apps.core import extras as extras_engine
+
+    extras_snap = extras_engine.snapshot(
+        request.POST.getlist("extra"), "stays", nights=(bis - von).days
+    )
     try:
         booking = services.book_stay(
             unit,
@@ -147,6 +155,7 @@ def unterkunft_book(request, pk):
             guests=guests,
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
+            extras=extras_snap,
         )
     except services.MinStay:
         messages.error(request, _("Please book at least the minimum number of nights."))

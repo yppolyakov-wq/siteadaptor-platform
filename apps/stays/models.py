@@ -153,6 +153,9 @@ class StayBooking(TimestampedModel):
     # Снимок ИТОГА (центы) — с учётом сезонных/выходных тарифов (A5a). Считается
     # в services.book_stay/move_stay (pricing.quote_total); finance берёт его.
     total_cents = models.PositiveIntegerField(default=0)
+    # #7: снимок выбранных Extras (Frühstück/Parkplatz …): [{label, price_cents}].
+    # Сумма уже включена в total_cents. Переживает изменение/удаление Extra.
+    extras = models.JSONField(default=list, blank=True)
 
     # P2.5b/c reuse: депозит/предоплата через Stripe Connect (деньги → бизнесу).
     PAYMENT_NONE = "none"
