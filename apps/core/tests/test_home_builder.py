@@ -69,6 +69,38 @@ def test_home_builder_saves_blocks_and_preserves_design():
     assert cfg["archetypes"]["catalog"]["blurb"] == "Frisch & vegan"
 
 
+def test_home_builder_gallery_upload_and_delete(tmp_path, settings):
+    """M20e: фото галереи грузятся/удаляются прямо в билдере (multipart-формы)."""
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    tenant = TenantFactory(schema_name="public", slug="hbg", name="HBG")
+
+    buf = BytesIO()
+    Image.new("RGB", (40, 40), "#abc").save(buf, format="PNG")
+    upload = SimpleUploadedFile("p.png", buf.getvalue(), content_type="image/png")
+    req = _request("post", "/dashboard/site/home/", {"action": "upload_gallery"}, tenant)
+    req.FILES["images"] = upload  # RequestFactory data не кладёт файлы — добавляем вручную
+    resp = views.home_builder_view(req)
+    assert resp.status_code == 302
+    gallery = siteconfig.normalize(tenant.site_config)["gallery"]
+    assert len(gallery) == 1 and gallery[0]["url"]
+
+    # удаление по id
+    img_id = gallery[0]["id"]
+    req2 = _request(
+        "post",
+        "/dashboard/site/home/",
+        {"action": "delete_gallery_image", "image_id": img_id},
+        tenant,
+    )
+    assert views.home_builder_view(req2).status_code == 302
+    assert siteconfig.normalize(tenant.site_config)["gallery"] == []
+
+
 def test_home_builder_get_renders():
     tenant = TenantFactory(schema_name="public", slug="hb2", name="HB2")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))

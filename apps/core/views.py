@@ -424,6 +424,14 @@ def home_builder_view(request):
     from apps.tenants import siteconfig, storefront
 
     if request.method == "POST":
+        # M20e: медиа галереи — отдельные multipart-формы (upload/delete), общие
+        # с «Site» хелперы; обрабатываем до основной формы композиции.
+        if request.POST.get("action") == "upload_gallery":
+            _upload_gallery_images(request)
+            return redirect("site-home")
+        if request.POST.get("action") == "delete_gallery_image":
+            _delete_gallery_image(request, request.POST.get("image_id", ""))
+            return redirect("site-home")
         config = siteconfig.normalize(request.tenant.site_config)
         rows = []
         for key, _label, _default in siteconfig.SECTIONS:

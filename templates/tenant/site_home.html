@@ -21,6 +21,7 @@
   {% endif %}
 
   <div class="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+   <div class="space-y-6">
     <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
 
@@ -118,6 +119,33 @@
 
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </form>
+
+    {# M20e: медиа в билдере — фото галереи (multipart, отдельные формы — не в #home-form). #}
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="font-semibold mb-1">{% trans "Photo gallery" %}</h3>
+      <p class="text-xs text-gray-400 mb-3">{% trans "JPEG/PNG/WEBP, max 5 MB. Enable the “Photo gallery” block above to show them." %}</p>
+      {% if config.gallery %}
+        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
+          {% for img in config.gallery %}
+            <div class="relative">
+              <div class="aspect-square rounded-lg overflow-hidden bg-gray-100"><img src="{{ img.url }}" alt="" class="w-full h-full object-cover"></div>
+              <form method="post" class="absolute top-1 right-1">{% csrf_token %}
+                <input type="hidden" name="action" value="delete_gallery_image">
+                <input type="hidden" name="image_id" value="{{ img.id }}">
+                <button aria-label="{% trans 'Delete' %}" class="w-6 h-6 rounded-full bg-white/90 shadow text-red-600 text-xs leading-none hover:bg-white">✕</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">{% csrf_token %}
+        <input type="hidden" name="action" value="upload_gallery">
+        <input type="file" name="images" accept="image/*" multiple
+               class="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-3 file:py-1.5">
+        <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
+      </form>
+    </div>
+   </div>
 
     {# V1 live-preview: показывает несохранённое состояние (?preview=1 + черновик в сессии). #}
     <div class="hidden lg:block sticky top-4">

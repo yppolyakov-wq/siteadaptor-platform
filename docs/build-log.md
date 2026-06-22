@@ -1299,3 +1299,9 @@
   guard — отсутствие полей не трёт сохранённое). collect() в билдере шлёт контент-поля.
   Тесты: builder сохраняет cta/faq/testimonials, draft отражает/не-трёт, site_view-
   рефактор покрыт test_content_sections. Осталось по M20: M20e (медиа в билдере).
+- **M20e — медиа в билдере (✅):** загрузка/удаление фото галереи прямо в конструкторе
+  главной (`site_home.html`) — отдельные multipart-формы (action=upload_gallery/
+  delete_gallery_image в `home_builder_view`), общие хелперы `_upload_gallery_images`/
+  `_delete_gallery_image` с «Site» (Pillow-валидация, FileRef в site_config.gallery).
+  Левая колонка билдера обёрнута, превью-колонка не задета. Тест:
+  test_home_builder_gallery_upload_and_delete. **M20 закрыт по основным слоям.**
