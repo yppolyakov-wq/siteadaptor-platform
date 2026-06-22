@@ -28,7 +28,9 @@ def extras_view(request):
             label = request.POST.get("label", "").strip()[:120]
             if label:
                 try:
-                    cents = max(0, round(float(request.POST.get("price", "0").replace(",", ".")) * 100))
+                    cents = max(
+                        0, round(float(request.POST.get("price", "0").replace(",", ".")) * 100)
+                    )
                 except (TypeError, ValueError):
                     cents = 0
                 Extra.objects.create(
