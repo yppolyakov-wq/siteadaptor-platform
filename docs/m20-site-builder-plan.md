@@ -19,8 +19,12 @@
   раньше превью не отражало дизайн. Акцент (поле Tenant) — override `_accent` в
   черновике. Сохранение билдера пишет font/hero_style в site_config, accent в
   Tenant.primary_color.
-- ⏭ Осталось: M20d (палитра секций + панель свойств секции в билдере), M20e (медиа
-  в билдере). См. ниже.
+- ✅ **M20d (свойства секций в билдере)** — контент-секции (CTA/Testimonials/How-it-
+  works/Team/Trust/FAQ) теперь правятся прямо в конструкторе главной (общий партиал
+  `tenant/_section_fields.html` + единый парсер `siteconfig.parse_content_sections`,
+  используемый «Site», билдером и live-preview-черновиком). Палитра = список секций
+  с тоглами (добавить/убрать) уже была. Свойства отражаются в live-preview.
+- ⏭ Осталось: M20e (загрузка медиа из билдера: hero/gallery/team-фото). См. ниже.
 
 ## 0. Что уже есть (фундамент, не переделываем)
 - `Tenant.site_config` (JSON) — секции, тексты, nav, menus, archetypes, gallery,

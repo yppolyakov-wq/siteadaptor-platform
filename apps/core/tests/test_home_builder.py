@@ -104,6 +104,31 @@ def test_home_builder_saves_design():
     assert tenant.primary_color == "#ff8800"
 
 
+def test_home_builder_saves_content_sections():
+    """M20d: контент-секции (CTA/FAQ/Testimonials) правятся прямо в билдере."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbc",
+        name="HBC",
+        site_config={"sections": [{"key": "cta", "enabled": True}]},
+    )
+    data = {
+        "enabled_cta": "on",
+        "order_cta": "1",
+        "cta_title": "Jetzt buchen",
+        "cta_button_label": "Termin",
+        "cta_button_url": "/termin/",
+        "faq_text": "Parkplatz? | Ja, direkt davor.",
+        "testimonials_text": "Anna | Top!",
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["cta"]["title"] == "Jetzt buchen" and cfg["cta"]["button_url"] == "/termin/"
+    assert cfg["faq"] == [{"q": "Parkplatz?", "a": "Ja, direkt davor."}]
+    assert cfg["testimonials"] == [{"name": "Anna", "text": "Top!"}]
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""

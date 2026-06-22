@@ -1290,3 +1290,12 @@
   принимает font(FONTS)/hero_style(HERO_STYLES)/accent(hex); home_builder_view
   сохраняет font+hero_style в site_config и accent в Tenant.primary_color. Тесты:
   draft includes/rejects design, modules_nav preview, home_builder saves design.
+- **M20d — свойства секций в билдере (✅):** контент-секции (CTA/Testimonials/How-it-
+  works/Team/Trust/FAQ) вынесены в общий партиал `tenant/_section_fields.html` и
+  теперь правятся прямо в конструкторе главной (`site_home.html`), не только на «Site».
+  Единый парсер `siteconfig.parse_content_sections(get)` (+ список `CONTENT_FIELDS`)
+  используется тремя точками: формой «Site» (рефактор — без дублирования логики),
+  `home_builder_view` (сохранение) и `site_preview_draft` (live-preview, с presence-
+  guard — отсутствие полей не трёт сохранённое). collect() в билдере шлёт контент-поля.
+  Тесты: builder сохраняет cta/faq/testimonials, draft отражает/не-трёт, site_view-
+  рефактор покрыт test_content_sections. Осталось по M20: M20e (медиа в билдере).

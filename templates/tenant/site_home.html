@@ -103,6 +103,19 @@
       </fieldset>
       {% endif %}
 
+      {# M20d: контент-секции (CTA/Testimonials/How it works/Team/Trust/FAQ) —
+         тот же общий партиал, что и на «Site». Каждая видна, когда её блок включён выше. #}
+      <details class="bg-white rounded-2xl shadow-sm group">
+        <summary class="flex items-center justify-between cursor-pointer p-5 list-none">
+          <span><span class="font-semibold">📦 {% trans "Content sections" %}</span>
+            <span class="block text-xs text-gray-400 mt-0.5">{% trans "Fill the text for each block — it shows when the block is enabled above." %}</span></span>
+          <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
+        </summary>
+        <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-6">
+          {% include "tenant/_section_fields.html" %}
+        </div>
+      </details>
+
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </form>
 
@@ -153,13 +166,23 @@
     var fontEl = form.querySelector("[name=font]");
     var heroEl = form.querySelector("[name=hero_accent]");
     var accentEl = form.querySelector("[name=accent]");
-    return {
+    var payload = {
       sections: sections,
       archetypes: archetypes,
       font: fontEl ? fontEl.value : "system",
       hero_style: heroEl && heroEl.checked ? "accent" : "plain",
       accent: accentEl ? accentEl.value : "",
     };
+    // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
+    [
+      "cta_title", "cta_text", "cta_button_label", "cta_button_url",
+      "faq_text", "testimonials_text", "process_text", "team_text",
+      "trust_since", "trust_marks",
+    ].forEach(function (name) {
+      var el = form.querySelector("[name=" + name + "]");
+      if (el) payload[name] = el.value;
+    });
+    return payload;
   }
 
   var timer = null;

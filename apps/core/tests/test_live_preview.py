@@ -99,6 +99,52 @@ def test_draft_endpoint_rejects_bad_design():
     assert draft["font"] == "system" and "_accent" not in draft
 
 
+def test_draft_endpoint_includes_content_sections():
+    """M20d: CTA/FAQ из билдера отражаются в черновике (живое превью)."""
+    tenant = TenantFactory(schema_name="public", slug="dc", name="DC")
+    body = json.dumps(
+        {
+            "sections": [{"key": "cta", "enabled": True}],
+            "cta_title": "Jetzt buchen",
+            "cta_button_url": "/termin/",
+            "faq_text": "Parkplatz? | Ja.",
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    assert draft["cta"]["title"] == "Jetzt buchen" and draft["cta"]["button_url"] == "/termin/"
+    assert draft["faq"] == [{"q": "Parkplatz?", "a": "Ja."}]
+
+
+def test_draft_without_content_keys_preserves_existing():
+    """Черновик без контент-полей не затирает сохранённые CTA/FAQ (presence-guard)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dc2",
+        name="DC2",
+        site_config={
+            "cta": {"title": "Saved CTA", "text": "", "button_label": "", "button_url": ""}
+        },
+    )
+    body = json.dumps({"sections": [{"key": "cta", "enabled": True}]})
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    views.site_preview_draft(req)
+    assert req.session["site_preview_draft"]["cta"]["title"] == "Saved CTA"
+
+
 def test_modules_nav_previews_draft_design():
     """Context-процессор под ?preview=1 отдаёт шрифт/акцент из черновика."""
     from apps.core.context import modules_nav

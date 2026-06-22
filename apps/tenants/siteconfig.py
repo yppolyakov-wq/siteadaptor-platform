@@ -252,6 +252,53 @@ def text_to_pairs(text: str, key_a: str, key_b: str) -> list[dict]:
     return pairs[:_MAX_ITEMS]
 
 
+# Поля контент-секций (CTA/FAQ/Testimonials/Process/Team/Trust), общие для формы
+# «Site» и конструктора главной (M20d). Имена полей едины во всех формах.
+CONTENT_FIELDS = (
+    "cta_title",
+    "cta_text",
+    "cta_button_label",
+    "cta_button_url",
+    "faq_text",
+    "testimonials_text",
+    "process_text",
+    "team_text",
+    "trust_since",
+    "trust_marks",
+)
+
+
+def parse_content_sections(get) -> dict:
+    """M20d: разобрать контент-секции из формы в фрагмент site_config.
+
+    `get(name, default="")` — request.POST.get / data.get (один код на «Site»,
+    билдер и live-preview-черновик). Возвращает {cta, faq, testimonials, process,
+    team, trust} для слияния в config."""
+
+    def g(name):
+        return get(name, "") or ""
+
+    return {
+        "cta": {
+            "title": g("cta_title"),
+            "text": g("cta_text"),
+            "button_label": g("cta_button_label"),
+            "button_url": g("cta_button_url"),
+        },
+        "faq": text_to_pairs(g("faq_text"), "q", "a"),
+        "testimonials": text_to_pairs(g("testimonials_text"), "name", "text"),
+        "process": text_to_pairs(g("process_text"), "title", "text"),
+        "team": [
+            {"name": p["name"], "role": p["text"], "photo": ""}
+            for p in text_to_pairs(g("team_text"), "name", "text")
+        ],
+        "trust": {
+            "since": g("trust_since").strip(),
+            "marks": [m.strip() for m in g("trust_marks").splitlines() if m.strip()],
+        },
+    }
+
+
 def default_nav() -> dict:
     return {
         "style": "classic",

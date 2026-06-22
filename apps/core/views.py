@@ -319,34 +319,9 @@ def site_view(request):
         # Легаси-nav здесь только переносим (из него выводится menus для тенантов,
         # ещё не трогавших билдер) — пустая форма «Site» не должна его гасить.
         config["nav"] = current["nav"]
-        # Контент-секции (M20 ⑤a): CTA / отзывы / FAQ.
-        config["cta"] = {
-            "title": request.POST.get("cta_title", ""),
-            "text": request.POST.get("cta_text", ""),
-            "button_label": request.POST.get("cta_button_label", ""),
-            "button_url": request.POST.get("cta_button_url", ""),
-        }
-        config["faq"] = siteconfig.text_to_pairs(request.POST.get("faq_text", ""), "q", "a")
-        config["testimonials"] = siteconfig.text_to_pairs(
-            request.POST.get("testimonials_text", ""), "name", "text"
-        )
-        # P4: «как мы работаем» (title|text) и команда (name|role); фото — позже/демо.
-        config["process"] = siteconfig.text_to_pairs(
-            request.POST.get("process_text", ""), "title", "text"
-        )
-        config["team"] = [
-            {"name": p["name"], "role": p["text"], "photo": ""}
-            for p in siteconfig.text_to_pairs(request.POST.get("team_text", ""), "name", "text")
-        ]
-        # Знаки доверия (P3): год + метки построчно.
-        config["trust"] = {
-            "since": request.POST.get("trust_since", "").strip(),
-            "marks": [
-                m.strip()
-                for m in (request.POST.get("trust_marks", "") or "").splitlines()
-                if m.strip()
-            ],
-        }
+        # Контент-секции (M20 ⑤a/M20d): CTA / отзывы / FAQ / process / team / trust.
+        # Единый парсер — общий с конструктором главной и live-preview-черновиком.
+        config.update(siteconfig.parse_content_sections(request.POST.get))
         # T1: видео в галерее — один URL (YouTube/Vimeo/файл).
         config["gallery_video"] = request.POST.get("gallery_video", "").strip()
         # T2c: быстрый заказ («+»/модалка) на карточках — тумблер владельца.
@@ -475,6 +450,8 @@ def home_builder_view(request):
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
         config["font"] = request.POST.get("font", config.get("font", "system"))
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
+        # M20d: контент-секции (CTA/FAQ/Testimonials/Process/Team/Trust) — тот же парсер.
+        config.update(siteconfig.parse_content_sections(request.POST.get))
         update_fields = ["site_config", "updated_at"]
         accent = (request.POST.get("accent") or "").strip()
         if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != request.tenant.primary_color:
@@ -516,6 +493,15 @@ def home_builder_view(request):
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",
+            # M20d: контент-секции — те же поля/партиал, что на «Site».
+            "config": config,
+            "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
+            "testimonials_text": siteconfig.pairs_to_text(config["testimonials"], "name", "text"),
+            "process_text": siteconfig.pairs_to_text(config["process"], "title", "text"),
+            "team_text": "\n".join(
+                f"{m['name']} | {m['role']}".rstrip(" |") for m in config["team"]
+            ),
+            "trust_marks_text": "\n".join(config["trust"]["marks"]),
         },
     )
 
@@ -631,6 +617,9 @@ def site_preview_draft(request):
         cfg["font"] = data["font"]
     if data.get("hero_style") in siteconfig.HERO_STYLES:
         cfg["hero_style"] = data["hero_style"]
+    # M20d: контент-секции — отражаем в превью, только если присланы (иначе не трём).
+    if any(k in data for k in siteconfig.CONTENT_FIELDS):
+        cfg.update(siteconfig.parse_content_sections(data.get))
     draft = siteconfig.normalize(cfg)
     # Акцент — отдельное поле Tenant; кладём override в черновик как `_accent`
     # (валидный hex), читается context-процессором под ?preview=1.

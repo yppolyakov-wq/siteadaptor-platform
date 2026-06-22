@@ -202,43 +202,7 @@
         <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
       </summary>
       <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-6">
-        <div class="space-y-2">
-          <p class="text-sm font-medium">{% trans "Call to action" %}</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input name="cta_title" type="text" value="{{ config.cta.title }}" placeholder="{% trans 'Headline' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-            <input name="cta_button_label" type="text" value="{{ config.cta.button_label }}" placeholder="{% trans 'Button text' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-          </div>
-          <textarea name="cta_text" rows="2" placeholder="{% trans 'Text (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ config.cta.text }}</textarea>
-          <input name="cta_button_url" type="text" value="{{ config.cta.button_url }}" placeholder="https://… {% trans 'or' %} /termin/" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-        </div>
-        <div class="space-y-2 border-t border-gray-100 pt-4">
-          <p class="text-sm font-medium">{% trans "Testimonials" %}</p>
-          <p class="text-xs text-gray-400">{% trans "One per line: Name | Text." %}</p>
-          <textarea name="testimonials_text" rows="3" placeholder="Anna M. | Toller Service, immer wieder gern!" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ testimonials_text }}</textarea>
-        </div>
-        <div class="space-y-2 border-t border-gray-100 pt-4">
-          <p class="text-sm font-medium">{% trans "How it works" %}</p>
-          <p class="text-xs text-gray-400">{% trans "One step per line: Title | Description." %}</p>
-          <textarea name="process_text" rows="3" placeholder="Reservieren | Tisch online sichern" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ process_text }}</textarea>
-        </div>
-        <div class="space-y-2 border-t border-gray-100 pt-4">
-          <p class="text-sm font-medium">{% trans "Team" %}</p>
-          <p class="text-xs text-gray-400">{% trans "One per line: Name | Role." %}</p>
-          <textarea name="team_text" rows="3" placeholder="Maria Rossi | Küchenchefin" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ team_text }}</textarea>
-        </div>
-        <div class="space-y-3 border-t border-gray-100 pt-4">
-          <p class="text-sm font-medium">{% trans "Trust & credentials" %}</p>
-          <p class="text-xs text-gray-400">{% trans "Star rating appears automatically from your reviews." %}</p>
-          <div><label class="block text-sm mb-1" for="id_trust_since">{% trans "Founded in (year)" %}</label>
-            <input id="id_trust_since" name="trust_since" type="text" value="{{ config.trust.since }}" placeholder="1998" class="w-full rounded-lg border border-gray-300 px-3 py-2"></div>
-          <div><label class="block text-sm mb-1" for="id_trust_marks">{% trans "Credentials (one per line)" %}</label>
-            <textarea id="id_trust_marks" name="trust_marks" rows="3" placeholder="Meisterbetrieb&#10;Bio-zertifiziert" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ trust_marks_text }}</textarea></div>
-        </div>
-        <div class="space-y-2 border-t border-gray-100 pt-4">
-          <p class="text-sm font-medium">{% trans "FAQ" %}</p>
-          <p class="text-xs text-gray-400">{% trans "One per line: Question | Answer." %}</p>
-          <textarea name="faq_text" rows="4" placeholder="Habt ihr Parkplätze? | Ja, direkt vor dem Laden." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ faq_text }}</textarea>
-        </div>
+        {% include "tenant/_section_fields.html" %}
       </div>
     </details>
 
