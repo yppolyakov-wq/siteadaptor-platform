@@ -46,6 +46,10 @@ _KNOWN = {key for key, _label, _on in SECTIONS}
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
 
+# M20: вложенные текстовые поля секций, редактируемые инлайн (dotted path
+# "<секция>.<поле>"). Белый список — защита от записи произвольных ключей.
+NESTED_TEXT_FIELDS = ["cta.title", "cta.text"]
+
 # Стиль hero-баннера: plain — белая карточка (дефолт, как было), accent —
 # фон акцентным цветом (Tenant.primary_color). Гейтим цветной фон флагом, а не
 # самим primary_color: у легаси-тенантов он "#000000" и без флага витрина

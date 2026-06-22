@@ -1272,3 +1272,12 @@
   (promotions_*), перенос через SeparateDatabaseAndState БЕЗ DDL (данные тенантов
   целы). Customer — общая идентичность, остаётся в promotions. Сервисы/вьюхи
   лояльности пока в promotions (импортируют модели из loyalty). 1143 теста зелёные.
+- **M20 WYSIWYG-билдер (✅, начало этапа M20):** инлайн-правка текста перенесена со
+  страницы Preview в сам конструктор главной (`site_home.html`): клик по заголовку/
+  тексту в live-preview-iframe → contenteditable → save на blur (`site-inline-edit`).
+  Ревизия показала: live-preview + drag-drop порядка секций + inline hero/about уже
+  были в коде (M20a/b). Инлайн-правка расширена на секцию **CTA** — вложенные поля
+  `cta.title`/`cta.text` через белый список `siteconfig.NESTED_TEXT_FIELDS` (dotted
+  path в `site_inline_edit`), `data-edit` в `_cta.html`. Тесты test_inline_edit
+  (nested save/reject + cta-маркеры). Без новых моделей. Осталось по M20: палитра
+  секций + панель свойств в билдере (M20d), медиа (M20e), тема вживую (M20f).

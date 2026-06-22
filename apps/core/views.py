@@ -630,11 +630,19 @@ def site_inline_edit(request):
     except (ValueError, TypeError):
         return HttpResponseBadRequest()
     field = data.get("field")
-    if field not in siteconfig.TEXT_FIELDS:
-        return HttpResponseBadRequest()
     value = data.get("value", "")
+    value = value.strip() if isinstance(value, str) else ""
     cfg = siteconfig.normalize(request.tenant.site_config)
-    cfg[field] = value.strip() if isinstance(value, str) else ""
+    if field in siteconfig.TEXT_FIELDS:
+        cfg[field] = value
+    elif field in siteconfig.NESTED_TEXT_FIELDS:
+        # M20: вложенное поле секции ("cta.title") — пишем в дочерний словарь.
+        parent, child = field.split(".", 1)
+        section = dict(cfg.get(parent) or {})
+        section[child] = value
+        cfg[parent] = section
+    else:
+        return HttpResponseBadRequest()
     request.tenant.site_config = siteconfig.normalize(cfg)
     request.tenant.save(update_fields=["site_config", "updated_at"])
     return HttpResponse(status=204)

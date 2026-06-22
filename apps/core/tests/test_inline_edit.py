@@ -46,6 +46,37 @@ def test_inline_edit_rejects_unknown_field():
     assert "status" not in tenant.site_config
 
 
+def test_inline_edit_saves_nested_cta_field():
+    """M20: вложенное поле секции (cta.title) пишется в дочерний словарь."""
+    tenant = TenantFactory(schema_name="public", slug="ie3", name="IE3")
+    resp = _post("cta.title", "  Jetzt buchen  ", tenant)
+    assert resp.status_code == 204
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["cta"]["title"] == "Jetzt buchen"
+
+
+def test_inline_edit_rejects_nonwhitelisted_nested_field():
+    """Только NESTED_TEXT_FIELDS — нельзя переписать, например, ссылку кнопки."""
+    tenant = TenantFactory(schema_name="public", slug="ie4", name="IE4")
+    assert _post("cta.button_url", "https://evil.example", tenant).status_code == 400
+    tenant.refresh_from_db()
+    assert (tenant.site_config.get("cta") or {}).get("button_url", "") != "https://evil.example"
+
+
+def test_cta_carries_data_edit_markers():
+    tenant = TenantFactory.build(
+        site_config={
+            "sections": [{"key": "cta", "enabled": True}],
+            "cta": {"title": "T", "text": "B", "button_label": "Go", "button_url": "/sortiment/"},
+        }
+    )
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert 'data-edit="cta.title"' in body and 'data-edit="cta.text"' in body
+
+
 def test_hero_about_carry_data_edit_markers():
     tenant = TenantFactory.build(
         site_config={

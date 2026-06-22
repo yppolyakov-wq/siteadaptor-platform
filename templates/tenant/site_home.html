@@ -11,7 +11,8 @@
       <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
     </span>
   </div>
-  <p class="text-sm text-gray-500 mb-4">{% trans "Pick which blocks appear on your homepage and in what order. The preview updates live as you edit — click Save to keep your changes." %}</p>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Pick which blocks appear on your homepage and in what order. The preview updates live as you edit — click Save to keep your changes." %}
+    <span class="text-indigo-600">✏️ {% trans "Click a heading or text in the preview to edit it directly (saves on blur)." %}</span></p>
 
   {% if messages %}
     {% for m in messages %}
@@ -140,6 +141,33 @@
       if (status) status.textContent = "{% trans 'Unsaved preview' %}";
     }).catch(function () { if (status) status.textContent = ""; });
   }
+
+  // M20 WYSIWYG: тексты [data-edit] в превью редактируются прямо в билдере
+  // (как на отдельной странице Preview) — сохранение на blur в site_config.
+  var editUrl = "{% url 'site-inline-edit' %}";
+  frame.addEventListener("load", function () {
+    var doc;
+    try { doc = frame.contentDocument; } catch (e) { return; }
+    if (!doc) return;
+    doc.querySelectorAll("[data-edit]").forEach(function (el) {
+      el.setAttribute("contenteditable", "plaintext-only");
+      el.style.outline = "1px dashed rgba(99,102,241,.5)";
+      el.style.outlineOffset = "2px";
+      el.style.cursor = "text";
+      el.addEventListener("blur", function () {
+        fetch(editUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+          body: JSON.stringify({ field: el.getAttribute("data-edit"), value: el.innerText }),
+        }).then(function (r) {
+          if (r.ok && status) {
+            status.textContent = "{% trans 'Saved' %} ✓";
+            setTimeout(function () { status.textContent = ""; }, 1500);
+          }
+        });
+      });
+    });
+  });
   function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }
 
   form.addEventListener("input", schedule);
