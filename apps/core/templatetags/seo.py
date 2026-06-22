@@ -33,6 +33,43 @@ def business_rating():
     return _tenant_rating()
 
 
+@register.simple_tag
+def storefront_reviews(limit=6):
+    """Опубликованные отзывы текущего тенанта (G8/#6) для блока на витрине.
+
+    Читаем SHARED BusinessReview напрямую по connection.schema_name (public в
+    search_path, как business_rating). Имя автора — дружелюбная производная от
+    email (приватность; имени у PortalUser нет). Ошибки гасим — секция витрины
+    не должна ронять страницу."""
+    try:
+        from django.db import connection
+
+        from apps.aggregator.models import BusinessReview
+
+        rows = list(
+            BusinessReview.objects.filter(
+                tenant_schema=connection.schema_name, status=BusinessReview.STATUS_PUBLISHED
+            ).select_related("author")[: max(1, min(int(limit), 24))]
+        )
+    except Exception:  # noqa: BLE001 — блок отзывов не должен ломать витрину
+        return []
+    out = []
+    for r in rows:
+        email = getattr(r.author, "email", "") or ""
+        local = email.split("@", 1)[0].replace(".", " ").replace("_", " ").strip()
+        name = local.split(" ")[0].capitalize() if local else "Gast"
+        out.append(
+            {
+                "name": name,
+                "rating": r.rating,
+                "stars": "★" * r.rating + "☆" * (5 - r.rating),
+                "comment": r.comment,
+                "created_at": r.created_at,
+            }
+        )
+    return out
+
+
 @register.simple_tag(takes_context=True)
 def localbusiness_jsonld(context):
     """Готовый <script type=application/ld+json> с LocalBusiness текущего тенанта.

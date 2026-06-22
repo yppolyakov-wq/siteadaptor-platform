@@ -59,6 +59,7 @@ def test_normalize_empty_gives_defaults():
         "cta",
         "testimonials",
         "trust",
+        "reviews",
         "faq",
         "gallery",
         "contact",

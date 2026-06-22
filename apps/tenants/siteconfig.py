@@ -31,6 +31,9 @@ SECTIONS = [
     ("cta", _("Call to action"), False),
     ("testimonials", _("Testimonials"), False),
     ("trust", _("Trust & credentials"), False),  # P3: рейтинг + знаки + «Seit …»
+    # G8/#6: блок отзывов клиентов (читается из SHARED BusinessReview). По
+    # умолчанию выключен — показываем, только если у бизнеса есть отзывы.
+    ("reviews", _("Customer reviews"), False),
     ("faq", _("FAQ"), False),
     ("gallery", _("Photo gallery"), False),
     ("contact", _("Contact & opening hours"), True),

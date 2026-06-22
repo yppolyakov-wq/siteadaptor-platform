@@ -225,6 +225,16 @@ def test_apply_hotel_kit_builds_stays_site():
     # у каждого номера есть описание и хотя бы одно фото
     for u in StayUnit.objects.all():
         assert u.description and u.images
+    # G8/#6 отзывы клиентов (SHARED) + рейтинг + секция «reviews»
+    from apps.aggregator.models import BusinessRating, BusinessReview
+    from apps.core.templatetags.seo import storefront_reviews
+
+    assert BusinessReview.objects.filter(tenant_schema="public").count() == 3
+    assert BusinessRating.objects.get(tenant_schema="public").review_count == 3
+    assert {s["key"] for s in tenant.site_config["sections"] if s["enabled"]} >= {"reviews"}
+    revs = storefront_reviews(6)  # тег читает SHARED по connection.schema_name (public)
+    assert len(revs) == 3 and revs[0]["stars"].count("★") >= 4
+
     # E4 депозит + A5a сезонный тариф на Doppelzimmer
     from apps.stays.models import SeasonRate
 

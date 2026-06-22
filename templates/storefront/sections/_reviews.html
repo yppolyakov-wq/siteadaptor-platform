@@ -1,0 +1,23 @@
+{% load i18n seo %}
+{% storefront_reviews 6 as reviews %}
+{% business_rating as rating %}
+{% if reviews %}
+<section class="py-10">
+  <div class="max-w-5xl mx-auto px-4">
+    <h2 class="text-2xl font-bold text-center mb-1">{% trans "What our customers say" %}</h2>
+    {% if rating %}
+      <p class="text-center text-amber-500 mb-6">★ {{ rating.0|floatformat:1 }}
+        <span class="text-gray-400 text-sm">({{ rating.1 }})</span></p>
+    {% else %}<div class="mb-6"></div>{% endif %}
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for r in reviews %}
+        <blockquote class="bg-white rounded-2xl shadow-sm p-5">
+          <p class="text-amber-500 mb-2" aria-label="{{ r.rating }}/5">{{ r.stars }}</p>
+          {% if r.comment %}<p class="text-gray-700 mb-3">“{{ r.comment }}”</p>{% endif %}
+          <footer class="text-sm text-gray-500">— {{ r.name }} · {{ r.created_at|date:"m.Y" }}</footer>
+        </blockquote>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

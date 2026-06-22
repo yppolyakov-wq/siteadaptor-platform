@@ -102,6 +102,9 @@ class DemoKit:
     # A3/G9b: тарифы Mehrfachkarte (PassPlan) — {label, credits, price(eur),
     #   valid_days, service_index?}. Seed создаёт планы + выдаёт одну карту.
     pass_plans: list = field(default_factory=list)
+    # G8/#6: отзывы клиентов (SHARED BusinessReview) — (rating, comment, email).
+    # Seed создаёт PortalUser + отзыв + включает секцию «reviews» на витрине.
+    reviews_seed: list = field(default_factory=list)
     storefront_root: str = "home"  # S4: стартовая страница (home или ключ архетипа)
     # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
     subdomain: str = ""
@@ -955,6 +958,15 @@ HOTEL = DemoKit(
         ("Petra Lang", "Rezeption", "receptionist,woman"),
     ],
     trust={"since": "1985", "marks": ["Familienbetrieb", "Direkt am See", "Frühstück inklusive"]},
+    reviews_seed=[
+        (
+            5,
+            "Traumhafte Lage am See, herzliche Gastgeber — wir kommen wieder!",
+            "hotel.bauer@example.de",
+        ),
+        (5, "Sauber, ruhig und das Frühstück ein Gedicht.", "hotel.julia@example.de"),
+        (4, "Schöne Zimmer mit tollem Seeblick, sehr entspannt.", "hotel.klaus@example.de"),
+    ],
     enable_modules=["stays"],
     enable_archetypes_section=True,
     storefront_root="home",
@@ -1379,6 +1391,11 @@ FRISEUR = DemoKit(
         ("Mia Roth", "Coloristin", "hair,colorist"),
     ],
     trust={"since": "2012", "marks": ["Meisterbetrieb", "Schonende Farben", "Online-Termin"]},
+    reviews_seed=[
+        (5, "Bester Schnitt seit Jahren — und so unkompliziert zu buchen!", "fr.sandra@example.de"),
+        (5, "Tolle Beratung, faire Preise, immer pünktlich.", "fr.michael@example.de"),
+        (4, "Sehr freundliches Team, fühle mich immer wohl.", "fr.nina@example.de"),
+    ],
     cta={
         "title": "Zeit für etwas Neues?",
         "text": "Buchen Sie jetzt Ihren Wunschtermin online.",
@@ -1689,6 +1706,11 @@ RETREAT = DemoKit(
         ("Felix Sturm", "Achtsamkeits-Coach", "meditation,man"),
     ],
     trust={"since": "2016", "marks": ["Kleine Gruppen", "Zertifizierte Leitung", "Naturnah"]},
+    reviews_seed=[
+        (5, "Zwei Tage, die mich geerdet haben. Ich komme wieder.", "rt.johanna@example.de"),
+        (5, "Kleine Gruppe, viel Raum, herzliche Begleitung.", "rt.daniel@example.de"),
+        (4, "Genau die Pause, die ich gebraucht habe.", "rt.sandra@example.de"),
+    ],
     cta={
         "title": "Zeit für dich.",
         "text": "Finde dein nächstes Retreat und sichere dir einen Platz.",
@@ -2083,6 +2105,7 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "gallery", "enabled": bool(kit.gallery_kw)},
         {"key": "testimonials", "enabled": bool(kit.testimonials)},
         {"key": "trust", "enabled": bool(kit.trust)},
+        {"key": "reviews", "enabled": bool(kit.reviews_seed)},  # G8/#6: отзывы клиентов
         {"key": "faq", "enabled": bool(kit.faq)},
         {"key": "cta", "enabled": bool(kit.cta)},
         {"key": "about", "enabled": bool(kit.about_text)},
@@ -2272,6 +2295,7 @@ def apply_kit(tenant, key: str) -> bool:
 
     _seed_kit_modules(tenant, kit, refs)
     _seed_kit_records(tenant, kit, refs, created_products)
+    _seed_kit_reviews(tenant, kit)
 
     # S3: обложки разделов — интро + hero-фото + галерея на архетип.
     archetypes_cfg = {}
@@ -2359,6 +2383,36 @@ def apply_kit(tenant, key: str) -> bool:
         update_fields.append("opening_hours_structured")
     tenant.save(update_fields=update_fields)
     return True
+
+
+def _seed_kit_reviews(tenant, kit: DemoKit) -> None:
+    """G8/#6: отзывы клиентов в SHARED BusinessReview (public) + пересчёт рейтинга.
+
+    Кросс-схемно (public): PortalUser + BusinessReview(tenant_schema). Включает
+    звёзды на витрине/в агрегаторе и блок «reviews». Демо-тенант одноразовый."""
+    if not kit.reviews_seed:
+        return
+    from django_tenants.utils import schema_context
+
+    try:
+        with schema_context("public"):
+            from apps.aggregator import reviews as agg_reviews
+            from apps.aggregator.models import BusinessReview, PortalUser
+
+            for rating, comment, email in kit.reviews_seed:
+                author, _ = PortalUser.objects.get_or_create(email=email)
+                BusinessReview.objects.update_or_create(
+                    tenant_schema=tenant.schema_name,
+                    author=author,
+                    defaults={
+                        "rating": rating,
+                        "comment": comment,
+                        "status": BusinessReview.STATUS_PUBLISHED,
+                    },
+                )
+            agg_reviews.recompute_rating(tenant.schema_name)
+    except Exception:  # noqa: BLE001 — отзывы не должны рушить провижининг кита
+        pass
 
 
 def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
