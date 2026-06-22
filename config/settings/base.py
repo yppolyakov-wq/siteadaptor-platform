@@ -53,6 +53,7 @@ TENANT_APPS = [
     "apps.catalog",  # Sprint 2 — каталог товаров/категорий
     "apps.imports",  # Sprint 2 — CSV-импорт товаров
     "apps.promotions",  # Sprint 3 — акции и резервирование
+    "apps.loyalty",  # вынесено из promotions (2026-06-22): штампы + ваучеры (TENANT)
     # "apps.subscriptions",
     "apps.publishing",  # Sprint 4 — каналы публикации (TENANT)
     "apps.notifications",  # Sprint 6 — уведомления (TENANT)

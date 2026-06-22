@@ -2,9 +2,9 @@
 
 import pytest
 
+from apps.loyalty.models import Voucher
 from apps.promotions import services
 from apps.promotions.forms import VoucherCreateForm
-from apps.promotions.models import Voucher
 
 pytestmark = pytest.mark.django_db
 

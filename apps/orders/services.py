@@ -239,7 +239,7 @@ def create_order(
     # блокировкой (redeem_voucher) — анти-двойное-списание; сбой → без скидки.
     discount = Decimal("0")
     if voucher_code:
-        from apps.promotions.models import Voucher
+        from apps.loyalty.models import Voucher
         from apps.promotions.services import VoucherError, redeem_voucher
 
         voucher = Voucher.objects.filter(code=voucher_code).first()

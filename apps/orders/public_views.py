@@ -221,7 +221,7 @@ PROMO_SESSION_KEY = "promo_code"
 def cart_apply_code(request):
     """A4: применить промокод (Voucher со скидкой) к корзине — в сессию."""
     _require_orders_active(request)
-    from apps.promotions.models import Voucher
+    from apps.loyalty.models import Voucher
 
     code = (request.POST.get("code") or "").strip().upper()[:12]
     voucher = Voucher.objects.filter(code=code).first() if code else None
@@ -245,7 +245,7 @@ def _cart_discount(request, subtotal):
     """(voucher, скидка Decimal) для применённого промокода на subtotal (Decimal)."""
     from decimal import Decimal
 
-    from apps.promotions.models import Voucher
+    from apps.loyalty.models import Voucher
 
     code = request.session.get(PROMO_SESSION_KEY, "")
     if not code:

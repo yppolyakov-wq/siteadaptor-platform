@@ -15,10 +15,11 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.images import delete_stored_image, save_product_image
 from apps.core.fsm import IllegalTransition
+from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 
 from . import services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
-from .models import Customer, LoyaltyCard, LoyaltyProgram, Promotion, Reservation, Voucher
+from .models import Customer, Promotion, Reservation
 from .poster import build_shop_poster_pdf
 from .presets import preset_initial, presets_for
 from .state_machine import PromotionSM

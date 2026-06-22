@@ -5,7 +5,7 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from apps.promotions.models import Voucher
+from apps.loyalty.models import Voucher
 from apps.promotions.services import VoucherError, generate_vouchers, redeem_voucher
 
 

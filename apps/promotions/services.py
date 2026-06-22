@@ -12,7 +12,9 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 
-from .models import Customer, Promotion, Reservation, Voucher, WaitlistEntry
+from apps.loyalty.models import Voucher
+
+from .models import Customer, Promotion, Reservation, WaitlistEntry
 from .notifications import enqueue_reservation_email, enqueue_waitlist_available
 from .state_machine import ReservationSM
 
@@ -237,7 +239,7 @@ class LoyaltyError(Exception):
 
 
 def get_or_create_card(program, customer):
-    from .models import LoyaltyCard
+    from apps.loyalty.models import LoyaltyCard
 
     card, _ = LoyaltyCard.objects.get_or_create(program=program, customer=customer)
     return card
@@ -250,7 +252,7 @@ def add_stamp(card, *, cooldown_seconds=STAMP_COOLDOWN_SECONDS):
     Возвращает (card, reward_voucher|None). Бросает LoyaltyError('cooldown')
     при слишком частом начислении (анти-дабл).
     """
-    from .models import LoyaltyCard, StampEvent
+    from apps.loyalty.models import LoyaltyCard, StampEvent
 
     card = LoyaltyCard.objects.select_for_update().select_related("program").get(pk=card.pk)
 

@@ -202,7 +202,7 @@ def _reservations(customer):
 
 
 def _vouchers(customer):
-    from apps.promotions.models import Voucher
+    from apps.loyalty.models import Voucher
 
     items = [
         {
@@ -217,7 +217,7 @@ def _vouchers(customer):
 
 
 def _loyalty(customer):
-    from apps.promotions.models import LoyaltyCard
+    from apps.loyalty.models import LoyaltyCard
 
     items = [
         {

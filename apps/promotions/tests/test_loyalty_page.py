@@ -5,8 +5,8 @@ from django.http import Http404
 from django.test import RequestFactory
 
 from apps.core import modules
+from apps.loyalty.models import LoyaltyProgram
 from apps.promotions import public_views
-from apps.promotions.models import LoyaltyProgram
 from apps.tenants import menu
 from apps.tenants.tests.factories import TenantFactory
 

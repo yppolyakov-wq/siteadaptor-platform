@@ -2,7 +2,8 @@
 
 import pytest
 
-from apps.promotions.models import Customer, LoyaltyProgram, Voucher
+from apps.loyalty.models import LoyaltyProgram, Voucher
+from apps.promotions.models import Customer
 from apps.promotions.services import LoyaltyError, add_stamp, get_or_create_card
 
 

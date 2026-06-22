@@ -137,7 +137,7 @@ def test_manual_create_sets_source_and_consent():
 
 def test_detail_shows_loyalty_cards():
     """D1b: карточка 360° — карты лояльности клиента (readonly)."""
-    from apps.promotions.models import LoyaltyCard, LoyaltyProgram
+    from apps.loyalty.models import LoyaltyCard, LoyaltyProgram
 
     customer = Customer.objects.create(name="Ines Stempel")
     program = LoyaltyProgram.objects.create(
@@ -153,7 +153,7 @@ def test_detail_shows_loyalty_cards():
 
 def test_issue_voucher_to_customer():
     """D1: ваучер из карточки клиента привязывается к нему (360°)."""
-    from apps.promotions.models import Voucher
+    from apps.loyalty.models import Voucher
 
     customer = Customer.objects.create(name="Lena Gutschein")
     resp = views.customer_detail(

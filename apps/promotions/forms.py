@@ -9,8 +9,9 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Product
+from apps.loyalty.models import LoyaltyProgram
 
-from .models import LoyaltyProgram, Promotion
+from .models import Promotion
 
 _DT_FMT = "%Y-%m-%dT%H:%M"
 

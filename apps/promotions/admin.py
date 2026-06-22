@@ -1,13 +1,12 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
+from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
+
 from .models import (
     Customer,
-    LoyaltyCard,
-    LoyaltyProgram,
     Promotion,
     Reservation,
-    Voucher,
     WaitlistEntry,
 )
 

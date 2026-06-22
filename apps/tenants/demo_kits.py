@@ -2289,7 +2289,7 @@ def apply_kit(tenant, key: str) -> bool:
 
     # Ваучеры/промокоды (фикс-коды, чтобы описание ссылалось на них).
     if kit.vouchers:
-        from apps.promotions.models import Voucher
+        from apps.loyalty.models import Voucher
 
         for v in kit.vouchers:
             Voucher.objects.get_or_create(
@@ -2548,7 +2548,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 )
             refs["stay_units"].append(str(unit.pk))
     if kit.loyalty and is_active("loyalty"):
-        from apps.promotions.models import LoyaltyProgram
+        from apps.loyalty.models import LoyaltyProgram
 
         program = LoyaltyProgram.objects.create(
             label=kit.loyalty["label"],

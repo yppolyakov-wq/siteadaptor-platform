@@ -156,7 +156,7 @@ def test_combo_add_missing_required_choice_blocks():
 
 
 def test_checkout_applies_voucher_discount_and_redeems():
-    from apps.promotions.models import Voucher
+    from apps.loyalty.models import Voucher
 
     voucher = Voucher.objects.create(code="MINUS10", label="−10 %", discount_percent=10, max_uses=1)
     product = ProductFactory(base_price=Decimal("20.00"))

@@ -6,8 +6,9 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
+from apps.loyalty.models import Voucher
 from apps.promotions import views
-from apps.promotions.models import Reservation, Voucher
+from apps.promotions.models import Reservation
 from apps.promotions.services import generate_vouchers, reserve
 from apps.promotions.tests.factories import PromotionFactory
 

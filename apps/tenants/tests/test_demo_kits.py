@@ -106,7 +106,7 @@ def test_restaurant_kit_enables_orders_and_delivery():
 def test_restaurant_kit_seeds_events_catering_loyalty():
     """Демо-ресторан показывает события, кейтеринг (jobs) и лояльность."""
     from apps.events.models import Event
-    from apps.promotions.models import LoyaltyProgram
+    from apps.loyalty.models import LoyaltyProgram
 
     tenant = _tenant()
     demo_kits.apply_kit(tenant, "restaurant")
@@ -264,7 +264,8 @@ def test_apply_hotel_kit_builds_stays_site():
 
 def test_apply_aktionsmarkt_kit_covers_all_promo_types():
     """Aktionsmarkt: акции всех типов/видов + ваучеры + описание в FAQ."""
-    from apps.promotions.models import LoyaltyProgram, Promotion, Voucher
+    from apps.loyalty.models import LoyaltyProgram, Voucher
+    from apps.promotions.models import Promotion
 
     tenant = TenantFactory(schema_name="public", slug="am", name="AM", business_type="grocery")
     assert demo_kits.apply_kit(tenant, "aktionsmarkt") is True

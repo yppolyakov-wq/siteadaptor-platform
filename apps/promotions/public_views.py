@@ -23,15 +23,13 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from apps.core import ratelimit
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
+from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 
 from .forms import PublicReservationForm, WaitlistForm
 from .models import (
     Customer,
-    LoyaltyCard,
-    LoyaltyProgram,
     Promotion,
     Reservation,
-    Voucher,
     WaitlistEntry,
 )
 from .services import OutOfStock, ReservationLimitReached, reserve
