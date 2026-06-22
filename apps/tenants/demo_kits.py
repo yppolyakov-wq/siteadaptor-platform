@@ -99,6 +99,9 @@ class DemoKit:
     promotions_spec: list = field(default_factory=list)
     # Ваучеры/промокоды: {code, label, percent|cents, min_order(eur), max_uses}.
     vouchers: list = field(default_factory=list)
+    # A3/G9b: тарифы Mehrfachkarte (PassPlan) — {label, credits, price(eur),
+    #   valid_days, service_index?}. Seed создаёт планы + выдаёт одну карту.
+    pass_plans: list = field(default_factory=list)
     storefront_root: str = "home"  # S4: стартовая страница (home или ключ архетипа)
     # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
     subdomain: str = ""
@@ -982,6 +985,15 @@ HOTEL = DemoKit(
             "französischem Balkon, Queensize-Bett, Smart-TV und modernem Bad mit Regendusche. "
             "Inklusive Frühstücksbuffet.",
             "photos": ["hotel,room", "hotel,bed", "lake,view"],
+            "deposit": "30",  # E4: депозит за бронь (анти-no-show)
+            "season": [  # A5a: Hochsaison-Tarif
+                {
+                    "label": "Hochsaison (Sommer)",
+                    "start": "2026-07-01",
+                    "end": "2026-08-31",
+                    "price": "119",
+                },
+            ],
         },
         {
             "name": "Einzelzimmer Komfort",
@@ -1379,6 +1391,16 @@ FRISEUR = DemoKit(
     seed_records=True,
     menus=FRISEUR_MENUS,
     loyalty={"label": "Treuekarte", "stamps": 10, "reward": "1× Waschen & Föhnen gratis"},
+    pass_plans=[
+        {
+            "label": "10er-Karte Waschen & Föhnen",
+            "credits": 10,
+            "price": "170",
+            "valid_days": 365,
+            "service_index": 2,
+        },
+        {"label": "5er-Karte Haarschnitt", "credits": 5, "price": "180", "valid_days": 365},
+    ],
     archetype_covers={
         "booking": {
             "intro": "Wählen Sie Ihre Leistung und buchen Sie einen freien Termin.",
@@ -2370,13 +2392,32 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 name=name, duration_minutes=minutes, price_cents=int(Decimal(price) * 100)
             )
             refs["services"].append(str(svc.pk))
+    if kit.pass_plans and is_active("booking"):  # A3/G9b: тарифы Mehrfachkarte
+        from apps.booking.models import PassPlan, Service
+
+        svc_ids = refs.get("services", [])
+        for p in kit.pass_plans:
+            service = None
+            si = p.get("service_index")
+            if si is not None and si < len(svc_ids):
+                service = Service.objects.filter(pk=svc_ids[si]).first()
+            PassPlan.objects.create(
+                label=p["label"],
+                credits=p.get("credits", 10),
+                price_cents=int(Decimal(str(p.get("price", "0"))) * 100),
+                valid_days=p.get("valid_days", 0),
+                service=service,
+                is_active=True,
+            )
     if kit.stay_units and is_active("stays"):
-        from apps.stays.models import StayUnit
+        from datetime import date
+
+        from apps.stays.models import SeasonRate, StayUnit
 
         refs["stay_units"] = []
         for idx, spec in enumerate(kit.stay_units):
             # Краткий кортеж (name, type, qty, price, guests) ИЛИ богатый dict
-            # (с описанием и фото номера).
+            # (с описанием, фото, депозитом и сезонными тарифами номера).
             if isinstance(spec, dict):
                 imgs = [
                     _image_ref(kw, 8400 + idx * 10 + j, spec["name"])
@@ -2393,9 +2434,18 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     price_cents=int(Decimal(str(spec.get("price", "0"))) * 100),
                     min_nights=spec.get("min_nights", 1),
                     max_guests=spec.get("guests", 2),
+                    deposit_cents=int(Decimal(str(spec.get("deposit", "0"))) * 100),
                     images=imgs,
                     is_active=True,
                 )
+                for s in spec.get("season", []):  # A5a сезонные тарифы
+                    SeasonRate.objects.create(
+                        unit=unit,
+                        label=s.get("label", ""),
+                        start_date=date.fromisoformat(s["start"]),
+                        end_date=date.fromisoformat(s["end"]),
+                        price_cents=int(Decimal(str(s["price"])) * 100),
+                    )
             else:
                 name, utype, qty, price, guests = spec
                 unit = StayUnit.objects.create(
@@ -2602,6 +2652,24 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     pass
         except Exception:
             pass
+
+    # Mehrfachkarte (A3/G9b): выдать одну карту по первому тарифу.
+    if kit.pass_plans and is_active("booking"):
+        from apps.booking.models import PassPlan
+        from apps.booking.services import issue_pass
+
+        plan = PassPlan.objects.order_by("price_cents").first()
+        if plan is not None:
+            try:
+                issue_pass(
+                    name="Petra Klein",
+                    email="petra@example.de",
+                    label=plan.label,
+                    credits=plan.credits,
+                    service=plan.service,
+                )
+            except Exception:
+                pass
 
     # Event-Tickets
     if is_active("events") and refs.get("events"):

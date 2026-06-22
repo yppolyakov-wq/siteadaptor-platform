@@ -225,6 +225,12 @@ def test_apply_hotel_kit_builds_stays_site():
     # у каждого номера есть описание и хотя бы одно фото
     for u in StayUnit.objects.all():
         assert u.description and u.images
+    # E4 депозит + A5a сезонный тариф на Doppelzimmer
+    from apps.stays.models import SeasonRate
+
+    doppel = StayUnit.objects.get(name="Doppelzimmer Seeblick")
+    assert doppel.deposit_cents == 3000
+    assert SeasonRate.objects.filter(unit=doppel, price_cents=11900).exists()
     # брони в кабинете (подтверждённые)
     assert StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED).count() >= 1
     # секции акций/товаров выключены (нет каталога), архетипы — включены
@@ -285,6 +291,13 @@ def test_apply_friseur_kit_booking_services():
     assert Service.objects.filter(name="Färben", price_cents=6900, duration_minutes=90).exists()
     assert Resource.objects.filter(is_active=True).count() == 2  # 2 Stühle
     assert Booking.objects.filter(status=Booking.STATUS_CONFIRMED).exists()  # seed_records
+    # A3/G9b Mehrfachkarte: тарифы + одна выданная карта
+    from apps.booking.models import Pass, PassPlan
+
+    assert PassPlan.objects.filter(is_active=True).count() == 2
+    waschen = Service.objects.get(name="Waschen & Föhnen")
+    assert PassPlan.objects.filter(credits=10, service=waschen).exists()  # привязка к услуге
+    assert Pass.objects.filter(credits_total=10).exists()  # выдана клиенту
     for m in ("booking", "loyalty", "orders"):
         assert tenant.is_module_active(m)
 
