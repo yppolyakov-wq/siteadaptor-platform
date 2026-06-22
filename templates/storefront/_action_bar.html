@@ -1,11 +1,16 @@
-{% load i18n %}{# T2b: липкий мобильный нижний таб-бар (только мобайл). Цели ≥56px (WCAG 2.5.8). #}
+{% load i18n %}{# T2b: липкий мобильный нижний таб-бар (только мобайл). Цели ≥48px (WCAG 2.5.8). #}
 {% if storefront_bottom_nav %}
+{% comment %}
+Без backdrop-blur: фильтр на fixed-элементе вызывает перерисовку и «подпрыгивание»
+бара при инерционном скролле в iOS Safari → ставим непрозрачный фон. Нижний
+отступ — только безопасная зона (home indicator), сжатая до минимума.
+{% endcomment %}
 <nav aria-label="{% trans 'Menu' %}"
-     class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200
-            flex" style="padding-bottom: env(safe-area-inset-bottom);">
+     class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex shadow-[0_-1px_8px_rgba(0,0,0,0.06)]"
+     style="padding-bottom: max(2px, env(safe-area-inset-bottom));">
   {% for a in storefront_bottom_nav %}
     <a href="{{ a.url }}"
-       class="relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 min-h-[48px] text-[11px] font-medium
+       class="relative flex-1 flex flex-col items-center justify-center gap-0.5 pt-1.5 pb-1 min-h-[46px] text-[11px] font-medium
               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]
               text-gray-600 active:bg-gray-100">
       <span class="text-[19px] leading-none" aria-hidden="true">{{ a.icon }}</span>
@@ -17,6 +22,6 @@
     </a>
   {% endfor %}
 </nav>
-{# Спейсер по высоте бара (компактнее), чтобы контент не прятался под панелью. #}
-<div class="sm:hidden h-12" aria-hidden="true"></div>
+{# Спейсер: высота бара + безопасная зона, чтобы контент не прятался под панелью. #}
+<div class="sm:hidden" aria-hidden="true" style="height: calc(46px + env(safe-area-inset-bottom));"></div>
 {% endif %}

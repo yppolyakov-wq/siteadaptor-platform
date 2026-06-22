@@ -1458,3 +1458,15 @@
   Galerie / Bewertungen / Hausordnung / FAQ / Über uns / Kontakt / Jetzt buchen
   (низ — таб-бар Zimmer/Galerie/Bewertungen/Buchen). Gutschein намеренно вне меню
   (404 без Stripe Connect). `npm run build:css` (добавлен `scroll-mt-24`).
+
+- **Витрина: фикс нижнего таб-бара + лайтбокс галерей + чистые карточки номеров.**
+  `_action_bar.html`: убран `backdrop-blur` (фильтр на fixed-баре вызывал
+  «подпрыгивание» при инерционном скролле в iOS Safari) → непрозрачный фон +
+  лёгкая тень; нижний отступ сжат до `max(2px, safe-area)`, спейсер считает
+  высоту бара + safe-area (контент не прячется). Добавлен общий лайтбокс в
+  `_base.html` (клик по `img[data-lightbox]` → фото на весь экран, закрытие
+  фон/×/Esc); подключён в секции галереи (`_gallery.html`) и в галерее номера
+  (`stay_detail.html`). Карточки номеров (`stay_index.html` поиск+обзор,
+  «похожие» в `stay_detail.html`) переведены на единый бокс `aspect-[4/3]` +
+  `bg-gray-100` + `object-cover` — без цветных полей/искажений на любой картинке
+  и мобильных. `npm run build:css`.

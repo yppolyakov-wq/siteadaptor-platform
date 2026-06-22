@@ -16,8 +16,8 @@
 {% if unit.images %}
 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6 max-w-3xl">
   {% for img in unit.images %}
-    <img src="{{ img.url }}" alt="{{ unit.name }}" loading="lazy" decoding="async"
-         class="w-full h-40 object-cover rounded-xl {% if forloop.first %}col-span-2 sm:col-span-3 h-64{% endif %}">
+    <img src="{{ img.url }}" alt="{{ unit.name }}" loading="lazy" decoding="async" data-lightbox="{{ img.url }}"
+         class="w-full h-40 object-cover rounded-xl bg-gray-100 cursor-zoom-in hover:opacity-95 transition {% if forloop.first %}col-span-2 sm:col-span-3 h-56 sm:h-64{% endif %}">
   {% endfor %}
 </div>
 {% endif %}
@@ -164,7 +164,7 @@
   <div class="grid sm:grid-cols-3 gap-4">
     {% for s in similar %}
       <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}{% elif embed %}?embed=1{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-        {% if s.image_url %}<img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full h-32 object-cover">{% endif %}
+        {% if s.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
         <div class="p-4">
           <h3 class="font-medium">{{ s.name }}</h3>
           <p class="text-sm text-gray-500">{{ s.get_type_display }}</p>

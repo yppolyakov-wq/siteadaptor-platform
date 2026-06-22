@@ -184,6 +184,37 @@
 
   {# T2c: контейнер модалки быстрого заказа (наполняется vanilla-fetch'ем). #}
   <div id="quick-modal"></div>
+  {% comment %}
+  Лайтбокс галерей: клик по img[data-lightbox] открывает фото на весь экран.
+  Источник — атрибут data-lightbox (полный URL) или сам src. Закрытие — фон/×/Esc.
+  {% endcomment %}
+  <div id="sf-lightbox" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/90 p-4"
+       role="dialog" aria-modal="true" aria-label="{% trans 'Image viewer' %}">
+    <button type="button" data-lightbox-close aria-label="{% trans 'Close' %}"
+            class="absolute top-3 right-4 text-white/90 hover:text-white text-4xl leading-none">&times;</button>
+    <img id="sf-lightbox-img" src="" alt="" class="max-h-[90vh] max-w-[95vw] object-contain rounded-lg shadow-2xl">
+  </div>
+  <script>
+    (function () {
+      var box = document.getElementById("sf-lightbox"), img = document.getElementById("sf-lightbox-img");
+      if (!box || !img) return;
+      function open(src, alt) {
+        img.src = src; img.alt = alt || "";
+        box.classList.remove("hidden"); box.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+      function close() {
+        box.classList.add("hidden"); box.classList.remove("flex");
+        img.src = ""; document.body.style.overflow = "";
+      }
+      document.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-lightbox]");
+        if (t) { e.preventDefault(); open(t.getAttribute("data-lightbox") || t.src, t.alt); return; }
+        if (e.target === box || e.target.closest("[data-lightbox-close]")) close();
+      });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    })();
+  </script>
   {# R1: тост подтверждения добавления в корзину. #}
   <div id="sf-toast" role="status" aria-live="polite"></div>
   <script>

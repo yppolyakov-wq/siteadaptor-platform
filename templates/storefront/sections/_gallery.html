@@ -5,10 +5,11 @@
   {% if site.gallery %}
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
     {% for img in site.gallery %}
-      <div class="aspect-square rounded-xl overflow-hidden bg-gray-100">
+      <button type="button" data-lightbox="{{ img.url }}"
+              class="aspect-square rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
         <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
-             class="w-full h-full object-cover hover:scale-[1.02] transition">
-      </div>
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
     {% endfor %}
   </div>
   {% endif %}

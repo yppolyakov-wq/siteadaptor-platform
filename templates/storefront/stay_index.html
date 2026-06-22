@@ -45,7 +45,7 @@
     {% for r in results %}
       {% if r.available %}
         <a href="{% url 'storefront-unterkunft-unit' r.unit.pk %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-          {% if r.unit.image_url %}<img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover">{% endif %}
+          {% if r.unit.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
           <div class="p-5">
             <h2 class="font-semibold text-lg">{{ r.unit.name }}</h2>
             <p class="text-sm text-gray-500">{{ r.unit.get_type_display }} · {% blocktrans with n=r.unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
@@ -55,7 +55,7 @@
         </a>
       {% else %}
         <div class="bg-white rounded-2xl shadow-sm overflow-hidden opacity-60">
-          {% if r.unit.image_url %}<img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover grayscale">{% endif %}
+          {% if r.unit.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover grayscale"></div>{% endif %}
           <div class="p-5">
             <h2 class="font-semibold text-lg">{{ r.unit.name }}</h2>
             <p class="text-sm text-gray-500">{{ r.unit.get_type_display }} · {% blocktrans with n=r.unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
@@ -74,7 +74,7 @@
   <div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
     {% for u in units %}
       <a href="{% url 'storefront-unterkunft-unit' u.pk %}{% if embed %}?embed=1{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-        {% if u.image_url %}<img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover">{% endif %}
+        {% if u.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
         <div class="p-5">
           <h2 class="font-semibold text-lg">{{ u.name }}</h2>
           <p class="text-sm text-gray-500">{{ u.get_type_display }} · {% blocktrans with n=u.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
