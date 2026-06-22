@@ -914,20 +914,32 @@ PRANASY = DemoKit(
     ],
 )
 
+# Меню отеля (ТЗ §15): «Главная/Номера/Галерея/Отзывы/Hausordnung/FAQ/Über
+# uns/Контакты/Забронировать». Якоря (#galerie/#bewertungen/#faq/#kontakt/#buchen)
+# созданы обёртками секций в home.html; target с «/#…» работает с любой страницы.
 HOTEL_MENUS = {
     "top": {
         "style": "centered",
         "sticky": True,
         "items": [
-            {"label": "Zimmer", "type": "archetype", "target": "stays"},
+            {"label": "Start", "type": "page", "target": "home"},
+            {"label": "Zimmer & Preise", "type": "archetype", "target": "stays"},
+            {"label": "Galerie", "type": "anchor", "target": "/#galerie"},
+            {"label": "Bewertungen", "type": "anchor", "target": "/#bewertungen"},
+            {"label": "Hausordnung", "type": "url", "target": "/hausordnung/"},
+            {"label": "FAQ", "type": "anchor", "target": "/#faq"},
             {"label": "Über uns", "type": "page", "target": "about"},
+            {"label": "Kontakt", "type": "anchor", "target": "/#kontakt"},
+            {"label": "Jetzt buchen", "type": "anchor", "target": "/#buchen"},
         ],
     },
     "bottom": {
         "enabled": True,
         "items": [
             {"label": "Zimmer", "type": "archetype", "target": "stays", "icon": "🛏"},
-            {"label": "Über uns", "type": "page", "target": "about", "icon": "ℹ️"},
+            {"label": "Galerie", "type": "anchor", "target": "/#galerie", "icon": "📷"},
+            {"label": "Bewertungen", "type": "anchor", "target": "/#bewertungen", "icon": "⭐"},
+            {"label": "Buchen", "type": "anchor", "target": "/#buchen", "icon": "📅"},
         ],
     },
 }

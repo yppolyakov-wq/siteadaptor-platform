@@ -1,6 +1,8 @@
 {% load i18n %}
-{# H2: быстрый поиск размещения по датам на главной (ТЗ §2.1). Рендерится только
-   при активном модуле stays; ведёт на /unterkunft/ с датами. #}
+{% comment %}
+H2: быстрый поиск размещения по датам на главной (ТЗ §2.1). Рендерится только
+при активном модуле stays; ведёт на /unterkunft/ с датами.
+{% endcomment %}
 {% if storefront_stays_enabled %}
 <section class="mb-8">
   <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 max-w-3xl mx-auto">

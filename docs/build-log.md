@@ -1447,3 +1447,14 @@
   `/dashboard/stays/units/` — карточка с готовым `<iframe>`-сниппетом (`embed_url`).
   Тесты — `test_embed.py` (chrome-less + frameable, проброс embed, обычный режим без
   exemption). План G10.
+
+- **Hotel-демо: фикс утечки комментариев + полное меню (ТЗ §15).** Многострочные
+  `{# … #}` (Django их НЕ поддерживает — утекают текстом на витрину) в
+  `sections/_stay_search.html` и `_embed_base.html` заменены на
+  `{% comment %}…{% endcomment %}`. В `home.html` секции обёрнуты якорями
+  (`#buchen/#zimmer/#galerie/#bewertungen/#stimmen/#faq/#kontakt/#ueber-uns`,
+  `scroll-mt-24`) — чтобы пункты меню типа `anchor` вели на разделы главной.
+  `HOTEL_MENUS` расширено до полноценного меню отеля: Start / Zimmer & Preise /
+  Galerie / Bewertungen / Hausordnung / FAQ / Über uns / Kontakt / Jetzt buchen
+  (низ — таб-бар Zimmer/Galerie/Bewertungen/Buchen). Gutschein намеренно вне меню
+  (404 без Stripe Connect). `npm run build:css` (добавлен `scroll-mt-24`).

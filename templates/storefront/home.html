@@ -3,22 +3,27 @@
 
 {% block content %}
 {# Track C2: главная собирается из секций site_config (порядок/видимость — кабинет «Site»). #}
+{% comment %}
+Якоря секций (id со scroll-mt) дают пунктам меню типа «anchor» куда вести
+(#galerie, #bewertungen, #kontakt …). Сами секции — общие партиалы, поэтому
+якорь вешаем здесь обёрткой, а не внутри партиала.
+{% endcomment %}
 {% for s in sections %}
   {% if s == "hero" %}{% include "storefront/sections/_hero.html" %}
-  {% elif s == "stay_search" %}{% include "storefront/sections/_stay_search.html" %}
+  {% elif s == "stay_search" %}<div id="buchen" class="scroll-mt-24">{% include "storefront/sections/_stay_search.html" %}</div>
   {% elif s == "promotions" %}{% include "storefront/sections/_promotions.html" %}
   {% elif s == "products" %}{% include "storefront/sections/_products.html" %}
-  {% elif s == "archetypes" %}{% include "storefront/sections/_archetypes.html" %}
-  {% elif s == "about" %}{% include "storefront/sections/_about.html" %}
+  {% elif s == "archetypes" %}<div id="zimmer" class="scroll-mt-24">{% include "storefront/sections/_archetypes.html" %}</div>
+  {% elif s == "about" %}<div id="ueber-uns" class="scroll-mt-24">{% include "storefront/sections/_about.html" %}</div>
   {% elif s == "process" %}{% include "storefront/sections/_process.html" %}
   {% elif s == "team" %}{% include "storefront/sections/_team.html" %}
   {% elif s == "cta" %}{% include "storefront/sections/_cta.html" %}
-  {% elif s == "testimonials" %}{% include "storefront/sections/_testimonials.html" %}
+  {% elif s == "testimonials" %}<div id="stimmen" class="scroll-mt-24">{% include "storefront/sections/_testimonials.html" %}</div>
   {% elif s == "trust" %}{% include "storefront/sections/_trust.html" %}
-  {% elif s == "reviews" %}{% include "storefront/sections/_reviews.html" %}
-  {% elif s == "faq" %}{% include "storefront/sections/_faq.html" %}
-  {% elif s == "gallery" %}{% include "storefront/sections/_gallery.html" %}
-  {% elif s == "contact" %}{% include "storefront/sections/_contact.html" %}
+  {% elif s == "reviews" %}<div id="bewertungen" class="scroll-mt-24">{% include "storefront/sections/_reviews.html" %}</div>
+  {% elif s == "faq" %}<div id="faq" class="scroll-mt-24">{% include "storefront/sections/_faq.html" %}</div>
+  {% elif s == "gallery" %}<div id="galerie" class="scroll-mt-24">{% include "storefront/sections/_gallery.html" %}</div>
+  {% elif s == "contact" %}<div id="kontakt" class="scroll-mt-24">{% include "storefront/sections/_contact.html" %}</div>
   {% endif %}
 {% endfor %}
 {% endblock %}

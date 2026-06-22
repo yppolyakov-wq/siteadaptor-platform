@@ -1,6 +1,8 @@
 {% load i18n static %}<!doctype html>
-{# G10: минимальный шаблон для встраивания брони в iframe на чужом сайте —
-   без шапки/футера/навигации; кадрирование разрешает xframe_options_exempt. #}
+{% comment %}
+G10: минимальный шаблон для встраивания брони в iframe на чужом сайте —
+без шапки/футера/навигации; кадрирование разрешает xframe_options_exempt.
+{% endcomment %}
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
