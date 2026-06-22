@@ -235,6 +235,9 @@ class Booking(TimestampedModel):
     deposit_cents = models.PositiveIntegerField(default=0)  # снимок с ресурса
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # для refund
+    # #7: снимок выбранных Extras [{label, price_cents}] — сумма входит в total_cents
+    # (выручку), переживает изменение/удаление Extra.
+    extras = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["start"]
@@ -250,3 +253,17 @@ class Booking(TimestampedModel):
     @property
     def price_eur(self) -> float:
         return self.price_cents / 100
+
+    @property
+    def extras_cents(self) -> int:
+        """Сумма выбранных Extras (#7), центы."""
+        return sum(int(e.get("price_cents", 0)) for e in (self.extras or []))
+
+    @property
+    def total_cents(self) -> int:
+        """Итого = цена услуги + Extras (выручка/отображение)."""
+        return self.price_cents + self.extras_cents
+
+    @property
+    def total_eur(self) -> float:
+        return self.total_cents / 100

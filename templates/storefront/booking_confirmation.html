@@ -9,6 +9,12 @@
     <p class="text-gray-600">{% if booking.service %}{{ booking.service.name }}{% if booking.price_cents %} · {{ booking.price_eur|floatformat:2 }} €{% endif %}{% else %}{{ booking.resource.name }}{% endif %}</p>
     <p class="text-lg font-semibold mt-1">{{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}</p>
     {% if booking.party_size > 1 %}<p class="text-sm text-gray-500 mt-1">{% blocktrans with n=booking.party_size %}{{ n }} guests{% endblocktrans %}</p>{% endif %}
+    {% if booking.extras %}
+      <ul class="text-sm text-gray-600 mt-3">
+        {% for e in booking.extras %}<li>+ {{ e.label }}</li>{% endfor %}
+      </ul>
+      <p class="text-sm font-semibold mt-2">{% blocktrans with t=booking.total_eur|floatformat:2 %}Total: {{ t }} €{% endblocktrans %}</p>
+    {% endif %}
     <p class="text-sm text-gray-500 mt-4">{% trans "Your reference code:" %}</p>
     <p class="text-2xl font-mono font-bold tracking-wider">{{ booking.reference_code }}</p>
     {% if booking.payment_state == 'paid' %}

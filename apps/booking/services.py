@@ -87,9 +87,11 @@ def book(
     auto_confirm=False,
     service=None,
     price_cents=0,
+    extras=None,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
-    ResourceClosed / ValueError (кривой интервал). service/price_cents — G10."""
+    ResourceClosed / ValueError (кривой интервал). service/price_cents — G10.
+    extras (#7) — снимок доп-услуг [{label, price_cents}], сумма идёт в выручку."""
     if end <= start:
         raise ValueError("end must be after start")
 
@@ -112,6 +114,7 @@ def book(
         resource=resource,
         service=service,
         price_cents=int(price_cents or 0),
+        extras=list(extras or []),
         customer=customer,
         reference_code=_unique_booking_code(),
         start=start,

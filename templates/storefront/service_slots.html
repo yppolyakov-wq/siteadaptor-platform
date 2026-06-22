@@ -77,6 +77,7 @@
       <p class="text-xs text-gray-400 mt-1">{% trans "Have a multi-visit pass? Enter the code to redeem one visit." %}</p>
     </div>
   {% endif %}
+  {% include "storefront/_extras.html" %}
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
   {% endif %}

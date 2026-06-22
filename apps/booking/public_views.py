@@ -162,6 +162,8 @@ def service_slots(request, pk):
     if raw:
         selected = next((s for s in starts if s.isoformat() == raw), None)
     tenant = getattr(request, "tenant", None)
+    from apps.core import extras as extras_engine
+
     return render(
         request,
         "storefront/service_slots.html",
@@ -172,6 +174,7 @@ def service_slots(request, pk):
             "selected": selected,
             "resources": resources if len(resources) > 1 else [],  # пикер только при >1
             "chosen_resource": chosen,
+            "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
             "deposit_required": service.deposit_cents > 0
             and getattr(tenant, "payments_enabled", False),
             "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
@@ -213,6 +216,9 @@ def service_book(request, pk):
             else _("Please tell us your name."),
         )
         return redirect("storefront-service-slots", pk=pk)
+    from apps.core import extras as extras_engine
+
+    extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
     try:
         booking = services.book(
             resource,
@@ -225,6 +231,7 @@ def service_book(request, pk):
             source_channel=(request.GET.get("ch") or "")[:50],
             service=service,
             price_cents=service.price_cents,
+            extras=extras_snap,
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
@@ -279,6 +286,8 @@ def termin_slots(request, pk):
             if start.isoformat() == raw_slot:
                 selected = (start, end)
                 break
+    from apps.core import extras as extras_engine
+
     return render(
         request,
         "storefront/booking_slots.html",
@@ -288,6 +297,7 @@ def termin_slots(request, pk):
             "slots": slots,
             "group": resource.capacity > 1,
             "selected": selected,
+            "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
             "deposit_required": resource.deposit_cents > 0
             and getattr(getattr(request, "tenant", None), "payments_enabled", False),
             "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
@@ -328,6 +338,9 @@ def termin_book(request, pk):
         party_size = max(1, min(int(request.POST.get("party_size", "1")), 50))
     except (TypeError, ValueError):
         party_size = 1
+    from apps.core import extras as extras_engine
+
+    extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
     try:
         booking = services.book(
             resource,
@@ -339,6 +352,7 @@ def termin_book(request, pk):
             party_size=party_size,
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
+            extras=extras_snap,
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))

@@ -41,7 +41,13 @@ def veranstaltung_index(request):
 def veranstaltung_detail(request, pk):
     _require_events_active(request)
     event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
-    return render(request, "storefront/event_detail.html", {"event": event})
+    from apps.core import extras as extras_engine
+
+    return render(
+        request,
+        "storefront/event_detail.html",
+        {"event": event, "extras": extras_engine.active_for("events")},  # #7 доп-услуги
+    )
 
 
 def veranstaltung_book(request, pk):
@@ -68,6 +74,11 @@ def veranstaltung_book(request, pk):
     # A6 ценовой тир: цена/решение об оплате — по выбранному тиру (иначе единой цене).
     tier_label = request.POST.get("tier", "").strip()
     resolved_price = event.price_for_tier(tier_label)
+    from apps.core import extras as extras_engine
+
+    extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "events")
+    # #7: итог = места × цена + Extras → auto-confirm только при нулевом итоге.
+    order_total = resolved_price * qty + extras_engine.total_cents(extras_snap)
 
     try:
         ticket = services.book_ticket(
@@ -78,8 +89,9 @@ def veranstaltung_book(request, pk):
             quantity=qty,
             answers=answers,
             source_channel=(request.GET.get("ch") or "")[:50],
-            auto_confirm=(resolved_price == 0),  # бесплатный тир/событие — сразу
+            auto_confirm=(order_total == 0),  # бесплатно (билет + Extras) — сразу
             tier_label=tier_label,
+            extras=extras_snap,
         )
     except services.SoldOut as exc:
         messages.error(
@@ -96,7 +108,7 @@ def veranstaltung_book(request, pk):
     # Платный билет + подключённая оплата → Stripe Checkout (на счёт бизнеса).
     tenant = getattr(request, "tenant", None)
     if (
-        ticket.price_cents > 0
+        ticket.total_cents > 0  # #7: включает Extras (платная доплата на бесплатном событии)
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     ):

@@ -50,3 +50,41 @@ def test_book_stay_adds_extras_to_total():
     )
     assert booking.extras == snap
     assert booking.total_cents == 16000 + 2000  # 2 ночи × 80 € + завтрак 2×10 €
+
+
+def test_book_termin_adds_extras_to_total():
+    from apps.booking.models import Resource
+    from apps.booking.services import book
+
+    res = Resource.objects.create(name="Stuhl 1", is_active=True)
+    e = Extra.objects.create(label="Kopfmassage", price_cents=900, scope="booking")
+    snap = extras_engine.snapshot([e.pk], "booking")  # без множителя ночей
+    start = timezone.now() + timedelta(days=1)
+    booking = book(
+        res,
+        start=start,
+        end=start + timedelta(minutes=30),
+        name="Gast",
+        email="g@example.de",
+        price_cents=4000,  # услуга 40 €
+        extras=snap,
+    )
+    assert booking.extras == snap
+    assert booking.total_cents == 4900  # 40 € + 9 € Extra
+
+
+def test_book_ticket_adds_extras_to_total():
+    from apps.events.models import Event
+    from apps.events.services import book_ticket
+
+    event = Event.objects.create(
+        title="Yoga-Retreat",
+        starts_at=timezone.now() + timedelta(days=10),
+        price_cents=5000,
+        status=Event.STATUS_PUBLISHED,
+    )
+    e = Extra.objects.create(label="Mittagessen", price_cents=1500, scope="events")
+    snap = extras_engine.snapshot([e.pk], "events")
+    ticket = book_ticket(event, name="Gast", email="g@example.de", quantity=2, extras=snap)
+    assert ticket.extras == snap
+    assert ticket.total_cents == 5000 * 2 + 1500  # 2 места × 50 € + обед 15 € (разово)

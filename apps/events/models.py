@@ -159,6 +159,9 @@ class Ticket(TimestampedModel):
     tier_label = models.CharField(max_length=120, blank=True)  # A6: снимок тира
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     answers = models.JSONField(default=dict, blank=True)  # ответы на анкету события
+    # #7: снимок выбранных Extras [{label, price_cents}] — разово на билет, сумма
+    # входит в total_cents (выручку).
+    extras = models.JSONField(default=list, blank=True)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
 
@@ -185,8 +188,13 @@ class Ticket(TimestampedModel):
         return f"{self.reference_code} ×{self.quantity}"
 
     @property
+    def extras_cents(self) -> int:
+        """Сумма выбранных Extras (#7), центы (разово на билет)."""
+        return sum(int(e.get("price_cents", 0)) for e in (self.extras or []))
+
+    @property
     def total_cents(self) -> int:
-        return self.price_cents * self.quantity
+        return self.price_cents * self.quantity + self.extras_cents
 
     @property
     def total_eur(self):

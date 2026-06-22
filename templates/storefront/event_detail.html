@@ -230,6 +230,7 @@
             <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
           </label>
         {% endfor %}
+        {% include "storefront/_extras.html" %}
         <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">
           {% if event.price_cents %}{% trans "Book & pay" %}{% else %}{% trans "Register" %}{% endif %}
         </button>

@@ -1412,6 +1412,10 @@ FRISEUR = DemoKit(
         "button_url": "/termin/",
     },
     enable_modules=["booking", "loyalty", "orders", "customer_account"],
+    extras=[  # #7 доп-услуги к термину (scope booking, разово)
+        ("Haarkur Intensiv", "12", "booking", False),
+        ("Kopfmassage (10 Min.)", "9", "booking", False),
+    ],
     enable_archetypes_section=True,
     storefront_root="home",
     seed_records=True,
@@ -1727,6 +1731,11 @@ RETREAT = DemoKit(
         "button_url": "/veranstaltung/",
     },
     enable_modules=["events", "booking", "orders", "customer_account"],
+    extras=[  # #7 доп-услуги к билету ретрита (scope events, разово)
+        ("Bio-Mittagessen", "18", "events", False),
+        ("Einzelzimmer-Zuschlag", "40", "events", False),
+        ("Yogamatte-Verleih", "5", "events", False),
+    ],
     enable_archetypes_section=True,
     storefront_root="home",
     seed_records=True,

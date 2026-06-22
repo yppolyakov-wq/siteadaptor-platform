@@ -11,6 +11,11 @@
     <p class="text-sm text-gray-500 mb-1">{% trans "Your ticket code:" %}</p>
     <p class="text-3xl font-mono font-bold tracking-wider mb-4">{{ ticket.reference_code }}</p>
     <p class="text-sm text-gray-500 mb-4">{% trans "Seats" %}: {{ ticket.quantity }}</p>
+    {% if ticket.extras %}
+      <ul class="text-sm text-gray-600 mb-4">
+        {% for e in ticket.extras %}<li>+ {{ e.label }}</li>{% endfor %}
+      </ul>
+    {% endif %}
 
     {% if ticket.payment_state == 'paid' %}
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>

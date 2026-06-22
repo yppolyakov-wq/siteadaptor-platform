@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %}#7 универсальные Extras: чекбоксы доп-услуг внутри формы брони.
+Контекст: extras = список core.models.Extra. name="extra" (множественный).{% endcomment %}
+{% if extras %}
+<fieldset class="space-y-2 border-t border-gray-100 pt-3">
+  <legend class="text-sm font-medium mb-1">{% trans "Extras (optional)" %}</legend>
+  {% for e in extras %}
+    <label class="flex items-center justify-between gap-3 text-sm">
+      <span class="flex items-center gap-2">
+        <input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300">
+        {{ e.label }}</span>
+      <span class="text-gray-600 whitespace-nowrap">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %}</span>
+    </label>
+  {% endfor %}
+</fieldset>
+{% endif %}
