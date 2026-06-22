@@ -247,8 +247,25 @@ def test_apply_hotel_kit_builds_stays_site():
     doppel = StayUnit.objects.get(name="Doppelzimmer Seeblick")
     assert doppel.deposit_cents == 3000
     assert SeasonRate.objects.filter(unit=doppel, price_cents=11900).exists()
-    # брони в кабинете (подтверждённые)
-    assert StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED).count() >= 1
+    # H3 богатая карточка: площадь/кровать/удобства
+    assert doppel.area_sqm == 24 and doppel.bed_type
+    assert "wifi" in doppel.amenities and "balcony" in doppel.amenities
+    # H1 тарифы (4), H9 Kurtaxe, H6 Hausordnung, H4a промокод
+    from apps.loyalty.models import Voucher
+    from apps.stays.models import RatePlan, StaySettings
+
+    assert RatePlan.objects.filter(is_active=True).count() == 4
+    st = StaySettings.load()
+    assert st.kurtaxe_cents == 250 and st.house_rules
+    promo = Voucher.objects.get(code="SOMMER10")
+    assert promo.discount_percent == 10
+    # H2 секция поиска на главной включена
+    assert "stay_search" in {s["key"] for s in cfg["sections"] if s["enabled"]}
+    # брони в кабинете (подтверждённые) с H5 adults и H9 Kurtaxe в итоге
+    confirmed = StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED)
+    assert confirmed.count() >= 1
+    b = confirmed.first()
+    assert b.adults >= 1 and b.kurtaxe_cents > 0
     # секции акций/товаров выключены (нет каталога), архетипы — включены
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert "archetypes" in enabled
