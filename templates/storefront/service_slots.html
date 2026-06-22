@@ -13,28 +13,44 @@
   {% endfor %}
 {% endif %}
 
+{% if resources %}
+<div class="mb-4 max-w-xl">
+  <p class="text-sm font-medium mb-2">{% trans "Choose your specialist" %}</p>
+  <div class="flex flex-wrap gap-2">
+    <a href="?tag={{ day|date:'Y-m-d' }}"
+       class="px-3 py-1.5 rounded-lg text-sm border {% if not chosen_resource %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Anyone" %}</a>
+    {% for r in resources %}
+      <a href="?tag={{ day|date:'Y-m-d' }}&resource={{ r.pk }}"
+         class="px-3 py-1.5 rounded-lg text-sm border {% if chosen_resource and chosen_resource.pk == r.pk %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300 hover:border-indigo-400{% endif %}">{{ r.name }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% with rq=chosen_resource.pk|stringformat:'s' %}
 <div class="flex items-center justify-between mb-4 max-w-md">
-  {% if prev_day %}<a href="?tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>{% else %}<span></span>{% endif %}
+  {% if prev_day %}<a href="?tag={{ prev_day|date:'Y-m-d' }}{% if chosen_resource %}&resource={{ rq }}{% endif %}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>{% else %}<span></span>{% endif %}
   <span class="font-semibold">{{ day|date:"l, d.m.Y" }}</span>
-  {% if next_day %}<a href="?tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>{% else %}<span></span>{% endif %}
+  {% if next_day %}<a href="?tag={{ next_day|date:'Y-m-d' }}{% if chosen_resource %}&resource={{ rq }}{% endif %}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>{% else %}<span></span>{% endif %}
 </div>
 
 {% if starts %}
 <div class="flex flex-wrap gap-2 mb-6 max-w-xl">
   {% for start in starts %}
-    <a href="?tag={{ day|date:'Y-m-d' }}&slot={{ start.isoformat|urlencode }}"
+    <a href="?tag={{ day|date:'Y-m-d' }}&slot={{ start.isoformat|urlencode }}{% if chosen_resource %}&resource={{ rq }}{% endif %}"
        class="px-4 py-2 rounded-lg text-sm font-medium border {% if selected == start %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300 hover:border-indigo-400{% endif %}">{{ start|time:"H:i" }}</a>
   {% endfor %}
 </div>
 {% else %}
 <p class="text-gray-500 mb-6">{% trans "No free times on this day — try another date." %}</p>
-{% endif %}
+{% endif %}{% endwith %}
 
 {% if selected %}
 <form method="post" action="{% url 'storefront-service-book' service.pk %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
   {% csrf_token %}
-  <h2 class="font-semibold">{{ day|date:"d.m.Y" }} · {{ selected|time:"H:i" }} · {{ service.name }}</h2>
+  <h2 class="font-semibold">{{ day|date:"d.m.Y" }} · {{ selected|time:"H:i" }} · {{ service.name }}{% if chosen_resource %} · {{ chosen_resource.name }}{% endif %}</h2>
   <input type="hidden" name="start" value="{{ selected.isoformat }}">
+  {% if chosen_resource %}<input type="hidden" name="resource" value="{{ chosen_resource.pk }}">{% endif %}
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
     <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>

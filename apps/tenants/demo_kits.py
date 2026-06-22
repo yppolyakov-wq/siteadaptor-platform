@@ -1422,8 +1422,8 @@ FRISEUR = DemoKit(
     ],
     resources=[
         {
-            "name": "Stuhl 1",
-            "type": "table",
+            "name": "Lea (Stylistin)",
+            "type": "staff",
             "capacity": 1,
             "start": "09:00",
             "end": "18:00",
@@ -1431,8 +1431,8 @@ FRISEUR = DemoKit(
             "weekdays": range(1, 6),
         },
         {
-            "name": "Stuhl 2",
-            "type": "table",
+            "name": "Jonas (Barbier)",
+            "type": "staff",
             "capacity": 1,
             "start": "09:00",
             "end": "18:00",

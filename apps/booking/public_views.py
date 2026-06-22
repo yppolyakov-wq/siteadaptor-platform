@@ -150,7 +150,13 @@ def service_slots(request, pk):
     service = get_object_or_404(Service, pk=pk, is_active=True)
     day = _parse_day(request.GET.get("tag"))
     today = timezone.localdate()
-    starts = availability.service_slots(service, day)
+    # #4: опциональный выбор конкретного мастера/ресурса (если их несколько).
+    resources = list(Resource.objects.filter(is_active=True))
+    chosen = None
+    rid = request.GET.get("resource", "")
+    if rid:
+        chosen = next((r for r in resources if str(r.pk) == rid), None)
+    starts = availability.service_slots(service, day, resource=chosen)
     selected = None
     raw = request.GET.get("slot", "")
     if raw:
@@ -164,6 +170,8 @@ def service_slots(request, pk):
             "day": day,
             "starts": starts,
             "selected": selected,
+            "resources": resources if len(resources) > 1 else [],  # пикер только при >1
+            "chosen_resource": chosen,
             "deposit_required": service.deposit_cents > 0
             and getattr(tenant, "payments_enabled", False),
             "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
@@ -189,10 +197,13 @@ def service_book(request, pk):
         start = datetime.fromisoformat(request.POST.get("start", ""))
     except ValueError:
         raise Http404 from None
-    if start not in availability.service_slots(service, start.date()):
+    # #4: выбранный мастер/ресурс (если был) — бронируем именно его.
+    rid = request.POST.get("resource", "")
+    chosen = Resource.objects.filter(pk=rid, is_active=True).first() if rid else None
+    if start not in availability.service_slots(service, start.date(), resource=chosen):
         messages.error(request, _("This time is no longer available. Please pick another."))
         return redirect("storefront-service-slots", pk=pk)
-    resource = availability.assign_resource(service, start)
+    resource = availability.assign_resource(service, start, resource=chosen)
     name = request.POST.get("name", "").strip()
     if resource is None or not name:
         messages.error(

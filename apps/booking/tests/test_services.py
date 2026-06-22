@@ -82,6 +82,23 @@ def test_assign_resource_none_when_full():
     assert availability.assign_resource(service, start) is None
 
 
+def test_choose_specific_resource_scopes_slots_and_booking():
+    """#4: выбор конкретного мастера — слоты и бронь только по нему."""
+    r1, r2 = _resource(), _resource()
+    day = _future_day()
+    _rule(r1, day)
+    _rule(r2, day)
+    service = _service(duration_minutes=30)
+    start = availability.service_slots(service, day, resource=r1)[0]
+    # занят r1 на этот старт → его слот пропадает, но общий (r2) остаётся
+    services.book(r1, start=start, end=start + timedelta(minutes=30), name="X")
+    assert start not in availability.service_slots(service, day, resource=r1)
+    assert start in availability.service_slots(service, day)  # r2 ещё свободен
+    # назначение ограничено выбранным ресурсом
+    assert availability.assign_resource(service, start, resource=r1) is None
+    assert availability.assign_resource(service, start, resource=r2) == r2
+
+
 # --- бронь со снимком цены + выручка ----------------------------------------------
 
 
