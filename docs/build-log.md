@@ -1397,3 +1397,15 @@
   поднимает и сайт отеля, и агрегатор. Тесты — `aggregator/tests/test_hotel_portal.py`
   (схлопывание: cheapest/порядок/не-stay; рендер портала — одна карточка на отель).
   Демо-дока — `docs/hotel-demo.md` §1/§5a. H8b (живой поиск по датам) — следующее.
+- **H8b — живой поиск по датам на портале отелей (✅, A5/hotel — H8 закрыт):**
+  модуль `aggregator/hotel_search.py`: `hotel_availability(schema, von, bis, guests)`
+  идёт в схему отеля (`schema_context`), считает дешевейший свободный номер на
+  диапазон (анти-овербукинг `range_available` + min_nights + вместимость + тарифы H1
+  cheapest), кеширует в Redis (TTL 300 с). `portal_views.portal_home`: на hotel-портале
+  форма Anreise/Abreise/Gäste; при датах — после схлопывания (H8a) фильтрует отели по
+  доступности, ставит цену за диапазон (`range_total_eur`/`range_nights`) и диплинк в
+  прямое бронирование с датами (`_with_dates`). `cache_public_page` пропускает кэш при
+  непустом query → выдача всегда свежая. Шаблоны: форма в `portal_home.html`,
+  «X € / N Nächte» в `_cards.html`. Тесты — `test_hotel_portal.py` (доступность:
+  cheapest/занято/min_nights/вместимость; рендер портала с датами — фильтр+цена+диплинк).
+  **H8 (агрегатор отелей) полностью закрыт; план H1–H9 выполнен (H7 свёрнут).**

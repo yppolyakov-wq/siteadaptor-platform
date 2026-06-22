@@ -51,11 +51,13 @@ Python 3.12, менеджер uv.
   `Order.parent_order`/`supplier_tenant_schema`). Не начато: склад-леджер (M10),
   маркетплейс-корзина (M14), закупки (M12), dropshipping (M15), AI (M18),
   workflow-билдер (M19), drag-drop конструктор (M20).
-- **Последнее:** бэклог #1–#7 (retail-кит `shop`, ценовые тиры билета, выбор мастера,
-  блок отзывов на витрине, **универсальные Extras** — `core.Extra` для stays/booking/
-  events + кабинет `/dashboard/extras/`). CI зелёный (`9effdb2`).
-- Самые свежие миграции: `core/0002`, `stays/0007`, `booking/0007`, `events/0005`
-  (полный список по приложениям — в build-log).
+- **Последнее:** **наполнение архетипа A5 «Отель» (H1–H9)** — тарифы+питание,
+  поиск с главной+список, богатая карточка+похожие, промокоды+самоотмена, дети,
+  Kurtaxe, SEO `Hotel`+Hausordnung, **агрегатор отелей** (вертикальный портал +
+  поиск по датам). Полный демо: `seed_demo_tenants --kit hotel` (+ `hotels.<base>`).
+  Описание — `docs/hotel-demo.md`, план — `docs/hotel-archetype-plan.md`.
+- Самые свежие миграции: `stays/0008–0012` (rate plans, amenities, adults/children+
+  Kurtaxe+StaySettings, promo/discount, house_rules); полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

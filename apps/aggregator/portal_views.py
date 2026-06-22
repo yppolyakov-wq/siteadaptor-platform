@@ -75,6 +75,13 @@ def _collapse_hotels(cards):
     return out
 
 
+def _with_dates(url, von, bis, guests):
+    """Добавить даты/гостей к ссылке на отель (H8b) — глубокая ссылка в прямое
+    бронирование с предзаполненным диапазоном."""
+    sep = "&" if "?" in url else "?"
+    return f"{url}{sep}von={von.isoformat()}&bis={bis.isoformat()}&erw={guests}"
+
+
 @cache_public_page
 def portal_home(request, facet=None):
     portal = getattr(request, "portal", None)
@@ -111,8 +118,32 @@ def portal_home(request, facet=None):
         page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
         cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
     # H8a: вертикальный hotel-портал — карточка на отель (а не на каждый номер).
-    if (portal.business_type or business_type) == "hotel":
+    hotel_portal = (portal.business_type or business_type) == "hotel"
+    search = None
+    if hotel_portal:
         cards = _collapse_hotels(cards)
+        # H8b: живой поиск по датам — оставляем только отели со свободными номерами.
+        from django.utils import timezone
+
+        from . import hotel_search
+
+        von = hotel_search.parse_date(request.GET.get("von"))
+        bis = hotel_search.parse_date(request.GET.get("bis"))
+        try:
+            g = max(1, min(int(request.GET.get("gaeste", "2")), 50))
+        except (TypeError, ValueError):
+            g = 2
+        if von and bis and bis > von and von >= timezone.localdate():
+            search = {"von": von, "bis": bis, "guests": g, "nights": (bis - von).days}
+            kept = []
+            for c in cards:
+                ok, cents = hotel_search.hotel_availability(c.tenant_schema, von, bis, g)
+                if ok:
+                    c.range_total_eur = cents / 100
+                    c.range_nights = search["nights"]
+                    c.detail_url = _with_dates(c.detail_url, von, bis, g)
+                    kept.append(c)
+            cards = kept
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
@@ -143,6 +174,8 @@ def portal_home(request, facet=None):
             "portal": portal,
             "page": page,
             "cards": cards,
+            "hotel_portal": hotel_portal,  # H8b: показать форму поиска по датам
+            "search": search,  # H8b: выбранный диапазон/гости (или None)
             "facets": facets,
             "facet": facet,
             "facet_label": facet_label,

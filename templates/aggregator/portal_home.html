@@ -13,6 +13,28 @@
   {% if not facet and portal.intro_text %}<p class="mt-2 text-gray-500 max-w-2xl">{{ portal.intro_text }}</p>{% endif %}
 </div>
 
+{# H8b: поиск по датам на портале отелей #}
+{% if hotel_portal %}
+<form method="get" class="bg-white rounded-2xl shadow-sm p-4 md:p-5 mb-6">
+  <div class="grid sm:grid-cols-4 gap-3 items-end">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="p_von">{% trans "Arrival" %}</label>
+      <input id="p_von" name="von" type="date" required value="{% if search %}{{ search.von|date:'Y-m-d' }}{% endif %}" min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="p_bis">{% trans "Departure" %}</label>
+      <input id="p_bis" name="bis" type="date" required value="{% if search %}{{ search.bis|date:'Y-m-d' }}{% endif %}" min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="p_gaeste">{% trans "Guests" %}</label>
+      <input id="p_gaeste" name="gaeste" type="number" min="1" value="{% if search %}{{ search.guests }}{% else %}2{% endif %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-indigo-700">{% trans "Check availability" %}</button>
+  </div>
+  {% if search %}<p class="text-sm text-gray-500 mt-3">{% blocktrans count n=cards|length %}{{ n }} available house{% plural %}{{ n }} available houses{% endblocktrans %} · {{ search.von|date:"d.m.Y" }} → {{ search.bis|date:"d.m.Y" }}</p>{% endif %}
+</form>
+{% endif %}
+
 {% if facets %}
 <div class="flex flex-wrap gap-2 mb-6">
   <a href="{% url 'portal-home' %}"
