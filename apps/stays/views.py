@@ -21,7 +21,16 @@ from apps.billing import connect
 from apps.core.fsm import IllegalTransition
 
 from . import availability, services
-from .models import ICalSource, RatePlan, SeasonRate, StayBooking, StayUnit, UnitBlock
+from .models import (
+    _AMENITY_KEYS,
+    AMENITIES,
+    ICalSource,
+    RatePlan,
+    SeasonRate,
+    StayBooking,
+    StayUnit,
+    UnitBlock,
+)
 from .public_views import ical_token
 from .state_machine import StayBookingSM
 
@@ -228,6 +237,9 @@ def units(request):
                     max_guests=_int(request.POST.get("max_guests", "2"), 2, 1, 99),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                     require_manual_confirm=bool(request.POST.get("require_manual_confirm")),
+                    area_sqm=_int(request.POST.get("area_sqm", "0"), 0, 0, 9999),
+                    bed_type=request.POST.get("bed_type", "").strip()[:80],
+                    amenities=[a for a in request.POST.getlist("amenities") if a in _AMENITY_KEYS],
                 )
                 _add_unit_photos(unit, request.FILES.getlist("photos"))
                 messages.success(request, _("Unit created."))
@@ -241,6 +253,9 @@ def units(request):
             unit.max_guests = _int(request.POST.get("max_guests", "2"), 2, 1, 99)
             unit.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
             unit.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
+            unit.area_sqm = _int(request.POST.get("area_sqm", "0"), 0, 0, 9999)
+            unit.bed_type = request.POST.get("bed_type", "").strip()[:80]
+            unit.amenities = [a for a in request.POST.getlist("amenities") if a in _AMENITY_KEYS]
             unit.save(
                 update_fields=[
                     "description",
@@ -251,6 +266,9 @@ def units(request):
                     "max_guests",
                     "deposit_cents",
                     "require_manual_confirm",
+                    "area_sqm",
+                    "bed_type",
+                    "amenities",
                     "updated_at",
                 ]
             )
@@ -376,5 +394,6 @@ def units(request):
             "rate_plans": list(RatePlan.objects.all()),  # H1
             "meals": RatePlan.MEALS,
             "cancellations": RatePlan.CANCELLATIONS,
+            "amenities": AMENITIES,  # H3 чек-лист удобств
         },
     )

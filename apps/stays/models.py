@@ -13,6 +13,29 @@ from django.db import models
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
 
+# H3: каталог удобств номера (key, метка DE, эмодзи) — чек-лист на юните,
+# иконки на витрине. Узкий фиксированный список под малый отель DACH.
+AMENITIES = [
+    ("wifi", "WLAN", "📶"),
+    ("tv", "TV", "📺"),
+    ("bath", "Eigenes Bad", "🛁"),
+    ("shower", "Dusche", "🚿"),
+    ("balcony", "Balkon/Terrasse", "🌅"),
+    ("aircon", "Klimaanlage", "❄️"),
+    ("kitchen", "Küche/Kitchenette", "🍳"),
+    ("minibar", "Minibar", "🧊"),
+    ("safe", "Safe", "🔒"),
+    ("desk", "Schreibtisch", "🖥️"),
+    ("coffee", "Kaffee/Tee", "☕"),
+    ("hairdryer", "Föhn", "💨"),
+    ("parking", "Parkplatz", "🅿️"),
+    ("petfriendly", "Haustiere erlaubt", "🐾"),
+    ("wheelchair", "Barrierefrei", "♿"),
+    ("nonsmoking", "Nichtraucher", "🚭"),
+]
+_AMENITY_LABELS = {key: (label, icon) for key, label, icon in AMENITIES}
+_AMENITY_KEYS = {key for key, _l, _i in AMENITIES}
+
 
 class StayUnit(TimestampedModel):
     """Тип размещения. ``quantity`` — сколько идентичных юнитов этого типа
@@ -51,12 +74,24 @@ class StayUnit(TimestampedModel):
     # Фото номера: список FileRef-конвертов (как catalog.Product.images):
     # {"id","url","alt","is_primary","sort_order"}. Первое/primary — обложка.
     images = models.JSONField(default=list, blank=True)
+    # H3: богатая карточка номера. area_sqm — площадь, м² (0 = не указана);
+    # bed_type — свободный текст («Doppelbett», «2 Einzelbetten», «Queensize»);
+    # amenities — список ключей из AMENITIES (удобства, иконки на витрине).
+    area_sqm = models.PositiveSmallIntegerField(default=0)
+    bed_type = models.CharField(max_length=80, blank=True)
+    amenities = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self):
         return self.name
+
+    @property
+    def amenity_badges(self) -> list:
+        """[(label, icon), …] для активных удобств — в порядке каталога AMENITIES."""
+        chosen = set(self.amenities or [])
+        return [(label, icon) for key, label, icon in AMENITIES if key in chosen]
 
     @property
     def image_url(self) -> str:

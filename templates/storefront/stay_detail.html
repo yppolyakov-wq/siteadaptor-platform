@@ -24,6 +24,25 @@
 
 {% if unit.description %}<p class="text-gray-600 mb-6 max-w-2xl whitespace-pre-line">{{ unit.description }}</p>{% endif %}
 
+{# H3: ключевые факты + Ausstattung #}
+{% if unit.area_sqm or unit.bed_type or unit.amenity_badges %}
+<div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 max-w-2xl">
+  <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600 mb-3">
+    <span>👥 {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</span>
+    {% if unit.area_sqm %}<span>📐 {{ unit.area_sqm }} m²</span>{% endif %}
+    {% if unit.bed_type %}<span>🛏 {{ unit.bed_type }}</span>{% endif %}
+  </div>
+  {% if unit.amenity_badges %}
+  <h2 class="font-semibold text-sm mb-2">{% trans "Amenities" %}</h2>
+  <ul class="grid grid-cols-2 sm:grid-cols-3 gap-y-1 gap-x-4 text-sm text-gray-700">
+    {% for label, icon in unit.amenity_badges %}
+      <li><span aria-hidden="true">{{ icon }}</span> {{ label }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endif %}
+
 {# выбор дат (GET) #}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mb-6">
   <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
@@ -124,5 +143,24 @@
       {% else %}{% trans "Sorry, these dates are not available. Please try another range." %}{% endif %}
     </div>
   {% endif %}
+{% endif %}
+
+{# H3: похожие номера #}
+{% if similar %}
+<section class="mt-10 max-w-3xl">
+  <h2 class="font-semibold text-lg mb-3">{% trans "Similar rooms" %}</h2>
+  <div class="grid sm:grid-cols-3 gap-4">
+    {% for s in similar %}
+      <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&gaeste={{ guests }}{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        {% if s.image_url %}<img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full h-32 object-cover">{% endif %}
+        <div class="p-4">
+          <h3 class="font-medium">{{ s.name }}</h3>
+          <p class="text-sm text-gray-500">{{ s.get_type_display }}</p>
+          <p class="mt-1 text-sm font-semibold">{% blocktrans with p=s.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
 {% endif %}
 {% endblock %}

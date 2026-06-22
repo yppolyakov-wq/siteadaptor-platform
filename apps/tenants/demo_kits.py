@@ -1010,6 +1010,9 @@ HOTEL = DemoKit(
             "Inklusive Frühstücksbuffet.",
             "photos": ["hotel,room", "hotel,bed", "lake,view"],
             "deposit": "30",  # E4: депозит за бронь (анти-no-show)
+            "area": 24,  # H3
+            "bed": "Queensize-Bett",
+            "amenities": ["wifi", "tv", "bath", "shower", "balcony", "coffee", "nonsmoking"],
             "season": [  # A5a: Hochsaison-Tarif
                 {
                     "label": "Hochsaison (Sommer)",
@@ -1028,6 +1031,9 @@ HOTEL = DemoKit(
             "description": "Gemütliches Einzelzimmer mit Boxspringbett, Schreibtisch und "
             "schnellem WLAN — ideal für Geschäftsreisende. Inklusive Frühstück.",
             "photos": ["hotel,single,room", "hotel,bathroom"],
+            "area": 16,  # H3
+            "bed": "Einzelbett (Boxspring)",
+            "amenities": ["wifi", "tv", "shower", "desk", "coffee", "hairdryer", "nonsmoking"],
         },
         {
             "name": "Familienzimmer",
@@ -1039,6 +1045,9 @@ HOTEL = DemoKit(
             "description": "Großzügiges Familienzimmer mit Doppelbett und zwei Einzelbetten, "
             "Sitzecke und extra Stauraum. Platz für die ganze Familie.",
             "photos": ["family,hotel,room", "hotel,interior", "kids,room"],
+            "area": 32,  # H3
+            "bed": "Doppelbett + 2 Einzelbetten",
+            "amenities": ["wifi", "tv", "bath", "shower", "coffee", "petfriendly", "nonsmoking"],
         },
         {
             "name": "Ferienwohnung am Garten",
@@ -1050,6 +1059,9 @@ HOTEL = DemoKit(
             "description": "Komplett ausgestattete Ferienwohnung (55 m²) mit eigener Küche, "
             "Wohnzimmer, Schlafzimmer und Terrasse zum Garten. Perfekt für längere Aufenthalte.",
             "photos": ["apartment,living", "apartment,kitchen", "garden,terrace"],
+            "area": 55,  # H3
+            "bed": "Doppelbett + Schlafsofa",
+            "amenities": ["wifi", "tv", "bath", "kitchen", "balcony", "parking", "petfriendly"],
         },
     ],
     rate_plans=[  # H1: тарифы для всех номеров (гость выбирает при брони)
@@ -2564,6 +2576,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     min_nights=spec.get("min_nights", 1),
                     max_guests=spec.get("guests", 2),
                     deposit_cents=int(Decimal(str(spec.get("deposit", "0"))) * 100),
+                    area_sqm=spec.get("area", 0),  # H3
+                    bed_type=spec.get("bed", ""),  # H3
+                    amenities=spec.get("amenities", []),  # H3
                     images=imgs,
                     is_active=True,
                 )

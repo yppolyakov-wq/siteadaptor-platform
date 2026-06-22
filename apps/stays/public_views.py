@@ -156,6 +156,11 @@ def unterkunft_unit(request, pk):
     deposit_required = unit.deposit_cents > 0 and getattr(tenant, "payments_enabled", False)
     from apps.core import extras as extras_engine
 
+    # H3: похожие номера — другие активные юниты, тот же тип вперёд, до 3.
+    similar = list(StayUnit.objects.filter(is_active=True).exclude(pk=unit.pk))
+    similar.sort(key=lambda u: (u.type != unit.type, u.price_cents))
+    similar = similar[:3]
+
     return render(
         request,
         "storefront/stay_detail.html",
@@ -171,6 +176,7 @@ def unterkunft_unit(request, pk):
             "extras": extras_engine.active_for("stays"),  # #7 доп-услуги
             "deposit_required": deposit_required,
             "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
+            "similar": similar,  # H3 похожие номера
         },
     )
 

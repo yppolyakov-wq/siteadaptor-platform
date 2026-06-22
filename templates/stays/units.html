@@ -130,6 +130,22 @@
         <label class="flex items-center gap-2 text-sm text-gray-600">
           <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
         </label>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Area (m², 0 = hide)" %}</label>
+          <input name="area_sqm" type="number" min="0" value="{{ u.area_sqm }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bed type" %}</label>
+          <input name="bed_type" type="text" value="{{ u.bed_type }}" placeholder="{% trans 'e.g. Doppelbett, 2 Einzelbetten' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div class="sm:col-span-3">
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amenities" %}</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 text-sm text-gray-700">
+            {% for key, label, icon in amenities %}
+              <label class="flex items-center gap-2"><input type="checkbox" name="amenities" value="{{ key }}" {% if key in u.amenities %}checked{% endif %} class="rounded"> {{ icon }} {{ label }}</label>
+            {% endfor %}
+          </div>
+        </div>
         <div class="sm:col-span-2">
           <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</label>
           <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
@@ -266,6 +282,22 @@
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
       <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Area (m², optional)" %}</label>
+      <input name="area_sqm" type="number" min="0" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Bed type (optional)" %}</label>
+      <input name="bed_type" type="text" placeholder="{% trans 'e.g. Doppelbett' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block text-sm font-medium mb-1">{% trans "Amenities" %}</label>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 text-sm text-gray-700">
+        {% for key, label, icon in amenities %}
+          <label class="flex items-center gap-2"><input type="checkbox" name="amenities" value="{{ key }}" class="rounded"> {{ icon }} {{ label }}</label>
+        {% endfor %}
+      </div>
     </div>
     <div class="sm:col-span-2">
       <label class="block text-sm font-medium mb-1">{% trans "Photos (optional)" %}</label>
