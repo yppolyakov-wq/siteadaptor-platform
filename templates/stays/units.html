@@ -14,6 +14,13 @@
   {% endfor %}
 {% endif %}
 
+{# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
+  <h2 class="font-semibold mb-1">{% trans "Booking widget for your website" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
+  <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
+</div>
+
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
 <div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
   <h2 class="font-semibold mb-1">{% trans "Kurtaxe & house rules" %}</h2>

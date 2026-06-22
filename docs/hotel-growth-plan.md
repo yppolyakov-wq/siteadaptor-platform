@@ -25,7 +25,7 @@ docs до кода, по подзадачам с CI-чекпоинтом.
 | **G7** | **Гибкая предоплата по тарифу** (0/частично/100 %) + PayPal/Klarna | сейчас только депозит | Stripe (методы) + поля `RatePlan` | среднее |
 | **G8** | **Google Free Booking Links / Hotel Ads-фид** | метапоиск ТЗ §10; бесплатный спрос в прямое | цены/наличие, агрегатор | средне-высокое |
 | **G9 ✅** | **Отчёты: Belegung %, ADR, RevPAR, выручка** | базовая аналитика PMS | брони + `finance` | низко-среднее |
-| **G10** | **Booking-виджет/iframe** для сайтов отелей | многие уже имеют сайт | `/unterkunft/` + deeplink | низкое |
+| **G10 ✅** | **Booking-виджет/iframe** для сайтов отелей | многие уже имеют сайт | `/unterkunft/` + deeplink | низкое |
 | **G11** | **2-way Channel Manager** (Booking/Expedia/Airbnb) | «грааль», но тяжёлая интеграция | пока односторонний iCal | высокое ⛔ |
 
 **Вне scope (enterprise, ТЗ §6):** Revenue Management/динамика цен, Housekeeping-модуль,

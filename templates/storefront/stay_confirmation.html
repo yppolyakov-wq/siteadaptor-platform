@@ -1,4 +1,4 @@
-{% extends "storefront/_base.html" %}
+{% extends base_template|default:"storefront/_base.html" %}
 {% load i18n %}
 {% block title %}{% trans "Booking received" %} — {{ request.tenant.name }}{% endblock %}
 

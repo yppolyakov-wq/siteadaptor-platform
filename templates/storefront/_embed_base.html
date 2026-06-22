@@ -1,0 +1,21 @@
+{% load i18n static %}<!doctype html>
+{# G10: минимальный шаблон для встраивания брони в iframe на чужом сайте —
+   без шапки/футера/навигации; кадрирование разрешает xframe_options_exempt. #}
+<html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}{{ request.tenant.name|default:"" }}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <style>
+    :root { --accent: {{ storefront_accent|default:"#4f46e5" }}; }
+    body { font-family: ui-sans-serif, system-ui, sans-serif; background: transparent; }
+  </style>
+</head>
+<body class="text-gray-900 antialiased">
+  <main class="max-w-3xl mx-auto p-4">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,4 +1,4 @@
-{% extends "storefront/_base.html" %}
+{% extends base_template|default:"storefront/_base.html" %}
 {% load i18n %}
 {% block title %}{{ unit.name }} — {{ request.tenant.name }}{% endblock %}
 
@@ -45,6 +45,7 @@
 
 {# выбор дат (GET) #}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mb-6">
+  {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
   <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
   <div class="grid sm:grid-cols-4 gap-4">
     <div>
@@ -105,6 +106,7 @@
       <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
       <input type="hidden" name="erw" value="{{ adults }}">
       <input type="hidden" name="kinder" value="{{ children }}">
+      {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
       {% if extras %}
       <fieldset class="space-y-2 border-t border-gray-100 pt-3">
         <legend class="text-sm font-medium mb-1">{% trans "Extras (optional)" %}</legend>
@@ -161,7 +163,7 @@
   <h2 class="font-semibold text-lg mb-3">{% trans "Similar rooms" %}</h2>
   <div class="grid sm:grid-cols-3 gap-4">
     {% for s in similar %}
-      <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+      <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}{% elif embed %}?embed=1{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
         {% if s.image_url %}<img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full h-32 object-cover">{% endif %}
         <div class="p-4">
           <h3 class="font-medium">{{ s.name }}</h3>

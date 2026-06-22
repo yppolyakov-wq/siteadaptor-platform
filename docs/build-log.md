@@ -1438,3 +1438,12 @@
   `/dashboard/stays/reports/` (помесячно, ←/→) + ссылка с календаря. Тесты —
   `test_reports.py` (occupancy/ADR, пропорция через край месяца, исключения
   Kurtaxe/Extras/cancelled) + рендер во `test_cabinet`. План G9.
+- **G10 — booking-виджет/iframe для своего сайта отеля (✅, A5/hotel, growth):**
+  режим `?embed=1` для витрины брони (`/unterkunft/`, номер, бронь, подтверждение):
+  минимальный шаблон `storefront/_embed_base.html` (без шапки/футера/нав), ответ
+  помечается `xframe_options_exempt` → встраивается на чужом домене несмотря на
+  `X_FRAME_OPTIONS=DENY`. Параметр embed протаскивается через формы (hidden) и
+  ссылки/редиректы (`embed_qs`, `_back_to_unit`, success/deposit). Кабинет
+  `/dashboard/stays/units/` — карточка с готовым `<iframe>`-сниппетом (`embed_url`).
+  Тесты — `test_embed.py` (chrome-less + frameable, проброс embed, обычный режим без
+  exemption). План G10.

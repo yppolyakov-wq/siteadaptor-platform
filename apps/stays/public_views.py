@@ -79,6 +79,25 @@ def _unit_from_price_cents(unit, von, bis, rate_plans):
     return pricing.quote_total_cents(unit, von, bis)
 
 
+def _is_embed(request):
+    return request.GET.get("embed") == "1" or request.POST.get("embed") == "1"
+
+
+def _render_embed(request, template, ctx, embed):
+    """G10: render витрины брони с минимальным шаблоном и разрешением кадрирования
+    при ?embed=1 (для iframe на чужом сайте). Иначе — обычная витрина."""
+    ctx = {
+        **ctx,
+        "embed": embed,
+        "embed_qs": "&embed=1" if embed else "",
+        "base_template": "storefront/_embed_base.html" if embed else "storefront/_base.html",
+    }
+    resp = render(request, template, ctx)
+    if embed:
+        resp.xframe_options_exempt = True  # XFrameOptionsMiddleware пропустит этот ответ
+    return resp
+
+
 def unterkunft_index(request):
     _require_stays_active(request)
     units = list(StayUnit.objects.filter(is_active=True))
@@ -89,10 +108,12 @@ def unterkunft_index(request):
     guests = adults + children
 
     tenant = getattr(request, "tenant", None)
+    embed = _is_embed(request)
     searched = bool(von and bis and von >= today and bis > von)
     # Один юнит без поиска — сразу на его страницу (как было); с датами — прокинем их.
     if len(units) == 1 and not searched:
-        return redirect("storefront-unterkunft-unit", pk=units[0].pk)
+        url = reverse("storefront-unterkunft-unit", args=[units[0].pk])
+        return redirect(f"{url}?embed=1" if embed else url)
 
     results = None
     if searched:
@@ -115,7 +136,7 @@ def unterkunft_index(request):
         rows.sort(key=lambda r: (not r["available"], r["from_eur"]))
         results = rows
 
-    return render(
+    return _render_embed(
         request,
         "storefront/stay_index.html",
         {
@@ -131,6 +152,7 @@ def unterkunft_index(request):
             "gift_active": getattr(tenant, "payments_enabled", False)
             and connect.is_connect_configured(),  # G1 ссылка на гутшайны
         },
+        embed,
     )
 
 
@@ -176,7 +198,7 @@ def unterkunft_unit(request, pk):
     similar.sort(key=lambda u: (u.type != unit.type, u.price_cents))
     similar = similar[:3]
 
-    return render(
+    return _render_embed(
         request,
         "storefront/stay_detail.html",
         {
@@ -196,14 +218,16 @@ def unterkunft_unit(request, pk):
             "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
             "similar": similar,  # H3 похожие номера
         },
+        _is_embed(request),
     )
 
 
-def _back_to_unit(pk, von, bis, adults, children):
+def _back_to_unit(pk, von, bis, adults, children, embed=False):
     url = reverse("storefront-unterkunft-unit", args=[pk])
     if von and bis:
-        return f"{url}?von={von}&bis={bis}&erw={adults}&kinder={children}"
-    return url
+        url = f"{url}?von={von}&bis={bis}&erw={adults}&kinder={children}"
+        return f"{url}&embed=1" if embed else url
+    return f"{url}?embed=1" if embed else url
 
 
 def unterkunft_book(request, pk):
@@ -219,9 +243,10 @@ def unterkunft_book(request, pk):
     von = _parse_date(request.POST.get("von"))
     bis = _parse_date(request.POST.get("bis"))
     adults, children = _parse_guests(request.POST)
+    embed = _is_embed(request)
     if not (von and bis):
         raise Http404
-    back = _back_to_unit(pk, von, bis, adults, children)
+    back = _back_to_unit(pk, von, bis, adults, children, embed)
 
     name = request.POST.get("name", "").strip()
     if not name:
@@ -284,6 +309,7 @@ def unterkunft_book(request, pk):
         ok_url = (
             request.build_absolute_uri(reverse("storefront-stay-ok", args=[booking.reference_code]))
             + "?paid=1"
+            + ("&embed=1" if embed else "")
         )
         cancel_url = request.build_absolute_uri(
             reverse("storefront-unterkunft-unit", args=[unit.pk])
@@ -297,7 +323,8 @@ def unterkunft_book(request, pk):
         except stripe.error.StripeError:
             # оплата временно недоступна — бронь остаётся (pending), не теряем её
             pass
-    return redirect("storefront-stay-ok", code=booking.reference_code)
+    ok = reverse("storefront-stay-ok", args=[booking.reference_code])
+    return redirect(f"{ok}?embed=1" if embed else ok)
 
 
 def unterkunft_confirmation(request, code):
@@ -305,7 +332,7 @@ def unterkunft_confirmation(request, code):
     booking = get_object_or_404(StayBooking.objects.select_related("unit"), reference_code=code)
     from apps.telegram.notify import deep_link
 
-    return render(
+    return _render_embed(
         request,
         "storefront/stay_confirmation.html",
         {
@@ -313,6 +340,7 @@ def unterkunft_confirmation(request, code):
             "telegram_link": deep_link(booking.customer),
             "cancel_url": cancel_url(booking),  # H4b
         },
+        _is_embed(request),
     )
 
 

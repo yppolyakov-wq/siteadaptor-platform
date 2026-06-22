@@ -408,6 +408,7 @@ def units(request):
             "cancellations": RatePlan.CANCELLATIONS,
             "amenities": AMENITIES,  # H3 чек-лист удобств
             "stay_settings": StaySettings.load(),  # H9 Kurtaxe
+            "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
         },
     )
 

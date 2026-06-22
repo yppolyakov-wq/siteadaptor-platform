@@ -1,4 +1,4 @@
-{% extends "storefront/_base.html" %}
+{% extends base_template|default:"storefront/_base.html" %}
 {% load i18n %}
 {% block title %}{% trans "Stay with us" %} — {{ request.tenant.name }}{% endblock %}
 
@@ -16,6 +16,7 @@
 
 {# --- быстрый поиск по датам (H2) ------------------------------------------- #}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 max-w-3xl">
+  {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
   <div class="grid sm:grid-cols-5 gap-3 items-end">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
@@ -43,7 +44,7 @@
   <div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
     {% for r in results %}
       {% if r.available %}
-        <a href="{% url 'storefront-unterkunft-unit' r.unit.pk %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        <a href="{% url 'storefront-unterkunft-unit' r.unit.pk %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
           {% if r.unit.image_url %}<img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover">{% endif %}
           <div class="p-5">
             <h2 class="font-semibold text-lg">{{ r.unit.name }}</h2>
@@ -72,7 +73,7 @@
   {# --- без поиска: обзор номеров (как было) ---------------------------------- #}
   <div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
     {% for u in units %}
-      <a href="{% url 'storefront-unterkunft-unit' u.pk %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+      <a href="{% url 'storefront-unterkunft-unit' u.pk %}{% if embed %}?embed=1{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
         {% if u.image_url %}<img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-44 object-cover">{% endif %}
         <div class="p-5">
           <h2 class="font-semibold text-lg">{{ u.name }}</h2>
