@@ -163,10 +163,11 @@ def book_stay(
     extras_snap = list(extras or [])
     nights = (departure - arrival).days
     kurtaxe = pricing.kurtaxe_total_cents(adults, nights)  # H9
-    # H4a: промокод применяется к проживанию+услугам (не к Kurtaxe).
-    lodging_cents = pricing.quote_total_cents(
-        unit, arrival, departure, rate_plan=rate_plan
-    ) + extras_engine.total_cents(extras_snap)
+    # G4: авто-скидка (LOS/Frühbucher/Last-Minute) — на проживание (без Extras/Kurtaxe).
+    room_cents = pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan)
+    auto_discount_cents, auto_discount_label = pricing.auto_discount(room_cents, nights, arrival)
+    # H4a: промокод применяется к проживанию (после авто-скидки) + услугам, не к Kurtaxe.
+    lodging_cents = room_cents - auto_discount_cents + extras_engine.total_cents(extras_snap)
     discount_cents, voucher_code_snap = _apply_voucher(voucher_code, lodging_cents)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = StayBooking.objects.create(
@@ -184,6 +185,8 @@ def book_stay(
         kurtaxe_cents=kurtaxe,
         discount_cents=discount_cents,
         voucher_code=voucher_code_snap,
+        auto_discount_cents=auto_discount_cents,
+        auto_discount_label=auto_discount_label,
         extras=extras_snap,
         rate_plan=rate_plan,
         rate_snapshot=_rate_snapshot(rate_plan),
@@ -216,12 +219,27 @@ def move_stay(booking, *, arrival, departure):
     # H9 Kurtaxe (пересчёт по ночам). Промокод не перегашиваем — держим снимок скидки.
     nights = (departure - arrival).days
     booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
-    lodging_cents = pricing.quote_total_cents(
+    room_cents = pricing.quote_total_cents(
         unit, arrival, departure, rate_plan=_rate_for_booking(booking)
-    ) + extras_engine.total_cents(booking.extras)
+    )
+    # G4: пересчитываем авто-скидку по новым датам/сроку до заезда.
+    booking.auto_discount_cents, booking.auto_discount_label = pricing.auto_discount(
+        room_cents, nights, arrival
+    )
+    lodging_cents = (
+        room_cents - booking.auto_discount_cents + extras_engine.total_cents(booking.extras)
+    )
     booking.total_cents = max(0, lodging_cents - booking.discount_cents) + booking.kurtaxe_cents
     booking.save(
-        update_fields=["arrival", "departure", "total_cents", "kurtaxe_cents", "updated_at"]
+        update_fields=[
+            "arrival",
+            "departure",
+            "total_cents",
+            "kurtaxe_cents",
+            "auto_discount_cents",
+            "auto_discount_label",
+            "updated_at",
+        ]
     )
     return booking
 

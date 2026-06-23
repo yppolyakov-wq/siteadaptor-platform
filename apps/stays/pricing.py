@@ -41,6 +41,42 @@ def quote_total_cents(unit, arrival, departure, rate_plan=None) -> int:
     )
 
 
+def auto_discount(lodging_cents, nights, arrival, today=None, settings=None) -> tuple[int, str]:
+    """G4: авто-скидка на проживание (LOS / Frühbucher / Last-Minute).
+
+    Возвращает (discount_cents, label). Скидки НЕ суммируются — берём максимальную
+    применимую (предсказуемо, без переусердствования). Считается от ``lodging_cents``
+    (проживание без Extras/Kurtaxe). ``arrival`` + ``today`` дают срок до заезда.
+    Промокод (H4a) применяется отдельно, поверх этой скидки.
+    """
+    if settings is None:
+        from .models import StaySettings
+
+        settings = StaySettings.load()
+    if today is None:
+        from django.utils import timezone
+
+        today = timezone.localdate()
+    lead = (arrival - today).days  # дней до заезда
+    candidates = []  # (percent, label)
+    los_n = getattr(settings, "los_min_nights", 0) or 0
+    los_p = getattr(settings, "los_discount_percent", 0) or 0
+    if los_n and los_p and nights >= los_n:
+        candidates.append((los_p, f"−{los_p}% ab {los_n} Nächten"))
+    eb_d = getattr(settings, "early_bird_days", 0) or 0
+    eb_p = getattr(settings, "early_bird_percent", 0) or 0
+    if eb_d and eb_p and lead >= eb_d:
+        candidates.append((eb_p, f"Frühbucher −{eb_p}%"))
+    lm_d = getattr(settings, "last_minute_days", 0) or 0
+    lm_p = getattr(settings, "last_minute_percent", 0) or 0
+    if lm_d and lm_p and 0 <= lead <= lm_d:
+        candidates.append((lm_p, f"Last-Minute −{lm_p}%"))
+    if not candidates:
+        return 0, ""
+    percent, label = max(candidates, key=lambda c: c[0])
+    return round(max(0, lodging_cents) * percent / 100), label
+
+
 def kurtaxe_total_cents(adults, nights, settings=None) -> int:
     """Kurtaxe за бронь (H9): adults × ночи × ставка. Дети бесплатно (по умолчанию).
     settings — StaySettings (грузим, если не передан); 0/выключено → 0."""

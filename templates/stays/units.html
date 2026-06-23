@@ -40,6 +40,40 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</label>
       <textarea name="house_rules" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea>
     </div>
+    {# G4: авто-скидки на проживание (LOS / Frühbucher / Last-Minute). 0 = выкл. #}
+    <div class="w-full border-t border-gray-100 pt-3">
+      <p class="text-sm font-medium mb-1">{% trans "Automatic discounts" %}</p>
+      <p class="text-xs text-gray-500 mb-3">{% trans "Applied to the room price (not extras/Kurtaxe). If several apply, the highest wins. 0 = off." %}</p>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Long stay: from … nights" %}</label>
+          <div class="flex items-center gap-2">
+            <input name="los_min_nights" type="number" min="0" max="365" value="{{ stay_settings.los_min_nights }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <span class="text-xs text-gray-400">→</span>
+            <input name="los_discount_percent" type="number" min="0" max="90" value="{{ stay_settings.los_discount_percent }}" class="w-16 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <span class="text-xs text-gray-400">%</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Early bird: from … days ahead" %}</label>
+          <div class="flex items-center gap-2">
+            <input name="early_bird_days" type="number" min="0" max="365" value="{{ stay_settings.early_bird_days }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <span class="text-xs text-gray-400">→</span>
+            <input name="early_bird_percent" type="number" min="0" max="90" value="{{ stay_settings.early_bird_percent }}" class="w-16 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <span class="text-xs text-gray-400">%</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Last minute: within … days" %}</label>
+          <div class="flex items-center gap-2">
+            <input name="last_minute_days" type="number" min="0" max="365" value="{{ stay_settings.last_minute_days }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <span class="text-xs text-gray-400">→</span>
+            <input name="last_minute_percent" type="number" min="0" max="90" value="{{ stay_settings.last_minute_percent }}" class="w-16 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <span class="text-xs text-gray-400">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </div>

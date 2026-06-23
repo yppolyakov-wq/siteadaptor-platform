@@ -373,15 +373,41 @@ def units(request):
             rp.save(update_fields=["is_active", "updated_at"])
         elif action == "rateplan_delete":
             RatePlan.objects.filter(pk=request.POST.get("rateplan")).delete()
-        elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung (на тенанта)
+        elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung + G4 авто-скидки
             settings_obj = StaySettings.load()
             settings_obj.kurtaxe_cents = _eur_to_cents(request.POST.get("kurtaxe_eur"))
             settings_obj.kurtaxe_label = (
                 request.POST.get("kurtaxe_label", "").strip()[:80] or "Kurtaxe"
             )
             settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
+            # G4: авто-скидки (LOS / Frühbucher / Last-Minute). 0 = выключено.
+            settings_obj.los_min_nights = _int(request.POST.get("los_min_nights", "0"), 0, 0, 365)
+            settings_obj.los_discount_percent = _int(
+                request.POST.get("los_discount_percent", "0"), 0, 0, 90
+            )
+            settings_obj.early_bird_days = _int(request.POST.get("early_bird_days", "0"), 0, 0, 365)
+            settings_obj.early_bird_percent = _int(
+                request.POST.get("early_bird_percent", "0"), 0, 0, 90
+            )
+            settings_obj.last_minute_days = _int(
+                request.POST.get("last_minute_days", "0"), 0, 0, 365
+            )
+            settings_obj.last_minute_percent = _int(
+                request.POST.get("last_minute_percent", "0"), 0, 0, 90
+            )
             settings_obj.save(
-                update_fields=["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
+                update_fields=[
+                    "kurtaxe_cents",
+                    "kurtaxe_label",
+                    "house_rules",
+                    "los_min_nights",
+                    "los_discount_percent",
+                    "early_bird_days",
+                    "early_bird_percent",
+                    "last_minute_days",
+                    "last_minute_percent",
+                    "updated_at",
+                ]
             )
             messages.success(request, _("Settings saved."))
         return redirect("stays:units")

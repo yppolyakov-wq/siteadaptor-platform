@@ -71,12 +71,17 @@ def _quote(unit, von, bis, guests):
 
 
 def _unit_from_price_cents(unit, von, bis, rate_plans):
-    """Минимальная цена за диапазон (H2): дешевейший тариф, иначе база (H1)."""
+    """Минимальная цена за диапазон (H2): дешевейший тариф, иначе база (H1).
+    G4: применяем авто-скидку (LOS/Frühbucher/Last-Minute), чтобы «ab … €» в поиске
+    отражала реальную к оплате цену проживания."""
     from . import pricing
 
     if rate_plans:
-        return min(pricing.quote_total_cents(unit, von, bis, rate_plan=rp) for rp in rate_plans)
-    return pricing.quote_total_cents(unit, von, bis)
+        room = min(pricing.quote_total_cents(unit, von, bis, rate_plan=rp) for rp in rate_plans)
+    else:
+        room = pricing.quote_total_cents(unit, von, bis)
+    auto_cents, _label = pricing.auto_discount(room, (bis - von).days, von)
+    return room - auto_cents
 
 
 def _is_embed(request):
@@ -176,19 +181,32 @@ def unterkunft_unit(request, pk):
         # H9: Kurtaxe (adults × ночи × ставка) — поверх проживания, в итог брони.
         kurtaxe_cents = pricing.kurtaxe_total_cents(adults, nights) if available else 0
         kurtaxe_eur = kurtaxe_cents / 100
+        # G4: авто-скидка на проживание (без тарифа) — для показа итога без тарифов.
+        auto_cents, auto_label = (
+            pricing.auto_discount(total_cents, nights, von) if available else (0, "")
+        )
         quote = {
             "von": von,
             "bis": bis,
             "guests": guests,
             "nights": nights,
-            "total_eur": (total_cents + kurtaxe_cents) / 100,
+            "total_eur": (total_cents - auto_cents + kurtaxe_cents) / 100,
+            "auto_discount_eur": auto_cents / 100,
+            "auto_discount_label": auto_label,
             "available": available,
             "reason": reason,
         }
         if available and rate_plans:
             for rp in rate_plans:
                 rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp)
-                rate_options.append({"rate": rp, "total_eur": (rp_cents + kurtaxe_cents) / 100})
+                rp_auto, rp_label = pricing.auto_discount(rp_cents, nights, von)
+                rate_options.append(
+                    {
+                        "rate": rp,
+                        "total_eur": (rp_cents - rp_auto + kurtaxe_cents) / 100,
+                        "auto_discount_label": rp_label,
+                    }
+                )
     tenant = getattr(request, "tenant", None)
     deposit_required = unit.deposit_cents > 0 and getattr(tenant, "payments_enabled", False)
     from apps.core import extras as extras_engine

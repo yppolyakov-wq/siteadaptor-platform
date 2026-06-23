@@ -284,6 +284,11 @@ class StayBooking(TimestampedModel):
     # Скидка уже вычтена из total_cents; снимок переживает изменение/удаление ваучера.
     voucher_code = models.CharField(max_length=12, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
+    # G4: авто-скидка (LOS / Frühbucher / Last-Minute) на проживание — снимок суммы
+    # (центы) и подписи. Уже вычтена из total_cents; считается в services по датам/
+    # сроку до заезда и настройкам StaySettings. Отдельно от промокода (стыкуется).
+    auto_discount_cents = models.PositiveIntegerField(default=0)
+    auto_discount_label = models.CharField(max_length=80, blank=True)
 
     class Meta:
         ordering = ["arrival"]
@@ -318,6 +323,12 @@ class StayBooking(TimestampedModel):
 
         return Decimal(self.discount_cents) / 100
 
+    @property
+    def auto_discount_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.auto_discount_cents) / 100
+
 
 class ICalSource(TimestampedModel):
     """Внешний iCal-фид (Booking.com/Airbnb) для юнита (A5b). Синк заводит блоки
@@ -349,6 +360,17 @@ class StaySettings(TimestampedModel):
     kurtaxe_children_free = models.BooleanField(default=True)
     # H6: Hausordnung / правила проживания (свободный текст; пусто = страницы нет).
     house_rules = models.TextField(blank=True)
+    # G4: авто-скидки на проживание (0 = выключено). Применяются к проживанию (без
+    # Extras/Kurtaxe); если применимо несколько — берётся максимальная (не суммируются).
+    #   LOS (Langzeit): от los_min_nights ночей → −los_discount_percent %.
+    #   Frühbucher: заезд ≥ early_bird_days дней вперёд → −early_bird_percent %.
+    #   Last-Minute: до заезда ≤ last_minute_days дней → −last_minute_percent %.
+    los_min_nights = models.PositiveSmallIntegerField(default=0)
+    los_discount_percent = models.PositiveSmallIntegerField(default=0)
+    early_bird_days = models.PositiveSmallIntegerField(default=0)
+    early_bird_percent = models.PositiveSmallIntegerField(default=0)
+    last_minute_days = models.PositiveSmallIntegerField(default=0)
+    last_minute_percent = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         verbose_name = "Stay settings"

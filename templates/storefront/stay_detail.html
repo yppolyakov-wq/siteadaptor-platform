@@ -77,6 +77,7 @@
                     <span>
                       <span class="font-medium">{{ ro.rate.name }}</span>
                       {% if ro.rate.meal_included %}<span class="ml-1 text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ ro.rate.get_meal_plan_display }}</span>{% endif %}
+                      {% if ro.auto_discount_label %}<span class="ml-1 text-xs bg-rose-100 text-rose-700 rounded px-1.5 py-0.5">{{ ro.auto_discount_label }}</span>{% endif %}
                       <span class="block text-xs mt-0.5 {% if ro.rate.cancellation == 'flexible' %}text-emerald-700{% else %}text-gray-500{% endif %}">
                         {% if ro.rate.cancellation == 'flexible' %}{% if ro.rate.free_cancel_days %}{% blocktrans with d=ro.rate.free_cancel_days %}Free cancellation up to {{ d }} days before arrival{% endblocktrans %}{% else %}{% trans "Free cancellation" %}{% endif %}{% else %}{% trans "Non-refundable" %}{% endif %}
                       </span>
@@ -91,6 +92,7 @@
           {% else %}
             <p class="text-2xl font-bold">{{ quote.total_eur|floatformat:2 }} €
               {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
+            {% if quote.auto_discount_label %}<p class="text-xs text-rose-700">✓ {{ quote.auto_discount_label }}</p>{% endif %}
           {% endif %}
           {% if kurtaxe_eur %}<p class="text-xs text-gray-500">{% blocktrans with k=kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
           <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">

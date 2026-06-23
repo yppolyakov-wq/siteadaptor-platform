@@ -1486,3 +1486,17 @@
   из-за чего сохранение меню не срабатывало вовсе. Теперь ищем по строке.
   `npm run build:css`. ⚠️ Секция «номера на главной» — изменение демо-кита →
   нужен reseed `--kit hotel --recreate`.
+
+- **G4 — авто-скидки на проживание (LOS / Frühbucher / Last-Minute).** Надстройка
+  над `pricing`/`RatePlan`, без параллельной инфраструктуры. Конфиг на тенанта в
+  `StaySettings` (новые поля los_min_nights/los_discount_percent, early_bird_days/
+  percent, last_minute_days/percent; 0 = выкл). `pricing.auto_discount()` считает
+  лучшую (максимальную) применимую скидку на проживание (без Extras/Kurtaxe);
+  промокод H4a применяется поверх. `book_stay`/`move_stay` считают и пишут снимок
+  `StayBooking.auto_discount_cents` + `auto_discount_label` (включён в total).
+  Витрина: «ab … €» в поиске и итог/тарифы на странице номера уже отражают скидку
+  (показ = к оплате), подпись скидки на карточке номера и в подтверждении. Кабинет
+  `/dashboard/stays/` — блок «Automatic discounts» в форме настроек. Демо hotel:
+  7+ ночей −10 %, Frühbucher ≥30 дней −8 %, Last-Minute ≤3 дня −12 %. Миграция
+  `stays/0014`. Тесты — `test_auto_discount.py`. ⚠️ Демо-конфиг → reseed `--kit
+  hotel --recreate` (или задать в кабинете). План — G4 в `hotel-growth-plan.md`.

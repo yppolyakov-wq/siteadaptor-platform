@@ -20,6 +20,7 @@
         {% for e in booking.extras %}<li>+ {{ e.label }}</li>{% endfor %}
       </ul>
     {% endif %}
+    {% if booking.auto_discount_cents %}<p class="text-xs text-rose-700 mt-2">✓ {{ booking.auto_discount_label }}: −{{ booking.auto_discount_eur|floatformat:2 }} €</p>{% endif %}
     {% if booking.discount_cents %}<p class="text-xs text-emerald-700 mt-2">{% blocktrans with d=booking.discount_eur|floatformat:2 c=booking.voucher_code %}Discount {{ c }}: −{{ d }} €{% endblocktrans %}</p>{% endif %}
     {% if booking.kurtaxe_cents %}<p class="text-xs text-gray-500 mt-1">{% blocktrans with k=booking.kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
     <p class="text-sm font-semibold mt-2">{% blocktrans with t=booking.total_eur|floatformat:2 %}Total: {{ t }} €{% endblocktrans %}</p>
