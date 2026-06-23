@@ -11,7 +11,7 @@ from datetime import date, timedelta
 
 import stripe
 from django.contrib import messages
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -652,3 +652,63 @@ def unterkunft_ical(request, token):
     blocks = UnitBlock.objects.filter(unit=unit)
     body = ical.build_feed(unit, bookings, blocks, host=request.get_host())
     return HttpResponse(body, content_type="text/calendar; charset=utf-8")
+
+
+FEED_DAYS = 60  # горизонт фида цен/наличия для метапоиска (G8)
+
+
+def stays_feed(request):
+    """G8: машиночитаемый фид наличия и цен (rates & availability) для метапоиска
+    /channel/Google Hotel Center. Публичный (те же данные, что и поиск), noindex.
+
+    На каждый активный номер — посуточно на FEED_DAYS дней вперёд: число свободных
+    юнитов и базовая цена за ночь (сезон/выходные). Deep-link на прямую бронь с
+    датами — чтобы метапоиск вёл сразу в наш движок (Free Booking Links)."""
+    _require_stays_active(request)
+    from . import pricing
+
+    today = timezone.localdate()
+    units = list(StayUnit.objects.filter(is_active=True))
+    _days, rows = availability.occupancy_grid(units, today, FEED_DAYS)
+    base = request.build_absolute_uri(reverse("storefront-unterkunft"))
+    tenant = getattr(request, "tenant", None)
+    rooms = []
+    for unit, cells in rows:
+        seasons = list(unit.season_rates.all())
+        nights = [
+            {
+                "date": c["day"].isoformat(),
+                "units_free": c["free"],
+                "available": c["free"] > 0,
+                "price": round(pricing.nightly_price_cents(unit, c["day"], seasons) / 100, 2),
+            }
+            for c in cells
+        ]
+        rooms.append(
+            {
+                "id": str(unit.pk),
+                "name": unit.name,
+                "type": unit.get_type_display(),
+                "max_guests": unit.max_guests,
+                "quantity": unit.quantity,
+                "min_nights": unit.min_nights,
+                "deeplink": f"{base}{unit.pk}/",
+                "nights": nights,
+            }
+        )
+    return JsonResponse(
+        {
+            "property": {
+                "name": getattr(tenant, "name", "") or "",
+                "url": request.build_absolute_uri("/"),
+                "address": getattr(tenant, "address", "") or "",
+                "city": getattr(tenant, "city", "") or "",
+                "currency": "EUR",
+            },
+            "generated_at": timezone.now().isoformat(),
+            "days": FEED_DAYS,
+            "search_deeplink": base + "?von={arrival}&bis={departure}&erw={adults}",
+            "rooms": rooms,
+        },
+        json_dumps_params={"ensure_ascii": False},
+    )

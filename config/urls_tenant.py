@@ -181,6 +181,8 @@ urlpatterns = [
     path("gutschein/danke/", stays_public.gutschein_confirmation, name="storefront-gutschein-ok"),
     # iCal-фид занятости юнита (A5b): Booking.com/Airbnb/Google подписываются.
     path("stays/ical/<str:token>.ics", stays_public.unterkunft_ical, name="storefront-stay-ical"),
+    # G8: фид цен/наличия для метапоиска (Google Hotel Center / channel).
+    path("stays/feed.json", stays_public.stays_feed, name="storefront-stay-feed"),
     # События/билеты (A6c): список → событие → покупка → подтверждение.
     path("veranstaltung/", events_public.veranstaltung_index, name="storefront-events"),
     path("veranstaltung/<uuid:pk>/", events_public.veranstaltung_detail, name="storefront-event"),

@@ -21,6 +21,13 @@
   <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
 </div>
 
+{# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
+  <h2 class="font-semibold mb-1">{% trans "Metasearch & Google (rates feed)" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
+  <input type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 font-mono text-[11px]">
+</div>
+
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
 <div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
   <h2 class="font-semibold mb-1">{% trans "Kurtaxe & house rules" %}</h2>

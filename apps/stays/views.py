@@ -436,6 +436,7 @@ def units(request):
             "amenities": AMENITIES,  # H3 чек-лист удобств
             "stay_settings": StaySettings.load(),  # H9 Kurtaxe
             "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
+            "feed_url": request.build_absolute_uri(reverse("storefront-stay-feed")),  # G8 метапоиск
         },
     )
 

@@ -1532,3 +1532,13 @@
   `/dashboard/stays/checkins/` — обзор заполненных Meldescheine. Retention (DSGVO,
   хранение 1 год): beat `purge_old_registrations` (ежедневно) удаляет записи >365
   дней после выезда. Миграция `stays/0017`. Тесты — `test_checkin.py`. План — G6.
+
+- **G8 — фид цен/наличия для метапоиска (Google Free Booking Links).** Публичный
+  машиночитаемый эндпоинт `/stays/feed.json` (`storefront-stay-feed`): на каждый
+  активный номер — посуточно на 60 дней вперёд число свободных юнитов и базовая
+  цена за ночь (сезон/выходные), deep-link на прямую бронь номера + шаблон
+  deep-link поиска с датами. Источник для Google Hotel Center / channel-партнёров
+  (Free Booking Links ведут сразу в наш движок). Кабинет `/dashboard/stays/units/`
+  — блок «Metasearch & Google (rates feed)» с URL фида. Подключение Hotel Center —
+  шаг владельца (нужен Google-аккаунт), как Stripe live. Доступность также
+  экспортируется по iCal (A5b). Тесты — `test_feed.py`. Без миграций. План — G8.
