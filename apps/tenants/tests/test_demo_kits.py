@@ -279,6 +279,19 @@ def test_apply_hotel_kit_builds_stays_site():
     assert any(i["target"] == "stays" for i in cfg["menus"]["top"]["items"])
     assert tenant.is_module_active("stays")
 
+    # G5: мультикомнатная бронь среди демо-броней (rooms ≥ 2)
+    assert StayBooking.objects.filter(rooms__gte=2).exists()
+    # G6: цифровые Meldescheine (Online-Checkin) заведены для демо-броней
+    from apps.stays.models import GuestRegistration
+
+    assert GuestRegistration.objects.filter(signed_at__isnull=False).count() >= 1
+    # G3: согласия на рассылку + примеры кампаний (sent + draft)
+    from apps.promotions.models import Customer, NewsletterCampaign
+
+    assert Customer.objects.filter(marketing_opt_in=True).count() >= 1
+    assert NewsletterCampaign.objects.filter(status="sent").exists()
+    assert NewsletterCampaign.objects.filter(status="draft").exists()
+
 
 def test_apply_aktionsmarkt_kit_covers_all_promo_types():
     """Aktionsmarkt: акции всех типов/видов + ваучеры + описание в FAQ."""

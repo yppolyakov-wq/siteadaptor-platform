@@ -51,6 +51,10 @@ def hotel_availability(tenant_schema, von, bis, guests) -> tuple[bool, int]:
                     )
                 else:
                     cents = pricing.quote_total_cents(unit, von, bis)
+                # G4: применяем авто-скидку (LOS/Frühbucher/Last-Minute), чтобы цена
+                # на портале совпадала с ценой на сайте отеля (там она уже со скидкой).
+                auto_cents, _label = pricing.auto_discount(cents, nights, von)
+                cents -= auto_cents
                 best = cents if best is None else min(best, cents)
         if best is not None:
             result = (True, best)
