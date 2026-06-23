@@ -394,6 +394,41 @@ class StaySettings(TimestampedModel):
             obj = cls.objects.create()
         return obj
 
+
+class GuestRegistration(TimestampedModel):
+    """G6: цифровой Meldeschein (Bundesmeldegesetz §29–30) для Online-Checkin.
+
+    Гость заполняет данные ведущего гостя при заезде по подписанной ссылке. По
+    закону Meldeschein хранится 1 год после выезда, затем уничтожается — чистит
+    beat-задача (tasks.purge_old_registrations). Простая электронная подпись:
+    Ф.И.О. печатью + отметка времени и IP (eIDAS «einfache» для онлайн-чек-ина)."""
+
+    booking = models.OneToOneField(
+        StayBooking, on_delete=models.CASCADE, related_name="registration"
+    )
+    last_name = models.CharField(max_length=120)
+    first_name = models.CharField(max_length=120)
+    birth_date = models.DateField(null=True, blank=True)
+    nationality = models.CharField(max_length=80, blank=True)
+    street = models.CharField(max_length=200, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    city = models.CharField(max_length=120, blank=True)
+    country = models.CharField(max_length=80, blank=True)
+    # Для иностранных гостей (по §30 BMG) — тип/номер документа, опционально.
+    doc_type = models.CharField(max_length=40, blank=True)
+    doc_number = models.CharField(max_length=60, blank=True)
+    accompanying = models.PositiveSmallIntegerField(default=0)  # Mitreisende
+    # Простая подпись: печатное Ф.И.О. + подтверждение, отметка времени/IP.
+    signed_name = models.CharField(max_length=200)
+    signed_at = models.DateTimeField(null=True, blank=True)
+    signed_ip = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Meldeschein {self.booking.reference_code}"
+
     @property
     def kurtaxe_eur(self) -> float:
         return self.kurtaxe_cents / 100

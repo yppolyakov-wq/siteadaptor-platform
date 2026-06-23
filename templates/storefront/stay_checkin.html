@@ -1,0 +1,96 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Online check-in" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "Online check-in" %}</h1>
+    <p class="text-gray-600">{{ booking.unit.name }}</p>
+    <p class="text-sm text-gray-500 mt-1">{{ booking.arrival|date:"d.m.Y" }} → {{ booking.departure|date:"d.m.Y" }} · {{ booking.reference_code }}</p>
+
+    {% if cancelled %}
+      <p class="mt-4 text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">{% trans "This booking is cancelled." %}</p>
+    {% elif done %}
+      <div class="mt-4 text-sm text-emerald-800 bg-emerald-50 rounded-lg px-3 py-2">
+        ✓ {% trans "Your check-in is complete. We look forward to welcoming you!" %}
+      </div>
+      <dl class="mt-4 text-sm text-gray-600 space-y-1">
+        <div><dt class="inline font-medium">{% trans "Guest" %}:</dt> <dd class="inline">{{ reg.first_name }} {{ reg.last_name }}</dd></div>
+        {% if reg.city %}<div><dt class="inline font-medium">{% trans "Address" %}:</dt> <dd class="inline">{{ reg.street }}, {{ reg.postal_code }} {{ reg.city }}{% if reg.country %}, {{ reg.country }}{% endif %}</dd></div>{% endif %}
+        <div><dt class="inline font-medium">{% trans "Signed" %}:</dt> <dd class="inline">{{ reg.signed_name }} · {{ reg.signed_at|date:"d.m.Y H:i" }}</dd></div>
+      </dl>
+    {% else %}
+      <p class="text-sm text-gray-500 mt-3">{% trans "Please complete your registration (Meldeschein) before arrival — it speeds up your check-in." %}</p>
+      <form method="post" class="mt-5 space-y-4">
+        {% csrf_token %}
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_first">{% trans "First name" %} *</label>
+            <input id="id_first" name="first_name" type="text" required value="{{ prefill_first }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_last">{% trans "Last name" %} *</label>
+            <input id="id_last" name="last_name" type="text" required value="{{ prefill_last }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_birth">{% trans "Date of birth" %}</label>
+            <input id="id_birth" name="birth_date" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_nat">{% trans "Nationality" %}</label>
+            <input id="id_nat" name="nationality" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_street">{% trans "Street & number" %}</label>
+          <input id="id_street" name="street" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_zip">{% trans "Postal code" %}</label>
+            <input id="id_zip" name="postal_code" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium mb-1" for="id_city">{% trans "City" %}</label>
+            <input id="id_city" name="city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_country">{% trans "Country" %}</label>
+          <input id="id_country" name="country" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_dtype">{% trans "ID type (foreign guests)" %}</label>
+            <input id="id_dtype" name="doc_type" type="text" placeholder="{% trans 'Passport / ID card' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_dnum">{% trans "ID number" %}</label>
+            <input id="id_dnum" name="doc_number" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_acc">{% trans "Accompanying guests" %}</label>
+            <input id="id_acc" name="accompanying" type="number" min="0" value="{{ booking.guests|add:'-1' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4">
+          <label class="block text-sm font-medium mb-1" for="id_sign">{% trans "Signature (type your full name)" %} *</label>
+          <input id="id_sign" name="signed_name" type="text" required placeholder="{{ prefill_first }} {{ prefill_last }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <label class="flex items-start gap-2 mt-3 text-sm text-gray-600">
+            <input type="checkbox" name="confirm" required class="mt-0.5 rounded border-gray-300">
+            <span>{% trans "I confirm that the information above is correct (registration form / Meldeschein under the German Federal Registration Act)." %}</span>
+          </label>
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Complete check-in" %}</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

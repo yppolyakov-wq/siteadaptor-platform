@@ -83,6 +83,27 @@ def send_stay_post_stay():
     return total
 
 
+def purge_due_registrations(today=None) -> int:
+    """G6: удалить Meldescheine старше года после выезда (DSGVO Löschpflicht /
+    Aufbewahrung 1 Jahr). Чистая логика для текущей схемы — число удалённых."""
+    from .models import GuestRegistration
+
+    today = today or timezone.localdate()
+    cutoff = today - timezone.timedelta(days=365)
+    deleted, _ = GuestRegistration.objects.filter(booking__departure__lt=cutoff).delete()
+    return deleted
+
+
+@shared_task
+def purge_old_registrations():
+    """Beat (раз в сутки): удалять просроченные Meldescheine по всем схемам (G6)."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += purge_due_registrations()
+    return total
+
+
 @shared_task
 def sync_ical_sources():
     """Beat (раз в час): тянуть внешние iCal-фиды и обновлять блоки (A5b)."""

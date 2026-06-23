@@ -276,6 +276,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.stays.tasks.send_stay_post_stay",
         "schedule": 86400.0,  # раз в сутки — post-stay письмо + запрос отзыва (G2)
     },
+    "purge-old-registrations": {
+        "task": "apps.stays.tasks.purge_old_registrations",
+        "schedule": 86400.0,  # раз в сутки — удаление Meldescheine >1 года (G6/DSGVO)
+    },
 }
 
 # За сколько часов до начала записи слать напоминание (Track D / D3c).

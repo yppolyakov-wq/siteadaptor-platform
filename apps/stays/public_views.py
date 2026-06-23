@@ -380,6 +380,7 @@ def unterkunft_confirmation(request, code):
             "booking": booking,
             "telegram_link": deep_link(booking.customer),
             "cancel_url": cancel_url(booking),  # H4b
+            "checkin_url": checkin_url(booking),  # G6 Online-Checkin
         },
         _is_embed(request),
     )
@@ -542,6 +543,82 @@ def unterkunft_cancel(request, token):
         request,
         "storefront/stay_cancel.html",
         {"booking": booking, "state": state, "token": token},
+    )
+
+
+_CHECKIN_SALT = "stay-checkin"
+
+
+def checkin_token(booking) -> str:
+    from django.core import signing
+
+    return signing.dumps(str(booking.pk), salt=_CHECKIN_SALT)
+
+
+def checkin_url(booking) -> str:
+    return reverse("storefront-stay-checkin", args=[checkin_token(booking)])
+
+
+def unterkunft_checkin(request, token):
+    """G6: Online-Checkin — гость заполняет цифровой Meldeschein (BMG) по
+    подписанной ссылке. GET — форма (префилл из брони), POST — сохранить подпись
+    (Ф.И.О. печатью + время + IP). Отменённую/прошедшую бронь не чек-иним."""
+    _require_stays_active(request)
+    from django.core import signing
+
+    from .models import GuestRegistration
+
+    try:
+        pk = signing.loads(token, salt=_CHECKIN_SALT)
+    except signing.BadSignature as exc:
+        raise Http404 from exc
+    booking = get_object_or_404(StayBooking.objects.select_related("unit", "customer"), pk=pk)
+    reg = GuestRegistration.objects.filter(booking=booking).first()
+    done = reg is not None and bool(reg.signed_at)
+    cancelled = booking.status == StayBooking.STATUS_CANCELLED
+
+    if request.method == "POST" and not done and not cancelled:
+        if not request.POST.get("confirm") or not request.POST.get("signed_name", "").strip():
+            messages.error(request, _("Please fill in your name and confirm."))
+            return redirect(reverse("storefront-stay-checkin", args=[token]))
+        reg = reg or GuestRegistration(booking=booking)
+        reg.last_name = request.POST.get("last_name", "").strip()[:120]
+        reg.first_name = request.POST.get("first_name", "").strip()[:120]
+        reg.birth_date = _parse_date(request.POST.get("birth_date"))
+        reg.nationality = request.POST.get("nationality", "").strip()[:80]
+        reg.street = request.POST.get("street", "").strip()[:200]
+        reg.postal_code = request.POST.get("postal_code", "").strip()[:20]
+        reg.city = request.POST.get("city", "").strip()[:120]
+        reg.country = request.POST.get("country", "").strip()[:80]
+        reg.doc_type = request.POST.get("doc_type", "").strip()[:40]
+        reg.doc_number = request.POST.get("doc_number", "").strip()[:60]
+        try:
+            reg.accompanying = max(0, min(int(request.POST.get("accompanying", "0")), 50))
+        except (TypeError, ValueError):
+            reg.accompanying = 0
+        reg.signed_name = request.POST.get("signed_name", "").strip()[:200]
+        reg.signed_at = timezone.now()
+        reg.signed_ip = ratelimit.client_ip(request)
+        reg.save()
+        messages.success(request, _("Thank you! Your check-in is complete."))
+        return redirect(reverse("storefront-stay-checkin", args=[token]))
+
+    cust = booking.customer
+    name_parts = (cust.name or "").rsplit(" ", 1)
+    return render(
+        request,
+        "storefront/stay_checkin.html",
+        {
+            "booking": booking,
+            "reg": reg,
+            "done": done,
+            "cancelled": cancelled,
+            "prefill_first": reg.first_name if reg else (name_parts[0] if name_parts else ""),
+            "prefill_last": reg.last_name
+            if reg
+            else (name_parts[1] if len(name_parts) > 1 else ""),
+            "token": token,
+        },
     )
 
 

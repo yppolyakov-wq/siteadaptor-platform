@@ -1,0 +1,32 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Online check-ins" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Online check-ins (Meldescheine)" %}</h1>
+  <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+</div>
+<p class="text-sm text-gray-500 mb-4">{% trans "Digital registration forms completed by guests. Kept for one year after departure, then deleted automatically (DSGVO)." %}</p>
+
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+  {% for r in registrations %}
+    <div class="border-t border-gray-100 first:border-t-0 p-4 text-sm">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <span class="font-semibold">{{ r.first_name }} {{ r.last_name }}</span>
+        <span class="text-gray-500">{{ r.booking.reference_code }} · {{ r.booking.unit.name }}</span>
+      </div>
+      <div class="text-gray-600 mt-1">{{ r.booking.arrival|date:"d.m.Y" }} → {{ r.booking.departure|date:"d.m.Y" }}{% if r.accompanying %} · {% blocktrans with n=r.accompanying %}+{{ n }} accompanying{% endblocktrans %}{% endif %}</div>
+      <div class="text-gray-500 mt-1">
+        {% if r.street or r.city %}{{ r.street }}, {{ r.postal_code }} {{ r.city }}{% if r.country %}, {{ r.country }}{% endif %}{% endif %}
+        {% if r.birth_date %} · {% trans "DOB" %} {{ r.birth_date|date:"d.m.Y" }}{% endif %}
+        {% if r.nationality %} · {{ r.nationality }}{% endif %}
+        {% if r.doc_number %} · {{ r.doc_type }} {{ r.doc_number }}{% endif %}
+      </div>
+      <div class="text-xs text-gray-400 mt-1">{% trans "Signed" %}: {{ r.signed_name }} · {{ r.signed_at|date:"d.m.Y H:i" }}</div>
+    </div>
+  {% empty %}
+    <p class="p-4 text-sm text-gray-400">{% trans "No online check-ins yet." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

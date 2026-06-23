@@ -35,6 +35,9 @@
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "We'll confirm your booking shortly." %}</p>
     {% endif %}
     {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-4">{{ request.tenant.address }}</p>{% endif %}
+    {% if checkin_url and booking.status != 'cancelled' %}
+      <p class="mt-4"><a href="{{ checkin_url }}" class="inline-block text-sm bg-indigo-50 text-indigo-700 rounded-lg px-4 py-2 hover:bg-indigo-100">📝 {% trans "Complete online check-in" %}</a></p>
+    {% endif %}
     {% if cancel_url and booking.status != 'cancelled' %}
       <p class="text-xs text-gray-400 mt-4">{% trans "Plans changed?" %} <a href="{{ cancel_url }}" class="underline hover:text-gray-600">{% trans "Cancel booking" %}</a></p>
     {% endif %}

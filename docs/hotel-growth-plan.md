@@ -21,7 +21,7 @@ docs до кода, по подзадачам с CI-чекпоинтом.
 | **G3** | **Рассылки гостям (Newsletter-кампании)** | ТЗ §4/§10; прямой канал без OTA | DOI-opt-in, `Customer`, `notifications` | среднее |
 | **G4 ✅** | **LOS-скидки + авто Frühbucher/Last-Minute** | ТЗ §7 (12–13); ключевой ценовой инструмент | надстройка над `RatePlan`/`pricing` | среднее |
 | **G5 ✅** | **Мультикомнатное бронирование** | ТЗ §3.4; семьи/группы | `book_stay` → родитель-бронь | среднее |
-| **G6** | **Online-Checkin + digitaler Meldeschein** | Bundesmeldegesetz (Meldepflicht) — юр-must DE | новый мини-поток + подпись/хранение | средне-высокое |
+| **G6 ✅** | **Online-Checkin + digitaler Meldeschein** | Bundesmeldegesetz (Meldepflicht) — юр-must DE | новый мини-поток + подпись/хранение | средне-высокое |
 | **G7 ✅** | **Гибкая предоплата по тарифу** (0/частично/100 %) + PayPal/Klarna | сейчас только депозит | Stripe (методы) + поля `RatePlan` | среднее |
 | **G8** | **Google Free Booking Links / Hotel Ads-фид** | метапоиск ТЗ §10; бесплатный спрос в прямое | цены/наличие, агрегатор | средне-высокое |
 | **G9 ✅** | **Отчёты: Belegung %, ADR, RevPAR, выручка** | базовая аналитика PMS | брони + `finance` | низко-среднее |

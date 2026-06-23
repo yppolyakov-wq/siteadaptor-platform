@@ -474,3 +474,17 @@ def reports(request):
             "is_current": start == timezone.localdate().replace(day=1),
         },
     )
+
+
+@login_required
+def checkins(request):
+    """G6: список цифровых Meldescheine (Online-Checkins). Read-only обзор для
+    стойки — кто заполнил данные регистрации. Гейтинг — модуль stays."""
+    from .models import GuestRegistration
+
+    regs = list(
+        GuestRegistration.objects.select_related("booking", "booking__unit")
+        .filter(signed_at__isnull=False)
+        .order_by("-signed_at")[:200]
+    )
+    return render(request, "stays/checkins.html", {"nav": "stays", "registrations": regs})

@@ -171,6 +171,8 @@ urlpatterns = [
     path("s/<str:code>/", stays_public.unterkunft_confirmation, name="storefront-stay-ok"),
     # H4b: самостоятельная отмена брони гостем по подписанной ссылке.
     path("stornieren/<str:token>/", stays_public.unterkunft_cancel, name="storefront-stay-cancel"),
+    # G6: Online-Checkin / цифровой Meldeschein по подписанной ссылке.
+    path("checkin/<str:token>/", stays_public.unterkunft_checkin, name="storefront-stay-checkin"),
     # H6: Hausordnung / правила проживания.
     path("hausordnung/", stays_public.hausordnung, name="storefront-hausordnung"),
     # G1: Geschenkgutscheine (продажа подарочных сертификатов).

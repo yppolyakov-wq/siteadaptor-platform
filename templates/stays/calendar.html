@@ -6,6 +6,7 @@
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   <h1 class="text-2xl font-bold">{% trans "Stays" %}</h1>
   <div class="flex items-center gap-4">
+    <a href="{% url 'stays:checkins' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Check-ins" %} →</a>
     <a href="{% url 'stays:reports' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Reports" %} →</a>
     <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Units & blocked dates" %} →</a>
   </div>
