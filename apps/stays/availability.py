@@ -20,12 +20,14 @@ def nights_between(arrival, departure) -> list:
     return out
 
 
-def range_available(unit, arrival, departure, *, exclude_pk=None) -> bool:
-    """Есть ли на КАЖДУЮ ночь ``[arrival, departure)`` свободный из quantity юнитов.
+def range_available(unit, arrival, departure, *, exclude_pk=None, needed=1) -> bool:
+    """Есть ли на КАЖДУЮ ночь ``[arrival, departure)`` место для ``needed`` номеров.
 
     Считает занятость по ночам в памяти (как booking.free_slots): активные брони
-    юнита, пересекающие диапазон, + блоки. Под блокировкой строки юнита (её ставит
-    services.book_stay) это и есть атомарная anti-overbook-гарантия.
+    юнита (каждая занимает свои ``rooms`` номеров, G5), пересекающие диапазон, +
+    блоки. Под блокировкой строки юнита (её ставит services.book_stay) это и есть
+    атомарная anti-overbook-гарантия. ``needed`` — сколько номеров нужно (мульти-
+    бронь): свободно, если quantity − занятость ≥ needed на каждую ночь.
     """
     nights = nights_between(arrival, departure)
     if not nights:
@@ -40,7 +42,7 @@ def range_available(unit, arrival, departure, *, exclude_pk=None) -> bool:
     )
     if exclude_pk is not None:
         stays = stays.exclude(pk=exclude_pk)
-    stays = list(stays.values_list("arrival", "departure"))
+    stays = list(stays.values_list("arrival", "departure", "rooms"))
 
     blocks = list(
         UnitBlock.objects.filter(
@@ -49,9 +51,9 @@ def range_available(unit, arrival, departure, *, exclude_pk=None) -> bool:
     )
 
     for night in nights:
-        occupied = sum(1 for s_arr, s_dep in stays if s_arr <= night < s_dep)
+        occupied = sum(rooms for s_arr, s_dep, rooms in stays if s_arr <= night < s_dep)
         occupied += sum(1 for b_start, b_end in blocks if b_start <= night <= b_end)
-        if occupied >= unit.quantity:
+        if occupied + needed > unit.quantity:
             return False
     return True
 
@@ -83,7 +85,7 @@ def occupancy_grid(units, start_day, num_days):
                 status__in=StayBooking.ACTIVE_STATUSES,
                 arrival__lt=end_day,
                 departure__gt=start_day,
-            ).values_list("arrival", "departure")
+            ).values_list("arrival", "departure", "rooms")
         )
         blocks = list(
             UnitBlock.objects.filter(
@@ -92,7 +94,7 @@ def occupancy_grid(units, start_day, num_days):
         )
         cells = []
         for day in days:
-            occupied = sum(1 for s_arr, s_dep in stays if s_arr <= day < s_dep)
+            occupied = sum(rooms for s_arr, s_dep, rooms in stays if s_arr <= day < s_dep)
             blocked = any(b_start <= day <= b_end for b_start, b_end in blocks)
             occupied += sum(1 for b_start, b_end in blocks if b_start <= day <= b_end)
             cells.append({"day": day, "free": max(0, unit.quantity - occupied), "blocked": blocked})

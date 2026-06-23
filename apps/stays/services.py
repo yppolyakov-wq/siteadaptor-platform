@@ -126,6 +126,7 @@ def book_stay(
     extras=None,
     rate_plan=None,
     voucher_code="",
+    rooms=1,
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable, PromoInvalid.
@@ -134,9 +135,12 @@ def book_stay(
     adults/children (H5) — разбивка гостей; guests = adults + children (если задан
     adults). Kurtaxe (H9) считается по adults и включается в total.
     voucher_code (H4a) — промокод (Voucher): скидка на проживание+услуги (не на
-    Kurtaxe), атомарно гасится; задан, но не применим → PromoInvalid."""
+    Kurtaxe), атомарно гасится; задан, но не применим → PromoInvalid.
+    rooms (G5) — число номеров этого типа в одной брони (семьи/группы): занимает
+    ``rooms`` из quantity, вместимость и цена проживания × rooms."""
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
+    rooms = max(1, int(rooms))
     # H5: adults задан → guests = adults + children; иначе старый контракт (guests).
     if adults is not None:
         adults = max(1, int(adults))
@@ -153,18 +157,19 @@ def book_stay(
 
     if (departure - arrival).days < unit.min_nights:
         raise MinStay()
-    if guests > unit.max_guests:
+    if guests > unit.max_guests * rooms:  # G5: вместимость × число номеров
         raise MaxGuests()
-    if not availability.range_available(unit, arrival, departure):
+    if not availability.range_available(unit, arrival, departure, needed=rooms):
         raise StayUnavailable()
 
     from apps.core import extras as extras_engine
 
     extras_snap = list(extras or [])
     nights = (departure - arrival).days
-    kurtaxe = pricing.kurtaxe_total_cents(adults, nights)  # H9
+    kurtaxe = pricing.kurtaxe_total_cents(adults, nights)  # H9 (по гостям, не × номера)
     # G4: авто-скидка (LOS/Frühbucher/Last-Minute) — на проживание (без Extras/Kurtaxe).
-    room_cents = pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan)
+    # G5: проживание × число номеров.
+    room_cents = pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan) * rooms
     auto_discount_cents, auto_discount_label = pricing.auto_discount(room_cents, nights, arrival)
     # H4a: промокод применяется к проживанию (после авто-скидки) + услугам, не к Kurtaxe.
     lodging_cents = room_cents - auto_discount_cents + extras_engine.total_cents(extras_snap)
@@ -179,6 +184,7 @@ def book_stay(
         guests=guests,
         adults=adults,
         children=children,
+        rooms=rooms,
         price_cents=unit.price_cents,
         # A5a сезон/выходные + H1 тариф + #7 Extras − H4a скидка + H9 Kurtaxe.
         total_cents=lodging_cents - discount_cents + kurtaxe,
@@ -209,7 +215,10 @@ def move_stay(booking, *, arrival, departure):
     unit = StayUnit.objects.select_for_update().get(id=booking.unit_id)
     if (departure - arrival).days < unit.min_nights:
         raise MinStay()
-    if not availability.range_available(unit, arrival, departure, exclude_pk=booking.pk):
+    # G5: бронь занимает свои rooms; при переносе исключаем её же из подсчёта.
+    if not availability.range_available(
+        unit, arrival, departure, exclude_pk=booking.pk, needed=booking.rooms
+    ):
         raise StayUnavailable()
     from apps.core import extras as extras_engine
 
@@ -219,8 +228,9 @@ def move_stay(booking, *, arrival, departure):
     # H9 Kurtaxe (пересчёт по ночам). Промокод не перегашиваем — держим снимок скидки.
     nights = (departure - arrival).days
     booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
-    room_cents = pricing.quote_total_cents(
-        unit, arrival, departure, rate_plan=_rate_for_booking(booking)
+    room_cents = (
+        pricing.quote_total_cents(unit, arrival, departure, rate_plan=_rate_for_booking(booking))
+        * booking.rooms
     )
     # G4: пересчитываем авто-скидку по новым датам/сроку до заезда.
     booking.auto_discount_cents, booking.auto_discount_label = pricing.auto_discount(

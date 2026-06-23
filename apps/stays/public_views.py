@@ -56,18 +56,26 @@ def _parse_guests(params):
     return max(1, _i("gaeste", 2)), 0
 
 
-def _quote(unit, von, bis, guests):
-    """(nights, total_cents, available, reason) для выбранного диапазона."""
+def _parse_rooms(params, unit):
+    """G5: число номеров из GET/POST, ограничено 1..quantity юнита."""
+    try:
+        n = int(params.get("rooms", "1"))
+    except (TypeError, ValueError):
+        n = 1
+    return max(1, min(n, unit.quantity))
+
+
+def _quote(unit, von, bis, guests, rooms=1):
+    """(nights, total_cents, available, reason) для диапазона. G5: rooms номеров —
+    вместимость × rooms, занятость needed=rooms, проживание × rooms."""
     nights = (bis - von).days
     if nights < unit.min_nights:
         return nights, 0, False, "min_nights"
-    if guests > unit.max_guests:
+    if guests > unit.max_guests * rooms:
         return nights, 0, False, "guests"
-    if not availability.range_available(unit, von, bis):
+    if not availability.range_available(unit, von, bis, needed=rooms):
         return nights, 0, False, "unavailable"
-    from . import pricing
-
-    return nights, pricing.quote_total_cents(unit, von, bis), True, None
+    return nights, pricing.quote_total_cents(unit, von, bis) * rooms, True, None
 
 
 def _unit_from_price_cents(unit, von, bis, rate_plans):
@@ -169,15 +177,14 @@ def unterkunft_unit(request, pk):
     bis = _parse_date(request.GET.get("bis"))
     adults, children = _parse_guests(request.GET)
     guests = adults + children
-
-    from . import pricing
+    rooms = _parse_rooms(request.GET, unit)  # G5: число номеров
 
     rate_plans = list(RatePlan.objects.filter(is_active=True))
     quote = None
     rate_options = []
     kurtaxe_eur = 0
     if von and bis and von >= today and bis > von:
-        nights, total_cents, available, reason = _quote(unit, von, bis, guests)
+        nights, total_cents, available, reason = _quote(unit, von, bis, guests, rooms)
         # H9: Kurtaxe (adults × ночи × ставка) — поверх проживания, в итог брони.
         kurtaxe_cents = pricing.kurtaxe_total_cents(adults, nights) if available else 0
         kurtaxe_eur = kurtaxe_cents / 100
@@ -198,7 +205,7 @@ def unterkunft_unit(request, pk):
         }
         if available and rate_plans:
             for rp in rate_plans:
-                rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp)
+                rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp) * rooms  # G5
                 rp_auto, rp_label = pricing.auto_discount(rp_cents, nights, von)
                 rp_total_cents = rp_cents - rp_auto + kurtaxe_cents
                 rp_prepay = pricing.prepayment_cents(rp_total_cents, rp)  # G7
@@ -236,6 +243,9 @@ def unterkunft_unit(request, pk):
             "adults": adults,
             "children": children,
             "guests": guests,
+            "rooms": rooms,  # G5: выбранное число номеров
+            "room_choices": range(1, unit.quantity + 1),  # G5: варианты для селектора
+            "max_party": unit.max_guests * unit.quantity,  # G5: верх для гостей
             "quote": quote,
             "rate_options": rate_options,  # H1 тарифы для выбранного диапазона
             "kurtaxe_eur": kurtaxe_eur,  # H9 (в total уже включена)
@@ -269,6 +279,7 @@ def unterkunft_book(request, pk):
     von = _parse_date(request.POST.get("von"))
     bis = _parse_date(request.POST.get("bis"))
     adults, children = _parse_guests(request.POST)
+    rooms = _parse_rooms(request.POST, unit)  # G5
     embed = _is_embed(request)
     if not (von and bis):
         raise Http404
@@ -305,6 +316,7 @@ def unterkunft_book(request, pk):
             extras=extras_snap,
             rate_plan=rate_plan,
             voucher_code=request.POST.get("voucher_code", "").strip(),
+            rooms=rooms,
         )
     except services.MinStay:
         messages.error(request, _("Please book at least the minimum number of nights."))
@@ -326,7 +338,7 @@ def unterkunft_book(request, pk):
     # Stripe Checkout (на счёт бизнеса). Иначе — обычная бронь без оплаты.
     tenant = getattr(request, "tenant", None)
     prepay = pricing.prepayment_cents(booking.total_cents, rate_plan)
-    upfront = prepay if prepay > 0 else unit.deposit_cents
+    upfront = prepay if prepay > 0 else unit.deposit_cents * rooms  # G5: депозит × номера
     if (
         upfront > 0
         and getattr(tenant, "payments_enabled", False)

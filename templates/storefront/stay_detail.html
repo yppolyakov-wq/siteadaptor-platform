@@ -49,12 +49,20 @@
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>
-          <input id="id_erw" name="erw" type="number" min="1" max="{{ unit.max_guests }}" value="{{ adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input id="id_erw" name="erw" type="number" min="1" max="{{ max_party }}" value="{{ adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="id_kinder">{% trans "Children" %}</label>
-          <input id="id_kinder" name="kinder" type="number" min="0" max="{{ unit.max_guests }}" value="{{ children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input id="id_kinder" name="kinder" type="number" min="0" max="{{ max_party }}" value="{{ children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
+        {% if unit.quantity > 1 %}
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_rooms">{% trans "Rooms" %}</label>
+          <select id="id_rooms" name="rooms" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            {% for n in room_choices %}<option value="{{ n }}" {% if n == rooms %}selected{% endif %}>{{ n }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
       </div>
       <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
     </form>
@@ -65,7 +73,7 @@
           {% csrf_token %}
           <div class="flex items-baseline justify-between">
             <h2 class="font-semibold">{{ quote.von|date:"d.m.Y" }} → {{ quote.bis|date:"d.m.Y" }}</h2>
-            <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
+            <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}{% if rooms > 1 %} · {% blocktrans count n=rooms %}{{ n }} room{% plural %}{{ n }} rooms{% endblocktrans %}{% endif %}</span>
           </div>
           {% if rate_options %}
             <fieldset class="space-y-2">
@@ -100,6 +108,7 @@
           <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
           <input type="hidden" name="erw" value="{{ adults }}">
           <input type="hidden" name="kinder" value="{{ children }}">
+          <input type="hidden" name="rooms" value="{{ rooms }}">
           {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
           {% if extras %}
           <fieldset class="space-y-2 border-t border-gray-100 pt-3">
