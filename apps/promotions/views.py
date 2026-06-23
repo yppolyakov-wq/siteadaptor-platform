@@ -553,3 +553,43 @@ def loyalty_stamp(request, program_id):
         "promotions/loyalty_stamp.html",
         {"program": program, "card": card, "nav": "loyalty"},
     )
+
+
+@login_required
+def newsletter_campaigns(request):
+    """G3: рассылки гостям — список кампаний + создание/отправка. Отправляем только
+    подтвердившим opt-in (UWG §7)."""
+    from .models import NewsletterCampaign
+    from .newsletter import consented_customers
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "create":
+            subject = (request.POST.get("subject") or "").strip()[:200]
+            body = (request.POST.get("body") or "").strip()
+            if subject and body:
+                NewsletterCampaign.objects.create(subject=subject, body=body)
+                messages.success(request, "Entwurf gespeichert.")
+            else:
+                messages.error(request, "Bitte Betreff und Text eingeben.")
+        elif action == "send":
+            from .newsletter import send_campaign
+
+            campaign = get_object_or_404(NewsletterCampaign, pk=request.POST.get("campaign"))
+            n = send_campaign(campaign, base_url=request.build_absolute_uri("/").rstrip("/"))
+            messages.success(request, f"Newsletter an {n} Empfänger gesendet.")
+        elif action == "delete":
+            NewsletterCampaign.objects.filter(
+                pk=request.POST.get("campaign"), status=NewsletterCampaign.STATUS_DRAFT
+            ).delete()
+        return redirect("promotions:newsletter")
+
+    return render(
+        request,
+        "promotions/newsletter.html",
+        {
+            "nav": "promotions",
+            "campaigns": list(NewsletterCampaign.objects.all()[:100]),
+            "consented": consented_customers().count(),
+        },
+    )

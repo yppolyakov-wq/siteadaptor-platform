@@ -35,6 +35,7 @@ urlpatterns = [
     path("vouchers/redeem/", views.voucher_redeem, name="voucher-redeem"),
     path("loyalty/", views.loyalty_list, name="loyalty-list"),
     path("loyalty/<uuid:program_id>/stamp/", views.loyalty_stamp, name="loyalty-stamp"),
+    path("newsletter/", views.newsletter_campaigns, name="newsletter"),
     path("analytics/", views.analytics_overview, name="analytics"),
     path("poster/", views.shop_poster_pdf, name="shop-poster"),
 ]

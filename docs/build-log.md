@@ -1542,3 +1542,14 @@
   — блок «Metasearch & Google (rates feed)» с URL фида. Подключение Hotel Center —
   шаг владельца (нужен Google-аккаунт), как Stripe live. Доступность также
   экспортируется по iCal (A5b). Тесты — `test_feed.py`. Без миграций. План — G8.
+
+- **G3 — рассылки гостям с Double-Opt-In (UWG §7).** `Customer.marketing_opt_in_at`
+  (доказательство согласия) + модель `NewsletterCampaign` (subject/body/status/
+  sent_at/recipient_count). Витрина: `/newsletter/` — подписка → DOI-письмо с
+  подписанной ссылкой `/newsletter/bestaetigen/<token>/` (срок 14 дней) ставит
+  согласие; ссылка «Newsletter» в футере. Рассылка (`newsletter.send_campaign`)
+  уходит только подтвердившим (marketing_opt_in, не unsubscribed, с e-mail) через
+  `notifications` (idempotent по кампании+клиенту), one-click отписка (RFC 8058) в
+  каждом письме. Кабинет `/promotions/newsletter/` — создание/отправка/удаление
+  черновиков + счётчик согласных. Миграция `promotions/0018`. Тесты —
+  `test_newsletter.py`. План — G3.

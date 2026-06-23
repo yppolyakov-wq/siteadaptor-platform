@@ -391,6 +391,45 @@ def unsubscribe(request, token):
     return render(request, "storefront/unsubscribed.html", {"ok": customer is not None})
 
 
+def newsletter_signup(request):
+    """G3: подписка на рассылку с Double-Opt-In (UWG §7). POST — создаём/находим
+    клиента по e-mail и шлём письмо подтверждения; согласие ставит только
+    переход по ссылке из письма."""
+    from . import newsletter
+
+    state = "form"
+    if request.method == "POST":
+        email = (request.POST.get("email") or "").strip().lower()
+        name = (request.POST.get("name") or "").strip()
+        if "@" not in email:
+            return render(request, "storefront/newsletter.html", {"state": "error"})
+        customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
+        if customer is None:
+            customer = Customer.objects.create(
+                name=name, email=email, created_source=Customer.SOURCE_MANUAL
+            )
+        if customer.marketing_opt_in and not customer.unsubscribed:
+            state = "already"
+        else:
+            newsletter.send_doi_email(
+                customer, base_url=request.build_absolute_uri("/").rstrip("/")
+            )
+            state = "sent"
+    return render(request, "storefront/newsletter.html", {"state": state})
+
+
+def newsletter_confirm(request, token):
+    """G3: подтверждение Double-Opt-In по подписанной ссылке из письма."""
+    from . import newsletter
+
+    customer = newsletter.load_doi_token(token)
+    if customer is not None:
+        newsletter.confirm_opt_in(customer)
+    return render(
+        request, "storefront/newsletter.html", {"state": "confirmed" if customer else "error"}
+    )
+
+
 def _legal_page(request, title, body):
     return render(request, "storefront/legal.html", {"legal_title": title, "legal_body": body})
 

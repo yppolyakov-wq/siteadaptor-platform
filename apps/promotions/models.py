@@ -48,6 +48,8 @@ class Customer(TimestampedModel):
         max_length=20, choices=CREATED_SOURCES, default=SOURCE_RESERVATION
     )
     marketing_opt_in = models.BooleanField(default=False)
+    # G3: момент подтверждения согласия (Double-Opt-In, UWG §7) — доказательство.
+    marketing_opt_in_at = models.DateTimeField(null=True, blank=True)
 
     # быстрая отписка от писем (one-click): токен в ссылке + флаг
     unsubscribed = models.BooleanField(default=False)
@@ -61,6 +63,30 @@ class Customer(TimestampedModel):
 
     def __str__(self):
         return self.name or self.email or str(self.pk)
+
+
+class NewsletterCampaign(TimestampedModel):
+    """G3: e-mail-рассылка гостям (UWG §7 — только подтвердившим opt-in).
+
+    Владелец пишет тему/текст → отправка всем согласившимся (marketing_opt_in,
+    не unsubscribed, с e-mail) через notifications (idempotent по кампании+клиенту).
+    one-click отписка — в каждом письме (RFC 8058)."""
+
+    STATUS_DRAFT = "draft"
+    STATUS_SENT = "sent"
+    STATUSES = [(STATUS_DRAFT, "Draft"), (STATUS_SENT, "Sent")]
+
+    subject = models.CharField(max_length=200)
+    body = models.TextField()
+    status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_DRAFT)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    recipient_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.subject
 
 
 class Promotion(SoftDeleteMixin, I18nMixin):
