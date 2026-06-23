@@ -279,17 +279,23 @@ def test_apply_hotel_kit_builds_stays_site():
     assert any(i["target"] == "stays" for i in cfg["menus"]["top"]["items"])
     assert tenant.is_module_active("stays")
 
+    # Разнообразие демо-броней: статусы (pending/confirmed/fulfilled/cancelled)
+    assert StayBooking.objects.filter(status=StayBooking.STATUS_PENDING).exists()
+    assert StayBooking.objects.filter(status=StayBooking.STATUS_FULFILLED).exists()
+    assert StayBooking.objects.filter(status=StayBooking.STATUS_CANCELLED).exists()
+    # G4a: бронь с применённым промокодом (скидка)
+    assert StayBooking.objects.filter(discount_cents__gt=0).exists()
     # G5: мультикомнатная бронь среди демо-броней (rooms ≥ 2)
     assert StayBooking.objects.filter(rooms__gte=2).exists()
-    # G6: цифровые Meldescheine (Online-Checkin) заведены для демо-броней
+    # G6: несколько цифровых Meldescheine (Online-Checkin)
     from apps.stays.models import GuestRegistration
 
-    assert GuestRegistration.objects.filter(signed_at__isnull=False).count() >= 1
-    # G3: согласия на рассылку + примеры кампаний (sent + draft)
+    assert GuestRegistration.objects.filter(signed_at__isnull=False).count() >= 3
+    # G3: согласия на рассылку + примеры кампаний (≥2 sent + draft)
     from apps.promotions.models import Customer, NewsletterCampaign
 
-    assert Customer.objects.filter(marketing_opt_in=True).count() >= 1
-    assert NewsletterCampaign.objects.filter(status="sent").exists()
+    assert Customer.objects.filter(marketing_opt_in=True).count() >= 3
+    assert NewsletterCampaign.objects.filter(status="sent").count() >= 2
     assert NewsletterCampaign.objects.filter(status="draft").exists()
 
 

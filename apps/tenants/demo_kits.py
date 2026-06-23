@@ -2942,62 +2942,136 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
 
         units = list(StayUnit.objects.filter(is_active=True).order_by("id"))
         if units:
+            from apps.core import extras as extras_engine
+            from apps.core.fsm import IllegalTransition
+            from apps.core.models import Extra
+            from apps.stays.models import GuestRegistration
+            from apps.stays.state_machine import StayBookingSM
+
             today = timezone.localdate()
             rate_plans = list(RatePlan.objects.filter(is_active=True))
-            # (unit, in_days, nights, who, mail, guests, rooms)
+
+            def _u(i):
+                return units[i % len(units)]
+
+            multi = max(units, key=lambda u: u.quantity)  # G5: номер с quantity ≥ 2
+            extra_ids = list(
+                Extra.objects.filter(scope="stays", is_active=True).values_list("id", flat=True)[:2]
+            )
+            # Несколько демо-броней: разные номера/даты/статусы/тарифы (+промокод,
+            # +Extras, +мультикомната, +прошлая бронь для отчётов, +pending, +отмена).
+            # dict: unit, in_days, nights, who, mail, guests, rooms, voucher, extras, status.
             samples = [
-                (units[0], 5, 3, "Anna Berg", "anna@example.de", 2, 1),
-                (units[min(1, len(units) - 1)], 20, 5, "Familie Lang", "lang@example.de", 4, 1),
+                {
+                    "unit": _u(0),
+                    "in_days": 6,
+                    "nights": 3,
+                    "who": "Anna Berg",
+                    "mail": "anna@example.de",
+                    "guests": 2,
+                },
+                {
+                    "unit": _u(1),
+                    "in_days": 20,
+                    "nights": 5,
+                    "who": "Familie Lang",
+                    "mail": "lang@example.de",
+                    "guests": 4,
+                },
+                {
+                    "unit": multi,
+                    "in_days": 35,
+                    "nights": 2,
+                    "who": "Reisegruppe Sommer",
+                    "mail": "gruppe@example.de",
+                    "guests": multi.max_guests * 2,
+                    "rooms": 2,
+                },
+                {
+                    "unit": _u(2),
+                    "in_days": 12,
+                    "nights": 4,
+                    "who": "Tom Fischer",
+                    "mail": "tom@example.de",
+                    "guests": 2,
+                    "voucher": "SOMMER10",
+                    "extras": extra_ids,
+                },
+                {
+                    "unit": _u(0),
+                    "in_days": -10,
+                    "nights": 3,
+                    "who": "Klaus Weber",
+                    "mail": "klaus@example.de",
+                    "guests": 2,
+                    "status": "fulfilled",
+                },
+                {
+                    "unit": _u(3),
+                    "in_days": 3,
+                    "nights": 2,
+                    "who": "Lisa Wolf",
+                    "mail": "lisa@example.de",
+                    "guests": 2,
+                    "status": "pending",
+                },
+                {
+                    "unit": _u(1),
+                    "in_days": 50,
+                    "nights": 4,
+                    "who": "Peter Sand",
+                    "mail": "peter@example.de",
+                    "guests": 2,
+                    "status": "cancelled",
+                },
             ]
-            # G5: мультикомнатная бронь на номер с quantity ≥ 2 (семья/группа).
-            multi = max(units, key=lambda u: u.quantity)
-            if multi.quantity >= 2:
-                samples.append(
-                    (
-                        multi,
-                        35,
-                        2,
-                        "Reisegruppe Sommer",
-                        "gruppe@example.de",
-                        multi.max_guests * 2,
-                        2,
-                    )
-                )
             created_bookings = []
-            for idx, (unit, in_days, nights, who, mail, guests, rooms) in enumerate(samples):
-                arrival = today + timedelta(days=in_days)
-                # Бронь должна быть валидной независимо от порядка юнитов (pk —
-                # UUID): гостей не больше вместимости×номера, ночей не меньше минимума.
-                rooms = max(1, min(rooms, unit.quantity))
-                guests = max(1, min(guests, unit.max_guests * rooms))
-                nights = max(nights, unit.min_nights)
-                # H1: разные тарифы у демо-броней, если они заведены.
+            for idx, s in enumerate(samples):
+                unit = s["unit"]
+                rooms = max(1, min(s.get("rooms", 1), unit.quantity))
+                guests = max(1, min(s["guests"], unit.max_guests * rooms))
+                nights = max(s["nights"], unit.min_nights)
+                arrival = today + timedelta(days=s["in_days"])
                 rate_plan = rate_plans[idx % len(rate_plans)] if rate_plans else None
+                status = s.get("status", "confirmed")
+                snap = (
+                    extras_engine.snapshot(s["extras"], "stays", nights=nights)
+                    if s.get("extras")
+                    else None
+                )
                 try:
-                    created_bookings.append(
-                        book_stay(
-                            unit,
-                            arrival=arrival,
-                            departure=arrival + timedelta(days=nights),
-                            name=who,
-                            email=mail,
-                            guests=guests,
-                            auto_confirm=True,
-                            rate_plan=rate_plan,
-                            rooms=rooms,
-                        )
+                    booking = book_stay(
+                        unit,
+                        arrival=arrival,
+                        departure=arrival + timedelta(days=nights),
+                        name=s["who"],
+                        email=s["mail"],
+                        guests=guests,
+                        auto_confirm=status != "pending",
+                        rate_plan=rate_plan,
+                        rooms=rooms,
+                        voucher_code=s.get("voucher", ""),
+                        extras=snap,
                     )
                 except Exception:
-                    pass
-            # G6: цифровые Meldescheine (Online-Checkin) для первых броней — чтобы
-            # кабинет /dashboard/stays/checkins/ был наполнен.
-            from apps.stays.models import GuestRegistration
+                    continue
+                created_bookings.append(booking)
+                # Перевести в нужный статус (прошлая бронь → fulfilled; отмена).
+                if status in ("fulfilled", "cancelled"):
+                    try:
+                        StayBookingSM().apply(booking, status)
+                    except IllegalTransition:
+                        pass
 
+            # G6: цифровые Meldescheine (Online-Checkin) — несколько примеров, чтобы
+            # кабинет /dashboard/stays/checkins/ был наполнен.
             meldungen = [
-                ("Berg", "Anna", "Seeweg 3", "78464", "Konstanz"),
-                ("Lang", "Stefan", "Bergstr. 10", "80331", "München"),
+                ("Berg", "Anna", "Seeweg 3", "78464", "Konstanz", "deutsch"),
+                ("Lang", "Stefan", "Bergstr. 10", "80331", "München", "deutsch"),
+                ("Fischer", "Tom", "Lindenallee 7", "20095", "Hamburg", "deutsch"),
+                ("Weber", "Klaus", "Rheinweg 22", "50667", "Köln", "deutsch"),
             ]
-            for booking, (ln, fn, street, plz, city) in zip(
+            for booking, (ln, fn, street, plz, city, nat) in zip(
                 created_bookings, meldungen, strict=False
             ):
                 GuestRegistration.objects.get_or_create(
@@ -3009,7 +3083,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         "postal_code": plz,
                         "city": city,
                         "country": "Deutschland",
-                        "nationality": "deutsch",
+                        "nationality": nat,
                         "signed_name": f"{fn} {ln}",
                         "signed_at": timezone.now(),
                     },
@@ -3018,7 +3092,23 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
     # G3: согласия на рассылку (Double-Opt-In) + примеры кампаний (newsletter).
     from apps.promotions.models import Customer, NewsletterCampaign
 
-    consenting = list(Customer.objects.exclude(email="").order_by("created_at")[:5])
+    # Несколько «чистых» подписчиков (без брони) — как пришедшие через форму DOI.
+    for nm, em in [
+        ("Sabine Vogt", "sabine@example.de"),
+        ("Markus Hahn", "markus@example.de"),
+        ("Nadine Roth", "nadine@example.de"),
+    ]:
+        Customer.objects.get_or_create(
+            email=em,
+            defaults={
+                "name": nm,
+                "created_source": Customer.SOURCE_MANUAL,
+                "marketing_opt_in": True,
+                "marketing_opt_in_at": timezone.now(),
+            },
+        )
+    # + согласие гостям с броней (как будто подтвердили opt-in).
+    consenting = list(Customer.objects.exclude(email="").order_by("created_at"))
     for cust in consenting:
         if not cust.marketing_opt_in:
             cust.marketing_opt_in = True
@@ -3032,7 +3122,14 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 "übernachten Sie die 4. Nacht gratis. Wir freuen uns auf Sie!\n\nHerzliche Grüße"
             ),
             status=NewsletterCampaign.STATUS_SENT,
-            sent_at=timezone.now(),
+            sent_at=timezone.now() - timedelta(days=14),
+            recipient_count=max(1, len(consenting) - 2),
+        )
+        NewsletterCampaign.objects.create(
+            subject="Herbst am See: Wanderwochen mit Halbpension",
+            body="Goldener Herbst, klare Luft, Halbpension inklusive — jetzt die besten Termine sichern.",
+            status=NewsletterCampaign.STATUS_SENT,
+            sent_at=timezone.now() - timedelta(days=3),
             recipient_count=len(consenting),
         )
         NewsletterCampaign.objects.create(
