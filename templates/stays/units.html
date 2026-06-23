@@ -90,6 +90,7 @@
         {% if r.surcharge_cents %}<span class="text-xs text-gray-500">· +{{ r.surcharge_eur|stringformat:".2f" }} €/{% trans "night" %}</span>{% endif %}
         {% if r.meal_included %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ r.get_meal_plan_display }}</span>{% endif %}
         <span class="text-xs text-gray-400">· {{ r.get_cancellation_display }}{% if r.cancellation == 'flexible' and r.free_cancel_days %} ({{ r.free_cancel_days }} {% trans "days" %}){% endif %}</span>
+        {% if r.prepayment_percent %}<span class="text-xs bg-sky-100 text-sky-700 rounded px-1.5 py-0.5">{% blocktrans with p=r.prepayment_percent %}{{ p }}% prepay{% endblocktrans %}</span>{% endif %}
         {% if r.description %}<span class="block text-xs text-gray-400">{{ r.description }}</span>{% endif %}
       </div>
       <div class="flex items-center gap-2 whitespace-nowrap">
@@ -139,6 +140,10 @@
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Free cancel until (days before, flexible only)" %}</label>
       <input name="free_cancel_days" type="number" min="0" max="365" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Prepayment (% of total, 0 = none, 100 = full)" %}</label>
+      <input name="prepayment_percent" type="number" min="0" max="100" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Sort order" %}</label>

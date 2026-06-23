@@ -78,6 +78,7 @@
                       <span class="font-medium">{{ ro.rate.name }}</span>
                       {% if ro.rate.meal_included %}<span class="ml-1 text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ ro.rate.get_meal_plan_display }}</span>{% endif %}
                       {% if ro.auto_discount_label %}<span class="ml-1 text-xs bg-rose-100 text-rose-700 rounded px-1.5 py-0.5">{{ ro.auto_discount_label }}</span>{% endif %}
+                      {% if ro.prepay_percent %}<span class="ml-1 text-xs bg-sky-100 text-sky-700 rounded px-1.5 py-0.5">{% if ro.prepay_percent >= 100 %}{% trans "Prepayment" %}{% else %}{% blocktrans with p=ro.prepay_percent %}{{ p }}% deposit{% endblocktrans %}{% endif %} · {{ ro.prepay_eur|floatformat:2 }} €</span>{% endif %}
                       <span class="block text-xs mt-0.5 {% if ro.rate.cancellation == 'flexible' %}text-emerald-700{% else %}text-gray-500{% endif %}">
                         {% if ro.rate.cancellation == 'flexible' %}{% if ro.rate.free_cancel_days %}{% blocktrans with d=ro.rate.free_cancel_days %}Free cancellation up to {{ d }} days before arrival{% endblocktrans %}{% else %}{% trans "Free cancellation" %}{% endif %}{% else %}{% trans "Non-refundable" %}{% endif %}
                       </span>
@@ -137,7 +138,7 @@
             <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
           </div>
           {% if deposit_required %}
-            <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
+            <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "A payment is required for this booking — you'll pay securely in the next step (amount depends on the chosen rate)." %}</p>
           {% endif %}
           <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
         </form>

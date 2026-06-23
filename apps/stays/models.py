@@ -150,6 +150,10 @@ class RatePlan(TimestampedModel):
     cancellation = models.CharField(max_length=20, choices=CANCELLATIONS, default=CANCEL_FLEXIBLE)
     # Бесплатная отмена до N дней до заезда (для flexible; 0 = до дня заезда).
     free_cancel_days = models.PositiveSmallIntegerField(default=0)
+    # G7: предоплата по тарифу, % от итога (0 = без предоплаты / оплата на месте;
+    # 100 = полная Vorkasse). Если задан и подключён Stripe Connect — гость платит
+    # этот % онлайн при брони. 0 → фолбэк на депозит юнита (E4), если он задан.
+    prepayment_percent = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 

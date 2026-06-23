@@ -1500,3 +1500,15 @@
   7+ ночей −10 %, Frühbucher ≥30 дней −8 %, Last-Minute ≤3 дня −12 %. Миграция
   `stays/0014`. Тесты — `test_auto_discount.py`. ⚠️ Демо-конфиг → reseed `--kit
   hotel --recreate` (или задать в кабинете). План — G4 в `hotel-growth-plan.md`.
+
+- **G7 — гибкая предоплата по тарифу (0 / частично / 100 %).** Поле
+  `RatePlan.prepayment_percent` (0 = оплата на месте, 100 = полная Vorkasse).
+  `pricing.prepayment_cents(total, rate)` — сумма онлайн-предоплаты от итога.
+  В брони: предоплата по выбранному тарифу (если задана) → Stripe Checkout на счёт
+  бизнеса; нет предоплаты → фолбэк на депозит юнита (E4). Витрина: на тарифе бейдж
+  «X % deposit / Vorkasse · сумма €», общий note про оплату в след. шаге. Кабинет
+  `/dashboard/stays/` — поле предоплаты в форме тарифа + бейдж в списке. Методы
+  оплаты (PayPal/Klarna/Karte) Stripe Checkout предлагает автоматически по тому,
+  что бизнес включил в своём Stripe-аккаунте (код методов не фиксирует). Демо: тариф
+  «Sparpreis (nicht erstattbar)» → 100 % Vorkasse. Миграция `stays/0015`. Тесты —
+  `test_prepayment.py`. ⚠️ Демо-конфиг → reseed `--kit hotel --recreate`.

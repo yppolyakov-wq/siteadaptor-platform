@@ -362,6 +362,7 @@ def units(request):
                     meal_plan=request.POST.get("meal_plan", RatePlan.MEAL_NONE),
                     cancellation=request.POST.get("cancellation", RatePlan.CANCEL_FLEXIBLE),
                     free_cancel_days=_int(request.POST.get("free_cancel_days", "0"), 0, 0, 365),
+                    prepayment_percent=_int(request.POST.get("prepayment_percent", "0"), 0, 0, 100),
                     sort_order=_int(request.POST.get("sort_order", "0"), 0, 0, 999),
                 )
                 messages.success(request, _("Rate plan added."))

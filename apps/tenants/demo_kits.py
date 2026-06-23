@@ -69,7 +69,7 @@ class DemoKit:
     #   {name, type, qty, price, guests, min_nights, description, photos:[kw,…]}.
     stay_units: list = field(default_factory=list)
     # Тарифы (Rate Plans, H1): список dict {name, percent, surcharge, meal,
-    #   cancellation, free_cancel_days, sort, description?}. На тенанта (все номера).
+    #   cancellation, free_cancel_days, prepayment?, sort, description?}. На тенанта.
     rate_plans: list = field(default_factory=list)
     # Kurtaxe (H9): сбор за взрослого за ночь, € (строка/число). 0/пусто = выключено.
     kurtaxe: str = ""
@@ -1115,9 +1115,10 @@ HOTEL = DemoKit(
         },
         {
             "name": "Sparpreis (nicht erstattbar)",
-            "description": "Günstiger buchen — keine Stornierung möglich.",
+            "description": "Günstiger buchen — Vorkasse, keine Stornierung möglich.",
             "percent": -12,
             "cancellation": "non_refundable",
+            "prepayment": 100,  # G7: полная Vorkasse для невозвратного тарифа
             "sort": 3,
         },
     ],
@@ -2693,6 +2694,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 meal_plan=spec.get("meal", "none"),
                 cancellation=spec.get("cancellation", "flexible"),
                 free_cancel_days=int(spec.get("free_cancel_days", 0)),
+                prepayment_percent=int(spec.get("prepayment", 0)),  # G7
                 sort_order=int(spec.get("sort", 0)),
                 is_active=True,
             )

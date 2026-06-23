@@ -77,6 +77,12 @@ def auto_discount(lodging_cents, nights, arrival, today=None, settings=None) -> 
     return round(max(0, lodging_cents) * percent / 100), label
 
 
+def prepayment_cents(total_cents, rate_plan) -> int:
+    """G7: сумма онлайн-предоплаты по тарифу (% от итога). 0 — тариф без предоплаты."""
+    pct = (getattr(rate_plan, "prepayment_percent", 0) or 0) if rate_plan is not None else 0
+    return round(max(0, total_cents) * pct / 100) if pct > 0 else 0
+
+
 def kurtaxe_total_cents(adults, nights, settings=None) -> int:
     """Kurtaxe за бронь (H9): adults × ночи × ставка. Дети бесплатно (по умолчанию).
     settings — StaySettings (грузим, если не передан); 0/выключено → 0."""

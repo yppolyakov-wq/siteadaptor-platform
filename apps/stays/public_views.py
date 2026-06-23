@@ -20,7 +20,7 @@ from django.utils.translation import gettext as _
 from apps.billing import connect
 from apps.core import ratelimit
 
-from . import availability, payments, services
+from . import availability, payments, pricing, services
 from .models import RatePlan, StayBooking, StayUnit
 
 RL_LIMIT = 5  # попыток брони на IP
@@ -200,15 +200,23 @@ def unterkunft_unit(request, pk):
             for rp in rate_plans:
                 rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp)
                 rp_auto, rp_label = pricing.auto_discount(rp_cents, nights, von)
+                rp_total_cents = rp_cents - rp_auto + kurtaxe_cents
+                rp_prepay = pricing.prepayment_cents(rp_total_cents, rp)  # G7
                 rate_options.append(
                     {
                         "rate": rp,
-                        "total_eur": (rp_cents - rp_auto + kurtaxe_cents) / 100,
+                        "total_eur": rp_total_cents / 100,
                         "auto_discount_label": rp_label,
+                        "prepay_percent": rp.prepayment_percent,  # G7
+                        "prepay_eur": rp_prepay / 100,
                     }
                 )
     tenant = getattr(request, "tenant", None)
-    deposit_required = unit.deposit_cents > 0 and getattr(tenant, "payments_enabled", False)
+    payments_on = getattr(tenant, "payments_enabled", False) and connect.is_connect_configured()
+    # G7: оплата при брони нужна, если бизнес принимает платежи и есть депозит юнита
+    # или хотя бы один тариф с предоплатой.
+    any_prepay = any(getattr(rp, "prepayment_percent", 0) for rp in rate_plans)
+    deposit_required = payments_on and (unit.deposit_cents > 0 or any_prepay)
     from apps.core import extras as extras_engine
 
     # H3: похожие номера — другие активные юниты, тот же тип вперёд, до 3.
@@ -313,15 +321,18 @@ def unterkunft_book(request, pk):
         )
         return redirect(back)
 
-    # Депозит (E4): если у юнита задан и бизнес принимает оплату — ведём на
-    # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.
+    # Онлайн-оплата при брони: предоплата по тарифу (G7, % от итога) или, если её
+    # нет, депозит юнита (E4). Если сумма > 0 и бизнес принимает оплату — ведём на
+    # Stripe Checkout (на счёт бизнеса). Иначе — обычная бронь без оплаты.
     tenant = getattr(request, "tenant", None)
+    prepay = pricing.prepayment_cents(booking.total_cents, rate_plan)
+    upfront = prepay if prepay > 0 else unit.deposit_cents
     if (
-        unit.deposit_cents > 0
+        upfront > 0
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     ):
-        booking.deposit_cents = unit.deposit_cents
+        booking.deposit_cents = upfront
         booking.payment_state = StayBooking.PAYMENT_PENDING
         booking.save(update_fields=["deposit_cents", "payment_state", "updated_at"])
         ok_url = (
