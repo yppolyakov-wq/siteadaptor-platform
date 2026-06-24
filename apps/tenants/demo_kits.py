@@ -1868,6 +1868,10 @@ RETREAT = DemoKit(
                 ("Mehrbettzimmer", "230"),
             ],
             "location": "Am Waldrand 3, Freiburg",
+            "city": "Freiburg",
+            "category": "yoga",
+            "level": "alle",
+            "language": "de",
             "description": "Zwei Tage Yoga, Meditation und Waldspaziergänge in kleiner Gruppe. "
             "Inklusive Programm, Begleitung und Tee-Pausen.",
             "program": [
@@ -1894,6 +1898,10 @@ RETREAT = DemoKit(
             "duration_hours": 6,
             "capacity": 25,
             "price": "89",
+            "city": "Freiburg",
+            "category": "achtsamkeit",
+            "level": "anfaenger",
+            "language": "de",
             "description": "Ein Tag zum Auftanken: Yoga, Atemübungen und Achtsamkeit für alle Levels.",
             "program": [
                 "10:00 — Hatha-Yoga",
@@ -1909,6 +1917,10 @@ RETREAT = DemoKit(
             "duration_hours": 2,
             "capacity": 30,
             "price": "25",
+            "city": "Freiburg",
+            "category": "klang",
+            "level": "alle",
+            "language": "de",
             "description": "Tiefenentspannung mit Klangschalen — ein ruhiger Abend zum Loslassen.",
         },
         {
@@ -1919,6 +1931,10 @@ RETREAT = DemoKit(
             "capacity": 0,  # без лимита мест
             "price": "15",
             "location": "Stadtpark Freiburg",
+            "city": "Freiburg",
+            "category": "achtsamkeit",
+            "level": "alle",
+            "language": "mixed",
             "description": "Ein Tag voller Workshops, Live-Musik und Ständen rund um Achtsamkeit.",
             "program": [
                 "11:00 — Eröffnung & Mitmach-Yoga",
@@ -2760,6 +2776,10 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     title=spec["title"],
                     description=spec.get("description", ""),
                     location=spec.get("location", ""),
+                    city=spec.get("city", ""),  # R2 таксономия
+                    category=spec.get("category", ""),
+                    level=spec.get("level", ""),
+                    language=spec.get("language", ""),
                     starts_at=starts,
                     ends_at=ends,
                     capacity=spec.get("capacity", 0),

@@ -32,10 +32,68 @@ def _require_events_active(request):
 
 def veranstaltung_index(request):
     _require_events_active(request)
-    events = Event.objects.filter(
-        status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
-    ).order_by("starts_at")
-    return render(request, "storefront/event_index.html", {"events": events})
+    base = list(
+        Event.objects.filter(status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()).order_by(
+            "starts_at"
+        )
+    )
+    facets = _event_facets(base)  # доступные значения фильтров (по факту наличия)
+    selected = {
+        "cat": (request.GET.get("cat") or "").strip(),
+        "level": (request.GET.get("level") or "").strip(),
+        "lang": (request.GET.get("lang") or "").strip(),
+        "city": (request.GET.get("city") or "").strip(),
+        "dur": (request.GET.get("dur") or "").strip(),
+        "month": (request.GET.get("month") or "").strip(),
+    }
+    events = [e for e in base if _event_matches(e, selected)]
+    return render(
+        request,
+        "storefront/event_index.html",
+        {
+            "events": events,
+            "facets": facets,
+            "f": selected,
+            "active_filters": any(selected.values()),
+            "total": len(base),
+        },
+    )
+
+
+def _event_facets(events) -> dict:
+    """Доступные значения фильтров по факту наличия среди событий (порядок каталога)."""
+    from . import taxonomy
+
+    present = {
+        "cat": {e.category for e in events if e.category},
+        "level": {e.level for e in events if e.level},
+        "lang": {e.language for e in events if e.language},
+        "dur": {e.duration_kind for e in events},
+    }
+    return {
+        "cat": [(k, v) for k, v in taxonomy.CATEGORIES if k in present["cat"]],
+        "level": [(k, v) for k, v in taxonomy.LEVELS if k in present["level"]],
+        "lang": [(k, v) for k, v in taxonomy.LANGUAGES if k in present["lang"]],
+        "dur": [(k, v) for k, v in taxonomy.DURATIONS if k in present["dur"]],
+        "city": sorted({e.city for e in events if e.city}),
+        "month": sorted({e.starts_at.strftime("%Y-%m") for e in events}),
+    }
+
+
+def _event_matches(event, f) -> bool:
+    if f["cat"] and event.category != f["cat"]:
+        return False
+    if f["level"] and event.level != f["level"]:
+        return False
+    if f["lang"] and event.language != f["lang"]:
+        return False
+    if f["city"] and event.city.lower() != f["city"].lower():
+        return False
+    if f["dur"] and event.duration_kind != f["dur"]:
+        return False
+    if f["month"] and event.starts_at.strftime("%Y-%m") != f["month"]:
+        return False
+    return True
 
 
 def veranstaltung_detail(request, pk):

@@ -1,0 +1,132 @@
+"""R2: таксономия событий (направление/уровень/язык/длительность) + фильтры каталога."""
+
+import uuid
+from datetime import timedelta
+
+import pytest
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
+from django.utils import timezone
+
+from apps.events import public_views, taxonomy
+from apps.events.models import Event
+from apps.tenants.tests.factories import TenantFactory
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+def _req(data=None, tenant=None):
+    request = RequestFactory().get("/veranstaltung/", data or {})
+    request.META["REMOTE_ADDR"] = f"10.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}.7"
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant or TenantFactory.build()
+    return request
+
+
+def _event(**kw):
+    defaults = {
+        "title": "Event",
+        "starts_at": timezone.now() + timedelta(days=10),
+        "status": Event.STATUS_PUBLISHED,
+        "price_cents": 0,
+        "capacity": 20,
+    }
+    defaults.update(kw)
+    return Event.objects.create(**defaults)
+
+
+# --- taxonomy --------------------------------------------------------------
+def test_duration_kind_classifies_by_dates():
+    start = timezone.now()
+    assert taxonomy.duration_kind(start, None) == "tag"
+    assert taxonomy.duration_kind(start, start + timedelta(hours=6)) == "tag"
+    assert taxonomy.duration_kind(start, start + timedelta(days=2)) == "wochenende"
+    assert taxonomy.duration_kind(start, start + timedelta(days=5)) == "mehrtaegig"
+
+
+def test_event_labels_resolve():
+    ev = _event(category="yoga", level="anfaenger", language="de")
+    assert ev.category_label == "Yoga"
+    assert ev.level_label == "Anfänger"
+    assert ev.language_label == "Deutsch"
+
+
+# --- catalog filters -------------------------------------------------------
+def test_facets_only_include_present_values():
+    _event(category="yoga", city="Freiburg", level="alle")
+    _event(category="meditation", city="Berlin")
+    body = public_views.veranstaltung_index(_req()).content.decode()
+    # обе категории присутствуют в фасетах → есть опции
+    assert "Yoga" in body and "Meditation" in body
+    assert "Freiburg" in body and "Berlin" in body
+    # Ayurveda нет ни у одного события → опции нет
+    assert "Ayurveda" not in body
+
+
+def test_filter_by_category():
+    _event(title="Yoga-Tag", category="yoga")
+    _event(title="Klang-Abend", category="klang")
+    body = public_views.veranstaltung_index(_req({"cat": "yoga"})).content.decode()
+    assert "Yoga-Tag" in body and "Klang-Abend" not in body
+
+
+def test_filter_by_city_case_insensitive():
+    _event(title="In Freiburg", city="Freiburg")
+    _event(title="In Berlin", city="Berlin")
+    body = public_views.veranstaltung_index(_req({"city": "freiburg"})).content.decode()
+    assert "In Freiburg" in body and "In Berlin" not in body
+
+
+def test_filter_by_duration():
+    start = timezone.now() + timedelta(days=10)
+    _event(title="Wochenende", starts_at=start, ends_at=start + timedelta(days=2))
+    _event(title="Tagesding", starts_at=start, ends_at=start + timedelta(hours=5))
+    body = public_views.veranstaltung_index(_req({"dur": "wochenende"})).content.decode()
+    assert "Wochenende" in body and "Tagesding" not in body
+
+
+def test_filter_by_month():
+    start = timezone.now() + timedelta(days=10)
+    ev = _event(title="DiesenMonat", starts_at=start)
+    _event(title="Später", starts_at=start + timedelta(days=90))
+    body = public_views.veranstaltung_index(
+        _req({"month": ev.starts_at.strftime("%Y-%m")})
+    ).content.decode()
+    assert "DiesenMonat" in body and "Später" not in body
+
+
+def test_no_match_shows_empty_message():
+    _event(category="yoga")
+    body = public_views.veranstaltung_index(_req({"cat": "ayurveda"})).content.decode()
+    assert "yoga" not in body.lower() or "match" in body.lower()
+
+
+# --- cabinet form ----------------------------------------------------------
+def test_form_saves_taxonomy():
+    from apps.events.forms import EventForm
+
+    form = EventForm(
+        data={
+            "title": "Retreat",
+            "starts_at": "2099-01-01T10:00",
+            "capacity": 0,
+            "price_eur": "0",
+            "city": "Freiburg",
+            "category": "yoga",
+            "level": "anfaenger",
+            "language": "de",
+        }
+    )
+    assert form.is_valid(), form.errors
+    event = form.save()
+    assert event.city == "Freiburg"
+    assert (event.category, event.level, event.language) == ("yoga", "anfaenger", "de")
+    # повторная инициализация формой подставляет значения
+    assert EventForm(instance=event).fields["category"].initial == "yoga"

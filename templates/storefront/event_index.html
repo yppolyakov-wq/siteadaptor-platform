@@ -3,28 +3,79 @@
 {% block title %}{% trans "Events" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl">
-  <h1 class="text-2xl font-bold mb-6">{% trans "Events" %}</h1>
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-2xl font-bold mb-4">{% trans "Retreats & events" %}</h1>
+
+  {# Фильтры каталога (R2) — server-side GET, показываем только заполненные оси #}
+  {% if facets.cat or facets.level or facets.lang or facets.city or facets.dur or facets.month %}
+  <form method="get" class="bg-white rounded-2xl shadow-sm p-4 mb-5 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+    {% if facets.cat %}
+      <select name="cat" class="rounded-lg border border-gray-300 px-2 py-2">
+        <option value="">{% trans "All directions" %}</option>
+        {% for k, label in facets.cat %}<option value="{{ k }}" {% if f.cat == k %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    {% endif %}
+    {% if facets.city %}
+      <select name="city" class="rounded-lg border border-gray-300 px-2 py-2">
+        <option value="">{% trans "All cities" %}</option>
+        {% for c in facets.city %}<option value="{{ c }}" {% if f.city == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+    {% endif %}
+    {% if facets.dur %}
+      <select name="dur" class="rounded-lg border border-gray-300 px-2 py-2">
+        <option value="">{% trans "Any duration" %}</option>
+        {% for k, label in facets.dur %}<option value="{{ k }}" {% if f.dur == k %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    {% endif %}
+    {% if facets.level %}
+      <select name="level" class="rounded-lg border border-gray-300 px-2 py-2">
+        <option value="">{% trans "Any level" %}</option>
+        {% for k, label in facets.level %}<option value="{{ k }}" {% if f.level == k %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    {% endif %}
+    {% if facets.lang %}
+      <select name="lang" class="rounded-lg border border-gray-300 px-2 py-2">
+        <option value="">{% trans "Any language" %}</option>
+        {% for k, label in facets.lang %}<option value="{{ k }}" {% if f.lang == k %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    {% endif %}
+    {% if facets.month %}
+      <select name="month" class="rounded-lg border border-gray-300 px-2 py-2">
+        <option value="">{% trans "Any date" %}</option>
+        {% for m in facets.month %}<option value="{{ m }}" {% if f.month == m %}selected{% endif %}>{{ m }}</option>{% endfor %}
+      </select>
+    {% endif %}
+    <div class="col-span-2 sm:col-span-3 flex gap-2">
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Filter" %}</button>
+      {% if active_filters %}<a href="{% url 'storefront-events' %}" class="px-4 py-2 text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}
+    </div>
+  </form>
+  {% endif %}
+
   {% if events %}
     <div class="space-y-3">
       {% for e in events %}
-        <a href="{% url 'storefront-event' e.pk %}" class="block bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="font-semibold">{{ e.title }}</div>
-              <div class="text-sm text-gray-500">{{ e.starts_at|date:"d.m.Y H:i" }}{% if e.location %} · {{ e.location }}{% endif %}</div>
+        <a href="{% url 'storefront-event' e.pk %}" class="flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
+          {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-24 h-24 rounded-xl object-cover flex-shrink-0">{% endif %}
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap gap-1 mb-1">
+              {% if e.category_label %}<span class="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5">{{ e.category_label }}</span>{% endif %}
+              {% if e.ends_at %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.duration_label }}</span>{% endif %}
+              {% if e.level_label %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.level_label }}</span>{% endif %}
             </div>
-            <div class="text-right">
-              <div class="font-medium">{% if e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</div>
-              {% if e.is_sold_out %}<div class="text-xs text-red-600">{% trans "Sold out" %}</div>
-              {% elif e.seats_left %}<div class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</div>{% endif %}
+            <div class="font-semibold truncate">{{ e.title }}</div>
+            <div class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y H:i" }}{% if e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
+            <div class="mt-1 flex items-center gap-3">
+              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>
+              {% if e.is_sold_out %}<span class="text-xs text-red-600">{% trans "Sold out" %}</span>
+              {% elif e.seats_left %}<span class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</span>{% endif %}
             </div>
           </div>
         </a>
       {% endfor %}
     </div>
   {% else %}
-    <p class="text-gray-400">{% trans "No upcoming events." %}</p>
+    <p class="text-gray-400">{% if active_filters %}{% trans "No events match your filters." %}{% else %}{% trans "No upcoming events." %}{% endif %}</p>
   {% endif %}
 </div>
 {% endblock %}

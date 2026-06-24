@@ -9,7 +9,7 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 
 from . import details as details_mod
-from . import registration
+from . import registration, taxonomy
 from .models import Event
 
 
@@ -31,6 +31,14 @@ class EventForm(forms.ModelForm):
         required=False,
         widget=_ta(3, "Frühbucher | 79\nStandard | 99\nKind | 0"),
         label="Preiskategorien (Label | Preis €, eine pro Zeile; leer = einheitlicher Preis)",
+    )
+    # R2: таксономия (направление/уровень/язык) — для каталога и фильтров.
+    category = forms.ChoiceField(
+        required=False, choices=[("", "—")] + taxonomy.CATEGORIES, label="Richtung / Thema"
+    )
+    level = forms.ChoiceField(required=False, choices=[("", "—")] + taxonomy.LEVELS, label="Level")
+    language = forms.ChoiceField(
+        required=False, choices=[("", "—")] + taxonomy.LANGUAGES, label="Sprache"
     )
     # R1: какие пресет-поля анкеты показывать на витрине (страна/ДР/питание…).
     registration_fields = forms.MultipleChoiceField(
@@ -101,6 +109,7 @@ class EventForm(forms.ModelForm):
             "title",
             "description",
             "location",
+            "city",
             "starts_at",
             "ends_at",
             "capacity",
@@ -126,6 +135,8 @@ class EventForm(forms.ModelForm):
             self.fields["program_text"].initial = "\n".join(self.instance.program or [])
             self.fields["tiers_text"].initial = details_mod.tiers_to_text(self.instance.tiers)
             self.fields["registration_fields"].initial = self.instance.registration_fields or []
+            for f in ("category", "level", "language"):
+                self.fields[f].initial = getattr(self.instance, f, "")
             d = self.instance.landing
             for key in self._SCALAR_FIELDS:
                 self.fields[key].initial = d.get(key, "")
@@ -162,6 +173,10 @@ class EventForm(forms.ModelForm):
         # сохраняем включённые пресет-поля в порядке каталога (стабильно)
         chosen = set(self.cleaned_data.get("registration_fields") or [])
         event.registration_fields = [k for k in registration.VALID_KEYS if k in chosen]
+        # R2 таксономия (explicit-поля, не в Meta.fields → присваиваем вручную)
+        event.category = self.cleaned_data.get("category") or ""
+        event.level = self.cleaned_data.get("level") or ""
+        event.language = self.cleaned_data.get("language") or ""
         if commit:
             event.save()
         return event

@@ -28,6 +28,11 @@ class Event(TimestampedModel):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     location = models.CharField(max_length=200, blank=True)
+    # R2 таксономия для каталога/фильтров/агрегатора (пресеты — apps/events/taxonomy.py).
+    city = models.CharField(max_length=100, blank=True)  # для фильтра «Stadt» + гео-агрегатор
+    category = models.CharField(max_length=30, blank=True)  # направление/тема (yoga/meditation…)
+    level = models.CharField(max_length=20, blank=True)  # требуемый уровень подготовки
+    language = models.CharField(max_length=10, blank=True)  # язык проведения (контент-тег)
     starts_at = models.DateTimeField()
     ends_at = models.DateTimeField(null=True, blank=True)
     # 0 = без лимита мест; иначе анти-овердрафт пускает, пока продано < capacity.
@@ -146,6 +151,36 @@ class Event(TimestampedModel):
         from . import registration
 
         return registration.active(self.registration_fields)
+
+    @property
+    def category_label(self) -> str:
+        from . import taxonomy
+
+        return taxonomy.category_label(self.category)
+
+    @property
+    def level_label(self) -> str:
+        from . import taxonomy
+
+        return taxonomy.level_label(self.level)
+
+    @property
+    def language_label(self) -> str:
+        from . import taxonomy
+
+        return taxonomy.language_label(self.language)
+
+    @property
+    def duration_kind(self) -> str:
+        from . import taxonomy
+
+        return taxonomy.duration_kind(self.starts_at, self.ends_at)
+
+    @property
+    def duration_label(self) -> str:
+        from . import taxonomy
+
+        return taxonomy.duration_label(self.duration_kind)
 
     @property
     def waitlist_pending_count(self) -> int:
