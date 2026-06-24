@@ -31,6 +31,9 @@ class AggregatorListing(I18nMixin, models.Model):
     business_name = models.CharField(max_length=200)
     business_type = models.CharField(max_length=50, blank=True)
     city = models.CharField(max_length=100, blank=True)
+    # R2b: направление/тема для event-листингов (yoga/meditation/…; пусто у
+    # promotion/stay). Фильтр «по каталогам/направлениям» в агрегаторе.
+    category = models.CharField(max_length=30, blank=True)
     listing_kind = models.CharField(max_length=20, choices=KINDS, default=KIND_PROMOTION)
     # str(pk) объекта-источника: promo_uuid / StayUnit.pk / Event.pk. Единый ключ
     # листинга вместе с (tenant_schema, listing_kind).
@@ -75,6 +78,7 @@ class AggregatorListing(I18nMixin, models.Model):
             models.Index(fields=["city", "is_active"], name="agg_city_active_idx"),
             models.Index(fields=["business_type", "city"], name="agg_btype_city_idx"),
             models.Index(fields=["listing_kind", "is_active"], name="agg_kind_active_idx"),
+            models.Index(fields=["category", "is_active"], name="agg_category_active_idx"),
         ]
 
     def __str__(self):

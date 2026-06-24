@@ -197,6 +197,8 @@ def _event_snapshot(event_id):
         "new_price": (Decimal(event.price_cents) / 100) if event.price_cents else None,
         "starts_at": event.starts_at,
         "ends_at": event.ends_at,
+        "category": event.category or "",  # R2b направление для фильтра агрегатора
+        "city": event.city or "",  # R2b город события (точнее, чем город бизнеса)
     }
 
 
@@ -224,6 +226,9 @@ def sync_event_listing(tenant_schema, event_id) -> str:
         **key,
         defaults={
             **_tenant_base_defaults(tenant),
+            # город события точнее города бизнеса (выездной/филиал) — если задан
+            "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
+            "category": snap["category"],  # R2b направление (фильтр агрегатора)
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],

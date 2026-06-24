@@ -18,5 +18,11 @@
     {% for val, label in kinds %}<option value="{{ val }}" {% if val == kind %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
   {% endif %}
+  {% if categories %}{# R2b: направление ретрита (yoga/meditation/…) #}
+  <select name="cat" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <option value="">{% trans "All directions" %}</option>
+    {% for val, label in categories %}<option value="{{ val }}" {% if val == cat %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  {% endif %}
   <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Search" %}</button>
 </form>

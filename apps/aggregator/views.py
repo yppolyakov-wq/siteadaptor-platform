@@ -25,12 +25,14 @@ _KIND_LABELS = [
 ]
 
 
-def listings_for(*, city=None, business_type=None, q=None, kind=None):
+def listings_for(*, city=None, business_type=None, q=None, kind=None, category=None, month=None):
     """Активные листинги по фильтру. Переиспользуется порталами Phase 2.
 
     q — текстовый поиск (P2.7) по названию бизнеса, заголовку акции и городу;
     icontains по JSON-полю title матчит сериализованный текст (для v1 достаточно).
     kind — вид листинга (promotion/stay/event, A5/A6); пусто = все.
+    category (R2b) — направление/тема event-листинга (yoga/meditation/…).
+    month (R2b) — «YYYY-MM»: листинги, стартующие в этом месяце (для ретритов).
 
     Прошедшие события (event со starts_at в прошлом) скрываем всегда — sync
     удаляет их по правке, но дата может «истечь» без события-триггера.
@@ -45,11 +47,30 @@ def listings_for(*, city=None, business_type=None, q=None, kind=None):
         qs = qs.filter(business_type=business_type)
     if kind:
         qs = qs.filter(listing_kind=kind)
+    if category:
+        qs = qs.filter(category__iexact=category)
+    if month and "-" in month:
+        year, mon = month.split("-", 1)
+        if year.isdigit() and mon.isdigit():
+            qs = qs.filter(starts_at__year=int(year), starts_at__month=int(mon))
     if q:
         qs = qs.filter(Q(business_name__icontains=q) | Q(title__icontains=q) | Q(city__icontains=q))
     # Истёкшие события вон (у прочих видов starts_at либо null, либо окно акции).
     qs = qs.exclude(listing_kind=AggregatorListing.KIND_EVENT, starts_at__lt=timezone.now())
     return qs
+
+
+def _distinct_event_categories():
+    """Присутствующие направления event-листингов → [(key, label)] (R2b)."""
+    from apps.events import taxonomy
+
+    present = set(
+        AggregatorListing.objects.filter(is_active=True)
+        .exclude(category="")
+        .values_list("category", flat=True)
+        .distinct()
+    )
+    return [(k, v) for k, v in taxonomy.CATEGORIES if k in present]
 
 
 def split_featured(qs, *, first_page: bool, limit: int = 6):
@@ -97,15 +118,22 @@ def discover_index(request):
     city = (request.GET.get("city") or "").strip()
     btype = (request.GET.get("type") or "").strip()
     kind = (request.GET.get("kind") or "").strip()
+    cat = (request.GET.get("cat") or "").strip()  # R2b направление
+    month = (request.GET.get("month") or "").strip()  # R2b месяц (YYYY-MM)
     if kind not in dict(AggregatorListing.KINDS):
         kind = ""
-    if q or city or btype or kind:
+    if q or city or btype or kind or cat or month:
         from urllib.parse import urlencode
 
         from . import reviews
 
         pool = listings_for(
-            city=city or None, business_type=btype or None, q=q or None, kind=kind or None
+            city=city or None,
+            business_type=btype or None,
+            q=q or None,
+            kind=kind or None,
+            category=cat or None,
+            month=month or None,
         )
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
@@ -113,7 +141,18 @@ def discover_index(request):
         cards = featured + page.items
         reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
         base_qs = urlencode(
-            [(k, v) for k, v in (("q", q), ("city", city), ("type", btype), ("kind", kind)) if v]
+            [
+                (k, v)
+                for k, v in (
+                    ("q", q),
+                    ("city", city),
+                    ("type", btype),
+                    ("kind", kind),
+                    ("cat", cat),
+                    ("month", month),
+                )
+                if v
+            ]
         )
         return render(
             request,
@@ -123,9 +162,12 @@ def discover_index(request):
                 "city": city,
                 "type": btype,
                 "kind": kind,
+                "cat": cat,
+                "month": month,
                 "kinds": _KIND_LABELS,
                 "cities": _distinct_cities(),
                 "types": _distinct_types(),
+                "categories": _distinct_event_categories(),
                 "cards": cards,
                 "page": page,
                 "base_qs": base_qs,
@@ -142,6 +184,7 @@ def discover_index(request):
         {
             "cities": _distinct_cities(),
             "types": _distinct_types(),
+            "categories": _distinct_event_categories(),
             "kinds": _KIND_LABELS,
             "ending_soon": ending,
         },
