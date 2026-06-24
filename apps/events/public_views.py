@@ -293,6 +293,10 @@ def veranstaltung_book(request, pk):
             extras=extras_snap,
             stay_unit_id=stay_unit_id,
             voucher_code=voucher_code,
+            # R8: подпись отказа от ответственности (если событие требует).
+            waiver_signed_name=(request.POST.get("waiver_name") or "").strip(),
+            health_confirmed=bool(request.POST.get("health_confirmed")),
+            signed_ip=ratelimit.client_ip(request),
         )
     except services.SoldOut as exc:
         messages.error(
@@ -307,6 +311,9 @@ def veranstaltung_book(request, pk):
         return redirect("storefront-event", pk=pk)
     except services.PromoInvalid:
         messages.error(request, _("This voucher code is not valid."))
+        return redirect("storefront-event", pk=pk)
+    except services.WaiverRequired:
+        messages.error(request, _("Please sign the waiver to register."))
         return redirect("storefront-event", pk=pk)
     except (services.EventNotBookable, ValueError):
         messages.error(request, _("This event is not available."))

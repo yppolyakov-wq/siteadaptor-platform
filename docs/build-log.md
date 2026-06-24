@@ -1702,3 +1702,15 @@
   направления, депозиты 30/40 %, проживание); координаты на событиях. Доки —
   `docs/retreat-demo.md`. Тесты `test_map_memo_corp.py` (8) + расширен retreat-demo
   тест. Этим архетип «Ретрит» (R1–R6) закрыт; R7 (блог) — отложен (общеплатформенный).
+
+- **Ретрит R8 — Waiver + Gesundheits-Selbstauskunft с e-подписью.** `Event.waiver_required`
+  + `waiver_text` (пусто = `DEFAULT_WAIVER_TEXT`); модель `events.TicketWaiver`
+  (OneToOne→Ticket: снимок текста, health_confirmed, signed_name/at/ip — простая
+  eIDAS-подпись, как `stays.GuestRegistration`). `book_ticket(..., waiver_signed_name,
+  health_confirmed, signed_ip)`: при `waiver_required` без подписи → `WaiverRequired`
+  (откат брони), иначе создаёт `TicketWaiver` атомарно. Витрина: блок waiver на форме
+  (текст + accept + health + подпись именем); ростер-CSV колонка «Waiver»; memo-PDF —
+  строка о подписи. Кабинет-форма: `waiver_required` + `waiver_text`. Не авто-чистим
+  (срок исковой давности). Миграция `events/0012`. Демо: waiver на Waldlicht/Ayurveda
+  + подписанные билеты в seed_records. Тесты `test_waiver.py` (7). План — `docs/retreat-waiver-plan.md`.
+  Дальше по бэклогу R7+ — R9 (pre/post-event авто-письма).

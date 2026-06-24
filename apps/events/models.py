@@ -14,6 +14,15 @@ from django.db import models
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
 
+# R8: дефолтный текст отказа от ответственности (если организатор не задал свой).
+DEFAULT_WAIVER_TEXT = (
+    "Ich nehme freiwillig und auf eigene Verantwortung teil. Mir ist bewusst, dass "
+    "Yoga, Meditation und körperliche Übungen Risiken bergen. Ich bestätige, "
+    "gesundheitlich zur Teilnahme in der Lage zu sein, und habe relevante "
+    "Einschränkungen mitgeteilt. Der Veranstalter haftet nicht für Schäden, die "
+    "nicht auf grobe Fahrlässigkeit oder Vorsatz zurückzuführen sind."
+)
+
 
 class Event(TimestampedModel):
     STATUS_DRAFT = "draft"
@@ -52,6 +61,10 @@ class Event(TimestampedModel):
     # R4: онлайн-предоплата в % от суммы (0 = оплата полностью; 1..99 = депозит,
     # остаток на месте/по счёту; 100 = полная). Дорогой ретрит — бронь депозитом.
     deposit_percent = models.PositiveSmallIntegerField(default=0)
+    # R8: требовать подпись отказа от ответственности (Waiver) при брони + текст
+    # условий (пусто = дефолтный шаблон). Снимок текста — в TicketWaiver.
+    waiver_required = models.BooleanField(default=False)
+    waiver_text = models.TextField(blank=True)
     # Фото места/мероприятия: FileRef-список (как catalog.Product.images).
     images = models.JSONField(default=list, blank=True)
     # A6 ценовые тиры билета: [{label, price_cents}] (Frühbucher/Standard/Kind).
@@ -200,6 +213,11 @@ class Event(TimestampedModel):
         from . import taxonomy
 
         return taxonomy.duration_label(self.duration_kind)
+
+    @property
+    def effective_waiver_text(self) -> str:
+        """Текст waiver: заданный организатором, иначе дефолтный шаблон (R8)."""
+        return (self.waiver_text or "").strip() or DEFAULT_WAIVER_TEXT
 
     @property
     def waitlist_pending_count(self) -> int:
@@ -383,3 +401,25 @@ class Teacher(TimestampedModel):
         return self.events.filter(
             status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
         ).order_by("starts_at")
+
+
+class TicketWaiver(TimestampedModel):
+    """R8: подписанный отказ от ответственности + Gesundheits-Selbstauskunft к билету.
+
+    Простая e-подпись (eIDAS «einfache», как stays.GuestRegistration): печатное
+    Ф.И.О. + отметка времени и IP. `waiver_text_snapshot` — снимок условий на момент
+    подписи (юридический след, переживает правку шаблона события). Не авто-чистится
+    (срок исковой давности), в отличие от BMG-Meldeschein."""
+
+    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name="waiver")
+    waiver_text_snapshot = models.TextField()
+    health_confirmed = models.BooleanField(default=False)  # «здоров/раскрыл противопоказания»
+    signed_name = models.CharField(max_length=200)
+    signed_at = models.DateTimeField(null=True, blank=True)
+    signed_ip = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Waiver {self.ticket.reference_code}"

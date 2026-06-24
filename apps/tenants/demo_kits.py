@@ -1927,6 +1927,7 @@ RETREAT = DemoKit(
             "level": "alle",
             "language": "de",
             "deposit_percent": 30,  # R4: бронь депозитом 30 %, остаток на месте
+            "waiver_required": True,  # R8: подпись отказа (дефолтный текст)
             "offers_accommodation": True,  # R5: выбор типа номера на даты ретрита
             "description": "Zwei Tage Yoga, Meditation und Waldspaziergänge in kleiner Gruppe. "
             "Inklusive Programm, Begleitung und Tee-Pausen.",
@@ -2053,6 +2054,7 @@ RETREAT = DemoKit(
             "level": "alle",
             "language": "de",
             "deposit_percent": 40,
+            "waiver_required": True,  # R8
             "offers_accommodation": True,
             "description": "Drei Tage Ayurveda: leichte Küche, Yoga, Ölbehandlungen und "
             "Ruhe zum Auftanken.",
@@ -2929,6 +2931,8 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     capacity=spec.get("capacity", 0),
                     price_cents=int(Decimal(str(spec.get("price", "0"))) * 100),
                     deposit_percent=spec.get("deposit_percent", 0),  # R4 онлайн-предоплата
+                    waiver_required=spec.get("waiver_required", False),  # R8 отказ
+                    waiver_text=spec.get("waiver_text", ""),
                     questions=list(spec.get("questions", [])),
                     program=list(spec.get("program", [])),
                     images=imgs,
@@ -3107,7 +3111,17 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 ("Paul Adam", "paul@example.de", 1),
             ]:
                 try:
-                    book_ticket(ev, name=who, email=mail, quantity=qty, auto_confirm=True)
+                    # R8: подписываем waiver (на случай waiver_required события).
+                    book_ticket(
+                        ev,
+                        name=who,
+                        email=mail,
+                        quantity=qty,
+                        auto_confirm=True,
+                        waiver_signed_name=who,
+                        health_confirmed=True,
+                        signed_ip="127.0.0.1",
+                    )
                 except Exception:
                     pass
             # R1: пара записей в лист ожидания (как будто событие популярно).

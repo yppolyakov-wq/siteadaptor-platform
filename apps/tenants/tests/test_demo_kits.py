@@ -425,6 +425,11 @@ def test_apply_retreat_kit_events_program_and_tickets():
     # seed_records → проданные билеты (auto_confirm) → finance НДС 19 %
     assert Ticket.objects.filter(status=Ticket.STATUS_CONFIRMED).exists()
     assert RevenueEntry.objects.filter(source="event").exists()
+    # R8: флагман требует waiver, засеянные билеты подписаны
+    from apps.events.models import TicketWaiver
+
+    assert retreat.waiver_required
+    assert TicketWaiver.objects.filter(ticket__event=retreat).exists()
 
     # композиция архетипов: booking-услуги + catalog (Shop)
     from apps.booking.models import Service

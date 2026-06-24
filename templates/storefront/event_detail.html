@@ -309,6 +309,18 @@
         {% if event.deposit_percent and event.deposit_percent < 100 %}
           <p class="text-xs text-gray-500">{% blocktrans with p=event.deposit_percent %}Pay {{ p }}% deposit online now — the rest is due on site.{% endblocktrans %}</p>
         {% endif %}
+        {# R8: отказ от ответственности + Gesundheits-Selbstauskunft #}
+        {% if event.waiver_required %}
+          <fieldset class="space-y-2 border border-gray-200 rounded-lg p-3">
+            <legend class="text-sm font-medium px-1">{% trans "Waiver" %}</legend>
+            <p class="text-xs text-gray-600 max-h-32 overflow-y-auto whitespace-pre-line">{{ event.effective_waiver_text }}</p>
+            <label class="flex items-start gap-2 text-sm"><input type="checkbox" required class="mt-1"> {% trans "I have read and accept the waiver." %}</label>
+            <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="health_confirmed" class="mt-1"> {% trans "I confirm I am fit to participate and disclosed any conditions." %}</label>
+            <label class="block text-sm text-gray-600">{% trans "Signature (your full name)" %}
+              <input name="waiver_name" required placeholder="{% trans 'Full name' %}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+            </label>
+          </fieldset>
+        {% endif %}
         <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">
           {% if event.price_cents %}{% trans "Book & pay" %}{% else %}{% trans "Register" %}{% endif %}
         </button>

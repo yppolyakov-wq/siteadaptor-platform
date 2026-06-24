@@ -242,6 +242,7 @@ def roster_csv(request, pk):
     question_cols = list(event.questions or [])
     reg_cols = registration.labels(event.registration_fields)  # [(key, label)]
     show_unterkunft = event.offers_accommodation
+    show_waiver = event.waiver_required  # R8
     writer.writerow(
         [
             "Code",
@@ -252,13 +253,20 @@ def roster_csv(request, pk):
             "Status",
             "Bezahlt",
             *(["Unterkunft"] if show_unterkunft else []),
+            *(["Waiver"] if show_waiver else []),
             *question_cols,
             *[label for _key, label in reg_cols],
         ]
     )
-    for t in event.tickets.select_related("customer", "stay_booking__unit").all():
+    for t in event.tickets.select_related("customer", "stay_booking__unit", "waiver").all():
         answers = t.answers or {}
         room = t.stay_booking.unit.name if t.stay_booking and t.stay_booking.unit else ""
+        waiver = getattr(t, "waiver", None)
+        waiver_cell = (
+            f"{waiver.signed_name} ({waiver.signed_at:%d.%m.%Y})"
+            if waiver and waiver.signed_at
+            else ("✓" if waiver else "—")
+        )
         writer.writerow(
             [
                 t.reference_code,
@@ -269,6 +277,7 @@ def roster_csv(request, pk):
                 t.get_status_display(),
                 t.get_payment_state_display(),
                 *([room] if show_unterkunft else []),
+                *([waiver_cell] if show_waiver else []),
                 *[answers.get(q, "") for q in question_cols],
                 *[answers.get(key, "") for key, _label in reg_cols],
             ]

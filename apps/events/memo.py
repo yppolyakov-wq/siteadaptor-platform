@@ -100,6 +100,18 @@ def build_memo_pdf(ticket, tenant) -> bytes:
     c.setFont("Helvetica-Bold", 11)
     c.drawString(x, y, f"Ticket: {ticket.reference_code}  ·  {ticket.quantity} Platz/Plätze")
 
+    # R8: отметка о подписанном отказе от ответственности.
+    waiver = getattr(ticket, "waiver", None)
+    if waiver and waiver.signed_at:
+        y -= 7 * mm
+        c.setFont("Helvetica", 9)
+        c.setFillColorRGB(*_MUTED)
+        c.drawString(
+            x,
+            y,
+            f"Haftungsausschluss unterschrieben am {waiver.signed_at:%d.%m.%Y} ({waiver.signed_name})",
+        )
+
     c.showPage()
     c.save()
     return buffer.getvalue()

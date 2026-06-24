@@ -123,6 +123,8 @@ class EventForm(forms.ModelForm):
             "offers_accommodation",
             "accommodation_units",
             "teachers",
+            "waiver_required",
+            "waiver_text",
         )
         widgets = {
             "starts_at": forms.DateTimeInput(
@@ -131,6 +133,7 @@ class EventForm(forms.ModelForm):
             "ends_at": forms.DateTimeInput(
                 attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
             ),
+            "waiver_text": forms.Textarea(attrs={"rows": 4, "placeholder": "leer = Standardtext"}),
             "description": forms.Textarea(attrs={"rows": 3}),
         }
 

@@ -34,6 +34,10 @@ class PromoInvalid(Exception):
     """Подарочный/промо-код указан, но не применим (нет/просрочен/исчерпан/мин)."""
 
 
+class WaiverRequired(Exception):
+    """Событие требует подписанный отказ (R8), но подпись не предоставлена."""
+
+
 def quote_voucher(code, base_cents) -> int:
     """Оценка скидки кода для суммы (read-only, без гашения); 0 — не применим."""
     code = (code or "").strip().upper()
@@ -100,6 +104,9 @@ def book_ticket(
     extras=None,
     stay_unit_id=None,
     voucher_code="",
+    waiver_signed_name="",
+    health_confirmed=False,
+    signed_ip="",
 ):
     """Создать билет, атомарно проверив наличие мест. Бросает ValueError,
     EventNotBookable, SoldOut, PromoInvalid. tier_label (A6) — выбранный ценовой
@@ -164,6 +171,9 @@ def book_ticket(
     if fields:
         fields.append("updated_at")
         ticket.save(update_fields=fields)
+    # R8: подписанный отказ от ответственности — если событие требует.
+    if event.waiver_required:
+        _attach_waiver(event, ticket, waiver_signed_name, health_confirmed, signed_ip)
     # письмо «Anmeldung erhalten» — Notification в этой же транзакции (A6c)
     from .notifications import enqueue_ticket_email
 
@@ -175,6 +185,25 @@ def book_ticket(
 
         TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
     return ticket
+
+
+def _attach_waiver(event, ticket, signed_name, health_confirmed, signed_ip):
+    """R8: создать подписанный TicketWaiver; без подписи → WaiverRequired (откат)."""
+    from django.utils import timezone
+
+    from .models import TicketWaiver
+
+    signed_name = (signed_name or "").strip()
+    if not signed_name:
+        raise WaiverRequired()
+    TicketWaiver.objects.create(
+        ticket=ticket,
+        waiver_text_snapshot=event.effective_waiver_text,
+        health_confirmed=bool(health_confirmed),
+        signed_name=signed_name[:200],
+        signed_at=timezone.now(),
+        signed_ip=signed_ip or None,
+    )
 
 
 def _retreat_dates(event):
