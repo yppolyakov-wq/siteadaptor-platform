@@ -42,9 +42,7 @@ def _retreat(**kw):
     defaults = {
         "title": "Wochenend-Retreat",
         "starts_at": start.replace(hour=16, minute=0, second=0, microsecond=0),
-        "ends_at": (start + timedelta(days=2)).replace(
-            hour=12, minute=0, second=0, microsecond=0
-        ),
+        "ends_at": (start + timedelta(days=2)).replace(hour=12, minute=0, second=0, microsecond=0),
         "status": Event.STATUS_PUBLISHED,
         "capacity": 20,
         "price_cents": 0,
