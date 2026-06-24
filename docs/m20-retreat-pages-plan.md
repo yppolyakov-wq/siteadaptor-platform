@@ -42,9 +42,13 @@ source = { type: all|featured|category|manual, limit: int, category: slug }
   значения переопределяют пресет.
 
 ## Подзадачи (каждая: ветка → CI → чекпоинт)
-- **M20R-1 — layout-движок (фундамент).** `siteconfig` layout/source-схема +
-  `grid_classes` тег + таблица пресетов + тесты. Применить к 2–3 листингам главной
-  (products/stay_rooms) как доказательство. Без визуальных регрессий.
+- **M20R-1 ✅ — layout-движок (фундамент).** `siteconfig`: `LAYOUT_PRESETS`
+  (list/cols2-4/gallery) + `normalize_layout`/`grid_class_string`/`section_layout`;
+  `normalize()` вешает `layout` на секции-сетки (back-compat). Тег
+  `{% grid_classes site key %}` (`siteui.py`) — purge-safe из статических таблиц +
+  **safelist в `tailwind.config.js`** (классы генерятся в Python). Применён к
+  `_products`/`_stay_rooms`. Тесты `test_layout.py` (12). Дефолты воспроизводят
+  прежние гриды (план­шет cols3→2 как было; cols4 — небольшое уплотнение 2→3).
 - **M20R-2 — обзор ретритов (категория).** Красивая страница-грид ретритов компании
   (карточка ретрита), пресет «2–3 в ряд», **фильтры/поиск OFF по умолчанию** на
   одиночном сайте (агрегатор с фильтрами не трогаем). Retreat-first: `storefront_root`
