@@ -1,4 +1,4 @@
-"""G4: авто-скидки на проживание (LOS / Frühbucher / Last-Minute)."""
+"""G4: авто-скидки на проживание (LOS / Frühbucher / Last-Minute), много правил."""
 
 from datetime import date, timedelta
 
@@ -18,16 +18,27 @@ def _unit(**kw):
     return StayUnit.objects.create(**defaults)
 
 
-def _settings(**kw):
+def _rules(*rules):
     s = StaySettings.load()
-    for k, v in kw.items():
-        setattr(s, k, v)
+    s.auto_discount_rules = list(rules)
     s.save()
     return s
 
 
+def _los(threshold, percent):
+    return {"kind": "los", "threshold": threshold, "percent": percent}
+
+
+def _early(threshold, percent):
+    return {"kind": "early_bird", "threshold": threshold, "percent": percent}
+
+
+def _last(threshold, percent):
+    return {"kind": "last_minute", "threshold": threshold, "percent": percent}
+
+
 def test_los_discount_applies_from_threshold():
-    _settings(los_min_nights=7, los_discount_percent=10)
+    _rules(_los(7, 10))
     far = date(2030, 6, 1)
     cents, label = pricing.auto_discount(70000, 7, far, today=date(2030, 1, 1))
     assert cents == 7000 and label
@@ -35,44 +46,52 @@ def test_los_discount_applies_from_threshold():
     assert pricing.auto_discount(60000, 6, far, today=date(2030, 1, 1)) == (0, "")
 
 
+def test_los_multi_tier_picks_higher():
+    # 2 правила LOS: 7+ → 10 %, 14+ → 15 %. На 14 ночей действует лучшее (15 %).
+    _rules(_los(7, 10), _los(14, 15))
+    far = date(2030, 6, 1)
+    assert pricing.auto_discount(100000, 14, far, today=date(2030, 1, 1))[0] == 15000
+    assert pricing.auto_discount(100000, 7, far, today=date(2030, 1, 1))[0] == 10000
+
+
 def test_early_bird_discount_by_lead_time():
-    _settings(early_bird_days=30, early_bird_percent=8)
+    _rules(_early(30, 8))
     today = date(2030, 1, 1)
     arrival = today + timedelta(days=40)
     cents, label = pricing.auto_discount(10000, 2, arrival, today=today)
     assert cents == 800 and "Frühbucher" in label
-    # заезд скоро — раннее бронирование не действует
     assert pricing.auto_discount(10000, 2, today + timedelta(days=10), today=today) == (0, "")
 
 
 def test_last_minute_discount_by_lead_time():
-    _settings(last_minute_days=3, last_minute_percent=12)
+    _rules(_last(3, 12))
     today = date(2030, 1, 1)
     cents, label = pricing.auto_discount(10000, 2, today + timedelta(days=2), today=today)
     assert cents == 1200 and "Last-Minute" in label
 
 
 def test_takes_max_when_several_apply():
-    _settings(
-        los_min_nights=7,
-        los_discount_percent=10,
-        last_minute_days=3,
-        last_minute_percent=20,
-    )
+    _rules(_los(7, 10), _last(3, 20))
     today = date(2030, 1, 1)
     # 7 ночей (LOS 10 %) и заезд через 2 дня (Last-Minute 20 %) → берём 20 %
     cents, label = pricing.auto_discount(100000, 7, today + timedelta(days=2), today=today)
     assert cents == 20000 and "Last-Minute" in label
 
 
-def test_no_settings_no_discount():
+def test_invalid_rules_ignored():
+    s = StaySettings.load()
+    s.auto_discount_rules = [{"kind": "bogus", "threshold": 5, "percent": 10}, {"nope": 1}]
+    s.save()
+    assert pricing.auto_discount(50000, 10, date(2030, 6, 1), today=date(2030, 1, 1)) == (0, "")
+
+
+def test_no_rules_no_discount():
     assert pricing.auto_discount(50000, 10, date(2030, 6, 1), today=date(2030, 1, 1)) == (0, "")
 
 
 def test_book_stay_applies_and_stores_auto_discount():
-    _settings(los_min_nights=2, los_discount_percent=10)
+    _rules(_los(2, 10))
     unit = _unit(price_cents=10000)  # 100 €/ночь, будни
-    # 2 ночи Mo→Mi далеко в будущем (раннее/last-minute не настроены)
     arrival = timezone.localdate() + timedelta(days=120)
     while arrival.weekday() != 0:  # Montag — без weekend-наценки
         arrival += timedelta(days=1)

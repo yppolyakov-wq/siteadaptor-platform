@@ -77,9 +77,9 @@ class DemoKit:
     stay_promo: dict = field(default_factory=dict)
     # Hausordnung (H6): правила проживания, свободный текст. Пусто = нет страницы.
     house_rules: str = ""
-    # G4: авто-скидки на проживание (StaySettings). dict с ключами (любой опц.):
-    #   los: (min_nights, percent), early_bird: (days, percent), last_minute: (days, percent).
-    auto_discounts: dict = field(default_factory=dict)
+    # G4: авто-скидки на проживание (StaySettings) — список правил (несколько на тип):
+    #   {"kind": los|early_bird|last_minute, "threshold": int, "percent": int}.
+    auto_discounts: list = field(default_factory=list)
     # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
@@ -1096,12 +1096,13 @@ HOTEL = DemoKit(
             "sort": 0,
         },
         {
-            "name": "Mit Frühstück",
-            "description": "Inkl. reichhaltigem Frühstücksbuffet.",
+            "name": "Mit Frühstück (30 % Anzahlung)",
+            "description": "Inkl. Frühstücksbuffet — 30 % Anzahlung bei Buchung.",
             "surcharge": "12",
             "meal": "breakfast",
             "cancellation": "flexible",
             "free_cancel_days": 3,
+            "prepayment": 30,  # G7: частичная предоплата (2-й пример рядом со 100 %)
             "sort": 1,
         },
         {
@@ -1123,9 +1124,20 @@ HOTEL = DemoKit(
         },
     ],
     kurtaxe="2.50",  # H9: Kurtaxe pro Erwachsenem/Nacht (Überlingen/Bodensee)
-    # G4: авто-скидки — 7+ ночей −10 %, Frühbucher (≥30 дней) −8 %, Last-Minute (≤3 дня) −12 %.
-    auto_discounts={"los": (7, 10), "early_bird": (30, 8), "last_minute": (3, 12)},
-    stay_promo={"code": "SOMMER10", "label": "−10 % Sommer", "percent": 10},  # H4a
+    # G4: по 2 правила на каждый тип авто-скидки (многоступенчато).
+    auto_discounts=[
+        {"kind": "los", "threshold": 7, "percent": 10},  # 7+ ночей −10 %
+        {"kind": "los", "threshold": 14, "percent": 15},  # 14+ ночей −15 %
+        {"kind": "early_bird", "threshold": 30, "percent": 8},  # ≥30 дней −8 %
+        {"kind": "early_bird", "threshold": 60, "percent": 12},  # ≥60 дней −12 %
+        {"kind": "last_minute", "threshold": 3, "percent": 12},  # ≤3 дня −12 %
+        {"kind": "last_minute", "threshold": 7, "percent": 8},  # ≤7 дней −8 %
+    ],
+    # H4a/G4a: 2 промокода — процентный и на фикс-сумму.
+    stay_promo={"code": "SOMMER10", "label": "−10 % Sommer", "percent": 10},
+    vouchers=[
+        {"code": "WILLKOMMEN20", "label": "20 € Willkommensrabatt", "cents": 2000, "max_uses": 200},
+    ],
     house_rules=(  # H6: Hausordnung
         "Check-in: ab 15:00 Uhr · Check-out: bis 11:00 Uhr\n"
         "Ruhezeiten: 22:00–7:00 Uhr\n"
@@ -2648,25 +2660,10 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             settings_obj.kurtaxe_cents = int(Decimal(str(kit.kurtaxe)) * 100)
         if kit.house_rules:
             settings_obj.house_rules = kit.house_rules
-        ad = kit.auto_discounts or {}
-        if "los" in ad:
-            settings_obj.los_min_nights, settings_obj.los_discount_percent = ad["los"]
-        if "early_bird" in ad:
-            settings_obj.early_bird_days, settings_obj.early_bird_percent = ad["early_bird"]
-        if "last_minute" in ad:
-            settings_obj.last_minute_days, settings_obj.last_minute_percent = ad["last_minute"]
+        if kit.auto_discounts:  # G4: список правил {kind, threshold, percent}
+            settings_obj.auto_discount_rules = list(kit.auto_discounts)
         settings_obj.save(
-            update_fields=[
-                "kurtaxe_cents",
-                "house_rules",
-                "los_min_nights",
-                "los_discount_percent",
-                "early_bird_days",
-                "early_bird_percent",
-                "last_minute_days",
-                "last_minute_percent",
-                "updated_at",
-            ]
+            update_fields=["kurtaxe_cents", "house_rules", "auto_discount_rules", "updated_at"]
         )
     if kit.stay_promo and is_active("stays"):  # H4a промокод брони
         from apps.loyalty.models import Voucher

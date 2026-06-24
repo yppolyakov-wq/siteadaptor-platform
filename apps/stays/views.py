@@ -374,43 +374,39 @@ def units(request):
             rp.save(update_fields=["is_active", "updated_at"])
         elif action == "rateplan_delete":
             RatePlan.objects.filter(pk=request.POST.get("rateplan")).delete()
-        elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung + G4 авто-скидки
+        elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung
             settings_obj = StaySettings.load()
             settings_obj.kurtaxe_cents = _eur_to_cents(request.POST.get("kurtaxe_eur"))
             settings_obj.kurtaxe_label = (
                 request.POST.get("kurtaxe_label", "").strip()[:80] or "Kurtaxe"
             )
             settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
-            # G4: авто-скидки (LOS / Frühbucher / Last-Minute). 0 = выключено.
-            settings_obj.los_min_nights = _int(request.POST.get("los_min_nights", "0"), 0, 0, 365)
-            settings_obj.los_discount_percent = _int(
-                request.POST.get("los_discount_percent", "0"), 0, 0, 90
-            )
-            settings_obj.early_bird_days = _int(request.POST.get("early_bird_days", "0"), 0, 0, 365)
-            settings_obj.early_bird_percent = _int(
-                request.POST.get("early_bird_percent", "0"), 0, 0, 90
-            )
-            settings_obj.last_minute_days = _int(
-                request.POST.get("last_minute_days", "0"), 0, 0, 365
-            )
-            settings_obj.last_minute_percent = _int(
-                request.POST.get("last_minute_percent", "0"), 0, 0, 90
-            )
             settings_obj.save(
-                update_fields=[
-                    "kurtaxe_cents",
-                    "kurtaxe_label",
-                    "house_rules",
-                    "los_min_nights",
-                    "los_discount_percent",
-                    "early_bird_days",
-                    "early_bird_percent",
-                    "last_minute_days",
-                    "last_minute_percent",
-                    "updated_at",
-                ]
+                update_fields=["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
             )
             messages.success(request, _("Settings saved."))
+        elif action == "autodiscount_add":  # G4: добавить правило авто-скидки
+            settings_obj = StaySettings.load()
+            kind = request.POST.get("kind", "")
+            valid_kinds = {k for k, _ in StaySettings.AUTO_DISCOUNT_KINDS}
+            threshold = _int(request.POST.get("threshold", "0"), 0, 1, 365)
+            percent = _int(request.POST.get("percent", "0"), 0, 1, 90)
+            if kind in valid_kinds and threshold and percent:
+                rules = settings_obj.clean_auto_rules()
+                rules.append({"kind": kind, "threshold": threshold, "percent": percent})
+                settings_obj.auto_discount_rules = rules
+                settings_obj.save(update_fields=["auto_discount_rules", "updated_at"])
+                messages.success(request, _("Discount rule added."))
+            else:
+                messages.error(request, _("Please fill in the discount rule."))
+        elif action == "autodiscount_delete":  # G4: удалить правило по индексу
+            settings_obj = StaySettings.load()
+            rules = settings_obj.clean_auto_rules()
+            idx = _int(request.POST.get("index", "-1"), -1, 0, len(rules) - 1)
+            if 0 <= idx < len(rules):
+                rules.pop(idx)
+                settings_obj.auto_discount_rules = rules
+                settings_obj.save(update_fields=["auto_discount_rules", "updated_at"])
         return redirect("stays:units")
 
     units = list(
@@ -422,6 +418,19 @@ def units(request):
         u.ical_export_url = request.build_absolute_uri(
             reverse("storefront-stay-ical", args=[ical_token(u)])
         )
+    stay_settings = StaySettings.load()
+    # G4: правила авто-скидок с человекочитаемым описанием для кабинета.
+    _kind_labels = dict(StaySettings.AUTO_DISCOUNT_KINDS)
+    auto_rules = [
+        {
+            "index": i,
+            "kind": r["kind"],
+            "kind_label": _kind_labels.get(r["kind"], r["kind"]),
+            "threshold": r["threshold"],
+            "percent": r["percent"],
+        }
+        for i, r in enumerate(stay_settings.clean_auto_rules())
+    ]
     return render(
         request,
         "stays/units.html",
@@ -434,7 +443,9 @@ def units(request):
             "meals": RatePlan.MEALS,
             "cancellations": RatePlan.CANCELLATIONS,
             "amenities": AMENITIES,  # H3 чек-лист удобств
-            "stay_settings": StaySettings.load(),  # H9 Kurtaxe
+            "stay_settings": stay_settings,  # H9 Kurtaxe
+            "auto_rules": auto_rules,  # G4 правила авто-скидок
+            "auto_kinds": StaySettings.AUTO_DISCOUNT_KINDS,
             "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
             "feed_url": request.build_absolute_uri(reverse("storefront-stay-feed")),  # G8 метапоиск
         },

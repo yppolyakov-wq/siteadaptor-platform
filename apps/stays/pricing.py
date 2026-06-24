@@ -42,12 +42,12 @@ def quote_total_cents(unit, arrival, departure, rate_plan=None) -> int:
 
 
 def auto_discount(lodging_cents, nights, arrival, today=None, settings=None) -> tuple[int, str]:
-    """G4: авто-скидка на проживание (LOS / Frühbucher / Last-Minute).
+    """G4: авто-скидка на проживание (LOS / Frühbucher / Last-Minute), много правил.
 
-    Возвращает (discount_cents, label). Скидки НЕ суммируются — берём максимальную
-    применимую (предсказуемо, без переусердствования). Считается от ``lodging_cents``
-    (проживание без Extras/Kurtaxe). ``arrival`` + ``today`` дают срок до заезда.
-    Промокод (H4a) применяется отдельно, поверх этой скидки.
+    Возвращает (discount_cents, label). Из всех подходящих правил берём максимальный
+    процент (предсказуемо, не суммируем). Считается от ``lodging_cents`` (проживание
+    без Extras/Kurtaxe). ``arrival`` + ``today`` дают срок до заезда. Промокод (H4a)
+    применяется отдельно, поверх этой скидки.
     """
     if settings is None:
         from .models import StaySettings
@@ -57,20 +57,18 @@ def auto_discount(lodging_cents, nights, arrival, today=None, settings=None) -> 
         from django.utils import timezone
 
         today = timezone.localdate()
+    from .models import StaySettings
+
     lead = (arrival - today).days  # дней до заезда
     candidates = []  # (percent, label)
-    los_n = getattr(settings, "los_min_nights", 0) or 0
-    los_p = getattr(settings, "los_discount_percent", 0) or 0
-    if los_n and los_p and nights >= los_n:
-        candidates.append((los_p, f"−{los_p}% ab {los_n} Nächten"))
-    eb_d = getattr(settings, "early_bird_days", 0) or 0
-    eb_p = getattr(settings, "early_bird_percent", 0) or 0
-    if eb_d and eb_p and lead >= eb_d:
-        candidates.append((eb_p, f"Frühbucher −{eb_p}%"))
-    lm_d = getattr(settings, "last_minute_days", 0) or 0
-    lm_p = getattr(settings, "last_minute_percent", 0) or 0
-    if lm_d and lm_p and 0 <= lead <= lm_d:
-        candidates.append((lm_p, f"Last-Minute −{lm_p}%"))
+    for rule in settings.clean_auto_rules():
+        kind, threshold, percent = rule["kind"], rule["threshold"], rule["percent"]
+        if kind == StaySettings.KIND_LOS and nights >= threshold:
+            candidates.append((percent, f"−{percent}% ab {threshold} Nächten"))
+        elif kind == StaySettings.KIND_EARLY and lead >= threshold:
+            candidates.append((percent, f"Frühbucher −{percent}%"))
+        elif kind == StaySettings.KIND_LAST and 0 <= lead <= threshold:
+            candidates.append((percent, f"Last-Minute −{percent}%"))
     if not candidates:
         return 0, ""
     percent, label = max(candidates, key=lambda c: c[0])

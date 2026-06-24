@@ -367,17 +367,37 @@ class StaySettings(TimestampedModel):
     kurtaxe_children_free = models.BooleanField(default=True)
     # H6: Hausordnung / правила проживания (свободный текст; пусто = страницы нет).
     house_rules = models.TextField(blank=True)
-    # G4: авто-скидки на проживание (0 = выключено). Применяются к проживанию (без
-    # Extras/Kurtaxe); если применимо несколько — берётся максимальная (не суммируются).
-    #   LOS (Langzeit): от los_min_nights ночей → −los_discount_percent %.
-    #   Frühbucher: заезд ≥ early_bird_days дней вперёд → −early_bird_percent %.
-    #   Last-Minute: до заезда ≤ last_minute_days дней → −last_minute_percent %.
-    los_min_nights = models.PositiveSmallIntegerField(default=0)
-    los_discount_percent = models.PositiveSmallIntegerField(default=0)
-    early_bird_days = models.PositiveSmallIntegerField(default=0)
-    early_bird_percent = models.PositiveSmallIntegerField(default=0)
-    last_minute_days = models.PositiveSmallIntegerField(default=0)
-    last_minute_percent = models.PositiveSmallIntegerField(default=0)
+    # G4: авто-скидки на проживание — список правил (несколько на тип, многоступенчато).
+    # Правило: {"kind": los|early_bird|last_minute, "threshold": int, "percent": int}.
+    #   los: ночей ≥ threshold; early_bird: до заезда ≥ threshold дней;
+    #   last_minute: до заезда ≤ threshold дней. Применяется к проживанию (без
+    #   Extras/Kurtaxe); из подходящих берётся максимальный процент (не суммируются).
+    auto_discount_rules = models.JSONField(default=list, blank=True)
+
+    KIND_LOS = "los"
+    KIND_EARLY = "early_bird"
+    KIND_LAST = "last_minute"
+    AUTO_DISCOUNT_KINDS = [
+        (KIND_LOS, "Langzeit (ab N Nächten)"),
+        (KIND_EARLY, "Frühbucher (ab N Tagen vorher)"),
+        (KIND_LAST, "Last-Minute (bis N Tage vorher)"),
+    ]
+
+    def clean_auto_rules(self) -> list[dict]:
+        """Очищенный список правил авто-скидок (валидные kind/threshold/percent)."""
+        kinds = {k for k, _ in self.AUTO_DISCOUNT_KINDS}
+        out = []
+        for r in self.auto_discount_rules or []:
+            if not isinstance(r, dict) or r.get("kind") not in kinds:
+                continue
+            try:
+                threshold = max(0, int(r.get("threshold", 0)))
+                percent = max(0, min(int(r.get("percent", 0)), 90))
+            except (TypeError, ValueError):
+                continue
+            if threshold and percent:
+                out.append({"kind": r["kind"], "threshold": threshold, "percent": percent})
+        return out
 
     class Meta:
         verbose_name = "Stay settings"

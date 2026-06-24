@@ -259,6 +259,19 @@ def test_apply_hotel_kit_builds_stays_site():
     assert st.kurtaxe_cents == 250 and st.house_rules
     promo = Voucher.objects.get(code="SOMMER10")
     assert promo.discount_percent == 10
+    # «по 2 примера» на каждый тип скидки/настройки:
+    # G4: по 2 правила авто-скидки каждого типа (los/early_bird/last_minute)
+    rules = st.clean_auto_rules()
+    from collections import Counter
+
+    kinds = Counter(r["kind"] for r in rules)
+    assert kinds["los"] == 2 and kinds["early_bird"] == 2 and kinds["last_minute"] == 2
+    # G7: 2 тарифа с предоплатой (частичная 30 % + полная 100 %)
+    prepay_rates = list(RatePlan.objects.filter(prepayment_percent__gt=0))
+    assert len(prepay_rates) == 2
+    assert {r.prepayment_percent for r in prepay_rates} == {30, 100}
+    # G4a/H4a: 2 промокода (процентный SOMMER10 + фикс-сумма WILLKOMMEN20)
+    assert Voucher.objects.get(code="WILLKOMMEN20").discount_cents == 2000
     # H2 секция поиска на главной включена
     assert "stay_search" in {s["key"] for s in cfg["sections"] if s["enabled"]}
     # брони в кабинете (подтверждённые) с H5 adults и H9 Kurtaxe в итоге
