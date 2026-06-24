@@ -110,6 +110,71 @@ def _event_matches(event, f) -> bool:
     return True
 
 
+_DE_MONTHS = [
+    "",
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+]
+
+
+def veranstaltung_calendar(request):
+    """R3b: годовой календарь ретритов — события, сгруппированные по месяцам."""
+    _require_events_active(request)
+    events = (
+        Event.objects.filter(status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now())
+        .prefetch_related("teachers")
+        .order_by("starts_at")
+    )
+    groups, current = [], None
+    for e in events:
+        key = (e.starts_at.year, e.starts_at.month)
+        if current is None or current["key"] != key:
+            current = {"key": key, "label": f"{_DE_MONTHS[key[1]]} {key[0]}", "events": []}
+            groups.append(current)
+        current["events"].append(e)
+    return render(request, "storefront/event_calendar.html", {"groups": groups})
+
+
+def _ical_response(events, request, filename):
+    from . import ical
+
+    body = ical.render(
+        events,
+        url_for=lambda e: request.build_absolute_uri(reverse("storefront-event", args=[e.pk])),
+        dtstamp=timezone.now(),
+        host=request.get_host(),
+    )
+    resp = HttpResponse(body, content_type="text/calendar; charset=utf-8")
+    resp["Content-Disposition"] = f'inline; filename="{filename}"'
+    return resp
+
+
+def veranstaltung_ical(request, pk):
+    """R3b: .ics одного события («Zum Kalender hinzufügen»)."""
+    _require_events_active(request)
+    event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
+    return _ical_response([event], request, f"event-{pk}.ics")
+
+
+def veranstaltung_ical_feed(request):
+    """R3b: фид-подписка на все опубликованные будущие ретриты."""
+    _require_events_active(request)
+    events = Event.objects.filter(
+        status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+    ).order_by("starts_at")
+    return _ical_response(events, request, "retreats.ics")
+
+
 def lehrer_index(request):
     """Витрина: список преподавателей/ведущих (R3). Гейтится модулем events."""
     _require_events_active(request)

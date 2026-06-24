@@ -1,0 +1,42 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Retreat calendar" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">{% trans "Retreat calendar" %}</h1>
+    <a href="{% url 'storefront-events-ical-feed' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Subscribe (iCal)" %}</a>
+  </div>
+
+  {% if groups %}
+    <div class="space-y-7">
+      {% for g in groups %}
+        <section>
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">{{ g.label }}</h2>
+          <div class="space-y-2">
+            {% for e in g.events %}
+              <a href="{% url 'storefront-event' e.pk %}" class="flex items-center gap-4 bg-white rounded-xl shadow-sm p-3 hover:shadow-md transition">
+                <div class="text-center w-12 flex-shrink-0">
+                  <div class="text-xl font-bold leading-none">{{ e.starts_at|date:"d" }}</div>
+                  <div class="text-xs text-gray-400">{{ e.starts_at|date:"H:i" }}</div>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium truncate">{{ e.title }}</div>
+                  <div class="text-xs text-gray-500">
+                    {% if e.category_label %}{{ e.category_label }} · {% endif %}{% if e.city %}{{ e.city }}{% endif %}
+                    {% if e.is_sold_out %}· <span class="text-red-600">{% trans "Sold out" %}</span>{% endif %}
+                  </div>
+                </div>
+                <div class="text-sm font-medium whitespace-nowrap">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</div>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-400">{% trans "No upcoming retreats." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

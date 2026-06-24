@@ -4,7 +4,10 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto">
-  <h1 class="text-2xl font-bold mb-4">{% trans "Retreats & events" %}</h1>
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{% trans "Retreats & events" %}</h1>
+    <a href="{% url 'storefront-events-calendar' %}" class="text-sm text-indigo-600 hover:underline whitespace-nowrap">📅 {% trans "Calendar" %}</a>
+  </div>
 
   {# Фильтры каталога (R2) — server-side GET, показываем только заполненные оси #}
   {% if facets.cat or facets.level or facets.lang or facets.city or facets.dur or facets.month %}

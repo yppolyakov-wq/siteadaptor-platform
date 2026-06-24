@@ -15,6 +15,7 @@
       {% if L.promise %}<p class="text-lg text-gray-700 mb-3">{{ L.promise }}</p>{% endif %}
       <p class="text-gray-500 mb-4">
         🗓 {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.ends_at %} – {{ event.ends_at|date:"d.m.Y H:i" }}{% endif %}
+        <a href="{% url 'storefront-event-ical' event.pk %}" class="text-sm text-indigo-600 hover:underline ml-1">+ {% trans "Add to calendar" %}</a>
         {% if event.location %}<br>📍 {{ event.location }}{% endif %}
       </p>
       <div class="flex items-center gap-4">

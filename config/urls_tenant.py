@@ -185,7 +185,23 @@ urlpatterns = [
     path("stays/feed.json", stays_public.stays_feed, name="storefront-stay-feed"),
     # События/билеты (A6c): список → событие → покупка → подтверждение.
     path("veranstaltung/", events_public.veranstaltung_index, name="storefront-events"),
+    # R3b: календарь ретритов + iCal-фид (до <uuid:pk>, чтобы не перехватывались).
+    path(
+        "veranstaltung/kalender/",
+        events_public.veranstaltung_calendar,
+        name="storefront-events-calendar",
+    ),
+    path(
+        "veranstaltung/feed.ics",
+        events_public.veranstaltung_ical_feed,
+        name="storefront-events-ical-feed",
+    ),
     path("veranstaltung/<uuid:pk>/", events_public.veranstaltung_detail, name="storefront-event"),
+    path(
+        "veranstaltung/<uuid:pk>/ical",
+        events_public.veranstaltung_ical,
+        name="storefront-event-ical",
+    ),
     path(
         "veranstaltung/<uuid:pk>/buchen/",
         events_public.veranstaltung_book,
