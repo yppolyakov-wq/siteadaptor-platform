@@ -2052,6 +2052,12 @@ RETREAT = DemoKit(
             # R12: гибкая отмена — бесплатно до 14 дней до начала, затем без возврата.
             "cancellation": "flexible",
             "free_cancel_days": 14,
+            # R10: рассрочка — депозит + равные доли до 21 дня до старта.
+            "allow_installments": True,
+            "installment_mode": "until_event",
+            "installment_count": 4,
+            "installment_min_cents": 20000,
+            "installment_lead_days": 21,
             "offers_accommodation": True,
             "description": "Ein Wochenende nur für Frauen: Yoga, Kreis-Arbeit und Waldzeit "
             "in kleiner, vertrauter Runde.",
@@ -2087,6 +2093,11 @@ RETREAT = DemoKit(
             "deposit_percent": 40,
             "waiver_required": True,  # R8
             "cancellation": "non_refundable",  # R12: невозвратный тариф (демо-вариант)
+            # R10: рассрочка — фикс 3 помесячные доли (дорогой ретрит, от 200 €).
+            "allow_installments": True,
+            "installment_mode": "fixed",
+            "installment_count": 3,
+            "installment_min_cents": 20000,
             "offers_accommodation": True,
             "description": "Drei Tage Ayurveda: leichte Küche, Yoga, Ölbehandlungen und "
             "Ruhe zum Auftanken.",
@@ -2967,6 +2978,11 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     waiver_text=spec.get("waiver_text", ""),
                     cancellation=spec.get("cancellation", Event.CANCEL_FLEXIBLE),  # R12 политика
                     free_cancel_days=spec.get("free_cancel_days", 0),
+                    allow_installments=spec.get("allow_installments", False),  # R10 рассрочка
+                    installment_mode=spec.get("installment_mode", Event.INSTALLMENT_UNTIL_EVENT),
+                    installment_count=spec.get("installment_count", 3),
+                    installment_min_cents=spec.get("installment_min_cents", 0),
+                    installment_lead_days=spec.get("installment_lead_days", 14),
                     questions=list(spec.get("questions", [])),
                     program=list(spec.get("program", [])),
                     images=imgs,
