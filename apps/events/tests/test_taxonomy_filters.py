@@ -1,7 +1,7 @@
 """R2: таксономия событий (направление/уровень/язык/длительность) + фильтры каталога."""
 
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from django.contrib.messages.middleware import MessageMiddleware
@@ -44,9 +44,11 @@ def _event(**kw):
 
 # --- taxonomy --------------------------------------------------------------
 def test_duration_kind_classifies_by_dates():
-    start = timezone.now()
+    # Якорим на фиксированное утро: duration_kind считает по разнице КАЛЕНДАРНЫХ
+    # дат, поэтому now()+6ч поздним вечером пересекало бы полночь (flaky → wochenende).
+    start = timezone.make_aware(datetime(2026, 6, 1, 9, 0))  # утро — +6ч не пересекает полночь
     assert taxonomy.duration_kind(start, None) == "tag"
-    assert taxonomy.duration_kind(start, start + timedelta(hours=6)) == "tag"
+    assert taxonomy.duration_kind(start, start + timedelta(hours=6)) == "tag"  # тот же день
     assert taxonomy.duration_kind(start, start + timedelta(days=2)) == "wochenende"
     assert taxonomy.duration_kind(start, start + timedelta(days=5)) == "mehrtaegig"
 
