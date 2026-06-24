@@ -77,6 +77,20 @@ class Event(TimestampedModel):
     cancellation = models.CharField(max_length=20, choices=CANCELLATIONS, default=CANCEL_FLEXIBLE)
     # Бесплатная отмена до N дней до начала (для flexible; 0 = до дня начала).
     free_cancel_days = models.PositiveSmallIntegerField(default=0)
+    # R10: рассрочка (Ratenzahlung) — гость платит билет частями (Stripe мандат).
+    INSTALLMENT_UNTIL_EVENT = "until_event"
+    INSTALLMENT_FIXED = "fixed"
+    INSTALLMENT_MODES = [
+        (INSTALLMENT_UNTIL_EVENT, "Bis zur Veranstaltung"),  # депозит + равные до старта
+        (INSTALLMENT_FIXED, "Feste Monatsraten"),  # фикс. число помесячно
+    ]
+    allow_installments = models.BooleanField(default=False)
+    installment_mode = models.CharField(
+        max_length=20, choices=INSTALLMENT_MODES, default=INSTALLMENT_UNTIL_EVENT
+    )
+    installment_count = models.PositiveSmallIntegerField(default=3)  # всего долей (вкл. первую)
+    installment_min_cents = models.PositiveIntegerField(default=0)  # мин. сумма к рассрочке
+    installment_lead_days = models.PositiveSmallIntegerField(default=14)  # послед. доля до старта
     # Фото места/мероприятия: FileRef-список (как catalog.Product.images).
     images = models.JSONField(default=list, blank=True)
     # A6 ценовые тиры билета: [{label, price_cents}] (Frühbucher/Standard/Kind).
@@ -507,3 +521,88 @@ class TicketWaiver(TimestampedModel):
 
     def __str__(self):
         return f"Waiver {self.ticket.reference_code}"
+
+
+class InstallmentPlan(TimestampedModel):
+    """R10: план рассрочки билета — гость платит частями (Stripe мандат).
+
+    Первая доля списывается при оформлении (on-session, сохраняет PaymentMethod),
+    остальные — off-session по графику (beat). Деньги идут бизнесу (Connect, как
+    остальные платежи событий). status: active → completed (всё оплачено) |
+    failed (исчерпаны попытки списания) | cancelled (билет отменён → стоп списаний).
+    """
+
+    STATUS_ACTIVE = "active"
+    STATUS_COMPLETED = "completed"
+    STATUS_FAILED = "failed"
+    STATUS_CANCELLED = "cancelled"
+    STATUSES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_CANCELLED, "Cancelled"),
+    ]
+
+    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name="installment_plan")
+    total_cents = models.PositiveIntegerField(default=0)  # сумма к рассрочке (снимок)
+    count = models.PositiveSmallIntegerField(default=0)  # число долей
+    status = models.CharField(max_length=12, choices=STATUSES, default=STATUS_ACTIVE)
+    # Сохранённый мандат для off-session списаний (заполняется в R10b).
+    stripe_customer_id = models.CharField(max_length=120, blank=True)
+    stripe_payment_method_id = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Plan {self.ticket.reference_code} ×{self.count}"
+
+    @property
+    def paid_cents(self) -> int:
+        return sum(
+            c.amount_cents for c in self.charges.all() if c.status == InstallmentCharge.STATUS_PAID
+        )
+
+    @property
+    def remaining_cents(self) -> int:
+        return max(0, self.total_cents - self.paid_cents)
+
+    @property
+    def paid_count(self) -> int:
+        return sum(1 for c in self.charges.all() if c.status == InstallmentCharge.STATUS_PAID)
+
+
+class InstallmentCharge(TimestampedModel):
+    """R10: одна доля графика рассрочки (идемпотентное off-session списание).
+
+    sequence 1 = первая доля (on-session при оформлении), далее — по `due_date`
+    через beat. attempts/last_error — для ретраев и эскалации (без авто-отмены)."""
+
+    STATUS_SCHEDULED = "scheduled"
+    STATUS_PAID = "paid"
+    STATUS_FAILED = "failed"
+    STATUS_REFUNDED = "refunded"
+    STATUSES = [
+        (STATUS_SCHEDULED, "Scheduled"),
+        (STATUS_PAID, "Paid"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_REFUNDED, "Refunded"),
+    ]
+
+    plan = models.ForeignKey(InstallmentPlan, on_delete=models.CASCADE, related_name="charges")
+    sequence = models.PositiveSmallIntegerField()  # 1..count
+    due_date = models.DateField()
+    amount_cents = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=12, choices=STATUSES, default=STATUS_SCHEDULED)
+    stripe_payment_intent = models.CharField(max_length=200, blank=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    last_error = models.CharField(max_length=300, blank=True)
+
+    class Meta:
+        ordering = ["sequence"]
+        constraints = [
+            models.UniqueConstraint(fields=["plan", "sequence"], name="uniq_plan_sequence")
+        ]
+
+    def __str__(self):
+        return f"Charge {self.plan_id} #{self.sequence} ({self.status})"
