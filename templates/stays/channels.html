@@ -1,0 +1,118 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Channels" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-3xl">
+  <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+    <h1 class="text-2xl font-bold">{% trans "Sales channels" %}</h1>
+    <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+  </div>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Track your OTA channels and import their reservations into your calendar (no double bookings). Availability import via iCal is on the Units page; live 2-way sync needs OTA partner keys." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {# Каналы #}
+  <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
+    <h2 class="font-semibold mb-3">{% trans "Your channels" %}</h2>
+    {% for c in channels %}
+      <div class="flex items-center justify-between gap-3 border-t border-gray-100 py-2 text-sm {% if not c.is_active %}opacity-50{% endif %}">
+        <div>
+          <span class="font-medium">{{ c.get_kind_display }}</span>
+          {% if c.name %}<span class="text-gray-500">· {{ c.name }}</span>{% endif %}
+          {% if c.last_status %}<span class="block text-xs text-gray-400">{{ c.last_synced_at|date:"d.m.Y H:i" }} · {{ c.last_status }}</span>{% endif %}
+        </div>
+        <div class="flex items-center gap-2 whitespace-nowrap">
+          <form method="post" class="inline">{% csrf_token %}
+            <input type="hidden" name="action" value="channel_toggle"><input type="hidden" name="channel" value="{{ c.pk }}">
+            <button class="text-gray-500 hover:underline text-xs">{% if c.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+          </form>
+          <form method="post" class="inline">{% csrf_token %}
+            <input type="hidden" name="action" value="channel_delete"><input type="hidden" name="channel" value="{{ c.pk }}">
+            <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No channels yet." %}</p>{% endfor %}
+
+    <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="channel_add">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Channel" %}</label>
+        <select name="kind" class="rounded-lg border border-gray-300 px-2 py-2 text-sm">
+          {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label (optional)" %}</label>
+        <input name="name" type="text" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add channel" %}</button>
+    </form>
+  </div>
+
+  {# Импорт брони из канала #}
+  <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
+    <h2 class="font-semibold mb-1">{% trans "Import a reservation" %}</h2>
+    <p class="text-xs text-gray-500 mb-3">{% trans "Enter an OTA booking to block those dates in your calendar. Re-importing the same reference does nothing (idempotent)." %}</p>
+    {% if units %}
+    <form method="post" class="grid sm:grid-cols-2 gap-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="import_booking">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Channel" %}</label>
+        <select name="kind" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
+          {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Room" %}</label>
+        <select name="unit" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
+          {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Arrival" %}</label>
+        <input name="arrival" type="date" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Departure" %}</label>
+        <input name="departure" type="date" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Guest name" %}</label>
+        <input name="name" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Guests" %}</label>
+        <input name="guests" type="number" min="1" value="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Booking reference (optional)" %}</label>
+        <input name="external_ref" type="text" placeholder="{% trans 'e.g. Booking.com confirmation number' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Import reservation" %}</button>
+    </form>
+    {% else %}<p class="text-xs text-gray-400">{% trans "Create a room first." %}</p>{% endif %}
+  </div>
+
+  {# Импортированные брони #}
+  {% if imported %}
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold mb-3">{% trans "Imported reservations" %}</h2>
+    {% for b in imported %}
+      <div class="border-t border-gray-100 py-2 text-sm">
+        <span class="font-medium">{{ b.arrival|date:"d.m." }}–{{ b.departure|date:"d.m.Y" }}</span>
+        · {{ b.unit.name }} · {{ b.source_channel }}
+        <span class="text-gray-400">· {{ b.external_ref }}</span>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -254,6 +254,54 @@ def move_stay(booking, *, arrival, departure):
     return booking
 
 
+@transaction.atomic
+def import_external_booking(
+    *, kind, unit, arrival, departure, name, external_ref="", email="", guests=1
+):
+    """G11: занести бронь из внешнего канала (Booking/Airbnb…) в наш календарь.
+
+    Идемпотентно по (kind, external_ref): повторный импорт той же брони вернёт её.
+    Успех → StayBooking (source_channel=kind, auto_confirm). Конфликт/невалидные
+    даты (овербукинг между каналами) → не теряем: ставим UnitBlock на диапазон и
+    возвращаем None (сигнал «разобрать вручную»)."""
+    external_ref = (external_ref or "").strip()[:120]
+    if external_ref:
+        existing = StayBooking.objects.filter(
+            source_channel=kind, external_ref=external_ref
+        ).first()
+        if existing is not None:
+            return existing
+    try:
+        booking = book_stay(
+            unit,
+            arrival=arrival,
+            departure=departure,
+            name=name or kind,
+            email=email,
+            guests=guests,
+            source_channel=kind,
+            auto_confirm=True,
+        )
+    except (StayUnavailable, MinStay, MaxGuests, ValueError):
+        import datetime
+
+        from .models import UnitBlock
+
+        last_night = departure - datetime.timedelta(days=1)
+        if last_night >= arrival:
+            UnitBlock.objects.create(
+                unit=unit,
+                start_date=arrival,
+                end_date=last_night,
+                reason=f"{kind}: Import-Konflikt {external_ref or name}"[:120],
+            )
+        return None
+    if external_ref:
+        booking.external_ref = external_ref
+        booking.save(update_fields=["external_ref", "updated_at"])
+    return booking
+
+
 def cancellation_state(booking, today=None) -> dict:
     """Политика отмены брони по снимку тарифа H1 (H4b): {can_cancel, free}.
 

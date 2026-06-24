@@ -500,3 +500,71 @@ def checkins(request):
         .order_by("-signed_at")[:200]
     )
     return render(request, "stays/checkins.html", {"nav": "stays", "registrations": regs})
+
+
+@login_required
+def channels(request):
+    """G11: каналы продаж (Booking/Airbnb/Expedia) + ручной импорт брони из канала.
+
+    iCal-импорт занятости (A5b) живёт на странице юнитов; здесь — учёт каналов и
+    нормализованный занос брони из OTA (идемпотентно). Реальный API-синк — позже."""
+    from .models import Channel
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "channel_add":
+            kind = request.POST.get("kind", Channel.KIND_OTHER)
+            valid = {k for k, _ in Channel.KINDS}
+            Channel.objects.create(
+                kind=kind if kind in valid else Channel.KIND_OTHER,
+                name=request.POST.get("name", "").strip()[:120],
+            )
+            messages.success(request, _("Channel added."))
+        elif action == "channel_toggle":
+            ch = get_object_or_404(Channel, pk=request.POST.get("channel"))
+            ch.is_active = not ch.is_active
+            ch.save(update_fields=["is_active", "updated_at"])
+        elif action == "channel_delete":
+            Channel.objects.filter(pk=request.POST.get("channel")).delete()
+        elif action == "import_booking":
+            unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"), is_active=True)
+            try:
+                arrival = date.fromisoformat(request.POST.get("arrival", ""))
+                departure = date.fromisoformat(request.POST.get("departure", ""))
+            except ValueError:
+                messages.error(request, _("Invalid dates."))
+                return redirect("stays:channels")
+            booking = services.import_external_booking(
+                kind=request.POST.get("kind", Channel.KIND_OTHER),
+                unit=unit,
+                arrival=arrival,
+                departure=departure,
+                name=request.POST.get("name", "").strip(),
+                external_ref=request.POST.get("external_ref", "").strip(),
+                email=request.POST.get("email", "").strip(),
+                guests=_int(request.POST.get("guests", "1"), 1, 1, 50),
+            )
+            if booking is None:
+                messages.warning(
+                    request,
+                    _("Conflict — dates were blocked instead. Please resolve manually."),
+                )
+            else:
+                messages.success(request, _("Reservation imported."))
+        return redirect("stays:channels")
+
+    return render(
+        request,
+        "stays/channels.html",
+        {
+            "nav": "stays",
+            "channels": list(Channel.objects.all()),
+            "kinds": Channel.KINDS,
+            "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
+            "imported": list(
+                StayBooking.objects.exclude(external_ref="")
+                .select_related("unit")
+                .order_by("-created_at")[:50]
+            ),
+        },
+    )

@@ -1580,3 +1580,14 @@
   12/8 %), **2 тарифа с предоплатой** (30 % и 100 %), **2 промокода** (SOMMER10 −10 %
   + WILLKOMMEN20 −20 €). Миграция `stays/0018`. Тесты обновлены (multi-tier,
   demo «по 2»). ⚠️ reseed `--kit hotel --recreate`.
+
+- **G11a+G11b — фундамент Channel Manager (vendor-agnostic).** Полный 2-way с
+  Booking/Expedia/Airbnb требует партнёрских аккаунтов/сертификации (шаг владельца,
+  как Stripe live) — план и честный scope в `docs/hotel-channel-manager-plan.md`.
+  Сделан код-фундамент: модель `stays.Channel` (Booking/Airbnb/Expedia/other +
+  статус/лог) + `StayBooking.external_ref`; `services.import_external_booking`
+  (идемпотентный занос брони из канала, конфликт → UnitBlock); кабинет
+  `/dashboard/stays/channels/` (каналы + ручной импорт брони + список). Демо: 2
+  канала + импортированная бронь. Миграция `stays/0019`. Тесты `test_channels.py`.
+  Отложено (G11c–e): реальный ARI-push/reservations-API OTA — с партнёрством.
+  ⚠️ reseed `--kit hotel --recreate`. M20 Site Builder — следующий (полный аудит).

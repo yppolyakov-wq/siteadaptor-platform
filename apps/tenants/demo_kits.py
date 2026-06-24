@@ -3086,6 +3086,32 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     },
                 )
 
+            # G11: каналы продаж (Booking/Airbnb) + импортированная бронь из канала.
+            from apps.stays.models import Channel
+            from apps.stays.services import import_external_booking
+
+            for kind, label in [
+                (Channel.KIND_BOOKING, "Booking.com — Hauptkonto"),
+                (Channel.KIND_AIRBNB, "Airbnb"),
+            ]:
+                Channel.objects.get_or_create(
+                    kind=kind,
+                    name=label,
+                    defaults={"last_status": "Bereit (iCal aktiv; API erfordert Partner-Keys)"},
+                )
+            # Импорт демо-брони из Booking.com (блокирует даты, идемпотентно).
+            imp_unit = _u(2)
+            imp_arr = today + timedelta(days=18)
+            import_external_booking(
+                kind=Channel.KIND_BOOKING,
+                unit=imp_unit,
+                arrival=imp_arr,
+                departure=imp_arr + timedelta(days=max(2, imp_unit.min_nights)),
+                name="Booking.com Gast",
+                external_ref="BKG-DEMO-12345",
+                guests=min(2, imp_unit.max_guests),
+            )
+
     # G3: согласия на рассылку (Double-Opt-In) + примеры кампаний (newsletter).
     from apps.promotions.models import Customer, NewsletterCampaign
 

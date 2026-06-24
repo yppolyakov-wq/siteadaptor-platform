@@ -246,6 +246,8 @@ class StayBooking(TimestampedModel):
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
+    # G11: id брони во внешнем канале (Booking/Airbnb…) — для идемпотентного импорта.
+    external_ref = models.CharField(max_length=120, blank=True, db_index=True)
     # Напоминание перед заездом (beat, E3): чтобы слать ровно одно.
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     # G2: post-stay письмо (благодарность + запрос отзыва) после выезда — ровно одно.
@@ -353,6 +355,40 @@ class ICalSource(TimestampedModel):
 
     def __str__(self):
         return f"{self.unit}: {self.label or self.url}"
+
+
+class Channel(TimestampedModel):
+    """G11: внешний канал продаж (Booking.com/Airbnb/Expedia/прочее) на тенанта.
+
+    Vendor-agnostic запись о подключённом канале: учёт броней из него
+    (StayBooking.source_channel/external_ref), статус и лог последней синхронизации.
+    Реальный 2-way (ARI-push + reservations-API) требует партнёрских ключей OTA —
+    подключается адаптером позже; iCal-импорт занятости работает уже сейчас (A5b).
+    """
+
+    KIND_BOOKING = "booking"
+    KIND_AIRBNB = "airbnb"
+    KIND_EXPEDIA = "expedia"
+    KIND_OTHER = "other"
+    KINDS = [
+        (KIND_BOOKING, "Booking.com"),
+        (KIND_AIRBNB, "Airbnb"),
+        (KIND_EXPEDIA, "Expedia"),
+        (KIND_OTHER, "Anderer Kanal"),
+    ]
+
+    kind = models.CharField(max_length=20, choices=KINDS, default=KIND_OTHER)
+    name = models.CharField(max_length=120, blank=True)  # метка (напр. «Booking — Hauptkonto»)
+    is_active = models.BooleanField(default=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    last_status = models.CharField(max_length=200, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["kind", "name"]
+
+    def __str__(self):
+        return self.name or self.get_kind_display()
 
 
 class StaySettings(TimestampedModel):

@@ -310,6 +310,11 @@ def test_apply_hotel_kit_builds_stays_site():
     assert Customer.objects.filter(marketing_opt_in=True).count() >= 3
     assert NewsletterCampaign.objects.filter(status="sent").count() >= 2
     assert NewsletterCampaign.objects.filter(status="draft").exists()
+    # G11: каналы продаж + импортированная из канала бронь
+    from apps.stays.models import Channel
+
+    assert Channel.objects.count() >= 2
+    assert StayBooking.objects.filter(source_channel="booking").exclude(external_ref="").exists()
 
 
 def test_apply_aktionsmarkt_kit_covers_all_promo_types():

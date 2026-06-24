@@ -51,13 +51,23 @@ Python 3.12, менеджер uv.
   `Order.parent_order`/`supplier_tenant_schema`). Не начато: склад-леджер (M10),
   маркетплейс-корзина (M14), закупки (M12), dropshipping (M15), AI (M18),
   workflow-билдер (M19), drag-drop конструктор (M20).
-- **Последнее:** **наполнение архетипа A5 «Отель» (H1–H9)** — тарифы+питание,
-  поиск с главной+список, богатая карточка+похожие, промокоды+самоотмена, дети,
-  Kurtaxe, SEO `Hotel`+Hausordnung, **агрегатор отелей** (вертикальный портал +
-  поиск по датам). Полный демо: `seed_demo_tenants --kit hotel` (+ `hotels.<base>`).
-  Описание — `docs/hotel-demo.md`, план — `docs/hotel-archetype-plan.md`.
-- Самые свежие миграции: `stays/0008–0012` (rate plans, amenities, adults/children+
-  Kurtaxe+StaySettings, promo/discount, house_rules); полный список — в build-log.
+- **Последнее:** **архетип A5 «Отель» — H1–H9 + бэклог роста G1–G11**. Помимо H-ядра
+  (тарифы/питание, поиск, богатая карточка, промокоды/самоотмена, дети, Kurtaxe, SEO
+  `Hotel`+Hausordnung, агрегатор отелей): **G1** Geschenkgutscheine, **G2** pre/post-stay,
+  **G3** рассылки гостям (Double-Opt-In, UWG §7), **G4** многоступенчатые авто-скидки
+  (LOS/Frühbucher/Last-Minute, неск. правил на тип), **G5** мультикомнатная бронь,
+  **G6** Online-Checkin + цифровой Meldeschein (BMG, retention 1 год), **G7** гибкая
+  предоплата по тарифу (0/частично/100 %), **G8** фид цен/наличия для метапоиска
+  (Google Free Booking Links), **G9** отчёты Belegung/ADR/RevPAR, **G10** iframe-виджет,
+  **G11a/b** фундамент Channel Manager (модель `Channel` + идемпотентный импорт броней
+  из OTA; реальные API Booking/Expedia/Airbnb — партнёрство, отложено G11c–e). UX витрины
+  номера: 2 колонки (галерея/бронь), лайтбокс, карточки номеров на главной, полное меню.
+  Демо — **по нескольку примеров на фичу**: `seed_demo_tenants --kit hotel --recreate`
+  (+ `hotels.<base>`). Доки: `docs/hotel-demo.md`, планы `hotel-archetype-plan.md` /
+  `hotel-growth-plan.md` / `hotel-channel-manager-plan.md`.
+- Самые свежие миграции: `stays/0014–0019` (auto-discount fields→rules, prepayment_percent,
+  rooms, GuestRegistration, Channel+external_ref) + `promotions/0018` (NewsletterCampaign +
+  marketing_opt_in_at). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
@@ -123,20 +133,23 @@ Python 3.12, менеджер uv.
 - **`micro-business-verticals.md`** — карта вертикалей DACH (потребности → полнота,
   бэклог G1–G9, порядок retail-пакета и P2.5).
 
-## 7. Дальше (актуальный порядок, 2026-06-22)
-Stage 1 (архетипы A1–A9) и сквозной бэклог G1–G11 закрыты. История — build-log;
-оценка — `docs/audit-2026-06-22.md`. Текущий порядок (выбор владельца):
+## 7. Дальше (актуальный порядок, 2026-06-23)
+Архетип A5 «Отель» закрыт: H1–H9 + бэклог роста G1–G10 + фундамент G11 (a/b).
+Демо наполнено по нескольку примеров на фичу, агрегатор согласован. История —
+build-log; планы — `hotel-growth-plan.md` / `hotel-channel-manager-plan.md`.
+Текущий порядок (выбор владельца, 2026-06-23: сначала G11, затем M20):
 
-1. **Гигиена (этот этап):** ✅ оптимизация docs (история→build-log), ✅ аудит,
-   ✅ M20-план; **рефактор перегруженного ядра** — вынос loyalty+vouchers из
-   `promotions` в `apps.loyalty` (Customer остаётся общей идентичностью).
-2. **M20 — Site Builder (полный, drag-drop)** — следующий функциональный этап.
-   План/разбивка — **`docs/m20-site-builder-plan.md`**. Основа заложена (JSON-схема
-   `site_config` + реестр секций + live-preview-эндпоинты `site_preview*`/
-   `site_inline_edit`); добавляем визуальный редактор поверх.
+1. **G11 (Channel Manager):** ✅ фундамент G11a/b (модель `Channel` + идемпотентный
+   импорт броней из OTA + кабинет). **Отложено G11c–e** — реальные API
+   Booking/Expedia/Airbnb (партнёрские аккаунты/сертификация — шаг владельца).
+2. **M20 — Site Builder: ПОЛНЫЙ АУДИТ (след. шаг, выбор владельца 2026-06-23).**
+   Слои M20a–f уже сделаны (live-preview + drag-drop порядка + inline-правка +
+   свойства секций + тема + медиа) — пройтись по билдеру, найти UX-баги/недоработки,
+   пофиксить пакетом. План — **`docs/m20-site-builder-plan.md`**.
 3. **Далее — наполнение архетипов** (по вертикалям). Карта потребностей —
    `micro-business-verticals.md`; для каждого архетипа заводим отдельный план-док
    перед разработкой (конвенция: docs готовим до кода).
+4. **Рефактор-гигиена (по желанию):** loyalty/vouchers уже вынесены в `apps.loyalty`.
 
 **Параллельно — Stage 0 (на владельце, блокер боевого запуска):** Stripe live
 (ключи/Price 39 €/Connect/webhook — `billing-stripe-setup.md`), инфра (отдельный

@@ -9,6 +9,7 @@ urlpatterns = [
     path("new/", views.stay_create, name="stay-create"),
     path("<uuid:pk>/action/", views.stay_action, name="stay-action"),
     path("units/", views.units, name="units"),
+    path("channels/", views.channels, name="channels"),
     path("checkins/", views.checkins, name="checkins"),
     path("reports/", views.reports, name="reports"),
 ]
