@@ -87,7 +87,9 @@ def test_filter_by_city_case_insensitive():
 
 
 def test_filter_by_duration():
-    start = timezone.now() + timedelta(days=10)
+    # Будущая дата, но утренний час: +5ч не пересекает полночь (иначе days=1 →
+    # «Tagesding» ошибочно станет wochenende; flaky по времени суток UTC).
+    start = (timezone.now() + timedelta(days=10)).replace(hour=9, minute=0, second=0, microsecond=0)
     _event(title="Wochenende", starts_at=start, ends_at=start + timedelta(days=2))
     _event(title="Tagesding", starts_at=start, ends_at=start + timedelta(hours=5))
     body = public_views.veranstaltung_index(_req({"dur": "wochenende"})).content.decode()
