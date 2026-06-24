@@ -59,7 +59,10 @@ def anfrage(request):
             request, _("Thank you! Your request has arrived — we'll get back to you soon.")
         )
         return redirect("storefront-anfrage")
-    return render(request, "storefront/anfrage.html", {})
+    # R6: префилл темы из ?betreff (групповой/корп-запрос со страницы ретрита).
+    return render(
+        request, "storefront/anfrage.html", {"betreff": (request.GET.get("betreff") or "")[:200]}
+    )
 
 
 def angebot(request, token):

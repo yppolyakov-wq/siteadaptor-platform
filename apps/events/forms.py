@@ -114,6 +114,8 @@ class EventForm(forms.ModelForm):
             "description",
             "location",
             "city",
+            "latitude",
+            "longitude",
             "starts_at",
             "ends_at",
             "capacity",

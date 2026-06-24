@@ -1690,3 +1690,15 @@
   Миграция `events/0010`. Демо retreat: Wochenend-Retreat с депозитом 30 %. Тесты
   `test_voucher_deposit.py` (11). Этим R4 закрыт; остался R6 (карта/памятка/корп) и
   R7 (блог, отложен).
+
+- **Ретрит R6 — карта + памятка-PDF + корп-запрос; + полноценное демо.** На
+  странице события: OSM-карта (cookieless embed + «Route planen») по координатам
+  события `Event.latitude/longitude` (фолбэк на гео тенанта); «Teilnehmer-Infoblatt»
+  PDF (`apps/events/memo.py`, reportlab) на `/e/<code>/memo.pdf` (программа, что
+  взять, проживание, контакт) + ссылка на подтверждении; групповой/корп-запрос —
+  блок «Für Gruppen & Firmen» → `/anfrage/?betreff=…` (jobs prefill, движок Angebote).
+  Миграция `events/0011`. **Полное демо retreat:** модуль `jobs` включён; 6 событий
+  (добавлены Frauen-Retreat и Ayurveda-Detox на +90/+160 дн — фуллнес календаря,
+  направления, депозиты 30/40 %, проживание); координаты на событиях. Доки —
+  `docs/retreat-demo.md`. Тесты `test_map_memo_corp.py` (8) + расширен retreat-demo
+  тест. Этим архетип «Ретрит» (R1–R6) закрыт; R7 (блог) — отложен (общеплатформенный).

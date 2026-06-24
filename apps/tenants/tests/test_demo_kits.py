@@ -397,7 +397,7 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert demo_kits.apply_kit(tenant, "retreat") is True
 
     published = Event.objects.filter(status=Event.STATUS_PUBLISHED)
-    assert published.count() == 4
+    assert published.count() == 6  # 4 базовых + Frauen-Retreat + Ayurveda (полное демо)
     # богатый dict-спек: Programm, анкета, длительность, безлимит мест
     retreat = Event.objects.get(title="Waldlicht Wochenend-Retreat")
     assert retreat.program and len(retreat.program) == 3
@@ -407,6 +407,14 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert retreat.has_tiers and len(retreat.tier_list) == 3
     assert retreat.from_price_cents == 23000  # Mehrbettzimmer — минимальный тир
     assert Event.objects.get(title="Sommer-Festival der Achtsamkeit").capacity == 0
+    # R3 преподаватели, R4 депозит, R5 проживание, R6 гео — на главном ретрите
+    assert retreat.teachers.count() == 2
+    assert retreat.deposit_percent == 30
+    assert retreat.offers_accommodation and retreat.accommodation_units.count() == 3
+    assert retreat.latitude is not None and retreat.longitude is not None
+    # R2 таксономия фильтров + новые направления (ayurveda)
+    cats = set(published.values_list("category", flat=True))
+    assert {"yoga", "ayurveda", "klang", "achtsamkeit"} <= cats
 
     # «ретрит-лендинг»: развёрнутые блоки + фото места на главном событии
     assert retreat.images and retreat.image_url.startswith("https://")
@@ -423,7 +431,7 @@ def test_apply_retreat_kit_events_program_and_tickets():
 
     assert Service.objects.filter(name="Einzel-Yogastunde (1:1)", price_cents=5500).exists()
     assert Product.objects.filter(metadata__demo=True).count() == 4
-    for m in ("events", "booking", "orders", "customer_account"):
+    for m in ("events", "booking", "orders", "customer_account", "stays", "jobs"):
         assert tenant.is_module_active(m)
 
 

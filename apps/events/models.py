@@ -30,6 +30,9 @@ class Event(TimestampedModel):
     location = models.CharField(max_length=200, blank=True)
     # R2 таксономия для каталога/фильтров/агрегатора (пресеты — apps/events/taxonomy.py).
     city = models.CharField(max_length=100, blank=True)  # для фильтра «Stadt» + гео-агрегатор
+    # R6: координаты места (для карты на витрине; пусто = фолбэк на гео тенанта).
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     category = models.CharField(max_length=30, blank=True)  # направление/тема (yoga/meditation…)
     level = models.CharField(max_length=20, blank=True)  # требуемый уровень подготовки
     language = models.CharField(max_length=10, blank=True)  # язык проведения (контент-тег)

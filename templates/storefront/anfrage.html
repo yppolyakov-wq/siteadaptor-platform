@@ -17,7 +17,7 @@
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
     <label class="block text-sm font-medium mb-1" for="id_title">{% trans "What do you need?" %} *</label>
-    <input id="id_title" name="title" type="text" required placeholder="{% trans 'e.g. paint two rooms' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <input id="id_title" name="title" type="text" required value="{{ betreff|default:'' }}" placeholder="{% trans 'e.g. paint two rooms' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div>
     <label class="block text-sm font-medium mb-1" for="id_desc">{% trans "Details (optional)" %}</label>

@@ -198,15 +198,42 @@ def veranstaltung_detail(request, pk):
     event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
     from apps.core import extras as extras_engine
 
-    return render(
-        request,
-        "storefront/event_detail.html",
-        {
-            "event": event,
-            "extras": extras_engine.active_for("events"),  # #7 доп-услуги
-            "accommodation": services.accommodation_options(event),  # R5 типы номеров
-        },
+    tenant = getattr(request, "tenant", None)
+    # R6: координаты для карты — события, иначе фолбэк на гео тенанта.
+    lat = event.latitude if event.latitude is not None else getattr(tenant, "latitude", None)
+    lng = event.longitude if event.longitude is not None else getattr(tenant, "longitude", None)
+    jobs_active = bool(tenant and tenant.is_module_active("jobs"))
+    ctx = {
+        "event": event,
+        "extras": extras_engine.active_for("events"),  # #7 доп-услуги
+        "accommodation": services.accommodation_options(event),  # R5 типы номеров
+        "jobs_active": jobs_active,  # R6 корп-запрос (Angebot)
+        "map_embed": "",
+        "map_link": "",
+    }
+    if lat is not None and lng is not None:  # R6 карта (OSM, без трекинг-куки)
+        lat, lng = float(lat), float(lng)
+        ctx["map_embed"] = (
+            "https://www.openstreetmap.org/export/embed.html?bbox="
+            f"{lng - 0.012}%2C{lat - 0.006}%2C{lng + 0.012}%2C{lat + 0.006}"
+            f"&layer=mapnik&marker={lat}%2C{lng}"
+        )
+        ctx["map_link"] = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lng}#map=15/{lat}/{lng}"
+    return render(request, "storefront/event_detail.html", ctx)
+
+
+def veranstaltung_memo(request, code):
+    """R6: PDF «Teilnehmer-Memo» (памятка участника) по коду билета."""
+    _require_events_active(request)
+    ticket = get_object_or_404(
+        Ticket.objects.select_related("event", "stay_booking__unit"), reference_code=code
     )
+    from . import memo
+
+    pdf = memo.build_memo_pdf(ticket, request.tenant)
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = f'inline; filename="memo-{code}.pdf"'
+    return resp
 
 
 def veranstaltung_book(request, pk):

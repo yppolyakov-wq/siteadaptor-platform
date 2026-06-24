@@ -213,6 +213,7 @@ urlpatterns = [
         name="storefront-event-waitlist",
     ),
     path("e/<str:code>/", events_public.veranstaltung_confirmation, name="storefront-ticket-ok"),
+    path("e/<str:code>/memo.pdf", events_public.veranstaltung_memo, name="storefront-ticket-memo"),
     # R3: преподаватели/ведущие — список + страница учителя.
     path("lehrer/", events_public.lehrer_index, name="storefront-teachers"),
     path("lehrer/<uuid:pk>/", events_public.lehrer_detail, name="storefront-teacher"),

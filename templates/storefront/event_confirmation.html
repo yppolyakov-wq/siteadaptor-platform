@@ -33,6 +33,7 @@
     {% elif ticket.status == 'pending' %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "We'll confirm your spot shortly." %}</p>
     {% endif %}
+    <a href="{% url 'storefront-ticket-memo' ticket.reference_code %}" class="inline-block mt-4 text-sm text-indigo-600 hover:underline">📄 {% trans "Download info sheet (PDF)" %}</a>
   </div>
   {% include "storefront/_telegram_cta.html" %}
 </div>

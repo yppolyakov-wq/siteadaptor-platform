@@ -1849,7 +1849,7 @@ RETREAT = DemoKit(
         "button_label": "Events ansehen",
         "button_url": "/veranstaltung/",
     },
-    enable_modules=["events", "booking", "orders", "customer_account", "stays"],
+    enable_modules=["events", "booking", "orders", "customer_account", "stays", "jobs"],
     # R5 проживание на ретрите: типы номеров (общая/2-/1-местный) — анти-овербукинг
     # stays; weekend-retreat ниже offers_accommodation=True линкует их все.
     stay_units=[
@@ -1921,6 +1921,8 @@ RETREAT = DemoKit(
             ],
             "location": "Am Waldrand 3, Freiburg",
             "city": "Freiburg",
+            "lat": "47.9650",  # R6 карта (Waldrand bei Freiburg)
+            "lng": "7.8000",
             "category": "yoga",
             "level": "alle",
             "language": "de",
@@ -1986,6 +1988,8 @@ RETREAT = DemoKit(
             "price": "15",
             "location": "Stadtpark Freiburg",
             "city": "Freiburg",
+            "lat": "48.0100",  # R6 карта (Stadtpark)
+            "lng": "7.8550",
             "category": "achtsamkeit",
             "level": "alle",
             "language": "mixed",
@@ -1995,6 +1999,72 @@ RETREAT = DemoKit(
                 "13:00 — Workshops (Atem, Journaling, Klang)",
                 "18:00 — Live-Musik & Ausklang",
             ],
+        },
+        {
+            "title": "Frauen-Retreat: Kraft & Ruhe",
+            "in_days": 90,
+            "hour": 16,
+            "duration_days": 2,
+            "capacity": 12,
+            "price": "320",
+            "tiers": [
+                ("Frühbucher (bis 45 Tage)", "290"),
+                ("Standard", "320"),
+                ("Mehrbettzimmer", "260"),
+            ],
+            "location": "Am Waldrand 3, Freiburg",
+            "city": "Freiburg",
+            "lat": "47.9650",
+            "lng": "7.8000",
+            "category": "yoga",
+            "level": "alle",
+            "language": "de",
+            "deposit_percent": 30,
+            "offers_accommodation": True,
+            "description": "Ein Wochenende nur für Frauen: Yoga, Kreis-Arbeit und Waldzeit "
+            "in kleiner, vertrauter Runde.",
+            "program": [
+                "Fr 16:00 — Ankommen & Eröffnungskreis",
+                "Sa 08:00 — Morgen-Yoga · 10:00 Waldzeit · 16:00 Frauenkreis",
+                "So 09:00 — Yin-Yoga · 12:00 Abschluss",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "registration_fields": ["country", "emergency_contact", "diet", "experience"],
+            "photos": _RETREAT_PHOTOS,
+            "details": _RETREAT_LANDING,
+        },
+        {
+            "title": "Ayurveda-Detox-Wochenende",
+            "in_days": 160,
+            "hour": 15,
+            "duration_days": 3,
+            "capacity": 10,
+            "price": "540",
+            "tiers": [
+                ("Frühbucher (bis 60 Tage)", "490"),
+                ("Standard", "540"),
+                ("Mehrbettzimmer", "440"),
+            ],
+            "location": "Am Waldrand 3, Freiburg",
+            "city": "Freiburg",
+            "lat": "47.9650",
+            "lng": "7.8000",
+            "category": "ayurveda",
+            "level": "alle",
+            "language": "de",
+            "deposit_percent": 40,
+            "offers_accommodation": True,
+            "description": "Drei Tage Ayurveda: leichte Küche, Yoga, Ölbehandlungen und "
+            "Ruhe zum Auftanken.",
+            "program": [
+                "Fr 15:00 — Ankommen & Auftakt",
+                "Sa — Yoga · Ayurveda-Küche · Behandlungen",
+                "So — Abschluss bis 14:00",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "registration_fields": ["country", "emergency_contact", "diet", "medical"],
+            "photos": _RETREAT_PHOTOS,
+            "details": _RETREAT_LANDING,
         },
     ],
     services=[
@@ -2849,6 +2919,8 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     description=spec.get("description", ""),
                     location=spec.get("location", ""),
                     city=spec.get("city", ""),  # R2 таксономия
+                    latitude=spec.get("lat"),  # R6 карта
+                    longitude=spec.get("lng"),
                     category=spec.get("category", ""),
                     level=spec.get("level", ""),
                     language=spec.get("language", ""),
