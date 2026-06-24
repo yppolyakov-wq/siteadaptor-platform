@@ -133,6 +133,20 @@ class Event(TimestampedModel):
         return details.normalize(self.details)
 
     @property
+    def landing_testimonials(self) -> list:
+        """R13: отзывы лендинга для шаблона — с фото и звёздами рейтинга.
+
+        К каждому отзыву добавляет `stars` (★…☆ по rating 1..5, 0 = без оценки)."""
+        out = []
+        for t in self.landing.get("testimonials", []):
+            try:
+                rating = max(0, min(5, int(t.get("rating") or 0)))
+            except (TypeError, ValueError):
+                rating = 0
+            out.append({**t, "rating": rating, "stars": "★" * rating + "☆" * (5 - rating)})
+        return out
+
+    @property
     def tier_list(self) -> list:
         """Нормализованные тиры [{label, price_cents}] (см. details.normalize_tiers)."""
         from . import details

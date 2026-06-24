@@ -193,16 +193,53 @@
   </section>
   {% endif %}
 
-  {# 13. Stimmen / Fotos #}
-  {% if L.testimonials %}
+  {# 13. Stimmen / Fotos (R13: Foto + Sterne) #}
+  {% if event.landing_testimonials %}
   <section class="mt-8">
     <h2 class="text-xl font-bold mb-3">{% trans "What guests say" %}</h2>
     <div class="grid sm:grid-cols-2 gap-4">
-      {% for t in L.testimonials %}
+      {% for t in event.landing_testimonials %}
         <blockquote class="bg-white rounded-xl shadow-sm p-4">
+          {% if t.rating %}<p class="text-amber-500 text-sm mb-1" aria-label="{{ t.rating }}/5">{{ t.stars }}</p>{% endif %}
           <p class="text-gray-700 italic">“{{ t.text }}”</p>
-          <footer class="text-sm text-gray-500 mt-2">— {{ t.name }}{% if t.city %}, {{ t.city }}{% endif %}</footer>
+          <footer class="flex items-center gap-2 text-sm text-gray-500 mt-2">
+            {% if t.photo %}<img src="{{ t.photo }}" alt="{{ t.name }}" class="w-9 h-9 rounded-full object-cover" loading="lazy">{% endif %}
+            <span>— {{ t.name }}{% if t.city %}, {{ t.city }}{% endif %}</span>
+          </footer>
         </blockquote>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 13b. Vorher / Nachher (R13: Transformation) #}
+  {% if L.before_after %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Before & after" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for b in L.before_after %}
+        <figure class="bg-white rounded-xl shadow-sm p-4">
+          <div class="grid grid-cols-2 gap-2">
+            {% if b.before %}<img src="{{ b.before }}" alt="{% trans 'Before' %}" class="w-full h-32 object-cover rounded-lg" loading="lazy">{% endif %}
+            {% if b.after %}<img src="{{ b.after }}" alt="{% trans 'After' %}" class="w-full h-32 object-cover rounded-lg" loading="lazy">{% endif %}
+          </div>
+          {% if b.text %}<figcaption class="text-sm text-gray-600 mt-2">{{ b.text }}</figcaption>{% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 13c. Zertifikate / Auszeichnungen (R13: Vertrauen) #}
+  {% if L.certifications %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Certifications" %}</h2>
+    <div class="flex flex-wrap gap-4">
+      {% for c in L.certifications %}
+        <div class="flex items-center gap-2 bg-white rounded-xl shadow-sm px-4 py-3">
+          {% if c.icon %}<img src="{{ c.icon }}" alt="{{ c.name }}" class="w-8 h-8 object-contain" loading="lazy">{% else %}<span class="text-lg">🏅</span>{% endif %}
+          <span class="text-sm"><span class="font-medium">{{ c.name }}</span>{% if c.issuer %}<span class="block text-xs text-gray-500">{{ c.issuer }}</span>{% endif %}</span>
+        </div>
       {% endfor %}
     </div>
   </section>

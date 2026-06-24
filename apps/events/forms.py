@@ -92,8 +92,19 @@ class EventForm(forms.ModelForm):
     )
     testimonials_text = forms.CharField(
         required=False,
-        widget=_ta(4, "Johanna | Köln | Hat mich geerdet."),
-        label="Stimmen (Name | Stadt | Text)",
+        widget=_ta(4, "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"),
+        label="Stimmen (Name | Stadt | Text | Foto-URL | Sterne 1–5)",
+    )
+    # R13: истории «до/после» (Bild-URLs + Text) и значки сертификации.
+    before_after_text = forms.CharField(
+        required=False,
+        widget=_ta(3, "https://…/vorher.jpg | https://…/nachher.jpg | 3 Tage Detox"),
+        label="Vorher/Nachher (Vorher-URL | Nachher-URL | Text)",
+    )
+    certifications_text = forms.CharField(
+        required=False,
+        widget=_ta(3, "Yoga Alliance RYT-500 | Yoga Alliance | https://…/logo.svg"),
+        label="Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)",
     )
 
     # form-field → (details-key, record-keys|None)
@@ -106,7 +117,9 @@ class EventForm(forms.ModelForm):
         "includes_text": ("includes", ("title", "text")),
         "hosts_text": ("hosts", ("name", "role", "photo")),
         "faq_text": ("faq", ("q", "a")),
-        "testimonials_text": ("testimonials", ("name", "city", "text")),
+        "testimonials_text": ("testimonials", ("name", "city", "text", "photo", "rating")),
+        "before_after_text": ("before_after", ("before", "after", "text")),
+        "certifications_text": ("certifications", ("name", "issuer", "icon")),
     }
     _SCALAR_FIELDS = ("promise", "idea", "venue", "food", "price_note")
 

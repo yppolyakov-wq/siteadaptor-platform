@@ -1752,3 +1752,15 @@
   Демо: Frauen-Retreat (flexible, 14 дн), Ayurveda (non_refundable). Тесты
   `test_cancellation.py` (10); events-сьют 137 зелёный. Дальше R7+ — R10 (рассрочка, L)
   или R13 (медиа-отзывы).
+
+- **Ретрит R13 — медиа-отзывы + истории «до/после» + значки сертификации.** Trust-блоки
+  на ретрит-лендинге (`Event.details`, курирует организатор). Расширена схема
+  `details._SCHEMA`: отзывы `name|city|text|photo|rating` (фото-аватар + 1–5 звёзд),
+  новые блоки `before_after` (`vorher|nachher|text`) и `certifications` (`name|issuer|icon`).
+  `Event.landing_testimonials` отдаёт отзывы со строкой звёзд (rating клампится 0–5).
+  Старые 3-кортежные отзывы валидны (photo/rating пустые) — **без миграции** (JSON).
+  Витрина `event_detail`: фото+звёзды в отзывах, секции «Before & after» (две картинки
+  рядом) и «Certifications» (значки). Кабинет-форма: 3 построчных поля. Демо:
+  Waldlicht-лендинг (2 отзыва с фото+5★, история «до/после», 2 значка). Тесты
+  `test_media_reviews.py` (8); events-сьют 126 зелёный. Ретрит-бэклог R7+ закрыт,
+  кроме R10 (рассрочка, L, high-risk — отложено по решению владельца).

@@ -291,10 +291,36 @@ _RETREAT_LANDING = {
         ("Gibt es Dusche und WC?", "Ja, geteilte Bäder und Duschen sind vorhanden."),
         ("Sind Haustiere erlaubt?", "Leider nein — aus Rücksicht auf alle Teilnehmenden."),
     ],
+    # R13: отзывы с фото + рейтингом (5-кортеж: name | city | text | photo | rating).
     "testimonials": [
-        ("Johanna P.", "Köln", "Zwei Tage, die mich geerdet haben. Ich komme wieder."),
-        ("Daniel R.", "Düsseldorf", "Kleine Gruppe, viel Raum, herzliche Begleitung."),
+        (
+            "Johanna P.",
+            "Köln",
+            "Zwei Tage, die mich geerdet haben. Ich komme wieder.",
+            demo_image("portrait,woman", w=200, h=200, lock=41),
+            "5",
+        ),
+        (
+            "Daniel R.",
+            "Düsseldorf",
+            "Kleine Gruppe, viel Raum, herzliche Begleitung.",
+            demo_image("portrait,man", w=200, h=200, lock=42),
+            "5",
+        ),
         ("Sandra K.", "Bonn", "Genau die Pause, die ich gebraucht habe."),
+    ],
+    # R13: истории «до/после» (before-URL | after-URL | text).
+    "before_after": [
+        (
+            demo_image("stressed,office", w=400, h=300, lock=51),
+            demo_image("calm,yoga", w=400, h=300, lock=52),
+            "Von ausgebrannt zu erholt — nach einem Wochenende.",
+        ),
+    ],
+    # R13: значки сертификации (Name | Aussteller | Logo-URL).
+    "certifications": [
+        ("RYT-500", "Yoga Alliance", demo_image("logo,seal", w=120, h=120, lock=61)),
+        ("Ayurveda-Therapeutin", "VEAT e.V.", ""),
     ],
 }
 _RETREAT_PHOTOS = ["yoga,forest", "meditation,nature", "lake,forest", "campfire,night"]

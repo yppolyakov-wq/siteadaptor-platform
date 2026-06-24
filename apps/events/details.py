@@ -62,7 +62,10 @@ _SCHEMA = {
     "price_note": "scalar",
     "bring": "list",
     "faq": ("q", "a"),
-    "testimonials": ("name", "city", "text"),
+    # R13: отзывы с фото + рейтингом, истории «до/после», значки сертификации.
+    "testimonials": ("name", "city", "text", "photo", "rating"),
+    "before_after": ("before", "after", "text"),
+    "certifications": ("name", "issuer", "icon"),
 }
 
 
