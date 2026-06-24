@@ -46,6 +46,9 @@ class Event(TimestampedModel):
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_DRAFT)
     # Даже после оплаты держать билет pending до ручного подтверждения.
     require_manual_confirm = models.BooleanField(default=False)
+    # R4: онлайн-предоплата в % от суммы (0 = оплата полностью; 1..99 = депозит,
+    # остаток на месте/по счёту; 100 = полная). Дорогой ретрит — бронь депозитом.
+    deposit_percent = models.PositiveSmallIntegerField(default=0)
     # Фото места/мероприятия: FileRef-список (как catalog.Product.images).
     images = models.JSONField(default=list, blank=True)
     # A6 ценовые тиры билета: [{label, price_cents}] (Frühbucher/Standard/Kind).
@@ -237,17 +240,26 @@ class Ticket(TimestampedModel):
         related_name="event_tickets",
     )
     accommodation_cents = models.PositiveIntegerField(default=0)
+    # R4: применённый подарочный/промо-код (Voucher) — снимок кода и скидки (центы).
+    # Скидка вычитается из суммы к оплате (payable_cents); снимок переживает ваучер.
+    voucher_code = models.CharField(max_length=12, blank=True)
+    discount_cents = models.PositiveIntegerField(default=0)
+    # R4: снимок онлайн-депозита (центы) при частичной оплате (Event.deposit_percent);
+    # 0 = оплата полностью. Остаток (payable − deposit) — на месте/по счёту.
+    deposit_cents = models.PositiveIntegerField(default=0)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
 
     PAYMENT_NONE = "none"
     PAYMENT_PENDING = "pending"
     PAYMENT_PAID = "paid"
+    PAYMENT_DEPOSIT = "deposit"  # R4: депозит оплачен, остаток на месте
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
         (PAYMENT_NONE, "None"),
         (PAYMENT_PENDING, "Pending"),
         (PAYMENT_PAID, "Paid"),
+        (PAYMENT_DEPOSIT, "Deposit paid"),
         (PAYMENT_REFUNDED, "Refunded"),
     ]
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)
@@ -272,8 +284,39 @@ class Ticket(TimestampedModel):
         return self.price_cents * self.quantity + self.extras_cents + self.accommodation_cents
 
     @property
+    def payable_cents(self) -> int:
+        """К оплате итого (R4): брутто минус скидка ваучера (не уходит в минус)."""
+        return max(0, self.total_cents - self.discount_cents)
+
+    @property
+    def amount_due_now_cents(self) -> int:
+        """Сумма онлайн-оплаты сейчас (R4): депозит, если задан, иначе вся payable."""
+        return self.deposit_cents if self.deposit_cents else self.payable_cents
+
+    @property
+    def balance_cents(self) -> int:
+        """Остаток после онлайн-депозита (на месте); 0 при полной оплате."""
+        return max(0, self.payable_cents - self.deposit_cents) if self.deposit_cents else 0
+
+    @property
     def total_eur(self):
         return Decimal(self.total_cents) / 100
+
+    @property
+    def payable_eur(self):
+        return Decimal(self.payable_cents) / 100
+
+    @property
+    def discount_eur(self):
+        return Decimal(self.discount_cents) / 100
+
+    @property
+    def amount_due_now_eur(self):
+        return Decimal(self.amount_due_now_cents) / 100
+
+    @property
+    def balance_eur(self):
+        return Decimal(self.balance_cents) / 100
 
 
 class EventWaitlistEntry(TimestampedModel):

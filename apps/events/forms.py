@@ -40,6 +40,10 @@ class EventForm(forms.ModelForm):
     language = forms.ChoiceField(
         required=False, choices=[("", "—")] + taxonomy.LANGUAGES, label="Sprache"
     )
+    # R4: онлайн-предоплата %, 0 = полная оплата (1..99 = депозит, остаток на месте).
+    deposit_percent = forms.IntegerField(
+        required=False, min_value=0, max_value=100, label="Anzahlung online (%, 0 = voll)"
+    )
     # R1: какие пресет-поля анкеты показывать на витрине (страна/ДР/питание…).
     registration_fields = forms.MultipleChoiceField(
         required=False,
@@ -148,6 +152,7 @@ class EventForm(forms.ModelForm):
             self.fields["registration_fields"].initial = self.instance.registration_fields or []
             for f in ("category", "level", "language"):
                 self.fields[f].initial = getattr(self.instance, f, "")
+            self.fields["deposit_percent"].initial = self.instance.deposit_percent
             d = self.instance.landing
             for key in self._SCALAR_FIELDS:
                 self.fields[key].initial = d.get(key, "")
@@ -188,6 +193,7 @@ class EventForm(forms.ModelForm):
         event.category = self.cleaned_data.get("category") or ""
         event.level = self.cleaned_data.get("level") or ""
         event.language = self.cleaned_data.get("language") or ""
+        event.deposit_percent = self.cleaned_data.get("deposit_percent") or 0
         if commit:
             event.save()
             self.save_m2m()  # R5/R3: accommodation_units + teachers (M2M)

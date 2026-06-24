@@ -12,7 +12,7 @@ def ticket_checkout_url(ticket, tenant, *, success_url: str, cancel_url: str) ->
     """URL Stripe-оплаты билета (на connected account бизнеса)."""
     return connect.connected_checkout_session(
         connect_id=tenant.stripe_connect_id,
-        amount_cents=ticket.total_cents,
+        amount_cents=ticket.amount_due_now_cents,  # R4: депозит или вся payable
         product_name=f"{ticket.event.title} ×{ticket.quantity}",
         metadata={
             "kind": "event_ticket",
@@ -41,9 +41,11 @@ def mark_ticket_paid(*, tenant_schema: str, ticket_id: str, payment_intent: str 
         ticket = Ticket.objects.filter(id=ticket_id).select_related("event").first()
         if ticket is None:
             return False
+        # R4: при депозите помечаем deposit (остаток на месте), иначе paid.
+        target_state = Ticket.PAYMENT_DEPOSIT if ticket.deposit_cents else Ticket.PAYMENT_PAID
         fields = []
-        if ticket.payment_state != Ticket.PAYMENT_PAID:
-            ticket.payment_state = Ticket.PAYMENT_PAID
+        if ticket.payment_state != target_state:
+            ticket.payment_state = target_state
             fields.append("payment_state")
         if payment_intent and ticket.stripe_payment_intent != payment_intent:
             ticket.stripe_payment_intent = payment_intent

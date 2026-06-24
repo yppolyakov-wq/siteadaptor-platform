@@ -16,8 +16,17 @@
         {% for e in ticket.extras %}<li>+ {{ e.label }}</li>{% endfor %}
       </ul>
     {% endif %}
+    {# R4: код/скидка + депозит/остаток #}
+    {% if ticket.discount_cents %}
+      <p class="text-sm text-gray-600 mb-1">{% trans "Voucher" %} {{ ticket.voucher_code }}: −{{ ticket.discount_eur|floatformat:2 }} €</p>
+    {% endif %}
+    {% if ticket.payable_cents %}
+      <p class="text-sm text-gray-700 mb-4">{% trans "Total" %}: {{ ticket.payable_eur|floatformat:2 }} €</p>
+    {% endif %}
 
-    {% if ticket.payment_state == 'paid' %}
+    {% if ticket.payment_state == 'deposit' %}
+      <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% blocktrans with d=ticket.amount_due_now_eur|floatformat:2 b=ticket.balance_eur|floatformat:2 %}Deposit {{ d }} € paid. Balance {{ b }} € due on site.{% endblocktrans %}</p>
+    {% elif ticket.payment_state == 'paid' %}
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>
     {% elif just_paid %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Payment received — we'll confirm shortly." %}</p>

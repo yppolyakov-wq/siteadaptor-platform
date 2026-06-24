@@ -296,6 +296,13 @@
           </fieldset>
         {% endif %}
         {% include "storefront/_extras.html" %}
+        {# R4: подарочный/промо-код #}
+        <label class="block text-sm text-gray-600">{% trans "Voucher code (optional)" %}
+          <input name="voucher_code" placeholder="GS-XXXXXX" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 uppercase">
+        </label>
+        {% if event.deposit_percent and event.deposit_percent < 100 %}
+          <p class="text-xs text-gray-500">{% blocktrans with p=event.deposit_percent %}Pay {{ p }}% deposit online now — the rest is due on site.{% endblocktrans %}</p>
+        {% endif %}
         <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">
           {% if event.price_cents %}{% trans "Book & pay" %}{% else %}{% trans "Register" %}{% endif %}
         </button>

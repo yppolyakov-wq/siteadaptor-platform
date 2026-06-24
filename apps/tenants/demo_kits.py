@@ -1924,6 +1924,7 @@ RETREAT = DemoKit(
             "category": "yoga",
             "level": "alle",
             "language": "de",
+            "deposit_percent": 30,  # R4: бронь депозитом 30 %, остаток на месте
             "offers_accommodation": True,  # R5: выбор типа номера на даты ретрита
             "description": "Zwei Tage Yoga, Meditation und Waldspaziergänge in kleiner Gruppe. "
             "Inklusive Programm, Begleitung und Tee-Pausen.",
@@ -2855,6 +2856,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     ends_at=ends,
                     capacity=spec.get("capacity", 0),
                     price_cents=int(Decimal(str(spec.get("price", "0"))) * 100),
+                    deposit_percent=spec.get("deposit_percent", 0),  # R4 онлайн-предоплата
                     questions=list(spec.get("questions", [])),
                     program=list(spec.get("program", [])),
                     images=imgs,

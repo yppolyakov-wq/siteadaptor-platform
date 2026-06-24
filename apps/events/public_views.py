@@ -244,8 +244,13 @@ def veranstaltung_book(request, pk):
     # об оплате/авто-подтверждении (фактическая бронь — атомарно в book_ticket).
     stay_unit_id = (request.POST.get("stay_unit") or "").strip() or None
     acc_quote = services.accommodation_quote(event, stay_unit_id) if stay_unit_id else 0
-    # #7: итог = места × цена + Extras + проживание → auto-confirm при нулевом итоге.
-    order_total = resolved_price * qty + extras_engine.total_cents(extras_snap) + acc_quote
+    # R4: подарочный/промо-код — read-only оценка скидки для решения об оплате
+    # (фактическое гашение — атомарно в book_ticket).
+    voucher_code = (request.POST.get("voucher_code") or "").strip()
+    gross = resolved_price * qty + extras_engine.total_cents(extras_snap) + acc_quote
+    discount_quote = services.quote_voucher(voucher_code, gross) if voucher_code else 0
+    # itog к оплате = брутто − скидка → auto-confirm при нулевом итоге.
+    order_total = max(0, gross - discount_quote)
 
     try:
         ticket = services.book_ticket(
@@ -256,10 +261,11 @@ def veranstaltung_book(request, pk):
             quantity=qty,
             answers=answers,
             source_channel=(request.GET.get("ch") or "")[:50],
-            auto_confirm=(order_total == 0),  # бесплатно (билет + Extras + номер) — сразу
+            auto_confirm=(order_total == 0),  # бесплатно (билет + Extras + номер − код) — сразу
             tier_label=tier_label,
             extras=extras_snap,
             stay_unit_id=stay_unit_id,
+            voucher_code=voucher_code,
         )
     except services.SoldOut as exc:
         messages.error(
@@ -272,6 +278,9 @@ def veranstaltung_book(request, pk):
     except StayUnavailable:
         messages.error(request, _("Sorry, the selected room is no longer available."))
         return redirect("storefront-event", pk=pk)
+    except services.PromoInvalid:
+        messages.error(request, _("This voucher code is not valid."))
+        return redirect("storefront-event", pk=pk)
     except (services.EventNotBookable, ValueError):
         messages.error(request, _("This event is not available."))
         return redirect("storefront-event", pk=pk)
@@ -279,7 +288,7 @@ def veranstaltung_book(request, pk):
     # Платный билет + подключённая оплата → Stripe Checkout (на счёт бизнеса).
     tenant = getattr(request, "tenant", None)
     if (
-        ticket.total_cents > 0  # #7: включает Extras (платная доплата на бесплатном событии)
+        ticket.amount_due_now_cents > 0  # R4: депозит или вся payable (после скидки кода)
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     ):

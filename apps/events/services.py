@@ -30,6 +30,41 @@ class EventNotBookable(Exception):
     """Событие не опубликовано / отменено."""
 
 
+class PromoInvalid(Exception):
+    """Подарочный/промо-код указан, но не применим (нет/просрочен/исчерпан/мин)."""
+
+
+def quote_voucher(code, base_cents) -> int:
+    """Оценка скидки кода для суммы (read-only, без гашения); 0 — не применим."""
+    code = (code or "").strip().upper()
+    if not code:
+        return 0
+    from apps.loyalty.models import Voucher
+
+    voucher = Voucher.objects.filter(code=code).first()
+    return voucher.discount_for(base_cents) if voucher else 0
+
+
+def _apply_voucher(code, base_cents):
+    """(discount_cents, code_snapshot) для кода (R4), атомарно гасит. Пусто → (0, "").
+    Код задан, но не применим → PromoInvalid. Зеркало stays._apply_voucher."""
+    code = (code or "").strip().upper()
+    if not code:
+        return 0, ""
+    from apps.loyalty.models import Voucher
+    from apps.promotions.services import VoucherError, redeem_voucher
+
+    voucher = Voucher.objects.filter(code=code).first()
+    discount = voucher.discount_for(base_cents) if voucher else 0
+    if not voucher or discount <= 0:
+        raise PromoInvalid()
+    try:
+        redeem_voucher(code)
+    except VoucherError as exc:
+        raise PromoInvalid() from exc
+    return discount, code
+
+
 def _unique_ticket_code() -> str:
     for _ in range(10):
         code = "E-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
@@ -64,13 +99,17 @@ def book_ticket(
     tier_label="",
     extras=None,
     stay_unit_id=None,
+    voucher_code="",
 ):
     """Создать билет, атомарно проверив наличие мест. Бросает ValueError,
-    EventNotBookable, SoldOut. tier_label (A6) — выбранный ценовой тир: цена
-    билета берётся из него (иначе event.price_cents). extras (#7) — доп-услуги.
+    EventNotBookable, SoldOut, PromoInvalid. tier_label (A6) — выбранный ценовой
+    тир: цена билета берётся из него (иначе event.price_cents). extras (#7) — доп-услуги.
     stay_unit_id (R5) — выбранный тип номера: создаётся привязанная StayBooking на
     даты ретрита (анти-овербукинг stays), цена входит в total_cents (одна оплата);
-    номер недоступен → stays.StayUnavailable (вся бронь откатывается)."""
+    номер недоступен → stays.StayUnavailable (вся бронь откатывается).
+    voucher_code (R4) — подарочный/промо-код (Voucher): скидка на сумму билета,
+    атомарно гасится; задан, но не применим → PromoInvalid. deposit_percent события
+    (R4) → снимок онлайн-депозита (Ticket.deposit_cents)."""
     if quantity < 1:
         raise ValueError("quantity must be >= 1")
 
@@ -110,6 +149,21 @@ def book_ticket(
     # R5: привязать проживание (выбранный тип номера) — внутри той же транзакции.
     if stay_unit_id:
         _attach_accommodation(event, ticket, customer, stay_unit_id, quantity)
+    # R4: применить подарочный/промо-код к итогу билета (после проживания/Extras).
+    fields = []
+    if voucher_code:
+        discount, code_snap = _apply_voucher(voucher_code, ticket.total_cents)
+        ticket.discount_cents = discount
+        ticket.voucher_code = code_snap
+        fields += ["discount_cents", "voucher_code"]
+    # R4: депозит (онлайн-предоплата %) — снимок от суммы к оплате (после скидки).
+    pct = event.deposit_percent
+    if 0 < pct < 100 and ticket.payable_cents > 0:
+        ticket.deposit_cents = ticket.payable_cents * pct // 100
+        fields.append("deposit_cents")
+    if fields:
+        fields.append("updated_at")
+        ticket.save(update_fields=fields)
     # письмо «Anmeldung erhalten» — Notification в этой же транзакции (A6c)
     from .notifications import enqueue_ticket_email
 
