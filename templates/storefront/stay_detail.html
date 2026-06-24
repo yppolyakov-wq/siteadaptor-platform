@@ -13,16 +13,9 @@
 
 {# Двухколоночная раскладка: слева — фото/галерея, справа — название, цена и бронь. #}
 <div class="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start mt-3">
-  {# ЛЕВО: галерея (кликабельна — лайтбокс) #}
+  {# ЛЕВО: галерея (M20U: большое фото + миниатюры, свап на месте) #}
   <div class="lg:col-span-7">
-    {% if unit.images %}
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {% for img in unit.images %}
-        <img src="{{ img.url }}" alt="{{ unit.name }}" loading="lazy" decoding="async" data-lightbox="{{ img.url }}"
-             class="w-full h-40 object-cover rounded-xl bg-gray-100 cursor-zoom-in hover:opacity-95 transition {% if forloop.first %}col-span-2 sm:col-span-3 h-64 sm:h-80{% endif %}">
-      {% endfor %}
-    </div>
-    {% endif %}
+    {% include "storefront/_media_gallery.html" with images=unit.images alt=unit.name %}
   </div>
 
   {# ПРАВО: название, цена, опции (выбор дат + бронь) #}
@@ -32,6 +25,9 @@
       <p class="text-gray-500 mt-1">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if unit.area_sqm %} · {{ unit.area_sqm }} m²{% endif %}{% if unit.bed_type %} · {{ unit.bed_type }}{% endif %}</p>
       <p class="mt-2 text-xl font-bold">{% blocktrans with p=unit.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
       {% if unit.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
+      {% if storefront_inbox_enabled %}
+        <a href="{% url 'storefront-message' %}?kind=stay&id={{ unit.pk }}&label={{ unit.name|urlencode }}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>
+      {% endif %}
     </div>
 
     {# выбор дат (GET) #}

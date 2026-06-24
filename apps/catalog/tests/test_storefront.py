@@ -66,6 +66,21 @@ def test_product_detail_renders_price_and_contacts():
     assert "Hauptstr. 1" in body  # офлайн-покупка: контакты бизнеса
 
 
+def test_product_detail_uses_shared_media_gallery():
+    """M20U-4: карточка товара переиспользует общую галерею (большое+миниатюры)."""
+    product = ProductFactory(
+        name={"de": "Roggenbrot"},
+        images=[
+            {"id": "a", "url": "https://img/a.jpg", "is_primary": True},
+            {"id": "b", "url": "https://img/b.jpg"},
+        ],
+    )
+    body = public_views.product_detail(
+        _req(f"/sortiment/{product.pk}/"), pk=product.pk
+    ).content.decode()
+    assert "js-media-gallery" in body and 'data-src="https://img/b.jpg"' in body
+
+
 def test_product_detail_404_for_inactive():
     product = ProductFactory(is_active=False)
     with pytest.raises(Http404):
