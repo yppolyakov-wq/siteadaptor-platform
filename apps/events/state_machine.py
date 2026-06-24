@@ -48,6 +48,16 @@ class TicketSM(StateMachine):
 
             enqueue_ticket_email(instance, t.dst)
 
+        # R10e: отмена билета → стоп будущих списаний рассрочки (без авто-возврата;
+        # уже оплаченные доли возвращает владелец вручную в кабинете).
+        if t.dst == "cancelled":
+            from .models import InstallmentPlan
+
+            plan = getattr(instance, "installment_plan", None)
+            if plan is not None and plan.status == InstallmentPlan.STATUS_ACTIVE:
+                plan.status = InstallmentPlan.STATUS_CANCELLED
+                plan.save(update_fields=["status", "updated_at"])
+
         # Продажа билета (подтверждён/оплачен) → выручка. НДС 19 % (стандарт; для
         # культурных мероприятий может быть 7 % — настраиваемо позже).
         if t.dst == "confirmed":

@@ -81,3 +81,89 @@ def build_schedule(event, total_cents, today, start_date) -> list[dict]:
     return [
         {"sequence": i + 1, "due_date": dates[i], "amount_cents": amounts[i]} for i in range(count)
     ]
+
+
+def first_installment_cents(event, total_cents, today=None) -> int:
+    """Сумма первой доли (для Checkout первого платежа, R10b); 0 если не применимо."""
+    from django.utils import timezone
+
+    today = today or timezone.localdate()
+    if not installments_available(event, total_cents, today, event.starts_at.date()):
+        return 0
+    return split_amounts(total_cents, int(event.installment_count or 1))[0]
+
+
+def create_plan(ticket, *, payment_intent="", customer_id="", payment_method_id="", today=None):
+    """R10b: создать план рассрочки для билета (идемпотентно). Первая доля = оплачена.
+
+    Строит график по конфигу события и `ticket.payable_cents`, создаёт
+    `InstallmentPlan` + `InstallmentCharge`-ы, помечает 1-ю долю paid (с её
+    payment_intent), сохраняет мандат. Ставит `ticket.payment_state=installment`.
+    Повторный вызов вернёт существующий план (вебхук-дедуп)."""
+    from django.utils import timezone
+
+    from .models import InstallmentCharge, InstallmentPlan, Ticket
+
+    existing = InstallmentPlan.objects.filter(ticket=ticket).first()
+    if existing is not None:
+        return existing
+
+    today = today or timezone.localdate()
+    total = ticket.payable_cents
+    schedule = build_schedule(ticket.event, total, today, ticket.event.starts_at.date())
+    plan = InstallmentPlan.objects.create(
+        ticket=ticket,
+        total_cents=total,
+        count=len(schedule),
+        status=InstallmentPlan.STATUS_ACTIVE,
+        stripe_customer_id=customer_id,
+        stripe_payment_method_id=payment_method_id,
+    )
+    for i, row in enumerate(schedule):
+        first = i == 0
+        InstallmentCharge.objects.create(
+            plan=plan,
+            sequence=row["sequence"],
+            due_date=row["due_date"],
+            amount_cents=row["amount_cents"],
+            status=InstallmentCharge.STATUS_PAID if first else InstallmentCharge.STATUS_SCHEDULED,
+            stripe_payment_intent=payment_intent if first else "",
+        )
+    ticket.payment_state = Ticket.PAYMENT_INSTALLMENT
+    if payment_intent and not ticket.stripe_payment_intent:
+        ticket.stripe_payment_intent = payment_intent
+    ticket.save(update_fields=["payment_state", "stripe_payment_intent", "updated_at"])
+    # Первая доля оплачена → место за гостем (авто-подтверждение, если не ручное).
+    if not ticket.event.require_manual_confirm and ticket.status == Ticket.STATUS_PENDING:
+        from apps.core.fsm import IllegalTransition
+
+        from .state_machine import TicketSM
+
+        try:
+            TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
+        except IllegalTransition:
+            pass
+    return plan
+
+
+def mark_charge_paid(charge, payment_intent=""):
+    """R10c: отметить долю оплаченной; при полной оплате — завершить план + билет.
+
+    Возвращает True, если план полностью оплачен (completed)."""
+    from .models import InstallmentCharge, InstallmentPlan, Ticket
+
+    charge.status = InstallmentCharge.STATUS_PAID
+    charge.last_error = ""
+    if payment_intent:
+        charge.stripe_payment_intent = payment_intent
+    charge.save(update_fields=["status", "last_error", "stripe_payment_intent", "updated_at"])
+    plan = charge.plan
+    if plan.charges.exclude(status=InstallmentCharge.STATUS_PAID).exists():
+        return False
+    plan.status = InstallmentPlan.STATUS_COMPLETED
+    plan.save(update_fields=["status", "updated_at"])
+    ticket = plan.ticket
+    if ticket.payment_state != Ticket.PAYMENT_PAID:
+        ticket.payment_state = Ticket.PAYMENT_PAID
+        ticket.save(update_fields=["payment_state", "updated_at"])
+    return True

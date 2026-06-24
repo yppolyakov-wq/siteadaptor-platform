@@ -23,6 +23,18 @@ def _iter_tenant_schemas():
         )
 
 
+def _iter_tenant_billing():
+    """[(schema, connect_id)] арендаторов с подключённой оплатой (R10c)."""
+    with schema_context("public"):
+        return list(
+            get_tenant_model()
+            .objects.exclude(schema_name="public")
+            .filter(payments_enabled=True)
+            .exclude(stripe_connect_id="")
+            .values_list("schema_name", "stripe_connect_id")
+        )
+
+
 def send_due_event_reminders(now=None) -> int:
     """Напоминание за N дней до события — ровно одно на подтверждённый билет."""
     now = now or timezone.now()
@@ -86,3 +98,20 @@ def send_event_post_event():
         with schema_context(schema):
             total += send_due_post_event()
     return total
+
+
+@shared_task
+def charge_installments():
+    """Beat (раз в сутки, R10c): off-session списания наступивших долей рассрочки.
+
+    Только по арендаторам с подключённой оплатой (Stripe Connect). Безопасно при
+    отсутствии Stripe: список пуст → ничего не делает."""
+    from . import payments
+
+    totals = {"charged": 0, "failed": 0}
+    for schema, connect_id in _iter_tenant_billing():
+        with schema_context(schema):
+            r = payments.charge_due_installments(connect_id)
+        totals["charged"] += r["charged"]
+        totals["failed"] += r["failed"]
+    return totals

@@ -347,6 +347,13 @@
         {% if event.deposit_percent and event.deposit_percent < 100 %}
           <p class="text-xs text-gray-500">{% blocktrans with p=event.deposit_percent %}Pay {{ p }}% deposit online now — the rest is due on site.{% endblocktrans %}</p>
         {% endif %}
+        {# R10: рассрочка — оплата частями (мандат + авто-списания) #}
+        {% if installment_offer %}
+          <label class="flex items-start gap-2 text-sm text-gray-700 bg-indigo-50 rounded-lg px-3 py-2">
+            <input type="checkbox" name="pay_mode" value="installments" class="mt-0.5">
+            <span>{% blocktrans with n=installment_offer.count f=installment_offer.first_eur|floatformat:0 %}Pay in {{ n }} instalments — about {{ f }} € now, the rest is charged automatically.{% endblocktrans %}</span>
+          </label>
+        {% endif %}
         {# R8: отказ от ответственности + Gesundheits-Selbstauskunft #}
         {% if event.waiver_required %}
           <fieldset class="space-y-2 border border-gray-200 rounded-lg p-3">

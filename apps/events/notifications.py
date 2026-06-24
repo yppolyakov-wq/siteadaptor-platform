@@ -89,6 +89,58 @@ def enqueue_ticket_email(ticket, event):
             )
 
 
+def enqueue_installment_failed(charge, *, escalate=False):
+    """R10c: письмо о неудачном списании доли рассрочки.
+
+    Клиенту — «оплата не прошла» со ссылкой на билет (повтор/связь); владельцу —
+    эскалация, если исчерпаны попытки (план failed). Дедуп по charge+попытке."""
+    from decimal import Decimal
+
+    schema = connection.schema_name
+    plan = charge.plan
+    ticket = plan.ticket
+    customer = ticket.customer
+    base = _base_url(schema)
+    ticket_url = (
+        f"{base}{reverse('storefront-ticket-ok', args=[ticket.reference_code])}" if base else ""
+    )
+    ctx = {
+        "charge": charge,
+        "plan": plan,
+        "ticket": ticket,
+        "event": ticket.event,
+        "customer": customer,
+        "amount_eur": Decimal(charge.amount_cents) / 100,
+        "ticket_url": ticket_url,
+        "attempt": charge.attempts,
+        "final": escalate,
+    }
+    if customer.email and not customer.unsubscribed:
+        subject, body, html = _render("installment_failed", {**ctx, "unsubscribe_url": ""})
+        notify(
+            dedupe_key=f"installment:{charge.id}:failed:{charge.attempts}:customer",
+            type="installment_failed",
+            recipient=customer.email,
+            subject=subject,
+            body=body,
+            html=html,
+        )
+    if escalate:
+        owner = _owner_email(_tenant(schema))
+        if owner:
+            subject, body, html = _render(
+                "installment_failed_owner", {**ctx, "unsubscribe_url": ""}
+            )
+            notify(
+                dedupe_key=f"installment:{charge.id}:failed:owner",
+                type="installment_failed_owner",
+                recipient=owner,
+                subject=subject,
+                body=body,
+                html=html,
+            )
+
+
 def enqueue_event_waitlist_available(entry):
     """Письмо «снова frei» записи листа ожидания события (одно на запись, R1)."""
     schema = connection.schema_name

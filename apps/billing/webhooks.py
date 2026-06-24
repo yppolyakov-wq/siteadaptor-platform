@@ -162,6 +162,19 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook event_ticket: ticket not found %s", meta)
         return
 
+    # Рассрочка билета (R10b): первая доля оплачена → создать план + график.
+    if event_type == "checkout.session.completed" and meta.get("kind") == "event_installment":
+        from apps.events.payments import create_installment_plan
+
+        ok = create_installment_plan(
+            tenant_schema=meta.get("tenant_schema", ""),
+            ticket_id=meta.get("ticket_id", ""),
+            payment_intent=obj.get("payment_intent", ""),
+        )
+        if not ok:
+            logger.warning("stripe webhook event_installment: ticket not found %s", meta)
+        return
+
     # Stripe Connect (P2.5): статус connected-аккаунта бизнеса. obj — это Account,
     # его id == Tenant.stripe_connect_id. Подписку не трогаем.
     if event_type == "account.updated":

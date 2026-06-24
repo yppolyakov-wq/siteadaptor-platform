@@ -1,0 +1,14 @@
+Hallo {{ customer.name }},
+
+die {{ charge.sequence }}. Rate ({{ amount_eur }} €) für „{{ event.title }}“ konnte
+leider nicht eingezogen werden{% if charge.last_error %} ({{ charge.last_error }}){% endif %}.
+
+{% if final %}Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte
+melden Sie sich bei uns, um die Ratenzahlung fortzusetzen.{% else %}Wir versuchen es
+in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten auch hier prüfen:{% endif %}
+{% if ticket_url %}
+{{ ticket_url }}
+{% endif %}
+Ticket-Code: {{ ticket.reference_code }}
+
+Vielen Dank!

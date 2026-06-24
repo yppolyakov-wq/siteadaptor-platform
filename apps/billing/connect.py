@@ -166,3 +166,90 @@ def connected_checkout_session(
 def refund(*, connect_id: str, payment_intent: str) -> None:
     """Полный возврат платежа на connected account (анти-фрод при отмене)."""
     _client().Refund.create(payment_intent=payment_intent, stripe_account=connect_id)
+
+
+# --- Рассрочка (R10): мандат + off-session списания -----------------------
+
+
+def installment_checkout_session(
+    *,
+    connect_id: str,
+    amount_cents: int,
+    product_name: str,
+    metadata: dict,
+    success_url: str,
+    cancel_url: str,
+    business_type: str = "",
+    currency: str = "eur",
+) -> str:
+    """Checkout первой доли рассрочки НА connected account (R10b).
+
+    Как connected_checkout_session, но создаёт Customer (`customer_creation=always`)
+    и помечает PaymentIntent `setup_future_usage=off_session` — сохраняет карту как
+    мандат для последующих off-session списаний долей (beat, R10c). Возвращает URL.
+    """
+    intent_data: dict = {"metadata": dict(metadata), "setup_future_usage": "off_session"}
+    fee = application_fee_cents(amount_cents, business_type)
+    if fee > 0:
+        intent_data["application_fee_amount"] = fee
+    session = _client().checkout.Session.create(
+        stripe_account=connect_id,
+        mode="payment",
+        customer_creation="always",
+        line_items=[
+            {
+                "price_data": {
+                    "currency": currency,
+                    "unit_amount": amount_cents,
+                    "product_data": {"name": product_name[:250]},
+                },
+                "quantity": 1,
+            }
+        ],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata=metadata,
+        payment_intent_data=intent_data,
+    )
+    return session["url"]
+
+
+def mandate_from_payment_intent(*, connect_id: str, payment_intent: str) -> tuple[str, str]:
+    """(customer_id, payment_method_id) сохранённого мандата из PaymentIntent (R10b).
+
+    Нужны для off-session списаний последующих долей. Пустые строки, если Stripe
+    не вернул (карта без сохранения)."""
+    pi = _client().PaymentIntent.retrieve(payment_intent, stripe_account=connect_id)
+    return (pi.get("customer") or "", pi.get("payment_method") or "")
+
+
+def charge_off_session(
+    *,
+    connect_id: str,
+    customer_id: str,
+    payment_method_id: str,
+    amount_cents: int,
+    metadata: dict,
+    currency: str = "eur",
+    business_type: str = "",
+) -> str:
+    """Off-session списание доли рассрочки по сохранённому мандату (R10c).
+
+    Создаёт и подтверждает PaymentIntent сразу (`off_session=True, confirm=True`).
+    Возвращает id PaymentIntent при успехе. Бросает stripe.error.CardError при
+    отказе / необходимости аутентификации (SCA) — обрабатывает вызывающий (ретрай+
+    письмо). Деньги идут бизнесу (на connected account)."""
+    intent_data: dict = {
+        "amount": amount_cents,
+        "currency": currency,
+        "customer": customer_id,
+        "payment_method": payment_method_id,
+        "off_session": True,
+        "confirm": True,
+        "metadata": dict(metadata),
+    }
+    fee = application_fee_cents(amount_cents, business_type)
+    if fee > 0:
+        intent_data["application_fee_amount"] = fee
+    pi = _client().PaymentIntent.create(stripe_account=connect_id, **intent_data)
+    return pi["id"]

@@ -373,15 +373,17 @@ class Ticket(TimestampedModel):
     PAYMENT_PENDING = "pending"
     PAYMENT_PAID = "paid"
     PAYMENT_DEPOSIT = "deposit"  # R4: депозит оплачен, остаток на месте
+    PAYMENT_INSTALLMENT = "installment"  # R10: рассрочка активна (часть долей оплачена)
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
         (PAYMENT_NONE, "None"),
         (PAYMENT_PENDING, "Pending"),
         (PAYMENT_PAID, "Paid"),
         (PAYMENT_DEPOSIT, "Deposit paid"),
+        (PAYMENT_INSTALLMENT, "Installment plan"),
         (PAYMENT_REFUNDED, "Refunded"),
     ]
-    payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)
+    payment_state = models.CharField(max_length=12, choices=PAYMENT_STATES, default=PAYMENT_NONE)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)
 
     class Meta:

@@ -1,0 +1,6 @@
+Hinweis: Die Ratenzahlung zu Ticket {{ ticket.reference_code }} („{{ event.title }}“,
+{{ customer.name }}) ist nach {{ attempt }} Versuchen fehlgeschlagen — der Plan wurde
+auf „failed“ gesetzt. Offener Betrag: {{ plan.remaining_cents }} Cent.
+
+Bitte den Gast kontaktieren bzw. die Zahlung manuell klären (ggf. Rückerstattung
+bereits gezahlter Raten im Dashboard).

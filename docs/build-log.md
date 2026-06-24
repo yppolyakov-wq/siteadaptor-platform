@@ -1764,3 +1764,27 @@
   Waldlicht-лендинг (2 отзыва с фото+5★, история «до/после», 2 значка). Тесты
   `test_media_reviews.py` (8); events-сьют 126 зелёный. Ретрит-бэклог R7+ закрыт,
   кроме R10 (рассрочка, L, high-risk — отложено по решению владельца).
+
+- **Ретрит R10 — план рассрочки (Ratenzahlung), dormant до Stripe-теста.** Killer-фича
+  для дорогих ретритов: гость платит билет частями (Stripe Connect, мандат +
+  off-session списания). Решения владельца — `docs/retreat-installments-plan.md`.
+  **R10a** (модель/график): `Event` конфиг (`allow_installments`, `installment_mode`
+  until_event/fixed, `installment_count/min_cents/lead_days`); `InstallmentPlan`
+  (OneToOne→Ticket) + `InstallmentCharge`; `installments.py` (чистая логика:
+  `installments_available`, `split_amounts` — остаток центов на первые доли,
+  `schedule_dates` fixed/until_event, `build_schedule`). Миграция `events/0015`.
+  **R10b** (первый платёж+мандат): `connect.installment_checkout_session`
+  (`customer_creation=always`+`setup_future_usage=off_session`), вебхук
+  `kind=event_installment` → `create_installment_plan` → `create_plan` (1-я доля
+  paid, мандат из PI, билет confirmed); витрина — чекбокс «in Raten» (`pay_mode`).
+  Миграция `events/0016` (Ticket.payment_state += installment). **R10c** (списания):
+  beat `charge_installments` (по тенантам с Connect) → `charge_due_installments`
+  off-session `PaymentIntent`; успех → `mark_charge_paid` (план/билет→paid при
+  полной оплате); отказ → attempts++ + письмо, после `INSTALLMENT_MAX_ATTEMPTS` →
+  failed + эскалация владельцу (`installment_failed`/`_owner`); **без авто-отмены**.
+  **R10d** (мин.): строка «Rate k/N» в кабинет-ростере. **R10e**: отмена билета →
+  стоп плана (хук `TicketSM.on_transition`; покрывает кабинет + self-cancel R12).
+  Демо: Ayurveda (fixed 3), Frauen-Retreat (until_event 4). Тесты
+  `test_installments.py` (12) + `test_installment_payment.py` (8). **Код спит без
+  Stripe-ключей** (как оплата билетов); сквозная проверка списаний — на Stripe test
+  (Stage 0). Ретрит-бэклог R7+ (R8–R13) полностью закрыт.

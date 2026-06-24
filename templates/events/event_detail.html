@@ -45,7 +45,9 @@
           <td class="px-3">{{ t.customer.name }}<div class="text-xs text-gray-400">{{ t.customer.email }}</div></td>
           <td class="px-3">{{ t.quantity }}</td>
           <td class="px-3">{{ t.get_status_display }}</td>
-          <td class="px-3">{% if t.payment_state == 'paid' %}<span class="text-green-600">✓</span>{% else %}{{ t.get_payment_state_display }}{% endif %}</td>
+          <td class="px-3">{% if t.payment_state == 'paid' %}<span class="text-green-600">✓</span>{% else %}{{ t.get_payment_state_display }}{% endif %}
+            {% with p=t.installment_plan %}{% if p %}<div class="text-xs {% if p.status == 'failed' %}text-red-600{% else %}text-gray-400{% endif %}">{% blocktrans with paid=p.paid_count n=p.count %}Rate {{ paid }}/{{ n }}{% endblocktrans %}{% if p.status == 'failed' %} · ⚠{% elif p.status == 'cancelled' %} · ✕{% endif %}</div>{% endif %}{% endwith %}
+          </td>
           <td class="px-3 py-2">
             <form method="post" action="{% url 'events:ticket-action' event.pk t.pk %}" class="flex flex-wrap gap-1 justify-end">
               {% csrf_token %}

@@ -43,13 +43,24 @@
   `until_event` — равномерно между сегодня и `start − lead_days`.
 
 ## Подзадачи
-- **R10a** ✅(тек.) — модель + конфиг + график + миграция + тесты (без Stripe).
-- **R10b** — первый платёж + сохранение мандата (Checkout `setup_future_usage`,
-  вебхук `event_installment_first` → создать plan/charges, отметить 1-ю долю paid).
-- **R10c** — beat `charge_due_installments` (off-session `PaymentIntent`) + ретраи
-  + письма (подтверждение/напоминание/успех/сбой со ссылкой на on-session оплату).
-- **R10d** — кабинет (график/статусы/ручное списание/отмена плана) + витрина-выбор.
-- **R10e** — стоп плана при отмене билета (R12) + демо/доки.
+- **R10a** ✅ — модель + конфиг + график + миграция + тесты (без Stripe).
+- **R10b** ✅ — первый платёж + мандат: `connect.installment_checkout_session`
+  (`customer_creation=always` + `setup_future_usage=off_session`), вебхук
+  `kind=event_installment` → `payments.create_installment_plan` →
+  `installments.create_plan` (plan/charges, 1-я доля paid, мандат из PI, билет
+  confirmed). Витрина: чекбокс «in Raten» (`pay_mode=installments`).
+- **R10c** ✅ — beat `charge_installments` (раз в сутки, по тенантам с Connect) →
+  `payments.charge_due_installments`: off-session `PaymentIntent` по наступившим
+  долям; успех → `mark_charge_paid` (план/билет → paid при полной оплате); отказ →
+  attempts++ + письмо клиенту, после `INSTALLMENT_MAX_ATTEMPTS` → план/доля failed
+  + эскалация владельцу (письма `installment_failed`/`_owner`). **Без авто-отмены.**
+- **R10d** ✅ (мин.) — кабинет: строка «Rate k/N» (+⚠ при failed) в ростере. Ручное
+  списание/возврат — через Stripe-дашборд (решение 3). Полная панель — позже.
+- **R10e** ✅ — стоп плана при отмене билета: хук в `TicketSM.on_transition`
+  (`cancelled` → plan.status=cancelled) — покрывает кабинет и self-cancel (R12).
+
+**Статус: R10a–e готовы (dormant — спит без Stripe-ключей). Сквозная проверка
+off-session списаний — на Stripe test-аккаунте (Stage 0 владельца).**
 
 ## Заметки
 - Идемпотентность списаний — `dedupe_key` по charge.id; FSM статусов charge.

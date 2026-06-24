@@ -18,7 +18,7 @@ from apps.billing import connect
 from apps.core import ratelimit
 from apps.stays.services import StayUnavailable
 
-from . import payments, services
+from . import installments, payments, services
 from .models import Event, Teacher, Ticket
 
 RL_LIMIT = 5
@@ -210,6 +210,7 @@ def veranstaltung_detail(request, pk):
         "jobs_active": jobs_active,  # R6 корп-запрос (Angebot)
         "map_embed": "",
         "map_link": "",
+        "installment_offer": _installment_offer(event),  # R10 предпросмотр рассрочки
     }
     if lat is not None and lng is not None:  # R6 карта (OSM, без трекинг-куки)
         lat, lng = float(lat), float(lng)
@@ -220,6 +221,26 @@ def veranstaltung_detail(request, pk):
         )
         ctx["map_link"] = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lng}#map=15/{lat}/{lng}"
     return render(request, "storefront/event_detail.html", ctx)
+
+
+def _installment_offer(event):
+    """R10: предпросмотр рассрочки для витрины (по базовой цене места) или None.
+
+    Репрезентативный график (1 место, from-цена) — для бейджа «in N Raten» и
+    чекбокса на форме. Фактический график считается при брони по реальной сумме."""
+    if not event.allow_installments:
+        return None
+    rep = event.from_price_cents
+    today = timezone.localdate()
+    start = event.starts_at.date()
+    if not installments.installments_available(event, rep, today, start):
+        return None
+    sched = installments.build_schedule(event, rep, today, start)
+    return {
+        "count": len(sched),
+        "first_eur": sched[0]["amount_cents"] / 100,
+        "mode": event.installment_mode,
+    }
 
 
 def veranstaltung_memo(request, code):
@@ -264,6 +285,7 @@ def veranstaltung_book(request, pk):
     # A6 ценовой тир: цена/решение об оплате — по выбранному тиру (иначе единой цене).
     tier_label = request.POST.get("tier", "").strip()
     resolved_price = event.price_for_tier(tier_label)
+    pay_mode = (request.POST.get("pay_mode") or "").strip()  # R10: "installments" | ""
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "events")
@@ -321,10 +343,34 @@ def veranstaltung_book(request, pk):
 
     # Платный билет + подключённая оплата → Stripe Checkout (на счёт бизнеса).
     tenant = getattr(request, "tenant", None)
+    payments_ready = getattr(tenant, "payments_enabled", False) and connect.is_connect_configured()
+    # R10: рассрочка — гость выбрал «in Raten» и событие/сумма допускают → Checkout
+    # первой доли (сохраняет мандат; остальные доли спишет beat).
+    if (
+        pay_mode == "installments"
+        and payments_ready
+        and installments.first_installment_cents(event, ticket.payable_cents) > 0
+    ):
+        ticket.payment_state = Ticket.PAYMENT_PENDING
+        ticket.save(update_fields=["payment_state", "updated_at"])
+        ok_url = (
+            request.build_absolute_uri(
+                reverse("storefront-ticket-ok", args=[ticket.reference_code])
+            )
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(reverse("storefront-event", args=[event.pk]))
+        try:
+            return redirect(
+                payments.installment_checkout_url(
+                    ticket, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            pass  # рассрочка недоступна — билет остаётся pending
     if (
         ticket.amount_due_now_cents > 0  # R4: депозит или вся payable (после скидки кода)
-        and getattr(tenant, "payments_enabled", False)
-        and connect.is_connect_configured()
+        and payments_ready
     ):
         ticket.payment_state = Ticket.PAYMENT_PENDING
         ticket.save(update_fields=["payment_state", "updated_at"])
