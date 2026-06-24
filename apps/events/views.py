@@ -9,9 +9,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from . import registration
 from .forms import EventForm
 from .models import Event, Ticket
-from .services import book_ticket
+from .services import book_ticket, notify_event_waitlist
 from .state_machine import EventSM, TicketSM
 
 
@@ -89,8 +90,26 @@ def event_detail(request, pk):
     return render(
         request,
         "events/event_detail.html",
-        {"event": event, "tickets": tickets, "nav": "events"},
+        {
+            "event": event,
+            "tickets": tickets,
+            "waitlist": event.waitlist.all(),
+            "nav": "events",
+        },
     )
+
+
+@login_required
+@require_POST
+def waitlist_notify(request, pk):
+    """Разослать письма «снова frei» листу ожидания (если есть места)."""
+    event = get_object_or_404(Event, pk=pk)
+    sent = notify_event_waitlist(event)
+    if sent:
+        messages.success(request, _("Notified %(n)s people from the waitlist.") % {"n": sent})
+    else:
+        messages.info(request, _("No one to notify (no free spots or empty waitlist)."))
+    return redirect("events:detail", pk=pk)
 
 
 @login_required
@@ -155,6 +174,9 @@ def ticket_action(request, pk, tid):
         try:
             TicketSM().apply(ticket, target)
             messages.success(request, _("Ticket updated."))
+            # Отмена освободила место → уведомить лист ожидания (R1).
+            if target == Ticket.STATUS_CANCELLED:
+                notify_event_waitlist(ticket.event)
         except Exception:  # noqa: BLE001
             messages.error(request, _("Action not allowed."))
     return redirect("events:detail", pk=pk)
@@ -168,8 +190,19 @@ def roster_csv(request, pk):
     response["Content-Disposition"] = f'attachment; filename="roster-{event.pk}.csv"'
     writer = csv.writer(response, delimiter=";")
     question_cols = list(event.questions or [])
+    reg_cols = registration.labels(event.registration_fields)  # [(key, label)]
     writer.writerow(
-        ["Code", "Name", "E-Mail", "Telefon", "Plätze", "Status", "Bezahlt", *question_cols]
+        [
+            "Code",
+            "Name",
+            "E-Mail",
+            "Telefon",
+            "Plätze",
+            "Status",
+            "Bezahlt",
+            *question_cols,
+            *[label for _key, label in reg_cols],
+        ]
     )
     for t in event.tickets.select_related("customer").all():
         answers = t.answers or {}
@@ -183,6 +216,7 @@ def roster_csv(request, pk):
                 t.get_status_display(),
                 t.get_payment_state_display(),
                 *[answers.get(q, "") for q in question_cols],
+                *[answers.get(key, "") for key, _label in reg_cols],
             ]
         )
     return response

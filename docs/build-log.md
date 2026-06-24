@@ -1601,3 +1601,19 @@
   **мобильный таб-бар** (первые разделы + «Menu», из `nav_primary` —
   context.modules_nav), липкая шапка + ссылка «Website», нижний отступ под таб-бар.
   Без новых моделей. M20 план — `docs/m20-site-builder-plan.md`.
+
+- **Ретрит R1 — лист ожидания события + структурированная анкета участника.**
+  Архетип «Ретрит» (A6+), план — `docs/retreat-archetype-plan.md`. Добавлено:
+  модель `EventWaitlistEntry` (event+email уникально, party_size, notified) —
+  зеркало `promotions.WaitlistEntry`; витрина распроданного события показывает
+  форму листа ожидания (`/veranstaltung/<pk>/warteliste/`, honeypot+rate-limit);
+  отмена билета в кабинете авто-уведомляет лист ожидания (`notify_event_waitlist`,
+  одно письмо на запись, дедуп `event_waitlist:{id}:available`) + ручная кнопка
+  «Notify of free spots». Шаблоны письма `event_waitlist_available.*`. Анкета:
+  пресет-поля `Event.registration_fields` (страна/ДР/экстренный контакт/питание/
+  опыт/аллергии/мед., каталог в `apps/events/registration.py`) — чекбоксы в форме
+  кабинета, рендер на витрине, ответы в `Ticket.answers` по ключу поля, колонки в
+  CSV-ростере. Миграция `events/0006`. Демо retreat: анкета на Wochenend-Retreat +
+  2 записи в лист ожидания. Тесты `test_waitlist_registration.py` (11). ⚠️ reseed
+  `--kit retreat --recreate`. Дальше — R2 (таксономия типов/направлений + фильтры
+  витрина+агрегатор).

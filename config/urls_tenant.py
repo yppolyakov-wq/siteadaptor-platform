@@ -191,6 +191,11 @@ urlpatterns = [
         events_public.veranstaltung_book,
         name="storefront-event-book",
     ),
+    path(
+        "veranstaltung/<uuid:pk>/warteliste/",
+        events_public.veranstaltung_waitlist,
+        name="storefront-event-waitlist",
+    ),
     path("e/<str:code>/", events_public.veranstaltung_confirmation, name="storefront-ticket-ok"),
     # Handwerker: заявка + публичное Angebot (G6 / F3).
     path("anfrage/", jobs_public.anfrage, name="storefront-anfrage"),

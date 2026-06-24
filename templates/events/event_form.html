@@ -10,7 +10,13 @@
   {% for field in form %}
     <div>
       <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
+      {% if field.name == 'registration_fields' %}
+        <div class="grid sm:grid-cols-2 gap-1 text-sm text-gray-700">
+          {% for c in field %}<label class="flex items-center gap-2">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}
+        </div>
+      {% else %}
+        {{ field|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
+      {% endif %}
       {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
       {% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
     </div>

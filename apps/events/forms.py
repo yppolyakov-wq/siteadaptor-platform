@@ -9,6 +9,7 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 
 from . import details as details_mod
+from . import registration
 from .models import Event
 
 
@@ -30,6 +31,13 @@ class EventForm(forms.ModelForm):
         required=False,
         widget=_ta(3, "Frühbucher | 79\nStandard | 99\nKind | 0"),
         label="Preiskategorien (Label | Preis €, eine pro Zeile; leer = einheitlicher Preis)",
+    )
+    # R1: какие пресет-поля анкеты показывать на витрине (страна/ДР/питание…).
+    registration_fields = forms.MultipleChoiceField(
+        required=False,
+        choices=registration.choices,
+        widget=forms.CheckboxSelectMultiple,
+        label="Anmelde-Felder (Vorlagen — zusätzlich zu freien Fragen)",
     )
     # --- Retreat-Landing (alles optional) ---------------------------------
     promise = forms.CharField(required=False, label="Kurzversprechen (Hero)")
@@ -117,6 +125,7 @@ class EventForm(forms.ModelForm):
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
             self.fields["program_text"].initial = "\n".join(self.instance.program or [])
             self.fields["tiers_text"].initial = details_mod.tiers_to_text(self.instance.tiers)
+            self.fields["registration_fields"].initial = self.instance.registration_fields or []
             d = self.instance.landing
             for key in self._SCALAR_FIELDS:
                 self.fields[key].initial = d.get(key, "")
@@ -150,6 +159,9 @@ class EventForm(forms.ModelForm):
         event.tiers = details_mod.normalize_tiers(
             (self.cleaned_data.get("tiers_text") or "").splitlines()
         )
+        # сохраняем включённые пресет-поля в порядке каталога (стабильно)
+        chosen = set(self.cleaned_data.get("registration_fields") or [])
+        event.registration_fields = [k for k in registration.VALID_KEYS if k in chosen]
         if commit:
             event.save()
         return event

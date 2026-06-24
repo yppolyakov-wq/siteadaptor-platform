@@ -1876,6 +1876,14 @@ RETREAT = DemoKit(
                 "So 09:00 — Yin-Yoga · 12:00 Abschlusskreis",
             ],
             "questions": _RETREAT_QUESTIONS,
+            # R1 структурированная анкета участника (питание/опыт/контакт/мед.).
+            "registration_fields": [
+                "country",
+                "emergency_contact",
+                "diet",
+                "experience",
+                "medical",
+            ],
             "photos": _RETREAT_PHOTOS,
             "details": _RETREAT_LANDING,
         },
@@ -2761,6 +2769,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     images=imgs,
                     details=_evdetails.normalize(raw_details),
                     tiers=_evdetails.normalize_tiers(spec.get("tiers", [])),  # A6 ценовые тиры
+                    registration_fields=list(spec.get("registration_fields", [])),  # R1 анкета
                     status=Event.STATUS_PUBLISHED,
                 )
             else:
@@ -2923,6 +2932,19 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             ]:
                 try:
                     book_ticket(ev, name=who, email=mail, quantity=qty, auto_confirm=True)
+                except Exception:
+                    pass
+            # R1: пара записей в лист ожидания (как будто событие популярно).
+            from apps.events.models import EventWaitlistEntry
+
+            for who, mail, qty in [
+                ("Sandra Vogel", "sandra.wl@example.de", 1),
+                ("Tom Berger", "tom.wl@example.de", 2),
+            ]:
+                try:
+                    EventWaitlistEntry.objects.get_or_create(
+                        event=ev, email=mail, defaults={"name": who, "party_size": qty}
+                    )
                 except Exception:
                     pass
         except Exception:

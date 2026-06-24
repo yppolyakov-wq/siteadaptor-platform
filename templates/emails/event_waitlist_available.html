@@ -1,0 +1,21 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2 style="margin:0 0 16px;font-size:20px;">Wieder ein Platz frei 🎉</h2>
+<p style="margin:0;">Hallo{% if entry.name %} {{ entry.name }}{% endif %},</p>
+<p style="margin:8px 0 0;">gute Nachrichten: für <strong>„{{ event.title }}“</strong> ist wieder ein Platz frei.</p>
+<p style="margin:8px 0 0;font-size:14px;color:#3f3f46;">🗓 {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %}<br>📍 {{ event.location }}{% endif %}</p>
+{% if event_url %}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+  <tr>
+    <td style="background:#4f46e5;border-radius:8px;">
+      <a href="{{ event_url }}" style="display:inline-block;padding:12px 24px;color:#ffffff;
+         font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;">
+        Jetzt Platz sichern
+      </a>
+    </td>
+  </tr>
+</table>
+{% endif %}
+<p style="margin:0;font-size:14px;color:#3f3f46;">Schnell sein lohnt sich — die Gruppe ist klein.</p>
+<p style="margin:16px 0 0;font-size:12px;color:#a1a1aa;">Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste).</p>
+{% endblock %}

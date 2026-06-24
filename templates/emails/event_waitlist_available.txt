@@ -1,0 +1,12 @@
+Hallo{% if entry.name %} {{ entry.name }}{% endif %},
+
+gute Nachrichten: für „{{ event.title }}“ ist wieder ein Platz frei.
+
+🗓 {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %}
+📍 {{ event.location }}{% endif %}
+
+{% if event_url %}Jetzt Platz sichern: {{ event_url }}
+
+{% endif %}Schnell sein lohnt sich — die Gruppe ist klein.
+
+Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste).

@@ -199,6 +199,20 @@
     {% endif %}
     {% if event.is_sold_out %}
       <p class="text-red-600 font-medium mt-2">{% trans "Sold out" %}</p>
+      <p class="text-sm text-gray-600 mt-3">{% trans "Join the waitlist and we'll email you the moment a spot opens up." %}</p>
+      <form method="post" action="{% url 'storefront-event-waitlist' event.pk %}" class="space-y-3 mt-3">
+        {% csrf_token %}
+        <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <input name="name" placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <input name="email" type="email" required placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <label class="block text-sm text-gray-600">{% trans "Seats" %}
+            <input name="quantity" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          </label>
+        </div>
+        <button type="submit" class="w-full bg-amber-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-amber-700">{% trans "Join waitlist" %}</button>
+      </form>
     {% else %}
       <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3 mt-3">
         {% csrf_token %}
@@ -228,6 +242,20 @@
         {% for q in event.questions %}
           <label class="block text-sm text-gray-600">{{ q }}
             <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          </label>
+        {% endfor %}
+        {% for f in event.reg_fields %}
+          <label class="block text-sm text-gray-600">{{ f.label }}
+            {% if f.type == 'select' %}
+              <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
+                <option value="">–</option>
+                {% for opt in f.options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+              </select>
+            {% elif f.type == 'textarea' %}
+              <textarea name="reg_{{ f.key }}" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"></textarea>
+            {% else %}
+              <input name="reg_{{ f.key }}" {% if f.type == 'date' %}type="date"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+            {% endif %}
           </label>
         {% endfor %}
         {% include "storefront/_extras.html" %}

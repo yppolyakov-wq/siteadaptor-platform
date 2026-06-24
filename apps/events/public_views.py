@@ -71,6 +71,10 @@ def veranstaltung_book(request, pk):
     answers = {
         q: request.POST.get(f"q{i}", "").strip() for i, q in enumerate(event.questions or [])
     }
+    # R1: ответы на структурированные пресет-поля (страна/питание/опыт…).
+    from . import registration
+
+    answers.update(registration.collect(event.registration_fields, request.POST))
     # A6 ценовой тир: цена/решение об оплате — по выбранному тиру (иначе единой цене).
     tier_label = request.POST.get("tier", "").strip()
     resolved_price = event.price_for_tier(tier_label)
@@ -130,6 +134,38 @@ def veranstaltung_book(request, pk):
         except stripe.error.StripeError:
             pass  # оплата недоступна — билет остаётся (pending)
     return redirect("storefront-ticket-ok", code=ticket.reference_code)
+
+
+def veranstaltung_waitlist(request, pk):
+    """Записать в лист ожидания распроданного события (R1)."""
+    _require_events_active(request)
+    event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
+    if request.method != "POST" or request.POST.get("website"):  # honeypot
+        return redirect("storefront-event", pk=pk)
+    if ratelimit.hit(
+        "event_waitlist",
+        f"{ratelimit.client_ip(request)}:{pk}",
+        limit=RL_LIMIT,
+        window=RL_WINDOW,
+    ):
+        return HttpResponse(status=429)
+    email = (request.POST.get("email") or "").strip()
+    if not email:
+        messages.error(request, _("Please enter a valid email."))
+        return redirect("storefront-event", pk=pk)
+    try:
+        qty = max(1, min(int(request.POST.get("quantity", "1")), 50))
+    except (TypeError, ValueError):
+        qty = 1
+    services.join_waitlist(
+        event,
+        name=(request.POST.get("name") or "").strip(),
+        email=email,
+        phone=(request.POST.get("phone") or "").strip(),
+        party_size=qty,
+    )
+    messages.success(request, _("We'll let you know as soon as a spot opens up."))
+    return redirect("storefront-event", pk=pk)
 
 
 def veranstaltung_confirmation(request, code):

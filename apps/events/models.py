@@ -46,6 +46,10 @@ class Event(TimestampedModel):
     # A6 ценовые тиры билета: [{label, price_cents}] (Frühbucher/Standard/Kind).
     # Пусто = единая цена price_cents. Вместимость общая (per-tier — позже).
     tiers = models.JSONField(default=list, blank=True)
+    # R1 структурированная анкета: список включённых пресет-полей (см.
+    # apps/events/registration.py) — страна/ДР/экстренный контакт/питание/опыт…
+    # Ответы — в Ticket.answers по ключу поля. Пусто = только свободные questions.
+    registration_fields = models.JSONField(default=list, blank=True)
     # Развёрнутый «ретрит-лендинг»: опциональные блоки (для кого, идея, что
     # входит, проживание, питание, ведущие, что взять, отзывы …). Схема и
     # санитайз — apps/events/details.py. Пусто = старая короткая страница.
@@ -136,6 +140,18 @@ class Event(TimestampedModel):
         left = self.seats_left
         return left is not None and left <= 0
 
+    @property
+    def reg_fields(self) -> list:
+        """Включённые пресет-поля анкеты (см. apps/events/registration.py)."""
+        from . import registration
+
+        return registration.active(self.registration_fields)
+
+    @property
+    def waitlist_pending_count(self) -> int:
+        """Сколько в листе ожидания ещё не уведомлены (для кабинета)."""
+        return self.waitlist.filter(notified=False).count()
+
 
 class Ticket(TimestampedModel):
     STATUS_PENDING = "pending"
@@ -199,3 +215,28 @@ class Ticket(TimestampedModel):
     @property
     def total_eur(self):
         return Decimal(self.total_cents) / 100
+
+
+class EventWaitlistEntry(TimestampedModel):
+    """Лист ожидания на распроданное событие (R1, зеркало promotions.WaitlistEntry).
+
+    Контакт берём с согласия для одного уведомления о наличии (DSGVO). Когда
+    место освобождается (отмена билета), `notify_event_waitlist` шлёт письмо и
+    ставит `notified=True` (одно уведомление на запись).
+    """
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="waitlist")
+    name = models.CharField(max_length=200, blank=True)
+    email = models.EmailField()
+    phone = models.CharField(max_length=40, blank=True)
+    party_size = models.PositiveSmallIntegerField(default=1)  # сколько мест хотят
+    notified = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["event", "email"], name="uniq_event_waitlist_email")
+        ]
+
+    def __str__(self):
+        return f"{self.email} → {self.event_id}"

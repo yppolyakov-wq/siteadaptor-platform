@@ -73,3 +73,20 @@ def enqueue_ticket_email(ticket, event):
                 body=body,
                 html=html,
             )
+
+
+def enqueue_event_waitlist_available(entry):
+    """Письмо «снова frei» записи листа ожидания события (одно на запись, R1)."""
+    schema = connection.schema_name
+    base = _base_url(schema)
+    event_url = f"{base}{reverse('storefront-event', args=[entry.event_id])}" if base else ""
+    ctx = {"entry": entry, "event": entry.event, "event_url": event_url}
+    subject, body, html = _render("event_waitlist_available", ctx)
+    notify(
+        dedupe_key=f"event_waitlist:{entry.id}:available",
+        type="event_waitlist_available",
+        recipient=entry.email,
+        subject=subject,
+        body=body,
+        html=html,
+    )

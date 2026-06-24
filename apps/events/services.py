@@ -12,7 +12,7 @@ from django.db import models, transaction
 
 from apps.promotions.models import Customer
 
-from .models import Event, Ticket
+from .models import Event, EventWaitlistEntry, Ticket
 
 _ALPHABET = string.ascii_uppercase + string.digits
 
@@ -113,3 +113,38 @@ def book_ticket(
 
         TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
     return ticket
+
+
+def join_waitlist(event, *, name="", email="", phone="", party_size=1) -> EventWaitlistEntry:
+    """Записать e-mail в лист ожидания события (идемпотентно по event+email)."""
+    entry, _created = EventWaitlistEntry.objects.get_or_create(
+        event=event,
+        email=email.lower(),
+        defaults={
+            "name": (name or "")[:200],
+            "phone": (phone or "")[:40],
+            "party_size": max(1, min(int(party_size or 1), 50)),
+        },
+    )
+    return entry
+
+
+def notify_event_waitlist(event) -> int:
+    """Уведомить ещё не оповещённых из листа ожидания, если есть свободные места.
+
+    Шлёт одно письмо на запись (R1), помечает notified=True. Возвращает число
+    отправленных. Безлимитное событие (capacity=0) — тоже шлёт (мест всегда хватает.)
+    """
+    left = event.seats_left  # None = безлимит
+    if left is not None and left <= 0:
+        return 0
+    from .notifications import enqueue_event_waitlist_available
+
+    pending = event.waitlist.filter(notified=False).order_by("created_at")
+    sent = 0
+    for entry in pending:
+        enqueue_event_waitlist_available(entry)
+        entry.notified = True
+        entry.save(update_fields=["notified", "updated_at"])
+        sent += 1
+    return sent
