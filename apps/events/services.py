@@ -139,6 +139,19 @@ def book_ticket(
     # Цена из выбранного тира (Frühbucher/Standard…), иначе единая цена события.
     matched_tier = next((t for t in event.tier_list if t["label"] == tier_label), None)
     price_cents = matched_tier["price_cents"] if matched_tier else event.price_cents
+    # R11: анти-овердрафт на уровне тира (под той же блокировкой строки Event —
+    # конкурентные покупки этого тира сериализуются). capacity тира 0 = без лимита.
+    tier_cap = (matched_tier or {}).get("capacity") or 0
+    if tier_cap:
+        tier_sold = (
+            event.tickets.filter(
+                status__in=Ticket.ACTIVE_STATUSES, tier_label=matched_tier["label"]
+            ).aggregate(n=models.Sum("quantity"))["n"]
+            or 0
+        )
+        tier_available = tier_cap - tier_sold
+        if quantity > tier_available:
+            raise SoldOut(available=max(tier_available, 0))
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     ticket = Ticket.objects.create(
         event=event,

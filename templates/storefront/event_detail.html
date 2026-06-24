@@ -245,10 +245,11 @@
           <fieldset class="space-y-2">
             <legend class="text-sm font-medium mb-1">{% trans "Ticket" %}</legend>
             {% for t in event.tiers_display %}
-              <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-indigo-300">
+              <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if t.sold_out %}opacity-60 cursor-not-allowed{% else %}cursor-pointer hover:border-indigo-300{% endif %}">
                 <span class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="tier" value="{{ t.label }}" {% if forloop.first %}checked{% endif %} required>
+                  <input type="radio" name="tier" value="{{ t.label }}" {% if t.is_default %}checked{% endif %} {% if t.sold_out %}disabled{% endif %} required>
                   {{ t.label }}
+                  {% if t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
                 </span>
                 <span class="font-semibold text-sm">{% if t.price_cents %}{{ t.price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</span>
               </label>

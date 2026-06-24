@@ -29,8 +29,11 @@ class EventForm(forms.ModelForm):
     )
     tiers_text = forms.CharField(
         required=False,
-        widget=_ta(3, "Frühbucher | 79\nStandard | 99\nKind | 0"),
-        label="Preiskategorien (Label | Preis €, eine pro Zeile; leer = einheitlicher Preis)",
+        widget=_ta(3, "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"),
+        label=(
+            "Preiskategorien (Label | Preis € | Kontingent, eine pro Zeile; "
+            "Kontingent optional, leer = einheitlicher Preis)"
+        ),
     )
     # R2: таксономия (направление/уровень/язык) — для каталога и фильтров.
     category = forms.ChoiceField(

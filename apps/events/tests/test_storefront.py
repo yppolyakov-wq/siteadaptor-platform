@@ -87,9 +87,9 @@ def test_normalize_tiers_parses_and_sanitizes():
 
     out = details.normalize_tiers(["Frühbucher | 79", {"label": "Kind", "price_cents": 0}, "  | 5"])
     assert out == [
-        {"label": "Frühbucher", "price_cents": 7900},
-        {"label": "Kind", "price_cents": 0},
-    ]  # пустой label отброшен
+        {"label": "Frühbucher", "price_cents": 7900, "capacity": 0},
+        {"label": "Kind", "price_cents": 0, "capacity": 0},
+    ]  # пустой label отброшен; capacity по умолчанию 0 (R11, без отдельного лимита)
 
 
 def test_detail_normalizes_messy_details():

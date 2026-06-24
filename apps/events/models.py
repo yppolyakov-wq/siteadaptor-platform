@@ -131,10 +131,48 @@ class Event(TimestampedModel):
     def has_tiers(self) -> bool:
         return bool(self.tier_list)
 
+    def tier_sold_map(self) -> dict:
+        """{tier_label: проданных мест} активных билетов (R11, один запрос)."""
+        rows = (
+            self.tickets.filter(status__in=Ticket.ACTIVE_STATUSES)
+            .values("tier_label")
+            .annotate(n=models.Sum("quantity"))
+        )
+        return {r["tier_label"]: r["n"] or 0 for r in rows}
+
+    def tier_seats_left(self, label, sold_map=None):
+        """Свободные места тира или None при безлимите (capacity тира = 0, R11)."""
+        tier = next((t for t in self.tier_list if t["label"] == label), None)
+        cap = (tier or {}).get("capacity") or 0
+        if not cap:
+            return None
+        sold = (sold_map if sold_map is not None else self.tier_sold_map()).get(label, 0)
+        return max(cap - sold, 0)
+
     @property
     def tiers_display(self) -> list:
-        """Тиры с ценой в евро для шаблона: [{label, price_cents, price_eur}]."""
-        return [{**t, "price_eur": Decimal(t["price_cents"]) / 100} for t in self.tier_list]
+        """Тиры для шаблона: [{label, price_cents, price_eur, capacity, seats_left,
+        sold_out, is_default}]. seats_left=None при безлимите тира; is_default —
+        первый доступный тир (для предвыбора в форме, R11)."""
+        sold_map = self.tier_sold_map() if any(t.get("capacity") for t in self.tier_list) else {}
+        out = []
+        default_set = False
+        for t in self.tier_list:
+            left = self.tier_seats_left(t["label"], sold_map)
+            sold_out = left is not None and left <= 0
+            is_default = not sold_out and not default_set
+            if is_default:
+                default_set = True
+            out.append(
+                {
+                    **t,
+                    "price_eur": Decimal(t["price_cents"]) / 100,
+                    "seats_left": left,
+                    "sold_out": sold_out,
+                    "is_default": is_default,
+                }
+            )
+        return out
 
     def price_for_tier(self, label):
         """Цена выбранного тира (центы); без тиров / без совпадения → price_cents."""
@@ -175,7 +213,15 @@ class Event(TimestampedModel):
     @property
     def is_sold_out(self) -> bool:
         left = self.seats_left
-        return left is not None and left <= 0
+        if left is not None and left <= 0:
+            return True
+        # R11: все ценовые тиры с лимитом распроданы (а безлимитных тиров нет) →
+        # купить нечего, показываем лист ожидания.
+        tiers = self.tier_list
+        if tiers and all(t.get("capacity") for t in tiers):
+            sold_map = self.tier_sold_map()
+            return all((self.tier_seats_left(t["label"], sold_map) or 0) <= 0 for t in tiers)
+        return False
 
     @property
     def reg_fields(self) -> list:

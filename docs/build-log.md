@@ -1725,3 +1725,16 @@
   зарегистрированы в `CELERY_BEAT_SCHEDULE` (раз в сутки). Миграция `events/0013`.
   Тесты `test_drip.py` (6). Дальше по бэклогу R7+ — R11/R12 (per-tier вместимость /
   политика отмены) или R10 (рассрочка, крупная).
+
+- **Ретрит R11 — вместимость per-tier.** Каждый ценовой тир (`Event.tiers`) несёт
+  опц. `capacity` (3-й столбец формы «Label | Preis | Kontingent»; 0 = без отдельного
+  лимита — как раньше). Парс/сериализация — `details.normalize_tiers`/`tiers_to_text`
+  (схема только JSON, **без миграции**). Анти-овердрафт тира — в `book_ticket` под той
+  же блокировкой строки Event, что и общий `Event.capacity` (срабатывает строжайший);
+  `SoldOut(available=…)`. Модель: `tier_sold_map`/`tier_seats_left`; `tiers_display`
+  даёт per-tier `seats_left`/`sold_out`/`is_default`; `is_sold_out`=True, когда
+  распроданы все тиры с лимитом (нет безлимитных) → лист ожидания. Витрина: бейдж
+  «ausverkauft»/«N frei» на тире, disabled-radio, предвыбор первого доступного.
+  Per-room вместимость уже даёт реальный анти-овербукинг `stays`. Демо: Frauen-Retreat
+  (Frühbucher 4 / Mehrbett 6 мест, Standard без лимита). Тесты `test_tier_capacity.py`
+  (11), events-сьют 110 зелёный. Дальше R7+ — R12 (политика отмены) или R10 (рассрочка).

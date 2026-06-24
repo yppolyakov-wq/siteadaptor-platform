@@ -2008,10 +2008,12 @@ RETREAT = DemoKit(
             "duration_days": 2,
             "capacity": 12,
             "price": "320",
+            # R11: per-tier вместимость (3-й столбец) — Frühbucher-/Mehrbett-контингент
+            # ограничен, Standard без отдельного лимита (общий capacity).
             "tiers": [
-                ("Frühbucher (bis 45 Tage)", "290"),
+                ("Frühbucher (bis 45 Tage)", "290", "4"),
                 ("Standard", "320"),
-                ("Mehrbettzimmer", "260"),
+                ("Mehrbettzimmer", "260", "6"),
             ],
             "location": "Am Waldrand 3, Freiburg",
             "city": "Freiburg",

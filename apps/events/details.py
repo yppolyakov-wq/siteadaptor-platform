@@ -82,31 +82,37 @@ def normalize(raw) -> dict:
 
 
 def normalize_tiers(raw) -> list[dict]:
-    """Ценовые тиры билета → [{label, price_cents}] (label непустой, цена >= 0).
+    """Ценовые тиры билета → [{label, price_cents, capacity}] (label непустой,
+    цена/вместимость >= 0; capacity=0 = без отдельного лимита, R11).
 
-    Принимает list[dict] {label, price_cents|price} или строки «Label | Preis(€)».
+    Принимает list[dict] {label, price_cents|price, capacity} или строки
+    «Label | Preis(€) | Kapazität».
     """
     out = []
     for item in raw or []:
+        cap = 0
         if isinstance(item, dict):
             label = _s(item.get("label"), 120)
             if "price_cents" in item:
                 cents = item.get("price_cents") or 0
             else:
                 cents = _eur_to_cents(item.get("price"))
+            cap = item.get("capacity")
         elif isinstance(item, (list, tuple)):
             label = _s(item[0], 120) if item else ""
             cents = _eur_to_cents(item[1]) if len(item) > 1 else 0
+            cap = item[2] if len(item) > 2 else 0
         else:
             parts = str(item).split(_SEP)
             label = _s(parts[0], 120)
             cents = _eur_to_cents(parts[1]) if len(parts) > 1 else 0
+            cap = parts[2] if len(parts) > 2 else 0
         try:
             cents = max(0, int(cents))
         except (TypeError, ValueError):
             cents = 0
         if label:
-            out.append({"label": label, "price_cents": cents})
+            out.append({"label": label, "price_cents": cents, "capacity": _int(cap)})
         if len(out) >= 12:
             break
     return out
@@ -119,11 +125,24 @@ def _eur_to_cents(value) -> int:
         return 0
 
 
+def _int(value) -> int:
+    """Неотрицательное целое из мусора (R11 вместимость тира); иначе 0."""
+    try:
+        return max(0, int(str(value).strip()))
+    except (TypeError, ValueError):
+        return 0
+
+
 def tiers_to_text(raw) -> str:
-    """[{label, price_cents}] → «Label | 12.50» построчно (для формы кабинета)."""
-    return "\n".join(
-        f"{t['label']} {_SEP} {t['price_cents'] / 100:.2f}" for t in normalize_tiers(raw)
-    )
+    """[{label, price_cents, capacity}] → «Label | 12.50» (+ «| N» при лимите R11)
+    построчно (для формы кабинета)."""
+    lines = []
+    for t in normalize_tiers(raw):
+        line = f"{t['label']} {_SEP} {t['price_cents'] / 100:.2f}"
+        if t.get("capacity"):
+            line += f" {_SEP} {t['capacity']}"
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def is_rich(details) -> bool:
