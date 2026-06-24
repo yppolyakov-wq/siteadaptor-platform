@@ -128,7 +128,13 @@ class EventForm(forms.ModelForm):
             "teachers",
             "waiver_required",
             "waiver_text",
+            "cancellation",
+            "free_cancel_days",
         )
+        labels = {
+            "cancellation": "Stornierung",
+            "free_cancel_days": "Kostenlose Stornierung bis (Tage vor Beginn)",
+        }
         widgets = {
             "starts_at": forms.DateTimeInput(
                 attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
@@ -152,6 +158,9 @@ class EventForm(forms.ModelForm):
         # R3: ведущие — только активные.
         self.fields["teachers"].queryset = Teacher.objects.filter(is_active=True)
         self.fields["teachers"].required = False
+        # R12: политика отмены — необязательна в форме (фолбэк на дефолт модели).
+        self.fields["cancellation"].required = False
+        self.fields["free_cancel_days"].required = False
         if self.instance and self.instance.pk:
             self.fields["price_eur"].initial = self.instance.price_eur
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
@@ -206,6 +215,13 @@ class EventForm(forms.ModelForm):
             event.save()
             self.save_m2m()  # R5/R3: accommodation_units + teachers (M2M)
         return event
+
+    def clean_cancellation(self):
+        # R12: пусто → дефолт модели (flexible), чтобы поле было необязательным.
+        return self.cleaned_data.get("cancellation") or Event.CANCEL_FLEXIBLE
+
+    def clean_free_cancel_days(self):
+        return self.cleaned_data.get("free_cancel_days") or 0
 
 
 class TeacherForm(forms.ModelForm):

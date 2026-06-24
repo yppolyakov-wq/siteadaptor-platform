@@ -7,7 +7,9 @@ Plätze: {{ ticket.quantity }}
 Ticket-Code: {{ ticket.reference_code }}
 {% if ticket.total_cents %}Betrag: {{ ticket.total_eur }} {% endif %}
 Wir bestätigen Ihre Teilnahme in Kürze.
-
+{% if cancel_url %}
+Stornierung: {{ cancel_url }}
+{% endif %}
 {% if unsubscribe_url %}—
 Keine E-Mails mehr: {{ unsubscribe_url }}
 {% endif %}

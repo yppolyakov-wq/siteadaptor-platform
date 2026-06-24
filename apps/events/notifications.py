@@ -41,6 +41,11 @@ def enqueue_ticket_email(ticket, event):
             else ""
         )
         ctx["website_url"] = base or ""
+        # R12: ссылка на самостоятельную отмену билета (политика — на событии).
+        if base and event in ("created", "confirmed"):
+            from .public_views import cancel_url
+
+            ctx["cancel_url"] = f"{base}{cancel_url(ticket)}"
         subject, body, html = _render(template_base, {**ctx, "unsubscribe_url": unsub})
         headers = None
         if unsub:

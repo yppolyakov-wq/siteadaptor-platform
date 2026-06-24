@@ -214,6 +214,12 @@ urlpatterns = [
     ),
     path("e/<str:code>/", events_public.veranstaltung_confirmation, name="storefront-ticket-ok"),
     path("e/<str:code>/memo.pdf", events_public.veranstaltung_memo, name="storefront-ticket-memo"),
+    # R12: самостоятельная отмена билета гостем по подписанной ссылке.
+    path(
+        "e/storno/<str:token>/",
+        events_public.veranstaltung_cancel,
+        name="storefront-ticket-cancel",
+    ),
     # R3: преподаватели/ведущие — список + страница учителя.
     path("lehrer/", events_public.lehrer_index, name="storefront-teachers"),
     path("lehrer/<uuid:pk>/", events_public.lehrer_detail, name="storefront-teacher"),

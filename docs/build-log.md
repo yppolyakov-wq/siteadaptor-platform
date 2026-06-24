@@ -1738,3 +1738,17 @@
   Per-room вместимость уже даёт реальный анти-овербукинг `stays`. Демо: Frauen-Retreat
   (Frühbucher 4 / Mehrbett 6 мест, Standard без лимита). Тесты `test_tier_capacity.py`
   (11), events-сьют 110 зелёный. Дальше R7+ — R12 (политика отмены) или R10 (рассрочка).
+
+- **Ретрит R12 — гибкая политика отмены билета.** На событии — `Event.cancellation`
+  (flexible / non_refundable) + `free_cancel_days` (зеркало `stays.RatePlan`); миграция
+  `events/0014`. `services.cancellation_state(ticket)` → {can_cancel, free, deadline}:
+  flexible бесплатна до N дней до начала, non_refundable — отмена без возврата,
+  attended/cancelled — нельзя. Самостоятельная отмена гостем по подписанной ссылке
+  `/e/storno/<token>/` (зеркало stays `/stornieren/`): FSM cancel + освобождение
+  привязанного номера (R5) + уведомление листа ожидания (R1); при free + онлайн-оплате
+  (paid/deposit) — возврат через Stripe Connect, `payment_state=refunded`. Ссылка на
+  отмену — на странице подтверждения (`event_confirmation`) и в письмах created/confirmed.
+  Кабинет-форма: `cancellation` + `free_cancel_days` (необязательны, фолбэк на flexible/0).
+  Демо: Frauen-Retreat (flexible, 14 дн), Ayurveda (non_refundable). Тесты
+  `test_cancellation.py` (10); events-сьют 137 зелёный. Дальше R7+ — R10 (рассрочка, L)
+  или R13 (медиа-отзывы).

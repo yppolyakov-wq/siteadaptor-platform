@@ -393,5 +393,86 @@ def veranstaltung_confirmation(request, code):
             "event": ticket.event,
             "just_paid": request.GET.get("paid") == "1",
             "telegram_link": deep_link(ticket.customer),
+            "cancel_state": services.cancellation_state(ticket),
+            "cancel_url": cancel_url(ticket),
         },
     )
+
+
+_CANCEL_SALT = "event-ticket-cancel"
+
+
+def cancel_token(ticket) -> str:
+    from django.core import signing
+
+    return signing.dumps(str(ticket.pk), salt=_CANCEL_SALT)
+
+
+def cancel_url(ticket) -> str:
+    return reverse("storefront-ticket-cancel", args=[cancel_token(ticket)])
+
+
+def veranstaltung_cancel(request, token):
+    """R12: самостоятельная отмена билета гостем по подписанной ссылке.
+
+    GET — показать политику отмены (из события) и кнопку. POST — отменить через
+    FSM; при бесплатной отмене (flexible до дедлайна) и онлайн-оплате вернуть
+    деньги (Stripe Connect). Невозвратный тариф — отмена без возврата. Отмена
+    освобождает место (привязанный номер + лист ожидания, как в кабинете).
+    """
+    _require_events_active(request)
+    from django.core import signing
+
+    try:
+        pk = signing.loads(token, salt=_CANCEL_SALT)
+    except signing.BadSignature as exc:
+        raise Http404 from exc
+    ticket = get_object_or_404(Ticket.objects.select_related("event", "customer"), pk=pk)
+    state = services.cancellation_state(ticket)
+
+    if request.method == "POST" and state["can_cancel"]:
+        from apps.core.fsm import IllegalTransition
+
+        from .state_machine import TicketSM
+
+        try:
+            TicketSM().apply(ticket, Ticket.STATUS_CANCELLED)
+        except IllegalTransition:
+            messages.error(request, _("This ticket can no longer be cancelled."))
+            return redirect(reverse("storefront-ticket-cancel", args=[token]))
+        # R5: освободить привязанный номер; R1: уведомить лист ожидания.
+        _cancel_linked_stay(ticket)
+        services.notify_event_waitlist(ticket.event)
+        # Возврат: только при бесплатной отмене и онлайн-оплате (депозит/полная).
+        tenant = getattr(request, "tenant", None)
+        if (
+            state["free"]
+            and ticket.payment_state in (Ticket.PAYMENT_PAID, Ticket.PAYMENT_DEPOSIT)
+            and ticket.stripe_payment_intent
+            and getattr(tenant, "stripe_connect_id", "")
+        ):
+            try:
+                connect.refund(
+                    connect_id=tenant.stripe_connect_id,
+                    payment_intent=ticket.stripe_payment_intent,
+                )
+                ticket.payment_state = Ticket.PAYMENT_REFUNDED
+                ticket.save(update_fields=["payment_state", "updated_at"])
+            except stripe.error.StripeError:
+                pass  # отмена состоялась; возврат можно довести вручную в кабинете
+        messages.success(request, _("Your ticket has been cancelled."))
+        return redirect(reverse("storefront-ticket-cancel", args=[token]))
+
+    return render(
+        request,
+        "storefront/event_cancel.html",
+        {"ticket": ticket, "event": ticket.event, "state": state, "token": token},
+    )
+
+
+def _cancel_linked_stay(ticket) -> None:
+    """R5: отменить привязанную бронь проживания (освобождает номер)."""
+    booking = ticket.stay_booking
+    if booking and booking.status in (booking.STATUS_PENDING, booking.STATUS_CONFIRMED):
+        booking.status = booking.STATUS_CANCELLED
+        booking.save(update_fields=["status", "updated_at"])

@@ -5,7 +5,9 @@ Ihre Teilnahme an „{{ event.title }}“ ist bestätigt.
 Plätze: {{ ticket.quantity }} · Ticket-Code: {{ ticket.reference_code }}
 
 Bis bald!
-
+{% if cancel_url %}
+Stornierung: {{ cancel_url }}
+{% endif %}
 {% if unsubscribe_url %}—
 Keine E-Mails mehr: {{ unsubscribe_url }}
 {% endif %}

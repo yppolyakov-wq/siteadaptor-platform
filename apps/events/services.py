@@ -307,6 +307,28 @@ def accommodation_options(event) -> list:
     return out
 
 
+def cancellation_state(ticket, now=None) -> dict:
+    """R12: политика отмены билета по событию (зеркало stays.cancellation_state).
+
+    Активный билет (pending/confirmed) отменяем; «free» (без штрафа / с возвратом
+    онлайн-оплаты) — для flexible до `free_cancel_days` дней до начала события;
+    non_refundable → отмена без возврата. attended/cancelled — нельзя.
+    """
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    if now is None:
+        now = timezone.now()
+    if ticket.status not in (Ticket.STATUS_PENDING, Ticket.STATUS_CONFIRMED):
+        return {"can_cancel": False, "free": False, "deadline": None}
+    event = ticket.event
+    if event.cancellation == Event.CANCEL_NONREF:
+        return {"can_cancel": True, "free": False, "deadline": None}
+    deadline = event.starts_at - timedelta(days=int(event.free_cancel_days or 0))
+    return {"can_cancel": True, "free": now <= deadline, "deadline": deadline}
+
+
 def join_waitlist(event, *, name="", email="", phone="", party_size=1) -> EventWaitlistEntry:
     """Записать e-mail в лист ожидания события (идемпотентно по event+email)."""
     entry, _created = EventWaitlistEntry.objects.get_or_create(

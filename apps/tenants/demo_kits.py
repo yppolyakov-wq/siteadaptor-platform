@@ -2023,6 +2023,9 @@ RETREAT = DemoKit(
             "level": "alle",
             "language": "de",
             "deposit_percent": 30,
+            # R12: гибкая отмена — бесплатно до 14 дней до начала, затем без возврата.
+            "cancellation": "flexible",
+            "free_cancel_days": 14,
             "offers_accommodation": True,
             "description": "Ein Wochenende nur für Frauen: Yoga, Kreis-Arbeit und Waldzeit "
             "in kleiner, vertrauter Runde.",
@@ -2057,6 +2060,7 @@ RETREAT = DemoKit(
             "language": "de",
             "deposit_percent": 40,
             "waiver_required": True,  # R8
+            "cancellation": "non_refundable",  # R12: невозвратный тариф (демо-вариант)
             "offers_accommodation": True,
             "description": "Drei Tage Ayurveda: leichte Küche, Yoga, Ölbehandlungen und "
             "Ruhe zum Auftanken.",
@@ -2935,6 +2939,8 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     deposit_percent=spec.get("deposit_percent", 0),  # R4 онлайн-предоплата
                     waiver_required=spec.get("waiver_required", False),  # R8 отказ
                     waiver_text=spec.get("waiver_text", ""),
+                    cancellation=spec.get("cancellation", Event.CANCEL_FLEXIBLE),  # R12 политика
+                    free_cancel_days=spec.get("free_cancel_days", 0),
                     questions=list(spec.get("questions", [])),
                     program=list(spec.get("program", [])),
                     images=imgs,

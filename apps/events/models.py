@@ -65,6 +65,18 @@ class Event(TimestampedModel):
     # условий (пусто = дефолтный шаблон). Снимок текста — в TicketWaiver.
     waiver_required = models.BooleanField(default=False)
     waiver_text = models.TextField(blank=True)
+    # R12: политика отмены билета (зеркало stays.RatePlan). flexible — бесплатная
+    # самоотмена гостем до `free_cancel_days` дней до начала (возврат онлайн-оплаты
+    # через Stripe Connect); non_refundable — отмена без возврата.
+    CANCEL_FLEXIBLE = "flexible"
+    CANCEL_NONREF = "non_refundable"
+    CANCELLATIONS = [
+        (CANCEL_FLEXIBLE, "Kostenlose Stornierung"),
+        (CANCEL_NONREF, "Nicht erstattbar"),
+    ]
+    cancellation = models.CharField(max_length=20, choices=CANCELLATIONS, default=CANCEL_FLEXIBLE)
+    # Бесплатная отмена до N дней до начала (для flexible; 0 = до дня начала).
+    free_cancel_days = models.PositiveSmallIntegerField(default=0)
     # Фото места/мероприятия: FileRef-список (как catalog.Product.images).
     images = models.JSONField(default=list, blank=True)
     # A6 ценовые тиры билета: [{label, price_cents}] (Frühbucher/Standard/Kind).
@@ -259,6 +271,15 @@ class Event(TimestampedModel):
         from . import taxonomy
 
         return taxonomy.duration_label(self.duration_kind)
+
+    @property
+    def cancellation_label(self) -> str:
+        return self.get_cancellation_display()
+
+    @property
+    def is_refundable(self) -> bool:
+        """R12: тариф допускает возврат при своевременной отмене (flexible)."""
+        return self.cancellation == self.CANCEL_FLEXIBLE
 
     @property
     def effective_waiver_text(self) -> str:
