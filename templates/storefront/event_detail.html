@@ -258,6 +258,25 @@
             {% endif %}
           </label>
         {% endfor %}
+        {% if accommodation %}
+          <fieldset class="space-y-2">
+            <legend class="text-sm font-medium mb-1">{% trans "Accommodation" %} · {{ accommodation.0.nights }} {% trans "nights" %}</legend>
+            <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-indigo-300">
+              <span class="flex items-center gap-2 text-sm"><input type="radio" name="stay_unit" value="" checked> {% trans "Without accommodation" %}</span>
+              <span class="text-sm text-gray-400">+0 €</span>
+            </label>
+            {% for o in accommodation %}
+              <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if o.available %}cursor-pointer hover:border-indigo-300{% else %}opacity-50{% endif %}">
+                <span class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="stay_unit" value="{{ o.unit.pk }}" {% if not o.available %}disabled{% endif %}>
+                  {{ o.unit.name }}{% if o.unit.bed_type %} · {{ o.unit.bed_type }}{% endif %}
+                  {% if not o.available %}<span class="text-xs text-red-600">({% trans "booked out" %})</span>{% endif %}
+                </span>
+                <span class="font-semibold text-sm">+{{ o.price_eur|floatformat:2 }} €</span>
+              </label>
+            {% endfor %}
+          </fieldset>
+        {% endif %}
         {% include "storefront/_extras.html" %}
         <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">
           {% if event.price_cents %}{% trans "Book & pay" %}{% else %}{% trans "Register" %}{% endif %}

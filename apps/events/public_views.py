@@ -16,6 +16,7 @@ from django.utils.translation import gettext as _
 
 from apps.billing import connect
 from apps.core import ratelimit
+from apps.stays.services import StayUnavailable
 
 from . import payments, services
 from .models import Event, Ticket
@@ -104,7 +105,11 @@ def veranstaltung_detail(request, pk):
     return render(
         request,
         "storefront/event_detail.html",
-        {"event": event, "extras": extras_engine.active_for("events")},  # #7 доп-услуги
+        {
+            "event": event,
+            "extras": extras_engine.active_for("events"),  # #7 доп-услуги
+            "accommodation": services.accommodation_options(event),  # R5 типы номеров
+        },
     )
 
 
@@ -139,8 +144,12 @@ def veranstaltung_book(request, pk):
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "events")
-    # #7: итог = места × цена + Extras → auto-confirm только при нулевом итоге.
-    order_total = resolved_price * qty + extras_engine.total_cents(extras_snap)
+    # R5: выбранный тип номера (проживание на даты ретрита) + его цена для решения
+    # об оплате/авто-подтверждении (фактическая бронь — атомарно в book_ticket).
+    stay_unit_id = (request.POST.get("stay_unit") or "").strip() or None
+    acc_quote = services.accommodation_quote(event, stay_unit_id) if stay_unit_id else 0
+    # #7: итог = места × цена + Extras + проживание → auto-confirm при нулевом итоге.
+    order_total = resolved_price * qty + extras_engine.total_cents(extras_snap) + acc_quote
 
     try:
         ticket = services.book_ticket(
@@ -151,9 +160,10 @@ def veranstaltung_book(request, pk):
             quantity=qty,
             answers=answers,
             source_channel=(request.GET.get("ch") or "")[:50],
-            auto_confirm=(order_total == 0),  # бесплатно (билет + Extras) — сразу
+            auto_confirm=(order_total == 0),  # бесплатно (билет + Extras + номер) — сразу
             tier_label=tier_label,
             extras=extras_snap,
+            stay_unit_id=stay_unit_id,
         )
     except services.SoldOut as exc:
         messages.error(
@@ -162,6 +172,9 @@ def veranstaltung_book(request, pk):
             if exc.available
             else _("Sorry, this event is sold out."),
         )
+        return redirect("storefront-event", pk=pk)
+    except StayUnavailable:
+        messages.error(request, _("Sorry, the selected room is no longer available."))
         return redirect("storefront-event", pk=pk)
     except (services.EventNotBookable, ValueError):
         messages.error(request, _("This event is not available."))

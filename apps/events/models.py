@@ -59,6 +59,16 @@ class Event(TimestampedModel):
     # входит, проживание, питание, ведущие, что взять, отзывы …). Схема и
     # санитайз — apps/events/details.py. Пусто = старая короткая страница.
     details = models.JSONField(default=dict, blank=True)
+    # R5 проживание: многодневный ретрит может предлагать выбор номера через
+    # архетип «Отель» (apps.stays). offers_accommodation включает шаг выбора;
+    # accommodation_units — курируемый набор типов номеров на даты ретрита
+    # [starts_at; ends_at). Бронь номера привязывается к билету (Ticket.stay_booking),
+    # оплачивается вместе с билетом (StayBooking.payment_state=none), инвентарь —
+    # реальный анти-овербукинг stays.
+    offers_accommodation = models.BooleanField(default=False)
+    accommodation_units = models.ManyToManyField(
+        "stays.StayUnit", blank=True, related_name="retreat_events"
+    )
 
     class Meta:
         ordering = ["starts_at"]
@@ -213,6 +223,17 @@ class Ticket(TimestampedModel):
     # #7: снимок выбранных Extras [{label, price_cents}] — разово на билет, сумма
     # входит в total_cents (выручку).
     extras = models.JSONField(default=list, blank=True)
+    # R5: привязанная бронь проживания (выбранный тип номера на даты ретрита).
+    # SET_NULL — бронь можно удалить; accommodation_cents — снимок цены номера
+    # (входит в total_cents, оплачивается вместе с билетом).
+    stay_booking = models.ForeignKey(
+        "stays.StayBooking",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="event_tickets",
+    )
+    accommodation_cents = models.PositiveIntegerField(default=0)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
 
@@ -245,7 +266,7 @@ class Ticket(TimestampedModel):
 
     @property
     def total_cents(self) -> int:
-        return self.price_cents * self.quantity + self.extras_cents
+        return self.price_cents * self.quantity + self.extras_cents + self.accommodation_cents
 
     @property
     def total_eur(self):

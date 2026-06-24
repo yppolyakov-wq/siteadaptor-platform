@@ -114,6 +114,8 @@ class EventForm(forms.ModelForm):
             "ends_at",
             "capacity",
             "require_manual_confirm",
+            "offers_accommodation",
+            "accommodation_units",
         )
         widgets = {
             "starts_at": forms.DateTimeInput(
@@ -129,6 +131,11 @@ class EventForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["starts_at"].input_formats = ["%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S"]
         self.fields["ends_at"].input_formats = ["%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S"]
+        # R5: выбор типов номеров для проживания — только активные юниты stays.
+        from apps.stays.models import StayUnit
+
+        self.fields["accommodation_units"].queryset = StayUnit.objects.filter(is_active=True)
+        self.fields["accommodation_units"].required = False
         if self.instance and self.instance.pk:
             self.fields["price_eur"].initial = self.instance.price_eur
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
@@ -179,4 +186,5 @@ class EventForm(forms.ModelForm):
         event.language = self.cleaned_data.get("language") or ""
         if commit:
             event.save()
+            self.save_m2m()  # R5: accommodation_units (M2M)
         return event

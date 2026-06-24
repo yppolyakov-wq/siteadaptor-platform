@@ -1828,7 +1828,38 @@ RETREAT = DemoKit(
         "button_label": "Events ansehen",
         "button_url": "/veranstaltung/",
     },
-    enable_modules=["events", "booking", "orders", "customer_account"],
+    enable_modules=["events", "booking", "orders", "customer_account", "stays"],
+    # R5 проживание на ретрите: типы номеров (общая/2-/1-местный) — анти-овербукинг
+    # stays; weekend-retreat ниже offers_accommodation=True линкует их все.
+    stay_units=[
+        {
+            "name": "Mehrbettzimmer (Bett)",
+            "type": "bed",
+            "qty": 8,
+            "price": "35",
+            "guests": 1,
+            "description": "Bett im gemeinschaftlichen Schlafraum — günstig und gesellig.",
+            "bed": "Einzelbett im Schlafsaal",
+        },
+        {
+            "name": "Doppelzimmer",
+            "type": "room",
+            "qty": 4,
+            "price": "70",
+            "guests": 2,
+            "description": "Gemütliches Zimmer für zwei — ideal zum Teilen.",
+            "bed": "Doppelbett",
+        },
+        {
+            "name": "Einzelzimmer",
+            "type": "room",
+            "qty": 3,
+            "price": "95",
+            "guests": 1,
+            "description": "Ruhe und Privatsphäre im eigenen Zimmer.",
+            "bed": "Einzelbett",
+        },
+    ],
     extras=[  # #7 доп-услуги к билету ретрита (scope events, разово)
         ("Bio-Mittagessen", "18", "events", False),
         ("Einzelzimmer-Zuschlag", "40", "events", False),
@@ -1872,6 +1903,7 @@ RETREAT = DemoKit(
             "category": "yoga",
             "level": "alle",
             "language": "de",
+            "offers_accommodation": True,  # R5: выбор типа номера на даты ретрита
             "description": "Zwei Tage Yoga, Meditation und Waldspaziergänge in kleiner Gruppe. "
             "Inklusive Programm, Begleitung und Tee-Pausen.",
             "program": [
@@ -2790,8 +2822,16 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     details=_evdetails.normalize(raw_details),
                     tiers=_evdetails.normalize_tiers(spec.get("tiers", [])),  # A6 ценовые тиры
                     registration_fields=list(spec.get("registration_fields", [])),  # R1 анкета
+                    offers_accommodation=spec.get("offers_accommodation", False),  # R5
                     status=Event.STATUS_PUBLISHED,
                 )
+                # R5: привязать все засеянные типы номеров как варианты проживания.
+                if spec.get("offers_accommodation") and refs.get("stay_units"):
+                    from apps.stays.models import StayUnit
+
+                    event.accommodation_units.set(
+                        StayUnit.objects.filter(pk__in=refs["stay_units"])
+                    )
             else:
                 title, in_days, capacity, price = spec
                 event = Event.objects.create(

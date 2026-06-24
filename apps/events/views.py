@@ -174,12 +174,22 @@ def ticket_action(request, pk, tid):
         try:
             TicketSM().apply(ticket, target)
             messages.success(request, _("Ticket updated."))
-            # Отмена освободила место → уведомить лист ожидания (R1).
             if target == Ticket.STATUS_CANCELLED:
+                # R5: освободить привязанный номер (проживание оплачивалось билетом).
+                _cancel_linked_stay(ticket)
+                # Отмена освободила место → уведомить лист ожидания (R1).
                 notify_event_waitlist(ticket.event)
         except Exception:  # noqa: BLE001
             messages.error(request, _("Action not allowed."))
     return redirect("events:detail", pk=pk)
+
+
+def _cancel_linked_stay(ticket) -> None:
+    """R5: отменить привязанную бронь проживания (освобождает номер)."""
+    booking = ticket.stay_booking
+    if booking and booking.status in (booking.STATUS_PENDING, booking.STATUS_CONFIRMED):
+        booking.status = booking.STATUS_CANCELLED
+        booking.save(update_fields=["status", "updated_at"])
 
 
 @login_required
@@ -191,6 +201,7 @@ def roster_csv(request, pk):
     writer = csv.writer(response, delimiter=";")
     question_cols = list(event.questions or [])
     reg_cols = registration.labels(event.registration_fields)  # [(key, label)]
+    show_unterkunft = event.offers_accommodation
     writer.writerow(
         [
             "Code",
@@ -200,12 +211,14 @@ def roster_csv(request, pk):
             "Plätze",
             "Status",
             "Bezahlt",
+            *(["Unterkunft"] if show_unterkunft else []),
             *question_cols,
             *[label for _key, label in reg_cols],
         ]
     )
-    for t in event.tickets.select_related("customer").all():
+    for t in event.tickets.select_related("customer", "stay_booking__unit").all():
         answers = t.answers or {}
+        room = t.stay_booking.unit.name if t.stay_booking and t.stay_booking.unit else ""
         writer.writerow(
             [
                 t.reference_code,
@@ -215,6 +228,7 @@ def roster_csv(request, pk):
                 t.quantity,
                 t.get_status_display(),
                 t.get_payment_state_display(),
+                *([room] if show_unterkunft else []),
                 *[answers.get(q, "") for q in question_cols],
                 *[answers.get(key, "") for key, _label in reg_cols],
             ]
