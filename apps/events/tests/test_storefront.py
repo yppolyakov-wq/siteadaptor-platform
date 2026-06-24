@@ -65,6 +65,29 @@ def test_detail_renders_retreat_landing_blocks():
     assert "Mara" in body and "https://img/1.jpg" in body  # ведущие + фото
 
 
+def test_detail_unified_hero_gallery_and_price_card():
+    """M20U-4: единый каркас детальной — галерея слева (свап) + sticky-карточка
+    цены/брони справа + ссылка-инбокс (если модуль активен)."""
+    ev = _event(
+        title="Retreat",
+        price_cents=12000,
+        images=[
+            {"id": "a", "url": "https://img/a.jpg", "is_primary": True},
+            {"id": "b", "url": "https://img/b.jpg"},
+        ],
+    )
+    tenant = TenantFactory.build()  # inbox активен по умолчанию
+    body = public_views.veranstaltung_detail(_req("get", tenant=tenant), ev.pk).content.decode()
+    # галерея M20U-G: большое фото + миниатюра со свапом
+    assert "js-media-gallery" in body and 'data-src="https://img/b.jpg"' in body
+    # sticky-карточка цены справа + кнопка брони (якорь на форму)
+    assert "lg:sticky" in body and 'href="#buchen"' in body
+    # ссылка-инбокс «задать вопрос» (M20U базовый чат)
+    assert "kind=event" in body
+    # форма брони на месте (не сломали)
+    assert "storefront-event-book" in body or "/buchen/" in body
+
+
 def test_book_with_tier_uses_tier_price():
     """A6 ценовые тиры: бронь по выбранному тиру берёт его цену + снимок label."""
     ev = _event(
