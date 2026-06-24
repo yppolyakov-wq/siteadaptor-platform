@@ -163,8 +163,16 @@ def modules_nav(request):
         ][:5]
     else:
         bottom_nav = _storefront_bottom_nav(request, tenant)
+    # Кабинет: плоский список первых пунктов для мобильного таб-бара (нативно).
+    _active = modules.active_modules(tenant)
+    nav_primary = [
+        {"url_name": it.url_name, "nav_key": it.nav_key, "label": it.label, "icon": m.icon}
+        for m in _active
+        for it in m.nav_items
+    ][:4]
     return {
-        "nav_modules": modules.active_modules(tenant),
+        "nav_modules": _active,
+        "nav_primary": nav_primary,  # мобильный таб-бар кабинета
         # S1: витринные «лица» активных архетипов — для тизеров главной (S2) и
         # конструктора меню (S7). Источник правды — реестр модулей.
         "storefront_archetypes": modules.storefront_archetypes(tenant),

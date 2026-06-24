@@ -20,8 +20,14 @@
     {% endfor %}
   {% endif %}
 
+  {# Адаптив: на планшете/мобайле переключатель Редактор/Превью (на lg — обе колонки). #}
+  <div class="lg:hidden flex rounded-lg border border-gray-300 overflow-hidden text-sm mb-4 max-w-sm">
+    <button type="button" id="bld-tab-editor" class="flex-1 py-2 bg-indigo-600 text-white font-medium">✏️ {% trans "Editor" %}</button>
+    <button type="button" id="bld-tab-preview" class="flex-1 py-2 border-l border-gray-300">👁 {% trans "Preview" %}</button>
+  </div>
+
   <div class="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
-   <div class="space-y-6">
+   <div id="bld-editor-pane" class="space-y-6 lg:!block">
     <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
 
@@ -148,14 +154,24 @@
    </div>
 
     {# V1 live-preview: показывает несохранённое состояние (?preview=1 + черновик в сессии). #}
-    <div class="hidden lg:block sticky top-4">
-      <div class="flex items-center justify-between mb-2">
+    <div id="bld-preview-pane" class="hidden lg:!block sticky top-4">
+      <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
         <span class="text-sm font-medium text-gray-500">{% trans "Live preview" %}</span>
-        <span id="home-prev-status" class="text-xs text-gray-400"></span>
+        <div class="flex items-center gap-3">
+          {# Переключатель ширины предпросмотра (Desktop/Tablet/Mobile). #}
+          <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs">
+            <button type="button" data-w="100%" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
+            <button type="button" data-w="834px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭ {% trans "Tablet" %}</button>
+            <button type="button" data-w="390px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱 {% trans "Mobile" %}</button>
+          </div>
+          <span id="home-prev-status" class="text-xs text-gray-400"></span>
+        </div>
       </div>
-      <div class="bg-gray-100 rounded-2xl p-2">
-        <iframe id="home-prev-frame" title="{% trans 'Live preview' %}"
-                class="w-full bg-white rounded-xl" style="height:78vh; border:0;"></iframe>
+      <div class="bg-gray-100 rounded-2xl p-2 flex justify-center">
+        <div id="home-prev-shell" class="w-full transition-all" style="max-width:100%;">
+          <iframe id="home-prev-frame" title="{% trans 'Live preview' %}"
+                  class="w-full bg-white rounded-xl" style="height:78vh; border:0;"></iframe>
+        </div>
       </div>
     </div>
   </div>
@@ -169,6 +185,35 @@
   var status = document.getElementById("home-prev-status");
   var url = form.getAttribute("data-draft-url");
   var token = (form.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "";
+
+  // Адаптив: переключатель Редактор/Превью (<lg). На lg обе колонки видны (lg:!block).
+  var edPane = document.getElementById("bld-editor-pane");
+  var pvPane = document.getElementById("bld-preview-pane");
+  var tabE = document.getElementById("bld-tab-editor");
+  var tabP = document.getElementById("bld-tab-preview");
+  if (edPane && pvPane && tabE && tabP) {
+    function activate(which) {
+      var ed = which === "editor";
+      edPane.classList.toggle("hidden", !ed);
+      pvPane.classList.toggle("hidden", ed);
+      tabE.classList.toggle("bg-indigo-600", ed); tabE.classList.toggle("text-white", ed);
+      tabP.classList.toggle("bg-indigo-600", !ed); tabP.classList.toggle("text-white", !ed);
+    }
+    tabE.addEventListener("click", function () { activate("editor"); });
+    tabP.addEventListener("click", function () { activate("preview"); });
+  }
+
+  // Переключатель ширины предпросмотра (Desktop/Tablet/Mobile).
+  var shell = document.getElementById("home-prev-shell");
+  document.querySelectorAll(".home-dev-btn").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (shell) shell.style.maxWidth = b.getAttribute("data-w");
+      document.querySelectorAll(".home-dev-btn").forEach(function (x) {
+        x.classList.remove("bg-indigo-600", "text-white");
+      });
+      b.classList.add("bg-indigo-600", "text-white");
+    });
+  });
 
   function collect() {
     var rows = [];
