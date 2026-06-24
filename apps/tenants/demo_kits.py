@@ -84,6 +84,9 @@ class DemoKit:
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
     events: list = field(default_factory=list)
+    # R3: преподаватели/ведущие (структурная сущность events.Teacher) — (name,
+    # title, photo_kw, bio). Засеваются и линкуются ко всем событиям кита.
+    teachers: list = field(default_factory=list)
     # booking-ресурсы (стол/мастер/зал) с недельным расписанием — чтобы /termin/
     # сразу показывал слоты. dict: name/type/capacity/counts_party/start/end/slot.
     resources: list = field(default_factory=list)
@@ -1748,6 +1751,7 @@ RETREAT_MENUS = {
         "sticky": True,
         "items": [
             {"label": "Events", "type": "archetype", "target": "events"},
+            {"label": "Lehrer", "type": "url", "target": "/lehrer/"},  # R3
             {"label": "Einzelsitzung", "type": "archetype", "target": "booking"},
             {"label": "Shop", "type": "archetype", "target": "catalog"},
             {"label": "Über uns", "type": "page", "target": "about"},
@@ -1815,6 +1819,23 @@ RETREAT = DemoKit(
     team=[
         ("Mara Lind", "Retreatleitung & Yogalehrerin", "yoga,teacher,woman"),
         ("Felix Sturm", "Achtsamkeits-Coach", "meditation,man"),
+    ],
+    # R3: преподаватели как сущность (фильтр каталога + страницы учителей).
+    teachers=[
+        (
+            "Mara Lind",
+            "Retreatleitung & Yogalehrerin",
+            "yoga,teacher,woman",
+            "Mara begleitet seit 2016 Retreats am Waldrand. Ihr Hatha- und Yin-Yoga "
+            "verbindet sanfte Praxis mit Achtsamkeit — herzlich und ohne Leistungsdruck.",
+        ),
+        (
+            "Felix Sturm",
+            "Achtsamkeits-Coach",
+            "meditation,man",
+            "Felix ist Achtsamkeits- und Meditationscoach. Er führt durch Atem- und "
+            "Klangschalen-Einheiten und schafft Räume zum echten Loslassen.",
+        ),
     ],
     trust={"since": "2016", "marks": ["Kleine Gruppen", "Zertifizierte Leitung", "Naturnah"]},
     reviews_seed=[
@@ -2766,6 +2787,24 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
 
         now = timezone.now()
         refs["events"] = []
+        # R3: преподаватели/ведущие — засеять и связать со всеми событиями.
+        refs["teachers"] = []
+        if kit.teachers:
+            from apps.events.models import Teacher
+
+            for tidx, t in enumerate(kit.teachers):
+                name, title = t[0], (t[1] if len(t) > 1 else "")
+                photo_kw = t[2] if len(t) > 2 else ""
+                bio = t[3] if len(t) > 3 else ""
+                teacher = Teacher.objects.create(
+                    name=name,
+                    title=title,
+                    bio=bio,
+                    photo_url=_image_ref(photo_kw, 8700 + tidx, name)["url"] if photo_kw else "",
+                    sort_order=tidx,
+                    is_active=True,
+                )
+                refs["teachers"].append(str(teacher.pk))
         for idx, spec in enumerate(kit.events):
             # Поддерживаем и краткий кортеж (title, in_days, capacity, price), и
             # богатый dict (с Programm/анкетой/описанием/длительностью).
@@ -2841,6 +2880,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     price_cents=int(Decimal(price) * 100),
                     status=Event.STATUS_PUBLISHED,
                 )
+            # R3: связать всех засеянных преподавателей с событием.
+            if refs.get("teachers"):
+                event.teachers.set(Teacher.objects.filter(pk__in=refs["teachers"]))
             refs["events"].append(str(event.pk))
 
 

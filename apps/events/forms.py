@@ -10,7 +10,7 @@ from django import forms
 
 from . import details as details_mod
 from . import registration, taxonomy
-from .models import Event
+from .models import Event, Teacher
 
 
 def _ta(rows=3, ph=""):
@@ -116,6 +116,7 @@ class EventForm(forms.ModelForm):
             "require_manual_confirm",
             "offers_accommodation",
             "accommodation_units",
+            "teachers",
         )
         widgets = {
             "starts_at": forms.DateTimeInput(
@@ -136,6 +137,9 @@ class EventForm(forms.ModelForm):
 
         self.fields["accommodation_units"].queryset = StayUnit.objects.filter(is_active=True)
         self.fields["accommodation_units"].required = False
+        # R3: ведущие — только активные.
+        self.fields["teachers"].queryset = Teacher.objects.filter(is_active=True)
+        self.fields["teachers"].required = False
         if self.instance and self.instance.pk:
             self.fields["price_eur"].initial = self.instance.price_eur
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
@@ -186,5 +190,14 @@ class EventForm(forms.ModelForm):
         event.language = self.cleaned_data.get("language") or ""
         if commit:
             event.save()
-            self.save_m2m()  # R5: accommodation_units (M2M)
+            self.save_m2m()  # R5/R3: accommodation_units + teachers (M2M)
         return event
+
+
+class TeacherForm(forms.ModelForm):
+    """R3: кабинетная форма преподавателя/ведущего."""
+
+    class Meta:
+        model = Teacher
+        fields = ("name", "title", "bio", "photo_url", "website", "instagram", "is_active")
+        widgets = {"bio": forms.Textarea(attrs={"rows": 4})}

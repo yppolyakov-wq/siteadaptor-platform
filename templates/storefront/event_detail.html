@@ -103,8 +103,24 @@
   </section>
   {% endif %}
 
-  {# 9. Leitung / Organisatoren #}
-  {% if L.hosts %}
+  {# 9. Leitung / Organisatoren — R3 структурные преподаватели (ссылки) или free-text hosts #}
+  {% with teachers=event.teachers.all %}
+  {% if teachers %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Your hosts" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for t in teachers %}
+        <a href="{% url 'storefront-teacher' t.pk %}" class="flex items-center gap-3 bg-white rounded-xl shadow-sm p-3 hover:shadow-md transition">
+          {% if t.photo_url %}<img src="{{ t.photo_url }}" alt="{{ t.name }}" loading="lazy" class="w-14 h-14 rounded-full object-cover">{% endif %}
+          <div>
+            <p class="font-semibold">{{ t.name }}</p>
+            {% if t.title %}<p class="text-sm text-gray-500">{{ t.title }}</p>{% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% elif L.hosts %}
   <section class="mt-8">
     <h2 class="text-xl font-bold mb-3">{% trans "Your hosts" %}</h2>
     <div class="grid sm:grid-cols-2 gap-4">
@@ -120,6 +136,7 @@
     </div>
   </section>
   {% endif %}
+  {% endwith %}
 
   {# 10. Preis / Leistungen #}
   {% if L.price_includes or L.price_excludes or L.price_note %}

@@ -69,6 +69,9 @@ class Event(TimestampedModel):
     accommodation_units = models.ManyToManyField(
         "stays.StayUnit", blank=True, related_name="retreat_events"
     )
+    # R3: ведущие/преподаватели (структурная сущность) — курируемый набор. Дополняет
+    # свободные hosts в details-лендинге; даёт фильтр каталога и страницы учителей.
+    teachers = models.ManyToManyField("Teacher", blank=True, related_name="events")
 
     class Meta:
         ordering = ["starts_at"]
@@ -296,3 +299,41 @@ class EventWaitlistEntry(TimestampedModel):
 
     def __str__(self):
         return f"{self.email} → {self.event_id}"
+
+
+class Teacher(TimestampedModel):
+    """R3: ведущий/преподаватель ретрита (фото, био, соцсети). Связь M2M с Event;
+    даёт фильтр каталога по преподавателю и страницы учителей на витрине."""
+
+    name = models.CharField(max_length=120)
+    title = models.CharField(max_length=160, blank=True)  # «Yogalehrerin & Coach»
+    bio = models.TextField(blank=True)
+    photo_url = models.URLField(max_length=500, blank=True)
+    website = models.URLField(max_length=500, blank=True)
+    instagram = models.CharField(max_length=120, blank=True)  # handle или URL
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def instagram_url(self) -> str:
+        """Полный URL Instagram из handle или готовой ссылки (пусто = нет)."""
+        ig = (self.instagram or "").strip()
+        if not ig:
+            return ""
+        if ig.startswith("http"):
+            return ig
+        return f"https://instagram.com/{ig.lstrip('@')}"
+
+    def upcoming_events(self):
+        """Опубликованные будущие события этого преподавателя (для страницы)."""
+        from django.utils import timezone
+
+        return self.events.filter(
+            status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+        ).order_by("starts_at")

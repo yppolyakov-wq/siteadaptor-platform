@@ -1,0 +1,33 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{{ teacher.name }} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <a href="{% url 'storefront-teachers' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "All teachers" %}</a>
+  <div class="flex items-center gap-4 mt-3 mb-4">
+    {% if teacher.photo_url %}<img src="{{ teacher.photo_url }}" alt="" class="w-24 h-24 rounded-full object-cover">{% endif %}
+    <div>
+      <h1 class="text-2xl font-bold">{{ teacher.name }}</h1>
+      {% if teacher.title %}<div class="text-gray-500">{{ teacher.title }}</div>{% endif %}
+      <div class="flex gap-3 mt-1 text-sm">
+        {% if teacher.website %}<a href="{{ teacher.website }}" rel="nofollow noopener" target="_blank" class="text-indigo-600 hover:underline">Website</a>{% endif %}
+        {% if teacher.instagram_url %}<a href="{{ teacher.instagram_url }}" rel="nofollow noopener" target="_blank" class="text-indigo-600 hover:underline">Instagram</a>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% if teacher.bio %}<p class="text-gray-700 whitespace-pre-line mb-6">{{ teacher.bio }}</p>{% endif %}
+
+  {% if events %}
+    <h2 class="text-lg font-bold mb-3">{% trans "Upcoming retreats" %}</h2>
+    <div class="space-y-2">
+      {% for e in events %}
+        <a href="{% url 'storefront-event' e.pk %}" class="block bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition">
+          <div class="font-medium">{{ e.title }}</div>
+          <div class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.city %} · 📍 {{ e.city }}{% endif %}</div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

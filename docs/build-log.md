@@ -1654,3 +1654,14 @@
   Doppel/Einzel), привязаны к Wochenend-Retreat. Тесты `test_accommodation.py` (8).
   ⚠️ reseed `--kit retreat --recreate`. Дальше — R3 (преподаватели + календарь),
   затем R4/R6.
+
+- **Ретрит R3a — преподаватели (Teacher) как сущность.** Модель `events.Teacher`
+  (имя/титул/био/фото-URL/website/instagram/sort_order/is_active) + M2M
+  `Event.teachers`. Кабинет: CRUD преподавателей (`/dashboard/events/teachers/`)
+  + выбор ведущих в форме события; кнопка «Teachers» на списке событий. Витрина:
+  страница списка `/lehrer/` + карточка преподавателя `/lehrer/<pk>/` (био,
+  соцсети, ближайшие ретриты); фильтр каталога **по преподавателю**; на странице
+  события структурные ведущие (ссылки) вместо/поверх free-text hosts. Миграция
+  `events/0009`. Демо retreat: 2 преподавателя (Mara/Felix) с био, связаны со
+  всеми событиями, пункт меню «Lehrer». Тесты `test_teachers.py` (8). Дальше —
+  R3b (календарь ретритов на год + iCal-экспорт).

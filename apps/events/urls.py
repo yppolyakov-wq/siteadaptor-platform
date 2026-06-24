@@ -6,6 +6,10 @@ app_name = "events"
 
 urlpatterns = [
     path("", views.event_list, name="list"),
+    path("teachers/", views.teacher_list, name="teacher-list"),
+    path("teachers/new/", views.teacher_create, name="teacher-create"),
+    path("teachers/<uuid:pk>/edit/", views.teacher_edit, name="teacher-edit"),
+    path("teachers/<uuid:pk>/delete/", views.teacher_delete, name="teacher-delete"),
     path("new/", views.event_create, name="create"),
     path("<uuid:pk>/", views.event_detail, name="detail"),
     path("<uuid:pk>/edit/", views.event_edit, name="edit"),

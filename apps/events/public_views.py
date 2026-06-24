@@ -19,7 +19,7 @@ from apps.core import ratelimit
 from apps.stays.services import StayUnavailable
 
 from . import payments, services
-from .models import Event, Ticket
+from .models import Event, Teacher, Ticket
 
 RL_LIMIT = 5
 RL_WINDOW = 600
@@ -34,9 +34,9 @@ def _require_events_active(request):
 def veranstaltung_index(request):
     _require_events_active(request)
     base = list(
-        Event.objects.filter(status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()).order_by(
-            "starts_at"
-        )
+        Event.objects.filter(status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now())
+        .prefetch_related("teachers")
+        .order_by("starts_at")
     )
     facets = _event_facets(base)  # доступные значения фильтров (по факту наличия)
     selected = {
@@ -46,6 +46,7 @@ def veranstaltung_index(request):
         "city": (request.GET.get("city") or "").strip(),
         "dur": (request.GET.get("dur") or "").strip(),
         "month": (request.GET.get("month") or "").strip(),
+        "teacher": (request.GET.get("teacher") or "").strip(),
     }
     events = [e for e in base if _event_matches(e, selected)]
     return render(
@@ -78,7 +79,17 @@ def _event_facets(events) -> dict:
         "dur": [(k, v) for k, v in taxonomy.DURATIONS if k in present["dur"]],
         "city": sorted({e.city for e in events if e.city}),
         "month": sorted({e.starts_at.strftime("%Y-%m") for e in events}),
+        "teacher": _teacher_facet(events),
     }
+
+
+def _teacher_facet(events) -> list:
+    """[(pk, name)] преподавателей, встречающихся среди событий (по имени)."""
+    seen = {}
+    for e in events:
+        for t in e.teachers.all():
+            seen[str(t.pk)] = t.name
+    return sorted(seen.items(), key=lambda kv: kv[1])
 
 
 def _event_matches(event, f) -> bool:
@@ -94,7 +105,27 @@ def _event_matches(event, f) -> bool:
         return False
     if f["month"] and event.starts_at.strftime("%Y-%m") != f["month"]:
         return False
+    if f["teacher"] and f["teacher"] not in {str(t.pk) for t in event.teachers.all()}:
+        return False
     return True
+
+
+def lehrer_index(request):
+    """Витрина: список преподавателей/ведущих (R3). Гейтится модулем events."""
+    _require_events_active(request)
+    teachers = Teacher.objects.filter(is_active=True)
+    return render(request, "storefront/lehrer_index.html", {"teachers": teachers})
+
+
+def lehrer_detail(request, pk):
+    """Витрина: страница преподавателя — био, соцсети, ближайшие ретриты (R3)."""
+    _require_events_active(request)
+    teacher = get_object_or_404(Teacher, pk=pk, is_active=True)
+    return render(
+        request,
+        "storefront/lehrer_detail.html",
+        {"teacher": teacher, "events": teacher.upcoming_events()},
+    )
 
 
 def veranstaltung_detail(request, pk):

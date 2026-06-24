@@ -10,8 +10,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from . import registration
-from .forms import EventForm
-from .models import Event, Ticket
+from .forms import EventForm, TeacherForm
+from .models import Event, Teacher, Ticket
 from .services import book_ticket, notify_event_waitlist
 from .state_machine import EventSM, TicketSM
 
@@ -190,6 +190,46 @@ def _cancel_linked_stay(ticket) -> None:
     if booking and booking.status in (booking.STATUS_PENDING, booking.STATUS_CONFIRMED):
         booking.status = booking.STATUS_CANCELLED
         booking.save(update_fields=["status", "updated_at"])
+
+
+@login_required
+def teacher_list(request):
+    teachers = Teacher.objects.all()
+    return render(request, "events/teacher_list.html", {"teachers": teachers, "nav": "events"})
+
+
+@login_required
+def teacher_create(request):
+    form = TeacherForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, _("Teacher created."))
+        return redirect("events:teacher-list")
+    return render(request, "events/teacher_form.html", {"form": form, "nav": "events"})
+
+
+@login_required
+def teacher_edit(request, pk):
+    teacher = get_object_or_404(Teacher, pk=pk)
+    form = TeacherForm(request.POST or None, instance=teacher)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, _("Teacher saved."))
+        return redirect("events:teacher-list")
+    return render(
+        request,
+        "events/teacher_form.html",
+        {"form": form, "teacher": teacher, "nav": "events"},
+    )
+
+
+@login_required
+@require_POST
+def teacher_delete(request, pk):
+    teacher = get_object_or_404(Teacher, pk=pk)
+    teacher.delete()
+    messages.success(request, _("Teacher deleted."))
+    return redirect("events:teacher-list")
 
 
 @login_required

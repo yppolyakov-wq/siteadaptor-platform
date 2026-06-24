@@ -1,0 +1,35 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Teachers" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold mb-1">{% trans "Teachers" %}</h1>
+    <p class="text-sm text-gray-500">{% trans "Hosts and teachers — shown on retreats and as a filter in the catalog." %}</p>
+  </div>
+  <a href="{% url 'events:teacher-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "New teacher" %}</a>
+</div>
+
+{% if teachers %}
+<div class="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+  {% for t in teachers %}
+    <div class="flex items-center justify-between px-4 py-3">
+      <a href="{% url 'events:teacher-edit' t.pk %}" class="flex items-center gap-3 hover:opacity-80">
+        {% if t.photo_url %}<img src="{{ t.photo_url }}" alt="" class="w-10 h-10 rounded-full object-cover">{% endif %}
+        <div>
+          <div class="font-medium">{{ t.name }}{% if not t.is_active %} <span class="text-xs text-gray-400">({% trans "hidden" %})</span>{% endif %}</div>
+          <div class="text-xs text-gray-400">{{ t.title }} · {{ t.events.count }} {% trans "events" %}</div>
+        </div>
+      </a>
+      <form method="post" action="{% url 'events:teacher-delete' t.pk %}" onsubmit="return confirm('{% trans "Delete this teacher?" %}')">
+        {% csrf_token %}
+        <button class="text-sm text-red-600 hover:underline">{% trans "Delete" %}</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+  <p class="text-gray-400 text-sm">{% trans "No teachers yet." %}</p>
+{% endif %}
+{% endblock %}

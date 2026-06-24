@@ -45,6 +45,12 @@
         {% for m in facets.month %}<option value="{{ m }}" {% if f.month == m %}selected{% endif %}>{{ m }}</option>{% endfor %}
       </select>
     {% endif %}
+    {% if facets.teacher %}
+      <select name="teacher" class="rounded-lg border border-gray-300 px-2 py-2">
+        <option value="">{% trans "Any teacher" %}</option>
+        {% for pk, name in facets.teacher %}<option value="{{ pk }}" {% if f.teacher == pk %}selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+    {% endif %}
     <div class="col-span-2 sm:col-span-3 flex gap-2">
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Filter" %}</button>
       {% if active_filters %}<a href="{% url 'storefront-events' %}" class="px-4 py-2 text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}

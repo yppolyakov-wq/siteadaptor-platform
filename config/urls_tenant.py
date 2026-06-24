@@ -197,6 +197,9 @@ urlpatterns = [
         name="storefront-event-waitlist",
     ),
     path("e/<str:code>/", events_public.veranstaltung_confirmation, name="storefront-ticket-ok"),
+    # R3: преподаватели/ведущие — список + страница учителя.
+    path("lehrer/", events_public.lehrer_index, name="storefront-teachers"),
+    path("lehrer/<uuid:pk>/", events_public.lehrer_detail, name="storefront-teacher"),
     # Handwerker: заявка + публичное Angebot (G6 / F3).
     path("anfrage/", jobs_public.anfrage, name="storefront-anfrage"),
     path("angebot/<uuid:token>/", jobs_public.angebot, name="storefront-angebot"),

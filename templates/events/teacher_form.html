@@ -1,0 +1,26 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n widget_tweaks %}
+{% block dash_title %}{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-6">{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}</h1>
+
+<form method="post" class="bg-white p-6 rounded-2xl shadow-sm max-w-2xl space-y-4">
+  {% csrf_token %}
+  {% for field in form %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {% if field.name == 'is_active' %}
+        <label class="flex items-center gap-2 text-sm">{{ field }} {% trans "Visible on the website" %}</label>
+      {% else %}
+        {{ field|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
+      {% endif %}
+      {% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+  <div class="flex gap-2">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <a href="{% url 'events:teacher-list' %}" class="px-5 py-2 text-sm text-gray-500 hover:underline">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}
