@@ -1,0 +1,16 @@
+Hallo {{ customer.name }},
+
+Ihr Termin rückt näher — wir freuen uns auf Sie!
+
+{{ event.title }}
+Wann: {{ event.starts_at|date:"l, d.m.Y H:i" }}{% if event.ends_at %} – {{ event.ends_at|date:"d.m.Y H:i" }}{% endif %}
+{% if event.location %}Wo: {{ event.location }}{% endif %}
+Plätze: {{ ticket.quantity }} · Code: {{ ticket.reference_code }}
+{% if memo_url %}
+Ihr Infoblatt (was mitbringen, Anfahrt): {{ memo_url }}
+{% endif %}
+Bis bald!
+
+{% if unsubscribe_url %}—
+Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% endif %}

@@ -270,6 +270,9 @@ class Ticket(TimestampedModel):
     deposit_cents = models.PositiveIntegerField(default=0)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
+    # R9: drip-письма — по одному на билет (idempotent + БД-дедуп Notification).
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)  # за N дней до события
+    post_event_sent_at = models.DateTimeField(null=True, blank=True)  # после события
 
     PAYMENT_NONE = "none"
     PAYMENT_PENDING = "pending"

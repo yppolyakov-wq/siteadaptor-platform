@@ -1714,3 +1714,14 @@
   (срок исковой давности). Миграция `events/0012`. Демо: waiver на Waldlicht/Ayurveda
   + подписанные билеты в seed_records. Тесты `test_waiver.py` (7). План — `docs/retreat-waiver-plan.md`.
   Дальше по бэклогу R7+ — R9 (pre/post-event авто-письма).
+
+- **Ретрит R9 — pre/post-event авто-письма (drip).** `Ticket.reminder_sent_at` +
+  `post_event_sent_at` (по одному письму на билет, idempotent + БД-дедуп). Beat-задачи
+  `apps/events/tasks.py`: `send_event_reminders` (за `EVENT_REMINDER_DAYS`=7 до события,
+  подтверждённые билеты) + `send_event_post_event` (после конца события, `EVENT_POSTEVENT_DAYS`
+  =1, окно подхвата 7 дн; Coalesce(ends_at, starts_at)). Зеркало `stays` E3/G2; письма
+  через `events.notifications` (новые шаблоны `ticket_reminder` / `ticket_post_event` —
+  напоминание со ссылкой на памятку; post-event — благодарность + отзыв). Beat
+  зарегистрированы в `CELERY_BEAT_SCHEDULE` (раз в сутки). Миграция `events/0013`.
+  Тесты `test_drip.py` (6). Дальше по бэклогу R7+ — R11/R12 (per-tier вместимость /
+  политика отмены) или R10 (рассрочка, крупная).

@@ -15,6 +15,8 @@ _CUSTOMER_TEMPLATES = {
     "created": "ticket_created",
     "confirmed": "ticket_confirmed",
     "cancelled": "ticket_cancelled",
+    "reminder": "ticket_reminder",  # R9 за N дней до события
+    "post_event": "ticket_post_event",  # R9 после события (отзыв/возврат)
 }
 
 
@@ -32,6 +34,13 @@ def enqueue_ticket_email(ticket, event):
             if base
             else ""
         )
+        # R9: drip-письма несут ссылку на памятку и на витрину.
+        ctx["memo_url"] = (
+            f"{base}{reverse('storefront-ticket-memo', args=[ticket.reference_code])}"
+            if base
+            else ""
+        )
+        ctx["website_url"] = base or ""
         subject, body, html = _render(template_base, {**ctx, "unsubscribe_url": unsub})
         headers = None
         if unsub:

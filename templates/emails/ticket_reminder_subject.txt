@@ -1,0 +1,1 @@
+Bald geht's los: {{ event.title }} am {{ event.starts_at|date:"d.m.Y" }}

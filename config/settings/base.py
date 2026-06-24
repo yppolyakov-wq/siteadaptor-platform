@@ -280,10 +280,21 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.stays.tasks.purge_old_registrations",
         "schedule": 86400.0,  # раз в сутки — удаление Meldescheine >1 года (G6/DSGVO)
     },
+    "send-event-reminders": {
+        "task": "apps.events.tasks.send_event_reminders",
+        "schedule": 86400.0,  # раз в сутки — pre-event напоминание участникам (R9)
+    },
+    "send-event-post-event": {
+        "task": "apps.events.tasks.send_event_post_event",
+        "schedule": 86400.0,  # раз в сутки — post-event письмо + запрос отзыва (R9)
+    },
 }
 
 # За сколько часов до начала записи слать напоминание (Track D / D3c).
 BOOKING_REMINDER_HOURS = env.int("BOOKING_REMINDER_HOURS", default=24)
+# R9: за сколько дней до события слать напоминание участникам / после — post-event.
+EVENT_REMINDER_DAYS = env.int("EVENT_REMINDER_DAYS", default=7)
+EVENT_POSTEVENT_DAYS = env.int("EVENT_POSTEVENT_DAYS", default=1)
 
 # За сколько дней до заезда слать напоминание о брони (Track E / E3).
 STAY_REMINDER_DAYS = env.int("STAY_REMINDER_DAYS", default=1)
