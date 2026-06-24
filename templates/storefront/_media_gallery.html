@@ -1,0 +1,40 @@
+{# M20U: универсальная галерея детальной страницы — одно большое фото + миниатюры.
+   Клик по миниатюре меняет большое фото НА МЕСТЕ (vanilla JS, как везде в витрине).
+   Параметры: images — список URL или dict'ов {url}; alt — опц. подпись.
+   Переиспользуется детальными всех архетипов (ретрит/товар/номер). #}
+{% load i18n %}
+{% if images %}
+<div class="space-y-3 js-media-gallery" data-media-gallery>
+  <div class="aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100">
+    <img class="js-media-main w-full h-full object-cover" src="{{ images.0.url|default:images.0 }}" alt="{{ alt|default:'' }}">
+  </div>
+  {% if images|length > 1 %}
+  <div class="grid grid-cols-5 gap-2">
+    {% for img in images %}
+      {% with u=img.url|default:img %}
+      <button type="button" class="js-media-thumb aspect-square rounded-lg overflow-hidden bg-gray-100 ring-indigo-500 hover:opacity-90 {% if forloop.first %}ring-2{% endif %}" data-src="{{ u }}" aria-label="{% trans 'Show photo' %} {{ forloop.counter }}">
+        <img class="w-full h-full object-cover" src="{{ u }}" alt="" loading="lazy">
+      </button>
+      {% endwith %}
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+<script>
+(function () {
+  document.querySelectorAll('[data-media-gallery]').forEach(function (g) {
+    if (g.dataset.init) return;            // идемпотентно при нескольких include
+    g.dataset.init = '1';
+    var main = g.querySelector('.js-media-main');
+    var thumbs = g.querySelectorAll('.js-media-thumb');
+    thumbs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        main.src = t.dataset.src;
+        thumbs.forEach(function (x) { x.classList.remove('ring-2'); });
+        t.classList.add('ring-2');
+      });
+    });
+  });
+})();
+</script>
+{% endif %}
