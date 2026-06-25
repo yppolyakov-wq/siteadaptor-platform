@@ -191,6 +191,16 @@ def test_home_builder_get_renders():
     assert 'name="accent"' in body and 'name="font"' in body  # M20f: контролы дизайна
 
 
+def test_home_builder_get_renders_undo_redo():
+    """E.1: панель Undo/Redo + клиентский стек снимков отрисованы в билдере."""
+    tenant = TenantFactory(schema_name="public", slug="hbur", name="HBUR")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'id="home-undo"' in body and 'id="home-redo"' in body  # кнопки
+    assert "function snapshot()" in body and "function undo()" in body  # история
+    assert "Ctrl+Z" in body  # подсказка клавиш
+
+
 def test_home_builder_saves_design():
     """M20f: билдер сохраняет шрифт/стиль hero (site_config) и акцент (Tenant)."""
     tenant = TenantFactory(

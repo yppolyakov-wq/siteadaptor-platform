@@ -248,6 +248,13 @@
       <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
         <span class="text-sm font-medium text-gray-500">{% trans "Live preview" %}</span>
         <div class="flex items-center gap-3">
+          {# E.1: Отменить/Повторить изменения в редакторе (Ctrl+Z / Ctrl+Shift+Z). #}
+          <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs">
+            <button type="button" id="home-undo" title="{% trans 'Undo' %} (Ctrl+Z)"
+                    class="px-2.5 py-1 text-gray-400 cursor-not-allowed" disabled>↶ {% trans "Undo" %}</button>
+            <button type="button" id="home-redo" title="{% trans 'Redo' %} (Ctrl+Shift+Z)"
+                    class="px-2.5 py-1 border-l border-gray-300 text-gray-400 cursor-not-allowed" disabled>↷ {% trans "Redo" %}</button>
+          </div>
           {# Переключатель ширины предпросмотра (Desktop/Tablet/Mobile). #}
           <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs">
             <button type="button" data-w="100%" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
@@ -369,8 +376,87 @@
     return payload;
   }
 
+  // E.1: Undo/Redo — клиентский стек снимков состояния редактора (всех полей
+  // формы). Снимок = карта name→value/checked; восстановление переустанавливает
+  // поля и обновляет live-preview, поэтому «Отменить» влияет и на Сохранение.
+  var undoBtn = document.getElementById("home-undo");
+  var redoBtn = document.getElementById("home-redo");
+  function ctrls() { return form.querySelectorAll("input[name], select[name], textarea[name]"); }
+  function snapshot() {
+    var s = {};
+    ctrls().forEach(function (el) {
+      if (el.type === "checkbox" || el.type === "radio") s["#" + el.name] = !!el.checked;
+      else s[el.name] = el.value;
+    });
+    return s;
+  }
+  function applySnapshot(s) {
+    ctrls().forEach(function (el) {
+      if (el.type === "checkbox" || el.type === "radio") {
+        if (("#" + el.name) in s) el.checked = s["#" + el.name];
+      } else if (el.name in s) {
+        el.value = s[el.name];
+      }
+    });
+  }
+  var past = [], future = [], present = null, restoring = false;
+  var HISTORY_MAX = 20;
+  function setBtn(btn, on) {
+    if (!btn) return;
+    btn.disabled = !on;
+    btn.classList.toggle("text-gray-400", !on);
+    btn.classList.toggle("cursor-not-allowed", !on);
+    btn.classList.toggle("text-indigo-600", on);
+    btn.classList.toggle("hover:bg-indigo-50", on);
+  }
+  function updateUndoBtns() { setBtn(undoBtn, past.length > 0); setBtn(redoBtn, future.length > 0); }
+  function record() {
+    var snap = snapshot();
+    if (present !== null) {
+      if (JSON.stringify(snap) === JSON.stringify(present)) return;
+      past.push(present);
+      if (past.length > HISTORY_MAX) past.shift();
+      future = [];
+    }
+    present = snap;
+    updateUndoBtns();
+  }
+  function undo() {
+    if (!past.length) return;
+    future.push(present);
+    present = past.pop();
+    restoring = true;
+    applySnapshot(present);
+    push();
+    updateUndoBtns();
+  }
+  function redo() {
+    if (!future.length) return;
+    past.push(present);
+    present = future.pop();
+    restoring = true;
+    applySnapshot(present);
+    push();
+    updateUndoBtns();
+  }
+  if (undoBtn) undoBtn.addEventListener("click", undo);
+  if (redoBtn) redoBtn.addEventListener("click", redo);
+  document.addEventListener("keydown", function (e) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    var t = e.target;
+    // В текстовых полях оставляем нативную отмену ввода.
+    if (t && (t.tagName === "TEXTAREA" || t.isContentEditable ||
+        (t.tagName === "INPUT" && /^(text|search|url|email|number|tel)$/.test(t.type)))) return;
+    var k = (e.key || "").toLowerCase();
+    if (k === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+    else if ((k === "z" && e.shiftKey) || k === "y") { e.preventDefault(); redo(); }
+  });
+
   var timer = null;
   function push() {
+    // E.1: на обычном изменении пишем снимок в историю; при undo/redo — пропускаем
+    // (present уже выставлен), только обновляем превью.
+    if (restoring) restoring = false; else record();
     if (status) status.textContent = "…";
     fetch(url, {
       method: "POST",
