@@ -35,3 +35,21 @@ def test_gallery_single_image_no_thumb_strip():
 def test_gallery_empty_renders_nothing():
     html = render_to_string("storefront/_media_gallery.html", {"images": []})
     assert "js-media-gallery" not in html.strip()
+
+
+# A.4 (T-E): полноэкранный лайтбокс
+
+
+def test_gallery_has_lightbox_and_zoom():
+    html = render_to_string(
+        "storefront/_media_gallery.html",
+        {"images": ["https://x/a.jpg", "https://x/b.jpg"]},
+    )
+    assert "js-media-zoom" in html and "cursor-zoom-in" in html  # клик по фото → лайтбокс
+    assert "js-lb" in html and "js-lb-img" in html
+    assert "js-lb-prev" in html and "js-lb-next" in html  # навигация при >1 фото
+
+
+def test_gallery_single_image_still_has_lightbox():
+    html = render_to_string("storefront/_media_gallery.html", {"images": ["https://x/only.jpg"]})
+    assert "js-media-zoom" in html and "js-lb-img" in html  # лайтбокс и для одной фото

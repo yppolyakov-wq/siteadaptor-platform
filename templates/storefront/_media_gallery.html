@@ -1,24 +1,33 @@
 {# M20U: универсальная галерея детальной страницы — одно большое фото + миниатюры.
-   Клик по миниатюре меняет большое фото НА МЕСТЕ (vanilla JS, как везде в витрине).
-   Параметры: images — список URL или dict'ов {url}; alt — опц. подпись.
-   Переиспользуется детальными всех архетипов (ретрит/товар/номер). #}
+   Клик по миниатюре меняет большое фото НА МЕСТЕ; клик по большому фото открывает
+   полноэкранный лайтбокс (A.4: ← → / Esc / клик по фону). Vanilla JS, без внешних
+   библиотек (GDPR). Переиспользуется детальными всех архетипов (товар/номер/событие).
+   Параметры: images — список URL или dict'ов {url}; alt — опц. подпись. #}
 {% load i18n %}
 {% if images %}
 <div class="space-y-3 js-media-gallery" data-media-gallery>
-  <div class="aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100">
+  <button type="button" class="js-media-zoom block w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in" aria-label="{% trans 'Enlarge photo' %}">
     <img class="js-media-main w-full h-full object-cover" src="{{ images.0.url|default:images.0 }}" alt="{{ alt|default:'' }}">
-  </div>
+  </button>
   {% if images|length > 1 %}
   <div class="grid grid-cols-5 gap-2">
     {% for img in images %}
       {% with u=img.url|default:img %}
-      <button type="button" class="js-media-thumb aspect-square rounded-lg overflow-hidden bg-gray-100 ring-indigo-500 hover:opacity-90 {% if forloop.first %}ring-2{% endif %}" data-src="{{ u }}" aria-label="{% trans 'Show photo' %} {{ forloop.counter }}">
+      <button type="button" class="js-media-thumb aspect-square rounded-lg overflow-hidden bg-gray-100 ring-indigo-500 hover:opacity-90 {% if forloop.first %}ring-2{% endif %}" data-src="{{ u }}" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Show photo' %} {{ forloop.counter }}">
         <img class="w-full h-full object-cover" src="{{ u }}" alt="" loading="lazy">
       </button>
       {% endwith %}
     {% endfor %}
   </div>
   {% endif %}
+
+  {# Полноэкранный лайтбокс (скрыт; один на галерею). #}
+  <div class="js-lb fixed inset-0 z-50 hidden items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true">
+    <button type="button" class="js-lb-close absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none" aria-label="{% trans 'Close' %}">&times;</button>
+    <button type="button" class="js-lb-prev absolute left-2 md:left-6 text-white/80 hover:text-white text-4xl leading-none hidden" aria-label="{% trans 'Previous' %}">&#8249;</button>
+    <img class="js-lb-img max-h-[90vh] max-w-[92vw] object-contain rounded-lg" src="" alt="{{ alt|default:'' }}">
+    <button type="button" class="js-lb-next absolute right-2 md:right-6 text-white/80 hover:text-white text-4xl leading-none hidden" aria-label="{% trans 'Next' %}">&#8250;</button>
+  </div>
 </div>
 <script>
 (function () {
@@ -27,12 +36,51 @@
     g.dataset.init = '1';
     var main = g.querySelector('.js-media-main');
     var thumbs = g.querySelectorAll('.js-media-thumb');
+    var urls = Array.prototype.map.call(thumbs, function (t) { return t.dataset.src; });
+    if (!urls.length) urls = [main.getAttribute('src')];
+    var idx = 0;
+
+    function selectThumb(i) {
+      idx = (i + urls.length) % urls.length;
+      main.src = urls[idx];
+      thumbs.forEach(function (x) { x.classList.remove('ring-2'); });
+      if (thumbs[idx]) thumbs[idx].classList.add('ring-2');
+    }
     thumbs.forEach(function (t) {
-      t.addEventListener('click', function () {
-        main.src = t.dataset.src;
-        thumbs.forEach(function (x) { x.classList.remove('ring-2'); });
-        t.classList.add('ring-2');
-      });
+      t.addEventListener('click', function () { selectThumb(+t.dataset.index); });
+    });
+
+    // --- Лайтбокс ---
+    var lb = g.querySelector('.js-lb');
+    var lbImg = lb.querySelector('.js-lb-img');
+    var prev = lb.querySelector('.js-lb-prev');
+    var next = lb.querySelector('.js-lb-next');
+    var multi = urls.length > 1;
+
+    function show() {
+      lbImg.src = urls[idx];
+      lb.classList.remove('hidden');
+      lb.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      if (multi) { prev.classList.remove('hidden'); next.classList.remove('hidden'); }
+    }
+    function hide() {
+      lb.classList.add('hidden');
+      lb.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+    function step(d) { selectThumb(idx + d); lbImg.src = urls[idx]; }
+
+    g.querySelector('.js-media-zoom').addEventListener('click', show);
+    lb.querySelector('.js-lb-close').addEventListener('click', hide);
+    prev.addEventListener('click', function (e) { e.stopPropagation(); step(-1); });
+    next.addEventListener('click', function (e) { e.stopPropagation(); step(1); });
+    lb.addEventListener('click', function (e) { if (e.target === lb) hide(); });
+    document.addEventListener('keydown', function (e) {
+      if (lb.classList.contains('hidden')) return;
+      if (e.key === 'Escape') hide();
+      else if (multi && e.key === 'ArrowLeft') step(-1);
+      else if (multi && e.key === 'ArrowRight') step(1);
     });
   });
 })();
