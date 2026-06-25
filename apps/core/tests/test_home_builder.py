@@ -228,6 +228,15 @@ def test_home_builder_get_renders_inserter():
     assert "data-sf-ins" in body  # инъекция зоны «+» в превью
 
 
+def test_home_builder_get_renders_canvas_drag():
+    """E.4: drag-on-canvas — инъекция ручек + перенос порядка в редактор."""
+    tenant = TenantFactory(schema_name="public", slug="hbdrag", name="HBDRAG")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert "function moveBlock" in body  # маппинг порядка в order-инпуты
+    assert "data-sf-drag" in body  # инъекция ручки на блок превью
+
+
 def test_home_builder_saves_design():
     """M20f: билдер сохраняет шрифт/стиль hero (site_config) и акцент (Tenant)."""
     tenant = TenantFactory(

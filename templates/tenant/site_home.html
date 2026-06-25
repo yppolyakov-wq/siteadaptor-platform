@@ -546,6 +546,22 @@
         !inserter.contains(e.target)) hideInserter();
   });
 
+  // E.4: drag-on-canvas — перетаскивание блока в превью переносит его control-row
+  // в редакторе к целевой позиции и перенумеровывает (общий путь с превью/сабвитом).
+  var draggedKey = null;
+  function moveBlock(dKey, tKey, before) {
+    var list = document.getElementById("home-blocks");
+    if (!list || !dKey || dKey === tKey) return;
+    var dr = form.querySelector('[name="order_' + dKey + '"]');
+    dr = dr ? dr.closest(".home-block") : null;
+    var tr = form.querySelector('[name="order_' + tKey + '"]');
+    tr = tr ? tr.closest(".home-block") : null;
+    if (!dr || !tr) return;
+    list.insertBefore(dr, before ? tr : tr.nextSibling);
+    list.querySelectorAll(".order-input").forEach(function (inp, i) { inp.value = i + 1; });
+    schedule();
+  }
+
   var timer = null;
   function push() {
     // E.1: на обычном изменении пишем снимок в историю; при undo/redo — пропускаем
@@ -629,6 +645,40 @@
       });
       bar.appendChild(btn);
       sec.parentNode.insertBefore(bar, sec.nextSibling);
+    });
+    // E.4: drag-on-canvas — ручка ⠿ на каждом блоке; перетаскивание меняет порядок.
+    var win = frame.contentWindow;
+    doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
+      var box = sec.firstElementChild;
+      if (!box) return;
+      if (win.getComputedStyle(box).position === "static") box.style.position = "relative";
+      var h = doc.createElement("div");
+      h.textContent = "⠿";
+      h.draggable = true;
+      h.title = "Ziehen zum Verschieben";
+      h.setAttribute("data-sf-drag", "1");
+      h.setAttribute("style",
+        "position:absolute;left:6px;top:6px;width:26px;height:26px;border-radius:6px;" +
+        "background:rgba(79,70,229,.92);color:#fff;display:flex;align-items:center;" +
+        "justify-content:center;cursor:grab;z-index:60;font-size:14px;opacity:.45;" +
+        "transition:opacity .15s;");
+      h.addEventListener("mouseenter", function () { h.style.opacity = "1"; });
+      h.addEventListener("mouseleave", function () { h.style.opacity = ".45"; });
+      h.addEventListener("click", function (e) { e.stopPropagation(); });
+      h.addEventListener("dragstart", function (e) {
+        draggedKey = sec.getAttribute("data-sf-section");
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+      });
+      box.appendChild(h);
+      box.addEventListener("dragover", function (e) { if (draggedKey) e.preventDefault(); });
+      box.addEventListener("drop", function (e) {
+        if (!draggedKey) return;
+        e.preventDefault();
+        var tKey = sec.getAttribute("data-sf-section");
+        var b = box.getBoundingClientRect();
+        moveBlock(draggedKey, tKey, e.clientY < b.top + b.height / 2);
+        draggedKey = null;
+      });
     });
   });
   function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }

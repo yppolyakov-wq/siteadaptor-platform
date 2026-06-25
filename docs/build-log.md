@@ -1983,3 +1983,15 @@
   (`normalize` сохраняет порядок present-секций; обратная совместимость — без `add_after`
   по-прежнему append). Тесты `test_add_block_after_inserts_at_position` (сервер) +
   `test_home_builder_get_renders_inserter` (рендер библиотеки/инъекции). build:css обновлён.
+- **2026-06-25 — Спринт E.4 (анти-Битрикс Phase 3 «on-canvas»): drag-on-canvas. СПРИНТ E
+  ЗАКРЫТ.** На каждый блок live-preview инъектируется drag-ручка ⠿ (нативный HTML5 DnD,
+  без внешних библиотек — GDPR/no-SPA). Перетаскивание блока определяет before/after по
+  Y-середине целевого блока и через `moveBlock` переносит соответствующий `.home-block`
+  в редакторе к новой позиции + перенумеровывает `order-input` → тот же путь, что обновляет
+  live-preview, Сохранение и историю Undo/Redo (E.1). Обёртки `display:contents` не дают
+  drag-бокс, поэтому ручка крепится к первому элементу секции (position:relative при
+  static). Тест `test_home_builder_get_renders_canvas_drag`. Только шаблон+тест.
+  **Итог Спринта E (анти-Битрикс «on-canvas»):** E.1 Undo/Redo · E.2 click-to-edit→попап ·
+  E.3 инсертер «+» (add_after) · E.4 drag-on-canvas — нативное редактирование прямо на
+  превью, без SPA. Опц. оставлено: показ C-блоков в live-preview-черновике (сейчас draft
+  фильтрует только фикс-секции), per-block undo-гранулярность.

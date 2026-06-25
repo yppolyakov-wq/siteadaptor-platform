@@ -172,8 +172,14 @@ C-блоки — `.cb-row[data-cb-id]`). Попап живёт ВНУТРИ `#ho
 `apps/core/views.py`, `templates/tenant/site_home.html`, тесты
 `test_add_block_after_inserts_at_position` + `test_home_builder_get_renders_inserter`.
 
-### E.4 — Drag-on-canvas (SortableJS в iframe) ☐  (M)
-Перетаскивание секций на самом превью. Зависит от D.1.
+### E.4 — Drag-on-canvas ✅  (M)
+На каждый блок live-preview инъектируется ручка ⠿ (native HTML5 DnD, без библиотек —
+GDPR/no-SPA). Перетаскивание блока вычисляет before/after по Y-середине цели и через
+`moveBlock` переносит соответствующий `.home-block` в редакторе к новой позиции +
+перенумеровывает `order-input` → общий путь с live-preview/Сохранением/историей (E.1).
+Обёртки `display:contents` не дают drag-бокс → ручка крепится к первому элементу секции
+(position:relative при static). **Файлы:** `templates/tenant/site_home.html`, тест
+`test_home_builder_get_renders_canvas_drag`. **Спринт E закрыт (E.1–E.4).**
 
 ---
 
