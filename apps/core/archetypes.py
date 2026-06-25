@@ -19,6 +19,26 @@ PRIMARY_SECTION = {
 # Приоритет выбора «главного» архетипа, если storefront_root не задан явно.
 _PRIORITY = ["events", "stays", "catalog", "promotions"]
 
+# M20U-5: способ покупки по архетипу — определяет виджет на детальной/листинге.
+#   cart    — добавить в корзину (товары → /warenkorb/);
+#   booking — бронь/оформление (билеты события, номера: даты → бронь);
+#   reserve — резерв акции (промо-бронь);
+#   request — заявка/запрос предложения (под заказ).
+PURCHASE_MODE = {
+    "catalog": "cart",
+    "events": "booking",
+    "stays": "booking",
+    "promotions": "reserve",
+    "jobs": "request",
+    "booking": "booking",  # услуги по времени (Termin)
+}
+
+
+def purchase_mode(module: str) -> str:
+    """Способ покупки для модуля-архетипа (cart|booking|reserve|request); по
+    умолчанию `request` (под запрос) — безопасный фолбэк без онлайн-оплаты."""
+    return PURCHASE_MODE.get(module, "request")
+
 
 def primary_module(tenant) -> str | None:
     """Ключ модуля «главного товара» тенанта.
@@ -53,4 +73,5 @@ def primary_item(tenant) -> dict | None:
         "section": PRIMARY_SECTION[module],
         "landing": getattr(spec, "storefront_landing", "") if spec else "",
         "label": getattr(spec, "storefront_label", "") if spec else "",
+        "mode": purchase_mode(module),
     }

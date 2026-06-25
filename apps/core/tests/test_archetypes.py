@@ -47,6 +47,15 @@ def test_primary_item_descriptor_carries_landing_and_label():
     assert item["module"] == "events" and item["section"] == "events"
     assert item["landing"] == "storefront-events"  # из ModuleSpec
     assert item["label"]  # непустой заголовок архетипа
+    assert item["mode"] == "booking"  # M20U-5: способ покупки
+
+
+def test_purchase_mode_by_archetype():
+    assert archetypes.purchase_mode("catalog") == "cart"
+    assert archetypes.purchase_mode("events") == "booking"
+    assert archetypes.purchase_mode("stays") == "booking"
+    assert archetypes.purchase_mode("jobs") == "request"
+    assert archetypes.purchase_mode("unknown") == "request"  # безопасный фолбэк
 
 
 def test_primary_none_when_no_archetype_active():
