@@ -112,9 +112,16 @@ def storefront_home(request):
     if "products" in sections:
         from apps.catalog.models import Product
 
-        products_preview = Product.objects.filter(is_active=True).order_by(
-            "-is_featured", "-created_at"
-        )[: siteconfig.section_limit(site, "products")]
+        # M20U-7: источник товаров секции (избранные/новые/избранные-первыми).
+        prod_qs = Product.objects.filter(is_active=True)
+        source = siteconfig.product_source(site)
+        if source == "featured_only":
+            prod_qs = prod_qs.filter(is_featured=True).order_by("-created_at")
+        elif source == "newest":
+            prod_qs = prod_qs.order_by("-created_at")
+        else:  # featured_first
+            prod_qs = prod_qs.order_by("-is_featured", "-created_at")
+        products_preview = prod_qs[: siteconfig.section_limit(site, "products")]
     # M20U-2: сетка категорий каталога (верхний уровень, активные).
     categories = []
     if "categories" in sections:

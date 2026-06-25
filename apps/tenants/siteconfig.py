@@ -90,6 +90,12 @@ GRID_SECTION_DEFAULTS = {
 GRID_SECTION_LIMITS = {"products": 8, "events": 6}
 _SECTION_LIMIT_MAX = 24
 
+# M20U-7: источник товаров секции products. featured_first — текущее поведение
+# (избранные вперёд, затем новые); newest — только по дате; featured_only —
+# только избранные.
+PRODUCT_SOURCES = ("featured_first", "newest", "featured_only")
+PRODUCT_SOURCE_DEFAULT = "featured_first"
+
 # Purge-safe статические таблицы Tailwind-классов (динамические строки нельзя —
 # их вырежет purge). mobile=база, sm=планшет (капд до 3), lg=десктоп.
 _GRID_MOBILE = {1: "grid-cols-1", 2: "grid-cols-2"}
@@ -182,6 +188,15 @@ def section_title(config, key) -> str:
     if isinstance(titles, dict):
         return _s(titles.get(key))[:_SECTION_TITLE_MAX]
     return ""
+
+
+def product_source(config) -> str:
+    """M20U-7: источник товаров секции-превью products (PRODUCT_SOURCES)."""
+    for item in (config or {}).get("sections", []):
+        if isinstance(item, dict) and item.get("key") == "products":
+            src = item.get("source")
+            return src if src in PRODUCT_SOURCES else PRODUCT_SOURCE_DEFAULT
+    return PRODUCT_SOURCE_DEFAULT
 
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
@@ -488,26 +503,31 @@ def normalize(config) -> dict:
     seen = set()
     sections = []
 
-    def _section(key, enabled, raw_layout, raw_limit):
+    def _section(key, enabled, raw_item):
         # M20R-1: секции-сетки несут layout (пресет+override); прочие — нет.
+        raw_item = raw_item if isinstance(raw_item, dict) else {}
         entry = {"key": key, "enabled": enabled}
         if key in GRID_SECTION_DEFAULTS:
-            entry["layout"] = normalize_layout(raw_layout, GRID_SECTION_DEFAULTS[key])
+            entry["layout"] = normalize_layout(raw_item.get("layout"), GRID_SECTION_DEFAULTS[key])
         # M20U-7: секции-превью несут настраиваемый лимит элементов.
         if key in GRID_SECTION_LIMITS:
-            entry["limit"] = _clamp(raw_limit, 1, _SECTION_LIMIT_MAX, GRID_SECTION_LIMITS[key])
+            entry["limit"] = _clamp(
+                raw_item.get("limit"), 1, _SECTION_LIMIT_MAX, GRID_SECTION_LIMITS[key]
+            )
+        # M20U-7: источник товаров секции products (избранные/новые/избр.-первыми).
+        if key == "products":
+            src = raw_item.get("source")
+            entry["source"] = src if src in PRODUCT_SOURCES else PRODUCT_SOURCE_DEFAULT
         return entry
 
     for item in config.get("sections", []):
         key = item.get("key") if isinstance(item, dict) else None
         if key in _KNOWN and key not in seen:
-            sections.append(
-                _section(key, bool(item.get("enabled")), item.get("layout"), item.get("limit"))
-            )
+            sections.append(_section(key, bool(item.get("enabled")), item))
             seen.add(key)
     for key, _label, enabled in SECTIONS:
         if key not in seen:
-            sections.append(_section(key, enabled, None, None))
+            sections.append(_section(key, enabled, None))
 
     normalized = {"sections": sections}
     for field in TEXT_FIELDS:

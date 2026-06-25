@@ -95,6 +95,16 @@ def test_home_builder_saves_limit():
     assert siteconfig.section_limit(cfg, "products") == 4
 
 
+def test_home_builder_saves_product_source():
+    """M20U-7: источник товаров секции products сохраняется."""
+    tenant = TenantFactory(schema_name="public", slug="hbs", name="HBS")
+    data = {"order_products": "1", "enabled_products": "on", "source_products": "newest"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.product_source(cfg) == "newest"
+
+
 def test_home_builder_saves_section_title():
     """M20U-7: кастомный заголовок секции сохраняется в section_titles."""
     tenant = TenantFactory(schema_name="public", slug="hbt", name="HBT")

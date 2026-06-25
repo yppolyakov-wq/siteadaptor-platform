@@ -192,6 +192,18 @@ def test_home_products_preview_respects_limit():
     assert shown == 3
 
 
+def test_home_products_source_featured_only():
+    """M20U-7: источник «featured_only» показывает на главной только избранные товары."""
+    ProductFactory(name={"de": "Star"}, is_featured=True)
+    ProductFactory(name={"de": "Normal"}, is_featured=False)
+    req = _req("/")
+    req.tenant.site_config = {
+        "sections": [{"key": "products", "enabled": True, "source": "featured_only"}]
+    }
+    body = public_views.storefront_home(req).content.decode()
+    assert "Star" in body and "Normal" not in body
+
+
 def test_home_section_custom_heading():
     """M20U-7: владелец задаёт свой заголовок секции (вместо стандартного)."""
     ProductFactory(name={"de": "Brot"})

@@ -453,6 +453,9 @@ def home_builder_view(request):
             # M20U-7: число элементов секции-превью (normalize клампит).
             if key in siteconfig.GRID_SECTION_LIMITS:
                 entry["limit"] = request.POST.get(f"limit_{key}", "")
+            # M20U-7: источник товаров секции products (normalize валидирует).
+            if key == "products":
+                entry["source"] = request.POST.get("source_products", "")
             new_sections.append(entry)
         config["sections"] = new_sections
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
@@ -511,6 +514,9 @@ def home_builder_view(request):
             # M20U-7: кастомный заголовок секции (для перечисленных ключей).
             "has_title": s["key"] in siteconfig.SECTION_TITLE_KEYS,
             "title": (config.get("section_titles") or {}).get(s["key"], ""),
+            # M20U-7: источник товаров (только секция products).
+            "has_source": s["key"] == "products",
+            "source": s.get("source", ""),
         }
         for index, s in enumerate(config["sections"], start=1)
     ]
@@ -521,6 +527,11 @@ def home_builder_view(request):
         ("cols4", _("4 per row")),
         ("gallery", _("Gallery")),
     ]
+    source_options = [
+        ("featured_first", _("Featured first")),
+        ("newest", _("Newest")),
+        ("featured_only", _("Featured only")),
+    ]
     archetypes_enabled = any(s["key"] == "archetypes" and s["enabled"] for s in config["sections"])
     return render(
         request,
@@ -529,6 +540,7 @@ def home_builder_view(request):
             "nav": "site",
             "sections": sections,
             "preset_options": preset_options,
+            "source_options": source_options,
             "archetype_specs": storefront.teaser_specs(request.tenant),
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,
@@ -661,6 +673,9 @@ def site_preview_draft(request):
                     item.get("limit"), (int, str)
                 ):
                     row["limit"] = item["limit"]
+                # M20U-7: источник товаров → в черновик.
+                if key == "products" and item.get("source") in siteconfig.PRODUCT_SOURCES:
+                    row["source"] = item["source"]
                 rows.append(row)
                 seen.add(key)
         if rows:

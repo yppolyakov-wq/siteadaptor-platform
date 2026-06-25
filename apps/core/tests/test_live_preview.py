@@ -84,6 +84,23 @@ def test_draft_endpoint_includes_layout_preset():
     assert "layout" not in hero  # не секция-сетка
 
 
+def test_draft_endpoint_includes_product_source():
+    """M20U-7: источник товаров попадает в черновик превью."""
+    tenant = TenantFactory(schema_name="public", slug="ds", name="DS")
+    body = json.dumps(
+        {"sections": [{"key": "products", "enabled": True, "source": "featured_only"}]}
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    assert siteconfig.product_source(req.session["site_preview_draft"]) == "featured_only"
+
+
 def test_draft_endpoint_includes_section_titles():
     """M20U-7: кастомные заголовки секций попадают в черновик (чистятся normalize)."""
     tenant = TenantFactory(schema_name="public", slug="dt", name="DT")

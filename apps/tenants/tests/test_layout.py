@@ -120,6 +120,20 @@ def test_normalize_attaches_limit_only_to_preview_sections():
     assert "limit" not in team  # не секция-превью
 
 
+def test_product_source_default_override_and_normalize():
+    # M20U-7: источник товаров секции products.
+    assert siteconfig.product_source({"sections": []}) == "featured_first"  # дефолт
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "source": "newest"}]})
+    assert siteconfig.product_source(cfg) == "newest"
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert products["source"] == "newest"
+    # мусорный источник → дефолт; не-products секции source не несут
+    bad = siteconfig.normalize({"sections": [{"key": "products", "source": "zzz"}]})
+    assert siteconfig.product_source(bad) == "featured_first"
+    events = next(s for s in bad["sections"] if s["key"] == "events")
+    assert "source" not in events
+
+
 def test_section_title_default_override_and_cleanup():
     # M20U-7: кастомный заголовок секции.
     assert siteconfig.section_title({"sections": []}, "events") == ""  # дефолт → пусто

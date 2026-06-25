@@ -95,6 +95,12 @@
                        placeholder="{{ s.label }}"
                        class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}">
               {% endif %}
+              {% if s.has_source %}
+                {# M20U-7: какие товары показывать в превью #}
+                <select name="source_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Which items' %}" title="{% trans 'Which items' %}">
+                  {% for sk, slabel in source_options %}<option value="{{ sk }}" {% if s.source == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
+                </select>
+              {% endif %}
             </div>
           {% endfor %}
         </div>
@@ -248,6 +254,9 @@
       // M20U-7: число элементов секции-превью → в превью.
       var lim = form.querySelector("input[name='limit_" + r.key + "']");
       if (lim && lim.value) sec.limit = parseInt(lim.value, 10);
+      // M20U-7: источник товаров → в превью.
+      var srcSel = form.querySelector("select[name='source_" + r.key + "']");
+      if (srcSel && srcSel.value) sec.source = srcSel.value;
       return sec;
     });
     var archetypes = {};
