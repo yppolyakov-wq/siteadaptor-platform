@@ -1788,3 +1788,22 @@
   `test_installments.py` (12) + `test_installment_payment.py` (8). **Код спит без
   Stripe-ключей** (как оплата билетов); сквозная проверка списаний — на Stripe test
   (Stage 0). Ретрит-бэклог R7+ (R8–R13) полностью закрыт.
+- **2026-06-25 — M20U «унификация страниц» (план `m20-retreat-pages-plan.md`).**
+  Сквозная идея «архетип = главный товар + способ покупки» поверх JSON-конфига, без
+  новых моделей. **M20U-2 (главная):** слайдер баннеров `heroes[]`, секции `categories`
+  и `events` (layout-движок), реестр `apps/core/archetypes.py` (`primary_item`:
+  магазин→товары/ретрит→события/отель→номера; `primary_module/section`), hero-CTA на
+  «главный товар» (accent/photo + слайды без своей кнопки). **M20U-3 (каталог):**
+  подкатегории-первыми; фильтры ретритов свёрнуты/скрыты на маленькой витрине
+  (`_FILTER_MIN_EVENTS`). **M20U-5 (способ покупки):** реестр `purchase_mode`
+  (cart/booking/reserve/request) + `purchase_label` (DE) + тег `{% purchase_label %}`;
+  пилюли действия на карточках событий/номеров; мобильная липкая панель `_detail_buybar.html`
+  на всех детальных. **M20U-4 (единая детальная):** каркас `storefront/detail.html`
+  на блоках-наследования (`detail_back/gallery/aside/body/wide/buybar`, base_template-aware
+  для embed); product/stay/event_detail сведены на него без регрессии. **M20U-7 (билдер):**
+  селектор пресета раскладки (Список/2-4/Галерея) секций-сеток в конструкторе главной →
+  `layout.preset` в конфиге; live-preview отражает пресет. Визнастройка в django-admin
+  отсутствует (кураторские fieldsets) — пункт «убрать из admin» закрыт. Тесты:
+  archetypes(10)/layout/hero_slider/media_gallery + storefront/детальные/builder/live-preview.
+  Осталось по M20U: per-page билдер (каталог/детальная), хвосты каталога events/stays,
+  общий Category/Tag (опц.), realtime-чат (отдельный трек).
