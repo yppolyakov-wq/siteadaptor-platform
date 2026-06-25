@@ -217,6 +217,17 @@ def test_home_builder_get_renders_block_popup():
     assert 'class="cb-row' in body and "data-cb-id=" in body  # маркеры C-блока
 
 
+def test_home_builder_get_renders_inserter():
+    """E.3: библиотека блоков инсертера «+» + инъекция зон в превью отрисованы."""
+    tenant = TenantFactory(schema_name="public", slug="hbins", name="HBINS")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'id="bld-inserter"' in body  # библиотека блоков
+    assert 'class="bld-ins-btn' in body  # кнопки типов
+    assert "function submitInsert" in body  # add_block с add_after
+    assert "data-sf-ins" in body  # инъекция зоны «+» в превью
+
+
 def test_home_builder_saves_design():
     """M20f: билдер сохраняет шрифт/стиль hero (site_config) и акцент (Tenant)."""
     tenant = TenantFactory(

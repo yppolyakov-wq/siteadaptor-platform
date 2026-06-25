@@ -45,6 +45,23 @@ def test_add_block_appends_empty_cblock():
     assert len(blocks) == 1 and blocks[0]["key"] == "text"
 
 
+def test_add_block_after_inserts_at_position():
+    """E.3: инсертер «+» — add_after вставляет C-блок сразу после указанной секции."""
+    tenant = TenantFactory(
+        slug="cbins",
+        name="X",
+        site_config={
+            "sections": [{"key": "hero", "enabled": True}, {"key": "products", "enabled": True}]
+        },
+    )
+    core_views.home_builder_view(
+        _req({"action": "add_block", "block_type": "text", "add_after": "hero"}, tenant)
+    )
+    tenant.refresh_from_db()
+    keys = [s["key"] for s in siteconfig.normalize(tenant.site_config)["sections"]]
+    assert keys[keys.index("hero") + 1] == "text"  # вставлен сразу после hero, не в конец
+
+
 def test_save_persists_cblock_edits_and_keeps_fixed_sections():
     tenant = TenantFactory(slug="cb2", name="X")
     core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))

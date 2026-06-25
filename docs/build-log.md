@@ -1974,3 +1974,12 @@
   Фолбэк сохранён — прокрутка+подсветка контролов (M20U-7 B), если row не найден. Тест
   `test_home_builder_get_renders_block_popup` (контейнер попапа + `openBlockPopup` + cb-row).
   Только шаблон+тест, без кода/миграций. build:css обновлён (новые утилиты позиционирования).
+- **2026-06-25 — Спринт E.3 (анти-Битрикс Phase 3 «on-canvas»): инсертер «+».** Между
+  блоками live-preview инъектируются круглые зоны «+»; клик открывает плавающую библиотеку
+  блоков `#bld-inserter` (типы из `block_types`), выбор типа POST-ит `add_block` с новым
+  параметром **`add_after`** (ключ фикс-секции или id C-блока) → новый C-блок вставляется
+  СРАЗУ ПОСЛЕ выбранного блока (а не только в конец), страница перерисовывается. Бэкенд:
+  `home_builder_view`/add_block читает `add_after` и делает `sections.insert(idx+1)`
+  (`normalize` сохраняет порядок present-секций; обратная совместимость — без `add_after`
+  по-прежнему append). Тесты `test_add_block_after_inserts_at_position` (сервер) +
+  `test_home_builder_get_renders_inserter` (рендер библиотеки/инъекции). build:css обновлён.

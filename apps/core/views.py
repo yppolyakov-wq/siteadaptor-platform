@@ -505,11 +505,24 @@ def home_builder_view(request):
             _delete_gallery_image(request, request.POST.get("image_id", ""))
             return redirect("site-home")
         # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
+        # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить
+        # новый блок сразу ПОСЛЕ него (инсертер «+» на канвасе); иначе — в конец.
         if request.POST.get("action") == "add_block":
             btype = request.POST.get("block_type", "")
             if btype in siteconfig.REPEATABLE_BLOCKS:
                 cfg = siteconfig.normalize(request.tenant.site_config)
-                cfg["sections"].append({"key": btype, "enabled": True, "data": {}})
+                new_block = {"key": btype, "enabled": True, "data": {}}
+                after = (request.POST.get("add_after") or "").strip()
+                idx = None
+                if after:
+                    for i, s in enumerate(cfg["sections"]):
+                        if s.get("id") == after or s.get("key") == after:
+                            idx = i
+                            break
+                if idx is None:
+                    cfg["sections"].append(new_block)
+                else:
+                    cfg["sections"].insert(idx + 1, new_block)
                 request.tenant.site_config = siteconfig.normalize(cfg)
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 messages.success(request, _("Block added."))

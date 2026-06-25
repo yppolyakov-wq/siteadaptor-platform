@@ -286,6 +286,16 @@
   </div>
 </div>
 
+{# E.3: плавающая библиотека блоков для инсертера «+» на канвасе превью. #}
+<div id="bld-inserter" class="hidden fixed z-50 w-44 max-w-[80vw]">
+  <div class="bg-white rounded-xl shadow-2xl border border-gray-200 p-2">
+    <div class="text-xs text-gray-400 px-2 pb-1">{% trans "Add block" %}</div>
+    {% for value, label in block_types %}
+      <button type="button" data-bt="{{ value }}" class="bld-ins-btn block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">+ {{ label }}</button>
+    {% endfor %}
+  </div>
+</div>
+
 <script>
 (function () {
   var form = document.getElementById("home-form");
@@ -496,8 +506,44 @@
     return true;
   }
   if (popupClose) popupClose.addEventListener("click", closeBlockPopup);
+
+  // E.3: инсертер «+» — между блоками превью; выбор типа из библиотеки добавляет
+  // C-блок СРАЗУ ПОСЛЕ блока (POST add_block с add_after → перерисовка страницы).
+  var inserter = document.getElementById("bld-inserter");
+  var insAfter = "";
+  function showInserter(after, x, y) {
+    if (!inserter) return;
+    insAfter = after || "";
+    inserter.style.left = Math.max(8, Math.min(x, window.innerWidth - 184)) + "px";
+    inserter.style.top = Math.max(8, Math.min(y, window.innerHeight - 200)) + "px";
+    inserter.classList.remove("hidden");
+  }
+  function hideInserter() { if (inserter) inserter.classList.add("hidden"); }
+  function submitInsert(after, btype) {
+    var f = document.createElement("form");
+    f.method = "post"; f.action = "";
+    f.style.display = "none";
+    f.innerHTML =
+      '<input name="csrfmiddlewaretoken" value="' + token + '">' +
+      '<input name="action" value="add_block">' +
+      '<input name="block_type" value="' + btype + '">' +
+      '<input name="add_after" value="' + after + '">';
+    document.body.appendChild(f);
+    f.submit();
+  }
+  if (inserter) {
+    inserter.querySelectorAll(".bld-ins-btn").forEach(function (b) {
+      b.addEventListener("click", function () { submitInsert(insAfter, b.getAttribute("data-bt")); });
+    });
+  }
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && popup && !popup.classList.contains("hidden")) closeBlockPopup();
+    if (e.key !== "Escape") return;
+    if (popup && !popup.classList.contains("hidden")) closeBlockPopup();
+    hideInserter();
+  });
+  document.addEventListener("click", function (e) {
+    if (inserter && !inserter.classList.contains("hidden") &&
+        !inserter.contains(e.target)) hideInserter();
   });
 
   var timer = null;
@@ -558,6 +604,31 @@
         row.style.backgroundColor = "rgba(99,102,241,.15)";
         setTimeout(function () { row.style.backgroundColor = ""; }, 1200);
       });
+    });
+    // E.3: вставить зону «+» после каждого блока превью → библиотека блоков.
+    doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
+      var bar = doc.createElement("div");
+      bar.setAttribute("style", "position:relative;height:0;");
+      bar.setAttribute("data-sf-ins", "1");
+      var btn = doc.createElement("button");
+      btn.type = "button";
+      btn.textContent = "+";
+      btn.title = "Block einfügen";
+      btn.setAttribute("style",
+        "position:absolute;left:50%;top:-15px;transform:translateX(-50%);width:30px;" +
+        "height:30px;border-radius:9999px;border:2px solid #4f46e5;background:#fff;" +
+        "color:#4f46e5;font-size:18px;line-height:1;cursor:pointer;z-index:50;opacity:.35;" +
+        "box-shadow:0 1px 5px rgba(0,0,0,.18);transition:opacity .15s;");
+      btn.addEventListener("mouseenter", function () { btn.style.opacity = "1"; });
+      btn.addEventListener("mouseleave", function () { btn.style.opacity = ".35"; });
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var fr = frame.getBoundingClientRect();
+        var r = btn.getBoundingClientRect();
+        showInserter(sec.getAttribute("data-sf-section"), fr.left + r.left - 60, fr.top + r.bottom + 4);
+      });
+      bar.appendChild(btn);
+      sec.parentNode.insertBefore(bar, sec.nextSibling);
     });
   });
   function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }

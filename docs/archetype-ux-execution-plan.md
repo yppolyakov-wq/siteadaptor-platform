@@ -163,9 +163,14 @@ C-блоки — `.cb-row[data-cb-id]`). Попап живёт ВНУТРИ `#ho
 возвращает строку на место (anchor-комментарий). Фолбэк — прежняя прокрутка к контролам.
 **Файлы:** `templates/tenant/site_home.html`, тест `test_home_builder_get_renders_block_popup`.
 
-### E.3 — Инсертер «+» с библиотекой блоков-миниатюр ☐  (M)
-Зона «+» между блоками → библиотека (SVG-эскизы) → hx-post в draft → swap. Зависит от
-D.1/D.2.
+### E.3 — Инсертер «+» с библиотекой блоков ✅  (M)
+Зоны «+» инъектируются между блоками live-preview; клик → плавающая библиотека блоков
+(`#bld-inserter`, типы из `block_types`) → выбор типа POST-ит `add_block` с новым
+параметром **`add_after`** (ключ фикс-секции / id C-блока) → блок вставляется СРАЗУ
+ПОСЛЕ него (не в конец), страница перерисовывается. Бэк: `home_builder_view` add_block
+читает `add_after` (insert по индексу, `normalize` сохраняет порядок). **Файлы:**
+`apps/core/views.py`, `templates/tenant/site_home.html`, тесты
+`test_add_block_after_inserts_at_position` + `test_home_builder_get_renders_inserter`.
 
 ### E.4 — Drag-on-canvas (SortableJS в iframe) ☐  (M)
 Перетаскивание секций на самом превью. Зависит от D.1.
