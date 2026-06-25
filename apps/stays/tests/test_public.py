@@ -50,10 +50,25 @@ def _iso(off):
 # --- гейтинг ----------------------------------------------------------------------
 
 
+# --- гейтинг ----------------------------------------------------------------------
+
+
 def test_gating_404_when_module_inactive():
     request = _req(tenant=_tenant(disabled_modules=["stays"]))
     with pytest.raises(Http404):
         public_views.unterkunft_index(request)
+
+
+def test_home_stay_rooms_section_shows_book_action():
+    """M20U-5: карточки номеров на главной несут действие брони (stays → «Jetzt buchen»)."""
+    from apps.promotions import public_views as promo_views
+
+    unit = _unit()
+    request = _req("get", "/")
+    request.tenant.site_config = {"sections": [{"key": "stay_rooms", "enabled": True}]}
+    body = promo_views.storefront_home(request).content.decode()
+    assert unit.name in body
+    assert "Jetzt buchen" in body and "data-purchase-action" in body
 
 
 # --- витрина: цена + бронь --------------------------------------------------------
