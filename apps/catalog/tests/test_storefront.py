@@ -100,6 +100,16 @@ def test_product_detail_mobile_buybar_when_orderable():
     assert 'id="kaufen"' in body
 
 
+def test_product_detail_uses_unified_scaffold():
+    """M20U-4: карточка товара наследует общий detail.html (2 колонки + sticky-aside)."""
+    product = ProductFactory(name={"de": "Roggenbrot"}, base_price="4.20")
+    body = public_views.product_detail(
+        _req(f"/sortiment/{product.pk}/"), pk=product.pk
+    ).content.decode()
+    assert "max-w-5xl" in body  # каркас detail.html
+    assert "lg:sticky" in body and "lg:grid-cols-2" in body
+
+
 def test_product_detail_404_for_inactive():
     product = ProductFactory(is_active=False)
     with pytest.raises(Http404):

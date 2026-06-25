@@ -1,0 +1,33 @@
+{% extends "storefront/_base.html" %}
+{% load i18n siteui %}
+{% comment %}
+M20U-4: единый каркас детальной страницы (товар/событие/номер). Наследники
+заполняют блоки:
+  detail_back   — ссылка «назад»;
+  detail_gallery— левая колонка (галерея M20U-G);
+  detail_aside  — правая sticky-колонка (название/цена/действие); свой якорь
+                  бронирования/покупки наследник ставит внутри (id=…);
+  detail_body   — тематические секции на читаемой ширине (max-w-3xl);
+  detail_wide   — полноширинные блоки (похожие товары, карта) под телом;
+  detail_buybar — мобильная липкая панель покупки (_detail_buybar.html).
+Слоты — через {% block %} (наследование шаблонов), не include: так передаётся
+произвольная разметка наследника.
+{% endcomment %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  {% block detail_back %}{% endblock %}
+
+  {# Первый экран: галерея слева + sticky-карточка справа #}
+  <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start mt-3">
+    <div>{% block detail_gallery %}{% endblock %}</div>
+    <div class="lg:sticky lg:top-20">{% block detail_aside %}{% endblock %}</div>
+  </div>
+
+  {# Тело — читаемая ширина #}
+  <div class="max-w-3xl mx-auto">{% block detail_body %}{% endblock %}</div>
+
+  {# Полноширинные блоки (похожие товары и т. п.) #}
+  {% block detail_wide %}{% endblock %}
+</div>
+{% block detail_buybar %}{% endblock %}
+{% endblock %}
