@@ -236,6 +236,11 @@ urlpatterns = [
         inbox_public.thread_poll,
         name="storefront-message-thread-poll",
     ),
+    path(
+        "nachricht/<uuid:token>/typing/",
+        inbox_public.thread_typing,
+        name="storefront-message-thread-typing",
+    ),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),

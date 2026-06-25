@@ -107,6 +107,33 @@ def test_thread_no_status_without_hours():
     assert "data-chat-status" not in body
 
 
+def test_thread_typing_ping_and_poll_flag():
+    """M22b: клиент пингует «печатает» → флаг в кэше; staff-печать видна в поллинге клиента."""
+    import json
+
+    from django.core.cache import cache
+
+    from apps.inbox.public_views import _typing_key
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    # клиент печатает → флаг customer
+    public_views.thread_typing(
+        _pub("post", f"/nachricht/{conv.public_token}/typing/"), token=conv.public_token
+    )
+    assert cache.get(_typing_key(conv.pk, "customer")) is True
+    # бизнес печатает → поллинг клиента отдаёт typing=True
+    cache.set(_typing_key(conv.pk, "staff"), True, 6)
+    resp = public_views.thread_poll(
+        _pub("get", f"/nachricht/{conv.public_token}/poll/"), token=conv.public_token
+    )
+    assert json.loads(resp.content)["typing"] is True
+    cache.delete(_typing_key(conv.pk, "staff"))
+    resp2 = public_views.thread_poll(
+        _pub("get", f"/nachricht/{conv.public_token}/poll/"), token=conv.public_token
+    )
+    assert json.loads(resp2.content)["typing"] is False
+
+
 def test_thread_poll_gated_when_module_off():
     conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
     with pytest.raises(Http404):

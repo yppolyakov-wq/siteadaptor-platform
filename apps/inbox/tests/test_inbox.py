@@ -102,6 +102,22 @@ def test_opening_thread_clears_unread():
     assert not conv.unread_for_staff
 
 
+def test_cabinet_typing_ping_and_poll_flag():
+    """M22b: staff пингует «печатает» → флаг staff; печать клиента видна в кабинет-поллинге."""
+    import json
+
+    from django.core.cache import cache
+
+    from apps.inbox.public_views import _typing_key
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    views.thread_typing(_req("post", f"/dashboard/inbox/{conv.pk}/typing/"), pk=conv.pk)
+    assert cache.get(_typing_key(conv.pk, "staff")) is True
+    cache.set(_typing_key(conv.pk, "customer"), True, 6)
+    resp = views.thread_poll(_req("get", f"/dashboard/inbox/{conv.pk}/poll/"), pk=conv.pk)
+    assert json.loads(resp.content)["typing"] is True
+
+
 def test_unread_count_endpoint():
     """M22b realtime: эндпоинт отдаёт число тредов с непрочитанным для staff."""
     import json

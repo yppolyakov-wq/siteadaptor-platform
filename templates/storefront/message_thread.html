@@ -20,7 +20,7 @@
     {% endfor %}
   {% endif %}
 
-  <div id="msg-list" class="space-y-3 mb-6" data-poll-url="{% url 'storefront-message-thread-poll' conversation.public_token %}">
+  <div id="msg-list" class="space-y-3 mb-6" data-poll-url="{% url 'storefront-message-thread-poll' conversation.public_token %}" data-typing-url="{% url 'storefront-message-thread-typing' conversation.public_token %}">
     {% for m in messages_list %}
       <div class="flex {% if m.author_role == 'customer' %}justify-end{% endif %}" data-msg-id="{{ m.pk }}">
         <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'customer' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
@@ -31,12 +31,26 @@
     {% endfor %}
   </div>
 
-  {# M22b realtime: подтягиваем ответы бизнеса без перезагрузки (поллинг). #}
+  <p id="typing-ind" class="hidden text-sm text-gray-400 italic mb-3">{% trans "Typing…" %}</p>
+
+  {# M22b realtime: подтягиваем ответы бизнеса без перезагрузки + индикатор «печатает». #}
   <script>
   (function () {
     var list = document.getElementById("msg-list");
     if (!list) return;
     var url = list.getAttribute("data-poll-url");
+    var typingUrl = list.getAttribute("data-typing-url");
+    var ind = document.getElementById("typing-ind");
+    var area = document.querySelector("textarea[name=body]");
+    var csrfEl = document.querySelector("[name=csrfmiddlewaretoken]");
+    var lastPing = 0;
+    function ping() {
+      var now = Date.now();
+      if (now - lastPing < 3000 || !typingUrl || !csrfEl) return;
+      lastPing = now;
+      fetch(typingUrl, { method: "POST", headers: { "X-CSRFToken": csrfEl.value, "X-Requested-With": "fetch" } }).catch(function () {});
+    }
+    if (area) area.addEventListener("input", ping);
     function add(m) {
       if (list.querySelector('[data-msg-id="' + m.id + '"]')) return;
       var mine = m.role === "customer";
@@ -60,7 +74,9 @@
       fetch(url, { headers: { "X-Requested-With": "fetch" } })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
-          if (!d || !d.messages) return;
+          if (!d) return;
+          if (ind) ind.classList.toggle("hidden", !d.typing);
+          if (!d.messages) return;
           var before = list.querySelectorAll("[data-msg-id]").length;
           d.messages.forEach(add);
           if (list.querySelectorAll("[data-msg-id]").length > before) {

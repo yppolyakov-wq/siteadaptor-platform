@@ -6,10 +6,12 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 
 from apps.core.fsm import IllegalTransition
+from apps.inbox.public_views import TYPING_TTL
 
 from . import services
 from .models import Conversation, Message
@@ -102,6 +104,8 @@ def thread_poll(request, pk):
         conversation.save(update_fields=["unread_for_staff", "updated_at"])
     msgs = list(conversation.messages.order_by("-created_at")[:50])
     msgs.reverse()
+    from apps.inbox.public_views import _typing_key
+
     return JsonResponse(
         {
             "messages": [
@@ -112,6 +116,19 @@ def thread_poll(request, pk):
                     "created": date_format(m.created_at, "d.m. H:i"),
                 }
                 for m in msgs
-            ]
+            ],
+            # M22b: печатает ли клиент сейчас (другая сторона).
+            "typing": bool(cache.get(_typing_key(conversation.pk, "customer"))),
         }
     )
+
+
+def thread_typing(request, pk):
+    """M22b: пинг «staff печатает» — короткий флаг в кэше; клиент видит в поллинге."""
+    from django.http import HttpResponse
+
+    from apps.inbox.public_views import _typing_key
+
+    conversation = get_object_or_404(Conversation, pk=pk)
+    cache.set(_typing_key(conversation.pk, "staff"), True, TYPING_TTL)
+    return HttpResponse(status=204)

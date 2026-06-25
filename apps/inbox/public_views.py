@@ -6,6 +6,7 @@
 """
 
 from django.contrib import messages
+from django.core.cache import cache
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.formats import date_format
@@ -18,6 +19,11 @@ from .models import Conversation, Message
 
 RL_LIMIT = 5
 RL_WINDOW = 600
+TYPING_TTL = 6  # сек: «печатает» гаснет, если пинги прекратились
+
+
+def _typing_key(conv_pk, role) -> str:
+    return f"inbox_typing:{conv_pk}:{role}"
 
 
 def _require_inbox(request):
@@ -116,6 +122,17 @@ def thread_poll(request, token):
                     "created": date_format(m.created_at, "d.m. H:i"),
                 }
                 for m in msgs
-            ]
+            ],
+            # M22b: печатает ли бизнес сейчас (другая сторона).
+            "typing": bool(cache.get(_typing_key(conversation.pk, "staff"))),
         }
     )
+
+
+def thread_typing(request, token):
+    """M22b: пинг «клиент печатает» — короткий флаг в кэше (без БД). Бизнес видит
+    его в своём поллинге."""
+    _require_inbox(request)
+    conversation = get_object_or_404(Conversation, public_token=token)
+    cache.set(_typing_key(conversation.pk, "customer"), True, TYPING_TTL)
+    return HttpResponse(status=204)

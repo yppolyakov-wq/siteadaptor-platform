@@ -40,7 +40,7 @@
 </div>
 
 {# тред сообщений #}
-<div id="msg-list" class="space-y-3 mb-6 max-w-2xl" data-poll-url="{% url 'inbox:thread-poll' conversation.pk %}">
+<div id="msg-list" class="space-y-3 mb-6 max-w-2xl" data-poll-url="{% url 'inbox:thread-poll' conversation.pk %}" data-typing-url="{% url 'inbox:thread-typing' conversation.pk %}">
   {% for m in messages_list %}
     <div class="flex {% if m.author_role == 'staff' %}justify-end{% endif %}" data-msg-id="{{ m.pk }}">
       <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'staff' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
@@ -51,12 +51,26 @@
   {% endfor %}
 </div>
 
-{# M22b realtime: ответы клиента подтягиваются без перезагрузки (поллинг). #}
+<p id="typing-ind" class="hidden text-sm text-gray-400 italic mb-3 max-w-2xl">{% trans "Customer is typing…" %}</p>
+
+{# M22b realtime: ответы клиента подтягиваются без перезагрузки + индикатор «печатает». #}
 <script>
 (function () {
   var list = document.getElementById("msg-list");
   if (!list) return;
   var url = list.getAttribute("data-poll-url");
+  var typingUrl = list.getAttribute("data-typing-url");
+  var ind = document.getElementById("typing-ind");
+  var area = document.querySelector("textarea[name=body]");
+  var csrfEl = document.querySelector("[name=csrfmiddlewaretoken]");
+  var lastPing = 0;
+  function ping() {
+    var now = Date.now();
+    if (now - lastPing < 3000 || !typingUrl || !csrfEl) return;
+    lastPing = now;
+    fetch(typingUrl, { method: "POST", headers: { "X-CSRFToken": csrfEl.value, "X-Requested-With": "fetch" } }).catch(function () {});
+  }
+  if (area) area.addEventListener("input", ping);
   function add(m) {
     if (list.querySelector('[data-msg-id="' + m.id + '"]')) return;
     var mine = m.role === "staff";
@@ -79,7 +93,11 @@
   function poll() {
     fetch(url, { headers: { "X-Requested-With": "fetch" } })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { if (d && d.messages) d.messages.forEach(add); })
+      .then(function (d) {
+        if (!d) return;
+        if (ind) ind.classList.toggle("hidden", !d.typing);
+        if (d.messages) d.messages.forEach(add);
+      })
       .catch(function () {});
   }
   setInterval(poll, 5000);
