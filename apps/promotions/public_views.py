@@ -227,6 +227,12 @@ def product_list(request):
             return redirect("storefront-products")
         products = products.filter(category=category)
     categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
+    # M20U-3: подкатегории выбранной категории — выводим карточками первыми.
+    subcategories = (
+        list(category.children.filter(is_active=True).order_by("sort_order", "slug"))
+        if category is not None
+        else []
+    )
     page = paginate(products, order_field="created_at", limit=24, cursor=request.GET.get("cursor"))
     # A4: ссылка на комбо-наборы, если они есть и модуль orders активен.
     from apps.catalog.models import Combo
@@ -241,6 +247,7 @@ def product_list(request):
             "page": page,
             "categories": categories,
             "current_category": category,
+            "subcategories": subcategories,
             "has_combos": has_combos,
         },
     )

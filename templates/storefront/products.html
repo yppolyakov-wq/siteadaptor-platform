@@ -22,6 +22,16 @@
 </div>
 {% endif %}
 
+{# M20U-3: подкатегории выбранной категории — карточками первыми #}
+{% if subcategories %}
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+  {% for c in subcategories %}
+    <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+       class="flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-4 min-h-[4rem] font-medium border border-transparent hover:shadow-md hover:border-indigo-300 transition">{{ c }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
 {% if page.items %}
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
   {% for p in page.items %}
@@ -35,6 +45,8 @@
      class="inline-block px-5 py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:border-indigo-400">{% trans "Show more" %}</a>
 </div>
 {% endif %}
+{% elif subcategories %}
+  <p class="text-gray-400">{% trans "Choose a subcategory above." %}</p>
 {% else %}
   <p class="text-gray-400">{% trans "No products yet." %}</p>
 {% endif %}

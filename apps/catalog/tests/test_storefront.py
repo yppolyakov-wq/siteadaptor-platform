@@ -48,6 +48,15 @@ def test_product_list_filters_by_category():
     assert "Kuchenstück" not in body
 
 
+def test_catalog_shows_subcategories_first():
+    """M20U-3: в категории с подкатегориями сначала выводятся подкатегории."""
+    parent = CategoryFactory(slug="brot", name={"de": "Brot"})
+    CategoryFactory(slug="roggen", name={"de": "Roggen"}, parent=parent, sort_order=1)
+    body = public_views.product_list(_req(params={"kategorie": "brot"})).content.decode()
+    assert "Roggen" in body
+    assert "kategorie=roggen" in body  # ссылка на подкатегорию
+
+
 def test_unknown_category_redirects_to_full_list():
     resp = public_views.product_list(_req(params={"kategorie": "ghost"}))
     assert resp.status_code == 302
