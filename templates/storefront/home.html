@@ -5,6 +5,11 @@
 {# Track C2 / D.1: главная собирается из секций site_config (порядок/видимость —
    кабинет «Site»). Диспетчер секций — реестр `render_block` (siteui), а не хардкод
    if/elif: единый источник правды + основа для C-блоков и on-canvas «+». Якоря
-   (#galerie/#bewertungen/#kontakt …) для меню вешает обёртка внутри render_block. #}
-{% for b in section_blocks %}{% render_block b %}{% endfor %}
+   (#galerie/#bewertungen/#kontakt …) для меню вешает обёртка внутри render_block.
+   M20U-7 (B): обёртка data-sf-section (display:contents — без влияния на layout)
+   даёт клик-фокус секции в live-preview билдера (ключ — фикс-секция, id — C-блок). #}
+{% for b in section_blocks %}
+  <div data-sf-section="{% if b.id %}{{ b.id }}{% else %}{{ b.key }}{% endif %}" style="display:contents">{% render_block b %}</div>
+{% endfor %}
 {% endblock %}
+</content>

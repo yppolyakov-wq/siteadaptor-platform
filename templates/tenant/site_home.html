@@ -407,6 +407,21 @@
         });
       });
     });
+    // M20U-7 (B): клик по секции в превью → фокус её контролов в редакторе.
+    doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
+      sec.addEventListener("click", function (e) {
+        if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
+        var key = sec.getAttribute("data-sf-section");
+        var ctl = form.querySelector('[name="order_' + key + '"]');
+        var row = ctl ? ctl.closest(".home-block") : null;
+        if (!row) return;
+        try { activate("editor"); } catch (e2) {}
+        row.scrollIntoView({ behavior: "smooth", block: "center" });
+        row.style.transition = "background-color .3s";
+        row.style.backgroundColor = "rgba(99,102,241,.15)";
+        setTimeout(function () { row.style.backgroundColor = ""; }, 1200);
+      });
+    });
   });
   function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }
 

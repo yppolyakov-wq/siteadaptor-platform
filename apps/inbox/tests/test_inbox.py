@@ -100,3 +100,30 @@ def test_opening_thread_clears_unread():
     views.thread(_req("get", f"/dashboard/inbox/{conv.pk}/"), pk=conv.pk)
     conv.refresh_from_db()
     assert not conv.unread_for_staff
+
+
+def test_unread_count_endpoint():
+    """M22b realtime: эндпоинт отдаёт число тредов с непрочитанным для staff."""
+    import json
+
+    services.start_conversation(subject="A", body="hi", email="a@t.de")  # unread
+    conv2 = services.start_conversation(subject="B", body="ho", email="b@t.de")
+    conv2.unread_for_staff = False
+    conv2.save(update_fields=["unread_for_staff", "updated_at"])
+    resp = views.unread_count(_req("get", "/dashboard/inbox/unread-count/"))
+    assert resp.status_code == 200
+    assert json.loads(resp.content)["count"] == 1
+
+
+def test_thread_poll_returns_messages_and_clears_unread():
+    """M22b realtime: кабинет-поллинг отдаёт сообщения треда + сбрасывает бейдж."""
+    import json
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    assert conv.unread_for_staff
+    resp = views.thread_poll(_req("get", f"/dashboard/inbox/{conv.pk}/poll/"), pk=conv.pk)
+    assert resp.status_code == 200
+    data = json.loads(resp.content)
+    assert data["messages"][-1]["role"] == "customer" and data["messages"][-1]["body"] == "hi"
+    conv.refresh_from_db()
+    assert not conv.unread_for_staff  # тред «просмотрен» поллингом

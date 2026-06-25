@@ -229,6 +229,12 @@ def test_home_hero_cta_links_to_primary_item():
     assert "Veranstaltungen" in body  # storefront_label архетипа
 
 
+def test_home_sections_carry_sf_section_markers():
+    """M20U-7 (B): секции главной несут data-sf-section (клик в live-preview билдера)."""
+    body = public_views.storefront_home(_req("/")).content.decode()
+    assert 'data-sf-section="contact"' in body  # включённая по умолчанию секция
+
+
 def test_home_plain_hero_has_no_cta():
     """Дефолтный (plain) hero — без CTA: легаси-витрина не меняется."""
     body = public_views.storefront_home(_req("/")).content.decode()
@@ -341,6 +347,22 @@ def test_contact_section_embeds_map_with_coords():
 def test_contact_section_without_coords_has_no_map():
     body = public_views.storefront_home(_req("/")).content.decode()
     assert "sf-contact-map" not in body
+
+
+def test_storefront_chat_fab_when_inbox_active():
+    """M22b: при активном модуле inbox на витрине — плавающая кнопка чата."""
+    ProductFactory(name={"de": "AktivBrot"})
+    req = _req()
+    req.tenant = TenantFactory.build(name="Bäckerei X", address="Hauptstr. 1", disabled_modules=[])
+    body = public_views.product_list(req).content.decode()
+    assert "data-chat-fab" in body and "/nachricht/" in body
+
+
+def test_storefront_chat_fab_hidden_when_inbox_off():
+    req = _req()
+    req.tenant = TenantFactory.build(name="Bäckerei X", disabled_modules=["inbox"])
+    body = public_views.product_list(req).content.decode()
+    assert "data-chat-fab" not in body
 
 
 def test_storefront_includes_telegram_miniapp_sdk():

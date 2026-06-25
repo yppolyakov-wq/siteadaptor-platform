@@ -65,6 +65,27 @@ def test_detail_renders_retreat_landing_blocks():
     assert "Mara" in body and "https://img/1.jpg" in body  # ведущие + фото
 
 
+def test_detail_thematic_sections_reorder_and_hide():
+    """M20U-4: config.event_detail управляет порядком/видимостью секций детальной."""
+    ev = _event(
+        title="Retreat",
+        details={
+            "for_whom": ["du Stress spürst"],
+            "idea": "Ruhe finden",
+            "faq": [{"q": "Für Anfänger?", "a": "Ja"}],
+        },
+    )
+    # дефолт: «für wen» раньше FAQ
+    base = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert base.index("du Stress spürst") < base.index("Für Anfänger?")
+
+    tenant = TenantFactory.build()
+    tenant.site_config = {"event_detail": {"order": ["faq"], "hidden": ["idea"]}}
+    body = public_views.veranstaltung_detail(_req("get", tenant=tenant), ev.pk).content.decode()
+    assert body.index("Für Anfänger?") < body.index("du Stress spürst")  # FAQ поднят
+    assert "Ruhe finden" not in body  # idea скрыта
+
+
 def test_detail_unified_hero_gallery_and_price_card():
     """M20U-4: единый каркас детальной — галерея слева (свап) + sticky-карточка
     цены/брони справа + ссылка-инбокс (если модуль активен)."""

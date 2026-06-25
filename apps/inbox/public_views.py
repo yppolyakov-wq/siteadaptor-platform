@@ -6,8 +6,9 @@
 """
 
 from django.contrib import messages
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from apps.core import ratelimit
@@ -87,4 +88,27 @@ def thread(request, token):
         request,
         "storefront/message_thread.html",
         {"conversation": conversation, "messages_list": conversation.messages.all()},
+    )
+
+
+def thread_poll(request, token):
+    """M22b realtime: последние сообщения треда в JSON — для лайв-обновления страницы
+    клиента без перезагрузки. Клиент дедупит по id (pk — UUID). Read-only, гейтится
+    модулем + public_token."""
+    _require_inbox(request)
+    conversation = get_object_or_404(Conversation, public_token=token)
+    msgs = list(conversation.messages.order_by("-created_at")[:50])
+    msgs.reverse()  # хронологический порядок
+    return JsonResponse(
+        {
+            "messages": [
+                {
+                    "id": str(m.pk),
+                    "role": m.author_role,
+                    "body": m.body,
+                    "created": date_format(m.created_at, "d.m. H:i"),
+                }
+                for m in msgs
+            ]
+        }
     )

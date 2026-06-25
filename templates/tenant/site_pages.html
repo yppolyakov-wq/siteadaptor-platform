@@ -46,6 +46,23 @@
         {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == events_index_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
       </select>
     </label>
+    {# M20U-4: порядок и видимость секций страницы события #}
+    <div class="text-sm">
+      <span class="block font-medium mb-1">{% trans "Event page sections" %}</span>
+      <span class="block text-xs text-gray-400 mb-2">{% trans "Number = order; untick to hide. Empty sections never show." %}</span>
+      <div class="space-y-1.5">
+        {% for s in event_sections %}
+          <div class="flex items-center gap-3 border border-gray-100 rounded-lg px-3 py-1.5">
+            <input type="number" name="ed_order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
+                   class="w-14 rounded-lg border border-gray-300 px-2 py-1 text-sm" aria-label="{% trans 'Order' %}">
+            <label class="flex items-center gap-2 flex-1">
+              <input type="checkbox" name="ed_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">
+              {{ s.label }}
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
     {% endif %}
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>

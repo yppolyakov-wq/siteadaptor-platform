@@ -302,6 +302,7 @@ EVENT_DETAIL_SECTION_KEYS = (
     "faq",
     "testimonials",
     "before_after",
+    "certifications",
 )
 
 

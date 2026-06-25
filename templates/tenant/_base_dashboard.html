@@ -37,6 +37,8 @@
                class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
               <span class="w-5 shrink-0 text-center text-base leading-none">{{ module.icon }}</span>
               <span class="truncate">{{ item.label }}</span>
+              {% if item.url_name == 'inbox:list' %}{# M22b: живой бейдж непрочитанного #}
+              <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
             </a>
           {% endfor %}
         </div>
@@ -94,6 +96,24 @@
 </nav>
 {% endif %}
 
+<script>
+// M22b realtime: живой бейдж непрочитанных сообщений в навигации.
+(function () {
+  var badge = document.querySelector("[data-inbox-badge]");
+  if (!badge) return;
+  function refresh() {
+    fetch(badge.getAttribute("data-url"), { headers: { "X-Requested-With": "fetch" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) return;
+        if (d.count > 0) { badge.textContent = d.count; badge.classList.remove("hidden"); }
+        else { badge.classList.add("hidden"); }
+      }).catch(function () {});
+  }
+  refresh();
+  setInterval(refresh, 20000);
+})();
+</script>
 <script>
 (function () {
   var sb = document.getElementById("sidebar");

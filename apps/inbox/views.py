@@ -80,3 +80,38 @@ def thread(request, pk):
             "priorities": Conversation.PRIORITIES,
         },
     )
+
+
+def unread_count(request):
+    """M22b realtime: число тредов с непрочитанным для staff — живой бейдж в нав."""
+    from django.http import JsonResponse
+
+    n = Conversation.objects.filter(unread_for_staff=True).count()
+    return JsonResponse({"count": n})
+
+
+def thread_poll(request, pk):
+    """M22b realtime: последние сообщения треда в JSON для кабинета — staff видит
+    ответ клиента без перезагрузки. Сбрасывает бейдж непрочитанного (тред открыт)."""
+    from django.http import JsonResponse
+    from django.utils.formats import date_format
+
+    conversation = get_object_or_404(Conversation, pk=pk)
+    if conversation.unread_for_staff:
+        conversation.unread_for_staff = False
+        conversation.save(update_fields=["unread_for_staff", "updated_at"])
+    msgs = list(conversation.messages.order_by("-created_at")[:50])
+    msgs.reverse()
+    return JsonResponse(
+        {
+            "messages": [
+                {
+                    "id": str(m.pk),
+                    "role": m.author_role,
+                    "body": m.body,
+                    "created": date_format(m.created_at, "d.m. H:i"),
+                }
+                for m in msgs
+            ]
+        }
+    )

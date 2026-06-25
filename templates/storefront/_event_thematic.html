@@ -1,0 +1,177 @@
+{% load i18n %}{% comment %}
+M20U-4: одна тематическая секция детальной события по ключу `k`. Разметка взята
+дословно из event_detail.html; рендерится в порядке siteconfig.event_detail_order.
+Контекст: k, event, L (=event.landing), map_embed, map_link — приходят из
+родительского {% with L=event.landing %} + include.
+{% endcomment %}{% if k == "for_whom" %}{% if L.for_whom %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Is this retreat right for you?" %}</h2>
+    <ul class="space-y-2 text-gray-700">
+      {% for it in L.for_whom %}<li class="flex gap-2"><span class="text-indigo-600">✓</span><span>{{ it }}</span></li>{% endfor %}
+    </ul>
+  </section>
+{% endif %}{% elif k == "idea" %}{% if L.idea %}
+  <section class="mt-8 bg-indigo-50 rounded-2xl p-6">
+    <h2 class="text-xl font-bold mb-2">{% trans "The idea" %}</h2>
+    <p class="text-gray-700 whitespace-pre-line">{{ L.idea }}</p>
+  </section>
+{% endif %}{% elif k == "includes" %}{% if L.includes %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "What's included" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-3">
+      {% for c in L.includes %}
+        <div class="bg-white rounded-xl shadow-sm p-4">
+          <h3 class="font-semibold">{{ c.title }}</h3>
+          {% if c.text %}<p class="text-sm text-gray-600 mt-1">{{ c.text }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}{% elif k == "program" %}{% if event.program %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Schedule" %}</h2>
+    <ul class="space-y-2 text-gray-700">
+      {% for p in event.program %}<li class="border-l-2 border-indigo-200 pl-3">{{ p }}</li>{% endfor %}
+    </ul>
+  </section>
+{% endif %}{% elif k == "venue" %}{% if L.venue or event.images|length > 1 or map_embed %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Venue" %}</h2>
+    {% if L.venue %}<p class="text-gray-700 whitespace-pre-line mb-3">{{ L.venue }}</p>{% endif %}
+    {% if map_embed %}
+    <div class="mb-3">
+      <iframe title="{% trans 'Map' %}" loading="lazy" class="w-full h-64 rounded-xl border border-gray-200" src="{{ map_embed }}"></iframe>
+      <a href="{{ map_link }}" target="_blank" rel="nofollow noopener" class="text-sm text-indigo-600 hover:underline">{% trans "Plan route" %} →</a>
+    </div>
+    {% endif %}
+    {% if event.images|length > 1 %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {% for img in event.images %}{% if not forloop.first %}<img src="{{ img.url }}" alt="" loading="lazy" decoding="async" class="w-full h-32 object-cover rounded-xl">{% endif %}{% endfor %}
+    </div>
+    {% endif %}
+  </section>
+{% endif %}{% elif k == "accommodation" %}{% if L.accommodation %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Accommodation" %}</h2>
+    <ul class="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-gray-700">
+      {% for it in L.accommodation %}<li class="flex gap-2"><span class="text-gray-400">·</span><span>{{ it }}</span></li>{% endfor %}
+    </ul>
+  </section>
+{% endif %}{% elif k == "food" %}{% if L.food %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-2">{% trans "Food" %}</h2>
+    <p class="text-gray-700 whitespace-pre-line">{{ L.food }}</p>
+  </section>
+{% endif %}{% elif k == "hosts" %}{% with teachers=event.teachers.all %}{% if teachers %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Your hosts" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for t in teachers %}
+        <a href="{% url 'storefront-teacher' t.pk %}" class="flex items-center gap-3 bg-white rounded-xl shadow-sm p-3 hover:shadow-md transition">
+          {% if t.photo_url %}<img src="{{ t.photo_url }}" alt="{{ t.name }}" loading="lazy" class="w-14 h-14 rounded-full object-cover">{% endif %}
+          <div>
+            <p class="font-semibold">{{ t.name }}</p>
+            {% if t.title %}<p class="text-sm text-gray-500">{{ t.title }}</p>{% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% elif L.hosts %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Your hosts" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for h in L.hosts %}
+        <div class="flex items-center gap-3 bg-white rounded-xl shadow-sm p-3">
+          {% if h.photo %}<img src="{{ h.photo }}" alt="{{ h.name }}" loading="lazy" class="w-14 h-14 rounded-full object-cover">{% endif %}
+          <div>
+            <p class="font-semibold">{{ h.name }}</p>
+            {% if h.role %}<p class="text-sm text-gray-500">{{ h.role }}</p>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}{% endwith %}{% elif k == "price" %}{% if L.price_includes or L.price_excludes or L.price_note %}
+  <section class="mt-8 bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="text-xl font-bold mb-1">{% trans "Price" %}</h2>
+    <p class="text-2xl font-bold mb-4">{% if event.price_cents %}{{ event.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</p>
+    <div class="grid sm:grid-cols-2 gap-6">
+      {% if L.price_includes %}
+      <div>
+        <p class="font-medium mb-2">{% trans "Included" %}</p>
+        <ul class="space-y-1 text-gray-700">{% for it in L.price_includes %}<li class="flex gap-2"><span class="text-green-600">✓</span><span>{{ it }}</span></li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+      {% if L.price_excludes %}
+      <div>
+        <p class="font-medium mb-2">{% trans "Not included" %}</p>
+        <ul class="space-y-1 text-gray-500">{% for it in L.price_excludes %}<li class="flex gap-2"><span class="text-gray-400">–</span><span>{{ it }}</span></li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+    </div>
+    {% if L.price_note %}<p class="text-sm text-gray-500 mt-4">{{ L.price_note }}</p>{% endif %}
+  </section>
+{% endif %}{% elif k == "bring" %}{% if L.bring %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "What to bring" %}</h2>
+    <ul class="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-gray-700">
+      {% for it in L.bring %}<li class="flex gap-2"><span class="text-gray-400">•</span><span>{{ it }}</span></li>{% endfor %}
+    </ul>
+  </section>
+{% endif %}{% elif k == "faq" %}{% if L.faq %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Frequently asked questions" %}</h2>
+    <div class="space-y-2">
+      {% for f in L.faq %}
+        <details class="bg-white rounded-xl shadow-sm p-4">
+          <summary class="font-medium cursor-pointer">{{ f.q }}</summary>
+          {% if f.a %}<p class="text-gray-600 mt-2">{{ f.a }}</p>{% endif %}
+        </details>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}{% elif k == "testimonials" %}{% if event.landing_testimonials %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "What guests say" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for t in event.landing_testimonials %}
+        <blockquote class="bg-white rounded-xl shadow-sm p-4">
+          {% if t.rating %}<p class="text-amber-500 text-sm mb-1" aria-label="{{ t.rating }}/5">{{ t.stars }}</p>{% endif %}
+          <p class="text-gray-700 italic">“{{ t.text }}”</p>
+          <footer class="flex items-center gap-2 text-sm text-gray-500 mt-2">
+            {% if t.photo %}<img src="{{ t.photo }}" alt="{{ t.name }}" class="w-9 h-9 rounded-full object-cover" loading="lazy">{% endif %}
+            <span>— {{ t.name }}{% if t.city %}, {{ t.city }}{% endif %}</span>
+          </footer>
+        </blockquote>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}{% elif k == "before_after" %}{% if L.before_after %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Before & after" %}</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for b in L.before_after %}
+        <figure class="bg-white rounded-xl shadow-sm p-4">
+          <div class="grid grid-cols-2 gap-2">
+            {% if b.before %}<img src="{{ b.before }}" alt="{% trans 'Before' %}" class="w-full h-32 object-cover rounded-lg" loading="lazy">{% endif %}
+            {% if b.after %}<img src="{{ b.after }}" alt="{% trans 'After' %}" class="w-full h-32 object-cover rounded-lg" loading="lazy">{% endif %}
+          </div>
+          {% if b.text %}<figcaption class="text-sm text-gray-600 mt-2">{{ b.text }}</figcaption>{% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}{% elif k == "certifications" %}{% if L.certifications %}
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-3">{% trans "Certifications" %}</h2>
+    <div class="flex flex-wrap gap-4">
+      {% for c in L.certifications %}
+        <div class="flex items-center gap-2 bg-white rounded-xl shadow-sm px-4 py-3">
+          {% if c.icon %}<img src="{{ c.icon }}" alt="{{ c.name }}" class="w-8 h-8 object-contain" loading="lazy">{% else %}<span class="text-lg">🏅</span>{% endif %}
+          <span class="text-sm"><span class="font-medium">{{ c.name }}</span>{% if c.issuer %}<span class="block text-xs text-gray-500">{{ c.issuer }}</span>{% endif %}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}{% endif %}

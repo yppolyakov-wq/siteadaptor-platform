@@ -1925,3 +1925,18 @@
   GET аккуратно делит sections на фикс (с label) и cblocks (без KeyError). Тесты
   `test_cblocks_builder.py` (add/edit+round-trip/delete). **Спринт D закрыт** (D.3
   единый экран — опц., отложен). Без миграций.
+- **2026-06-25 — M20U ЗАКРЫТ (pranasy + реестр секций детальной + клик-фокус).**
+  **M20U-8 pranasy:** демо-кит на единой схеме — DemoKit поля heroes (слайдер 3 слайда:
+  Karte/Catering/Online bestellen) / section_titles (Unsere Karte/Angebote/Events bei
+  Pranasy) / page_layouts (события сеткой); apply_kit пробрасывает в site_config. Прочие
+  киты не затронуты (поля пустые). **M20U-4 реестр тематических секций детальной:**
+  EVENT_DETAIL_SECTION_KEYS (14 секций) + normalize_event_detail + event_detail_order;
+  event_detail.html рендерит секции циклом через _event_thematic.html (if/elif по ключу,
+  разметка дословно) → владелец задаёт порядок/скрытие; UI на вкладке Pages (номер+чекбокс
+  на секцию). **M20U-7 (B) клик-фокус:** секции главной несут data-sf-section (display:
+  contents); клик по секции в live-preview билдера → вкладка Editor + скролл/подсветка её
+  контролов. Тесты: test_layout/test_pages_view/test_demo_kits/test_storefront (events:
+  152 + reorder/hide). **Итог M20U:** единые страницы (главная/каталог/детальная) +
+  сквозной визуальный конструктор (per-секционные контролы, per-page раскладки, вкладка
+  Pages, реестр секций детальной, клик-фокус, live-preview). Вне ядра (отдельные треки):
+  общий Category/Tag-дерево (M20U-6), realtime-чат, per-page блок-холст.

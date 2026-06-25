@@ -73,6 +73,31 @@ def test_public_thread_customer_reply():
     assert conv.messages.filter(author_role="customer").count() == 2
 
 
+def test_thread_poll_returns_new_messages_since():
+    """M22b realtime: поллинг отдаёт сообщения с id > since (ответ бизнеса)."""
+    import json
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    staff = services.post_message(conv, body="Hallo!", author_role=Message.AUTHOR_STAFF)
+    resp = public_views.thread_poll(
+        _pub("get", f"/nachricht/{conv.public_token}/poll/"), token=conv.public_token
+    )
+    assert resp.status_code == 200
+    data = json.loads(resp.content)
+    ids = [m["id"] for m in data["messages"]]
+    assert str(staff.pk) in ids  # ответ бизнеса виден поллингу
+    # хронологический порядок: ответ бизнеса — последним
+    assert data["messages"][-1]["role"] == "staff" and data["messages"][-1]["body"] == "Hallo!"
+
+
+def test_thread_poll_gated_when_module_off():
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    with pytest.raises(Http404):
+        public_views.thread_poll(
+            _pub("get", "/nachricht/x/poll/", disabled=["inbox"]), token=conv.public_token
+        )
+
+
 def test_staff_reply_enqueues_customer_email():
     conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
     msg = services.post_message(conv, body="Hallo!", author_role=Message.AUTHOR_STAFF)

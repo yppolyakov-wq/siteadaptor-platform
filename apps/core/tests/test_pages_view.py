@@ -43,6 +43,32 @@ def test_pages_view_saves_per_page_layouts():
     assert cfg["events_index_layout"]["preset"] == "cols3"
 
 
+def test_pages_view_saves_event_detail_order():
+    """M20U-4: порядок/видимость секций детальной события сохраняются."""
+    tenant = TenantFactory(schema_name="public", slug="ped", name="PED")
+    data = {
+        # faq первым, idea скрыта; остальным — большой порядок
+        "ed_order_faq": "1",
+        "ed_visible_faq": "on",
+        "ed_order_for_whom": "2",
+        "ed_visible_for_whom": "on",
+        "ed_order_idea": "3",  # ed_visible_idea не прислан → скрыта
+    }
+    resp = views.pages_view(_request("post", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    order = siteconfig.event_detail_order(cfg)
+    # faq поднят первым, for_whom виден, idea скрыта (чекбокс не прислан)
+    assert order[0] == "faq" and "for_whom" in order and "idea" not in order
+    assert order.index("faq") < order.index("for_whom")
+
+
+def test_pages_view_get_renders_event_sections_when_events_active():
+    tenant = TenantFactory(schema_name="public", slug="ped2", name="PED2", disabled_modules=[])
+    body = views.pages_view(_request("get", tenant=tenant)).content.decode()
+    assert 'name="ed_order_faq"' in body and 'name="ed_visible_idea"' in body
+
+
 def test_pages_view_saves_related_layout():
     tenant = TenantFactory(schema_name="public", slug="pvr", name="PVR")
     resp = views.pages_view(_request("post", {"related_preset": "cols3"}, tenant))

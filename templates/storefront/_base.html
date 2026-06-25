@@ -342,5 +342,12 @@
       }
     });
   </script>
+  {% if storefront_inbox_enabled %}
+  {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}
+  <a href="{% url 'storefront-message' %}" data-chat-fab aria-label="{% trans 'Ask us a question' %}"
+     class="fixed right-4 bottom-20 sm:bottom-5 z-30 flex items-center gap-2 bg-indigo-600 text-white rounded-full shadow-lg px-4 py-3 hover:bg-indigo-700">
+    <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="hidden sm:inline text-sm font-medium">{% trans "Ask us" %}</span>
+  </a>
+  {% endif %}
 </body>
 </html>
