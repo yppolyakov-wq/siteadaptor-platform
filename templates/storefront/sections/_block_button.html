@@ -1,0 +1,6 @@
+{# D.2 C-блок: CTA-кнопка по центру. Пусто → ничего. #}
+{% if block.label and block.url %}
+<div class="my-8 text-center">
+  <a href="{{ block.url }}" class="inline-block text-white text-sm font-medium px-6 py-3 rounded-lg" style="background: var(--accent);">{{ block.label }}</a>
+</div>
+{% endif %}

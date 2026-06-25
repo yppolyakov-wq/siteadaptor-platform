@@ -1,0 +1,9 @@
+{# D.2 C-блок: заголовок + абзац. Пусто → ничего. #}
+{% if block.title or block.body %}
+<section class="my-8">
+  <div class="max-w-3xl mx-auto px-4">
+    {% if block.title %}<h2 class="text-xl md:text-2xl font-bold mb-2">{{ block.title }}</h2>{% endif %}
+    {% if block.body %}<p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ block.body }}</p>{% endif %}
+  </div>
+</section>
+{% endif %}

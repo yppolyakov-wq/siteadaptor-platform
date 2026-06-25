@@ -1904,3 +1904,13 @@
   `{% for s in sections %}{% render_block s %}{% endfor %}`. Это разблокиратор для
   C-блоков (D.2) и on-canvas инсертера «+» (E). Рефактор без регрессии (39+16 тестов
   зелёные). Тест `test_block_registry.py` (покрытие ключей/якоря/unknown→пусто).
+- **2026-06-25 — Спринт D.2a (анти-Битрикс Phase 2): C-блоки (движок + рендер).**
+  Введены повторяемые «простые блоки» `text/image/image_text/button/spacer`
+  (`siteconfig.REPEATABLE_BLOCKS`) — живут в `site_config["sections"]` с собственным
+  `id` и `data`, НЕ дедупятся по key (нормализация `_clean_cblock` + санитизация
+  данных по типу, кап `_MAX_CBLOCKS`=30). `render_block` принимает и dict-блок
+  (C-блок рендерится со своими данными), и строку-ключ (фикс-секция). Партиалы
+  `_block_text/_image/_image_text/_button/_spacer.html`. Вьюха отдаёт `section_blocks`
+  (включённые записи), главная — `{% for b in section_blocks %}{% render_block b %}`.
+  Тесты `test_cblocks.py` (мульти-блоки/id/санитизация/кап/рендер каждого типа).
+  Без миграций. **D.2b (билдер-CRUD добавления C-блоков) — в Спринте E** (инсертер «+»).

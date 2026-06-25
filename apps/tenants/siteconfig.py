@@ -13,6 +13,8 @@ site_config = {
 }
 """
 
+import uuid
+
 from django.utils.translation import gettext_lazy as _
 
 # (key, подпись для кабинета, включена ли по умолчанию)
@@ -88,6 +90,45 @@ _MAX_GALLERY = 24  # потолок фото в галерее
 _MAX_ARCHETYPES = 30  # потолок пер-архетипных оверрайдов тизеров (S2)
 _MAX_COVER_GALLERY = 12  # потолок фото в галерее раздела (S3b)
 _KNOWN = {key for key, _label, _on in SECTIONS}
+
+# D.2 (анти-Битрикс Phase 2): повторяемые «простые блоки» (C-блоки) — НЕ в SECTIONS
+# (множественные, с собственным `id` и `data`). Владелец собирает из них контент
+# («собрать сайт из кубиков»). Живут в той же `site_config["sections"]`.
+REPEATABLE_BLOCKS = ("text", "image", "image_text", "button", "spacer")
+_MAX_CBLOCKS = 30
+
+
+def _clean_cblock_data(key: str, raw) -> dict:
+    """Санитизация данных C-блока по типу (строки; неизвестные ключи отброшены)."""
+    d = raw if isinstance(raw, dict) else {}
+    if key == "text":
+        return {"title": _s(d.get("title")), "body": _s(d.get("body"))}
+    if key == "image":
+        return {"url": _s(d.get("url")), "caption": _s(d.get("caption"))}
+    if key == "image_text":
+        side = d.get("side")
+        return {
+            "url": _s(d.get("url")),
+            "title": _s(d.get("title")),
+            "body": _s(d.get("body")),
+            "side": side if side in ("left", "right") else "left",
+        }
+    if key == "button":
+        return {"label": _s(d.get("label")), "url": _s(d.get("url"))}
+    return {}  # spacer — без данных
+
+
+def _clean_cblock(item: dict) -> dict:
+    """C-блок → {key, id, enabled, data}. id сохраняется (или генерится)."""
+    key = item["key"]
+    bid = _s(item.get("id")) or uuid.uuid4().hex[:12]
+    return {
+        "key": key,
+        "id": bid,
+        "enabled": bool(item.get("enabled", True)),
+        "data": _clean_cblock_data(key, item.get("data")),
+    }
+
 
 # M20R-1: универсальный layout-движок секций-сеток. Пресет = быстрый выбор
 # раскладки (анти-Битрикс), `cols/mobile/gap/width` — ручной override («Дополнительно»).
@@ -648,11 +689,16 @@ def normalize(config) -> dict:
             entry["show_all"] = bool(raw_item.get("show_all", True))
         return entry
 
+    cblocks = 0
     for item in config.get("sections", []):
         key = item.get("key") if isinstance(item, dict) else None
         if key in _KNOWN and key not in seen:
             sections.append(_section(key, bool(item.get("enabled")), item))
             seen.add(key)
+        elif key in REPEATABLE_BLOCKS and cblocks < _MAX_CBLOCKS:
+            # D.2: C-блоки множественные — порядок сохраняем, по key не дедупим.
+            sections.append(_clean_cblock(item))
+            cblocks += 1
     for key, _label, enabled in SECTIONS:
         if key not in seen:
             sections.append(_section(key, enabled, None))

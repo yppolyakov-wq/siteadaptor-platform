@@ -48,14 +48,39 @@ _BLOCK_ANCHOR_ID = {
 # Секции с обёрткой scroll-mt-24 без id (плавная прокрутка, без якоря меню).
 _BLOCK_WRAP_NOID = {"archetypes"}
 
+# D.2: C-блоки (повторяемые «кубики») — key → партиал. Данные берутся из самого
+# блока (`block.data`), а не из контекста вьюхи (в отличие от фикс-секций).
+CBLOCK_TEMPLATES = {
+    "text": "storefront/sections/_block_text.html",
+    "image": "storefront/sections/_block_image.html",
+    "image_text": "storefront/sections/_block_image_text.html",
+    "button": "storefront/sections/_block_button.html",
+    "spacer": "storefront/sections/_block_spacer.html",
+}
+
 
 @register.simple_tag(takes_context=True)
-def render_block(context, key):
-    """D.1: отрисовать секцию главной по ключу из реестра (с якорь-обёрткой)."""
+def render_block(context, block):
+    """D.1/D.2: отрисовать секцию главной — фикс-секция (по ключу) или C-блок (dict).
+
+    Принимает строку-ключ (фикс-секция, данные из контекста) ИЛИ dict-блок
+    ({key,id,data}). C-блоки рендерятся со своими данными.
+    """
+    key = block if isinstance(block, str) else block.get("key")
+    request = context.get("request")
+    # D.2: C-блок — рендерим партиал с данными самого блока.
+    if key in CBLOCK_TEMPLATES:
+        data = block.get("data") if isinstance(block, dict) else {}
+        html = render_to_string(
+            CBLOCK_TEMPLATES[key],
+            {**context.flatten(), "block": data or {}},
+            request=request,
+        )
+        return mark_safe(html)
     tpl = BLOCK_TEMPLATES.get(key)
     if not tpl:
         return ""
-    html = render_to_string(tpl, context.flatten(), request=context.get("request"))
+    html = render_to_string(tpl, context.flatten(), request=request)
     anchor = _BLOCK_ANCHOR_ID.get(key)
     if anchor:
         return mark_safe(f'<div id="{anchor}" class="scroll-mt-24">{html}</div>')

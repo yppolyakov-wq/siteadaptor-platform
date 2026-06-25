@@ -114,6 +114,9 @@ def storefront_home(request):
                 if s["key"] == primary:
                     s["enabled"] = True
     sections = [s["key"] for s in site["sections"] if s["enabled"]]
+    # D.2: полные записи включённых секций (фикс + C-блоки с данными) для рендера
+    # через {% render_block %}; `sections` (ключи) остаётся для гейтинга запросов.
+    section_blocks = [s for s in site["sections"] if s["enabled"]]
 
     promos = (
         Promotion.objects.filter(status="active").order_by("-created_at")
@@ -186,6 +189,7 @@ def storefront_home(request):
         "storefront/home.html",
         {
             "sections": sections,
+            "section_blocks": section_blocks,
             "site": site,
             "promotions": promos,
             "products_preview": products_preview,

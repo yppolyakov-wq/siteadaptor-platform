@@ -1,0 +1,9 @@
+{# D.2 C-блок: одно фото + подпись. Пусто → ничего. #}
+{% if block.url %}
+<figure class="my-8">
+  <div class="max-w-4xl mx-auto px-4">
+    <img src="{{ block.url }}" alt="{{ block.caption }}" loading="lazy" decoding="async" class="w-full rounded-2xl object-cover">
+    {% if block.caption %}<figcaption class="text-sm text-gray-500 mt-2 text-center">{{ block.caption }}</figcaption>{% endif %}
+  </div>
+</figure>
+{% endif %}

@@ -1,0 +1,16 @@
+{# D.2 C-блок: фото + текст рядом (side=left|right). Пусто → ничего. #}
+{% if block.url or block.title or block.body %}
+<section class="my-8">
+  <div class="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-6 items-center">
+    {% if block.url %}
+      <div class="{% if block.side == 'right' %}md:order-2{% endif %}">
+        <img src="{{ block.url }}" alt="{{ block.title }}" loading="lazy" decoding="async" class="w-full rounded-2xl object-cover">
+      </div>
+    {% endif %}
+    <div>
+      {% if block.title %}<h2 class="text-xl md:text-2xl font-bold mb-2">{{ block.title }}</h2>{% endif %}
+      {% if block.body %}<p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ block.body }}</p>{% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}

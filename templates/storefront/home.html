@@ -6,5 +6,5 @@
    кабинет «Site»). Диспетчер секций — реестр `render_block` (siteui), а не хардкод
    if/elif: единый источник правды + основа для C-блоков и on-canvas «+». Якоря
    (#galerie/#bewertungen/#kontakt …) для меню вешает обёртка внутри render_block. #}
-{% for s in sections %}{% render_block s %}{% endfor %}
+{% for b in section_blocks %}{% render_block b %}{% endfor %}
 {% endblock %}
