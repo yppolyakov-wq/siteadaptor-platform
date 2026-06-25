@@ -86,8 +86,10 @@ def test_catalog_filter_by_teacher():
 
 def test_teacher_facet_lists_present_teachers():
     mara = Teacher.objects.create(name="Mara")
-    e = _event()
-    e.teachers.set([mara])
+    # M20U-3: панель фильтров (с фасетом учителей) показывается при > порога
+    # событий — создаём достаточно, чтобы она рендерилась.
+    for i in range(public_views._FILTER_MIN_EVENTS + 1):
+        _event(title=f"Retreat {i}").teachers.set([mara])
     body = public_views.veranstaltung_index(_store("/veranstaltung/")).content.decode()
     assert "Mara" in body and "teacher" in body
 
