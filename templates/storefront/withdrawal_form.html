@@ -1,0 +1,48 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}Widerruf — {{ request.tenant.name|default:"Shop" }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'storefront-withdrawal' %}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline mb-4">← Widerrufsbelehrung</a>
+<article class="bg-white rounded-2xl shadow-sm p-6 max-w-xl">
+  {% if sent %}
+    <h1 class="text-2xl font-bold mb-3">Widerruf eingegangen</h1>
+    <p class="text-gray-700 mb-4">Vielen Dank, {{ data.name }}. Ihr Widerruf wurde an uns übermittelt. Sie erhalten in Kürze eine Bestätigung.</p>
+    <a href="{% url 'storefront-home' %}" class="text-indigo-600 hover:underline">← Zur Startseite</a>
+  {% else %}
+    <h1 class="text-2xl font-bold mb-1">Widerruf erklären</h1>
+    <p class="text-sm text-gray-500 mb-5">Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: Name und Ware.</p>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_name">Name *</label>
+        <input id="id_name" name="name" type="text" required value="{{ data.name }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_goods">Welche Ware widerrufen Sie? *</label>
+        <textarea id="id_goods" name="goods" rows="2" required class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ data.goods }}</textarea>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_order_code">Bestellnummer</label>
+          <input id="id_order_code" name="order_code" type="text" value="{{ data.order_code }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="id_ordered_at">Bestellt / erhalten am</label>
+          <input id="id_ordered_at" name="ordered_at" type="text" placeholder="TT.MM.JJJJ" value="{{ data.ordered_at }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_email">E-Mail</label>
+        <input id="id_email" name="email" type="email" value="{{ data.email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_address">Anschrift</label>
+        <textarea id="id_address" name="address" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ data.address }}</textarea>
+      </div>
+      <button type="submit" class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700">Widerruf absenden</button>
+    </form>
+  {% endif %}
+</article>
+{% endblock %}

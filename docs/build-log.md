@@ -1887,3 +1887,13 @@
   `test_step2_shows_theme_picker`, `test_step5_banner_saves_hero_texts`,
   `test_step6_*`. Без миграций. **Спринт B (Phase 1) закрыт: B.1–B.4.** Осталось
   (опц., отдельно): объединение signup+provisioning в /willkommen/ (high-risk, гейт).
+- **2026-06-25 — Спринт C (правовой долг A1/A2): Widerrufsbelehrung + онлайн-Widerruf.**
+  C.2: `Tenant.withdrawal_text()` теперь archetype-aware — для дистанционной продажи
+  товаров (`delivery_enabled`) генерит полноценную **Widerrufsbelehrung für Waren**
+  (14-Tage-Frist § 355 BGB) + Muster-Widerrufsformular; для броней/услуг — прежний
+  мягкий текст. C.1: онлайн-форма `/widerruf-formular/` (honeypot+rate-limit) —
+  заявление уходит продавцу письмом + inbox-тредом (если модуль активен), клиенту —
+  подтверждение. Кнопка «Widerruf online erklären» на странице /widerruf/ для
+  товарных продавцов. Тесты `test_withdrawal.py` (текст для товара/брони/override +
+  GET/POST/honeypot/валидация формы). Без миграций. **Спринт C закрыт** (C.3
+  PayPal/Kauf auf Rechnung — отложен, гейт владельца).

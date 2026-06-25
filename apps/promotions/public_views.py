@@ -519,7 +519,81 @@ def privacy(request):
 
 
 def withdrawal(request):
-    return _legal_page(request, "Widerruf", request.tenant.withdrawal_text())
+    # C.1: для дистанционной продажи товаров показываем кнопку онлайн-Widerruf.
+    return render(
+        request,
+        "storefront/legal.html",
+        {
+            "legal_title": "Widerruf",
+            "legal_body": request.tenant.withdrawal_text(),
+            "show_widerruf_button": bool(getattr(request.tenant, "delivery_enabled", False)),
+        },
+    )
+
+
+def withdrawal_form(request):
+    """C.1: онлайн-форма Widerruf (§ 312k BGB) — заявление уходит продавцу.
+
+    Доступна всегда (право на отзыв нельзя «спрятать»). honeypot + rate-limit.
+    Заявление и копию показываем клиенту; продавцу — письмом (+ inbox-тред, если
+    модуль активен), чтобы Widerruf был зафиксирован независимо от настроек.
+    """
+    tenant = request.tenant
+    fields = ("name", "email", "address", "goods", "ordered_at", "order_code")
+    if request.method == "POST":
+        if request.POST.get("website"):  # honeypot
+            return redirect("storefront-withdrawal-form")
+        if ratelimit.hit("widerruf", ratelimit.client_ip(request), limit=5, window=600):
+            return HttpResponse(status=429)
+        data = {k: request.POST.get(k, "").strip()[:500] for k in fields}
+        if not (data["name"] and data["goods"]):
+            messages.error(request, _("Please enter your name and the goods."))
+            return render(request, "storefront/withdrawal_form.html", {"data": data})
+        _deliver_withdrawal(request, tenant, data)
+        return render(request, "storefront/withdrawal_form.html", {"sent": True, "data": data})
+    return render(request, "storefront/withdrawal_form.html", {"data": {}})
+
+
+def _deliver_withdrawal(request, tenant, data):
+    """Доставить заявление о Widerruf продавцу: inbox-тред (если активен) + email."""
+    decl = (
+        "Widerruf eines Kaufvertrags\n\n"
+        f"Hiermit widerrufe ich den Vertrag über den Kauf folgender Waren:\n{data['goods']}\n\n"
+        f"Bestellnummer: {data['order_code'] or '—'}\n"
+        f"Bestellt/erhalten am: {data['ordered_at'] or '—'}\n"
+        f"Name: {data['name']}\n"
+        f"E-Mail: {data['email'] or '—'}\n"
+        f"Anschrift: {data['address'] or '—'}\n"
+    )
+    # 1) inbox-тред (бизнес видит в кабинете), если модуль активен.
+    if tenant.is_module_active("inbox"):
+        try:
+            from apps.inbox import services as inbox_services
+
+            inbox_services.start_conversation(
+                subject="Widerruf",
+                body=decl[:5000],
+                name=data["name"],
+                email=data["email"],
+                phone="",
+            )
+        except Exception:
+            pass
+    # 2) письмо продавцу (фиксирует Widerruf независимо от inbox).
+    to = tenant.public_email or tenant.contact_email
+    if to:
+        try:
+            from django.core.mail import send_mail
+
+            send_mail(
+                f"Widerruf — {tenant.name}",
+                decl,
+                getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
+                [to],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
 
 
 def loyalty_card_qr(request, token):

@@ -249,15 +249,67 @@ class Tenant(TenantMixin):
         )
 
     def withdrawal_text(self) -> str:
-        """Свободная информация об отмене или базовый шаблон."""
+        """Свободная инфо об отмене ИЛИ сгенерированный шаблон.
+
+        Для дистанционной продажи товаров (`delivery_enabled` = Versand/Fernabsatz)
+        — полноценная **Widerrufsbelehrung für Waren** + Muster-Widerrufsformular
+        (14-Tage-Frist, § 355 BGB). Иначе — мягкий текст об отмене брони/услуги.
+        Владелец может перекрыть своим `withdrawal_policy`.
+        """
         if self.withdrawal_policy.strip():
             return self.withdrawal_policy
+        if self.delivery_enabled:
+            return self._goods_withdrawal_text()
         return (
             "Stornierung / Widerruf\n\n"
             "Eine Reservierung ist unverbindlich und kann jederzeit storniert "
             "werden. Bei Fragen kontaktieren Sie uns bitte unter "
             f"{self.public_email or self.name}.\n\n"
             "Hinweis: Bitte passen Sie diesen Text an Ihr Geschäft an."
+        )
+
+    def _goods_withdrawal_text(self) -> str:
+        """Widerrufsbelehrung für Waren (Fernabsatz) + Muster-Widerrufsformular."""
+        anbieter = ", ".join(
+            p for p in [self.name, (self.address or "").replace("\n", ", ").strip(", ")] if p
+        )
+        kontakt = self.public_email or self.public_phone or self.name
+        return (
+            "Widerrufsbelehrung\n\n"
+            "Widerrufsrecht\n"
+            "Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von Gründen "
+            "diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage "
+            "ab dem Tag, an dem Sie oder ein von Ihnen benannter Dritter, der nicht "
+            "der Beförderer ist, die Waren in Besitz genommen haben bzw. hat.\n\n"
+            "Um Ihr Widerrufsrecht auszuüben, müssen Sie uns "
+            f"({anbieter}; {kontakt}) mittels einer eindeutigen Erklärung (z. B. ein "
+            "mit der Post versandter Brief oder eine E-Mail) über Ihren Entschluss, "
+            "diesen Vertrag zu widerrufen, informieren. Sie können dafür das "
+            "beigefügte Muster-Widerrufsformular verwenden, das jedoch nicht "
+            "vorgeschrieben ist. Zur Wahrung der Widerrufsfrist reicht es aus, dass "
+            "Sie die Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der "
+            "Widerrufsfrist absenden.\n\n"
+            "Folgen des Widerrufs\n"
+            "Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, die "
+            "wir von Ihnen erhalten haben, einschließlich der Lieferkosten (mit "
+            "Ausnahme der zusätzlichen Kosten, die sich daraus ergeben, dass Sie eine "
+            "andere Art der Lieferung als die von uns angebotene, günstigste "
+            "Standardlieferung gewählt haben), unverzüglich und spätestens binnen "
+            "vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung über "
+            "Ihren Widerruf dieses Vertrags bei uns eingegangen ist. Sie tragen die "
+            "unmittelbaren Kosten der Rücksendung der Waren.\n\n"
+            "Muster-Widerrufsformular\n"
+            "(Wenn Sie den Vertrag widerrufen wollen, füllen Sie bitte dieses "
+            "Formular aus und senden Sie es zurück.)\n"
+            f"— An: {anbieter}; {kontakt}\n"
+            "— Hiermit widerrufe(n) ich/wir den von mir/uns abgeschlossenen Vertrag "
+            "über den Kauf der folgenden Waren: ____________________\n"
+            "— Bestellt am / erhalten am: ____________________\n"
+            "— Name des/der Verbraucher(s): ____________________\n"
+            "— Anschrift des/der Verbraucher(s): ____________________\n"
+            "— Datum: ____________________\n\n"
+            "Den Widerruf können Sie auch bequem online erklären: /widerruf-formular/\n\n"
+            "Hinweis: Bitte prüfen Sie diesen Text für Ihr Geschäft."
         )
 
 

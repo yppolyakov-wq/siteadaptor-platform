@@ -244,6 +244,8 @@ urlpatterns = [
     path("impressum/", public_views.impressum, name="storefront-impressum"),
     path("datenschutz/", public_views.privacy, name="storefront-privacy"),
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),
+    # C.1: онлайн-форма Widerruf (заявление уходит продавцу).
+    path("widerruf-formular/", public_views.withdrawal_form, name="storefront-withdrawal-form"),
     path("u/<uuid:token>/", public_views.unsubscribe, name="storefront-unsubscribe"),
     # G3: подписка на рассылку (Double-Opt-In) + подтверждение по ссылке.
     path("newsletter/", public_views.newsletter_signup, name="storefront-newsletter"),

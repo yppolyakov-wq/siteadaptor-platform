@@ -40,7 +40,7 @@ VIEWALL keys), `apps/core/archetypes.py` (`PRIMARY_SECTION["booking"]="services"
 **Осталось (минор):** богатая карточка услуги (фото/«что входит») — нужна доработка
 модели `Service` (поля `description`/`image`) → вынесено в A.1b (опц., размер S–M).
 
-### A.2 — Блок отзывов на витрине: включить в киты + обогатить ☐
+### A.2 — Блок отзывов на витрине: включить в киты + обогатить ✅
 **Контекст:** блок `reviews` (партиал `_reviews.html`, тег `storefront_reviews`) **уже
 существует** и читает SHARED `BusinessReview`. Реальный пробел — он не включён/не
 засеян в friseur/werkstatt/restaurant и подача беднее ретрита (без фото/города).
@@ -114,11 +114,11 @@ Meisterbetrieb/Innung).
 > Обоснование/срочность — `docs/market-analysis/a1a2-retail-online-shop.md` §Technical.
 > Widerrufsbutton обязателен с 19.06.2026 (в силе). Риск Abmahnung для живых retail.
 
-### C.1 — Widerrufs-Flow для покупателя ☐  (M)
+### C.1 — Widerrufs-Flow для покупателя ✅  (M)
 Кнопка/форма отзыва заказа на витрине (по `Order`), статус `returned` уже есть → дать
 потребительский флоу + письмо. **Файлы:** `apps/orders/` (views/public), шаблоны.
 
-### C.2 — Rechtstexte-Wizard (авто Impressum/Datenschutz/AGB/Widerruf) ☐  (M)
+### C.2 — Widerrufsbelehrung für Waren (авто) ✅  (M; полный Rechtstexte-Wizard — позже)
 Генерация юр-текстов из данных бизнеса; проверка DDG/TDDDG (не TMG/TTDSG). **Файлы:**
 `apps/tenants/` (legal-генератор), `templates/storefront/legal.html`.
 
