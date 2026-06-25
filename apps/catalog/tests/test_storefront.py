@@ -90,6 +90,16 @@ def test_product_detail_uses_shared_media_gallery():
     assert "js-media-gallery" in body and 'data-src="https://img/b.jpg"' in body
 
 
+def test_product_detail_mobile_buybar_when_orderable():
+    """M20U-4: липкая панель покупки на детальной товара (orders активен, в наличии)."""
+    product = ProductFactory(name={"de": "Roggenbrot"}, base_price="4.20")
+    req = _req(f"/sortiment/{product.pk}/")
+    req.tenant = TenantFactory.build(name="Bäckerei X", address="Hauptstr. 1", disabled_modules=[])
+    body = public_views.product_detail(req, pk=product.pk).content.decode()
+    assert "data-buybar" in body and "In den Warenkorb" in body
+    assert 'id="kaufen"' in body
+
+
 def test_product_detail_404_for_inactive():
     product = ProductFactory(is_active=False)
     with pytest.raises(Http404):

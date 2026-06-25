@@ -17,7 +17,7 @@
     {% endif %}
   </div>
 
-  <div>
+  <div id="kaufen" class="scroll-mt-24">
     {% if product.category %}<p class="text-sm text-gray-400">{{ product.category }}</p>{% endif %}
     {% if product.badge_label %}<span class="inline-block mt-1 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full">{{ product.badge_label }}</span>{% endif %}
     <h1 class="text-2xl md:text-3xl font-bold mt-1">{{ product }}</h1>
@@ -69,5 +69,11 @@
     {% endfor %}
   </div>
 </div>
+{% endif %}
+
+{# M20U-4: мобильная липкая панель покупки (только когда заказ доступен и в наличии) #}
+{% if orders_enabled and product.in_stock %}
+  {% if product.has_variants %}{% blocktrans asvar buyprice with p=product.price_from c=product.currency|cursym %}from {{ p }} {{ c }}{% endblocktrans %}{% else %}{% blocktrans asvar buyprice with p=product.base_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% endif %}
+  {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#kaufen" module="catalog" sold_out=False %}
 {% endif %}
 {% endblock %}
