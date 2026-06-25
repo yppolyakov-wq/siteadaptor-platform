@@ -1897,3 +1897,10 @@
   товарных продавцов. Тесты `test_withdrawal.py` (текст для товара/брони/override +
   GET/POST/honeypot/валидация формы). Без миграций. **Спринт C закрыт** (C.3
   PayPal/Kauf auf Rechnung — отложен, гейт владельца).
+- **2026-06-25 — Спринт D.1 (анти-Битрикс Phase 2): реестр секций `render_block`.**
+  Хардкод if/elif (20 веток) в `storefront/home.html` заменён на реестр
+  `siteui.BLOCK_TEMPLATES` (key→партиал) + тег `{% render_block %}` (якорь-обёртки
+  #buchen/#zimmer/#leistungen/#bewertungen/#kontakt… сохранены). Главная теперь —
+  `{% for s in sections %}{% render_block s %}{% endfor %}`. Это разблокиратор для
+  C-блоков (D.2) и on-canvas инсертера «+» (E). Рефактор без регрессии (39+16 тестов
+  зелёные). Тест `test_block_registry.py` (покрытие ключей/якоря/unknown→пусто).

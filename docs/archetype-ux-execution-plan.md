@@ -130,7 +130,7 @@ Meisterbetrieb/Innung).
 
 ## Спринт D — «анти-Битрикс» Phase 2 «Реестр блоков» (разблокиратор)
 
-### D.1 — Диспетчер секций `{% render_block %}` вместо if/elif ☐  (M)
+### D.1 — Диспетчер секций render_block вместо if/elif ✅  (M)
 Заменить хардкод в `home.html` на inclusion-tag с картой `BLOCK_TEMPLATES = {key:
 partial}`. Рефактор без регрессии (тот же вывод). **Разблокиратор для D.2/E.***.
 **Файлы:** новый templatetag, `home.html`, `siteui.py`.
