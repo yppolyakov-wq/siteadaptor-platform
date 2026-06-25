@@ -170,6 +170,20 @@ def section_limit(config, key) -> int:
     return default
 
 
+# M20U-7: секции главной с настраиваемым владельцем заголовком (иначе шаблон берёт
+# дефолтный {% trans %}). Хранится в config["section_titles"][key].
+SECTION_TITLE_KEYS = {"promotions", "categories", "products", "events", "stay_rooms"}
+_SECTION_TITLE_MAX = 80
+
+
+def section_title(config, key) -> str:
+    """Кастомный заголовок секции `key` (или "" → шаблон выводит дефолт)."""
+    titles = (config or {}).get("section_titles")
+    if isinstance(titles, dict):
+        return _s(titles.get(key))[:_SECTION_TITLE_MAX]
+    return ""
+
+
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
 
 # M20: вложенные текстовые поля секций, редактируемые инлайн (dotted path
@@ -602,6 +616,14 @@ def normalize(config) -> dict:
     # архетипа (standalone: корень `/` ведёт на его лендинг). Валидность (активен
     # ли архетип) проверяется при рендере; здесь просто строка.
     normalized["storefront_root"] = _s(config.get("storefront_root")) or "home"
+    # M20U-7: кастомные заголовки секций главной (только известные ключи, обрезка).
+    titles = config.get("section_titles")
+    clean_titles = {}
+    if isinstance(titles, dict):
+        for key, value in titles.items():
+            if key in SECTION_TITLE_KEYS and isinstance(value, str) and _s(value):
+                clean_titles[key] = _s(value)[:_SECTION_TITLE_MAX]
+    normalized["section_titles"] = clean_titles
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):

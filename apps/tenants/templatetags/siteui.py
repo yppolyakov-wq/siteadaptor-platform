@@ -17,6 +17,12 @@ def grid_classes(site, key):
     return siteconfig.grid_class_string(siteconfig.section_layout(site, key))
 
 
+@register.simple_tag(name="section_title")
+def section_title(site, key):
+    """M20U-7: кастомный заголовок секции главной (или "" → шаблон выводит дефолт)."""
+    return siteconfig.section_title(site, key)
+
+
 @register.simple_tag(name="purchase_label")
 def purchase_label(module):
     """M20U-5: подпись действия покупки архетипа (Jetzt buchen / In den Warenkorb …)."""

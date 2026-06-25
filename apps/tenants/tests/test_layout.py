@@ -118,3 +118,14 @@ def test_normalize_attaches_limit_only_to_preview_sections():
     team = next(s for s in cfg["sections"] if s["key"] == "team")
     assert products["limit"] == 8  # дефолт
     assert "limit" not in team  # не секция-превью
+
+
+def test_section_title_default_override_and_cleanup():
+    # M20U-7: кастомный заголовок секции.
+    assert siteconfig.section_title({"sections": []}, "events") == ""  # дефолт → пусто
+    cfg = siteconfig.normalize(
+        {"section_titles": {"events": "Unsere Retreats", "hero": "x", "ghost": "y"}}
+    )
+    # известный title-ключ сохранён; не-title и неизвестные ключи отброшены
+    assert cfg["section_titles"] == {"events": "Unsere Retreats"}
+    assert siteconfig.section_title(cfg, "events") == "Unsere Retreats"

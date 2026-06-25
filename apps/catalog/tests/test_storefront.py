@@ -192,6 +192,15 @@ def test_home_products_preview_respects_limit():
     assert shown == 3
 
 
+def test_home_section_custom_heading():
+    """M20U-7: владелец задаёт свой заголовок секции (вместо стандартного)."""
+    ProductFactory(name={"de": "Brot"})
+    req = _req("/")
+    req.tenant.site_config = {"section_titles": {"products": "Frisch aus dem Ofen"}}
+    body = public_views.storefront_home(req).content.decode()
+    assert "Frisch aus dem Ofen" in body
+
+
 def test_home_without_products_has_no_section():
     body = public_views.storefront_home(_req("/")).content.decode()
     assert "/sortiment/</a>" not in body  # ссылки «View all» нет без товаров

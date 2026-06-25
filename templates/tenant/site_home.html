@@ -89,6 +89,12 @@
                 <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="24"
                        class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
               {% endif %}
+              {% if s.has_title %}
+                {# M20U-7: свой заголовок секции (иначе — стандартный) #}
+                <input type="text" name="title_{{ s.key }}" value="{{ s.title }}" maxlength="80"
+                       placeholder="{{ s.label }}"
+                       class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}">
+              {% endif %}
             </div>
           {% endfor %}
         </div>
@@ -255,6 +261,11 @@
         blurb: bl ? bl.value : "",
       };
     });
+    // M20U-7: кастомные заголовки секций → в превью.
+    var sectionTitles = {};
+    form.querySelectorAll("input[name^='title_']").forEach(function (inp) {
+      if (inp.value) sectionTitles[inp.name.slice(6)] = inp.value;
+    });
     // M20f: дизайн вживую — шрифт, стиль hero, акцент.
     var fontEl = form.querySelector("[name=font]");
     var heroEl = form.querySelector("[name=hero_accent]");
@@ -262,6 +273,7 @@
     var payload = {
       sections: sections,
       archetypes: archetypes,
+      section_titles: sectionTitles,
       font: fontEl ? fontEl.value : "system",
       hero_style: heroEl && heroEl.checked ? "accent" : "plain",
       accent: accentEl ? accentEl.value : "",

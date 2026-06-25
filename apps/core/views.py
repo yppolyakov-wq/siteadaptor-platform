@@ -465,6 +465,13 @@ def home_builder_view(request):
                 "hidden": request.POST.get(f"arch_visible_{key}") != "on",
             }
         config["archetypes"] = arch
+        # M20U-7: кастомные заголовки секций главной (normalize чистит/обрезает).
+        titles = {}
+        for tkey in siteconfig.SECTION_TITLE_KEYS:
+            tval = request.POST.get(f"title_{tkey}", "").strip()
+            if tval:
+                titles[tkey] = tval
+        config["section_titles"] = titles
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
@@ -501,6 +508,9 @@ def home_builder_view(request):
             # M20U-7: секции-превью — настраиваемое число элементов.
             "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,
             "limit": s.get("limit", ""),
+            # M20U-7: кастомный заголовок секции (для перечисленных ключей).
+            "has_title": s["key"] in siteconfig.SECTION_TITLE_KEYS,
+            "title": (config.get("section_titles") or {}).get(s["key"], ""),
         }
         for index, s in enumerate(config["sections"], start=1)
     ]
@@ -665,6 +675,9 @@ def site_preview_draft(request):
                 cur["hidden"] = bool(ov.get("hidden"))
                 arch[key] = cur
         cfg["archetypes"] = arch
+    # M20U-7: кастомные заголовки секций — в превью (normalize чистит ключи/длину).
+    if isinstance(data.get("section_titles"), dict):
+        cfg["section_titles"] = data["section_titles"]
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
     if data.get("font") in siteconfig.FONTS:
         cfg["font"] = data["font"]
