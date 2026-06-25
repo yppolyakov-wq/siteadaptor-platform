@@ -18,7 +18,7 @@
 <span class="hidden grid-cols-1 grid-cols-2" aria-hidden="true"></span>
 
 {% if promotions %}
-<div id="promo-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+<div id="promo-grid" class="{% grid_classes site 'promotions' %}">
   {% for p in promotions %}
     {% include "storefront/_promo_card.html" %}
   {% endfor %}

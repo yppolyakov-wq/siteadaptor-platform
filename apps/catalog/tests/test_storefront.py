@@ -263,6 +263,19 @@ def test_home_section_hide_view_all_link():
     assert "View all" not in body  # ссылка скрыта
 
 
+def test_home_promotions_section_honors_layout_preset():
+    """M20U-7: пресет раскладки применяется и к секции акций (cols3→cols4)."""
+    from apps.promotions.tests.factories import PromotionFactory
+
+    PromotionFactory()
+    req = _req("/")
+    req.tenant.site_config = {
+        "sections": [{"key": "promotions", "enabled": True, "layout": {"preset": "cols4"}}]
+    }
+    body = public_views.storefront_home(req).content.decode()
+    assert "lg:grid-cols-4" in body  # пресет применён (дефолт был cols3)
+
+
 def test_home_team_section_honors_layout_preset():
     """M20U-7: пресет раскладки реально применяется к секции (team: cols4→cols2)."""
     req = _req("/")
