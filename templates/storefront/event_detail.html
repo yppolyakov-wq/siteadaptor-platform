@@ -1,16 +1,13 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/detail.html" %}
 {% load i18n %}
 {% block title %}{{ event.title }} — {{ request.tenant.name }}{% endblock %}
 
-{% block content %}
-{% with L=event.landing %}
-<div class="max-w-5xl mx-auto">
-  <a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>
+{% block detail_back %}<a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>{% endblock %}
 
-  {# 1. Erster Bildschirm (M20U-4): галерея слева + sticky-карточка цены/брони справа #}
-  <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start mt-3">
-    <div>{% include "storefront/_media_gallery.html" with images=event.images alt=event.title %}</div>
-    <div class="lg:sticky lg:top-20 bg-white rounded-2xl shadow-sm p-6 space-y-3">
+{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=event.images alt=event.title %}{% endblock %}
+
+{% block detail_aside %}{% with L=event.landing %}
+    <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
       <h1 class="text-2xl md:text-3xl font-bold">{{ event.title }}</h1>
       {% if L.promise %}<p class="text-gray-700">{{ L.promise }}</p>{% endif %}
       <p class="text-sm text-gray-500">
@@ -33,10 +30,9 @@
         <a href="{% url 'storefront-message' %}?kind=event&id={{ event.pk }}&label={{ event.title|urlencode }}" class="block text-center text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>
       {% endif %}
     </div>
-  </div>
+{% endwith %}{% endblock %}
 
-  {# Тело страницы — читаемая ширина #}
-  <div class="max-w-3xl mx-auto">
+{% block detail_body %}{% with L=event.landing %}
   {% if event.description %}<p class="text-gray-700 whitespace-pre-line mt-8">{{ event.description }}</p>{% endif %}
 
   {# 2. Für wen #}
@@ -390,11 +386,10 @@
     <a href="{% url 'storefront-anfrage' %}?betreff={% trans 'Group inquiry' %}: {{ event.title|urlencode }}" class="inline-block border border-indigo-600 text-indigo-600 rounded-lg px-5 py-2 text-sm font-medium hover:bg-indigo-50">{% trans "Request an offer" %}</a>
   </section>
   {% endif %}
-  </div>{# /Тело страницы #}
+{% endwith %}{% endblock %}
 
+{% block detail_buybar %}
   {# M20U-4: мобильная липкая панель покупки (десктоп — sticky-карточка выше) #}
   {% if event.has_tiers %}{% blocktrans asvar buyprice with p=event.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif event.price_cents %}{% blocktrans asvar buyprice with p=event.price_eur %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Free" as buyprice %}{% endif %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="events" sold_out=event.is_sold_out %}
-</div>
-{% endwith %}
 {% endblock %}

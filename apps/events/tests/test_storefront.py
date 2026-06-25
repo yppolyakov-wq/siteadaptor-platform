@@ -88,6 +88,8 @@ def test_detail_unified_hero_gallery_and_price_card():
     assert "storefront-event-book" in body or "/buchen/" in body
     # M20U-4: мобильная липкая панель покупки (цена + действие брони)
     assert "data-buybar" in body and "Jetzt buchen" in body
+    # наследует единый каркас detail.html
+    assert "max-w-5xl" in body and "lg:grid-cols-2" in body
 
 
 def test_book_with_tier_uses_tier_price():
