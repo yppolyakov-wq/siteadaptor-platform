@@ -442,7 +442,16 @@ def home_builder_view(request):
                 order = 999
             rows.append((order, key, request.POST.get(f"enabled_{key}") == "on"))
         rows.sort(key=lambda row: row[0])
-        config["sections"] = [{"key": key, "enabled": on} for _o, key, on in rows]
+        # M20U-7: пресет раскладки секций-сеток (Список/2-4/Галерея) — один клик.
+        new_sections = []
+        for _o, key, on in rows:
+            entry = {"key": key, "enabled": on}
+            if key in siteconfig.GRID_SECTION_DEFAULTS:
+                preset = request.POST.get(f"layout_preset_{key}", "")
+                if preset in siteconfig.LAYOUT_PRESETS:
+                    entry["layout"] = {"preset": preset}
+            new_sections.append(entry)
+        config["sections"] = new_sections
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
         arch = dict(config.get("archetypes") or {})
         for spec in storefront.teaser_specs(request.tenant):
@@ -478,8 +487,23 @@ def home_builder_view(request):
         {"key": a.key, "label": a.label} for a in modules.storefront_archetypes(request.tenant)
     ]
     sections = [
-        {"key": s["key"], "label": labels[s["key"]], "enabled": s["enabled"], "order": index}
+        {
+            "key": s["key"],
+            "label": labels[s["key"]],
+            "enabled": s["enabled"],
+            "order": index,
+            # M20U-7: для секций-сеток — текущий пресет раскладки (селектор в UI).
+            "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
+            "layout_preset": (s.get("layout") or {}).get("preset", ""),
+        }
         for index, s in enumerate(config["sections"], start=1)
+    ]
+    preset_options = [
+        ("list", _("List")),
+        ("cols2", _("2 per row")),
+        ("cols3", _("3 per row")),
+        ("cols4", _("4 per row")),
+        ("gallery", _("Gallery")),
     ]
     archetypes_enabled = any(s["key"] == "archetypes" and s["enabled"] for s in config["sections"])
     return render(
@@ -488,6 +512,7 @@ def home_builder_view(request):
         {
             "nav": "site",
             "sections": sections,
+            "preset_options": preset_options,
             "archetype_specs": storefront.teaser_specs(request.tenant),
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,

@@ -78,6 +78,12 @@
                        class="rounded border-gray-300">
                 {{ s.label }}
               </label>
+              {% if s.is_grid %}
+                {# M20U-7: пресет раскладки секции-сетки (анти-Битрикс: один клик) #}
+                <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+                  {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+                </select>
+              {% endif %}
             </div>
           {% endfor %}
         </div>

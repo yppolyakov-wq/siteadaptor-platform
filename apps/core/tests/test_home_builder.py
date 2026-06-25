@@ -69,6 +69,31 @@ def test_home_builder_saves_blocks_and_preserves_design():
     assert cfg["archetypes"]["catalog"]["blurb"] == "Frisch & vegan"
 
 
+def test_home_builder_saves_layout_preset():
+    """M20U-7: пресет раскладки секции-сетки сохраняется в layout секции."""
+    tenant = TenantFactory(schema_name="public", slug="hbl", name="HBL")
+    data = {
+        "order_products": "1",
+        "enabled_products": "on",
+        "layout_preset_products": "cols3",
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert products["layout"]["preset"] == "cols3"
+    assert products["layout"]["cols"] == 3  # пресет развёрнут normalize_layout
+
+
+def test_home_builder_get_renders_layout_select():
+    """M20U-7: для секций-сеток в билдере отрисован селектор раскладки."""
+    tenant = TenantFactory(schema_name="public", slug="hbl2", name="HBL2")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'name="layout_preset_products"' in body
+    assert 'name="layout_preset_hero"' not in body  # hero — не сетка
+
+
 def test_home_builder_gallery_upload_and_delete(tmp_path, settings):
     """M20e: фото галереи грузятся/удаляются прямо в билдере (multipart-формы)."""
     from io import BytesIO
