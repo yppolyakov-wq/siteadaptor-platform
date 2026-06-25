@@ -115,6 +115,16 @@ def storefront_home(request):
         products_preview = Product.objects.filter(is_active=True).order_by(
             "-is_featured", "-created_at"
         )[:8]
+    # M20U-2: сетка категорий каталога (верхний уровень, активные).
+    categories = []
+    if "categories" in sections:
+        from apps.catalog.models import Category
+
+        categories = list(
+            Category.objects.filter(is_active=True, parent__isnull=True).order_by(
+                "sort_order", "slug"
+            )
+        )
     # S2: сетка тизеров активных архетипов («Наши разделы»).
     archetype_teasers = []
     if "archetypes" in sections:
@@ -137,6 +147,7 @@ def storefront_home(request):
             "site": site,
             "promotions": promos,
             "products_preview": products_preview,
+            "categories": categories,
             "archetype_teasers": archetype_teasers,
             "stay_rooms": stay_rooms,
         },

@@ -87,6 +87,23 @@ def test_product_detail_404_for_inactive():
         public_views.product_detail(_req(), pk=product.pk)
 
 
+def test_home_categories_section_when_enabled():
+    """M20U-2: секция категорий на главной — карточки top-level → каталог с фильтром."""
+    CategoryFactory(slug="brot", name={"de": "Brot"}, sort_order=1)
+    CategoryFactory(slug="kuchen", name={"de": "Kuchen"}, sort_order=2)
+    req = _req("/")
+    req.tenant.site_config = {"sections": [{"key": "categories", "enabled": True}]}
+    body = public_views.storefront_home(req).content.decode()
+    assert "Brot" in body and "Kuchen" in body
+    assert "kategorie=brot" in body  # ссылка на каталог с фильтром
+
+
+def test_home_categories_section_hidden_by_default():
+    CategoryFactory(slug="brot", name={"de": "Brot"})
+    body = public_views.storefront_home(_req("/")).content.decode()
+    assert "kategorie=brot" not in body  # секция выкл по умолчанию
+
+
 def test_home_shows_products_preview():
     ProductFactory(name={"de": "VorschauBrot"})
     body = public_views.storefront_home(_req("/")).content.decode()
