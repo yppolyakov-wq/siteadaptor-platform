@@ -229,7 +229,13 @@
       rows.push({ key: key, order: parseInt(inp.value, 10) || 999, enabled: !!(en && en.checked) });
     });
     rows.sort(function (a, b) { return a.order - b.order; });
-    var sections = rows.map(function (r) { return { key: r.key, enabled: r.enabled }; });
+    var sections = rows.map(function (r) {
+      var sec = { key: r.key, enabled: r.enabled };
+      // M20U-7: пресет раскладки секции-сетки → в превью.
+      var sel = form.querySelector("select[name='layout_preset_" + r.key + "']");
+      if (sel && sel.value) sec.layout = { preset: sel.value };
+      return sec;
+    });
     var archetypes = {};
     form.querySelectorAll("input[name^='arch_visible_']").forEach(function (vis) {
       var key = vis.name.slice(13);

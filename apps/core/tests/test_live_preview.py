@@ -57,6 +57,33 @@ def test_draft_endpoint_merges_into_session():
     ) == {} or "catalog" not in tenant.site_config.get("archetypes", {})
 
 
+def test_draft_endpoint_includes_layout_preset():
+    """M20U-7: пресет раскладки секции-сетки отражается в черновике превью."""
+    tenant = TenantFactory(schema_name="public", slug="dl", name="DL")
+    body = json.dumps(
+        {
+            "sections": [
+                {"key": "products", "enabled": True, "layout": {"preset": "gallery"}},
+                # hero — не сетка: layout игнорируется
+                {"key": "hero", "enabled": True, "layout": {"preset": "gallery"}},
+            ]
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    products = next(s for s in draft["sections"] if s["key"] == "products")
+    assert products["layout"]["preset"] == "gallery"
+    hero = next(s for s in draft["sections"] if s["key"] == "hero")
+    assert "layout" not in hero  # не секция-сетка
+
+
 def test_draft_endpoint_includes_design():
     """M20f: шрифт/стиль hero/акцент попадают в черновик (акцент — как `_accent`)."""
     tenant = TenantFactory(schema_name="public", slug="dd", name="DD")

@@ -631,7 +631,16 @@ def site_preview_draft(request):
         for item in data["sections"]:
             key = item.get("key") if isinstance(item, dict) else None
             if key in known and key not in seen:
-                rows.append({"key": key, "enabled": bool(item.get("enabled"))})
+                row = {"key": key, "enabled": bool(item.get("enabled"))}
+                # M20U-7: пресет раскладки секции-сетки — отражаем в превью.
+                lay = item.get("layout") if isinstance(item, dict) else None
+                if (
+                    key in siteconfig.GRID_SECTION_DEFAULTS
+                    and isinstance(lay, dict)
+                    and lay.get("preset") in siteconfig.LAYOUT_PRESETS
+                ):
+                    row["layout"] = {"preset": lay["preset"]}
+                rows.append(row)
                 seen.add(key)
         if rows:
             cfg["sections"] = rows
