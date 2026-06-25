@@ -223,6 +223,8 @@ def veranstaltung_detail(request, pk):
     lat = event.latitude if event.latitude is not None else getattr(tenant, "latitude", None)
     lng = event.longitude if event.longitude is not None else getattr(tenant, "longitude", None)
     jobs_active = bool(tenant and tenant.is_module_active("jobs"))
+    from apps.tenants import siteconfig
+
     ctx = {
         "event": event,
         "extras": extras_engine.active_for("events"),  # #7 доп-услуги
@@ -231,6 +233,10 @@ def veranstaltung_detail(request, pk):
         "map_embed": "",
         "map_link": "",
         "installment_offer": _installment_offer(event),  # R10 предпросмотр рассрочки
+        # M20U-4: порядок/видимость тематических секций детальной.
+        "event_detail_order": siteconfig.event_detail_order(
+            getattr(tenant, "site_config", {}) or {}
+        ),
     }
     if lat is not None and lng is not None:  # R6 карта (OSM, без трекинг-куки)
         lat, lng = float(lat), float(lng)
