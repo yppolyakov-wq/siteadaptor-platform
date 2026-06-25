@@ -17,6 +17,14 @@ def grid_classes(site, key):
     return siteconfig.grid_class_string(siteconfig.section_layout(site, key))
 
 
+@register.simple_tag(name="purchase_label")
+def purchase_label(module):
+    """M20U-5: подпись действия покупки архетипа (Jetzt buchen / In den Warenkorb …)."""
+    from apps.core import archetypes
+
+    return archetypes.purchase_label(module)
+
+
 @register.filter(name="video_embed")
 def video_embed(url):
     """URL видео → {"kind","src"} (см. apps.tenants.video.embed_info) или None."""

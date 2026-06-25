@@ -58,6 +58,14 @@ def test_purchase_mode_by_archetype():
     assert archetypes.purchase_mode("unknown") == "request"  # безопасный фолбэк
 
 
+def test_purchase_label_by_archetype():
+    assert archetypes.purchase_label("catalog") == "In den Warenkorb"
+    assert archetypes.purchase_label("events") == "Jetzt buchen"
+    assert archetypes.purchase_label("stays") == "Jetzt buchen"
+    assert archetypes.purchase_label("jobs") == "Anfrage senden"
+    assert archetypes.purchase_label("unknown") == "Anfrage senden"  # фолбэк
+
+
 def test_primary_none_when_no_archetype_active():
     assert archetypes.primary_module(_Tenant(active=set())) is None
     assert archetypes.primary_item(_Tenant(active=set())) is None

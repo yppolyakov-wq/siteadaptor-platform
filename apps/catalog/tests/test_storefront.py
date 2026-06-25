@@ -131,6 +131,7 @@ def test_home_events_section_when_enabled():
     req.tenant.site_config = {"sections": [{"key": "events", "enabled": True}]}
     body = public_views.storefront_home(req).content.decode()
     assert "Yoga-Retreat" in body and "/veranstaltung/" in body
+    assert "Jetzt buchen" in body  # M20U-5: действие покупки по режиму (booking)
 
 
 def test_home_hero_cta_links_to_primary_item():

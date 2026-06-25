@@ -40,6 +40,21 @@ def purchase_mode(module: str) -> str:
     return PURCHASE_MODE.get(module, "request")
 
 
+# M20U-5: подпись основного действия по режиму покупки (DE, как storefront_label).
+# Для CTA на карточках/детальной: «купить» vs «забронировать» vs «запросить».
+PURCHASE_LABELS = {
+    "cart": "In den Warenkorb",
+    "booking": "Jetzt buchen",
+    "reserve": "Reservieren",
+    "request": "Anfrage senden",
+}
+
+
+def purchase_label(module: str) -> str:
+    """Немецкая подпись действия покупки для модуля-архетипа (фолбэк — «Anfrage senden»)."""
+    return PURCHASE_LABELS.get(purchase_mode(module), PURCHASE_LABELS["request"])
+
+
 def primary_module(tenant) -> str | None:
     """Ключ модуля «главного товара» тенанта.
 

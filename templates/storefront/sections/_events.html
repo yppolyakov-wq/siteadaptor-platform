@@ -13,6 +13,8 @@
           <h3 class="font-semibold leading-snug">{{ e.title }}</h3>
           <p class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.city %} · {{ e.city }}{% elif e.location %} · {{ e.location }}{% endif %}</p>
           <p class="mt-1 font-medium text-sm">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</p>
+          {# M20U-5: действие покупки по режиму архетипа (events → booking → «Jetzt buchen»). #}
+          <span class="mt-2 inline-flex items-center gap-1 text-sm font-medium" style="color: var(--accent, #4f46e5);" data-purchase-action>{% purchase_label 'events' %} →</span>
         </div>
       </a>
     {% endfor %}
