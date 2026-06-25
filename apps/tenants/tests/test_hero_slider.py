@@ -89,6 +89,29 @@ def test_hero_section_renders_slider_for_multiple_banners():
     assert "https://x/1.jpg" in html and "https://x/2.jpg" in html and "Buch" in html
 
 
+def test_hero_slide_without_button_uses_primary_item_cta(settings):
+    """M20U-5: слайд без своей кнопки наследует CTA «главного товара» архетипа."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    site = {
+        "heroes": [
+            {
+                "image": "https://x/1.jpg",
+                "title": "Eins",
+                "text": "",
+                "button_label": "",
+                "button_url": "",
+            }
+        ]
+    }
+    primary = {"landing": "storefront-events", "label": "Veranstaltungen", "mode": "booking"}
+    html = render_to_string(
+        "storefront/sections/_hero.html",
+        {"site": site, "request": _req(), "primary_item": primary},
+    )
+    assert "data-hero-cta" in html
+    assert "/veranstaltung/" in html and "Veranstaltungen" in html
+
+
 def test_hero_section_falls_back_to_single_when_no_heroes():
     # без heroes, но с hero_image → старый одиночный баннер (без слайдера)
     site = {"heroes": [], "hero_image": "https://x/bg.jpg", "hero_title": "Hallo", "hero_text": ""}

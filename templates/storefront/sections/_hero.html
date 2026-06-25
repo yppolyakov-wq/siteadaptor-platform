@@ -10,7 +10,8 @@
       <div class="relative px-4 py-12 max-w-4xl">
         <h1 class="text-4xl md:text-6xl font-bold drop-shadow-lg">{{ h.title|default:request.tenant.name }}</h1>
         {% if h.text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow">{{ h.text }}</p>{% endif %}
-        {% if h.button_label and h.button_url %}<a href="{{ h.button_url }}" class="inline-block mt-5 bg-white text-gray-900 rounded-lg px-6 py-2.5 font-medium hover:bg-gray-100">{{ h.button_label }}</a>{% endif %}
+        {% if h.button_label and h.button_url %}<a href="{{ h.button_url }}" class="inline-block mt-5 bg-white text-gray-900 rounded-lg px-6 py-2.5 font-medium hover:bg-gray-100">{{ h.button_label }}</a>
+        {% else %}{% include "storefront/sections/_hero_cta.html" with style="light" %}{% endif %}
       </div>
     </div>
     {% endfor %}
