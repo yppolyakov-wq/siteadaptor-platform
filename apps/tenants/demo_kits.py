@@ -101,6 +101,9 @@ class DemoKit:
     enable_archetypes_section: bool = False  # секция «Unsere Bereiche» (тизеры)
     # Обложки разделов (S3): key архетипа → {"intro","hero_kw","gallery_kw":[...]}.
     archetype_covers: dict = field(default_factory=dict)
+    # M20U-2: слайдер баннеров главной. Список dict'ов
+    #   {image_kw, title, text, button_label, button_url}. Пусто → одиночный hero_*.
+    heroes: list = field(default_factory=list)
     # Многоуровневое меню (S7): готовая структура menus (top/bottom) с подменю,
     # ссылками на категории (slug «demo-…») и группы акций. Пусто → легаси nav.
     menus: dict = field(default_factory=dict)
@@ -750,6 +753,30 @@ PRANASY = DemoKit(
     storefront_root="home",
     seed_records=True,
     menus=PRANASY_MENUS,
+    # M20U-2: слайдер баннеров — единая главная ведёт к ключевым действиям.
+    heroes=[
+        {
+            "image_kw": "vegan,burger",
+            "title": "100 % pflanzlich",
+            "text": "Fastfood ohne schlechtes Gewissen — frisch, schnell, lecker.",
+            "button_label": "Zur Karte",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "catering,buffet",
+            "title": "Catering & Events",
+            "text": "Veganes Buffet für Büro, Feier oder Hochzeit — auf Anfrage.",
+            "button_label": "Catering anfragen",
+            "button_url": "/anfrage/",
+        },
+        {
+            "image_kw": "vegan,bowl",
+            "title": "Frisch jeden Tag",
+            "text": "Bowls, Wraps und Smoothies — regional und mit Liebe gemacht.",
+            "button_label": "Online bestellen",
+            "button_url": "/warenkorb/",
+        },
+    ],
     archetype_covers={
         "catalog": {
             "intro": "Unsere ganze Karte — Fastfood und Fertiggerichte, alles pflanzlich.",
@@ -2654,6 +2681,17 @@ def apply_kit(tenant, key: str) -> bool:
             "hero_text": kit.hero_text,
             "hero_image": demo_image(kit.hero_image_kw, w=1600, h=600, lock=999),
             "hero_style": "plain",
+            # M20U-2: слайдер баннеров (если у кита заданы слайды).
+            "heroes": [
+                {
+                    "image": demo_image(h.get("image_kw", ""), w=1600, h=600, lock=980 + i),
+                    "title": h.get("title", ""),
+                    "text": h.get("text", ""),
+                    "button_label": h.get("button_label", ""),
+                    "button_url": h.get("button_url", ""),
+                }
+                for i, h in enumerate(kit.heroes)
+            ],
             "about_title": kit.about_title,
             "about_text": kit.about_text,
             "cta": kit.cta,

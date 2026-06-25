@@ -170,6 +170,10 @@ def test_apply_pranasy_kit_uses_constructor_features():
     # S3: обложка раздела catalog (интро + галерея)
     assert cfg["archetypes"]["catalog"]["intro"]
     assert cfg["archetypes"]["catalog"]["gallery"]
+    # M20U-2: слайдер баннеров — 3 слайда с картинками и CTA
+    assert len(cfg["heroes"]) == 3
+    assert all(h["image"] and h["title"] and h["button_url"] for h in cfg["heroes"])
+    assert cfg["heroes"][0]["button_url"] == "/sortiment/"
     # модули направлений активны
     for m in ("orders", "events", "jobs", "loyalty"):
         assert tenant.is_module_active(m)
