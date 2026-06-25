@@ -9,9 +9,13 @@
     <a href="{% url 'storefront-events-calendar' %}" class="text-sm text-indigo-600 hover:underline whitespace-nowrap">📅 {% trans "Calendar" %}</a>
   </div>
 
-  {# Фильтры каталога (R2) — server-side GET, показываем только заполненные оси #}
-  {% if facets.cat or facets.level or facets.lang or facets.city or facets.dur or facets.month %}
-  <form method="get" class="bg-white rounded-2xl shadow-sm p-4 mb-5 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+  {% comment %}Фильтры каталога (R2) — server-side GET, показываем только заполненные оси.
+  M20U-3: на маленькой витрине панель скрыта (show_filters=False); иначе свёрнута
+  в details (раскрыта, если фильтр уже применён).{% endcomment %}
+  {% if show_filters and facets.cat or show_filters and facets.level or show_filters and facets.lang or show_filters and facets.city or show_filters and facets.dur or show_filters and facets.month %}
+  <details class="mb-5" {% if active_filters %}open{% endif %}>
+    <summary class="cursor-pointer select-none text-sm font-medium text-gray-600 hover:text-gray-900 mb-2">🔍 {% trans "Filter" %}{% if active_filters %} ·<span class="text-indigo-600">{% trans "active" %}</span>{% endif %}</summary>
+    <form method="get" class="bg-white rounded-2xl shadow-sm p-4 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
     {% if facets.cat %}
       <select name="cat" class="rounded-lg border border-gray-300 px-2 py-2">
         <option value="">{% trans "All directions" %}</option>
@@ -58,7 +62,8 @@
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Filter" %}</button>
       {% if active_filters %}<a href="{% url 'storefront-events' %}" class="px-4 py-2 text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}
     </div>
-  </form>
+    </form>
+  </details>
   {% endif %}
 
   {% if events %}

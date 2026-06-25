@@ -49,6 +49,11 @@ def veranstaltung_index(request):
         "teacher": (request.GET.get("teacher") or "").strip(),
     }
     events = [e for e in base if _event_matches(e, selected)]
+    active_filters = any(selected.values())
+    # M20U-3: на маленькой витрине (≤ порога событий) фильтры — лишний шум.
+    # Показываем панель фильтров, только если событий достаточно или фильтр уже
+    # применён. Иначе — чистый список (анти-Битрикс простота).
+    show_filters = len(base) > _FILTER_MIN_EVENTS or active_filters
     return render(
         request,
         "storefront/event_index.html",
@@ -56,10 +61,15 @@ def veranstaltung_index(request):
             "events": events,
             "facets": facets,
             "f": selected,
-            "active_filters": any(selected.values()),
+            "active_filters": active_filters,
+            "show_filters": show_filters,
             "total": len(base),
         },
     )
+
+
+# Порог: панель фильтров каталога ретритов показываем только при > N событий.
+_FILTER_MIN_EVENTS = 4
 
 
 def _event_facets(events) -> dict:

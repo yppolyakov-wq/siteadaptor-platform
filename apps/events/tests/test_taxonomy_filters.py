@@ -112,6 +112,33 @@ def test_no_match_shows_empty_message():
     assert "yoga" not in body.lower() or "match" in body.lower()
 
 
+# --- M20U-3: фильтры по умолчанию свёрнуты/скрыты на маленькой витрине -------
+def test_filters_hidden_on_small_storefront():
+    # ≤ порога событий и без активного фильтра → панель фильтров не выводится.
+    _event(category="yoga", city="Freiburg")
+    _event(category="meditation", city="Berlin")
+    body = public_views.veranstaltung_index(_req()).content.decode()
+    assert 'name="cat"' not in body  # селектов фильтра нет
+    assert "<details" not in body
+
+
+def test_filters_collapsed_when_enough_events():
+    # > порога событий → панель есть, но свёрнута (<details без open).
+    for i in range(public_views._FILTER_MIN_EVENTS + 1):
+        _event(title=f"E{i}", category="yoga", city="Freiburg")
+    body = public_views.veranstaltung_index(_req()).content.decode()
+    assert "<details" in body and 'name="cat"' in body
+    assert "open>" not in body  # без активного фильтра — свёрнута
+
+
+def test_filters_expanded_when_active():
+    # активный фильтр → панель раскрыта (open), даже если событий мало.
+    _event(title="Yoga-Tag", category="yoga")
+    _event(title="Klang", category="klang")
+    body = public_views.veranstaltung_index(_req({"cat": "yoga"})).content.decode()
+    assert "<details" in body and "open>" in body
+
+
 # --- cabinet form ----------------------------------------------------------
 def test_form_saves_taxonomy():
     from apps.events.forms import EventForm
