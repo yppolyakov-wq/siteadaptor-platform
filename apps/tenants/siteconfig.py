@@ -655,6 +655,11 @@ def normalize(config) -> dict:
     normalized["catalog_layout"] = normalize_layout(
         config.get("catalog_layout"), {"preset": "cols3"}
     )
+    # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1
+    # воспроизводит прежнюю сетку (grid-cols-1 sm:2 lg:3).
+    normalized["stay_index_layout"] = normalize_layout(
+        config.get("stay_index_layout"), {"preset": "cols3", "mobile": 1}
+    )
     # M20U-7: кастомные заголовки секций главной (только известные ключи, обрезка).
     titles = config.get("section_titles")
     clean_titles = {}

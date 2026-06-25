@@ -68,6 +68,13 @@
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == catalog_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </label>
+          {# M20U-7 (per-page): раскладка сетки номеров #}
+          <label class="text-sm">
+            <span class="block font-medium mb-1">{% trans "Rooms grid" %}</span>
+            <select name="stay_index_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == stay_index_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </label>
         </div>
       </fieldset>
 

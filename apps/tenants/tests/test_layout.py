@@ -141,6 +141,14 @@ def test_catalog_layout_default_and_override():
     assert cfg["catalog_layout"]["cols"] == 4 and cfg["catalog_layout"]["preset"] == "cols4"
 
 
+def test_stay_index_layout_default_and_override():
+    # M20U-7 (per-page): раскладка сетки номеров.
+    cfg = siteconfig.normalize({})
+    assert cfg["stay_index_layout"]["cols"] == 3 and cfg["stay_index_layout"]["mobile"] == 1
+    cfg2 = siteconfig.normalize({"stay_index_layout": {"preset": "cols4"}})
+    assert cfg2["stay_index_layout"]["cols"] == 4
+
+
 def test_section_show_all_default_and_override():
     # M20U-7: видимость ссылки «View all».
     assert siteconfig.section_show_all({"sections": []}, "products") is True  # дефолт

@@ -140,6 +140,16 @@ def test_single_unit_index_redirects_to_detail():
     assert resp.status_code == 302 and str(unit.pk) in resp.url
 
 
+def test_rooms_index_grid_from_config():
+    """M20U-7 (per-page): сетка номеров берётся из stay_index_layout."""
+    _unit()
+    _unit()  # >1 юнит → обзорная сетка (без редиректа)
+    req = _req()
+    req.tenant.site_config = {"stay_index_layout": {"preset": "cols4"}}
+    body = public_views.unterkunft_index(req).content.decode()
+    assert "lg:grid-cols-4" in body
+
+
 # --- H2: поиск по датам на /unterkunft/ -------------------------------------------
 
 

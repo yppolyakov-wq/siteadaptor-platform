@@ -149,6 +149,12 @@ def unterkunft_index(request):
         rows.sort(key=lambda r: (not r["available"], r["from_eur"]))
         results = rows
 
+    # M20U-7 (per-page): раскладка сетки номеров из конфига витрины.
+    from apps.tenants import siteconfig
+
+    rooms_grid = siteconfig.grid_class_string(
+        siteconfig.normalize(getattr(tenant, "site_config", {}) or {})["stay_index_layout"]
+    )
     return _render_embed(
         request,
         "storefront/stay_index.html",
@@ -162,6 +168,7 @@ def unterkunft_index(request):
             "children": children,
             "searched": searched,
             "results": results,
+            "rooms_grid": rooms_grid,
             "gift_active": getattr(tenant, "payments_enabled", False)
             and connect.is_connect_configured(),  # G1 ссылка на гутшайны
         },
