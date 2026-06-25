@@ -153,7 +153,67 @@
         </div>
       </details>
 
+      {# D.2b: C-блоки («кубики») — правка содержимого и порядка; добавление — ниже. #}
+      {% if cblocks %}
+      <details class="bg-white rounded-2xl shadow-sm group">
+        <summary class="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none">
+          <span class="font-semibold">{% trans "Content blocks" %}
+            <span class="block text-xs text-gray-400 mt-0.5">{% trans "Free building blocks (text, image, button). Reorder via position, remove with the checkbox." %}</span></span>
+          <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
+        </summary>
+        <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
+          {% for b in cblocks %}
+            <div class="border border-gray-200 rounded-xl p-4 space-y-2">
+              <input type="hidden" name="cb_id" value="{{ b.id }}">
+              <input type="hidden" name="cb_type_{{ b.id }}" value="{{ b.type }}">
+              <div class="flex items-center justify-between gap-3 text-sm">
+                <span class="font-medium">{{ b.type }}</span>
+                <span class="flex items-center gap-3">
+                  <label class="flex items-center gap-1">{% trans "Position" %}
+                    <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" max="40" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
+                  <label class="flex items-center gap-1"><input type="checkbox" name="enabled_cb_{{ b.id }}" {% if b.enabled %}checked{% endif %} class="rounded border-gray-300">{% trans "Visible" %}</label>
+                  <label class="flex items-center gap-1 text-red-600"><input type="checkbox" name="delete_cb_{{ b.id }}" class="rounded border-gray-300">{% trans "Remove" %}</label>
+                </span>
+              </div>
+              {% if b.type == "text" or b.type == "image_text" %}
+                <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" placeholder="{% trans 'Title' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+              {% endif %}
+              {% if b.type == "button" %}
+                <input type="text" name="cb_{{ b.id }}_label" value="{{ b.data.label }}" placeholder="{% trans 'Button label' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+                <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" placeholder="/termin/ {% trans 'or' %} https://…" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+              {% endif %}
+              {% if b.type == "text" or b.type == "image_text" %}
+                <textarea name="cb_{{ b.id }}_body" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
+              {% endif %}
+              {% if b.type == "image" or b.type == "image_text" %}
+                <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+              {% endif %}
+              {% if b.type == "image" %}
+                <input type="text" name="cb_{{ b.id }}_caption" value="{{ b.data.caption }}" placeholder="{% trans 'Caption' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+              {% endif %}
+              {% if b.type == "image_text" %}
+                <select name="cb_{{ b.id }}_side" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                  <option value="left" {% if b.data.side == 'left' %}selected{% endif %}>{% trans "Image left" %}</option>
+                  <option value="right" {% if b.data.side == 'right' %}selected{% endif %}>{% trans "Image right" %}</option>
+                </select>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    </form>
+
+    {# D.2b: добавить C-блок (отдельная форма — сразу создаёт пустой блок для правки). #}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_block">
+      <span class="text-sm font-medium mr-1">{% trans "Add block" %}:</span>
+      {% for value, label in block_types %}
+        <button type="submit" name="block_type" value="{{ value }}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">+ {{ label }}</button>
+      {% endfor %}
     </form>
 
     {# M20e: медиа в билдере — фото галереи (multipart, отдельные формы — не в #home-form). #}

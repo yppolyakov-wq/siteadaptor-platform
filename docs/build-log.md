@@ -1914,3 +1914,14 @@
   (включённые записи), главная — `{% for b in section_blocks %}{% render_block b %}`.
   Тесты `test_cblocks.py` (мульти-блоки/id/санитизация/кап/рендер каждого типа).
   Без миграций. **D.2b (билдер-CRUD добавления C-блоков) — в Спринте E** (инсертер «+»).
+- **2026-06-25 — Спринт D.2b (анти-Битрикс Phase 2): билдер C-блоков.** Конструктор
+  главной (`home_builder_view` + `site_home.html`) теперь умеет C-блоки: панель
+  «Content blocks» (правка title/body/url/caption/side, позиция, видимость, удаление)
+  внутри основной формы + отдельная форма «Add block» (action=add_block добавляет
+  пустой блок). Сохранение слитно сортирует фикс-секции и C-блоки по позиции
+  (interleaving сохраняется). **Фикс важного бага D.2a:** прежнее сохранение главной
+  затирало C-блоки (пересобирало sections только из фикс-SECTIONS) — теперь round-trip
+  (`cb_id`/`cb_type`/`order_cb`/`enabled_cb`/`delete_cb`, хелпер `_read_cblock_data`).
+  GET аккуратно делит sections на фикс (с label) и cblocks (без KeyError). Тесты
+  `test_cblocks_builder.py` (add/edit+round-trip/delete). **Спринт D закрыт** (D.3
+  единый экран — опц., отложен). Без миграций.

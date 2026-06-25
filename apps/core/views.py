@@ -203,6 +203,23 @@ def setup_view(request):
     return render(request, "tenant/setup.html", context)
 
 
+def _read_cblock_data(post, bid: str, btype: str) -> dict:
+    """D.2b: собрать data C-блока из полей формы `cb_<id>_<field>` (normalize чистит)."""
+
+    def f(name):
+        return post.get(f"cb_{bid}_{name}", "").strip()
+
+    if btype == "text":
+        return {"title": f("title"), "body": f("body")}
+    if btype == "image":
+        return {"url": f("url"), "caption": f("caption")}
+    if btype == "image_text":
+        return {"url": f("url"), "title": f("title"), "body": f("body"), "side": f("side")}
+    if btype == "button":
+        return {"label": f("label"), "url": f("url")}
+    return {}
+
+
 def _save_hero(request, tenant):
     """B.3: сохранить баннер мастера — hero-тексты + опц. загруженное фото (файл)."""
     from apps.tenants import siteconfig
@@ -487,35 +504,61 @@ def home_builder_view(request):
         if request.POST.get("action") == "delete_gallery_image":
             _delete_gallery_image(request, request.POST.get("image_id", ""))
             return redirect("site-home")
+        # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
+        if request.POST.get("action") == "add_block":
+            btype = request.POST.get("block_type", "")
+            if btype in siteconfig.REPEATABLE_BLOCKS:
+                cfg = siteconfig.normalize(request.tenant.site_config)
+                cfg["sections"].append({"key": btype, "enabled": True, "data": {}})
+                request.tenant.site_config = siteconfig.normalize(cfg)
+                request.tenant.save(update_fields=["site_config", "updated_at"])
+                messages.success(request, _("Block added."))
+            return redirect("site-home")
         config = siteconfig.normalize(request.tenant.site_config)
-        rows = []
+        # Фикс-секции (порядок/видимость/раскладка) — как раньше, но как (order, entry)
+        # пары, чтобы слить с C-блоками в один отсортированный список.
+        items = []
         for key, _label, _default in siteconfig.SECTIONS:
-            # Не присланный порядок (новая секция) → в конец, не в начало.
             try:
                 order = int(request.POST.get(f"order_{key}", "999"))
             except (TypeError, ValueError):
                 order = 999
-            rows.append((order, key, request.POST.get(f"enabled_{key}") == "on"))
-        rows.sort(key=lambda row: row[0])
-        # M20U-7: пресет раскладки секций-сеток (Список/2-4/Галерея) — один клик.
-        new_sections = []
-        for _o, key, on in rows:
-            entry = {"key": key, "enabled": on}
+            entry = {"key": key, "enabled": request.POST.get(f"enabled_{key}") == "on"}
             if key in siteconfig.GRID_SECTION_DEFAULTS:
                 preset = request.POST.get(f"layout_preset_{key}", "")
                 if preset in siteconfig.LAYOUT_PRESETS:
                     entry["layout"] = {"preset": preset}
-            # M20U-7: число элементов секции-превью (normalize клампит).
             if key in siteconfig.GRID_SECTION_LIMITS:
                 entry["limit"] = request.POST.get(f"limit_{key}", "")
-            # M20U-7: источник товаров секции products (normalize валидирует).
             if key == "products":
                 entry["source"] = request.POST.get("source_products", "")
-            # M20U-7: видимость ссылки «View all» (чекбокс; не прислан → скрыта).
             if key in siteconfig.SECTION_VIEWALL_KEYS:
                 entry["show_all"] = request.POST.get(f"show_all_{key}") == "on"
-            new_sections.append(entry)
-        config["sections"] = new_sections
+            items.append((order, entry))
+        # D.2b: C-блоки — читаем посланные строки (id+тип+данные), удалённые пропускаем.
+        for bid in request.POST.getlist("cb_id"):
+            btype = request.POST.get(f"cb_type_{bid}", "")
+            if btype not in siteconfig.REPEATABLE_BLOCKS:
+                continue
+            if request.POST.get(f"delete_cb_{bid}") == "on":
+                continue  # удалён владельцем
+            try:
+                order = int(request.POST.get(f"order_cb_{bid}", "999"))
+            except (TypeError, ValueError):
+                order = 999
+            items.append(
+                (
+                    order,
+                    {
+                        "key": btype,
+                        "id": bid,
+                        "enabled": request.POST.get(f"enabled_cb_{bid}") == "on",
+                        "data": _read_cblock_data(request.POST, bid, btype),
+                    },
+                )
+            )
+        items.sort(key=lambda row: row[0])
+        config["sections"] = [entry for _o, entry in items]
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
         arch = dict(config.get("archetypes") or {})
         for spec in storefront.teaser_specs(request.tenant):
@@ -559,30 +602,42 @@ def home_builder_view(request):
     root_options = [{"key": "home", "label": _("Combined homepage")}] + [
         {"key": a.key, "label": a.label} for a in modules.storefront_archetypes(request.tenant)
     ]
-    sections = [
-        {
-            "key": s["key"],
-            "label": labels[s["key"]],
-            "enabled": s["enabled"],
-            "order": index,
-            # M20U-7: для секций-сеток — текущий пресет раскладки (селектор в UI).
-            "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
-            "layout_preset": (s.get("layout") or {}).get("preset", ""),
-            # M20U-7: секции-превью — настраиваемое число элементов.
-            "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,
-            "limit": s.get("limit", ""),
-            # M20U-7: кастомный заголовок секции (для перечисленных ключей).
-            "has_title": s["key"] in siteconfig.SECTION_TITLE_KEYS,
-            "title": (config.get("section_titles") or {}).get(s["key"], ""),
-            # M20U-7: источник товаров (только секция products).
-            "has_source": s["key"] == "products",
-            "source": s.get("source", ""),
-            # M20U-7: видимость ссылки «View all».
-            "has_viewall": s["key"] in siteconfig.SECTION_VIEWALL_KEYS,
-            "show_all": s.get("show_all", True),
-        }
-        for index, s in enumerate(config["sections"], start=1)
-    ]
+    # Фикс-секции и C-блоки идут в одном `config["sections"]`; index = глобальный
+    # порядок (его пишем в order_*-поля, чтобы при сохранении сохранить чередование).
+    sections = []
+    cblocks = []
+    for index, s in enumerate(config["sections"], start=1):
+        if s["key"] in siteconfig.REPEATABLE_BLOCKS:
+            cblocks.append(
+                {
+                    "id": s["id"],
+                    "type": s["key"],
+                    "enabled": s["enabled"],
+                    "data": s["data"],
+                    "order": index,
+                }
+            )
+            continue
+        if s["key"] not in labels:
+            continue
+        sections.append(
+            {
+                "key": s["key"],
+                "label": labels[s["key"]],
+                "enabled": s["enabled"],
+                "order": index,
+                "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
+                "layout_preset": (s.get("layout") or {}).get("preset", ""),
+                "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,
+                "limit": s.get("limit", ""),
+                "has_title": s["key"] in siteconfig.SECTION_TITLE_KEYS,
+                "title": (config.get("section_titles") or {}).get(s["key"], ""),
+                "has_source": s["key"] == "products",
+                "source": s.get("source", ""),
+                "has_viewall": s["key"] in siteconfig.SECTION_VIEWALL_KEYS,
+                "show_all": s.get("show_all", True),
+            }
+        )
     preset_options = [
         ("list", _("List")),
         ("cols2", _("2 per row")),
@@ -602,6 +657,15 @@ def home_builder_view(request):
         {
             "nav": "site",
             "sections": sections,
+            # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
+            "cblocks": cblocks,
+            "block_types": [
+                ("text", _("Text")),
+                ("image", _("Image")),
+                ("image_text", _("Image + text")),
+                ("button", _("Button")),
+                ("spacer", _("Spacer")),
+            ],
             "preset_options": preset_options,
             "source_options": source_options,
             "archetype_specs": storefront.teaser_specs(request.tenant),
