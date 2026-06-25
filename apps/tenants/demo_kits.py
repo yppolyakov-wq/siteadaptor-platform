@@ -55,6 +55,8 @@ class DemoKit:
     process: list = field(default_factory=list)  # (title, text) — «как мы работаем»
     team: list = field(default_factory=list)  # (name, role, photo_keyword)
     trust: dict = field(default_factory=dict)  # {"since": "1998", "marks": [...]}
+    # A.3 (T-B): полоса доверия под hero — список (icon_token, label). Пусто → секции нет.
+    usp: list = field(default_factory=list)
     cta: dict = field(default_factory=dict)
     about_title: str = ""
     about_text: str = ""
@@ -379,6 +381,12 @@ RESTAURANT = DemoKit(
         ("Sofia Conti", "Patissière", "pastry,chef"),
     ],
     trust={"since": "1998", "marks": ["Slow Food", "Regional", "Familienbetrieb"]},
+    usp=[
+        ("shipping", "Lieferung ab 15 €"),
+        ("clock", "Täglich 11–22 Uhr"),
+        ("local", "Frische regionale Zutaten"),
+        ("payment", "Bar & Karte"),
+    ],
     reviews_seed=[  # G8/#6: отзывы на витрине (блок «reviews» включается автоматически)
         (5, "Bestes Restaurant der Stadt — wir kommen immer wieder!", "rs.schmidt@example.de"),
         (5, "Die Pizza ist ein Traum, der Service top.", "rs.laura@example.de"),
@@ -1295,6 +1303,12 @@ AKTIONSMARKT = DemoKit(
         ("Frau Demir", "Endlich ein Markt, bei dem man jede Woche wirklich spart."),
     ],
     trust={"since": "2009", "marks": ["Anti-Food-Waste", "Regional", "Faire Preise"]},
+    usp=[
+        ("local", "Frisch & regional"),
+        ("clock", "Mo–Sa 8–20 Uhr"),
+        ("payment", "Karte & bar"),
+        ("quality", "Geprüfte Qualität"),
+    ],
     reviews_seed=[
         (5, "Die Überraschungstüten sind unschlagbar günstig!", "am.wagner@example.de"),
         (5, "Endlich ein Markt, bei dem man jede Woche wirklich spart.", "am.demir@example.de"),
@@ -1732,6 +1746,12 @@ WERKSTATT = DemoKit(
         ("Sven Klar", "KFZ-Techniker", "car,mechanic"),
     ],
     trust={"since": "1995", "marks": ["Meisterbetrieb", "Markenoffen", "HU/AU vor Ort"]},
+    usp=[
+        ("meister", "Meisterbetrieb"),
+        ("local", "HU/AU vor Ort"),
+        ("clock", "Termin online"),
+        ("quality", "Markenoffen"),
+    ],
     reviews_seed=[
         (
             5,
@@ -2277,6 +2297,12 @@ SHOP = DemoKit(
         ("Genießen", "Frische vom Hof — ganz bequem."),
     ],
     trust={"since": "1962", "marks": ["Eigener Anbau", "Bio-zertifiziert", "Regional"]},
+    usp=[  # A.3: полоса доверия под hero (онлайн-магазин)
+        ("shipping", "Versand ab 4,90 €"),
+        ("returns", "14 Tage Widerruf"),
+        ("payment", "Sichere Zahlung"),
+        ("bio", "Bio-zertifiziert"),
+    ],
     reviews_seed=[
         (5, "Frische Bio-Ware, schnell geliefert. Schmeckt wie früher!", "sh.koehler@example.de"),
         (5, "Super Qualität und nette Kommunikation. Sehr empfehlenswert.", "sh.anke@example.de"),
@@ -2477,10 +2503,14 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
     """Раскладка секций кита: фото-hero, меню, акции, галерея, отзывы, FAQ, CTA, контакты."""
     return [
         {"key": "hero", "enabled": True},
+        # A.3 (T-B): полоса доверия сразу под hero (если заданы пункты).
+        {"key": "usp_bar", "enabled": bool(kit.usp)},
         # H2: поиск размещения по датам сразу под hero — для отелей/пансионов.
         {"key": "stay_search", "enabled": bool(kit.stay_units)},
         # Карточки номеров прямо на главной — для отелей/пансионов.
         {"key": "stay_rooms", "enabled": bool(kit.stay_units)},
+        # A3: блок услуг «Leistungen & Preise» — если у кита есть услуги (booking).
+        {"key": "services", "enabled": bool(kit.services)},
         {"key": "archetypes", "enabled": kit.enable_archetypes_section},  # S2: «Unsere Bereiche»
         # Акции/товары — только если у кита есть каталог (иначе пустые секции).
         {"key": "promotions", "enabled": bool(kit.categories)},
@@ -2754,6 +2784,7 @@ def apply_kit(tenant, key: str) -> bool:
                 for i, (n, r, kw) in enumerate(kit.team)
             ],
             "trust": kit.trust or {"since": "", "marks": []},
+            "usp_bar": [{"icon": ic, "label": lbl} for ic, lbl in kit.usp],
             "gallery": [
                 {"url": demo_image(kw, lock=500 + i), "alt": {"de": kit.label}}
                 for i, kw in enumerate(kit.gallery_kw)

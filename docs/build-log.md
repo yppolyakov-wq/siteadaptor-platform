@@ -1851,3 +1851,16 @@
   → блок отзывов теперь виден в showcase всех ключевых китов. Только демо (без кода/
   миграций). Тест `test_demo_kits` зелёный. CLAUDE.md §6/§7: ссылки на
   `archetype-ux-execution-plan.md` (source of truth этапа) и `archetype-market-analysis.md`.
+- **2026-06-25 — Спринт A.3: Trust/USP-bar блок (T-B).** Новая секция витрины
+  `usp_bar` — тонкая «полоса доверия» под hero: пункты {icon, label} (Versand ab X €,
+  14 Tage Widerruf, sichere Zahlung, Meisterbetrieb…). Иконки — emoji по токену-реестру
+  `siteconfig.USP_ICONS` (без внешних ресурсов, GDPR; как нижний таб-бар). Нормализация
+  `clean_usp` (валидация иконки→фолбэк check, обяз. label, кап `_MAX_USP`=6),
+  `text_to_usp`/`usp_to_text` для билдера, тег `{% usp_icon %}`. Партиал `_usp_bar.html`,
+  ветка в `home.html` (сразу под hero). Билдер: textarea «icon | label» в общем
+  `_section_fields.html` + initial-значения в обеих вьюхах (site/home) + поле в
+  live-preview синке. Демо: `usp` засеян в SHOP/AKTIONSMARKT/RESTAURANT/WERKSTATT.
+  **Заодно — фикс видимости A.1:** `_kit_sections` теперь включает `services` (booking)
+  и `usp_bar` — иначе блоки не появлялись в демо (kit задаёт явные sections, минуя
+  archetype-aware дефолт). Тесты `test_usp_bar.py` (нормализация/парс/рендер/реестр) +
+  правка порядка секций в `test_siteconfig`. Без миграций (JSON).

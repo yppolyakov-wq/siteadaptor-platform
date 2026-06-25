@@ -407,6 +407,7 @@ def site_view(request):
             "team_text": "\n".join(
                 f"{m['name']} | {m['role']}".rstrip(" |") for m in config["team"]
             ),
+            "usp_text": siteconfig.usp_to_text(config["usp_bar"]),
             "has_demo": demo.has_demo(request.tenant),
         },
     )
@@ -571,6 +572,7 @@ def home_builder_view(request):
                 f"{m['name']} | {m['role']}".rstrip(" |") for m in config["team"]
             ),
             "trust_marks_text": "\n".join(config["trust"]["marks"]),
+            "usp_text": siteconfig.usp_to_text(config["usp_bar"]),
         },
     )
 

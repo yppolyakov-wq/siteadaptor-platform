@@ -50,6 +50,7 @@ def test_normalize_empty_gives_defaults():
     # порядок реестра SECTIONS (M20 ⑤ + P3 trust — все новые по умолчанию выкл)
     assert keys == [
         "hero",
+        "usp_bar",
         "stay_search",
         "stay_rooms",
         "services",

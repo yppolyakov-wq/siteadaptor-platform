@@ -37,6 +37,12 @@ def purchase_label(module):
     return archetypes.purchase_label(module)
 
 
+@register.simple_tag(name="usp_icon")
+def usp_icon(token):
+    """A.3: emoji-символ пункта полосы доверия (usp_bar) по токену."""
+    return siteconfig.usp_icon(token)
+
+
 @register.filter(name="video_embed")
 def video_embed(url):
     """URL видео → {"kind","src"} (см. apps.tenants.video.embed_info) или None."""

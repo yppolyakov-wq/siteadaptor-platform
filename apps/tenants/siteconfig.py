@@ -18,6 +18,9 @@ from django.utils.translation import gettext_lazy as _
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
     ("hero", _("Welcome banner"), False),
+    # A.3 (T-B): тонкая «полоса доверия» под hero — иконка+подпись (Versand/Widerruf/
+    # sichere Zahlung/Meisterbetrieb…). Выкл по умолчанию; показываем при наличии пунктов.
+    ("usp_bar", _("Trust bar"), False),
     # H2: быстрый поиск размещения по датам (для отелей/пансионов). По умолчанию
     # выкл — показывается, только если включён и активен модуль stays.
     ("stay_search", _("Booking search (stays)"), False),
@@ -55,6 +58,32 @@ SECTIONS = [
     ("contact", _("Contact & opening hours"), True),
 ]
 _MAX_MARKS = 8  # потолок знаков доверия
+_MAX_USP = 6  # потолок пунктов полосы доверия (usp_bar)
+
+# A.3 (T-B): набор предустановленных иконок полосы доверия. Ключ → emoji (как в
+# нижнем таб-баре витрины — без внешних ресурсов, GDPR-safe). Произвольный ключ →
+# фолбэк "check". Single source of truth для шаблона `_usp_bar.html` и билдера.
+USP_ICONS = {
+    "shipping": "🚚",  # Versand / Lieferung
+    "returns": "↩️",  # Widerruf / Rückgabe
+    "payment": "💳",  # sichere Zahlung
+    "secure": "🔒",  # SSL / Datenschutz
+    "local": "📍",  # regional / vor Ort
+    "meister": "🛠️",  # Meisterbetrieb / Handwerk
+    "support": "💬",  # persönlicher Service
+    "quality": "✅",  # geprüfte Qualität
+    "bio": "🌿",  # Bio / nachhaltig
+    "clock": "⏰",  # schnell / Öffnungszeiten
+    "check": "✓",  # фолбэк / generisch
+}
+USP_ICON_KEYS = list(USP_ICONS)
+
+
+def usp_icon(token: str) -> str:
+    """Emoji-символ пункта полосы доверия по токену (фолбэк — «✓»)."""
+    return USP_ICONS.get(token, USP_ICONS["check"])
+
+
 _MAX_GALLERY = 24  # потолок фото в галерее
 _MAX_ARCHETYPES = 30  # потолок пер-архетипных оверрайдов тизеров (S2)
 _MAX_COVER_GALLERY = 12  # потолок фото в галерее раздела (S3b)
@@ -494,6 +523,40 @@ def text_to_pairs(text: str, key_a: str, key_b: str) -> list[dict]:
     return pairs[:_MAX_ITEMS]
 
 
+def clean_usp(value) -> list[dict]:
+    """A.3: пункты полосы доверия → [{icon, label}]. icon валидируется по USP_ICONS
+    (неизвестный → "check"), label обязателен (иначе пропуск). Максимум _MAX_USP."""
+    out = []
+    for item in value if isinstance(value, list) else []:
+        if not isinstance(item, dict):
+            continue
+        label = _s(item.get("label"))
+        if not label:
+            continue
+        icon = item.get("icon")
+        out.append({"icon": icon if icon in USP_ICONS else "check", "label": label})
+        if len(out) >= _MAX_USP:
+            break
+    return out
+
+
+def usp_to_text(items) -> str:
+    """Сериализация usp_bar в textarea кабинета: «icon | label» по строке."""
+    return "\n".join(f"{i.get('icon', 'check')} | {i.get('label', '')}" for i in items or [])
+
+
+def text_to_usp(text: str) -> list[dict]:
+    """Парс textarea кабинета: строка «icon | label» → {icon, label} (валидация в clean_usp)."""
+    items = []
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        icon, _sep, label = line.partition("|")
+        items.append({"icon": icon.strip(), "label": label.strip()})
+    return clean_usp(items)
+
+
 # Поля контент-секций (CTA/FAQ/Testimonials/Process/Team/Trust), общие для формы
 # «Site» и конструктора главной (M20d). Имена полей едины во всех формах.
 CONTENT_FIELDS = (
@@ -507,6 +570,7 @@ CONTENT_FIELDS = (
     "team_text",
     "trust_since",
     "trust_marks",
+    "usp_text",
 )
 
 
@@ -538,6 +602,7 @@ def parse_content_sections(get) -> dict:
             "since": g("trust_since").strip(),
             "marks": [m.strip() for m in g("trust_marks").splitlines() if m.strip()],
         },
+        "usp_bar": text_to_usp(g("usp_text")),
     }
 
 
@@ -650,6 +715,8 @@ def normalize(config) -> dict:
     trust_in = config.get("trust") if isinstance(config.get("trust"), dict) else {}
     marks = [_s(m) for m in (trust_in.get("marks") or []) if isinstance(m, str) and _s(m)]
     normalized["trust"] = {"since": _s(trust_in.get("since")), "marks": marks[:_MAX_MARKS]}
+    # A.3 (T-B): полоса доверия — список {icon, label}.
+    normalized["usp_bar"] = clean_usp(config.get("usp_bar"))
     cta = config.get("cta") if isinstance(config.get("cta"), dict) else {}
     normalized["cta"] = {
         "title": _s(cta.get("title")),

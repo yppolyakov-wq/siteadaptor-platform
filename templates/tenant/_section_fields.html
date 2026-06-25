@@ -35,6 +35,12 @@ trust_marks_text, faq_text. Парсинг на сервере — siteconfig.pa
     <textarea id="id_trust_marks" name="trust_marks" rows="3" placeholder="Meisterbetrieb&#10;Bio-zertifiziert" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ trust_marks_text }}</textarea></div>
 </div>
 <div class="space-y-2 border-t border-gray-100 pt-4">
+  <p class="text-sm font-medium">{% trans "Trust bar (under banner)" %}</p>
+  <p class="text-xs text-gray-400">{% trans "One per line: icon | text." %}
+    {% trans "Icons:" %} shipping · returns · payment · secure · local · meister · support · quality · bio · clock · check</p>
+  <textarea name="usp_text" rows="4" placeholder="shipping | Versand ab 4,90 €&#10;returns | 14 Tage Widerruf&#10;payment | Sichere Zahlung" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ usp_text }}</textarea>
+</div>
+<div class="space-y-2 border-t border-gray-100 pt-4">
   <p class="text-sm font-medium">{% trans "FAQ" %}</p>
   <p class="text-xs text-gray-400">{% trans "One per line: Question | Answer." %}</p>
   <textarea name="faq_text" rows="4" placeholder="Habt ihr Parkplätze? | Ja, direkt vor dem Laden." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ faq_text }}</textarea>
