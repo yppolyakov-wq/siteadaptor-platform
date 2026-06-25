@@ -174,6 +174,9 @@ def test_apply_pranasy_kit_uses_constructor_features():
     assert len(cfg["heroes"]) == 3
     assert all(h["image"] and h["title"] and h["button_url"] for h in cfg["heroes"])
     assert cfg["heroes"][0]["button_url"] == "/sortiment/"
+    # M20U-7: кастомные заголовки секций
+    assert cfg["section_titles"]["products"] == "Unsere Karte"
+    assert cfg["section_titles"]["events"] == "Events bei Pranasy"
     # модули направлений активны
     for m in ("orders", "events", "jobs", "loyalty"):
         assert tenant.is_module_active(m)

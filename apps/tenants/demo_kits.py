@@ -104,6 +104,8 @@ class DemoKit:
     # M20U-2: слайдер баннеров главной. Список dict'ов
     #   {image_kw, title, text, button_label, button_url}. Пусто → одиночный hero_*.
     heroes: list = field(default_factory=list)
+    # M20U-7: кастомные заголовки секций главной (key→строка); пусто → дефолты.
+    section_titles: dict = field(default_factory=dict)
     # Многоуровневое меню (S7): готовая структура menus (top/bottom) с подменю,
     # ссылками на категории (slug «demo-…») и группы акций. Пусто → легаси nav.
     menus: dict = field(default_factory=dict)
@@ -777,6 +779,11 @@ PRANASY = DemoKit(
             "button_url": "/warenkorb/",
         },
     ],
+    section_titles={
+        "products": "Unsere Karte",
+        "promotions": "Angebote",
+        "events": "Events bei Pranasy",
+    },
     archetype_covers={
         "catalog": {
             "intro": "Unsere ganze Karte — Fastfood und Fertiggerichte, alles pflanzlich.",
@@ -2692,6 +2699,7 @@ def apply_kit(tenant, key: str) -> bool:
                 }
                 for i, h in enumerate(kit.heroes)
             ],
+            "section_titles": kit.section_titles or {},
             "about_title": kit.about_title,
             "about_text": kit.about_text,
             "cta": kit.cta,
