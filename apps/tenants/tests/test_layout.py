@@ -165,6 +165,21 @@ def test_events_index_layout_default_list_and_override():
     )
 
 
+def test_event_detail_order_default_and_overrides():
+    # M20U-4: порядок/видимость тематических секций детальной события.
+    full = list(siteconfig.EVENT_DETAIL_SECTION_KEYS)
+    assert siteconfig.event_detail_order({}) == full  # дефолт — порядок реестра
+    # переупорядочивание: заданные ключи вперёд, остальные — в дефолтном порядке
+    cfg = siteconfig.normalize({"event_detail": {"order": ["faq", "idea"], "hidden": ["price"]}})
+    order = siteconfig.event_detail_order(cfg)
+    assert order[0] == "faq" and order[1] == "idea"
+    assert "price" not in order  # скрыта
+    assert set(order) == set(full) - {"price"}
+    # мусор в order/hidden отбрасывается
+    bad = siteconfig.normalize({"event_detail": {"order": ["zzz"], "hidden": ["nope"]}})
+    assert siteconfig.event_detail_order(bad) == full
+
+
 def test_section_show_all_default_and_override():
     # M20U-7: видимость ссылки «View all».
     assert siteconfig.section_show_all({"sections": []}, "products") is True  # дефолт

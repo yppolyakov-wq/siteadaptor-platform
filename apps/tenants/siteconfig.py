@@ -210,6 +210,50 @@ def section_show_all(config, key) -> bool:
     return True
 
 
+# M20U-4: тематические секции детальной события — дефолтный порядок (как в
+# шаблоне event_detail.html). Владелец может переупорядочить/скрыть через
+# config["event_detail"] = {"order": [...], "hidden": [...]}.
+EVENT_DETAIL_SECTION_KEYS = (
+    "for_whom",
+    "idea",
+    "includes",
+    "program",
+    "venue",
+    "accommodation",
+    "food",
+    "hosts",
+    "price",
+    "bring",
+    "faq",
+    "testimonials",
+    "before_after",
+)
+
+
+def normalize_event_detail(raw) -> dict:
+    """Привести config['event_detail'] к {order:[known], hidden:[known]}."""
+    ed = raw if isinstance(raw, dict) else {}
+    order, seen = [], set()
+    for k in ed.get("order") or []:
+        if k in EVENT_DETAIL_SECTION_KEYS and k not in seen:
+            order.append(k)
+            seen.add(k)
+    hidden = [k for k in (ed.get("hidden") or []) if k in EVENT_DETAIL_SECTION_KEYS]
+    return {"order": order, "hidden": sorted(set(hidden))}
+
+
+def event_detail_order(config) -> list[str]:
+    """Порядок ВИДИМЫХ тематических секций детальной события.
+
+    Сохранённый order (известные ключи) + недостающие в дефолтном порядке реестра,
+    минус hidden. Пустой/мусорный config → полный список в порядке реестра."""
+    ed = normalize_event_detail((config or {}).get("event_detail"))
+    hidden = set(ed["hidden"])
+    seen = set(ed["order"])
+    order = ed["order"] + [k for k in EVENT_DETAIL_SECTION_KEYS if k not in seen]
+    return [k for k in order if k not in hidden]
+
+
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
 
 # M20: вложенные текстовые поля секций, редактируемые инлайн (dotted path
@@ -665,6 +709,8 @@ def normalize(config) -> dict:
     normalized["events_index_layout"] = normalize_layout(
         config.get("events_index_layout"), {"preset": "list"}
     )
+    # M20U-4: порядок/видимость тематических секций детальной события.
+    normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))
     # M20U-7 (per-page): раскладка блока «похожие товары» на детальной. Дефолт
     # cols4 воспроизводит прежнюю сетку (grid-cols-2 lg:grid-cols-4).
     normalized["detail_related_layout"] = normalize_layout(
