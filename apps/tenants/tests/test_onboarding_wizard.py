@@ -120,6 +120,30 @@ def test_step4_shows_vertical_presets():
     assert "preset=feierabend" in html and "Produkt anlegen" in html
 
 
+def test_step4_loads_and_clears_demo_content():
+    """B.1 (анти-Битрикс): демо-контент грузится прямо из мастера, остаёмся на шаге 4."""
+    from apps.tenants import demo
+
+    # schema_name=public → catalog/promotions доступны (как в test_demo).
+    tenant = TenantFactory(
+        schema_name="public", slug="wiz-demo", name="WizDemo", business_type="bakery"
+    )
+    onboarding.save_state(tenant, {"step": 4, "skipped": [], "completed": False})
+    # GET: предложение загрузить демо.
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "Beispiel-Inhalte laden" in html
+    # POST load_demo → демо загружено, шаг не сменился.
+    response = core_views.setup_view(_req("post", {"action": "load_demo"}, tenant))
+    assert response.status_code == 302
+    assert demo.has_demo(tenant) is True
+    assert onboarding.get_state(tenant)["step"] == 4
+    # Теперь предлагается убрать; clear_demo очищает.
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "entfernen" in html
+    core_views.setup_view(_req("post", {"action": "clear_demo"}, tenant))
+    assert demo.has_demo(tenant) is False
+
+
 # --- плашка на дашборде + сохранность состояния ---------------------------------
 
 

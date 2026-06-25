@@ -93,6 +93,20 @@
   {% elif step == 4 %}
     <h1 class="text-2xl font-bold mb-1">Dein erster Inhalt</h1>
     <p class="text-sm text-gray-500 mb-4">Starte mit einer typischen Aktion — ein Klick, fertig ausgefüllt.</p>
+    {# B.1 (анти-Битрикс): наполнить сайт демо-контентом одним кликом — витрина сразу не пустая. #}
+    <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-4">
+      {% if has_demo %}
+        <p class="text-sm text-gray-700 mb-2">✓ Beispiel-Inhalte sind geladen — schau dir deine Seite an und passe sie an.</p>
+        <form method="post">{% csrf_token %}
+          <button type="submit" name="action" value="clear_demo" class="text-sm text-gray-500 hover:underline">Beispiel-Inhalte wieder entfernen</button>
+        </form>
+      {% else %}
+        <p class="text-sm text-gray-700 mb-2"><strong>Noch leer?</strong> Lade Beispiel-Produkte, Bilder und Aktionen — zum Ansehen und Anpassen. Jederzeit wieder entfernbar.</p>
+        <form method="post">{% csrf_token %}
+          <button type="submit" name="action" value="load_demo" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">Beispiel-Inhalte laden</button>
+        </form>
+      {% endif %}
+    </div>
     <div class="space-y-2 mb-4">
       {% for p in presets %}
         <a href="{% url 'promotions:promotion-create' %}?preset={{ p.key }}"

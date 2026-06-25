@@ -88,7 +88,7 @@ def setup_view(request):
     """
     from apps.core import modules as registry
     from apps.promotions import presets
-    from apps.tenants import onboarding
+    from apps.tenants import demo, onboarding
     from apps.tenants.models import Tenant
 
     tenant = request.tenant
@@ -101,6 +101,16 @@ def setup_view(request):
             return redirect("setup")
         if request.POST.get("action") == "back":
             onboarding.back(tenant)
+            return redirect("setup")
+        # B.1 (анти-Битрикс): наполнить сайт демо-контентом прямо из мастера, чтобы
+        # после онбординга витрина была НЕ пустой (обратимо). Остаёмся на шаге 4.
+        if request.POST.get("action") == "load_demo":
+            if demo.load_demo(tenant):
+                messages.success(request, _("Example content added — your site isn't empty."))
+            return redirect("setup")
+        if request.POST.get("action") == "clear_demo":
+            if demo.clear_demo(tenant):
+                messages.info(request, _("Example content removed."))
             return redirect("setup")
         if step == 1:
             business_type = request.POST.get("business_type", "")
@@ -167,6 +177,7 @@ def setup_view(request):
         ]
     elif step == 4:
         context["presets"] = presets.presets_for(tenant.business_type)
+        context["has_demo"] = demo.has_demo(tenant)  # B.1: предложить/убрать демо-контент
     return render(request, "tenant/setup.html", context)
 
 

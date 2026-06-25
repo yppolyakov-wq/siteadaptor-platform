@@ -86,7 +86,7 @@ Meisterbetrieb/Innung).
 > onboarding» и §Roadmap Phase 1. Кирпичи уже есть (`sitetemplates`, `demo.load_demo`,
 > `presets`) — их нужно сшить в линейный поток.
 
-### B.1 — Демо-контент внутри мастера онбординга ☐  (S, быстрая победа)
+### B.1 — Демо-контент внутри мастера онбординга ✅  (S, быстрая победа)
 Шаг «Beispiel-Inhalte? Ja/Nein» в `/dashboard/setup/` → `demo.load_demo(tenant)`
 (идемпотентно, обратимо `clear_demo`). **Файлы:** `apps/tenants/onboarding.py`,
 `apps/core/views.py::setup_view`, `templates/tenant/setup.html`.
