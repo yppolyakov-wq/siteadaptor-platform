@@ -86,6 +86,8 @@ def test_detail_shows_price_and_book_form():
     # M20U-4: мобильная липкая панель брони (цена + действие) + якорь
     assert "data-buybar" in body and "Jetzt buchen" in body
     assert 'id="buchen"' in body
+    # наследует единый каркас detail.html
+    assert "max-w-5xl" in body and "lg:grid-cols-2" in body
 
 
 def test_detail_min_nights_message():
