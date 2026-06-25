@@ -31,6 +31,18 @@
     <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
 
+      {# E.2: попап настроек блока — клик по блоку в превью переносит сюда его
+         реальные контролы (живёт ВНУТРИ формы, поэтому правки идут в сабмит/превью). #}
+      <div id="bld-block-popup" class="hidden fixed z-40 bottom-4 right-4 w-80 max-w-[92vw]">
+        <div class="bg-white rounded-xl shadow-2xl border border-gray-200">
+          <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+            <span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700"></span>
+            <button type="button" id="bld-block-popup-close" class="text-gray-400 hover:text-gray-700 text-lg leading-none" aria-label="{% trans 'Close' %}">✕</button>
+          </div>
+          <div id="bld-block-popup-body" class="p-3 max-h-[60vh] overflow-auto"></div>
+        </div>
+      </div>
+
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans "What visitors see first. “Combined homepage” shows the blocks below; or jump straight into one section." %}</p>
@@ -163,7 +175,7 @@
         </summary>
         <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
           {% for b in cblocks %}
-            <div class="border border-gray-200 rounded-xl p-4 space-y-2">
+            <div class="cb-row border border-gray-200 rounded-xl p-4 space-y-2" data-cb-id="{{ b.id }}">
               <input type="hidden" name="cb_id" value="{{ b.id }}">
               <input type="hidden" name="cb_type_{{ b.id }}" value="{{ b.type }}">
               <div class="flex items-center justify-between gap-3 text-sm">
@@ -452,6 +464,42 @@
     else if ((k === "z" && e.shiftKey) || k === "y") { e.preventDefault(); redo(); }
   });
 
+  // E.2: попап настроек блока — переносим РЕАЛЬНЫЙ control-row блока в плавающую
+  // карточку у превью (остаётся внутри формы → правки идут в превью/сабмит/историю).
+  var popup = document.getElementById("bld-block-popup");
+  var popupBody = document.getElementById("bld-block-popup-body");
+  var popupTitle = document.getElementById("bld-block-popup-title");
+  var popupClose = document.getElementById("bld-block-popup-close");
+  var popupRow = null, popupAnchor = null;
+  function closeBlockPopup() {
+    if (popupRow && popupAnchor) {
+      popupRow.classList.remove("flex-wrap");
+      popupAnchor.replaceWith(popupRow);
+    }
+    popupRow = null; popupAnchor = null;
+    if (popup) popup.classList.add("hidden");
+  }
+  function openBlockPopup(key) {
+    if (!popup) return false;
+    var ord = form.querySelector('[name="order_' + key + '"]');
+    var row = ord ? ord.closest(".home-block") : null;
+    if (!row) row = form.querySelector('.cb-row[data-cb-id="' + key + '"]');
+    if (!row) return false;
+    closeBlockPopup();
+    popupAnchor = document.createComment("blk");
+    row.parentNode.insertBefore(popupAnchor, row);
+    if (row.classList.contains("home-block")) row.classList.add("flex-wrap");
+    popupBody.appendChild(row);
+    var lab = row.querySelector("label");
+    popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
+    popup.classList.remove("hidden");
+    return true;
+  }
+  if (popupClose) popupClose.addEventListener("click", closeBlockPopup);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && popup && !popup.classList.contains("hidden")) closeBlockPopup();
+  });
+
   var timer = null;
   function push() {
     // E.1: на обычном изменении пишем снимок в историю; при undo/redo — пропускаем
@@ -493,11 +541,14 @@
         });
       });
     });
-    // M20U-7 (B): клик по секции в превью → фокус её контролов в редакторе.
+    // E.2: клик по секции в превью → попап её настроек (фолбэк M20U-7 B: прокрутка
+    // к контролам в редакторе, если попап-row для секции не найден).
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
+      sec.style.cursor = "pointer";
       sec.addEventListener("click", function (e) {
         if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
         var key = sec.getAttribute("data-sf-section");
+        if (openBlockPopup(key)) return;
         var ctl = form.querySelector('[name="order_' + key + '"]');
         var row = ctl ? ctl.closest(".home-block") : null;
         if (!row) return;

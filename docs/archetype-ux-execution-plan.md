@@ -155,9 +155,13 @@ checked, N=20) — снимок восстанавливает поля форм
 Ctrl+Z / Ctrl+Shift+Z (в текстовых полях — нативная отмена). **Файлы:**
 `templates/tenant/site_home.html` (JS), тест `test_home_builder_get_renders_undo_redo`.
 
-### E.2 — Click-to-edit блока → попап настроек (postMessage + hx-get) ☐  (M)
-`data-block` на каждый блок в превью; клик → попап формы. Зависит от D.1. **Файлы:**
-preview iframe, Alpine-обёртка, партиалы форм.
+### E.2 — Click-to-edit блока → попап настроек ✅  (M)
+Клик по блоку в live-preview (`data-sf-section`) открывает плавающую карточку у превью,
+в которую **переносится реальный control-row блока** (фикс-секции — `.home-block`,
+C-блоки — `.cb-row[data-cb-id]`). Попап живёт ВНУТРИ `#home-form`, поэтому правки в нём
+идут в live-preview/сабмит/историю (E.1) без дублирования состояния. Закрытие (✕/Esc)
+возвращает строку на место (anchor-комментарий). Фолбэк — прежняя прокрутка к контролам.
+**Файлы:** `templates/tenant/site_home.html`, тест `test_home_builder_get_renders_block_popup`.
 
 ### E.3 — Инсертер «+» с библиотекой блоков-миниатюр ☐  (M)
 Зона «+» между блоками → библиотека (SVG-эскизы) → hx-post в draft → swap. Зависит от

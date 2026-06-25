@@ -201,6 +201,22 @@ def test_home_builder_get_renders_undo_redo():
     assert "Ctrl+Z" in body  # подсказка клавиш
 
 
+def test_home_builder_get_renders_block_popup():
+    """E.2: попап настроек блока + маркеры cb-row для переноса контролов."""
+    tenant = TenantFactory(schema_name="public", slug="hbpop", name="HBPOP")
+    # C-блок, чтобы проверить разметку cb-row (попап переносит её реальные контролы).
+    views.home_builder_view(
+        _request(
+            "post", "/dashboard/site/home/", {"action": "add_block", "block_type": "text"}, tenant
+        )
+    )
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'id="bld-block-popup"' in body  # контейнер попапа
+    assert "function openBlockPopup" in body  # логика переноса контролов
+    assert 'class="cb-row' in body and "data-cb-id=" in body  # маркеры C-блока
+
+
 def test_home_builder_saves_design():
     """M20f: билдер сохраняет шрифт/стиль hero (site_config) и акцент (Tenant)."""
     tenant = TenantFactory(
