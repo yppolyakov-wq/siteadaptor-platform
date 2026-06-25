@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}
+M20U-5: CTA hero-баннера к «главному товару» архетипа (primary_item из контекста
+главной). Ведёт на лендинг архетипа (товары/события/номера…). Рендерится только
+если primary_item задан и его лендинг резолвится; иначе блок пуст (нет регрессии).
+style: "light" — белая кнопка на тёмном/акцентном фоне.
+{% endcomment %}{% if primary_item and primary_item.landing %}{% url primary_item.landing as cta_url %}{% if cta_url %}
+<a href="{{ cta_url }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium {% if style == 'light' %}bg-white text-gray-900 hover:bg-gray-100{% else %}text-white hover:opacity-90{% endif %}"{% if style != 'light' %} style="background: var(--accent, #4f46e5);"{% endif %} data-hero-cta>{{ primary_item.label }}</a>
+{% endif %}{% endif %}

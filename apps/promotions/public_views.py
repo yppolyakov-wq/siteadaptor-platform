@@ -151,6 +151,11 @@ def storefront_home(request):
                 status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
             ).order_by("starts_at")[:6]
         )
+    # M20U-5: «главный товар» архетипа — для CTA hero-баннера (ведёт на лендинг
+    # primary item: магазин → товары, ретрит → события, отель → номера…).
+    from apps.core import archetypes
+
+    primary_item = archetypes.primary_item(request.tenant)
     return render(
         request,
         "storefront/home.html",
@@ -163,6 +168,7 @@ def storefront_home(request):
             "archetype_teasers": archetype_teasers,
             "stay_rooms": stay_rooms,
             "events_preview": events_preview,
+            "primary_item": primary_item,
         },
     )
 

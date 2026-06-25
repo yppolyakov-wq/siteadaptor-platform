@@ -133,6 +133,26 @@ def test_home_events_section_when_enabled():
     assert "Yoga-Retreat" in body and "/veranstaltung/" in body
 
 
+def test_home_hero_cta_links_to_primary_item():
+    """M20U-5: accent-hero показывает CTA на «главный товар» архетипа (events → /veranstaltung/)."""
+    req = _req("/")
+    req.tenant = TenantFactory.build(disabled_modules=[])  # все архетипы активны
+    req.tenant.site_config = {
+        "hero_style": "accent",
+        "sections": [{"key": "hero", "enabled": True}],
+    }
+    body = public_views.storefront_home(req).content.decode()
+    assert "data-hero-cta" in body
+    assert "/veranstaltung/" in body  # events приоритетнее → primary item
+    assert "Veranstaltungen" in body  # storefront_label архетипа
+
+
+def test_home_plain_hero_has_no_cta():
+    """Дефолтный (plain) hero — без CTA: легаси-витрина не меняется."""
+    body = public_views.storefront_home(_req("/")).content.decode()
+    assert "data-hero-cta" not in body
+
+
 def test_home_shows_products_preview():
     ProductFactory(name={"de": "VorschauBrot"})
     body = public_views.storefront_home(_req("/")).content.decode()
