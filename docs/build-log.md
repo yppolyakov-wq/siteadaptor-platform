@@ -1807,3 +1807,21 @@
   archetypes(10)/layout/hero_slider/media_gallery + storefront/детальные/builder/live-preview.
   Осталось по M20U: per-page билдер (каталог/детальная), хвосты каталога events/stays,
   общий Category/Tag (опц.), realtime-чат (отдельный трек).
+- **2026-06-25 — M20U-7 (билдер, продолжение): пер-секционные контролы + per-page +
+  вкладка «Pages».** Конструктор главной: на каждую секцию-сетку — пресет раскладки,
+  число элементов (products/events), свой заголовок, источник товаров
+  (featured_first/newest/featured_only), тоггл «View all» — всё с live-preview.
+  Layout-движок (`{% grid_classes %}`) подключён ко ВСЕМ секциям-сеткам
+  (products/stay_rooms/categories/events/archetypes/team/testimonials/reviews/gallery/
+  promotions) — пресет honor везде. **Per-page раскладки** (layout-движок на страницах
+  листингов): каталог `/sortiment/` (`catalog_layout`), номера `/unterkunft/`
+  (`stay_index_layout`, обе сетки, embed сохранён), события `/veranstaltung/`
+  (`events_index_layout`: дефолт «список» без регрессии / опц. сетка), «похожие
+  товары» на детальной (`detail_related_layout`). **Вкладка «Pages»**
+  (`/dashboard/site/pages/`, `pages_view` + `site_pages.html` + карточка в хабе Site)
+  собирает per-page раскладки, показывая только активные модули. archetype-aware
+  дефолт главной (`archetypes.primary_section` включает секцию главного товара, если
+  владелец не настраивал композицию). Тесты: test_layout/test_home_builder/
+  test_pages_view/test_live_preview + storefront/events/stays. Реестр/порядок
+  тематических секций детальной — отложен (секции и так скрываются при пустых данных;
+  ценность = переупорядочивание, рисковый рефактор event_detail).
