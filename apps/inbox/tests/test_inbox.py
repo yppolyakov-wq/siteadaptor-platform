@@ -100,3 +100,17 @@ def test_opening_thread_clears_unread():
     views.thread(_req("get", f"/dashboard/inbox/{conv.pk}/"), pk=conv.pk)
     conv.refresh_from_db()
     assert not conv.unread_for_staff
+
+
+def test_thread_poll_returns_messages_and_clears_unread():
+    """M22b realtime: кабинет-поллинг отдаёт сообщения треда + сбрасывает бейдж."""
+    import json
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    assert conv.unread_for_staff
+    resp = views.thread_poll(_req("get", f"/dashboard/inbox/{conv.pk}/poll/"), pk=conv.pk)
+    assert resp.status_code == 200
+    data = json.loads(resp.content)
+    assert data["messages"][-1]["role"] == "customer" and data["messages"][-1]["body"] == "hi"
+    conv.refresh_from_db()
+    assert not conv.unread_for_staff  # тред «просмотрен» поллингом

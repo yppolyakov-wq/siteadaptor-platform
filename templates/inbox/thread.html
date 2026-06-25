@@ -40,9 +40,9 @@
 </div>
 
 {# тред сообщений #}
-<div class="space-y-3 mb-6 max-w-2xl">
+<div id="msg-list" class="space-y-3 mb-6 max-w-2xl" data-poll-url="{% url 'inbox:thread-poll' conversation.pk %}">
   {% for m in messages_list %}
-    <div class="flex {% if m.author_role == 'staff' %}justify-end{% endif %}">
+    <div class="flex {% if m.author_role == 'staff' %}justify-end{% endif %}" data-msg-id="{{ m.pk }}">
       <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'staff' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
         <p class="whitespace-pre-line">{{ m.body }}</p>
         <p class="text-xs {% if m.author_role == 'staff' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m. H:i" }}</p>
@@ -50,6 +50,41 @@
     </div>
   {% endfor %}
 </div>
+
+{# M22b realtime: ответы клиента подтягиваются без перезагрузки (поллинг). #}
+<script>
+(function () {
+  var list = document.getElementById("msg-list");
+  if (!list) return;
+  var url = list.getAttribute("data-poll-url");
+  function add(m) {
+    if (list.querySelector('[data-msg-id="' + m.id + '"]')) return;
+    var mine = m.role === "staff";
+    var sys = m.role === "system";
+    var row = document.createElement("div");
+    row.className = "flex" + (mine ? " justify-end" : "");
+    row.setAttribute("data-msg-id", m.id);
+    var bubble = document.createElement("div");
+    bubble.className = "rounded-2xl px-4 py-2 max-w-[80%] " +
+      (mine ? "bg-indigo-600 text-white" : sys ? "bg-gray-100 text-gray-500 text-sm italic" : "bg-white shadow-sm");
+    var p = document.createElement("p");
+    p.className = "whitespace-pre-line";
+    p.textContent = m.body;
+    var t = document.createElement("p");
+    t.className = "text-xs mt-1 " + (mine ? "text-indigo-200" : "text-gray-400");
+    t.textContent = m.created;
+    bubble.appendChild(p); bubble.appendChild(t); row.appendChild(bubble);
+    list.appendChild(row);
+  }
+  function poll() {
+    fetch(url, { headers: { "X-Requested-With": "fetch" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.messages) d.messages.forEach(add); })
+      .catch(function () {});
+  }
+  setInterval(poll, 5000);
+})();
+</script>
 
 {# ответ владельца #}
 <form method="post" class="bg-white rounded-2xl shadow-sm p-4 max-w-2xl">{% csrf_token %}
