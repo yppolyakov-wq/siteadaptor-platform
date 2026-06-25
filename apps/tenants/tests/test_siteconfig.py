@@ -55,6 +55,7 @@ def test_normalize_empty_gives_defaults():
         "promotions",
         "categories",
         "products",
+        "events",
         "archetypes",
         "about",
         "process",

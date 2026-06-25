@@ -104,6 +104,26 @@ def test_home_categories_section_hidden_by_default():
     assert "kategorie=brot" not in body  # секция выкл по умолчанию
 
 
+def test_home_events_section_when_enabled():
+    """M20U-2: секция мероприятий на главной — ближайшие события grid → /veranstaltung/."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.events.models import Event
+
+    Event.objects.create(
+        title="Yoga-Retreat",
+        starts_at=timezone.now() + timedelta(days=10),
+        status=Event.STATUS_PUBLISHED,
+    )
+    req = _req("/")
+    req.tenant = TenantFactory.build(disabled_modules=[])  # все модули активны
+    req.tenant.site_config = {"sections": [{"key": "events", "enabled": True}]}
+    body = public_views.storefront_home(req).content.decode()
+    assert "Yoga-Retreat" in body and "/veranstaltung/" in body
+
+
 def test_home_shows_products_preview():
     ProductFactory(name={"de": "VorschauBrot"})
     body = public_views.storefront_home(_req("/")).content.decode()

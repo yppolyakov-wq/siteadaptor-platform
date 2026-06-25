@@ -139,6 +139,18 @@ def storefront_home(request):
         from apps.stays.models import StayUnit
 
         stay_rooms = list(StayUnit.objects.filter(is_active=True))
+    # M20U-2: ближайшие мероприятия/ретриты (primary items архетипа events).
+    events_preview = []
+    if "events" in sections and modules.is_module_active(request.tenant, "events"):
+        from django.utils import timezone
+
+        from apps.events.models import Event
+
+        events_preview = list(
+            Event.objects.filter(
+                status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+            ).order_by("starts_at")[:6]
+        )
     return render(
         request,
         "storefront/home.html",
@@ -150,6 +162,7 @@ def storefront_home(request):
             "categories": categories,
             "archetype_teasers": archetype_teasers,
             "stay_rooms": stay_rooms,
+            "events_preview": events_preview,
         },
     )
 

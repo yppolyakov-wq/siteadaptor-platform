@@ -29,6 +29,9 @@ SECTIONS = [
     # только если включена и есть активные категории.
     ("categories", _("Categories"), False),
     ("products", _("Products"), True),
+    # M20U-2: ближайшие мероприятия/ретриты (primary items архетипа events).
+    # Выкл по умолчанию; показываем при активном модуле events и наличии событий.
+    ("events", _("Events"), False),
     # S2: сетка тизеров активных архетипов («Наши разделы / Unsere Bereiche»).
     # По умолчанию выкл — легаси-витрины не затронуты; включают в кабинете/демо.
     ("archetypes", _("Our offerings"), False),
@@ -70,6 +73,7 @@ _LAYOUT_GAPS = ("sm", "md", "lg")
 # чтобы M20R-1 не дал визуальной регрессии). Прочие секции layout не несут.
 GRID_SECTION_DEFAULTS = {
     "categories": {"preset": "cols4"},  # M20U-2: карточки категорий
+    "events": {"preset": "cols3"},  # M20U-2: карточки ближайших мероприятий
     "products": {"preset": "cols4"},  # было grid-cols-2 lg:grid-cols-4 (mobile 2)
     "stay_rooms": {"preset": "cols3", "mobile": 1},  # было grid-cols-1 sm:2 lg:3
     "promotions": {"preset": "cols3"},  # было 2 mobile / 3 lg
