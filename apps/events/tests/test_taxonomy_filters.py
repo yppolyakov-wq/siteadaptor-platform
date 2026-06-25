@@ -112,6 +112,21 @@ def test_no_match_shows_empty_message():
     assert "yoga" not in body.lower() or "match" in body.lower()
 
 
+# --- M20U-7: раскладка индекса событий (список/сетка) ------------------------
+def test_events_index_default_is_list():
+    _event(title="Yoga-Tag")
+    body = public_views.veranstaltung_index(_req()).content.decode()
+    assert "space-y-3" in body  # дефолт — вертикальный список
+
+
+def test_events_index_grid_from_config():
+    _event(title="Yoga-Tag")
+    tenant = TenantFactory.build()
+    tenant.site_config = {"events_index_layout": {"preset": "cols2"}}
+    body = public_views.veranstaltung_index(_req(tenant=tenant)).content.decode()
+    assert "lg:grid-cols-2" in body  # сетка вместо списка
+
+
 # --- M20U-3: фильтры по умолчанию свёрнуты/скрыты на маленькой витрине -------
 def test_filters_hidden_on_small_storefront():
     # ≤ порога событий и без активного фильтра → панель фильтров не выводится.

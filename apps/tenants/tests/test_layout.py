@@ -149,6 +149,15 @@ def test_stay_index_layout_default_and_override():
     assert cfg2["stay_index_layout"]["cols"] == 4
 
 
+def test_events_index_layout_default_list_and_override():
+    # M20U-7 (per-page): раскладка индекса событий; дефолт — список.
+    assert siteconfig.normalize({})["events_index_layout"]["preset"] == "list"
+    cfg = siteconfig.normalize({"events_index_layout": {"preset": "cols2"}})
+    assert (
+        cfg["events_index_layout"]["preset"] == "cols2" and cfg["events_index_layout"]["cols"] == 2
+    )
+
+
 def test_section_show_all_default_and_override():
     # M20U-7: видимость ссылки «View all».
     assert siteconfig.section_show_all({"sections": []}, "products") is True  # дефолт

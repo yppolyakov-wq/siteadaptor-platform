@@ -67,7 +67,7 @@
   {% endif %}
 
   {% if events %}
-    <div class="space-y-3">
+    <div class="{% if events_is_list %}space-y-3{% else %}{{ events_grid }}{% endif %}">
       {% for e in events %}
         <a href="{% url 'storefront-event' e.pk %}" class="flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
           {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-24 h-24 rounded-xl object-cover flex-shrink-0">{% endif %}

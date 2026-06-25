@@ -484,6 +484,7 @@ def home_builder_view(request):
             "preset": request.POST.get("stay_index_preset", ""),
             "mobile": 1,
         }
+        config["events_index_layout"] = {"preset": request.POST.get("events_index_preset", "")}
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
@@ -569,6 +570,7 @@ def home_builder_view(request):
             # M20U-7 (per-page): текущие пресеты раскладки каталога и номеров.
             "catalog_preset": config.get("catalog_layout", {}).get("preset", "cols3"),
             "stay_index_preset": config.get("stay_index_layout", {}).get("preset", "cols3"),
+            "events_index_preset": config.get("events_index_layout", {}).get("preset", "list"),
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),

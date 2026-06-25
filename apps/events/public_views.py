@@ -54,6 +54,14 @@ def veranstaltung_index(request):
     # Показываем панель фильтров, только если событий достаточно или фильтр уже
     # применён. Иначе — чистый список (анти-Битрикс простота).
     show_filters = len(base) > _FILTER_MIN_EVENTS or active_filters
+    # M20U-7 (per-page): раскладка списка событий — список (дефолт) или сетка карточек.
+    from apps.tenants import siteconfig
+
+    ev_layout = siteconfig.normalize(getattr(request.tenant, "site_config", {}) or {})[
+        "events_index_layout"
+    ]
+    events_is_list = ev_layout["preset"] == "list"
+    events_grid = siteconfig.grid_class_string(ev_layout)
     return render(
         request,
         "storefront/event_index.html",
@@ -64,6 +72,8 @@ def veranstaltung_index(request):
             "active_filters": active_filters,
             "show_filters": show_filters,
             "total": len(base),
+            "events_is_list": events_is_list,
+            "events_grid": events_grid,
         },
     )
 

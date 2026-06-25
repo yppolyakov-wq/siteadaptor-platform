@@ -136,6 +136,16 @@ def test_home_builder_saves_catalog_layout():
     assert cfg["stay_index_layout"]["preset"] == "cols4"
 
 
+def test_home_builder_saves_events_index_layout():
+    """M20U-7 (per-page): раскладка индекса событий сохраняется."""
+    tenant = TenantFactory(schema_name="public", slug="hbev", name="HBEV")
+    data = {"events_index_preset": "cols3"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["events_index_layout"]["preset"] == "cols3"
+
+
 def test_home_builder_get_renders_layout_select():
     """M20U-7: для секций-сеток в билдере отрисован селектор раскладки."""
     tenant = TenantFactory(schema_name="public", slug="hbl2", name="HBL2")
