@@ -309,6 +309,33 @@ def _s(value) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
+_MAX_HEROES = 6  # потолок слайдов баннера-слайдера (M20U-2)
+
+
+def normalize_heroes(raw) -> list[dict]:
+    """M20U-2: слайды баннера → [{image, title, text, button_label, button_url}].
+
+    Пустые (без image/title/text) отбрасываются; кап _MAX_HEROES. Back-compat:
+    отсутствие/мусор → [], тогда витрина показывает одиночный hero_* как раньше.
+    """
+    out = []
+    for item in raw or []:
+        if not isinstance(item, dict):
+            continue
+        h = {
+            "image": _s(item.get("image")),
+            "title": _s(item.get("title"))[:200],
+            "text": _s(item.get("text"))[:400],
+            "button_label": _s(item.get("button_label"))[:60],
+            "button_url": _s(item.get("button_url"))[:300],
+        }
+        if h["image"] or h["title"] or h["text"]:
+            out.append(h)
+        if len(out) >= _MAX_HEROES:
+            break
+    return out
+
+
 def _clean_gallery(value, cap: int) -> list[dict]:
     """FileRef-список (dict'ы с непустым url), не длиннее cap. Для галерей."""
     out = []
@@ -445,6 +472,8 @@ def normalize(config) -> dict:
     normalized["hero_style"] = hero_style if hero_style in HERO_STYLES else "plain"
     # Фон-фото hero (M20 demo): URL картинки-баннера; пусто → как раньше (accent/plain).
     normalized["hero_image"] = _s(config.get("hero_image"))
+    # M20U-2: слайдер главных баннеров (heroes[]); пусто → одиночный hero выше (back-compat).
+    normalized["heroes"] = normalize_heroes(config.get("heroes"))
     # Шрифт витрины (P2a): системный стек по ключу; неизвестный → system.
     font = config.get("font")
     normalized["font"] = font if font in FONTS else "system"

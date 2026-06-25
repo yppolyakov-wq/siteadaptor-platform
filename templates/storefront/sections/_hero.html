@@ -1,5 +1,55 @@
-{% load i18n %}{# Секция hero (Track C2): приветственный баннер из site_config. #}
-{% if site.hero_image %}
+{% load i18n %}{# Секция hero (Track C2 / M20U-2): баннер или слайдер баннеров из site_config. #}
+{% if site.heroes %}
+{# M20U-2: слайдер главных баннеров (full-bleed). Один слайд — без автопрокрутки. #}
+<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10" data-hero-slider>
+  <div class="relative min-h-[38vh] md:min-h-[46vh] bg-gray-800 overflow-hidden">
+    {% for h in site.heroes %}
+    <div class="absolute inset-0 flex items-center justify-center text-center text-white bg-cover bg-center transition-opacity duration-700 {% if not forloop.first %}opacity-0 pointer-events-none{% endif %}"
+         {% if h.image %}style="background-image:url('{{ h.image }}');"{% endif %} data-hero-slide>
+      <div class="absolute inset-0 bg-black/45"></div>
+      <div class="relative px-4 py-12 max-w-4xl">
+        <h1 class="text-4xl md:text-6xl font-bold drop-shadow-lg">{{ h.title|default:request.tenant.name }}</h1>
+        {% if h.text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow">{{ h.text }}</p>{% endif %}
+        {% if h.button_label and h.button_url %}<a href="{{ h.button_url }}" class="inline-block mt-5 bg-white text-gray-900 rounded-lg px-6 py-2.5 font-medium hover:bg-gray-100">{{ h.button_label }}</a>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if site.heroes|length > 1 %}
+  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+    {% for h in site.heroes %}<button type="button" class="w-2.5 h-2.5 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}" data-hero-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"></button>{% endfor %}
+  </div>
+  {% endif %}
+</section>
+<script>
+(function () {
+  document.querySelectorAll('[data-hero-slider]').forEach(function (s) {
+    if (s.dataset.init) return;
+    s.dataset.init = '1';
+    var slides = [].slice.call(s.querySelectorAll('[data-hero-slide]'));
+    var dots = [].slice.call(s.querySelectorAll('[data-hero-dot]'));
+    if (slides.length < 2) return;
+    var i = 0, timer;
+    function show(n) {
+      slides.forEach(function (sl, k) {
+        sl.classList.toggle('opacity-0', k !== n);
+        sl.classList.toggle('pointer-events-none', k !== n);
+      });
+      dots.forEach(function (d, k) {
+        d.classList.toggle('bg-white', k === n);
+        d.classList.toggle('bg-white/50', k !== n);
+      });
+      i = n;
+    }
+    function start() { timer = setInterval(function () { show((i + 1) % slides.length); }, 6000); }
+    dots.forEach(function (d, k) {
+      d.addEventListener('click', function () { clearInterval(timer); show(k); start(); });
+    });
+    start();
+  });
+})();
+</script>
+{% elif site.hero_image %}
 {# Фото-баннер: на всю ширину экрана (full-bleed), высотой ~1/3 экрана. #}
 <section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10 min-h-[38vh] md:min-h-[42vh]
                 flex items-center justify-center text-center text-white bg-gray-800 bg-cover bg-center"
