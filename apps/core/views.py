@@ -796,6 +796,25 @@ def sections_view(request):
     )
 
 
+# M20U-4: подписи тематических секций детальной события (для билдера Pages).
+_EVENT_SECTION_LABELS = {
+    "for_whom": _("For whom"),
+    "idea": _("The idea"),
+    "includes": _("What's included"),
+    "program": _("Schedule"),
+    "venue": _("Venue"),
+    "accommodation": _("Accommodation"),
+    "food": _("Food"),
+    "hosts": _("Hosts"),
+    "price": _("Price"),
+    "bring": _("What to bring"),
+    "faq": _("FAQ"),
+    "testimonials": _("Testimonials"),
+    "before_after": _("Before & after"),
+    "certifications": _("Certifications"),
+}
+
+
 @login_required
 def pages_view(request):
     """M20U-7 «Pages»: per-page настройки витрины — раскладки сеток страниц
@@ -812,6 +831,19 @@ def pages_view(request):
             "mobile": 1,
         }
         config["events_index_layout"] = {"preset": request.POST.get("events_index_preset", "")}
+        # M20U-4: порядок/видимость тематических секций детальной события.
+        ed_rows = []
+        for key in siteconfig.EVENT_DETAIL_SECTION_KEYS:
+            try:
+                order = int(request.POST.get(f"ed_order_{key}", "999"))
+            except (TypeError, ValueError):
+                order = 999
+            ed_rows.append((order, key, request.POST.get(f"ed_visible_{key}") == "on"))
+        ed_rows.sort(key=lambda r: r[0])
+        config["event_detail"] = {
+            "order": [k for _o, k, _v in ed_rows],
+            "hidden": [k for _o, k, v in ed_rows if not v],
+        }
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=["site_config", "updated_at"])
         messages.success(request, "Gespeichert.")
@@ -827,6 +859,20 @@ def pages_view(request):
     ]
     from apps.core import modules
 
+    # M20U-4: секции детальной события в текущем порядке + видимость.
+    ed = config["event_detail"]
+    ed_hidden = set(ed["hidden"])
+    ed_seen = set(ed["order"])
+    ed_full = ed["order"] + [k for k in siteconfig.EVENT_DETAIL_SECTION_KEYS if k not in ed_seen]
+    event_sections = [
+        {
+            "key": k,
+            "label": _EVENT_SECTION_LABELS.get(k, k),
+            "order": i + 1,
+            "visible": k not in ed_hidden,
+        }
+        for i, k in enumerate(ed_full)
+    ]
     return render(
         request,
         "tenant/site_pages.html",
@@ -837,6 +883,7 @@ def pages_view(request):
             "related_preset": config["detail_related_layout"]["preset"],
             "stay_index_preset": config["stay_index_layout"]["preset"],
             "events_index_preset": config["events_index_layout"]["preset"],
+            "event_sections": event_sections,
             # Показываем настройку страницы, только если её модуль активен.
             "has_catalog": modules.is_module_active(request.tenant, "catalog"),
             "has_stays": modules.is_module_active(request.tenant, "stays"),
