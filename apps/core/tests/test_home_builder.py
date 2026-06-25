@@ -125,25 +125,19 @@ def test_home_builder_saves_section_title():
     assert cfg["section_titles"]["events"] == "Unsere Retreats"
 
 
-def test_home_builder_saves_catalog_layout():
-    """M20U-7 (per-page): пресет раскладки каталога/номеров сохраняется."""
-    tenant = TenantFactory(schema_name="public", slug="hbcat", name="HBCAT")
-    data = {"catalog_preset": "gallery", "stay_index_preset": "cols4"}
+def test_home_builder_preserves_page_layouts():
+    """Сохранение главной не затирает per-page раскладки (они на «Pages»)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbpp",
+        name="HBPP",
+        site_config={"catalog_layout": {"preset": "gallery"}},
+    )
+    data = {"order_products": "1", "enabled_products": "on"}
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["catalog_layout"]["preset"] == "gallery"
-    assert cfg["stay_index_layout"]["preset"] == "cols4"
-
-
-def test_home_builder_saves_events_index_layout():
-    """M20U-7 (per-page): раскладка индекса событий сохраняется."""
-    tenant = TenantFactory(schema_name="public", slug="hbev", name="HBEV")
-    data = {"events_index_preset": "cols3"}
-    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    assert resp.status_code == 302
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["events_index_layout"]["preset"] == "cols3"
+    assert cfg["catalog_layout"]["preset"] == "gallery"  # сохранён
 
 
 def test_home_builder_get_renders_layout_select():

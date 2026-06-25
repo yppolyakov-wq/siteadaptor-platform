@@ -478,13 +478,8 @@ def home_builder_view(request):
             if tval:
                 titles[tkey] = tval
         config["section_titles"] = titles
-        # M20U-7 (per-page): раскладка страниц каталога и номеров (normalize валидирует).
-        config["catalog_layout"] = {"preset": request.POST.get("catalog_preset", "")}
-        config["stay_index_layout"] = {
-            "preset": request.POST.get("stay_index_preset", ""),
-            "mobile": 1,
-        }
-        config["events_index_layout"] = {"preset": request.POST.get("events_index_preset", "")}
+        # (per-page раскладки каталога/номеров/событий — на странице «Pages»,
+        #  pages_view; normalize сохраняет их при записи главной без изменений.)
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
@@ -567,10 +562,6 @@ def home_builder_view(request):
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",
-            # M20U-7 (per-page): текущие пресеты раскладки каталога и номеров.
-            "catalog_preset": config.get("catalog_layout", {}).get("preset", "cols3"),
-            "stay_index_preset": config.get("stay_index_layout", {}).get("preset", "cols3"),
-            "events_index_preset": config.get("events_index_layout", {}).get("preset", "list"),
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
@@ -802,6 +793,53 @@ def sections_view(request):
         request,
         "tenant/site_sections.html",
         {"nav": "site", "cover_specs": storefront.cover_specs(request.tenant)},
+    )
+
+
+@login_required
+def pages_view(request):
+    """M20U-7 «Pages»: per-page настройки витрины — раскладки сеток страниц
+    каталога /sortiment/, номеров /unterkunft/ и списка событий /veranstaltung/.
+    Сохранение мёржит в site_config, прочие настройки не затрагивая."""
+    from apps.tenants import siteconfig
+
+    if request.method == "POST":
+        config = siteconfig.normalize(request.tenant.site_config)
+        config["catalog_layout"] = {"preset": request.POST.get("catalog_preset", "")}
+        config["stay_index_layout"] = {
+            "preset": request.POST.get("stay_index_preset", ""),
+            "mobile": 1,
+        }
+        config["events_index_layout"] = {"preset": request.POST.get("events_index_preset", "")}
+        request.tenant.site_config = siteconfig.normalize(config)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Gespeichert.")
+        return redirect("site-pages")
+
+    config = siteconfig.normalize(request.tenant.site_config)
+    preset_options = [
+        ("list", _("List")),
+        ("cols2", _("2 per row")),
+        ("cols3", _("3 per row")),
+        ("cols4", _("4 per row")),
+        ("gallery", _("Gallery")),
+    ]
+    from apps.core import modules
+
+    return render(
+        request,
+        "tenant/site_pages.html",
+        {
+            "nav": "site",
+            "preset_options": preset_options,
+            "catalog_preset": config["catalog_layout"]["preset"],
+            "stay_index_preset": config["stay_index_layout"]["preset"],
+            "events_index_preset": config["events_index_layout"]["preset"],
+            # Показываем настройку страницы, только если её модуль активен.
+            "has_catalog": modules.is_module_active(request.tenant, "catalog"),
+            "has_stays": modules.is_module_active(request.tenant, "stays"),
+            "has_events": modules.is_module_active(request.tenant, "events"),
+        },
     )
 
 

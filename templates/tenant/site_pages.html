@@ -1,0 +1,49 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Pages" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">{% trans "Pages" %}</h1>
+    <a href="/" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline">{% trans "View site" %} →</a>
+  </div>
+  <p class="text-sm text-gray-400 mb-5">{% trans "Layout of your listing pages. Only pages for active features are shown." %}</p>
+
+  {% if has_catalog or has_stays or has_events %}
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+    {% csrf_token %}
+    {% if has_catalog %}
+    <label class="block text-sm">
+      <span class="block font-medium mb-1">{% trans "Catalog grid" %}</span>
+      <span class="block text-xs text-gray-400 mb-1.5">{% trans "Products page (/sortiment/)." %}</span>
+      <select name="catalog_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == catalog_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    {% if has_stays %}
+    <label class="block text-sm">
+      <span class="block font-medium mb-1">{% trans "Rooms grid" %}</span>
+      <span class="block text-xs text-gray-400 mb-1.5">{% trans "Accommodation page (/unterkunft/)." %}</span>
+      <select name="stay_index_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == stay_index_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    {% if has_events %}
+    <label class="block text-sm">
+      <span class="block font-medium mb-1">{% trans "Events layout" %}</span>
+      <span class="block text-xs text-gray-400 mb-1.5">{% trans "Events page (/veranstaltung/) — list or card grid." %}</span>
+      <select name="events_index_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == events_index_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+  {% else %}
+    <p class="text-gray-400">{% trans "No listing pages yet — enable a feature (catalog, accommodation or events) first." %}</p>
+  {% endif %}
+</div>
+{% endblock %}
