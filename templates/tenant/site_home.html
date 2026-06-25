@@ -101,6 +101,11 @@
                   {% for sk, slabel in source_options %}<option value="{{ sk }}" {% if s.source == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
                 </select>
               {% endif %}
+              {% if s.has_viewall %}
+                {# M20U-7: показывать ссылку «View all» секции #}
+                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" title="{% trans 'Show “View all” link' %}">
+                  <input type="checkbox" name="show_all_{{ s.key }}" {% if s.show_all %}checked{% endif %} class="rounded border-gray-300">{% trans "View all" %}</label>
+              {% endif %}
             </div>
           {% endfor %}
         </div>
@@ -257,6 +262,9 @@
       // M20U-7: источник товаров → в превью.
       var srcSel = form.querySelector("select[name='source_" + r.key + "']");
       if (srcSel && srcSel.value) sec.source = srcSel.value;
+      // M20U-7: видимость «View all» → в превью.
+      var saBox = form.querySelector("input[name='show_all_" + r.key + "']");
+      if (saBox) sec.show_all = saBox.checked;
       return sec;
     });
     var archetypes = {};

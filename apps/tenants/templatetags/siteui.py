@@ -23,6 +23,12 @@ def section_title(site, key):
     return siteconfig.section_title(site, key)
 
 
+@register.simple_tag(name="section_show_all")
+def section_show_all(site, key):
+    """M20U-7: показывать ли ссылку «View all» секции (по умолчанию True)."""
+    return siteconfig.section_show_all(site, key)
+
+
 @register.simple_tag(name="purchase_label")
 def purchase_label(module):
     """M20U-5: подпись действия покупки архетипа (Jetzt buchen / In den Warenkorb …)."""

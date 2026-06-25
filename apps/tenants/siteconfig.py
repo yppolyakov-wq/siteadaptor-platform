@@ -181,6 +181,9 @@ def section_limit(config, key) -> int:
 SECTION_TITLE_KEYS = {"promotions", "categories", "products", "events", "stay_rooms"}
 _SECTION_TITLE_MAX = 80
 
+# M20U-7: секции с ссылкой «View all» → её можно скрыть (show_all=False).
+SECTION_VIEWALL_KEYS = {"categories", "products", "events", "stay_rooms"}
+
 
 def section_title(config, key) -> str:
     """Кастомный заголовок секции `key` (или "" → шаблон выводит дефолт)."""
@@ -197,6 +200,14 @@ def product_source(config) -> str:
             src = item.get("source")
             return src if src in PRODUCT_SOURCES else PRODUCT_SOURCE_DEFAULT
     return PRODUCT_SOURCE_DEFAULT
+
+
+def section_show_all(config, key) -> bool:
+    """M20U-7: показывать ли ссылку «View all» секции `key` (по умолчанию True)."""
+    for item in (config or {}).get("sections", []):
+        if isinstance(item, dict) and item.get("key") == key:
+            return bool(item.get("show_all", True))
+    return True
 
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
@@ -518,6 +529,9 @@ def normalize(config) -> dict:
         if key == "products":
             src = raw_item.get("source")
             entry["source"] = src if src in PRODUCT_SOURCES else PRODUCT_SOURCE_DEFAULT
+        # M20U-7: видимость ссылки «View all» (по умолчанию показана).
+        if key in SECTION_VIEWALL_KEYS:
+            entry["show_all"] = bool(raw_item.get("show_all", True))
         return entry
 
     for item in config.get("sections", []):

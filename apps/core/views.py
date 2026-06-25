@@ -456,6 +456,9 @@ def home_builder_view(request):
             # M20U-7: источник товаров секции products (normalize валидирует).
             if key == "products":
                 entry["source"] = request.POST.get("source_products", "")
+            # M20U-7: видимость ссылки «View all» (чекбокс; не прислан → скрыта).
+            if key in siteconfig.SECTION_VIEWALL_KEYS:
+                entry["show_all"] = request.POST.get(f"show_all_{key}") == "on"
             new_sections.append(entry)
         config["sections"] = new_sections
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
@@ -517,6 +520,9 @@ def home_builder_view(request):
             # M20U-7: источник товаров (только секция products).
             "has_source": s["key"] == "products",
             "source": s.get("source", ""),
+            # M20U-7: видимость ссылки «View all».
+            "has_viewall": s["key"] in siteconfig.SECTION_VIEWALL_KEYS,
+            "show_all": s.get("show_all", True),
         }
         for index, s in enumerate(config["sections"], start=1)
     ]
@@ -676,6 +682,9 @@ def site_preview_draft(request):
                 # M20U-7: источник товаров → в черновик.
                 if key == "products" and item.get("source") in siteconfig.PRODUCT_SOURCES:
                     row["source"] = item["source"]
+                # M20U-7: видимость «View all» → в черновик.
+                if key in siteconfig.SECTION_VIEWALL_KEYS and "show_all" in item:
+                    row["show_all"] = bool(item["show_all"])
                 rows.append(row)
                 seen.add(key)
         if rows:

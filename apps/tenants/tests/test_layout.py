@@ -134,6 +134,19 @@ def test_product_source_default_override_and_normalize():
     assert "source" not in events
 
 
+def test_section_show_all_default_and_override():
+    # M20U-7: видимость ссылки «View all».
+    assert siteconfig.section_show_all({"sections": []}, "products") is True  # дефолт
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "show_all": False}]})
+    assert siteconfig.section_show_all(cfg, "products") is False
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert products["show_all"] is False
+    # без флага → True; не-viewall секция флаг не несёт
+    fresh = siteconfig.normalize({})
+    assert next(s for s in fresh["sections"] if s["key"] == "products")["show_all"] is True
+    assert "show_all" not in next(s for s in fresh["sections"] if s["key"] == "team")
+
+
 def test_section_title_default_override_and_cleanup():
     # M20U-7: кастомный заголовок секции.
     assert siteconfig.section_title({"sections": []}, "events") == ""  # дефолт → пусто

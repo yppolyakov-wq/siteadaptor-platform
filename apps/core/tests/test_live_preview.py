@@ -101,6 +101,21 @@ def test_draft_endpoint_includes_product_source():
     assert siteconfig.product_source(req.session["site_preview_draft"]) == "featured_only"
 
 
+def test_draft_endpoint_includes_show_all():
+    """M20U-7: видимость «View all» попадает в черновик превью."""
+    tenant = TenantFactory(schema_name="public", slug="dsa", name="DSA")
+    body = json.dumps({"sections": [{"key": "products", "enabled": True, "show_all": False}]})
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    assert siteconfig.section_show_all(req.session["site_preview_draft"], "products") is False
+
+
 def test_draft_endpoint_includes_section_titles():
     """M20U-7: кастомные заголовки секций попадают в черновик (чистятся normalize)."""
     tenant = TenantFactory(schema_name="public", slug="dt", name="DT")

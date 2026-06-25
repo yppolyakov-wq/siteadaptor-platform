@@ -9,7 +9,7 @@
   <div class="flex items-end justify-between mb-4">
     {% section_title site 'stay_rooms' as st %}
     <h2 class="text-xl md:text-2xl font-bold">{% if st %}{{ st }}{% else %}{% trans "Our rooms" %}{% endif %}</h2>
-    <a href="{% url 'storefront-unterkunft' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    {% section_show_all site 'stay_rooms' as sa %}{% if sa %}<a href="{% url 'storefront-unterkunft' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
   </div>
   <div class="{% grid_classes site 'stay_rooms' %}">
     {% for u in stay_rooms %}
