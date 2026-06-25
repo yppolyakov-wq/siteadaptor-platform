@@ -184,5 +184,3 @@ L1 — единственный пункт, который стоит рассм
 - `market-analysis/a8-aggregator.md` — A8 агрегатор/портал
 - `market-analysis/a9-werkstatt.md` — A9 автосервис
 - `market-analysis/z-anti-bitrix-builder.md` — сквозной билдер/онбординг (центр)
-</content>
-</invoke>

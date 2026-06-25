@@ -40,6 +40,16 @@ def test_primary_section_mapping():
     assert archetypes.primary_section(_Tenant({"events"})) == "events"
     assert archetypes.primary_section(_Tenant({"catalog"})) == "products"
     assert archetypes.primary_section(_Tenant({"stays"})) == "stay_rooms"
+    # A3: booking → блок услуг «Leistungen & Preise».
+    assert archetypes.primary_section(_Tenant({"booking"})) == "services"
+
+
+def test_booking_outranks_catalog_for_salon():
+    # A3 (Friseur/Werkstatt): booking активнее catalog (мерч/Teile вторичны) —
+    # главным товаром на главной становится услуга, а не товар.
+    t = _Tenant(active={"booking", "catalog", "promotions"})
+    assert archetypes.primary_module(t) == "booking"
+    assert archetypes.primary_section(t) == "services"
 
 
 def test_primary_item_descriptor_carries_landing_and_label():

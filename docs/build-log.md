@@ -1825,3 +1825,22 @@
   test_pages_view/test_live_preview + storefront/events/stays. Реестр/порядок
   тематических секций детальной — отложен (секции и так скрываются при пустых данных;
   ценность = переупорядочивание, рисковый рефактор event_detail).
+- **2026-06-25 — Рыночный анализ по архетипам + «анти-Битрикс»-блюпринт.** Девять
+  детальных отчётов (по архетипу A1–A9 + сквозной билдер) в `docs/market-analysis/`,
+  сведены в `docs/archetype-market-analysis.md`. Вывод: бэкенд-движки почти закрыты
+  (75–100%), фронт работ — визуал/UX витрины, «анти-Битрикс» конструктор/онбординг
+  (~55–60% к цели) и точечный правовой долг (Widerruf с 19.06.2026). Заведён
+  пошаговый `docs/archetype-ux-execution-plan.md` (Спринты A–F, по файлам, с
+  критериями приёмки и статусами) — source of truth этапа. Обновлён §6
+  `retreat-archetype-plan.md` (визуально-UX-трек RV1–RV4 + RT*).
+- **2026-06-25 — Спринт A.1: блок «Leistungen & Preise» (services) для A3.** Новая
+  секция витрины `services` (`siteconfig.SECTIONS`, выкл по умолчанию) — primary item
+  архетипа `booking` (Friseur/Massage/Werkstatt-Termin). `archetypes.PRIMARY_SECTION
+  ["booking"]="services"` + `booking` поднят в `_PRIORITY` выше `catalog` (у салона
+  главный товар — услуга, не мерч). Партиал `_services.html` (карточки с цена/
+  длительность + CTA «Jetzt buchen» → выбор времени `storefront-service-slots`),
+  ветка в диспетчере `home.html`, `services_preview` в `storefront_home` (гейт:
+  модуль booking активен). Layout-пресет `cols2`, настраиваемый заголовок + «View all»
+  → `/termin/`. Тесты: `test_services_section.py` (реестр/грид/рендер/пусто) +
+  `test_archetypes.py` (booking→services, booking ≻ catalog). Без миграций (JSON).
+  Осталось опц.: богатая карточка услуги (поля `Service.description/image`) — A.1b.

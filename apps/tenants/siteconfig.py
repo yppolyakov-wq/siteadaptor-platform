@@ -24,6 +24,10 @@ SECTIONS = [
     # Карточки номеров прямо на главной (для отелей/пансионов). По умолчанию
     # выкл — показывается, только если включён и активен модуль stays.
     ("stay_rooms", _("Rooms (stays)"), False),
+    # A3: блок «Leistungen & Preise» — услуги с ценой/длительностью (primary item
+    # архетипа booking). Выкл по умолчанию — показываем при активном модуле booking
+    # и наличии услуг (Service). Карточка ведёт к выбору времени.
+    ("services", _("Services & prices"), False),
     ("promotions", _("Current offers"), True),
     # M20U-2: сетка категорий каталога (товары). Выкл по умолчанию — показываем,
     # только если включена и есть активные категории.
@@ -74,6 +78,7 @@ _LAYOUT_GAPS = ("sm", "md", "lg")
 GRID_SECTION_DEFAULTS = {
     "categories": {"preset": "cols4"},  # M20U-2: карточки категорий
     "events": {"preset": "cols3"},  # M20U-2: карточки ближайших мероприятий
+    "services": {"preset": "cols2"},  # A3: услуги (как service_index sm:grid-cols-2)
     "products": {"preset": "cols4"},  # было grid-cols-2 lg:grid-cols-4 (mobile 2)
     "stay_rooms": {"preset": "cols3", "mobile": 1},  # было grid-cols-1 sm:2 lg:3
     "promotions": {"preset": "cols3"},  # было 2 mobile / 3 lg
@@ -178,11 +183,11 @@ def section_limit(config, key) -> int:
 
 # M20U-7: секции главной с настраиваемым владельцем заголовком (иначе шаблон берёт
 # дефолтный {% trans %}). Хранится в config["section_titles"][key].
-SECTION_TITLE_KEYS = {"promotions", "categories", "products", "events", "stay_rooms"}
+SECTION_TITLE_KEYS = {"promotions", "categories", "products", "events", "stay_rooms", "services"}
 _SECTION_TITLE_MAX = 80
 
 # M20U-7: секции с ссылкой «View all» → её можно скрыть (show_all=False).
-SECTION_VIEWALL_KEYS = {"categories", "products", "events", "stay_rooms"}
+SECTION_VIEWALL_KEYS = {"categories", "products", "events", "stay_rooms", "services"}
 
 
 def section_title(config, key) -> str:

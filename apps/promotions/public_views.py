@@ -109,7 +109,7 @@ def storefront_home(request):
         from apps.core import archetypes
 
         primary = archetypes.primary_section(request.tenant)
-        if primary in {"events", "stay_rooms", "categories"}:
+        if primary in {"events", "stay_rooms", "categories", "services"}:
             for s in site["sections"]:
                 if s["key"] == primary:
                     s["enabled"] = True
@@ -170,6 +170,12 @@ def storefront_home(request):
                 status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
             ).order_by("starts_at")[: siteconfig.section_limit(site, "events")]
         )
+    # A3: блок «Leistungen & Preise» — услуги (Service) при активном модуле booking.
+    services_preview = []
+    if "services" in sections and modules.is_module_active(request.tenant, "booking"):
+        from apps.booking.models import Service
+
+        services_preview = list(Service.objects.filter(is_active=True))
     # M20U-5: «главный товар» архетипа — для CTA hero-баннера (ведёт на лендинг
     # primary item: магазин → товары, ретрит → события, отель → номера…).
     from apps.core import archetypes
@@ -187,6 +193,7 @@ def storefront_home(request):
             "archetype_teasers": archetype_teasers,
             "stay_rooms": stay_rooms,
             "events_preview": events_preview,
+            "services_preview": services_preview,
             "primary_item": primary_item,
         },
     )

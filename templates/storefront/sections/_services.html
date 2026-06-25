@@ -1,0 +1,33 @@
+{% load i18n siteui %}
+{% comment %}
+A3: блок «Leistungen & Preise» — услуги (Service) с ценой/длительностью на главной.
+Рендерится только при активном модуле booking и непустом services_preview. Карточка
+ведёт к выбору времени для услуги; «Alle ansehen» — на /termin/.
+{% endcomment %}
+{% if services_preview %}
+<section data-reveal class="mb-10">
+  <div class="flex items-end justify-between mb-4">
+    {% section_title site 'services' as st %}
+    <h2 class="text-xl md:text-2xl font-bold">{% if st %}{{ st }}{% else %}{% trans "Services & prices" %}{% endif %}</h2>
+    {% section_show_all site 'services' as sa %}{% if sa %}<a href="{% url 'storefront-termin' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+  </div>
+  <div class="{% grid_classes site 'services' %}">
+    {% for s in services_preview %}
+      <a href="{% url 'storefront-service-slots' s.pk %}" class="group flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+        <div class="min-w-0">
+          <h3 class="font-semibold text-lg truncate">{{ s.name }}</h3>
+          <p class="text-sm text-gray-500 mt-1">{% blocktrans with m=s.duration_minutes %}{{ m }} min{% endblocktrans %}</p>
+        </div>
+        <div class="text-right shrink-0">
+          {% if s.price_cents %}
+            <p class="font-semibold whitespace-nowrap">{% blocktrans with p=s.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}</p>
+          {% else %}
+            <p class="text-sm text-gray-400 whitespace-nowrap">{% trans "free" %}</p>
+          {% endif %}
+          <span class="mt-2 inline-block text-sm text-white rounded-lg px-3 py-1.5" style="background: var(--accent);" data-purchase-action>{% purchase_label 'booking' %}</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

@@ -52,6 +52,7 @@ def test_normalize_empty_gives_defaults():
         "hero",
         "stay_search",
         "stay_rooms",
+        "services",
         "promotions",
         "categories",
         "products",

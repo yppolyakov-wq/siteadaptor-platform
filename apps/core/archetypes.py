@@ -14,10 +14,15 @@ PRIMARY_SECTION = {
     "events": "events",
     "stays": "stay_rooms",
     "promotions": "promotions",
+    # A3: услуги по времени (Friseur/Massage/Werkstatt-Termin) — главный товар на
+    # главной = блок «Leistungen & Preise».
+    "booking": "services",
 }
 
-# Приоритет выбора «главного» архетипа, если storefront_root не задан явно.
-_PRIORITY = ["events", "stays", "catalog", "promotions"]
+# Приоритет выбора «главного» архетипа, если storefront_root не задан явно. booking
+# выше catalog: у салона/мастерской каталог второстепенен (мерч/Teile), главный
+# товар — услуга (Termin).
+_PRIORITY = ["events", "stays", "booking", "catalog", "promotions"]
 
 # M20U-5: способ покупки по архетипу — определяет виджет на детальной/листинге.
 #   cart    — добавить в корзину (товары → /warenkorb/);
