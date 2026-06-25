@@ -25,6 +25,25 @@
     </form>
 
   {% elif step == 2 %}
+    {# B.2 (анти-Битрикс): выбор стиля витрины как визуальные карточки — один клик. #}
+    <h1 class="text-2xl font-bold mb-1">Stil &amp; Farbe</h1>
+    <p class="text-sm text-gray-500 mb-4">Wähle einen Look — Layout, Texte und Farbe werden gesetzt. Später frei anpassbar.</p>
+    <form method="post" class="space-y-2">
+      {% csrf_token %}
+      {% for t in templates %}
+        <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer hover:ring-1 hover:ring-indigo-300">
+          <input type="radio" name="template" value="{{ t.key }}" {% if forloop.first %}checked{% endif %} class="mt-1 border-gray-300">
+          <span>
+            <span class="inline-flex items-center gap-2 text-sm font-medium">
+              <span class="inline-block w-4 h-4 rounded-full border border-black/10" style="background: {{ t.accent }};"></span>{{ t.label }}</span>
+            <span class="block text-xs text-gray-500 mt-0.5">{{ t.description_de }}</span>
+          </span>
+        </label>
+      {% endfor %}
+      {% include "tenant/_setup_buttons.html" %}
+    </form>
+
+  {% elif step == 3 %}
     <h1 class="text-2xl font-bold mb-1">Was willst du anbieten?</h1>
     <p class="text-sm text-gray-500 mb-4">Du kannst Bausteine später jederzeit unter „Modules“ ändern.</p>
     <form method="post" class="space-y-2">
@@ -64,7 +83,7 @@
       {% include "tenant/_setup_buttons.html" %}
     </form>
 
-  {% elif step == 3 %}
+  {% elif step == 4 %}
     <h1 class="text-2xl font-bold mb-1">Die Basics</h1>
     <p class="text-sm text-gray-500 mb-4">Adresse und Öffnungszeiten erscheinen auf deiner Website.</p>
     <form method="post" class="space-y-4">
@@ -90,7 +109,29 @@
       {% include "tenant/_setup_buttons.html" %}
     </form>
 
-  {% elif step == 4 %}
+  {% elif step == 5 %}
+    {# B.3 (анти-Битрикс): баннер — заголовок/подзаголовок + загрузка фото файлом. #}
+    <h1 class="text-2xl font-bold mb-1">Dein Banner</h1>
+    <p class="text-sm text-gray-500 mb-4">Das Erste, was Besucher sehen. Titel, kurzer Text und optional ein Foto.</p>
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_title">Titel</label>
+        <input id="id_hero_title" name="hero_title" type="text" value="{{ hero_title }}" placeholder="Willkommen" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_text">Untertitel</label>
+        <textarea id="id_hero_text" name="hero_text" rows="2" placeholder="Kurz, was dich ausmacht." class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ hero_text }}</textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_image">Foto (optional)</label>
+        {% if hero_image %}<img src="{{ hero_image }}" alt="" class="w-full h-32 object-cover rounded-lg mb-2">{% endif %}
+        <input id="id_hero_image" name="hero_image" type="file" accept="image/*" class="block w-full text-sm text-gray-600">
+      </div>
+      {% include "tenant/_setup_buttons.html" %}
+    </form>
+
+  {% elif step == 6 %}
     <h1 class="text-2xl font-bold mb-1">Dein erster Inhalt</h1>
     <p class="text-sm text-gray-500 mb-4">Starte mit einer typischen Aktion — ein Klick, fertig ausgefüllt.</p>
     {# B.1 (анти-Битрикс): наполнить сайт демо-контентом одним кликом — витрина сразу не пустая. #}

@@ -5,12 +5,14 @@
 в Tenant.site_config["onboarding"] (siteconfig.normalize и site_view его
 сохраняют): {"step": 1..5, "skipped": [...], "completed": bool}.
 
-Шаги: 1) Was machst du? (business_type → предвыбор блоков) → 2) Was willst du
-anbieten? (тумблеры модулей) → 3) Basics (адрес/часы/контакты) → 4) Erster
-Inhalt (пресеты акций) → 5) Geschafft. Достижение шага 5 = мастер завершён.
+Шаги (B.4 «анти-Битрикс», линейный ≤10): 1) Was machst du? (business_type →
+предвыбор блоков) → 2) Stil & Farbe (выбор шаблона+акцент) → 3) Was willst du
+anbieten? (тумблеры модулей) → 4) Basics (адрес/часы/контакты) → 5) Dein Banner
+(hero-текст + загрузка фото) → 6) Inhalt & Vorschau (демо-контент + пресеты +
+ссылка на превью) → 7) Geschafft. Достижение шага 7 = мастер завершён.
 """
 
-TOTAL_STEPS = 5
+TOTAL_STEPS = 7
 
 
 def get_state(tenant) -> dict:
@@ -65,7 +67,7 @@ def back(tenant) -> dict:
 
 
 def progress(tenant) -> tuple[int, int]:
-    """(пройдено, всего) для плашки «Setup-Fortschritt N/5» на дашборде."""
+    """(пройдено, всего) для плашки «Setup-Fortschritt N/7» на дашборде."""
     state = get_state(tenant)
     done = TOTAL_STEPS if state["completed"] else state["step"] - 1
     return done, TOTAL_STEPS

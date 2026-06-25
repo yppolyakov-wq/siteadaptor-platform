@@ -88,7 +88,7 @@ def setup_view(request):
     """
     from apps.core import modules as registry
     from apps.promotions import presets
-    from apps.tenants import demo, onboarding
+    from apps.tenants import demo, onboarding, siteconfig
     from apps.tenants.models import Tenant
 
     tenant = request.tenant
@@ -131,12 +131,17 @@ def setup_view(request):
                     update_fields.insert(1, "disabled_modules")
                 tenant.save(update_fields=update_fields)
         elif step == 2:
+            # B.2: выбор шаблона витрины (раскладка+тексты+акцент) одним кликом.
+            from apps.tenants import sitetemplates
+
+            sitetemplates.apply_template(tenant, request.POST.get("template", ""))
+        elif step == 3:
             enabled_keys = set(request.POST.getlist("modules"))
             tenant.disabled_modules = [
                 spec.key for spec in registry.optional_modules() if spec.key not in enabled_keys
             ]
             tenant.save(update_fields=["disabled_modules", "updated_at"])
-        elif step == 3:
+        elif step == 4:
             for field in ("address", "opening_hours", "contact_phone", "contact_email"):
                 setattr(tenant, field, request.POST.get(field, "").strip())
             tenant.save(
@@ -148,7 +153,10 @@ def setup_view(request):
                     "updated_at",
                 ]
             )
-        # Шаг 4 — кнопки пресетов уводят в форму акции; «Weiter» просто двигает дальше.
+        elif step == 5:
+            # B.3: баннер — заголовок/подзаголовок hero + опц. загрузка фото файлом.
+            _save_hero(request, tenant)
+        # Шаг 6 — демо/пресеты (action-кнопки выше); «Weiter» просто двигает дальше.
         onboarding.advance(tenant)
         return redirect("setup")
 
@@ -156,6 +164,14 @@ def setup_view(request):
     if step == 1:
         context["business_types"] = Tenant.BUSINESS_TYPES
     elif step == 2:
+        # B.2: шаблоны витрины как визуальные карточки (рекомендованные типу — сверху).
+        from apps.tenants import sitetemplates
+
+        config = siteconfig.normalize(tenant.site_config)
+        active = [s["key"] for s in config["sections"] if s["enabled"]]
+        context["templates"] = sitetemplates.templates_for(tenant.business_type)
+        context["current_sections"] = active
+    elif step == 3:
 
         def _row(spec):
             return {
@@ -175,10 +191,37 @@ def setup_view(request):
             for spec in optional
             if not registry.is_suited_for(spec, tenant.business_type)
         ]
-    elif step == 4:
+    elif step == 5:
+        # B.3: текущие значения баннера для предзаполнения.
+        config = siteconfig.normalize(tenant.site_config)
+        context["hero_title"] = config["hero_title"]
+        context["hero_text"] = config["hero_text"]
+        context["hero_image"] = config["hero_image"]
+    elif step == 6:
         context["presets"] = presets.presets_for(tenant.business_type)
         context["has_demo"] = demo.has_demo(tenant)  # B.1: предложить/убрать демо-контент
     return render(request, "tenant/setup.html", context)
+
+
+def _save_hero(request, tenant):
+    """B.3: сохранить баннер мастера — hero-тексты + опц. загруженное фото (файл)."""
+    from apps.tenants import siteconfig
+
+    config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    config["hero_title"] = request.POST.get("hero_title", "").strip()
+    config["hero_text"] = request.POST.get("hero_text", "").strip()
+    uploaded = request.FILES.get("hero_image")
+    if uploaded:
+        from apps.catalog import images
+
+        try:
+            images.validate_image(uploaded)
+            ref = images.save_product_image(uploaded, folder="hero")
+            config["hero_image"] = ref["url"]
+        except Exception:
+            messages.error(request, _("Couldn't upload the image — please try another file."))
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config", "updated_at"])
 
 
 def _parse_opening_hours(request) -> dict:

@@ -47,8 +47,10 @@ urlpatterns = [
     path("health/ready/", health.readiness, name="health-ready"),
     # --- Кабинет владельца (под логином) ---
     path("dashboard/", dashboard, name="dashboard"),
-    # Onboarding-Wizard (Track D / D0c): пошаговая настройка после регистрации.
+    # Onboarding-Wizard (Track D / D0c; B.4 линейный ≤10): пошаговая настройка после
+    # регистрации. `/willkommen/` — дружелюбный алиас на тот же мастер (анти-Битрикс).
     path("dashboard/setup/", setup_view, name="setup"),
+    path("willkommen/", setup_view, name="willkommen"),
     path("dashboard/settings/", settings_view, name="settings"),
     path("dashboard/extras/", extras_view, name="extras"),
     # Конструктор витрины v1 (Track C2).

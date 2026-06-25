@@ -1877,3 +1877,13 @@
   НЕ пустая (главный психологический рычаг анти-Битрикс). Остаёмся на шаге 4, статус
   has_demo переключает загрузить/убрать. Без новой модели/шага (TOTAL_STEPS=5).
   Тест `test_step4_loads_and_clears_demo_content`. build:css обновлён.
+- **2026-06-25 — Спринт B.4 (анти-Битрикс Phase 1): линейный мастер /willkommen/
+  (7 шагов) + тема (B.2) + баннер с фото (B.3).** Онбординг переведён на линейный
+  ≤10-шаговый флоу: 1 тип → 2 **Stil & Farbe** (выбор шаблона витрины карточками,
+  `sitetemplates.apply_template`) → 3 модули → 4 Basics → 5 **Dein Banner** (hero-
+  заголовок/подзаголовок + загрузка фото файлом через `catalog.images`) → 6 Inhalt
+  (демо B.1 + пресеты) → 7 Geschafft. `TOTAL_STEPS=5→7`, новый алиас-маршрут
+  `/willkommen/`. Тесты онбординга обновлены под новую нумерацию + добавлены
+  `test_step2_shows_theme_picker`, `test_step5_banner_saves_hero_texts`,
+  `test_step6_*`. Без миграций. **Спринт B (Phase 1) закрыт: B.1–B.4.** Осталось
+  (опц., отдельно): объединение signup+provisioning в /willkommen/ (high-risk, гейт).

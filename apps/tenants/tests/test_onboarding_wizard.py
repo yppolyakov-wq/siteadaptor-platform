@@ -60,9 +60,13 @@ def test_normalize_preserves_onboarding():
 
 def test_full_walkthrough_sets_fields_and_completes():
     # Новый тенант: create_business ставит пресет вертикали (D0b) — мастер
-    # вправе пересчитать его при смене типа на шаге 1.
+    # вправе пересчитать его при смене типа на шаге 1. B.4: линейный 7-шаговый флоу.
     tenant = TenantFactory(
-        business_type="other", disabled_modules=modules.default_disabled_for("other")
+        schema_name="public",
+        slug="walk",
+        name="Walk",
+        business_type="other",
+        disabled_modules=modules.default_disabled_for("other"),
     )
     # Шаг 1: тип бизнеса → предвыбор блоков.
     response = core_views.setup_view(_req("post", {"business_type": "cafe"}, tenant))
@@ -71,11 +75,14 @@ def test_full_walkthrough_sets_fields_and_completes():
     assert tenant.business_type == "cafe"
     assert set(tenant.disabled_modules) == set(modules.default_disabled_for("cafe"))
     assert onboarding.get_state(tenant)["step"] == 2
-    # Шаг 2: владелец оставил только акции.
+    # Шаг 2 (B.2): выбор шаблона витрины.
+    core_views.setup_view(_req("post", {"template": "gastro"}, tenant))
+    assert onboarding.get_state(tenant)["step"] == 3
+    # Шаг 3: владелец оставил только акции.
     core_views.setup_view(_req("post", {"modules": ["promotions"]}, tenant))
     tenant.refresh_from_db()
     assert "loyalty" in tenant.disabled_modules and "promotions" not in tenant.disabled_modules
-    # Шаг 3: basics.
+    # Шаг 4: basics.
     core_views.setup_view(
         _req(
             "post",
@@ -85,13 +92,20 @@ def test_full_walkthrough_sets_fields_and_completes():
     )
     tenant.refresh_from_db()
     assert tenant.address == "Hauptstr. 1" and tenant.opening_hours == "Mo–Fr 8–18"
-    assert onboarding.get_state(tenant)["step"] == 4
-    # Шаг 4: «Weiter» → финал, мастер завершён.
+    assert onboarding.get_state(tenant)["step"] == 5
+    # Шаг 5 (B.3): баннер (hero-тексты).
+    core_views.setup_view(_req("post", {"hero_title": "Hallo", "hero_text": "Schön"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config["hero_title"] == "Hallo"
+    assert onboarding.get_state(tenant)["step"] == 6
+    # Шаг 6: «Weiter» → шаг 7.
+    core_views.setup_view(_req("post", {}, tenant))
+    # Шаг 7: финал, мастер завершён.
     core_views.setup_view(_req("post", {}, tenant))
     tenant.refresh_from_db()
     state = onboarding.get_state(tenant)
-    assert state["step"] == 5 and state["completed"]
-    assert onboarding.progress(tenant) == (5, 5)
+    assert state["step"] == 7 and state["completed"]
+    assert onboarding.progress(tenant) == (7, 7)
 
 
 def test_skip_advances_without_changes():
@@ -105,30 +119,49 @@ def test_skip_advances_without_changes():
 
 def test_resume_renders_current_step():
     tenant = TenantFactory()
-    onboarding.save_state(tenant, {"step": 3, "skipped": [], "completed": False})
+    onboarding.save_state(tenant, {"step": 4, "skipped": [], "completed": False})
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert "Basics" in html and "Öffnungszeiten" in html
-    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": True})
+    onboarding.save_state(tenant, {"step": 7, "skipped": [], "completed": True})
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert "Geschafft" in html
 
 
-def test_step4_shows_vertical_presets():
+def test_step2_shows_theme_picker():
+    """B.2: шаг 2 — выбор шаблона витрины (визуальные карточки)."""
     tenant = TenantFactory(business_type="bakery")
-    onboarding.save_state(tenant, {"step": 4, "skipped": [], "completed": False})
+    onboarding.save_state(tenant, {"step": 2, "skipped": [], "completed": False})
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "Stil" in html and 'name="template"' in html
+
+
+def test_step5_banner_saves_hero_texts():
+    """B.3: шаг 5 — баннер (hero-тексты сохраняются в site_config)."""
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": False})
+    core_views.setup_view(_req("post", {"hero_title": "Moin", "hero_text": "Frisch"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config["hero_title"] == "Moin"
+    assert tenant.site_config["hero_text"] == "Frisch"
+    assert onboarding.get_state(tenant)["step"] == 6
+
+
+def test_step6_shows_vertical_presets():
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert "preset=feierabend" in html and "Produkt anlegen" in html
 
 
-def test_step4_loads_and_clears_demo_content():
-    """B.1 (анти-Битрикс): демо-контент грузится прямо из мастера, остаёмся на шаге 4."""
+def test_step6_loads_and_clears_demo_content():
+    """B.1 (анти-Битрикс): демо-контент грузится прямо из мастера, остаёмся на шаге 6."""
     from apps.tenants import demo
 
     # schema_name=public → catalog/promotions доступны (как в test_demo).
     tenant = TenantFactory(
         schema_name="public", slug="wiz-demo", name="WizDemo", business_type="bakery"
     )
-    onboarding.save_state(tenant, {"step": 4, "skipped": [], "completed": False})
+    onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
     # GET: предложение загрузить демо.
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert "Beispiel-Inhalte laden" in html
@@ -136,7 +169,7 @@ def test_step4_loads_and_clears_demo_content():
     response = core_views.setup_view(_req("post", {"action": "load_demo"}, tenant))
     assert response.status_code == 302
     assert demo.has_demo(tenant) is True
-    assert onboarding.get_state(tenant)["step"] == 4
+    assert onboarding.get_state(tenant)["step"] == 6
     # Теперь предлагается убрать; clear_demo очищает.
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert "entfernen" in html
@@ -151,7 +184,7 @@ def test_dashboard_shows_progress_until_completed():
     tenant = TenantFactory()
     onboarding.save_state(tenant, {"step": 3, "skipped": [1], "completed": False})
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
-    assert "Setup-Fortschritt: 2/5" in html
+    assert "Setup-Fortschritt: 2/7" in html
     onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": True})
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
     assert "Setup-Fortschritt" not in html

@@ -91,15 +91,15 @@ Meisterbetrieb/Innung).
 (идемпотентно, обратимо `clear_demo`). **Файлы:** `apps/tenants/onboarding.py`,
 `apps/core/views.py::setup_view`, `templates/tenant/setup.html`.
 
-### B.2 — Тема-пикер внутри мастера (визуальные карточки) ☐  (S)
+### B.2 — Тема-пикер внутри мастера (визуальные карточки) ✅  (S)
 Шаг «Stil & Farbe»: 5 шаблонов `sitetemplates.TEMPLATES` как превью-карточки +
 акцент. **Файлы:** мастер + миниатюры шаблонов.
 
-### B.3 — Загрузчик картинки в hero/баннеры (файл вместо URL) ☐  (M)
+### B.3 — Загрузчик картинки в hero/баннеры (файл вместо URL) ✅  (M)
 Использовать `catalog.images.save_product_image`. **Файлы:** `site_view`/builder,
 форма hero, шаблон.
 
-### B.4 — Линейный онбординг `/willkommen/` (HTMX-фрагменты, ≤10 шагов) ☐  (M)
+### B.4 — Линейный онбординг `/willkommen/` (7 шагов) ✅  (M)
 Объединить signup + setup в один линейный URL; шаги — hx-swap; состояние в
 `site_config["onboarding"]`. Финал — «вот твой готовый сайт». **Файлы:**
 `apps/tenants/views.py`, `forms.py` (упростить signup: слаг авто), urls, шаблоны.
