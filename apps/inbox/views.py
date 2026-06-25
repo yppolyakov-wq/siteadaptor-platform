@@ -82,6 +82,14 @@ def thread(request, pk):
     )
 
 
+def unread_count(request):
+    """M22b realtime: число тредов с непрочитанным для staff — живой бейдж в нав."""
+    from django.http import JsonResponse
+
+    n = Conversation.objects.filter(unread_for_staff=True).count()
+    return JsonResponse({"count": n})
+
+
 def thread_poll(request, pk):
     """M22b realtime: последние сообщения треда в JSON для кабинета — staff видит
     ответ клиента без перезагрузки. Сбрасывает бейдж непрочитанного (тред открыт)."""
