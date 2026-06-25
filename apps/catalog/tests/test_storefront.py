@@ -116,6 +116,46 @@ def test_product_detail_404_for_inactive():
         public_views.product_detail(_req(), pk=product.pk)
 
 
+def test_home_archetype_default_enables_primary_section():
+    """M20U-2: на ненастроенной главной секция «главного товара» архетипа включена сама."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.events.models import Event
+
+    Event.objects.create(
+        title="Yoga-Retreat",
+        starts_at=timezone.now() + timedelta(days=10),
+        status=Event.STATUS_PUBLISHED,
+    )
+    req = _req("/")
+    req.tenant = TenantFactory.build(disabled_modules=[])  # все модули активны, конфиг без sections
+    body = public_views.storefront_home(req).content.decode()
+    assert "Yoga-Retreat" in body and "/veranstaltung/" in body
+
+
+def test_home_archetype_default_skipped_when_sections_configured():
+    """Если владелец задал композицию (есть sections), авто-включения нет."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.events.models import Event
+
+    Event.objects.create(
+        title="Yoga-Retreat",
+        starts_at=timezone.now() + timedelta(days=10),
+        status=Event.STATUS_PUBLISHED,
+    )
+    req = _req("/")
+    req.tenant = TenantFactory.build(disabled_modules=[])
+    req.tenant.site_config = {"sections": [{"key": "contact", "enabled": True}]}
+    body = public_views.storefront_home(req).content.decode()
+    # секции событий нет → ни карточки события (заголовок только в секции, не в навбаре)
+    assert "Yoga-Retreat" not in body
+
+
 def test_home_categories_section_when_enabled():
     """M20U-2: секция категорий на главной — карточки top-level → каталог с фильтром."""
     CategoryFactory(slug="brot", name={"de": "Brot"}, sort_order=1)
