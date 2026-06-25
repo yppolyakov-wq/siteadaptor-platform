@@ -43,6 +43,13 @@ def test_pages_view_saves_per_page_layouts():
     assert cfg["events_index_layout"]["preset"] == "cols3"
 
 
+def test_pages_view_saves_related_layout():
+    tenant = TenantFactory(schema_name="public", slug="pvr", name="PVR")
+    resp = views.pages_view(_request("post", {"related_preset": "cols3"}, tenant))
+    assert resp.status_code == 302
+    assert siteconfig.normalize(tenant.site_config)["detail_related_layout"]["preset"] == "cols3"
+
+
 def test_pages_view_get_renders_active_pages_only():
     # catalog активен, stays/events выключены → только селектор каталога.
     tenant = TenantFactory(

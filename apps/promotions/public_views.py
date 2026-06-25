@@ -296,12 +296,18 @@ def product_detail(request, pk):
         if product.category_id
         else []
     )
+    from apps.tenants import siteconfig
+
+    related_grid = siteconfig.grid_class_string(
+        siteconfig.normalize(request.tenant.site_config)["detail_related_layout"]
+    )
     return render(
         request,
         "storefront/product_detail.html",
         {
             "product": product,
             "related": related,
+            "related_grid": related_grid,
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
             "orders_enabled": request.tenant.is_module_active("orders"),
         },

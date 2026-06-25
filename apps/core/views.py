@@ -806,6 +806,7 @@ def pages_view(request):
     if request.method == "POST":
         config = siteconfig.normalize(request.tenant.site_config)
         config["catalog_layout"] = {"preset": request.POST.get("catalog_preset", "")}
+        config["detail_related_layout"] = {"preset": request.POST.get("related_preset", "")}
         config["stay_index_layout"] = {
             "preset": request.POST.get("stay_index_preset", ""),
             "mobile": 1,
@@ -833,6 +834,7 @@ def pages_view(request):
             "nav": "site",
             "preset_options": preset_options,
             "catalog_preset": config["catalog_layout"]["preset"],
+            "related_preset": config["detail_related_layout"]["preset"],
             "stay_index_preset": config["stay_index_layout"]["preset"],
             "events_index_preset": config["events_index_layout"]["preset"],
             # Показываем настройку страницы, только если её модуль активен.

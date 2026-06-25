@@ -665,6 +665,11 @@ def normalize(config) -> dict:
     normalized["events_index_layout"] = normalize_layout(
         config.get("events_index_layout"), {"preset": "list"}
     )
+    # M20U-7 (per-page): раскладка блока «похожие товары» на детальной. Дефолт
+    # cols4 воспроизводит прежнюю сетку (grid-cols-2 lg:grid-cols-4).
+    normalized["detail_related_layout"] = normalize_layout(
+        config.get("detail_related_layout"), {"preset": "cols4"}
+    )
     # M20U-7: кастомные заголовки секций главной (только известные ключи, обрезка).
     titles = config.get("section_titles")
     clean_titles = {}

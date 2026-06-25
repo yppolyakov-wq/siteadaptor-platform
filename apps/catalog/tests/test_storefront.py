@@ -119,6 +119,18 @@ def test_product_detail_uses_unified_scaffold():
     assert "lg:sticky" in body and "lg:grid-cols-2" in body
 
 
+def test_product_detail_related_grid_from_config():
+    """M20U-7 (per-page): сетка «похожих товаров» берётся из detail_related_layout."""
+    cat = CategoryFactory(slug="brot", name={"de": "Brot"})
+    product = ProductFactory(name={"de": "Roggenbrot"}, category=cat)
+    ProductFactory(name={"de": "Dinkelbrot"}, category=cat)  # related
+    req = _req(f"/sortiment/{product.pk}/")
+    req.tenant.site_config = {"detail_related_layout": {"preset": "cols3"}}
+    body = public_views.product_detail(req, pk=product.pk).content.decode()
+    assert "Dinkelbrot" in body  # блок похожих отрисован
+    assert "lg:grid-cols-3" in body  # пресет применён (дефолт был cols4)
+
+
 def test_product_detail_404_for_inactive():
     product = ProductFactory(is_active=False)
     with pytest.raises(Http404):

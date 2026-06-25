@@ -149,6 +149,13 @@ def test_stay_index_layout_default_and_override():
     assert cfg2["stay_index_layout"]["cols"] == 4
 
 
+def test_detail_related_layout_default_and_override():
+    # M20U-7 (per-page): раскладка «похожих товаров» на детальной.
+    assert siteconfig.normalize({})["detail_related_layout"]["cols"] == 4  # дефолт
+    cfg = siteconfig.normalize({"detail_related_layout": {"preset": "cols3"}})
+    assert cfg["detail_related_layout"]["cols"] == 3
+
+
 def test_events_index_layout_default_list_and_override():
     # M20U-7 (per-page): раскладка индекса событий; дефолт — список.
     assert siteconfig.normalize({})["events_index_layout"]["preset"] == "list"

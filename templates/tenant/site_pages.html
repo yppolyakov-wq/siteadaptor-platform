@@ -21,6 +21,13 @@
         {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == catalog_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
       </select>
     </label>
+    <label class="block text-sm">
+      <span class="block font-medium mb-1">{% trans "Related products grid" %}</span>
+      <span class="block text-xs text-gray-400 mb-1.5">{% trans "“More from this category” on a product page." %}</span>
+      <select name="related_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == related_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+      </select>
+    </label>
     {% endif %}
     {% if has_stays %}
     <label class="block text-sm">
