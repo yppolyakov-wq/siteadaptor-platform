@@ -84,6 +84,12 @@ GRID_SECTION_DEFAULTS = {
     "gallery": {"preset": "gallery"},  # было grid-cols-2 sm:3 lg:4
 }
 
+# M20U-7: секции-превью на главной с настраиваемым числом элементов (source.limit).
+# Ключ → дефолт (воспроизводит текущее поведение storefront_home). Прочие секции-
+# сетки (categories/stay_rooms/team/…) показывают всё — лимит к ним не применяем.
+GRID_SECTION_LIMITS = {"products": 8, "events": 6}
+_SECTION_LIMIT_MAX = 24
+
 # Purge-safe статические таблицы Tailwind-классов (динамические строки нельзя —
 # их вырежет purge). mobile=база, sm=планшет (капд до 3), lg=десктоп.
 _GRID_MOBILE = {1: "grid-cols-1", 2: "grid-cols-2"}
@@ -150,6 +156,18 @@ def section_layout(config, key) -> dict:
         ):
             return item["layout"]
     return normalize_layout(None, default)
+
+
+def section_limit(config, key) -> int:
+    """M20U-7: сколько элементов выводит секция-превью `key` (клампится 1..MAX).
+
+    Берётся из конфига секции, иначе дефолт `GRID_SECTION_LIMITS`. Для секций без
+    настраиваемого лимита возвращает дефолт 8 (на всякий случай)."""
+    default = GRID_SECTION_LIMITS.get(key, 8)
+    for item in (config or {}).get("sections", []):
+        if isinstance(item, dict) and item.get("key") == key:
+            return _clamp(item.get("limit"), 1, _SECTION_LIMIT_MAX, default)
+    return default
 
 
 TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
@@ -456,21 +474,26 @@ def normalize(config) -> dict:
     seen = set()
     sections = []
 
-    def _section(key, enabled, raw_layout):
+    def _section(key, enabled, raw_layout, raw_limit):
         # M20R-1: секции-сетки несут layout (пресет+override); прочие — нет.
         entry = {"key": key, "enabled": enabled}
         if key in GRID_SECTION_DEFAULTS:
             entry["layout"] = normalize_layout(raw_layout, GRID_SECTION_DEFAULTS[key])
+        # M20U-7: секции-превью несут настраиваемый лимит элементов.
+        if key in GRID_SECTION_LIMITS:
+            entry["limit"] = _clamp(raw_limit, 1, _SECTION_LIMIT_MAX, GRID_SECTION_LIMITS[key])
         return entry
 
     for item in config.get("sections", []):
         key = item.get("key") if isinstance(item, dict) else None
         if key in _KNOWN and key not in seen:
-            sections.append(_section(key, bool(item.get("enabled")), item.get("layout")))
+            sections.append(
+                _section(key, bool(item.get("enabled")), item.get("layout"), item.get("limit"))
+            )
             seen.add(key)
     for key, _label, enabled in SECTIONS:
         if key not in seen:
-            sections.append(_section(key, enabled, None))
+            sections.append(_section(key, enabled, None, None))
 
     normalized = {"sections": sections}
     for field in TEXT_FIELDS:

@@ -450,6 +450,9 @@ def home_builder_view(request):
                 preset = request.POST.get(f"layout_preset_{key}", "")
                 if preset in siteconfig.LAYOUT_PRESETS:
                     entry["layout"] = {"preset": preset}
+            # M20U-7: число элементов секции-превью (normalize клампит).
+            if key in siteconfig.GRID_SECTION_LIMITS:
+                entry["limit"] = request.POST.get(f"limit_{key}", "")
             new_sections.append(entry)
         config["sections"] = new_sections
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
@@ -495,6 +498,9 @@ def home_builder_view(request):
             # M20U-7: для секций-сеток — текущий пресет раскладки (селектор в UI).
             "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
             "layout_preset": (s.get("layout") or {}).get("preset", ""),
+            # M20U-7: секции-превью — настраиваемое число элементов.
+            "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,
+            "limit": s.get("limit", ""),
         }
         for index, s in enumerate(config["sections"], start=1)
     ]
@@ -640,6 +646,11 @@ def site_preview_draft(request):
                     and lay.get("preset") in siteconfig.LAYOUT_PRESETS
                 ):
                     row["layout"] = {"preset": lay["preset"]}
+                # M20U-7: лимит секции-превью → в черновик (normalize клампит).
+                if key in siteconfig.GRID_SECTION_LIMITS and isinstance(
+                    item.get("limit"), (int, str)
+                ):
+                    row["limit"] = item["limit"]
                 rows.append(row)
                 seen.add(key)
         if rows:

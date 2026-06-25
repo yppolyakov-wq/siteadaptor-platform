@@ -181,6 +181,17 @@ def test_home_shows_products_preview():
     assert "/sortiment/" in body
 
 
+def test_home_products_preview_respects_limit():
+    """M20U-7: число товаров в превью главной берётся из конфига секции."""
+    for i in range(10):
+        ProductFactory(name={"de": f"Brot{i}"})
+    req = _req("/")
+    req.tenant.site_config = {"sections": [{"key": "products", "enabled": True, "limit": 3}]}
+    body = public_views.storefront_home(req).content.decode()
+    shown = sum(1 for i in range(10) if f"Brot{i}" in body)
+    assert shown == 3
+
+
 def test_home_without_products_has_no_section():
     body = public_views.storefront_home(_req("/")).content.decode()
     assert "/sortiment/</a>" not in body  # ссылки «View all» нет без товаров

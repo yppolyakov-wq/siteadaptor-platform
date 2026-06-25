@@ -84,6 +84,11 @@
                   {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
                 </select>
               {% endif %}
+              {% if s.has_limit %}
+                {# M20U-7: число элементов секции-превью на главной #}
+                <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="24"
+                       class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
+              {% endif %}
             </div>
           {% endfor %}
         </div>
@@ -234,6 +239,9 @@
       // M20U-7: пресет раскладки секции-сетки → в превью.
       var sel = form.querySelector("select[name='layout_preset_" + r.key + "']");
       if (sel && sel.value) sec.layout = { preset: sel.value };
+      // M20U-7: число элементов секции-превью → в превью.
+      var lim = form.querySelector("input[name='limit_" + r.key + "']");
+      if (lim && lim.value) sec.limit = parseInt(lim.value, 10);
       return sec;
     });
     var archetypes = {};

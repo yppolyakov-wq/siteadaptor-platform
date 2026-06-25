@@ -85,6 +85,16 @@ def test_home_builder_saves_layout_preset():
     assert products["layout"]["cols"] == 3  # пресет развёрнут normalize_layout
 
 
+def test_home_builder_saves_limit():
+    """M20U-7: число элементов секции-превью сохраняется (клампится в normalize)."""
+    tenant = TenantFactory(schema_name="public", slug="hbn", name="HBN")
+    data = {"order_products": "1", "enabled_products": "on", "limit_products": "4"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.section_limit(cfg, "products") == 4
+
+
 def test_home_builder_get_renders_layout_select():
     """M20U-7: для секций-сеток в билдере отрисован селектор раскладки."""
     tenant = TenantFactory(schema_name="public", slug="hbl2", name="HBL2")

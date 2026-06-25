@@ -114,7 +114,7 @@ def storefront_home(request):
 
         products_preview = Product.objects.filter(is_active=True).order_by(
             "-is_featured", "-created_at"
-        )[:8]
+        )[: siteconfig.section_limit(site, "products")]
     # M20U-2: сетка категорий каталога (верхний уровень, активные).
     categories = []
     if "categories" in sections:
@@ -149,7 +149,7 @@ def storefront_home(request):
         events_preview = list(
             Event.objects.filter(
                 status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
-            ).order_by("starts_at")[:6]
+            ).order_by("starts_at")[: siteconfig.section_limit(site, "events")]
         )
     # M20U-5: «главный товар» архетипа — для CTA hero-баннера (ведёт на лендинг
     # primary item: магазин → товары, ретрит → события, отель → номера…).

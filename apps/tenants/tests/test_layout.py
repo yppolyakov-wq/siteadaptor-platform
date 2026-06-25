@@ -96,3 +96,25 @@ def test_section_layout_lookup_and_fallback():
     assert siteconfig.section_layout(cfg, "products")["cols"] == 2
     # секция без записи → дефолт по ключу
     assert siteconfig.section_layout({"sections": []}, "team")["cols"] == 4
+
+
+def test_section_limit_default_override_and_clamp():
+    # M20U-7: число элементов секции-превью.
+    assert siteconfig.section_limit({"sections": []}, "products") == 8  # дефолт
+    assert siteconfig.section_limit({"sections": []}, "events") == 6
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True, "limit": 3}]})
+    assert siteconfig.section_limit(cfg, "products") == 3
+    # мусор/выход за границы → клампится к дефолту/максимуму
+    assert siteconfig.section_limit({"sections": [{"key": "events", "limit": "x"}]}, "events") == 6
+    assert (
+        siteconfig.section_limit({"sections": [{"key": "products", "limit": 999}]}, "products")
+        == 24
+    )
+
+
+def test_normalize_attaches_limit_only_to_preview_sections():
+    cfg = siteconfig.normalize({})
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    team = next(s for s in cfg["sections"] if s["key"] == "team")
+    assert products["limit"] == 8  # дефолт
+    assert "limit" not in team  # не секция-превью
