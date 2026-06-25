@@ -24,6 +24,13 @@
 - Коммиты: завершать `Co-Authored-By: Claude …` + `Claude-Session: …` (как в истории).
   Идентификатор модели в артефактах НЕ светить.
 
+## 1a. Статус мержа в main (2026-06-25)
+Спринты A–D интегрированы с актуальным main (merge-коммит — main был на 8 коммитов
+впереди: M20U-7/M22b). Конфликты разрешены (`home.html`: реестр `render_block` +
+обёртка `data-sf-section`; build-log; app.css пересобран). Ждём зелёный CI ветки →
+**FF-push `main`**. Деплой простой (миграций в A–D нет):
+`git pull origin main && ./scripts/deploy.sh single`. Детали — `build-log.md`.
+
 ## 2. Что уже сделано (✅, всё запушено, тесты зелёные)
 - **Спринт A** — сквозные витринные блоки: блок услуг `services` (A3), отзывы на
   витрине в китах, Trust/USP-bar (`usp_bar`), полноэкранный лайтбокс галереи.
@@ -87,6 +94,11 @@
   round-trip — не пересобирать sections только из `SECTIONS` (был баг, исправлен).
 - Демо-тенанты: `python manage.py seed_demo_tenants --recreate` (киты в
   `apps/tenants/demo_kits.py`). Проверка онбординга: `/willkommen/`.
+- **Многострочные комментарии в шаблонах — только `{% comment %}…{% endcomment %}`**,
+  НЕ `{# … #}` (многострочный `{# #}` Django не вырезает → текст утекает в HTML;
+  ловится `test_storefront_header_does_not_leak_template_comment`).
+- **CI ~16 мин** на полном suite (serial, schema-heavy django-tenants). Это норма,
+  не зависание. Канонический гейт — CI на git (CLAUDE.md §5), локальный прогон — фолбэк.
 
 ## 5. Definition of done каждого инкремента
 ruff (раздельно check/format) зелёный · build:css свежий (если шаблоны) · новые тесты

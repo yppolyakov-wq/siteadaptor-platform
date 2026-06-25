@@ -1940,3 +1940,18 @@
   сквозной визуальный конструктор (per-секционные контролы, per-page раскладки, вкладка
   Pages, реестр секций детальной, клик-фокус, live-preview). Вне ядра (отдельные треки):
   общий Category/Tag-дерево (M20U-6), realtime-чат, per-page блок-холст.
+- **2026-06-25 — Интеграция Спринтов A–D в main (merge + фикс CI).** Ветка
+  `claude/archetype-analysis-market-gaps-dkwo87` отстала от main на 8 коммитов
+  (M20U-7/M22b: inbox-чат, live-поллинг, реестр секций детальной события,
+  клик-фокус). Влили `origin/main` в ветку (merge-коммит, не FF — main разошёлся).
+  **Конфликты (3):** `templates/storefront/home.html` — совместили мой реестр
+  `render_block` (D.1) с обёрткой `data-sf-section` главной (M20U-7 B клик-фокус):
+  `{% for b in section_blocks %}<div data-sf-section="{key|id}" style="display:contents">
+  {% render_block b %}</div>`; `docs/build-log.md` — оба набора записей; `static/css/app.css`
+  — пересобран `npm run build:css`. **CI merge-коммита упал 1 тестом** (1505 passed):
+  `test_storefront_header_does_not_leak_template_comment` — в home.html остался
+  МНОГОСТРОЧНЫЙ `{# #}` (Django его НЕ вырезает → текст «M20U-7…» утёк в шапку).
+  Фикс: заменён на `{% comment %}…{% endcomment %}` (урок CLAUDE.md: многострочные —
+  только `{% comment %}`). После фикса — ждём зелёный CI, затем FF-push `main`.
+  Миграций в A–D нет (JSON/шаблоны/вьюхи) → деплой простой:
+  `git pull origin main && ./scripts/deploy.sh single`.
