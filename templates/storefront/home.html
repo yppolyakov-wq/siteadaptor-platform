@@ -9,6 +9,8 @@
 якорь вешаем здесь обёрткой, а не внутри партиала.
 {% endcomment %}
 {% for s in sections %}
+  {# M20U-7 (B): метка секции для клика в live-preview билдера (display:contents — без влияния на layout) #}
+  <div data-sf-section="{{ s }}" style="display:contents">
   {% if s == "hero" %}{% include "storefront/sections/_hero.html" %}
   {% elif s == "stay_search" %}<div id="buchen" class="scroll-mt-24">{% include "storefront/sections/_stay_search.html" %}</div>
   {% elif s == "stay_rooms" %}<div id="zimmer" class="scroll-mt-24">{% include "storefront/sections/_stay_rooms.html" %}</div>
@@ -28,5 +30,6 @@
   {% elif s == "gallery" %}<div id="galerie" class="scroll-mt-24">{% include "storefront/sections/_gallery.html" %}</div>
   {% elif s == "contact" %}<div id="kontakt" class="scroll-mt-24">{% include "storefront/sections/_contact.html" %}</div>
   {% endif %}
+  </div>
 {% endfor %}
 {% endblock %}

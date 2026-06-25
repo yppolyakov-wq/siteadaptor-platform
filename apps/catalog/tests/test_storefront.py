@@ -229,6 +229,12 @@ def test_home_hero_cta_links_to_primary_item():
     assert "Veranstaltungen" in body  # storefront_label архетипа
 
 
+def test_home_sections_carry_sf_section_markers():
+    """M20U-7 (B): секции главной несут data-sf-section (клик в live-preview билдера)."""
+    body = public_views.storefront_home(_req("/")).content.decode()
+    assert 'data-sf-section="contact"' in body  # включённая по умолчанию секция
+
+
 def test_home_plain_hero_has_no_cta():
     """Дефолтный (plain) hero — без CTA: легаси-витрина не меняется."""
     body = public_views.storefront_home(_req("/")).content.decode()
