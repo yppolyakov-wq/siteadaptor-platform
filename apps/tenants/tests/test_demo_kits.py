@@ -177,6 +177,8 @@ def test_apply_pranasy_kit_uses_constructor_features():
     # M20U-7: кастомные заголовки секций
     assert cfg["section_titles"]["products"] == "Unsere Karte"
     assert cfg["section_titles"]["events"] == "Events bei Pranasy"
+    # M20U-7 (per-page): события — сеткой cols2
+    assert cfg["events_index_layout"]["preset"] == "cols2"
     # модули направлений активны
     for m in ("orders", "events", "jobs", "loyalty"):
         assert tenant.is_module_active(m)

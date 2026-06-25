@@ -106,6 +106,9 @@ class DemoKit:
     heroes: list = field(default_factory=list)
     # M20U-7: кастомные заголовки секций главной (key→строка); пусто → дефолты.
     section_titles: dict = field(default_factory=dict)
+    # M20U-7 (per-page): пресеты раскладки страниц-листингов (пусто → дефолт страницы).
+    #   {"catalog","stay_index","events","related"} → пресет (list/cols2-4/gallery).
+    page_layouts: dict = field(default_factory=dict)
     # Многоуровневое меню (S7): готовая структура menus (top/bottom) с подменю,
     # ссылками на категории (slug «demo-…») и группы акций. Пусто → легаси nav.
     menus: dict = field(default_factory=dict)
@@ -784,6 +787,8 @@ PRANASY = DemoKit(
         "promotions": "Angebote",
         "events": "Events bei Pranasy",
     },
+    # Меню — плотная сетка; события — карточками (а не списком).
+    page_layouts={"catalog": "cols3", "events": "cols2"},
     archetype_covers={
         "catalog": {
             "intro": "Unsere ganze Karte — Fastfood und Fertiggerichte, alles pflanzlich.",
@@ -2700,6 +2705,11 @@ def apply_kit(tenant, key: str) -> bool:
                 for i, h in enumerate(kit.heroes)
             ],
             "section_titles": kit.section_titles or {},
+            # M20U-7 (per-page): раскладки страниц-листингов (пусто → дефолт страницы).
+            "catalog_layout": {"preset": kit.page_layouts.get("catalog", "")},
+            "stay_index_layout": {"preset": kit.page_layouts.get("stay_index", ""), "mobile": 1},
+            "events_index_layout": {"preset": kit.page_layouts.get("events", "")},
+            "detail_related_layout": {"preset": kit.page_layouts.get("related", "")},
             "about_title": kit.about_title,
             "about_text": kit.about_text,
             "cta": kit.cta,
