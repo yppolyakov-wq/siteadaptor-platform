@@ -90,6 +90,23 @@ def test_thread_poll_returns_new_messages_since():
     assert data["messages"][-1]["role"] == "staff" and data["messages"][-1]["body"] == "Hallo!"
 
 
+def test_thread_shows_open_status():
+    """M22b: на странице треда — статус «на связи» по часам (открыто 24/7 → open)."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    req = _pub("get", f"/nachricht/{conv.public_token}/")
+    req.tenant.opening_hours_structured = {str(d): ["00:00", "23:59"] for d in range(7)}
+    body = public_views.thread(req, token=conv.public_token).content.decode()
+    assert 'data-chat-status="open"' in body
+
+
+def test_thread_no_status_without_hours():
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    req = _pub("get", f"/nachricht/{conv.public_token}/")
+    req.tenant.opening_hours_structured = {}
+    body = public_views.thread(req, token=conv.public_token).content.decode()
+    assert "data-chat-status" not in body
+
+
 def test_thread_poll_gated_when_module_off():
     conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
     with pytest.raises(Http404):

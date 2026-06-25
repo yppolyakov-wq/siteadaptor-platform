@@ -84,10 +84,17 @@ def thread(request, token):
             )
             messages.success(request, _("Your message was sent."))
         return redirect("storefront-message-thread", token=token)
+    # M22b: статус «бизнес на связи» по часам работы (серверный рендер, без поллинга).
+    tenant = getattr(request, "tenant", None)
+    open_status = tenant.open_status() if tenant is not None else None
     return render(
         request,
         "storefront/message_thread.html",
-        {"conversation": conversation, "messages_list": conversation.messages.all()},
+        {
+            "conversation": conversation,
+            "messages_list": conversation.messages.all(),
+            "open_status": open_status,
+        },
     )
 
 

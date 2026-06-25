@@ -5,6 +5,13 @@
 {% block content %}
 <div class="max-w-xl">
   <h1 class="text-2xl font-bold mb-1">{{ conversation.subject|default:_("Your message") }}</h1>
+  {% if open_status %}
+    {% if open_status.open %}
+      <p class="text-sm text-green-700 mb-1" data-chat-status="open">🟢 {% blocktrans with t=open_status.until %}Available now — until {{ t }}{% endblocktrans %}</p>
+    {% else %}
+      <p class="text-sm text-gray-500 mb-1" data-chat-status="closed">⚪ {% if open_status.next %}{% blocktrans with d=open_status.next.0 t=open_status.next.1 %}Currently closed — back {{ d }} {{ t }}{% endblocktrans %}{% else %}{% trans "Currently closed" %}{% endif %}</p>
+    {% endif %}
+  {% endif %}
   <p class="text-sm text-gray-500 mb-5">{% trans "Keep this page bookmarked to follow the conversation." %}</p>
 
   {% if messages %}
