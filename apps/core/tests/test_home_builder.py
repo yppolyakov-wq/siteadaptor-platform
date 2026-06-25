@@ -125,6 +125,16 @@ def test_home_builder_saves_section_title():
     assert cfg["section_titles"]["events"] == "Unsere Retreats"
 
 
+def test_home_builder_saves_catalog_layout():
+    """M20U-7 (per-page): пресет раскладки каталога сохраняется в catalog_layout."""
+    tenant = TenantFactory(schema_name="public", slug="hbcat", name="HBCAT")
+    data = {"catalog_preset": "gallery"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["catalog_layout"]["preset"] == "gallery"
+
+
 def test_home_builder_get_renders_layout_select():
     """M20U-7: для секций-сеток в билдере отрисован селектор раскладки."""
     tenant = TenantFactory(schema_name="public", slug="hbl2", name="HBL2")

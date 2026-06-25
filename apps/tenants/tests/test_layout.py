@@ -134,6 +134,13 @@ def test_product_source_default_override_and_normalize():
     assert "source" not in events
 
 
+def test_catalog_layout_default_and_override():
+    # M20U-7 (per-page): раскладка страницы каталога.
+    assert siteconfig.normalize({})["catalog_layout"]["cols"] == 3  # дефолт = прежняя сетка
+    cfg = siteconfig.normalize({"catalog_layout": {"preset": "cols4"}})
+    assert cfg["catalog_layout"]["cols"] == 4 and cfg["catalog_layout"]["preset"] == "cols4"
+
+
 def test_section_show_all_default_and_override():
     # M20U-7: видимость ссылки «View all».
     assert siteconfig.section_show_all({"sections": []}, "products") is True  # дефолт

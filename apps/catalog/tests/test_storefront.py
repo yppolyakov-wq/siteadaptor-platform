@@ -57,6 +57,15 @@ def test_catalog_shows_subcategories_first():
     assert "kategorie=roggen" in body  # ссылка на подкатегорию
 
 
+def test_catalog_page_grid_from_config():
+    """M20U-7 (per-page): сетка страницы каталога берётся из catalog_layout."""
+    ProductFactory(name={"de": "Brot"})
+    req = _req("/sortiment/")
+    req.tenant.site_config = {"catalog_layout": {"preset": "cols4"}}
+    body = public_views.product_list(req).content.decode()
+    assert "lg:grid-cols-4" in body
+
+
 def test_unknown_category_redirects_to_full_list():
     resp = public_views.product_list(_req(params={"kategorie": "ghost"}))
     assert resp.status_code == 302

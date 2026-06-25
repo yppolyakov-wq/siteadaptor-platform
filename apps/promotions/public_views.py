@@ -265,6 +265,12 @@ def product_list(request):
     has_combos = (
         request.tenant.is_module_active("orders") and Combo.objects.filter(is_active=True).exists()
     )
+    # M20U-7 (per-page): раскладка сетки каталога из конфига витрины.
+    from apps.tenants import siteconfig
+
+    catalog_grid = siteconfig.grid_class_string(
+        siteconfig.normalize(request.tenant.site_config)["catalog_layout"]
+    )
     return render(
         request,
         "storefront/products.html",
@@ -274,6 +280,7 @@ def product_list(request):
             "current_category": category,
             "subcategories": subcategories,
             "has_combos": has_combos,
+            "catalog_grid": catalog_grid,
         },
     )
 

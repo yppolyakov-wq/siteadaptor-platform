@@ -61,6 +61,13 @@
             <input type="checkbox" name="hero_accent" {% if hero_accent %}checked{% endif %} class="rounded border-gray-300">
             {% trans "Accent banner background" %}
           </label>
+          {# M20U-7 (per-page): раскладка сетки страницы каталога #}
+          <label class="text-sm">
+            <span class="block font-medium mb-1">{% trans "Catalog grid" %}</span>
+            <select name="catalog_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == catalog_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </label>
         </div>
       </fieldset>
 

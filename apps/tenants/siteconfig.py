@@ -650,6 +650,11 @@ def normalize(config) -> dict:
     # архетипа (standalone: корень `/` ведёт на его лендинг). Валидность (активен
     # ли архетип) проверяется при рендере; здесь просто строка.
     normalized["storefront_root"] = _s(config.get("storefront_root")) or "home"
+    # M20U-7 (per-page): раскладка сетки страницы каталога /sortiment/. Дефолт cols3
+    # воспроизводит прежнюю захардкоженную сетку (grid-cols-2 lg:grid-cols-3).
+    normalized["catalog_layout"] = normalize_layout(
+        config.get("catalog_layout"), {"preset": "cols3"}
+    )
     # M20U-7: кастомные заголовки секций главной (только известные ключи, обрезка).
     titles = config.get("section_titles")
     clean_titles = {}

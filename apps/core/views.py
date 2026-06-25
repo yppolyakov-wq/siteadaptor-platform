@@ -478,6 +478,8 @@ def home_builder_view(request):
             if tval:
                 titles[tkey] = tval
         config["section_titles"] = titles
+        # M20U-7 (per-page): раскладка страницы каталога (normalize валидирует пресет).
+        config["catalog_layout"] = {"preset": request.POST.get("catalog_preset", "")}
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
@@ -560,6 +562,8 @@ def home_builder_view(request):
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",
+            # M20U-7 (per-page): текущий пресет раскладки каталога.
+            "catalog_preset": config.get("catalog_layout", {}).get("preset", "cols3"),
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
