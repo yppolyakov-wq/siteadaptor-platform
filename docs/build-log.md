@@ -1844,3 +1844,10 @@
   → `/termin/`. Тесты: `test_services_section.py` (реестр/грид/рендер/пусто) +
   `test_archetypes.py` (booking→services, booking ≻ catalog). Без миграций (JSON).
   Осталось опц.: богатая карточка услуги (поля `Service.description/image`) — A.1b.
+- **2026-06-25 — Спринт A.2: отзывы на витрине в демо-китах.** Блок `reviews`
+  (`_reviews.html` ← SHARED `BusinessReview`) уже существовал и авто-включается при
+  `reviews_seed`. Засеяли реалистичные отзывы (rating/comment/@example.de) в
+  RESTAURANT, PRANASY, AKTIONSMARKT, WERKSTATT, SHOP (у FRISEUR/HOTEL/RETREAT уже были)
+  → блок отзывов теперь виден в showcase всех ключевых китов. Только демо (без кода/
+  миграций). Тест `test_demo_kits` зелёный. CLAUDE.md §6/§7: ссылки на
+  `archetype-ux-execution-plan.md` (source of truth этапа) и `archetype-market-analysis.md`.

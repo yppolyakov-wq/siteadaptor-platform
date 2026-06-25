@@ -379,6 +379,11 @@ RESTAURANT = DemoKit(
         ("Sofia Conti", "Patissière", "pastry,chef"),
     ],
     trust={"since": "1998", "marks": ["Slow Food", "Regional", "Familienbetrieb"]},
+    reviews_seed=[  # G8/#6: отзывы на витрине (блок «reviews» включается автоматически)
+        (5, "Bestes Restaurant der Stadt — wir kommen immer wieder!", "rs.schmidt@example.de"),
+        (5, "Die Pizza ist ein Traum, der Service top.", "rs.laura@example.de"),
+        (4, "Gemütliches Ambiente und frische Pasta — sehr zu empfehlen.", "rs.mehmet@example.de"),
+    ],
     # онлайн-заказ+доставка (orders), события (events), кейтеринг-Anfrage (jobs)
     enable_modules=["orders", "events", "jobs"],
     promo_count=4,  # 4 акции — сетка кратна 2 (красивее)
@@ -750,6 +755,15 @@ PRANASY = DemoKit(
         ("Ben Krause", "Küche", "cook,man"),
     ],
     trust={"since": "2021", "marks": ["100 % Vegan", "Regional", "Bio"]},
+    reviews_seed=[
+        (
+            5,
+            "Endlich veganes Fastfood, das richtig knallt. Der Burger ist der Hammer!",
+            "pr.jana@example.de",
+        ),
+        (5, "Schnell, frisch, lecker — unser neuer Lieblingsladen.", "pr.tomlisa@example.de"),
+        (4, "Tolle Bowls und nette Leute. Komme gerne wieder.", "pr.sven@example.de"),
+    ],
     enable_modules=["orders", "events", "jobs", "loyalty"],
     promo_count=4,
     group_promos_by_category=True,
@@ -1281,6 +1295,11 @@ AKTIONSMARKT = DemoKit(
         ("Frau Demir", "Endlich ein Markt, bei dem man jede Woche wirklich spart."),
     ],
     trust={"since": "2009", "marks": ["Anti-Food-Waste", "Regional", "Faire Preise"]},
+    reviews_seed=[
+        (5, "Die Überraschungstüten sind unschlagbar günstig!", "am.wagner@example.de"),
+        (5, "Endlich ein Markt, bei dem man jede Woche wirklich spart.", "am.demir@example.de"),
+        (4, "Gute Angebote und freundliches Personal.", "am.petra@example.de"),
+    ],
     faq=[
         ("Rabatt in %", "Ein fester Prozent-Rabatt auf den Originalpreis — z. B. −20 % auf Äpfel."),
         (
@@ -1713,6 +1732,15 @@ WERKSTATT = DemoKit(
         ("Sven Klar", "KFZ-Techniker", "car,mechanic"),
     ],
     trust={"since": "1995", "marks": ["Meisterbetrieb", "Markenoffen", "HU/AU vor Ort"]},
+    reviews_seed=[
+        (
+            5,
+            "Schnell, ehrlich und fairer Preis — endlich eine Werkstatt, der man vertraut.",
+            "wk.berger@example.de",
+        ),
+        (5, "Termin online gebucht, Auto pünktlich fertig. Top Service.", "wk.yilmaz@example.de"),
+        (4, "Kostenvoranschlag transparent, keine versteckten Kosten.", "wk.frank@example.de"),
+    ],
     cta={
         "title": "Klappert, leuchtet oder zieht?",
         "text": "Buchen Sie einen Termin oder fordern Sie ein Angebot an.",
@@ -2249,6 +2277,11 @@ SHOP = DemoKit(
         ("Genießen", "Frische vom Hof — ganz bequem."),
     ],
     trust={"since": "1962", "marks": ["Eigener Anbau", "Bio-zertifiziert", "Regional"]},
+    reviews_seed=[
+        (5, "Frische Bio-Ware, schnell geliefert. Schmeckt wie früher!", "sh.koehler@example.de"),
+        (5, "Super Qualität und nette Kommunikation. Sehr empfehlenswert.", "sh.anke@example.de"),
+        (4, "Tolle Auswahl an regionalen Produkten.", "sh.markus@example.de"),
+    ],
     cta={
         "title": "Frisch vom Feld in Ihren Korb",
         "text": "Stöbern Sie im Sortiment und lassen Sie sich beliefern.",
