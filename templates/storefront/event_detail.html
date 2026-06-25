@@ -391,6 +391,10 @@
   </section>
   {% endif %}
   </div>{# /Тело страницы #}
+
+  {# M20U-4: мобильная липкая панель покупки (десктоп — sticky-карточка выше) #}
+  {% if event.has_tiers %}{% blocktrans asvar buyprice with p=event.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif event.price_cents %}{% blocktrans asvar buyprice with p=event.price_eur %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Free" as buyprice %}{% endif %}
+  {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="events" sold_out=event.is_sold_out %}
 </div>
 {% endwith %}
 {% endblock %}

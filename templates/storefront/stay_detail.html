@@ -19,7 +19,7 @@
   </div>
 
   {# ПРАВО: название, цена, опции (выбор дат + бронь) #}
-  <div class="lg:col-span-5 space-y-4 lg:sticky lg:top-20">
+  <div id="buchen" class="lg:col-span-5 space-y-4 lg:sticky lg:top-20 scroll-mt-24">
     <div>
       <h1 class="text-2xl md:text-3xl font-bold">{{ unit.name }}</h1>
       <p class="text-gray-500 mt-1">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if unit.area_sqm %} · {{ unit.area_sqm }} m²{% endif %}{% if unit.bed_type %} · {{ unit.bed_type }}{% endif %}</p>
@@ -198,4 +198,8 @@
   </div>
 </section>
 {% endif %}
+
+{# M20U-4: мобильная липкая панель брони (десктоп — sticky-карточка справа) #}
+{% blocktrans asvar buyprice with p=unit.price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}
+{% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="stays" sold_out=False %}
 {% endblock %}

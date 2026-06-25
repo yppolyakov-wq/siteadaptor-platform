@@ -1,0 +1,16 @@
+{% load i18n siteui %}{% comment %}
+M20U-4: мобильная липкая панель покупки внизу детальной (цена + действие).
+Только на узких экранах (< lg) — на десктопе действует sticky-карточка цены.
+Параметры include: price (строка), anchor (якорь формы), module (архетип для
+{% purchase_label %}), sold_out (bool → Warteliste).
+{% endcomment %}
+<div class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-gray-200 px-4 py-3 flex items-center justify-between gap-3" data-buybar>
+  <span class="font-semibold whitespace-nowrap">{{ price }}</span>
+  {% if sold_out %}
+    <a href="{{ anchor }}" class="bg-amber-600 text-white rounded-lg px-5 py-2.5 font-medium">{% trans "Join waitlist" %}</a>
+  {% else %}
+    <a href="{{ anchor }}" class="text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent, #4f46e5);">{% purchase_label module %}</a>
+  {% endif %}
+</div>
+{# отступ, чтобы контент не прятался под липкой панелью #}
+<div class="lg:hidden h-20" aria-hidden="true"></div>
