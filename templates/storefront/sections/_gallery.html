@@ -3,7 +3,7 @@
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Gallery" %}</h2>
   {% if site.gallery %}
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+  <div class="{% grid_classes site 'gallery' %}">
     {% for img in site.gallery %}
       <button type="button" data-lightbox="{{ img.url }}"
               class="aspect-square rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">

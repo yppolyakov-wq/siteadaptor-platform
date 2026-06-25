@@ -1,8 +1,8 @@
-{% load i18n %}{# Секция «Команда» (P4): имя/роль/фото из site_config. #}
+{% load i18n siteui %}{# Секция «Команда» (P4): имя/роль/фото из site_config. #}
 {% if site.team %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "Our team" %}</h2>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+  <div class="{% grid_classes site 'team' %}">
     {% for m in site.team %}
       <figure class="bg-white rounded-2xl shadow-sm overflow-hidden text-center">
         <div class="aspect-square bg-gray-100">

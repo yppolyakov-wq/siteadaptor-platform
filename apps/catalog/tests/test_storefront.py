@@ -263,6 +263,18 @@ def test_home_section_hide_view_all_link():
     assert "View all" not in body  # ссылка скрыта
 
 
+def test_home_team_section_honors_layout_preset():
+    """M20U-7: пресет раскладки реально применяется к секции (team: cols4→cols2)."""
+    req = _req("/")
+    req.tenant.site_config = {
+        "team": [{"name": "Anna", "role": "Chef", "photo": ""}],
+        "sections": [{"key": "team", "enabled": True, "layout": {"preset": "cols2"}}],
+    }
+    body = public_views.storefront_home(req).content.decode()
+    assert "Anna" in body
+    assert "lg:grid-cols-2" in body  # пресет применён (дефолт был cols4)
+
+
 def test_home_section_custom_heading():
     """M20U-7: владелец задаёт свой заголовок секции (вместо стандартного)."""
     ProductFactory(name={"de": "Brot"})
