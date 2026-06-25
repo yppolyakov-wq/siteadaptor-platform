@@ -10,6 +10,7 @@
     python manage.py seed_demo_tenants --kit aktionsmarkt  # все типы акций
     python manage.py seed_demo_tenants --kit friseur    # → friseur.<base> (booking-услуги)
     python manage.py seed_demo_tenants --kit werkstatt  # → werkstatt.<base> (booking+jobs)
+    python manage.py seed_demo_tenants --kit handwerker # → handwerker.<base> (A7: Angebot/Festpreis)
     python manage.py seed_demo_tenants --kit retreat    # → retreat.<base> (events/Tickets)
     python manage.py seed_demo_tenants --kit shop       # → shop.<base> (Retail: варианты/Grundpreis/остаток/Versand)
     python manage.py seed_demo_tenants --recreate      # пересоздать

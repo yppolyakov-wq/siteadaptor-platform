@@ -1995,3 +1995,16 @@
   E.3 инсертер «+» (add_after) · E.4 drag-on-canvas — нативное редактирование прямо на
   превью, без SPA. Опц. оставлено: показ C-блоков в live-preview-черновике (сейчас draft
   фильтрует только фикс-секции), per-block undo-гранулярность.
+- **2026-06-25 — Спринт F (наполнение архетипов): демо-кит A7 Handwerker.** Закрыт
+  крупнейший пробел демо-витрины — у архетипа A7 (Handwerker) не было кита. Новый кит
+  `handwerker` («Meisterbetrieb Krause» — Maler · Elektro · Sanitär, generic, без авто):
+  ядро = `jobs` (Anfrage → unverbindliches Angebot/Festpreis, primary-CTA `/anfrage/`),
+  `booking` даёт Leistungen с Festpreisen + бесплатную Vor-Ort-Beratung (0 €); БЕЗ shop
+  (catalog скрыт, products/promotions-секции off — без пустых блоков). Контент: hero,
+  USP-бар (Meisterbetrieb/24-7-Notdienst/Region/Festpreis-Garantie), процесс, команда
+  (3 мастера), FAQ, отзывы (reviews_seed×3), 2 демо-Angebote (Wohnzimmer streichen /
+  Bad modernisieren) c позициями и НДС, archetype_covers (jobs/booking), меню top+bottom,
+  поддомен `handwerker.<base>`. Зарегистрирован в `KITS`; команда `seed_demo_tenants`
+  подхватывает автоматически (доку-строка добавлена). Тест
+  `test_apply_handwerker_kit_jobs_services_no_shop` (services/Festpreis, jobs с суммами,
+  отсутствие shop, активные модули, секции витрины, CTA `/anfrage/`). Без миграций (демо-данные).

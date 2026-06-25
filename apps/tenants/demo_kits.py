@@ -1858,6 +1858,193 @@ WERKSTATT = DemoKit(
     ],
 )
 
+HANDWERKER_MENUS = {
+    "top": {
+        "style": "centered",
+        "sticky": True,
+        "items": [
+            {"label": "Angebot", "type": "archetype", "target": "jobs"},
+            {"label": "Leistungen", "type": "archetype", "target": "booking"},
+            {"label": "Referenzen", "type": "url", "target": "/#galerie"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Angebot", "type": "archetype", "target": "jobs", "icon": "🧰"},
+            {"label": "Leistungen", "type": "archetype", "target": "booking", "icon": "🛠"},
+            {"label": "Kontakt", "type": "page", "target": "contact", "icon": "📞"},
+        ],
+    },
+}
+
+# A7 Handwerker: generischer Meisterbetrieb (Maler · Elektro · Sanitär). Kernarchetyp
+# = jobs (Anfrage → unverbindliches Angebot/Festpreis); booking liefert Leistungen mit
+# Festpreisen + kostenlose Vor-Ort-Beratung. Kein Shop (keine catalog/products-Sektion).
+HANDWERKER = DemoKit(
+    key="handwerker",
+    label="Meisterbetrieb Krause",
+    business_type="other",
+    subdomain="handwerker",
+    accent="#ea580c",  # Handwerk-Orange
+    hero_image_kw="craftsman,renovation",
+    hero_title="Meisterbetrieb Krause",
+    hero_text="Maler, Elektro & Sanitär aus einer Hand — kostenloses Angebot in 24 h, "
+    "Festpreis-Garantie und 24/7-Notdienst für Ihre Region.",
+    about_title="Über den Betrieb",
+    about_text="Seit 2004 Ihr Handwerker für Renovierung, Elektrik und Bad: "
+    "Meisterqualität, saubere Arbeit und faire Festpreise. Schildern Sie Ihr "
+    "Vorhaben online — Sie erhalten ein unverbindliches Angebot.",
+    nav_style="classic",
+    address="Lindenweg 8, 50667 Köln",
+    opening_hours_text="Mo–Fr 7:00–17:00 · 24h-Notdienst",
+    opening_hours={d: ("07:00", "17:00") for d in range(5)},
+    gallery_kw=[
+        "painter,wall",
+        "electrician,work",
+        "bathroom,renovation",
+        "tiles,bathroom",
+        "painting,room",
+        "heating,installation",
+    ],
+    faq=[
+        (
+            "Wie bekomme ich ein Angebot?",
+            "Über «Angebot anfordern» schildern Sie Ihr Vorhaben (gern mit Fotos & "
+            "Adresse) — Sie erhalten ein unverbindliches Angebot, meist innerhalb von 24 h.",
+        ),
+        (
+            "Arbeiten Sie zum Festpreis?",
+            "Ja. Nach kostenloser Besichtigung erhalten Sie einen verbindlichen "
+            "Festpreis — keine versteckten Kosten.",
+        ),
+        (
+            "Welche Gewerke bieten Sie an?",
+            "Maler- und Lackierarbeiten, Elektroinstallation und Sanitär/Bad — "
+            "alles aus einer Hand, koordiniert vom Meister.",
+        ),
+        (
+            "Gibt es einen Notdienst?",
+            "Ja, bei Rohrbruch oder Stromausfall sind wir rund um die Uhr erreichbar.",
+        ),
+    ],
+    testimonials=[
+        (
+            "Familie Becker",
+            "Bad komplett saniert — pünktlich, sauber und zum vereinbarten Festpreis.",
+        ),
+        ("Petra L.", "Angebot online angefragt, am nächsten Tag Rückruf. Sehr professionell."),
+    ],
+    process=[
+        ("Vorhaben schildern", "Online anfragen — gern mit Fotos und Adresse der Baustelle."),
+        ("Festpreis-Angebot", "Kostenlose Besichtigung, danach verbindlicher Festpreis."),
+        ("Saubere Ausführung", "Termingerechte Arbeit vom Meisterbetrieb — besenrein übergeben."),
+    ],
+    team=[
+        ("Markus Krause", "Maler- und Lackierermeister", "craftsman,man"),
+        ("Dennis Wolf", "Elektromeister", "electrician,man"),
+        ("Ralf Sommer", "SHK-Meister", "plumber,man"),
+    ],
+    trust={"since": "2004", "marks": ["Meisterbetrieb", "Innungsmitglied", "Festpreis-Garantie"]},
+    usp=[
+        ("meister", "Meisterbetrieb"),
+        ("clock", "24/7 Notdienst"),
+        ("local", "Aus Ihrer Region"),
+        ("quality", "Festpreis-Garantie"),
+    ],
+    reviews_seed=[
+        (
+            5,
+            "Bad saniert zum Festpreis — alles sauber und termingerecht. Klare Empfehlung.",
+            "hw.becker@example.de",
+        ),
+        (5, "Schnelles Angebot, faire Preise, top Handwerk. Gerne wieder.", "hw.acar@example.de"),
+        (4, "Elektrik im Altbau erneuert — kompetent und zuverlässig.", "hw.peters@example.de"),
+    ],
+    cta={
+        "title": "Brauchen Sie einen Handwerker?",
+        "text": "Kostenloses Angebot in 24 Stunden — unverbindlich und zum Festpreis.",
+        "button_label": "Angebot anfordern",
+        "button_url": "/anfrage/",
+    },
+    enable_modules=["jobs", "booking", "customer_account"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=HANDWERKER_MENUS,
+    hide_archetypes=["catalog"],  # kein Shop — leeren Sortiment-Teaser ausblenden
+    job_samples=[
+        {
+            "title": "Angebot: Wohnzimmer & Flur streichen (ca. 60 m²)",
+            "name": "Julia Becker",
+            "email": "becker@example.de",
+            "phone": "0221 9876543",
+            "site_address": "Lindenweg 8, 50667 Köln",
+            "description": "Wohnzimmer und Flur neu streichen, Wände vorbereiten, "
+            "ein Akzentwand in Farbe. Bitte Festpreis.",
+            "lines": [
+                {"text": "Wände spachteln & grundieren", "qty": 60, "unit_price": "6.50"},
+                {"text": "Anstrich 2-fach (weiß)", "qty": 60, "unit_price": "8.00"},
+                {"text": "Akzentwand in Wunschfarbe", "qty": 1, "unit_price": "120.00"},
+            ],
+            "vat_rate": 19,
+        },
+        {
+            "title": "Angebot: Bad modernisieren — Elektrik & Sanitär",
+            "name": "Thomas Acar",
+            "email": "acar@example.de",
+            "site_address": "Rosenstraße 14, 50674 Köln",
+            "description": "Gäste-WC modernisieren: neue Leuchten und Steckdosen, "
+            "Waschtisch und Armatur tauschen.",
+            "lines": [
+                {
+                    "text": "Elektro: Leuchten & Steckdosen (Material+Montage)",
+                    "qty": 1,
+                    "unit_price": "340.00",
+                },
+                {
+                    "text": "Sanitär: Waschtisch + Armatur montieren",
+                    "qty": 1,
+                    "unit_price": "420.00",
+                },
+                {"text": "Demontage & Entsorgung", "qty": 1, "unit_price": "90.00"},
+            ],
+            "vat_rate": 19,
+        },
+    ],
+    archetype_covers={
+        "jobs": {
+            "intro": "Schildern Sie Ihr Vorhaben — gern mit Fotos und Adresse. Sie erhalten "
+            "ein unverbindliches Festpreis-Angebot.",
+            "hero_kw": "craftsman,renovation",
+            "gallery_kw": ["painter,wall", "bathroom,renovation", "electrician,work"],
+        },
+        "booking": {
+            "intro": "Leistungen mit Festpreis oder kostenlose Vor-Ort-Beratung — Termin online wählen.",
+            "hero_kw": "handyman,tools",
+        },
+    },
+    services=[
+        ("Vor-Ort-Beratung (kostenlos)", 30, "0"),
+        ("Maler: Zimmer streichen (bis 20 m²)", 180, "290"),
+        ("Elektro: Steckdose/Schalter setzen", 45, "75"),
+        ("Sanitär: Armatur tauschen", 60, "120"),
+        ("Notdienst-Einsatz (Anfahrt)", 60, "89"),
+    ],
+    resources=[
+        {
+            "name": "Meister-Team",
+            "type": "table",
+            "capacity": 1,
+            "start": "07:00",
+            "end": "17:00",
+            "slot": 30,
+            "weekdays": range(0, 5),
+        },
+    ],
+)
+
 RETREAT_MENUS = {
     "top": {
         "style": "centered",
@@ -2494,6 +2681,7 @@ KITS = {
     AKTIONSMARKT.key: AKTIONSMARKT,
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
+    HANDWERKER.key: HANDWERKER,
     RETREAT.key: RETREAT,
     SHOP.key: SHOP,
 }

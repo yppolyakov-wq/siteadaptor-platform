@@ -397,6 +397,34 @@ def test_apply_werkstatt_kit_jobs_booking_catalog():
         assert tenant.is_module_active(m)
 
 
+def test_apply_handwerker_kit_jobs_services_no_shop():
+    """A7 Handwerker: ядро jobs (Angebot/Festpreis) + booking-Leistungen, без shop."""
+    from apps.booking.models import Service
+    from apps.jobs.models import Job
+
+    tenant = TenantFactory(schema_name="public", slug="hw", name="HW", business_type="other")
+    assert demo_kits.apply_kit(tenant, "handwerker") is True
+
+    # booking: Leistungen с Festpreisen + бесплатная Vor-Ort-Beratung (0 €)
+    assert Service.objects.filter(name="Vor-Ort-Beratung (kostenlos)", price_cents=0).exists()
+    assert Service.objects.filter(name="Sanitär: Armatur tauschen", price_cents=12000).exists()
+    # jobs: seed_records создаёт Angebote (с суммами, со строками)
+    jobs = Job.objects.all()
+    assert jobs.count() >= 2 and jobs.filter(gross__gt=0).exists()
+    # нет shop → нет демо-товаров; модули jobs/booking активны, без orders
+    assert Product.objects.filter(metadata__demo=True).count() == 0
+    for m in ("jobs", "booking", "customer_account"):
+        assert tenant.is_module_active(m)
+
+    # витрина: услуги + отзывы + Trust/USP + контент-секции, без products/promotions
+    cfg = tenant.site_config
+    assert tenant.primary_color == "#ea580c"
+    enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
+    assert {"hero", "services", "usp_bar", "reviews", "cta", "faq"} <= enabled
+    assert "products" not in enabled and "promotions" not in enabled
+    assert cfg["cta"]["button_url"] == "/anfrage/"  # primary CTA = Angebot anfordern
+
+
 def test_apply_retreat_kit_events_program_and_tickets():
     """Retreat: события с Programm/анкетой + проданные билеты + finance-выручка."""
     from apps.events.models import Event, Ticket

@@ -218,9 +218,14 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   (M) · Reifeneinlagerung (M–L).
 
 ### F-A7 Handwerker
-- **Отдельный Handwerker-кит** (Maler/Elektriker/SHK, generic без авто) (M) ·
-  Referenzen/before-after-галерея (M) · Notdienst-CTA с tel (S) · Meister/Innung-значки
-  (⊂ A.3) · PLZ/Einzugsgebiet (M) · Rückruf-Anfrage (S) · авто-запрос отзыва (S–M).
+- ✅ **Отдельный Handwerker-кит** `handwerker` (Meisterbetrieb Krause — Maler/Elektro/SHK,
+  generic без авто): ядро `jobs` (Angebot/Festpreis-Anfrage) + `booking`-Leistungen с
+  Festpreisen и бесплатной Vor-Ort-Beratung, без shop; Referenzen-галерея, Notdienst-/
+  Meister-/Innung-/Festpreis-USP-бар (⊂ A.3), отзывы, 2 демо-Angebote (Maler/Bad). Демо:
+  `seed_demo_tenants --kit handwerker` (→ `handwerker.<base>`). Тест
+  `test_apply_handwerker_kit_jobs_services_no_shop`.
+- Осталось (опц.): before/after-слайдер в галерее, PLZ/Einzugsgebiet, Rückruf-Anfrage,
+  авто-запрос отзыва.
 
 ### F-A8 Aggregator
 - Фасетные фильтры + сортировка + автоподсказки (M) · богатая карточка бизнеса (S–M) ·
