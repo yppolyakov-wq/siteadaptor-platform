@@ -2272,3 +2272,14 @@
   со всеми полями по-прежнему бронирует (источник истины — сервер). Тесты `test_storefront`:
   рендер 2-шаговой структуры + регрессия (единый POST бронирует quantity=2). Без миграций.
   Closes A6 RV1.
+- **2026-06-26 — A6 RT3: recurring-серии событий.** Поле `events.Event.series_id`
+  (UUID, db_index, миграция `events/0019`) группирует повторы. Сервис
+  `events.services.create_series(source, *, interval, count)`: клонирует событие
+  (pk=None + копия всех полей/JSON + M2M teachers/accommodation_units; билеты НЕ
+  копируются), сдвигая `starts_at`/`ends_at` по интервалу (`weekly`/`biweekly`/`monthly`;
+  `_add_months` с поправкой на длину месяца — Jan31→Feb28); источник и копии получают
+  общий `series_id`; потолок `_SERIES_MAX=52`, всё в `transaction.atomic`. Кабинет
+  `views.event_series` (login+POST) → `events:series`; на детали события форма «Repeat this
+  event (series)» (интервал + число повторов). Тесты `test_cabinet`: сдвиги/общий id/счётчик
+  серии, biweekly+monthly, month-end, копирование M2M без билетов, view создаёт даты.
+  **Миграция** `events/0019`. Closes A6 RT3.
