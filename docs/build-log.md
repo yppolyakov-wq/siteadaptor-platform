@@ -2114,3 +2114,14 @@
   C1–C4/A4 аллергены+Kombo/A9-A7 Festpreis/A8 sort), §3 (остаток F с пометками где нужна
   миграция). CLAUDE.md §3 «Последнее» + §7 «Дальше» обновлены (Спринт E ✅, F частично).
   Source of truth этапа остаётся `archetype-ux-execution-plan.md`. Docs-only.
+- **2026-06-26 — Спринт F (A6 RT2): онлайн/Zoom-события.** Новые поля `Event.is_online`
+  (bool) + `online_url` (URL) — миграция `events/0017_event_is_online_event_online_url`.
+  Витрина: детальная и карточки индекса (грид+список) показывают «🖥 Online» вместо адреса/
+  города, карта (OSM) для онлайн-события скрыта (`veranstaltung_detail`: гейт `not event.is_online`).
+  **Ссылка доступа (online_url) — не публична:** показывается участнику только ПОСЛЕ брони —
+  на странице подтверждения (`event_confirmation.html`, блок «Online access link») + в письмах
+  `ticket_confirmed.txt`/`ticket_reminder.txt`. Кабинет: `is_online`/`online_url` добавлены в
+  `EventForm.Meta.fields` (форма авто-рендерит). Демо: в retreat-кит добавлено онлайн-событие
+  «Online: Morgen-Meditation per Zoom» (без города, Zoom-ссылка) — published-событий 6→7.
+  Тесты `test_storefront.py::test_detail_online_event_shows_online_and_hides_map` /
+  `_index_online_event_shows_badge` / `_confirmation_online_event_shows_access_link` + demo-assert.

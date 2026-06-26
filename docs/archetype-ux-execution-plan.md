@@ -199,8 +199,13 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   день-за-днём: рельса слева + точки, ведущий маркер времени/дня (до тире) выделен,
   остаток — описание; строки без тире — обычным текстом. Парсер `_parse_agenda` в
   `veranstaltung_detail` (generic, любой формат). Тест `test_detail_program_renders_agenda_timeline`.
+- ✅ **RT2 онлайн/Zoom-события** — поля `Event.is_online`/`online_url` (миграция
+  `events/0017`); витрина показывает «🖥 Online» (детальная/индекс-бейдж), скрывает
+  адрес/карту; ссылка доступа — только участнику ПОСЛЕ брони (страница подтверждения +
+  письма confirmed/reminder). Форма кабинета + демо retreat (Zoom-Morgen-Meditation). Тесты
+  `test_detail_online_*` / `test_index_online_*` / `test_confirmation_online_*` + demo.
 - Дальше: RV4 лайтбокс (S, ⊂ A.4 ✅) · RV1 2-шаговый чекаут (M) · RT1 QR-билет + check-in (M) ·
-  RT2 онлайн/Zoom (S–M) · RT3 recurring-серии (M) · RT4 блог.
+  RT3 recurring-серии (M) · RT4 блог.
 
 ### F-A5 Отель
 - ✅ **Разбивка цены PAngV** на странице номера — Gesamtpreis сопровождается разбивкой

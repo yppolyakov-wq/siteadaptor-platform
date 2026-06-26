@@ -7,7 +7,15 @@
   <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "You're in!" %} 🎉</h1>
     <p class="text-gray-600 mb-1">{{ event.title }}</p>
-    <p class="text-gray-500 mb-4">{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %}</p>
+    <p class="text-gray-500 mb-4">{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.is_online %} · 🖥 {% trans "Online" %}{% elif event.location %} · {{ event.location }}{% endif %}</p>
+    {% comment %}RT2: ссылка доступа к онлайн-событию — только участнику, после брони.{% endcomment %}
+    {% if event.is_online and event.online_url %}
+      <div class="bg-indigo-50 rounded-lg px-4 py-3 mb-4">
+        <p class="text-sm font-medium text-indigo-900 mb-1">🖥 {% trans "Online access link" %}</p>
+        <a href="{{ event.online_url }}" target="_blank" rel="noopener" class="text-sm text-indigo-700 break-all hover:underline">{{ event.online_url }}</a>
+        <p class="text-xs text-indigo-700/70 mt-1">{% trans "We've also sent it to your email." %}</p>
+      </div>
+    {% endif %}
     <p class="text-sm text-gray-500 mb-1">{% trans "Your ticket code:" %}</p>
     <p class="text-3xl font-mono font-bold tracking-wider mb-4">{{ ticket.reference_code }}</p>
     <p class="text-sm text-gray-500 mb-4">{% trans "Seats" %}: {{ ticket.quantity }}</p>

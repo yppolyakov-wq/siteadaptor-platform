@@ -132,6 +132,8 @@ class EventForm(forms.ModelForm):
             "city",
             "latitude",
             "longitude",
+            "is_online",  # RT2: онлайн/Zoom-событие
+            "online_url",
             "starts_at",
             "ends_at",
             "capacity",

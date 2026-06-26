@@ -2282,6 +2282,22 @@ RETREAT = DemoKit(
             "description": "Tiefenentspannung mit Klangschalen — ein ruhiger Abend zum Loslassen.",
         },
         {
+            # RT2: онлайн/Zoom-событие — без места/карты, ссылка доступа после брони.
+            "title": "Online: Morgen-Meditation per Zoom",
+            "in_days": 4,
+            "hour": 8,
+            "duration_hours": 1,
+            "capacity": 0,
+            "price": "12",
+            "category": "achtsamkeit",
+            "level": "alle",
+            "language": "de",
+            "is_online": True,
+            "online_url": "https://zoom.us/j/000000000?pwd=demo",
+            "description": "Starte den Tag mit einer geführten Meditation — live per Zoom, "
+            "ortsunabhängig. Den Zugangslink erhältst du nach der Anmeldung.",
+        },
+        {
             "title": "Sommer-Festival der Achtsamkeit",
             "in_days": 45,
             "hour": 11,
@@ -3278,6 +3294,8 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     category=spec.get("category", ""),
                     level=spec.get("level", ""),
                     language=spec.get("language", ""),
+                    is_online=spec.get("is_online", False),  # RT2 онлайн/Zoom
+                    online_url=spec.get("online_url", ""),
                     starts_at=starts,
                     ends_at=ends,
                     capacity=spec.get("capacity", 0),

@@ -269,7 +269,7 @@ def veranstaltung_detail(request, pk):
             getattr(tenant, "site_config", {}) or {}
         ),
     }
-    if lat is not None and lng is not None:  # R6 карта (OSM, без трекинг-куки)
+    if lat is not None and lng is not None and not event.is_online:  # R6 карта (RT2: не для онлайн)
         lat, lng = float(lat), float(lng)
         ctx["map_embed"] = (
             "https://www.openstreetmap.org/export/embed.html?bbox="

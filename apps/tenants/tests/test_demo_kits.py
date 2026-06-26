@@ -438,7 +438,10 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert demo_kits.apply_kit(tenant, "retreat") is True
 
     published = Event.objects.filter(status=Event.STATUS_PUBLISHED)
-    assert published.count() == 6  # 4 базовых + Frauen-Retreat + Ayurveda (полное демо)
+    assert published.count() == 7  # 4 базовых + Frauen-Retreat + Ayurveda + RT2 Online-Event
+    # RT2: онлайн/Zoom-событие с ссылкой доступа
+    online = Event.objects.get(is_online=True)
+    assert online.online_url.startswith("https://") and not online.city
     # богатый dict-спек: Programm, анкета, длительность, безлимит мест
     retreat = Event.objects.get(title="Waldlicht Wochenend-Retreat")
     assert retreat.program and len(retreat.program) == 3

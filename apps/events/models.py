@@ -37,6 +37,11 @@ class Event(TimestampedModel):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     location = models.CharField(max_length=200, blank=True)
+    # RT2: онлайн/Zoom-событие. is_online → витрина показывает «Online», скрывает карту/
+    # адрес; online_url (ссылка на Zoom/Meet/видео) показывается участнику ПОСЛЕ брони
+    # (на странице подтверждения + в письме), не публично — чтобы не утекал доступ.
+    is_online = models.BooleanField(default=False)
+    online_url = models.URLField(blank=True)
     # R2 таксономия для каталога/фильтров/агрегатора (пресеты — apps/events/taxonomy.py).
     city = models.CharField(max_length=100, blank=True)  # для фильтра «Stadt» + гео-агрегатор
     # R6: координаты места (для карты на витрине; пусто = фолбэк на гео тенанта).

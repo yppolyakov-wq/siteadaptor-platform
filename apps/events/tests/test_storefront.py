@@ -236,3 +236,43 @@ def test_sold_out_blocks_booking():
     book_ticket(event, name="A", email="a@test.de", quantity=1, auto_confirm=True)
     public_views.veranstaltung_book(_req("post", {"name": "B", "email": "b@test.de"}), pk=event.pk)
     assert event.tickets.count() == 1
+
+
+# --- RT2: онлайн/Zoom-события ------------------------------------------------
+
+
+def test_detail_online_event_shows_online_and_hides_map():
+    """RT2: онлайн-событие показывает «Online», скрывает карту; ссылка не публична."""
+    ev = _event(
+        title="Webinar",
+        is_online=True,
+        online_url="https://zoom.us/j/123",
+        latitude="48.00",
+        longitude="7.85",
+    )
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert "Online event" in body  # индикатор онлайн
+    assert "openstreetmap.org/export/embed" not in body  # карта скрыта для онлайн
+    assert "zoom.us" not in body  # ссылка доступа НЕ публична (только после брони)
+
+
+def test_index_online_event_shows_badge():
+    """RT2: в выдаче событий — бейдж «Online»."""
+    _event(title="Webinar Online", is_online=True)
+    body = public_views.veranstaltung_index(_req("get")).content.decode()
+    assert "🖥 Online" in body
+
+
+def test_confirmation_online_event_shows_access_link():
+    """RT2: страница подтверждения брони показывает ссылку доступа онлайн-события."""
+    ev = _event(title="Webinar", is_online=True, online_url="https://zoom.us/j/abc", price_cents=0)
+    resp = public_views.veranstaltung_book(
+        _req("post", {"quantity": "1", "name": "Gast", "email": "g@t.de", "q0": "x"}),
+        pk=ev.pk,
+    )
+    assert resp.status_code == 302
+    ticket = Ticket.objects.get(event=ev)
+    body = public_views.veranstaltung_confirmation(
+        _req("get"), ticket.reference_code
+    ).content.decode()
+    assert "https://zoom.us/j/abc" in body  # ссылка доступа выдана участнику

@@ -1,9 +1,11 @@
 Hallo {{ customer.name }},
 
 Ihre Teilnahme an „{{ event.title }}“ ist bestätigt.
-{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %}
+{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.is_online %} · Online{% elif event.location %} · {{ event.location }}{% endif %}
 Plätze: {{ ticket.quantity }} · Ticket-Code: {{ ticket.reference_code }}
-
+{% if event.is_online and event.online_url %}
+Zugangslink (online): {{ event.online_url }}
+{% endif %}
 Bis bald!
 {% if cancel_url %}
 Stornierung: {{ cancel_url }}

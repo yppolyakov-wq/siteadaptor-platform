@@ -13,7 +13,10 @@
       <p class="text-sm text-gray-500">
         🗓 {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.ends_at %} – {{ event.ends_at|date:"d.m.Y H:i" }}{% endif %}
         <a href="{% url 'storefront-event-ical' event.pk %}" class="text-indigo-600 hover:underline ml-1">+ {% trans "Add to calendar" %}</a>
-        {% if event.location %}<br>📍 {{ event.location }}{% endif %}
+        {% comment %}RT2: онлайн-событие — показываем «Online», адрес/карту скрываем.
+        Ссылку доступа гость получает после брони (подтверждение + письмо).{% endcomment %}
+        {% if event.is_online %}<br>🖥 {% trans "Online event" %}{% if event.location %} · {{ event.location }}{% endif %}
+        {% elif event.location %}<br>📍 {{ event.location }}{% endif %}
       </p>
       <p class="text-2xl font-semibold">
         {% if event.has_tiers %}{% blocktrans with p=event.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}
