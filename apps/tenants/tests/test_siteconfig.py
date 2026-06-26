@@ -68,6 +68,7 @@ def test_normalize_empty_gives_defaults():
         "reviews",
         "faq",
         "gallery",
+        "before_after",
         "contact",
     ]
     enabled = {s["key"] for s in config["sections"] if s["enabled"]}
