@@ -2319,3 +2319,14 @@
   `templates/tenant/modules.html` — 3 секции. Тесты: `test_get_shows_task_sections` (empfohlen/
   weitere видны, premium скрыта) + обновлён `_warns_on_untypical_enable` («More functions»
   вместо «Weitere Bausteine»). Без миграций. Closes AB2.
+- **2026-06-26 — Спринт G AB4: чек-лист готовности сайта на дашборде.** Хелпер
+  `apps.tenants.onboarding.completeness(tenant)` считает готовность по РЕАЛЬНОМУ наполнению
+  (не по шагам мастера): баннер/фото (`site_config.hero_image`/`gallery`), Öffnungszeiten
+  (`opening_hours`/`_structured`), контакты (`public_email`/`public_phone`/`address`), первый
+  товар для продажи (`_has_offering`: Product/Promotion/Service/Event/StayUnit — безопасно к
+  выключенным модулям/отсутствию таблиц через try), Impressum (`address`) →
+  `{percent, done, total, items:[{key,label,done,url_name}]}`. Дашборд (`dashboard.html`)
+  показывает карточку «Your site is X% ready» с emerald-прогресс-баром и пунктами: выполненные
+  зачёркнуты (✓), невыполненные — прямая ссылка на действие (`{% url item.url_name %}`).
+  Мотивация допилить + путь к действию (анти-«пустой кабинет»). Тесты `test_onboarding`
+  (структура/проценты пустого тенанта + отметка заполненных). Без миграций. Closes AB4.
