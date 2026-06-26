@@ -271,3 +271,14 @@ def test_calendar_clamps_past_month_to_current():
     body = _cal(unit, 2000, 1)  # запрос месяца в прошлом → кламп к текущему
     # на текущем месяце кнопки «назад» нет (не уходим в прошлое)
     assert "Previous month" not in body
+
+
+def test_detail_embeds_availability_calendar():
+    """A5/C3: страница номера встраивает календарь + логику выбора диапазона."""
+    unit = _unit()
+    req = _req("get", f"/unterkunft/{unit.pk}/", {"von": _iso(0), "bis": _iso(3), "gaeste": "2"})
+    body = public_views.unterkunft_unit(req, pk=unit.pk).content.decode()
+    assert 'id="stay-cal"' in body  # календарь встроен
+    assert "stay-cal-day" in body  # кликабельные свободные ночи
+    assert "__stayCalSelectBound" in body  # выбор диапазона кликом
+    assert 'data-date="2026-10-' in body  # начальный месяц = месяц заезда (D0)

@@ -66,6 +66,51 @@
     <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
   </form>
 
+  {% comment %}C3: визуальный календарь наличия — клик по свободным ночам выбирает
+  заезд→выезд и сабмитит форму дат. На узких экранах свёрнут в details.{% endcomment %}
+  <details class="group" open>
+    <summary class="flex items-center justify-between cursor-pointer list-none text-sm font-medium text-gray-600 mb-2">
+      📅 {% trans "Availability" %}
+      <span class="text-gray-400 group-open:rotate-180 transition lg:hidden">▾</span>
+    </summary>
+    {% include "storefront/_stay_calendar.html" %}
+  </details>
+
+  <script>
+  (function () {
+    {% comment %}Выбор диапазона на календаре: 1-й клик = заезд, 2-й (позже) = выезд →
+    подставить в форму дат и отправить (сервер посчитает _quote). Делегирование на
+    document — переживает свап фрагмента при перелистывании месяца. ISO-даты
+    сравниваются лексикографически.{% endcomment %}
+    if (window.__stayCalSelectBound) return;
+    window.__stayCalSelectBound = true;
+    var arrival = null;
+    document.addEventListener("click", function (e) {
+      var cell = e.target.closest(".stay-cal-day[data-date]");
+      if (!cell) return;
+      var von = document.getElementById("id_von");
+      var bis = document.getElementById("id_bis");
+      if (!von || !bis) return;
+      var d = cell.getAttribute("data-date");
+      if (!arrival || d <= arrival) {
+        arrival = d;
+        von.value = d;
+        bis.value = "";
+        document.querySelectorAll(".stay-cal-day.is-sel").forEach(function (x) {
+          x.classList.remove("is-sel", "ring-2", "ring-emerald-500");
+        });
+        cell.classList.add("is-sel", "ring-2", "ring-emerald-500");
+      } else {
+        von.value = arrival;
+        bis.value = d;
+        arrival = null;
+        if (von.form.requestSubmit) von.form.requestSubmit();
+        else von.form.submit();
+      }
+    });
+  })();
+  </script>
+
   {% if quote %}
     {% if quote.available %}
       <form method="post" action="{% url 'storefront-unterkunft-book' unit.pk %}" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
