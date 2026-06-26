@@ -133,6 +133,10 @@ class DemoKit:
     # G8/#6: отзывы клиентов (SHARED BusinessReview) — (rating, comment, email).
     # Seed создаёт PortalUser + отзыв + включает секцию «reviews» на витрине.
     reviews_seed: list = field(default_factory=list)
+    # A1/A2: отзывы о ТОВАРЕ (TENANT ProductReview) — (product_index, rating, name,
+    # email, comment). product_index — индекс в created_products. Seed создаёт
+    # опубликованные отзывы напрямую (демо доверенный; верификация — на витрине).
+    product_reviews: list = field(default_factory=list)
     # #7 универсальные Extras: (label, price_eur, scope, per_night). Seed создаёт
     # apps.core.Extra — гость отмечает при бронировании (сейчас на stays).
     extras: list = field(default_factory=list)
@@ -2534,6 +2538,24 @@ SHOP = DemoKit(
         (5, "Super Qualität und nette Kommunikation. Sehr empfehlenswert.", "sh.anke@example.de"),
         (4, "Tolle Auswahl an regionalen Produkten.", "sh.markus@example.de"),
     ],
+    # A1/A2: отзывы о товаре (на первых товарах каталога) — (idx, ★, имя, email, текст).
+    product_reviews=[
+        (
+            0,
+            5,
+            "Familie Köhler",
+            "sh.koehler@example.de",
+            "Knackig frisch und aromatisch — kommt wieder in den Korb.",
+        ),
+        (0, 4, "Anke S.", "sh.anke@example.de", "Gute Qualität, etwas klein, aber lecker."),
+        (
+            1,
+            5,
+            "Markus B.",
+            "sh.markus@example.de",
+            "Top Ware, schnelle Lieferung. Sehr zu empfehlen!",
+        ),
+    ],
     cta={
         "title": "Frisch vom Feld in Ihren Korb",
         "text": "Stöbern Sie im Sortiment und lassen Sie sich beliefern.",
@@ -2941,6 +2963,7 @@ def apply_kit(tenant, key: str) -> bool:
     _seed_kit_modules(tenant, kit, refs)
     _seed_kit_records(tenant, kit, refs, created_products)
     _seed_kit_reviews(tenant, kit)
+    _seed_product_reviews(kit, created_products)
     if kit.extras:  # #7 универсальные доп-услуги (Extra)
         from apps.core.models import Extra
 
@@ -3096,6 +3119,30 @@ def _seed_kit_reviews(tenant, kit: DemoKit) -> None:
             agg_reviews.recompute_rating(tenant.schema_name)
     except Exception:  # noqa: BLE001 — отзывы не должны рушить провижининг кита
         pass
+
+
+def _seed_product_reviews(kit: DemoKit, created_products: list) -> None:
+    """A1/A2: отзывы о товаре (TENANT ProductReview) на демо-товарах кита.
+
+    Создаём опубликованные отзывы напрямую (демо доверенный — без проверки заказа,
+    которая работает на витрине). Вызывается в схеме тенанта."""
+    if not kit.product_reviews:
+        return
+    from apps.catalog.models import ProductReview
+
+    for idx, rating, name, email, comment in kit.product_reviews:
+        if not isinstance(idx, int) or idx >= len(created_products):
+            continue
+        ProductReview.objects.update_or_create(
+            product=created_products[idx],
+            email=email.lower(),
+            defaults={
+                "rating": rating,
+                "author_name": name,
+                "comment": comment,
+                "is_published": True,
+            },
+        )
 
 
 def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:

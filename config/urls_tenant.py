@@ -130,6 +130,12 @@ urlpatterns = [
     # Каталог товаров на витрине (Track C1).
     path("sortiment/", public_views.product_list, name="storefront-products"),
     path("sortiment/<uuid:pk>/", public_views.product_detail, name="storefront-product"),
+    # A1/A2: отзыв о товаре (только верифицированный покупатель).
+    path(
+        "sortiment/<uuid:pk>/bewerten/",
+        public_views.product_review_submit,
+        name="storefront-product-review",
+    ),
     # Click & Collect (Track D / D2a): корзина-сессия + оформление самовывоза.
     path("warenkorb/", orders_public.cart_view, name="storefront-cart"),
     path("warenkorb/add/", orders_public.cart_add, name="storefront-cart-add"),

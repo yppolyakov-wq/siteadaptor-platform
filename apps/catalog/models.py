@@ -367,3 +367,36 @@ class ComboOption(TimestampedModel):
 
     def __str__(self):
         return f"{self.product} (+{self.price_delta})"
+
+
+class ProductReview(TimestampedModel):
+    """A1/A2: отзыв о товаре (TENANT-схема). Оставлять может только верифицированный
+    покупатель — проверка наличия заказа с этим товаром по email (apps.catalog.reviews).
+    Один отзыв на (товар, email); повторная отправка обновляет. Владелец может скрыть
+    (is_published=False) — лёгкая модерация. Агрегат avg/count — apps.catalog.reviews.
+    """
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveSmallIntegerField()  # 1..5 (валидируется во вьюхе)
+    author_name = models.CharField(max_length=120)
+    email = models.EmailField()
+    comment = models.TextField(blank=True)
+    is_published = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "email"], name="product_review_product_email_uniq"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["product", "is_published"], name="product_review_pub_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.product_id}: {self.rating}★ ({self.author_name})"
+
+    @property
+    def stars(self) -> str:
+        return "★" * self.rating + "☆" * (5 - self.rating)

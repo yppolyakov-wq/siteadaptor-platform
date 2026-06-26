@@ -341,6 +341,8 @@ def product_detail(request, pk):
     related_grid = siteconfig.grid_class_string(
         siteconfig.normalize(request.tenant.site_config)["detail_related_layout"]
     )
+    from apps.catalog import reviews as product_reviews
+
     return render(
         request,
         "storefront/product_detail.html",
@@ -350,8 +352,53 @@ def product_detail(request, pk):
             "related_grid": related_grid,
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
             "orders_enabled": request.tenant.is_module_active("orders"),
+            # A1/A2: отзывы о товаре (только верифицированные покупатели).
+            "reviews": list(product_reviews.published_for(product)),
+            "review_summary": product_reviews.summary(product),
+            "review_form_token": uuid.uuid4().hex,
         },
     )
+
+
+def product_review_submit(request, pk):
+    """A1/A2: приём отзыва о товаре. Только верифицированный покупатель (есть заказ
+    с этим товаром по email). Один отзыв на (товар, email) — повтор обновляет."""
+    from apps.catalog import reviews as product_reviews
+    from apps.catalog.models import Product, ProductReview
+
+    product = get_object_or_404(Product, pk=pk, is_active=True)
+    detail_url = reverse("storefront-product", args=[product.pk])
+    if request.method != "POST":
+        return redirect(detail_url)
+    # Рейтлимит на отправку (анти-спам), как в публичных формах акций/заявок.
+    if ratelimit.hit("product_review", ratelimit.client_ip(request), limit=10, window=3600):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return redirect(detail_url)
+    name = (request.POST.get("author_name") or "").strip()[:120]
+    email = (request.POST.get("email") or "").strip()
+    comment = (request.POST.get("comment") or "").strip()
+    try:
+        rating = int(request.POST.get("rating") or 0)
+    except (TypeError, ValueError):
+        rating = 0
+    if not (name and email and 1 <= rating <= 5):
+        messages.error(request, _("Bitte Name, E-Mail und Bewertung (1–5) angeben."))
+        return redirect(detail_url)
+    if not product_reviews.has_purchased(product, email):
+        messages.error(
+            request,
+            _(
+                "Nur verifizierte Käufer können bewerten — wir haben keine Bestellung mit dieser E-Mail gefunden."
+            ),
+        )
+        return redirect(detail_url)
+    ProductReview.objects.update_or_create(
+        product=product,
+        email=email.lower(),
+        defaults={"rating": rating, "author_name": name, "comment": comment, "is_published": True},
+    )
+    messages.success(request, _("Danke für Ihre Bewertung!"))
+    return redirect(detail_url + "#bewertungen")
 
 
 def promotion_detail(request, pk):

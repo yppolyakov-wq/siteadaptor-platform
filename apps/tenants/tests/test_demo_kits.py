@@ -514,6 +514,10 @@ def test_apply_shop_kit_retail_features():
     # seed_records → заказ с доставкой в кабинете
     assert Order.objects.filter(fulfillment=Order.FULFILLMENT_DELIVERY).exists()
     assert tenant.is_module_active("orders")
+    # A1/A2: отзывы о товаре засеяны на первых товарах каталога (опубликованы)
+    from apps.catalog.models import ProductReview
+
+    assert ProductReview.objects.filter(is_published=True).count() == 3
 
 
 def test_seed_command_unknown_kit_warns_clearly():

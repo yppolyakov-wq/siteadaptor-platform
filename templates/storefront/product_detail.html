@@ -20,6 +20,13 @@
   {% if product.category %}<p class="text-sm text-gray-400">{{ product.category }}</p>{% endif %}
   {% if product.badge_label %}<span class="inline-block mt-1 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full">{{ product.badge_label }}</span>{% endif %}
   <h1 class="text-2xl md:text-3xl font-bold mt-1">{{ product }}</h1>
+  {% if review_summary.count %}
+    <a href="#bewertungen" class="inline-flex items-center gap-1.5 mt-2 text-sm text-gray-600 hover:text-gray-900">
+      <span class="text-amber-500" aria-hidden="true">★</span>
+      <span class="font-semibold">{{ review_summary.avg }}</span>
+      <span class="text-gray-400">({{ review_summary.count }})</span>
+    </a>
+  {% endif %}
   <div class="mt-3 text-2xl font-bold">
     {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}{{ product.base_price }}{% endif %} {{ product.currency|cursym }}
   </div>
@@ -57,6 +64,61 @@
     <p class="mt-3"><a href="{% url 'storefront-message' %}?kind=product&id={{ product.pk }}&label={{ product|urlencode }}" class="text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question about this product" %}</a></p>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block detail_body %}
+{% comment %}A1/A2: отзывы о товаре. Оставить может только верифицированный покупатель
+(сервер проверяет заказ с этим товаром по e-mail). Список — опубликованные отзывы.{% endcomment %}
+<section id="bewertungen" class="mt-12 scroll-mt-24">
+  <h2 class="text-xl font-bold mb-4">{% trans "Customer reviews" %}</h2>
+  {% if review_summary.count %}
+    <div class="flex items-center gap-2 mb-5">
+      <span class="text-amber-500 text-lg" aria-hidden="true">★</span>
+      <span class="text-lg font-semibold">{{ review_summary.avg }}</span>
+      <span class="text-gray-400 text-sm">{% blocktrans count n=review_summary.count %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</span>
+    </div>
+    <ul class="space-y-4">
+      {% for r in reviews %}
+        <li class="bg-white rounded-xl border border-gray-100 p-4">
+          <div class="flex items-center justify-between">
+            <span class="font-medium text-gray-800">{{ r.author_name }}</span>
+            <span class="text-amber-500 text-sm" aria-label="{{ r.rating }}/5">{{ r.stars }}</span>
+          </div>
+          {% if r.comment %}<p class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+          <p class="mt-1 text-xs text-gray-400">{{ r.created_at|date:"d.m.Y" }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-gray-400 text-sm mb-5">{% trans "No reviews yet — be the first to review this product." %}</p>
+  {% endif %}
+
+  {# Форма отзыва: только верифицированный покупатель (проверка заказа по e-mail на сервере). #}
+  <details class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
+    <summary class="cursor-pointer font-medium text-gray-800">{% trans "Write a review" %}</summary>
+    <p class="text-xs text-gray-500 mt-2">{% trans "Only verified buyers can review. Use the e-mail address from your order." %}</p>
+    <form method="post" action="{% url 'storefront-product-review' product.pk %}" class="mt-3 space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="form_token" value="{{ review_form_token }}">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input name="author_name" type="text" required maxlength="120" placeholder="{% trans 'Your name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+        <input name="email" type="email" required placeholder="{% trans 'E-mail from your order' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm mb-1" for="id_review_rating">{% trans "Rating" %}</label>
+        <select id="id_review_rating" name="rating" required class="rounded-lg border border-gray-300 px-3 py-2">
+          <option value="5">★★★★★ (5)</option>
+          <option value="4">★★★★ (4)</option>
+          <option value="3">★★★ (3)</option>
+          <option value="2">★★ (2)</option>
+          <option value="1">★ (1)</option>
+        </select>
+      </div>
+      <textarea name="comment" rows="3" placeholder="{% trans 'Your review (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+      <button type="submit" class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Submit review" %}</button>
+    </form>
+  </details>
+</section>
 {% endblock %}
 
 {% block detail_wide %}
