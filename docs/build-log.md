@@ -2210,3 +2210,17 @@
   Тесты: `apps/catalog/tests/test_product_reviews.py` (12 — верификация/агрегат/витрина/POST) +
   assert в `test_apply_shop_kit_retail_features`. build:css без изменений (новых классов нет).
   **Миграция** `catalog/0010` — деплой: `deploy.sh single`.
+- **2026-06-26 — A3 богатая карточка услуги: фото услуги (остаток Спринта F).** Поле
+  `booking.Service.image` (FileRef-конверт, миграция `booking/0009`) + свойство `image_url`
+  (безопасно к не-dict). Витрина: миниатюра в секции «Leistungen» (`_services.html`), обложка
+  3:2 + описание на лендинге `/termin/` (`service_index.html`), hero-фото 5:2 на детали
+  `/t/<service>/` (`service_slots.html`). Кабинет `/dashboard/booking/leistungen/`: загрузка
+  фото при create/update (helper `_service_image_from` → `catalog.images.save_product_image`,
+  folder=services; кривой файл → None, CRUD не падает) + чекбокс «удалить»; формы получили
+  `enctype=multipart/form-data`. Демо: спец услуги кита расширен до 5 элементов (name, min,
+  price, desc, image_kw), Friseur-услуги получили описания+фото. Тесты:
+  `test_service_image_url_property`, `test_service_slots_page_shows_photo`,
+  `test_cabinet_service_photo_upload_and_remove` (booking) + `test_services_section_shows_photo`
+  / `_no_photo_without_image` + assert в `test_apply_friseur_kit_booking_services`. build:css
+  обновлён (`aspect-[3/2]`/`[5/2]`). **Миграция** `booking/0009` — деплой `deploy.sh single`.
+  Дальше A3: профили мастеров (Resource type=staff + фото/био).
