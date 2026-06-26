@@ -115,6 +115,33 @@ def test_nav_hides_disabled_modules():
     assert {"dashboard", "catalog", "promotions", "settings", "billing"} <= set(keys)
 
 
+def test_grouped_active_modules_orders_and_buckets():
+    """AB1: активные модули сгруппированы по задачам (порядок групп + раскладка)."""
+    groups = modules.grouped_active_modules(_tenant())
+    keys = [g["key"] for g in groups]
+    assert keys == ["shop", "sell", "marketing", "settings"]  # порядок NAV_GROUPS
+    by = {g["key"]: [m.key for m in g["modules"]] for g in groups}
+    assert by["shop"] == ["dashboard"]
+    assert "catalog" in by["sell"] and "orders" in by["sell"]
+    assert "crm" in by["marketing"] and "promotions" in by["marketing"]
+    assert "settings" in by["settings"] and "billing" in by["settings"]
+
+
+def test_grouped_active_modules_drops_empty_groups():
+    """AB1: группа без активных модулей опускается (напр. без sell-модулей)."""
+    tenant = _tenant(disabled_modules=["catalog", "orders", "booking", "stays", "events", "jobs"])
+    # catalog — core, его не выключить; но проверим, что пустых групп нет в выдаче
+    groups = modules.grouped_active_modules(tenant)
+    assert all(g["modules"] for g in groups)  # пустых групп нет
+
+
+def test_modules_nav_exposes_groups():
+    """AB1: контекст кабинета отдаёт nav_groups для сайдбара."""
+    nav = modules_nav(_request(_tenant()))
+    assert "nav_groups" in nav
+    assert [g["key"] for g in nav["nav_groups"]] == ["shop", "sell", "marketing", "settings"]
+
+
 def test_nav_empty_on_public_schema():
     public = _tenant()
     public.schema_name = "public"

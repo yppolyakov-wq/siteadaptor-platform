@@ -172,6 +172,7 @@ def modules_nav(request):
     ][:4]
     return {
         "nav_modules": _active,
+        "nav_groups": modules.grouped_active_modules(tenant),  # AB1: сайдбар по задачам
         "nav_primary": nav_primary,  # мобильный таб-бар кабинета
         # S1: витринные «лица» активных архетипов — для тизеров главной (S2) и
         # конструктора меню (S7). Источник правды — реестр модулей.

@@ -36,9 +36,14 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
 
     # Иконка модуля рядом с пунктом (Katalog & Import).
     assert "📦" in html
-    # Групп-заголовки модулей с несколькими пунктами (& → &amp; в HTML).
-    assert "Katalog &amp; Import" in html
-    assert "Aktionen &amp; Reservierung" in html
+    # AB1: сайдбар сгруппирован по задачам (Mein Geschäft / Verkaufen / Kunden &
+    # Marketing / Einstellungen), а не плоским тех-списком (& → &amp; в HTML).
+    assert "Mein Geschäft" in html
+    assert "Verkaufen" in html
+    assert "Kunden &amp; Marketing" in html
+    assert "Einstellungen" in html
+    # «➕ Funktion hinzufügen» → страница «Module».
+    assert "Add function" in html or "➕" in html
     # Регрессия: текст шаблонного комментария не должен утекать в разметку
     # (многострочный {# #} не комментарий — нужен {% comment %}).
     assert "apps.core.modules" not in html

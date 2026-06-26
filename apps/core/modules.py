@@ -379,6 +379,43 @@ def active_modules(tenant) -> list[ModuleSpec]:
     return [spec for spec in REGISTRY if is_module_active(tenant, spec.key)]
 
 
+# AB1 (анти-Битрикс): группировка меню кабинета по задачам, а не по техническим
+# модулям. Порядок групп = порядок показа; внутри группы — порядок ключей. Модули
+# вне карты падают в группу «sell» (бизнес-функции) как безопасный дефолт.
+NAV_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("shop", "Mein Geschäft", ("dashboard",)),
+    ("sell", "Verkaufen", ("catalog", "orders", "booking", "stays", "events", "jobs")),
+    (
+        "marketing",
+        "Kunden & Marketing",
+        ("crm", "promotions", "loyalty", "publishing", "inbox", "telegram"),
+    ),
+    (
+        "settings",
+        "Einstellungen",
+        ("analytics", "finance", "customer_account", "settings", "billing"),
+    ),
+)
+_GROUP_BY_KEY = {mk: gkey for gkey, _label, keys in NAV_GROUPS for mk in keys}
+
+
+def grouped_active_modules(tenant) -> list[dict]:
+    """AB1: активные модули, сгруппированные по задачам (для сайдбара кабинета).
+
+    → [{"key", "label", "modules": [ModuleSpec, …]}] в порядке NAV_GROUPS; пустые
+    группы опускаются. Модуль без явной группы попадает в «sell» (бизнес-функции)."""
+    buckets: dict[str, list[ModuleSpec]] = {gkey: [] for gkey, _l, _k in NAV_GROUPS}
+    order = {mk: i for _g, _l, keys in NAV_GROUPS for i, mk in enumerate(keys)}
+    for spec in active_modules(tenant):
+        buckets[_GROUP_BY_KEY.get(spec.key, "sell")].append(spec)
+    groups = []
+    for gkey, label, _keys in NAV_GROUPS:
+        mods = sorted(buckets[gkey], key=lambda s: order.get(s.key, 99))
+        if mods:
+            groups.append({"key": gkey, "label": label, "modules": mods})
+    return groups
+
+
 def optional_modules() -> list[ModuleSpec]:
     """Выключаемые модули (для тумблеров страницы «Module»)."""
     return [spec for spec in REGISTRY if not spec.core]

@@ -26,24 +26,34 @@
     Навигация из реестра модулей (Track D / D0a): только активные модули тенанта.
     Каждый модуль — группа (data-group) для фильтра; пункт несёт data-label.
     {% endcomment %}
+    {% comment %}AB1 (анти-Битрикс): сайдбар сгруппирован по задачам (Mein Geschäft /
+    Verkaufen / Kunden & Marketing / Einstellungen), а не плоским тех-списком. Группы —
+    `nav_groups` (apps.core.modules.grouped_active_modules). Поиск по пунктам сохраняется
+    (data-label), пустые группы скрываются при фильтрации через JS.{% endcomment %}
     <nav id="dash-nav" class="space-y-0.5 text-sm px-5 pb-5 overflow-y-auto overscroll-contain flex-1">
-      {% for module in nav_modules %}
-        <div class="nav-group">
-          {% if module.nav_items|length > 1 %}
-            <p class="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">{{ module.label_de }}</p>
-          {% endif %}
-          {% for item in module.nav_items %}
-            <a href="{% url item.url_name %}" data-label="{{ item.label|lower }} {{ module.label_de|lower }}"
-               class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-              <span class="w-5 shrink-0 text-center text-base leading-none">{{ module.icon }}</span>
-              <span class="truncate">{{ item.label }}</span>
-              {% if item.url_name == 'inbox:list' %}{# M22b: живой бейдж непрочитанного #}
-              <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
-            </a>
+      {% for group in nav_groups %}
+        <div class="nav-group" data-nav-group>
+          <p class="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400" data-nav-group-label>{{ group.label }}</p>
+          {% for module in group.modules %}
+            {% for item in module.nav_items %}
+              <a href="{% url item.url_name %}" data-label="{{ item.label|lower }} {{ module.label_de|lower }} {{ group.label|lower }}"
+                 class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+                <span class="w-5 shrink-0 text-center text-base leading-none">{{ module.icon }}</span>
+                <span class="truncate">{{ item.label }}</span>
+                {% if item.url_name == 'inbox:list' %}{# M22b: живой бейдж непрочитанного #}
+                <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
+              </a>
+            {% endfor %}
           {% endfor %}
         </div>
       {% endfor %}
       <p id="nav-empty" class="hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
+      {# AB1: добавить функцию → страница «Module». #}
+      <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
+         data-label="{% trans 'add function module' %}">
+        <span class="w-5 shrink-0 text-center text-base leading-none">➕</span>
+        <span class="truncate">{% trans "Add function" %}</span>
+      </a>
     </nav>
   </aside>
 
