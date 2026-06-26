@@ -98,14 +98,21 @@ class Command(BaseCommand):
             )
 
     def _ensure_hotel_portal(self):
-        """H8a: вертикальный hotel-портал на ``hotels.<base>`` (идемпотентно)."""
+        """H8a: вертикальный hotel-портал на ``hotels.<base>`` (идемпотентно).
+
+        Создаёт И `AggregatorPortal`, И строку `Domain(host → public)` — без последней
+        django-tenants не знает хост и отдаёт 404 ещё до портального middleware
+        (как в `create_portal`; раньше Domain не заводился — отсюда «Not Found»).
+        """
         from django.conf import settings
+        from django_tenants.utils import get_public_schema_name
 
         from apps.aggregator.models import AggregatorPortal
+        from apps.tenants.models import Domain, Tenant
 
-        base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
+        base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de").split(":")[0]
         host = f"hotels.{base}"
-        portal, created = AggregatorPortal.objects.get_or_create(
+        _portal, created = AggregatorPortal.objects.get_or_create(
             host=host,
             defaults={
                 "kind": AggregatorPortal.KIND_VERTICAL,
@@ -114,9 +121,19 @@ class Command(BaseCommand):
                 "tagline": {"de": "Direkt buchen — ohne Provision."},
             },
         )
+        # Domain(host → public): нужен django-tenants для роутинга хоста на public-схему.
+        public = Tenant.objects.filter(schema_name=get_public_schema_name()).first()
+        dom = Domain.objects.filter(domain=host).select_related("tenant").first()
+        if public is not None and dom is None:
+            Domain.objects.create(domain=host, tenant=public, is_primary=False)
+            dom_note = "Domain → public erstellt"
+        elif dom is not None and public is not None and dom.tenant_id != public.id:
+            dom_note = f"⚠ Domain {host} gehört Tenant {dom.tenant.schema_name} — übersprungen"
+        else:
+            dom_note = "Domain vorhanden"
         self.stdout.write(
             self.style.SUCCESS(
-                f"  hotel-Portal: {'erstellt' if created else 'vorhanden'} → https://{host}/"
+                f"  hotel-Portal: {'erstellt' if created else 'vorhanden'} · {dom_note} → https://{host}/"
             )
         )
 

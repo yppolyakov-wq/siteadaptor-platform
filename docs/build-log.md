@@ -2161,3 +2161,12 @@
   номер/событие; светила «M20U: универсальная галерея…»), `tenant/site_home.html` (E.2 попап +
   M20d контент-секции), `tenant/_section_fields.html` (M20d поля). Регресс-тест
   `test_gallery_does_not_leak_template_comment` (детальные). Урок зафиксирован в next-session-brief §4.
+- **2026-06-26 — Багфикс: `hotels.<base>` отдавал 404 (нет `Domain → public`).** Причина
+  `hotels.siteadaptor.de → Not Found`: `seed_demo_tenants._ensure_hotel_portal` создавал
+  `AggregatorPortal`, но НЕ строку `Domain(host → public)` — без неё django-tenants
+  (`TenantMainMiddleware`) не знает хост и отдаёт 404 ЕЩЁ ДО портального middleware (которому
+  нужна public-схема). `create_portal` это делает (Domain + Portal), а seed — забывал.
+  Исправлено: `_ensure_hotel_portal` теперь идемпотентно заводит и `Domain(host→public,
+  is_primary=False)` (с гардом «чужой домен не трогаем», как в create_portal). Тест
+  `test_hotel_portal_seed_creates_portal_and_domain_to_public` (+ идемпотентность). **Деплой:**
+  после `git pull && deploy.sh` нужно `seed_demo_tenants --kit hotel --recreate` (создаст Domain).

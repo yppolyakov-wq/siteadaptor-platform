@@ -525,3 +525,27 @@ def test_seed_command_unknown_kit_warns_clearly():
     assert "Unbekannter Kit" in out and "does-not-exist" in out
     assert "Verfügbare Kits" in out and "restaurant" in out
     assert "deploy.sh single" in out  # подсказка про старый образ
+
+
+def test_hotel_portal_seed_creates_portal_and_domain_to_public():
+    """H8a/багфикс: seed hotel-портала создаёт И AggregatorPortal, И Domain(host→public).
+    Без Domain django-tenants отдаёт 404 на hotels.<base> (репро прежнего «Not Found»)."""
+    from django_tenants.utils import get_public_schema_name
+
+    from apps.aggregator.models import AggregatorPortal
+    from apps.tenants.management.commands.seed_demo_tenants import Command
+    from apps.tenants.models import Domain, Tenant
+
+    public = Tenant.objects.filter(schema_name=get_public_schema_name()).first()
+    if public is None:
+        public = TenantFactory(schema_name=get_public_schema_name(), slug="public", name="Public")
+
+    Command()._ensure_hotel_portal()
+
+    host = "hotels.siteadaptor.de"  # TENANT_DOMAIN_BASE в test = siteadaptor.de
+    assert AggregatorPortal.objects.filter(host=host, business_type="hotel").exists()
+    assert Domain.objects.filter(domain=host, tenant=public).exists()  # ← фикс роутинга
+
+    Command()._ensure_hotel_portal()  # идемпотентно: повтор не плодит дублей
+    assert Domain.objects.filter(domain=host).count() == 1
+    assert AggregatorPortal.objects.filter(host=host).count() == 1
