@@ -1144,22 +1144,27 @@ def modules_view(request):
             "suited_label": registry.suited_label(spec),
         }
 
-    # Гибрид: подходящие вертикали (и универсальные) — сверху, остальные — в
-    # секции «Weitere Bausteine» с пометкой, для кого они.
-    suited = [
+    # AB2 (анти-Битрикс): 3 секции в языке задач —
+    #  «Für Ihr Geschäft empfohlen» (core + подходящие вертикали, не premium),
+    #  «Weitere Funktionen» (универсальные/прочие, не premium),
+    #  «Premium» (premium=True, бейдж тарифа).
+    recommended = [
         _row(spec)
         for spec in registry.REGISTRY
-        if spec.core or registry.is_suited_for(spec, tenant.business_type)
+        if not spec.premium and (spec.core or registry.is_suited_for(spec, tenant.business_type))
     ]
     other = [
         _row(spec)
         for spec in registry.REGISTRY
-        if not spec.core and not registry.is_suited_for(spec, tenant.business_type)
+        if not spec.premium
+        and not spec.core
+        and not registry.is_suited_for(spec, tenant.business_type)
     ]
+    premium = [_row(spec) for spec in registry.REGISTRY if spec.premium]
     return render(
         request,
         "tenant/modules.html",
-        {"nav": "modules", "rows": suited, "other_rows": other},
+        {"nav": "modules", "rows": recommended, "other_rows": other, "premium_rows": premium},
     )
 
 

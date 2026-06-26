@@ -15,16 +15,27 @@
 
   <form method="post" class="space-y-3">
     {% csrf_token %}
+    {% comment %}AB2: «Für Ihr Geschäft empfohlen» — core + подходящие вертикали.{% endcomment %}
+    <h2 class="font-semibold">{% trans "Recommended for your business" %}</h2>
     {% for row in rows %}
       {% include "tenant/_module_row.html" %}
     {% endfor %}
 
     {% if other_rows %}
-      {# Гибрид: блоки других вертикалей — доступны, но включаются осознанно. #}
-      <h2 class="font-semibold pt-3">Weitere Bausteine</h2>
-      <p class="text-xs text-gray-400 -mt-2">Für andere Geschäftstypen gedacht — lassen sich trotzdem aktivieren.</p>
+      {% comment %}AB2: универсальные/прочие — доступны, включаются осознанно.{% endcomment %}
+      <h2 class="font-semibold pt-3">{% trans "More functions" %}</h2>
+      <p class="text-xs text-gray-400 -mt-2">{% trans "For other business types — you can still enable them." %}</p>
       {% for row in other_rows %}
         {% include "tenant/_module_row.html" with untypical=True %}
+      {% endfor %}
+    {% endif %}
+
+    {% if premium_rows %}
+      {% comment %}AB2: премиум-функции (бейдж тарифа).{% endcomment %}
+      <h2 class="font-semibold pt-3">{% trans "Premium" %}</h2>
+      <p class="text-xs text-gray-400 -mt-2">{% trans "Available with a paid plan." %}</p>
+      {% for row in premium_rows %}
+        {% include "tenant/_module_row.html" with is_premium=True %}
       {% endfor %}
     {% endif %}
     <button type="submit" class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700">{% trans "Save" %}</button>

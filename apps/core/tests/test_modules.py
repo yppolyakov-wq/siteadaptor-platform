@@ -311,6 +311,17 @@ class TestModulesView:
         # Core-чекбокс задизейблен, выключенный crm — без checked.
         assert html.count("disabled") >= 4
 
+    def test_get_shows_task_sections(self, settings):
+        """AB2: страница «Module» сгруппирована в язык задач (empfohlen / weitere)."""
+        settings.ROOT_URLCONF = "config.urls_tenant"
+        from apps.core.views import modules_view
+
+        html = modules_view(self._request(TenantFactory())).content.decode()
+        assert "Recommended for your business" in html
+        assert "More functions" in html
+        # Premium-секция скрыта, пока нет premium-модулей.
+        assert "Available with a paid plan." not in html
+
     def test_post_writes_disabled_modules(self, settings):
         settings.ROOT_URLCONF = "config.urls_tenant"
         from apps.core.views import modules_view
@@ -434,4 +445,4 @@ def test_modules_view_warns_on_untypical_enable(settings):
     get_request.tenant = tenant
     get_request.user = request.user
     body = modules_view(get_request).content.decode()
-    assert "Weitere Bausteine" in body and "Geeignet für:" in body
+    assert "More functions" in body and "Geeignet für:" in body  # AB2: секция «weitere»

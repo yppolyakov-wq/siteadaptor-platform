@@ -8,6 +8,7 @@
       <span class="font-medium text-sm">{{ row.spec.icon }} {{ row.spec.label_de }}</span>
       {% if row.spec.core %}<span class="ml-1 text-[11px] text-gray-400 uppercase">{% trans "always on" %}</span>{% endif %}
       {% if row.recommended and not row.spec.core %}<span class="ml-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Recommended" %}</span>{% endif %}
+      {% if is_premium %}<span class="ml-1 bg-violet-50 text-violet-700 text-[11px] font-medium px-2 py-0.5 rounded-full">★ Premium</span>{% endif %}
       {% if untypical %}<span class="ml-1 bg-amber-50 text-amber-700 text-[11px] font-medium px-2 py-0.5 rounded-full">⚠ Untypisch für deinen Geschäftstyp</span>{% endif %}
       {% if row.enabled and not row.active and not row.spec.core %}<span class="ml-1 bg-amber-50 text-amber-700 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "inactive" %}</span>{% endif %}
       <span class="block text-xs text-gray-500 mt-0.5">{{ row.spec.description_de }}</span>
