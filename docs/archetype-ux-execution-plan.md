@@ -278,8 +278,12 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
 - ✅ **Прайс-блок Festpreis** — в блоке услуг у платной услуги пометка «Festpreis», когда
   активен модуль `jobs` (Werkstatt/Handwerker; у Friseur — нет). Флаг `services_festpreis`
   в `storefront_home`. Тесты `test_services_section_shows_festpreis_for_trades` / `_no_*`.
-- Дальше: отзывы (⊂ A.2 ✅) · структурные данные авто
-  (Kennzeichen/HSN-TSN) (M) · Repair-Status трекинг + письмо (S–M) · TÜV/Service-Reminder
+- ✅ **Структурные данные авто (Kennzeichen/HSN-TSN)** — поля `Job.vehicle_plate/hsn/tsn`
+  (миграция `jobs/0008`) + флаг витрины `site_config.jobs_vehicle`: Anfrage показывает
+  структурные поля авто + schema.org `AutoRepair` JSON-LD; кабинет-деталь заявки выводит
+  Kennzeichen+HSN/TSN. Демо Werkstatt: флаг on + Kostenvoranschläge со структурой. Тесты
+  `test_public` (поля/LD/сохранение) + `test_seo` (schema_type) + Werkstatt-кит.
+- Дальше: Repair-Status трекинг + письмо (S–M) · TÜV/Service-Reminder
   (M) · Reifeneinlagerung (M–L).
 
 ### F-A7 Handwerker
@@ -343,7 +347,8 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
 ### Остаток Спринта F (закрыть перед G)
 Готово в этой сессии: A7 before/after-галерея ✅ · A8 фасетные фильтры (рейтинг/«offen jetzt») ✅ ·
 A1/A2 отзывы о товаре (ProductReview, верифиц. покупатели) ✅ · A3 богатая карточка услуги (фото) ✅ ·
-A3 профили мастеров ✅ (A4 диет-иконки/фильтр — уже было ✅). **A3 закрыт.**
-Осталось: A6 RV1 2-шаговый чекаут билета · RT1 QR-билет + check-in · RT3 recurring-серии · RT4 блог ·
-A9 структурные данные авто (Kennzeichen/HSN-TSN). Идём по убыванию
+A3 профили мастеров ✅ · A9 структурные данные авто (Kennzeichen/HSN-TSN) ✅
+(A4 диет-иконки/фильтр — уже было ✅). **A3, A9 закрыты.**
+Осталось: A6 RV1 2-шаговый чекаут билета · RT1 QR-билет + check-in · RT3 recurring-серии · RT4 блог.
+Затем Спринт G. Идём по убыванию
 ценности/без-миграций-первыми.

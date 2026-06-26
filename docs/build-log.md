@@ -2236,3 +2236,18 @@
   `test_resource_profile_saves_title_bio_photo_and_removes` + assert в Friseur-ките. build:css
   обновлён. **Миграция** `booking/0010`. С этим A3 (богатая карточка услуги + профили мастеров)
   закрыт полностью.
+- **2026-06-26 — A9 структурные данные авто (Werkstatt): Kennzeichen/HSN-TSN + AutoRepair LD.**
+  Поля `jobs.Job.vehicle_plate/vehicle_hsn/vehicle_tsn` (миграция `jobs/0008`) — Schlüssel-
+  nummern из Zulassungsbescheinigung (Feld 2.1/2.2) для точного подбора запчастей.
+  `create_job` нормализует (upper/trim, обрезка 15/4/3). Флаг витрины `site_config.jobs_vehicle`
+  (`siteconfig.normalize`, дефолт False): при включении публичная `/anfrage/` показывает
+  структурные поля авто (модель/Kennzeichen/HSN/TSN, fieldset) вместо одного generic-поля +
+  отдаёт schema.org `AutoRepair` JSON-LD (новый параметр `localbusiness_ld(schema_type=...)`
+  перекрывает вывод из business_type). Кабинет `templates/jobs/detail.html`: деталь заявки
+  выводит Kennzeichen + HSN/TSN. Демо: DemoKit-флаг `jobs_vehicle` (→ config), Werkstatt-кит
+  `jobs_vehicle=True` + оба Kostenvoranschläge получили структурные данные (VW Golf DO-MV 1234
+  0603/BNV · BMW 320d DO-SK 88 0005/CKA). Тесты: `test_public` (поля показ/скрытие + AutoRepair
+  LD + сохранение upper), `test_seo` (schema_type override), `test_siteconfig` (флаг),
+  Werkstatt-кит assert. Попутно: `_req` в `test_public` получил уникальный IP per-call —
+  фикс flaky rate-limit «anfrage» (5/окно) при нескольких POST-тестах в одном прогоне (общий
+  кэш). **Миграция** `jobs/0008`. С этим A9 закрыт.
