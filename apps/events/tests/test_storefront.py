@@ -86,6 +86,22 @@ def test_detail_thematic_sections_reorder_and_hide():
     assert "Ruhe finden" not in body  # idea скрыта
 
 
+def test_detail_program_renders_agenda_timeline():
+    """RV2: program → тайм-лайн (рельса + ведущий маркер lead, фолбэк без тире)."""
+    ev = _event(
+        title="Retreat",
+        program=[
+            "Fr 16:00 — Ankommen & Auftakt",
+            "Sa 08:00 — Morgen-Yoga",
+            "Freitext ohne Marker",
+        ],
+    )
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert "border-l-2 border-indigo-200" in body  # рельса тайм-лайна
+    assert "Fr 16:00" in body and "Ankommen &amp; Auftakt" in body  # lead + body
+    assert "Freitext ohne Marker" in body  # строка без тире — как body
+
+
 def test_detail_unified_hero_gallery_and_price_card():
     """M20U-4: единый каркас детальной — галерея слева (свап) + sticky-карточка
     цены/брони справа + ссылка-инбокс (если модуль активен)."""

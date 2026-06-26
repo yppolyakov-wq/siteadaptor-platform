@@ -2019,3 +2019,11 @@
   Демо: retreat получил `page_layouts={"events":"cols2"}` (у pranasy уже было) → грид виден
   в showcase. Тесты `test_index_grid_layout_shows_cover_cards_and_countdown` +
   `test_index_list_layout_has_no_cover_grid`. build:css обновлён (aspect-[4/3]). Без миграций.
+- **2026-06-25 — Спринт F (визуальный трек A6): RV2 agenda-timeline.** Программа события
+  (`Event.program` — плоский список строк) на детальной (`_event_thematic.html`, секция
+  `program`) рендерится как **тайм-лайн день-за-днём**: вертикальная рельса слева + точки,
+  ведущий маркер времени/дня (часть до тире «—/–/-») выделен индиго-жирным, остаток — описание;
+  строки без тире — обычным текстом (фолбэк). Парсер `_parse_agenda(program)` в
+  `veranstaltung_detail` отдаёт `agenda=[{lead, body}]` (generic — любой формат программы,
+  не только демо). Тест `test_detail_program_renders_agenda_timeline`. build:css обновлён.
+  Без миграций (рендер поверх существующего JSON).

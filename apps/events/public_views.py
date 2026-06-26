@@ -226,6 +226,23 @@ def lehrer_detail(request, pk):
     )
 
 
+def _parse_agenda(program) -> list:
+    """RV2: разобрать плоский `program` (список строк «<Tag/Zeit> — <Text>») в записи
+    тайм-лайна {lead, body}. lead — ведущий маркер времени/дня до тире (если есть)."""
+    agenda = []
+    for raw in program or []:
+        s = str(raw).strip()
+        if not s:
+            continue
+        lead, body = "", s
+        for sep in (" — ", " – ", " - "):
+            if sep in s:
+                lead, body = s.split(sep, 1)
+                break
+        agenda.append({"lead": lead.strip(), "body": body.strip()})
+    return agenda
+
+
 def veranstaltung_detail(request, pk):
     _require_events_active(request)
     event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
@@ -240,6 +257,7 @@ def veranstaltung_detail(request, pk):
 
     ctx = {
         "event": event,
+        "agenda": _parse_agenda(event.program),  # RV2: тайм-лайн программы
         "extras": extras_engine.active_for("events"),  # #7 доп-услуги
         "accommodation": services.accommodation_options(event),  # R5 типы номеров
         "jobs_active": jobs_active,  # R6 корп-запрос (Angebot)
