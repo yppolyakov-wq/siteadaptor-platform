@@ -2224,3 +2224,15 @@
   / `_no_photo_without_image` + assert в `test_apply_friseur_kit_booking_services`. build:css
   обновлён (`aspect-[3/2]`/`[5/2]`). **Миграция** `booking/0009` — деплой `deploy.sh single`.
   Дальше A3: профили мастеров (Resource type=staff + фото/био).
+- **2026-06-26 — A3 профили мастеров (Resource staff) — A3 закрыт.** Поля
+  `booking.Resource.title/bio/photo` (FileRef, миграция `booking/0010`) + свойство `photo_url`.
+  Витрина `/t/<service>/`: пикер специалиста показывает аватар (round) + должность, под пикером —
+  карточка-био выбранного мастера. Кабинет `/dashboard/booking/ressourcen/`: для ресурса
+  `type=staff` — форма профиля (должность/био/фото upload+remove), действие `resource_profile`;
+  generic-хелпер `_uploaded_image_ref(request, field, folder)` (рефактор из `_service_image_from`,
+  reuse `catalog.images.save_product_image`, folder=staff). Демо: resource-spec кита расширен
+  (title/bio/photo_kw), Friseur Lea/Jonas получили должность+био+фото. Тесты:
+  `test_resource_photo_url_property`, `test_service_slots_picker_shows_master_profile`,
+  `test_resource_profile_saves_title_bio_photo_and_removes` + assert в Friseur-ките. build:css
+  обновлён. **Миграция** `booking/0010`. С этим A3 (богатая карточка услуги + профили мастеров)
+  закрыт полностью.
