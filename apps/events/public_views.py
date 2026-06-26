@@ -50,6 +50,19 @@ def veranstaltung_index(request):
     }
     events = [e for e in base if _event_matches(e, selected)]
     active_filters = any(selected.values())
+    # RV3: компактный отсчёт до старта (urgency-пилюля на карточке/гриде). Событие
+    # «скоро» (≤14 дней) получает метку Heute/Morgen/In N Tagen — конверсионный сигнал.
+    _today = timezone.localtime(timezone.now()).date()
+    for e in events:
+        _days = (timezone.localtime(e.starts_at).date() - _today).days
+        e.starts_soon = 0 <= _days <= 14
+        e.countdown_label = (
+            _("Today")
+            if _days <= 0
+            else _("Tomorrow")
+            if _days == 1
+            else _("In %(n)d days") % {"n": _days}
+        )
     # M20U-3: на маленькой витрине (≤ порога событий) фильтры — лишний шум.
     # Показываем панель фильтров, только если событий достаточно или фильтр уже
     # применён. Иначе — чистый список (анти-Битрикс простота).

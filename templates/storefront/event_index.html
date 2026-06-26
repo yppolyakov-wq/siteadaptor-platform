@@ -67,7 +67,9 @@
   {% endif %}
 
   {% if events %}
-    <div class="{% if events_is_list %}space-y-3{% else %}{{ events_grid }}{% endif %}">
+    {% if events_is_list %}
+    {% comment %}Список (дефолт): горизонтальные строки.{% endcomment %}
+    <div class="space-y-3">
       {% for e in events %}
         <a href="{% url 'storefront-event' e.pk %}" class="flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
           {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-24 h-24 rounded-xl object-cover flex-shrink-0">{% endif %}
@@ -76,6 +78,7 @@
               {% if e.category_label %}<span class="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5">{{ e.category_label }}</span>{% endif %}
               {% if e.ends_at %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.duration_label }}</span>{% endif %}
               {% if e.level_label %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.level_label }}</span>{% endif %}
+              {% if e.starts_soon and not e.is_sold_out %}<span class="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">⏳ {{ e.countdown_label }}</span>{% endif %}
             </div>
             <div class="font-semibold truncate">{{ e.title }}</div>
             <div class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y H:i" }}{% if e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
@@ -88,6 +91,38 @@
         </a>
       {% endfor %}
     </div>
+    {% else %}
+    {% comment %}RV3: грид крупных обложек (как BookRetreats) — фото сверху, бейджи
+    оверлеем (категория + countdown/sold-out), мета снизу.{% endcomment %}
+    <div class="{{ events_grid }}">
+      {% for e in events %}
+        <a href="{% url 'storefront-event' e.pk %}" class="group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+          <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+            {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">{% endif %}
+            <div class="absolute top-2 left-2 flex flex-wrap gap-1">
+              {% if e.category_label %}<span class="text-xs bg-white/90 text-indigo-700 rounded-full px-2 py-0.5 shadow-sm">{{ e.category_label }}</span>{% endif %}
+            </div>
+            <div class="absolute top-2 right-2 flex flex-col items-end gap-1">
+              {% if e.is_sold_out %}<span class="text-xs bg-red-600 text-white rounded-full px-2 py-0.5 shadow-sm">{% trans "Sold out" %}</span>
+              {% elif e.starts_soon %}<span class="text-xs bg-amber-500 text-white rounded-full px-2 py-0.5 shadow-sm">⏳ {{ e.countdown_label }}</span>{% endif %}
+            </div>
+          </div>
+          <div class="p-4 flex-1 flex flex-col">
+            <div class="flex flex-wrap gap-1 mb-1">
+              {% if e.ends_at %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.duration_label }}</span>{% endif %}
+              {% if e.level_label %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.level_label }}</span>{% endif %}
+            </div>
+            <div class="font-semibold leading-snug line-clamp-2">{{ e.title }}</div>
+            <div class="text-sm text-gray-500 mt-1">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
+            <div class="mt-2 pt-2 flex items-center gap-3 border-t border-gray-50">
+              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>
+              {% if not e.is_sold_out and e.seats_left %}<span class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</span>{% endif %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+    {% endif %}
   {% else %}
     <p class="text-gray-400">{% if active_filters %}{% trans "No events match your filters." %}{% else %}{% trans "No upcoming events." %}{% endif %}</p>
   {% endif %}

@@ -2190,6 +2190,7 @@ RETREAT = DemoKit(
     storefront_root="home",
     seed_records=True,
     menus=RETREAT_MENUS,
+    page_layouts={"events": "cols2"},  # RV3: грид крупных обложек на индексе ретритов
     archetype_covers={
         "events": {
             "intro": "Wochenend-Retreats, Tagesworkshops und Achtsamkeits-Abende — mit Programm.",

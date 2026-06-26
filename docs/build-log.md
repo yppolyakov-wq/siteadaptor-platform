@@ -2008,3 +2008,14 @@
   подхватывает автоматически (доку-строка добавлена). Тест
   `test_apply_handwerker_kit_jobs_services_no_shop` (services/Festpreis, jobs с суммами,
   отсутствие shop, активные модули, секции витрины, CTA `/anfrage/`). Без миграций (демо-данные).
+- **2026-06-25 — Спринт F (визуальный трек A6): RV3 грид-обложки событий + countdown.**
+  Индекс ретритов/событий (`event_index.html`) в grid-режиме (`events_index_layout` != list)
+  теперь рендерит **крупные карточки-обложки** (фото 4:3 сверху, hover-zoom, бейджи
+  категории/sold-out/countdown оверлеем, мета снизу) — стиль BookRetreats, вместо
+  горизонтальных строк (как было — грид-класс на тех же flex-карточках). Списочный режим
+  сохранён без изменений. Добавлена **urgency-пилюля** «Heute/Morgen/In N Tagen» для событий
+  ≤14 дней (на гриде — оверлеем, в списке — в ряду бейджей); `veranstaltung_index` размечает
+  `starts_soon`/`countdown_label` по КАЛЕНДАРНОЙ разнице дат (localtime, без off-by-one).
+  Демо: retreat получил `page_layouts={"events":"cols2"}` (у pranasy уже было) → грид виден
+  в showcase. Тесты `test_index_grid_layout_shows_cover_cards_and_countdown` +
+  `test_index_list_layout_has_no_cover_grid`. build:css обновлён (aspect-[4/3]). Без миграций.

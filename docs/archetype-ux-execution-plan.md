@@ -189,9 +189,14 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
 > план каждого заводим отдельным план-доком перед стартом (конвенция docs до кода).
 
 ### F-A6 Ретрит (визуальный трек, см. `retreat-archetype-plan.md` §6)
-- RV2 agenda-timeline (S–M) · RV3 грид-обложки + countdown (S–M) · RV4 лайтбокс (S,
-  пересекается с A.4) · RV1 2-шаговый чекаут (M) · RT1 QR-билет + check-in (M) ·
-  RT2 онлайн/Zoom (S–M) · RT3 recurring-серии (M) · RT4 блог (M, общий).
+- ✅ **RV3 грид-обложки + countdown** — индекс событий в grid-режиме рендерит крупные
+  карточки-обложки (фото 4:3 сверху, бейджи категории/sold-out/countdown оверлеем, мета
+  снизу) вместо горизонтальных строк; urgency-пилюля «Heute/Morgen/In N Tagen» (≤14 дн)
+  на гриде и в списке. Бэк: `veranstaltung_index` размечает `starts_soon`/`countdown_label`
+  по календарной разнице дат. Демо: retreat/pranasy events-страница = `cols2`. Тесты
+  `test_index_grid_layout_*` / `test_index_list_layout_*`.
+- Дальше: RV2 agenda-timeline (S–M) · RV4 лайтбокс (S, ⊂ A.4 ✅) · RV1 2-шаговый чекаут (M) ·
+  RT1 QR-билет + check-in (M) · RT2 онлайн/Zoom (S–M) · RT3 recurring-серии (M) · RT4 блог.
 
 ### F-A5 Отель
 - Визуальный календарь наличия (M–L, сильнейший рычаг) · полноэкранный лайтбокс (S,

@@ -167,6 +167,23 @@ def test_index_lists_published_future():
     assert "Entwurf" not in body and "Vergangen" not in body
 
 
+def test_index_grid_layout_shows_cover_cards_and_countdown():
+    """RV3: сетка обложек (aspect-обложка) + countdown-пилюля для скорых событий."""
+    _event(title="Bald", starts_at=timezone.now() + timedelta(days=5))
+    tenant = TenantFactory.build(site_config={"events_index_layout": {"preset": "cols2"}})
+    body = public_views.veranstaltung_index(_req("get", tenant=tenant)).content.decode()
+    assert "aspect-[4/3]" in body  # грид-обложки RV3
+    assert "In 5 days" in body  # countdown-пилюля скорого события
+
+
+def test_index_list_layout_has_no_cover_grid():
+    """Дефолтный список — без сетки обложек (регрессия RV3 ветвления)."""
+    _event(title="Liste", starts_at=timezone.now() + timedelta(days=40))
+    body = public_views.veranstaltung_index(_req("get")).content.decode()
+    assert "aspect-[4/3]" not in body  # список, не грид
+    assert "Liste" in body
+
+
 def test_free_event_books_confirmed_with_answers():
     event = _event(price_cents=0)
     resp = public_views.veranstaltung_book(
