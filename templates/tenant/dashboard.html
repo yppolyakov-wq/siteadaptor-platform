@@ -19,4 +19,29 @@
 <a href="{% url 'catalog:product-list' %}" class="inline-block mt-4 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
   {% trans "Manage catalog" %}
 </a>
+
+{% comment %}AB4: чек-лист готовности сайта — мотивация допилить + прямой путь к действию.
+Показываем, пока сайт не на 100%; «✓ fertig» при полной готовности.{% endcomment %}
+{% if readiness %}
+<div class="mt-8 max-w-xl bg-white rounded-2xl shadow-sm p-5">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-semibold">{% if readiness.percent >= 100 %}{% trans "Your site is ready" %} 🎉{% else %}{% blocktrans with p=readiness.percent %}Your site is {{ p }}% ready{% endblocktrans %}{% endif %}</h2>
+    <span class="text-sm text-gray-400">{{ readiness.done }}/{{ readiness.total }}</span>
+  </div>
+  <span class="block mb-4 h-2 bg-gray-100 rounded-full"><span class="block h-2 bg-emerald-500 rounded-full" style="width: {{ readiness.percent }}%"></span></span>
+  <ul class="space-y-1.5">
+    {% for item in readiness.items %}
+      <li>
+        {% if item.done %}
+          <span class="flex items-center gap-2 text-sm text-gray-400"><span class="text-emerald-500">✓</span> <span class="line-through">{{ item.label }}</span></span>
+        {% else %}
+          <a href="{% url item.url_name %}" class="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-700">
+            <span class="w-4 h-4 shrink-0 rounded border border-gray-300"></span> {{ item.label }} <span class="text-indigo-400">→</span>
+          </a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
 {% endblock %}

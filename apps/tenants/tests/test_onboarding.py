@@ -77,3 +77,34 @@ def test_signup_form_password_mismatch():
     )
     assert not form.is_valid()
     assert "password2" in form.errors
+
+
+# --- AB4: чек-лист готовности сайта ------------------------------------------------
+@pytest.mark.django_db
+def test_completeness_empty_tenant_low_and_structured():
+    from apps.tenants import onboarding
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(address="", opening_hours="", site_config={})
+    r = onboarding.completeness(tenant)
+    assert r["total"] == 5
+    keys = {i["key"] for i in r["items"]}
+    assert keys == {"banner", "hours", "contact", "offer", "legal"}
+    assert {i["key"]: i["done"] for i in r["items"]}["hours"] is False
+    assert r["percent"] <= 40  # почти ничего не заполнено
+
+
+@pytest.mark.django_db
+def test_completeness_marks_filled_items_done():
+    from apps.tenants import onboarding
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(
+        address="Hauptstr. 1, Hilden",
+        opening_hours="Mo–Fr 9–18",
+        site_config={"hero_image": "/m/banner.jpg"},
+    )
+    done = {i["key"]: i["done"] for i in onboarding.completeness(tenant)["items"]}
+    assert done["banner"] and done["hours"] and done["contact"] and done["legal"]
+    # offer зависит от каталога (в пустой схеме — нет)
+    assert done["offer"] is False

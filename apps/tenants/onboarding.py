@@ -71,3 +71,80 @@ def progress(tenant) -> tuple[int, int]:
     state = get_state(tenant)
     done = TOTAL_STEPS if state["completed"] else state["step"] - 1
     return done, TOTAL_STEPS
+
+
+# --- AB4: чек-лист готовности сайта (из реального наполнения, не из шагов мастера) ---
+def _has_offering(tenant) -> bool:
+    """Есть ли что продавать: товар / акция / услуга / событие / номер. Безопасно к
+    выключенным модулям и отсутствию таблиц (любая ошибка → этот источник False)."""
+    checks = (
+        ("apps.catalog.models", "Product", {"is_active": True}),
+        ("apps.promotions.models", "Promotion", {"status": "active"}),
+        ("apps.booking.models", "Service", {"is_active": True}),
+        ("apps.events.models", "Event", {}),
+        ("apps.stays.models", "StayUnit", {"is_active": True}),
+    )
+    import importlib
+
+    for mod_path, cls_name, flt in checks:
+        try:
+            model = getattr(importlib.import_module(mod_path), cls_name)
+            if model.objects.filter(**flt).exists():
+                return True
+        except Exception:  # noqa: BLE001 — модуль выключен / нет таблицы
+            continue
+    return False
+
+
+def completeness(tenant) -> dict:
+    """AB4: «Dein Site ist zu X% fertig» — пункты готовности из реального наполнения.
+
+    → {percent, done, total, items:[{key,label,done,url_name}]}. Считается по факту
+    (фото/часы/контакты/первый товар/Impressum), а не по шагам мастера — мотивирует
+    допилить сайт и даёт прямой путь к действию (анти-«пустой кабинет»)."""
+    from django.utils.translation import gettext as _t
+
+    from . import siteconfig
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    has_photo = bool(cfg.get("hero_image")) or bool(cfg.get("gallery"))
+    items = [
+        {
+            "key": "banner",
+            "label": _t("Add a banner or photo"),
+            "done": has_photo,
+            "url_name": "site",
+        },
+        {
+            "key": "hours",
+            "label": _t("Set your opening hours"),
+            "done": bool(tenant.opening_hours or tenant.opening_hours_structured),
+            "url_name": "settings",
+        },
+        {
+            "key": "contact",
+            "label": _t("Add contact details"),
+            "done": bool(tenant.public_email or tenant.public_phone or tenant.address),
+            "url_name": "settings",
+        },
+        {
+            "key": "offer",
+            "label": _t("Add your first item to sell"),
+            "done": _has_offering(tenant),
+            "url_name": "catalog:product-list",
+        },
+        {
+            "key": "legal",
+            "label": _t("Complete legal info (Impressum)"),
+            "done": bool(tenant.address),
+            "url_name": "settings",
+        },
+    ]
+    done = sum(1 for i in items if i["done"])
+    total = len(items)
+    return {
+        "percent": round(100 * done / total) if total else 100,
+        "done": done,
+        "total": total,
+        "items": items,
+    }

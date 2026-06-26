@@ -74,6 +74,7 @@ def dashboard(request):
             "setup_done": setup_done,
             "setup_total": setup_total,
             "setup_completed": onboarding.get_state(request.tenant)["completed"],
+            "readiness": onboarding.completeness(request.tenant),  # AB4: чек-лист готовности
         },
     )
 
