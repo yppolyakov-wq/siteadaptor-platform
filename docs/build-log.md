@@ -2283,3 +2283,16 @@
   event (series)» (интервал + число повторов). Тесты `test_cabinet`: сдвиги/общий id/счётчик
   серии, biweekly+monthly, month-end, копирование M2M без билетов, view создаёт даты.
   **Миграция** `events/0019`. Closes A6 RT3.
+- **2026-06-26 — A6 RT4: блог/новости — Спринт F закрыт.** Модель `events.BlogPost`
+  (миграция `events/0020`): title/slug(unique)/excerpt/body/cover(FileRef)/is_published/
+  published_at + `cover_url`, индекс (is_published, published_at). Публичные вьюхи
+  `blog_index` (`/blog/`, только опубликованные) + `blog_detail` (`/blog/<slug>/`, 404 для
+  черновика, + «More posts»). Кабинет `blog_list` (список + создание: slugify с дедупом
+  `-2/-3…`, publish→published_at) + `blog_edit` (правка/обложка upload+remove/публикация/
+  удаление; helper `_uploaded_cover`). Шаблоны `storefront/blog_index|detail.html` +
+  `events/blog_list|edit.html`. Демо: DemoKit-поле `blog_posts`, `_seed_blog_posts` (gated
+  на events), retreat-кит сеет 2 опубликованные записи + пункт меню «Blog» (/blog/). Тесты
+  `test_blog.py` (8: публичный список/деталь/404 + кабинет create-slug/коллизия/edit/delete)
+  + retreat-демо assert. build:css обновлён (`aspect-[16/9]`). **Миграция** `events/0020`.
+  С этим закрыт остаток A6 и **весь Спринт F**. Дальше — Спринт G (анти-Битрикс кабинет/
+  онбординг).
