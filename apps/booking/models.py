@@ -41,12 +41,21 @@ class Resource(TimestampedModel):
     # Анти-фрод: даже после оплаты держать бронь pending до ручного подтверждения
     # бизнесом (по умолчанию оплата сразу авто-подтверждает).
     require_manual_confirm = models.BooleanField(default=False)
+    # A3: профиль мастера (для type=staff) — должность, био и фото; пусто = как раньше.
+    title = models.CharField(max_length=120, blank=True)  # «Stylistin», «SHK-Meister»
+    bio = models.TextField(blank=True)
+    photo = models.JSONField(default=dict, blank=True)  # FileRef-конверт {url, …}
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self):
         return self.name
+
+    @property
+    def photo_url(self) -> str:
+        """A3: URL фото мастера (или ''), безопасно к не-dict значению."""
+        return self.photo.get("url", "") if isinstance(self.photo, dict) else ""
 
 
 class Service(TimestampedModel):

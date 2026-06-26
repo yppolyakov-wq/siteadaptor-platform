@@ -54,6 +54,22 @@
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="counts_party_size" {% if r.counts_party_size %}checked{% endif %}> {% trans "Count per person (group course)" %}</label>
           <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
         </form>
+        {% comment %}A3: профиль мастера (должность/био/фото) — только для ресурса-сотрудника.{% endcomment %}
+        {% if r.type == 'staff' %}
+        <form method="post" enctype="multipart/form-data" class="mt-2 space-y-2 text-sm border-t border-gray-100 pt-2">{% csrf_token %}
+          <input type="hidden" name="action" value="resource_profile"><input type="hidden" name="resource" value="{{ r.pk }}">
+          <div class="flex items-center gap-3">
+            {% if r.photo_url %}<img src="{{ r.photo_url }}" alt="" class="w-12 h-12 rounded-full object-cover shrink-0">{% endif %}
+            <input name="title" type="text" value="{{ r.title }}" placeholder="{% trans 'Role (e.g. Stylist, Master)' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5">
+          </div>
+          <textarea name="bio" rows="2" placeholder="{% trans 'Short bio (optional)' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5">{{ r.bio }}</textarea>
+          <div class="flex flex-wrap items-center gap-3">
+            <label class="text-gray-600">{% trans "Photo" %}: <input name="photo" type="file" accept="image/*"></label>
+            {% if r.photo_url %}<label class="text-gray-600"><input type="checkbox" name="remove_photo" value="1"> {% trans "Remove photo" %}</label>{% endif %}
+            <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save profile" %}</button>
+          </div>
+        </form>
+        {% endif %}
       </div>
     {% empty %}
       <p class="text-gray-500">{% trans "Create your first resource — a table, a staff member or a room." %}</p>

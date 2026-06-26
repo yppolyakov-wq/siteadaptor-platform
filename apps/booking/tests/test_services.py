@@ -70,6 +70,37 @@ def test_service_slots_page_shows_photo(settings):
     assert "Schöne Farbe." in body
 
 
+def test_resource_photo_url_property():
+    r = _resource(photo={"url": "https://img.example/lea.jpg"})
+    assert r.photo_url == "https://img.example/lea.jpg"
+    assert _resource(photo={}).photo_url == ""
+    assert Resource(name="x", photo=None).photo_url == ""
+
+
+def test_service_slots_picker_shows_master_profile(settings):
+    """A3: пикер специалиста показывает фото+должность; био выбранного мастера."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r1 = _resource(
+        type="staff",
+        title="Stylistin",
+        bio="Balayage-Expertin.",
+        photo={"url": "https://img.example/lea.jpg"},
+    )
+    r2 = _resource(type="staff", title="Barbier")
+    _rule(r1, day)
+    _rule(r2, day)
+    svc = _service(duration_minutes=30)
+    request = RequestFactory().get(f"/t/{svc.pk}/?tag={day:%Y-%m-%d}&resource={r1.pk}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build(name="Salon")
+    body = public_views.service_slots(request, pk=svc.pk).content.decode()
+    assert "https://img.example/lea.jpg" in body  # фото в пикере
+    assert "Stylistin" in body and "Barbier" in body  # должности
+    assert "Balayage-Expertin." in body  # био выбранного мастера
+
+
 # --- слоты по длительности услуги -------------------------------------------------
 
 

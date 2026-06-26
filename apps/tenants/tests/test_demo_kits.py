@@ -378,6 +378,9 @@ def test_apply_friseur_kit_booking_services():
     faerben = Service.objects.get(name="Färben")
     assert faerben.description and faerben.image_url
     assert Resource.objects.filter(is_active=True).count() == 2  # 2 Stühle
+    # A3: профили мастеров — должность, био, фото у staff-ресурсов
+    lea = Resource.objects.get(name="Lea")
+    assert lea.title and lea.bio and lea.photo_url
     assert Booking.objects.filter(status=Booking.STATUS_CONFIRMED).exists()  # seed_records
     # A3/G9b Mehrfachkarte: тарифы + одна выданная карта
     from apps.booking.models import Pass, PassPlan

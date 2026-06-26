@@ -1688,22 +1688,29 @@ FRISEUR = DemoKit(
     ],
     resources=[
         {
-            "name": "Lea (Stylistin)",
+            "name": "Lea",
             "type": "staff",
             "capacity": 1,
             "start": "09:00",
             "end": "18:00",
             "slot": 30,
             "weekdays": range(1, 6),
+            # A3: профиль мастера
+            "title": "Stylistin & Farbexpertin",
+            "bio": "Seit 10 Jahren im Salon — spezialisiert auf Balayage und natürliche Farbverläufe.",
+            "photo_kw": "hairdresser,woman",
         },
         {
-            "name": "Jonas (Barbier)",
+            "name": "Jonas",
             "type": "staff",
             "capacity": 1,
             "start": "09:00",
             "end": "18:00",
             "slot": 30,
             "weekdays": range(1, 6),
+            "title": "Barbier",
+            "bio": "Herrenschnitte, Bart-Styling und klassische Rasur mit ruhiger Hand.",
+            "photo_kw": "barber,man",
         },
     ],
     categories=[
@@ -3179,14 +3186,24 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         from apps.booking.models import AvailabilityRule, Resource
 
         refs["resources"] = []
-        for r in kit.resources:
+        for ri, r in enumerate(kit.resources):
             sh, sm = (int(x) for x in r["start"].split(":"))
             eh, em = (int(x) for x in r["end"].split(":"))
+            # A3: профиль мастера — title/bio/photo_kw (для type=staff).
+            photo_kw = r.get("photo_kw", "")
+            photo = (
+                {"url": demo_image(photo_kw, w=400, h=400, lock=660 + ri), "alt": {"de": r["name"]}}
+                if photo_kw
+                else {}
+            )
             resource = Resource.objects.create(
                 name=r["name"],
                 type=r.get("type", "table"),
                 capacity=r.get("capacity", 1),
                 counts_party_size=r.get("counts_party_size", False),
+                title=r.get("title", ""),
+                bio=r.get("bio", ""),
+                photo=photo,
                 is_active=True,
             )
             for wd in r.get("weekdays", range(0, 7)):

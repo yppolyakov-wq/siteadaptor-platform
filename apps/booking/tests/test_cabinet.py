@@ -207,3 +207,49 @@ def test_resource_settings_saves_deposit():
     resource.refresh_from_db()
     assert resource.deposit_cents == 550
     assert resource.require_manual_confirm is True
+
+
+def test_resource_profile_saves_title_bio_photo_and_removes():
+    """A3: профиль мастера — должность, био, фото (загрузка + удаление)."""
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    def _png():
+        buf = BytesIO()
+        Image.new("RGB", (10, 10), "green").save(buf, "PNG")
+        return SimpleUploadedFile("m.png", buf.getvalue(), content_type="image/png")
+
+    resource = _resource(type=Resource.TYPE_STAFF)
+    req = _req(
+        "post",
+        "/dashboard/booking/ressourcen/",
+        {
+            "action": "resource_profile",
+            "resource": str(resource.pk),
+            "title": "Stylistin",
+            "bio": "10 Jahre Erfahrung.",
+        },
+    )
+    req.FILES["photo"] = _png()
+    views.resources(req)
+    resource.refresh_from_db()
+    assert resource.title == "Stylistin" and resource.bio == "10 Jahre Erfahrung."
+    assert resource.photo_url  # фото сохранено
+    # удаление фото
+    views.resources(
+        _req(
+            "post",
+            "/dashboard/booking/ressourcen/",
+            {
+                "action": "resource_profile",
+                "resource": str(resource.pk),
+                "title": "Stylistin",
+                "bio": "10 Jahre Erfahrung.",
+                "remove_photo": "1",
+            },
+        )
+    )
+    resource.refresh_from_db()
+    assert not resource.photo_url

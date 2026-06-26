@@ -33,18 +33,18 @@ def _eur_to_cents(raw) -> int:
         return 0
 
 
-def _service_image_from(request) -> dict | None:
-    """A3: FileRef из загруженного фото услуги (поле «image») или None.
+def _uploaded_image_ref(request, field="image", folder="services") -> dict | None:
+    """A3: FileRef из загруженного фото (поле `field`) или None.
 
     Невалидный файл (не картинка) → None (фото просто не меняем), страница не падает."""
-    uploaded = request.FILES.get("image")
+    uploaded = request.FILES.get(field)
     if not uploaded:
         return None
     from apps.catalog.images import save_product_image
 
     try:
-        return save_product_image(uploaded, is_primary=True, folder="services")
-    except Exception:  # noqa: BLE001 — кривой файл не должен ронять CRUD услуги
+        return save_product_image(uploaded, is_primary=True, folder=folder)
+    except Exception:  # noqa: BLE001 — кривой файл не должен ронять CRUD
         return None
 
 
@@ -232,6 +232,18 @@ def resources(request):
                 ]
             )
             messages.success(request, _("Deposit settings saved."))
+        elif action == "resource_profile":
+            # A3: профиль мастера — должность, био, фото (загрузка/удаление).
+            resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
+            resource.title = request.POST.get("title", "").strip()[:120]
+            resource.bio = request.POST.get("bio", "").strip()[:2000]
+            fields = ["title", "bio", "updated_at"]
+            new_photo = _uploaded_image_ref(request, "photo", "staff")
+            if new_photo or request.POST.get("remove_photo"):
+                resource.photo = new_photo or {}
+                fields.append("photo")
+            resource.save(update_fields=fields)
+            messages.success(request, _("Profile saved."))
         return redirect("booking:resources")
 
     return render(
@@ -266,7 +278,8 @@ def services_view(request):
                 Service.objects.create(
                     name=name,
                     description=request.POST.get("description", "").strip(),  # A3
-                    image=_service_image_from(request) or {},  # A3: фото услуги
+                    image=_uploaded_image_ref(request, "image", "services")
+                    or {},  # A3: фото услуги
                     duration_minutes=_int(request.POST.get("duration"), 30, 5, 1440),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
@@ -279,7 +292,7 @@ def services_view(request):
             service.description = request.POST.get("description", "").strip()  # A3
             fields = ["duration_minutes", "price_cents", "description", "updated_at"]
             # A3: новое фото заменяет старое; чекбокс «удалить» очищает.
-            new_image = _service_image_from(request)
+            new_image = _uploaded_image_ref(request, "image", "services")
             if new_image or request.POST.get("remove_image"):
                 service.image = new_image or {}
                 fields.append("image")
