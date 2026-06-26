@@ -232,7 +232,10 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   multi-service-Buchung (L) · Gutscheine на услуги (M).
 
 ### F-A9 Werkstatt
-- Прайс-блок Festpreis (⊂ A.1) · отзывы (⊂ A.2) · структурные данные авто
+- ✅ **Прайс-блок Festpreis** — в блоке услуг у платной услуги пометка «Festpreis», когда
+  активен модуль `jobs` (Werkstatt/Handwerker; у Friseur — нет). Флаг `services_festpreis`
+  в `storefront_home`. Тесты `test_services_section_shows_festpreis_for_trades` / `_no_*`.
+- Дальше: отзывы (⊂ A.2 ✅) · структурные данные авто
   (Kennzeichen/HSN-TSN) (M) · Repair-Status трекинг + письмо (S–M) · TÜV/Service-Reminder
   (M) · Reifeneinlagerung (M–L).
 

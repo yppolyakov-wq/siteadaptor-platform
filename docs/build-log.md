@@ -2046,3 +2046,11 @@
   маркировки не зашумлены). Полный список + Herkunft/Zutaten — на детальной (как было).
   Тесты `test_storefront_card_shows_allergens_inline` + `_no_allergen_line_when_empty`.
   Только шаблон+тест, без кода/моделей/миграций. build:css обновлён.
+- **2026-06-25 — Спринт F (A9/A7): прайс-блок «Festpreis» в блоке услуг.** У ремесла/
+  автосервиса (активен модуль `jobs` — Angebot/Kostenvoranschlag) платные услуги в блоке
+  «Leistungen & Preise» получают пометку **Festpreis** (зелёная пилюля у цены) — сигнал
+  доверия (прозрачные фиксированные цены). Флаг `services_festpreis` = `is_module_active("jobs")`
+  в `storefront_home`, партиал `_services.html` показывает пометку только при флаге; у Friseur
+  (booking без jobs) — без пометки. Демо Werkstatt/Handwerker подхватывают автоматически.
+  Тесты `test_services_section_shows_festpreis_for_trades` + `_no_festpreis_without_flag`.
+  Без миграций.

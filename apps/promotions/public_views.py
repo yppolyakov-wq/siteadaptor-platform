@@ -179,6 +179,9 @@ def storefront_home(request):
         from apps.booking.models import Service
 
         services_preview = list(Service.objects.filter(is_active=True))
+    # A9/A7: у ремесла/автосервиса (активен модуль jobs — Angebot/Kostenvoranschlag)
+    # услуги с ценой подаём как Festpreis — сигнал доверия (прозрачные фикс-цены).
+    services_festpreis = modules.is_module_active(request.tenant, "jobs")
     # M20U-5: «главный товар» архетипа — для CTA hero-баннера (ведёт на лендинг
     # primary item: магазин → товары, ретрит → события, отель → номера…).
     from apps.core import archetypes
@@ -198,6 +201,7 @@ def storefront_home(request):
             "stay_rooms": stay_rooms,
             "events_preview": events_preview,
             "services_preview": services_preview,
+            "services_festpreis": services_festpreis,
             "primary_item": primary_item,
         },
     )

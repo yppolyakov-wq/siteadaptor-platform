@@ -65,3 +65,38 @@ def test_services_section_empty_when_no_services():
         {"site": {}, "services_preview": [], "request": _req()},
     )
     assert html.strip() == ""  # пустой блок не рендерится
+
+
+def _priced_service():
+    return SimpleNamespace(
+        pk="33333333-3333-3333-3333-333333333333",
+        name="Ölwechsel",
+        duration_minutes=30,
+        price_cents=4900,
+        price_eur=49.0,
+    )
+
+
+def test_services_section_shows_festpreis_for_trades(settings):
+    """A9/A7: при services_festpreis (модуль jobs) у платной услуги — пометка Festpreis."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    html = render_to_string(
+        "storefront/sections/_services.html",
+        {
+            "site": {},
+            "services_preview": [_priced_service()],
+            "services_festpreis": True,
+            "request": _req(),
+        },
+    )
+    assert "Fixed price" in html  # пометка Festpreis
+
+
+def test_services_section_no_festpreis_without_flag(settings):
+    """Регрессия: без флага (напр. Friseur) пометки Festpreis нет."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    html = render_to_string(
+        "storefront/sections/_services.html",
+        {"site": {}, "services_preview": [_priced_service()], "request": _req()},
+    )
+    assert "Fixed price" not in html
