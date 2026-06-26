@@ -167,6 +167,7 @@ def _p(
     stock=None,
     gtin="",
     sku="",
+    diets=None,
 ):
     return {
         "name": name,
@@ -175,6 +176,7 @@ def _p(
         "img": img,
         "variants": variants or [],
         "allergens": allergens or [],
+        "diets": diets or [],  # A4 диет-теги
         "modifiers": modifiers or [],
         "badge": badge,
         "unit": unit,
@@ -445,6 +447,7 @@ RESTAURANT = DemoKit(
                     "Geröstetes Brot mit Tomaten und Basilikum.",
                     "bruschetta",
                     allergens=["gluten"],
+                    diets=["vegan"],  # A4
                 ),
                 _p(
                     "Caprese",
@@ -452,6 +455,7 @@ RESTAURANT = DemoKit(
                     "Tomaten, Mozzarella, Basilikum.",
                     "caprese,salad",
                     allergens=["milch"],
+                    diets=["vegetarisch", "glutenfrei"],  # A4
                 ),
                 _p(
                     "Vitello Tonnato",
@@ -467,6 +471,7 @@ RESTAURANT = DemoKit(
                     "Gemischter Salat — klein oder groß.",
                     "salad,bowl",
                     variants=[("klein", "6.90"), ("groß", "9.90")],
+                    diets=["vegan", "glutenfrei"],  # A4
                 ),
                 _p(
                     "Minestrone",
@@ -2771,6 +2776,7 @@ def apply_kit(tenant, key: str) -> bool:
                 category=category,
                 images=[_image_ref(item["img"], lock, item["name"])],
                 allergens=item["allergens"],
+                diets=item.get("diets", []),  # A4 диет-теги
                 badge=item.get("badge", ""),
                 unit=item.get("unit", ""),  # R2 Grundpreis
                 content_amount=Decimal(str(content)) if content is not None else None,

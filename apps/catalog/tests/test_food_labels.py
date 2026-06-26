@@ -123,3 +123,43 @@ def test_storefront_card_no_allergen_line_when_empty():
     ProductFactory(is_active=True)
     body = public_views.product_list(_req("/sortiment/")).content.decode()
     assert "Glutenhaltiges Getreide" not in body
+
+
+# --- A4: диет-теги (vegan/vegetarisch/…) ------------------------------------
+
+
+def test_diet_badges_maps_codes_with_icons():
+    from apps.catalog import food
+
+    badges = food.diet_badges(["vegan", "unknown", "glutenfrei"])
+    assert [b["code"] for b in badges] == ["vegan", "glutenfrei"]  # порядок DIETS, мусор отброшен
+    assert badges[0]["icon"] and badges[0]["label"] == "Vegan"
+
+
+def test_product_diet_badges_property():
+    p = ProductFactory(diets=["vegetarisch"])
+    assert p.diet_badges[0]["code"] == "vegetarisch"
+
+
+def test_card_shows_diet_icons():
+    """A4: карточка меню показывает диет-иконки при наличии тегов."""
+    ProductFactory(diets=["vegan"], is_active=True)
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    assert "🌱" in body  # иконка vegan
+
+
+def test_product_list_diet_filter():
+    """A4: ?diet=vegan фильтрует товары; чип активен."""
+    veg = ProductFactory(diets=["vegan"], is_active=True)
+    meat = ProductFactory(diets=[], is_active=True)
+    body = public_views.product_list(_req("/sortiment/?diet=vegan")).content.decode()
+    assert str(veg.pk) in body  # веган-товар показан
+    assert str(meat.pk) not in body  # не-веган отфильтрован
+    assert "bg-emerald-600" in body  # активный диет-чип
+
+
+def test_product_list_invalid_diet_ignored():
+    """Регрессия A4: невалидная диета игнорируется (без 500/пустоты)."""
+    p = ProductFactory(diets=["vegan"], is_active=True)
+    body = public_views.product_list(_req("/sortiment/?diet=bogus")).content.decode()
+    assert str(p.pk) in body  # фильтр не применён

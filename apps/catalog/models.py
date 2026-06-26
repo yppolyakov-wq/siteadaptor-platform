@@ -95,6 +95,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     # происхождение и список ингредиентов. Заполняется для еды; на витрине
     # показывается только при наличии.
     allergens = models.JSONField(default=list, blank=True)
+    # A4: диет-теги (vegan/vegetarisch/glutenfrei/…) — иконки на карточке + фильтр меню.
+    # Коды из catalog.food.DIETS; на витрине показываются только при наличии.
+    diets = models.JSONField(default=list, blank=True)
     origin = models.CharField(max_length=120, blank=True)
     ingredients = models.TextField(blank=True)
 
@@ -176,6 +179,13 @@ class Product(SoftDeleteMixin, I18nMixin):
         from .food import allergen_labels
 
         return allergen_labels(self.allergens)
+
+    @property
+    def diet_badges(self) -> list[dict]:
+        """A4: диет-теги [{code, label, icon}] для витрины — из кодов self.diets."""
+        from .food import diet_badges
+
+        return diet_badges(self.diets)
 
 
 class ProductVariant(TimestampedModel):

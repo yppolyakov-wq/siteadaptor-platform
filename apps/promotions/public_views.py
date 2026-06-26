@@ -266,6 +266,22 @@ def product_list(request):
         if category is None:
             return redirect("storefront-products")
         products = products.filter(category=category)
+    # A4: фасет-фильтр по диете (vegan/vegetarisch/…) — JSON contains код. Показываем
+    # чипы только тех диет, что реально встречаются среди активных товаров.
+    from apps.catalog import food
+
+    diet = request.GET.get("diet", "")
+    diet = diet if diet in food.VALID_DIETS else ""
+    if diet:
+        products = products.filter(diets__contains=[diet])
+    present_diets = set()
+    for vals in Product.objects.filter(is_active=True).values_list("diets", flat=True):
+        present_diets.update(v for v in (vals or []) if v in food.VALID_DIETS)
+    diet_chips = [
+        {"code": c, "label": label, "icon": icon}
+        for c, label, icon in food.DIETS
+        if c in present_diets
+    ]
     categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
     # M20U-3: подкатегории выбранной категории — выводим карточками первыми.
     subcategories = (
@@ -302,6 +318,8 @@ def product_list(request):
             "subcategories": subcategories,
             "has_combos": has_combos,
             "combos_teaser": combos_teaser,  # A4: тизер-карточки Kombo/Tagesgericht
+            "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
+            "active_diet": diet,
             "catalog_grid": catalog_grid,
         },
     )

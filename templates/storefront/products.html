@@ -43,6 +43,19 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 </div>
 {% endif %}
 
+{% comment %}A4: фасет-фильтр по диете (vegan/vegetarisch/…) — чипы только тех диет,
+что встречаются в каталоге; сохраняем выбранную категорию.{% endcomment %}
+{% if diet_chips %}
+<div class="flex flex-wrap gap-2 mb-6">
+  <a href="{% url 'storefront-products' %}{% if current_category %}?kategorie={{ current_category.slug }}{% endif %}"
+     class="px-3 py-1.5 rounded-full text-sm border {% if not active_diet %}bg-emerald-600 text-white border-emerald-600{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All diets" %}</a>
+  {% for d in diet_chips %}
+    <a href="{% url 'storefront-products' %}?diet={{ d.code }}{% if current_category %}&kategorie={{ current_category.slug }}{% endif %}"
+       class="px-3 py-1.5 rounded-full text-sm border {% if active_diet == d.code %}bg-emerald-600 text-white border-emerald-600{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ d.icon }} {{ d.label }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
 {# M20U-3: подкатегории выбранной категории — карточками первыми #}
 {% if subcategories %}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">

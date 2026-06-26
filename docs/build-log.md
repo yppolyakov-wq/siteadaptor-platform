@@ -2134,3 +2134,16 @@
   «чтобы ребёнок собрал и вёл магазин». Фундамент есть (реестр `ModuleSpec` recommended/suited/core/
   premium, мастер `/willkommen/`, живое превью) — переписываем подачу, не модели. Ссылки в
   execution-plan (Спринт G) + CLAUDE.md §7. Docs-only.
+- **2026-06-26 — ТЗ: Спринт G перемещён в КОНЕЦ плана + список «остаток Спринта F».** В
+  `archetype-ux-execution-plan.md` блок «Спринт G (анти-Битрикс кабинет/онбординг)» вынесен
+  после раздела «Текущий статус/Рекомендованный порядок» (идёт ПОСЛЕ остатка F), добавлен явный
+  список незакрытых пунктов F. По просьбе владельца «закончим предыдущий план, G — в конце».
+- **2026-06-26 — Спринт F (A4 Gastro): диет-теги (vegan/vegetarisch/…) — иконки + фильтр меню.**
+  Поле `Product.diets` (JSONField, миграция `catalog/0009_product_diets`) + реестр `food.DIETS`
+  (vegan/vegetarisch/glutenfrei/laktosefrei/halal/bio, код+подпись+иконка) + хелпер `diet_badges`
+  и property `Product.diet_badges`. Витрина: **иконки диет на карточке** меню (при наличии);
+  **фасет-фильтр** `/sortiment/?diet=<код>` (чипы только встречающихся диет, `diets__contains`,
+  keyset-совместимо, сохраняет категорию; невалидный код игнорируется). Кабинет: `diets`
+  чекбоксами в `ProductForm` (авто-рендер). Демо: теги на 3 товара restaurant (Bruschetta vegan,
+  Caprese vegetarisch/glutenfrei, Insalata vegan/glutenfrei). Тесты в `test_food_labels.py`
+  (helper/property/иконки/фильтр/невалидный). build:css обновлён.
