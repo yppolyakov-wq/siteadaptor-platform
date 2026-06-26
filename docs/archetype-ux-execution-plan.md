@@ -263,7 +263,12 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   авто-запрос отзыва.
 
 ### F-A8 Aggregator
-- Фасетные фильтры + сортировка + автоподсказки (M) · богатая карточка бизнеса (S–M) ·
+- ✅ **Сортировка выдачи** — на городской странице дропдаун «Neueste / Name (A–Z)»
+  (`?sort=`, keyset-совместимо: поля `created_at`/`business_name`; featured остаются
+  закреплены сверху, `sort` переносится в «Show more»). Тесты
+  `test_city_listing_sort_by_name_orders_az` / `_default_sort_is_newest`.
+- Дальше: фасетные фильтры по рейтингу/«offen jetzt» + автоподсказки (M) · богатая карточка
+  бизнеса (S–M) · карта как режим (M) · полный JSON-LD для Map Pack/AI (S–M) · self-serve Featured через
   карта как режим (M) · полный JSON-LD для Map Pack/AI (S–M) · self-serve Featured через
   Stripe (M, монетизация без комиссии). Развилка: Stadtgutschein/единая корзина — только
   white-label с фикс-платой (не комиссия), решение владельца.

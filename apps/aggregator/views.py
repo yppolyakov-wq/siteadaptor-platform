@@ -73,6 +73,14 @@ def _distinct_event_categories():
     return [(k, v) for k, v in taxonomy.CATEGORIES if k in present]
 
 
+# A8: сортировки выдачи города. Значение → (поле keyset-пагинации, по убыванию?).
+# Только поля, существующие на AggregatorListing (keyset-совместимы).
+_LISTING_SORTS = {
+    "neueste": ("created_at", True),  # дефолт — новые сверху
+    "name": ("business_name", False),  # A–Z
+}
+
+
 def split_featured(qs, *, first_page: bool, limit: int = 6):
     """(featured, остальная лента) — платное продвижение (P2.4a).
 
@@ -196,14 +204,21 @@ def city_listing(request, city, business_type=None):
     from . import geo
 
     pool = listings_for(city=city, business_type=business_type)
+    # A8: сортировка выдачи (keyset-совместимая — поле есть на листинге).
+    sort = request.GET.get("sort")
+    if sort not in _LISTING_SORTS:
+        sort = "neueste"
+    order_field, descending = _LISTING_SORTS[sort]
     near_lat, near_lng = geo.parse_latlng(request)
-    if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
+    if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации (sort не применим)
         cards = geo.nearest(pool, near_lat, near_lng)
         page = None
     else:
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
-        page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+        page = paginate(
+            rest, order_field=order_field, limit=24, cursor=cursor, descending=descending
+        )
         cards = featured + page.items  # продвинутые — сверху первой страницы
     types = (
         listings_for(city=city)
@@ -248,6 +263,7 @@ def city_listing(request, city, business_type=None):
             "city_portal_url": f"{request.scheme}://{city_portal.host}/" if city_portal else "",
             "city_portal_title": city_portal.title_text if city_portal else "",
             "ld_itemlist": itemlist_ld([(it.title_text, it.detail_url) for it in cards]),
+            "sort": sort,  # A8: текущая сортировка (для select + show-more)
         },
     )
 

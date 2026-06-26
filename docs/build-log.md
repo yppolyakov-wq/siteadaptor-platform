@@ -2101,3 +2101,10 @@
   категории (в категории/при пагинации — прежняя компактная ссылка, без дублей). food-hero-
   пресет признан избыточным (full-bleed фото-hero уже есть). Тесты
   `test_product_list_shows_combos_teaser` + `_combos_teaser_hidden_in_category`. Без миграций.
+- **2026-06-26 — Спринт F (A8 Aggregator): сортировка выдачи города.** На городской странице
+  агрегатора (`listing.html`) добавлен дропдаун сортировки «Neueste / Name (A–Z)»
+  (`?sort=`, auto-submit при change). Бэк `city_listing`: `_LISTING_SORTS` (значение → поле
+  keyset-пагинации + descending) — `neueste`=created_at↓ (дефолт), `name`=business_name↑;
+  невалидный sort → дефолт. Featured-листинги остаются закреплены сверху; `sort` переносится
+  в ссылку «Show more» (пагинация без сбоя). Режим гео-«рядом» сортировку не показывает.
+  Тесты `test_city_listing_sort_by_name_orders_az` + `_default_sort_is_newest`. Без миграций.

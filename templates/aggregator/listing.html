@@ -13,14 +13,27 @@
   </h1>
 </div>
 
-{% if types %}
-<div class="flex flex-wrap gap-2 mb-6">
+{% if types or cards %}
+<div class="flex flex-wrap items-center gap-2 mb-6">
+  {% if types %}
   <a href="{% url 'aggregator-city' city=city %}"
      class="px-3 py-1.5 rounded-full text-sm border {% if not business_type %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All" %}</a>
   {% for t, label in types %}
     <a href="{% url 'aggregator-city-type' city=city business_type=t %}"
        class="px-3 py-1.5 rounded-full text-sm border {% if business_type == t %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ label }}</a>
   {% endfor %}
+  {% endif %}
+  {% comment %}A8: сортировка выдачи — GET-форма (submit при change). Тип/город — в пути.{% endcomment %}
+  {% if not near_active %}
+  <form method="get" class="ml-auto">
+    <label class="sr-only" for="sort">{% trans "Sort" %}</label>
+    <select id="sort" name="sort" onchange="this.form.submit()"
+            class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="neueste" {% if sort == 'neueste' %}selected{% endif %}>{% trans "Newest" %}</option>
+      <option value="name" {% if sort == 'name' %}selected{% endif %}>{% trans "Name (A–Z)" %}</option>
+    </select>
+  </form>
+  {% endif %}
 </div>
 {% endif %}
 
@@ -31,7 +44,7 @@
 
 {% if page.has_more %}
 <div class="mt-8 text-center">
-  <a href="?cursor={{ page.next_cursor|urlencode }}"
+  <a href="?cursor={{ page.next_cursor|urlencode }}{% if sort and sort != 'neueste' %}&sort={{ sort }}{% endif %}"
      class="inline-block px-5 py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:border-indigo-400">{% trans "Show more" %}</a>
 </div>
 {% endif %}

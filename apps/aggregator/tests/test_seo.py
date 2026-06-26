@@ -66,3 +66,25 @@ def test_city_listing_emits_itemlist_jsonld():
     assert 'type="application/ld+json"' in body
     assert '"@type":"ItemList"' in body
     assert "AktivesAngebot" in body
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_city_listing_sort_by_name_orders_az():
+    """A8: ?sort=name сортирует выдачу по business_name A–Z; select отражает выбор."""
+    _listing(city="Hilden", business_name="Zeta Bäckerei", tenant_schema="tz", title={"de": "Z"})
+    _listing(city="Hilden", business_name="Alpha Bistro", tenant_schema="ta", title={"de": "A"})
+    body = views.city_listing(
+        RequestFactory().get("/entdecken/Hilden/?sort=name"), "Hilden"
+    ).content.decode()
+    assert body.index("Alpha Bistro") < body.index("Zeta Bäckerei")  # A–Z
+    assert 'value="name" selected' in body  # дропдаун отражает выбор
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_city_listing_default_sort_is_newest():
+    """A8: дефолт — neueste (выбран в select), невалидный sort игнорируется."""
+    _listing(city="Hilden", business_name="Eins")
+    body = views.city_listing(
+        RequestFactory().get("/entdecken/Hilden/?sort=bogus"), "Hilden"
+    ).content.decode()
+    assert 'value="neueste" selected' in body
