@@ -31,8 +31,8 @@
     <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
 
-      {# E.2: попап настроек блока — клик по блоку в превью переносит сюда его
-         реальные контролы (живёт ВНУТРИ формы, поэтому правки идут в сабмит/превью). #}
+      {% comment %}E.2: попап настроек блока — клик по блоку в превью переносит сюда его
+         реальные контролы (живёт ВНУТРИ формы, поэтому правки идут в сабмит/превью).{% endcomment %}
       <div id="bld-block-popup" class="hidden fixed z-40 bottom-4 right-4 w-80 max-w-[92vw]">
         <div class="bg-white rounded-xl shadow-2xl border border-gray-200">
           <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50 rounded-t-xl">
@@ -152,8 +152,8 @@
       </fieldset>
       {% endif %}
 
-      {# M20d: контент-секции (CTA/Testimonials/How it works/Team/Trust/FAQ) —
-         тот же общий партиал, что и на «Site». Каждая видна, когда её блок включён выше. #}
+      {% comment %}M20d: контент-секции (CTA/Testimonials/How it works/Team/Trust/FAQ) —
+         тот же общий партиал, что и на «Site». Каждая видна, когда её блок включён выше.{% endcomment %}
       <details class="bg-white rounded-2xl shadow-sm group">
         <summary class="flex items-center justify-between cursor-pointer p-5 list-none">
           <span><span class="font-semibold">📦 {% trans "Content sections" %}</span>

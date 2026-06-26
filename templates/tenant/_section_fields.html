@@ -1,7 +1,7 @@
-{% load i18n %}{# M20d: поля контент-секций (CTA/Testimonials/Process/Team/Trust/FAQ).
+{% load i18n %}{% comment %}M20d: поля контент-секций (CTA/Testimonials/Process/Team/Trust/FAQ).
 Общий партиал формы «Site» (tenant/site.html) и конструктора главной (site_home.html).
 Контекст: config (cta.*, trust.since), testimonials_text, process_text, team_text,
-trust_marks_text, faq_text. Парсинг на сервере — siteconfig.parse_content_sections. #}
+trust_marks_text, faq_text. Парсинг на сервере — siteconfig.parse_content_sections.{% endcomment %}
 <div class="space-y-2">
   <p class="text-sm font-medium">{% trans "Call to action" %}</p>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

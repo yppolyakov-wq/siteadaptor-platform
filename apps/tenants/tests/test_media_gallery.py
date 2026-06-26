@@ -53,3 +53,14 @@ def test_gallery_has_lightbox_and_zoom():
 def test_gallery_single_image_still_has_lightbox():
     html = render_to_string("storefront/_media_gallery.html", {"images": ["https://x/only.jpg"]})
     assert "js-media-zoom" in html and "js-lb-img" in html  # лайтбокс и для одной фото
+
+
+def test_gallery_does_not_leak_template_comment():
+    """Регрессия: многострочный комментарий не должен утекать в HTML (только
+    {% comment %}, не {# #}). Защищает все детальные (товар/номер/событие)."""
+    html = render_to_string(
+        "storefront/_media_gallery.html",
+        {"images": ["https://x/a.jpg", "https://x/b.jpg"]},
+    )
+    assert "универсальная галерея" not in html  # текст комментария не в выводе
+    assert "{#" not in html and "#}" not in html
