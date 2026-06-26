@@ -31,6 +31,7 @@ BLOCK_TEMPLATES = {
     "reviews": "storefront/sections/_reviews.html",
     "faq": "storefront/sections/_faq.html",
     "gallery": "storefront/sections/_gallery.html",
+    "before_after": "storefront/sections/_before_after.html",
     "contact": "storefront/sections/_contact.html",
 }
 # Якорь-id обёртки секции (scroll-mt-24) — пункты меню типа «anchor» ведут на #id.
@@ -43,6 +44,7 @@ _BLOCK_ANCHOR_ID = {
     "reviews": "bewertungen",
     "faq": "faq",
     "gallery": "galerie",
+    "before_after": "referenzen",
     "contact": "kontakt",
 }
 # Секции с обёрткой scroll-mt-24 без id (плавная прокрутка, без якоря меню).

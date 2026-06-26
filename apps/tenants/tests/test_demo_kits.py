@@ -424,9 +424,13 @@ def test_apply_handwerker_kit_jobs_services_no_shop():
     cfg = tenant.site_config
     assert tenant.primary_color == "#ea580c"
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
-    assert {"hero", "services", "usp_bar", "reviews", "cta", "faq"} <= enabled
+    assert {"hero", "services", "usp_bar", "reviews", "cta", "faq", "before_after"} <= enabled
     assert "products" not in enabled and "promotions" not in enabled
     assert cfg["cta"]["button_url"] == "/anfrage/"  # primary CTA = Angebot anfordern
+    # A7: кейсы «Vorher / Nachher» — слайдер с before/after-фото и текстом
+    ba = cfg["before_after"]
+    assert len(ba) == 2
+    assert ba[0]["before"] and ba[0]["after"] and ba[0]["text"]
 
 
 def test_apply_retreat_kit_events_program_and_tickets():

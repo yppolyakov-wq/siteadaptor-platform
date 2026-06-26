@@ -57,6 +57,9 @@ SECTIONS = [
     ("reviews", _("Customer reviews"), False),
     ("faq", _("FAQ"), False),
     ("gallery", _("Photo gallery"), False),
+    # A7: «Vorher / Nachher» — интерактивный слайдер кейсов санации (Handwerker/
+    # Werkstatt/Studios). Выкл по умолчанию; показываем при наличии before_after.
+    ("before_after", _("Before & after"), False),
     ("contact", _("Contact & opening hours"), True),
 ]
 _MAX_MARKS = 8  # потолок знаков доверия
@@ -783,6 +786,21 @@ def normalize(config) -> dict:
     # T1: видео в галерее — один URL (YouTube/Vimeo/прямой файл). Рендерится
     # GDPR-дружелюбно (2-Klick / youtube-nocookie) в секции галереи.
     normalized["gallery_video"] = _s(config.get("gallery_video"))
+    # A7: кейсы «Vorher / Nachher» — список {before, after, text}. Обе картинки
+    # обязательны (иначе слайдеру нечего сравнивать); текст опционален.
+    before_after = []
+    for ref in config.get("before_after") if isinstance(config.get("before_after"), list) else []:
+        if isinstance(ref, dict) and _s(ref.get("before")) and _s(ref.get("after")):
+            before_after.append(
+                {
+                    "before": _s(ref.get("before")),
+                    "after": _s(ref.get("after")),
+                    "text": _s(ref.get("text")),
+                }
+            )
+        if len(before_after) >= _MAX_GALLERY:
+            break
+    normalized["before_after"] = before_after
     # S2: пер-архетипные оверрайды тизеров секции «Наши разделы». Ключ —
     # ключ модуля (catalog/booking/…); значения переопределяют дефолт из реестра
     # (storefront_label/blurb) и прячут отдельный тизер. Картинка тизера — в S3

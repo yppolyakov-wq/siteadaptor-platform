@@ -1,0 +1,62 @@
+{% load i18n siteui %}{% comment %}A7: секция «Vorher / Nachher» (before/after) — интерактивный
+слайдер с перетаскиваемой ручкой, открывающей «после» поверх «до». Полезно ремеслу
+(Handwerker/Maler/Werkstatt — кейсы санации) и студиям. Данные — site.before_after:
+список dict'ов {before, after, text}. Vanilla JS (без библиотек, GDPR), работает
+мышью и тачем; клавиатурой через range-инпут (доступность).{% endcomment %}
+{% if site.before_after %}
+<section data-reveal class="mb-10">
+  {% trans "Before & after" as ba_default_title %}{% section_title site 'before_after' as t %}
+  <h2 class="text-xl md:text-2xl font-bold mb-4">{{ t|default:ba_default_title }}</h2>
+  <div class="grid gap-6 sm:grid-cols-2">
+    {% for ba in site.before_after %}
+      {% if ba.before and ba.after %}
+      <figure class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="js-ba relative aspect-[4/3] select-none overflow-hidden bg-gray-100" data-ba>
+          {% comment %}«После» — фон; «до» обрезается по позиции ручки (clip-path).{% endcomment %}
+          <img src="{{ ba.after }}" alt="{% trans 'After' %}" class="absolute inset-0 w-full h-full object-cover" draggable="false" loading="lazy">
+          <img src="{{ ba.before }}" alt="{% trans 'Before' %}" class="js-ba-before absolute inset-0 w-full h-full object-cover" style="clip-path: inset(0 50% 0 0);" draggable="false" loading="lazy">
+          <span class="js-ba-label-b absolute top-2 left-2 text-xs font-medium bg-black/60 text-white rounded px-2 py-0.5 pointer-events-none">{% trans "Before" %}</span>
+          <span class="js-ba-label-a absolute top-2 right-2 text-xs font-medium bg-black/60 text-white rounded px-2 py-0.5 pointer-events-none">{% trans "After" %}</span>
+          <div class="js-ba-divider absolute inset-y-0 w-0.5 bg-white shadow pointer-events-none" style="left:50%;">
+            <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white shadow flex items-center justify-center text-gray-700 text-sm">⇆</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" class="js-ba-range absolute inset-0 w-full h-full opacity-0 cursor-ew-resize" aria-label="{% trans 'Compare before and after' %}">
+        </div>
+        {% if ba.text %}<figcaption class="text-sm text-gray-600 p-4">{{ ba.text }}</figcaption>{% endif %}
+      </figure>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+<script>
+(function () {
+  document.querySelectorAll('[data-ba]').forEach(function (box) {
+    if (box.dataset.init) return;
+    box.dataset.init = '1';
+    var before = box.querySelector('.js-ba-before');
+    var divider = box.querySelector('.js-ba-divider');
+    var range = box.querySelector('.js-ba-range');
+    function set(pct) {
+      pct = Math.max(0, Math.min(100, pct));
+      before.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+      divider.style.left = pct + '%';
+    }
+    range.addEventListener('input', function () { set(+range.value); });
+    // Перетаскивание по самому изображению (мышь/тач) — синхронно с range.
+    function fromEvent(e) {
+      var r = box.getBoundingClientRect();
+      var x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      var pct = (x / r.width) * 100;
+      range.value = pct;
+      set(pct);
+    }
+    var dragging = false;
+    box.addEventListener('mousedown', function (e) { dragging = true; fromEvent(e); });
+    window.addEventListener('mousemove', function (e) { if (dragging) fromEvent(e); });
+    window.addEventListener('mouseup', function () { dragging = false; });
+    box.addEventListener('touchstart', function (e) { fromEvent(e); }, { passive: true });
+    box.addEventListener('touchmove', function (e) { fromEvent(e); }, { passive: true });
+  });
+})();
+</script>
+{% endif %}

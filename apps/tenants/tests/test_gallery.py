@@ -56,3 +56,40 @@ def test_normalize_keeps_gallery_video_url():
     cfg = siteconfig.normalize({"gallery_video": "  https://youtu.be/abc12345678  "})
     assert cfg["gallery_video"] == "https://youtu.be/abc12345678"
     assert siteconfig.normalize({})["gallery_video"] == ""
+
+
+def test_before_after_section_registered_default_off():
+    cfg = siteconfig.normalize({})
+    off = {s["key"]: s["enabled"] for s in cfg["sections"]}
+    assert off["before_after"] is False
+    assert cfg["before_after"] == []
+
+
+def test_normalize_before_after_requires_both_images():
+    cfg = siteconfig.normalize(
+        {
+            "before_after": [
+                {"before": "/m/a.png", "after": "/m/b.png", "text": "Bad saniert"},
+                {"before": "/m/only.png"},  # без after → отбрасывается
+                "junk",
+            ]
+        }
+    )
+    assert cfg["before_after"] == [
+        {"before": "/m/a.png", "after": "/m/b.png", "text": "Bad saniert"}
+    ]
+
+
+def test_before_after_section_renders_slider():
+    from django.template import Context, Template
+
+    cfg = siteconfig.normalize(
+        {"before_after": [{"before": "/m/a.png", "after": "/m/b.png", "text": "Bad saniert"}]}
+    )
+    html = Template("{% load siteui %}{% render_block 'before_after' %}").render(
+        Context({"site": cfg})
+    )
+    assert "js-ba" in html and "/m/a.png" in html and "/m/b.png" in html
+    assert "Bad saniert" in html
+    # секция-обёртка несёт якорь #referenzen (пункт меню «Referenzen»)
+    assert 'id="referenzen"' in html

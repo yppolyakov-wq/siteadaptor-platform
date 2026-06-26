@@ -50,6 +50,9 @@ class DemoKit:
     categories: list = field(default_factory=list)
     gallery_kw: list = field(default_factory=list)
     gallery_video: str = ""  # T1: видео в секции галереи (YouTube/Vimeo/файл)
+    # A7: кейсы «Vorher / Nachher» — список (before_kw, after_kw, text). Пусто →
+    # секции нет. Рендерится интерактивным слайдером (ремесло/санация/студии).
+    before_after: list = field(default_factory=list)
     faq: list = field(default_factory=list)
     testimonials: list = field(default_factory=list)
     process: list = field(default_factory=list)  # (title, text) — «как мы работаем»
@@ -1913,6 +1916,20 @@ HANDWERKER = DemoKit(
         "painting,room",
         "heating,installation",
     ],
+    before_after=[
+        (
+            "old,bathroom",
+            "modern,bathroom",
+            "Komplettsanierung Bad in Köln-Nippes — neue Fliesen, Sanitär und Beleuchtung "
+            "in 8 Werktagen, zum Festpreis.",
+        ),
+        (
+            "shabby,wall",
+            "painted,wall",
+            "Wohnzimmer & Flur frisch gestrichen — Wände gespachtelt, grundiert und "
+            "zweifach gestrichen.",
+        ),
+    ],
     faq=[
         (
             "Wie bekomme ich ein Angebot?",
@@ -2728,6 +2745,8 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "process", "enabled": bool(kit.process)},
         {"key": "team", "enabled": bool(kit.team)},
         {"key": "gallery", "enabled": bool(kit.gallery_kw)},
+        # A7: «Vorher / Nachher» — кейсы санации (если заданы у кита).
+        {"key": "before_after", "enabled": bool(kit.before_after)},
         {"key": "testimonials", "enabled": bool(kit.testimonials)},
         {"key": "trust", "enabled": bool(kit.trust)},
         {"key": "reviews", "enabled": bool(kit.reviews_seed)},  # G8/#6: отзывы клиентов
@@ -3001,6 +3020,14 @@ def apply_kit(tenant, key: str) -> bool:
                 for i, kw in enumerate(kit.gallery_kw)
             ],
             "gallery_video": kit.gallery_video,
+            "before_after": [
+                {
+                    "before": demo_image(bk, w=600, h=450, lock=560 + i),
+                    "after": demo_image(ak, w=600, h=450, lock=580 + i),
+                    "text": txt,
+                }
+                for i, (bk, ak, txt) in enumerate(kit.before_after)
+            ],
             "nav": {**siteconfig.default_nav(), "style": kit.nav_style},
             "demo": refs,
         }
