@@ -2194,3 +2194,19 @@
   фасеты). Тесты: `test_city_listing_rating_facet_filters_by_min_stars`,
   `_invalid_rating_ignored`, `_open_now_facet_filters_by_hours`. build:css обновлён. Без миграций.
   Попутно: фикс задвоенной строки в `archetype-ux-execution-plan.md` (F-A8 «Дальше»).
+- **2026-06-26 — A1/A2 отзывы о товаре, только верифицированные покупатели (остаток Спринта F).**
+  Модель `catalog.ProductReview` (TENANT, миграция `catalog/0010`): FK Product, rating(1–5),
+  author_name, email, comment, is_published; уникальность `(product, email)` + индекс
+  `(product, is_published)`. Верификация покупателя `apps.catalog.reviews.has_purchased(product,
+  email)` — есть `OrderItem` с этим товаром у заказа с этим email (≠ cancelled), email без
+  регистра; модуль orders выключен/таблиц нет → False (fail-closed, никого не пускаем). Агрегат
+  `summary` (avg/count по опубликованным) + `published_for`. Витрина `storefront/product_detail`:
+  звёзды-бейдж у заголовка (ведёт к `#bewertungen`) + секция «Customer reviews» (список + форма
+  отзыва в `<details>` с пометкой «только верифиц. покупатели»). Приём — `product_review_submit`
+  → `POST /sortiment/<pk>/bewerten/` (`storefront-product-review`): рейтлимит по IP
+  (`ratelimit.hit`, 10/час), валидация имя+email+rating(1–5), проверка `has_purchased`,
+  `update_or_create` (один отзыв на email — повтор обновляет), redirect с message. Демо: поле
+  кита `product_reviews` + `_seed_product_reviews`; shop-кит сеет 3 отзыва на первых товарах.
+  Тесты: `apps/catalog/tests/test_product_reviews.py` (12 — верификация/агрегат/витрина/POST) +
+  assert в `test_apply_shop_kit_retail_features`. build:css без изменений (новых классов нет).
+  **Миграция** `catalog/0010` — деплой: `deploy.sh single`.
