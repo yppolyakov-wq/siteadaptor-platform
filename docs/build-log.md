@@ -2251,3 +2251,14 @@
   Werkstatt-кит assert. Попутно: `_req` в `test_public` получил уникальный IP per-call —
   фикс flaky rate-limit «anfrage» (5/окно) при нескольких POST-тестах в одном прогоне (общий
   кэш). **Миграция** `jobs/0008`. С этим A9 закрыт.
+- **2026-06-26 — A6 RT1: QR-билет + Check-in.** Поле `events.Ticket.checked_in_at` (миграция
+  `events/0018`). Публичный QR-эндпоинт `/e/<code>/qr.svg` (`storefront-ticket-qr`, segno SVG,
+  rate-limit 60/10мин) кодирует абсолютную ссылку Check-in в кабинете (`events:checkin`);
+  страница подтверждения брони (`event_confirmation.html`) показывает QR с подписью «на входе»
+  (скрыт для отменённого билета). Кабинет `views.checkin` (login_required) →
+  `/dashboard/events/checkin/<code>/` (`templates/events/checkin.html`): GET — карточка
+  гостя/события + кнопка «Einchecken»; POST — статус→attended (через TicketSM, фолбэк прямой
+  set) + `checked_in_at=now`, идемпотентно (повторный скан не перезаписывает), отменённый билет
+  не пускает. Защита: чужой без логина уходит на login. Тесты: `test_cabinet` (GET/POST/
+  идемпотентность/lowercase/cancelled) + `test_storefront` (ticket_qr SVG+ссылка, QR на
+  подтверждении, скрыт для cancelled). **Миграция** `events/0018`. Closes A6 RT1.

@@ -204,8 +204,11 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   адрес/карту; ссылка доступа — только участнику ПОСЛЕ брони (страница подтверждения +
   письма confirmed/reminder). Форма кабинета + демо retreat (Zoom-Morgen-Meditation). Тесты
   `test_detail_online_*` / `test_index_online_*` / `test_confirmation_online_*` + demo.
-- Дальше: RV4 лайтбокс (S, ⊂ A.4 ✅) · RV1 2-шаговый чекаут (M) · RT1 QR-билет + check-in (M) ·
-  RT3 recurring-серии (M) · RT4 блог.
+- ✅ **RT1 QR-билет + Check-in** — `Ticket.checked_in_at` (миграция `events/0018`), публичный
+  QR `/e/<code>/qr.svg` (→ ссылка Check-in) на странице подтверждения; кабинет
+  `/dashboard/events/checkin/<code>/` (login) — гость + «Einchecken» (status→attended +
+  timestamp), идемпотентно. Тесты `test_cabinet` (checkin) + `test_storefront` (QR).
+- Дальше: RV4 лайтбокс (S, ⊂ A.4 ✅) · RV1 2-шаговый чекаут (M) · RT3 recurring-серии (M) · RT4 блог.
 
 ### F-A5 Отель
 - ✅ **Разбивка цены PAngV** на странице номера — Gesamtpreis сопровождается разбивкой
@@ -349,6 +352,6 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
 A1/A2 отзывы о товаре (ProductReview, верифиц. покупатели) ✅ · A3 богатая карточка услуги (фото) ✅ ·
 A3 профили мастеров ✅ · A9 структурные данные авто (Kennzeichen/HSN-TSN) ✅
 (A4 диет-иконки/фильтр — уже было ✅). **A3, A9 закрыты.**
-Осталось: A6 RV1 2-шаговый чекаут билета · RT1 QR-билет + check-in · RT3 recurring-серии · RT4 блог.
+Осталось: A6 RV1 2-шаговый чекаут билета · RT3 recurring-серии · RT4 блог (RT1 QR-билет + check-in ✅).
 Затем Спринт G. Идём по убыванию
 ценности/без-миграций-первыми.
