@@ -6,7 +6,8 @@ quantity). Источник истины при создании — services.bo
 кабинета (E2/E3). ``free_units`` — подбор свободных юнитов на диапазон.
 """
 
-from datetime import timedelta
+import calendar
+from datetime import date, timedelta
 
 from .models import StayBooking, StayUnit, UnitBlock
 
@@ -100,3 +101,34 @@ def occupancy_grid(units, start_day, num_days):
             cells.append({"day": day, "free": max(0, unit.quantity - occupied), "blocked": blocked})
         rows.append((unit, cells))
     return days, rows
+
+
+def month_availability(unit, year, month, *, today=None) -> list[dict]:
+    """Доступность номера на КАЛЕНДАРНЫЙ месяц для витрины (визуальный календарь, C1).
+
+    Список по дням месяца: ``{date, in_past, free, is_free}``. ``free`` = quantity −
+    занятость ночи (активные брони × rooms + блоки), как в ``occupancy_grid`` (один
+    проход по броням/блокам — переиспользуем его). ``is_free`` — свободно И не в
+    прошлом (день нельзя выбрать как заезд, если он прошёл). ``today`` — «сегодня»
+    (по умолчанию ``timezone.localdate()``; считаем через локаль, как RV3).
+    """
+    from django.utils import timezone
+
+    if today is None:
+        today = timezone.localdate()
+    first = date(year, month, 1)
+    days_in_month = calendar.monthrange(year, month)[1]
+    _days, rows = occupancy_grid([unit], first, days_in_month)
+    _u, cells = rows[0]
+    out = []
+    for cell in cells:
+        in_past = cell["day"] < today
+        out.append(
+            {
+                "date": cell["day"],
+                "in_past": in_past,
+                "free": cell["free"],
+                "is_free": cell["free"] > 0 and not in_past,
+            }
+        )
+    return out

@@ -2054,3 +2054,11 @@
   (booking без jobs) — без пометки. Демо Werkstatt/Handwerker подхватывают автоматически.
   Тесты `test_services_section_shows_festpreis_for_trades` + `_no_festpreis_without_flag`.
   Без миграций.
+- **2026-06-26 — A5 визуальный календарь наличия, инкремент C1 (данные).** Добавлен
+  `availability.month_availability(unit, year, month, today=None)` — доступность номера на
+  календарный месяц для будущего витринного календаря: список `{date, in_past, free, is_free}`
+  по дням. `free` = quantity − занятость ночи (активные брони × rooms + блоки) — переиспользует
+  `occupancy_grid` (один проход по броням/блокам, без N+1); `is_free` = свободно И не в прошлом
+  (`today` через localdate). Без UI/вьюх/миграций. Тесты `test_month_availability.py` (все дни/
+  поля, занятые ночи без дня выезда, частичная занятость quantity>1, блок включительно, прошлое
+  не выбрать). План — `docs/hotel-availability-calendar-plan.md` (C1✅ → C2 вьюха → C3 выбор → C4 демо).
