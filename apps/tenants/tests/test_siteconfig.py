@@ -38,6 +38,12 @@ def _owner():
 # --- normalize -----------------------------------------------------------------
 
 
+def test_jobs_vehicle_flag_defaults_false():
+    # A9: режим Kfz-Werkstatt (структурные авто-поля) выключен по умолчанию
+    assert siteconfig.normalize({})["jobs_vehicle"] is False
+    assert siteconfig.normalize({"jobs_vehicle": True})["jobs_vehicle"] is True
+
+
 def test_quick_add_defaults_true_and_can_disable():
     # T2c: быстрый заказ включён по умолчанию; владелец может вернуть «как раньше».
     assert siteconfig.normalize({})["quick_add"] is True

@@ -27,7 +27,12 @@ def _tenant(**kwargs):
 
 
 def _req(method="get", path="/anfrage/", data=None, tenant=None):
+    import uuid
+
     request = getattr(RequestFactory(), method)(path, data or {})
+    # Уникальный IP на запрос — иначе общий счётчик rate-limit «anfrage» (5/окно)
+    # переполняется при нескольких POST-тестах в одном прогоне (кэш делится).
+    request.META["REMOTE_ADDR"] = f"10.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}.9"
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     request.tenant = tenant if tenant is not None else _tenant()
@@ -66,6 +71,41 @@ def test_anfrage_requires_title_and_name():
 def test_anfrage_form_renders():
     body = public_views.anfrage(_req()).content.decode()
     assert "Request a quote" in body or "Anfrage" in body
+
+
+# --- A9: структурные данные авто (Kfz-Werkstatt) ----------------------------------
+def test_anfrage_shows_vehicle_fields_and_autorepair_ld_when_workshop():
+    tenant = _tenant(site_config={"jobs_vehicle": True}, name="Werkstatt Dreyer")
+    body = public_views.anfrage(_req(tenant=tenant)).content.decode()
+    assert 'name="vehicle_plate"' in body and 'name="vehicle_hsn"' in body
+    assert '"@type":"AutoRepair"' in body  # JSON-LD
+
+
+def test_anfrage_hides_vehicle_fields_by_default():
+    body = public_views.anfrage(_req()).content.decode()  # jobs_vehicle off
+    assert 'name="vehicle_hsn"' not in body
+    assert "AutoRepair" not in body
+
+
+def test_anfrage_stores_structured_vehicle_data():
+    tenant = _tenant(site_config={"jobs_vehicle": True})
+    request = _req(
+        "post",
+        data={
+            "title": "Inspektion",
+            "name": "Vogel",
+            "email": "v@t.de",
+            "vehicle": "VW Golf",
+            "vehicle_plate": "do-mv 1234",
+            "vehicle_hsn": "0603",
+            "vehicle_tsn": "bnv",
+        },
+        tenant=tenant,
+    )
+    public_views.anfrage(request)
+    job = Job.objects.get(title="Inspektion")
+    assert job.vehicle_plate == "DO-MV 1234"  # верхний регистр
+    assert job.vehicle_hsn == "0603" and job.vehicle_tsn == "BNV"
 
 
 # --- публичное Angebot ------------------------------------------------------------

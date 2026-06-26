@@ -405,6 +405,9 @@ def test_apply_werkstatt_kit_jobs_booking_catalog():
     assert Job.objects.count() >= 2  # seed_records → Kostenvoranschläge
     for m in ("booking", "jobs", "orders", "customer_account"):
         assert tenant.is_module_active(m)
+    # A9: режим Kfz-Werkstatt — флаг + структурные данные авто (Kennzeichen/HSN/TSN)
+    assert tenant.site_config["jobs_vehicle"] is True
+    assert Job.objects.filter(vehicle_plate="DO-MV 1234", vehicle_hsn="0603").exists()
 
 
 def test_apply_handwerker_kit_jobs_services_no_shop():

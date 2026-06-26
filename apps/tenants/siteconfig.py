@@ -827,6 +827,9 @@ def normalize(config) -> dict:
     # Дефолт True (поведение по умолчанию); владелец может вернуть «как раньше»
     # (карточка просто ведёт на страницу товара, без «+»).
     normalized["quick_add"] = bool(config.get("quick_add", True))
+    # A9: Kfz-Werkstatt — запрашивать структурные данные авто (Kennzeichen/HSN/TSN)
+    # в Anfrage + AutoRepair-разметка. Дефолт False (Handwerker/прочие — без авто-полей).
+    normalized["jobs_vehicle"] = bool(config.get("jobs_vehicle", False))
     # S4: стартовая страница витрины — "home" (общая главная, дефолт) либо ключ
     # архетипа (standalone: корень `/` ведёт на его лендинг). Валидность (активен
     # ли архетип) проверяется при рендере; здесь просто строка.

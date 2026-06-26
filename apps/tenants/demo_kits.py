@@ -153,6 +153,9 @@ class DemoKit:
     # Скрыть тизеры этих архетипов из секции «Unsere Bereiche» (напр. пустой
     # catalog/booking у отеля). catalog — core, выключить нельзя, только скрыть.
     hide_archetypes: list = field(default_factory=list)
+    # A9: режим Kfz-Werkstatt — Anfrage запрашивает структурные данные авто
+    # (Kennzeichen/HSN/TSN) + AutoRepair-разметка. Пишется в site_config.jobs_vehicle.
+    jobs_vehicle: bool = False
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -1753,6 +1756,7 @@ WERKSTATT = DemoKit(
     label="KFZ-Werkstatt Dreyer",
     business_type="other",
     subdomain="werkstatt",
+    jobs_vehicle=True,  # A9: Anfrage с Kennzeichen/HSN/TSN + AutoRepair-разметка
     accent="#1d4ed8",  # Werkstatt-Blau
     hero_image_kw="car,workshop",
     hero_title="KFZ-Werkstatt Dreyer",
@@ -1822,7 +1826,10 @@ WERKSTATT = DemoKit(
             "name": "Markus Vogel",
             "email": "vogel@example.de",
             "phone": "0231 1234567",
-            "vehicle": "VW Golf VII · DO-MV 1234",
+            "vehicle": "VW Golf VII 1.6 TDI",
+            "vehicle_plate": "DO-MV 1234",
+            "vehicle_hsn": "0603",
+            "vehicle_tsn": "BNV",
             "description": "Inspektion fällig, Bremsen vorne quietschen. Bitte Angebot.",
             "lines": [
                 {"text": "Inspektion lt. Hersteller", "qty": 1, "unit_price": "149.00"},
@@ -1835,7 +1842,10 @@ WERKSTATT = DemoKit(
             "title": "Kostenvoranschlag: Klimaanlage prüfen & warten",
             "name": "Sabine Koch",
             "email": "koch@example.de",
-            "vehicle": "BMW 320d · DO-SK 88",
+            "vehicle": "BMW 320d",
+            "vehicle_plate": "DO-SK 88",
+            "vehicle_hsn": "0005",
+            "vehicle_tsn": "CKA",
             "description": "Klima kühlt nicht mehr richtig. Bitte prüfen und warten.",
             "lines": [
                 {"text": "Klima-Service inkl. Kältemittel", "qty": 1, "unit_price": "119.00"},
@@ -3075,6 +3085,7 @@ def apply_kit(tenant, key: str) -> bool:
                 for i, kw in enumerate(kit.gallery_kw)
             ],
             "gallery_video": kit.gallery_video,
+            "jobs_vehicle": kit.jobs_vehicle,  # A9: Kfz-Werkstatt — структурные авто-поля
             "before_after": [
                 {
                     "before": demo_image(bk, w=600, h=450, lock=560 + i),
@@ -3555,6 +3566,10 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     phone=spec.get("phone", ""),
                     description=spec.get("description", ""),
                     vehicle=spec.get("vehicle", ""),
+                    # A9: структурные данные авто (Werkstatt)
+                    vehicle_plate=spec.get("vehicle_plate", ""),
+                    vehicle_hsn=spec.get("vehicle_hsn", ""),
+                    vehicle_tsn=spec.get("vehicle_tsn", ""),
                     site_address=spec.get("site_address", ""),
                 )
                 set_lines(job, spec.get("lines", []), vat_rate=spec.get("vat_rate", 19))

@@ -41,8 +41,13 @@ class Job(TimestampedModel):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     site_address = models.TextField(blank=True)  # адрес работ (может ≠ адрес клиента)
-    # A9 Werkstatt: автомобиль/Kennzeichen клиента (свободный текст «VW Golf · M-AB 12»).
+    # A9 Werkstatt: автомобиль клиента — свободный текст марки/модели («VW Golf 1.6 TDI»).
     vehicle = models.CharField(max_length=120, blank=True)
+    # A9 Werkstatt: структурные данные авто — Kennzeichen + HSN/TSN (Schlüsselnummern
+    # из Zulassungsbescheinigung). Помогают мастерской точно определить запчасти.
+    vehicle_plate = models.CharField(max_length=15, blank=True)  # Kennzeichen «M-AB 1234»
+    vehicle_hsn = models.CharField(max_length=4, blank=True)  # Herstellerschlüsselnummer
+    vehicle_tsn = models.CharField(max_length=3, blank=True)  # Typschlüsselnummer
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_NEW)
     source_channel = models.CharField(max_length=50, blank=True)
     # Публичная Angebot-страница: клиент принимает/отклоняет смету онлайн (F3).

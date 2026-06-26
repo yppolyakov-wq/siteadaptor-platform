@@ -52,6 +52,10 @@ def anfrage(request):
             site_address=request.POST.get("site_address", "").strip(),
             source_channel=(request.GET.get("ch") or "")[:50],
             vehicle=request.POST.get("vehicle", "").strip(),
+            # A9: структурные данные авто (только если включён режим Kfz-Werkstatt).
+            vehicle_plate=request.POST.get("vehicle_plate", "").strip(),
+            vehicle_hsn=request.POST.get("vehicle_hsn", "").strip(),
+            vehicle_tsn=request.POST.get("vehicle_tsn", "").strip(),
         )
         services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
         enqueue_job_email(job, "new")  # владельцу — новый лид
@@ -60,8 +64,26 @@ def anfrage(request):
         )
         return redirect("storefront-anfrage")
     # R6: префилл темы из ?betreff (групповой/корп-запрос со страницы ретрита).
+    from apps.tenants import siteconfig
+
+    jobs_vehicle = siteconfig.normalize(request.tenant.site_config).get("jobs_vehicle", False)
+    autorepair_ld = ""
+    if jobs_vehicle:
+        from apps.core.seo import localbusiness_ld
+
+        autorepair_ld = localbusiness_ld(
+            request.tenant,
+            url=request.build_absolute_uri(reverse("storefront-anfrage")),
+            schema_type="AutoRepair",
+        )
     return render(
-        request, "storefront/anfrage.html", {"betreff": (request.GET.get("betreff") or "")[:200]}
+        request,
+        "storefront/anfrage.html",
+        {
+            "betreff": (request.GET.get("betreff") or "")[:200],
+            "jobs_vehicle": jobs_vehicle,  # A9: структурные поля авто
+            "autorepair_ld": autorepair_ld,  # A9: schema.org AutoRepair (SEO)
+        },
     )
 
 

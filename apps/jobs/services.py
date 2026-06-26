@@ -47,6 +47,9 @@ def create_job(
     site_address="",
     source_channel="",
     vehicle="",
+    vehicle_plate="",
+    vehicle_hsn="",
+    vehicle_tsn="",
 ) -> Job:
     """Создать заявку (Anfrage). Customer переиспускается по email."""
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
@@ -58,6 +61,10 @@ def create_job(
         site_address=(site_address or "").strip()[:2000],
         source_channel=(source_channel or "")[:50],
         vehicle=(vehicle or "").strip()[:120],
+        # A9: структурные данные авто (Kennzeichen/HSN/TSN) — верхний регистр, обрезка.
+        vehicle_plate=(vehicle_plate or "").strip().upper()[:15],
+        vehicle_hsn=(vehicle_hsn or "").strip().upper()[:4],
+        vehicle_tsn=(vehicle_tsn or "").strip().upper()[:3],
     )
 
 

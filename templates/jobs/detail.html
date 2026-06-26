@@ -29,7 +29,9 @@
   {% if job.customer.email %}<p class="text-gray-500">✉ {{ job.customer.email }}</p>{% endif %}
   {% if job.customer.phone %}<p class="text-gray-500">📞 {{ job.customer.phone }}</p>{% endif %}
   {% if job.site_address %}<p class="text-gray-500">📍 {{ job.site_address }}</p>{% endif %}
-  {% if job.vehicle %}<p class="text-gray-500">🚗 {{ job.vehicle }}</p>{% endif %}
+  {% if job.vehicle or job.vehicle_plate %}
+    <p class="text-gray-500">🚗 {{ job.vehicle }}{% if job.vehicle_plate %} · <span class="font-medium">{{ job.vehicle_plate }}</span>{% endif %}{% if job.vehicle_hsn or job.vehicle_tsn %} · HSN/TSN {{ job.vehicle_hsn }}/{{ job.vehicle_tsn }}{% endif %}</p>
+  {% endif %}
   {% if job.description %}<p class="text-gray-600 mt-2 whitespace-pre-line">{{ job.description }}</p>{% endif %}
   {% if job.invoice_id %}<p class="mt-2"><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">→ {% trans "Open invoice" %}</a></p>{% endif %}
   {% if job.photos.all %}

@@ -25,17 +25,22 @@ def _dumps(data: dict) -> str:
     return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
 
-def localbusiness_ld(tenant, *, url: str, aggregate_rating=None, price_range="", image="") -> str:
+def localbusiness_ld(
+    tenant, *, url: str, aggregate_rating=None, price_range="", image="", schema_type=""
+) -> str:
     """JSON-LD LocalBusiness из полей тенанта (или '' если тенанта нет).
 
     aggregate_rating (G8): (avg, count) — добавляет schema.org AggregateRating
     (звёзды в Google-сниппете). None/нулевой count — не добавляем.
-    price_range/image (H6): для отелей — диапазон цен «ab …€» и фото (Hotel-rich)."""
+    price_range/image (H6): для отелей — диапазон цен «ab …€» и фото (Hotel-rich).
+    schema_type (A9): явный тип schema.org (напр. «AutoRepair» для Kfz-Werkstatt),
+    иначе выводится из business_type (фолбэк LocalBusiness)."""
     if tenant is None:
         return ""
     data = {
         "@context": "https://schema.org",
-        "@type": _SCHEMA_TYPES.get(getattr(tenant, "business_type", "") or "", "LocalBusiness"),
+        "@type": schema_type
+        or _SCHEMA_TYPES.get(getattr(tenant, "business_type", "") or "", "LocalBusiness"),
         "name": getattr(tenant, "name", "") or "",
         "url": url,
     }

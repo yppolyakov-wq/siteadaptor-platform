@@ -42,6 +42,13 @@ def test_localbusiness_ld_none_is_empty():
     assert localbusiness_ld(None, url="https://x.de/") == ""
 
 
+def test_localbusiness_ld_schema_type_override():
+    # A9: явный тип (AutoRepair) перекрывает вывод из business_type
+    t = TenantFactory.build(name="Werkstatt", business_type="other")
+    data = json.loads(localbusiness_ld(t, url="https://w.de/", schema_type="AutoRepair"))
+    assert data["@type"] == "AutoRepair"
+
+
 def test_localbusiness_ld_includes_aggregate_rating():
     from decimal import Decimal
 
