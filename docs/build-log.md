@@ -2296,3 +2296,16 @@
   + retreat-демо assert. build:css обновлён (`aspect-[16/9]`). **Миграция** `events/0020`.
   С этим закрыт остаток A6 и **весь Спринт F**. Дальше — Спринт G (анти-Битрикс кабинет/
   онбординг).
+- **2026-06-26 — Спринт G AB1: меню кабинета по задачам (анти-Битрикс).** Сайдбар кабинета
+  больше не плоский тех-список модулей, а 4 группы по задачам: «Mein Geschäft» (Übersicht) ·
+  «Verkaufen» (catalog/orders/booking/stays/events/jobs) · «Kunden & Marketing» (crm/promotions/
+  loyalty/publishing/inbox/telegram) · «Einstellungen» (analytics/finance/customer_account/
+  settings/billing). `apps.core.modules.NAV_GROUPS` (порядок групп + ключи) +
+  `grouped_active_modules(tenant)` → `[{key,label,modules:[ModuleSpec]}]` (пустые группы
+  опускаются, модуль без группы → «Verkaufen»); `context.modules_nav` отдаёт `nav_groups`.
+  `_base_dashboard.html` рисует заголовки групп + пункты активных модулей; live-поиск по
+  пунктам (`data-label`) сохранён, пустые группы прячутся JS. Заметная «➕ Funktion hinzufügen»
+  (border-dashed) → страница «Module» (`modules`). Без моделей/миграций. Тесты: `test_modules`
+  (`grouped_active_modules` порядок/раскладка/пустые-группы, `nav_groups` в контексте) +
+  обновлён `test_cabinet_nav` (рендер заголовков групп вместо пер-модульных). Closes AB1 —
+  начало Спринта G (анти-Битрикс кабинет/онбординг).
