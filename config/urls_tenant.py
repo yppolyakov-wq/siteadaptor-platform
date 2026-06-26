@@ -168,6 +168,11 @@ urlpatterns = [
     path("unterkunft/", stays_public.unterkunft_index, name="storefront-unterkunft"),
     path("unterkunft/<uuid:pk>/", stays_public.unterkunft_unit, name="storefront-unterkunft-unit"),
     path(
+        "unterkunft/<uuid:pk>/kalender/",
+        stays_public.unterkunft_unit_calendar,
+        name="storefront-unterkunft-calendar",
+    ),
+    path(
         "unterkunft/<uuid:pk>/buchen/",
         stays_public.unterkunft_book,
         name="storefront-unterkunft-book",

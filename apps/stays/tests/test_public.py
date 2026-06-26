@@ -216,3 +216,58 @@ def test_ical_export_rejects_bad_token():
     request = _req(path="/stays/ical/bogus.ics")
     with pytest.raises(Http404):
         public_views.unterkunft_ical(request, token="bogus")
+
+
+# --- A5/C2: визуальный календарь наличия ------------------------------------
+
+
+def _cal(unit, year, month, tenant=None):
+    req = _req(
+        "get",
+        f"/unterkunft/{unit.pk}/kalender/",
+        {"year": str(year), "month": str(month)},
+        tenant,
+    )
+    return public_views.unterkunft_unit_calendar(req, pk=unit.pk).content.decode()
+
+
+def test_calendar_renders_month_grid():
+    unit = _unit()
+    body = _cal(unit, 2026, 10)  # будущий месяц (D0)
+    assert 'id="stay-cal"' in body
+    assert "grid-cols-7" in body  # сетка недели
+    assert 'data-date="2026-10-15"' in body  # свободный день месяца отрисован/кликабелен
+
+
+def test_calendar_gate_404_without_stays():
+    unit = _unit()
+    req = _req(
+        "get",
+        f"/unterkunft/{unit.pk}/kalender/",
+        tenant=_tenant(disabled_modules=["stays"]),
+    )
+    with pytest.raises(Http404):
+        public_views.unterkunft_unit_calendar(req, pk=unit.pk)
+
+
+def test_calendar_marks_booked_and_free_days():
+    unit = _unit(quantity=1)
+    # бронь 1–4 окт → ночи 1,2,3 заняты; 4 (выезд) и 5 свободны
+    services.book_stay(unit, arrival=D0, departure=D0 + timedelta(days=3), name="A", adults=2)
+    body = _cal(unit, 2026, 10)
+    assert 'data-date="2026-10-05"' in body  # свободный день — кликабелен
+    assert 'data-date="2026-10-02"' not in body  # занятая ночь — не кликабельна
+
+
+def test_calendar_month_navigation_links():
+    unit = _unit()
+    body = _cal(unit, 2026, 10)
+    assert "month=11" in body  # переход на следующий месяц
+    assert "month=9" in body  # и на предыдущий
+
+
+def test_calendar_clamps_past_month_to_current():
+    unit = _unit()
+    body = _cal(unit, 2000, 1)  # запрос месяца в прошлом → кламп к текущему
+    # на текущем месяце кнопки «назад» нет (не уходим в прошлое)
+    assert "Previous month" not in body

@@ -269,6 +269,56 @@ def unterkunft_unit(request, pk):
     )
 
 
+def unterkunft_unit_calendar(request, pk):
+    """A5/C2: визуальный календарь наличия номера — server-rendered месяц-сетка.
+
+    Отдаёт ТОЛЬКО партиал `_stay_calendar.html` (для hx-get свапа при перелистывании
+    месяца ‹ ›). Месяц — из `?year=&month=` (по умолчанию текущий). Окно ограничено:
+    не раньше текущего месяца, не дальше `MAX_DAYS_AHEAD`. Гейт — модуль stays.
+    """
+    _require_stays_active(request)
+    unit = get_object_or_404(StayUnit, pk=pk, is_active=True)
+    today = timezone.localdate()
+    cur_first = today.replace(day=1)
+    max_first = (today + timedelta(days=MAX_DAYS_AHEAD)).replace(day=1)
+    try:
+        year = int(request.GET.get("year") or today.year)
+        month = int(request.GET.get("month") or today.month)
+        first = date(year, month, 1)
+    except (TypeError, ValueError):
+        first = cur_first
+    # клампим запрошенный месяц в допустимое окно
+    first = min(max(first, cur_first), max_first)
+    year, month = first.year, first.month
+
+    days = availability.month_availability(unit, year, month, today=today)
+
+    def _shift(d, delta):
+        m = d.month - 1 + delta
+        return date(d.year + m // 12, m % 12 + 1, 1)
+
+    prev_first = _shift(first, -1)
+    next_first = _shift(first, 1)
+    return render(
+        request,
+        "storefront/_stay_calendar.html",
+        {
+            "unit": unit,
+            "cal_first": first,  # для заголовка «Februar 2027» ({{ cal_first|date:"F Y" }})
+            "cal_days": days,
+            "cal_lead_blanks": range(first.weekday()),  # пустые ячейки до 1-го (Mo-первый)
+            "cal_multi": unit.quantity > 1,  # показывать «N frei»
+            "prev_year": prev_first.year,
+            "prev_month": prev_first.month,
+            "next_year": next_first.year,
+            "next_month": next_first.month,
+            "show_prev": first > cur_first,
+            "show_next": next_first <= max_first,
+            "embed_qs": "&embed=1" if _is_embed(request) else "",
+        },
+    )
+
+
 def _back_to_unit(pk, von, bis, adults, children, embed=False):
     url = reverse("storefront-unterkunft-unit", args=[pk])
     if von and bis:

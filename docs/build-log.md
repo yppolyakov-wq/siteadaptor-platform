@@ -2062,3 +2062,14 @@
   (`today` через localdate). Без UI/вьюх/миграций. Тесты `test_month_availability.py` (все дни/
   поля, занятые ночи без дня выезда, частичная занятость quantity>1, блок включительно, прошлое
   не выбрать). План — `docs/hotel-availability-calendar-plan.md` (C1✅ → C2 вьюха → C3 выбор → C4 демо).
+- **2026-06-26 — A5 визуальный календарь наличия, инкремент C2 (вьюха + партиал).** Новый
+  GET-эндпоинт `unterkunft_unit_calendar` (`/unterkunft/<pk>/kalender/`, name
+  `storefront-unterkunft-calendar`) → отдаёт self-contained фрагмент `_stay_calendar.html`:
+  server-rendered месяц-сетка (Mo-первый, пустые ячейки до 1-го), заголовок «Monat Jahr»,
+  кнопки ‹ › для перелистывания. Окно клампится: не раньше текущего месяца, не дальше
+  `MAX_DAYS_AHEAD`. Свободные ночи — кликабельные кнопки с `data-date` (+«N×» при quantity>1);
+  занятые/прошлые — некликабельны (line-through/серые). Перелистывание — **vanilla fetch**
+  (делегированный обработчик, привязка один раз, свап `#stay-cal` через replaceWith) — htmx
+  на витрине нет. Гейт — модуль stays (404). Маршрут в `config/urls_tenant.py`. Тесты
+  `test_public.py::test_calendar_*` (грид, гейт-404, занятые/свободные дни, nav-ссылки
+  month=±1, кламп прошлого месяца). Интеграция в страницу номера + выбор диапазона — C3.
