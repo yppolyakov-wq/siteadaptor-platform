@@ -362,3 +362,61 @@ def notify_event_waitlist(event) -> int:
         entry.save(update_fields=["notified", "updated_at"])
         sent += 1
     return sent
+
+
+# --- RT3: recurring-серии событий -------------------------------------------------
+SERIES_INTERVALS = ("weekly", "biweekly", "monthly")
+_SERIES_MAX = 52  # потолок повторов за раз (анти-misclick)
+
+
+def _add_months(dt, n):
+    """Сдвиг даты на n месяцев с поправкой на длину месяца (без dateutil)."""
+    import calendar
+
+    month0 = dt.month - 1 + n
+    year = dt.year + month0 // 12
+    month = month0 % 12 + 1
+    day = min(dt.day, calendar.monthrange(year, month)[1])
+    return dt.replace(year=year, month=month, day=day)
+
+
+def _shift(dt, interval, i):
+    from datetime import timedelta
+
+    if interval == "weekly":
+        return dt + timedelta(weeks=i)
+    if interval == "biweekly":
+        return dt + timedelta(weeks=2 * i)
+    return _add_months(dt, i)  # monthly
+
+
+def create_series(source, *, interval, count):
+    """RT3: создать `count` повторов события `source` с шагом interval.
+
+    Копирует все поля события (включая JSON и M2M teachers/accommodation_units),
+    сдвигая starts_at/ends_at; все повторы (и источник) получают общий series_id.
+    Билеты НЕ копируются. Возвращает список созданных Event."""
+    import uuid
+
+    if interval not in SERIES_INTERVALS:
+        interval = "weekly"
+    count = max(1, min(int(count or 0), _SERIES_MAX))
+    series_id = source.series_id or uuid.uuid4()
+    created = []
+    with transaction.atomic():
+        if not source.series_id:
+            source.series_id = series_id
+            source.save(update_fields=["series_id", "updated_at"])
+        for i in range(1, count + 1):
+            clone = Event.objects.get(pk=source.pk)
+            clone.pk = None
+            clone._state.adding = True
+            clone.series_id = series_id
+            clone.starts_at = _shift(source.starts_at, interval, i)
+            if source.ends_at:
+                clone.ends_at = _shift(source.ends_at, interval, i)
+            clone.save()
+            clone.teachers.set(source.teachers.all())
+            clone.accommodation_units.set(source.accommodation_units.all())
+            created.append(clone)
+    return created

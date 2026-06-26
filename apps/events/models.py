@@ -122,6 +122,9 @@ class Event(TimestampedModel):
     # R3: ведущие/преподаватели (структурная сущность) — курируемый набор. Дополняет
     # свободные hosts в details-лендинге; даёт фильтр каталога и страницы учителей.
     teachers = models.ManyToManyField("Teacher", blank=True, related_name="events")
+    # RT3: recurring-серия — общий id у всех повторов (еженедельно/раз в 2 недели/
+    # ежемесячно). Пусто = одиночное событие. Группирует копии для управления.
+    series_id = models.UUIDField(null=True, blank=True, db_index=True)
 
     class Meta:
         ordering = ["starts_at"]

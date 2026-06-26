@@ -101,6 +101,63 @@ def test_roster_csv_lists_attendees_with_answers():
     assert "Anna" in body and "Allergien?" in body and "Nüsse" in body
 
 
+# --- RT3: recurring-серии событий -------------------------------------------------
+def test_create_series_generates_shifted_copies_with_shared_id():
+    from apps.events.services import create_series
+
+    src = _event(starts_at=timezone.now() + timedelta(days=2))
+    created = create_series(src, interval="weekly", count=3)
+    assert len(created) == 3
+    src.refresh_from_db()
+    assert src.series_id is not None
+    assert all(c.series_id == src.series_id for c in created)
+    # сдвиг по неделям
+    assert created[0].starts_at - src.starts_at == timedelta(weeks=1)
+    assert created[2].starts_at - src.starts_at == timedelta(weeks=3)
+    # всего 4 события в серии (источник + 3)
+    assert Event.objects.filter(series_id=src.series_id).count() == 4
+
+
+def test_create_series_biweekly_and_monthly():
+    from apps.events.services import _add_months, create_series
+
+    src = _event(starts_at=timezone.now() + timedelta(days=1))
+    bi = create_series(src, interval="biweekly", count=1)
+    assert bi[0].starts_at - src.starts_at == timedelta(weeks=2)
+    mo = create_series(src, interval="monthly", count=1)
+    assert mo[0].starts_at == _add_months(src.starts_at, 1)
+
+
+def test_add_months_handles_month_end():
+    from datetime import datetime
+
+    from apps.events.services import _add_months
+
+    jan31 = datetime(2026, 1, 31, 18, 0)
+    assert _add_months(jan31, 1).day == 28  # февраль 2026
+
+
+def test_create_series_copies_m2m_not_tickets():
+    from apps.events.models import Teacher
+    from apps.events.services import book_ticket, create_series
+
+    src = _event()
+    t = Teacher.objects.create(name="Lea")
+    src.teachers.add(t)
+    book_ticket(src, name="K", email="k@test.de", auto_confirm=True)
+    clone = create_series(src, interval="weekly", count=1)[0]
+    assert list(clone.teachers.all()) == [t]  # M2M скопирован
+    assert clone.tickets.count() == 0  # билеты НЕ скопированы
+
+
+def test_event_series_view_creates_dates():
+    src = _event()
+    resp = views.event_series(_req("post", {"interval": "weekly", "count": "2"}), pk=src.pk)
+    assert resp.status_code == 302
+    src.refresh_from_db()
+    assert Event.objects.filter(series_id=src.series_id).count() == 3  # источник + 2
+
+
 # --- RT1: Check-in билета по QR --------------------------------------------------
 def _confirmed_ticket(event=None):
     from apps.events.services import book_ticket

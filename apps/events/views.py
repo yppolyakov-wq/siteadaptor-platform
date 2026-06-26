@@ -185,6 +185,29 @@ def ticket_action(request, pk, tid):
 
 
 @login_required
+@require_POST
+def event_series(request, pk):
+    """RT3: создать recurring-серию — N повторов события с шагом интервала."""
+    from . import services
+
+    event = get_object_or_404(Event, pk=pk)
+    interval = request.POST.get("interval", "weekly")
+    try:
+        count = int(request.POST.get("count", "0"))
+    except (TypeError, ValueError):
+        count = 0
+    if count < 1:
+        messages.error(request, _("Please choose how many occurrences to create."))
+        return redirect("events:detail", pk=pk)
+    created = services.create_series(event, interval=interval, count=count)
+    messages.success(
+        request,
+        _("Created %(n)d more dates in this series.") % {"n": len(created)},
+    )
+    return redirect("events:detail", pk=pk)
+
+
+@login_required
 def checkin(request, code):
     """RT1: Check-in билета по QR (организатор в кабинете). GET — карточка гостя и
     кнопка «Einchecken»; POST — отметить пришедшим (status→attended + checked_in_at).
