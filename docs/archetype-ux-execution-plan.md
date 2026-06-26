@@ -203,8 +203,12 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   RT2 онлайн/Zoom (S–M) · RT3 recurring-серии (M) · RT4 блог.
 
 ### F-A5 Отель
-- Визуальный календарь наличия (M–L, сильнейший рычаг) · полноэкранный лайтбокс (S,
-  ⊂ A.4) · разбивка цены PAngV + рейтинг на странице номера (S–M) · extras с фото (S–M).
+- ✅ **Разбивка цены PAngV** на странице номера — Gesamtpreis сопровождается разбивкой
+  «Nachtpreis × Nächte × Zimmer = Übernachtung», строкой Kurtaxe (если есть) и пометкой
+  «inkl. MwSt.» (PAngV §). Бэк: `unterkunft_unit` отдаёт `quote.nightly_eur`/`accommodation_eur`.
+  Тест `test_detail_shows_pangv_price_breakdown`.
+- Дальше: визуальный календарь наличия (M–L, сильнейший рычаг) · полноэкранный лайтбокс
+  (S, ⊂ A.4 ✅) · рейтинг на странице номера (S) · extras с фото (S–M).
 - Отложено: реальные OTA-API (нужны партнёрские ключи владельца), метапоиск-фид Google FBL.
 
 ### F-A4 Gastro

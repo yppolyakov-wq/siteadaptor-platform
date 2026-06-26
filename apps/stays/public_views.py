@@ -207,6 +207,10 @@ def unterkunft_unit(request, pk):
             "total_eur": (total_cents - auto_cents + kurtaxe_cents) / 100,
             "auto_discount_eur": auto_cents / 100,
             "auto_discount_label": auto_label,
+            # PAngV: разбивка цены — подытог проживания + базовая ставка за ночь
+            # (за номер), чтобы показать «X € × N Nächte» рядом с Gesamtpreis.
+            "accommodation_eur": total_cents / 100,
+            "nightly_eur": (total_cents / nights / rooms / 100) if nights and rooms else 0,
             "available": available,
             "reason": reason,
         }

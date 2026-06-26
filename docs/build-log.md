@@ -2027,3 +2027,10 @@
   `veranstaltung_detail` отдаёт `agenda=[{lead, body}]` (generic — любой формат программы,
   не только демо). Тест `test_detail_program_renders_agenda_timeline`. build:css обновлён.
   Без миграций (рендер поверх существующего JSON).
+- **2026-06-25 — Спринт F (A5 отель): разбивка цены PAngV на странице номера.** Карточка
+  цены номера (`stay_detail.html`) при заданном диапазоне дат теперь показывает не только
+  Gesamtpreis, но и **разбивку по PAngV**: «Nachtpreis × Nächte × Zimmer = Übernachtung-
+  подытог», строку Kurtaxe (если есть, уже была) и пометку «inkl. MwSt.» Бэкенд
+  `unterkunft_unit` добавляет в `quote` поля `accommodation_eur` (подытог проживания) и
+  `nightly_eur` (ставка за ночь за номер = total/nights/rooms). Тест
+  `test_detail_shows_pangv_price_breakdown` (90 € × 3 = 270 € + MwSt). Без миграций.

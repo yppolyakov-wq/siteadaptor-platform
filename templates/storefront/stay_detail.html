@@ -94,7 +94,11 @@
             {% if extras %}<span class="text-sm font-normal text-gray-500">{% trans "+ extras below" %}</span>{% endif %}</p>
           {% if quote.auto_discount_label %}<p class="text-xs text-rose-700">✓ {{ quote.auto_discount_label }}</p>{% endif %}
         {% endif %}
+        {% comment %}PAngV: Aufschlüsselung des Gesamtpreises — Übernachtung (Nachtpreis ×
+        Nächte × Zimmer) + ggf. Kurtaxe; Hinweis «inkl. MwSt.» am Gesamtpreis.{% endcomment %}
+        <p class="text-xs text-gray-500 mt-1">{{ quote.nightly_eur|floatformat:2 }} € × {% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}{% if rooms > 1 %} × {% blocktrans count n=rooms %}{{ n }} room{% plural %}{{ n }} rooms{% endblocktrans %}{% endif %} = {{ quote.accommodation_eur|floatformat:2 }} €</p>
         {% if kurtaxe_eur %}<p class="text-xs text-gray-500">{% blocktrans with k=kurtaxe_eur|floatformat:2 %}incl. {{ k }} € Kurtaxe{% endblocktrans %}</p>{% endif %}
+        <p class="text-xs text-gray-400">{% trans "incl. VAT" %}</p>
         <input type="hidden" name="von" value="{{ quote.von|date:'Y-m-d' }}">
         <input type="hidden" name="bis" value="{{ quote.bis|date:'Y-m-d' }}">
         <input type="hidden" name="erw" value="{{ adults }}">

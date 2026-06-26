@@ -90,6 +90,18 @@ def test_detail_shows_price_and_book_form():
     assert "max-w-5xl" in body and "lg:grid-cols-2" in body
 
 
+def test_detail_shows_pangv_price_breakdown():
+    """A5/PAngV: на странице номера — разбивка Gesamtpreis (Nachtpreis × Nächte) + MwSt."""
+    unit = _unit(price_cents=9000)
+    request = _req(
+        "get", f"/unterkunft/{unit.pk}/", {"von": _iso(0), "bis": _iso(3), "gaeste": "2"}
+    )
+    body = public_views.unterkunft_unit(request, pk=unit.pk).content.decode()
+    assert "90,00 € ×" in body  # Nachtpreis × …
+    assert "= 270,00 €" in body  # Übernachtung-подытог (3 × 90)
+    assert "incl. VAT" in body or "MwSt" in body  # PAngV-Hinweis «inkl. MwSt.»
+
+
 def test_detail_min_nights_message():
     unit = _unit(min_nights=3)
     request = _req("get", f"/unterkunft/{unit.pk}/", {"von": _iso(0), "bis": _iso(1)})
