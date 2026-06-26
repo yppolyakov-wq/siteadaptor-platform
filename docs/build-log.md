@@ -2147,3 +2147,11 @@
   чекбоксами в `ProductForm` (авто-рендер). Демо: теги на 3 товара restaurant (Bruschetta vegan,
   Caprese vegetarisch/glutenfrei, Insalata vegan/glutenfrei). Тесты в `test_food_labels.py`
   (helper/property/иконки/фильтр/невалидный). build:css обновлён.
+- **2026-06-26 — Спринт F (A3 Termin): богатая карточка услуги (Service.description).** Поле
+  `Service.description` (TextField, миграция `booking/0008_service_description`). Витрина:
+  описание «что входит» на карточке блока услуг (`_services.html`, line-clamp-2) + на странице
+  выбора времени (`service_slots.html`). Кабинет `/dashboard/booking/services/`: описание в форме
+  создания (textarea) и инлайн-обновлении (input) услуги (booking-вью create/update). Демо:
+  Werkstatt-услуги получили описания (4-элементный кортеж `(name, min, price, desc)`; сидер
+  поддерживает и 3-, и 4-элементный). Тест `test_services_section_shows_description`. build:css
+  обновлён. Осталось A3b: фото услуги (image + загрузка) — отдельным инкрементом.

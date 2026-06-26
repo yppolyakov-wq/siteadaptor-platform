@@ -100,3 +100,21 @@ def test_services_section_no_festpreis_without_flag(settings):
         {"site": {}, "services_preview": [_priced_service()], "request": _req()},
     )
     assert "Fixed price" not in html
+
+
+def test_services_section_shows_description(settings):
+    """A3: богатая карточка услуги — описание рендерится при наличии."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    svc = SimpleNamespace(
+        pk="44444444-4444-4444-4444-444444444444",
+        name="Ölwechsel",
+        description="Inkl. Öl, Filter und Entsorgung.",
+        duration_minutes=30,
+        price_cents=4900,
+        price_eur=49.0,
+    )
+    html = render_to_string(
+        "storefront/sections/_services.html",
+        {"site": {}, "services_preview": [svc], "request": _req()},
+    )
+    assert "Inkl. Öl, Filter und Entsorgung." in html

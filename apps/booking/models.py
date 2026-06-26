@@ -57,6 +57,8 @@ class Service(TimestampedModel):
     выполнении (fulfilled); депозит — как у Resource (анти-no-show, P2.5b)."""
 
     name = models.CharField(max_length=120)
+    # A3: описание услуги («что входит») — богатая карточка на витрине; пусто = не показываем.
+    description = models.TextField(blank=True)
     duration_minutes = models.PositiveSmallIntegerField(default=30)
     price_cents = models.PositiveIntegerField(default=0)
     deposit_cents = models.PositiveIntegerField(default=0)

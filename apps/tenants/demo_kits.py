@@ -1822,11 +1822,11 @@ WERKSTATT = DemoKit(
         },
     },
     services=[
-        ("Ölwechsel", 30, "49"),
-        ("Inspektion", 120, "149"),
-        ("Reifenwechsel", 45, "39"),
-        ("HU/AU (TÜV)", 60, "89"),
-        ("Bremsen-Check", 30, "0"),
+        ("Ölwechsel", 30, "49", "Inkl. Öl, Filter und Entsorgung. Festpreis für gängige Modelle."),
+        ("Inspektion", 120, "149", "Inspektion nach Herstellervorgabe inkl. Fehlerauslese."),
+        ("Reifenwechsel", 45, "39", "Räder umstecken, Wuchten auf Wunsch, Reifendruck prüfen."),
+        ("HU/AU (TÜV)", 60, "89", "Hauptuntersuchung & Abgasuntersuchung direkt vor Ort."),
+        ("Bremsen-Check", 30, "0", "Kostenloser Sicherheits-Check von Belägen und Scheiben."),
     ],
     resources=[
         {
@@ -3103,9 +3103,15 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         from apps.booking.models import Service
 
         refs["services"] = []
-        for name, minutes, price in kit.services:
+        for spec in kit.services:
+            # (name, minutes, price) ИЛИ (name, minutes, price, description) — A3.
+            name, minutes, price = spec[0], spec[1], spec[2]
+            desc = spec[3] if len(spec) > 3 else ""
             svc = Service.objects.create(
-                name=name, duration_minutes=minutes, price_cents=int(Decimal(price) * 100)
+                name=name,
+                description=desc,
+                duration_minutes=minutes,
+                price_cents=int(Decimal(price) * 100),
             )
             refs["services"].append(str(svc.pk))
     if kit.pass_plans and is_active("booking"):  # A3/G9b: тарифы Mehrfachkarte

@@ -250,9 +250,13 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   модель отзыва на Product) · featured-products блок (S).
 
 ### F-A3 Termin
-- Богатая карточка услуги (A.1b) · профили мастеров ↔ Resource (M) · визуальный
-  календарь слотов (M) · SMS-Erinnerung (M, провайдер) · выбор мастера/skill-matrix (M) ·
-  multi-service-Buchung (L) · Gutscheine на услуги (M).
+- ✅ **Богатая карточка услуги (A.1b)** — поле `Service.description` (миграция `booking/0008`):
+  описание «что входит» на карточке блока услуг (line-clamp) + на странице выбора времени;
+  редактирование в кабинете `/dashboard/booking/services/` (create+inline-update); демо Werkstatt
+  с описаниями. Тест `test_services_section_shows_description`. Осталось A3b: фото услуги (image
+  + загрузка) — отдельным инкрементом.
+- Дальше: профили мастеров ↔ Resource (M) · визуальный календарь слотов (M) · SMS-Erinnerung
+  (M, провайдер) · выбор мастера/skill-matrix (M) · multi-service-Buchung (L) · Gutscheine (M).
 
 ### F-A9 Werkstatt
 - ✅ **Прайс-блок Festpreis** — в блоке услуг у платной услуги пометка «Festpreis», когда

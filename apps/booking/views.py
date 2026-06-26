@@ -250,16 +250,20 @@ def services_view(request):
             if name:
                 Service.objects.create(
                     name=name,
+                    description=request.POST.get("description", "").strip(),  # A3
                     duration_minutes=_int(request.POST.get("duration"), 30, 5, 1440),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                 )
                 messages.success(request, _("Service created."))
-        elif action == "update":  # инлайн: длительность + цена (депозит — при создании)
+        elif action == "update":  # инлайн: длительность + цена + описание (депозит — при создании)
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             service.duration_minutes = _int(request.POST.get("duration"), 30, 5, 1440)
             service.price_cents = _eur_to_cents(request.POST.get("price_eur"))
-            service.save(update_fields=["duration_minutes", "price_cents", "updated_at"])
+            service.description = request.POST.get("description", "").strip()  # A3
+            service.save(
+                update_fields=["duration_minutes", "price_cents", "description", "updated_at"]
+            )
             messages.success(request, _("Service saved."))
         elif action == "toggle":
             service = get_object_or_404(Service, pk=request.POST.get("service"))

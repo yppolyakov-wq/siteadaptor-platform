@@ -24,6 +24,10 @@
       <div class="sm:col-span-2">
         <span class="font-medium">{{ s.name }}</span>{% if not s.is_active %} <span class="text-xs text-gray-400">· {% trans "inactive" %}</span>{% endif %}
       </div>
+      <div class="sm:col-span-5 order-last">
+        <label class="block text-xs text-gray-500 mb-1">{% trans "Description (what's included)" %}</label>
+        <input name="description" type="text" value="{{ s.description }}" placeholder="{% trans 'optional' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      </div>
       <div>
         <label class="block text-xs text-gray-500 mb-1">{% trans "Duration (min)" %}</label>
         <input name="duration" type="number" min="5" value="{{ s.duration_minutes }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
@@ -47,6 +51,7 @@
   <input type="hidden" name="action" value="create">
   <h2 class="font-semibold">{% trans "New service" %}</h2>
   <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <textarea name="description" rows="2" placeholder="{% trans 'Description — what is included (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</label>
