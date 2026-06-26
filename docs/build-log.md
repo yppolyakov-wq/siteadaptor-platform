@@ -2309,3 +2309,13 @@
   (`grouped_active_modules` порядок/раскладка/пустые-группы, `nav_groups` в контексте) +
   обновлён `test_cabinet_nav` (рендер заголовков групп вместо пер-модульных). Closes AB1 —
   начало Спринта G (анти-Битрикс кабинет/онбординг).
+- **2026-06-26 — Спринт G AB2: страница «Module» v2 (по архетипу vs общие + Premium).**
+  `modules_view` переразбивает реестр в 3 секции в языке задач: «Für Ihr Geschäft empfohlen»
+  (core + `is_suited_for(business_type)`, не premium) → `rows`; «Weitere Funktionen»
+  (универсальные/прочие, не premium) → `other_rows`; «Premium» (`premium=True`) → `premium_rows`
+  (фиолетовый бейдж «★ Premium» в `_module_row.html`; секция скрыта, пока premium-модулей нет).
+  Карточка модуля уже несла иконку/описание_de/«Geeignet für: …»/Recommended/Core — добавлен
+  Premium-бейдж. Заголовки секций — переводимые (`_module_row.html` без изменений логики).
+  `templates/tenant/modules.html` — 3 секции. Тесты: `test_get_shows_task_sections` (empfohlen/
+  weitere видны, premium скрыта) + обновлён `_warns_on_untypical_enable` («More functions»
+  вместо «Weitere Bausteine»). Без миграций. Closes AB2.

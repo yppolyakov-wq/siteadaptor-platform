@@ -353,8 +353,10 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   Einstellungen): `modules.NAV_GROUPS` + `grouped_active_modules` → `context.nav_groups`; сайдбар
   рисует заголовки групп + «➕ Funktion hinzufügen» → «Module». Поиск сохранён. Без миграций.
   Тесты `test_modules` (группировка) + `test_cabinet_nav` (рендер групп).
-- **AB2** страница «Module» v2 — секции «Für Ihr Geschäft empfohlen / Weitere / Premium» + бейджи
-  «Gut für: …» + что даёт (S–M).
+- ✅ **AB2** страница «Module» v2 — 3 секции в языке задач: «Für Ihr Geschäft empfohlen»
+  (core+подходящие вертикали) / «Weitere Funktionen» / «Premium» (бейдж тарифа, скрыта без
+  premium-модулей); карточка несёт иконку/описание/«Geeignet für»/Recommended/Premium-бейдж.
+  `modules_view` → rows/other_rows/premium_rows. Тест `test_modules` (секции). Без миграций.
 - **AB3** мастер онбординга v2 — прогресс, демо-дефолты на шагах, живое превью, язык задач (M).
 - **AB4** чек-лист готовности сайта на дашборде («zu X% fertig» + пункты-ссылки) (S–M).
 - **AB5** связать регистрацию → мастер (M, HIGH-RISK signup/provisioning, последним, гейт владельца).
