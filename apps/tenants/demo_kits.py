@@ -4,8 +4,9 @@
 фото + глубокий каталог (категории, товары с фото/вариантами/аллергенами) +
 акции + контент-секции (CTA/отзывы/FAQ/галерея) + услуги/номера/события под тип.
 Используется командой ``seed_demo_tenants`` для отдельных демо-тенантов на
-субдоменах. Фото — внешний тематичный сервис (loremflickr по ключевым словам),
-детерминированно по ``lock`` (решение владельца: внешний сервис для демо).
+субдоменах. Фото — локальный самодостаточный SVG-генератор (PR-IMG,
+``apps.tenants.demo_images``): тематичные плейсхолдеры по ключевым словам,
+детерминированно по ``lock``, без внешних сервисов (GDPR-чисто, грузятся везде).
 
 Товары помечаются ``metadata={"demo": True}`` (как в apps.tenants.demo) — общая
 маркировка для очистки. Категории — со слагом ``demo-…``.
@@ -21,9 +22,12 @@ from . import siteconfig
 
 
 def demo_image(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> str:
-    """Тематичный демо-URL картинки (внешний сервис, детерминирован по lock)."""
-    kw = keyword.strip().replace(" ", ",")
-    return f"https://loremflickr.com/{w}/{h}/{kw}?lock={lock}"
+    """Тематичный демо-URL картинки. PR-IMG: локальный самодостаточный SVG-генератор
+    (без внешних сервисов — GDPR-чисто, грузится в любых сетях), детерминирован по
+    keyword+lock. Отдаёт storefront-вьюха `demo-image` (apps.tenants.demo_images)."""
+    from . import demo_images
+
+    return demo_images.demo_image_url(keyword.strip(), w=w, h=h, lock=lock)
 
 
 def _image_ref(keyword: str, lock: int, alt: str) -> dict:

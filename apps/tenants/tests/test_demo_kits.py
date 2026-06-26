@@ -26,7 +26,7 @@ def test_unknown_kit_returns_false():
 
 def test_demo_image_is_themed_and_deterministic():
     url = demo_kits.demo_image("pizza margherita", lock=5)
-    assert url == "https://loremflickr.com/800/600/pizza,margherita?lock=5"
+    assert url == "/medien/demo.svg?kw=pizza+margherita&w=800&h=600&lock=5"
 
 
 def test_apply_restaurant_kit_builds_full_site():
@@ -37,7 +37,7 @@ def test_apply_restaurant_kit_builds_full_site():
     assert Category.objects.filter(slug__startswith="demo-").count() == 4
     products = Product.objects.filter(metadata__demo=True)
     assert products.count() >= 28
-    assert all(p.images and p.images[0]["url"].startswith("https://") for p in products)
+    assert all(p.images and p.images[0]["url"].startswith("/medien/") for p in products)
     # варианты (Pizza klein/groß) и аллергены проставлены
     assert ProductVariant.objects.count() >= 6
     assert products.filter(allergens__contains=["gluten"]).exists()
@@ -46,7 +46,7 @@ def test_apply_restaurant_kit_builds_full_site():
 
     # site_config: фото-hero, акцент, галерея, контент-секции
     cfg = tenant.site_config
-    assert cfg["hero_image"].startswith("https://loremflickr.com/")
+    assert cfg["hero_image"].startswith("/medien/")
     assert tenant.primary_color == "#b45309"
     assert len(cfg["gallery"]) == 6
     assert cfg["faq"] and cfg["testimonials"] and cfg["cta"]["button_url"] == "/sortiment/"
@@ -230,7 +230,7 @@ def test_apply_hotel_kit_builds_stays_site():
     fam = StayUnit.objects.get(name="Familienzimmer")
     assert fam.max_guests == 4 and fam.min_nights == 2 and fam.description
     assert len(fam.images) == 3 and fam.images[0]["is_primary"] is True
-    assert fam.image_url.startswith("https://")
+    assert fam.image_url.startswith("/medien/")
     # у каждого номера есть описание и хотя бы одно фото
     for u in StayUnit.objects.all():
         assert u.description and u.images
@@ -478,10 +478,10 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert {"yoga", "ayurveda", "klang", "achtsamkeit"} <= cats
 
     # «ретрит-лендинг»: развёрнутые блоки + фото места на главном событии
-    assert retreat.images and retreat.image_url.startswith("https://")
+    assert retreat.images and retreat.image_url.startswith("/medien/")
     L = retreat.landing
     assert L["for_whom"] and L["includes"] and L["faq"] and L["price_includes"]
-    assert L["hosts"] and L["hosts"][0]["photo"].startswith("https://")
+    assert L["hosts"] and L["hosts"][0]["photo"].startswith("/medien/")
 
     # seed_records → проданные билеты (auto_confirm) → finance НДС 19 %
     assert Ticket.objects.filter(status=Ticket.STATUS_CONFIRMED).exists()

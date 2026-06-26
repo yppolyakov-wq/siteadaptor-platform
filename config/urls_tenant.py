@@ -40,9 +40,13 @@ from apps.publishing import views as publishing_views
 from apps.stays import public_views as stays_public
 from apps.telegram import public_views as telegram_public
 from apps.telegram import views as telegram_views
+from apps.tenants.demo_images import demo_image_view
 
 urlpatterns = [
     path("accounts/", include("allauth.urls")),
+    # PR-IMG: локальные демо-фото (тематические SVG) — самодостаточно, без внешних
+    # сервисов (GDPR-чисто). Демо-киты ссылаются сюда вместо loremflickr.
+    path("medien/demo.svg", demo_image_view, name="demo-image"),
     path("health/", health.liveness, name="health"),
     path("health/ready/", health.readiness, name="health-ready"),
     # --- Кабинет владельца (под логином) ---
