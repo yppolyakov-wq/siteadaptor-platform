@@ -46,6 +46,30 @@ def _aware(day, hour, minute=0):
     return timezone.make_aware(datetime(day.year, day.month, day.day, hour, minute))
 
 
+# --- A3: фото услуги (богатая карточка) -------------------------------------------
+def test_service_image_url_property():
+    svc = _service(image={"url": "https://img.example/cut.jpg", "alt": {"de": "Schnitt"}})
+    assert svc.image_url == "https://img.example/cut.jpg"
+    # не-dict/пусто → '' (без падений)
+    assert _service(image={}).image_url == ""
+    assert Service(name="x", image=None).image_url == ""
+
+
+def test_service_slots_page_shows_photo(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+    svc = _service(image={"url": "https://img.example/color.jpg"}, description="Schöne Farbe.")
+    request = RequestFactory().get(f"/t/{svc.pk}/?tag={day:%Y-%m-%d}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build(name="Salon")
+    body = public_views.service_slots(request, pk=svc.pk).content.decode()
+    assert "https://img.example/color.jpg" in body
+    assert "Schöne Farbe." in body
+
+
 # --- слоты по длительности услуги -------------------------------------------------
 
 
@@ -193,6 +217,51 @@ def test_cabinet_creates_and_updates_service():
     )
     svc.refresh_from_db()
     assert svc.duration_minutes == 60 and svc.price_cents == 3000
+
+
+def _png(name="cut.png"):
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    buf = BytesIO()
+    Image.new("RGB", (12, 12), "blue").save(buf, "PNG")
+    return SimpleUploadedFile(name, buf.getvalue(), content_type="image/png")
+
+
+def test_cabinet_service_photo_upload_and_remove():
+    """A3: владелец загружает фото услуги в кабинете и может его удалить."""
+    create = views.services_view(
+        _cab_req(
+            "post", {"action": "create", "name": "Färben", "duration": "90", "price_eur": "69"}
+        )
+    )
+    assert create.status_code == 302
+    svc = Service.objects.get(name="Färben")
+    # загрузка фото на update
+    req = _cab_req(
+        "post", {"action": "update", "service": str(svc.pk), "duration": "90", "price_eur": "69"}
+    )
+    req.FILES["image"] = _png()
+    views.services_view(req)
+    svc.refresh_from_db()
+    assert svc.image_url  # фото сохранено
+    # удаление фото
+    views.services_view(
+        _cab_req(
+            "post",
+            {
+                "action": "update",
+                "service": str(svc.pk),
+                "duration": "90",
+                "price_eur": "69",
+                "remove_image": "1",
+            },
+        )
+    )
+    svc.refresh_from_db()
+    assert not svc.image_url
 
 
 def test_termin_index_shows_services():

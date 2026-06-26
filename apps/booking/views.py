@@ -33,6 +33,21 @@ def _eur_to_cents(raw) -> int:
         return 0
 
 
+def _service_image_from(request) -> dict | None:
+    """A3: FileRef из загруженного фото услуги (поле «image») или None.
+
+    Невалидный файл (не картинка) → None (фото просто не меняем), страница не падает."""
+    uploaded = request.FILES.get("image")
+    if not uploaded:
+        return None
+    from apps.catalog.images import save_product_image
+
+    try:
+        return save_product_image(uploaded, is_primary=True, folder="services")
+    except Exception:  # noqa: BLE001 — кривой файл не должен ронять CRUD услуги
+        return None
+
+
 def _refund_deposit(request, booking):
     """Анти-фрод: вернуть депозит при отмене оплаченной брони (Stripe Connect)."""
     try:
@@ -251,6 +266,7 @@ def services_view(request):
                 Service.objects.create(
                     name=name,
                     description=request.POST.get("description", "").strip(),  # A3
+                    image=_service_image_from(request) or {},  # A3: фото услуги
                     duration_minutes=_int(request.POST.get("duration"), 30, 5, 1440),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
@@ -261,9 +277,13 @@ def services_view(request):
             service.duration_minutes = _int(request.POST.get("duration"), 30, 5, 1440)
             service.price_cents = _eur_to_cents(request.POST.get("price_eur"))
             service.description = request.POST.get("description", "").strip()  # A3
-            service.save(
-                update_fields=["duration_minutes", "price_cents", "description", "updated_at"]
-            )
+            fields = ["duration_minutes", "price_cents", "description", "updated_at"]
+            # A3: новое фото заменяет старое; чекбокс «удалить» очищает.
+            new_image = _service_image_from(request)
+            if new_image or request.POST.get("remove_image"):
+                service.image = new_image or {}
+                fields.append("image")
+            service.save(update_fields=fields)
             messages.success(request, _("Service saved."))
         elif action == "toggle":
             service = get_object_or_404(Service, pk=request.POST.get("service"))

@@ -1654,12 +1654,37 @@ FRISEUR = DemoKit(
         },
     },
     services=[
-        ("Haarschnitt Damen", 45, "39"),
-        ("Haarschnitt Herren", 30, "25"),
-        ("Waschen & Föhnen", 30, "19"),
-        ("Färben", 90, "69"),
-        ("Strähnen / Highlights", 120, "89"),
-        ("Bart trimmen", 15, "12"),
+        # A3: (name, min, price, description, image_kw) — богатая карточка услуги.
+        (
+            "Haarschnitt Damen",
+            45,
+            "39",
+            "Waschen, Schnitt und Föhnen — individuell auf Sie abgestimmt.",
+            "woman,haircut",
+        ),
+        (
+            "Haarschnitt Herren",
+            30,
+            "25",
+            "Klassischer oder moderner Schnitt inkl. Waschen.",
+            "man,haircut",
+        ),
+        (
+            "Waschen & Föhnen",
+            30,
+            "19",
+            "Pflegende Wäsche und professionelles Styling.",
+            "hair,styling",
+        ),
+        ("Färben", 90, "69", "Brillante Farben mit schonenden Produkten.", "hair,color"),
+        (
+            "Strähnen / Highlights",
+            120,
+            "89",
+            "Natürliche Highlights für mehr Tiefe und Glanz.",
+            "hair,highlights",
+        ),
+        ("Bart trimmen", 15, "12", "Konturen schneiden und in Form bringen.", "beard,barber"),
     ],
     resources=[
         {
@@ -3177,13 +3202,20 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         from apps.booking.models import Service
 
         refs["services"] = []
-        for spec in kit.services:
-            # (name, minutes, price) ИЛИ (name, minutes, price, description) — A3.
+        for i, spec in enumerate(kit.services):
+            # (name, minutes, price[, description[, image_kw]]) — A3 богатая карточка.
             name, minutes, price = spec[0], spec[1], spec[2]
             desc = spec[3] if len(spec) > 3 else ""
+            image_kw = spec[4] if len(spec) > 4 else ""
+            image = (
+                {"url": demo_image(image_kw, w=600, h=400, lock=620 + i), "alt": {"de": name}}
+                if image_kw
+                else {}
+            )
             svc = Service.objects.create(
                 name=name,
                 description=desc,
+                image=image,
                 duration_minutes=minutes,
                 price_cents=int(Decimal(price) * 100),
             )

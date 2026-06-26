@@ -374,6 +374,9 @@ def test_apply_friseur_kit_booking_services():
     assert demo_kits.apply_kit(tenant, "friseur") is True
     assert Service.objects.filter(is_active=True).count() == 6
     assert Service.objects.filter(name="Färben", price_cents=6900, duration_minutes=90).exists()
+    # A3: богатая карточка — у услуг есть описание и фото
+    faerben = Service.objects.get(name="Färben")
+    assert faerben.description and faerben.image_url
     assert Resource.objects.filter(is_active=True).count() == 2  # 2 Stühle
     assert Booking.objects.filter(status=Booking.STATUS_CONFIRMED).exists()  # seed_records
     # A3/G9b Mehrfachkarte: тарифы + одна выданная карта

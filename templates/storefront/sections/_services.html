@@ -14,7 +14,11 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
   <div class="{% grid_classes site 'services' %}">
     {% for s in services_preview %}
       <a href="{% url 'storefront-service-slots' s.pk %}" class="group flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
-        <div class="min-w-0">
+        {% if s.image_url %}
+          <img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async"
+               class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0">
+        {% endif %}
+        <div class="min-w-0 flex-1">
           <h3 class="font-semibold text-lg truncate">{{ s.name }}</h3>
           {% if s.description %}<p class="text-sm text-gray-500 mt-0.5 line-clamp-2">{{ s.description }}</p>{% endif %}
           <p class="text-sm text-gray-400 mt-1">{% blocktrans with m=s.duration_minutes %}{{ m }} min{% endblocktrans %}</p>

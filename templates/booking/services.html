@@ -18,11 +18,16 @@
 
 <div class="space-y-3 mb-8">
   {% for s in services %}
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-4 grid sm:grid-cols-5 gap-3 items-end {% if not s.is_active %}opacity-60{% endif %}">
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-4 grid sm:grid-cols-5 gap-3 items-end {% if not s.is_active %}opacity-60{% endif %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="update"><input type="hidden" name="service" value="{{ s.pk }}">
-      <div class="sm:col-span-2">
+      <div class="sm:col-span-2 flex items-center gap-3">
+        {% if s.image_url %}<img src="{{ s.image_url }}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0">{% endif %}
         <span class="font-medium">{{ s.name }}</span>{% if not s.is_active %} <span class="text-xs text-gray-400">· {% trans "inactive" %}</span>{% endif %}
+      </div>
+      <div class="sm:col-span-5 order-last flex flex-wrap items-center gap-3">
+        <label class="text-xs text-gray-500">{% trans "Photo" %}: <input name="image" type="file" accept="image/*" class="text-sm"></label>
+        {% if s.image_url %}<label class="text-xs text-gray-500"><input type="checkbox" name="remove_image" value="1"> {% trans "Remove photo" %}</label>{% endif %}
       </div>
       <div class="sm:col-span-5 order-last">
         <label class="block text-xs text-gray-500 mb-1">{% trans "Description (what's included)" %}</label>
@@ -46,12 +51,16 @@
   {% endfor %}
 </div>
 
-<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
   <h2 class="font-semibold">{% trans "New service" %}</h2>
   <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   <textarea name="description" rows="2" placeholder="{% trans 'Description — what is included (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <div>
+    <label class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</label>
+    <input name="image" type="file" accept="image/*" class="w-full text-sm">
+  </div>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</label>

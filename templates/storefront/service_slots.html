@@ -4,8 +4,11 @@
 
 {% block content %}
 <a href="{% url 'storefront-termin' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All services" %}</a>
+{% if service.image_url %}
+  <img src="{{ service.image_url }}" alt="{{ service.name }}" class="w-full max-w-2xl aspect-[5/2] object-cover rounded-2xl mt-3 mb-2">
+{% endif %}
 <h1 class="text-2xl md:text-3xl font-bold mt-1 mb-1">{{ service.name }}</h1>
-{% if service.description %}<p class="text-gray-600 mb-1">{{ service.description }}</p>{% endif %}
+{% if service.description %}<p class="text-gray-600 mb-1 whitespace-pre-line">{{ service.description }}</p>{% endif %}
 <p class="text-gray-500 mb-4">{% blocktrans with m=service.duration_minutes %}{{ m }} min{% endblocktrans %}{% if service.price_cents %} · {{ service.price_eur|floatformat:2 }} €{% endif %}</p>
 
 {% if messages %}

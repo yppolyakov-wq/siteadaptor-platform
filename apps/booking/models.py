@@ -59,6 +59,9 @@ class Service(TimestampedModel):
     name = models.CharField(max_length=120)
     # A3: описание услуги («что входит») — богатая карточка на витрине; пусто = не показываем.
     description = models.TextField(blank=True)
+    # A3: фото услуги (FileRef-конверт {url, alt, …}, как обложка) — богатая карточка;
+    # пусто = карточка без фото (как раньше).
+    image = models.JSONField(default=dict, blank=True)
     duration_minutes = models.PositiveSmallIntegerField(default=30)
     price_cents = models.PositiveIntegerField(default=0)
     deposit_cents = models.PositiveIntegerField(default=0)
@@ -73,6 +76,11 @@ class Service(TimestampedModel):
     @property
     def price_eur(self) -> float:
         return self.price_cents / 100
+
+    @property
+    def image_url(self) -> str:
+        """A3: URL фото услуги (или ''), безопасно к не-dict значению."""
+        return self.image.get("url", "") if isinstance(self.image, dict) else ""
 
 
 class AvailabilityRule(TimestampedModel):

@@ -118,3 +118,41 @@ def test_services_section_shows_description(settings):
         {"site": {}, "services_preview": [svc], "request": _req()},
     )
     assert "Inkl. Öl, Filter und Entsorgung." in html
+
+
+def test_services_section_shows_photo(settings):
+    """A3: богатая карточка услуги — фото рендерится при наличии image_url."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    svc = SimpleNamespace(
+        pk="55555555-5555-5555-5555-555555555555",
+        name="Färben",
+        description="",
+        image_url="https://img.example/haircolor.jpg",
+        duration_minutes=90,
+        price_cents=6900,
+        price_eur=69.0,
+    )
+    html = render_to_string(
+        "storefront/sections/_services.html",
+        {"site": {}, "services_preview": [svc], "request": _req()},
+    )
+    assert "https://img.example/haircolor.jpg" in html
+
+
+def test_services_section_no_photo_without_image(settings):
+    """Регрессия: без image_url карточка без <img> (как раньше)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    svc = SimpleNamespace(
+        pk="66666666-6666-6666-6666-666666666666",
+        name="Bart",
+        description="",
+        image_url="",
+        duration_minutes=15,
+        price_cents=1200,
+        price_eur=12.0,
+    )
+    html = render_to_string(
+        "storefront/sections/_services.html",
+        {"site": {}, "services_preview": [svc], "request": _req()},
+    )
+    assert "<img" not in html
