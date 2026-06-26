@@ -241,36 +241,37 @@ def test_restaurant_kit_seeds_bookable_table():
 
 
 def test_apply_pranasy_kit_uses_constructor_features():
-    """Демо «Pranasy» использует конструктор: группы акций, секция «Bereiche»,
-    многоуровневое меню, обложки разделов."""
+    """Демо «Pranasy» (двуязычное): Restaurant и Shop — отдельные сущности (пункты
+    меню + категории), секция «Bereiche», слайдер, обложки разделов."""
     tenant = TenantFactory(schema_name="public", slug="p", name="P", business_type="restaurant")
     assert demo_kits.apply_kit(tenant, "pranasy") is True
     cfg = tenant.site_config
 
-    # направления = категории каталога
-    assert Category.objects.filter(slug="demo-fastfood").exists()
-    assert Category.objects.filter(slug="demo-fertig").exists()
-    # S6: обе группы акций представлены
-    groups = set(Promotion.objects.filter(metadata__demo=True).values_list("group", flat=True))
-    assert {"Fastfood", "Fertiggerichte"} <= groups
+    # Restaurant и Shop — отдельные верхнеуровневые категории; Shop с подкатегориями.
+    assert Category.objects.filter(slug="demo-restaurant", parent__isnull=True).exists()
+    shop = Category.objects.get(slug="demo-shop")
+    assert shop.parent_id is None
+    assert Category.objects.filter(parent=shop).count() == 3
     # S2: секция «Unsere Bereiche» включена
     assert "archetypes" in {s["key"] for s in cfg["sections"] if s["enabled"]}
-    # S7: многоуровневое меню с подменю Speisekarte → Fastfood/Fertiggerichte
-    speise = next(i for i in cfg["menus"]["top"]["items"] if i["label"] == "Speisekarte")
-    assert [c["label"] for c in speise["children"]] == ["Fastfood", "Fertiggerichte"]
+    # S7: меню — Restaurant и Shop отдельными пунктами + группа Treue & Aktionen
+    top_labels = [i["label"] for i in cfg["menus"]["top"]["items"]]
+    assert "Restaurant" in top_labels and "Shop" in top_labels
+    assert "Catering" in top_labels and "Retreats" in top_labels
     assert cfg["menus"]["bottom"]["enabled"] is True
-    # S3: обложка раздела catalog (интро + галерея)
+    # S3: обложка раздела catalog (интро)
     assert cfg["archetypes"]["catalog"]["intro"]
-    assert cfg["archetypes"]["catalog"]["gallery"]
-    # M20U-2: слайдер баннеров — 3 слайда с картинками и CTA
+    # M20U-2: слайдер баннеров — 3 слайда; первый ведёт в Restaurant-меню.
     assert len(cfg["heroes"]) == 3
     assert all(h["image"] and h["title"] and h["button_url"] for h in cfg["heroes"])
-    assert cfg["heroes"][0]["button_url"] == "/sortiment/"
+    assert cfg["heroes"][0]["button_url"] == "/sortiment/?kategorie=demo-restaurant"
     # M20U-7: кастомные заголовки секций
-    assert cfg["section_titles"]["products"] == "Unsere Karte"
-    assert cfg["section_titles"]["events"] == "Events bei Pranasy"
+    assert cfg["section_titles"]["products"] == "Speisekarte & Shop"
+    assert cfg["section_titles"]["events"] == "Retreats bei Pranasy"
     # M20U-7 (per-page): события — сеткой cols2
     assert cfg["events_index_layout"]["preset"] == "cols2"
+    # i18n: оверлей переводов витрины присутствует
+    assert cfg["i18n"]["en"]["hero_title"]
     # модули направлений активны
     for m in ("orders", "events", "jobs", "loyalty"):
         assert tenant.is_module_active(m)
@@ -284,12 +285,13 @@ def test_pranasy_menu_resolves_categories_and_promo_groups(settings):
     demo_kits.apply_kit(tenant, "pranasy")
     items = menu.resolve_menu(tenant, "top")
     by = {i["label"]: i for i in items}
-    # Speisekarte → дети-категории резолвятся
-    child_urls = {c["url"] for c in by["Speisekarte"]["children"]}
-    assert "/sortiment/?kategorie=demo-fastfood" in child_urls
-    # Aktionen → promo_group резолвится (есть активная акция в группе)
-    aktionen_children = {c["label"] for c in by["Aktionen"]["children"]}
-    assert "Fastfood-Aktionen" in aktionen_children
+    # Restaurant и Shop резолвятся на свои категории.
+    assert by["Restaurant"]["url"] == "/sortiment/?kategorie=demo-restaurant"
+    assert by["Shop"]["url"] == "/sortiment/?kategorie=demo-shop"
+    # Группа «Treue & Aktionen» с детьми (Treue → loyalty минимум резолвится).
+    treue_group = by["Treue & Aktionen"]
+    child_labels = {c["label"] for c in treue_group["children"]}
+    assert "Treue" in child_labels
 
 
 def test_pranasy_seeds_records_for_all_archetypes():

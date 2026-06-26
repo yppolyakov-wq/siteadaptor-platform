@@ -723,94 +723,132 @@ PRANASY_MENUS = {
         "sticky": True,
         "items": [
             {
-                "label": "Speisekarte",
+                "label": "Restaurant",
+                "type": "category",
+                "target": "demo-restaurant",
+            },
+            {
+                "label": "Shop",
+                "type": "category",
+                "target": "demo-shop",
+            },
+            {
+                "label": "Catering",
+                "type": "archetype",
+                "target": "jobs",
+                "label_i18n": {"en": "Catering"},
+            },
+            {
+                "label": "Retreats",
+                "type": "archetype",
+                "target": "events",
+            },
+            {
+                "label": "Treue & Aktionen",
                 "type": "group",
+                "label_i18n": {"en": "Loyalty & Offers"},
                 "children": [
-                    {"label": "Fastfood", "type": "category", "target": "demo-fastfood"},
-                    {"label": "Fertiggerichte", "type": "category", "target": "demo-fertig"},
+                    {
+                        "label": "Treue",
+                        "type": "archetype",
+                        "target": "loyalty",
+                        "label_i18n": {"en": "Loyalty"},
+                    },
+                    {
+                        "label": "Aktionen",
+                        "type": "promo_group",
+                        "target": "Restaurant",
+                        "label_i18n": {"en": "Offers"},
+                    },
                 ],
             },
             {
-                "label": "Aktionen",
-                "type": "group",
-                "children": [
-                    {"label": "Fastfood-Aktionen", "type": "promo_group", "target": "Fastfood"},
-                    {"label": "Fertig-Aktionen", "type": "promo_group", "target": "Fertiggerichte"},
-                ],
+                "label": "Über uns",
+                "type": "page",
+                "target": "about",
+                "label_i18n": {"en": "About us"},
             },
-            {"label": "Tisch", "type": "archetype", "target": "booking"},
-            {"label": "Events", "type": "archetype", "target": "events"},
-            {"label": "Catering", "type": "archetype", "target": "jobs"},
-            {"label": "Treue", "type": "archetype", "target": "loyalty"},
-            {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
     "bottom": {
         "enabled": True,
         "items": [
-            {"label": "Menü", "type": "archetype", "target": "catalog", "icon": "🍔"},
-            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🛒"},
-            {"label": "Tisch", "type": "archetype", "target": "booking", "icon": "📅"},
-            {"label": "Events", "type": "archetype", "target": "events", "icon": "🎫"},
+            {"label": "Restaurant", "type": "category", "target": "demo-restaurant", "icon": "🍔"},
+            {"label": "Shop", "type": "category", "target": "demo-shop", "icon": "🛒"},
+            {"label": "Catering", "type": "archetype", "target": "jobs", "icon": "🎉"},
+            {"label": "Retreats", "type": "archetype", "target": "events", "icon": "🧘"},
         ],
     },
 }
 
 PRANASY = DemoKit(
     key="pranasy",
-    label="Pranasy — Vegan Fastfood",
+    label="Pranasy — Vegan & Ayurveda",
     business_type="restaurant",
     subdomain="pranasy",  # → pranasy.<base> (а не pranasy-demo)
     accent="#16a34a",  # frisches Grün
-    hero_image_kw="vegan,burger",
+    hero_image_kw="vegan,food",
     hero_title="Pranasy",
-    hero_text="100 % pflanzlich. Fastfood ohne schlechtes Gewissen — frisch, schnell, lecker.",
+    hero_text="100 % pflanzlich & ayurvedisch inspiriert — frische Küche, feiner Shop, "
+    "ruhige Retreats.",
     about_title="Über Pranasy",
-    about_text="Wir machen veganes Fastfood, das schmeckt: saftige Burger, knusprige Wraps "
-    "und frische Bowls — alles pflanzlich, regional und mit Liebe gemacht.",
+    about_text="Pranasy steht für eine Küche, die guttut: 100 % pflanzlich, ayurvedisch "
+    "inspiriert und mit echten Zutaten. Wir glauben an bewusste, ausgewogene Ernährung — "
+    "leicht, lecker und im Einklang mit Körper und Natur.",
     nav_style="centered",
     address="Mittelstraße 8, 40213 Düsseldorf",
     opening_hours_text="Mo–So 11:00–22:00",
     opening_hours={d: ("11:00", "22:00") for d in range(7)},
-    gallery_kw=["vegan,burger", "vegan,bowl", "vegan,wrap", "smoothie", "vegan,food", "fries"],
+    gallery_kw=[
+        "vegan,food",
+        "vegan,burger",
+        "vegan,sausage",
+        "vegan,cake",
+        "ayurveda,spices",
+        "yoga,forest",
+    ],
     faq=[
         ("Ist alles wirklich vegan?", "Ja — 100 % pflanzlich, ohne Ausnahme."),
         (
-            "Kann ich vorbestellen?",
-            "Klar, online über «Online bestellen» zur Abholung oder Lieferung.",
+            "Wann öffnet das Restaurant?",
+            "Bald! Die Speisekarte ist schon online — schau dich gern um.",
         ),
         (
             "Macht ihr Catering?",
             "Ja! Stell über «Catering» eine Anfrage — wir melden uns mit Angebot.",
         ),
+        (
+            "Was sind eure Retreats?",
+            "Ruhige Wochenenden mit veganer & ayurvedischer Küche, Yoga und Natur.",
+        ),
     ],
     testimonials=[
-        ("Jana", "Endlich veganes Fastfood, das richtig knallt. Der Burger ist der Hammer!"),
-        ("Tom & Lisa", "Schnell, frisch, lecker — unser neuer Lieblingsladen."),
+        ("Jana", "Endlich veganes Essen, das richtig schmeckt — und so liebevoll gemacht."),
+        ("Tom & Lisa", "Der Shop ist ein Traum: vegane Würstchen wie früher, nur besser."),
     ],
     process=[
-        ("Wählen", "Stell dir dein Menü zusammen — mit Extras nach Wunsch."),
-        ("Bestellen", "Online zur Abholung oder Lieferung, oder direkt am Tisch."),
-        ("Genießen", "Frisch zubereitet, in wenigen Minuten."),
+        ("Wählen", "Stell dir dein Menü oder deinen Einkauf zusammen."),
+        ("Bestellen", "Online zur Abholung oder Lieferung — oder Catering anfragen."),
+        ("Genießen", "Frisch zubereitet, bewusst und ausgewogen."),
     ],
     team=[
         ("Nour El-Amin", "Gründerin & Köchin", "chef,woman"),
         ("Ben Krause", "Küche", "cook,man"),
     ],
-    trust={"since": "2021", "marks": ["100 % Vegan", "Regional", "Bio"]},
+    trust={"since": "2021", "marks": ["100 % Vegan", "Ayurveda", "Regional"]},
     reviews_seed=[
         (
             5,
-            "Endlich veganes Fastfood, das richtig knallt. Der Burger ist der Hammer!",
+            "Endlich veganes Essen, das richtig schmeckt — und so liebevoll gemacht.",
             "pr.jana@example.de",
         ),
-        (5, "Schnell, frisch, lecker — unser neuer Lieblingsladen.", "pr.tomlisa@example.de"),
-        (4, "Tolle Bowls und nette Leute. Komme gerne wieder.", "pr.sven@example.de"),
+        (5, "Der vegane Shop ist ein Traum. Würstchen wie früher!", "pr.tomlisa@example.de"),
+        (4, "Schöne Retreats und nette Leute. Komme gerne wieder.", "pr.sven@example.de"),
     ],
     enable_modules=["orders", "events", "jobs", "loyalty"],
     promo_count=4,
     group_promos_by_category=True,
-    loyalty={"label": "Pranasy-Stempelkarte", "stamps": 10, "reward": "1 Gratis-Burger"},
+    loyalty={"label": "Pranasy-Stempelkarte", "stamps": 10, "reward": "1 Gratis-Gericht"},
     enable_archetypes_section=True,
     storefront_root="home",
     seed_records=True,
@@ -818,80 +856,204 @@ PRANASY = DemoKit(
     # M20U-2: слайдер баннеров — единая главная ведёт к ключевым действиям.
     heroes=[
         {
-            "image_kw": "vegan,burger",
-            "title": "100 % pflanzlich",
-            "text": "Fastfood ohne schlechtes Gewissen — frisch, schnell, lecker.",
-            "button_label": "Zur Karte",
-            "button_url": "/sortiment/",
+            "image_kw": "vegan,food",
+            "title": "Bald geöffnet",
+            "text": "Unser veganes Restaurant öffnet bald — die Speisekarte ist schon online.",
+            "button_label": "Zur Speisekarte",
+            "button_url": "/sortiment/?kategorie=demo-restaurant",
         },
         {
-            "image_kw": "catering,buffet",
-            "title": "Catering & Events",
-            "text": "Veganes Buffet für Büro, Feier oder Hochzeit — auf Anfrage.",
-            "button_label": "Catering anfragen",
-            "button_url": "/anfrage/",
+            "image_kw": "vegan,sausage",
+            "title": "Veganer Shop",
+            "text": "Würstchen, Aufschnitt und feine Konditorei — alles pflanzlich.",
+            "button_label": "Zum Shop",
+            "button_url": "/sortiment/?kategorie=demo-shop",
         },
         {
-            "image_kw": "vegan,bowl",
-            "title": "Frisch jeden Tag",
-            "text": "Bowls, Wraps und Smoothies — regional und mit Liebe gemacht.",
-            "button_label": "Online bestellen",
-            "button_url": "/warenkorb/",
+            "image_kw": "yoga,forest",
+            "title": "Retreats & Catering",
+            "text": "Ruhige Wochenenden mit veganer Küche und Yoga — oder Catering für deine Feier.",
+            "button_label": "Retreats ansehen",
+            "button_url": "/veranstaltung/",
         },
     ],
     section_titles={
-        "products": "Unsere Karte",
+        "products": "Speisekarte & Shop",
         "promotions": "Angebote",
-        "events": "Events bei Pranasy",
+        "events": "Retreats bei Pranasy",
     },
     # Меню — плотная сетка; события — карточками (а не списком).
     page_layouts={"catalog": "cols3", "events": "cols2"},
     archetype_covers={
         "catalog": {
-            "intro": "Unsere ganze Karte — Fastfood und Fertiggerichte, alles pflanzlich.",
-            "hero_kw": "vegan,burger",
-            "gallery_kw": ["vegan,burger", "vegan,wrap", "fries", "vegan,bowl"],
-        },
-        "booking": {
-            "intro": "Reserviere deinen Tisch — wir halten dir einen Platz frei.",
-            "hero_kw": "restaurant,table",
-        },
-        "events": {
-            "intro": "Vegane Events, Street-Food-Festivals und Kochkurse.",
-            "hero_kw": "food,festival",
-            "gallery_kw": ["food,festival", "cooking,class"],
+            "intro": "Unser Restaurant öffnet bald — die Karte ist schon da. Und im veganen "
+            "Shop findest du Würstchen, Aufschnitt und feine Konditorei.",
+            "hero_kw": "vegan,food",
+            "gallery_kw": ["vegan,burger", "vegan,sausage", "vegan,cake", "ayurveda,spices"],
         },
         "jobs": {
-            "intro": "Catering & Vorbestellung für Feiern, Büro und Events. Sag uns, was du "
-            "brauchst — du bekommst ein unverbindliches Angebot.",
+            "intro": "Veganes & ayurvedisches Catering für Feiern, Büro und Events. Sag uns, "
+            "was du brauchst — wir kochen frisch und melden uns mit einem unverbindlichen Angebot.",
             "hero_kw": "catering,buffet",
         },
+        "events": {
+            "intro": "Unsere Retreats: ruhige Wochenenden mit veganer & ayurvedischer Küche, "
+            "Yoga, Atem und Natur — Auftanken und zu sich zurückfinden.",
+            "hero_kw": "yoga,forest",
+            "gallery_kw": ["yoga,forest", "meditation,nature", "lake,forest"],
+        },
         "loyalty": {
-            "intro": "Sammle Stempel bei jedem Besuch — der 10. Burger geht aufs Haus.",
-            "hero_kw": "vegan,burger",
+            "intro": "Sammle Stempel bei jedem Besuch — das 10. Gericht geht aufs Haus.",
+            "hero_kw": "vegan,food",
         },
     },
+    teachers=[
+        (
+            "Mara Lind",
+            "Retreatleitung & Yogalehrerin",
+            "yoga,teacher,woman",
+            "RYT-500 Yogalehrerin, führt seit Jahren ruhige Wochenenden in der Natur.",
+        ),
+        (
+            "Felix Sturm",
+            "Achtsamkeits-Coach",
+            "meditation,man",
+            "Begleitet Atem- und Meditationspraxis, ruhig und nahbar.",
+        ),
+        (
+            "Dr. Anjali Rao",
+            "Ayurveda-Therapeutin",
+            "ayurveda,woman",
+            "Bringt ayurvedisches Wissen in Küche und Alltag — bewusst und ausgewogen.",
+        ),
+    ],
     events=[
-        ("Vegan Street-Food Festival", 7, 200, "0"),
-        ("Vegan Burger Battle", 14, 60, "15"),
-        ("Kochkurs: Veganes Fastfood selbst machen", 21, 12, "49"),
         {
-            "title": "Sommer-Retreat: Plant-Based Weekend",
-            "in_days": 40,
+            "title": "Vegan & Ayurveda Retreat: Auftanken am Waldrand",
+            "title_en": "Vegan & Ayurveda Retreat: Recharge by the Forest",
+            "description": "Ein Wochenende mit veganer & ayurvedischer Küche, Yoga und Natur — "
+            "kochen, entspannen, auftanken.",
+            "description_en": "A weekend of vegan & ayurvedic cuisine, yoga and nature — "
+            "cook, relax, recharge.",
+            "in_days": 21,
             "hour": 16,
             "duration_days": 2,
             "capacity": 15,
             "price": "129",
             "location": "Seminarhaus am Waldrand, NRW (ca. 30 Min. von Köln)",
-            "description": "Ein Wochenende voller pflanzlicher Küche, Yoga und Natur — "
-            "kochen, entspannen, auftanken.",
             "program": [
                 "Fr 16:00 — Ankommen & gemeinsames Abendessen",
-                "Sa — Yoga · Plant-Based-Kochworkshop · Waldspaziergang · Lagerfeuer",
+                "Sa — Yoga · Ayurveda-Kochworkshop · Waldspaziergang · Lagerfeuer",
                 "So — Morgen-Yoga · Brunch · Abschlusskreis",
             ],
             "questions": _RETREAT_QUESTIONS,
-            "photos": ["vegan,food", "yoga,forest", "campfire,night", "cooking,class"],
+            "photos": ["yoga,forest", "ayurveda,spices", "lake,forest", "campfire,night"],
+            "details": _RETREAT_LANDING,
+        },
+        {
+            "title": "Yoga & Stille: Detox-Wochenende",
+            "title_en": "Yoga & Silence: Detox Weekend",
+            "description": "Sanftes Yoga, Stille und leichte vegane Küche — ein Reset für Körper "
+            "und Geist.",
+            "description_en": "Gentle yoga, silence and light vegan food — a reset for body "
+            "and mind.",
+            "in_days": 35,
+            "hour": 16,
+            "duration_days": 2,
+            "capacity": 14,
+            "price": "139",
+            "location": "Seminarhaus am Waldrand, NRW",
+            "program": [
+                "Fr — Ankommen & Stille-Abend",
+                "Sa — Yoga · Atemarbeit · grüne Smoothies · Waldbaden",
+                "So — Morgen-Yoga · leichter Brunch · Abschluss",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "photos": ["meditation,nature", "yoga,forest", "smoothie", "lake,forest"],
+            "details": _RETREAT_LANDING,
+        },
+        {
+            "title": "Ayurveda-Küche: Kochretreat",
+            "title_en": "Ayurvedic Kitchen: Cooking Retreat",
+            "description": "Lerne ayurvedisch zu kochen — Gewürze, Doshas und einfache, "
+            "ausgewogene Gerichte.",
+            "description_en": "Learn to cook ayurvedically — spices, doshas and simple, "
+            "balanced dishes.",
+            "in_days": 48,
+            "hour": 15,
+            "duration_days": 2,
+            "capacity": 12,
+            "price": "159",
+            "location": "Seminarhaus am Waldrand, NRW",
+            "program": [
+                "Fr — Ankommen & Gewürzkunde",
+                "Sa — Dosha-Basics · Kochworkshop · gemeinsames Dinner",
+                "So — Frühstückskunde · Meal-Prep · Abschlusskreis",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "photos": ["ayurveda,spices", "cooking,class", "vegan,food", "yoga,forest"],
+            "details": _RETREAT_LANDING,
+        },
+        {
+            "title": "Plant-Based Weekend: Sommer-Retreat",
+            "title_en": "Plant-Based Weekend: Summer Retreat",
+            "description": "Ein sonniges Wochenende voller pflanzlicher Küche, Yoga und See.",
+            "description_en": "A sunny weekend full of plant-based food, yoga and the lake.",
+            "in_days": 62,
+            "hour": 16,
+            "duration_days": 2,
+            "capacity": 16,
+            "price": "129",
+            "location": "Seminarhaus am Waldrand, NRW",
+            "program": [
+                "Fr — Ankommen & Lagerfeuer",
+                "Sa — Yoga · Plant-Based-Kochworkshop · See & Wald",
+                "So — Morgen-Yoga · Brunch · Abschlusskreis",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "photos": ["vegan,food", "yoga,forest", "lake,forest", "campfire,night"],
+            "details": _RETREAT_LANDING,
+        },
+        {
+            "title": "Achtsamkeit & Meditation: Slow Weekend",
+            "title_en": "Mindfulness & Meditation: Slow Weekend",
+            "description": "Langsamer werden, meditieren und bewusst essen — ein Wochenende "
+            "ganz für dich.",
+            "description_en": "Slow down, meditate and eat consciously — a weekend just for you.",
+            "in_days": 75,
+            "hour": 16,
+            "duration_days": 2,
+            "capacity": 14,
+            "price": "139",
+            "location": "Seminarhaus am Waldrand, NRW",
+            "program": [
+                "Fr — Ankommen & Stille-Kreis",
+                "Sa — Meditation · sanftes Yoga · vegane Küche · Spaziergang",
+                "So — Morgen-Meditation · Brunch · Abschluss",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "photos": ["meditation,nature", "yoga,forest", "lake,forest", "campfire,night"],
+            "details": _RETREAT_LANDING,
+        },
+        {
+            "title": "Frauen-Retreat: Balance & Ayurveda",
+            "title_en": "Women's Retreat: Balance & Ayurveda",
+            "description": "Ein Wochenende für Frauen — ayurvedische Küche, Yoga und Zeit zum "
+            "Durchatmen.",
+            "description_en": "A weekend for women — ayurvedic cuisine, yoga and time to breathe.",
+            "in_days": 90,
+            "hour": 16,
+            "duration_days": 2,
+            "capacity": 12,
+            "price": "149",
+            "location": "Seminarhaus am Waldrand, NRW",
+            "program": [
+                "Fr — Ankommen & Kennenlern-Kreis",
+                "Sa — Yoga · Ayurveda-Workshop · Wald & See · Abendgespräch",
+                "So — Morgen-Yoga · Brunch · Abschlusskreis",
+            ],
+            "questions": _RETREAT_QUESTIONS,
+            "photos": ["yoga,forest", "ayurveda,spices", "meditation,nature", "lake,forest"],
             "details": _RETREAT_LANDING,
         },
     ],
@@ -908,10 +1070,10 @@ PRANASY = DemoKit(
         ],
     },
     cta={
-        "title": "Hunger?",
-        "text": "Bestell jetzt online zur Abholung oder Lieferung.",
+        "title": "Hunger auf Pflanzliches?",
+        "text": "Schau in die Speisekarte oder stöbere im veganen Shop.",
         "button_label": "Zur Speisekarte",
-        "button_url": "/sortiment/",
+        "button_url": "/sortiment/?kategorie=demo-restaurant",
     },
     resources=[
         {
@@ -927,13 +1089,16 @@ PRANASY = DemoKit(
     ],
     categories=[
         (
-            "Fastfood",
-            "fastfood",
+            {"de": "Restaurant", "en": "Restaurant"},
+            "restaurant",
             [
                 _p(
-                    "Classic Vegan Burger",
+                    {"de": "Veganer Burger", "en": "Vegan Burger"},
                     "8.90",
-                    "Saftiges Pflanzen-Patty, Salat, Tomate, hausgemachte Sauce.",
+                    {
+                        "de": "Saftiges Pflanzen-Patty, Salat, Tomate, hausgemachte Sauce.",
+                        "en": "Juicy plant-based patty, lettuce, tomato, house sauce.",
+                    },
                     "vegan,burger",
                     variants=[("Single", "8.90"), ("Double", "11.90")],
                     allergens=["gluten", "soja", "senf"],
@@ -941,105 +1106,336 @@ PRANASY = DemoKit(
                     badge="beliebt",
                 ),
                 _p(
-                    "Crispy Chick’n Burger",
-                    "9.50",
-                    "Knuspriges Soja-Filet, Coleslaw, vegane Mayo.",
-                    "vegan,chicken,burger",
+                    {"de": "Vegane Pizza", "en": "Vegan Pizza"},
+                    "10.90",
+                    {
+                        "de": "Dünner Teig, Tomate, veganer Käse, frisches Gemüse.",
+                        "en": "Thin crust, tomato, vegan cheese, fresh vegetables.",
+                    },
+                    "vegan,pizza",
                     allergens=["gluten", "soja"],
-                    modifiers=VEGAN_BURGER_MODIFIERS,
+                    modifiers=PIZZA_MODIFIERS,
                 ),
                 _p(
-                    "Falafel Wrap",
+                    {"de": "Vegane Pita", "en": "Vegan Pita"},
                     "7.50",
-                    "Falafel, Hummus, Salat, Granatapfel.",
-                    "falafel,wrap",
+                    {
+                        "de": "Warmes Pitabrot mit Falafel, Hummus und Salat.",
+                        "en": "Warm pita with falafel, hummus and salad.",
+                    },
+                    "vegan,pita",
                     allergens=["gluten", "sesam"],
                 ),
                 _p(
-                    "Loaded Fries",
-                    "6.90",
-                    "Pommes mit veganem Käse, Jalapeños und Röstzwiebeln.",
-                    "loaded,fries",
-                    variants=[("klein", "6.90"), ("groß", "9.90")],
-                    allergens=["soja"],
-                ),
-                _p(
-                    "Vegan Hotdog",
+                    {"de": "Hotdog", "en": "Hotdog"},
                     "6.50",
-                    "Karotten-Hotdog mit Senf, Ketchup, Gurke.",
-                    "hotdog",
+                    {
+                        "de": "Karotten-Hotdog mit Senf, Ketchup und Gurke.",
+                        "en": "Carrot hotdog with mustard, ketchup and pickle.",
+                    },
+                    "vegan,hotdog",
                     allergens=["gluten", "senf"],
                 ),
                 _p(
-                    "Buddha Bowl",
-                    "10.90",
-                    "Quinoa, geröstetes Gemüse, Avocado, Tahini.",
-                    "vegan,bowl",
-                    allergens=["sesam"],
+                    {"de": "Alaputra", "en": "Alaputra"},
+                    "8.40",
+                    {
+                        "de": "Ayurvedisch gewürzte Kartoffeln mit Kreuzkümmel und Kurkuma.",
+                        "en": "Ayurvedic spiced potatoes with cumin and turmeric.",
+                    },
+                    "spiced,potato",
+                    allergens=[],
+                    badge="ayurveda",
+                ),
+                _p(
+                    {"de": "Kofta", "en": "Kofta"},
+                    "9.20",
+                    {
+                        "de": "Vegane Kofta-Bällchen mit Kräutern und Tahini-Sauce.",
+                        "en": "Vegan kofta balls with herbs and tahini sauce.",
+                    },
+                    "vegan,kofta",
+                    allergens=["sesam", "gluten"],
+                ),
+                _p(
+                    {"de": "Veganer Schaschlik", "en": "Vegan Skewers"},
+                    "9.90",
+                    {
+                        "de": "Gegrillte Gemüse- und Tofu-Spieße mit Marinade.",
+                        "en": "Grilled vegetable and tofu skewers with marinade.",
+                    },
+                    "vegan,skewers",
+                    variants=[("1 Spieß", "9.90"), ("2 Spieße", "14.90")],
+                    allergens=["soja"],
+                ),
+                _p(
+                    {"de": "Nori-Pakora", "en": "Nori Pakora"},
+                    "6.80",
+                    {
+                        "de": "Knusprige Nori-Pakora aus Kichererbsenmehl, frittiert.",
+                        "en": "Crispy nori pakora made from chickpea flour.",
+                    },
+                    "pakora,fried",
+                    allergens=[],
                     badge="neu",
-                ),
-                _p(
-                    "Sweet Potato Fries",
-                    "5.50",
-                    "Süßkartoffel-Pommes mit Aioli.",
-                    "sweet,potato,fries",
-                ),
-                _p(
-                    "Mango Smoothie",
-                    "4.50",
-                    "Mango, Banane, Hafermilch.",
-                    "mango,smoothie",
-                    variants=[("0,3 L", "4.50"), ("0,5 L", "5.90")],
                 ),
             ],
         ),
         (
-            "Fertiggerichte",
-            "fertig",
+            {"de": "Shop", "en": "Shop"},
+            "shop",
+            [],
             [
-                _p(
-                    "Vegan Chili sin Carne",
-                    "7.90",
-                    "Meal-Prep-Box, 500 g — einfach aufwärmen.",
-                    "vegan,chili",
-                    allergens=["soja"],
+                (
+                    {"de": "Würstchen", "en": "Sausages"},
+                    "wuerstchen",
+                    [
+                        _p(
+                            {"de": "Vegane Bratwurst", "en": "Vegan Bratwurst"},
+                            "4.90",
+                            {
+                                "de": "Pflanzliche Bratwurst, klassisch gewürzt. 2 Stück, 200 g.",
+                                "en": "Plant-based bratwurst, classically spiced. 2 pcs, 200 g.",
+                            },
+                            "vegan,sausage",
+                            allergens=["soja", "gluten"],
+                            unit="kg",
+                            content="0.2",
+                        ),
+                        _p(
+                            {"de": "Vegane Wiener", "en": "Vegan Wieners"},
+                            "4.50",
+                            {
+                                "de": "Feine vegane Wiener Würstchen. 4 Stück, 200 g.",
+                                "en": "Fine vegan Vienna sausages. 4 pcs, 200 g.",
+                            },
+                            "vegan,sausage",
+                            allergens=["soja"],
+                            unit="kg",
+                            content="0.2",
+                        ),
+                        _p(
+                            {"de": "Vegane Currywurst", "en": "Vegan Currywurst"},
+                            "5.40",
+                            {
+                                "de": "Vegane Currywurst mit hausgemachter Curry-Sauce. 250 g.",
+                                "en": "Vegan currywurst with house curry sauce. 250 g.",
+                            },
+                            "vegan,currywurst",
+                            allergens=["soja", "senf"],
+                            unit="kg",
+                            content="0.25",
+                            badge="beliebt",
+                        ),
+                    ],
                 ),
-                _p(
-                    "Linsen-Dal mit Reis",
-                    "7.50",
-                    "Cremiges Dal, fertig portioniert.",
-                    "lentil,dal",
+                (
+                    {"de": "Wurst & Aufschnitt", "en": "Sausage & Cold Cuts"},
+                    "aufschnitt",
+                    [
+                        _p(
+                            {"de": "Veganer Schinken", "en": "Vegan Ham"},
+                            "3.90",
+                            {
+                                "de": "Pflanzlicher Aufschnitt nach Schinken-Art. 100 g.",
+                                "en": "Plant-based ham-style cold cut. 100 g.",
+                            },
+                            "vegan,coldcut",
+                            allergens=["soja"],
+                            unit="kg",
+                            content="0.1",
+                        ),
+                        _p(
+                            {"de": "Vegane Salami", "en": "Vegan Salami"},
+                            "4.20",
+                            {
+                                "de": "Würzige vegane Salami, fein geschnitten. 100 g.",
+                                "en": "Spicy vegan salami, thinly sliced. 100 g.",
+                            },
+                            "vegan,salami",
+                            allergens=["soja"],
+                            unit="kg",
+                            content="0.1",
+                        ),
+                        _p(
+                            {"de": "Veganer Mortadella", "en": "Vegan Mortadella"},
+                            "4.40",
+                            {
+                                "de": "Vegane Mortadella mit Pistazien. 100 g.",
+                                "en": "Vegan mortadella with pistachios. 100 g.",
+                            },
+                            "vegan,mortadella",
+                            allergens=["soja", "nuss"],
+                            unit="kg",
+                            content="0.1",
+                        ),
+                    ],
                 ),
-                _p(
-                    "Vegane Lasagne",
-                    "8.90",
-                    "Mit Linsen-Bolognese und Cashew-Béchamel.",
-                    "vegan,lasagne",
-                    allergens=["gluten", "nuss"],
-                ),
-                _p(
-                    "Curry-Bowl to go",
-                    "8.50",
-                    "Gemüse-Curry mit Kokosmilch und Reis.",
-                    "curry,bowl",
-                ),
-                _p(
-                    "Pasta Pesto Box",
-                    "7.90",
-                    "Vollkorn-Pasta mit Basilikum-Pesto.",
-                    "pasta,pesto",
-                    allergens=["gluten", "nuss"],
-                ),
-                _p(
-                    "Overnight Oats",
-                    "4.90",
-                    "Haferflocken, Chia, Beeren — perfekt fürs Frühstück.",
-                    "overnight,oats",
-                    allergens=["gluten"],
+                (
+                    {"de": "Süßes & Konditorei", "en": "Sweets & Confectionery"},
+                    "suesses",
+                    [
+                        _p(
+                            {"de": "Veganer Schokokuchen", "en": "Vegan Chocolate Cake"},
+                            "3.50",
+                            {
+                                "de": "Saftiger Schokokuchen, rein pflanzlich. Pro Stück.",
+                                "en": "Moist chocolate cake, fully plant-based. Per piece.",
+                            },
+                            "vegan,cake",
+                            allergens=["gluten", "nuss"],
+                            badge="beliebt",
+                        ),
+                        _p(
+                            {"de": "Vegane Cookies", "en": "Vegan Cookies"},
+                            "2.80",
+                            {
+                                "de": "Knusprige Cookies mit Schokostückchen. 3 Stück.",
+                                "en": "Crunchy cookies with chocolate chips. 3 pcs.",
+                            },
+                            "vegan,cookie",
+                            allergens=["gluten", "soja"],
+                        ),
+                        _p(
+                            {"de": "Vegane Schokolade", "en": "Vegan Chocolate"},
+                            "3.20",
+                            {
+                                "de": "Zartbitter-Schokolade, 100 g Tafel.",
+                                "en": "Dark chocolate, 100 g bar.",
+                            },
+                            "vegan,chocolate",
+                            allergens=["soja"],
+                            unit="kg",
+                            content="0.1",
+                        ),
+                        _p(
+                            {"de": "Ayurveda-Energiekugeln", "en": "Ayurveda Energy Balls"},
+                            "4.50",
+                            {
+                                "de": "Datteln, Nüsse und Gewürze — ohne Zuckerzusatz. 6 Stück.",
+                                "en": "Dates, nuts and spices — no added sugar. 6 pcs.",
+                            },
+                            "energy,balls",
+                            allergens=["nuss"],
+                            badge="ayurveda",
+                        ),
+                        _p(
+                            {"de": "Veganer Käsekuchen", "en": "Vegan Cheesecake"},
+                            "3.90",
+                            {
+                                "de": "Cremiger Cashew-Käsekuchen. Pro Stück.",
+                                "en": "Creamy cashew cheesecake. Per piece.",
+                            },
+                            "vegan,cheesecake",
+                            allergens=["nuss"],
+                        ),
+                        _p(
+                            {"de": "Vegane Zimtschnecke", "en": "Vegan Cinnamon Roll"},
+                            "3.30",
+                            {
+                                "de": "Fluffige Zimtschnecke mit Zuckerguss. Pro Stück.",
+                                "en": "Fluffy cinnamon roll with icing. Per piece.",
+                            },
+                            "vegan,cinnamon,roll",
+                            allergens=["gluten"],
+                        ),
+                    ],
                 ),
             ],
         ),
     ],
+    i18n={
+        "en": {
+            "hero_title": "Pranasy",
+            "hero_text": "100 % plant-based & ayurveda-inspired — fresh cuisine, a fine shop, "
+            "calm retreats.",
+            "about_title": "About Pranasy",
+            "about_text": "Pranasy stands for food that does you good: 100 % plant-based, "
+            "ayurveda-inspired and made with real ingredients. We believe in conscious, "
+            "balanced nutrition — light, tasty and in harmony with body and nature.",
+            "section_titles": {
+                "products": "Menu & Shop",
+                "promotions": "Offers",
+                "events": "Retreats at Pranasy",
+            },
+            "faq": [
+                {
+                    "q": "Is everything really vegan?",
+                    "a": "Yes — 100 % plant-based, no exceptions.",
+                },
+                {
+                    "q": "When does the restaurant open?",
+                    "a": "Soon! The menu is already online — feel free to browse.",
+                },
+                {
+                    "q": "Do you do catering?",
+                    "a": "Yes! Send a request via «Catering» — we'll get back with an offer.",
+                },
+                {
+                    "q": "What are your retreats?",
+                    "a": "Calm weekends with vegan & ayurvedic food, yoga and nature.",
+                },
+            ],
+            "testimonials": [
+                {
+                    "name": "Jana",
+                    "text": "Finally vegan food that really tastes great — and made with so much love.",
+                },
+                {
+                    "name": "Tom & Lisa",
+                    "text": "The shop is a dream: vegan sausages like back in the day, only better.",
+                },
+            ],
+            "process": [
+                {"title": "Choose", "text": "Put together your menu or your shopping."},
+                {
+                    "title": "Order",
+                    "text": "Online for pickup or delivery — or request catering.",
+                },
+                {"title": "Enjoy", "text": "Freshly prepared, conscious and balanced."},
+            ],
+            "cta": {
+                "title": "Craving something plant-based?",
+                "text": "Check out the menu or browse the vegan shop.",
+                "button_label": "View the menu",
+            },
+            "heroes": [
+                {
+                    "title": "Opening soon",
+                    "text": "Our vegan restaurant opens soon — the menu is already online.",
+                    "button_label": "View the menu",
+                },
+                {
+                    "title": "Vegan shop",
+                    "text": "Sausages, cold cuts and fine confectionery — all plant-based.",
+                    "button_label": "Go to the shop",
+                },
+                {
+                    "title": "Retreats & catering",
+                    "text": "Calm weekends with vegan food and yoga — or catering for your event.",
+                    "button_label": "See retreats",
+                },
+            ],
+            "trust": {"marks": ["100 % Vegan", "Ayurveda", "Regional"]},
+            "archetypes": {
+                "catalog": {
+                    "intro": "Our restaurant opens soon — the menu is already here. And in the "
+                    "vegan shop you'll find sausages, cold cuts and fine confectionery.",
+                },
+                "jobs": {
+                    "intro": "Vegan & ayurvedic catering for parties, offices and events. Tell us "
+                    "what you need — we cook fresh and send a non-binding offer.",
+                },
+                "events": {
+                    "intro": "Our retreats: calm weekends with vegan & ayurvedic food, yoga, "
+                    "breath and nature — recharge and return to yourself.",
+                },
+                "loyalty": {
+                    "intro": "Collect a stamp on every visit — the 10th dish is on the house.",
+                },
+            },
+        }
+    },
 )
 
 # Меню отеля (ТЗ §15): «Главная/Номера/Галерея/Отзывы/Hausordnung/FAQ/Über
@@ -3529,6 +3925,11 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 event = Event.objects.create(
                     title=spec["title"],
                     description=spec.get("description", ""),
+                    # i18n (PR-B): двуязычные заголовок/описание (если кит дал *_en).
+                    title_i18n=_i18n_text({"de": spec["title"], "en": spec.get("title_en", "")}),
+                    description_i18n=_i18n_text(
+                        {"de": spec.get("description", ""), "en": spec.get("description_en", "")}
+                    ),
                     location=spec.get("location", ""),
                     city=spec.get("city", ""),  # R2 таксономия
                     latitude=spec.get("lat"),  # R6 карта

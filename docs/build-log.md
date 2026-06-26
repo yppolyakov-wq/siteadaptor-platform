@@ -2352,3 +2352,27 @@
   302 на `/dashboard/setup/`; тронутый (step 2) / skipped=[1] / completed → 200. `test_cabinet_nav`
   обновлён (тенант помечен `completed`, чтобы рендерить сайдбар, а не редиректиться). Closes AB5 →
   **весь трек «анти-Битрикс» (Спринт G AB1–AB5) завершён.**
+- **2026-06-26 — Pranasy: полноценная двуязычная витрина (PR-A…H).** Запрос владельца —
+  сделать демо-тенант pranasy полноценным + язык DE/EN. Платформенный i18n-фундамент +
+  наполнение:
+  - **PR-A** двуязычная витрина: тексты site_config «строка ИЛИ {de,en}», оверлей
+    `config["i18n"][locale]`, `siteconfig.localize()` сворачивает к локали перед рендером
+    (home/about/обложки разделов). DE-рендер не меняется (нулевая регрессия).
+  - **PR-B** двуязычные `Event.title/description` (title_i18n/description_i18n + property
+    title_text/description_text, миграция events/0021); шаблоны событий → на *_text.
+  - **PR-IMG** локальные демо-фото: внешние сервисы (loremflickr) заблокированы/внешние
+    (GDPR) → SVG-генератор (градиент+эмодзи+подпись), вьюха `/medien/demo.svg`; все киты
+    без внешних зависимостей.
+  - **PR-C** инфраструктура двуязычных китов: сидер каталога поддерживает ПОДКАТЕГОРИИ
+    (parent/child), двуязычные имена/описания (`_i18n_text`), `DemoKit.i18n`-оверлей,
+    `label_i18n` у узлов меню (menu._resolve выбирает по локали).
+  - **PR-D…G** переписан PRANASY-кит (DE+EN): Restaurant (8 блюд: Burger/Pizza/Pita/Hotdog/
+    Alaputra/Kofta/Schaschlik/Nori-Pakora + «Bald geöffnet», покупка включена) и Shop
+    (подкатегории Würstchen×3 / Aufschnitt×3 / Süßes×6) — ДВЕ отдельные сущности (пункты
+    меню + блоки главной); Catering (jobs cover + форма), Retreats (6 двуязычных событий +
+    мастера + отзывы), лояльность, «О нас» (веган/аюрведа). Слайдер баннеров, обложки
+    разделов, двуязычное меню.
+  - **PR-H** тесты `test_pranasy_kit` (структура/двуязычность/меню/render-smoke DE+EN),
+    обновлены старые pranasy-тесты под новую структуру. Миграция: events/0021.
+  Деплой (на владельце): `git pull origin main && ./scripts/deploy.sh single` +
+  `python manage.py seed_demo_tenants --kit pranasy --recreate`. План — `docs/pranasy-fullsite-plan.md`.
