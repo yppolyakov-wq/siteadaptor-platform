@@ -310,3 +310,23 @@ def test_cancelled_ticket_confirmation_hides_qr():
         _req("get"), ticket.reference_code
     ).content.decode()
     assert "/qr.svg" not in body
+
+
+# --- RV1: 2-шаговый чекаут билета (прогрессивное улучшение) ------------------------
+def test_event_detail_renders_two_step_checkout():
+    ev = _event(price_cents=2000, capacity=20)
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert "data-rv1" in body  # форма в пошаговом режиме
+    assert 'data-rv1-step="1"' in body and 'data-rv1-step="2"' in body
+    assert "data-rv1-next" in body  # кнопка «Continue»
+
+
+def test_two_step_checkout_still_books_in_one_post():
+    """Регрессия: серверу шаги безразличны — единый POST со всеми полями бронирует."""
+    ev = _event(price_cents=0, capacity=20)
+    resp = public_views.veranstaltung_book(
+        _req("post", {"quantity": "2", "name": "Gast", "email": "g@t.de", "q0": "x"}),
+        pk=ev.pk,
+    )
+    assert resp.status_code == 302
+    assert Ticket.objects.filter(event=ev, quantity=2).exists()

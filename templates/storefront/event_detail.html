@@ -71,101 +71,172 @@
         <button type="submit" class="w-full bg-amber-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-amber-700">{% trans "Join waitlist" %}</button>
       </form>
     {% else %}
-      <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3 mt-3">
+      {% comment %}RV1: 2-шаговый чекаут — Schritt 1 «Auswahl» (тариф/места/проживание/
+      Extras) → Schritt 2 «Ihre Daten» (контакты/анкета/код/Waiver) с обзором выбора.
+      Прогрессивное улучшение: без JS оба шага видимы и кнопки-навигация спрятаны
+      (обычная одностраничная форма); JS включает пошаговый режим.{% endcomment %}
+      <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3 mt-3" data-rv1>
         {% csrf_token %}
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
-        {% if event.has_tiers %}
-          <fieldset class="space-y-2">
-            <legend class="text-sm font-medium mb-1">{% trans "Ticket" %}</legend>
-            {% for t in event.tiers_display %}
-              <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if t.sold_out %}opacity-60 cursor-not-allowed{% else %}cursor-pointer hover:border-indigo-300{% endif %}">
-                <span class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="tier" value="{{ t.label }}" {% if t.is_default %}checked{% endif %} {% if t.sold_out %}disabled{% endif %} required>
-                  {{ t.label }}
-                  {% if t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
-                </span>
-                <span class="font-semibold text-sm">{% if t.price_cents %}{{ t.price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</span>
-              </label>
-            {% endfor %}
-          </fieldset>
-        {% endif %}
-        <div class="grid sm:grid-cols-2 gap-3">
-          <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-          <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-          <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-          <label class="block text-sm text-gray-600">{% trans "Seats" %}
-            <input name="quantity" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+
+        {# ——— Schritt 1: Auswahl ——— #}
+        <div data-rv1-step="1" class="space-y-3">
+          {% if event.has_tiers %}
+            <fieldset class="space-y-2">
+              <legend class="text-sm font-medium mb-1">{% trans "Ticket" %}</legend>
+              {% for t in event.tiers_display %}
+                <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if t.sold_out %}opacity-60 cursor-not-allowed{% else %}cursor-pointer hover:border-indigo-300{% endif %}">
+                  <span class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="tier" value="{{ t.label }}" data-rv1-label="{{ t.label }}" {% if t.is_default %}checked{% endif %} {% if t.sold_out %}disabled{% endif %} required>
+                    {{ t.label }}
+                    {% if t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
+                  </span>
+                  <span class="font-semibold text-sm">{% if t.price_cents %}{{ t.price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</span>
+                </label>
+              {% endfor %}
+            </fieldset>
+          {% endif %}
+          <label class="block text-sm text-gray-600 max-w-[12rem]">{% trans "Seats" %}
+            <input name="quantity" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" data-rv1-qty>
           </label>
+          {% if accommodation %}
+            <fieldset class="space-y-2">
+              <legend class="text-sm font-medium mb-1">{% trans "Accommodation" %} · {{ accommodation.0.nights }} {% trans "nights" %}</legend>
+              <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-indigo-300">
+                <span class="flex items-center gap-2 text-sm"><input type="radio" name="stay_unit" value="" data-rv1-label="{% trans 'Without accommodation' %}" checked> {% trans "Without accommodation" %}</span>
+                <span class="text-sm text-gray-400">+0 €</span>
+              </label>
+              {% for o in accommodation %}
+                <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if o.available %}cursor-pointer hover:border-indigo-300{% else %}opacity-50{% endif %}">
+                  <span class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="stay_unit" value="{{ o.unit.pk }}" data-rv1-label="{{ o.unit.name }}" {% if not o.available %}disabled{% endif %}>
+                    {{ o.unit.name }}{% if o.unit.bed_type %} · {{ o.unit.bed_type }}{% endif %}
+                    {% if not o.available %}<span class="text-xs text-red-600">({% trans "booked out" %})</span>{% endif %}
+                  </span>
+                  <span class="font-semibold text-sm">+{{ o.price_eur|floatformat:2 }} €</span>
+                </label>
+              {% endfor %}
+            </fieldset>
+          {% endif %}
+          {% include "storefront/_extras.html" %}
+          {# Навигация к шагу 2 (показывается только при включённом JS). #}
+          <button type="button" data-rv1-next hidden class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Continue" %} →</button>
         </div>
-        {% for q in event.questions %}
-          <label class="block text-sm text-gray-600">{{ q }}
-            <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
-          </label>
-        {% endfor %}
-        {% for f in event.reg_fields %}
-          <label class="block text-sm text-gray-600">{{ f.label }}
-            {% if f.type == 'select' %}
-              <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
-                <option value="">–</option>
-                {% for opt in f.options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
-              </select>
-            {% elif f.type == 'textarea' %}
-              <textarea name="reg_{{ f.key }}" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"></textarea>
-            {% else %}
-              <input name="reg_{{ f.key }}" {% if f.type == 'date' %}type="date"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
-            {% endif %}
-          </label>
-        {% endfor %}
-        {% if accommodation %}
-          <fieldset class="space-y-2">
-            <legend class="text-sm font-medium mb-1">{% trans "Accommodation" %} · {{ accommodation.0.nights }} {% trans "nights" %}</legend>
-            <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-indigo-300">
-              <span class="flex items-center gap-2 text-sm"><input type="radio" name="stay_unit" value="" checked> {% trans "Without accommodation" %}</span>
-              <span class="text-sm text-gray-400">+0 €</span>
+
+        {# ——— Schritt 2: Ihre Daten ——— #}
+        <div data-rv1-step="2" class="space-y-3">
+          {# Обзор выбора (заполняется JS из Schritt 1). #}
+          <div data-rv1-summary hidden class="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 text-sm text-gray-600"></div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+            <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+            <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:col-span-2">
+          </div>
+          {% for q in event.questions %}
+            <label class="block text-sm text-gray-600">{{ q }}
+              <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
             </label>
-            {% for o in accommodation %}
-              <label class="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 {% if o.available %}cursor-pointer hover:border-indigo-300{% else %}opacity-50{% endif %}">
-                <span class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="stay_unit" value="{{ o.unit.pk }}" {% if not o.available %}disabled{% endif %}>
-                  {{ o.unit.name }}{% if o.unit.bed_type %} · {{ o.unit.bed_type }}{% endif %}
-                  {% if not o.available %}<span class="text-xs text-red-600">({% trans "booked out" %})</span>{% endif %}
-                </span>
-                <span class="font-semibold text-sm">+{{ o.price_eur|floatformat:2 }} €</span>
+          {% endfor %}
+          {% for f in event.reg_fields %}
+            <label class="block text-sm text-gray-600">{{ f.label }}
+              {% if f.type == 'select' %}
+                <select name="reg_{{ f.key }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white">
+                  <option value="">–</option>
+                  {% for opt in f.options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+                </select>
+              {% elif f.type == 'textarea' %}
+                <textarea name="reg_{{ f.key }}" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"></textarea>
+              {% else %}
+                <input name="reg_{{ f.key }}" {% if f.type == 'date' %}type="date"{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
+              {% endif %}
+            </label>
+          {% endfor %}
+          {# R4: подарочный/промо-код #}
+          <label class="block text-sm text-gray-600">{% trans "Voucher code (optional)" %}
+            <input name="voucher_code" placeholder="GS-XXXXXX" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 uppercase">
+          </label>
+          {% if event.deposit_percent and event.deposit_percent < 100 %}
+            <p class="text-xs text-gray-500">{% blocktrans with p=event.deposit_percent %}Pay {{ p }}% deposit online now — the rest is due on site.{% endblocktrans %}</p>
+          {% endif %}
+          {# R10: рассрочка — оплата частями (мандат + авто-списания) #}
+          {% if installment_offer %}
+            <label class="flex items-start gap-2 text-sm text-gray-700 bg-indigo-50 rounded-lg px-3 py-2">
+              <input type="checkbox" name="pay_mode" value="installments" class="mt-0.5">
+              <span>{% blocktrans with n=installment_offer.count f=installment_offer.first_eur|floatformat:0 %}Pay in {{ n }} instalments — about {{ f }} € now, the rest is charged automatically.{% endblocktrans %}</span>
+            </label>
+          {% endif %}
+          {# R8: отказ от ответственности + Gesundheits-Selbstauskunft #}
+          {% if event.waiver_required %}
+            <fieldset class="space-y-2 border border-gray-200 rounded-lg p-3">
+              <legend class="text-sm font-medium px-1">{% trans "Waiver" %}</legend>
+              <p class="text-xs text-gray-600 max-h-32 overflow-y-auto whitespace-pre-line">{{ event.effective_waiver_text }}</p>
+              <label class="flex items-start gap-2 text-sm"><input type="checkbox" required class="mt-1"> {% trans "I have read and accept the waiver." %}</label>
+              <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="health_confirmed" class="mt-1"> {% trans "I confirm I am fit to participate and disclosed any conditions." %}</label>
+              <label class="block text-sm text-gray-600">{% trans "Signature (your full name)" %}
+                <input name="waiver_name" required placeholder="{% trans 'Full name' %}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
               </label>
-            {% endfor %}
-          </fieldset>
-        {% endif %}
-        {% include "storefront/_extras.html" %}
-        {# R4: подарочный/промо-код #}
-        <label class="block text-sm text-gray-600">{% trans "Voucher code (optional)" %}
-          <input name="voucher_code" placeholder="GS-XXXXXX" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 uppercase">
-        </label>
-        {% if event.deposit_percent and event.deposit_percent < 100 %}
-          <p class="text-xs text-gray-500">{% blocktrans with p=event.deposit_percent %}Pay {{ p }}% deposit online now — the rest is due on site.{% endblocktrans %}</p>
-        {% endif %}
-        {# R10: рассрочка — оплата частями (мандат + авто-списания) #}
-        {% if installment_offer %}
-          <label class="flex items-start gap-2 text-sm text-gray-700 bg-indigo-50 rounded-lg px-3 py-2">
-            <input type="checkbox" name="pay_mode" value="installments" class="mt-0.5">
-            <span>{% blocktrans with n=installment_offer.count f=installment_offer.first_eur|floatformat:0 %}Pay in {{ n }} instalments — about {{ f }} € now, the rest is charged automatically.{% endblocktrans %}</span>
-          </label>
-        {% endif %}
-        {# R8: отказ от ответственности + Gesundheits-Selbstauskunft #}
-        {% if event.waiver_required %}
-          <fieldset class="space-y-2 border border-gray-200 rounded-lg p-3">
-            <legend class="text-sm font-medium px-1">{% trans "Waiver" %}</legend>
-            <p class="text-xs text-gray-600 max-h-32 overflow-y-auto whitespace-pre-line">{{ event.effective_waiver_text }}</p>
-            <label class="flex items-start gap-2 text-sm"><input type="checkbox" required class="mt-1"> {% trans "I have read and accept the waiver." %}</label>
-            <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="health_confirmed" class="mt-1"> {% trans "I confirm I am fit to participate and disclosed any conditions." %}</label>
-            <label class="block text-sm text-gray-600">{% trans "Signature (your full name)" %}
-              <input name="waiver_name" required placeholder="{% trans 'Full name' %}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
-            </label>
-          </fieldset>
-        {% endif %}
-        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">
-          {% if event.price_cents %}{% trans "Book & pay" %}{% else %}{% trans "Register" %}{% endif %}
-        </button>
+            </fieldset>
+          {% endif %}
+          <div class="flex gap-2">
+            <button type="button" data-rv1-back hidden class="rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium hover:border-gray-400">← {% trans "Back" %}</button>
+            <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">
+              {% if event.price_cents %}{% trans "Book & pay" %}{% else %}{% trans "Register" %}{% endif %}
+            </button>
+          </div>
+        </div>
       </form>
+      <script>
+      (function () {
+        document.querySelectorAll('[data-rv1]').forEach(function (form) {
+          if (form.dataset.rv1Init) return;
+          form.dataset.rv1Init = '1';
+          var step1 = form.querySelector('[data-rv1-step="1"]');
+          var step2 = form.querySelector('[data-rv1-step="2"]');
+          var next = form.querySelector('[data-rv1-next]');
+          var back = form.querySelector('[data-rv1-back]');
+          var summary = form.querySelector('[data-rv1-summary]');
+          if (!step1 || !step2 || !next) return;           // без шагов — обычная форма
+          // Включаем пошаговый режим: показать навигацию, спрятать шаг 2.
+          next.hidden = false;
+          if (back) back.hidden = false;
+          step2.hidden = true;
+
+          function label(name) {                            // подпись выбранного radio
+            var el = form.querySelector('input[name="' + name + '"]:checked');
+            return el ? (el.getAttribute('data-rv1-label') || el.value) : '';
+          }
+          function buildSummary() {
+            var parts = [];
+            var t = label('tier'); if (t) parts.push(t);
+            var qty = form.querySelector('[data-rv1-qty]');
+            if (qty && qty.value) parts.push(qty.value + '×');
+            var stay = label('stay_unit'); if (stay) parts.push(stay);
+            var extras = Array.prototype.filter.call(
+              form.querySelectorAll('input[name="extra"]:checked'),
+              function () { return true; }
+            ).map(function (e) {
+              var lbl = e.closest('label'); return lbl ? lbl.textContent.trim().split('+')[0].trim() : '';
+            }).filter(Boolean);
+            parts = parts.concat(extras);
+            if (summary && parts.length) { summary.textContent = '✓ ' + parts.join(' · '); summary.hidden = false; }
+          }
+          function show(n) {
+            step1.hidden = n !== 1;
+            step2.hidden = n !== 2;
+            if (n === 2) { buildSummary(); window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }); }
+          }
+          next.addEventListener('click', function () {
+            // Минимальная валидация шага 1: тариф выбран (если тарифы есть).
+            var tierInputs = form.querySelectorAll('input[name="tier"]');
+            if (tierInputs.length && !form.querySelector('input[name="tier"]:checked')) {
+              tierInputs[0].focus(); return;
+            }
+            show(2);
+          });
+          if (back) back.addEventListener('click', function () { show(1); });
+        });
+      })();
+      </script>
     {% endif %}
   </section>
 
