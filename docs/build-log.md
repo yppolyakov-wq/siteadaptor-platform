@@ -2182,3 +2182,15 @@
   / Anstrich). Тесты: `test_before_after_section_renders_slider`,
   `test_before_after_section_registered_default_off`, `test_normalize_before_after_requires_both_images`,
   `test_apply_handwerker_kit_*` (+ assert секции/данных). build:css обновлён. Без миграций.
+- **2026-06-26 — A8 фасетные фильтры выдачи: рейтинг + «Jetzt geöffnet» (остаток Спринта F).**
+  Городская страница агрегатора (`city_listing`): select минимального рейтинга (3/4/5★ — из
+  денормализованного `BusinessRating` в public-схеме) и чекбокс «Jetzt geöffnet» (live-статус
+  по `Tenant.opening_hours_structured` через `openinghours.open_status`). Ключевой приём: оба
+  фасета сводятся к `pool.filter(tenant_schema__in=<множество схем>)` — keyset-пагинация не
+  ломается, миграция не нужна (рейтинг/часы уже денормализованы/на SHARED Tenant). Хелперы
+  `_rating_schemas(min)` / `_open_now_schemas(schemas)`; пороги `_RATING_THRESHOLDS=(3,4,5)`.
+  UI: одна GET-форма (submit при change) — рейтинг-select + offen-чекбокс + сортировка; непустые
+  sort/rating/offen собираются в `filter_qs` и проносятся в ссылку «Show more» (cursor +
+  фасеты). Тесты: `test_city_listing_rating_facet_filters_by_min_stars`,
+  `_invalid_rating_ignored`, `_open_now_facet_filters_by_hours`. build:css обновлён. Без миграций.
+  Попутно: фикс задвоенной строки в `archetype-ux-execution-plan.md` (F-A8 «Дальше»).

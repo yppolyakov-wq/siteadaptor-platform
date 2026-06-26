@@ -284,9 +284,13 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   (`?sort=`, keyset-совместимо: поля `created_at`/`business_name`; featured остаются
   закреплены сверху, `sort` переносится в «Show more»). Тесты
   `test_city_listing_sort_by_name_orders_az` / `_default_sort_is_newest`.
-- Дальше: фасетные фильтры по рейтингу/«offen jetzt» + автоподсказки (M) · богатая карточка
+- ✅ **Фасетные фильтры рейтинг + «Jetzt geöffnet»** — на городской странице select минимального
+  рейтинга (3/4/5★, из денорм `BusinessRating`) и чекбокс «Jetzt geöffnet» (live-статус по
+  `Tenant.opening_hours_structured`). Оба сводятся к `tenant_schema__in` (keyset-пагинация цела,
+  без миграции); непустые параметры проносятся в «Show more». Тесты `test_city_listing_rating_facet_*`
+  / `_open_now_facet_*`.
+- Дальше: автоподсказки поиска (M) · богатая карточка
   бизнеса (S–M) · карта как режим (M) · полный JSON-LD для Map Pack/AI (S–M) · self-serve Featured через
-  карта как режим (M) · полный JSON-LD для Map Pack/AI (S–M) · self-serve Featured через
   Stripe (M, монетизация без комиссии). Развилка: Stadtgutschein/единая корзина — только
   white-label с фикс-платой (не комиссия), решение владельца.
 
@@ -324,5 +328,5 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
 A6: RV1 2-шаговый чекаут билета · RT1 QR-билет + check-in · RT3 recurring-серии · RT4 блог ·
 A4 диет-иконки/фильтр меню · A3 богатая карточка услуги (миграция Service) + профили мастеров ·
 A9 структурные данные авто (Kennzeichen/HSN-TSN) · A7 before/after-галерея ✅ · A8 фасетные фильтры
-(рейтинг/«offen jetzt») · A1/A2 отзывы о товаре (модель отзыва на Product). Идём по убыванию
+(рейтинг/«offen jetzt») ✅ · A1/A2 отзывы о товаре (модель отзыва на Product). Идём по убыванию
 ценности/без-миграций-первыми.
