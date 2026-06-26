@@ -109,3 +109,17 @@ def test_storefront_hides_lmiv_block_when_empty():
     body = public_views.product_detail(_req(f"/sortiment/{p.pk}/"), pk=p.pk).content.decode()
     assert "Allergens" not in body
     assert "Glutenhaltiges Getreide" not in body
+
+
+def test_storefront_card_shows_allergens_inline():
+    """A4: карточка меню показывает аллергены строкой (LMIV), если они заданы."""
+    ProductFactory(allergens=["gluten", "milch"], is_active=True)
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    assert "Glutenhaltiges Getreide" in body and "Milch (Laktose)" in body
+
+
+def test_storefront_card_no_allergen_line_when_empty():
+    """Регрессия A4: без аллергенов строка не появляется (retail-товары не зашумлены)."""
+    ProductFactory(is_active=True)
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    assert "Glutenhaltiges Getreide" not in body

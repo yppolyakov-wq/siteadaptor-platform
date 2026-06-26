@@ -2039,3 +2039,10 @@
   отзывов из SHARED `BusinessRating` через существующий тег `business_rating` (показывается
   только при `review_count>0`). Как у Booking/HRS — соц-доказательство у точки брони. Тест
   `test_detail_shows_business_rating_badge`. Без миграций/нового кода (переиспользован тег).
+- **2026-06-25 — Спринт F (A4 Gastro): аллергены на карточке меню (LMIV).** Карточка товара
+  витрины (`_product_card.html`) теперь показывает компактную строку аллергенов
+  (`product.allergen_labels`, немецкие подписи Anhang II LMIV) под названием — видна ТОЛЬКО
+  если у товара заданы аллергены (естественно гейтится на гастро; retail-товары без
+  маркировки не зашумлены). Полный список + Herkunft/Zutaten — на детальной (как было).
+  Тесты `test_storefront_card_shows_allergens_inline` + `_no_allergen_line_when_empty`.
+  Только шаблон+тест, без кода/моделей/миграций. build:css обновлён.

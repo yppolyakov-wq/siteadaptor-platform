@@ -24,6 +24,9 @@
     <div class="px-3 pt-3 md:px-4">
       {% if p.category %}<p class="text-xs text-gray-400 mb-0.5 truncate">{{ p.category }}</p>{% endif %}
       <h3 class="font-semibold leading-tight truncate">{{ p }}</h3>
+      {% comment %}A4/LMIV: компактная строка аллергенов на карточке меню — видна только
+      если у товара заданы аллергены (естественно — гастро); полный список на детальной.{% endcomment %}
+      {% if p.allergen_labels %}<p class="text-[11px] text-gray-400 leading-tight truncate mt-0.5" title="{% trans 'Allergens' %}: {{ p.allergen_labels|join:', ' }}">{% trans 'Allergens' %}: {{ p.allergen_labels|join:', ' }}</p>{% endif %}
     </div>
   </a>
   {# R5: цена + кнопка в одну линию (кнопка вне ссылки — валидная вёрстка). #}
