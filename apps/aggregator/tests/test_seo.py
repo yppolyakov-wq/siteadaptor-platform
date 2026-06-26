@@ -88,3 +88,57 @@ def test_city_listing_default_sort_is_newest():
         RequestFactory().get("/entdecken/Hilden/?sort=bogus"), "Hilden"
     ).content.decode()
     assert 'value="neueste" selected' in body
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_city_listing_rating_facet_filters_by_min_stars():
+    """A8: ?rating=4 оставляет только бизнесы с avg_rating ≥ 4 (BusinessRating)."""
+    from apps.aggregator.models import BusinessRating
+
+    _listing(city="Hilden", business_name="Top Bäckerei", tenant_schema="good", title={"de": "G"})
+    _listing(city="Hilden", business_name="Mittel Bistro", tenant_schema="meh", title={"de": "M"})
+    BusinessRating.objects.create(tenant_schema="good", avg_rating="4.50", review_count=10)
+    BusinessRating.objects.create(tenant_schema="meh", avg_rating="3.00", review_count=4)
+    body = views.city_listing(
+        RequestFactory().get("/entdecken/Hilden/?rating=4"), "Hilden"
+    ).content.decode()
+    assert "Top Bäckerei" in body and "Mittel Bistro" not in body
+    assert 'value="4" selected' in body  # дропдаун отражает выбранный порог
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_city_listing_invalid_rating_ignored():
+    """A8: невалидный/слишком низкий rating не фильтрует (показываем всех)."""
+    _listing(city="Hilden", business_name="Eins", tenant_schema="t1")
+    body = views.city_listing(
+        RequestFactory().get("/entdecken/Hilden/?rating=2"), "Hilden"
+    ).content.decode()
+    assert "Eins" in body
+    assert 'value=""' in body  # «Any rating» — порог не выбран
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_city_listing_open_now_facet_filters_by_hours():
+    """A8: ?offen=1 оставляет только бизнесы, открытые сейчас (opening_hours_structured).
+
+    «Открыт» — окно на весь день (00:00–23:59 → live-статус open); «закрыт» — часы
+    не заданы (open_status=None → не открыт). Детерминированно при любом времени дня.
+    """
+    from apps.tenants.models import Tenant
+    from apps.tenants.tests.factories import TenantFactory
+
+    TenantFactory(schema_name="open_t", slug="op", name="Open", business_type="bakery")
+    TenantFactory(schema_name="closed_t", slug="cl", name="Closed", business_type="bakery")
+    Tenant.objects.filter(schema_name="open_t").update(
+        opening_hours_structured={str(d): ["00:00", "23:59"] for d in range(7)}
+    )
+    Tenant.objects.filter(schema_name="closed_t").update(opening_hours_structured={})
+    _listing(
+        city="Hilden", business_name="Offen Bäckerei", tenant_schema="open_t", title={"de": "O"}
+    )
+    _listing(city="Hilden", business_name="Zu Bistro", tenant_schema="closed_t", title={"de": "Z"})
+    body = views.city_listing(
+        RequestFactory().get("/entdecken/Hilden/?offen=1"), "Hilden"
+    ).content.decode()
+    assert "Offen Bäckerei" in body and "Zu Bistro" not in body
+    assert "checked" in body  # чекбокс «Open now» активен

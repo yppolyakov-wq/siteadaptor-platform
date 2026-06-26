@@ -23,9 +23,22 @@
        class="px-3 py-1.5 rounded-full text-sm border {% if business_type == t %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ label }}</a>
   {% endfor %}
   {% endif %}
-  {% comment %}A8: сортировка выдачи — GET-форма (submit при change). Тип/город — в пути.{% endcomment %}
+  {% comment %}A8: фасеты выдачи — рейтинг, «Jetzt geöffnet», сортировка. Одна GET-форма
+  (submit при change). Тип/город — в пути, поэтому при смене фасета сохраняются.{% endcomment %}
   {% if not near_active %}
-  <form method="get" class="ml-auto">
+  <form method="get" class="ml-auto flex flex-wrap items-center gap-2">
+    <label class="sr-only" for="rating">{% trans "Minimum rating" %}</label>
+    <select id="rating" name="rating" onchange="this.form.submit()"
+            class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "Any rating" %}</option>
+      {% for r in rating_thresholds %}
+        <option value="{{ r }}" {% if min_rating == r %}selected{% endif %}>{{ r }}★ &amp; {% trans "up" %}</option>
+      {% endfor %}
+    </select>
+    <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-600 cursor-pointer {% if offen %}bg-green-50 border-green-300 text-green-800{% endif %}">
+      <input type="checkbox" name="offen" value="1" {% if offen %}checked{% endif %} onchange="this.form.submit()" class="rounded">
+      🟢 {% trans "Open now" %}
+    </label>
     <label class="sr-only" for="sort">{% trans "Sort" %}</label>
     <select id="sort" name="sort" onchange="this.form.submit()"
             class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
@@ -44,7 +57,7 @@
 
 {% if page.has_more %}
 <div class="mt-8 text-center">
-  <a href="?cursor={{ page.next_cursor|urlencode }}{% if sort and sort != 'neueste' %}&sort={{ sort }}{% endif %}"
+  <a href="?cursor={{ page.next_cursor|urlencode }}{% if filter_qs %}&{{ filter_qs }}{% endif %}"
      class="inline-block px-5 py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:border-indigo-400">{% trans "Show more" %}</a>
 </div>
 {% endif %}
