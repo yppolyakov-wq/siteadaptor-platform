@@ -83,6 +83,14 @@ def _node_url(tenant, node: dict):
     return None
 
 
+def _node_label(node: dict) -> str:
+    """Подпись узла на текущей локали (i18n): label_i18n[locale] → фолбэк label."""
+    from django.utils.translation import get_language
+
+    li18n = node.get("label_i18n") or {}
+    return li18n.get(get_language() or "de") or node["label"]
+
+
 def _resolve(tenant, node: dict):
     if not node.get("enabled", True):
         return None
@@ -90,7 +98,12 @@ def _resolve(tenant, node: dict):
     url = _node_url(tenant, node)
     if url is None and not children:
         return None
-    return {"label": node["label"], "url": url, "icon": node.get("icon", ""), "children": children}
+    return {
+        "label": _node_label(node),
+        "url": url,
+        "icon": node.get("icon", ""),
+        "children": children,
+    }
 
 
 def resolve_menu(tenant, side: str) -> list[dict]:

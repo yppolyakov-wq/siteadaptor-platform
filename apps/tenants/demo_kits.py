@@ -41,6 +41,14 @@ def _image_ref(keyword: str, lock: int, alt: str) -> dict:
     }
 
 
+def _i18n_text(value) -> dict:
+    """Привести имя/описание к i18n-дикту {"de":..,"en":..}. Строка → только de
+    (одноязычно); dict → отфильтрованные непустые de/en. Для двуязычных китов."""
+    if isinstance(value, dict):
+        return {loc: v for loc, v in value.items() if loc in ("de", "en") and v}
+    return {"de": value or ""}
+
+
 @dataclass
 class DemoKit:
     key: str
@@ -115,6 +123,11 @@ class DemoKit:
     heroes: list = field(default_factory=list)
     # M20U-7: кастомные заголовки секций главной (key→строка); пусто → дефолты.
     section_titles: dict = field(default_factory=dict)
+    # i18n (двуязычная витрина): оверлей переводов site_config, {locale: {<зеркало
+    # текстовых полей>}}. Пусто → одноязычно (DE). siteconfig.localize накладывает
+    # перед рендером. Пример: {"en": {"hero_title": "...", "faq": [{"q":..,"a":..}],
+    # "section_titles": {...}, "heroes": [{"title":..}, ...]}}.
+    i18n: dict = field(default_factory=dict)
     # M20U-7 (per-page): пресеты раскладки страниц-листингов (пусто → дефолт страницы).
     #   {"catalog","stay_index","events","related"} → пресет (list/cols2-4/gallery).
     page_layouts: dict = field(default_factory=dict)
@@ -2872,71 +2885,93 @@ def apply_kit(tenant, key: str) -> bool:
     refs = {"kit": key, "categories": [], "products": [], "promotions": []}
     created_products = []
     category_firsts = []  # первый товар каждой категории — для акций по группам (S6)
-    for sort, (cat_name, slug, items) in enumerate(kit.categories):
+
+    def _make_product(item, category):
+        nonlocal lock
+        content = item.get("content")
+        stock = item.get("stock")
+        name_i18n = _i18n_text(item["name"])
+        product = Product.objects.create(
+            name=name_i18n,
+            description=_i18n_text(item["desc"]),
+            base_price=Decimal(item["price"]),
+            category=category,
+            images=[_image_ref(item["img"], lock, name_i18n.get("de", ""))],
+            allergens=item["allergens"],
+            diets=item.get("diets", []),  # A4 диет-теги
+            badge=item.get("badge", ""),
+            unit=item.get("unit", ""),  # R2 Grundpreis
+            content_amount=Decimal(str(content)) if content is not None else None,
+            stock_quantity=stock,  # R3 остаток (None = без учёта)
+            gtin=item.get("gtin", ""),  # A1 EAN
+            sku=item.get("sku", ""),
+            is_active=True,
+            is_featured=(len(created_products) < 3),
+            metadata={"demo": True},
+        )
+        lock += 1
+        for vsort, v in enumerate(item["variants"]):
+            # Вариант — кортеж (label, price) ИЛИ dict с остатком/Grundpreis/EAN.
+            if isinstance(v, dict):
+                vc = v.get("content")
+                ProductVariant.objects.create(
+                    product=product,
+                    label=v["label"],
+                    price=Decimal(str(v["price"])),
+                    content_amount=Decimal(str(vc)) if vc is not None else None,
+                    stock_quantity=v.get("stock"),
+                    gtin=v.get("gtin", ""),
+                    sku=v.get("sku", ""),
+                    sort_order=vsort,
+                )
+            else:
+                vlabel, vprice = v
+                ProductVariant.objects.create(
+                    product=product, label=vlabel, price=Decimal(vprice), sort_order=vsort
+                )
+        for gsort, group in enumerate(item.get("modifiers", [])):
+            mg = ModifierGroup.objects.create(
+                product=product,
+                name=group["name"],
+                min_select=group.get("min", 0),
+                max_select=group.get("max", 1),
+                sort_order=gsort,
+                is_active=True,
+            )
+            for osort, (olabel, odelta) in enumerate(group["options"]):
+                ModifierOption.objects.create(
+                    group=mg, label=olabel, price_delta=Decimal(odelta), sort_order=osort
+                )
+        created_products.append(product)
+        refs["products"].append(str(product.pk))
+        return product
+
+    def _make_category(entry, sort, parent=None):
+        # entry: (name, slug, items) ИЛИ (name, slug, items, children). name —
+        # строка (de) или {de,en}. children — подкатегории той же формы (1 уровень,
+        # магазин→подкатегории). Первый товар категории — в category_firsts (S6).
+        name, slug, items = entry[0], entry[1], entry[2]
+        children = entry[3] if len(entry) > 3 else []
         category = Category.objects.create(
-            name={"de": cat_name}, slug=f"demo-{slug}", sort_order=sort, is_active=True
+            name=_i18n_text(name),
+            slug=f"demo-{slug}",
+            sort_order=sort,
+            is_active=True,
+            parent=parent,
         )
         refs["categories"].append(str(category.pk))
         first_in_cat = True
         for item in items:
-            content = item.get("content")
-            stock = item.get("stock")
-            product = Product.objects.create(
-                name={"de": item["name"]},
-                description={"de": item["desc"]},
-                base_price=Decimal(item["price"]),
-                category=category,
-                images=[_image_ref(item["img"], lock, item["name"])],
-                allergens=item["allergens"],
-                diets=item.get("diets", []),  # A4 диет-теги
-                badge=item.get("badge", ""),
-                unit=item.get("unit", ""),  # R2 Grundpreis
-                content_amount=Decimal(str(content)) if content is not None else None,
-                stock_quantity=stock,  # R3 остаток (None = без учёта)
-                gtin=item.get("gtin", ""),  # A1 EAN
-                sku=item.get("sku", ""),
-                is_active=True,
-                is_featured=(len(created_products) < 3),
-                metadata={"demo": True},
-            )
-            lock += 1
-            for vsort, v in enumerate(item["variants"]):
-                # Вариант — кортеж (label, price) ИЛИ dict с остатком/Grundpreis/EAN.
-                if isinstance(v, dict):
-                    vc = v.get("content")
-                    ProductVariant.objects.create(
-                        product=product,
-                        label=v["label"],
-                        price=Decimal(str(v["price"])),
-                        content_amount=Decimal(str(vc)) if vc is not None else None,
-                        stock_quantity=v.get("stock"),
-                        gtin=v.get("gtin", ""),
-                        sku=v.get("sku", ""),
-                        sort_order=vsort,
-                    )
-                else:
-                    vlabel, vprice = v
-                    ProductVariant.objects.create(
-                        product=product, label=vlabel, price=Decimal(vprice), sort_order=vsort
-                    )
-            for gsort, group in enumerate(item.get("modifiers", [])):
-                mg = ModifierGroup.objects.create(
-                    product=product,
-                    name=group["name"],
-                    min_select=group.get("min", 0),
-                    max_select=group.get("max", 1),
-                    sort_order=gsort,
-                    is_active=True,
-                )
-                for osort, (olabel, odelta) in enumerate(group["options"]):
-                    ModifierOption.objects.create(
-                        group=mg, label=olabel, price_delta=Decimal(odelta), sort_order=osort
-                    )
-            created_products.append(product)
-            refs["products"].append(str(product.pk))
+            product = _make_product(item, category)
             if first_in_cat:
                 category_firsts.append(product)
                 first_in_cat = False
+        for csort, child in enumerate(children):
+            _make_category(child, csort, parent=category)
+        return category
+
+    for sort, entry in enumerate(kit.categories):
+        _make_category(entry, sort)
 
     # Акции.
     from apps.promotions.models import Promotion
@@ -3126,6 +3161,10 @@ def apply_kit(tenant, key: str) -> bool:
             ],
             "nav": {**siteconfig.default_nav(), "style": kit.nav_style},
             "demo": refs,
+            # i18n (двуязычная витрина): оверлей переводов текстов витрины (normalize
+            # сохраняет поддерживаемые локали; localize накладывает перед рендером).
+            "i18n": kit.i18n,
+            # M20U-2 (slider) EN: переводы баннеров кладём в оверлей heroes по индексу.
         }
     )
     tenant.site_config = cfg

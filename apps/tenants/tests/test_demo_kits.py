@@ -24,6 +24,98 @@ def test_unknown_kit_returns_false():
     assert demo_kits.apply_kit(_tenant(), "nope") is False
 
 
+# --- PR-C: подкатегории + двуязычность сидера (платформенная инфра) ---
+
+
+def _p_simple(name, price="3.00", desc="", img="vegan", **kw):
+    return demo_kits._p(name, price, desc, img, **kw)
+
+
+def test_seeds_subcategories_and_bilingual_names(monkeypatch):
+    """Магазин→подкатегории (parent/child) + двуязычные имена категорий/товаров +
+    i18n-оверлей site_config + EN-лейблы меню — всё через инфраструктуру кита."""
+    from django.utils import translation
+
+    from apps.tenants import menu
+
+    kit = demo_kits.DemoKit(
+        key="t_subcat",
+        label="Subcat Test",
+        business_type="retail",
+        accent="#16a34a",
+        hero_image_kw="shop",
+        hero_title="Laden",
+        hero_text="Test",
+        about_title="Über",
+        about_text="x",
+        seed_records=True,
+        categories=[
+            (
+                {"de": "Shop", "en": "Shop"},
+                "shop",
+                [],
+                [  # подкатегории
+                    (
+                        {"de": "Würstchen", "en": "Sausages"},
+                        "wuerstchen",
+                        [
+                            _p_simple(
+                                {"de": "Bratwurst", "en": "Grill Sausage"},
+                                desc={"de": "lecker", "en": "tasty"},
+                            ),
+                        ],
+                    ),
+                    ({"de": "Süßes", "en": "Sweets"}, "suesses", [_p_simple("Keks")]),
+                ],
+            ),
+        ],
+        i18n={"en": {"hero_title": "Store", "section_titles": {"products": "Products"}}},
+        menus={
+            "top": {
+                "style": "classic",
+                "sticky": True,
+                "items": [
+                    {
+                        "label": "Über uns",
+                        "label_i18n": {"en": "About us"},
+                        "type": "page",
+                        "target": "about",
+                    },
+                ],
+            }
+        },
+    )
+    monkeypatch.setitem(demo_kits.KITS, kit.key, kit)
+    tenant = _tenant()
+    assert demo_kits.apply_kit(tenant, kit.key) is True
+
+    # Подкатегории: родитель Shop + двое детей с parent FK.
+    shop = Category.objects.get(slug="demo-shop")
+    children = Category.objects.filter(parent=shop)
+    assert children.count() == 2
+    wurst = Category.objects.get(slug="demo-wuerstchen")
+    assert wurst.parent_id == shop.pk
+    # Двуязычное имя категории и товара.
+    assert wurst.name == {"de": "Würstchen", "en": "Sausages"}
+    bratwurst = Product.objects.get(name__de="Bratwurst")
+    assert bratwurst.name["en"] == "Grill Sausage"
+    assert bratwurst.description == {"de": "lecker", "en": "tasty"}
+
+    # i18n-оверлей site_config сохранён, localize даёт EN.
+    cfg = tenant.site_config
+    assert cfg["i18n"]["en"]["hero_title"] == "Store"
+    from apps.tenants import siteconfig
+
+    assert siteconfig.localize(cfg, "en")["hero_title"] == "Store"
+    assert siteconfig.localize(cfg, "de")["hero_title"] == "Laden"
+
+    # Меню: EN-лейбл узла под локалью en, DE — базовый.
+    with translation.override("en"):
+        assert menu.resolve_menu(tenant, "top")[0]["label"] == "About us"
+    with translation.override("de"):
+        assert menu.resolve_menu(tenant, "top")[0]["label"] == "Über uns"
+
+
 def test_demo_image_is_themed_and_deterministic():
     url = demo_kits.demo_image("pizza margherita", lock=5)
     assert url == "/medien/demo.svg?kw=pizza+margherita&w=800&h=600&lock=5"

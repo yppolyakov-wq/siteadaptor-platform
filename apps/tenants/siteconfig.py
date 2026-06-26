@@ -403,6 +403,14 @@ def _clean_menu_node(raw, depth: int):
         "icon": _s(raw.get("icon"))[:8],
         "children": [],
     }
+    # i18n (двуязычная витрина): переводы подписи узла {"de":..,"en":..}; пусто →
+    # одноязычно (label). menu._resolve выбирает по локали. Ключ добавляем только
+    # при наличии переводов — легаси-меню не раздуваем.
+    li18n = raw.get("label_i18n")
+    if isinstance(li18n, dict):
+        clean_li18n = {loc: _s(v) for loc, v in li18n.items() if loc in ("de", "en") and _s(v)}
+        if clean_li18n:
+            node["label_i18n"] = clean_li18n
     if depth < _MENU_MAX_DEPTH and isinstance(raw.get("children"), list):
         for child in raw["children"][:_MAX_MENU_ITEMS]:
             cleaned = _clean_menu_node(child, depth + 1)
