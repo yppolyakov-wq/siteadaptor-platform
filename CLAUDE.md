@@ -65,9 +65,14 @@ Python 3.12, менеджер uv.
   Демо — **по нескольку примеров на фичу**: `seed_demo_tenants --kit hotel --recreate`
   (+ `hotels.<base>`). Доки: `docs/hotel-demo.md`, планы `hotel-archetype-plan.md` /
   `hotel-growth-plan.md` / `hotel-channel-manager-plan.md`.
-- Самые свежие миграции: `stays/0014–0019` (auto-discount fields→rules, prepayment_percent,
-  rooms, GuestRegistration, Channel+external_ref) + `promotions/0018` (NewsletterCampaign +
-  marketing_opt_in_at). Полный список — в build-log.
+- **Самое свежее (2026-06-26): этап «витрина/UX + анти-Битрикс» — Спринт E закрыт + кусок F.**
+  E.1–E.4 on-canvas редактор (Undo/Redo, click-to-edit→попап, инсертер «+», drag-on-canvas).
+  F: A7 Handwerker-кит · RV3 грид событий+countdown · RV2 agenda-timeline · A5 PAngV+рейтинг+
+  **визуальный календарь наличия номера C1–C4** · A4 аллергены+Kombo-тизер · A9/A7 Festpreis ·
+  A8 сортировка выдачи. Всё в `main` (`90107c6`), **без миграций**. Точка входа след. сессии —
+  `docs/next-session-brief.md` (обновлён 2026-06-26); статусы — `archetype-ux-execution-plan.md`.
+- Самые свежие миграции: `stays/0014–0019` + `promotions/0018` (этап витрины/UX миграций НЕ
+  добавлял). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
@@ -159,12 +164,15 @@ build-log; планы — `hotel-growth-plan.md` / `hotel-channel-manager-plan.m
    (каталог/номера/события/похожие), archetype-aware дефолт главной — всё с live-preview.
    Осталось (опц.): per-page блок-редактор с панелью по клику, реестр секций детальной
    (отложен), realtime-чат (отдельный трек), применение к pranasy. Хронология — build-log.
-3. **Наполнение архетипов — витрина/UX + «анти-Битрикс» 🚧 (активный трек, 2026-06-25).**
-   Рыночный анализ по всем архетипам — `docs/archetype-market-analysis.md` (+ детальные
-   отчёты `docs/market-analysis/*`). **Пошаговый план-исполнение со ВСЕМИ инкрементами
-   (Спринты A–F, по файлам, критерии приёмки, статусы) — `docs/archetype-ux-execution-plan.md`
-   (SOURCE OF TRUTH этапа, идём строго по нему).** Карта потребностей —
-   `micro-business-verticals.md`; крупные архетипные доработки — отдельным план-доком до кода.
+3. **Наполнение архетипов — витрина/UX + «анти-Битрикс» 🚧 (активный трек, обновлён 2026-06-26).**
+   **Точка входа — `docs/next-session-brief.md` (обновлён 2026-06-26).** SOURCE OF TRUTH этапа —
+   `docs/archetype-ux-execution-plan.md` (Спринты A–F, статусы по инкрементам, идём строго по нему).
+   **Сделано:** Спринт A–D ✅, **Спринт E ✅ (on-canvas E.1–E.4)**, Спринт F частично (A7-кит, RV3,
+   RV2, A5 PAngV/рейтинг/**календарь наличия C1–C4**, A4 аллергены/Kombo, A9/A7 Festpreis, A8 sort).
+   **Дальше (остаток F):** A6 RV1/RT1/RT2(онлайн-события, нужна миграция Event)/RT3/RT4 · A4 диет-фильтр ·
+   A3 богатая карточка услуги (миграция Service)/мастера · A9 авто-данные · A7 before/after · A8 фасеты ·
+   A1/A2 отзывы о товаре. Рыночный анализ — `docs/archetype-market-analysis.md` (+ `market-analysis/*`);
+   карта потребностей — `micro-business-verticals.md`; крупные доработки — план-доком до кода.
 4. **Рефактор-гигиена (по желанию):** loyalty/vouchers уже вынесены в `apps.loyalty`.
 
 **Параллельно — Stage 0 (на владельце, блокер боевого запуска):** Stripe live
