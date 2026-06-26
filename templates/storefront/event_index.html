@@ -81,7 +81,7 @@
               {% if e.is_online %}<span class="text-xs bg-sky-100 text-sky-700 rounded-full px-2 py-0.5">🖥 Online</span>{% endif %}
               {% if e.starts_soon and not e.is_sold_out %}<span class="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">⏳ {{ e.countdown_label }}</span>{% endif %}
             </div>
-            <div class="font-semibold truncate">{{ e.title }}</div>
+            <div class="font-semibold truncate">{{ e.title_text }}</div>
             <div class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y H:i" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
             <div class="mt-1 flex items-center gap-3">
               <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>
@@ -114,7 +114,7 @@
               {% if e.ends_at %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.duration_label }}</span>{% endif %}
               {% if e.level_label %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.level_label }}</span>{% endif %}
             </div>
-            <div class="font-semibold leading-snug line-clamp-2">{{ e.title }}</div>
+            <div class="font-semibold leading-snug line-clamp-2">{{ e.title_text }}</div>
             <div class="text-sm text-gray-500 mt-1">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
             <div class="mt-2 pt-2 flex items-center gap-3 border-t border-gray-50">
               <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>

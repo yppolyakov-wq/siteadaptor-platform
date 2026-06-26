@@ -11,7 +11,7 @@
       <a href="{% url 'storefront-event' e.pk %}" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
         {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-40 object-cover">{% endif %}
         <div class="p-4 flex flex-col gap-1">
-          <h3 class="font-semibold leading-snug">{{ e.title }}</h3>
+          <h3 class="font-semibold leading-snug">{{ e.title_text }}</h3>
           <p class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.city %} · {{ e.city }}{% elif e.location %} · {{ e.location }}{% endif %}</p>
           <p class="mt-1 font-medium text-sm">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</p>
           {# M20U-5: действие покупки по режиму архетипа (events → booking → «Jetzt buchen»). #}

@@ -11,7 +11,7 @@ from decimal import Decimal
 
 from django.db import models
 
-from apps.core.models import TimestampedModel
+from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
 # R8: дефолтный текст отказа от ответственности (если организатор не задал свой).
@@ -24,7 +24,7 @@ DEFAULT_WAIVER_TEXT = (
 )
 
 
-class Event(TimestampedModel):
+class Event(I18nMixin, TimestampedModel):
     STATUS_DRAFT = "draft"
     STATUS_PUBLISHED = "published"
     STATUS_CANCELLED = "cancelled"
@@ -36,6 +36,11 @@ class Event(TimestampedModel):
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    # i18n (двуязычная витрина): переводы заголовка/описания {"de":..,"en":..}.
+    # Пусто = одноязычно (фолбэк на плоские title/description). Витрина читает
+    # title_text/description_text; кабинет/админка правят плоские поля.
+    title_i18n = models.JSONField(default=dict, blank=True)
+    description_i18n = models.JSONField(default=dict, blank=True)
     location = models.CharField(max_length=200, blank=True)
     # RT2: онлайн/Zoom-событие. is_online → витрина показывает «Online», скрывает карту/
     # адрес; online_url (ссылка на Zoom/Meet/видео) показывается участнику ПОСЛЕ брони
@@ -134,6 +139,16 @@ class Event(TimestampedModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def title_text(self) -> str:
+        """i18n-заголовок для витрины: перевод текущей локали, фолбэк на плоский title."""
+        return self.get_i18n("title_i18n") or self.title
+
+    @property
+    def description_text(self) -> str:
+        """i18n-описание для витрины: перевод текущей локали, фолбэк на плоское описание."""
+        return self.get_i18n("description_i18n") or self.description
 
     @property
     def is_published(self) -> bool:

@@ -39,6 +39,12 @@ locale → de → en → первое значение. Тесты: смешан
 / Shop / Catering / Retreats / Treue & Aktionen / Über uns), слайдер heroes, секции главной
 (слайдер + «Unsere Bereiche» блоками), archetype-covers. Всё DE+EN.
 
+> **Уточнение владельца (структура, 2026-06-26):** Restaurant и Shop — ДВЕ ОТДЕЛЬНЫЕ
+> сущности: каждая отдельным пунктом в общем меню (type=category, лендинг своей
+> верхнеуровневой категории) И отдельным тизер-блоком на главной («Unsere Bereiche»).
+> «О нас» — тоже отдельным пунктом меню (страница `about`). Catering (jobs) и Retreats
+> (events) — каждая свой пункт меню + блок на главной. Главная = слайдер + блоки разделов.
+
 ### PR-D — Каталог: ресторан-меню + магазин [M]
 - **Restaurant — Speisekarte** (баннер-слайдер + «Bald geöffnet»-плашка; покупка
   оставлена включённой — «купить сразу»): 8 блюд — Veganer Burger, Vegane Pizza, Vegane
