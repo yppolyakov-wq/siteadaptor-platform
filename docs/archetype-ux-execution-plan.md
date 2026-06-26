@@ -273,8 +273,11 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   Meister-/Innung-/Festpreis-USP-бар (⊂ A.3), отзывы, 2 демо-Angebote (Maler/Bad). Демо:
   `seed_demo_tenants --kit handwerker` (→ `handwerker.<base>`). Тест
   `test_apply_handwerker_kit_jobs_services_no_shop`.
-- Осталось (опц.): before/after-слайдер в галерее, PLZ/Einzugsgebiet, Rückruf-Anfrage,
-  авто-запрос отзыва.
+- ✅ **before/after-слайдер** — секция `before_after` (интерактивный слайдер сравнения:
+  перетаскивание мышь/тач + range для клавиатуры, vanilla JS/GDPR). Данные —
+  `site_config.before_after` [{before, after, text}], якорь `#referenzen`. Handwerker-кит
+  сеет 2 кейса. Тесты `test_before_after_section_renders_slider` / `_normalize_*`.
+- Осталось (опц.): PLZ/Einzugsgebiet, Rückruf-Anfrage, авто-запрос отзыва.
 
 ### F-A8 Aggregator
 - ✅ **Сортировка выдачи** — на городской странице дропдаун «Neueste / Name (A–Z)»
@@ -320,6 +323,6 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
 ### Остаток Спринта F (закрыть перед G)
 A6: RV1 2-шаговый чекаут билета · RT1 QR-билет + check-in · RT3 recurring-серии · RT4 блог ·
 A4 диет-иконки/фильтр меню · A3 богатая карточка услуги (миграция Service) + профили мастеров ·
-A9 структурные данные авто (Kennzeichen/HSN-TSN) · A7 before/after-галерея · A8 фасетные фильтры
+A9 структурные данные авто (Kennzeichen/HSN-TSN) · A7 before/after-галерея ✅ · A8 фасетные фильтры
 (рейтинг/«offen jetzt») · A1/A2 отзывы о товаре (модель отзыва на Product). Идём по убыванию
 ценности/без-миграций-первыми.

@@ -2170,3 +2170,15 @@
   is_primary=False)` (с гардом «чужой домен не трогаем», как в create_portal). Тест
   `test_hotel_portal_seed_creates_portal_and_domain_to_public` (+ идемпотентность). **Деплой:**
   после `git pull && deploy.sh` нужно `seed_demo_tenants --kit hotel --recreate` (создаст Domain).
+- **2026-06-26 — A7 before/after-Slider (остаток Спринта F).** Секция `before_after` —
+  интерактивный слайдер сравнения «Vorher / Nachher»: «после» как фон, «до» обрезается по
+  позиции ручки (`clip-path: inset`), перетаскивание мышь/тач + `<input type=range>` для
+  доступности/клавиатуры. Vanilla JS, без библиотек (GDPR), идемпотентная инициализация.
+  Реестр секций: `siteui.BLOCK_TEMPLATES["before_after"]` + якорь `#referenzen`;
+  `siteconfig.SECTIONS` (выкл по умолчанию) + нормализация `before_after` [{before, after,
+  text}] (обе картинки обязательны, текст опционален, потолок `_MAX_GALLERY`). DemoKit:
+  поле `before_after` [(before_kw, after_kw, text)] → в config через `demo_image`; секция
+  включается в `_kit_sections` при наличии данных. Handwerker-кит сеет 2 кейса (Bad-Sanierung
+  / Anstrich). Тесты: `test_before_after_section_renders_slider`,
+  `test_before_after_section_registered_default_off`, `test_normalize_before_after_requires_both_images`,
+  `test_apply_handwerker_kit_*` (+ assert секции/данных). build:css обновлён. Без миграций.
