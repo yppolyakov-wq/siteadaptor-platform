@@ -282,3 +282,16 @@ def test_detail_embeds_availability_calendar():
     assert "stay-cal-day" in body  # кликабельные свободные ночи
     assert "__stayCalSelectBound" in body  # выбор диапазона кликом
     assert 'data-date="2026-10-' in body  # начальный месяц = месяц заезда (D0)
+
+
+def test_calendar_embed_keeps_embed_in_nav():
+    """A5/C4: в embed-режиме перелистывание сохраняет &embed=1 в nav-ссылках."""
+    unit = _unit()
+    assert "embed=1" not in _cal(unit, 2026, 10)  # без embed — чисто
+    req = _req(
+        "get",
+        f"/unterkunft/{unit.pk}/kalender/",
+        {"year": "2026", "month": "10", "embed": "1"},
+    )
+    body = public_views.unterkunft_unit_calendar(req, pk=unit.pk).content.decode()
+    assert "month=11&embed=1" in body or "month=11&amp;embed=1" in body  # next + embed

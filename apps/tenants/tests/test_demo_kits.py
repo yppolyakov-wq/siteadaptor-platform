@@ -309,6 +309,10 @@ def test_apply_hotel_kit_builds_stays_site():
     assert StayBooking.objects.filter(discount_cents__gt=0).exists()
     # G5: мультикомнатная бронь среди демо-броней (rooms ≥ 2)
     assert StayBooking.objects.filter(rooms__gte=2).exists()
+    # A5/C4: Wartungs-Block (Sperrung) для визуального календаря наличия
+    from apps.stays.models import UnitBlock
+
+    assert UnitBlock.objects.exists()
     # G6: несколько цифровых Meldescheine (Online-Checkin)
     from apps.stays.models import GuestRegistration
 

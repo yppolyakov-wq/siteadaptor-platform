@@ -3631,6 +3631,19 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     except IllegalTransition:
                         pass
 
+            # A5/C4: Wartungs-Block (Sperrung) — показать в визуальном календаре
+            # «belegt» БЕЗ брони (отличный от бронирований источник занятости).
+            from apps.stays.models import UnitBlock
+
+            try:
+                UnitBlock.objects.create(
+                    unit=units[0],
+                    start_date=today + timedelta(days=29),
+                    end_date=today + timedelta(days=30),
+                )
+            except Exception:
+                pass
+
             # G6: цифровые Meldescheine (Online-Checkin) — несколько примеров, чтобы
             # кабинет /dashboard/stays/checkins/ был наполнен.
             meldungen = [
