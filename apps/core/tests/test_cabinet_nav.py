@@ -27,7 +27,13 @@ def _request(rf, user, tenant):
 def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     # disabled_modules=[] → активны все модули (в т.ч. многопунктовые).
-    tenant = TenantFactory(schema_name="t_nav", name="Nav Co", disabled_modules=[])
+    # onboarding.completed → дашборд не гейтит на мастер (AB5), а рендерит сайдбар.
+    tenant = TenantFactory(
+        schema_name="t_nav",
+        name="Nav Co",
+        disabled_modules=[],
+        site_config={"onboarding": {"step": 7, "skipped": [], "completed": True}},
+    )
     user = get_user_model().objects.create_user("o", "o@test.de", "pw12345678")
 
     # render() shortcut уже вернул отрендеренный ответ (исключение бы упало здесь).

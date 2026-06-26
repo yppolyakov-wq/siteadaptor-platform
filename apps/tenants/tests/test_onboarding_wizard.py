@@ -190,6 +190,28 @@ def test_dashboard_shows_progress_until_completed():
     assert "Setup-Fortschritt" not in html
 
 
+def test_dashboard_redirects_fresh_owner_to_wizard():
+    """AB5: нетронутый мастер (свежая регистрация) → дашборд уводит в Wizard."""
+    tenant = TenantFactory()  # дефолтный site_config → нетронутое состояние
+    response = core_views.dashboard(_req(tenant=tenant))
+    assert response.status_code == 302
+    assert response.url == "/dashboard/setup/"
+
+
+def test_dashboard_renders_once_wizard_touched():
+    """AB5: после любого действия в мастере дашборд больше не гейтит."""
+    tenant = TenantFactory()
+    # один «Weiter»/skip → шаг 2 → больше не нетронуто.
+    onboarding.save_state(tenant, {"step": 2, "skipped": [], "completed": False})
+    assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
+    # пропуск первого шага (skipped=[1]) тоже снимает гейт, даже если step вернули на 1.
+    onboarding.save_state(tenant, {"step": 1, "skipped": [1], "completed": False})
+    assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
+    # завершённый мастер → дашборд рендерится.
+    onboarding.save_state(tenant, {"step": 7, "skipped": [], "completed": True})
+    assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
+
+
 def test_site_view_save_keeps_wizard_state():
     tenant = TenantFactory()
     onboarding.save_state(tenant, {"step": 2, "skipped": [], "completed": False})

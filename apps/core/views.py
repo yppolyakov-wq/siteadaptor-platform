@@ -65,6 +65,15 @@ def dashboard(request):
     """Главная кабинета владельца."""
     from apps.tenants import onboarding
 
+    state = onboarding.get_state(request.tenant)
+    # AB5 (анти-Битрикс): свежезарегистрированный владелец, ещё не тронувший
+    # мастер (нетронутое состояние: шаг 1, без пропусков, не завершён), попадает
+    # сразу в Onboarding-Wizard, а не в пустой кабинет. Любое действие в мастере
+    # (Weiter/Überspringen/Zurück) уводит из нетронутого состояния и снимает
+    # редирект — навигация остального кабинета не гейтится.
+    if not state["completed"] and state["step"] == 1 and not state["skipped"]:
+        return redirect("setup")
+
     setup_done, setup_total = onboarding.progress(request.tenant)
     return render(
         request,
