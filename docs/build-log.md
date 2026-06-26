@@ -2094,3 +2094,10 @@
   (перелистывание vanilla-fetch) · C3 встроен в страницу номера + выбор диапазона кликом ·
   C4 демо-Sperrung + embed. Без новых моделей/миграций (поверх `availability`/`StayBooking`/
   `UnitBlock`). Сильнейший рычаг конверсии A5 закрыт.
+- **2026-06-26 — Спринт F (A4 Gastro): видимость Kombo/Tagesgericht.** Меню (`products.html`)
+  показывает вверху **тизер-карточки комбо** (Menü-Sets/Tagesgericht: имя/описание/цена/«Configure»,
+  до 3) вместо одной текст-ссылки — апселл на виду. `product_list` отдаёт `combos_teaser`
+  (`active_combos()[:3]`) только при активном orders, на 1-й странице каталога без выбранной
+  категории (в категории/при пагинации — прежняя компактная ссылка, без дублей). food-hero-
+  пресет признан избыточным (full-bleed фото-hero уже есть). Тесты
+  `test_product_list_shows_combos_teaser` + `_combos_teaser_hidden_in_category`. Без миграций.

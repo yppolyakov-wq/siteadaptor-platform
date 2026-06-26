@@ -92,3 +92,37 @@ def test_combo_create_and_group_option(user):
     )
     opt = group.options.get()
     assert opt.product_id == product.pk and opt.price_delta == Decimal("1.00")
+
+
+def test_product_list_shows_combos_teaser(settings):
+    """A4: меню показывает тизер-карточки комбо вверху (Kombo/Tagesgericht на виду)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.promotions import public_views as promo_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    _combo_with_drink_choice()  # создаёт активное комбо «Menü 1»
+    req = RequestFactory().get("/sortiment/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build(name="Bistro")
+    body = promo_views.product_list(req).content.decode()
+    assert "Menü 1" in body  # карточка комбо в тизере
+    assert "9,90" in body or "9.90" in body  # цена комбо
+
+
+def test_product_list_combos_teaser_hidden_in_category(settings):
+    """Регрессия A4: в выбранной категории тизер комбо не дублируется (только ссылка)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.catalog.models import Category
+    from apps.promotions import public_views as promo_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    _combo_with_drink_choice()
+    cat = Category.objects.create(name="Burger", slug="burger", is_active=True)
+    ProductFactory(category=cat)
+    req = RequestFactory().get("/sortiment/", {"kategorie": "burger"})
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build(name="Bistro")
+    body = promo_views.product_list(req).content.decode()
+    assert "Menü 1" not in body  # тизер скрыт в категории

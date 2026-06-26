@@ -274,11 +274,17 @@ def product_list(request):
         else []
     )
     page = paginate(products, order_field="created_at", limit=24, cursor=request.GET.get("cursor"))
-    # A4: ссылка на комбо-наборы, если они есть и модуль orders активен.
-    from apps.catalog.models import Combo
+    # A4: комбо-наборы (Menü-Sets/Tagesgericht), если есть и модуль orders активен.
+    # M20U/A4: показываем тизер-карточками вверху меню (до 3) — не только текст-ссылкой,
+    # — чтобы Kombo/Tagesgericht были на виду (сильный апселл гастро). Только на 1-й
+    # странице каталога без выбранной категории (чтобы не дублировать при пагинации/фильтре).
+    from apps.catalog.combos import active_combos
 
-    has_combos = (
-        request.tenant.is_module_active("orders") and Combo.objects.filter(is_active=True).exists()
+    has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
+    combos_teaser = (
+        list(active_combos()[:3])
+        if has_combos and category is None and not request.GET.get("cursor")
+        else []
     )
     # M20U-7 (per-page): раскладка сетки каталога из конфига витрины.
     from apps.tenants import siteconfig
@@ -295,6 +301,7 @@ def product_list(request):
             "current_category": category,
             "subcategories": subcategories,
             "has_combos": has_combos,
+            "combos_teaser": combos_teaser,  # A4: тизер-карточки Kombo/Tagesgericht
             "catalog_grid": catalog_grid,
         },
     )
