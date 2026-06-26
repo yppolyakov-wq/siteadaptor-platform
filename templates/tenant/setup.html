@@ -3,6 +3,11 @@
 {% block dash_title %}{% trans "Setup" %}{% endblock %}
 
 {% block dash_content %}
+{% comment %}AB3: 2 колонки — слева пошаговый мастер, справа живое превью витрины
+(iframe на «/», тот же origin → same-origin framing разрешён). После каждого шага
+страница перезагружается → превью отражает сохранённое состояние (тема/баннер/
+контент). Превью — на контент-шагах (2–6), не на выборе типа/финале.{% endcomment %}
+<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:gap-8 lg:items-start">
 <div class="max-w-xl">
   <p class="text-xs text-gray-400 mb-2">{% blocktrans %}Step {{ step }} of {{ total }}{% endblocktrans %}</p>
   <div class="h-1.5 bg-gray-200 rounded-full mb-6" role="progressbar" aria-valuenow="{{ step }}" aria-valuemin="1" aria-valuemax="{{ total }}">
@@ -172,5 +177,17 @@
       <a href="{% url 'modules' %}" class="text-sm text-indigo-600 px-3 py-2.5 hover:underline">Module ansehen</a>
     </div>
   {% endif %}
+</div>
+
+{% if step >= 2 and step <= 6 %}
+  {% comment %}AB3: живое превью витрины (обновляется после каждого шага).{% endcomment %}
+  <aside class="hidden lg:block lg:sticky lg:top-20 mt-8 lg:mt-0">
+    <p class="text-xs font-medium text-gray-400 mb-2">{% trans "Live preview" %}</p>
+    <div class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm">
+      <iframe src="/" title="{% trans 'Website preview' %}" class="w-full h-[520px] border-0" loading="lazy"></iframe>
+    </div>
+    <a href="/" target="_blank" rel="noopener" class="mt-2 inline-block text-sm text-indigo-600 hover:underline">🌐 {% trans "Open website" %} →</a>
+  </aside>
+{% endif %}
 </div>
 {% endblock %}

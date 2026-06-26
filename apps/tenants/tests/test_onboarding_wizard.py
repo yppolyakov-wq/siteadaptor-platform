@@ -250,3 +250,31 @@ def test_step1_type_change_reapplies_preset_even_for_custom_config():
     core_views.setup_view(_req("post", {"business_type": "bakery"}, tenant2))
     tenant2.refresh_from_db()
     assert tenant2.disabled_modules == ["crm"]
+
+
+# --- AB3: живое превью на шагах мастера --------------------------------------------
+def test_setup_shows_live_preview_iframe_on_content_steps(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="prev",
+        name="Prev",
+        business_type="cafe",
+        site_config={"onboarding": {"step": 2, "skipped": [], "completed": False}},
+    )
+    html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
+    assert "Live preview" in html
+    assert '<iframe src="/"' in html  # превью витрины
+
+
+def test_setup_no_preview_on_first_step(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="prev1",
+        name="Prev1",
+        business_type="cafe",
+        site_config={"onboarding": {"step": 1, "skipped": [], "completed": False}},
+    )
+    html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
+    assert "Live preview" not in html  # на выборе типа превью не нужно
