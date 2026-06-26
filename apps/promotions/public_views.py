@@ -113,6 +113,12 @@ def storefront_home(request):
             for s in site["sections"]:
                 if s["key"] == primary:
                     s["enabled"] = True
+    # Двуязычная витрина (i18n): свернуть тексты site_config к текущей локали —
+    # EN-оверлей поверх базовых DE-значений. Платформенный механизм; переводы
+    # сидятся демо-китом. DE/без оверлея → базовые значения (без изменений).
+    from django.utils.translation import get_language
+
+    site = siteconfig.localize(site, get_language())
     sections = [s["key"] for s in site["sections"] if s["enabled"]]
     # D.2: полные записи включённых секций (фикс + C-блоки с данными) для рендера
     # через {% render_block %}; `sections` (ключи) остаётся для гейтинга запросов.
@@ -227,9 +233,11 @@ def promotion_list(request):
 
 def about_page(request):
     """Отдельная страница «О компании» /ueber-uns/ (S8): тексты about + контакты."""
+    from django.utils.translation import get_language
+
     from apps.tenants import siteconfig
 
-    site = siteconfig.normalize(request.tenant.site_config)
+    site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
     return render(request, "storefront/about.html", {"site": site, "sections": []})
 
 

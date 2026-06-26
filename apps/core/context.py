@@ -120,7 +120,13 @@ def modules_nav(request):
         d = request.session.get("site_preview_draft")
         if isinstance(d, dict):
             _draft = d
-    cfg = siteconfig.normalize(_draft if _draft is not None else tenant.site_config)
+    from django.utils.translation import get_language
+
+    # Двуязычная витрина (i18n): обложки разделов/тексты chrome — на текущей локали.
+    cfg = siteconfig.localize(
+        siteconfig.normalize(_draft if _draft is not None else tenant.site_config),
+        get_language(),
+    )
     # Акцент — поле Tenant (не в site_config). Отдаём готовое значение: в превью —
     # override из черновика (`_accent`), иначе tenant.primary_color. Шаблон НЕ
     # обращается к request.tenant сам (в фильтре-аргументе это падало бы на

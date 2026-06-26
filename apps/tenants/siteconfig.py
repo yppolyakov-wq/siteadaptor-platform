@@ -663,6 +663,61 @@ def default_sections() -> list[dict]:
     return [{"key": key, "enabled": enabled} for key, _label, enabled in SECTIONS]
 
 
+# --- i18n (двуязычная витрина): платформенный механизм, переводы — у тенанта ---
+# Базовая локаль site_config — немецкий (значения-строки, как раньше). Переводы
+# других локалей живут оверлеем config["i18n"][locale] = {<зеркало текстовых полей>}
+# и накладываются `localize()` перед рендером. Механизм есть у каждого тенанта;
+# реальные переводы пока сидятся только демо-китом (pranasy). Базовый рендер (DE)
+# не меняется — нулевой риск регрессий для существующих витрин.
+OVERLAY_LOCALES = ("en",)
+
+
+def _clean_i18n(raw) -> dict:
+    """Оставить только оверлеи поддерживаемых локалей (dict→dict). Структуру
+    оверлея не валидируем строго — `localize` накладывает лишь совпадающие
+    по форме поля (см. `_deep_overlay`)."""
+    if not isinstance(raw, dict):
+        return {}
+    return {loc: ov for loc, ov in raw.items() if loc in OVERLAY_LOCALES and isinstance(ov, dict)}
+
+
+def _deep_overlay(base: dict, ov: dict) -> None:
+    """Наложить оверлей `ov` на `base` на месте: dict∘dict — рекурсивно, list∘list —
+    позиционно (i-й перевод поверх i-го базового dict; лишние элементы оверлея
+    игнорируем — перевод не плодит секций), иначе значение оверлея замещает."""
+    for key, val in ov.items():
+        cur = base.get(key)
+        if isinstance(val, dict) and isinstance(cur, dict):
+            _deep_overlay(cur, val)
+        elif isinstance(val, list) and isinstance(cur, list):
+            for i, item in enumerate(val):
+                if i >= len(cur):
+                    break
+                if isinstance(item, dict) and isinstance(cur[i], dict):
+                    _deep_overlay(cur[i], item)
+                else:
+                    cur[i] = item
+        else:
+            base[key] = val
+
+
+def localize(config: dict, locale: str | None) -> dict:
+    """Свернуть нормализованный site_config к строкам текущей локали.
+
+    Накладывает оверлей `config["i18n"][locale]` поверх базовых (DE) значений и
+    убирает служебный ключ `i18n` (шаблоны получают обычные строки). locale пустой
+    или базовый (нет оверлея) → базовые значения. Чистая копия — вход не мутируется.
+    """
+    import copy
+
+    base = copy.deepcopy(config if isinstance(config, dict) else {})
+    overlay = base.pop("i18n", None) or {}
+    ov = overlay.get(locale) if locale else None
+    if isinstance(ov, dict):
+        _deep_overlay(base, ov)
+    return base
+
+
 def normalize(config) -> dict:
     """Привести произвольный site_config к валидной схеме.
 
@@ -872,6 +927,11 @@ def normalize(config) -> dict:
     # удалил ровно созданное. Тоже переживает сохранение конструктора.
     if isinstance(config.get("demo"), dict):
         normalized["demo"] = config["demo"]
+    # i18n-оверлеи переводов (двуязычная витрина) — переживают нормализацию;
+    # `localize()` накладывает их перед рендером. Базовый рендер (DE) не трогаем.
+    i18n = _clean_i18n(config.get("i18n"))
+    if i18n:
+        normalized["i18n"] = i18n
     return normalized
 
 
