@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n %}
+{% load i18n seo %}
 {% block title %}{{ unit.name }} — {{ request.tenant.name }}{% endblock %}
 
 {% block detail_back %}
@@ -17,6 +17,14 @@
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <div>
     <h1 class="text-2xl md:text-3xl font-bold">{{ unit.name }}</h1>
+    {% comment %}A5: рейтинг бизнеса на странице номера (как Booking/HRS) — звезда +
+    среднее + число отзывов; только если отзывы есть.{% endcomment %}
+    {% business_rating as br %}
+    {% if br %}
+      <p class="text-sm mt-1"><span class="text-amber-500">★</span>
+        <span class="font-semibold text-gray-700">{{ br.0|floatformat:1 }}</span>
+        <span class="text-gray-400">{% blocktrans count c=br.1 %}{{ c }} review{% plural %}{{ c }} reviews{% endblocktrans %}</span></p>
+    {% endif %}
     <p class="text-gray-500 mt-1">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if unit.area_sqm %} · {{ unit.area_sqm }} m²{% endif %}{% if unit.bed_type %} · {{ unit.bed_type }}{% endif %}</p>
     <p class="mt-2 text-xl font-bold">{% blocktrans with p=unit.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
     {% if unit.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}

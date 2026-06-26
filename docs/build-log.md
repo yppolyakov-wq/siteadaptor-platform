@@ -2034,3 +2034,8 @@
   `unterkunft_unit` добавляет в `quote` поля `accommodation_eur` (подытог проживания) и
   `nightly_eur` (ставка за ночь за номер = total/nights/rooms). Тест
   `test_detail_shows_pangv_price_breakdown` (90 € × 3 = 270 € + MwSt). Без миграций.
+- **2026-06-25 — Спринт F (A5 отель): рейтинг бизнеса на странице номера.** Под названием
+  номера (`stay_detail.html`) добавлен бейдж рейтинга — ★ + среднее (`avg_rating`) + число
+  отзывов из SHARED `BusinessRating` через существующий тег `business_rating` (показывается
+  только при `review_count>0`). Как у Booking/HRS — соц-доказательство у точки брони. Тест
+  `test_detail_shows_business_rating_badge`. Без миграций/нового кода (переиспользован тег).

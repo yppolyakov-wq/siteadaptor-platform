@@ -207,8 +207,11 @@ GDPR/no-SPA). Перетаскивание блока вычисляет before/
   «Nachtpreis × Nächte × Zimmer = Übernachtung», строкой Kurtaxe (если есть) и пометкой
   «inkl. MwSt.» (PAngV §). Бэк: `unterkunft_unit` отдаёт `quote.nightly_eur`/`accommodation_eur`.
   Тест `test_detail_shows_pangv_price_breakdown`.
+- ✅ **Рейтинг на странице номера** — под названием номера ★ + среднее + число отзывов
+  (тег `business_rating` из `BusinessRating`-агрегата; показывается только при наличии
+  отзывов). Тест `test_detail_shows_business_rating_badge`.
 - Дальше: визуальный календарь наличия (M–L, сильнейший рычаг) · полноэкранный лайтбокс
-  (S, ⊂ A.4 ✅) · рейтинг на странице номера (S) · extras с фото (S–M).
+  (S, ⊂ A.4 ✅) · extras с фото (S–M).
 - Отложено: реальные OTA-API (нужны партнёрские ключи владельца), метапоиск-фид Google FBL.
 
 ### F-A4 Gastro

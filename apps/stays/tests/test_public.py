@@ -102,6 +102,23 @@ def test_detail_shows_pangv_price_breakdown():
     assert "incl. VAT" in body or "MwSt" in body  # PAngV-Hinweis «inkl. MwSt.»
 
 
+def test_detail_shows_business_rating_badge():
+    """A5: на странице номера — рейтинг бизнеса (★ среднее + число отзывов)."""
+    from django.db import connection
+
+    from apps.aggregator.models import BusinessRating
+
+    BusinessRating.objects.update_or_create(
+        tenant_schema=connection.schema_name,
+        defaults={"avg_rating": "4.50", "review_count": 12},
+    )
+    unit = _unit()
+    request = _req("get", f"/unterkunft/{unit.pk}/")
+    body = public_views.unterkunft_unit(request, pk=unit.pk).content.decode()
+    assert "4,5" in body  # среднее (de-локаль, запятая)
+    assert "12" in body and "★" in body  # число отзывов + звезда
+
+
 def test_detail_min_nights_message():
     unit = _unit(min_nights=3)
     request = _req("get", f"/unterkunft/{unit.pk}/", {"von": _iso(0), "bis": _iso(1)})
