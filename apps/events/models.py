@@ -373,6 +373,8 @@ class Ticket(TimestampedModel):
     # R9: drip-письма — по одному на билет (idempotent + БД-дедуп Notification).
     reminder_sent_at = models.DateTimeField(null=True, blank=True)  # за N дней до события
     post_event_sent_at = models.DateTimeField(null=True, blank=True)  # после события
+    # RT1: Check-in по QR — момент входа гостя (статус → attended). Пусто = не пришёл.
+    checked_in_at = models.DateTimeField(null=True, blank=True)
 
     PAYMENT_NONE = "none"
     PAYMENT_PENDING = "pending"

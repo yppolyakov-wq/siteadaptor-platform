@@ -18,4 +18,6 @@ urlpatterns = [
     path("<uuid:pk>/tickets/<uuid:tid>/action/", views.ticket_action, name="ticket-action"),
     path("<uuid:pk>/roster.csv", views.roster_csv, name="roster-csv"),
     path("<uuid:pk>/waitlist/notify/", views.waitlist_notify, name="waitlist-notify"),
+    # RT1: Check-in билета по QR (организатор сканирует камерой → отмечает гостя).
+    path("checkin/<str:code>/", views.checkin, name="checkin"),
 ]

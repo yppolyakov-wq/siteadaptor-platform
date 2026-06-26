@@ -184,6 +184,35 @@ def ticket_action(request, pk, tid):
     return redirect("events:detail", pk=pk)
 
 
+@login_required
+def checkin(request, code):
+    """RT1: Check-in билета по QR (организатор в кабинете). GET — карточка гостя и
+    кнопка «Einchecken»; POST — отметить пришедшим (status→attended + checked_in_at).
+    Сканирует логин-сессия владельца; чужой без логина уходит на login (защита)."""
+    from django.utils import timezone
+
+    ticket = get_object_or_404(
+        Ticket.objects.select_related("event", "customer"),
+        reference_code=code.strip().upper(),
+    )
+    if request.method == "POST":
+        if ticket.status == Ticket.STATUS_CANCELLED:
+            messages.error(request, _("This ticket is cancelled."))
+        elif ticket.checked_in_at:
+            messages.info(request, _("Already checked in."))
+        else:
+            if ticket.status != Ticket.STATUS_ATTENDED:
+                try:
+                    TicketSM().apply(ticket, Ticket.STATUS_ATTENDED)
+                except Exception:  # noqa: BLE001 — из pending/cancelled переход может быть запрещён
+                    ticket.status = Ticket.STATUS_ATTENDED
+            ticket.checked_in_at = timezone.now()
+            ticket.save(update_fields=["status", "checked_in_at", "updated_at"])
+            messages.success(request, _("Checked in — welcome!"))
+        return redirect("events:checkin", code=ticket.reference_code)
+    return render(request, "events/checkin.html", {"ticket": ticket, "event": ticket.event})
+
+
 def _cancel_linked_stay(ticket) -> None:
     """R5: отменить привязанную бронь проживания (освобождает номер)."""
     booking = ticket.stay_booking

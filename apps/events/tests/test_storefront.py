@@ -276,3 +276,37 @@ def test_confirmation_online_event_shows_access_link():
         _req("get"), ticket.reference_code
     ).content.decode()
     assert "https://zoom.us/j/abc" in body  # ссылка доступа выдана участнику
+
+
+# --- RT1: QR-билет + Check-in -----------------------------------------------------
+def _booked_ticket(ev=None):
+    from apps.events.services import book_ticket
+
+    ev = ev or _event(price_cents=0)
+    return book_ticket(ev, name="Gast", email="g@t.de", auto_confirm=True)
+
+
+def test_ticket_qr_returns_svg_with_checkin_link():
+    ticket = _booked_ticket()
+    resp = public_views.ticket_qr(_req("get"), code=ticket.reference_code)
+    assert resp.status_code == 200
+    assert resp["Content-Type"] == "image/svg+xml"
+    assert resp.content.startswith(b"<?xml") or b"<svg" in resp.content
+
+
+def test_confirmation_shows_qr_image():
+    ticket = _booked_ticket()
+    body = public_views.veranstaltung_confirmation(
+        _req("get"), ticket.reference_code
+    ).content.decode()
+    assert f"/e/{ticket.reference_code}/qr.svg" in body  # <img> на QR-эндпоинт
+
+
+def test_cancelled_ticket_confirmation_hides_qr():
+    ticket = _booked_ticket()
+    ticket.status = Ticket.STATUS_CANCELLED
+    ticket.save(update_fields=["status"])
+    body = public_views.veranstaltung_confirmation(
+        _req("get"), ticket.reference_code
+    ).content.decode()
+    assert "/qr.svg" not in body

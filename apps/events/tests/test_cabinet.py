@@ -101,6 +101,54 @@ def test_roster_csv_lists_attendees_with_answers():
     assert "Anna" in body and "Allergien?" in body and "Nüsse" in body
 
 
+# --- RT1: Check-in билета по QR --------------------------------------------------
+def _confirmed_ticket(event=None):
+    from apps.events.services import book_ticket
+
+    event = event or _event()
+    return book_ticket(event, name="Gast", email="g@test.de", auto_confirm=True)
+
+
+def test_checkin_get_renders_ticket():
+    ticket = _confirmed_ticket()
+    body = views.checkin(_req("get"), code=ticket.reference_code).content.decode()
+    assert ticket.reference_code in body and "Gast" in body
+
+
+def test_checkin_post_marks_attended_and_timestamps():
+    ticket = _confirmed_ticket()
+    resp = views.checkin(_req("post"), code=ticket.reference_code)
+    assert resp.status_code == 302
+    ticket.refresh_from_db()
+    assert ticket.status == Ticket.STATUS_ATTENDED and ticket.checked_in_at is not None
+
+
+def test_checkin_is_idempotent():
+    ticket = _confirmed_ticket()
+    views.checkin(_req("post"), code=ticket.reference_code)
+    ticket.refresh_from_db()
+    first = ticket.checked_in_at
+    views.checkin(_req("post"), code=ticket.reference_code)  # повторный скан
+    ticket.refresh_from_db()
+    assert ticket.checked_in_at == first  # не перезаписан
+
+
+def test_checkin_lowercase_code_resolves():
+    ticket = _confirmed_ticket()
+    views.checkin(_req("post"), code=ticket.reference_code.lower())
+    ticket.refresh_from_db()
+    assert ticket.checked_in_at is not None
+
+
+def test_cancelled_ticket_cannot_checkin():
+    ticket = _confirmed_ticket()
+    ticket.status = Ticket.STATUS_CANCELLED
+    ticket.save(update_fields=["status"])
+    views.checkin(_req("post"), code=ticket.reference_code)
+    ticket.refresh_from_db()
+    assert ticket.checked_in_at is None
+
+
 def test_event_form_roundtrips_program_lines():
     from apps.events.forms import EventForm
 

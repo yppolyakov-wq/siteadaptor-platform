@@ -17,7 +17,15 @@
       </div>
     {% endif %}
     <p class="text-sm text-gray-500 mb-1">{% trans "Your ticket code:" %}</p>
-    <p class="text-3xl font-mono font-bold tracking-wider mb-4">{{ ticket.reference_code }}</p>
+    <p class="text-3xl font-mono font-bold tracking-wider mb-3">{{ ticket.reference_code }}</p>
+    {% comment %}RT1: QR-билет — организатор сканирует на входе (Check-in). Только для
+    действующего билета (не отменён).{% endcomment %}
+    {% if ticket.status != "cancelled" %}
+      <div class="mb-4 inline-block bg-white p-3 rounded-xl border border-gray-100">
+        <img src="{% url 'storefront-ticket-qr' ticket.reference_code %}" alt="{% trans 'Ticket QR code' %}" width="160" height="160" class="w-40 h-40">
+        <p class="text-xs text-gray-400 mt-1 text-center">{% trans "Show this at the entrance" %}</p>
+      </div>
+    {% endif %}
     <p class="text-sm text-gray-500 mb-4">{% trans "Seats" %}: {{ ticket.quantity }}</p>
     {% if ticket.extras %}
       <ul class="text-sm text-gray-600 mb-4">

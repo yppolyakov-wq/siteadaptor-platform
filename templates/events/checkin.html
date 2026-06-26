@@ -1,0 +1,34 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Check-in" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}RT1: страница Check-in билета (организатор открывает по скану QR гостя).
+Показывает данные гостя/события и кнопку «Einchecken»; повторный скан — статус.{% endcomment %}
+<div class="max-w-md mx-auto">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'info' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm p-6 text-center">
+    <p class="text-sm text-gray-400">{{ event.title }}</p>
+    <p class="text-xs text-gray-400 mb-3">{{ event.starts_at|date:"d.m.Y H:i" }}</p>
+    <p class="text-2xl font-mono font-bold tracking-wider">{{ ticket.reference_code }}</p>
+    <p class="text-gray-700 mt-1">{{ ticket.customer.name }}{% if ticket.quantity > 1 %} · {{ ticket.quantity }} {% trans "seats" %}{% endif %}</p>
+
+    {% if ticket.status == "cancelled" %}
+      <p class="mt-4 inline-block rounded-full bg-red-50 text-red-700 px-4 py-1.5 text-sm font-medium">✕ {% trans "Cancelled" %}</p>
+    {% elif ticket.checked_in_at %}
+      <p class="mt-4 inline-block rounded-full bg-green-50 text-green-700 px-4 py-1.5 text-sm font-medium">✓ {% trans "Checked in" %} · {{ ticket.checked_in_at|date:"H:i" }}</p>
+    {% else %}
+      <form method="post" class="mt-5">{% csrf_token %}
+        <button class="w-full bg-green-600 text-white rounded-xl px-4 py-3 font-semibold hover:bg-green-700">✓ {% trans "Check in" %}</button>
+      </form>
+    {% endif %}
+
+    <a href="{% url 'events:detail' event.pk %}" class="mt-4 inline-block text-sm text-indigo-600 hover:underline">← {% trans "Event details" %}</a>
+  </div>
+</div>
+{% endblock %}

@@ -502,6 +502,23 @@ def veranstaltung_confirmation(request, code):
     )
 
 
+def ticket_qr(request, code):
+    """RT1: персональный QR билета. Кодирует ссылку Check-in в кабинете —
+    организатор сканирует штатной камерой и отмечает гостя пришедшим."""
+    import io
+
+    import segno
+
+    if ratelimit.hit("ticket_qr", ratelimit.client_ip(request), limit=60, window=600):
+        return HttpResponse(status=429)
+    code = code.strip().upper()
+    get_object_or_404(Ticket, reference_code=code)
+    checkin_url = request.build_absolute_uri(reverse("events:checkin", args=[code]))
+    buf = io.BytesIO()
+    segno.make(checkin_url, error="m").save(buf, kind="svg", scale=6, border=2)
+    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+
+
 _CANCEL_SALT = "event-ticket-cancel"
 
 

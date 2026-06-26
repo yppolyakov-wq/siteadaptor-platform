@@ -228,6 +228,7 @@ urlpatterns = [
         name="storefront-event-waitlist",
     ),
     path("e/<str:code>/", events_public.veranstaltung_confirmation, name="storefront-ticket-ok"),
+    path("e/<str:code>/qr.svg", events_public.ticket_qr, name="storefront-ticket-qr"),  # RT1
     path("e/<str:code>/memo.pdf", events_public.veranstaltung_memo, name="storefront-ticket-memo"),
     # R12: самостоятельная отмена билета гостем по подписанной ссылке.
     path(
