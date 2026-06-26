@@ -2125,3 +2125,12 @@
   «Online: Morgen-Meditation per Zoom» (без города, Zoom-ссылка) — published-событий 6→7.
   Тесты `test_storefront.py::test_detail_online_event_shows_online_and_hides_map` /
   `_index_online_event_shows_badge` / `_confirmation_online_event_shows_access_link` + demo-assert.
+- **2026-06-26 — ТЗ: трек «настоящий анти-Битрикс» (кабинет/админка + онбординг).** По фидбэку
+  владельца оформлен план-док `docs/anti-bitrix-admin-plan.md` (Спринт G): AB1 пересборка меню
+  кабинета (группировка по задачам Mein Geschäft/Verkaufen/Kunden&Marketing/Einstellungen + язык
+  задач + «➕ Funktion») · AB2 страница «Module» v2 (секции рекомендовано/прочее/премиум + «Gut für:
+  архетипы» + что даёт) · AB3 мастер онбординга v2 (прогресс/демо-дефолты/живое превью/язык задач) ·
+  AB4 чек-лист готовности сайта на дашборде · AB5 регистрация→мастер (high-risk, последним). Цель —
+  «чтобы ребёнок собрал и вёл магазин». Фундамент есть (реестр `ModuleSpec` recommended/suited/core/
+  premium, мастер `/willkommen/`, живое превью) — переписываем подачу, не модели. Ссылки в
+  execution-plan (Спринт G) + CLAUDE.md §7. Docs-only.
