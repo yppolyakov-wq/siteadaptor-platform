@@ -1,0 +1,26 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{{ post.title }} — {{ request.tenant.name }}{% endblock %}
+{% block meta_description %}{{ post.excerpt|default:post.title }}{% endblock %}
+
+{% block content %}
+<article class="max-w-2xl mx-auto">
+  <a href="{% url 'storefront-blog' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All posts" %}</a>
+  {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="{{ post.title }}" class="w-full aspect-[16/9] object-cover rounded-2xl mt-3 mb-4">{% endif %}
+  {% if post.published_at %}<p class="text-sm text-gray-400 mt-3">{{ post.published_at|date:"d.m.Y" }}</p>{% endif %}
+  <h1 class="text-2xl md:text-3xl font-bold mt-1 mb-4">{{ post.title }}</h1>
+  {% if post.excerpt %}<p class="text-lg text-gray-600 mb-4">{{ post.excerpt }}</p>{% endif %}
+  <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-line">{{ post.body }}</div>
+</article>
+
+{% if recent %}
+<div class="max-w-2xl mx-auto mt-12 border-t border-gray-100 pt-6">
+  <h2 class="text-lg font-semibold mb-3">{% trans "More posts" %}</h2>
+  <ul class="space-y-2">
+    {% for p in recent %}
+      <li><a href="{% url 'storefront-blog-post' p.slug %}" class="text-indigo-600 hover:underline">{{ p.title }}</a>{% if p.published_at %} <span class="text-xs text-gray-400">· {{ p.published_at|date:"d.m.Y" }}</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

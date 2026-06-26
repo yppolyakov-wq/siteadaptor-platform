@@ -618,3 +618,27 @@ class InstallmentCharge(TimestampedModel):
 
     def __str__(self):
         return f"Charge {self.plan_id} #{self.sequence} ({self.status})"
+
+
+class BlogPost(TimestampedModel):
+    """RT4: запись блога/новостей бизнеса (TENANT). Лёгкий контент-тип: новости
+    ретрита, статьи, анонсы. Публичный список /blog/ + детальная /blog/<slug>/."""
+
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True)
+    excerpt = models.CharField(max_length=300, blank=True)  # короткий анонс (в списке)
+    body = models.TextField(blank=True)  # текст (line-breaks → абзацы на витрине)
+    cover = models.JSONField(default=dict, blank=True)  # FileRef-конверт обложки
+    is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-published_at", "-created_at"]
+        indexes = [models.Index(fields=["is_published", "published_at"], name="blogpost_pub_idx")]
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def cover_url(self) -> str:
+        return self.cover.get("url", "") if isinstance(self.cover, dict) else ""

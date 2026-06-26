@@ -156,6 +156,9 @@ class DemoKit:
     # A9: режим Kfz-Werkstatt — Anfrage запрашивает структурные данные авто
     # (Kennzeichen/HSN/TSN) + AutoRepair-разметка. Пишется в site_config.jobs_vehicle.
     jobs_vehicle: bool = False
+    # RT4: записи блога — (title, excerpt, body, cover_kw). Seed создаёт опубликованные
+    # BlogPost (events app). Пусто = блога нет.
+    blog_posts: list = field(default_factory=list)
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -2121,6 +2124,7 @@ RETREAT_MENUS = {
             {"label": "Events", "type": "archetype", "target": "events"},
             {"label": "Lehrer", "type": "url", "target": "/lehrer/"},  # R3
             {"label": "Einzelsitzung", "type": "archetype", "target": "booking"},
+            {"label": "Blog", "type": "url", "target": "/blog/"},  # RT4
             {"label": "Shop", "type": "archetype", "target": "catalog"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
@@ -2217,6 +2221,27 @@ RETREAT = DemoKit(
         "button_label": "Events ansehen",
         "button_url": "/veranstaltung/",
     },
+    # RT4: журнал/блог ретрита — 2 опубликованные записи (новости/статьи).
+    blog_posts=[
+        (
+            "5 Atemübungen für mehr Ruhe im Alltag",
+            "Kleine Praxis, große Wirkung: so kommst du in stressigen Momenten zurück zu dir.",
+            "Atem ist immer dabei — und doch nutzen wir ihn selten bewusst.\n\n"
+            "1. Verlängertes Ausatmen: vier Zähler ein, sechs aus.\n"
+            "2. Box-Breathing: 4–4–4–4.\n"
+            "3. Bauchatmung im Liegen.\n\n"
+            "Schon fünf Minuten täglich verändern, wie du auf Stress reagierst.",
+            "meditation,breathing",
+        ),
+        (
+            "Rückblick: Unser Waldwochenende im Mai",
+            "Zwölf Menschen, ein Waldrand und viel Stille — ein paar Eindrücke.",
+            "Das Mai-Retreat war ausgebucht — und es war wunderbar.\n\n"
+            "Morgens Yoga im Tau, tagsüber Wanderungen, abends Lagerfeuer. "
+            "Danke an alle, die dabei waren. Das nächste Wochenende ist schon in Planung.",
+            "forest,retreat",
+        ),
+    ],
     enable_modules=["events", "booking", "orders", "customer_account", "stays", "jobs"],
     # R5 проживание на ретрите: типы номеров (общая/2-/1-местный) — анти-овербукинг
     # stays; weekend-retreat ниже offers_accommodation=True линкует их все.
@@ -3006,6 +3031,7 @@ def apply_kit(tenant, key: str) -> bool:
     _seed_kit_records(tenant, kit, refs, created_products)
     _seed_kit_reviews(tenant, kit)
     _seed_product_reviews(kit, created_products)
+    _seed_blog_posts(tenant, kit)
     if kit.extras:  # #7 универсальные доп-услуги (Extra)
         from apps.core.models import Extra
 
@@ -3185,6 +3211,33 @@ def _seed_product_reviews(kit: DemoKit, created_products: list) -> None:
                 "comment": comment,
                 "is_published": True,
             },
+        )
+
+
+def _seed_blog_posts(tenant, kit: DemoKit) -> None:
+    """RT4: опубликованные записи блога (events.BlogPost). Вызывать в схеме тенанта."""
+    if not kit.blog_posts or not tenant.is_module_active("events"):
+        return
+    from django.utils import timezone
+    from django.utils.text import slugify
+
+    from apps.events.models import BlogPost
+
+    now = timezone.now()
+    for i, (title, excerpt, body, cover_kw) in enumerate(kit.blog_posts):
+        base = slugify(title) or f"post-{i}"
+        slug, n = base, 1
+        while BlogPost.objects.filter(slug=slug).exists():
+            n += 1
+            slug = f"{base}-{n}"
+        BlogPost.objects.create(
+            title=title,
+            slug=slug,
+            excerpt=excerpt,
+            body=body,
+            cover={"url": demo_image(cover_kw, w=800, h=450, lock=700 + i)} if cover_kw else {},
+            is_published=True,
+            published_at=now - timedelta(days=7 * i),
         )
 
 

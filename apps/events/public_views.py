@@ -502,6 +502,23 @@ def veranstaltung_confirmation(request, code):
     )
 
 
+def blog_index(request):
+    """RT4: публичный список опубликованных записей блога."""
+    from .models import BlogPost
+
+    posts = BlogPost.objects.filter(is_published=True)
+    return render(request, "storefront/blog_index.html", {"posts": posts})
+
+
+def blog_detail(request, slug):
+    """RT4: публичная детальная страница записи блога."""
+    from .models import BlogPost
+
+    post = get_object_or_404(BlogPost, slug=slug, is_published=True)
+    recent = BlogPost.objects.filter(is_published=True).exclude(pk=post.pk)[:4]
+    return render(request, "storefront/blog_detail.html", {"post": post, "recent": recent})
+
+
 def ticket_qr(request, code):
     """RT1: персональный QR билета. Кодирует ссылку Check-in в кабинете —
     организатор сканирует штатной камерой и отмечает гостя пришедшим."""

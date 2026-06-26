@@ -1,0 +1,38 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Blog" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-4">{% trans "Blog" %}</h1>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="space-y-2 mb-8">
+  {% for p in posts %}
+    <a href="{% url 'events:blog-edit' p.pk %}" class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
+      <span class="font-medium">{{ p.title }}</span>
+      <span class="text-xs {% if p.is_published %}text-green-600{% else %}text-gray-400{% endif %}">{% if p.is_published %}{% trans "Published" %}{% else %}{% trans "Draft" %}{% endif %}</span>
+    </a>
+  {% empty %}
+    <p class="text-gray-500">{% trans "No posts yet." %}</p>
+  {% endfor %}
+</div>
+
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-3">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "New post" %}</h2>
+  <input name="title" type="text" required placeholder="{% trans 'Title' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <input name="excerpt" type="text" placeholder="{% trans 'Short summary (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <textarea name="body" rows="5" placeholder="{% trans 'Text' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <div>
+    <label class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</label>
+    <input name="cover" type="file" accept="image/*" class="w-full text-sm">
+  </div>
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="publish"> {% trans "Publish now" %}</label>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create post" %}</button>
+</form>
+{% endblock %}

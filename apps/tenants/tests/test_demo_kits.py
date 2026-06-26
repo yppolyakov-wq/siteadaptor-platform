@@ -452,6 +452,10 @@ def test_apply_retreat_kit_events_program_and_tickets():
 
     published = Event.objects.filter(status=Event.STATUS_PUBLISHED)
     assert published.count() == 7  # 4 базовых + Frauen-Retreat + Ayurveda + RT2 Online-Event
+    # RT4: блог — 2 опубликованные записи
+    from apps.events.models import BlogPost
+
+    assert BlogPost.objects.filter(is_published=True).count() == 2
     # RT2: онлайн/Zoom-событие с ссылкой доступа
     online = Event.objects.get(is_online=True)
     assert online.online_url.startswith("https://") and not online.city

@@ -1,0 +1,35 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Edit post" %}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'events:blog' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All posts" %}</a>
+<h1 class="text-2xl font-bold mt-1 mb-4">{% trans "Edit post" %}</h1>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-3">
+  {% csrf_token %}
+  <input name="title" type="text" required value="{{ post.title }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <input name="excerpt" type="text" value="{{ post.excerpt }}" placeholder="{% trans 'Short summary (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <textarea name="body" rows="8" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ post.body }}</textarea>
+  <div class="flex items-center gap-3">
+    {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="" class="w-20 h-14 rounded-lg object-cover shrink-0">{% endif %}
+    <div class="flex-1">
+      <label class="block text-sm font-medium mb-1">{% trans "Cover" %}</label>
+      <input name="cover" type="file" accept="image/*" class="w-full text-sm">
+      {% if post.cover_url %}<label class="text-xs text-gray-500 mt-1 inline-block"><input type="checkbox" name="remove_cover" value="1"> {% trans "Remove cover" %}</label>{% endif %}
+    </div>
+  </div>
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="publish" {% if post.is_published %}checked{% endif %}> {% trans "Published" %}</label>
+  <div class="flex items-center gap-2 pt-1">
+    <button name="action" value="save" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    {% if post.is_published %}<a href="{% url 'storefront-blog-post' post.slug %}" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline">{% trans "View" %} →</a>{% endif %}
+    <button name="action" value="delete" class="ml-auto text-sm text-red-600 hover:underline" onclick="return confirm('{% trans "Delete this post?" %}')">{% trans "Delete" %}</button>
+  </div>
+</form>
+{% endblock %}

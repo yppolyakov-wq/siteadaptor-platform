@@ -185,6 +185,84 @@ def ticket_action(request, pk, tid):
 
 
 @login_required
+def blog_list(request):
+    """RT4: кабинет блога — список записей + создание (простой POST)."""
+    from django.utils import timezone
+    from django.utils.text import slugify
+
+    from .models import BlogPost
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        if title:
+            base = slugify(title) or "post"
+            slug, n = base, 1
+            while BlogPost.objects.filter(slug=slug).exists():
+                n += 1
+                slug = f"{base}-{n}"
+            published = bool(request.POST.get("publish"))
+            BlogPost.objects.create(
+                title=title[:200],
+                slug=slug[:220],
+                excerpt=request.POST.get("excerpt", "").strip()[:300],
+                body=request.POST.get("body", "").strip(),
+                cover=_uploaded_cover(request),
+                is_published=published,
+                published_at=timezone.now() if published else None,
+            )
+            messages.success(request, _("Post created."))
+        return redirect("events:blog")
+    return render(
+        request,
+        "events/blog_list.html",
+        {"nav": "events", "posts": BlogPost.objects.all()},
+    )
+
+
+@login_required
+def blog_edit(request, pk):
+    """RT4: правка записи блога + публикация/снятие/удаление."""
+    from django.utils import timezone
+
+    from .models import BlogPost
+
+    post = get_object_or_404(BlogPost, pk=pk)
+    if request.method == "POST":
+        action = request.POST.get("action", "save")
+        if action == "delete":
+            post.delete()
+            messages.success(request, _("Post deleted."))
+            return redirect("events:blog")
+        post.title = request.POST.get("title", post.title).strip()[:200]
+        post.excerpt = request.POST.get("excerpt", "").strip()[:300]
+        post.body = request.POST.get("body", "").strip()
+        cover = _uploaded_cover(request)
+        if cover or request.POST.get("remove_cover"):
+            post.cover = cover
+        publish = bool(request.POST.get("publish"))
+        if publish and not post.is_published:
+            post.published_at = timezone.now()
+        post.is_published = publish
+        post.save()
+        messages.success(request, _("Post saved."))
+        return redirect("events:blog-edit", pk=post.pk)
+    return render(request, "events/blog_edit.html", {"nav": "events", "post": post})
+
+
+def _uploaded_cover(request) -> dict:
+    """RT4: FileRef из загруженной обложки (поле «cover») или {}."""
+    uploaded = request.FILES.get("cover")
+    if not uploaded:
+        return {}
+    from apps.catalog.images import save_product_image
+
+    try:
+        return save_product_image(uploaded, is_primary=True, folder="blog")
+    except Exception:  # noqa: BLE001 — кривой файл не валит CRUD
+        return {}
+
+
+@login_required
 @require_POST
 def event_series(request, pk):
     """RT3: создать recurring-серию — N повторов события с шагом интервала."""

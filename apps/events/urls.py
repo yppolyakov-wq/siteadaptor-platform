@@ -21,4 +21,7 @@ urlpatterns = [
     path("<uuid:pk>/waitlist/notify/", views.waitlist_notify, name="waitlist-notify"),
     # RT1: Check-in билета по QR (организатор сканирует камерой → отмечает гостя).
     path("checkin/<str:code>/", views.checkin, name="checkin"),
+    # RT4: блог/новости в кабинете.
+    path("blog/", views.blog_list, name="blog"),
+    path("blog/<uuid:pk>/", views.blog_edit, name="blog-edit"),
 ]
