@@ -36,7 +36,7 @@
         <div>{% trans "Name:" %} <b>@</b> {% trans "(or your subdomain)" %}</div>
         <div>{% trans "Value:" %} <b>{{ target_ip }}</b></div>
       </div>
-      <p class="mt-2 text-gray-500">{% trans "Then click “Verify”. DNS changes can take up to 24 h. The HTTPS certificate is issued automatically on the first visit." %}</p>
+      <p class="mt-2 text-gray-500">{% trans "Once the DNS record points to us, the domain activates automatically within a few minutes (or click “Verify” to check now). The HTTPS certificate is issued automatically on the first visit." %}</p>
     {% else %}
       <p class="mt-2 text-amber-700">{% trans "Domain verification is currently unavailable. Please contact support." %}</p>
     {% endif %}

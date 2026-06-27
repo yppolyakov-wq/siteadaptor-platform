@@ -120,6 +120,9 @@ SESSION_CACHE_ALIAS = "default"
 # Middleware
 # ---------------------------------------------------------------------------
 MIDDLEWARE = [
+    # Автоподключение кастомных доменов: трастит хосты из таблицы Domain ДО
+    # проверки ALLOWED_HOSTS в TenantMainMiddleware (иначе DisallowedHost → 404).
+    "apps.tenants.middleware.CustomDomainHostMiddleware",
     "django_tenants.middleware.main.TenantMainMiddleware",
     # Резолвер мульти-доменных порталов агрегатора (P2.1): кладёт request.portal
     # на public-схеме. Должен идти сразу после TenantMainMiddleware (нужен tenant).
@@ -291,6 +294,10 @@ CELERY_BEAT_SCHEDULE = {
     "charge-installments": {
         "task": "apps.events.tasks.charge_installments",
         "schedule": 86400.0,  # раз в сутки — off-session списания долей рассрочки (R10c)
+    },
+    "recheck-custom-domains": {
+        "task": "apps.tenants.tasks.recheck_pending_custom_domains",
+        "schedule": 300.0,  # каждые 5 минут — авто-подтверждение кастомных доменов по DNS
     },
 }
 

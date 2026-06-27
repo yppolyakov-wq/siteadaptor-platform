@@ -68,3 +68,19 @@ def provision(tenant_id, email, password_hash) -> str:
 @shared_task
 def provision_business(tenant_id, email, password_hash):
     return provision(tenant_id, email, password_hash)
+
+
+@shared_task
+def recheck_pending_custom_domains():
+    """Авто-подтверждение кастомных доменов (beat): для каждой PENDING-заявки
+    перепроверяем A-запись и активируем при совпадении — владельцу не нужно жать
+    «Verify» вручную. CustomDomain — SHARED (public), один проход по всем тенантам.
+    Возвращает число активированных доменов."""
+    from . import domains
+    from .models import CustomDomain
+
+    activated = 0
+    for custom in CustomDomain.objects.filter(status=CustomDomain.PENDING):
+        if domains.verify(custom):
+            activated += 1
+    return activated
