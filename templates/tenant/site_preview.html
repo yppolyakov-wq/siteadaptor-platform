@@ -57,6 +57,14 @@
     var doc;
     try { doc = frame.contentDocument; } catch (e) { return; }
     if (!doc) return;
+    // Превью — стабильная «канва» для правки: гасим навигацию по ссылкам и отправку
+    // форм внутри iframe, чтобы клик по тексту-ссылке не уводил со страницы, а ставил
+    // курсор для редактирования. Capture-фаза — перехват до перехода.
+    doc.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("a");
+      if (a) e.preventDefault();
+    }, true);
+    doc.addEventListener("submit", function (e) { e.preventDefault(); }, true);
     doc.querySelectorAll("[data-edit]").forEach(function (el) {
       // contenteditable="true" вместо "plaintext-only" — последнее не поддерживается
       // в части браузеров (Firefox <136, старый Safari) и там поле НЕ редактируется.
