@@ -33,7 +33,7 @@
 
       {% comment %}E.2: попап настроек блока — клик по блоку в превью переносит сюда его
          реальные контролы (живёт ВНУТРИ формы, поэтому правки идут в сабмит/превью).{% endcomment %}
-      <div id="bld-block-popup" class="hidden fixed z-40 bottom-4 right-4 w-80 max-w-[92vw]">
+      <div id="bld-block-popup" class="hidden fixed z-40 left-3 top-24 w-80 max-w-[85vw]">
         <div class="bg-white rounded-xl shadow-2xl border border-gray-200">
           <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50 rounded-t-xl">
             <span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700"></span>
@@ -480,13 +480,17 @@
   var popupBody = document.getElementById("bld-block-popup-body");
   var popupTitle = document.getElementById("bld-block-popup-title");
   var popupClose = document.getElementById("bld-block-popup-close");
-  var popupRow = null, popupAnchor = null;
+  var popupRow = null, popupAnchor = null, selectedSec = null;
+  function clearSelected() {
+    if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e) {} selectedSec = null; }
+  }
   function closeBlockPopup() {
     if (popupRow && popupAnchor) {
       popupRow.classList.remove("flex-wrap");
       popupAnchor.replaceWith(popupRow);
     }
     popupRow = null; popupAnchor = null;
+    clearSelected();
     if (popup) popup.classList.add("hidden");
   }
   function openBlockPopup(key) {
@@ -610,7 +614,12 @@
       sec.addEventListener("click", function (e) {
         if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
         var key = sec.getAttribute("data-sf-section");
-        if (openBlockPopup(key)) return;
+        var opened = openBlockPopup(key);  // closeBlockPopup внутри снимет прошлую подсветку
+        // SE-1b: подсветить выбранную секцию (инспектор слева показывает её настройки).
+        selectedSec = sec;
+        sec.style.outline = "2px solid rgba(99,102,241,.9)";
+        sec.style.outlineOffset = "2px";
+        if (opened) return;
         var ctl = form.querySelector('[name="order_' + key + '"]');
         var row = ctl ? ctl.closest(".home-block") : null;
         if (!row) return;
