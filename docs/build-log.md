@@ -2376,3 +2376,21 @@
     обновлены старые pranasy-тесты под новую структуру. Миграция: events/0021.
   Деплой (на владельце): `git pull origin main && ./scripts/deploy.sh single` +
   `python manage.py seed_demo_tenants --kit pranasy --recreate`. План — `docs/pranasy-fullsite-plan.md`.
+
+- **2026-06-27 — on-canvas редактор: SE-1f (режим Обычный/Эксперт) + SE-3d (визуальные
+  параметры блока).** План — `docs/storefront-onsite-editor-plan.md`. **SE-1f:** в инспекторе
+  блока (`#bld-block-popup`) тумблер «Обычный/Эксперт» (progressive disclosure, выбор в
+  `localStorage` ключ `sf_editor_mode`); в обычном режиме скрыты экспертные контролы
+  (`data-expert` + CSS `[data-mode=basic] [data-expert]{display:none}`) — порядок/заголовок/
+  источник/«View all»/drag-ручка/точный radius/тень; в обычном остаются дружелюбные:
+  видимость, раскладка, число, «Round corners». **SE-3d:** per-секция `site_config →
+  visual={radius 0..24, shadow bool}` (normalize + `section_visual()`); парсинг в
+  `home_builder_view` (источник — slider `visual_radius_px`, фолбэк basic-тоггл → 16px,
+  клампинг); live-preview через `collect()`; рендер — класс `.sf-card` на карточках
+  товаров/акций/событий/номеров/категорий/услуг + CSS `[style*="--sf-r"] .sf-card{...
+  !important}` (обёртка `data-sf-section` несёт inline `--sf-r`/`--sf-sh` лишь когда
+  значение задано) → **ненастроенные витрины без регрессии вида**. Тесты — парсинг
+  slider/клампинг/фолбэк/тень/рендер контролов+тумблера (`test_home_builder.py`, 33 теста).
+  Коммиты `e2eba38`→`decb4ce` (build:css)→`1d84657` (доводка после рассинхрона генерации:
+  radius парсился как чекбокс → всегда 0; preview/`.sf-card` не были подключены)→`1ce1975`.
+  Без миграций.
