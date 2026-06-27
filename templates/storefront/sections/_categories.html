@@ -3,7 +3,7 @@
 <section data-reveal class="mb-10">
   <div class="flex items-center justify-between mb-4">
     {% section_title site 'categories' as st %}
-    <h2 class="text-xl md:text-2xl font-bold">{% if st %}{{ st }}{% else %}{% trans "Categories" %}{% endif %}</h2>
+    <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.categories">{% if st %}{{ st }}{% else %}{% trans "Categories" %}{% endif %}</h2>
     {% section_show_all site 'categories' as sa %}{% if sa %}<a href="{% url 'storefront-products' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
   </div>
   <div class="{% grid_classes site 'categories' %}">

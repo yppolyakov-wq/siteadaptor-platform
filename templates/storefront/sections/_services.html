@@ -8,7 +8,7 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
 <section data-reveal class="mb-10">
   <div class="flex items-end justify-between mb-4">
     {% section_title site 'services' as st %}
-    <h2 class="text-xl md:text-2xl font-bold">{% if st %}{{ st }}{% else %}{% trans "Services & prices" %}{% endif %}</h2>
+    <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.services">{% if st %}{{ st }}{% else %}{% trans "Services & prices" %}{% endif %}</h2>
     {% section_show_all site 'services' as sa %}{% if sa %}<a href="{% url 'storefront-termin' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
   </div>
   <div class="{% grid_classes site 'services' %}">

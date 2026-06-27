@@ -58,10 +58,13 @@
     try { doc = frame.contentDocument; } catch (e) { return; }
     if (!doc) return;
     doc.querySelectorAll("[data-edit]").forEach(function (el) {
-      el.setAttribute("contenteditable", "plaintext-only");
+      // contenteditable="true" вместо "plaintext-only" — последнее не поддерживается
+      // в части браузеров (Firefox <136, старый Safari) и там поле НЕ редактируется.
+      el.setAttribute("contenteditable", "true");
       el.style.outline = "1px dashed rgba(99,102,241,.5)";
       el.style.outlineOffset = "2px";
       el.style.cursor = "text";
+      el.title = "{% trans 'Click to edit' %}";
       el.addEventListener("blur", function () {
         fetch(editUrl, {
           method: "POST",

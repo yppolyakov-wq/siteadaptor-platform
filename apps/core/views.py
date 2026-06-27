@@ -893,6 +893,14 @@ def site_inline_edit(request):
         section = dict(cfg.get(parent) or {})
         section[child] = value
         cfg[parent] = section
+    elif field and field.startswith("section_titles."):
+        # V3+: заголовки секций главной правятся прямо на превью (клик по «heading»).
+        key = field.split(".", 1)[1]
+        if key not in siteconfig.SECTION_TITLE_KEYS:
+            return HttpResponseBadRequest()
+        titles = dict(cfg.get("section_titles") or {})
+        titles[key] = value  # пусто → normalize вернёт дефолтный i18n-заголовок
+        cfg["section_titles"] = titles
     else:
         return HttpResponseBadRequest()
     request.tenant.site_config = siteconfig.normalize(cfg)

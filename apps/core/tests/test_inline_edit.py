@@ -63,6 +63,37 @@ def test_inline_edit_rejects_nonwhitelisted_nested_field():
     assert (tenant.site_config.get("cta") or {}).get("button_url", "") != "https://evil.example"
 
 
+def test_inline_edit_saves_section_title():
+    """V3+: заголовок секции (section_titles.products) правится на превью."""
+    tenant = TenantFactory(schema_name="public", slug="ie5", name="IE5")
+    resp = _post("section_titles.products", "  Unsere Karte  ", tenant)
+    assert resp.status_code == 204
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["section_titles"]["products"] == "Unsere Karte"
+
+
+def test_inline_edit_rejects_unknown_section_title_key():
+    tenant = TenantFactory(schema_name="public", slug="ie6", name="IE6")
+    assert _post("section_titles.evil", "x", tenant).status_code == 400
+
+
+def test_section_headers_carry_data_edit_markers():
+    """Заголовок секции products несёт data-edit (кликом на «heading» правится)."""
+    from apps.catalog.models import Product
+
+    tenant = TenantFactory(schema_name="public", slug="ie7", name="IE7")
+    Product.objects.create(
+        name={"de": "Burger"}, base_price="5.00", is_active=True, is_featured=True
+    )
+    tenant.site_config = {"sections": [{"key": "products", "enabled": True}]}
+    tenant.save(update_fields=["site_config"])
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert 'data-edit="section_titles.products"' in body
+
+
 def test_cta_carries_data_edit_markers():
     tenant = TenantFactory.build(
         site_config={
