@@ -402,7 +402,7 @@
       var rTog = form.querySelector("input[name='visual_radius_" + r.key + "']");
       var radius = 0;
       if (rPx && rPx.value !== "") radius = parseInt(rPx.value, 10) || 0;
-      else if (rTog && rTog.checked) radius = 8;
+      else if (rTog && rTog.checked) radius = 16;
       var shBox = form.querySelector("input[name='visual_shadow_" + r.key + "']");
       sec.visual = { radius: radius, shadow: !!(shBox && shBox.checked) };
       return sec;
