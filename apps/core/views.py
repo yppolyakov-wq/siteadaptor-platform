@@ -557,11 +557,17 @@ def home_builder_view(request):
                 entry["source"] = request.POST.get("source_products", "")
             if key in siteconfig.SECTION_VIEWALL_KEYS:
                 entry["show_all"] = request.POST.get(f"show_all_{key}") == "on"
-            # SE-3d: визуальные параметры блока
-            try:
-                radius = max(0, min(24, int(request.POST.get(f"visual_radius_{key}", 0) or 0)))
-            except (TypeError, ValueError):
-                radius = 0
+            # SE-3d: визуальные параметры блока. Источник истины радиуса —
+            # slider `visual_radius_px_{key}` (Эксперт; JS держит его в синхроне с
+            # basic-чекбоксом). Фолбэк: basic-тоггл `visual_radius_{key}` → 8px.
+            raw_px = request.POST.get(f"visual_radius_px_{key}")
+            if raw_px not in (None, ""):
+                try:
+                    radius = max(0, min(24, int(raw_px)))
+                except (TypeError, ValueError):
+                    radius = 0
+            else:
+                radius = 16 if request.POST.get(f"visual_radius_{key}") == "on" else 0
             entry["visual"] = {
                 "radius": radius,
                 "shadow": request.POST.get(f"visual_shadow_{key}") == "on",

@@ -1,6 +1,6 @@
 {% load i18n %}{# Карточка акции (исп. в секции главной и на /aktionen/). Контекст: p. #}
 <a href="{% url 'storefront-promotion' p.pk %}"
-   class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+   class="sf-card group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
   <div class="relative aspect-square bg-gray-100">
     {% with img=p.primary_image %}
       {% if img %}

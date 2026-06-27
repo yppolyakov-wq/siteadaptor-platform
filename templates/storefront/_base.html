@@ -36,8 +36,12 @@
     }
     body { font-family: var(--font-body); }
     h1, h2, h3, h4, .font-head { font-family: var(--font-head); }
-    /* SE-3d: визуальные параметры блока (наследуются через data-sf-section) */
-    .sf-card { border-radius: var(--sf-r, 0px); box-shadow: var(--sf-sh, none); }
+    /* SE-3d: визуальные параметры блока. Переопределяем radius/shadow карточек
+       (.sf-card) ТОЛЬКО когда владелец задал их на обёртке секции (data-sf-section
+       несёт inline --sf-r/--sf-sh). Без переменной карточка сохраняет свой
+       Tailwind-облик — никакой регрессии для ненастроенных витрин. */
+    [style*="--sf-r"] .sf-card { border-radius: var(--sf-r) !important; }
+    [style*="--sf-sh"] .sf-card { box-shadow: var(--sf-sh) !important; }
     /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
     h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
     /* P2b: scroll-reveal — только при разрешённом движении (WCAG 2.3.3). Скрытое

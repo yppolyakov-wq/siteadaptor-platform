@@ -12,7 +12,7 @@ if/elif: единый источник правды + основа для C-бл
 {% endcomment %}
 {% for b in section_blocks %}
   <div data-sf-section="{% if b.id %}{{ b.id }}{% else %}{{ b.key }}{% endif %}"
-       style="display:contents; --sf-r: {{ b.visual.radius|default:0 }}px; --sf-sh: {% if b.visual.shadow %}0 2px 8px rgba(0,0,0,.12){% else %}none{% endif %}">{% render_block b %}</div>
+       style="display:contents;{% if b.visual.radius %} --sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %} --sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}">{% render_block b %}</div>
 {% endfor %}
 {% endblock %}
 </content>

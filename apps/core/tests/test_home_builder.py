@@ -287,6 +287,68 @@ def test_home_builder_saves_content_sections():
     assert cfg["testimonials"] == [{"name": "Anna", "text": "Top!"}]
 
 
+def test_home_builder_saves_visual_radius_from_slider():
+    """SE-3d: точное значение радиуса (Эксперт, slider) сохраняется и клампится."""
+    tenant = TenantFactory(schema_name="public", slug="hbvr", name="HBVR")
+    data = {"order_products": "1", "enabled_products": "on", "visual_radius_px_products": "12"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.section_visual(cfg, "products") == {"radius": 12, "shadow": False}
+
+
+def test_home_builder_visual_radius_clamped():
+    """SE-3d: радиус за пределами 0..24 клампится (slider не должен пробить лимит)."""
+    tenant = TenantFactory(schema_name="public", slug="hbvc", name="HBVC")
+    data = {"order_products": "1", "enabled_products": "on", "visual_radius_px_products": "999"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.section_visual(cfg, "products")["radius"] == 24
+
+
+def test_home_builder_visual_radius_basic_toggle_fallback():
+    """SE-3d: без slider basic-тоггл «Round corners» (on) даёт выраженные 16px."""
+    tenant = TenantFactory(schema_name="public", slug="hbvt", name="HBVT")
+    data = {"order_products": "1", "enabled_products": "on", "visual_radius_products": "on"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.section_visual(cfg, "products")["radius"] == 16
+
+
+def test_home_builder_visual_radius_default_zero():
+    """SE-3d: без visual-полей радиус=0 (= «не переопределять», без регрессии вида)."""
+    tenant = TenantFactory(schema_name="public", slug="hbv0", name="HBV0")
+    data = {"order_products": "1", "enabled_products": "on"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.section_visual(cfg, "products") == {"radius": 0, "shadow": False}
+
+
+def test_home_builder_saves_visual_shadow():
+    """SE-3d: чекбокс тени сохраняется (Эксперт)."""
+    tenant = TenantFactory(schema_name="public", slug="hbvs", name="HBVS")
+    data = {"order_products": "1", "enabled_products": "on", "visual_shadow_products": "on"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.section_visual(cfg, "products")["shadow"] is True
+
+
+def test_home_builder_get_renders_mode_toggle_and_visual_controls():
+    """SE-1f/SE-3d: режим Обычный/Эксперт + визуальные контролы отрисованы в билдере."""
+    tenant = TenantFactory(schema_name="public", slug="hbmt", name="HBMT")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'id="bld-mode-basic"' in body and 'id="bld-mode-expert"' in body  # SE-1f тумблер
+    assert "sf_editor_mode" in body  # localStorage-ключ режима
+    assert 'name="visual_radius_products"' in body  # basic-тоггл скругления
+    assert 'name="visual_radius_px_products"' in body  # expert-slider радиуса
+    assert 'name="visual_shadow_products"' in body  # expert-тень
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""

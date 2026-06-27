@@ -9,7 +9,7 @@
   <div class="{% grid_classes site 'categories' %}">
     {% for c in categories %}
       <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
-         class="flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-5 min-h-[5rem] font-medium hover:shadow-md hover:border-indigo-300 border border-transparent transition">
+         class="sf-card flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-5 min-h-[5rem] font-medium hover:shadow-md hover:border-indigo-300 border border-transparent transition">
         {{ c }}
       </a>
     {% endfor %}

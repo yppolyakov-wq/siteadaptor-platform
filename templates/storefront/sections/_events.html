@@ -8,7 +8,7 @@
   </div>
   <div class="{% grid_classes site 'events' %}">
     {% for e in events_preview %}
-      <a href="{% url 'storefront-event' e.pk %}" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+      <a href="{% url 'storefront-event' e.pk %}" class="sf-card bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
         {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-40 object-cover">{% endif %}
         <div class="p-4 flex flex-col gap-1">
           <h3 class="font-semibold leading-snug">{{ e.title_text }}</h3>

@@ -13,7 +13,7 @@
   </div>
   <div class="{% grid_classes site 'stay_rooms' %}">
     {% for u in stay_rooms %}
-      <a href="{% url 'storefront-unterkunft-unit' u.pk %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+      <a href="{% url 'storefront-unterkunft-unit' u.pk %}" class="sf-card block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
         {% if u.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
         <div class="p-5">
           <h3 class="font-semibold text-lg">{{ u.name }}</h3>
