@@ -557,6 +557,15 @@ def home_builder_view(request):
                 entry["source"] = request.POST.get("source_products", "")
             if key in siteconfig.SECTION_VIEWALL_KEYS:
                 entry["show_all"] = request.POST.get(f"show_all_{key}") == "on"
+            # SE-3d: визуальные параметры блока
+            try:
+                radius = max(0, min(24, int(request.POST.get(f"visual_radius_{key}", 0) or 0)))
+            except (TypeError, ValueError):
+                radius = 0
+            entry["visual"] = {
+                "radius": radius,
+                "shadow": request.POST.get(f"visual_shadow_{key}") == "on",
+            }
             items.append((order, entry))
         # D.2b: C-блоки — читаем посланные строки (id+тип+данные), удалённые пропускаем.
         for bid in request.POST.getlist("cb_id"):
@@ -659,6 +668,9 @@ def home_builder_view(request):
                 "source": s.get("source", ""),
                 "has_viewall": s["key"] in siteconfig.SECTION_VIEWALL_KEYS,
                 "show_all": s.get("show_all", True),
+                "visual_radius": bool(s.get("visual", {}).get("radius", 0) > 0),
+                "visual_radius_px": int(s.get("visual", {}).get("radius", 0)),
+                "visual_shadow": bool(s.get("visual", {}).get("shadow", False)),
             }
         )
     preset_options = [

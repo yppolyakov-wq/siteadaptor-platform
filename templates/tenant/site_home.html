@@ -33,11 +33,17 @@
 
       {% comment %}E.2: попап настроек блока — клик по блоку в превью переносит сюда его
          реальные контролы (живёт ВНУТРИ формы, поэтому правки идут в сабмит/превью).{% endcomment %}
-      <div id="bld-block-popup" class="hidden fixed z-40 left-3 top-24 w-80 max-w-[85vw]">
+      <div id="bld-block-popup" class="hidden fixed z-40 left-3 top-24 w-80 max-w-[85vw]" data-mode="basic">
         <div class="bg-white rounded-xl shadow-2xl border border-gray-200">
           <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50 rounded-t-xl">
             <span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700"></span>
-            <button type="button" id="bld-block-popup-close" class="text-gray-400 hover:text-gray-700 text-lg leading-none" aria-label="{% trans 'Close' %}">✕</button>
+            <span class="flex items-center gap-2">
+              <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs">
+                <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
+                <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
+              </span>
+              <button type="button" id="bld-block-popup-close" class="text-gray-400 hover:text-gray-700 text-lg leading-none" aria-label="{% trans 'Close' %}">✕</button>
+            </span>
           </div>
           <div id="bld-block-popup-body" class="p-3 max-h-[60vh] overflow-auto"></div>
         </div>
@@ -45,7 +51,7 @@
 
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
-        <p class="text-xs text-gray-400 mb-3">{% trans "What visitors see first. “Combined homepage” shows the blocks below; or jump straight into one section." %}</p>
+        <p class="text-xs text-gray-400 mb-3">{% trans 'What visitors see first. "Combined homepage" shows the blocks below; or jump straight into one section.' %}</p>
         <select name="storefront_root" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
           {% for o in root_options %}
             <option value="{{ o.key }}" {% if o.key == storefront_root %}selected{% endif %}>{{ o.label }}</option>
@@ -83,10 +89,10 @@
         <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
         <div id="home-blocks" class="space-y-3">
           {% for s in sections %}
-            <div class="home-block flex items-center gap-3 border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
-              <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" title="{% trans 'Drag to reorder' %}">⠿</span>
+            <div class="home-block flex items-center gap-3 flex-wrap border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
+              <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" data-expert="1" title="{% trans 'Drag to reorder' %}">⠿</span>
               <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
-                     class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}">
+                     class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}" data-expert="1">
               <label class="flex items-center gap-2 text-sm font-medium flex-1">
                 <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
                        class="rounded border-gray-300">
@@ -107,19 +113,45 @@
                 {# M20U-7: свой заголовок секции (иначе — стандартный) #}
                 <input type="text" name="title_{{ s.key }}" value="{{ s.title }}" maxlength="80"
                        placeholder="{{ s.label }}"
-                       class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}">
+                       class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}" data-expert="1">
               {% endif %}
               {% if s.has_source %}
                 {# M20U-7: какие товары показывать в превью #}
-                <select name="source_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Which items' %}" title="{% trans 'Which items' %}">
+                <select name="source_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Which items' %}" title="{% trans 'Which items' %}" data-expert="1">
                   {% for sk, slabel in source_options %}<option value="{{ sk }}" {% if s.source == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
                 </select>
               {% endif %}
               {% if s.has_viewall %}
                 {# M20U-7: показывать ссылку «View all» секции #}
-                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" title="{% trans 'Show “View all” link' %}">
+                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" title="{% trans 'Show "View all" link' %}" data-expert="1">
                   <input type="checkbox" name="show_all_{{ s.key }}" {% if s.show_all %}checked{% endif %} class="rounded border-gray-300">{% trans "View all" %}</label>
               {% endif %}
+              {# SE-3d: визуальные параметры блока #}
+              <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3">
+                {# Basic: простой тоггл скругления #}
+                <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                  <input type="checkbox" name="visual_radius_{{ s.key }}"
+                         {% if s.visual_radius %}checked{% endif %}
+                         class="rounded border-gray-300 sf-visual-radius-toggle"
+                         data-key="{{ s.key }}">
+                  {% trans "Round corners" %}
+                </label>
+                {# Expert: точный radius (slider) #}
+                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
+                  {% trans "Radius" %}
+                  <input type="range" name="visual_radius_px_{{ s.key }}"
+                         value="{{ s.visual_radius_px|default:0 }}" min="0" max="24" step="2"
+                         class="w-20" data-key="{{ s.key }}" id="sfr-{{ s.key }}">
+                  <output for="sfr-{{ s.key }}" id="sfr-out-{{ s.key }}">{{ s.visual_radius_px|default:0 }}</output>px
+                </label>
+                {# Expert: тень #}
+                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
+                  <input type="checkbox" name="visual_shadow_{{ s.key }}"
+                         {% if s.visual_shadow %}checked{% endif %}
+                         class="rounded border-gray-300">
+                  {% trans "Shadow" %}
+                </label>
+              </div>
             </div>
           {% endfor %}
         </div>
@@ -129,7 +161,7 @@
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
         {% if not archetypes_enabled %}
-          <p class="text-xs text-amber-600 mb-3">{% trans "Tip: enable the “Our offerings” block above to show these cards on your homepage." %}</p>
+          <p class="text-xs text-amber-600 mb-3">{% trans 'Tip: enable the "Our offerings" block above to show these cards on your homepage.' %}</p>
         {% endif %}
         <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
         <div class="space-y-3">
@@ -231,7 +263,7 @@
     {# M20e: медиа в билдере — фото галереи (multipart, отдельные формы — не в #home-form). #}
     <div class="bg-white rounded-2xl shadow-sm p-6">
       <h3 class="font-semibold mb-1">{% trans "Photo gallery" %}</h3>
-      <p class="text-xs text-gray-400 mb-3">{% trans "JPEG/PNG/WEBP, max 5 MB. Enable the “Photo gallery” block above to show them." %}</p>
+      <p class="text-xs text-gray-400 mb-3">{% trans 'JPEG/PNG/WEBP, max 5 MB. Enable the "Photo gallery" block above to show them.' %}</p>
       {% if config.gallery %}
         <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
           {% for img in config.gallery %}
@@ -295,6 +327,14 @@
     {% endfor %}
   </div>
 </div>
+
+<style>
+#bld-block-popup[data-mode=basic] [data-expert] { display: none !important; }
+#bld-mode-basic { background: #4f46e5; color: #fff; }
+#bld-mode-expert { background: transparent; color: #4b5563; }
+#bld-block-popup[data-mode=expert] #bld-mode-basic { background: transparent; color: #4b5563; }
+#bld-block-popup[data-mode=expert] #bld-mode-expert { background: #4f46e5; color: #fff; }
+</style>
 
 <script>
 (function () {
@@ -721,6 +761,39 @@
   }
 
   push();  // первичный рендер черновика
+
+  // SE-1f: тумблер Обычный/Эксперт (localStorage)
+  var BLD_MODE_KEY = "sf_editor_mode";
+  function setEditorMode(m) {
+    var mode = m === "expert" ? "expert" : "basic";
+    popup.setAttribute("data-mode", mode);
+    localStorage.setItem(BLD_MODE_KEY, mode);
+  }
+  var savedMode = localStorage.getItem(BLD_MODE_KEY);
+  if (savedMode === "expert") setEditorMode("expert");
+  var modeBasicBtn = document.getElementById("bld-mode-basic");
+  var modeExpertBtn = document.getElementById("bld-mode-expert");
+  if (modeBasicBtn) modeBasicBtn.addEventListener("click", function() { setEditorMode("basic"); });
+  if (modeExpertBtn) modeExpertBtn.addEventListener("click", function() { setEditorMode("expert"); });
+
+  // SE-3d: синхронизация radius-слайдера и тоггла «Round corners»
+  document.querySelectorAll(".sf-visual-radius-toggle").forEach(function(cb) {
+    var key = cb.getAttribute("data-key");
+    var slider = document.querySelector('[name="visual_radius_px_' + key + '"]');
+    var out = document.getElementById("sfr-out-" + key);
+    cb.addEventListener("change", function() {
+      if (slider) {
+        slider.value = cb.checked ? "8" : "0";
+        if (out) out.textContent = slider.value;
+      }
+    });
+    if (slider) {
+      slider.addEventListener("input", function() {
+        if (out) out.textContent = slider.value;
+        if (cb) cb.checked = parseInt(slider.value) > 0;
+      });
+    }
+  });
 })();
 </script>
 {% endblock %}

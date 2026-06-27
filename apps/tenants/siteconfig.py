@@ -288,6 +288,21 @@ def section_show_all(config, key) -> bool:
     return True
 
 
+def section_visual(config, key) -> dict:
+    """SE-3d: визуальные параметры секции (radius px, shadow bool)."""
+    for item in (config or {}).get("sections", []):
+        if isinstance(item, dict) and item.get("key") == key:
+            v = item.get("visual")
+            if isinstance(v, dict):
+                r = v.get("radius", 0)
+                try:
+                    r = max(0, min(24, int(r))) if r is not None else 0
+                except (TypeError, ValueError):
+                    r = 0
+                return {"radius": r, "shadow": bool(v.get("shadow", False))}
+    return {"radius": 0, "shadow": False}
+
+
 # M20U-4: тематические секции детальной события — дефолтный порядок (как в
 # шаблоне event_detail.html). Владелец может переупорядочить/скрыть через
 # config["event_detail"] = {"order": [...], "hidden": [...]}.
@@ -754,6 +769,17 @@ def normalize(config) -> dict:
         # M20U-7: видимость ссылки «View all» (по умолчанию показана).
         if key in SECTION_VIEWALL_KEYS:
             entry["show_all"] = bool(raw_item.get("show_all", True))
+        # SE-3d: визуальные параметры (radius/shadow) — для всех секций кроме C-блоков
+        raw_visual = raw_item.get("visual") if isinstance(raw_item, dict) else None
+        if isinstance(raw_visual, dict):
+            r = raw_visual.get("radius")
+            try:
+                r = max(0, min(24, int(r))) if r is not None else 0
+            except (TypeError, ValueError):
+                r = 0
+            entry["visual"] = {"radius": r, "shadow": bool(raw_visual.get("shadow", False))}
+        else:
+            entry["visual"] = {"radius": 0, "shadow": False}
         return entry
 
     cblocks = 0

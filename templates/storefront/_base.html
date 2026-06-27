@@ -36,6 +36,8 @@
     }
     body { font-family: var(--font-body); }
     h1, h2, h3, h4, .font-head { font-family: var(--font-head); }
+    /* SE-3d: визуальные параметры блока (наследуются через data-sf-section) */
+    .sf-card { border-radius: var(--sf-r, 0px); box-shadow: var(--sf-sh, none); }
     /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
     h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
     /* P2b: scroll-reveal — только при разрешённом движении (WCAG 2.3.3). Скрытое
