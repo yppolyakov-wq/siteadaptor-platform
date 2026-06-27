@@ -342,6 +342,14 @@
       }
     });
   </script>
+  {% if request.user.is_authenticated and request.GET.preview != '1' %}
+  {# On-canvas редактор (SE-1): владельцу видна кнопка запуска визуального редактора
+     прямо с витрины. Посетители (Django-анонимы; клиенты — отдельный account) не видят. #}
+  <a href="{% url 'site-home' %}" data-owner-edit aria-label="{% trans 'Edit your site' %}"
+     class="fixed left-4 bottom-5 z-40 flex items-center gap-2 bg-gray-900 text-white rounded-full shadow-lg px-4 py-3 hover:bg-gray-800">
+    <span class="text-lg leading-none" aria-hidden="true">✏️</span><span class="text-sm font-medium">{% trans "Edit design" %}</span>
+  </a>
+  {% endif %}
   {% if storefront_inbox_enabled %}
   {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}
   <a href="{% url 'storefront-message' %}" data-chat-fab aria-label="{% trans 'Ask us a question' %}"
