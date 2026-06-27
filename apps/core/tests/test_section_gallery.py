@@ -58,6 +58,28 @@ def test_cover_gallery_upload_then_delete():
     assert _gallery(tenant) == []
 
 
+def _hero(tenant, key="catalog"):
+    return siteconfig.normalize(tenant.site_config)["archetypes"].get(key, {}).get("hero_image", "")
+
+
+def test_cover_hero_upload_sets_banner():
+    """Загрузка баннера раздела файлом → archetypes[key].hero_image = URL (не только ссылка)."""
+    tenant = TenantFactory(schema_name="public", slug="ch", name="CH")
+    views.sections_view(
+        _post({"action": "upload_cover_hero", "archetype": "catalog", "image": _png()}, tenant)
+    )
+    url = _hero(tenant)
+    assert url and url.startswith(("/", "http"))
+
+
+def test_cover_hero_upload_rejects_unknown_archetype():
+    tenant = TenantFactory(schema_name="public", slug="ch2", name="CH2")
+    views.sections_view(
+        _post({"action": "upload_cover_hero", "archetype": "bogus", "image": _png()}, tenant)
+    )
+    assert _hero(tenant, "bogus") == ""
+
+
 def test_upload_rejects_unknown_archetype():
     tenant = TenantFactory(schema_name="public", slug="cg2", name="CG2")
     views.sections_view(

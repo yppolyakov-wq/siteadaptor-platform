@@ -756,6 +756,35 @@ def _upload_cover_gallery(request, key: str) -> None:
     messages.success(request, "Bilder hochgeladen.")
 
 
+def _upload_cover_hero(request, key: str) -> None:
+    """Загрузить ОДНО фото как баннер раздела (archetypes[key]['hero_image']) —
+    альтернатива вводу URL вручную. Реюз save_product_image (валидация + storage)."""
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.images import save_product_image
+    from apps.tenants import siteconfig
+
+    if key not in _cover_archetype_keys(request.tenant):
+        return
+    upload = request.FILES.get("image")
+    if not upload:
+        return
+    try:
+        ref = save_product_image(upload, folder="cover")
+    except ValidationError as exc:
+        messages.error(request, f"{upload.name}: {'; '.join(exc.messages)}")
+        return
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    arch = dict(cfg.get("archetypes") or {})
+    cur = dict(arch.get(key) or {})
+    cur["hero_image"] = ref["url"]
+    arch[key] = cur
+    cfg["archetypes"] = arch
+    request.tenant.site_config = siteconfig.normalize(cfg)
+    request.tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, "Banner hochgeladen.")
+
+
 def _delete_cover_image(request, key: str, image_id: str) -> None:
     from apps.catalog.images import delete_stored_image
     from apps.tenants import siteconfig
@@ -925,6 +954,10 @@ def sections_view(request):
             _delete_cover_image(
                 request, request.POST.get("archetype", ""), request.POST.get("image_id", "")
             )
+            return redirect("site-sections")
+        # Загрузка баннера раздела файлом (альтернатива URL-полю).
+        if action == "upload_cover_hero":
+            _upload_cover_hero(request, request.POST.get("archetype", ""))
             return redirect("site-sections")
         config = siteconfig.normalize(request.tenant.site_config)
         arch = dict(config.get("archetypes") or {})
