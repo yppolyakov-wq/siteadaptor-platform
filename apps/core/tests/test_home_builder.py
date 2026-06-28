@@ -522,6 +522,47 @@ def test_home_builder_get_renders_add_category_form():
     assert 'value="add_category"' in body and 'name="name_de"' in body
 
 
+def test_home_builder_saves_global_card_style():
+    """SE-2d-3: глобальный стиль карточек (site_defaults) сохраняется из конструктора."""
+    tenant = TenantFactory(schema_name="public", slug="hbsd", name="HBSD")
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "sd_card_radius": "12",
+        "sd_card_shadow": "on",
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["site_defaults"] == {"card_radius": 12, "card_shadow": True}
+
+
+def test_home_builder_global_card_radius_clamped():
+    """SE-2d-3: глобальный radius клампится 0..24 (мусор/перебор → 24)."""
+    tenant = TenantFactory(schema_name="public", slug="hbsdc", name="HBSDC")
+    data = {"order_hero": "1", "enabled_hero": "on", "sd_card_radius": "999"}
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert (
+        cfg["site_defaults"]["card_radius"] == 24 and cfg["site_defaults"]["card_shadow"] is False
+    )
+
+
+def test_home_builder_get_renders_global_card_style():
+    """SE-2d-3: контрол глобального стиля карточек отрисован с текущим значением."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbsdg",
+        name="HBSDG",
+        site_config={"site_defaults": {"card_radius": 8}},
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'name="sd_card_radius" min="0" max="24" value="8"' in body
+    assert 'name="sd_card_shadow"' in body
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""

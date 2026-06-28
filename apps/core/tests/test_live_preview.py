@@ -249,6 +249,29 @@ def test_draft_endpoint_includes_event_detail():
     assert "bogus" not in order  # неизвестный ключ отброшен normalize
 
 
+def test_draft_endpoint_includes_site_defaults():
+    """SE-2d-3: глобальный стиль карточек попадает в черновик превью (normalize клампит)."""
+    tenant = TenantFactory(schema_name="public", slug="dsd", name="DSD")
+    body = json.dumps(
+        {
+            "sections": [{"key": "hero", "enabled": True}],
+            "site_defaults": {"card_radius": 18, "card_shadow": True},
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    assert req.session["site_preview_draft"]["site_defaults"] == {
+        "card_radius": 18,
+        "card_shadow": True,
+    }
+
+
 def test_modules_nav_exposes_global_card_style():
     """SE-2d: глобальный стиль карточек (site_defaults) отдаётся в контекст витрины."""
     from apps.core.context import modules_nav

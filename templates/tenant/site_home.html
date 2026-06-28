@@ -80,6 +80,22 @@
             {% trans "Accent banner background" %}
           </label>
         </div>
+        {# SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
+           всеми сетками; блок может переопределить своим visual). #}
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <p class="text-sm font-medium mb-2">🌐 {% trans "Card style (whole site)" %}</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Rounded corners" %}: <span id="sd-r-out">{{ card_radius }}</span>px</span>
+              <input type="range" name="sd_card_radius" min="0" max="24" value="{{ card_radius }}" class="w-full">
+            </label>
+            <label class="flex items-center gap-2 text-sm sm:pt-6">
+              <input type="checkbox" name="sd_card_shadow" {% if card_shadow %}checked{% endif %} class="rounded border-gray-300">
+              {% trans "Card shadow" %}
+            </label>
+          </div>
+          <p class="text-xs text-gray-400 mt-2">{% trans "Applies to all cards across the site; a single block can override it." %}</p>
+        </div>
         <p class="text-xs text-gray-400 mt-3">{% trans "Grid layout of catalog / rooms / events pages lives under" %}
           <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">{% trans "Pages" %}</a>.</p>
       </fieldset>
@@ -535,6 +551,15 @@
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");
     if (stSel && stSel.value) payload.stay_index_layout = { preset: stSel.value };
+    // SE-2d: глобальный стиль карточек («весь сайт») → в черновик для live-preview.
+    var sdR = form.querySelector("input[name='sd_card_radius']");
+    var sdSh = form.querySelector("input[name='sd_card_shadow']");
+    if (sdR || sdSh) {
+      payload.site_defaults = {
+        card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
+        card_shadow: !!(sdSh && sdSh.checked),
+      };
+    }
     // SE-2b-2: порядок/видимость тематических секций детальной события → в черновик,
     // чтобы превью события (?preview=1) показало их сразу.
     var edInputsArr = Array.prototype.slice.call(form.querySelectorAll(".ed-order-input"));
@@ -1035,6 +1060,13 @@
       });
     }
   });
+
+  // SE-2d: показ значения глобального радиуса карточек (живой текст рядом со слайдером).
+  var sdRange = document.querySelector("input[name='sd_card_radius']");
+  var sdOut = document.getElementById("sd-r-out");
+  if (sdRange && sdOut) {
+    sdRange.addEventListener("input", function() { sdOut.textContent = sdRange.value; });
+  }
 })();
 </script>
 {% endblock %}

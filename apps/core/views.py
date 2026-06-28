@@ -667,6 +667,12 @@ def home_builder_view(request):
                 "order": [k for _o, k, _v in ed_rows],
                 "hidden": [k for _o, k, v in ed_rows if not v],
             }
+        # SE-2d: глобальный стиль карточек («весь сайт»). normalize_site_defaults
+        # клампит radius (0..24) и приводит мусор к 0 → дефолт = текущее поведение.
+        config["site_defaults"] = {
+            "card_radius": request.POST.get("sd_card_radius", ""),
+            "card_shadow": request.POST.get("sd_card_shadow") == "on",
+        }
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
@@ -827,6 +833,9 @@ def home_builder_view(request):
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",
+            # SE-2d: текущий глобальный стиль карточек («весь сайт») для контролов.
+            "card_radius": config["site_defaults"]["card_radius"],
+            "card_shadow": config["site_defaults"]["card_shadow"],
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
@@ -1003,6 +1012,10 @@ def site_preview_draft(request):
     # (normalize_event_detail оставит лишь известные ключи).
     if isinstance(data.get("event_detail"), dict):
         cfg["event_detail"] = data["event_detail"]
+    # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
+    # клампит). Применяется через context-процессор на любой странице под ?preview=1.
+    if isinstance(data.get("site_defaults"), dict):
+        cfg["site_defaults"] = data["site_defaults"]
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
     if data.get("font") in siteconfig.FONTS:
         cfg["font"] = data["font"]
