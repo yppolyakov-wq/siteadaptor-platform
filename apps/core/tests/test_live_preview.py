@@ -249,6 +249,32 @@ def test_draft_endpoint_includes_event_detail():
     assert "bogus" not in order  # неизвестный ключ отброшен normalize
 
 
+def test_draft_endpoint_includes_landing_layouts():
+    """SE-2d-5: пер-страничные раскладки лендингов попадают в черновик (live-preview
+    раскладки каталога/событий/номеров до Save)."""
+    tenant = TenantFactory(schema_name="public", slug="dll", name="DLL")
+    body = json.dumps(
+        {
+            "sections": [{"key": "hero", "enabled": True}],
+            "catalog_layout": {"preset": "gallery"},
+            "events_index_layout": {"preset": "cols3"},
+            "stay_index_layout": {"preset": "cols4"},
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    assert draft["catalog_layout"]["preset"] == "gallery"
+    assert draft["events_index_layout"]["preset"] == "cols3"
+    assert draft["stay_index_layout"]["preset"] == "cols4"
+
+
 def test_draft_endpoint_includes_site_defaults():
     """SE-2d-3: глобальный стиль карточек попадает в черновик превью (normalize клампит)."""
     tenant = TenantFactory(schema_name="public", slug="dsd", name="DSD")

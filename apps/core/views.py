@@ -1016,6 +1016,13 @@ def site_preview_draft(request):
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):
         cfg["site_defaults"] = data["site_defaults"]
+    # SE-2d-5: пер-страничные раскладки лендингов → в превью. collect() их шлёт, но
+    # раньше хендлер игнорил → live-preview раскладки лендинга работал только после
+    # Save. Теперь правка раскладки каталога/событий/номеров видна на их странице сразу.
+    for _lay_key in ("catalog_layout", "events_index_layout", "stay_index_layout"):
+        _lay = data.get(_lay_key)
+        if isinstance(_lay, dict) and _lay.get("preset") in siteconfig.LAYOUT_PRESETS:
+            cfg[_lay_key] = {"preset": _lay["preset"]}
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
     if data.get("font") in siteconfig.FONTS:
         cfg["font"] = data["font"]
