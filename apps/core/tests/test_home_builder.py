@@ -995,3 +995,40 @@ def test_home_builder_get_renders_history():
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert "restore_version:0" in body and "2026-06-28" in body
+
+
+def test_home_builder_get_restores_db_draft():
+    """SE-5b-2: при наличии `_draft` в БД редактор открывается на черновике + сидит сессию."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbdraft",
+        name="HBDRAFT",
+        site_config={
+            "section_titles": {"events": "Published"},
+            "_draft": {"section_titles": {"events": "DraftTitle"}},
+            "_draft_ts": "2026-06-28T15:00",
+        },
+    )
+    req = _request("get", "/dashboard/site/home/", tenant=tenant)
+    body = views.home_builder_view(req).content.decode()
+    assert "DraftTitle" in body  # форма открылась на черновике, не на опубликованном
+    # сессия засеяна черновиком → превью ?preview=1 покажет то же
+    assert (
+        req.session.get("site_preview_draft", {}).get("section_titles", {}).get("events")
+        == "DraftTitle"
+    )
+
+
+def test_home_builder_save_clears_db_draft():
+    """SE-5b-2: явное «Сохранить» публикует и очищает `_draft` (normalize дропает служебное)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbdraftc",
+        name="HBDRAFTC",
+        site_config={"_draft": {"hero_title": "WIP"}, "_draft_ts": "t"},
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"order_hero": "1", "enabled_hero": "on"}, tenant)
+    )
+    tenant.refresh_from_db()
+    assert "_draft" not in tenant.site_config and "_draft_ts" not in tenant.site_config

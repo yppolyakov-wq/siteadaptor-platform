@@ -831,7 +831,19 @@ def home_builder_view(request):
 
     from apps.core import modules
 
-    config = siteconfig.normalize(request.tenant.site_config)
+    # SE-5b-2: восстановить несохранённый черновик из БД (после закрытия браузера/смены
+    # устройства — сессия пуста, но `_draft` пережил). Форма открывается на черновике,
+    # превью синхронизируем через сессию. Если правок не было — обычный нормализованный
+    # опубликованный конфиг (без регрессии).
+    raw_cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    db_draft = raw_cfg.get("_draft")
+    if isinstance(db_draft, dict):
+        config = siteconfig.normalize(db_draft)
+        if hasattr(request, "session") and not request.session.get("site_preview_draft"):
+            request.session["site_preview_draft"] = siteconfig.normalize(db_draft)
+        messages.info(request, _("Restored your unpublished draft."))
+    else:
+        config = siteconfig.normalize(request.tenant.site_config)
     labels = {key: label for key, label, _default in siteconfig.SECTIONS}
     root_options = [{"key": "home", "label": _("Combined homepage")}] + [
         {"key": a.key, "label": a.label} for a in modules.storefront_archetypes(request.tenant)
@@ -1227,6 +1239,16 @@ def site_preview_draft(request):
     if isinstance(accent, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", accent.strip()):
         draft["_accent"] = accent.strip()
     request.session["site_preview_draft"] = draft
+    # SE-5b-2: автосейв черновика в БД — переживает закрытие браузера/смену устройства
+    # (сессия теряется, черновик — нет). Пишем через .update(): (1) не триггерит сигнал
+    # сброса кэша витрины (опубликованный контент не менялся), (2) дешевле полного save().
+    # `_draft`/`_draft_ts` — служебные: normalize() дропает их из выдачи, push_history —
+    # из истории, так что опубликованная витрина и история остаются чистыми.
+    from apps.tenants.models import Tenant
+
+    published = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    new_cfg = {**published, "_draft": draft, "_draft_ts": timezone.now().isoformat()}
+    Tenant.objects.filter(pk=request.tenant.pk).update(site_config=new_cfg)
     return HttpResponse(status=204)
 
 

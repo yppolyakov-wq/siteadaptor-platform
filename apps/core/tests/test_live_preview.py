@@ -50,11 +50,34 @@ def test_draft_endpoint_merges_into_session():
     assert draft["hero_title"] == "Saved"  # прочий конфиг не затёрт
     assert draft["archetypes"]["catalog"]["hidden"] is True
     assert draft["archetypes"]["catalog"]["label"] == "X"
-    # в БД ничего не записано
+    # опубликованный конфиг не тронут (правки только под `_draft`)
     tenant.refresh_from_db()
     assert tenant.site_config.get(
         "archetypes", {}
     ) == {} or "catalog" not in tenant.site_config.get("archetypes", {})
+
+
+def test_draft_endpoint_persists_to_db_under_draft_key():
+    """SE-5b-2: автосейв черновика — `_draft` в БД переживает потерю сессии; опубликованные
+    ключи не затронуты (правки живут под `_draft`, normalize() дропает их из выдачи)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="dpd", name="DPD", site_config={"hero_title": "Saved"}
+    )
+    body = json.dumps({"sections": [{"key": "hero", "enabled": True}], "font": "serif"})
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    tenant.refresh_from_db()
+    assert tenant.site_config["hero_title"] == "Saved"  # опубликованное не тронуто
+    assert tenant.site_config["_draft"]["font"] == "serif"  # черновик сохранён в БД
+    assert "_draft_ts" in tenant.site_config
+    # normalize() (выдача/история) не показывает служебные ключи
+    assert "_draft" not in siteconfig.normalize(tenant.site_config)
 
 
 def test_draft_endpoint_includes_layout_preset():

@@ -155,15 +155,19 @@ _MAX_PAGE_TEMPLATES = 20
 # Откат публикации одним кликом. Хранится в самом site_config (без миграций).
 _MAX_HISTORY = 8
 
+# SE-5b/5b-2: служебные ключи, которые НЕ попадают в снимки истории (анти-рекурсия и
+# чтобы автосейв-черновик `_draft` не раздувал историю). normalize() их и так дропает.
+_SNAPSHOT_EXCLUDE = ("history", "_draft", "_draft_ts")
+
 
 def normalize_history(raw) -> list:
-    """SE-5b: история версий — список {ts:str, config:dict}. Из каждого снимка выкинут
-    вложенный `history` (анти-рекурсия/раздувание). Кап `_MAX_HISTORY`. Мусор → []."""
+    """SE-5b: история версий — список {ts:str, config:dict}. Из каждого снимка выкинуты
+    служебные ключи (`history`/`_draft*` — анти-рекурсия/раздувание). Кап `_MAX_HISTORY`."""
     out = []
     for item in raw if isinstance(raw, list) else []:
         if not isinstance(item, dict) or not isinstance(item.get("config"), dict):
             continue
-        snap = {k: v for k, v in item["config"].items() if k != "history"}
+        snap = {k: v for k, v in item["config"].items() if k not in _SNAPSHOT_EXCLUDE}
         out.append({"ts": _s(item.get("ts")), "config": snap})
         if len(out) >= _MAX_HISTORY:
             break
@@ -171,10 +175,10 @@ def normalize_history(raw) -> list:
 
 
 def push_history(prev_published, existing_history, ts: str) -> list:
-    """SE-5b: добавить снимок prev_published (без `history`) в начало истории. Пустой
-    prev (первая публикация) → история без изменений. ts — ISO-строка (передаём извне,
-    чтобы функция оставалась чистой/тестируемой)."""
-    snap = {k: v for k, v in (prev_published or {}).items() if k != "history"}
+    """SE-5b: добавить снимок prev_published (без служебных ключей) в начало истории.
+    Пустой prev (первая публикация) → история без изменений. ts — ISO-строка (передаём
+    извне, чтобы функция оставалась чистой/тестируемой)."""
+    snap = {k: v for k, v in (prev_published or {}).items() if k not in _SNAPSHOT_EXCLUDE}
     if not snap:
         return normalize_history(existing_history)
     return normalize_history([{"ts": ts, "config": snap}] + list(existing_history or []))

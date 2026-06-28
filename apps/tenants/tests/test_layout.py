@@ -553,3 +553,16 @@ def test_push_history_caps_to_max():
     out = siteconfig.push_history({"hero_title": "New"}, existing, "now")
     assert len(out) == siteconfig._MAX_HISTORY
     assert out[0]["config"]["hero_title"] == "New"  # новейшая первая
+
+
+def test_push_history_strips_draft_keys():
+    # SE-5b-2: автосейв-черновик `_draft`/`_draft_ts` не должен попадать в снимок истории
+    prev = {"hero_title": "Pub", "_draft": {"hero_title": "WIP"}, "_draft_ts": "t"}
+    out = siteconfig.push_history(prev, [], "now")
+    assert out[0]["config"] == {"hero_title": "Pub"}  # только опубликованное
+
+
+def test_normalize_drops_draft_keys_from_served_config():
+    # SE-5b-2: `_draft`/`_draft_ts` — служебные, не попадают в нормализованную выдачу
+    cfg = siteconfig.normalize({"hero_title": "X", "_draft": {"y": 1}, "_draft_ts": "t"})
+    assert "_draft" not in cfg and "_draft_ts" not in cfg
