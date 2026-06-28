@@ -557,6 +557,14 @@
     {% for value, label in block_types %}
       <button type="button" data-bt="{{ value }}" class="bld-ins-btn block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">+ {{ label }}</button>
     {% endfor %}
+    {# SE-4c: вставить сохранённый блок-шаблон ПРЯМО в эту позицию (use_block_template
+       + insert_after). Надёжнее cross-iframe DnD: вставка через клик-инсертер. #}
+    {% if block_templates %}
+      <div class="text-xs text-gray-400 px-2 pt-2 pb-1 border-t border-gray-100 mt-1">{% trans "Templates" %}</div>
+      {% for t in block_templates %}
+        <button type="button" data-tpl="{{ t.id }}" class="bld-ins-tpl block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">📋 {{ t.label|default:t.key }}</button>
+      {% endfor %}
+    {% endif %}
   </div>
 </div>
 
@@ -882,21 +890,31 @@
     inserter.classList.remove("hidden");
   }
   function hideInserter() { if (inserter) inserter.classList.add("hidden"); }
-  function submitInsert(after, btype) {
+  function postAction(fields) {
     var f = document.createElement("form");
     f.method = "post"; f.action = "";
     f.style.display = "none";
-    f.innerHTML =
-      '<input name="csrfmiddlewaretoken" value="' + token + '">' +
-      '<input name="action" value="add_block">' +
-      '<input name="block_type" value="' + btype + '">' +
-      '<input name="add_after" value="' + after + '">';
+    var html = '<input name="csrfmiddlewaretoken" value="' + token + '">';
+    Object.keys(fields).forEach(function (k) {
+      html += '<input name="' + k + '" value="' + fields[k] + '">';
+    });
+    f.innerHTML = html;
     document.body.appendChild(f);
     f.submit();
+  }
+  function submitInsert(after, btype) {
+    postAction({ action: "add_block", block_type: btype, add_after: after });
+  }
+  // SE-4c: вставить сохранённый блок-шаблон в позицию (после секции `after`).
+  function submitInsertTemplate(after, tid) {
+    postAction({ action: "use_block_template:" + tid, insert_after: after });
   }
   if (inserter) {
     inserter.querySelectorAll(".bld-ins-btn").forEach(function (b) {
       b.addEventListener("click", function () { submitInsert(insAfter, b.getAttribute("data-bt")); });
+    });
+    inserter.querySelectorAll(".bld-ins-tpl").forEach(function (b) {
+      b.addEventListener("click", function () { submitInsertTemplate(insAfter, b.getAttribute("data-tpl")); });
     });
   }
   document.addEventListener("keydown", function (e) {
@@ -1045,8 +1063,21 @@
       bar.appendChild(btn);
       sec.parentNode.insertBefore(bar, sec.nextSibling);
     });
-    // E.4: drag-on-canvas — ручка ⠿ на каждом блоке; перетаскивание меняет порядок.
+    // E.4 / SE-4c: drag-on-canvas — ручка ⠿ на каждом блоке; перетаскивание меняет
+    // порядок. SE-4c: видимый индикатор позиции вставки (линия) во время перетаскивания.
     var win = frame.contentWindow;
+    var dropLine = doc.createElement("div");
+    dropLine.setAttribute("style",
+      "position:fixed;height:3px;background:#4f46e5;border-radius:2px;z-index:70;" +
+      "pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(79,70,229,.3);");
+    doc.body.appendChild(dropLine);
+    function showDropLine(b, before) {
+      dropLine.style.left = b.left + "px";
+      dropLine.style.width = b.width + "px";
+      dropLine.style.top = (before ? b.top : b.bottom) - 1 + "px";
+      dropLine.style.display = "block";
+    }
+    function hideDropLine() { dropLine.style.display = "none"; }
     if (previewPath === "/")
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
       var box = sec.firstElementChild;
@@ -1069,11 +1100,23 @@
         draggedKey = sec.getAttribute("data-sf-section");
         if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
       });
+      h.addEventListener("dragend", function () { hideDropLine(); draggedKey = null; });
       box.appendChild(h);
-      box.addEventListener("dragover", function (e) { if (draggedKey) e.preventDefault(); });
+      box.addEventListener("dragover", function (e) {
+        if (!draggedKey) return;
+        e.preventDefault();
+        var b = box.getBoundingClientRect();
+        showDropLine(b, e.clientY < b.top + b.height / 2);  // SE-4c: индикатор позиции
+      });
+      box.addEventListener("dragleave", function (e) {
+        // прячем линию, только когда курсор реально покинул блок (не дочерний элемент)
+        if (e.relatedTarget && box.contains(e.relatedTarget)) return;
+        hideDropLine();
+      });
       box.addEventListener("drop", function (e) {
         if (!draggedKey) return;
         e.preventDefault();
+        hideDropLine();
         var tKey = sec.getAttribute("data-sf-section");
         var b = box.getBoundingClientRect();
         moveBlock(draggedKey, tKey, e.clientY < b.top + b.height / 2);

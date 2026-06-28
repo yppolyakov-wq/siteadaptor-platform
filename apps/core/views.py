@@ -230,6 +230,18 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
     return {}
 
 
+def _insert_after_section(sections: list, block: dict, after: str) -> None:
+    """SE-4c: вставить block сразу ПОСЛЕ секции с key/id == after (инсертер «+» на
+    канвасе). Пусто/не найдено → в конец. Общий путь для add_block и use_block_template."""
+    after = (after or "").strip()
+    if after:
+        for i, s in enumerate(sections):
+            if s.get("id") == after or s.get("key") == after:
+                sections.insert(i + 1, block)
+                return
+    sections.append(block)
+
+
 def _save_hero(request, tenant):
     """B.3: сохранить баннер мастера — hero-тексты + опц. загруженное фото (файл)."""
     from apps.tenants import siteconfig
@@ -522,17 +534,7 @@ def home_builder_view(request):
             if btype in siteconfig.REPEATABLE_BLOCKS:
                 cfg = siteconfig.normalize(request.tenant.site_config)
                 new_block = {"key": btype, "enabled": True, "data": {}}
-                after = (request.POST.get("add_after") or "").strip()
-                idx = None
-                if after:
-                    for i, s in enumerate(cfg["sections"]):
-                        if s.get("id") == after or s.get("key") == after:
-                            idx = i
-                            break
-                if idx is None:
-                    cfg["sections"].append(new_block)
-                else:
-                    cfg["sections"].insert(idx + 1, new_block)
+                _insert_after_section(cfg["sections"], new_block, request.POST.get("add_after"))
                 request.tenant.site_config = siteconfig.normalize(cfg)
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 messages.success(request, _("Block added."))
@@ -563,8 +565,12 @@ def home_builder_view(request):
                     messages.success(request, _("Block saved as template."))
             elif verb == "use_block_template" and ident in tpls:
                 tpl = tpls[ident]
-                cfg["sections"].append(
-                    {"key": tpl["key"], "enabled": True, "data": copy.deepcopy(tpl["data"])}
+                # SE-4c: опц. insert_after (инсертер «+» на канвасе) → вставка в позицию;
+                # иначе в конец (back-compat с кнопкой «Insert» в библиотеке).
+                _insert_after_section(
+                    cfg["sections"],
+                    {"key": tpl["key"], "enabled": True, "data": copy.deepcopy(tpl["data"])},
+                    request.POST.get("insert_after"),
                 )
                 messages.success(request, _("Template inserted."))
             elif verb == "delete_block_template" and ident in tpls:

@@ -237,6 +237,24 @@ def test_home_builder_get_renders_canvas_drag():
     assert "data-sf-drag" in body  # инъекция ручки на блок превью
 
 
+def test_home_builder_inserter_lists_block_templates():
+    """SE-4c: инсертер «+» предлагает вставить сохранённый блок-шаблон в позицию."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbinstpl",
+        name="HBINSTPL",
+        site_config={
+            "block_templates": {"tplA": {"key": "text", "label": "Greeting", "data": {"title": "Hi"}}}
+        },
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'class="bld-ins-tpl' in body and 'data-tpl="tplA"' in body  # кнопка вставки шаблона
+    assert "function submitInsertTemplate" in body  # use_block_template + insert_after
+    assert "showDropLine" in body  # SE-4c: индикатор позиции при перетаскивании
+
+
 def test_home_builder_saves_design():
     """M20f: билдер сохраняет шрифт/стиль hero (site_config) и акцент (Tenant)."""
     tenant = TenantFactory(

@@ -62,6 +62,39 @@ def test_add_block_after_inserts_at_position():
     assert keys[keys.index("hero") + 1] == "text"  # вставлен сразу после hero, не в конец
 
 
+def test_use_block_template_inserts_at_position():
+    """SE-4c: вставка сохранённого блок-шаблона в позицию (insert_after) — не в конец."""
+    tenant = TenantFactory(
+        slug="cbtplpos",
+        name="X",
+        site_config={
+            "sections": [{"key": "hero", "enabled": True}, {"key": "products", "enabled": True}],
+            "block_templates": {"tplA": {"key": "text", "label": "G", "data": {"title": "Hi"}}},
+        },
+    )
+    core_views.home_builder_view(
+        _req({"action": "use_block_template:tplA", "insert_after": "hero"}, tenant)
+    )
+    tenant.refresh_from_db()
+    keys = [s["key"] for s in siteconfig.normalize(tenant.site_config)["sections"]]
+    assert keys[keys.index("hero") + 1] == "text"  # копия шаблона сразу после hero
+
+
+def test_use_block_template_without_position_appends():
+    """SE-4c: без insert_after поведение прежнее — копия в конец (back-compat)."""
+    tenant = TenantFactory(
+        slug="cbtplend",
+        name="X",
+        site_config={
+            "block_templates": {"tplA": {"key": "text", "label": "G", "data": {"title": "Hi"}}}
+        },
+    )
+    core_views.home_builder_view(_req({"action": "use_block_template:tplA"}, tenant))
+    tenant.refresh_from_db()
+    blocks = _cblocks(tenant)
+    assert len(blocks) == 1 and blocks[0]["data"]["title"] == "Hi"
+
+
 def test_save_persists_cblock_edits_and_keeps_fixed_sections():
     tenant = TenantFactory(slug="cb2", name="X")
     core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
