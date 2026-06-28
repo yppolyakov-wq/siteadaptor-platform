@@ -2548,3 +2548,13 @@
   DB-suites 159 за 9с с --reuse-db). SE-3c-min слит FF в main (`bc64270`). Без миграций.
   **Ядро SE-3 закрыто** (SE-3a/3b/3c-min/3d). Остаток опц.: SE-3c-mid (скрыть-на-устройстве),
   C-full (порядок пер-девайс) — план в `storefront-onsite-editor-plan.md`.
+
+- **2026-06-28 — on-canvas редактор: SE-4a (переиспользуемые блок-шаблоны).** Многоразовые
+  C-блоки в `site_config["block_templates"]={id:{key,label,data}}` (без модели/миграций;
+  `normalize_block_templates`, key ∈ REPEATABLE_BLOCKS, data санитизируется по типу, лимит 50,
+  back-compat пусто={}). Save: «💾 Save as template» в cb-row → `action=save_block_template:<cb_id>`
+  (#home-form, данные из POST через `_read_cblock_data` — ловит несохранённые правки; ранний
+  return). Library: отдельная форма → `use_block_template:<tid>` (вставить deep-copy C-блока в
+  конец) / `delete_block_template:<tid>`. Переиспользует механизм C-блоков (add_block). Тесты
+  (siteconfig нормализация/санитайз + home_builder save/use/delete/GET, 101 passed --reuse-db
+  6.5с). SE-4a ✅ слит FF в main (`ef23e6f`). Без миграций. SE-4b/4c — далее.
