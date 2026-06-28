@@ -640,6 +640,16 @@ def home_builder_view(request):
     root_options = [{"key": "home", "label": _("Combined homepage")}] + [
         {"key": a.key, "label": a.label} for a in modules.storefront_archetypes(request.tenant)
     ]
+    # SE-2a-1: страницы для переключателя превью в редакторе (главная + лендинги
+    # активных архетипов). URL резолвим тут (tenant urlconf); недоступный — пропускаем.
+    from django.urls import NoReverseMatch, reverse
+
+    preview_pages = [{"label": _("Homepage"), "url": "/"}]
+    for a in modules.storefront_archetypes(request.tenant):
+        try:
+            preview_pages.append({"label": a.label, "url": reverse(a.url_name)})
+        except NoReverseMatch:
+            continue
     # Фикс-секции и C-блоки идут в одном `config["sections"]`; index = глобальный
     # порядок (его пишем в order_*-поля, чтобы при сохранении сохранить чередование).
     sections = []
@@ -712,6 +722,7 @@ def home_builder_view(request):
             "archetype_specs": storefront.teaser_specs(request.tenant),
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,
+            "preview_pages": preview_pages,
             "storefront_root": config.get("storefront_root", "home"),
             # M20f: дизайн вживую — текущие значения + варианты шрифта.
             "font": config.get("font", "system"),

@@ -304,6 +304,12 @@
             <button type="button" id="home-redo" title="{% trans 'Redo' %} (Ctrl+Shift+Z)"
                     class="px-2.5 py-1 border-l border-gray-300 text-gray-400 cursor-not-allowed" disabled>↷ {% trans "Redo" %}</button>
           </div>
+          {# SE-2a-1: переключатель страницы превью (главная + лендинги архетипов). #}
+          {% if preview_pages|length > 1 %}
+            <select id="home-prev-page" class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-600" aria-label="{% trans 'Preview page' %}" title="{% trans 'Preview page' %}">
+              {% for p in preview_pages %}<option value="{{ p.url }}">{{ p.label }}</option>{% endfor %}
+            </select>
+          {% endif %}
           {# Переключатель ширины предпросмотра (Desktop/Tablet/Mobile). #}
           <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs">
             <button type="button" data-w="100%" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
@@ -349,6 +355,11 @@
   var status = document.getElementById("home-prev-status");
   var url = form.getAttribute("data-draft-url");
   var token = (form.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "";
+  // SE-2a-1: текущая страница превью (главная по умолчанию; переключатель меняет).
+  var previewPath = "/";
+  function previewUrl() {
+    return previewPath + (previewPath.indexOf("?") < 0 ? "?" : "&") + "preview=1";
+  }
 
   // Адаптив: переключатель Редактор/Превью (<lg). На lg обе колонки видны (lg:!block).
   var edPane = document.getElementById("bld-editor-pane");
@@ -635,9 +646,18 @@
       headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
       body: JSON.stringify(collect()),
     }).then(function () {
-      frame.contentWindow.location.replace("/?preview=1");
+      frame.contentWindow.location.replace(previewUrl());
       if (status) status.textContent = "{% trans 'Unsaved preview' %}";
     }).catch(function () { if (status) status.textContent = ""; });
+  }
+
+  // SE-2a-1: переключатель страницы превью — грузит выбранный URL с черновиком.
+  var pageSel = document.getElementById("home-prev-page");
+  if (pageSel) {
+    pageSel.addEventListener("change", function () {
+      previewPath = pageSel.value || "/";
+      frame.contentWindow.location.replace(previewUrl());
+    });
   }
 
   // M20 WYSIWYG: тексты [data-edit] в превью редактируются прямо в билдере

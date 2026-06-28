@@ -359,6 +359,18 @@ def test_home_builder_get_renders_move_buttons():
     assert "function sortListByOrderValue" in body  # синхрон DOM-списка
 
 
+def test_home_builder_get_renders_preview_page_switcher():
+    """SE-2a-1: переключатель страницы превью (главная + лендинги активных архетипов)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbpg", name="HBPG", enabled_modules=["catalog", "stays"]
+    )
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'id="home-prev-page"' in body  # селектор страниц
+    assert "function previewUrl" in body  # URL превью текущей страницы
+    assert "/sortiment/" in body or "/unterkunft/" in body  # лендинг архетипа в опциях
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""
