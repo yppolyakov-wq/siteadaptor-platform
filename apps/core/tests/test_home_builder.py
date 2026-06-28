@@ -788,3 +788,35 @@ def test_home_builder_get_renders_block_template_library():
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert "use_block_template:tplA" in body and "Greeting" in body
+
+
+def test_home_builder_saves_hidden_on_per_device():
+    """SE-3c-mid: чекбоксы 📱/▭/🖥 сохраняют список устройств скрытия секции."""
+    tenant = TenantFactory(schema_name="public", slug="hbho", name="HBHO", site_config={})
+    data = {
+        "order_products": "1",
+        "enabled_products": "on",
+        "hide_mobile_products": "on",
+        "hide_desktop_products": "on",
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert products["hidden_on"] == ["mobile", "desktop"]
+
+
+def test_home_builder_get_renders_hidden_on_checkboxes():
+    """SE-3c-mid: GET отрисовывает чекбоксы скрытия по устройствам, отражая состояние."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbhog",
+        name="HBHOG",
+        site_config={"sections": [{"key": "products", "enabled": True, "hidden_on": ["mobile"]}]},
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'name="hide_mobile_products"' in body
+    assert 'name="hide_tablet_products"' in body
+    assert 'name="hide_desktop_products"' in body

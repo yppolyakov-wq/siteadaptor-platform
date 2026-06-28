@@ -416,3 +416,41 @@ def test_block_templates_normalize_and_sanitize():
 
 def test_block_templates_empty_default():
     assert siteconfig.normalize(None)["block_templates"] == {}
+
+
+# --- SE-3c-mid: скрыть секцию на устройстве ---------------------------------------
+
+
+def test_hidden_on_default_empty_for_sections():
+    cfg = siteconfig.normalize({})
+    for s in cfg["sections"]:
+        assert s["hidden_on"] == []  # дефолт = видна везде (без регрессии)
+
+
+def test_hidden_on_sanitized_and_ordered():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "products", "enabled": True, "hidden_on": ["desktop", "bogus", "mobile"]},
+            ]
+        }
+    )
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    # мусор отброшен, порядок канонический (mobile, tablet, desktop)
+    assert products["hidden_on"] == ["mobile", "desktop"]
+
+
+def test_hidden_on_non_list_falls_back_to_empty():
+    cfg = siteconfig.normalize(
+        {"sections": [{"key": "products", "enabled": True, "hidden_on": "mobile"}]}
+    )
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert products["hidden_on"] == []
+
+
+def test_hidden_on_on_cblock():
+    cfg = siteconfig.normalize(
+        {"sections": [{"key": "text", "id": "x1", "data": {"title": "T"}, "hidden_on": ["mobile"]}]}
+    )
+    block = next(s for s in cfg["sections"] if s.get("id") == "x1")
+    assert block["hidden_on"] == ["mobile"]

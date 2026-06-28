@@ -219,6 +219,13 @@
                   <input type="color" name="visual_bg_{{ s.key }}" value="{{ s.visual_bg|default:'#ffffff' }}" class="h-6 w-8 rounded border border-gray-300 p-0.5">
                 </label>
               </div>
+              {# SE-3c-mid: скрыть секцию на устройстве (📱 телефон / ▭ планшет / 🖥 десктоп). #}
+              <div class="w-full flex items-center gap-2 text-xs text-gray-500" data-expert="1" title="{% trans 'Hide on device' %}">
+                <span>{% trans "Hide on" %}:</span>
+                <label class="flex items-center gap-1"><input type="checkbox" name="hide_mobile_{{ s.key }}" {% if 'mobile' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">📱</label>
+                <label class="flex items-center gap-1"><input type="checkbox" name="hide_tablet_{{ s.key }}" {% if 'tablet' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">▭</label>
+                <label class="flex items-center gap-1"><input type="checkbox" name="hide_desktop_{{ s.key }}" {% if 'desktop' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">🖥</label>
+              </div>
               {# SE-3a: микрошаблоны «Quick styles» — один клик задаёт облик (layout+visual)
                  секции-сетки. Распаковка на фронте в обычные инпуты → live-preview/Save. #}
               {% if s.is_grid %}
@@ -623,6 +630,11 @@
         padding: padEl && padEl.value !== "" ? parseInt(padEl.value, 10) || 0 : 0,
         background: bgOn && bgOn.checked && bgEl ? bgEl.value : "",
       };
+      // SE-3c-mid: скрыть секцию на устройстве → в превью.
+      sec.hidden_on = ["mobile", "tablet", "desktop"].filter(function (d) {
+        var el = form.querySelector("input[name='hide_" + d + "_" + r.key + "']");
+        return el && el.checked;
+      });
       return sec;
     });
     var archetypes = {};

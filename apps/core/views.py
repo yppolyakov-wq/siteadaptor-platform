@@ -606,6 +606,12 @@ def home_builder_view(request):
             except (TypeError, ValueError):
                 order = 999
             entry = {"key": key, "enabled": request.POST.get(f"enabled_{key}") == "on"}
+            # SE-3c-mid: скрыть секцию на устройствах (mobile/tablet/desktop).
+            entry["hidden_on"] = [
+                d
+                for d in ("mobile", "tablet", "desktop")
+                if request.POST.get(f"hide_{d}_{key}") == "on"
+            ]
             if key in siteconfig.GRID_SECTION_DEFAULTS:
                 preset = request.POST.get(f"layout_preset_{key}", "")
                 lay = {"preset": preset} if preset in siteconfig.LAYOUT_PRESETS else {}
@@ -829,6 +835,8 @@ def home_builder_view(request):
                 "visual_shadow": bool(s.get("visual", {}).get("shadow", False)),
                 "visual_bg": s.get("visual", {}).get("background", ""),
                 "visual_padding": int(s.get("visual", {}).get("padding", 0)),
+                # SE-3c-mid: на каких устройствах секция скрыта.
+                "hidden_on": s.get("hidden_on", []),
             }
         )
     preset_options = [
@@ -1092,6 +1100,9 @@ def site_preview_draft(request):
                 # в черновик для live-preview (normalize/_clean_visual санитайзит).
                 if isinstance(item.get("visual"), dict):
                     row["visual"] = item["visual"]
+                # SE-3c-mid: скрыть секцию на устройстве → в превью.
+                if isinstance(item.get("hidden_on"), list):
+                    row["hidden_on"] = item["hidden_on"]
                 rows.append(row)
                 seen.add(key)
         if rows:

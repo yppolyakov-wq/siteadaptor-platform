@@ -268,6 +268,26 @@ def test_home_sections_carry_sf_section_markers():
     assert 'data-sf-section="contact"' in body  # включённая по умолчанию секция
 
 
+def test_home_section_hidden_on_mobile_emits_responsive_class():
+    """SE-3c-mid: hidden_on=['mobile'] секции рендерит max-sm:hidden на её обёртке."""
+    req = _req("/")
+    req.tenant.site_config = {
+        "sections": [{"key": "contact", "enabled": True, "hidden_on": ["mobile"]}]
+    }
+    body = public_views.storefront_home(req).content.decode()
+    assert "max-sm:hidden" in body
+    assert "lg:hidden" not in body  # desktop НЕ скрыт
+
+
+def test_home_section_visible_everywhere_has_no_hide_class():
+    """SE-3c-mid: без hidden_on обёртка секции не несёт классов скрытия (без регрессии)."""
+    req = _req("/")
+    req.tenant.site_config = {"sections": [{"key": "contact", "enabled": True}]}
+    body = public_views.storefront_home(req).content.decode()
+    assert "max-sm:hidden" not in body
+    assert "sm:max-lg:hidden" not in body
+
+
 def test_home_plain_hero_has_no_cta():
     """Дефолтный (plain) hero — без CTA: легаси-витрина не меняется."""
     body = public_views.storefront_home(_req("/")).content.decode()

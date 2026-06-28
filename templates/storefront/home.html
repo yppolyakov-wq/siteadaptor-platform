@@ -11,8 +11,12 @@ if/elif: единый источник правды + основа для C-бл
 секции в live-preview билдера (ключ — фикс-секция, id — C-блок).
 {% endcomment %}
 {% for b in section_blocks %}
+  {% comment %}SE-3c-mid: display:contents вынесен в класс `contents`, чтобы
+  респонсив-классы скрытия по устройствам могли его переопределить на нужном
+  брейкпойнте. --sf-* остаются inline (когда заданы).{% endcomment %}
   <div data-sf-section="{% if b.id %}{{ b.id }}{% else %}{{ b.key }}{% endif %}"
-       style="display:contents;{% if b.visual.radius %} --sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %} --sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if b.visual.background %} --sf-bg:{{ b.visual.background }};{% endif %}{% if b.visual.padding %} --sf-pad:{{ b.visual.padding }}px;{% endif %}">{% render_block b %}</div>
+       class="contents{% if 'mobile' in b.hidden_on %} max-sm:hidden{% endif %}{% if 'tablet' in b.hidden_on %} sm:max-lg:hidden{% endif %}{% if 'desktop' in b.hidden_on %} lg:hidden{% endif %}"
+       style="{% if b.visual.radius %}--sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if b.visual.background %}--sf-bg:{{ b.visual.background }};{% endif %}{% if b.visual.padding %}--sf-pad:{{ b.visual.padding }}px;{% endif %}">{% render_block b %}</div>
 {% endfor %}
 {% endblock %}
 </content>

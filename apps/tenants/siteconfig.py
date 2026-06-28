@@ -122,6 +122,14 @@ def _clean_cblock_data(key: str, raw) -> dict:
     return {}  # spacer — без данных
 
 
+_DEVICES = ("mobile", "tablet", "desktop")
+
+
+def _clean_hidden_on(raw) -> list:
+    """SE-3c-mid: список устройств, на которых секция скрыта (подмножество _DEVICES)."""
+    return [d for d in _DEVICES if isinstance(raw, list) and d in raw]
+
+
 def _clean_cblock(item: dict) -> dict:
     """C-блок → {key, id, enabled, data}. id сохраняется (или генерится)."""
     key = item["key"]
@@ -131,6 +139,7 @@ def _clean_cblock(item: dict) -> dict:
         "id": bid,
         "enabled": bool(item.get("enabled", True)),
         "data": _clean_cblock_data(key, item.get("data")),
+        "hidden_on": _clean_hidden_on(item.get("hidden_on")),  # SE-3c-mid
     }
 
 
@@ -960,6 +969,8 @@ def normalize(config) -> dict:
         # SE-3d: визуальные параметры (radius/shadow/background/padding) — для всех
         # секций кроме C-блоков. Пустые = текущий облик (без регрессии для legacy).
         entry["visual"] = _clean_visual(raw_item.get("visual"))
+        # SE-3c-mid: скрыть секцию на устройствах (mobile/tablet/desktop). Пусто = везде.
+        entry["hidden_on"] = _clean_hidden_on(raw_item.get("hidden_on"))
         return entry
 
     cblocks = 0
