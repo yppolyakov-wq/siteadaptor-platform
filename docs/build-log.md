@@ -2482,3 +2482,13 @@
   текущие; `collect()`+`site_preview_draft` принимают `site_defaults` → live-preview на любой
   странице под `?preview=1`. Пер-блочный visual (SE-3d) переопределяет глобальный. Тесты
   (test_home_builder + test_live_preview). SE-2d-1/2/3 + CI-инкремент слиты FF в main (`1b8f8dc`).
+
+- **2026-06-28 — on-canvas редактор: SE-2d-5 (live-preview раскладки лендингов).**
+  `site_preview_draft` теперь читает `catalog_layout`/`events_index_layout`/`stay_index_layout`
+  из payload (collect() их слал, но хендлер игнорил → правка раскладки лендинга была видна
+  только после Save). Валидация preset через `siteconfig.LAYOUT_PRESETS`. Тест.
+- **2026-06-28 — on-canvas редактор: SE-2d-4 («применить раскладку ко всем лендингам»).**
+  В инспекторе «Landing pages» — селектор пресета + кнопка «Apply»: ставит раскладку
+  каталога/событий/номеров одним кликом (фронт: значения catalog/events/stay_preset →
+  live-preview; Save сохраняет). Тест рендера. **SE-2d закрыт ✅** (1/2/3/4/5); полный
+  мультивыбор страниц отложен. Опц. остаётся SE-2c-3 (инлайн-правка имени категории на канве).
