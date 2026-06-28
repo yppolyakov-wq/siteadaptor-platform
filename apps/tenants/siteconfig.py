@@ -151,6 +151,34 @@ _MAX_BLOCK_TEMPLATES = 50
 # секций главной. Владелец сохраняет компоновку и применяет одним кликом.
 _MAX_PAGE_TEMPLATES = 20
 
+# SE-5b: история опубликованных версий site_config — [{ts, config}] (новейшая первая).
+# Откат публикации одним кликом. Хранится в самом site_config (без миграций).
+_MAX_HISTORY = 8
+
+
+def normalize_history(raw) -> list:
+    """SE-5b: история версий — список {ts:str, config:dict}. Из каждого снимка выкинут
+    вложенный `history` (анти-рекурсия/раздувание). Кап `_MAX_HISTORY`. Мусор → []."""
+    out = []
+    for item in raw if isinstance(raw, list) else []:
+        if not isinstance(item, dict) or not isinstance(item.get("config"), dict):
+            continue
+        snap = {k: v for k, v in item["config"].items() if k != "history"}
+        out.append({"ts": _s(item.get("ts")), "config": snap})
+        if len(out) >= _MAX_HISTORY:
+            break
+    return out
+
+
+def push_history(prev_published, existing_history, ts: str) -> list:
+    """SE-5b: добавить снимок prev_published (без `history`) в начало истории. Пустой
+    prev (первая публикация) → история без изменений. ts — ISO-строка (передаём извне,
+    чтобы функция оставалась чистой/тестируемой)."""
+    snap = {k: v for k, v in (prev_published or {}).items() if k != "history"}
+    if not snap:
+        return normalize_history(existing_history)
+    return normalize_history([{"ts": ts, "config": snap}] + list(existing_history or []))
+
 
 def normalize_block_templates(raw) -> dict:
     """SE-4a: привести block_templates к {id: {key, label, data}}. key ∈
@@ -1022,6 +1050,8 @@ def normalize(config) -> dict:
     normalized["block_templates"] = normalize_block_templates(config.get("block_templates"))
     # SE-4b: шаблоны страниц (снимки компоновки секций).
     normalized["page_templates"] = normalize_page_templates(config.get("page_templates"))
+    # SE-5b: история опубликованных версий (откат публикации).
+    normalized["history"] = normalize_history(config.get("history"))
     for field in TEXT_FIELDS:
         value = config.get(field, "")
         normalized[field] = value.strip() if isinstance(value, str) else ""

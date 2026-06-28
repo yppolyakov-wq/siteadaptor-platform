@@ -911,3 +911,87 @@ def test_home_builder_get_renders_page_template_library():
     ).content.decode()
     assert "use_page_template:ptA" in body and "Klassisch" in body
     assert 'value="save_page_template"' in body
+
+
+def test_home_builder_save_creates_history_snapshot():
+    """SE-5b: явное «Сохранить» кладёт предыдущую опубликованную версию в историю."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbhist",
+        name="HBHIST",
+        site_config={"hero_title": "Erste Version"},
+    )
+    data = {"order_hero": "1", "enabled_hero": "on"}
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert len(cfg["history"]) == 1
+    assert cfg["history"][0]["config"]["hero_title"] == "Erste Version"
+
+
+def test_home_builder_two_saves_keep_newest_first():
+    """SE-5b: вторая публикация добавляет запись; новейшая — первая. Меняем заголовок
+    секции (title_events — поле, которое реально пишет этот POST)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbhist2",
+        name="HBHIST2",
+        site_config={"section_titles": {"events": "V1"}},
+    )
+    views.home_builder_view(
+        _request(
+            "post", "/dashboard/site/home/", {"enabled_events": "on", "title_events": "V2"}, tenant
+        )
+    )
+    views.home_builder_view(
+        _request(
+            "post", "/dashboard/site/home/", {"enabled_events": "on", "title_events": "V3"}, tenant
+        )
+    )
+    hist = siteconfig.normalize(tenant.site_config)["history"]
+    # перед 2-й публикацией было V2, перед 1-й — V1
+    assert hist[0]["config"]["section_titles"]["events"] == "V2"
+    assert hist[1]["config"]["section_titles"]["events"] == "V1"
+
+
+def test_home_builder_restore_version_swaps_config():
+    """SE-5b: restore_version меняет конфиг на снимок, текущий уходит в историю (undoable)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbrest",
+        name="HBREST",
+        site_config={
+            "hero_title": "Current",
+            "history": [{"ts": "2026-01-01T00:00", "config": {"hero_title": "Alt"}}],
+        },
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "restore_version:0"}, tenant)
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["hero_title"] == "Alt"  # откатились
+    assert cfg["history"][0]["config"]["hero_title"] == "Current"  # текущий — undoable
+
+
+def test_home_builder_restore_invalid_index_noop():
+    """SE-5b: невалидный индекс отката — без изменений."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbrest2", name="HBREST2", site_config={"hero_title": "Keep"}
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "restore_version:9"}, tenant)
+    )
+    assert siteconfig.normalize(tenant.site_config)["hero_title"] == "Keep"
+
+
+def test_home_builder_get_renders_history():
+    """SE-5b: GET рендерит список версий с кнопкой Restore."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbhistg",
+        name="HBHISTG",
+        site_config={"history": [{"ts": "2026-06-28T15:30", "config": {"hero_title": "X"}}]},
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert "restore_version:0" in body and "2026-06-28" in body

@@ -467,6 +467,25 @@
     </form>
     {% endif %}
 
+    {# SE-5b: история версий — откат публикации на сохранённую ранее версию (каждое
+       «Сохранить» кладёт предыдущую версию сюда). Откат сам undoable. Отдельная форма. #}
+    {% if history %}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+      {% csrf_token %}
+      <span class="text-sm font-medium">{% trans "Version history" %}:</span>
+      <div class="flex flex-col gap-2">
+        {% for h in history %}
+          <div class="flex items-center gap-2 text-sm border border-gray-100 rounded-lg px-3 py-2">
+            <span class="flex-1 text-gray-600">{{ h.ts|slice:":10" }} {{ h.ts|slice:"11:16" }}{% if not h.ts %}{% trans "Earlier version" %}{% endif %}
+            <button type="submit" name="action" value="restore_version:{{ h.idx }}"
+                    onclick="return confirm('{% trans "Restore this version? The current one is kept in history." %}')"
+                    class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Restore" %}</button>
+          </div>
+        {% endfor %}
+      </div>
+    </form>
+    {% endif %}
+
     {# SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
        Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). #}
     {% if has_catalog %}

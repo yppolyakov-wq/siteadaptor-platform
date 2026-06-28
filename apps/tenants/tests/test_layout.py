@@ -507,3 +507,49 @@ def test_normalize_sections_helper_idempotent():
     once = siteconfig.normalize_sections([{"key": "products", "enabled": True}])
     twice = siteconfig.normalize_sections(once)
     assert [s["key"] for s in once] == [s["key"] for s in twice]
+
+
+# --- SE-5b: история версий (history) ----------------------------------------------
+
+
+def test_history_empty_default():
+    assert siteconfig.normalize(None)["history"] == []
+
+
+def test_normalize_history_sanitizes_and_caps():
+    raw = [{"ts": f"t{i}", "config": {"hero_title": str(i)}} for i in range(12)]
+    raw.append("not-a-dict")
+    raw.append({"ts": "x", "config": "not-a-dict"})  # config не dict → выкинут
+    cfg = siteconfig.normalize({"history": raw})
+    assert len(cfg["history"]) == siteconfig._MAX_HISTORY  # кап 8
+    assert cfg["history"][0] == {"ts": "t0", "config": {"hero_title": "0"}}
+
+
+def test_normalize_history_strips_nested_history():
+    # анти-рекурсия: снимок не должен тащить вложенный history
+    cfg = siteconfig.normalize(
+        {"history": [{"ts": "t", "config": {"hero_title": "A", "history": [{"x": 1}]}}]}
+    )
+    assert "history" not in cfg["history"][0]["config"]
+
+
+def test_push_history_prepends_snapshot():
+    prev = {"hero_title": "Old", "history": [{"ts": "z", "config": {}}]}
+    out = siteconfig.push_history(prev, [], "2026-06-28T10:00")
+    assert out[0]["ts"] == "2026-06-28T10:00"
+    assert out[0]["config"]["hero_title"] == "Old"
+    assert "history" not in out[0]["config"]  # вложенный history снят
+
+
+def test_push_history_empty_prev_is_noop():
+    # первая публикация (пустой prev) → история без новой записи
+    assert siteconfig.push_history({}, [{"ts": "a", "config": {"x": "1"}}], "t") == [
+        {"ts": "a", "config": {"x": "1"}}
+    ]
+
+
+def test_push_history_caps_to_max():
+    existing = [{"ts": f"e{i}", "config": {"n": str(i)}} for i in range(8)]
+    out = siteconfig.push_history({"hero_title": "New"}, existing, "now")
+    assert len(out) == siteconfig._MAX_HISTORY
+    assert out[0]["config"]["hero_title"] == "New"  # новейшая первая

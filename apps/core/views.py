@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -600,6 +601,26 @@ def home_builder_view(request):
             request.tenant.site_config = siteconfig.normalize(cfg)
             request.tenant.save(update_fields=["site_config", "updated_at"])
             return redirect("site-home")
+        # SE-5b: откат на версию из истории. restore_version:<idx> — заменить текущий
+        # конфиг снимком, а ТЕКУЩИЙ положить в начало истории (сам откат undoable).
+        if action.startswith("restore_version:"):
+            _verb, _sep, ident = action.partition(":")
+            cfg = siteconfig.normalize(request.tenant.site_config)
+            history = cfg.get("history") or []
+            try:
+                idx = int(ident)
+            except (TypeError, ValueError):
+                idx = -1
+            if 0 <= idx < len(history):
+                target = dict(history[idx]["config"])
+                current_snap = {k: v for k, v in cfg.items() if k != "history"}
+                target["history"] = [
+                    {"ts": timezone.now().isoformat(), "config": current_snap}
+                ] + history
+                request.tenant.site_config = siteconfig.normalize(target)
+                request.tenant.save(update_fields=["site_config", "updated_at"])
+                messages.success(request, _("Version restored."))
+            return redirect("site-home")
         # SE-2c-1: быстрое создание категории прямо в редакторе (мини-форма «+ Kategorie»,
         # по образцу add_block). Создаёт живую Category через CategoryForm (валидация/slug/
         # parent переиспользуются); категория сразу видна чипом на канве каталога. Категории
@@ -798,6 +819,11 @@ def home_builder_view(request):
         if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != request.tenant.primary_color:
             request.tenant.primary_color = accent
             update_fields.insert(1, "primary_color")
+        # SE-5b: снимок текущей опубликованной версии в историю перед публикацией новой
+        # (точки отката = явные «Сохранить»; инкрементальные действия историю не пишут).
+        config["history"] = siteconfig.push_history(
+            request.tenant.site_config, config.get("history"), timezone.now().isoformat()
+        )
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=update_fields)
         messages.success(request, "Gespeichert.")
@@ -934,6 +960,8 @@ def home_builder_view(request):
                 {"id": tid, "label": t["label"], "count": len(t["sections"])}
                 for tid, t in config["page_templates"].items()
             ],
+            # SE-5b: история версий (откат публикации).
+            "history": [{"idx": i, "ts": h["ts"]} for i, h in enumerate(config["history"])],
             "block_types": [
                 ("text", _("Text")),
                 ("image", _("Image")),
