@@ -574,6 +574,26 @@ def home_builder_view(request):
             request.tenant.site_config = siteconfig.normalize(cfg)
             request.tenant.save(update_fields=["site_config", "updated_at"])
             return redirect("site-home")
+        # SE-4b: применить/удалить шаблон страницы. use_page_template:<id> ЗАМЕНЯЕТ весь
+        # набор секций снимком (это шаблон СТРАНИЦЫ, не вставка); delete_page_template:<id>
+        # убирает из библиотеки. Сохранение шаблона — в основном потоке (ниже), чтобы
+        # снимок ловил несохранённые правки порядка/видимости из формы.
+        if action.startswith(("use_page_template:", "delete_page_template:")):
+            import copy
+
+            verb, _sep, ident = action.partition(":")
+            cfg = siteconfig.normalize(request.tenant.site_config)
+            ptpls = dict(cfg.get("page_templates") or {})
+            if verb == "use_page_template" and ident in ptpls:
+                cfg["sections"] = copy.deepcopy(ptpls[ident]["sections"])
+                messages.success(request, _("Page template applied."))
+            elif verb == "delete_page_template" and ident in ptpls:
+                ptpls.pop(ident)
+                cfg["page_templates"] = ptpls
+                messages.success(request, _("Page template removed."))
+            request.tenant.site_config = siteconfig.normalize(cfg)
+            request.tenant.save(update_fields=["site_config", "updated_at"])
+            return redirect("site-home")
         # SE-2c-1: быстрое создание категории прямо в редакторе (мини-форма «+ Kategorie»,
         # по образцу add_block). Создаёт живую Category через CategoryForm (валидация/slug/
         # parent переиспользуются); категория сразу видна чипом на канве каталога. Категории
@@ -677,6 +697,21 @@ def home_builder_view(request):
             )
         items.sort(key=lambda row: row[0])
         config["sections"] = [entry for _o, entry in items]
+        # SE-4b: сохранить текущую компоновку как шаблон страницы. Снимок берём из только
+        # что собранного config["sections"] → ловит несохранённые правки порядка/видимости
+        # (как save_block_template ловит правки C-блока). normalize() ниже санитизирует.
+        if request.POST.get("action") == "save_page_template":
+            import copy
+            import uuid
+
+            ptpls = dict(config.get("page_templates") or {})
+            label = (request.POST.get("page_tpl_label") or "").strip()
+            ptpls[uuid.uuid4().hex[:12]] = {
+                "label": label or _("Page template"),
+                "sections": copy.deepcopy(config["sections"]),
+            }
+            config["page_templates"] = ptpls
+            messages.success(request, _("Page saved as template."))
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
         arch = dict(config.get("archetypes") or {})
         for spec in storefront.teaser_specs(request.tenant):
@@ -887,6 +922,11 @@ def home_builder_view(request):
             "block_templates": [
                 {"id": tid, "key": t["key"], "label": t["label"]}
                 for tid, t in config["block_templates"].items()
+            ],
+            # SE-4b: библиотека шаблонов страниц (применить/удалить).
+            "page_templates": [
+                {"id": tid, "label": t["label"], "count": len(t["sections"])}
+                for tid, t in config["page_templates"].items()
             ],
             "block_types": [
                 ("text", _("Text")),

@@ -408,7 +408,15 @@
       </details>
       {% endif %}
 
-      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        {# SE-4b: сохранить ВСЮ компоновку секций как шаблон страницы. Сабмитит #home-form
+           с action=save_page_template (снимок из POST — ловит несохранённые правки). #}
+        <input type="text" name="page_tpl_label" placeholder="{% trans 'Page template name' %}"
+               class="rounded border border-gray-200 px-2 py-1.5 text-sm">
+        <button type="submit" name="action" value="save_page_template" formnovalidate
+                class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">🗂 {% trans "Save page as template" %}</button>
+      </div>
     </form>
 
     {# D.2b: добавить C-блок (отдельная форма — сразу создаёт пустой блок для правки). #}
@@ -433,6 +441,26 @@
             <span class="flex-1"><span class="text-gray-400 text-xs mr-1">{{ t.key }}</span>{{ t.label }}</span>
             <button type="submit" name="action" value="use_block_template:{{ t.id }}" class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">+ {% trans "Insert" %}</button>
             <button type="submit" name="action" value="delete_block_template:{{ t.id }}" class="text-xs text-red-600 hover:underline">{% trans "Delete" %}</button>
+          </div>
+        {% endfor %}
+      </div>
+    </form>
+    {% endif %}
+
+    {# SE-4b: библиотека шаблонов страниц — применить (заменить всю компоновку) или
+       удалить (отдельная форма). Пусто → блок скрыт. #}
+    {% if page_templates %}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+      {% csrf_token %}
+      <span class="text-sm font-medium">{% trans "Saved page templates" %}:</span>
+      <div class="flex flex-col gap-2">
+        {% for t in page_templates %}
+          <div class="flex items-center gap-2 text-sm border border-gray-100 rounded-lg px-3 py-2">
+            <span class="flex-1">{{ t.label }}<span class="text-gray-400 text-xs ml-1">({{ t.count }} {% trans "sections" %})</span></span>
+            <button type="submit" name="action" value="use_page_template:{{ t.id }}"
+                    onclick="return confirm('{% trans "Replace the whole homepage layout with this template?" %}')"
+                    class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply" %}</button>
+            <button type="submit" name="action" value="delete_page_template:{{ t.id }}" class="text-xs text-red-600 hover:underline">{% trans "Delete" %}</button>
           </div>
         {% endfor %}
       </div>

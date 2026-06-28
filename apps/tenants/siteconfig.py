@@ -147,6 +147,10 @@ def _clean_cblock(item: dict) -> dict:
 # в site_config. Владелец сохраняет блок как шаблон и вставляет его в другие места.
 _MAX_BLOCK_TEMPLATES = 50
 
+# SE-4b: шаблоны страниц — {id: {label, sections}}: именованный снимок ВСЕГО набора
+# секций главной. Владелец сохраняет компоновку и применяет одним кликом.
+_MAX_PAGE_TEMPLATES = 20
+
 
 def normalize_block_templates(raw) -> dict:
     """SE-4a: привести block_templates к {id: {key, label, data}}. key ∈
@@ -938,46 +942,46 @@ def localize(config: dict, locale: str | None) -> dict:
     return base
 
 
-def normalize(config) -> dict:
-    """Привести произвольный site_config к валидной схеме.
+def _section_entry(key, enabled, raw_item):
+    """Нормализовать одну фикс-секцию (порядок/видимость/layout/visual/hidden_on)."""
+    # M20R-1: секции-сетки несут layout (пресет+override); прочие — нет.
+    raw_item = raw_item if isinstance(raw_item, dict) else {}
+    entry = {"key": key, "enabled": enabled}
+    if key in GRID_SECTION_DEFAULTS:
+        entry["layout"] = normalize_layout(raw_item.get("layout"), GRID_SECTION_DEFAULTS[key])
+    # M20U-7: секции-превью несут настраиваемый лимит элементов.
+    if key in GRID_SECTION_LIMITS:
+        entry["limit"] = _clamp(
+            raw_item.get("limit"), 1, _SECTION_LIMIT_MAX, GRID_SECTION_LIMITS[key]
+        )
+    # M20U-7: источник товаров секции products (избранные/новые/избр.-первыми).
+    if key == "products":
+        src = raw_item.get("source")
+        entry["source"] = src if src in PRODUCT_SOURCES else PRODUCT_SOURCE_DEFAULT
+    # M20U-7: видимость ссылки «View all» (по умолчанию показана).
+    if key in SECTION_VIEWALL_KEYS:
+        entry["show_all"] = bool(raw_item.get("show_all", True))
+    # SE-3d: визуальные параметры (radius/shadow/background/padding) — для всех
+    # секций кроме C-блоков. Пустые = текущий облик (без регрессии для legacy).
+    entry["visual"] = _clean_visual(raw_item.get("visual"))
+    # SE-3c-mid: скрыть секцию на устройствах (mobile/tablet/desktop). Пусто = везде.
+    entry["hidden_on"] = _clean_hidden_on(raw_item.get("hidden_on"))
+    return entry
 
-    Неизвестные секции отбрасываются, отсутствующие дописываются в конец со
-    своим дефолтом — старые конфиги переживают добавление новых секций.
+
+def normalize_sections(raw_sections) -> list:
+    """Привести список секций к валидной схеме: фикс-секции дедупятся и дописываются
+    в конец со своими дефолтами, C-блоки сохраняют порядок (кап `_MAX_CBLOCKS`).
+
+    Вынесено в module-level (SE-4b), чтобы переиспользовать и для снимков page-шаблонов.
     """
-    config = config if isinstance(config, dict) else {}
     seen = set()
     sections = []
-
-    def _section(key, enabled, raw_item):
-        # M20R-1: секции-сетки несут layout (пресет+override); прочие — нет.
-        raw_item = raw_item if isinstance(raw_item, dict) else {}
-        entry = {"key": key, "enabled": enabled}
-        if key in GRID_SECTION_DEFAULTS:
-            entry["layout"] = normalize_layout(raw_item.get("layout"), GRID_SECTION_DEFAULTS[key])
-        # M20U-7: секции-превью несут настраиваемый лимит элементов.
-        if key in GRID_SECTION_LIMITS:
-            entry["limit"] = _clamp(
-                raw_item.get("limit"), 1, _SECTION_LIMIT_MAX, GRID_SECTION_LIMITS[key]
-            )
-        # M20U-7: источник товаров секции products (избранные/новые/избр.-первыми).
-        if key == "products":
-            src = raw_item.get("source")
-            entry["source"] = src if src in PRODUCT_SOURCES else PRODUCT_SOURCE_DEFAULT
-        # M20U-7: видимость ссылки «View all» (по умолчанию показана).
-        if key in SECTION_VIEWALL_KEYS:
-            entry["show_all"] = bool(raw_item.get("show_all", True))
-        # SE-3d: визуальные параметры (radius/shadow/background/padding) — для всех
-        # секций кроме C-блоков. Пустые = текущий облик (без регрессии для legacy).
-        entry["visual"] = _clean_visual(raw_item.get("visual"))
-        # SE-3c-mid: скрыть секцию на устройствах (mobile/tablet/desktop). Пусто = везде.
-        entry["hidden_on"] = _clean_hidden_on(raw_item.get("hidden_on"))
-        return entry
-
     cblocks = 0
-    for item in config.get("sections", []):
+    for item in raw_sections if isinstance(raw_sections, list) else []:
         key = item.get("key") if isinstance(item, dict) else None
         if key in _KNOWN and key not in seen:
-            sections.append(_section(key, bool(item.get("enabled")), item))
+            sections.append(_section_entry(key, bool(item.get("enabled")), item))
             seen.add(key)
         elif key in REPEATABLE_BLOCKS and cblocks < _MAX_CBLOCKS:
             # D.2: C-блоки множественные — порядок сохраняем, по key не дедупим.
@@ -985,11 +989,39 @@ def normalize(config) -> dict:
             cblocks += 1
     for key, _label, enabled in SECTIONS:
         if key not in seen:
-            sections.append(_section(key, enabled, None))
+            sections.append(_section_entry(key, enabled, None))
+    return sections
 
-    normalized = {"sections": sections}
+
+def normalize_page_templates(raw) -> dict:
+    """SE-4b: привести page_templates к {id: {label, sections}}. sections прогоняются
+    через `normalize_sections` (та же санитизация, что и для главной). Пусто → {}
+    (без регрессии для legacy-конфигов). Кап `_MAX_PAGE_TEMPLATES`."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for tid, tpl in list(raw.items())[:_MAX_PAGE_TEMPLATES]:
+        if not isinstance(tpl, dict):
+            continue
+        out[_s(tid) or uuid.uuid4().hex[:12]] = {
+            "label": _s(tpl.get("label"))[:120],
+            "sections": normalize_sections(tpl.get("sections")),
+        }
+    return out
+
+
+def normalize(config) -> dict:
+    """Привести произвольный site_config к валидной схеме.
+
+    Неизвестные секции отбрасываются, отсутствующие дописываются в конец со
+    своим дефолтом — старые конфиги переживают добавление новых секций.
+    """
+    config = config if isinstance(config, dict) else {}
+
+    normalized = {"sections": normalize_sections(config.get("sections", []))}
     # SE-4a: пользовательские блок-шаблоны (переживают нормализацию).
     normalized["block_templates"] = normalize_block_templates(config.get("block_templates"))
+    # SE-4b: шаблоны страниц (снимки компоновки секций).
+    normalized["page_templates"] = normalize_page_templates(config.get("page_templates"))
     for field in TEXT_FIELDS:
         value = config.get(field, "")
         normalized[field] = value.strip() if isinstance(value, str) else ""

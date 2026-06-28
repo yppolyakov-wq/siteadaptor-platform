@@ -820,3 +820,74 @@ def test_home_builder_get_renders_hidden_on_checkboxes():
     assert 'name="hide_mobile_products"' in body
     assert 'name="hide_tablet_products"' in body
     assert 'name="hide_desktop_products"' in body
+
+
+def test_home_builder_save_page_template_snapshots_layout():
+    """SE-4b: «сохранить страницу как шаблон» делает снимок текущей компоновки из POST."""
+    tenant = TenantFactory(schema_name="public", slug="hbspt", name="HBSPT", site_config={})
+    data = {
+        "action": "save_page_template",
+        "page_tpl_label": "Mein Layout",
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "order_products": "2",  # без enabled_ → выключена в снимке
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    pts = siteconfig.normalize(tenant.site_config)["page_templates"]
+    assert len(pts) == 1
+    pt = next(iter(pts.values()))
+    assert pt["label"] == "Mein Layout"
+    by_key = {s["key"]: s for s in pt["sections"]}
+    assert by_key["hero"]["enabled"] is True
+    assert by_key["products"]["enabled"] is False
+
+
+def test_home_builder_use_page_template_replaces_sections():
+    """SE-4b: применение шаблона ЗАМЕНЯЕТ весь набор секций снимком."""
+    snapshot = [
+        {"key": "hero", "enabled": False},
+        {"key": "events", "enabled": True},
+    ]
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbupt",
+        name="HBUPT",
+        site_config={"page_templates": {"ptA": {"label": "L", "sections": snapshot}}},
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "use_page_template:ptA"}, tenant)
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    by_key = {s["key"]: s for s in cfg["sections"]}
+    assert by_key["hero"]["enabled"] is False
+    assert by_key["events"]["enabled"] is True
+
+
+def test_home_builder_delete_page_template():
+    """SE-4b: удаление шаблона страницы из библиотеки."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbdpt",
+        name="HBDPT",
+        site_config={"page_templates": {"ptA": {"label": "L", "sections": []}}},
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "delete_page_template:ptA"}, tenant)
+    )
+    assert siteconfig.normalize(tenant.site_config)["page_templates"] == {}
+
+
+def test_home_builder_get_renders_page_template_library():
+    """SE-4b: GET рендерит библиотеку шаблонов страниц (применить/удалить) + кнопку сохранения."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbptl",
+        name="HBPTL",
+        site_config={"page_templates": {"ptA": {"label": "Klassisch", "sections": []}}},
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert "use_page_template:ptA" in body and "Klassisch" in body
+    assert 'value="save_page_template"' in body

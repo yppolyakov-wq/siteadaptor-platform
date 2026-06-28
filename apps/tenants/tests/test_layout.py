@@ -454,3 +454,56 @@ def test_hidden_on_on_cblock():
     )
     block = next(s for s in cfg["sections"] if s.get("id") == "x1")
     assert block["hidden_on"] == ["mobile"]
+
+
+# --- SE-4b: шаблоны страниц (page_templates) --------------------------------------
+
+
+def test_page_templates_empty_default():
+    assert siteconfig.normalize(None)["page_templates"] == {}
+
+
+def test_page_templates_normalize_label_and_sections():
+    cfg = siteconfig.normalize(
+        {
+            "page_templates": {
+                "p1": {
+                    "label": "  Klassisch  ",
+                    "sections": [
+                        {"key": "hero", "enabled": True},
+                        {"key": "products", "enabled": True},
+                    ],
+                }
+            }
+        }
+    )
+    pt = cfg["page_templates"]["p1"]
+    assert pt["label"] == "Klassisch"  # трим
+    # секции прогнаны через normalize_sections → фикс-секции дописаны, hero/products есть
+    by_key = {s["key"]: s for s in pt["sections"]}
+    assert by_key["hero"]["enabled"] is True
+    assert by_key["products"]["enabled"] is True
+    assert "contact" in by_key  # недостающие фикс-секции дописаны
+
+
+def test_page_templates_drops_non_dict_and_caps():
+    raw = {f"p{i}": {"label": f"T{i}", "sections": []} for i in range(25)}
+    raw["bad"] = "not-a-dict"
+    cfg = siteconfig.normalize({"page_templates": raw})
+    assert len(cfg["page_templates"]) <= siteconfig._MAX_PAGE_TEMPLATES
+
+
+def test_page_template_sections_sanitized():
+    # неизвестный ключ секции в снимке выкидывается normalize_sections
+    cfg = siteconfig.normalize(
+        {"page_templates": {"p1": {"label": "X", "sections": [{"key": "totally-bogus"}]}}}
+    )
+    keys = {s["key"] for s in cfg["page_templates"]["p1"]["sections"]}
+    assert "totally-bogus" not in keys
+
+
+def test_normalize_sections_helper_idempotent():
+    # рефактор: normalize_sections — module-level, прогон дважды стабилен
+    once = siteconfig.normalize_sections([{"key": "products", "enabled": True}])
+    twice = siteconfig.normalize_sections(once)
+    assert [s["key"] for s in once] == [s["key"] for s in twice]
