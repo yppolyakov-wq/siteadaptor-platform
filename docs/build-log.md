@@ -2600,3 +2600,18 @@
   Тесты: use_block_template insert_after (в позицию / в конец); рендер инсертера (шаблоны +
   `submitInsertTemplate` + `showDropLine`). Слит FF в main (`fa4154b`). Без миграций. Завершает
   трек SE-4 (4a блоки + 4b страницы + 4c вставка/drag).
+
+- **2026-06-28 — SE-5b-1 (история версий site_config + откат публикации).** Каждое явное
+  «Сохранить» в билдере главной кладёт снимок ПРЕДЫДУЩЕЙ опубликованной версии в кольцевую
+  историю `site_config["history"]=[{ts, config}]` (новейшая первая, кап `_MAX_HISTORY=8`).
+  Откат — `restore_version:<idx>` (ранний return): заменяет текущий конфиг снимком, а текущую
+  версию кладёт в начало истории → сам откат undoable. Снимок = опубликованный конфиг БЕЗ
+  вложенного `history` (анти-рекурсия/раздувание). Точки отката = явные Save; инкрементальные
+  действия (add_block/шаблоны/restore) основную историю не плодят. siteconfig: `normalize_history`
+  (санитайз/кап/strip nested), `push_history(prev, existing, ts)` — чистая (ts параметром, без
+  Date — тестируемо), `history` пронесён в `normalize()`. views: главный save-путь снимает текущую
+  версию (`timezone.now().isoformat()`), `restore_version`, `history` в GET-контексте. UI:
+  секция «Version history» (ts + Restore с confirm). Тесты: normalize_history/push_history
+  (санитайз/кап 8/анти-рекурсия/пустой prev=no-op); save создаёт снимок, два save — порядок
+  (новейшая первая), restore меняет конфиг и кладёт текущий в историю, невалидный idx no-op,
+  GET рендерит список. Без миграций. SE-5b-2 (автосейв черновика в БД) — отложен (опц.).
