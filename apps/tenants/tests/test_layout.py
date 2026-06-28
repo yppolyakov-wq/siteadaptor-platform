@@ -202,3 +202,61 @@ def test_section_title_default_override_and_cleanup():
     # известный title-ключ сохранён; не-title и неизвестные ключи отброшены
     assert cfg["section_titles"] == {"events": "Unsere Retreats"}
     assert siteconfig.section_title(cfg, "events") == "Unsere Retreats"
+
+
+# --- SE-2d: глобальные дефолты стиля карточек + наследование ------------------
+
+
+def test_site_defaults_empty_is_zero():
+    # legacy: нет site_defaults → нули/false (= текущее поведение, без регрессии)
+    assert siteconfig.normalize_site_defaults(None) == {"card_radius": 0, "card_shadow": False}
+    assert siteconfig.normalize(None)["site_defaults"] == {"card_radius": 0, "card_shadow": False}
+
+
+def test_site_defaults_valid_and_clamped():
+    assert siteconfig.normalize_site_defaults({"card_radius": 12, "card_shadow": True}) == {
+        "card_radius": 12,
+        "card_shadow": True,
+    }
+    # кламп 0..24 + мусор → 0
+    assert siteconfig.normalize_site_defaults({"card_radius": 999})["card_radius"] == 24
+    assert siteconfig.normalize_site_defaults({"card_radius": "x"})["card_radius"] == 0
+
+
+def test_normalize_keeps_site_defaults():
+    cfg = siteconfig.normalize({"site_defaults": {"card_radius": 8, "card_shadow": True}})
+    assert cfg["site_defaults"] == {"card_radius": 8, "card_shadow": True}
+
+
+def test_effective_card_visual_inherits_global():
+    # нет секционного override → берётся глобальный дефолт «весь сайт»
+    cfg = siteconfig.normalize({"site_defaults": {"card_radius": 10, "card_shadow": True}})
+    assert siteconfig.effective_card_visual(cfg, "products") == {"radius": 10, "shadow": True}
+
+
+def test_effective_card_visual_section_override_beats_global():
+    # секционный radius побеждает глобальный дефолт
+    cfg = siteconfig.normalize(
+        {
+            "site_defaults": {"card_radius": 10, "card_shadow": True},
+            "sections": [{"key": "products", "enabled": True, "visual": {"radius": 4}}],
+        }
+    )
+    assert siteconfig.effective_card_visual(cfg, "products") == {"radius": 4, "shadow": False}
+
+
+def test_effective_card_visual_section_shadow_is_override():
+    # секционная тень (без radius) тоже считается override → глобальный не подмешивается
+    cfg = siteconfig.normalize(
+        {
+            "site_defaults": {"card_radius": 10, "card_shadow": False},
+            "sections": [{"key": "events", "enabled": True, "visual": {"shadow": True}}],
+        }
+    )
+    assert siteconfig.effective_card_visual(cfg, "events") == {"radius": 0, "shadow": True}
+
+
+def test_effective_card_visual_legacy_empty():
+    # ни глобального, ни секционного → нули (без регрессии)
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True}]})
+    assert siteconfig.effective_card_visual(cfg, "products") == {"radius": 0, "shadow": False}

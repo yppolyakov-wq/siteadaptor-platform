@@ -303,6 +303,33 @@ def section_visual(config, key) -> dict:
     return {"radius": 0, "shadow": False}
 
 
+def normalize_site_defaults(raw) -> dict:
+    """SE-2d: глобальные дефолты стиля карточек («весь сайт»). Применяются ко всем
+    сеткам витрины, если у секции/страницы нет своего visual-override. Дефолты
+    0/false = текущее поведение (без регрессии для legacy-конфигов)."""
+    sd = raw if isinstance(raw, dict) else {}
+    r = sd.get("card_radius")
+    try:
+        r = max(0, min(24, int(r))) if r is not None else 0
+    except (TypeError, ValueError):
+        r = 0
+    return {"card_radius": r, "card_shadow": bool(sd.get("card_shadow", False))}
+
+
+def effective_card_visual(config, key) -> dict:
+    """SE-2d: визуальные параметры карточек секции `key` с учётом наследования.
+
+    Пер-секционный override (radius>0 или shadow) ПОБЕЖДАЕТ глобальный дефолт;
+    иначе берётся глобальный стиль карточек `site_defaults` («весь сайт»). Пустой
+    site_defaults (0/false) → {radius:0, shadow:false} = текущее поведение."""
+    config = config or {}
+    sec = section_visual(config, key)
+    if sec["radius"] > 0 or sec["shadow"]:
+        return sec
+    sd = normalize_site_defaults(config.get("site_defaults"))
+    return {"radius": sd["card_radius"], "shadow": sd["card_shadow"]}
+
+
 # M20U-4: тематические секции детальной события — дефолтный порядок (как в
 # шаблоне event_detail.html). Владелец может переупорядочить/скрыть через
 # config["event_detail"] = {"order": [...], "hidden": [...]}.
@@ -940,6 +967,9 @@ def normalize(config) -> dict:
     )
     # M20U-4: порядок/видимость тематических секций детальной события.
     normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))
+    # SE-2d: глобальные дефолты стиля карточек («весь сайт»; наследуются сетками
+    # без своего visual-override). Пустые 0/false → без регрессии для legacy.
+    normalized["site_defaults"] = normalize_site_defaults(config.get("site_defaults"))
     # M20U-7 (per-page): раскладка блока «похожие товары» на детальной. Дефолт
     # cols4 воспроизводит прежнюю сетку (grid-cols-2 lg:grid-cols-4).
     normalized["detail_related_layout"] = normalize_layout(
