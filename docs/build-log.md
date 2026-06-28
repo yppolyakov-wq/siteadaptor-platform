@@ -2558,3 +2558,16 @@
   конец) / `delete_block_template:<tid>`. Переиспользует механизм C-блоков (add_block). Тесты
   (siteconfig нормализация/санитайз + home_builder save/use/delete/GET, 101 passed --reuse-db
   6.5с). SE-4a ✅ слит FF в main (`ef23e6f`). Без миграций. SE-4b/4c — далее.
+
+- **2026-06-28 — SE-3c-mid (скрыть секцию на устройстве 📱/▭/🖥).** Пер-девайс видимость
+  секций главной: чекбоксы mobile/tablet/desktop в инспекторе билдера →
+  `site_config["sections"][*]["hidden_on"]` (подмножество `_DEVICES`, санитайз `_clean_hidden_on`,
+  в `_section` и `_clean_cblock`). На витрине обёртка секции (`home.html`) получает purge-safe
+  `max-sm:hidden`/`sm:max-lg:hidden`/`lg:hidden`; `display:contents` вынесен в класс `contents`,
+  чтобы классы скрытия переопределяли его на нужном брейкпойнте. `home_builder_view` POST читает
+  `hide_<device>_<key>`, GET отдаёт `hidden_on`, `site_preview_draft` проносит в черновик. UI:
+  3 чекбокса на секцию + сериализация в `collect()`. Заодно фикс реального бага: многострочный
+  `{# #}` в `home.html` Django не парсит как комментарий (он однострочный) → текст тёк в HTML →
+  заменён на `{% comment %}`. Тесты: нормализация/санитайз/legacy, POST/GET билдера, рендер
+  витрины (есть/нет классов скрытия). Завершает SE-3c (C-min колонки + C-mid скрытие; C-full
+  порядок — отложен). Слит FF в main (`56721e2`). Без миграций.
