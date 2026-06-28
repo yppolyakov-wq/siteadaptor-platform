@@ -2500,3 +2500,17 @@
   `/sortiment/` несёт имя в `<span data-cat-edit>`; JS в site_home.html делает его
   contenteditable и сохраняет на blur (как `[data-edit]` для site_config). Пустое имя/
   битый pk → 400. Тесты (catalog/test_views). **SE-2c полностью закрыт** (2c-1/2c-2/2c-3).
+
+- **2026-06-28 — on-canvas редактор: SE-3d (фон/отступы карточек).** Расширил визуальный
+  механизм SE-2d/SE-3d на фон и внутренние отступы карточек, по тому же образцу наследования.
+  `siteconfig`: общие чистилки `_clean_radius/_clean_padding(0..32)/_clean_bg(#rrggbb|"")` +
+  `_clean_visual` → `visual={radius,shadow,background,padding}`; `normalize_site_defaults` +=
+  `card_bg/card_padding`; `effective_card_visual` возвращает 4 поля с наследованием (override =
+  любой заданный параметр секции > глобальный `site_defaults` > пусто=текущий вид). Рендер:
+  ОТДЕЛЬНЫЕ CSS-селекторы `[style*="--sf-bg"]`/`[style*="--sf-pad"]` в `_base.html` (не
+  объединять с `--sf-r`); `<body>` (site_defaults) и обёртка секции (`home.html`) эмитят
+  `--sf-bg`/`--sf-pad` лишь когда заданы; `context.py` отдаёт `storefront_card_bg/padding`.
+  UI: глоб. фон(тоггл use)+padding в «Card style (whole site)» + пер-секционные в visual-группе
+  попапа; `collect()`/`site_preview_draft` (теперь несёт и пер-секционный `visual`)/POST+GET.
+  Фон применяется лишь при включённом тоггле (color-input всегда шлёт значение). Тесты (siteconfig
+  35 + home_builder/live_preview). SE-3d ✅ слит FF в main (`f5dcceb`). Без миграций.
