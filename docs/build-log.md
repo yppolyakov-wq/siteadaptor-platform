@@ -2429,3 +2429,18 @@
   → `openBlockPopup` переносит в попап; `collect()` шлёт `events_index_layout`/`stay_index_layout`;
   `home_builder_view` POST сохраняет `events_preset`/`stay_preset` единым циклом). Тесты:
   draft-aware гриды, маркеры секций, GET/POST инспекторов (76 в core+events+stays). Без миграций.
+
+- **2026-06-28 — on-canvas редактор: SE-2b-2 (порядок/видимость секций детальной события
+  на канве).** Тематические секции детальной (реестр `siteconfig.EVENT_DETAIL_SECTION_KEYS`,
+  14 шт.) теперь правятся прямо на витрине, а не только на вкладке «Pages». `veranstaltung_detail`
+  стал draft-aware (`event_detail_order` при `?preview=1` берёт `site_preview_draft`, как
+  каталог/события/номера); `event_detail.html` получил обёртку `data-sf-section="event_detail"`
+  (клик-цель инспектора). В `home_builder_view`: переключатель превью включает первое
+  опубликованное событие (детальную можно открыть на канве); on-canvas инспектор раскладки
+  расширен мини-формой `data-page-key="event_detail"` — value-based ↑▼ (`ed_order_*`) +
+  чекбоксы «Show» (`ed_visible_*`); POST сохраняет `event_detail={order,hidden}` с
+  presence-guard (без `ed_order_*` не трогает — частичный POST не гасит все секции).
+  `collect()`/`edMove` в `site_home.html` сериализуют черновик; `site_preview_draft` принимает
+  `event_detail` для live-preview. Тесты: draft-aware detail + обёртка (events), draft endpoint
+  + GET-инспектор/превью-страница + POST-сохранение + presence-guard (78 в core+events+pages).
+  Без миграций. CI #782 зелёный, FF-merge `a210cea..7b9825b`.
