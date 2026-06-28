@@ -37,8 +37,18 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
   <a href="{% url 'storefront-products' %}"
      class="px-3 py-1.5 rounded-full text-sm border {% if not current_category %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All" %}</a>
   {% for c in categories %}
-    <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
-       class="px-3 py-1.5 rounded-full text-sm border {% if current_category.pk == c.pk %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ c }}</a>
+    {% if is_preview %}
+      {# SE-2c-2: чип + ссылка правки категории (только в редакторе/?preview=1). #}
+      <span class="inline-flex items-center gap-1">
+        <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}&preview=1"
+           class="px-3 py-1.5 rounded-full text-sm border {% if current_category.pk == c.pk %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ c }}</a>
+        <a href="{% url 'catalog:category-edit' c.pk %}" title="{% trans 'Edit category' %}"
+           class="text-indigo-600 hover:text-indigo-800 text-sm" data-cat-edit="{{ c.pk }}">✎</a>
+      </span>
+    {% else %}
+      <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+         class="px-3 py-1.5 rounded-full text-sm border {% if current_category.pk == c.pk %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ c }}</a>
+    {% endif %}
   {% endfor %}
 </div>
 {% endif %}

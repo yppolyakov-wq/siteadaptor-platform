@@ -48,6 +48,22 @@ def test_product_list_filters_by_category():
     assert "Kuchenstück" not in body
 
 
+def test_catalog_chip_edit_link_in_preview():
+    """SE-2c-2: в режиме редактора (?preview=1) на чипе категории есть ссылка правки;
+    на обычной витрине — нет."""
+    from django.urls import reverse
+
+    cat = CategoryFactory(slug="brot", name={"de": "Brot"})
+    ProductFactory(name={"de": "Roggenbrot"}, category=cat)  # чтобы чип категории появился
+    edit_url = reverse("catalog:category-edit", args=[cat.pk])
+
+    body_prev = public_views.product_list(_req(params={"preview": "1"})).content.decode()
+    assert edit_url in body_prev and "data-cat-edit" in body_prev  # ссылка правки в редакторе
+
+    body_plain = public_views.product_list(_req()).content.decode()
+    assert edit_url not in body_plain  # на витрине посетителя ссылки нет
+
+
 def test_catalog_shows_subcategories_first():
     """M20U-3: в категории с подкатегориями сначала выводятся подкатегории."""
     parent = CategoryFactory(slug="brot", name={"de": "Brot"})

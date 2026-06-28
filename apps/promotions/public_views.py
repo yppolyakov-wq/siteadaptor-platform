@@ -315,10 +315,9 @@ def product_list(request):
     # чтобы on-canvas правка раскладки каталога была видна сразу.
     from apps.tenants import siteconfig
 
+    is_preview = request.GET.get("preview") == "1"
     raw_cfg = request.tenant.site_config
-    if request.GET.get("preview") == "1" and isinstance(
-        request.session.get("site_preview_draft"), dict
-    ):
+    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
         raw_cfg = request.session["site_preview_draft"]
     catalog_grid = siteconfig.grid_class_string(siteconfig.normalize(raw_cfg)["catalog_layout"])
     return render(
@@ -334,6 +333,9 @@ def product_list(request):
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
             "active_diet": diet,
             "catalog_grid": catalog_grid,
+            # SE-2c-2: в режиме редактора (?preview=1) на чипах категорий — ссылка
+            # «✎» на полную правку категории в кабинете (имя/slug/родитель/иконка).
+            "is_preview": is_preview,
         },
     )
 
