@@ -2492,3 +2492,11 @@
   каталога/событий/номеров одним кликом (фронт: значения catalog/events/stay_preset →
   live-preview; Save сохраняет). Тест рендера. **SE-2d закрыт ✅** (1/2/3/4/5); полный
   мультивыбор страниц отложен. Опц. остаётся SE-2c-3 (инлайн-правка имени категории на канве).
+
+- **2026-06-28 — on-canvas редактор: SE-2c-3 (инлайн-правка имени категории на канве).**
+  Новый эндпоинт `catalog.category_inline_edit` (login_required/require_POST): JSON
+  {category_pk, value} → `Category.name['de']` живой категории (en/прочее не трогает),
+  url `catalog:category-inline-edit`. В редакторе (`?preview=1`) чип категории на
+  `/sortiment/` несёт имя в `<span data-cat-edit>`; JS в site_home.html делает его
+  contenteditable и сохраняет на blur (как `[data-edit]` для site_config). Пустое имя/
+  битый pk → 400. Тесты (catalog/test_views). **SE-2c полностью закрыт** (2c-1/2c-2/2c-3).
