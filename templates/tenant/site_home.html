@@ -799,6 +799,13 @@
   // M20 WYSIWYG: тексты [data-edit] в превью редактируются прямо в билдере
   // (как на отдельной странице Preview) — сохранение на blur в site_config.
   var editUrl = "{% url 'site-inline-edit' %}";
+  var catEditUrl = "{% url 'catalog:category-inline-edit' %}";
+  function markSaved() {
+    if (status) {
+      status.textContent = "{% trans 'Saved' %} ✓";
+      setTimeout(function () { status.textContent = ""; }, 1500);
+    }
+  }
   frame.addEventListener("load", function () {
     var doc;
     try { doc = frame.contentDocument; } catch (e) { return; }
@@ -813,12 +820,24 @@
           method: "POST",
           headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
           body: JSON.stringify({ field: el.getAttribute("data-edit"), value: el.innerText }),
-        }).then(function (r) {
-          if (r.ok && status) {
-            status.textContent = "{% trans 'Saved' %} ✓";
-            setTimeout(function () { status.textContent = ""; }, 1500);
-          }
-        });
+        }).then(function (r) { if (r.ok) markSaved(); });
+      });
+    });
+    // SE-2c-3: инлайн-правка имени категории на канве каталога (чип data-cat-edit)
+    // → запись Category.name['de'] на blur (новый эндпоинт catalog).
+    doc.querySelectorAll("[data-cat-edit]").forEach(function (el) {
+      el.setAttribute("contenteditable", "plaintext-only");
+      el.style.outline = "1px dashed rgba(99,102,241,.5)";
+      el.style.outlineOffset = "2px";
+      el.style.cursor = "text";
+      el.addEventListener("blur", function () {
+        var v = el.innerText.trim();
+        if (!v) return;  // пустое имя не сохраняем (эндпоинт всё равно отклонит)
+        fetch(catEditUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+          body: JSON.stringify({ category_pk: el.getAttribute("data-cat-edit"), value: v }),
+        }).then(function (r) { if (r.ok) markSaved(); });
       });
     });
     // E.2: клик по секции в превью → попап её настроек (фолбэк M20U-7 B: прокрутка

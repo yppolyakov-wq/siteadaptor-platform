@@ -418,6 +418,38 @@ def category_edit(request, pk):
 
 
 @login_required
+@require_POST
+def category_inline_edit(request):
+    """SE-2c-3: инлайн-правка имени категории прямо на канве витрины (?preview=1).
+
+    JSON {category_pk, value} → пишет Category.name['de'] живой категории (AliveManager
+    исключает удалённые). Только владелец (login_required на субдомене схемы). 204/400.
+    """
+    import json
+
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest()
+    pk = data.get("category_pk")
+    value = data.get("value", "")
+    value = value.strip() if isinstance(value, str) else ""
+    if not pk or not value:
+        return HttpResponseBadRequest()
+    try:
+        category = Category.objects.get(pk=pk)
+    except (Category.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    name = dict(category.name or {})
+    name["de"] = value
+    category.name = name
+    category.save(update_fields=["name", "updated_at"])
+    return HttpResponse(status=204)
+
+
+@login_required
 def category_delete(request, pk):
     """Удаление категории (soft).
 

@@ -64,6 +64,7 @@ urlpatterns = [
     ),
     path("categories/", views.category_list, name="category-list"),
     path("categories/new/", views.category_create, name="category-create"),
+    path("categories/inline-edit/", views.category_inline_edit, name="category-inline-edit"),
     path("categories/<uuid:pk>/edit/", views.category_edit, name="category-edit"),
     path("categories/<uuid:pk>/delete/", views.category_delete, name="category-delete"),
     # Комбо-наборы (A4 Gastro): набор + группы выбора + опции.

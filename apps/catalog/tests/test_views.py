@@ -6,6 +6,8 @@ HTTP-маршрутизация на каталог даёт 404. Поэтому
 напрямую, минуя роутинг и middleware.
 """
 
+import json
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -223,3 +225,43 @@ def test_delete_cascade(user):
     assert Category.all_objects.filter(pk=child.pk).exists()  # soft, не hard
     prod.refresh_from_db()
     assert prod.category_id is None
+
+
+# --- SE-2c-3: инлайн-правка имени категории на канве ---------------------------
+
+
+def _json_post(url, payload, user):
+    req = RequestFactory().post(url, data=json.dumps(payload), content_type="application/json")
+    return _attach_session_user(req, user)
+
+
+@pytest.mark.django_db
+def test_category_inline_edit_updates_name(user):
+    cat = CategoryFactory(slug="brot", name={"de": "Brot", "en": "Bread"})
+    req = _json_post(
+        "/catalog/categories/inline-edit/",
+        {"category_pk": str(cat.pk), "value": "Backwaren"},
+        user,
+    )
+    assert views.category_inline_edit(req).status_code == 204
+    cat.refresh_from_db()
+    assert cat.name["de"] == "Backwaren" and cat.name["en"] == "Bread"  # en не затронут
+
+
+@pytest.mark.django_db
+def test_category_inline_edit_rejects_empty(user):
+    cat = CategoryFactory(slug="brot", name={"de": "Brot"})
+    req = _json_post(
+        "/catalog/categories/inline-edit/", {"category_pk": str(cat.pk), "value": "  "}, user
+    )
+    assert views.category_inline_edit(req).status_code == 400
+    cat.refresh_from_db()
+    assert cat.name["de"] == "Brot"  # не изменилось
+
+
+@pytest.mark.django_db
+def test_category_inline_edit_rejects_bad_pk(user):
+    req = _json_post(
+        "/catalog/categories/inline-edit/", {"category_pk": "not-a-uuid", "value": "X"}, user
+    )
+    assert views.category_inline_edit(req).status_code == 400
