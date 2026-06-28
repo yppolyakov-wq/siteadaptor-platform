@@ -215,6 +215,27 @@ live-preview. `grid_class_string` purge-safe (нельзя динамику — 
 через `@media`/JS. Начать с `cols`, затем `hidden`/`order`. НЕ трогать дефолты `stay_index`
 (`mobile:1`) и `events_index` (`list`).
 
+##### Дизайн SE-3c (2026-06-28, до кода)
+**Что уже есть:** `normalize_layout` → `{preset, cols, mobile, gap, width}`; `mobile` (1..2) — это
+уже пер-девайс число колонок для телефона. `grid_class_string` собирает purge-safe Tailwind
+`grid-cols-{mobile} sm:grid-cols-{tablet} lg:grid-cols-{cols}` (планшет сейчас выводится из
+cols/mobile). Переключатель устройств в редакторе (`home-dev-btn`) меняет ширину iframe.
+**Развилка глубины (вынести владельцу):**
+- **C-min (рекоменд., низкий риск):** пер-девайс ТОЛЬКО число колонок — добавить явный `tablet`
+  (1..4) к layout рядом с `mobile`/`cols`; `grid_class_string` использует его вместо вывода.
+  UI: в инспекторе раскладки — 3 мини-поля «📱/▭/🖥 колонок». Чистое расширение purge-safe грида,
+  без новых CSS-классов и JS-рендера. Без регрессии (нет tablet → текущий вывод).
+- **C-mid:** + «скрыть на устройстве» (`hidden_mobile/tablet/desktop`) → render добавляет
+  purge-safe классы `max-sm:hidden`/`sm:max-lg:hidden`/`lg:hidden` на обёртку секции. Умеренный
+  риск (надо явные статичные классы в whitelist).
+- **C-full:** + переупорядочивание секций пер-девайс (`order`) → CSS `order` + flex/grid-контейнер
+  на уровне списка секций. Высокий риск (меняет каркас главной), отдельной задачей.
+**Рекоменд.:** C-min (колонки пер-девайс) сейчас; C-mid (скрыть) — следующим инкрементом; C-full
+(порядок) — отложить. Реализация C-min: siteconfig `normalize_layout` += `tablet` (клам 1..4,
+дефолт = текущий вывод планшета); `grid_class_string` берёт tablet; home_builder POST/GET +
+collect()/draft несут tablet; UI 3 поля колонок в инспекторе грид-секции. Тесты: клампы tablet,
+grid_class_string с tablet, legacy без tablet = прежний вывод.
+
 ### SE-4 — Переиспользуемые блоки и шаблоны страниц
 - **SE-4a** «Сохранить блок как шаблон» + «Вставить шаблон» (блок-пресет, многоразовый).
 - **SE-4b** Шаблоны страниц (набор секций целиком; поверх `sitetemplates`).
