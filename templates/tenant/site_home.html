@@ -386,6 +386,15 @@
                   <option value="right" {% if b.data.side == 'right' %}selected{% endif %}>{% trans "Image right" %}</option>
                 </select>
               {% endif %}
+              {# SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
+                 #home-form с action=save_block_template:<id> (данные блока из POST —
+                 ловим текущие правки); ранний return в home_builder_view. #}
+              <div class="flex items-center gap-2 pt-1">
+                <input type="text" name="tpl_label_{{ b.id }}" placeholder="{% trans 'Template name' %}"
+                       class="flex-1 rounded border border-gray-200 px-2 py-1 text-xs">
+                <button type="submit" name="action" value="save_block_template:{{ b.id }}" formnovalidate
+                        class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">💾 {% trans "Save as template" %}</button>
+              </div>
             </div>
           {% endfor %}
         </div>
@@ -404,6 +413,24 @@
         <button type="submit" name="block_type" value="{{ value }}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">+ {{ label }}</button>
       {% endfor %}
     </form>
+
+    {# SE-4a: библиотека сохранённых блок-шаблонов — вставить копию или удалить
+       (отдельная форма, не в #home-form). Пусто → блок скрыт. #}
+    {% if block_templates %}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+      {% csrf_token %}
+      <span class="text-sm font-medium">{% trans "Saved block templates" %}:</span>
+      <div class="flex flex-col gap-2">
+        {% for t in block_templates %}
+          <div class="flex items-center gap-2 text-sm border border-gray-100 rounded-lg px-3 py-2">
+            <span class="flex-1"><span class="text-gray-400 text-xs mr-1">{{ t.key }}</span>{{ t.label }}</span>
+            <button type="submit" name="action" value="use_block_template:{{ t.id }}" class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">+ {% trans "Insert" %}</button>
+            <button type="submit" name="action" value="delete_block_template:{{ t.id }}" class="text-xs text-red-600 hover:underline">{% trans "Delete" %}</button>
+          </div>
+        {% endfor %}
+      </div>
+    </form>
+    {% endif %}
 
     {# SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
        Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). #}

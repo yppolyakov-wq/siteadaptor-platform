@@ -390,3 +390,29 @@ def test_grid_class_string_tablet_zero_keeps_legacy():
     auto = siteconfig.grid_class_string({"preset": "cols4"})
     explicit_zero = siteconfig.grid_class_string({"preset": "cols4", "tablet": 0})
     assert auto == explicit_zero == "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+
+
+# --- SE-4a: блок-шаблоны (многоразовые C-блоки) ------------------------------
+
+
+def test_block_templates_normalize_and_sanitize():
+    cfg = siteconfig.normalize(
+        {
+            "block_templates": {
+                "t1": {
+                    "key": "text",
+                    "label": "  Hallo  ",
+                    "data": {"title": "T", "body": "B", "junk": "x"},
+                },
+                "t2": {"key": "bogus", "label": "x", "data": {}},  # неизвестный тип → отброшен
+            }
+        }
+    )
+    bt = cfg["block_templates"]
+    assert "t2" not in bt
+    assert bt["t1"]["label"] == "Hallo"  # _s трим
+    assert bt["t1"]["data"] == {"title": "T", "body": "B"}  # junk отброшен по типу
+
+
+def test_block_templates_empty_default():
+    assert siteconfig.normalize(None)["block_templates"] == {}

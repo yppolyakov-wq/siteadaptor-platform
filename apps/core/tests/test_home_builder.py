@@ -711,3 +711,80 @@ def test_site_view_does_not_wipe_homepage_composition():
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert "archetypes" in enabled  # не погашено пустой формой
     assert cfg["archetypes"]["catalog"]["label"] == "Speisekarte"  # оверрайд цел
+
+
+def test_home_builder_save_block_as_template():
+    """SE-4a: сохранить C-блок как многоразовый шаблон (данные из POST)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbsbt",
+        name="HBSBT",
+        site_config={
+            "sections": [{"key": "text", "id": "blk1", "enabled": True, "data": {"title": "Hi"}}]
+        },
+    )
+    data = {
+        "action": "save_block_template:blk1",
+        "cb_type_blk1": "text",
+        "cb_blk1_title": "Hi",
+        "cb_blk1_body": "X",
+        "tpl_label_blk1": "Greeting",
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    bt = siteconfig.normalize(tenant.site_config)["block_templates"]
+    assert len(bt) == 1
+    t = next(iter(bt.values()))
+    assert t["key"] == "text" and t["label"] == "Greeting" and t["data"]["title"] == "Hi"
+
+
+def test_home_builder_use_block_template_inserts_copy():
+    """SE-4a: вставка из шаблона создаёт новый C-блок с теми же данными."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbubt",
+        name="HBUBT",
+        site_config={
+            "block_templates": {"tplA": {"key": "text", "label": "G", "data": {"title": "Hi"}}}
+        },
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "use_block_template:tplA"}, tenant)
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    inserted = [s for s in cfg["sections"] if s["key"] == "text" and s.get("id")]
+    assert any(s["data"].get("title") == "Hi" for s in inserted)
+
+
+def test_home_builder_delete_block_template():
+    """SE-4a: удаление шаблона из библиотеки."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbdbt",
+        name="HBDBT",
+        site_config={
+            "block_templates": {"tplA": {"key": "text", "label": "G", "data": {"title": "Hi"}}}
+        },
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "delete_block_template:tplA"}, tenant)
+    )
+    assert siteconfig.normalize(tenant.site_config)["block_templates"] == {}
+
+
+def test_home_builder_get_renders_block_template_library():
+    """SE-4a: библиотека сохранённых шаблонов отрисована (вставить/удалить)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbbtl",
+        name="HBBTL",
+        site_config={
+            "block_templates": {
+                "tplA": {"key": "text", "label": "Greeting", "data": {"title": "Hi"}}
+            }
+        },
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert "use_block_template:tplA" in body and "Greeting" in body

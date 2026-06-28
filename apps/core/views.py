@@ -537,6 +537,43 @@ def home_builder_view(request):
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 messages.success(request, _("Block added."))
             return redirect("site-home")
+        # SE-4a: блок-шаблоны (многоразовые C-блоки). action кодирует id через ":" —
+        # save_block_template:<cb_id> (сохранить текущий C-блок как шаблон, данные из
+        # POST → ловим несохранённые правки), use_block_template:<tpl_id> (вставить
+        # копию в конец), delete_block_template:<tpl_id>.
+        action = request.POST.get("action", "")
+        if action.startswith(
+            ("save_block_template:", "use_block_template:", "delete_block_template:")
+        ):
+            import copy
+            import uuid
+
+            verb, _sep, ident = action.partition(":")
+            cfg = siteconfig.normalize(request.tenant.site_config)
+            tpls = dict(cfg.get("block_templates") or {})
+            if verb == "save_block_template":
+                btype = request.POST.get(f"cb_type_{ident}", "")
+                if btype in siteconfig.REPEATABLE_BLOCKS:
+                    label = (request.POST.get(f"tpl_label_{ident}") or "").strip()
+                    tpls[uuid.uuid4().hex[:12]] = {
+                        "key": btype,
+                        "label": label or btype,
+                        "data": _read_cblock_data(request.POST, ident, btype),
+                    }
+                    messages.success(request, _("Block saved as template."))
+            elif verb == "use_block_template" and ident in tpls:
+                tpl = tpls[ident]
+                cfg["sections"].append(
+                    {"key": tpl["key"], "enabled": True, "data": copy.deepcopy(tpl["data"])}
+                )
+                messages.success(request, _("Template inserted."))
+            elif verb == "delete_block_template" and ident in tpls:
+                tpls.pop(ident)
+                messages.success(request, _("Template removed."))
+            cfg["block_templates"] = tpls
+            request.tenant.site_config = siteconfig.normalize(cfg)
+            request.tenant.save(update_fields=["site_config", "updated_at"])
+            return redirect("site-home")
         # SE-2c-1: быстрое создание категории прямо в редакторе (мини-форма «+ Kategorie»,
         # по образцу add_block). Создаёт живую Category через CategoryForm (валидация/slug/
         # parent переиспользуются); категория сразу видна чипом на канве каталога. Категории
@@ -838,6 +875,11 @@ def home_builder_view(request):
             "catalog_categories": catalog_categories,
             # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
             "cblocks": cblocks,
+            # SE-4a: библиотека сохранённых блок-шаблонов (id/тип/имя) для вставки.
+            "block_templates": [
+                {"id": tid, "key": t["key"], "label": t["label"]}
+                for tid, t in config["block_templates"].items()
+            ],
             "block_types": [
                 ("text", _("Text")),
                 ("image", _("Image")),

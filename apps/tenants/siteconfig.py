@@ -134,6 +134,29 @@ def _clean_cblock(item: dict) -> dict:
     }
 
 
+# SE-4a: пользовательские блок-шаблоны (многоразовые C-блоки) — {id: {key,label,data}}
+# в site_config. Владелец сохраняет блок как шаблон и вставляет его в другие места.
+_MAX_BLOCK_TEMPLATES = 50
+
+
+def normalize_block_templates(raw) -> dict:
+    """SE-4a: привести block_templates к {id: {key, label, data}}. key ∈
+    REPEATABLE_BLOCKS, data санитизируется по типу (как C-блок). Пусто → {} (без
+    регрессии для legacy-конфигов)."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for tid, tpl in list(raw.items())[:_MAX_BLOCK_TEMPLATES]:
+        if not isinstance(tpl, dict) or tpl.get("key") not in REPEATABLE_BLOCKS:
+            continue
+        key = tpl["key"]
+        out[_s(tid) or uuid.uuid4().hex[:12]] = {
+            "key": key,
+            "label": _s(tpl.get("label"))[:120],
+            "data": _clean_cblock_data(key, tpl.get("data")),
+        }
+    return out
+
+
 # M20R-1: универсальный layout-движок секций-сеток. Пресет = быстрый выбор
 # раскладки (анти-Битрикс), `cols/mobile/gap/width` — ручной override («Дополнительно»).
 LAYOUT_PRESETS = {
@@ -954,6 +977,8 @@ def normalize(config) -> dict:
             sections.append(_section(key, enabled, None))
 
     normalized = {"sections": sections}
+    # SE-4a: пользовательские блок-шаблоны (переживают нормализацию).
+    normalized["block_templates"] = normalize_block_templates(config.get("block_templates"))
     for field in TEXT_FIELDS:
         value = config.get(field, "")
         normalized[field] = value.strip() if isinstance(value, str) else ""
