@@ -95,8 +95,8 @@
             </select>
           </label>
         </div>
-        {# SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
-           всеми сетками; блок может переопределить своим visual). #}
+        {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
+           всеми сетками; блок может переопределить своим visual). {% endcomment %}
         <div class="mt-4 pt-4 border-t border-gray-100">
           <p class="text-sm font-medium mb-2">🌐 {% trans "Card style (whole site)" %}</p>
           <div class="grid sm:grid-cols-2 gap-4">
@@ -153,8 +153,8 @@
                 <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
                   {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
                 </select>
-                {# SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
-                   Пусто/0 = «как пресет/авто». Expert-режим. #}
+                {% comment %} SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
+                   Пусто/0 = «как пресет/авто». Expert-режим. {% endcomment %}
                 <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" title="{% trans 'Columns per device' %}">
                   📱<input type="number" name="mobile_{{ s.key }}" value="{{ s.layout_mobile }}" min="1" max="2" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on phone' %}">
                   ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
@@ -226,8 +226,8 @@
                 <label class="flex items-center gap-1"><input type="checkbox" name="hide_tablet_{{ s.key }}" {% if 'tablet' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">▭</label>
                 <label class="flex items-center gap-1"><input type="checkbox" name="hide_desktop_{{ s.key }}" {% if 'desktop' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">🖥</label>
               </div>
-              {# SE-3a: микрошаблоны «Quick styles» — один клик задаёт облик (layout+visual)
-                 секции-сетки. Распаковка на фронте в обычные инпуты → live-preview/Save. #}
+              {% comment %} SE-3a: микрошаблоны «Quick styles» — один клик задаёт облик (layout+visual)
+                 секции-сетки. Распаковка на фронте в обычные инпуты → live-preview/Save. {% endcomment %}
               {% if s.is_grid %}
               <div class="w-full mt-2 flex items-center gap-1.5 flex-wrap">
                 <span class="text-xs text-gray-500">{% trans "Quick styles" %}:</span>
@@ -243,8 +243,8 @@
         </div>
       </fieldset>
 
-      {# SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
-         переносит контрол в попап (data-page-key). Раскладка → черновик/Save. #}
+      {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
+         переносит контрол в попап (data-page-key). Раскладка → черновик/Save. {% endcomment %}
       {% if has_catalog or has_events or has_stays %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Landing pages" %}</legend>
@@ -274,8 +274,8 @@
             </select>
           </div>
           {% endif %}
-          {# SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог+события+
-             номера). Фронт: ставит значения всех селекторов → live-preview/Save. #}
+          {% comment %} SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог+события+
+             номера). Фронт: ставит значения всех селекторов → live-preview/Save. {% endcomment %}
           <div class="flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100">
             <span class="text-sm text-gray-500">{% trans "Apply layout to all landing pages" %}:</span>
             <select id="apply-all-preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
@@ -283,8 +283,8 @@
             </select>
             <button type="button" id="apply-all-landings" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply" %}</button>
           </div>
-          {# SE-2b-2: порядок/видимость тематических секций детальной события — клик по
-             блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. #}
+          {% comment %} SE-2b-2: порядок/видимость тематических секций детальной события — клик по
+             блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. {% endcomment %}
           {% if has_events %}
           <div class="page-block" data-page-key="event_detail">
             <span class="text-sm font-medium block mb-2">{% trans "Event page: sections" %}</span>
@@ -393,9 +393,9 @@
                   <option value="right" {% if b.data.side == 'right' %}selected{% endif %}>{% trans "Image right" %}</option>
                 </select>
               {% endif %}
-              {# SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
+              {% comment %} SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
                  #home-form с action=save_block_template:<id> (данные блока из POST —
-                 ловим текущие правки); ранний return в home_builder_view. #}
+                 ловим текущие правки); ранний return в home_builder_view. {% endcomment %}
               <div class="flex items-center gap-2 pt-1">
                 <input type="text" name="tpl_label_{{ b.id }}" placeholder="{% trans 'Template name' %}"
                        class="flex-1 rounded border border-gray-200 px-2 py-1 text-xs">
@@ -410,8 +410,8 @@
 
       <div class="flex items-center gap-2 flex-wrap">
         <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-        {# SE-4b: сохранить ВСЮ компоновку секций как шаблон страницы. Сабмитит #home-form
-           с action=save_page_template (снимок из POST — ловит несохранённые правки). #}
+        {% comment %} SE-4b: сохранить ВСЮ компоновку секций как шаблон страницы. Сабмитит #home-form
+           с action=save_page_template (снимок из POST — ловит несохранённые правки). {% endcomment %}
         <input type="text" name="page_tpl_label" placeholder="{% trans 'Page template name' %}"
                class="rounded border border-gray-200 px-2 py-1.5 text-sm">
         <button type="submit" name="action" value="save_page_template" formnovalidate
@@ -429,8 +429,8 @@
       {% endfor %}
     </form>
 
-    {# SE-4a: библиотека сохранённых блок-шаблонов — вставить копию или удалить
-       (отдельная форма, не в #home-form). Пусто → блок скрыт. #}
+    {% comment %} SE-4a: библиотека сохранённых блок-шаблонов — вставить копию или удалить
+       (отдельная форма, не в #home-form). Пусто → блок скрыт. {% endcomment %}
     {% if block_templates %}
     <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
       {% csrf_token %}
@@ -447,8 +447,8 @@
     </form>
     {% endif %}
 
-    {# SE-4b: библиотека шаблонов страниц — применить (заменить всю компоновку) или
-       удалить (отдельная форма). Пусто → блок скрыт. #}
+    {% comment %} SE-4b: библиотека шаблонов страниц — применить (заменить всю компоновку) или
+       удалить (отдельная форма). Пусто → блок скрыт. {% endcomment %}
     {% if page_templates %}
     <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
       {% csrf_token %}
@@ -467,8 +467,8 @@
     </form>
     {% endif %}
 
-    {# SE-5b: история версий — откат публикации на сохранённую ранее версию (каждое
-       «Сохранить» кладёт предыдущую версию сюда). Откат сам undoable. Отдельная форма. #}
+    {% comment %} SE-5b: история версий — откат публикации на сохранённую ранее версию (каждое
+       «Сохранить» кладёт предыдущую версию сюда). Откат сам undoable. Отдельная форма. {% endcomment %}
     {% if history %}
     <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
       {% csrf_token %}
@@ -486,8 +486,8 @@
     </form>
     {% endif %}
 
-    {# SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
-       Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). #}
+    {% comment %} SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
+       Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). {% endcomment %}
     {% if has_catalog %}
     <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
       {% csrf_token %}
@@ -576,8 +576,8 @@
     {% for value, label in block_types %}
       <button type="button" data-bt="{{ value }}" class="bld-ins-btn block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">+ {{ label }}</button>
     {% endfor %}
-    {# SE-4c: вставить сохранённый блок-шаблон ПРЯМО в эту позицию (use_block_template
-       + insert_after). Надёжнее cross-iframe DnD: вставка через клик-инсертер. #}
+    {% comment %} SE-4c: вставить сохранённый блок-шаблон ПРЯМО в эту позицию (use_block_template
+       + insert_after). Надёжнее cross-iframe DnD: вставка через клик-инсертер. {% endcomment %}
     {% if block_templates %}
       <div class="text-xs text-gray-400 px-2 pt-2 pb-1 border-t border-gray-100 mt-1">{% trans "Templates" %}</div>
       {% for t in block_templates %}
