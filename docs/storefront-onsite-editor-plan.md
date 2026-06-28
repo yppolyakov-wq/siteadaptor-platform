@@ -240,7 +240,9 @@ grid_class_string с tablet, legacy без tablet = прежний вывод.
 
 ### SE-4 — Переиспользуемые блоки и шаблоны страниц
 - **SE-4a** ✅ «Сохранить блок как шаблон» + «Вставить шаблон» (блок-пресет, многоразовый).
-- **SE-4b** Шаблоны страниц (набор секций целиком; поверх `sitetemplates`).
+- **SE-4b** ✅ Шаблоны страниц (снимок всего набора секций; `page_templates={id:{label,sections}}`,
+  `0ff18b7`). Save = снимок из POST; Apply = замена набора секций (confirm); Delete. Рефактор
+  `normalize_sections` в module-level. Без миграций.
 - **SE-4c** Перетаскивание блока на канве + инсертер «+» между секциями (есть основа E.3/E.4).
 
 #### Дизайн SE-4 (по разведке 2026-06-28, миграций нет — всё в site_config)
@@ -251,8 +253,12 @@ grid_class_string с tablet, legacy без tablet = прежний вывод.
 данные из POST через `_read_cblock_data` — ловим несохранённые правки; ранний return). Library:
 отдельная форма с сохранёнными шаблонами → `use_block_template:<tid>` (вставить deep-copy C-блока
 в конец) / `delete_block_template:<tid>`. Переиспользует механизм C-блоков (add_block) — без модели.
-**SE-4b (далее):** шаблоны страниц = наборы C-блоков (по образцу `sitetemplates`, но с C-блоками);
-вариант — `page_templates: {name: [block_template_ids]}` (ссылки на блок-шаблоны). Средний риск.
+**SE-4b ✅ (реализовано, `0ff18b7`):** шаблоны страниц = именованный снимок ВСЕГО `sections`
+(не ссылки на блок-шаблоны, а полная компоновка). `site_config["page_templates"]={id:{label,sections}}`
+(`_MAX_PAGE_TEMPLATES=20`; `normalize_page_templates` → `normalize_sections`). Save в основном потоке
+(снимок из собранного POST — ловит несохранённые правки); Apply (`use_page_template`) — ЗАМЕНА всего
+набора deep-copy с confirm; Delete. Вынесен module-level `_section_entry`/`normalize_sections`
+(переиспользование; поведение идентично). UI: «🗂 Save page as template» + библиотека.
 **SE-4c (далее):** улучшить E.4 — drag блока на канве на инсертер-зону «+» (есть `moveBlock`/
 `submitInsert`/`data-sf-drag`); drop сохранённого шаблона в позицию. Средний риск (JS на канве).
 

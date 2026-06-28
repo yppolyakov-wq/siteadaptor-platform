@@ -2571,3 +2571,18 @@
   заменён на `{% comment %}`. Тесты: нормализация/санитайз/legacy, POST/GET билдера, рендер
   витрины (есть/нет классов скрытия). Завершает SE-3c (C-min колонки + C-mid скрытие; C-full
   порядок — отложен). Слит FF в main (`56721e2`). Без миграций.
+
+- **2026-06-28 — SE-4b (шаблоны страниц / page templates).** Именованный снимок ВСЕГО набора
+  секций главной как многоразовый шаблон: `site_config["page_templates"] = {id: {label, sections}}`
+  (`_MAX_PAGE_TEMPLATES=20`, `normalize_page_templates` прогоняет снимок через `normalize_sections`).
+  Сохранить = снимок текущей компоновки ИЗ POST (ловит несохранённые правки порядка/видимости, как
+  `save_block_template`); применить (`use_page_template:<id>`) = ЗАМЕНА всего набора секций deep-copy
+  снимка (это шаблон СТРАНИЦЫ, не вставка) с JS-confirm; удалить (`delete_page_template:<id>`) — из
+  библиотеки. Рефактор: тело сборки секций из `normalize()` вынесено в module-level
+  `_section_entry`/`normalize_sections` (переиспользуется для снимков; поведение идентично — старые
+  section/cblock/layout-тесты зелёные). `home_builder_view`: save в основном потоке (снимок из
+  собранного `config["sections"]`), use/delete — ранний return; `page_templates` в GET-контексте.
+  `site_home.html`: кнопка «🗂 Save page as template» в `#home-form` + библиотека (Apply с confirm /
+  Delete). Тесты: нормализация/кап/санитайз снимка + идемпотентность `normalize_sections`;
+  save/use/delete/GET билдера. Широкий прогон `apps/tenants`+`apps/core` 517 passed (рефактор без
+  регрессий). Слит FF в main (`0ff18b7`). Без миграций. Завершает связку SE-4 (блоки 4a + страницы 4b).
