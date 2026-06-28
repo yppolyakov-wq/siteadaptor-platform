@@ -243,7 +243,9 @@ grid_class_string с tablet, legacy без tablet = прежний вывод.
 - **SE-4b** ✅ Шаблоны страниц (снимок всего набора секций; `page_templates={id:{label,sections}}`,
   `0ff18b7`). Save = снимок из POST; Apply = замена набора секций (confirm); Delete. Рефактор
   `normalize_sections` в module-level. Без миграций.
-- **SE-4c** Перетаскивание блока на канве + инсертер «+» между секциями (есть основа E.3/E.4).
+- **SE-4c** ✅ Вставка шаблона в позицию + индикатор drag на канве (`fa4154b`). Инсертер «+»
+  предлагает сохранённые блок-шаблоны → вставка в позицию (use_block_template + insert_after);
+  drag-on-canvas получил видимую линию-индикатор. Без миграций.
 
 #### Дизайн SE-4 (по разведке 2026-06-28, миграций нет — всё в site_config)
 **SE-4a ✅ (реализовано):** блок-шаблоны = многоразовые C-блоки. Хранение в
@@ -259,8 +261,14 @@ grid_class_string с tablet, legacy без tablet = прежний вывод.
 (снимок из собранного POST — ловит несохранённые правки); Apply (`use_page_template`) — ЗАМЕНА всего
 набора deep-copy с confirm; Delete. Вынесен module-level `_section_entry`/`normalize_sections`
 (переиспользование; поведение идентично). UI: «🗂 Save page as template» + библиотека.
-**SE-4c (далее):** улучшить E.4 — drag блока на канве на инсертер-зону «+» (есть `moveBlock`/
-`submitInsert`/`data-sf-drag`); drop сохранённого шаблона в позицию. Средний риск (JS на канве).
+**SE-4c ✅ (реализовано, `fa4154b`):** (A) backend — `use_block_template` принял опц.
+`insert_after` → вставка копии шаблона в позицию (логика «после секции key/id» вынесена в
+общий `_insert_after_section`, дедуп с add_block). (B) канва — инсертер «+» (`#bld-inserter`)
+дополнен списком сохранённых блок-шаблонов (`data-tpl` → `submitInsertTemplate` = use_block_template
++ insert_after): «вставить шаблон в позицию» через надёжный клик-инсертер, т.к. нативный
+cross-iframe DnD (parent→iframe) не срабатывает в большинстве браузеров. (C) drag-on-canvas —
+видимая линия-индикатор позиции (`showDropLine`/`hideDropLine`, dragover/dragleave/dragend/drop).
+Тесты: insert_after в позицию / в конец (back-compat); рендер инсертера (шаблоны + JS).
 
 ### SE-5 — Производительность и публикация (опц.)
 - **SE-5a** Кэш отрендеренной витрины (`pagecache`) + **сброс при публикации**.

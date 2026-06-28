@@ -2586,3 +2586,17 @@
   Delete). Тесты: нормализация/кап/санитайз снимка + идемпотентность `normalize_sections`;
   save/use/delete/GET билдера. Широкий прогон `apps/tenants`+`apps/core` 517 passed (рефактор без
   регрессий). Слит FF в main (`0ff18b7`). Без миграций. Завершает связку SE-4 (блоки 4a + страницы 4b).
+
+- **2026-06-28 — SE-4c (вставка шаблона в позицию + индикатор drag на канве).** Улучшение
+  on-canvas редактора (E.3/E.4). (A) Backend: `use_block_template:<tid>` принял опц. POST
+  `insert_after` → вставка deep-copy шаблона ПОСЛЕ секции key/id (иначе append — back-compat).
+  Логика «вставить после секции» вынесена в общий `_insert_after_section(sections, block, after)`
+  (дедуп с `add_block`; поведение идентично — регрессионный `test_add_block_after_inserts_at_position`
+  зелёный). (B) Канва: `#bld-inserter` дополнен списком сохранённых блок-шаблонов (`data-tpl` →
+  `submitInsertTemplate` = POST use_block_template + insert_after) — «вставить шаблон в позицию»
+  через надёжный клик-инсертер (нативный cross-iframe DnD parent→iframe в большинстве браузеров не
+  срабатывает, поэтому НЕ через drag из библиотеки). (C) drag-on-canvas: видимая линия-индикатор
+  позиции вставки (`showDropLine`/`hideDropLine`; dragover/dragleave/dragend/drop гасят/двигают).
+  Тесты: use_block_template insert_after (в позицию / в конец); рендер инсертера (шаблоны +
+  `submitInsertTemplate` + `showDropLine`). Слит FF в main (`fa4154b`). Без миграций. Завершает
+  трек SE-4 (4a блоки + 4b страницы + 4c вставка/drag).
