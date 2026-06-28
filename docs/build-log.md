@@ -2514,3 +2514,14 @@
   попапа; `collect()`/`site_preview_draft` (теперь несёт и пер-секционный `visual`)/POST+GET.
   Фон применяется лишь при включённом тоггле (color-input всегда шлёт значение). Тесты (siteconfig
   35 + home_builder/live_preview). SE-3d ✅ слит FF в main (`f5dcceb`). Без миграций.
+
+- **2026-06-28 — on-canvas редактор: SE-3b (глобальная типографика).** Начертание заголовков
+  (`weight_head` из набора 300..800) + межстрочный интервал тела (`line_height` 1.0..2.0).
+  Намеренно БЕЗ абсолютного размера шрифта: витрина на Tailwind с фикс-классами `text-*` —
+  единый размер сломал бы типошкалу (em-каскад почти не работает). `siteconfig.normalize_typography`
+  + в `normalize()`; `context.py` отдаёт `storefront_font_weight_head/line_height` (draft-aware);
+  `_base.html` :root эмитит `--fw-head`/`--lh-body` лишь когда заданы, применяет к `body`
+  (line-height) и `h1-h3` (font-weight) через `var(…, inherit)`. **Баг пойман локальным тестом:**
+  немецкая локаль рендерила `line-height: 1,6` (запятая — невалидный CSS) → `|unlocalize`.
+  UI «Design»: селекторы начертания/интервала. Тесты (siteconfig/home_builder/live_preview,
+  106 passed). SE-3b ✅ слит FF в main (`17df60f`). Без миграций. Per-section типографика — позже.
