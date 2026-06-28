@@ -2403,3 +2403,18 @@
   от DOM; `sortListByOrderValue()` синхронизирует DOM-список (в т.ч. при закрытии попапа),
   `updateMoveButtons()` гасит ↑ у первого / ▼ у последнего. Остальные базовые контролы
   (колонки/число/источник/скрыть) уже работали. Тест рендера кнопок. Без миграций.
+
+- **2026-06-27 — on-canvas редактор: SE-2 (редактор на других страницах) — SE-2a-1 + SE-2a-2.**
+  План/дизайн — `docs/storefront-onsite-editor-plan.md` (раздел «Дизайн SE-2»). **SE-2a-1:**
+  переключатель страницы превью в тулбаре редактора (главная + лендинги активных архетипов;
+  `preview_pages` резолвит URL во view); `previewPath`/`previewUrl()` параметризуют iframe —
+  `push()` и переключатель грузят выбранную страницу с `?preview=1`. Чтение черновика уже
+  page-agnostic (context-processor) → глобальные правки (шрифт/акцент/hero) видны на всех
+  страницах. **SE-2a-2:** каталог `/sortiment/` на канве — `product_list` стал draft-aware
+  (при `?preview=1` берёт `site_preview_draft` из сессии, как `storefront_home`); грид каталога
+  получил `data-sf-section="catalog"`; per-page инспектор раскладки каталога (fieldset «Catalog
+  page», контрол `data-page-key="catalog"` → `openBlockPopup` переносит его в попап по клику на
+  грид; `collect()` шлёт `catalog_layout` в черновик; `home_builder_view` POST сохраняет
+  `catalog_preset`). Инжекты «+»/drag (E.3/E.4) ограничены главной (на лендингах чужой контекст);
+  клик-инспектор и инлайн-правка работают везде. Тесты: переключатель, draft-aware грид, маркер
+  секции, GET/POST инспектора каталога (63 в core+catalog). Без миграций.

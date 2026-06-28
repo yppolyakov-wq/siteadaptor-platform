@@ -371,6 +371,30 @@ def test_home_builder_get_renders_preview_page_switcher():
     assert "/sortiment/" in body or "/unterkunft/" in body  # лендинг архетипа в опциях
 
 
+def test_home_builder_get_renders_catalog_page_inspector():
+    """SE-2a-2: per-page инспектор каталога (контрол раскладки) при активном модуле."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbcat", name="HBCAT", enabled_modules=["catalog"]
+    )
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'data-page-key="catalog"' in body  # контрол находится openBlockPopup
+    assert 'name="catalog_preset"' in body  # селектор раскладки каталога
+
+
+def test_home_builder_saves_catalog_layout():
+    """SE-2a-2: раскладка каталога сохраняется из канвы (per-page инспектор)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbcl", name="HBCL", enabled_modules=["catalog"]
+    )
+    data = {"catalog_preset": "cols2"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["catalog_layout"]["preset"] == "cols2"
+    assert cfg["catalog_layout"]["cols"] == 2  # пресет развёрнут normalize_layout
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""

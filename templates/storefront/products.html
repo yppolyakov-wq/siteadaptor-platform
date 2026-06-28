@@ -67,7 +67,8 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 {% endif %}
 
 {% if page.items %}
-<div class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
+{# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}
+<div data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
   {% for p in page.items %}
     {% include "storefront/_product_card.html" %}
   {% endfor %}

@@ -162,6 +162,21 @@
         </div>
       </fieldset>
 
+      {# SE-2a-2: per-page инспектор каталога — клик по гриду каталога на канве
+         переносит этот контрол в попап (data-page-key). Раскладка → черновик/Save. #}
+      {% if has_catalog %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+        <legend class="font-semibold mb-1">{% trans "Catalog page" %}</legend>
+        <p class="text-xs text-gray-400 mb-3">{% trans "Switch the preview to “Catalog” and click the product grid to edit its layout here." %}</p>
+        <div class="page-block flex items-center gap-3" data-page-key="catalog">
+          <span class="text-sm font-medium flex-1">{% trans "Product grid layout" %}</span>
+          <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+            {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+          </select>
+        </div>
+      </fieldset>
+      {% endif %}
+
       {% if archetype_specs %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
@@ -451,6 +466,10 @@
       hero_style: heroEl && heroEl.checked ? "accent" : "plain",
       accent: accentEl ? accentEl.value : "",
     };
+    // SE-2a-2: раскладка каталога (per-page) → в черновик, чтобы превью каталога
+    // (?preview=1) показало её сразу.
+    var catSel = form.querySelector("select[name='catalog_preset']");
+    if (catSel && catSel.value) payload.catalog_layout = { preset: catSel.value };
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [
       "cta_title", "cta_text", "cta_button_label", "cta_button_url",
@@ -567,13 +586,15 @@
     var ord = form.querySelector('[name="order_' + key + '"]');
     var row = ord ? ord.closest(".home-block") : null;
     if (!row) row = form.querySelector('.cb-row[data-cb-id="' + key + '"]');
+    // SE-2a-2: per-page инспектор (каталог и др.) — контрол по data-page-key.
+    if (!row) row = form.querySelector('.page-block[data-page-key="' + key + '"]');
     if (!row) return false;
     closeBlockPopup();
     popupAnchor = document.createComment("blk");
     row.parentNode.insertBefore(popupAnchor, row);
     if (row.classList.contains("home-block")) row.classList.add("flex-wrap");
     popupBody.appendChild(row);
-    var lab = row.querySelector("label");
+    var lab = row.querySelector("label") || row.querySelector("span");
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
     popup.classList.remove("hidden");
     return true;
@@ -709,6 +730,9 @@
       });
     });
     // E.3: вставить зону «+» после каждого блока превью → библиотека блоков.
+    // SE-2a-2: только на главной — «+» и drag оперируют блоками главной (на
+    // лендингах архетипов чужой контекст). Клик/инлайн-правка работают везде.
+    if (previewPath === "/")
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
       var bar = doc.createElement("div");
       bar.setAttribute("style", "position:relative;height:0;");
@@ -735,6 +759,7 @@
     });
     // E.4: drag-on-canvas — ручка ⠿ на каждом блоке; перетаскивание меняет порядок.
     var win = frame.contentWindow;
+    if (previewPath === "/")
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
       var box = sec.firstElementChild;
       if (!box) return;

@@ -311,11 +311,16 @@ def product_list(request):
         else []
     )
     # M20U-7 (per-page): раскладка сетки каталога из конфига витрины.
+    # SE-2a-2: при ?preview=1 берём черновик из сессии (как storefront_home) —
+    # чтобы on-canvas правка раскладки каталога была видна сразу.
     from apps.tenants import siteconfig
 
-    catalog_grid = siteconfig.grid_class_string(
-        siteconfig.normalize(request.tenant.site_config)["catalog_layout"]
-    )
+    raw_cfg = request.tenant.site_config
+    if request.GET.get("preview") == "1" and isinstance(
+        request.session.get("site_preview_draft"), dict
+    ):
+        raw_cfg = request.session["site_preview_draft"]
+    catalog_grid = siteconfig.grid_class_string(siteconfig.normalize(raw_cfg)["catalog_layout"])
     return render(
         request,
         "storefront/products.html",

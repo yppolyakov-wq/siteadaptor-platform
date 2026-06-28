@@ -66,6 +66,23 @@ def test_catalog_page_grid_from_config():
     assert "lg:grid-cols-4" in body
 
 
+def test_catalog_grid_uses_preview_draft():
+    """SE-2a-2: при ?preview=1 сетка каталога берётся из черновика сессии (on-canvas)."""
+    ProductFactory(name={"de": "Brot"})
+    req = _req("/sortiment/", params={"preview": "1"})
+    req.tenant.site_config = {"catalog_layout": {"preset": "cols2"}}  # сохранённый
+    req.session["site_preview_draft"] = {"catalog_layout": {"preset": "cols4"}}  # черновик
+    body = public_views.product_list(req).content.decode()
+    assert "lg:grid-cols-4" in body  # показан черновик, не сохранённый cols2
+
+
+def test_catalog_grid_has_canvas_section_marker():
+    """SE-2a-2: грид каталога несёт data-sf-section='catalog' для on-canvas клика."""
+    ProductFactory(name={"de": "Brot"})
+    body = public_views.product_list(_req()).content.decode()
+    assert 'data-sf-section="catalog"' in body
+
+
 def test_unknown_category_redirects_to_full_list():
     resp = public_views.product_list(_req(params={"kategorie": "ghost"}))
     assert resp.status_code == 302

@@ -614,8 +614,13 @@ def home_builder_view(request):
             if tval:
                 titles[tkey] = tval
         config["section_titles"] = titles
-        # (per-page раскладки каталога/номеров/событий — на странице «Pages»,
-        #  pages_view; normalize сохраняет их при записи главной без изменений.)
+        # (per-page раскладки номеров/событий — на странице «Pages», pages_view;
+        #  normalize сохраняет их при записи главной без изменений.)
+        # SE-2a-2: раскладка каталога правится и на канве (per-page инспектор) —
+        # сохраняем, если прислан валидный пресет (иначе не трогаем существующую).
+        cat_preset = request.POST.get("catalog_preset", "")
+        if cat_preset in siteconfig.LAYOUT_PRESETS:
+            config["catalog_layout"] = {"preset": cat_preset}
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
@@ -723,6 +728,9 @@ def home_builder_view(request):
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,
             "preview_pages": preview_pages,
+            # SE-2a-2: per-page инспектор раскладки каталога (если модуль активен).
+            "has_catalog": request.tenant.is_module_active("catalog"),
+            "catalog_preset": (config.get("catalog_layout") or {}).get("preset", ""),
             "storefront_root": config.get("storefront_root", "home"),
             # M20f: дизайн вживую — текущие значения + варианты шрифта.
             "font": config.get("font", "system"),
