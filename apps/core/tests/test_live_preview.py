@@ -249,6 +249,48 @@ def test_draft_endpoint_includes_event_detail():
     assert "bogus" not in order  # неизвестный ключ отброшен normalize
 
 
+def test_modules_nav_exposes_global_card_style():
+    """SE-2d: глобальный стиль карточек (site_defaults) отдаётся в контекст витрины."""
+    from apps.core.context import modules_nav
+
+    tenant = TenantFactory(
+        schema_name="t", slug="gcs", name="GCS", site_config={"site_defaults": {"card_radius": 14}}
+    )
+    req = _session(RequestFactory().get("/"))
+    req.tenant = tenant
+    ctx = modules_nav(req)
+    assert ctx["storefront_card_radius"] == 14 and ctx["storefront_card_shadow"] is False
+
+
+def test_modules_nav_previews_draft_card_style():
+    """SE-2d: под ?preview=1 глобальный стиль карточек берётся из черновика."""
+    from apps.core.context import modules_nav
+
+    tenant = TenantFactory(schema_name="t", slug="gcsp", name="GCSP")
+    draft = siteconfig.normalize({"site_defaults": {"card_radius": 20, "card_shadow": True}})
+    req = _session(RequestFactory().get("/?preview=1"))
+    req.session["site_preview_draft"] = draft
+    req.tenant = tenant
+    ctx = modules_nav(req)
+    assert ctx["storefront_card_radius"] == 20 and ctx["storefront_card_shadow"] is True
+
+
+def test_storefront_base_emits_global_card_vars():
+    """SE-2d: <body> несёт --sf-r/--sf-sh при заданном site_defaults; без него — нет."""
+    tenant = TenantFactory.build()
+    tenant.site_config = {"site_defaults": {"card_radius": 16, "card_shadow": True}}
+    req = _session(RequestFactory().get("/"))
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert "--sf-r:16px" in body and "--sf-sh:" in body
+
+    tenant.site_config = {}  # legacy → без inline-переменных (без регрессии)
+    req2 = _session(RequestFactory().get("/"))
+    req2.tenant = tenant
+    body2 = public_views.storefront_home(req2).content.decode()
+    assert "--sf-r:" not in body2
+
+
 def test_modules_nav_previews_draft_design():
     """Context-процессор под ?preview=1 отдаёт шрифт/акцент из черновика."""
     from apps.core.context import modules_nav

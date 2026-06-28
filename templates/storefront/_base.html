@@ -36,9 +36,11 @@
     }
     body { font-family: var(--font-body); }
     h1, h2, h3, h4, .font-head { font-family: var(--font-head); }
-    /* SE-3d: визуальные параметры блока. Переопределяем radius/shadow карточек
-       (.sf-card) ТОЛЬКО когда владелец задал их на обёртке секции (data-sf-section
-       несёт inline --sf-r/--sf-sh). Без переменной карточка сохраняет свой
+    /* SE-3d/SE-2d: визуальные параметры карточек (.sf-card). Переопределяем
+       radius/shadow ТОЛЬКО когда задано — глобально на <body> (site_defaults,
+       SE-2d «весь сайт») или на обёртке секции (data-sf-section несёт inline
+       --sf-r/--sf-sh, SE-3d). Пер-секционная переменная (ближе к карточке)
+       переопределяет глобальную. Без переменной карточка сохраняет свой
        Tailwind-облик — никакой регрессии для ненастроенных витрин. */
     [style*="--sf-r"] .sf-card { border-radius: var(--sf-r) !important; }
     [style*="--sf-sh"] .sf-card { box-shadow: var(--sf-sh) !important; }
@@ -59,7 +61,7 @@
     }
   </script>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden">
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_radius or storefront_card_shadow %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}"{% endif %}>
   {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
   пункты из настроек (storefront_nav). Мобильный бургер раскрывает меню на
   телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}
