@@ -349,6 +349,16 @@ def test_home_builder_get_renders_mode_toggle_and_visual_controls():
     assert 'name="visual_shadow_products"' in body  # expert-тень
 
 
+def test_home_builder_get_renders_move_buttons():
+    """SE-1c: дружелюбные кнопки перемещения ↑▼ (работают и в обычном режиме)."""
+    tenant = TenantFactory(schema_name="public", slug="hbmv", name="HBMV")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'class="blk-up' in body and 'class="blk-down' in body  # кнопки в строке блока
+    assert "function moveByOrder" in body  # value-based перестановка
+    assert "function sortListByOrderValue" in body  # синхрон DOM-списка
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""

@@ -93,6 +93,11 @@
               <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" data-expert="1" title="{% trans 'Drag to reorder' %}">⠿</span>
               <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
                      class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}" data-expert="1">
+              {# SE-1c: дружелюбное перемещение ↑▼ (работает и в обычном режиме, value-based) #}
+              <span class="blk-move flex flex-col leading-none -my-1">
+                <button type="button" class="blk-up px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
+                <button type="button" class="blk-down px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
+              </span>
               <label class="flex items-center gap-2 text-sm font-medium flex-1">
                 <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
                        class="rounded border-gray-300">
@@ -537,6 +542,10 @@
     if (popupRow && popupAnchor) {
       popupRow.classList.remove("flex-wrap");
       popupAnchor.replaceWith(popupRow);
+      // SE-1c: после возможной перестановки ↑▼ внутри попапа список мог разойтись с
+      // порядком — доформируем по значениям order_ (row уже вернулась в список).
+      sortListByOrderValue();
+      updateMoveButtons();
     }
     popupRow = null; popupAnchor = null;
     clearSelected();
@@ -768,6 +777,55 @@
       else list.appendChild(dragged);
     });
   }
+
+  // SE-1c: перемещение блока кнопками ↑▼ — value-based (правит order_-инпуты →
+  // collect() пере-сериализует → превью). Работает в обоих режимах (order-инпуты
+  // скрыты в «Обычном», но значения доступны). DOM-список реордерим для консистентности.
+  function orderInputs() {
+    var arr = Array.prototype.slice.call(form.querySelectorAll("input[name^='order_']"));
+    arr.sort(function (a, b) { return (parseInt(a.value, 10) || 999) - (parseInt(b.value, 10) || 999); });
+    return arr;
+  }
+  function sortListByOrderValue() {
+    if (!list) return;
+    var rows = Array.prototype.slice.call(list.querySelectorAll(".home-block"));
+    rows.sort(function (a, b) {
+      var oa = a.querySelector("input[name^='order_']"), ob = b.querySelector("input[name^='order_']");
+      return (parseInt(oa && oa.value, 10) || 999) - (parseInt(ob && ob.value, 10) || 999);
+    });
+    rows.forEach(function (r) { list.appendChild(r); });
+  }
+  function updateMoveButtons() {
+    var arr = orderInputs();
+    var keys = arr.map(function (i) { return i.name.slice(6); });
+    document.querySelectorAll(".blk-up, .blk-down").forEach(function (btn) {
+      var key = btn.getAttribute("data-key");
+      var idx = keys.indexOf(key);
+      var atEdge = btn.classList.contains("blk-up") ? idx <= 0 : idx >= keys.length - 1;
+      btn.disabled = atEdge;
+      btn.classList.toggle("opacity-30", atEdge);
+      btn.classList.toggle("cursor-not-allowed", atEdge);
+    });
+  }
+  function moveByOrder(key, dir) {
+    var arr = orderInputs();
+    var idx = -1;
+    for (var i = 0; i < arr.length; i++) { if (arr[i].name === "order_" + key) { idx = i; break; } }
+    if (idx < 0) return;
+    var swap = dir < 0 ? idx - 1 : idx + 1;
+    if (swap < 0 || swap >= arr.length) return;
+    var tmp = arr[idx].value; arr[idx].value = arr[swap].value; arr[swap].value = tmp;
+    sortListByOrderValue();
+    updateMoveButtons();
+    schedule();  // пере-сериализация черновика → live-preview
+  }
+  document.querySelectorAll(".blk-up").forEach(function (b) {
+    b.addEventListener("click", function (e) { e.stopPropagation(); moveByOrder(b.getAttribute("data-key"), -1); });
+  });
+  document.querySelectorAll(".blk-down").forEach(function (b) {
+    b.addEventListener("click", function (e) { e.stopPropagation(); moveByOrder(b.getAttribute("data-key"), 1); });
+  });
+  updateMoveButtons();
 
   push();  // первичный рендер черновика
 
