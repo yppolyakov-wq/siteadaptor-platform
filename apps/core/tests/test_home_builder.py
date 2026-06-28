@@ -522,6 +522,21 @@ def test_home_builder_get_renders_add_category_form():
     assert 'value="add_category"' in body and 'name="name_de"' in body
 
 
+def test_home_builder_get_renders_apply_all_landings():
+    """SE-2d-4: контрол «применить раскладку ко всем лендингам» отрисован."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbaa",
+        name="HBAA",
+        enabled_modules=["catalog", "events", "stays"],
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'id="apply-all-landings"' in body and 'id="apply-all-preset"' in body
+    assert "apply-all-landings" in body and 'name="catalog_preset"' in body  # связка с селекторами
+
+
 def test_home_builder_saves_global_card_style():
     """SE-2d-3: глобальный стиль карточек (site_defaults) сохраняется из конструктора."""
     tenant = TenantFactory(schema_name="public", slug="hbsd", name="HBSD")

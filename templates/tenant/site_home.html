@@ -209,6 +209,15 @@
             </select>
           </div>
           {% endif %}
+          {# SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог+события+
+             номера). Фронт: ставит значения всех селекторов → live-preview/Save. #}
+          <div class="flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100">
+            <span class="text-sm text-gray-500">{% trans "Apply layout to all landing pages" %}:</span>
+            <select id="apply-all-preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}">{{ plabel }}</option>{% endfor %}
+            </select>
+            <button type="button" id="apply-all-landings" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply" %}</button>
+          </div>
           {# SE-2b-2: порядок/видимость тематических секций детальной события — клик по
              блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. #}
           {% if has_events %}
@@ -1060,6 +1069,20 @@
       });
     }
   });
+
+  // SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог/события/номера).
+  var applyAllBtn = document.getElementById("apply-all-landings");
+  if (applyAllBtn) {
+    applyAllBtn.addEventListener("click", function () {
+      var sel = document.getElementById("apply-all-preset");
+      if (!sel) return;
+      ["catalog_preset", "events_preset", "stay_preset"].forEach(function (n) {
+        var el = form.querySelector("select[name='" + n + "']");
+        if (el) el.value = sel.value;
+      });
+      schedule();  // пере-сериализация черновика → live-preview (Save сохранит значения)
+    });
+  }
 
   // SE-2d: показ значения глобального радиуса карточек (живой текст рядом со слайдером).
   var sdRange = document.querySelector("input[name='sd_card_radius']");
