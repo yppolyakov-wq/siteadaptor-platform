@@ -403,6 +403,80 @@ def test_home_builder_saves_landing_layouts():
     assert cfg["stay_index_layout"]["preset"] == "cols4"
 
 
+def test_home_builder_get_renders_event_detail_inspector():
+    """SE-2b-2: on-canvas инспектор порядка/видимости секций детальной события."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbed", name="HBED", enabled_modules=["events"]
+    )
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'data-page-key="event_detail"' in body  # клик-цель инспектора
+    assert 'name="ed_order_faq"' in body and 'name="ed_visible_idea"' in body  # реестр секций
+    assert 'class="ed-up' in body and "function edMove" in body  # ↑▼ value-based
+
+
+def test_home_builder_get_includes_event_detail_preview_page():
+    """SE-2b-2: переключатель превью включает конкретное событие (детальную на канве)."""
+    from datetime import timedelta
+
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from apps.events.models import Event
+
+    tenant = TenantFactory(
+        schema_name="public", slug="hbep", name="HBEP", enabled_modules=["events"]
+    )
+    ev = Event.objects.create(
+        title="Konzert",
+        starts_at=timezone.now() + timedelta(days=5),
+        status=Event.STATUS_PUBLISHED,
+        capacity=10,
+    )
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert reverse("storefront-event", args=[ev.pk]) in body  # опция превью события
+
+
+def test_home_builder_saves_event_detail_order():
+    """SE-2b-2: порядок/видимость секций детальной события сохраняются с канвы."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbeo", name="HBEO", enabled_modules=["events"]
+    )
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "ed_order_faq": "1",
+        "ed_visible_faq": "on",
+        "ed_order_for_whom": "2",
+        "ed_visible_for_whom": "on",
+        "ed_order_idea": "3",  # ed_visible_idea не прислан → скрыта
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    order = siteconfig.event_detail_order(cfg)
+    assert order[0] == "faq" and "idea" not in order  # faq поднят, idea скрыта
+    assert order.index("faq") < order.index("for_whom")
+
+
+def test_home_builder_save_without_inspector_keeps_event_detail():
+    """SE-2b-2 presence-guard: POST без ed_-полей не скрывает все секции детальной."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbeg",
+        name="HBEG",
+        enabled_modules=["events"],
+        site_config={"event_detail": {"order": ["faq"], "hidden": ["idea"]}},
+    )
+    data = {"order_hero": "1", "enabled_hero": "on"}  # инспектор не прислан
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    order = siteconfig.event_detail_order(cfg)
+    assert order[0] == "faq" and "idea" not in order  # сохранённый порядок цел
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""

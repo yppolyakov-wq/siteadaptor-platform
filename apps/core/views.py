@@ -626,6 +626,25 @@ def home_builder_view(request):
             preset = request.POST.get(fld, "")
             if preset in siteconfig.LAYOUT_PRESETS:
                 config[cfg_key] = {"preset": preset}
+        # SE-2b-2: порядок/видимость тематических секций детальной события правятся
+        # и на канве (on-canvas инспектор) — раньше только на вкладке «Pages».
+        # Presence-guard: пишем, только если инспектор реально прислан (есть ed_order_*),
+        # иначе частичный POST без полей не должен скрыть все секции.
+        if request.tenant.is_module_active("events") and any(
+            k.startswith("ed_order_") for k in request.POST
+        ):
+            ed_rows = []
+            for key in siteconfig.EVENT_DETAIL_SECTION_KEYS:
+                try:
+                    order = int(request.POST.get(f"ed_order_{key}", "999"))
+                except (TypeError, ValueError):
+                    order = 999
+                ed_rows.append((order, key, request.POST.get(f"ed_visible_{key}") == "on"))
+            ed_rows.sort(key=lambda r: r[0])
+            config["event_detail"] = {
+                "order": [k for _o, k, _v in ed_rows],
+                "hidden": [k for _o, k, v in ed_rows if not v],
+            }
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
@@ -660,6 +679,19 @@ def home_builder_view(request):
             preview_pages.append({"label": a.label, "url": reverse(a.url_name)})
         except NoReverseMatch:
             continue
+    # SE-2b-2: превью конкретного события (первое опубликованное) — чтобы детальную
+    # можно было открыть на канве и править порядок/видимость её секций.
+    if request.tenant.is_module_active("events"):
+        from apps.events.models import Event
+
+        ev = Event.objects.filter(status=Event.STATUS_PUBLISHED).order_by("starts_at").first()
+        if ev is not None:
+            try:
+                preview_pages.append(
+                    {"label": _("Event page"), "url": reverse("storefront-event", args=[ev.pk])}
+                )
+            except NoReverseMatch:
+                pass
     # Фикс-секции и C-блоки идут в одном `config["sections"]`; index = глобальный
     # порядок (его пишем в order_*-поля, чтобы при сохранении сохранить чередование).
     sections = []
@@ -712,12 +744,28 @@ def home_builder_view(request):
         ("featured_only", _("Featured only")),
     ]
     archetypes_enabled = any(s["key"] == "archetypes" and s["enabled"] for s in config["sections"])
+    # SE-2b-2: секции детальной события (порядок + видимость) для on-canvas инспектора
+    # — тот же реестр и порядок, что на вкладке «Pages».
+    ed = config["event_detail"]
+    ed_hidden = set(ed["hidden"])
+    ed_seen = set(ed["order"])
+    ed_full = ed["order"] + [k for k in siteconfig.EVENT_DETAIL_SECTION_KEYS if k not in ed_seen]
+    event_sections = [
+        {
+            "key": k,
+            "label": _EVENT_SECTION_LABELS.get(k, k),
+            "order": i + 1,
+            "visible": k not in ed_hidden,
+        }
+        for i, k in enumerate(ed_full)
+    ]
     return render(
         request,
         "tenant/site_home.html",
         {
             "nav": "site",
             "sections": sections,
+            "event_sections": event_sections,
             # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
             "cblocks": cblocks,
             "block_types": [
@@ -922,6 +970,10 @@ def site_preview_draft(request):
     # M20U-7: кастомные заголовки секций — в превью (normalize чистит ключи/длину).
     if isinstance(data.get("section_titles"), dict):
         cfg["section_titles"] = data["section_titles"]
+    # SE-2b-2: порядок/видимость тематических секций детальной события — в превью
+    # (normalize_event_detail оставит лишь известные ключи).
+    if isinstance(data.get("event_detail"), dict):
+        cfg["event_detail"] = data["event_detail"]
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
     if data.get("font") in siteconfig.FONTS:
         cfg["font"] = data["font"]

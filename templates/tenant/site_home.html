@@ -193,6 +193,28 @@
             </select>
           </div>
           {% endif %}
+          {# SE-2b-2: порядок/видимость тематических секций детальной события — клик по
+             блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. #}
+          {% if has_events %}
+          <div class="page-block" data-page-key="event_detail">
+            <span class="text-sm font-medium block mb-2">{% trans "Event page: sections" %}</span>
+            <ul id="ed-sections" class="space-y-1">
+              {% for s in event_sections %}
+              <li class="ed-row flex items-center gap-2 text-sm" data-key="{{ s.key }}">
+                <input type="hidden" name="ed_order_{{ s.key }}" value="{{ s.order }}" class="ed-order-input">
+                <span class="inline-flex rounded border border-gray-300 overflow-hidden shrink-0">
+                  <button type="button" class="ed-up px-1.5 py-0.5 text-gray-500 hover:bg-gray-100" data-key="{{ s.key }}" aria-label="{% trans 'Move up' %}">↑</button>
+                  <button type="button" class="ed-down px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 border-l border-gray-300" data-key="{{ s.key }}" aria-label="{% trans 'Move down' %}">▼</button>
+                </span>
+                <span class="flex-1">{{ s.label }}</span>
+                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
+                  <input type="checkbox" name="ed_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
+                </label>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
         </div>
       </fieldset>
       {% endif %}
@@ -494,6 +516,22 @@
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");
     if (stSel && stSel.value) payload.stay_index_layout = { preset: stSel.value };
+    // SE-2b-2: порядок/видимость тематических секций детальной события → в черновик,
+    // чтобы превью события (?preview=1) показало их сразу.
+    var edInputsArr = Array.prototype.slice.call(form.querySelectorAll(".ed-order-input"));
+    if (edInputsArr.length) {
+      edInputsArr.sort(function (a, b) {
+        return (parseInt(a.value, 10) || 999) - (parseInt(b.value, 10) || 999);
+      });
+      var edOrder = [], edHidden = [];
+      edInputsArr.forEach(function (inp) {
+        var key = inp.name.slice(9);  // "ed_order_".length === 9
+        edOrder.push(key);
+        var vis = form.querySelector("input[name='ed_visible_" + key + "']");
+        if (!(vis && vis.checked)) edHidden.push(key);
+      });
+      payload.event_detail = { order: edOrder, hidden: edHidden };
+    }
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [
       "cta_title", "cta_text", "cta_button_label", "cta_button_url",
@@ -895,6 +933,53 @@
     b.addEventListener("click", function (e) { e.stopPropagation(); moveByOrder(b.getAttribute("data-key"), 1); });
   });
   updateMoveButtons();
+
+  // SE-2b-2: перемещение тематических секций детальной события кнопками ↑▼ —
+  // value-based (правит ed_order_-инпуты → collect() пере-сериализует → превью).
+  var edList = document.getElementById("ed-sections");
+  function edInputs() {
+    var arr = Array.prototype.slice.call(form.querySelectorAll(".ed-order-input"));
+    arr.sort(function (a, b) { return (parseInt(a.value, 10) || 999) - (parseInt(b.value, 10) || 999); });
+    return arr;
+  }
+  function edSortList() {
+    if (!edList) return;
+    var rows = Array.prototype.slice.call(edList.querySelectorAll(".ed-row"));
+    rows.sort(function (a, b) {
+      var oa = a.querySelector(".ed-order-input"), ob = b.querySelector(".ed-order-input");
+      return (parseInt(oa && oa.value, 10) || 999) - (parseInt(ob && ob.value, 10) || 999);
+    });
+    rows.forEach(function (r) { edList.appendChild(r); });
+  }
+  function edUpdateButtons() {
+    var keys = edInputs().map(function (i) { return i.name.slice(9); });
+    document.querySelectorAll(".ed-up, .ed-down").forEach(function (btn) {
+      var key = btn.getAttribute("data-key");
+      var idx = keys.indexOf(key);
+      var atEdge = btn.classList.contains("ed-up") ? idx <= 0 : idx >= keys.length - 1;
+      btn.disabled = atEdge;
+      btn.classList.toggle("opacity-30", atEdge);
+      btn.classList.toggle("cursor-not-allowed", atEdge);
+    });
+  }
+  function edMove(key, dir) {
+    var arr = edInputs(), idx = -1;
+    for (var i = 0; i < arr.length; i++) { if (arr[i].name === "ed_order_" + key) { idx = i; break; } }
+    if (idx < 0) return;
+    var swap = dir < 0 ? idx - 1 : idx + 1;
+    if (swap < 0 || swap >= arr.length) return;
+    var tmp = arr[idx].value; arr[idx].value = arr[swap].value; arr[swap].value = tmp;
+    edSortList();
+    edUpdateButtons();
+    schedule();  // пере-сериализация черновика → live-preview
+  }
+  document.querySelectorAll(".ed-up").forEach(function (b) {
+    b.addEventListener("click", function (e) { e.stopPropagation(); edMove(b.getAttribute("data-key"), -1); });
+  });
+  document.querySelectorAll(".ed-down").forEach(function (b) {
+    b.addEventListener("click", function (e) { e.stopPropagation(); edMove(b.getAttribute("data-key"), 1); });
+  });
+  edUpdateButtons();
 
   push();  // первичный рендер черновика
 

@@ -38,8 +38,11 @@
 {% block detail_body %}{% with L=event.landing %}
   {% if event.description_text %}<p class="text-gray-700 whitespace-pre-line mt-8">{{ event.description_text }}</p>{% endif %}
 
-  {# 2.–13c. Тематические секции — порядок/видимость из event_detail_order (M20U-4) #}
-  {% for k in event_detail_order %}{% include "storefront/_event_thematic.html" with k=k %}{% endfor %}
+  {# 2.–13c. Тематические секции — порядок/видимость из event_detail_order (M20U-4).
+     SE-2b-2: обёртка data-sf-section — клик на канве открывает инспектор порядка. #}
+  <div data-sf-section="event_detail">
+    {% for k in event_detail_order %}{% include "storefront/_event_thematic.html" with k=k %}{% endfor %}
+  </div>
 
   {# 14. Begrenzte Plätze #}
   {% if event.seats_left %}

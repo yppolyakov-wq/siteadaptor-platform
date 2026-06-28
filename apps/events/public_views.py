@@ -259,6 +259,14 @@ def veranstaltung_detail(request, pk):
     jobs_active = bool(tenant and tenant.is_module_active("jobs"))
     from apps.tenants import siteconfig
 
+    # SE-2b-2: при ?preview=1 берём черновик из сессии (on-canvas правка порядка/
+    # видимости тематических секций детальной), иначе — сохранённый site_config.
+    _raw = getattr(tenant, "site_config", {}) or {}
+    if request.GET.get("preview") == "1" and isinstance(
+        request.session.get("site_preview_draft"), dict
+    ):
+        _raw = request.session["site_preview_draft"]
+
     ctx = {
         "event": event,
         "agenda": _parse_agenda(event.program),  # RV2: тайм-лайн программы
@@ -269,9 +277,7 @@ def veranstaltung_detail(request, pk):
         "map_link": "",
         "installment_offer": _installment_offer(event),  # R10 предпросмотр рассрочки
         # M20U-4: порядок/видимость тематических секций детальной.
-        "event_detail_order": siteconfig.event_detail_order(
-            getattr(tenant, "site_config", {}) or {}
-        ),
+        "event_detail_order": siteconfig.event_detail_order(_raw),
     }
     if lat is not None and lng is not None and not event.is_online:  # R6 карта (RT2: не для онлайн)
         lat, lng = float(lat), float(lng)

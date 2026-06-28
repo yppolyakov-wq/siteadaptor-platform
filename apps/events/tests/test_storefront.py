@@ -86,6 +86,42 @@ def test_detail_thematic_sections_reorder_and_hide():
     assert "Ruhe finden" not in body  # idea скрыта
 
 
+def test_detail_thematic_sections_draft_aware_under_preview():
+    """SE-2b-2: при ?preview=1 порядок/видимость секций берётся из черновика сессии
+    (on-canvas правка), без него — из сохранённого конфига."""
+    ev = _event(
+        title="Retreat",
+        details={
+            "for_whom": ["du Stress spürst"],
+            "idea": "Ruhe finden",
+            "faq": [{"q": "Für Anfänger?", "a": "Ja"}],
+        },
+    )
+    tenant = TenantFactory.build()  # сохранённый конфиг пуст → дефолтный порядок
+    draft = {"event_detail": {"order": ["faq"], "hidden": ["idea"]}}
+
+    # под ?preview=1 — порядок из черновика (FAQ поднят, idea скрыта)
+    req = _req("get", data={"preview": "1"}, tenant=tenant)
+    req.session["site_preview_draft"] = draft
+    body = public_views.veranstaltung_detail(req, ev.pk).content.decode()
+    assert body.index("Für Anfänger?") < body.index("du Stress spürst")
+    assert "Ruhe finden" not in body
+
+    # без ?preview=1 черновик игнорируется → дефолт (für wen раньше FAQ, idea видна)
+    req2 = _req("get", tenant=tenant)
+    req2.session["site_preview_draft"] = draft
+    body2 = public_views.veranstaltung_detail(req2, ev.pk).content.decode()
+    assert body2.index("du Stress spürst") < body2.index("Für Anfänger?")
+    assert "Ruhe finden" in body2
+
+
+def test_detail_thematic_sections_wrapped_for_canvas():
+    """SE-2b-2: обёртка data-sf-section даёт клик-цель инспектора на канве."""
+    ev = _event(title="Retreat", details={"idea": "Ruhe finden"})
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert 'data-sf-section="event_detail"' in body
+
+
 def test_detail_program_renders_agenda_timeline():
     """RV2: program → тайм-лайн (рельса + ведущий маркер lead, фолбэк без тире)."""
     ev = _event(

@@ -225,6 +225,30 @@ def test_draft_without_content_keys_preserves_existing():
     assert req.session["site_preview_draft"]["cta"]["title"] == "Saved CTA"
 
 
+def test_draft_endpoint_includes_event_detail():
+    """SE-2b-2: порядок/видимость секций детальной события попадают в черновик
+    превью (normalize_event_detail оставляет лишь известные ключи)."""
+    tenant = TenantFactory(schema_name="public", slug="ded", name="DED")
+    body = json.dumps(
+        {
+            "sections": [{"key": "hero", "enabled": True}],
+            "event_detail": {"order": ["faq", "bogus"], "hidden": ["idea"]},
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    order = siteconfig.event_detail_order(draft)
+    assert order[0] == "faq" and "idea" not in order  # faq поднят, idea скрыта
+    assert "bogus" not in order  # неизвестный ключ отброшен normalize
+
+
 def test_modules_nav_previews_draft_design():
     """Context-процессор под ?preview=1 отдаёт шрифт/акцент из черновика."""
     from apps.core.context import modules_nav
