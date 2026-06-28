@@ -244,7 +244,9 @@ def test_home_builder_inserter_lists_block_templates():
         slug="hbinstpl",
         name="HBINSTPL",
         site_config={
-            "block_templates": {"tplA": {"key": "text", "label": "Greeting", "data": {"title": "Hi"}}}
+            "block_templates": {
+                "tplA": {"key": "text", "label": "Greeting", "data": {"title": "Hi"}}
+            }
         },
     )
     body = views.home_builder_view(
