@@ -318,3 +318,25 @@ def test_effective_card_visual_legacy_empty_bg_padding():
     cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True}]})
     v = siteconfig.effective_card_visual(cfg, "products")
     assert v["background"] == "" and v["padding"] == 0  # без регрессии
+
+
+# --- SE-3b: глобальная типографика (начертание заголовков + межстрочный) -------
+
+
+def test_typography_empty_default():
+    assert siteconfig.normalize_typography(None) == {"weight_head": 0, "line_height": 0.0}
+    assert siteconfig.normalize(None)["typography"] == {"weight_head": 0, "line_height": 0.0}
+
+
+def test_typography_valid_and_invalid():
+    t = siteconfig.normalize_typography({"weight_head": 700, "line_height": 1.6})
+    assert t == {"weight_head": 700, "line_height": 1.6}
+    # вес вне набора → 0; line_height вне 1.0..2.0 → 0.0
+    assert siteconfig.normalize_typography({"weight_head": 450})["weight_head"] == 0
+    assert siteconfig.normalize_typography({"line_height": 3.0})["line_height"] == 0.0
+    assert siteconfig.normalize_typography({"line_height": "x"})["line_height"] == 0.0
+
+
+def test_normalize_keeps_typography():
+    cfg = siteconfig.normalize({"typography": {"weight_head": 600, "line_height": 1.8}})
+    assert cfg["typography"] == {"weight_head": 600, "line_height": 1.8}

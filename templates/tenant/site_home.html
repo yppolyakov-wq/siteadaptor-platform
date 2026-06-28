@@ -79,6 +79,21 @@
             <input type="checkbox" name="hero_accent" {% if hero_accent %}checked{% endif %} class="rounded border-gray-300">
             {% trans "Accent banner background" %}
           </label>
+          {# SE-3b: типографика — начертание заголовков + межстрочный интервал тела. #}
+          <label class="text-sm">
+            <span class="block font-medium mb-1">{% trans "Heading weight" %}</span>
+            <select name="typo_weight_head" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="0" {% if not typo_weight_head %}selected{% endif %}>{% trans "Default" %}</option>
+              {% for w, wl in typo_weight_options %}<option value="{{ w }}" {% if typo_weight_head == w %}selected{% endif %}>{{ wl }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="text-sm">
+            <span class="block font-medium mb-1">{% trans "Line spacing" %}</span>
+            <select name="typo_line_height" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="0" {% if not typo_line_height %}selected{% endif %}>{% trans "Default" %}</option>
+              {% for lh in typo_line_height_options %}<option value="{{ lh }}" {% if typo_line_height == lh %}selected{% endif %}>{{ lh }}</option>{% endfor %}
+            </select>
+          </label>
         </div>
         {# SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
            всеми сетками; блок может переопределить своим visual). #}
@@ -577,6 +592,9 @@
     var fontEl = form.querySelector("[name=font]");
     var heroEl = form.querySelector("[name=hero_accent]");
     var accentEl = form.querySelector("[name=accent]");
+    // SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
+    var twhEl = form.querySelector("select[name='typo_weight_head']");
+    var tlhEl = form.querySelector("select[name='typo_line_height']");
     var payload = {
       sections: sections,
       archetypes: archetypes,
@@ -584,6 +602,10 @@
       font: fontEl ? fontEl.value : "system",
       hero_style: heroEl && heroEl.checked ? "accent" : "plain",
       accent: accentEl ? accentEl.value : "",
+      typography: {
+        weight_head: twhEl ? parseInt(twhEl.value, 10) || 0 : 0,
+        line_height: tlhEl ? parseFloat(tlhEl.value) || 0 : 0,
+      },
     };
     // SE-2a-2/SE-2b-1: раскладки лендингов (per-page) → в черновик, чтобы превью
     // соответствующей страницы (?preview=1) показало их сразу.

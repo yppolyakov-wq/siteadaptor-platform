@@ -581,6 +581,43 @@ def font_stacks(font_key: str) -> tuple[str, str]:
     return FONTS.get(font_key, FONTS["system"])
 
 
+# SE-3b: глобальная типографика витрины. Намеренно НЕ управляем абсолютным
+# размером шрифта — витрина на Tailwind с фикс-классами text-* (em-каскад почти не
+# работает, а единый размер заголовков сломал бы типошкалу). Управляем тем, что
+# ложится чисто: НАЧЕРТАНИЕ заголовков (вес) и МЕЖСТРОЧНЫЙ интервал тела. Пары
+# шрифтов — отдельный контрол `font` (FONTS). Пустые (0/0.0) = дефолт без регрессии.
+FONT_WEIGHTS = (300, 400, 500, 600, 700, 800)
+
+
+def _clean_weight(value) -> int:
+    """SE-3b: начертание из набора FONT_WEIGHTS (иначе 0 = «не задано»)."""
+    try:
+        v = int(value)
+    except (TypeError, ValueError):
+        return 0
+    return v if v in FONT_WEIGHTS else 0
+
+
+def _clean_line_height(value) -> float:
+    """SE-3b: межстрочный интервал 1.0..2.0 (иначе 0.0 = «не задан»)."""
+    if value in (None, ""):
+        return 0.0
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    return round(v, 2) if 1.0 <= v <= 2.0 else 0.0
+
+
+def normalize_typography(raw) -> dict:
+    """SE-3b: глобальная типографика {weight_head, line_height}. Пустые = дефолт."""
+    t = raw if isinstance(raw, dict) else {}
+    return {
+        "weight_head": _clean_weight(t.get("weight_head")),
+        "line_height": _clean_line_height(t.get("line_height")),
+    }
+
+
 _MAX_ITEMS = 12  # потолок строк для FAQ/Testimonials (анти-флуд)
 
 
@@ -868,6 +905,8 @@ def normalize(config) -> dict:
     # Шрифт витрины (P2a): системный стек по ключу; неизвестный → system.
     font = config.get("font")
     normalized["font"] = font if font in FONTS else "system"
+    # SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
+    normalized["typography"] = normalize_typography(config.get("typography"))
     # Навигация витрины (M20 ④): стиль + sticky + пункты (порядок владельца,
     # неизвестные отброшены, недостающие дописаны включёнными). Легаси без nav →
     # дефолт (classic/sticky/все включены) = текущее поведение, без регрессии.

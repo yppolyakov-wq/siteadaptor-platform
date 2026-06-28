@@ -556,6 +556,50 @@ def test_home_builder_saves_section_visual_padding():
     assert siteconfig.section_visual(cfg, "products")["padding"] == 8
 
 
+def test_home_builder_saves_typography():
+    """SE-3b: начертание заголовков + межстрочный интервал сохраняются (валидируются)."""
+    tenant = TenantFactory(schema_name="public", slug="hbty", name="HBTY")
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "typo_weight_head": "700",
+        "typo_line_height": "1.6",
+    }
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    typo = siteconfig.normalize(tenant.site_config)["typography"]
+    assert typo == {"weight_head": 700, "line_height": 1.6}
+
+
+def test_home_builder_typography_invalid_resets():
+    """SE-3b: невалидный вес/интервал → 0 (= дефолт, без регрессии)."""
+    tenant = TenantFactory(schema_name="public", slug="hbtyi", name="HBTYI")
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "typo_weight_head": "0",
+        "typo_line_height": "0",
+    }
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert siteconfig.normalize(tenant.site_config)["typography"] == {
+        "weight_head": 0,
+        "line_height": 0.0,
+    }
+
+
+def test_home_builder_get_renders_typography_controls():
+    """SE-3b: селекторы начертания/интервала отрисованы с текущими значениями."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbtyg",
+        name="HBTYG",
+        site_config={"typography": {"weight_head": 600, "line_height": 1.8}},
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'name="typo_weight_head"' in body and 'name="typo_line_height"' in body
+
+
 def test_home_builder_get_renders_apply_all_landings():
     """SE-2d-4: контрол «применить раскладку ко всем лендингам» отрисован."""
     tenant = TenantFactory(

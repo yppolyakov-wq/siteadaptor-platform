@@ -1,4 +1,4 @@
-{% load i18n seo static %}<!doctype html>
+{% load i18n seo static l10n %}<!doctype html>
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -33,9 +33,12 @@
       --accent: {{ storefront_accent|default:"#4f46e5" }};
       --font-body: {{ storefront_font_body|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
       --font-head: {{ storefront_font_head|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
+      {# SE-3b: типографика — переменные только когда заданы (var-fallback = текущий вид). #}
+      {% if storefront_font_weight_head %}--fw-head: {{ storefront_font_weight_head }};{% endif %}
+      {% if storefront_line_height %}--lh-body: {{ storefront_line_height|unlocalize }};{% endif %}
     }
-    body { font-family: var(--font-body); }
-    h1, h2, h3, h4, .font-head { font-family: var(--font-head); }
+    body { font-family: var(--font-body); line-height: var(--lh-body, inherit); }
+    h1, h2, h3, h4, .font-head { font-family: var(--font-head); font-weight: var(--fw-head, inherit); }
     /* SE-3d/SE-2d: визуальные параметры карточек (.sf-card). Переопределяем
        radius/shadow ТОЛЬКО когда задано — глобально на <body> (site_defaults,
        SE-2d «весь сайт») или на обёртке секции (data-sf-section несёт inline

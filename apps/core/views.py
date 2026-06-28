@@ -675,6 +675,12 @@ def home_builder_view(request):
                 "order": [k for _o, k, _v in ed_rows],
                 "hidden": [k for _o, k, v in ed_rows if not v],
             }
+        # SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
+        # normalize_typography валидирует/клампит; пустые/0 = дефолт без регрессии.
+        config["typography"] = {
+            "weight_head": request.POST.get("typo_weight_head", ""),
+            "line_height": request.POST.get("typo_line_height", ""),
+        }
         # SE-2d: глобальный стиль карточек («весь сайт»). normalize_site_defaults
         # клампит radius (0..24) и приводит мусор к 0 → дефолт = текущее поведение.
         config["site_defaults"] = {
@@ -851,6 +857,18 @@ def home_builder_view(request):
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",
+            # SE-3b: типографика — текущие значения + варианты для селекторов.
+            "typo_weight_head": config["typography"]["weight_head"],
+            "typo_line_height": config["typography"]["line_height"],
+            "typo_weight_options": [
+                (300, _("Light")),
+                (400, _("Normal")),
+                (500, _("Medium")),
+                (600, _("Semibold")),
+                (700, _("Bold")),
+                (800, _("Extra bold")),
+            ],
+            "typo_line_height_options": [1.4, 1.5, 1.6, 1.8, 2.0],
             # SE-2d/SE-3d: текущий глобальный стиль карточек («весь сайт») для контролов.
             "card_radius": config["site_defaults"]["card_radius"],
             "card_shadow": config["site_defaults"]["card_shadow"],
@@ -1040,6 +1058,9 @@ def site_preview_draft(request):
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):
         cfg["site_defaults"] = data["site_defaults"]
+    # SE-3b: глобальная типографика → в превью (normalize_typography клампит).
+    if isinstance(data.get("typography"), dict):
+        cfg["typography"] = data["typography"]
     # SE-2d-5: пер-страничные раскладки лендингов → в превью. collect() их шлёт, но
     # раньше хендлер игнорил → live-preview раскладки лендинга работал только после
     # Save. Теперь правка раскладки каталога/событий/номеров видна на их странице сразу.

@@ -209,6 +209,10 @@ def modules_nav(request):
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,
+        # SE-3b: глобальная типографика (draft-aware). 0/0.0 → шаблон не эмитит
+        # переменную → текущий вид (без регрессии).
+        "storefront_font_weight_head": cfg["typography"]["weight_head"],
+        "storefront_line_height": cfg["typography"]["line_height"],
         # M20: override акцента в live-preview (пусто → tenant.primary_color).
         "storefront_accent": storefront_accent,
         # SE-2d/SE-3d: глобальный стиль карточек («весь сайт»; draft-aware). Пустые

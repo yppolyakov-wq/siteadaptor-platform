@@ -388,6 +388,45 @@ def test_draft_endpoint_includes_section_visual():
     assert v["background"] == "#101010" and v["padding"] == 10
 
 
+def test_storefront_base_emits_typography():
+    """SE-3b: <:root> несёт --fw-head/--lh-body при заданной типографике; без неё — нет."""
+    tenant = TenantFactory.build()
+    tenant.site_config = {"typography": {"weight_head": 700, "line_height": 1.6}}
+    req = _session(RequestFactory().get("/"))
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert "--fw-head: 700" in body and "--lh-body: 1.6" in body
+
+    tenant.site_config = {}
+    req2 = _session(RequestFactory().get("/"))
+    req2.tenant = tenant
+    body2 = public_views.storefront_home(req2).content.decode()
+    assert "--fw-head:" not in body2 and "--lh-body:" not in body2  # legacy без регрессии
+
+
+def test_draft_endpoint_includes_typography():
+    """SE-3b: типографика попадает в черновик превью (normalize клампит)."""
+    tenant = TenantFactory(schema_name="public", slug="dty", name="DTY")
+    body = json.dumps(
+        {
+            "sections": [{"key": "hero", "enabled": True}],
+            "typography": {"weight_head": 800, "line_height": 2.0},
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    assert req.session["site_preview_draft"]["typography"] == {
+        "weight_head": 800,
+        "line_height": 2.0,
+    }
+
+
 def test_modules_nav_previews_draft_design():
     """Context-процессор под ?preview=1 отдаёт шрифт/акцент из черновика."""
     from apps.core.context import modules_nav
