@@ -11,7 +11,14 @@ from apps.tenants import siteconfig
 
 def test_layout_from_preset_default():
     lay = siteconfig.normalize_layout(None, {"preset": "cols3"})
-    assert lay == {"preset": "cols3", "width": "contained", "cols": 3, "mobile": 2, "gap": "md"}
+    assert lay == {
+        "preset": "cols3",
+        "width": "contained",
+        "cols": 3,
+        "mobile": 2,
+        "tablet": 0,
+        "gap": "md",
+    }
 
 
 def test_layout_default_mobile_override():
@@ -353,3 +360,33 @@ def test_micro_templates_registry_valid():
         assert mt["preset"] in siteconfig.LAYOUT_PRESETS  # purge-safe: только известные пресеты
         assert 0 <= mt["radius"] <= 24 and 0 <= mt["padding"] <= 32
         assert isinstance(mt["shadow"], bool)
+
+
+# --- SE-3c: пер-девайс число колонок (tablet) --------------------------------
+
+
+def test_layout_tablet_default_zero_auto():
+    # legacy без tablet → 0 (= авто, прежний планшетный вывод)
+    lay = siteconfig.normalize_layout(None, {"preset": "cols4"})
+    assert lay["tablet"] == 0
+
+
+def test_layout_tablet_explicit_and_clamped():
+    assert siteconfig.normalize_layout({"preset": "cols4", "tablet": 3})["tablet"] == 3
+    assert (
+        siteconfig.normalize_layout({"preset": "cols4", "tablet": 99})["tablet"] == 4
+    )  # кламп 0..4
+    assert siteconfig.normalize_layout({"preset": "cols4", "tablet": "x"})["tablet"] == 0  # мусор
+
+
+def test_grid_class_string_explicit_tablet_wins():
+    # tablet=4 → sm:grid-cols-4 (явный планшет побеждает авто-вывод)
+    s = siteconfig.grid_class_string({"preset": "cols4", "tablet": 4})
+    assert "sm:grid-cols-4" in s and "lg:grid-cols-4" in s
+
+
+def test_grid_class_string_tablet_zero_keeps_legacy():
+    # tablet=0 (или нет) → прежний авто-вывод (без регрессии)
+    auto = siteconfig.grid_class_string({"preset": "cols4"})
+    explicit_zero = siteconfig.grid_class_string({"preset": "cols4", "tablet": 0})
+    assert auto == explicit_zero == "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"

@@ -153,6 +153,13 @@
                 <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
                   {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
                 </select>
+                {# SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
+                   Пусто/0 = «как пресет/авто». Expert-режим. #}
+                <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" title="{% trans 'Columns per device' %}">
+                  📱<input type="number" name="mobile_{{ s.key }}" value="{{ s.layout_mobile }}" min="1" max="2" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on phone' %}">
+                  ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
+                  🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="5" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
+                </span>
               {% endif %}
               {% if s.has_limit %}
                 {# M20U-7: число элементов секции-превью на главной #}
@@ -554,7 +561,14 @@
       var sec = { key: r.key, enabled: r.enabled };
       // M20U-7: пресет раскладки секции-сетки → в превью.
       var sel = form.querySelector("select[name='layout_preset_" + r.key + "']");
-      if (sel && sel.value) sec.layout = { preset: sel.value };
+      var lay = {};
+      if (sel && sel.value) lay.preset = sel.value;
+      // SE-3c: пер-девайс число колонок (📱/▭/🖥) → в превью.
+      ["cols", "mobile", "tablet"].forEach(function (f) {
+        var el = form.querySelector("input[name='" + f + "_" + r.key + "']");
+        if (el && el.value !== "") lay[f] = parseInt(el.value, 10) || 0;
+      });
+      if (Object.keys(lay).length) sec.layout = lay;
       // M20U-7: число элементов секции-превью → в превью.
       var lim = form.querySelector("input[name='limit_" + r.key + "']");
       if (lim && lim.value) sec.limit = parseInt(lim.value, 10);

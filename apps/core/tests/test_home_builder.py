@@ -556,6 +556,33 @@ def test_home_builder_saves_section_visual_padding():
     assert siteconfig.section_visual(cfg, "products")["padding"] == 8
 
 
+def test_home_builder_saves_per_device_columns():
+    """SE-3c: пер-девайс число колонок секции (📱/▭/🖥) сохраняется в layout."""
+    tenant = TenantFactory(schema_name="public", slug="hbpd", name="HBPD")
+    data = {
+        "order_products": "1",
+        "enabled_products": "on",
+        "layout_preset_products": "cols4",
+        "mobile_products": "1",
+        "tablet_products": "3",
+        "cols_products": "4",
+    }
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    cfg = siteconfig.normalize(tenant.site_config)
+    lay = siteconfig.section_layout(cfg, "products")
+    assert lay["mobile"] == 1 and lay["tablet"] == 3 and lay["cols"] == 4
+    assert "sm:grid-cols-3" in siteconfig.grid_class_string(lay)  # планшет = 3
+
+
+def test_home_builder_get_renders_per_device_columns():
+    """SE-3c: поля пер-девайс колонок отрисованы для секций-сеток."""
+    tenant = TenantFactory(schema_name="public", slug="hbpdg", name="HBPDG")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'name="tablet_products"' in body and 'name="mobile_products"' in body
+
+
 def test_home_builder_get_renders_micro_templates():
     """SE-3a: кнопки «Quick styles» отрисованы для секций-сеток + JS-распаковка."""
     tenant = TenantFactory(schema_name="public", slug="hbmt2", name="HBMT2")

@@ -221,7 +221,12 @@ PRODUCT_SOURCE_DEFAULT = "featured_first"
 # Purge-safe статические таблицы Tailwind-классов (динамические строки нельзя —
 # их вырежет purge). mobile=база, sm=планшет (капд до 3), lg=десктоп.
 _GRID_MOBILE = {1: "grid-cols-1", 2: "grid-cols-2"}
-_GRID_SM = {1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3"}
+_GRID_SM = {
+    1: "sm:grid-cols-1",
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-3",
+    4: "sm:grid-cols-4",  # SE-3c: явный пер-девайс планшет до 4 колонок
+}
 _GRID_LG = {
     1: "lg:grid-cols-1",
     2: "lg:grid-cols-2",
@@ -256,20 +261,33 @@ def normalize_layout(raw, default=None) -> dict:
     eff = {**LAYOUT_PRESETS[preset], **{k: v for k, v in default.items() if k != "preset"}}
     cols = _clamp(raw.get("cols", eff["cols"]), 1, 5, eff["cols"])
     mobile = _clamp(raw.get("mobile", eff["mobile"]), 1, 2, eff["mobile"])
+    # SE-3c: явный пер-девайс планшет (1..4). 0 = «авто» (вывод из cols/mobile, как было) —
+    # back-compat: legacy без tablet → прежний планшетный шаг (_SM_FROM_COLS).
+    tablet = _clamp(raw.get("tablet", eff.get("tablet", 0)), 0, 4, 0)
     gap = raw.get("gap", eff.get("gap", "md"))
     if gap not in _LAYOUT_GAPS:
         gap = "md"
     width = raw.get("width", "contained")
     if width not in _LAYOUT_WIDTHS:
         width = "contained"
-    return {"preset": preset, "width": width, "cols": cols, "mobile": mobile, "gap": gap}
+    return {
+        "preset": preset,
+        "width": width,
+        "cols": cols,
+        "mobile": mobile,
+        "tablet": tablet,
+        "gap": gap,
+    }
 
 
 def grid_class_string(layout) -> str:
     """Готовая Tailwind-строка грида из layout (purge-safe, из статических таблиц)."""
     lay = normalize_layout(layout if isinstance(layout, dict) else None)
     cols, mobile, gap = lay["cols"], lay["mobile"], lay["gap"]
-    sm = max(mobile, _SM_FROM_COLS[cols])
+    # SE-3c: явный планшет (tablet>0) побеждает; иначе авто-вывод (как было).
+    tablet = lay.get("tablet", 0)
+    sm = tablet if tablet else max(mobile, _SM_FROM_COLS[cols])
+    sm = min(max(sm, 1), 4)
     return " ".join(["grid", _GRID_MOBILE[mobile], _GRID_SM[sm], _GRID_LG[cols], _GRID_GAP[gap]])
 
 

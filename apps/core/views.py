@@ -571,8 +571,15 @@ def home_builder_view(request):
             entry = {"key": key, "enabled": request.POST.get(f"enabled_{key}") == "on"}
             if key in siteconfig.GRID_SECTION_DEFAULTS:
                 preset = request.POST.get(f"layout_preset_{key}", "")
-                if preset in siteconfig.LAYOUT_PRESETS:
-                    entry["layout"] = {"preset": preset}
+                lay = {"preset": preset} if preset in siteconfig.LAYOUT_PRESETS else {}
+                # SE-3c: пер-девайс число колонок (телефон/планшет/десктоп). Пустые →
+                # normalize_layout возьмёт из пресета/авто (без регрессии).
+                for fld in ("cols", "mobile", "tablet"):
+                    v = request.POST.get(f"{fld}_{key}", "")
+                    if v != "":
+                        lay[fld] = v
+                if lay:
+                    entry["layout"] = lay
             if key in siteconfig.GRID_SECTION_LIMITS:
                 entry["limit"] = request.POST.get(f"limit_{key}", "")
             if key == "products":
@@ -768,6 +775,10 @@ def home_builder_view(request):
                 "order": index,
                 "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
                 "layout_preset": (s.get("layout") or {}).get("preset", ""),
+                # SE-3c: пер-девайс число колонок (0 для tablet = «авто»).
+                "layout_cols": (s.get("layout") or {}).get("cols", ""),
+                "layout_mobile": (s.get("layout") or {}).get("mobile", ""),
+                "layout_tablet": (s.get("layout") or {}).get("tablet", 0),
                 "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,
                 "limit": s.get("limit", ""),
                 "has_title": s["key"] in siteconfig.SECTION_TITLE_KEYS,
@@ -1014,12 +1025,16 @@ def site_preview_draft(request):
                 row = {"key": key, "enabled": bool(item.get("enabled"))}
                 # M20U-7: пресет раскладки секции-сетки — отражаем в превью.
                 lay = item.get("layout") if isinstance(item, dict) else None
-                if (
-                    key in siteconfig.GRID_SECTION_DEFAULTS
-                    and isinstance(lay, dict)
-                    and lay.get("preset") in siteconfig.LAYOUT_PRESETS
-                ):
-                    row["layout"] = {"preset": lay["preset"]}
+                if key in siteconfig.GRID_SECTION_DEFAULTS and isinstance(lay, dict):
+                    sub = {}
+                    if lay.get("preset") in siteconfig.LAYOUT_PRESETS:
+                        sub["preset"] = lay["preset"]
+                    # SE-3c: пер-девайс число колонок → в превью (normalize клампит).
+                    for fld in ("cols", "mobile", "tablet"):
+                        if isinstance(lay.get(fld), (int, str)):
+                            sub[fld] = lay[fld]
+                    if sub:
+                        row["layout"] = sub
                 # M20U-7: лимит секции-превью → в черновик (normalize клампит).
                 if key in siteconfig.GRID_SECTION_LIMITS and isinstance(
                     item.get("limit"), (int, str)
