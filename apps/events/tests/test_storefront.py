@@ -200,6 +200,24 @@ def test_index_list_layout_has_no_cover_grid():
     assert "Liste" in body
 
 
+def test_events_index_uses_preview_draft():
+    """SE-2b-1: при ?preview=1 раскладка событий берётся из черновика сессии (on-canvas)."""
+    _event(title="Draft", starts_at=timezone.now() + timedelta(days=40))
+    req = _req("get")  # сохранённый конфиг — дефолт (list)
+    req.GET = req.GET.copy()
+    req.GET["preview"] = "1"
+    req.session["site_preview_draft"] = {"events_index_layout": {"preset": "cols2"}}
+    body = public_views.veranstaltung_index(req).content.decode()
+    assert "aspect-[4/3]" in body  # черновик → грид обложек, не дефолтный список
+
+
+def test_events_index_has_canvas_section_marker():
+    """SE-2b-1: грид/список событий несёт data-sf-section='events' для on-canvas клика."""
+    _event(title="Mark", starts_at=timezone.now() + timedelta(days=40))
+    body = public_views.veranstaltung_index(_req("get")).content.decode()
+    assert 'data-sf-section="events"' in body
+
+
 def test_free_event_books_confirmed_with_answers():
     event = _event(price_cents=0)
     resp = public_views.veranstaltung_book(

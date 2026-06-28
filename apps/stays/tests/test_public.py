@@ -179,6 +179,25 @@ def test_rooms_index_grid_from_config():
     assert "lg:grid-cols-4" in body
 
 
+def test_rooms_index_uses_preview_draft():
+    """SE-2b-1: при ?preview=1 раскладка номеров берётся из черновика сессии (on-canvas)."""
+    _unit()
+    _unit()
+    req = _req(path="/unterkunft/", data={"preview": "1"})
+    req.tenant.site_config = {"stay_index_layout": {"preset": "cols2"}}  # сохранённый
+    req.session["site_preview_draft"] = {"stay_index_layout": {"preset": "cols4"}}  # черновик
+    body = public_views.unterkunft_index(req).content.decode()
+    assert "lg:grid-cols-4" in body  # показан черновик, не сохранённый cols2
+
+
+def test_rooms_index_has_canvas_section_marker():
+    """SE-2b-1: грид номеров несёт data-sf-section='stay_rooms' для on-canvas клика."""
+    _unit()
+    _unit()
+    body = public_views.unterkunft_index(_req()).content.decode()
+    assert 'data-sf-section="stay_rooms"' in body
+
+
 # --- H2: поиск по датам на /unterkunft/ -------------------------------------------
 
 

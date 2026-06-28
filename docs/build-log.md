@@ -2418,3 +2418,14 @@
   `catalog_preset`). Инжекты «+»/drag (E.3/E.4) ограничены главной (на лендингах чужой контекст);
   клик-инспектор и инлайн-правка работают везде. Тесты: переключатель, draft-aware грид, маркер
   секции, GET/POST инспектора каталога (63 в core+catalog). Без миграций.
+  **SE-2a-3 (категория)** — покрыта SE-2a-2: страница категории = тот же `product_list`
+  (`?kategorie=`) и шаблон `products.html` (общий `data-sf-section="catalog"` + draft-aware грид).
+
+- **2026-06-27 — on-canvas редактор: SE-2b-1 (лендинги событий и номеров на канве).** По
+  образцу каталога: `veranstaltung_index`/`unterkunft_index` стали draft-aware (при `?preview=1`
+  берут `site_preview_draft`); гриды получили `data-sf-section="events"`/`"stay_rooms"` (у
+  событий — в обеих ветках список/грид; у номеров — в обзоре и результатах поиска); per-page
+  инспектор раскладки расширен (fieldset «Landing pages»: каталог/события/номера, `data-page-key`
+  → `openBlockPopup` переносит в попап; `collect()` шлёт `events_index_layout`/`stay_index_layout`;
+  `home_builder_view` POST сохраняет `events_preset`/`stay_preset` единым циклом). Тесты:
+  draft-aware гриды, маркеры секций, GET/POST инспекторов (76 в core+events+stays). Без миграций.

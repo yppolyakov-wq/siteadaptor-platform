@@ -70,9 +70,13 @@ def veranstaltung_index(request):
     # M20U-7 (per-page): раскладка списка событий — список (дефолт) или сетка карточек.
     from apps.tenants import siteconfig
 
-    ev_layout = siteconfig.normalize(getattr(request.tenant, "site_config", {}) or {})[
-        "events_index_layout"
-    ]
+    # SE-2b-1: при ?preview=1 берём черновик из сессии (on-canvas правка раскладки).
+    _raw = getattr(request.tenant, "site_config", {}) or {}
+    if request.GET.get("preview") == "1" and isinstance(
+        request.session.get("site_preview_draft"), dict
+    ):
+        _raw = request.session["site_preview_draft"]
+    ev_layout = siteconfig.normalize(_raw)["events_index_layout"]
     events_is_list = ev_layout["preset"] == "list"
     events_grid = siteconfig.grid_class_string(ev_layout)
     return render(

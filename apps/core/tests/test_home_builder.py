@@ -371,28 +371,36 @@ def test_home_builder_get_renders_preview_page_switcher():
     assert "/sortiment/" in body or "/unterkunft/" in body  # лендинг архетипа в опциях
 
 
-def test_home_builder_get_renders_catalog_page_inspector():
-    """SE-2a-2: per-page инспектор каталога (контрол раскладки) при активном модуле."""
+def test_home_builder_get_renders_landing_inspectors():
+    """SE-2a-2/SE-2b-1: per-page инспекторы лендингов (каталог/события/номера)."""
     tenant = TenantFactory(
-        schema_name="public", slug="hbcat", name="HBCAT", enabled_modules=["catalog"]
+        schema_name="public",
+        slug="hbcat",
+        name="HBCAT",
+        enabled_modules=["catalog", "events", "stays"],
     )
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'data-page-key="catalog"' in body  # контрол находится openBlockPopup
-    assert 'name="catalog_preset"' in body  # селектор раскладки каталога
+    assert 'data-page-key="catalog"' in body and 'name="catalog_preset"' in body
+    assert 'data-page-key="events"' in body and 'name="events_preset"' in body
+    assert 'data-page-key="stay_rooms"' in body and 'name="stay_preset"' in body
 
 
-def test_home_builder_saves_catalog_layout():
-    """SE-2a-2: раскладка каталога сохраняется из канвы (per-page инспектор)."""
+def test_home_builder_saves_landing_layouts():
+    """SE-2a-2/SE-2b-1: раскладки лендингов сохраняются из канвы (per-page инспектор)."""
     tenant = TenantFactory(
-        schema_name="public", slug="hbcl", name="HBCL", enabled_modules=["catalog"]
+        schema_name="public",
+        slug="hbcl",
+        name="HBCL",
+        enabled_modules=["catalog", "events", "stays"],
     )
-    data = {"catalog_preset": "cols2"}
+    data = {"catalog_preset": "cols2", "events_preset": "cols3", "stay_preset": "cols4"}
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["catalog_layout"]["preset"] == "cols2"
-    assert cfg["catalog_layout"]["cols"] == 2  # пресет развёрнут normalize_layout
+    assert cfg["catalog_layout"]["preset"] == "cols2" and cfg["catalog_layout"]["cols"] == 2
+    assert cfg["events_index_layout"]["preset"] == "cols3"
+    assert cfg["stay_index_layout"]["preset"] == "cols4"
 
 
 def test_site_view_does_not_wipe_homepage_composition():

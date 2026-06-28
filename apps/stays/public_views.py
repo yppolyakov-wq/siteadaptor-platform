@@ -152,9 +152,13 @@ def unterkunft_index(request):
     # M20U-7 (per-page): раскладка сетки номеров из конфига витрины.
     from apps.tenants import siteconfig
 
-    rooms_grid = siteconfig.grid_class_string(
-        siteconfig.normalize(getattr(tenant, "site_config", {}) or {})["stay_index_layout"]
-    )
+    # SE-2b-1: при ?preview=1 берём черновик из сессии (on-canvas правка раскладки).
+    _raw = getattr(tenant, "site_config", {}) or {}
+    if request.GET.get("preview") == "1" and isinstance(
+        request.session.get("site_preview_draft"), dict
+    ):
+        _raw = request.session["site_preview_draft"]
+    rooms_grid = siteconfig.grid_class_string(siteconfig.normalize(_raw)["stay_index_layout"])
     return _render_embed(
         request,
         "storefront/stay_index.html",

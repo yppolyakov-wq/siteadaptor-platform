@@ -162,17 +162,37 @@
         </div>
       </fieldset>
 
-      {# SE-2a-2: per-page инспектор каталога — клик по гриду каталога на канве
-         переносит этот контрол в попап (data-page-key). Раскладка → черновик/Save. #}
-      {% if has_catalog %}
+      {# SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
+         переносит контрол в попап (data-page-key). Раскладка → черновик/Save. #}
+      {% if has_catalog or has_events or has_stays %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-        <legend class="font-semibold mb-1">{% trans "Catalog page" %}</legend>
-        <p class="text-xs text-gray-400 mb-3">{% trans "Switch the preview to “Catalog” and click the product grid to edit its layout here." %}</p>
-        <div class="page-block flex items-center gap-3" data-page-key="catalog">
-          <span class="text-sm font-medium flex-1">{% trans "Product grid layout" %}</span>
-          <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
-            {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-          </select>
+        <legend class="font-semibold mb-1">{% trans "Landing pages" %}</legend>
+        <p class="text-xs text-gray-400 mb-3">{% trans "Switch the preview to a page and click its grid to edit the layout here." %}</p>
+        <div class="space-y-3">
+          {% if has_catalog %}
+          <div class="page-block flex items-center gap-3" data-page-key="catalog">
+            <span class="text-sm font-medium flex-1">{% trans "Catalog: grid layout" %}</span>
+            <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          {% if has_events %}
+          <div class="page-block flex items-center gap-3" data-page-key="events">
+            <span class="text-sm font-medium flex-1">{% trans "Events: grid layout" %}</span>
+            <select name="events_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          {% if has_stays %}
+          <div class="page-block flex items-center gap-3" data-page-key="stay_rooms">
+            <span class="text-sm font-medium flex-1">{% trans "Rooms: grid layout" %}</span>
+            <select name="stay_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
         </div>
       </fieldset>
       {% endif %}
@@ -466,10 +486,14 @@
       hero_style: heroEl && heroEl.checked ? "accent" : "plain",
       accent: accentEl ? accentEl.value : "",
     };
-    // SE-2a-2: раскладка каталога (per-page) → в черновик, чтобы превью каталога
-    // (?preview=1) показало её сразу.
+    // SE-2a-2/SE-2b-1: раскладки лендингов (per-page) → в черновик, чтобы превью
+    // соответствующей страницы (?preview=1) показало их сразу.
     var catSel = form.querySelector("select[name='catalog_preset']");
     if (catSel && catSel.value) payload.catalog_layout = { preset: catSel.value };
+    var evSel = form.querySelector("select[name='events_preset']");
+    if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
+    var stSel = form.querySelector("select[name='stay_preset']");
+    if (stSel && stSel.value) payload.stay_index_layout = { preset: stSel.value };
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [
       "cta_title", "cta_text", "cta_button_label", "cta_button_url",

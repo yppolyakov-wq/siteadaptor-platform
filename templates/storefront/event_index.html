@@ -69,7 +69,7 @@
   {% if events %}
     {% if events_is_list %}
     {% comment %}Список (дефолт): горизонтальные строки.{% endcomment %}
-    <div class="space-y-3">
+    <div data-sf-section="events" class="space-y-3">
       {% for e in events %}
         <a href="{% url 'storefront-event' e.pk %}" class="flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
           {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-24 h-24 rounded-xl object-cover flex-shrink-0">{% endif %}
@@ -95,7 +95,7 @@
     {% else %}
     {% comment %}RV3: грид крупных обложек (как BookRetreats) — фото сверху, бейджи
     оверлеем (категория + countdown/sold-out), мета снизу.{% endcomment %}
-    <div class="{{ events_grid }}">
+    <div data-sf-section="events" class="{{ events_grid }}">
       {% for e in events %}
         <a href="{% url 'storefront-event' e.pk %}" class="group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
           <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">

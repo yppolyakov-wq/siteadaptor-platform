@@ -41,7 +41,7 @@
 {% if searched %}
   {# --- результаты поиска с ценой за диапазон --------------------------------- #}
   <p class="text-sm text-gray-500 mb-3">{{ von|date:"d.m.Y" }} → {{ bis|date:"d.m.Y" }} · {% blocktrans count n=results.0.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</p>
-  <div class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
+  <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for r in results %}
       {% if r.available %}
         <a href="{% url 'storefront-unterkunft-unit' r.unit.pk %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
@@ -71,7 +71,7 @@
   </div>
 {% elif units %}
   {# --- без поиска: обзор номеров (как было) ---------------------------------- #}
-  <div class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
+  <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for u in units %}
       <a href="{% url 'storefront-unterkunft-unit' u.pk %}{% if embed %}?embed=1{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
         {% if u.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
