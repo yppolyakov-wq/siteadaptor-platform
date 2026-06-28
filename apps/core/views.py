@@ -869,6 +869,8 @@ def home_builder_view(request):
                 (800, _("Extra bold")),
             ],
             "typo_line_height_options": [1.4, 1.5, 1.6, 1.8, 2.0],
+            # SE-3a: микрошаблоны «Quick styles» для секций-сеток (распаковка на фронте).
+            "micro_templates": siteconfig.micro_templates(),
             # SE-2d/SE-3d: текущий глобальный стиль карточек («весь сайт») для контролов.
             "card_radius": config["site_defaults"]["card_radius"],
             "card_shadow": config["site_defaults"]["card_shadow"],

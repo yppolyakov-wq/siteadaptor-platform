@@ -147,6 +147,49 @@ LAYOUT_PRESET_KEYS = list(LAYOUT_PRESETS)
 _LAYOUT_WIDTHS = ("contained", "full")
 _LAYOUT_GAPS = ("sm", "md", "lg")
 
+# SE-3a: микрошаблоны «Quick styles» — готовые облики секции-сетки (комбинация
+# существующего layout-пресета + visual radius/shadow/padding). Применяются на
+# ФРОНТЕ: кнопка распаковывает пресет в обычные инпуты секции (layout/visual) →
+# live-preview → Save сохраняет распакованные значения. НЕ отдельное поле config.
+# Инвариант: preset ∈ LAYOUT_PRESETS; radius 0..24, padding 0..32 (как _clean_*).
+MICRO_TEMPLATES = {
+    "minimal": {
+        "label": _("Minimal"),
+        "preset": "cols3",
+        "radius": 0,
+        "shadow": False,
+        "padding": 0,
+    },
+    "soft": {
+        "label": _("Soft cards"),
+        "preset": "cols3",
+        "radius": 16,
+        "shadow": True,
+        "padding": 16,
+    },
+    "bold": {"label": _("Bold grid"), "preset": "cols4", "radius": 8, "shadow": True, "padding": 8},
+    "magazine": {
+        "label": _("Magazine"),
+        "preset": "list",
+        "radius": 0,
+        "shadow": False,
+        "padding": 0,
+    },
+    "gallery": {
+        "label": _("Gallery"),
+        "preset": "gallery",
+        "radius": 8,
+        "shadow": False,
+        "padding": 0,
+    },
+}
+
+
+def micro_templates() -> list[dict]:
+    """SE-3a: список микрошаблонов для UI (ключ + поля облика)."""
+    return [{"key": k, **v} for k, v in MICRO_TEMPLATES.items()]
+
+
 # Секции-сетки → дефолтная раскладка (воспроизводит текущие захардкоженные гриды,
 # чтобы M20R-1 не дал визуальной регрессии). Прочие секции layout не несут.
 GRID_SECTION_DEFAULTS = {

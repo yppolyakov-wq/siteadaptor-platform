@@ -212,6 +212,18 @@
                   <input type="color" name="visual_bg_{{ s.key }}" value="{{ s.visual_bg|default:'#ffffff' }}" class="h-6 w-8 rounded border border-gray-300 p-0.5">
                 </label>
               </div>
+              {# SE-3a: микрошаблоны «Quick styles» — один клик задаёт облик (layout+visual)
+                 секции-сетки. Распаковка на фронте в обычные инпуты → live-preview/Save. #}
+              {% if s.is_grid %}
+              <div class="w-full mt-2 flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs text-gray-500">{% trans "Quick styles" %}:</span>
+                {% for mt in micro_templates %}
+                  <button type="button" class="mt-btn text-xs border border-gray-200 rounded-md px-2 py-0.5 hover:border-indigo-400 hover:text-indigo-700"
+                          data-key="{{ s.key }}" data-preset="{{ mt.preset }}" data-radius="{{ mt.radius }}"
+                          data-shadow="{{ mt.shadow|yesno:'1,0' }}" data-padding="{{ mt.padding }}">{{ mt.label }}</button>
+                {% endfor %}
+              </div>
+              {% endif %}
             </div>
           {% endfor %}
         </div>
@@ -1184,6 +1196,26 @@
       schedule();  // снять фон в превью
     });
   }
+
+  // SE-3a: микрошаблоны «Quick styles» — один клик распаковывает облик (layout+visual)
+  // в обычные инпуты секции → live-preview; Save сохраняет распакованные значения.
+  document.querySelectorAll(".mt-btn").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var k = b.getAttribute("data-key");
+      var lay = form.querySelector("select[name='layout_preset_" + k + "']");
+      if (lay) lay.value = b.getAttribute("data-preset");
+      var rng = form.querySelector("input[name='visual_radius_px_" + k + "']");
+      if (rng) {
+        rng.value = b.getAttribute("data-radius");
+        rng.dispatchEvent(new Event("input", { bubbles: true }));  // синхрон output + basic-тоггл
+      }
+      var sh = form.querySelector("input[name='visual_shadow_" + k + "']");
+      if (sh) sh.checked = b.getAttribute("data-shadow") === "1";
+      var pad = form.querySelector("input[name='visual_padding_" + k + "']");
+      if (pad) pad.value = b.getAttribute("data-padding");
+      schedule();  // пере-сериализация черновика → live-preview
+    });
+  });
 })();
 </script>
 {% endblock %}

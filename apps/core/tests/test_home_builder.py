@@ -556,6 +556,16 @@ def test_home_builder_saves_section_visual_padding():
     assert siteconfig.section_visual(cfg, "products")["padding"] == 8
 
 
+def test_home_builder_get_renders_micro_templates():
+    """SE-3a: кнопки «Quick styles» отрисованы для секций-сеток + JS-распаковка."""
+    tenant = TenantFactory(schema_name="public", slug="hbmt2", name="HBMT2")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'class="mt-btn' in body and "data-preset=" in body  # кнопки с пресетом
+    assert ".mt-btn" in body  # JS-обработчик распаковки
+
+
 def test_home_builder_saves_typography():
     """SE-3b: начертание заголовков + межстрочный интервал сохраняются (валидируются)."""
     tenant = TenantFactory(schema_name="public", slug="hbty", name="HBTY")

@@ -340,3 +340,16 @@ def test_typography_valid_and_invalid():
 def test_normalize_keeps_typography():
     cfg = siteconfig.normalize({"typography": {"weight_head": 600, "line_height": 1.8}})
     assert cfg["typography"] == {"weight_head": 600, "line_height": 1.8}
+
+
+# --- SE-3a: микрошаблоны «Quick styles» --------------------------------------
+
+
+def test_micro_templates_registry_valid():
+    mts = siteconfig.micro_templates()
+    assert len(mts) >= 4
+    for mt in mts:
+        assert mt["key"] and mt["label"]
+        assert mt["preset"] in siteconfig.LAYOUT_PRESETS  # purge-safe: только известные пресеты
+        assert 0 <= mt["radius"] <= 24 and 0 <= mt["padding"] <= 32
+        assert isinstance(mt["shadow"], bool)
