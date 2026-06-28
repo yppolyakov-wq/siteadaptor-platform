@@ -2525,3 +2525,16 @@
   немецкая локаль рендерила `line-height: 1,6` (запятая — невалидный CSS) → `|unlocalize`.
   UI «Design»: селекторы начертания/интервала. Тесты (siteconfig/home_builder/live_preview,
   106 passed). SE-3b ✅ слит FF в main (`17df60f`). Без миграций. Per-section типографика — позже.
+
+- **2026-06-28 — on-canvas редактор: SE-3a (микрошаблоны «Quick styles»).** 5 готовых обликов
+  секции-сетки (minimal/soft/bold/magazine/gallery) = комбинация существующего layout-пресета +
+  visual (radius/shadow/padding). `siteconfig.MICRO_TEMPLATES` + `micro_templates()`; инвариант:
+  preset ∈ LAYOUT_PRESETS (`grid_class_string` purge-safe), radius/padding в клампах. UI: кнопки
+  «Quick styles» в инспекторе секции-сетки → ФРОНТ распаковывает облик в обычные инпуты секции
+  (layout_preset_/visual_radius_px_/visual_shadow_/visual_padding_) → live-preview; Save сохраняет
+  распакованные значения (НЕ новое поле config). Тесты (реестр валиден, кнопки+обработчик). Без миграций.
+- **2026-06-28 — DX: ускорение прогонов тестов.** (1) Локально — `--reuse-db` (CLAUDE.md §5):
+  тест-БД переиспользуется → повторный прогон 69с→1.1с (вся стоимость была в пере-миграциях).
+  (2) CI — **pytest-xdist** (`pytest -ra -n auto --dist loadscope`): полная сюита 1700 тестов на
+  параллельных воркерах (django-tenants: тест-БД на воркер test_<db>_gwN, валидировано). CI-прогон
+  ~17 мин → **~11 мин**, изоляция тестов в порядке. SE-3a + DX слиты FF в main (`79fa371`).
