@@ -2459,3 +2459,26 @@
   зашёл и поправил». На витрине посетителя ссылок нет (флаг `is_preview` из `product_list`).
   `data-cat-edit` — задел под инлайн-правку имени на канве (SE-2c-3). Тест: ссылка видна при
   `?preview=1` и скрыта без него. Без миграций. SE-2c-1+2c-2 слиты FF в main (`8616bed`).
+
+- **2026-06-28 — CI-инкремент: ускорение прогонов.** `.github/workflows/ci.yml`:
+  `concurrency: {group: ci-${{ github.ref }}, cancel-in-progress: true}` — частые пуши
+  ветки отменяют устаревший прогон (на серийном раннере копится только последний;
+  подтверждено: промежуточные прогоны #793–795 завершились `cancelled`). Кэш зависимостей:
+  `setup-uv enable-cache` + `setup-node cache: npm`. xdist не добавляли (решение владельца).
+- **2026-06-28 — on-canvas редактор: SE-2d-1 (фундамент scope «весь сайт»).** Вариант A:
+  `siteconfig.normalize_site_defaults` (`card_radius` 0..24, `card_shadow`) + `normalize`
+  кладёт `site_defaults` (дефолты 0/false = текущее поведение, без регрессии для legacy).
+  Резолвер `effective_card_visual(config,key)`: пер-секционный override (radius>0 или shadow)
+  побеждает глобальный дефолт, иначе наследуется `site_defaults`. Юнит-тесты (test_layout.py).
+- **2026-06-28 — on-canvas редактор: SE-2d-2 (глобальный стиль карточек на весь сайт, рендер).**
+  `context.py` отдаёт `storefront_card_radius/shadow` (normalize+draft-aware, live-preview);
+  `_base.html` эмитит inline `--sf-r`/`--sf-sh` на `<body>` ТОЛЬКО при заданном глобале →
+  существующий CSS `[style*="--sf-r"] .sf-card` применяет ко всем карточкам каталога/событий/
+  номеров/главной. Пер-секционная переменная (ближе к карточке) переопределяет глобальную.
+  Пустой `site_defaults` → нет inline-переменных → витрина без регрессии. Тесты (test_live_preview).
+- **2026-06-28 — on-canvas редактор: SE-2d-3 (UI глобального стиля карточек).** В группе
+  «Design» конструктора — контрол 🌐 «Card style (whole site)» (radius slider 0..24 + тень).
+  `home_builder_view` POST пишет `config["site_defaults"]` (normalize клампит), GET отдаёт
+  текущие; `collect()`+`site_preview_draft` принимают `site_defaults` → live-preview на любой
+  странице под `?preview=1`. Пер-блочный visual (SE-3d) переопределяет глобальный. Тесты
+  (test_home_builder + test_live_preview). SE-2d-1/2/3 + CI-инкремент слиты FF в main (`1b8f8dc`).
