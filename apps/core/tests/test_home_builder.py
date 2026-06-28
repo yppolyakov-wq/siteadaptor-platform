@@ -1032,3 +1032,17 @@ def test_home_builder_save_clears_db_draft():
     )
     tenant.refresh_from_db()
     assert "_draft" not in tenant.site_config and "_draft_ts" not in tenant.site_config
+
+
+def test_home_builder_se6_fullscreen_overlay_shell():
+    """SE-6: билдер — полноэкранный overlay (#bld-root fixed) + шторка-инспектор с тогглом."""
+    tenant = TenantFactory(schema_name="public", slug="hbse6", name="HBSE6")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'id="bld-root"' in body  # полноэкранный корень
+    assert 'id="bld-drawer-toggle"' in body  # тоггл шторки в топ-баре
+    assert 'id="bld-drawer-close"' in body  # ✕ закрыть шторку
+    assert 'id="bld-editor-pane"' in body  # шторка-инспектор (id сохранён → JS работает)
+    assert 'id="home-prev-frame"' in body  # канвас-iframe сохранён
+    assert 'id="bld-tab-editor"' not in body  # старый сплит-таб Редактор/Превью убран

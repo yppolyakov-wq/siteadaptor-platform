@@ -3,31 +3,37 @@
 {% block dash_title %}{% trans "Homepage" %}{% endblock %}
 
 {% block dash_content %}
-<div>
-  <div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-bold">{% trans "Build your homepage" %}</h1>
-    <span class="flex items-center gap-3">
-      <a href="{% url 'site-preview' %}" class="text-sm text-indigo-600 hover:underline">👁 {% trans "Preview" %}</a>
-      <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
+{% comment %}SE-6 (Вариант A): полноэкранный overlay-редактор. Билдер — fixed inset-0,
+перекрывает сайдбар кабинета (сайт на 100% ширины); инспектор `#bld-editor-pane` —
+плавающая шторка поверх канваса (тоггл в топ-баре). Все id сохранены → JS не тронут.{% endcomment %}
+<div id="bld-root" class="fixed inset-0 z-40 flex flex-col bg-gray-100">
+  {% comment %}Топ-бар: выход в кабинет · заголовок · тоггл шторки · Save.{% endcomment %}
+  <div class="shrink-0 flex items-center justify-between gap-2 bg-white border-b border-gray-200 px-3 py-2">
+    <a href="{% url 'site' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 shrink-0">←<span class="hidden sm:inline">{% trans "Dashboard" %}</span></a>
+    <span class="text-sm font-semibold text-gray-700 truncate">{% trans "Edit your site" %}</span>
+    <span class="flex items-center gap-2 shrink-0">
+      <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✏️<span class="hidden sm:inline"> {% trans "Edit panel" %}</span></button>
+      <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </span>
   </div>
-  <p class="text-sm text-gray-500 mb-4">{% trans "Pick which blocks appear on your homepage and in what order. The preview updates live as you edit — click Save to keep your changes." %}
-    <span class="text-indigo-600">✏️ {% trans "Click a heading or text in the preview to edit it directly (saves on blur)." %}</span></p>
 
   {% if messages %}
+    <div class="shrink-0 px-3 pt-2 space-y-1">
     {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+      <div class="rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
     {% endfor %}
+    </div>
   {% endif %}
 
-  {# Адаптив: на планшете/мобайле переключатель Редактор/Превью (на lg — обе колонки). #}
-  <div class="lg:hidden flex rounded-lg border border-gray-300 overflow-hidden text-sm mb-4 max-w-sm">
-    <button type="button" id="bld-tab-editor" class="flex-1 py-2 bg-indigo-600 text-white font-medium">✏️ {% trans "Editor" %}</button>
-    <button type="button" id="bld-tab-preview" class="flex-1 py-2 border-l border-gray-300">👁 {% trans "Preview" %}</button>
-  </div>
-
-  <div class="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
-   <div id="bld-editor-pane" class="space-y-6 lg:!block">
+  {% comment %}Тело: канвас (#bld-preview-pane, фон) + шторка-инспектор (#bld-editor-pane, оверлей справа).{% endcomment %}
+  <div class="relative flex-1 min-h-0">
+   {% comment %}Бэкдроп под шторкой (мобайл) — клик закрывает.{% endcomment %}
+   <div id="bld-drawer-backdrop" class="hidden absolute inset-0 z-20 bg-black/20"></div>
+   <aside id="bld-editor-pane" class="absolute top-0 right-0 bottom-0 w-[400px] max-w-[92vw] z-30 bg-white shadow-2xl overflow-y-auto p-4 space-y-6 transition-transform duration-200">
+    <div class="flex items-center justify-between sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
+      <span class="text-sm font-semibold text-gray-700">✏️ {% trans "Edit" %}</span>
+      <button type="button" id="bld-drawer-close" class="text-gray-400 text-xl leading-none hover:text-gray-700" aria-label="{% trans 'Close' %}">✕</button>
+    </div>
     <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
 
@@ -532,37 +538,35 @@
     </div>
    </div>
 
-    {# V1 live-preview: показывает несохранённое состояние (?preview=1 + черновик в сессии). #}
-    <div id="bld-preview-pane" class="hidden lg:!block sticky top-4">
-      <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
-        <span class="text-sm font-medium text-gray-500">{% trans "Live preview" %}</span>
-        <div class="flex items-center gap-3">
-          {# E.1: Отменить/Повторить изменения в редакторе (Ctrl+Z / Ctrl+Shift+Z). #}
-          <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs">
-            <button type="button" id="home-undo" title="{% trans 'Undo' %} (Ctrl+Z)"
-                    class="px-2.5 py-1 text-gray-400 cursor-not-allowed" disabled>↶ {% trans "Undo" %}</button>
-            <button type="button" id="home-redo" title="{% trans 'Redo' %} (Ctrl+Shift+Z)"
-                    class="px-2.5 py-1 border-l border-gray-300 text-gray-400 cursor-not-allowed" disabled>↷ {% trans "Redo" %}</button>
-          </div>
-          {# SE-2a-1: переключатель страницы превью (главная + лендинги архетипов). #}
-          {% if preview_pages|length > 1 %}
-            <select id="home-prev-page" class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-600" aria-label="{% trans 'Preview page' %}" title="{% trans 'Preview page' %}">
-              {% for p in preview_pages %}<option value="{{ p.url }}">{{ p.label }}</option>{% endfor %}
-            </select>
-          {% endif %}
-          {# Переключатель ширины предпросмотра (Desktop/Tablet/Mobile). #}
-          <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs">
-            <button type="button" data-w="100%" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
-            <button type="button" data-w="834px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭ {% trans "Tablet" %}</button>
-            <button type="button" data-w="390px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱 {% trans "Mobile" %}</button>
-          </div>
-          <span id="home-prev-status" class="text-xs text-gray-400"></span>
+    {% comment %}SE-6: канвас — превью на весь экран (фон под шторкой). Тонкий тулбар сверху
+    (Undo/Redo · страница · девайс · статус), iframe заполняет остаток.{% endcomment %}
+    <div id="bld-preview-pane" class="absolute inset-0 z-0 flex flex-col">
+      <div class="shrink-0 flex items-center justify-center gap-3 flex-wrap bg-gray-50 border-b border-gray-200 px-3 py-1.5">
+        {% comment %}E.1: Отменить/Повторить (Ctrl+Z / Ctrl+Shift+Z).{% endcomment %}
+        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
+          <button type="button" id="home-undo" title="{% trans 'Undo' %} (Ctrl+Z)"
+                  class="px-2.5 py-1 text-gray-400 cursor-not-allowed" disabled>↶ {% trans "Undo" %}</button>
+          <button type="button" id="home-redo" title="{% trans 'Redo' %} (Ctrl+Shift+Z)"
+                  class="px-2.5 py-1 border-l border-gray-300 text-gray-400 cursor-not-allowed" disabled>↷ {% trans "Redo" %}</button>
         </div>
+        {% comment %}SE-2a-1: переключатель страницы превью.{% endcomment %}
+        {% if preview_pages|length > 1 %}
+          <select id="home-prev-page" class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-600 bg-white" aria-label="{% trans 'Preview page' %}" title="{% trans 'Preview page' %}">
+            {% for p in preview_pages %}<option value="{{ p.url }}">{{ p.label }}</option>{% endfor %}
+          </select>
+        {% endif %}
+        {% comment %}Ширина предпросмотра (Desktop/Tablet/Mobile).{% endcomment %}
+        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
+          <button type="button" data-w="100%" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
+          <button type="button" data-w="834px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭ {% trans "Tablet" %}</button>
+          <button type="button" data-w="390px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱 {% trans "Mobile" %}</button>
+        </div>
+        <span id="home-prev-status" class="text-xs text-gray-400"></span>
       </div>
-      <div class="bg-gray-100 rounded-2xl p-2 flex justify-center">
-        <div id="home-prev-shell" class="w-full transition-all" style="max-width:100%;">
+      <div class="flex-1 min-h-0 bg-gray-100 p-2 flex justify-center overflow-auto">
+        <div id="home-prev-shell" class="w-full h-full transition-all" style="max-width:100%;">
           <iframe id="home-prev-frame" title="{% trans 'Live preview' %}"
-                  class="w-full bg-white rounded-xl" style="height:78vh; border:0;"></iframe>
+                  class="w-full h-full bg-white rounded-xl" style="border:0;"></iframe>
         </div>
       </div>
     </div>
@@ -609,22 +613,29 @@
     return previewPath + (previewPath.indexOf("?") < 0 ? "?" : "&") + "preview=1";
   }
 
-  // Адаптив: переключатель Редактор/Превью (<lg). На lg обе колонки видны (lg:!block).
+  // SE-6: шторка-инспектор поверх канваса. Тоггл в топ-баре открывает/закрывает;
+  // на широких экранах открыта по умолчанию, на узких — закрыта (сайт на весь экран).
   var edPane = document.getElementById("bld-editor-pane");
-  var pvPane = document.getElementById("bld-preview-pane");
-  var tabE = document.getElementById("bld-tab-editor");
-  var tabP = document.getElementById("bld-tab-preview");
-  if (edPane && pvPane && tabE && tabP) {
-    function activate(which) {
-      var ed = which === "editor";
-      edPane.classList.toggle("hidden", !ed);
-      pvPane.classList.toggle("hidden", ed);
-      tabE.classList.toggle("bg-indigo-600", ed); tabE.classList.toggle("text-white", ed);
-      tabP.classList.toggle("bg-indigo-600", !ed); tabP.classList.toggle("text-white", !ed);
-    }
-    tabE.addEventListener("click", function () { activate("editor"); });
-    tabP.addEventListener("click", function () { activate("preview"); });
+  var backdrop = document.getElementById("bld-drawer-backdrop");
+  var drawerToggle = document.getElementById("bld-drawer-toggle");
+  var drawerClose = document.getElementById("bld-drawer-close");
+  var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
+  function setDrawer(open) {
+    if (!edPane) return;
+    edPane.classList.toggle("translate-x-full", !open);
+    // бэкдроп — только на узких экранах (на широких канвас просто сужается визуально)
+    if (backdrop) backdrop.classList.toggle("hidden", !(open && isNarrow));
   }
+  // back-compat: click-to-edit вызывает activate("editor") → открыть шторку.
+  function activate(which) { if (which === "editor") setDrawer(true); }
+  if (drawerToggle) {
+    drawerToggle.addEventListener("click", function () {
+      setDrawer(edPane.classList.contains("translate-x-full"));
+    });
+  }
+  if (drawerClose) drawerClose.addEventListener("click", function () { setDrawer(false); });
+  if (backdrop) backdrop.addEventListener("click", function () { setDrawer(false); });
+  setDrawer(!isNarrow);  // стартовое состояние
 
   // Переключатель ширины предпросмотра (Desktop/Tablet/Mobile).
   var shell = document.getElementById("home-prev-shell");
