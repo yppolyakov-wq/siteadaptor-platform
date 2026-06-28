@@ -593,6 +593,14 @@ def home_builder_view(request):
             entry["visual"] = {
                 "radius": radius,
                 "shadow": request.POST.get(f"visual_shadow_{key}") == "on",
+                # SE-3d: фон/отступы карточек секции (normalize/_clean_visual санитайзит).
+                # Фон применяется лишь при включённом тоггле (color-input всегда шлёт значение).
+                "background": (
+                    request.POST.get(f"visual_bg_{key}", "")
+                    if request.POST.get(f"visual_bg_on_{key}") == "on"
+                    else ""
+                ),
+                "padding": request.POST.get(f"visual_padding_{key}", ""),
             }
             items.append((order, entry))
         # D.2b: C-блоки — читаем посланные строки (id+тип+данные), удалённые пропускаем.
@@ -672,6 +680,14 @@ def home_builder_view(request):
         config["site_defaults"] = {
             "card_radius": request.POST.get("sd_card_radius", ""),
             "card_shadow": request.POST.get("sd_card_shadow") == "on",
+            # SE-3d: глобальные фон/отступы карточек («весь сайт»). Фон применяется
+            # лишь при включённом тоггле (color-input всегда шлёт значение).
+            "card_bg": (
+                request.POST.get("sd_card_bg", "")
+                if request.POST.get("sd_card_bg_on") == "on"
+                else ""
+            ),
+            "card_padding": request.POST.get("sd_card_padding", ""),
         }
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
@@ -757,6 +773,8 @@ def home_builder_view(request):
                 "visual_radius": bool(s.get("visual", {}).get("radius", 0) > 0),
                 "visual_radius_px": int(s.get("visual", {}).get("radius", 0)),
                 "visual_shadow": bool(s.get("visual", {}).get("shadow", False)),
+                "visual_bg": s.get("visual", {}).get("background", ""),
+                "visual_padding": int(s.get("visual", {}).get("padding", 0)),
             }
         )
     preset_options = [
@@ -833,9 +851,11 @@ def home_builder_view(request):
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",
-            # SE-2d: текущий глобальный стиль карточек («весь сайт») для контролов.
+            # SE-2d/SE-3d: текущий глобальный стиль карточек («весь сайт») для контролов.
             "card_radius": config["site_defaults"]["card_radius"],
             "card_shadow": config["site_defaults"]["card_shadow"],
+            "card_bg": config["site_defaults"]["card_bg"],
+            "card_padding": config["site_defaults"]["card_padding"],
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
@@ -991,6 +1011,10 @@ def site_preview_draft(request):
                 # M20U-7: видимость «View all» → в черновик.
                 if key in siteconfig.SECTION_VIEWALL_KEYS and "show_all" in item:
                     row["show_all"] = bool(item["show_all"])
+                # SE-3d: визуальные параметры секции (radius/shadow/bg/padding) →
+                # в черновик для live-preview (normalize/_clean_visual санитайзит).
+                if isinstance(item.get("visual"), dict):
+                    row["visual"] = item["visual"]
                 rows.append(row)
                 seen.add(key)
         if rows:

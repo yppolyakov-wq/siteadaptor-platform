@@ -44,6 +44,10 @@
        Tailwind-облик — никакой регрессии для ненастроенных витрин. */
     [style*="--sf-r"] .sf-card { border-radius: var(--sf-r) !important; }
     [style*="--sf-sh"] .sf-card { box-shadow: var(--sf-sh) !important; }
+    /* SE-3d: фон/отступы карточек. Отдельные имена переменных и селекторы (не
+       объединяем с --sf-r — иначе [style*="--sf-r"] ложно совпал бы с --sf-rest). */
+    [style*="--sf-bg"] .sf-card { background: var(--sf-bg) !important; }
+    [style*="--sf-pad"] .sf-card { padding: var(--sf-pad) !important; }
     /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
     h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
     /* P2b: scroll-reveal — только при разрешённом движении (WCAG 2.3.3). Скрытое
@@ -61,7 +65,7 @@
     }
   </script>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_radius or storefront_card_shadow %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}"{% endif %}>
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
   {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
   пункты из настроек (storefront_nav). Мобильный бургер раскрывает меню на
   телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}

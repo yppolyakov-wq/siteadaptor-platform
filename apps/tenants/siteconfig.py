@@ -13,6 +13,7 @@ site_config = {
 }
 """
 
+import re
 import uuid
 
 from django.utils.translation import gettext_lazy as _
@@ -288,46 +289,85 @@ def section_show_all(config, key) -> bool:
     return True
 
 
+_HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def _clean_radius(value) -> int:
+    """SE-3d: радиус карточки 0..24px (мусор/None → 0)."""
+    try:
+        return max(0, min(24, int(value))) if value is not None else 0
+    except (TypeError, ValueError):
+        return 0
+
+
+def _clean_padding(value) -> int:
+    """SE-3d: внутренний отступ карточки 0..32px (мусор/None → 0)."""
+    try:
+        return max(0, min(32, int(value))) if value is not None else 0
+    except (TypeError, ValueError):
+        return 0
+
+
+def _clean_bg(value) -> str:
+    """SE-3d: цвет фона карточки — валидный #rrggbb или "" (= без фона)."""
+    value = value.strip() if isinstance(value, str) else ""
+    return value if _HEX_COLOR_RE.match(value) else ""
+
+
+def _clean_visual(raw) -> dict:
+    """SE-3d: привести visual-параметры секции к канону {radius,shadow,background,padding}.
+    Пустые (0/false/"") = текущий облик карточки (без регрессии для legacy)."""
+    v = raw if isinstance(raw, dict) else {}
+    return {
+        "radius": _clean_radius(v.get("radius")),
+        "shadow": bool(v.get("shadow", False)),
+        "background": _clean_bg(v.get("background")),
+        "padding": _clean_padding(v.get("padding")),
+    }
+
+
 def section_visual(config, key) -> dict:
-    """SE-3d: визуальные параметры секции (radius px, shadow bool)."""
+    """SE-3d: визуальные параметры секции (radius/shadow/background/padding)."""
     for item in (config or {}).get("sections", []):
-        if isinstance(item, dict) and item.get("key") == key:
-            v = item.get("visual")
-            if isinstance(v, dict):
-                r = v.get("radius", 0)
-                try:
-                    r = max(0, min(24, int(r))) if r is not None else 0
-                except (TypeError, ValueError):
-                    r = 0
-                return {"radius": r, "shadow": bool(v.get("shadow", False))}
-    return {"radius": 0, "shadow": False}
+        if (
+            isinstance(item, dict)
+            and item.get("key") == key
+            and isinstance(item.get("visual"), dict)
+        ):
+            return _clean_visual(item["visual"])
+    return _clean_visual(None)
 
 
 def normalize_site_defaults(raw) -> dict:
-    """SE-2d: глобальные дефолты стиля карточек («весь сайт»). Применяются ко всем
-    сеткам витрины, если у секции/страницы нет своего visual-override. Дефолты
-    0/false = текущее поведение (без регрессии для legacy-конфигов)."""
+    """SE-2d/SE-3d: глобальные дефолты стиля карточек («весь сайт»). Применяются ко
+    всем сеткам витрины, если у секции/страницы нет своего visual-override. Дефолты
+    0/false/"" = текущее поведение (без регрессии для legacy-конфигов)."""
     sd = raw if isinstance(raw, dict) else {}
-    r = sd.get("card_radius")
-    try:
-        r = max(0, min(24, int(r))) if r is not None else 0
-    except (TypeError, ValueError):
-        r = 0
-    return {"card_radius": r, "card_shadow": bool(sd.get("card_shadow", False))}
+    return {
+        "card_radius": _clean_radius(sd.get("card_radius")),
+        "card_shadow": bool(sd.get("card_shadow", False)),
+        "card_bg": _clean_bg(sd.get("card_bg")),
+        "card_padding": _clean_padding(sd.get("card_padding")),
+    }
 
 
 def effective_card_visual(config, key) -> dict:
-    """SE-2d: визуальные параметры карточек секции `key` с учётом наследования.
+    """SE-2d/SE-3d: визуальные параметры карточек секции `key` с учётом наследования.
 
-    Пер-секционный override (radius>0 или shadow) ПОБЕЖДАЕТ глобальный дефолт;
+    Пер-секционный override (любой заданный параметр) ПОБЕЖДАЕТ глобальный дефолт;
     иначе берётся глобальный стиль карточек `site_defaults` («весь сайт»). Пустой
-    site_defaults (0/false) → {radius:0, shadow:false} = текущее поведение."""
+    site_defaults → нули/false/"" = текущее поведение."""
     config = config or {}
     sec = section_visual(config, key)
-    if sec["radius"] > 0 or sec["shadow"]:
+    if sec["radius"] > 0 or sec["shadow"] or sec["background"] or sec["padding"] > 0:
         return sec
     sd = normalize_site_defaults(config.get("site_defaults"))
-    return {"radius": sd["card_radius"], "shadow": sd["card_shadow"]}
+    return {
+        "radius": sd["card_radius"],
+        "shadow": sd["card_shadow"],
+        "background": sd["card_bg"],
+        "padding": sd["card_padding"],
+    }
 
 
 # M20U-4: тематические секции детальной события — дефолтный порядок (как в
@@ -796,17 +836,9 @@ def normalize(config) -> dict:
         # M20U-7: видимость ссылки «View all» (по умолчанию показана).
         if key in SECTION_VIEWALL_KEYS:
             entry["show_all"] = bool(raw_item.get("show_all", True))
-        # SE-3d: визуальные параметры (radius/shadow) — для всех секций кроме C-блоков
-        raw_visual = raw_item.get("visual") if isinstance(raw_item, dict) else None
-        if isinstance(raw_visual, dict):
-            r = raw_visual.get("radius")
-            try:
-                r = max(0, min(24, int(r))) if r is not None else 0
-            except (TypeError, ValueError):
-                r = 0
-            entry["visual"] = {"radius": r, "shadow": bool(raw_visual.get("shadow", False))}
-        else:
-            entry["visual"] = {"radius": 0, "shadow": False}
+        # SE-3d: визуальные параметры (radius/shadow/background/padding) — для всех
+        # секций кроме C-блоков. Пустые = текущий облик (без регрессии для legacy).
+        entry["visual"] = _clean_visual(raw_item.get("visual"))
         return entry
 
     cblocks = 0

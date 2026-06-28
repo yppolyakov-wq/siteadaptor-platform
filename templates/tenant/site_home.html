@@ -93,6 +93,20 @@
               <input type="checkbox" name="sd_card_shadow" {% if card_shadow %}checked{% endif %} class="rounded border-gray-300">
               {% trans "Card shadow" %}
             </label>
+            {# SE-3d: глобальный фон + отступы карточек («весь сайт»). #}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Inner padding" %}: <span id="sd-pad-out">{{ card_padding }}</span>px</span>
+              <input type="range" name="sd_card_padding" min="0" max="32" value="{{ card_padding }}" class="w-full">
+            </label>
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Card background" %}</span>
+              <span class="flex items-center gap-2">
+                <input type="color" name="sd_card_bg" value="{{ card_bg|default:'#ffffff' }}" class="h-9 w-12 rounded border border-gray-300 p-0.5">
+                <button type="button" id="sd-bg-clear" class="text-xs text-gray-500 hover:text-indigo-600">{% trans "Clear" %}</button>
+                {# Пустой фон = «не задан»: чекбокс «использовать фон». Без него sd_card_bg игнорируется. #}
+                <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="sd_card_bg_on" {% if card_bg %}checked{% endif %} class="rounded border-gray-300">{% trans "use" %}</label>
+              </span>
+            </label>
           </div>
           <p class="text-xs text-gray-400 mt-2">{% trans "Applies to all cards across the site; a single block can override it." %}</p>
         </div>
@@ -171,6 +185,16 @@
                          {% if s.visual_shadow %}checked{% endif %}
                          class="rounded border-gray-300">
                   {% trans "Shadow" %}
+                </label>
+                {# Expert SE-3d: отступы + фон карточек секции (override глобального) #}
+                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
+                  {% trans "Padding" %}
+                  <input type="range" name="visual_padding_{{ s.key }}"
+                         value="{{ s.visual_padding|default:0 }}" min="0" max="32" step="2" class="w-20">
+                </label>
+                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1" title="{% trans 'Card background' %}">
+                  <input type="checkbox" name="visual_bg_on_{{ s.key }}" {% if s.visual_bg %}checked{% endif %} class="rounded border-gray-300">
+                  <input type="color" name="visual_bg_{{ s.key }}" value="{{ s.visual_bg|default:'#ffffff' }}" class="h-6 w-8 rounded border border-gray-300 p-0.5">
                 </label>
               </div>
             </div>
@@ -521,7 +545,16 @@
       if (rPx && rPx.value !== "") radius = parseInt(rPx.value, 10) || 0;
       else if (rTog && rTog.checked) radius = 16;
       var shBox = form.querySelector("input[name='visual_shadow_" + r.key + "']");
-      sec.visual = { radius: radius, shadow: !!(shBox && shBox.checked) };
+      // SE-3d: отступы + фон карточек секции → в превью (фон лишь при включённом тоггле).
+      var padEl = form.querySelector("input[name='visual_padding_" + r.key + "']");
+      var bgOn = form.querySelector("input[name='visual_bg_on_" + r.key + "']");
+      var bgEl = form.querySelector("input[name='visual_bg_" + r.key + "']");
+      sec.visual = {
+        radius: radius,
+        shadow: !!(shBox && shBox.checked),
+        padding: padEl && padEl.value !== "" ? parseInt(padEl.value, 10) || 0 : 0,
+        background: bgOn && bgOn.checked && bgEl ? bgEl.value : "",
+      };
       return sec;
     });
     var archetypes = {};
@@ -564,9 +597,15 @@
     var sdR = form.querySelector("input[name='sd_card_radius']");
     var sdSh = form.querySelector("input[name='sd_card_shadow']");
     if (sdR || sdSh) {
+      // SE-3d: + фон/отступы (фон лишь при включённом тоггле sd_card_bg_on).
+      var sdPad = form.querySelector("input[name='sd_card_padding']");
+      var sdBgOn = form.querySelector("input[name='sd_card_bg_on']");
+      var sdBg = form.querySelector("input[name='sd_card_bg']");
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
+        card_padding: sdPad && sdPad.value !== "" ? parseInt(sdPad.value, 10) || 0 : 0,
+        card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
       };
     }
     // SE-2b-2: порядок/видимость тематических секций детальной события → в черновик,
@@ -1108,6 +1147,20 @@
   var sdOut = document.getElementById("sd-r-out");
   if (sdRange && sdOut) {
     sdRange.addEventListener("input", function() { sdOut.textContent = sdRange.value; });
+  }
+  // SE-3d: показ значения глобального отступа + «Clear» фона карточек.
+  var sdPadRange = document.querySelector("input[name='sd_card_padding']");
+  var sdPadOut = document.getElementById("sd-pad-out");
+  if (sdPadRange && sdPadOut) {
+    sdPadRange.addEventListener("input", function() { sdPadOut.textContent = sdPadRange.value; });
+  }
+  var sdBgClear = document.getElementById("sd-bg-clear");
+  if (sdBgClear) {
+    sdBgClear.addEventListener("click", function() {
+      var on = form.querySelector("input[name='sd_card_bg_on']");
+      if (on) { on.checked = false; }
+      schedule();  // снять фон в превью
+    });
   }
 })();
 </script>

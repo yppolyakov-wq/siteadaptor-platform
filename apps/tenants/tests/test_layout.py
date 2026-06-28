@@ -208,16 +208,15 @@ def test_section_title_default_override_and_cleanup():
 
 
 def test_site_defaults_empty_is_zero():
-    # legacy: нет site_defaults → нули/false (= текущее поведение, без регрессии)
-    assert siteconfig.normalize_site_defaults(None) == {"card_radius": 0, "card_shadow": False}
-    assert siteconfig.normalize(None)["site_defaults"] == {"card_radius": 0, "card_shadow": False}
+    # legacy: нет site_defaults → нули/false/"" (= текущее поведение, без регрессии)
+    empty = {"card_radius": 0, "card_shadow": False, "card_bg": "", "card_padding": 0}
+    assert siteconfig.normalize_site_defaults(None) == empty
+    assert siteconfig.normalize(None)["site_defaults"] == empty
 
 
 def test_site_defaults_valid_and_clamped():
-    assert siteconfig.normalize_site_defaults({"card_radius": 12, "card_shadow": True}) == {
-        "card_radius": 12,
-        "card_shadow": True,
-    }
+    sd = siteconfig.normalize_site_defaults({"card_radius": 12, "card_shadow": True})
+    assert sd["card_radius"] == 12 and sd["card_shadow"] is True
     # кламп 0..24 + мусор → 0
     assert siteconfig.normalize_site_defaults({"card_radius": 999})["card_radius"] == 24
     assert siteconfig.normalize_site_defaults({"card_radius": "x"})["card_radius"] == 0
@@ -225,13 +224,14 @@ def test_site_defaults_valid_and_clamped():
 
 def test_normalize_keeps_site_defaults():
     cfg = siteconfig.normalize({"site_defaults": {"card_radius": 8, "card_shadow": True}})
-    assert cfg["site_defaults"] == {"card_radius": 8, "card_shadow": True}
+    assert cfg["site_defaults"]["card_radius"] == 8 and cfg["site_defaults"]["card_shadow"] is True
 
 
 def test_effective_card_visual_inherits_global():
     # нет секционного override → берётся глобальный дефолт «весь сайт»
     cfg = siteconfig.normalize({"site_defaults": {"card_radius": 10, "card_shadow": True}})
-    assert siteconfig.effective_card_visual(cfg, "products") == {"radius": 10, "shadow": True}
+    v = siteconfig.effective_card_visual(cfg, "products")
+    assert v["radius"] == 10 and v["shadow"] is True
 
 
 def test_effective_card_visual_section_override_beats_global():
@@ -242,7 +242,8 @@ def test_effective_card_visual_section_override_beats_global():
             "sections": [{"key": "products", "enabled": True, "visual": {"radius": 4}}],
         }
     )
-    assert siteconfig.effective_card_visual(cfg, "products") == {"radius": 4, "shadow": False}
+    v = siteconfig.effective_card_visual(cfg, "products")
+    assert v["radius"] == 4 and v["shadow"] is False
 
 
 def test_effective_card_visual_section_shadow_is_override():
@@ -253,10 +254,67 @@ def test_effective_card_visual_section_shadow_is_override():
             "sections": [{"key": "events", "enabled": True, "visual": {"shadow": True}}],
         }
     )
-    assert siteconfig.effective_card_visual(cfg, "events") == {"radius": 0, "shadow": True}
+    v = siteconfig.effective_card_visual(cfg, "events")
+    assert v["radius"] == 0 and v["shadow"] is True
 
 
 def test_effective_card_visual_legacy_empty():
     # ни глобального, ни секционного → нули (без регрессии)
     cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True}]})
-    assert siteconfig.effective_card_visual(cfg, "products") == {"radius": 0, "shadow": False}
+    v = siteconfig.effective_card_visual(cfg, "products")
+    assert v["radius"] == 0 and v["shadow"] is False
+
+
+# --- SE-3d: фон/отступы карточек (visual.background/padding + site_defaults) ---
+
+
+def test_visual_bg_padding_clamped_and_validated():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {
+                    "key": "products",
+                    "enabled": True,
+                    "visual": {"background": "#ABCDEF", "padding": 999},
+                }
+            ]
+        }
+    )
+    v = siteconfig.section_visual(cfg, "products")
+    assert v["background"] == "#ABCDEF" and v["padding"] == 32  # padding клампится 0..32
+
+
+def test_visual_bg_invalid_dropped():
+    cfg = siteconfig.normalize(
+        {"sections": [{"key": "products", "enabled": True, "visual": {"background": "red"}}]}
+    )
+    assert siteconfig.section_visual(cfg, "products")["background"] == ""  # не #rrggbb → ""
+
+
+def test_site_defaults_bg_padding():
+    sd = siteconfig.normalize_site_defaults({"card_bg": "#112233", "card_padding": 12})
+    assert sd == {"card_radius": 0, "card_shadow": False, "card_bg": "#112233", "card_padding": 12}
+
+
+def test_effective_card_visual_inherits_global_bg_padding():
+    cfg = siteconfig.normalize({"site_defaults": {"card_bg": "#f0f0f0", "card_padding": 16}})
+    v = siteconfig.effective_card_visual(cfg, "products")
+    assert v["background"] == "#f0f0f0" and v["padding"] == 16
+
+
+def test_effective_card_visual_section_bg_is_override():
+    # секционный фон (без radius/shadow) считается override → глобальный НЕ подмешивается
+    cfg = siteconfig.normalize(
+        {
+            "site_defaults": {"card_bg": "#000000", "card_padding": 20},
+            "sections": [{"key": "products", "enabled": True, "visual": {"background": "#ffffff"}}],
+        }
+    )
+    v = siteconfig.effective_card_visual(cfg, "products")
+    assert v["background"] == "#ffffff" and v["padding"] == 0  # секционный, не глобальный
+
+
+def test_effective_card_visual_legacy_empty_bg_padding():
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True}]})
+    v = siteconfig.effective_card_visual(cfg, "products")
+    assert v["background"] == "" and v["padding"] == 0  # без регрессии

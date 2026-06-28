@@ -292,10 +292,8 @@ def test_draft_endpoint_includes_site_defaults():
     req.user = SimpleNamespace(is_authenticated=True)
     req.tenant = tenant
     assert views.site_preview_draft(req).status_code == 204
-    assert req.session["site_preview_draft"]["site_defaults"] == {
-        "card_radius": 18,
-        "card_shadow": True,
-    }
+    sd = req.session["site_preview_draft"]["site_defaults"]
+    assert sd["card_radius"] == 18 and sd["card_shadow"] is True
 
 
 def test_modules_nav_exposes_global_card_style():
@@ -338,6 +336,56 @@ def test_storefront_base_emits_global_card_vars():
     req2.tenant = tenant
     body2 = public_views.storefront_home(req2).content.decode()
     assert "--sf-r:" not in body2
+
+
+def test_storefront_base_emits_global_bg_padding():
+    """SE-3d: <body> несёт --sf-bg/--sf-pad при заданных site_defaults; без них — нет."""
+    tenant = TenantFactory.build()
+    tenant.site_config = {"site_defaults": {"card_bg": "#abcdef", "card_padding": 20}}
+    req = _session(RequestFactory().get("/"))
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert "--sf-bg:#abcdef" in body and "--sf-pad:20px" in body
+    # CSS-селекторы карточек присутствуют
+    assert '[style*="--sf-bg"] .sf-card' in body and '[style*="--sf-pad"] .sf-card' in body
+
+    tenant.site_config = {}
+    req2 = _session(RequestFactory().get("/"))
+    req2.tenant = tenant
+    body2 = public_views.storefront_home(req2).content.decode()
+    assert "--sf-bg:" not in body2 and "--sf-pad:" not in body2  # legacy без регрессии
+
+
+def test_draft_endpoint_includes_section_visual():
+    """SE-3d: пер-секционный visual (incl. bg/padding) попадает в черновик для live-preview."""
+    tenant = TenantFactory(schema_name="public", slug="dsv", name="DSV")
+    body = json.dumps(
+        {
+            "sections": [
+                {
+                    "key": "products",
+                    "enabled": True,
+                    "visual": {
+                        "radius": 0,
+                        "shadow": False,
+                        "background": "#101010",
+                        "padding": 10,
+                    },
+                }
+            ]
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    v = siteconfig.section_visual(draft, "products")
+    assert v["background"] == "#101010" and v["padding"] == 10
 
 
 def test_modules_nav_previews_draft_design():

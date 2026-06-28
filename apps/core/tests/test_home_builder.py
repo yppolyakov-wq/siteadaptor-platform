@@ -294,7 +294,8 @@ def test_home_builder_saves_visual_radius_from_slider():
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    assert siteconfig.section_visual(cfg, "products") == {"radius": 12, "shadow": False}
+    v = siteconfig.section_visual(cfg, "products")
+    assert v["radius"] == 12 and v["shadow"] is False
 
 
 def test_home_builder_visual_radius_clamped():
@@ -324,7 +325,8 @@ def test_home_builder_visual_radius_default_zero():
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    assert siteconfig.section_visual(cfg, "products") == {"radius": 0, "shadow": False}
+    v = siteconfig.section_visual(cfg, "products")
+    assert v["radius"] == 0 and v["shadow"] is False
 
 
 def test_home_builder_saves_visual_shadow():
@@ -522,6 +524,38 @@ def test_home_builder_get_renders_add_category_form():
     assert 'value="add_category"' in body and 'name="name_de"' in body
 
 
+def test_home_builder_saves_global_card_bg_padding():
+    """SE-3d: глобальные фон/отступы карточек сохраняются (фон — лишь при включённом тоггле)."""
+    tenant = TenantFactory(schema_name="public", slug="hbsdbp", name="HBSDBP")
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "sd_card_padding": "16",
+        "sd_card_bg": "#112233",
+        "sd_card_bg_on": "on",
+    }
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    sd = siteconfig.normalize(tenant.site_config)["site_defaults"]
+    assert sd["card_padding"] == 16 and sd["card_bg"] == "#112233"
+
+
+def test_home_builder_global_bg_ignored_without_toggle():
+    """SE-3d: без тоггла sd_card_bg_on фон не применяется (color-input всегда шлёт значение)."""
+    tenant = TenantFactory(schema_name="public", slug="hbsdbn", name="HBSDBN")
+    data = {"order_hero": "1", "enabled_hero": "on", "sd_card_bg": "#112233"}  # без _on
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert siteconfig.normalize(tenant.site_config)["site_defaults"]["card_bg"] == ""
+
+
+def test_home_builder_saves_section_visual_padding():
+    """SE-3d: пер-секционный отступ карточек сохраняется в visual.padding."""
+    tenant = TenantFactory(schema_name="public", slug="hbsvp", name="HBSVP")
+    data = {"order_products": "1", "enabled_products": "on", "visual_padding_products": "8"}
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.section_visual(cfg, "products")["padding"] == 8
+
+
 def test_home_builder_get_renders_apply_all_landings():
     """SE-2d-4: контрол «применить раскладку ко всем лендингам» отрисован."""
     tenant = TenantFactory(
@@ -549,7 +583,7 @@ def test_home_builder_saves_global_card_style():
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["site_defaults"] == {"card_radius": 12, "card_shadow": True}
+    assert cfg["site_defaults"]["card_radius"] == 12 and cfg["site_defaults"]["card_shadow"] is True
 
 
 def test_home_builder_global_card_radius_clamped():

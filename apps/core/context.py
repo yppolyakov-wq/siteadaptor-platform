@@ -211,10 +211,12 @@ def modules_nav(request):
         "storefront_font_head": font_head,
         # M20: override акцента в live-preview (пусто → tenant.primary_color).
         "storefront_accent": storefront_accent,
-        # SE-2d: глобальный стиль карточек («весь сайт»; draft-aware). 0/false →
-        # шаблон не эмитит inline-переменные → витрина без регрессии.
+        # SE-2d/SE-3d: глобальный стиль карточек («весь сайт»; draft-aware). Пустые
+        # (0/false/"") → шаблон не эмитит inline-переменные → витрина без регрессии.
         "storefront_card_radius": cfg["site_defaults"]["card_radius"],
         "storefront_card_shadow": cfg["site_defaults"]["card_shadow"],
+        "storefront_card_bg": cfg["site_defaults"]["card_bg"],
+        "storefront_card_padding": cfg["site_defaults"]["card_padding"],
         # P5: preload hero-фото (LCP) — пусто, если секция выключена/без фото.
         "storefront_hero_preload": hero_preload,
         # S3: обложка раздела (интро/hero) — пусто вне лендинга архетипа.
