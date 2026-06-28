@@ -477,6 +477,51 @@ def test_home_builder_save_without_inspector_keeps_event_detail():
     assert order[0] == "faq" and "idea" not in order  # сохранённый порядок цел
 
 
+def test_home_builder_add_category_creates_live_category():
+    """SE-2c-1: мини-форма «+ Kategorie» создаёт живую категорию (видимую на витрине)."""
+    from apps.catalog.models import Category
+
+    tenant = TenantFactory(schema_name="public", slug="hbac", name="HBAC")
+    data = {"action": "add_category", "name_de": "Brot"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cat = Category.objects.get(slug="brot")
+    assert cat.name["de"] == "Brot" and cat.is_active is True  # сразу видима
+
+
+def test_home_builder_add_category_under_parent():
+    """SE-2c-1: можно создать подкатегорию, указав родителя в мини-форме."""
+    from apps.catalog.models import Category
+
+    tenant = TenantFactory(schema_name="public", slug="hbacp", name="HBACP")
+    parent = Category.objects.create(name={"de": "Backwaren"}, slug="backwaren")
+    data = {"action": "add_category", "name_de": "Brot", "parent": str(parent.pk)}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    assert Category.objects.get(slug="brot").parent_id == parent.pk
+
+
+def test_home_builder_add_category_invalid_name():
+    """SE-2c-1: пустое имя → категория не создаётся, без 500."""
+    from apps.catalog.models import Category
+
+    tenant = TenantFactory(schema_name="public", slug="hbaci", name="HBACI")
+    resp = views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "add_category", "name_de": ""}, tenant)
+    )
+    assert resp.status_code == 302
+    assert Category.objects.count() == 0
+
+
+def test_home_builder_get_renders_add_category_form():
+    """SE-2c-1: форма быстрого создания категории отрисована при активном каталоге."""
+    tenant = TenantFactory(schema_name="public", slug="hbacf", name="HBACF")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'value="add_category"' in body and 'name="name_de"' in body
+
+
 def test_site_view_does_not_wipe_homepage_composition():
     """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
     оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""

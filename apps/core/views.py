@@ -537,6 +537,28 @@ def home_builder_view(request):
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 messages.success(request, _("Block added."))
             return redirect("site-home")
+        # SE-2c-1: быстрое создание категории прямо в редакторе (мини-форма «+ Kategorie»,
+        # по образцу add_block). Создаёт живую Category через CategoryForm (валидация/slug/
+        # parent переиспользуются); категория сразу видна чипом на канве каталога. Категории
+        # живут в БД, не в site_config, поэтому редактор просто редиректит на site-home.
+        if request.POST.get("action") == "add_category":
+            if request.tenant.is_module_active("catalog"):
+                from apps.catalog.forms import CategoryForm
+
+                # Мини-форма шлёт только name_de (+ опц. parent); sort_order в
+                # CategoryForm обязателен — подставляем дефолт, не трогая общую форму.
+                post = request.POST.copy()
+                post.setdefault("sort_order", "0")
+                form = CategoryForm(post)
+                if form.is_valid():
+                    category = form.save(commit=False)
+                    category.is_active = True  # быстрая категория сразу видима на витрине
+                    category.save()
+                    messages.success(request, _("Category added."))
+                else:
+                    first = next(iter(form.errors.values()))[0]
+                    messages.error(request, first)
+            return redirect("site-home")
         config = siteconfig.normalize(request.tenant.site_config)
         # Фикс-секции (порядок/видимость/раскладка) — как раньше, но как (order, entry)
         # пары, чтобы слить с C-блоками в один отсортированный список.
@@ -759,6 +781,12 @@ def home_builder_view(request):
         }
         for i, k in enumerate(ed_full)
     ]
+    # SE-2c-1: живые категории каталога — для parent-select мини-формы «+ Kategorie».
+    catalog_categories = []
+    if request.tenant.is_module_active("catalog"):
+        from apps.catalog.models import Category
+
+        catalog_categories = list(Category.objects.filter(is_active=True))
     return render(
         request,
         "tenant/site_home.html",
@@ -766,6 +794,7 @@ def home_builder_view(request):
             "nav": "site",
             "sections": sections,
             "event_sections": event_sections,
+            "catalog_categories": catalog_categories,
             # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
             "cblocks": cblocks,
             "block_types": [

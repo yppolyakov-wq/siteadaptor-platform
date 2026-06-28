@@ -322,6 +322,25 @@
       {% endfor %}
     </form>
 
+    {# SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
+       Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). #}
+    {% if has_catalog %}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_category">
+      <span class="text-sm font-medium mr-1">{% trans "Add category" %}:</span>
+      <input type="text" name="name_de" required placeholder="{% trans 'Category name' %}"
+             class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm" aria-label="{% trans 'Category name' %}">
+      {% if catalog_categories %}
+      <select name="parent" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Parent category' %}">
+        <option value="">{% trans "Top level" %}</option>
+        {% for c in catalog_categories %}<option value="{{ c.pk }}">{{ c }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      <button type="submit" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">+ {% trans "Category" %}</button>
+    </form>
+    {% endif %}
+
     {# M20e: медиа в билдере — фото галереи (multipart, отдельные формы — не в #home-form). #}
     <div class="bg-white rounded-2xl shadow-sm p-6">
       <h3 class="font-semibold mb-1">{% trans "Photo gallery" %}</h3>
