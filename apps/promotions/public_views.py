@@ -21,6 +21,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.core import ratelimit
+from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
@@ -76,6 +77,7 @@ def _capture_channel(request) -> str:
 # показывает витрину в iframe (live-preview конструктора + страница Preview).
 # Прод ставит X-Frame-Options: DENY глобально — это бы блокировало iframe.
 @xframe_options_sameorigin
+@cache_storefront_page
 def storefront_home(request):
     _capture_channel(request)
     # Конструктор витрины v1 (Track C2): главная собирается из секций конфига.
