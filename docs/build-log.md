@@ -2538,3 +2538,13 @@
   (2) CI — **pytest-xdist** (`pytest -ra -n auto --dist loadscope`): полная сюита 1700 тестов на
   параллельных воркерах (django-tenants: тест-БД на воркер test_<db>_gwN, валидировано). CI-прогон
   ~17 мин → **~11 мин**, изоляция тестов в порядке. SE-3a + DX слиты FF в main (`79fa371`).
+
+- **2026-06-28 — on-canvas редактор: SE-3c-min (пер-девайс число колонок).** Вариант C-min:
+  явное число колонок секции-сетки на телефон/планшет/десктоп. `siteconfig.normalize_layout`
+  += `tablet` (0..4; 0=авто=прежний планшетный вывод `_SM_FROM_COLS`, без регрессии);
+  `grid_class_string` использует явный `tablet` если >0; `_GRID_SM` расширен до `sm:grid-cols-4`
+  (purge-safe). home_builder POST/GET + `collect()`/`site_preview_draft` несут mobile/tablet/cols;
+  UI — 3 мини-поля «📱/▭/🖥 колонок» в инспекторе грид-секции (expert). Тесты (siteconfig 43 +
+  DB-suites 159 за 9с с --reuse-db). SE-3c-min слит FF в main (`bc64270`). Без миграций.
+  **Ядро SE-3 закрыто** (SE-3a/3b/3c-min/3d). Остаток опц.: SE-3c-mid (скрыть-на-устройстве),
+  C-full (порядок пер-девайс) — план в `storefront-onsite-editor-plan.md`.
