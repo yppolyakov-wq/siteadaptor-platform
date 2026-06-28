@@ -64,6 +64,7 @@ dev = [
     "django-extensions>=3.2",
     "pytest>=8.3",
     "pytest-django>=4.9",
+    "pytest-xdist>=3.6",  # параллельные тесты на CI (−время; django-tenants: БД на воркер)
     "factory-boy>=3.3",
     "faker>=30.0",
     "ruff>=0.7",

@@ -89,4 +89,7 @@ jobs:
         run: uv run ruff format --check .
 
       - name: Run tests
-        run: uv run pytest -ra
+        # Параллельно по ядрам раннера (-n auto). django-tenants: каждый воркер
+        # получает свою тест-БД (test_<db>_gwN); --dist loadscope группирует тесты
+        # модуля/класса на один воркер (стабильнее с общими фикстурами/схемой).
+        run: uv run pytest -ra -n auto --dist loadscope
