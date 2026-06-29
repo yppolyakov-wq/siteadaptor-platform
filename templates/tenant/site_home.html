@@ -42,7 +42,6 @@
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-lg leading-none">☰</span><span class="text-[9px] leading-tight">{% trans "Menu" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-lg leading-none">🔻</span><span class="text-[9px] leading-tight">{% trans "Footer" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-lg leading-none">📚</span><span class="text-[9px] leading-tight">{% trans "Templates" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-lg leading-none">🗂</span><span class="text-[9px] leading-tight">{% trans "Media" %}</span></button>
    </nav>
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
@@ -169,7 +168,7 @@
           <span class="block font-medium mb-1">{% trans "Banner text" %}</span>
           <textarea name="hero_text" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ hero_text }}</textarea>
         </label>
-        <p class="text-xs text-gray-400">{% trans "Banner background image: click the banner on the canvas, or add photos under Media. Accent background is in" %}
+        <p class="text-xs text-gray-400">{% trans "Banner background image: click the banner on the canvas. Accent background is in" %}
           <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;theme&quot;]').click()">{% trans "Theme" %}</button>.</p>
       </fieldset>
       </div>{% comment %}/область 🖼 Баннер{% endcomment %}
@@ -289,6 +288,19 @@
                           data-shadow="{{ mt.shadow|yesno:'1,0' }}" data-padding="{{ mt.padding }}">{{ mt.label }}</button>
                 {% endfor %}
               </div>
+              {% endif %}
+              {% comment %}SE-9b: медиа/действия блока открывают свою область (вне #home-form).{% endcomment %}
+              {% if s.key == "gallery" %}
+                <div class="w-full mt-2">
+                  <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
+                          onclick="window.__sfShowArea('gallery-media')">🖼 {% trans "Photos" %}{% if config.gallery %} ({{ config.gallery|length }}){% endif %}</button>
+                </div>
+              {% endif %}
+              {% if s.key == "categories" and has_catalog %}
+                <div class="w-full mt-2">
+                  <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
+                          onclick="window.__sfShowArea('catalog-add')">＋ {% trans "Add category" %}</button>
+                </div>
               {% endif %}
             </div>
           {% endfor %}
@@ -582,10 +594,12 @@
     {% endif %}
     </div>{% comment %}/область 📚 Шаблоны/История{% endcomment %}
 
-    {% comment %}SE-7 область 🖼 Медиа: категории + фото-галерея.{% endcomment %}
-    <div data-bld-area="media" class="bld-area space-y-6 hidden">
+    {% comment %}SE-9b: медиа/действия — на блок, общая «Медиа» убрана. Две области ВНЕ #home-form
+       (мультипарт нельзя вкладывать в форму): «catalog-add» (открывается кнопкой с блока «Категории»)
+       и «gallery-media» (с блока «Галерея»). showArea их находит по data-bld-area; кнопки рейла нет.{% endcomment %}
     {% comment %} SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
        Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). {% endcomment %}
+    <div data-bld-area="catalog-add" class="bld-area space-y-6 hidden">
     {% if has_catalog %}
     <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
       {% csrf_token %}
@@ -601,9 +615,13 @@
       {% endif %}
       <button type="submit" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">+ {% trans "Category" %}</button>
     </form>
+    {% else %}
+    <p class="text-sm text-gray-400">{% trans "Enable the catalog to add categories." %}</p>
     {% endif %}
+    </div>{% comment %}/область catalog-add{% endcomment %}
 
-    {# M20e: медиа в билдере — фото галереи (multipart, отдельные формы — не в #home-form). #}
+    {# M20e/SE-9b: фото галереи (multipart, отдельные формы — НЕ в #home-form), область блока «Галерея». #}
+    <div data-bld-area="gallery-media" class="bld-area space-y-6 hidden">
     <div class="bg-white rounded-2xl shadow-sm p-6">
       <h3 class="font-semibold mb-1">{% trans "Photo gallery" %}</h3>
       <p class="text-xs text-gray-400 mb-3">{% trans 'JPEG/PNG/WEBP, max 5 MB. Enable the "Photo gallery" block above to show them.' %}</p>
@@ -628,7 +646,7 @@
         <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
       </form>
     </div>
-    </div>{% comment %}/область 🖼 Медиа{% endcomment %}
+    </div>{% comment %}/область gallery-media{% endcomment %}
    </aside>{% comment %}/#bld-editor-pane (фокус-панель){% endcomment %}
 
     {% comment %}SE-6: канвас — превью на весь экран (фон под шторкой). Тонкий тулбар сверху
@@ -752,7 +770,7 @@
       b.setAttribute("aria-pressed", "false");  // SE-7 a11y: панель свёрнута
     });
   }
-  function showArea(area) {  // всегда открывает (без переключения)
+  function showArea(area, title) {  // всегда открывает (без переключения); title — для областей без кнопки рейла
     if (!edPane) return;
     curArea = area;
     areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== area); });
@@ -765,7 +783,7 @@
     });
     if (panelTitle) {
       var btn = document.querySelector('.bld-rail-btn[data-area="' + area + '"]');
-      panelTitle.textContent = btn ? btn.textContent.trim() : "";
+      panelTitle.textContent = title || (btn ? btn.textContent.trim() : "");
     }
   }
   railBtns.forEach(function (b) {
@@ -784,6 +802,12 @@
   if (drawerClose) drawerClose.addEventListener("click", closePanel);
   if (backdrop) backdrop.addEventListener("click", closePanel);
   if (!isNarrow) showArea("sections");  // на широком экране сразу секции; на узком — рейл
+  // SE-9b: открыть область с блока (gallery-media / catalog-add) с подписью панели.
+  // Подписи в JS-карте (не в onclick) → апостроф в переводе не ломает кавычки атрибута.
+  window.__sfShowArea = function (area) {
+    var titles = { "gallery-media": "🖼 {% trans 'Photo gallery' %}", "catalog-add": "＋ {% trans 'Add category' %}" };
+    showArea(area, titles[area]);
+  };
 
   // SE-7b: миниатюры раскладок вместо выпадашек (как выбор разворота в фотокниге).
   // Прячем <select data-thumb>, рисуем кликабельные мини-диаграммы, управляющие им

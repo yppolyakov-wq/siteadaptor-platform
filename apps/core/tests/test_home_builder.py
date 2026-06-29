@@ -234,6 +234,25 @@ def test_home_builder_mobile_layout_unlocks_in_simple_mode():
     assert "bld-device-hint" in body
 
 
+def test_home_builder_media_moved_into_blocks():
+    """SE-9b: общая область «Медиа» убрана; медиа/действия открываются с блока —
+    галерея → область gallery-media (кнопка на блоке), категория → catalog-add."""
+    tenant = TenantFactory(schema_name="public", slug="hbmib", name="HBMIB")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    # общей иконки/области «Медиа» больше нет
+    assert 'data-area="media"' not in body
+    assert 'data-bld-area="media"' not in body
+    # вместо неё — две области вне формы
+    assert 'data-bld-area="gallery-media"' in body
+    assert 'data-bld-area="catalog-add"' in body
+    # кнопка галереи на блоке открывает её область; загрузчик жив (тот же action)
+    assert "window.__sfShowArea('gallery-media')" in body
+    assert 'value="upload_gallery"' in body
+    # глобал-открывашка области с блока
+    assert "window.__sfShowArea = function" in body
+
+
 def test_home_builder_get_renders_block_popup():
     """E.2: попап настроек блока + маркеры cb-row для переноса контролов."""
     tenant = TenantFactory(schema_name="public", slug="hbpop", name="HBPOP")
