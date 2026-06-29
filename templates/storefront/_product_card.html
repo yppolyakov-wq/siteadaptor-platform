@@ -23,7 +23,7 @@
     </div>
     <div class="px-3 pt-3 md:px-4">
       {% if p.category %}<p class="text-xs text-gray-400 mb-0.5 truncate">{{ p.category }}</p>{% endif %}
-      <h3 class="font-semibold leading-tight truncate">{{ p }}</h3>
+      <h3 class="font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
       {% comment %}A4: диет-иконки (vegan/vegetarisch/glutenfrei/…) — видны при наличии.{% endcomment %}
       {% if p.diet_badges %}<p class="text-xs leading-none mt-0.5">{% for d in p.diet_badges %}<span title="{{ d.label }}">{{ d.icon }}</span>{% endfor %}</p>{% endif %}
       {% comment %}A4/LMIV: компактная строка аллергенов на карточке меню — видна только

@@ -268,6 +268,19 @@ def test_home_builder_get_renders_edit_on_site_toggle():
     assert "[data-sf-drag],[data-sf-ins]" in body
 
 
+def test_home_builder_wires_inline_content_edit():
+    """Фаза 1 (inline-content): редактор-iframe навешивает правку ТЕКСТА данных
+    (имя товара и т.п.) — обработчик [data-edit-model] + карта модель→эндпоинт."""
+    tenant = TenantFactory(schema_name="public", slug="hbice", name="HBICE")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert "MODEL_EDIT_URLS" in body  # карта модель→URL инлайн-правки
+    assert 'querySelectorAll("[data-edit-model]")' in body  # обработчик навешивается
+    assert "product-inline-edit" in body or "products/inline-edit" in body  # URL товара
+    # режим правки переключает и эти элементы
+    assert "[data-edit],[data-cat-edit],[data-edit-model]" in body
+
+
 def test_home_builder_dynamic_block_rail():
     """SE-9c-1: рейл показывает иконки ВКЛЮЧЁННЫХ блоков; клик → панель блока
     (openBlockPopup). Баннер (hero) не дублируется; репитабл-блоки сюда не попадают."""

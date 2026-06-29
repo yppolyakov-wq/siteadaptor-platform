@@ -22,9 +22,11 @@
   `_PRODUCT_INLINE_FIELDS = {"name","description"}` → пишет `Product.<field>['de']` живого товара.
   Имя пустым не сохраняем; неизвестное поле (напр. `base_price`) → 400. URL `catalog:product-inline-edit`.
   Тесты: имя/описание/пустое-имя/не-вайтлист-поле(цена)/битый-pk. Без миграций.
-- **P1-2 фронт:** обработчик `[data-edit-model]` в `site_home.html` (реюз `styleEditable`/`markSaved`,
-  POST {model,pk,field,value} в `product-inline-edit`; уважает `editOn`). Разметка имени/описания
-  в `templates/storefront/sections/_products.html` (+ карточка детальной товара). Тест рендера карточки.
+- **P1-2 ✅ фронт:** обработчик `[data-edit-model]` в `site_home.html` (реюз `styleEditable`/`markSaved`;
+  карта `MODEL_EDIT_URLS={product:…}`; POST {pk,field,value}; уважает `editOn`; в режиме правки гасит
+  навигацию по клику, т.к. имя — внутри ссылки-карточки). Разметка имени в `_product_card.html`
+  (`data-edit-model/pk/field`). Тесты: карточка с хуками (витрина), редактор навешивает обработчик.
+  (Описание товара — на детальной, P1-2b/позже.)
 - **P1-3 «✎» к форме:** на карточке товара (gate владелец/`?preview=1`) маленький «✎» →
   `catalog:product-edit` (для цены/фото/вариантов). Дёшево, закрывает «остальное».
 - **P1-4 расширение:** Service/Event/Room (тонкие вью через общий хелпер i18n-инлайн + разметка их карточек).

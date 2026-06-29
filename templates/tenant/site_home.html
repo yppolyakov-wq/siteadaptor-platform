@@ -791,7 +791,7 @@
     if (hint) hint.classList.toggle("hidden", !on);
     if (lastEditDoc) {
       try {
-        lastEditDoc.querySelectorAll("[data-edit],[data-cat-edit]").forEach(function (el) { styleEditable(el, on); });
+        lastEditDoc.querySelectorAll("[data-edit],[data-cat-edit],[data-edit-model]").forEach(function (el) { styleEditable(el, on); });
         lastEditDoc.querySelectorAll("[data-sf-drag],[data-sf-ins]").forEach(function (h) { h.style.display = on ? "" : "none"; });
       } catch (e) {}
     }
@@ -1342,6 +1342,8 @@
   // (как на отдельной странице Preview) — сохранение на blur в site_config.
   var editUrl = "{% url 'site-inline-edit' %}";
   var catEditUrl = "{% url 'catalog:category-inline-edit' %}";
+  // Фаза 1 (inline-content): карта модель→эндпоинт инлайн-правки ТЕКСТА данных на канве.
+  var MODEL_EDIT_URLS = { product: "{% url 'catalog:product-inline-edit' %}" };
   function markSaved() {
     if (status) {
       status.textContent = "{% trans 'Saved' %} ✓";
@@ -1374,6 +1376,28 @@
           method: "POST",
           headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
           body: JSON.stringify({ category_pk: el.getAttribute("data-cat-edit"), value: v }),
+        }).then(function (r) { if (r.ok) markSaved(); });
+      });
+    });
+    // Фаза 1 (inline-content): инлайн-правка ТЕКСТА данных (имя товара и т.п.) на канве.
+    // Элемент часто внутри ссылки-карточки → в режиме правки гасим навигацию по клику.
+    doc.querySelectorAll("[data-edit-model]").forEach(function (el) {
+      styleEditable(el, editOn);
+      el.addEventListener("click", function (e) {
+        if (el.getAttribute("contenteditable")) { e.preventDefault(); e.stopPropagation(); }
+      });
+      el.addEventListener("blur", function () {
+        if (!el.getAttribute("contenteditable")) return;
+        var url = MODEL_EDIT_URLS[el.getAttribute("data-edit-model")];
+        if (!url) return;
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+          body: JSON.stringify({
+            pk: el.getAttribute("data-edit-pk"),
+            field: el.getAttribute("data-edit-field"),
+            value: el.innerText,
+          }),
         }).then(function (r) { if (r.ok) markSaved(); });
       });
     });

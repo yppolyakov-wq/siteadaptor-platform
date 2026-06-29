@@ -301,6 +301,17 @@ def test_home_shows_products_preview():
     assert "/sortiment/" in body
 
 
+def test_product_card_has_inline_edit_hooks():
+    """Фаза 1 (inline-content): имя товара на карточке размечено для инлайн-правки
+    на канве витрины (data-edit-model/pk/field). На публичной витрине это просто
+    data-атрибуты — contenteditable вешает только редактор-iframe."""
+    p = ProductFactory(name={"de": "VorschauBrot"})
+    body = public_views.storefront_home(_req("/")).content.decode()
+    assert 'data-edit-model="product"' in body
+    assert 'data-edit-field="name"' in body
+    assert f'data-edit-pk="{p.pk}"' in body
+
+
 def test_home_products_preview_respects_limit():
     """M20U-7: число товаров в превью главной берётся из конфига секции."""
     for i in range(10):

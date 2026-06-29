@@ -2770,3 +2770,10 @@
   — JSON {pk, field, value}, вайтлист `{"name","description"}` → `Product.<field>['de']` живого товара;
   имя пустым не сохраняем; не-вайтлист-поле (цена) → 400. URL `catalog:product-inline-edit`. 5 тестов
   (вкл. защиту цены). Без миграций.
+- **2026-06-29 — Inline-content Фаза 1, P1-2 (фронт: имя товара правится на канве витрины).** В
+  редакторе-iframe (`site_home.html`) добавлен обработчик `[data-edit-model]` (реюз `styleEditable`/
+  `markSaved`; карта `MODEL_EDIT_URLS={product: catalog:product-inline-edit}`; на blur POST
+  {pk,field,value}; уважает режим правки `editOn` SE-9d). Имя товара в `_product_card.html` размечено
+  `data-edit-model="product" data-edit-pk data-edit-field="name"`; т.к. имя внутри ссылки-карточки —
+  в режиме правки клик гасит навигацию (`preventDefault`). `applyEditMode` теперь переключает и
+  `[data-edit-model]`. Тесты: карточка с хуками (витрина), редактор навешивает обработчик. Без миграций.
