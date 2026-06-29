@@ -33,7 +33,14 @@
     <nav id="dash-nav" class="space-y-0.5 text-sm px-5 pb-5 overflow-y-auto overscroll-contain flex-1 min-h-0">
       {% for group in nav_groups %}
         <div class="nav-group" data-nav-group>
-          <p class="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400" data-nav-group-label>{{ group.label }}</p>
+          {% comment %}#6: заголовок группы — кнопка-аккордеон (сворачивает пункты, состояние в
+             localStorage, активная группа всегда развёрнута; при поиске группы раскрываются).{% endcomment %}
+          <button type="button" data-nav-group-toggle aria-expanded="true"
+                  class="w-full flex items-center justify-between gap-2 px-3 pt-4 pb-1 hover:opacity-80">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400" data-nav-group-label>{{ group.label }}</span>
+            <span data-nav-group-chev class="text-gray-400 text-[10px] leading-none">▾</span>
+          </button>
+          <div data-nav-group-items class="space-y-0.5">
           {% for module in group.modules %}
             {% for item in module.nav_items %}
               <a href="{% url item.url_name %}" data-label="{{ item.label|lower }} {{ module.label_de|lower }} {{ group.label|lower }}"
@@ -45,6 +52,7 @@
               </a>
             {% endfor %}
           {% endfor %}
+          </div>
         </div>
       {% endfor %}
       <p id="nav-empty" class="hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
@@ -142,6 +150,10 @@
     var empty = document.getElementById("nav-empty");
     filter.addEventListener("input", function () {
       var q = filter.value.trim().toLowerCase();
+      // #6: во время поиска временно раскрываем все группы (override .nav-collapsed),
+      // чтобы совпадения в свёрнутых группах показывались.
+      var navEl = document.getElementById("dash-nav");
+      if (navEl) navEl.classList.toggle("searching", !!q);
       var anyShown = false;
       document.querySelectorAll("#dash-nav .nav-group").forEach(function (g) {
         var groupShown = false;
@@ -156,6 +168,41 @@
       if (empty) empty.classList.toggle("hidden", anyShown);
     });
   }
+})();
+</script>
+<style>
+/* #6: аккордеон-группы меню кабинета. */
+[data-nav-group-chev] { transition: transform .15s; }
+.nav-group.nav-collapsed [data-nav-group-items] { display: none; }
+.nav-group.nav-collapsed [data-nav-group-chev] { transform: rotate(-90deg); }
+#dash-nav.searching .nav-group [data-nav-group-items] { display: block !important; }
+</style>
+<script>
+(function () {
+  // #6: сворачиваемые группы меню кабинета — клик по заголовку, состояние в localStorage,
+  // группа с активным пунктом всегда развёрнута.
+  var nav = document.getElementById("dash-nav");
+  if (!nav) return;
+  var KEY = "dash_nav_collapsed";
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } }
+  function save(a) { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
+  function labelOf(g) { var l = g.querySelector("[data-nav-group-label]"); return l ? l.textContent.trim() : ""; }
+  var stored = load();
+  nav.querySelectorAll(".nav-group").forEach(function (g) {
+    var active = !!g.querySelector(".nav-link.bg-indigo-50");  // активная группа — не сворачиваем
+    if (!active && stored.indexOf(labelOf(g)) > -1) g.classList.add("nav-collapsed");
+    var btn = g.querySelector("[data-nav-group-toggle]");
+    if (!btn) return;
+    btn.setAttribute("aria-expanded", g.classList.contains("nav-collapsed") ? "false" : "true");
+    btn.addEventListener("click", function () {
+      var collapsed = g.classList.toggle("nav-collapsed");
+      btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      var a = load(), lab = labelOf(g), i = a.indexOf(lab);
+      if (collapsed && i < 0) a.push(lab);
+      if (!collapsed && i > -1) a.splice(i, 1);
+      save(a);
+    });
+  });
 })();
 </script>
 {% endblock %}
