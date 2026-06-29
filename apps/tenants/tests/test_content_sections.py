@@ -61,6 +61,55 @@ def test_storefront_home_renders_faq_when_enabled():
     assert b"Habt ihr Parkpl" in resp.content
 
 
+def test_storefront_home_survives_freely_edited_config():
+    """Обкатка (B): витрина не падает при «свободно собранном» владельцем конфиге —
+    hero + config-секции (gallery/faq/cta/testimonials) + контент-блоки (text/image,
+    идут через render_block). Тот же класс данных, что ронял редактор «Site» (prod 500)."""
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(
+        site_config={
+            "hero_title": "Willkommen",
+            "sections": [
+                {"key": "gallery", "enabled": True},
+                {"key": "faq", "enabled": True},
+                {"key": "cta", "enabled": True},
+                {"key": "testimonials", "enabled": True},
+                {
+                    "key": "text",
+                    "id": "t1",
+                    "enabled": True,
+                    "data": {"title": "Hallo", "text": "Welt"},
+                },
+                {"key": "image", "id": "i1", "enabled": True, "data": {}},
+                {
+                    "key": "button",
+                    "id": "b1",
+                    "enabled": True,
+                    "data": {"label": "Los", "url": "/"},
+                },
+                {"key": "spacer", "id": "s1", "enabled": True, "data": {}},
+            ],
+            "gallery": [{"id": "g1", "url": "https://img.test/a.jpg", "width": 800, "height": 600}],
+            "faq": [{"q": "Frage?", "a": "Antwort"}],
+            "cta": {"title": "Jetzt buchen", "button_url": "/termin/", "button_label": "Los"},
+            "testimonials": [{"name": "Anna", "text": "Top"}],
+        }
+    )
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    resp = public_views.storefront_home(req)
+    assert resp.status_code == 200
+    assert b"Hallo" in resp.content  # контент-блок text отрисован
+
+
 def test_normalize_keeps_hero_image():
     cfg = siteconfig.normalize({"hero_image": "  https://img.test/x.jpg  "})
     assert cfg["hero_image"] == "https://img.test/x.jpg"

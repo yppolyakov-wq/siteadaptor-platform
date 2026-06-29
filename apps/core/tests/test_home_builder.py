@@ -816,6 +816,43 @@ def test_site_view_does_not_wipe_homepage_composition():
     assert cfg["archetypes"]["catalog"]["label"] == "Speisekarte"  # оверрайд цел
 
 
+def test_all_editor_entrypoints_survive_freely_edited_config():
+    """Обкатка (B): ни одна страница редактора не падает (как падала «Site», prod 500),
+    если владелец «свободно» собрал главную — контент-блоки (text/image) + включённые
+    секции + галерея + hero. Все GET-вью редактора → 200."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="svall",
+        name="SVALL",
+        site_config={
+            "hero_title": "Willkommen",
+            "sections": [
+                {"key": "products", "enabled": True},
+                {"key": "gallery", "enabled": True},
+                {"key": "faq", "enabled": True},
+                {
+                    "key": "text",
+                    "id": "t1",
+                    "enabled": True,
+                    "data": {"title": "Hi", "text": "Welt"},
+                },
+                {"key": "image", "id": "i1", "enabled": True, "data": {}},
+            ],
+            "gallery": [{"id": "g1", "url": "https://img.test/a.jpg", "width": 8, "height": 6}],
+            "faq": [{"q": "Frage?", "a": "Antwort"}],
+        },
+    )
+    for view in (
+        views.site_view,
+        views.home_builder_view,
+        views.menu_builder_view,
+        views.pages_view,
+        views.sections_view,
+    ):
+        resp = view(_request("get", "/dashboard/site/", tenant=tenant))
+        assert resp.status_code == 200, f"{view.__name__} → {resp.status_code}"
+
+
 def test_site_view_survives_repeatable_block_in_config():
     """Регрессия (prod 500): site_view («Site») строил sections как labels[s['key']]
     БЕЗ защиты. Если в config['sections'] есть repeatable-блок (text/image/…, добавлен
