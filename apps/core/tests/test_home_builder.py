@@ -268,6 +268,22 @@ def test_home_builder_get_renders_edit_on_site_toggle():
     assert "[data-sf-drag],[data-sf-ins]" in body
 
 
+def test_home_builder_dynamic_block_rail():
+    """SE-9c-1: рейл показывает иконки ВКЛЮЧЁННЫХ блоков; клик → панель блока
+    (openBlockPopup). Баннер (hero) не дублируется; репитабл-блоки сюда не попадают."""
+    tenant = TenantFactory(schema_name="public", slug="hbrail", name="HBRAIL")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'class="bld-blk-btn' in body  # динамические кнопки блоков в рейле
+    # products и contact включены по умолчанию (siteconfig.SECTIONS) → иконки есть
+    assert 'data-blk="products"' in body
+    assert 'data-blk="contact"' in body
+    # клик по иконке блока открывает его панель (реюз openBlockPopup)
+    assert 'openBlockPopup(b.getAttribute("data-blk"))' in body
+    # баннер правится глобальной иконкой 🖼, иконкой блока не дублируется
+    assert 'data-blk="hero"' not in body
+
+
 def test_home_builder_get_renders_block_popup():
     """E.2: попап настроек блока + маркеры cb-row для переноса контролов."""
     tenant = TenantFactory(schema_name="public", slug="hbpop", name="HBPOP")

@@ -507,6 +507,32 @@ def site_view(request):
     )
 
 
+# SE-9c: эмодзи-иконки блоков для динамического рейла (по ключу секции). Дефолт — 🧩.
+_SECTION_ICONS = {
+    "hero": "🖼",
+    "usp_bar": "✨",
+    "stay_search": "🔎",
+    "stay_rooms": "🛏️",
+    "services": "🛠️",
+    "promotions": "🏷️",
+    "categories": "🗂️",
+    "products": "🛍️",
+    "events": "📅",
+    "archetypes": "🧭",
+    "about": "ℹ️",
+    "process": "🪜",
+    "team": "👥",
+    "cta": "📣",
+    "testimonials": "💬",
+    "trust": "🛡️",
+    "reviews": "⭐",
+    "faq": "❓",
+    "gallery": "🏞️",
+    "before_after": "🔁",
+    "contact": "✉️",
+}
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -909,6 +935,7 @@ def home_builder_view(request):
                 "label": labels[s["key"]],
                 "enabled": s["enabled"],
                 "order": index,
+                "icon": _SECTION_ICONS.get(s["key"], "🧩"),  # SE-9c: иконка блока для рейла
                 "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
                 "layout_preset": (s.get("layout") or {}).get("preset", ""),
                 # SE-3c: пер-девайс число колонок (0 для tablet = «авто»).

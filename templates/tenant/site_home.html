@@ -46,6 +46,13 @@
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-lg leading-none">☰</span><span class="text-[9px] leading-tight">{% trans "Menu" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-lg leading-none">🔻</span><span class="text-[9px] leading-tight">{% trans "Footer" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-lg leading-none">📚</span><span class="text-[9px] leading-tight">{% trans "Templates" %}</span></button>
+     {% comment %}SE-9c-1: динамические иконки ВКЛЮЧЁННЫХ блоков → панель блока (openBlockPopup).
+        Repeatable-блоки (text/image/…) сюда не попадают — они в `cblocks`, не в `sections`.
+        Баннер пропускаем (правится глобальной иконкой 🖼).{% endcomment %}
+     <div class="shrink-0 w-7 my-1 border-t border-gray-200" aria-hidden="true"></div>
+     {% for s in sections %}{% if s.enabled and s.key != "hero" %}
+     <button type="button" class="bld-blk-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-blk="{{ s.key }}" title="{{ s.label }}"><span class="text-lg leading-none">{{ s.icon }}</span><span class="text-[9px] leading-tight w-full truncate text-center">{{ s.label }}</span></button>
+     {% endif %}{% endfor %}
    </nav>
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
@@ -1222,6 +1229,11 @@
     return true;
   }
   if (popupClose) popupClose.addEventListener("click", closeBlockPopup);
+  // SE-9c-1: иконки блоков в рейле открывают панель именно этого блока (реюз openBlockPopup,
+  // который сам открывает область sections и позиционирует попап). Репитабл-блоки — в мастере.
+  document.querySelectorAll(".bld-blk-btn").forEach(function (b) {
+    b.addEventListener("click", function () { openBlockPopup(b.getAttribute("data-blk")); });
+  });
 
   // E.3: инсертер «+» — между блоками превью; выбор типа из библиотеки добавляет
   // C-блок СРАЗУ ПОСЛЕ блока (POST add_block с add_after → перерисовка страницы).
