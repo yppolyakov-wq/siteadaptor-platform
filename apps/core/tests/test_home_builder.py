@@ -217,6 +217,23 @@ def test_home_builder_get_renders_device_version_toggle():
     assert "sf_preview_device" in body  # выбор запоминается (localStorage)
 
 
+def test_home_builder_mobile_layout_unlocks_in_simple_mode():
+    """SE-9g: при выборе версии 📱/▭ в Простом режиме раскрываются пер-девайс настройки
+    (колонки/скрытие на устройстве), помеченные data-device-ctl, + подсказка."""
+    tenant = TenantFactory(schema_name="public", slug="hbmlu", name="HBMLU")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    # пер-девайс контролы помечены маркером раскрытия
+    assert 'data-device-ctl="1"' in body
+    # CSS раскрывает их в Простом режиме при выбранном телефоне/планшете
+    assert "[data-mode=basic][data-device=mobile] [data-device-ctl]" in body
+    assert "[data-mode=basic][data-device=tablet] [data-device-ctl]" in body
+    # редактор помечается активной версией (applyDevice → data-device на #bld-root)
+    assert 'setAttribute("data-device"' in body
+    # подсказка «правишь телефонную версию»
+    assert "bld-device-hint" in body
+
+
 def test_home_builder_get_renders_block_popup():
     """E.2: попап настроек блока + маркеры cb-row для переноса контролов."""
     tenant = TenantFactory(schema_name="public", slug="hbpop", name="HBPOP")

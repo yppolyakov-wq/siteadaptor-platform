@@ -2713,3 +2713,10 @@
   + фикс-высота (mobile 760, tablet 1112) → читается как телефон/планшет; габариты в `#home-dev-dim`;
   выбор запоминается (localStorage `sf_preview_device`). Превью — реальная адаптивная витрина. Тест
   `test_home_builder_get_renders_device_version_toggle`. Без миграций (`266e3cd`).
+- **2026-06-29 — SE-9g (правка мобильной раскладки в Простом режиме).** Пер-девайс контролы
+  (колонки на устройстве, скрыть на устройстве) были видны лишь в Эксперте (`data-expert`). Теперь
+  при выбранной версии 📱/▭ в Простом режиме они раскрываются прямо в области «Секции» —
+  крутить телефонную/планшетную версию без ухода в Эксперт. `applyDevice` ставит `data-device` на
+  `#bld-root`; CSS `[data-mode=basic][data-device=mobile] [data-device-ctl]{display:flex!important}`
+  (специфичность выше правила-пряталки) + подсказка `.bld-device-hint`. Маркер `data-device-ctl` на
+  двух группах. Тест `test_home_builder_mobile_layout_unlocks_in_simple_mode`. Без миграций.

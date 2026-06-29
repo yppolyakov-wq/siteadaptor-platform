@@ -179,6 +179,11 @@
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
         <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
+        {% comment %}SE-9g: в Простом режиме при выбранной версии 📱/▭ показываем настройки этой версии
+           (колонки на устройстве, скрыть на устройстве) — крутить мобильную версию без Эксперта.{% endcomment %}
+        <p class="bld-device-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4">
+          📱 {% trans "Editing the phone/tablet version — per-device settings (columns, hide on device) are unlocked below." %}
+        </p>
         <div id="home-blocks" class="space-y-3">
           {% for s in sections %}
             <div class="home-block flex items-center gap-3 flex-wrap border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
@@ -202,7 +207,7 @@
                 </select>
                 {% comment %} SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
                    Пусто/0 = «как пресет/авто». Expert-режим. {% endcomment %}
-                <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" title="{% trans 'Columns per device' %}">
+                <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Columns per device' %}">
                   📱<input type="number" name="mobile_{{ s.key }}" value="{{ s.layout_mobile }}" min="1" max="2" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on phone' %}">
                   ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
                   🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="5" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
@@ -267,7 +272,7 @@
                 </label>
               </div>
               {# SE-3c-mid: скрыть секцию на устройстве (📱 телефон / ▭ планшет / 🖥 десктоп). #}
-              <div class="w-full flex items-center gap-2 text-xs text-gray-500" data-expert="1" title="{% trans 'Hide on device' %}">
+              <div class="w-full flex items-center gap-2 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Hide on device' %}">
                 <span>{% trans "Hide on" %}:</span>
                 <label class="flex items-center gap-1"><input type="checkbox" name="hide_mobile_{{ s.key }}" {% if 'mobile' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">📱</label>
                 <label class="flex items-center gap-1"><input type="checkbox" name="hide_tablet_{{ s.key }}" {% if 'tablet' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">▭</label>
@@ -703,6 +708,13 @@
   overflow: hidden;
 }
 #home-prev-shell.device-frame > iframe { border-radius: 1.3rem; }
+/* SE-9g: в Простом режиме при выбранной версии телефон/планшет показываем настройки именно этой
+   версии (пер-девайс колонки/скрытие), хоть они и помечены [data-expert] — чтобы крутить
+   мобильную версию, не уходя в Эксперт. Специфичность выше правила-пряталки → перекрывает. */
+#bld-root[data-mode=basic][data-device=mobile] [data-device-ctl],
+#bld-root[data-mode=basic][data-device=tablet] [data-device-ctl] { display: flex !important; }
+#bld-root[data-mode=basic][data-device=mobile] .bld-device-hint,
+#bld-root[data-mode=basic][data-device=tablet] .bld-device-hint { display: block !important; }
 </style>
 
 <script>
@@ -827,6 +839,11 @@
   };
   function applyDevice(dev) {
     var d = DEV[dev] || DEV.desktop;
+    // SE-9g: помечаем редактор активной версией → CSS в Простом режиме раскрывает
+    // настройки этой версии (пер-девайс колонки/скрытие). Берём #bld-root локально:
+    // глобальный bldRoot объявлен ниже по скрипту и на момент restore ещё пуст.
+    var root = document.getElementById("bld-root");
+    if (root) root.setAttribute("data-device", dev);
     if (shell) {
       shell.style.maxWidth = d.w;
       shell.style.height = d.h; // пусто → класс h-full (десктоп); иначе фикс-высота устройства
