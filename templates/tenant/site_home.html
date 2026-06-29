@@ -1493,6 +1493,9 @@
         }).then(function (r) { if (r.ok) markSaved(); });
       });
     });
+    // #7-A: «✎ к форме» на карточках товара — раскрываем в превью редактора (владелец).
+    // На публичной витрине этот JS не выполняется → ссылка остаётся hidden.
+    doc.querySelectorAll(".sf-edit-link").forEach(function (el) { el.classList.remove("hidden"); });
     // E.2: клик по секции в превью → попап её настроек (фолбэк M20U-7 B: прокрутка
     // к контролам в редакторе, если попап-row для секции не найден).
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {

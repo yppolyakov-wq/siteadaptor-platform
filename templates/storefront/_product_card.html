@@ -1,5 +1,11 @@
 {% load i18n %}{% load siteui %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c/R5: цена+кнопка в одну линию. #}
 <div class="sf-card relative group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
+  {% comment %}#7-A: ✎ к полной форме товара (цена/фото/варианты) — для владельца в превью
+  редактора. На публичной витрине остаётся hidden (раскрывает только JS билдера). target=_blank —
+  форма в новой вкладке, редактор остаётся открыт.{% endcomment %}
+  <a href="{% url 'catalog:product-edit' p.pk %}" target="_blank" rel="noopener"
+     class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"
+     title="{% trans 'Edit product' %}" aria-label="{% trans 'Edit product' %}">✎</a>
   <a href="{% url 'storefront-product' p.pk %}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
     <div class="relative aspect-square bg-gray-100">
       {% with img=p.primary_image %}
