@@ -310,6 +310,9 @@ def test_home_builder_get_renders_block_popup():
     body = resp.content.decode()
     assert 'id="bld-block-popup"' in body  # контейнер попапа
     assert "function openBlockPopup" in body  # логика переноса контролов
+    # FIX баг D: выбор пресета-миниатюры сбрасывает пер-девайс cols/mobile/tablet,
+    # иначе старый cols перебивает пресет (выбрал «2 в ряд» — показывало 3).
+    assert "/^layout_preset_(.+)$/" in body
     # FIX: openBlockPopup ОБЯЗАН выставлять popupRow, иначе closeBlockPopup не вернёт
     # строку и блоки копятся в попапе (баг «куча настроек других блоков»).
     assert "popupRow = row;" in body

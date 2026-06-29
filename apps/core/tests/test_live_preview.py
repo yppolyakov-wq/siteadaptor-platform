@@ -128,6 +128,31 @@ def test_storefront_preview_applies_layout_columns():
     assert "lg:grid-cols-4" in resp.content.decode()
 
 
+def test_storefront_preview_explicit_cols_overrides_preset():
+    """Баг D корень: явный пер-девайс `cols` ПЕРЕБИВАЕТ пресет раскладки.
+    {preset:cols2} → lg:grid-cols-2 (пресет применяется); {preset:cols2, cols:3} →
+    lg:grid-cols-3 (старый cols перебивает «2 в ряд» → показывало 3). Фронт-фикс
+    сбрасывает cols/mobile/tablet при выборе пресета-миниатюры."""
+    from apps.catalog.tests.factories import ProductFactory
+
+    tenant = TenantFactory(schema_name="public", slug="layovr", name="LAYOVR")
+    ProductFactory(name={"de": "P", "en": ""}, is_active=True)
+
+    def render(layout):
+        draft = siteconfig.normalize(
+            {"sections": [{"key": "products", "enabled": True, "layout": layout}]}
+        )
+        req = _session(RequestFactory().get("/?preview=1"))
+        req.session["site_preview_draft"] = draft
+        req.session.save()
+        req.user = SimpleNamespace(is_authenticated=True)
+        req.tenant = tenant
+        return public_views.storefront_home(req).content.decode()
+
+    assert "lg:grid-cols-2" in render({"preset": "cols2"})  # пресет применяется
+    assert "lg:grid-cols-3" in render({"preset": "cols2", "cols": 3})  # явный cols перебивает
+
+
 def test_draft_endpoint_includes_product_source():
     """M20U-7: источник товаров попадает в черновик превью."""
     tenant = TenantFactory(schema_name="public", slug="ds", name="DS")

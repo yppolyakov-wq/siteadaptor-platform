@@ -891,6 +891,16 @@
       b.innerHTML = presetDiagram(opt.value) + '<span style="font-size:9px;line-height:1;">' + opt.text + "</span>";
       b.addEventListener("click", function () {
         sel.value = opt.value;
+        // FIX (баг D): пресет раскладки задаёт колонки. Если у секции остался явный
+        // пер-девайс cols/mobile/tablet — он ПЕРЕБИВАЕТ пресет (выбрал «2 в ряд» —
+        // показывало 3). Сбрасываем их, чтобы выбранный пресет реально применился.
+        var m = sel.name.match(/^layout_preset_(.+)$/);
+        if (m) {
+          ["cols", "mobile", "tablet"].forEach(function (f) {
+            var el = form.querySelector("[name='" + f + "_" + m[1] + "']");
+            if (el) { el.value = ""; }
+          });
+        }
         sel.dispatchEvent(new Event("change", { bubbles: true }));
       });
       wrap.appendChild(b);
