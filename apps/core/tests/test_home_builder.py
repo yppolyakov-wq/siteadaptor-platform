@@ -1071,3 +1071,35 @@ def test_home_builder_se7b_layout_thumbnails():
     assert 'name="layout_preset_products"' in body and "data-thumb" in body
     assert "function presetDiagram" in body  # построитель мини-диаграмм раскладки
     assert "select[data-thumb]" in body  # энхансер выпадашек → миниатюры
+
+
+def test_home_builder_se7c_menu_area_and_save():
+    """SE-7c: область «Меню» — стиль шапки + sticky сохраняются (presence-guard)."""
+    tenant = TenantFactory(schema_name="public", slug="hbse7c", name="HBSE7C")
+    # GET: область меню отрисована
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-bld-area="menu"' in body and 'data-area="menu"' in body
+    assert 'name="nav_style"' in body and 'name="nav_sticky"' in body
+    # POST со стилем меню → сохранён
+    data = {"nav_style": "centered", "order_hero": "1", "enabled_hero": "on"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["nav"]["style"] == "centered"
+    assert cfg["nav"]["sticky"] is False  # чекбокс не прислан → False
+
+
+def test_home_builder_menu_presence_guard_keeps_nav():
+    """SE-7c: POST без nav_style не затирает nav (presence-guard)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbse7cg",
+        name="HBSE7CG",
+        site_config={"nav": {"style": "minimal", "sticky": True, "items": []}},
+    )
+    data = {"order_hero": "1", "enabled_hero": "on"}  # без nav_style
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["nav"]["style"] == "minimal" and cfg["nav"]["sticky"] is True  # сохранён

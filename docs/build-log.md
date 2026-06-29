@@ -2672,3 +2672,14 @@
   активная = индиго) — «как выбор разворота в фотокниге». Клик ставит `select.value` + dispatch
   change → live-preview/collect/quick-styles работают без правок бэкенда; quick-styles теперь тоже
   диспатчит change (синхрон миниатюр). Без миграций. Слит FF — см. след. коммит.
+
+- **2026-06-28 — SE-7 review-фиксы + SE-7c (Меню как область).** (1) Adversarial review-workflow
+  редактора (4 измерения×verify) нашёл 4 реальных бага → починены: попап настроек блока уезжал за
+  экран при свёрнутой панели (transform-containing-block) → `openBlockPopup` открывает sections;
+  попап перекрывал левую панель → позиц. справа (offsetWidth); «применить ко всем лендингам» не
+  диспатчил change → миниатюры рассинхронивались; a11y `aria-pressed` на рейле (`774a5fe`, `c56a2c5`).
+  (2) **SE-7c:** область ☰ «Меню» в рейле — стиль шапки (classic/centered/minimal, радио-кнопками)
+  + sticky-чекбокс; пункты меню — ссылка в полный билдер `/dashboard/site/menu/`. home_builder
+  GET отдаёт nav_style/nav_sticky/nav_styles; POST читает их с presence-guard (`if nav_style in POST`
+  → пишем style/sticky, иначе config["nav"] как был — пункты не трогаем). Тесты: GET рендерит
+  область+поля, POST сохраняет стиль/sticky, presence-guard не затирает nav. Без миграций.

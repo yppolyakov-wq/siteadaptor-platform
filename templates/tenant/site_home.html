@@ -33,6 +33,7 @@
    <nav id="bld-rail" class="shrink-0 w-16 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-xl leading-none">🎨</span><span class="text-[10px] leading-tight">{% trans "Theme" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-xl leading-none">🧱</span><span class="text-[10px] leading-tight">{% trans "Sections" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-xl leading-none">☰</span><span class="text-[10px] leading-tight">{% trans "Menu" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-xl leading-none">📚</span><span class="text-[10px] leading-tight">{% trans "Templates" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-xl leading-none">🖼</span><span class="text-[10px] leading-tight">{% trans "Media" %}</span></button>
    </nav>
@@ -439,6 +440,31 @@
                 class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">🗂 {% trans "Save page as template" %}</button>
       </div>
       </div>{% comment %}/область 🧱 Основная{% endcomment %}
+
+      {% comment %}SE-7c область ☰ Меню: стиль шапки + липкость. Пункты меню — в полном
+      билдере /dashboard/site/menu/ (ссылка ниже). Поля в #home-form → сабмит с Save.{% endcomment %}
+      <div data-bld-area="menu" class="bld-area space-y-6 hidden">
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <legend class="font-semibold mb-1">{% trans "Header & menu" %}</legend>
+        <div>
+          <span class="block text-sm font-medium mb-2">{% trans "Header style" %}</span>
+          <div class="flex gap-2 flex-wrap">
+            {% for st in nav_styles %}
+              <label class="cursor-pointer">
+                <input type="radio" name="nav_style" value="{{ st }}" {% if st == nav_style %}checked{% endif %} class="peer sr-only">
+                <span class="block px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 peer-checked:border-indigo-500 peer-checked:text-indigo-700 peer-checked:bg-indigo-50 capitalize">{{ st }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="nav_sticky" {% if nav_sticky %}checked{% endif %} class="rounded border-gray-300">
+          {% trans "Sticky header (stays on top while scrolling)" %}
+        </label>
+        <p class="text-xs text-gray-400">{% trans "Menu items (links, dropdowns) are edited in the" %}
+          <a href="{% url 'site-menu' %}" class="text-indigo-600 hover:underline">{% trans "menu builder" %}</a>.</p>
+      </fieldset>
+      </div>{% comment %}/область ☰ Меню{% endcomment %}
     </form>
 
     {% comment %}SE-7 область 📚 Шаблоны/История: добавить блок · библиотеки шаблонов · версии.{% endcomment %}

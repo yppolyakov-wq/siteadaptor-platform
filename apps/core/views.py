@@ -809,6 +809,15 @@ def home_builder_view(request):
         }
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
+        # SE-7c: область «Меню» — стиль шапки + sticky. Presence-guard (правим лишь когда
+        # инспектор Меню прислан, т.е. есть nav_style), иначе config["nav"] остаётся как был
+        # (пункты меню — в полном билдере /dashboard/site/menu/, их не трогаем).
+        if "nav_style" in request.POST:
+            nav = dict(config.get("nav") or {})
+            ns = request.POST.get("nav_style")
+            nav["style"] = ns if ns in siteconfig.NAV_STYLES else nav.get("style", "classic")
+            nav["sticky"] = request.POST.get("nav_sticky") == "on"
+            config["nav"] = nav
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
         config["font"] = request.POST.get("font", config.get("font", "system"))
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
@@ -960,6 +969,11 @@ def home_builder_view(request):
             "sections": sections,
             "event_sections": event_sections,
             "catalog_categories": catalog_categories,
+            # SE-7c: область «Меню» — стиль шапки (classic/centered/minimal) + sticky
+            # (пункты меню — в полном билдере /dashboard/site/menu/).
+            "nav_style": config["nav"]["style"],
+            "nav_sticky": config["nav"]["sticky"],
+            "nav_styles": siteconfig.NAV_STYLES,
             # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
             "cblocks": cblocks,
             # SE-4a: библиотека сохранённых блок-шаблонов (id/тип/имя) для вставки.
