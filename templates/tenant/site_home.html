@@ -57,7 +57,7 @@
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
     <div id="bld-drawer-backdrop" class="hidden absolute inset-0 z-20 bg-black/20 lg:hidden"></div>
-    <aside id="bld-editor-pane" class="absolute top-0 left-0 bottom-0 w-[360px] max-w-[88vw] z-30 bg-white border-r border-gray-200 shadow-xl overflow-y-auto p-4 space-y-6 -translate-x-full transition-transform duration-200">
+    <aside id="bld-editor-pane" class="absolute top-0 left-0 bottom-0 w-[360px] max-w-[88vw] z-30 bg-white border-r border-gray-200 shadow-xl overflow-y-auto p-4 space-y-6 bld-collapsed transition-transform duration-200">
      <div class="flex items-center justify-between sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
        <span id="bld-panel-title" class="text-sm font-semibold text-gray-700">✏️ {% trans "Edit" %}</span>
        <button type="button" id="bld-drawer-close" class="text-gray-400 text-xl leading-none hover:text-gray-700" aria-label="{% trans 'Close' %}">✕</button>
@@ -735,6 +735,10 @@
 /* #2: фокус блока — внутри секции-области показываем ТОЛЬКО выбранный блок (#bld-block-popup),
    список блоков и прочие fieldset'ы прячем. Выход — «← Ко всем блокам». */
 [data-bld-area="sections"].focus-on > :not(#bld-block-popup) { display: none !important; }
+/* FIX свёртки: панель позиционирована ВНУТРИ канвы (смещена на ширину рейла w-20=5rem), поэтому
+   обычный -translate-x-full уезжал лишь на ширину панели и оставлял полоску поверх рейла (вместо
+   миниатюр). Уводим панель за рейл полностью: на её ширину + 5rem. */
+#bld-editor-pane.bld-collapsed { transform: translateX(calc(-100% - 5rem)); }
 /* SE-9f: рамка устройства (телефон/планшет) для превью — чтобы мобильная версия читалась как телефон. */
 #home-prev-shell.device-frame {
   border: 10px solid #111827;
@@ -827,7 +831,7 @@
   function closePanel() {
     closeBlockPopup();  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
     curArea = null;
-    if (edPane) edPane.classList.add("-translate-x-full");
+    if (edPane) edPane.classList.add("bld-collapsed");
     if (backdrop) backdrop.classList.add("hidden");
     railBtns.forEach(function (b) {
       b.classList.remove("bg-indigo-50", "text-indigo-700");
@@ -838,7 +842,7 @@
     if (!edPane) return;
     curArea = area;
     areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== area); });
-    edPane.classList.remove("-translate-x-full");
+    edPane.classList.remove("bld-collapsed");
     if (backdrop) backdrop.classList.toggle("hidden", !isNarrow);
     railBtns.forEach(function (b) {
       var on = b.getAttribute("data-area") === area;
