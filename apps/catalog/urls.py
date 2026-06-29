@@ -62,6 +62,8 @@ urlpatterns = [
         views.modifier_option_delete,
         name="modifier-option-delete",
     ),
+    # Фаза 1 (inline-content): правка текста товара прямо на канве витрины.
+    path("products/inline-edit/", views.product_inline_edit, name="product-inline-edit"),
     path("categories/", views.category_list, name="category-list"),
     path("categories/new/", views.category_create, name="category-create"),
     path("categories/inline-edit/", views.category_inline_edit, name="category-inline-edit"),

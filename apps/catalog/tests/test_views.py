@@ -265,3 +265,65 @@ def test_category_inline_edit_rejects_bad_pk(user):
         "/catalog/categories/inline-edit/", {"category_pk": "not-a-uuid", "value": "X"}, user
     )
     assert views.category_inline_edit(req).status_code == 400
+
+
+# --- Фаза 1 (inline-content): правка текста товара на канве витрины ---
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_updates_name(user):
+    p = ProductFactory(name={"de": "Brot", "en": "Bread"})
+    req = _json_post(
+        "/catalog/products/inline-edit/",
+        {"pk": str(p.pk), "field": "name", "value": "Vollkornbrot"},
+        user,
+    )
+    assert views.product_inline_edit(req).status_code == 204
+    p.refresh_from_db()
+    assert p.name["de"] == "Vollkornbrot" and p.name["en"] == "Bread"  # en не затронут
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_updates_description(user):
+    p = ProductFactory(name={"de": "Brot"}, description={"de": "alt"})
+    req = _json_post(
+        "/catalog/products/inline-edit/",
+        {"pk": str(p.pk), "field": "description", "value": "Frisch gebacken"},
+        user,
+    )
+    assert views.product_inline_edit(req).status_code == 204
+    p.refresh_from_db()
+    assert p.description["de"] == "Frisch gebacken"
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_rejects_empty_name(user):
+    p = ProductFactory(name={"de": "Brot"})
+    req = _json_post(
+        "/catalog/products/inline-edit/", {"pk": str(p.pk), "field": "name", "value": "  "}, user
+    )
+    assert views.product_inline_edit(req).status_code == 400
+    p.refresh_from_db()
+    assert p.name["de"] == "Brot"  # не изменилось
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_rejects_non_whitelisted_field(user):
+    """Безопасность: цену и прочие поля через инлайн НЕ правим (только текст-вайтлист)."""
+    p = ProductFactory(name={"de": "Brot"}, base_price="5.00")
+    req = _json_post(
+        "/catalog/products/inline-edit/",
+        {"pk": str(p.pk), "field": "base_price", "value": "0.01"},
+        user,
+    )
+    assert views.product_inline_edit(req).status_code == 400
+    p.refresh_from_db()
+    assert str(p.base_price) == "5.00"  # цена не тронута
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_rejects_bad_pk(user):
+    req = _json_post(
+        "/catalog/products/inline-edit/", {"pk": "not-a-uuid", "field": "name", "value": "X"}, user
+    )
+    assert views.product_inline_edit(req).status_code == 400

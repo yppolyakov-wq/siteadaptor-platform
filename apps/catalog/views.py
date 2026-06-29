@@ -449,6 +449,48 @@ def category_inline_edit(request):
     return HttpResponse(status=204)
 
 
+# Фаза 1 (inline-content): какие текстовые i18n-поля товара можно править прямо
+# на канве витрины. СТРОГИЙ вайтлист — только безопасный текст (цена/связи/фото — в форме).
+_PRODUCT_INLINE_FIELDS = {"name", "description"}
+
+
+@login_required
+@require_POST
+def product_inline_edit(request):
+    """Фаза 1: инлайн-правка ТЕКСТА товара прямо на канве витрины (?preview=1).
+
+    JSON {pk, field, value}; field ∈ {name, description} → пишет Product.<field>['de']
+    живого товара (objects = AliveManager исключает удалённые). Имя пустым не сохраняем.
+    Только владелец (login_required на субдомене схемы → tenant-скоуп). 204/400.
+    Безопасно: строгий вайтлист полей (только i18n-текст; цена/связи/фото — в форме записи).
+    """
+    import json
+
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest()
+    pk = data.get("pk")
+    field = data.get("field")
+    value = data.get("value", "")
+    value = value.strip() if isinstance(value, str) else ""
+    if field not in _PRODUCT_INLINE_FIELDS or not pk:
+        return HttpResponseBadRequest()
+    if field == "name" and not value:  # пустое имя не сохраняем
+        return HttpResponseBadRequest()
+    try:
+        product = Product.objects.get(pk=pk)
+    except (Product.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    i18n = dict(getattr(product, field) or {})
+    i18n["de"] = value
+    setattr(product, field, i18n)
+    product.save(update_fields=[field, "updated_at"])
+    return HttpResponse(status=204)
+
+
 @login_required
 def category_delete(request, pk):
     """Удаление категории (soft).
