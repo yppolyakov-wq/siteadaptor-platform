@@ -816,6 +816,26 @@ def test_site_view_does_not_wipe_homepage_composition():
     assert cfg["archetypes"]["catalog"]["label"] == "Speisekarte"  # оверрайд цел
 
 
+def test_site_view_survives_repeatable_block_in_config():
+    """Регрессия (prod 500): site_view («Site») строил sections как labels[s['key']]
+    БЕЗ защиты. Если в config['sections'] есть repeatable-блок (text/image/…, добавлен
+    инсертером «+») — ключа нет в SECTIONS → KeyError → 500 на /dashboard/site/.
+    После фикса неизвестные/repeatable ключи пропускаются → 200."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="svrb",
+        name="SVRB",
+        site_config={
+            "sections": [
+                {"key": "products", "enabled": True},
+                {"key": "text", "id": "blk1", "enabled": True, "data": {"title": "Hi"}},
+            ],
+        },
+    )
+    resp = views.site_view(_request("get", "/dashboard/site/", tenant=tenant))
+    assert resp.status_code == 200
+
+
 def test_home_builder_save_block_as_template():
     """SE-4a: сохранить C-блок как многоразовый шаблон (данные из POST)."""
     tenant = TenantFactory(

@@ -443,6 +443,9 @@ def site_view(request):
 
     config = siteconfig.normalize(request.tenant.site_config)
     labels = {key: label for key, label, _default in siteconfig.SECTIONS}
+    # Защита (prod 500): config["sections"] может содержать repeatable-блоки
+    # (text/image/…, добавленные инсертером «+») и неизвестные ключи — их нет в
+    # labels. Пропускаем их, как делает home_builder_view (иначе KeyError → 500).
     sections = [
         {
             "key": s["key"],
@@ -451,6 +454,7 @@ def site_view(request):
             "order": index,
         }
         for index, s in enumerate(config["sections"], start=1)
+        if s["key"] in labels
     ]
     business_type = request.tenant.business_type
     site_templates = [
