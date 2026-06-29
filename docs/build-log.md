@@ -2861,3 +2861,14 @@
   `display:contents`. Браузер: products→full = `w-screen`, ширина обёртки = вьюпорт, гориз. скролла НЕТ;
   contained-дефолт без регрессии. Тесты: нормализация ширины (+C-блок), POST-сохранение, GET-рендер контрола.
   Без миграций.
+- **2026-06-29 — H1.1: фикс «клик по ссылке в редакторе → ошибка» (X-Frame-Options).** Корень (воспроизведён
+  в браузере на Pranasy): прод ставит `X-Frame-Options: DENY` глобально; `storefront_home` декорирована
+  `@xframe_options_sameorigin` и грузится в iframe редактора, а остальные storefront-страницы (`/sortiment/`,
+  `/termin/`, `/veranstaltung/`, деталь товара…) — нет → при клике по ссылке внутри превью-iframe браузер их
+  блокирует («refused to connect»). Поэтому ошибка ТОЛЬКО при запущенном редактировании (там витрина в iframe),
+  на публичном сайте переход верхнеуровневый — всё работает. Фикс: `StorefrontFrameOptionsMiddleware`
+  (`apps/core/middleware.py`, ВЫШЕ `XFrameOptionsMiddleware` → перебивает DENY) выставляет `SAMEORIGIN` для
+  storefront-страниц; `/dashboard/`,`/accounts/`,`/admin/` остаются `DENY` (клик-джекинг); ответы с
+  `xframe_options_exempt` (G10 embed-виджет для чужих сайтов) не трогаем. Проверено в браузере: клики по
+  ссылкам в превью открывают `/sortiment/`,`/termin/…` (editOn off/on). Тесты `test_frame_options.py` (4). Без
+  миграций. Часть этапа «архетипы как сущности» — план `docs/archetype-entities-plan.md`.

@@ -23,3 +23,37 @@ class ModuleGatingMiddleware:
             if spec is not None and not modules.is_module_active(tenant, spec.key):
                 raise Http404("Module is not active for this business")
         return self.get_response(request)
+
+
+class StorefrontFrameOptionsMiddleware:
+    """H1.1: разрешить same-origin кадрирование витрины, чтобы live-preview iframe
+    редактора мог переходить по ссылкам между storefront-страницами.
+
+    Прод ставит ``X-Frame-Options: DENY`` глобально (XFrameOptionsMiddleware) — это
+    блокирует показ внутренних storefront-страниц в iframe редактора (главная
+    декорирована ``@xframe_options_sameorigin`` и грузится, а `/sortiment/`,
+    `/termin/`, деталь товара и т.п. — нет → «refused to connect» при клике в
+    режиме редактирования). Здесь для storefront-страниц выставляем ``SAMEORIGIN``,
+    перебивая ``DENY``: редактор (тот же origin) может их кадрировать, а сторонние
+    сайты — нет (защита от клик-джекинга сохраняется).
+
+    Кабинет/логин (`/dashboard/`, `/accounts/`, `/admin/`) остаются ``DENY``.
+    Вьюхи с ``xframe_options_exempt`` (G10 iframe-виджет для ЧУЖИХ сайтов, `?embed=1`)
+    не трогаем — им нужен полностью открытый кадр.
+
+    Размещён ВЫШЕ ``XFrameOptionsMiddleware`` в MIDDLEWARE → его ``process_response``
+    отрабатывает ПОСЛЕ → перебивает выставленный ``DENY``.
+    """
+
+    _BLOCK_PREFIXES = ("/dashboard/", "/accounts/", "/admin/")
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if getattr(response, "xframe_options_exempt", False):
+            return response  # G10 embed-виджет — оставляем открытым для чужих сайтов
+        if not request.path.startswith(self._BLOCK_PREFIXES):
+            response["X-Frame-Options"] = "SAMEORIGIN"
+        return response

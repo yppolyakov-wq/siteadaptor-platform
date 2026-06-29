@@ -140,6 +140,9 @@ MIDDLEWARE = [
     "apps.billing.middleware.SubscriptionGatingMiddleware",
     # Гейтинг модулей (Track D / D0a): неактивный модуль кабинета → 404.
     "apps.core.middleware.ModuleGatingMiddleware",
+    # H1.1: витрина кадрируется same-origin (live-preview редактора может переходить
+    # по ссылкам между storefront-страницами). ВЫШЕ XFrameOptions → перебивает DENY.
+    "apps.core.middleware.StorefrontFrameOptionsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
