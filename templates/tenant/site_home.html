@@ -35,14 +35,14 @@
   без перегруза; свернул → рейл, сайт на всю ширину. Все id/логика сохранены.{% endcomment %}
   <div class="relative flex-1 min-h-0 flex">
    {% comment %}Рейл областей — клик открывает фокус-панель этой области (одну).{% endcomment %}
-   <nav id="bld-rail" class="shrink-0 w-16 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-xl leading-none">🎨</span><span class="text-[10px] leading-tight">{% trans "Theme" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="banner"><span class="text-xl leading-none">🖼</span><span class="text-[10px] leading-tight">{% trans "Banner" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-xl leading-none">🧱</span><span class="text-[10px] leading-tight">{% trans "Sections" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-xl leading-none">☰</span><span class="text-[10px] leading-tight">{% trans "Menu" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-xl leading-none">🔻</span><span class="text-[10px] leading-tight">{% trans "Footer" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-xl leading-none">📚</span><span class="text-[10px] leading-tight">{% trans "Templates" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-xl leading-none">🗂</span><span class="text-[10px] leading-tight">{% trans "Media" %}</span></button>
+   <nav id="bld-rail" class="shrink-0 w-14 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-lg leading-none">🎨</span><span class="text-[9px] leading-tight">{% trans "Theme" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="banner"><span class="text-lg leading-none">🖼</span><span class="text-[9px] leading-tight">{% trans "Banner" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-lg leading-none">🧱</span><span class="text-[9px] leading-tight">{% trans "Sections" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-lg leading-none">☰</span><span class="text-[9px] leading-tight">{% trans "Menu" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-lg leading-none">🔻</span><span class="text-[9px] leading-tight">{% trans "Footer" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-lg leading-none">📚</span><span class="text-[9px] leading-tight">{% trans "Templates" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-lg leading-none">🗂</span><span class="text-[9px] leading-tight">{% trans "Media" %}</span></button>
    </nav>
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
@@ -643,15 +643,20 @@
             {% for p in preview_pages %}<option value="{{ p.url }}">{{ p.label }}</option>{% endfor %}
           </select>
         {% endif %}
-        {% comment %}Ширина предпросмотра (Desktop/Tablet/Mobile).{% endcomment %}
-        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
-          <button type="button" data-w="100%" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
-          <button type="button" data-w="834px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭ {% trans "Tablet" %}</button>
-          <button type="button" data-w="390px" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱 {% trans "Mobile" %}</button>
+        {% comment %}SE-9f: версия сайта по устройству (Desktop/Tablet/Mobile) — рамка телефона/планшета,
+           выбор запоминается. Габариты показываем в #home-dev-dim.{% endcomment %}
+        <div class="inline-flex items-center gap-1.5">
+          <span class="text-[11px] text-gray-500 font-medium">{% trans "Version" %}:</span>
+          <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
+            <button type="button" data-w="100%" data-dev="desktop" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
+            <button type="button" data-w="834px" data-dev="tablet" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭ {% trans "Tablet" %}</button>
+            <button type="button" data-w="390px" data-dev="mobile" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱 {% trans "Mobile" %}</button>
+          </div>
+          <span id="home-dev-dim" class="text-[11px] text-gray-400 tabular-nums"></span>
         </div>
         <span id="home-prev-status" class="text-xs text-gray-400"></span>
       </div>
-      <div class="flex-1 min-h-0 bg-gray-100 p-2 flex justify-center overflow-auto">
+      <div class="flex-1 min-h-0 bg-gray-100 p-2 flex items-start justify-center overflow-auto">
         <div id="home-prev-shell" class="w-full h-full transition-all" style="max-width:100%;">
           <iframe id="home-prev-frame" title="{% trans 'Live preview' %}"
                   class="w-full h-full bg-white rounded-xl" style="border:0;"></iframe>
@@ -688,6 +693,16 @@
 #bld-mode-expert { background: transparent; color: #4b5563; }
 #bld-block-popup[data-mode=expert] #bld-mode-basic { background: transparent; color: #4b5563; }
 #bld-block-popup[data-mode=expert] #bld-mode-expert { background: #4f46e5; color: #fff; }
+/* SE-9f: рамка устройства (телефон/планшет) для превью — чтобы мобильная версия читалась как телефон. */
+#home-prev-shell.device-frame {
+  border: 10px solid #111827;
+  border-radius: 2.2rem;
+  box-shadow: 0 18px 40px -12px rgba(0,0,0,.4);
+  background: #111827;
+  margin-top: .25rem;
+  overflow: hidden;
+}
+#home-prev-shell.device-frame > iframe { border-radius: 1.3rem; }
 </style>
 
 <script>
@@ -801,17 +816,38 @@
     sync();
   });
 
-  // Переключатель ширины предпросмотра (Desktop/Tablet/Mobile).
+  // SE-9f: версия сайта по устройству (Desktop/Tablet/Mobile) — рамка телефона/планшета,
+  // габариты и запоминание выбора. Превью — реальная адаптивная витрина (Tailwind-брейкпоинты).
   var shell = document.getElementById("home-prev-shell");
-  document.querySelectorAll(".home-dev-btn").forEach(function (b) {
-    b.addEventListener("click", function () {
-      if (shell) shell.style.maxWidth = b.getAttribute("data-w");
-      document.querySelectorAll(".home-dev-btn").forEach(function (x) {
-        x.classList.remove("bg-indigo-600", "text-white");
-      });
-      b.classList.add("bg-indigo-600", "text-white");
+  var devDim = document.getElementById("home-dev-dim");
+  var DEV = {
+    desktop: { w: "100%", h: "", dim: "" },
+    tablet: { w: "834px", h: "1112px", dim: "834 × 1112" },
+    mobile: { w: "390px", h: "760px", dim: "390 × 760" },
+  };
+  function applyDevice(dev) {
+    var d = DEV[dev] || DEV.desktop;
+    if (shell) {
+      shell.style.maxWidth = d.w;
+      shell.style.height = d.h; // пусто → класс h-full (десктоп); иначе фикс-высота устройства
+      shell.classList.toggle("device-frame", dev !== "desktop");
+    }
+    if (devDim) devDim.textContent = d.dim;
+    document.querySelectorAll(".home-dev-btn").forEach(function (x) {
+      var on = x.getAttribute("data-dev") === dev;
+      x.classList.toggle("bg-indigo-600", on);
+      x.classList.toggle("text-white", on);
     });
+    try { localStorage.setItem("sf_preview_device", dev); } catch (e) {}
+  }
+  document.querySelectorAll(".home-dev-btn").forEach(function (b) {
+    b.addEventListener("click", function () { applyDevice(b.getAttribute("data-dev")); });
   });
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem("sf_preview_device"); } catch (e) {}
+    if (saved && DEV[saved] && saved !== "desktop") applyDevice(saved);
+  })();
 
   function collect() {
     var rows = [];

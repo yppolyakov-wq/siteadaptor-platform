@@ -201,6 +201,22 @@ def test_home_builder_get_renders_undo_redo():
     assert "Ctrl+Z" in body  # подсказка клавиш
 
 
+def test_home_builder_get_renders_device_version_toggle():
+    """SE-9f: переключатель версии сайта (Desktop/Tablet/Mobile) с рамкой телефона
+    и запоминанием выбора отрисован в билдере."""
+    tenant = TenantFactory(schema_name="public", slug="hbdev", name="HBDEV")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    # три устройства как кнопки переключателя
+    assert 'data-dev="desktop"' in body
+    assert 'data-dev="tablet"' in body
+    assert 'data-dev="mobile"' in body
+    assert 'id="home-dev-dim"' in body  # габариты выбранного устройства
+    assert "function applyDevice" in body  # применение ширины/рамки
+    assert "device-frame" in body  # рамка телефона/планшета (CSS + переключение класса)
+    assert "sf_preview_device" in body  # выбор запоминается (localStorage)
+
+
 def test_home_builder_get_renders_block_popup():
     """E.2: попап настроек блока + маркеры cb-row для переноса контролов."""
     tenant = TenantFactory(schema_name="public", slug="hbpop", name="HBPOP")
