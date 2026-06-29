@@ -181,6 +181,42 @@ def test_home_builder_gallery_upload_and_delete(tmp_path, settings):
     assert siteconfig.normalize(tenant.site_config)["gallery"] == []
 
 
+def test_home_builder_logo_upload_and_delete(tmp_path, settings):
+    """M1: лого бизнеса грузится/удаляется в билдере → Tenant.logo_url (шапка витрины)."""
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    tenant = TenantFactory(schema_name="public", slug="hbl", name="HBL")
+    assert tenant.logo_url == ""
+
+    buf = BytesIO()
+    Image.new("RGB", (60, 30), "#0a0").save(buf, format="PNG")
+    upload = SimpleUploadedFile("logo.png", buf.getvalue(), content_type="image/png")
+    req = _request("post", "/dashboard/site/home/", {"action": "upload_logo"}, tenant)
+    req.FILES["logo"] = upload  # RequestFactory data не кладёт файлы — добавляем вручную
+    assert views.home_builder_view(req).status_code == 302
+    tenant.refresh_from_db()
+    assert tenant.logo_url  # сохранён URL загруженного лого
+
+    req2 = _request("post", "/dashboard/site/home/", {"action": "delete_logo"}, tenant)
+    assert views.home_builder_view(req2).status_code == 302
+    tenant.refresh_from_db()
+    assert tenant.logo_url == ""
+
+
+def test_home_builder_get_renders_logo_control():
+    """M1: в билдере есть контрол лого (область logo-media + форма upload_logo)."""
+    tenant = TenantFactory(schema_name="public", slug="hblc", name="HBLC")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-bld-area="logo-media"' in body
+    assert 'value="upload_logo"' in body
+
+
 def test_home_builder_get_renders():
     tenant = TenantFactory(schema_name="public", slug="hb2", name="HB2")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))

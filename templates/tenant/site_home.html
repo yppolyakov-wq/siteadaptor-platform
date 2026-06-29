@@ -146,6 +146,17 @@
         <p class="text-xs text-gray-400 mt-3">{% trans "Grid layout of catalog / rooms / events pages lives under" %}
           <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">{% trans "Pages" %}</a>.</p>
       </fieldset>
+
+      {% comment %}M1: лого бизнеса — в шапке витрины вместо текстового имени. Загрузка —
+         в отдельной области logo-media (multipart, вне #home-form).{% endcomment %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+        <legend class="font-semibold mb-1">{% trans "Logo" %}</legend>
+        <p class="text-xs text-gray-400 mb-3">{% trans "Shown in the header instead of the text name." %}</p>
+        <div class="flex items-center gap-3">
+          {% if request.tenant.logo_url %}<img src="{{ request.tenant.logo_url }}" alt="" class="h-10 w-auto max-w-[140px] object-contain border border-gray-100 rounded">{% else %}<span class="text-sm text-gray-400">{% trans "No logo yet" %}</span>{% endif %}
+          <button type="button" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50" onclick="window.__sfShowArea('logo-media')">{% if request.tenant.logo_url %}{% trans "Change logo" %}{% else %}{% trans "Add logo" %}{% endif %}</button>
+        </div>
+      </fieldset>
       </div>{% comment %}/область 🎨 Тема{% endcomment %}
 
       {% comment %}SE-7d область 🖼 Баннер: заголовок/текст hero. Картинка баннера — на канве
@@ -661,6 +672,29 @@
       </form>
     </div>
     </div>{% comment %}/область gallery-media{% endcomment %}
+
+    {# M1: лого (multipart, отдельная форма — НЕ в #home-form). #}
+    <div data-bld-area="logo-media" class="bld-area space-y-6 hidden">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="font-semibold mb-1">{% trans "Logo" %}</h3>
+      <p class="text-xs text-gray-400 mb-3">{% trans "JPEG/PNG/WEBP, max 5 MB. Replaces the text site name in the header." %}</p>
+      {% if request.tenant.logo_url %}
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-12 px-2 flex items-center bg-gray-50 border border-gray-100 rounded-lg"><img src="{{ request.tenant.logo_url }}" alt="" class="h-10 w-auto max-w-[180px] object-contain"></div>
+          <form method="post">{% csrf_token %}
+            <input type="hidden" name="action" value="delete_logo">
+            <button class="text-sm text-red-600 hover:underline">{% trans "Remove logo" %}</button>
+          </form>
+        </div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">{% csrf_token %}
+        <input type="hidden" name="action" value="upload_logo">
+        <input type="file" name="logo" accept="image/*"
+               class="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-3 file:py-1.5">
+        <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
+      </form>
+    </div>
+    </div>{% comment %}/область logo-media{% endcomment %}
    </aside>{% comment %}/#bld-editor-pane (фокус-панель){% endcomment %}
 
     {% comment %}SE-6: канвас — превью на весь экран (фон под шторкой). Тонкий тулбар сверху
@@ -876,7 +910,7 @@
   // SE-9b: открыть область с блока (gallery-media / catalog-add) с подписью панели.
   // Подписи в JS-карте (не в onclick) → апостроф в переводе не ломает кавычки атрибута.
   window.__sfShowArea = function (area) {
-    var titles = { "gallery-media": "🖼 {% trans 'Photo gallery' %}", "catalog-add": "＋ {% trans 'Add category' %}" };
+    var titles = { "gallery-media": "🖼 {% trans 'Photo gallery' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🏷 {% trans 'Logo' %}" };
     showArea(area, titles[area]);
   };
 

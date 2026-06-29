@@ -76,7 +76,9 @@
   <header class="{% if storefront_nav_sticky %}sticky top-0 {% endif %}z-20 bg-white/90 backdrop-blur border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 {% if style == 'centered' %}py-2{% else %}h-14{% endif %} flex items-center {% if style == 'centered' %}flex-col gap-1{% else %}justify-between{% endif %}">
       <div class="w-full flex items-center justify-between {% if style == 'centered' %}sm:justify-center{% endif %}">
-        <a href="{% url 'storefront-home' %}" class="text-lg font-bold tracking-tight">{{ request.tenant.name|default:"Shop" }}</a>
+        <a href="{% url 'storefront-home' %}" class="flex items-center gap-2 font-bold tracking-tight">
+          {% if request.tenant.logo_url %}<img src="{{ request.tenant.logo_url }}" alt="{{ request.tenant.name|default:'' }}" class="h-8 w-auto max-w-[170px] object-contain">{% else %}<span class="text-lg">{{ request.tenant.name|default:"Shop" }}</span>{% endif %}
+        </a>
         <div class="flex items-center gap-2">
           {# P5c: переключатель тёмной темы (иконка проставляется скриптом ниже). #}
           <button id="sf-theme-toggle" type="button" aria-label="{% trans 'Toggle dark mode' %}" aria-pressed="false"

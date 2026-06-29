@@ -264,6 +264,33 @@ def _save_hero(request, tenant):
     tenant.save(update_fields=["site_config", "updated_at"])
 
 
+def _save_logo(request) -> None:
+    """M1: загрузить лого бизнеса (Tenant.logo_url) — в шапке витрины вместо
+    текстового имени. Реюз catalog.images (валидация Pillow + storage)."""
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.images import save_product_image
+
+    uploaded = request.FILES.get("logo")
+    if not uploaded:
+        return
+    try:
+        ref = save_product_image(uploaded, folder="logo")
+    except ValidationError as exc:
+        messages.error(request, "; ".join(exc.messages))
+        return
+    request.tenant.logo_url = ref["url"]
+    request.tenant.save(update_fields=["logo_url", "updated_at"])
+    messages.success(request, _("Logo updated."))
+
+
+def _delete_logo(request) -> None:
+    """M1: убрать лого — в шапке снова текстовое имя бизнеса."""
+    request.tenant.logo_url = ""
+    request.tenant.save(update_fields=["logo_url", "updated_at"])
+    messages.success(request, _("Logo removed."))
+
+
 def _parse_opening_hours(request) -> dict:
     """Структурные часы из формы (P1b): по дню оба поля заполнены → интервал."""
     out = {}
@@ -556,6 +583,13 @@ def home_builder_view(request):
             return redirect("site-home")
         if request.POST.get("action") == "delete_gallery_image":
             _delete_gallery_image(request, request.POST.get("image_id", ""))
+            return redirect("site-home")
+        # M1: лого бизнеса (multipart) — в шапку витрины.
+        if request.POST.get("action") == "upload_logo":
+            _save_logo(request)
+            return redirect("site-home")
+        if request.POST.get("action") == "delete_logo":
+            _delete_logo(request)
             return redirect("site-home")
         # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
         # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить
