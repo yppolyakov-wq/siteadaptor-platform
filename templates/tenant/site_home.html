@@ -995,6 +995,22 @@
     popupBody.appendChild(row);
     var lab = row.querySelector("label") || row.querySelector("span");
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
+    // SE-7 fix: попап настроек блока — потомок фокус-панели (#bld-editor-pane). Когда панель
+    // свёрнута (-translate-x-full), transform делает её containing-block для position:fixed →
+    // попап уезжал за экран; на левой панели он ещё и перекрывал её. Открываем область sections
+    // (снимаем transform) и ставим попап СПРАВА от панели (или к краю канвы, если узко).
+    showArea("sections");
+    // offsetWidth не зависит от transform (в отличие от getBoundingClientRect во время
+    // анимации слайда) → правый край панели = ширина рейла (w-16=64px) + ширина панели.
+    var panelRight = 64 + (edPane ? edPane.offsetWidth : 360);
+    popup.style.top = "72px";
+    if (window.innerWidth - panelRight > 320) {  // есть место справа от панели
+      popup.style.left = panelRight + 8 + "px";
+      popup.style.right = "auto";
+    } else {  // узко: панель почти на весь экран — попап к правому краю канвы
+      popup.style.left = "auto";
+      popup.style.right = "8px";
+    }
     popup.classList.remove("hidden");
     return true;
   }
@@ -1416,7 +1432,10 @@
       if (!sel) return;
       ["catalog_preset", "events_preset", "stay_preset"].forEach(function (n) {
         var el = form.querySelector("select[name='" + n + "']");
-        if (el) el.value = sel.value;
+        if (el) {
+          el.value = sel.value;
+          el.dispatchEvent(new Event("change", { bubbles: true }));  // SE-7b: синхрон миниатюр + превью
+        }
       });
       schedule();  // пере-сериализация черновика → live-preview (Save сохранит значения)
     });
