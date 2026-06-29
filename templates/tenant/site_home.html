@@ -905,6 +905,8 @@
           el.style.outline = on ? "1px dashed rgba(16,185,129,.7)" : "none";
           el.style.outlineOffset = "2px";
         });
+        // M4: 📷 замена фото видна только в режиме правки.
+        lastEditDoc.querySelectorAll("[data-photo-edit]").forEach(function (el) { el.classList.toggle("hidden", !on); });
         lastEditDoc.querySelectorAll("[data-sf-drag],[data-sf-ins]").forEach(function (h) { h.style.display = on ? "" : "none"; });
       } catch (e) {}
     }
@@ -1505,6 +1507,7 @@
   var catEditUrl = "{% url 'catalog:category-inline-edit' %}";
   // Фаза 1 (inline-content): карта модель→эндпоинт инлайн-правки ТЕКСТА данных на канве.
   var MODEL_EDIT_URLS = { product: "{% url 'catalog:product-inline-edit' %}" };
+  var PHOTO_EDIT_URL = "{% url 'catalog:product-photo-edit' %}";  // M4: замена фото товара (multipart)
   function markSaved() {
     if (status) {
       status.textContent = "{% trans 'Saved' %} ✓";
@@ -1565,6 +1568,29 @@
     // #7-A: «✎ к форме» на карточках товара — раскрываем в превью редактора (владелец).
     // На публичной витрине этот JS не выполняется → ссылка остаётся hidden.
     doc.querySelectorAll(".sf-edit-link").forEach(function (el) { el.classList.remove("hidden"); });
+    // M4: 📷 замена главного фото товара — видна в режиме правки; клик → файловый диалог → multipart POST.
+    doc.querySelectorAll("[data-photo-edit]").forEach(function (btn) {
+      btn.classList.toggle("hidden", !editOn);
+      btn.addEventListener("click", function (e) {
+        e.preventDefault(); e.stopPropagation();
+        if (!editOn) return;
+        var pk = btn.getAttribute("data-edit-pk");
+        var inp = doc.createElement("input");
+        inp.type = "file"; inp.accept = "image/*"; inp.style.display = "none";
+        doc.body.appendChild(inp);
+        inp.addEventListener("change", function () {
+          var f = inp.files && inp.files[0];
+          if (!f) { inp.remove(); return; }
+          var fd = new FormData(); fd.append("pk", pk); fd.append("image", f);
+          if (status) status.textContent = "…";
+          fetch(PHOTO_EDIT_URL, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
+            .then(function (r) { if (r.ok) { markSaved(); schedule(); } else if (status) status.textContent = ""; })
+            .catch(function () { if (status) status.textContent = ""; })
+            .finally(function () { inp.remove(); });
+        });
+        inp.click();
+      });
+    });
     // #7-B: инлайн-цена — клик по цене (товар без вариантов) в режиме правки → инпут-поповер
     // → POST base_price → перерисовка превью (новая цена + Grundpreis). Уважает editOn (SE-9d).
     doc.querySelectorAll("[data-price-edit]").forEach(function (el) {

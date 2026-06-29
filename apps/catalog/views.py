@@ -519,6 +519,43 @@ def product_inline_edit(request):
 
 
 @login_required
+@require_POST
+def product_photo_edit(request):
+    """M4: заменить главное фото товара прямо на канве витрины (multipart: pk + image).
+
+    Новое фото становится primary; прежние сохраняются (не primary, ниже). Реюз
+    catalog.images.save_product_image (валидация Pillow + storage). Сброс кэша витрины
+    (новое фото сразу на публичной странице). Только владелец (login_required). 204/400.
+    """
+    from django.core.exceptions import ValidationError
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    from apps.catalog.images import save_product_image
+
+    pk = request.POST.get("pk")
+    uploaded = request.FILES.get("image")
+    if not pk or not uploaded:
+        return HttpResponseBadRequest()
+    try:
+        product = Product.objects.get(pk=pk)
+    except (Product.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    try:
+        new_ref = save_product_image(uploaded, is_primary=True, sort_order=0, folder="products")
+    except ValidationError as exc:
+        return HttpResponseBadRequest("; ".join(exc.messages))
+    old = [{**img, "is_primary": False} for img in (product.images or [])]
+    product.images = [new_ref] + old
+    product.save(update_fields=["images", "updated_at"])
+    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+    if schema:
+        from apps.core.pagecache import bump_storefront_cache
+
+        bump_storefront_cache(schema)
+    return HttpResponse(status=204)
+
+
+@login_required
 def category_delete(request, pk):
     """Удаление категории (soft).
 

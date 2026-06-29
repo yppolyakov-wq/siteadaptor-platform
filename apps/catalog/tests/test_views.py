@@ -373,3 +373,37 @@ def test_product_inline_edit_rejects_bad_pk(user):
         "/catalog/products/inline-edit/", {"pk": "not-a-uuid", "field": "name", "value": "X"}, user
     )
     assert views.product_inline_edit(req).status_code == 400
+
+
+@pytest.mark.django_db
+def test_product_photo_edit_sets_primary(tmp_path, settings, user):
+    """M4: замена фото на канве → новое фото становится primary (Product.images)."""
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from django.test import RequestFactory
+    from PIL import Image
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    p = ProductFactory(
+        name={"de": "Brot"}, images=[{"id": "x", "url": "/old.png", "is_primary": True}]
+    )
+    buf = BytesIO()
+    Image.new("RGB", (50, 50), "#abc").save(buf, format="PNG")
+    req = RequestFactory().post("/catalog/products/photo-edit/", data={"pk": str(p.pk)})
+    req.FILES["image"] = SimpleUploadedFile("ph.png", buf.getvalue(), content_type="image/png")
+    _attach_session_user(req, user)
+    assert views.product_photo_edit(req).status_code == 204
+    p.refresh_from_db()
+    assert len(p.images) == 2  # новое + старое
+    assert p.images[0]["is_primary"] and p.images[0]["url"] and p.images[0]["url"] != "/old.png"
+    assert not p.images[1]["is_primary"]  # прежнее стало не-primary
+
+
+@pytest.mark.django_db
+def test_product_photo_edit_rejects_no_file(user):
+    """M4: без файла → 400, фото не меняется."""
+    p = ProductFactory(name={"de": "Brot"})
+    req = RequestFactory().post("/catalog/products/photo-edit/", data={"pk": str(p.pk)})
+    _attach_session_user(req, user)
+    assert views.product_photo_edit(req).status_code == 400
