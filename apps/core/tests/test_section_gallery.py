@@ -80,6 +80,16 @@ def test_cover_hero_upload_rejects_unknown_archetype():
     assert _hero(tenant, "bogus") == ""
 
 
+def test_cover_hero_upload_via_builder():
+    """M3: обложку раздела можно загрузить прямо из билдера (home_builder_view), не только sections."""
+    tenant = TenantFactory(schema_name="public", slug="chb", name="CHB")
+    resp = views.home_builder_view(
+        _post({"action": "upload_cover_hero", "archetype": "catalog", "image": _png()}, tenant)
+    )
+    assert resp.status_code == 302
+    assert _hero(tenant).startswith(("/", "http"))
+
+
 def test_upload_rejects_unknown_archetype():
     tenant = TenantFactory(schema_name="public", slug="cg2", name="CG2")
     views.sections_view(

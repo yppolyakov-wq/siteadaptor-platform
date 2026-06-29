@@ -685,6 +685,10 @@ def home_builder_view(request):
         if request.POST.get("action") == "move_hero_slide":
             _move_hero_slide(request)
             return redirect("site-home")
+        # M3: обложка раздела (archetypes[key].hero_image) — загрузка прямо из билдера.
+        if request.POST.get("action") == "upload_cover_hero":
+            _upload_cover_hero(request, request.POST.get("archetype", ""))
+            return redirect("site-home")
         # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
         # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить
         # новый блок сразу ПОСЛЕ него (инсертер «+» на канвасе); иначе — в конец.
@@ -1141,6 +1145,8 @@ def home_builder_view(request):
             # SE-7d: область «Баннер» — заголовок/текст hero (картинка — на канве/в галерее).
             "hero_title": config["hero_title"],
             "hero_text": config["hero_text"],
+            # M3: обложки разделов (archetypes[key].hero_image) — загрузка из билдера.
+            "cover_specs": storefront.cover_specs(request.tenant),
             # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
             "cblocks": cblocks,
             # SE-4a: библиотека сохранённых блок-шаблонов (id/тип/имя) для вставки.

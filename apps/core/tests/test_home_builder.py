@@ -304,6 +304,16 @@ def test_home_builder_get_renders_banner_slides():
     assert 'value="save_hero_slide"' in body
 
 
+def test_home_builder_get_renders_section_covers():
+    """M3: в билдере есть обложки разделов (область covers-media + upload_cover_hero)."""
+    tenant = TenantFactory(schema_name="public", slug="hbcv", name="HBCV")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-bld-area="covers-media"' in body
+    assert 'value="upload_cover_hero"' in body  # catalog-архетип активен → форма обложки
+
+
 def test_home_builder_get_renders():
     tenant = TenantFactory(schema_name="public", slug="hb2", name="HB2")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
