@@ -171,7 +171,7 @@
               </label>
               {% if s.is_grid %}
                 {# M20U-7: пресет раскладки секции-сетки (анти-Битрикс: один клик) #}
-                <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+                <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
                   {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
                 </select>
                 {% comment %} SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
@@ -274,7 +274,7 @@
           {% if has_catalog %}
           <div class="page-block flex items-center gap-3" data-page-key="catalog">
             <span class="text-sm font-medium flex-1">{% trans "Catalog: grid layout" %}</span>
-            <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+            <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
@@ -282,7 +282,7 @@
           {% if has_events %}
           <div class="page-block flex items-center gap-3" data-page-key="events">
             <span class="text-sm font-medium flex-1">{% trans "Events: grid layout" %}</span>
-            <select name="events_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+            <select name="events_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
@@ -290,7 +290,7 @@
           {% if has_stays %}
           <div class="page-block flex items-center gap-3" data-page-key="stay_rooms">
             <span class="text-sm font-medium flex-1">{% trans "Rooms: grid layout" %}</span>
-            <select name="stay_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+            <select name="stay_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
@@ -299,7 +299,7 @@
              номера). Фронт: ставит значения всех селекторов → live-preview/Save. {% endcomment %}
           <div class="flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100">
             <span class="text-sm text-gray-500">{% trans "Apply layout to all landing pages" %}:</span>
-            <select id="apply-all-preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}">
+            <select id="apply-all-preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}">{{ plabel }}</option>{% endfor %}
             </select>
             <button type="button" id="apply-all-landings" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply" %}</button>
@@ -685,6 +685,49 @@
   if (drawerClose) drawerClose.addEventListener("click", closePanel);
   if (backdrop) backdrop.addEventListener("click", closePanel);
   if (!isNarrow) showArea("sections");  // на широком экране сразу секции; на узком — рейл
+
+  // SE-7b: миниатюры раскладок вместо выпадашек (как выбор разворота в фотокниге).
+  // Прячем <select data-thumb>, рисуем кликабельные мини-диаграммы, управляющие им
+  // (вся логика/POST/quick-styles читают тот же select → без правок бэкенда).
+  function presetDiagram(val) {
+    var cols = { list: 1, cols2: 2, cols3: 3, cols4: 4, gallery: 3 }[val] || 1;
+    var rows = val === "gallery" ? 2 : 1;
+    var cells = "";
+    for (var i = 0; i < cols * rows; i++) cells += '<i style="background:currentColor;border-radius:1px;"></i>';
+    return (
+      '<span style="display:grid;grid-template-columns:repeat(' + cols +
+      ',1fr);gap:2px;width:34px;height:' + (rows > 1 ? "24" : "18") + 'px;">' + cells + "</span>"
+    );
+  }
+  document.querySelectorAll("select[data-thumb]").forEach(function (sel) {
+    var wrap = document.createElement("div");
+    wrap.className = "bld-thumbs flex items-end gap-1.5 flex-wrap";
+    Array.prototype.forEach.call(sel.options, function (opt) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("data-val", opt.value);
+      b.title = opt.text;
+      b.className = "bld-thumb flex flex-col items-center gap-1 p-1.5 rounded-lg border border-gray-200 text-gray-400 hover:border-indigo-300";
+      b.innerHTML = presetDiagram(opt.value) + '<span style="font-size:9px;line-height:1;">' + opt.text + "</span>";
+      b.addEventListener("click", function () {
+        sel.value = opt.value;
+        sel.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      wrap.appendChild(b);
+    });
+    function sync() {
+      wrap.querySelectorAll(".bld-thumb").forEach(function (b) {
+        var on = b.getAttribute("data-val") === sel.value;
+        b.classList.toggle("border-indigo-500", on);
+        b.classList.toggle("text-indigo-600", on);
+        b.classList.toggle("border-gray-200", !on);
+      });
+    }
+    sel.addEventListener("change", sync);
+    sel.classList.add("sr-only"); // прячем визуально, в форме остаётся (значение сабмитится)
+    sel.parentNode.insertBefore(wrap, sel);
+    sync();
+  });
 
   // Переключатель ширины предпросмотра (Desktop/Tablet/Mobile).
   var shell = document.getElementById("home-prev-shell");
@@ -1406,7 +1449,10 @@
     b.addEventListener("click", function () {
       var k = b.getAttribute("data-key");
       var lay = form.querySelector("select[name='layout_preset_" + k + "']");
-      if (lay) lay.value = b.getAttribute("data-preset");
+      if (lay) {
+        lay.value = b.getAttribute("data-preset");
+        lay.dispatchEvent(new Event("change", { bubbles: true }));  // SE-7b: синхрон миниатюр
+      }
       var rng = form.querySelector("input[name='visual_radius_px_" + k + "']");
       if (rng) {
         rng.value = b.getAttribute("data-radius");

@@ -1060,3 +1060,14 @@ def test_home_builder_se7_rail_and_areas():
     assert 'data-bld-area="theme"' in body  # контент области Тема
     assert 'data-bld-area="sections"' in body  # контент области Секции
     assert "function showArea" in body  # JS переключения областей
+
+
+def test_home_builder_se7b_layout_thumbnails():
+    """SE-7b: селекты раскладок помечены data-thumb (JS рисует мини-диаграммы вместо списка)."""
+    tenant = TenantFactory(schema_name="public", slug="hbse7b", name="HBSE7B")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'name="layout_preset_products"' in body and "data-thumb" in body
+    assert "function presetDiagram" in body  # построитель мини-диаграмм раскладки
+    assert "select[data-thumb]" in body  # энхансер выпадашек → миниатюры
