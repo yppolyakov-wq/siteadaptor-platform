@@ -2745,3 +2745,15 @@
   Эмодзи-карта `_SECTION_ICONS` (views.py) → поле `icon` в `sections`. Репитабл-блоки (text/image/…) не
   попадают (они в `cblocks`, не в `sections`); баннер пропущен (правится глобальной 🖼). «Секции» 🧱 пока
   остаётся (очистится в SE-9c-2). Тест `test_home_builder_dynamic_block_rail`. Без миграций.
+- **2026-06-29 — FIX prod 500 на `/dashboard/site/`.** `site_view` («Site») строил список секций как
+  `labels[s["key"]]` БЕЗ защиты, а `config["sections"]` может содержать repeatable-блоки (text/image/
+  button/spacer, добавленные инсертером «+» в конструкторе главной) и неизвестные ключи — их нет в
+  `SECTIONS` → `KeyError` → 500. `home_builder_view` это уже обходил (`if key not in labels: continue`),
+  `site_view` — нет. Добавлен тот же фильтр `if s["key"] in labels`. Регрессия
+  `test_site_view_survives_repeatable_block_in_config` (config с блоком text → раньше 500, теперь 200).
+  `nav_items` безопасен (normalize отбрасывает неизвестные nav-ключи). Без миграций (`d079273`).
+- **2026-06-29 — SE-9c-3 (подсветка активной иконки блока в рейле).** При открытом попапе настроек блока
+  его иконка `.bld-blk-btn` подсвечивается (`highlightBlkBtn(key)` из `openBlockPopup` — любой источник:
+  рейл или клик по секции на канве; снятие в `closeBlockPopup`). **SE-9c-2 отложен** (конфликт с SE-9g +
+  Простой режим уже де-загромождает мастер). **Трек SE-9 «редактор для ребёнка» закрыт:**
+  9a/9f/9g/9b/9d/9c-1/9c-3. Без миграций (`bf7d182`).
