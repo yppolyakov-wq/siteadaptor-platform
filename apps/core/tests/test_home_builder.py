@@ -297,6 +297,9 @@ def test_home_builder_get_renders_block_popup():
     body = resp.content.decode()
     assert 'id="bld-block-popup"' in body  # контейнер попапа
     assert "function openBlockPopup" in body  # логика переноса контролов
+    # FIX: openBlockPopup ОБЯЗАН выставлять popupRow, иначе closeBlockPopup не вернёт
+    # строку и блоки копятся в попапе (баг «куча настроек других блоков»).
+    assert "popupRow = row;" in body
     assert 'class="cb-row' in body and "data-cb-id=" in body  # маркеры C-блока
 
 

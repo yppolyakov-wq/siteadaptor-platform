@@ -20,8 +20,8 @@
       <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✏️<span class="hidden sm:inline"> {% trans "Edit panel" %}</span></button>
       {% comment %}SE-9d: режим прямой правки на канве (текст/раскладка). Механика уже есть
          (inline-edit/drag); кнопка делает её явной и переключаемой (чистое превью — выкл).{% endcomment %}
-      <button type="button" id="bld-edit-toggle" aria-pressed="true" title="{% trans 'Edit text and layout directly on the site. Turn off for a clean preview.' %}"
-              class="text-sm border border-indigo-300 bg-indigo-50 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-100">✍️<span class="hidden sm:inline"> {% trans "Edit on site" %}</span></button>
+      <button type="button" id="bld-edit-toggle" aria-pressed="false" title="{% trans 'Turn on to edit headings and texts directly on the page.' %}"
+              class="text-sm border border-gray-300 text-gray-500 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✍️<span class="hidden sm:inline"> {% trans "Edit on site" %}</span></button>
       <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </span>
   </div>
@@ -758,8 +758,10 @@
   // SE-9d: режим прямой правки на канве (текст/раскладка). По умолчанию ВКЛ (без регресса);
   // выкл → чистое превью (как видит посетитель). Запоминается в localStorage. Механика
   // (inline-edit/drag) уже есть ниже — здесь только явный переключатель её видимости/активности.
-  var editOn = true;
-  try { editOn = localStorage.getItem("sf_edit_on") !== "0"; } catch (e) {}
+  // По умолчанию ВЫКЛ — чистое превью; кнопка «Edit on site» включает режим правки
+  // (клик = «начать править», как ожидает владелец). Запоминаем явное «вкл».
+  var editOn = false;
+  try { editOn = localStorage.getItem("sf_edit_on") === "1"; } catch (e) {}
   var lastEditDoc = null;  // текущий документ iframe — чтобы переключать «на лету» без перезагрузки
   var editToggle = document.getElementById("bld-edit-toggle");
   function styleEditable(el, on) {
@@ -1216,6 +1218,7 @@
     row.parentNode.insertBefore(popupAnchor, row);
     if (row.classList.contains("home-block")) row.classList.add("flex-wrap");
     popupBody.appendChild(row);
+    popupRow = row;  // FIX: без этого closeBlockPopup не возвращал строку → блоки копились в попапе
     var lab = row.querySelector("label") || row.querySelector("span");
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
     // SE-7 fix: попап настроек блока — потомок фокус-панели (#bld-editor-pane). Когда панель
