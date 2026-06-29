@@ -12,7 +12,7 @@
   <aside id="sidebar"
          class="w-64 bg-white border-r border-gray-200 fixed inset-y-0 left-0 z-30
                 flex flex-col overflow-hidden
-                -translate-x-full md:translate-x-0 md:static md:z-auto transition-transform duration-200">
+                -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen md:z-auto transition-transform duration-200">
     <div class="flex items-center justify-between p-5 pb-3">
       <a href="{% url 'dashboard' %}" class="font-bold text-lg truncate">{{ request.tenant.name }}</a>
       <button id="sidebar-close" class="md:hidden text-gray-400 text-xl leading-none" aria-label="{% trans 'Close menu' %}">✕</button>
@@ -30,7 +30,7 @@
     Verkaufen / Kunden & Marketing / Einstellungen), а не плоским тех-списком. Группы —
     `nav_groups` (apps.core.modules.grouped_active_modules). Поиск по пунктам сохраняется
     (data-label), пустые группы скрываются при фильтрации через JS.{% endcomment %}
-    <nav id="dash-nav" class="space-y-0.5 text-sm px-5 pb-5 overflow-y-auto overscroll-contain flex-1">
+    <nav id="dash-nav" class="space-y-0.5 text-sm px-5 pb-5 overflow-y-auto overscroll-contain flex-1 min-h-0">
       {% for group in nav_groups %}
         <div class="nav-group" data-nav-group>
           <p class="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400" data-nav-group-label>{{ group.label }}</p>
