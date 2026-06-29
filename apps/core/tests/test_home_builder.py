@@ -1139,3 +1139,17 @@ def test_home_builder_banner_presence_guard_keeps_hero():
     )
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["hero_title"] == "Keep"
+
+
+def test_home_builder_se8a_global_simple_expert_mode():
+    """SE-8a: глобальный тумблер Простой/Эксперт прячет [data-expert] во всём редакторе."""
+    tenant = TenantFactory(schema_name="public", slug="hbse8a", name="HBSE8A")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-mode="basic"' in body  # #bld-root стартует в Простом
+    assert 'class="bld-mode-btn' in body and 'data-mode-val="expert"' in body  # глобальный тумблер
+    assert (
+        "#bld-root[data-mode=basic] [data-expert]" in body
+    )  # CSS прячет технику во всём редакторе
+    assert "function setEditorMode" in body

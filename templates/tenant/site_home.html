@@ -6,12 +6,17 @@
 {% comment %}SE-6 (Вариант A): полноэкранный overlay-редактор. Билдер — fixed inset-0,
 перекрывает сайдбар кабинета (сайт на 100% ширины); инспектор `#bld-editor-pane` —
 плавающая шторка поверх канваса (тоггл в топ-баре). Все id сохранены → JS не тронут.{% endcomment %}
-<div id="bld-root" class="fixed inset-0 z-40 flex flex-col bg-gray-100">
-  {% comment %}Топ-бар: выход в кабинет · заголовок · тоггл шторки · Save.{% endcomment %}
+<div id="bld-root" data-mode="basic" class="fixed inset-0 z-40 flex flex-col bg-gray-100">
+  {% comment %}Топ-бар: выход · заголовок · Простой/Эксперт · тоггл шторки · Save.{% endcomment %}
   <div class="shrink-0 flex items-center justify-between gap-2 bg-white border-b border-gray-200 px-3 py-2">
     <a href="{% url 'site' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 shrink-0">←<span class="hidden sm:inline">{% trans "Dashboard" %}</span></a>
-    <span class="text-sm font-semibold text-gray-700 truncate">{% trans "Edit your site" %}</span>
+    <span class="hidden md:inline text-sm font-semibold text-gray-700 truncate">{% trans "Edit your site" %}</span>
     <span class="flex items-center gap-2 shrink-0">
+      {% comment %}SE-8a: глобальный Простой/Эксперт — прячет технические контролы ([data-expert]).{% endcomment %}
+      <span class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs" role="group" aria-label="{% trans 'Editor mode' %}">
+        <button type="button" aria-pressed="true" class="bld-mode-btn px-2.5 py-1.5 bg-indigo-600 text-white" data-mode-val="basic">{% trans "Simple" %}</button>
+        <button type="button" aria-pressed="false" class="bld-mode-btn px-2.5 py-1.5 border-l border-gray-300" data-mode-val="expert">{% trans "Expert" %}</button>
+      </span>
       <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✏️<span class="hidden sm:inline"> {% trans "Edit panel" %}</span></button>
       <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </span>
@@ -101,14 +106,14 @@
             {% trans "Accent banner background" %}
           </label>
           {# SE-3b: типографика — начертание заголовков + межстрочный интервал тела. #}
-          <label class="text-sm">
+          <label class="text-sm" data-expert="1">
             <span class="block font-medium mb-1">{% trans "Heading weight" %}</span>
             <select name="typo_weight_head" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
               <option value="0" {% if not typo_weight_head %}selected{% endif %}>{% trans "Default" %}</option>
               {% for w, wl in typo_weight_options %}<option value="{{ w }}" {% if typo_weight_head == w %}selected{% endif %}>{{ wl }}</option>{% endfor %}
             </select>
           </label>
-          <label class="text-sm">
+          <label class="text-sm" data-expert="1">
             <span class="block font-medium mb-1">{% trans "Line spacing" %}</span>
             <select name="typo_line_height" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
               <option value="0" {% if not typo_line_height %}selected{% endif %}>{% trans "Default" %}</option>
@@ -117,8 +122,8 @@
           </label>
         </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
-           всеми сетками; блок может переопределить своим visual). {% endcomment %}
-        <div class="mt-4 pt-4 border-t border-gray-100">
+           всеми сетками; блок может переопределить своим visual). SE-8a: эксперт-только. {% endcomment %}
+        <div class="mt-4 pt-4 border-t border-gray-100" data-expert="1">
           <p class="text-sm font-medium mb-2">🌐 {% trans "Card style (whole site)" %}</p>
           <div class="grid sm:grid-cols-2 gap-4">
             <label class="text-sm">
@@ -205,7 +210,7 @@
               {% endif %}
               {% if s.has_limit %}
                 {# M20U-7: число элементов секции-превью на главной #}
-                <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="24"
+                <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="24" data-expert="1"
                        class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
               {% endif %}
               {% if s.has_title %}
@@ -676,7 +681,9 @@
 </div>
 
 <style>
-#bld-block-popup[data-mode=basic] [data-expert] { display: none !important; }
+/* SE-8a: Простой режим прячет технические контролы во ВСЁМ редакторе (рейл/панели/попап),
+   а не только внутри попапа блока. Эксперт показывает всё. */
+#bld-root[data-mode=basic] [data-expert] { display: none !important; }
 #bld-mode-basic { background: #4f46e5; color: #fff; }
 #bld-mode-expert { background: transparent; color: #4b5563; }
 #bld-block-popup[data-mode=expert] #bld-mode-basic { background: transparent; color: #4b5563; }
@@ -1455,19 +1462,30 @@
 
   push();  // первичный рендер черновика
 
-  // SE-1f: тумблер Обычный/Эксперт (localStorage)
+  // SE-1f/SE-8a: ГЛОБАЛЬНЫЙ тумблер Простой/Эксперт. Раньше data-mode был только на
+  // попапе блока (и скрывал [data-expert] лишь внутри него) — в рейле/панелях режим не
+  // работал. Теперь data-mode на #bld-root → CSS прячет [data-expert] во всём редакторе.
+  var bldRoot = document.getElementById("bld-root");
   var BLD_MODE_KEY = "sf_editor_mode";
   function setEditorMode(m) {
     var mode = m === "expert" ? "expert" : "basic";
-    popup.setAttribute("data-mode", mode);
+    if (bldRoot) bldRoot.setAttribute("data-mode", mode);
+    if (popup) popup.setAttribute("data-mode", mode);  // подсветка кнопок внутри попапа
+    document.querySelectorAll(".bld-mode-btn").forEach(function (b) {
+      var on = b.getAttribute("data-mode-val") === mode;
+      b.classList.toggle("bg-indigo-600", on); b.classList.toggle("text-white", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
     localStorage.setItem(BLD_MODE_KEY, mode);
   }
-  var savedMode = localStorage.getItem(BLD_MODE_KEY);
-  if (savedMode === "expert") setEditorMode("expert");
   var modeBasicBtn = document.getElementById("bld-mode-basic");
   var modeExpertBtn = document.getElementById("bld-mode-expert");
   if (modeBasicBtn) modeBasicBtn.addEventListener("click", function() { setEditorMode("basic"); });
   if (modeExpertBtn) modeExpertBtn.addEventListener("click", function() { setEditorMode("expert"); });
+  document.querySelectorAll(".bld-mode-btn").forEach(function (b) {
+    b.addEventListener("click", function () { setEditorMode(b.getAttribute("data-mode-val")); });
+  });
+  setEditorMode(localStorage.getItem(BLD_MODE_KEY) === "expert" ? "expert" : "basic");  // дефолт — Простой
 
   // SE-3d: синхронизация radius-слайдера и тоггла «Round corners»
   document.querySelectorAll(".sf-visual-radius-toggle").forEach(function(cb) {
