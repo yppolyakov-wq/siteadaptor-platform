@@ -39,19 +39,19 @@
   без перегруза; свернул → рейл, сайт на всю ширину. Все id/логика сохранены.{% endcomment %}
   <div class="relative flex-1 min-h-0 flex">
    {% comment %}Рейл областей — клик открывает фокус-панель этой области (одну).{% endcomment %}
-   <nav id="bld-rail" class="shrink-0 w-14 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-lg leading-none">🎨</span><span class="text-[9px] leading-tight">{% trans "Theme" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="banner"><span class="text-lg leading-none">🖼</span><span class="text-[9px] leading-tight">{% trans "Banner" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-lg leading-none">🧱</span><span class="text-[9px] leading-tight">{% trans "Sections" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-lg leading-none">☰</span><span class="text-[9px] leading-tight">{% trans "Menu" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-lg leading-none">🔻</span><span class="text-[9px] leading-tight">{% trans "Footer" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-lg leading-none">📚</span><span class="text-[9px] leading-tight">{% trans "Templates" %}</span></button>
+   <nav id="bld-rail" class="shrink-0 w-20 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-2xl leading-none">🎨</span><span class="text-[11px] leading-tight">{% trans "Theme" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="banner"><span class="text-2xl leading-none">🖼</span><span class="text-[11px] leading-tight">{% trans "Banner" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-2xl leading-none">🧱</span><span class="text-[11px] leading-tight">{% trans "Sections" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-2xl leading-none">☰</span><span class="text-[11px] leading-tight">{% trans "Menu" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-2xl leading-none">🔻</span><span class="text-[11px] leading-tight">{% trans "Footer" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-2xl leading-none">📚</span><span class="text-[11px] leading-tight">{% trans "Templates" %}</span></button>
      {% comment %}SE-9c-1: динамические иконки ВКЛЮЧЁННЫХ блоков → панель блока (openBlockPopup).
         Repeatable-блоки (text/image/…) сюда не попадают — они в `cblocks`, не в `sections`.
         Баннер пропускаем (правится глобальной иконкой 🖼).{% endcomment %}
      <div class="shrink-0 w-7 my-1 border-t border-gray-200" aria-hidden="true"></div>
      {% for s in sections %}{% if s.enabled and s.key != "hero" %}
-     <button type="button" class="bld-blk-btn flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100" data-blk="{{ s.key }}" title="{{ s.label }}"><span class="text-lg leading-none">{{ s.icon }}</span><span class="text-[9px] leading-tight w-full truncate text-center">{{ s.label }}</span></button>
+     <button type="button" class="bld-blk-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-blk="{{ s.key }}" title="{{ s.label }}"><span class="text-2xl leading-none">{{ s.icon }}</span><span class="text-[11px] leading-tight w-full truncate text-center">{{ s.label }}</span></button>
      {% endif %}{% endfor %}
    </nav>
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
@@ -938,17 +938,52 @@
     tablet: { w: "834px", h: "1112px", dim: "834 × 1112" },
     mobile: { w: "390px", h: "760px", dim: "390 × 760" },
   };
+  var DESK_W = 1280;  // #4: логическая ширина десктоп-превью (≥1024 → lg:-брейкпоинты витрины срабатывают)
+  var currentDev = "desktop";
+  function resetFrameScale(frame) {
+    if (!frame) return;
+    frame.style.width = ""; frame.style.height = "";
+    frame.style.transform = ""; frame.style.transformOrigin = "";
+  }
   function applyDevice(dev) {
+    currentDev = dev;
     var d = DEV[dev] || DEV.desktop;
     // SE-9g: помечаем редактор активной версией → CSS в Простом режиме раскрывает
     // настройки этой версии (пер-девайс колонки/скрытие). Берём #bld-root локально:
     // глобальный bldRoot объявлен ниже по скрипту и на момент restore ещё пуст.
     var root = document.getElementById("bld-root");
     if (root) root.setAttribute("data-device", dev);
+    var frame = document.getElementById("home-prev-frame");
     if (shell) {
-      shell.style.maxWidth = d.w;
-      shell.style.height = d.h; // пусто → класс h-full (десктоп); иначе фикс-высота устройства
-      shell.classList.toggle("device-frame", dev !== "desktop");
+      if (dev === "desktop") {
+        // #4: десктоп всегда рендерится логически на DESK_W. Если канва уже — масштабируем
+        // вниз (transform на iframe + layout-box shell = масштабированная), чтобы lg:grid-cols-N
+        // реально срабатывали. Иначе на узком превью «2/3/4 в ряд» визуально неразличимы.
+        shell.classList.remove("device-frame");
+        var pane = shell.parentElement;
+        var availW = (pane ? pane.clientWidth : window.innerWidth) - 16;  // минус p-2
+        var availH = (pane ? pane.clientHeight : 800) - 16;
+        var scale = Math.min(1, availW / DESK_W);
+        if (scale < 0.999 && frame) {
+          shell.style.maxWidth = "none";
+          shell.style.width = Math.round(DESK_W * scale) + "px";
+          shell.style.height = Math.max(availH, 200) + "px";
+          shell.style.overflow = "hidden";
+          frame.style.width = DESK_W + "px";
+          frame.style.height = Math.round(Math.max(availH, 200) / scale) + "px";
+          frame.style.transform = "scale(" + scale + ")";
+          frame.style.transformOrigin = "top left";
+        } else {  // канва широкая — натуральный десктоп без масштаба
+          shell.style.maxWidth = "100%"; shell.style.width = ""; shell.style.height = ""; shell.style.overflow = "";
+          resetFrameScale(frame);
+        }
+      } else {  // tablet/mobile — фикс-ширина + рамка устройства (как было); сброс десктоп-масштаба
+        resetFrameScale(frame);
+        shell.style.overflow = ""; shell.style.width = "";
+        shell.style.maxWidth = d.w;
+        shell.style.height = d.h;
+        shell.classList.add("device-frame");
+      }
     }
     if (devDim) devDim.textContent = d.dim;
     document.querySelectorAll(".home-dev-btn").forEach(function (x) {
@@ -961,10 +996,16 @@
   document.querySelectorAll(".home-dev-btn").forEach(function (b) {
     b.addEventListener("click", function () { applyDevice(b.getAttribute("data-dev")); });
   });
+  // #4: при изменении размера окна пересчитываем десктоп-масштаб (дебаунс).
+  var devResizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(devResizeTimer);
+    devResizeTimer = setTimeout(function () { applyDevice(currentDev); }, 150);
+  });
   (function () {
     var saved = null;
     try { saved = localStorage.getItem("sf_preview_device"); } catch (e) {}
-    if (saved && DEV[saved] && saved !== "desktop") applyDevice(saved);
+    applyDevice(saved && DEV[saved] ? saved : "desktop");  // десктоп тоже инициализируем (масштаб)
   })();
 
   function collect() {
