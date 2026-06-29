@@ -836,6 +836,12 @@
     if (lastEditDoc) {
       try {
         lastEditDoc.querySelectorAll("[data-edit],[data-cat-edit],[data-edit-model]").forEach(function (el) { styleEditable(el, on); });
+        // #7-B: цена — не contenteditable (свой инпут-поповер); только курсор+пунктир в режиме правки.
+        lastEditDoc.querySelectorAll("[data-price-edit]").forEach(function (el) {
+          el.style.cursor = on ? "pointer" : "";
+          el.style.outline = on ? "1px dashed rgba(16,185,129,.7)" : "none";
+          el.style.outlineOffset = "2px";
+        });
         lastEditDoc.querySelectorAll("[data-sf-drag],[data-sf-ins]").forEach(function (h) { h.style.display = on ? "" : "none"; });
       } catch (e) {}
     }
@@ -1496,6 +1502,39 @@
     // #7-A: «✎ к форме» на карточках товара — раскрываем в превью редактора (владелец).
     // На публичной витрине этот JS не выполняется → ссылка остаётся hidden.
     doc.querySelectorAll(".sf-edit-link").forEach(function (el) { el.classList.remove("hidden"); });
+    // #7-B: инлайн-цена — клик по цене (товар без вариантов) в режиме правки → инпут-поповер
+    // → POST base_price → перерисовка превью (новая цена + Grundpreis). Уважает editOn (SE-9d).
+    doc.querySelectorAll("[data-price-edit]").forEach(function (el) {
+      el.style.cursor = editOn ? "pointer" : "";
+      if (editOn) { el.style.outline = "1px dashed rgba(16,185,129,.7)"; el.style.outlineOffset = "2px"; }
+      el.addEventListener("click", function (e) {
+        if (!editOn || el.querySelector("input.sf-price-inp")) return;
+        e.preventDefault(); e.stopPropagation();
+        var pk = el.getAttribute("data-edit-pk"), orig = el.innerHTML;
+        var inp = doc.createElement("input");
+        inp.type = "number"; inp.step = "0.01"; inp.min = "0"; inp.className = "sf-price-inp";
+        inp.value = el.getAttribute("data-price") || "";
+        inp.setAttribute("style", "width:5.5rem;font:inherit;color:inherit;padding:0 4px;border:1px solid #6366f1;border-radius:4px;background:#fff;");
+        el.innerHTML = ""; el.appendChild(inp); inp.focus(); inp.select();
+        var done = false;
+        function finish(saveIt) {
+          if (done) return; done = true;
+          var v = (inp.value || "").trim().replace(",", ".");
+          if (!saveIt || v === "" || isNaN(parseFloat(v)) || parseFloat(v) < 0) { el.innerHTML = orig; return; }
+          fetch(MODEL_EDIT_URLS.product, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+            body: JSON.stringify({ pk: pk, field: "base_price", value: v }),
+          }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
+            .catch(function () { el.innerHTML = orig; });
+        }
+        inp.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter") { ev.preventDefault(); finish(true); }
+          else if (ev.key === "Escape") { ev.preventDefault(); finish(false); }
+        });
+        inp.addEventListener("blur", function () { finish(true); });
+      });
+    });
     // E.2: клик по секции в превью → попап её настроек (фолбэк M20U-7 B: прокрутка
     // к контролам в редакторе, если попап-row для секции не найден).
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {

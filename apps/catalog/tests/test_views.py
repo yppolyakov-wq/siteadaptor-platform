@@ -309,16 +309,62 @@ def test_product_inline_edit_rejects_empty_name(user):
 
 @pytest.mark.django_db
 def test_product_inline_edit_rejects_non_whitelisted_field(user):
-    """Безопасность: цену и прочие поля через инлайн НЕ правим (только текст-вайтлист)."""
-    p = ProductFactory(name={"de": "Brot"}, base_price="5.00")
+    """Безопасность: вне вайтлиста (name/description/base_price) инлайн НЕ пишет."""
+    p = ProductFactory(name={"de": "Brot"}, sku="OLD")
     req = _json_post(
         "/catalog/products/inline-edit/",
-        {"pk": str(p.pk), "field": "base_price", "value": "0.01"},
+        {"pk": str(p.pk), "field": "sku", "value": "HACK"},
         user,
     )
     assert views.product_inline_edit(req).status_code == 400
     p.refresh_from_db()
-    assert str(p.base_price) == "5.00"  # цена не тронута
+    assert p.sku == "OLD"  # не тронуто
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_updates_price(user):
+    """#7-B: инлайн-цена товара без вариантов → base_price (Decimal), 204."""
+    p = ProductFactory(name={"de": "Brot"}, base_price="5.00")
+    req = _json_post(
+        "/catalog/products/inline-edit/",
+        {"pk": str(p.pk), "field": "base_price", "value": "3,50"},  # запятая → точка
+        user,
+    )
+    assert views.product_inline_edit(req).status_code == 204
+    p.refresh_from_db()
+    assert str(p.base_price) == "3.50"
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_price_rejects_variant_product(user):
+    """#7-B: у товара с вариантами цена пер-вариант → инлайн отклоняет (правка в форме)."""
+    from apps.catalog.models import ProductVariant
+
+    p = ProductFactory(name={"de": "Tee"}, base_price="5.00")
+    ProductVariant.objects.create(product=p, label="250 g", is_active=True)
+    req = _json_post(
+        "/catalog/products/inline-edit/",
+        {"pk": str(p.pk), "field": "base_price", "value": "9.90"},
+        user,
+    )
+    assert views.product_inline_edit(req).status_code == 400
+    p.refresh_from_db()
+    assert str(p.base_price) == "5.00"  # не тронуто
+
+
+@pytest.mark.django_db
+def test_product_inline_edit_price_rejects_invalid(user):
+    """#7-B: нечисловая/отрицательная цена → 400, цена не меняется."""
+    p = ProductFactory(name={"de": "Brot"}, base_price="5.00")
+    for bad in ("abc", "-1", ""):
+        req = _json_post(
+            "/catalog/products/inline-edit/",
+            {"pk": str(p.pk), "field": "base_price", "value": bad},
+            user,
+        )
+        assert views.product_inline_edit(req).status_code == 400
+    p.refresh_from_db()
+    assert str(p.base_price) == "5.00"
 
 
 @pytest.mark.django_db

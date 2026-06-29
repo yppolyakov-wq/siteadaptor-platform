@@ -40,7 +40,9 @@
   {# R5: цена + кнопка в одну линию (кнопка вне ссылки — валидная вёрстка). #}
   <div class="px-3 md:px-4 pb-3 pt-1.5 mt-auto flex items-center justify-between gap-2">
     <div class="min-w-0">
-      <div class="font-bold leading-tight">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {% endif %}{{ p.price_from|default:p.base_price }} {{ p.currency|cursym }}</div>
+      {% comment %}#7-B: цена товара БЕЗ вариантов размечена для инлайн-правки (поповер-инпут в
+      режиме правки билдера). У товаров с вариантами цена «от …» пер-вариант → правится в форме.{% endcomment %}
+      <div class="font-bold leading-tight">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</div>
       {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-[11px] text-gray-400 leading-tight">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
     </div>
     {% if storefront_quick_add and p.in_stock %}
