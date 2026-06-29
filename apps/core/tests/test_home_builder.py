@@ -253,6 +253,21 @@ def test_home_builder_media_moved_into_blocks():
     assert "window.__sfShowArea = function" in body
 
 
+def test_home_builder_get_renders_edit_on_site_toggle():
+    """SE-9d: тумблер «Править на сайте» — явный режим прямой правки на канве
+    (текст/раскладка), с запоминанием; выкл → чистое превью."""
+    tenant = TenantFactory(schema_name="public", slug="hbeos", name="HBEOS")
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'id="bld-edit-toggle"' in body  # кнопка-режим в топ-баре
+    assert "function applyEditMode" in body  # переключение режима
+    assert "function styleEditable" in body  # вкл/выкл редактируемости текста
+    assert "sf_edit_on" in body  # запоминается (localStorage)
+    assert 'id="bld-edit-hint"' in body  # подсказка «кликни текст»
+    # в режиме выкл скрываются и ручки drag, и кнопки вставки «+»
+    assert "[data-sf-drag],[data-sf-ins]" in body
+
+
 def test_home_builder_get_renders_block_popup():
     """E.2: попап настроек блока + маркеры cb-row для переноса контролов."""
     tenant = TenantFactory(schema_name="public", slug="hbpop", name="HBPOP")

@@ -18,6 +18,10 @@
         <button type="button" aria-pressed="false" class="bld-mode-btn px-2.5 py-1.5 border-l border-gray-300" data-mode-val="expert">{% trans "Expert" %}</button>
       </span>
       <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✏️<span class="hidden sm:inline"> {% trans "Edit panel" %}</span></button>
+      {% comment %}SE-9d: режим прямой правки на канве (текст/раскладка). Механика уже есть
+         (inline-edit/drag); кнопка делает её явной и переключаемой (чистое превью — выкл).{% endcomment %}
+      <button type="button" id="bld-edit-toggle" aria-pressed="true" title="{% trans 'Edit text and layout directly on the site. Turn off for a clean preview.' %}"
+              class="text-sm border border-indigo-300 bg-indigo-50 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-100">✍️<span class="hidden sm:inline"> {% trans "Edit on site" %}</span></button>
       <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </span>
   </div>
@@ -678,6 +682,8 @@
           <span id="home-dev-dim" class="text-[11px] text-gray-400 tabular-nums"></span>
         </div>
         <span id="home-prev-status" class="text-xs text-gray-400"></span>
+        {% comment %}SE-9d: подсказка режима прямой правки (видна, когда «Править на сайте» вкл).{% endcomment %}
+        <span id="bld-edit-hint" class="hidden text-[11px] text-indigo-600">✍️ {% trans "Click text on the page to edit" %}</span>
       </div>
       <div class="flex-1 min-h-0 bg-gray-100 p-2 flex items-start justify-center overflow-auto">
         <div id="home-prev-shell" class="w-full h-full transition-all" style="max-width:100%;">
@@ -741,6 +747,48 @@
   var frame = document.getElementById("home-prev-frame");
   if (!form || !frame) return;
   var status = document.getElementById("home-prev-status");
+
+  // SE-9d: режим прямой правки на канве (текст/раскладка). По умолчанию ВКЛ (без регресса);
+  // выкл → чистое превью (как видит посетитель). Запоминается в localStorage. Механика
+  // (inline-edit/drag) уже есть ниже — здесь только явный переключатель её видимости/активности.
+  var editOn = true;
+  try { editOn = localStorage.getItem("sf_edit_on") !== "0"; } catch (e) {}
+  var lastEditDoc = null;  // текущий документ iframe — чтобы переключать «на лету» без перезагрузки
+  var editToggle = document.getElementById("bld-edit-toggle");
+  function styleEditable(el, on) {
+    if (on) {
+      el.setAttribute("contenteditable", "plaintext-only");
+      el.style.outline = "1px dashed rgba(99,102,241,.5)";
+      el.style.outlineOffset = "2px";
+      el.style.cursor = "text";
+    } else {
+      el.removeAttribute("contenteditable");
+      el.style.outline = "none";
+      el.style.cursor = "";
+    }
+  }
+  function applyEditMode(on) {
+    editOn = on;
+    try { localStorage.setItem("sf_edit_on", on ? "1" : "0"); } catch (e) {}
+    if (editToggle) {
+      editToggle.setAttribute("aria-pressed", on ? "true" : "false");
+      editToggle.classList.toggle("bg-indigo-50", on);
+      editToggle.classList.toggle("text-indigo-700", on);
+      editToggle.classList.toggle("border-indigo-300", on);
+      editToggle.classList.toggle("text-gray-500", !on);
+      editToggle.classList.toggle("border-gray-300", !on);
+    }
+    var hint = document.getElementById("bld-edit-hint");
+    if (hint) hint.classList.toggle("hidden", !on);
+    if (lastEditDoc) {
+      try {
+        lastEditDoc.querySelectorAll("[data-edit],[data-cat-edit]").forEach(function (el) { styleEditable(el, on); });
+        lastEditDoc.querySelectorAll("[data-sf-drag],[data-sf-ins]").forEach(function (h) { h.style.display = on ? "" : "none"; });
+      } catch (e) {}
+    }
+  }
+  if (editToggle) editToggle.addEventListener("click", function () { applyEditMode(!editOn); });
+  applyEditMode(editOn);  // синхронизировать вид кнопки/подсказки (док стилизуется на load фрейма)
   var url = form.getAttribute("data-draft-url");
   var token = (form.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "";
   // SE-2a-1: текущая страница превью (главная по умолчанию; переключатель меняет).
@@ -1279,11 +1327,9 @@
     var doc;
     try { doc = frame.contentDocument; } catch (e) { return; }
     if (!doc) return;
+    lastEditDoc = doc;  // SE-9d: запомнить док для переключения режима правки «на лету»
     doc.querySelectorAll("[data-edit]").forEach(function (el) {
-      el.setAttribute("contenteditable", "plaintext-only");
-      el.style.outline = "1px dashed rgba(99,102,241,.5)";
-      el.style.outlineOffset = "2px";
-      el.style.cursor = "text";
+      styleEditable(el, editOn);
       el.addEventListener("blur", function () {
         fetch(editUrl, {
           method: "POST",
@@ -1295,10 +1341,7 @@
     // SE-2c-3: инлайн-правка имени категории на канве каталога (чип data-cat-edit)
     // → запись Category.name['de'] на blur (новый эндпоинт catalog).
     doc.querySelectorAll("[data-cat-edit]").forEach(function (el) {
-      el.setAttribute("contenteditable", "plaintext-only");
-      el.style.outline = "1px dashed rgba(99,102,241,.5)";
-      el.style.outlineOffset = "2px";
-      el.style.cursor = "text";
+      styleEditable(el, editOn);
       el.addEventListener("blur", function () {
         var v = el.innerText.trim();
         if (!v) return;  // пустое имя не сохраняем (эндпоинт всё равно отклонит)
@@ -1340,6 +1383,7 @@
       var bar = doc.createElement("div");
       bar.setAttribute("style", "position:relative;height:0;");
       bar.setAttribute("data-sf-ins", "1");
+      if (!editOn) bar.style.display = "none";  // SE-9d: «+» вставки видны только в режиме правки
       var btn = doc.createElement("button");
       btn.type = "button";
       btn.textContent = "+";
@@ -1390,6 +1434,7 @@
         "background:rgba(79,70,229,.92);color:#fff;display:flex;align-items:center;" +
         "justify-content:center;cursor:grab;z-index:60;font-size:14px;opacity:.45;" +
         "transition:opacity .15s;");
+      if (!editOn) h.style.display = "none";  // SE-9d: ручки видны только в режиме правки
       h.addEventListener("mouseenter", function () { h.style.opacity = "1"; });
       h.addEventListener("mouseleave", function () { h.style.opacity = ".45"; });
       h.addEventListener("click", function (e) { e.stopPropagation(); });
