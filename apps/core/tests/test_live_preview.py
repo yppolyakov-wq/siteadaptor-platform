@@ -107,6 +107,27 @@ def test_draft_endpoint_includes_layout_preset():
     assert "layout" not in hero  # не секция-сетка
 
 
+def test_storefront_preview_applies_layout_columns():
+    """Баг D (диагностика): выбранная раскладка должна отражаться в РЕНДЕРЕ витрины —
+    черновик products cols4 → грид рендерит lg:grid-cols-4 (десктоп). Если зелёный —
+    бэкенд применяет раскладку, и «не применяется» = узкое превью (lg не срабатывает)."""
+    from apps.catalog.tests.factories import ProductFactory
+
+    tenant = TenantFactory(schema_name="public", slug="laycol", name="LAYCOL")
+    ProductFactory(name={"de": "Brot", "en": ""}, is_active=True)
+    draft = siteconfig.normalize(
+        {"sections": [{"key": "products", "enabled": True, "layout": {"preset": "cols4"}}]}
+    )
+    req = _session(RequestFactory().get("/?preview=1"))
+    req.session["site_preview_draft"] = draft
+    req.session.save()
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    resp = public_views.storefront_home(req)
+    assert resp.status_code == 200
+    assert "lg:grid-cols-4" in resp.content.decode()
+
+
 def test_draft_endpoint_includes_product_source():
     """M20U-7: источник товаров попадает в черновик превью."""
     tenant = TenantFactory(schema_name="public", slug="ds", name="DS")
