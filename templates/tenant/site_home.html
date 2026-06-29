@@ -65,24 +65,6 @@
      <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
 
-      {% comment %}E.2: попап настроек блока — клик по блоку в превью переносит сюда его
-         реальные контролы (живёт ВНУТРИ формы, поэтому правки идут в сабмит/превью).{% endcomment %}
-      <div id="bld-block-popup" class="hidden fixed z-40 left-3 top-24 w-80 max-w-[85vw]" data-mode="basic">
-        <div class="bg-white rounded-xl shadow-2xl border border-gray-200">
-          <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-            <span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700"></span>
-            <span class="flex items-center gap-2">
-              <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs">
-                <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
-                <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
-              </span>
-              <button type="button" id="bld-block-popup-close" class="text-gray-400 hover:text-gray-700 text-lg leading-none" aria-label="{% trans 'Close' %}">✕</button>
-            </span>
-          </div>
-          <div id="bld-block-popup-body" class="p-3 max-h-[60vh] overflow-auto"></div>
-        </div>
-      </div>
-
       {% comment %}SE-7 область 🎨 Тема: стартовая страница + дизайн (шрифт/акцент/типографика/карточки).{% endcomment %}
       <div data-bld-area="theme" class="bld-area space-y-6">
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
@@ -186,6 +168,27 @@
 
       {% comment %}SE-7 область 🧱 Основная (секции): блоки главной + лендинги + тизеры + C-блоки.{% endcomment %}
       <div data-bld-area="sections" class="bld-area space-y-6 hidden">
+
+      {% comment %}#2: фокус-панель «только выбранный блок» — клик по блоку переносит сюда его
+         реальные контролы (живёт ВНУТРИ формы → правки идут в сабмит/превью). При открытии
+         секция-область получает .focus-on → CSS прячет список блоков и прочие fieldset'ы,
+         виден только этот блок + «← Ко всем блокам». Заменил прежний плавающий попап.{% endcomment %}
+      <div id="bld-block-popup" class="hidden">
+        <div class="bg-white rounded-xl border border-indigo-200 shadow-sm mb-4">
+          <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-100 bg-indigo-50/60 rounded-t-xl">
+            <button type="button" id="bld-block-popup-close" class="flex items-center gap-1 text-sm font-medium text-indigo-700 hover:text-indigo-900 shrink-0" aria-label="{% trans 'Back to all blocks' %}">← {% trans "All blocks" %}</button>
+            {% comment %}SE-1f тумблер Обычный/Эксперт (инспектор) — без data-expert, чтобы из Простого
+               режима можно было раскрыть Эксперт.{% endcomment %}
+            <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs shrink-0">
+              <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
+              <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
+            </span>
+          </div>
+          <div class="px-3 pt-2 -mb-1"><span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700"></span></div>
+          <div id="bld-block-popup-body" class="p-3"></div>
+        </div>
+      </div>
+
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
         <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
@@ -729,6 +732,9 @@
 #bld-mode-expert { background: transparent; color: #4b5563; }
 #bld-block-popup[data-mode=expert] #bld-mode-basic { background: transparent; color: #4b5563; }
 #bld-block-popup[data-mode=expert] #bld-mode-expert { background: #4f46e5; color: #fff; }
+/* #2: фокус блока — внутри секции-области показываем ТОЛЬКО выбранный блок (#bld-block-popup),
+   список блоков и прочие fieldset'ы прячем. Выход — «← Ко всем блокам». */
+[data-bld-area="sections"].focus-on > :not(#bld-block-popup) { display: none !important; }
 /* SE-9f: рамка устройства (телефон/планшет) для превью — чтобы мобильная версия читалась как телефон. */
 #home-prev-shell.device-frame {
   border: 10px solid #111827;
@@ -819,6 +825,7 @@
   var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
   var curArea = null;
   function closePanel() {
+    closeBlockPopup();  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
     curArea = null;
     if (edPane) edPane.classList.add("-translate-x-full");
     if (backdrop) backdrop.classList.add("hidden");
@@ -846,6 +853,9 @@
   railBtns.forEach(function (b) {
     b.addEventListener("click", function () {
       var area = b.getAttribute("data-area");
+      var wasFocus = secArea && secArea.classList.contains("focus-on");
+      closeBlockPopup();  // #2: переключение области — выход из фокуса блока (вернуть строку, снять .focus-on)
+      if (wasFocus && area === "sections") { showArea("sections"); return; }  // фокус → список блоков
       if (curArea === area) closePanel(); else showArea(area);  // повторный клик — свернуть
     });
   });
@@ -1190,6 +1200,8 @@
   var popupTitle = document.getElementById("bld-block-popup-title");
   var popupClose = document.getElementById("bld-block-popup-close");
   var popupRow = null, popupAnchor = null, selectedSec = null;
+  // #2: контейнер секции-области — на него вешаем .focus-on (CSS прячет всё, кроме выбранного блока).
+  var secArea = (edPane || document).querySelector('[data-bld-area="sections"]');
   function clearSelected() {
     if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e) {} selectedSec = null; }
   }
@@ -1214,6 +1226,7 @@
     clearSelected();
     highlightBlkBtn(null);  // SE-9c-3: снять подсветку иконки блока в рейле
     if (popup) popup.classList.add("hidden");
+    if (secArea) secArea.classList.remove("focus-on");  // #2: вернуть список блоков
   }
   function openBlockPopup(key) {
     if (!popup) return false;
@@ -1231,22 +1244,12 @@
     popupRow = row;  // FIX: без этого closeBlockPopup не возвращал строку → блоки копились в попапе
     var lab = row.querySelector("label") || row.querySelector("span");
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
-    // SE-7 fix: попап настроек блока — потомок фокус-панели (#bld-editor-pane). Когда панель
-    // свёрнута (-translate-x-full), transform делает её containing-block для position:fixed →
-    // попап уезжал за экран; на левой панели он ещё и перекрывал её. Открываем область sections
-    // (снимаем transform) и ставим попап СПРАВА от панели (или к краю канвы, если узко).
+    // #2: фокус блока В ЛЕВОЙ панели (вместо прежнего плавающего попапа). Открываем
+    // секцию-область и помечаем .focus-on → CSS прячет список блоков и прочие fieldset'ы;
+    // виден только этот блок + шапка «← Ко всем блокам».
     showArea("sections");
-    // offsetWidth не зависит от transform (в отличие от getBoundingClientRect во время
-    // анимации слайда) → правый край панели = ширина рейла (w-16=64px) + ширина панели.
-    var panelRight = 64 + (edPane ? edPane.offsetWidth : 360);
-    popup.style.top = "72px";
-    if (window.innerWidth - panelRight > 320) {  // есть место справа от панели
-      popup.style.left = panelRight + 8 + "px";
-      popup.style.right = "auto";
-    } else {  // узко: панель почти на весь экран — попап к правому краю канвы
-      popup.style.left = "auto";
-      popup.style.right = "8px";
-    }
+    if (secArea) secArea.classList.add("focus-on");
+    if (edPane) edPane.scrollTop = 0;  // показать шапку «← Ко всем блокам»
     popup.classList.remove("hidden");
     highlightBlkBtn(key);  // SE-9c-3: подсветить иконку этого блока в рейле
     return true;
