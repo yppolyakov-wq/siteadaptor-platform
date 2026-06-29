@@ -13,9 +13,13 @@ if/elif: единый источник правды + основа для C-бл
 {% for b in section_blocks %}
   {% comment %}SE-3c-mid: display:contents вынесен в класс `contents`, чтобы
   респонсив-классы скрытия по устройствам могли его переопределить на нужном
-  брейкпойнте. --sf-* остаются inline (когда заданы).{% endcomment %}
+  брейкпойнте. --sf-* остаются inline (когда заданы).
+  SE-3e: ширина секции — `contained` (живёт в общем макс-контейнере шаблона) или
+  `full` (full-bleed во всю ширину экрана теми же утилитами, что hero: 100vw,
+  центрирование через left-1/2/-translate, + горизонтальные отступы чтобы контент
+  не липнул к краям).{% endcomment %}
   <div data-sf-section="{% if b.id %}{{ b.id }}{% else %}{{ b.key }}{% endif %}"
-       class="contents{% if 'mobile' in b.hidden_on %} max-sm:hidden{% endif %}{% if 'tablet' in b.hidden_on %} sm:max-lg:hidden{% endif %}{% if 'desktop' in b.hidden_on %} lg:hidden{% endif %}"
+       class="{% if b.width == 'full' %}relative left-1/2 -translate-x-1/2 w-screen px-4 lg:px-8{% else %}contents{% endif %}{% if 'mobile' in b.hidden_on %} max-sm:hidden{% endif %}{% if 'tablet' in b.hidden_on %} sm:max-lg:hidden{% endif %}{% if 'desktop' in b.hidden_on %} lg:hidden{% endif %}"
        style="{% if b.visual.radius %}--sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if b.visual.background %}--sf-bg:{{ b.visual.background }};{% endif %}{% if b.visual.padding %}--sf-pad:{{ b.visual.padding }}px;{% endif %}">{% render_block b %}</div>
 {% endfor %}
 {% endblock %}

@@ -134,12 +134,14 @@ def _clean_cblock(item: dict) -> dict:
     """C-блок → {key, id, enabled, data}. id сохраняется (или генерится)."""
     key = item["key"]
     bid = _s(item.get("id")) or uuid.uuid4().hex[:12]
+    w = item.get("width")
     return {
         "key": key,
         "id": bid,
         "enabled": bool(item.get("enabled", True)),
         "data": _clean_cblock_data(key, item.get("data")),
         "hidden_on": _clean_hidden_on(item.get("hidden_on")),  # SE-3c-mid
+        "width": w if w in _LAYOUT_WIDTHS else "contained",  # SE-3e
     }
 
 
@@ -998,6 +1000,11 @@ def _section_entry(key, enabled, raw_item):
     entry["visual"] = _clean_visual(raw_item.get("visual"))
     # SE-3c-mid: скрыть секцию на устройствах (mobile/tablet/desktop). Пусто = везде.
     entry["hidden_on"] = _clean_hidden_on(raw_item.get("hidden_on"))
+    # SE-3e: ширина контейнера секции — "contained" (в общем макс-контейнере) или
+    # "full" (во всю ширину экрана, full-bleed). Действует на ЛЮБУЮ секцию (не только
+    # сетки); общий размер контейнера задан в шаблоне (_base.html max-w-7xl).
+    w = raw_item.get("width")
+    entry["width"] = w if w in _LAYOUT_WIDTHS else "contained"
     return entry
 
 

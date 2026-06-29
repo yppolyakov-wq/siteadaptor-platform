@@ -276,7 +276,16 @@
                   <input type="checkbox" name="show_all_{{ s.key }}" {% if s.show_all %}checked{% endif %} class="rounded border-gray-300">{% trans "View all" %}</label>
               {% endif %}
               {# SE-3d: визуальные параметры блока #}
-              <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3">
+              <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3 flex-wrap">
+                {% comment %}SE-3e: ширина контейнера секции (по контейнеру / во всю ширину).
+                   Basic — простая, частая настройка; общий размер контейнера задан в шаблоне.{% endcomment %}
+                <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Section width on the page' %}">
+                  {% trans "Width" %}
+                  <select name="width_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600 sf-width-select" data-key="{{ s.key }}">
+                    <option value="contained" {% if s.width != 'full' %}selected{% endif %}>{% trans "Contained" %}</option>
+                    <option value="full" {% if s.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
+                  </select>
+                </label>
                 {# Basic: простой тоггл скругления #}
                 <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
                   <input type="checkbox" name="visual_radius_{{ s.key }}"
@@ -718,31 +727,30 @@
       <h3 class="font-semibold mb-1">{% trans "Banner slides" %}</h3>
       <p class="text-xs text-gray-400 mb-4">{% trans "Up to 6 slides — photo, heading, text and a button. Two or more slides rotate automatically. JPEG/PNG/WEBP, max 5 MB." %}</p>
       {% for h in config.heroes %}
-        <div class="border border-gray-100 rounded-xl p-4 mb-4">
-          <div class="flex items-start gap-4">
-            <div class="w-28 shrink-0">
+        {# FIX: фото+контролы сверху, форма во всю ширину панели — без бокового скролла (узкая панель). #}
+        <div class="border border-gray-100 rounded-xl p-4 mb-4 min-w-0">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-24 shrink-0">
               {% if h.image %}<div class="aspect-video rounded-lg overflow-hidden bg-gray-100"><img src="{{ h.image }}" alt="" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-[11px]">{% trans "No photo" %}</div>{% endif %}
-              <div class="flex justify-between mt-2 text-sm">
-                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="up"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move up' %}" {% if forloop.first %}disabled{% endif %}>▲</button></form>
-                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="down"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move down' %}" {% if forloop.last %}disabled{% endif %}>▼</button></form>
-                <form method="post" onsubmit="return confirm('{% trans "Remove this slide?" %}')">{% csrf_token %}<input type="hidden" name="action" value="delete_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><button class="text-red-600 hover:text-red-800 px-1" title="{% trans 'Remove slide' %}">✕</button></form>
-              </div>
             </div>
-            <form method="post" enctype="multipart/form-data" class="flex-1 space-y-2">{% csrf_token %}
-              <input type="hidden" name="action" value="save_hero_slide">
-              <input type="hidden" name="slide_index" value="{{ forloop.counter0 }}">
-              <input type="text" name="hero_s_title" value="{{ h.title }}" placeholder="{% trans 'Heading' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ h.text }}</textarea>
-              <div class="flex gap-2">
-                <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" placeholder="{% trans 'Button text' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" placeholder="{% trans 'Button link' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              </div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
-                <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
-              </div>
-            </form>
+            <div class="flex items-center gap-2 ml-auto text-base">
+              <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="up"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move up' %}" {% if forloop.first %}disabled{% endif %}>▲</button></form>
+              <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="down"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move down' %}" {% if forloop.last %}disabled{% endif %}>▼</button></form>
+              <form method="post" onsubmit="return confirm('{% trans "Remove this slide?" %}')">{% csrf_token %}<input type="hidden" name="action" value="delete_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><button class="text-red-600 hover:text-red-800 px-1" title="{% trans 'Remove slide' %}">✕</button></form>
+            </div>
           </div>
+          <form method="post" enctype="multipart/form-data" class="space-y-2 min-w-0">{% csrf_token %}
+            <input type="hidden" name="action" value="save_hero_slide">
+            <input type="hidden" name="slide_index" value="{{ forloop.counter0 }}">
+            <input type="text" name="hero_s_title" value="{{ h.title }}" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ h.text }}</textarea>
+            <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <div class="flex items-center gap-2 flex-wrap">
+              <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
+              <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
+            </div>
+          </form>
         </div>
       {% endfor %}
       {% if config.heroes|length < 6 %}
@@ -751,12 +759,10 @@
           <form method="post" enctype="multipart/form-data" class="space-y-2">{% csrf_token %}
             <input type="hidden" name="action" value="save_hero_slide">
             <input type="hidden" name="slide_index" value="">
-            <input type="text" name="hero_s_title" placeholder="{% trans 'Heading' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
-            <div class="flex gap-2">
-              <input type="text" name="hero_s_btn_label" placeholder="{% trans 'Button text' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            </div>
+            <input type="text" name="hero_s_title" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+            <input type="text" name="hero_s_btn_label" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <div class="flex items-center gap-2 flex-wrap">
               <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
               <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add slide" %}</button>
@@ -773,13 +779,13 @@
       <h3 class="font-semibold mb-1">{% trans "Section cover photos" %}</h3>
       <p class="text-xs text-gray-400 mb-4">{% trans "Banner photo on each section's landing page (catalog, events, …). JPEG/PNG/WEBP, max 5 MB." %}</p>
       {% for c in cover_specs %}
-        <div class="border border-gray-100 rounded-xl p-4 mb-3">
+        <div class="border border-gray-100 rounded-xl p-4 mb-3 min-w-0">
           <div class="flex items-center gap-2 mb-2"><span class="text-lg">{{ c.icon }}</span><span class="text-sm font-medium">{{ c.label }}</span></div>
-          <div class="flex items-start gap-4">
-            <div class="w-28 shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-24 shrink-0">
               {% if c.hero_image %}<div class="aspect-video rounded-lg overflow-hidden bg-gray-100"><img src="{{ c.hero_image }}" alt="" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-[11px]">{% trans "No photo" %}</div>{% endif %}
             </div>
-            <form method="post" enctype="multipart/form-data" class="flex-1 flex items-center gap-2 flex-wrap">{% csrf_token %}
+            <form method="post" enctype="multipart/form-data" class="flex-1 min-w-0 flex items-center gap-2 flex-wrap">{% csrf_token %}
               <input type="hidden" name="action" value="upload_cover_hero">
               <input type="hidden" name="archetype" value="{{ c.key }}">
               <input type="file" name="image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
@@ -972,6 +978,7 @@
   function closePanel() {
     closeBlockPopup();  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
     curArea = null;
+    try { localStorage.removeItem("sf_cur_area"); } catch (e) {}  // FIX item2: свёрнули — не восстанавливать
     if (edPane) edPane.classList.add("bld-collapsed");
     if (backdrop) backdrop.classList.add("hidden");
     railBtns.forEach(function (b) {
@@ -982,6 +989,9 @@
   function showArea(area, title) {  // всегда открывает (без переключения); title — для областей без кнопки рейла
     if (!edPane) return;
     curArea = area;
+    // FIX item2: помним активную область → после сохранения-перезагрузки (слайд/обложка/лого/секции)
+    // возвращаемся к ней, а не к дефолту.
+    try { localStorage.setItem("sf_cur_area", area); } catch (e) {}
     areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== area); });
     edPane.classList.remove("bld-collapsed");
     if (backdrop) backdrop.classList.toggle("hidden", !isNarrow);
@@ -1013,7 +1023,13 @@
   }
   if (drawerClose) drawerClose.addEventListener("click", closePanel);
   if (backdrop) backdrop.addEventListener("click", closePanel);
-  if (!isNarrow) showArea("sections");  // на широком экране сразу секции; на узком — рейл
+  if (!isNarrow) {
+    // FIX item2: восстановить область, где владелец был до сохранения-перезагрузки (если она есть в панели).
+    var savedArea = null;
+    try { savedArea = localStorage.getItem("sf_cur_area"); } catch (e) {}
+    if (savedArea && edPane && edPane.querySelector('[data-bld-area="' + savedArea + '"]')) showArea(savedArea);
+    else showArea("sections");  // на широком экране сразу секции; на узком — рейл
+  }
   // SE-9b: открыть область с блока (gallery-media / catalog-add) с подписью панели.
   // Подписи в JS-карте (не в onclick) → апостроф в переводе не ломает кавычки атрибута.
   window.__sfShowArea = function (area) {
@@ -1205,6 +1221,9 @@
         var el = form.querySelector("input[name='hide_" + d + "_" + r.key + "']");
         return el && el.checked;
       });
+      // SE-3e: ширина контейнера секции (contained/full) → в превью.
+      var wSel = form.querySelector("select[name='width_" + r.key + "']");
+      if (wSel && wSel.value) sec.width = wSel.value;
       return sec;
     });
     var archetypes = {};

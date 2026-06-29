@@ -95,6 +95,37 @@ def test_home_builder_saves_limit():
     assert siteconfig.section_limit(cfg, "products") == 4
 
 
+def test_home_builder_saves_section_width():
+    """SE-3e: ширина контейнера секции (full/contained) сохраняется на уровне секции
+    (для любой секции, не только сетки)."""
+    tenant = TenantFactory(schema_name="public", slug="hbw", name="HBW")
+    data = {
+        "order_products": "1",
+        "enabled_products": "on",
+        "width_products": "full",
+        "order_hero": "2",
+        "enabled_hero": "on",
+        "width_hero": "bogus",  # мусор → contained
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    hero = next(s for s in cfg["sections"] if s["key"] == "hero")
+    assert products["width"] == "full"
+    assert hero["width"] == "contained"  # невалидное значение откатилось к дефолту
+
+
+def test_home_builder_get_renders_width_control():
+    """SE-3e: GET билдера отдаёт селект ширины секции."""
+    tenant = TenantFactory(schema_name="public", slug="hbwg", name="HBWG")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'name="width_products"' in body
+    assert 'value="full"' in body
+
+
 def test_home_builder_saves_product_source():
     """M20U-7: источник товаров секции products сохраняется."""
     tenant = TenantFactory(schema_name="public", slug="hbs", name="HBS")

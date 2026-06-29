@@ -456,6 +456,38 @@ def test_hidden_on_on_cblock():
     assert block["hidden_on"] == ["mobile"]
 
 
+# --- SE-3e: ширина контейнера секции (contained/full) ----------------------------
+
+
+def test_section_width_default_contained():
+    cfg = siteconfig.normalize({})
+    for s in cfg["sections"]:
+        assert s["width"] == "contained"  # дефолт = в общем контейнере (без регрессии)
+
+
+def test_section_width_full_preserved_and_garbage_dropped():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "products", "enabled": True, "width": "full"},
+                {"key": "hero", "enabled": True, "width": "weird"},
+            ]
+        }
+    )
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    hero = next(s for s in cfg["sections"] if s["key"] == "hero")
+    assert products["width"] == "full"  # валидное значение сохранено
+    assert hero["width"] == "contained"  # мусор → дефолт
+
+
+def test_section_width_on_cblock():
+    cfg = siteconfig.normalize(
+        {"sections": [{"key": "text", "id": "x9", "data": {"title": "T"}, "width": "full"}]}
+    )
+    block = next(s for s in cfg["sections"] if s.get("id") == "x9")
+    assert block["width"] == "full"  # ширина действует и на C-блоки
+
+
 # --- SE-4b: шаблоны страниц (page_templates) --------------------------------------
 
 

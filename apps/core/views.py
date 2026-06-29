@@ -821,6 +821,8 @@ def home_builder_view(request):
                 for d in ("mobile", "tablet", "desktop")
                 if request.POST.get(f"hide_{d}_{key}") == "on"
             ]
+            # SE-3e: ширина контейнера секции (contained/full). normalize валидирует.
+            entry["width"] = request.POST.get(f"width_{key}", "contained")
             if key in siteconfig.GRID_SECTION_DEFAULTS:
                 preset = request.POST.get(f"layout_preset_{key}", "")
                 lay = {"preset": preset} if preset in siteconfig.LAYOUT_PRESETS else {}
@@ -1093,6 +1095,8 @@ def home_builder_view(request):
                 "visual_padding": int(s.get("visual", {}).get("padding", 0)),
                 # SE-3c-mid: на каких устройствах секция скрыта.
                 "hidden_on": s.get("hidden_on", []),
+                # SE-3e: ширина контейнера секции (contained/full).
+                "width": s.get("width", "contained"),
             }
         )
     preset_options = [
@@ -1376,6 +1380,9 @@ def site_preview_draft(request):
                 # SE-3c-mid: скрыть секцию на устройстве → в превью.
                 if isinstance(item.get("hidden_on"), list):
                     row["hidden_on"] = item["hidden_on"]
+                # SE-3e: ширина контейнера секции (contained/full) → в превью.
+                if item.get("width") in ("contained", "full"):
+                    row["width"] = item["width"]
                 rows.append(row)
                 seen.add(key)
         if rows:
