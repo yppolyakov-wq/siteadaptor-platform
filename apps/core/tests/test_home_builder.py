@@ -1103,3 +1103,39 @@ def test_home_builder_menu_presence_guard_keeps_nav():
     views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["nav"]["style"] == "minimal" and cfg["nav"]["sticky"] is True  # сохранён
+
+
+def test_home_builder_se7d_banner_and_footer_areas():
+    """SE-7d: области 🖼 Баннер (hero) + 🔻 Подвал в рейле; hero сохраняется."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbse7d", name="HBSE7D", site_config={"hero_title": "Alt"}
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-area="banner"' in body and 'data-bld-area="banner"' in body
+    assert 'data-area="footer"' in body and 'data-bld-area="footer"' in body
+    assert 'name="hero_title"' in body and "Alt" in body  # pre-filled
+    # POST с баннером → hero_title/text сохранены
+    data = {
+        "hero_title": "Willkommen",
+        "hero_text": "Hallo Welt",
+        "order_hero": "1",
+        "enabled_hero": "on",
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["hero_title"] == "Willkommen" and cfg["hero_text"] == "Hallo Welt"
+
+
+def test_home_builder_banner_presence_guard_keeps_hero():
+    """SE-7d: POST без hero_title не затирает заголовок баннера (presence-guard)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbse7dg", name="HBSE7DG", site_config={"hero_title": "Keep"}
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"order_hero": "1", "enabled_hero": "on"}, tenant)
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["hero_title"] == "Keep"

@@ -818,6 +818,11 @@ def home_builder_view(request):
             nav["style"] = ns if ns in siteconfig.NAV_STYLES else nav.get("style", "classic")
             nav["sticky"] = request.POST.get("nav_sticky") == "on"
             config["nav"] = nav
+        # SE-7d: область «Баннер» — заголовок/текст hero (presence-guard, чтобы прочие
+        # сохранения не затирали; инпуты пред-заполнены из config → round-trip).
+        if "hero_title" in request.POST:
+            config["hero_title"] = request.POST.get("hero_title", "").strip()
+            config["hero_text"] = request.POST.get("hero_text", "").strip()
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
         config["font"] = request.POST.get("font", config.get("font", "system"))
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
@@ -974,6 +979,9 @@ def home_builder_view(request):
             "nav_style": config["nav"]["style"],
             "nav_sticky": config["nav"]["sticky"],
             "nav_styles": siteconfig.NAV_STYLES,
+            # SE-7d: область «Баннер» — заголовок/текст hero (картинка — на канве/в галерее).
+            "hero_title": config["hero_title"],
+            "hero_text": config["hero_text"],
             # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
             "cblocks": cblocks,
             # SE-4a: библиотека сохранённых блок-шаблонов (id/тип/имя) для вставки.

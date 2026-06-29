@@ -317,7 +317,7 @@ cross-iframe DnD (parent→iframe) не срабатывает в большин
 - **SE-7b ✅ Миниатюры раскладок.** Заменить `<select>` (layout_preset_*, catalog/events/stay) на
   визуальные карточки-миниатюры (list/2/3/4/gallery — мини-диаграммой), purge-safe; клик = выбор.
 - **SE-7c ✅ Меню как область:** surface nav-конфига (стиль/sticky/пункты) в редактор.
-- **SE-7d — Баннер + Подвал как области:** hero (title/text/image/slider) + contact/Impressum.
+- **SE-7d ✅ Баннер + Подвал как области:** hero (title/text/image/slider) + contact/Impressum.
 
 **Риск/тесты:** перекладка вёрстки + JS show/hide; логика не меняется (id сохранены). Гейт: ruff +
 build:css (новые утилиты) + GET билдера 200 и содержит рейл/области; визуал — владелец на деплое.

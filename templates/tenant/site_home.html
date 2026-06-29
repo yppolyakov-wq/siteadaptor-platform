@@ -32,10 +32,12 @@
    {% comment %}Рейл областей — клик открывает фокус-панель этой области (одну).{% endcomment %}
    <nav id="bld-rail" class="shrink-0 w-16 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-xl leading-none">🎨</span><span class="text-[10px] leading-tight">{% trans "Theme" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="banner"><span class="text-xl leading-none">🖼</span><span class="text-[10px] leading-tight">{% trans "Banner" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-xl leading-none">🧱</span><span class="text-[10px] leading-tight">{% trans "Sections" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-xl leading-none">☰</span><span class="text-[10px] leading-tight">{% trans "Menu" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-xl leading-none">🔻</span><span class="text-[10px] leading-tight">{% trans "Footer" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-xl leading-none">📚</span><span class="text-[10px] leading-tight">{% trans "Templates" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-xl leading-none">🖼</span><span class="text-[10px] leading-tight">{% trans "Media" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-xl leading-none">🗂</span><span class="text-[10px] leading-tight">{% trans "Media" %}</span></button>
    </nav>
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
@@ -148,6 +150,24 @@
           <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">{% trans "Pages" %}</a>.</p>
       </fieldset>
       </div>{% comment %}/область 🎨 Тема{% endcomment %}
+
+      {% comment %}SE-7d область 🖼 Баннер: заголовок/текст hero. Картинка баннера — на канве
+      (клик по баннеру) или в галерее. Поля в #home-form → сабмит с Save.{% endcomment %}
+      <div data-bld-area="banner" class="bld-area space-y-6 hidden">
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <legend class="font-semibold mb-1">{% trans "Banner / hero" %}</legend>
+        <label class="block text-sm">
+          <span class="block font-medium mb-1">{% trans "Banner heading" %}</span>
+          <input type="text" name="hero_title" value="{{ hero_title }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </label>
+        <label class="block text-sm">
+          <span class="block font-medium mb-1">{% trans "Banner text" %}</span>
+          <textarea name="hero_text" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ hero_text }}</textarea>
+        </label>
+        <p class="text-xs text-gray-400">{% trans "Banner background image: click the banner on the canvas, or add photos under Media. Accent background is in" %}
+          <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;theme&quot;]').click()">{% trans "Theme" %}</button>.</p>
+      </fieldset>
+      </div>{% comment %}/область 🖼 Баннер{% endcomment %}
 
       {% comment %}SE-7 область 🧱 Основная (секции): блоки главной + лендинги + тизеры + C-блоки.{% endcomment %}
       <div data-bld-area="sections" class="bld-area space-y-6 hidden">
@@ -465,6 +485,21 @@
           <a href="{% url 'site-menu' %}" class="text-indigo-600 hover:underline">{% trans "menu builder" %}</a>.</p>
       </fieldset>
       </div>{% comment %}/область ☰ Меню{% endcomment %}
+
+      {% comment %}SE-7d область 🔻 Подвал: видимость секции контактов + ссылки в настройки
+      (контакты/часы/Impressum — поля Tenant, правятся в «Settings», не дублируем здесь).{% endcomment %}
+      <div data-bld-area="footer" class="bld-area space-y-6 hidden">
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+        <legend class="font-semibold mb-1">{% trans "Footer" %}</legend>
+        <p class="text-sm text-gray-600">{% trans "The footer shows your contact, opening hours and legal links. Edit them here:" %}</p>
+        <div class="flex flex-col gap-2 text-sm">
+          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Contact & opening hours" %}</a>
+          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
+        </div>
+        <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
+          <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;sections&quot;]').click()">{% trans "Sections" %}</button>.</p>
+      </fieldset>
+      </div>{% comment %}/область 🔻 Подвал{% endcomment %}
     </form>
 
     {% comment %}SE-7 область 📚 Шаблоны/История: добавить блок · библиотеки шаблонов · версии.{% endcomment %}
