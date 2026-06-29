@@ -291,6 +291,90 @@ def _delete_logo(request) -> None:
     messages.success(request, _("Logo removed."))
 
 
+def _hero_slide_from_post(request, existing_image: str = "") -> dict:
+    """M2: слайд баннера из формы — текст + опц. фото (файл приоритетнее URL)."""
+    slide = {
+        "image": existing_image,
+        "title": request.POST.get("hero_s_title", "").strip(),
+        "text": request.POST.get("hero_s_text", "").strip(),
+        "button_label": request.POST.get("hero_s_btn_label", "").strip(),
+        "button_url": request.POST.get("hero_s_btn_url", "").strip(),
+    }
+    uploaded = request.FILES.get("hero_s_image")
+    url = request.POST.get("hero_s_image_url", "").strip()
+    if uploaded:
+        from django.core.exceptions import ValidationError
+
+        from apps.catalog.images import save_product_image
+
+        try:
+            slide["image"] = save_product_image(uploaded, folder="hero")["url"]
+        except ValidationError as exc:
+            messages.error(request, "; ".join(exc.messages))
+    elif url:
+        slide["image"] = url
+    return slide
+
+
+def _hero_slide_index(request) -> int:
+    try:
+        return int(request.POST.get("slide_index", ""))
+    except (ValueError, TypeError):
+        return -1
+
+
+def _save_hero_slide(request) -> None:
+    """M2: создать/обновить слайд баннера (site_config['heroes'], ≤6). slide_index пуст → добавить."""
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    heroes = list(cfg.get("heroes") or [])
+    idx = _hero_slide_index(request)
+    existing = heroes[idx]["image"] if 0 <= idx < len(heroes) else ""
+    slide = _hero_slide_from_post(request, existing_image=existing)
+    if 0 <= idx < len(heroes):
+        heroes[idx] = slide
+    elif len(heroes) < siteconfig._MAX_HEROES:
+        heroes.append(slide)
+    else:
+        messages.info(request, _("Slide limit reached (max 6)."))
+        return
+    cfg["heroes"] = heroes
+    request.tenant.site_config = siteconfig.normalize(cfg)
+    request.tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, _("Banner slide saved."))
+
+
+def _delete_hero_slide(request) -> None:
+    """M2: удалить слайд баннера по индексу."""
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    heroes = list(cfg.get("heroes") or [])
+    idx = _hero_slide_index(request)
+    if 0 <= idx < len(heroes):
+        heroes.pop(idx)
+        cfg["heroes"] = heroes
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, _("Slide removed."))
+
+
+def _move_hero_slide(request) -> None:
+    """M2: переставить слайд баннера (up/down)."""
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    heroes = list(cfg.get("heroes") or [])
+    idx = _hero_slide_index(request)
+    j = idx + (-1 if request.POST.get("dir") == "up" else 1)
+    if 0 <= idx < len(heroes) and 0 <= j < len(heroes):
+        heroes[idx], heroes[j] = heroes[j], heroes[idx]
+        cfg["heroes"] = heroes
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+
+
 def _parse_opening_hours(request) -> dict:
     """Структурные часы из формы (P1b): по дню оба поля заполнены → интервал."""
     out = {}
@@ -590,6 +674,16 @@ def home_builder_view(request):
             return redirect("site-home")
         if request.POST.get("action") == "delete_logo":
             _delete_logo(request)
+            return redirect("site-home")
+        # M2: слайды баннера (heroes[]) — создать/обновить/удалить/переставить (multipart).
+        if request.POST.get("action") == "save_hero_slide":
+            _save_hero_slide(request)
+            return redirect("site-home")
+        if request.POST.get("action") == "delete_hero_slide":
+            _delete_hero_slide(request)
+            return redirect("site-home")
+        if request.POST.get("action") == "move_hero_slide":
+            _move_hero_slide(request)
             return redirect("site-home")
         # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
         # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить

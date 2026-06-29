@@ -217,6 +217,93 @@ def test_home_builder_get_renders_logo_control():
     assert 'value="upload_logo"' in body
 
 
+def test_hero_slides_crud(tmp_path, settings):
+    """M2: слайды баннера — добавить/обновить/фото/переставить/удалить (heroes[])."""
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    tenant = TenantFactory(schema_name="public", slug="hbh", name="HBH")
+
+    def heroes():
+        return siteconfig.normalize(tenant.site_config)["heroes"]
+
+    # добавить слайд (index пуст → append)
+    req = _request(
+        "post",
+        "/dashboard/site/home/",
+        {"action": "save_hero_slide", "slide_index": "", "hero_s_title": "Sommer"},
+        tenant,
+    )
+    assert views.home_builder_view(req).status_code == 302
+    assert len(heroes()) == 1 and heroes()[0]["title"] == "Sommer"
+
+    # обновить слайд 0 (текст + кнопка)
+    req = _request(
+        "post",
+        "/dashboard/site/home/",
+        {
+            "action": "save_hero_slide",
+            "slide_index": "0",
+            "hero_s_title": "Winter",
+            "hero_s_btn_label": "Mehr",
+            "hero_s_btn_url": "/sortiment/",
+        },
+        tenant,
+    )
+    assert views.home_builder_view(req).status_code == 302
+    assert heroes()[0]["title"] == "Winter" and heroes()[0]["button_url"] == "/sortiment/"
+
+    # добавить второй слайд с фото (файл)
+    buf = BytesIO()
+    Image.new("RGB", (40, 20), "#abc").save(buf, format="PNG")
+    req = _request(
+        "post",
+        "/dashboard/site/home/",
+        {"action": "save_hero_slide", "slide_index": "", "hero_s_title": "Aktion"},
+        tenant,
+    )
+    req.FILES["hero_s_image"] = SimpleUploadedFile(
+        "b.png", buf.getvalue(), content_type="image/png"
+    )
+    assert views.home_builder_view(req).status_code == 302
+    h = heroes()
+    assert len(h) == 2 and h[1]["image"]  # фото сохранено
+
+    # переставить слайд 1 вверх → стал первым
+    req = _request(
+        "post",
+        "/dashboard/site/home/",
+        {"action": "move_hero_slide", "slide_index": "1", "dir": "up"},
+        tenant,
+    )
+    assert views.home_builder_view(req).status_code == 302
+    assert heroes()[0]["title"] == "Aktion"
+
+    # удалить слайд 0
+    req = _request(
+        "post",
+        "/dashboard/site/home/",
+        {"action": "delete_hero_slide", "slide_index": "0"},
+        tenant,
+    )
+    assert views.home_builder_view(req).status_code == 302
+    h = heroes()
+    assert len(h) == 1 and h[0]["title"] == "Winter"
+
+
+def test_home_builder_get_renders_banner_slides():
+    """M2: в билдере есть менеджер слайдов баннера (область banner-media + save_hero_slide)."""
+    tenant = TenantFactory(schema_name="public", slug="hbbs", name="HBBS")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-bld-area="banner-media"' in body
+    assert 'value="save_hero_slide"' in body
+
+
 def test_home_builder_get_renders():
     tenant = TenantFactory(schema_name="public", slug="hb2", name="HB2")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))

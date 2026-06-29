@@ -172,6 +172,14 @@
           <span class="block font-medium mb-1">{% trans "Banner text" %}</span>
           <textarea name="hero_text" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ hero_text }}</textarea>
         </label>
+        {% comment %}M2: слайдер баннера (heroes[]) — менеджер слайдов в области banner-media
+           (фото-файл + заголовок/текст/кнопка, до 6, авто-ротация). Открывается тут и кликом по
+           баннеру на канве.{% endcomment %}
+        <div class="pt-2 border-t border-gray-100">
+          <p class="text-sm font-medium mb-2">{% trans "Banner slides (slider)" %}</p>
+          <button type="button" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50" onclick="window.__sfShowArea('banner-media')">🖼 {% trans "Manage slides" %}{% if config.heroes %} ({{ config.heroes|length }}){% endif %}</button>
+          <p class="text-xs text-gray-400 mt-1">{% trans "Photo + heading + text + button per slide; multiple slides rotate. Slides override the single banner above." %}</p>
+        </div>
         <p class="text-xs text-gray-400">{% trans "Banner background image: click the banner on the canvas. Accent background is in" %}
           <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;theme&quot;]').click()">{% trans "Theme" %}</button>.</p>
       </fieldset>
@@ -695,6 +703,61 @@
       </form>
     </div>
     </div>{% comment %}/область logo-media{% endcomment %}
+
+    {# M2: слайды баннера (multipart, отдельные формы — НЕ в #home-form). #}
+    <div data-bld-area="banner-media" class="bld-area space-y-6 hidden">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="font-semibold mb-1">{% trans "Banner slides" %}</h3>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Up to 6 slides — photo, heading, text and a button. Two or more slides rotate automatically. JPEG/PNG/WEBP, max 5 MB." %}</p>
+      {% for h in config.heroes %}
+        <div class="border border-gray-100 rounded-xl p-4 mb-4">
+          <div class="flex items-start gap-4">
+            <div class="w-28 shrink-0">
+              {% if h.image %}<div class="aspect-video rounded-lg overflow-hidden bg-gray-100"><img src="{{ h.image }}" alt="" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-[11px]">{% trans "No photo" %}</div>{% endif %}
+              <div class="flex justify-between mt-2 text-sm">
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="up"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move up' %}" {% if forloop.first %}disabled{% endif %}>▲</button></form>
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="down"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move down' %}" {% if forloop.last %}disabled{% endif %}>▼</button></form>
+                <form method="post" onsubmit="return confirm('{% trans "Remove this slide?" %}')">{% csrf_token %}<input type="hidden" name="action" value="delete_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><button class="text-red-600 hover:text-red-800 px-1" title="{% trans 'Remove slide' %}">✕</button></form>
+              </div>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="flex-1 space-y-2">{% csrf_token %}
+              <input type="hidden" name="action" value="save_hero_slide">
+              <input type="hidden" name="slide_index" value="{{ forloop.counter0 }}">
+              <input type="text" name="hero_s_title" value="{{ h.title }}" placeholder="{% trans 'Heading' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ h.text }}</textarea>
+              <div class="flex gap-2">
+                <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" placeholder="{% trans 'Button text' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" placeholder="{% trans 'Button link' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
+                <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+      {% if config.heroes|length < 6 %}
+        <div class="border border-dashed border-gray-300 rounded-xl p-4">
+          <p class="text-sm font-medium mb-2">＋ {% trans "New slide" %}</p>
+          <form method="post" enctype="multipart/form-data" class="space-y-2">{% csrf_token %}
+            <input type="hidden" name="action" value="save_hero_slide">
+            <input type="hidden" name="slide_index" value="">
+            <input type="text" name="hero_s_title" placeholder="{% trans 'Heading' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+            <div class="flex gap-2">
+              <input type="text" name="hero_s_btn_label" placeholder="{% trans 'Button text' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link' %}" class="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
+              <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add slide" %}</button>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+    </div>{% comment %}/область banner-media{% endcomment %}
    </aside>{% comment %}/#bld-editor-pane (фокус-панель){% endcomment %}
 
     {% comment %}SE-6: канвас — превью на весь экран (фон под шторкой). Тонкий тулбар сверху
@@ -916,7 +979,7 @@
   // SE-9b: открыть область с блока (gallery-media / catalog-add) с подписью панели.
   // Подписи в JS-карте (не в onclick) → апостроф в переводе не ломает кавычки атрибута.
   window.__sfShowArea = function (area) {
-    var titles = { "gallery-media": "🖼 {% trans 'Photo gallery' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🏷 {% trans 'Logo' %}" };
+    var titles = { "gallery-media": "🖼 {% trans 'Photo gallery' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🏷 {% trans 'Logo' %}", "banner-media": "🖼 {% trans 'Banner slides' %}" };
     showArea(area, titles[area]);
   };
 
