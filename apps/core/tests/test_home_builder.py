@@ -1046,3 +1046,17 @@ def test_home_builder_se6_fullscreen_overlay_shell():
     assert 'id="bld-editor-pane"' in body  # шторка-инспектор (id сохранён → JS работает)
     assert 'id="home-prev-frame"' in body  # канвас-iframe сохранён
     assert 'id="bld-tab-editor"' not in body  # старый сплит-таб Редактор/Превью убран
+
+
+def test_home_builder_se7_rail_and_areas():
+    """SE-7a: рейл областей + фокус-панель (одна область за раз), контент партиционирован."""
+    tenant = TenantFactory(schema_name="public", slug="hbse7", name="HBSE7")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'id="bld-rail"' in body  # вертикальный рейл областей
+    assert 'class="bld-rail-btn' in body and 'data-area="theme"' in body
+    assert 'data-area="sections"' in body and 'data-area="library"' in body
+    assert 'data-bld-area="theme"' in body  # контент области Тема
+    assert 'data-bld-area="sections"' in body  # контент области Секции
+    assert "function showArea" in body  # JS переключения областей

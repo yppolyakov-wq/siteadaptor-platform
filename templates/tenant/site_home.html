@@ -25,16 +25,26 @@
     </div>
   {% endif %}
 
-  {% comment %}Тело: канвас (#bld-preview-pane, фон) + шторка-инспектор (#bld-editor-pane, оверлей справа).{% endcomment %}
-  <div class="relative flex-1 min-h-0">
-   {% comment %}Бэкдроп под шторкой (мобайл) — клик закрывает.{% endcomment %}
-   <div id="bld-drawer-backdrop" class="hidden absolute inset-0 z-20 bg-black/20"></div>
-   <aside id="bld-editor-pane" class="absolute top-0 right-0 bottom-0 w-[400px] max-w-[92vw] z-30 bg-white shadow-2xl overflow-y-auto p-4 space-y-6 transition-transform duration-200">
-    <div class="flex items-center justify-between sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
-      <span class="text-sm font-semibold text-gray-700">✏️ {% trans "Edit" %}</span>
-      <button type="button" id="bld-drawer-close" class="text-gray-400 text-xl leading-none hover:text-gray-700" aria-label="{% trans 'Close' %}">✕</button>
-    </div>
-    <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
+  {% comment %}SE-7 (Вариант 3): тело = рейл областей (слева) + фокус-панель одной области
+  (#bld-editor-pane, оверлей слева) + канвас (#bld-preview-pane). Одна область за раз →
+  без перегруза; свернул → рейл, сайт на всю ширину. Все id/логика сохранены.{% endcomment %}
+  <div class="relative flex-1 min-h-0 flex">
+   {% comment %}Рейл областей — клик открывает фокус-панель этой области (одну).{% endcomment %}
+   <nav id="bld-rail" class="shrink-0 w-16 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
+     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-xl leading-none">🎨</span><span class="text-[10px] leading-tight">{% trans "Theme" %}</span></button>
+     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-xl leading-none">🧱</span><span class="text-[10px] leading-tight">{% trans "Sections" %}</span></button>
+     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-xl leading-none">📚</span><span class="text-[10px] leading-tight">{% trans "Templates" %}</span></button>
+     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-xl leading-none">🖼</span><span class="text-[10px] leading-tight">{% trans "Media" %}</span></button>
+   </nav>
+   {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
+   <div class="relative flex-1 min-w-0">
+    <div id="bld-drawer-backdrop" class="hidden absolute inset-0 z-20 bg-black/20 lg:hidden"></div>
+    <aside id="bld-editor-pane" class="absolute top-0 left-0 bottom-0 w-[360px] max-w-[88vw] z-30 bg-white border-r border-gray-200 shadow-xl overflow-y-auto p-4 space-y-6 -translate-x-full transition-transform duration-200">
+     <div class="flex items-center justify-between sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
+       <span id="bld-panel-title" class="text-sm font-semibold text-gray-700">✏️ {% trans "Edit" %}</span>
+       <button type="button" id="bld-drawer-close" class="text-gray-400 text-xl leading-none hover:text-gray-700" aria-label="{% trans 'Close' %}">✕</button>
+     </div>
+     <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
 
       {% comment %}E.2: попап настроек блока — клик по блоку в превью переносит сюда его
@@ -55,6 +65,8 @@
         </div>
       </div>
 
+      {% comment %}SE-7 область 🎨 Тема: стартовая страница + дизайн (шрифт/акцент/типографика/карточки).{% endcomment %}
+      <div data-bld-area="theme" class="bld-area space-y-6">
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans 'What visitors see first. "Combined homepage" shows the blocks below; or jump straight into one section.' %}</p>
@@ -134,7 +146,10 @@
         <p class="text-xs text-gray-400 mt-3">{% trans "Grid layout of catalog / rooms / events pages lives under" %}
           <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">{% trans "Pages" %}</a>.</p>
       </fieldset>
+      </div>{% comment %}/область 🎨 Тема{% endcomment %}
 
+      {% comment %}SE-7 область 🧱 Основная (секции): блоки главной + лендинги + тизеры + C-блоки.{% endcomment %}
+      <div data-bld-area="sections" class="bld-area space-y-6 hidden">
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
         <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
@@ -423,8 +438,11 @@
         <button type="submit" name="action" value="save_page_template" formnovalidate
                 class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">🗂 {% trans "Save page as template" %}</button>
       </div>
+      </div>{% comment %}/область 🧱 Основная{% endcomment %}
     </form>
 
+    {% comment %}SE-7 область 📚 Шаблоны/История: добавить блок · библиотеки шаблонов · версии.{% endcomment %}
+    <div data-bld-area="library" class="bld-area space-y-6 hidden">
     {# D.2b: добавить C-блок (отдельная форма — сразу создаёт пустой блок для правки). #}
     <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
       {% csrf_token %}
@@ -491,7 +509,10 @@
       </div>
     </form>
     {% endif %}
+    </div>{% comment %}/область 📚 Шаблоны/История{% endcomment %}
 
+    {% comment %}SE-7 область 🖼 Медиа: категории + фото-галерея.{% endcomment %}
+    <div data-bld-area="media" class="bld-area space-y-6 hidden">
     {% comment %} SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
        Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). {% endcomment %}
     {% if has_catalog %}
@@ -536,7 +557,8 @@
         <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
       </form>
     </div>
-   </div>
+    </div>{% comment %}/область 🖼 Медиа{% endcomment %}
+   </aside>{% comment %}/#bld-editor-pane (фокус-панель){% endcomment %}
 
     {% comment %}SE-6: канвас — превью на весь экран (фон под шторкой). Тонкий тулбар сверху
     (Undo/Redo · страница · девайс · статус), iframe заполняет остаток.{% endcomment %}
@@ -569,9 +591,10 @@
                   class="w-full h-full bg-white rounded-xl" style="border:0;"></iframe>
         </div>
       </div>
-    </div>
-  </div>
-</div>
+    </div>{% comment %}/#bld-preview-pane (канвас){% endcomment %}
+   </div>{% comment %}/канвас-область{% endcomment %}
+  </div>{% comment %}/тело (рейл + канвас){% endcomment %}
+</div>{% comment %}/#bld-root{% endcomment %}
 
 {# E.3: плавающая библиотека блоков для инсертера «+» на канвасе превью. #}
 <div id="bld-inserter" class="hidden fixed z-50 w-44 max-w-[80vw]">
@@ -613,29 +636,55 @@
     return previewPath + (previewPath.indexOf("?") < 0 ? "?" : "&") + "preview=1";
   }
 
-  // SE-6: шторка-инспектор поверх канваса. Тоггл в топ-баре открывает/закрывает;
-  // на широких экранах открыта по умолчанию, на узких — закрыта (сайт на весь экран).
+  // SE-7 (Вариант 3): рейл областей + фокус-панель. Клик по иконке рейла открывает
+  // ОДНУ область (остальные скрыты) → без перегруза; повторный клик / ✕ сворачивает
+  // панель в рейл (сайт на весь экран). На широких экранах стартует с области «sections».
   var edPane = document.getElementById("bld-editor-pane");
   var backdrop = document.getElementById("bld-drawer-backdrop");
   var drawerToggle = document.getElementById("bld-drawer-toggle");
   var drawerClose = document.getElementById("bld-drawer-close");
+  var railBtns = document.querySelectorAll(".bld-rail-btn");
+  var panelTitle = document.getElementById("bld-panel-title");
+  var areas = edPane ? edPane.querySelectorAll("[data-bld-area]") : [];
   var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
-  function setDrawer(open) {
-    if (!edPane) return;
-    edPane.classList.toggle("translate-x-full", !open);
-    // бэкдроп — только на узких экранах (на широких канвас просто сужается визуально)
-    if (backdrop) backdrop.classList.toggle("hidden", !(open && isNarrow));
+  var curArea = null;
+  function closePanel() {
+    curArea = null;
+    if (edPane) edPane.classList.add("-translate-x-full");
+    if (backdrop) backdrop.classList.add("hidden");
+    railBtns.forEach(function (b) { b.classList.remove("bg-indigo-50", "text-indigo-700"); });
   }
-  // back-compat: click-to-edit вызывает activate("editor") → открыть шторку.
-  function activate(which) { if (which === "editor") setDrawer(true); }
+  function showArea(area) {  // всегда открывает (без переключения)
+    if (!edPane) return;
+    curArea = area;
+    areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== area); });
+    edPane.classList.remove("-translate-x-full");
+    if (backdrop) backdrop.classList.toggle("hidden", !isNarrow);
+    railBtns.forEach(function (b) {
+      var on = b.getAttribute("data-area") === area;
+      b.classList.toggle("bg-indigo-50", on); b.classList.toggle("text-indigo-700", on);
+    });
+    if (panelTitle) {
+      var btn = document.querySelector('.bld-rail-btn[data-area="' + area + '"]');
+      panelTitle.textContent = btn ? btn.textContent.trim() : "";
+    }
+  }
+  railBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      var area = b.getAttribute("data-area");
+      if (curArea === area) closePanel(); else showArea(area);  // повторный клик — свернуть
+    });
+  });
+  // back-compat: click-to-edit (фикс-секции/блоки) гарантированно открывает «sections».
+  function activate(which) { if (which === "editor") showArea("sections"); }
   if (drawerToggle) {
     drawerToggle.addEventListener("click", function () {
-      setDrawer(edPane.classList.contains("translate-x-full"));
+      if (curArea) closePanel(); else showArea("sections");
     });
   }
-  if (drawerClose) drawerClose.addEventListener("click", function () { setDrawer(false); });
-  if (backdrop) backdrop.addEventListener("click", function () { setDrawer(false); });
-  setDrawer(!isNarrow);  // стартовое состояние
+  if (drawerClose) drawerClose.addEventListener("click", closePanel);
+  if (backdrop) backdrop.addEventListener("click", closePanel);
+  if (!isNarrow) showArea("sections");  // на широком экране сразу секции; на узком — рейл
 
   // Переключатель ширины предпросмотра (Desktop/Tablet/Mobile).
   var shell = document.getElementById("home-prev-shell");
