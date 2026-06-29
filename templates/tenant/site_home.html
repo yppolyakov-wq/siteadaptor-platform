@@ -31,10 +31,10 @@
   <div class="relative flex-1 min-h-0 flex">
    {% comment %}Рейл областей — клик открывает фокус-панель этой области (одну).{% endcomment %}
    <nav id="bld-rail" class="shrink-0 w-16 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
-     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-xl leading-none">🎨</span><span class="text-[10px] leading-tight">{% trans "Theme" %}</span></button>
-     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-xl leading-none">🧱</span><span class="text-[10px] leading-tight">{% trans "Sections" %}</span></button>
-     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-xl leading-none">📚</span><span class="text-[10px] leading-tight">{% trans "Templates" %}</span></button>
-     <button type="button" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-xl leading-none">🖼</span><span class="text-[10px] leading-tight">{% trans "Media" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-xl leading-none">🎨</span><span class="text-[10px] leading-tight">{% trans "Theme" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-xl leading-none">🧱</span><span class="text-[10px] leading-tight">{% trans "Sections" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-xl leading-none">📚</span><span class="text-[10px] leading-tight">{% trans "Templates" %}</span></button>
+     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-14 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="media"><span class="text-xl leading-none">🖼</span><span class="text-[10px] leading-tight">{% trans "Media" %}</span></button>
    </nav>
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
@@ -652,7 +652,10 @@
     curArea = null;
     if (edPane) edPane.classList.add("-translate-x-full");
     if (backdrop) backdrop.classList.add("hidden");
-    railBtns.forEach(function (b) { b.classList.remove("bg-indigo-50", "text-indigo-700"); });
+    railBtns.forEach(function (b) {
+      b.classList.remove("bg-indigo-50", "text-indigo-700");
+      b.setAttribute("aria-pressed", "false");  // SE-7 a11y: панель свёрнута
+    });
   }
   function showArea(area) {  // всегда открывает (без переключения)
     if (!edPane) return;
@@ -663,6 +666,7 @@
     railBtns.forEach(function (b) {
       var on = b.getAttribute("data-area") === area;
       b.classList.toggle("bg-indigo-50", on); b.classList.toggle("text-indigo-700", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");  // SE-7 a11y: активная область
     });
     if (panelTitle) {
       var btn = document.querySelector('.bld-rail-btn[data-area="' + area + '"]');
