@@ -2834,3 +2834,14 @@
   `dddc632..6bb53a2`. Без миграций. (Локальный стенд: `SERVE_MEDIA=True` в dev-override для /media/;
   on-canvas клик по баннеру НЕ делали — `heroes` обёрнут в `[data-sf-section=hero]`, секция-хендлер
   перебивал; «как Лого» = кнопкой. Осталось медиа: **M3** обложки/галерея на канве, **M4** инлайн-фото товара.)
+- **2026-06-29 — Медиа-трек завершён: M4 (фото товара) + M3 (обложки разделов), проверено в браузере.**
+  **M4 — инлайн-замена главного фото товара:** на карточке кнопка 📷 (рядом с ✎), hidden, раскрывается в
+  режиме правки (editOn); клик → файл-диалог → multipart POST `catalog:product-photo-edit` → новое фото
+  primary (прежние не-primary), `bump_storefront_cache`, перерисовка. Завершает inline-трио #7 (текст/цена/
+  фото). **M3 — обложки разделов:** фото-баннер лендинга архетипа (`archetypes[key].hero_image`) теперь
+  грузится из билдера — область `covers-media` (кнопка «Cover photos» в 🖼 Banner), цикл по `cover_specs`,
+  реюз `_upload_cover_hero` (folder=cover), экшен подключён в `home_builder_view`; интро/галереи разделов
+  остались на странице Sections (ссылка). Браузер (baeckerei-test, SERVE_MEDIA): 📷 → DB images[0] primary
+  /media/products/…png, карточка показывает фото; обложка «catalog» → archetypes.catalog.hero_image
+  /media/cover/…png, миниатюра в редакторе. JS-ошибок нет. CI зелёный, FF-merge. Без миграций. **Весь
+  медиа-трек (M1 лого / M2 слайдер / M3 обложки / M4 фото товара) + #7 A+B — готовы.**
