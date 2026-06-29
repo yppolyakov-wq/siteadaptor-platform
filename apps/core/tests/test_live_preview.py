@@ -514,3 +514,25 @@ def test_storefront_home_allows_same_origin_framing():
     req.tenant = tenant
     resp = public_views.storefront_home(req)
     assert resp.headers.get("X-Frame-Options") == "SAMEORIGIN"
+
+
+def test_draft_applies_nav_style_and_hero_for_live_preview():
+    """SE-8b: Меню (nav_style/sticky) и Баннер (hero_title/text) попадают в черновик →
+    видны в превью вживую (раньше collect их не слал)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="se8b", name="SE8B", site_config={"hero_title": "Alt"}
+    )
+    body = json.dumps(
+        {"nav_style": "centered", "nav_sticky": True, "hero_title": "Neu", "hero_text": "Hallo"}
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    assert draft["nav"]["style"] == "centered" and draft["nav"]["sticky"] is True
+    assert draft["hero_title"] == "Neu" and draft["hero_text"] == "Hallo"

@@ -1251,6 +1251,16 @@ def site_preview_draft(request):
         cfg["font"] = data["font"]
     if data.get("hero_style") in siteconfig.HERO_STYLES:
         cfg["hero_style"] = data["hero_style"]
+    # SE-8b: стиль шапки (Меню) + заголовок/текст баннера → в превью (видно вживую).
+    if data.get("nav_style") in siteconfig.NAV_STYLES:
+        nav = dict(cfg.get("nav") or {})
+        nav["style"] = data["nav_style"]
+        nav["sticky"] = bool(data.get("nav_sticky"))
+        cfg["nav"] = nav
+    if isinstance(data.get("hero_title"), str):
+        cfg["hero_title"] = data["hero_title"].strip()
+    if isinstance(data.get("hero_text"), str):
+        cfg["hero_text"] = data["hero_text"].strip()
     # M20d: контент-секции — отражаем в превью, только если присланы (иначе не трём).
     if any(k in data for k in siteconfig.CONTENT_FIELDS):
         cfg.update(siteconfig.parse_content_sections(data.get))

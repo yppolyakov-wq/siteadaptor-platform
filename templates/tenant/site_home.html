@@ -890,6 +890,12 @@
     // SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
     var twhEl = form.querySelector("select[name='typo_weight_head']");
     var tlhEl = form.querySelector("select[name='typo_line_height']");
+    // SE-8b: Меню (стиль шапки + sticky) и Баннер (заголовок/текст) — в превью, чтобы
+    // правки были видны вживую (раньше collect их не слал → видно лишь после Save).
+    var navStyleEl = form.querySelector("[name=nav_style]:checked");
+    var navStickyEl = form.querySelector("[name=nav_sticky]");
+    var heroTitleEl = form.querySelector("[name=hero_title]");
+    var heroTextEl = form.querySelector("[name=hero_text]");
     var payload = {
       sections: sections,
       archetypes: archetypes,
@@ -897,6 +903,10 @@
       font: fontEl ? fontEl.value : "system",
       hero_style: heroEl && heroEl.checked ? "accent" : "plain",
       accent: accentEl ? accentEl.value : "",
+      nav_style: navStyleEl ? navStyleEl.value : undefined,
+      nav_sticky: !!(navStickyEl && navStickyEl.checked),
+      hero_title: heroTitleEl ? heroTitleEl.value : undefined,
+      hero_text: heroTextEl ? heroTextEl.value : undefined,
       typography: {
         weight_head: twhEl ? parseInt(twhEl.value, 10) || 0 : 0,
         line_height: tlhEl ? parseFloat(tlhEl.value) || 0 : 0,
