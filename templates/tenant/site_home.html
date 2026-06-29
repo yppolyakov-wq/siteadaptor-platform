@@ -1181,6 +1181,14 @@
   function clearSelected() {
     if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e) {} selectedSec = null; }
   }
+  // SE-9c-3: подсветка активной иконки блока в рейле, пока открыт её попап (key=null — снять).
+  function highlightBlkBtn(key) {
+    document.querySelectorAll(".bld-blk-btn").forEach(function (x) {
+      var on = x.getAttribute("data-blk") === key;
+      x.classList.toggle("bg-indigo-50", on);
+      x.classList.toggle("text-indigo-700", on);
+    });
+  }
   function closeBlockPopup() {
     if (popupRow && popupAnchor) {
       popupRow.classList.remove("flex-wrap");
@@ -1192,6 +1200,7 @@
     }
     popupRow = null; popupAnchor = null;
     clearSelected();
+    highlightBlkBtn(null);  // SE-9c-3: снять подсветку иконки блока в рейле
     if (popup) popup.classList.add("hidden");
   }
   function openBlockPopup(key) {
@@ -1226,6 +1235,7 @@
       popup.style.right = "8px";
     }
     popup.classList.remove("hidden");
+    highlightBlkBtn(key);  // SE-9c-3: подсветить иконку этого блока в рейле
     return true;
   }
   if (popupClose) popupClose.addEventListener("click", closeBlockPopup);
