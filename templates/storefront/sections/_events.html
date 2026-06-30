@@ -10,12 +10,13 @@
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.events">{{ si }}</p>{% endif %}
   <div class="{% grid_classes site 'events' %}">
     {% for e in events_preview %}
-      <a href="{% url 'storefront-event' e.pk %}" class="sf-card bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+      <a href="{% url 'storefront-event' e.pk %}" class="sf-card relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+        <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
         {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-40 object-cover">{% endif %}
         <div class="p-4 flex flex-col gap-1">
-          <h3 class="font-semibold leading-snug">{{ e.title_text }}</h3>
+          <h3 class="font-semibold leading-snug" data-edit-model="event" data-edit-pk="{{ e.pk }}" data-edit-field="title">{{ e.title_text }}</h3>
           <p class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.city %} · {{ e.city }}{% elif e.location %} · {{ e.location }}{% endif %}</p>
-          <p class="mt-1 font-medium text-sm">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</p>
+          <p class="mt-1 font-medium text-sm">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</p>
           {# M20U-5: действие покупки по режиму архетипа (events → booking → «Jetzt buchen»). #}
           <span class="mt-2 inline-flex items-center gap-1 text-sm font-medium" style="color: var(--accent, #4f46e5);" data-purchase-action>{% purchase_label 'events' %} →</span>
         </div>

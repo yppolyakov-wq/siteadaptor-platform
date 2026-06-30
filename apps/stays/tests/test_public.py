@@ -87,6 +87,17 @@ def test_stay_detail_inline_edit_markers():
     assert f'data-edit-pk="{unit.pk}"' in body
 
 
+def test_stay_index_card_inline_markers():
+    """Part C: карточки списка номеров несут маркеры названия/цены/фото — правка прямо
+    на канве лендинга редактора."""
+    _unit(description="Schön")
+    _unit(description="Hell")  # 2+ юнита: иначе индекс редиректит на единственный номер
+    body = public_views.unterkunft_index(_req("get", "/unterkunft/")).content.decode()
+    assert 'data-edit-model="stay"' in body and 'data-edit-field="name"' in body
+    assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
+    assert "data-photo-edit" in body
+
+
 def test_stay_inline_edit_updates_and_validates():
     """H1.2: endpoint пишет плоский name/description; пустое имя и поле вне вайтлиста → 400."""
     import json

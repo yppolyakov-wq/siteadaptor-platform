@@ -71,7 +71,8 @@
     {% comment %}Список (дефолт): горизонтальные строки.{% endcomment %}
     <div data-sf-section="events" class="space-y-3">
       {% for e in events %}
-        <a href="{% url 'storefront-event' e.pk %}" class="flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
+        <a href="{% url 'storefront-event' e.pk %}" class="relative flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
+          <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
           {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-24 h-24 rounded-xl object-cover flex-shrink-0">{% endif %}
           <div class="flex-1 min-w-0">
             <div class="flex flex-wrap gap-1 mb-1">
@@ -81,10 +82,10 @@
               {% if e.is_online %}<span class="text-xs bg-sky-100 text-sky-700 rounded-full px-2 py-0.5">🖥 Online</span>{% endif %}
               {% if e.starts_soon and not e.is_sold_out %}<span class="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">⏳ {{ e.countdown_label }}</span>{% endif %}
             </div>
-            <div class="font-semibold truncate">{{ e.title_text }}</div>
+            <div class="font-semibold truncate" data-edit-model="event" data-edit-pk="{{ e.pk }}" data-edit-field="title">{{ e.title_text }}</div>
             <div class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y H:i" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
             <div class="mt-1 flex items-center gap-3">
-              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>
+              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</span>
               {% if e.is_sold_out %}<span class="text-xs text-red-600">{% trans "Sold out" %}</span>
               {% elif e.seats_left %}<span class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</span>{% endif %}
             </div>
@@ -99,6 +100,7 @@
       {% for e in events %}
         <a href="{% url 'storefront-event' e.pk %}" class="group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
           <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+            <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
             {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">{% endif %}
             <div class="absolute top-2 left-2 flex flex-wrap gap-1">
               {% if e.category_label %}<span class="text-xs bg-white/90 text-indigo-700 rounded-full px-2 py-0.5 shadow-sm">{{ e.category_label }}</span>{% endif %}
@@ -114,10 +116,10 @@
               {% if e.ends_at %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.duration_label }}</span>{% endif %}
               {% if e.level_label %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.level_label }}</span>{% endif %}
             </div>
-            <div class="font-semibold leading-snug line-clamp-2">{{ e.title_text }}</div>
+            <div class="font-semibold leading-snug line-clamp-2" data-edit-model="event" data-edit-pk="{{ e.pk }}" data-edit-field="title">{{ e.title_text }}</div>
             <div class="text-sm text-gray-500 mt-1">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
             <div class="mt-2 pt-2 flex items-center gap-3 border-t border-gray-50">
-              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</span>
+              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</span>
               {% if not e.is_sold_out and e.seats_left %}<span class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</span>{% endif %}
             </div>
           </div>

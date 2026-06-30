@@ -44,6 +44,16 @@ def _event(**kw):
     return Event.objects.create(**defaults)
 
 
+def test_event_index_card_inline_markers():
+    """Part C: карточки списка событий несут маркеры заголовка/цены/фото — правка
+    прямо на канве лендинга редактора."""
+    _event(title="Konzert", price_cents=2500)
+    body = public_views.veranstaltung_index(_req("get")).content.decode()
+    assert 'data-edit-model="event"' in body and 'data-edit-field="title"' in body
+    assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
+    assert "data-photo-edit" in body
+
+
 def test_event_detail_inline_edit_markers():
     """H1.2: заголовок и описание события на детальной несут data-edit-model →
     редактор делает их contenteditable. На публичной витрине инертны."""
