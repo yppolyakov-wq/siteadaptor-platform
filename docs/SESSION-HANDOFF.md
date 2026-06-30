@@ -52,9 +52,16 @@ inline-content (этот документ). После него — по CLAUDE.
 **Точка входа след. сессии по этому этапу — `docs/archetype-entities-plan.md`** (source of truth: 3 типа
 сайтов, каркас «архетип = 3 сущности», решения Q1–Q5, матрица гейтинга, порядок H0–H4). Хронология — build-log.
 
-**Сделано и в `main` (ветка `claude/session-handoff-docs-tc1qws`), 9 инкрементов, проверены в браузере:**
+**Сделано и в `main` (ветка `claude/session-handoff-docs-tc1qws`), 11 инкрементов, проверены в браузере/тестами:**
 - **H1.1** — баг «клик по ссылке в редакторе → ошибка»: `StorefrontFrameOptionsMiddleware` даёт витрине
   `X-Frame-Options: SAMEORIGIN` (кабинет — DENY) → превью-iframe открывает под-страницы. `7aa0c3a`.
+- **H1.1 FIX (2026-06-30, security)** — adversarial-review нашёл регрессию: корневые кабинет-пути вне `/dashboard/`
+  (`/catalog/`,`/imports/`,`/promotions/`,`/crm/`,`/willkommen/`) слабли DENY→SAMEORIGIN. Расширил `_BLOCK_PREFIXES`;
+  `/konto/` (клиентский ЛК) оставлен SAMEORIGIN. Тесты. `a4df91e`.
+- **H1.2 (срез 6, 2026-06-30)** — страницы-ДЕТАЛИ архетипов в переключателе превью: реестр `archetypes.DETAIL_ENTITIES`
+  + `example_detail_pages` (catalog→товар/stays→номер/events→событие); `home_builder_view` строит `preview_pages` из
+  реестра. Деталь товара/номера теперь достижима из редактора → инлайн-правка (H1.2 1–3) работает оттуда. Тесты (без
+  браузера: чисто бэкенд, select-JS не менялся). `1fde9bf`.
 - **H0 (срез 1)** — гейтинг секций редактора по архетипу (`archetypes.SECTION_ARCHETYPE_MODULE` +
   `section_visible_for`); пекарня не видит Stay/Events/Services/Handwerker; carry-forward скрытых секций. `0372fb4`.
 - **H1.3** — «Section = чистый список»: строка = `.home-block-head` (имя+чекбокс+⚙), настройки →
