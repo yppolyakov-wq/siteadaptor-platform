@@ -2881,3 +2881,14 @@
   primary-архетип» — отложенное решение, см. план). Браузер (baeckerei, disabled stays/events/booking/jobs):
   список секций = generic+catalog, чужих архетипов нет. Тесты `test_archetype_gating.py` (5). Без миграций.
   Дальше H0: гейтинг storefront-меню по архетипу, реестр 3 сущностей, матрица настроек/полей.
+- **2026-06-29 — H1.3: «Section = чистый список»; настройки секции → в фокус-панель блока.** Строка секции в
+  редакторе (`templates/tenant/site_home.html`) разнесена на `.home-block-head` (идентичность: ▲▼ перемещение,
+  чекбокс вкл/выкл, имя-кнопка, ⚙ — ВСЕГДА в списке) и `.home-block-settings` (раскладка/width/визуал radius-
+  shadow-bg-padding/лимит/заголовок/источник/View-all/hidden_on/quick-styles/медиа). CSS
+  `#home-blocks .home-block-settings{display:none}` прячет настройки в списке; клик по имени/⚙ (`.blk-edit` →
+  `openBlockPopup`) переносит строку в фокус-панель (вне `#home-blocks` → правило не действует, настройки видны).
+  Save сохраняет (инпуты остаются в `#home-form` и в списке через display:none, и в попапе). Заголовок попапа
+  теперь из `.blk-edit` (label из шапки убран). Браузер (baeckerei): список = только шапки (width БОЛЬШЕ НЕ в
+  списке), клик→панель с настройками, save round-trip (products width=contained persisted), JS-ошибок нет.
+  Без миграций. Owner-приоритет «убрать настройки ширины из Section в блоки» закрыт. Часть этапа «архетипы как
+  сущности» (`docs/archetype-entities-plan.md`).

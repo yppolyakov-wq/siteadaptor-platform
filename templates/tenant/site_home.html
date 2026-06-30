@@ -226,20 +226,25 @@
         </p>
         <div id="home-blocks" class="space-y-3">
           {% for s in sections %}
-            <div class="home-block flex items-center gap-3 flex-wrap border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
-              <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" data-expert="1" title="{% trans 'Drag to reorder' %}">⠿</span>
-              <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
-                     class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}" data-expert="1">
-              {# SE-1c: дружелюбное перемещение ↑▼ (работает и в обычном режиме, value-based) #}
-              <span class="blk-move flex flex-col leading-none -my-1">
-                <button type="button" class="blk-up px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
-                <button type="button" class="blk-down px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
-              </span>
-              <label class="flex items-center gap-2 text-sm font-medium flex-1">
+            <div class="home-block border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
+              {% comment %}H1.3: «шапка-идентичность» — всегда в списке секций (перечень + чекбокс +
+                 перемещение). Имя/⚙ открывают настройки блока в фокус-панели (#bld-block-popup);
+                 сами настройки — в `.home-block-settings` ниже (CSS прячет их в списке).{% endcomment %}
+              <div class="home-block-head flex items-center gap-2">
+                <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" data-expert="1" title="{% trans 'Drag to reorder' %}">⠿</span>
+                <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
+                       class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}" data-expert="1">
+                {# SE-1c: дружелюбное перемещение ↑▼ (работает и в обычном режиме, value-based) #}
+                <span class="blk-move flex flex-col leading-none -my-1">
+                  <button type="button" class="blk-up px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
+                  <button type="button" class="blk-down px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
+                </span>
                 <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
-                       class="rounded border-gray-300">
-                {{ s.label }}
-              </label>
+                       class="rounded border-gray-300" aria-label="{{ s.label }}">
+                <button type="button" class="blk-edit flex-1 text-left text-sm font-medium text-gray-800 hover:text-indigo-700" data-key="{{ s.key }}">{{ s.label }}</button>
+                <button type="button" class="blk-edit shrink-0 text-gray-400 hover:text-indigo-700 px-1" data-key="{{ s.key }}" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
+              </div>
+              <div class="home-block-settings flex flex-wrap items-center gap-2 mt-2">
               {% if s.is_grid %}
                 {# M20U-7: пресет раскладки секции-сетки (анти-Битрикс: один клик) #}
                 <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
@@ -352,6 +357,7 @@
                           onclick="window.__sfShowArea('catalog-add')">＋ {% trans "Add category" %}</button>
                 </div>
               {% endif %}
+              </div>{% comment %}/.home-block-settings{% endcomment %}
             </div>
           {% endfor %}
         </div>
@@ -874,6 +880,10 @@
 /* #2: фокус блока — внутри секции-области показываем ТОЛЬКО выбранный блок (#bld-block-popup),
    список блоков и прочие fieldset'ы прячем. Выход — «← Ко всем блокам». */
 [data-bld-area="sections"].focus-on > :not(#bld-block-popup) { display: none !important; }
+/* H1.3: в СПИСКЕ секций (#home-blocks) показываем только шапку-идентичность; настройки
+   секции (.home-block-settings) скрыты. Когда строку переносят в фокус-панель
+   (#bld-block-popup-body, вне #home-blocks) — правило не действует → настройки видны. */
+#home-blocks .home-block-settings { display: none; }
 /* FIX свёртки: панель позиционирована ВНУТРИ канвы (смещена на ширину рейла w-20=5rem), поэтому
    обычный -translate-x-full уезжал лишь на ширину панели и оставлял полоску поверх рейла (вместо
    миниатюр). Уводим панель за рейл полностью: на её ширину + 5rem. */
@@ -1447,7 +1457,8 @@
     if (row.classList.contains("home-block")) row.classList.add("flex-wrap");
     popupBody.appendChild(row);
     popupRow = row;  // FIX: без этого closeBlockPopup не возвращал строку → блоки копились в попапе
-    var lab = row.querySelector("label") || row.querySelector("span");
+    // H1.3: имя секции — в кнопке .blk-edit (label из шапки убран); фолбэк — label/span.
+    var lab = row.querySelector(".blk-edit") || row.querySelector("label") || row.querySelector("span");
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
     // #2: фокус блока В ЛЕВОЙ панели (вместо прежнего плавающего попапа). Открываем
     // секцию-область и помечаем .focus-on → CSS прячет список блоков и прочие fieldset'ы;
@@ -1464,6 +1475,11 @@
   // который сам открывает область sections и позиционирует попап). Репитабл-блоки — в мастере.
   document.querySelectorAll(".bld-blk-btn").forEach(function (b) {
     b.addEventListener("click", function () { openBlockPopup(b.getAttribute("data-blk")); });
+  });
+  // H1.3: клик по имени/⚙ строки секции в списке открывает её настройки в фокус-панели
+  // (та же openBlockPopup — переносит .home-block в попап, где .home-block-settings видны).
+  document.querySelectorAll(".blk-edit").forEach(function (b) {
+    b.addEventListener("click", function (e) { e.preventDefault(); openBlockPopup(b.getAttribute("data-key")); });
   });
 
   // E.3: инсертер «+» — между блоками превью; выбор типа из библиотеки добавляет
