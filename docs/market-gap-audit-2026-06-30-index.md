@@ -15,7 +15,7 @@
 | 1 | **A1/A2 Retail** (Online-Shop + C&C/Versand) | `shop`, `aktionsmarkt` | `market-gap-a1a2-retail-2026-06-30.md` | ✅ готов |
 | 2 | **A3 Termin-Dienstleister** | `friseur` | `market-gap-a3-2026-06-30.md` | ✅ готов |
 | 3 | **A4 Gastro** | `restaurant`, `pranasy` | `market-gap-a4-2026-06-30.md` | ✅ готов |
-| 4 | A5 Übernachtung/Hotel | `hotel` | `market-gap-a5-2026-06-30.md` | ⏳ |
+| 4 | **A5 Übernachtung/Hotel** | `hotel` | `market-gap-a5-2026-06-30.md` | ✅ готов |
 | 5 | A6 Event/Retreat | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ⏳ |
 | 6 | A7 Handwerker | `handwerker` | `market-gap-a7-2026-06-30.md` | ⏳ |
 | 7 | A8 Aggregator/Portal | — (портал) | `market-gap-a8-2026-06-30.md` | ⏳ |
@@ -36,8 +36,16 @@
   (`pickup_slot` не дотянут), QR pay-at-table + Trinkgeld, Mittagstisch-расписание,
   **Zusatzstoffe/E-номера (юр.)**, live-статус гостю, gastro-виджет брони (Anlass/
   no-show fee), JSON-LD Restaurant, поиск по меню. Демо: pranasy(all-vegan)=0 diet-тегов.
+- **A5:** самый достроенный архетип (H1–H9 + G1–G11a/b); для 1–20 номеров — почти
+  паритет с Booking/Smoobu + правовой клин DACH (Kurtaxe/Meldeschein/0 % комиссии/
+  cookieless/без dark-patterns). Гэпы — полировка: чипы отмены/рейтинг на КАРТОЧКАХ,
+  верифиц. отзыв гостя per-stay, cross-type multi-room, богатые upsell (фото/qty),
+  мультиязык контента (StayUnit без I18nMixin), отмена в ЛК, range-picker на поиске.
+  Стратегич. отложено (partner-gated): real 2-way OTA + Google connectivity-фид.
+  Adversarial: truthful «N frei» — НЕ гэп (уже есть).
 - **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы/обзоры на витрине
-  бизнеса (A3/A4/A5/A6/A7/A9) · **платёжный микс PayPal/Klarna/Bar + `Order.payment_method`
-  (A1/A2+A4)** · SMS/WhatsApp-канал · AGB · язык · JSON-LD по архетипу.
+  бизнеса, верифиц. per-item (A3/A4/A5/A6/A7/A9) · **платёжный микс PayPal/Klarna/SEPA/Bar
+  + `Order.payment_method` (A1/A2+A4+A5)** · SMS/WhatsApp-канал · AGB · **язык/мультиязык
+  контента моделей (catalog есть, stays нет → I18nMixin)** · JSON-LD по архетипу.
 
 _(дополняется на каждом шаге; в конце серии — сводка сквозных тем и единый бэклог.)_
