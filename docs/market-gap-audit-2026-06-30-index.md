@@ -14,7 +14,7 @@
 |:--:|---|---|---|:--:|
 | 1 | **A1/A2 Retail** (Online-Shop + C&C/Versand) | `shop`, `aktionsmarkt` | `market-gap-a1a2-retail-2026-06-30.md` | ✅ готов |
 | 2 | **A3 Termin-Dienstleister** | `friseur` | `market-gap-a3-2026-06-30.md` | ✅ готов |
-| 3 | A4 Gastro | `restaurant`, `pranasy` | `market-gap-a4-2026-06-30.md` | ⏳ |
+| 3 | **A4 Gastro** | `restaurant`, `pranasy` | `market-gap-a4-2026-06-30.md` | ✅ готов |
 | 4 | A5 Übernachtung/Hotel | `hotel` | `market-gap-a5-2026-06-30.md` | ⏳ |
 | 5 | A6 Event/Retreat | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ⏳ |
 | 6 | A7 Handwerker | `handwerker` | `market-gap-a7-2026-06-30.md` | ⏳ |
@@ -31,7 +31,13 @@
   отставание презентационное: нет **детали услуги** (общий гэп с A7/A9), нет
   **клиентского переноса**, нет **SMS-напоминаний**, нет **отзывов у CTA брони**,
   плоский список слотов вместо календаря, нет skill-matrix/buffer/waitlist/серий.
-- **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы на витрине
-  бизнеса, не только агрегатор (A3/A4/A5/A6/A7/A9) · SMS-канал · AGB · язык.
+- **A4:** движок ~90 % (ближе всего к resmio); сознательно без фискального POS (TSE).
+  Гэпы: платёжный микс (PayPal/Bar selector — общий с A1/A2), слот предзаказа
+  (`pickup_slot` не дотянут), QR pay-at-table + Trinkgeld, Mittagstisch-расписание,
+  **Zusatzstoffe/E-номера (юр.)**, live-статус гостю, gastro-виджет брони (Anlass/
+  no-show fee), JSON-LD Restaurant, поиск по меню. Демо: pranasy(all-vegan)=0 diet-тегов.
+- **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы/обзоры на витрине
+  бизнеса (A3/A4/A5/A6/A7/A9) · **платёжный микс PayPal/Klarna/Bar + `Order.payment_method`
+  (A1/A2+A4)** · SMS/WhatsApp-канал · AGB · язык · JSON-LD по архетипу.
 
 _(дополняется на каждом шаге; в конце серии — сводка сквозных тем и единый бэклог.)_
