@@ -6,4 +6,4 @@
     {% if block.caption %}<figcaption class="text-sm text-gray-500 mt-2 text-center">{{ block.caption }}</figcaption>{% endif %}
   </div>
 </figure>
-{% endif %}
+{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Bild — klicken zum Hinzufügen" %}{% endif %}

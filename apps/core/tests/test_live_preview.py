@@ -582,3 +582,89 @@ def test_draft_applies_nav_style_and_hero_for_live_preview():
     draft = req.session["site_preview_draft"]
     assert draft["nav"]["style"] == "centered" and draft["nav"]["sticky"] is True
     assert draft["hero_title"] == "Neu" and draft["hero_text"] == "Hallo"
+
+
+def test_draft_endpoint_includes_cblocks():
+    """D.2b: C-блок из collect() (key=тип, id, data) попадает в черновик. Раньше
+    site_preview_draft фильтровал только ФИКС-секции → cblocks выпадали и добавленный
+    блок «не появлялся» в live-preview (корень бага «Templates: кнопки неактивны»)."""
+    tenant = TenantFactory(schema_name="public", slug="dcb", name="DCB")
+    body = json.dumps(
+        {
+            "sections": [
+                {"key": "hero", "enabled": True},
+                {
+                    "key": "text",
+                    "id": "abc123def456",
+                    "enabled": True,
+                    "data": {"title": "T", "body": "B"},
+                },
+            ]
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    cb = next((s for s in draft["sections"] if s.get("id") == "abc123def456"), None)
+    assert cb is not None and cb["key"] == "text"
+    assert cb["data"]["title"] == "T" and cb["data"]["body"] == "B"
+
+
+def test_draft_endpoint_keeps_multiple_cblocks_of_same_type():
+    """C-блоки одного ТИПА различаются по id (не дедупятся по ключу, как фикс-секции)."""
+    tenant = TenantFactory(schema_name="public", slug="dcb2", name="DCB2")
+    body = json.dumps(
+        {
+            "sections": [
+                {"key": "text", "id": "id1aaaaaaaaa", "enabled": True, "data": {"body": "one"}},
+                {"key": "text", "id": "id2bbbbbbbbb", "enabled": True, "data": {"body": "two"}},
+            ]
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    ids = {
+        s.get("id") for s in req.session["site_preview_draft"]["sections"] if s.get("key") == "text"
+    }
+    assert ids == {"id1aaaaaaaaa", "id2bbbbbbbbb"}
+
+
+def test_empty_cblock_shows_placeholder_only_in_preview():
+    """Пустой C-блок: в редакторе (is_preview) — кликабельный плейсхолдер (виден на канве),
+    на публичной витрине — ничего (чисто). Непустой — рендерит контент, не плейсхолдер."""
+    from django.template.loader import render_to_string
+
+    empty_preview = render_to_string(
+        "storefront/sections/_block_text.html", {"block": {}, "is_preview": True}
+    )
+    assert "klicken zum Bearbeiten" in empty_preview
+    empty_public = render_to_string(
+        "storefront/sections/_block_text.html", {"block": {}, "is_preview": False}
+    )
+    assert "klicken zum Bearbeiten" not in empty_public
+    filled = render_to_string(
+        "storefront/sections/_block_text.html",
+        {"block": {"title": "Hi", "body": "X"}, "is_preview": True},
+    )
+    assert "Hi" in filled and "klicken zum Bearbeiten" not in filled
+
+
+def test_empty_image_block_placeholder_in_preview():
+    from django.template.loader import render_to_string
+
+    out = render_to_string(
+        "storefront/sections/_block_image.html", {"block": {}, "is_preview": True}
+    )
+    assert "klicken zum Hinzuf" in out  # «klicken zum Hinzufügen»

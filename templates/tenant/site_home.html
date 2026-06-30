@@ -1198,6 +1198,21 @@
     });
     rows.sort(function (a, b) { return a.order - b.order; });
     var sections = rows.map(function (r) {
+      // D.2b: C-блок (его строка несёт order_cb_<id>) — сериализуем с ТИПОМ и ДАННЫМИ,
+      // иначе ключ "cb_<id>" неизвестен серверной normalize → блок выпадал из черновика
+      // и не рендерился в live-preview (только что добавленный блок «не появлялся»).
+      if (r.key.indexOf("cb_") === 0) {
+        var cbId = r.key.slice(3);
+        var delBox = form.querySelector("input[name='delete_cb_" + cbId + "']");
+        if (delBox && delBox.checked) return null;  // помечен на удаление — не показываем
+        var typeEl = form.querySelector("input[name='cb_type_" + cbId + "']");
+        var cb = { key: typeEl ? typeEl.value : "", id: cbId, enabled: r.enabled, data: {} };
+        ["title", "body", "url", "label", "caption", "side"].forEach(function (f) {
+          var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
+          if (el && el.value !== "") cb.data[f] = el.value;
+        });
+        return cb;
+      }
       var sec = { key: r.key, enabled: r.enabled };
       // M20U-7: пресет раскладки секции-сетки → в превью.
       var sel = form.querySelector("select[name='layout_preset_" + r.key + "']");
@@ -1248,7 +1263,7 @@
       var fSel = form.querySelector("select[name='font_" + r.key + "']");
       if (fSel) sec.font = fSel.value;
       return sec;
-    });
+    }).filter(function (s) { return s; });  // убрать C-блоки, помеченные на удаление
     var archetypes = {};
     form.querySelectorAll("input[name^='arch_visible_']").forEach(function (vis) {
       var key = vis.name.slice(13);

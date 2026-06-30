@@ -1404,6 +1404,23 @@ def site_preview_draft(request):
                     row["font"] = item["font"]
                 rows.append(row)
                 seen.add(key)
+            elif key in siteconfig.REPEATABLE_BLOCKS:
+                # D.2b: C-блок (text/image/…) — ключ-ТИП повторяется, различаем по id
+                # (не дедупим по ключу!). Без этой ветки cblocks выпадали из черновика
+                # → только что добавленный блок «не появлялся» в live-preview редактора.
+                cbid = item.get("id") if isinstance(item, dict) else None
+                if isinstance(cbid, str) and cbid and cbid not in seen:
+                    cb = {"key": key, "id": cbid, "enabled": bool(item.get("enabled"))}
+                    if isinstance(item.get("data"), dict):
+                        cb["data"] = item["data"]
+                    if item.get("width") in ("contained", "full"):
+                        cb["width"] = item["width"]
+                    if "font" in item:
+                        cb["font"] = item["font"]
+                    if isinstance(item.get("hidden_on"), list):
+                        cb["hidden_on"] = item["hidden_on"]
+                    rows.append(cb)
+                    seen.add(cbid)
         if rows:
             cfg["sections"] = rows
     if isinstance(data.get("archetypes"), dict):

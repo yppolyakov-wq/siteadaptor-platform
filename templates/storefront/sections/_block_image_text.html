@@ -13,4 +13,4 @@
     </div>
   </div>
 </section>
-{% endif %}
+{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Bild + Text — klicken zum Bearbeiten" %}{% endif %}

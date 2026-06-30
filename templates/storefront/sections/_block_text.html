@@ -6,4 +6,4 @@
     {% if block.body %}<p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ block.body }}</p>{% endif %}
   </div>
 </section>
-{% endif %}
+{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Textblock — klicken zum Bearbeiten" %}{% endif %}

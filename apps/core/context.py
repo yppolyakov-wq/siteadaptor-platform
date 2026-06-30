@@ -223,6 +223,10 @@ def modules_nav(request):
         "storefront_card_padding": cfg["site_defaults"]["card_padding"],
         # H1.2: тэглайн подвала (draft-aware) — правится инлайн (data-edit="footer_text").
         "storefront_footer_text": cfg.get("footer_text", ""),
+        # Режим редактора (?preview=1): витрина показывает превью-аффордансы (пустые
+        # C-блоки → плейсхолдер, пустые интро/тексты → редактируемые) на ВСЕХ страницах.
+        # На публичной (без preview) пусто/чисто. Раньше задавался только в product_list.
+        "is_preview": request.GET.get("preview") == "1" if hasattr(request, "GET") else False,
         # P5: preload hero-фото (LCP) — пусто, если секция выключена/без фото.
         "storefront_hero_preload": hero_preload,
         # S3: обложка раздела (интро/hero) — пусто вне лендинга архетипа.
