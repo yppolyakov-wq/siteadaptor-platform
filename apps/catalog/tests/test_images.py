@@ -12,7 +12,14 @@ from django.test import RequestFactory, override_settings
 from PIL import Image
 
 from apps.catalog import views
-from apps.catalog.images import save_product_image, validate_image
+from apps.catalog.images import (
+    apply_gallery_op,
+    gallery_add,
+    gallery_remove,
+    gallery_replace,
+    save_product_image,
+    validate_image,
+)
 from apps.catalog.models import Product
 from apps.catalog.tests.factories import ProductFactory
 
@@ -50,6 +57,104 @@ def test_validate_rejects_too_large():
     big = SimpleUploadedFile("x.png", b"0" * (5 * 1024 * 1024 + 1), content_type="image/png")
     with pytest.raises(ValidationError):
         validate_image(big)
+
+
+def test_media_gallery_per_slide_controls_only_in_preview():
+    """Галерея детальной: пер-слайд 📷/🗑 + плитка «＋» рендерятся ТОЛЬКО в превью
+    редактора (is_preview+edit_pk); на публичной витрине контролов нет."""
+    from django.template.loader import render_to_string
+
+    ctx = {
+        "images": [{"id": "a", "url": "/a.png"}, {"id": "b", "url": "/b.png"}],
+        "edit_pk": "PK1",
+        "edit_model": "product",
+    }
+    editor = render_to_string("storefront/_media_gallery.html", {**ctx, "is_preview": True})
+    assert 'data-photo-op="replace"' in editor and 'data-photo-op="remove"' in editor
+    assert 'data-photo-op="add"' in editor and 'data-img-id="a"' in editor
+    public = render_to_string("storefront/_media_gallery.html", {**ctx, "is_preview": False})
+    assert "data-photo-op" not in public  # на публичной — никаких контролов
+
+
+# --- Пер-слайд управление галереей (gallery_replace/add/remove/apply_gallery_op) ---
+@override_settings(MEDIA_ROOT="/tmp/test_media_gallery")
+@pytest.mark.django_db
+def test_gallery_replace_by_id_in_place_keeps_count_and_primary():
+    imgs = [
+        {"id": "a", "url": "/a.png", "path": "", "is_primary": True, "sort_order": 0},
+        {"id": "b", "url": "/b.png", "path": "", "is_primary": False, "sort_order": 1},
+    ]
+    out = gallery_replace(imgs, "b", _png(), folder="products")
+    assert len(out) == 2  # замена В МЕСТЕ
+    assert out[1]["id"] != "b" and out[1]["url"] != "/b.png"  # слот b заменён
+    assert out[1]["is_primary"] is False and out[1]["sort_order"] == 1  # позиция/флаг сохранены
+    assert out[0]["id"] == "a" and out[0]["is_primary"] is True  # главное не тронуто
+
+
+@override_settings(MEDIA_ROOT="/tmp/test_media_gallery")
+@pytest.mark.django_db
+def test_gallery_replace_empty_id_replaces_primary():
+    """📷 на карточке (без id) → заменяет ГЛАВНОЕ фото в месте."""
+    imgs = [
+        {"id": "a", "url": "/a.png", "path": "", "is_primary": False, "sort_order": 0},
+        {"id": "b", "url": "/b.png", "path": "", "is_primary": True, "sort_order": 1},
+    ]
+    out = gallery_replace(imgs, "", _png(), folder="products")
+    assert len(out) == 2
+    assert out[1]["url"] != "/b.png" and out[1]["is_primary"] is True  # заменено именно главное
+    assert out[0]["url"] == "/a.png"
+
+
+@override_settings(MEDIA_ROOT="/tmp/test_media_gallery")
+@pytest.mark.django_db
+def test_gallery_replace_empty_gallery_adds_primary():
+    out = gallery_replace([], "", _png(), folder="products")
+    assert len(out) == 1 and out[0]["is_primary"] is True
+
+
+@override_settings(MEDIA_ROOT="/tmp/test_media_gallery")
+@pytest.mark.django_db
+def test_gallery_replace_stale_id_appends():
+    imgs = [{"id": "a", "url": "/a.png", "path": "", "is_primary": True, "sort_order": 0}]
+    out = gallery_replace(imgs, "missing", _png(), folder="products")
+    assert len(out) == 2 and out[0]["id"] == "a"  # загруженный файл не потерян
+    assert out[1]["is_primary"] is False
+
+
+@override_settings(MEDIA_ROOT="/tmp/test_media_gallery")
+@pytest.mark.django_db
+def test_gallery_add_appends_non_primary():
+    imgs = [{"id": "a", "url": "/a.png", "path": "", "is_primary": True, "sort_order": 0}]
+    out = gallery_add(imgs, _png(), folder="products")
+    assert len(out) == 2 and out[1]["is_primary"] is False and out[1]["sort_order"] == 1
+
+
+@pytest.mark.django_db
+def test_gallery_remove_drops_and_promotes_primary():
+    imgs = [
+        {"id": "a", "url": "/a.png", "path": "", "is_primary": True, "sort_order": 0},
+        {"id": "b", "url": "/b.png", "path": "", "is_primary": False, "sort_order": 1},
+    ]
+    out = gallery_remove(imgs, "a")  # удаляем ГЛАВНОЕ
+    assert (
+        len(out) == 1 and out[0]["id"] == "b" and out[0]["is_primary"] is True
+    )  # primary переназначен
+
+
+@override_settings(MEDIA_ROOT="/tmp/test_media_gallery")
+@pytest.mark.django_db
+def test_apply_gallery_op_dispatch_and_errors():
+    imgs = [{"id": "a", "url": "/a.png", "path": "", "is_primary": True, "sort_order": 0}]
+    # remove без файла — ок
+    assert apply_gallery_op(imgs, op="remove", image_id="a", uploaded=None, folder="products") == []
+    # replace/add без файла → ValueError (эндпоинт вернёт 400)
+    with pytest.raises(ValueError):
+        apply_gallery_op(imgs, op="replace", image_id="a", uploaded=None, folder="products")
+    with pytest.raises(ValueError):
+        apply_gallery_op(imgs, op="add", image_id="", uploaded=None, folder="products")
+    # неизвестный op → ValueError
+    with pytest.raises(ValueError):
+        apply_gallery_op(imgs, op="frobnicate", image_id="", uploaded=_png(), folder="products")
 
 
 @pytest.mark.django_db

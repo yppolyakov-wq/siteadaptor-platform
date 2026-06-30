@@ -6,20 +6,32 @@
 Параметры: images — список URL или dict'ов {url}; alt — опц. подпись.{% endcomment %}
 {% if images %}
 <div class="space-y-3 js-media-gallery relative" data-media-gallery>
-  {# Замена главного фото на канве редактора (📷 виден только в режиме правки; на публичной инертен). #}
-  {% if edit_pk %}<button type="button" data-photo-edit data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>{% endif %}
   <button type="button" class="js-media-zoom block w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in" aria-label="{% trans 'Enlarge photo' %}">
     <img class="js-media-main w-full h-full object-cover" src="{{ images.0.url|default:images.0 }}" alt="{{ alt|default:'' }}">
   </button>
-  {% if images|length > 1 %}
+  {% comment %}Полоса миниатюр: на публичной — при >1 фото; в редакторе (is_preview+edit_pk)
+  показываем ВСЕГДА, чтобы у каждого слайда были пер-слайд контролы 📷/🗑 + плитка «＋»
+  (даже для одного фото). На публичной витрине контролы не рендерятся.{% endcomment %}
+  {% if images|length > 1 or is_preview and edit_pk %}
   <div class="grid grid-cols-5 gap-2">
     {% for img in images %}
       {% with u=img.url|default:img %}
-      <button type="button" class="js-media-thumb aspect-square rounded-lg overflow-hidden bg-gray-100 ring-indigo-500 hover:opacity-90 {% if forloop.first %}ring-2{% endif %}" data-src="{{ u }}" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Show photo' %} {{ forloop.counter }}">
-        <img class="w-full h-full object-cover" src="{{ u }}" alt="" loading="lazy">
-      </button>
+      <div class="relative">
+        <button type="button" class="js-media-thumb block w-full aspect-square rounded-lg overflow-hidden bg-gray-100 ring-indigo-500 hover:opacity-90 {% if forloop.first %}ring-2{% endif %}" data-src="{{ u }}" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Show photo' %} {{ forloop.counter }}">
+          <img class="w-full h-full object-cover" src="{{ u }}" alt="" loading="lazy">
+        </button>
+        {% if is_preview and edit_pk %}
+          {# Пер-слайд: 📷 заменить ЭТО фото, 🗑 удалить ЭТО фото (по id). Видны только в режиме правки. #}
+          <span data-photo-edit data-photo-op="replace" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" data-img-id="{{ img.id }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-1 left-1 z-20 w-6 h-6 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-xs hover:text-indigo-600" title="{% trans 'Replace this photo' %}" aria-label="{% trans 'Replace this photo' %}">📷</span>
+          <span data-photo-edit data-photo-op="remove" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" data-img-id="{{ img.id }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-1 right-1 z-20 w-6 h-6 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-xs hover:text-red-600" title="{% trans 'Remove this photo' %}" aria-label="{% trans 'Remove this photo' %}">🗑</span>
+        {% endif %}
+      </div>
       {% endwith %}
     {% endfor %}
+    {% if is_preview and edit_pk %}
+      {# Плитка «＋» — добавить фото в галерею (op=add). #}
+      <span data-photo-edit data-photo-op="add" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden aspect-square rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-2xl flex items-center justify-center hover:border-indigo-400 hover:text-indigo-600 cursor-pointer" title="{% trans 'Add photo' %}" aria-label="{% trans 'Add photo' %}">＋</span>
+    {% endif %}
   </div>
   {% endif %}
 

@@ -521,31 +521,37 @@ def product_inline_edit(request):
 @login_required
 @require_POST
 def product_photo_edit(request):
-    """M4: заменить главное фото товара прямо на канве витрины (multipart: pk + image).
+    """M4 / пер-слайд: править галерею товара прямо на канве витрины (multipart).
 
-    Новое фото становится primary; прежние сохраняются (не primary, ниже). Реюз
-    catalog.images.save_product_image (валидация Pillow + storage). Сброс кэша витрины
-    (новое фото сразу на публичной странице). Только владелец (login_required). 204/400.
+    POST: pk, op ∈ {replace, add, remove}, image_id (для replace/remove), image
+    (файл для replace/add). replace заменяет КОНКРЕТНЫЙ слайд по id в месте (одиночное
+    фото → честная замена без дубля); add — добавляет; remove — удаляет. Реюз
+    catalog.images.apply_gallery_op (валидация Pillow + storage + корректный primary).
+    Сброс кэша витрины. Только владелец (login_required). 204/400.
     """
     from django.core.exceptions import ValidationError
     from django.http import HttpResponse, HttpResponseBadRequest
 
-    from apps.catalog.images import save_product_image
+    from apps.catalog.images import apply_gallery_op
 
     pk = request.POST.get("pk")
+    op = request.POST.get("op", "replace")
+    image_id = request.POST.get("image_id", "")
     uploaded = request.FILES.get("image")
-    if not pk or not uploaded:
+    if not pk:
         return HttpResponseBadRequest()
     try:
         product = Product.objects.get(pk=pk)
     except (Product.DoesNotExist, ValidationError, ValueError):
         return HttpResponseBadRequest()
     try:
-        new_ref = save_product_image(uploaded, is_primary=True, sort_order=0, folder="products")
+        product.images = apply_gallery_op(
+            product.images, op=op, image_id=image_id, uploaded=uploaded, folder="products"
+        )
+    except ValueError:
+        return HttpResponseBadRequest()
     except ValidationError as exc:
         return HttpResponseBadRequest("; ".join(exc.messages))
-    old = [{**img, "is_primary": False} for img in (product.images or [])]
-    product.images = [new_ref] + old
     product.save(update_fields=["images", "updated_at"])
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
     if schema:

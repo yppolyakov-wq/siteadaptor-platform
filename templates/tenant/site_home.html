@@ -1715,28 +1715,43 @@
     // #7-A: «✎ к форме» на карточках товара — раскрываем в превью редактора (владелец).
     // На публичной витрине этот JS не выполняется → ссылка остаётся hidden.
     doc.querySelectorAll(".sf-edit-link").forEach(function (el) { el.classList.remove("hidden"); });
-    // M4: 📷 замена главного фото товара — видна в режиме правки; клик → файловый диалог → multipart POST.
+    // Замена/добавление/удаление фото на канве — пер-слайд (data-photo-op + data-img-id):
+    //   replace — заменить КОНКРЕТНЫЙ слайд по id (одиночное фото → честная замена);
+    //   add — добавить фото; remove — удалить слайд (с подтверждением, без файла).
+    // Видны в режиме правки; эндпоинт — по data-edit-model (товар/событие/номер/услуга).
     doc.querySelectorAll("[data-photo-edit]").forEach(function (btn) {
       btn.classList.toggle("hidden", !editOn);
       btn.addEventListener("click", function (e) {
         e.preventDefault(); e.stopPropagation();
         if (!editOn) return;
         var pk = btn.getAttribute("data-edit-pk");
-        // Эндпоинт фото — по модели из атрибута (товар по умолчанию; событие/номер — свои).
         var phModel = btn.getAttribute("data-edit-model") || "product";
         var phUrl = MODEL_PHOTO_URLS[phModel] || PHOTO_EDIT_URL;
+        var op = btn.getAttribute("data-photo-op") || "replace";
+        var imageId = btn.getAttribute("data-img-id") || "";
+        function postPhoto(fd) {
+          if (status) status.textContent = "…";
+          fetch(phUrl, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
+            .then(function (r) { if (r.ok) { markSaved(); schedule(); } else if (status) status.textContent = ""; })
+            .catch(function () { if (status) status.textContent = ""; });
+        }
+        if (op === "remove") {
+          if (!window.confirm("{% trans 'Remove this photo?' %}")) return;
+          var fdr = new FormData();
+          fdr.append("pk", pk); fdr.append("op", "remove"); fdr.append("image_id", imageId);
+          postPhoto(fdr);
+          return;
+        }
         var inp = doc.createElement("input");
         inp.type = "file"; inp.accept = "image/*"; inp.style.display = "none";
         doc.body.appendChild(inp);
         inp.addEventListener("change", function () {
           var f = inp.files && inp.files[0];
           if (!f) { inp.remove(); return; }
-          var fd = new FormData(); fd.append("pk", pk); fd.append("image", f);
-          if (status) status.textContent = "…";
-          fetch(phUrl, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
-            .then(function (r) { if (r.ok) { markSaved(); schedule(); } else if (status) status.textContent = ""; })
-            .catch(function () { if (status) status.textContent = ""; })
-            .finally(function () { inp.remove(); });
+          var fd = new FormData();
+          fd.append("pk", pk); fd.append("op", op); fd.append("image_id", imageId); fd.append("image", f);
+          postPhoto(fd);
+          inp.remove();
         });
         inp.click();
       });

@@ -468,8 +468,9 @@ def test_event_detail_price_edit_marker():
     assert 'data-edit-model="event"' in body
 
 
-def test_event_photo_edit_sets_primary(tmp_path, settings):
-    """Замена фото события на канве → новое primary (Event.images, зеркало product)."""
+def test_event_photo_edit_replaces_primary_in_place(tmp_path, settings):
+    """📷 без image_id (карточка/одиночное фото) → замена ГЛАВНОГО фото В МЕСТЕ:
+    кол-во не растёт, новое фото — primary (Event.images, зеркало product)."""
     from io import BytesIO
     from types import SimpleNamespace
 
@@ -488,10 +489,13 @@ def test_event_photo_edit_sets_primary(tmp_path, settings):
     req.tenant = SimpleNamespace(schema_name="public")
     assert views.event_photo_edit(req).status_code == 204
     ev.refresh_from_db()
-    assert len(ev.images) == 2 and ev.images[0]["is_primary"] and ev.images[0]["url"] != "/old.png"
+    assert len(ev.images) == 1  # замена В МЕСТЕ, без дубля
+    assert ev.images[0]["is_primary"] and ev.images[0]["url"] != "/old.png"
 
 
 def test_event_detail_photo_edit_marker():
+    """Пер-слайд контролы галереи (📷/🗑/＋) рендерятся в превью редактора (?preview=1)."""
     ev = _event(title="Konzert", images=[{"id": "x", "url": "/a.png", "is_primary": True}])
-    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    body = public_views.veranstaltung_detail(_req("get", {"preview": "1"}), ev.pk).content.decode()
     assert "data-photo-edit" in body and 'data-edit-model="event"' in body
+    assert 'data-photo-op="replace"' in body and 'data-photo-op="add"' in body

@@ -401,8 +401,8 @@ def test_stay_detail_price_edit_marker():
     assert 'data-edit-model="stay"' in body
 
 
-def test_stay_photo_edit_sets_primary(tmp_path, settings):
-    """Замена фото номера на канве → новое primary (StayUnit.images)."""
+def test_stay_photo_edit_replaces_primary_in_place(tmp_path, settings):
+    """📷 без image_id → замена ГЛАВНОГО фото номера В МЕСТЕ (кол-во не растёт)."""
     from io import BytesIO
     from types import SimpleNamespace
 
@@ -421,12 +421,15 @@ def test_stay_photo_edit_sets_primary(tmp_path, settings):
     req.tenant = SimpleNamespace(schema_name="public")
     assert views.stay_photo_edit(req).status_code == 204
     unit.refresh_from_db()
-    assert len(unit.images) == 2 and unit.images[0]["is_primary"]
+    assert len(unit.images) == 1 and unit.images[0]["is_primary"]  # замена В МЕСТЕ
+    assert unit.images[0]["url"] != "/old.png"
 
 
 def test_stay_detail_photo_edit_marker():
+    """Пер-слайд контролы галереи (📷/🗑/＋) рендерятся в превью редактора (?preview=1)."""
     unit = _unit(images=[{"id": "x", "url": "/a.png", "is_primary": True}])
     body = public_views.unterkunft_unit(
-        _req("get", f"/unterkunft/{unit.pk}/"), pk=unit.pk
+        _req("get", f"/unterkunft/{unit.pk}/", {"preview": "1"}), pk=unit.pk
     ).content.decode()
     assert "data-photo-edit" in body and 'data-edit-model="stay"' in body
+    assert 'data-photo-op="replace"' in body and 'data-photo-op="add"' in body

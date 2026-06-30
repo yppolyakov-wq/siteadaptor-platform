@@ -376,8 +376,9 @@ def test_product_inline_edit_rejects_bad_pk(user):
 
 
 @pytest.mark.django_db
-def test_product_photo_edit_sets_primary(tmp_path, settings, user):
-    """M4: замена фото на канве → новое фото становится primary (Product.images)."""
+def test_product_photo_edit_replaces_primary_in_place(tmp_path, settings, user):
+    """📷 без image_id (карточка/одиночное фото) → замена ГЛАВНОГО фото В МЕСТЕ:
+    кол-во не растёт, новое фото — primary (Product.images)."""
     from io import BytesIO
 
     from django.core.files.uploadedfile import SimpleUploadedFile
@@ -395,15 +396,76 @@ def test_product_photo_edit_sets_primary(tmp_path, settings, user):
     _attach_session_user(req, user)
     assert views.product_photo_edit(req).status_code == 204
     p.refresh_from_db()
-    assert len(p.images) == 2  # новое + старое
+    assert len(p.images) == 1  # замена В МЕСТЕ, без дубля
     assert p.images[0]["is_primary"] and p.images[0]["url"] and p.images[0]["url"] != "/old.png"
-    assert not p.images[1]["is_primary"]  # прежнее стало не-primary
 
 
 @pytest.mark.django_db
 def test_product_photo_edit_rejects_no_file(user):
-    """M4: без файла → 400, фото не меняется."""
+    """M4: без файла (op=replace) → 400, фото не меняется."""
     p = ProductFactory(name={"de": "Brot"})
     req = RequestFactory().post("/catalog/products/photo-edit/", data={"pk": str(p.pk)})
     _attach_session_user(req, user)
     assert views.product_photo_edit(req).status_code == 400
+
+
+def _photo_req(pk, *, op=None, image_id=None, with_file=True, user=None):
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from django.test import RequestFactory
+    from PIL import Image
+
+    data = {"pk": str(pk)}
+    if op:
+        data["op"] = op
+    if image_id is not None:
+        data["image_id"] = image_id
+    req = RequestFactory().post("/catalog/products/photo-edit/", data=data)
+    if with_file:
+        buf = BytesIO()
+        Image.new("RGB", (40, 40), "#abc").save(buf, format="PNG")
+        req.FILES["image"] = SimpleUploadedFile("p.png", buf.getvalue(), content_type="image/png")
+    _attach_session_user(req, user)
+    return req
+
+
+@pytest.mark.django_db
+def test_product_photo_edit_op_replace_by_id(tmp_path, settings, user):
+    """op=replace + image_id → заменён КОНКРЕТНЫЙ слайд, кол-во не меняется."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    p = ProductFactory(
+        name={"de": "Brot"},
+        images=[
+            {"id": "a", "url": "/a.png", "is_primary": True, "sort_order": 0},
+            {"id": "b", "url": "/b.png", "is_primary": False, "sort_order": 1},
+        ],
+    )
+    assert (
+        views.product_photo_edit(
+            _photo_req(p.pk, op="replace", image_id="b", user=user)
+        ).status_code
+        == 204
+    )
+    p.refresh_from_db()
+    assert len(p.images) == 2
+    assert p.images[1]["url"] != "/b.png" and p.images[0]["url"] == "/a.png"  # только слайд b
+
+
+@pytest.mark.django_db
+def test_product_photo_edit_op_add_and_remove(tmp_path, settings, user):
+    """op=add добавляет фото; op=remove удаляет по id."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    p = ProductFactory(
+        name={"de": "Brot"},
+        images=[{"id": "a", "url": "/a.png", "is_primary": True, "sort_order": 0}],
+    )
+    assert views.product_photo_edit(_photo_req(p.pk, op="add", user=user)).status_code == 204
+    p.refresh_from_db()
+    assert len(p.images) == 2  # добавлено
+    new_id = next(i["id"] for i in p.images if i["id"] != "a")
+    # удаляем добавленное (op=remove, без файла)
+    rm = _photo_req(p.pk, op="remove", image_id=new_id, with_file=False, user=user)
+    assert views.product_photo_edit(rm).status_code == 204
+    p.refresh_from_db()
+    assert len(p.images) == 1 and p.images[0]["id"] == "a" and p.images[0]["is_primary"]

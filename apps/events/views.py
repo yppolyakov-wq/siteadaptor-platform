@@ -484,26 +484,32 @@ def event_inline_edit(request):
 @login_required
 @require_POST
 def event_photo_edit(request):
-    """Заменить главное фото события на канве витрины (multipart: pk + image). Зеркало
-    catalog.product_photo_edit — Event.images тот же FileRef-список. 204/400."""
+    """Пер-слайд правка галереи события на канве (multipart: pk, op, image_id, image).
+    op ∈ {replace, add, remove}. Зеркало catalog.product_photo_edit — Event.images тот
+    же FileRef-список, общий диспетчер apply_gallery_op. 204/400."""
     from django.core.exceptions import ValidationError
     from django.http import HttpResponse, HttpResponseBadRequest
 
-    from apps.catalog.images import save_product_image
+    from apps.catalog.images import apply_gallery_op
 
     pk = request.POST.get("pk")
+    op = request.POST.get("op", "replace")
+    image_id = request.POST.get("image_id", "")
     uploaded = request.FILES.get("image")
-    if not pk or not uploaded:
+    if not pk:
         return HttpResponseBadRequest()
     try:
         event = Event.objects.get(pk=pk)
     except (Event.DoesNotExist, ValidationError, ValueError):
         return HttpResponseBadRequest()
     try:
-        new_ref = save_product_image(uploaded, is_primary=True, sort_order=0, folder="events")
+        event.images = apply_gallery_op(
+            event.images, op=op, image_id=image_id, uploaded=uploaded, folder="events"
+        )
+    except ValueError:
+        return HttpResponseBadRequest()
     except ValidationError as exc:
         return HttpResponseBadRequest("; ".join(exc.messages))
-    event.images = [new_ref] + [{**img, "is_primary": False} for img in (event.images or [])]
     event.save(update_fields=["images", "updated_at"])
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
     if schema:
