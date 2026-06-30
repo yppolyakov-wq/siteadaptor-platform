@@ -7,5 +7,8 @@ Auftrags-Nr.: {{ job.reference_code }}
 {% if status_url %}
 Status ansehen:
 {{ status_url }}
+{% endif %}{% if review_url %}
+Waren Sie zufrieden? Über eine kurze Bewertung freuen wir uns sehr:
+{{ review_url }}
 {% endif %}
 Vielen Dank für Ihr Vertrauen.

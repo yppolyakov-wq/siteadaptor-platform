@@ -11,11 +11,47 @@ from apps.notifications.services import notify
 from apps.promotions.notifications import _owner_email, _render, _tenant
 
 
+def _review_url(schema) -> str:
+    """A7: ссылка на страницу бизнеса в портале агрегатора для отзыва (best-effort).
+
+    Портал/тенант — SHARED (public). Берём активный портал, где бизнес присутствует:
+    по business_type (вертикаль) или по городу (city-портал). Нет портала/слага → ''
+    (письмо уйдёт без ссылки, как у stays/events)."""
+    try:
+        from django.db.models import Q
+        from django_tenants.utils import schema_context
+
+        from apps.aggregator.models import AggregatorPortal
+        from apps.tenants.models import Tenant
+
+        with schema_context("public"):
+            t = (
+                Tenant.objects.filter(schema_name=schema)
+                .only("slug", "business_type", "city")
+                .first()
+            )
+            if t is None or not t.slug:
+                return ""
+            portal = (
+                AggregatorPortal.objects.filter(is_active=True)
+                .filter(Q(business_type=t.business_type) | Q(city__iexact=t.city))
+                .order_by("business_type")
+                .first()
+            )
+            if portal is None:
+                return ""
+            host, slug = portal.host, t.slug
+        return f"https://{host}/unternehmen/{slug}/"
+    except Exception:  # noqa: BLE001 — письмо не должно падать из-за ссылки
+        return ""
+
+
 def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
     """event: new/accepted/declined → владельцу; quoted/done → клиенту (со ссылкой).
 
     A9: `done` уведомляет клиента, что работа выполнена (Repair-Status), со ссылкой
-    на публичную страницу статуса (`status_url`)."""
+    на публичную страницу статуса (`status_url`). A7: в `done` добавляем запрос отзыва
+    (`review_url`, страница бизнеса в портале — best-effort, как post-stay/post-event)."""
     schema = connection.schema_name
     customer = job.customer
     ctx = {
@@ -23,6 +59,7 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
         "customer": customer,
         "angebot_url": angebot_url,
         "status_url": status_url,
+        "review_url": _review_url(schema) if event == "done" else "",
     }
 
     if event in ("quoted", "done", "service_reminder"):  # → клиенту

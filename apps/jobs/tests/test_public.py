@@ -230,6 +230,46 @@ def test_done_transition_sends_customer_status_email():
     assert Notification.objects.filter(dedupe_key=f"job:{job.id}:done:customer").exists()
 
 
+# --- A7: авто-запрос отзыва в письме «fertig» -------------------------------------
+def test_review_url_points_to_portal_business_page():
+    from apps.aggregator.models import AggregatorPortal
+    from apps.jobs.notifications import _review_url
+
+    TenantFactory(schema_name="biz_rev", slug="meinbetrieb", business_type="other", city="Köln")
+    AggregatorPortal.objects.create(
+        host="koeln.example.de",
+        kind="city",
+        city="Köln",
+        title={"de": "Köln"},
+        tagline={"de": "Lokal"},
+        is_active=True,
+    )
+    assert _review_url("biz_rev") == "https://koeln.example.de/unternehmen/meinbetrieb/"
+
+
+def test_review_url_empty_without_portal():
+    from apps.jobs.notifications import _review_url
+
+    TenantFactory(schema_name="biz_norev", slug="x", business_type="other", city="Nirgendwo")
+    assert _review_url("biz_norev") == ""
+
+
+def test_job_done_email_renders_review_request_line():
+    from django.template.loader import render_to_string
+
+    job = services.create_job(title="Bad", name="K")
+    body = render_to_string(
+        "emails/job_done.txt",
+        {
+            "job": job,
+            "customer": job.customer,
+            "status_url": "",
+            "review_url": "https://p/unternehmen/b/",
+        },
+    )
+    assert "https://p/unternehmen/b/" in body and "Bewertung" in body
+
+
 # --- публичное Angebot ------------------------------------------------------------
 
 
