@@ -17,7 +17,7 @@
 | 3 | **A4 Gastro** | `restaurant`, `pranasy` | `market-gap-a4-2026-06-30.md` | ✅ готов |
 | 4 | **A5 Übernachtung/Hotel** | `hotel` | `market-gap-a5-2026-06-30.md` | ✅ готов |
 | 5 | **A6 Event/Retreat** | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ✅ готов |
-| 6 | A7 Handwerker | `handwerker` | `market-gap-a7-2026-06-30.md` | ⏳ |
+| 6 | **A7 Handwerker** | `handwerker` | `market-gap-a7-2026-06-30.md` | ✅ готов |
 | 7 | A8 Aggregator/Portal | — (портал) | `market-gap-a8-2026-06-30.md` | ⏳ |
 | 8 | A9 Kfz-Werkstatt | `werkstatt` | `market-gap-a9-2026-06-30.md` | ⏳ |
 
@@ -50,6 +50,12 @@
   (multi-seat=1 QR), Event/Course JSON-LD, embed-виджет событий (агрегатор-events уже
   есть), .ics-в-письме + grid-календарь, DSGVO-retention health-данных, replay/hybrid,
   memberships/class-pass для курсов, sellable gift-voucher (продажа привязана к stays).
+- **A7:** отлично делает DACH-петлю Anfrage→Angebot→Auftrag→Rechnung (фото/депозит/
+  материалы+списание склада G11) — то, чего нет у маркетплейсов; но **самый слабый по
+  витрине/контенту и комплаенсу**. Гэпы: деталь услуги + каталог Leistungen (SEO, D1/D8),
+  **E-Rechnung XRechnung/ZUGFeRD (юр. B2B 2025)**, service-area/PLZ, верифиц. отзыв по
+  Auftrag, структурные trust-бейджи, портфолио проектов, онлайн-оплата счёта, e-подпись,
+  Notdienst/urgency-флаг, response-SLA/auto-ack. 10 CONFIRMED_MISSING.
 - **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы/обзоры на витрине
   бизнеса, верифиц. per-item (A3/A4/A5/A6/A7/A9) · **платёжный микс PayPal/Klarna/SEPA/Bar
   + `Order.payment_method` (A1/A2+A4+A5+A6)** · SMS/WhatsApp-канал · AGB · **язык/мультиязык
