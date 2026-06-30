@@ -74,6 +74,15 @@ inline-content (этот документ). После него — по CLAUDE.
   ⚠️ Остаточный edge-case (пре-существующий, не ухудшен): если у тенанта есть СТАРЫЙ `site_config["_draft"]`
   (построен прежним collect без C-блоков), редактор рендерит его → существующие C-блоки скрыты до add/save (тогда
   self-heal: add_block дропает `_draft` через normalize). Для add-block-потока всё работает.
+- **H2-1/H2-2 (2026-06-30, начат трек H2 мультиархетип)** — агрегация primary-блоков на главной. H2-1:
+  `archetypes.aggregate_primary_sections` (блок каждого активного архетипа в порядке `_PRIORITY`). H2-2: дефолт
+  `storefront_home` обобщён с одной primary на ВСЕ (гард: заданные `sections` не трогаем; паритет M20U-2). 927 тестов.
+  Без миграций/браузера. План — `docs/h2-multiarchetype-plan.md`. `e515d3b`/`10c23f1`.
+  **Дальше H2 (всё браузер-UI, отдельный заход со стендом):** H2-3 билдер (архетип-бейджи + чекбоксы + тумблер
+  «по реестру/вручную» + реконсиляция при вкл/выкл модуля); H2-6 карусель из обложечного `gallery` над ITEMS на
+  лендингах stays/events/booking (H2-4/H2-5 ОТМЕНЕНЫ — реюзим существующий `gallery`, не новый schema); H2-7 меню
+  авто-сид из активных архетипов + rich-узлы (card/link, depth≤2 → mega/side-panel). ⚠️ Стенд: `devstand.py` удалён
+  (был untracked) — пересоздать из scratchpad-копии или взять `development` + `INTERNAL_IPS=[]`.
 - **H0 (срез 1)** — гейтинг секций редактора по архетипу (`archetypes.SECTION_ARCHETYPE_MODULE` +
   `section_visible_for`); пекарня не видит Stay/Events/Services/Handwerker; carry-forward скрытых секций. `0372fb4`.
 - **H1.3** — «Section = чистый список»: строка = `.home-block-head` (имя+чекбокс+⚙), настройки →

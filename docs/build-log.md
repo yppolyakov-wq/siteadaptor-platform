@@ -2985,3 +2985,10 @@
   страниц»: универсальные инфо/правовые страницы (Über uns/Impressum/Datenschutz/Widerruf) добавлены в `preview_pages`
   редактора главной — владелец открывает их вид прямо в редакторе («О нас» правит about-тексты инлайн). Резолв reverse
   + guard NoReverseMatch; select/JS не менялись. Тест: редактор рендерит 4 URL. Без миграций/шаблонов. `9e7cb5e`.
+- **2026-06-30 — H2-1/H2-2: агрегация primary-блоков на главной мультиархетипа.** H2-1:
+  `archetypes.aggregate_primary_sections(tenant)` — «главный» блок каждого активного архетипа в порядке реестра
+  `_PRIORITY` (`[{key,module,order}]`, без запросов к БД). H2-2: дефолт главной (`storefront_home`) обобщён с одной
+  primary на ВСЕ — при отсутствии `sections` в сыром конфиге включаем блок каждого активного архетипа (магазин+
+  ретриты+услуги → products+events+services …); гард сохранён (заданные `sections` не трогаем); паритет M20U-2
+  (products/promotions default-on → enable идемпотентен). Тесты: порядок/одиночный/полный/пустой + интеграция
+  storefront_home. 927 зелёных. Без миграций/шаблонов. План — `docs/h2-multiarchetype-plan.md`. `e515d3b`/`10c23f1`.
