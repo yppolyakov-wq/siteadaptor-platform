@@ -6,6 +6,8 @@
 каталогом, чтобы знать, что выводить первым.
 """
 
+from django.utils.translation import gettext_lazy as _
+
 from apps.core import modules
 
 # Ключ модуля-архетипа → секция главной с его «главным товаром».
@@ -86,6 +88,51 @@ def section_visible_for(tenant, section_key: str) -> bool:
     """
     module = SECTION_ARCHETYPE_MODULE.get(section_key)
     return module is None or tenant.is_module_active(module)
+
+
+# H0 («архетип = 3 сущности-страницы»): 3-я сущность — страница-ДЕТАЛЬ (товар/номер/
+# событие). 1-я/2-я (главная-лендинг + список) уже даёт modules.storefront_landing /
+# PRIMARY_SECTION; здесь — деталь с URL РЕАЛЬНОГО примера, чтобы редактор открыл её в
+# превью и правил инлайн (инлайн-эндпоинты H1.2 уже есть для product/event/stay).
+# Кортеж: (модуль, "app.Model", url_name детали, подпись, фильтр примера, order_by).
+# Фильтр совпадает с публичной вьюхой (активный/опубликованный) — иначе открытая деталь
+# не отрендерится. Модели резолвим лениво (apps.get_model) — иначе цикл core↔apps.
+DETAIL_ENTITIES = (
+    ("catalog", "catalog.Product", "storefront-product", _("Product page"),
+     {"is_active": True}, ("-is_featured", "-created_at")),
+    ("stays", "stays.StayUnit", "storefront-unterkunft-unit", _("Room page"),
+     {"is_active": True}, ()),
+    ("events", "events.Event", "storefront-event", _("Event page"),
+     {"status": "published"}, ("starts_at",)),
+)  # fmt: skip
+
+
+def example_detail_pages(tenant) -> list[dict]:
+    """H0/H1: пункты «деталь» для переключателя превью редактора — по одному на активный
+    архетип, у которого есть опубликованный пример. Каждый — ``{"label", "url"}``.
+
+    Покрыты архетипы с инлайн-правкой детали (H1.2): catalog→товар, stays→номер,
+    events→событие. Нет примера / маршрута в текущем urlconf → пункт пропускаем.
+    """
+    from django.apps import apps as django_apps
+    from django.urls import NoReverseMatch, reverse
+
+    pages = []
+    for module_key, model_path, url_name, label, qs_filter, order in DETAIL_ENTITIES:
+        if not tenant.is_module_active(module_key):
+            continue
+        model = django_apps.get_model(model_path)
+        qs = model.objects.filter(**qs_filter)
+        if order:
+            qs = qs.order_by(*order)
+        obj = qs.first()
+        if obj is None:
+            continue
+        try:
+            pages.append({"label": label, "url": reverse(url_name, args=[obj.pk])})
+        except NoReverseMatch:
+            continue
+    return pages
 
 
 def primary_module(tenant) -> str | None:

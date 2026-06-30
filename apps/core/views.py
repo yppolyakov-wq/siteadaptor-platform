@@ -1055,19 +1055,9 @@ def home_builder_view(request):
             preview_pages.append({"label": a.label, "url": reverse(a.url_name)})
         except NoReverseMatch:
             continue
-    # SE-2b-2: превью конкретного события (первое опубликованное) — чтобы детальную
-    # можно было открыть на канве и править порядок/видимость её секций.
-    if request.tenant.is_module_active("events"):
-        from apps.events.models import Event
-
-        ev = Event.objects.filter(status=Event.STATUS_PUBLISHED).order_by("starts_at").first()
-        if ev is not None:
-            try:
-                preview_pages.append(
-                    {"label": _("Event page"), "url": reverse("storefront-event", args=[ev.pk])}
-                )
-            except NoReverseMatch:
-                pass
+    # H0/H1: страницы-ДЕТАЛИ активных архетипов (товар/номер/событие — первый пример) —
+    # чтобы деталь можно было открыть на канве и править инлайн (H1.2) / порядок секций.
+    preview_pages.extend(archetypes.example_detail_pages(request.tenant))
     # Фикс-секции и C-блоки идут в одном `config["sections"]`; index = глобальный
     # порядок (его пишем в order_*-поля, чтобы при сохранении сохранить чередование).
     sections = []
