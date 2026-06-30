@@ -582,6 +582,8 @@
           <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Contact & opening hours" %}</a>
           <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
         </div>
+        {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «Edit on site» → клик по тексту подвала). #}
+        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — turn on “Edit on site” and click the footer text." %}</p>
         <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
           <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;sections&quot;]').click()">{% trans "Sections" %}</button>.</p>
       </fieldset>

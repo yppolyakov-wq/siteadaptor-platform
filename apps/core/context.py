@@ -221,6 +221,8 @@ def modules_nav(request):
         "storefront_card_shadow": cfg["site_defaults"]["card_shadow"],
         "storefront_card_bg": cfg["site_defaults"]["card_bg"],
         "storefront_card_padding": cfg["site_defaults"]["card_padding"],
+        # H1.2: тэглайн подвала (draft-aware) — правится инлайн (data-edit="footer_text").
+        "storefront_footer_text": cfg.get("footer_text", ""),
         # P5: preload hero-фото (LCP) — пусто, если секция выключена/без фото.
         "storefront_hero_preload": hero_preload,
         # S3: обложка раздела (интро/hero) — пусто вне лендинга архетипа.

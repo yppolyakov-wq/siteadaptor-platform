@@ -135,6 +135,25 @@ def test_catalog_page_carries_data_edit_markers():
     assert "Unsere Backwaren" in body and "Täglich frisch" in body
 
 
+def test_inline_edit_saves_footer_text():
+    """H1.2: тэглайн подвала (footer_text) — в TEXT_FIELDS, правится инлайн."""
+    tenant = TenantFactory(schema_name="public", slug="ieft", name="IEFT")
+    assert _post("footer_text", "  Handgemacht seit 1990  ", tenant).status_code == 204
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["footer_text"] == "Handgemacht seit 1990"
+
+
+def test_footer_tagline_renders_with_marker():
+    """H1.2: подвал (_base.html) несёт тэглайн с data-edit="footer_text" (виден на всех страницах)."""
+    tenant = TenantFactory.build(site_config={"footer_text": "Handgemacht seit 1990"})
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert 'data-edit="footer_text"' in body
+    assert "Handgemacht seit 1990" in body
+
+
 def test_hero_about_carry_data_edit_markers():
     tenant = TenantFactory.build(
         site_config={

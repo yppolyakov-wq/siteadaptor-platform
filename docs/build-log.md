@@ -2936,3 +2936,9 @@
   в превью заголовок contenteditable, правка → `catalog_title` в БД, JS-ошибок нет. Тесты: `site_inline_edit`
   принимает catalog_title/intro + рендер маркеров/override. Без миграций. (Пер-категорийные описания — отдельный
   больший срез: поле на Category + миграция.) Multi-page editing: главная/товар/событие/номер/каталог.
+- **2026-06-29 — H1.2 (срез 5): редактируемый тэглайн ПОДВАЛА (ask «настройки подвала»).** `footer_text` добавлен
+  в `siteconfig.TEXT_FIELDS`; контекст-процессор (`apps/core/context.py`, draft-aware) отдаёт `storefront_footer_text`;
+  `_base.html` рендерит тэглайн в подвале с `data-edit="footer_text"` (пустой скрыт на публичной, виден/правится под
+  `?preview=1`) — на ВСЕХ страницах. В области «Подвал» редактора — подсказка про правку на сайте. Тот же generic
+  `[data-edit]`/`site_inline_edit`-путь, что у `catalog_title` (проверен в браузере этой сессии — идентичен). Тесты:
+  `site_inline_edit` принимает footer_text + рендер маркера/значения в подвале. Без миграций.

@@ -179,6 +179,8 @@
 
   <footer class="border-t border-gray-100 bg-white">
     <div class="max-w-7xl mx-auto px-4 py-6 text-xs text-gray-500 space-y-3">
+      {# H1.2: тэглайн подвала — правится инлайн на канве; пустой скрыт на публичной, виден/правится под ?preview=1. #}
+      {% if storefront_footer_text or request.GET.preview == '1' %}<p class="text-sm text-gray-600 whitespace-pre-line max-w-2xl" data-edit="footer_text">{{ storefront_footer_text }}</p>{% endif %}
       {% if request.tenant %}
         <div class="flex flex-wrap gap-x-6 gap-y-1">
           {% if request.tenant.address %}<span>📍 {{ request.tenant.address }}</span>{% endif %}
