@@ -73,6 +73,8 @@ def calendar(request):
         .select_related("resource", "customer")
         .order_by("resource__name", "start")
     )
+    from django.urls import reverse
+
     return render(
         request,
         "booking/calendar.html",
@@ -83,6 +85,8 @@ def calendar(request):
             "next_day": day + timedelta(days=1),
             "bookings": bookings,
             "resources": Resource.objects.filter(is_active=True),
+            # A4: iframe-виджет записи для своего сайта.
+            "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
         },
     )
 

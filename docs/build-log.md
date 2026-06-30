@@ -3106,3 +3106,12 @@
   `check_has_slots(day)` зовётся только в окне [today, MAX_DAYS_AHEAD] (прошлое/за горизонтом
   не считаем). Для услуги `cal_qs` несёт выбранного мастера в ссылки дня. Партиал
   `_booking_calendar.html`. Тесты: хелпер (окно/пометки) + рендер кликабельного дня (73 booking).
+- **2026-06-30 — A4: iframe-виджет записи (Termin) — embed-режим.** Ресторан/Friseur
+  встраивает форму записи на свой сайт через `<iframe>` (бэклог F-A4; email-reminder уже
+  есть — beat `send_booking_reminders`). Зеркало stays G10: хелперы `_is_embed`/`_render_embed`/
+  `_embed_redirect` в booking/public_views; при `?embed=1` витрина (index/service_index/
+  booking_slots/service_slots/confirmation) рендерится минимальным `_embed_base.html` +
+  `xframe_options_exempt`. `embed` пробрасывается ВО ВСЕ ссылки (back/день-нав/слоты/пикер
+  мастера/календарь A3), скрытое поле формы и редиректы (успех/ошибка/honeypot/Stripe ok+cancel),
+  чтобы флоу не вышел из iframe. Кабинет `/dashboard/booking/`: сниппет `<iframe>` (details).
+  Тесты: xframe-exempt + embed во всех ссылках/редиректах/успехе (77 booking). Без миграции/JS.

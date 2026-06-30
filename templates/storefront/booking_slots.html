@@ -1,4 +1,4 @@
-{% extends "storefront/_base.html" %}
+{% extends base_template|default:"storefront/_base.html" %}
 {% load i18n %}
 {% block title %}{{ resource.name }} — {% trans "Book a slot" %}{% endblock %}
 
@@ -8,7 +8,7 @@
          style="background: var(--accent);">
   <div class="bg-black/15">
     <div class="max-w-7xl mx-auto px-4 py-8 md:py-12">
-      <a href="{% url 'storefront-termin' %}" class="text-sm text-white/80 hover:text-white">← {% trans "Back" %}</a>
+      <a href="{% url 'storefront-termin' %}{% if embed %}?embed=1{% endif %}" class="text-sm text-white/80 hover:text-white">← {% trans "Back" %}</a>
       <h1 class="text-3xl md:text-4xl font-bold mt-1 drop-shadow">🍽 {{ resource.name }}</h1>
       <p class="mt-1 text-white/90">{% trans "Reserve your spot online — pick a day and time." %}</p>
     </div>
@@ -26,11 +26,11 @@
 
 <div class="flex items-center justify-between mb-4 max-w-md">
   {% if prev_day %}
-    <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="hover:underline text-sm" style="color: var(--accent);">← {{ prev_day|date:"D d.m." }}</a>
+    <a href="?tag={{ prev_day|date:'Y-m-d' }}{{ embed_qs }}" class="hover:underline text-sm" style="color: var(--accent);">← {{ prev_day|date:"D d.m." }}</a>
   {% else %}<span></span>{% endif %}
   <span class="font-semibold">{{ day|date:"l, d.m.Y" }}</span>
   {% if next_day %}
-    <a href="?tag={{ next_day|date:'Y-m-d' }}" class="hover:underline text-sm" style="color: var(--accent);">{{ next_day|date:"D d.m." }} →</a>
+    <a href="?tag={{ next_day|date:'Y-m-d' }}{{ embed_qs }}" class="hover:underline text-sm" style="color: var(--accent);">{{ next_day|date:"D d.m." }} →</a>
   {% else %}<span></span>{% endif %}
 </div>
 
@@ -38,7 +38,7 @@
 {% if group %}<p class="text-sm text-gray-500 mb-2">{% trans "Group course — pick a time, free spots are shown." %}</p>{% endif %}
 <div class="flex flex-wrap gap-2 mb-6 max-w-xl">
   {% for start, end, spots in slots %}
-    <a href="?tag={{ day|date:'Y-m-d' }}&slot={{ start.isoformat|urlencode }}"
+    <a href="?tag={{ day|date:'Y-m-d' }}&slot={{ start.isoformat|urlencode }}{{ embed_qs }}"
        class="px-4 py-2 rounded-lg text-sm font-medium border
               {% if selected and selected.0 == start %}text-white border-transparent{% else %}bg-white border-gray-300 hover:border-gray-400{% endif %}"
        {% if selected and selected.0 == start %}style="background: var(--accent);"{% endif %}>
@@ -53,6 +53,7 @@
 {% if selected %}
 <form method="post" action="{% url 'storefront-termin-book' resource.pk %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
   {% csrf_token %}
+  {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
   <h2 class="font-semibold">{{ day|date:"d.m.Y" }} · {{ selected.0|time:"H:i" }}–{{ selected.1|time:"H:i" }}</h2>
   <input type="hidden" name="start" value="{{ selected.0.isoformat }}">
   <input type="hidden" name="end" value="{{ selected.1.isoformat }}">

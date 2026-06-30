@@ -83,6 +83,26 @@ def _slot_month(check_has_slots, first, today, max_day) -> dict:
     }
 
 
+def _is_embed(request) -> bool:
+    """A4: iframe-режим витрины записи (для встраивания на чужой сайт)."""
+    return request.GET.get("embed") == "1" or request.POST.get("embed") == "1"
+
+
+def _render_embed(request, template, ctx, embed):
+    """A4: render витрины записи с минимальным шаблоном и разрешением кадрирования
+    при ?embed=1 (iframe-виджет, зеркало stays G10). Иначе — обычная витрина."""
+    ctx = {
+        **ctx,
+        "embed": embed,
+        "embed_qs": "&embed=1" if embed else "",
+        "base_template": "storefront/_embed_base.html" if embed else "storefront/_base.html",
+    }
+    resp = render(request, template, ctx)
+    if embed:
+        resp.xframe_options_exempt = True  # XFrameOptionsMiddleware пропустит этот ответ
+    return resp
+
+
 def _redeem_pass_if_code(request, booking) -> bool:
     """G9: если предъявлен Mehrfachkarte-Code — гасим один визит. Возвращает True,
     когда код был предъявлен (тогда депозит/оплату пропускаем — карта вместо денег).
@@ -115,25 +135,34 @@ def _passes_enabled() -> bool:
     return Pass.objects.filter(is_active=True).exists()
 
 
+def _embed_redirect(name, embed, **kwargs):
+    """A4: redirect на именованный URL c сохранением ?embed=1 (флоу не выходит из iframe)."""
+    url = reverse(name, kwargs=kwargs) if kwargs else reverse(name)
+    return redirect(f"{url}?embed=1" if embed else url)
+
+
 def termin_index(request):
     _require_booking_active(request)
     from .models import PassPlan
 
+    embed = _is_embed(request)
     has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
     services_qs = Service.objects.filter(is_active=True)
     if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
-        return render(
+        return _render_embed(
             request,
             "storefront/service_index.html",
             {"services": services_qs, "has_pass_plans": has_pass_plans},
+            embed,
         )
     resources = Resource.objects.filter(is_active=True)
     if resources.count() == 1 and not has_pass_plans:  # один ресурс — сразу к слотам
-        return redirect("storefront-termin-slots", pk=resources.first().pk)
-    return render(
+        return _embed_redirect("storefront-termin-slots", embed, pk=resources.first().pk)
+    return _render_embed(
         request,
         "storefront/booking_index.html",
         {"resources": resources, "has_pass_plans": has_pass_plans},
+        embed,
     )
 
 
@@ -212,7 +241,7 @@ def service_slots(request, pk):
         today,
         max_day,
     )
-    return render(
+    return _render_embed(
         request,
         "storefront/service_slots.html",
         {
@@ -232,16 +261,18 @@ def service_slots(request, pk):
             "cal_qs": f"&resource={chosen.pk}" if chosen else "",  # A3: параметр дня
             **cal,
         },
+        _is_embed(request),
     )
 
 
 def service_book(request, pk):
     _require_booking_active(request)
+    embed = _is_embed(request)  # A4: сохраняем iframe-режим во всём флоу
     if request.method != "POST":
-        return redirect("storefront-service-slots", pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
     service = get_object_or_404(Service, pk=pk, is_active=True)
     if request.POST.get("website"):  # honeypot
-        return redirect("storefront-service-slots", pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
     if ratelimit.hit("termin", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
     try:
@@ -253,7 +284,7 @@ def service_book(request, pk):
     chosen = Resource.objects.filter(pk=rid, is_active=True).first() if rid else None
     if start not in availability.service_slots(service, start.date(), resource=chosen):
         messages.error(request, _("This time is no longer available. Please pick another."))
-        return redirect("storefront-service-slots", pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
     resource = availability.assign_resource(service, start, resource=chosen)
     name = request.POST.get("name", "").strip()
     if resource is None or not name:
@@ -263,7 +294,7 @@ def service_book(request, pk):
             if resource is None
             else _("Please tell us your name."),
         )
-        return redirect("storefront-service-slots", pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
@@ -283,11 +314,11 @@ def service_book(request, pk):
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
-        return redirect("storefront-service-slots", pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     if _redeem_pass_if_code(request, booking):
-        return redirect("storefront-termin-ok", code=booking.reference_code)
+        return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
 
     # Депозит услуги (P2.5b): на Stripe Checkout, иначе обычная запись.
     tenant = getattr(request, "tenant", None)
@@ -304,10 +335,11 @@ def service_book(request, pk):
                 reverse("storefront-termin-ok", args=[booking.reference_code])
             )
             + "?paid=1"
+            + ("&embed=1" if embed else "")
         )
         cancel_url = request.build_absolute_uri(
             reverse("storefront-service-slots", args=[service.pk])
-        )
+        ) + ("?embed=1" if embed else "")
         try:
             return redirect(
                 payments.deposit_checkout_url(
@@ -316,7 +348,7 @@ def service_book(request, pk):
             )
         except stripe.error.StripeError:
             pass
-    return redirect("storefront-termin-ok", code=booking.reference_code)
+    return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
 
 
 def termin_slots(request, pk):
@@ -344,7 +376,7 @@ def termin_slots(request, pk):
         today,
         max_day,
     )
-    return render(
+    return _render_embed(
         request,
         "storefront/booking_slots.html",
         {
@@ -363,16 +395,18 @@ def termin_slots(request, pk):
             "cal_qs": "",  # A3: ресурс уже в пути URL — доп. параметров дня нет
             **cal,
         },
+        _is_embed(request),
     )
 
 
 def termin_book(request, pk):
     _require_booking_active(request)
+    embed = _is_embed(request)  # A4: сохраняем iframe-режим во всём флоу
     if request.method != "POST":
-        return redirect("storefront-termin-slots", pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
     resource = get_object_or_404(Resource, pk=pk, is_active=True)
     if request.POST.get("website"):  # honeypot
-        return redirect("storefront-termin-slots", pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
     if ratelimit.hit("termin", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
 
@@ -384,12 +418,12 @@ def termin_book(request, pk):
     # Слот должен существовать в сетке расписания — иначе произвольный интервал.
     if (start, end) not in availability.free_slots(resource, start.date()):
         messages.error(request, _("This slot is no longer available. Please pick another."))
-        return redirect("storefront-termin-slots", pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
 
     name = request.POST.get("name", "").strip()
     if not name:
         messages.error(request, _("Please tell us your name."))
-        return redirect("storefront-termin-slots", pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
     try:
         party_size = max(1, min(int(request.POST.get("party_size", "1")), 50))
     except (TypeError, ValueError):
@@ -412,11 +446,11 @@ def termin_book(request, pk):
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
-        return redirect("storefront-termin-slots", pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     if _redeem_pass_if_code(request, booking):
-        return redirect("storefront-termin-ok", code=booking.reference_code)
+        return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
 
     # Депозит (P2.5b): если у ресурса задан и бизнес принимает оплату — ведём на
     # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.
@@ -434,10 +468,11 @@ def termin_book(request, pk):
                 reverse("storefront-termin-ok", args=[booking.reference_code])
             )
             + "?paid=1"
+            + ("&embed=1" if embed else "")
         )
         cancel_url = request.build_absolute_uri(
             reverse("storefront-termin-slots", args=[resource.pk])
-        )
+        ) + ("?embed=1" if embed else "")
         try:
             return redirect(
                 payments.deposit_checkout_url(
@@ -447,7 +482,7 @@ def termin_book(request, pk):
         except stripe.error.StripeError:
             # оплата временно недоступна — бронь остаётся (pending), не теряем её
             pass
-    return redirect("storefront-termin-ok", code=booking.reference_code)
+    return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
 
 
 def termin_confirmation(request, code):
@@ -455,8 +490,9 @@ def termin_confirmation(request, code):
     booking = get_object_or_404(Booking.objects.select_related("resource"), reference_code=code)
     from apps.telegram.notify import deep_link
 
-    return render(
+    return _render_embed(
         request,
         "storefront/booking_confirmation.html",
         {"booking": booking, "telegram_link": deep_link(booking.customer)},
+        _is_embed(request),
     )

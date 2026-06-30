@@ -1,4 +1,4 @@
-{% extends "storefront/_base.html" %}
+{% extends base_template|default:"storefront/_base.html" %}
 {% load i18n %}
 {% block title %}{% trans "Book a slot" %} — {{ request.tenant.name }}{% endblock %}
 
@@ -7,7 +7,7 @@
 {% if resources %}
 <div class="grid sm:grid-cols-2 gap-4">
   {% for r in resources %}
-    <a href="{% url 'storefront-termin-slots' r.pk %}"
+    <a href="{% url 'storefront-termin-slots' r.pk %}{% if embed %}?embed=1{% endif %}"
        class="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
       <p class="font-semibold">{{ r.name }}</p>
       <p class="text-sm text-gray-500 mt-1">{{ r.get_type_display }}</p>

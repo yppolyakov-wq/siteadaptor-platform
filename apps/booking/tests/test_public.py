@@ -106,6 +106,50 @@ def test_slot_calendar_renders_available_day_clickable():
     assert "grid-cols-7" in body  # календарь-сетка отрендерилась
 
 
+# --- A4: iframe-виджет (embed-режим) ----------------------------------------------
+def test_slots_embed_sets_xframe_exempt_and_carries_embed():
+    resource = _resource()
+    resp = public_views.termin_slots(_req(data={"embed": "1"}), pk=resource.pk)
+    assert getattr(resp, "xframe_options_exempt", False) is True
+    assert "embed=1" in resp.content.decode()  # ссылки/форма несут embed
+    plain = public_views.termin_slots(_req(), pk=resource.pk)
+    assert getattr(plain, "xframe_options_exempt", False) is False
+    assert "embed=1" not in plain.content.decode()  # без embed — чисто
+
+
+def test_index_single_resource_redirect_keeps_embed():
+    _resource()  # один ресурс, без услуг/абонементов → redirect к слотам
+    resp = public_views.termin_index(_req(data={"embed": "1"}))
+    assert resp.status_code == 302 and "embed=1" in resp.url
+
+
+def test_book_honeypot_redirect_keeps_embed():
+    resource = _resource()
+    resp = public_views.termin_book(
+        _req("post", data={"embed": "1", "website": "bot"}), pk=resource.pk
+    )
+    assert resp.status_code == 302 and "embed=1" in resp.url
+
+
+def test_book_success_redirects_to_confirmation_with_embed():
+    resource = _resource()
+    start, end = availability.free_slots(resource, DAY)[0]
+    resp = public_views.termin_book(
+        _req(
+            "post",
+            data={
+                "embed": "1",
+                "start": start.isoformat(),
+                "end": end.isoformat(),
+                "name": "Gast",
+                "party_size": "2",
+            },
+        ),
+        pk=resource.pk,
+    )
+    assert resp.status_code == 302 and "embed=1" in resp.url  # → подтверждение в iframe
+
+
 # --- публичный флоу ----------------------------------------------------------------
 
 

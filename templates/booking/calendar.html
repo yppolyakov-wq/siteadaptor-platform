@@ -12,6 +12,13 @@
   </div>
 </div>
 
+{# A4: виджет записи (iframe) для своего сайта — встраивается без шапки/футера. #}
+<details class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+  <summary class="cursor-pointer text-sm font-medium">🔗 {% trans "Embed booking widget on your website" %}</summary>
+  <p class="text-xs text-gray-500 mt-2 mb-2">{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}</p>
+  <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>
+</details>
+
 {% if messages %}
   {% for m in messages %}
     <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
