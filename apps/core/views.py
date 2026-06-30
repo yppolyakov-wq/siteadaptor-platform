@@ -1419,6 +1419,9 @@ def site_preview_draft(request):
     # M20U-7: кастомные заголовки секций — в превью (normalize чистит ключи/длину).
     if isinstance(data.get("section_titles"), dict):
         cfg["section_titles"] = data["section_titles"]
+    # H1: описания секций — в превью (normalize чистит ключи/длину).
+    if isinstance(data.get("section_intros"), dict):
+        cfg["section_intros"] = data["section_intros"]
     # SE-2b-2: порядок/видимость тематических секций детальной события — в превью
     # (normalize_event_detail оставит лишь известные ключи).
     if isinstance(data.get("event_detail"), dict):
@@ -1511,6 +1514,14 @@ def site_inline_edit(request):
         titles = dict(cfg.get("section_titles") or {})
         titles[key] = value  # пусто → normalize вернёт дефолтный i18n-заголовок
         cfg["section_titles"] = titles
+    elif field and field.startswith("section_intros."):
+        # H1: описания секций главной правятся инлайн на превью (как заголовки).
+        key = field.split(".", 1)[1]
+        if key not in siteconfig.SECTION_INTRO_KEYS:
+            return HttpResponseBadRequest()
+        intros = dict(cfg.get("section_intros") or {})
+        intros[key] = value  # пусто → normalize уберёт ключ (на витрине описания нет)
+        cfg["section_intros"] = intros
     else:
         return HttpResponseBadRequest()
     request.tenant.site_config = siteconfig.normalize(cfg)

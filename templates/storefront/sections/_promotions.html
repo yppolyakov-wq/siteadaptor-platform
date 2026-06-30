@@ -15,6 +15,8 @@
     </button>
   </div>
 </div>
+{% section_intro site 'promotions' as si %}
+{% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.promotions">{{ si }}</p>{% endif %}
 <span class="hidden grid-cols-1 grid-cols-2" aria-hidden="true"></span>
 
 {% if promotions %}

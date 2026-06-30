@@ -393,6 +393,12 @@ def section_limit(config, key) -> int:
 SECTION_TITLE_KEYS = {"promotions", "categories", "products", "events", "stay_rooms", "services"}
 _SECTION_TITLE_MAX = 80
 
+# H1 (контент-настройка секции, Q4): опциональное описание под заголовком секции
+# главной — вводный текст над гридом. Те же ключи, что у заголовка. Хранится в
+# config["section_intros"][key]; пусто → на витрине не выводится (виден/правится в ?preview=1).
+SECTION_INTRO_KEYS = SECTION_TITLE_KEYS
+_SECTION_INTRO_MAX = 300
+
 # M20U-7: секции с ссылкой «View all» → её можно скрыть (show_all=False).
 SECTION_VIEWALL_KEYS = {"categories", "products", "events", "stay_rooms", "services"}
 
@@ -402,6 +408,14 @@ def section_title(config, key) -> str:
     titles = (config or {}).get("section_titles")
     if isinstance(titles, dict):
         return _s(titles.get(key))[:_SECTION_TITLE_MAX]
+    return ""
+
+
+def section_intro(config, key) -> str:
+    """H1: описание секции `key` под заголовком (или "" — нечего выводить)."""
+    intros = (config or {}).get("section_intros")
+    if isinstance(intros, dict):
+        return _s(intros.get(key))[:_SECTION_INTRO_MAX]
     return ""
 
 
@@ -1240,6 +1254,14 @@ def normalize(config) -> dict:
             if key in SECTION_TITLE_KEYS and isinstance(value, str) and _s(value):
                 clean_titles[key] = _s(value)[:_SECTION_TITLE_MAX]
     normalized["section_titles"] = clean_titles
+    # H1: описания секций главной (контент-настройка Q4) — те же правила, что у заголовков.
+    intros = config.get("section_intros")
+    clean_intros = {}
+    if isinstance(intros, dict):
+        for key, value in intros.items():
+            if key in SECTION_INTRO_KEYS and isinstance(value, str) and _s(value):
+                clean_intros[key] = _s(value)[:_SECTION_INTRO_MAX]
+    normalized["section_intros"] = clean_intros
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):

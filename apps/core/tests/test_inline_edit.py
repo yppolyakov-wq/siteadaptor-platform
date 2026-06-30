@@ -77,6 +77,49 @@ def test_inline_edit_rejects_unknown_section_title_key():
     assert _post("section_titles.evil", "x", tenant).status_code == 400
 
 
+def test_inline_edit_saves_section_intro():
+    """H1: описание секции (section_intros.products) правится на превью."""
+    tenant = TenantFactory(schema_name="public", slug="ii1", name="II1")
+    resp = _post("section_intros.products", "  Täglich frisch gebacken  ", tenant)
+    assert resp.status_code == 204
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["section_intros"]["products"] == "Täglich frisch gebacken"
+
+
+def test_inline_edit_rejects_unknown_section_intro_key():
+    tenant = TenantFactory(schema_name="public", slug="ii2", name="II2")
+    assert _post("section_intros.evil", "x", tenant).status_code == 400
+
+
+def test_inline_edit_empty_section_intro_dropped():
+    """Пустое описание → normalize убирает ключ (на витрине описания нет)."""
+    tenant = TenantFactory(schema_name="public", slug="ii3", name="II3")
+    assert _post("section_intros.products", "Da", tenant).status_code == 204
+    assert _post("section_intros.products", "   ", tenant).status_code == 204
+    tenant.refresh_from_db()
+    assert "products" not in siteconfig.normalize(tenant.site_config)["section_intros"]
+
+
+def test_section_intro_renders_with_marker():
+    """H1: непустое описание секции рендерится на витрине с data-edit-маркером."""
+    from apps.catalog.models import Product
+
+    tenant = TenantFactory(schema_name="public", slug="ii4", name="II4")
+    Product.objects.create(name={"de": "Brot"}, base_price="2.00", is_active=True, is_featured=True)
+    tenant.site_config = {
+        "sections": [{"key": "products", "enabled": True}],
+        "section_intros": {"products": "Täglich frisch"},
+    }
+    tenant.save(update_fields=["site_config"])
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.storefront_home(req).content.decode()
+    assert 'data-edit="section_intros.products"' in body
+    assert "Täglich frisch" in body
+
+
 def test_section_headers_carry_data_edit_markers():
     """Заголовок секции products несёт data-edit (кликом на «heading» правится)."""
     from apps.catalog.models import Product

@@ -6,6 +6,8 @@
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.products">{% if st %}{{ st }}{% else %}{% trans "Our products" %}{% endif %}</h2>
     {% section_show_all site 'products' as sa %}{% if sa %}<a href="{% url 'storefront-products' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
   </div>
+  {% section_intro site 'products' as si %}
+  {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.products">{{ si }}</p>{% endif %}
   <div class="{% grid_classes site 'products' %}">
     {% for p in products_preview %}
       {% include "storefront/_product_card.html" %}

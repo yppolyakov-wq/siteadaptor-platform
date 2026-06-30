@@ -11,6 +11,8 @@
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.stay_rooms">{% if st %}{{ st }}{% else %}{% trans "Our rooms" %}{% endif %}</h2>
     {% section_show_all site 'stay_rooms' as sa %}{% if sa %}<a href="{% url 'storefront-unterkunft' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
   </div>
+  {% section_intro site 'stay_rooms' as si %}
+  {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.stay_rooms">{{ si }}</p>{% endif %}
   <div class="{% grid_classes site 'stay_rooms' %}">
     {% for u in stay_rooms %}
       <a href="{% url 'storefront-unterkunft-unit' u.pk %}" class="sf-card block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
