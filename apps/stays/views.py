@@ -594,17 +594,32 @@ def stay_inline_edit(request):
     pk = data.get("pk")
     field = data.get("field")
     value = data.get("value", "")
-    if not pk or field not in _STAY_INLINE_FIELDS:
-        return HttpResponseBadRequest()
-    value = value.strip() if isinstance(value, str) else ""
-    if field == "name" and not value:  # пустое имя не сохраняем
+    if not pk or field not in (_STAY_INLINE_FIELDS | {"price_eur"}):
         return HttpResponseBadRequest()
     try:
         unit = StayUnit.objects.get(pk=pk)
     except (StayUnit.DoesNotExist, ValidationError, ValueError):
         return HttpResponseBadRequest()
-    setattr(unit, field, value[:120] if field == "name" else value)
-    unit.save(update_fields=[field, "updated_at"])
+
+    if field == "price_eur":
+        # Цена номера за ночь (евро → центы). Зеркало product/event инлайн-цены.
+        from decimal import Decimal, InvalidOperation
+
+        raw = str(value).strip().replace(",", ".")
+        try:
+            euros = Decimal(raw)
+        except (InvalidOperation, ValueError):
+            return HttpResponseBadRequest()
+        if euros < 0 or euros > Decimal("1000000"):
+            return HttpResponseBadRequest()
+        unit.price_cents = int((euros * 100).quantize(Decimal("1")))
+        unit.save(update_fields=["price_cents", "updated_at"])
+    else:
+        value = value.strip() if isinstance(value, str) else ""
+        if field == "name" and not value:  # пустое имя не сохраняем
+            return HttpResponseBadRequest()
+        setattr(unit, field, value[:120] if field == "name" else value)
+        unit.save(update_fields=[field, "updated_at"])
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
     if schema:
         from apps.core.pagecache import bump_storefront_cache

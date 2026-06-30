@@ -440,21 +440,42 @@ def event_inline_edit(request):
     pk = data.get("pk")
     field = data.get("field")
     value = data.get("value", "")
-    if not pk or field not in _EVENT_INLINE_FIELDS:
-        return HttpResponseBadRequest()
-    value = value.strip() if isinstance(value, str) else ""
-    if field == "title" and not value:  # пустой заголовок не сохраняем
+    if not pk or field not in (_EVENT_INLINE_FIELDS | {"price_eur"}):
         return HttpResponseBadRequest()
     try:
         event = Event.objects.get(pk=pk)
     except (Event.DoesNotExist, ValidationError, ValueError):
         return HttpResponseBadRequest()
+
+    def _bump():  # SE-5a: правка данных (не site_config) кэш не бампит — сбрасываем явно.
+        schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+        if schema:
+            from apps.core.pagecache import bump_storefront_cache
+
+            bump_storefront_cache(schema)
+
+    if field == "price_eur":
+        # Цена события — только БЕЗ ценовых тиров (с тирами цена пер-тир, правится в форме).
+        if event.has_tiers:
+            return HttpResponseBadRequest()
+        from decimal import Decimal, InvalidOperation
+
+        raw = str(value).strip().replace(",", ".")
+        try:
+            euros = Decimal(raw)
+        except (InvalidOperation, ValueError):
+            return HttpResponseBadRequest()
+        if euros < 0 or euros > Decimal("1000000"):
+            return HttpResponseBadRequest()
+        event.price_cents = int((euros * 100).quantize(Decimal("1")))
+        event.save(update_fields=["price_cents", "updated_at"])
+        _bump()
+        return HttpResponse(status=204)
+
+    value = value.strip() if isinstance(value, str) else ""
+    if field == "title" and not value:  # пустой заголовок не сохраняем
+        return HttpResponseBadRequest()
     setattr(event, field, value[:200] if field == "title" else value)
     event.save(update_fields=[field, "updated_at"])
-    # SE-5a: правка данных (не site_config) кэш не бампит — сбрасываем явно.
-    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
-    if schema:
-        from apps.core.pagecache import bump_storefront_cache
-
-        bump_storefront_cache(schema)
+    _bump()
     return HttpResponse(status=204)

@@ -425,3 +425,34 @@ def test_two_step_checkout_still_books_in_one_post():
     )
     assert resp.status_code == 302
     assert Ticket.objects.filter(event=ev, quantity=2).exists()
+
+
+def test_event_inline_edit_price():
+    """Цена события (без тиров) правится инлайн на детальной: price_eur → price_cents."""
+    import json
+    from types import SimpleNamespace
+
+    from apps.events import views
+
+    ev = _event(title="Konzert", price_cents=2000)
+
+    def call(payload):
+        req = RequestFactory().post(
+            "/dashboard/events/inline-edit/", json.dumps(payload), content_type="application/json"
+        )
+        req.user = SimpleNamespace(is_authenticated=True)
+        req.tenant = SimpleNamespace(schema_name="public")
+        return views.event_inline_edit(req)
+
+    assert call({"pk": str(ev.pk), "field": "price_eur", "value": "12,50"}).status_code == 204
+    ev.refresh_from_db()
+    assert ev.price_cents == 1250  # 12.50 € → центы (запятая → точка)
+    assert call({"pk": str(ev.pk), "field": "price_eur", "value": "abc"}).status_code == 400
+
+
+def test_event_detail_price_edit_marker():
+    """Цена события на детальной (без тиров) несёт data-price-edit (model=event)."""
+    ev = _event(title="Konzert", price_cents=2000)
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
+    assert 'data-edit-model="event"' in body

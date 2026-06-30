@@ -26,7 +26,7 @@
         <span class="text-gray-400">{% blocktrans count c=br.1 %}{{ c }} review{% plural %}{{ c }} reviews{% endblocktrans %}</span></p>
     {% endif %}
     <p class="text-gray-500 mt-1">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if unit.area_sqm %} · {{ unit.area_sqm }} m²{% endif %}{% if unit.bed_type %} · {{ unit.bed_type }}{% endif %}</p>
-    <p class="mt-2 text-xl font-bold">{% blocktrans with p=unit.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
+    <p class="mt-2 text-xl font-bold">{% trans "from" %} <span data-price-edit data-edit-model="stay" data-price-field="price_eur" data-edit-pk="{{ unit.pk }}" data-price="{{ unit.price_eur|floatformat:2 }}">{{ unit.price_eur|floatformat:2 }}</span> € / {% trans "night" %}</p>
     {% if unit.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
     {% if storefront_inbox_enabled %}
       <a href="{% url 'storefront-message' %}?kind=stay&id={{ unit.pk }}&label={{ unit.name|urlencode }}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>

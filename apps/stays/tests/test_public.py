@@ -356,3 +356,35 @@ def test_calendar_embed_keeps_embed_in_nav():
     )
     body = public_views.unterkunft_unit_calendar(req, pk=unit.pk).content.decode()
     assert "month=11&embed=1" in body or "month=11&amp;embed=1" in body  # next + embed
+
+
+def test_stay_inline_edit_price():
+    """Цена номера правится инлайн на детальной: price_eur → price_cents."""
+    import json
+    from types import SimpleNamespace
+
+    from apps.stays import views
+
+    unit = _unit(price_cents=9000)
+
+    def call(payload):
+        req = RequestFactory().post(
+            "/dashboard/stays/inline-edit/", json.dumps(payload), content_type="application/json"
+        )
+        req.user = SimpleNamespace(is_authenticated=True)
+        req.tenant = SimpleNamespace(schema_name="public")
+        return views.stay_inline_edit(req)
+
+    assert call({"pk": str(unit.pk), "field": "price_eur", "value": "55,50"}).status_code == 204
+    unit.refresh_from_db()
+    assert unit.price_cents == 5550
+    assert call({"pk": str(unit.pk), "field": "price_eur", "value": "-1"}).status_code == 400
+
+
+def test_stay_detail_price_edit_marker():
+    unit = _unit()
+    body = public_views.unterkunft_unit(
+        _req("get", f"/unterkunft/{unit.pk}/"), pk=unit.pk
+    ).content.decode()
+    assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
+    assert 'data-edit-model="stay"' in body
