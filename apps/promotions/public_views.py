@@ -103,18 +103,20 @@ def storefront_home(request):
                 return redirect(reverse(spec.storefront_landing))
             except NoReverseMatch:
                 pass
-    # M20U-2: archetype-aware дефолт главной — если владелец НЕ настраивал
-    # композицию (в сыром конфиге нет "sections"), включаем секцию «главного
-    # товара» архетипа в её естественной позиции (события/номера/категории).
-    # Рендер гейтится модулем+данными, поэтому пустых секций не появится.
+    # H2 (мультиархетип-дефолт главной): если владелец НЕ настраивал композицию (в сыром
+    # конфиге нет "sections"), включаем «главный» блок КАЖДОГО активного архетипа в его
+    # естественной позиции (магазин+ретриты+услуги → products+events+services …). Рендер
+    # гейтится модулем+данными → пустых секций не появится. Если "sections" заданы — НЕ
+    # трогаем (не переписываем интент владельца). Обобщает прежний M20U-2 (одна primary →
+    # все): products/promotions включены по умолчанию (enable идемпотентен), events/
+    # stay_rooms/services — добавляются для активных архетипов.
     if not (isinstance(raw, dict) and raw.get("sections")):
         from apps.core import archetypes
 
-        primary = archetypes.primary_section(request.tenant)
-        if primary in {"events", "stay_rooms", "categories", "services"}:
-            for s in site["sections"]:
-                if s["key"] == primary:
-                    s["enabled"] = True
+        want = {a["key"] for a in archetypes.aggregate_primary_sections(request.tenant)}
+        for s in site["sections"]:
+            if s["key"] in want:
+                s["enabled"] = True
     # Двуязычная витрина (i18n): свернуть тексты site_config к текущей локали —
     # EN-оверлей поверх базовых DE-значений. Платформенный механизм; переводы
     # сидятся демо-китом. DE/без оверлея → базовые значения (без изменений).

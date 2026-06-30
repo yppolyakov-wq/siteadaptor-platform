@@ -170,3 +170,20 @@ def primary_item(tenant) -> dict | None:
         "label": getattr(spec, "storefront_label", "") if spec else "",
         "mode": purchase_mode(module),
     }
+
+
+def aggregate_primary_sections(tenant) -> list[dict]:
+    """H2 (мультиархетип): «главный» блок КАЖДОГО активного архетипа, в порядке реестра.
+
+    Для авто-композиции главной сборного сайта (магазин+ретриты+услуги → products+events+
+    services …). Возвращает по одному дескриптору на активный архетип из `_PRIORITY`,
+    у которого есть секция-главного-товара (`PRIMARY_SECTION`): ``{key, module, order}``,
+    отсортированный по приоритету реестра (events>stays>booking>catalog>promotions).
+    Пусто, если ни один такой архетип не активен. Без запросов к БД (O(≤5)).
+    """
+    out = []
+    for order, module in enumerate(_PRIORITY):
+        section = PRIMARY_SECTION.get(module)
+        if section and tenant.is_module_active(module):
+            out.append({"key": section, "module": module, "order": order})
+    return out
