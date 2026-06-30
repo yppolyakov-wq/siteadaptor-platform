@@ -13,7 +13,7 @@
 | Шаг | Архетип | Кит(ы) | Документ | Статус |
 |:--:|---|---|---|:--:|
 | 1 | **A1/A2 Retail** (Online-Shop + C&C/Versand) | `shop`, `aktionsmarkt` | `market-gap-a1a2-retail-2026-06-30.md` | ✅ готов |
-| 2 | A3 Termin-Dienstleister | `friseur` | `market-gap-a3-2026-06-30.md` | ⏳ |
+| 2 | **A3 Termin-Dienstleister** | `friseur` | `market-gap-a3-2026-06-30.md` | ✅ готов |
 | 3 | A4 Gastro | `restaurant`, `pranasy` | `market-gap-a4-2026-06-30.md` | ⏳ |
 | 4 | A5 Übernachtung/Hotel | `hotel` | `market-gap-a5-2026-06-30.md` | ⏳ |
 | 5 | A6 Event/Retreat | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ⏳ |
@@ -27,5 +27,11 @@
   дешёвых правовых MUST (кнопка §312j, ноты PAngV «inkl. MwSt./Lieferzeit»,
   AGB/Versand&Zahlung); нет поиска по витрине; одноосевые варианты; нет carrier-API.
   Правовое/AGB и язык — сквозные (см. общий аудит D3–D7).
+- **A3:** движок на уровне Fresha/Shore (дифференциатор — flat 39 €/0 % комиссии);
+  отставание презентационное: нет **детали услуги** (общий гэп с A7/A9), нет
+  **клиентского переноса**, нет **SMS-напоминаний**, нет **отзывов у CTA брони**,
+  плоский список слотов вместо календаря, нет skill-matrix/buffer/waitlist/серий.
+- **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы на витрине
+  бизнеса, не только агрегатор (A3/A4/A5/A6/A7/A9) · SMS-канал · AGB · язык.
 
 _(дополняется на каждом шаге; в конце серии — сводка сквозных тем и единый бэклог.)_
