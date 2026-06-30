@@ -13,7 +13,7 @@ import segno
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
-from django.db.models import Exists, F, Max, Min, OuterRef, Q
+from django.db.models import Avg, Count, Exists, F, Max, Min, OuterRef, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -401,6 +401,22 @@ def product_list(request):
         limit=24,
         cursor=request.GET.get("cursor"),
     )
+    # A1/A2: рейтинг ★ на карточке каталога — bulk-агрегат по видимой странице (без N+1
+    # и без GROUP BY на keyset-запросе): один запрос на pk текущей страницы, навешиваем
+    # review_avg/review_count атрибутами на инстансы (page.items — материализованный список).
+    if page.items:
+        from apps.catalog.models import ProductReview
+
+        _rating = {
+            r["product"]: r
+            for r in ProductReview.objects.filter(product__in=page.items, is_published=True)
+            .values("product")
+            .annotate(avg=Avg("rating"), count=Count("id"))
+        }
+        for _p in page.items:
+            _row = _rating.get(_p.pk)
+            _p.review_avg = _row["avg"] if _row else None
+            _p.review_count = _row["count"] if _row else 0
     # A4: комбо-наборы (Menü-Sets/Tagesgericht), если есть и модуль orders активен.
     # M20U/A4: показываем тизер-карточками вверху меню (до 3) — не только текст-ссылкой,
     # — чтобы Kombo/Tagesgericht были на виду (сильный апселл гастро). Только на 1-й

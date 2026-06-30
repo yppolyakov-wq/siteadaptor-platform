@@ -198,6 +198,31 @@ def test_catalog_active_facet_carried_into_sort_form():
     assert '<input type="hidden" name="badge" value="neu">' in body
 
 
+def test_catalog_card_shows_product_rating():
+    """A1/A2: карточка каталога показывает ★ среднее + число отзывов (bulk-агрегат)."""
+    from apps.catalog.models import ProductReview
+
+    p = ProductFactory(name={"de": "BewertetBrot"})
+    ProductReview.objects.create(product=p, rating=5, author_name="A", email="a@x.de")
+    ProductReview.objects.create(product=p, rating=4, author_name="B", email="b@x.de")
+    body = public_views.product_list(_req()).content.decode()
+    assert 'title="2 reviews"' in body and "(2)" in body  # рейтинг-строка + число отзывов
+    assert "4,5" in body or "4.5" in body  # среднее (5+4)/2 (DE-локаль → запятая)
+
+
+def test_catalog_card_hidden_rating_without_reviews():
+    """Без опубликованных отзывов рейтинг-строка на карточке не выводится."""
+    p = ProductFactory(name={"de": "OhneBewertung"})
+    from apps.catalog.models import ProductReview
+
+    # Снятый с публикации отзыв не учитывается (как и отсутствие отзывов).
+    ProductReview.objects.create(
+        product=p, rating=5, author_name="A", email="a@x.de", is_published=False
+    )
+    body = public_views.product_list(_req()).content.decode()
+    assert "(1)" not in body  # скрытый отзыв не даёт рейтинг
+
+
 def test_catalog_page_grid_from_config():
     """M20U-7 (per-page): сетка страницы каталога берётся из catalog_layout."""
     ProductFactory(name={"de": "Brot"})
