@@ -88,7 +88,7 @@ M20U** (единая главная/каталог/детальная, per-page 
   - **H1.2 (срез 3) ✅:** инлайн-правка НОМЕРА на детальной (`stay_detail.html` + `stay_inline_edit`). Generic JS
     (проверен в браузере для product/event) + тесты. Детальные товар/событие/номер — закрыты.
   - **H1.2 (срез 4) ✅:** редактируемые заголовок/интро страницы КАТАЛОГА (`catalog_title`/`catalog_intro` в
-    TEXT_FIELDS + `site_inline_edit` + `products.html` data-edit). Браузер. (Пер-категорийные описания — позже, с миграцией.)
+    TEXT_FIELDS + `site_inline_edit` + `products.html` data-edit). Браузер. (Пер-категорийные описания ✅ — Category.description, миграция catalog/0011.)
   - **H1.2 (срез 5) ✅:** редактируемый тэглайн ПОДВАЛА (`footer_text` в TEXT_FIELDS + context-processor +
     `_base.html` data-edit). Закрывает «подвал»-часть ask меню/подвал.
   - **H1.2 (срез 6) ✅ (2026-06-30):** страницы-ДЕТАЛИ архетипов достижимы из редактора. Реестр

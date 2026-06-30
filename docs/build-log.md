@@ -3004,3 +3004,8 @@
   эмодзи-иконка + подпись + «что это даёт» на языке задач. `onboarding.BUSINESS_TYPE_META` + `business_type_cards()`;
   `setup_view` отдаёт карточки; `setup.html` шаг 1 = `grid sm:grid-cols-2` карточек (реюз CSS, build:css без изменений).
   Сервер-рендер (без JS). **Браузерно проверено** (10 карточек с иконками/описаниями, шаг 1/7). Тесты. Без миграций. `df4bba8`.
+- **2026-06-30 — Категории с описанием (i18n-описание категории на странице каталога).** Из видения «категории с
+  доп. описанием»: `Category.description` (JSONField i18n, как у Product) — **миграция `catalog/0011`, владелец
+  деплоит после мержа**. CategoryForm: `description_de/_en` (Textarea) ↔ `category.description`. `product_list` отдаёт
+  `category_description` = выбранная `category.get_i18n("description")`; `products.html` рендерит под интро каталога
+  (реюз классов). Сервер-рендер. Тесты: рендер при выборе категории/скрыт без; форма сохраняет i18n. 147 catalog. `f5cf742`.
