@@ -8,7 +8,7 @@
 
 {% block detail_aside %}{% with L=event.landing %}
     <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
-      <h1 class="text-2xl md:text-3xl font-bold">{{ event.title_text }}</h1>
+      <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="event" data-edit-pk="{{ event.pk }}" data-edit-field="title">{{ event.title_text }}</h1>
       {% if L.promise %}<p class="text-gray-700">{{ L.promise }}</p>{% endif %}
       <p class="text-sm text-gray-500">
         🗓 {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.ends_at %} – {{ event.ends_at|date:"d.m.Y H:i" }}{% endif %}
@@ -36,7 +36,8 @@
 {% endwith %}{% endblock %}
 
 {% block detail_body %}{% with L=event.landing %}
-  {% if event.description_text %}<p class="text-gray-700 whitespace-pre-line mt-8">{{ event.description_text }}</p>{% endif %}
+  {# H1.2: всегда рендерим (с маркером) — описание правится инлайн на канве, даже пустое. #}
+  <p class="text-gray-700 whitespace-pre-line mt-8" data-edit-model="event" data-edit-pk="{{ event.pk }}" data-edit-field="description">{{ event.description_text }}</p>
 
   {% comment %}2.–13c. Тематические секции — порядок/видимость из event_detail_order
   (M20U-4). SE-2b-2: обёртка data-sf-section — клик на канве открывает инспектор

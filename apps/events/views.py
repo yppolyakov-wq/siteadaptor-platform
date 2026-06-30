@@ -413,3 +413,48 @@ def roster_csv(request, pk):
             ]
         )
     return response
+
+
+_EVENT_INLINE_FIELDS = {"title", "description"}
+
+
+@login_required
+@require_POST
+def event_inline_edit(request):
+    """H1.2: инлайн-правка события прямо на детальной витрины (?preview=1).
+
+    JSON {pk, field, value}, field ∈ {title, description} → пишет плоское
+    Event.<field> (title_text/description_text фолбэкают на него). Заголовок пустым
+    не сохраняем. Только владелец (login_required на субдомене схемы → tenant-скоуп).
+    Зеркало catalog.product_inline_edit, но поля плоские (не i18n-dict). 204/400.
+    """
+    import json
+
+    from django.core.exceptions import ValidationError
+    from django.http import HttpResponseBadRequest
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest()
+    pk = data.get("pk")
+    field = data.get("field")
+    value = data.get("value", "")
+    if not pk or field not in _EVENT_INLINE_FIELDS:
+        return HttpResponseBadRequest()
+    value = value.strip() if isinstance(value, str) else ""
+    if field == "title" and not value:  # пустой заголовок не сохраняем
+        return HttpResponseBadRequest()
+    try:
+        event = Event.objects.get(pk=pk)
+    except (Event.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    setattr(event, field, value[:200] if field == "title" else value)
+    event.save(update_fields=[field, "updated_at"])
+    # SE-5a: правка данных (не site_config) кэш не бампит — сбрасываем явно.
+    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+    if schema:
+        from apps.core.pagecache import bump_storefront_cache
+
+        bump_storefront_cache(schema)
+    return HttpResponse(status=204)

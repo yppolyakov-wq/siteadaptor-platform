@@ -2910,3 +2910,12 @@
   переход на `/sortiment/<pk>/` в превью, имя contenteditable, правка → в БД `name.de` обновлён, JS-ошибок нет.
   Тест `test_product_detail_inline_edit_markers`. Без миграций. Осталось H1.2: страница категории (часть уже есть
   через data-cat-edit), текстовые страницы, контент-настройки секций. Часть этапа «архетипы как сущности».
+- **2026-06-29 — H1.2 (срез 2): инлайн-правка СОБЫТИЯ на детальной странице.** Параллельно товару: на
+  `storefront/event_detail.html` заголовок (`<h1>`) и описание получили `data-edit-model="event"`/`data-edit-pk`/
+  `data-edit-field` (title/description). Новый endpoint `event_inline_edit` (`apps/events/views.py`, login_required
+  + require_POST, JSON {pk,field,value}, поля плоские title/description — фолбэк title_text/description_text, кламп
+  title 200, пустой title → 400, bump кэша), URL `events:event-inline-edit` (`dashboard/events/inline-edit/`),
+  `event` добавлен в `MODEL_EDIT_URLS` редактора. Описание теперь рендерится всегда (с маркером) — правится даже
+  пустое. Браузер (pranasy): переход на `/veranstaltung/<pk>/` в превью, заголовок contenteditable, правка →
+  в БД `Event.title` обновлён, JS-ошибок нет. Тесты `test_event_detail_inline_edit_markers` +
+  `test_event_inline_edit_updates_and_validates`. Без миграций. Multi-page editing: товар + событие закрыты.

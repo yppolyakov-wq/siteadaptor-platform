@@ -44,6 +44,47 @@ def _event(**kw):
     return Event.objects.create(**defaults)
 
 
+def test_event_detail_inline_edit_markers():
+    """H1.2: заголовок и описание события на детальной несут data-edit-model →
+    редактор делает их contenteditable. На публичной витрине инертны."""
+    ev = _event(title="Konzert", description="Beschreibung")
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert 'data-edit-model="event"' in body
+    assert 'data-edit-field="title"' in body
+    assert 'data-edit-field="description"' in body
+    assert f'data-edit-pk="{ev.pk}"' in body
+
+
+def test_event_inline_edit_updates_and_validates():
+    """H1.2: endpoint пишет плоский title/description; пустой title и поле вне
+    вайтлиста → 400."""
+    import json
+    from types import SimpleNamespace
+
+    from apps.events import views
+
+    ev = _event(title="Konzert", description="Alt")
+
+    def call(payload):
+        req = RequestFactory().post(
+            "/dashboard/events/inline-edit/", json.dumps(payload), content_type="application/json"
+        )
+        req.user = SimpleNamespace(is_authenticated=True)
+        req.tenant = SimpleNamespace(schema_name="public")
+        return views.event_inline_edit(req)
+
+    assert call({"pk": str(ev.pk), "field": "title", "value": "Neues Konzert"}).status_code == 204
+    ev.refresh_from_db()
+    assert ev.title == "Neues Konzert"
+    assert call({"pk": str(ev.pk), "field": "description", "value": "Neu"}).status_code == 204
+    ev.refresh_from_db()
+    assert ev.description == "Neu"
+    assert call({"pk": str(ev.pk), "field": "title", "value": "  "}).status_code == 400  # пустой
+    assert (
+        call({"pk": str(ev.pk), "field": "status", "value": "x"}).status_code == 400
+    )  # не вайтлист
+
+
 def test_detail_renders_retreat_landing_blocks():
     """Развёрнутый ретрит-лендинг: блоки из Event.details рендерятся на странице."""
     ev = _event(
