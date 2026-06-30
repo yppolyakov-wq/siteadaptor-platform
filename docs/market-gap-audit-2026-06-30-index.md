@@ -16,7 +16,7 @@
 | 2 | **A3 Termin-Dienstleister** | `friseur` | `market-gap-a3-2026-06-30.md` | ✅ готов |
 | 3 | **A4 Gastro** | `restaurant`, `pranasy` | `market-gap-a4-2026-06-30.md` | ✅ готов |
 | 4 | **A5 Übernachtung/Hotel** | `hotel` | `market-gap-a5-2026-06-30.md` | ✅ готов |
-| 5 | A6 Event/Retreat | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ⏳ |
+| 5 | **A6 Event/Retreat** | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ✅ готов |
 | 6 | A7 Handwerker | `handwerker` | `market-gap-a7-2026-06-30.md` | ⏳ |
 | 7 | A8 Aggregator/Portal | — (портал) | `market-gap-a8-2026-06-30.md` | ⏳ |
 | 8 | A9 Kfz-Werkstatt | `werkstatt` | `market-gap-a9-2026-06-30.md` | ⏳ |
@@ -43,9 +43,20 @@
   мультиязык контента (StayUnit без I18nMixin), отмена в ЛК, range-picker на поиске.
   Стратегич. отложено (partner-gated): real 2-way OTA + Google connectivity-фид.
   Adversarial: truthful «N frei» — НЕ гэп (уже есть).
+- **A6:** один из самых полных архетипов (старые доки ~45–55 % сильно занижали);
+  бэкенд на уровне Eventbrite/BookRetreats/Momence. Сильнейшая зона — retreat-landing
+  + связка с проживанием (real anti-overbooking) + waiver/рассрочка. Гэпы: авто-early-bird
+  (G4 у stays не подключён к events), верифиц. отзывы attendee, per-attendee roster
+  (multi-seat=1 QR), Event/Course JSON-LD, embed-виджет событий (агрегатор-events уже
+  есть), .ics-в-письме + grid-календарь, DSGVO-retention health-данных, replay/hybrid,
+  memberships/class-pass для курсов, sellable gift-voucher (продажа привязана к stays).
 - **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы/обзоры на витрине
   бизнеса, верифиц. per-item (A3/A4/A5/A6/A7/A9) · **платёжный микс PayPal/Klarna/SEPA/Bar
-  + `Order.payment_method` (A1/A2+A4+A5)** · SMS/WhatsApp-канал · AGB · **язык/мультиязык
-  контента моделей (catalog есть, stays нет → I18nMixin)** · JSON-LD по архетипу.
+  + `Order.payment_method` (A1/A2+A4+A5+A6)** · SMS/WhatsApp-канал · AGB · **язык/мультиязык
+  контента моделей (catalog есть; stays/events landing нет → I18nMixin + L1–L6)** ·
+  **JSON-LD по архетипу (Product/Restaurant/Event/Course — частично)** ·
+  **переиспользование готовых движков между архетипами** (G4-авто-скидки stays→events;
+  Pass booking→events; gift-voucher stays→events; embed-виджет stays→events; Meldeschein-
+  retention stays→events).
 
 _(дополняется на каждом шаге; в конце серии — сводка сквозных тем и единый бэклог.)_
