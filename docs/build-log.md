@@ -2927,3 +2927,12 @@
   рендерится всегда (с маркером). JS-путь идентичен product/event (generic frame.load-handler, проверен в браузере
   дважды — не менялся). Тесты: markers + endpoint (update/validate). Home_builder рендерит editor с новым URL (89).
   Без миграций. Multi-page editing деталей: товар + событие + номер закрыты.
+- **2026-06-29 — H1.2 (срез 4): редактируемые заголовок/интро страницы КАТАЛОГА (сущность «список»).** «Настройка
+  не только главной» для страницы категории: `catalog_title` + `catalog_intro` добавлены в `siteconfig.TEXT_FIELDS`
+  (нормализуются генерически, принимаются существующим `site_inline_edit`). `products.html`: заголовок — кастомный
+  `catalog_title` (фолбэк «Our products») c `data-edit`, суффикс категории вне маркера; интро `data-edit="catalog_intro"`
+  (пустое скрыто на публичной, видно/правится под `?preview=1`). `product_list` прокидывает поля из конфига (черновик-
+  aware). Тот же generic `[data-edit]`-механизм, что на главной (hero/about). Браузер (baeckerei): на `/sortiment/`
+  в превью заголовок contenteditable, правка → `catalog_title` в БД, JS-ошибок нет. Тесты: `site_inline_edit`
+  принимает catalog_title/intro + рендер маркеров/override. Без миграций. (Пер-категорийные описания — отдельный
+  больший срез: поле на Category + миграция.) Multi-page editing: главная/товар/событие/номер/каталог.

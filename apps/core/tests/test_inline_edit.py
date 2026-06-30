@@ -108,6 +108,33 @@ def test_cta_carries_data_edit_markers():
     assert 'data-edit="cta.title"' in body and 'data-edit="cta.text"' in body
 
 
+def test_inline_edit_saves_catalog_title_and_intro():
+    """H1.2: заголовок/интро страницы каталога (catalog_title/catalog_intro) — в TEXT_FIELDS."""
+    tenant = TenantFactory(schema_name="public", slug="iec", name="IEC")
+    assert _post("catalog_title", "  Unsere Backwaren  ", tenant).status_code == 204
+    assert _post("catalog_intro", "Täglich frisch", tenant).status_code == 204
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["catalog_title"] == "Unsere Backwaren"
+    assert cfg["catalog_intro"] == "Täglich frisch"
+
+
+def test_catalog_page_carries_data_edit_markers():
+    """H1.2: страница каталога несёт data-edit для заголовка/интро; кастомные значения рендерятся."""
+    from apps.catalog.models import Product
+
+    tenant = TenantFactory.build(
+        site_config={"catalog_title": "Unsere Backwaren", "catalog_intro": "Täglich frisch"}
+    )
+    Product.objects.create(name={"de": "Brot"}, base_price="2.00", is_active=True)
+    req = RequestFactory().get("/sortiment/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    body = public_views.product_list(req).content.decode()
+    assert 'data-edit="catalog_title"' in body and 'data-edit="catalog_intro"' in body
+    assert "Unsere Backwaren" in body and "Täglich frisch" in body
+
+
 def test_hero_about_carry_data_edit_markers():
     tenant = TenantFactory.build(
         site_config={

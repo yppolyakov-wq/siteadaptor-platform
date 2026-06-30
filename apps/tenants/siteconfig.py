@@ -548,7 +548,15 @@ def event_detail_order(config) -> list[str]:
     return [k for k in order if k not in hidden]
 
 
-TEXT_FIELDS = ["hero_title", "hero_text", "about_title", "about_text"]
+TEXT_FIELDS = [
+    "hero_title",
+    "hero_text",
+    "about_title",
+    "about_text",
+    # H1.2: заголовок и интро страницы каталога (сущность «список»), правятся инлайн.
+    "catalog_title",
+    "catalog_intro",
+]
 
 # M20: вложенные текстовые поля секций, редактируемые инлайн (dotted path
 # "<секция>.<поле>"). Белый список — защита от записи произвольных ключей.

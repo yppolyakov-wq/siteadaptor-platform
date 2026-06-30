@@ -321,7 +321,8 @@ def product_list(request):
     raw_cfg = request.tenant.site_config
     if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
         raw_cfg = request.session["site_preview_draft"]
-    catalog_grid = siteconfig.grid_class_string(siteconfig.normalize(raw_cfg)["catalog_layout"])
+    cfg = siteconfig.normalize(raw_cfg)
+    catalog_grid = siteconfig.grid_class_string(cfg["catalog_layout"])
     return render(
         request,
         "storefront/products.html",
@@ -329,6 +330,9 @@ def product_list(request):
             "page": page,
             "categories": categories,
             "current_category": category,
+            # H1.2: кастомные заголовок/интро страницы каталога (инлайн-правка на канве).
+            "catalog_title": cfg.get("catalog_title", ""),
+            "catalog_intro": cfg.get("catalog_intro", ""),
             "subcategories": subcategories,
             "has_combos": has_combos,
             "combos_teaser": combos_teaser,  # A4: тизер-карточки Kombo/Tagesgericht
