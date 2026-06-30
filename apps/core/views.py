@@ -840,6 +840,8 @@ def home_builder_view(request):
             ]
             # SE-3e: ширина контейнера секции (contained/full). normalize валидирует.
             entry["width"] = request.POST.get(f"width_{key}", "contained")
+            # H1.5: пер-секционный шрифт ("" = наследовать). normalize валидирует по FONTS.
+            entry["font"] = request.POST.get(f"font_{key}", "")
             if key in siteconfig.GRID_SECTION_DEFAULTS:
                 preset = request.POST.get(f"layout_preset_{key}", "")
                 lay = {"preset": preset} if preset in siteconfig.LAYOUT_PRESETS else {}
@@ -1119,6 +1121,8 @@ def home_builder_view(request):
                 "hidden_on": s.get("hidden_on", []),
                 # SE-3e: ширина контейнера секции (contained/full).
                 "width": s.get("width", "contained"),
+                # H1.5: пер-секционный шрифт (или "" = наследовать глобальный).
+                "font": s.get("font", ""),
             }
         )
     preset_options = [
@@ -1405,6 +1409,9 @@ def site_preview_draft(request):
                 # SE-3e: ширина контейнера секции (contained/full) → в превью.
                 if item.get("width") in ("contained", "full"):
                     row["width"] = item["width"]
+                # H1.5: пер-секционный шрифт → в превью (normalize валидирует по FONTS).
+                if "font" in item:
+                    row["font"] = item["font"]
                 rows.append(row)
                 seen.add(key)
         if rows:

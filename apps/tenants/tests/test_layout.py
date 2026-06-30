@@ -488,6 +488,47 @@ def test_section_width_on_cblock():
     assert block["width"] == "full"  # ширина действует и на C-блоки
 
 
+# --- H1.5: пер-секционный шрифт ---------------------------------------------------
+
+
+def test_section_font_default_empty():
+    cfg = siteconfig.normalize({})
+    for s in cfg["sections"]:
+        assert s["font"] == ""  # дефолт = наследовать глобальный (без регрессии)
+
+
+def test_section_font_valid_and_garbage():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "products", "enabled": True, "font": "serif"},
+                {"key": "about", "enabled": True, "font": "nonsense"},
+            ]
+        }
+    )
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    about = next(s for s in cfg["sections"] if s["key"] == "about")
+    assert products["font"] == "serif"  # валидный ключ FONTS сохранён
+    assert about["font"] == ""  # мусор → наследовать
+
+
+def test_section_font_on_cblock():
+    cfg = siteconfig.normalize(
+        {"sections": [{"key": "text", "id": "fz", "data": {"title": "T"}, "font": "rounded"}]}
+    )
+    block = next(s for s in cfg["sections"] if s.get("id") == "fz")
+    assert block["font"] == "rounded"
+
+
+def test_section_font_vars_tag():
+    from apps.tenants.templatetags.siteui import section_font_vars
+
+    assert section_font_vars("") == ""  # наследует — пусто
+    assert section_font_vars("bogus") == ""
+    out = section_font_vars("serif")
+    assert "--font-body:" in out and "--font-head:" in out
+
+
 # --- SE-4b: шаблоны страниц (page_templates) --------------------------------------
 
 

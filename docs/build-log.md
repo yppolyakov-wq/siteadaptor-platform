@@ -2892,3 +2892,12 @@
   списке), клик→панель с настройками, save round-trip (products width=contained persisted), JS-ошибок нет.
   Без миграций. Owner-приоритет «убрать настройки ширины из Section в блоки» закрыт. Часть этапа «архетипы как
   сущности» (`docs/archetype-entities-plan.md`).
+- **2026-06-29 — H1.5: пер-секционный шрифт (оверрайд глобального).** Секция несёт `font` (ключ FONTS:
+  system/serif/rounded или "" = наследовать) — нормализуется в `_normalize_section`/`_clean_cblock` (валид по
+  FONTS). UI: селект «Font» в панели настроек секции (рядом с Width, опции из `font_options` + «Standard»).
+  `collect()`/`site_preview_draft` прокидывают в live-preview. Рендер: тег `section_font_vars(b.font)` (siteui)
+  выдаёт `--font-body/--font-head` на обёртку секции в `storefront/home.html` (каскадит на тексты секции даже
+  через display:contents). **Баг и фикс:** стеки FONTS содержат двойные кавычки (`"Segoe UI"`), которые ломали
+  inline-`style="…"` HTML-атрибут (преждевременное закрытие) → браузер игнорил; в теге заменили `"`→`'` (в CSS
+  эквивалентны). Браузер (baeckerei): products→serif = заголовок `Georgia,…serif`, и в сохранённом рендере, и в
+  live-preview; JS-ошибок нет. Тесты (нормализация +C-блок, тег) в `test_layout.py`. Без миграций.

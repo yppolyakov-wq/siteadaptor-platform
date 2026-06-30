@@ -291,6 +291,14 @@
                     <option value="full" {% if s.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
                   </select>
                 </label>
+                {% comment %}H1.5: шрифт текста секции (оверрайд глобального). «Standard» = наследовать.{% endcomment %}
+                <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Font for this section text' %}">
+                  {% trans "Font" %}
+                  <select name="font_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                    <option value="" {% if not s.font %}selected{% endif %}>{% trans "Standard" %}</option>
+                    {% for fk, flabel in font_options %}<option value="{{ fk }}" {% if s.font == fk %}selected{% endif %}>{{ flabel }}</option>{% endfor %}
+                  </select>
+                </label>
                 {# Basic: простой тоггл скругления #}
                 <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
                   <input type="checkbox" name="visual_radius_{{ s.key }}"
@@ -1234,6 +1242,9 @@
       // SE-3e: ширина контейнера секции (contained/full) → в превью.
       var wSel = form.querySelector("select[name='width_" + r.key + "']");
       if (wSel && wSel.value) sec.width = wSel.value;
+      // H1.5: пер-секционный шрифт → в превью ("" допустимо = наследовать).
+      var fSel = form.querySelector("select[name='font_" + r.key + "']");
+      if (fSel) sec.font = fSel.value;
       return sec;
     });
     var archetypes = {};

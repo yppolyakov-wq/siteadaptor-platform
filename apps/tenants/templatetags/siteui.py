@@ -101,6 +101,20 @@ def grid_classes(site, key):
     return siteconfig.grid_class_string(siteconfig.section_layout(site, key))
 
 
+@register.simple_tag(name="section_font_vars")
+def section_font_vars(font_key):
+    """H1.5: CSS-переменные шрифта секции (--font-body/--font-head) — оверрайд
+    глобального для текстов этой секции. Пусто/неизвестный ключ → "" (наследует
+    глобальные vars из _base.html). Каскадит даже через display:contents-обёртку."""
+    if not font_key or font_key not in siteconfig.FONTS:
+        return ""
+    body, head = siteconfig.font_stacks(font_key)
+    # Стеки содержат двойные кавычки ("Segoe UI"); это inline-style HTML-атрибут
+    # (style="…") → двойные кавычки закрыли бы атрибут. В CSS '…' эквивалентны "…".
+    body, head = body.replace('"', "'"), head.replace('"', "'")
+    return mark_safe(f"--font-body:{body};--font-head:{head};")
+
+
 @register.simple_tag(name="section_title")
 def section_title(site, key):
     """M20U-7: кастомный заголовок секции главной (или "" → шаблон выводит дефолт)."""

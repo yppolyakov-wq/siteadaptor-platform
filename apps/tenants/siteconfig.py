@@ -135,6 +135,7 @@ def _clean_cblock(item: dict) -> dict:
     key = item["key"]
     bid = _s(item.get("id")) or uuid.uuid4().hex[:12]
     w = item.get("width")
+    f = item.get("font")
     return {
         "key": key,
         "id": bid,
@@ -142,6 +143,7 @@ def _clean_cblock(item: dict) -> dict:
         "data": _clean_cblock_data(key, item.get("data")),
         "hidden_on": _clean_hidden_on(item.get("hidden_on")),  # SE-3c-mid
         "width": w if w in _LAYOUT_WIDTHS else "contained",  # SE-3e
+        "font": f if f in FONTS else "",  # H1.5
     }
 
 
@@ -1005,6 +1007,10 @@ def _section_entry(key, enabled, raw_item):
     # сетки); общий размер контейнера задан в шаблоне (_base.html max-w-7xl).
     w = raw_item.get("width")
     entry["width"] = w if w in _LAYOUT_WIDTHS else "contained"
+    # H1.5: пер-секционный шрифт (пара body/head из FONTS) — оверрайд глобального для
+    # текстов этой секции. "" = наследовать глобальный (без регрессии).
+    f = raw_item.get("font")
+    entry["font"] = f if f in FONTS else ""
     return entry
 
 

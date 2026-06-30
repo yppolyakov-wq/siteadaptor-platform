@@ -20,7 +20,7 @@ if/elif: единый источник правды + основа для C-бл
   не липнул к краям).{% endcomment %}
   <div data-sf-section="{% if b.id %}{{ b.id }}{% else %}{{ b.key }}{% endif %}"
        class="{% if b.width == 'full' %}relative left-1/2 -translate-x-1/2 w-screen px-4 lg:px-8{% else %}contents{% endif %}{% if 'mobile' in b.hidden_on %} max-sm:hidden{% endif %}{% if 'tablet' in b.hidden_on %} sm:max-lg:hidden{% endif %}{% if 'desktop' in b.hidden_on %} lg:hidden{% endif %}"
-       style="{% if b.visual.radius %}--sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if b.visual.background %}--sf-bg:{{ b.visual.background }};{% endif %}{% if b.visual.padding %}--sf-pad:{{ b.visual.padding }}px;{% endif %}">{% render_block b %}</div>
+       style="{% if b.visual.radius %}--sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if b.visual.background %}--sf-bg:{{ b.visual.background }};{% endif %}{% if b.visual.padding %}--sf-pad:{{ b.visual.padding }}px;{% endif %}{% section_font_vars b.font %}">{% render_block b %}</div>
 {% endfor %}
 {% endblock %}
 </content>
