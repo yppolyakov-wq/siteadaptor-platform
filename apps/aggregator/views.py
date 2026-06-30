@@ -121,6 +121,36 @@ def _open_now_schemas(schemas) -> set:
     return out
 
 
+def _attach_open_status(cards):
+    """A8: прикрепить к карточкам live-статус «Jetzt geöffnet» (богатая карточка бизнеса).
+
+    Часы на SHARED Tenant (public-схема); один запрос на схемы пула. Поля карточки:
+    `has_hours` (часы заданы), `open_now` (открыт сейчас), `open_until` («bis HH:MM»
+    для открытых), `opens_next` («Mo 09:00» — ближайшее открытие для закрытых).
+    Бизнес без часов — без бейджа (не зашумляет).
+    """
+    if not cards:
+        return cards
+    from django.utils import timezone
+
+    from apps.tenants import openinghours
+
+    now = timezone.localtime()
+    hours = dict(
+        Tenant.objects.filter(schema_name__in={c.tenant_schema for c in cards}).values_list(
+            "schema_name", "opening_hours_structured"
+        )
+    )
+    for card in cards:
+        status = openinghours.open_status(hours.get(card.tenant_schema), now)
+        card.has_hours = status is not None
+        card.open_now = bool(status and status.get("open"))
+        card.open_until = (status.get("until") or "") if status else ""
+        nxt = status.get("next") if status else None
+        card.opens_next = f"{nxt[0]} {nxt[1]}" if nxt else ""
+    return cards
+
+
 def split_featured(qs, *, first_page: bool, limit: int = 6):
     """(featured, остальная лента) — платное продвижение (P2.4a).
 
@@ -300,6 +330,7 @@ def city_listing(request, city, business_type=None):
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
+    _attach_open_status(cards)  # A8: live-статус «Jetzt geöffnet» на карточке
     # A8: непустые фасеты/сортировка для ссылки «Show more» (cursor добавляется в шаблоне).
     from urllib.parse import urlencode
 

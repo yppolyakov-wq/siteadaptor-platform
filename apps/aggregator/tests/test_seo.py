@@ -142,3 +142,30 @@ def test_city_listing_open_now_facet_filters_by_hours():
     ).content.decode()
     assert "Offen Bäckerei" in body and "Zu Bistro" not in body
     assert "checked" in body  # чекбокс «Open now» активен
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_city_listing_card_shows_open_status_badge():
+    """A8: карточка города показывает live-бейдж «Geöffnet» (богатая карточка бизнеса);
+    бизнес без заданных часов остаётся без бейджа (не зашумляет)."""
+    from apps.tenants.models import Tenant
+    from apps.tenants.tests.factories import TenantFactory
+
+    TenantFactory(schema_name="open_b", slug="ob", name="OpenB", business_type="bakery")
+    TenantFactory(schema_name="nohours_b", slug="nb", name="NoHoursB", business_type="bakery")
+    Tenant.objects.filter(schema_name="open_b").update(
+        opening_hours_structured={str(d): ["00:00", "23:59"] for d in range(7)}
+    )
+    Tenant.objects.filter(schema_name="nohours_b").update(opening_hours_structured={})
+    _listing(city="Hilden", business_name="Offen", tenant_schema="open_b", title={"de": "O"})
+    _listing(
+        city="Hilden", business_name="OhneZeiten", tenant_schema="nohours_b", title={"de": "K"}
+    )
+    body = views.city_listing(
+        RequestFactory().get("/entdecken/Hilden/"), "Hilden"
+    ).content.decode()
+    assert "Offen" in body and "OhneZeiten" in body  # оба в выдаче
+    # Открытый бизнес: бейдж «Geöffnet · until 23:59» (open_until только у карточки, не у
+    # чекбокса фасета). Бизнес без часов — без ложного «Geschlossen» (часы не заданы).
+    assert "until 23:59" in body
+    assert "Closed" not in body

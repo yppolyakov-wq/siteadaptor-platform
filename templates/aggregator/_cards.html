@@ -23,6 +23,10 @@
       <div class="p-3 md:p-4">
         <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}</p>
         {% if l.business_rating %}<p class="text-xs text-amber-500 mb-0.5">★ {{ l.business_rating.avg_rating }} <span class="text-gray-300">({{ l.business_rating.review_count }})</span></p>{% endif %}
+        {% comment %}A8: live-статус «Jetzt geöffnet» на карточке города (богатая карточка
+        бизнеса). Виден только при заданных часах (has_hours); открыт → зелёный «bis HH:MM»,
+        закрыт → серый с ближайшим открытием.{% endcomment %}
+        {% if l.has_hours %}{% if l.open_now %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🟢 {% trans "Open" %}{% if l.open_until %} · {% trans "until" %} {{ l.open_until }}{% endif %}</span>{% else %}<span class="inline-block mb-1 bg-gray-100 text-gray-500 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Closed" %}{% if l.opens_next %} · {% trans "opens" %} {{ l.opens_next }}{% endif %}</span>{% endif %}{% endif %}
         {% if l.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>{% endif %}
         {% if l.listing_kind == 'stay' %}<span class="inline-block mb-1 bg-sky-100 text-sky-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🛏 Übernachten</span>{% endif %}
         {% if l.room_count and l.room_count > 1 %}<span class="inline-block mb-1 ml-1 text-[11px] text-gray-500">· {% blocktrans count n=l.room_count %}{{ n }} room type{% plural %}{{ n }} room types{% endblocktrans %}</span>{% endif %}

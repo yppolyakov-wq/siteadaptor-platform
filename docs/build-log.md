@@ -3048,3 +3048,11 @@
   Без новых параметров шаблона (тег `localbusiness_jsonld` уже зовёт функцию), без
   миграции. Ленивый импорт openinghours (core не тянет tenants на уровне модуля). 5 тестов
   (часы/лого+sameAs/приоритет переданного image/без часов). 88 SEO+jobs+stays зелёные.
+- **2026-06-30 — A8: богатая карточка бизнеса — live-статус «Jetzt geöffnet» на городской
+  странице.** Карточка листинга в выдаче агрегатора (`_cards.html`) получила live-бейдж
+  открытости: открыт → зелёный «Geöffnet · until HH:MM», закрыт → серый «Geschlossen · opens
+  Mo HH:MM», без заданных часов — без бейджа. Хелпер `_attach_open_status(cards)` (1 запрос
+  Tenant по схемам пула, reuse `openinghours.open_status`) навешивает has_hours/open_now/
+  open_until/opens_next; вызван в `city_listing` после attach_ratings. Без миграции. Тест
+  `test_city_listing_card_shows_open_status_badge`; 160 aggregator зелёные. `_cards.html`
+  шарится (портал/поиск/индекс) — бейдж рендерится только где атрибуты навешаны (city).
