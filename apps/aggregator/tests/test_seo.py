@@ -161,9 +161,7 @@ def test_city_listing_card_shows_open_status_badge():
     _listing(
         city="Hilden", business_name="OhneZeiten", tenant_schema="nohours_b", title={"de": "K"}
     )
-    body = views.city_listing(
-        RequestFactory().get("/entdecken/Hilden/"), "Hilden"
-    ).content.decode()
+    body = views.city_listing(RequestFactory().get("/entdecken/Hilden/"), "Hilden").content.decode()
     assert "Offen" in body and "OhneZeiten" in body  # оба в выдаче
     # Открытый бизнес: бейдж «Geöffnet · until 23:59» (open_until только у карточки, не у
     # чекбокса фасета). Бизнес без часов — без ложного «Geschlossen» (часы не заданы).
