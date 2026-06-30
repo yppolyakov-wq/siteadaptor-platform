@@ -105,3 +105,21 @@ def test_editor_preview_switcher_lists_product_detail():
     req.tenant = tenant
     body = views.home_builder_view(req).content.decode()
     assert reverse("storefront-product", args=[p.pk]) in body
+
+
+def test_editor_preview_switcher_lists_simple_pages():
+    """H1 «простые страницы»: универсальные инфо/правовые страницы — в переключателе превью."""
+    tenant = _tenant(slug="pp7", name="PP7", business_type="bakery")
+    req = RequestFactory().get("/dashboard/site/home/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    body = views.home_builder_view(req).content.decode()
+    for url_name in (
+        "storefront-about",
+        "storefront-impressum",
+        "storefront-privacy",
+        "storefront-withdrawal",
+    ):
+        assert reverse(url_name) in body, url_name
