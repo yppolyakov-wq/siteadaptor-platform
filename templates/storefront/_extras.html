@@ -8,6 +8,8 @@
     <label class="flex items-center justify-between gap-3 text-sm">
       <span class="flex items-center gap-2">
         <input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300">
+        {% comment %}A5: миниатюра фото доп-услуги (если задано).{% endcomment %}
+        {% if e.image_url %}<img src="{{ e.image_url }}" alt="{{ e.label }}" class="w-8 h-8 rounded object-cover">{% endif %}
         {{ e.label }}</span>
       <span class="text-gray-600 whitespace-nowrap">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %}</span>
     </label>

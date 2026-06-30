@@ -3090,3 +3090,11 @@
   по всем схемам, зеркало booking/stays); расписание в CELERY_BEAT_SCHEDULE (раз в сутки).
   Письмо `job_service_reminder` (расширен `enqueue_job_email`, дедуп включает дату). Тесты:
   окно/идемпотентность/прошедшее/без e-mail/перезарядка + кабинет (70 jobs). Без нового JS.
+- **2026-06-30 — A5: extras с фото.** Универсальная доп-услуга (`core.Extra`) получила фото:
+  поле `image` (FileRef-конверт, миграция core/0003) + property `image_url`. Кабинет
+  `/dashboard/extras/`: загрузка фото при создании + per-row «📷 Change/Photo» (action
+  `set_image`, reuse `catalog.images.validate_image`/`save_product_image`, folder=extras);
+  миниатюра в списке. Витрина: миниатюра рядом с чекбоксом в общем партиале `_extras.html`
+  (booking/events) и в inline-extras `stay_detail.html` (A5 отель). Пусто = без фото (как
+  раньше, не зашумляет). Тесты: property/добавление с фото/set_image/без фото/рендер партиала
+  (10 core). Без нового JS (file-input авто-сабмит inline).

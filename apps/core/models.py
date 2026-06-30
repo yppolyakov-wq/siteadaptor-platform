@@ -160,6 +160,9 @@ class Extra(TimestampedModel):
     scope = models.CharField(max_length=10, choices=SCOPES, default=SCOPE_ALL)
     # Для stays: цена за ночь (× кол-во ночей), иначе разовая за бронь.
     per_night = models.BooleanField(default=False)
+    # A5: фото доп-услуги (FileRef-конверт {url, …}, как у Service.image). Пусто =
+    # без фото (как раньше). Показывается миниатюрой рядом с чекбоксом на витрине.
+    image = models.JSONField(default=dict, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -172,3 +175,8 @@ class Extra(TimestampedModel):
     @property
     def price_eur(self):
         return Decimal(self.price_cents) / 100
+
+    @property
+    def image_url(self) -> str:
+        """A5: URL фото доп-услуги (или ''), безопасно к не-dict значению."""
+        return self.image.get("url", "") if isinstance(self.image, dict) else ""

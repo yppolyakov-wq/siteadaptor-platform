@@ -16,11 +16,21 @@
   <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
     {% for e in extras %}
       <div class="flex items-center justify-between gap-3 p-4">
-        <div>
-          <p class="font-medium {% if not e.is_active %}text-gray-400 line-through{% endif %}">{{ e.label }}</p>
-          <p class="text-xs text-gray-400">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}</p>
+        <div class="flex items-center gap-3 min-w-0">
+          {% comment %}A5: миниатюра фото доп-услуги (если задано).{% endcomment %}
+          {% if e.image_url %}<img src="{{ e.image_url }}" alt="{{ e.label }}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">{% endif %}
+          <div class="min-w-0">
+            <p class="font-medium truncate {% if not e.is_active %}text-gray-400 line-through{% endif %}">{{ e.label }}</p>
+            <p class="text-xs text-gray-400">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}</p>
+          </div>
         </div>
         <div class="flex items-center gap-2">
+          {% comment %}A5: загрузить/заменить фото — скрытый file-input, авто-сабмит.{% endcomment %}
+          <form method="post" enctype="multipart/form-data">{% csrf_token %}
+            <input type="hidden" name="action" value="set_image"><input type="hidden" name="extra" value="{{ e.pk }}">
+            <label class="text-xs border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 cursor-pointer whitespace-nowrap">📷 {% if e.image_url %}{% trans "Change" %}{% else %}{% trans "Photo" %}{% endif %}
+              <input type="file" name="image" accept="image/*" class="hidden" onchange="this.form.submit()"></label>
+          </form>
           <form method="post">{% csrf_token %}
             <input type="hidden" name="action" value="toggle"><input type="hidden" name="extra" value="{{ e.pk }}">
             <button class="text-xs border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50">{% if e.is_active %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}</button>
@@ -36,7 +46,7 @@
     {% endfor %}
   </div>
 
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
     {% csrf_token %}
     <input type="hidden" name="action" value="add">
     <h2 class="font-semibold">{% trans "New extra" %}</h2>
@@ -57,6 +67,10 @@
       <input type="checkbox" name="per_night" class="rounded border-gray-300">
       {% trans "Price per night (Übernachtung) — otherwise once per booking" %}
     </label>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</label>
+      <input name="image" type="file" accept="image/*" class="w-full text-sm text-gray-600">
+    </div>
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add extra" %}</button>
   </form>
 </div>

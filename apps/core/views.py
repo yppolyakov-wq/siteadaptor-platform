@@ -34,13 +34,20 @@ def extras_view(request):
                     )
                 except (TypeError, ValueError):
                     cents = 0
-                Extra.objects.create(
+                extra = Extra.objects.create(
                     label=label,
                     price_cents=cents,
                     scope=request.POST.get("scope", Extra.SCOPE_ALL),
                     per_night=bool(request.POST.get("per_night")),
                 )
+                _set_extra_image(request, extra)  # A5: опц. фото при создании
                 messages.success(request, _("Extra added."))
+        elif action == "set_image":  # A5: загрузить/заменить фото доп-услуги
+            extra = get_object_or_404(Extra, pk=request.POST.get("extra"))
+            if _set_extra_image(request, extra):
+                messages.success(request, _("Photo updated."))
+            else:
+                messages.error(request, _("Couldn't upload the image — please try another file."))
         elif action == "toggle":
             extra = get_object_or_404(Extra, pk=request.POST.get("extra"))
             extra.is_active = not extra.is_active
@@ -59,6 +66,26 @@ def extras_view(request):
             "scopes": Extra.SCOPES,
         },
     )
+
+
+def _set_extra_image(request, extra) -> bool:
+    """A5: сохранить загруженное фото доп-услуги в extra.image (FileRef). True при
+    успехе; False — файла нет или он невалиден (CRUD не роняем)."""
+    uploaded = request.FILES.get("image")
+    if not uploaded:
+        return False
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog import images
+
+    try:
+        images.validate_image(uploaded)
+        ref = images.save_product_image(uploaded, folder="extras")
+    except (ValidationError, ValueError, OSError):
+        return False
+    extra.image = ref
+    extra.save(update_fields=["image", "updated_at"])
+    return True
 
 
 @login_required
