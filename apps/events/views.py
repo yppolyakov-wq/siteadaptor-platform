@@ -488,6 +488,7 @@ def event_photo_edit(request):
     op ∈ {replace, add, remove}. Зеркало catalog.product_photo_edit — Event.images тот
     же FileRef-список, общий диспетчер apply_gallery_op. 204/400."""
     from django.core.exceptions import ValidationError
+    from django.db import transaction
     from django.http import HttpResponse, HttpResponseBadRequest
 
     from apps.catalog.images import apply_gallery_op
@@ -499,18 +500,17 @@ def event_photo_edit(request):
     if not pk:
         return HttpResponseBadRequest()
     try:
-        event = Event.objects.get(pk=pk)
-    except (Event.DoesNotExist, ValidationError, ValueError):
-        return HttpResponseBadRequest()
-    try:
-        event.images = apply_gallery_op(
-            event.images, op=op, image_id=image_id, uploaded=uploaded, folder="events"
-        )
-    except ValueError:
+        # Лок строки на read-modify-write images (анти-lost-update при параллельных правках).
+        with transaction.atomic():
+            event = Event.objects.select_for_update().get(pk=pk)
+            event.images = apply_gallery_op(
+                event.images, op=op, image_id=image_id, uploaded=uploaded, folder="events"
+            )
+            event.save(update_fields=["images", "updated_at"])
+    except (Event.DoesNotExist, ValueError):
         return HttpResponseBadRequest()
     except ValidationError as exc:
         return HttpResponseBadRequest("; ".join(exc.messages))
-    event.save(update_fields=["images", "updated_at"])
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
     if schema:
         from apps.core.pagecache import bump_storefront_cache

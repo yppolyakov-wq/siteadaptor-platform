@@ -530,6 +530,7 @@ def product_photo_edit(request):
     Сброс кэша витрины. Только владелец (login_required). 204/400.
     """
     from django.core.exceptions import ValidationError
+    from django.db import transaction
     from django.http import HttpResponse, HttpResponseBadRequest
 
     from apps.catalog.images import apply_gallery_op
@@ -541,18 +542,18 @@ def product_photo_edit(request):
     if not pk:
         return HttpResponseBadRequest()
     try:
-        product = Product.objects.get(pk=pk)
-    except (Product.DoesNotExist, ValidationError, ValueError):
-        return HttpResponseBadRequest()
-    try:
-        product.images = apply_gallery_op(
-            product.images, op=op, image_id=image_id, uploaded=uploaded, folder="products"
-        )
-    except ValueError:
+        # Блокируем строку на время read-modify-write JSON-поля images — иначе две
+        # параллельные правки (add+remove) затрут изменения друг друга (lost update).
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(pk=pk)
+            product.images = apply_gallery_op(
+                product.images, op=op, image_id=image_id, uploaded=uploaded, folder="products"
+            )
+            product.save(update_fields=["images", "updated_at"])
+    except (Product.DoesNotExist, ValueError):
         return HttpResponseBadRequest()
     except ValidationError as exc:
         return HttpResponseBadRequest("; ".join(exc.messages))
-    product.save(update_fields=["images", "updated_at"])
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
     if schema:
         from apps.core.pagecache import bump_storefront_cache

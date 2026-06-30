@@ -76,6 +76,19 @@ def test_media_gallery_per_slide_controls_only_in_preview():
     assert "data-photo-op" not in public  # на публичной — никаких контролов
 
 
+def test_media_gallery_empty_state_has_add_tile_in_preview():
+    """Пустая галерея в редакторе (фото удалили / их нет) → плитка «＋ добавить» (op=add),
+    чтобы не было тупика. На публичной без фото — никаких контролов."""
+    from django.template.loader import render_to_string
+
+    ctx = {"images": [], "edit_pk": "PK1", "edit_model": "event"}
+    editor = render_to_string("storefront/_media_gallery.html", {**ctx, "is_preview": True})
+    assert 'data-photo-op="add"' in editor and 'data-edit-model="event"' in editor
+    assert 'data-photo-op="replace"' not in editor  # слайдов нет — только «＋»
+    public = render_to_string("storefront/_media_gallery.html", {**ctx, "is_preview": False})
+    assert "data-photo-op" not in public
+
+
 # --- Пер-слайд управление галереей (gallery_replace/add/remove/apply_gallery_op) ---
 @override_settings(MEDIA_ROOT="/tmp/test_media_gallery")
 @pytest.mark.django_db

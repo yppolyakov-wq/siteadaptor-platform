@@ -99,4 +99,14 @@
   });
 })();
 </script>
+{% elif is_preview and edit_pk %}
+  {% comment %}Пустая галерея в режиме правки (фото удалили или их ещё нет): плейсхолдер
+  + плитка «＋ Добавить фото» (op=add). Без этого после удаления последнего фото на
+  канве не было бы способа добавить новое (тупик).{% endcomment %}
+  <div class="space-y-3" data-media-gallery>
+    <div class="aspect-[4/3] bg-gray-100 rounded-2xl flex items-center justify-center text-gray-300" aria-hidden="true">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+    </div>
+    <span data-photo-edit data-photo-op="add" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden w-full rounded-lg border-2 border-dashed border-gray-300 text-gray-500 text-sm py-2 flex items-center justify-center gap-1 hover:border-indigo-400 hover:text-indigo-600 cursor-pointer" title="{% trans 'Add photo' %}">＋ {% trans "Add photo" %}</span>
+  </div>
 {% endif %}

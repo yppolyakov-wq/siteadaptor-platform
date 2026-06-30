@@ -6,7 +6,9 @@
 {% block detail_back %}<a href="{% url 'storefront-products' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Our products" %}</a>{% endblock %}
 
 {% block detail_gallery %}
-  {% if product.images %}
+  {% comment %}В превью редактора рендерим партиал и для photoless-товара — у него своя
+  пустая ветка с плиткой «＋ Добавить фото». На публичной без фото — статичный плейсхолдер.{% endcomment %}
+  {% if product.images or is_preview %}
     {% include "storefront/_media_gallery.html" with images=product.images alt=product edit_model="product" edit_pk=product.pk %}
   {% else %}
     <div class="aspect-square bg-gray-100 rounded-2xl flex items-center justify-center text-gray-300" aria-hidden="true">

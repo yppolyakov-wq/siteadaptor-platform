@@ -635,6 +635,7 @@ def stay_photo_edit(request):
     op ∈ {replace, add, remove}. Зеркало catalog.product_photo_edit — StayUnit.images
     тот же FileRef-список, общий диспетчер apply_gallery_op. 204/400."""
     from django.core.exceptions import ValidationError
+    from django.db import transaction
     from django.http import HttpResponse, HttpResponseBadRequest
 
     from apps.catalog.images import apply_gallery_op
@@ -646,18 +647,17 @@ def stay_photo_edit(request):
     if not pk:
         return HttpResponseBadRequest()
     try:
-        unit = StayUnit.objects.get(pk=pk)
-    except (StayUnit.DoesNotExist, ValidationError, ValueError):
-        return HttpResponseBadRequest()
-    try:
-        unit.images = apply_gallery_op(
-            unit.images, op=op, image_id=image_id, uploaded=uploaded, folder="stays"
-        )
-    except ValueError:
+        # Лок строки на read-modify-write images (анти-lost-update при параллельных правках).
+        with transaction.atomic():
+            unit = StayUnit.objects.select_for_update().get(pk=pk)
+            unit.images = apply_gallery_op(
+                unit.images, op=op, image_id=image_id, uploaded=uploaded, folder="stays"
+            )
+            unit.save(update_fields=["images", "updated_at"])
+    except (StayUnit.DoesNotExist, ValueError):
         return HttpResponseBadRequest()
     except ValidationError as exc:
         return HttpResponseBadRequest("; ".join(exc.messages))
-    unit.save(update_fields=["images", "updated_at"])
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
     if schema:
         from apps.core.pagecache import bump_storefront_cache
