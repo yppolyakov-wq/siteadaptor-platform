@@ -62,6 +62,9 @@ inline-content (этот документ). После него — по CLAUDE.
   + `example_detail_pages` (catalog→товар/stays→номер/events→событие); `home_builder_view` строит `preview_pages` из
   реестра. Деталь товара/номера теперь достижима из редактора → инлайн-правка (H1.2 1–3) работает оттуда. Тесты (без
   браузера: чисто бэкенд, select-JS не менялся). `1fde9bf`.
+- **H1 описание секции (2026-06-30)** — опциональное ОПИСАНИЕ под заголовком у 6 секций-гридов главной
+  (`section_intros.<key>`, тег `{% section_intro %}`, инлайн-правка тем же generic-механизмом, что заголовок/
+  `catalog_intro`/`footer` — без правок редактор-JS). 915 тестов зелёные. `d267f3f`.
 - **H0 (срез 1)** — гейтинг секций редактора по архетипу (`archetypes.SECTION_ARCHETYPE_MODULE` +
   `section_visible_for`); пекарня не видит Stay/Events/Services/Handwerker; carry-forward скрытых секций. `0372fb4`.
 - **H1.3** — «Section = чистый список»: строка = `.home-block-head` (имя+чекбокс+⚙), настройки →

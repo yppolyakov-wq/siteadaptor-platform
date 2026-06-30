@@ -2959,3 +2959,12 @@
   не менялись (generic по value → навигация к деталям без правок шаблона). Тесты: товар/номер/событие резолвятся,
   draft-событие исключено (гейт `status=published`), выключенный архетип не даёт детали, интеграция (89 home_builder
   зелёные). Без миграций. `1fde9bf`.
+- **2026-06-30 — H1: описание секции главной (контент-настройка секции, Q4).** Каждая секция-грид главной
+  (products/categories/events/promotions/services/stay_rooms) получила опциональное ОПИСАНИЕ под заголовком (вводный
+  текст над гридом). Тот же generic-механизм, что у заголовка секции/`catalog_intro`/`footer_text`: контент в
+  `site_config["section_intros"][key]`, маркер `data-edit="section_intros.<key>"` на витрине, инлайн-правка через
+  `site_inline_edit` (БЕЗ правок редактор-JS — реюз contenteditable-обработчика). siteconfig: `SECTION_INTRO_KEYS`
+  (= ключи заголовков) + `section_intro()` + блок нормализации (известные ключи, обрезка 300, пустое → ключ убирается);
+  тег `{% section_intro %}`; ветка `section_intros.<key>` в site_inline_edit + carry в site_preview_draft; 6 партиалов
+  секций (рендер только при непустом описании ИЛИ `?preview=1`). Реюз существующих CSS-классов — build:css не нужен.
+  Тесты: save/reject-unknown/empty-dropped/render-marker; 915 (core+catalog+events+stays+promotions) зелёные. `d267f3f`.
