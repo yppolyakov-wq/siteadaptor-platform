@@ -73,14 +73,30 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 </div>
 {% endif %}
 
-{# M20U-3: подкатегории выбранной категории — карточками первыми #}
-{% if subcategories %}
+{# M20U-3: подкатегории выбранной категории — карточками первыми (тумблер в билдере) #}
+{% if subcategories and catalog_subcats_first %}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
   {% for c in subcategories %}
     <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
        class="flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-4 min-h-[4rem] font-medium border border-transparent hover:shadow-md hover:border-indigo-300 transition">{{ c }}</a>
   {% endfor %}
 </div>
+{% endif %}
+
+{# Сортировка каталога (выбор покупателя). На change форма сабмитится (preview сохраняем). #}
+{% if page.items %}
+<div class="flex justify-end mb-4">
+  <form method="get" class="flex items-center gap-2 text-sm">
+    {% if current_category %}<input type="hidden" name="kategorie" value="{{ current_category.slug }}">{% endif %}
+    {% if active_diet %}<input type="hidden" name="diet" value="{{ active_diet }}">{% endif %}
+    {% if is_preview %}<input type="hidden" name="preview" value="1">{% endif %}
+    <label class="text-gray-500" for="id_sort">{% trans "Sort" %}</label>
+    <select id="id_sort" name="sort" class="js-sort-select rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
+      {% for val, label in sort_options %}<option value="{{ val }}" {% if sort == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+<script>document.querySelectorAll(".js-sort-select").forEach(function (s) { s.addEventListener("change", function () { s.form.submit(); }); });</script>
 {% endif %}
 
 {% if page.items %}
@@ -93,11 +109,12 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 
 {% if page.has_more %}
 <div class="mt-8 text-center">
-  <a href="?{% if current_category %}kategorie={{ current_category.slug }}&amp;{% endif %}cursor={{ page.next_cursor|urlencode }}"
+  {# Курсор привязан к выбранной сортировке → sort обязательно несём в ссылку. #}
+  <a href="?{% if current_category %}kategorie={{ current_category.slug }}&amp;{% endif %}{% if active_diet %}diet={{ active_diet }}&amp;{% endif %}{% if sort %}sort={{ sort }}&amp;{% endif %}{% if is_preview %}preview=1&amp;{% endif %}cursor={{ page.next_cursor|urlencode }}"
      class="inline-block px-5 py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:border-indigo-400">{% trans "Show more" %}</a>
 </div>
 {% endif %}
-{% elif subcategories %}
+{% elif subcategories and catalog_subcats_first %}
   <p class="text-gray-400">{% trans "Choose a subcategory above." %}</p>
 {% else %}
   <p class="text-gray-400">{% trans "No products yet." %}</p>

@@ -958,9 +958,14 @@ def home_builder_view(request):
             preset = request.POST.get(fld, "")
             if preset in siteconfig.LAYOUT_PRESETS:
                 config[cfg_key] = {"preset": preset}
-        # Категория: показывать ли фильтры — presence-guard (cf_present шлётся панелью каталога).
+        # Категория: фильтры/сортировка/подкатегории — presence-guard (cf_present шлётся
+        # панелью каталога; одним блоком, чтобы частичный POST не сбрасывал настройки).
         if request.tenant.is_module_active("catalog") and request.POST.get("cf_present"):
             config["catalog_show_filters"] = request.POST.get("catalog_show_filters") == "on"
+            config["catalog_subcats_first"] = request.POST.get("catalog_subcats_first") == "on"
+            _cs = request.POST.get("catalog_sort", "")
+            if _cs in siteconfig.CATALOG_SORT_KEYS:
+                config["catalog_sort"] = _cs
         # Корзина: показывать ли кросс-селл — presence-guard (cart_present шлётся панелью корзины).
         if request.tenant.is_module_active("catalog") and request.POST.get("cart_present"):
             config["cart_show_upsell"] = request.POST.get("cart_show_upsell") == "on"
@@ -1251,6 +1256,8 @@ def home_builder_view(request):
             "has_catalog": request.tenant.is_module_active("catalog"),
             "catalog_preset": (config.get("catalog_layout") or {}).get("preset", ""),
             "catalog_show_filters": config.get("catalog_show_filters", True),
+            "catalog_sort": config.get("catalog_sort", "newest"),
+            "catalog_subcats_first": config.get("catalog_subcats_first", True),
             "cart_show_upsell": config.get("cart_show_upsell", True),
             "has_events": request.tenant.is_module_active("events"),
             "events_preset": (config.get("events_index_layout") or {}).get("preset", ""),
@@ -1515,9 +1522,13 @@ def site_preview_draft(request):
         _lay = data.get(_lay_key)
         if isinstance(_lay, dict) and _lay.get("preset") in siteconfig.LAYOUT_PRESETS:
             cfg[_lay_key] = {"preset": _lay["preset"]}
-    # Категория: показывать ли фильтры — в превью (живо).
+    # Категория: фильтры/сортировка/подкатегории — в превью (живо).
     if isinstance(data.get("catalog_show_filters"), bool):
         cfg["catalog_show_filters"] = data["catalog_show_filters"]
+    if isinstance(data.get("catalog_subcats_first"), bool):
+        cfg["catalog_subcats_first"] = data["catalog_subcats_first"]
+    if data.get("catalog_sort") in siteconfig.CATALOG_SORT_KEYS:
+        cfg["catalog_sort"] = data["catalog_sort"]
     # Корзина: показывать ли кросс-селл — в превью (живо).
     if isinstance(data.get("cart_show_upsell"), bool):
         cfg["cart_show_upsell"] = data["cart_show_upsell"]

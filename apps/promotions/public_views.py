@@ -266,11 +266,20 @@ def loyalty_page(request):
     )
 
 
+# Сортировка каталога: ключ → (поле БД, descending) для keyset-пагинации (paginate
+# сам ставит order_by(field, pk); поля индексируемы, имя-JSON не сортируем).
+_CATALOG_SORTS = {
+    "newest": ("created_at", True),
+    "price_asc": ("base_price", False),
+    "price_desc": ("base_price", True),
+}
+
+
 def product_list(request):
-    """Публичный каталог витрины (Track C1): активные товары + фильтр категории."""
+    """Публичный каталог витрины (Track C1): активные товары + фильтр категории + сортировка."""
     from apps.catalog.models import Category, Product
 
-    products = Product.objects.filter(is_active=True).order_by("-is_featured", "-created_at")
+    products = Product.objects.filter(is_active=True)
     category = None
     slug = request.GET.get("kategorie", "")
     if slug:
@@ -301,7 +310,28 @@ def product_list(request):
         if category is not None
         else []
     )
-    page = paginate(products, order_field="created_at", limit=24, cursor=request.GET.get("cursor"))
+    # M20U-7 (per-page): конфиг витрины. SE-2a-2: при ?preview=1 — черновик из сессии
+    # (раскладка/сортировка/фильтры/подкатегории видны на канве сразу).
+    from apps.tenants import siteconfig
+
+    is_preview = request.GET.get("preview") == "1"
+    raw_cfg = request.tenant.site_config
+    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
+        raw_cfg = request.session["site_preview_draft"]
+    cfg = siteconfig.normalize(raw_cfg)
+    catalog_grid = siteconfig.grid_class_string(cfg["catalog_layout"])
+    # Сортировка: из ?sort= (выбор покупателя) либо дефолт витрины; keyset по (поле, pk).
+    sort = request.GET.get("sort") or cfg.get("catalog_sort", "newest")
+    if sort not in _CATALOG_SORTS:
+        sort = "newest"
+    _field, _desc = _CATALOG_SORTS[sort]
+    page = paginate(
+        products,
+        order_field=_field,
+        descending=_desc,
+        limit=24,
+        cursor=request.GET.get("cursor"),
+    )
     # A4: комбо-наборы (Menü-Sets/Tagesgericht), если есть и модуль orders активен.
     # M20U/A4: показываем тизер-карточками вверху меню (до 3) — не только текст-ссылкой,
     # — чтобы Kombo/Tagesgericht были на виду (сильный апселл гастро). Только на 1-й
@@ -314,17 +344,6 @@ def product_list(request):
         if has_combos and category is None and not request.GET.get("cursor")
         else []
     )
-    # M20U-7 (per-page): раскладка сетки каталога из конфига витрины.
-    # SE-2a-2: при ?preview=1 берём черновик из сессии (как storefront_home) —
-    # чтобы on-canvas правка раскладки каталога была видна сразу.
-    from apps.tenants import siteconfig
-
-    is_preview = request.GET.get("preview") == "1"
-    raw_cfg = request.tenant.site_config
-    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
-        raw_cfg = request.session["site_preview_draft"]
-    cfg = siteconfig.normalize(raw_cfg)
-    catalog_grid = siteconfig.grid_class_string(cfg["catalog_layout"])
     return render(
         request,
         "storefront/products.html",
@@ -345,6 +364,15 @@ def product_list(request):
             "catalog_grid": catalog_grid,
             # Билдер: показывать ли фильтры на странице каталога (group=catalog).
             "catalog_show_filters": cfg.get("catalog_show_filters", True),
+            # Сортировка: текущий ключ + варианты для дропдауна (label на текущей локали).
+            "sort": sort,
+            "sort_options": [
+                ("newest", _("Newest")),
+                ("price_asc", _("Price: low to high")),
+                ("price_desc", _("Price: high to low")),
+            ],
+            # Билдер: показывать ли подкатегории карточками первыми (group=catalog).
+            "catalog_subcats_first": cfg.get("catalog_subcats_first", True),
             # SE-2c-2: в режиме редактора (?preview=1) на чипах категорий — ссылка
             # «✎» на полную правку категории в кабинете (имя/slug/родитель/иконка).
             "is_preview": is_preview,

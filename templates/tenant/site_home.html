@@ -385,10 +385,22 @@
             <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
-            {# Показывать фильтры (диеты) на странице каталога. presence-guard cf_present. #}
+            {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
+            <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Default product sorting' %}">
+              {% trans "Sort" %}
+              <select name="catalog_sort" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                <option value="newest" {% if catalog_sort == 'newest' %}selected{% endif %}>{% trans "Newest" %}</option>
+                <option value="price_asc" {% if catalog_sort == 'price_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
+                <option value="price_desc" {% if catalog_sort == 'price_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
+              </select>
+            </label>
+            {# Показывать фильтры (диеты) + подкатегории-первыми. presence-guard cf_present. #}
             <input type="hidden" name="cf_present" value="1">
             <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Show diet filters on the catalog page' %}">
               <input type="checkbox" name="catalog_show_filters" {% if catalog_show_filters %}checked{% endif %} class="rounded border-gray-300">{% trans "Show filters" %}
+            </label>
+            <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Show subcategory cards first' %}">
+              <input type="checkbox" name="catalog_subcats_first" {% if catalog_subcats_first %}checked{% endif %} class="rounded border-gray-300">{% trans "Subcategories first" %}
             </label>
           </div>
           {% endif %}
@@ -1350,6 +1362,10 @@
     if (catSel && catSel.value) payload.catalog_layout = { preset: catSel.value };
     var cfChk = form.querySelector("input[name='catalog_show_filters']");
     if (cfChk) payload.catalog_show_filters = cfChk.checked;  // живо вкл/выкл фильтры
+    var scChk = form.querySelector("input[name='catalog_subcats_first']");
+    if (scChk) payload.catalog_subcats_first = scChk.checked;  // живо подкатегории-первыми
+    var csSel = form.querySelector("select[name='catalog_sort']");
+    if (csSel && csSel.value) payload.catalog_sort = csSel.value;  // живо дефолт-сортировка
     var csChk = form.querySelector("input[name='cart_show_upsell']");
     if (csChk) payload.cart_show_upsell = csChk.checked;  // живо вкл/выкл кросс-селл корзины
     var evSel = form.querySelector("select[name='events_preset']");

@@ -202,6 +202,16 @@ def test_cart_show_upsell_default_and_override():
     assert siteconfig.normalize({"cart_show_upsell": False})["cart_show_upsell"] is False
 
 
+def test_catalog_sort_and_subcats_first_normalize():
+    # сортировка каталога: дефолт newest, валидный override, мусор → newest.
+    assert siteconfig.normalize({})["catalog_sort"] == "newest"
+    assert siteconfig.normalize({"catalog_sort": "price_asc"})["catalog_sort"] == "price_asc"
+    assert siteconfig.normalize({"catalog_sort": "zzz"})["catalog_sort"] == "newest"
+    # подкатегории-первыми: дефолт True, можно выключить.
+    assert siteconfig.normalize({})["catalog_subcats_first"] is True
+    assert siteconfig.normalize({"catalog_subcats_first": False})["catalog_subcats_first"] is False
+
+
 def test_product_detail_hidden_normalize_and_helper():
     # видимость опц. секций детальной товара (только известные ключи).
     assert siteconfig.product_detail_hidden({}) == set()  # дефолт — ничего не скрыто

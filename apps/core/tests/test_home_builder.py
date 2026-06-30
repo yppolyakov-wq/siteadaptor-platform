@@ -796,6 +796,31 @@ def test_home_builder_saves_catalog_show_filters():
     assert siteconfig.normalize(tenant.site_config)["catalog_show_filters"] is True
 
 
+def test_home_builder_saves_catalog_sort_and_subcats_first():
+    """Дефолт-сортировка каталога + тумблер подкатегорий-первыми сохраняются (cf_present)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbcs", name="HBCS", enabled_modules=["catalog"]
+    )
+    base = {"order_hero": "1", "enabled_hero": "on", "cf_present": "1"}
+    # сортировка price_desc, подкатегории-первыми сняты
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {**base, "catalog_sort": "price_desc"}, tenant)
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["catalog_sort"] == "price_desc" and cfg["catalog_subcats_first"] is False
+    # мусорная сортировка игнорируется (остаётся прежняя), галочка включает подкатегории
+    views.home_builder_view(
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {**base, "catalog_sort": "zzz", "catalog_subcats_first": "on"},
+            tenant,
+        )
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["catalog_sort"] == "price_desc" and cfg["catalog_subcats_first"] is True
+
+
 def test_home_builder_saves_cart_show_upsell():
     """Тумблер кросс-селла корзины сохраняется (presence-guard cart_present)."""
     tenant = TenantFactory(

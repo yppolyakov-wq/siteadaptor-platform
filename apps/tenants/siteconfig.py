@@ -580,6 +580,11 @@ def product_detail_hidden(config) -> set:
     return set(normalize_product_detail((config or {}).get("product_detail"))["hidden"])
 
 
+# Сортировка каталога: ключи валидны для keyset-пагинации (поле — реальная колонка БД,
+# не JSON-имя). Маппинг ключ→(поле, descending) живёт во вьюхе product_list.
+CATALOG_SORT_KEYS = ("newest", "price_asc", "price_desc")
+
+
 TEXT_FIELDS = [
     "hero_title",
     "hero_text",
@@ -1251,6 +1256,11 @@ def normalize(config) -> dict:
     )
     # Показывать ли фасет-фильтры (диеты) на странице каталога. Дефолт True (как было).
     normalized["catalog_show_filters"] = bool(config.get("catalog_show_filters", True))
+    # Сортировка каталога по умолчанию (keyset-пагинация поддерживает поле+направление).
+    _sort = config.get("catalog_sort")
+    normalized["catalog_sort"] = _sort if _sort in CATALOG_SORT_KEYS else "newest"
+    # Показывать ли подкатегории карточками первыми (при выбранной категории). Дефолт True.
+    normalized["catalog_subcats_first"] = bool(config.get("catalog_subcats_first", True))
     # Показывать ли блок кросс-селла («Passt dazu») в корзине. Дефолт True (как было).
     normalized["cart_show_upsell"] = bool(config.get("cart_show_upsell", True))
     # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1

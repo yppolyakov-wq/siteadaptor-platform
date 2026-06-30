@@ -73,6 +73,36 @@ def test_catalog_shows_subcategories_first():
     assert "kategorie=roggen" in body  # ссылка на подкатегорию
 
 
+def test_catalog_subcats_first_toggle_off_hides_cards():
+    """Тумблер catalog_subcats_first=False → карточки подкатегорий не выводятся."""
+    parent = CategoryFactory(slug="brot", name={"de": "Brot"})
+    CategoryFactory(slug="roggen", name={"de": "Roggen"}, parent=parent, sort_order=1)
+    req = _req(params={"kategorie": "brot"})
+    req.tenant.site_config = {"catalog_subcats_first": False}
+    body = public_views.product_list(req).content.decode()
+    assert "kategorie=roggen" not in body  # карточки подкатегорий скрыты
+
+
+def test_catalog_sort_by_price():
+    """Сортировка ?sort=price_asc/price_desc меняет порядок (keyset по base_price)."""
+    ProductFactory(name={"de": "TeuerX"}, base_price="9.00")
+    ProductFactory(name={"de": "BilligX"}, base_price="1.00")
+    asc = public_views.product_list(_req(params={"sort": "price_asc"})).content.decode()
+    assert asc.index("BilligX") < asc.index("TeuerX")  # дешёвый раньше
+    desc = public_views.product_list(_req(params={"sort": "price_desc"})).content.decode()
+    assert desc.index("TeuerX") < desc.index("BilligX")  # дорогой раньше
+
+
+def test_catalog_default_sort_from_config():
+    """Дефолтная сортировка витрины (catalog_sort) применяется без ?sort=."""
+    ProductFactory(name={"de": "TeuerY"}, base_price="9.00")
+    ProductFactory(name={"de": "BilligY"}, base_price="1.00")
+    req = _req()
+    req.tenant.site_config = {"catalog_sort": "price_asc"}
+    body = public_views.product_list(req).content.decode()
+    assert body.index("BilligY") < body.index("TeuerY")
+
+
 def test_catalog_page_grid_from_config():
     """M20U-7 (per-page): сетка страницы каталога берётся из catalog_layout."""
     ProductFactory(name={"de": "Brot"})
