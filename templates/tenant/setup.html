@@ -189,7 +189,7 @@
   {% comment %}AB3-v2: живое превью витрины. На контент-шагах (стиль/баннер/контакты)
   обновляется ПО МЕРЕ ввода (debounced live-save без перехода), а не только после шага.{% endcomment %}
   <aside class="hidden lg:block lg:sticky lg:top-20 mt-8 lg:mt-0">
-    <p class="text-xs font-medium text-gray-400 mb-2">{% trans "Live preview" %}{% if step == 2 or step == 4 or step == 5 %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
+    <p class="text-xs font-medium text-gray-400 mb-2">{% trans "Live preview" %}{% if step == 2 or step == 3 or step == 4 or step == 5 %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
     <div class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm">
       <iframe data-setup-preview src="/" title="{% trans 'Website preview' %}" class="w-full h-[520px] border-0" loading="lazy"></iframe>
     </div>
@@ -198,7 +198,7 @@
 {% endif %}
 </div>
 
-{% if step == 2 or step == 4 or step == 5 %}
+{% if step == 2 or step == 3 or step == 4 or step == 5 %}
 {% comment %}AB3-v2: на контент-шагах сохраняем введённое БЕЗ перехода (action=live → 204)
 и перечитываем iframe-превью — владелец видит баннер/стиль/контакты сразу при вводе.
 Фото (hero_image) не шлём в live — только на «Weiter» (иначе аплоад на каждый ввод).{% endcomment %}
