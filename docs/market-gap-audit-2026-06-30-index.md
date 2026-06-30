@@ -18,7 +18,7 @@
 | 4 | **A5 Übernachtung/Hotel** | `hotel` | `market-gap-a5-2026-06-30.md` | ✅ готов |
 | 5 | **A6 Event/Retreat** | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ✅ готов |
 | 6 | **A7 Handwerker** | `handwerker` | `market-gap-a7-2026-06-30.md` | ✅ готов |
-| 7 | A8 Aggregator/Portal | — (портал) | `market-gap-a8-2026-06-30.md` | ⏳ |
+| 7 | **A8 Aggregator/Portal** | — (портал) | `market-gap-a8-2026-06-30.md` | ✅ готов |
 | 8 | A9 Kfz-Werkstatt | `werkstatt` | `market-gap-a9-2026-06-30.md` | ⏳ |
 
 ## Сквозные находки (накапливаются по мере прохождения)
@@ -56,6 +56,13 @@
   **E-Rechnung XRechnung/ZUGFeRD (юр. B2B 2025)**, service-area/PLZ, верифиц. отзыв по
   Auftrag, структурные trust-бейджи, портфолио проектов, онлайн-оплата счёта, e-подпись,
   Notdienst/urgency-флаг, response-SLA/auto-ack. 10 CONFIRMED_MISSING.
+- **A8:** зрелый discovery-скелет со структурным преимуществом (вид поверх ПЛАТЯЩИХ
+  тенантов, нет cold-start). Сильные столбы: hotel-метапоиск (Trivago-shaped) + city×type
+  SEO-страницы; **featured через Stripe self-serve УЖЕ есть** (нужен лейбл «Anzeige»).
+  Гэпы: claim-your-business (вся воронка монетизации, нет), ответы владельца+report+
+  fake-review контроль (EU Omnibus/UWG), портал-only асимметрия (бизнес-страница/отзывы
+  404 на главном /entdecken), JSON-LD openingHours/Review/Breadcrumb, sort/price-фасет,
+  full-text autosuggest, owner-аналитика/leads, правовое портала, отдельный демо-кит (D10).
 - **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы/обзоры на витрине
   бизнеса, верифиц. per-item (A3/A4/A5/A6/A7/A9) · **платёжный микс PayPal/Klarna/SEPA/Bar
   + `Order.payment_method` (A1/A2+A4+A5+A6)** · SMS/WhatsApp-канал · AGB · **язык/мультиязык
