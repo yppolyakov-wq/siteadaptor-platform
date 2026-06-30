@@ -1736,7 +1736,8 @@
             .catch(function () { if (status) status.textContent = ""; });
         }
         if (op === "remove") {
-          // По выбору владельца — без подтверждения: 🗑 удаляет слайд сразу.
+          // Подтверждение перед удалением — защита от случайного клика по 🗑.
+          if (!window.confirm("{% trans 'Remove this photo?' %}")) return;
           var fdr = new FormData();
           fdr.append("pk", pk); fdr.append("op", "remove"); fdr.append("image_id", imageId);
           postPhoto(fdr);
