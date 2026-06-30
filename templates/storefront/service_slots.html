@@ -47,6 +47,9 @@
 </div>
 {% endif %}
 
+{# A3: визуальный календарь наличия (день со свободным стартом кликабелен; cal_qs несёт мастера). #}
+{% include "storefront/_booking_calendar.html" %}
+
 {% with rq=chosen_resource.pk|stringformat:'s' %}
 <div class="flex items-center justify-between mb-4 max-w-md">
   {% if prev_day %}<a href="?tag={{ prev_day|date:'Y-m-d' }}{% if chosen_resource %}&resource={{ rq }}{% endif %}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>{% else %}<span></span>{% endif %}

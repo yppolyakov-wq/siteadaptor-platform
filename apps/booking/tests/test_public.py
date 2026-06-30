@@ -80,6 +80,32 @@ def test_free_slots_closed_date_and_other_weekday():
     assert availability.free_slots(resource, DAY) == []
 
 
+# --- A3: визуальный календарь слотов ----------------------------------------------
+def test_slot_month_helper_marks_days_by_check():
+    """A3: `_slot_month` зовёт check только в окне [today, max_day]; помечает has_slots."""
+    today = date(2026, 6, 30)
+    max_day = today + timedelta(days=30)
+    ctx = public_views._slot_month(lambda d: d.weekday() == 2, date(2026, 7, 1), today, max_day)
+    by_day = {c["day"]: c for c in ctx["cal_days"]}
+    assert by_day[date(2026, 7, 1)]["has_slots"] is True  # среда — check вернул True
+    assert by_day[date(2026, 7, 2)]["has_slots"] is False  # четверг
+    assert ctx["cal_first"] == date(2026, 7, 1)
+    assert ctx["cal_show_prev"] is True and ctx["cal_show_next"] is False  # окно ≤ 30 дн.
+
+
+def test_slot_calendar_renders_available_day_clickable():
+    """A3: в календаре день со свободным слотом — ссылка ?tag=; месяц виден."""
+    resource = _resource()  # правило только на DAY.weekday() (среда)
+    today = timezone.localdate()
+    target = today + timedelta(days=8)  # не примыкает к today (не путать с prev/next day)
+    while target.weekday() != DAY.weekday():
+        target += timedelta(days=1)
+    cal = f"{target.year}-{target.month:02d}"
+    body = public_views.termin_slots(_req(data={"cal": cal}), pk=resource.pk).content.decode()
+    assert f"?tag={target.isoformat()}" in body  # доступный день кликабелен
+    assert "grid-cols-7" in body  # календарь-сетка отрендерилась
+
+
 # --- публичный флоу ----------------------------------------------------------------
 
 

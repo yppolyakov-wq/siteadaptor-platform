@@ -44,6 +44,45 @@ def _parse_day(raw) -> date:
     return min(max(day, today), today + timedelta(days=MAX_DAYS_AHEAD))
 
 
+def _cal_first(request, day) -> date:
+    """A3: 1-е число отображаемого месяца календаря — из ?cal=YYYY-MM или месяц `day`."""
+    try:
+        y, m = (request.GET.get("cal") or "").split("-")
+        return date(int(y), int(m), 1)
+    except (ValueError, AttributeError):
+        return day.replace(day=1)
+
+
+def _slot_month(check_has_slots, first, today, max_day) -> dict:
+    """A3: контекст месяц-сетки `_booking_calendar.html`. `check_has_slots(day)->bool`
+    зовём только для дней в окне [today, max_day] (прошлое/за горизонтом — не считаем)."""
+    cur_first = today.replace(day=1)
+    max_first = max_day.replace(day=1)
+    first = min(max(first, cur_first), max_first)
+
+    def _shift(d, delta):
+        m = d.month - 1 + delta
+        return date(d.year + m // 12, m % 12 + 1, 1)
+
+    days, d = [], first
+    while d.month == first.month:
+        in_window = today <= d <= max_day
+        days.append(
+            {"day": d, "has_slots": bool(in_window and check_has_slots(d)), "is_past": d < today}
+        )
+        d += timedelta(days=1)
+    next_first = _shift(first, 1)
+    return {
+        "cal_first": first,
+        "cal_days": days,
+        "cal_lead_blanks": range(first.weekday()),  # пустые ячейки до 1-го (Mo-первый)
+        "cal_prev": _shift(first, -1),
+        "cal_next": next_first,
+        "cal_show_prev": first > cur_first,
+        "cal_show_next": next_first <= max_first,
+    }
+
+
 def _redeem_pass_if_code(request, booking) -> bool:
     """G9: если предъявлен Mehrfachkarte-Code — гасим один визит. Возвращает True,
     когда код был предъявлен (тогда депозит/оплату пропускаем — карта вместо денег).
@@ -164,6 +203,15 @@ def service_slots(request, pk):
     tenant = getattr(request, "tenant", None)
     from apps.core import extras as extras_engine
 
+    # A3: месяц-сетка наличия — день кликабелен, если у услуги есть свободный старт
+    # (на выбранном мастере или любом). resource-параметр несём в ссылки дня.
+    max_day = today + timedelta(days=MAX_DAYS_AHEAD)
+    cal = _slot_month(
+        lambda d: bool(availability.service_slots(service, d, resource=chosen)),
+        _cal_first(request, day),
+        today,
+        max_day,
+    )
     return render(
         request,
         "storefront/service_slots.html",
@@ -180,9 +228,9 @@ def service_slots(request, pk):
             "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
             "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
             "prev_day": day - timedelta(days=1) if day > today else None,
-            "next_day": day + timedelta(days=1)
-            if day < today + timedelta(days=MAX_DAYS_AHEAD)
-            else None,
+            "next_day": day + timedelta(days=1) if day < max_day else None,
+            "cal_qs": f"&resource={chosen.pk}" if chosen else "",  # A3: параметр дня
+            **cal,
         },
     )
 
@@ -288,6 +336,14 @@ def termin_slots(request, pk):
                 break
     from apps.core import extras as extras_engine
 
+    # A3: месяц-сетка наличия — день кликабелен, если у ресурса есть свободный слот.
+    max_day = today + timedelta(days=MAX_DAYS_AHEAD)
+    cal = _slot_month(
+        lambda d: bool(availability.free_slots_with_spots(resource, d)),
+        _cal_first(request, day),
+        today,
+        max_day,
+    )
     return render(
         request,
         "storefront/booking_slots.html",
@@ -303,9 +359,9 @@ def termin_slots(request, pk):
             "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
             "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
             "prev_day": day - timedelta(days=1) if day > today else None,
-            "next_day": day + timedelta(days=1)
-            if day < today + timedelta(days=MAX_DAYS_AHEAD)
-            else None,
+            "next_day": day + timedelta(days=1) if day < max_day else None,
+            "cal_qs": "",  # A3: ресурс уже в пути URL — доп. параметров дня нет
+            **cal,
         },
     )
 

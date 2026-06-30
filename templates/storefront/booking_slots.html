@@ -21,6 +21,9 @@
   {% endfor %}
 {% endif %}
 
+{# A3: визуальный календарь наличия (день со слотами кликабелен) над дневной навигацией. #}
+{% include "storefront/_booking_calendar.html" %}
+
 <div class="flex items-center justify-between mb-4 max-w-md">
   {% if prev_day %}
     <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="hover:underline text-sm" style="color: var(--accent);">← {{ prev_day|date:"D d.m." }}</a>
