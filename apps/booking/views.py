@@ -390,3 +390,97 @@ def passes_view(request):
             "services": Service.objects.filter(is_active=True),
         },
     )
+
+
+# --- A3: инлайн-правка услуги на канве витрины (?preview=1) ---
+_SERVICE_INLINE_FIELDS = {"name", "description"}
+
+
+def _bump_storefront(request):
+    """SE-5a: правка данных (не site_config) кэш не бампит — сбрасываем явно."""
+    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+    if schema:
+        from apps.core.pagecache import bump_storefront_cache
+
+        bump_storefront_cache(schema)
+
+
+@login_required
+@require_POST
+def service_inline_edit(request):
+    """Инлайн-правка услуги прямо на витрине: JSON {pk, field, value},
+    field ∈ {name, description, price_eur}. Поля плоские (Service не i18n-dict).
+    Имя пустым не сохраняем. Зеркало events.event_inline_edit. 204/400."""
+    import json
+
+    from django.core.exceptions import ValidationError
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    from .models import Service
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest()
+    pk = data.get("pk")
+    field = data.get("field")
+    value = data.get("value", "")
+    if not pk or field not in (_SERVICE_INLINE_FIELDS | {"price_eur"}):
+        return HttpResponseBadRequest()
+    try:
+        service = Service.objects.get(pk=pk)
+    except (Service.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+
+    if field == "price_eur":
+        from decimal import Decimal, InvalidOperation
+
+        raw = str(value).strip().replace(",", ".")
+        try:
+            euros = Decimal(raw)
+        except (InvalidOperation, ValueError):
+            return HttpResponseBadRequest()
+        if euros < 0 or euros > Decimal("1000000"):
+            return HttpResponseBadRequest()
+        service.price_cents = int((euros * 100).quantize(Decimal("1")))
+        service.save(update_fields=["price_cents", "updated_at"])
+        _bump_storefront(request)
+        return HttpResponse(status=204)
+
+    value = value.strip() if isinstance(value, str) else ""
+    if field == "name" and not value:  # пустое имя не сохраняем
+        return HttpResponseBadRequest()
+    setattr(service, field, value[:120] if field == "name" else value)
+    service.save(update_fields=[field, "updated_at"])
+    _bump_storefront(request)
+    return HttpResponse(status=204)
+
+
+@login_required
+@require_POST
+def service_photo_edit(request):
+    """Заменить фото услуги на канве витрины (multipart: pk + image). У услуги фото —
+    одиночный FileRef-словарь (Service.image), не список → просто перезаписываем. 204/400."""
+    from django.core.exceptions import ValidationError
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    from apps.catalog.images import save_product_image
+
+    from .models import Service
+
+    pk = request.POST.get("pk")
+    uploaded = request.FILES.get("image")
+    if not pk or not uploaded:
+        return HttpResponseBadRequest()
+    try:
+        service = Service.objects.get(pk=pk)
+    except (Service.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    try:
+        new_ref = save_product_image(uploaded, is_primary=True, sort_order=0, folder="services")
+    except ValidationError as exc:
+        return HttpResponseBadRequest("; ".join(exc.messages))
+    service.image = new_ref
+    service.save(update_fields=["image", "updated_at"])
+    _bump_storefront(request)
+    return HttpResponse(status=204)

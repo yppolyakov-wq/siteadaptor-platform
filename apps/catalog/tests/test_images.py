@@ -52,6 +52,21 @@ def test_validate_rejects_too_large():
         validate_image(big)
 
 
+@pytest.mark.django_db
+def test_validate_rejects_corrupt_png_as_validationerror():
+    """Битый PNG (валидная сигнатура, ломаный IDAT) → ValidationError (чистый 400),
+    а не SyntaxError из Pillow (иначе 500 на канве замены фото)."""
+    # Минимальный PNG с правильной сигнатурой, но сломанной CRC в IDAT.
+    import base64
+
+    corrupt = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    )
+    bad = SimpleUploadedFile("broken.png", corrupt, content_type="image/png")
+    with pytest.raises(ValidationError):
+        validate_image(bad)
+
+
 @override_settings(MEDIA_ROOT="/tmp/test_media_unit")
 @pytest.mark.django_db
 def test_save_product_image_returns_fileref():

@@ -11,4 +11,6 @@ urlpatterns = [
     path("ressourcen/", views.resources, name="resources"),
     path("leistungen/", views.services_view, name="services"),
     path("karten/", views.passes_view, name="passes"),
+    path("services/inline-edit/", views.service_inline_edit, name="service-inline-edit"),
+    path("services/photo-edit/", views.service_photo_edit, name="service-photo-edit"),
 ]

@@ -15,14 +15,17 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.services">{{ si }}</p>{% endif %}
   <div class="{% grid_classes site 'services' %}">
     {% for s in services_preview %}
-      <a href="{% url 'storefront-service-slots' s.pk %}" class="sf-card group flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+      <a href="{% url 'storefront-service-slots' s.pk %}" class="sf-card group relative flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+        {% comment %}A3: замена фото услуги на канве редактора (📷 виден только в режиме правки;
+        фото услуги — одиночное, перезаписывается). На публичной витрине span инертен.{% endcomment %}
+        <span data-photo-edit data-edit-model="service" data-edit-pk="{{ s.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 left-2 z-20 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
         {% if s.image_url %}
           <img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async"
                class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0">
         {% endif %}
         <div class="min-w-0 flex-1">
-          <h3 class="font-semibold text-lg truncate">{{ s.name }}</h3>
-          {% if s.description %}<p class="text-sm text-gray-500 mt-0.5 line-clamp-2">{{ s.description }}</p>{% endif %}
+          <h3 class="font-semibold text-lg truncate" data-edit-model="service" data-edit-pk="{{ s.pk }}" data-edit-field="name">{{ s.name }}</h3>
+          {% if s.description %}<p class="text-sm text-gray-500 mt-0.5 line-clamp-2" data-edit-model="service" data-edit-pk="{{ s.pk }}" data-edit-field="description">{{ s.description }}</p>{% endif %}
           <p class="text-sm text-gray-400 mt-1">{% blocktrans with m=s.duration_minutes %}{{ m }} min{% endblocktrans %}</p>
         </div>
         <div class="text-right shrink-0">
@@ -30,9 +33,9 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
             {% comment %}A9/A7: у ремесла/автосервиса (модуль jobs активен) — пометка
             «Festpreis» как сигнал доверия (прозрачные фикс-цены).{% endcomment %}
             {% if services_festpreis %}<span class="inline-block text-[10px] font-semibold uppercase tracking-wide text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5">{% trans "Fixed price" %}</span>{% endif %}
-            <p class="font-semibold whitespace-nowrap">{% blocktrans with p=s.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}</p>
+            <p class="font-semibold whitespace-nowrap"><span data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ s.pk }}" data-price="{{ s.price_eur|floatformat:2 }}">{% blocktrans with p=s.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}</span></p>
           {% else %}
-            <p class="text-sm text-gray-400 whitespace-nowrap">{% trans "free" %}</p>
+            <p class="text-sm text-gray-400 whitespace-nowrap"><span data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ s.pk }}" data-price="0">{% trans "free" %}</span></p>
           {% endif %}
           <span class="mt-2 inline-block text-sm text-white rounded-lg px-3 py-1.5" style="background: var(--accent);" data-purchase-action>{% purchase_label 'booking' %}</span>
         </div>

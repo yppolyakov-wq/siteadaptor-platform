@@ -335,3 +335,76 @@ def test_service_book_rejects_unavailable_time():
         pk=service.pk,
     )
     assert not Booking.objects.filter(service=service).exists()
+
+
+# --- A3: инлайн-правка услуги на канве витрины ------------------------------------
+def _inline_req(payload):
+    import json
+
+    request = RequestFactory().post(
+        "/dashboard/booking/services/inline-edit/",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    owner = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    )
+    return request
+
+
+def test_service_inline_edit_name_and_price():
+    svc = _service(name="Schnitt", price_cents=2500)
+    assert (
+        views.service_inline_edit(
+            _inline_req({"pk": str(svc.pk), "field": "name", "value": "Föhnen"})
+        ).status_code
+        == 204
+    )
+    assert (
+        views.service_inline_edit(
+            _inline_req({"pk": str(svc.pk), "field": "price_eur", "value": "33,50"})
+        ).status_code
+        == 204
+    )
+    svc.refresh_from_db()
+    assert svc.name == "Föhnen" and svc.price_cents == 3350
+
+
+def test_service_inline_edit_rejects_empty_name_and_bad_field():
+    svc = _service(name="Schnitt")
+    assert (
+        views.service_inline_edit(
+            _inline_req({"pk": str(svc.pk), "field": "name", "value": "  "})
+        ).status_code
+        == 400
+    )
+    assert (
+        views.service_inline_edit(
+            _inline_req({"pk": str(svc.pk), "field": "duration", "value": "9"})
+        ).status_code
+        == 400
+    )
+    svc.refresh_from_db()
+    assert svc.name == "Schnitt"
+
+
+def test_service_photo_edit_replaces_image():
+    svc = _service(name="Färben", image={"url": "https://old.example/x.jpg"})
+    req = RequestFactory().post("/dashboard/booking/services/photo-edit/", {"pk": str(svc.pk)})
+    req.FILES["image"] = _png()
+    owner = uuid.uuid4().hex[:8]
+    req.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    )
+    assert views.service_photo_edit(req).status_code == 204
+    svc.refresh_from_db()
+    assert svc.image_url and "old.example" not in svc.image_url  # перезаписано
+
+
+def test_service_index_has_inline_edit_markers():
+    Service.objects.create(name="Ölwechsel", duration_minutes=30, price_cents=4900)
+    body = public_views.termin_index(_pub_req()).content.decode()
+    assert 'data-edit-model="service"' in body  # имя/описание правятся на канве
+    assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
+    assert "data-photo-edit" in body  # замена фото услуги

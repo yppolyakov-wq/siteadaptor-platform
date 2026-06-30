@@ -25,7 +25,9 @@ def validate_image(uploaded) -> str:
         img = Image.open(uploaded)
         img.verify()  # проверка целостности
         fmt = img.format
-    except (UnidentifiedImageError, OSError) as exc:
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
+        # SyntaxError/ValueError: Pillow на битых чанках (напр. «broken PNG file»)
+        # — отдаём чистый 400, а не 500 (важно для замены фото на канве редактора).
         raise ValidationError(_("Not a valid image file.")) from exc
     finally:
         uploaded.seek(0)
