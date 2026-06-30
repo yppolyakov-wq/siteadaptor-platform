@@ -626,3 +626,35 @@ def stay_inline_edit(request):
 
         bump_storefront_cache(schema)
     return HttpResponse(status=204)
+
+
+@login_required
+@require_POST
+def stay_photo_edit(request):
+    """Заменить главное фото номера на канве витрины (multipart: pk + image). Зеркало
+    catalog.product_photo_edit — StayUnit.images тот же FileRef-список. 204/400."""
+    from django.core.exceptions import ValidationError
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    from apps.catalog.images import save_product_image
+
+    pk = request.POST.get("pk")
+    uploaded = request.FILES.get("image")
+    if not pk or not uploaded:
+        return HttpResponseBadRequest()
+    try:
+        unit = StayUnit.objects.get(pk=pk)
+    except (StayUnit.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    try:
+        new_ref = save_product_image(uploaded, is_primary=True, sort_order=0, folder="stays")
+    except ValidationError as exc:
+        return HttpResponseBadRequest("; ".join(exc.messages))
+    unit.images = [new_ref] + [{**img, "is_primary": False} for img in (unit.images or [])]
+    unit.save(update_fields=["images", "updated_at"])
+    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+    if schema:
+        from apps.core.pagecache import bump_storefront_cache
+
+        bump_storefront_cache(schema)
+    return HttpResponse(status=204)

@@ -1607,6 +1607,8 @@
   // Фаза 1 (inline-content): карта модель→эндпоинт инлайн-правки ТЕКСТА данных на канве.
   var MODEL_EDIT_URLS = { product: "{% url 'catalog:product-inline-edit' %}", event: "{% url 'events:event-inline-edit' %}", stay: "{% url 'stays:stay-inline-edit' %}", promotion: "{% url 'promotions:promotion-inline-edit' %}" };
   var PHOTO_EDIT_URL = "{% url 'catalog:product-photo-edit' %}";  // M4: замена фото товара (multipart)
+  // Замена фото по архетипам: эндпоинт по data-edit-model (товар/событие/номер).
+  var MODEL_PHOTO_URLS = { product: PHOTO_EDIT_URL, event: "{% url 'events:event-photo-edit' %}", stay: "{% url 'stays:stay-photo-edit' %}" };
   function markSaved() {
     if (status) {
       status.textContent = "{% trans 'Saved' %} ✓";
@@ -1674,6 +1676,9 @@
         e.preventDefault(); e.stopPropagation();
         if (!editOn) return;
         var pk = btn.getAttribute("data-edit-pk");
+        // Эндпоинт фото — по модели из атрибута (товар по умолчанию; событие/номер — свои).
+        var phModel = btn.getAttribute("data-edit-model") || "product";
+        var phUrl = MODEL_PHOTO_URLS[phModel] || PHOTO_EDIT_URL;
         var inp = doc.createElement("input");
         inp.type = "file"; inp.accept = "image/*"; inp.style.display = "none";
         doc.body.appendChild(inp);
@@ -1682,7 +1687,7 @@
           if (!f) { inp.remove(); return; }
           var fd = new FormData(); fd.append("pk", pk); fd.append("image", f);
           if (status) status.textContent = "…";
-          fetch(PHOTO_EDIT_URL, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
+          fetch(phUrl, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
             .then(function (r) { if (r.ok) { markSaved(); schedule(); } else if (status) status.textContent = ""; })
             .catch(function () { if (status) status.textContent = ""; })
             .finally(function () { inp.remove(); });

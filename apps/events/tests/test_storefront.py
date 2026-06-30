@@ -456,3 +456,32 @@ def test_event_detail_price_edit_marker():
     body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
     assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
     assert 'data-edit-model="event"' in body
+
+
+def test_event_photo_edit_sets_primary(tmp_path, settings):
+    """Замена фото события на канве → новое primary (Event.images, зеркало product)."""
+    from io import BytesIO
+    from types import SimpleNamespace
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    from apps.events import views
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    ev = _event(title="Konzert", images=[{"id": "x", "url": "/old.png", "is_primary": True}])
+    buf = BytesIO()
+    Image.new("RGB", (40, 40), "#abc").save(buf, format="PNG")
+    req = RequestFactory().post("/dashboard/events/photo-edit/", data={"pk": str(ev.pk)})
+    req.FILES["image"] = SimpleUploadedFile("p.png", buf.getvalue(), content_type="image/png")
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = SimpleNamespace(schema_name="public")
+    assert views.event_photo_edit(req).status_code == 204
+    ev.refresh_from_db()
+    assert len(ev.images) == 2 and ev.images[0]["is_primary"] and ev.images[0]["url"] != "/old.png"
+
+
+def test_event_detail_photo_edit_marker():
+    ev = _event(title="Konzert", images=[{"id": "x", "url": "/a.png", "is_primary": True}])
+    body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
+    assert "data-photo-edit" in body and 'data-edit-model="event"' in body

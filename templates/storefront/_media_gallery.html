@@ -5,7 +5,9 @@
 библиотек (GDPR). Переиспользуется детальными всех архетипов (товар/номер/событие).
 Параметры: images — список URL или dict'ов {url}; alt — опц. подпись.{% endcomment %}
 {% if images %}
-<div class="space-y-3 js-media-gallery" data-media-gallery>
+<div class="space-y-3 js-media-gallery relative" data-media-gallery>
+  {# Замена главного фото на канве редактора (📷 виден только в режиме правки; на публичной инертен). #}
+  {% if edit_pk %}<button type="button" data-photo-edit data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>{% endif %}
   <button type="button" class="js-media-zoom block w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in" aria-label="{% trans 'Enlarge photo' %}">
     <img class="js-media-main w-full h-full object-cover" src="{{ images.0.url|default:images.0 }}" alt="{{ alt|default:'' }}">
   </button>

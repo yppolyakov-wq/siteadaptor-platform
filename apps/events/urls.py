@@ -13,6 +13,7 @@ urlpatterns = [
     path("new/", views.event_create, name="create"),
     # H1.2: инлайн-правка заголовка/описания события на детальной витрине (?preview=1).
     path("inline-edit/", views.event_inline_edit, name="event-inline-edit"),
+    path("photo-edit/", views.event_photo_edit, name="event-photo-edit"),
     path("<uuid:pk>/", views.event_detail, name="detail"),
     path("<uuid:pk>/edit/", views.event_edit, name="edit"),
     path("<uuid:pk>/action/", views.event_action, name="action"),

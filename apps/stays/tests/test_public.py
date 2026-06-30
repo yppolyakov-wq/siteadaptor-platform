@@ -388,3 +388,34 @@ def test_stay_detail_price_edit_marker():
     ).content.decode()
     assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
     assert 'data-edit-model="stay"' in body
+
+
+def test_stay_photo_edit_sets_primary(tmp_path, settings):
+    """Замена фото номера на канве → новое primary (StayUnit.images)."""
+    from io import BytesIO
+    from types import SimpleNamespace
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    from apps.stays import views
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    unit = _unit(images=[{"id": "x", "url": "/old.png", "is_primary": True}])
+    buf = BytesIO()
+    Image.new("RGB", (40, 40), "#abc").save(buf, format="PNG")
+    req = RequestFactory().post("/dashboard/stays/photo-edit/", data={"pk": str(unit.pk)})
+    req.FILES["image"] = SimpleUploadedFile("p.png", buf.getvalue(), content_type="image/png")
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = SimpleNamespace(schema_name="public")
+    assert views.stay_photo_edit(req).status_code == 204
+    unit.refresh_from_db()
+    assert len(unit.images) == 2 and unit.images[0]["is_primary"]
+
+
+def test_stay_detail_photo_edit_marker():
+    unit = _unit(images=[{"id": "x", "url": "/a.png", "is_primary": True}])
+    body = public_views.unterkunft_unit(
+        _req("get", f"/unterkunft/{unit.pk}/"), pk=unit.pk
+    ).content.decode()
+    assert "data-photo-edit" in body and 'data-edit-model="stay"' in body

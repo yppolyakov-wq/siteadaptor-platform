@@ -479,3 +479,35 @@ def event_inline_edit(request):
     event.save(update_fields=[field, "updated_at"])
     _bump()
     return HttpResponse(status=204)
+
+
+@login_required
+@require_POST
+def event_photo_edit(request):
+    """Заменить главное фото события на канве витрины (multipart: pk + image). Зеркало
+    catalog.product_photo_edit — Event.images тот же FileRef-список. 204/400."""
+    from django.core.exceptions import ValidationError
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    from apps.catalog.images import save_product_image
+
+    pk = request.POST.get("pk")
+    uploaded = request.FILES.get("image")
+    if not pk or not uploaded:
+        return HttpResponseBadRequest()
+    try:
+        event = Event.objects.get(pk=pk)
+    except (Event.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    try:
+        new_ref = save_product_image(uploaded, is_primary=True, sort_order=0, folder="events")
+    except ValidationError as exc:
+        return HttpResponseBadRequest("; ".join(exc.messages))
+    event.images = [new_ref] + [{**img, "is_primary": False} for img in (event.images or [])]
+    event.save(update_fields=["images", "updated_at"])
+    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+    if schema:
+        from apps.core.pagecache import bump_storefront_cache
+
+        bump_storefront_cache(schema)
+    return HttpResponse(status=204)

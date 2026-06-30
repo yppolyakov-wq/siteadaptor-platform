@@ -11,7 +11,7 @@
 {% endif %}
 {% endblock %}
 
-{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=unit.images alt=unit.name %}{% endblock %}
+{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=unit.images alt=unit.name edit_model="stay" edit_pk=unit.pk %}{% endblock %}
 
 {% block detail_aside %}
 <div id="buchen" class="space-y-4 scroll-mt-24">

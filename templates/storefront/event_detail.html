@@ -4,7 +4,7 @@
 
 {% block detail_back %}<a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>{% endblock %}
 
-{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=event.images alt=event.title_text %}{% endblock %}
+{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=event.images alt=event.title_text edit_model="event" edit_pk=event.pk %}{% endblock %}
 
 {% block detail_aside %}{% with L=event.landing %}
     <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
