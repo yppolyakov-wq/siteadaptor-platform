@@ -136,6 +136,46 @@ def rueckruf(request):
     return redirect("storefront-anfrage")
 
 
+# A9: порядок «публичных» стадий ремонта для тайм-лайна (declined/cancelled — терминально).
+_STATUS_FLOW = (
+    Job.STATUS_NEW,
+    Job.STATUS_QUOTED,
+    Job.STATUS_ACCEPTED,
+    Job.STATUS_DONE,
+    Job.STATUS_INVOICED,
+)
+
+
+def auftrag_status(request, token):
+    """A9: публичная страница статуса заявки (Repair-Status) по public_token.
+
+    Read-only тайм-лайн стадий (Anfrage → Angebot → Beauftragt → Erledigt →
+    Abgerechnet) с подсветкой текущей; declined/cancelled — терминальная пометка.
+    Ссылка приходит клиенту в письме «Auftrag fertig». Гейт модулем jobs."""
+    _require_jobs_active(request)
+    job = get_object_or_404(Job.objects.select_related("customer"), public_token=token)
+    labels = dict(Job.STATUSES)
+    terminal = job.status in (Job.STATUS_DECLINED, Job.STATUS_CANCELLED)
+    try:
+        cur = _STATUS_FLOW.index(job.status)
+    except ValueError:
+        cur = -1  # терминальный статус — ни одна стадия не «текущая»
+    steps = [
+        {"label": labels.get(s, s), "done": i < cur, "current": i == cur}
+        for i, s in enumerate(_STATUS_FLOW)
+    ]
+    return render(
+        request,
+        "storefront/auftrag_status.html",
+        {
+            "job": job,
+            "steps": steps,
+            "terminal": terminal,
+            "status_label": labels.get(job.status, job.status),
+        },
+    )
+
+
 def angebot(request, token):
     _require_jobs_active(request)
     job = get_object_or_404(Job.objects.select_related("customer"), public_token=token)

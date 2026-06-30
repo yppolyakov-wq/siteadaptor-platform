@@ -11,18 +11,26 @@ from apps.notifications.services import notify
 from apps.promotions.notifications import _owner_email, _render, _tenant
 
 
-def enqueue_job_email(job, event, *, angebot_url=""):
-    """event: new/accepted/declined → владельцу; quoted → клиенту (со ссылкой)."""
+def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
+    """event: new/accepted/declined → владельцу; quoted/done → клиенту (со ссылкой).
+
+    A9: `done` уведомляет клиента, что работа выполнена (Repair-Status), со ссылкой
+    на публичную страницу статуса (`status_url`)."""
     schema = connection.schema_name
     customer = job.customer
-    ctx = {"job": job, "customer": customer, "angebot_url": angebot_url}
+    ctx = {
+        "job": job,
+        "customer": customer,
+        "angebot_url": angebot_url,
+        "status_url": status_url,
+    }
 
-    if event == "quoted":
+    if event in ("quoted", "done"):  # → клиенту
         if customer.email and not customer.unsubscribed:
-            subject, body, html = _render("job_quoted", ctx)
+            subject, body, html = _render(f"job_{event}", ctx)
             notify(
-                dedupe_key=f"job:{job.id}:quoted:customer",
-                type="job_quoted",
+                dedupe_key=f"job:{job.id}:{event}:customer",
+                type=f"job_{event}",
                 recipient=customer.email,
                 subject=subject,
                 body=body,

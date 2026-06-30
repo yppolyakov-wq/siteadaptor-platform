@@ -1,0 +1,31 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Order status" %} {{ job.reference_code }} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+  <a href="{% url 'storefront-anfrage' %}" class="text-sm text-gray-500 hover:underline">← {% trans "New request" %}</a>
+  <h1 class="text-2xl md:text-3xl font-bold mt-1 mb-1">{% trans "Order status" %}</h1>
+  <p class="text-gray-500 mb-6">{{ job.title }} · {% trans "Order no." %} {{ job.reference_code }}</p>
+
+  {% if terminal %}
+  {# declined/cancelled — терминальная пометка вместо тайм-лайна. #}
+  <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+    <p class="font-medium text-gray-700">{{ status_label }}</p>
+  </div>
+  {% else %}
+  <ol class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+    {% for s in steps %}
+    <li class="flex items-center gap-3">
+      <span class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold
+        {% if s.current %}bg-indigo-600 text-white{% elif s.done %}bg-emerald-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %}">
+        {% if s.done %}✓{% else %}{{ forloop.counter }}{% endif %}
+      </span>
+      <span class="{% if s.current %}font-semibold text-indigo-700{% elif s.done %}text-gray-600{% else %}text-gray-400{% endif %}">{{ s.label }}</span>
+      {% if s.current %}<span class="ml-auto text-xs font-medium text-indigo-600">{% trans "current" %}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+</div>
+{% endblock %}

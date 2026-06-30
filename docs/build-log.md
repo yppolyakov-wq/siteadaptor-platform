@@ -3073,3 +3073,11 @@
   rate-limit как Anfrage) создаёт лёгкий лид через тот же jobs-пайплайн (create_job
   title=«Rückrufbitte», best_time → в описание) + enqueue_job_email("new"). Гейт модулем
   jobs. Без миграции/JS. Тесты: лид/требование имя+телефон/best_time/гейт/форма (28 jobs).
+- **2026-06-30 — A9: Repair-Status трекинг (публичная страница статуса + письмо «fertig»).**
+  Клиент видит прогресс заявки: публичная страница `/auftrag/<public_token>/`
+  (`auftrag_status`) — read-only тайм-лайн стадий (Anfrage → Angebot → Beauftragt →
+  Erledigt → Abgerechnet) с подсветкой текущей; declined/cancelled → терминальная пометка.
+  Переиспользует существующий `Job.public_token` (без миграции). При переходе FSM в `done`
+  клиенту уходит письмо `job_done` (Auftrag fertig + ссылка на страницу статуса) — расширен
+  `enqueue_job_email` (quoted/done → клиенту) + хук в `JobSM.on_transition`. Шаблоны
+  `emails/job_done*.txt`. Тесты: тайм-лайн/текущая стадия/терминал/гейт/письмо (63 jobs).

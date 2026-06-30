@@ -195,6 +195,41 @@ def test_anfrage_stores_structured_vehicle_data():
     assert job.vehicle_hsn == "0603" and job.vehicle_tsn == "BNV"
 
 
+# --- A9: Repair-Status (публичная страница статуса + письмо «fertig») --------------
+def test_auftrag_status_shows_timeline():
+    job = services.create_job(title="Bad sanieren", name="Kunde")
+    body = public_views.auftrag_status(_req(), token=job.public_token).content.decode()
+    assert job.reference_code in body
+    assert "Anfrage" in body and "Erledigt" in body  # стадии тайм-лайна (DE-метки)
+
+
+def test_auftrag_status_marks_current_stage():
+    job = _quoted_job()  # статус = quoted
+    body = public_views.auftrag_status(_req(), token=job.public_token).content.decode()
+    assert "Angebot gesendet" in body and "current" in body  # текущая стадия отмечена
+
+
+def test_auftrag_status_terminal_for_cancelled():
+    job = services.create_job(title="X", name="K")
+    JobSM().apply(job, "cancelled")
+    body = public_views.auftrag_status(_req(), token=job.public_token).content.decode()
+    assert "Storniert" in body  # терминальная пометка вместо тайм-лайна
+
+
+def test_auftrag_status_gating_404():
+    job = services.create_job(title="X", name="K")
+    request = _req(tenant=_tenant(disabled_modules=["jobs"]))
+    with pytest.raises(Http404):
+        public_views.auftrag_status(request, token=job.public_token)
+
+
+def test_done_transition_sends_customer_status_email():
+    job = _quoted_job(email="kunde@test.de")
+    JobSM().apply(job, "accepted")
+    JobSM().apply(job, "done")
+    assert Notification.objects.filter(dedupe_key=f"job:{job.id}:done:customer").exists()
+
+
 # --- публичное Angebot ------------------------------------------------------------
 
 

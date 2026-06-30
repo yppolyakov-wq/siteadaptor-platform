@@ -1,0 +1,11 @@
+Hallo {{ customer.name }},
+
+gute Nachrichten — Ihr Auftrag ist erledigt:
+
+{{ job.title }}
+Auftrags-Nr.: {{ job.reference_code }}
+{% if status_url %}
+Status ansehen:
+{{ status_url }}
+{% endif %}
+Vielen Dank für Ihr Vertrauen.

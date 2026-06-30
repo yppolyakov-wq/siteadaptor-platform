@@ -28,6 +28,19 @@ class JobSM(StateMachine):
         # G11: расходники (Teile) списываются со склада при erledigt (один раз).
         if t.dst == "done":
             services.commit_stock(instance)
+            # A9: клиенту — Auftrag fertig (Repair-Status) + ссылка на страницу статуса.
+            from django.db import connection
+            from django.urls import reverse
+
+            from apps.promotions.notifications import _base_url
+
+            base = _base_url(connection.schema_name)
+            status_url = (
+                f"{base}{reverse('storefront-auftrag', args=[instance.public_token])}"
+                if base
+                else ""
+            )
+            enqueue_job_email(instance, "done", status_url=status_url)
 
         if t.dst == "quoted":
             # Ссылку на публичное Angebot строим только при известном домене
