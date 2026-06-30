@@ -1067,6 +1067,15 @@ def home_builder_view(request):
     # H0/H1: страницы-ДЕТАЛИ активных архетипов (товар/номер/событие — первый пример) —
     # чтобы деталь можно было открыть на канве и править инлайн (H1.2) / порядок секций.
     preview_pages.extend(archetypes.example_detail_pages(request.tenant))
+    # Корзина (Click&Collect) — отдельная группа страницы: владелец открывает её на канве,
+    # панель билдера показывает настройки корзины (а не блоки главной). Только при каталоге.
+    if request.tenant.is_module_active("catalog"):
+        try:
+            preview_pages.append(
+                {"label": _("Cart"), "url": reverse("storefront-cart"), "group": "cart"}
+            )
+        except NoReverseMatch:
+            pass
     # H1 «простые страницы»: универсальные инфо/правовые страницы тоже доступны в
     # переключателе превью — владелец видит их вид и (для «О нас») правит about-тексты.
     for url_name, label in (

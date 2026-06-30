@@ -138,6 +138,7 @@ def test_editor_preview_switcher_tags_page_groups():
     assert 'data-group="home"' in body
     assert 'data-group="catalog_detail"' in body
     assert 'data-group="text"' in body  # текстовые/легал страницы
+    assert 'data-group="cart"' in body  # корзина в переключателе превью
     assert 'data-scope="home"' in body and 'data-scope="landing"' in body
 
 
