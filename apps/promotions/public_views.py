@@ -332,6 +332,8 @@ def product_list(request):
             "page": page,
             "categories": categories,
             "current_category": category,
+            # «Категории с описанием»: i18n-описание выбранной категории (или "").
+            "category_description": category.get_i18n("description") if category else "",
             # H1.2: кастомные заголовок/интро страницы каталога (инлайн-правка на канве).
             "catalog_title": cfg.get("catalog_title", ""),
             "catalog_intro": cfg.get("catalog_intro", ""),

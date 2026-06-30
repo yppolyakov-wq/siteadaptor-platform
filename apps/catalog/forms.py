@@ -13,6 +13,12 @@ from .models import Category, Product
 class CategoryForm(forms.ModelForm):
     name_de = forms.CharField(label=_("Name (DE)"), max_length=200)
     name_en = forms.CharField(label=_("Name (EN)"), max_length=200, required=False)
+    description_de = forms.CharField(
+        label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
+    )
+    description_en = forms.CharField(
+        label=_("Description (EN)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
+    )
 
     class Meta:
         model = Category
@@ -30,6 +36,8 @@ class CategoryForm(forms.ModelForm):
             qs = qs.exclude(pk__in=self._descendant_ids(self.instance))
             self.fields["name_de"].initial = (self.instance.name or {}).get("de", "")
             self.fields["name_en"].initial = (self.instance.name or {}).get("en", "")
+            self.fields["description_de"].initial = (self.instance.description or {}).get("de", "")
+            self.fields["description_en"].initial = (self.instance.description or {}).get("en", "")
         self.fields["parent"].queryset = qs
 
     @staticmethod
@@ -85,6 +93,10 @@ class CategoryForm(forms.ModelForm):
         category.name = {
             "de": self.cleaned_data["name_de"],
             "en": self.cleaned_data.get("name_en", ""),
+        }
+        category.description = {
+            "de": self.cleaned_data.get("description_de", ""),
+            "en": self.cleaned_data.get("description_en", ""),
         }
         category.slug = self.cleaned_data["slug"]
         if commit:

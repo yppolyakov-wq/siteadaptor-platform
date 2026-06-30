@@ -448,3 +448,36 @@ def test_storefront_includes_telegram_miniapp_sdk():
     body = public_views.product_list(_req()).content.decode()
     assert "telegram.org/js/telegram-web-app.js" in body
     assert "in-telegram" in body  # init-скрипт присутствует
+
+
+def test_category_description_renders_when_category_selected():
+    """«Категории с описанием»: при выбранной категории её i18n-описание выводится на
+    странице каталога; без выбора (вся витрина) — не показывается."""
+    cat = CategoryFactory(
+        slug="brot", name={"de": "Brot"}, description={"de": "Frisch aus dem Holzofen"}
+    )
+    ProductFactory(name={"de": "Roggenbrot"}, category=cat)
+
+    body = public_views.product_list(_req(params={"kategorie": "brot"})).content.decode()
+    assert "Frisch aus dem Holzofen" in body
+
+    body_all = public_views.product_list(_req()).content.decode()
+    assert "Frisch aus dem Holzofen" not in body_all
+
+
+def test_category_form_saves_i18n_description():
+    from apps.catalog.forms import CategoryForm
+
+    form = CategoryForm(
+        data={
+            "name_de": "Brot",
+            "name_en": "Bread",
+            "description_de": "Frisch gebacken",
+            "description_en": "Freshly baked",
+            "sort_order": 0,
+        }
+    )
+    assert form.is_valid(), form.errors
+    cat = form.save()
+    assert cat.description == {"de": "Frisch gebacken", "en": "Freshly baked"}
+    assert cat.get_i18n("description") == "Frisch gebacken"

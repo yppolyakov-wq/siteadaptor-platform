@@ -9,6 +9,8 @@
   <h1 class="text-2xl md:text-3xl font-bold mt-1"><span data-edit="catalog_title">{% if catalog_title %}{{ catalog_title }}{% else %}{% trans "Our products" %}{% endif %}</span>{% if current_category %} · {{ current_category }}{% endif %}</h1>
   {# H1.2: интро каталога — правится инлайн; пустое скрыто на публичной, видно/правится в редакторе (?preview=1). #}
   {% if catalog_intro or is_preview %}<p class="mt-2 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="catalog_intro">{{ catalog_intro }}</p>{% endif %}
+  {# «Категории с описанием»: описание выбранной категории (правится в кабинете: Catalog → Categories). #}
+  {% if category_description %}<p class="mt-2 text-gray-700 whitespace-pre-line max-w-2xl">{{ category_description }}</p>{% endif %}
   {% if has_combos and not combos_teaser %}
     <a href="{% url 'storefront-combos' %}" class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">🍔 {% trans "See our combos & menus" %} &rarr;</a>
   {% endif %}

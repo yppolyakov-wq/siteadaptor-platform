@@ -20,6 +20,9 @@ class Category(SoftDeleteMixin, I18nMixin):
         on_delete=models.SET_NULL,
     )
     name = models.JSONField(default=dict)  # {"de": "...", "en": "..."}
+    # H2-vision «категории с описанием»: i18n-описание, показывается на странице
+    # каталога при выбранной категории (как интро раздела). Пусто → ничего.
+    description = models.JSONField(default=dict, blank=True)  # {"de": "...", "en": "..."}
     slug = models.SlugField(max_length=100)
     icon = models.CharField(max_length=50, blank=True)
     sort_order = models.IntegerField(default=0)
