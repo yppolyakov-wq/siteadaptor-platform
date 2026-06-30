@@ -33,6 +33,39 @@ def test_dashboard_and_accounts_not_touched():
         assert "X-Frame-Options" not in resp, path
 
 
+def test_root_mounted_cabinet_not_touched():
+    # Разделы кабинета на корне субдомена ВНЕ /dashboard/ (catalog/imports/promotions/
+    # crm/willkommen) — тоже кабинет владельца, middleware их не трогает (остаются DENY).
+    for path in (
+        "/catalog/products/",
+        "/imports/",
+        "/promotions/redeem/",
+        "/promotions/vouchers/redeem/",
+        "/crm/",
+        "/willkommen/",
+    ):
+        resp = _call(path)
+        assert "X-Frame-Options" not in resp, path
+
+
+def test_existing_deny_survives_on_cabinet_roots():
+    # Реальный прод-стек: XFrameOptionsMiddleware уже выставил DENY на cabinet-странице
+    # вне /dashboard/. StorefrontFrameOptionsMiddleware НЕ должен перебить его на SAMEORIGIN
+    # (иначе clickjacking-защита кабинета ослабляется — workflow-finding 2026-06-30).
+    for path in ("/catalog/products/", "/promotions/vouchers/redeem/", "/crm/", "/imports/"):
+        resp = HttpResponse("cabinet")
+        resp["X-Frame-Options"] = "DENY"
+        out = _call(path, response=resp)
+        assert out["X-Frame-Options"] == "DENY", path
+
+
+def test_customer_account_stays_sameorigin():
+    # Клиентский ЛК /konto/ — это витрина (ссылка «Mein Konto» в шапке может кликаться
+    # в превью), остаётся SAMEORIGIN, не попадает в blocklist кабинета.
+    resp = _call("/konto/")
+    assert resp["X-Frame-Options"] == "SAMEORIGIN"
+
+
 def test_embed_exempt_response_not_overridden():
     # G10 iframe-виджет (?embed=1) помечен xframe_options_exempt — middleware его не трогает.
     resp = HttpResponse("widget")

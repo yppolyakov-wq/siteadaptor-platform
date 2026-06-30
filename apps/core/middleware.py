@@ -37,7 +37,16 @@ class StorefrontFrameOptionsMiddleware:
     перебивая ``DENY``: редактор (тот же origin) может их кадрировать, а сторонние
     сайты — нет (защита от клик-джекинга сохраняется).
 
-    Кабинет/логин (`/dashboard/`, `/accounts/`, `/admin/`) остаются ``DENY``.
+    Кабинет/логин остаются ``DENY``. Это НЕ только `/dashboard/` — часть разделов
+    кабинета владельца смонтирована на корне субдомена ВНЕ `/dashboard/`
+    (`config/urls_tenant.py`): `/catalog/` (CRUD товаров), `/imports/` (CSV),
+    `/promotions/` (выдача/погашение ваучеров, лояльность), `/crm/` (данные клиентов),
+    `/willkommen/` (алиас мастера онбординга). Все под `@login_required`, ни одна не
+    участвует в превью редактора (`preview_pages` — только главная + лендинги
+    архетипов) → им незачем кадрироваться, оставляем самый строгий ``DENY``.
+    Клиентский ЛК `/konto/` (магик-линк) — это витрина (ссылка «Mein Konto» в шапке/
+    подвале может кликаться в превью), поэтому он остаётся ``SAMEORIGIN``.
+
     Вьюхи с ``xframe_options_exempt`` (G10 iframe-виджет для ЧУЖИХ сайтов, `?embed=1`)
     не трогаем — им нужен полностью открытый кадр.
 
@@ -45,7 +54,16 @@ class StorefrontFrameOptionsMiddleware:
     отрабатывает ПОСЛЕ → перебивает выставленный ``DENY``.
     """
 
-    _BLOCK_PREFIXES = ("/dashboard/", "/accounts/", "/admin/")
+    _BLOCK_PREFIXES = (
+        "/dashboard/",
+        "/accounts/",
+        "/admin/",
+        "/catalog/",
+        "/imports/",
+        "/promotions/",
+        "/crm/",
+        "/willkommen/",
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
