@@ -2919,3 +2919,11 @@
   пустое. Браузер (pranasy): переход на `/veranstaltung/<pk>/` в превью, заголовок contenteditable, правка →
   в БД `Event.title` обновлён, JS-ошибок нет. Тесты `test_event_detail_inline_edit_markers` +
   `test_event_inline_edit_updates_and_validates`. Без миграций. Multi-page editing: товар + событие закрыты.
+- **2026-06-29 — H1.2 (срез 3): инлайн-правка НОМЕРА (stays) на детальной.** Завершает паттерн детальных по
+  3 основным архетипам (товар/событие/номер). На `storefront/stay_detail.html` название (`<h1>`) и описание —
+  `data-edit-model="stay"`/`data-edit-pk`/`data-edit-field` (name/description). Endpoint `stay_inline_edit`
+  (`apps/stays/views.py`, login_required+require_POST, плоские name/description, кламп name 120, пустое имя → 400,
+  bump кэша), URL `stays:stay-inline-edit` (`dashboard/stays/inline-edit/`), `stay` в `MODEL_EDIT_URLS`. Описание
+  рендерится всегда (с маркером). JS-путь идентичен product/event (generic frame.load-handler, проверен в браузере
+  дважды — не менялся). Тесты: markers + endpoint (update/validate). Home_builder рендерит editor с новым URL (89).
+  Без миграций. Multi-page editing деталей: товар + событие + номер закрыты.

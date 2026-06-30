@@ -74,6 +74,48 @@ def test_home_stay_rooms_section_shows_book_action():
 # --- витрина: цена + бронь --------------------------------------------------------
 
 
+def test_stay_detail_inline_edit_markers():
+    """H1.2: название и описание номера на детальной несут data-edit-model → редактор
+    делает их contenteditable; на публичной витрине инертны."""
+    unit = _unit(description="Schön")
+    body = public_views.unterkunft_unit(
+        _req("get", f"/unterkunft/{unit.pk}/"), pk=unit.pk
+    ).content.decode()
+    assert 'data-edit-model="stay"' in body
+    assert 'data-edit-field="name"' in body
+    assert 'data-edit-field="description"' in body
+    assert f'data-edit-pk="{unit.pk}"' in body
+
+
+def test_stay_inline_edit_updates_and_validates():
+    """H1.2: endpoint пишет плоский name/description; пустое имя и поле вне вайтлиста → 400."""
+    import json
+    from types import SimpleNamespace
+
+    from apps.stays import views
+
+    unit = _unit(description="Alt")
+
+    def call(payload):
+        req = RequestFactory().post(
+            "/dashboard/stays/inline-edit/", json.dumps(payload), content_type="application/json"
+        )
+        req.user = SimpleNamespace(is_authenticated=True)
+        req.tenant = SimpleNamespace(schema_name="public")
+        return views.stay_inline_edit(req)
+
+    assert call({"pk": str(unit.pk), "field": "name", "value": "Bergblick"}).status_code == 204
+    unit.refresh_from_db()
+    assert unit.name == "Bergblick"
+    assert call({"pk": str(unit.pk), "field": "description", "value": "Neu"}).status_code == 204
+    unit.refresh_from_db()
+    assert unit.description == "Neu"
+    assert call({"pk": str(unit.pk), "field": "name", "value": "  "}).status_code == 400  # пустое
+    assert (
+        call({"pk": str(unit.pk), "field": "price_cents", "value": "1"}).status_code == 400
+    )  # не вайтлист
+
+
 def test_detail_shows_price_and_book_form():
     unit = _unit(price_cents=9000)
     request = _req(

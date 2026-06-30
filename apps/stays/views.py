@@ -568,3 +568,46 @@ def channels(request):
             ),
         },
     )
+
+
+_STAY_INLINE_FIELDS = {"name", "description"}
+
+
+@login_required
+@require_POST
+def stay_inline_edit(request):
+    """H1.2: инлайн-правка номера прямо на детальной витрины (?preview=1).
+
+    JSON {pk, field, value}, field ∈ {name, description} → плоское StayUnit.<field>.
+    Имя пустым не сохраняем (кламп 120). Только владелец (login_required → tenant-скоуп).
+    Зеркало events.event_inline_edit. 204/400.
+    """
+    import json
+
+    from django.core.exceptions import ValidationError
+    from django.http import HttpResponse, HttpResponseBadRequest
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest()
+    pk = data.get("pk")
+    field = data.get("field")
+    value = data.get("value", "")
+    if not pk or field not in _STAY_INLINE_FIELDS:
+        return HttpResponseBadRequest()
+    value = value.strip() if isinstance(value, str) else ""
+    if field == "name" and not value:  # пустое имя не сохраняем
+        return HttpResponseBadRequest()
+    try:
+        unit = StayUnit.objects.get(pk=pk)
+    except (StayUnit.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+    setattr(unit, field, value[:120] if field == "name" else value)
+    unit.save(update_fields=[field, "updated_at"])
+    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+    if schema:
+        from apps.core.pagecache import bump_storefront_cache
+
+        bump_storefront_cache(schema)
+    return HttpResponse(status=204)

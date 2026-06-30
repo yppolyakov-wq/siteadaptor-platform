@@ -16,7 +16,7 @@
 {% block detail_aside %}
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <div>
-    <h1 class="text-2xl md:text-3xl font-bold">{{ unit.name }}</h1>
+    <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="stay" data-edit-pk="{{ unit.pk }}" data-edit-field="name">{{ unit.name }}</h1>
     {% comment %}A5: рейтинг бизнеса на странице номера (как Booking/HRS) — звезда +
     среднее + число отзывов; только если отзывы есть.{% endcomment %}
     {% business_rating as br %}
@@ -212,7 +212,8 @@
 
 {% block detail_body %}
 {# Описание + оснащение (под фото и бронью) #}
-{% if unit.description %}<p class="text-gray-600 mt-8 mb-6 whitespace-pre-line">{{ unit.description }}</p>{% endif %}
+{# H1.2: всегда рендерим (с маркером) — описание правится инлайн на канве, даже пустое. #}
+<p class="text-gray-600 mt-8 mb-6 whitespace-pre-line" data-edit-model="stay" data-edit-pk="{{ unit.pk }}" data-edit-field="description">{{ unit.description }}</p>
 
 {# H3: ключевые факты + Ausstattung #}
 {% if unit.area_sqm or unit.bed_type or unit.amenity_badges %}
