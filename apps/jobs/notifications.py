@@ -25,11 +25,18 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
         "status_url": status_url,
     }
 
-    if event in ("quoted", "done"):  # → клиенту
+    if event in ("quoted", "done", "service_reminder"):  # → клиенту
         if customer.email and not customer.unsubscribed:
             subject, body, html = _render(f"job_{event}", ctx)
+            # A9: напоминание о TÜV/Service может приходить повторно (на каждую дату),
+            # поэтому дедуп включает саму дату — иначе вторая дата не отправится.
+            suffix = (
+                f":{job.service_due_date.isoformat()}"
+                if event == "service_reminder" and job.service_due_date
+                else ""
+            )
             notify(
-                dedupe_key=f"job:{job.id}:{event}:customer",
+                dedupe_key=f"job:{job.id}:{event}{suffix}:customer",
                 type=f"job_{event}",
                 recipient=customer.email,
                 subject=subject,

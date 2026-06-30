@@ -54,6 +54,11 @@ class Job(TimestampedModel):
     # Публичная Angebot-страница: клиент принимает/отклоняет смету онлайн (F3).
     public_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     valid_until = models.DateField(null=True, blank=True)  # Angebot gültig bis
+    # A9: следующий TÜV/Service — дата, когда напомнить клиенту (Werkstatt-ретеншн).
+    # Beat шлёт письмо за SERVICE_REMINDER_LEAD_DAYS до даты; sent_at — дедуп (одно
+    # напоминание на дату; смена даты в кабинете сбрасывает sent_at → новое напоминание).
+    service_due_date = models.DateField(null=True, blank=True)
+    service_reminder_sent_at = models.DateTimeField(null=True, blank=True)
 
     # Снимок сумм сметы (брутто-расчёт из JobLine; §19 Kleinunternehmer → vat 0).
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))

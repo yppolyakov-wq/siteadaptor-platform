@@ -224,6 +224,26 @@ def test_vehicle_field_on_create_and_save():
     assert job.vehicle == "BMW · K-XY 9"
 
 
+def test_service_due_date_saved_and_rearms_reminder():
+    """A9: следующий TÜV/Service сохраняется формой сметы; смена даты сбрасывает
+    service_reminder_sent_at (перезаряжает напоминание)."""
+    from django.utils import timezone
+
+    job = services.create_job(title="Inspektion", name="Kunde")
+    job.service_reminder_sent_at = timezone.now()  # как будто напоминание уже ушло
+    job.save(update_fields=["service_reminder_sent_at"])
+    views.job_detail(
+        _req(
+            "post",
+            data={"action": "save_lines", "vat_rate": "19.00", "service_due_date": "2027-03-15"},
+        ),
+        pk=job.pk,
+    )
+    job.refresh_from_db()
+    assert str(job.service_due_date) == "2027-03-15"
+    assert job.service_reminder_sent_at is None  # перезаряжено под новую дату
+
+
 def test_link_and_unlink_booking():
     """A7d: привязка/отвязка выездного Termin к заявке."""
     from datetime import timedelta

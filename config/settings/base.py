@@ -270,6 +270,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.booking.tasks.send_booking_reminders",
         "schedule": 3600.0,  # раз в час — напоминание за N часов до записи (D3c)
     },
+    "send-service-reminders": {
+        "task": "apps.jobs.tasks.send_service_reminders",
+        "schedule": 86400.0,  # раз в сутки — TÜV/Service-Reminder за N дней (A9)
+    },
     "send-stay-reminders": {
         "task": "apps.stays.tasks.send_stay_reminders",
         "schedule": 86400.0,  # раз в сутки — напоминание о заезде (Track E / E3)
@@ -306,6 +310,8 @@ CELERY_BEAT_SCHEDULE = {
 
 # За сколько часов до начала записи слать напоминание (Track D / D3c).
 BOOKING_REMINDER_HOURS = env.int("BOOKING_REMINDER_HOURS", default=24)
+# A9: за сколько дней до TÜV/Service слать напоминание клиенту (Werkstatt-ретеншн).
+SERVICE_REMINDER_LEAD_DAYS = env.int("SERVICE_REMINDER_LEAD_DAYS", default=21)
 # R9: за сколько дней до события слать напоминание участникам / после — post-event.
 EVENT_REMINDER_DAYS = env.int("EVENT_REMINDER_DAYS", default=7)
 EVENT_POSTEVENT_DAYS = env.int("EVENT_POSTEVENT_DAYS", default=1)

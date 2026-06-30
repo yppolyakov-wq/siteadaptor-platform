@@ -3081,3 +3081,12 @@
   клиенту уходит письмо `job_done` (Auftrag fertig + ссылка на страницу статуса) — расширен
   `enqueue_job_email` (quoted/done → клиенту) + хук в `JobSM.on_transition`. Шаблоны
   `emails/job_done*.txt`. Тесты: тайм-лайн/текущая стадия/терминал/гейт/письмо (63 jobs).
+- **2026-06-30 — A9: TÜV/Service-Reminder (ретеншн Werkstatt).** Бизнес ставит на заявке
+  дату следующего TÜV/Service; beat за `SERVICE_REMINDER_LEAD_DAYS` (21) дней до неё шлёт
+  клиенту письмо-напоминание. **Job** (миграция jobs/0010): `service_due_date` +
+  `service_reminder_sent_at` (дедуп). Кабинет: поле «Next TÜV / service» в форме сметы
+  (`_save_lines`); смена даты сбрасывает sent_at → новое напоминание. Beat-задача
+  `apps/jobs/tasks.py` (`send_due_service_reminders` чистая логика + `send_service_reminders`
+  по всем схемам, зеркало booking/stays); расписание в CELERY_BEAT_SCHEDULE (раз в сутки).
+  Письмо `job_service_reminder` (расширен `enqueue_job_email`, дедуп включает дату). Тесты:
+  окно/идемпотентность/прошедшее/без e-mail/перезарядка + кабинет (70 jobs). Без нового JS.

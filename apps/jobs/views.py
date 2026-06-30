@@ -234,6 +234,11 @@ def _save_lines(request, job):
     services.set_lines(job, lines, vat_rate=vat_rate, small_business=request.tenant.small_business)
     job.valid_until = _parse_date(request.POST.get("valid_until"))
     job.vehicle = request.POST.get("vehicle", job.vehicle).strip()[:120]  # A9 Werkstatt
+    # A9: следующий TÜV/Service. Смена даты «перезаряжает» напоминание (sent_at → null).
+    new_due = _parse_date(request.POST.get("service_due_date"))
+    if new_due != job.service_due_date:
+        job.service_due_date = new_due
+        job.service_reminder_sent_at = None
     # A7c: Anzahlung (€ → cents). 0 / пусто = без депозита.
     try:
         job.deposit_cents = max(
@@ -242,7 +247,16 @@ def _save_lines(request, job):
         )
     except (TypeError, ValueError):
         job.deposit_cents = 0
-    job.save(update_fields=["valid_until", "deposit_cents", "vehicle", "updated_at"])
+    job.save(
+        update_fields=[
+            "valid_until",
+            "deposit_cents",
+            "vehicle",
+            "service_due_date",
+            "service_reminder_sent_at",
+            "updated_at",
+        ]
+    )
     messages.success(request, _("Quote saved."))
     return redirect("jobs:detail", pk=job.pk)
 

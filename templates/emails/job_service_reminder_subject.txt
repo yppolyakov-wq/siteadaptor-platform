@@ -1,0 +1,1 @@
+Erinnerung: TÜV / Service fällig{% if job.service_due_date %} am {{ job.service_due_date|date:"d.m.Y" }}{% endif %}

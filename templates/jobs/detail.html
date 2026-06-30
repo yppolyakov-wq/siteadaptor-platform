@@ -111,6 +111,12 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Vehicle / plate" %}</label>
       <input name="vehicle" type="text" value="{{ job.vehicle }}" placeholder="VW Golf · M-AB 1234" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
+    {% comment %}A9: следующий TÜV/Service — beat напомнит клиенту за N дней (ретеншн).{% endcomment %}
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Next TÜV / service" %}</label>
+      <input name="service_due_date" type="date" value="{{ job.service_due_date|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <p class="text-xs text-gray-400 mt-1">{% trans "We'll remind the customer by email." %}</p>
+    </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</label>
       <input name="deposit_eur" type="text" value="{{ deposit_eur }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">

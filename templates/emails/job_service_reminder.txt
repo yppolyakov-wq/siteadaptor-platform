@@ -1,0 +1,8 @@
+Hallo {{ customer.name }},
+
+eine kurze Erinnerung: {% if job.service_due_date %}Ihr nächster TÜV / Service ist am {{ job.service_due_date|date:"d.m.Y" }} fällig.{% else %}Ihr nächster TÜV / Service steht an.{% endif %}
+
+{% if job.vehicle %}Fahrzeug: {{ job.vehicle }}
+{% endif %}Vereinbaren Sie am besten gleich einen Termin — wir kümmern uns darum.
+
+Mit freundlichen Grüßen
