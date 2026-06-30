@@ -108,3 +108,29 @@ def test_completeness_marks_filled_items_done():
     assert done["banner"] and done["hours"] and done["contact"] and done["legal"]
     # offer зависит от каталога (в пустой схеме — нет)
     assert done["offer"] is False
+
+
+@pytest.mark.django_db
+def test_completeness_offer_is_archetype_aware(settings):
+    """AB4: пункт «первый товар» говорит на языке архетипа и ведёт в нужный список
+    кабинета (отель → номер/stays:units, события → событие/events:list)."""
+    from django.urls import reverse
+
+    from apps.tenants import onboarding
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+    def _offer(root):
+        t = TenantFactory.build(disabled_modules=[], site_config={"storefront_root": root})
+        return next(i for i in onboarding.completeness(t)["items"] if i["key"] == "offer")
+
+    hotel = _offer("stays")
+    assert hotel["url_name"] == "stays:units" and "room" in str(hotel["label"]).lower()
+    assert reverse(hotel["url_name"])  # резолвится в urls_tenant → нет NoReverseMatch
+
+    ev = _offer("events")
+    assert ev["url_name"] == "events:list" and reverse(ev["url_name"])
+
+    svc = _offer("booking")
+    assert svc["url_name"] == "booking:services" and reverse(svc["url_name"])
