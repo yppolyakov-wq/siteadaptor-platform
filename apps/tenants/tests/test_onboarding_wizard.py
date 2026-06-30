@@ -146,6 +146,20 @@ def test_step5_banner_saves_hero_texts():
     assert onboarding.get_state(tenant)["step"] == 6
 
 
+def test_live_save_persists_without_advancing():
+    """AB3-v2: action=live сохраняет поля шага для живого превью, но НЕ переходит дальше
+    (остаёмся на шаге, 204 без redirect)."""
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": False})
+    resp = core_views.setup_view(
+        _req("post", {"action": "live", "hero_title": "Live!", "hero_text": "Sofort"}, tenant)
+    )
+    assert resp.status_code == 204
+    tenant.refresh_from_db()
+    assert tenant.site_config["hero_title"] == "Live!"  # сохранено сразу
+    assert onboarding.get_state(tenant)["step"] == 5  # шаг не сменился
+
+
 def test_step6_shows_vertical_presets():
     tenant = TenantFactory(business_type="bakery")
     onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
@@ -286,7 +300,8 @@ def test_setup_shows_live_preview_iframe_on_content_steps(settings):
     )
     html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
     assert "Live preview" in html
-    assert '<iframe src="/"' in html  # превью витрины
+    assert "data-setup-preview" in html and 'src="/"' in html  # превью витрины
+    assert 'set("action", "live")' in html  # AB3-v2: live-save JS на контент-шаге
 
 
 def test_setup_no_preview_on_first_step(settings):

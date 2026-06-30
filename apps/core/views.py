@@ -107,6 +107,9 @@ def setup_view(request):
     step = state["step"]
 
     if request.method == "POST":
+        # AB3-v2 «живое превью»: сохранить поля текущего шага БЕЗ перехода дальше
+        # (debounced fetch при вводе/выборе) — iframe-превью сразу перечитывает витрину.
+        is_live = request.POST.get("action") == "live"
         if request.POST.get("action") == "skip":
             onboarding.advance(tenant, skip=True)
             return redirect("setup")
@@ -168,6 +171,10 @@ def setup_view(request):
             # B.3: баннер — заголовок/подзаголовок hero + опц. загрузка фото файлом.
             _save_hero(request, tenant)
         # Шаг 6 — демо/пресеты (action-кнопки выше); «Weiter» просто двигает дальше.
+        if is_live:
+            from django.http import HttpResponse
+
+            return HttpResponse(status=204)  # остаёмся на шаге; превью перечитает витрину
         onboarding.advance(tenant)
         return redirect("setup")
 
