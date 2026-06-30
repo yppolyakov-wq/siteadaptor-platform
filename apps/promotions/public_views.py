@@ -363,9 +363,14 @@ def product_detail(request, pk):
     )
     from apps.tenants import siteconfig
 
-    related_grid = siteconfig.grid_class_string(
-        siteconfig.normalize(request.tenant.site_config)["detail_related_layout"]
-    )
+    # При ?preview=1 — черновик из сессии (on-canvas правка видимости секций детальной).
+    _raw = getattr(request.tenant, "site_config", {}) or {}
+    if request.GET.get("preview") == "1" and isinstance(
+        request.session.get("site_preview_draft"), dict
+    ):
+        _raw = request.session["site_preview_draft"]
+    _cfg = siteconfig.normalize(_raw)
+    related_grid = siteconfig.grid_class_string(_cfg["detail_related_layout"])
     from apps.catalog import reviews as product_reviews
 
     return render(
@@ -381,6 +386,8 @@ def product_detail(request, pk):
             "reviews": list(product_reviews.published_for(product)),
             "review_summary": product_reviews.summary(product),
             "review_form_token": uuid.uuid4().hex,
+            # Скрытые опц. секции детальной товара (билдер: group=catalog_detail).
+            "product_detail_hidden": siteconfig.product_detail_hidden(_cfg),
         },
     )
 

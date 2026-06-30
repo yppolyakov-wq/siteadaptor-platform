@@ -748,6 +748,54 @@ def test_home_builder_saves_event_detail_order():
     assert order.index("faq") < order.index("for_whom")
 
 
+def test_home_builder_renders_product_detail_inspector():
+    """Редактор видимости опц. секций детальной товара (group=catalog_detail)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbpd", name="HBPD", enabled_modules=["catalog"]
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-page-key="product_detail"' in body  # клик-цель инспектора детальной товара
+    assert 'name="pd_visible_reviews"' in body and 'name="pd_visible_related"' in body
+    assert 'name="pd_present"' in body  # presence-guard
+
+
+def test_home_builder_saves_product_detail_hidden():
+    """Снятые галочки секций детальной товара → попадают в hidden (presence-guard)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbps", name="HBPS", enabled_modules=["catalog"]
+    )
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "pd_present": "1",
+        "pd_visible_description": "on",
+        "pd_visible_info": "on",
+        # reviews/related не присланы → скрыты
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    hidden = siteconfig.product_detail_hidden(siteconfig.normalize(tenant.site_config))
+    assert hidden == {"reviews", "related"}
+
+
+def test_home_builder_save_without_pd_inspector_keeps_product_detail():
+    """Presence-guard: POST без pd_present не трогает product_detail (не скрывает всё)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbpk",
+        name="HBPK",
+        enabled_modules=["catalog"],
+        site_config={"product_detail": {"hidden": ["reviews"]}},
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"order_hero": "1", "enabled_hero": "on"}, tenant)
+    )
+    hidden = siteconfig.product_detail_hidden(siteconfig.normalize(tenant.site_config))
+    assert hidden == {"reviews"}  # сохранено, не сброшено
+
+
 def test_home_builder_save_without_inspector_keeps_event_detail():
     """SE-2b-2 presence-guard: POST без ed_-полей не скрывает все секции детальной."""
     tenant = TenantFactory(

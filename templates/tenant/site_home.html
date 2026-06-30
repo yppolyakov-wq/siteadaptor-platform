@@ -434,6 +434,24 @@
             </ul>
           </div>
           {% endif %}
+          {% comment %}Опц. секции детальной ТОВАРА (показ/скрытие). Клик по детальной товара
+             (?preview=1) переносит инспектор сюда; правки — в черновик/Save (live-preview).{% endcomment %}
+          {% if has_catalog %}
+          <div class="page-block" data-page-key="product_detail">
+            <span class="text-sm font-medium block mb-2">{% trans "Product page: sections" %}</span>
+            <input type="hidden" name="pd_present" value="1">
+            <ul class="space-y-1">
+              {% for s in product_sections %}
+              <li class="flex items-center gap-2 text-sm">
+                <span class="flex-1">{{ s.label }}</span>
+                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
+                  <input type="checkbox" name="pd_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
+                </label>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
         </div>
       </fieldset>
       {% endif %}
@@ -1349,6 +1367,15 @@
       });
       payload.event_detail = { order: edOrder, hidden: edHidden };
     }
+    // Видимость опц. секций детальной товара → в черновик (превью товара ?preview=1).
+    var pdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='pd_visible_']"));
+    if (pdInputs.length) {
+      var pdHidden = [];
+      pdInputs.forEach(function (inp) {
+        if (!inp.checked) pdHidden.push(inp.name.slice(11));  // "pd_visible_".length === 11
+      });
+      payload.product_detail = { hidden: pdHidden };
+    }
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [
       "cta_title", "cta_text", "cta_button_label", "cta_button_url",
@@ -1599,7 +1626,7 @@
   // лендинга в панели показываем ТОЛЬКО блоки этой страницы — на главной блоки главной,
   // на лендинге/детали — пер-страничные контролы; чужие группы скрываем (значения полей
   // остаются в форме → сохранение не теряет конфиг других страниц).
-  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail" };
+  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail", catalog_detail: "product_detail" };
   function applyPageScope(group) {
     var isHome = !group || group === "home";
     document.querySelectorAll('[data-scope="home"]').forEach(function (el) {

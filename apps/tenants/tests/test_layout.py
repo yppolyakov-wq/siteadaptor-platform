@@ -187,6 +187,17 @@ def test_event_detail_order_default_and_overrides():
     assert siteconfig.event_detail_order(bad) == full
 
 
+def test_product_detail_hidden_normalize_and_helper():
+    # видимость опц. секций детальной товара (только известные ключи).
+    assert siteconfig.product_detail_hidden({}) == set()  # дефолт — ничего не скрыто
+    cfg = siteconfig.normalize({"product_detail": {"hidden": ["reviews", "related", "zzz"]}})
+    assert siteconfig.product_detail_hidden(cfg) == {"reviews", "related"}  # мусор отброшен
+    assert cfg["product_detail"]["hidden"] == [
+        "related",
+        "reviews",
+    ]  # нормализовано (sorted, known)
+
+
 def test_section_show_all_default_and_override():
     # M20U-7: видимость ссылки «View all».
     assert siteconfig.section_show_all({"sections": []}, "products") is True  # дефолт

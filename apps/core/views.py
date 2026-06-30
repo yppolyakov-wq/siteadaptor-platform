@@ -977,6 +977,16 @@ def home_builder_view(request):
                 "order": [k for _o, k, _v in ed_rows],
                 "hidden": [k for _o, k, v in ed_rows if not v],
             }
+        # Видимость опц. секций детальной товара (group=catalog_detail). Presence-guard:
+        # пишем только если инспектор прислан (есть pd_present), иначе не трогаем.
+        if request.tenant.is_module_active("catalog") and request.POST.get("pd_present"):
+            config["product_detail"] = {
+                "hidden": [
+                    k
+                    for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
+                    if request.POST.get(f"pd_visible_{k}") != "on"
+                ]
+            }
         # SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
         # normalize_typography валидирует/клампит; пустые/0 = дефолт без регрессии.
         config["typography"] = {
@@ -1173,6 +1183,12 @@ def home_builder_view(request):
         }
         for i, k in enumerate(ed_full)
     ]
+    # Опц. секции детальной товара (показ/скрытие) для on-canvas инспектора (group=catalog_detail).
+    _pd_hidden = set(config["product_detail"]["hidden"])
+    product_sections = [
+        {"key": k, "label": _PRODUCT_SECTION_LABELS.get(k, k), "visible": k not in _pd_hidden}
+        for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
+    ]
     # SE-2c-1: живые категории каталога — для parent-select мини-формы «+ Kategorie».
     catalog_categories = []
     if request.tenant.is_module_active("catalog"):
@@ -1186,6 +1202,7 @@ def home_builder_view(request):
             "nav": "site",
             "sections": sections,
             "event_sections": event_sections,
+            "product_sections": product_sections,
             "catalog_categories": catalog_categories,
             # SE-7c: область «Меню» — стиль шапки (classic/centered/minimal) + sticky
             # (пункты меню — в полном билдере /dashboard/site/menu/).
@@ -1473,6 +1490,9 @@ def site_preview_draft(request):
     # (normalize_event_detail оставит лишь известные ключи).
     if isinstance(data.get("event_detail"), dict):
         cfg["event_detail"] = data["event_detail"]
+    # Видимость опц. секций детальной товара — в превью (normalize_product_detail чистит).
+    if isinstance(data.get("product_detail"), dict):
+        cfg["product_detail"] = data["product_detail"]
     # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):
@@ -1635,6 +1655,14 @@ _EVENT_SECTION_LABELS = {
     "testimonials": _("Testimonials"),
     "before_after": _("Before & after"),
     "certifications": _("Certifications"),
+}
+
+# Подписи опциональных секций детальной товара (билдер, group=catalog_detail).
+_PRODUCT_SECTION_LABELS = {
+    "description": _("Description"),
+    "info": _("Product info (origin/ingredients/allergens)"),
+    "reviews": _("Customer reviews"),
+    "related": _("Related products"),
 }
 
 

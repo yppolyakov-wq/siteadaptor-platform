@@ -562,6 +562,24 @@ def event_detail_order(config) -> list[str]:
     return [k for k in order if k not in hidden]
 
 
+# Опциональные секции ДЕТАЛЬНОЙ товара — владелец может скрыть через
+# config["product_detail"] = {"hidden": [...]}. Ядро (галерея/цена/в корзину) не
+# скрывается; здесь только необязательные блоки (описание/LMIV-инфо/отзывы/похожие).
+PRODUCT_DETAIL_SECTION_KEYS = ("description", "info", "reviews", "related")
+
+
+def normalize_product_detail(raw) -> dict:
+    """Привести config['product_detail'] к {hidden:[known]} (только известные ключи)."""
+    pd = raw if isinstance(raw, dict) else {}
+    hidden = [k for k in (pd.get("hidden") or []) if k in PRODUCT_DETAIL_SECTION_KEYS]
+    return {"hidden": sorted(set(hidden))}
+
+
+def product_detail_hidden(config) -> set:
+    """Множество СКРЫТЫХ опциональных секций детальной товара (для рендера/билдера)."""
+    return set(normalize_product_detail((config or {}).get("product_detail"))["hidden"])
+
+
 TEXT_FIELDS = [
     "hero_title",
     "hero_text",
@@ -1238,6 +1256,8 @@ def normalize(config) -> dict:
     )
     # M20U-4: порядок/видимость тематических секций детальной события.
     normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))
+    # Видимость опциональных секций детальной товара (описание/инфо/отзывы/похожие).
+    normalized["product_detail"] = normalize_product_detail(config.get("product_detail"))
     # SE-2d: глобальные дефолты стиля карточек («весь сайт»; наследуются сетками
     # без своего visual-override). Пустые 0/false → без регрессии для legacy.
     normalized["site_defaults"] = normalize_site_defaults(config.get("site_defaults"))
