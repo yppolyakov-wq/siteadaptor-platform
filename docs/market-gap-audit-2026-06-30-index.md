@@ -19,7 +19,10 @@
 | 5 | **A6 Event/Retreat** | `retreat`, `pranasy` | `market-gap-a6-2026-06-30.md` | ✅ готов |
 | 6 | **A7 Handwerker** | `handwerker` | `market-gap-a7-2026-06-30.md` | ✅ готов |
 | 7 | **A8 Aggregator/Portal** | — (портал) | `market-gap-a8-2026-06-30.md` | ✅ готов |
-| 8 | A9 Kfz-Werkstatt | `werkstatt` | `market-gap-a9-2026-06-30.md` | ⏳ |
+| 8 | **A9 Kfz-Werkstatt** | `werkstatt` | `market-gap-a9-2026-06-30.md` | ✅ готов |
+
+> **Серия завершена (8/8).** Сводка сквозных тем + единый бэклог A1–A9 —
+> `docs/market-gap-synthesis-2026-06-30.md`.
 
 ## Сквозные находки (накапливаются по мере прохождения)
 
@@ -63,6 +66,13 @@
   fake-review контроль (EU Omnibus/UWG), портал-only асимметрия (бизнес-страница/отзывы
   404 на главном /entdecken), JSON-LD openingHours/Review/Breadcrumb, sort/price-фасет,
   full-text autosuggest, owner-аналитика/leads, правовое портала, отдельный демо-кит (D10).
+- **A9:** паритет с шоп-страницей сети (ATU/Bosch CS) по первому контакту (Termin/
+  Festpreis/Kennzeichen-HSN-TSN/Kostenvoranschlag+депозит/AutoRepair-разметка/Teile+склад).
+  Отстаёт в авто-retention-слое: HU/AU-reminder + serviced-vehicle сущность (главный
+  рычаг), Reifeneinlagerung, Ersatzwagen/Zusatzleistungen (core.Extra не засеян),
+  repair-статус+«fertig»-письмо, vehicle-history в ЛК; + сквозные (деталь услуги,
+  E-Rechnung, верифиц. trust-бейджи, AGB). AutoRepair JSON-LD — частично (есть на /anfrage/).
+  8 CONFIRMED_MISSING / 2 PARTIAL (проверка 3 линзами по большинству).
 - **Сквозное (накапливается):** «деталь услуги» (A3+A7+A9) · отзывы/обзоры на витрине
   бизнеса, верифиц. per-item (A3/A4/A5/A6/A7/A9) · **платёжный микс PayPal/Klarna/SEPA/Bar
   + `Order.payment_method` (A1/A2+A4+A5+A6)** · SMS/WhatsApp-канал · AGB · **язык/мультиязык
