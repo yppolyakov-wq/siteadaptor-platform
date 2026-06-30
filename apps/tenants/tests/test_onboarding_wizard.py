@@ -300,3 +300,24 @@ def test_setup_no_preview_on_first_step(settings):
     )
     html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
     assert "Live preview" not in html  # на выборе типа превью не нужно
+
+
+# --- AB3: визуальные карточки архетипа на шаге 1 (визуализация при регистрации) -----
+
+
+def test_business_type_cards_cover_all_types_with_icon_and_blurb():
+    from apps.tenants.models import Tenant
+
+    cards = onboarding.business_type_cards()
+    assert {c["value"] for c in cards} == {v for v, _ in Tenant.BUSINESS_TYPES}
+    assert all(c["icon"] and c["label"] and c["blurb"] for c in cards)
+
+
+def test_setup_step1_renders_visual_archetype_cards():
+    tenant = TenantFactory(schema_name="public", slug="ob1", name="OB1")  # шаг 1 по умолчанию
+    assert onboarding.get_state(tenant)["step"] == 1
+    body = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
+    assert "🛏️" in body and "🥐" in body  # эмодзи-иконки архетипов
+    assert 'name="business_type"' in body
+    assert "Buchung nach Datum" in body  # язык задач (hotel-blurb)
+    assert "grid sm:grid-cols-2" in body  # карточная сетка, не сухой список
