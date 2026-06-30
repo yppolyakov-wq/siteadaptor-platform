@@ -117,6 +117,19 @@ def test_product_detail_renders_price_and_contacts():
     assert "Hauptstr. 1" in body  # офлайн-покупка: контакты бизнеса
 
 
+def test_product_detail_inline_edit_markers():
+    """H1.2: имя и описание товара на детальной несут data-edit-model → редактор
+    (его frame.load JS) делает их contenteditable. На публичной витрине инертны."""
+    product = ProductFactory(name={"de": "Roggenbrot"}, description={"de": "Frisch"})
+    body = public_views.product_detail(
+        _req(f"/sortiment/{product.pk}/"), pk=product.pk
+    ).content.decode()
+    assert 'data-edit-model="product"' in body
+    assert 'data-edit-field="name"' in body
+    assert 'data-edit-field="description"' in body
+    assert f'data-edit-pk="{product.pk}"' in body
+
+
 def test_product_detail_uses_shared_media_gallery():
     """M20U-4: карточка товара переиспользует общую галерею (большое+миниатюры)."""
     product = ProductFactory(

@@ -19,7 +19,7 @@
 <div id="kaufen" class="scroll-mt-24">
   {% if product.category %}<p class="text-sm text-gray-400">{{ product.category }}</p>{% endif %}
   {% if product.badge_label %}<span class="inline-block mt-1 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full">{{ product.badge_label }}</span>{% endif %}
-  <h1 class="text-2xl md:text-3xl font-bold mt-1">{{ product }}</h1>
+  <h1 class="text-2xl md:text-3xl font-bold mt-1" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="name">{{ product }}</h1>
   {% if review_summary.count %}
     <a href="#bewertungen" class="inline-flex items-center gap-1.5 mt-2 text-sm text-gray-600 hover:text-gray-900">
       <span class="text-amber-500" aria-hidden="true">★</span>
@@ -33,7 +33,7 @@
   {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>
   {% endif %}{% endwith %}{% endif %}
-  <div class="mt-4 text-gray-600 whitespace-pre-line">{{ product.description_text }}</div>
+  <div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text }}</div>
 
   {# Lebensmittel-Kennzeichnung (LMIV, R4): только при наличии данных #}
   {% if product.origin or product.ingredients or product.allergen_labels %}

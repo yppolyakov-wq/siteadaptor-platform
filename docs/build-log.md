@@ -2901,3 +2901,12 @@
   inline-`style="…"` HTML-атрибут (преждевременное закрытие) → браузер игнорил; в теге заменили `"`→`'` (в CSS
   эквивалентны). Браузер (baeckerei): products→serif = заголовок `Georgia,…serif`, и в сохранённом рендере, и в
   live-preview; JS-ошибок нет. Тесты (нормализация +C-блок, тег) в `test_layout.py`. Без миграций.
+- **2026-06-29 — H1.2 (срез 1): инлайн-правка ТОВАРА на детальной странице.** «Редактирование не только главной»:
+  на `storefront/product_detail.html` имя (`<h1>`) и описание получили `data-edit-model="product"`/`data-edit-pk`/
+  `data-edit-field` (name/description) — те же маркеры, что на карточке товара. После H1.1 (переход по ссылкам в
+  превью работает) редактор открывает детальную в iframe, его `frame.load`-JS делает эти элементы contenteditable
+  (режим «Edit on site»), blur → POST `catalog:product-inline-edit` (вайтлист уже включал name/description) →
+  `Product.<field>['de']`. На публичной витрине маркеры инертны (редакторный JS не грузится). Браузер (baeckerei):
+  переход на `/sortiment/<pk>/` в превью, имя contenteditable, правка → в БД `name.de` обновлён, JS-ошибок нет.
+  Тест `test_product_detail_inline_edit_markers`. Без миграций. Осталось H1.2: страница категории (часть уже есть
+  через data-cat-edit), текстовые страницы, контент-настройки секций. Часть этапа «архетипы как сущности».
