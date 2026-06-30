@@ -435,6 +435,13 @@ def cart_view(request):
         ctx["delivery_min_eur"] = f"{getattr(tenant, 'delivery_min_cents', 0) / 100:.2f}"
         ctx["delivery_min_cents"] = getattr(tenant, "delivery_min_cents", 0)
         ctx["delivery_area"] = getattr(tenant, "delivery_area", "")
+    # Заголовок/примечание корзины — правятся инлайн на канве (data-edit → site_config).
+    from apps.tenants import siteconfig
+
+    _cfg = siteconfig.normalize(getattr(tenant, "site_config", {}) or {})
+    ctx["cart_title"] = _cfg.get("cart_title", "")
+    ctx["cart_note"] = _cfg.get("cart_note", "")
+    ctx["is_preview"] = request.GET.get("preview") == "1"
     return render(request, "storefront/cart.html", ctx)
 
 

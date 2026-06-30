@@ -4,9 +4,10 @@
 
 {% block content %}
 <div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl md:text-3xl font-bold">{% trans "Your order" %}</h1>
+  <h1 class="text-2xl md:text-3xl font-bold"><span data-edit="cart_title">{% if cart_title %}{{ cart_title }}{% else %}{% trans "Your order" %}{% endif %}</span></h1>
   <a href="{% url 'storefront-products' %}" class="text-sm font-medium" style="color: var(--accent);">+ {% trans "Add more" %}</a>
 </div>
+{% if cart_note or is_preview %}<p class="-mt-2 mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="cart_note">{{ cart_note }}</p>{% endif %}
 
 {% if storefront_table %}
   <div class="mb-4 rounded-lg bg-amber-50 text-amber-900 px-4 py-2 text-sm font-medium">🪑 {% trans "Order for table" %} {{ storefront_table }}</div>

@@ -125,6 +125,14 @@ def test_cart_add_view_and_checkout_flow():
     assert order.reference_code in body
 
 
+def test_cart_renders_editable_title_and_note():
+    """Заголовок и примечание корзины правятся инлайн (data-edit); кастомные тексты видны."""
+    tenant = TenantFactory.build(site_config={"cart_title": "Mein Korb", "cart_note": "Frisch!"})
+    body = public_views.cart_view(_req(tenant=tenant, session={"cart": {}})).content.decode()
+    assert 'data-edit="cart_title"' in body and 'data-edit="cart_note"' in body
+    assert "Mein Korb" in body and "Frisch!" in body
+
+
 def test_checkout_honeypot_and_empty_cart():
     tenant = TenantFactory.build()
     request = _req("post", "/warenkorb/bestellen/", {"name": "Bot", "website": "spam"}, tenant)
