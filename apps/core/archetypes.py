@@ -129,7 +129,15 @@ def example_detail_pages(tenant) -> list[dict]:
         if obj is None:
             continue
         try:
-            pages.append({"label": label, "url": reverse(url_name, args=[obj.pk])})
+            # Part D: group = «<модуль>_detail» — билдер по ней показывает на детали
+            # только блоки этой страницы (порядок секций детали и т.п.).
+            pages.append(
+                {
+                    "label": label,
+                    "url": reverse(url_name, args=[obj.pk]),
+                    "group": f"{module_key}_detail",
+                }
+            )
         except NoReverseMatch:
             continue
     return pages

@@ -1049,10 +1049,12 @@ def home_builder_view(request):
     # активных архетипов). URL резолвим тут (tenant urlconf); недоступный — пропускаем.
     from django.urls import NoReverseMatch, reverse
 
-    preview_pages = [{"label": _("Homepage"), "url": "/"}]
+    # Part D: каждый пункт несёт «группу вывода» (home / лендинг архетипа / деталь /
+    # текстовая) — билдер по ней показывает в панели ТОЛЬКО блоки этой страницы.
+    preview_pages = [{"label": _("Homepage"), "url": "/", "group": "home"}]
     for a in modules.storefront_archetypes(request.tenant):
         try:
-            preview_pages.append({"label": a.label, "url": reverse(a.url_name)})
+            preview_pages.append({"label": a.label, "url": reverse(a.url_name), "group": a.key})
         except NoReverseMatch:
             continue
     # H0/H1: страницы-ДЕТАЛИ активных архетипов (товар/номер/событие — первый пример) —
@@ -1067,7 +1069,7 @@ def home_builder_view(request):
         ("storefront-withdrawal", _("Withdrawal")),
     ):
         try:
-            preview_pages.append({"label": label, "url": reverse(url_name)})
+            preview_pages.append({"label": label, "url": reverse(url_name), "group": "text"})
         except NoReverseMatch:
             continue
     # Фикс-секции и C-блоки идут в одном `config["sections"]`; index = глобальный

@@ -216,7 +216,7 @@
         </div>
       </div>
 
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
         <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
         {% comment %}SE-9g: в Простом режиме при выбранной версии 📱/▭ показываем настройки этой версии
@@ -374,9 +374,10 @@
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
          переносит контрол в попап (data-page-key). Раскладка → черновик/Save. {% endcomment %}
       {% if has_catalog or has_events or has_stays %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="landing">
         <legend class="font-semibold mb-1">{% trans "Landing pages" %}</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans "Switch the preview to a page and click its grid to edit the layout here." %}</p>
+        <p class="bld-scope-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-3"></p>
         <div class="space-y-3">
           {% if has_catalog %}
           <div class="page-block flex items-center gap-3" data-page-key="catalog">
@@ -438,7 +439,7 @@
       {% endif %}
 
       {% if archetype_specs %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home">
         <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
         {% if not archetypes_enabled %}
           <p class="text-xs text-amber-600 mb-3">{% trans 'Tip: enable the "Our offerings" block above to show these cards on your homepage.' %}</p>
@@ -466,7 +467,7 @@
 
       {% comment %}M20d: контент-секции (CTA/Testimonials/How it works/Team/Trust/FAQ) —
          тот же общий партиал, что и на «Site». Каждая видна, когда её блок включён выше.{% endcomment %}
-      <details class="bg-white rounded-2xl shadow-sm group">
+      <details class="bg-white rounded-2xl shadow-sm group" data-scope="home">
         <summary class="flex items-center justify-between cursor-pointer p-5 list-none">
           <span><span class="font-semibold">📦 {% trans "Content sections" %}</span>
             <span class="block text-xs text-gray-400 mt-0.5">{% trans "Fill the text for each block — it shows when the block is enabled above." %}</span></span>
@@ -832,7 +833,7 @@
         {% comment %}SE-2a-1: переключатель страницы превью.{% endcomment %}
         {% if preview_pages|length > 1 %}
           <select id="home-prev-page" class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-600 bg-white" aria-label="{% trans 'Preview page' %}" title="{% trans 'Preview page' %}">
-            {% for p in preview_pages %}<option value="{{ p.url }}">{{ p.label }}</option>{% endfor %}
+            {% for p in preview_pages %}<option value="{{ p.url }}" data-group="{{ p.group }}">{{ p.label }}</option>{% endfor %}
           </select>
         {% endif %}
         {% comment %}SE-9f: версия сайта по устройству (Desktop/Tablet/Mobile) — рамка телефона/планшета,
@@ -1593,11 +1594,56 @@
 
   // SE-2a-1: переключатель страницы превью — грузит выбранный URL с черновиком.
   var pageSel = document.getElementById("home-prev-page");
+
+  // Part D: «блоки только своей группы вывода». При настройке детальной/категории/
+  // лендинга в панели показываем ТОЛЬКО блоки этой страницы — на главной блоки главной,
+  // на лендинге/детали — пер-страничные контролы; чужие группы скрываем (значения полей
+  // остаются в форме → сохранение не теряет конфиг других страниц).
+  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail" };
+  function applyPageScope(group) {
+    var isHome = !group || group === "home";
+    document.querySelectorAll('[data-scope="home"]').forEach(function (el) {
+      el.classList.toggle("hidden", !isHome);
+    });
+    var landing = document.querySelector('[data-scope="landing"]');
+    if (!landing) return;
+    var pageKey = SCOPE_PAGE_KEY[group];
+    var shown = 0;
+    landing.querySelectorAll(".page-block").forEach(function (row) {
+      var match = pageKey && row.getAttribute("data-page-key") === pageKey;
+      row.classList.toggle("hidden", isHome ? false : !match);
+      if (match) shown++;
+    });
+    // Лендинг-набор виден на не-главной; на главной — прячем (там блоки главной).
+    landing.classList.toggle("hidden", isHome);
+    var hint = landing.querySelector(".bld-scope-hint");
+    if (hint) {
+      if (!isHome && pageKey && shown) {
+        hint.textContent = "{% trans 'Showing only blocks for the current page.' %}";
+        hint.classList.remove("hidden");
+      } else if (!isHome && !shown) {
+        // Деталь/текстовая без пер-страничных блоков — правится прямо на канве.
+        hint.textContent = "{% trans 'This page is edited directly on the canvas — click a heading, price or photo.' %}";
+        hint.classList.remove("hidden");
+        landing.classList.remove("hidden");
+      } else {
+        hint.classList.add("hidden");
+      }
+    }
+  }
+  function currentScopeGroup() {
+    if (!pageSel) return "home";
+    var opt = pageSel.options[pageSel.selectedIndex];
+    return (opt && opt.getAttribute("data-group")) || "home";
+  }
+
   if (pageSel) {
     pageSel.addEventListener("change", function () {
       previewPath = pageSel.value || "/";
+      applyPageScope(currentScopeGroup());
       frame.contentWindow.location.replace(previewUrl());
     });
+    applyPageScope(currentScopeGroup());  // стартовая синхронизация (главная)
   }
 
   // M20 WYSIWYG: тексты [data-edit] в превью редактируются прямо в билдере

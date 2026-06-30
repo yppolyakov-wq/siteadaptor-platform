@@ -107,6 +107,40 @@ def test_editor_preview_switcher_lists_product_detail():
     assert reverse("storefront-product", args=[p.pk]) in body
 
 
+def test_example_detail_pages_carry_group():
+    """Part D: пункт-деталь несёт group «<модуль>_detail» — билдер по ней скоупит блоки."""
+    from apps.catalog.models import Product
+
+    tenant = _tenant(slug="ppg", name="PPG")
+    Product.objects.create(name={"de": "Brot"}, base_price="2.00", is_active=True)
+    pages = archetypes.example_detail_pages(tenant)
+    assert pages and all(p.get("group", "").endswith("_detail") for p in pages)
+    assert "catalog_detail" in {p["group"] for p in pages}
+
+
+def test_editor_preview_switcher_tags_page_groups():
+    """Part D: опции переключателя превью размечены data-group + панели — data-scope."""
+    from apps.catalog.models import Product
+
+    tenant = _tenant(
+        slug="ppg2",
+        name="PPG2",
+        business_type="bakery",
+        disabled_modules=["stays", "events", "booking", "jobs", "orders", "loyalty"],
+    )
+    Product.objects.create(name={"de": "Brot"}, base_price="2.00", is_active=True)
+    req = RequestFactory().get("/dashboard/site/home/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    body = views.home_builder_view(req).content.decode()
+    assert 'data-group="home"' in body
+    assert 'data-group="catalog_detail"' in body
+    assert 'data-group="text"' in body  # текстовые/легал страницы
+    assert 'data-scope="home"' in body and 'data-scope="landing"' in body
+
+
 def test_editor_preview_switcher_lists_simple_pages():
     """H1 «простые страницы»: универсальные инфо/правовые страницы — в переключателе превью."""
     tenant = _tenant(slug="pp7", name="PP7", business_type="bakery")
