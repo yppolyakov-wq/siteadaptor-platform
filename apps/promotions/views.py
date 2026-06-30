@@ -27,6 +27,66 @@ from .state_machine import PromotionSM
 PROMO_STATUSES = ["draft", "scheduled", "active", "paused", "ended", "archived"]
 RESERVATION_STATUSES = ["pending", "confirmed", "fulfilled", "cancelled", "expired"]
 
+_PROMOTION_INLINE_FIELDS = {"title"}
+
+
+@login_required
+@require_POST
+def promotion_inline_edit(request):
+    """Инлайн-правка АКЦИИ прямо на канве витрины (?preview=1) в редакторе.
+
+    JSON {pk, field, value}. field == "title" → Promotion.title['de'] (пустым не
+    сохраняем). field == "price_override" → новая цена акции (Decimal ≥0), затем сброс
+    кэша витрины (новая цена сразу на публичной). Только владелец (login_required →
+    tenant-скоуп). Строгий вайтлист (i18n-заголовок + price_override). 204/400.
+    """
+    import json
+    from decimal import Decimal, InvalidOperation
+
+    from django.http import HttpResponseBadRequest
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest()
+    pk = data.get("pk")
+    field = data.get("field")
+    value = data.get("value", "")
+    if not pk or field not in (_PROMOTION_INLINE_FIELDS | {"price_override"}):
+        return HttpResponseBadRequest()
+    try:
+        promo = Promotion.objects.get(pk=pk)
+    except (Promotion.DoesNotExist, ValidationError, ValueError):
+        return HttpResponseBadRequest()
+
+    if field == "price_override":
+        raw = str(value).strip().replace(",", ".")
+        try:
+            price = Decimal(raw)
+        except (InvalidOperation, ValueError):
+            return HttpResponseBadRequest()
+        if price < 0 or price > Decimal("1000000"):
+            return HttpResponseBadRequest()
+        promo.price_override = price.quantize(Decimal("0.01"))
+        promo.save(update_fields=["price_override", "updated_at"])
+        schema = getattr(getattr(request, "tenant", None), "schema_name", None)
+        if schema:
+            from apps.core.pagecache import bump_storefront_cache
+
+            bump_storefront_cache(schema)
+        return HttpResponse(status=204)
+
+    # title → i18n['de'] (пустым не сохраняем)
+    value = value.strip() if isinstance(value, str) else ""
+    if not value:
+        return HttpResponseBadRequest()
+    i18n = dict(promo.title or {})
+    i18n["de"] = value
+    promo.title = i18n
+    promo.save(update_fields=["title", "updated_at"])
+    return HttpResponse(status=204)
+
+
 # подписи для кнопок переходов акции
 _PROMO_ACTION_LABELS = {
     "scheduled": "Schedule",

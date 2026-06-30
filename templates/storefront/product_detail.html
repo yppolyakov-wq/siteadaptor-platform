@@ -28,7 +28,7 @@
     </a>
   {% endif %}
   <div class="mt-3 text-2xl font-bold">
-    {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}{{ product.base_price }}{% endif %} {{ product.currency|cursym }}
+    {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}
   </div>
   {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>

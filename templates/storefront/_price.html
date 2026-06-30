@@ -6,9 +6,9 @@
     {% if promo.strikethrough_old_price %}
       <span class="text-gray-400 line-through text-sm">{{ promo.old_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
     {% endif %}
-    <span class="text-xl font-extrabold text-red-600">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
+    <span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
   </div>
 {% elif promo.new_price is not None %}
-  <span class="text-xl font-extrabold">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
+  <span class="text-xl font-extrabold" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
 {% endif %}
 {% endspaceless %}

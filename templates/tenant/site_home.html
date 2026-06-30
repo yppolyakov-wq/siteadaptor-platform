@@ -1605,7 +1605,7 @@
   var editUrl = "{% url 'site-inline-edit' %}";
   var catEditUrl = "{% url 'catalog:category-inline-edit' %}";
   // Фаза 1 (inline-content): карта модель→эндпоинт инлайн-правки ТЕКСТА данных на канве.
-  var MODEL_EDIT_URLS = { product: "{% url 'catalog:product-inline-edit' %}", event: "{% url 'events:event-inline-edit' %}", stay: "{% url 'stays:stay-inline-edit' %}" };
+  var MODEL_EDIT_URLS = { product: "{% url 'catalog:product-inline-edit' %}", event: "{% url 'events:event-inline-edit' %}", stay: "{% url 'stays:stay-inline-edit' %}", promotion: "{% url 'promotions:promotion-inline-edit' %}" };
   var PHOTO_EDIT_URL = "{% url 'catalog:product-photo-edit' %}";  // M4: замена фото товара (multipart)
   function markSaved() {
     if (status) {
@@ -1709,10 +1709,13 @@
           if (done) return; done = true;
           var v = (inp.value || "").trim().replace(",", ".");
           if (!saveIt || v === "" || isNaN(parseFloat(v)) || parseFloat(v) < 0) { el.innerHTML = orig; return; }
-          fetch(MODEL_EDIT_URLS.product, {
+          // Модель/поле цены — из атрибутов (товар base_price по умолчанию; акция → promotion/price_override).
+          var pModel = el.getAttribute("data-edit-model") || "product";
+          var pField = el.getAttribute("data-price-field") || "base_price";
+          fetch(MODEL_EDIT_URLS[pModel] || MODEL_EDIT_URLS.product, {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
-            body: JSON.stringify({ pk: pk, field: "base_price", value: v }),
+            body: JSON.stringify({ pk: pk, field: pField, value: v }),
           }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
             .catch(function () { el.innerHTML = orig; });
         }
