@@ -8,8 +8,18 @@
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'info' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
+{% endif %}
+
+{% comment %}A7: зона обслуживания (Einzugsgebiet) — баннер с текстовой пометкой и списком
+PLZ; показываем только если бизнес её задал (Handwerker/Werkstatt/мобильные услуги).{% endcomment %}
+{% if has_service_area %}
+<div class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm max-w-xl">
+  <p class="font-medium text-indigo-900">📍 {% trans "Our service area" %}</p>
+  {% if service_area_note %}<p class="mt-0.5 text-indigo-800">{{ service_area_note }}</p>{% endif %}
+  {% if service_area_plz_list %}<p class="mt-1 text-indigo-700">{% trans "Postal codes" %}: {{ service_area_plz_list|join:", " }}</p>{% endif %}
+</div>
 {% endif %}
 
 <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
@@ -23,9 +33,18 @@
     <label class="block text-sm font-medium mb-1" for="id_desc">{% trans "Details (optional)" %}</label>
     <textarea id="id_desc" name="description" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   </div>
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_addr">{% trans "Job address (optional)" %}</label>
-    <input id="id_addr" name="site_address" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <div class="flex gap-3">
+    <div class="flex-1">
+      <label class="block text-sm font-medium mb-1" for="id_addr">{% trans "Job address (optional)" %}</label>
+      <input id="id_addr" name="site_address" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    {% comment %}A7: PLZ объекта — для Einzugsgebiet-чека (показываем поле, когда зона задана).{% endcomment %}
+    {% if has_service_area %}
+    <div class="w-28">
+      <label class="block text-sm font-medium mb-1" for="id_plz">{% trans "Postal code" %}</label>
+      <input id="id_plz" name="site_plz" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="40724" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    {% endif %}
   </div>
   {% if jobs_vehicle %}
   {% comment %}A9 Kfz-Werkstatt: структурные данные авто — модель + Kennzeichen + HSN/TSN

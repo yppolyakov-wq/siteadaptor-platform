@@ -41,6 +41,7 @@ class Job(TimestampedModel):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     site_address = models.TextField(blank=True)  # адрес работ (может ≠ адрес клиента)
+    site_plz = models.CharField(max_length=10, blank=True)  # A7: PLZ объекта (Einzugsgebiet-чек)
     # A9 Werkstatt: автомобиль клиента — свободный текст марки/модели («VW Golf 1.6 TDI»).
     vehicle = models.CharField(max_length=120, blank=True)
     # A9 Werkstatt: структурные данные авто — Kennzeichen + HSN/TSN (Schlüsselnummern

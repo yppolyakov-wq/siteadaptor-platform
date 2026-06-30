@@ -3056,3 +3056,14 @@
   open_until/opens_next; вызван в `city_listing` после attach_ratings. Без миграции. Тест
   `test_city_listing_card_shows_open_status_badge`; 160 aggregator зелёные. `_cards.html`
   шарится (портал/поиск/индекс) — бейдж рендерится только где атрибуты навешаны (city).
+- **2026-06-30 — A7: PLZ/Einzugsgebiet (зона обслуживания) — полноценно.** Handwerker/
+  Werkstatt/мобильные услуги задают зону обслуживания и показывают её клиенту.
+  **Tenant** (миграция tenants/0019): `service_area_plz` (PLZ через запятую) +
+  `service_area_note` (текст), property `service_area_plz_list` (парс → 5-значные DE-PLZ,
+  uniq), `has_service_area`, `serves_plz()` (пустой список = обслуживает везде).
+  **Job** (миграция jobs/0009): `site_plz` (PLZ объекта). Кабинет: оба поля в
+  `BusinessSettingsForm` с help-текстами. Витрина Anfrage: баннер «📍 Einzugsgebiet …»
+  (note + список PLZ) + поле PLZ — показываем только если зона задана; на сабмит мягкий
+  чек (заявку принимаем всегда, но при PLZ вне зоны — info-сообщение, не блок). Демо:
+  handwerker-кит сеет Kölner PLZ + текст. Тесты: парс/serves_plz/баннер/скрытие/чек
+  (23 jobs + 14 tenants). Без нового JS.

@@ -173,6 +173,10 @@ class DemoKit:
     # A9: режим Kfz-Werkstatt — Anfrage запрашивает структурные данные авто
     # (Kennzeichen/HSN/TSN) + AutoRepair-разметка. Пишется в site_config.jobs_vehicle.
     jobs_vehicle: bool = False
+    # A7: зона обслуживания (Handwerker/Werkstatt) — PLZ через запятую + текст. Пусто =
+    # не показываем Einzugsgebiet. Пишется в Tenant.service_area_plz/service_area_note.
+    service_area_plz: str = ""
+    service_area_note: str = ""
     # RT4: записи блога — (title, excerpt, body, cover_kw). Seed создаёт опубликованные
     # BlogPost (events app). Пусто = блога нет.
     blog_posts: list = field(default_factory=list)
@@ -2370,6 +2374,9 @@ HANDWERKER = DemoKit(
     address="Lindenweg 8, 50667 Köln",
     opening_hours_text="Mo–Fr 7:00–17:00 · 24h-Notdienst",
     opening_hours={d: ("07:00", "17:00") for d in range(5)},
+    # A7: зона обслуживания — несколько Kölner PLZ + текстовая пометка.
+    service_area_plz="50667, 50670, 50674, 50676, 50823, 51063",
+    service_area_note="Köln und Umgebung (Innenstadt, Nippes, Ehrenfeld, Mülheim)",
     gallery_kw=[
         "painter,wall",
         "electrician,work",
@@ -3595,6 +3602,10 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.opening_hours:
         tenant.opening_hours_structured = {str(d): list(r) for d, r in kit.opening_hours.items()}
         update_fields.append("opening_hours_structured")
+    if kit.service_area_plz or kit.service_area_note:  # A7: зона обслуживания
+        tenant.service_area_plz = kit.service_area_plz
+        tenant.service_area_note = kit.service_area_note
+        update_fields += ["service_area_plz", "service_area_note"]
     tenant.save(update_fields=update_fields)
     return True
 

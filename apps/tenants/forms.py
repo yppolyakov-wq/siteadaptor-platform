@@ -62,6 +62,8 @@ class BusinessSettingsForm(forms.ModelForm):
             "website_url",
             "opening_hours",
             "map_url",
+            "service_area_plz",
+            "service_area_note",
             "auto_redeem_on_scan",
             "vat_id",
             "tax_number",
@@ -83,6 +85,13 @@ class BusinessSettingsForm(forms.ModelForm):
             "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
         }
         help_texts = {
+            "service_area_plz": _(
+                "Postal codes you serve, comma-separated (e.g. 40724, 42697). "
+                "Leave blank if you serve everyone."
+            ),
+            "service_area_note": _(
+                "Free text shown to customers (e.g. “Hilden, Solingen and surroundings”)."
+            ),
             "auto_redeem_on_scan": _(
                 "When on, opening a redemption QR as logged-in staff redeems immediately."
             ),

@@ -43,6 +43,7 @@ def anfrage(request):
         if not (title and name):
             messages.error(request, _("Please tell us your name and what you need."))
             return redirect("storefront-anfrage")
+        site_plz = request.POST.get("site_plz", "").strip()
         job = services.create_job(
             title=title,
             name=name,
@@ -50,6 +51,7 @@ def anfrage(request):
             phone=request.POST.get("phone", "").strip(),
             description=request.POST.get("description", "").strip(),
             site_address=request.POST.get("site_address", "").strip(),
+            site_plz=site_plz,  # A7: PLZ объекта (Einzugsgebiet)
             source_channel=(request.GET.get("ch") or "")[:50],
             vehicle=request.POST.get("vehicle", "").strip(),
             # A9: структурные данные авто (только если включён режим Kfz-Werkstatt).
@@ -59,6 +61,16 @@ def anfrage(request):
         )
         services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
         enqueue_job_email(job, "new")  # владельцу — новый лид
+        # A7: мягкий чек зоны — заявку принимаем всегда, но если PLZ вне списка зоны,
+        # сообщаем клиенту (управление ожиданиями), не блокируя.
+        if site_plz and not request.tenant.serves_plz(site_plz):
+            messages.info(
+                request,
+                _(
+                    "Your postal code is outside our usual service area — "
+                    "we'll still review your request and get back to you."
+                ),
+            )
         messages.success(
             request, _("Thank you! Your request has arrived — we'll get back to you soon.")
         )
@@ -83,6 +95,10 @@ def anfrage(request):
             "betreff": (request.GET.get("betreff") or "")[:200],
             "jobs_vehicle": jobs_vehicle,  # A9: структурные поля авто
             "autorepair_ld": autorepair_ld,  # A9: schema.org AutoRepair (SEO)
+            # A7: зона обслуживания — баннер + поле PLZ (показываем, если задана).
+            "has_service_area": request.tenant.has_service_area,
+            "service_area_note": request.tenant.service_area_note,
+            "service_area_plz_list": request.tenant.service_area_plz_list,
         },
     )
 

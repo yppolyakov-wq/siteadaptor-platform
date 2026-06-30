@@ -95,6 +95,12 @@ class Tenant(TenantMixin):
     # для live-статуса «Jetzt geöffnet» и JSON-LD openingHoursSpecification.
     opening_hours_structured = models.JSONField(default=dict, blank=True)
     map_url = models.URLField(blank=True)  # ссылка на карту (Google/OSM)
+    # A7: зона обслуживания (Handwerker/Werkstatt/мобильные услуги). `service_area_plz`
+    # — список PLZ через запятую/пробел («40724, 42697»), `service_area_note` — текст
+    # («Hilden, Solingen und Umgebung»). Витрина показывает зону на Anfrage и мягко
+    # предупреждает клиента, если его PLZ вне списка. Пусто → блок не показываем.
+    service_area_plz = models.CharField(max_length=500, blank=True)
+    service_area_note = models.CharField(max_length=200, blank=True)
 
     # Если включено — залогиненный сотрудник, открыв QR-ссылку погашения,
     # гасит бронь/ваучер сразу (без кнопки подтверждения).
@@ -194,6 +200,31 @@ class Tenant(TenantMixin):
                     }
                 )
         return out
+
+    @property
+    def service_area_plz_list(self) -> list[str]:
+        """A7: список PLZ зоны обслуживания (5-значные DE-PLZ, uniq, порядок ввода)."""
+        import re
+
+        seen, out = set(), []
+        for token in re.split(r"[\s,;]+", self.service_area_plz or ""):
+            t = token.strip()
+            if re.fullmatch(r"\d{5}", t) and t not in seen:
+                seen.add(t)
+                out.append(t)
+        return out
+
+    @property
+    def has_service_area(self) -> bool:
+        """A7: задана ли зона обслуживания (список PLZ или текстовая пометка)."""
+        return bool(self.service_area_plz_list or (self.service_area_note or "").strip())
+
+    def serves_plz(self, plz: str) -> bool:
+        """A7: обслуживает ли бизнес данную PLZ. Если список PLZ пуст — считаем, что
+        ограничения нет (обслуживает везде); иначе — точное вхождение."""
+        plz = (plz or "").strip()
+        allowed = self.service_area_plz_list
+        return True if not allowed else plz in allowed
 
     def open_status(self) -> dict | None:
         """Live-статус «открыто сейчас» из структурных часов (P1b). None — не заданы."""

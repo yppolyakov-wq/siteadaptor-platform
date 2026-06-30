@@ -87,6 +87,57 @@ def test_anfrage_hides_vehicle_fields_by_default():
     assert "AutoRepair" not in body
 
 
+# --- A7: Einzugsgebiet / зона обслуживания ----------------------------------------
+def test_service_area_plz_list_parses_and_dedups():
+    t = TenantFactory.build(service_area_plz="40724, 42697 40724;50667")
+    assert t.service_area_plz_list == ["40724", "42697", "50667"]  # uniq, 5 цифр, порядок
+    assert t.has_service_area
+
+
+def test_serves_plz_logic():
+    t = TenantFactory.build(service_area_plz="40724, 42697")
+    assert t.serves_plz("40724") and not t.serves_plz("99999")
+    assert TenantFactory.build(service_area_plz="").serves_plz("99999")  # без списка — везде
+
+
+def test_anfrage_shows_service_area_banner_and_plz_field():
+    tenant = _tenant(service_area_plz="40724, 42697", service_area_note="Hilden und Umgebung")
+    body = public_views.anfrage(_req(tenant=tenant)).content.decode()
+    assert "Hilden und Umgebung" in body and "40724" in body
+    assert 'name="site_plz"' in body  # поле PLZ показано
+
+
+def test_anfrage_hides_service_area_when_unset():
+    body = public_views.anfrage(_req()).content.decode()  # зона не задана
+    assert 'name="site_plz"' not in body
+
+
+def test_anfrage_stores_site_plz_and_warns_when_outside_area():
+    from django.contrib.messages import get_messages
+
+    tenant = _tenant(service_area_plz="40724, 42697")
+    request = _req(
+        "post", data={"title": "Malern", "name": "X", "site_plz": "99999"}, tenant=tenant
+    )
+    public_views.anfrage(request)
+    assert Job.objects.get(title="Malern").site_plz == "99999"
+    texts = [m.message for m in get_messages(request)]
+    assert any("outside our usual service area" in t for t in texts)
+
+
+def test_anfrage_no_warning_when_plz_in_area():
+    from django.contrib.messages import get_messages
+
+    tenant = _tenant(service_area_plz="40724, 42697")
+    request = _req(
+        "post", data={"title": "Fliesen", "name": "X", "site_plz": "40724"}, tenant=tenant
+    )
+    public_views.anfrage(request)
+    assert Job.objects.get(title="Fliesen").site_plz == "40724"
+    texts = [m.message for m in get_messages(request)]
+    assert not any("outside" in t for t in texts)
+
+
 def test_anfrage_stores_structured_vehicle_data():
     tenant = _tenant(site_config={"jobs_vehicle": True})
     request = _req(

@@ -45,6 +45,7 @@ def create_job(
     phone="",
     description="",
     site_address="",
+    site_plz="",
     source_channel="",
     vehicle="",
     vehicle_plate="",
@@ -59,6 +60,7 @@ def create_job(
         title=(title or "").strip()[:200] or "Anfrage",
         description=(description or "").strip()[:5000],
         site_address=(site_address or "").strip()[:2000],
+        site_plz=(site_plz or "").strip()[:10],  # A7: PLZ объекта (Einzugsgebiet)
         source_channel=(source_channel or "")[:50],
         vehicle=(vehicle or "").strip()[:120],
         # A9: структурные данные авто (Kennzeichen/HSN/TSN) — верхний регистр, обрезка.
