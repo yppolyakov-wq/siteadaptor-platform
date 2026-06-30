@@ -65,6 +65,38 @@ def localbusiness_ld(
     lat, lng = getattr(tenant, "latitude", None), getattr(tenant, "longitude", None)
     if lat is not None and lng is not None:
         data["geo"] = {"@type": "GeoCoordinates", "latitude": str(lat), "longitude": str(lng)}
+    # A8: часы работы → schema.org OpeningHoursSpecification (сильный сигнал Map Pack/AI).
+    # Ленивый импорт (core не тянет tenants на уровне модуля). Один интервал на день (v1).
+    from apps.tenants import openinghours
+
+    _hours = openinghours.normalize(getattr(tenant, "opening_hours_structured", None))
+    if _hours:
+        _days = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ]
+        data["openingHoursSpecification"] = [
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": f"https://schema.org/{_days[int(wd)]}",
+                "opens": rng[0],
+                "closes": rng[1],
+            }
+            for wd, rng in sorted(_hours.items(), key=lambda kv: int(kv[0]))
+        ]
+    # A8: лого бренда + фолбэк image (если фото не передано), официальный сайт → sameAs.
+    logo = getattr(tenant, "logo_url", "") or ""
+    if logo:
+        data["logo"] = logo
+        data.setdefault("image", logo)
+    website = getattr(tenant, "website_url", "") or ""
+    if website:
+        data["sameAs"] = [website]
     if aggregate_rating is not None:
         value, count = aggregate_rating
         if count:

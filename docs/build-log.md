@@ -3040,3 +3040,11 @@
   внешними провайдерами (Stripe live/Connect, Resend, SMS, OTA-API/метапоиск, Shopify/Woo
   импорт, Ads, Push/Wallet) с пометкой «что подключить + блокер владельца»: делаем
   «внутреннее» сначала, эти доделываем на этапе внедрения. Ссылки в CLAUDE.md §6.
+- **2026-06-30 — A8: полный LocalBusiness JSON-LD (Map Pack/AI).** `localbusiness_ld`
+  (apps/core/seo.py) расширен тремя сигналами для Google Map Pack/AI-выдачи, все из
+  существующих полей тенанта: **openingHoursSpecification** (из `opening_hours_structured`
+  через `openinghours.normalize`, schema.org dayOfWeek Mo–So), **logo** (+ фолбэк `image`,
+  если фото не передано) из `logo_url`, **sameAs** из `website_url` (связь сущностей).
+  Без новых параметров шаблона (тег `localbusiness_jsonld` уже зовёт функцию), без
+  миграции. Ленивый импорт openinghours (core не тянет tenants на уровне модуля). 5 тестов
+  (часы/лого+sameAs/приоритет переданного image/без часов). 88 SEO+jobs+stays зелёные.

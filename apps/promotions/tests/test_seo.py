@@ -67,6 +67,46 @@ def test_localbusiness_ld_skips_rating_when_zero_count():
     assert "aggregateRating" not in data
 
 
+def test_localbusiness_ld_includes_opening_hours():
+    # A8: opening_hours_structured → schema.org OpeningHoursSpecification (Map Pack/AI).
+    t = TenantFactory.build(
+        name="X",
+        business_type="bakery",
+        opening_hours_structured={"0": ["09:00", "18:00"], "5": ["08:00", "13:00"]},
+    )
+    spec = json.loads(localbusiness_ld(t, url="https://x.de/"))["openingHoursSpecification"]
+    assert {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "https://schema.org/Monday",
+        "opens": "09:00",
+        "closes": "18:00",
+    } in spec
+    assert any(s["dayOfWeek"].endswith("/Saturday") for s in spec)
+
+
+def test_localbusiness_ld_no_opening_hours_no_spec():
+    t = TenantFactory.build(name="X")
+    assert "openingHoursSpecification" not in json.loads(localbusiness_ld(t, url="https://x.de/"))
+
+
+def test_localbusiness_ld_includes_logo_and_sameas():
+    # A8: лого → logo + фолбэк image; website_url → sameAs (связь сущностей для Google).
+    t = TenantFactory.build(
+        name="X", logo_url="https://x.de/logo.png", website_url="https://shop.example.com"
+    )
+    data = json.loads(localbusiness_ld(t, url="https://x.de/"))
+    assert data["logo"] == "https://x.de/logo.png"
+    assert data["image"] == "https://x.de/logo.png"  # лого как image, если фото не передано
+    assert data["sameAs"] == ["https://shop.example.com"]
+
+
+def test_localbusiness_ld_explicit_image_beats_logo():
+    t = TenantFactory.build(name="X", logo_url="https://x.de/logo.png")
+    data = json.loads(localbusiness_ld(t, url="https://x.de/", image="https://x.de/photo.jpg"))
+    assert data["image"] == "https://x.de/photo.jpg"  # переданное фото приоритетнее лого
+    assert data["logo"] == "https://x.de/logo.png"
+
+
 # --- Offer / Product ----------------------------------------------------------
 
 
