@@ -3009,3 +3009,12 @@
   деплоит после мержа**. CategoryForm: `description_de/_en` (Textarea) ↔ `category.description`. `product_list` отдаёт
   `category_description` = выбранная `category.get_i18n("description")`; `products.html` рендерит под интро каталога
   (реюз классов). Сервер-рендер. Тесты: рендер при выборе категории/скрыт без; форма сохраняет i18n. 147 catalog. `f5cf742`.
+- **2026-06-30 — Фикс редактора на витрине: инлайн-правка АКЦИЙ (название+цена) + ЦЕНА ТОВАРА на детальной.**
+  Фидбэк «не работает редактор акций (названий/цен) и цены товара на детальной». Браузерная диагностика (baeckerei):
+  **(1)** инлайн-правки акций НЕ существовало (нет маркеров на промо-карточках) → построил `promotion_inline_edit`
+  (title→i18n['de']; price_override→Decimal+bump кэша), URL, `promotion` в `MODEL_EDIT_URLS`; маркеры в `_promo_card.html`
+  (h3 title) + `_price.html` (data-price-edit promotion/price_override). **(2)** главная цена на `product_detail.html`
+  не имела `data-price-edit` (он был лишь на карточках/похожих → клик попадал в чужой товар) → добавил маркер на
+  главную цену. **(3)** обработчик `data-price-edit` обобщён (модель/поле из атрибутов; дефолт product/base_price).
+  **Браузерно проверено end-to-end** (название акции/цена акции/цена товара → БД; контент товара уже работал). Тесты:
+  эндпоинт (title/price/empty/unknown/bad). Реюз CSS, без миграций. `eb7bf24`.
