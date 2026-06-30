@@ -103,6 +103,101 @@ def test_catalog_default_sort_from_config():
     assert body.index("BilligY") < body.index("TeuerY")
 
 
+def test_catalog_price_filter():
+    """Фасет цены: ?preis_von/preis_bis сужает по base_price (composes с keyset)."""
+    ProductFactory(name={"de": "BilligP"}, base_price="1.00")
+    ProductFactory(name={"de": "MittelP"}, base_price="5.00")
+    ProductFactory(name={"de": "TeuerP"}, base_price="9.00")
+    body = public_views.product_list(
+        _req(params={"preis_von": "4", "preis_bis": "6"})
+    ).content.decode()
+    assert "MittelP" in body
+    assert "BilligP" not in body and "TeuerP" not in body
+
+
+def test_catalog_price_filter_shown_only_with_spread():
+    """Поле диапазона цены показываем только при разбросе цен (иначе шум)."""
+    # Разброс есть → форма с полем preis_von.
+    ProductFactory(name={"de": "A"}, base_price="1.00")
+    ProductFactory(name={"de": "B"}, base_price="9.00")
+    body = public_views.product_list(_req()).content.decode()
+    assert 'name="preis_von"' in body
+
+
+def test_catalog_price_filter_hidden_without_spread():
+    """Одна цена у всех товаров → поле диапазона цены не выводится."""
+    ProductFactory(name={"de": "A"}, base_price="3.00")
+    ProductFactory(name={"de": "B"}, base_price="3.00")
+    body = public_views.product_list(_req()).content.decode()
+    assert 'name="preis_von"' not in body
+
+
+def test_catalog_badge_facet_filters_and_lists_present_only():
+    """Фасет-бейдж: фильтрует по badge и показывает только присутствующие бейджи."""
+    ProductFactory(name={"de": "NeuP"}, badge="neu")
+    ProductFactory(name={"de": "BeliebtP"}, badge="beliebt")
+    ProductFactory(name={"de": "PlainP"})
+    body = public_views.product_list(_req()).content.decode()
+    assert 'value="neu"' in body and 'value="beliebt"' in body  # присутствующие — в селекте
+    assert 'value="empfehlung"' not in body  # отсутствующий бейдж не предлагаем
+    only_neu = public_views.product_list(_req(params={"badge": "neu"})).content.decode()
+    assert "NeuP" in only_neu
+    assert "BeliebtP" not in only_neu and "PlainP" not in only_neu
+
+
+def test_catalog_in_stock_filter():
+    """«Nur verfügbare»: скрывает распроданное (stock 0), оставляет untracked/в наличии."""
+    ProductFactory(name={"de": "AusverkauftP"}, stock_quantity=0)
+    ProductFactory(name={"de": "VorraetigP"}, stock_quantity=5)
+    ProductFactory(name={"de": "UntrackedP"}, stock_quantity=None)
+    body = public_views.product_list(_req(params={"nur_verfuegbar": "1"})).content.decode()
+    assert "VorraetigP" in body and "UntrackedP" in body
+    assert "AusverkauftP" not in body
+
+
+def test_catalog_in_stock_filter_respects_variants():
+    """С вариантами наличие считается по вариантам (зеркало Product.in_stock)."""
+    from apps.catalog.models import ProductVariant
+
+    has = ProductFactory(name={"de": "HatVorratP"}, stock_quantity=0)
+    ProductVariant.objects.create(product=has, label="M", stock_quantity=3)
+    out = ProductFactory(name={"de": "VariantenLeerP"}, stock_quantity=0)
+    ProductVariant.objects.create(product=out, label="M", stock_quantity=0)
+    body = public_views.product_list(_req(params={"nur_verfuegbar": "1"})).content.decode()
+    assert "HatVorratP" in body  # есть вариант в наличии → товар показан
+    assert "VariantenLeerP" not in body  # все варианты распроданы → скрыт
+
+
+def test_catalog_stock_toggle_hidden_when_nothing_sold_out():
+    """Тумблер наличия не выводим, если ничего не распродано (untracked-каталог)."""
+    ProductFactory(name={"de": "A"}, stock_quantity=None)
+    ProductFactory(name={"de": "B"}, stock_quantity=7)
+    body = public_views.product_list(_req()).content.decode()
+    assert 'name="nur_verfuegbar"' not in body
+
+
+def test_catalog_filters_hidden_by_builder_toggle():
+    """Тумблер catalog_show_filters=False скрывает панель фасетов (и диету)."""
+    ProductFactory(name={"de": "A"}, base_price="1.00", badge="neu", stock_quantity=0)
+    ProductFactory(name={"de": "B"}, base_price="9.00")
+    req = _req()
+    req.tenant.site_config = {"catalog_show_filters": False}
+    body = public_views.product_list(req).content.decode()
+    assert 'name="preis_von"' not in body
+    assert 'name="badge"' not in body
+    assert 'name="nur_verfuegbar"' not in body
+
+
+def test_catalog_active_facet_carried_into_sort_form():
+    """Активный фасет (badge) переносится скрытым полем в форму сортировки."""
+    ProductFactory(name={"de": "NeuP"}, badge="neu")
+    ProductFactory(name={"de": "PlainP"})
+    body = public_views.product_list(
+        _req(params={"badge": "neu", "sort": "price_asc"})
+    ).content.decode()
+    assert '<input type="hidden" name="badge" value="neu">' in body
+
+
 def test_catalog_page_grid_from_config():
     """M20U-7 (per-page): сетка страницы каталога берётся из catalog_layout."""
     ProductFactory(name={"de": "Brot"})

@@ -13,7 +13,7 @@ import segno
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
-from django.db.models import F
+from django.db.models import Exists, F, Max, Min, OuterRef, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -275,9 +275,23 @@ _CATALOG_SORTS = {
 }
 
 
+def _carry_qs(params: dict) -> str:
+    """urlencode непустых параметров (для «Show more»/диет-чипов/скрытых полей)."""
+    from urllib.parse import urlencode
+
+    return urlencode({k: v for k, v in params.items() if v not in (None, "", False)})
+
+
 def product_list(request):
-    """Публичный каталог витрины (Track C1): активные товары + фильтр категории + сортировка."""
-    from apps.catalog.models import Category, Product
+    """Публичный каталог витрины (Track C1): активные товары + фасет-фильтры + сортировка.
+
+    Фасеты (категория, диета, цена, бейдж, наличие) — нативные поля БД, поэтому
+    композируются с keyset-пагинацией. Гейтятся тумблером `catalog_show_filters` и
+    наличием данных (есть разброс цен / есть бейджи / что-то распродано) — нерелевантные
+    фильтры само-скрываются (анти-Битрикс простота)."""
+    from decimal import Decimal, InvalidOperation
+
+    from apps.catalog.models import Category, Product, ProductVariant
 
     products = Product.objects.filter(is_active=True)
     category = None
@@ -287,6 +301,10 @@ def product_list(request):
         if category is None:
             return redirect("storefront-products")
         products = products.filter(category=category)
+    # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
+    # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
+    # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
+    facet_base = products
     # A4: фасет-фильтр по диете (vegan/vegetarisch/…) — JSON contains код. Показываем
     # чипы только тех диет, что реально встречаются среди активных товаров.
     from apps.catalog import food
@@ -303,6 +321,57 @@ def product_list(request):
         for c, label, icon in food.DIETS
         if c in present_diets
     ]
+
+    # --- Фасет цены (универсально для ритейла): диапазон base_price € от/до. ---
+    def _money(raw):
+        try:
+            v = Decimal(str(raw).replace(",", ".").strip())
+        except (InvalidOperation, AttributeError):
+            return None
+        return v if v >= 0 else None
+
+    price_min = _money(request.GET.get("preis_von"))
+    price_max = _money(request.GET.get("preis_bis"))
+    if price_min is not None:
+        products = products.filter(base_price__gte=price_min)
+    if price_max is not None:
+        products = products.filter(base_price__lte=price_max)
+    _bounds = facet_base.aggregate(lo=Min("base_price"), hi=Max("base_price"))
+    price_lo, price_hi = _bounds["lo"], _bounds["hi"]
+    show_price_filter = price_lo is not None and price_hi is not None and price_lo != price_hi
+    price_min_val = request.GET.get("preis_von", "").strip() if price_min is not None else ""
+    price_max_val = request.GET.get("preis_bis", "").strip() if price_max is not None else ""
+
+    # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие. ---
+    _present_badges = set(facet_base.exclude(badge="").values_list("badge", flat=True).distinct())
+    badge_chips = [
+        (code, label) for code, label in Product.BADGE_CHOICES if code and code in _present_badges
+    ]
+    badge = request.GET.get("badge", "")
+    badge = badge if badge in {c for c, _ in badge_chips} else ""
+    if badge:
+        products = products.filter(badge=badge)
+
+    # --- «Nur verfügbare»: наличие с учётом вариантов (зеркало Product.in_stock). ---
+    only_available = request.GET.get("nur_verfuegbar") == "1"
+    _active_var = ProductVariant.objects.filter(product=OuterRef("pk"), is_active=True)
+    _in_stock_var = _active_var.filter(Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0))
+    if only_available:
+        products = products.annotate(
+            _has_var=Exists(_active_var),
+            _has_stock_var=Exists(_in_stock_var),
+        ).filter(
+            Q(_has_var=True, _has_stock_var=True)
+            | (Q(_has_var=False) & (Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)))
+        )
+    # Тумблер наличия показываем только если что-то реально распродано (иначе шум).
+    show_stock_filter = (
+        facet_base.filter(stock_quantity=0).exists()
+        or ProductVariant.objects.filter(
+            product__in=facet_base, is_active=True, stock_quantity=0
+        ).exists()
+    )
+
     categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
     # M20U-3: подкатегории выбранной категории — выводим карточками первыми.
     subcategories = (
@@ -338,11 +407,53 @@ def product_list(request):
     # странице каталога без выбранной категории (чтобы не дублировать при пагинации/фильтре).
     from apps.catalog.combos import active_combos
 
+    any_facet_active = bool(
+        diet or badge or price_min is not None or price_max is not None or only_available
+    )
     has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
     combos_teaser = (
         list(active_combos()[:3])
-        if has_combos and category is None and not request.GET.get("cursor")
+        if has_combos
+        and category is None
+        and not request.GET.get("cursor")
+        and not any_facet_active
         else []
+    )
+    # Carry-over параметров между формами/ссылками (чтобы фильтры/сорт не терялись):
+    #  • filter_hidden / filter_qs — все активные фасеты КРОМЕ sort (для формы сорта и
+    #    ссылки «Show more», которая сама добавляет sort+cursor);
+    #  • filter_form_hidden — нефасетные параметры (для формы цены/бейджа/наличия);
+    #  • diet_carry_qs — фасеты для href диет-чипов (диета/категория ставятся в шаблоне).
+    _facets = {
+        "kategorie": category.slug if category else "",
+        "diet": diet,
+        "badge": badge,
+        "preis_von": price_min_val,
+        "preis_bis": price_max_val,
+        "nur_verfuegbar": "1" if only_available else "",
+        "preview": "1" if is_preview else "",
+    }
+    filter_hidden = [(k, v) for k, v in _facets.items() if v]
+    filter_qs = _carry_qs(_facets)
+    filter_form_hidden = [
+        (k, v)
+        for k, v in (
+            ("kategorie", _facets["kategorie"]),
+            ("diet", diet),
+            ("sort", sort if sort != "newest" else ""),
+            ("preview", _facets["preview"]),
+        )
+        if v
+    ]
+    diet_carry_qs = _carry_qs(
+        {
+            "badge": badge,
+            "preis_von": price_min_val,
+            "preis_bis": price_max_val,
+            "nur_verfuegbar": _facets["nur_verfuegbar"],
+            "sort": sort if sort != "newest" else "",
+            "preview": _facets["preview"],
+        }
     )
     return render(
         request,
@@ -361,9 +472,28 @@ def product_list(request):
             "combos_teaser": combos_teaser,  # A4: тизер-карточки Kombo/Tagesgericht
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
             "active_diet": diet,
+            "diet_carry_qs": diet_carry_qs,
             "catalog_grid": catalog_grid,
             # Билдер: показывать ли фильтры на странице каталога (group=catalog).
             "catalog_show_filters": cfg.get("catalog_show_filters", True),
+            # Фасет цены (диапазон base_price) — показываем при разбросе цен.
+            "show_price_filter": show_price_filter,
+            "price_lo": price_lo,
+            "price_hi": price_hi,
+            "price_min_val": price_min_val,
+            "price_max_val": price_max_val,
+            # Фасет-бейдж (Neu/Beliebt/…) — чипы только присутствующих.
+            "badge_chips": badge_chips,
+            "active_badge": badge,
+            # Тумблер «только в наличии» — показываем только если что-то распродано.
+            "show_stock_filter": show_stock_filter,
+            "only_available": only_available,
+            # Активен ли хоть один фасет (для кнопки сброса / подавления комбо-тизера).
+            "any_facet_active": any_facet_active,
+            # Carry-over для формы сорта и ссылки «Show more».
+            "filter_hidden": filter_hidden,
+            "filter_qs": filter_qs,
+            "filter_form_hidden": filter_form_hidden,
             # Сортировка: текущий ключ + варианты для дропдауна (label на текущей локали).
             "sort": sort,
             "sort_options": [
