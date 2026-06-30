@@ -248,6 +248,7 @@ urlpatterns = [
     path("lehrer/<uuid:pk>/", events_public.lehrer_detail, name="storefront-teacher"),
     # Handwerker: заявка + публичное Angebot (G6 / F3).
     path("anfrage/", jobs_public.anfrage, name="storefront-anfrage"),
+    path("rueckruf/", jobs_public.rueckruf, name="storefront-rueckruf"),
     path("angebot/<uuid:token>/", jobs_public.angebot, name="storefront-angebot"),
     # Чат/вопрос клиента (M22b): форма «Frage stellen» + публичный тред по токену.
     path("nachricht/", inbox_public.contact, name="storefront-message"),

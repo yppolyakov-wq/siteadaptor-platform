@@ -3067,3 +3067,9 @@
   чек (заявку принимаем всегда, но при PLZ вне зоны — info-сообщение, не блок). Демо:
   handwerker-кит сеет Kölner PLZ + текст. Тесты: парс/serves_plz/баннер/скрытие/чек
   (23 jobs + 14 tenants). Без нового JS.
+- **2026-06-30 — A7: Rückruf-Anfrage (обратный звонок).** Низкопороговая альтернатива
+  полной заявке: на странице Anfrage — вторая компактная форма «Prefer a callback?»
+  (имя + телефон + опц. удобное время) → POST `/rueckruf/`. Вьюха `rueckruf` (honeypot +
+  rate-limit как Anfrage) создаёт лёгкий лид через тот же jobs-пайплайн (create_job
+  title=«Rückrufbitte», best_time → в описание) + enqueue_job_email("new"). Гейт модулем
+  jobs. Без миграции/JS. Тесты: лид/требование имя+телефон/best_time/гейт/форма (28 jobs).

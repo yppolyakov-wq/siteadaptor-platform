@@ -103,6 +103,39 @@ def anfrage(request):
     )
 
 
+def rueckruf(request):
+    """A7: быстрый запрос обратного звонка (Rückruf-Anfrage). POST-only — лёгкий лид
+    (имя + телефон + опц. удобное время) через тот же jobs-пайплайн, что и Anfrage.
+
+    Альтернатива полной заявке для тех, кто хочет «просто перезвоните мне» — низкий
+    порог, типичная конверсия Handwerker. Honeypot + rate-limit как у Anfrage."""
+    _require_jobs_active(request)
+    if request.method != "POST" or request.POST.get("website"):  # POST + honeypot
+        return redirect("storefront-anfrage")
+    if ratelimit.hit("rueckruf", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
+        return HttpResponse(status=429)
+    name = request.POST.get("name", "").strip()
+    phone = request.POST.get("phone", "").strip()
+    if not (name and phone):
+        messages.error(request, _("Please leave your name and phone number."))
+        return redirect("storefront-anfrage")
+    best_time = request.POST.get("best_time", "").strip()
+    desc = _("Callback requested.")
+    if best_time:
+        desc += " " + _("Preferred time: %(t)s") % {"t": best_time[:100]}
+    job = services.create_job(
+        title="Rückrufbitte",
+        name=name,
+        phone=phone,
+        email=request.POST.get("email", "").strip(),
+        description=desc,
+        source_channel=(request.GET.get("ch") or "")[:50],
+    )
+    enqueue_job_email(job, "new")  # владельцу — новый лид (как Anfrage)
+    messages.success(request, _("Thank you! We'll call you back shortly."))
+    return redirect("storefront-anfrage")
+
+
 def angebot(request, token):
     _require_jobs_active(request)
     job = get_object_or_404(Job.objects.select_related("customer"), public_token=token)

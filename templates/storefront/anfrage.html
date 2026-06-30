@@ -99,6 +99,30 @@ PLZ; показываем только если бизнес её задал (Ha
   <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Send request" %}</button>
 </form>
 
+{% comment %}A7: Rückruf-Anfrage — низкопороговая альтернатива «просто перезвоните мне»
+(имя + телефон + опц. удобное время). Отдельная форма → POST /rueckruf/.{% endcomment %}
+<div class="mt-4 bg-white rounded-2xl shadow-sm p-6 max-w-xl">
+  <h2 class="font-semibold">{% trans "Prefer a callback?" %}</h2>
+  <p class="text-sm text-gray-500 mb-3">{% trans "Leave your number — we'll call you back." %}</p>
+  <form method="post" action="{% url 'storefront-rueckruf' %}" class="grid sm:grid-cols-3 gap-3 items-end">
+    {% csrf_token %}
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_rc_name">{% trans "Name" %} *</label>
+      <input id="id_rc_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_rc_phone">{% trans "Phone" %} *</label>
+      <input id="id_rc_phone" name="phone" type="tel" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_rc_time">{% trans "Best time (optional)" %}</label>
+      <input id="id_rc_time" name="best_time" type="text" placeholder="{% trans 'e.g. after 17:00' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <button type="submit" class="sm:col-span-3 w-full bg-gray-900 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-gray-700">{% trans "Request callback" %}</button>
+  </form>
+</div>
+
 {% comment %}A9: schema.org AutoRepair — структурная разметка автосервиса (SEO/Map Pack).{% endcomment %}
 {% if autorepair_ld %}<script type="application/ld+json">{{ autorepair_ld|safe }}</script>{% endif %}
 {% endblock %}

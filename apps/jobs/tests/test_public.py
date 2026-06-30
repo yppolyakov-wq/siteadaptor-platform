@@ -138,6 +138,42 @@ def test_anfrage_no_warning_when_plz_in_area():
     assert not any("outside" in t for t in texts)
 
 
+# --- A7: Rückruf-Anfrage (обратный звонок) ----------------------------------------
+def test_rueckruf_creates_lead_job():
+    request = _req("post", path="/rueckruf/", data={"name": "Herr B", "phone": "0151 222"})
+    resp = public_views.rueckruf(request)
+    assert resp.status_code == 302
+    job = Job.objects.get(title="Rückrufbitte")
+    assert job.customer.phone == "0151 222" and "Callback" in job.description
+
+
+def test_rueckruf_requires_name_and_phone():
+    request = _req("post", path="/rueckruf/", data={"name": "Nur Name"})  # без телефона
+    public_views.rueckruf(request)
+    assert not Job.objects.exists()
+
+
+def test_rueckruf_best_time_goes_to_description():
+    request = _req(
+        "post",
+        path="/rueckruf/",
+        data={"name": "X", "phone": "0151", "best_time": "nach 17 Uhr"},
+    )
+    public_views.rueckruf(request)
+    assert "nach 17 Uhr" in Job.objects.get(title="Rückrufbitte").description
+
+
+def test_rueckruf_gating_404():
+    request = _req("post", path="/rueckruf/", tenant=_tenant(disabled_modules=["jobs"]))
+    with pytest.raises(Http404):
+        public_views.rueckruf(request)
+
+
+def test_anfrage_page_shows_rueckruf_form():
+    body = public_views.anfrage(_req()).content.decode()
+    assert "storefront-rueckruf" in body or "/rueckruf/" in body  # форма обратного звонка
+
+
 def test_anfrage_stores_structured_vehicle_data():
     tenant = _tenant(site_config={"jobs_vehicle": True})
     request = _req(
