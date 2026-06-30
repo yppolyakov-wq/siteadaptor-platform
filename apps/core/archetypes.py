@@ -60,6 +60,34 @@ def purchase_label(module: str) -> str:
     return PURCHASE_LABELS.get(purchase_mode(module), PURCHASE_LABELS["request"])
 
 
+# H0 (архетипы как сущности): секция главной → модуль-архетип, который её «несёт».
+# Секция БЕЗ записи — generic (применима к любому архетипу): hero, usp_bar, promotions,
+# about, process, team, cta, testimonials, trust, reviews, faq, gallery, contact,
+# archetypes. Источник правды гейтинга редактора (список секций) и витрины.
+# ⚠️ catalog — core (всегда активен), поэтому products/categories видимы у всех; точечное
+# «показывать только под primary-архетип» — отдельное решение (см. docs/archetype-entities-plan.md H0).
+SECTION_ARCHETYPE_MODULE = {
+    "stay_search": "stays",
+    "stay_rooms": "stays",
+    "services": "booking",
+    "products": "catalog",
+    "categories": "catalog",
+    "events": "events",
+    "before_after": "jobs",
+}
+
+
+def section_visible_for(tenant, section_key: str) -> bool:
+    """H0: видна ли секция главной редактору этого тенанта.
+
+    Generic-секция (нет в SECTION_ARCHETYPE_MODULE) — всегда; секция-архетип — только
+    если её модуль активен. Так пекарня (catalog) не видит секций Stay/Events/Services/
+    Handwerker, а мультиархетип — видит объединение своих архетипов.
+    """
+    module = SECTION_ARCHETYPE_MODULE.get(section_key)
+    return module is None or tenant.is_module_active(module)
+
+
 def primary_module(tenant) -> str | None:
     """Ключ модуля «главного товара» тенанта.
 

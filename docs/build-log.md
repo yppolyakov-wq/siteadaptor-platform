@@ -2872,3 +2872,12 @@
   `xframe_options_exempt` (G10 embed-виджет для чужих сайтов) не трогаем. Проверено в браузере: клики по
   ссылкам в превью открывают `/sortiment/`,`/termin/…` (editOn off/on). Тесты `test_frame_options.py` (4). Без
   миграций. Часть этапа «архетипы как сущности» — план `docs/archetype-entities-plan.md`.
+- **2026-06-29 — H0 (срез 1): гейтинг секций редактора по архетипу.** Матрица «секция главной → архетип-модуль»
+  (`apps/core/archetypes.py::SECTION_ARCHETYPE_MODULE` + `section_visible_for(tenant, key)`): секции без записи —
+  generic (видны всегда), секция-архетип — только если её модуль активен. `home_builder_view`: GET скрывает из
+  списка секций нерелевантные архетипу (пекарня без stays/events/booking/jobs не видит Stay/Search/Rooms/Services/
+  Events/Before-after); POST — carry-forward конфига скрытых секций (их полей в форме нет → не затираем enabled/
+  layout/visual). ⚠️ catalog = core → products/categories видны у всех (over-inclusion безопасен; «только под
+  primary-архетип» — отложенное решение, см. план). Браузер (baeckerei, disabled stays/events/booking/jobs):
+  список секций = generic+catalog, чужих архетипов нет. Тесты `test_archetype_gating.py` (5). Без миграций.
+  Дальше H0: гейтинг storefront-меню по архетипу, реестр 3 сущностей, матрица настроек/полей.

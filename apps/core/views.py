@@ -805,11 +805,28 @@ def home_builder_view(request):
                     first = next(iter(form.errors.values()))[0]
                     messages.error(request, first)
             return redirect("site-home")
+        from apps.core import archetypes
+
         config = siteconfig.normalize(request.tenant.site_config)
+        # H0: секции скрытых (нерелевантных архетипу) типов в форму не выводятся →
+        # их полей в POST нет. Чтобы не затереть (enabled/layout/visual), сохраняем их
+        # существующую запись как есть, на прежнем месте. Lookup по ключу фикс-секции.
+        existing_fixed = {
+            s["key"]: (idx, s)
+            for idx, s in enumerate(config["sections"])
+            if isinstance(s, dict)
+            and s.get("key") in {k for k, _l, _d in siteconfig.SECTIONS}
+            and "id" not in s
+        }
         # Фикс-секции (порядок/видимость/раскладка) — как раньше, но как (order, entry)
         # пары, чтобы слить с C-блоками в один отсортированный список.
         items = []
         for key, _label, _default in siteconfig.SECTIONS:
+            # H0: скрытая из редактора секция (чужой неактивный архетип) → carry-forward.
+            if not archetypes.section_visible_for(request.tenant, key) and key in existing_fixed:
+                _idx, _entry = existing_fixed[key]
+                items.append((_idx, _entry))
+                continue
             try:
                 order = int(request.POST.get(f"order_{key}", "999"))
             except (TypeError, ValueError):
@@ -1007,7 +1024,7 @@ def home_builder_view(request):
         messages.success(request, "Gespeichert.")
         return redirect("site-home")
 
-    from apps.core import modules
+    from apps.core import archetypes, modules
 
     # SE-5b-2: восстановить несохранённый черновик из БД (после закрытия браузера/смены
     # устройства — сессия пуста, но `_draft` пережил). Форма открывается на черновике,
@@ -1066,6 +1083,11 @@ def home_builder_view(request):
             )
             continue
         if s["key"] not in labels:
+            continue
+        # H0 (архетипы как сущности): секции чужих (неактивных) архетипов скрываем из
+        # списка редактора — пекарня не видит Stay/Events/Services/Handwerker. Их рендер
+        # на витрине и так гейтится модулем; конфиг сохраняется POST-гардом (carry-forward).
+        if not archetypes.section_visible_for(request.tenant, s["key"]):
             continue
         sections.append(
             {
