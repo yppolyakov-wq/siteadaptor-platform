@@ -196,6 +196,12 @@ def test_catalog_show_filters_default_and_override():
     )  # bool()
 
 
+def test_cart_show_upsell_default_and_override():
+    # показывать ли кросс-селл в корзине — дефолт True, можно выключить.
+    assert siteconfig.normalize({})["cart_show_upsell"] is True
+    assert siteconfig.normalize({"cart_show_upsell": False})["cart_show_upsell"] is False
+
+
 def test_product_detail_hidden_normalize_and_helper():
     # видимость опц. секций детальной товара (только известные ключи).
     assert siteconfig.product_detail_hidden({}) == set()  # дефолт — ничего не скрыто

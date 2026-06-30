@@ -796,6 +796,20 @@ def test_home_builder_saves_catalog_show_filters():
     assert siteconfig.normalize(tenant.site_config)["catalog_show_filters"] is True
 
 
+def test_home_builder_saves_cart_show_upsell():
+    """Тумблер кросс-селла корзины сохраняется (presence-guard cart_present)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbcu", name="HBCU", enabled_modules=["catalog"]
+    )
+    base = {"order_hero": "1", "enabled_hero": "on", "cart_present": "1"}
+    views.home_builder_view(_request("post", "/dashboard/site/home/", base, tenant))
+    assert siteconfig.normalize(tenant.site_config)["cart_show_upsell"] is False
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {**base, "cart_show_upsell": "on"}, tenant)
+    )
+    assert siteconfig.normalize(tenant.site_config)["cart_show_upsell"] is True
+
+
 def test_home_builder_save_without_pd_inspector_keeps_product_detail():
     """Presence-guard: POST без pd_present не трогает product_detail (не скрывает всё)."""
     tenant = TenantFactory(

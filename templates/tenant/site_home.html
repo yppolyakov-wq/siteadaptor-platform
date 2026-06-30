@@ -457,6 +457,17 @@
             </ul>
           </div>
           {% endif %}
+          {% comment %}Настройки страницы КОРЗИНЫ: блок кросс-селла «Passt dazu»
+             (показ/скрытие). Заголовок блока правится инлайн на самой странице.{% endcomment %}
+          {% if has_catalog %}
+          <div class="page-block" data-page-key="cart">
+            <span class="text-sm font-medium block mb-2">{% trans "Cart page" %}</span>
+            <input type="hidden" name="cart_present" value="1">
+            <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show the “Goes well with this” block in the cart' %}">
+              <input type="checkbox" name="cart_show_upsell" {% if cart_show_upsell %}checked{% endif %} class="rounded border-gray-300">{% trans "Show cross-sell (“Goes well with this”)" %}
+            </label>
+          </div>
+          {% endif %}
         </div>
       </fieldset>
       {% endif %}
@@ -1339,6 +1350,8 @@
     if (catSel && catSel.value) payload.catalog_layout = { preset: catSel.value };
     var cfChk = form.querySelector("input[name='catalog_show_filters']");
     if (cfChk) payload.catalog_show_filters = cfChk.checked;  // живо вкл/выкл фильтры
+    var csChk = form.querySelector("input[name='cart_show_upsell']");
+    if (csChk) payload.cart_show_upsell = csChk.checked;  // живо вкл/выкл кросс-селл корзины
     var evSel = form.querySelector("select[name='events_preset']");
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");
@@ -1633,7 +1646,7 @@
   // лендинга в панели показываем ТОЛЬКО блоки этой страницы — на главной блоки главной,
   // на лендинге/детали — пер-страничные контролы; чужие группы скрываем (значения полей
   // остаются в форме → сохранение не теряет конфиг других страниц).
-  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail", catalog_detail: "product_detail" };
+  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail", catalog_detail: "product_detail", cart: "cart" };
   function applyPageScope(group) {
     var isHome = !group || group === "home";
     document.querySelectorAll('[data-scope="home"]').forEach(function (el) {

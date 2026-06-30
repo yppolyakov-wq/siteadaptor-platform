@@ -435,13 +435,20 @@ def cart_view(request):
         ctx["delivery_min_eur"] = f"{getattr(tenant, 'delivery_min_cents', 0) / 100:.2f}"
         ctx["delivery_min_cents"] = getattr(tenant, "delivery_min_cents", 0)
         ctx["delivery_area"] = getattr(tenant, "delivery_area", "")
-    # Заголовок/примечание корзины — правятся инлайн на канве (data-edit → site_config).
+    # Заголовок/примечание корзины + кросс-селл — правятся на канве. При ?preview=1
+    # читаем черновик (тумблер кросс-селла виден в превью вживую).
     from apps.tenants import siteconfig
 
-    _cfg = siteconfig.normalize(getattr(tenant, "site_config", {}) or {})
+    is_preview = request.GET.get("preview") == "1"
+    _raw = getattr(tenant, "site_config", {}) or {}
+    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
+        _raw = request.session["site_preview_draft"]
+    _cfg = siteconfig.normalize(_raw)
     ctx["cart_title"] = _cfg.get("cart_title", "")
     ctx["cart_note"] = _cfg.get("cart_note", "")
-    ctx["is_preview"] = request.GET.get("preview") == "1"
+    ctx["cart_upsell_title"] = _cfg.get("cart_upsell_title", "")
+    ctx["cart_show_upsell"] = _cfg.get("cart_show_upsell", True)
+    ctx["is_preview"] = is_preview
     return render(request, "storefront/cart.html", ctx)
 
 

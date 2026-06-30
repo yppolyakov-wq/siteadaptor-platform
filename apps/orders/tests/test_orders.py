@@ -133,6 +133,19 @@ def test_cart_renders_editable_title_and_note():
     assert "Mein Korb" in body and "Frisch!" in body
 
 
+def test_cart_cross_sell_toggle_and_heading():
+    """Кросс-селл корзины: заголовок правится инлайн; тумблером cart_show_upsell=False скрывается."""
+    p = ProductFactory(base_price=Decimal("3.00"))
+    ProductFactory(base_price=Decimal("5.00"))  # кандидат в апселл (не в корзине)
+    cart = {str(p.pk): 1}
+    on = TenantFactory.build(site_config={"cart_upsell_title": "Dazu passt"})
+    body = public_views.cart_view(_req(tenant=on, session={"cart": cart})).content.decode()
+    assert 'data-edit="cart_upsell_title"' in body and "Dazu passt" in body  # заголовок инлайн
+    off = TenantFactory.build(site_config={"cart_show_upsell": False})
+    body2 = public_views.cart_view(_req(tenant=off, session={"cart": cart})).content.decode()
+    assert "Goes well with this" not in body2 and "Dazu passt" not in body2  # блок скрыт
+
+
 def test_checkout_honeypot_and_empty_cart():
     tenant = TenantFactory.build()
     request = _req("post", "/warenkorb/bestellen/", {"name": "Bot", "website": "spam"}, tenant)

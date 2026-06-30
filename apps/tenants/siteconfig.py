@@ -591,6 +591,8 @@ TEXT_FIELDS = [
     # Заголовок и примечание страницы корзины — правятся инлайн на канве.
     "cart_title",
     "cart_note",
+    # Заголовок блока кросс-селла («Passt dazu») в корзине — правится инлайн.
+    "cart_upsell_title",
     # H1.2: тэглайн подвала сайта (виден на всех страницах), правится инлайн.
     "footer_text",
 ]
@@ -1249,6 +1251,8 @@ def normalize(config) -> dict:
     )
     # Показывать ли фасет-фильтры (диеты) на странице каталога. Дефолт True (как было).
     normalized["catalog_show_filters"] = bool(config.get("catalog_show_filters", True))
+    # Показывать ли блок кросс-селла («Passt dazu») в корзине. Дефолт True (как было).
+    normalized["cart_show_upsell"] = bool(config.get("cart_show_upsell", True))
     # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1
     # воспроизводит прежнюю сетку (grid-cols-1 sm:2 lg:3).
     normalized["stay_index_layout"] = normalize_layout(

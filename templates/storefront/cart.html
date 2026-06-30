@@ -197,9 +197,9 @@
   </aside>
 </div>
 
-{% if upsell %}
+{% if upsell and cart_show_upsell %}
   <section class="mt-10">
-    <h2 class="text-lg font-bold mb-4">{% trans "Goes well with this" %}</h2>
+    <h2 class="text-lg font-bold mb-4"><span data-edit="cart_upsell_title">{% if cart_upsell_title %}{{ cart_upsell_title }}{% else %}{% trans "Goes well with this" %}{% endif %}</span></h2>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {% for p in upsell %}{% include "storefront/_product_card.html" %}{% endfor %}
     </div>

@@ -961,6 +961,9 @@ def home_builder_view(request):
         # Категория: показывать ли фильтры — presence-guard (cf_present шлётся панелью каталога).
         if request.tenant.is_module_active("catalog") and request.POST.get("cf_present"):
             config["catalog_show_filters"] = request.POST.get("catalog_show_filters") == "on"
+        # Корзина: показывать ли кросс-селл — presence-guard (cart_present шлётся панелью корзины).
+        if request.tenant.is_module_active("catalog") and request.POST.get("cart_present"):
+            config["cart_show_upsell"] = request.POST.get("cart_show_upsell") == "on"
         # SE-2b-2: порядок/видимость тематических секций детальной события правятся
         # и на канве (on-canvas инспектор) — раньше только на вкладке «Pages».
         # Presence-guard: пишем, только если инспектор реально прислан (есть ed_order_*),
@@ -1248,6 +1251,7 @@ def home_builder_view(request):
             "has_catalog": request.tenant.is_module_active("catalog"),
             "catalog_preset": (config.get("catalog_layout") or {}).get("preset", ""),
             "catalog_show_filters": config.get("catalog_show_filters", True),
+            "cart_show_upsell": config.get("cart_show_upsell", True),
             "has_events": request.tenant.is_module_active("events"),
             "events_preset": (config.get("events_index_layout") or {}).get("preset", ""),
             "has_stays": request.tenant.is_module_active("stays"),
@@ -1514,6 +1518,9 @@ def site_preview_draft(request):
     # Категория: показывать ли фильтры — в превью (живо).
     if isinstance(data.get("catalog_show_filters"), bool):
         cfg["catalog_show_filters"] = data["catalog_show_filters"]
+    # Корзина: показывать ли кросс-селл — в превью (живо).
+    if isinstance(data.get("cart_show_upsell"), bool):
+        cfg["cart_show_upsell"] = data["cart_show_upsell"]
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
     if data.get("font") in siteconfig.FONTS:
         cfg["font"] = data["font"]
