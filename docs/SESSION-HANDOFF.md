@@ -52,7 +52,7 @@ inline-content (этот документ). После него — по CLAUDE.
 **Точка входа след. сессии по этому этапу — `docs/archetype-entities-plan.md`** (source of truth: 3 типа
 сайтов, каркас «архетип = 3 сущности», решения Q1–Q5, матрица гейтинга, порядок H0–H4). Хронология — build-log.
 
-**Сделано и в `main` (ветка `claude/session-handoff-docs-tc1qws`), 7 инкрементов, проверены в браузере:**
+**Сделано и в `main` (ветка `claude/session-handoff-docs-tc1qws`), 9 инкрементов, проверены в браузере:**
 - **H1.1** — баг «клик по ссылке в редакторе → ошибка»: `StorefrontFrameOptionsMiddleware` даёт витрине
   `X-Frame-Options: SAMEORIGIN` (кабинет — DENY) → превью-iframe открывает под-страницы. `7aa0c3a`.
 - **H0 (срез 1)** — гейтинг секций редактора по архетипу (`archetypes.SECTION_ARCHETYPE_MODULE` +
@@ -60,13 +60,20 @@ inline-content (этот документ). После него — по CLAUDE.
 - **H1.3** — «Section = чистый список»: строка = `.home-block-head` (имя+чекбокс+⚙), настройки →
   `.home-block-settings` (CSS прячет в списке, видны в фокус-панели по клику). `width` ушёл из списка. `de11e6c`.
 - **H1.5** — пер-секционный шрифт (`font` секции → `--font-body/--font-head` на обёртке; фикс кавычек в inline-style). `a456372`.
-- **H1.2 (1/2/3)** — инлайн-правка имени/описания на детальной: ТОВАР (`product_detail.html`, `125f247`),
+- **H1.2 (детальные, 1/2/3)** — инлайн-правка имени/описания на детальной: ТОВАР (`product_detail.html`, `125f247`),
   СОБЫТИЕ (`event_detail.html` + `event_inline_edit`, `d734d72`), НОМЕР (`stay_detail.html` + `stay_inline_edit`,
-  `2db84aa`). Generic frame.load-JS + `MODEL_EDIT_URLS` {product,event,stay}. Браузер: товар+событие.
+  `2db84aa`). Generic frame.load-JS + `MODEL_EDIT_URLS` {product,event,stay}. Браузер: товар+событие+номер.
+- **H1.2 (срез 4)** — редактируемые заголовок/интро страницы КАТАЛОГА (`catalog_title`/`catalog_intro` в
+  `TEXT_FIELDS` + `site_inline_edit` + `products.html` data-edit). Браузер. `7cbae9a`.
+- **H1.2 (срез 5)** — редактируемый тэглайн ПОДВАЛА (`footer_text` в `TEXT_FIELDS` + context-processor
+  `storefront_footer_text` + `_base.html` data-edit, на всех страницах). Браузер. `b6597b2`.
 
-**Осталось (по `archetype-entities-plan.md`):** H1.2 страница КАТЕГОРИИ (есть data-cat-edit; нужны заголовок/
-описание) + ТЕКСТОВЫЕ страницы; контент-настройки секции (описание/слайдер, Q4); инлайн-добавление блоков;
-меню/подвал; H0 реестр 3 сущностей + матрица полей; H2 мультиархетип-композиция; H3 демо; H4 онбординг/регистрация.
+**Multi-page editing покрыто:** главная · товар · событие · номер · каталог · подвал. Механизмы: detail-модели —
+`MODEL_EDIT_URLS`+per-model endpoint; site_config-тексты — `data-edit`+`site_inline_edit` (TEXT_FIELDS).
+
+**Осталось (по `archetype-entities-plan.md`):** ТЕКСТОВЫЕ/легал-страницы; контент-настройки секции (описание/
+слайдер, Q4); пер-категорийные описания (поле на Category + миграция); инлайн-добавление блоков (Templates без
+перезагрузки); H0 реестр 3 сущностей + матрица полей; H2 мультиархетип-композиция; H3 демо; H4 онбординг/регистрация.
 
 ⚠️ **Гейтинг при невидимом CI:** в этом прогоне GitHub-MCP отвалился → статус CI через API недоступен.
 **Полный `pytest` по ВСЕЙ репе ВИСНЕТ** локально (какой-то тест чужого приложения ждёт внешний сервис в dev —
