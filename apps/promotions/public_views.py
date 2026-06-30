@@ -343,6 +343,8 @@ def product_list(request):
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
             "active_diet": diet,
             "catalog_grid": catalog_grid,
+            # Билдер: показывать ли фильтры на странице каталога (group=catalog).
+            "catalog_show_filters": cfg.get("catalog_show_filters", True),
             # SE-2c-2: в режиме редактора (?preview=1) на чипах категорий — ссылка
             # «✎» на полную правку категории в кабинете (имя/slug/родитель/иконка).
             "is_preview": is_preview,

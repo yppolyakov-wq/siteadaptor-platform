@@ -187,6 +187,15 @@ def test_event_detail_order_default_and_overrides():
     assert siteconfig.event_detail_order(bad) == full
 
 
+def test_catalog_show_filters_default_and_override():
+    # показывать ли фильтры на странице каталога — дефолт True, можно выключить.
+    assert siteconfig.normalize({})["catalog_show_filters"] is True
+    assert siteconfig.normalize({"catalog_show_filters": False})["catalog_show_filters"] is False
+    assert (
+        siteconfig.normalize({"catalog_show_filters": "x"})["catalog_show_filters"] is True
+    )  # bool()
+
+
 def test_product_detail_hidden_normalize_and_helper():
     # видимость опц. секций детальной товара (только известные ключи).
     assert siteconfig.product_detail_hidden({}) == set()  # дефолт — ничего не скрыто

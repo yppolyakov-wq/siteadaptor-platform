@@ -380,11 +380,16 @@
         <p class="bld-scope-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-3"></p>
         <div class="space-y-3">
           {% if has_catalog %}
-          <div class="page-block flex items-center gap-3" data-page-key="catalog">
+          <div class="page-block flex flex-wrap items-center gap-3" data-page-key="catalog">
             <span class="text-sm font-medium flex-1">{% trans "Catalog: grid layout" %}</span>
             <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
+            {# Показывать фильтры (диеты) на странице каталога. presence-guard cf_present. #}
+            <input type="hidden" name="cf_present" value="1">
+            <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Show diet filters on the catalog page' %}">
+              <input type="checkbox" name="catalog_show_filters" {% if catalog_show_filters %}checked{% endif %} class="rounded border-gray-300">{% trans "Show filters" %}
+            </label>
           </div>
           {% endif %}
           {% if has_events %}
@@ -1332,6 +1337,8 @@
     // соответствующей страницы (?preview=1) показало их сразу.
     var catSel = form.querySelector("select[name='catalog_preset']");
     if (catSel && catSel.value) payload.catalog_layout = { preset: catSel.value };
+    var cfChk = form.querySelector("input[name='catalog_show_filters']");
+    if (cfChk) payload.catalog_show_filters = cfChk.checked;  // живо вкл/выкл фильтры
     var evSel = form.querySelector("select[name='events_preset']");
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");

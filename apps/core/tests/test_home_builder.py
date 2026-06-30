@@ -780,6 +780,22 @@ def test_home_builder_saves_product_detail_hidden():
     assert hidden == {"reviews", "related"}
 
 
+def test_home_builder_saves_catalog_show_filters():
+    """Тумблер «показывать фильтры» страницы каталога сохраняется (presence-guard cf_present)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbcf", name="HBCF", enabled_modules=["catalog"]
+    )
+    base = {"order_hero": "1", "enabled_hero": "on", "cf_present": "1"}
+    # без галочки → выключено
+    views.home_builder_view(_request("post", "/dashboard/site/home/", base, tenant))
+    assert siteconfig.normalize(tenant.site_config)["catalog_show_filters"] is False
+    # с галочкой → включено
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {**base, "catalog_show_filters": "on"}, tenant)
+    )
+    assert siteconfig.normalize(tenant.site_config)["catalog_show_filters"] is True
+
+
 def test_home_builder_save_without_pd_inspector_keeps_product_detail():
     """Presence-guard: POST без pd_present не трогает product_detail (не скрывает всё)."""
     tenant = TenantFactory(

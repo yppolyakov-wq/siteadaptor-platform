@@ -1247,6 +1247,8 @@ def normalize(config) -> dict:
     normalized["catalog_layout"] = normalize_layout(
         config.get("catalog_layout"), {"preset": "cols3"}
     )
+    # Показывать ли фасет-фильтры (диеты) на странице каталога. Дефолт True (как было).
+    normalized["catalog_show_filters"] = bool(config.get("catalog_show_filters", True))
     # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1
     # воспроизводит прежнюю сетку (grid-cols-1 sm:2 lg:3).
     normalized["stay_index_layout"] = normalize_layout(
