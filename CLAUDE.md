@@ -159,6 +159,10 @@ Python 3.12, менеджер uv.
   `hetzner-claude-code-setup.md`.
 - `billing-stripe-setup.md` — настройка Stripe (ключи, Price 39 €, webhook, §4
   featured, §5 Connect/оплата клиента) в `.env.prod`.
+- **`external-integrations-backlog.md`** — 🔌 пункты бэклога, требующие ВНЕШНИХ
+  провайдеров (Stripe live, Resend, SMS, OTA-API, метапоиск, Shopify/Woo импорт, Ads,
+  Push/Wallet). «Внутреннее» делаем сначала; эти — на этапе внедрения (что подключить +
+  блокер владельца). Создан 2026-06-30.
 - **`micro-business-verticals.md`** — карта вертикалей DACH (потребности → полнота,
   бэклог G1–G9, порядок retail-пакета и P2.5).
 - **`archetype-ux-execution-plan.md`** — 🧭 ПОШАГОВЫЙ план текущего этапа (витрина/UX +
