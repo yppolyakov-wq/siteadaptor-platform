@@ -12,8 +12,8 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
 {% endblock %}
 
 {% block detail_gallery %}
-{# Услуга несёт одиночное фото (Service.image) + single-photo inline-edit (op=replace);
-   галерея/лайтбокс услуги — U-A4 (нужно поле-список фото). #}
+{% comment %}Услуга несёт одиночное фото (Service.image) + single-photo inline-edit (op=replace);
+галерея/лайтбокс услуги — U-A4 (нужно поле-список фото).{% endcomment %}
 <div class="relative mt-3">
   <span data-photo-edit data-edit-model="service" data-edit-pk="{{ service.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
   {% if service.image_url %}
