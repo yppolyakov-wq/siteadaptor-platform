@@ -115,12 +115,20 @@ def test_published_for_excludes_hidden_and_other_entities():
     assert len(got) == 1 and got[0].author_name == "A"
 
 
-# --- верификация: fail-closed ----------------------------------------------
+# --- верификация: fail-closed + per-kind диспетчер --------------------------
 def test_is_verified_buyer_unknown_kind_is_false():
     p = ProductFactory()
     # неизвестный/непривязанный kind → нет верификатора → False (никого не пускаем)
-    assert review_services.is_verified_buyer("service", p, "x@t.de") is False
-    assert review_services.is_verified_buyer("stay", p, "x@t.de") is False
+    assert review_services.is_verified_buyer("combo", p, "x@t.de") is False
+    assert review_services.is_verified_buyer("widget", p, "x@t.de") is False
+
+
+def test_verifier_bound_for_every_review_kind():
+    # UA4-4b: product/service/stay/event должны иметь привязанный верификатор;
+    # неизвестный kind → None (fail-closed на уровне is_verified_buyer).
+    for kind in ("product", "service", "stay", "event"):
+        assert review_services._verifier_for(kind) is not None, kind
+    assert review_services._verifier_for("combo") is None
 
 
 def test_is_verified_buyer_product_without_order_is_false():
