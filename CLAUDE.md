@@ -76,7 +76,9 @@ Python 3.12, менеджер uv.
   master-track/U-A…U-E/decisions/priority-review, **план Волны L**) + код UA1-1 (деталь услуги). Начата
   **Волна L (мультиязычность, N локалей)**: **L1 ✅** — рантайм-биндинг локалей
   (`Tenant.active_locales`-резолвер, `set_language` валидирует по включённым локалям, оверлей витрины
-  генерик по `settings.LANGUAGES`, переключатель шапки — N кнопок). Без миграции. SOURCE OF TRUTH этапа —
+  генерик по `settings.LANGUAGES`, переключатель шапки — N кнопок). **L2 ✅** — кабинет «Sprachen»
+  (`/dashboard/settings/languages/`: чекбоксы языков реестра + дефолт → `enabled_locales`/`default_locale`).
+  Обе без миграции. Решения владельца S-1(a)/S-2(b LegalDoc)/S-3(реестр DE+EN). SOURCE OF TRUTH этапа —
   `docs/unified-sellable-entity-master-track-2026-06-30.md §4` (очередь волн) + `docs/multilanguage-wave-L-plan-2026-07-01.md`.
 - Самые свежие миграции: `stays/0014–0019` + `promotions/0018` (этап витрины/UX + L1 миграций НЕ
   добавлял). Полный список — в build-log.
@@ -184,9 +186,9 @@ Python 3.12, менеджер uv.
 Порядок: **Волна L (мультиязычность)** → **U-A** (адаптер SellableEntity) → U-B → U-C → U-D → U-E.
 Решения владельца зафиксированы — `docs/unified-sellable-entity-decisions-2026-06-30.md` (A/B/C),
 приоритеты — `…-priority-review-2026-07-01.md` (P/PR), план L — `docs/multilanguage-wave-L-plan-2026-07-01.md`.
-**Статус Волны L:** L1 ✅ (рантайм-биндинг локалей). Дальше: L2 (кабинет «Sprachen») → L3 (i18n
-Service/Stay, миграция; ∥ U-A) → L4 (хром `.po/.mo`) → L5 (правовое i18n+AGB). Открытые под-решения
-для L2/L4/L5 — S-1/S-2/S-3 (спросить владельца до кода этих подзадач).
+**Статус Волны L:** L1 ✅ (рантайм-биндинг), L2 ✅ (кабинет «Sprachen»). Дальше: L3 (i18n
+Service/Stay, миграция; ∥ U-A) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5 (правовое i18n+AGB
+через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр остаётся DE+EN — S-3).
 
 **🔎 Аудит наполненности архетипов + план доработок (2026-06-30) —
 `docs/archetype-completeness-audit-2026-06-30.md`.** Проверены 9 китов (демо/функ-

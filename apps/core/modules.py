@@ -320,6 +320,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(
             NavItem("site", _("Site"), "site"),
             NavItem("settings", _("Settings"), "settings"),
+            NavItem("languages", _("Languages"), "languages"),  # L2 — языки витрины
             NavItem("extras", _("Extras"), "extras"),  # #7 универсальные доп-услуги
             NavItem("domains", _("Domains"), "domains"),
             NavItem("modules", _("Modules"), "modules"),

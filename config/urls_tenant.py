@@ -20,6 +20,7 @@ from apps.core.views import (
     domains_view,
     extras_view,
     home_builder_view,
+    languages_view,
     menu_builder_view,
     modules_view,
     pages_view,
@@ -56,6 +57,8 @@ urlpatterns = [
     path("dashboard/setup/", setup_view, name="setup"),
     path("willkommen/", setup_view, name="willkommen"),
     path("dashboard/settings/", settings_view, name="settings"),
+    # L2 (Волна L): кабинет «Sprachen» — включение языков витрины + дефолт.
+    path("dashboard/settings/languages/", languages_view, name="languages"),
     path("dashboard/extras/", extras_view, name="extras"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),

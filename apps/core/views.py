@@ -457,6 +457,48 @@ def settings_view(request):
     )
 
 
+@login_required
+def languages_view(request):
+    """L2 (Волна L): кабинет «Sprachen» — какие языки витрины включены + дефолт.
+
+    Владелец включает подмножество языков из системного реестра `settings.LANGUAGES`
+    (что вообще есть в платформе) и выбирает дефолтный. Пишет `Tenant.enabled_locales`
+    / `default_locale` (без миграции — поля уже есть). Витрина/оверлей/переключатель
+    сразу отражают это через резолвер `Tenant.active_locales` (L1). Генерик по N
+    локалям — новая локаль в реестре появляется здесь без правки кода. Инварианты:
+    минимум один язык включён; дефолт ∈ включённые.
+    """
+    registry = [code for code, _label in settings.LANGUAGES]
+    tenant = request.tenant
+    if request.method == "POST":
+        # Порядок — как в реестре (стабильно), дубли/не-реестр отфильтрованы.
+        chosen = set(request.POST.getlist("locales"))
+        enabled = [code for code in registry if code in chosen]
+        if not enabled:
+            messages.error(request, _("Please enable at least one language."))
+        else:
+            default = request.POST.get("default_locale", "")
+            if default not in enabled:
+                default = enabled[0]  # инвариант: дефолт ∈ включённые
+            tenant.enabled_locales = enabled
+            tenant.default_locale = default
+            tenant.save(update_fields=["enabled_locales", "default_locale"])
+            messages.success(request, _("Saved."))
+            return redirect("languages")
+    lang_names = dict(settings.LANGUAGES)
+    current = set(tenant.active_locales)
+    languages = [
+        {
+            "code": code,
+            "label": lang_names.get(code, code.upper()),
+            "enabled": code in current,
+            "is_default": code == tenant.default_locale,
+        }
+        for code in registry
+    ]
+    return render(request, "tenant/languages.html", {"languages": languages, "nav": "languages"})
+
+
 def _upload_gallery_images(request) -> None:
     """Сохранить загруженные фото в site_config['gallery'] (M20 ⑤b).
 

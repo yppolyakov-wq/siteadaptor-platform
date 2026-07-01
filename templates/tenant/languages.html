@@ -1,0 +1,42 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Languages" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-1">{% trans "Languages" %}</h1>
+  <p class="text-gray-500 mb-4 text-sm">{% trans "Choose which languages your website offers visitors, and which one is shown by default." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+      <legend class="font-semibold mb-1">{% trans "Website languages" %}</legend>
+      <p class="text-xs text-gray-400 mb-3">{% trans "Enable a language, then mark one as the default (shown first to visitors)." %}</p>
+      <div class="space-y-2">
+        {% for lang in languages %}
+        <div class="flex items-center justify-between gap-4 border border-gray-100 rounded-lg px-3 py-2">
+          <label class="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" name="locales" value="{{ lang.code }}" {% if lang.enabled %}checked{% endif %}
+                   class="rounded border-gray-300 text-indigo-600">
+            <span>{{ lang.label }} <span class="text-gray-400 uppercase text-xs">{{ lang.code }}</span></span>
+          </label>
+          <label class="flex items-center gap-2 text-xs text-gray-500 whitespace-nowrap">
+            <input type="radio" name="default_locale" value="{{ lang.code }}" {% if lang.is_default %}checked{% endif %}>
+            {% trans "Default" %}
+          </label>
+        </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</div>
+{% endblock %}

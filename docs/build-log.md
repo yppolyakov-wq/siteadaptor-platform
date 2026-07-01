@@ -3148,3 +3148,14 @@
   контексту `storefront_locales` (N кнопок, скрыт при 1 локали) вместо 2 захардкоженных DE/EN.
   Тесты: `apps/tenants/tests/test_locale.py` (active_locales/фолбэк/дедуп/3-я локаль,
   set_language-валидация, оверлей на FR, контекст `storefront_locales`). Без миграции/JS.
+- **2026-07-01 — Волна L / L2: кабинет «Sprachen» (без миграции).** Владелец включает
+  подмножество языков реестра `settings.LANGUAGES` (чекбоксы) и выбирает дефолт (радио) →
+  пишется `Tenant.enabled_locales`/`default_locale`; витрина/переключатель сразу отражают через
+  `active_locales` (L1). Вью `apps/core/views.py::languages_view` (`@login_required`, ручной POST,
+  `update_fields`), маршрут `/dashboard/settings/languages/` (`name="languages"`), пункт меню
+  `NavItem("languages")` в группе «Einstellungen», шаблон `templates/tenant/languages.html` (по
+  образцу `settings.html`). Инварианты: ≥1 язык; дефолт ∈ включённые (авто-коррекция на первый);
+  не-реестр отфильтрован; порядок — как в реестре. UI генерик по N локалям (3-я локаль появится
+  без правки кода). Решения владельца зафиксированы: S-1(a) кабинет тоже мультиязычный (L4),
+  S-2(b) правовое — отдельная модель `LegalDoc` (L5), S-3 реестр DE+EN (языки по запросу). Тесты:
+  `apps/core/tests/test_languages_cabinet.py` (GET/сохранение/инвариант дефолта/пустой/фильтр/порядок).
