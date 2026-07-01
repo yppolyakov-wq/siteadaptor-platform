@@ -3194,3 +3194,16 @@
   origins» от «кука не пришла»/«токен не совпал» без DEBUG и доступа к логам; причина также в лог
   `django.security.csrf`. Для расследования оставшегося 403 на логине субдомена. reason экранируется
   (XSS-safe). Тесты: `apps/core/tests/test_csrf_failure.py`. Гейт: 324 core.
+- **2026-07-01 — UA1-3 (U-A): контракт `SellableEntity` + 5 адаптеров (без миграции).** Новый
+  `apps/core/sellable.py`: `sellable_for(kind, obj, locale=None)` → `SellableEntity` (dataclass:
+  kind/pk/name/description/price_display/image_url/gallery/purchase_mode/purchase_label/detail_url +
+  швы `buybox_context`/`attributes`/`info_sections` под U-A3/U-A4). Адаптеры 5 kind (product/service/
+  stay/event/combo) ДЕЛЕГИРУЮТ существующим методам: i18n — `get_i18n`/`name_localized` (L3 снял
+  асимметрию — service/stay читаются единообразно), цена — `base_price`/`price_from`/`price_eur`/
+  `from_price_eur`/грундпрайс, фото — `primary_image`/`image_url`/`images`. kind→mode/label — из
+  `archetypes.purchase_mode`/`purchase_label` (без дублей). `combo` — реальный (catalog.Combo, cart,
+  без фото). `jobs` ЯВНО не sellable (индивид. смета → U-D). Импорт-изоляция: без top-level импортов
+  catalog/stays/events/booking (методы инстанса + ленивый archetypes). Разведка 5 kind —
+  адверсариальным воркфлоу (5 Explore-агентов, всё верифицировано против кода). Шаблоны НЕ трогали —
+  чистый Python+юниты (шов под UA2-1). Тесты: `apps/core/tests/test_sellable.py` (i18n-оверлей/цена
+  free/ab/from/валюта/gallery/mode-label/detail_url/unknown-kind). Гейт: 333 core.
