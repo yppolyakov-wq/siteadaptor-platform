@@ -328,6 +328,10 @@ def test_apply_hotel_kit_builds_stays_site():
     # у каждого номера есть описание и хотя бы одно фото
     for u in StayUnit.objects.all():
         assert u.description and u.images
+    # UA4-4b: демо-отзывы о номерах засеяны (generic reviews.Review, entity_kind='stay')
+    from apps.reviews.models import Review
+
+    assert Review.objects.filter(entity_kind="stay", is_published=True).count() == 3
     # G8/#6 отзывы клиентов (SHARED) + рейтинг + секция «reviews»
     from apps.aggregator.models import BusinessRating, BusinessReview
     from apps.core.templatetags.seo import storefront_reviews
@@ -485,6 +489,10 @@ def test_apply_friseur_kit_booking_services():
     assert Pass.objects.filter(credits_total=10).exists()  # выдана клиенту
     for m in ("booking", "loyalty", "orders", "customer_account"):
         assert tenant.is_module_active(m)
+    # UA4-4b: демо-отзывы об услугах засеяны (generic reviews.Review, entity_kind='service')
+    from apps.reviews.models import Review
+
+    assert Review.objects.filter(entity_kind="service", is_published=True).count() == 3
 
 
 def test_apply_werkstatt_kit_jobs_booking_catalog():
@@ -562,6 +570,10 @@ def test_apply_retreat_kit_events_program_and_tickets():
     assert retreat.has_tiers and len(retreat.tier_list) == 3
     assert retreat.from_price_cents == 23000  # Mehrbettzimmer — минимальный тир
     assert Event.objects.get(title="Sommer-Festival der Achtsamkeit").capacity == 0
+    # UA4-4b: демо-отзывы о событиях засеяны (generic reviews.Review, entity_kind='event')
+    from apps.reviews.models import Review
+
+    assert Review.objects.filter(entity_kind="event", is_published=True).count() == 3
     # R3 преподаватели, R4 депозит, R5 проживание, R6 гео — на главном ретрите
     assert retreat.teachers.count() == 2
     assert retreat.deposit_percent == 30

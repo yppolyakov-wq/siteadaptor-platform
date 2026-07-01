@@ -150,10 +150,17 @@ class DemoKit:
     # G8/#6: отзывы клиентов (SHARED BusinessReview) — (rating, comment, email).
     # Seed создаёт PortalUser + отзыв + включает секцию «reviews» на витрине.
     reviews_seed: list = field(default_factory=list)
-    # A1/A2: отзывы о ТОВАРЕ (TENANT ProductReview) — (product_index, rating, name,
-    # email, comment). product_index — индекс в created_products. Seed создаёт
-    # опубликованные отзывы напрямую (демо доверенный; верификация — на витрине).
+    # A1/A2: отзывы о ТОВАРЕ (generic reviews.Review, entity_kind='product') —
+    # (product_index, rating, name, email, comment). product_index — индекс в
+    # created_products. Seed создаёт опубликованные отзывы напрямую (демо доверенный;
+    # верификация — на витрине).
     product_reviews: list = field(default_factory=list)
+    # UA4-4b: отзывы об УСЛУГЕ/НОМЕРЕ/СОБЫТИИ (generic reviews.Review) — (index, rating,
+    # name, email, comment). index — позиция в refs["services"]/["stay_units"]/["events"]
+    # (порядок создания сидером). Делает секцию отзывов UA4-4b видимой в демо.
+    service_reviews: list = field(default_factory=list)
+    stay_reviews: list = field(default_factory=list)
+    event_reviews: list = field(default_factory=list)
     # #7 универсальные Extras: (label, price_eur, scope, per_night). Seed создаёт
     # apps.core.Extra — гость отмечает при бронировании (сейчас на stays).
     extras: list = field(default_factory=list)
@@ -1612,6 +1619,17 @@ HOTEL = DemoKit(
             "amenities": ["wifi", "tv", "bath", "kitchen", "balcony", "parking", "petfriendly"],
         },
     ],
+    stay_reviews=[
+        (
+            0,
+            5,
+            "Familie M.",
+            "familie.m@example.de",
+            "Wunderschönes Zimmer, sehr sauber und ruhig.",
+        ),
+        (0, 4, "Petra L.", "petra.l@example.de", "Gemütlich und gut ausgestattet. Frühstück top."),
+        (1, 5, "Jens H.", "jens.h@example.de", "Perfekt für einen erholsamen Kurzurlaub."),
+    ],
     rate_plans=[  # H1: тарифы для всех номеров (гость выбирает при брони)
         {
             "name": "Basistarif",
@@ -2108,6 +2126,17 @@ FRISEUR = DemoKit(
             "hair,highlights",
         ),
         ("Bart trimmen", 15, "12", "Konturen schneiden und in Form bringen.", "beard,barber"),
+    ],
+    service_reviews=[
+        (
+            0,
+            5,
+            "Sabine K.",
+            "sabine.k@example.de",
+            "Toller Schnitt, genau wie besprochen. Komme wieder!",
+        ),
+        (0, 4, "Nadine R.", "nadine.r@example.de", "Sehr freundlich und professionell."),
+        (1, 5, "Thomas B.", "thomas.b@example.de", "Schnell, unkompliziert, top Ergebnis."),
     ],
     resources=[
         {
@@ -2943,6 +2972,11 @@ RETREAT = DemoKit(
             "details": _RETREAT_LANDING,
         },
     ],
+    event_reviews=[
+        (0, 5, "Anna S.", "anna.s@example.de", "Ein wunderbares Wochenende — sehr bereichernd!"),
+        (0, 5, "Markus T.", "markus.t@example.de", "Tolle Gruppe und achtsame Leitung."),
+        (1, 4, "Lea W.", "lea.w@example.de", "Sehr entspannend, gerne wieder."),
+    ],
     services=[
         ("Einzel-Yogastunde (1:1)", 60, "55"),
         ("Achtsamkeits-Coaching", 60, "75"),
@@ -3500,6 +3534,7 @@ def apply_kit(tenant, key: str) -> bool:
     _seed_kit_records(tenant, kit, refs, created_products)
     _seed_kit_reviews(tenant, kit)
     _seed_product_reviews(kit, created_products)
+    _seed_entity_reviews(kit, refs)  # UA4-4b: отзывы об услуге/номере/событии в демо
     _seed_blog_posts(tenant, kit)
     if kit.extras:  # #7 универсальные доп-услуги (Extra)
         from apps.core.models import Extra
@@ -3692,6 +3727,41 @@ def _seed_product_reviews(kit: DemoKit, created_products: list) -> None:
                 "is_published": True,
             },
         )
+
+
+def _seed_entity_reviews(kit: DemoKit, refs: dict) -> None:
+    """UA4-4b: отзывы об услуге/номере/событии (generic reviews.Review) на демо-
+    сущностях кита — чтобы секция отзывов на детали была видна в демо.
+
+    index — позиция в refs[<key>] (pk-список в порядке создания сидером). Пишем
+    опубликованные отзывы напрямую (демо доверенный; верификация — на витрине).
+    Вызывать в схеме тенанта ПОСЛЕ `_seed_kit_modules` (refs заполнены)."""
+    specs = [
+        (kit.service_reviews, "service", "services"),
+        (kit.stay_reviews, "stay", "stay_units"),
+        (kit.event_reviews, "event", "events"),
+    ]
+    if not any(review_list for review_list, _kind, _key in specs):
+        return
+    from apps.reviews.models import Review
+
+    for review_list, entity_kind, ref_key in specs:
+        pks = refs.get(ref_key) or []
+        for idx, rating, name, email, comment in review_list:
+            if not isinstance(idx, int) or idx >= len(pks):
+                continue
+            Review.objects.update_or_create(
+                entity_kind=entity_kind,
+                entity_id=pks[idx],
+                email=email.lower(),
+                defaults={
+                    "rating": rating,
+                    "author_name": name,
+                    "comment": comment,
+                    "verified": True,
+                    "is_published": True,
+                },
+            )
 
 
 def _seed_blog_posts(tenant, kit: DemoKit) -> None:
