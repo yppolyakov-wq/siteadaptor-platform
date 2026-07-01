@@ -1,0 +1,16 @@
+{% load i18n %}
+<div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6" data-sf-section="stay_amenities">
+  <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600 mb-3">
+    <span>👥 {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</span>
+    {% if unit.area_sqm %}<span>📐 {{ unit.area_sqm }} m²</span>{% endif %}
+    {% if unit.bed_type %}<span>🛏 {{ unit.bed_type }}</span>{% endif %}
+  </div>
+  {% if unit.amenity_badges %}
+  <h2 class="font-semibold text-sm mb-2">{% trans "Amenities" %}</h2>
+  <ul class="grid grid-cols-2 sm:grid-cols-3 gap-y-1 gap-x-4 text-sm text-gray-700">
+    {% for label, icon in unit.amenity_badges %}
+      <li><span aria-hidden="true">{{ icon }}</span> {{ label }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>

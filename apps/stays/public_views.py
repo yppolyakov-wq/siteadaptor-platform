@@ -247,6 +247,7 @@ def unterkunft_unit(request, pk):
     similar.sort(key=lambda u: (u.type != unit.type, u.price_cents))
     similar = similar[:3]
 
+    from apps.core import detail_sections
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
     from apps.tenants import siteconfig
@@ -257,6 +258,30 @@ def unterkunft_unit(request, pk):
         request.session.get("site_preview_draft"), dict
     ):
         _raw = request.session["site_preview_draft"]
+    _hidden = siteconfig.detail_section_hidden(_raw, "stays")
+    # UA4-2: data-driven секции ТЕЛА детали (description/amenities/reviews) — цикл в шаблоне
+    # по реестру (stays), видимость = (контент присутствует) И (не скрыта в билдере).
+    # H1.2: описание рендерим всегда (инлайн-правка); `similar` — в detail_wide (отдельно).
+    _present = {
+        "description": True,
+        "amenities": bool(unit.area_sqm or unit.bed_type or unit.amenity_badges),
+        "reviews": True,
+    }
+    _stay_templates = {
+        "description": "storefront/sections/detail/_stay_description.html",
+        "amenities": "storefront/sections/detail/_stay_amenities.html",
+        "reviews": "storefront/_entity_reviews.html",
+    }
+    body_sections = [
+        {
+            "key": k,
+            "template": _stay_templates[k],
+            "visible": _present.get(k, False) and k not in _hidden,
+        }
+        for k in detail_sections.section_keys("stays")
+        if k in _stay_templates  # similar — не в body (detail_wide), исключаем из цикла
+    ]
+    show_similar = bool(similar) and "similar" not in _hidden
 
     return _render_embed(
         request,
@@ -270,8 +295,11 @@ def unterkunft_unit(request, pk):
             "review_summary": review_services.summary("stay", unit.pk),
             "review_form_token": uuid.uuid4().hex,
             "review_action": reverse("storefront-stay-review", args=[unit.pk]),
-            # UA4-1 slice C: секции детали, скрытые в билдере (description/amenities/reviews/similar).
-            "detail_hidden": siteconfig.detail_section_hidden(_raw, "stays"),
+            # UA4-1 slice C: скрытые секции (совместимость); UA4-2: рендер — через body_sections.
+            "detail_hidden": _hidden,
+            # UA4-2: упорядоченные секции тела (data-driven) + флаг блока «похожие» (detail_wide).
+            "body_sections": body_sections,
+            "show_similar": show_similar,
             "today": today,
             "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
             "von": von,

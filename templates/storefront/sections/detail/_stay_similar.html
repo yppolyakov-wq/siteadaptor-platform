@@ -1,0 +1,16 @@
+{% load i18n %}
+<section class="mt-10" data-sf-section="stay_similar">
+  <h2 class="font-semibold text-lg mb-3">{% trans "Similar rooms" %}</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    {% for s in similar %}
+      <a href="{% url 'storefront-unterkunft-unit' s.pk %}{% if von and bis %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}{% elif embed %}?embed=1{% endif %}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        {% if s.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
+        <div class="p-4">
+          <h3 class="font-medium">{{ s.name }}</h3>
+          <p class="text-sm text-gray-500">{{ s.get_type_display }}</p>
+          <p class="mt-1 text-sm font-semibold">{% blocktrans with p=s.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</p>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
