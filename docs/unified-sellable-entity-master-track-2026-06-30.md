@@ -135,9 +135,12 @@ SellableEntity (presentation protocol):
 
 > **Детальные план-доки по фазам (подзадачи + сравнение + пересечения, docs до кода):**
 > U-A — `docs/unified-sellable-entity-ua-plan-2026-06-30.md`; U-B —
-> `docs/unified-sellable-entity-ub-plan-2026-06-30.md`; **U-C —
-> `docs/unified-sellable-entity-uc-plan-2026-06-30.md`** (реестр страниц + редактор на всех типах +
-> отзывы/JSON-LD/галерея; 13 подзадач UC1-1…UC5-1). U-D/U-E — детализируем следующими.
+> `docs/unified-sellable-entity-ub-plan-2026-06-30.md`; U-C —
+> `docs/unified-sellable-entity-uc-plan-2026-06-30.md` (реестр страниц + редактор на всех типах +
+> отзывы/JSON-LD/галерея; 13 подзадач UC1-1…UC5-1); **U-D —
+> `docs/unified-sellable-entity-ud-plan-2026-06-30.md`** (проекция `Transaction` + Kanban-доска +
+> склад-леджер M10 + SMS-канал; 11 подзадач UD1-1…UD4-2; утверждения адверсариально верифицированы).
+> U-E — детализируем следующей.
 
 ## 5. Риски / границы
 - **Buy-box сложных движков** (availability/слоты/даты/multi-room/line-items) остаётся
