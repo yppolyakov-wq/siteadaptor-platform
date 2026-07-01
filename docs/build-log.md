@@ -3207,3 +3207,13 @@
   адверсариальным воркфлоу (5 Explore-агентов, всё верифицировано против кода). Шаблоны НЕ трогали —
   чистый Python+юниты (шов под UA2-1). Тесты: `apps/core/tests/test_sellable.py` (i18n-оверлей/цена
   free/ab/from/валюта/gallery/mode-label/detail_url/unknown-kind). Гейт: 333 core.
+- **2026-07-01 — UA2-1 (U-A): контракт `SellableEntity` в контексте всех 4 деталей (без миграции).**
+  Разведка показала: **структурная унификация детали УЖЕ сделана M20U** — `product_detail.html`
+  (и stay/event) уже `extends storefront/detail.html` (6 блоков), общий buy-bar `_detail_buybar.html`
+  + тег `{% purchase_label %}` уже разделяют хром. Поэтому «вписать standalone product_detail» —
+  неактуально (сделано). Остаток UA2-1: сделать контракт живым в запросе — `sellable_for(kind,obj)`
+  инъектирован в контекст `product_detail`/`service_detail`/`unterkunft_unit`/`veranstaltung_detail`
+  (promotions/booking/stays/events public_views) как `sellable` — шов, который потребляют UA3-1
+  (buy-box по `purchase_mode`), UA4 (секции) и UA4-4b (JSON-LD). Функция-локальные импорты (без
+  цикла). Гейт: 154 (booking/stays/events/promotions/catalog detail-render) — инъекция не ломает
+  рендер; корректность контракта — `test_sellable.py`. Потребление `sellable` в шаблоне — UA3-1.

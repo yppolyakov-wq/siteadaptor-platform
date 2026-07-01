@@ -276,11 +276,15 @@ def service_detail(request, pk):
     service = get_object_or_404(Service, pk=pk, is_active=True)
     tenant = getattr(request, "tenant", None)
     resources = list(Resource.objects.filter(is_active=True))
+    from apps.core.sellable import sellable_for
+
     return render(
         request,
         "storefront/service_detail.html",
         {
             "service": service,
+            # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
+            "sellable": sellable_for("service", service),
             "resources": resources if len(resources) > 1 else [],
             "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
             "deposit_required": service.deposit_cents > 0

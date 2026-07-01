@@ -267,8 +267,12 @@ def veranstaltung_detail(request, pk):
     ):
         _raw = request.session["site_preview_draft"]
 
+    from apps.core.sellable import sellable_for
+
     ctx = {
         "event": event,
+        # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
+        "sellable": sellable_for("event", event),
         "agenda": _parse_agenda(event.program),  # RV2: тайм-лайн программы
         "extras": extras_engine.active_for("events"),  # #7 доп-услуги
         "accommodation": services.accommodation_options(event),  # R5 типы номеров

@@ -548,12 +548,16 @@ def product_detail(request, pk):
     _cfg = siteconfig.normalize(_raw)
     related_grid = siteconfig.grid_class_string(_cfg["detail_related_layout"])
     from apps.catalog import reviews as product_reviews
+    from apps.core.sellable import sellable_for
 
     return render(
         request,
         "storefront/product_detail.html",
         {
             "product": product,
+            # UA2-1 (U-A): единый контракт продаваемой сущности в контексте детали
+            # (шов для buy-box UA3 / секций UA4 / JSON-LD UA4-4b).
+            "sellable": sellable_for("product", product),
             "related": related,
             "related_grid": related_grid,
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.

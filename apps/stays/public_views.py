@@ -246,11 +246,15 @@ def unterkunft_unit(request, pk):
     similar.sort(key=lambda u: (u.type != unit.type, u.price_cents))
     similar = similar[:3]
 
+    from apps.core.sellable import sellable_for
+
     return _render_embed(
         request,
         "storefront/stay_detail.html",
         {
             "unit": unit,
+            # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
+            "sellable": sellable_for("stay", unit),
             "today": today,
             "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
             "von": von,
