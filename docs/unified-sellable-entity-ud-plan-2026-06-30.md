@@ -96,10 +96,13 @@ embedded rooms|quantity / slot без позиций) · шаблон уведо
 `apps/core/transactions.py`: нормализует любую из 6 к контракту (§1); per-kind адаптеры, модели лениво
 (`django_apps.get_model`, как `sellable.py` в UA1-3). Адаптеры **делегируют** метку `instance.get_status_display()`,
 `allowed_actions` = `SM().allowed_targets(status)`; **читают, никогда не пишут** статус. Чистый Python + юниты.
+**⚠️ PR-2/P2 (2026-07-01): контракт `Transaction` несёт `payment_method`** (read-only из модели/null) — фундамент
+E-7 (платёжный микс DACH). Поле `Order.payment_method` (choices) + пикер/Stripe `payment_method_types` — **параллельный
+трек E-7 во время U-D**, миграция в U-D (не после). UD1-1 только ВЫСТАВЛЯЕТ поле в проекции, UI выбора не строит.
 - **Файлы:** `apps/core/transactions.py` (новый); reuse префиксов/URL из `apps/account/account_data.py`, per-app `state_machine.py`.
 - **Критерии:** `transaction_for(kind, obj)` + `TRANSACTION_KINDS`; 6 адаптеров; `allowed_actions`=`allowed_targets`
-  (без дубля переходов); импорт `apps.core` не тянет orders/stays/… на загрузке (lazy).
-- **Тесты:** `apps/core/tests/test_transactions.py` (новый) — по адаптеру на kind + guard «не пишет статус».
+  (без дубля переходов); `payment_method` в контракте (null-safe); импорт `apps.core` не тянет orders/stays/… на загрузке (lazy).
+- **Тесты:** `apps/core/tests/test_transactions.py` (новый) — по адаптеру на kind + guard «не пишет статус» + `payment_method` в проекции.
 
 ### UD1-2 — Обобщить ЛК на протокол · M · без миграции
 Переписать **6 транзакционных** билдеров `account_data.py` (`_orders/_bookings/_stays/_tickets/_jobs/_reservations`)
