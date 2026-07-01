@@ -170,6 +170,8 @@ urlpatterns = [
         booking_public.service_book,
         name="storefront-service-book",
     ),
+    # UA1-1 (E-1): SEO/деталь услуги (описание) → CTA ведёт на слот-пикер выше.
+    path("leistung/<uuid:pk>/", booking_public.service_detail, name="storefront-service-detail"),
     path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
     # A3: онлайн-продажа Mehrfachkarte.
     path("karten/", booking_public.karten, name="storefront-karten"),

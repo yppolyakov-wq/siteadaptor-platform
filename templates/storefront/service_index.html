@@ -8,7 +8,11 @@
 
 <div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
   {% for s in services %}
-    <a href="{% url 'storefront-service-slots' s.pk %}{% if embed %}?embed=1{% endif %}" class="relative block bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
+    {% if embed %}
+    <a href="{% url 'storefront-service-slots' s.pk %}?embed=1" class="relative block bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
+    {% else %}
+    <a href="{% url 'storefront-service-detail' s.pk %}" class="relative block bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
+    {% endif %}
       <span data-photo-edit data-edit-model="service" data-edit-pk="{{ s.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
       {% if s.image_url %}<img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover">{% endif %}
       <div class="p-5">
