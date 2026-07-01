@@ -51,6 +51,32 @@ class I18nMixin:
                 return v
         return ""
 
+    def get_overlay(self, base_field: str, overlay_field: str, locale: str | None = None) -> str:
+        """L3 (Волна L): значение по схеме «база + оверлей» для моделей, где базовая
+        локаль живёт в ПЛОСКОМ поле (`base_field`), а переводы неосновных локалей — в
+        JSONField-оверлее (`overlay_field` = {locale: str}). Базовая локаль
+        (`settings.LANGUAGE_CODE`) ВСЕГДА берётся из плоского поля (source of truth,
+        без дрейфа); прочие — из оверлея, с фолбэком на базу. Так модель несёт i18n,
+        не ломая существующий доступ к плоскому полю."""
+        locale = locale or get_language() or settings.LANGUAGE_CODE
+        if locale != settings.LANGUAGE_CODE:
+            overlay = getattr(self, overlay_field, None)
+            if isinstance(overlay, dict) and overlay.get(locale):
+                return overlay[locale]
+        return getattr(self, base_field, "") or ""
+
+    def i18n_full(
+        self, base_field: str, overlay_field: str, base_locale: str | None = None
+    ) -> dict:
+        """Полный словарь {locale: str} = база (плоское поле) + оверлей неосновных
+        локалей. Единый вид для адаптера SellableEntity (U-A) — читать i18n всех kind
+        единообразно. База всегда авторитетна из плоского поля."""
+        base_locale = base_locale or settings.LANGUAGE_CODE
+        overlay = getattr(self, overlay_field, None)
+        out = {k: v for k, v in overlay.items() if v} if isinstance(overlay, dict) else {}
+        out[base_locale] = getattr(self, base_field, "") or ""
+        return out
+
 
 class SoftDeleteQuerySet(models.QuerySet):
     def alive(self):

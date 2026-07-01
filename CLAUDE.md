@@ -78,10 +78,14 @@ Python 3.12, менеджер uv.
   (`Tenant.active_locales`-резолвер, `set_language` валидирует по включённым локалям, оверлей витрины
   генерик по `settings.LANGUAGES`, переключатель шапки — N кнопок). **L2 ✅** — кабинет «Sprachen»
   (`/dashboard/settings/languages/`: чекбоксы языков реестра + дефолт → `enabled_locales`/`default_locale`).
-  Обе без миграции. Решения владельца S-1(a)/S-2(b LegalDoc)/S-3(реестр DE+EN). SOURCE OF TRUTH этапа —
+  Обе без миграции. **L3-модель ✅** — i18n на `Service`/`StayUnit` (`name_i18n`/`description_i18n`,
+  overlay-семантика: база в плоском поле, переводы в оверлее; `I18nMixin.get_overlay`/`i18n_full`;
+  миграции `booking/0011`+`stays/0020`, чистый AddField) — фундамент адаптера U-A. Решения владельца
+  S-1(a)/S-2(b LegalDoc)/S-3(реестр DE+EN). SOURCE OF TRUTH этапа —
   `docs/unified-sellable-entity-master-track-2026-06-30.md §4` (очередь волн) + `docs/multilanguage-wave-L-plan-2026-07-01.md`.
-- Самые свежие миграции: `stays/0014–0019` + `promotions/0018` (этап витрины/UX + L1 миграций НЕ
-  добавлял). Полный список — в build-log.
+- Самые свежие миграции: `booking/0011` + `stays/0020` (L3-модель i18n Service/StayUnit); ранее
+  `stays/0014–0019` + `promotions/0018` (этап витрины/UX; L1/L2 миграций НЕ добавляли). Полный
+  список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
@@ -186,9 +190,10 @@ Python 3.12, менеджер uv.
 Порядок: **Волна L (мультиязычность)** → **U-A** (адаптер SellableEntity) → U-B → U-C → U-D → U-E.
 Решения владельца зафиксированы — `docs/unified-sellable-entity-decisions-2026-06-30.md` (A/B/C),
 приоритеты — `…-priority-review-2026-07-01.md` (P/PR), план L — `docs/multilanguage-wave-L-plan-2026-07-01.md`.
-**Статус Волны L:** L1 ✅ (рантайм-биндинг), L2 ✅ (кабинет «Sprachen»). Дальше: L3 (i18n
-Service/Stay, миграция; ∥ U-A) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5 (правовое i18n+AGB
-через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр остаётся DE+EN — S-3).
+**Статус Волны L:** L1 ✅ (рантайм-биндинг), L2 ✅ (кабинет «Sprachen»), **L3-модель ✅** (i18n
+`Service`/`StayUnit`, overlay + миграции). Дальше: **L3c** (per-locale инпут форм/редактора + засев
+демо + рендер витрины `*_localized` — идёт с UA1-3) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5
+(правовое i18n+AGB через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр DE+EN).
 
 **🔎 Аудит наполненности архетипов + план доработок (2026-06-30) —
 `docs/archetype-completeness-audit-2026-06-30.md`.** Проверены 9 китов (демо/функ-

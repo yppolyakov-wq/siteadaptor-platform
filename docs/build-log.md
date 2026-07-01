@@ -3159,3 +3159,16 @@
   без правки кода). Решения владельца зафиксированы: S-1(a) кабинет тоже мультиязычный (L4),
   S-2(b) правовое — отдельная модель `LegalDoc` (L5), S-3 реестр DE+EN (языки по запросу). Тесты:
   `apps/core/tests/test_languages_cabinet.py` (GET/сохранение/инвариант дефолта/пустой/фильтр/порядок).
+- **2026-07-01 — Волна L / L3-модель: i18n на `Service` и `StayUnit` (миграция).** i18n-фундамент
+  для адаптера SellableEntity (U-A / UA1-3): `booking.Service` и `stays.StayUnit` получили поля
+  `name_i18n`/`description_i18n` (JSONField) + `I18nMixin`. **Overlay-семантика** (осознанное
+  уточнение плана vs «бэкфилл {de:…}»): базовая локаль остаётся в ПЛОСКИХ `name`/`description`
+  (source of truth, БЕЗ дрейфа и без риска RunPython по схемам тенантов), а `*_i18n` хранит только
+  переводы НЕОСНОВНЫХ локалей — как оверлей site_config. Аксессоры на `I18nMixin` (переиспользуемо):
+  `get_overlay(base, overlay, locale)` (база из плоского поля для `LANGUAGE_CODE`, иначе оверлей→фолбэк
+  на базу) и `i18n_full(base, overlay)` (полный словарь база+оверлей — единый вид для адаптера всех 5
+  kind). Модели отдают `name_localized()`/`description_localized()` + свойства `*_i18n_full`. Миграции
+  `booking/0011`, `stays/0020` — чистый AddField (default=dict), без RunPython/потерь. Витрину/формы
+  НЕ трогали (рендер и per-locale-редактирование — L3c/UA1-3, чтобы избежать рассинхрона базы). Тесты:
+  `apps/booking/tests/test_service_i18n.py` + `apps/stays/tests/test_stayunit_i18n.py` (overlay/фолбэк/
+  база-всегда-плоская/full-словарь/safety). Гейт: 331 core+i18n на свежей БД зелёные.

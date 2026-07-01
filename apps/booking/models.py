@@ -10,7 +10,7 @@
 from django.db import models
 from django.utils import timezone
 
-from apps.core.models import TimestampedModel
+from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
 
@@ -58,7 +58,7 @@ class Resource(TimestampedModel):
         return self.photo.get("url", "") if isinstance(self.photo, dict) else ""
 
 
-class Service(TimestampedModel):
+class Service(I18nMixin, TimestampedModel):
     """Услуга с ценой и длительностью (G10): «Ölwechsel — 30 мин, 49 €».
 
     Бизнес-уровень: бронируется на любом свободном ресурсе под её длительность
@@ -68,6 +68,11 @@ class Service(TimestampedModel):
     name = models.CharField(max_length=120)
     # A3: описание услуги («что входит») — богатая карточка на витрине; пусто = не показываем.
     description = models.TextField(blank=True)
+    # L3 (Волна L): переводы имени/описания на НЕОСНОВНЫЕ локали (оверлей
+    # {locale: str}). Базовая локаль — в плоских name/description (source of truth,
+    # без дрейфа). Аксессоры *_localized / *_i18n_full — через I18nMixin.
+    name_i18n = models.JSONField(default=dict, blank=True)
+    description_i18n = models.JSONField(default=dict, blank=True)
     # A3: фото услуги (FileRef-конверт {url, alt, …}, как обложка) — богатая карточка;
     # пусто = карточка без фото (как раньше).
     image = models.JSONField(default=dict, blank=True)
@@ -81,6 +86,24 @@ class Service(TimestampedModel):
 
     def __str__(self):
         return self.name
+
+    def name_localized(self, locale: str | None = None) -> str:
+        """L3: имя услуги на локали (перевод из name_i18n, иначе базовое name)."""
+        return self.get_overlay("name", "name_i18n", locale)
+
+    def description_localized(self, locale: str | None = None) -> str:
+        """L3: описание услуги на локали (перевод из description_i18n, иначе базовое)."""
+        return self.get_overlay("description", "description_i18n", locale)
+
+    @property
+    def name_i18n_full(self) -> dict:
+        """L3: полный i18n-словарь имени (база + оверлей) — для адаптера U-A."""
+        return self.i18n_full("name", "name_i18n")
+
+    @property
+    def description_i18n_full(self) -> dict:
+        """L3: полный i18n-словарь описания (база + оверлей) — для адаптера U-A."""
+        return self.i18n_full("description", "description_i18n")
 
     @property
     def price_eur(self) -> float:

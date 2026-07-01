@@ -10,7 +10,7 @@ Stripe-Connect-оплату (P2.5b/c), finance, notifications и реестр м
 
 from django.db import models
 
-from apps.core.models import TimestampedModel
+from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
 # H3: каталог удобств номера (key, метка DE, эмодзи) — чек-лист на юните,
@@ -37,7 +37,7 @@ _AMENITY_LABELS = {key: (label, icon) for key, label, icon in AMENITIES}
 _AMENITY_KEYS = {key for key, _l, _i in AMENITIES}
 
 
-class StayUnit(TimestampedModel):
+class StayUnit(I18nMixin, TimestampedModel):
     """Тип размещения. ``quantity`` — сколько идентичных юнитов этого типа
     доступно за ночь (анти-овербукинг пускает, пока занятость ночи < quantity).
     Ferienwohnung/Ferienhaus = 1, «Doppelzimmer ×3» = 3."""
@@ -58,6 +58,11 @@ class StayUnit(TimestampedModel):
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=20, choices=TYPES, default=TYPE_ROOM)
     description = models.TextField(blank=True)
+    # L3 (Волна L): переводы имени/описания на НЕОСНОВНЫЕ локали (оверлей
+    # {locale: str}). База — в плоских name/description (source of truth, без
+    # дрейфа). Аксессоры *_localized / *_i18n_full — через I18nMixin.
+    name_i18n = models.JSONField(default=dict, blank=True)
+    description_i18n = models.JSONField(default=dict, blank=True)
     quantity = models.PositiveSmallIntegerField(default=1)
     # Цена за ночь (центы, брутто; Stripe-native). Итого = ночи × price_cents.
     price_cents = models.PositiveIntegerField(default=0)
@@ -86,6 +91,24 @@ class StayUnit(TimestampedModel):
 
     def __str__(self):
         return self.name
+
+    def name_localized(self, locale: str | None = None) -> str:
+        """L3: имя юнита на локали (перевод из name_i18n, иначе базовое name)."""
+        return self.get_overlay("name", "name_i18n", locale)
+
+    def description_localized(self, locale: str | None = None) -> str:
+        """L3: описание юнита на локали (перевод из description_i18n, иначе базовое)."""
+        return self.get_overlay("description", "description_i18n", locale)
+
+    @property
+    def name_i18n_full(self) -> dict:
+        """L3: полный i18n-словарь имени (база + оверлей) — для адаптера U-A."""
+        return self.i18n_full("name", "name_i18n")
+
+    @property
+    def description_i18n_full(self) -> dict:
+        """L3: полный i18n-словарь описания (база + оверлей) — для адаптера U-A."""
+        return self.i18n_full("description", "description_i18n")
 
     @property
     def amenity_badges(self) -> list:
