@@ -3290,3 +3290,10 @@
   +submit+рендер), `test_entity_jsonld` (@type per-kind + AggregateRating + тег), `test_reviews`
   (диспетчер 4 kind). Гейт (`--reuse-db`): 56 passed (reviews+3 kind+jsonld+product-reviews) + 168 passed
   регрессия (booking/stays/events public + seo + catalog storefront), ruff+`manage.py check` чисты.
+  **Багфикс по адверсариальному ревью (тот же инкремент):** (1) HIGH — stored XSS: JSON-LD встраивается в
+  `<script>` через `mark_safe`, а `json.dumps(ensure_ascii=False)` не экранирует `</script>` → имя/описание
+  тенанта с `</script><script>…` вырывалось из блока. Фикс централизован в `core.seo._dumps`
+  (`translate` `< > &` + U+2028/9 → `\uXXXX`, валидный JSON, декодируется обратно; по образцу Django
+  `json_script`) → защищает И существующие `localbusiness_ld`/`offer_ld`. (2) LOW — `stay_review_submit`
+  не вызывал `_require_stays_active` (в отличие от service/event submit) → добавлен гейт модуля.
+  Тесты: XSS-breakout + Http404 при выключенном stays. 95 passed (entity_jsonld + все seo-сьюты + stay).
