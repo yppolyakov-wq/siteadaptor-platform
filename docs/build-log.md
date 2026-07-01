@@ -3172,3 +3172,10 @@
   НЕ трогали (рендер и per-locale-редактирование — L3c/UA1-3, чтобы избежать рассинхрона базы). Тесты:
   `apps/booking/tests/test_service_i18n.py` + `apps/stays/tests/test_stayunit_i18n.py` (overlay/фолбэк/
   база-всегда-плоская/full-словарь/safety). Гейт: 331 core+i18n на свежей БД зелёные.
+- **2026-07-01 — hotfix(prod): CSRF 403 на логине субдомена (`<slug>.siteadaptor.de/accounts/login/`).**
+  `CSRF_TRUSTED_ORIGINS` теперь ЖЁСТКО содержит `https://siteadaptor.de` + `https://*.siteadaptor.de`
+  всегда (env лишь ДОБАВЛЯЕТ, не заменяет) — узкий env-override больше не роняет CSRF на субдоменах.
+  `CsrfViewMiddleware` кэширует список на init (в отличие от ALLOWED_HOSTS, динамически не дополнить),
+  поэтому базовые origin'ы фиксируем в коде. Диагностика: точную причину CSRF Django пишет в лог
+  `django.security.csrf` (WARNING, виден в stdout контейнера) — «Origin checking failed…» / «CSRF
+  cookie not set» и т.п. Только `config/settings/production.py` (CI гоняет test.py — не затрагивается).

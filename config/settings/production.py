@@ -8,11 +8,20 @@ from .base import env
 DEBUG = False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
-# CSRF: Django требует доверенные origins для HTTPS-POST. Берём из env, по
-# умолчанию — главный домен и все субдомены арендаторов.
-CSRF_TRUSTED_ORIGINS = env.list(
-    "CSRF_TRUSTED_ORIGINS",
-    default=["https://siteadaptor.de", "https://*.siteadaptor.de"],
+# CSRF: Django требует доверенные origins для HTTPS-POST. Платформенный домен и
+# ВСЕ субдомены арендаторов (`*.siteadaptor.de`) трастим ВСЕГДА — даже при узком
+# env-override — иначе логин/формы на субдомене отдают 403 CSRF. `CsrfViewMiddleware`
+# кэширует список на инициализации (динамически, как ALLOWED_HOSTS, дополнить нельзя),
+# поэтому базовые origin'ы жёстко в коде, а env лишь ДОБАВЛЯЕТ (напр. кастомные
+# домены арендаторов, у которых CSRF держится на совпадении Origin==Host).
+CSRF_TRUSTED_ORIGINS = list(
+    dict.fromkeys(
+        [
+            "https://siteadaptor.de",
+            "https://*.siteadaptor.de",
+            *env.list("CSRF_TRUSTED_ORIGINS", default=[]),
+        ]
+    )
 )
 
 # Security
