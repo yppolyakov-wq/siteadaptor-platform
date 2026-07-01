@@ -62,6 +62,30 @@ def purchase_label(module: str) -> str:
     return PURCHASE_LABELS.get(purchase_mode(module), PURCHASE_LABELS["request"])
 
 
+def primary_service_action(service, tenant) -> str:
+    """UA3-1 (решение 2): основное действие на детали услуги — `booking` (бронь
+    слота) или `request` (Anfrage/смета, A7/A9 Handwerker/Werkstatt).
+
+    Приоритет override: поле `Service.primary_action` (per-service, добавит UA4-3) →
+    `tenant.site_config['primary_service_cta']` (per-tenant, без миграции) → дефолт
+    `booking`. `request` валиден только при активном модуле `jobs` (иначе нет флоу
+    `/anfrage/`) → иначе `booking`. Значение всегда одно из {booking, request}.
+    """
+    choice = ""
+    field = getattr(service, "primary_action", "") or ""
+    if field in ("booking", "request"):
+        choice = field
+    if not choice:
+        cfg = getattr(tenant, "site_config", None)
+        if isinstance(cfg, dict) and cfg.get("primary_service_cta") in ("booking", "request"):
+            choice = cfg["primary_service_cta"]
+    if not choice:
+        choice = "booking"
+    if choice == "request" and not (tenant and tenant.is_module_active("jobs")):
+        choice = "booking"
+    return choice
+
+
 # H0 (архетипы как сущности): секция главной → модуль-архетип, который её «несёт».
 # Секция БЕЗ записи — generic (применима к любому архетипу): hero, usp_bar, promotions,
 # about, process, team, cta, testimonials, trust, reviews, faq, gallery, contact,

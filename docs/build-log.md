@@ -3217,3 +3217,13 @@
   (buy-box по `purchase_mode`), UA4 (секции) и UA4-4b (JSON-LD). Функция-локальные импорты (без
   цикла). Гейт: 154 (booking/stays/events/promotions/catalog detail-render) — инъекция не ломает
   рендер; корректность контракта — `test_sellable.py`. Потребление `sellable` в шаблоне — UA3-1.
+- **2026-07-01 — UA3-1 слайс 1 (U-A, реш.2): override primary-CTA на детали услуги (без миграции).**
+  Резолвер `archetypes.primary_service_action(service, tenant)` → `booking` (бронь слота) | `request`
+  (Anfrage/смета, A7/A9). Приоритет: поле `Service.primary_action` (per-service, добавит UA4-3) →
+  `tenant.site_config['primary_service_cta']` (per-tenant, без миграции) → дефолт `booking`. `request`
+  валиден только при активном `jobs` (иначе нет `/anfrage/` → `booking`). `service_detail` view отдаёт
+  `primary_action`; `service_detail.html` меняет местами primary/secondary кнопки (accent) и подпись
+  мобильного buybar (`module` jobs/booking) по резолверу. Без риска для checkout — только порядок двух
+  ссылок. Тесты: `apps/core/tests/test_primary_action.py` (дефолт/config/jobs-фолбэк/поле>config/
+  инвалид/не-dict) + `test_public.py` (порядок кнопок default vs override). Гейт: resolver+booking public.
+  Дальше UA3-1 слайс 2: extraction `_buybox.html` (диспатч по `purchase_mode`) с паритет-тестами.

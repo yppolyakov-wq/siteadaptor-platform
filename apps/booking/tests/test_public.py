@@ -381,6 +381,35 @@ def test_service_detail_shows_anfrage_only_when_jobs_active():
     assert "/anfrage/" not in body_off
 
 
+def test_service_detail_default_primary_is_booking_slots():
+    """UA3-1: без override primary = бронь слота (в aside слот-ссылка раньше Anfrage)."""
+    service = _service()
+    body = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    aside = body[body.find('id="buchen"') :]  # только колонка действий (не nav)
+    idx_slots = aside.find(f"/termin/leistung/{service.pk}/")
+    idx_anfrage = aside.find("/anfrage/")
+    assert idx_slots != -1 and idx_anfrage != -1
+    assert idx_slots < idx_anfrage  # бронь — первичная (выше Anfrage)
+
+
+def test_service_detail_primary_action_request_override():
+    """UA3-1 (реш.2): tenant override 'request' + jobs → primary = Anfrage (выше слота)."""
+    service = _service()
+    tenant = TenantFactory.build(
+        business_type="cafe", site_config={"primary_service_cta": "request"}
+    )
+    body = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/", tenant=tenant), pk=service.pk
+    ).content.decode()
+    aside = body[body.find('id="buchen"') :]
+    idx_anfrage = aside.find("/anfrage/")
+    idx_slots = aside.find(f"/termin/leistung/{service.pk}/")
+    assert idx_anfrage != -1 and idx_slots != -1
+    assert idx_anfrage < idx_slots  # Anfrage — первичная (выше брони)
+
+
 def test_service_detail_module_gated():
     service = _service()
     tenant = TenantFactory.build(disabled_modules=["booking"])
