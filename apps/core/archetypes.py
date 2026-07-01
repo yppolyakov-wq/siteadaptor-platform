@@ -104,6 +104,11 @@ DETAIL_ENTITIES = (
      {"is_active": True}, ()),
     ("events", "events.Event", "storefront-event", _("Event page"),
      {"status": "published"}, ("starts_at",)),
+    # UA1-2 (U-A): деталь услуги (booking.Service) на каркасе detail.html (UA1-1).
+    # Группа `booking_detail` пока без пер-страничного инспектора → превью падает
+    # в «правь на канве» (как `stays_detail`); реестр секций — UA4-1.
+    ("booking", "booking.Service", "storefront-service-detail", _("Service page"),
+     {"is_active": True}, ("-created_at",)),
 )  # fmt: skip
 
 

@@ -3179,3 +3179,10 @@
   поэтому базовые origin'ы фиксируем в коде. Диагностика: точную причину CSRF Django пишет в лог
   `django.security.csrf` (WARNING, виден в stdout контейнера) — «Origin checking failed…» / «CSRF
   cookie not set» и т.п. Только `config/settings/production.py` (CI гоняет test.py — не затрагивается).
+- **2026-07-01 — UA1-2 (U-A): регистрация детали услуги в превью редактора (без миграции).** Добавлен
+  кортеж `("booking","booking.Service","storefront-service-detail",…,("-created_at",))` в
+  `archetypes.DETAIL_ENTITIES` → `example_detail_pages` (генерик-цикл с гардами `is_module_active`+
+  `NoReverseMatch`) отдаёт деталь услуги (`group="booking_detail"`) в переключателе превью
+  `#home-prev-page` при активном booking + ≥1 активной услуге. `SCOPE_PAGE_KEY` НЕ трогали — группа
+  `booking_detail` падает в «правь на канве» (как `stays_detail`; пер-страничный инспектор — UA4-1).
+  Тесты: `test_preview_pages.py` (услуга в превью + group + исключение неактивной). Гейт: 321 core.

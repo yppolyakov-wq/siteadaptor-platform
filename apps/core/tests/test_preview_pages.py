@@ -77,6 +77,29 @@ def test_example_detail_pages_stay_unit():
     assert reverse("storefront-unterkunft-unit", args=[u.pk]) in urls
 
 
+def test_example_detail_pages_booking_service():
+    """UA1-2: активный booking + услуга → деталь услуги в превью (group booking_detail)."""
+    from apps.booking.models import Service
+
+    tenant = _tenant(slug="pp4b", name="PP4B")
+    s = Service.objects.create(name="Ölwechsel", is_active=True)
+    pages = archetypes.example_detail_pages(tenant)
+    by_url = {p["url"]: p for p in pages}
+    detail_url = reverse("storefront-service-detail", args=[s.pk])
+    assert detail_url in by_url
+    assert by_url[detail_url]["group"] == "booking_detail"
+
+
+def test_example_detail_pages_excludes_inactive_service():
+    """Неактивная услуга (is_active=False) не попадает в превью-детали."""
+    from apps.booking.models import Service
+
+    tenant = _tenant(slug="pp4c", name="PP4C")
+    s = Service.objects.create(name="Alt", is_active=False)
+    urls = [pg["url"] for pg in archetypes.example_detail_pages(tenant)]
+    assert reverse("storefront-service-detail", args=[s.pk]) not in urls
+
+
 def test_disabled_archetype_excluded_from_detail_pages():
     """Выключенный архетип не даёт детали-страницы, даже если объект есть."""
     from apps.stays.models import StayUnit
