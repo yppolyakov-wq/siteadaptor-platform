@@ -54,14 +54,16 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
 {% endblock %}
 
 {% block detail_body %}
-{% if service.description %}
+{% comment %}UA4-1 slice C: секции детали (description/attributes/faq/team/reviews) можно
+   скрыть в билдере → detail_hidden. Content-гейты сохранены (пустое не показываем).{% endcomment %}
+{% if 'description' not in detail_hidden and service.description %}
 <div class="mt-8">
   <h2 class="text-lg font-semibold mb-2">{% trans "About this service" %}</h2>
   <p class="text-gray-600 whitespace-pre-line" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="description">{{ service.description_localized }}</p>
 </div>
 {% endif %}
 {% comment %}UA4-3: богатая карточка — атрибуты (спецификации/фичи) + FAQ. Пусто → секция скрыта.{% endcomment %}
-{% if service.attributes_list %}
+{% if 'attributes' not in detail_hidden and service.attributes_list %}
 <div class="mt-8" data-sf-section="service_attributes">
   <h2 class="text-lg font-semibold mb-2">{% trans "Details" %}</h2>
   <ul class="space-y-1.5 text-gray-600">
@@ -71,7 +73,7 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
   </ul>
 </div>
 {% endif %}
-{% if service.faq_list %}
+{% if 'faq' not in detail_hidden and service.faq_list %}
 <div class="mt-8" data-sf-section="service_faq">
   <h2 class="text-lg font-semibold mb-3">{% trans "Frequently asked questions" %}</h2>
   <div class="space-y-2">
@@ -84,8 +86,8 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
   </div>
 </div>
 {% endif %}
-{% if resources %}
-<div class="mt-8">
+{% if 'team' not in detail_hidden and resources %}
+<div class="mt-8" data-sf-section="service_team">
   <h2 class="text-lg font-semibold mb-3">{% trans "Our team" %}</h2>
   <div class="flex flex-wrap gap-3">
     {% for r in resources %}
@@ -97,8 +99,8 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
   </div>
 </div>
 {% endif %}
-{# UA4-4b: отзывы об услуге (verified customer) #}
-{% include "storefront/_entity_reviews.html" %}
+{# UA4-4b: отзывы об услуге (verified customer); UA4-1 slice C: скрываемо в билдере #}
+{% if 'reviews' not in detail_hidden %}{% include "storefront/_entity_reviews.html" %}{% endif %}
 {% endblock %}
 
 {% block detail_buybar %}

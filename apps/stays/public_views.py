@@ -249,6 +249,14 @@ def unterkunft_unit(request, pk):
 
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
+    from apps.tenants import siteconfig
+
+    # UA4-1 slice C: скрытые секции детали номера (билдер) — под ?preview=1 из черновика.
+    _raw = getattr(request.tenant, "site_config", {}) or {}
+    if request.GET.get("preview") == "1" and isinstance(
+        request.session.get("site_preview_draft"), dict
+    ):
+        _raw = request.session["site_preview_draft"]
 
     return _render_embed(
         request,
@@ -262,6 +270,8 @@ def unterkunft_unit(request, pk):
             "review_summary": review_services.summary("stay", unit.pk),
             "review_form_token": uuid.uuid4().hex,
             "review_action": reverse("storefront-stay-review", args=[unit.pk]),
+            # UA4-1 slice C: секции детали, скрытые в билдере (description/amenities/reviews/similar).
+            "detail_hidden": siteconfig.detail_section_hidden(_raw, "stays"),
             "today": today,
             "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
             "von": von,

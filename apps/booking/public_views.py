@@ -280,6 +280,14 @@ def service_detail(request, pk):
     from apps.core import archetypes
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
+    from apps.tenants import siteconfig
+
+    # UA4-1 slice C: скрытые секции детали услуги (билдер) — под ?preview=1 из черновика.
+    _raw = getattr(request.tenant, "site_config", {}) or {}
+    if request.GET.get("preview") == "1" and isinstance(
+        request.session.get("site_preview_draft"), dict
+    ):
+        _raw = request.session["site_preview_draft"]
 
     return render(
         request,
@@ -300,6 +308,8 @@ def service_detail(request, pk):
             "review_summary": review_services.summary("service", service.pk),
             "review_form_token": uuid.uuid4().hex,
             "review_action": reverse("storefront-service-review", args=[service.pk]),
+            # UA4-1 slice C: секции детали, скрытые в билдере (description/attributes/faq/team/reviews).
+            "detail_hidden": siteconfig.detail_section_hidden(_raw, "booking"),
         },
     )
 
