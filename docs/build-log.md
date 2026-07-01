@@ -3269,3 +3269,24 @@
   потерь/поля/verified/таймстемпы/идемпотентность, агрегаты, fail-closed) + обновлены
   `test_product_reviews`/`test_storefront`/`test_demo_kits` на generic-модель. Гейт (`--create-db`):
   99 passed (reviews + catalog product-reviews/storefront + demo_kits), `manage.py check` чист.
+- **2026-07-01 — UA4-4b (U-A): верифицированные отзывы на Service/Stay/Event через generic-модель +
+  per-entity JSON-LD.** Расширил generic-отзывы (UA4-4a) на услугу/номер/событие + богатый rich-snippet.
+  **Верификация покупателя (per-kind, fail-closed):** `booking.reviews.has_booked` (неотменённая
+  `Booking` услуги по e-mail), `stays.reviews.has_stayed` (`StayBooking` юнита), `events.reviews.has_ticket`
+  (`Ticket` события) — учитывают fulfilled/attended (был клиентом), исключают cancelled/no_show; любая
+  ошибка → False. Диспетчер `reviews.services._verifier_for` теперь связывает product/service/stay/event
+  → верификатор (неизвестный kind → None → отзыв запрещён). **Единый приём формы** —
+  `reviews.submit.handle_review_submit` (rate-limit по IP → парсинг/валидация → per-kind верификация →
+  `update_or_create` в `Review`), общий для 3 сущностей. Детальные вьюхи (`service_detail`,
+  `unterkunft_unit`, `veranstaltung_detail`) инжектят `reviews`/`review_summary`/`review_form_token`/
+  `review_action`; +3 submit-вьюхи и маршрута (`{leistung|unterkunft|veranstaltung}/<pk>/bewerten/`).
+  **Витрина:** новый партиал `templates/storefront/_entity_reviews.html` (сводка рейтинга + список +
+  форма отзыва, зеркалит секцию товара; под UA4-1 сведутся) включён в service/stay/event detail.
+  **JSON-LD (T6):** `core.seo.entity_ld` строит schema.org из КОНТРАКТА `SellableEntity`
+  (@type Product/Service/Event/LodgingBusiness по kind) + `AggregateRating` из generic-summary; тег
+  `entity_jsonld` + `{% entity_jsonld sellable review_summary %}` в `detail.html` → per-entity JSON-LD
+  со звёздами на ВСЕХ детальных страницах разом (в т.ч. товар, у которого раньше per-entity JSON-LD не
+  было). Без миграций. Тесты: `test_service_reviews`/`test_stay_reviews`/`test_event_reviews` (верификаторы
+  +submit+рендер), `test_entity_jsonld` (@type per-kind + AggregateRating + тег), `test_reviews`
+  (диспетчер 4 kind). Гейт (`--reuse-db`): 56 passed (reviews+3 kind+jsonld+product-reviews) + 168 passed
+  регрессия (booking/stays/events public + seo + catalog storefront), ruff+`manage.py check` чисты.

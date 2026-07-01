@@ -87,8 +87,12 @@ Python 3.12, менеджер uv.
   **UA3-1** (override primary-CTA услуги), **UA4-3** (богатая карточка услуги: attributes+FAQ+primary_action),
   **L3c-рендер** (`*_localized` на витрине Service/StayUnit), **UA4-4a** ✅ — generic-модель отзыва
   `reviews.Review` (`entity_kind`+`entity_id`) + data-migration из `catalog.ProductReview` + product
-  переключён на generic (список/деталь/submit/демо); per-kind верификатор fail-closed. Дальше по очереди:
-  **UA4-4b** (отзывы+JSON-LD на Service/Stay/Event через generic), UA4-1 (реестр секций детали).
+  переключён на generic (список/деталь/submit/демо); per-kind верификатор fail-closed. **UA4-4b** ✅ —
+  верифиц. отзывы на Service/Stay/Event через generic (per-kind `has_booked`/`has_stayed`/`has_ticket`
+  fail-closed, единый `reviews.submit`, партиал `_entity_reviews.html`) + **per-entity JSON-LD** из
+  контракта `SellableEntity` (`core.seo.entity_ld`+`entity_jsonld` в `detail.html`: @type
+  Product/Service/Event/LodgingBusiness + AggregateRating на всех детальных). Дальше по очереди:
+  **UA4-1** (единый реестр секций детали) → UA4-2 (data-driven рендер секций).
 - Самые свежие миграции: `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
   ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
   (L3-модель i18n Service/StayUnit); ещё ранее `stays/0014–0019` + `promotions/0018` (этап витрины/UX;
