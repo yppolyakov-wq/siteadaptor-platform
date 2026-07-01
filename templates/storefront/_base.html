@@ -83,12 +83,15 @@
           {# P5c: переключатель тёмной темы (иконка проставляется скриптом ниже). #}
           <button id="sf-theme-toggle" type="button" aria-label="{% trans 'Toggle dark mode' %}" aria-pressed="false"
                   class="text-lg leading-none w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100">🌙</button>
+          {% if storefront_locales|length > 1 %}
+          {# L1: N-locale переключатель — цикл по active_locales тенанта. #}
           <nav aria-label="{% trans 'Language' %}" class="text-sm flex items-center gap-1">
-            <a href="{% url 'storefront-set-language' %}?lang=de&next={{ request.get_full_path|urlencode }}"
-               class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'de' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="de">DE</a>
-            <a href="{% url 'storefront-set-language' %}?lang=en&next={{ request.get_full_path|urlencode }}"
-               class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == 'en' %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="en">EN</a>
+            {% for loc in storefront_locales %}
+            <a href="{% url 'storefront-set-language' %}?lang={{ loc.code }}&next={{ request.get_full_path|urlencode }}"
+               class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == loc.code %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="{{ loc.code }}">{{ loc.label }}</a>
+            {% endfor %}
           </nav>
+          {% endif %}
           {% if storefront_account_enabled %}
             <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900" aria-label="{% trans 'My account' %}">👤 <span>{% trans "Account" %}</span></a>
           {% endif %}

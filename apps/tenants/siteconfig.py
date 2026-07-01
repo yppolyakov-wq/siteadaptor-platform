@@ -975,22 +975,34 @@ def default_sections() -> list[dict]:
     return [{"key": key, "enabled": enabled} for key, _label, enabled in SECTIONS]
 
 
-# --- i18n (двуязычная витрина): платформенный механизм, переводы — у тенанта ---
-# Базовая локаль site_config — немецкий (значения-строки, как раньше). Переводы
-# других локалей живут оверлеем config["i18n"][locale] = {<зеркало текстовых полей>}
-# и накладываются `localize()` перед рендером. Механизм есть у каждого тенанта;
-# реальные переводы пока сидятся только демо-китом (pranasy). Базовый рендер (DE)
-# не меняется — нулевой риск регрессий для существующих витрин.
-OVERLAY_LOCALES = ("en",)
+# --- i18n (мультиязычная витрина): платформенный механизм, переводы — у тенанта -
+# Базовая локаль site_config — `LANGUAGE_CODE` (немецкий): значения-строки, как
+# раньше. Переводы других локалей живут оверлеем config["i18n"][locale] =
+# {<зеркало текстовых полей>} и накладываются `localize()` перед рендером. Механизм
+# есть у каждого тенанта. Базовый рендер (DE) не меняется — нулевой риск регрессий.
+#
+# L1 (Волна L): множество оверлей-локалей — ГЕНЕРИК по реестру `settings.LANGUAGES`
+# (все языки платформы, кроме базовой), а НЕ захардкоженный ("en",). Добавить язык
+# в систему = добавить локаль в `settings.LANGUAGES` (+ `.po/.mo`), без правки этого
+# кода. `normalize()` — tenant-free (десятки вызовов), поэтому фильтруем по реестру;
+# per-tenant «какие из них показывать» решает `Tenant.active_locales` (переключатель/
+# set_language). Данные оверлея переживают выключение локали у тенанта.
+def overlay_locales() -> set[str]:
+    """Локали-оверлеи = все языки реестра, кроме базовой (`LANGUAGE_CODE` хранится
+    как базовые строки site_config, оверлеить её незачем)."""
+    from django.conf import settings
+
+    return {code for code, _label in settings.LANGUAGES} - {settings.LANGUAGE_CODE}
 
 
 def _clean_i18n(raw) -> dict:
-    """Оставить только оверлеи поддерживаемых локалей (dict→dict). Структуру
-    оверлея не валидируем строго — `localize` накладывает лишь совпадающие
+    """Оставить только оверлеи поддерживаемых (реестром) локалей (dict→dict).
+    Структуру оверлея не валидируем строго — `localize` накладывает лишь совпадающие
     по форме поля (см. `_deep_overlay`)."""
     if not isinstance(raw, dict):
         return {}
-    return {loc: ov for loc, ov in raw.items() if loc in OVERLAY_LOCALES and isinstance(ov, dict)}
+    allowed = overlay_locales()
+    return {loc: ov for loc, ov in raw.items() if loc in allowed and isinstance(ov, dict)}
 
 
 def _deep_overlay(base: dict, ov: dict) -> None:

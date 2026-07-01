@@ -177,6 +177,30 @@ class Tenant(TenantMixin):
 
         return modules.active_modules(self)
 
+    # --- локали витрины (Волна L / L1, N-locale) ------------------------
+
+    @property
+    def active_locales(self) -> list[str]:
+        """Резолвер «какие языки показывает этот тенант» — единый источник для
+        витрины, оверлея, переключателя и (позже) кабинета.
+
+        Пересечение включённых владельцем локалей (`enabled_locales`) с системным
+        реестром `settings.LANGUAGES` (какие языки в платформе вообще есть) —
+        генерик по N локалям, без хардкода DE/EN. Порядок — как во включённых;
+        дубли схлопываются. Пустой/битый `enabled_locales` → фолбэк
+        `[default_locale]` (текущее поведение для легаси-тенантов, без регресса).
+        """
+        from django.conf import settings
+
+        registry = {code for code, _label in settings.LANGUAGES}
+        seen: set[str] = set()
+        out: list[str] = []
+        for loc in self.enabled_locales or []:
+            if isinstance(loc, str) and loc in registry and loc not in seen:
+                seen.add(loc)
+                out.append(loc)
+        return out or [self.default_locale]
+
     # --- публичные контакты / право (для витрины) -----------------------
 
     @property

@@ -176,6 +176,10 @@ def modules_nav(request):
         for m in _active
         for it in m.nav_items
     ][:4]
+    # L1 (Волна L): языки переключателя витрины — по `active_locales` тенанта (N
+    # локалей, генерик). Метка — короткий код (DE/EN/…); переключатель скрывается
+    # при одной локали (шаблон). Активный язык шаблон берёт из request.LANGUAGE_CODE.
+    storefront_locales = [{"code": code, "label": code.upper()} for code in tenant.active_locales]
     return {
         "nav_modules": _active,
         "nav_groups": modules.grouped_active_modules(tenant),  # AB1: сайдбар по задачам
@@ -233,4 +237,6 @@ def modules_nav(request):
         "archetype_cover": archetype_cover,
         # T2a: текущий стол (из ?tisch=, в сессии) — для баннера витрины/checkout.
         "storefront_table": storefront_table,
+        # L1: языки переключателя витрины (по active_locales тенанта, N локалей).
+        "storefront_locales": storefront_locales,
     }

@@ -3124,3 +3124,27 @@
   существующим механизмом (портал, без новой поверхности отзыва — переиспользует модерацию
   портала). Без миграции/JS. Тесты: URL портала/пусто-без-портала/рендер строки отзыва (73 jobs).
   **Внутренний бэклог F закрыт полностью.**
+- **2026-07-01 — интеграция ветки планирования nifty-einstein в рабочую линию.** Смёржена
+  `claude/nifty-einstein-ix6huq` (планы «единого слоя продаваемой сущности»: market-gap A1–A9,
+  `unified-sellable-entity` master-track/U-A…U-E/decisions/priority-review, план **Волны L**
+  мультиязычности) + код **UA1-1** (страница-деталь услуги `service_detail.html` на каркасе
+  detail.html) + fix теста booking slots (`DAY = today+7`). FF был невозможен (main ушёл вперёд
+  на 20 коммитов A-серии) → merge-коммит. Конфликт `service_index.html` разрешён: в embed-режиме
+  (A4 iframe-виджет) карточка услуги ведёт прямо на слот-пикер (`?embed=1`, т.к. `service_detail`
+  не поддерживает embed), в обычном режиме — на новую детальную. Досверка авто-мержа: вернул
+  `date` в импорт `test_public.py` (fix теста убрал его, а A3-тест `_slot_month` его использует).
+  Проверка: 413 booking+tenants зелёные.
+- **2026-07-01 — Волна L / L1: рантайм-биндинг локалей (N-locale, без миграции).** Поля
+  `Tenant.enabled_locales`/`default_locale` (были мертвы) теперь читаются в рантайме. Резолвер
+  `Tenant.active_locales` (property) — единый источник «какие языки показывает тенант»:
+  пересечение `enabled_locales` с реестром `settings.LANGUAGES`, фолбэк `[default_locale]` при
+  пустом (легаси — без регресса). Генерик по N локалям: добавить язык = добавить в
+  `settings.LANGUAGES` (+`.po/.mo`), без правки кода. `set_language` (promotions/public_views)
+  валидирует против `active_locales`, а не всего реестра → нельзя переключиться на невключённый
+  язык (неизвестная/выключенная → `default_locale`). Оверлей витрины (`siteconfig`):
+  `OVERLAY_LOCALES=("en",)` → функция `overlay_locales()` (реестр минус базовая) — `_clean_i18n`
+  хранит оверлеи любой реестр-локали, не только EN; `normalize` остаётся tenant-free (десятки
+  вызовов), per-tenant-гейтинг — в `active_locales`. Переключатель шапки (`_base.html`) — цикл по
+  контексту `storefront_locales` (N кнопок, скрыт при 1 локали) вместо 2 захардкоженных DE/EN.
+  Тесты: `apps/tenants/tests/test_locale.py` (active_locales/фолбэк/дедуп/3-я локаль,
+  set_language-валидация, оверлей на FR, контекст `storefront_locales`). Без миграции/JS.

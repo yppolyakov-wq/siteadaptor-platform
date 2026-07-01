@@ -619,10 +619,23 @@ def promotion_detail(request, pk):
 
 
 def set_language(request):
-    """Переключатель языка витрины: ставит cookie, LocaleMiddleware подхватит."""
-    lang = request.GET.get("lang", settings.LANGUAGE_CODE)
-    if lang not in dict(settings.LANGUAGES):
-        lang = settings.LANGUAGE_CODE
+    """Переключатель языка витрины: ставит cookie, LocaleMiddleware подхватит.
+
+    L1 (Волна L): валидируем против `tenant.active_locales` (включённые владельцем
+    локали этого тенанта), а не всего реестра `settings.LANGUAGES` — нельзя
+    переключиться на язык, который тенант не открыл. Неизвестная/выключенная локаль
+    → `default_locale` тенанта.
+    """
+    tenant = getattr(request, "tenant", None)
+    if tenant is not None:
+        allowed, fallback = tenant.active_locales, tenant.default_locale
+    else:
+        # Вне тенант-контекста (напр. юнит-тест) — валидируем против всего реестра
+        # `settings.LANGUAGES`, как до L1 (нет тенанта → нет per-tenant-ограничения).
+        allowed, fallback = list(dict(settings.LANGUAGES)), settings.LANGUAGE_CODE
+    lang = request.GET.get("lang", "")
+    if lang not in allowed:
+        lang = fallback
     resp = redirect(request.GET.get("next") or reverse("storefront-home"))
     resp.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang, max_age=60 * 60 * 24 * 365)
     return resp
