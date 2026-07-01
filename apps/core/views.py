@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core import detail_sections
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
 from apps.tenants.models import CustomDomain
@@ -1254,10 +1255,11 @@ def home_builder_view(request):
     ed_hidden = set(ed["hidden"])
     ed_seen = set(ed["order"])
     ed_full = ed["order"] + [k for k in siteconfig.EVENT_DETAIL_SECTION_KEYS if k not in ed_seen]
+    _event_labels = detail_sections.section_labels("events")
     event_sections = [
         {
             "key": k,
-            "label": _EVENT_SECTION_LABELS.get(k, k),
+            "label": _event_labels.get(k, k),
             "order": i + 1,
             "visible": k not in ed_hidden,
         }
@@ -1265,8 +1267,9 @@ def home_builder_view(request):
     ]
     # Опц. секции детальной товара (показ/скрытие) для on-canvas инспектора (group=catalog_detail).
     _pd_hidden = set(config["product_detail"]["hidden"])
+    _product_labels = detail_sections.section_labels("catalog")
     product_sections = [
-        {"key": k, "label": _PRODUCT_SECTION_LABELS.get(k, k), "visible": k not in _pd_hidden}
+        {"key": k, "label": _product_labels.get(k, k), "visible": k not in _pd_hidden}
         for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
     ]
     # SE-2c-1: живые категории каталога — для parent-select мини-формы «+ Kategorie».
@@ -1733,31 +1736,8 @@ def sections_view(request):
     )
 
 
-# M20U-4: подписи тематических секций детальной события (для билдера Pages).
-_EVENT_SECTION_LABELS = {
-    "for_whom": _("For whom"),
-    "idea": _("The idea"),
-    "includes": _("What's included"),
-    "program": _("Schedule"),
-    "venue": _("Venue"),
-    "accommodation": _("Accommodation"),
-    "food": _("Food"),
-    "hosts": _("Hosts"),
-    "price": _("Price"),
-    "bring": _("What to bring"),
-    "faq": _("FAQ"),
-    "testimonials": _("Testimonials"),
-    "before_after": _("Before & after"),
-    "certifications": _("Certifications"),
-}
-
-# Подписи опциональных секций детальной товара (билдер, group=catalog_detail).
-_PRODUCT_SECTION_LABELS = {
-    "description": _("Description"),
-    "info": _("Product info (origin/ingredients/allergens)"),
-    "reviews": _("Customer reviews"),
-    "related": _("Related products"),
-}
+# UA4-1: подписи секций детальной (event/product) переехали в единый реестр
+# `apps.core.detail_sections` (KEYS+LABELS вместе); читаются через `section_labels`.
 
 
 @login_required
@@ -1809,10 +1789,11 @@ def pages_view(request):
     ed_hidden = set(ed["hidden"])
     ed_seen = set(ed["order"])
     ed_full = ed["order"] + [k for k in siteconfig.EVENT_DETAIL_SECTION_KEYS if k not in ed_seen]
+    _event_labels = detail_sections.section_labels("events")
     event_sections = [
         {
             "key": k,
-            "label": _EVENT_SECTION_LABELS.get(k, k),
+            "label": _event_labels.get(k, k),
             "order": i + 1,
             "visible": k not in ed_hidden,
         }
