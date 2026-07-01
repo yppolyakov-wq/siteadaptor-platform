@@ -434,6 +434,28 @@ def test_service_detail_no_rich_sections_when_empty():
     assert 'data-sf-section="service_faq"' not in body
 
 
+def test_service_detail_renders_localized_name_en():
+    """L3c: под локалью EN показываем перевод name_i18n; под базой — плоское имя."""
+    from django.utils import translation
+
+    service = _service(
+        name="Ölwechsel",
+        description="Öl + Filter",
+        name_i18n={"en": "Oil change"},
+        description_i18n={"en": "Oil + filter"},
+    )
+    with translation.override("en"):
+        body_en = public_views.service_detail(
+            _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+        ).content.decode()
+    assert "Oil change" in body_en and "Oil + filter" in body_en
+
+    body_de = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    assert "Ölwechsel" in body_de and "Oil change" not in body_de  # база под дефолтом
+
+
 def test_service_detail_module_gated():
     service = _service()
     tenant = TenantFactory.build(disabled_modules=["booking"])

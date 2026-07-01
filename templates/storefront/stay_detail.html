@@ -1,6 +1,6 @@
 {% extends "storefront/detail.html" %}
 {% load i18n seo %}
-{% block title %}{{ unit.name }} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{{ unit.name_localized }} — {{ request.tenant.name }}{% endblock %}
 
 {% block detail_back %}
 <a href="{% url 'storefront-unterkunft' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All accommodation" %}</a>
@@ -16,7 +16,8 @@
 {% block detail_aside %}
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <div>
-    <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="stay" data-edit-pk="{{ unit.pk }}" data-edit-field="name">{{ unit.name }}</h1>
+    {# L3c: локализованное имя номера; инлайн-правка редактирует base-поле. #}
+    <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="stay" data-edit-pk="{{ unit.pk }}" data-edit-field="name">{{ unit.name_localized }}</h1>
     {% comment %}A5: рейтинг бизнеса на странице номера (как Booking/HRS) — звезда +
     среднее + число отзывов; только если отзывы есть.{% endcomment %}
     {% business_rating as br %}
@@ -214,7 +215,7 @@
 {% block detail_body %}
 {# Описание + оснащение (под фото и бронью) #}
 {# H1.2: всегда рендерим (с маркером) — описание правится инлайн на канве, даже пустое. #}
-<p class="text-gray-600 mt-8 mb-6 whitespace-pre-line" data-edit-model="stay" data-edit-pk="{{ unit.pk }}" data-edit-field="description">{{ unit.description }}</p>
+<p class="text-gray-600 mt-8 mb-6 whitespace-pre-line" data-edit-model="stay" data-edit-pk="{{ unit.pk }}" data-edit-field="description">{{ unit.description_localized }}</p>
 
 {# H3: ключевые факты + Ausstattung #}
 {% if unit.area_sqm or unit.bed_type or unit.amenity_badges %}
