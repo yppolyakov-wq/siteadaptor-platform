@@ -150,10 +150,26 @@ def termin_index(request):
     has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
     services_qs = Service.objects.filter(is_active=True)
     if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
+        # UB1-1: раскладка грида услуг из конфига витрины (single source: service_index_layout),
+        # под ?preview=1 — черновик из сессии (on-canvas правка раскладки), как у stay/events.
+        from apps.tenants import siteconfig
+
+        _raw = getattr(request.tenant, "site_config", {}) or {}
+        if request.GET.get("preview") == "1" and isinstance(
+            request.session.get("site_preview_draft"), dict
+        ):
+            _raw = request.session["site_preview_draft"]
+        services_grid = siteconfig.grid_class_string(
+            siteconfig.normalize(_raw)["service_index_layout"]
+        )
         return _render_embed(
             request,
             "storefront/service_index.html",
-            {"services": services_qs, "has_pass_plans": has_pass_plans},
+            {
+                "services": services_qs,
+                "has_pass_plans": has_pass_plans,
+                "services_grid": services_grid,
+            },
             embed,
         )
     resources = Resource.objects.filter(is_active=True)

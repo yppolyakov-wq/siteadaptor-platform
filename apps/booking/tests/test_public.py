@@ -480,3 +480,17 @@ def test_service_detail_inline_edit_anchors_present():
     assert 'data-edit-field="description"' in body
     assert "data-price-edit" in body
     assert "data-photo-edit" in body
+
+
+# --- UB1-1: индекс услуг на едином каркасе listing.html --------------------
+def test_service_index_uses_listing_framework_and_layout():
+    """UB1-1: /termin/ (бизнес услуг) рендерится через listing.html — маркер секции
+    data-sf-section="services" + раскладка настраивается через service_index_layout."""
+    _service()
+    body = public_views.termin_index(_req(path="/termin/")).content.decode()
+    assert 'data-sf-section="services"' in body  # каркас listing + маркер редактора
+    assert "Ölwechsel" in body  # услуга отрендерена
+    # cols3 из конфига → lg:grid-cols-3 (единый layout-движок)
+    req = _req(path="/termin/")
+    req.tenant.site_config = {"service_index_layout": {"preset": "cols3"}}
+    assert "lg:grid-cols-3" in public_views.termin_index(req).content.decode()

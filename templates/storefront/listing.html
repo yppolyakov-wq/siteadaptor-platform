@@ -1,0 +1,18 @@
+{% extends base_template|default:"storefront/_base.html" %}
+{% load i18n siteui %}
+{% comment %}UB1-1: единый каркас страницы-листинга продаваемых сущностей (товар/услуга/
+номер/событие), по образцу detail.html. Наследники заполняют блоки:
+  listing_back      — ссылка «назад» (опц.);
+  listing_header    — заголовок H1 + intro + вторичная CTA;
+  listing_facets    — фасет-бар (категории/поиск/сорт/фильтры) — слот (U-B2);
+  listing_grid      — грид/лист карточек (data-sf-section + пресет раскладки) ИЛИ empty-state;
+  listing_pagination— пагинация (cursor / «View all») — опц.
+Слоты — через {% block %} (наследование шаблонов), не include: наследник отдаёт свою
+разметку (свой QuerySet/фасеты/карточку). Порядок фиксирован каркасом.{% endcomment %}
+{% block content %}
+{% block listing_back %}{% endblock %}
+{% block listing_header %}{% endblock %}
+{% block listing_facets %}{% endblock %}
+{% block listing_grid %}{% endblock %}
+{% block listing_pagination %}{% endblock %}
+{% endblock %}

@@ -1299,6 +1299,11 @@ def normalize(config) -> dict:
     normalized["events_index_layout"] = normalize_layout(
         config.get("events_index_layout"), {"preset": "list"}
     )
+    # UB1-1: раскладка индекса услуг /termin/ (единый каркас listing.html). Дефолт
+    # cols2 = прежний хардкод (без регрессии); cols1/3 → настраивается на канве.
+    normalized["service_index_layout"] = normalize_layout(
+        config.get("service_index_layout"), {"preset": "cols2"}
+    )
     # M20U-4: порядок/видимость тематических секций детальной события.
     normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))
     # Видимость опциональных секций детальной товара (описание/инфо/отзывы/похожие).
