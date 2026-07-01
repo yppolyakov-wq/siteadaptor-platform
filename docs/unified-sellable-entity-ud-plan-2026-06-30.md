@@ -242,17 +242,12 @@ UD4-1 → UD4-2               (параллельная ветка — notificat
 8. **line-item асимметрия (D4).** OrderItem int vs JobLine Decimal; stays/events embedded; booking/reservation без позиций.
    `Transaction` отдаёт `title`+готовый `subtotal_display`, **не** нормализует позиции в v1 → без int/Decimal-конфликта.
 
-## 7. Открытые решения U-D (для владельца)
-- **D1 — Склад-леджер: append-alongside или counter-derived?** (a) *append-only лог РЯДОМ со счётчиком, счётчик — истина,
-  реконсиляция-вью* **(реком.** — не трогает горячие движки, `in_stock`/фасет целы) · (b) счётчик = `sum(delta)` (чище, но
-  переписывает горячий путь + анти-оверселл — большой риск). Реком. (a).
-- **D2 — Кабинет: единый inbox ИЛИ per-app + общая доска?** (a) *оставить per-app (orders/jobs/booking/stays) + добавить
-  `/dashboard/board/` + `_status_actions`* **(реком.** — де-риск) · (b) единый inbox заменяет per-app (крупная UX-миграция + регрессия 5 кабинетов).
-- **D3 — SMS: в U-D4 сейчас ИЛИ отложить (как whatsapp)?** (a) *SMS-адаптер сейчас, фичефлаг дефолт-выкл, opt-in* — закрывает T8/E-8 ·
-  (b) отложить, поднять с whatsapp одной волной. **Владельцу выбрать провайдера** (Twilio/MessageBird/Vonage) + DSGVO-ревью.
-- **D4 — Унификация line-items?** (a) *НЕ унифицировать: проекция отдаёт `title`+`subtotal_display`, форма позиций per-kind*
-  **(реком.** — int/Decimal + embedded делают общую модель дорогой/рискованной) · (b) read-only `LineItem`-протокол поверх разных shape ·
-  (c) полная унификация модели (не реком.). Реком. (a).
+## 7. Открытые решения U-D — ✅ ЗАФИКСИРОВАНО (2026-07-01, см. `…-decisions-2026-06-30.md`)
+- **D1 — Склад-леджер:** ✅ **(a) append-only лог РЯДОМ со счётчиком** (C-5; счётчик — истина, реконсиляция-вью).
+- **D2 — Кабинет:** ✅ **(a) per-app страницы + общая доска `/dashboard/board/`** (C-6).
+- **D3 — SMS:** ⏸️ **ОТЛОЖИТЬ** (B-2) — **UD4-1 снят из волны U-D**, поднять вместе с WhatsApp позже. Остаётся UD4-2
+  (выбор канала email/telegram per-событие). Провайдер (Twilio/MessageBird/Vonage) — решать при подъёме SMS.
+- **D4 — Унификация line-items:** ✅ **(a) НЕ унифицировать** (C-7; проекция отдаёт `title`+`subtotal_display`).
 
 ## 8. Верификация U-D (end-to-end)
 - `uv run ruff check .` + `ruff format --check`; `uv run pytest apps/core apps/orders apps/jobs apps/booking apps/stays
