@@ -294,6 +294,7 @@ def unterkunft_unit(request, pk):
 def stay_review_submit(request, pk):
     """UA4-4b: приём отзыва о номере (только верифицированный гость — есть бронь
     этого юнита по e-mail). Один отзыв на (юнит, email) — повтор обновляет."""
+    _require_stays_active(request)
     unit = get_object_or_404(StayUnit, pk=pk, is_active=True)
     from apps.reviews.submit import handle_review_submit
 

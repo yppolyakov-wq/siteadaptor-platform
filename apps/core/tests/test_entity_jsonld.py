@@ -88,3 +88,15 @@ def test_entity_jsonld_tag_empty_without_sellable():
 
 def test_entity_jsonld_tag_empty_without_request():
     assert entity_jsonld({}, _sellable()) == ""
+
+
+def test_entity_jsonld_escapes_script_breakout():
+    """XSS: имя/описание тенанта с `</script>` не должно вырывать из JSON-LD блока."""
+    request = RequestFactory().get("/x/")
+    payload_name = "Brot</script><script>alert(1)</script>"
+    out = entity_jsonld({"request": request}, _sellable("product", name=payload_name))
+    prefix = '<script type="application/ld+json">'
+    assert out.startswith(prefix) and out.endswith("</script>")
+    inner = out[len(prefix) : -len("</script>")]
+    assert "</script>" not in inner and "<script>" not in inner  # не вырваться из блока
+    assert json.loads(inner)["name"] == payload_name  # но JSON остаётся валидным (декод обратно)

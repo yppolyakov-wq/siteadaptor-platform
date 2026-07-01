@@ -116,3 +116,16 @@ def test_submit_rejected_for_non_guest():
     data = {"author_name": "Fake", "email": "fake@test.de", "rating": "5"}
     public_views.stay_review_submit(_post_req(f"/unterkunft/{u.pk}/bewerten/", data), pk=u.pk)
     assert not Review.objects.filter(entity_kind="stay", entity_id=u.pk).exists()
+
+
+def test_submit_404_when_stays_module_off():
+    """Гейт модуля (как у деталь-вьюхи): при выключенном stays submit → Http404."""
+    from django.http import Http404
+
+    u = _unit()
+    request = RequestFactory().post(f"/unterkunft/{u.pk}/bewerten/", {"rating": "5"})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = TenantFactory.build(disabled_modules=["stays"])  # модуль выключен
+    with pytest.raises(Http404):
+        public_views.stay_review_submit(request, pk=u.pk)

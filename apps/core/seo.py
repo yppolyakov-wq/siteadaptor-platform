@@ -21,8 +21,22 @@ _SCHEMA_TYPES = {
 }
 
 
+# JSON-LD встраивается в <script> через mark_safe → экранируем символы, которыми можно
+# вырваться из блока (`</script>`) или сломать JS-парсер (U+2028/U+2029). Значения
+# остаются валидным JSON (парсер декодирует `<` обратно). По образцу Django
+# `json_script`. Централизованно в `_dumps` → защищает ВСЕ JSON-LD (LocalBusiness/Offer/
+# Product/Service/…), т.к. name/description/title — свободно редактируемые поля тенанта.
+_JSONLD_ESCAPES = {
+    ord("<"): "\\u003c",
+    ord(">"): "\\u003e",
+    ord("&"): "\\u0026",
+    0x2028: "\\u2028",
+    0x2029: "\\u2029",
+}
+
+
 def _dumps(data: dict) -> str:
-    return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":")).translate(_JSONLD_ESCAPES)
 
 
 def localbusiness_ld(
