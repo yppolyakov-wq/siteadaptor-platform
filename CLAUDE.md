@@ -91,8 +91,12 @@ Python 3.12, менеджер uv.
   верифиц. отзывы на Service/Stay/Event через generic (per-kind `has_booked`/`has_stayed`/`has_ticket`
   fail-closed, единый `reviews.submit`, партиал `_entity_reviews.html`) + **per-entity JSON-LD** из
   контракта `SellableEntity` (`core.seo.entity_ld`+`entity_jsonld` в `detail.html`: @type
-  Product/Service/Event/LodgingBusiness + AggregateRating на всех детальных). Дальше по очереди:
-  **UA4-1** (единый реестр секций детали) → UA4-2 (data-driven рендер секций).
+  Product/Service/Event/LodgingBusiness + AggregateRating на всех детальных). **UA4-1** ✅ — единый
+  реестр секций детали `apps/core/detail_sections.py` (Slice A: реестр+LABELS; Slice B: обобщённый
+  нормализатор `siteconfig`, паритет event/product; Slice C: билдер-инспектор + **рабочее скрытие
+  секций** детали услуги/номера end-to-end). **Демо-отзывы** ✅ — `_seed_entity_reviews` (friseur/hotel/
+  retreat: услуги/номера/события по 3 отзыва → секция видна в демо). Дальше: **UA4-2** (data-driven
+  цикл рендера секций вместо per-template if/elif; вход — снапшот-паритет).
 - Самые свежие миграции: `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
   ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
   (L3-модель i18n Service/StayUnit); ещё ранее `stays/0014–0019` + `promotions/0018` (этап витрины/UX;

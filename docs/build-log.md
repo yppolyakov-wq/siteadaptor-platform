@@ -3297,3 +3297,29 @@
   `json_script`) → защищает И существующие `localbusiness_ld`/`offer_ld`. (2) LOW — `stay_review_submit`
   не вызывал `_require_stays_active` (в отличие от service/event submit) → добавлен гейт модуля.
   Тесты: XSS-breakout + Http404 при выключенном stays. 95 passed (entity_jsonld + все seo-сьюты + stay).
+- **2026-07-01 — UA4-1 (U-A): единый реестр секций детали — Slice A/B/C.** **Slice A:** новый
+  `apps/core/detail_sections.py` — единый источник дескрипторов секций детали (`DetailSection`:
+  key+i18n-label+hideable/orderable) для product/event; подписи переехали из `views.py`
+  (`_EVENT_SECTION_LABELS`/`_PRODUCT_SECTION_LABELS` удалены) → инспектор читает `section_labels(module)`.
+  Zero behavior change. **Slice B:** обобщённый нормализатор в `siteconfig.py`
+  (`normalize_detail_sections`/`detail_section_order`/`detail_section_hidden` по module, читают реестр);
+  прежние `normalize_event_detail`/`event_detail_order`/`normalize_product_detail`/`product_detail_hidden`
+  → тонкие обёртки; `EVENT/PRODUCT_DETAIL_SECTION_KEYS` выводятся из реестра (единый источник). Паритет
+  байт-в-байт (параметрический тест). Без цикла импорта (`apps.core.__init__` пуст, `detail_sections`
+  тянет только django). **Slice C (рабочий сквозной срез):** реестр расширен на `booking`
+  (description/attributes/faq/team/reviews) и `stays` (description/amenities/reviews/similar), hide-only;
+  config-ключи `service_detail`/`stay_detail`; `home_builder` рисует инспектор + сохраняет (presence-guard
+  `sd_present`/`std_present`) + live-preview проносит черновик; `site_home.html` SCOPE_PAGE_KEY +2, две
+  page-block, JS-payload; `service_detail`/`unterkunft_unit` инжектят `detail_hidden`, а
+  `service_detail.html`/`stay_detail.html` обёртывают секции `{% if '<key>' not in detail_hidden %}` (у
+  stay amenities — вложенные if: у Django нет скобок) → **тумблер билдера реально скрывает секцию на
+  витрине end-to-end**. Гейты: Slice A/B — 217+318 passed; Slice C — 276 таргетных + 715 широких
+  (`apps/core`+`apps/tenants`) + адверсариальный ревью чист (4 измерения). Хотфикс UA4-4b по пути:
+  многострочный `{# #}` в `detail.html` → `{% comment %}` (CI `test_template_comments`). Миграции нет.
+  Планы — `docs/unified-sellable-entity-ua4-1-plan-2026-07-01.md` (Slice A-D). Дальше UA4-2 (data-driven
+  цикл рендера вместо per-template if/elif).
+- **2026-07-01 — UA4-4b: демо-отзывы на услуги/номера/события.** Generic `_seed_entity_reviews(kit, refs)`
+  засевает `reviews.Review` для service/stay/event по индексам в `refs[services|stay_units|events]` (как
+  `_seed_product_reviews`); `DemoKit` +`service_reviews`/`stay_reviews`/`event_reviews`. Засеяно: friseur
+  (услуги), hotel (номера), retreat (события) — по 3 опубликованных отзыва → секция отзывов UA4-4b на
+  детали видна в демо. Python-only, без миграций. Гейт: 21 `test_demo_kits` + 6 таргетных passed.

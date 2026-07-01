@@ -111,6 +111,34 @@ def test_service_detail_renders_reviews_and_form():
     assert f"/leistung/{s.pk}/bewerten/" in body  # action формы
 
 
+def test_service_detail_section_order_parity():
+    """UA4-2 gate: порядок секций тела детали услуги фиксирован реестром
+    (description → attributes → faq → team → reviews). Замок перед миграцией в цикл."""
+    s = _service()
+    s.attributes = ["Inklusive Material", "Vor-Ort-Service"]
+    s.faq = [{"q": "Wie lange dauert es?", "a": "Etwa 30 Minuten."}]
+    s.save()
+    # team: нужно ≥2 активных ресурса, чтобы секция «Our team» отрендерилась
+    from apps.booking.models import Resource
+
+    Resource.objects.create(name="Anna", capacity=1, is_active=True)
+    Resource.objects.create(name="Ben", capacity=1, is_active=True)
+    Review.objects.create(
+        entity_kind="service", entity_id=s.pk, rating=5, author_name="Kunde", email="k@t.de"
+    )
+    body = public_views.service_detail(_req(path=f"/leistung/{s.pk}/"), pk=s.pk).content.decode()
+    markers = [
+        "About this service",  # description
+        'data-sf-section="service_attributes"',
+        'data-sf-section="service_faq"',
+        'data-sf-section="service_team"',
+        'id="bewertungen"',  # reviews
+    ]
+    positions = [body.find(m) for m in markers]
+    assert all(p >= 0 for p in positions), positions  # все секции присутствуют
+    assert positions == sorted(positions)  # и идут в реестровом порядке
+
+
 def test_service_detail_hides_section_from_builder_config():
     """UA4-1 slice C: скрытие секции «reviews» в билдере убирает её с детали услуги."""
     s = _service()

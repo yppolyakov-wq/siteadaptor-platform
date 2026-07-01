@@ -98,6 +98,31 @@ def test_stay_detail_renders_reviews_and_form():
     assert f"/unterkunft/{u.pk}/bewerten/" in body
 
 
+def test_stay_detail_section_order_parity():
+    """UA4-2 gate: порядок секций тела детали номера фиксирован реестром
+    (description → amenities → reviews → similar). Замок перед миграцией в цикл."""
+    u = _unit(
+        description="Gemütliches Zimmer mit Blick.",
+        area_sqm=28,
+        bed_type="Doppelbett",
+        amenities=["wifi", "tv", "bath"],
+    )
+    _unit(description="Anderes Zimmer.")  # similar: нужен ещё один активный юнит
+    Review.objects.create(
+        entity_kind="stay", entity_id=u.pk, rating=5, author_name="Gast", email="g@t.de"
+    )
+    body = public_views.unterkunft_unit(_req(path=f"/unterkunft/{u.pk}/"), pk=u.pk).content.decode()
+    markers = [
+        "Gemütliches Zimmer mit Blick.",  # description
+        'data-sf-section="stay_amenities"',
+        'id="bewertungen"',  # reviews
+        'data-sf-section="stay_similar"',
+    ]
+    positions = [body.find(m) for m in markers]
+    assert all(p >= 0 for p in positions), positions
+    assert positions == sorted(positions)  # реестровый порядок
+
+
 def test_stay_detail_hides_section_from_builder_config():
     """UA4-1 slice C: скрытие секции «reviews» в билдере убирает её с детали номера."""
     u = _unit()
