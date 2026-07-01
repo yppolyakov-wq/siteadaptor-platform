@@ -3,7 +3,7 @@
 from django import template
 from django.utils.safestring import mark_safe
 
-from apps.core.seo import localbusiness_ld
+from apps.core.seo import entity_ld, localbusiness_ld
 
 register = template.Library()
 
@@ -112,6 +112,30 @@ def storefront_reviews(limit=6):
             }
         )
     return out
+
+
+@register.simple_tag(takes_context=True)
+def entity_jsonld(context, sellable, review_summary=None):
+    """<script ld+json> продаваемой сущности (протокол `SellableEntity`) с
+    AggregateRating из отзывов (UA4-4b). Пусто, если нет sellable/request.
+
+    URL — абсолютный из `sellable.detail_url`. Ошибки гасим (SEO не должен ронять
+    страницу)."""
+    request = context.get("request")
+    if sellable is None or request is None:
+        return ""
+    try:
+        detail_url = getattr(sellable, "detail_url", "") or "/"
+        payload = entity_ld(
+            sellable,
+            url=request.build_absolute_uri(detail_url),
+            review_summary=review_summary,
+        )
+    except Exception:  # noqa: BLE001 — JSON-LD не должен ломать деталь
+        return ""
+    if not payload:
+        return ""
+    return mark_safe(f'<script type="application/ld+json">{payload}</script>')
 
 
 @register.simple_tag(takes_context=True)

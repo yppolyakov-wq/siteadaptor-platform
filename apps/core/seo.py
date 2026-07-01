@@ -143,6 +143,48 @@ def offer_ld(promo, *, url: str, image_url: str = "") -> str:
     return _dumps(data)
 
 
+# UA4-4b: kind продаваемой сущности → тип schema.org (по плану U-A). Отзывы/рейтинг
+# (AggregateRating) добавляются, если у сущности есть опубликованные отзывы.
+_ENTITY_SCHEMA_TYPES = {
+    "product": "Product",
+    "service": "Service",
+    "stay": "LodgingBusiness",
+    "event": "Event",
+}
+
+
+def entity_ld(sellable, *, url: str, review_summary=None, schema_type: str = "") -> str:
+    """JSON-LD продаваемой сущности из протокола `SellableEntity` + AggregateRating
+    из generic-summary отзывов (UA4-4b). Пусто → '' (нет sellable).
+
+    Работает с КОНТРАКТОМ (`kind`/`name`/`description`/`image_url`), не со знанием
+    модели — один helper для товара/услуги/номера/события. `review_summary` —
+    {avg, count} из `apps.reviews.services.summary`; при count>0 добавляем звёзды."""
+    if sellable is None:
+        return ""
+    data = {
+        "@context": "https://schema.org",
+        "@type": schema_type or _ENTITY_SCHEMA_TYPES.get(getattr(sellable, "kind", ""), "Product"),
+        "name": getattr(sellable, "name", "") or "",
+        "url": url,
+    }
+    description = getattr(sellable, "description", "") or ""
+    if description:
+        data["description"] = description
+    image = getattr(sellable, "image_url", "") or ""
+    if image:
+        data["image"] = image
+    if review_summary and review_summary.get("count"):
+        data["aggregateRating"] = {
+            "@type": "AggregateRating",
+            "ratingValue": f"{float(review_summary['avg']):.1f}",
+            "reviewCount": int(review_summary["count"]),
+            "bestRating": "5",
+            "worstRating": "1",
+        }
+    return _dumps(data)
+
+
 def _itemlist_elements(items) -> list:
     return [
         {"@type": "ListItem", "position": i, "name": name, "url": url}
