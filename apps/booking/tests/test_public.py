@@ -12,7 +12,7 @@ from django.test import RequestFactory
 from django.utils import timezone
 
 from apps.booking import availability, public_views, services
-from apps.booking.models import AvailabilityRule, Booking, ClosedDate, Resource
+from apps.booking.models import AvailabilityRule, Booking, ClosedDate, Resource, Service
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -265,3 +265,71 @@ def test_book_with_deposit_but_no_payments_is_normal(monkeypatch):
     assert response.url.endswith(f"/t/{booking.reference_code}/")  # обычная бронь
     assert called["stripe"] is False
     assert booking.payment_state == "none"
+
+
+# --- UA1-1 (E-1): страница-деталь услуги (сплит: деталь → CTA на слот-пикер) --------
+
+
+def _service(**kw):
+    defaults = dict(
+        name="Ölwechsel",
+        description="Inkl. Öl und Filter.",
+        duration_minutes=30,
+        price_cents=4900,
+        is_active=True,
+    )
+    defaults.update(kw)
+    return Service.objects.create(**defaults)
+
+
+def test_service_detail_renders_with_cta_to_slots():
+    service = _service()
+    body = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    assert "Ölwechsel" in body  # название
+    assert "Inkl. Öl und Filter." in body  # описание (богатая карточка)
+    # primary-CTA ведёт на слот-пикер брони, а НЕ бронирует прямо на детали
+    assert f"/termin/leistung/{service.pk}/" in body
+    assert "Jetzt buchen" in body  # подпись действия покупки (booking)
+
+
+def test_service_detail_shows_anfrage_only_when_jobs_active():
+    service = _service()
+    # дефолтный тенант: jobs активен → вторичная кнопка «запрос сметы» (A7/A9)
+    body_on = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    assert "/anfrage/" in body_on
+
+    tenant_off = TenantFactory.build(business_type="cafe", disabled_modules=["jobs"])
+    body_off = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/", tenant=tenant_off), pk=service.pk
+    ).content.decode()
+    assert "/anfrage/" not in body_off
+
+
+def test_service_detail_module_gated():
+    service = _service()
+    tenant = TenantFactory.build(disabled_modules=["booking"])
+    with pytest.raises(Http404):
+        public_views.service_detail(_req(tenant=tenant), pk=service.pk)
+
+
+def test_service_index_card_links_to_detail_not_slots():
+    service = _service()
+    body = public_views.termin_index(_req()).content.decode()
+    # карточка листинга услуг ведёт на деталь (сплит), а не сразу на слоты
+    assert f"/leistung/{service.pk}/" in body
+
+
+def test_service_detail_inline_edit_anchors_present():
+    service = _service()
+    body = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    assert 'data-edit-model="service"' in body  # инлайн-правка на канве
+    assert 'data-edit-field="name"' in body
+    assert 'data-edit-field="description"' in body
+    assert "data-price-edit" in body
+    assert "data-photo-edit" in body

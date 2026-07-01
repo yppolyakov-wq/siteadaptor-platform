@@ -187,6 +187,31 @@ def service_slots(request, pk):
     )
 
 
+def service_detail(request, pk):
+    """UA1-1 (E-1): страница-деталь услуги (описание/фото/цена) с CTA на слот-пикер.
+
+    Сплит (решение владельца): деталь = SEO/описание услуги; сама бронь (выбор
+    слота) остаётся на `storefront-service-slots`, куда ведёт primary-CTA. Для A7/A9
+    (активен jobs) показываем вторичную кнопку «запрос сметы» (`/anfrage/`).
+    """
+    _require_booking_active(request)
+    service = get_object_or_404(Service, pk=pk, is_active=True)
+    tenant = getattr(request, "tenant", None)
+    resources = list(Resource.objects.filter(is_active=True))
+    return render(
+        request,
+        "storefront/service_detail.html",
+        {
+            "service": service,
+            "resources": resources if len(resources) > 1 else [],
+            "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
+            "deposit_required": service.deposit_cents > 0
+            and getattr(tenant, "payments_enabled", False),
+            "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
+        },
+    )
+
+
 def service_book(request, pk):
     _require_booking_active(request)
     if request.method != "POST":
