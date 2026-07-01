@@ -1,0 +1,12 @@
+{% load i18n %}
+<div class="mt-8" data-sf-section="service_faq">
+  <h2 class="text-lg font-semibold mb-3">{% trans "Frequently asked questions" %}</h2>
+  <div class="space-y-2">
+    {% for f in service.faq_list %}
+      <details class="rounded-lg border border-gray-100 p-3">
+        <summary class="cursor-pointer font-medium text-gray-800">{{ f.q }}</summary>
+        {% if f.a %}<p class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+      </details>
+    {% endfor %}
+  </div>
+</div>

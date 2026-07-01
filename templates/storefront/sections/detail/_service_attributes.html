@@ -1,0 +1,9 @@
+{% load i18n %}
+<div class="mt-8" data-sf-section="service_attributes">
+  <h2 class="text-lg font-semibold mb-2">{% trans "Details" %}</h2>
+  <ul class="space-y-1.5 text-gray-600">
+    {% for a in service.attributes_list %}
+      <li class="flex gap-2"><span class="text-indigo-500" aria-hidden="true">✓</span><span>{{ a }}</span></li>
+    {% endfor %}
+  </ul>
+</div>

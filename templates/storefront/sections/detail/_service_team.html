@@ -1,0 +1,12 @@
+{% load i18n %}
+<div class="mt-8" data-sf-section="service_team">
+  <h2 class="text-lg font-semibold mb-3">{% trans "Our team" %}</h2>
+  <div class="flex flex-wrap gap-3">
+    {% for r in resources %}
+      <div class="flex items-center gap-2 bg-white rounded-xl border border-gray-100 p-2 pr-3">
+        {% if r.photo_url %}<img src="{{ r.photo_url }}" alt="{{ r.name }}" class="w-9 h-9 rounded-full object-cover">{% endif %}
+        <span class="text-sm">{{ r.name }}{% if r.title %} <span class="text-gray-500">· {{ r.title }}</span>{% endif %}</span>
+      </div>
+    {% endfor %}
+  </div>
+</div>

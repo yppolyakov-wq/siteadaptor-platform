@@ -1,0 +1,5 @@
+{% load i18n %}
+<div class="mt-8">
+  <h2 class="text-lg font-semibold mb-2">{% trans "About this service" %}</h2>
+  <p class="text-gray-600 whitespace-pre-line" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="description">{{ service.description_localized }}</p>
+</div>

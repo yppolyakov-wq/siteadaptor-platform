@@ -54,53 +54,11 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
 {% endblock %}
 
 {% block detail_body %}
-{% comment %}UA4-1 slice C: секции детали (description/attributes/faq/team/reviews) можно
-   скрыть в билдере → detail_hidden. Content-гейты сохранены (пустое не показываем).{% endcomment %}
-{% if 'description' not in detail_hidden and service.description %}
-<div class="mt-8">
-  <h2 class="text-lg font-semibold mb-2">{% trans "About this service" %}</h2>
-  <p class="text-gray-600 whitespace-pre-line" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="description">{{ service.description_localized }}</p>
-</div>
-{% endif %}
-{% comment %}UA4-3: богатая карточка — атрибуты (спецификации/фичи) + FAQ. Пусто → секция скрыта.{% endcomment %}
-{% if 'attributes' not in detail_hidden and service.attributes_list %}
-<div class="mt-8" data-sf-section="service_attributes">
-  <h2 class="text-lg font-semibold mb-2">{% trans "Details" %}</h2>
-  <ul class="space-y-1.5 text-gray-600">
-    {% for a in service.attributes_list %}
-      <li class="flex gap-2"><span class="text-indigo-500" aria-hidden="true">✓</span><span>{{ a }}</span></li>
-    {% endfor %}
-  </ul>
-</div>
-{% endif %}
-{% if 'faq' not in detail_hidden and service.faq_list %}
-<div class="mt-8" data-sf-section="service_faq">
-  <h2 class="text-lg font-semibold mb-3">{% trans "Frequently asked questions" %}</h2>
-  <div class="space-y-2">
-    {% for f in service.faq_list %}
-      <details class="rounded-lg border border-gray-100 p-3">
-        <summary class="cursor-pointer font-medium text-gray-800">{{ f.q }}</summary>
-        {% if f.a %}<p class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
-      </details>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-{% if 'team' not in detail_hidden and resources %}
-<div class="mt-8" data-sf-section="service_team">
-  <h2 class="text-lg font-semibold mb-3">{% trans "Our team" %}</h2>
-  <div class="flex flex-wrap gap-3">
-    {% for r in resources %}
-      <div class="flex items-center gap-2 bg-white rounded-xl border border-gray-100 p-2 pr-3">
-        {% if r.photo_url %}<img src="{{ r.photo_url }}" alt="{{ r.name }}" class="w-9 h-9 rounded-full object-cover">{% endif %}
-        <span class="text-sm">{{ r.name }}{% if r.title %} <span class="text-gray-500">· {{ r.title }}</span>{% endif %}</span>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-{# UA4-4b: отзывы об услуге (verified customer); UA4-1 slice C: скрываемо в билдере #}
-{% if 'reviews' not in detail_hidden %}{% include "storefront/_entity_reviews.html" %}{% endif %}
+{% comment %}UA4-2: секции тела детали услуги рендерятся data-driven циклом из реестра
+   (apps.core.detail_sections, порядок booking) вместо per-template if/elif. Видимость
+   (контент присутствует + не скрыта в билдере) вычислена во вьюхе → body_sections.
+   Замок паритета — test_service_detail_section_order_parity.{% endcomment %}
+{% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
 {% endblock %}
 
 {% block detail_buybar %}

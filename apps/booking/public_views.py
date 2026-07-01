@@ -277,7 +277,7 @@ def service_detail(request, pk):
     service = get_object_or_404(Service, pk=pk, is_active=True)
     tenant = getattr(request, "tenant", None)
     resources = list(Resource.objects.filter(is_active=True))
-    from apps.core import archetypes
+    from apps.core import archetypes, detail_sections
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
     from apps.tenants import siteconfig
@@ -288,6 +288,34 @@ def service_detail(request, pk):
         request.session.get("site_preview_draft"), dict
     ):
         _raw = request.session["site_preview_draft"]
+    _hidden = siteconfig.detail_section_hidden(_raw, "booking")
+    _team = resources if len(resources) > 1 else []
+    # UA4-2: data-driven секции тела детали — порядок из реестра (booking), видимость =
+    # (контент присутствует) И (не скрыта в билдере). Шаблон рендерит их циклом
+    # (вместо per-template if/elif); замок — снапшот-паритет тест порядка секций.
+    _present = {
+        "description": bool(service.description),
+        "attributes": bool(service.attributes_list),
+        "faq": bool(service.faq_list),
+        "team": bool(_team),
+        "reviews": True,  # секция всегда есть (пустое состояние «ещё нет отзывов»)
+    }
+    _section_template = {
+        "description": "storefront/sections/detail/_service_description.html",
+        "attributes": "storefront/sections/detail/_service_attributes.html",
+        "faq": "storefront/sections/detail/_service_faq.html",
+        "team": "storefront/sections/detail/_service_team.html",
+        "reviews": "storefront/_entity_reviews.html",
+    }
+    body_sections = [
+        {
+            "key": k,
+            "template": _section_template[k],
+            "visible": _present.get(k, False) and k not in _hidden,
+        }
+        for k in detail_sections.section_keys("booking")
+        if k in _section_template
+    ]
 
     return render(
         request,
@@ -298,7 +326,7 @@ def service_detail(request, pk):
             "sellable": sellable_for("service", service),
             # UA3-1 (реш.2): основное действие детали — booking | request (override).
             "primary_action": archetypes.primary_service_action(service, tenant),
-            "resources": resources if len(resources) > 1 else [],
+            "resources": _team,
             "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
             "deposit_required": service.deposit_cents > 0
             and getattr(tenant, "payments_enabled", False),
@@ -308,8 +336,10 @@ def service_detail(request, pk):
             "review_summary": review_services.summary("service", service.pk),
             "review_form_token": uuid.uuid4().hex,
             "review_action": reverse("storefront-service-review", args=[service.pk]),
-            # UA4-1 slice C: секции детали, скрытые в билдере (description/attributes/faq/team/reviews).
-            "detail_hidden": siteconfig.detail_section_hidden(_raw, "booking"),
+            # UA4-1 slice C: скрытые секции (для совместимости/отладки); рендер — через body_sections.
+            "detail_hidden": _hidden,
+            # UA4-2: упорядоченные секции тела детали (data-driven рендер).
+            "body_sections": body_sections,
         },
     )
 
