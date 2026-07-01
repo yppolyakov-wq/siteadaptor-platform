@@ -3186,3 +3186,11 @@
   `#home-prev-page` при активном booking + ≥1 активной услуге. `SCOPE_PAGE_KEY` НЕ трогали — группа
   `booking_detail` падает в «правь на канве» (как `stays_detail`; пер-страничный инспектор — UA4-1).
   Тесты: `test_preview_pages.py` (услуга в превью + group + исключение неактивной). Гейт: 321 core.
+- **2026-07-01 — diag(prod): самодиагностирующая 403-страница CSRF (`CSRF_FAILURE_VIEW`).** Штатный
+  403 CSRF непрозрачен без DEBUG → добавлена прод-безопасная страница `apps/core/csrf.py::csrf_failure`
+  (подключена `settings.CSRF_FAILURE_VIEW`): показывает ТОЧНУЮ причину Django (`reason`) + сигналы
+  запроса, по которым решает `CsrfViewMiddleware` — пришла ли кука `csrftoken`, Origin/Referer,
+  `is_secure` за прокси (`X-Forwarded-Proto`), host. За один заход отличает «Origin не в trusted
+  origins» от «кука не пришла»/«токен не совпал» без DEBUG и доступа к логам; причина также в лог
+  `django.security.csrf`. Для расследования оставшегося 403 на логине субдомена. reason экранируется
+  (XSS-safe). Тесты: `apps/core/tests/test_csrf_failure.py`. Гейт: 324 core.

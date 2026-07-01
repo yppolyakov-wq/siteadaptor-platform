@@ -147,6 +147,11 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
 ]
 
+# Диагностическая 403-страница CSRF: показывает точную причину отказа Django +
+# сигналы запроса (кука csrftoken, Origin/Referer, is_secure за прокси, host),
+# чтобы чинить прицельно без DEBUG/доступа к логам. Причина также в django.security.csrf.
+CSRF_FAILURE_VIEW = "apps.core.csrf.csrf_failure"
+
 ROOT_URLCONF = "config.urls_tenant"
 PUBLIC_SCHEMA_URLCONF = "config.urls_public"
 
