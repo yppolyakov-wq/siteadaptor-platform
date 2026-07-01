@@ -469,6 +469,41 @@
             </ul>
           </div>
           {% endif %}
+          {% comment %}UA4-1 slice C: секции детальной УСЛУГИ (booking) — тот же hide-only
+             инспектор; клик по детали услуги (?preview=1) переносит его сюда.{% endcomment %}
+          {% if has_booking %}
+          <div class="page-block" data-page-key="service_detail">
+            <span class="text-sm font-medium block mb-2">{% trans "Service page: sections" %}</span>
+            <input type="hidden" name="sd_present" value="1">
+            <ul class="space-y-1">
+              {% for s in service_sections %}
+              <li class="flex items-center gap-2 text-sm">
+                <span class="flex-1">{{ s.label }}</span>
+                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
+                  <input type="checkbox" name="sd_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
+                </label>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          {% comment %}UA4-1 slice C: секции детальной НОМЕРА (stays).{% endcomment %}
+          {% if has_stays %}
+          <div class="page-block" data-page-key="stay_detail">
+            <span class="text-sm font-medium block mb-2">{% trans "Room page: sections" %}</span>
+            <input type="hidden" name="std_present" value="1">
+            <ul class="space-y-1">
+              {% for s in stay_sections %}
+              <li class="flex items-center gap-2 text-sm">
+                <span class="flex-1">{{ s.label }}</span>
+                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
+                  <input type="checkbox" name="std_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
+                </label>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
           {% comment %}Настройки страницы КОРЗИНЫ: блок кросс-селла «Passt dazu»
              (показ/скрытие). Заголовок блока правится инлайн на самой странице.{% endcomment %}
           {% if has_catalog %}
@@ -1412,6 +1447,23 @@
       });
       payload.product_detail = { hidden: pdHidden };
     }
+    // UA4-1 slice C: видимость секций детальной услуги/номера → в черновик (превью ?preview=1).
+    var sdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='sd_visible_']"));
+    if (sdInputs.length) {
+      var sdHidden = [];
+      sdInputs.forEach(function (inp) {
+        if (!inp.checked) sdHidden.push(inp.name.slice(11));  // "sd_visible_".length === 11
+      });
+      payload.service_detail = { hidden: sdHidden };
+    }
+    var stdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='std_visible_']"));
+    if (stdInputs.length) {
+      var stdHidden = [];
+      stdInputs.forEach(function (inp) {
+        if (!inp.checked) stdHidden.push(inp.name.slice(12));  // "std_visible_".length === 12
+      });
+      payload.stay_detail = { hidden: stdHidden };
+    }
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [
       "cta_title", "cta_text", "cta_button_label", "cta_button_url",
@@ -1662,7 +1714,7 @@
   // лендинга в панели показываем ТОЛЬКО блоки этой страницы — на главной блоки главной,
   // на лендинге/детали — пер-страничные контролы; чужие группы скрываем (значения полей
   // остаются в форме → сохранение не теряет конфиг других страниц).
-  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail", catalog_detail: "product_detail", cart: "cart" };
+  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail", catalog_detail: "product_detail", booking_detail: "service_detail", stays_detail: "stay_detail", cart: "cart" };
   function applyPageScope(group) {
     var isHome = !group || group === "home";
     document.querySelectorAll('[data-scope="home"]').forEach(function (el) {

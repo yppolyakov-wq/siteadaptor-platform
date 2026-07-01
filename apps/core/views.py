@@ -1068,6 +1068,23 @@ def home_builder_view(request):
                     if request.POST.get(f"pd_visible_{k}") != "on"
                 ]
             }
+        # UA4-1 slice C: видимость секций детальной услуги/номера (hide-only, presence-guard).
+        if request.tenant.is_module_active("booking") and request.POST.get("sd_present"):
+            config["service_detail"] = {
+                "hidden": [
+                    k
+                    for k in detail_sections.section_keys("booking")
+                    if request.POST.get(f"sd_visible_{k}") != "on"
+                ]
+            }
+        if request.tenant.is_module_active("stays") and request.POST.get("std_present"):
+            config["stay_detail"] = {
+                "hidden": [
+                    k
+                    for k in detail_sections.section_keys("stays")
+                    if request.POST.get(f"std_visible_{k}") != "on"
+                ]
+            }
         # SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
         # normalize_typography валидирует/клампит; пустые/0 = дефолт без регрессии.
         config["typography"] = {
@@ -1272,6 +1289,18 @@ def home_builder_view(request):
         {"key": k, "label": _product_labels.get(k, k), "visible": k not in _pd_hidden}
         for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
     ]
+
+    # UA4-1 slice C: опц. секции детальной услуги/номера — тот же hide-only инспектор.
+    def _detail_rows(module, config_key):
+        hidden = set(config[config_key]["hidden"])
+        labels = detail_sections.section_labels(module)
+        return [
+            {"key": k, "label": labels.get(k, k), "visible": k not in hidden}
+            for k in detail_sections.section_keys(module)
+        ]
+
+    service_sections = _detail_rows("booking", "service_detail")
+    stay_sections = _detail_rows("stays", "stay_detail")
     # SE-2c-1: живые категории каталога — для parent-select мини-формы «+ Kategorie».
     catalog_categories = []
     if request.tenant.is_module_active("catalog"):
@@ -1286,6 +1315,8 @@ def home_builder_view(request):
             "sections": sections,
             "event_sections": event_sections,
             "product_sections": product_sections,
+            "service_sections": service_sections,
+            "stay_sections": stay_sections,
             "catalog_categories": catalog_categories,
             # SE-7c: область «Меню» — стиль шапки (classic/centered/minimal) + sticky
             # (пункты меню — в полном билдере /dashboard/site/menu/).
@@ -1335,6 +1366,7 @@ def home_builder_view(request):
             "events_preset": (config.get("events_index_layout") or {}).get("preset", ""),
             "has_stays": request.tenant.is_module_active("stays"),
             "stay_preset": (config.get("stay_index_layout") or {}).get("preset", ""),
+            "has_booking": request.tenant.is_module_active("booking"),  # UA4-1 slice C
             "storefront_root": config.get("storefront_root", "home"),
             # M20f: дизайн вживую — текущие значения + варианты шрифта.
             "font": config.get("font", "system"),
@@ -1580,6 +1612,11 @@ def site_preview_draft(request):
     # Видимость опц. секций детальной товара — в превью (normalize_product_detail чистит).
     if isinstance(data.get("product_detail"), dict):
         cfg["product_detail"] = data["product_detail"]
+    # UA4-1 slice C: видимость секций детальной услуги/номера — в превью (normalize чистит).
+    if isinstance(data.get("service_detail"), dict):
+        cfg["service_detail"] = data["service_detail"]
+    if isinstance(data.get("stay_detail"), dict):
+        cfg["stay_detail"] = data["stay_detail"]
     # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):

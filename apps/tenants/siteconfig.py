@@ -523,7 +523,12 @@ def effective_card_visual(config, key) -> dict:
 # (orderable/hideable) — в реестре `apps.core.detail_sections` (единый источник);
 # здесь только нормализация сохранённого `config['<module>_detail']`. Модуль → config-
 # ключ (events→event_detail, catalog→product_detail; booking/stays добавит slice C).
-_DETAIL_SECTION_CONFIG_KEY = {"events": "event_detail", "catalog": "product_detail"}
+_DETAIL_SECTION_CONFIG_KEY = {
+    "events": "event_detail",
+    "catalog": "product_detail",
+    "booking": "service_detail",  # slice C
+    "stays": "stay_detail",  # slice C
+}
 
 
 def detail_section_config_key(module: str) -> str:
@@ -1298,6 +1303,11 @@ def normalize(config) -> dict:
     normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))
     # Видимость опциональных секций детальной товара (описание/инфо/отзывы/похожие).
     normalized["product_detail"] = normalize_product_detail(config.get("product_detail"))
+    # UA4-1 slice C: видимость секций детальной услуги/номера (generic-нормализатор).
+    normalized["service_detail"] = normalize_detail_sections(
+        config.get("service_detail"), "booking"
+    )
+    normalized["stay_detail"] = normalize_detail_sections(config.get("stay_detail"), "stays")
     # SE-2d: глобальные дефолты стиля карточек («весь сайт»; наследуются сетками
     # без своего visual-override). Пустые 0/false → без регрессии для legacy.
     normalized["site_defaults"] = normalize_site_defaults(config.get("site_defaults"))

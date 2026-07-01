@@ -66,6 +66,23 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
             ("certifications", _("Certifications")),
         )
     ),
+    # UA4-1 slice C: секции детальной УСЛУГИ (booking.Service) — ключи по факту
+    # service_detail.html (описание/атрибуты/FAQ/команда/отзывы). Hide-only.
+    "booking": (
+        DetailSection("description", _("Description")),
+        DetailSection("attributes", _("Details")),
+        DetailSection("faq", _("Frequently asked questions")),
+        DetailSection("team", _("Our team")),
+        DetailSection("reviews", _("Customer reviews")),
+    ),
+    # UA4-1 slice C: секции детальной НОМЕРА (stays.StayUnit) — по факту stay_detail.html
+    # (описание/оснащение/отзывы/похожие). Hide-only.
+    "stays": (
+        DetailSection("description", _("Description")),
+        DetailSection("amenities", _("Amenities")),
+        DetailSection("reviews", _("Customer reviews")),
+        DetailSection("similar", _("Similar rooms")),
+    ),
 }
 
 
