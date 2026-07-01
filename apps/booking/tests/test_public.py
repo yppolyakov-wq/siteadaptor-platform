@@ -2,7 +2,7 @@
 валидация слота по расписанию, гейтинг модуля."""
 
 import uuid
-from datetime import date, datetime, time, timedelta
+from datetime import datetime, time, timedelta
 
 import pytest
 from django.contrib.messages.middleware import MessageMiddleware
@@ -17,7 +17,9 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-DAY = date(2026, 7, 1)  # среда, заведомо в будущем относительно тестов
+DAY = timezone.localdate() + timedelta(days=7)  # заведомо в будущем, чтобы утренние
+# слоты не отсеивались фильтром «прошедшего времени сегодня» (availability.free_slots)
+# при прогоне после 10:00. Раньше был жёстко date(2026,7,1) — «сегодня» его догнало.
 
 
 @pytest.fixture(autouse=True)
