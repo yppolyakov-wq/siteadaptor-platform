@@ -6,6 +6,7 @@
 закрывает services.book (anti-double-book). Модуль booking выключен → 404.
 """
 
+import uuid
 from datetime import date, datetime, timedelta
 
 import stripe
@@ -278,6 +279,7 @@ def service_detail(request, pk):
     resources = list(Resource.objects.filter(is_active=True))
     from apps.core import archetypes
     from apps.core.sellable import sellable_for
+    from apps.reviews import services as review_services
 
     return render(
         request,
@@ -293,7 +295,27 @@ def service_detail(request, pk):
             "deposit_required": service.deposit_cents > 0
             and getattr(tenant, "payments_enabled", False),
             "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
+            # UA4-4b: отзывы об услуге (generic reviews.Review, только верифиц. клиенты).
+            "reviews": list(review_services.published_for("service", service.pk)),
+            "review_summary": review_services.summary("service", service.pk),
+            "review_form_token": uuid.uuid4().hex,
+            "review_action": reverse("storefront-service-review", args=[service.pk]),
         },
+    )
+
+
+def service_review_submit(request, pk):
+    """UA4-4b: приём отзыва об услуге (только верифицированный клиент — есть бронь
+    этой услуги по e-mail). Один отзыв на (услуга, email) — повтор обновляет."""
+    _require_booking_active(request)
+    service = get_object_or_404(Service, pk=pk, is_active=True)
+    from apps.reviews.submit import handle_review_submit
+
+    return handle_review_submit(
+        request,
+        entity_kind="service",
+        obj=service,
+        detail_url=reverse("storefront-service-detail", args=[service.pk]),
     )
 
 

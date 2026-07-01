@@ -175,6 +175,12 @@ urlpatterns = [
     ),
     # UA1-1 (E-1): SEO/деталь услуги (описание) → CTA ведёт на слот-пикер выше.
     path("leistung/<uuid:pk>/", booking_public.service_detail, name="storefront-service-detail"),
+    # UA4-4b: приём отзыва об услуге (verified customer).
+    path(
+        "leistung/<uuid:pk>/bewerten/",
+        booking_public.service_review_submit,
+        name="storefront-service-review",
+    ),
     path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
     # A3: онлайн-продажа Mehrfachkarte.
     path("karten/", booking_public.karten, name="storefront-karten"),
@@ -182,6 +188,12 @@ urlpatterns = [
     # Übernachtung / date-range-бронь (Track E / E3): юнит → даты → форма.
     path("unterkunft/", stays_public.unterkunft_index, name="storefront-unterkunft"),
     path("unterkunft/<uuid:pk>/", stays_public.unterkunft_unit, name="storefront-unterkunft-unit"),
+    # UA4-4b: приём отзыва о номере (verified guest).
+    path(
+        "unterkunft/<uuid:pk>/bewerten/",
+        stays_public.stay_review_submit,
+        name="storefront-stay-review",
+    ),
     path(
         "unterkunft/<uuid:pk>/kalender/",
         stays_public.unterkunft_unit_calendar,
@@ -221,6 +233,12 @@ urlpatterns = [
         name="storefront-events-ical-feed",
     ),
     path("veranstaltung/<uuid:pk>/", events_public.veranstaltung_detail, name="storefront-event"),
+    # UA4-4b: приём отзыва о событии (verified attendee).
+    path(
+        "veranstaltung/<uuid:pk>/bewerten/",
+        events_public.event_review_submit,
+        name="storefront-event-review",
+    ),
     path(
         "veranstaltung/<uuid:pk>/ical",
         events_public.veranstaltung_ical,

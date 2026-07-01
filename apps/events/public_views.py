@@ -6,6 +6,8 @@
 оплаты онлайн — pending (оплата на месте / подтверждает владелец).
 """
 
+import uuid
+
 import stripe
 from django.contrib import messages
 from django.http import Http404, HttpResponse
@@ -268,11 +270,17 @@ def veranstaltung_detail(request, pk):
         _raw = request.session["site_preview_draft"]
 
     from apps.core.sellable import sellable_for
+    from apps.reviews import services as review_services
 
     ctx = {
         "event": event,
         # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
         "sellable": sellable_for("event", event),
+        # UA4-4b: отзывы о событии (generic reviews.Review, только верифиц. участники).
+        "reviews": list(review_services.published_for("event", event.pk)),
+        "review_summary": review_services.summary("event", event.pk),
+        "review_form_token": uuid.uuid4().hex,
+        "review_action": reverse("storefront-event-review", args=[event.pk]),
         "agenda": _parse_agenda(event.program),  # RV2: тайм-лайн программы
         "extras": extras_engine.active_for("events"),  # #7 доп-услуги
         "accommodation": services.accommodation_options(event),  # R5 типы номеров
@@ -292,6 +300,21 @@ def veranstaltung_detail(request, pk):
         )
         ctx["map_link"] = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lng}#map=15/{lat}/{lng}"
     return render(request, "storefront/event_detail.html", ctx)
+
+
+def event_review_submit(request, pk):
+    """UA4-4b: приём отзыва о событии (только верифицированный участник — есть
+    билет по e-mail). Один отзыв на (событие, email) — повтор обновляет."""
+    _require_events_active(request)
+    event = get_object_or_404(Event, pk=pk, status=Event.STATUS_PUBLISHED)
+    from apps.reviews.submit import handle_review_submit
+
+    return handle_review_submit(
+        request,
+        entity_kind="event",
+        obj=event,
+        detail_url=reverse("storefront-event", args=[event.pk]),
+    )
 
 
 def _installment_offer(event):

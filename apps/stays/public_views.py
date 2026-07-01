@@ -7,6 +7,7 @@
 Stripe Connect ведём на оплату, иначе обычная бронь.
 """
 
+import uuid
 from datetime import date, timedelta
 
 import stripe
@@ -247,6 +248,7 @@ def unterkunft_unit(request, pk):
     similar = similar[:3]
 
     from apps.core.sellable import sellable_for
+    from apps.reviews import services as review_services
 
     return _render_embed(
         request,
@@ -255,6 +257,11 @@ def unterkunft_unit(request, pk):
             "unit": unit,
             # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
             "sellable": sellable_for("stay", unit),
+            # UA4-4b: отзывы о номере (generic reviews.Review, только верифиц. гости).
+            "reviews": list(review_services.published_for("stay", unit.pk)),
+            "review_summary": review_services.summary("stay", unit.pk),
+            "review_form_token": uuid.uuid4().hex,
+            "review_action": reverse("storefront-stay-review", args=[unit.pk]),
             "today": today,
             "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
             "von": von,
@@ -281,6 +288,20 @@ def unterkunft_unit(request, pk):
             ),
         },
         _is_embed(request),
+    )
+
+
+def stay_review_submit(request, pk):
+    """UA4-4b: приём отзыва о номере (только верифицированный гость — есть бронь
+    этого юнита по e-mail). Один отзыв на (юнит, email) — повтор обновляет."""
+    unit = get_object_or_404(StayUnit, pk=pk, is_active=True)
+    from apps.reviews.submit import handle_review_submit
+
+    return handle_review_submit(
+        request,
+        entity_kind="stay",
+        obj=unit,
+        detail_url=reverse("storefront-unterkunft-unit", args=[unit.pk]),
     )
 
 

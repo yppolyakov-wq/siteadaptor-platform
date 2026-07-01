@@ -44,9 +44,24 @@ def is_verified_buyer(entity_kind, obj, email) -> bool:
 
 
 def _verifier_for(entity_kind):
-    """Ленивая привязка верификатора (избегаем циклов импорта между апп)."""
+    """Ленивая привязка per-kind верификатора (избегаем циклов импорта между апп).
+
+    Каждый верификатор — `(obj, email) -> bool`, сам fail-closed (модуль/таблицы
+    недоступны → False). Неизвестный/непривязанный kind → None → отзыв запрещён."""
     if entity_kind == Review.KIND_PRODUCT:
         from apps.catalog.reviews import has_purchased
 
         return has_purchased
+    if entity_kind == Review.KIND_SERVICE:
+        from apps.booking.reviews import has_booked
+
+        return has_booked
+    if entity_kind == Review.KIND_STAY:
+        from apps.stays.reviews import has_stayed
+
+        return has_stayed
+    if entity_kind == Review.KIND_EVENT:
+        from apps.events.reviews import has_ticket
+
+        return has_ticket
     return None
