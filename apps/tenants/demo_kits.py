@@ -3668,24 +3668,27 @@ def _seed_kit_reviews(tenant, kit: DemoKit) -> None:
 
 
 def _seed_product_reviews(kit: DemoKit, created_products: list) -> None:
-    """A1/A2: отзывы о товаре (TENANT ProductReview) на демо-товарах кита.
+    """A1/A2: отзывы о товаре (generic `reviews.Review`, entity_kind='product') на
+    демо-товарах кита.
 
     Создаём опубликованные отзывы напрямую (демо доверенный — без проверки заказа,
     которая работает на витрине). Вызывается в схеме тенанта."""
     if not kit.product_reviews:
         return
-    from apps.catalog.models import ProductReview
+    from apps.reviews.models import Review
 
     for idx, rating, name, email, comment in kit.product_reviews:
         if not isinstance(idx, int) or idx >= len(created_products):
             continue
-        ProductReview.objects.update_or_create(
-            product=created_products[idx],
+        Review.objects.update_or_create(
+            entity_kind="product",
+            entity_id=created_products[idx].pk,
             email=email.lower(),
             defaults={
                 "rating": rating,
                 "author_name": name,
                 "comment": comment,
+                "verified": True,
                 "is_published": True,
             },
         )

@@ -3,9 +3,13 @@
 «Verified buyer only»: оставить отзыв может лишь тот, у кого есть заказ с этим
 товаром (OrderItem) на его email. Заказы — отдельный модуль (orders); если он не
 активен/таблиц нет, верификация безопасно возвращает False (никого не пускаем).
+
+UA4-4a: хранение/агрегаты отзывов перенесены в generic-модель `apps.reviews.Review`
+(`entity_kind='product'`). Здесь остаётся product-специфичная верификация
+покупателя (`has_purchased`) + тонкие product-обёртки над `apps.reviews.services`.
 """
 
-from django.db.models import Avg, Count
+from apps.reviews import services as review_services
 
 
 def has_purchased(product, email: str) -> bool:
@@ -31,10 +35,9 @@ def has_purchased(product, email: str) -> bool:
 
 def published_for(product):
     """Опубликованные отзывы товара (новые сверху) — для детальной страницы."""
-    return product.reviews.filter(is_published=True)
+    return review_services.published_for(review_services.Review.KIND_PRODUCT, product.pk)
 
 
 def summary(product) -> dict:
     """Агрегат рейтинга товара: {avg: float|None, count: int} по опубликованным."""
-    agg = product.reviews.filter(is_published=True).aggregate(avg=Avg("rating"), count=Count("id"))
-    return {"avg": round(agg["avg"], 1) if agg["avg"] is not None else None, "count": agg["count"]}
+    return review_services.summary(review_services.Review.KIND_PRODUCT, product.pk)

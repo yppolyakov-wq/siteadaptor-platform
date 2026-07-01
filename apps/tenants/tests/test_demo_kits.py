@@ -622,9 +622,9 @@ def test_apply_shop_kit_retail_features():
     assert Order.objects.filter(fulfillment=Order.FULFILLMENT_DELIVERY).exists()
     assert tenant.is_module_active("orders")
     # A1/A2: отзывы о товаре засеяны на первых товарах каталога (опубликованы)
-    from apps.catalog.models import ProductReview
+    from apps.reviews.models import Review
 
-    assert ProductReview.objects.filter(is_published=True).count() == 3
+    assert Review.objects.filter(entity_kind="product", is_published=True).count() == 3
 
 
 def test_seed_command_unknown_kit_warns_clearly():

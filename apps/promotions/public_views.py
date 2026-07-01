@@ -13,7 +13,7 @@ import segno
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
-from django.db.models import Avg, Count, Exists, F, Max, Min, OuterRef, Q
+from django.db.models import Exists, F, Max, Min, OuterRef, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -405,14 +405,9 @@ def product_list(request):
     # и без GROUP BY на keyset-запросе): один запрос на pk текущей страницы, навешиваем
     # review_avg/review_count атрибутами на инстансы (page.items — материализованный список).
     if page.items:
-        from apps.catalog.models import ProductReview
+        from apps.reviews import services as review_services
 
-        _rating = {
-            r["product"]: r
-            for r in ProductReview.objects.filter(product__in=page.items, is_published=True)
-            .values("product")
-            .annotate(avg=Avg("rating"), count=Count("id"))
-        }
+        _rating = review_services.bulk_summary("product", [_p.pk for _p in page.items])
         for _p in page.items:
             _row = _rating.get(_p.pk)
             _p.review_avg = _row["avg"] if _row else None
@@ -574,9 +569,13 @@ def product_detail(request, pk):
 
 def product_review_submit(request, pk):
     """A1/A2: приём отзыва о товаре. Только верифицированный покупатель (есть заказ
-    с этим товаром по email). Один отзыв на (товар, email) — повтор обновляет."""
-    from apps.catalog import reviews as product_reviews
-    from apps.catalog.models import Product, ProductReview
+    с этим товаром по email). Один отзыв на (товар, email) — повтор обновляет.
+
+    UA4-4a: пишем в generic `reviews.Review` (`entity_kind='product'`); верификация —
+    per-kind адаптер `reviews.services.is_verified_buyer` (fail-closed)."""
+    from apps.catalog.models import Product
+    from apps.reviews import services as review_services
+    from apps.reviews.models import Review
 
     product = get_object_or_404(Product, pk=pk, is_active=True)
     detail_url = reverse("storefront-product", args=[product.pk])
@@ -596,7 +595,7 @@ def product_review_submit(request, pk):
     if not (name and email and 1 <= rating <= 5):
         messages.error(request, _("Bitte Name, E-Mail und Bewertung (1–5) angeben."))
         return redirect(detail_url)
-    if not product_reviews.has_purchased(product, email):
+    if not review_services.is_verified_buyer("product", product, email):
         messages.error(
             request,
             _(
@@ -604,10 +603,17 @@ def product_review_submit(request, pk):
             ),
         )
         return redirect(detail_url)
-    ProductReview.objects.update_or_create(
-        product=product,
+    Review.objects.update_or_create(
+        entity_kind="product",
+        entity_id=product.pk,
         email=email.lower(),
-        defaults={"rating": rating, "author_name": name, "comment": comment, "is_published": True},
+        defaults={
+            "rating": rating,
+            "author_name": name,
+            "comment": comment,
+            "verified": True,
+            "is_published": True,
+        },
     )
     messages.success(request, _("Danke für Ihre Bewertung!"))
     return redirect(detail_url + "#bewertungen")

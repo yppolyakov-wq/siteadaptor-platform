@@ -6,11 +6,11 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.catalog import reviews as product_reviews
-from apps.catalog.models import ProductReview
 from apps.catalog.tests.factories import ProductFactory
 from apps.orders.models import Order, OrderItem
 from apps.promotions import public_views
 from apps.promotions.models import Customer
+from apps.reviews.models import Review
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -74,11 +74,10 @@ def test_has_purchased_false_for_other_product():
 # --- агрегат ----------------------------------------------------------------
 def test_summary_averages_published_only():
     product = ProductFactory()
-    ProductReview.objects.create(product=product, rating=5, author_name="A", email="a@t.de")
-    ProductReview.objects.create(product=product, rating=3, author_name="B", email="b@t.de")
-    ProductReview.objects.create(
-        product=product, rating=1, author_name="C", email="c@t.de", is_published=False
-    )
+    kind_id = {"entity_kind": "product", "entity_id": product.pk}
+    Review.objects.create(**kind_id, rating=5, author_name="A", email="a@t.de")
+    Review.objects.create(**kind_id, rating=3, author_name="B", email="b@t.de")
+    Review.objects.create(**kind_id, rating=1, author_name="C", email="c@t.de", is_published=False)
     s = product_reviews.summary(product)
     assert s["count"] == 2 and s["avg"] == 4.0
 
@@ -90,8 +89,13 @@ def test_summary_empty():
 # --- витрина (GET) ----------------------------------------------------------
 def test_detail_renders_published_reviews_and_form():
     product = ProductFactory()
-    ProductReview.objects.create(
-        product=product, rating=5, author_name="Köhler", email="k@t.de", comment="Sehr lecker"
+    Review.objects.create(
+        entity_kind="product",
+        entity_id=product.pk,
+        rating=5,
+        author_name="Köhler",
+        email="k@t.de",
+        comment="Sehr lecker",
     )
     body = public_views.product_detail(
         _get(f"/sortiment/{product.pk}/"), pk=product.pk
@@ -104,8 +108,13 @@ def test_detail_renders_published_reviews_and_form():
 
 def test_detail_hidden_review_not_shown():
     product = ProductFactory()
-    ProductReview.objects.create(
-        product=product, rating=2, author_name="Geheim", email="g@t.de", is_published=False
+    Review.objects.create(
+        entity_kind="product",
+        entity_id=product.pk,
+        rating=2,
+        author_name="Geheim",
+        email="g@t.de",
+        is_published=False,
     )
     body = public_views.product_detail(
         _get(f"/sortiment/{product.pk}/"), pk=product.pk
@@ -122,8 +131,8 @@ def test_submit_creates_review_for_verified_buyer():
         _post(f"/sortiment/{product.pk}/bewerten/", data), pk=product.pk
     )
     assert resp.status_code == 302
-    r = ProductReview.objects.get(product=product, email="buyer@test.de")
-    assert r.rating == 5 and r.author_name == "Buyer" and r.is_published
+    r = Review.objects.get(entity_kind="product", entity_id=product.pk, email="buyer@test.de")
+    assert r.rating == 5 and r.author_name == "Buyer" and r.is_published and r.verified
 
 
 def test_submit_rejected_for_non_buyer():
@@ -133,7 +142,7 @@ def test_submit_rejected_for_non_buyer():
         _post(f"/sortiment/{product.pk}/bewerten/", data), pk=product.pk
     )
     assert resp.status_code == 302
-    assert not ProductReview.objects.filter(product=product).exists()
+    assert not Review.objects.filter(entity_kind="product", entity_id=product.pk).exists()
 
 
 def test_submit_invalid_rating_rejected():
@@ -143,18 +152,24 @@ def test_submit_invalid_rating_rejected():
     public_views.product_review_submit(
         _post(f"/sortiment/{product.pk}/bewerten/", data), pk=product.pk
     )
-    assert not ProductReview.objects.filter(product=product).exists()
+    assert not Review.objects.filter(entity_kind="product", entity_id=product.pk).exists()
 
 
 def test_submit_updates_existing_review():
     product = ProductFactory()
     _buy(product, "buyer@test.de")
-    ProductReview.objects.create(
-        product=product, rating=3, author_name="Buyer", email="buyer@test.de"
+    Review.objects.create(
+        entity_kind="product",
+        entity_id=product.pk,
+        rating=3,
+        author_name="Buyer",
+        email="buyer@test.de",
     )
     data = {"author_name": "Buyer", "email": "buyer@test.de", "rating": "5", "comment": "Besser!"}
     public_views.product_review_submit(
         _post(f"/sortiment/{product.pk}/bewerten/", data), pk=product.pk
     )
-    reviews = ProductReview.objects.filter(product=product, email="buyer@test.de")
+    reviews = Review.objects.filter(
+        entity_kind="product", entity_id=product.pk, email="buyer@test.de"
+    )
     assert reviews.count() == 1 and reviews.first().rating == 5  # обновлён, не задвоен
