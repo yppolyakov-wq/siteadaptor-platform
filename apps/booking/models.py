@@ -80,6 +80,17 @@ class Service(I18nMixin, TimestampedModel):
     price_cents = models.PositiveIntegerField(default=0)
     deposit_cents = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # UA4-3: богатая карточка услуги (A3/A7/A9). attributes — свободные строки
+    # (спецификации/фичи, list[str]); faq — вопросы-ответы (list[{q,a}]); оба
+    # нормализуются на чтении (garbage-safe, см. *_list). primary_action — per-service
+    # override основного действия детали (реш.2, читает archetypes.primary_service_action).
+    attributes = models.JSONField(default=list, blank=True)
+    faq = models.JSONField(default=list, blank=True)
+    primary_action = models.CharField(
+        max_length=10,
+        blank=True,
+        choices=[("booking", "Termin buchen"), ("request", "Anfrage")],
+    )
 
     class Meta:
         ordering = ["name"]
@@ -113,6 +124,55 @@ class Service(I18nMixin, TimestampedModel):
     def image_url(self) -> str:
         """A3: URL фото услуги (или ''), безопасно к не-dict значению."""
         return self.image.get("url", "") if isinstance(self.image, dict) else ""
+
+    @property
+    def attributes_list(self) -> list:
+        """UA4-3: нормализованные атрибуты услуги (garbage→[], без краша)."""
+        return normalize_service_attributes(self.attributes)
+
+    @property
+    def faq_list(self) -> list:
+        """UA4-3: нормализованный FAQ услуги [{q,a}] (garbage→[], без краша)."""
+        return normalize_service_faq(self.faq)
+
+
+# --- UA4-3: нормализаторы богатой карточки услуги (по образцу events/details) -----
+_ATTR_MAX_LEN = 200
+_ATTRS_MAX = 12
+_FAQ_Q_MAX = 200
+_FAQ_A_MAX = 1000
+_FAQ_MAX = 12
+
+
+def normalize_service_attributes(raw) -> list:
+    """Свободные строки-атрибуты → чистый list[str] (непустые, обрезанные, ≤12)."""
+    if not isinstance(raw, (list, tuple)):
+        return []
+    out = []
+    for item in raw:
+        if isinstance(item, str):
+            s = item.strip()[:_ATTR_MAX_LEN]
+            if s:
+                out.append(s)
+        if len(out) >= _ATTRS_MAX:
+            break
+    return out
+
+
+def normalize_service_faq(raw) -> list:
+    """FAQ → list[{q,a}] с непустым q; q/a обрезаны; ≤12. Мусор игнорируется."""
+    if not isinstance(raw, (list, tuple)):
+        return []
+    out = []
+    for item in raw:
+        if isinstance(item, dict):
+            q = str(item.get("q", "") or "").strip()[:_FAQ_Q_MAX]
+            a = str(item.get("a", "") or "").strip()[:_FAQ_A_MAX]
+            if q:
+                out.append({"q": q, "a": a})
+        if len(out) >= _FAQ_MAX:
+            break
+    return out
 
 
 class AvailabilityRule(TimestampedModel):

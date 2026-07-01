@@ -59,6 +59,30 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
   <p class="text-gray-600 whitespace-pre-line" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="description">{{ service.description }}</p>
 </div>
 {% endif %}
+{% comment %}UA4-3: богатая карточка — атрибуты (спецификации/фичи) + FAQ. Пусто → секция скрыта.{% endcomment %}
+{% if service.attributes_list %}
+<div class="mt-8" data-sf-section="service_attributes">
+  <h2 class="text-lg font-semibold mb-2">{% trans "Details" %}</h2>
+  <ul class="space-y-1.5 text-gray-600">
+    {% for a in service.attributes_list %}
+      <li class="flex gap-2"><span class="text-indigo-500" aria-hidden="true">✓</span><span>{{ a }}</span></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if service.faq_list %}
+<div class="mt-8" data-sf-section="service_faq">
+  <h2 class="text-lg font-semibold mb-3">{% trans "Frequently asked questions" %}</h2>
+  <div class="space-y-2">
+    {% for f in service.faq_list %}
+      <details class="rounded-lg border border-gray-100 p-3">
+        <summary class="cursor-pointer font-medium text-gray-800">{{ f.q }}</summary>
+        {% if f.a %}<p class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+      </details>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 {% if resources %}
 <div class="mt-8">
   <h2 class="text-lg font-semibold mb-3">{% trans "Our team" %}</h2>

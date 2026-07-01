@@ -410,6 +410,30 @@ def test_service_detail_primary_action_request_override():
     assert idx_anfrage < idx_slots  # Anfrage — первичная (выше брони)
 
 
+def test_service_detail_renders_attributes_and_faq():
+    """UA4-3: богатая карточка — атрибуты + FAQ на детали услуги (секции-хуки)."""
+    service = _service(
+        attributes=["Kostenlos & unverbindlich", "Meisterbetrieb"],
+        faq=[{"q": "Was kostet das?", "a": "Nichts."}],
+    )
+    body = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    assert "Meisterbetrieb" in body
+    assert 'data-sf-section="service_attributes"' in body
+    assert "Was kostet das?" in body and "Nichts." in body
+    assert 'data-sf-section="service_faq"' in body
+
+
+def test_service_detail_no_rich_sections_when_empty():
+    service = _service()  # без attributes/faq
+    body = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    assert 'data-sf-section="service_attributes"' not in body
+    assert 'data-sf-section="service_faq"' not in body
+
+
 def test_service_detail_module_gated():
     service = _service()
     tenant = TenantFactory.build(disabled_modules=["booking"])

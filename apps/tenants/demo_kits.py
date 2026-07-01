@@ -2517,7 +2517,34 @@ HANDWERKER = DemoKit(
         },
     },
     services=[
-        ("Vor-Ort-Beratung (kostenlos)", 30, "0"),
+        (
+            "Vor-Ort-Beratung (kostenlos)",
+            30,
+            "0",
+            "Wir kommen vorbei, schauen uns alles an und erstellen ein unverbindliches "
+            "Festpreis-Angebot.",
+            "",
+            {
+                # UA4-3: богатая карточка услуги + primary-CTA «Anfrage» (реш.2, A7).
+                "attributes": [
+                    "Kostenlos & unverbindlich",
+                    "Festpreis-Angebot nach dem Termin",
+                    "Meisterbetrieb, versichert",
+                    "Einzugsgebiet: 25 km rund um den Betrieb",
+                ],
+                "faq": [
+                    {
+                        "q": "Was kostet die Vor-Ort-Beratung?",
+                        "a": "Die Beratung vor Ort ist kostenlos und unverbindlich.",
+                    },
+                    {
+                        "q": "Wie schnell bekomme ich einen Termin?",
+                        "a": "In der Regel innerhalb von 2–3 Werktagen.",
+                    },
+                ],
+                "primary_action": "request",
+            },
+        ),
         ("Maler: Zimmer streichen (bis 20 m²)", 180, "290"),
         ("Elektro: Steckdose/Schalter setzen", 45, "75"),
         ("Sanitär: Armatur tauschen", 60, "120"),
@@ -3734,10 +3761,12 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
 
         refs["services"] = []
         for i, spec in enumerate(kit.services):
-            # (name, minutes, price[, description[, image_kw]]) — A3 богатая карточка.
+            # (name, minutes, price[, description[, image_kw[, rich]]]) — A3/UA4-3
+            # богатая карточка. rich (dict) — attributes/faq/primary_action (UA4-3).
             name, minutes, price = spec[0], spec[1], spec[2]
             desc = spec[3] if len(spec) > 3 else ""
             image_kw = spec[4] if len(spec) > 4 else ""
+            rich = spec[5] if len(spec) > 5 and isinstance(spec[5], dict) else {}
             image = (
                 {"url": demo_image(image_kw, w=600, h=400, lock=620 + i), "alt": {"de": name}}
                 if image_kw
@@ -3749,6 +3778,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 image=image,
                 duration_minutes=minutes,
                 price_cents=int(Decimal(price) * 100),
+                attributes=rich.get("attributes", []),
+                faq=rich.get("faq", []),
+                primary_action=rich.get("primary_action", ""),
             )
             refs["services"].append(str(svc.pk))
     if kit.pass_plans and is_active("booking"):  # A3/G9b: тарифы Mehrfachkarte

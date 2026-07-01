@@ -3227,3 +3227,16 @@
   ссылок. Тесты: `apps/core/tests/test_primary_action.py` (дефолт/config/jobs-фолбэк/поле>config/
   инвалид/не-dict) + `test_public.py` (порядок кнопок default vs override). Гейт: resolver+booking public.
   Дальше UA3-1 слайс 2: extraction `_buybox.html` (диспатч по `purchase_mode`) с паритет-тестами.
+- **2026-07-01 — UA4-3 (U-A): богатая карточка услуги — attributes + FAQ + primary_action (миграция).**
+  Закрывает **E-1/D1/D2** (деталь услуги A3/A7/A9). `booking.Service` += `attributes` (JSONField
+  list[str] — свободные спецификации/фичи), `faq` (JSONField list[{q,a}]), `primary_action`
+  (choices booking|request — per-service override реш.2, теперь реальное поле, читает резолвер UA3-1).
+  Нормализаторы `normalize_service_attributes`/`normalize_service_faq` (garbage-safe: не-список→[],
+  дропает пустое/мусор, обрезает длину, ≤12) + свойства `attributes_list`/`faq_list` (нормализация на
+  чтении, по образцу `events.tier_list`). Рендер на `service_detail.html` (`detail_body`): секции
+  атрибутов (список ✓) + FAQ (аккордеон `<details>`) с `data-sf-section`-хуками (под реестр UA4-1),
+  скрыты при пустом. Демо: A7 handwerker — первая услуга «Vor-Ort-Beratung» с attributes+FAQ+
+  primary_action='request' (спек услуги расширен опц. 6-м dict, обратно совместимо). Миграция
+  `booking/0012` (AddField, default list/'') — без потерь. Тесты: `test_service_rich.py`
+  (нормализаторы/свойства/поле→резолвер) + `test_public.py` (рендер секций / скрыты при пустом).
+  Гейт: 42 на свежей БД. Дальше: UA4-4a (generic Review) / UA4-1 (реестр секций).
