@@ -18,6 +18,8 @@ import uuid
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import detail_sections
+
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
     ("hero", _("Welcome banner"), False),
@@ -517,67 +519,74 @@ def effective_card_visual(config, key) -> dict:
     }
 
 
-# M20U-4: тематические секции детальной события — дефолтный порядок (как в
-# шаблоне event_detail.html). Владелец может переупорядочить/скрыть через
-# config["event_detail"] = {"order": [...], "hidden": [...]}.
-EVENT_DETAIL_SECTION_KEYS = (
-    "for_whom",
-    "idea",
-    "includes",
-    "program",
-    "venue",
-    "accommodation",
-    "food",
-    "hosts",
-    "price",
-    "bring",
-    "faq",
-    "testimonials",
-    "before_after",
-    "certifications",
-)
+# UA4-1 (slice B): единый нормализатор конфига секций детали. Ключи/подписи/флаги
+# (orderable/hideable) — в реестре `apps.core.detail_sections` (единый источник);
+# здесь только нормализация сохранённого `config['<module>_detail']`. Модуль → config-
+# ключ (events→event_detail, catalog→product_detail; booking/stays добавит slice C).
+_DETAIL_SECTION_CONFIG_KEY = {"events": "event_detail", "catalog": "product_detail"}
 
 
-def normalize_event_detail(raw) -> dict:
-    """Привести config['event_detail'] к {order:[known], hidden:[known]}."""
-    ed = raw if isinstance(raw, dict) else {}
+def detail_section_config_key(module: str) -> str:
+    """Ключ в site_config, где лежит {order?, hidden} секций детали для module."""
+    return _DETAIL_SECTION_CONFIG_KEY.get(module, f"{module}_detail")
+
+
+def normalize_detail_sections(raw, module: str) -> dict:
+    """Привести `config['<module>_detail']` к нормальному виду по реестру:
+    orderable-модуль (event) → {order:[known], hidden:[known]}; hide-only (product) →
+    {hidden:[known]}. Неизвестные ключи отбрасываются."""
+    keys = detail_sections.section_keys(module)
+    orderable = any(s.orderable for s in detail_sections.sections_for(module))
+    d = raw if isinstance(raw, dict) else {}
+    hidden = sorted({k for k in (d.get("hidden") or []) if k in keys})
+    if not orderable:
+        return {"hidden": hidden}
     order, seen = [], set()
-    for k in ed.get("order") or []:
-        if k in EVENT_DETAIL_SECTION_KEYS and k not in seen:
+    for k in d.get("order") or []:
+        if k in keys and k not in seen:
             order.append(k)
             seen.add(k)
-    hidden = [k for k in (ed.get("hidden") or []) if k in EVENT_DETAIL_SECTION_KEYS]
-    return {"order": order, "hidden": sorted(set(hidden))}
+    return {"order": order, "hidden": hidden}
 
 
-def event_detail_order(config) -> list[str]:
-    """Порядок ВИДИМЫХ тематических секций детальной события.
+def detail_section_hidden(config, module: str) -> set:
+    """Множество СКРЫТЫХ секций детали module (для рендера/билдера)."""
+    raw = (config or {}).get(detail_section_config_key(module))
+    return set(normalize_detail_sections(raw, module).get("hidden", []))
 
-    Сохранённый order (известные ключи) + недостающие в дефолтном порядке реестра,
-    минус hidden. Пустой/мусорный config → полный список в порядке реестра."""
-    ed = normalize_event_detail((config or {}).get("event_detail"))
-    hidden = set(ed["hidden"])
-    seen = set(ed["order"])
-    order = ed["order"] + [k for k in EVENT_DETAIL_SECTION_KEYS if k not in seen]
+
+def detail_section_order(config, module: str) -> list[str]:
+    """Порядок ВИДИМЫХ секций детали module: сохранённый order (известные) + недостающие
+    в порядке реестра, минус hidden. Пустой/мусорный config → полный список реестра."""
+    keys = detail_sections.section_keys(module)
+    nd = normalize_detail_sections((config or {}).get(detail_section_config_key(module)), module)
+    hidden = set(nd.get("hidden", []))
+    seen = set(nd.get("order", []))
+    order = nd.get("order", []) + [k for k in keys if k not in seen]
     return [k for k in order if k not in hidden]
 
 
-# Опциональные секции ДЕТАЛЬНОЙ товара — владелец может скрыть через
-# config["product_detail"] = {"hidden": [...]}. Ядро (галерея/цена/в корзину) не
-# скрывается; здесь только необязательные блоки (описание/LMIV-инфо/отзывы/похожие).
-PRODUCT_DETAIL_SECTION_KEYS = ("description", "info", "reviews", "related")
+# Обратная совместимость: прежние per-архетипные имена/сигнатуры сохранены (много
+# импортов в views/шаблонах) — теперь тонкие обёртки над generic-нормализатором.
+# KEYS выводятся из реестра (единый источник, порядок = порядок рендера).
+EVENT_DETAIL_SECTION_KEYS = detail_sections.section_keys("events")
+PRODUCT_DETAIL_SECTION_KEYS = detail_sections.section_keys("catalog")
+
+
+def normalize_event_detail(raw) -> dict:
+    return normalize_detail_sections(raw, "events")
+
+
+def event_detail_order(config) -> list[str]:
+    return detail_section_order(config, "events")
 
 
 def normalize_product_detail(raw) -> dict:
-    """Привести config['product_detail'] к {hidden:[known]} (только известные ключи)."""
-    pd = raw if isinstance(raw, dict) else {}
-    hidden = [k for k in (pd.get("hidden") or []) if k in PRODUCT_DETAIL_SECTION_KEYS]
-    return {"hidden": sorted(set(hidden))}
+    return normalize_detail_sections(raw, "catalog")
 
 
 def product_detail_hidden(config) -> set:
-    """Множество СКРЫТЫХ опциональных секций детальной товара (для рендера/билдера)."""
-    return set(normalize_product_detail((config or {}).get("product_detail"))["hidden"])
+    return detail_section_hidden(config, "catalog")
 
 
 # Сортировка каталога: ключи валидны для keyset-пагинации (поле — реальная колонка БД,
