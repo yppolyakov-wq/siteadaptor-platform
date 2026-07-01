@@ -3323,3 +3323,18 @@
   `_seed_product_reviews`); `DemoKit` +`service_reviews`/`stay_reviews`/`event_reviews`. Засеяно: friseur
   (услуги), hotel (номера), retreat (события) — по 3 опубликованных отзыва → секция отзывов UA4-4b на
   детали видна в демо. Python-only, без миграций. Гейт: 21 `test_demo_kits` + 6 таргетных passed.
+- **2026-07-01 — UA4-2 (U-A): data-driven цикл рендера секций детали — service + stay (серия закрыта).**
+  Тела `service_detail`/`stay_detail` переведены с per-template `if/elif` на цикл
+  `{% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}`; вьюхи
+  собирают `body_sections` (порядок из `detail_sections.section_keys(module)`, видимость = контент+не
+  скрыто); секции вынесены в партиалы `templates/storefront/sections/detail/_service_*`/`_stay_*.html`.
+  У stay `similar` остаётся в `detail_wide` отдельным блоком (партиал `_stay_similar.html`+`show_similar`) —
+  раскладка сохранена. **event** уже был loop-based (`event_detail_order`+`_event_thematic.html`) — UA4-2
+  ему не требуется. **product остаётся per-block**: секции реестра распределены по `detail_aside`
+  (description/info в sticky buy-box), `detail_body` (reviews), `detail_wide` (related) — перенос в
+  body-цикл сломал бы колонку; уже управляются `product_detail_hidden`. Замки — характеристические
+  паритет-тесты порядка секций (service/stay/product). Каждая миграция шаблона — под адверсариальным
+  ревью (Workflow, confirmed:[]). Без миграций. Гейт: service 42+275, stay 182+164, product 13 passed;
+  ruff+`manage.py check`+`test_template_comments` чисты. Побочно: перешёл на `git commit -F -` (heredoc)
+  вместо `-m` с бэктиками (бэктики в двойных кавычках → command substitution). **Волна U-A (UA1–UA4)
+  закрыта в `main`.**

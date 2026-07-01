@@ -173,3 +173,37 @@ def test_submit_updates_existing_review():
         entity_kind="product", entity_id=product.pk, email="buyer@test.de"
     )
     assert reviews.count() == 1 and reviews.first().rating == 5  # обновлён, не задвоен
+
+
+# --- UA4-2 (product остаётся per-block) ------------------------------------
+def test_product_detail_section_order_parity():
+    """UA4-2: товар НЕ мигрируется в body-цикл — его секции реестра распределены по
+    блокам (description/info в detail_aside, reviews в detail_body, related в
+    detail_wide). Фиксируем порядок aside description → aside info → body reviews →
+    wide related как замок раскладки (перенос в body сломал бы sticky-колонку)."""
+    from apps.catalog.tests.factories import CategoryFactory
+
+    cat = CategoryFactory()
+    product = ProductFactory(
+        name={"de": "ParitBrot"},
+        description={"de": "Frisch gebacken im Steinofen."},
+        origin="Region Allgäu",
+        ingredients="Mehl, Wasser, Salz",
+        category=cat,
+    )
+    ProductFactory(name={"de": "AnderBrot"}, category=cat)  # related: та же категория
+    Review.objects.create(
+        entity_kind="product", entity_id=product.pk, rating=5, author_name="K", email="k@t.de"
+    )
+    body = public_views.product_detail(
+        _get(f"/sortiment/{product.pk}/"), pk=product.pk
+    ).content.decode()
+    markers = [
+        'data-edit-field="description"',  # описание (aside)
+        "Region Allgäu",  # LMIV-инфо (aside)
+        'id="bewertungen"',  # отзывы (body) — не href="#bewertungen" из aside-рейтинга
+        "More from this category",  # похожие (wide)
+    ]
+    positions = [body.find(m) for m in markers]
+    assert all(p >= 0 for p in positions), positions
+    assert positions == sorted(positions)  # порядок aside → body → wide сохранён

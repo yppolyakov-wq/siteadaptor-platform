@@ -95,8 +95,12 @@ Python 3.12, менеджер uv.
   реестр секций детали `apps/core/detail_sections.py` (Slice A: реестр+LABELS; Slice B: обобщённый
   нормализатор `siteconfig`, паритет event/product; Slice C: билдер-инспектор + **рабочее скрытие
   секций** детали услуги/номера end-to-end). **Демо-отзывы** ✅ — `_seed_entity_reviews` (friseur/hotel/
-  retreat: услуги/номера/события по 3 отзыва → секция видна в демо). Дальше: **UA4-2** (data-driven
-  цикл рендера секций вместо per-template if/elif; вход — снапшот-паритет).
+  retreat: услуги/номера/события по 3 отзыва → секция видна в демо). **UA4-2** ✅ — data-driven цикл
+  рендера секций детали: `service`/`stay` тела → `{% for s in body_sections %}` + партиалы
+  `sections/detail/_*`; `event` уже был loop-based; `product` остаётся per-block (секции в aside/body/wide,
+  управляются `product_detail_hidden`). Замки — паритет-тесты порядка секций; каждая миграция под
+  адверсариальным ревью. **Волна U-A (UA1–UA4) закрыта.** Дальше по очереди: **U-B** (листинг/фасеты/
+  категории) — либо L4 (i18n-хром) / E-2 (правовой пакет) по выбору владельца.
 - Самые свежие миграции: `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
   ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
   (L3-модель i18n Service/StayUnit); ещё ранее `stays/0014–0019` + `promotions/0018` (этап витрины/UX;
