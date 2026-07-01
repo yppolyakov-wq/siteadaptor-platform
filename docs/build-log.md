@@ -3249,3 +3249,23 @@
   `data-edit-field`). Per-locale ВВОД (формы/редактор) + засев переводов в демо — остаток L3c (позже).
   Тест: `test_public.py::test_service_detail_renders_localized_name_en` (EN-оверлей под `override('en')`,
   база под дефолтом). Гейт: 30 booking public + 154 stays (без регресса).
+- **2026-07-01 — UA4-4a (U-A): generic-модель отзыва `reviews.Review` + data-migration из
+  `catalog.ProductReview`.** Новое TENANT-приложение `apps.reviews` (в `base.py` TENANT_APPS →
+  test.py как SHARED). Модель `Review(entity_kind∈{product,service,stay,event}, entity_id=UUID, rating,
+  author_name, email, comment, verified, is_published)` — адресуется по (kind,id) вместо FK на конкретную
+  модель (носитель протокола `SellableEntity` для отзывов/агрегатов/JSON-LD всех архетипов). Уник
+  (kind,id,email), индекс (kind,id,is_published), `stars`-проперти. `services.py`:
+  `published_for`/`summary`/`bulk_summary` (агрегаты одним запросом для списков) + `is_verified_buyer`
+  (per-kind верификатор, **fail-closed**: неизвестный/непривязанный kind → False; product→`catalog.reviews.
+  has_purchased`/OrderItem). Data-migration `reviews/0002` (логика в `apps.reviews.backfill.copy_product_
+  reviews`, параметризована классами моделей → та же функция вызывается из миграции с историческими
+  моделями И из теста с боевыми): переносит все `ProductReview` в `Review(entity_kind='product')`,
+  сохраняя опубликованность/таймстемпы (created_at/updated_at), помечая `verified=True`, идемпотентно
+  (пропуск уже перенесённых). `ProductReview` НЕ удалён (не деструктивно). Переключены на generic-модель:
+  `catalog.reviews.published_for/summary` (тонкие product-обёртки), `product_detail` (список+summary),
+  `product_review_submit` (запись в `Review`, верификация через адаптер), список каталога (bulk-агрегат
+  рейтинга ★ на карточке через `bulk_summary`), демо-засев `_seed_product_reviews`. Миграции: `reviews/0001`
+  (схема) + `reviews/0002` (data). Тесты: новый `apps/reviews/tests/test_reviews.py` (11: перенос без
+  потерь/поля/verified/таймстемпы/идемпотентность, агрегаты, fail-closed) + обновлены
+  `test_product_reviews`/`test_storefront`/`test_demo_kits` на generic-модель. Гейт (`--create-db`):
+  99 passed (reviews + catalog product-reviews/storefront + demo_kits), `manage.py check` чист.

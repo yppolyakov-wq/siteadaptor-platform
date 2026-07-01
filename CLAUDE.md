@@ -83,9 +83,16 @@ Python 3.12, менеджер uv.
   миграции `booking/0011`+`stays/0020`, чистый AddField) — фундамент адаптера U-A. Решения владельца
   S-1(a)/S-2(b LegalDoc)/S-3(реестр DE+EN). SOURCE OF TRUTH этапа —
   `docs/unified-sellable-entity-master-track-2026-06-30.md §4` (очередь волн) + `docs/multilanguage-wave-L-plan-2026-07-01.md`.
-- Самые свежие миграции: `booking/0011` + `stays/0020` (L3-модель i18n Service/StayUnit); ранее
-  `stays/0014–0019` + `promotions/0018` (этап витрины/UX; L1/L2 миграций НЕ добавляли). Полный
-  список — в build-log.
+  Волна U-A: **UA1-1** (деталь услуги), **UA2-1** (контракт `sellable` в контексте деталей),
+  **UA3-1** (override primary-CTA услуги), **UA4-3** (богатая карточка услуги: attributes+FAQ+primary_action),
+  **L3c-рендер** (`*_localized` на витрине Service/StayUnit), **UA4-4a** ✅ — generic-модель отзыва
+  `reviews.Review` (`entity_kind`+`entity_id`) + data-migration из `catalog.ProductReview` + product
+  переключён на generic (список/деталь/submit/демо); per-kind верификатор fail-closed. Дальше по очереди:
+  **UA4-4b** (отзывы+JSON-LD на Service/Stay/Event через generic), UA4-1 (реестр секций детали).
+- Самые свежие миграции: `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
+  ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
+  (L3-модель i18n Service/StayUnit); ещё ранее `stays/0014–0019` + `promotions/0018` (этап витрины/UX;
+  L1/L2 миграций НЕ добавляли). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
