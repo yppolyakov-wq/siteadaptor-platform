@@ -111,6 +111,20 @@ def test_service_detail_renders_reviews_and_form():
     assert f"/leistung/{s.pk}/bewerten/" in body  # action формы
 
 
+def test_service_detail_hides_section_from_builder_config():
+    """UA4-1 slice C: скрытие секции «reviews» в билдере убирает её с детали услуги."""
+    s = _service()
+    Review.objects.create(
+        entity_kind="service", entity_id=s.pk, rating=5, author_name="Petra", email="p@t.de"
+    )
+    req = _req(path=f"/leistung/{s.pk}/")
+    req.tenant.site_config = {"service_detail": {"hidden": ["reviews"]}}
+    body = public_views.service_detail(req, pk=s.pk).content.decode()
+    assert "Petra" not in body and 'id="bewertungen"' not in body  # секция скрыта
+    # непроскрытая секция (описание) всё ещё на месте
+    assert "Inkl. Öl und Filter." in body
+
+
 # --- приём формы (POST) -----------------------------------------------------
 def test_submit_creates_review_for_verified_customer():
     s = _service()

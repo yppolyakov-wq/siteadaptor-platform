@@ -38,6 +38,48 @@ def test_registry_flags():
     assert detail_sections.sections_for("unknown") == ()
 
 
+# --- slice C: service/stay реестр + конфиг-ключи + нормализация ---------------
+def test_registry_service_stay_keys_and_flags():
+    assert detail_sections.section_keys("booking") == (
+        "description",
+        "attributes",
+        "faq",
+        "team",
+        "reviews",
+    )
+    assert detail_sections.section_keys("stays") == (
+        "description",
+        "amenities",
+        "reviews",
+        "similar",
+    )
+    # обе — hide-only (порядок фиксирован шаблоном)
+    assert not any(s.orderable for s in detail_sections.sections_for("booking"))
+    assert not any(s.orderable for s in detail_sections.sections_for("stays"))
+
+
+def test_config_keys_for_service_stay():
+    assert siteconfig.detail_section_config_key("booking") == "service_detail"
+    assert siteconfig.detail_section_config_key("stays") == "stay_detail"
+
+
+def test_detail_section_hidden_service_stay():
+    cfg = {
+        "service_detail": {"hidden": ["reviews", "zzz"]},
+        "stay_detail": {"hidden": ["similar"]},
+    }
+    assert siteconfig.detail_section_hidden(cfg, "booking") == {"reviews"}
+    assert siteconfig.detail_section_hidden(cfg, "stays") == {"similar"}
+
+
+def test_normalize_adds_service_stay_detail():
+    out = siteconfig.normalize(
+        {"service_detail": {"hidden": ["faq"]}, "stay_detail": {"hidden": ["amenities", "bad"]}}
+    )
+    assert out["service_detail"] == {"hidden": ["faq"]}
+    assert out["stay_detail"] == {"hidden": ["amenities"]}  # неизвестный ключ отброшен
+
+
 def test_section_labels_present_for_each_key():
     labels = detail_sections.section_labels("events")
     assert set(labels) == set(siteconfig.EVENT_DETAIL_SECTION_KEYS)

@@ -98,6 +98,18 @@ def test_stay_detail_renders_reviews_and_form():
     assert f"/unterkunft/{u.pk}/bewerten/" in body
 
 
+def test_stay_detail_hides_section_from_builder_config():
+    """UA4-1 slice C: скрытие секции «reviews» в билдере убирает её с детали номера."""
+    u = _unit()
+    Review.objects.create(
+        entity_kind="stay", entity_id=u.pk, rating=5, author_name="Heinz", email="h@t.de"
+    )
+    req = _req(path=f"/unterkunft/{u.pk}/")
+    req.tenant.site_config = {"stay_detail": {"hidden": ["reviews"]}}
+    body = public_views.unterkunft_unit(req, pk=u.pk).content.decode()
+    assert "Heinz" not in body and 'id="bewertungen"' not in body
+
+
 # --- приём формы (POST) -----------------------------------------------------
 def test_submit_creates_review_for_verified_guest():
     u = _unit()

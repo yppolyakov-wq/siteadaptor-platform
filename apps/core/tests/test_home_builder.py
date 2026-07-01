@@ -780,6 +780,73 @@ def test_home_builder_saves_product_detail_hidden():
     assert hidden == {"reviews", "related"}
 
 
+def test_home_builder_renders_service_stay_inspector():
+    """UA4-1 slice C: инспектор видимости секций детальной услуги и номера."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbss",
+        name="HBSS",
+        enabled_modules=["catalog"],
+        disabled_modules=[],
+    )
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert 'data-page-key="service_detail"' in body and 'name="sd_visible_reviews"' in body
+    assert 'name="sd_present"' in body
+    assert 'data-page-key="stay_detail"' in body and 'name="std_visible_similar"' in body
+    assert 'name="std_present"' in body
+
+
+def test_home_builder_saves_service_stay_detail_hidden():
+    """UA4-1 slice C: снятые галочки секций детали услуги/номера → hidden (presence-guard)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbss2",
+        name="HBSS2",
+        enabled_modules=["catalog"],
+        disabled_modules=[],
+    )
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "sd_present": "1",
+        "sd_visible_description": "on",
+        "sd_visible_attributes": "on",
+        "sd_visible_faq": "on",
+        "sd_visible_team": "on",
+        # sd_visible_reviews не прислан → скрыт
+        "std_present": "1",
+        "std_visible_description": "on",
+        "std_visible_amenities": "on",
+        "std_visible_reviews": "on",
+        # std_visible_similar не прислан → скрыт
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.detail_section_hidden(cfg, "booking") == {"reviews"}
+    assert siteconfig.detail_section_hidden(cfg, "stays") == {"similar"}
+
+
+def test_home_builder_save_without_service_inspector_keeps_service_detail():
+    """Presence-guard: POST без sd_present не трогает service_detail (не скрывает всё)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbss3",
+        name="HBSS3",
+        enabled_modules=["catalog"],
+        disabled_modules=[],
+        site_config={"service_detail": {"hidden": ["faq"]}},
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"order_hero": "1", "enabled_hero": "on"}, tenant)
+    )
+    assert siteconfig.detail_section_hidden(
+        siteconfig.normalize(tenant.site_config), "booking"
+    ) == {"faq"}  # не затёрто
+
+
 def test_home_builder_saves_catalog_show_filters():
     """Тумблер «показывать фильтры» страницы каталога сохраняется (presence-guard cf_present)."""
     tenant = TenantFactory(
