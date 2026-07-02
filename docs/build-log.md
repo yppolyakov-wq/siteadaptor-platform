@@ -3555,3 +3555,9 @@
   Урок среды: `billing/tests/test_tasks.py` виснет ЛОКАЛЬНО и на чистом дереве (на CI зелёный) —
   гейтить с `--ignore` до починки. Нативные PayPal/Klarna/SEPA-мандаты — external-integrations-
   backlog; Vorkasse вне orders (stays G7 и пр.) — отложено (E7-4, roadmap §Отложено).
+- **2026-07-02 — E-7: два красных CI на хвосте батча (1121/1122) — быстрые ранние замки, уроки в §5.**
+  (1) Новые Tailwind-классы (sky-палитра бейджа способа/Vorkasse-блока) без пересборки
+  `static/css/app.css` → замок «Build CSS & check freshness». (2) `ruff format --check` гонялся
+  точечно и пропустил `apps/stays/public_views.py` (sed-правка gift-вызова) → формат-чек CI по
+  всему дереву. Оба фикса — по коммиту; run 1123 зелёный, FF-мерж `86bbd33` → main. Конвенция
+  §5 дополнена финальным гейтом батча (format целиком, build:css, шаблонные замки).
