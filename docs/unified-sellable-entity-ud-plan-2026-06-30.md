@@ -282,3 +282,16 @@ Workflow из 7 скептиков (refute-by-default) проверил несу
 | ЛК уже проецирует | **partial** | Путь `apps/account/` ✅. **9 гейтов/12 билдеров, не «6»;** jobs/messages — `public_token`. Обобщаем только 6 транзакц. разделов. |
 | KDS — единственный Kanban | **confirmed** | ✅; **booking/stays кнопки — хардкод `{% if status %}`** → UD2-1 конвертирует на `allowed_targets`. |
 | Уведомления канал-агностичны, SMS нет | **confirmed** | ✅ SMS = новый адаптер, не новая инфраструктура. |
+
+## Дополнения по аудиту 2026-07-01 (см. master-track §7.3)
+- **E-7 платёжный микс DACH — ПРИОРИТЕТ №1 (сквозной блокер, вне волн):** `Order.payment_method` в
+  UD1-1 (сейчас только `payment_state`) + PayPal / Klarna Kauf-auf-Rechnung / SEPA / Vorkasse +
+  `payment_method_types` в Stripe Checkout (`billing/connect.py:145` без них). Внутр. часть
+  (`payment_method`+Vorkasse) — до/в начале U-D; PayPal/Klarna — по `external-integrations-backlog`.
+- **A7/A9 финансы:** online-оплата финального счёта (сейчас только депозит на Angebot) + E-Rechnung
+  (XRechnung/ZUGFeRD, B2B must 2025) — отдельный трек E-Invoice.
+- **A7 отзыв по Auftrag:** kind `job` в `reviews.Review` + `has_completed_job` (fail-closed) +
+  письмо `job_done` → форма `/bewerten/` (сейчас ведёт на портал).
+- **`[правка аудита]` A9:** repair-статус + «fertig»-письмо (K6) и HU/AU-reminder (K7) **уже реализованы**
+  (`jobs/state_machine.py:29-43`, `Job.service_due_date`+beat) — из бэклога снять. Остаётся
+  **serviced-vehicle история** (мультивизит) + **Reifeneinlagerung**. Детали — `docs/audit-2026-07-01.md §3/§5`.

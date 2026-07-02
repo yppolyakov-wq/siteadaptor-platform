@@ -133,3 +133,10 @@ U-A унифицировал ДЕТАЛЬНУЮ страницу (`detail.html` 
 `docs/unified-sellable-entity-master-track-2026-06-30.md` · `docs/unified-sellable-entity-ua-plan-2026-06-30.md`
 (зависимость: UA1-3 контракт, UA2-1 product-на-каркасе) · `docs/market-gap-synthesis-2026-06-30.md` (T9) ·
 `apps/core/archetypes.py`, `apps/core/pagination.py`, `apps/tenants/siteconfig.py`, `apps/aggregator/views.py`.
+
+## 9. Дополнения по аудиту 2026-07-01 (см. master-track §7.2)
+В U-B добавить из рыночного анализа: **поиск по витрине `?q=`+autosuggest** (A1/A2, A4, A8 — сейчас
+`q` только в кабинете/агрегаторе); **sort-оси rating/price + price-фасет** для портала (A8, `_LISTING_SORTS`
+= только neueste/name); **чипы «Kostenlose Stornierung»/рейтинг на карточках номеров + визуальный
+range-picker** поиска (A5 — сейчас `<date>`-инпуты). ⚠️ UC2-4-асимметрия «service — плоские строки»
+**снята L3** — учесть в фасет-провайдерах/инлайне. Детали и % — `docs/audit-2026-07-01.md §3`.

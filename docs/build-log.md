@@ -3338,3 +3338,14 @@
   ruff+`manage.py check`+`test_template_comments` чисты. Побочно: перешёл на `git commit -F -` (heredoc)
   вместо `-m` с бэктиками (бэктики в двойных кавычках → command substitution). **Волна U-A (UA1–UA4)
   закрыта в `main`.**
+- **2026-07-01 — аудит U-/L план↔факт + рынок A1–A9 + security → `docs/audit-2026-07-01.md`** (только
+  анализ, код не менялся). Fan-out воркфлоу (finder против кода + адверсариальные скептики). Итоги:
+  Волна L L1/L2/L3-модель/L3c ✅ (осознанные отклонения); U-A UA1/UA2/UA4 ✅, но **«U-A закрыта» неточна** —
+  из UA3 сделан только override primary-CTA, `_buybox`-диспатч и UA3-2 не сделаны; U-B..U-E не начаты.
+  Рынок (метод `(full+0.5·partial)/total`): A5 79.6%, A6 72.4%, A8 61.1%, A1/A2 57.7%, A3 57.4%, A4 54%,
+  A9 ~47.8% (скептик-правка: repair-статус K6 + HU/AU-reminder K7 уже реализованы, финдер занизил до 41.3%),
+  A7 43.8%. Security: критических нет; **2× HIGH XSS в карте агрегатора** (`templates/aggregator/_map.html`
+  — `map_points_json` вне фикса `seo._dumps` + Leaflet `bindPopup` innerHTML), 2× medium (newsletter без
+  rate-limit/honeypot; фолбэк Fernet-ключа секретов без гейта DEBUG), несколько low. **Пробелы вплетены в
+  ТЗ (docs до кода):** master-track §7 (по очереди волн 0→4), ua-plan §7 (остаток U-A), L-plan §10, pointer'ы
+  в ub/uc/ud-планах. Приоритет №1 — E-7 платёжный микс DACH (сквозной, вне волн).

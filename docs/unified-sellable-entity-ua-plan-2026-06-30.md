@@ -247,3 +247,22 @@ Service → `AutoRepair` при `jobs_vehicle`, иначе `Service` (реш. §
 `docs/unified-sellable-entity-master-track-2026-06-30.md` · `docs/market-gap-synthesis-2026-06-30.md`
 (E-1/T3/T6) · `docs/archetype-completeness-audit-2026-06-30.md` (D1/D2) ·
 `apps/core/archetypes.py` · `templates/storefront/detail.html` · `apps/booking` · `apps/tenants/siteconfig.py`.
+
+## 7. Остаток волны U-A (по аудиту 2026-07-01)
+
+> ⚠️ Статус «Волна U-A (UA1–UA4) закрыта» (CLAUDE.md/build-log) НЕТОЧЕН. Верифицировано против кода
+> (`docs/audit-2026-07-01.md §1.2/§5`). Сделано: UA1-1/1-2/1-3, UA2-1 (объём сокращён — структура была
+> в M20U), UA4-1/4-2/4-3/4-4a/4-4b. **НЕ сделано / доделать:**
+
+| ID | Что | Размер | Улика отсутствия |
+|---|---|:--:|---|
+| **UA3-1 слайс 2** | Единый `templates/storefront/_buybox.html` с диспатчем по `purchase_mode` (`cart/reserve/request/booking`); сейчас только override primary-CTA (резолвер `archetypes.primary_service_action` + свап кнопок) | L | `templates/**/_buybox*` не существует; `buybox_context` (`sellable.py:37`) — пустая заглушка |
+| **UA3-2** | Двухшаговый buy-box: `select_url`/`submit_url` в `SellableEntity` + рендер селектор→POST, провести `stay_detail` и `service_slots` через контракт | L | `select_url`/`submit_url` только в плане; в dataclass (`sellable.py:22-39`) их нет |
+| **UA4-4b AutoRepair** | Проброс `schema_type=AutoRepair` в `entity_jsonld` для `jobs_vehicle` (плановый дефолт §5 п.4) | S | `templatetags/seo.py:129` не передаёт `schema_type` → услуга всегда `@type=Service` (A9) |
+| **UA4-3 демо A9** | Засеять rich-карточку (attributes/faq/primary_action) для **werkstatt** — план требовал A7+A9, сделан только A7 | S | `demo_kits.py:2322` werkstatt — плоские кортежи |
+| **reviews-email wiring** | Замкнуть post-visit письма на форму `/…/bewerten/` (сейчас: event→корень витрины, stay→портал, service→письма нет) | S/M | движок generic-отзывов готов, но рассылки к нему не подключены |
+| **combo i18n** | 5-й kind адаптера читает плоские DE (`catalog.Combo` без `*_i18n`) — критерий «i18n для 5 kind» = 4/5 | S | `sellable.py:110` |
+| **тесты** | live-preview round-trip `service_detail`/`stay_detail` (`test_live_preview.py` — только event); L3c stays-рендер; сквозной POST инлайн-правки услуги | S | покрытие косвенное |
+
+> **Решение владельца:** доделать остаток UA3/UA4 ИЛИ явно переписать статус «U-A закрыта в объёме
+> UA1/UA2/UA4; UA3 — только override primary-CTA». Полная привязка к очереди волн — master-track §7.1.
