@@ -40,17 +40,13 @@ def veranstaltung_index(request):
         .prefetch_related("teachers")
         .order_by("starts_at")
     )
-    facets = _event_facets(base)  # доступные значения фильтров (по факту наличия)
-    selected = {
-        "cat": (request.GET.get("cat") or "").strip(),
-        "level": (request.GET.get("level") or "").strip(),
-        "lang": (request.GET.get("lang") or "").strip(),
-        "city": (request.GET.get("city") or "").strip(),
-        "dur": (request.GET.get("dur") or "").strip(),
-        "month": (request.GET.get("month") or "").strip(),
-        "teacher": (request.GET.get("teacher") or "").strip(),
-    }
-    events = [e for e in base if _event_matches(e, selected)]
+    # UB2-1: фасеты — через единый FacetProvider (делегирует _event_facets/_event_matches).
+    from apps.core import facets as facets_registry
+
+    provider = facets_registry.provider_for("event")
+    facets = provider.present(base, request.GET)  # доступные значения (по факту наличия)
+    selected = provider.selected(request.GET)
+    events = provider.apply(base, request.GET)
     active_filters = any(selected.values())
     # RV3: компактный отсчёт до старта (urgency-пилюля на карточке/гриде). Событие
     # «скоро» (≤14 дней) получает метку Heute/Morgen/In N Tagen — конверсионный сигнал.

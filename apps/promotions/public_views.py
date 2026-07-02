@@ -292,7 +292,12 @@ def product_list(request):
     from decimal import Decimal, InvalidOperation
 
     from apps.catalog.models import Category, Product, ProductVariant
+    from apps.core import facets as facets_registry
 
+    # UB2-1: категория/диета — через единый FacetProvider (нативные поля БД,
+    # composable с keyset). Category-объект вьюха резолвит сама (redirect на
+    # неизвестный slug + заголовок/подкатегории).
+    provider = facets_registry.provider_for("product")
     products = Product.objects.filter(is_active=True)
     category = None
     slug = request.GET.get("kategorie", "")
@@ -300,27 +305,13 @@ def product_list(request):
         category = Category.objects.filter(slug=slug, is_active=True).first()
         if category is None:
             return redirect("storefront-products")
-        products = products.filter(category=category)
     # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
-    facet_base = products
-    # A4: фасет-фильтр по диете (vegan/vegetarisch/…) — JSON contains код. Показываем
-    # чипы только тех диет, что реально встречаются среди активных товаров.
-    from apps.catalog import food
-
-    diet = request.GET.get("diet", "")
-    diet = diet if diet in food.VALID_DIETS else ""
-    if diet:
-        products = products.filter(diets__contains=[diet])
-    present_diets = set()
-    for vals in Product.objects.filter(is_active=True).values_list("diets", flat=True):
-        present_diets.update(v for v in (vals or []) if v in food.VALID_DIETS)
-    diet_chips = [
-        {"code": c, "label": label, "icon": icon}
-        for c, label, icon in food.DIETS
-        if c in present_diets
-    ]
+    facet_base = provider.apply(products, {"kategorie": slug})
+    diet = provider.selected(request.GET)["diet"]
+    products = provider.apply(products, request.GET)  # категория + диета
+    diet_chips = provider.present(facet_base, request.GET)["diet_chips"]
 
     # --- Фасет цены (универсально для ритейла): диапазон base_price € от/до. ---
     def _money(raw):

@@ -148,7 +148,13 @@ def termin_index(request):
 
     embed = _is_embed(request)
     has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
-    services_qs = Service.objects.filter(is_active=True)
+    # UB2-1: единая точка фасетов листинга (у услуг фасетов нет — NullFacets no-op;
+    # поиск ?q=/сорт появятся в UB2-2 тем же интерфейсом).
+    from apps.core import facets as facets_registry
+
+    services_qs = facets_registry.provider_for("service").apply(
+        Service.objects.filter(is_active=True), request.GET
+    )
     if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
         # UB1-1: раскладка листинга из site_config (+черновик канвы при ?preview=1).
         # Ключ не задан → services_grid=None → шаблон держит легаси-грид (max-w-3xl).

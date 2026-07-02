@@ -116,9 +116,13 @@ def unterkunft_index(request):
     _require_stays_active(request)
     units = list(StayUnit.objects.filter(is_active=True))
     today = timezone.localdate()
-    von = _parse_date(request.GET.get("von"))
-    bis = _parse_date(request.GET.get("bis"))
-    adults, children = _parse_guests(request.GET)
+    # UB2-1: разбор date-search параметров — через единый FacetProvider (делегирует
+    # _parse_date/_parse_guests; движок наличия ниже не трогаем).
+    from apps.core import facets as facets_registry
+
+    _sel = facets_registry.provider_for("stay").selected(request.GET)
+    von, bis = _sel["von"], _sel["bis"]
+    adults, children = _sel["adults"], _sel["children"]
     guests = adults + children
 
     tenant = getattr(request, "tenant", None)
