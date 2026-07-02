@@ -3516,3 +3516,26 @@
   `{% with %}` жёстко резолвит аргумент (у promotion нет `sellable`) → `{% firstof %}` (ленивый).
   Гейты: замки байт-в-байт зелёные, полные сьюты catalog/promotions/booking/orders 562 passed.
   Без миграций. Остаток U-A: только UA3-2 (двухшаговый buy-box) — план-док на согласовании.
+- **2026-07-02 — Остаток U-A (4/5): UA3-1 слайс 2 — единый buy-box `_buybox.html` (C1+C2+фикс).**
+  По согласованному плану `docs/ua3-1-buybox-plan-2026-07-02.md`. C1 — 7 характеризационных
+  паритет-замков ДО правки (точные поля cart/reserve/waitlist-форм, якоря, sold-out, orders-off,
+  href CTA услуги). C2 — партиал с диспатчем `cart`/`reserve`/`request`/`booking` по
+  `purchase_mode` (или явный `buybox_mode`; promotion вне реестра sellable); детали
+  product/promotion/service — только include; вьюхи/формы/`_add_to_cart_form` не тронуты.
+  Грабли: (1) `default:`-фильтр в `{% with %}` жёстко резолвит аргумент → `{% firstof %}`;
+  (2) многострочный `{# #}` в promotion_detail уронил CI-замок test_template_comments
+  (урок: core-замки — в локальный гейт шаблонных правок). Гейты: замки байт-в-байт,
+  сьюты catalog/promotions/booking/orders 562 passed. Без миграций.
+- **2026-07-02 — Остаток U-A (5/5): UA3-2 — двухшаговый buy-box через контракт (вариант A+). ВОЛНА U-A ЗАКРЫТА.**
+  Решение владельца: A+ (stay — селектор+форма партиалами за `_buybox.html`, полный «B» для
+  stay; селектор услуги остаётся страницей слот-пикера). C1 — паритет-замки ДО правок (точные
+  поля POST-форм stay базовая/с rate_plan+extra+embed и service базовая/с resource+embed;
+  недоступность/без выбора — фолбэки без формы). C2 — контракт: `SellableEntity` +=
+  `select_url`/`submit_url`/`buybox_ready` (реверс per kind, `_reverse_or_empty` pk→без-арга→"").
+  C3 — stay: `_buybox_stay_select/form/unavailable.html` (1:1), ветка booking|request в
+  `_buybox` — двухшаговый гейт (форма ТОЛЬКО при `buybox_ready`), вьюха отдаёт
+  `quote.available`; C4 — service_slots: `_buybox_service_form/pick.html`, вьюха отдаёт
+  `bool(selected)`; POST-приёмники и `book_stay`/`booking.services.book` НЕ тронуты. CTA
+  детали услуги → `sellable.select_url`. План — `docs/ua3-2-two-step-buybox-plan-2026-07-02.md`.
+  Гейты: stays 170, booking+core 510, широкий 606 passed (локальный rl-флейк повторных
+  прогонов — точечная чистка `rl:*`). Без миграций.

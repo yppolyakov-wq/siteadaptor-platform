@@ -139,8 +139,13 @@ Python 3.12, менеджер uv.
   — единый `templates/storefront/_buybox.html`: диспатч `cart`/`reserve`/`request`/`booking` по
   `purchase_mode` контракта (или явный `buybox_mode`); паритет-замки ДО свода
   (`test_buybox_parity` catalog/promotions + точные href CTA услуги), разметка 1:1, вьюхи/формы
-  не тронуты; план — `docs/ua3-1-buybox-plan-2026-07-02.md`. Остаток U-A: только **UA3-2**
-  (двухшаговый buy-box, `select_url`/`submit_url`) — план-док на согласовании владельца.
+  не тронуты; план — `docs/ua3-1-buybox-plan-2026-07-02.md`. **UA3-2 ✅ (вариант A+ владельца)**
+  — контракт `select_url`/`submit_url`/`buybox_ready`; ветка booking|request `_buybox` —
+  двухшаговый гейт (POST-форма ТОЛЬКО при готовом выборе, фолбэк-причина иначе); stay —
+  селектор дат+календарь и форма партиалами за одним include (`_buybox_stay_*`), service_slots —
+  форма/хинт партиалами (`_buybox_service_*`, селектор = страница); POST-приёмники и
+  `book_stay`/`booking.services.book` не тронуты; паритет-замки stays/booking ДО правок; план —
+  `docs/ua3-2-two-step-buybox-plan-2026-07-02.md`. **ВОЛНА U-A ЗАКРЫТА ЦЕЛИКОМ (5/5 остатка).**
 - Самые свежие миграции: **`catalog/0012` + `booking/0014`** (остаток U-A: combo i18n + post-visit,
   2026-07-02 — ⚠️ требуют деплоя) и **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2
   M2M-подборки, 2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
@@ -261,9 +266,10 @@ Python 3.12, менеджер uv.
 `Service`/`StayUnit`, overlay + миграции). Дальше: **L3c** (per-locale инпут форм/редактора + засев
 демо + рендер витрины `*_localized` — идёт с UA1-3) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5
 (правовое i18n+AGB через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр DE+EN).
-**Статус U-A (2026-07-02, честный по аудиту):** UA1/UA2/UA4 ✅; combo i18n ✅ + демо-A9 ✅ +
-reviews-email wiring ✅ + **UA3-1 слайс 2 (единый `_buybox.html`) ✅** (остаток по `…-ua-plan §7`,
-4/5). НЕ закрыто: только **UA3-2** (двухшаговый buy-box) — план-док на согласовании владельца.
+**Статус U-A (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UA1/UA2/UA3/UA4 ✅ + весь остаток аудита 5/5
+(демо-A9, combo i18n, reviews-email wiring, единый `_buybox.html`, двухшаговый buy-box A+).
+Очередь дальше — U-C (универсальный редактор) / L4 / E-2 по выбору владельца; приоритет №1
+вне волн — **E-7 платёжный микс DACH** (перед стартом — спросить владельца).
 **Статус U-B (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UB1-1/1-2/1-3 ✅ (каркас listing.html + единая
 карточка + свод 4 листингов), UB2-1/2-2/2-3 ✅ (FacetProvider + поиск/сорт + фасеты цена/наличие/
 Herkunft/рейтинг), UB3-1 ✅, UB3-2 ✅ (M2M `Collection` + кабинет + демо; миграции
