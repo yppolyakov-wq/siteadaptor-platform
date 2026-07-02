@@ -1,0 +1,22 @@
+{% extends base_template|default:"storefront/_base.html" %}
+{% comment %}
+UB1-1: единый каркас страницы-листинга (по образцу detail.html). Сейчас на нём
+услуги (/termin/); UB1-3 сведёт сюда каталог/номера/события. Наследники заполняют:
+  listing_header     — H1 + интро (archetype_cover уже рендерится в _base ДО content);
+  listing_facets     — бар фильтров/поиска/сортировки (появится в UB2-*);
+  listing_grid       — сетка/список карточек; обёртку data-sf-section="<key>" и
+                       грид-классы layout-движка даёт наследник;
+  listing_pagination — пагинация (cursor у каталога);
+  listing_empty      — состояние «ничего не найдено» (наследник сам гейтит по данным);
+  listing_after      — хвостовые CTA под листингом (абонементы услуг и т. п.).
+Слоты — через {% block %} (наследование шаблонов, не include): так наследник
+передаёт произвольную разметку без прокидывания контекста.
+{% endcomment %}
+{% block content %}
+{% block listing_header %}{% endblock %}
+{% block listing_facets %}{% endblock %}
+{% block listing_grid %}{% endblock %}
+{% block listing_pagination %}{% endblock %}
+{% block listing_empty %}{% endblock %}
+{% block listing_after %}{% endblock %}
+{% endblock %}

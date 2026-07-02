@@ -470,6 +470,18 @@ def test_service_index_card_links_to_detail_not_slots():
     assert f"/leistung/{service.pk}/" in body
 
 
+def test_service_index_on_listing_skeleton_has_sf_section_marker():
+    # UB1-1: листинг услуг на каркасе listing.html; обёртка грида размечена для
+    # on-canvas редактора (подсветка/клик секции), CTA абонементов не потерян.
+    _service()
+    from apps.booking.models import PassPlan
+
+    PassPlan.objects.create(label="10er-Karte", credits=10, price_cents=9000, is_active=True)
+    body = public_views.termin_index(_req()).content.decode()
+    assert 'data-sf-section="services"' in body
+    assert "/karten/" in body  # listing_after: ссылка на Mehrfachkarte
+
+
 def test_service_index_legacy_grid_without_layout_key():
     # UB1-1: без service_index_layout в конфиге витрина держит прежний хардкод-грид
     # (пиксельная неизменность), движковые классы не подмешиваются.
