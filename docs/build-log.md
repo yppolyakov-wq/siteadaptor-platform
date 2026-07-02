@@ -3417,3 +3417,23 @@
   Тесты: +3 провайдерных, +1 e2e. Гейт: 84 passed, CI run 1098 зелёный, FF-мерж `6d15877` → main.
   Без миграций. Остаток волны: UB3-2 (M2M Collection) — мини-разведка
   `docs/ub3-2-collection-recon-2026-07-02.md` НА СОГЛАСОВАНИИ владельца (миграция только после).
+- **2026-07-02 — UB3-2 (U-B): M2M-подборки Collection — ВОЛНА U-B ЗАКРЫТА ЦЕЛИКОМ.**
+  По согласованной разведке `docs/ub3-2-collection-recon-2026-07-02.md` (решения владельца:
+  модель ок, имя `apps.collections`, CRUD в составе, демо-названия ок). Новое TENANT-приложение
+  `apps.collections`: модель `Collection` (плоская, без scope; name/description + `*_i18n`
+  L3-оверлей; slug unique — параметр фасета; sort_order/is_active) + M2M-поля
+  `Service.collections`/`StayUnit.collections`. **Миграции: `collections/0001_initial`,
+  `booking/0013`, `stays/0021`** (чистые AddField/таблицы). Фасет `?kollektion=<slug>`:
+  хелпер `core.facets.collection_chips` (чипы только активных коллекций с сущностями снимка,
+  label на локали) + selected/apply/present в ServiceFacets/StayDateFacets (M2M-JOIN+distinct);
+  чипы на /termin/ и /unterkunft/ (паттерн категорий каталога), carry в тулбаре/форме дат;
+  ветка услуг в termin_index решается ДО фасета; редирект «один юнит» не срабатывает при фасете.
+  Кабинет `/dashboard/collections/` (стиль services_view): создание (slug авто, стабилен при
+  переименовании), состав чекбоксами услуг/номеров с presence-guard, вкл/выкл/удаление; ссылки
+  с кабинетных страниц услуг/номеров; гейт booking-или-stays. Демо: `DemoKit.collections` +
+  сидер по индексам refs; friseur («Damen»/«Herren»/«Färben & Pflege»), hotel («Mit Seeblick»/
+  «Familienzimmer»). Тесты: 13 новых (модель/фасет/витрина/CRUD/демо). Гейты: 86+329 passed на
+  `--create-db`, CI run 1102 зелёный, FF-мерж `1dd3b6e` → main. **Деплой миграций — владелец:**
+  `git pull origin main && ./scripts/deploy.sh single` (+опц. `seed_demo_tenants --kit friseur|hotel
+  --recreate` для демо-чипов). Итог волны U-B: единый каркас листинга, единая карточка, свод
+  4 листингов, FacetProvider, поиск+сорт, фасеты каталога, коллекции услуг/номеров.
