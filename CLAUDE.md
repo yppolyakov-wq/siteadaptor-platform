@@ -170,7 +170,17 @@ Python 3.12, менеджер uv.
   datetime-попап; поля движка закрыты гейтом), UE3-2 `promotion-photo-edit` + 📷/🗑 на канве
   (реюз apply_gallery_op). **E-2 слайсы 1-2 ✅:** §312j-кнопка «Zahlungspflichtig bestellen»,
   UWG «★ Anzeige», бизнес-страница/отзывы на главном `/entdecken` (портал-опциональная
-  `business_page`, тот же url-name). Локальная грабля: `rl:*`/`resv_token:*` в Redis переживают
+  `business_page`, тот же url-name). **Продолжение той же фазы:** **UC2-2 ✅** (слайсы 1+2:
+  клик→инспектор на всех 4 деталях + drag тематических секций события через `data-ed-section`/
+  `moveEdSection`; слайс 3 «C-блоки вне home» ЗАБЛОКИРОВАН архитектурой sections=home-only —
+  решение владельца; план `docs/uc2-2-oncanvas-plan-2026-07-02.md`), **UC4-2-доводка ✅**
+  (контракт += `price_value`/`price_currency`/`ld_extra`; Offer + BreadcrumbList вторым скриптом
+  + Event startDate/location), **UC4-3 ✅** (галерея услуги: шим `Service.images` dict→[dict] БЕЗ
+  миграции, `service_photo_edit` → replace/add/remove, `_media_gallery` на 5/5 kind),
+  **UC5-1 ✅** (пометка `BUYBOX_CONFIGURABLE="form"` + замок границы). **Остаток U-C:
+  UC2-3 (конфиг-управление секциями листинга — normalize, горячее), UC2-4 (единый
+  инлайн-диспетчер + свод save), UC3-1/3-2 (тема каскадом; hidden_on+width).**
+  Локальная грабля: `rl:*`/`resv_token:*` в Redis переживают
   прогоны (cache-префикс — чистить `scan_iter('*rl:*')`).
 - Самые свежие миграции: **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
   2026-07-02 — ⚠️ требуют деплоя); ранее **`orders/0012` + `tenants/0020`** (E-7: payment_method + Vorkasse-
