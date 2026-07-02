@@ -189,3 +189,56 @@ def test_stay_date_facets_selected_parses_and_clamps():
     assert junk["adults"] == 2 and junk["children"] == 0  # дефолты _parse_guests
     legacy = provider.selected({"gaeste": "3"})
     assert legacy["adults"] == 3 and legacy["children"] == 0  # legacy-диплинк H2
+
+
+def test_catalog_price_and_stock_facets():
+    """UB2-3: цена (gte/lte, «12,50» тоже) и «только в наличии» (учёт вариантов)."""
+    from apps.catalog.models import Product
+    from apps.catalog.tests.factories import ProductFactory
+
+    cheap = ProductFactory(name={"de": "Billig"}, base_price="5.00")
+    ProductFactory(name={"de": "Teuer"}, base_price="50.00", stock_quantity=0)
+    qs = Product.objects.filter(is_active=True)
+    provider = core_facets.provider_for("product")
+    assert list(provider.apply(qs, {"preis_bis": "10"})) == [cheap]
+    assert provider.apply(qs, {"preis_von": "4,50"}).count() == 2  # запятая-ввод
+    assert list(provider.apply(qs, {"nur_verfuegbar": "1"})) == [cheap]  # sold-out скрыт
+    present = provider.present(qs, {})
+    assert present["show_price_filter"] is True  # разброс цен есть
+    assert float(present["price_lo"]) == 5.0 and float(present["price_hi"]) == 50.0
+    assert present["show_stock_filter"] is True  # есть распроданное
+
+
+def test_catalog_origin_facet():
+    """UB2-3: Bio/Regional-Herkunft — чипы только указанных значений + точный фильтр."""
+    from apps.catalog.models import Product
+    from apps.catalog.tests.factories import ProductFactory
+
+    hof = ProductFactory(name={"de": "Eier"}, origin="Hof Müller")
+    ProductFactory(name={"de": "Mehl"})
+    qs = Product.objects.filter(is_active=True)
+    provider = core_facets.provider_for("product")
+    assert provider.present(qs, {})["origin_chips"] == ["Hof Müller"]
+    assert list(provider.apply(qs, {"herkunft": "Hof Müller"})) == [hof]
+    assert provider.apply(qs, {"herkunft": "Anderswo"}).count() == 0
+
+
+def test_catalog_rating_facet_bulk_summary():
+    """UB2-3: рейтинг-фасет читает reviews bulk-summary (avg >= порога, pk__in);
+    мусорный порог игнорируется; present показывает фасет лишь при отзывах."""
+    from apps.catalog.models import Product
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.reviews.models import Review
+
+    top = ProductFactory(name={"de": "TopBrot"})
+    meh = ProductFactory(name={"de": "MehBrot"})
+    Review.objects.create(entity_kind="product", entity_id=top.pk, rating=5, is_published=True)
+    Review.objects.create(entity_kind="product", entity_id=meh.pk, rating=3, is_published=True)
+    qs = Product.objects.filter(is_active=True)
+    provider = core_facets.provider_for("product")
+    assert list(provider.apply(qs, {"bewertung": "4"})) == [top]
+    assert provider.apply(qs, {"bewertung": "3"}).count() == 2
+    assert provider.apply(qs, {"bewertung": "99"}).count() == 2  # вне порогов → no-op
+    present = provider.present(qs, {})
+    assert present["show_rating_filter"] is True
+    assert present["rating_thresholds"] == (3, 4, 5)

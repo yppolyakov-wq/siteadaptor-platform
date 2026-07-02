@@ -82,7 +82,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 {% comment %}Доп. фасеты каталога (цена/бейдж/наличие) — одна GET-форма с явным «Anwenden».
 Гейтятся тумблером catalog_show_filters И наличием данных: разброс цен / присутствующие
 бейджи / есть распроданное. Нерелевантные фильтры само-скрываются.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter %}
 <form method="get" data-catalog-filters class="mb-6 flex flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
   {% for name, value in filter_form_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% if show_price_filter %}
@@ -109,6 +109,26 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
     <input type="checkbox" name="nur_verfuegbar" value="1" {% if only_available %}checked{% endif %} class="rounded border-gray-300">
     {% trans "Only available" %}
   </label>
+  {% endif %}
+  {% comment %}UB2-3: Bio/Regional-происхождение (Product.origin) — только реально
+  указанные значения; рейтинг (минимум звёзд из generic-отзывов) — когда есть отзывы.{% endcomment %}
+  {% if origin_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_herkunft">{% trans "Origin" %}</label>
+    <select id="id_herkunft" name="herkunft" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for o in origin_chips %}<option value="{{ o }}" {% if active_herkunft == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if show_rating_filter %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_bewertung">{% trans "Rating" %}</label>
+    <select id="id_bewertung" name="bewertung" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for n in rating_thresholds %}<option value="{{ n }}" {% if active_bewertung == n %}selected{% endif %}>{% trans "from" %} {{ n }} ★</option>{% endfor %}
+    </select>
+  </div>
   {% endif %}
   <button type="submit" class="rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-1.5 hover:bg-gray-700">{% trans "Apply" %}</button>
   {% if any_facet_active %}

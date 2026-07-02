@@ -13,7 +13,7 @@ import segno
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
-from django.db.models import Exists, F, Max, Min, OuterRef, Q
+from django.db.models import F
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -284,9 +284,8 @@ def product_list(request):
     композируются с keyset-пагинацией. Гейтятся тумблером `catalog_show_filters` и
     наличием данных (есть разброс цен / есть бейджи / что-то распродано) — нерелевантные
     фильтры само-скрываются (анти-Битрикс простота)."""
-    from decimal import Decimal, InvalidOperation
 
-    from apps.catalog.models import Category, Product, ProductVariant
+    from apps.catalog.models import Category, Product
     from apps.core import facets as facets_registry
 
     # UB2-1: категория/диета — через единый FacetProvider (нативные поля БД,
@@ -304,35 +303,29 @@ def product_list(request):
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
     facet_base = provider.apply(products, {"kategorie": slug})
-    diet = provider.selected(request.GET)["diet"]
-    products = provider.apply(products, request.GET)  # категория + диета
-    diet_chips = provider.present(facet_base, request.GET)["diet_chips"]
+    sel = provider.selected(request.GET)
+    diet = sel["diet"]
+    # UB2-1/2-3: все фасеты провайдера одним вызовом — категория/диета/цена/наличие/
+    # происхождение/рейтинг (рейтинг — bulk-summary отзывов, pk__in, keyset-safe).
+    products = provider.apply(products, request.GET)
     # UB2-2: поиск ?q= — по name/description на всех локалях (keyset-safe WHERE);
-    # снимок facet_base (границы цены/бейджи) поиск не сужает — как у диеты.
+    # снимок facet_base (границы цены/бейджи/наличие) поиск не сужает — как у диеты.
     q = (request.GET.get("q") or "").strip()
     products = provider.search(products, q)
-
-    # --- Фасет цены (универсально для ритейла): диапазон base_price € от/до. ---
-    def _money(raw):
-        try:
-            v = Decimal(str(raw).replace(",", ".").strip())
-        except (InvalidOperation, AttributeError):
-            return None
-        return v if v >= 0 else None
-
-    price_min = _money(request.GET.get("preis_von"))
-    price_max = _money(request.GET.get("preis_bis"))
-    if price_min is not None:
-        products = products.filter(base_price__gte=price_min)
-    if price_max is not None:
-        products = products.filter(base_price__lte=price_max)
-    _bounds = facet_base.aggregate(lo=Min("base_price"), hi=Max("base_price"))
-    price_lo, price_hi = _bounds["lo"], _bounds["hi"]
-    show_price_filter = price_lo is not None and price_hi is not None and price_lo != price_hi
+    # Доступные значения фасетов — из снимка категории (present провайдера).
+    chips = provider.present(facet_base, request.GET)
+    diet_chips = chips["diet_chips"]
+    price_lo, price_hi = chips["price_lo"], chips["price_hi"]
+    show_price_filter = chips["show_price_filter"]
+    show_stock_filter = chips["show_stock_filter"]
+    price_min, price_max = sel["preis_von"], sel["preis_bis"]
     price_min_val = request.GET.get("preis_von", "").strip() if price_min is not None else ""
     price_max_val = request.GET.get("preis_bis", "").strip() if price_max is not None else ""
+    only_available = sel["nur_verfuegbar"]
+    herkunft, bewertung = sel["herkunft"], sel["bewertung"]
 
-    # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие. ---
+    # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие;
+    # остаётся во вьюхе (вне единого набора UB2-3). ---
     _present_badges = set(facet_base.exclude(badge="").values_list("badge", flat=True).distinct())
     badge_chips = [
         (code, label) for code, label in Product.BADGE_CHOICES if code and code in _present_badges
@@ -341,26 +334,6 @@ def product_list(request):
     badge = badge if badge in {c for c, _ in badge_chips} else ""
     if badge:
         products = products.filter(badge=badge)
-
-    # --- «Nur verfügbare»: наличие с учётом вариантов (зеркало Product.in_stock). ---
-    only_available = request.GET.get("nur_verfuegbar") == "1"
-    _active_var = ProductVariant.objects.filter(product=OuterRef("pk"), is_active=True)
-    _in_stock_var = _active_var.filter(Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0))
-    if only_available:
-        products = products.annotate(
-            _has_var=Exists(_active_var),
-            _has_stock_var=Exists(_in_stock_var),
-        ).filter(
-            Q(_has_var=True, _has_stock_var=True)
-            | (Q(_has_var=False) & (Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)))
-        )
-    # Тумблер наличия показываем только если что-то реально распродано (иначе шум).
-    show_stock_filter = (
-        facet_base.filter(stock_quantity=0).exists()
-        or ProductVariant.objects.filter(
-            product__in=facet_base, is_active=True, stock_quantity=0
-        ).exists()
-    )
 
     categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
     # M20U-3: подкатегории выбранной категории — выводим карточками первыми.
@@ -410,7 +383,14 @@ def product_list(request):
     from apps.catalog.combos import active_combos
 
     any_facet_active = bool(
-        diet or badge or price_min is not None or price_max is not None or only_available or q
+        diet
+        or badge
+        or price_min is not None
+        or price_max is not None
+        or only_available
+        or herkunft
+        or bewertung
+        or q
     )
     has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
     combos_teaser = (
@@ -433,6 +413,8 @@ def product_list(request):
         "preis_von": price_min_val,
         "preis_bis": price_max_val,
         "nur_verfuegbar": "1" if only_available else "",
+        "herkunft": herkunft,  # UB2-3: Bio/Regional-происхождение
+        "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
         "preview": "1" if is_preview else "",
     }
@@ -493,6 +475,13 @@ def product_list(request):
             # Тумблер «только в наличии» — показываем только если что-то распродано.
             "show_stock_filter": show_stock_filter,
             "only_available": only_available,
+            # UB2-3: происхождение (Bio/Regional) — чипы реально указанных значений.
+            "origin_chips": chips["origin_chips"],
+            "active_herkunft": herkunft,
+            # UB2-3: рейтинг-фасет (минимум звёзд) — только когда есть отзывы.
+            "show_rating_filter": chips["show_rating_filter"],
+            "rating_thresholds": chips["rating_thresholds"],
+            "active_bewertung": bewertung,
             # Активен ли хоть один фасет (для кнопки сброса / подавления комбо-тизера).
             "any_facet_active": any_facet_active,
             # Carry-over для формы сорта и ссылки «Show more».

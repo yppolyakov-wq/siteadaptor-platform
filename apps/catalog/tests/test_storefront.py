@@ -655,3 +655,20 @@ def test_catalog_search_q_narrows_and_carries_into_cursor():
         ProductFactory(name={"de": f"Brot {i} Roggen"})
     body_more = public_views.product_list(_req(params={"q": "rogg"})).content.decode()
     assert "cursor=" in body_more and "q=rogg" in body_more  # q в keyset-carry
+
+
+def test_catalog_origin_and_rating_facets_end_to_end():
+    """UB2-3: селекты Herkunft/Rating рендерятся при данных и фильтруют выдачу."""
+    from apps.reviews.models import Review
+
+    hof = ProductFactory(name={"de": "Hofeier"}, origin="Hof Müller")
+    plain = ProductFactory(name={"de": "Mehl"})
+    Review.objects.create(entity_kind="product", entity_id=hof.pk, rating=5, is_published=True)
+    body = public_views.product_list(_req()).content.decode()
+    assert 'name="herkunft"' in body and "Hof Müller" in body
+    assert 'name="bewertung"' in body  # есть отзывы → рейтинг-фасет виден
+    body_o = public_views.product_list(_req(params={"herkunft": "Hof Müller"})).content.decode()
+    assert "Hofeier" in body_o and "Mehl" not in body_o
+    body_r = public_views.product_list(_req(params={"bewertung": "4"})).content.decode()
+    assert "Hofeier" in body_r and "Mehl" not in body_r
+    assert plain.pk  # (использован выше косвенно)
