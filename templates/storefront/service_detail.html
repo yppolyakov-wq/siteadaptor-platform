@@ -33,20 +33,9 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
     <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="name">{{ service.name_localized }}</h1>
     <p class="text-gray-500 mt-1">{% blocktrans with m=service.duration_minutes %}{{ m }} min{% endblocktrans %}{% if service.price_cents %} · <span class="font-semibold text-gray-700" data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ service.pk }}" data-price="{{ service.price_eur|floatformat:2 }}">{{ service.price_eur|floatformat:2 }} €</span>{% endif %}</p>
   </div>
-  {% comment %}UA3-1 (реш.2): порядок действий по primary_action. По умолчанию primary —
-  бронь слота, вторичная — запрос сметы (только при jobs). Override 'request' (A7/A9)
-  меняет местами: primary — Anfrage, вторичная — слот.{% endcomment %}
-  <div class="space-y-2">
-    {% if primary_action == 'request' %}
-      <a href="{% url 'storefront-anfrage' %}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</a>
-      <a href="{% url 'storefront-service-slots' service.pk %}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% purchase_label "booking" %}</a>
-    {% else %}
-      <a href="{% url 'storefront-service-slots' service.pk %}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% purchase_label "booking" %}</a>
-      {% if jobs_active %}
-        <a href="{% url 'storefront-anfrage' %}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% trans "Request a quote" %}</a>
-      {% endif %}
-    {% endif %}
-  </div>
+  {% comment %}UA3-1 (реш.2 + слайс 2): порядок действий по primary_action — рендерит
+  единый партиал _buybox.html (mode 'request' → primary Anfrage, иначе бронь слота).{% endcomment %}
+  {% include "storefront/_buybox.html" with buybox_mode=primary_action %}
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required when booking.{% endblocktrans %}</p>
   {% endif %}

@@ -66,48 +66,9 @@
       <p class="mt-4 text-gray-600 whitespace-pre-line">{{ promotion.description_text }}</p>
     {% endif %}
 
-    {# Резервирование / лист ожидания при sold-out #}
-    {% if promotion.is_sold_out %}
-    <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
-      <h2 class="font-semibold mb-1">{% trans "Sold out" %}</h2>
-      <p class="text-sm text-gray-500 mb-4">{% trans "Leave your email and we'll notify you when it's available again." %}</p>
-      <form method="post" action="{% url 'storefront-waitlist' promotion.pk %}" class="space-y-4">
-        {% csrf_token %}
-        <div style="position:absolute;left:-9999px" aria-hidden="true">{{ waitlist_form.website }}</div>
-        <div>
-          <label class="block text-sm font-medium mb-1" for="{{ waitlist_form.name.id_for_label }}">{{ waitlist_form.name.label }}</label>
-          {% render_field waitlist_form.name class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1" for="{{ waitlist_form.email.id_for_label }}">{{ waitlist_form.email.label }}</label>
-          {% render_field waitlist_form.email class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        </div>
-        <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-3 font-medium hover:bg-black">{% trans "Notify me" %}</button>
-      </form>
-    </div>
-    {% else %}
-    <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
-      <h2 class="font-semibold mb-4">{% trans "Reserve" %}</h2>
-      <form method="post" action="{% url 'storefront-reserve' promotion.pk %}" class="space-y-4">
-        {% csrf_token %}
-        <div style="position:absolute;left:-9999px" aria-hidden="true">{{ form.website }}</div>
-        {{ form.form_token }}
-        {{ form.channel }}
-        {% for field in form %}
-          {% if field.name != 'website' and field.name != 'form_token' and field.name != 'channel' %}
-            <div>
-              <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500" %}
-              {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
-            </div>
-          {% endif %}
-        {% endfor %}
-        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
-          {% trans "Reserve now" %}
-        </button>
-      </form>
-    </div>
-    {% endif %}
+    {# UA3-1 слайс 2: buy-box (reserve / sold-out→waitlist) — единый партиал;
+       promotion вне реестра SellableEntity → mode передаём явно. #}
+    {% include "storefront/_buybox.html" with buybox_mode="reserve" %}
 
     {# Поделиться + QR #}
     <div class="mt-5 flex flex-wrap items-center gap-2">

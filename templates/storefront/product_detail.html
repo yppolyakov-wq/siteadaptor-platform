@@ -46,17 +46,8 @@
     </div>
   {% endif %}{% endif %}
 
-  {% if orders_enabled %}
-    {% if product.in_stock %}
-      {# Click & Collect (D2a): в корзину-сессию → /warenkorb/. #}
-      {% if not product.has_variants and product.stock_quantity and product.stock_quantity <= 5 %}
-        <p class="mt-3 text-sm text-amber-700">{% blocktrans with n=product.stock_quantity %}Only {{ n }} left{% endblocktrans %}</p>
-      {% endif %}
-      {% include "storefront/_add_to_cart_form.html" %}
-    {% else %}
-      <p class="mt-6 text-sm font-medium text-red-600">{% trans "Sold out" %}</p>
-    {% endif %}
-  {% endif %}
+  {# UA3-1 слайс 2: buy-box — единый партиал, mode=cart из контракта sellable. #}
+  {% include "storefront/_buybox.html" %}
   <p class="mt-6 text-sm text-gray-500">
     {% trans "Available in store." %}
     {% if request.tenant.opening_hours %}<br>{{ request.tenant.opening_hours|linebreaksbr }}{% endif %}
