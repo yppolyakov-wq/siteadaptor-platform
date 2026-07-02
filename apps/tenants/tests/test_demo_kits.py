@@ -676,3 +676,36 @@ def test_hotel_portal_seed_creates_portal_and_domain_to_public():
     Command()._ensure_hotel_portal()  # идемпотентно: повтор не плодит дублей
     assert Domain.objects.filter(domain=host).count() == 1
     assert AggregatorPortal.objects.filter(host=host).count() == 1
+
+
+def test_kit_seeds_collections(monkeypatch):
+    """UB3-2: спека kit.collections создаёт подборки и связывает услуги по индексам
+    (порядок создания сидером) — чипы-фасет видны в демо сразу."""
+    from apps.booking.models import Service
+    from apps.collections.models import Collection
+
+    kit = demo_kits.DemoKit(
+        key="t_cols",
+        label="Collections Test",
+        business_type="other",
+        accent="#9333ea",
+        hero_image_kw="hair",
+        hero_title="Salon",
+        hero_text="Test",
+        enable_modules=["booking"],
+        services=[("Schnitt", 30, "25"), ("Färben", 90, "69"), ("Bart", 15, "12")],
+        collections=[
+            ("Damen", {"services": [0, 1]}),
+            ("Herren", {"services": [2]}),
+        ],
+    )
+    monkeypatch.setitem(demo_kits.KITS, kit.key, kit)
+    tenant = _tenant()
+    assert demo_kits.apply_kit(tenant, kit.key) is True
+
+    damen = Collection.objects.get(slug="damen")
+    herren = Collection.objects.get(slug="herren")
+    assert damen.sort_order == 0 and herren.sort_order == 1
+    assert set(damen.services.values_list("name", flat=True)) == {"Schnitt", "Färben"}
+    assert list(herren.services.values_list("name", flat=True)) == ["Bart"]
+    assert Service.objects.count() == 3

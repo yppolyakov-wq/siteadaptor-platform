@@ -135,3 +135,88 @@ def test_unterkunft_index_chips_filter_and_no_redirect():
     assert resp.status_code == 200  # сузили до одного юнита — НЕ редирект на него
     body_f = resp.content.decode()
     assert "Alpensuite" in body_f and "Standardzimmer" not in body_f
+
+
+# --- кабинет (CRUD) ---------------------------------------------------------------
+
+
+def _dash_req(method="get", data=None, disabled=None):
+    """Запрос в кабинет /dashboard/collections/ от «вошедшего» владельца
+    (SimpleNamespace вместо реального юзера — обход login_required, как в
+    test_home_builder)."""
+    from types import SimpleNamespace
+
+    request = getattr(RequestFactory(), method)("/dashboard/collections/", data or {})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = SimpleNamespace(is_authenticated=True)
+    request.tenant = TenantFactory.build(business_type="cafe", disabled_modules=disabled or [])
+    return request
+
+
+def test_cabinet_create_assign_toggle_delete():
+    """Полный цикл кабинета: создать (slug авто) → состав услуг чекбоксами
+    (presence-guard) → выключить → удалить."""
+    from apps.collections import views
+
+    svc = Service.objects.create(name="Schnitt", price_cents=3000)
+    resp = views.collections_view(_dash_req("post", {"action": "create", "name": "Damen Cut"}))
+    assert resp.status_code == 302
+    col = Collection.objects.get()
+    assert col.slug == "damen-cut"  # slug из имени
+
+    views.collections_view(
+        _dash_req(
+            "post",
+            {
+                "action": "update",
+                "collection": str(col.pk),
+                "name": "Damen",
+                "sort_order": "3",
+                "services_present": "1",
+                "services": [str(svc.pk)],
+            },
+        )
+    )
+    col.refresh_from_db()
+    assert col.name == "Damen" and col.sort_order == 3
+    assert list(col.services.all()) == [svc]
+    assert col.slug == "damen-cut"  # slug стабилен при переименовании
+
+    # POST без units_present/services_present не должен трогать состав
+    views.collections_view(
+        _dash_req("post", {"action": "update", "collection": str(col.pk), "name": "Damen"})
+    )
+    assert list(col.services.all()) == [svc]
+
+    views.collections_view(_dash_req("post", {"action": "toggle", "collection": str(col.pk)}))
+    col.refresh_from_db()
+    assert col.is_active is False
+
+    views.collections_view(_dash_req("post", {"action": "delete", "collection": str(col.pk)}))
+    assert Collection.objects.count() == 0
+    assert Service.objects.filter(pk=svc.pk).exists()  # услуга не удаляется с подборкой
+
+
+def test_cabinet_slug_uniqueness_suffix():
+    from apps.collections import views
+
+    views.collections_view(_dash_req("post", {"action": "create", "name": "Damen"}))
+    views.collections_view(_dash_req("post", {"action": "create", "name": "Damen"}))
+    assert set(Collection.objects.values_list("slug", flat=True)) == {"damen", "damen-2"}
+
+
+def test_cabinet_renders_checkbox_rows_and_gates_modules():
+    from django.http import Http404
+
+    from apps.collections import views
+
+    col = _collection("Damen", "damen")
+    Service.objects.create(name="Schnitt", price_cents=3000)
+    body = views.collections_view(_dash_req()).content.decode()
+    assert "?kollektion=damen" in body  # подсказка параметра фасета
+    assert 'name="services"' in body and "Schnitt" in body  # чекбоксы состава
+    assert col.name in body
+    # ни booking, ни stays → страница недоступна
+    with pytest.raises(Http404):
+        views.collections_view(_dash_req(disabled=["booking", "stays"]))

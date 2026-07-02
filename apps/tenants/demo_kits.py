@@ -155,6 +155,10 @@ class DemoKit:
     # created_products. Seed создаёт опубликованные отзывы напрямую (демо доверенный;
     # верификация — на витрине).
     product_reviews: list = field(default_factory=list)
+    # UB3-2: подборки (Collection) — [(name, {"services": [idx…], "stay_units": [idx…]})];
+    # индексы — позиции в refs (порядок создания сидером). На витрине — чипы-фасет
+    # листинга (?kollektion=<slug>); slug генерируется из имени.
+    collections: list = field(default_factory=list)
     # UA4-4b: отзывы об УСЛУГЕ/НОМЕРЕ/СОБЫТИИ (generic reviews.Review) — (index, rating,
     # name, email, comment). index — позиция в refs["services"]/["stay_units"]/["events"]
     # (порядок создания сидером). Делает секцию отзывов UA4-4b видимой в демо.
@@ -1630,6 +1634,11 @@ HOTEL = DemoKit(
         (0, 4, "Petra L.", "petra.l@example.de", "Gemütlich und gut ausgestattet. Frühstück top."),
         (1, 5, "Jens H.", "jens.h@example.de", "Perfekt für einen erholsamen Kurzurlaub."),
     ],
+    # UB3-2: подборки номеров → чипы-фасет на /unterkunft/ (индексы — позиции в stay_units).
+    collections=[
+        ("Mit Seeblick", {"stay_units": [0]}),
+        ("Familienzimmer", {"stay_units": [2, 3]}),
+    ],
     rate_plans=[  # H1: тарифы для всех номеров (гость выбирает при брони)
         {
             "name": "Basistarif",
@@ -2126,6 +2135,12 @@ FRISEUR = DemoKit(
             "hair,highlights",
         ),
         ("Bart trimmen", 15, "12", "Konturen schneiden und in Form bringen.", "beard,barber"),
+    ],
+    # UB3-2: подборки услуг → чипы-фасет на /termin/ (индексы — позиции в services выше).
+    collections=[
+        ("Damen", {"services": [0, 2, 3, 4]}),
+        ("Herren", {"services": [1, 5]}),
+        ("Färben & Pflege", {"services": [2, 3, 4]}),
     ],
     service_reviews=[
         (
@@ -3924,6 +3939,26 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     is_active=True,
                 )
             refs["stay_units"].append(str(unit.pk))
+    # UB3-2: подборки (Collection) — чипы-фасет листингов услуг/номеров. Спека кита:
+    # [(name, {"services": [idx…], "stay_units": [idx…]})], индексы — позиции в
+    # refs["services"]/refs["stay_units"] (порядок создания сидером выше).
+    if kit.collections:
+        from django.utils.text import slugify
+
+        from apps.collections.models import Collection
+
+        refs["collections"] = []
+        for i, (col_name, members) in enumerate(kit.collections):
+            col = Collection.objects.create(name=col_name, slug=slugify(col_name), sort_order=i)
+            svc_ids = refs.get("services", [])
+            for idx in members.get("services", []):
+                if idx < len(svc_ids):
+                    col.services.add(svc_ids[idx])
+            unit_ids = refs.get("stay_units", [])
+            for idx in members.get("stay_units", []):
+                if idx < len(unit_ids):
+                    col.stay_units.add(unit_ids[idx])
+            refs["collections"].append(str(col.pk))
     if (kit.kurtaxe or kit.house_rules or kit.auto_discounts) and is_active("stays"):
         from apps.stays.models import StaySettings  # H9 Kurtaxe + H6 Hausordnung + G4 авто-скидки
 

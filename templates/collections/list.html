@@ -1,0 +1,100 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Collections" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UB3-2: подборки (коллекции) услуг/номеров — на витрине это чипы-фасет
+листинга (?kollektion=). Создание/переименование/состав — простыми POST-формами.{% endcomment %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Collections" %}</h1>
+  <div class="flex gap-4">
+    {% if has_booking %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
+    {% if has_stays %}<a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>{% endif %}
+  </div>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<p class="text-sm text-gray-500 mb-4">{% trans "Group services or rooms into collections — customers filter the storefront listing by these chips." %}</p>
+
+{# --- создать подборку -------------------------------------------------------- #}
+<form method="post" class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap items-end gap-3">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="create">
+  <div class="flex-1 min-w-[14rem]">
+    <label class="block text-xs text-gray-500 mb-1" for="id_new_name">{% trans "Name" %}</label>
+    <input id="id_new_name" name="name" required maxlength="120" placeholder="{% trans 'e.g. Damen, Mit Seeblick' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Create" %}</button>
+</form>
+
+{# --- список подборок: имя/порядок + состав чекбоксами ------------------------ #}
+<div class="space-y-3">
+  {% for col in collections %}
+  <div class="bg-white rounded-2xl shadow-sm p-4 {% if not col.is_active %}opacity-60{% endif %}">
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update">
+      <input type="hidden" name="collection" value="{{ col.pk }}">
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex-1 min-w-[12rem]">
+          <label class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</label>
+          <input name="name" value="{{ col.name }}" maxlength="120" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">{% trans "Order" %}</label>
+          <input name="sort_order" type="number" min="0" max="999" value="{{ col.sort_order }}" class="w-20 rounded-lg border border-gray-300 px-2 py-2">
+        </div>
+        <span class="text-xs text-gray-400 pb-2.5" title="{% trans 'Storefront filter parameter' %}">?kollektion={{ col.slug }}</span>
+      </div>
+      {% if has_booking and col.svc_rows %}
+      <fieldset>
+        <legend class="text-xs text-gray-500 mb-1">{% trans "Services in this collection" %}</legend>
+        <input type="hidden" name="services_present" value="1">
+        <div class="flex flex-wrap gap-x-4 gap-y-1">
+          {% for s, checked in col.svc_rows %}
+          <label class="flex items-center gap-1.5 text-sm text-gray-700">
+            <input type="checkbox" name="services" value="{{ s.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ s.name }}
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endif %}
+      {% if has_stays and col.unit_rows %}
+      <fieldset>
+        <legend class="text-xs text-gray-500 mb-1">{% trans "Rooms in this collection" %}</legend>
+        <input type="hidden" name="units_present" value="1">
+        <div class="flex flex-wrap gap-x-4 gap-y-1">
+          {% for u, checked in col.unit_rows %}
+          <label class="flex items-center gap-1.5 text-sm text-gray-700">
+            <input type="checkbox" name="units" value="{{ u.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ u.name }}
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endif %}
+      <button type="submit" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">{% trans "Save" %}</button>
+    </form>
+    <div class="flex gap-2 mt-2">
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="toggle"><input type="hidden" name="collection" value="{{ col.pk }}">
+        <button type="submit" class="text-xs text-gray-500 hover:underline">{% if col.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+      </form>
+      <form method="post" onsubmit="return confirm('{% trans 'Delete this collection?' %}');">{% csrf_token %}
+        <input type="hidden" name="action" value="delete"><input type="hidden" name="collection" value="{{ col.pk }}">
+        <button type="submit" class="text-xs text-red-600 hover:underline">{% trans "Delete" %}</button>
+      </form>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-gray-500">{% trans "No collections yet — create the first one above." %}</p>
+  {% endfor %}
+</div>
+{% if not has_entities %}
+<p class="mt-4 text-sm text-gray-400">{% trans "Tip: add services or rooms first, then group them here." %}</p>
+{% endif %}
+{% endblock %}

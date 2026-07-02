@@ -98,6 +98,8 @@ urlpatterns = [
     path("dashboard/booking/", include("apps.booking.urls")),
     # Кабинет date-range-броней / Übernachtung (Track E / E2).
     path("dashboard/stays/", include("apps.stays.urls")),
+    # Подборки (коллекции) услуг/номеров — чипы-фасет витрины (UB3-2).
+    path("dashboard/collections/", include("apps.collections.urls")),
     # Кабинет событий/билетов (A6).
     path("dashboard/events/", include("apps.events.urls")),
     # Кабинет Aufträge/Angebote / смета Handwerker (G6 / F2).
