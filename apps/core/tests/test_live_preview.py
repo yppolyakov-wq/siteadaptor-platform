@@ -344,6 +344,26 @@ def test_draft_endpoint_includes_landing_layouts():
     assert draft["stay_index_layout"]["preset"] == "cols4"
 
 
+def test_draft_endpoint_includes_service_index_layout():
+    """UB1-1: раскладка листинга услуг попадает в черновик (live-preview /termin/ до Save)."""
+    tenant = TenantFactory(schema_name="public", slug="dsv", name="DSV")
+    body = json.dumps(
+        {
+            "sections": [{"key": "hero", "enabled": True}],
+            "service_index_layout": {"preset": "cols3"},
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    assert req.session["site_preview_draft"]["service_index_layout"]["preset"] == "cols3"
+
+
 def test_draft_endpoint_includes_site_defaults():
     """SE-2d-3: глобальный стиль карточек попадает в черновик превью (normalize клампит)."""
     tenant = TenantFactory(schema_name="public", slug="dsd", name="DSD")

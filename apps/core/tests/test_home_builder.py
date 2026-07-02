@@ -691,6 +691,33 @@ def test_home_builder_saves_landing_layouts():
     assert cfg["stay_index_layout"]["preset"] == "cols4"
 
 
+def test_home_builder_get_renders_services_landing_inspector():
+    """UB1-1: per-page инспектор листинга услуг (/termin/) с опцией «Standard»."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbsvc", name="HBSVC", enabled_modules=["booking"]
+    )
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
+    body = resp.content.decode()
+    assert 'data-page-key="services"' in body and 'name="service_preset"' in body
+    assert 'booking: "services"' in body  # SCOPE_PAGE_KEY: группа /termin/ → его page-block
+
+
+def test_home_builder_saves_and_reverts_service_layout():
+    """UB1-1: пресет услуг сохраняется; пустой выбор «Standard» удаляет ключ (легаси-грид)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbsl", name="HBSL", enabled_modules=["booking"]
+    )
+    resp = views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"service_preset": "cols3"}, tenant)
+    )
+    assert resp.status_code == 302
+    assert siteconfig.normalize(tenant.site_config)["service_index_layout"]["preset"] == "cols3"
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"service_preset": ""}, tenant)
+    )
+    assert "service_index_layout" not in siteconfig.normalize(tenant.site_config)
+
+
 def test_home_builder_get_renders_event_detail_inspector():
     """SE-2b-2: on-canvas инспектор порядка/видимости секций детальной события."""
     tenant = TenantFactory(

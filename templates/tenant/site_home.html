@@ -373,7 +373,7 @@
 
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
          переносит контрол в попап (data-page-key). Раскладка → черновик/Save. {% endcomment %}
-      {% if has_catalog or has_events or has_stays %}
+      {% if has_catalog or has_events or has_stays or has_booking %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="landing">
         <legend class="font-semibold mb-1">{% trans "Landing pages" %}</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans "Switch the preview to a page and click its grid to edit the layout here." %}</p>
@@ -417,6 +417,17 @@
             <span class="text-sm font-medium flex-1">{% trans "Rooms: grid layout" %}</span>
             <select name="stay_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          {% comment %} UB1-1: раскладка листинга услуг /termin/. Пустой выбор «Standard» =
+             ключ не задан → легаси-грид (узкий, max-w-3xl); POST удаляет ключ. {% endcomment %}
+          {% if has_booking %}
+          <div class="page-block flex items-center gap-3" data-page-key="services">
+            <span class="text-sm font-medium flex-1">{% trans "Services: grid layout" %}</span>
+            <select name="service_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if service_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
           {% endif %}
@@ -1407,6 +1418,10 @@
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");
     if (stSel && stSel.value) payload.stay_index_layout = { preset: stSel.value };
+    // UB1-1: раскладка листинга услуг ("" = «Standard»/легаси — не шлём, черновик
+    // строится из сохранённого конфига заново → превью само откатится).
+    var svcSel = form.querySelector("select[name='service_preset']");
+    if (svcSel && svcSel.value) payload.service_index_layout = { preset: svcSel.value };
     // SE-2d: глобальный стиль карточек («весь сайт») → в черновик для live-preview.
     var sdR = form.querySelector("input[name='sd_card_radius']");
     var sdSh = form.querySelector("input[name='sd_card_shadow']");
@@ -1714,7 +1729,7 @@
   // лендинга в панели показываем ТОЛЬКО блоки этой страницы — на главной блоки главной,
   // на лендинге/детали — пер-страничные контролы; чужие группы скрываем (значения полей
   // остаются в форме → сохранение не теряет конфиг других страниц).
-  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", events_detail: "event_detail", catalog_detail: "product_detail", booking_detail: "service_detail", stays_detail: "stay_detail", cart: "cart" };
+  var SCOPE_PAGE_KEY = { catalog: "catalog", events: "events", stays: "stay_rooms", booking: "services", events_detail: "event_detail", catalog_detail: "product_detail", booking_detail: "service_detail", stays_detail: "stay_detail", cart: "cart" };
   function applyPageScope(group) {
     var isHome = !group || group === "home";
     document.querySelectorAll('[data-scope="home"]').forEach(function (el) {
@@ -2195,13 +2210,13 @@
     }
   });
 
-  // SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог/события/номера).
+  // SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог/события/номера/услуги).
   var applyAllBtn = document.getElementById("apply-all-landings");
   if (applyAllBtn) {
     applyAllBtn.addEventListener("click", function () {
       var sel = document.getElementById("apply-all-preset");
       if (!sel) return;
-      ["catalog_preset", "events_preset", "stay_preset"].forEach(function (n) {
+      ["catalog_preset", "events_preset", "stay_preset", "service_preset"].forEach(function (n) {
         var el = form.querySelector("select[name='" + n + "']");
         if (el) {
           el.value = sel.value;
