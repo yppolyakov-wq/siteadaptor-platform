@@ -195,3 +195,14 @@ def test_order_marketplace_hooks_persist():
     assert child.parent_order_id == parent.id
     assert list(parent.child_orders.all()) == [child]
     assert child.supplier_tenant_schema == "lieferant_x"
+
+
+def test_cart_order_button_is_312j_compliant():
+    """E-2/§312j BGB: кнопка оформления однозначно называет платёжную
+    обязанность («Zahlungspflichtig bestellen», не «Place order»)."""
+    tenant = TenantFactory.build()
+    product = ProductFactory(base_price=Decimal("3.00"))
+    cart = {str(product.pk): 1}
+    body = public_views.cart_view(_req(tenant=tenant, session={"cart": cart})).content.decode()
+    assert "Zahlungspflichtig bestellen" in body
+    assert "Place order" not in body

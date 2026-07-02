@@ -171,7 +171,8 @@
         <div class="flex items-center justify-between font-bold text-base pt-1"><span>{% trans "Total" %}</span><span data-grand-total>{{ grand_total|default:total }} {{ currency|cursym }}</span></div>
       </div>
 
-      <button type="submit" form="checkout-form" class="w-full text-white rounded-lg px-4 py-3 font-semibold shadow-sm" style="background: var(--accent);">{% trans "Place order" %}</button>
+      {# E-2/§312j BGB: кнопка заказа обязана явно называть платёжную обязанность. #}
+      <button type="submit" form="checkout-form" class="w-full text-white rounded-lg px-4 py-3 font-semibold shadow-sm" style="background: var(--accent);">{% trans "Zahlungspflichtig bestellen" %}</button>
       <p class="text-xs text-gray-400 text-center">🔒 {% trans "Secure order — your data stays private." %}</p>
       {% if delivery_enabled and not storefront_table %}
         <script>
