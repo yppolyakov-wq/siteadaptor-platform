@@ -3338,3 +3338,18 @@
   ruff+`manage.py check`+`test_template_comments` чисты. Побочно: перешёл на `git commit -F -` (heredoc)
   вместо `-m` с бэктиками (бэктики в двойных кавычках → command substitution). **Волна U-A (UA1–UA4)
   закрыта в `main`.**
+- **2026-07-02 — UB1-1 (U-B): каркас listing.html + листинг услуг на нём + раскладка услуг на канве.**
+  Старт Волны U-B (единый листинг). Новый `templates/storefront/listing.html` (блоки
+  `listing_header/facets/grid/pagination/empty/after`, по образцу `detail.html`);
+  `service_index.html` → extends: грид в `listing_grid` с `data-sf-section="services"`, karten-CTA в
+  `listing_after`, карточка/embed/edit-хуки без изменений. Новый per-page ключ `service_index_layout`
+  (дефолт cols2): в отличие от соседей НЕ материализуется normalize'ом — отсутствие ключа = легаси-грид
+  шаблона (`grid sm:grid-cols-2 gap-4 max-w-3xl`, пиксельная неизменность ненастроенных витрин, решение
+  владельца); `termin_index` читает конфиг+черновик (`?preview=1`) и передаёт `services_grid` только при
+  заданном ключе. Канва: page-block `data-page-key="services"` (гейт `has_booking`) с опцией «Standard»
+  (пустой выбор = ключ удаляется, откат к легаси), `collect()`/draft-эндпоинт/POST/GET-контекст/
+  `SCOPE_PAGE_KEY` (`booking:"services"`)/apply-all — вся вертикаль как у каталога/номеров/событий.
+  Известный прецедент сохранён: клик по гриду на канве /termin/ открывает секцию ГЛАВНОЙ `services`
+  (как events/stay_rooms); настройка листинга — через переключатель страницы + панель «Landing pages».
+  Без миграций. Гейт: 837 passed (booking+tenants+core, --reuse-db), CI run 1081 зелёный, FF-мерж
+  `384cc83` → main. План — `docs/unified-sellable-entity-ub-plan-2026-06-30.md` (UB1-1).
