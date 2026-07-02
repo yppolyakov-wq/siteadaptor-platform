@@ -1,0 +1,48 @@
+{% extends base_template|default:"storefront/_base.html" %}
+{% load i18n %}
+{% comment %}
+UB1-1: единый каркас страницы-листинга (по образцу detail.html). Сейчас на нём
+услуги (/termin/); UB1-3 сведёт сюда каталог/номера/события. Наследники заполняют:
+  listing_header     — H1 + интро (archetype_cover уже рендерится в _base ДО content);
+  listing_facets     — бар фильтров (per-kind фасеты);
+  listing_toolbar    — UB2-2: единый поиск ?q= + user-facing сортировка. Дефолт-
+                       реализация НИЖЕ рендерится при show_listing_toolbar; вьюха
+                       кладёт q/sort/sort_options/toolbar_hidden (carry активных
+                       параметров, чтобы поиск их не сбрасывал);
+  listing_grid       — сетка/список карточек; обёртку data-sf-section="<key>" и
+                       грид-классы layout-движка даёт наследник;
+  listing_pagination — пагинация (cursor у каталога);
+  listing_empty      — состояние «ничего не найдено» (наследник сам гейтит по данным);
+  listing_after      — хвостовые CTA под листингом (абонементы услуг и т. п.);
+  listing_width      — классы контейнера страницы (events: max-w-3xl mx-auto;
+                       остальные — пусто = обычная ширина main).
+Слоты — через {% block %} (наследование шаблонов, не include): так наследник
+передаёт произвольную разметку без прокидывания контекста.
+{% endcomment %}
+{% block content %}
+<div class="{% block listing_width %}{% endblock %}">
+{% block listing_header %}{% endblock %}
+{% block listing_facets %}{% endblock %}
+{% block listing_toolbar %}
+{% if show_listing_toolbar %}
+<form method="get" class="mb-4 flex flex-wrap items-center gap-2 text-sm" data-listing-toolbar>
+  {% for name, value in toolbar_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Search' %}" aria-label="{% trans 'Search' %}" class="w-40 sm:w-56 rounded-lg border border-gray-300 px-3 py-1.5">
+  <button type="submit" class="rounded-lg border border-gray-300 px-3 py-1.5 font-medium hover:border-indigo-400 hover:text-indigo-700">{% trans "Search" %}</button>
+  {% if sort_options %}
+  <label class="ml-auto flex items-center gap-2 text-gray-500" for="id_listing_sort">{% trans "Sort" %}
+    <select id="id_listing_sort" name="sort" class="js-sort-select rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
+      {% for val, label in sort_options %}<option value="{{ val }}" {% if sort == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  {% endif %}
+</form>
+<script>document.querySelectorAll(".js-sort-select").forEach(function (s) { s.addEventListener("change", function () { s.form.submit(); }); });</script>
+{% endif %}
+{% endblock %}
+{% block listing_grid %}{% endblock %}
+{% block listing_pagination %}{% endblock %}
+{% block listing_empty %}{% endblock %}
+{% block listing_after %}{% endblock %}
+</div>
+{% endblock %}

@@ -99,9 +99,36 @@ Python 3.12, менеджер uv.
   рендера секций детали: `service`/`stay` тела → `{% for s in body_sections %}` + партиалы
   `sections/detail/_*`; `event` уже был loop-based; `product` остаётся per-block (секции в aside/body/wide,
   управляются `product_detail_hidden`). Замки — паритет-тесты порядка секций; каждая миграция под
-  адверсариальным ревью. **Волна U-A (UA1–UA4) закрыта.** Дальше по очереди: **U-B** (листинг/фасеты/
-  категории) — либо L4 (i18n-хром) / E-2 (правовой пакет) по выбору владельца.
-- Самые свежие миграции: `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
+  адверсариальным ревью. **Волна U-A (UA1–UA4) закрыта.**
+- **Самое свежее (2026-07-02): Волна U-B (единый листинг/категории/фасеты) — ЗАКРЫТА ЦЕЛИКОМ.**
+  **UB1-1 ✅** каркас `templates/storefront/listing.html` (блоки header/facets/toolbar/grid/
+  pagination/empty/after + `listing_width`) + `/termin/` на нём + `service_index_layout` (ключ НЕ
+  материализуется normalize'ом: отсутствие = легаси-грид; канва: page-block «Services», опция
+  «Standard» удаляет ключ). **UB1-2 ✅** единая карточка `_sellable_card.html` + тег `sellable_card`
+  из контракта `SellableEntity` (опции вызовом, контракт не раздут) — услуги+номера, листинги+
+  home-секции (home стали локализуемыми; `sf-card` теперь и на листингах — стиль SE-2d действует там).
+  **UB1-3 ✅** свод products/event_index/stay_index на каркас; характеризационные замки написаны ДО
+  свода (`events/tests/test_index_parity.py`, `catalog/tests/test_listing_parity.py`); cursor-пагинация
+  и date-search сохранены. **UB2-1 ✅** протокол `apps/core/facets.py::FacetProvider`
+  (selected/apply/present/search/sort) + ленивый `provider_for(kind)`, провайдеры-делегаты
+  booking/catalog/events/stays — вьюхи зовут провайдер, не хардкод. **UB2-2 ✅** поиск `?q=`
+  (icontains v1; i18n по всем локалям: плоские поля + `*_i18n` через JSON-KeyTransform) +
+  user-facing сорт на всех 4 листингах; единый тулбар `listing_toolbar`; keyset-safe (q в carry).
+  **UB2-3 ✅** фасеты цена/наличие (перенос из вьюхи) / Herkunft (`Product.origin`) / рейтинг
+  (bulk_summary generic-отзывов, `pk__in`, без N+1) в `CatalogFacets`. **UB3-1 ✅** (подкатегории-
+  первыми — в каркасе с UB1-3, замок в test_listing_parity). **UB3-2 ✅** — M2M-подборки: TENANT-апп
+  `apps.collections` (модель `Collection`, плоская, i18n-оверлей, slug=параметр фасета) + M2M
+  `Service.collections`/`StayUnit.collections`; фасет-чипы `?kollektion=` на /termin/ и /unterkunft/;
+  кабинет `/dashboard/collections/` (CRUD+состав чекбоксами, presence-guard); демо friseur/hotel.
+  Разведка-согласование — `docs/ub3-2-collection-recon-2026-07-02.md`. Всё FF-мержено в `main`
+  по зелёным CI (ветка `claude/wave-ub-unified-listing-kmcg33`). **Миграции волны:**
+  `collections/0001_initial` + `booking/0013` + `stays/0021` — ⚠️ ТРЕБУЮТ ДЕПЛОЯ владельцем
+  (`./scripts/deploy.sh single`; опц. `seed_demo_tenants --kit friseur|hotel --recreate` для
+  демо-чипов). Дальше: **U-C** (универсальный редактор) — либо L4 (i18n-хром) / E-2 (правовой
+  пакет) по выбору владельца. Заметка: «SEO-модуль v2» (прогрессивные мета-заготовки + AI-SEO,
+  идея владельца) — в roadmap §Отложено, кандидат после U-B.
+- Самые свежие миграции: **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2 M2M-подборки,
+  2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
   ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
   (L3-модель i18n Service/StayUnit); ещё ранее `stays/0014–0019` + `promotions/0018` (этап витрины/UX;
   L1/L2 миграций НЕ добавляли). Полный список — в build-log.
@@ -219,10 +246,12 @@ Python 3.12, менеджер uv.
 `Service`/`StayUnit`, overlay + миграции). Дальше: **L3c** (per-locale инпут форм/редактора + засев
 демо + рендер витрины `*_localized` — идёт с UA1-3) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5
 (правовое i18n+AGB через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр DE+EN).
-**Статус U-A:** UA1-1 ✅ (деталь услуги), UA1-2 ✅ (регистрация в превью), **UA1-3 ✅** (контракт
-`apps/core/sellable.py::SellableEntity` + 5 адаптеров, делегируют i18n/цену/фото; `jobs` не sellable).
-Дальше: **UA2-1** (единый шаблон детали через контракт + вписать `product_detail` в каркас — наибольшая
-зона регрессии, снапшот-паритет) → {UA3-* buy-box} ∥ {UA4-* секции/атрибуты/generic-Review}.
+**Статус U-A:** закрыт целиком (UA1–UA4, см. §3/build-log).
+**Статус U-B (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UB1-1/1-2/1-3 ✅ (каркас listing.html + единая
+карточка + свод 4 листингов), UB2-1/2-2/2-3 ✅ (FacetProvider + поиск/сорт + фасеты цена/наличие/
+Herkunft/рейтинг), UB3-1 ✅, UB3-2 ✅ (M2M `Collection` + кабинет + демо; миграции
+`collections/0001`+`booking/0013`+`stays/0021` — ⚠️ деплой владельцем). Следующая волна очереди —
+**U-C** (универсальный редактор) — либо L4 / E-2 по выбору владельца.
 **Мерж-политика владельца (2026-07-01): FF-мерж в `main` после каждой фазы и на багфиксе** (main
 не защищён; после мержа с миграциями — деплой `./scripts/deploy.sh single`).
 

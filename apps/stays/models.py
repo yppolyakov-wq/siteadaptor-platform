@@ -85,6 +85,11 @@ class StayUnit(I18nMixin, TimestampedModel):
     area_sqm = models.PositiveSmallIntegerField(default=0)
     bed_type = models.CharField(max_length=80, blank=True)
     amenities = models.JSONField(default=list, blank=True)
+    # UB3-2: подборки владельца («Mit Seeblick», «Familienzimmer») — номер может
+    # входить в несколько; на витрине это фасет-чипы листинга (?kollektion=<slug>).
+    collections = models.ManyToManyField(
+        "collections.Collection", blank=True, related_name="stay_units"
+    )
 
     class Meta:
         ordering = ["name"]

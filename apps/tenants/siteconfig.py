@@ -1299,6 +1299,14 @@ def normalize(config) -> dict:
     normalized["events_index_layout"] = normalize_layout(
         config.get("events_index_layout"), {"preset": "list"}
     )
+    # UB1-1 (per-page): раскладка листинга услуг /termin/. В отличие от соседей ключ
+    # НЕ материализуется на каждом normalize: его отсутствие = легаси-грид шаблона
+    # (пиксельная неизменность ненастроенных витрин). Появляется, когда владелец
+    # выбрал пресет на канве; выбор «Standard» удаляет ключ (home_builder POST).
+    if isinstance(config.get("service_index_layout"), dict):
+        normalized["service_index_layout"] = normalize_layout(
+            config["service_index_layout"], {"preset": "cols2"}
+        )
     # M20U-4: порядок/видимость тематических секций детальной события.
     normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))
     # Видимость опциональных секций детальной товара (описание/инфо/отзывы/похожие).

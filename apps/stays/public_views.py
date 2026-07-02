@@ -114,23 +114,40 @@ def _render_embed(request, template, ctx, embed):
 
 def unterkunft_index(request):
     _require_stays_active(request)
-    units = list(StayUnit.objects.filter(is_active=True))
+    # UB2-1/2-2: разбор date-search + поиск ?q= + сортировка — единый FacetProvider
+    # (делегирует _parse_date/_parse_guests; движок наличия ниже не трогаем).
+    from apps.core import facets as facets_registry
+
+    provider = facets_registry.provider_for("stay")
+    q = (request.GET.get("q") or "").strip()
+    sort = request.GET.get("sort") or ""
+    units_base = StayUnit.objects.filter(is_active=True)
+    # UB3-2 (apply=подборка) → UB2-2 (поиск) → сортировка; чипы — из снимка ДО фасета.
+    units = list(provider.sort(provider.search(provider.apply(units_base, request.GET), q), sort))
+    collection_chips = provider.present(units_base, request.GET)["collection_chips"]
     today = timezone.localdate()
-    von = _parse_date(request.GET.get("von"))
-    bis = _parse_date(request.GET.get("bis"))
-    adults, children = _parse_guests(request.GET)
+    _sel = provider.selected(request.GET)
+    von, bis = _sel["von"], _sel["bis"]
+    adults, children = _sel["adults"], _sel["children"]
+    kollektion = _sel["kollektion"]
     guests = adults + children
 
     tenant = getattr(request, "tenant", None)
     embed = _is_embed(request)
     searched = bool(von and bis and von >= today and bis > von)
     # Один юнит без поиска — сразу на его страницу (как было); с датами — прокинем их.
-    if len(units) == 1 and not searched:
+    # UB2-2/3-2: при активном ?q=/?kollektion= не редиректим (фильтр сузил список —
+    # это не «один юнит» у бизнеса).
+    if len(units) == 1 and not searched and not q and not kollektion:
         url = reverse("storefront-unterkunft-unit", args=[units[0].pk])
         return redirect(f"{url}?embed=1" if embed else url)
 
     results = None
+    search_qs = ""  # UB1-2: query-хвост карточки результата (даты/гости + embed)
     if searched:
+        search_qs = f"?von={von:%Y-%m-%d}&bis={bis:%Y-%m-%d}&erw={adults}&kinder={children}" + (
+            "&embed=1" if embed else ""
+        )
         rate_plans = list(RatePlan.objects.filter(is_active=True))
         nights = (bis - von).days
         rows = []
@@ -173,7 +190,22 @@ def unterkunft_index(request):
             "children": children,
             "searched": searched,
             "results": results,
+            "search_qs": search_qs,
             "rooms_grid": rooms_grid,
+            # UB2-2: тулбар каркаса. Даты/гостей несём в carry (поиск не сбрасывает
+            # date-search); сортировка — только в browse (searched сортирует движок).
+            "show_listing_toolbar": True,
+            "q": q,
+            "sort": sort,
+            "sort_options": provider.sort_options() if not searched else [],
+            "toolbar_hidden": [
+                (k, request.GET.get(k))
+                for k in ("von", "bis", "erw", "kinder", "kollektion", "embed")
+                if request.GET.get(k)
+            ],
+            # UB3-2: чипы подборок (фасет ?kollektion=<slug>).
+            "collection_chips": collection_chips,
+            "active_kollektion": kollektion,
             "gift_active": getattr(tenant, "payments_enabled", False)
             and connect.is_connect_configured(),  # G1 ссылка на гутшайны
         },

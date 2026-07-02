@@ -1024,10 +1024,15 @@ def home_builder_view(request):
             ("catalog_preset", "catalog_layout"),
             ("events_preset", "events_index_layout"),
             ("stay_preset", "stay_index_layout"),
+            ("service_preset", "service_index_layout"),
         ):
             preset = request.POST.get(fld, "")
             if preset in siteconfig.LAYOUT_PRESETS:
                 config[cfg_key] = {"preset": preset}
+            elif cfg_key == "service_index_layout" and fld in request.POST and not preset:
+                # UB1-1: «Standard» (пустой выбор) удаляет ключ → легаси-грид услуг
+                # (у соседей пустого выбора нет — их ключ всегда материализован).
+                config.pop(cfg_key, None)
         # Категория: фильтры/сортировка/подкатегории — presence-guard (cf_present шлётся
         # панелью каталога; одним блоком, чтобы частичный POST не сбрасывал настройки).
         if request.tenant.is_module_active("catalog") and request.POST.get("cf_present"):
@@ -1367,6 +1372,8 @@ def home_builder_view(request):
             "has_stays": request.tenant.is_module_active("stays"),
             "stay_preset": (config.get("stay_index_layout") or {}).get("preset", ""),
             "has_booking": request.tenant.is_module_active("booking"),  # UA4-1 slice C
+            # UB1-1: пресет листинга услуг; "" = ключ не задан (легаси-грид «Standard»).
+            "service_preset": (config.get("service_index_layout") or {}).get("preset", ""),
             "storefront_root": config.get("storefront_root", "home"),
             # M20f: дизайн вживую — текущие значения + варианты шрифта.
             "font": config.get("font", "system"),
@@ -1627,7 +1634,12 @@ def site_preview_draft(request):
     # SE-2d-5: пер-страничные раскладки лендингов → в превью. collect() их шлёт, но
     # раньше хендлер игнорил → live-preview раскладки лендинга работал только после
     # Save. Теперь правка раскладки каталога/событий/номеров видна на их странице сразу.
-    for _lay_key in ("catalog_layout", "events_index_layout", "stay_index_layout"):
+    for _lay_key in (
+        "catalog_layout",
+        "events_index_layout",
+        "stay_index_layout",
+        "service_index_layout",  # UB1-1: раскладка листинга услуг — в превью
+    ):
         _lay = data.get(_lay_key)
         if isinstance(_lay, dict) and _lay.get("preset") in siteconfig.LAYOUT_PRESETS:
             cfg[_lay_key] = {"preset": _lay["preset"]}

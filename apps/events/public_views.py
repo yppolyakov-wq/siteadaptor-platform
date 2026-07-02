@@ -40,18 +40,18 @@ def veranstaltung_index(request):
         .prefetch_related("teachers")
         .order_by("starts_at")
     )
-    facets = _event_facets(base)  # доступные значения фильтров (по факту наличия)
-    selected = {
-        "cat": (request.GET.get("cat") or "").strip(),
-        "level": (request.GET.get("level") or "").strip(),
-        "lang": (request.GET.get("lang") or "").strip(),
-        "city": (request.GET.get("city") or "").strip(),
-        "dur": (request.GET.get("dur") or "").strip(),
-        "month": (request.GET.get("month") or "").strip(),
-        "teacher": (request.GET.get("teacher") or "").strip(),
-    }
-    events = [e for e in base if _event_matches(e, selected)]
-    active_filters = any(selected.values())
+    # UB2-1: фасеты — через единый FacetProvider (делегирует _event_facets/_event_matches).
+    from apps.core import facets as facets_registry
+
+    provider = facets_registry.provider_for("event")
+    facets = provider.present(base, request.GET)  # доступные значения (по факту наличия)
+    selected = provider.selected(request.GET)
+    events = provider.apply(base, request.GET)
+    # UB2-2: поиск ?q= (как фасет — present считан ДО) + user-facing сортировка.
+    q = (request.GET.get("q") or "").strip()
+    sort = request.GET.get("sort") or ""
+    events = provider.sort(provider.search(events, q), sort)
+    active_filters = any(selected.values()) or bool(q)
     # RV3: компактный отсчёт до старта (urgency-пилюля на карточке/гриде). Событие
     # «скоро» (≤14 дней) получает метку Heute/Morgen/In N Tagen — конверсионный сигнал.
     _today = timezone.localtime(timezone.now()).date()
@@ -93,6 +93,13 @@ def veranstaltung_index(request):
             "total": len(base),
             "events_is_list": events_is_list,
             "events_grid": events_grid,
+            # UB2-2: тулбар каркаса; активные фасеты несём в carry (поиск их не
+            # сбрасывает), форма фасетов симметрично несёт q/sort.
+            "show_listing_toolbar": True,
+            "q": q,
+            "sort": sort,
+            "sort_options": provider.sort_options(),
+            "toolbar_hidden": [(k, v) for k, v in selected.items() if v],
         },
     )
 

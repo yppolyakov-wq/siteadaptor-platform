@@ -470,6 +470,45 @@ def test_service_index_card_links_to_detail_not_slots():
     assert f"/leistung/{service.pk}/" in body
 
 
+def test_service_index_on_listing_skeleton_has_sf_section_marker():
+    # UB1-1: листинг услуг на каркасе listing.html; обёртка грида размечена для
+    # on-canvas редактора (подсветка/клик секции), CTA абонементов не потерян.
+    _service()
+    from apps.booking.models import PassPlan
+
+    PassPlan.objects.create(label="10er-Karte", credits=10, price_cents=9000, is_active=True)
+    body = public_views.termin_index(_req()).content.decode()
+    assert 'data-sf-section="services"' in body
+    assert "/karten/" in body  # listing_after: ссылка на Mehrfachkarte
+
+
+def test_service_index_legacy_grid_without_layout_key():
+    # UB1-1: без service_index_layout в конфиге витрина держит прежний хардкод-грид
+    # (пиксельная неизменность), движковые классы не подмешиваются.
+    _service()
+    body = public_views.termin_index(_req()).content.decode()
+    assert "grid sm:grid-cols-2 gap-4 max-w-3xl" in body
+
+
+def test_service_index_layout_from_config():
+    # UB1-1: заданный пресет → грид из layout-движка (grid_class_string), легаси уходит.
+    _service()
+    request = _req()
+    request.tenant.site_config = {"service_index_layout": {"preset": "cols3"}}
+    body = public_views.termin_index(request).content.decode()
+    assert "lg:grid-cols-3" in body
+    assert "max-w-3xl" not in body
+
+
+def test_service_index_layout_from_preview_draft():
+    # UB1-1: при ?preview=1 черновик канвы из сессии перекрывает сохранённый конфиг.
+    _service()
+    request = _req(data={"preview": "1"})
+    request.session["site_preview_draft"] = {"service_index_layout": {"preset": "cols4"}}
+    body = public_views.termin_index(request).content.decode()
+    assert "lg:grid-cols-4" in body
+
+
 def test_service_detail_inline_edit_anchors_present():
     service = _service()
     body = public_views.service_detail(
@@ -480,3 +519,17 @@ def test_service_detail_inline_edit_anchors_present():
     assert 'data-edit-field="description"' in body
     assert "data-price-edit" in body
     assert "data-photo-edit" in body
+
+
+def test_service_index_search_and_sort():
+    """UB2-2: поиск ?q= (i18n icontains) и сортировка на листинге услуг; пустая
+    выдача поиска НЕ переключает на листинг ресурсов."""
+    _service(name="Ölwechsel", price_cents=9000)  # дефолт-описание тоже с «Öl»
+    _service(name="Bremsen prüfen", description="Bremsflüssigkeit neu", price_cents=1000)
+    body = public_views.termin_index(_req(data={"q": "öl"})).content.decode()
+    assert "Ölwechsel" in body and "Bremsen" not in body
+    assert "data-listing-toolbar" in body  # тулбар каркаса отрендерен
+    body_none = public_views.termin_index(_req(data={"q": "zzz"})).content.decode()
+    assert "Nothing found" in body_none  # empty-state, не booking_index
+    body_sorted = public_views.termin_index(_req(data={"sort": "price_asc"})).content.decode()
+    assert body_sorted.index("Bremsen") < body_sorted.index("Ölwechsel")

@@ -1,8 +1,11 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load i18n siteui %}
 {% block title %}{% trans "Our products" %} — {{ request.tenant.name }}{% endblock %}
 
-{% block content %}
+{% comment %}UB1-3: каталог на каркасе listing.html. Разметка блоков перенесена без
+изменений (замки — apps/catalog/tests/test_listing_parity.py + test_storefront).{% endcomment %}
+
+{% block listing_header %}
 <div class="mb-6">
   <a href="{% url 'storefront-home' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Offers" %}</a>
   {# H1.2: заголовок каталога — кастомный (catalog_title) с инлайн-правкой; суффикс категории вне маркера. #}
@@ -36,7 +39,9 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
   </div>
 </section>
 {% endif %}
+{% endblock %}
 
+{% block listing_facets %}
 {% if categories %}
 <div class="flex flex-wrap gap-2 mb-6">
   <a href="{% url 'storefront-products' %}"
@@ -77,7 +82,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 {% comment %}Доп. фасеты каталога (цена/бейдж/наличие) — одна GET-форма с явным «Anwenden».
 Гейтятся тумблером catalog_show_filters И наличием данных: разброс цен / присутствующие
 бейджи / есть распроданное. Нерелевантные фильтры само-скрываются.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter %}
 <form method="get" data-catalog-filters class="mb-6 flex flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
   {% for name, value in filter_form_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% if show_price_filter %}
@@ -105,6 +110,26 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
     {% trans "Only available" %}
   </label>
   {% endif %}
+  {% comment %}UB2-3: Bio/Regional-происхождение (Product.origin) — только реально
+  указанные значения; рейтинг (минимум звёзд из generic-отзывов) — когда есть отзывы.{% endcomment %}
+  {% if origin_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_herkunft">{% trans "Origin" %}</label>
+    <select id="id_herkunft" name="herkunft" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for o in origin_chips %}<option value="{{ o }}" {% if active_herkunft == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if show_rating_filter %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_bewertung">{% trans "Rating" %}</label>
+    <select id="id_bewertung" name="bewertung" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for n in rating_thresholds %}<option value="{{ n }}" {% if active_bewertung == n %}selected{% endif %}>{% trans "from" %} {{ n }} ★</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
   <button type="submit" class="rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-1.5 hover:bg-gray-700">{% trans "Apply" %}</button>
   {% if any_facet_active %}
   <a href="{% url 'storefront-products' %}{% if current_category and is_preview %}?kategorie={{ current_category.slug }}&preview=1{% elif current_category %}?kategorie={{ current_category.slug }}{% elif is_preview %}?preview=1{% endif %}" class="self-center text-sm text-gray-500 hover:underline">{% trans "Reset filters" %}</a>
@@ -122,21 +147,10 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 </div>
 {% endif %}
 
-{# Сортировка каталога (выбор покупателя). На change форма сабмитится (preview сохраняем). #}
-{% if page.items %}
-<div class="flex justify-end mb-4">
-  <form method="get" class="flex items-center gap-2 text-sm">
-    {% comment %}Все активные фасеты (кроме sort) — чтобы смена сортировки их не сбрасывала.{% endcomment %}
-    {% for name, value in filter_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
-    <label class="text-gray-500" for="id_sort">{% trans "Sort" %}</label>
-    <select id="id_sort" name="sort" class="js-sort-select rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
-      {% for val, label in sort_options %}<option value="{{ val }}" {% if sort == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
-    </select>
-  </form>
-</div>
-<script>document.querySelectorAll(".js-sort-select").forEach(function (s) { s.addEventListener("change", function () { s.form.submit(); }); });</script>
-{% endif %}
+{# UB2-2: сортировка (и поиск ?q=) переехали в единый тулбар каркаса listing_toolbar. #}
+{% endblock %}
 
+{% block listing_grid %}
 {% if page.items %}
 {# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}
 <div data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
@@ -144,17 +158,27 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
     {% include "storefront/_product_card.html" %}
   {% endfor %}
 </div>
+{% endif %}
+{% endblock %}
 
-{% if page.has_more %}
+{% block listing_pagination %}
+{% if page.items and page.has_more %}
 <div class="mt-8 text-center">
   {# Курсор привязан к фасетам+сортировке → несём все активные фасеты (filter_qs) + sort. #}
   <a href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}sort={{ sort }}&amp;cursor={{ page.next_cursor|urlencode }}"
      class="inline-block px-5 py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:border-indigo-400">{% trans "Show more" %}</a>
 </div>
 {% endif %}
-{% elif subcategories and catalog_subcats_first %}
-  <p class="text-gray-400">{% trans "Choose a subcategory above." %}</p>
-{% else %}
-  <p class="text-gray-400">{% trans "No products yet." %}</p>
+{% endblock %}
+
+{% block listing_empty %}
+{% if not page.items %}
+  {% if q %}
+    <p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>
+  {% elif subcategories and catalog_subcats_first %}
+    <p class="text-gray-400">{% trans "Choose a subcategory above." %}</p>
+  {% else %}
+    <p class="text-gray-400">{% trans "No products yet." %}</p>
+  {% endif %}
 {% endif %}
 {% endblock %}

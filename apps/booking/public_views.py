@@ -148,12 +148,53 @@ def termin_index(request):
 
     embed = _is_embed(request)
     has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
-    services_qs = Service.objects.filter(is_active=True)
-    if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
+    # UB2-1/2-2/3-2: единая точка фасетов/поиска/сортировки листинга (FacetProvider).
+    # Ветку «бизнес услуг» решаем ДО фасета/поиска — пустая выдача ?q=/?kollektion=
+    # не должна переключать на листинг ресурсов.
+    from apps.core import facets as facets_registry
+
+    provider = facets_registry.provider_for("service")
+    services_base = Service.objects.filter(is_active=True)
+    if services_base.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
+        q = (request.GET.get("q") or "").strip()
+        sort = request.GET.get("sort") or ""
+        kollektion = provider.selected(request.GET)["kollektion"]
+        services_qs = provider.sort(
+            provider.search(provider.apply(services_base, request.GET), q), sort
+        )
+        # Чипы подборок — из снимка ДО фасета (present-values).
+        collection_chips = provider.present(services_base, request.GET)["collection_chips"]
+        # UB1-1: раскладка листинга из site_config (+черновик канвы при ?preview=1).
+        # Ключ не задан → services_grid=None → шаблон держит легаси-грид (max-w-3xl).
+        from apps.tenants import siteconfig
+
+        raw_cfg = request.tenant.site_config
+        if request.GET.get("preview") == "1" and isinstance(
+            request.session.get("site_preview_draft"), dict
+        ):
+            raw_cfg = request.session["site_preview_draft"]
+        services_grid = None
+        if isinstance((raw_cfg or {}).get("service_index_layout"), dict):
+            cfg = siteconfig.normalize(raw_cfg)
+            services_grid = siteconfig.grid_class_string(cfg["service_index_layout"])
         return _render_embed(
             request,
             "storefront/service_index.html",
-            {"services": services_qs, "has_pass_plans": has_pass_plans},
+            {
+                "services": services_qs,
+                "has_pass_plans": has_pass_plans,
+                "services_grid": services_grid,
+                # UB2-2: тулбар каркаса (поиск + сортировка); embed/подборку несём в carry.
+                "show_listing_toolbar": True,
+                "q": q,
+                "sort": sort,
+                "sort_options": provider.sort_options(),
+                "toolbar_hidden": ([("embed", "1")] if embed else [])
+                + ([("kollektion", kollektion)] if kollektion else []),
+                # UB3-2: чипы подборок (фасет ?kollektion=<slug>).
+                "collection_chips": collection_chips,
+                "active_kollektion": kollektion,
+            },
             embed,
         )
     resources = Resource.objects.filter(is_active=True)

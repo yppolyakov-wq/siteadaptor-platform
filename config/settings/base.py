@@ -68,6 +68,7 @@ TENANT_APPS = [
     "apps.events",  # A6 — события/ретриты: платный билет + ростер (TENANT)
     "apps.account",  # CA — ЛК клиента на витрине бизнеса (magic-link), без моделей
     "apps.reviews",  # UA4-4a — generic-отзывы о продаваемой сущности (TENANT)
+    "apps.collections",  # UB3-2 — M2M-подборки (коллекции) услуг/номеров (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]

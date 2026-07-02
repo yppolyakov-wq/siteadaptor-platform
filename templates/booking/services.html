@@ -5,7 +5,11 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   <h1 class="text-2xl font-bold">{% trans "Services" %}</h1>
-  <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+  <div class="flex gap-4">
+    {# UB3-2: подборки услуг → чипы-фасет на /termin/. #}
+    <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
+    <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+  </div>
 </div>
 
 {% if messages %}

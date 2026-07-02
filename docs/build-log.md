@@ -3385,3 +3385,102 @@
   (реплей вебхука при потере Redis-дедупа не продлевает срок повторно); вебхук пробрасывает `payment_ref`.
   Тесты `test_featured.py` (тот же ref → no-op; другой → продлевает). Гейт: 26 таргетных (`--create-db`) +
   регрессия telegram/aggregator/billing; ruff+`manage.py check` чисты. **Миграция `aggregator/0013` → деплой.**
+- **2026-07-02 — UB1-1 (U-B): каркас listing.html + листинг услуг на нём + раскладка услуг на канве.**
+  Старт Волны U-B (единый листинг). Новый `templates/storefront/listing.html` (блоки
+  `listing_header/facets/grid/pagination/empty/after`, по образцу `detail.html`);
+  `service_index.html` → extends: грид в `listing_grid` с `data-sf-section="services"`, karten-CTA в
+  `listing_after`, карточка/embed/edit-хуки без изменений. Новый per-page ключ `service_index_layout`
+  (дефолт cols2): в отличие от соседей НЕ материализуется normalize'ом — отсутствие ключа = легаси-грид
+  шаблона (`grid sm:grid-cols-2 gap-4 max-w-3xl`, пиксельная неизменность ненастроенных витрин, решение
+  владельца); `termin_index` читает конфиг+черновик (`?preview=1`) и передаёт `services_grid` только при
+  заданном ключе. Канва: page-block `data-page-key="services"` (гейт `has_booking`) с опцией «Standard»
+  (пустой выбор = ключ удаляется, откат к легаси), `collect()`/draft-эндпоинт/POST/GET-контекст/
+  `SCOPE_PAGE_KEY` (`booking:"services"`)/apply-all — вся вертикаль как у каталога/номеров/событий.
+  Известный прецедент сохранён: клик по гриду на канве /termin/ открывает секцию ГЛАВНОЙ `services`
+  (как events/stay_rooms); настройка листинга — через переключатель страницы + панель «Landing pages».
+  Без миграций. Гейт: 837 passed (booking+tenants+core, --reuse-db), CI run 1081 зелёный, FF-мерж
+  `384cc83` → main. План — `docs/unified-sellable-entity-ub-plan-2026-06-30.md` (UB1-1).
+- **2026-07-02 — UB1-2 (U-B): единая карточка sellable-сущности (услуги+номера, листинги+home).**
+  Тег `apps/core/templatetags/sellable_ui.py::sellable_card` (строит `SellableEntity` через
+  `sellable_for`+`get_language`) + партиал `templates/storefront/_sellable_card.html` (вертикаль/
+  горизонталь; идентичность/медиа/ссылка/CTA — из контракта, мета/сырые цены для data-price-edit —
+  per-kind из obj; blocktrans-паритет). Контракт НЕ расширяли (решение владельца): опции вызова —
+  variant/href/query/edit/cta/badge/price_total/show_area/show_min_nights/show_description/h2.
+  Переведены 5 контекстов: листинг услуг + home-секция услуг (горизонталь, Festpreis, слот-пикер),
+  browse-грид номеров + ДОСТУПНЫЙ результат date-search (query с датами, цена за диапазон, Select,
+  без едит-хуков/описания) + home-секция номеров; недоступный search-результат остался инлайн.
+  `sf-card` теперь и на листингах (глобальный стиль карточек SE-2d действует там — решение владельца).
+  Бонус: home-секции услуг/номеров стали локализуемыми (*_localized из контракта, L3c-выравнивание).
+  `unterkunft_index` +`search_qs`. Тесты: 7 новых (test_sellable_card) + фикстуры test_services_section
+  дополнены интерфейсом контракта (ассерты-замки без изменений). Без миграций. Гейт: 231+72+28 passed
+  локально, CI run 1085 зелёный (полный прогон), FF-мерж `92758b6` → main. Попутно в roadmap §Отложено —
+  «SEO-модуль v2» (заготовки мета с подстановками + AI-SEO, идея владельца 2026-07-02).
+- **2026-07-02 — UB1-3 (U-B): свод трёх листингов на каркас listing.html (UB1 закрыт).**
+  Крупнейшая регрессия волны — прошла через характеризационные замки, написанные ДО свода:
+  `apps/events/tests/test_index_parity.py` (структура list/grid, фильтры выше грида, порядок по
+  дате, оба empty-state) и `apps/catalog/tests/test_listing_parity.py` (порядок header→чипы→
+  фасет-форма→сорт→грид→Show more, подкатегории-первыми между фасетами и гридом, empty ×2).
+  Каркас +слот `listing_width` (events живёт в max-w-3xl mx-auto). `event_index.html` (оба режима
+  list/грид RV3 в listing_grid, details-панель 7 фасетов в listing_facets), `products.html`
+  (combos_teaser в хвосте header; чипы/диеты/форма/подкаты/сорт в facets; cursor-«Show more» в
+  pagination), `stay_index.html` (date-search в facets; searched/browse в grid) — разметка
+  перенесена БЕЗ изменений. Все 4 листинга витрины на одном каркасе. Гейты: 93/68/164 таргетных
+  + широкий локальный 1553 passed (1 флейк admin-dashboard — артефакт reuse-db, на свежей БД
+  зелёный) + CI run 1088 зелёный. FF-мерж `6f4b567` → main. Без миграций.
+- **2026-07-02 — UB2-1 (U-B): протокол FacetProvider + провайдеры фасетов 4 листингов.**
+  `apps/core/facets.py`: `FacetProvider` (selected/apply/present) + `NullFacets` + ленивый
+  `provider_for(kind)`. Провайдеры-делегаты без изменения выдачи: events (обёртка
+  `_event_facets`/`_event_matches`), catalog (категория slug + диета; chips по встречающимся),
+  stays (разбор date-search von/bis/erw/kinder; движок наличия не тронут), booking (NullFacets).
+  Все 4 вьюхи листингов вызывают провайдер вместо хардкода; product_list: facet_base =
+  provider.apply(категория-без-диеты) — прежний снимок для границ цены/бейджей. Новый
+  `apps/core/tests/test_facets.py` (6). Гейт: 190 таргетных passed, CI run 1090 зелёный,
+  FF-мерж `fe3ba48` → main. Без миграций. Дальше UB2-2 (поиск ?q= + user-facing sort).
+- **2026-07-02 — UB2-2 (U-B): поиск `?q=` + user-facing сортировка на всех 4 листингах.**
+  Протокол += `search` (icontains v1, решение C-3; хелпер `i18n_icontains_q` — плоские поля +
+  KeyTransform ВСЕХ локалей settings.LANGUAGES для JSON-i18n, keyset-safe) и `sort`/`sort_keys`/
+  `sort_options` (паттерн `_LISTING_SORTS` агрегатора; ""/мусор = порядок вьюхи). Провайдеры:
+  catalog (JSON name/description {de,en}; прежний реестр `_CATALOG_SORTS` переехал в провайдер),
+  НОВЫЙ booking.ServiceFacets, stays, events (in-memory, эффективная цена: min-тир при has_tiers).
+  Каркас: блок `listing_toolbar` (форма q + select sort с carry активных параметров) между
+  facets и grid. Вьюхи: termin (ветка услуг решается ДО поиска; «Nothing found» вместо ухода в
+  booking_index), unterkunft (редирект «один юнит» не срабатывает при ?q=; сорт скрыт в searched;
+  формы несут q/sort взаимно), veranstaltung (q как активный фильтр: empty-state/раскрытие панели),
+  product_list (q — полноправный фасет carry: cursor/«Show more»/формы/диет-чипы; собственный
+  сорт-блок каталога заменён тулбаром каркаса; q-empty-state). Тесты: +5 провайдерных, +4 вью
+  (в т.ч. EN-локаль поиска). Локальный флейк-урок: fixed form_token двух reserve-тестов дедупится
+  в Redis (TTL) — повторный прогон в окне TTL красный, на свежем Redis (CI) зелёный. Гейты:
+  11+215+80 таргетных, широкий 1204 passed (+2 Redis-флейка), CI run 1094 зелёный. FF-мерж
+  `2d9b04d` → main. Без миграций.
+- **2026-07-02 — UB2-3 + UB3-1 (U-B): фасеты цена/наличие/происхождение/рейтинг; подкатегории в каркасе.**
+  `CatalogFacets` — полный владелец фасетов каталога: перенос цены («12,50»-ввод, границы из
+  present) и «только в наличии» (Exists-зеркало `Product.in_stock` с вариантами) из вьюхи бит-в-бит
+  + НОВЫЕ Bio/Regional-Herkunft (`Product.origin`, чипы только указанных значений) и рейтинг
+  (`reviews.services.bulk_summary` — один агрегат, `pk__in`, keyset-safe; пороги 3/4/5 как в
+  агрегаторе; фасет виден лишь при отзывах). `product_list` делегирует всё провайдеру (бейдж
+  остался во вьюхе — вне набора); herkunft/bewertung в carry (cursor/формы) и any_facet_active;
+  селекты Herkunft/«from N ★» в фасет-форме. **UB3-1 закрыт констатацией:** подкатегории-первыми
+  перенесены в каркас ещё в UB1-3 (замок `test_catalog_subcats_first_between_facets_and_grid`).
+  Тесты: +3 провайдерных, +1 e2e. Гейт: 84 passed, CI run 1098 зелёный, FF-мерж `6d15877` → main.
+  Без миграций. Остаток волны: UB3-2 (M2M Collection) — мини-разведка
+  `docs/ub3-2-collection-recon-2026-07-02.md` НА СОГЛАСОВАНИИ владельца (миграция только после).
+- **2026-07-02 — UB3-2 (U-B): M2M-подборки Collection — ВОЛНА U-B ЗАКРЫТА ЦЕЛИКОМ.**
+  По согласованной разведке `docs/ub3-2-collection-recon-2026-07-02.md` (решения владельца:
+  модель ок, имя `apps.collections`, CRUD в составе, демо-названия ок). Новое TENANT-приложение
+  `apps.collections`: модель `Collection` (плоская, без scope; name/description + `*_i18n`
+  L3-оверлей; slug unique — параметр фасета; sort_order/is_active) + M2M-поля
+  `Service.collections`/`StayUnit.collections`. **Миграции: `collections/0001_initial`,
+  `booking/0013`, `stays/0021`** (чистые AddField/таблицы). Фасет `?kollektion=<slug>`:
+  хелпер `core.facets.collection_chips` (чипы только активных коллекций с сущностями снимка,
+  label на локали) + selected/apply/present в ServiceFacets/StayDateFacets (M2M-JOIN+distinct);
+  чипы на /termin/ и /unterkunft/ (паттерн категорий каталога), carry в тулбаре/форме дат;
+  ветка услуг в termin_index решается ДО фасета; редирект «один юнит» не срабатывает при фасете.
+  Кабинет `/dashboard/collections/` (стиль services_view): создание (slug авто, стабилен при
+  переименовании), состав чекбоксами услуг/номеров с presence-guard, вкл/выкл/удаление; ссылки
+  с кабинетных страниц услуг/номеров; гейт booking-или-stays. Демо: `DemoKit.collections` +
+  сидер по индексам refs; friseur («Damen»/«Herren»/«Färben & Pflege»), hotel («Mit Seeblick»/
+  «Familienzimmer»). Тесты: 13 новых (модель/фасет/витрина/CRUD/демо). Гейты: 86+329 passed на
+  `--create-db`, CI run 1102 зелёный, FF-мерж `1dd3b6e` → main. **Деплой миграций — владелец:**
+  `git pull origin main && ./scripts/deploy.sh single` (+опц. `seed_demo_tenants --kit friseur|hotel
+  --recreate` для демо-чипов). Итог волны U-B: единый каркас листинга, единая карточка, свод
+  4 листингов, FacetProvider, поиск+сорт, фасеты каталога, коллекции услуг/номеров.
