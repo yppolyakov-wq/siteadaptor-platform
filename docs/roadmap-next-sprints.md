@@ -683,3 +683,8 @@ bottom_nav = {
 - На основном домене нет переключателя языка (нет публичного `set_language`) — язык по
   `Accept-Language`; переключатель/`hreflang` — Phase 2 (SEO/i18n).
 - Каналы (S4.3) — встроенный адаптер `log`; реальные адаптеры Instagram/GBP — Phase 2 P2.9.
+
+- **E7-4 (отложено 2026-07-02): Vorkasse за пределами orders** — stays G7 (тарифы с предоплатой),
+  booking-депозит, events: сейчас только Stripe; Vorkasse-вариант там = брони с дедлайном оплаты и
+  авто-отменой (отдельное согласование UX). База готова: реквизиты на Tenant (`tenants/0020`),
+  реестр `Order.PAYMENT_METHODS`. См. `docs/e7-payments-plan-2026-07-02.md §E7-4`.

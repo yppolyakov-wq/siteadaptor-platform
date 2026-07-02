@@ -146,7 +146,19 @@ Python 3.12, менеджер uv.
   форма/хинт партиалами (`_buybox_service_*`, селектор = страница); POST-приёмники и
   `book_stay`/`booking.services.book` не тронуты; паритет-замки stays/booking ДО правок; план —
   `docs/ua3-2-two-step-buybox-plan-2026-07-02.md`. **ВОЛНА U-A ЗАКРЫТА ЦЕЛИКОМ (5/5 остатка).**
-- Самые свежие миграции: **`catalog/0012` + `booking/0014`** (остаток U-A: combo i18n + post-visit,
+- **Самое свежее (2026-07-02, после закрытия U-A): E-7 платёжный микс DACH — внутренняя часть
+  E7-1..3 ✅** (план `docs/e7-payments-plan-2026-07-02.md`; приоритет №1 вне волн, 6 архетипов).
+  `Order.payment_method` (on_site/stripe/vorkasse; миграция `orders/0012`) + `Tenant`
+  vorkasse/банк-реквизиты/`stripe_payment_methods` (SHARED `tenants/0020`); пикер способа на
+  checkout (только при >1; паритет-замок «один способ = форма прежняя»), Vorkasse-флоу
+  (реквизиты+Verwendungszweck в письме/подтверждении, guard IBAN); шов `payment_method_types`
+  в `connect.checkout_session` из настроек тенанта (пусто = дефолт Stripe Dashboard) — прокинут
+  во все 7 продажных вызовов (orders/stays/gift/booking/passes/events/jobs; installment без —
+  мандат off_session), кабинет «Zahlarten» на billing/payments. Vorkasse вне orders — E7-4
+  (roadmap §Отложено). Нативные PayPal/Klarna/SEPA — external-integrations-backlog (владелец).
+- Самые свежие миграции: **`orders/0012` + `tenants/0020`** (E-7: payment_method + Vorkasse-
+  реквизиты/stripe_payment_methods, 2026-07-02 — ⚠️ требуют деплоя); ранее **`catalog/0012` +
+  `booking/0014`** (остаток U-A: combo i18n + post-visit,
   2026-07-02 — ⚠️ требуют деплоя) и **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2
   M2M-подборки, 2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
   ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
@@ -268,8 +280,10 @@ Python 3.12, менеджер uv.
 (правовое i18n+AGB через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр DE+EN).
 **Статус U-A (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UA1/UA2/UA3/UA4 ✅ + весь остаток аудита 5/5
 (демо-A9, combo i18n, reviews-email wiring, единый `_buybox.html`, двухшаговый buy-box A+).
-Очередь дальше — U-C (универсальный редактор) / L4 / E-2 по выбору владельца; приоритет №1
-вне волн — **E-7 платёжный микс DACH** (перед стартом — спросить владельца).
+**E-7 платёжный микс DACH (2026-07-02): внутренняя часть E7-1..3 ✅** (запущено по «делай e7»
+владельца; см. §3 и план `docs/e7-payments-plan-2026-07-02.md`; E7-4 Vorkasse-вне-orders —
+roadmap §Отложено; нативные провайдеры — external-integrations-backlog). Очередь дальше —
+U-C (универсальный редактор) / L4 / E-2 по выбору владельца.
 **Статус U-B (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UB1-1/1-2/1-3 ✅ (каркас listing.html + единая
 карточка + свод 4 листингов), UB2-1/2-2/2-3 ✅ (FacetProvider + поиск/сорт + фасеты цена/наличие/
 Herkunft/рейтинг), UB3-1 ✅, UB3-2 ✅ (M2M `Collection` + кабинет + демо; миграции

@@ -3539,3 +3539,19 @@
   детали услуги → `sellable.select_url`. План — `docs/ua3-2-two-step-buybox-plan-2026-07-02.md`.
   Гейты: stays 170, booking+core 510, широкий 606 passed (локальный rl-флейк повторных
   прогонов — точечная чистка `rl:*`). Без миграций.
+- **2026-07-02 — E-7 (платёжный микс DACH), внутренняя часть E7-1..3 — по плану `docs/e7-payments-plan-2026-07-02.md`.**
+  **E7-1**: `Order.payment_method` (on_site/stripe/vorkasse, ""=легаси; миграция **`orders/0012`**),
+  оба checkout-флоу фиксируют способ; `Tenant` += `vorkasse_enabled`+`bank_holder/iban/bic`+
+  `stripe_payment_methods` (SHARED-миграция **`tenants/0020`**); кабинет заказов: форма Vorkasse
+  (IBAN/BIC нормализуются, guard без IBAN) + бейдж способа в списке. **E7-2**: паритет-замок формы
+  ДО правок (один способ = байт-в-байт прежняя); `payments.available_methods` (первый = дефолт,
+  сохраняет старое поведение); radio `payment` при >1 способа; способ передаётся в `create_order`
+  ДО создания (письмо created его видит); Vorkasse → без Stripe, реквизиты + Verwendungszweck=код
+  заказа в письме и на подтверждении; подделка/мусор POST → дефолт. **E7-3**: `connect.
+  connected_checkout_session` += `payment_method_types` (пусто → не передаём) из
+  `Tenant.stripe_payment_methods` — прокинуто во все 7 продажных вызовов (orders/stays/gift/
+  booking/passes/events/jobs), installment сознательно без; кабинет: чекбоксы Zahlarten на
+  `/dashboard/billing/payments/`. Гейты: orders 101, billing+депозитные флоу 278, gift 11 passed.
+  Урок среды: `billing/tests/test_tasks.py` виснет ЛОКАЛЬНО и на чистом дереве (на CI зелёный) —
+  гейтить с `--ignore` до починки. Нативные PayPal/Klarna/SEPA-мандаты — external-integrations-
+  backlog; Vorkasse вне orders (stays G7 и пр.) — отложено (E7-4, roadmap §Отложено).
