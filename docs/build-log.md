@@ -3484,3 +3484,24 @@
   `git pull origin main && ./scripts/deploy.sh single` (+опц. `seed_demo_tenants --kit friseur|hotel
   --recreate` для демо-чипов). Итог волны U-B: единый каркас листинга, единая карточка, свод
   4 листингов, FacetProvider, поиск+сорт, фасеты каталога, коллекции услуг/номеров.
+- **2026-07-02 — Остаток U-A (1/3): демо-A9 — богатая карточка услуги + service-отзывы werkstatt.**
+  По аудиту 2026-07-01 (`…-ua-plan §7`): у werkstatt-кита UA4-3-карточка была только у handwerker.
+  «Inspektion» получает attributes (4) / FAQ (2) / `primary_action='request'` (A9-семантика: цена
+  зависит от модели → Kostenvoranschlag mit Fahrzeugangabe) + `image_kw`; `service_reviews` —
+  3 отзыва (Inspektion ×2, HU/AU ×1) по образцу friseur, `_seed_entity_reviews` подхватывает без
+  правок кода. Тест-замок: модельные проверки + рендер витринной детали услуги (секции
+  attributes/FAQ/отзывы видны). Гейт: test_demo_kits 23 passed. Без миграций.
+- **2026-07-02 — Остаток U-A (2/3): combo i18n — 5-й kind адаптера SellableEntity локализован.**
+  `catalog.Combo` += `I18nMixin` + `name_i18n`/`description_i18n` (overlay-семантика как у
+  Service/StayUnit: база в плоском поле, переводы в JSONField) + `*_localized`. Миграция
+  **`catalog/0012`** — чистые AddField default=dict. Адаптер `_combo` отдаёт локализованные
+  name/description → i18n для 5/5 kind. Гейт: test_sellable+catalog 189 passed на `--create-db`.
+- **2026-07-02 — Остаток U-A (3/3): reviews-email wiring — post-visit письма → generic-форма отзыва.**
+  events post-event → `/veranstaltung/<pk>/bewerten/` (было — корень витрины); stays post-stay →
+  `/unterkunft/<pk>/bewerten/` (было — hotel-портал, хелпер `_review_url` удалён; jobs-портальный
+  не тронут — jobs не sellable); booking post-visit НОВОЕ — письмо «Wie war Ihr Termin?» (beat раз
+  в сутки, окно N+7 как у stays, только confirmed/fulfilled записи С услугой, ровно одно —
+  `post_visit_sent_at` + БД-дедуп) → `/leistung/<pk>/bewerten/`. Миграция **`booking/0014`**
+  (AddField). Ссылки абсолютные (домен из `_base_url`; нет домена → письмо без ссылки, без
+  падения); `/…/bewerten/` на GET редиректит на деталь с формой. Гейт: 39 таргетных + полные
+  сьюты booking/stays/events/reviews 510 passed.

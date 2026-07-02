@@ -99,7 +99,8 @@ Python 3.12, менеджер uv.
   рендера секций детали: `service`/`stay` тела → `{% for s in body_sections %}` + партиалы
   `sections/detail/_*`; `event` уже был loop-based; `product` остаётся per-block (секции в aside/body/wide,
   управляются `product_detail_hidden`). Замки — паритет-тесты порядка секций; каждая миграция под
-  адверсариальным ревью. **Волна U-A (UA1–UA4) закрыта.**
+  адверсариальным ревью. **Волна U-A: UA1/UA2/UA4 закрыты; из UA3 — только override primary-CTA**
+  (аудит 2026-07-01, `…-ua-plan §7`; остаток — см. запись 2026-07-02 ниже).
 - **Самое свежее (2026-07-02): Волна U-B (единый листинг/категории/фасеты) — ЗАКРЫТА ЦЕЛИКОМ.**
   **UB1-1 ✅** каркас `templates/storefront/listing.html` (блоки header/facets/toolbar/grid/
   pagination/empty/after + `listing_width`) + `/termin/` на нём + `service_index_layout` (ключ НЕ
@@ -127,8 +128,19 @@ Python 3.12, менеджер uv.
   демо-чипов). Дальше: **U-C** (универсальный редактор) — либо L4 (i18n-хром) / E-2 (правовой
   пакет) по выбору владельца. Заметка: «SEO-модуль v2» (прогрессивные мета-заготовки + AI-SEO,
   идея владельца) — в roadmap §Отложено, кандидат после U-B.
-- Самые свежие миграции: **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2 M2M-подборки,
-  2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
+- **Самое свежее (2026-07-02, после U-B): остаток Волны U-A (по `…-ua-plan §7`) — 3 из 5 пунктов.**
+  **Демо-A9 ✅** — rich-карточка «Inspektion» werkstatt (attributes/FAQ/`primary_action='request'`)
+  + 3 service-отзыва; тест рендерит витринную деталь (секции видны). **Combo i18n ✅** —
+  `catalog.Combo` += `I18nMixin`+`name_i18n`/`description_i18n` (overlay как у Service/StayUnit,
+  миграция `catalog/0012`), адаптер `_combo` локализован → i18n 5/5 kind. **Reviews-email wiring ✅**
+  — post-event → `/veranstaltung/<pk>/bewerten/`, post-stay → `/unterkunft/<pk>/bewerten/` (вместо
+  портала), booking post-visit НОВОЕ письмо → `/leistung/<pk>/bewerten/` (beat, `post_visit_sent_at`,
+  миграция `booking/0014`); ссылки абсолютные, без домена — без ссылки/падения. Остаток U-A:
+  **UA3-1 слайс 2** (единый `_buybox.html`) и **UA3-2** (двухшаговый buy-box) — план-док на
+  согласовании владельца (регрессионно-опасные, снапшот-паритет до правок).
+- Самые свежие миграции: **`catalog/0012` + `booking/0014`** (остаток U-A: combo i18n + post-visit,
+  2026-07-02 — ⚠️ требуют деплоя) и **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2
+  M2M-подборки, 2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
   ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
   (L3-модель i18n Service/StayUnit); ещё ранее `stays/0014–0019` + `promotions/0018` (этап витрины/UX;
   L1/L2 миграций НЕ добавляли). Полный список — в build-log.
@@ -246,7 +258,9 @@ Python 3.12, менеджер uv.
 `Service`/`StayUnit`, overlay + миграции). Дальше: **L3c** (per-locale инпут форм/редактора + засев
 демо + рендер витрины `*_localized` — идёт с UA1-3) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5
 (правовое i18n+AGB через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр DE+EN).
-**Статус U-A:** закрыт целиком (UA1–UA4, см. §3/build-log).
+**Статус U-A (2026-07-02, честный по аудиту):** UA1/UA2/UA4 ✅; combo i18n ✅ + демо-A9 ✅ +
+reviews-email wiring ✅ (остаток по `…-ua-plan §7`, 3/5). НЕ закрыто: **UA3-1 слайс 2** (единый
+`_buybox.html`) и **UA3-2** (двухшаговый buy-box) — план-док на согласовании владельца.
 **Статус U-B (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UB1-1/1-2/1-3 ✅ (каркас listing.html + единая
 карточка + свод 4 листингов), UB2-1/2-2/2-3 ✅ (FacetProvider + поиск/сорт + фасеты цена/наличие/
 Herkunft/рейтинг), UB3-1 ✅, UB3-2 ✅ (M2M `Collection` + кабинет + демо; миграции
