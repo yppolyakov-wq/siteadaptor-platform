@@ -176,3 +176,17 @@ def test_page_config_slices_normalized_config():
     # service_index_layout не материализован → его нет в срезе
     assert "service_index_layout" not in listing
     assert siteconfig.page_config(cfg, "nope") == {}  # fail-safe
+
+
+def test_buybox_boundary_not_canvas_configurable():
+    """UC5-1: buy-box — форма, не канва. Ключей buy-box нет ни в одном реестре
+    секций (нельзя скрыть/перетащить on-canvas); drag-обёртки детали события
+    оборачивают ТОЛЬКО тематический цикл (buy-box в aside — вне)."""
+    assert detail_sections.BUYBOX_CONFIGURABLE == "form"
+    for module in ("catalog", "booking", "stays", "events"):
+        keys = detail_sections.section_keys(module)
+        assert not any("buybox" in k or "buchen" in k or "kaufen" in k for k in keys), module
+    ev = open("templates/storefront/event_detail.html").read()
+    ed_line = next(line for line in ev.splitlines() if "data-ed-section" in line)
+    assert "_event_thematic" in ed_line  # drag только у тематических секций
+    assert "_buybox" not in ed_line

@@ -38,6 +38,14 @@ class DetailSection:
     orderable: bool = False
 
 
+# UC5-1: граница канвы — buy-box (выбор дат/слотов/количества, POST-движки
+# брони/покупки) конфигурируется ФОРМОЙ, не канвой: он сознательно НЕ входит в
+# DETAIL_SECTIONS ни одного модуля (нельзя скрыть/перетащить/вставить on-canvas);
+# канва правит презентацию ВОКРУГ (единый _buybox.html — диспатч по
+# purchase_mode + двухшаговый гейт, UA3-1/3-2). Замок —
+# test_buybox_boundary_not_canvas_configurable.
+BUYBOX_CONFIGURABLE = "form"
+
 # module → секции детальной в дефолтном порядке рендера. Ключи совпадают с
 # `siteconfig.{EVENT,PRODUCT}_DETAIL_SECTION_KEYS` (Slice B сведёт и их к реестру).
 DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
