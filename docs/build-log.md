@@ -3368,3 +3368,15 @@
   дополнены интерфейсом контракта (ассерты-замки без изменений). Без миграций. Гейт: 231+72+28 passed
   локально, CI run 1085 зелёный (полный прогон), FF-мерж `92758b6` → main. Попутно в roadmap §Отложено —
   «SEO-модуль v2» (заготовки мета с подстановками + AI-SEO, идея владельца 2026-07-02).
+- **2026-07-02 — UB1-3 (U-B): свод трёх листингов на каркас listing.html (UB1 закрыт).**
+  Крупнейшая регрессия волны — прошла через характеризационные замки, написанные ДО свода:
+  `apps/events/tests/test_index_parity.py` (структура list/grid, фильтры выше грида, порядок по
+  дате, оба empty-state) и `apps/catalog/tests/test_listing_parity.py` (порядок header→чипы→
+  фасет-форма→сорт→грид→Show more, подкатегории-первыми между фасетами и гридом, empty ×2).
+  Каркас +слот `listing_width` (events живёт в max-w-3xl mx-auto). `event_index.html` (оба режима
+  list/грид RV3 в listing_grid, details-панель 7 фасетов в listing_facets), `products.html`
+  (combos_teaser в хвосте header; чипы/диеты/форма/подкаты/сорт в facets; cursor-«Show more» в
+  pagination), `stay_index.html` (date-search в facets; searched/browse в grid) — разметка
+  перенесена БЕЗ изменений. Все 4 листинга витрины на одном каркасе. Гейты: 93/68/164 таргетных
+  + широкий локальный 1553 passed (1 флейк admin-dashboard — артефакт reuse-db, на свежей БД
+  зелёный) + CI run 1088 зелёный. FF-мерж `6f4b567` → main. Без миграций.
