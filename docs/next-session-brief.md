@@ -1,88 +1,111 @@
-# Точка входа следующей сессии (обновлён 2026-06-27)
+# Точка входа следующей сессии (обновлён 2026-07-02)
 
-Рабочая ветка: **`claude/archetype-platform-ux-editor-x9bzzp`**. Отвечаем по-русски.
-Цикл: ветка → `ruff check` + `ruff format --check` (раздельно) → `npm run build:css`
-при правке шаблонов → `uv run pytest <модули>` → push → **CI на git зелёный** →
-FF-merge в `main` (`git push origin <sha>:main`) → строка в `docs/build-log.md`.
-Коммиты: `Co-Authored-By: Claude <noreply@anthropic.com>` + `Claude-Session: …`.
-Идентификатор модели в артефакты НЕ светим.
+> Отвечаем **по-русски**. Это ТЗ-хэндофф: с чего начать, что уже сделано, что недостаёт,
+> какие условия соблюдать. SOURCE OF TRUTH порядка работ — очередь волн (см. §3).
 
-## Активный трек: on-canvas редактор на витрине
-**SOURCE OF TRUTH — `docs/storefront-onsite-editor-plan.md`** (подзадачи SE-1…SE-5,
-принципы, режимы «Обычный/Эксперт», нагрузка). Идём строго по нему.
-- **SE-1a ✅** кнопка «Edit design» на витрине (владельцу) → home_builder. Тест
-  `test_owner_edit_button`.
-- **SE-1b ✅** инспектор блока перенесён **ВЛЕВО** (`bld-block-popup` в `site_home.html`)
-  + подсветка выбранной секции на канве. Контролы (колонки/число/скрыть/переместить/
-  источник) уже работают — попап переносит реальную строку формы секции.
-- **SE-1f ✅** тумблер «Обычный/Эксперт» в инспекторе (progressive disclosure, `localStorage`
-  ключ `sf_editor_mode`; экспертные контролы `data-expert` скрыты CSS в обычном режиме).
-- **SE-3d 🟡** визуальные параметры блока: **radius (basic вкл/выкл→16px; expert slider 0–24)
-  + тень — ✅**; рендер `.sf-card` + CSS `[style*="--sf-r"] .sf-card` (без регрессии для
-  ненастроенных витрин). Осталось: фон/отступы + расширение на фото/баннер.
-- **SE-1c ✅** инспектор доведён: колонки/число/источник/скрыть работают; **перемещение ↑▼**
-  (value-based кнопки, видны и в обычном режиме — drag/число порядка остаются expert).
-- **SE-2a/2b ✅** редактор на каталоге/категории (SE-2a-2/2a-3), лендингах событий/номеров
-  (SE-2b-1) и **детальной события — порядок/видимость 14 тематических секций на канве (SE-2b-2):**
-  `veranstaltung_detail` draft-aware, обёртка `data-sf-section="event_detail"`, инспектор
-  `data-page-key="event_detail"` (value-based ↑▼ `ed_order_*` + чекбоксы `ed_visible_*`),
-  presence-guard на POST, превью первого опубликованного события в переключателе.
-- **Дальше:** **SE-2c** (добавить категорию на канве — план готов разведкой, см. ниже),
-  SE-2d (scope «эта страница/весь сайт»), SE-3 (микрошаблоны/шрифты/устройства + фон/отступы
-  SE-3d), SE-4 (блоки/шаблоны), SE-5 (кэш+версии).
+## 0. Условия работы (обязательно, из CLAUDE.md §5)
 
-### План SE-2c (готов, разведка 2026-06-28) — «Добавить категорию → сохранить → править»
-Семантика: отдельная мини-форма-кнопка **«+ Kategorie»** в инспекторе «Landing pages» (по
-образцу `action=add_block`, ОТДЕЛЬНАЯ `<form>` вне `#home-form`) → POST `action=add_category`
-в `home_builder_view` → создаёт живую `Category` через `apps.catalog.forms.CategoryForm`
-(валидация/slug/parent — НЕ переписывать) → `redirect("site-home")`. Категория сразу видна
-чипом на канве каталога (`?preview=1`). Миграция НЕ нужна (`Category` есть).
-- **SE-2c-1** POST-ветка `add_category` в `home_builder_view` + GET-контекст `categories`
-  (guard `is_module_active("catalog")`); мини-форма в `site_home.html`. Тесты: создание,
-  guard модуля, инвалидное имя.
-- **SE-2c-2** «Править»: на чипах категории в `products.html` — ссылка «✎» на
-  `catalog:category-edit` (видна только при `?preview=1`; пробросить флаг из `product_list`).
-- **SE-2c-3 (опц., отдельно)** инлайн-правка имени категории на канве — НОВЫЙ эндпоинт
-  (пишет `Category.name['de']` в БД) + JS на `[data-cat-edit]`. Риск средний → отдельным шагом.
+- **Docs до кода.** Перед каждым нетривиальным инкрементом — план-док/разведка ДО кода.
+  Крупные доработки — план-доком; источник правды — соответствующий план в `docs/`.
+- **Рабочий цикл по подзадачам.** Крупную задачу дробим, разбивку показываем владельцу.
+  Одна подзадача = один инкремент: ветка `claude/<кратко>` → локальный гейт → push →
+  **CI на git зелёный** → чекпоинт с владельцем → следующая. **FF-мерж в `main`** после
+  зелёного CI (`git push origin <sha>:main`; main не защищён). После мержа с миграциями —
+  деплой на сервере (владелец): `git pull origin main && ./scripts/deploy.sh single`.
+- **Батч-режим.** Связные зависимые шаги пишем подряд, каждый гейтим ЛОКАЛЬНО
+  (`ruff check` + `ruff format --check` + `pytest` затронутых модулей), коммитим отдельно,
+  пушим стопкой → один прогон CI на верхушке. На ветке `concurrency: cancel-in-progress`.
+- **Скорость pytest: `--reuse-db`** (69с→1.1с). ⚠️ При изменении **миграций** — `--create-db`
+  (иначе стале-схема даст ложные падения).
+- **Git commit — только `git commit -F -` (heredoc)**, НЕ `-m` с бэктиками (бэктики в
+  двойных кавычках → command substitution). Секреты не коммитить.
+- **Идентификатор модели НЕ светим** в коммитах/PR/коде/артефактах — только в чате.
+- Коммиты завершаем: `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>` +
+  `Claude-Session: …`.
+- Смена статусов — только через FSM `.apply()`; внешние действия (письма/публикации) —
+  через Celery + `idempotent_task`/`dedupe_key`. Новые TENANT-приложения — в `base.py`
+  TENANT_APPS. Billing — SHARED.
+- UX-принцип: для потребителя максимально просто, без навязчивости (бронь без аккаунта,
+  one-click отписка, Double-Opt-In по UWG §7 до маркетинга, без трекинг-куки на витрине).
 
-### Что переиспользуем (НЕ писать заново)
-home_builder (`/dashboard/site/home/`, `templates/tenant/site_home.html`): форма-контролы
-+ live-iframe превью (`?preview=1` из `site_preview_draft`), обёртки `data-sf-section` на
-секциях витрины, клик-попап E.2 (теперь слева), инсертер «+» E.3, drag E.4, Undo/Redo E.1,
-пресеты раскладки, `sitetemplates`, пары шрифтов, переключатель устройств, per-page layouts,
-инлайн-правка текста (`site_inline_edit`).
+## 1. Состояние git / deploy
 
-## Статус merge / deploy
-- `main` сейчас: `c949379`. **ВЕСЬ ТРЕК SE-2 ЗАКРЫТ** (SE-2a/2b/2c/2d) + CI-оптимизация.
-  В этой сессии слито FF после зелёного CI: SE-2b-2, SE-2c-1/2c-2/2c-3 (создание/правка/
-  инлайн-имя категории на канве), SE-2d-1..5 (мастер-настройка стиля карточек «весь сайт»:
-  `site_defaults` + резолвер `effective_card_visual` наследование/override + рендер site-wide
-  + UI + live-preview + кнопка «применить ко всем лендингам» + починка live-preview раскладок),
-  **CI-инкремент** (ci.yml concurrency cancel-in-progress + кэш uv/npm — очередь не копится),
-  конвенции CLAUDE.md §5 (подготовка до кода + батч-режим). Ранее: SE-1a/1b/1c/1f/3d, SE-2a-1.
-  Pending нет.
-- **Активно: SE-3.** Карта/порядок — `docs/storefront-onsite-editor-plan.md` «Дизайн SE-3» +
-  scratchpad se3-plan-skeleton.md. **SE-3d ✅** (фон/отступы карточек, в main `f5dcceb`).
-  **SE-3a/3b/3d ✅** (микрошаблоны/типографика/фон-отступы, main `79fa371`). **DX:** локально --reuse-db (69с→1.1с), CI xdist (~17→~11 мин). Дальше: SE-3c
-  (пер-девайс) — **ядро SE-3 ✅** (3a/3b/3c-min/3d, main bc64270). Остаток опц.: SE-3c-mid (скрыть), C-full (порядок). Дальше: SE-4 (блоки/шаблоны). Миграций нет.
-- Текущая ветка сессии: `claude/event-detail-section-order-qk6t76` (= main после merge).
-- **Дальше (готово к коду):** (1) CI-инкремент — concurrency cancel-in-progress + кэш uv/npm
-  (ветка от main; сниппет в scratchpad se2d-plan-skeleton.md). (2) План-док SE-2d (Вариант A:
-  `site_defaults.card_radius/shadow` + резолвер `effective_card_visual` + точки рендера +
-  разбивка SE-2d-1..5) — скелет и карта рендера в scratchpad. (3) Опц. SE-2c-3 (инлайн-правка
-  имени категории на канве, новый эндпоинт). Решение SE-2d=Вариант A; «выбранные» отложены.
-- **Деплой (владелец, один раз):** `git pull origin main && ./scripts/deploy.sh single`
-  (миграция `events/0021`) + `python manage.py seed_demo_tenants --kit pranasy --recreate`.
-  **Кастомный домен добавлять/держать ПОСЛЕ последнего `--recreate`** (иначе привязка
-  `Domain` удаляется). Автоподключение домена заработает после деплоя; до деплоя разовый
-  обход — `ALLOWED_HOSTS=*` в `.env.prod` + `docker compose --profile single up -d web`.
+- **`origin/main` = `d92fec4`** — Волна U-A (UA1–UA4) и Волна L (L1/L2/L3-модель/L3c) уже в main.
+  `apps/reviews`, `service_detail.html`, миграции `booking/0011-0012`, `stays/0020`,
+  `reviews/0001-0002` — присутствуют в main.
+- **Ветка `claude/siteadaptor-audit-analysis-imb7gk`** = main + 2 docs-коммита (аудит
+  2026-07-01 + вплетение пробелов в ТЗ). Только документация, кода не меняли. FF-мержится в
+  main чисто (если владелец захочет закрепить аудит в main).
+- **Для нового КОДА** — ветвиться от свежего `origin/main` новой `claude/<topic>` (не от ветки аудита).
+- Деплой на сервере — вручную владельцем; локальные службы (Postgres/Redis) уже подняты
+  SessionStart-хуком.
 
-## Сделано в этой сессии (хронология — build-log)
-Pranasy полноценный двуязычный кит (PR-A…H: i18n site_config/Event, локальные демо-фото
-SVG, подкатегории, Restaurant+Shop как отдельные сущности, 6 ретритов, кетеринг, лояльность,
-«О нас»). Спринт G анти-Битрикс (AB1–AB5). Фиксы: инлайн-редактор (contenteditable +
-заголовки секций + не уводить по ссылкам), загрузка фото баннера раздела, **автоподключение
-кастомных доменов** (middleware из таблицы Domain + авто-verify beat).
+## 2. Что уже сделано (верифицировано аудитом против кода)
 
-## Перед боевым запуском (владелец)
-Stripe live, инфра (отд. Postgres/бэкапы/секреты/Sentry/Resend), право DACH.
+- **Волна L:** L1 ✅ (рантайм-биндинг локалей `Tenant.active_locales`), L2 ✅ (кабинет «Sprachen»),
+  L3-модель ✅ (i18n `Service`/`StayUnit`, overlay-семантика), L3c-рендер ✅ (локализованные
+  имя/описание услуг и номеров на витрине). Всё с осознанными отклонениями (см. `…-L-plan §10`).
+- **Волна U-A:** UA1-1/1-2/1-3 ✅ (деталь услуги + контракт `SellableEntity` + 5 адаптеров),
+  UA2-1 ✅ (контракт в контексте деталей), UA4-1/4-2 ✅ (реестр секций + data-driven рендер),
+  UA4-3 ✅ (attributes/FAQ/primary_action услуги), UA4-4a/4-4b ✅ (generic `reviews.Review` +
+  верифиц. отзывы Service/Stay/Event + per-entity JSON-LD).
+  ⚠️ **«U-A закрыта» НЕТОЧНО** — из UA3 сделан только override primary-CTA; единый `_buybox`
+  (UA3-1 слайс 2) и двухшаговый buy-box (UA3-2) НЕ сделаны (см. `…-ua-plan §7`).
+- **U-B / U-C / U-D / U-E — НЕ начаты.**
+
+## 3. Очередь волн (SOURCE OF TRUTH — `unified-sellable-entity-master-track-2026-06-30.md §4`)
+
+```
+0. Волна L: L1 → L2 (ДО кода U-A, без миграции) ; L3 (i18n Service/Stay, миграция) ∥ U-A.
+1. U-A (UA1-2 → UA1-3 → UA2-1 → UA3-* → {UA4-3 ∥ UA4-4a} → UA4-4b). UA1-1 уже реализован.
+2. U-B → U-C (UB3-2 = M2M Collection, мини-разведка до UB3-1; E-2 правовой засев внутри U-C).
+3. U-D (Order.payment_method в UD1-1 + параллельный трек E-7 платежи; UD3-1-схема ∥ UD1-1; SMS отложен).
+4. U-E (slots-first канва акций).
+```
+
+## 4. Аудит 2026-07-01 — что недостаёт (уже вплетено в ТЗ)
+
+Полный отчёт — **`docs/audit-2026-07-01.md`** (план↔факт + рынок A1–A9 + security, всё
+адверсариально верифицировано). Пробелы разложены по очереди волн:
+
+- **`master-track §7`** — сводная карта «что недостаёт» по волнам 0→4 + вертикали E-9…E-15.
+- **`…-ua-plan §7`** — остаток U-A (единый `_buybox`, UA3-2, AutoRepair @type, демо-A9,
+  reviews-email wiring, combo i18n, пробелы тестов) с уликами `file:line`.
+- **`…-L-plan §10`** — остаток L (L3-ввод форм + мультиязычный демо, L4 хром/`.po/.mo`/письма,
+  L5 `LegalDoc`/AGB, L6 URL) + отметки отклонений.
+- **Pointer'ы** в `ub/uc/ud`-планах (поиск+фасеты→U-B; правовой пакет E-2 + JSON-LD→U-C;
+  E-7 платежи + A7/A9 финансы→U-D).
+
+**Рынок (метод `(full + 0.5·partial)/total`):** A5 79.6% · A6 72.4% · A8 61.1% ·
+A1/A2 57.7% · A3 57.4% · A4 54% · A9 ~47.8% · A7 43.8%. **Сквозной блокер №1 — E-7
+платёжный микс DACH** (PayPal/Klarna Kauf-auf-Rechnung/SEPA + `Order.payment_method`),
+критичен для 6 архетипов, не покрыт ни одной волной.
+
+## 5. Рекомендованный первый шаг новой сессии (нужно решение владельца)
+
+Три кандидата, по убыванию срочности:
+
+- **(A) Багфиксы безопасности — сделать ПЕРВЫМИ (быстро, вне волн).** 2× HIGH stored/DOM XSS
+  в карте агрегатора: `templates/aggregator/_map.html` — (1) `{{ map_points_json|safe }}` в
+  `<script>` идёт мимо экранирования (в отличие от `apps/core/seo.py::_dumps`); источник
+  `apps/aggregator/views.py:359` и `portal_views.py:184` (`json.dumps` без `.translate`);
+  (2) Leaflet `bindPopup(...)` вставляет `p.title`/`p.url` как innerHTML (`_map.html:35`).
+  Данные — из tenant-редактируемого `Promotion.title`. Фикс: прогнать map-JSON через `_dumps`
+  + экранировать title/href в попапе (textContent/`encodeURI`). + medium: newsletter-форма без
+  rate-limit/honeypot (`promotions/public_views.py:781`); фолбэк Fernet-ключа секретов без
+  гейта DEBUG (`apps/secrets/crypto.py:19-24`). Детали — `audit §4`.
+- **(B) Доделать остаток U-A** (`…-ua-plan §7`): единый `_buybox.html` (UA3-1 слайс 2) →
+  UA3-2 двухшаговый → AutoRepair @type + демо-A9 + reviews-email wiring. Закрывает «U-A закрыта»
+  честно, чистит фундамент перед U-B.
+- **(C) Двинуться по очереди волн:** старт **U-B** (единый листинг → facet-framework →
+  UB3-2 M2M `Collection` с мини-разведкой ДО UB3-1) ЛИБО внутренняя часть **E-7**
+  (`Order.payment_method` + Vorkasse — дёшево, без внешнего провайдера, снимает топ-блокер).
+
+**Рекомендация:** (A) багфиксы XSS сразу (маленькие, безопасность), затем спросить владельца
+(B) vs (C). Все три — с план-доком до кода.
+
+## 6. Перед боевым запуском (владелец, блокеры Stage 0)
+
+Stripe live (ключи/Price 39€/Connect/webhook — `billing-stripe-setup.md`), инфра (отд.
+Postgres, бэкапы, `SECRETS_ENCRYPTION_KEY`, `SENTRY_DSN`, `RESEND_API_KEY`), право DACH
+(AVV — `dsgvo-review.md`, прогон k6). Внешние интеграции — `external-integrations-backlog.md`.
