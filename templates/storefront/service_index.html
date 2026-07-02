@@ -1,5 +1,5 @@
 {% extends "storefront/listing.html" %}
-{% load i18n %}
+{% load i18n sellable_ui %}
 {% block title %}{% trans "Book a service" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block listing_header %}
@@ -11,19 +11,8 @@
 {# UB1-1: грид из layout-движка (service_index_layout); ключ не задан → легаси-классы. #}
 <div data-sf-section="services" class="{{ services_grid|default:'grid sm:grid-cols-2 gap-4 max-w-3xl' }}">
   {% for s in services %}
-    {% if embed %}
-    <a href="{% url 'storefront-service-slots' s.pk %}?embed=1" class="relative block bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
-    {% else %}
-    <a href="{% url 'storefront-service-detail' s.pk %}" class="relative block bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
-    {% endif %}
-      <span data-photo-edit data-edit-model="service" data-edit-pk="{{ s.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
-      {% if s.image_url %}<img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover">{% endif %}
-      <div class="p-5">
-        <h2 class="font-semibold text-lg" data-edit-model="service" data-edit-pk="{{ s.pk }}" data-edit-field="name">{{ s.name_localized }}</h2>
-        {% if s.description %}<p class="text-sm text-gray-500 mt-1 line-clamp-2" data-edit-model="service" data-edit-pk="{{ s.pk }}" data-edit-field="description">{{ s.description_localized }}</p>{% endif %}
-        <p class="text-sm text-gray-500 mt-1">{% blocktrans with m=s.duration_minutes %}{{ m }} min{% endblocktrans %}{% if s.price_cents %} · <span data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ s.pk }}" data-price="{{ s.price_eur|floatformat:2 }}">{% blocktrans with p=s.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}</span>{% endif %}</p>
-      </div>
-    </a>
+    {% if embed %}{% url 'storefront-service-slots' s.pk as slots_url %}{% sellable_card 'service' s h2=True href=slots_url query='?embed=1' %}
+    {% else %}{% sellable_card 'service' s h2=True %}{% endif %}
   {% endfor %}
 </div>
 {% endblock %}

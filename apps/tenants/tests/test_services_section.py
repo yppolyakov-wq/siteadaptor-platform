@@ -31,23 +31,28 @@ def _req():
     return request
 
 
+def _fake_service(pk, name, minutes, cents, description="", image_url=""):
+    """Фейк услуги с интерфейсом контракта SellableEntity (UB1-2): карточка секции
+    рендерится через sellable_card → адаптеру нужны name_localized/
+    description_localized(locale) и image_url — как у booking.Service."""
+    return SimpleNamespace(
+        pk=pk,
+        name=name,
+        description=description,
+        image_url=image_url,
+        duration_minutes=minutes,
+        price_cents=cents,
+        price_eur=cents / 100,
+        name_localized=lambda locale=None: name,
+        description_localized=lambda locale=None: description,
+    )
+
+
 def test_services_section_renders_cards(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     services = [
-        SimpleNamespace(
-            pk="11111111-1111-1111-1111-111111111111",
-            name="Waschen & Schneiden",
-            duration_minutes=45,
-            price_cents=3900,
-            price_eur=39.0,
-        ),
-        SimpleNamespace(
-            pk="22222222-2222-2222-2222-222222222222",
-            name="Schnupperstunde",
-            duration_minutes=30,
-            price_cents=0,
-            price_eur=0.0,
-        ),
+        _fake_service("11111111-1111-1111-1111-111111111111", "Waschen & Schneiden", 45, 3900),
+        _fake_service("22222222-2222-2222-2222-222222222222", "Schnupperstunde", 30, 0),
     ]
     html = render_to_string(
         "storefront/sections/_services.html",
@@ -68,13 +73,7 @@ def test_services_section_empty_when_no_services():
 
 
 def _priced_service():
-    return SimpleNamespace(
-        pk="33333333-3333-3333-3333-333333333333",
-        name="Ölwechsel",
-        duration_minutes=30,
-        price_cents=4900,
-        price_eur=49.0,
-    )
+    return _fake_service("33333333-3333-3333-3333-333333333333", "Ölwechsel", 30, 4900)
 
 
 def test_services_section_shows_festpreis_for_trades(settings):
@@ -105,13 +104,12 @@ def test_services_section_no_festpreis_without_flag(settings):
 def test_services_section_shows_description(settings):
     """A3: богатая карточка услуги — описание рендерится при наличии."""
     settings.ROOT_URLCONF = "config.urls_tenant"
-    svc = SimpleNamespace(
-        pk="44444444-4444-4444-4444-444444444444",
-        name="Ölwechsel",
+    svc = _fake_service(
+        "44444444-4444-4444-4444-444444444444",
+        "Ölwechsel",
+        30,
+        4900,
         description="Inkl. Öl, Filter und Entsorgung.",
-        duration_minutes=30,
-        price_cents=4900,
-        price_eur=49.0,
     )
     html = render_to_string(
         "storefront/sections/_services.html",
@@ -123,14 +121,12 @@ def test_services_section_shows_description(settings):
 def test_services_section_shows_photo(settings):
     """A3: богатая карточка услуги — фото рендерится при наличии image_url."""
     settings.ROOT_URLCONF = "config.urls_tenant"
-    svc = SimpleNamespace(
-        pk="55555555-5555-5555-5555-555555555555",
-        name="Färben",
-        description="",
+    svc = _fake_service(
+        "55555555-5555-5555-5555-555555555555",
+        "Färben",
+        90,
+        6900,
         image_url="https://img.example/haircolor.jpg",
-        duration_minutes=90,
-        price_cents=6900,
-        price_eur=69.0,
     )
     html = render_to_string(
         "storefront/sections/_services.html",
@@ -142,15 +138,7 @@ def test_services_section_shows_photo(settings):
 def test_services_section_no_photo_without_image(settings):
     """Регрессия: без image_url карточка без <img> (как раньше)."""
     settings.ROOT_URLCONF = "config.urls_tenant"
-    svc = SimpleNamespace(
-        pk="66666666-6666-6666-6666-666666666666",
-        name="Bart",
-        description="",
-        image_url="",
-        duration_minutes=15,
-        price_cents=1200,
-        price_eur=12.0,
-    )
+    svc = _fake_service("66666666-6666-6666-6666-666666666666", "Bart", 15, 1200)
     html = render_to_string(
         "storefront/sections/_services.html",
         {"site": {}, "services_preview": [svc], "request": _req()},
