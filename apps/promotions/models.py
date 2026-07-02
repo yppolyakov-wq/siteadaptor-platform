@@ -145,6 +145,9 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         ("ab", "Ab-Preis („ab 7,50 €“)"),
         ("countdown", "Countdown-Akzent"),
         ("surprise", "Überraschung im Fokus"),
+        # UE2-3: цена/фото скрыты до клика-раскрытия (чистая презентация,
+        # бронь/остаток не зависят). AlterField choices — без изменения БД.
+        ("mystery", "Mystery — Preis bis Klick versteckt"),
     ]
     discount_style = models.CharField(
         max_length=20, choices=DISCOUNT_STYLES, default="", blank=True

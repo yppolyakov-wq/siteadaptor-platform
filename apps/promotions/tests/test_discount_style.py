@@ -110,3 +110,24 @@ def test_form_has_style_selector_and_price_props_untouched():
     assert promo.has_discount is True
     assert promo.new_price == Decimal("7.50")
     assert promo.discount_amount == Decimal("2.50")
+
+
+def test_mystery_style_hides_price_and_blurs_photo():
+    """UE2-3: mystery — цена скрыта (data-mystery-price hidden), фото в blur,
+    кнопка-reveal (a11y <button>); бейджа нет. Механика брони не зависит."""
+    promo = _discounted(
+        discount_style="mystery",
+        images=[{"id": "x", "url": "/x.png", "is_primary": True}],
+    )
+    for body in (_card(promo), _detail(promo)):
+        assert BADGE_MARK not in body
+        assert "data-mystery-price" in body and "hidden" in body
+        assert "data-mystery-reveal" in body
+        assert "data-mystery-root" in body
+        assert "blur-lg" in body and "data-mystery-blur" in body
+
+
+def test_non_mystery_has_no_reveal_artifacts():
+    promo = _discounted(images=[{"id": "x", "url": "/x.png", "is_primary": True}])
+    body = _card(promo)
+    assert "data-mystery" not in body and "blur-lg" not in body

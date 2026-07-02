@@ -1,5 +1,5 @@
 {% load i18n %}{# Карточка акции (исп. в секции главной и на /aktionen/). Контекст: p. #}
-<a href="{% url 'storefront-promotion' p.pk %}"
+<a href="{% url 'storefront-promotion' p.pk %}"{% if p.discount_style == 'mystery' %} data-mystery-root{% endif %}
    class="sf-card group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
   <div class="relative aspect-square bg-gray-100">
     {% comment %}UE3-2: замена главного фото акции на канве (режим правки билдера).
@@ -10,8 +10,8 @@
        title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
     {% with img=p.primary_image %}
       {% if img %}
-        <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"
-             class="w-full h-full object-cover group-hover:scale-[1.02] transition">
+        <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"{% if p.discount_style == 'mystery' %} data-mystery-blur{% endif %}
+             class="w-full h-full object-cover group-hover:scale-[1.02] transition{% if p.discount_style == 'mystery' %} blur-lg{% endif %}">
       {% else %}
         <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>

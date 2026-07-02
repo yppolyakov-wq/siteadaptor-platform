@@ -346,6 +346,19 @@
       tick(); setInterval(tick, 1000);
     })();
 
+    // UE2-3: mystery-акция — цена/фото скрыты до раскрытия. Кнопка
+    // data-mystery-reveal (a11y: настоящий <button>) раскрывает в пределах
+    // data-mystery-root; бронь/остаток от стиля не зависят.
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-mystery-reveal]");
+      if (!btn) return;
+      e.preventDefault(); e.stopPropagation();
+      var root = btn.closest("[data-mystery-root]") || document;
+      root.querySelectorAll("[data-mystery-price]").forEach(function (el) { el.hidden = false; });
+      root.querySelectorAll("[data-mystery-blur]").forEach(function (el) { el.classList.remove("blur-lg"); });
+      btn.remove();
+    });
+
     // Шаринг: кнопки с data-share-url / data-copy
     document.addEventListener("click", function (e) {
       var copyBtn = e.target.closest("[data-copy]");

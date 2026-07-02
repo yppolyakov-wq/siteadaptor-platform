@@ -32,7 +32,11 @@ test_discount_display_parity). UE2-2: селектор promo.discount_style ве
     {% endif %}
   {% endif %}
 {% elif part == "price" %}
-  {% if promo.discount_style == "festpreis" and promo.new_price is not None %}
+  {% if promo.discount_style == "mystery" %}
+    {# UE2-3: цена скрыта до раскрытия — кнопка-reveal (делегированный JS _base.html). #}
+    <span data-mystery-price hidden>{% include "storefront/_price.html" with promo=promo %}</span>
+    <button type="button" data-mystery-reveal class="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 underline decoration-dashed">🎁 {% trans "Reveal the deal" %}</button>
+  {% elif promo.discount_style == "festpreis" and promo.new_price is not None %}
     <span class="text-xl font-extrabold" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
   {% elif promo.discount_style == "ab" and promo.new_price is not None %}
     <span class="text-sm font-normal text-gray-400">{% trans "from" %}</span> <span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
