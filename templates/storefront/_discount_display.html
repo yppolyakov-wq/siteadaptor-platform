@@ -1,0 +1,53 @@
+{% load i18n %}
+{% comment %}UE2-1 (U-E, втянуто в U-C): ЕДИНЫЙ вывод скидки акции — одна точка правды
+условий (бейдж %/−€ · цена strikethrough+красная · scarcity · countdown ·
+valid-until · surprise) вместо дублей в _promo_card.html и promotion_detail.html.
+Вход: promo, part ∈ badge|surprise|price|scarcity|countdown, size ∈ sm|lg
+(sm — карточка, lg — деталь; разметка обеих веток 1:1 прежняя — замки
+test_discount_display_parity). Селектор discount_style ветвится здесь (UE2-2).{% endcomment %}
+{% if part == "badge" %}
+  {# Порядок классов — байт-в-байт исходный (замок test_discount_display_parity). #}
+  {% if promo.discount_percent_display %}
+    {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% endif %}
+  {% elif promo.has_discount %}
+    {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
+  {% endif %}
+{% elif part == "surprise" %}
+  {% if promo.is_surprise %}
+    {% if size == "lg" %}
+      <span class="inline-flex items-center gap-1 mt-2 bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">🌱 {% trans "Surprise bag — rescue food, save money" %}</span>
+    {% else %}
+      <span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>
+    {% endif %}
+  {% endif %}
+{% elif part == "price" %}
+  {% include "storefront/_price.html" with promo=promo %}
+{% elif part == "scarcity" %}
+  {% if promo.available_quantity is not None %}
+    {% if size == "lg" %}
+      <p class="mt-2 text-sm {% if promo.available_quantity <= 3 %}text-red-600 font-medium{% else %}text-gray-500{% endif %}">
+        {% blocktrans count n=promo.available_quantity %}Only {{ n }} left{% plural %}Only {{ n }} left{% endblocktrans %}
+      </p>
+    {% else %}
+      <p class="mt-1 text-xs {% if promo.available_quantity <= 3 %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">
+        {% blocktrans count n=promo.available_quantity %}Only {{ n }} left{% plural %}Only {{ n }} left{% endblocktrans %}
+      </p>
+    {% endif %}
+  {% endif %}
+{% elif part == "countdown" %}
+  {% if promo.show_countdown and promo.ends_at %}
+    {% if size == "lg" %}
+      <div class="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-800 rounded-lg px-3 py-1.5 text-sm">
+        ⏳ {% trans "Ends in" %}
+        <span class="font-mono font-semibold" aria-live="polite" data-countdown="{{ promo.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
+      </div>
+    {% else %}
+      <p class="mt-1 text-xs text-gray-500">
+        {% trans "Ends in" %}
+        <span class="font-mono font-medium" data-countdown="{{ promo.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
+      </p>
+    {% endif %}
+  {% elif promo.ends_at and size == "lg" %}
+    <p class="mt-3 text-sm text-gray-500">{% blocktrans with d=promo.ends_at|date:"d.m.Y H:i" %}Valid until {{ d }}{% endblocktrans %}</p>
+  {% endif %}
+{% endif %}

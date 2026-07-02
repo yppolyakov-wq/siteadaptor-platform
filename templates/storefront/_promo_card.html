@@ -12,26 +12,14 @@
         </div>
       {% endif %}
     {% endwith %}
-    {% if p.discount_percent_display %}
-      <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ p.discount_percent_display }} %</span>
-    {% elif p.has_discount %}
-      <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ p.discount_amount }} €</span>
-    {% endif %}
+    {# UE2-1: вывод скидки — единый компонент (одна точка правды условий). #}
+    {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" %}
   </div>
   <div class="p-3 md:p-4">
-    {% if p.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 Überraschungstüte</span>{% endif %}
+    {% include "storefront/_discount_display.html" with promo=p part="surprise" size="sm" %}
     <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
-    <div class="mt-2">{% include "storefront/_price.html" with promo=p %}</div>
-    {% if p.available_quantity is not None %}
-      <p class="mt-1 text-xs {% if p.available_quantity <= 3 %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">
-        {% blocktrans count n=p.available_quantity %}Only {{ n }} left{% plural %}Only {{ n }} left{% endblocktrans %}
-      </p>
-    {% endif %}
-    {% if p.show_countdown and p.ends_at %}
-      <p class="mt-1 text-xs text-gray-500">
-        {% trans "Ends in" %}
-        <span class="font-mono font-medium" data-countdown="{{ p.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
-      </p>
-    {% endif %}
+    <div class="mt-2">{% include "storefront/_discount_display.html" with promo=p part="price" %}</div>
+    {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}
+    {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
   </div>
 </a>
