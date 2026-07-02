@@ -1562,18 +1562,10 @@ def site_preview_draft(request):
     # H1: описания секций — в превью (normalize чистит ключи/длину).
     if isinstance(data.get("section_intros"), dict):
         cfg["section_intros"] = data["section_intros"]
-    # SE-2b-2: порядок/видимость тематических секций детальной события — в превью
-    # (normalize_event_detail оставит лишь известные ключи).
-    if isinstance(data.get("event_detail"), dict):
-        cfg["event_detail"] = data["event_detail"]
-    # Видимость опц. секций детальной товара — в превью (normalize_product_detail чистит).
-    if isinstance(data.get("product_detail"), dict):
-        cfg["product_detail"] = data["product_detail"]
-    # UA4-1 slice C: видимость секций детальной услуги/номера — в превью (normalize чистит).
-    if isinstance(data.get("service_detail"), dict):
-        cfg["service_detail"] = data["service_detail"]
-    if isinstance(data.get("stay_detail"), dict):
-        cfg["stay_detail"] = data["stay_detail"]
+    # UC2-1 (слайс B): все page-scoped ключи драфта (детальные секции, раскладки
+    # лендингов, catalog-флаги/сорт, корзина) — одним generic-наложением по
+    # реестру siteconfig.PAGE_CONFIG_KEYS; семантика веток 1:1 (см. план-док).
+    siteconfig.apply_page_payload(cfg, data)
     # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):
@@ -1581,28 +1573,6 @@ def site_preview_draft(request):
     # SE-3b: глобальная типографика → в превью (normalize_typography клампит).
     if isinstance(data.get("typography"), dict):
         cfg["typography"] = data["typography"]
-    # SE-2d-5: пер-страничные раскладки лендингов → в превью. collect() их шлёт, но
-    # раньше хендлер игнорил → live-preview раскладки лендинга работал только после
-    # Save. Теперь правка раскладки каталога/событий/номеров видна на их странице сразу.
-    for _lay_key in (
-        "catalog_layout",
-        "events_index_layout",
-        "stay_index_layout",
-        "service_index_layout",  # UB1-1: раскладка листинга услуг — в превью
-    ):
-        _lay = data.get(_lay_key)
-        if isinstance(_lay, dict) and _lay.get("preset") in siteconfig.LAYOUT_PRESETS:
-            cfg[_lay_key] = {"preset": _lay["preset"]}
-    # Категория: фильтры/сортировка/подкатегории — в превью (живо).
-    if isinstance(data.get("catalog_show_filters"), bool):
-        cfg["catalog_show_filters"] = data["catalog_show_filters"]
-    if isinstance(data.get("catalog_subcats_first"), bool):
-        cfg["catalog_subcats_first"] = data["catalog_subcats_first"]
-    if data.get("catalog_sort") in siteconfig.CATALOG_SORT_KEYS:
-        cfg["catalog_sort"] = data["catalog_sort"]
-    # Корзина: показывать ли кросс-селл — в превью (живо).
-    if isinstance(data.get("cart_show_upsell"), bool):
-        cfg["cart_show_upsell"] = data["cart_show_upsell"]
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
     if data.get("font") in siteconfig.FONTS:
         cfg["font"] = data["font"]

@@ -111,3 +111,68 @@ def test_page_section_icons_home_only_for_now():
     for key in siteconfig.page_section_keys("home"):
         assert icons.get(key), key  # у каждой home-секции есть иконка
     assert siteconfig.page_section_icons("event_detail") == {}
+
+
+# --- UC2-1 (слайс A): page-scoped draft-модуль -----------------------------------
+
+
+def test_page_config_keys_registry_consistent_with_apply_groups():
+    """Реестр PAGE_CONFIG_KEYS и группы apply_page_payload — одно множество
+    ключей (замок от расхождения декларации и применения)."""
+    from_registry = {k for keys in siteconfig.PAGE_CONFIG_KEYS.values() for k in keys}
+    from_apply = (
+        set(siteconfig._PAGE_DETAIL_KEYS)
+        | set(siteconfig._PAGE_LAYOUT_KEYS)
+        | set(siteconfig._PAGE_BOOL_KEYS)
+        | {"catalog_sort"}
+    )
+    assert from_registry == from_apply
+
+
+def test_apply_page_payload_semantics_match_legacy_branches():
+    """Семантика 1:1 с прежними ветками site_preview_draft: детали — dict как
+    есть; раскладки — только валидный preset; флаги — строгий bool; сорт — реестр."""
+    cfg = {}
+    siteconfig.apply_page_payload(
+        cfg,
+        {
+            "event_detail": {"order": ["faq"], "hidden": []},
+            "product_detail": "мусор",  # не dict → игнор
+            "catalog_layout": {"preset": "cols3"},
+            "stay_index_layout": {"preset": "нет-такого"},  # невалид → игнор
+            "service_index_layout": {"preset": "list"},
+            "catalog_show_filters": True,
+            "catalog_subcats_first": "on",  # не bool → игнор
+            "cart_show_upsell": False,
+            "catalog_sort": "price_asc",
+        },
+    )
+    assert cfg["event_detail"] == {"order": ["faq"], "hidden": []}
+    assert "product_detail" not in cfg
+    assert cfg["catalog_layout"] == {"preset": "cols3"}
+    assert "stay_index_layout" not in cfg
+    assert cfg["service_index_layout"] == {"preset": "list"}
+    assert cfg["catalog_show_filters"] is True
+    assert "catalog_subcats_first" not in cfg
+    assert cfg["cart_show_upsell"] is False
+    assert cfg["catalog_sort"] == "price_asc"
+    # пустой payload ничего не пишет (частичный драфт не трёт)
+    cfg2 = {"catalog_sort": "newest"}
+    siteconfig.apply_page_payload(cfg2, {})
+    assert cfg2 == {"catalog_sort": "newest"}
+
+
+def test_page_config_slices_normalized_config():
+    cfg = {
+        "event_detail": {"order": ["program"], "hidden": ["testimonials"]},
+        "catalog_layout": {"preset": "cols2"},
+        "catalog_sort": "price_desc",
+    }
+    ev = siteconfig.page_config(cfg, "event_detail")
+    assert set(ev) == {"event_detail"} and "testimonials" in ev["event_detail"]["hidden"]
+    listing = siteconfig.page_config(cfg, "listing")
+    assert listing["catalog_layout"]["preset"] == "cols2"  # normalize материализует cols/mobile
+    assert listing["catalog_sort"] == "price_desc"
+    # service_index_layout не материализован → его нет в срезе
+    assert "service_index_layout" not in listing
+    assert siteconfig.page_config(cfg, "nope") == {}  # fail-safe

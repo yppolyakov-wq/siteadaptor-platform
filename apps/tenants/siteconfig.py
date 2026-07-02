@@ -741,6 +741,75 @@ def page_sections(config, page_type: str) -> list[str]:
 CATALOG_SORT_KEYS = ("newest", "price_asc", "price_desc")
 
 
+# --- UC2-1: page-scoped draft-модуль --------------------------------------------
+# Единая декларация «какие плоские конфиг-ключи принадлежат какому page_type» +
+# generic-наложение per-page ключей драфта. Хранение ОСТАЁТСЯ плоским (решение
+# «виртуальный фасад», docs/uc2-1-page-draft-plan-2026-07-02.md §2): «pages» —
+# срез, не ключ конфига; normalize/history/storefront-ридеры не тронуты.
+# «cart» есть в реестре, но не в page_types() — у корзины нет своей страницы
+# редактора, её ключ правится панелью каталога.
+_PAGE_DETAIL_KEYS = ("event_detail", "product_detail", "service_detail", "stay_detail")
+_PAGE_LAYOUT_KEYS = (
+    "catalog_layout",
+    "events_index_layout",
+    "stay_index_layout",
+    "service_index_layout",
+)
+_PAGE_BOOL_KEYS = ("catalog_show_filters", "catalog_subcats_first", "cart_show_upsell")
+
+PAGE_CONFIG_KEYS = {
+    "home": (),  # sections/section_titles/… — собственный generic-путь драфта
+    "product_detail": ("product_detail",),
+    "event_detail": ("event_detail",),
+    "service_detail": ("service_detail",),
+    "stay_detail": ("stay_detail",),
+    "listing": (
+        "catalog_layout",
+        "events_index_layout",
+        "stay_index_layout",
+        "service_index_layout",
+        "catalog_show_filters",
+        "catalog_sort",
+        "catalog_subcats_first",
+    ),
+    "cart": ("cart_show_upsell",),
+    "info": (),
+    "legal": (),
+}
+
+
+def apply_page_payload(cfg: dict, data: dict) -> None:
+    """Generic-наложение page-scoped ключей драфта на конфиг (UC2-1, слайс B).
+
+    Семантика 1:1 с прежними per-page ветками site_preview_draft: детальные —
+    dict как есть (normalize_* чистят на следующем normalize), раскладки —
+    только валидный preset (⚠️ service_index_layout не материализуется
+    normalize'ом — особенность сохранена: кладём только присланный валидный),
+    флаги — строгий bool, сортировка — по CATALOG_SORT_KEYS. Невалидное
+    молча игнорируется (драфт fail-safe, как раньше)."""
+    for key in _PAGE_DETAIL_KEYS:
+        if isinstance(data.get(key), dict):
+            cfg[key] = data[key]
+    for key in _PAGE_LAYOUT_KEYS:
+        lay = data.get(key)
+        if isinstance(lay, dict) and lay.get("preset") in LAYOUT_PRESETS:
+            cfg[key] = {"preset": lay["preset"]}
+    for key in _PAGE_BOOL_KEYS:
+        if isinstance(data.get(key), bool):
+            cfg[key] = data[key]
+    if data.get("catalog_sort") in CATALOG_SORT_KEYS:
+        cfg["catalog_sort"] = data["catalog_sort"]
+
+
+def page_config(config, page_type: str) -> dict:
+    """Срез нормализованного конфига для page_type — {key: value} по реестру.
+
+    Ключи, отсутствующие в нормализованном конфиге (напр. нематериализованный
+    service_index_layout), не попадают в срез. Неизвестный page_type → {}."""
+    cfg = normalize(config)
+    return {k: cfg[k] for k in PAGE_CONFIG_KEYS.get(page_type, ()) if k in cfg}
+
+
 TEXT_FIELDS = [
     "hero_title",
     "hero_text",
