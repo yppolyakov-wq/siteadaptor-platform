@@ -3360,3 +3360,13 @@
   `a.textContent=title`, `href` только `https?://` или `/`, иначе `#`). Тесты:
   `apps/aggregator/tests/test_map_xss.py` (breakout-экранирование + DOM-построение попапа). Гейт:
   162 aggregator passed, ruff+`manage.py check` чисты. Без миграций. (medium/low из аудита — отдельно.)
+- **2026-07-01 — багфикс(security, medium): newsletter-форма без rate-limit/honeypot.**
+  `newsletter_signup` (`promotions/public_views.py`) — единственная публичная POST-форма без общих
+  защит: (1) добавлен honeypot `website` (тихий нейтральный «sent» для ботов) + скрытое поле в
+  `templates/storefront/newsletter.html`; (2) `ratelimit.hit("news", client_ip, limit=5, window=600)`
+  до создания `Customer`/отправки — против email-бомбинга чужих адресов и неогранич. роста `Customer`;
+  (3) убран оракул статуса подписки — ответ всегда нейтральный `sent` независимо от того, подписан ли
+  e-mail (уже подтверждённому подписчику письмо повторно не шлём). UX-дельта: экран «Sie sind bereits
+  angemeldet» больше не показывается (нейтральный «prüfen Sie Ihr Postfach»); ветку `already` в шаблоне
+  оставили неиспользуемой. Тесты: `test_newsletter.py` (honeypot→нет Customer/письма; already→нейтрально,
+  без повторного письма). Гейт: 164 promotions passed, ruff+check чисты. Без миграций.

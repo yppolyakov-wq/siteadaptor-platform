@@ -786,22 +786,28 @@ def newsletter_signup(request):
 
     state = "form"
     if request.method == "POST":
+        # honeypot — тихо игнорируем ботов (нейтральный вид «отправлено»)
+        if request.POST.get("website"):
+            return render(request, "storefront/newsletter.html", {"state": "sent"})
         email = (request.POST.get("email") or "").strip().lower()
         name = (request.POST.get("name") or "").strip()
         if "@" not in email:
+            return render(request, "storefront/newsletter.html", {"state": "error"})
+        # rate-limit по IP: анти-спам (email-бомбинг чужих адресов + неогранич. рост Customer)
+        if ratelimit.hit("news", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
             return render(request, "storefront/newsletter.html", {"state": "error"})
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
         if customer is None:
             customer = Customer.objects.create(
                 name=name, email=email, created_source=Customer.SOURCE_MANUAL
             )
-        if customer.marketing_opt_in and not customer.unsubscribed:
-            state = "already"
-        else:
+        # нейтральный ответ независимо от статуса (не раскрываем, подписан ли e-mail);
+        # уже подтверждённому подписчику письмо повторно НЕ шлём (анти-спам)
+        if not (customer.marketing_opt_in and not customer.unsubscribed):
             newsletter.send_doi_email(
                 customer, base_url=request.build_absolute_uri("/").rstrip("/")
             )
-            state = "sent"
+        state = "sent"
     return render(request, "storefront/newsletter.html", {"state": state})
 
 

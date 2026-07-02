@@ -30,6 +30,23 @@ def test_signup_creates_unconfirmed_and_sends_doi():
     assert Notification.objects.filter(type="newsletter_doi", recipient="g@test.de").exists()
 
 
+def test_signup_honeypot_ignored():
+    # бот заполнил honeypot `website` → ни Customer, ни письма, нейтральный «sent»
+    resp = public_views.newsletter_signup(
+        _req("post", {"email": "bot@test.de", "name": "Bot", "website": "spam"})
+    )
+    assert resp.status_code == 200
+    assert not Customer.objects.filter(email="bot@test.de").exists()
+    assert not Notification.objects.filter(type="newsletter_doi").exists()
+
+
+def test_signup_already_subscribed_is_neutral_and_no_resend():
+    # уже подтверждённый подписчик → нейтральный ответ (не раскрываем статус) и БЕЗ повторного письма
+    Customer.objects.create(name="Sub", email="sub@test.de", marketing_opt_in=True)
+    public_views.newsletter_signup(_req("post", {"email": "sub@test.de"}))
+    assert not Notification.objects.filter(type="newsletter_doi", recipient="sub@test.de").exists()
+
+
 def test_confirm_sets_opt_in():
     c = Customer.objects.create(name="A", email="a@test.de")
     token = newsletter.doi_token(c)
