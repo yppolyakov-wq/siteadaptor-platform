@@ -129,3 +129,44 @@ def test_non_eur_currency_uses_code():
 
     c = Combo(name="X", price=Decimal("5.00"), currency="CHF")
     assert sellable_for("combo", c).price_display == "5,00 CHF"
+
+
+def test_two_step_urls_service_and_stay():
+    """UA3-2: select_url (GET-шаг выбора) и submit_url (POST) из контракта."""
+    from apps.booking.models import Service
+    from apps.stays.models import StayUnit
+
+    s = Service(name="Ölwechsel", price_cents=4900)
+    e = sellable_for("service", s)
+    assert e.select_url == f"/termin/leistung/{s.pk}/"
+    assert e.submit_url == f"/termin/leistung/{s.pk}/buchen/"
+    u = StayUnit(name="Doppelzimmer", price_cents=8900)
+    e = sellable_for("stay", u)
+    assert e.select_url == f"/unterkunft/{u.pk}/"  # шаг выбора дат = сама деталь
+    assert e.submit_url == f"/unterkunft/{u.pk}/buchen/"
+
+
+@pytest.mark.django_db
+def test_one_step_kinds_have_empty_select_url():
+    """UA3-2: одношаговые kind — select_url пуст, submit_url без pk-арга."""
+    from decimal import Decimal as D
+
+    from apps.catalog.models import Combo, Product
+
+    p = Product.objects.create(name={"de": "Brot"}, base_price=D("2.50"))
+    e = sellable_for("product", p)
+    assert e.select_url == ""
+    assert e.submit_url == "/warenkorb/add/"
+    c = Combo(name="Menü 1", price=D("9.90"))
+    e = sellable_for("combo", c)
+    assert e.select_url == f"/kombi/{c.pk}/"  # конфигуратор = шаг выбора
+    assert e.submit_url == "/kombi/add/"
+
+
+def test_buybox_ready_flag_defaults_false_and_passes_through():
+    """UA3-2: признак готовности выбора — False по умолчанию, проброс из вьюхи."""
+    from apps.booking.models import Service
+
+    s = Service(name="Beratung")
+    assert sellable_for("service", s).buybox_ready is False
+    assert sellable_for("service", s, buybox_ready=True).buybox_ready is True

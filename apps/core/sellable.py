@@ -34,6 +34,12 @@ class SellableEntity:
     purchase_mode: str
     purchase_label: str
     detail_url: str
+    # UA3-2: двухшаговый buy-box. select_url — ГДЕ выбирают (GET; ""=одношаговый
+    # kind), submit_url — КУДА бронируют/покупают (POST). buybox_ready — валидный
+    # выбор в текущем запросе (quote.available / выбранный слот) — задаёт вьюха.
+    select_url: str = ""
+    submit_url: str = ""
+    buybox_ready: bool = False
     buybox_context: dict = field(default_factory=dict)
     attributes: list = field(default_factory=list)
     info_sections: list = field(default_factory=list)
@@ -119,34 +125,62 @@ def _combo(obj, locale):
     }
 
 
-# kind → (адаптер, module для purchase_mode/label, URL-имя детали).
+# kind → (адаптер, module для purchase_mode/label, URL-имена: деталь, шаг выбора
+# (GET, ""=одношаговый kind), submit покупки/брони (POST)). UA3-2: select/submit —
+# контрактные адреса двухшагового buy-box.
 _KINDS = {
-    "product": (_product, "catalog", "storefront-product"),
-    "service": (_service, "booking", "storefront-service-detail"),
-    "stay": (_stay, "stays", "storefront-unterkunft-unit"),
-    "event": (_event, "events", "storefront-event"),
-    "combo": (_combo, "catalog", "storefront-combo"),
+    "product": (_product, "catalog", "storefront-product", "", "storefront-cart-add"),
+    "service": (
+        _service,
+        "booking",
+        "storefront-service-detail",
+        "storefront-service-slots",
+        "storefront-service-book",
+    ),
+    "stay": (
+        _stay,
+        "stays",
+        "storefront-unterkunft-unit",
+        "storefront-unterkunft-unit",
+        "storefront-unterkunft-book",
+    ),
+    "event": (_event, "events", "storefront-event", "", "storefront-event-book"),
+    "combo": (_combo, "catalog", "storefront-combo", "storefront-combo", "storefront-combo-add"),
 }
 
 SELLABLE_KINDS = tuple(_KINDS)
 
 
-def sellable_for(kind: str, obj, locale: str | None = None) -> SellableEntity:
+def _reverse_or_empty(url_name: str, pk) -> str:
+    """Реверс маршрута сущности: с pk, затем без (cart-add/combo-add — без арга);
+    нет маршрута → '' (как detail_url — без падения)."""
+    if not url_name:
+        return ""
+    try:
+        return reverse(url_name, args=[pk])
+    except NoReverseMatch:
+        try:
+            return reverse(url_name)
+        except NoReverseMatch:
+            return ""
+
+
+def sellable_for(
+    kind: str, obj, locale: str | None = None, *, buybox_ready: bool = False
+) -> SellableEntity:
     """Нормализовать объект `kind` к `SellableEntity`.
 
-    `purchase_mode`/`purchase_label` — из `archetypes` (без дублей). `detail_url`
-    реверсится по маршруту сущности (пусто при `NoReverseMatch`). `jobs` — НЕ
-    sellable (индивидуальная смета, U-D); неизвестный kind → `ValueError`.
+    `purchase_mode`/`purchase_label` — из `archetypes` (без дублей). `detail_url`/
+    `select_url`/`submit_url` реверсятся по маршрутам сущности (пусто при
+    `NoReverseMatch`). `buybox_ready` — валидный выбор в ТЕКУЩЕМ запросе (UA3-2,
+    задаёт вьюха: `quote.available` у stay / выбранный слот у service; дефолт False).
+    `jobs` — НЕ sellable (индивидуальная смета, U-D); неизвестный kind → `ValueError`.
     """
     try:
-        adapter, module, url_name = _KINDS[kind]
+        adapter, module, url_name, select_name, submit_name = _KINDS[kind]
     except KeyError:
         raise ValueError(f"unknown sellable kind: {kind!r} (known: {SELLABLE_KINDS})") from None
     f = adapter(obj, locale)
-    try:
-        detail_url = reverse(url_name, args=[obj.pk])
-    except NoReverseMatch:
-        detail_url = ""
     return SellableEntity(
         kind=kind,
         pk=obj.pk,
@@ -157,5 +191,8 @@ def sellable_for(kind: str, obj, locale: str | None = None) -> SellableEntity:
         gallery=f["gallery"],
         purchase_mode=archetypes.purchase_mode(module),
         purchase_label=archetypes.purchase_label(module),
-        detail_url=detail_url,
+        detail_url=_reverse_or_empty(url_name, obj.pk),
+        select_url=_reverse_or_empty(select_name, obj.pk),
+        submit_url=_reverse_or_empty(submit_name, obj.pk),
+        buybox_ready=buybox_ready,
     )
