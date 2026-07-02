@@ -1,8 +1,12 @@
-{% extends base_template|default:"storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load i18n sellable_ui %}
 {% block title %}{% trans "Stay with us" %} — {{ request.tenant.name }}{% endblock %}
 
-{% block content %}
+{% comment %}UB1-3: листинг номеров на каркасе listing.html. Date-search — фасет этого
+листинга (listing_facets); карточки — единый партиал (UB1-2), недоступный результат
+поиска остаётся инлайн (не карточка покупки).{% endcomment %}
+
+{% block listing_header %}
 <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Stay with us" %}</h1>
 <p class="text-gray-500 mb-6">{% trans "Pick your dates and we'll show what's available." %}</p>
 
@@ -13,7 +17,9 @@
     <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
+{% endblock %}
 
+{% block listing_facets %}
 {# --- быстрый поиск по датам (H2) ------------------------------------------- #}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 max-w-3xl">
   {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
@@ -37,7 +43,9 @@
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-indigo-700">{% trans "Check availability" %}</button>
   </div>
 </form>
+{% endblock %}
 
+{% block listing_grid %}
 {% if searched %}
   {# --- результаты поиска с ценой за диапазон --------------------------------- #}
   <p class="text-sm text-gray-500 mb-3">{{ von|date:"d.m.Y" }} → {{ bis|date:"d.m.Y" }} · {% blocktrans count n=results.0.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</p>
@@ -65,14 +73,18 @@
   </div>
 {% elif units %}
   {# --- без поиска: обзор номеров (как было) ---------------------------------- #}
+  {% comment %}UB1-2: карточка — единый партиал _sellable_card.html.{% endcomment %}
   <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
-    {% comment %}UB1-2: карточка — единый партиал _sellable_card.html.{% endcomment %}
     {% for u in units %}
       {% if embed %}{% sellable_card 'stay' u h2=True show_min_nights=True query='?embed=1' %}
       {% else %}{% sellable_card 'stay' u h2=True show_min_nights=True %}{% endif %}
     {% endfor %}
   </div>
-{% else %}
+{% endif %}
+{% endblock %}
+
+{% block listing_empty %}
+{% if not searched and not units %}
   <p class="text-gray-500">{% trans "No accommodation available right now." %}</p>
 {% endif %}
 {% endblock %}
