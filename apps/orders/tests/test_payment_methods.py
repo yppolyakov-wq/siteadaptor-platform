@@ -59,6 +59,38 @@ def _prepay_tenant():
     )
 
 
+def _cart_page(tenant=None, session=None):
+    request = RequestFactory().get("/warenkorb/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    if session:
+        request.session.update(session)
+    request.tenant = tenant if tenant is not None else TenantFactory.build()
+    return public_views.cart_view(request).content.decode()
+
+
+def test_checkout_form_parity_single_method():
+    """E7-2 шаг 0 (характеризационный замок): у тенанта с ОДНИМ способом оплаты
+    checkout-форма байт-в-байт прежняя — пикера payment нет, набор полей тот же."""
+    import re
+
+    product = ProductFactory(base_price=Decimal("10.00"))
+    body = _cart_page(session={"cart": {str(product.pk): 1}})
+    forms = re.findall(r"<form[^>]*>.*?</form>", body, flags=re.S)
+    checkout = [f for f in forms if 'id="checkout-form"' in f[: f.index(">")]]
+    assert len(checkout) == 1
+    names = set(re.findall(r'name="([^"]+)"', checkout[0]))
+    assert names == {
+        "csrfmiddlewaretoken",
+        "website",
+        "fulfillment",
+        "name",
+        "email",
+        "phone",
+        "note",
+    }
+
+
 def test_checkout_default_sets_on_site():
     product = ProductFactory(base_price=Decimal("10.00"))
     request = _pub_req({"name": "Kunde"}, session={"cart": {str(product.pk): 1}})
