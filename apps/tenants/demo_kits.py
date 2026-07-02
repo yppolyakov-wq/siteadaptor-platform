@@ -2336,10 +2336,59 @@ WERKSTATT = DemoKit(
     },
     services=[
         ("Ölwechsel", 30, "49", "Inkl. Öl, Filter und Entsorgung. Festpreis für gängige Modelle."),
-        ("Inspektion", 120, "149", "Inspektion nach Herstellervorgabe inkl. Fehlerauslese."),
+        (
+            "Inspektion",
+            120,
+            "149",
+            "Inspektion nach Herstellervorgabe inkl. Fehlerauslese.",
+            "car,inspection",
+            {
+                # UA4-3 демо-A9: богатая карточка + primary-CTA «Kostenvoranschlag»
+                # (request) — цена зависит от Modell, поэтому сперва Angebot mit
+                # Fahrzeugangabe (Kennzeichen/HSN/TSN).
+                "attributes": [
+                    "Nach Herstellervorgabe — Garantie bleibt erhalten",
+                    "Inkl. Fehlerspeicher auslesen",
+                    "Original- oder Identteile nach Wahl",
+                    "Festpreis 149 € für gängige Modelle",
+                ],
+                "faq": [
+                    {
+                        "q": "Verliere ich die Herstellergarantie?",
+                        "a": "Nein — wir arbeiten nach Herstellervorgabe und "
+                        "dokumentieren alle Arbeiten im Serviceheft.",
+                    },
+                    {
+                        "q": "Was kostet die Inspektion für mein Modell?",
+                        "a": "149 € gilt für gängige Modelle. Fordern Sie mit "
+                        "Fahrzeugangabe (Kennzeichen oder HSN/TSN) ein "
+                        "unverbindliches Angebot an.",
+                    },
+                ],
+                "primary_action": "request",
+            },
+        ),
         ("Reifenwechsel", 45, "39", "Räder umstecken, Wuchten auf Wunsch, Reifendruck prüfen."),
         ("HU/AU (TÜV)", 60, "89", "Hauptuntersuchung & Abgasuntersuchung direkt vor Ort."),
         ("Bremsen-Check", 30, "0", "Kostenloser Sicherheits-Check von Belägen und Scheiben."),
+    ],
+    # UA4-4b демо-A9: отзывы об услугах (generic reviews.Review) — индексы в services.
+    service_reviews=[
+        (
+            1,
+            5,
+            "Markus V.",
+            "markus.v@example.de",
+            "Inspektion zum Festpreis, alles sauber dokumentiert — läuft wie neu.",
+        ),
+        (1, 4, "Julia H.", "julia.h@example.de", "Termin schnell bekommen, faire Beratung."),
+        (
+            3,
+            5,
+            "Deniz A.",
+            "deniz.a@example.de",
+            "HU/AU direkt vor Ort und ohne Wartezeit bestanden. Danke!",
+        ),
     ],
     resources=[
         {

@@ -512,6 +512,40 @@ def test_apply_werkstatt_kit_jobs_booking_catalog():
     assert Job.objects.filter(vehicle_plate="DO-MV 1234", vehicle_hsn="0603").exists()
 
 
+def test_werkstatt_kit_rich_service_card_and_reviews(settings):
+    """UA4-3/UA4-4b демо-A9: богатая карточка услуги (attributes/FAQ/primary_action)
+    и service-отзывы засеяны, секции видны на витринной детали услуги."""
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.booking import public_views
+    from apps.booking.models import Service
+    from apps.reviews.models import Review
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(schema_name="public", slug="we2", name="WE2", business_type="other")
+    assert demo_kits.apply_kit(tenant, "werkstatt") is True
+
+    svc = Service.objects.get(name="Inspektion")
+    assert svc.attributes and isinstance(svc.attributes, list)
+    assert svc.faq and svc.faq[0]["q"] and svc.faq[0]["a"]
+    assert svc.primary_action == "request"
+    # 3 опубликованных service-отзыва, ≥1 — именно об Inspektion
+    assert Review.objects.filter(entity_kind="service", is_published=True).count() == 3
+    assert Review.objects.filter(entity_kind="service", entity_id=str(svc.pk)).exists()
+
+    # витрина: деталь услуги рендерит секции attributes/FAQ/отзывы
+    request = RequestFactory().get(f"/leistung/{svc.pk}/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    body = public_views.service_detail(request, pk=svc.pk).content.decode()
+    assert "Fehlerspeicher" in body  # attributes
+    assert "Herstellergarantie" in body  # FAQ
+    assert "läuft wie neu" in body  # отзыв
+
+
 def test_apply_handwerker_kit_jobs_services_no_shop():
     """A7 Handwerker: ядро jobs (Angebot/Festpreis) + booking-Leistungen, без shop."""
     from apps.booking.models import Service
