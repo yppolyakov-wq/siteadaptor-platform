@@ -41,6 +41,21 @@ def i18n_icontains_q(q: str, flat_fields=(), json_fields=()):
     return cond
 
 
+def collection_chips(relation: str, items) -> list:
+    """UB3-2: чипы подборок для листинга — только активные коллекции, в которых
+    есть сущности из ПЕРЕДАННОГО QuerySet (present-values фасета).
+
+    `relation` — related_name M2M на Collection ("services" | "stay_units").
+    Возвращает [{"slug", "label"}] на текущей локали, в порядке sort_order/name."""
+    from django.utils.translation import get_language
+
+    from apps.collections.models import Collection
+
+    locale = get_language()
+    chips = Collection.objects.filter(is_active=True, **{relation + "__in": items}).distinct()
+    return [{"slug": c.slug, "label": c.name_localized(locale)} for c in chips]
+
+
 class FacetProvider:
     """База/No-op: листинг без фасетов."""
 

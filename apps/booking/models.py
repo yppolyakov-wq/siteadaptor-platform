@@ -91,6 +91,11 @@ class Service(I18nMixin, TimestampedModel):
         blank=True,
         choices=[("booking", "Termin buchen"), ("request", "Anfrage")],
     )
+    # UB3-2: подборки владельца («Damen», «Färben & Pflege») — услуга может входить
+    # в несколько; на витрине это фасет-чипы листинга (?kollektion=<slug>).
+    collections = models.ManyToManyField(
+        "collections.Collection", blank=True, related_name="services"
+    )
 
     class Meta:
         ordering = ["name"]

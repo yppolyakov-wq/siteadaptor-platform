@@ -148,17 +148,22 @@ def termin_index(request):
 
     embed = _is_embed(request)
     has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
-    # UB2-1/2-2: единая точка фасетов/поиска/сортировки листинга (FacetProvider).
-    # Ветку «бизнес услуг» решаем ДО поиска — пустая выдача ?q= не должна
-    # переключать на листинг ресурсов.
+    # UB2-1/2-2/3-2: единая точка фасетов/поиска/сортировки листинга (FacetProvider).
+    # Ветку «бизнес услуг» решаем ДО фасета/поиска — пустая выдача ?q=/?kollektion=
+    # не должна переключать на листинг ресурсов.
     from apps.core import facets as facets_registry
 
     provider = facets_registry.provider_for("service")
-    services_qs = provider.apply(Service.objects.filter(is_active=True), request.GET)
-    if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
+    services_base = Service.objects.filter(is_active=True)
+    if services_base.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
         q = (request.GET.get("q") or "").strip()
         sort = request.GET.get("sort") or ""
-        services_qs = provider.sort(provider.search(services_qs, q), sort)
+        kollektion = provider.selected(request.GET)["kollektion"]
+        services_qs = provider.sort(
+            provider.search(provider.apply(services_base, request.GET), q), sort
+        )
+        # Чипы подборок — из снимка ДО фасета (present-values).
+        collection_chips = provider.present(services_base, request.GET)["collection_chips"]
         # UB1-1: раскладка листинга из site_config (+черновик канвы при ?preview=1).
         # Ключ не задан → services_grid=None → шаблон держит легаси-грид (max-w-3xl).
         from apps.tenants import siteconfig
@@ -179,12 +184,16 @@ def termin_index(request):
                 "services": services_qs,
                 "has_pass_plans": has_pass_plans,
                 "services_grid": services_grid,
-                # UB2-2: тулбар каркаса (поиск + сортировка); embed несём в carry.
+                # UB2-2: тулбар каркаса (поиск + сортировка); embed/подборку несём в carry.
                 "show_listing_toolbar": True,
                 "q": q,
                 "sort": sort,
                 "sort_options": provider.sort_options(),
-                "toolbar_hidden": [("embed", "1")] if embed else [],
+                "toolbar_hidden": ([("embed", "1")] if embed else [])
+                + ([("kollektion", kollektion)] if kollektion else []),
+                # UB3-2: чипы подборок (фасет ?kollektion=<slug>).
+                "collection_chips": collection_chips,
+                "active_kollektion": kollektion,
             },
             embed,
         )
