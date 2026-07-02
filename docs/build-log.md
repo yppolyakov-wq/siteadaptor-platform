@@ -3353,3 +3353,18 @@
   (как events/stay_rooms); настройка листинга — через переключатель страницы + панель «Landing pages».
   Без миграций. Гейт: 837 passed (booking+tenants+core, --reuse-db), CI run 1081 зелёный, FF-мерж
   `384cc83` → main. План — `docs/unified-sellable-entity-ub-plan-2026-06-30.md` (UB1-1).
+- **2026-07-02 — UB1-2 (U-B): единая карточка sellable-сущности (услуги+номера, листинги+home).**
+  Тег `apps/core/templatetags/sellable_ui.py::sellable_card` (строит `SellableEntity` через
+  `sellable_for`+`get_language`) + партиал `templates/storefront/_sellable_card.html` (вертикаль/
+  горизонталь; идентичность/медиа/ссылка/CTA — из контракта, мета/сырые цены для data-price-edit —
+  per-kind из obj; blocktrans-паритет). Контракт НЕ расширяли (решение владельца): опции вызова —
+  variant/href/query/edit/cta/badge/price_total/show_area/show_min_nights/show_description/h2.
+  Переведены 5 контекстов: листинг услуг + home-секция услуг (горизонталь, Festpreis, слот-пикер),
+  browse-грид номеров + ДОСТУПНЫЙ результат date-search (query с датами, цена за диапазон, Select,
+  без едит-хуков/описания) + home-секция номеров; недоступный search-результат остался инлайн.
+  `sf-card` теперь и на листингах (глобальный стиль карточек SE-2d действует там — решение владельца).
+  Бонус: home-секции услуг/номеров стали локализуемыми (*_localized из контракта, L3c-выравнивание).
+  `unterkunft_index` +`search_qs`. Тесты: 7 новых (test_sellable_card) + фикстуры test_services_section
+  дополнены интерфейсом контракта (ассерты-замки без изменений). Без миграций. Гейт: 231+72+28 passed
+  локально, CI run 1085 зелёный (полный прогон), FF-мерж `92758b6` → main. Попутно в roadmap §Отложено —
+  «SEO-модуль v2» (заготовки мета с подстановками + AI-SEO, идея владельца 2026-07-02).
