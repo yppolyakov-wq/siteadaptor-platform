@@ -1,5 +1,5 @@
 {% extends base_template|default:"storefront/_base.html" %}
-{% load i18n %}
+{% load i18n sellable_ui %}
 {% block title %}{% trans "Stay with us" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -44,15 +44,9 @@
   <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for r in results %}
       {% if r.available %}
-        <a href="{% url 'storefront-unterkunft-unit' r.unit.pk %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}{{ embed_qs }}" class="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-          {% if r.unit.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
-          <div class="p-5">
-            <h2 class="font-semibold text-lg">{{ r.unit.name_localized }}</h2>
-            <p class="text-sm text-gray-500">{{ r.unit.get_type_display }} · {% blocktrans with n=r.unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
-            <p class="mt-3 font-semibold">{% blocktrans with p=r.from_eur|floatformat:2 %}from {{ p }} € total{% endblocktrans %}</p>
-            <span class="inline-block mt-2 text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5">{% trans "Select" %}</span>
-          </div>
-        </a>
+        {% comment %}UB1-2: доступный результат — единая карточка (даты/гости в query,
+        цена за диапазон, без едит-хуков и описания — как было у поиска).{% endcomment %}
+        {% sellable_card 'stay' r.unit query=search_qs edit=False cta='select' price_total=r.from_eur show_description=False h2=True %}
       {% else %}
         <div class="bg-white rounded-2xl shadow-sm overflow-hidden opacity-60">
           {% if r.unit.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ r.unit.image_url }}" alt="{{ r.unit.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover grayscale"></div>{% endif %}
@@ -72,18 +66,10 @@
 {% elif units %}
   {# --- без поиска: обзор номеров (как было) ---------------------------------- #}
   <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
+    {% comment %}UB1-2: карточка — единый партиал _sellable_card.html.{% endcomment %}
     {% for u in units %}
-      <a href="{% url 'storefront-unterkunft-unit' u.pk %}{% if embed %}?embed=1{% endif %}" class="relative block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-        <span data-photo-edit data-edit-model="stay" data-edit-pk="{{ u.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
-        {% if u.image_url %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ u.image_url }}" alt="{{ u.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>{% endif %}
-        <div class="p-5">
-          <h2 class="font-semibold text-lg" data-edit-model="stay" data-edit-pk="{{ u.pk }}" data-edit-field="name">{{ u.name_localized }}</h2>
-          <p class="text-sm text-gray-500">{{ u.get_type_display }} · {% blocktrans with n=u.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
-          {% if u.description %}<p class="text-sm text-gray-600 mt-2 line-clamp-3" data-edit-model="stay" data-edit-pk="{{ u.pk }}" data-edit-field="description">{{ u.description_localized }}</p>{% endif %}
-          <p class="mt-3 font-semibold"><span data-price-edit data-edit-model="stay" data-price-field="price_eur" data-edit-pk="{{ u.pk }}" data-price="{{ u.price_eur|floatformat:2 }}">{% blocktrans with p=u.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</span></p>
-          {% if u.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=u.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
-        </div>
-      </a>
+      {% if embed %}{% sellable_card 'stay' u h2=True show_min_nights=True query='?embed=1' %}
+      {% else %}{% sellable_card 'stay' u h2=True show_min_nights=True %}{% endif %}
     {% endfor %}
   </div>
 {% else %}

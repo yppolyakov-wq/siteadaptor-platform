@@ -31,6 +31,7 @@ def sellable_card(
     price_total=None,
     show_area=False,
     show_min_nights=False,
+    show_description=True,
     h2=False,
 ):
     """Карточка sellable-сущности для гридов листингов и home-секций.
@@ -42,6 +43,7 @@ def sellable_card(
     `badge` — текст бейджа (Festpreis); `price_total` — цена за диапазон дат
     (date-search stays, вместо from-€/night); `show_area` — м² в мета-строке
     (home-номера); `show_min_nights` — заметка «min. N nights» (браузинг номеров);
+    `show_description=False` — карточка без описания (search-результаты);
     `h2` — заголовок h2 (листинги) вместо h3 (home-секции)."""
     card = sellable_for(kind, obj, get_language())
     return {
@@ -56,5 +58,6 @@ def sellable_card(
         "price_total": price_total,
         "show_area": show_area,
         "show_min_nights": show_min_nights,
+        "show_description": show_description,
         "h2": h2,
     }

@@ -16,7 +16,7 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
   {% endif %}
   <div class="min-w-0 flex-1">
     <h3 class="font-semibold text-lg truncate"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>
-    {% if card.description %}<p class="text-sm text-gray-500 mt-0.5 line-clamp-2"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
+    {% if card.description and show_description %}<p class="text-sm text-gray-500 mt-0.5 line-clamp-2"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
     {% if card.kind == "service" %}<p class="text-sm text-gray-400 mt-1">{% blocktrans with m=obj.duration_minutes %}{{ m }} min{% endblocktrans %}</p>{% endif %}
   </div>
   <div class="text-right shrink-0">
@@ -41,7 +41,7 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
     {% else %}<h3 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>{% endif %}
     {% if card.kind == "stay" %}
       <p class="text-sm text-gray-500">{{ obj.get_type_display }} · {% blocktrans with n=obj.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if show_area and obj.area_sqm %} · {{ obj.area_sqm }} m²{% endif %}</p>
-      {% if card.description %}<p class="text-sm text-gray-600 mt-2 line-clamp-3"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
+      {% if card.description and show_description %}<p class="text-sm text-gray-600 mt-2 line-clamp-3"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
       {% if price_total %}
         <p class="mt-3 font-semibold">{% blocktrans with p=price_total|floatformat:2 %}from {{ p }} € total{% endblocktrans %}</p>
       {% elif cta == "purchase" %}
@@ -54,7 +54,7 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
         {% if show_min_nights and obj.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=obj.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
       {% endif %}
     {% else %}
-      {% if card.description %}<p class="text-sm text-gray-500 mt-1 line-clamp-2"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
+      {% if card.description and show_description %}<p class="text-sm text-gray-500 mt-1 line-clamp-2"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
       <p class="text-sm text-gray-500 mt-1">{% blocktrans with m=obj.duration_minutes %}{{ m }} min{% endblocktrans %}{% if obj.price_cents %} · <span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="{{ obj.price_eur|floatformat:2 }}">{% blocktrans with p=obj.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}</span>{% endif %}</p>
     {% endif %}
     {% if cta == "select" %}<span class="inline-block mt-2 text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5">{% trans "Select" %}</span>{% endif %}

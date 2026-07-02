@@ -130,7 +130,11 @@ def unterkunft_index(request):
         return redirect(f"{url}?embed=1" if embed else url)
 
     results = None
+    search_qs = ""  # UB1-2: query-хвост карточки результата (даты/гости + embed)
     if searched:
+        search_qs = f"?von={von:%Y-%m-%d}&bis={bis:%Y-%m-%d}&erw={adults}&kinder={children}" + (
+            "&embed=1" if embed else ""
+        )
         rate_plans = list(RatePlan.objects.filter(is_active=True))
         nights = (bis - von).days
         rows = []
@@ -173,6 +177,7 @@ def unterkunft_index(request):
             "children": children,
             "searched": searched,
             "results": results,
+            "search_qs": search_qs,
             "rooms_grid": rooms_grid,
             "gift_active": getattr(tenant, "payments_enabled", False)
             and connect.is_connect_configured(),  # G1 ссылка на гутшайны

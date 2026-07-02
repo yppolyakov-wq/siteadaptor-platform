@@ -86,12 +86,15 @@ def test_stay_card_home_with_area_and_cta():
 
 
 def test_stay_card_search_result_total_no_edit():
-    u = StayUnit.objects.create(name="Fewo", price_cents=8000, is_active=True)
+    u = StayUnit.objects.create(
+        name="Fewo", description="Große Wohnung.", price_cents=8000, is_active=True
+    )
     html = _render(
-        "{% sellable_card 'stay' u href='/s/1/?von=x' edit=False cta='select' price_total=240 %}",
+        "{% sellable_card 'stay' u href='/s/1/?von=x' edit=False cta='select' price_total=240 show_description=False %}",
         u=u,
     )
     assert "total" in html and "/ night" not in html  # цена за диапазон, не за ночь
     assert "data-edit-model" not in html and "data-photo-edit" not in html  # без едит-хуков
     assert "bg-indigo-600" in html  # пилюля «Select» (как была у поиска)
     assert 'href="/s/1/?von=x"' in html
+    assert "Große Wohnung." not in html  # search-карточка без описания (как была)
