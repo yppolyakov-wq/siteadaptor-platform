@@ -27,6 +27,8 @@ locale/*/LC_MESSAGES/*.mo
 .env
 .env.local
 .env.*.local
+.env.prod
+.env.production
 
 # Coverage / tests
 .coverage
