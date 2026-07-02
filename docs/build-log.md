@@ -3615,3 +3615,7 @@
   `data-mystery-root`. Бронь/остаток от стиля не зависят. Миграция `promotions/0020` —
   AlterField choices БЕЗ изменения БД (грабля: ModelForm.full_clean валидирует по
   model-choices — форменного расширения недостаточно). Пакет U-E2 закрыт целиком.
+- **2026-07-02 — E-2 слайс 1: §312j-кнопка checkout.** «Place order» →
+  `{% trans "Zahlungspflichtig bestellen" %}` (cart.html; DE-msgid — немецкий по
+  умолчанию при пустых .po). Тест-замок в test_orders. Остаток E-2 (PAngV-ноты, AGB через
+  LegalDoc, засев права в киты, UWG «Anzeige», 404 /entdecken) — следующими слайсами.
