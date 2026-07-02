@@ -594,6 +594,60 @@ def product_detail_hidden(config) -> set:
     return detail_section_hidden(config, "catalog")
 
 
+# --- UC1-1 (U-C): единый реестр секций по ТИПУ СТРАНИЦЫ ---------------------
+# Одна модель (page_type, section) НАД двумя существующими реестрами: home —
+# SECTIONS этого модуля (первичный источник главной), детальные — реестр
+# apps.core.detail_sections (UA4-1). Потребители U-C (инспектор/draft/канва)
+# читают страницы ЧЕРЕЗ этот фасад, а не через частные списки. Осознанное
+# отклонение от буквы uc-плана §5: реестры остаются первичными, фасад — над
+# ними (цель — единый API — та же; риск для горячего normalize()-пути ниже;
+# зафиксировано в uc-plan §11). page_type `listing`/`info`/`legal` — UC1-2.
+PAGE_DETAIL_MODULES = {
+    "product_detail": "catalog",
+    "event_detail": "events",
+    "service_detail": "booking",
+    "stay_detail": "stays",
+}
+
+
+def page_types() -> tuple[str, ...]:
+    """Все page_type единого реестра: главная + детальные."""
+    return ("home", *PAGE_DETAIL_MODULES)
+
+
+def page_section_keys(page_type: str) -> tuple[str, ...]:
+    """Ключи секций страницы в дефолтном порядке; неизвестный page_type → ()."""
+    if page_type == "home":
+        return tuple(key for key, _label, _on in SECTIONS)
+    module = PAGE_DETAIL_MODULES.get(page_type)
+    return detail_sections.section_keys(module) if module else ()
+
+
+def page_section_labels(page_type: str) -> dict:
+    """{key: lazy label} секций страницы — единый источник подписей инспектора."""
+    if page_type == "home":
+        return {key: label for key, label, _on in SECTIONS}
+    module = PAGE_DETAIL_MODULES.get(page_type)
+    return detail_sections.section_labels(module) if module else {}
+
+
+def page_sections(config, page_type: str) -> list[str]:
+    """Упорядоченные ВИДИМЫЕ ключи секций страницы из конфига — ЛЮБОЙ page_type.
+
+    home: enabled фикс-секции и включённые C-блоки в порядке конфига; детальные —
+    сохранённый порядок минус скрытые (делегат `detail_section_order`). Неизвестный
+    page_type → [] (fail-safe). `normalize_sections` определён ниже — поздняя
+    привязка в runtime, порядок объявлений в модуле не важен."""
+    config = config if isinstance(config, dict) else {}
+    if page_type == "home":
+        entries = normalize_sections(config.get("sections", []))
+        return [e["key"] for e in entries if e.get("enabled")]
+    module = PAGE_DETAIL_MODULES.get(page_type)
+    if module is None:
+        return []
+    return detail_section_order(config, module)
+
+
 # Сортировка каталога: ключи валидны для keyset-пагинации (поле — реальная колонка БД,
 # не JSON-имя). Маппинг ключ→(поле, descending) живёт во вьюхе product_list.
 CATALOG_SORT_KEYS = ("newest", "price_asc", "price_desc")

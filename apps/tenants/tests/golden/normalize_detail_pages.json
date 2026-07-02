@@ -558,7 +558,9 @@
   }
  ],
  "service_detail": {
-  "hidden": []
+  "hidden": [
+   "team"
+  ]
  },
  "service_index_layout": {
   "cols": 2,
@@ -575,7 +577,9 @@
   "card_shadow": false
  },
  "stay_detail": {
-  "hidden": []
+  "hidden": [
+   "similar"
+  ]
  },
  "stay_index_layout": {
   "cols": 3,
