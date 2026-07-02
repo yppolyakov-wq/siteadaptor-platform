@@ -1,0 +1,63 @@
+{% load i18n %}
+{% comment %}
+UB1-2: единая карточка sellable-сущности (услуга/номер) — гриды листингов и
+home-секций. Идентичность/медиа/ссылка/CTA-подпись — из контракта (card.*);
+мета-строки и сырые цены — per-kind из obj (blocktrans-паритет со старыми
+инлайн-карточками). Опции вызова — apps/core/templatetags/sellable_ui.py.
+Класс sf-card — глобальный стиль карточек SE-2d действует и на листингах
+(решение владельца 2026-07-02).
+{% endcomment %}
+{% if variant == "horizontal" %}
+<a href="{{ href }}" class="sf-card group relative flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+  {% if edit %}<span data-photo-edit data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 left-2 z-20 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>{% endif %}
+  {% if card.image_url %}
+    <img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async"
+         class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0">
+  {% endif %}
+  <div class="min-w-0 flex-1">
+    <h3 class="font-semibold text-lg truncate"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>
+    {% if card.description %}<p class="text-sm text-gray-500 mt-0.5 line-clamp-2"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
+    {% if card.kind == "service" %}<p class="text-sm text-gray-400 mt-1">{% blocktrans with m=obj.duration_minutes %}{{ m }} min{% endblocktrans %}</p>{% endif %}
+  </div>
+  <div class="text-right shrink-0">
+    {% if obj.price_cents %}
+      {% if badge %}<span class="inline-block text-[10px] font-semibold uppercase tracking-wide text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5">{{ badge }}</span>{% endif %}
+      <p class="font-semibold whitespace-nowrap"><span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="{{ obj.price_eur|floatformat:2 }}">{% blocktrans with p=obj.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}</span></p>
+    {% else %}
+      <p class="text-sm text-gray-400 whitespace-nowrap"><span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="0">{% trans "free" %}</span></p>
+    {% endif %}
+    {% if cta == "purchase" %}<span class="mt-2 inline-block text-sm text-white rounded-lg px-3 py-1.5" style="background: var(--accent);" data-purchase-action>{{ card.purchase_label }}</span>{% endif %}
+  </div>
+</a>
+{% else %}
+<a href="{{ href }}" class="sf-card relative block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+  {% if edit %}<span data-photo-edit data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>{% endif %}
+  {% if card.image_url %}
+    {% if card.kind == "stay" %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>
+    {% else %}<img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover">{% endif %}
+  {% endif %}
+  <div class="p-5">
+    {% if h2 %}<h2 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h2>
+    {% else %}<h3 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>{% endif %}
+    {% if card.kind == "stay" %}
+      <p class="text-sm text-gray-500">{{ obj.get_type_display }} · {% blocktrans with n=obj.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if show_area and obj.area_sqm %} · {{ obj.area_sqm }} m²{% endif %}</p>
+      {% if card.description %}<p class="text-sm text-gray-600 mt-2 line-clamp-3"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
+      {% if price_total %}
+        <p class="mt-3 font-semibold">{% blocktrans with p=price_total|floatformat:2 %}from {{ p }} € total{% endblocktrans %}</p>
+      {% elif cta == "purchase" %}
+        <div class="mt-3 flex items-baseline justify-between">
+          <p class="font-semibold"><span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="{{ obj.price_eur|floatformat:2 }}">{% blocktrans with p=obj.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</span></p>
+          <span class="inline-block text-sm text-white rounded-lg px-3 py-1.5" style="background: var(--accent);" data-purchase-action>{{ card.purchase_label }}</span>
+        </div>
+      {% else %}
+        <p class="mt-3 font-semibold"><span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="{{ obj.price_eur|floatformat:2 }}">{% blocktrans with p=obj.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</span></p>
+        {% if show_min_nights and obj.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=obj.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
+      {% endif %}
+    {% else %}
+      {% if card.description %}<p class="text-sm text-gray-500 mt-1 line-clamp-2"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
+      <p class="text-sm text-gray-500 mt-1">{% blocktrans with m=obj.duration_minutes %}{{ m }} min{% endblocktrans %}{% if obj.price_cents %} · <span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="{{ obj.price_eur|floatformat:2 }}">{% blocktrans with p=obj.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}</span>{% endif %}</p>
+    {% endif %}
+    {% if cta == "select" %}<span class="inline-block mt-2 text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5">{% trans "Select" %}</span>{% endif %}
+  </div>
+</a>
+{% endif %}
