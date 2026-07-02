@@ -114,6 +114,21 @@ def storefront_reviews(limit=6):
     return out
 
 
+def _entity_schema_type(sellable, request) -> str:
+    """A9: услуга Kfz-Werkstatt (`site_config.jobs_vehicle`) → schema.org AutoRepair
+    вместо дефолтного Service (плановый дефолт UA4-4b §5). Прочие услуги — ''."""
+    if getattr(sellable, "kind", "") != "service":
+        return ""
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return ""
+    from apps.tenants import siteconfig
+
+    if siteconfig.normalize(getattr(tenant, "site_config", {}) or {}).get("jobs_vehicle"):
+        return "AutoRepair"
+    return ""
+
+
 @register.simple_tag(takes_context=True)
 def entity_jsonld(context, sellable, review_summary=None):
     """<script ld+json> продаваемой сущности (протокол `SellableEntity`) с
@@ -130,6 +145,7 @@ def entity_jsonld(context, sellable, review_summary=None):
             sellable,
             url=request.build_absolute_uri(detail_url),
             review_summary=review_summary,
+            schema_type=_entity_schema_type(sellable, request),
         )
     except Exception:  # noqa: BLE001 — JSON-LD не должен ломать деталь
         return ""

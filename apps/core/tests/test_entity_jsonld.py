@@ -81,6 +81,21 @@ def test_entity_jsonld_tag_renders_script():
     assert "http://testserver/sortiment/abc/" in out  # абсолютный URL из detail_url
 
 
+def test_entity_jsonld_tag_autorepair_for_kfz_service():
+    # A9: услуга Kfz-Werkstatt (site_config.jobs_vehicle) → @type AutoRepair
+    request = RequestFactory().get("/leistung/abc/")
+    request.tenant = SimpleNamespace(site_config={"jobs_vehicle": True})
+    out = entity_jsonld({"request": request}, _sellable("service", detail_url="/leistung/abc/"))
+    assert '"@type":"AutoRepair"' in out
+
+
+def test_entity_jsonld_tag_service_stays_service_without_kfz():
+    request = RequestFactory().get("/leistung/abc/")
+    request.tenant = SimpleNamespace(site_config={})
+    out = entity_jsonld({"request": request}, _sellable("service", detail_url="/leistung/abc/"))
+    assert '"@type":"Service"' in out
+
+
 def test_entity_jsonld_tag_empty_without_sellable():
     request = RequestFactory().get("/")
     assert entity_jsonld({"request": request}, None) == ""
