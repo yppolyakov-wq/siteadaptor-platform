@@ -1,13 +1,24 @@
-{% load i18n %}
+{% load i18n siteui %}
 {% comment %}UE2-1 (U-E, втянуто в U-C): ЕДИНЫЙ вывод скидки акции — одна точка правды
 условий (бейдж %/−€ · цена strikethrough+красная · scarcity · countdown ·
 valid-until · surprise) вместо дублей в _promo_card.html и promotion_detail.html.
 Вход: promo, part ∈ badge|surprise|price|scarcity|countdown, size ∈ sm|lg
 (sm — карточка, lg — деталь; разметка обеих веток 1:1 прежняя — замки
-test_discount_display_parity). Селектор discount_style ветвится здесь (UE2-2).{% endcomment %}
+test_discount_display_parity). UE2-2: селектор promo.discount_style ветвит вывод
+("" = автоматически, легаси-вид; только презентация — свойства цены не зависят).{% endcomment %}
 {% if part == "badge" %}
   {# Порядок классов — байт-в-байт исходный (замок test_discount_display_parity). #}
-  {% if promo.discount_percent_display %}
+  {% if promo.discount_style == "percent" %}
+    {% if promo.discount_percent_display %}
+      {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% endif %}
+    {% endif %}
+  {% elif promo.discount_style == "badge" %}
+    {% if promo.discount_amount %}
+      {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
+    {% endif %}
+  {% elif promo.discount_style %}
+    {# strikethrough/festpreis/ab/countdown/surprise — акцент на другой части, бейдж скрыт. #}
+  {% elif promo.discount_percent_display %}
     {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% endif %}
   {% elif promo.has_discount %}
     {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
@@ -21,7 +32,13 @@ test_discount_display_parity). Селектор discount_style ветвится 
     {% endif %}
   {% endif %}
 {% elif part == "price" %}
-  {% include "storefront/_price.html" with promo=promo %}
+  {% if promo.discount_style == "festpreis" and promo.new_price is not None %}
+    <span class="text-xl font-extrabold" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
+  {% elif promo.discount_style == "ab" and promo.new_price is not None %}
+    <span class="text-sm font-normal text-gray-400">{% trans "from" %}</span> <span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
+  {% else %}
+    {% include "storefront/_price.html" with promo=promo %}
+  {% endif %}
 {% elif part == "scarcity" %}
   {% if promo.available_quantity is not None %}
     {% if size == "lg" %}
@@ -35,7 +52,7 @@ test_discount_display_parity). Селектор discount_style ветвится 
     {% endif %}
   {% endif %}
 {% elif part == "countdown" %}
-  {% if promo.show_countdown and promo.ends_at %}
+  {% if promo.ends_at and promo.show_countdown or promo.ends_at and promo.discount_style == "countdown" %}
     {% if size == "lg" %}
       <div class="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-800 rounded-lg px-3 py-1.5 text-sm">
         ⏳ {% trans "Ends in" %}

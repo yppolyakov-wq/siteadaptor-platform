@@ -132,6 +132,24 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # Поверх обычной брони — отдельная механика не нужна, только пресет + бейдж.
     is_surprise = models.BooleanField(default=False)
 
+    # UE2-2: стиль вывода скидки на витрине (ветвление в _discount_display.html).
+    # "" = автоматически (легаси-вид: %-бейдж, иначе −€; цена по флагам) — default
+    # сохраняет вид существующих акций. Только презентация: свойства цены/
+    # has_discount/анти-оверселл не зависят от стиля.
+    DISCOUNT_STYLES = [
+        ("", "Automatisch"),
+        ("percent", "Prozent-Badge (−30 %)"),
+        ("badge", "Betrag-Badge (−5 €)"),
+        ("strikethrough", "Nur durchgestrichener Preis"),
+        ("festpreis", "Nur neuer Preis (Festpreis)"),
+        ("ab", "Ab-Preis („ab 7,50 €“)"),
+        ("countdown", "Countdown-Akzent"),
+        ("surprise", "Überraschung im Fokus"),
+    ]
+    discount_style = models.CharField(
+        max_length=20, choices=DISCOUNT_STYLES, default="", blank=True
+    )
+
     # Авто-повтор акции (Track B3b): beat клонирует завершившуюся со сдвигом окна
     # на интервал. Наследник один (recurrence уходит к нему, у родителя гасится),
     # поэтому цепочка не ветвится.

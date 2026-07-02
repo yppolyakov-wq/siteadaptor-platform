@@ -54,6 +54,7 @@ class PromotionForm(forms.ModelForm):
             "ends_at",
             "strikethrough_old_price",
             "show_countdown",
+            "discount_style",
             "is_surprise",
             "recurrence",
             "group",
@@ -65,6 +66,7 @@ class PromotionForm(forms.ModelForm):
             "price_override": _("New price"),
             "strikethrough_old_price": _("Strike through the old price"),
             "show_countdown": _("Show countdown to end"),
+            "discount_style": _("Discount display style"),
             "is_surprise": _("Surprise bag (rescue leftovers, anti-waste)"),
             "recurrence": _("Repeat automatically"),
         }
@@ -76,6 +78,10 @@ class PromotionForm(forms.ModelForm):
             ),
             "recurrence": _(
                 "When it ends, a copy is scheduled for the next day/week automatically."
+            ),
+            "discount_style": _(
+                "How the discount looks on your storefront — badge, struck-through "
+                "price, fixed price, from-price or countdown accent."
             ),
             "group": _(
                 "Optional. Groups offers into sections (e.g. „Fastfood“, „Fertiggerichte“) — "
