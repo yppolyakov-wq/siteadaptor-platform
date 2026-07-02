@@ -1,9 +1,10 @@
 """Шаблонные теги SEO: LocalBusiness JSON-LD в <head> витрины (Track B5)."""
 
 from django import template
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from apps.core.seo import entity_ld, localbusiness_ld
+from apps.core.seo import breadcrumb_ld, entity_ld, localbusiness_ld
 
 register = template.Library()
 
@@ -129,10 +130,19 @@ def _entity_schema_type(sellable, request) -> str:
     return ""
 
 
+# UC4-2: крошки детальной — kind → (метка листинга, url-name). combo без листинга.
+_BREADCRUMB_LISTINGS = {
+    "product": ("Sortiment", "storefront-products"),
+    "service": ("Termine", "storefront-termin"),
+    "stay": ("Unterkunft", "storefront-unterkunft"),
+    "event": ("Veranstaltungen", "storefront-events"),
+}
+
+
 @register.simple_tag(takes_context=True)
 def entity_jsonld(context, sellable, review_summary=None):
     """<script ld+json> продаваемой сущности (протокол `SellableEntity`) с
-    AggregateRating из отзывов (UA4-4b). Пусто, если нет sellable/request.
+    AggregateRating из отзывов (UA4-4b) + BreadcrumbList (UC4-2).
 
     URL — абсолютный из `sellable.detail_url`. Ошибки гасим (SEO не должен ронять
     страницу)."""
@@ -151,7 +161,20 @@ def entity_jsonld(context, sellable, review_summary=None):
         return ""
     if not payload:
         return ""
-    return mark_safe(f'<script type="application/ld+json">{payload}</script>')
+    scripts = [f'<script type="application/ld+json">{payload}</script>']
+    try:
+        crumbs = [("Start", request.build_absolute_uri("/"))]
+        listing = _BREADCRUMB_LISTINGS.get(getattr(sellable, "kind", ""))
+        if listing:
+            label, urlname = listing
+            crumbs.append((label, request.build_absolute_uri(reverse(urlname))))
+        crumbs.append((getattr(sellable, "name", "") or "", ""))  # текущая — без item
+        bc = breadcrumb_ld(crumbs)
+        if bc:
+            scripts.append(f'<script type="application/ld+json">{bc}</script>')
+    except Exception:  # noqa: BLE001 — крошки не должны ломать деталь
+        pass
+    return mark_safe("".join(scripts))
 
 
 @register.simple_tag(takes_context=True)

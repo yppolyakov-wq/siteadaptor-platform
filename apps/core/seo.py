@@ -196,6 +196,22 @@ def entity_ld(sellable, *, url: str, review_summary=None, schema_type: str = "")
             "bestRating": "5",
             "worstRating": "1",
         }
+    # UC4-2: Offer из машиночитаемой цены контракта (price_display — для людей)
+    # + kind-специфичные поля из ld_extra (Event startDate/location; вложенный
+    # "offer" мержится в Offer — availability товара). Контракт не мутируем.
+    extra = dict(getattr(sellable, "ld_extra", None) or {})
+    offer_extra = extra.pop("offer", {})
+    price_value = getattr(sellable, "price_value", None)
+    if price_value is not None:
+        offer = {
+            "@type": "Offer",
+            "price": f"{float(price_value):.2f}",
+            "priceCurrency": getattr(sellable, "price_currency", "EUR") or "EUR",
+            "url": url,
+        }
+        offer.update(offer_extra)
+        data["offers"] = offer
+    data.update(extra)
     return _dumps(data)
 
 
@@ -214,6 +230,24 @@ def itemlist_ld(items) -> str:
         return ""
     return _dumps(
         {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": elements}
+    )
+
+
+def breadcrumb_ld(items) -> str:
+    """JSON-LD BreadcrumbList из [(name, url), …] (UC4-2; '' если пусто).
+
+    Последний элемент (текущая страница) допустим без url — Google рекомендует
+    опускать item у последней крошки."""
+    elements = []
+    for i, (name, url) in enumerate(items, start=1):
+        el = {"@type": "ListItem", "position": i, "name": name}
+        if url:
+            el["item"] = url
+        elements.append(el)
+    if not elements:
+        return ""
+    return _dumps(
+        {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": elements}
     )
 
 

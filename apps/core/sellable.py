@@ -43,6 +43,12 @@ class SellableEntity:
     buybox_context: dict = field(default_factory=dict)
     attributes: list = field(default_factory=list)
     info_sections: list = field(default_factory=list)
+    # UC4-2: машиночитаемая цена для JSON-LD Offer (price_display — строка для
+    # людей) + ld_extra — kind-специфичные SEO-поля (Event startDate/location;
+    # вложенный "offer" мержится в Offer — см. core.seo.entity_ld).
+    price_value: object = None
+    price_currency: str = "EUR"
+    ld_extra: dict = field(default_factory=dict)
 
 
 def _price_str(value, currency: str = "EUR") -> str:
@@ -73,6 +79,15 @@ def _product(obj, locale):
         "price_display": (prefix + _price_str(base, obj.currency)) if base is not None else "",
         "image_url": img.get("url", "") if isinstance(img, dict) else "",
         "gallery": _gallery_urls(obj.images),
+        "price_value": base,
+        "price_currency": obj.currency,
+        "ld_extra": {
+            "offer": {
+                "availability": "https://schema.org/InStock"
+                if obj.in_stock
+                else "https://schema.org/OutOfStock"
+            }
+        },
     }
 
 
@@ -83,6 +98,7 @@ def _service(obj, locale):
         "price_display": _price_str(obj.price_eur) if obj.price_cents else "",
         "image_url": obj.image_url,
         "gallery": [obj.image_url] if obj.image_url else [],
+        "price_value": obj.price_eur if obj.price_cents else None,
     }
 
 
@@ -93,6 +109,7 @@ def _stay(obj, locale):
         "price_display": ("ab " + _price_str(obj.price_eur)) if obj.price_cents else "",
         "image_url": obj.image_url,
         "gallery": _gallery_urls(obj.images),
+        "price_value": obj.price_eur if obj.price_cents else None,
     }
 
 
@@ -103,12 +120,25 @@ def _event(obj, locale):
         price = _price_str(obj.price_eur)
     else:
         price = ""
+    # UC4-2 (A6): Event-поля JSON-LD — startDate обязателен Google, location
+    # опционален (Place по названию площадки).
+    extra = {"startDate": obj.starts_at.isoformat()} if obj.starts_at else {}
+    if obj.location:
+        extra["location"] = {"@type": "Place", "name": obj.location}
+    if obj.has_tiers:
+        price_value = obj.from_price_eur
+    elif obj.price_cents:
+        price_value = obj.price_eur
+    else:
+        price_value = None
     return {
         "name": obj.get_i18n("title_i18n", locale) or obj.title,
         "description": obj.get_i18n("description_i18n", locale) or obj.description,
         "price_display": price,
         "image_url": obj.image_url,
         "gallery": _gallery_urls(obj.images),
+        "price_value": price_value,
+        "ld_extra": extra,
     }
 
 
@@ -122,6 +152,8 @@ def _combo(obj, locale):
         "price_display": _price_str(obj.price, obj.currency),
         "image_url": "",
         "gallery": [],
+        "price_value": obj.price,
+        "price_currency": obj.currency,
     }
 
 

@@ -110,8 +110,58 @@ def test_entity_jsonld_escapes_script_breakout():
     request = RequestFactory().get("/x/")
     payload_name = "Brot</script><script>alert(1)</script>"
     out = entity_jsonld({"request": request}, _sellable("product", name=payload_name))
-    prefix = '<script type="application/ld+json">'
-    assert out.startswith(prefix) and out.endswith("</script>")
-    inner = out[len(prefix) : -len("</script>")]
-    assert "</script>" not in inner and "<script>" not in inner  # не вырваться из блока
-    assert json.loads(inner)["name"] == payload_name  # но JSON остаётся валидным (декод обратно)
+    # UC4-2: тег эмитит НЕСКОЛЬКО блоков (entity + BreadcrumbList) — проверяем каждый.
+    import re
+
+    blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', out, re.S)
+    assert blocks  # как минимум entity-блок
+    for inner in blocks:
+        assert "</script>" not in inner and "<script>" not in inner  # не вырваться из блока
+    assert json.loads(blocks[0])["name"] == payload_name  # JSON валиден (декод обратно)
+
+
+# --- UC4-2: Offer + ld_extra + BreadcrumbList --------------------------------
+def test_entity_ld_offer_from_price_value():
+    from decimal import Decimal
+
+    s = _sellable("product")
+    s.price_value = Decimal("3.50")
+    s.price_currency = "EUR"
+    s.ld_extra = {"offer": {"availability": "https://schema.org/InStock"}}
+    data = json.loads(entity_ld(s, url="https://x.test/p/"))
+    offer = data["offers"]
+    assert offer["@type"] == "Offer"
+    assert offer["price"] == "3.50" and offer["priceCurrency"] == "EUR"
+    assert offer["availability"] == "https://schema.org/InStock"
+    assert offer["url"] == "https://x.test/p/"
+
+
+def test_entity_ld_no_offer_without_price_value():
+    data = json.loads(entity_ld(_sellable("service"), url="https://x.test/"))
+    assert "offers" not in data
+
+
+def test_entity_ld_event_extra_startdate_location():
+    s = _sellable("event")
+    s.ld_extra = {
+        "startDate": "2026-08-01T18:00:00+02:00",
+        "location": {"@type": "Place", "name": "Stadthalle"},
+    }
+    data = json.loads(entity_ld(s, url="https://x.test/e/"))
+    assert data["startDate"] == "2026-08-01T18:00:00+02:00"
+    assert data["location"]["name"] == "Stadthalle"
+    assert not hasattr(s.ld_extra, "offer")  # контракт не мутируем
+    assert "offer" not in data  # вложенный ключ не утёк top-level
+
+
+def test_entity_jsonld_tag_emits_breadcrumbs():
+    import re
+
+    request = RequestFactory().get("/sortiment/abc/")
+    out = entity_jsonld({"request": request}, _sellable("product"))
+    blocks = [json.loads(b) for b in re.findall(r"json\">(.*?)</script>", out, re.S)]
+    bc = next(b for b in blocks if b["@type"] == "BreadcrumbList")
+    names = [el["name"] for el in bc["itemListElement"]]
+    assert names == ["Start", "Sortiment", "Bio-Brot"]
+    assert [el["position"] for el in bc["itemListElement"]] == [1, 2, 3]
+    assert "item" not in bc["itemListElement"][-1]  # текущая крошка без item
