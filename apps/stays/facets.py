@@ -1,10 +1,13 @@
-"""UB2-1: провайдер «фасета дат» листинга номеров (date-search von/bis/erw/kinder).
+"""UB2-1/2-2: провайдер листинга номеров — «фасет дат» + поиск/сортировка.
 
-Разбор/валидация параметров поиска — здесь; сам движок наличия/квотирования
+Разбор/валидация date-search параметров — здесь; сам движок наличия/квотирования
 (`_quote`/availability) НЕ трогаем (вне единого слоя, решение U-B). `apply` —
-identity: фильтрация по датам — построчный расчёт движка во вьюхе."""
+identity: фильтрация по датам — построчный расчёт движка во вьюхе. Дефолт
+сортировки "" = Meta ordering ["name"] без пересортировки."""
 
-from apps.core.facets import FacetProvider
+from django.utils.translation import gettext_lazy as _
+
+from apps.core.facets import FacetProvider, i18n_icontains_q
 
 
 class StayDateFacets(FacetProvider):
@@ -20,3 +23,28 @@ class StayDateFacets(FacetProvider):
             "adults": adults,
             "children": children,
         }
+
+    def search(self, items, q):
+        q = (q or "").strip()
+        if not q:
+            return items
+        return items.filter(
+            i18n_icontains_q(
+                q,
+                flat_fields=("name", "description"),
+                json_fields=("name_i18n", "description_i18n"),
+            )
+        )
+
+    def sort_keys(self) -> dict:
+        return {
+            "price_asc": ("price_cents", False),
+            "price_desc": ("price_cents", True),
+        }
+
+    def sort_options(self) -> list:
+        return [
+            ("", _("Standard")),
+            ("price_asc", _("Price: low to high")),
+            ("price_desc", _("Price: high to low")),
+        ]

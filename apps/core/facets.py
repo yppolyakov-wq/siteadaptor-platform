@@ -10,17 +10,42 @@
   apply(items, params) -> items   — отфильтровать QuerySet/список (keyset-safe:
                                     фильтры каталога — нативные поля БД);
   present(items, params) -> dict  — доступные значения фасетов для рендера
-                                    (считаются из items ДО фасет-фильтров).
+                                    (считаются из items ДО фасет-фильтров);
+  search(items, q) -> items       — UB2-2: поиск `?q=` (icontains v1, решение C-3;
+                                    i18n: базовые поля + все локали *_i18n);
+  sort(items, key) -> items       — UB2-2: user-facing сортировка; ""/неизвестный
+                                    ключ = порядок вьюхи без пересортировки;
+  sort_keys()/sort_options()      — реестр сортировок (паттерн _LISTING_SORTS
+                                    агрегатора: ключ → (поле|callable, desc)).
 
-Листинги без фасетов (booking) получают `NullFacets`. Фасеты цена/наличие/
-происхождение/рейтинг — UB2-3; поиск `?q=` и сорт — UB2-2.
+Листинги без фасетов получают `NullFacets`. Фасеты цена/наличие/происхождение/
+рейтинг — UB2-3.
 """
+
+
+def i18n_icontains_q(q: str, flat_fields=(), json_fields=()):
+    """Q-условие «q встречается в любом из полей на любой локали».
+
+    `flat_fields` — обычные Char/TextField; `json_fields` — JSON-словари i18n
+    ({"de": …, "en": …}): KeyTransform per локаль из settings.LANGUAGES →
+    text-icontains (Postgres), keyset-safe (обычный WHERE)."""
+    from django.conf import settings
+    from django.db.models import Q
+
+    cond = Q()
+    for f in flat_fields:
+        cond |= Q(**{f + "__icontains": q})
+    for f in json_fields:
+        for code, _label in settings.LANGUAGES:
+            cond |= Q(**{f + "__" + code + "__icontains": q})
+    return cond
 
 
 class FacetProvider:
     """База/No-op: листинг без фасетов."""
 
     kind = ""
+    default_sort = ""  # "" = порядок вьюхи/Meta без пересортировки
 
     def selected(self, params) -> dict:
         return {}
@@ -30,6 +55,24 @@ class FacetProvider:
 
     def present(self, items, params) -> dict:
         return {}
+
+    def search(self, items, q):
+        return items
+
+    def sort_keys(self) -> dict:
+        return {}
+
+    def sort_options(self) -> list:
+        return []
+
+    def sort(self, items, key):
+        spec = self.sort_keys().get(key or self.default_sort)
+        if spec is None:
+            return items
+        field, desc = spec
+        if callable(field):
+            return sorted(items, key=field, reverse=desc)
+        return items.order_by(("-" if desc else "") + field)
 
 
 class NullFacets(FacetProvider):
@@ -52,4 +95,8 @@ def provider_for(kind: str) -> FacetProvider:
         from apps.stays.facets import StayDateFacets
 
         return StayDateFacets()
+    if kind == "service":
+        from apps.booking.facets import ServiceFacets
+
+        return ServiceFacets()
     return NullFacets()

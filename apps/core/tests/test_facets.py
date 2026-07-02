@@ -13,6 +13,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_provider_for_kinds():
+    from apps.booking.facets import ServiceFacets
     from apps.catalog.facets import CatalogFacets
     from apps.events.facets import EventFacets
     from apps.stays.facets import StayDateFacets
@@ -20,8 +21,8 @@ def test_provider_for_kinds():
     assert isinstance(core_facets.provider_for("product"), CatalogFacets)
     assert isinstance(core_facets.provider_for("event"), EventFacets)
     assert isinstance(core_facets.provider_for("stay"), StayDateFacets)
-    # у услуг фасетов нет; неизвестный kind тоже деградирует в no-op
-    assert isinstance(core_facets.provider_for("service"), core_facets.NullFacets)
+    # UB2-2: у услуг фасетов нет, но есть поиск/сортировка — свой провайдер
+    assert isinstance(core_facets.provider_for("service"), ServiceFacets)
     assert isinstance(core_facets.provider_for("bogus"), core_facets.NullFacets)
 
 
@@ -86,6 +87,95 @@ def test_event_facets_parity_with_view_helpers():
     assert provider.apply(base, {"city": "Bern"}) == [e1]
     assert provider.apply(base, {}) == base
     assert provider.present(base, {}) == _event_facets(base)  # делегирование канону
+
+
+def test_catalog_search_i18n_all_locales():
+    """UB2-2: ?q= ищет по name/description на ВСЕХ локалях реестра (не только базовой)."""
+    from apps.catalog.models import Product
+    from apps.catalog.tests.factories import ProductFactory
+
+    ProductFactory(name={"de": "Roggenbrot", "en": "Rye bread"})
+    ProductFactory(name={"de": "Kuchen"}, description={"de": "Mit Sahne"})
+    qs = Product.objects.filter(is_active=True)
+    provider = core_facets.provider_for("product")
+    assert provider.search(qs, "rye").count() == 1  # EN-локаль
+    assert provider.search(qs, "rogg").count() == 1  # DE-локаль
+    assert provider.search(qs, "sahne").count() == 1  # описание
+    assert provider.search(qs, "").count() == 2  # пусто → no-op
+    assert provider.search(qs, "zzz").count() == 0
+
+
+def test_service_search_flat_and_i18n_overlay():
+    """UB2-2: услуги — плоские name/description + оверлеи name_i18n/description_i18n."""
+    from apps.booking.models import Service
+
+    Service.objects.create(
+        name="Ölwechsel", description="Inkl. Filter", name_i18n={"en": "Oil change"}
+    )
+    Service.objects.create(name="Haarschnitt")
+    qs = Service.objects.all()
+    provider = core_facets.provider_for("service")
+    assert provider.search(qs, "oil").count() == 1  # EN-оверлей
+    assert provider.search(qs, "ölwechsel").count() == 1  # базовое имя
+    assert provider.search(qs, "filter").count() == 1  # описание
+    assert provider.search(qs, "  ").count() == 2  # пробелы → no-op
+
+
+def test_service_sort_keys_and_noop_default():
+    from apps.booking.models import Service
+
+    cheap = Service.objects.create(name="B-Werk", price_cents=1000)
+    dear = Service.objects.create(name="A-Werk", price_cents=9000)
+    qs = Service.objects.all()
+    provider = core_facets.provider_for("service")
+    assert list(provider.sort(qs, "price_desc")) == [dear, cheap]
+    assert list(provider.sort(qs, "price_asc")) == [cheap, dear]
+    # ""/мусор → порядок Meta ["name"] без пересортировки
+    assert list(provider.sort(qs, "")) == [dear, cheap]  # A-Werk < B-Werk
+    assert list(provider.sort(qs, "bogus")) == [dear, cheap]
+
+
+def test_stay_search_and_price_sort():
+    from apps.stays.models import StayUnit
+
+    a = StayUnit.objects.create(name="Alpensuite", price_cents=12000, is_active=True)
+    b = StayUnit.objects.create(
+        name="Zimmer", description_i18n={"en": "Lake view"}, price_cents=8000, is_active=True
+    )
+    qs = StayUnit.objects.filter(is_active=True)
+    provider = core_facets.provider_for("stay")
+    assert list(provider.search(qs, "alpen")) == [a]
+    assert list(provider.search(qs, "lake")) == [b]  # EN-оверлей описания
+    assert list(provider.sort(qs, "price_asc")) == [b, a]
+
+
+def test_event_search_and_price_sort_in_memory():
+    from apps.events.models import Event
+
+    e1 = Event.objects.create(
+        title="Yoga Retreat",
+        title_i18n={"en": "Mountain escape"},
+        starts_at=timezone.now() + timedelta(days=3),
+        status=Event.STATUS_PUBLISHED,
+        price_cents=5000,
+        capacity=10,
+    )
+    e2 = Event.objects.create(
+        title="Konzert",
+        description="Jazz am See",
+        starts_at=timezone.now() + timedelta(days=4),
+        status=Event.STATUS_PUBLISHED,
+        price_cents=2000,
+        capacity=10,
+    )
+    base = [e1, e2]
+    provider = core_facets.provider_for("event")
+    assert provider.search(base, "mountain") == [e1]  # EN-оверлей заголовка
+    assert provider.search(base, "jazz") == [e2]  # описание
+    assert provider.search(base, "") == base
+    assert provider.sort(base, "price_asc") == [e2, e1]
+    assert provider.sort(base, "price_desc") == [e1, e2]
+    assert provider.sort(base, "") == base  # дефолт — порядок вьюхи (по дате)
 
 
 def test_stay_date_facets_selected_parses_and_clamps():
