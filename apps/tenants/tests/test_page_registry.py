@@ -7,14 +7,36 @@ from apps.tenants import siteconfig
 from apps.tenants.tests.golden_configs import DETAIL_PAGES, RICH_HOME
 
 
-def test_page_types_cover_home_and_details():
+def test_page_types_cover_home_details_listing_info_legal():
     assert siteconfig.page_types() == (
         "home",
         "product_detail",
         "event_detail",
         "service_detail",
         "stay_detail",
+        "listing",
+        "info",
+        "legal",
     )
+
+
+def test_static_page_types_fixed_order_config_ignored():
+    """UC1-2: listing/info/legal — фиксированный порядок реестра; конфиг пока
+    не управляет ими (управление — UC2-3/UC3-2)."""
+    assert siteconfig.page_sections({}, "listing") == [
+        "header",
+        "facets",
+        "toolbar",
+        "grid",
+        "pagination",
+        "empty",
+        "after",
+    ]
+    assert siteconfig.page_sections({"listing": {"hidden": ["grid"]}}, "listing") == list(
+        siteconfig.page_section_keys("listing")
+    )
+    assert siteconfig.page_sections({}, "legal") == ["impressum", "datenschutz", "widerruf"]
+    assert siteconfig.page_sections({}, "info") == ["about"]
 
 
 def test_keys_match_underlying_registries():

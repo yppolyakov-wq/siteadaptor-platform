@@ -609,16 +609,43 @@ PAGE_DETAIL_MODULES = {
     "stay_detail": "stays",
 }
 
+# UC1-2: не-детальные page_type. Слоты листинга — структурные блоки каркаса
+# `listing.html` (U-B); скрытие/порядок пока НЕ управляются конфигом — реестр
+# даёт инспектору знание страницы, управление придёт с UC2-3/UC3-2. info/legal —
+# first-class страницы текстового контента (D3; AGB — E-2/L5 через LegalDoc).
+LISTING_SECTIONS = (
+    ("header", _("Header & intro")),
+    ("facets", _("Filters")),
+    ("toolbar", _("Search & sort")),
+    ("grid", _("Items grid")),
+    ("pagination", _("Pagination")),
+    ("empty", _("Empty state")),
+    ("after", _("After-content")),
+)
+INFO_SECTIONS = (("about", _("About us")),)
+LEGAL_SECTIONS = (
+    ("impressum", "Impressum"),
+    ("datenschutz", "Datenschutz"),
+    ("widerruf", "Widerruf"),
+)
+_STATIC_PAGE_SECTIONS = {
+    "listing": LISTING_SECTIONS,
+    "info": INFO_SECTIONS,
+    "legal": LEGAL_SECTIONS,
+}
+
 
 def page_types() -> tuple[str, ...]:
-    """Все page_type единого реестра: главная + детальные."""
-    return ("home", *PAGE_DETAIL_MODULES)
+    """Все page_type единого реестра: главная + детальные + листинг + инфо/право."""
+    return ("home", *PAGE_DETAIL_MODULES, *_STATIC_PAGE_SECTIONS)
 
 
 def page_section_keys(page_type: str) -> tuple[str, ...]:
     """Ключи секций страницы в дефолтном порядке; неизвестный page_type → ()."""
     if page_type == "home":
         return tuple(key for key, _label, _on in SECTIONS)
+    if page_type in _STATIC_PAGE_SECTIONS:
+        return tuple(key for key, _label in _STATIC_PAGE_SECTIONS[page_type])
     module = PAGE_DETAIL_MODULES.get(page_type)
     return detail_sections.section_keys(module) if module else ()
 
@@ -627,6 +654,8 @@ def page_section_labels(page_type: str) -> dict:
     """{key: lazy label} секций страницы — единый источник подписей инспектора."""
     if page_type == "home":
         return {key: label for key, label, _on in SECTIONS}
+    if page_type in _STATIC_PAGE_SECTIONS:
+        return dict(_STATIC_PAGE_SECTIONS[page_type])
     module = PAGE_DETAIL_MODULES.get(page_type)
     return detail_sections.section_labels(module) if module else {}
 
@@ -635,13 +664,16 @@ def page_sections(config, page_type: str) -> list[str]:
     """Упорядоченные ВИДИМЫЕ ключи секций страницы из конфига — ЛЮБОЙ page_type.
 
     home: enabled фикс-секции и включённые C-блоки в порядке конфига; детальные —
-    сохранённый порядок минус скрытые (делегат `detail_section_order`). Неизвестный
-    page_type → [] (fail-safe). `normalize_sections` определён ниже — поздняя
-    привязка в runtime, порядок объявлений в модуле не важен."""
+    сохранённый порядок минус скрытые (делегат `detail_section_order`); listing/
+    info/legal — фиксированный порядок реестра (конфиг-управление — UC2-3/UC3-2).
+    Неизвестный page_type → [] (fail-safe). `normalize_sections` определён ниже —
+    поздняя привязка в runtime, порядок объявлений в модуле не важен."""
     config = config if isinstance(config, dict) else {}
     if page_type == "home":
         entries = normalize_sections(config.get("sections", []))
         return [e["key"] for e in entries if e.get("enabled")]
+    if page_type in _STATIC_PAGE_SECTIONS:
+        return list(page_section_keys(page_type))
     module = PAGE_DETAIL_MODULES.get(page_type)
     if module is None:
         return []
