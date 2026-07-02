@@ -3389,3 +3389,19 @@
   provider.apply(категория-без-диеты) — прежний снимок для границ цены/бейджей. Новый
   `apps/core/tests/test_facets.py` (6). Гейт: 190 таргетных passed, CI run 1090 зелёный,
   FF-мерж `fe3ba48` → main. Без миграций. Дальше UB2-2 (поиск ?q= + user-facing sort).
+- **2026-07-02 — UB2-2 (U-B): поиск `?q=` + user-facing сортировка на всех 4 листингах.**
+  Протокол += `search` (icontains v1, решение C-3; хелпер `i18n_icontains_q` — плоские поля +
+  KeyTransform ВСЕХ локалей settings.LANGUAGES для JSON-i18n, keyset-safe) и `sort`/`sort_keys`/
+  `sort_options` (паттерн `_LISTING_SORTS` агрегатора; ""/мусор = порядок вьюхи). Провайдеры:
+  catalog (JSON name/description {de,en}; прежний реестр `_CATALOG_SORTS` переехал в провайдер),
+  НОВЫЙ booking.ServiceFacets, stays, events (in-memory, эффективная цена: min-тир при has_tiers).
+  Каркас: блок `listing_toolbar` (форма q + select sort с carry активных параметров) между
+  facets и grid. Вьюхи: termin (ветка услуг решается ДО поиска; «Nothing found» вместо ухода в
+  booking_index), unterkunft (редирект «один юнит» не срабатывает при ?q=; сорт скрыт в searched;
+  формы несут q/sort взаимно), veranstaltung (q как активный фильтр: empty-state/раскрытие панели),
+  product_list (q — полноправный фасет carry: cursor/«Show more»/формы/диет-чипы; собственный
+  сорт-блок каталога заменён тулбаром каркаса; q-empty-state). Тесты: +5 провайдерных, +4 вью
+  (в т.ч. EN-локаль поиска). Локальный флейк-урок: fixed form_token двух reserve-тестов дедупится
+  в Redis (TTL) — повторный прогон в окне TTL красный, на свежем Redis (CI) зелёный. Гейты:
+  11+215+80 таргетных, широкий 1204 passed (+2 Redis-флейка), CI run 1094 зелёный. FF-мерж
+  `2d9b04d` → main. Без миграций.
