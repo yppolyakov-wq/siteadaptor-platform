@@ -67,6 +67,17 @@ def portal(request):
 # ---------------------------------------------------------------------------
 
 
+# E7-3: платёжный микс DACH в Stripe Checkout. Пустой выбор = параметр не
+# передаём (дефолт Stripe Dashboard бизнеса). Способ должен быть активирован
+# в Stripe Dashboard — иначе Stripe вернёт ошибку (у флоу есть фолбэки).
+STRIPE_METHOD_CHOICES = [
+    ("card", "Karte"),
+    ("paypal", "PayPal"),
+    ("klarna", "Klarna (u. a. Kauf auf Rechnung)"),
+    ("sepa_debit", "SEPA-Lastschrift"),
+]
+
+
 @login_required
 def payments(request):
     """Статус приёма оплаты клиентов + подключение Stripe (Connect, Standard)."""
@@ -81,8 +92,23 @@ def payments(request):
             "payments_enabled": tenant.payments_enabled,
             "fee_percent": connect.application_fee_percent(tenant.business_type),
             "status": request.GET.get("status", ""),
+            # E7-3: способы для Stripe Checkout (payment_method_types).
+            "method_choices": STRIPE_METHOD_CHOICES,
+            "selected_methods": set(getattr(tenant, "stripe_payment_methods", None) or []),
         },
     )
+
+
+@login_required
+@require_POST
+def payments_methods(request):
+    """E7-3: сохранить выбор способов для Stripe Checkout (чекбоксы кабинета)."""
+    tenant = request.tenant
+    allowed = {code for code, _label in STRIPE_METHOD_CHOICES}
+    tenant.stripe_payment_methods = [m for m in request.POST.getlist("methods") if m in allowed]
+    tenant.save(update_fields=["stripe_payment_methods", "updated_at"])
+    messages.success(request, _("Settings saved."))
+    return redirect("billing-payments")
 
 
 @login_required

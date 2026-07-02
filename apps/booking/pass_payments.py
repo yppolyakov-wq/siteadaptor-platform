@@ -24,6 +24,7 @@ def pass_checkout_url(plan, tenant, *, name, email, success_url, cancel_url) -> 
         success_url=success_url,
         cancel_url=cancel_url,
         business_type=getattr(tenant, "business_type", ""),
+        payment_method_types=getattr(tenant, "stripe_payment_methods", None),
     )
 
 

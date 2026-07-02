@@ -24,6 +24,7 @@ def ticket_checkout_url(ticket, tenant, *, success_url: str, cancel_url: str) ->
         success_url=success_url,
         cancel_url=cancel_url,
         business_type=getattr(tenant, "business_type", ""),
+        payment_method_types=getattr(tenant, "stripe_payment_methods", None),
     )
 
 
@@ -43,6 +44,8 @@ def installment_checkout_url(ticket, tenant, *, success_url: str, cancel_url: st
         },
         success_url=success_url,
         cancel_url=cancel_url,
+        # E7-3: payment_method_types тут НЕ прокидываем — рассрочка требует карту
+        # с мандатом (setup_future_usage=off_session), klarna/paypal неприменимы.
         business_type=getattr(tenant, "business_type", ""),
     )
 

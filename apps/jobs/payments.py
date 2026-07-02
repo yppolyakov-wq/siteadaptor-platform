@@ -24,6 +24,7 @@ def deposit_checkout_url(job, tenant, *, success_url: str, cancel_url: str) -> s
         success_url=success_url,
         cancel_url=cancel_url,
         business_type=getattr(tenant, "business_type", ""),
+        payment_method_types=getattr(tenant, "stripe_payment_methods", None),
     )
 
 

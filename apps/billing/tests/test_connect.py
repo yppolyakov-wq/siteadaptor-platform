@@ -155,3 +155,51 @@ def test_refund_calls_stripe_on_account(monkeypatch):
     monkeypatch.setattr(stripe.Refund, "create", lambda **kw: captured.update(kw))
     connect.refund(connect_id="acct_1", payment_intent="pi_9")
     assert captured == {"payment_intent": "pi_9", "stripe_account": "acct_1"}
+
+
+# --- E7-3: payment_method_types (платёжный микс DACH) ----------------------
+
+
+def test_checkout_passes_payment_method_types(monkeypatch, settings):
+    settings.BILLING_APPLICATION_FEE_PERCENT = {}
+    captured = {}
+
+    def _create(**kw):
+        captured.update(kw)
+        return {"url": "u"}
+
+    monkeypatch.setattr(stripe.checkout.Session, "create", _create)
+    connect.connected_checkout_session(
+        connect_id="acct_1",
+        amount_cents=1000,
+        product_name="x",
+        metadata={},
+        success_url="s",
+        cancel_url="c",
+        payment_method_types=["card", "paypal", "klarna"],
+    )
+    assert captured["payment_method_types"] == ["card", "paypal", "klarna"]
+
+
+def test_checkout_omits_payment_method_types_when_empty(monkeypatch, settings):
+    """Пустой список/None → параметр НЕ передаётся (дефолт Stripe Dashboard)."""
+    settings.BILLING_APPLICATION_FEE_PERCENT = {}
+    captured = {}
+
+    def _create(**kw):
+        captured.update(kw)
+        return {"url": "u"}
+
+    monkeypatch.setattr(stripe.checkout.Session, "create", _create)
+    for empty in ([], None):
+        captured.clear()
+        connect.connected_checkout_session(
+            connect_id="acct_1",
+            amount_cents=1000,
+            product_name="x",
+            metadata={},
+            success_url="s",
+            cancel_url="c",
+            payment_method_types=empty,
+        )
+        assert "payment_method_types" not in captured

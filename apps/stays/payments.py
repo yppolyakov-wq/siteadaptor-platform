@@ -23,6 +23,7 @@ def stay_deposit_checkout_url(booking, tenant, *, success_url: str, cancel_url: 
         success_url=success_url,
         cancel_url=cancel_url,
         business_type=getattr(tenant, "business_type", ""),
+        payment_method_types=getattr(tenant, "stripe_payment_methods", None),
     )
 
 

@@ -143,3 +143,39 @@ def test_payments_callback_bad_state_rejected(settings, monkeypatch):
     assert called["x"] is False  # обмен кода не выполнялся
     tenant.refresh_from_db()
     assert tenant.stripe_connect_id == ""
+
+
+# --- E7-3: способы оплаты Stripe Checkout (payment_method_types) -----------
+
+
+@pytest.mark.django_db
+def test_payments_methods_saves_valid_and_drops_garbage():
+    tenant = TenantFactory()
+    request = _req_full(
+        "post",
+        "/dashboard/billing/payments/methods/",
+        tenant,
+        {"methods": ["card", "klarna", "bitcoin"]},
+    )
+    views.payments_methods(request)
+    tenant.refresh_from_db()
+    assert tenant.stripe_payment_methods == ["card", "klarna"]  # мусор отброшен
+
+
+@pytest.mark.django_db
+def test_payments_methods_empty_resets_to_default():
+    tenant = TenantFactory(stripe_payment_methods=["card"])
+    request = _req_full("post", "/dashboard/billing/payments/methods/", tenant)
+    views.payments_methods(request)
+    tenant.refresh_from_db()
+    assert tenant.stripe_payment_methods == []  # пусто = дефолт Stripe Dashboard
+
+
+def test_payments_page_shows_method_checkboxes(settings):
+    _configure_connect(settings)
+    tenant = TenantFactory.build(
+        business_type="cafe", stripe_connect_id="acct_1", payments_enabled=True
+    )
+    body = views.payments(_req_full("get", "/dashboard/billing/payments/", tenant)).content.decode()
+    assert 'name="methods"' in body
+    assert 'value="klarna"' in body and 'value="sepa_debit"' in body

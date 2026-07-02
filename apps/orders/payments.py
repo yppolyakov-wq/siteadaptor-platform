@@ -44,6 +44,7 @@ def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> s
         success_url=success_url,
         cancel_url=cancel_url,
         business_type=getattr(tenant, "business_type", ""),
+        payment_method_types=getattr(tenant, "stripe_payment_methods", None),
         currency=(order.currency or "EUR").lower(),
     )
 

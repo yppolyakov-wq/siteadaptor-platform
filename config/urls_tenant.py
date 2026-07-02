@@ -92,6 +92,12 @@ urlpatterns = [
         billing_views.payments_callback,
         name="billing-payments-callback",
     ),
+    # E7-3: способы оплаты Stripe Checkout (payment_method_types).
+    path(
+        "dashboard/billing/payments/methods/",
+        billing_views.payments_methods,
+        name="billing-payments-methods",
+    ),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),
     # Кабинет записи по времени (Track D / D3c).
