@@ -201,3 +201,31 @@ def test_city_listing_shows_stars(settings):
     request = RequestFactory().get("/entdecken/Hilden/")
     body = views.city_listing(request, city="Hilden").content.decode()
     assert "(2)" in body  # счётчик отзывов на карточке (locale-safe)
+
+
+def test_business_page_renders_on_main_domain_without_portal(settings):
+    """A8/E-2: страница бизнеса доступна и на главном /entdecken (portal=None):
+    база _base.html, отзывы read-only (без portal-login), url-name
+    'portal-business' резолвится и в urls_public."""
+    from django.urls import reverse
+
+    settings.ROOT_URLCONF = "config.urls_public"
+    business = _business(slug="haupt-domain")
+    user = _user()
+    # отзыв создаём портальным запросом (сабмит остаётся портал-only)
+    reviews_views.submit_review(
+        _req("post", data={"rating": "5", "comment": "TopService"}, user=user),
+        slug=business.slug,
+    )
+    assert reverse("portal-business", kwargs={"slug": "haupt-domain"}).startswith(
+        "/entdecken/unternehmen/"
+    )
+    request = RequestFactory().get("/entdecken/unternehmen/haupt-domain/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    # главный домен: request.portal отсутствует
+    body = reviews_views.business_page(request, slug="haupt-domain").content.decode()
+    assert "Werkstatt Müller" in body
+    assert "TopService" in body  # отзывы читаются
+    assert "portal-login" not in body and "Log in" not in body  # логина нет
+    assert "city portal" in body  # хинт про сабмит на портале

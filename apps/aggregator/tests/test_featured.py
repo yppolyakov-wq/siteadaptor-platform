@@ -44,7 +44,7 @@ def test_featured_pinned_on_top_with_badge():
 
     body = views.city_listing(RequestFactory().get("/entdecken/Hilden/"), "Hilden")
     body = body.content.decode()
-    assert "Empfohlen" in body
+    assert "Anzeige" in body  # UWG §5a: платное = «Anzeige»
     assert body.index("Beworben") < body.index("Gewöhnlich")  # закреплён сверху
 
 
@@ -53,7 +53,7 @@ def test_expired_featured_is_ordinary():
     body = views.city_listing(RequestFactory().get("/entdecken/Hilden/"), "Hilden")
     body = body.content.decode()
     assert "Abgelaufen" in body  # в обычной ленте
-    assert "Empfohlen" not in body  # без бейджа
+    assert "Anzeige" not in body  # без бейджа
 
 
 def test_featured_not_duplicated_in_feed():
@@ -88,7 +88,7 @@ def test_portal_home_pins_featured(_portal_urlconf):
     request = RequestFactory().get("/", HTTP_HOST=portal.host)
     request.portal = portal
     body = portal_views.portal_home(request).content.decode()
-    assert "Empfohlen" in body
+    assert "Anzeige" in body  # UWG §5a: платное = «Anzeige»
     assert body.index("Beworben") < body.index("Gewöhnlich")
 
 

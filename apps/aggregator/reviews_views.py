@@ -33,9 +33,11 @@ def _business_or_404(slug):
 
 
 def business_page(request, slug):
-    portal = _portal_or_404(request)
+    # A8/E-2: страница бизнеса работает и на главном /entdecken (portal=None):
+    # там read-only отзывы (портальный логин — только на портальных хостах).
+    portal = getattr(request, "portal", None)
     business = _business_or_404(slug)
-    user = auth.current_portal_user(request)
+    user = auth.current_portal_user(request) if portal else None
     rating = BusinessRating.objects.filter(tenant_schema=business.schema_name).first()
     # G8: LocalBusiness + AggregateRating в <head> — звёзды бизнеса в сниппете.
     business_jsonld = localbusiness_ld(
@@ -55,6 +57,7 @@ def business_page(request, slug):
         "aggregator/portal_business.html",
         {
             "portal": portal,
+            "base_template": "aggregator/portal_base.html" if portal else "aggregator/_base.html",
             "business": business,
             "business_jsonld": business_jsonld,
             "listings": AggregatorListing.objects.filter(tenant_slug=slug, is_active=True).order_by(

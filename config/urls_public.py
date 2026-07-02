@@ -9,6 +9,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.static import serve
 
+from apps.aggregator import reviews_views as aggregator_reviews_views
 from apps.aggregator import views as aggregator_views
 from apps.billing.webhooks import stripe_webhook
 from apps.core import health
@@ -37,6 +38,13 @@ urlpatterns = [
         "entdecken/<str:city>/<str:business_type>/",
         aggregator_views.city_listing,
         name="aggregator-city-type",
+    ),
+    # A8/E-2: страница бизнеса (отзывы read-only) и на главном домене — тот же
+    # name, что на портальных хостах, чтобы {% url 'portal-business' %} работал везде.
+    path(
+        "entdecken/unternehmen/<slug:slug>/",
+        aggregator_reviews_views.business_page,
+        name="portal-business",
     ),
     # Local SEO (Track B5): sitemap + robots основного домена.
     path("sitemap.xml", aggregator_views.sitemap_xml, name="aggregator-sitemap"),

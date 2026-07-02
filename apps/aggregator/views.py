@@ -365,6 +365,9 @@ def city_listing(request, city, business_type=None):
             "offen": offen,  # A8: фильтр «Jetzt geöffnet»
             "rating_thresholds": _RATING_THRESHOLDS,
             "filter_qs": filter_qs,  # A8: sort+rating+offen для ссылки «Show more»
+            # A8/E-2: страница бизнеса теперь есть и на главном домене —
+            # звёзды на карточках ведут на неё (как на порталах).
+            "business_link": True,
         },
     )
 

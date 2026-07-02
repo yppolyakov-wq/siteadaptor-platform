@@ -1,11 +1,15 @@
-{% extends "aggregator/portal_base.html" %}
+{% extends base_template %}{# портал ИЛИ главный /entdecken (A8/E-2) #}
 {% load i18n %}
-{% block title %}{{ business.name }} — {{ portal.title_text }}{% endblock %}
+{% block title %}{{ business.name }} — {% if portal %}{{ portal.title_text }}{% else %}siteadaptor{% endif %}{% endblock %}
 
 {% block structured_data %}{% if business_jsonld %}<script type="application/ld+json">{{ business_jsonld|safe }}</script>{% endif %}{% endblock %}
 
 {% block content %}
-<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>
+{% if portal %}
+  <a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>
+{% else %}
+  <a href="{% url 'aggregator-index' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Discover" %}</a>
+{% endif %}
 
 {% if messages %}
   {% for m in messages %}
@@ -51,8 +55,11 @@
       <textarea name="comment" rows="3" placeholder="{% trans 'Your experience (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{% if my_review %}{{ my_review.comment }}{% endif %}</textarea>
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Submit review" %}</button>
     </form>
-  {% else %}
+  {% elif portal %}
     <p class="text-sm text-gray-500 mb-6"><a href="{% url 'portal-login' %}" class="text-indigo-600 hover:underline">{% trans "Log in" %}</a> {% trans "to leave a review." %}</p>
+  {% else %}
+    {# главный домен: сабмит только на городском портале (portal-логин там) #}
+    <p class="text-sm text-gray-400 mb-6">{% trans "Reviews can be submitted on the city portal." %}</p>
   {% endif %}
 
   {% if reviews %}

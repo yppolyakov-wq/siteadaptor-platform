@@ -17,7 +17,8 @@
           <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ l.discount_percent }} %</span>
         {% endif %}
         {% if l.is_featured_now %}
-          <span class="absolute bottom-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★ Empfohlen</span>
+          {# E-2/UWG §5a: платное размещение маркируем однозначно — «Anzeige», не «Empfohlen». #}
+          <span class="absolute bottom-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★ Anzeige</span>
         {% endif %}
       </div>
       <div class="p-3 md:p-4">
