@@ -408,3 +408,72 @@ def test_service_index_has_inline_edit_markers():
     assert 'data-edit-model="service"' in body  # имя/описание правятся на канве
     assert "data-price-edit" in body and 'data-price-field="price_eur"' in body
     assert "data-photo-edit" in body  # замена фото услуги
+
+
+def test_service_images_shim_dict_list_garbage():
+    """UC4-3 (D4a): шим Service.images — легаси dict → [dict], список как есть
+    (мусор-элементы отфильтрованы), не-JSON-мусор → []; image_url primary-aware."""
+    legacy = _service(name="ShimA", image={"url": "/a.jpg"})
+    assert legacy.images == [{"url": "/a.jpg"}] and legacy.image_url == "/a.jpg"
+    listed = _service(
+        name="ShimB",
+        image=[
+            {"id": "1", "url": "/b.jpg", "is_primary": False},
+            {"id": "2", "url": "/c.jpg", "is_primary": True},
+            "мусор",
+        ],
+    )
+    assert [i["id"] for i in listed.images] == ["1", "2"]
+    assert listed.image_url == "/c.jpg"  # primary, не первый
+    assert _service(name="ShimC", image=[]).images == []
+    assert _service(name="ShimD", image={}).image_url == ""
+
+
+def _photo_req(pk, *, op=None, image_id=None, with_file=True):
+    data = {"pk": str(pk)}
+    if op:
+        data["op"] = op
+    if image_id is not None:
+        data["image_id"] = image_id
+    req = RequestFactory().post("/dashboard/booking/services/photo-edit/", data)
+    if with_file:
+        req.FILES["image"] = _png()
+    owner = uuid.uuid4().hex[:8]
+    req.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    )
+    return req
+
+
+def test_service_photo_edit_add_over_legacy_dict(tmp_path, settings):
+    """UC4-3: op=add поверх легаси-dict — шим конвертит в список, primary цел."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    svc = _service(name="GalA", image={"id": "x", "url": "/old.jpg", "is_primary": True})
+    assert views.service_photo_edit(_photo_req(svc.pk, op="add")).status_code == 204
+    svc.refresh_from_db()
+    assert isinstance(svc.image, list) and len(svc.images) == 2
+    assert svc.images[0]["is_primary"] and not svc.images[1]["is_primary"]
+    assert svc.image_url == "/old.jpg"  # главное не сменилось
+
+
+def test_service_photo_edit_remove_by_id(tmp_path, settings):
+    settings.MEDIA_ROOT = str(tmp_path)
+    svc = _service(
+        name="GalB",
+        image=[
+            {"id": "x", "url": "/a.jpg", "is_primary": True},
+            {"id": "y", "url": "/b.jpg", "is_primary": False},
+        ],
+    )
+    req = _photo_req(svc.pk, op="remove", image_id="x", with_file=False)
+    assert views.service_photo_edit(req).status_code == 204
+    svc.refresh_from_db()
+    assert [i["id"] for i in svc.images] == ["y"]
+    assert svc.image_url == "/b.jpg"  # primary переназначен gallery_remove
+
+
+def test_service_detail_renders_media_gallery():
+    """UC4-3: деталь услуги с фото — единая _media_gallery (лайтбокс)."""
+    svc = _service(name="GalC", image={"id": "x", "url": "/a.jpg", "is_primary": True})
+    body = public_views.service_detail(_pub_req(), pk=svc.pk).content.decode()
+    assert "js-media-gallery" in body

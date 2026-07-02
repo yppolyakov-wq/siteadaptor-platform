@@ -97,7 +97,7 @@ def _service(obj, locale):
         "description": obj.description_localized(locale),
         "price_display": _price_str(obj.price_eur) if obj.price_cents else "",
         "image_url": obj.image_url,
-        "gallery": [obj.image_url] if obj.image_url else [],
+        "gallery": _gallery_urls(obj.images),
         "price_value": obj.price_eur if obj.price_cents else None,
     }
 

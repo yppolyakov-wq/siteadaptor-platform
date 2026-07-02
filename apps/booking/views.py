@@ -463,28 +463,35 @@ def service_inline_edit(request):
 @login_required
 @require_POST
 def service_photo_edit(request):
-    """Заменить фото услуги на канве витрины (multipart: pk + image). У услуги фото —
-    одиночный FileRef-словарь (Service.image), не список → просто перезаписываем. 204/400."""
+    """UC4-3: галерея услуги на канве витрины (multipart: pk, op ∈ {replace, add,
+    remove}, image_id, image). Хранение — тот же JSONField `image`: легаси-dict
+    читается шимом Service.images, ЗАПИСЬ — всегда списком (без миграции). Реюз
+    catalog.images.apply_gallery_op (Pillow + storage + primary-логика). 204/400."""
     from django.core.exceptions import ValidationError
+    from django.db import transaction
     from django.http import HttpResponse, HttpResponseBadRequest
 
-    from apps.catalog.images import save_product_image
+    from apps.catalog.images import apply_gallery_op
 
     from .models import Service
 
     pk = request.POST.get("pk")
+    op = request.POST.get("op", "replace")
+    image_id = request.POST.get("image_id", "")
     uploaded = request.FILES.get("image")
-    if not pk or not uploaded:
+    if not pk:
         return HttpResponseBadRequest()
     try:
-        service = Service.objects.get(pk=pk)
-    except (Service.DoesNotExist, ValidationError, ValueError):
+        # Блокируем строку на время read-modify-write JSON-поля (lost update).
+        with transaction.atomic():
+            service = Service.objects.select_for_update().get(pk=pk)
+            service.image = apply_gallery_op(
+                service.images, op=op, image_id=image_id, uploaded=uploaded, folder="services"
+            )
+            service.save(update_fields=["image", "updated_at"])
+    except (Service.DoesNotExist, ValueError):
         return HttpResponseBadRequest()
-    try:
-        new_ref = save_product_image(uploaded, is_primary=True, sort_order=0, folder="services")
     except ValidationError as exc:
         return HttpResponseBadRequest("; ".join(exc.messages))
-    service.image = new_ref
-    service.save(update_fields=["image", "updated_at"])
     _bump_storefront(request)
     return HttpResponse(status=204)

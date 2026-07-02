@@ -126,9 +126,24 @@ class Service(I18nMixin, TimestampedModel):
         return self.price_cents / 100
 
     @property
+    def images(self) -> list:
+        """UC4-3 (D4a): галерея услуги — шим над JSONField `image`: легаси-
+        одиночный FileRef-dict → [dict]; список (новый формат photo-edit) — как
+        есть. Без миграции: JSONField хранит оба формата, запись — всегда список."""
+        if isinstance(self.image, list):
+            return [i for i in self.image if isinstance(i, dict) and i.get("url")]
+        if isinstance(self.image, dict) and self.image.get("url"):
+            return [self.image]
+        return []
+
+    @property
     def image_url(self) -> str:
-        """A3: URL фото услуги (или ''), безопасно к не-dict значению."""
-        return self.image.get("url", "") if isinstance(self.image, dict) else ""
+        """A3: URL главного фото услуги (или ''), безопасно к любому формату."""
+        imgs = self.images
+        for img in imgs:
+            if img.get("is_primary"):
+                return img.get("url", "")
+        return imgs[0].get("url", "") if imgs else ""
 
     @property
     def attributes_list(self) -> list:
