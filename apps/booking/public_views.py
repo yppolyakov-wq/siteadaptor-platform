@@ -283,11 +283,16 @@ def service_slots(request, pk):
         today,
         max_day,
     )
+    from apps.core.sellable import sellable_for
+
     return _render_embed(
         request,
         "storefront/service_slots.html",
         {
             "service": service,
+            # UA3-2: контракт для _buybox; buybox_ready = валидный выбранный слот
+            # (сервер всё равно ре-валидирует в service_book).
+            "sellable": sellable_for("service", service, buybox_ready=selected is not None),
             "day": day,
             "starts": starts,
             "selected": selected,

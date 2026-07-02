@@ -1,0 +1,7 @@
+{% load i18n %}
+{% comment %}UA3-2: ФОЛБЭК buy-box услуги — хинт «выберите время» (1:1 из
+service_slots.html). Включается через storefront/_buybox.html когда слот не выбран;
+без свободных стартов — пусто (страница уже показала «No free times…»).{% endcomment %}
+{% if starts %}
+<p class="text-sm text-gray-400">{% trans "Pick a time to continue." %}</p>
+{% endif %}
