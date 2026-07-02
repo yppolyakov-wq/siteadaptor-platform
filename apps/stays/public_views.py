@@ -321,7 +321,8 @@ def unterkunft_unit(request, pk):
         {
             "unit": unit,
             # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
-            "sellable": sellable_for("stay", unit),
+            # UA3-2: buybox_ready = валидный выбор дат → _buybox рендерит POST-форму.
+            "sellable": sellable_for("stay", unit, buybox_ready=bool(quote and quote["available"])),
             # UA4-4b: отзывы о номере (generic reviews.Review, только верифиц. гости).
             "reviews": list(review_services.published_for("stay", unit.pk)),
             "review_summary": review_services.summary("stay", unit.pk),

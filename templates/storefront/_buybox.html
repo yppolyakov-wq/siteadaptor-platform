@@ -62,16 +62,29 @@ test_public (порядок CTA/точные href). Двухшаговость (
   </div>
   {% endif %}
 {% elif mode == "request" or mode == "booking" %}
-  {# service: два GET-CTA; primary по mode (UA3-1 слайс 1 — 'request' только при jobs). #}
+  {% comment %}UA3-2: двухшаговость. Страница С выбором передаёт партиалы
+  (buybox_selector — шаг выбора; buybox_form — POST-форма; buybox_fallback —
+  причина недоступности): форма рендерится ТОЛЬКО при валидном выборе
+  (sellable.buybox_ready, сервер всё равно ре-валидирует). Страница БЕЗ выбора
+  (деталь услуги) — CTA-пара на select_url (порядок по mode, UA3-1 слайс 1).{% endcomment %}
+  {% if buybox_selector %}{% include buybox_selector %}{% endif %}
+  {% if buybox_form %}
+    {% if sellable.buybox_ready %}
+      {% include buybox_form %}
+    {% elif buybox_fallback %}
+      {% include buybox_fallback %}
+    {% endif %}
+  {% else %}
   <div class="space-y-2">
     {% if mode == "request" %}
       <a href="{% url 'storefront-anfrage' %}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</a>
-      <a href="{% url 'storefront-service-slots' service.pk %}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% purchase_label "booking" %}</a>
+      <a href="{{ sellable.select_url }}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% purchase_label "booking" %}</a>
     {% else %}
-      <a href="{% url 'storefront-service-slots' service.pk %}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% purchase_label "booking" %}</a>
+      <a href="{{ sellable.select_url }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% purchase_label "booking" %}</a>
       {% if jobs_active %}
         <a href="{% url 'storefront-anfrage' %}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% trans "Request a quote" %}</a>
       {% endif %}
     {% endif %}
   </div>
+  {% endif %}
 {% endif %}

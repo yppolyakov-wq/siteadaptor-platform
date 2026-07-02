@@ -1,0 +1,11 @@
+{% load i18n %}
+{% comment %}UA3-2 (A+): ФОЛБЭК buy-box номера — причина недоступности выбранного
+диапазона (amber-бокс, разметка 1:1 из stay_detail.html). Включается через
+storefront/_buybox.html когда выбор НЕ готов; без quote (даты не выбраны) — пусто.{% endcomment %}
+{% if quote %}
+  <div class="bg-amber-50 text-amber-800 rounded-2xl px-5 py-4 text-sm">
+    {% if quote.reason == 'min_nights' %}{% blocktrans with n=unit.min_nights %}This place requires at least {{ n }} nights.{% endblocktrans %}
+    {% elif quote.reason == 'guests' %}{% blocktrans with n=unit.max_guests %}This place fits up to {{ n }} guests.{% endblocktrans %}
+    {% else %}{% trans "Sorry, these dates are not available. Please try another range." %}{% endif %}
+  </div>
+{% endif %}
