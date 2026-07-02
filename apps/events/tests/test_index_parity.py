@@ -98,3 +98,15 @@ def test_event_index_empty_states():
     _event(title="Solo", city="Bern")
     body_filtered = _body(data={"city": "Zermatt"})
     assert "No events match your filters." in body_filtered
+
+
+def test_event_index_search_and_price_sort():
+    """UB2-2: поиск ?q= (в т.ч. как активный фильтр для empty-state) и сортировка
+    по эффективной цене на листинге событий."""
+    _event(title="Yoga Retreat", price_cents=9000)
+    _event(title="Jazz Konzert", price_cents=1000)
+    body = _body(data={"q": "jazz"})
+    assert "Jazz Konzert" in body and "Yoga Retreat" not in body
+    assert "No events match your filters." in _body(data={"q": "zzz"})  # q = активный фильтр
+    body_sorted = _body(data={"sort": "price_asc"})
+    assert body_sorted.index("Jazz Konzert") < body_sorted.index("Yoga Retreat")

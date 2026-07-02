@@ -433,3 +433,20 @@ def test_stay_detail_photo_edit_marker():
     ).content.decode()
     assert "data-photo-edit" in body and 'data-edit-model="stay"' in body
     assert 'data-photo-op="replace"' in body and 'data-photo-op="add"' in body
+
+
+def test_stay_index_search_and_sort():
+    """UB2-2: поиск ?q= и сортировка по цене на browse-листинге номеров; поиск,
+    сузивший список до одного юнита, НЕ редиректит на его страницу."""
+    StayUnit.objects.create(name="Alpensuite", price_cents=20000)
+    StayUnit.objects.create(name="Seeblick", price_cents=8000)
+    body = public_views.unterkunft_index(_req(data={"q": "alpen"})).content.decode()
+    assert "Alpensuite" in body and "Seeblick" not in body
+    assert "data-listing-toolbar" in body
+    resp = public_views.unterkunft_index(_req(data={"q": "alpen"}))
+    assert resp.status_code == 200  # не 302 на юнит
+    body_sorted = public_views.unterkunft_index(_req(data={"sort": "price_asc"})).content.decode()
+    assert body_sorted.index("Seeblick") < body_sorted.index("Alpensuite")
+    assert (
+        "Nothing found" in public_views.unterkunft_index(_req(data={"q": "zzz"})).content.decode()
+    )

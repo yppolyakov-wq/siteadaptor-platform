@@ -23,6 +23,9 @@
 {# --- быстрый поиск по датам (H2) ------------------------------------------- #}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 max-w-3xl">
   {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
+  {# UB2-2: смена дат не сбрасывает активный поиск/сортировку. #}
+  {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+  {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
   <div class="grid sm:grid-cols-5 gap-3 items-end">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
@@ -48,7 +51,7 @@
 {% block listing_grid %}
 {% if searched %}
   {# --- результаты поиска с ценой за диапазон --------------------------------- #}
-  <p class="text-sm text-gray-500 mb-3">{{ von|date:"d.m.Y" }} → {{ bis|date:"d.m.Y" }} · {% blocktrans count n=results.0.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</p>
+  {% if results %}<p class="text-sm text-gray-500 mb-3">{{ von|date:"d.m.Y" }} → {{ bis|date:"d.m.Y" }} · {% blocktrans count n=results.0.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</p>{% endif %}
   <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for r in results %}
       {% if r.available %}
@@ -84,7 +87,9 @@
 {% endblock %}
 
 {% block listing_empty %}
-{% if not searched and not units %}
+{% if q and not units %}
+  <p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>
+{% elif not units %}
   <p class="text-gray-500">{% trans "No accommodation available right now." %}</p>
 {% endif %}
 {% endblock %}

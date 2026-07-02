@@ -17,6 +17,10 @@
 </div>
 {% endblock %}
 
+{% block listing_empty %}
+{% if q and not services %}<p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>{% endif %}
+{% endblock %}
+
 {% block listing_after %}
 {% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}" class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
 {% endblock %}

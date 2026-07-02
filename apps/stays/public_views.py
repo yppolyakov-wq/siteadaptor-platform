@@ -114,13 +114,16 @@ def _render_embed(request, template, ctx, embed):
 
 def unterkunft_index(request):
     _require_stays_active(request)
-    units = list(StayUnit.objects.filter(is_active=True))
-    today = timezone.localdate()
-    # UB2-1: разбор date-search параметров — через единый FacetProvider (делегирует
-    # _parse_date/_parse_guests; движок наличия ниже не трогаем).
+    # UB2-1/2-2: разбор date-search + поиск ?q= + сортировка — единый FacetProvider
+    # (делегирует _parse_date/_parse_guests; движок наличия ниже не трогаем).
     from apps.core import facets as facets_registry
 
-    _sel = facets_registry.provider_for("stay").selected(request.GET)
+    provider = facets_registry.provider_for("stay")
+    q = (request.GET.get("q") or "").strip()
+    sort = request.GET.get("sort") or ""
+    units = list(provider.sort(provider.search(StayUnit.objects.filter(is_active=True), q), sort))
+    today = timezone.localdate()
+    _sel = provider.selected(request.GET)
     von, bis = _sel["von"], _sel["bis"]
     adults, children = _sel["adults"], _sel["children"]
     guests = adults + children
@@ -129,7 +132,8 @@ def unterkunft_index(request):
     embed = _is_embed(request)
     searched = bool(von and bis and von >= today and bis > von)
     # Один юнит без поиска — сразу на его страницу (как было); с датами — прокинем их.
-    if len(units) == 1 and not searched:
+    # UB2-2: при активном ?q= не редиректим (поиск сузил список — это не «один юнит»).
+    if len(units) == 1 and not searched and not q:
         url = reverse("storefront-unterkunft-unit", args=[units[0].pk])
         return redirect(f"{url}?embed=1" if embed else url)
 
@@ -183,6 +187,17 @@ def unterkunft_index(request):
             "results": results,
             "search_qs": search_qs,
             "rooms_grid": rooms_grid,
+            # UB2-2: тулбар каркаса. Даты/гостей несём в carry (поиск не сбрасывает
+            # date-search); сортировка — только в browse (searched сортирует движок).
+            "show_listing_toolbar": True,
+            "q": q,
+            "sort": sort,
+            "sort_options": provider.sort_options() if not searched else [],
+            "toolbar_hidden": [
+                (k, request.GET.get(k))
+                for k in ("von", "bis", "erw", "kinder", "embed")
+                if request.GET.get(k)
+            ],
             "gift_active": getattr(tenant, "payments_enabled", False)
             and connect.is_connect_configured(),  # G1 ссылка на гутшайны
         },

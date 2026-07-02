@@ -519,3 +519,17 @@ def test_service_detail_inline_edit_anchors_present():
     assert 'data-edit-field="description"' in body
     assert "data-price-edit" in body
     assert "data-photo-edit" in body
+
+
+def test_service_index_search_and_sort():
+    """UB2-2: поиск ?q= (i18n icontains) и сортировка на листинге услуг; пустая
+    выдача поиска НЕ переключает на листинг ресурсов."""
+    _service(name="Ölwechsel", price_cents=9000)  # дефолт-описание тоже с «Öl»
+    _service(name="Bremsen prüfen", description="Bremsflüssigkeit neu", price_cents=1000)
+    body = public_views.termin_index(_req(data={"q": "öl"})).content.decode()
+    assert "Ölwechsel" in body and "Bremsen" not in body
+    assert "data-listing-toolbar" in body  # тулбар каркаса отрендерен
+    body_none = public_views.termin_index(_req(data={"q": "zzz"})).content.decode()
+    assert "Nothing found" in body_none  # empty-state, не booking_index
+    body_sorted = public_views.termin_index(_req(data={"sort": "price_asc"})).content.decode()
+    assert body_sorted.index("Bremsen") < body_sorted.index("Ölwechsel")

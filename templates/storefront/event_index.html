@@ -21,6 +21,9 @@
   <details class="mb-5" {% if active_filters %}open{% endif %}>
     <summary class="cursor-pointer select-none text-sm font-medium text-gray-600 hover:text-gray-900 mb-2">🔍 {% trans "Filter" %}{% if active_filters %} ·<span class="text-indigo-600">{% trans "active" %}</span>{% endif %}</summary>
     <form method="get" class="bg-white rounded-2xl shadow-sm p-4 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+    {# UB2-2: применение фасетов не сбрасывает активный поиск/сортировку. #}
+    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+    {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
     {% if facets.cat %}
       <select name="cat" class="rounded-lg border border-gray-300 px-2 py-2">
         <option value="">{% trans "All directions" %}</option>

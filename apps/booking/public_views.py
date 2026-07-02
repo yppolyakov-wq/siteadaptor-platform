@@ -148,14 +148,17 @@ def termin_index(request):
 
     embed = _is_embed(request)
     has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
-    # UB2-1: единая точка фасетов листинга (у услуг фасетов нет — NullFacets no-op;
-    # поиск ?q=/сорт появятся в UB2-2 тем же интерфейсом).
+    # UB2-1/2-2: единая точка фасетов/поиска/сортировки листинга (FacetProvider).
+    # Ветку «бизнес услуг» решаем ДО поиска — пустая выдача ?q= не должна
+    # переключать на листинг ресурсов.
     from apps.core import facets as facets_registry
 
-    services_qs = facets_registry.provider_for("service").apply(
-        Service.objects.filter(is_active=True), request.GET
-    )
+    provider = facets_registry.provider_for("service")
+    services_qs = provider.apply(Service.objects.filter(is_active=True), request.GET)
     if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
+        q = (request.GET.get("q") or "").strip()
+        sort = request.GET.get("sort") or ""
+        services_qs = provider.sort(provider.search(services_qs, q), sort)
         # UB1-1: раскладка листинга из site_config (+черновик канвы при ?preview=1).
         # Ключ не задан → services_grid=None → шаблон держит легаси-грид (max-w-3xl).
         from apps.tenants import siteconfig
@@ -176,6 +179,12 @@ def termin_index(request):
                 "services": services_qs,
                 "has_pass_plans": has_pass_plans,
                 "services_grid": services_grid,
+                # UB2-2: тулбар каркаса (поиск + сортировка); embed несём в carry.
+                "show_listing_toolbar": True,
+                "q": q,
+                "sort": sort,
+                "sort_options": provider.sort_options(),
+                "toolbar_hidden": [("embed", "1")] if embed else [],
             },
             embed,
         )
