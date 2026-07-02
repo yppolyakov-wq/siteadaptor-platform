@@ -127,20 +127,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 </div>
 {% endif %}
 
-{# Сортировка каталога (выбор покупателя). На change форма сабмитится (preview сохраняем). #}
-{% if page.items %}
-<div class="flex justify-end mb-4">
-  <form method="get" class="flex items-center gap-2 text-sm">
-    {% comment %}Все активные фасеты (кроме sort) — чтобы смена сортировки их не сбрасывала.{% endcomment %}
-    {% for name, value in filter_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
-    <label class="text-gray-500" for="id_sort">{% trans "Sort" %}</label>
-    <select id="id_sort" name="sort" class="js-sort-select rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
-      {% for val, label in sort_options %}<option value="{{ val }}" {% if sort == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
-    </select>
-  </form>
-</div>
-<script>document.querySelectorAll(".js-sort-select").forEach(function (s) { s.addEventListener("change", function () { s.form.submit(); }); });</script>
-{% endif %}
+{# UB2-2: сортировка (и поиск ?q=) переехали в единый тулбар каркаса listing_toolbar. #}
 {% endblock %}
 
 {% block listing_grid %}
@@ -166,7 +153,9 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 
 {% block listing_empty %}
 {% if not page.items %}
-  {% if subcategories and catalog_subcats_first %}
+  {% if q %}
+    <p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>
+  {% elif subcategories and catalog_subcats_first %}
     <p class="text-gray-400">{% trans "Choose a subcategory above." %}</p>
   {% else %}
     <p class="text-gray-400">{% trans "No products yet." %}</p>

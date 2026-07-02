@@ -640,3 +640,18 @@ def test_category_form_saves_i18n_description():
     cat = form.save()
     assert cat.description == {"de": "Frisch gebacken", "en": "Freshly baked"}
     assert cat.get_i18n("description") == "Frisch gebacken"
+
+
+def test_catalog_search_q_narrows_and_carries_into_cursor():
+    """UB2-2: ?q= сужает выдачу (i18n, EN-локаль тоже) и уезжает в cursor-ссылку
+    «Show more»; пустой поиск — свой empty-state."""
+    ProductFactory(name={"de": "Roggenbrot", "en": "Rye bread"})
+    ProductFactory(name={"de": "Kuchen"})
+    body = public_views.product_list(_req(params={"q": "rye"})).content.decode()
+    assert "Roggenbrot" in body and "Kuchen" not in body  # найден по EN-локали
+    assert "data-listing-toolbar" in body
+    assert "Nothing found" in public_views.product_list(_req(params={"q": "zzz"})).content.decode()
+    for i in range(25):
+        ProductFactory(name={"de": f"Brot {i} Roggen"})
+    body_more = public_views.product_list(_req(params={"q": "rogg"})).content.decode()
+    assert "cursor=" in body_more and "q=rogg" in body_more  # q в keyset-carry

@@ -266,13 +266,8 @@ def loyalty_page(request):
     )
 
 
-# Сортировка каталога: ключ → (поле БД, descending) для keyset-пагинации (paginate
-# сам ставит order_by(field, pk); поля индексируемы, имя-JSON не сортируем).
-_CATALOG_SORTS = {
-    "newest": ("created_at", True),
-    "price_asc": ("base_price", False),
-    "price_desc": ("base_price", True),
-}
+# Сортировки каталога живут в CatalogFacets.sort_keys() (UB2-2): ключ → (поле БД,
+# descending) для keyset-пагинации (paginate сам ставит order_by(field, pk)).
 
 
 def _carry_qs(params: dict) -> str:
@@ -312,6 +307,10 @@ def product_list(request):
     diet = provider.selected(request.GET)["diet"]
     products = provider.apply(products, request.GET)  # категория + диета
     diet_chips = provider.present(facet_base, request.GET)["diet_chips"]
+    # UB2-2: поиск ?q= — по name/description на всех локалях (keyset-safe WHERE);
+    # снимок facet_base (границы цены/бейджи) поиск не сужает — как у диеты.
+    q = (request.GET.get("q") or "").strip()
+    products = provider.search(products, q)
 
     # --- Фасет цены (универсально для ритейла): диапазон base_price € от/до. ---
     def _money(raw):
@@ -381,10 +380,11 @@ def product_list(request):
     cfg = siteconfig.normalize(raw_cfg)
     catalog_grid = siteconfig.grid_class_string(cfg["catalog_layout"])
     # Сортировка: из ?sort= (выбор покупателя) либо дефолт витрины; keyset по (поле, pk).
+    _sort_keys = provider.sort_keys()
     sort = request.GET.get("sort") or cfg.get("catalog_sort", "newest")
-    if sort not in _CATALOG_SORTS:
+    if sort not in _sort_keys:
         sort = "newest"
-    _field, _desc = _CATALOG_SORTS[sort]
+    _field, _desc = _sort_keys[sort]
     page = paginate(
         products,
         order_field=_field,
@@ -410,7 +410,7 @@ def product_list(request):
     from apps.catalog.combos import active_combos
 
     any_facet_active = bool(
-        diet or badge or price_min is not None or price_max is not None or only_available
+        diet or badge or price_min is not None or price_max is not None or only_available or q
     )
     has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
     combos_teaser = (
@@ -433,6 +433,7 @@ def product_list(request):
         "preis_von": price_min_val,
         "preis_bis": price_max_val,
         "nur_verfuegbar": "1" if only_available else "",
+        "q": q,  # UB2-2: поиск — полноправный фасет в carry
         "preview": "1" if is_preview else "",
     }
     filter_hidden = [(k, v) for k, v in _facets.items() if v]
@@ -442,6 +443,7 @@ def product_list(request):
         for k, v in (
             ("kategorie", _facets["kategorie"]),
             ("diet", diet),
+            ("q", q),
             ("sort", sort if sort != "newest" else ""),
             ("preview", _facets["preview"]),
         )
@@ -453,6 +455,7 @@ def product_list(request):
             "preis_von": price_min_val,
             "preis_bis": price_max_val,
             "nur_verfuegbar": _facets["nur_verfuegbar"],
+            "q": q,
             "sort": sort if sort != "newest" else "",
             "preview": _facets["preview"],
         }
@@ -496,13 +499,13 @@ def product_list(request):
             "filter_hidden": filter_hidden,
             "filter_qs": filter_qs,
             "filter_form_hidden": filter_form_hidden,
-            # Сортировка: текущий ключ + варианты для дропдауна (label на текущей локали).
+            # UB2-2: тулбар каркаса (поиск + сортировка из провайдера); carry — все
+            # активные фасеты, кроме q (у тулбара свой инпут) и sort (свой select).
+            "show_listing_toolbar": bool(page.items or q),
+            "q": q,
+            "toolbar_hidden": [(k, v) for k, v in _facets.items() if v and k != "q"],
             "sort": sort,
-            "sort_options": [
-                ("newest", _("Newest")),
-                ("price_asc", _("Price: low to high")),
-                ("price_desc", _("Price: high to low")),
-            ],
+            "sort_options": provider.sort_options(),
             # Билдер: показывать ли подкатегории карточками первыми (group=catalog).
             "catalog_subcats_first": cfg.get("catalog_subcats_first", True),
             # SE-2c-2: в режиме редактора (?preview=1) на чипах категорий — ссылка
