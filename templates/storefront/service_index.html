@@ -6,7 +6,8 @@
 <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Book a service" %}</h1>
 <p class="text-gray-500 mb-6">{% trans "Pick a service and a time." %}</p>
 
-<div class="grid sm:grid-cols-2 gap-4 max-w-3xl">
+{# UB1-1: грид из layout-движка (service_index_layout); ключ не задан → легаси-классы. #}
+<div class="{{ services_grid|default:'grid sm:grid-cols-2 gap-4 max-w-3xl' }}">
   {% for s in services %}
     {% if embed %}
     <a href="{% url 'storefront-service-slots' s.pk %}?embed=1" class="relative block bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">

@@ -470,6 +470,33 @@ def test_service_index_card_links_to_detail_not_slots():
     assert f"/leistung/{service.pk}/" in body
 
 
+def test_service_index_legacy_grid_without_layout_key():
+    # UB1-1: без service_index_layout в конфиге витрина держит прежний хардкод-грид
+    # (пиксельная неизменность), движковые классы не подмешиваются.
+    _service()
+    body = public_views.termin_index(_req()).content.decode()
+    assert "grid sm:grid-cols-2 gap-4 max-w-3xl" in body
+
+
+def test_service_index_layout_from_config():
+    # UB1-1: заданный пресет → грид из layout-движка (grid_class_string), легаси уходит.
+    _service()
+    request = _req()
+    request.tenant.site_config = {"service_index_layout": {"preset": "cols3"}}
+    body = public_views.termin_index(request).content.decode()
+    assert "lg:grid-cols-3" in body
+    assert "max-w-3xl" not in body
+
+
+def test_service_index_layout_from_preview_draft():
+    # UB1-1: при ?preview=1 черновик канвы из сессии перекрывает сохранённый конфиг.
+    _service()
+    request = _req(data={"preview": "1"})
+    request.session["site_preview_draft"] = {"service_index_layout": {"preset": "cols4"}}
+    body = public_views.termin_index(request).content.decode()
+    assert "lg:grid-cols-4" in body
+
+
 def test_service_detail_inline_edit_anchors_present():
     service = _service()
     body = public_views.service_detail(

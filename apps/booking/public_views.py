@@ -150,10 +150,27 @@ def termin_index(request):
     has_pass_plans = PassPlan.objects.filter(is_active=True).exists()  # A3: ссылка на абонементы
     services_qs = Service.objects.filter(is_active=True)
     if services_qs.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
+        # UB1-1: раскладка листинга из site_config (+черновик канвы при ?preview=1).
+        # Ключ не задан → services_grid=None → шаблон держит легаси-грид (max-w-3xl).
+        from apps.tenants import siteconfig
+
+        raw_cfg = request.tenant.site_config
+        if request.GET.get("preview") == "1" and isinstance(
+            request.session.get("site_preview_draft"), dict
+        ):
+            raw_cfg = request.session["site_preview_draft"]
+        services_grid = None
+        if isinstance((raw_cfg or {}).get("service_index_layout"), dict):
+            cfg = siteconfig.normalize(raw_cfg)
+            services_grid = siteconfig.grid_class_string(cfg["service_index_layout"])
         return _render_embed(
             request,
             "storefront/service_index.html",
-            {"services": services_qs, "has_pass_plans": has_pass_plans},
+            {
+                "services": services_qs,
+                "has_pass_plans": has_pass_plans,
+                "services_grid": services_grid,
+            },
             embed,
         )
     resources = Resource.objects.filter(is_active=True)

@@ -172,6 +172,18 @@ def test_events_index_layout_default_list_and_override():
     )
 
 
+def test_service_index_layout_absent_by_default_and_override():
+    # UB1-1 (per-page): раскладка листинга услуг /termin/. Отсутствие ключа = легаси-
+    # грид шаблона — normalize НЕ материализует ключ (пиксельная неизменность витрин,
+    # в т.ч. после любых Save билдера). Заданный пресет нормализуется; мусор → cols2.
+    assert "service_index_layout" not in siteconfig.normalize({})
+    cfg = siteconfig.normalize({"service_index_layout": {"preset": "cols3"}})
+    assert cfg["service_index_layout"]["preset"] == "cols3"
+    assert cfg["service_index_layout"]["cols"] == 3
+    bad = siteconfig.normalize({"service_index_layout": {"preset": "zzz"}})
+    assert bad["service_index_layout"]["preset"] == "cols2"
+
+
 def test_event_detail_order_default_and_overrides():
     # M20U-4: порядок/видимость тематических секций детальной события.
     full = list(siteconfig.EVENT_DETAIL_SECTION_KEYS)
