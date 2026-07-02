@@ -27,7 +27,17 @@ def enqueue_order_email(order, event):
     """Создать Notification(ы) события заказа (БД-дедуп) и поставить доставку."""
     schema = connection.schema_name
     customer = order.customer
-    ctx = {"order": order, "customer": customer, "items": list(order.items.all())}
+    tenant = _tenant(schema)
+    ctx = {
+        "order": order,
+        "customer": customer,
+        "items": list(order.items.all()),
+        # E7-2: банковские реквизиты бизнеса — для Vorkasse-блока в письме
+        # (Verwendungszweck = reference_code, без PII).
+        "bank_holder": getattr(tenant, "bank_holder", ""),
+        "bank_iban": getattr(tenant, "bank_iban", ""),
+        "bank_bic": getattr(tenant, "bank_bic", ""),
+    }
 
     template_base = _CUSTOMER_TEMPLATES.get(event)
     if template_base and customer.email and not customer.unsubscribed:
@@ -68,7 +78,7 @@ def enqueue_order_email(order, event):
 
     # владельцу — только при новом заказе
     if event == "created":
-        owner = _owner_email(_tenant(schema))
+        owner = _owner_email(tenant)
         if owner:
             subject, body, html = _render("order_owner", {**ctx, "unsubscribe_url": ""})
             notify(

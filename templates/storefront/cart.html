@@ -99,6 +99,18 @@
           <input type="hidden" name="fulfillment" value="pickup">
         {% endif %}
 
+        {# E7-2: способ оплаты — только при >1 доступного (первый — дефолт). #}
+        {% if payment_methods %}
+          <div class="{% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
+            <h2 class="font-semibold mb-2">{% trans "How would you like to pay?" %}</h2>
+            <div class="grid gap-2">
+              {% for m in payment_methods %}
+                <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2 cursor-pointer"><input type="radio" name="payment" value="{{ m.code }}" {% if forloop.first %}checked{% endif %}> {{ m.label }}</label>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
         {% if pickup_points|length > 1 %}
           {# Несколько точек самовывоза — выбор «откуда забрать» (скрыт при доставке). #}
           <div id="pickup-select" class="{% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">

@@ -40,6 +40,16 @@
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>
     {% elif just_paid %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Payment received — we'll confirm shortly." %}</p>
+    {% elif order.payment_method == 'vorkasse' %}
+      {# E7-2: Vorkasse — реквизиты для перевода (Verwendungszweck = код заказа). #}
+      <div class="text-sm text-sky-900 bg-sky-50 rounded-lg px-3 py-2 space-y-0.5">
+        <p class="font-medium">{% trans "Please transfer the total in advance:" %}</p>
+        {% if request.tenant.bank_holder %}<p>Kontoinhaber: {{ request.tenant.bank_holder }}</p>{% endif %}
+        <p>IBAN: <span class="font-mono">{{ request.tenant.bank_iban }}</span></p>
+        {% if request.tenant.bank_bic %}<p>BIC: <span class="font-mono">{{ request.tenant.bank_bic }}</span></p>{% endif %}
+        <p>{% trans "Reference" %} (Verwendungszweck): <span class="font-mono font-medium">{{ order.reference_code }}</span></p>
+        <p>{% trans "Amount" %}: <span class="font-medium">{{ order.total }} {{ order.currency|cursym }}</span></p>
+      </div>
     {% elif order.is_delivery %}
       <p class="text-sm text-gray-500">{% trans "Pay on delivery." %}</p>
     {% else %}

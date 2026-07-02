@@ -130,6 +130,94 @@ def test_checkout_stripe_error_falls_back_to_on_site(monkeypatch, settings):
     assert order.payment_method == Order.METHOD_ON_SITE
 
 
+def _vorkasse_tenant(**over):
+    over.setdefault("vorkasse_enabled", True)
+    over.setdefault("bank_holder", "Bäckerei Sonne")
+    over.setdefault("bank_iban", "DE89370400440532013000")
+    over.setdefault("bank_bic", "COBADEFFXXX")
+    return TenantFactory.build(**over)
+
+
+def test_cart_shows_payment_picker_when_multiple_methods():
+    """E7-2: пикер способа — только при >1 доступного (vorkasse+IBAN → 2 способа)."""
+    product = ProductFactory(base_price=Decimal("10.00"))
+    body = _cart_page(tenant=_vorkasse_tenant(), session={"cart": {str(product.pk): 1}})
+    assert 'name="payment"' in body
+    assert 'value="vorkasse"' in body and 'value="on_site"' in body
+    assert "Vorkasse (Überweisung)" in body
+
+
+def test_vorkasse_enabled_without_iban_not_offered():
+    product = ProductFactory(base_price=Decimal("10.00"))
+    tenant = _vorkasse_tenant(bank_iban="")
+    body = _cart_page(tenant=tenant, session={"cart": {str(product.pk): 1}})
+    assert 'name="payment"' not in body  # guard: без IBAN способа нет → один способ
+
+
+def test_checkout_vorkasse_sets_method_and_email_has_bank_details():
+    """Выбор Vorkasse: без Stripe-redirect; письмо created несёт реквизиты и
+    Verwendungszweck = код заказа."""
+    from django.db import connection
+
+    from apps.notifications.models import Notification
+
+    product = ProductFactory(base_price=Decimal("10.00"))
+    tenant = _vorkasse_tenant(schema_name=connection.schema_name)
+    tenant.save()  # notifications._tenant(schema) читает Tenant из БД
+    request = _pub_req(
+        {"name": "Kunde", "email": "k@test.de", "payment": "vorkasse"},
+        tenant=tenant,
+        session={"cart": {str(product.pk): 1}},
+    )
+    resp = public_views.checkout(request)
+    order = Order.objects.get()
+    assert resp.url.endswith(f"/bestellung/{order.reference_code}/")  # без Stripe
+    assert order.payment_method == Order.METHOD_VORKASSE
+    n = Notification.objects.get(dedupe_key=f"order:{order.id}:created:customer")
+    body = n.payload["body"]
+    assert "DE89370400440532013000" in body
+    assert f"Verwendungszweck: {order.reference_code}" in body
+    assert "Bezahlt wird bei der Abholung" not in body
+
+
+def test_checkout_invalid_payment_falls_back_to_default():
+    product = ProductFactory(base_price=Decimal("10.00"))
+    request = _pub_req(
+        {"name": "Kunde", "payment": "bitcoin"}, session={"cart": {str(product.pk): 1}}
+    )
+    public_views.checkout(request)
+    assert Order.objects.get().payment_method == Order.METHOD_ON_SITE
+
+
+def test_checkout_vorkasse_not_available_ignored():
+    """POST payment=vorkasse у тенанта БЕЗ vorkasse → дефолт (подделка формы)."""
+    product = ProductFactory(base_price=Decimal("10.00"))
+    request = _pub_req(
+        {"name": "Kunde", "payment": "vorkasse"}, session={"cart": {str(product.pk): 1}}
+    )
+    public_views.checkout(request)
+    assert Order.objects.get().payment_method == Order.METHOD_ON_SITE
+
+
+def test_confirmation_page_shows_bank_details_for_vorkasse():
+    from apps.orders import services
+
+    tenant = _vorkasse_tenant()
+    order = services.create_order(
+        items=[(ProductFactory(base_price=Decimal("12.00")), 1)],
+        name="Kunde",
+        payment_method=Order.METHOD_VORKASSE,
+    )
+    request = RequestFactory().get(f"/bestellung/{order.reference_code}/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    body = public_views.order_confirmation(request, code=order.reference_code).content.decode()
+    assert "DE89370400440532013000" in body
+    assert order.reference_code in body
+    assert "Verwendungszweck" in body
+
+
 def test_vorkasse_settings_save_and_normalize():
     tenant = TenantFactory()
     request = _cab_req(

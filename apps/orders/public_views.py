@@ -15,7 +15,6 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.billing import connect
 from apps.core import ratelimit
 
 from . import payments as order_payments
@@ -449,6 +448,13 @@ def cart_view(request):
     ctx["cart_upsell_title"] = _cfg.get("cart_upsell_title", "")
     ctx["cart_show_upsell"] = _cfg.get("cart_show_upsell", True)
     ctx["is_preview"] = is_preview
+    # E7-2: пикер способа оплаты — ТОЛЬКО при >1 доступного (один способ =
+    # форма байт-в-байт прежняя, замок test_checkout_form_parity_single_method).
+    _methods = order_payments.available_methods(tenant)
+    _labels = dict(Order.PAYMENT_METHODS)
+    ctx["payment_methods"] = (
+        [{"code": m, "label": _labels[m]} for m in _methods] if len(_methods) > 1 else []
+    )
     return render(request, "storefront/cart.html", ctx)
 
 
@@ -530,6 +536,14 @@ def checkout(request):
         elif len(points) == 1:
             pickup_location = points[0]["name"]
 
+    # E7-2: способ оплаты — из пикера (radio `payment`); без/с невалидным POST —
+    # первый доступный (= прежнее поведение: stripe при сконфигурированной
+    # предоплате, иначе оплата при получении).
+    methods = order_payments.available_methods(tenant)
+    chosen_method = request.POST.get("payment") or methods[0]
+    if chosen_method not in methods:
+        chosen_method = methods[0]
+
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
     order_items = [(p, v, q, o) for p, v, o, q in _cart_items(request)]
@@ -549,6 +563,7 @@ def checkout(request):
             shipping_address=shipping_address,
             shipping_cents=shipping_cents,
             voucher_code=request.session.get(PROMO_SESSION_KEY, ""),
+            payment_method=chosen_method,
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))
@@ -563,18 +578,10 @@ def checkout(request):
     request.session[COMBO_SESSION_KEY] = {}
     request.session.pop(PROMO_SESSION_KEY, None)
 
-    # Онлайн-предоплата (P2.5c): если включена у бизнеса и оплата подключена — на
-    # Stripe Checkout (на счёт бизнеса). Иначе — оплата при получении (как раньше).
-    # E-7: фиксируем СПОСОБ оплаты (payment_method) на заказе в обеих ветках.
-    tenant = getattr(request, "tenant", None)
-    if (
-        getattr(tenant, "orders_prepay", False)
-        and getattr(tenant, "payments_enabled", False)
-        and connect.is_connect_configured()
-        and order.total > 0
-    ):
-        order.payment_method = Order.METHOD_STRIPE
-        order.save(update_fields=["payment_method", "updated_at"])
+    # E7-2: маршрутизация по выбранному способу. vorkasse → подтверждение с
+    # реквизитами (без Stripe); stripe (P2.5c) → Stripe Checkout на счёт бизнеса;
+    # on_site → оплата при получении (как раньше).
+    if chosen_method == Order.METHOD_STRIPE and order.total > 0:
         order_url = request.build_absolute_uri(
             reverse("storefront-order", args=[order.reference_code])
         )
@@ -585,10 +592,12 @@ def checkout(request):
                 )
             )
         except stripe.error.StripeError:
-            pass  # оплата временно недоступна — заказ остаётся (оплата при получении)
-    # Обычный путь и фолбэк при недоступном Stripe — оплата при получении.
-    order.payment_method = Order.METHOD_ON_SITE
-    order.save(update_fields=["payment_method", "updated_at"])
+            # Оплата временно недоступна — заказ остаётся, оплата при получении.
+            order.payment_method = Order.METHOD_ON_SITE
+            order.save(update_fields=["payment_method", "updated_at"])
+    elif chosen_method == Order.METHOD_STRIPE:  # total == 0 — платить нечего
+        order.payment_method = Order.METHOD_ON_SITE
+        order.save(update_fields=["payment_method", "updated_at"])
     return redirect("storefront-order", code=order.reference_code)
 
 

@@ -6,7 +6,14 @@ vielen Dank für Ihre Bestellung! Wir melden uns, sobald sie bestätigt ist.
 {% endfor %}Gesamt: {{ order.total }} {{ order.currency }}
 Abhol-Code: {{ order.reference_code }}
 
-Bezahlt wird bei der Abholung im Laden.
+{% if order.payment_method == 'vorkasse' %}Bitte überweisen Sie {{ order.total }} {{ order.currency }} im Voraus:
+{% if bank_holder %}Kontoinhaber: {{ bank_holder }}
+{% endif %}IBAN: {{ bank_iban }}
+{% if bank_bic %}BIC: {{ bank_bic }}
+{% endif %}Verwendungszweck: {{ order.reference_code }}
+{% elif order.payment_method == 'stripe' %}Die Zahlung erfolgt online.
+{% else %}Bezahlt wird bei der Abholung im Laden.
+{% endif %}
 
 {% if unsubscribe_url %}—
 Keine E-Mails mehr erhalten: {{ unsubscribe_url }}

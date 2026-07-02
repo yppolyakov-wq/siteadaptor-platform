@@ -153,6 +153,7 @@ def create_order(
     shipping_cents=0,
     combos=(),
     voucher_code="",
+    payment_method="",
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -196,6 +197,9 @@ def create_order(
         fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
         shipping_address=(shipping_address or "").strip()[:1000] if delivery else "",
         shipping_cents=shipping,
+        # E-7: способ оплаты известен ДО создания (пикер checkout) — письмо
+        # `created` рендерится внутри этой функции и должно его видеть.
+        payment_method=payment_method,
     )
     total = Decimal("0")
     for product, variant, qty, options in norm:
