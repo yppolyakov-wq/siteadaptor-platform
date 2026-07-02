@@ -3634,3 +3634,9 @@
   один вызов. Слайс C (save): после анализа НЕ сводим — блоки form-field-driven с
   presence-guard'ами, свод = переписывание → место UC2-4 (зафиксировано в план-доке).
   Замки: 164 draft/save/preview + 160 fan-out + golden. Без миграций.
+- **2026-07-02 — UC4-2-доводка (U-C): JSON-LD Offer + BreadcrumbList + Event-поля.**
+  Контракт `SellableEntity` += `price_value`/`price_currency`/`ld_extra`; адаптеры заполняют
+  (product: availability по in_stock; event: startDate/location; from-price при тарифах/
+  вариантах). `entity_ld` эмитит `offers` + мержит `ld_extra`; `breadcrumb_ld` + вторая
+  `<script>` в `entity_jsonld` (Start → листинг → имя). XSS-замок перепинен на все блоки.
+  1077 passed. Без миграций.
