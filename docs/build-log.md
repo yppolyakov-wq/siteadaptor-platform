@@ -3581,3 +3581,17 @@
   page_type)` из единого реестра (event — orderable с 1-based order, прочие hide-only) —
   4 ручные сборки в `home_builder_view` заменены; контекст-ключи шаблона неизменны. Гейт: 165
   passed. Фаза U-C1 (реестр) ЗАКРЫТА; дальше UC2-1 (page-scoped draft, ⚠️ горячее). Без миграций.
+- **2026-07-02 — UE2-1 (U-E→U-C): единый компонент вывода скидки `_discount_display.html`.**
+  Шаг 0 — замки `test_discount_display_parity` (бейдж %/−€ оба размера, strikethrough+красная,
+  scarcity-пороги, countdown `data-countdown` в локальной TZ, valid-until, surprise) ДО правок;
+  затем 8 дублей `_promo_card.html`/`promotion_detail.html` сведены на include с part=badge|
+  surprise|price|scarcity|countdown, size=sm|lg. Замок поймал дрейф порядка CSS-классов бейджа —
+  компонент переписан на точные исходные строки. Локальная грабля: `resv_token:*`/`rl:*` в Redis
+  переживают прогоны (cache-префикс! чистить `scan_iter('*rl:*')`) — флейк test_public. 172 passed.
+- **2026-07-02 — UE2-2 (U-E→U-C): `Promotion.discount_style` — селектор вида скидки.**
+  Поле (7 стилей + default ""=легаси) + миграция `promotions/0019` (⚠️ деплой); ветвление в
+  `_discount_display.html`: percent/badge — тип бейджа, strikethrough/festpreis/ab — цена
+  (ab — по конвенции from-price карточек товара), countdown — таймер без флага, surprise —
+  пилюля вместо бейджа. Селектор в PromotionForm (кабинет — цикл полей, UI автоматом). Свойства
+  цены/has_discount/анти-оверселл не тронуты (тест-гейт). 181 passed (полный promotions-гейт),
+  DE-локаль в тестах: числа с запятой («7,50»).
