@@ -1693,6 +1693,25 @@
   // E.4: drag-on-canvas — перетаскивание блока в превью переносит его control-row
   // в редакторе к целевой позиции и перенумеровывает (общий путь с превью/сабвитом).
   var draggedKey = null;
+  // UC2-2 слайс 2: перестановка тематической секции детали события — правит
+  // скрытые ed_order_* (per-page инспектор); публикация — обычный Save.
+  function moveEdSection(dKey, tKey, before) {
+    if (!dKey || dKey === tKey) return;
+    var inputs = Array.prototype.slice.call(form.querySelectorAll(".ed-order-input"));
+    if (!inputs.length) return;
+    inputs.sort(function (a, b) { return (parseInt(a.value, 10) || 999) - (parseInt(b.value, 10) || 999); });
+    var keys = inputs.map(function (i) { return i.name.replace("ed_order_", ""); });
+    var from = keys.indexOf(dKey);
+    if (from < 0 || keys.indexOf(tKey) < 0) return;
+    keys.splice(from, 1);
+    var to = keys.indexOf(tKey);
+    keys.splice(before ? to : to + 1, 0, dKey);
+    keys.forEach(function (k, i) {
+      var inp = form.querySelector('[name="ed_order_' + k + '"]');
+      if (inp) inp.value = i + 1;
+    });
+    schedule();
+  }
   function moveBlock(dKey, tKey, before) {
     var list = document.getElementById("home-blocks");
     if (!list || !dKey || dKey === tKey) return;
@@ -2069,6 +2088,35 @@
         var b = box.getBoundingClientRect();
         moveBlock(draggedKey, tKey, e.clientY < b.top + b.height / 2);
         draggedKey = null;
+      });
+    });
+    // UC2-2 слайс 2: drag тематических секций ДЕТАЛИ СОБЫТИЯ — переставляет
+    // скрытые ed_order_* per-page инспектора (драфт публикует через Save;
+    // превью перерисовывается через schedule → payload.event_detail.order).
+    var draggedEd = null;
+    doc.querySelectorAll("[data-ed-section]").forEach(function (sec) {
+      if (!sec.firstElementChild) return;  // пустая секция (контента нет) — не таскаем
+      sec.setAttribute("draggable", "true");
+      if (editOn) sec.style.cursor = "grab";
+      sec.addEventListener("dragstart", function (e) {
+        if (!editOn) { e.preventDefault(); return; }
+        draggedEd = sec.getAttribute("data-ed-section");
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+      });
+      sec.addEventListener("dragend", function () { hideDropLine(); draggedEd = null; });
+      sec.addEventListener("dragover", function (e) {
+        if (!draggedEd) return;
+        e.preventDefault();
+        var b = sec.getBoundingClientRect();
+        showDropLine(b, e.clientY < b.top + b.height / 2);
+      });
+      sec.addEventListener("drop", function (e) {
+        if (!draggedEd) return;
+        e.preventDefault();
+        hideDropLine();
+        var b = sec.getBoundingClientRect();
+        moveEdSection(draggedEd, sec.getAttribute("data-ed-section"), e.clientY < b.top + b.height / 2);
+        draggedEd = null;
       });
     });
   });

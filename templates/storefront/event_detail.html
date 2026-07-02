@@ -43,7 +43,8 @@
   (M20U-4). SE-2b-2: обёртка data-sf-section — клик на канве открывает инспектор
   порядка.{% endcomment %}
   <div data-sf-section="event_detail">
-    {% for k in event_detail_order %}{% include "storefront/_event_thematic.html" with k=k %}{% endfor %}
+    {# UC2-2/2: пер-секционная обёртка — drag на канве переставляет ed_order_*. #}
+    {% for k in event_detail_order %}<div data-ed-section="{{ k }}">{% include "storefront/_event_thematic.html" with k=k %}</div>{% endfor %}
   </div>
 
   {# 14. Begrenzte Plätze #}

@@ -193,3 +193,12 @@ def test_detail_bodies_carry_page_inspector_markers():
         ("templates/storefront/event_detail.html", 'data-sf-section="event_detail"'),
     ):
         assert needle in open(path).read(), path
+
+
+def test_event_detail_sections_draggable_on_canvas():
+    """UC2-2 слайс 2: пер-секционные обёртки data-ed-section в цикле детали
+    события + drag-обработчик moveEdSection (мутирует ed_order_*) в билдере."""
+    assert 'data-ed-section="{{ k }}"' in open("templates/storefront/event_detail.html").read()
+    builder = open("templates/tenant/site_home.html").read()
+    assert "function moveEdSection" in builder
+    assert 'querySelectorAll("[data-ed-section]")' in builder
