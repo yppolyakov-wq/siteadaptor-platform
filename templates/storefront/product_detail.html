@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block detail_aside %}
-<div id="kaufen" class="scroll-mt-24">
+<div id="kaufen" class="scroll-mt-24" data-sf-section="product_detail">
   {% if product.category %}<p class="text-sm text-gray-400">{{ product.category }}</p>{% endif %}
   {% if product.badge_label %}<span class="inline-block mt-1 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full">{{ product.badge_label }}</span>{% endif %}
   <h1 class="text-2xl md:text-3xl font-bold mt-1" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="name">{{ product }}</h1>
@@ -64,7 +64,7 @@
 (сервер проверяет заказ с этим товаром по e-mail). Список — опубликованные отзывы.
 Секцию можно скрыть в билдере (group=catalog_detail → «Reviews»).{% endcomment %}
 {% if 'reviews' not in product_detail_hidden %}
-<section id="bewertungen" class="mt-12 scroll-mt-24">
+<section id="bewertungen" class="mt-12 scroll-mt-24" data-sf-section="product_detail">
   <h2 class="text-xl font-bold mb-4">{% trans "Customer reviews" %}</h2>
   {% if review_summary.count %}
     <div class="flex items-center gap-2 mb-5">

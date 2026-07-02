@@ -46,7 +46,10 @@
    data-driven циклом из реестра (stays) вместо per-template if/elif; видимость (контент +
    не скрыта в билдере) — во вьюхе (body_sections). `similar` — в detail_wide ниже.
    Замок паритета — test_stay_detail_section_order_parity.{% endcomment %}
+{# UC2-2: обёртка data-sf-section — клик на канве открывает инспектор секций страницы. #}
+<div data-sf-section="stay_detail">
 {% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
+</div>
 {% endblock %}
 
 {% block detail_wide %}

@@ -47,7 +47,10 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
    (apps.core.detail_sections, порядок booking) вместо per-template if/elif. Видимость
    (контент присутствует + не скрыта в билдере) вычислена во вьюхе → body_sections.
    Замок паритета — test_service_detail_section_order_parity.{% endcomment %}
+{# UC2-2: обёртка data-sf-section — клик на канве открывает инспектор секций страницы. #}
+<div data-sf-section="service_detail">
 {% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
+</div>
 {% endblock %}
 
 {% block detail_buybar %}

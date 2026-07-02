@@ -181,3 +181,15 @@ def test_editor_preview_switcher_lists_simple_pages():
         "storefront-withdrawal",
     ):
         assert reverse(url_name) in body, url_name
+
+
+def test_detail_bodies_carry_page_inspector_markers():
+    """UC2-2 слайс 1: детальные страницы несут data-sf-section=<page-key> —
+    клик на канве открывает per-page инспектор (event уже имел обёртку)."""
+    for path, needle in (
+        ("templates/storefront/service_detail.html", 'data-sf-section="service_detail"'),
+        ("templates/storefront/stay_detail.html", 'data-sf-section="stay_detail"'),
+        ("templates/storefront/product_detail.html", 'data-sf-section="product_detail"'),
+        ("templates/storefront/event_detail.html", 'data-sf-section="event_detail"'),
+    ):
+        assert needle in open(path).read(), path
