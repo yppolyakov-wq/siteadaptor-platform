@@ -31,7 +31,13 @@
 - Деталь услуги: CTA-пара в `_buybox.html` (mode booking/request) ведёт на слот-пикер
   жёстким `{% url %}` — станет `sellable.select_url` (байты те же).
 
-## 3. Дизайн (вариант A — минимальный, рекомендован)
+## 3. Дизайн (РЕШЕНИЕ ВЛАДЕЛЬЦА 2026-07-02: вариант «A+»)
+
+> A+ = A + stay-селектор тоже становится партиалом за `_buybox.html` (весь buy-box
+> номера — один include, полный «B» для stay). Для service селектор остаётся
+> контентом страницы слот-пикера (страница И ЕСТЬ селектор — отделять не от чего);
+> его переезд станет актуален, если слот-пикер поедет на деталь услуги (отдельный
+> UX-инкремент, не UA3-2). Ниже базовый дизайн A, дельта A+ — в §3.1.
 
 **Контракт (`apps/core/sellable.py`):**
 - dataclass += `select_url: str = ""` (GET-шаг выбора), `submit_url: str = ""`
@@ -60,6 +66,13 @@
 - Fallback-партиалы: `_buybox_stay_unavailable.html` (amber-бокс причин; передаётся
   только когда `quote` есть) и хинт слотов (передаётся только когда `starts` непуст) —
   порядок/условия рендера байт-в-байт как сейчас.
+
+**§3.1 Дельта A+ (stay-селектор в партиал):** форма дат + календарь C3 + JS выбора
+диапазона переезжают 1:1 в `storefront/_buybox_stay_select.html`; `_buybox.html` в
+ветке booking рендерит `buybox_selector` (если передан) ПЕРЕД гейтом формы —
+порядок блоков aside (даты → календарь → форма/amber) байт-в-байт прежний;
+`stay_detail` в `#buchen` остаётся один include `_buybox.html` c
+`buybox_selector`/`buybox_form`/`buybox_fallback`.
 
 **Правки вьюх (минимальные, приёмники POST не трогаем):**
 - `stays.unterkunft_unit`: `sellable_for("stay", unit, buybox_ready=bool(quote and quote.available))`.
