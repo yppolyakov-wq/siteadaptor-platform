@@ -30,10 +30,11 @@ home; data-sf-section drop-targets на всех страницах». План 
   `data-page-key` per-page инспектора → `openBlockPopup` находит блок. Замок —
   `test_detail_bodies_carry_page_inspector_markers`. Составные ключи партиалов
   оставлены (безвредны; кандидаты на пер-секционные попапы позже).
-- **Слайс 2 ✅ (2026-07-02): drag-reorder тематических секций события НА КАНВЕ.** Пер-
-  секционные `data-sf-section="ed:<key>"`-маркеры в `_event_thematic.html` + ветка в
-  drag-обработчике: на странице события drop мутирует `ed_order_*` (`.ed-order-input`)
-  вместо `order_*` + `schedule()` (драфт уже поддерживает event_detail.order через
+- **Слайс 2 ✅ (2026-07-02): drag-reorder тематических секций события НА КАНВЕ.**
+  Реализация: обёртки `data-ed-section="<key>"` в ЦИКЛЕ event_detail.html (не в
+  партиале — одна строка вместо 14 веток; пустые секции не таскаются) + свой
+  обработчик drag с общим drop-line: `moveEdSection` мутирует `ed_order_*`
+  (`.ed-order-input`) + `schedule()` (драфт поддерживает event_detail.order через
   apply_page_payload). Только events — единственный orderable-модуль.
 - **Слайс 3 (L, ЗАБЛОКИРОВАН архитектурой): инсертер C-блоков на не-home.** Требует
   per-page ХРАНЕНИЯ секций (`config["sections"]` — home-only) + рендер-пути
