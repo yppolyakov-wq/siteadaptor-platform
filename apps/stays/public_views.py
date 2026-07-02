@@ -632,7 +632,7 @@ def gutschein_buy(request):
             success_url=ok_url,
             cancel_url=cancel_url,
             business_type=getattr(tenant, "business_type", ""),
-        payment_method_types=getattr(tenant, "stripe_payment_methods", None),
+            payment_method_types=getattr(tenant, "stripe_payment_methods", None),
         )
     except stripe.error.StripeError:
         messages.error(request, _("Payment is temporarily unavailable. Please try again later."))
