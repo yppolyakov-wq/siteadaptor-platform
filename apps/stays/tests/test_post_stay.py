@@ -42,6 +42,22 @@ def test_post_stay_sent_once_after_checkout():
     assert send_due_post_stay() == 0
 
 
+def test_post_stay_links_to_unit_review_form():
+    """UA4-4b wiring: письмо ведёт на generic-форму отзыва о номере на витрине
+    (/unterkunft/<pk>/bewerten/, абсолютная ссылка) — не в hotel-портал."""
+    from django.db import connection
+
+    from apps.tenants.tests.factories import DomainFactory, TenantFactory
+
+    tenant = TenantFactory(schema_name=connection.schema_name)
+    DomainFactory(tenant=tenant, domain="hotel.example.de", is_primary=True)
+    b = _booking(dep_days_ago=1)
+    assert send_due_post_stay() == 1
+    n = Notification.objects.get(dedupe_key=f"stay:{b.id}:post_stay:customer")
+    assert f"https://hotel.example.de/unterkunft/{b.unit_id}/bewerten/" in n.payload["body"]
+    assert "/unternehmen/" not in n.payload["body"]  # старой портальной ссылки нет
+
+
 def test_not_sent_before_checkout_window():
     _booking(dep_days_ago=0)  # выезд сегодня — рано (нужно ≥1 день назад)
     assert send_due_post_stay() == 0

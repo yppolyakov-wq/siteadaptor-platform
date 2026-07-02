@@ -63,6 +63,24 @@ def test_post_event_sent_after_end_once():
     assert tasks.send_due_post_event() == 0  # idempotent
 
 
+def test_post_event_links_to_event_review_form():
+    """UA4-4b wiring: письмо ведёт на generic-форму отзыва о событии
+    (/veranstaltung/<pk>/bewerten/, абсолютная ссылка) — не на корень витрины."""
+    from django.db import connection
+
+    from apps.notifications.models import Notification as N
+    from apps.tenants.tests.factories import DomainFactory, TenantFactory
+
+    tenant = TenantFactory(schema_name=connection.schema_name)
+    DomainFactory(tenant=tenant, domain="retreat.example.de", is_primary=True)
+    start = timezone.now() - timedelta(days=2)
+    ev = _event(starts_at=start, ends_at=start + timedelta(hours=6))
+    ticket = _confirmed_ticket(ev)
+    assert tasks.send_due_post_event() == 1
+    n = N.objects.get(dedupe_key=f"ticket:{ticket.id}:post_event:customer")
+    assert f"https://retreat.example.de/veranstaltung/{ev.pk}/bewerten/" in n.payload["body"]
+
+
 def test_post_event_skips_future_event():
     ev = _event(starts_at=timezone.now() + timedelta(days=5))
     _confirmed_ticket(ev)

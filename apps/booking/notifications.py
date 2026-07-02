@@ -16,6 +16,7 @@ _CUSTOMER_TEMPLATES = {
     "confirmed": "booking_confirmed",
     "cancelled": "booking_cancelled",
     "reminder": "booking_reminder",
+    "post_visit": "booking_post_visit",  # UA4-4b: danke + запрос отзыва об услуге
 }
 
 
@@ -33,6 +34,14 @@ def enqueue_booking_email(booking, event):
             if base
             else ""
         )
+        # UA4-4b wiring: post-visit ведёт на форму отзыва об услуге (generic
+        # reviews, GET → деталь с формой). Нет услуги/домена → письмо без ссылки.
+        if event == "post_visit" and booking.service_id:
+            ctx["review_url"] = (
+                f"{base}{reverse('storefront-service-review', args=[booking.service_id])}"
+                if base
+                else ""
+            )
         subject, body, html = _render(template_base, {**ctx, "unsubscribe_url": unsub})
         headers = None
         if unsub:

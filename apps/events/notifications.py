@@ -41,6 +41,14 @@ def enqueue_ticket_email(ticket, event):
             else ""
         )
         ctx["website_url"] = base or ""
+        # UA4-4b wiring: post-event ведёт на форму отзыва о событии (generic
+        # reviews, GET → деталь с формой). Нет домена → письмо без ссылки.
+        if event == "post_event":
+            ctx["review_url"] = (
+                f"{base}{reverse('storefront-event-review', args=[ticket.event_id])}"
+                if base
+                else ""
+            )
         # R12: ссылка на самостоятельную отмену билета (политика — на событии).
         if base and event in ("created", "confirmed"):
             from .public_views import cancel_url

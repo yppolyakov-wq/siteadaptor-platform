@@ -49,3 +49,38 @@ def send_booking_reminders():
         with schema_context(schema):
             total += send_due_reminders()
     return total
+
+
+def send_due_post_visits(now=None) -> int:
+    """UA4-4b wiring: post-visit письмо (danke + запрос отзыва об услуге) после
+    завершения записи — ровно одно на запись (post_visit_sent_at + БД-дедуп).
+    Окно [end ≥ N+7 дней назад … end ≤ N дней назад] (подхват пропусков, как
+    post-stay у stays); только состоявшиеся записи УСЛУГ (есть что оценивать)."""
+    now = now or timezone.now()
+    days = getattr(settings, "BOOKING_POSTVISIT_DAYS", 1)
+    upper = now - timezone.timedelta(days=days)  # закончилась хотя бы N дней назад
+    lower = upper - timezone.timedelta(days=7)  # окно подхвата пропусков
+    due = Booking.objects.filter(
+        status__in=(Booking.STATUS_CONFIRMED, Booking.STATUS_FULFILLED),
+        post_visit_sent_at__isnull=True,
+        service__isnull=False,
+        end__gte=lower,
+        end__lte=upper,
+    )
+    sent = 0
+    for booking in due:
+        enqueue_booking_email(booking, "post_visit")
+        booking.post_visit_sent_at = timezone.now()
+        booking.save(update_fields=["post_visit_sent_at", "updated_at"])
+        sent += 1
+    return sent
+
+
+@shared_task
+def send_booking_post_visits():
+    """Beat (раз в сутки): post-visit письма по всем схемам арендаторов."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_post_visits()
+    return total

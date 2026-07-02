@@ -327,6 +327,9 @@ class Booking(TimestampedModel):
     source_channel = models.CharField(max_length=50, blank=True)
     # Напоминание (D3c, beat): чтобы слать ровно одно.
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
+    # UA4-4b wiring: post-visit письмо (danke + запрос отзыва об услуге, beat) —
+    # ровно одно на запись, как post_stay_sent_at у StayBooking.
+    post_visit_sent_at = models.DateTimeField(null=True, blank=True)
 
     # P2.5b: онлайн-депозит через Stripe Connect (деньги → бизнесу напрямую).
     PAYMENT_NONE = "none"

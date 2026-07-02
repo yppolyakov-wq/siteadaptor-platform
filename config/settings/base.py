@@ -277,6 +277,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.booking.tasks.send_booking_reminders",
         "schedule": 3600.0,  # раз в час — напоминание за N часов до записи (D3c)
     },
+    "send-booking-post-visits": {
+        "task": "apps.booking.tasks.send_booking_post_visits",
+        "schedule": 86400.0,  # раз в сутки — danke + запрос отзыва об услуге (UA4-4b)
+    },
     "send-service-reminders": {
         "task": "apps.jobs.tasks.send_service_reminders",
         "schedule": 86400.0,  # раз в сутки — TÜV/Service-Reminder за N дней (A9)

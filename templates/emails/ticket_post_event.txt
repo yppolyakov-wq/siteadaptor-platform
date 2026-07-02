@@ -2,7 +2,7 @@ Hallo {{ customer.name }},
 
 vielen Dank, dass Sie bei „{{ event.title }}“ dabei waren — wir hoffen, es hat Ihnen gutgetan!
 
-Wir würden uns sehr über eine kurze Rückmeldung freuen. Und wenn Sie wieder auftanken möchten: unsere nächsten Termine finden Sie jederzeit{% if website_url %} auf {{ website_url }}{% endif %}.
+Wir würden uns sehr über eine kurze Bewertung freuen{% if review_url %}: {{ review_url }}{% endif %}. Und wenn Sie wieder auftanken möchten: unsere nächsten Termine finden Sie jederzeit{% if website_url %} auf {{ website_url }}{% endif %}.
 
 Herzliche Grüße
 
