@@ -3561,3 +3561,14 @@
   точечно и пропустил `apps/stays/public_views.py` (sed-правка gift-вызова) → формат-чек CI по
   всему дереву. Оба фикса — по коммиту; run 1123 зелёный, FF-мерж `86bbd33` → main. Конвенция
   §5 дополнена финальным гейтом батча (format целиком, build:css, шаблонные замки).
+- **2026-07-02 — Стек ТЗ одобрен владельцем + СТАРТ ВОЛНЫ U-C: UC1-1 (единый реестр секций).**
+  Владелец одобрил целиком: идеи A1–D3 (`feature-ideas-2026-07-02.md`), втяжку U-E-пакетов
+  UE2/UE3 в U-C (`uc-plan §11`), контент-анализ CM-1..9 (`market-content-analysis-2026-07-02.md`);
+  сводная очередь — roadmap §«Одобренный стек ТЗ». **UC1-1 ✅:** шаг 0 — golden-замки
+  `siteconfig.normalize` (4 репрезентативных конфига → эталоны `golden/*.json`, байт-в-байт +
+  идемпотентность; постоянный гейт волны); затем фасад `page_types`/`page_section_keys`/
+  `page_section_labels`/`page_sections(config, page_type)` над SECTIONS (home) и
+  `detail_sections` (детали) — осознанное отклонение от буквы плана (реестры первичны, фасад
+  над ними; normalize не тронут). Грабля фикстуры: config-ключи деталей `service_detail`/
+  `stay_detail` (не `booking_/stays_`) — normalize молча игнорирует неизвестные. Гейт: 527
+  passed (tenants+builder+preview+sections). Без миграций. Дальше — UC1-2′ (listing/info/legal).
