@@ -8,6 +8,8 @@ urlpatterns = [
     path("", views.promotion_list, name="promotion-list"),
     # Инлайн-правка акции на канве витрины (редактор): заголовок/цена.
     path("inline-edit/", views.promotion_inline_edit, name="promotion-inline-edit"),
+    # UE3-2: галерея акции на канве (replace/add/remove, multipart).
+    path("photo-edit/", views.promotion_photo_edit, name="promotion-photo-edit"),
     path("new/", views.promotion_create, name="promotion-create"),
     path("<uuid:pk>/edit/", views.promotion_edit, name="promotion-edit"),
     path("<uuid:pk>/transition/", views.promotion_transition, name="promotion-transition"),

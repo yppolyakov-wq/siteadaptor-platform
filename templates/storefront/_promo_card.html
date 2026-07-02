@@ -2,6 +2,12 @@
 <a href="{% url 'storefront-promotion' p.pk %}"
    class="sf-card group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
   <div class="relative aspect-square bg-gray-100">
+    {% comment %}UE3-2: замена главного фото акции на канве (режим правки билдера).
+    Hidden по умолчанию; раскрывает JS билдера при editOn. Пустая галерея акции →
+    replace добавляет главное (фолбэк на фото товара цел).{% endcomment %}
+    <button type="button" data-photo-edit data-edit-model="promotion" data-edit-pk="{{ p.pk }}"
+       class="sf-photo-edit hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+       title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
     {% with img=p.primary_image %}
       {% if img %}
         <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"

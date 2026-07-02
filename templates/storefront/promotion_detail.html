@@ -20,6 +20,18 @@
 <div class="grid md:grid-cols-2 gap-6 md:gap-10">
   {# Фото #}
   <div class="relative">
+    {% comment %}UE3-2: 📷 замена главного фото акции + 🗑 удаление (только когда
+    у акции СВОЯ галерея — фолбэк-фото товара не удаляем). Hidden по умолчанию;
+    раскрывает JS билдера при editOn.{% endcomment %}
+    <button type="button" data-photo-edit data-edit-model="promotion" data-edit-pk="{{ promotion.pk }}"
+       class="sf-photo-edit hidden absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600"
+       title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
+    {% if promotion.images %}
+      <button type="button" data-photo-edit data-edit-model="promotion" data-edit-pk="{{ promotion.pk }}"
+         data-photo-op="remove" data-img-id="{{ promotion.primary_image.id }}"
+         class="sf-photo-edit hidden absolute top-2 right-12 z-10 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-red-600"
+         title="{% trans 'Remove this photo?' %}" aria-label="{% trans 'Remove this photo?' %}">🗑</button>
+    {% endif %}
     <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
       {% with img=promotion.primary_image %}
         {% if img %}

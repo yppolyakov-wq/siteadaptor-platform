@@ -125,6 +125,45 @@ def promotion_inline_edit(request):
     return HttpResponse(status=204)
 
 
+@login_required
+@require_POST
+def promotion_photo_edit(request):
+    """UE3-2: править галерею АКЦИИ прямо на канве витрины (multipart).
+
+    POST: pk, op ∈ {replace, add, remove}, image_id (replace/remove), image
+    (файл для replace/add). Реюз catalog.images.apply_gallery_op (Pillow +
+    storage + primary-логика; folder="promotions" — как _handle_promo_uploads).
+    Фолбэк карточки на фото товара цел: primary_image решает сама (пустая
+    галерея акции → фото товара; replace в пустую добавляет главное).
+    Сброс кэша витрины. Только владелец. 204/400.
+    """
+    from django.db import transaction
+    from django.http import HttpResponseBadRequest
+
+    from apps.catalog.images import apply_gallery_op
+
+    pk = request.POST.get("pk")
+    op = request.POST.get("op", "replace")
+    image_id = request.POST.get("image_id", "")
+    uploaded = request.FILES.get("image")
+    if not pk:
+        return HttpResponseBadRequest()
+    try:
+        # Блокируем строку на время read-modify-write JSON-поля images (lost update).
+        with transaction.atomic():
+            promo = Promotion.objects.select_for_update().get(pk=pk)
+            promo.images = apply_gallery_op(
+                promo.images, op=op, image_id=image_id, uploaded=uploaded, folder="promotions"
+            )
+            promo.save(update_fields=["images", "updated_at"])
+    except (Promotion.DoesNotExist, ValueError):
+        return HttpResponseBadRequest()
+    except ValidationError as exc:
+        return HttpResponseBadRequest("; ".join(exc.messages))
+    _bump_storefront(request)
+    return HttpResponse(status=204)
+
+
 # подписи для кнопок переходов акции
 _PROMO_ACTION_LABELS = {
     "scheduled": "Schedule",
