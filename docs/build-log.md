@@ -3576,3 +3576,8 @@
   `listing.html` + about + Impressum/Datenschutz/Widerruf как first-class page_type фасада
   (fixed-order мета, конфиг пока не управляет — тест фиксирует; управление — UC2-3/UC3-2,
   AGB — с E-2/L5). 26 passed (registry+golden+siteconfig), normalize не тронут. Без миграций.
+- **2026-07-02 — UC1-3 (U-C): иконки в реестр + generic page_inspector.** `SECTION_ICONS` →
+  siteconfig (KEYS+LABELS+ICONS вместе) + `page_section_icons`; `page_inspector(config,
+  page_type)` из единого реестра (event — orderable с 1-based order, прочие hide-only) —
+  4 ручные сборки в `home_builder_view` заменены; контекст-ключи шаблона неизменны. Гейт: 165
+  passed. Фаза U-C1 (реестр) ЗАКРЫТА; дальше UC2-1 (page-scoped draft, ⚠️ горячее). Без миграций.
