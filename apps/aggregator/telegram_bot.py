@@ -5,6 +5,7 @@
 home). Подключение (connect_bot) ставит webhook на хост портала.
 """
 
+import hmac
 import json
 
 from django.http import Http404, HttpResponse
@@ -57,8 +58,10 @@ def webhook(request, secret):
     bot = PortalBot.objects.filter(webhook_secret=secret, is_active=True).exclude(token="").first()
     if bot is None:
         raise Http404
+    # secret_token заголовок ОБЯЗАТЕЛЕН (set_webhook всегда его задаёт) и сверяется
+    # constant-time; пустой/чужой → 404 (закрывает обход пустым заголовком).
     header = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
-    if header and header != bot.webhook_secret:
+    if not hmac.compare_digest(header, bot.webhook_secret):
         raise Http404
     try:
         update = json.loads(request.body.decode() or "{}")

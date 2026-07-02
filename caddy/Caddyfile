@@ -31,7 +31,11 @@
 # Главный домен — сертификат по HTTP-01 автоматически.
 siteadaptor.de {
 	encode zstd gzip
-	reverse_proxy web:8000
+	# Перезаписываем X-Forwarded-For реальным peer-IP: клиент не может подделать
+	# (rate-limit/Meldeschein-IP берут первый адрес XFF). Единственный хоп — Caddy.
+	reverse_proxy web:8000 {
+		header_up X-Forwarded-For {http.request.remote.host}
+	}
 }
 
 # Субдомены арендаторов ({slug}.siteadaptor.de) и будущие custom-домены —
@@ -41,5 +45,8 @@ https:// {
 	tls {
 		on_demand
 	}
-	reverse_proxy web:8000
+	# см. выше: клиент не может подделать X-Forwarded-For (перезапись реальным peer).
+	reverse_proxy web:8000 {
+		header_up X-Forwarded-For {http.request.remote.host}
+	}
 }

@@ -62,6 +62,7 @@ def handle_event(event_type: str, obj: dict) -> None:
             tenant_schema=meta.get("tenant_schema", ""),
             promo_uuid=meta.get("promo_uuid", ""),
             days=meta.get("days", 0),
+            payment_ref=obj.get("payment_intent") or obj.get("id", ""),
         )
         if not ok:
             logger.warning("stripe webhook featured: listing not found %s", meta)

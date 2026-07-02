@@ -62,6 +62,10 @@ class AggregatorListing(I18nMixin, models.Model):
     # выдачи с бейджем «Empfohlen». Срок ставит супер-админ (P2.4b добавит
     # самообслуживание через Stripe). sync_listing поле не трогает.
     featured_until = models.DateTimeField(null=True, blank=True, db_index=True)
+    # Персистентная идемпотентность featured-платежа: ref последнего применённого
+    # платежа (payment_intent). Тот же платёж не продлевает срок повторно даже при
+    # потере Redis-дедупа по event.id (аудит 2026-07-01).
+    featured_payment_ref = models.CharField(max_length=255, blank=True, default="")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

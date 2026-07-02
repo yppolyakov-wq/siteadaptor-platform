@@ -147,6 +147,51 @@ def test_apply_featured_ignores_expired_base():
     assert listing.featured_until > before + timedelta(days=6)
 
 
+def test_apply_featured_same_payment_ref_is_idempotent():
+    # реплей того же платежа (напр. потеря Redis-дедупа) не продлевает срок повторно
+    listing = _listing()
+    ok1 = services.apply_featured_purchase(
+        tenant_schema=listing.tenant_schema,
+        promo_uuid=str(listing.promo_uuid),
+        days=7,
+        payment_ref="pi_123",
+    )
+    assert ok1 is True
+    listing.refresh_from_db()
+    until_after_first = listing.featured_until
+    ok2 = services.apply_featured_purchase(
+        tenant_schema=listing.tenant_schema,
+        promo_uuid=str(listing.promo_uuid),
+        days=7,
+        payment_ref="pi_123",
+    )
+    assert ok2 is False  # тот же платёж — no-op
+    listing.refresh_from_db()
+    assert listing.featured_until == until_after_first  # срок не сдвинулся
+
+
+def test_apply_featured_different_payment_ref_extends():
+    # новый платёж (другой payment_intent) — легитимно продлевает
+    listing = _listing()
+    services.apply_featured_purchase(
+        tenant_schema=listing.tenant_schema,
+        promo_uuid=str(listing.promo_uuid),
+        days=7,
+        payment_ref="pi_a",
+    )
+    listing.refresh_from_db()
+    first = listing.featured_until
+    ok = services.apply_featured_purchase(
+        tenant_schema=listing.tenant_schema,
+        promo_uuid=str(listing.promo_uuid),
+        days=7,
+        payment_ref="pi_b",
+    )
+    assert ok is True
+    listing.refresh_from_db()
+    assert listing.featured_until > first  # второй платёж продлил
+
+
 def test_apply_featured_missing_listing_is_noop():
     ok = services.apply_featured_purchase(
         tenant_schema="nope", promo_uuid=str(uuid.uuid4()), days=7

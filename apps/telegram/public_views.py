@@ -5,6 +5,7 @@ CSRF. secret в пути + опц. заголовок X-Telegram-Bot-Api-Secret-
 отвечаем 200, чтобы Telegram не ретраил (ошибки гасим).
 """
 
+import hmac
 import json
 import logging
 
@@ -26,8 +27,10 @@ def webhook(request, secret):
     )
     if bot is None:
         raise Http404
+    # secret_token заголовок ОБЯЗАТЕЛЕН (set_webhook всегда его задаёт) и сверяется
+    # constant-time; пустой/чужой → 404 (закрывает обход пустым заголовком).
     header = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
-    if header and header != bot.webhook_secret:
+    if not hmac.compare_digest(header, bot.webhook_secret):
         raise Http404
     try:
         update = json.loads(request.body.decode() or "{}")

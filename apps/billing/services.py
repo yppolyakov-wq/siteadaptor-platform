@@ -130,13 +130,16 @@ def create_featured_checkout_session(
     return session["url"]
 
 
-def apply_featured_purchase(*, tenant_schema: str, promo_uuid: str, days) -> bool:
+def apply_featured_purchase(
+    *, tenant_schema: str, promo_uuid: str, days, payment_ref: str = ""
+) -> bool:
     """Оплата прошла → продлить featured_until листинга (public-схема, P2.4b).
 
     Срок продлеваем от max(now, текущий) — повторная покупка добавляет дни, а не
-    сбрасывает. Идемпотентность одного платежа — на уровне вебхука (дедуп по
-    event.id). Листинг существует, только пока акция active (sync_listing); если
-    его нет (акция уже завершилась) — no-op, возвращаем False.
+    сбрасывает. Идемпотентность одного платежа — двухуровневая: дедуп вебхука по
+    event.id (Redis) + персистентный `featured_payment_ref` на листинге (переживает
+    потерю кэша: тот же payment_intent не продлевает срок повторно). Листинг
+    существует, только пока акция active (sync_listing); если его нет — no-op (False).
     """
     from datetime import timedelta
 
@@ -152,10 +155,15 @@ def apply_featured_purchase(*, tenant_schema: str, promo_uuid: str, days) -> boo
     ).first()
     if listing is None:
         return False
+    # тот же платёж уже применён (реплей вебхука при утрате Redis-дедупа) → no-op
+    if payment_ref and listing.featured_payment_ref == payment_ref:
+        return False
     now = timezone.now()
     base = listing.featured_until if listing.is_featured_now else now
     listing.featured_until = base + timedelta(days=days)
-    listing.save(update_fields=["featured_until", "updated_at"])
+    if payment_ref:
+        listing.featured_payment_ref = payment_ref
+    listing.save(update_fields=["featured_until", "featured_payment_ref", "updated_at"])
     return True
 
 

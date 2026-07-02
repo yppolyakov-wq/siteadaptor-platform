@@ -30,7 +30,10 @@ def test_webhook_start_opens_portal_miniapp(monkeypatch):
     )
     body = json.dumps({"message": {"chat": {"id": 5}, "text": "/start"}})
     req = RequestFactory().post(
-        f"/tg/{bot.webhook_secret}/", data=body, content_type="application/json"
+        f"/tg/{bot.webhook_secret}/",
+        data=body,
+        content_type="application/json",
+        HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN=bot.webhook_secret,
     )
     resp = telegram_bot.webhook(req, secret=bot.webhook_secret)
     assert resp.status_code == 200

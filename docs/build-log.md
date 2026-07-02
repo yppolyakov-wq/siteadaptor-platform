@@ -3370,3 +3370,18 @@
   angemeldet» больше не показывается (нейтральный «prüfen Sie Ihr Postfach»); ветку `already` в шаблоне
   оставили неиспользуемой. Тесты: `test_newsletter.py` (honeypot→нет Customer/письма; already→нейтрально,
   без повторного письма). Гейт: 164 promotions passed, ruff+check чисты. Без миграций.
+- **2026-07-01 — security-батч (Fernet-check + Telegram + XFF + Stripe featured).** Закрыты low/medium
+  из аудита. (S1, вариант а) `apps/secrets/checks.py` — Django deploy-check `secrets.W001`: в проде
+  предупреждает, если `SECRETS_ENCRYPTION_KEY` не задан (ключ падает на фолбэк из `SECRET_KEY`); `deploy=True`
+  → молчит в dev/CI, не ломает старт. Тест `test_checks.py`. (S2) Telegram-вебхуки (`apps/telegram/public_views.py`
+  + `apps/aggregator/telegram_bot.py`): заголовок `X-Telegram-Bot-Api-Secret-Token` теперь **обязателен** и
+  сверяется `hmac.compare_digest` (пустой/чужой → 404) — закрыт обход пустым заголовком; `set_webhook` всегда
+  шлёт `secret_token`, поэтому легитимные апдейты проходят; тесты обновлены (передают заголовок) + новый
+  `test_webhook_missing_secret_header_404`. (S3) `caddy/Caddyfile`: оба `reverse_proxy` перезаписывают
+  `X-Forwarded-For` реальным peer-IP (`header_up X-Forwarded-For {http.request.remote.host}`) → клиент не может
+  подделать XFF (rate-limit/Meldeschein-IP берут первый адрес). ⚠️ применяется при перезагрузке Caddy (деплой).
+  (S4) `apply_featured_purchase` (`billing/services.py`) — персистентная идемпотентность featured-платежа:
+  новое поле `AggregatorListing.featured_payment_ref` (миграция `aggregator/0013`) + сверка `payment_intent`
+  (реплей вебхука при потере Redis-дедупа не продлевает срок повторно); вебхук пробрасывает `payment_ref`.
+  Тесты `test_featured.py` (тот же ref → no-op; другой → продлевает). Гейт: 26 таргетных (`--create-db`) +
+  регрессия telegram/aggregator/billing; ruff+`manage.py check` чисты. **Миграция `aggregator/0013` → деплой.**

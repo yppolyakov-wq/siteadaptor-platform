@@ -87,9 +87,18 @@ def test_webhook_valid_calls_handler(monkeypatch):
     monkeypatch.setattr(public_views, "handle_update", lambda b, u, r: called.update(ok=True))
     body = json.dumps({"message": {"chat": {"id": 5}, "text": "/start"}})
     req = _request("post", f"/tg/{bot.webhook_secret}/", body=body)
+    req.META["HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN"] = bot.webhook_secret
     resp = public_views.webhook(req, secret=bot.webhook_secret)
     assert resp.status_code == 200
     assert called.get("ok") is True
+
+
+def test_webhook_missing_secret_header_404():
+    # без заголовка X-Telegram-Bot-Api-Secret-Token — 404 (обход пустым заголовком закрыт)
+    bot = TelegramBot.objects.create(token="t", is_active=True)
+    req = _request("post", f"/tg/{bot.webhook_secret}/", body="{}")
+    with pytest.raises(Http404):
+        public_views.webhook(req, secret=bot.webhook_secret)
 
 
 def test_webhook_inactive_bot_404():
