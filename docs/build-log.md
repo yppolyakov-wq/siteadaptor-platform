@@ -3572,3 +3572,7 @@
   над ними; normalize не тронут). Грабля фикстуры: config-ключи деталей `service_detail`/
   `stay_detail` (не `booking_/stays_`) — normalize молча игнорирует неизвестные. Гейт: 527
   passed (tenants+builder+preview+sections). Без миграций. Дальше — UC1-2′ (listing/info/legal).
+- **2026-07-02 — UC1-2 (U-C): реестр page_type += listing/info/legal.** Слоты каркаса
+  `listing.html` + about + Impressum/Datenschutz/Widerruf как first-class page_type фасада
+  (fixed-order мета, конфиг пока не управляет — тест фиксирует; управление — UC2-3/UC3-2,
+  AGB — с E-2/L5). 26 passed (registry+golden+siteconfig), normalize не тронут. Без миграций.
