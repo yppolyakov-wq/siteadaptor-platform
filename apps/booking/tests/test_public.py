@@ -410,6 +410,18 @@ def test_service_detail_primary_action_request_override():
     assert idx_anfrage < idx_slots  # Anfrage — первичная (выше брони)
 
 
+def test_service_detail_buybox_exact_ctas():
+    """UA3-1 слайс 2 (шаг 0): точные href обоих CTA внутри #buchen — паритет-замок
+    перед сводом buy-box на единый _buybox.html."""
+    service = _service()
+    body = public_views.service_detail(
+        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    aside = body[body.find('id="buchen"') :]
+    assert f'href="/termin/leistung/{service.pk}/"' in aside
+    assert 'href="/anfrage/"' in aside
+
+
 def test_service_detail_renders_attributes_and_faq():
     """UA4-3: богатая карточка — атрибуты + FAQ на детали услуги (секции-хуки)."""
     service = _service(
