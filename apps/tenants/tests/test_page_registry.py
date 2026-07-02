@@ -85,3 +85,29 @@ def test_detail_page_sections_apply_order_and_hidden():
 
 def test_unknown_page_type_is_empty_list():
     assert siteconfig.page_sections({"sections": []}, "nope") == []
+
+
+def test_page_inspector_hide_only_and_orderable():
+    """UC1-3: generic-инспектор деталей — hide-only без order, event с order
+    и сохранённым порядком; паритет с прежней ручной сборкой home_builder_view."""
+    rows = siteconfig.page_inspector(DETAIL_PAGES, "product_detail")
+    assert [r["key"] for r in rows] == list(siteconfig.PRODUCT_DETAIL_SECTION_KEYS)
+    by_key = {r["key"]: r for r in rows}
+    assert by_key["related"]["visible"] is False  # скрыта конфигом
+    assert "order" not in rows[0]  # hide-only — без order
+
+    ev = siteconfig.page_inspector(DETAIL_PAGES, "event_detail")
+    assert [r["key"] for r in ev[:3]] == ["program", "for_whom", "faq"]  # сохранённый порядок
+    assert [r["order"] for r in ev] == list(range(1, len(ev) + 1))  # 1-based
+    assert {r["key"]: r["visible"] for r in ev}["testimonials"] is False
+    assert len(ev) == len(siteconfig.EVENT_DETAIL_SECTION_KEYS)  # скрытые остаются в списке
+
+    assert siteconfig.page_inspector({}, "home") == []  # home — свой формат, не здесь
+    assert siteconfig.page_inspector({}, "listing") == []  # fail-safe
+
+
+def test_page_section_icons_home_only_for_now():
+    icons = siteconfig.page_section_icons("home")
+    for key in siteconfig.page_section_keys("home"):
+        assert icons.get(key), key  # у каждой home-секции есть иконка
+    assert siteconfig.page_section_icons("event_detail") == {}

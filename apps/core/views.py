@@ -699,30 +699,8 @@ def site_view(request):
     )
 
 
-# SE-9c: эмодзи-иконки блоков для динамического рейла (по ключу секции). Дефолт — 🧩.
-_SECTION_ICONS = {
-    "hero": "🖼",
-    "usp_bar": "✨",
-    "stay_search": "🔎",
-    "stay_rooms": "🛏️",
-    "services": "🛠️",
-    "promotions": "🏷️",
-    "categories": "🗂️",
-    "products": "🛍️",
-    "events": "📅",
-    "archetypes": "🧭",
-    "about": "ℹ️",
-    "process": "🪜",
-    "team": "👥",
-    "cta": "📣",
-    "testimonials": "💬",
-    "trust": "🛡️",
-    "reviews": "⭐",
-    "faq": "❓",
-    "gallery": "🏞️",
-    "before_after": "🔁",
-    "contact": "✉️",
-}
+# SE-9c → UC1-3: иконки секций переехали в реестр (siteconfig.SECTION_ICONS —
+# KEYS+LABELS+ICONS вместе); вьюха читает их через siteconfig. Дефолт — 🧩.
 
 
 @login_required
@@ -1230,7 +1208,7 @@ def home_builder_view(request):
                 "label": labels[s["key"]],
                 "enabled": s["enabled"],
                 "order": index,
-                "icon": _SECTION_ICONS.get(s["key"], "🧩"),  # SE-9c: иконка блока для рейла
+                "icon": siteconfig.SECTION_ICONS.get(s["key"], "🧩"),  # SE-9c: иконка рейла
                 "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
                 "layout_preset": (s.get("layout") or {}).get("preset", ""),
                 # SE-3c: пер-девайс число колонок (0 для tablet = «авто»).
@@ -1271,41 +1249,13 @@ def home_builder_view(request):
         ("featured_only", _("Featured only")),
     ]
     archetypes_enabled = any(s["key"] == "archetypes" and s["enabled"] for s in config["sections"])
-    # SE-2b-2: секции детальной события (порядок + видимость) для on-canvas инспектора
-    # — тот же реестр и порядок, что на вкладке «Pages».
-    ed = config["event_detail"]
-    ed_hidden = set(ed["hidden"])
-    ed_seen = set(ed["order"])
-    ed_full = ed["order"] + [k for k in siteconfig.EVENT_DETAIL_SECTION_KEYS if k not in ed_seen]
-    _event_labels = detail_sections.section_labels("events")
-    event_sections = [
-        {
-            "key": k,
-            "label": _event_labels.get(k, k),
-            "order": i + 1,
-            "visible": k not in ed_hidden,
-        }
-        for i, k in enumerate(ed_full)
-    ]
-    # Опц. секции детальной товара (показ/скрытие) для on-canvas инспектора (group=catalog_detail).
-    _pd_hidden = set(config["product_detail"]["hidden"])
-    _product_labels = detail_sections.section_labels("catalog")
-    product_sections = [
-        {"key": k, "label": _product_labels.get(k, k), "visible": k not in _pd_hidden}
-        for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
-    ]
-
-    # UA4-1 slice C: опц. секции детальной услуги/номера — тот же hide-only инспектор.
-    def _detail_rows(module, config_key):
-        hidden = set(config[config_key]["hidden"])
-        labels = detail_sections.section_labels(module)
-        return [
-            {"key": k, "label": labels.get(k, k), "visible": k not in hidden}
-            for k in detail_sections.section_keys(module)
-        ]
-
-    service_sections = _detail_rows("booking", "service_detail")
-    stay_sections = _detail_rows("stays", "stay_detail")
+    # SE-2b-2 → UC1-3: секции детальных страниц для on-canvas инспектора — generic
+    # `siteconfig.page_inspector` из единого реестра (event — orderable с order;
+    # product/service/stay — hide-only), вместо четырёх ручных сборок.
+    event_sections = siteconfig.page_inspector(config, "event_detail")
+    product_sections = siteconfig.page_inspector(config, "product_detail")
+    service_sections = siteconfig.page_inspector(config, "service_detail")
+    stay_sections = siteconfig.page_inspector(config, "stay_detail")
     # SE-2c-1: живые категории каталога — для parent-select мини-формы «+ Kategorie».
     catalog_categories = []
     if request.tenant.is_module_active("catalog"):

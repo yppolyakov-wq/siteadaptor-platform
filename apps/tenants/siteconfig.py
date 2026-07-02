@@ -660,6 +660,62 @@ def page_section_labels(page_type: str) -> dict:
     return detail_sections.section_labels(module) if module else {}
 
 
+# UC1-3 (SE-9c): эмодзи-иконки секций ГЛАВНОЙ для рейла билдера (перенос из
+# apps/core/views.py — реестр держит KEYS+LABELS+ICONS вместе). Дефолт — 🧩.
+SECTION_ICONS = {
+    "hero": "🖼",
+    "usp_bar": "✨",
+    "stay_search": "🔎",
+    "stay_rooms": "🛏️",
+    "services": "🛠️",
+    "promotions": "🏷️",
+    "categories": "🗂️",
+    "products": "🛍️",
+    "events": "📅",
+    "archetypes": "🧭",
+    "about": "ℹ️",
+    "process": "🪜",
+    "team": "👥",
+    "cta": "📣",
+    "testimonials": "💬",
+    "trust": "🛡️",
+    "reviews": "⭐",
+    "faq": "❓",
+    "gallery": "🏞️",
+    "before_after": "🔁",
+    "contact": "✉️",
+}
+
+
+def page_section_icons(page_type: str) -> dict:
+    """{key: emoji} секций страницы; для страниц без своих иконок — {} (потребитель
+    подставляет дефолт 🧩)."""
+    return dict(SECTION_ICONS) if page_type == "home" else {}
+
+
+def page_inspector(config, page_type: str) -> list[dict]:
+    """UC1-3: строки инспектора секций ДЕТАЛЬНОЙ страницы из единого реестра —
+    [{key, label, visible[, order]}]. hide-only модули — порядок реестра; orderable
+    (event) — сохранённый порядок + order (1-based), как строил home_builder_view
+    вручную. home — НЕ здесь (свой формат с layout/visual/…); не-детальный
+    page_type → [] (fail-safe)."""
+    module = PAGE_DETAIL_MODULES.get(page_type)
+    if module is None:
+        return []
+    nd = normalize_detail_sections((config or {}).get(detail_section_config_key(module)), module)
+    hidden = set(nd.get("hidden", []))
+    keys = detail_sections.section_keys(module)
+    labels = detail_sections.section_labels(module)
+    if not any(s.orderable for s in detail_sections.sections_for(module)):
+        return [{"key": k, "label": labels.get(k, k), "visible": k not in hidden} for k in keys]
+    seen = set(nd.get("order", []))
+    full = nd.get("order", []) + [k for k in keys if k not in seen]
+    return [
+        {"key": k, "label": labels.get(k, k), "order": i + 1, "visible": k not in hidden}
+        for i, k in enumerate(full)
+    ]
+
+
 def page_sections(config, page_type: str) -> list[str]:
     """Упорядоченные ВИДИМЫЕ ключи секций страницы из конфига — ЛЮБОЙ page_type.
 
