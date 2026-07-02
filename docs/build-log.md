@@ -3651,3 +3651,8 @@
   moveBlock, общий drop-line) → schedule → драфт `event_detail.order` (generic после
   UC2-1). UC2-2 закрыт в реализуемом объёме (слайс 3 — C-блоки вне home — заблокирован
   архитектурой sections=home-only, требует решения владельца; план-док §2). Без миграций.
+- **2026-07-02 — UC4-3 (U-C): галерея услуги — шим dict→[dict] (D4a, БЕЗ миграции).**
+  `Service.images`-шим над тем же JSONField (легаси dict → [dict]; запись photo-edit —
+  всегда список), `image_url` primary-aware; `service_photo_edit` → полный
+  replace/add/remove (apply_gallery_op); деталь услуги — единая `_media_gallery`
+  (лайтбокс, пер-слайд контролы) → галерея на 5/5 kind. Адаптер gallery из шима.
