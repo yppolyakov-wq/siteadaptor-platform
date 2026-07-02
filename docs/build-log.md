@@ -3380,3 +3380,12 @@
   перенесена БЕЗ изменений. Все 4 листинга витрины на одном каркасе. Гейты: 93/68/164 таргетных
   + широкий локальный 1553 passed (1 флейк admin-dashboard — артефакт reuse-db, на свежей БД
   зелёный) + CI run 1088 зелёный. FF-мерж `6f4b567` → main. Без миграций.
+- **2026-07-02 — UB2-1 (U-B): протокол FacetProvider + провайдеры фасетов 4 листингов.**
+  `apps/core/facets.py`: `FacetProvider` (selected/apply/present) + `NullFacets` + ленивый
+  `provider_for(kind)`. Провайдеры-делегаты без изменения выдачи: events (обёртка
+  `_event_facets`/`_event_matches`), catalog (категория slug + диета; chips по встречающимся),
+  stays (разбор date-search von/bis/erw/kinder; движок наличия не тронут), booking (NullFacets).
+  Все 4 вьюхи листингов вызывают провайдер вместо хардкода; product_list: facet_base =
+  provider.apply(категория-без-диеты) — прежний снимок для границ цены/бейджей. Новый
+  `apps/core/tests/test_facets.py` (6). Гейт: 190 таргетных passed, CI run 1090 зелёный,
+  FF-мерж `fe3ba48` → main. Без миграций. Дальше UB2-2 (поиск ?q= + user-facing sort).
