@@ -3619,3 +3619,18 @@
   `{% trans "Zahlungspflichtig bestellen" %}` (cart.html; DE-msgid — немецкий по
   умолчанию при пустых .po). Тест-замок в test_orders. Остаток E-2 (PAngV-ноты, AGB через
   LegalDoc, засев права в киты, UWG «Anzeige», 404 /entdecken) — следующими слайсами.
+- **2026-07-02 — E-2 слайс 2: UWG «Anzeige» + страница бизнеса на главном /entdecken.**
+  Бейдж платного продвижения «★ Empfohlen» → «★ Anzeige» (UWG §5a; карточки + копия
+  страницы Empfehlung; замки обновлены). A8-асимметрия закрыта: `business_page`
+  портал-опциональна (главный домен: база `_base.html`, отзывы read-only, сабмит —
+  портал-only с хинтом), маршрут `/entdecken/unternehmen/<slug>/` в urls_public под
+  ТЕМ ЖЕ name `portal-business`, `business_link=True` в city_listing. Без миграций.
+- **2026-07-02 — UC2-1 (U-C): page-scoped draft-модуль (слайсы A+B).** План-док
+  `docs/uc2-1-page-draft-plan-2026-07-02.md` (разведка агентом + решение «виртуальный
+  фасад»: хранение ПЛОСКОЕ, `pages` — срез; риски literal-переноса №1-4). Слайс A:
+  `PAGE_CONFIG_KEYS` (единая декларация page_type→ключи, вкл. служебный `cart`) +
+  `apply_page_payload` (семантика прежних веток 1:1) + `page_config`-срез + замок
+  консистентности реестр↔apply. Слайс B: шесть per-page блоков `site_preview_draft` →
+  один вызов. Слайс C (save): после анализа НЕ сводим — блоки form-field-driven с
+  presence-guard'ами, свод = переписывание → место UC2-4 (зафиксировано в план-доке).
+  Замки: 164 draft/save/preview + 160 fan-out + golden. Без миграций.
