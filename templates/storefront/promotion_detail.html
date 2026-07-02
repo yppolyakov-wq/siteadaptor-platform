@@ -66,8 +66,7 @@
       <p class="mt-4 text-gray-600 whitespace-pre-line">{{ promotion.description_text }}</p>
     {% endif %}
 
-    {# UA3-1 слайс 2: buy-box (reserve / sold-out→waitlist) — единый партиал;
-       promotion вне реестра SellableEntity → mode передаём явно. #}
+    {# UA3-1 слайс 2: buy-box (reserve / sold-out→waitlist) — единый партиал; promotion вне реестра SellableEntity → mode явно. #}
     {% include "storefront/_buybox.html" with buybox_mode="reserve" %}
 
     {# Поделиться + QR #}
