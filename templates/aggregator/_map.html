@@ -1,12 +1,12 @@
-{% load i18n %}{# Карта листингов (G8c): ожидает map_points_json + near_active. Leaflet/OSM, без API-ключа. #}
+{% load i18n %}{# Карта листингов (G8c): ожидает map_points (list) + near_active. Leaflet/OSM, без API-ключа. #}
 <div class="mb-4 flex items-center gap-3">
   <button type="button" id="agg-near-me" class="hidden text-sm font-medium rounded-lg px-4 py-2 bg-white border border-gray-300 hover:border-indigo-400">📍 {% trans "Near me" %}</button>
   {% if near_active %}<a href="?" class="text-sm text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}
 </div>
-{% if map_points_json and map_points_json != "[]" %}
+{% if map_points %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <div id="agg-map" class="w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0"></div>
-  <script type="application/json" id="agg-map-data">{{ map_points_json|safe }}</script>
+  {{ map_points|json_script:"agg-map-data" }}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endif %}
 <script>
@@ -28,11 +28,21 @@
   if (dataEl && window.L) {
     var pts = JSON.parse(dataEl.textContent || "[]");
     if (pts.length) {
+      // title/url — свободно редактируемые поля тенанта: попап строим через DOM
+      // (textContent + проверка схемы href), НЕ innerHTML — иначе <img onerror>/javascript:
+      // из title/url исполнятся при открытии маркера.
+      var popupLink = function (url, title) {
+        var a = document.createElement("a");
+        a.textContent = title == null ? "" : String(title);
+        var href = url == null ? "" : String(url);
+        a.href = /^https?:\/\//i.test(href) || href.charAt(0) === "/" ? href : "#";
+        return a;
+      };
       var map = L.map("agg-map");
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
       var group = L.featureGroup(pts.map(function (p) {
-        return L.marker([p.lat, p.lng]).bindPopup('<a href="' + p.url + '">' + p.title + "</a>");
+        return L.marker([p.lat, p.lng]).bindPopup(popupLink(p.url, p.title));
       })).addTo(map);
       map.fitBounds(group.getBounds().pad(0.2));
     }

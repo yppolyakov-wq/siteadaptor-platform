@@ -102,8 +102,6 @@ def portal_home(request, facet=None):
         else:
             city = facet
 
-    import json
-
     from . import geo
     from .views import split_featured
 
@@ -181,7 +179,7 @@ def portal_home(request, facet=None):
             "facet_label": facet_label,
             "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса
             "near_active": near_lat is not None,  # G8c
-            "map_points_json": json.dumps(geo.map_points(cards)),
+            "map_points": geo.map_points(cards),
             "canonical": canonical,
             "other_portals": other_portals,
             "fav_ids": fav_ids,

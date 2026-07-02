@@ -325,8 +325,6 @@ def city_listing(request, city, business_type=None):
     city_portal = AggregatorPortal.objects.filter(
         is_active=True, kind=AggregatorPortal.KIND_CITY, city__iexact=city
     ).first()
-    import json
-
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
@@ -356,7 +354,7 @@ def city_listing(request, city, business_type=None):
             "page": page,
             "cards": cards,
             "near_active": near_lat is not None,  # G8c
-            "map_points_json": json.dumps(geo.map_points(cards)),
+            "map_points": geo.map_points(cards),
             "canonical": request.build_absolute_uri(request.path),
             "other_cities": other_cities,
             "city_portal_url": f"{request.scheme}://{city_portal.host}/" if city_portal else "",

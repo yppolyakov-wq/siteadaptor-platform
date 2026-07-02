@@ -3349,3 +3349,14 @@
   rate-limit/honeypot; фолбэк Fernet-ключа секретов без гейта DEBUG), несколько low. **Пробелы вплетены в
   ТЗ (docs до кода):** master-track §7 (по очереди волн 0→4), ua-plan §7 (остаток U-A), L-plan §10, pointer'ы
   в ub/uc/ud-планах. Приоритет №1 — E-7 платёжный микс DACH (сквозной, вне волн).
+- **2026-07-01 — багфикс(security): 2× HIGH XSS в карте агрегатора (`_map.html`).** (1) JSON точек
+  карты шёл в `<script>` через `{{ map_points_json|safe }}` мимо экранирования (обе вьюхи-источника
+  `aggregator/views.py::city_listing` и `portal_views.py` делали `json.dumps` без `_dumps`-escape) →
+  `Promotion.title` тенанта с `</script>…` вырывался из блока. Фикс: канонический Django
+  `{{ map_points|json_script:"agg-map-data" }}` (экранирует `< > &`, `|safe` убран); вьюхи отдают
+  raw-list `map_points` вместо пред-сериализованной строки (локальные `import json` удалены). (2) Leaflet
+  `bindPopup('<a href="'+p.url+'">'+p.title+'</a>')` вставлял tenant-поля как innerHTML → `<img onerror>`/
+  `javascript:` исполнялись при открытии маркера. Фикс: попап через DOM (`document.createElement`,
+  `a.textContent=title`, `href` только `https?://` или `/`, иначе `#`). Тесты:
+  `apps/aggregator/tests/test_map_xss.py` (breakout-экранирование + DOM-построение попапа). Гейт:
+  162 aggregator passed, ruff+`manage.py check` чисты. Без миграций. (medium/low из аудита — отдельно.)
