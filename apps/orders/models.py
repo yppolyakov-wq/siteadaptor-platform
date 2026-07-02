@@ -44,6 +44,17 @@ class Order(TimestampedModel):
         (PAYMENT_PAID, "Paid"),
         (PAYMENT_REFUNDED, "Refunded"),
     ]
+    # E-7: СПОСОБ оплаты (платёжный микс DACH) — ортогонален payment_state.
+    # "" = легаси-заказы до введения поля. Реестр расширяем (paypal/klarna/sepa —
+    # нативные провайдеры позже, через Stripe payment_method_types уже сейчас).
+    METHOD_ON_SITE = "on_site"  # Barzahlung bei Abholung/Lieferung
+    METHOD_STRIPE = "stripe"  # Online-Zahlung (Stripe Checkout, P2.5c)
+    METHOD_VORKASSE = "vorkasse"  # Überweisung/Vorkasse (реквизиты в письме)
+    PAYMENT_METHODS = [
+        (METHOD_ON_SITE, "Barzahlung bei Abholung"),
+        (METHOD_STRIPE, "Online-Zahlung"),
+        (METHOD_VORKASSE, "Vorkasse (Überweisung)"),
+    ]
 
     # PROTECT, как у Reservation: клиента с заказами нельзя удалить молча
     # (DSGVO-стирание анонимизирует Customer, не удаляя записи).
@@ -59,6 +70,10 @@ class Order(TimestampedModel):
     pickup_location = models.CharField(max_length=200, blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_UNPAID)
+    # E-7: способ оплаты (см. PAYMENT_METHODS); "" = легаси до введения поля.
+    payment_method = models.CharField(
+        max_length=10, choices=PAYMENT_METHODS, blank=True, default=""
+    )
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # P2.5c: для refund
     # Снимок суммы на момент заказа — цены каталога могут меняться.
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)

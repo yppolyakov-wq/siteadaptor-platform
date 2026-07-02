@@ -51,6 +51,11 @@ def order_list(request):
             "status": status,
             "orders_prepay": getattr(tenant, "orders_prepay", False),
             "payments_enabled": getattr(tenant, "payments_enabled", False),
+            # E-7: Vorkasse/Überweisung — тумблер + реквизиты бизнеса.
+            "vorkasse_enabled": getattr(tenant, "vorkasse_enabled", False),
+            "bank_holder": getattr(tenant, "bank_holder", ""),
+            "bank_iban": getattr(tenant, "bank_iban", ""),
+            "bank_bic": getattr(tenant, "bank_bic", ""),
             "delivery_enabled": getattr(tenant, "delivery_enabled", False),
             "delivery_fee_eur": f"{getattr(tenant, 'delivery_fee_cents', 0) / 100:.2f}",
             "delivery_free_eur": f"{getattr(tenant, 'delivery_free_cents', 0) / 100:.2f}",
@@ -297,6 +302,17 @@ def order_settings(request):
                 "pickup_locations",
                 "updated_at",
             ]
+        )
+    elif request.POST.get("form") == "vorkasse":
+        # E-7: Vorkasse/Überweisung + банковские реквизиты. IBAN нормализуем
+        # (без пробелов, верхний регистр); включение без IBAN не активирует
+        # способ на витрине (guard в orders.payments.available_methods).
+        tenant.vorkasse_enabled = bool(request.POST.get("vorkasse_enabled"))
+        tenant.bank_holder = request.POST.get("bank_holder", "").strip()[:120]
+        tenant.bank_iban = request.POST.get("bank_iban", "").replace(" ", "").upper()[:34]
+        tenant.bank_bic = request.POST.get("bank_bic", "").replace(" ", "").upper()[:11]
+        tenant.save(
+            update_fields=["vorkasse_enabled", "bank_holder", "bank_iban", "bank_bic", "updated_at"]
         )
     else:
         tenant.orders_prepay = bool(request.POST.get("orders_prepay"))

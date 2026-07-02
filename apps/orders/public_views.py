@@ -565,6 +565,7 @@ def checkout(request):
 
     # Онлайн-предоплата (P2.5c): если включена у бизнеса и оплата подключена — на
     # Stripe Checkout (на счёт бизнеса). Иначе — оплата при получении (как раньше).
+    # E-7: фиксируем СПОСОБ оплаты (payment_method) на заказе в обеих ветках.
     tenant = getattr(request, "tenant", None)
     if (
         getattr(tenant, "orders_prepay", False)
@@ -572,6 +573,8 @@ def checkout(request):
         and connect.is_connect_configured()
         and order.total > 0
     ):
+        order.payment_method = Order.METHOD_STRIPE
+        order.save(update_fields=["payment_method", "updated_at"])
         order_url = request.build_absolute_uri(
             reverse("storefront-order", args=[order.reference_code])
         )
@@ -583,6 +586,9 @@ def checkout(request):
             )
         except stripe.error.StripeError:
             pass  # оплата временно недоступна — заказ остаётся (оплата при получении)
+    # Обычный путь и фолбэк при недоступном Stripe — оплата при получении.
+    order.payment_method = Order.METHOD_ON_SITE
+    order.save(update_fields=["payment_method", "updated_at"])
     return redirect("storefront-order", code=order.reference_code)
 
 

@@ -37,6 +37,34 @@
   {% endif %}
 </form>
 
+{# E-7: Vorkasse/Überweisung — тумблер + банковские реквизиты (Verwendungszweck = код заказа) #}
+<form method="post" action="{% url 'orders:order-settings' %}" class="mb-4 bg-white rounded-2xl shadow-sm p-4 space-y-3 text-sm">
+  {% csrf_token %}
+  <input type="hidden" name="form" value="vorkasse">
+  <label class="flex items-center gap-2 font-medium">
+    <input type="checkbox" name="vorkasse_enabled" {% if vorkasse_enabled %}checked{% endif %}>
+    {% trans "Vorkasse (bank transfer) — customer pays in advance to your account" %}
+  </label>
+  <div class="grid sm:grid-cols-3 gap-3">
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">{% trans "Account holder" %}</label>
+      <input name="bank_holder" type="text" value="{{ bank_holder }}" maxlength="120" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">IBAN</label>
+      <input name="bank_iban" type="text" value="{{ bank_iban }}" maxlength="34" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">BIC</label>
+      <input name="bank_bic" type="text" value="{{ bank_bic }}" maxlength="11" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
+    </div>
+  </div>
+  {% if vorkasse_enabled and not bank_iban %}
+    <p class="text-amber-700">{% trans "Enter your IBAN — without it Vorkasse is not offered at checkout." %}</p>
+  {% endif %}
+  <button type="submit" class="rounded-lg bg-gray-900 text-white px-4 py-2 text-xs font-medium hover:bg-black">{% trans "Save" %}</button>
+</form>
+
 {# G4: настройки доставки/Versand #}
 <form method="post" action="{% url 'orders:order-settings' %}" class="mb-6 bg-white rounded-2xl shadow-sm p-4 space-y-3 text-sm">
   {% csrf_token %}
@@ -111,6 +139,8 @@
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <span class="text-sm font-medium">{{ o.total }} {{ o.currency }}</span>
+        {# E-7: способ оплаты (пусто у легаси-заказов до введения поля) #}
+        {% if o.payment_method %}<span class="text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">{{ o.get_payment_method_display }}</span>{% endif %}
         {% if o.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>
         {% elif o.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{% trans "refunded" %}</span>{% endif %}
         <span class="text-xs font-medium px-2 py-0.5 rounded-full

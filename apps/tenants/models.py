@@ -62,6 +62,17 @@ class Tenant(TenantMixin):
     payments_enabled = models.BooleanField(default=False)
     # P2.5c: онлайн-предоплата Click&Collect (иначе — оплата при получении).
     orders_prepay = models.BooleanField(default=False)
+    # E-7: Vorkasse/Überweisung как способ оплаты заказов + банковские реквизиты
+    # бизнеса (для блока «Verwendungszweck: <код заказа>» в письме/подтверждении).
+    # Активен только при заполненном IBAN (guard в orders.payments.available_methods).
+    vorkasse_enabled = models.BooleanField(default=False)
+    bank_holder = models.CharField(max_length=120, blank=True)  # Kontoinhaber
+    bank_iban = models.CharField(max_length=34, blank=True)
+    bank_bic = models.CharField(max_length=11, blank=True)
+    # E-7 (шов E7-3): payment_method_types для Stripe Checkout подключённого
+    # аккаунта (["card","paypal","klarna","sepa_debit"]). Пусто = параметр не
+    # передаём (дефолт Stripe Dashboard бизнеса — текущее поведение).
+    stripe_payment_methods = models.JSONField(default=list, blank=True)
 
     # G4: доставка/Versand для заказов (иначе только самовывоз). Плоский тариф +
     # бесплатно-от + Mindestbestellwert + текст зоны.
