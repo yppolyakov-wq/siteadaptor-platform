@@ -107,11 +107,12 @@ def _event(obj, locale):
 
 
 def _combo(obj, locale):
-    # Комбо (A4 Gastro) — плоские DE-строки (без i18n); фикс-цена + надбавки опций.
-    # В U-A только adapter; богатая деталь/варианты — позже.
+    # Комбо (A4 Gastro): фикс-цена + надбавки опций; i18n — L3-оверлей (база в
+    # плоских name/description, переводы в *_i18n) — i18n для 5/5 kind.
+    # Богатая деталь/варианты — позже.
     return {
-        "name": obj.name,
-        "description": obj.description,
+        "name": obj.name_localized(locale),
+        "description": obj.description_localized(locale),
         "price_display": _price_str(obj.price, obj.currency),
         "image_url": "",
         "gallery": [],

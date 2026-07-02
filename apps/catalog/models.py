@@ -296,7 +296,7 @@ class ModifierOption(TimestampedModel):
         return f"{self.label} (+{self.price_delta})"
 
 
-class Combo(SoftDeleteMixin):
+class Combo(I18nMixin, SoftDeleteMixin):
     """Комбо-набор (A4 Gastro): несколько позиций по фикс-цене (Menü/Deal).
 
     Состав — группы выбора (ComboGroup): фиксированная позиция = группа с одной
@@ -306,6 +306,11 @@ class Combo(SoftDeleteMixin):
 
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    # L3 (Волна L): переводы имени/описания на НЕОСНОВНЫЕ локали (оверлей
+    # {locale: str}). Базовая локаль — в плоских name/description (source of
+    # truth, без дрейфа) — как у booking.Service/stays.StayUnit.
+    name_i18n = models.JSONField(default=dict, blank=True)
+    description_i18n = models.JSONField(default=dict, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default="EUR")
     is_active = models.BooleanField(default=True)
@@ -316,6 +321,14 @@ class Combo(SoftDeleteMixin):
 
     def __str__(self):
         return self.name
+
+    def name_localized(self, locale: str | None = None) -> str:
+        """L3: имя комбо на локали (перевод из name_i18n, иначе базовое name)."""
+        return self.get_overlay("name", "name_i18n", locale)
+
+    def description_localized(self, locale: str | None = None) -> str:
+        """L3: описание комбо на локали (перевод из description_i18n, иначе базовое)."""
+        return self.get_overlay("description", "description_i18n", locale)
 
     @property
     def groups_active(self):

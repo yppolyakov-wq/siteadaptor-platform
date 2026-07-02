@@ -90,6 +90,18 @@ def test_combo_cart_mode_no_image():
     assert e.purchase_label == "In den Warenkorb"
 
 
+def test_combo_localized_via_i18n_overlay():
+    """L3-остаток U-A: combo — 5-й kind с i18n (оверлей как у Service/StayUnit)."""
+    from apps.catalog.models import Combo
+
+    c = Combo(name="Menü 1", description="Burger + Cola", price=Decimal("9.90"),
+              name_i18n={"en": "Menu 1"})  # fmt: skip
+    e = sellable_for("combo", c, locale="en")
+    assert e.name == "Menu 1"  # i18n-оверлей
+    assert e.description == "Burger + Cola"  # нет en → база (фолбэк)
+    assert sellable_for("combo", c, locale="de").name == "Menü 1"  # база из плоского поля
+
+
 @pytest.mark.django_db
 def test_product_adapter_cart_mode_price_and_gallery():
     from apps.catalog.models import Product
