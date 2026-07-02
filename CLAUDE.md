@@ -135,9 +135,12 @@ Python 3.12, менеджер uv.
   миграция `catalog/0012`), адаптер `_combo` локализован → i18n 5/5 kind. **Reviews-email wiring ✅**
   — post-event → `/veranstaltung/<pk>/bewerten/`, post-stay → `/unterkunft/<pk>/bewerten/` (вместо
   портала), booking post-visit НОВОЕ письмо → `/leistung/<pk>/bewerten/` (beat, `post_visit_sent_at`,
-  миграция `booking/0014`); ссылки абсолютные, без домена — без ссылки/падения. Остаток U-A:
-  **UA3-1 слайс 2** (единый `_buybox.html`) и **UA3-2** (двухшаговый buy-box) — план-док на
-  согласовании владельца (регрессионно-опасные, снапшот-паритет до правок).
+  миграция `booking/0014`); ссылки абсолютные, без домена — без ссылки/падения. **UA3-1 слайс 2 ✅**
+  — единый `templates/storefront/_buybox.html`: диспатч `cart`/`reserve`/`request`/`booking` по
+  `purchase_mode` контракта (или явный `buybox_mode`); паритет-замки ДО свода
+  (`test_buybox_parity` catalog/promotions + точные href CTA услуги), разметка 1:1, вьюхи/формы
+  не тронуты; план — `docs/ua3-1-buybox-plan-2026-07-02.md`. Остаток U-A: только **UA3-2**
+  (двухшаговый buy-box, `select_url`/`submit_url`) — план-док на согласовании владельца.
 - Самые свежие миграции: **`catalog/0012` + `booking/0014`** (остаток U-A: combo i18n + post-visit,
   2026-07-02 — ⚠️ требуют деплоя) и **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2
   M2M-подборки, 2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
@@ -259,8 +262,8 @@ Python 3.12, менеджер uv.
 демо + рендер витрины `*_localized` — идёт с UA1-3) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5
 (правовое i18n+AGB через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр DE+EN).
 **Статус U-A (2026-07-02, честный по аудиту):** UA1/UA2/UA4 ✅; combo i18n ✅ + демо-A9 ✅ +
-reviews-email wiring ✅ (остаток по `…-ua-plan §7`, 3/5). НЕ закрыто: **UA3-1 слайс 2** (единый
-`_buybox.html`) и **UA3-2** (двухшаговый buy-box) — план-док на согласовании владельца.
+reviews-email wiring ✅ + **UA3-1 слайс 2 (единый `_buybox.html`) ✅** (остаток по `…-ua-plan §7`,
+4/5). НЕ закрыто: только **UA3-2** (двухшаговый buy-box) — план-док на согласовании владельца.
 **Статус U-B (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UB1-1/1-2/1-3 ✅ (каркас listing.html + единая
 карточка + свод 4 листингов), UB2-1/2-2/2-3 ✅ (FacetProvider + поиск/сорт + фасеты цена/наличие/
 Herkunft/рейтинг), UB3-1 ✅, UB3-2 ✅ (M2M `Collection` + кабинет + демо; миграции

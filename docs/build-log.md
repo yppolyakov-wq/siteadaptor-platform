@@ -3505,3 +3505,14 @@
   (AddField). Ссылки абсолютные (домен из `_base_url`; нет домена → письмо без ссылки, без
   падения); `/…/bewerten/` на GET редиректит на деталь с формой. Гейт: 39 таргетных + полные
   сьюты booking/stays/events/reviews 510 passed.
+- **2026-07-02 — Остаток U-A (4/5): UA3-1 слайс 2 — единый buy-box `_buybox.html`.**
+  По согласованному плану `docs/ua3-1-buybox-plan-2026-07-02.md` (разведка: 5 картографов +
+  адверсариальная сверка). C1 — характеризационные паритет-замки ДО правки (7 тестов: точные
+  наборы полей cart/reserve/waitlist-форм, якоря, sold-out, orders-off, точные href CTA услуги).
+  C2 — партиал `templates/storefront/_buybox.html`: диспатч `cart`/`reserve`/`request`/`booking`
+  по `purchase_mode` контракта (или явный `buybox_mode`: promotion — вне реестра sellable,
+  service — override primary_action); разметка перенесена 1:1, вьюхи/формы/`_add_to_cart_form`
+  не тронуты; детали product/promotion/service — только include. Грабля: `default:`-фильтр в
+  `{% with %}` жёстко резолвит аргумент (у promotion нет `sellable`) → `{% firstof %}` (ленивый).
+  Гейты: замки байт-в-байт зелёные, полные сьюты catalog/promotions/booking/orders 562 passed.
+  Без миграций. Остаток U-A: только UA3-2 (двухшаговый buy-box) — план-док на согласовании.
