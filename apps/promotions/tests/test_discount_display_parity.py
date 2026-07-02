@@ -31,18 +31,20 @@ def _detail(promo):
 
 
 def test_percent_badge_card_and_detail():
+    """Класс-атрибут бейджа — байт-в-байт (визуальный паритет); UE3-1 добавил
+    editor-атрибуты после class, поэтому пиним class + текст, не весь тег."""
     promo = PromotionFactory(status="active", discount_percent=30)
     card, detail = _card(promo), _detail(promo)
     assert (
-        '<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold'
-        ' px-2.5 py-1 rounded-full shadow">−30 %</span>'.replace("\n", "")
-        in card.replace("\n", "")
+        'class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold'
+        ' px-2.5 py-1 rounded-full shadow"' in card
     )
+    assert ">−30 %</span>" in card
     assert (
-        '<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold'
-        ' px-3 py-1 rounded-full shadow">−30 %</span>'.replace("\n", "")
-        in detail.replace("\n", "")
+        'class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold'
+        ' px-3 py-1 rounded-full shadow"' in detail
     )
+    assert ">−30 %</span>" in detail
 
 
 def test_amount_badge_when_no_percent():

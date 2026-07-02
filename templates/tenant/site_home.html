@@ -1055,7 +1055,7 @@
       try {
         lastEditDoc.querySelectorAll("[data-edit],[data-cat-edit],[data-edit-model]").forEach(function (el) { styleEditable(el, on); });
         // #7-B: цена — не contenteditable (свой инпут-поповер); только курсор+пунктир в режиме правки.
-        lastEditDoc.querySelectorAll("[data-price-edit]").forEach(function (el) {
+        lastEditDoc.querySelectorAll("[data-price-edit],[data-dt-edit]").forEach(function (el) {
           el.style.cursor = on ? "pointer" : "";
           el.style.outline = on ? "1px dashed rgba(16,185,129,.7)" : "none";
           el.style.outlineOffset = "2px";
@@ -1913,6 +1913,41 @@
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
             body: JSON.stringify({ pk: pk, field: pField, value: v }),
+          }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
+            .catch(function () { el.innerHTML = orig; });
+        }
+        inp.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter") { ev.preventDefault(); finish(true); }
+          else if (ev.key === "Escape") { ev.preventDefault(); finish(false); }
+        });
+        inp.addEventListener("blur", function () { finish(true); });
+      });
+    });
+    // UE3-1: инлайн-срок акции — клик по countdown/«Gültig bis» в режиме правки →
+    // datetime-local попап → POST ends_at (ISO, сервер нормализует TZ) → перерисовка.
+    doc.querySelectorAll("[data-dt-edit]").forEach(function (el) {
+      el.style.cursor = editOn ? "pointer" : "";
+      if (editOn) { el.style.outline = "1px dashed rgba(16,185,129,.7)"; el.style.outlineOffset = "2px"; }
+      el.addEventListener("click", function (e) {
+        if (!editOn || el.querySelector("input.sf-dt-inp")) return;
+        e.preventDefault(); e.stopPropagation();
+        var pk = el.getAttribute("data-edit-pk"), orig = el.innerHTML;
+        var inp = doc.createElement("input");
+        inp.type = "datetime-local"; inp.className = "sf-dt-inp";
+        inp.value = el.getAttribute("data-dt") || "";
+        inp.setAttribute("style", "font:inherit;color:#111;padding:0 4px;border:1px solid #6366f1;border-radius:4px;background:#fff;");
+        el.innerHTML = ""; el.appendChild(inp); inp.focus();
+        var done = false;
+        function finish(saveIt) {
+          if (done) return; done = true;
+          var v = (inp.value || "").trim();
+          if (!saveIt || v === "") { el.innerHTML = orig; return; }
+          var dModel = el.getAttribute("data-dt-model") || "promotion";
+          var dField = el.getAttribute("data-dt-field") || "ends_at";
+          fetch(MODEL_EDIT_URLS[dModel] || MODEL_EDIT_URLS.promotion, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+            body: JSON.stringify({ pk: pk, field: dField, value: v }),
           }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
             .catch(function () { el.innerHTML = orig; });
         }

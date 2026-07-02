@@ -10,7 +10,7 @@ test_discount_display_parity). UE2-2: селектор promo.discount_style ве
   {# Порядок классов — байт-в-байт исходный (замок test_discount_display_parity). #}
   {% if promo.discount_style == "percent" %}
     {% if promo.discount_percent_display %}
-      {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% endif %}
+      {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
     {% endif %}
   {% elif promo.discount_style == "badge" %}
     {% if promo.discount_amount %}
@@ -19,7 +19,7 @@ test_discount_display_parity). UE2-2: селектор promo.discount_style ве
   {% elif promo.discount_style %}
     {# strikethrough/festpreis/ab/countdown/surprise — акцент на другой части, бейдж скрыт. #}
   {% elif promo.discount_percent_display %}
-    {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_percent_display }} %</span>{% endif %}
+    {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
   {% elif promo.has_discount %}
     {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
   {% endif %}
@@ -54,17 +54,17 @@ test_discount_display_parity). UE2-2: селектор promo.discount_style ве
 {% elif part == "countdown" %}
   {% if promo.ends_at and promo.show_countdown or promo.ends_at and promo.discount_style == "countdown" %}
     {% if size == "lg" %}
-      <div class="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-800 rounded-lg px-3 py-1.5 text-sm">
+      <div class="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-800 rounded-lg px-3 py-1.5 text-sm" data-dt-edit data-dt-model="promotion" data-dt-field="ends_at" data-edit-pk="{{ promo.pk }}" data-dt="{{ promo.ends_at|date:'Y-m-d' }}T{{ promo.ends_at|date:'H:i' }}">
         ⏳ {% trans "Ends in" %}
         <span class="font-mono font-semibold" aria-live="polite" data-countdown="{{ promo.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
       </div>
     {% else %}
-      <p class="mt-1 text-xs text-gray-500">
+      <p class="mt-1 text-xs text-gray-500" data-dt-edit data-dt-model="promotion" data-dt-field="ends_at" data-edit-pk="{{ promo.pk }}" data-dt="{{ promo.ends_at|date:'Y-m-d' }}T{{ promo.ends_at|date:'H:i' }}">
         {% trans "Ends in" %}
         <span class="font-mono font-medium" data-countdown="{{ promo.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}">…</span>
       </p>
     {% endif %}
   {% elif promo.ends_at and size == "lg" %}
-    <p class="mt-3 text-sm text-gray-500">{% blocktrans with d=promo.ends_at|date:"d.m.Y H:i" %}Valid until {{ d }}{% endblocktrans %}</p>
+    <p class="mt-3 text-sm text-gray-500" data-dt-edit data-dt-model="promotion" data-dt-field="ends_at" data-edit-pk="{{ promo.pk }}" data-dt="{{ promo.ends_at|date:'Y-m-d' }}T{{ promo.ends_at|date:'H:i' }}">{% blocktrans with d=promo.ends_at|date:"d.m.Y H:i" %}Valid until {{ d }}{% endblocktrans %}</p>
   {% endif %}
 {% endif %}

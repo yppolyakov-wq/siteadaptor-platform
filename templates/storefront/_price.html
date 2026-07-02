@@ -4,7 +4,8 @@
 {% if promo.has_discount %}
   <div class="flex items-baseline gap-2">
     {% if promo.strikethrough_old_price %}
-      <span class="text-gray-400 line-through text-sm">{{ promo.old_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
+      {# UE3-1: старая цена правится на канве → materialize в compare_at_price. #}
+      <span class="text-gray-400 line-through text-sm" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.old_price }}">{{ promo.old_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
     {% endif %}
     <span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
   </div>
