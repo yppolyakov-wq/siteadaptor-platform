@@ -3656,3 +3656,6 @@
   всегда список), `image_url` primary-aware; `service_photo_edit` → полный
   replace/add/remove (apply_gallery_op); деталь услуги — единая `_media_gallery`
   (лайтбокс, пер-слайд контролы) → галерея на 5/5 kind. Адаптер gallery из шима.
+- **2026-07-02 — UC5-1 (U-C): граница buy-box — `configurable="form"` + замок.**
+  Пометка в `detail_sections` (buy-box вне реестров секций — не канва; UA3-1/3-2 держат
+  границу функционально) + `test_buybox_boundary_not_canvas_configurable`. Без миграций.
