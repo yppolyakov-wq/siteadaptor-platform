@@ -156,8 +156,25 @@ Python 3.12, менеджер uv.
   во все 7 продажных вызовов (orders/stays/gift/booking/passes/events/jobs; installment без —
   мандат off_session), кабинет «Zahlarten» на billing/payments. Vorkasse вне orders — E7-4
   (roadmap §Отложено). Нативные PayPal/Klarna/SEPA — external-integrations-backlog (владелец).
-- Самые свежие миграции: **`orders/0012` + `tenants/0020`** (E-7: payment_method + Vorkasse-
-  реквизиты/stripe_payment_methods, 2026-07-02 — ⚠️ требуют деплоя); ранее **`catalog/0012` +
+- **Самое свежее (2026-07-02, автономная фаза): ВОЛНА U-C идёт + U-E-пакеты закрыты + E-2 начат.**
+  **UC1 ✅ целиком** (UC1-1 golden-замки normalize + фасад page_types/keys/labels; UC1-2 listing/
+  info/legal; UC1-3 SECTION_ICONS в реестр + generic `page_inspector`). **UC2-1 ✅ (A+B)** —
+  план-док `docs/uc2-1-page-draft-plan-2026-07-02.md`, решение «виртуальный фасад» (хранение
+  ПЛОСКОЕ): `PAGE_CONFIG_KEYS` + `apply_page_payload` (семантика 1:1) + `page_config`; шесть
+  per-page блоков `site_preview_draft` → один вызов; save-блоки НЕ сводим (form-driven +
+  presence-guards → место UC2-4). **Пакет U-E2 «Стили скидки» ✅ целиком:** UE2-1 единый
+  `_discount_display.html` (замки parity ДО свода), UE2-2 `Promotion.discount_style` (7 стилей,
+  default ""=легаси; миграция `promotions/0019`), UE2-3 mystery hidden-until-reveal (blur+кнопка,
+  AlterField-миграция `promotions/0020` без изменения БД). **Пакет U-E3 «Промо на канве» ✅
+  целиком:** UE3-1 инлайн discount_percent/compare_at_price/ends_at (+generic `data-dt-edit`
+  datetime-попап; поля движка закрыты гейтом), UE3-2 `promotion-photo-edit` + 📷/🗑 на канве
+  (реюз apply_gallery_op). **E-2 слайсы 1-2 ✅:** §312j-кнопка «Zahlungspflichtig bestellen»,
+  UWG «★ Anzeige», бизнес-страница/отзывы на главном `/entdecken` (портал-опциональная
+  `business_page`, тот же url-name). Локальная грабля: `rl:*`/`resv_token:*` в Redis переживают
+  прогоны (cache-префикс — чистить `scan_iter('*rl:*')`).
+- Самые свежие миграции: **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
+  2026-07-02 — ⚠️ требуют деплоя); ранее **`orders/0012` + `tenants/0020`** (E-7: payment_method + Vorkasse-
+  реквизиты/stripe_payment_methods, 2026-07-02 — ⚠️ требуют деплоя); **`catalog/0012` +
   `booking/0014`** (остаток U-A: combo i18n + post-visit,
   2026-07-02 — ⚠️ требуют деплоя) и **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2
   M2M-подборки, 2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
