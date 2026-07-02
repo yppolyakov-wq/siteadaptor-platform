@@ -1,0 +1,1014 @@
+{
+ "about_text": "",
+ "about_title": "",
+ "archetypes": {},
+ "before_after": [],
+ "block_templates": {
+  "t1": {
+   "data": {
+    "body": "",
+    "title": ""
+   },
+   "key": "text",
+   "label": "Мой блок"
+  }
+ },
+ "cart_note": "",
+ "cart_show_upsell": false,
+ "cart_title": "Warenkorb",
+ "cart_upsell_title": "",
+ "catalog_intro": "",
+ "catalog_layout": {
+  "cols": 3,
+  "gap": "md",
+  "mobile": 2,
+  "preset": "cols3",
+  "tablet": 0,
+  "width": "contained"
+ },
+ "catalog_show_filters": true,
+ "catalog_sort": "newest",
+ "catalog_subcats_first": true,
+ "catalog_title": "",
+ "cta": {
+  "button_label": "",
+  "button_url": "",
+  "text": "",
+  "title": ""
+ },
+ "detail_related_layout": {
+  "cols": 4,
+  "gap": "md",
+  "mobile": 2,
+  "preset": "cols4",
+  "tablet": 0,
+  "width": "contained"
+ },
+ "event_detail": {
+  "hidden": [],
+  "order": []
+ },
+ "events_index_layout": {
+  "cols": 1,
+  "gap": "md",
+  "mobile": 1,
+  "preset": "list",
+  "tablet": 0,
+  "width": "contained"
+ },
+ "faq": [
+  {
+   "a": "A2",
+   "q": "Q2"
+  }
+ ],
+ "font": "system",
+ "footer_text": "",
+ "gallery": [],
+ "gallery_video": "",
+ "hero_image": "",
+ "hero_style": "plain",
+ "hero_text": "",
+ "hero_title": "",
+ "heroes": [
+  {
+   "button_label": "",
+   "button_url": "",
+   "image": "/h1.jpg",
+   "text": "T1",
+   "title": "Eins"
+  },
+  {
+   "button_label": "",
+   "button_url": "",
+   "image": "/h2.jpg",
+   "text": "T2",
+   "title": "Zwei"
+  }
+ ],
+ "history": [
+  {
+   "config": {
+    "sections": []
+   },
+   "ts": "2026-01-01T00:00:00"
+  }
+ ],
+ "jobs_vehicle": false,
+ "menus": {
+  "bottom": {
+   "enabled": true,
+   "items": [
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Start",
+     "target": "home",
+     "type": "page"
+    }
+   ]
+  },
+  "top": {
+   "items": [
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Shop",
+     "target": "catalog",
+     "type": "archetype"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "FAQ",
+     "target": "/#faq",
+     "type": "anchor"
+    }
+   ],
+   "sticky": true,
+   "style": "classic"
+  }
+ },
+ "nav": {
+  "items": [
+   {
+    "enabled": false,
+    "key": "products"
+   },
+   {
+    "enabled": true,
+    "key": "offers"
+   },
+   {
+    "enabled": true,
+    "key": "booking"
+   },
+   {
+    "enabled": true,
+    "key": "stays"
+   },
+   {
+    "enabled": true,
+    "key": "events"
+   },
+   {
+    "enabled": true,
+    "key": "jobs"
+   },
+   {
+    "enabled": true,
+    "key": "inbox"
+   }
+  ],
+  "sticky": false,
+  "style": "centered"
+ },
+ "page_templates": {
+  "p1": {
+   "label": "Лендинг",
+   "sections": [
+    {
+     "enabled": true,
+     "font": "",
+     "hidden_on": [],
+     "key": "hero",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "usp_bar",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "stay_search",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "stay_rooms",
+     "layout": {
+      "cols": 3,
+      "gap": "md",
+      "mobile": 1,
+      "preset": "cols3",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "show_all": true,
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "services",
+     "layout": {
+      "cols": 2,
+      "gap": "md",
+      "mobile": 1,
+      "preset": "cols2",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "show_all": true,
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": true,
+     "font": "",
+     "hidden_on": [],
+     "key": "promotions",
+     "layout": {
+      "cols": 3,
+      "gap": "md",
+      "mobile": 2,
+      "preset": "cols3",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "categories",
+     "layout": {
+      "cols": 4,
+      "gap": "md",
+      "mobile": 2,
+      "preset": "cols4",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "show_all": true,
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": true,
+     "font": "",
+     "hidden_on": [],
+     "key": "products",
+     "layout": {
+      "cols": 4,
+      "gap": "md",
+      "mobile": 2,
+      "preset": "cols4",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "limit": 8,
+     "show_all": true,
+     "source": "featured_first",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "events",
+     "layout": {
+      "cols": 3,
+      "gap": "md",
+      "mobile": 2,
+      "preset": "cols3",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "limit": 6,
+     "show_all": true,
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "archetypes",
+     "layout": {
+      "cols": 3,
+      "gap": "md",
+      "mobile": 1,
+      "preset": "cols3",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "about",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "process",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "team",
+     "layout": {
+      "cols": 4,
+      "gap": "md",
+      "mobile": 2,
+      "preset": "cols4",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "cta",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "testimonials",
+     "layout": {
+      "cols": 2,
+      "gap": "md",
+      "mobile": 1,
+      "preset": "cols2",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "trust",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "reviews",
+     "layout": {
+      "cols": 3,
+      "gap": "md",
+      "mobile": 1,
+      "preset": "cols3",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "faq",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "gallery",
+     "layout": {
+      "cols": 4,
+      "gap": "sm",
+      "mobile": 2,
+      "preset": "gallery",
+      "tablet": 0,
+      "width": "contained"
+     },
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
+     "key": "before_after",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": true,
+     "font": "",
+     "hidden_on": [],
+     "key": "contact",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    }
+   ]
+  }
+ },
+ "process": [
+  {
+   "text": "Anruf",
+   "title": "Schritt 1"
+  }
+ ],
+ "product_detail": {
+  "hidden": []
+ },
+ "quick_add": true,
+ "section_intros": {},
+ "section_titles": {},
+ "sections": [
+  {
+   "enabled": true,
+   "font": "serif",
+   "hidden_on": [
+    "mobile"
+   ],
+   "key": "products",
+   "layout": {
+    "cols": 3,
+    "gap": "lg",
+    "mobile": 2,
+    "preset": "cols4",
+    "tablet": 0,
+    "width": "full"
+   },
+   "limit": 9,
+   "show_all": false,
+   "source": "featured_first",
+   "visual": {
+    "background": "#ffeecc",
+    "padding": 24,
+    "radius": 12,
+    "shadow": true
+   },
+   "width": "full"
+  },
+  {
+   "data": {
+    "body": "",
+    "title": ""
+   },
+   "enabled": true,
+   "font": "",
+   "hidden_on": [],
+   "id": "cb1",
+   "key": "text",
+   "width": "contained"
+  },
+  {
+   "data": {
+    "body": "",
+    "side": "right",
+    "title": "",
+    "url": "/x.jpg"
+   },
+   "enabled": true,
+   "font": "",
+   "hidden_on": [],
+   "id": "cb2",
+   "key": "image_text",
+   "width": "contained"
+  },
+  {
+   "data": {
+    "label": "Mehr",
+    "url": "/a/"
+   },
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "id": "cb3",
+   "key": "button",
+   "width": "contained"
+  },
+  {
+   "enabled": true,
+   "font": "",
+   "hidden_on": [],
+   "key": "hero",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": true,
+   "font": "",
+   "hidden_on": [],
+   "key": "faq",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "usp_bar",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "stay_search",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "stay_rooms",
+   "layout": {
+    "cols": 3,
+    "gap": "md",
+    "mobile": 1,
+    "preset": "cols3",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "show_all": true,
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "services",
+   "layout": {
+    "cols": 2,
+    "gap": "md",
+    "mobile": 1,
+    "preset": "cols2",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "show_all": true,
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": true,
+   "font": "",
+   "hidden_on": [],
+   "key": "promotions",
+   "layout": {
+    "cols": 3,
+    "gap": "md",
+    "mobile": 2,
+    "preset": "cols3",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "categories",
+   "layout": {
+    "cols": 4,
+    "gap": "md",
+    "mobile": 2,
+    "preset": "cols4",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "show_all": true,
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "events",
+   "layout": {
+    "cols": 3,
+    "gap": "md",
+    "mobile": 2,
+    "preset": "cols3",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "limit": 6,
+   "show_all": true,
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "archetypes",
+   "layout": {
+    "cols": 3,
+    "gap": "md",
+    "mobile": 1,
+    "preset": "cols3",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "about",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "process",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "team",
+   "layout": {
+    "cols": 4,
+    "gap": "md",
+    "mobile": 2,
+    "preset": "cols4",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "cta",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "testimonials",
+   "layout": {
+    "cols": 2,
+    "gap": "md",
+    "mobile": 1,
+    "preset": "cols2",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "trust",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "reviews",
+   "layout": {
+    "cols": 3,
+    "gap": "md",
+    "mobile": 1,
+    "preset": "cols3",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "gallery",
+   "layout": {
+    "cols": 4,
+    "gap": "sm",
+    "mobile": 2,
+    "preset": "gallery",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "before_after",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": true,
+   "font": "",
+   "hidden_on": [],
+   "key": "contact",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  }
+ ],
+ "service_detail": {
+  "hidden": []
+ },
+ "site_defaults": {
+  "card_bg": "",
+  "card_padding": 0,
+  "card_radius": 0,
+  "card_shadow": false
+ },
+ "stay_detail": {
+  "hidden": []
+ },
+ "stay_index_layout": {
+  "cols": 3,
+  "gap": "md",
+  "mobile": 1,
+  "preset": "cols3",
+  "tablet": 0,
+  "width": "contained"
+ },
+ "storefront_root": "home",
+ "team": [
+  {
+   "name": "Lea",
+   "photo": "/lea.jpg",
+   "role": "Chefin"
+  }
+ ],
+ "testimonials": [
+  {
+   "name": "Anna",
+   "text": "Toll!"
+  }
+ ],
+ "trust": {
+  "marks": [
+   "Bio",
+   "Meisterbetrieb"
+  ],
+  "since": "1950"
+ },
+ "typography": {
+  "line_height": 0.0,
+  "weight_head": 0
+ },
+ "usp_bar": []
+}
