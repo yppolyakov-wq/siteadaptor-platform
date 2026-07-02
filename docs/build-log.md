@@ -3595,3 +3595,23 @@
   пилюля вместо бейджа. Селектор в PromotionForm (кабинет — цикл полей, UI автоматом). Свойства
   цены/has_discount/анти-оверселл не тронуты (тест-гейт). 181 passed (полный promotions-гейт),
   DE-локаль в тестах: числа с запятой («7,50»).
+- **2026-07-02 — UE3-1 (U-E→U-C): инлайн-правка промо на канве — % / старая цена / срок.**
+  Вайтлист `promotion_inline_edit` += `compare_at_price` (Decimal ≥0, общая ветка с
+  price_override), `discount_percent` (целое 0..100, 0 = очистить), `ends_at` (ISO, naive →
+  текущая TZ); после правки — сброс кэша витрины. Поля движка (status/available_quantity)
+  закрыты тест-гейтом (анти-оверселл). Канва: старая цена → data-price-edit
+  (compare_at_price), %-бейдж редактируем, countdown/«Valid until» → новый generic
+  data-dt-edit (datetime-local попап в site_home.html). Замок бейджа перепинен на
+  class+текст (editor-атрибуты не ломают визуальный паритет). 951 passed. Без миграций.
+- **2026-07-02 — UE3-2 (U-E→U-C): фото акции на канве — promotion-photo-edit.** Новый view
+  (реюз `apply_gallery_op`, folder="promotions", select_for_update) + маршрут +
+  `MODEL_PHOTO_URLS['promotion']`; 📷 на карточке (replace главного; пустая галерея →
+  добавление, фолбэк на фото товара цел), 📷+🗑 на детали (🗑 только при собственной
+  галерее). Закрыт пробел «единственная модель канвы без фото-эдита». CSS пересобран.
+  Пакет U-E3 закрыт целиком. Без миграций.
+- **2026-07-02 — UE2-3 (U-E→U-C): mystery-акция (hidden-until-reveal).**
+  `discount_style='mystery'`: цена скрыта (`data-mystery-price hidden` + кнопка-reveal,
+  a11y `<button>`), фото в blur-lg; раскрытие — делегированный JS в `_base.html` в пределах
+  `data-mystery-root`. Бронь/остаток от стиля не зависят. Миграция `promotions/0020` —
+  AlterField choices БЕЗ изменения БД (грабля: ModelForm.full_clean валидирует по
+  model-choices — форменного расширения недостаточно). Пакет U-E2 закрыт целиком.
