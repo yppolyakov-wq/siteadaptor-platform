@@ -40,6 +40,8 @@ def _fake_service(pk, name, minutes, cents, description="", image_url=""):
         name=name,
         description=description,
         image_url=image_url,
+        # UC4-3: у Service появился шим-список images (галерея) — стаб зеркалит.
+        images=[{"url": image_url}] if image_url else [],
         duration_minutes=minutes,
         price_cents=cents,
         price_eur=cents / 100,
