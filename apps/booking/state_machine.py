@@ -28,7 +28,10 @@ class BookingSM(StateMachine):
         if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
             from apps.promotions.services import unredeem_voucher
 
-            unredeem_voucher(instance.voucher_code)
+            # B1.5: balance-сертификату возвращается и списанная сумма (снимок).
+            unredeem_voucher(
+                instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
+            )
 
         # Услуга выполнена (G10) → выручка в журнал (НДС 19 %, идемпотентно по
         # source_ref). Общие брони без цены (стол/комната) выручку не пишут.

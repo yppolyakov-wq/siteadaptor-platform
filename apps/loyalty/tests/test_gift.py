@@ -29,7 +29,9 @@ def test_paid_issues_voucher_and_is_idempotent():
     assert gv.voucher is not None
     code = gv.voucher.code
     v = gv.voucher
-    assert v.discount_cents == 10000 and v.max_uses == 1 and v.code.startswith("GS-")
+    # B1.5 (владелец «а»): Wertgutschein с остатком — многораз до исчерпания.
+    assert v.discount_cents == 10000 and v.max_uses == 0 and v.code.startswith("GS-")
+    assert v.balance_cents == 10000
     # повторный вызог вебхука — не выпускает второй код
     gift.mark_gift_voucher_paid(tenant_schema="public", gift_id=gv.id, payment_intent="pi_1")
     gv.refresh_from_db()

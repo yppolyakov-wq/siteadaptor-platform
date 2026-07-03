@@ -65,8 +65,11 @@ def mark_gift_voucher_paid(*, tenant_schema, gift_id, payment_intent="") -> bool
             voucher = Voucher.objects.create(
                 code=_unique_code(),
                 label=f"Geschenkgutschein {gift.amount_eur:.0f} €"[:120],
-                discount_cents=gift.amount_cents,
-                max_uses=1,
+                discount_cents=gift.amount_cents,  # номинал (дисплей)
+                # B1.5 (владелец «а»): Wertgutschein с остатком — частичное
+                # погашение до исчерпания, max_uses=0 (лимит — сам остаток).
+                balance_cents=gift.amount_cents,
+                max_uses=0,
             )
             gift.voucher = voucher
             fields.append("voucher")

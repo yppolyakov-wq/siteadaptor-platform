@@ -39,7 +39,7 @@
         <tr class="border-b last:border-0">
           <td class="py-2 font-mono">{{ v.code }}</td>
           <td class="py-2">{{ v.label }}</td>
-          <td class="py-2">{% if v.discount_percent %}−{{ v.discount_percent }} %{% elif v.discount_cents %}−{{ v.discount_cents|floatformat:0 }} ct{% else %}—{% endif %}{% if v.min_order_cents %} <span class="text-xs text-gray-400">(min {{ v.min_order_cents|floatformat:0 }} ct)</span>{% endif %}</td>
+          <td class="py-2">{% if v.discount_percent %}−{{ v.discount_percent }} %{% elif v.discount_cents %}−{{ v.discount_cents|floatformat:0 }} ct{% else %}—{% endif %}{% if v.balance_cents is not None %} <span class="text-xs {% if v.balance_cents %}text-emerald-700{% else %}text-gray-400{% endif %}">Rest {{ v.balance_eur|floatformat:2 }} €</span>{% endif %}{% if v.min_order_cents %} <span class="text-xs text-gray-400">(min {{ v.min_order_cents|floatformat:0 }} ct)</span>{% endif %}</td>
           <td class="py-2">{{ v.used_count }}{% if v.max_uses %}/{{ v.max_uses }}{% else %}/∞{% endif %}</td>
           <td class="py-2">{% if v.is_redeemable %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
           <td class="py-2 text-right">

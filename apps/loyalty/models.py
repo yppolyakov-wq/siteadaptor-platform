@@ -48,6 +48,11 @@ class Voucher(TimestampedModel):
     discount_percent = models.PositiveSmallIntegerField(null=True, blank=True)
     discount_cents = models.PositiveIntegerField(null=True, blank=True)
     min_order_cents = models.PositiveIntegerField(default=0)
+    # B1.5 (решение владельца «а»): денежный сертификат с ОСТАТКОМ
+    # (Wertgutschein). null = обычный ваучер/промокод (прежнее поведение).
+    # Частичное списание/возврат — promotions.services.spend_voucher /
+    # unredeem_voucher; у gift-выпуска balance = номинал, max_uses = 0.
+    balance_cents = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -69,12 +74,23 @@ class Voucher(TimestampedModel):
             return False
         if self.expires_at and self.expires_at < timezone.now():
             return False
+        if self.balance_cents is not None and self.balance_cents <= 0:
+            return False  # B1.5: сертификат исчерпан
         return not (self.max_uses and self.used_count >= self.max_uses)
+
+    @property
+    def balance_eur(self):
+        """B1.5: остаток сертификата в евро (0 для обычных ваучеров)."""
+        return (self.balance_cents or 0) / 100
 
     @property
     def has_order_discount(self) -> bool:
         """Несёт ли ваучер скидку для онлайн-заказа (А4-промокод)."""
-        return bool(self.discount_percent) or bool(self.discount_cents)
+        return (
+            bool(self.discount_percent)
+            or bool(self.discount_cents)
+            or self.balance_cents is not None  # B1.5: сертификат с остатком
+        )
 
     def discount_for(self, subtotal_cents: int) -> int:
         """Скидка в центах для суммы заказа (0, если не применима/не достигнут мин).
@@ -86,7 +102,9 @@ class Voucher(TimestampedModel):
             return 0
         if subtotal_cents < (self.min_order_cents or 0):
             return 0
-        if self.discount_percent:
+        if self.balance_cents is not None:
+            value = int(self.balance_cents)  # B1.5: тратим не больше остатка
+        elif self.discount_percent:
             value = subtotal_cents * int(self.discount_percent) // 100
         else:
             value = int(self.discount_cents or 0)

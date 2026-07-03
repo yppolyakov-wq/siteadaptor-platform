@@ -57,3 +57,17 @@ double-redeem, невалидный/min_order. B1.3: список показыв
 
 `loyalty.Voucher`, `redeem_voucher`, `discount_for`, `gift.py` целиком,
 webhook-ветка billing, `connected_checkout_session`, шаблоны gift_voucher*.
+
+## 5. B1.5 — решение владельца: (а) полноценный balance (2026-07-03)
+
+Схема: `Voucher.balance_cents` (null = обычный промокод, поведение прежнее;
+миграция loyalty/0003). Семантика Wertgutschein: `discount_for` = min(balance,
+сумма); НОВАЯ единая точка чекаутов `promotions.services.spend_voucher(code,
+base_cents)` — расчёт+списание ПОД ОДНОЙ блокировкой (закрывает гонку
+«прочитал → списал», заодно сводит 4 копии _apply_voucher к одному вызову);
+`unredeem_voucher(code, amount_cents)` возвращает остаток (FSM-хуки передают
+снимок discount_cents). Выпуск gift: balance=номинал, max_uses=0 (многораз до
+исчерпания), discount_cents остаётся как номинал для дисплея. Кабинет:
+«Rest X €» у balance-ваучеров. Замки test_gift обновляются осознанно
+(max_uses 1→0 + balance); новые: частичное списание/кап/исчерпание,
+возврат остатка при отмене, legacy-промокоды не тронуты.

@@ -55,15 +55,11 @@ def _apply_voucher(code, base_cents):
     code = (code or "").strip().upper()
     if not code:
         return 0, ""
-    from apps.loyalty.models import Voucher
-    from apps.promotions.services import VoucherError, redeem_voucher
+    from apps.promotions.services import VoucherError, spend_voucher
 
-    voucher = Voucher.objects.filter(code=code).first()
-    discount = voucher.discount_for(base_cents) if voucher else 0
-    if not voucher or discount <= 0:
-        raise PromoInvalid()
+    # B1.5: расчёт+списание атомарно (единая точка; balance-сертификат — частично).
     try:
-        redeem_voucher(code)
+        discount, _voucher = spend_voucher(code, base_cents)
     except VoucherError as exc:
         raise PromoInvalid() from exc
     return discount, code

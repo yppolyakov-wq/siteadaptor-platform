@@ -223,18 +223,63 @@ def redeem_voucher(code):
     return voucher
 
 
-def unredeem_voucher(code) -> bool:
+def spend_voucher(code, base_cents: int):
+    """B1.5: атомарно рассчитать И списать скидку кода для суммы base_cents.
+
+    ЕДИНАЯ точка чекаутов (orders/booking/stays/events): расчёт и списание под
+    одной блокировкой (закрывает гонку «прочитал → списал»). Возвращает
+    (discount_cents > 0, voucher) или бросает VoucherError. Balance-сертификат
+    (B1.5) списывает остаток частично (кап суммой), обычный промокод —
+    used_count += 1 в пределах max_uses."""
+    code = (code or "").strip().upper()
+    voucher = Voucher.objects.select_for_update().filter(code=code).first()
+    if voucher is None:
+        raise VoucherError("not_found")
+    if not voucher.is_active:
+        raise VoucherError("inactive")
+    if voucher.expires_at and voucher.expires_at < timezone.now():
+        raise VoucherError("expired")
+    if voucher.balance_cents is not None:
+        if voucher.balance_cents <= 0:
+            raise VoucherError("used_up")
+        discount = voucher.discount_for(int(base_cents))
+        if discount <= 0:
+            raise VoucherError("not_applicable")
+        Voucher.objects.filter(pk=voucher.pk).update(
+            used_count=F("used_count") + 1,
+            balance_cents=F("balance_cents") - discount,
+        )
+    else:
+        if voucher.max_uses and voucher.used_count >= voucher.max_uses:
+            raise VoucherError("used_up")
+        discount = voucher.discount_for(int(base_cents))
+        if discount <= 0:
+            raise VoucherError("not_applicable")
+        Voucher.objects.filter(pk=voucher.pk).update(used_count=F("used_count") + 1)
+    voucher.refresh_from_db(fields=["used_count", "balance_cents"])
+    return discount, voucher
+
+
+def unredeem_voucher(code, amount_cents=0) -> bool:
     """B1.4: вернуть ОДНО использование кода при отмене брони/заказа/билета.
 
     Идемпотентность — на вызывающем: FSM-переход в cancelled срабатывает один
     раз (двойная отмена = IllegalTransition). Условный декремент (used_count>0)
-    гонко-безопасен; неизвестный/неиспользованный код — no-op (False)."""
+    гонко-безопасен; неизвестный/неиспользованный код — no-op (False).
+    amount_cents (B1.5) — снимок скидки: balance-сертификату возвращается."""
     code = (code or "").strip().upper()
     if not code:
         return False
     updated = Voucher.objects.filter(code=code, used_count__gt=0).update(
         used_count=F("used_count") - 1
     )
+    if updated:
+        # B1.5: balance-сертификату возвращаем и списанную сумму (снимок скидки).
+        amount = max(0, int(amount_cents or 0))
+        if amount:
+            Voucher.objects.filter(code=code, balance_cents__isnull=False).update(
+                balance_cents=F("balance_cents") + amount
+            )
     return bool(updated)
 
 

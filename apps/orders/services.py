@@ -243,20 +243,16 @@ def create_order(
     # блокировкой (redeem_voucher) — анти-двойное-списание; сбой → без скидки.
     discount = Decimal("0")
     if voucher_code:
-        from apps.loyalty.models import Voucher
-        from apps.promotions.services import VoucherError, redeem_voucher
+        from apps.promotions.services import VoucherError, spend_voucher
 
-        voucher = Voucher.objects.filter(code=voucher_code).first()
-        if voucher is not None and voucher.has_order_discount:
-            disc_cents = voucher.discount_for(int(total * 100))
-            if disc_cents > 0:
-                try:
-                    redeem_voucher(voucher_code)
-                    discount = Decimal(disc_cents) / 100
-                    order.voucher_code = voucher_code[:12]
-                    order.discount_cents = disc_cents
-                except VoucherError:
-                    discount = Decimal("0")
+        # B1.5: расчёт+списание атомарно (единая точка; balance — частично).
+        try:
+            disc_cents, _voucher = spend_voucher(voucher_code, int(total * 100))
+            discount = Decimal(disc_cents) / 100
+            order.voucher_code = voucher_code[:12]
+            order.discount_cents = disc_cents
+        except VoucherError:
+            discount = Decimal("0")
     order.total = total - discount + Decimal(shipping) / 100  # G4: доставка в итог
     order.save(update_fields=["total", "voucher_code", "discount_cents", "updated_at"])
     # письма клиенту/владельцу — Notification в этой же транзакции,
