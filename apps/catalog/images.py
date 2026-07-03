@@ -41,7 +41,7 @@ def save_product_image(uploaded, *, is_primary=False, sort_order=0, folder="prod
     fmt = validate_image(uploaded)
     name = f"{folder}/{uuid.uuid4().hex}.{_EXT[fmt]}"
     saved_name = default_storage.save(name, uploaded)
-    return {
+    ref = {
         "id": uuid.uuid4().hex,
         "url": default_storage.url(saved_name),
         "path": saved_name,  # для удаления из storage
@@ -51,13 +51,41 @@ def save_product_image(uploaded, *, is_primary=False, sort_order=0, folder="prod
         "is_primary": is_primary,
         "sort_order": sort_order,
     }
+    _register_asset(ref, folder)
+    return ref
+
+
+def _register_asset(ref: dict, folder: str) -> None:
+    """CM-4: запись в реестр MediaAsset — строго fail-safe (реестр вторичен
+    к файлу; ошибка индекса не должна ронять загрузку)."""
+    try:
+        from apps.core.models import MediaAsset
+
+        MediaAsset.objects.get_or_create(
+            path=ref["path"],
+            defaults={
+                "url": ref["url"],
+                "folder": folder,
+                "mime_type": ref["mime_type"],
+                "size": ref["size"],
+            },
+        )
+    except Exception:  # noqa: BLE001 — индекс не критичен для загрузки
+        pass
 
 
 def delete_stored_image(file_ref: dict) -> None:
-    """Удаляет файл из storage (best-effort)."""
+    """Удаляет файл из storage (best-effort) + запись реестра (CM-4)."""
     path = file_ref.get("path")
     if path and default_storage.exists(path):
         default_storage.delete(path)
+    if path:
+        try:
+            from apps.core.models import MediaAsset
+
+            MediaAsset.objects.filter(path=path).delete()
+        except Exception:  # noqa: BLE001
+            pass
 
 
 # --- Пер-слайд управление галереей на канве (id-keyed) ---------------------------

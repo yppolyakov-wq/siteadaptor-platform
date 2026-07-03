@@ -355,6 +355,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             NavItem("settings", _("Settings"), "settings"),
             NavItem("languages", _("Languages"), "languages"),  # L2 — языки витрины
             NavItem("extras", _("Extras"), "extras"),  # #7 универсальные доп-услуги
+            NavItem("media-library", _("Media"), "media"),  # CM-4 медиа-библиотека
             NavItem("domains", _("Domains"), "domains"),
             NavItem("modules", _("Modules"), "modules"),
             NavItem("support:help", _("Help"), "support"),  # M22c — техподдержка

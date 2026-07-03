@@ -1975,3 +1975,54 @@ def domain_remove(request, pk):
     domains.remove(custom)
     messages.success(request, _("Domain removed."))
     return redirect("domains")
+
+
+@login_required
+def media_library(request):
+    """CM-4: медиа-библиотека — все загруженные файлы тенанта (реестр MediaAsset).
+
+    Пустой реестр при первом заходе — ленивый backfill из FileRef-копий.
+    Alt-редактор пишет в реестр + write-back в копии (источник рендера —
+    FileRef). Удаление — только незанятых (media_registry.delete_unused).
+    """
+    from apps.core import media_registry
+    from apps.core.models import MediaAsset
+
+    tenant = getattr(request, "tenant", None)
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        asset = MediaAsset.objects.filter(pk=request.POST.get("pk", None) or None).first()
+        if asset is not None:
+            if action == "alt":
+                alt = dict(asset.alt or {})
+                alt["de"] = (request.POST.get("alt_de") or "").strip()[:200]
+                asset.alt = alt
+                asset.save(update_fields=["alt", "updated_at"])
+                media_registry.write_back_alt(asset.path, alt, tenant)
+                messages.success(request, _("Alt text saved."))
+            elif action == "delete":
+                if media_registry.delete_unused(asset, tenant):
+                    messages.success(request, _("File deleted."))
+                else:
+                    messages.error(request, _("File is still in use."))
+        return redirect("media-library")
+
+    if not MediaAsset.objects.exists():
+        media_registry.backfill(tenant)  # первый заход — засеять из существующего
+    folder = request.GET.get("ordner", "")
+    assets_qs = MediaAsset.objects.all()
+    if folder:
+        assets_qs = assets_qs.filter(folder=folder)
+    used = media_registry.used_paths(tenant)
+    assets = [{"asset": a, "used": a.path in used} for a in assets_qs[:200]]
+    folders = list(
+        MediaAsset.objects.exclude(folder="")
+        .values_list("folder", flat=True)
+        .distinct()
+        .order_by("folder")
+    )
+    return render(
+        request,
+        "tenant/media_library.html",
+        {"nav": "media", "assets": assets, "folders": folders, "folder": folder},
+    )

@@ -206,3 +206,27 @@ class Extra(TimestampedModel):
     def image_url(self) -> str:
         """A5: URL фото доп-услуги (или ''), безопасно к не-dict значению."""
         return self.image.get("url", "") if isinstance(self.image, dict) else ""
+
+
+class MediaAsset(TimestampedModel):
+    """CM-4: индекс медиа-файлов тенанта ПОВЕРХ FileRef-копий в сущностях.
+
+    Наполняется хуком в catalog.images.save_product_image (единственная точка
+    входа всех FileRef-загрузок) + backfill-командой; удаляется вместе с файлом
+    в delete_stored_image. Источник рендера — по-прежнему FileRef в сущностях;
+    реестр — обзор/alt-редактор/поиск незанятых (кабинет «Medien»). Карта мест
+    использования — apps/core/media_registry.py.
+    """
+
+    path = models.CharField(max_length=300, unique=True)  # ключ storage (folder/uuid.ext)
+    url = models.CharField(max_length=500, blank=True)
+    folder = models.CharField(max_length=40, blank=True, db_index=True)
+    mime_type = models.CharField(max_length=40, blank=True)
+    size = models.PositiveIntegerField(default=0)
+    alt = models.JSONField(default=dict, blank=True)  # {локаль: str}
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.path

@@ -21,6 +21,7 @@ from apps.core.views import (
     extras_view,
     home_builder_view,
     languages_view,
+    media_library,
     menu_builder_view,
     modules_view,
     pages_view,
@@ -125,6 +126,8 @@ urlpatterns = [
     path("dashboard/channels/", publishing_views.channels, name="channels"),
     # CM-2: контент-календарь (посты в каналы; отложенная отправка — beat).
     path("dashboard/posts/", publishing_views.posts, name="publishing-posts"),
+    # CM-4: медиа-библиотека тенанта (реестр MediaAsset поверх FileRef-копий).
+    path("dashboard/medien/", media_library, name="media-library"),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
     path("dashboard/channels/config/", publishing_views.channel_config, name="channel-config"),
     # In-app OAuth (OAuth-A): старт из кабинета → провайдер → callback на public.
