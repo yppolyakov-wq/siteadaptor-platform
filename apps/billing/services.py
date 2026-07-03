@@ -57,7 +57,7 @@ def _partner_discounts(tenant: Tenant) -> dict:
 def create_checkout_session(tenant: Tenant, *, success_url: str, cancel_url: str) -> str:
     """Checkout Session подписки (тариф Standard). Возвращает URL оплаты."""
     customer_id = ensure_stripe_customer(tenant)
-    session = _client().checkout.Session.create(
+    kwargs = dict(
         mode="subscription",
         customer=customer_id,
         line_items=[{"price": settings.STRIPE_PRICE_ID, "quantity": 1}],
@@ -66,8 +66,16 @@ def create_checkout_session(tenant: Tenant, *, success_url: str, cancel_url: str
         client_reference_id=str(tenant.id),
         metadata={"tenant_id": str(tenant.id)},
         subscription_data={"metadata": {"tenant_id": str(tenant.id)}},
-        **_partner_discounts(tenant),
     )
+    discounts = _partner_discounts(tenant)
+    if discounts:
+        # Скидка партнёра — best-effort (ревью D3): протухший/чужого режима
+        # coupon-id не должен ронять revenue-путь — ретрай без скидки.
+        try:
+            return _client().checkout.Session.create(**kwargs, **discounts)["url"]
+        except stripe.error.InvalidRequestError:
+            pass
+    session = _client().checkout.Session.create(**kwargs)
     return session["url"]
 
 

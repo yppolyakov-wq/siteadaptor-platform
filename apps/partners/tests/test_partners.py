@@ -183,3 +183,23 @@ def test_signup_post_pops_ref_and_passes_code(monkeypatch, settings):
     tenant_views.BusinessSignupView().post(request)
     assert captured["partner_code"] == partner.code
     assert "partner_ref" not in request.session
+
+
+def test_checkout_falls_back_when_coupon_invalid(monkeypatch):
+    # Ревью D3: протухший coupon-id не роняет оплату — ретрай без скидки.
+    calls = []
+
+    def _create(**kw):
+        calls.append(kw)
+        if "discounts" in kw:
+            raise stripe.error.InvalidRequestError("No such coupon", param="discounts")
+        return {"url": "https://checkout/sub"}
+
+    monkeypatch.setattr(stripe.checkout.Session, "create", _create)
+    partner = _partner(reward_kind=Partner.REWARD_CLIENT_DISCOUNT, stripe_coupon_id="coup_dead")
+    tenant = TenantFactory(partner=partner, stripe_customer_id="cus_1")
+    url = billing_services.create_checkout_session(
+        tenant, success_url="https://s", cancel_url="https://c"
+    )
+    assert url == "https://checkout/sub"
+    assert len(calls) == 2 and "discounts" not in calls[1]

@@ -29,13 +29,20 @@ def login_url_for(tenant) -> str:
 
 
 def _resolve_partner(code: str):
-    """D3: активный партнёр по реф-коду; мусор/выключенный — тихо None."""
+    """D3: активный партнёр по реф-коду; мусор/выключенный — тихо None.
+
+    Вложенный atomic ОБЯЗАТЕЛЕН (ревью D3): вызов идёт внутри открытой
+    транзакции создателей тенанта — DB-ошибка (напр., код на проде раньше
+    миграции partners/0001) без savepoint отравила бы её, и tenant.save()
+    падал бы с InFailedSqlTransaction. Savepoint откатывается — онбординг
+    выживает при любой ошибке атрибуции."""
     if not code:
         return None
     try:
         from apps.partners.models import Partner
 
-        return Partner.objects.filter(code=str(code)[:40], is_active=True).first()
+        with transaction.atomic():
+            return Partner.objects.filter(code=str(code)[:40], is_active=True).first()
     except Exception:  # noqa: BLE001 — атрибуция не должна ломать онбординг
         return None
 
