@@ -3744,3 +3744,16 @@
   git — msgfmt-шаг в CI, compilemessages в deploy.sh, gettext в Dockerfile.
   Остаток DE-only: owner-письма + gift_voucher/inbox/installment/job_* (по мере
   надобности). Урок: Mock-тенант в тестах → `_email_locale` принимает только str.
+- **2026-07-03 — A4 (быстрая победа): share-ссылка на черновик витрины.** Кнопка
+  «Share preview» в топ-баре билдера → POST выпуск токена (снапшот черновика:
+  сессия → БД-_draft → normalize(published); cache 7 дней, token_urlsafe) →
+  анонимный GET /vorschau/<token>/ кладёт снапшот в сессию посетителя и уводит
+  на /?preview=1 (штатный draft-путь витрины; page-кэш обходится сам). Снапшот
+  фиксирован в момент выпуска; нет/истёк → 410. Без миграций.
+- **2026-07-03 — C1 (быстрая победа): утренний дайджест владельцу (email).**
+  digest.py (метрики по активным модулям, fail-safe, пустой день → молчим) +
+  beat send_owner_digests раз в час (гейт «локальный час тенанта == 7», дедуп
+  digest:{schema}:{date}) + письмо DE + opt-out Tenant.owner_digest_enabled
+  (SHARED миграция tenants/0021) + чекбокс в настройках. Telegram владельцу —
+  отдельный трек (chat_id владельца не хранится). Уроки CI 1170/1171: не забыт
+  build:css после новых классов; замок page_registry legal+=agb обновлён осознанно.
