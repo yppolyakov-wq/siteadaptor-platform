@@ -3772,3 +3772,9 @@
   B1.5 (остаток/balance_cents вместо сгорания) — вопрос владельцу; B1.6 (jobs)
   — опц. Уроки: default_disabled_for гасит нерекомендованное → новый
   универсальный модуль обязан перечислить ВСЕ типы в recommended_for.
+- **2026-07-03 — B1.5 (решение владельца «а»): Wertgutschein с остатком.**
+  `Voucher.balance_cents` (loyalty/0003; null = прежние промокоды) + единая
+  точка чекаутов `spend_voucher` (расчёт+списание под одной блокировкой; 4
+  копии _apply_voucher orders/booking/stays/events сведены) +
+  `unredeem_voucher(amount)` возвращает остаток при отмене (FSM-хуки передают
+  снимок). Выпуск gift: balance=номинал, max_uses=0. Кабинет: «Rest X €».
