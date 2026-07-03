@@ -263,7 +263,32 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
         return {"url": f("url"), "title": f("title"), "body": f("body"), "side": f("side")}
     if btype == "button":
         return {"label": f("label"), "url": f("url")}
+    if btype == "promo":
+        # UE1 (D2=LIVE): promo_pk — просто строка; show_button — чекбокс.
+        return {
+            "promo_pk": f("promo_pk"),
+            "align": f("align"),
+            "badge_pos": f("badge_pos"),
+            "show_button": post.get(f"cb_{bid}_show_button") == "on",
+            "button_label": f("button_label"),
+        }
     return {}
+
+
+def _promos_for_blocks(request):
+    """UE1: [(pk, подпись)] активных/запланированных промо для селектора блока.
+    Fail-safe: без модуля promotions/ошибке — пустой список (блок просто пуст)."""
+    try:
+        from apps.promotions.models import Promotion
+
+        return [
+            (str(p.pk), p.title_text or str(p.pk))
+            for p in Promotion.objects.filter(status__in=("active", "scheduled")).order_by(
+                "-created_at"
+            )[:50]
+        ]
+    except Exception:  # noqa: BLE001
+        return []
 
 
 def _insert_after_section(sections: list, block: dict, after: str) -> None:
@@ -1334,12 +1359,15 @@ def home_builder_view(request):
                 {"idx": i, "ts": h["ts"], "label": h.get("label", "")}
                 for i, h in enumerate(config["history"])
             ],
+            # UE1: селектор промо для промо-блока (активные+запланированные).
+            "promos_for_blocks": _promos_for_blocks(request),
             "block_types": [
                 ("text", _("Text")),
                 ("image", _("Image")),
                 ("image_text", _("Image + text")),
                 ("button", _("Button")),
                 ("spacer", _("Spacer")),
+                ("promo", _("Promotion")),  # UE1: LIVE-промо-блок
             ],
             "preset_options": preset_options,
             "source_options": source_options,

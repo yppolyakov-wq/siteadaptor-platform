@@ -100,7 +100,7 @@ _KNOWN = {key for key, _label, _on in SECTIONS}
 # D.2 (анти-Битрикс Phase 2): повторяемые «простые блоки» (C-блоки) — НЕ в SECTIONS
 # (множественные, с собственным `id` и `data`). Владелец собирает из них контент
 # («собрать сайт из кубиков»). Живут в той же `site_config["sections"]`.
-REPEATABLE_BLOCKS = ("text", "image", "image_text", "button", "spacer")
+REPEATABLE_BLOCKS = ("text", "image", "image_text", "button", "spacer", "promo")
 _MAX_CBLOCKS = 30
 
 
@@ -121,6 +121,21 @@ def _clean_cblock_data(key: str, raw) -> dict:
         }
     if key == "button":
         return {"label": _s(d.get("label")), "url": _s(d.get("url"))}
+    if key == "promo":
+        # UE1-1 (D2=LIVE): promo_pk — строка-UUID БЕЗ запроса в БД (purge-safe;
+        # существование/активность проверяет рендер _block_promo, fail-safe).
+        # discount_style здесь НЕ живёт — источник един: Promotion (UE2-2).
+        align = d.get("align")
+        badge = d.get("badge_pos")
+        return {
+            "promo_pk": _s(d.get("promo_pk"))[:36],
+            "align": align if align in ("left", "center", "right") else "left",
+            "badge_pos": badge
+            if badge in ("top-left", "top-right", "bottom-left", "bottom-right", "none")
+            else "top-left",
+            "show_button": bool(d.get("show_button")),
+            "button_label": _s(d.get("button_label"))[:40],
+        }
     return {}  # spacer — без данных
 
 

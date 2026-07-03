@@ -614,6 +614,31 @@
                   <option value="right" {% if b.data.side == 'right' %}selected{% endif %}>{% trans "Image right" %}</option>
                 </select>
               {% endif %}
+              {% if b.type == "promo" %}
+                {# UE1 (D2=LIVE): промо из БД — цена/остаток/countdown всегда актуальны. #}
+                <select name="cb_{{ b.id }}_promo_pk" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">
+                  <option value="">{% trans "Choose promotion…" %}</option>
+                  {% for pk, label in promos_for_blocks %}
+                    <option value="{{ pk }}" {% if b.data.promo_pk == pk %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <div class="flex flex-wrap items-center gap-2 text-sm">
+                  <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                    <option value="left" {% if b.data.align == 'left' %}selected{% endif %}>{% trans "Text left" %}</option>
+                    <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
+                    <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
+                  </select>
+                  <select name="cb_{{ b.id }}_badge_pos" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                    <option value="top-left" {% if b.data.badge_pos == 'top-left' %}selected{% endif %}>{% trans "Badge top left" %}</option>
+                    <option value="top-right" {% if b.data.badge_pos == 'top-right' %}selected{% endif %}>{% trans "Badge top right" %}</option>
+                    <option value="bottom-left" {% if b.data.badge_pos == 'bottom-left' %}selected{% endif %}>{% trans "Badge bottom left" %}</option>
+                    <option value="bottom-right" {% if b.data.badge_pos == 'bottom-right' %}selected{% endif %}>{% trans "Badge bottom right" %}</option>
+                    <option value="none" {% if b.data.badge_pos == 'none' %}selected{% endif %}>{% trans "No badge" %}</option>
+                  </select>
+                  <label class="flex items-center gap-1"><input type="checkbox" name="cb_{{ b.id }}_show_button" {% if b.data.show_button %}checked{% endif %} class="rounded border-gray-300">{% trans "Button" %}</label>
+                </div>
+                <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+              {% endif %}
               {% comment %} SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
                  #home-form с action=save_block_template:<id> (данные блока из POST —
                  ловим текущие правки); ранний return в home_builder_view. {% endcomment %}
@@ -1309,10 +1334,14 @@
         if (delBox && delBox.checked) return null;  // помечен на удаление — не показываем
         var typeEl = form.querySelector("input[name='cb_type_" + cbId + "']");
         var cb = { key: typeEl ? typeEl.value : "", id: cbId, enabled: r.enabled, data: {} };
-        ["title", "body", "url", "label", "caption", "side"].forEach(function (f) {
+        ["title", "body", "url", "label", "caption", "side",
+         "promo_pk", "align", "badge_pos", "button_label"].forEach(function (f) {
           var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
           if (el && el.value !== "") cb.data[f] = el.value;
         });
+        // UE1: чекбокс кнопки промо-блока — по checked (value у чекбокса всегда "on").
+        var sb = form.querySelector("[name='cb_" + cbId + "_show_button']");
+        if (sb && sb.checked) cb.data.show_button = "on";
         return cb;
       }
       var sec = { key: r.key, enabled: r.enabled };

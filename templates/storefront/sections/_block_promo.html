@@ -1,0 +1,39 @@
+{% load i18n siteui %}
+{% comment %}UE1: промо-блок канвы главной (D2=LIVE: promo_pk → активная промо из БД;
+мусор/неактивная → блок пуст fail-safe, в превью — плейсхолдер). Бейдж/цену/countdown
+рендерит единый _discount_display (стиль — Promotion.discount_style, UE2-2); инлайн-
+правки UE3 (заголовок/цены/срок) внутри работают теми же data-атрибутами.{% endcomment %}
+{% live_promo block.promo_pk as promo %}
+{% if promo %}
+<section class="my-8">
+  <div class="max-w-5xl mx-auto px-4">
+    <div class="sf-card relative overflow-hidden bg-white rounded-2xl shadow-sm md:grid md:grid-cols-2">
+      <div class="relative aspect-[4/3] md:aspect-auto bg-gray-100">
+        {% with img=promo.primary_image %}
+          {% if img %}<img src="{{ img.url }}" alt="{{ promo.title_text }}" loading="lazy" decoding="async" class="w-full h-full object-cover">{% endif %}
+        {% endwith %}
+        {% if block.badge_pos == "top-right" %}
+          {% include "storefront/_discount_display.html" with promo=promo part="badge" size="sm" badge_pos_class="top-3 right-3" %}
+        {% elif block.badge_pos == "bottom-left" %}
+          {% include "storefront/_discount_display.html" with promo=promo part="badge" size="sm" badge_pos_class="bottom-3 left-3" %}
+        {% elif block.badge_pos == "bottom-right" %}
+          {% include "storefront/_discount_display.html" with promo=promo part="badge" size="sm" badge_pos_class="bottom-3 right-3" %}
+        {% elif block.badge_pos != "none" %}
+          {% include "storefront/_discount_display.html" with promo=promo part="badge" size="sm" %}
+        {% endif %}
+      </div>
+      <div class="p-6 md:p-8 flex flex-col justify-center{% if block.align == 'center' %} items-center text-center{% elif block.align == 'right' %} items-end text-right{% endif %}">
+        {% include "storefront/_discount_display.html" with promo=promo part="surprise" size="sm" %}
+        <h2 class="text-2xl md:text-3xl font-bold" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ promo.pk }}">{{ promo.title_text }}</h2>
+        {% if promo.description_text %}<p class="mt-2 text-gray-600 line-clamp-3 whitespace-pre-line">{{ promo.description_text }}</p>{% endif %}
+        <div class="mt-3 text-xl">{% include "storefront/_discount_display.html" with promo=promo part="price" %}</div>
+        {% include "storefront/_discount_display.html" with promo=promo part="scarcity" size="sm" %}
+        {% include "storefront/_discount_display.html" with promo=promo part="countdown" size="lg" %}
+        {% if block.show_button %}
+          <a href="{% url 'storefront-promotion' promo.pk %}" class="mt-5 inline-block text-white rounded-lg px-5 py-2.5 font-semibold shadow-sm" style="background: var(--accent);">{% if block.button_label %}{{ block.button_label }}{% else %}{% trans "View offer" %}{% endif %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Aktion wählen — klicken zum Bearbeiten" %}{% endif %}

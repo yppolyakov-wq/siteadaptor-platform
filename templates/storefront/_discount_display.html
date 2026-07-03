@@ -5,23 +5,24 @@ valid-until · surprise) вместо дублей в _promo_card.html и promot
 Вход: promo, part ∈ badge|surprise|price|scarcity|countdown, size ∈ sm|lg
 (sm — карточка, lg — деталь; разметка обеих веток 1:1 прежняя — замки
 test_discount_display_parity). UE2-2: селектор promo.discount_style ветвит вывод
-("" = автоматически, легаси-вид; только презентация — свойства цены не зависят).{% endcomment %}
+("" = автоматически, легаси-вид; только презентация — свойства цены не зависят).
+UE1: badge_pos_class — переопределение позиции бейджа для промо-блока (пусто = как было).{% endcomment %}
 {% if part == "badge" %}
   {# Порядок классов — байт-в-байт исходный (замок test_discount_display_parity). #}
   {% if promo.discount_style == "percent" %}
     {% if promo.discount_percent_display %}
-      {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
+      {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
     {% endif %}
   {% elif promo.discount_style == "badge" %}
     {% if promo.discount_amount %}
-      {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
+      {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
     {% endif %}
   {% elif promo.discount_style %}
     {# strikethrough/festpreis/ab/countdown/surprise — акцент на другой части, бейдж скрыт. #}
   {% elif promo.discount_percent_display %}
-    {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
+    {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
   {% elif promo.has_discount %}
-    {% if size == "lg" %}<span class="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
+    {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
   {% endif %}
 {% elif part == "surprise" %}
   {% if promo.is_surprise %}

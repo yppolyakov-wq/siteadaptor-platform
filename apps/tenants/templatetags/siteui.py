@@ -58,7 +58,24 @@ CBLOCK_TEMPLATES = {
     "image_text": "storefront/sections/_block_image_text.html",
     "button": "storefront/sections/_block_button.html",
     "spacer": "storefront/sections/_block_spacer.html",
+    "promo": "storefront/sections/_block_promo.html",  # UE1: LIVE-промо по promo_pk
 }
+
+
+@register.simple_tag
+def live_promo(pk):
+    """UE1 (D2=LIVE): активная промо по pk или None — fail-safe к мусору/уда-
+    лённой/неактивной (блок тогда пуст; цена/остаток всегда актуальны из БД)."""
+    if not pk:
+        return None
+    from django.core.exceptions import ValidationError
+
+    from apps.promotions.models import Promotion
+
+    try:
+        return Promotion.objects.filter(pk=pk, status="active").first()
+    except (ValidationError, ValueError):
+        return None
 
 
 @register.simple_tag(takes_context=True)
