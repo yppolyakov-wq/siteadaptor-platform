@@ -81,7 +81,7 @@
     {% comment %}Список (дефолт): горизонтальные строки.{% endcomment %}
     <div data-sf-section="events" class="space-y-3">
       {% for e in events %}
-        <a href="{% url 'storefront-event' e.pk %}" class="relative flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
+        <a href="{% url 'storefront-event' e.pk %}" class="sf-card relative flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
           <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
           {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-24 h-24 rounded-xl object-cover flex-shrink-0">{% endif %}
           <div class="flex-1 min-w-0">
@@ -108,7 +108,7 @@
     оверлеем (категория + countdown/sold-out), мета снизу.{% endcomment %}
     <div data-sf-section="events" class="{{ events_grid }}">
       {% for e in events %}
-        <a href="{% url 'storefront-event' e.pk %}" class="group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        <a href="{% url 'storefront-event' e.pk %}" class="sf-card group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
           <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
             <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
             {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">{% endif %}
