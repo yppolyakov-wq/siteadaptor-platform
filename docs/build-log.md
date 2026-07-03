@@ -3689,3 +3689,8 @@
   `send_due_content` (300с): посты → Publications; отложенный блог через `published_at`
   БЕЗ новых полей. Кабинет «Beiträge» (/dashboard/posts/, NavItem в publishing),
   блог-формы += «Veröffentlichen am». 311 passed (свежая БД).
+- **2026-07-03 — CM-3 (контент-хаб, MVP): авто-посты из блога + префилл «Beiträge».**
+  `draft_from_source` (идемпотентно по source_kind+source_id) + `blog_share_draft`;
+  авто-черновик при публикации записи (кабинет + beat), кнопка «Teilen» на правке,
+  префилл формы постов из GET. Остаток CM-3 (авто-черновики из событий/товаров,
+  авто-правила) — следующим слайсом. Без миграций.
