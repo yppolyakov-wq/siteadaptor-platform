@@ -20,6 +20,7 @@ _CUSTOMER_TEMPLATES = {
     "shipped": "order_shipped",  # G4: versandt (с трек-номером)
     "cancelled": "order_cancelled",
     "returned": "order_returned",  # A2c: возврат/Widerruf
+    "post_purchase": "order_post_purchase",  # CM-6.4: danke + запрос отзыва о товарах
 }
 
 
@@ -42,6 +43,20 @@ def enqueue_order_email(order, event):
     template_base = _CUSTOMER_TEMPLATES.get(event)
     if template_base and customer.email and not customer.unsubscribed:
         base = _base_url(schema)
+        # CM-6.4: ссылки «оценить товар» (деталь#bewertungen) — только с base.
+        if event == "post_purchase":
+            ctx["review_links"] = (
+                [
+                    {
+                        "title": item.title_snapshot,
+                        "url": f"{base}{reverse('storefront-product', args=[item.product_id])}#bewertungen",
+                    }
+                    for item in order.items.all()
+                    if item.product_id
+                ][:5]
+                if base
+                else []
+            )
         unsub = (
             f"{base}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
             if base

@@ -1,0 +1,13 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% trans "vielen Dank für Ihren Einkauf bei uns!" %}
+{% if review_links %}
+{% trans "Würden Sie uns eine kurze Bewertung hinterlassen?" %}
+{% for l in review_links %}- {{ l.title }}: {{ l.url }}
+{% endfor %}{% endif %}
+{% trans "Wir freuen uns auf Ihren nächsten Einkauf — am besten direkt über unsere Website." %}
+
+{% trans "Herzliche Grüße" %}
+{% if unsubscribe_url %}—
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
+{% endif %}

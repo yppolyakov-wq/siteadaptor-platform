@@ -85,6 +85,8 @@ class Order(TimestampedModel):
     shipping_cents = models.PositiveIntegerField(default=0)  # снимок стоимости доставки
     # Промокод (A4): применённый код + скидка в центах (снимок, уже учтён в total).
     voucher_code = models.CharField(max_length=12, blank=True)
+    # CM-6.4: post-purchase просьба об отзыве — дедуп «одно письмо на заказ».
+    post_purchase_sent_at = models.DateTimeField(null=True, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
     shipped_at = models.DateTimeField(null=True, blank=True)

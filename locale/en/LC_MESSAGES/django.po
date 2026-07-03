@@ -5,12 +5,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: siteadaptor\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-03 09:11+0200\n"
+"POT-Creation-Date: 2026-07-03 12:27+0200\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 #: templates/emails/_reservation_box.html:6
 #: templates/emails/reservation_confirmed.txt:5
 #: templates/emails/reservation_created.txt:5
@@ -36,8 +37,10 @@ msgstr "Please show this code at pickup."
 #: templates/emails/booking_reminder.txt:11
 #: templates/emails/order_cancelled.txt:7
 #: templates/emails/order_confirmed.txt:8 templates/emails/order_created.txt:19
-#: templates/emails/order_picked_up.txt:6 templates/emails/order_ready.txt:10
-#: templates/emails/order_returned.txt:8 templates/emails/order_shipped.txt:11
+#: templates/emails/order_picked_up.txt:6
+#: templates/emails/order_post_purchase.txt:12
+#: templates/emails/order_ready.txt:10 templates/emails/order_returned.txt:8
+#: templates/emails/order_shipped.txt:11
 #: templates/emails/reservation_cancelled.txt:6
 #: templates/emails/reservation_confirmed.txt:12
 #: templates/emails/reservation_created.txt:13
@@ -57,8 +60,10 @@ msgstr "Stop receiving these emails"
 #: templates/emails/booking_reminder.txt:1
 #: templates/emails/order_cancelled.txt:1
 #: templates/emails/order_confirmed.txt:1 templates/emails/order_created.txt:1
-#: templates/emails/order_picked_up.txt:1 templates/emails/order_ready.txt:1
-#: templates/emails/order_returned.txt:1 templates/emails/order_shipped.txt:1
+#: templates/emails/order_picked_up.txt:1
+#: templates/emails/order_post_purchase.txt:1
+#: templates/emails/order_ready.txt:1 templates/emails/order_returned.txt:1
+#: templates/emails/order_shipped.txt:1
 #: templates/emails/reservation_cancelled.html:5
 #: templates/emails/reservation_cancelled.txt:1
 #: templates/emails/reservation_confirmed.html:5
@@ -137,6 +142,7 @@ msgid "Wir hoffen, Sie waren zufrieden!"
 msgstr "We hope you were happy with everything!"
 
 #: templates/emails/booking_post_visit.txt:6
+#: templates/emails/order_post_purchase.txt:5
 #: templates/emails/stay_post_stay.txt:6
 msgid "Würden Sie uns eine kurze Bewertung hinterlassen?"
 msgstr "Would you leave us a short review?"
@@ -148,6 +154,7 @@ msgid ""
 msgstr "We look forward to your next appointment — best booked directly on our website."
 
 #: templates/emails/booking_post_visit.txt:10
+#: templates/emails/order_post_purchase.txt:10
 #: templates/emails/stay_post_stay.txt:10
 #: templates/emails/ticket_post_event.txt:7
 msgid "Herzliche Grüße"
@@ -240,6 +247,20 @@ msgstr "Your order %(code)s has been picked up. Thank you and see you soon!"
 #: templates/emails/order_picked_up_subject.txt:1
 msgid "Danke für Ihren Einkauf!"
 msgstr "Thank you for your purchase!"
+
+#: templates/emails/order_post_purchase.txt:3
+msgid "vielen Dank für Ihren Einkauf bei uns!"
+msgstr "thank you for shopping with us!"
+
+#: templates/emails/order_post_purchase.txt:8
+msgid ""
+"Wir freuen uns auf Ihren nächsten Einkauf — am besten direkt über unsere "
+"Website."
+msgstr "We look forward to your next purchase — best ordered directly on our website."
+
+#: templates/emails/order_post_purchase_subject.txt:1
+msgid "Wie war Ihr Einkauf?"
+msgstr "How was your purchase?"
 
 #: templates/emails/order_ready.txt:3
 msgid ""

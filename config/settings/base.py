@@ -292,6 +292,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.booking.tasks.send_booking_post_visits",
         "schedule": 86400.0,  # раз в сутки — danke + запрос отзыва об услуге (UA4-4b)
     },
+    # CM-6.4: danke + запрос отзыва о товарах после выдачи/отправки заказа.
+    "send-order-post-purchases": {
+        "task": "apps.orders.tasks.send_order_post_purchases",
+        "schedule": 86400.0,
+    },
     "send-service-reminders": {
         "task": "apps.jobs.tasks.send_service_reminders",
         "schedule": 86400.0,  # раз в сутки — TÜV/Service-Reminder за N дней (A9)
