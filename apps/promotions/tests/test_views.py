@@ -104,3 +104,17 @@ def test_reservation_list_filters_by_status(user):
     resp = views.reservation_list(req)
     assert resp.status_code == 200
     assert b"confirmed" in resp.content
+
+
+@pytest.mark.django_db
+def test_promotion_list_shows_feature_entry(user, monkeypatch):
+    """D2.2: active-акция получает вход «★ Feature» в списке (гейт featured_enabled)."""
+    from apps.billing import featured as billing_featured
+
+    monkeypatch.setattr(billing_featured, "is_enabled", lambda: True)
+    promo = PromotionFactory(status="active")
+    draft = PromotionFactory(status="draft")
+    req = _attach(RequestFactory().get("/promotions/"), user)
+    body = views.promotion_list(req).content.decode()
+    assert f"/promotions/{promo.pk}/feature/" in body
+    assert f"/promotions/{draft.pk}/feature/" not in body  # только active

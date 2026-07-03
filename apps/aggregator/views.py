@@ -163,7 +163,35 @@ def split_featured(qs, *, first_page: bool, limit: int = 6):
     featured_qs = qs.filter(featured_until__gt=timezone.now()).order_by("featured_until", "pk")
     featured = list(featured_qs[:limit]) if first_page else []
     rest = qs.exclude(pk__in=featured_qs.values_list("pk", flat=True))
+    if featured:
+        # D2.3: показ featured-блока = импрессия (F-инкремент, без гонок).
+        from django.db.models import F
+
+        AggregatorListing.objects.filter(pk__in=[item.pk for item in featured]).update(
+            featured_impressions=F("featured_impressions") + 1
+        )
     return featured, rest
+
+
+def featured_click(request, pk):
+    """D2.3: клик по featured-позиции — счётчик + редирект на листинг.
+
+    Инкремент только пока позиция оплачена (is_featured_now). detail_url —
+    URLField из sync-задач; не-http значение (мусор) → на /entdecken.
+    Роут зарегистрирован под одним именем в urls_public И urls_portal.
+    """
+    from django.db.models import F
+    from django.shortcuts import redirect
+
+    listing = AggregatorListing.objects.filter(pk=pk, is_active=True).first()
+    if listing is None:
+        return redirect("/")  # корень валиден и на /entdecken-домене, и на портале
+    if listing.is_featured_now:
+        AggregatorListing.objects.filter(pk=pk).update(featured_clicks=F("featured_clicks") + 1)
+    url = listing.detail_url or ""
+    if not url.startswith(("http://", "https://", "/")):
+        return redirect("/")
+    return redirect(url)
 
 
 def _distinct_cities():

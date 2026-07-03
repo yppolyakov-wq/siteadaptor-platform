@@ -66,6 +66,11 @@ class AggregatorListing(I18nMixin, models.Model):
     # платежа (payment_intent). Тот же платёж не продлевает срок повторно даже при
     # потере Redis-дедупа по event.id (аудит 2026-07-01).
     featured_payment_ref = models.CharField(max_length=255, blank=True, default="")
+    # D2.3: owner-аналитика продвижения — считаем ТОЛЬКО пока позиция featured
+    # (показы: рендер блока split_featured; клики: редирект-счётчик). Кумулятивно
+    # по всем оплаченным окнам — владелец видит суммарный эффект.
+    featured_impressions = models.PositiveIntegerField(default=0)
+    featured_clicks = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

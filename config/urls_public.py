@@ -33,6 +33,12 @@ urlpatterns = [
     path("internal/verify-domain", health.verify_domain, name="verify-domain"),
     # Локальный агрегатор (Sprint 4): городские страницы на основном домене.
     path("entdecken/", aggregator_views.discover_index, name="aggregator-index"),
+    # D2.3: клик-счётчик featured (имя дублируется в urls_portal — {% url %} везде).
+    path(
+        "entdecken/klick/<int:pk>/",
+        aggregator_views.featured_click,
+        name="aggregator-featured-click",
+    ),
     path("entdecken/<str:city>/", aggregator_views.city_listing, name="aggregator-city"),
     path(
         "entdecken/<str:city>/<str:business_type>/",

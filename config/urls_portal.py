@@ -12,6 +12,7 @@ from django.views.static import serve
 
 from apps.aggregator import account_views, portal_views, reviews_views
 from apps.aggregator import telegram_bot as portal_telegram
+from apps.aggregator import views as aggregator_views
 from apps.core import health
 
 urlpatterns = [
@@ -45,6 +46,8 @@ urlpatterns = [
     ),
     # Telegram-бот портала (TG4): публичный webhook на хосте портала.
     path("tg/<str:secret>/", portal_telegram.webhook, name="portal-telegram-webhook"),
+    # D2.3: клик-счётчик featured (то же имя, что в urls_public) — до catch-all.
+    path("klick/<int:pk>/", aggregator_views.featured_click, name="aggregator-featured-click"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

@@ -3827,3 +3827,17 @@
   + вход из CRM-списка (prefill ?tag=) + beat `send_winback_coupons` (86400,
   дедуп-окно = inactive_days, настройки на кампании — БЕЗ Tenant-миграции).
   Тесты `test_coupon_campaigns.py` (19: сегменты/гейт/идемпотентность/вью/beat).
+
+- **2026-07-03 — идея D2 (self-serve featured): слайсы D2.1–D2.3.** Ядро было
+  готово (P2.4b). Доделано: **D2.1** «★ Anzeige» на КАРТЕ (featured-флаг в
+  `geo.map_points`, DOM-бейдж в попапе `_map.html` — UWG §5a теперь на всех
+  поверхностях; перепин замка test_expired_featured: литерал в статичном JS);
+  **D2.2** вход из списка акций («★ Feature»/«★ bis dd.mm.» на active,
+  один public-запрос листингов); **D2.3** owner-аналитика —
+  `featured_impressions`/`featured_clicks` (aggregator/0014, F-инкременты:
+  показы в `split_featured` первой страницы, клики через редирект-счётчик
+  `/entdecken/klick/<pk>/`, имя роута продублировано в urls_portal до
+  catch-all; featured-карточки + маркеры карты ведут через счётчик,
+  rel="sponsored"), блок «Bisher: X Aufrufe · Y Klicks» на странице
+  продвижения. D2.4 (stays/events) — следующий слайс; D2.5 (цены в кабинете)
+  — ⏸ env достаточно.

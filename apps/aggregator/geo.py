@@ -43,13 +43,27 @@ def nearest(qs, lat, lng, limit=50) -> list:
 
 
 def map_points(cards) -> list:
-    """[{lat, lng, title, url}] для маркеров карты (только карточки с координатами)."""
+    """[{lat, lng, title, url, featured}] для маркеров карты (только карточки с
+    координатами). featured — оплаченная позиция: попап обязан нести пометку
+    «Anzeige» (UWG §5a, D2.1 — паритет с карточками `_cards.html`), а клик идёт
+    через счётчик (D2.3; fail-safe на detail_url, если имя вне urlconf)."""
+    from django.urls import NoReverseMatch, reverse
+
+    def _url(card):
+        if card.is_featured_now:
+            try:
+                return reverse("aggregator-featured-click", args=[card.pk])
+            except NoReverseMatch:
+                pass
+        return card.detail_url
+
     return [
         {
             "lat": float(card.latitude),
             "lng": float(card.longitude),
             "title": card.title_text,
-            "url": card.detail_url,
+            "url": _url(card),
+            "featured": bool(card.is_featured_now),
         }
         for card in cards
         if card.latitude is not None and card.longitude is not None

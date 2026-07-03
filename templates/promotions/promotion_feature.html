@@ -35,6 +35,12 @@
       </p>
       <p class="text-xs text-gray-500">Ein weiterer Kauf verlängert die Laufzeit.</p>
     {% endif %}
+    {# D2.3: эффект продвижения — суммарно по всем оплаченным окнам #}
+    {% if listing and listing.featured_impressions %}
+      <p class="mt-2 text-xs text-gray-500">
+        Bisher: {{ listing.featured_impressions }} Aufrufe · {{ listing.featured_clicks }} Klicks
+      </p>
+    {% endif %}
   </div>
 
   {% if not is_listed %}

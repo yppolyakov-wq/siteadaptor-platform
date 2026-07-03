@@ -135,10 +135,41 @@ def promotion_list(request):
     status = request.GET.get("status", "")
     if status:
         promos = promos.filter(status=status)
+
+    # D2.2: вход в self-serve featured из списка — бейдж «beworben bis …» /
+    # «Bewerben ★» на active-акциях (один public-запрос по листингам).
+    from apps.billing import featured as billing_featured
+
+    featured_enabled = billing_featured.is_enabled()
+    promos = list(promos)
+    if featured_enabled and promos:
+        from django.db import connection
+        from django.utils import timezone as tz
+
+        from apps.aggregator.models import AggregatorListing
+
+        until_by_uuid = dict(
+            AggregatorListing.objects.filter(
+                tenant_schema=connection.schema_name,
+                promo_uuid__in=[p.id for p in promos],
+            ).values_list("promo_uuid", "featured_until")
+        )
+        now = tz.now()
+        for p in promos:
+            until = until_by_uuid.get(p.id)
+            p.featured_until_agg = until
+            p.is_featured_agg = bool(until and until > now)
+
     return render(
         request,
         "promotions/promotion_list.html",
-        {"promotions": promos, "statuses": PROMO_STATUSES, "status": status, "nav": "promotions"},
+        {
+            "promotions": promos,
+            "statuses": PROMO_STATUSES,
+            "status": status,
+            "featured_enabled": featured_enabled,
+            "nav": "promotions",
+        },
     )
 
 
