@@ -9,6 +9,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Product
+from apps.core.i18n_input import DynamicI18nFormMixin
 from apps.loyalty.models import LoyaltyProgram
 
 from .models import Promotion
@@ -26,14 +27,15 @@ class _DateTimeLocal(forms.DateTimeField):
         )
 
 
-class PromotionForm(forms.ModelForm):
+class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
+    # L3d.5: база (de) статическая, прочие локали — динамически (см. i18n_input).
     title_de = forms.CharField(label=_("Title (DE)"), max_length=200)
-    title_en = forms.CharField(label=_("Title (EN)"), max_length=200, required=False)
     description_de = forms.CharField(
         label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
     )
-    description_en = forms.CharField(
-        label=_("Description (EN)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
+    i18n_fields = (
+        ("title", {"label": "Titel", "max_length": 200}),
+        ("description", {"label": "Beschreibung", "textarea": True}),
     )
     starts_at = _DateTimeLocal(label=_("Starts at"))
     ends_at = _DateTimeLocal(label=_("Ends at"))
@@ -89,15 +91,11 @@ class PromotionForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, tenant=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["product"].queryset = Product.objects.all()
         self.fields["product"].required = False
-        if self.instance and self.instance.pk:
-            self.fields["title_de"].initial = (self.instance.title or {}).get("de", "")
-            self.fields["title_en"].initial = (self.instance.title or {}).get("en", "")
-            self.fields["description_de"].initial = (self.instance.description or {}).get("de", "")
-            self.fields["description_en"].initial = (self.instance.description or {}).get("en", "")
+        self.init_i18n_fields(tenant)  # L3d.5
 
     def clean(self):
         cleaned = super().clean()
@@ -108,14 +106,8 @@ class PromotionForm(forms.ModelForm):
 
     def save(self, commit=True):
         promo = super().save(commit=False)
-        promo.title = {
-            "de": self.cleaned_data["title_de"],
-            "en": self.cleaned_data.get("title_en", ""),
-        }
-        promo.description = {
-            "de": self.cleaned_data.get("description_de", ""),
-            "en": self.cleaned_data.get("description_en", ""),
-        }
+        promo.title = self.collect_i18n("title")
+        promo.description = self.collect_i18n("description")
         if commit:
             promo.save()
         return promo

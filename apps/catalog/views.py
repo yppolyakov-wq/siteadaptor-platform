@@ -105,7 +105,7 @@ def product_list(request):
 
 @login_required
 def product_create(request):
-    form = ProductForm(request.POST or None)
+    form = ProductForm(request.POST or None, tenant=getattr(request, "tenant", None))
     if request.method == "POST" and form.is_valid():
         product = form.save()
         _handle_uploads(request, product)
@@ -120,7 +120,9 @@ def product_create(request):
 @login_required
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    form = ProductForm(request.POST or None, instance=product)
+    form = ProductForm(
+        request.POST or None, instance=product, tenant=getattr(request, "tenant", None)
+    )
     if request.method == "POST" and form.is_valid():
         product = form.save()
         _handle_uploads(request, product)
@@ -394,7 +396,7 @@ def category_list(request):
 
 @login_required
 def category_create(request):
-    form = CategoryForm(request.POST or None)
+    form = CategoryForm(request.POST or None, tenant=getattr(request, "tenant", None))
     if request.method == "POST" and form.is_valid():
         form.save()
         return redirect("catalog:category-list")
@@ -408,7 +410,9 @@ def category_create(request):
 @login_required
 def category_edit(request, pk):
     category = get_object_or_404(Category, pk=pk)
-    form = CategoryForm(request.POST or None, instance=category)
+    form = CategoryForm(
+        request.POST or None, instance=category, tenant=getattr(request, "tenant", None)
+    )
     if request.method == "POST" and form.is_valid():
         form.save()
         return redirect("catalog:category-list")

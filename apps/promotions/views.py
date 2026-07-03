@@ -240,7 +240,12 @@ def promotion_create(request):
     initial = {}
     if request.method == "GET" and request.GET.get("preset"):
         initial = preset_initial(business_type, request.GET["preset"])
-    form = PromotionForm(request.POST or None, request.FILES or None, initial=initial or None)
+    form = PromotionForm(
+        request.POST or None,
+        request.FILES or None,
+        initial=initial or None,
+        tenant=getattr(request, "tenant", None),
+    )
     if request.method == "POST" and form.is_valid():
         promo = form.save()
         _handle_promo_uploads(request, promo)
@@ -260,7 +265,12 @@ def promotion_create(request):
 @login_required
 def promotion_edit(request, pk):
     promo = get_object_or_404(Promotion, pk=pk)
-    form = PromotionForm(request.POST or None, request.FILES or None, instance=promo)
+    form = PromotionForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=promo,
+        tenant=getattr(request, "tenant", None),
+    )
     if request.method == "POST" and form.is_valid():
         promo = form.save()
         _handle_promo_uploads(request, promo)

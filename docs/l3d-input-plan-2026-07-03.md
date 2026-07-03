@@ -60,5 +60,6 @@ EN-контент не ломается.
 - **L3d.1–L3d.4 ✅ (2026-07-03)** — детали в build-log. Грабля: Product.name —
   i18n-JSONField, лукап демо-комбо по `name__de__in`; request.tenant в CRUD-
   вьюхах — через getattr (тесты без tenant-миддлвари).
-- L3d.5 (ModelForm Category/Product/Promotion → N-locale динамика) — след.
-  батч, реюз helper'а.
+- **L3d.5 ✅ (2026-07-03)** — DynamicI18nFormMixin/form_locales; статические
+  en-поля убраны, динамика по active_locales (без tenant — весь реестр,
+  паритет); шаблоны без правок ({% for field in form %}). L3d ЗАКРЫТ ЦЕЛИКОМ.

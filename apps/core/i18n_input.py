@@ -70,3 +70,53 @@ def i18n_inputs_for(obj, tenant, fields=("name", "description")) -> list[dict]:
                 }
             )
     return out
+
+
+def form_locales(tenant) -> list[str]:
+    """L3d.5: локали для форм ПОЛНОГО i18n-словаря (Category/Product/Promotion:
+    JSON {locale: str}, база хранится в самом словаре). Базовая локаль всегда
+    первая; без тенанта — весь реестр settings.LANGUAGES (паритет старых
+    вызовов форм без tenant-kwarg)."""
+    base = settings.LANGUAGE_CODE
+    try:
+        locs = list(tenant.active_locales)
+    except Exception:  # noqa: BLE001
+        locs = [code for code, _label in settings.LANGUAGES]
+    return [base] + [loc for loc in locs if loc != base]
+
+
+class DynamicI18nFormMixin:
+    """L3d.5: N-locale поля вместо хардкода пар de/en в ModelForm.
+
+    Базовое поле `<f>_<LANGUAGE_CODE>` остаётся статическим на классе
+    (обязательность/лейбл как раньше); поля прочих локалей создаются в
+    `init_i18n_fields` по локалям тенанта. `collect_i18n(f)` в save()
+    собирает полный словарь {locale: str} по всем локалям формы."""
+
+    # (("name", {"label": "Name", "max_length": 200, "textarea": False}), …)
+    i18n_fields = ()
+
+    def init_i18n_fields(self, tenant):
+        from django import forms as dj_forms
+
+        base = settings.LANGUAGE_CODE
+        self._i18n_locales = form_locales(tenant)
+        for f, opts in self.i18n_fields:
+            for loc in self._i18n_locales:
+                fname = f"{f}_{loc}"
+                if loc != base and fname not in self.fields:
+                    self.fields[fname] = dj_forms.CharField(
+                        label=f"{opts.get('label', f.capitalize())} ({loc.upper()})",
+                        max_length=opts.get("max_length"),
+                        required=False,
+                        widget=dj_forms.Textarea(attrs={"rows": 3})
+                        if opts.get("textarea")
+                        else None,
+                    )
+                if getattr(self.instance, "pk", None):
+                    src = getattr(self.instance, f, None) or {}
+                    if isinstance(src, dict):
+                        self.fields[fname].initial = src.get(loc, "")
+
+    def collect_i18n(self, f) -> dict:
+        return {loc: (self.cleaned_data.get(f"{f}_{loc}") or "") for loc in self._i18n_locales}

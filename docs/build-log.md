@@ -3894,3 +3894,14 @@
   в `settings.LANGUAGE_CODE` вместо хардкода "de". Тесты: test_i18n_input (8)
   + demo-kit i18n (3) + смежные замки 75+33 зелёные. L3d.5 (ModelForm
   Category/Product/Promotion → N-locale) — следующим батчем.
+
+- **2026-07-03 — L3d.5: Category/Product/Promotion ModelForm → N-locale
+  (ВОЛНА L ЗАКРЫТА в объёме L3d).** `DynamicI18nFormMixin` + `form_locales`
+  в `apps/core/i18n_input.py`: статические поля пар de/en убраны, база
+  (`*_de`) остаётся классовой (обязательность прежняя), поля прочих локалей
+  создаются в __init__ по `active_locales` тенанта (без tenant-kwarg — весь
+  реестр: паритет старых вызовов/тестов); save() собирает словарь
+  `collect_i18n`. Шесть вьюх-вызовов передают tenant. Шаблоны без правок —
+  рендерят `{% for field in form %}`. Тесты: de-only тенант прячет `name_en`,
+  3-я локаль (fr) появляется и сохраняется, initial из instance; 237 замков
+  catalog/promotions/demo зелёные.

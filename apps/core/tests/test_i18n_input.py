@@ -210,3 +210,52 @@ def test_combo_create_and_edit_overlay():
     )
     combo.refresh_from_db()
     assert combo.description_i18n == {"en": "Coffee + roll"}
+
+
+# --- L3d.5: динамика ModelForm (Category/Product/Promotion) -------------------
+
+
+def test_category_form_de_only_tenant_hides_en_field():
+    from apps.catalog.forms import CategoryForm
+
+    form = CategoryForm(tenant=_tenant(["de"]))
+    assert "name_de" in form.fields and "name_en" not in form.fields
+
+
+def test_category_form_without_tenant_keeps_registry_parity():
+    from apps.catalog.forms import CategoryForm
+
+    form = CategoryForm()  # без тенанта → весь реестр (de+en) — как раньше
+    assert "name_en" in form.fields and "description_en" in form.fields
+
+
+def test_product_form_third_locale_appears_and_saves(settings):
+    settings.LANGUAGES = [("de", "Deutsch"), ("en", "English"), ("fr", "Français")]
+    from apps.catalog.forms import ProductForm
+
+    tenant = _tenant(["de", "fr"])
+    form = ProductForm(
+        {
+            "name_de": "Brot",
+            "name_fr": "Pain",
+            "description_de": "",
+            "description_fr": "",
+            "base_price": "3.50",
+            "currency": "EUR",
+            "unit": "",
+        },
+        tenant=tenant,
+    )
+    assert "name_fr" in form.fields and "name_en" not in form.fields
+    assert form.is_valid(), form.errors
+    product = form.save()
+    assert product.name == {"de": "Brot", "fr": "Pain"}
+
+
+def test_promotion_form_dynamic_initial_from_instance():
+    from apps.promotions.forms import PromotionForm
+    from apps.promotions.models import Promotion
+
+    promo = Promotion.objects.create(title={"de": "Aktion", "en": "Deal"}, status="draft")
+    form = PromotionForm(instance=promo, tenant=_tenant(["de", "en"]))
+    assert form.fields["title_en"].initial == "Deal"
