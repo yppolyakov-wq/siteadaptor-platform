@@ -156,13 +156,23 @@ def modules_nav(request):
             }
     # S7: нижнее меню — кастомное (из menus.bottom) либо авто таб-бар (T2b).
     if menu_mod.bottom_enabled(tenant):
+        # Доводка bottom-nav ТЗ (решение владельца 2026-07-03: доводим S7, а не
+        # отдельный bottom_nav-ключ): узел-корзина в кастомном меню сохраняет
+        # семантику авто-таб-бара — акцент (kind=primary) + бейдж позиций.
+        from django.urls import NoReverseMatch, reverse
+
+        try:
+            _cart_url = reverse("storefront-cart")
+        except NoReverseMatch:
+            _cart_url = None
+        _n_cart = _cart_count(request)
         bottom_nav = [
             {
                 "url": i["url"],
                 "label": i["label"],
                 "icon": i["icon"] or "•",
-                "kind": "default",
-                "badge": 0,
+                "kind": "primary" if _cart_url and i["url"] == _cart_url else "default",
+                "badge": _n_cart if _cart_url and i["url"] == _cart_url else 0,
             }
             for i in menu_mod.resolve_menu(tenant, "bottom")
             if i["url"]
