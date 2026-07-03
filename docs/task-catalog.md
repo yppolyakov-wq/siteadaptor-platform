@@ -85,6 +85,12 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | D3.3 | Кабинет /partner/ read-only + реф-ссылка + revshare-сводка | ✅ | там же |
 | D3.4 | Шов скидки client_discount в подписочный Checkout | ✅ | там же |
 | D3.5 | Этап 2: вход партнёра в кабинеты клиентов (refactor Membership) | ⏭ владелец: «вторым этапом» | там же |
+| **L3d** | **Per-locale ввод форм + мультиязычный демо-засев (углубление L3)** | 🚧 в работе | `l3d-input-plan-2026-07-03.md` |
+| L3d.1 | Helper i18n_input + Service/StayUnit/Combo вьюхи и шаблоны | план | там же |
+| L3d.2 | Демо-засев i18n (генерализация _i18n_text + EN friseur/hotel) | план | там же |
+| L3d.3 | Combo в демо (gastro + EN) — дыра master-track §7.0 | план | там же |
+| L3d.4 | Инлайн-гигиена: локаль вместо хардкода "de" | план | там же |
+| L3d.5 | Category/Product/Promotion ModelForm → N-locale | план | там же |
 | CM-5 | AI-контент-пакет | 🔒 ждёт LLM-ключ владельца | `market-content…` |
 | T-1 | Массовый de.po хрома витрины/кабинета | ⚖️ решение владельца | `legal-lang-package-plan §2` |
 | T-2 | C1-Telegram: дайджест в TG (биндинг chat_id владельца) | отложено | roadmap §Отложено |
