@@ -1,7 +1,7 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}{# D2.4: generic-страница продвижения листинга (stay/event) — зеркало promotion_feature.html.
-Контекст: back_url, obj_title, listing, plans, featured_enabled, is_listed, not_listed_hint,
-checkout_url, checkout_status, nav. #}
+{% load i18n %}{% comment %}D2.4: generic-страница продвижения листинга (stay/event) — зеркало
+promotion_feature.html. Контекст: back_url, obj_title, listing, plans, featured_enabled,
+is_listed, not_listed_hint, checkout_url, checkout_status, nav.{% endcomment %}
 {% block dash_title %}{% trans "Promote" %}{% endblock %}
 
 {% block dash_content %}
