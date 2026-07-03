@@ -73,6 +73,20 @@ def house_rules_present(context):
 
 
 @register.simple_tag
+def agb_present():
+    """E-2/L5: True, если задан непустой AGB-текст (LegalDoc, любая локаль) —
+    ссылка в футере. Ошибки гасим (футер не должен ломаться; на public-схеме
+    tenant-таблицы нет)."""
+    try:
+        from apps.core.models import LegalDoc
+
+        texts = LegalDoc.objects.filter(kind="agb").values_list("text", flat=True)
+        return any(t.strip() for t in texts)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+@register.simple_tag
 def business_rating():
     """(avg, count) рейтинга текущего тенанта или None — для звёзд на витрине (P3)."""
     return _tenant_rating()

@@ -811,24 +811,41 @@ def _legal_page(request, title, body):
 
 
 def impressum(request):
-    return _legal_page(request, "Impressum", request.tenant.impressum_text())
+    # L5: тексты через резолвер LegalDoc (per-locale) с фолбэком на Tenant-поля.
+    from apps.core.legal import legal_text
+
+    return _legal_page(request, "Impressum", legal_text(request.tenant, "impressum"))
 
 
 def privacy(request):
-    return _legal_page(request, "Datenschutz", request.tenant.privacy_text())
+    from apps.core.legal import legal_text
+
+    return _legal_page(request, "Datenschutz", legal_text(request.tenant, "datenschutz"))
 
 
 def withdrawal(request):
+    from apps.core.legal import legal_text
+
     # C.1: для дистанционной продажи товаров показываем кнопку онлайн-Widerruf.
     return render(
         request,
         "storefront/legal.html",
         {
             "legal_title": "Widerruf",
-            "legal_body": request.tenant.withdrawal_text(),
+            "legal_body": legal_text(request.tenant, "widerruf"),
             "show_widerruf_button": bool(getattr(request.tenant, "delivery_enabled", False)),
         },
     )
+
+
+def agb(request):
+    """E-2/L5: страница AGB — только при заданном тексте (фолбэка нет)."""
+    from apps.core.legal import legal_text
+
+    text = legal_text(request.tenant, "agb")
+    if not text.strip():
+        raise Http404
+    return _legal_page(request, "AGB", text)
 
 
 def withdrawal_form(request):

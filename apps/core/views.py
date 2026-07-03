@@ -525,6 +525,55 @@ def languages_view(request):
     return render(request, "tenant/languages.html", {"languages": languages, "nav": "languages"})
 
 
+@login_required
+def legal_docs_view(request):
+    """L5/E-2: кабинет «Recht» — правовые тексты витрины per-locale (LegalDoc).
+
+    4 вида (Impressum/Datenschutz/Widerruf/AGB) × активные локали тенанта.
+    Пустая textarea = строка удаляется → работает фолбэк-цепочка legal.py
+    (плоское поле настроек / автотекст); для AGB пусто = страницы /agb/ нет.
+    Presence-guard: трогаем только присланные поля (name=doc_<kind>_<locale>).
+    """
+    from apps.core.legal import legal_text
+    from apps.core.models import LegalDoc
+
+    tenant = request.tenant
+    locales = tenant.active_locales
+    if request.method == "POST":
+        for kind, _label in LegalDoc.KIND_CHOICES:
+            for loc in locales:
+                val = request.POST.get(f"doc_{kind}_{loc}")
+                if val is None:
+                    continue
+                if val.strip():
+                    LegalDoc.objects.update_or_create(kind=kind, locale=loc, defaults={"text": val})
+                else:
+                    LegalDoc.objects.filter(kind=kind, locale=loc).delete()
+        messages.success(request, _("Saved."))
+        return redirect("legal-docs")
+    docs = {(d.kind, d.locale): d.text for d in LegalDoc.objects.filter(locale__in=locales)}
+    lang_names = dict(settings.LANGUAGES)
+    kinds = [
+        {
+            "kind": kind,
+            "label": label,
+            "has_fallback": kind != "agb",
+            "cells": [
+                {
+                    "locale": loc,
+                    "locale_label": lang_names.get(loc, loc.upper()),
+                    "text": docs.get((kind, loc), ""),
+                    # что покажет витрина при пустом поле (превью фолбэка)
+                    "fallback": "" if kind == "agb" else legal_text(tenant, kind, locale=loc),
+                }
+                for loc in locales
+            ],
+        }
+        for kind, label in LegalDoc.KIND_CHOICES
+    ]
+    return render(request, "tenant/legal_docs.html", {"kinds": kinds, "nav": "legal-docs"})
+
+
 def _upload_gallery_images(request) -> None:
     """Сохранить загруженные фото в site_config['gallery'] (M20 ⑤b).
 

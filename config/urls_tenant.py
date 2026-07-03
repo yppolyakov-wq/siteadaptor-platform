@@ -21,6 +21,7 @@ from apps.core.views import (
     extras_view,
     home_builder_view,
     languages_view,
+    legal_docs_view,
     media_library,
     menu_builder_view,
     modules_view,
@@ -61,6 +62,8 @@ urlpatterns = [
     path("dashboard/settings/", settings_view, name="settings"),
     # L2 (Волна L): кабинет «Sprachen» — включение языков витрины + дефолт.
     path("dashboard/settings/languages/", languages_view, name="languages"),
+    # L5/E-2: кабинет «Recht» — правовые тексты per-locale (LegalDoc) + AGB.
+    path("dashboard/recht/", legal_docs_view, name="legal-docs"),
     path("dashboard/extras/", extras_view, name="extras"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
@@ -311,6 +314,8 @@ urlpatterns = [
     path("impressum/", public_views.impressum, name="storefront-impressum"),
     path("datenschutz/", public_views.privacy, name="storefront-privacy"),
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),
+    # E-2/L5: AGB — страница есть только при заданном тексте (LegalDoc).
+    path("agb/", public_views.agb, name="storefront-agb"),
     # C.1: онлайн-форма Widerruf (заявление уходит продавцу).
     path("widerruf-formular/", public_views.withdrawal_form, name="storefront-withdrawal-form"),
     path("u/<uuid:token>/", public_views.unsubscribe, name="storefront-unsubscribe"),

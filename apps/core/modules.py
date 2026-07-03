@@ -354,6 +354,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             NavItem("site", _("Site"), "site"),
             NavItem("settings", _("Settings"), "settings"),
             NavItem("languages", _("Languages"), "languages"),  # L2 — языки витрины
+            NavItem("legal-docs", _("Legal"), "legal-docs"),  # L5/E-2 — правовые тексты
             NavItem("extras", _("Extras"), "extras"),  # #7 универсальные доп-услуги
             NavItem("media-library", _("Media"), "media"),  # CM-4 медиа-библиотека
             NavItem("domains", _("Domains"), "domains"),
@@ -363,6 +364,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=(
             "/dashboard/site/",
             "/dashboard/settings/",
+            "/dashboard/recht/",
             "/dashboard/extras/",
             "/dashboard/domains/",
             "/dashboard/modules/",

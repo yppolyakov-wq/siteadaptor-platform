@@ -3757,7 +3757,93 @@ def apply_kit(tenant, key: str) -> bool:
         tenant.service_area_note = kit.service_area_note
         update_fields += ["service_area_plz", "service_area_note"]
     tenant.save(update_fields=update_fields)
+    _seed_legal_docs(tenant, kit)  # E-2/L5: честное право в демо (вместо placeholder)
     return True
+
+
+def _seed_legal_docs(tenant, kit: DemoKit) -> None:
+    """E-2/L5: правовые DE-тексты демо-кита в LegalDoc (кабинет «Recht» заполнен,
+    витрина без placeholder). Impressum/Datenschutz/Widerruf — из генераторов
+    Tenant (контакты уже засеяны), без строки «Bitte anpassen»; AGB — заготовка
+    по модулям кита. Вызывать в схеме тенанта, ПОСЛЕ tenant.save."""
+    from apps.core.models import LegalDoc
+
+    def _strip_hint(text: str) -> str:
+        return text.replace("\n\nHinweis: Bitte passen Sie diesen Text an Ihr Geschäft an.", "")
+
+    texts = {
+        "impressum": tenant.impressum_text(),
+        "datenschutz": _strip_hint(tenant.privacy_text()),
+        "widerruf": _strip_hint(tenant.withdrawal_text()),
+        "agb": _agb_template(tenant, kit),
+    }
+    for kind, text in texts.items():
+        if text.strip():
+            LegalDoc.objects.update_or_create(kind=kind, locale="de", defaults={"text": text})
+
+
+def _agb_template(tenant, kit: DemoKit) -> str:
+    """AGB-заготовка по типу бизнеса кита (какие модули продают). Честный
+    базовый текст: Geltung, Vertragsschluss (§312j), Preise (PAngV), Zahlung +
+    блоки по модулям (Abholung/Lieferung, Termine, Übernachtung, Tickets)."""
+    mods = set(kit.enable_modules or [])
+    kontakt = tenant.public_email or tenant.name
+    parts = [
+        "Allgemeine Geschäftsbedingungen (AGB)\n",
+        f"§ 1 Geltungsbereich\nDiese AGB gelten für alle Bestellungen und Buchungen "
+        f"über die Website von {tenant.name}.",
+        "§ 2 Vertragsschluss\nDie Darstellung unserer Produkte und Leistungen ist "
+        "kein bindendes Angebot. Mit Klick auf «Zahlungspflichtig bestellen» bzw. "
+        "Absenden einer Buchung geben Sie ein verbindliches Angebot ab; der Vertrag "
+        "kommt mit unserer Bestätigung zustande.",
+        "§ 3 Preise und Zahlung\nAlle Preise verstehen sich in Euro inkl. der "
+        "gesetzlichen MwSt. Es gelten die beim jeweiligen Angebot ausgewiesenen "
+        "Zahlungsarten.",
+    ]
+    n = 4
+    if "orders" in mods:
+        extra = (
+            " Bei Lieferung fallen die im Warenkorb ausgewiesenen Versand-/Lieferkosten an."
+            if getattr(tenant, "delivery_enabled", False)
+            else ""
+        )
+        parts.append(
+            f"§ {n} Abholung und Lieferung\nBestellte Waren werden zur Abholung "
+            f"bereitgestellt bzw. — sofern angeboten — ausgeliefert.{extra}"
+        )
+        n += 1
+    if "booking" in mods:
+        parts.append(
+            f"§ {n} Termine\nGebuchte Termine sind verbindlich. Eine kostenfreie "
+            "Stornierung ist bis 24 Stunden vor dem Termin möglich; bitte "
+            f"kontaktieren Sie uns unter {kontakt}."
+        )
+        n += 1
+    if "stays" in mods:
+        parts.append(
+            f"§ {n} Übernachtung\nFür Unterkunftsbuchungen gelten die beim Angebot "
+            "ausgewiesenen Tarif- und Stornobedingungen; ggf. anfallende Kurtaxe "
+            "wird gesondert ausgewiesen."
+        )
+        n += 1
+    if "events" in mods:
+        parts.append(
+            f"§ {n} Veranstaltungen und Tickets\nTickets gelten für die angegebene "
+            "Veranstaltung. Bei Absage durch den Veranstalter wird der Ticketpreis "
+            "erstattet."
+        )
+        n += 1
+    parts += [
+        f"§ {n} Widerrufsrecht\nVerbrauchern steht ein Widerrufsrecht nach Maßgabe "
+        "der Widerrufsbelehrung (siehe Seite «Widerruf») zu, soweit gesetzlich "
+        "vorgesehen.",
+        f"§ {n + 1} Streitbeilegung\nZur Teilnahme an einem "
+        "Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle sind "
+        "wir nicht verpflichtet und nicht bereit.",
+        f"§ {n + 2} Schlussbestimmungen\nEs gilt deutsches Recht. Sollten einzelne "
+        "Bestimmungen unwirksam sein, bleibt der Vertrag im Übrigen wirksam.",
+    ]
+    return "\n\n".join(parts)
 
 
 def _seed_kit_reviews(tenant, kit: DemoKit) -> None:

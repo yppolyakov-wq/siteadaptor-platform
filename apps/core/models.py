@@ -230,3 +230,31 @@ class MediaAsset(TimestampedModel):
 
     def __str__(self):
         return self.path
+
+
+class LegalDoc(TimestampedModel):
+    """L5/E-2: правовой документ витрины per-locale (TENANT-схема).
+
+    Резолв — apps/core/legal.py: LegalDoc[текущая локаль] → LegalDoc[дефолт
+    тенанта] → плоское Tenant-поле → генерённый фолбэк. Пустой text = строка
+    не участвует в резолве (эквивалент отсутствия). AGB фолбэка не имеет:
+    без текста страница /agb/ отдаёт 404, ссылка в футере скрыта.
+    """
+
+    KIND_CHOICES = [
+        ("impressum", "Impressum"),
+        ("datenschutz", "Datenschutz"),
+        ("widerruf", "Widerruf"),
+        ("agb", "AGB"),
+    ]
+    kind = models.CharField(max_length=20, choices=KIND_CHOICES)
+    locale = models.CharField(max_length=8)
+    text = models.TextField(blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["kind", "locale"], name="legaldoc_kind_locale_uniq")
+        ]
+
+    def __str__(self):
+        return f"{self.kind}/{self.locale}"

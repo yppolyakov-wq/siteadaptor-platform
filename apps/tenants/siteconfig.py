@@ -647,6 +647,7 @@ LEGAL_SECTIONS = (
     ("impressum", "Impressum"),
     ("datenschutz", "Datenschutz"),
     ("widerruf", "Widerruf"),
+    ("agb", "AGB"),  # E-2/L5: страница есть только при заданном LegalDoc-тексте
 )
 _STATIC_PAGE_SECTIONS = {
     "listing": LISTING_SECTIONS,
