@@ -146,3 +146,25 @@ def test_posts_view_create_schedule_and_send_now(monkeypatch):
     post.refresh_from_db()
     assert post.status == SocialPost.SENT
     assert Publication.objects.filter(post=post).exists()
+
+
+def test_publish_due_blog_creates_share_draft():
+    """CM-3: включение запланированной записи создаёт авто-черновик поста
+    (идемпотентно по slug; без Domain ссылка пустая — не падаем)."""
+    from apps.events.models import BlogPost
+
+    now = timezone.now()
+    BlogPost.objects.create(
+        title="Neu bei uns",
+        slug="neu-bei-uns",
+        excerpt="Kurzer Anriss.",
+        is_published=False,
+        published_at=now - timedelta(minutes=5),
+    )
+    assert tasks.publish_due_blog(now) == 1
+    draft = SocialPost.objects.get(source_kind="blog", source_id="neu-bei-uns")
+    assert draft.status == SocialPost.DRAFT
+    assert "Neu bei uns" in draft.text and "Kurzer Anriss." in draft.text
+    # повторный прогон не плодит дубли
+    assert tasks.publish_due_blog(now) == 0
+    assert SocialPost.objects.filter(source_kind="blog").count() == 1

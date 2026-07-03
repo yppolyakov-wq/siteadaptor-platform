@@ -176,3 +176,16 @@ def test_blog_edit_past_publish_at_ignored():
     )
     post.refresh_from_db()
     assert post.is_published  # опубликован сразу (дата в прошлом игнорируется)
+
+
+def test_cabinet_publish_creates_channel_draft():
+    """CM-3: публикация из кабинета → авто-черновик поста в каналы (один на slug)."""
+    from apps.publishing.models import SocialPost
+
+    views.blog_list(_cab("post", {"title": "Sofort da", "publish": "on"}))
+    assert SocialPost.objects.filter(source_kind="blog", source_id="sofort-da").count() == 1
+    # повторная публикация той же записи (unpublish→publish) дубля не создаёт
+    post = BlogPost.objects.get(slug="sofort-da")
+    views.blog_edit(_cab("post", {"title": post.title, "publish": ""}), pk=post.pk)
+    views.blog_edit(_cab("post", {"title": post.title, "publish": "on"}), pk=post.pk)
+    assert SocialPost.objects.filter(source_kind="blog").count() == 1

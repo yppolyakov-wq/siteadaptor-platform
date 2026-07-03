@@ -69,6 +69,40 @@ def publish_post(post) -> int:
     return count
 
 
+def draft_from_source(*, kind: str, source_id, text: str, link_url: str = "", image=None):
+    """CM-3: авто-черновик поста из сущности платформы (blog/event/…) — один на
+    источник (source_kind+source_id), повтор — no-op. Черновик не шлётся сам:
+    владелец решает на «Beiträge» (1 клик «Jetzt senden» или планирование)."""
+    from .models import SocialPost
+
+    if SocialPost.objects.filter(source_kind=kind, source_id=str(source_id)).exists():
+        return None
+    return SocialPost.objects.create(
+        text=text,
+        link_url=link_url,
+        image=image if isinstance(image, dict) else {},
+        source_kind=kind,
+        source_id=str(source_id),
+    )
+
+
+def blog_share_draft(blog_post) -> None:
+    """CM-3: при публикации записи блога — авто-черновик поста в каналы
+    (заголовок + анонс + абсолютная ссылка + обложка). Идемпотентно по slug."""
+    from .adapters import _absolute_media_url
+
+    text = blog_post.title
+    if blog_post.excerpt:
+        text = f"{text}\n\n{blog_post.excerpt}"
+    draft_from_source(
+        kind="blog",
+        source_id=blog_post.slug,
+        text=text,
+        link_url=_absolute_media_url(f"/blog/{blog_post.slug}/"),
+        image=blog_post.cover,
+    )
+
+
 def _remove_all(promotion) -> None:
     schema = connection.schema_name
     for pub in Publication.objects.filter(promotion=promotion).exclude(status=REMOVED):

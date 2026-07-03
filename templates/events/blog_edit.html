@@ -31,6 +31,10 @@
     <input type="datetime-local" name="publish_at" class="mt-1 rounded-lg border border-gray-300 px-3 py-2 text-sm block"{% if not post.is_published and post.published_at %} value="{{ post.published_at|date:'Y-m-d' }}T{{ post.published_at|date:'H:i' }}"{% endif %}>
   </label>
   {% if not post.is_published and post.published_at %}<p class="text-xs text-indigo-600">⏰ {% trans "Scheduled for" %} {{ post.published_at|date:"d.m.Y H:i" }}</p>{% endif %}
+  {% if can_share and post.is_published %}
+    {# CM-3: префилл поста в каналы из записи блога (авто-черновик создаётся при публикации; кнопка — для старых записей). #}
+    <a href="{% url 'publishing-posts' %}?text={{ post.title|urlencode }}&link={{ request.scheme }}%3A%2F%2F{{ request.get_host }}{% url 'storefront-blog-post' post.slug %}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">📣 {% trans "Share to channels" %}</a>
+  {% endif %}
   <div class="flex items-center gap-2 pt-1">
     <button name="action" value="save" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     {% if post.is_published %}<a href="{% url 'storefront-blog-post' post.slug %}" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline">{% trans "View" %} →</a>{% endif %}

@@ -189,6 +189,9 @@ def posts(request):
         "publishing/posts.html",
         {
             "nav": "posts",
+            # CM-3: префилл из кнопок «Teilen» (блог/событие/товар) — GET-параметры.
+            "prefill_text": (request.GET.get("text") or "")[:2000],
+            "prefill_link": (request.GET.get("link") or "")[:500],
             "scheduled": SocialPost.objects.filter(status=SocialPost.SCHEDULED).order_by(
                 "scheduled_at"
             ),

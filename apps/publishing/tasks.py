@@ -86,12 +86,23 @@ def send_due_posts(now) -> int:
 def publish_due_blog(now) -> int:
     """CM-2: отложенная публикация блога — черновик с датой в published_at
     включается при её наступлении (семантика поля расширена: у черновика это
-    «когда опубликовать», у опубликованного — как было)."""
+    «когда опубликовать», у опубликованного — как было). CM-3: на каждую
+    включённую запись — авто-черновик поста в каналы (идемпотентно)."""
     from apps.events.models import BlogPost
 
-    return BlogPost.objects.filter(
-        is_published=False, published_at__isnull=False, published_at__lte=now
-    ).update(is_published=True)
+    from .services import blog_share_draft
+
+    due = list(
+        BlogPost.objects.filter(
+            is_published=False, published_at__isnull=False, published_at__lte=now
+        )
+    )
+    if not due:
+        return 0
+    BlogPost.objects.filter(pk__in=[p.pk for p in due]).update(is_published=True)
+    for post in due:
+        blog_share_draft(post)
+    return len(due)
 
 
 @idempotent_task()

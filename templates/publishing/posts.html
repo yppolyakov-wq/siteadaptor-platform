@@ -16,10 +16,10 @@
 <form method="post" enctype="multipart/form-data" class="bg-white border border-gray-200 rounded-lg p-4 max-w-xl space-y-3 mb-8">
   {% csrf_token %}
   <textarea name="text" rows="4" required placeholder="{% trans 'What would you like to share?' %}"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ prefill_text }}</textarea>
   <div class="grid sm:grid-cols-2 gap-3">
     <label class="block text-sm text-gray-500">{% trans "Link (optional)" %}
-      <input type="url" name="link_url" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="https://…">
+      <input type="url" name="link_url" value="{{ prefill_link }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="https://…">
     </label>
     <label class="block text-sm text-gray-500">{% trans "Send at" %}
       <input type="datetime-local" name="scheduled_at" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">

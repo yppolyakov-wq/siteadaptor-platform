@@ -206,7 +206,7 @@ def blog_list(request):
             publish_at = _parse_publish_at(request)
             if publish_at is not None:
                 published = False
-            BlogPost.objects.create(
+            post = BlogPost.objects.create(
                 title=title[:200],
                 slug=slug[:220],
                 excerpt=request.POST.get("excerpt", "").strip()[:300],
@@ -215,12 +215,23 @@ def blog_list(request):
                 is_published=published,
                 published_at=publish_at or (timezone.now() if published else None),
             )
+            if published:
+                # CM-3: опубликован сразу → авто-черновик поста в каналы.
+                from apps.publishing.services import blog_share_draft
+
+                blog_share_draft(post)
             messages.success(request, _("Post created."))
         return redirect("blog-list")
     return render(
         request,
         "events/blog_list.html",
-        {"nav": "events", "posts": BlogPost.objects.all()},
+        {
+            "nav": "events",
+            "posts": BlogPost.objects.all(),
+            # CM-3: кнопка «Teilen» видна только при активном модуле publishing.
+            "can_share": getattr(request, "tenant", None) is not None
+            and request.tenant.is_module_active("publishing"),
+        },
     )
 
 
@@ -246,6 +257,7 @@ def blog_edit(request, pk):
             post.cover = cover
         publish = bool(request.POST.get("publish"))
         publish_at = _parse_publish_at(request)
+        was_published = post.is_published
         if publish_at is not None:
             # CM-2: будущая дата планирует (перекрывает чекбокс) — beat включит.
             post.is_published = False
@@ -255,9 +267,23 @@ def blog_edit(request, pk):
                 post.published_at = timezone.now()
             post.is_published = publish
         post.save()
+        if post.is_published and not was_published:
+            # CM-3: первая публикация → авто-черновик поста в каналы.
+            from apps.publishing.services import blog_share_draft
+
+            blog_share_draft(post)
         messages.success(request, _("Post saved."))
         return redirect("blog-edit", pk=post.pk)
-    return render(request, "events/blog_edit.html", {"nav": "events", "post": post})
+    return render(
+        request,
+        "events/blog_edit.html",
+        {
+            "nav": "events",
+            "post": post,
+            "can_share": getattr(request, "tenant", None) is not None
+            and request.tenant.is_module_active("publishing"),
+        },
+    )
 
 
 def _parse_publish_at(request):
