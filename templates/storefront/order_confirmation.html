@@ -50,6 +50,9 @@
         <p>{% trans "Reference" %} (Verwendungszweck): <span class="font-mono font-medium">{{ order.reference_code }}</span></p>
         <p>{% trans "Amount" %}: <span class="font-medium">{{ order.total }} {{ order.currency|cursym }}</span></p>
       </div>
+    {% elif order.payment_method == 'stripe' and order.status == 'new' %}
+      {# B2.1: незавершённая онлайн-оплата — повторный Stripe Checkout на лету. #}
+      <a href="{% url 'storefront-order-pay' order.reference_code %}" class="inline-block text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);">{% trans "Jetzt bezahlen" %}</a>
     {% elif order.is_delivery %}
       <p class="text-sm text-gray-500">{% trans "Pay on delivery." %}</p>
     {% else %}

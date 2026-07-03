@@ -52,3 +52,38 @@ def send_order_post_purchases():
         with schema_context(schema):
             total += send_due_post_purchases()
     return total
+
+
+def send_due_payment_reminders(now=None) -> int:
+    """B2.1: заказ создан с онлайн-оплатой, но не оплачен N часов — одно
+    напоминание (transactional, Vertragsanbahnung: гейт email+unsubscribed
+    в enqueue, без opt-in). on_site/vorkasse не трогаем (unpaid — норма)."""
+    now = now or timezone.now()
+    hours = getattr(settings, "ORDERS_PAYREMIND_HOURS", 24)
+    upper = now - timezone.timedelta(hours=hours)
+    lower = upper - timezone.timedelta(days=7)  # окно подхвата пропусков
+    due = Order.objects.filter(
+        payment_method=Order.METHOD_STRIPE,
+        payment_state=Order.PAYMENT_UNPAID,
+        status=Order.STATUS_NEW,
+        payment_reminder_sent_at__isnull=True,
+        created_at__gte=lower,
+        created_at__lte=upper,
+    )
+    sent = 0
+    for order in due:
+        enqueue_order_email(order, "payment_reminder")
+        order.payment_reminder_sent_at = timezone.now()
+        order.save(update_fields=["payment_reminder_sent_at", "updated_at"])
+        sent += 1
+    return sent
+
+
+@shared_task
+def send_order_payment_reminders():
+    """Beat (раз в час): напоминания о незавершённой оплате по всем схемам."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_payment_reminders()
+    return total

@@ -187,6 +187,8 @@ urlpatterns = [
     path("kombi/<uuid:pk>/", orders_public.combo_detail_public, name="storefront-combo"),
     path("warenkorb/bestellen/", orders_public.checkout, name="storefront-checkout"),
     path("bestellung/<str:code>/", orders_public.order_confirmation, name="storefront-order"),
+    # B2.1: повторная Stripe-оплата неоплаченного заказа (Checkout на лету).
+    path("bestellung/<str:code>/bezahlen/", orders_public.order_pay, name="storefront-order-pay"),
     # Запись по времени (Track D / D3b): ресурс → день → слот → форма.
     path("termin/", booking_public.termin_index, name="storefront-termin"),
     path("termin/<uuid:pk>/", booking_public.termin_slots, name="storefront-termin-slots"),

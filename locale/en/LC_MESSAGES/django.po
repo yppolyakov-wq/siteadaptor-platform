@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: siteadaptor\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-03 12:27+0200\n"
+"POT-Creation-Date: 2026-07-03 12:44+0200\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,6 +37,7 @@ msgstr "Please show this code at pickup."
 #: templates/emails/booking_reminder.txt:11
 #: templates/emails/order_cancelled.txt:7
 #: templates/emails/order_confirmed.txt:8 templates/emails/order_created.txt:19
+#: templates/emails/order_payment_reminder.txt:12
 #: templates/emails/order_picked_up.txt:6
 #: templates/emails/order_post_purchase.txt:12
 #: templates/emails/order_ready.txt:10 templates/emails/order_returned.txt:8
@@ -60,6 +61,7 @@ msgstr "Stop receiving these emails"
 #: templates/emails/booking_reminder.txt:1
 #: templates/emails/order_cancelled.txt:1
 #: templates/emails/order_confirmed.txt:1 templates/emails/order_created.txt:1
+#: templates/emails/order_payment_reminder.txt:1
 #: templates/emails/order_picked_up.txt:1
 #: templates/emails/order_post_purchase.txt:1
 #: templates/emails/order_ready.txt:1 templates/emails/order_returned.txt:1
@@ -211,6 +213,7 @@ msgid ""
 msgstr "thank you for your order! We will get back to you as soon as it is confirmed."
 
 #: templates/emails/order_created.txt:6
+#: templates/emails/order_payment_reminder.txt:5
 msgid "Gesamt"
 msgstr "Total"
 
@@ -239,6 +242,26 @@ msgstr "Payment is due at pickup in the shop."
 msgid "Bestellung eingegangen"
 msgstr "Order received"
 
+#: templates/emails/order_payment_reminder.txt:3
+#, python-format
+msgid "Ihre Bestellung %(code)s wartet noch auf die Zahlung."
+msgstr "Your order %(code)s is still waiting for payment."
+
+#: templates/emails/order_payment_reminder.txt:7
+msgid "Jetzt bezahlen"
+msgstr "Pay now"
+
+#: templates/emails/order_payment_reminder.txt:9
+msgid ""
+"Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail "
+"einfach ignorieren."
+msgstr "If you no longer need the order, simply ignore this email."
+
+#: templates/emails/order_payment_reminder_subject.txt:1
+#, python-format
+msgid "Ihre Bestellung %(code)s wartet auf die Zahlung"
+msgstr "Your order %(code)s is waiting for payment"
+
 #: templates/emails/order_picked_up.txt:3
 #, python-format
 msgid "Ihre Bestellung %(code)s wurde abgeholt. Vielen Dank und bis bald!"
@@ -256,7 +279,8 @@ msgstr "thank you for shopping with us!"
 msgid ""
 "Wir freuen uns auf Ihren nächsten Einkauf — am besten direkt über unsere "
 "Website."
-msgstr "We look forward to your next purchase — best ordered directly on our website."
+msgstr ""
+"We look forward to your next purchase — best ordered directly on our website."
 
 #: templates/emails/order_post_purchase_subject.txt:1
 msgid "Wie war Ihr Einkauf?"

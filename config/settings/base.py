@@ -297,6 +297,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.orders.tasks.send_order_post_purchases",
         "schedule": 86400.0,
     },
+    # B2.1: напоминание о незавершённой Stripe-оплате заказа (раз в час).
+    "send-order-payment-reminders": {
+        "task": "apps.orders.tasks.send_order_payment_reminders",
+        "schedule": 3600.0,
+    },
     "send-service-reminders": {
         "task": "apps.jobs.tasks.send_service_reminders",
         "schedule": 86400.0,  # раз в сутки — TÜV/Service-Reminder за N дней (A9)

@@ -604,6 +604,37 @@ def checkout(request):
     return redirect("storefront-order", code=order.reference_code)
 
 
+def order_pay(request, code):
+    """B2.1: «Jetzt bezahlen» — перегенерация Stripe Checkout для неоплаченного
+    заказа (URL сессии не хранится, создаётся на лету). Не stripe/уже оплачен/
+    не new → назад на подтверждение (без 500)."""
+    _require_orders_active(request)
+    order = get_object_or_404(Order, reference_code=code)
+    tenant = request.tenant
+    payable = (
+        order.payment_method == Order.METHOD_STRIPE
+        and order.payment_state == Order.PAYMENT_UNPAID
+        and order.status == Order.STATUS_NEW
+        and order.total > 0
+        and getattr(tenant, "payments_enabled", False)
+    )
+    if payable:
+        order_url = request.build_absolute_uri(
+            reverse("storefront-order", args=[order.reference_code])
+        )
+        try:
+            return redirect(
+                order_payments.order_checkout_url(
+                    order, tenant, success_url=order_url + "?paid=1", cancel_url=order_url
+                )
+            )
+        except stripe.error.StripeError:
+            messages.error(
+                request, _("Payment is temporarily unavailable. Please try again later.")
+            )
+    return redirect("storefront-order", code=order.reference_code)
+
+
 def order_confirmation(request, code):
     _require_orders_active(request)
     order = get_object_or_404(Order, reference_code=code)

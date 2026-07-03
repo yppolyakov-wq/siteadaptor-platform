@@ -1,0 +1,13 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% blocktrans with code=order.reference_code %}Ihre Bestellung {{ code }} wartet noch auf die Zahlung.{% endblocktrans %}
+
+{% trans "Gesamt" %}: {{ order.total }} {{ order.currency }}
+{% if order_url %}
+{% trans "Jetzt bezahlen" %}: {{ order_url }}
+{% endif %}
+{% trans "Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail einfach ignorieren." %}
+
+{% if unsubscribe_url %}—
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
+{% endif %}

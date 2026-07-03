@@ -87,6 +87,8 @@ class Order(TimestampedModel):
     voucher_code = models.CharField(max_length=12, blank=True)
     # CM-6.4: post-purchase просьба об отзыве — дедуп «одно письмо на заказ».
     post_purchase_sent_at = models.DateTimeField(null=True, blank=True)
+    # B2.1: напоминание о незавершённой Stripe-оплате — дедуп «одно на заказ».
+    payment_reminder_sent_at = models.DateTimeField(null=True, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
     shipped_at = models.DateTimeField(null=True, blank=True)

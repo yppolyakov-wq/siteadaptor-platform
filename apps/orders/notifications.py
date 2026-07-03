@@ -21,6 +21,7 @@ _CUSTOMER_TEMPLATES = {
     "cancelled": "order_cancelled",
     "returned": "order_returned",  # A2c: возврат/Widerruf
     "post_purchase": "order_post_purchase",  # CM-6.4: danke + запрос отзыва о товарах
+    "payment_reminder": "order_payment_reminder",  # B2.1: незавершённая Stripe-оплата
 }
 
 
@@ -43,6 +44,11 @@ def enqueue_order_email(order, event):
     template_base = _CUSTOMER_TEMPLATES.get(event)
     if template_base and customer.email and not customer.unsubscribed:
         base = _base_url(schema)
+        # B2.1: ссылка на подтверждение (там кнопка «Jetzt bezahlen»).
+        if event == "payment_reminder":
+            ctx["order_url"] = (
+                f"{base}{reverse('storefront-order', args=[order.reference_code])}" if base else ""
+            )
         # CM-6.4: ссылки «оценить товар» (деталь#bewertungen) — только с base.
         if event == "post_purchase":
             ctx["review_links"] = (

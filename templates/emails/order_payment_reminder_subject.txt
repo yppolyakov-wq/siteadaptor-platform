@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with code=order.reference_code %}Ihre Bestellung {{ code }} wartet auf die Zahlung{% endblocktrans %}
