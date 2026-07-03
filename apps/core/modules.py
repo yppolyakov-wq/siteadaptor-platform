@@ -134,6 +134,29 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         description_de="Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie.",
     ),
     ModuleSpec(
+        # CM-6: репутационный модуль — модерация отзывов о сущностях (reviews.Review).
+        # recommended_for = ВСЕ типы: активен из коробки (урок default_disabled_for).
+        key="reviews",
+        label_de="Bewertungen",
+        icon="⭐",
+        nav_items=(NavItem("reviews:list", _("Reviews"), "reviews"),),
+        url_prefixes=("/dashboard/reviews/",),
+        recommended_for=(
+            "bakery",
+            "butcher",
+            "grocery",
+            "clothing",
+            "restaurant",
+            "cafe",
+            "retail",
+            "tour_operator",
+            "hotel",
+            "other",
+        ),
+        description_de="Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: "
+        "ansehen, ausblenden, beantworten.",
+    ),
+    ModuleSpec(
         key="orders",
         label_de="Bestellungen (Click & Collect)",
         icon="🛍️",
@@ -457,7 +480,7 @@ NAV_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     (
         "marketing",
         "Kunden & Marketing",
-        ("crm", "promotions", "loyalty", "publishing", "inbox", "telegram"),
+        ("crm", "reviews", "promotions", "loyalty", "publishing", "inbox", "telegram"),
     ),
     (
         "settings",

@@ -65,3 +65,56 @@ def _verifier_for(entity_kind):
 
         return has_ticket
     return None
+
+
+def owner_overview() -> dict:
+    """CM-6.3: сводка для кабинета «Bewertungen» текущей схемы: общий avg/count
+    (по опубликованным), разбивка по kind, счётчики скрытых и без ответа."""
+    from django.db.models import Q
+
+    published = Review.objects.filter(is_published=True)
+    agg = published.aggregate(avg=Avg("rating"), count=Count("id"))
+    by_kind = {
+        r["entity_kind"]: {"avg": round(r["avg"], 1), "count": r["count"]}
+        for r in published.values("entity_kind").annotate(avg=Avg("rating"), count=Count("id"))
+    }
+    return {
+        "avg": round(agg["avg"], 1) if agg["avg"] is not None else None,
+        "count": agg["count"],
+        "by_kind": by_kind,
+        "hidden": Review.objects.filter(is_published=False).count(),
+        "unanswered": Review.objects.filter(is_published=True)
+        .filter(Q(reply_text="") | Q(reply_text__isnull=True))
+        .count()
+        if hasattr(Review, "reply_text")
+        else None,
+    }
+
+
+def entity_labels(reviews) -> dict:
+    """CM-6.1: {(kind, id): подпись сущности} балком, fail-soft (удалённая → «—»).
+
+    Review хранит только UUID — кабинету нужно человекочитаемое имя."""
+    wanted = {}
+    for r in reviews:
+        wanted.setdefault(r.entity_kind, set()).add(r.entity_id)
+    labels = {}
+    loaders = {
+        "product": ("apps.catalog.models", "Product"),
+        "service": ("apps.booking.models", "Service"),
+        "stay": ("apps.stays.models", "StayUnit"),
+        "event": ("apps.events.models", "Event"),
+    }
+    for kind, ids in wanted.items():
+        spec = loaders.get(kind)
+        if spec is None:
+            continue
+        try:
+            import importlib
+
+            model = getattr(importlib.import_module(spec[0]), spec[1])
+            for obj in model.objects.filter(pk__in=ids):
+                labels[(kind, obj.pk)] = str(obj)
+        except Exception:  # noqa: BLE001 — домен не валит кабинет отзывов
+            continue
+    return labels

@@ -135,6 +135,8 @@ urlpatterns = [
     path("dashboard/posts/", publishing_views.posts, name="publishing-posts"),
     # CM-4: медиа-библиотека тенанта (реестр MediaAsset поверх FileRef-копий).
     path("dashboard/medien/", media_library, name="media-library"),
+    # CM-6: кабинет «Bewertungen» — модерация/ответы на отзывы.
+    path("dashboard/reviews/", include("apps.reviews.urls")),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
     path("dashboard/channels/config/", publishing_views.channel_config, name="channel-config"),
     # In-app OAuth (OAuth-A): старт из кабинета → провайдер → callback на public.

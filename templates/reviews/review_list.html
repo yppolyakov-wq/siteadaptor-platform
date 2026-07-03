@@ -1,0 +1,56 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Reviews" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-1">{% trans "Reviews" %}</h1>
+<p class="text-gray-500 mb-4 text-sm">{% trans "All reviews of your products, services, rooms and events. Hide a review to remove it from your website." %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{# CM-6.3: сводка — общий рейтинг, разбивка, скрытые. #}
+{% if overview.count or overview.hidden %}
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+  {% if overview.avg %}<div><span class="text-amber-500">★</span> <span class="font-bold text-base">{{ overview.avg }}</span> <span class="text-gray-400">({{ overview.count }})</span></div>{% endif %}
+  {% for kind, s in overview.by_kind.items %}
+    <div><span class="text-gray-400">{{ kind }}:</span> <span class="font-semibold">{{ s.avg }}</span> <span class="text-gray-400">({{ s.count }})</span></div>
+  {% endfor %}
+  {% if overview.hidden %}<div class="text-gray-400">{% trans "hidden" %}: {{ overview.hidden }}</div>{% endif %}
+</div>
+{% endif %}
+
+<div class="flex flex-wrap gap-2 mb-4 text-sm">
+  <a href="?" class="px-3 py-1.5 rounded-full border {% if not active_kind and not active_status %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "All" %}</a>
+  {% for kind, label in kinds %}
+    <a href="?art={{ kind }}" class="px-3 py-1.5 rounded-full border {% if active_kind == kind %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{{ label }}</a>
+  {% endfor %}
+  <a href="?status=hidden" class="px-3 py-1.5 rounded-full border {% if active_status == 'hidden' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Hidden" %}</a>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm p-4 space-y-1">
+  {% for r in reviews %}
+    <div class="border-b border-gray-100 last:border-0 py-3 {% if not r.is_published %}opacity-60{% endif %}">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm"><span class="text-amber-500">{{ r.stars }}</span> · <span class="font-medium">{{ r.author_name }}</span>
+            {% if r.verified %}<span class="text-xs text-green-700">✓ {% trans "verified" %}</span>{% endif %}
+            <span class="text-xs text-gray-400">· {{ r.created_at|date:"d.m.Y" }} · {{ r.get_entity_kind_display }}</span>
+          </p>
+          <p class="text-xs text-gray-400">{% firstof r.entity_label "—" %}</p>
+          {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+        </div>
+        <form method="post" action="{% url 'reviews:toggle' r.pk %}" class="shrink-0">{% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% if r.is_published %}{% trans "Hide" %}{% else %}{% trans "Show" %}{% endif %}</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}
