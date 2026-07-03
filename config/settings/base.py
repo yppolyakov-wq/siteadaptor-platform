@@ -253,6 +253,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.expire_reservations",
         "schedule": 300.0,  # каждые 5 минут — просрочка броней + возврат остатка
     },
+    # C1: утренний дайджест владельцу — раз в час; внутри гейт «локальный час
+    # тенанта == 7» (tenant.timezone) + дедуп по дате (unique dedupe_key).
+    "owner-digests": {
+        "task": "apps.core.tasks.send_owner_digests",
+        "schedule": 3600.0,
+    },
     # CM-2: отложенные посты контент-календаря + запланированный блог.
     "send-due-content": {
         "task": "apps.publishing.tasks.send_due_content",

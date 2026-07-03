@@ -65,6 +65,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "service_area_plz",
             "service_area_note",
             "auto_redeem_on_scan",
+            "owner_digest_enabled",
             "vat_id",
             "tax_number",
             "small_business",
@@ -83,6 +84,7 @@ class BusinessSettingsForm(forms.ModelForm):
         }
         labels = {
             "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
+            "owner_digest_enabled": _("Morning digest email"),
         }
         help_texts = {
             "service_area_plz": _(
@@ -94,6 +96,10 @@ class BusinessSettingsForm(forms.ModelForm):
             ),
             "auto_redeem_on_scan": _(
                 "When on, opening a redemption QR as logged-in staff redeems immediately."
+            ),
+            "owner_digest_enabled": _(
+                "A short morning email: yesterday's revenue, today's bookings and "
+                "what needs your attention."
             ),
             "impressum": _("Leave blank to generate from the fields above."),
             "privacy_policy": _("Leave blank for a default template (please adapt)."),

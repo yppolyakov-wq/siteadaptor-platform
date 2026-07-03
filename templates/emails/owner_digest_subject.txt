@@ -1,0 +1,1 @@
+Ihr Tagesüberblick — {{ d.date|date:"d.m.Y" }}

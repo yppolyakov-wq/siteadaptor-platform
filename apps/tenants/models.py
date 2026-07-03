@@ -95,6 +95,8 @@ class Tenant(TenantMixin):
     # Owner contact
     owner_email = models.EmailField(blank=True)
     owner_phone = models.CharField(max_length=30, blank=True)
+    # C1: утренний дайджест владельцу (email; час — по tenant.timezone).
+    owner_digest_enabled = models.BooleanField(default=True)
 
     # Публичные контакты для витрины (могут отличаться от контактов владельца)
     contact_email = models.EmailField(blank=True)

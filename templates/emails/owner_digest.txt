@@ -1,0 +1,22 @@
+Guten Morgen!
+
+Ihr Tagesüberblick für {{ tenant.name }} ({{ d.date|date:"l, d.m.Y" }}):
+{% if d.revenue_yesterday is not None %}
+Umsatz gestern: {{ d.revenue_yesterday }} €
+{% endif %}{% if d.bookings_today or d.arrivals_today or d.events_today %}
+Heute:
+{% if d.bookings_today %}- {{ d.bookings_today }} Termin(e)
+{% endif %}{% if d.arrivals_today %}- {{ d.arrivals_today }} Anreise(n)
+{% endif %}{% if d.events_today %}- {{ d.events_today }} Veranstaltung(en)
+{% endif %}{% endif %}{% if d.bookings_pending or d.stays_pending or d.tickets_pending or d.orders_new or d.jobs_new or d.inbox_unread %}
+Wartet auf Sie:
+{% if d.bookings_pending %}- {{ d.bookings_pending }} unbestätigte Reservierung(en)
+{% endif %}{% if d.stays_pending %}- {{ d.stays_pending }} unbestätigte Buchung(en)
+{% endif %}{% if d.tickets_pending %}- {{ d.tickets_pending }} unbestätigte Anmeldung(en)
+{% endif %}{% if d.orders_new %}- {{ d.orders_new }} neue Bestellung(en)
+{% endif %}{% if d.jobs_new %}- {{ d.jobs_new }} neue Anfrage(n)
+{% endif %}{% if d.inbox_unread %}- {{ d.inbox_unread }} ungelesene Nachricht(en)
+{% endif %}{% endif %}
+Alles Weitere im Dashboard Ihrer Website.
+
+Diesen Überblick können Sie in den Einstellungen abschalten.
