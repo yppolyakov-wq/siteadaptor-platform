@@ -82,3 +82,26 @@ def test_stay_index_gift_flag_uses_unified_gate(_connect_ok):
         gift_purchase_active(TenantFactory.build(payments_enabled=True, disabled_modules=["gift"]))
         is False
     )
+
+
+def test_cabinet_lists_sold_gift_vouchers(_connect_ok):
+    """B1.3: кабинет ваучеров показывает проданные Gutscheine (оплата/погашение)."""
+    import uuid as _uuid
+
+    from django.contrib.auth import get_user_model
+
+    from apps.loyalty import gift
+    from apps.promotions import views as promo_views
+
+    gv = gift.create_gift_voucher(
+        buyer_name="Käufer K", buyer_email="kk@test.de", amount_cents=5000
+    )
+    gift.mark_gift_voucher_paid(tenant_schema="public", gift_id=gv.id)  # выпуск кода
+
+    req = _req()
+    uname = f"own-{_uuid.uuid4().hex[:8]}"
+    req.user = get_user_model().objects.create_user(
+        username=uname, email=f"{uname}@t.de", password="pw12345678"
+    )
+    body = promo_views.voucher_list(req).content.decode()
+    assert "Käufer K" in body and "50,00" in body or "50.00" in body

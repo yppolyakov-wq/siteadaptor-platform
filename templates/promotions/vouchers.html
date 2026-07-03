@@ -52,4 +52,29 @@
     </tbody>
   </table>
 </div>
+
+{% if gift_sales %}
+{# B1.3: проданные Geschenkgutscheine — оплата и погашение (код = обычный Voucher выше). #}
+<div class="bg-white rounded-2xl shadow-sm p-4 mt-6">
+  <h2 class="font-semibold mb-3">🎁 {% trans "Sold gift vouchers" %}</h2>
+  <table class="w-full text-sm">
+    <thead class="text-left text-gray-500 border-b">
+      <tr><th class="py-2">{% trans "Date" %}</th><th class="py-2">{% trans "Buyer" %}</th><th class="py-2">{% trans "Recipient" %}</th><th class="py-2">{% trans "Amount" %}</th><th class="py-2">{% trans "Paid" %}</th><th class="py-2">{% trans "Code" %}</th><th class="py-2">{% trans "Redeemed" %}</th></tr>
+    </thead>
+    <tbody>
+      {% for g in gift_sales %}
+        <tr class="border-b last:border-0">
+          <td class="py-2 text-gray-500">{{ g.created_at|date:"d.m.Y" }}</td>
+          <td class="py-2">{{ g.buyer_name }} <span class="text-xs text-gray-400">{{ g.buyer_email }}</span></td>
+          <td class="py-2">{{ g.recipient_name|default:"—" }}</td>
+          <td class="py-2">{{ g.amount_eur|floatformat:2 }} €</td>
+          <td class="py-2">{% if g.payment_state == "paid" %}<span class="text-green-600">✓</span>{% else %}<span class="text-amber-500">{% trans "open" %}</span>{% endif %}</td>
+          <td class="py-2 font-mono">{{ g.voucher.code|default:"—" }}</td>
+          <td class="py-2">{% if g.voucher and g.voucher.used_count %}<span class="text-green-600">✓</span>{% else %}—{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
 {% endblock %}

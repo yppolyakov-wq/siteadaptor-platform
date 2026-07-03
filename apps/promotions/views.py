@@ -556,10 +556,20 @@ def voucher_list(request):
         )
         messages.success(request, f"{len(created)} Voucher erstellt.")
         return redirect("promotions:voucher-list")
+    # B1.3: проданные Geschenkgutscheine (движок G1) — покупатель/номинал/
+    # оплата/погашение; код выпускается webhook'ом после оплаты.
+    from apps.loyalty.models import GiftVoucher
+
+    gift_sales = GiftVoucher.objects.select_related("voucher").order_by("-created_at")[:100]
     return render(
         request,
         "promotions/vouchers.html",
-        {"form": form, "vouchers": Voucher.objects.all()[:200], "nav": "vouchers"},
+        {
+            "form": form,
+            "vouchers": Voucher.objects.all()[:200],
+            "gift_sales": gift_sales,
+            "nav": "vouchers",
+        },
     )
 
 
