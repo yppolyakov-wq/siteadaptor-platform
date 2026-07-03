@@ -35,7 +35,8 @@ def test_static_page_types_fixed_order_config_ignored():
     assert siteconfig.page_sections({"listing": {"hidden": ["grid"]}}, "listing") == list(
         siteconfig.page_section_keys("listing")
     )
-    assert siteconfig.page_sections({}, "legal") == ["impressum", "datenschutz", "widerruf"]
+    # E-2/L5: + agb (страница /agb/ существует только при заданном LegalDoc-тексте)
+    assert siteconfig.page_sections({}, "legal") == ["impressum", "datenschutz", "widerruf", "agb"]
     assert siteconfig.page_sections({}, "info") == ["about"]
 
 
