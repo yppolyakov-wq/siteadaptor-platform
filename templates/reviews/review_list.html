@@ -42,6 +42,12 @@
           </p>
           <p class="text-xs text-gray-400">{% firstof r.entity_label "—" %}</p>
           {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+          {# CM-6.2: ответ владельца — виден на витрине под отзывом. #}
+          <form method="post" action="{% url 'reviews:reply' r.pk %}" class="mt-2 flex items-start gap-2">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <textarea name="reply_text" rows="1" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
+            <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Reply" %}</button>
+          </form>
         </div>
         <form method="post" action="{% url 'reviews:toggle' r.pk %}" class="shrink-0">{% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">

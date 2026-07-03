@@ -41,6 +41,9 @@ class Review(TimestampedModel):
     comment = models.TextField(blank=True)
     verified = models.BooleanField(default=True)  # был верифицированным покупателем при подаче
     is_published = models.BooleanField(default=True)
+    # CM-6.2: ответ владельца (1:1, отдельная модель избыточна). Пусто = нет.
+    reply_text = models.TextField(blank=True)
+    replied_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

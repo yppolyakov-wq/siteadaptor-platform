@@ -9,4 +9,5 @@ app_name = "reviews"
 urlpatterns = [
     path("", views.review_list, name="list"),
     path("<uuid:pk>/toggle/", views.review_toggle, name="toggle"),
+    path("<uuid:pk>/reply/", views.review_reply, name="reply"),
 ]

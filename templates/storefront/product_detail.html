@@ -83,6 +83,12 @@
             <span class="text-amber-500 text-sm" aria-label="{{ r.rating }}/5">{{ r.stars }}</span>
           </div>
           {% if r.comment %}<p class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+          {% if r.reply_text %}
+            <div class="mt-2 ml-3 border-l-2 border-indigo-100 pl-3">
+              <p class="text-xs font-medium text-gray-500">{% trans "Reply from the business" %}</p>
+              <p class="text-sm text-gray-600 whitespace-pre-line">{{ r.reply_text }}</p>
+            </div>
+          {% endif %}
           <p class="mt-1 text-xs text-gray-400">{{ r.created_at|date:"d.m.Y" }}</p>
         </li>
       {% endfor %}

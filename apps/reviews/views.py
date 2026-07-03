@@ -47,6 +47,21 @@ def review_list(request):
 
 @login_required
 @require_POST
+def review_reply(request, pk):
+    """CM-6.2: ответ владельца (пустой текст = убрать ответ)."""
+    from django.utils import timezone
+
+    review = get_object_or_404(Review, pk=pk)
+    text = (request.POST.get("reply_text") or "").strip()[:2000]
+    review.reply_text = text
+    review.replied_at = timezone.now() if text else None
+    review.save(update_fields=["reply_text", "replied_at", "updated_at"])
+    messages.success(request, _("Reply saved.") if text else _("Reply removed."))
+    return redirect(f"{request.POST.get('next') or 'reviews:list'}")
+
+
+@login_required
+@require_POST
 def review_toggle(request, pk):
     """Скрыть/показать отзыв (лёгкая модерация; удаление — сознательно нет)."""
     review = get_object_or_404(Review, pk=pk)

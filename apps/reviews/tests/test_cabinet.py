@@ -72,3 +72,32 @@ def test_overview_and_hidden_filter():
     assert ov["count"] == 2 and ov["avg"] == 4.0 and ov["hidden"] == 1
     body = views.review_list(_req(data={"status": "hidden"})).content.decode()
     assert body.count("★") >= 1  # скрытый показан в фильтре hidden
+
+
+def test_reply_saved_and_rendered_on_storefront():
+    """CM-6.2: ответ владельца сохраняется и виден под отзывом на витрине товара."""
+    from django.contrib.messages.middleware import MessageMiddleware as MM
+    from django.contrib.sessions.middleware import SessionMiddleware as SM
+
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.promotions import public_views as promo_public
+    from apps.tenants.tests.factories import TenantFactory
+
+    p = ProductFactory(name={"de": "Brot"})
+    r = _review(entity_id=p.pk, comment="Gut")
+    resp = views.review_reply(_req("post", {"reply_text": "Danke, Kim!"}), pk=r.pk)
+    assert resp.status_code == 302
+    r.refresh_from_db()
+    assert r.reply_text == "Danke, Kim!" and r.replied_at is not None
+
+    sreq = RequestFactory().get(f"/sortiment/{p.pk}/")
+    SM(lambda x: None).process_request(sreq)
+    MM(lambda x: None).process_request(sreq)
+    sreq.tenant = TenantFactory.build(name="B")
+    body = promo_public.product_detail(sreq, pk=p.pk).content.decode()
+    assert "Danke, Kim!" in body and "Reply from the business" in body
+
+    # пустой текст убирает ответ
+    views.review_reply(_req("post", {"reply_text": "  "}), pk=r.pk)
+    r.refresh_from_db()
+    assert r.reply_text == "" and r.replied_at is None
