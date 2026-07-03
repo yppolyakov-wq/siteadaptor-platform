@@ -3789,3 +3789,9 @@
   настройках) — кап в единой точке spend_voucher + preview_discount (превью
   корзины orders/quote events = списанию). Только промокоды; проданные
   Wertgutschein не капаются (Zahlungsmittel, §307 BGB).
+- **2026-07-03 — CM-8 (карточка клиента 360°): слайсы 8.1–8.4.** Сборщик
+  `apps/crm/customer360.py` (owner-URL, fail-soft, гейт is_module_active,
+  устойчив к RequestFactory без tenant): KPI-шапка LTV из RevenueEntry +
+  счётчики доменов; разделы Termine/Passes/Stays/Tickets/Aufträge(→кабинет)/
+  Rechnungen(→кабинет)/inbox-переписка(→тред)/отзывы по email-матчу.
+  Generic-рендер карточек в customer_detail. Без миграций. 8.5 timeline — опц.
