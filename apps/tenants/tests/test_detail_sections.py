@@ -46,6 +46,7 @@ def test_registry_service_stay_keys_and_flags():
         "faq",
         "team",
         "reviews",
+        "upsell",  # B3: кросс-селл товаров на детали услуги
     )
     assert detail_sections.section_keys("stays") == (
         "description",
