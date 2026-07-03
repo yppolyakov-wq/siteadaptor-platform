@@ -39,6 +39,7 @@ from apps.events import public_views as events_public
 from apps.events import views as events_views
 from apps.inbox import public_views as inbox_public
 from apps.jobs import public_views as jobs_public
+from apps.loyalty import public_views as loyalty_public
 from apps.orders import public_views as orders_public
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
@@ -235,10 +236,10 @@ urlpatterns = [
     path("checkin/<str:token>/", stays_public.unterkunft_checkin, name="storefront-stay-checkin"),
     # H6: Hausordnung / правила проживания.
     path("hausordnung/", stays_public.hausordnung, name="storefront-hausordnung"),
-    # G1: Geschenkgutscheine (продажа подарочных сертификатов).
-    path("gutschein/", stays_public.gutschein_index, name="storefront-gutschein"),
-    path("gutschein/kaufen/", stays_public.gutschein_buy, name="storefront-gutschein-buy"),
-    path("gutschein/danke/", stays_public.gutschein_confirmation, name="storefront-gutschein-ok"),
+    # G1→B1.1: Geschenkgutscheine — нейтральные вьюхи (все архетипы, модуль gift).
+    path("gutschein/", loyalty_public.gutschein_index, name="storefront-gutschein"),
+    path("gutschein/kaufen/", loyalty_public.gutschein_buy, name="storefront-gutschein-buy"),
+    path("gutschein/danke/", loyalty_public.gutschein_confirmation, name="storefront-gutschein-ok"),
     # iCal-фид занятости юнита (A5b): Booking.com/Airbnb/Google подписываются.
     path("stays/ical/<str:token>.ics", stays_public.unterkunft_ical, name="storefront-stay-ical"),
     # G8: фид цен/наличия для метапоиска (Google Hotel Center / channel).

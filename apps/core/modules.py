@@ -194,6 +194,38 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         storefront_icon="💝",
     ),
     ModuleSpec(
+        # B1.1: продажа Geschenkgutscheine (движок G1) — для ВСЕХ архетипов.
+        # Активен из коробки (non-premium, universal); страница /gutschein/
+        # дополнительно требует онлайн-оплату (payments_enabled + Connect).
+        key="gift",
+        label_de="Geschenkgutscheine",
+        icon="🎁",
+        nav_items=(),
+        url_prefixes=(),
+        # ВСЕ типы: иначе default_disabled_for выключит gift при онбординге
+        # (актив «из коробки» — суть B1; страница всё равно за гейтом оплаты).
+        recommended_for=(
+            "bakery",
+            "butcher",
+            "grocery",
+            "clothing",
+            "restaurant",
+            "cafe",
+            "retail",
+            "tour_operator",
+            "hotel",
+            "other",
+        ),
+        description_de="Geschenkgutscheine online verkaufen: Käufer zahlt online, "
+        "Beschenkte lösen den Code beim Bestellen oder Buchen ein. "
+        "Voraussetzung: Online-Zahlungen (Stripe) aktiviert.",
+        storefront_label="Gutschein verschenken",
+        storefront_blurb="Geschenkgutschein kaufen — Betrag frei wählbar.",
+        storefront_landing="storefront-gutschein",
+        storefront_icon="🎁",
+        storefront_teaser=False,  # ссылка в футере/меню, не «направление» в сетке
+    ),
+    ModuleSpec(
         key="analytics",
         label_de="Auswertung",
         icon="📊",

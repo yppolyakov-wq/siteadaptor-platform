@@ -72,6 +72,19 @@ def house_rules_present(context):
         return False
 
 
+@register.simple_tag(takes_context=True)
+def gift_link_active(context):
+    """B1.1: показывать ли ссылку «Gutschein» в футере — модуль gift активен
+    И онлайн-оплата настроена. Ошибки гасим (футер не должен ломаться)."""
+    try:
+        from apps.loyalty.public_views import gift_purchase_active
+
+        request = context.get("request")
+        return gift_purchase_active(getattr(request, "tenant", None))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 @register.simple_tag
 def agb_present():
     """E-2/L5: True, если задан непустой AGB-текст (LegalDoc, любая локаль) —

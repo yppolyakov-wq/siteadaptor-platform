@@ -200,6 +200,7 @@
         {% agb_present as agb_on %}{% if agb_on %}<a href="{% url 'storefront-agb' %}" class="hover:underline">{% trans "AGB" %}</a>{% endif %}
         <a href="{% url 'storefront-newsletter' %}" class="hover:underline">{% trans "Newsletter" %}</a>
         {% house_rules_present as hr %}{% if hr %}<a href="{% url 'storefront-hausordnung' %}" class="hover:underline">{% trans "House rules" %}</a>{% endif %}
+        {% gift_link_active as gift_on %}{% if gift_on %}<a href="{% url 'storefront-gutschein' %}" class="hover:underline">🎁 {% trans "Gift voucher" %}</a>{% endif %}
       </div>
     </div>
   </footer>

@@ -346,6 +346,7 @@ class TestModulesView:
             "telegram",
             "events",
             "blog",  # CM-1: опциональный модуль (по умолчанию вкл. у всех)
+            "gift",  # B1.1: Geschenkgutscheine — опциональный, вкл. у всех из коробки
             "customer_account",
         }
         # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
@@ -366,6 +367,7 @@ class TestModulesView:
             "telegram",
             "events",
             "blog",  # CM-1: опциональный модуль (по умолчанию вкл. у всех)
+            "gift",  # B1.1: Geschenkgutscheine — опциональный, вкл. у всех из коробки
             "customer_account",
         }
         assert modules.is_module_active(tenant, "catalog")  # core живёт
