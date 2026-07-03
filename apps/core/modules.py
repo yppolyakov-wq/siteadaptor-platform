@@ -240,6 +240,35 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         storefront_icon="🎟️",
     ),
     ModuleSpec(
+        key="blog",
+        label_de="Blog / Neuigkeiten",
+        icon="📰",
+        nav_items=(NavItem("blog-list", _("Blog"), "blog"),),
+        # CM-1: контент first-class для ВСЕХ архетипов (модель живёт в apps/events
+        # организационно, но от событий не зависит). Гейтим и витрину /blog/ —
+        # тумблер «Module» должен реально выключать. recommended_for=все типы →
+        # активен из коробки везде (в default_disabled_for не попадает).
+        url_prefixes=("/dashboard/blog/", "/blog/"),
+        recommended_for=(
+            "bakery",
+            "butcher",
+            "grocery",
+            "cafe",
+            "restaurant",
+            "retail",
+            "clothing",
+            "hotel",
+            "tour_operator",
+            "other",
+        ),
+        description_de="Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und Google.",
+        storefront_label="Neuigkeiten",
+        storefront_blurb="Aktuelles aus unserem Betrieb.",
+        storefront_landing="storefront-blog",
+        storefront_icon="📰",
+        storefront_teaser=False,  # контент-ссылка, не «направление» в сетке архетипов
+    ),
+    ModuleSpec(
         key="inbox",
         label_de="Nachrichten (Chat & Support)",
         icon="💬",

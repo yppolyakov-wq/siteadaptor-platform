@@ -4,7 +4,7 @@ from django import template
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from apps.core.seo import breadcrumb_ld, entity_ld, localbusiness_ld
+from apps.core.seo import blogposting_ld, breadcrumb_ld, entity_ld, localbusiness_ld
 
 register = template.Library()
 
@@ -175,6 +175,27 @@ def entity_jsonld(context, sellable, review_summary=None):
     except Exception:  # noqa: BLE001 — крошки не должны ломать деталь
         pass
     return mark_safe("".join(scripts))
+
+
+@register.simple_tag(takes_context=True)
+def blogposting_jsonld(context, post):
+    """<script ld+json> BlogPosting записи блога (CM-1). Ошибки гасим."""
+    request = context.get("request")
+    if post is None or request is None:
+        return ""
+    try:
+        payload = blogposting_ld(
+            headline=post.title,
+            url=request.build_absolute_uri(),
+            date_published=post.published_at,
+            image=post.cover_url or "",
+            description=post.excerpt or "",
+        )
+    except Exception:  # noqa: BLE001 — SEO не должен ронять страницу
+        return ""
+    if not payload:
+        return ""
+    return mark_safe(f'<script type="application/ld+json">{payload}</script>')
 
 
 @register.simple_tag(takes_context=True)

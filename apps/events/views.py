@@ -211,7 +211,7 @@ def blog_list(request):
                 published_at=timezone.now() if published else None,
             )
             messages.success(request, _("Post created."))
-        return redirect("events:blog")
+        return redirect("blog-list")
     return render(
         request,
         "events/blog_list.html",
@@ -232,7 +232,7 @@ def blog_edit(request, pk):
         if action == "delete":
             post.delete()
             messages.success(request, _("Post deleted."))
-            return redirect("events:blog")
+            return redirect("blog-list")
         post.title = request.POST.get("title", post.title).strip()[:200]
         post.excerpt = request.POST.get("excerpt", "").strip()[:300]
         post.body = request.POST.get("body", "").strip()
@@ -245,7 +245,7 @@ def blog_edit(request, pk):
         post.is_published = publish
         post.save()
         messages.success(request, _("Post saved."))
-        return redirect("events:blog-edit", pk=post.pk)
+        return redirect("blog-edit", pk=post.pk)
     return render(request, "events/blog_edit.html", {"nav": "events", "post": post})
 
 

@@ -2003,6 +2003,7 @@ FRISEUR_MENUS = {
             {"label": "Termin", "type": "archetype", "target": "booking"},
             {"label": "Produkte", "type": "archetype", "target": "catalog"},
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
+            {"label": "News", "type": "url", "target": "/blog/"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
@@ -2072,6 +2073,29 @@ FRISEUR = DemoKit(
         "button_label": "Termin buchen",
         "button_url": "/termin/",
     },
+    # CM-1: блог без модуля событий — «Neuigkeiten» салона (модуль blog
+    # recommended у всех типов → активен из коробки).
+    blog_posts=[
+        (
+            "Neu im Team: Willkommen, Lena!",
+            "Ab sofort verstärkt Lena unser Farb-Team — jetzt Termin sichern.",
+            "Wir freuen uns riesig: Lena bringt acht Jahre Erfahrung in Balayage "
+            "und Blondierungen mit.\n\n"
+            "Zum Start gibt es bei ihr 10 % auf alle Farbtermine im ersten Monat. "
+            "Einfach online buchen und im Kommentar „Lena“ angeben.",
+            "hairdresser,portrait",
+        ),
+        (
+            "Herbst-Pflege: so übersteht Ihr Haar die kalte Jahreszeit",
+            "Drei Profi-Tipps gegen trockene Spitzen und statische Haare.",
+            "Heizungsluft und Mützen strapazieren das Haar.\n\n"
+            "1. Einmal pro Woche eine Feuchtigkeitsmaske.\n"
+            "2. Hitzeschutz auch beim Föhnen.\n"
+            "3. Spitzen alle acht Wochen nachschneiden lassen.\n\n"
+            "Alle Produkte aus dem Beitrag gibt es bei uns im Salon.",
+            "autumn,hair",
+        ),
+    ],
     enable_modules=["booking", "loyalty", "orders", "customer_account"],
     extras=[  # #7 доп-услуги к термину (scope booking, разово)
         ("Haarkur Intensiv", "12", "booking", False),
@@ -3830,7 +3854,8 @@ def _seed_entity_reviews(kit: DemoKit, refs: dict) -> None:
 
 def _seed_blog_posts(tenant, kit: DemoKit) -> None:
     """RT4: опубликованные записи блога (events.BlogPost). Вызывать в схеме тенанта."""
-    if not kit.blog_posts or not tenant.is_module_active("events"):
+    # CM-1: блог — свой модуль (recommended у всех типов), события не нужны.
+    if not kit.blog_posts or not tenant.is_module_active("blog"):
         return
     from django.utils import timezone
     from django.utils.text import slugify

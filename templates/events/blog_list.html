@@ -13,7 +13,7 @@
 
 <div class="space-y-2 mb-8">
   {% for p in posts %}
-    <a href="{% url 'events:blog-edit' p.pk %}" class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
+    <a href="{% url 'blog-edit' p.pk %}" class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
       <span class="font-medium">{{ p.title }}</span>
       <span class="text-xs {% if p.is_published %}text-green-600{% else %}text-gray-400{% endif %}">{% if p.is_published %}{% trans "Published" %}{% else %}{% trans "Draft" %}{% endif %}</span>
     </a>

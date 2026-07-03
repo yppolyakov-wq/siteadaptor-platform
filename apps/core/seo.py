@@ -251,6 +251,28 @@ def breadcrumb_ld(items) -> str:
     )
 
 
+def blogposting_ld(
+    *, headline: str, url: str, date_published=None, image: str = "", description: str = ""
+) -> str:
+    """JSON-LD BlogPosting записи блога (CM-1; '' без headline) — свежий
+    контент как ранкинг-сигнал локального SEO."""
+    if not headline:
+        return ""
+    data = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": headline,
+        "url": url,
+    }
+    if description:
+        data["description"] = description
+    if image:
+        data["image"] = image
+    if date_published is not None:
+        data["datePublished"] = date_published.isoformat()
+    return _dumps(data)
+
+
 def collectionpage_ld(*, name: str, url: str, items) -> str:
     """JSON-LD CollectionPage (+ вложенный ItemList) для страниц портала (P2.1c)."""
     data = {

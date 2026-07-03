@@ -25,6 +25,6 @@ urlpatterns = [
     # RT1: Check-in билета по QR (организатор сканирует камерой → отмечает гостя).
     path("checkin/<str:code>/", views.checkin, name="checkin"),
     # RT4: блог/новости в кабинете.
-    path("blog/", views.blog_list, name="blog"),
-    path("blog/<uuid:pk>/", views.blog_edit, name="blog-edit"),
+    # CM-1: блог переехал на /dashboard/blog/ (модуль "blog", urls_tenant) —
+    # first-class для всех архетипов, без гейта events.
 ]

@@ -934,6 +934,18 @@ def sitemap_xml(request):
             request.build_absolute_uri(reverse("storefront-product", args=[pk]))
             for pk in product_pks
         ]
+    # CM-1: блог — свежий контент для локального SEO (только при активном модуле).
+    tenant = getattr(request, "tenant", None)
+    if tenant is not None and tenant.is_module_active("blog"):
+        from apps.events.models import BlogPost
+
+        blog_slugs = list(BlogPost.objects.filter(is_published=True).values_list("slug", flat=True))
+        if blog_slugs:
+            urls.append(request.build_absolute_uri(reverse("storefront-blog")))
+            urls += [
+                request.build_absolute_uri(reverse("storefront-blog-post", args=[slug]))
+                for slug in blog_slugs
+            ]
     body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'

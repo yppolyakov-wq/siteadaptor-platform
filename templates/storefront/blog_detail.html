@@ -1,7 +1,8 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}
+{% load i18n seo %}
 {% block title %}{{ post.title }} — {{ request.tenant.name }}{% endblock %}
 {% block meta_description %}{{ post.excerpt|default:post.title }}{% endblock %}
+{% block structured_data %}{% blogposting_jsonld post %}{% endblock %}
 
 {% block content %}
 <article class="max-w-2xl mx-auto">

@@ -99,3 +99,57 @@ def test_cabinet_delete_post():
     post = _post()
     views.blog_edit(_cab("post", {"action": "delete"}), pk=post.pk)
     assert not BlogPost.objects.filter(pk=post.pk).exists()
+
+
+# --- CM-1: блог — свой модуль (first-class для всех архетипов) -----------------
+
+
+def test_blog_is_registered_module_recommended_everywhere():
+    """CM-1: модуль "blog" в реестре, не-core/не-premium, recommended у ВСЕХ
+    типов (активен из коробки, тумблер на «Module»); гейтит кабинет И витрину."""
+    from apps.core import modules
+
+    spec = next(s for s in modules.REGISTRY if s.key == "blog")
+    assert not spec.core and not spec.premium
+    from apps.tenants.models import Tenant
+
+    assert set(spec.recommended_for) == {k for k, _l in Tenant.BUSINESS_TYPES}
+    assert "/dashboard/blog/" in spec.url_prefixes and "/blog/" in spec.url_prefixes
+    assert modules.module_for_path("/blog/mein-post/").key == "blog"
+    assert modules.module_for_path("/dashboard/blog/").key == "blog"
+
+
+def test_blog_module_active_by_default_and_disableable():
+    from apps.core import modules
+
+    tenant = TenantFactory.build(name="X")
+    assert modules.is_module_active(tenant, "blog") is True  # из коробки
+    tenant.disabled_modules = ["blog"]
+    assert modules.is_module_active(tenant, "blog") is False  # тумблер работает
+
+
+def test_sitemap_includes_published_blog_posts():
+    """CM-1/SEO: published-посты и /blog/ в sitemap (draft — нет)."""
+    from apps.promotions import public_views as promo_public
+
+    BlogPost.objects.create(title="Sichtbar", slug="sichtbar", is_published=True)
+    BlogPost.objects.create(title="Entwurf", slug="entwurf", is_published=False)
+    request = RequestFactory().get("/sitemap.xml")
+    request.tenant = TenantFactory.build(name="X")
+    xml = promo_public.sitemap_xml(request).content.decode()
+    assert "/blog/sichtbar/" in xml and "/blog/</loc>" in xml
+    assert "entwurf" not in xml
+
+
+def test_blog_detail_emits_blogposting_jsonld():
+    from django.utils import timezone
+
+    post = BlogPost.objects.create(
+        title="Herbst-Pflege",
+        slug="herbst-pflege",
+        excerpt="Drei Tipps.",
+        is_published=True,
+        published_at=timezone.now(),
+    )
+    body = public_views.blog_detail(_pub(), slug=post.slug).content.decode()
+    assert '"@type":"BlogPosting"' in body and "Herbst-Pflege" in body
