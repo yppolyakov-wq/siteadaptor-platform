@@ -62,4 +62,3 @@ def test_primary_action_field_feeds_resolver():
 
     assert primary_service_action(Service(name="X", primary_action="request"), _T()) == "request"
     assert primary_service_action(Service(name="X", primary_action=""), _T()) == "booking"
-

@@ -3705,3 +3705,6 @@
   `apps/core/media_registry.py` (backfill/write_back_alt/delete_unused/used_paths),
   кабинет `/dashboard/medien/` (фильтр по папкам, alt-редактор с write-back — закрыт
   «мёртвый alt», удаление только незанятых). Слайс C (пикер в билдере, dedup) — план §3.
+- **2026-07-03 — B3 (быстрая победа): кросс-селл товаров на детали услуги.** Секция
+  `upsell` в реестре booking (скрываемо в билдере) + `_service_upsell.html`
+  (featured-first ×4, реюз _product_card) при активном catalog. Без миграций.
