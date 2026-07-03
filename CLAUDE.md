@@ -200,9 +200,10 @@ Python 3.12, менеджер uv.
   в CI, compilemessages в deploy.sh, gettext в Dockerfile. **Массовый de.po хрома —
   отдельный трек за решением владельца (план §2: сотни англ. тест-ассертов в DE-рендере).**
   Остаток DE-only: owner-письма + gift_voucher/inbox/installment/job_*.
-- Самые свежие миграции: **`catalog/0013` + `core/0005`** (Zusatzstoffe + LegalDoc,
-  2026-07-03 — ⚠️ требуют деплоя; деплой теперь также пересобирает образ с gettext и
-  компилирует en.mo); ранее **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
+- Самые свежие миграции: **`booking/0015`** (B1.2 voucher_code/discount_cents) +
+  **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
+  (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает
+  образ с gettext и компилирует en.mo); ранее **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
   2026-07-02 — ⚠️ требуют деплоя); ранее **`orders/0012` + `tenants/0020`** (E-7: payment_method + Vorkasse-
   реквизиты/stripe_payment_methods, 2026-07-02 — ⚠️ требуют деплоя); **`catalog/0012` +
   `booking/0014`** (остаток U-A: combo i18n + post-visit,

@@ -3757,3 +3757,18 @@
   (SHARED миграция tenants/0021) + чекбокс в настройках. Telegram владельцу —
   отдельный трек (chat_id владельца не хранится). Уроки CI 1170/1171: не забыт
   build:css после новых классов; замок page_registry legal+=agb обновлён осознанно.
+- **2026-07-03 — Идея B1 (Geschenkgutscheine на все архетипы): B1.1–B1.4.**
+  Каталогизация: docs/task-catalog.md (единая карта ID, правило «расширяется →
+  углубляется») по фидбэку владельца. B1.1 — gift-вьюхи из stays →
+  apps/loyalty/public_views (1:1), новый универсальный модуль `gift` (реестр,
+  recommended_for=все типы; гейт страницы = модуль + payments+Connect), футер-
+  ссылка «🎁» на всех архетипах (gift_link_active). B1.2 — booking принимает
+  voucher_code: поля-снимки (миграция booking/0015), _apply_voucher-зеркало в
+  book() (redeem под транзакцией), инпут в буй-боксе услуги (price>0);
+  паритет-замки UA3-2 перепинены осознанно. B1.3 — кабинет: блок «Sold gift
+  vouchers» на /promotions/vouchers/ (оплата/код/погашение). B1.4 —
+  unredeem_voucher (условный декремент >0) + хук «cancelled → вернуть
+  использование» в 4 FSM (orders/booking/stays/tickets); однократность — FSM.
+  B1.5 (остаток/balance_cents вместо сгорания) — вопрос владельцу; B1.6 (jobs)
+  — опц. Уроки: default_disabled_for гасит нерекомендованное → новый
+  универсальный модуль обязан перечислить ВСЕ типы в recommended_for.
