@@ -103,6 +103,26 @@ def blog_share_draft(blog_post) -> None:
     )
 
 
+def event_share_draft(event) -> None:
+    """CM-3: при публикации события — авто-черновик поста в каналы
+    (заголовок + дата + абсолютная ссылка + фото). Идемпотентно по pk."""
+    from django.utils import timezone
+
+    from .adapters import _absolute_media_url
+
+    text = event.title_text
+    if event.starts_at:
+        when = timezone.localtime(event.starts_at).strftime("%d.%m.%Y %H:%M")
+        text = f"{text}\n\n📅 {when}"
+    draft_from_source(
+        kind="event",
+        source_id=event.pk,
+        text=text,
+        link_url=_absolute_media_url(f"/veranstaltung/{event.pk}/"),
+        image={"url": event.image_url} if event.image_url else {},
+    )
+
+
 def _remove_all(promotion) -> None:
     schema = connection.schema_name
     for pub in Publication.objects.filter(promotion=promotion).exclude(status=REMOVED):

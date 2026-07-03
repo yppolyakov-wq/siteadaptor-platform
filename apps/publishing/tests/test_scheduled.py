@@ -168,3 +168,21 @@ def test_publish_due_blog_creates_share_draft():
     # повторный прогон не плодит дубли
     assert tasks.publish_due_blog(now) == 0
     assert SocialPost.objects.filter(source_kind="blog").count() == 1
+
+
+def test_event_share_draft_idempotent():
+    """CM-3: черновик из события — заголовок+дата+фото, один на pk."""
+    from apps.events.models import Event
+    from apps.publishing.services import event_share_draft
+
+    event = Event.objects.create(
+        title="Sommerfest",
+        status=Event.STATUS_PUBLISHED,
+        starts_at=timezone.now() + timedelta(days=7),
+        images=[{"id": "x", "url": "https://cdn.example/e.jpg", "is_primary": True}],
+    )
+    event_share_draft(event)
+    event_share_draft(event)  # повтор — no-op
+    draft = SocialPost.objects.get(source_kind="event", source_id=str(event.pk))
+    assert "Sommerfest" in draft.text and "📅" in draft.text
+    assert draft.image == {"url": "https://cdn.example/e.jpg"}

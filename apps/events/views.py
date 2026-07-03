@@ -62,6 +62,11 @@ def event_create(request):
     if request.method == "POST" and form.is_valid():
         event = form.save()
         _add_event_photos(event, request.FILES.getlist("photos"))
+        if event.status == Event.STATUS_PUBLISHED:
+            # CM-3: создано сразу опубликованным → авто-черновик поста в каналы.
+            from apps.publishing.services import event_share_draft
+
+            event_share_draft(event)
         messages.success(request, _("Event created."))
         return redirect("events:detail", pk=event.pk)
     return render(request, "events/event_form.html", {"form": form, "nav": "events"})
@@ -70,10 +75,16 @@ def event_create(request):
 @login_required
 def event_edit(request, pk):
     event = get_object_or_404(Event, pk=pk)
+    was_published = event.status == Event.STATUS_PUBLISHED
     form = EventForm(request.POST or None, instance=event)
     if request.method == "POST" and form.is_valid():
         form.save()
         _add_event_photos(event, request.FILES.getlist("photos"))
+        if event.status == Event.STATUS_PUBLISHED and not was_published:
+            # CM-3: первая публикация → авто-черновик поста в каналы.
+            from apps.publishing.services import event_share_draft
+
+            event_share_draft(event)
         if request.POST.get("delete_image"):
             _delete_event_photo(event, request.POST["delete_image"])
         messages.success(request, _("Event saved."))
