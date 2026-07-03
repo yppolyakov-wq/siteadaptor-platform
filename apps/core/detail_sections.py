@@ -82,6 +82,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("faq", _("Frequently asked questions")),
         DetailSection("team", _("Our team")),
         DetailSection("reviews", _("Customer reviews")),
+        # B3: кросс-селл товаров («к стрижке берут шампунь») — при активном
+        # catalog и наличии товаров; скрываемо в билдере как любая секция.
+        DetailSection("upsell", _("Goes well with this")),
     ),
     # UA4-1 slice C: секции детальной НОМЕРА (stays.StayUnit) — по факту stay_detail.html
     # (описание/оснащение/отзывы/похожие). Hide-only.

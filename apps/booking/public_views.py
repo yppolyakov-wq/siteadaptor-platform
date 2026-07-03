@@ -339,12 +339,22 @@ def service_detail(request, pk):
     # UA4-2: data-driven секции тела детали — порядок из реестра (booking), видимость =
     # (контент присутствует) И (не скрыта в билдере). Шаблон рендерит их циклом
     # (вместо per-template if/elif); замок — снапшот-паритет тест порядка секций.
+    # B3: кросс-селл товаров на детали услуги — featured-first (реюз корзиночного
+    # приёма), только при активном модуле catalog и наличии товаров.
+    _upsell = []
+    if tenant is not None and tenant.is_module_active("catalog"):
+        from apps.catalog.models import Product
+
+        _upsell = list(
+            Product.objects.filter(is_active=True).order_by("-is_featured", "-created_at")[:4]
+        )
     _present = {
         "description": bool(service.description),
         "attributes": bool(service.attributes_list),
         "faq": bool(service.faq_list),
         "team": bool(_team),
         "reviews": True,  # секция всегда есть (пустое состояние «ещё нет отзывов»)
+        "upsell": bool(_upsell),
     }
     _section_template = {
         "description": "storefront/sections/detail/_service_description.html",
@@ -352,6 +362,7 @@ def service_detail(request, pk):
         "faq": "storefront/sections/detail/_service_faq.html",
         "team": "storefront/sections/detail/_service_team.html",
         "reviews": "storefront/_entity_reviews.html",
+        "upsell": "storefront/sections/detail/_service_upsell.html",
     }
     body_sections = [
         {
@@ -373,6 +384,7 @@ def service_detail(request, pk):
             # UA3-1 (реш.2): основное действие детали — booking | request (override).
             "primary_action": archetypes.primary_service_action(service, tenant),
             "resources": _team,
+            "upsell": _upsell,
             "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
             "deposit_required": service.deposit_cents > 0
             and getattr(tenant, "payments_enabled", False),

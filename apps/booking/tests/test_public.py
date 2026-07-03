@@ -545,3 +545,22 @@ def test_service_index_search_and_sort():
     assert "Nothing found" in body_none  # empty-state, не booking_index
     body_sorted = public_views.termin_index(_req(data={"sort": "price_asc"})).content.decode()
     assert body_sorted.index("Bremsen") < body_sorted.index("Ölwechsel")
+
+
+def test_service_detail_upsell_products_section():
+    """B3: кросс-селл товаров на детали услуги — featured-first; скрываемо
+    конфигом (service_detail.hidden += upsell); без товаров секции нет."""
+    from apps.catalog.models import Product
+
+    svc = Service.objects.create(name="Schnitt", duration_minutes=30, price_cents=3500)
+    body = public_views.service_detail(_req(), pk=svc.pk).content.decode()
+    assert "Goes well with this" not in body  # товаров нет — секции нет
+
+    Product.objects.create(name={"de": "Shampoo"}, base_price="9.90", is_featured=True)
+    body = public_views.service_detail(_req(), pk=svc.pk).content.decode()
+    assert "Goes well with this" in body and "Shampoo" in body
+
+    req = _req()
+    req.tenant.site_config = {"service_detail": {"hidden": ["upsell"]}}
+    body = public_views.service_detail(req, pk=svc.pk).content.decode()
+    assert "Goes well with this" not in body  # скрыто в билдере

@@ -1,0 +1,11 @@
+{% load i18n %}
+{% comment %}B3: кросс-селл товаров на детали услуги («Passt dazu») — featured-first,
+реюз карточки товара; скрываемо в билдере (секция upsell реестра booking).{% endcomment %}
+{% if upsell %}
+<section class="mt-10" data-sf-section="service_upsell">
+  <h2 class="text-xl font-bold mb-4">{% trans "Goes well with this" %}</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    {% for p in upsell %}{% include "storefront/_product_card.html" %}{% endfor %}
+  </div>
+</section>
+{% endif %}
