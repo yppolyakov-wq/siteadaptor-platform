@@ -13,6 +13,7 @@ from apps.aggregator import reviews_views as aggregator_reviews_views
 from apps.aggregator import views as aggregator_views
 from apps.billing.webhooks import stripe_webhook
 from apps.core import health
+from apps.partners import views as partners_views
 from apps.publishing import views as publishing_views
 from apps.tenants.views import BusinessSignupView, signup_waiting
 
@@ -32,6 +33,8 @@ urlpatterns = [
     # Phase 2: авторизация custom-доменов для Caddy on-demand TLS.
     path("internal/verify-domain", health.verify_domain, name="verify-domain"),
     # Локальный агрегатор (Sprint 4): городские страницы на основном домене.
+    # D3: кабинет партнёра-реселлера (public-учётка, read-only список клиентов).
+    path("partner/", partners_views.dashboard, name="partner-dashboard"),
     path("entdecken/", aggregator_views.discover_index, name="aggregator-index"),
     # D2.3: клик-счётчик featured (имя дублируется в urls_portal — {% url %} везде).
     path(

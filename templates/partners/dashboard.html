@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Partner · SiteAdaptor{% endblock %}
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 py-10">
+  <h1 class="text-2xl font-bold mb-1">Partner-Dashboard</h1>
+  <p class="text-sm text-gray-500 mb-6">{{ partner.name }} · Code <span class="font-mono">{{ partner.code }}</span></p>
+
+  <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
+    <p class="text-sm font-medium mb-1">{% trans "Your referral link" %}</p>
+    <p class="text-sm font-mono bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 break-all select-all">{{ ref_url }}</p>
+    <p class="text-xs text-gray-400 mt-2">{% trans "New businesses signing up via this link are attributed to you." %}</p>
+  </div>
+
+  <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
+      <div class="text-2xl font-bold">{{ tenants|length }}</div>
+      <div class="text-xs text-gray-500">{% trans "Clients" %}</div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
+      <div class="text-2xl font-bold text-emerald-600">{{ n_active }}</div>
+      <div class="text-xs text-gray-500">{% trans "Active subscriptions" %}</div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
+      <div class="text-2xl font-bold text-amber-600">{{ n_trial }}</div>
+      <div class="text-xs text-gray-500">{% trans "On trial" %}</div>
+    </div>
+  </div>
+
+  {% if revshare_month_eur is not None %}
+    <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
+      <p class="text-sm font-medium">Revenue-Share ({{ partner.revshare_percent }} %)</p>
+      <p class="text-2xl font-bold text-indigo-600 mt-1">{{ revshare_month_eur|floatformat:2 }} € <span class="text-sm font-normal text-gray-400">/ Monat</span></p>
+      <p class="text-xs text-gray-400 mt-1">{% trans "Estimate based on currently active subscriptions. Payout is settled manually." %}</p>
+    </div>
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+    {% for t in tenants %}
+      <div class="p-4 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <p class="font-medium truncate">{{ t.name }}</p>
+          <p class="text-xs text-gray-400">{{ t.get_business_type_display }}{% if t.city %} · {{ t.city }}{% endif %} · {{ t.created_at|date:"d.m.Y" }}</p>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span class="text-xs px-2 py-0.5 rounded-full {% if t.subscription_status == 'active' %}bg-emerald-100 text-emerald-700{% elif t.subscription_status == 'trial' %}bg-amber-100 text-amber-800{% else %}bg-gray-100 text-gray-500{% endif %}">{{ t.subscription_status }}</span>
+          <a href="https://{{ t.slug }}.{{ base_domain }}/" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline">{{ t.slug }}.{{ base_domain }}</a>
+        </div>
+      </div>
+    {% empty %}
+      <p class="p-4 text-sm text-gray-400">{% trans "No clients yet — share your referral link." %}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -28,8 +28,21 @@ def login_url_for(tenant) -> str:
     return f"{scheme}://{tenant.slug}.{_base_domain()}/accounts/login/"
 
 
-def _new_tenant(*, business_name, slug, business_type, city, email) -> Tenant:
+def _resolve_partner(code: str):
+    """D3: активный партнёр по реф-коду; мусор/выключенный — тихо None."""
+    if not code:
+        return None
+    try:
+        from apps.partners.models import Partner
+
+        return Partner.objects.filter(code=str(code)[:40], is_active=True).first()
+    except Exception:  # noqa: BLE001 — атрибуция не должна ломать онбординг
+        return None
+
+
+def _new_tenant(*, business_name, slug, business_type, city, email, partner_code="") -> Tenant:
     return Tenant(
+        partner=_resolve_partner(partner_code),
         schema_name=slug.replace("-", "_"),
         name=business_name,
         slug=slug,
@@ -48,7 +61,9 @@ def _new_tenant(*, business_name, slug, business_type, city, email) -> Tenant:
 
 
 @transaction.atomic
-def start_business_provisioning(*, business_name, slug, business_type, city, email, password):
+def start_business_provisioning(
+    *, business_name, slug, business_type, city, email, password, partner_code=""
+):
     """Мгновенная часть регистрации: Tenant (БЕЗ схемы) + Domain + фоновая задача.
 
     Создание схемы (~1 мин, миграции всех TENANT-приложений) уходит в Celery
@@ -63,6 +78,7 @@ def start_business_provisioning(*, business_name, slug, business_type, city, ema
         business_type=business_type,
         city=city,
         email=email,
+        partner_code=partner_code,
     )
     tenant.provisioning_status = Tenant.PROVISIONING_PENDING
     tenant.auto_create_schema = False  # схему создаст фоновая задача
@@ -79,7 +95,7 @@ def start_business_provisioning(*, business_name, slug, business_type, city, ema
 
 
 @transaction.atomic
-def create_business(*, business_name, slug, business_type, city, email, password):
+def create_business(*, business_name, slug, business_type, city, email, password, partner_code=""):
     """Синхронное создание бизнеса: Tenant + схема + Domain + владелец.
 
     Долгий путь (~1 мин: миграции всех TENANT-приложений) — для тестов и CLI.
@@ -92,6 +108,7 @@ def create_business(*, business_name, slug, business_type, city, email, password
         business_type=business_type,
         city=city,
         email=email,
+        partner_code=partner_code,
     )
     tenant.save()  # auto_create_schema=True → создаётся схема + миграции TENANT_APPS
 

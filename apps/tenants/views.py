@@ -12,6 +12,10 @@ class BusinessSignupView(View):
     template_name = "tenants/onboarding.html"
 
     def get(self, request):
+        # D3: реф-код партнёра переживает GET→POST через сессию (?ref=<code>).
+        ref = (request.GET.get("ref") or "").strip()[:40]
+        if ref:
+            request.session["partner_ref"] = ref
         return render(request, self.template_name, {"form": BusinessSignupForm()})
 
     def post(self, request):
@@ -29,6 +33,7 @@ class BusinessSignupView(View):
             city=cd["city"],
             email=cd["email"],
             password=cd["password1"],
+            partner_code=request.session.get("partner_ref", ""),
         )
         return redirect("signup-waiting", slug=tenant.slug)
 

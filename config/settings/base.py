@@ -41,6 +41,7 @@ SHARED_APPS = [
     # SHARED apps платформы (раскомментируются по мере прохождения спринтов)
     "apps.aggregator",  # Sprint 4 — локальный агрегатор (SHARED, материализованные листинги)
     "apps.support",  # M22c — платформенная техподдержка тенант↔SiteAdaptor (SHARED)
+    "apps.partners",  # D3 — партнёрка веб-студий: реф-атрибуция + кабинет /partner/ (SHARED)
     # "apps.global_categories",  # Sprint 5
 ]
 
@@ -415,6 +416,9 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 # Тариф Standard (39 €/мес) и длительности жизненного цикла подписки.
 # trial_ends_at + BILLING_GRACE_DAYS = день перехода trial_expired → suspended.
 STRIPE_PRICE_ID = env("STRIPE_PRICE_ID", default="")
+# D3: цена тарифа в € для внутренних расчётов (ревшара-сводка партнёра);
+# источник правды оплаты — Stripe Price, это только отображение.
+BILLING_PLAN_PRICE_EUR = env.int("BILLING_PLAN_PRICE_EUR", default=39)
 BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=14)
 BILLING_GRACE_DAYS = env.int("BILLING_GRACE_DAYS", default=7)
 
@@ -582,6 +586,12 @@ UNFOLD = {
                         "title": _("Tenants"),
                         "icon": "storefront",
                         "link": reverse_lazy("admin:tenants_tenant_changelist"),
+                    },
+                    {
+                        # D3: партнёры-реселлеры (реф-атрибуция + кабинет /partner/)
+                        "title": _("Partners"),
+                        "icon": "handshake",
+                        "link": reverse_lazy("admin:partners_partner_changelist"),
                     },
                     {
                         "title": _("Domains"),

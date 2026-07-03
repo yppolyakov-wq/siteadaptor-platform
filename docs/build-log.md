@@ -3853,3 +3853,20 @@
   «★ Feature» на units-странице и детали события. Без миграций. Тесты:
   billing generic-адресация (4) + stays/events страницы и гейт оплаты (6).
   D2.5 (цены в кабинете) — ⏸ env; полный E-11 (claim-your-business) — позже.
+
+- **2026-07-03 — идея D3: партнёрка веб-студий, v1 целиком (D3.1–D3.4).**
+  Решения владельца: делаем; вознаграждение — «несколько вариантов»
+  (per-partner); v1 — read-only; этап 2 — вход в кабинеты клиентов (D3.5,
+  отдельный план). Новый SHARED-апп `apps.partners`: `Partner` (user
+  OneToOne public-auth, `code` unique, reward_kind ""|client_discount|
+  revshare + coupon/percent; `partners/0001`) + `Tenant.partner` FK
+  (`tenants/0023`, зависимость на partners/0001 сгенерена) + атрибуция
+  `?ref=<code>` (session → kwarg `partner_code` в оба создателя →
+  `_resolve_partner` fail-safe в `_new_tenant`) + кабинет `/partner/`
+  (urls_public, login_required: реф-ссылка, счётчики, список клиентов
+  из public-полей, revshare-сводка `BILLING_PLAN_PRICE_EUR`) + шов
+  `_partner_discounts` в подписочный Checkout (`discounts=[{coupon}]`
+  только при client_discount+coupon; паритет-замок «без партнёра —
+  запрос прежний») + unfold-админка и пункт UNFOLD nav «Partners».
+  План `docs/d3-partner-plan-2026-07-03.md`. Тесты `apps/partners/tests/`
+  (8: атрибуция/мусорный код/кабинет-изоляция/403/ревшара/купон/паритет).

@@ -38,6 +38,22 @@ def ensure_stripe_customer(tenant: Tenant) -> str:
     return customer["id"]
 
 
+def _partner_discounts(tenant: Tenant) -> dict:
+    """D3.4: Stripe-купон партнёра для клиентской подписки (client_discount).
+
+    Партнёра нет / вознаграждение иное / купон не заведён → пустой dict —
+    Checkout байт-в-байт прежний (паритет-замок)."""
+    partner = getattr(tenant, "partner", None)
+    if (
+        partner is not None
+        and partner.is_active
+        and partner.reward_kind == "client_discount"
+        and partner.stripe_coupon_id
+    ):
+        return {"discounts": [{"coupon": partner.stripe_coupon_id}]}
+    return {}
+
+
 def create_checkout_session(tenant: Tenant, *, success_url: str, cancel_url: str) -> str:
     """Checkout Session подписки (тариф Standard). Возвращает URL оплаты."""
     customer_id = ensure_stripe_customer(tenant)
@@ -50,6 +66,7 @@ def create_checkout_session(tenant: Tenant, *, success_url: str, cancel_url: str
         client_reference_id=str(tenant.id),
         metadata={"tenant_id": str(tenant.id)},
         subscription_data={"metadata": {"tenant_id": str(tenant.id)}},
+        **_partner_discounts(tenant),
     )
     return session["url"]
 

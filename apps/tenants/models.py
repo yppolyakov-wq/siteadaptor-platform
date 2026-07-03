@@ -94,6 +94,15 @@ class Tenant(TenantMixin):
 
     # Owner contact
     owner_email = models.EmailField(blank=True)
+    # D3: партнёр-реселлер, приведший бизнес (реф-атрибуция ?ref=<code> при
+    # онбординге). SET_NULL: тенант переживает удаление партнёра.
+    partner = models.ForeignKey(
+        "partners.Partner",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenants",
+    )
     owner_phone = models.CharField(max_length=30, blank=True)
     # C1: утренний дайджест владельцу (email; час — по tenant.timezone).
     owner_digest_enabled = models.BooleanField(default=True)
