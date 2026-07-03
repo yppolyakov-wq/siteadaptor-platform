@@ -89,6 +89,64 @@ class NewsletterCampaign(TimestampedModel):
         return self.subject
 
 
+class CouponCampaign(TimestampedModel):
+    """B4/CM-9: купон-кампания по сегменту CRM-базы.
+
+    Каждому клиенту сегмента — персональный одноразовый код (Voucher.campaign)
+    + письмо. Получатели строятся ПОВЕРХ consented_customers() (UWG §7) —
+    не-opt-in недостижим по построению. kind=auto_winback: настройки
+    авто-триггера живут на самой кампании (beat читает active/paused —
+    без SHARED-миграции Tenant).
+    """
+
+    KIND_MANUAL = "manual"
+    KIND_AUTO_WINBACK = "auto_winback"
+    KINDS = [(KIND_MANUAL, "Manuell"), (KIND_AUTO_WINBACK, "Auto Win-back")]
+
+    STATUS_DRAFT = "draft"
+    STATUS_SENT = "sent"
+    STATUS_ACTIVE = "active"  # только auto_winback
+    STATUS_PAUSED = "paused"  # только auto_winback
+    STATUSES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_SENT, "Sent"),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_PAUSED, "Paused"),
+    ]
+
+    name = models.CharField(max_length=200)
+    kind = models.CharField(max_length=20, choices=KINDS, default=KIND_MANUAL)
+
+    # Сегмент (AND-комбинация; всё пустое = вся opt-in-база).
+    tag = models.CharField(max_length=50, blank=True, default="")
+    inactive_days = models.PositiveIntegerField(null=True, blank=True)
+    top_ltv = models.PositiveIntegerField(null=True, blank=True)
+
+    # Параметры персонального кода (percent ИЛИ cents, как у Voucher).
+    discount_percent = models.PositiveSmallIntegerField(null=True, blank=True)
+    discount_cents = models.PositiveIntegerField(null=True, blank=True)
+    min_order_cents = models.PositiveIntegerField(default=0)
+    valid_days = models.PositiveIntegerField(default=30)  # срок кода от выдачи
+
+    # Письмо (DE, авторский текст владельца — как NewsletterCampaign).
+    subject = models.CharField(max_length=200)
+    body = models.TextField(blank=True)
+
+    status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_DRAFT)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    recipient_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def discount_eur(self):
+        return (self.discount_cents or 0) / 100
+
+
 class Promotion(SoftDeleteMixin, I18nMixin):
     DISCOUNT = "discount"
     RESERVATION = "reservation"

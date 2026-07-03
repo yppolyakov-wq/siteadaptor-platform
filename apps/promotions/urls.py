@@ -40,6 +40,7 @@ urlpatterns = [
     path("loyalty/", views.loyalty_list, name="loyalty-list"),
     path("loyalty/<uuid:program_id>/stamp/", views.loyalty_stamp, name="loyalty-stamp"),
     path("newsletter/", views.newsletter_campaigns, name="newsletter"),
+    path("kampagnen/", views.coupon_campaigns, name="coupon-campaigns"),
     path("analytics/", views.analytics_overview, name="analytics"),
     path("poster/", views.shop_poster_pdf, name="shop-poster"),
 ]

@@ -1,0 +1,156 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Coupon campaigns" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-1">{% trans "Coupon campaigns" %}</h1>
+  <p class="text-sm text-gray-500 mb-4">{% blocktrans count n=consented %}{{ n }} guest has confirmed marketing consent (double opt-in).{% plural %}{{ n }} guests have confirmed marketing consent (double opt-in).{% endblocktrans %} {% trans "Personal codes are only sent to them." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {# B4.4: авто-win-back — настройки на кампании kind=auto_winback #}
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="winback">
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold">Auto Win-back</h2>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="enabled" value="1" {% if winback and winback.status == 'active' %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Enabled" %}
+      </label>
+    </div>
+    <p class="text-xs text-gray-500">{% trans "Customers with no purchase for N days automatically get a personal code — opt-in subscribers only, at most one code per window." %}</p>
+    <div class="grid grid-cols-3 gap-3">
+      <div>
+        <label class="block text-xs font-medium mb-1" for="id_wb_days">{% trans "No purchase for N days" %}</label>
+        <input id="id_wb_days" name="inactive_days" type="number" min="1" value="{{ winback.inactive_days|default:60 }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1" for="id_wb_percent">{% trans "Discount %" %}</label>
+        <input id="id_wb_percent" name="discount_percent" type="number" min="1" max="100" value="{{ winback.discount_percent|default:10 }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1" for="id_wb_valid">{% trans "Code valid for days" %}</label>
+        <input id="id_wb_valid" name="valid_days" type="number" min="1" max="365" value="{{ winback.valid_days|default:30 }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+    </div>
+    <div>
+      <label class="block text-xs font-medium mb-1" for="id_wb_subject">{% trans "Subject" %}</label>
+      <input id="id_wb_subject" name="subject" type="text" maxlength="200" value="{{ winback.subject|default:'Wir vermissen Sie – Ihr persönlicher Gutschein' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+
+  {# Создать кампанию #}
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <h2 class="font-semibold">{% trans "New campaign" %}</h2>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Campaign name" %}</label>
+      <input id="id_name" name="name" type="text" required maxlength="200" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'e.g. Win-back autumn' %}">
+    </div>
+    <fieldset class="border border-gray-200 rounded-xl p-3">
+      <legend class="text-xs font-semibold text-gray-500 px-1">{% trans "Segment (all empty = every subscriber)" %}</legend>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-medium mb-1" for="id_tag">{% trans "Customer tag" %}</label>
+          <input id="id_tag" name="tag" type="text" maxlength="50" value="{{ form.tag.value|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="vip">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" for="id_inactive_days">{% trans "No purchase for N days" %}</label>
+          <input id="id_inactive_days" name="inactive_days" type="number" min="1" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="60">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" for="id_top_ltv">{% trans "Top N by revenue" %}</label>
+          <input id="id_top_ltv" name="top_ltv" type="number" min="1" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="20">
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="border border-gray-200 rounded-xl p-3">
+      <legend class="text-xs font-semibold text-gray-500 px-1">{% trans "Personal code" %}</legend>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium mb-1" for="id_discount_percent">{% trans "Discount %" %}</label>
+          <input id="id_discount_percent" name="discount_percent" type="number" min="1" max="100" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="10">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" for="id_discount_eur">{% trans "Discount €" %}</label>
+          <input id="id_discount_eur" name="discount_eur" type="number" step="0.01" min="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" for="id_min_order_eur">{% trans "Minimum order €" %}</label>
+          <input id="id_min_order_eur" name="min_order_eur" type="number" step="0.01" min="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" for="id_valid_days">{% trans "Code valid for days" %}</label>
+          <input id="id_valid_days" name="valid_days" type="number" min="1" max="365" value="30" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">{% trans "Each customer gets a unique single-use code." %}</p>
+    </fieldset>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_subject">{% trans "Subject" %}</label>
+      <input id="id_subject" name="subject" type="text" required maxlength="200" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_body">{% trans "Message" %}</label>
+      <textarea id="id_body" name="body" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+      <p class="text-xs text-gray-400 mt-1">{% trans "The personal code and its conditions are appended automatically." %}</p>
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save draft" %}</button>
+  </form>
+
+  {# Список кампаний #}
+  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+    {% for c in campaigns %}
+      <div class="p-4 flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="font-medium">{{ c.name }}
+            {% if c.kind == 'auto_winback' %}<span class="text-xs bg-sky-100 text-sky-700 rounded-full px-2 py-0.5 ml-1">Auto</span>{% endif %}
+            {% if c.status == 'sent' %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5 ml-1">{% trans "sent" %}</span>
+            {% elif c.status == 'active' %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5 ml-1">{% trans "active" %}</span>
+            {% elif c.status == 'paused' %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 ml-1">{% trans "paused" %}</span>
+            {% else %}<span class="text-xs bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 ml-1">{% trans "draft" %}</span>{% endif %}
+          </p>
+          <p class="text-xs text-gray-500 mt-1">
+            {% if c.tag %}#{{ c.tag }} · {% endif %}
+            {% if c.inactive_days %}{% blocktrans with n=c.inactive_days %}inactive {{ n }}+ days{% endblocktrans %} · {% endif %}
+            {% if c.top_ltv %}{% blocktrans with n=c.top_ltv %}top {{ n }} by revenue{% endblocktrans %} · {% endif %}
+            {% if c.discount_percent %}−{{ c.discount_percent }} %{% elif c.discount_cents %}−{{ c.discount_eur|floatformat:2 }} €{% endif %}
+          </p>
+          {% if c.status == 'draft' %}
+            <p class="text-xs text-gray-400 mt-1">{% blocktrans count n=c.segment_count %}{{ n }} recipient in segment now{% plural %}{{ n }} recipients in segment now{% endblocktrans %}</p>
+          {% else %}
+            <p class="text-xs text-gray-400 mt-1">
+              {% if c.sent_at %}{{ c.sent_at|date:"d.m.Y H:i" }} · {% endif %}
+              {% blocktrans with issued=c.issued|default:0 redeemed=c.redeemed|default:0 %}{{ issued }} codes issued · {{ redeemed }} redeemed{% endblocktrans %}
+            </p>
+          {% endif %}
+        </div>
+        {% if c.status == 'draft' %}
+        <div class="flex items-center gap-2 whitespace-nowrap">
+          <form method="post" onsubmit="return confirm('{% trans "Send personal codes to this segment?" %}');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send"><input type="hidden" name="campaign" value="{{ c.pk }}">
+            <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Send" %}</button>
+          </form>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete"><input type="hidden" name="campaign" value="{{ c.pk }}">
+            <button class="text-sm text-red-500 hover:underline">{% trans "Delete" %}</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="p-4 text-sm text-gray-400">{% trans "No campaigns yet." %}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

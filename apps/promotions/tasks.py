@@ -226,3 +226,48 @@ def purge_reservation_pii():
         with schema_context(schema):
             total += purge_due_customers(now)
     return {"purged": total}
+
+
+def send_due_winback_coupons(now=None, base_url=None) -> int:
+    """B4.4: авто-win-back в текущей схеме. По активным auto_winback-кампаниям
+    выдать новый персональный код клиентам сегмента «не покупал N дней», НЕ
+    получавшим код этой кампании в окне N дней (иначе слало бы каждый день).
+    Только opt-in: сегмент строится поверх consented_customers()."""
+    from .models import CouponCampaign
+    from .newsletter import segment_customers, send_coupon_campaign
+
+    now = now or timezone.now()
+    total = 0
+    for campaign in CouponCampaign.objects.filter(
+        kind=CouponCampaign.KIND_AUTO_WINBACK, status=CouponCampaign.STATUS_ACTIVE
+    ):
+        days = campaign.inactive_days or 60
+        recent_ids = campaign.vouchers.filter(
+            created_at__gte=now - timedelta(days=days), customer__isnull=False
+        ).values_list("customer_id", flat=True)
+        customers = list(
+            segment_customers(
+                tag=campaign.tag, inactive_days=days, top_ltv=campaign.top_ltv
+            ).exclude(id__in=recent_ids)
+        )
+        if not customers:
+            continue
+        if base_url is None:
+            from django.db import connection
+
+            from .notifications import _base_url
+
+            base_url = _base_url(connection.schema_name)
+        total += send_coupon_campaign(campaign, base_url=base_url, customers=customers)
+    return total
+
+
+@idempotent_task()
+def send_winback_coupons():
+    """Beat (раз в сутки): авто-win-back купоны по всем схемам арендаторов."""
+    total = 0
+    now = timezone.now()
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_winback_coupons(now)
+    return {"sent": total}

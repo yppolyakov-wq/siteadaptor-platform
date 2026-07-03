@@ -674,6 +674,115 @@ def loyalty_stamp(request, program_id):
 
 
 @login_required
+def coupon_campaigns(request):
+    """B4/CM-9: купон-кампании по сегментам — персональный код каждому клиенту
+    сегмента + письмо. Только подтвердившим opt-in (UWG §7)."""
+    from django.db.models import Count, Sum
+
+    from .forms import CouponCampaignForm
+    from .models import CouponCampaign
+    from .newsletter import consented_customers, segment_customers, send_coupon_campaign
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "create":
+            form = CouponCampaignForm(request.POST)
+            if form.is_valid():
+                d = form.cleaned_data
+                CouponCampaign.objects.create(
+                    name=d["name"],
+                    tag=(d.get("tag") or "").strip().lower(),
+                    inactive_days=d.get("inactive_days"),
+                    top_ltv=d.get("top_ltv"),
+                    discount_percent=d.get("discount_percent"),
+                    discount_cents=int(d["discount_eur"] * 100) if d.get("discount_eur") else None,
+                    min_order_cents=int(d["min_order_eur"] * 100) if d.get("min_order_eur") else 0,
+                    valid_days=d["valid_days"],
+                    subject=d["subject"],
+                    body=(d.get("body") or "").strip(),
+                )
+                messages.success(request, "Kampagne gespeichert.")
+            else:
+                messages.error(request, "; ".join(e for errs in form.errors.values() for e in errs))
+        elif action == "send":
+            campaign = get_object_or_404(
+                CouponCampaign,
+                pk=request.POST.get("campaign"),
+                kind=CouponCampaign.KIND_MANUAL,
+            )
+            n = send_coupon_campaign(campaign, base_url=request.build_absolute_uri("/").rstrip("/"))
+            messages.success(request, f"Kampagne an {n} Empfänger gesendet.")
+        elif action == "delete":
+            CouponCampaign.objects.filter(
+                pk=request.POST.get("campaign"), status=CouponCampaign.STATUS_DRAFT
+            ).delete()
+        elif action == "winback":
+            # B4.4: настройки авто-win-back живут на кампании kind=auto_winback.
+            obj = CouponCampaign.objects.filter(kind=CouponCampaign.KIND_AUTO_WINBACK).first()
+            if obj is None:
+                obj = CouponCampaign.objects.create(
+                    kind=CouponCampaign.KIND_AUTO_WINBACK,
+                    name="Auto Win-back",
+                    subject="Wir vermissen Sie – Ihr persönlicher Gutschein",
+                    status=CouponCampaign.STATUS_PAUSED,
+                )
+            try:
+                obj.inactive_days = max(1, int(request.POST.get("inactive_days") or 60))
+                obj.discount_percent = max(
+                    1, min(100, int(request.POST.get("discount_percent") or 10))
+                )
+                obj.valid_days = max(1, min(365, int(request.POST.get("valid_days") or 30)))
+            except (TypeError, ValueError):
+                messages.error(request, "Bitte gültige Zahlen eingeben.")
+                return redirect("promotions:coupon-campaigns")
+            obj.subject = (request.POST.get("subject") or obj.subject).strip()[:200]
+            obj.status = (
+                CouponCampaign.STATUS_ACTIVE
+                if request.POST.get("enabled")
+                else CouponCampaign.STATUS_PAUSED
+            )
+            obj.save(
+                update_fields=[
+                    "inactive_days",
+                    "discount_percent",
+                    "valid_days",
+                    "subject",
+                    "status",
+                    "updated_at",
+                ]
+            )
+            messages.success(request, "Auto Win-back gespeichert.")
+        return redirect("promotions:coupon-campaigns")
+
+    campaigns = list(
+        CouponCampaign.objects.annotate(
+            issued=Count("vouchers", distinct=True),
+            redeemed=Sum("vouchers__used_count"),
+        )[:100]
+    )
+    # Драфтам показываем живой размер сегмента (список капнут — приемлемо).
+    for c in campaigns:
+        if c.status == CouponCampaign.STATUS_DRAFT:
+            c.segment_count = segment_customers(
+                tag=c.tag, inactive_days=c.inactive_days, top_ltv=c.top_ltv
+            ).count()
+
+    # B4.3: prefill из CRM («Kampagne für diese Auswahl» передаёт ?tag=).
+    form = CouponCampaignForm(initial={"tag": (request.GET.get("tag") or "").strip()})
+    return render(
+        request,
+        "promotions/coupon_campaigns.html",
+        {
+            "nav": "campaigns",
+            "campaigns": campaigns,
+            "consented": consented_customers().count(),
+            "form": form,
+            "winback": CouponCampaign.objects.filter(kind=CouponCampaign.KIND_AUTO_WINBACK).first(),
+        },
+    )
+
+
+@login_required
 def newsletter_campaigns(request):
     """G3: рассылки гостям — список кампаний + создание/отправка. Отправляем только
     подтвердившим opt-in (UWG §7)."""

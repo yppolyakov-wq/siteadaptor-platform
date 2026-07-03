@@ -3813,3 +3813,17 @@
   DE=msgid (en.po 125/125), pay-again вьюхи /bezahlen/ (Checkout на лету) +
   кнопки «Jetzt bezahlen» на подтверждениях. Transactional-гейт
   (Vertragsanbahnung), без opt-in. B2.4 (CartLead+DOI) — отложен (UWG-серо).
+
+- **2026-07-03 — B4/CM-9: купон-кампании по сегментам + авто-win-back (v1+v2
+  целиком).** План `docs/b4-cm9-campaigns-plan-2026-07-03.md`. `CouponCampaign`
+  (promotions/0021: сегмент tag/inactive_days/top_ltv + параметры кода + письмо
+  + kind manual|auto_winback) + `Voucher.campaign` FK (loyalty/0004) +
+  `segment_customers()` ПОВЕРХ consented_customers (UWG §7 по построению;
+  inactive_days отсекает не-покупателей осознанно) + `send_coupon_campaign`
+  (персональный одноразовый код каждому + письмо с List-Unsubscribe;
+  идемпотентно: реюз кода у manual, дедуп писем по коду) + страница
+  `/promotions/kampagnen/` (создание/отправка/live-размер сегмента/аналитика
+  выдано-погашено + карточка Auto Win-back) + NavItem «Campaigns» в модуле crm
+  + вход из CRM-списка (prefill ?tag=) + beat `send_winback_coupons` (86400,
+  дедуп-окно = inactive_days, настройки на кампании — БЕЗ Tenant-миграции).
+  Тесты `test_coupon_campaigns.py` (19: сегменты/гейт/идемпотентность/вью/beat).

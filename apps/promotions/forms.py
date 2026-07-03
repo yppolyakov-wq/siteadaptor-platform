@@ -182,6 +182,42 @@ class VoucherCreateForm(forms.Form):
         return cleaned
 
 
+class CouponCampaignForm(forms.Form):
+    """B4/CM-9: купон-кампания по сегменту (персональные коды + письмо)."""
+
+    name = forms.CharField(label=_("Campaign name"), max_length=200)
+    # Сегмент (AND; всё пустое = вся opt-in-база).
+    tag = forms.CharField(label=_("Customer tag"), max_length=50, required=False)
+    inactive_days = forms.IntegerField(
+        label=_("No purchase for N days"), min_value=1, required=False
+    )
+    top_ltv = forms.IntegerField(label=_("Top N by revenue"), min_value=1, required=False)
+    # Параметры кода.
+    discount_percent = forms.IntegerField(
+        label=_("Discount %"), min_value=1, max_value=100, required=False
+    )
+    discount_eur = forms.DecimalField(
+        label=_("Discount €"), min_value=0, decimal_places=2, max_digits=10, required=False
+    )
+    min_order_eur = forms.DecimalField(
+        label=_("Minimum order €"), min_value=0, decimal_places=2, max_digits=10, required=False
+    )
+    valid_days = forms.IntegerField(
+        label=_("Code valid for days"), min_value=1, max_value=365, initial=30
+    )
+    # Письмо.
+    subject = forms.CharField(label=_("Subject"), max_length=200)
+    body = forms.CharField(label=_("Message"), widget=forms.Textarea, required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("discount_percent") and cleaned.get("discount_eur"):
+            raise forms.ValidationError(_("Use either % or € discount, not both."))
+        if not cleaned.get("discount_percent") and not cleaned.get("discount_eur"):
+            raise forms.ValidationError(_("Set a % or € discount for the code."))
+        return cleaned
+
+
 class LoyaltyProgramForm(forms.ModelForm):
     class Meta:
         model = LoyaltyProgram

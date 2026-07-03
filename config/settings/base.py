@@ -276,6 +276,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.purge_reservation_pii",
         "schedule": 86400.0,  # раз в сутки — DSGVO-обезличивание старых контактов
     },
+    # B4.4: авто-win-back — персональный код «не покупал N дней» (opt-in-база,
+    # настройки на кампании kind=auto_winback, дедуп-окно = N дней).
+    "send-winback-coupons": {
+        "task": "apps.promotions.tasks.send_winback_coupons",
+        "schedule": 86400.0,
+    },
     "roll-subscriptions": {
         "task": "apps.billing.tasks.roll_subscriptions",
         "schedule": 86400.0,  # раз в сутки — жизненный цикл подписок + напоминания

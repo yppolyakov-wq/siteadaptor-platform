@@ -53,6 +53,15 @@ class Voucher(TimestampedModel):
     # Частичное списание/возврат — promotions.services.spend_voucher /
     # unredeem_voucher; у gift-выпуска balance = номинал, max_uses = 0.
     balance_cents = models.PositiveIntegerField(null=True, blank=True)
+    # B4/CM-9: код выпущен купон-кампанией — для аналитики «выдано/погашено»
+    # и дедупа авто-win-back. SET_NULL: код переживает удаление кампании.
+    campaign = models.ForeignKey(
+        "promotions.CouponCampaign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="vouchers",
+    )
 
     class Meta:
         ordering = ["-created_at"]

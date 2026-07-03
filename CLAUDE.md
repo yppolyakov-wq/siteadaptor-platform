@@ -200,7 +200,15 @@ Python 3.12, менеджер uv.
   в CI, compilemessages в deploy.sh, gettext в Dockerfile. **Массовый de.po хрома —
   отдельный трек за решением владельца (план §2: сотни англ. тест-ассертов в DE-рендере).**
   Остаток DE-only: owner-письма + gift_voucher/inbox/installment/job_*.
-- Самые свежие миграции: **`booking/0015`** (B1.2 voucher_code/discount_cents) +
+- **Самое свежее (2026-07-03, продолжение): «средние» одобренного стека ЗАКРЫТЫ ВСЕ —
+  B1 ✅ (Geschenkgutscheine 1.1–1.7: модуль gift, voucher_code в booking/jobs, un-redeem в 5 FSM,
+  balance-сертификаты, кап промокодов tenants/0022) · CM-8 ✅ (карточка 360°) · CM-6 ✅ (Bewertungen
+  + ответы + post-purchase) · B2 ✅ (напоминания о неоплате orders/booking/stays/tickets + pay-again
+  /bezahlen/) · B4/CM-9 ✅ (купон-кампании по сегментам: `CouponCampaign` promotions/0021 +
+  `Voucher.campaign` loyalty/0004 + `segment_customers` поверх UWG-гейта + /promotions/kampagnen/
+  + NavItem «Campaigns» (crm) + вход из CRM + beat авто-win-back БЕЗ Tenant-миграции).
+  Дальше в очереди: платформа D1–D3 (D1 ждёт прайсинг владельца); блокированы U-D/CM-5/T-1.**
+- Самые свежие миграции: **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя) + **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1 voucher в сметах + кап + balance — ⚠️ требуют деплоя); ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает
   образ с gettext и компилирует en.mo); ранее **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,

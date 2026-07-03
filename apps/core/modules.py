@@ -118,8 +118,12 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="crm",
         label_de="Kunden (CRM)",
         icon="👥",
-        nav_items=(NavItem("crm:customer-list", _("Customers"), "crm"),),
-        url_prefixes=("/crm/",),
+        nav_items=(
+            NavItem("crm:customer-list", _("Customers"), "crm"),
+            # B4/CM-9: купон-кампании по сегментам клиентской базы.
+            NavItem("promotions:coupon-campaigns", _("Campaigns"), "campaigns"),
+        ),
+        url_prefixes=("/crm/", "/promotions/kampagnen/"),
         recommended_for=("hotel", "tour_operator"),
         suited_for=(
             "bakery",
