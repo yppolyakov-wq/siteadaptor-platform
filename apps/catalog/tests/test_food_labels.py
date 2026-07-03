@@ -125,6 +125,40 @@ def test_storefront_card_no_allergen_line_when_empty():
     assert "Glutenhaltiges Getreide" not in body
 
 
+# --- E-2/LMZDV: Zusatzstoffe -------------------------------------------------
+
+
+def test_additive_labels_maps_codes_in_order():
+    labels = food.additive_labels(["taurin", "farbstoff", "unknown"])
+    assert labels == ["mit Farbstoff", "mit Taurin"]  # порядок ADDITIVES, мусор отброшен
+    assert food.additive_labels(None) == []
+
+
+def test_product_additive_labels_property():
+    p = ProductFactory(additives=["geschwefelt", "phosphat"])
+    assert p.additive_labels == ["geschwefelt", "mit Phosphat"]
+
+
+def test_form_saves_and_rejects_additives():
+    form = ProductForm(_form_data(additives=["koffeinhaltig"]))
+    assert form.is_valid(), form.errors
+    assert form.save().additives == ["koffeinhaltig"]
+    bad = ProductForm(_form_data(additives=["e999"]))
+    assert not bad.is_valid() and "additives" in bad.errors
+
+
+def test_form_edit_prefills_additives():
+    p = ProductFactory(additives=["suessungsmittel"])
+    assert ProductForm(instance=p).fields["additives"].initial == ["suessungsmittel"]
+
+
+def test_storefront_shows_additives_in_lmiv_block():
+    """Zusatzstoffe видны в блоке маркировки — в т.ч. когда задан ТОЛЬКО он."""
+    p = ProductFactory(additives=["geschmacksverstaerker"])
+    body = public_views.product_detail(_req(f"/sortiment/{p.pk}/"), pk=p.pk).content.decode()
+    assert "mit Geschmacksverstärker" in body
+
+
 # --- A4: диет-теги (vegan/vegetarisch/…) ------------------------------------
 
 

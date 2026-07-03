@@ -98,6 +98,8 @@ class Product(SoftDeleteMixin, I18nMixin):
     # происхождение и список ингредиентов. Заполняется для еды; на витрине
     # показывается только при наличии.
     allergens = models.JSONField(default=list, blank=True)
+    # E-2/LMZDV: kennzeichnungspflichtige Zusatzstoffe (коды из catalog.food.ADDITIVES).
+    additives = models.JSONField(default=list, blank=True)
     # A4: диет-теги (vegan/vegetarisch/glutenfrei/…) — иконки на карточке + фильтр меню.
     # Коды из catalog.food.DIETS; на витрине показываются только при наличии.
     diets = models.JSONField(default=list, blank=True)
@@ -182,6 +184,13 @@ class Product(SoftDeleteMixin, I18nMixin):
         from .food import allergen_labels
 
         return allergen_labels(self.allergens)
+
+    @property
+    def additive_labels(self) -> list[str]:
+        """Подписи Zusatzstoffe (DE) для витрины — из кодов self.additives."""
+        from .food import additive_labels
+
+        return additive_labels(self.additives)
 
     @property
     def diet_badges(self) -> list[dict]:

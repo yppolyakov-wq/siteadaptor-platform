@@ -6,7 +6,7 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from .food import ALLERGENS, DIETS
+from .food import ADDITIVES, ALLERGENS, DIETS
 from .models import Category, Product
 
 
@@ -120,6 +120,13 @@ class ProductForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple,
     )
+    # E-2/LMZDV: kennzeichnungspflichtige Zusatzstoffe чекбоксами (JSONField).
+    additives = forms.MultipleChoiceField(
+        label=_("Additives"),
+        choices=ADDITIVES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
     # A4: диет-теги (vegan/vegetarisch/…) чекбоксами (JSONField на модели).
     diets = forms.MultipleChoiceField(
         label=_("Diets"),
@@ -158,6 +165,7 @@ class ProductForm(forms.ModelForm):
             self.fields["description_de"].initial = (self.instance.description or {}).get("de", "")
             self.fields["description_en"].initial = (self.instance.description or {}).get("en", "")
             self.fields["allergens"].initial = list(self.instance.allergens or [])
+            self.fields["additives"].initial = list(self.instance.additives or [])
             self.fields["diets"].initial = list(self.instance.diets or [])
 
     def clean_base_price(self):
@@ -177,6 +185,7 @@ class ProductForm(forms.ModelForm):
             "en": self.cleaned_data.get("description_en", ""),
         }
         product.allergens = self.cleaned_data.get("allergens", [])
+        product.additives = self.cleaned_data.get("additives", [])
         product.diets = self.cleaned_data.get("diets", [])
         if commit:
             product.save()

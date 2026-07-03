@@ -41,10 +41,37 @@ _DIET_ICONS = {code: icon for code, _label, icon in DIETS}
 VALID_DIETS = frozenset(_DIET_LABELS)
 
 
+# E-2/PAngV+LMIV: kennzeichnungspflichtige Zusatzstoff-Klassen (Gastro-Fußnoten,
+# LMZDV/LMIDV). Коды стабильны (храним в Product.additives), подписи — немецкие.
+ADDITIVES: list[tuple[str, str]] = [
+    ("farbstoff", "mit Farbstoff"),
+    ("konservierungsstoff", "mit Konservierungsstoff"),
+    ("antioxidationsmittel", "mit Antioxidationsmittel"),
+    ("geschmacksverstaerker", "mit Geschmacksverstärker"),
+    ("geschwefelt", "geschwefelt"),
+    ("geschwaerzt", "geschwärzt"),
+    ("gewachst", "gewachst"),
+    ("phosphat", "mit Phosphat"),
+    ("suessungsmittel", "mit Süßungsmittel"),
+    ("phenylalanin", "enthält eine Phenylalaninquelle"),
+    ("koffeinhaltig", "koffeinhaltig"),
+    ("chininhaltig", "chininhaltig"),
+    ("taurin", "mit Taurin"),
+]
+_ADDITIVE_LABELS = dict(ADDITIVES)
+VALID_ADDITIVES = frozenset(_ADDITIVE_LABELS)
+
+
 def allergen_labels(codes) -> list[str]:
     """Коды → подписи DE. Неизвестные коды отбрасываем, порядок — как в ALLERGENS."""
     wanted = set(codes or [])
     return [label for code, label in ALLERGENS if code in wanted]
+
+
+def additive_labels(codes) -> list[str]:
+    """Коды → подписи DE. Неизвестные отброшены, порядок — как в ADDITIVES."""
+    wanted = set(codes or [])
+    return [label for code, label in ADDITIVES if code in wanted]
 
 
 def diet_badges(codes) -> list[dict]:
