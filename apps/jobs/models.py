@@ -67,6 +67,12 @@ class Job(TimestampedModel):
     gross = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, default="EUR")
 
+    # B1.6: Gutschein/промокод при принятии Angebot — Wertgutschein юридически
+    # Zahlungsmittel: gross/счёт НЕ меняем, скидка уменьшает «zu zahlen».
+    # Списание — spend_voucher при accept; отмена возвращает (хук JobSM).
+    voucher_code = models.CharField(max_length=40, blank=True)
+    discount_cents = models.PositiveIntegerField(default=0)
+
     quoted_at = models.DateTimeField(null=True, blank=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
     # Связанный счёт (apps.finance.Invoice в той же схеме) — без жёсткого FK.
@@ -106,6 +112,18 @@ class Job(TimestampedModel):
 
     def __str__(self):
         return f"{self.reference_code} {self.title}"
+
+    @property
+    def discount_eur(self):
+        """B1.6: скидка Gutschein в евро (Decimal)."""
+        from decimal import Decimal
+
+        return Decimal(self.discount_cents) / 100
+
+    @property
+    def payable_gross(self):
+        """B1.6: «zu zahlen» = брутто − Gutschein (счёт остаётся на gross)."""
+        return max(self.gross - self.discount_eur, 0)
 
 
 class JobLine(TimestampedModel):

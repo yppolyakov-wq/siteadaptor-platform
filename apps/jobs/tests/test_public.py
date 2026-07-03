@@ -401,3 +401,66 @@ def test_anfrage_skips_non_image(settings, tmp_path):
     request = _req("post", path="/anfrage/", data={"title": "Wand", "name": "Kunde", "photos": bad})
     public_views.anfrage(request)
     assert JobPhoto.objects.count() == 0  # не-изображение отброшено
+
+
+# --- B1.6: Gutschein/промокод при принятии Angebot ---------------------------------
+
+
+def test_angebot_accept_with_gift_voucher():
+    """Код при accept: списание с остатка, снимок на Job, «zu zahlen» = gross − скидка;
+    gross/счёт не меняются (Wertgutschein = Zahlungsmittel)."""
+    from decimal import Decimal
+
+    from apps.loyalty.models import Voucher
+
+    Voucher.objects.create(
+        code="GS-JOB", label="Gutschein", discount_cents=5000, balance_cents=5000, max_uses=0
+    )
+    job = _quoted_job()  # 4 × 50 € netto → gross 238.00 (19 %)
+    gross_before = job.gross
+    request = _req(
+        "post",
+        path=f"/angebot/{job.public_token}/",
+        data={"action": "accept", "voucher_code": "gs-job"},
+    )
+    public_views.angebot(request, token=job.public_token)
+    job.refresh_from_db()
+    assert job.status == "accepted"
+    assert job.voucher_code == "GS-JOB" and job.discount_cents == 5000
+    assert job.gross == gross_before  # счёт полный
+    assert job.payable_gross == gross_before - Decimal("50.00")
+    assert Voucher.objects.get(code="GS-JOB").balance_cents == 0
+    body = public_views.angebot(_req(), token=job.public_token).content.decode()
+    assert "GS-JOB" in body  # строка скидки видна на странице
+
+
+def test_angebot_invalid_voucher_keeps_quoted():
+    job = _quoted_job()
+    request = _req(
+        "post",
+        path=f"/angebot/{job.public_token}/",
+        data={"action": "accept", "voucher_code": "GIBTSNICHT"},
+    )
+    resp = public_views.angebot(request, token=job.public_token)
+    assert resp.status_code == 302
+    job.refresh_from_db()
+    assert job.status == "quoted" and job.voucher_code == ""
+
+
+def test_job_cancel_returns_voucher_balance():
+    from apps.loyalty.models import Voucher
+
+    Voucher.objects.create(
+        code="GS-JC", label="G", discount_cents=5000, balance_cents=5000, max_uses=0
+    )
+    job = _quoted_job()
+    request = _req(
+        "post",
+        path=f"/angebot/{job.public_token}/",
+        data={"action": "accept", "voucher_code": "GS-JC"},
+    )
+    public_views.angebot(request, token=job.public_token)
+    job.refresh_from_db()
+    JobSM().apply(job, "cancelled")
+    v = Voucher.objects.get(code="GS-JC")
+    assert v.balance_cents == 5000 and v.used_count == 0  # остаток вернулся

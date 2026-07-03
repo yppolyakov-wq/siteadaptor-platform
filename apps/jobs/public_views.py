@@ -208,6 +208,24 @@ def angebot(request, token):
                 messages.error(request, _("Payment could not be started — please try again."))
                 return redirect("storefront-angebot", token=token)
         if action in ("accept", "decline"):
+            # B1.6: Gutschein/промокод при принятии (только простой accept —
+            # депозит-флоу вернулся редиректом выше). Wertgutschein =
+            # Zahlungsmittel: gross не меняем, скидка уменьшает «zu zahlen».
+            code = (request.POST.get("voucher_code") or "").strip()
+            if action == "accept" and code:
+                from django.db import transaction
+
+                from apps.promotions.services import VoucherError, spend_voucher
+
+                try:
+                    with transaction.atomic():
+                        discount, _v = spend_voucher(code, int(job.gross * 100))
+                        job.voucher_code = code.upper()[:40]
+                        job.discount_cents = discount
+                        job.save(update_fields=["voucher_code", "discount_cents", "updated_at"])
+                except VoucherError:
+                    messages.error(request, _("This voucher code is not valid."))
+                    return redirect("storefront-angebot", token=token)
             dst = Job.STATUS_ACCEPTED if action == "accept" else Job.STATUS_DECLINED
             JobSM().apply(job, dst)  # on_transition → письмо владельцу
             if dst == Job.STATUS_ACCEPTED:
@@ -227,5 +245,12 @@ def angebot(request, token):
             "job": job,
             "lines": list(job.lines.all()),
             "deposit_eur": f"{job.deposit_cents / 100:.2f}".replace(".", ","),
+            # B1.6: инпут кода — только в простом accept-пути (без Anzahlung-Checkout).
+            "voucher_allowed": job.gross > 0
+            and not (
+                job.deposit_cents > 0
+                and getattr(getattr(request, "tenant", None), "payments_enabled", False)
+                and connect.is_connect_configured()
+            ),
         },
     )

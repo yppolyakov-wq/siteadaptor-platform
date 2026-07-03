@@ -25,6 +25,15 @@ class JobSM(StateMachine):
         from . import services
         from .notifications import enqueue_job_email
 
+        # B1.4/B1.6: отмена → вернуть использование/остаток Gutschein (однократно —
+        # FSM не даёт второй переход в cancelled).
+        if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
+            from apps.promotions.services import unredeem_voucher
+
+            unredeem_voucher(
+                instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
+            )
+
         # G11: расходники (Teile) списываются со склада при erledigt (один раз).
         if t.dst == "done":
             services.commit_stock(instance)
