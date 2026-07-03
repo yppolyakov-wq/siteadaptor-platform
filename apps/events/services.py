@@ -44,9 +44,10 @@ def quote_voucher(code, base_cents) -> int:
     if not code:
         return 0
     from apps.loyalty.models import Voucher
+    from apps.promotions.services import preview_discount
 
     voucher = Voucher.objects.filter(code=code).first()
-    return voucher.discount_for(base_cents) if voucher else 0
+    return preview_discount(voucher, base_cents) if voucher else 0  # B1.7: единый потолок
 
 
 def _apply_voucher(code, base_cents):

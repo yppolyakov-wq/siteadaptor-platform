@@ -223,6 +223,40 @@ def redeem_voucher(code):
     return voucher
 
 
+def _voucher_cap_percent() -> int:
+    """B1.7(в): потолок промокода из настроек тенанта текущей схемы (0 = нет)."""
+    try:
+        from django.db import connection
+        from django_tenants.utils import get_tenant_model, schema_context
+
+        with schema_context("public"):
+            tenant = (
+                get_tenant_model()
+                .objects.filter(schema_name=connection.schema_name)
+                .only("voucher_max_percent")
+                .first()
+            )
+        return min(100, int(getattr(tenant, "voucher_max_percent", 0) or 0))
+    except Exception:  # noqa: BLE001 — сбой настройки не валит чекаут (без капа)
+        return 0
+
+
+def _capped(voucher, discount: int, base_cents: int) -> int:
+    """Кап промокода потолком тенанта. Balance-сертификаты НЕ капаются (B1.7в)."""
+    if discount <= 0 or voucher.balance_cents is not None:
+        return discount
+    cap_pct = _voucher_cap_percent()
+    if not cap_pct:
+        return discount
+    return min(discount, int(base_cents) * cap_pct // 100)
+
+
+def preview_discount(voucher, base_cents: int) -> int:
+    """Скидка кода для превью (корзина/quote) — ta же логика, что spend_voucher,
+    но read-only: с потолком тенанта, без списания."""
+    return _capped(voucher, voucher.discount_for(int(base_cents)), base_cents)
+
+
 def spend_voucher(code, base_cents: int):
     """B1.5: атомарно рассчитать И списать скидку кода для суммы base_cents.
 
@@ -252,7 +286,8 @@ def spend_voucher(code, base_cents: int):
     else:
         if voucher.max_uses and voucher.used_count >= voucher.max_uses:
             raise VoucherError("used_up")
-        discount = voucher.discount_for(int(base_cents))
+        # B1.7(в): промокод капается потолком тенанта (сертификаты — нет).
+        discount = _capped(voucher, voucher.discount_for(int(base_cents)), base_cents)
         if discount <= 0:
             raise VoucherError("not_applicable")
         Voucher.objects.filter(pk=voucher.pk).update(used_count=F("used_count") + 1)

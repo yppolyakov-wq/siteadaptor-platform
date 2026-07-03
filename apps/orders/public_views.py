@@ -252,7 +252,10 @@ def _cart_discount(request, subtotal):
     voucher = Voucher.objects.filter(code=code).first()
     if voucher is None or not voucher.has_order_discount:
         return None, Decimal("0")
-    return voucher, Decimal(voucher.discount_for(int(subtotal * 100))) / 100
+    from apps.promotions.services import preview_discount
+
+    # B1.7: превью с тем же потолком, что и списание (иначе итог «прыгнет»).
+    return voucher, Decimal(preview_discount(voucher, int(subtotal * 100))) / 100
 
 
 @require_POST

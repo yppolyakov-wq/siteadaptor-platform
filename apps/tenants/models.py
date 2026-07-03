@@ -97,6 +97,9 @@ class Tenant(TenantMixin):
     owner_phone = models.CharField(max_length=30, blank=True)
     # C1: утренний дайджест владельцу (email; час — по tenant.timezone).
     owner_digest_enabled = models.BooleanField(default=True)
+    # B1.7 (владелец «в»): потолок скидки ПРОМОКОДА в % от чека (0 = без лимита).
+    # К проданным Geschenkgutscheine НЕ применяется (Wertgutschein = Zahlungsmittel).
+    voucher_max_percent = models.PositiveSmallIntegerField(default=0, blank=True)
 
     # Публичные контакты для витрины (могут отличаться от контактов владельца)
     contact_email = models.EmailField(blank=True)

@@ -66,6 +66,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "service_area_note",
             "auto_redeem_on_scan",
             "owner_digest_enabled",
+            "voucher_max_percent",
             "vat_id",
             "tax_number",
             "small_business",
@@ -85,6 +86,7 @@ class BusinessSettingsForm(forms.ModelForm):
         labels = {
             "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
             "owner_digest_enabled": _("Morning digest email"),
+            "voucher_max_percent": _("Max. promo-code share of order (%)"),
         }
         help_texts = {
             "service_area_plz": _(
@@ -101,7 +103,16 @@ class BusinessSettingsForm(forms.ModelForm):
                 "A short morning email: yesterday's revenue, today's bookings and "
                 "what needs your attention."
             ),
+            "voucher_max_percent": _(
+                "0 = no limit. Caps discount/promo codes only — sold gift "
+                "vouchers are never limited."
+            ),
             "impressum": _("Leave blank to generate from the fields above."),
             "privacy_policy": _("Leave blank for a default template (please adapt)."),
             "withdrawal_policy": _("Leave blank for a default template (please adapt)."),
         }
+
+    def clean_voucher_max_percent(self):
+        # B1.7: пусто = 0 (без лимита); клэмп 0..100.
+        val = self.cleaned_data.get("voucher_max_percent")
+        return max(0, min(100, val or 0))
