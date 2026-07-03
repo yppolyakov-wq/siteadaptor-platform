@@ -215,3 +215,38 @@ def test_hero_about_carry_data_edit_markers():
     body = public_views.storefront_home(req).content.decode()
     assert 'data-edit="hero_title"' in body
     assert 'data-edit="about_title"' in body and 'data-edit="about_text"' in body
+
+
+# --- UC2-4: единый диспетчер --------------------------------------------------
+
+
+def test_inline_registry_matches_legacy_whitelists():
+    """UC2-4-замок: декларации реестра = прежние вайтлисты пяти моделей
+    (поля движка — status/available_quantity/duration — отсутствуют)."""
+    from apps.core.inline_edit import INLINE_REGISTRY
+
+    expected = {
+        "product": {"name", "description", "base_price"},
+        "event": {"title", "description", "price_eur"},
+        "stay": {"name", "description", "price_eur"},
+        "service": {"name", "description", "price_eur"},
+        "promotion": {"title", "price_override", "compare_at_price", "discount_percent", "ends_at"},
+    }
+    assert {k: set(v) for k, v in INLINE_REGISTRY.items()} == expected
+    for fields in INLINE_REGISTRY.values():
+        for closed in ("status", "available_quantity", "duration"):
+            assert closed not in fields
+
+
+def test_inline_registry_bump_asymmetries_preserved():
+    """Легаси-асимметрии сброса кэша — осознанные декларации: product-текст и
+    promotion-title БЕЗ bump; цены/проценты/даты и весь event/stay/service — с bump."""
+    from apps.core.inline_edit import INLINE_REGISTRY
+
+    r = INLINE_REGISTRY
+    assert not r["product"]["name"].bump and not r["product"]["description"].bump
+    assert r["product"]["base_price"].bump
+    assert not r["promotion"]["title"].bump
+    assert all(r["promotion"][f].bump for f in ("price_override", "discount_percent", "ends_at"))
+    for model in ("event", "stay", "service"):
+        assert all(spec.bump for spec in r[model].values()), model

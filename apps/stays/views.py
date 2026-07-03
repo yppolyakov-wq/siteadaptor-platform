@@ -570,62 +570,17 @@ def channels(request):
     )
 
 
-_STAY_INLINE_FIELDS = {"name", "description"}
-
-
 @login_required
 @require_POST
 def stay_inline_edit(request):
-    """H1.2: инлайн-правка номера прямо на детальной витрины (?preview=1).
+    """Инлайн-правка номера на канве — тонкий алиас единого диспетчера (UC2-4).
 
-    JSON {pk, field, value}, field ∈ {name, description} → плоское StayUnit.<field>.
-    Имя пустым не сохраняем (кламп 120). Только владелец (login_required → tenant-скоуп).
-    Зеркало events.event_inline_edit. 204/400.
-    """
-    import json
+    Контракт/URL прежние: JSON {pk, field, value}; семантика — декларация
+    INLINE_REGISTRY["stay"]: name (плоско, кламп 120, пустым нельзя)/
+    description; price_eur → центы; bump на всех ветках."""
+    from apps.core.inline_edit import dispatch
 
-    from django.core.exceptions import ValidationError
-    from django.http import HttpResponse, HttpResponseBadRequest
-
-    try:
-        data = json.loads(request.body or b"{}")
-    except (ValueError, TypeError):
-        return HttpResponseBadRequest()
-    pk = data.get("pk")
-    field = data.get("field")
-    value = data.get("value", "")
-    if not pk or field not in (_STAY_INLINE_FIELDS | {"price_eur"}):
-        return HttpResponseBadRequest()
-    try:
-        unit = StayUnit.objects.get(pk=pk)
-    except (StayUnit.DoesNotExist, ValidationError, ValueError):
-        return HttpResponseBadRequest()
-
-    if field == "price_eur":
-        # Цена номера за ночь (евро → центы). Зеркало product/event инлайн-цены.
-        from decimal import Decimal, InvalidOperation
-
-        raw = str(value).strip().replace(",", ".")
-        try:
-            euros = Decimal(raw)
-        except (InvalidOperation, ValueError):
-            return HttpResponseBadRequest()
-        if euros < 0 or euros > Decimal("1000000"):
-            return HttpResponseBadRequest()
-        unit.price_cents = int((euros * 100).quantize(Decimal("1")))
-        unit.save(update_fields=["price_cents", "updated_at"])
-    else:
-        value = value.strip() if isinstance(value, str) else ""
-        if field == "name" and not value:  # пустое имя не сохраняем
-            return HttpResponseBadRequest()
-        setattr(unit, field, value[:120] if field == "name" else value)
-        unit.save(update_fields=[field, "updated_at"])
-    schema = getattr(getattr(request, "tenant", None), "schema_name", None)
-    if schema:
-        from apps.core.pagecache import bump_storefront_cache
-
-        bump_storefront_cache(schema)
-    return HttpResponse(status=204)
+    return dispatch(request, "stay")
 
 
 @login_required

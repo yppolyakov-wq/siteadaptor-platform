@@ -397,9 +397,6 @@ def passes_view(request):
 
 
 # --- A3: инлайн-правка услуги на канве витрины (?preview=1) ---
-_SERVICE_INLINE_FIELDS = {"name", "description"}
-
-
 def _bump_storefront(request):
     """SE-5a: правка данных (не site_config) кэш не бампит — сбрасываем явно."""
     schema = getattr(getattr(request, "tenant", None), "schema_name", None)
@@ -412,52 +409,14 @@ def _bump_storefront(request):
 @login_required
 @require_POST
 def service_inline_edit(request):
-    """Инлайн-правка услуги прямо на витрине: JSON {pk, field, value},
-    field ∈ {name, description, price_eur}. Поля плоские (Service не i18n-dict).
-    Имя пустым не сохраняем. Зеркало events.event_inline_edit. 204/400."""
-    import json
+    """Инлайн-правка услуги на канве — тонкий алиас единого диспетчера (UC2-4).
 
-    from django.core.exceptions import ValidationError
-    from django.http import HttpResponse, HttpResponseBadRequest
+    Контракт/URL прежние: JSON {pk, field, value}; семантика — декларация
+    INLINE_REGISTRY["service"]: name (плоско, кламп 120, пустым нельзя)/
+    description; price_eur → центы; bump на всех ветках."""
+    from apps.core.inline_edit import dispatch
 
-    from .models import Service
-
-    try:
-        data = json.loads(request.body or b"{}")
-    except (ValueError, TypeError):
-        return HttpResponseBadRequest()
-    pk = data.get("pk")
-    field = data.get("field")
-    value = data.get("value", "")
-    if not pk or field not in (_SERVICE_INLINE_FIELDS | {"price_eur"}):
-        return HttpResponseBadRequest()
-    try:
-        service = Service.objects.get(pk=pk)
-    except (Service.DoesNotExist, ValidationError, ValueError):
-        return HttpResponseBadRequest()
-
-    if field == "price_eur":
-        from decimal import Decimal, InvalidOperation
-
-        raw = str(value).strip().replace(",", ".")
-        try:
-            euros = Decimal(raw)
-        except (InvalidOperation, ValueError):
-            return HttpResponseBadRequest()
-        if euros < 0 or euros > Decimal("1000000"):
-            return HttpResponseBadRequest()
-        service.price_cents = int((euros * 100).quantize(Decimal("1")))
-        service.save(update_fields=["price_cents", "updated_at"])
-        _bump_storefront(request)
-        return HttpResponse(status=204)
-
-    value = value.strip() if isinstance(value, str) else ""
-    if field == "name" and not value:  # пустое имя не сохраняем
-        return HttpResponseBadRequest()
-    setattr(service, field, value[:120] if field == "name" else value)
-    service.save(update_fields=[field, "updated_at"])
-    _bump_storefront(request)
-    return HttpResponse(status=204)
+    return dispatch(request, "service")
 
 
 @login_required

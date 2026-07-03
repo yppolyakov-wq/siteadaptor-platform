@@ -27,11 +27,6 @@ from .state_machine import PromotionSM
 PROMO_STATUSES = ["draft", "scheduled", "active", "paused", "ended", "archived"]
 RESERVATION_STATUSES = ["pending", "confirmed", "fulfilled", "cancelled", "expired"]
 
-_PROMOTION_INLINE_FIELDS = {"title"}
-# UE3-1: цены канвы — общая Decimal-валидация. Поля ДВИЖКА (status/
-# available_quantity) в инлайн не добавлять — только форма/SM (анти-оверселл).
-_PROMOTION_INLINE_DECIMAL_FIELDS = {"price_override", "compare_at_price"}
-
 
 def _bump_storefront(request):
     """Сброс кэша витрины тенанта — правка сразу видна на публичной."""
@@ -45,84 +40,16 @@ def _bump_storefront(request):
 @login_required
 @require_POST
 def promotion_inline_edit(request):
-    """Инлайн-правка АКЦИИ прямо на канве витрины (?preview=1) в редакторе.
+    """Инлайн-правка акции на канве — тонкий алиас единого диспетчера (UC2-4).
 
-    JSON {pk, field, value}. field == "title" → Promotion.title['de'] (пустым не
-    сохраняем). Цены (price_override/compare_at_price) — Decimal ≥0;
-    discount_percent — целое 0..100 (0 = очистить); ends_at — ISO-datetime
-    (naive → текущая TZ). После правки — сброс кэша витрины (значение сразу
-    на публичной). Только владелец (login_required → tenant-скоуп). Строгий
-    вайтлист. 204/400.
-    """
-    import json
-    from decimal import Decimal, InvalidOperation
+    Контракт/URL прежние: JSON {pk, field, value}; семантика — декларация
+    INLINE_REGISTRY["promotion"]: title → i18n['de'] (пустым нельзя, БЕЗ bump —
+    как раньше), price_override/compare_at_price (Decimal), discount_percent
+    (0..100, 0 → очистить), ends_at (ISO → aware). Поля движка
+    (status/available_quantity) в реестре НЕТ — анти-оверселл-гейт цел."""
+    from apps.core.inline_edit import dispatch
 
-    from django.http import HttpResponseBadRequest
-    from django.utils import timezone
-    from django.utils.dateparse import parse_datetime
-
-    try:
-        data = json.loads(request.body or b"{}")
-    except (ValueError, TypeError):
-        return HttpResponseBadRequest()
-    pk = data.get("pk")
-    field = data.get("field")
-    value = data.get("value", "")
-    allowed = _PROMOTION_INLINE_FIELDS | _PROMOTION_INLINE_DECIMAL_FIELDS
-    allowed |= {"discount_percent", "ends_at"}
-    if not pk or field not in allowed:
-        return HttpResponseBadRequest()
-    try:
-        promo = Promotion.objects.get(pk=pk)
-    except (Promotion.DoesNotExist, ValidationError, ValueError):
-        return HttpResponseBadRequest()
-
-    if field in _PROMOTION_INLINE_DECIMAL_FIELDS:
-        raw = str(value).strip().replace(",", ".")
-        try:
-            price = Decimal(raw)
-        except (InvalidOperation, ValueError):
-            return HttpResponseBadRequest()
-        if price < 0 or price > Decimal("1000000"):
-            return HttpResponseBadRequest()
-        setattr(promo, field, price.quantize(Decimal("0.01")))
-        promo.save(update_fields=[field, "updated_at"])
-        _bump_storefront(request)
-        return HttpResponse(status=204)
-
-    if field == "discount_percent":
-        raw = str(value).strip().replace(",", ".")
-        try:
-            pct = Decimal(raw)
-        except (InvalidOperation, ValueError):
-            return HttpResponseBadRequest()
-        if pct != pct.to_integral_value() or not (0 <= pct <= 100):
-            return HttpResponseBadRequest()
-        promo.discount_percent = int(pct) or None  # 0 → очистить
-        promo.save(update_fields=["discount_percent", "updated_at"])
-        _bump_storefront(request)
-        return HttpResponse(status=204)
-
-    if field == "ends_at":
-        dt = parse_datetime(str(value).strip())
-        if dt is None:
-            return HttpResponseBadRequest()
-        if timezone.is_naive(dt):
-            dt = timezone.make_aware(dt)
-        promo.ends_at = dt
-        promo.save(update_fields=["ends_at", "updated_at"])
-        _bump_storefront(request)
-        return HttpResponse(status=204)
-
-    # title → i18n['de'] (пустым не сохраняем)
-    value = value.strip() if isinstance(value, str) else ""
-    if not value:
-        return HttpResponseBadRequest()
-    i18n = dict(promo.title or {})
-    i18n["de"] = value
-    promo.title = i18n
-    promo.save(update_fields=["title", "updated_at"])
-    return HttpResponse(status=204)
+    return dispatch(request, "promotion")
 
 
 @login_required

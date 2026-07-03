@@ -449,73 +449,18 @@ def category_inline_edit(request):
     return HttpResponse(status=204)
 
 
-# Фаза 1 (inline-content): какие текстовые i18n-поля товара можно править прямо
-# на канве витрины. СТРОГИЙ вайтлист — только безопасный текст (цена/связи/фото — в форме).
-_PRODUCT_INLINE_FIELDS = {"name", "description"}
-
-
 @login_required
 @require_POST
 def product_inline_edit(request):
-    """Инлайн-правка товара прямо на канве витрины (?preview=1).
+    """Инлайн-правка товара на канве — тонкий алиас единого диспетчера (UC2-4).
 
-    JSON {pk, field, value}. Фаза 1 (текст): field ∈ {name, description} → пишет
-    Product.<field>['de']; имя пустым не сохраняем. #7-B (цена): field == base_price →
-    Decimal-валидация, ТОЛЬКО для товаров БЕЗ вариантов (с вариантами цена пер-вариант →
-    правится в форме), затем сброс кэша витрины (новая цена сразу на публичной странице).
-    Только владелец (login_required на субдомене схемы → tenant-скоуп). 204/400.
-    Безопасно: строгий вайтлист (i18n-текст + base_price; связи/фото — в форме записи).
-    """
-    import json
-    from decimal import Decimal, InvalidOperation
+    Контракт/URL прежние: JSON {pk, field, value}; вайтлист/семантика полей —
+    декларация INLINE_REGISTRY["product"] (apps/core/inline_edit.py):
+    name/description → i18n['de'] (имя пустым не сохраняем), base_price —
+    Decimal, только без вариантов; bump кэша — только на цене (как раньше)."""
+    from apps.core.inline_edit import dispatch
 
-    from django.http import HttpResponse, HttpResponseBadRequest
-
-    try:
-        data = json.loads(request.body or b"{}")
-    except (ValueError, TypeError):
-        return HttpResponseBadRequest()
-    pk = data.get("pk")
-    field = data.get("field")
-    value = data.get("value", "")
-    if not pk or field not in (_PRODUCT_INLINE_FIELDS | {"base_price"}):
-        return HttpResponseBadRequest()
-    try:
-        product = Product.objects.get(pk=pk)
-    except (Product.DoesNotExist, ValidationError, ValueError):
-        return HttpResponseBadRequest()
-
-    if field == "base_price":
-        # #7-B: инлайн-цена — только для товаров без вариантов (иначе цена пер-вариант).
-        if product.has_variants:
-            return HttpResponseBadRequest()
-        raw = str(value).strip().replace(",", ".")
-        try:
-            price = Decimal(raw)
-        except (InvalidOperation, ValueError):
-            return HttpResponseBadRequest()
-        if price < 0 or price > Decimal("1000000"):
-            return HttpResponseBadRequest()
-        product.base_price = price.quantize(Decimal("0.01"))
-        product.save(update_fields=["base_price", "updated_at"])
-        # SE-5a: правка данных (не site_config) кэш сама не бампит — сбрасываем явно,
-        # чтобы новая цена сразу появилась на публичной (кэшируемой) странице.
-        schema = getattr(getattr(request, "tenant", None), "schema_name", None)
-        if schema:
-            from apps.core.pagecache import bump_storefront_cache
-
-            bump_storefront_cache(schema)
-        return HttpResponse(status=204)
-
-    # Фаза 1: текстовые поля (name/description) → i18n['de'].
-    value = value.strip() if isinstance(value, str) else ""
-    if field == "name" and not value:  # пустое имя не сохраняем
-        return HttpResponseBadRequest()
-    i18n = dict(getattr(product, field) or {})
-    i18n["de"] = value
-    setattr(product, field, i18n)
-    product.save(update_fields=[field, "updated_at"])
-    return HttpResponse(status=204)
+    return dispatch(request, "product")
 
 
 @login_required
