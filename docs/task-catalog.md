@@ -61,10 +61,10 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | CM-6.2 | Ответы владельца (reply_text, reviews/0003) + витрина | ✅ | там же |
 | CM-6.3 | Сводка owner_overview (KPI в шапке списка) | ✅ | там же |
 | CM-6.4 | Product post-purchase просьба об отзыве (orders/0013) | ✅ | там же |
-| **B2** | **Напоминание о незавершённой ОПЛАТЕ (идея; cart-abandonment без email не ловится)** | 🚧 в работе | `b2-payment-reminder-plan-2026-07-03.md` |
-| B2.1 | Orders: payment_reminder + «Jetzt bezahlen» (перегенерация Checkout) | next | там же |
-| B2.2 | Booking: зеркало (депозит) | next | там же |
-| B2.3 | Stays + Tickets: зеркала | next | там же |
+| **B2** | **Напоминание о незавершённой ОПЛАТЕ (идея)** | ✅ B2.1–B2.3 (2026-07-03; B2.4 отложен) | `b2-payment-reminder-plan-2026-07-03.md` |
+| B2.1 | Orders: payment_reminder + «Jetzt bezahlen» (orders/0014) | ✅ | там же |
+| B2.2 | Booking: зеркало (депозит, booking/0016) | ✅ | там же |
+| B2.3 | Stays + Tickets: зеркала (stays/0022 + events/0022) | ✅ | там же |
 | B2.4 | Настоящий cart-abandonment (CartLead+DOI) | ⏸ отложено (UWG-серо) | там же |
 | B4/CM-9 | Купоны-триггеры / кампании по сегментам | очередь | оба дока |
 | U-D | Унифицированный заказ + Kanban + склад-леджер | 🔒 свежей сессией (владелец) | `…ud-plan` |

@@ -3805,3 +3805,11 @@
   4 kind. Уроки: msgmerge при перегенерации en.po ТЕРЯЕТ часть переводов и
   fuzzy-подставляет чужие — после makemessages прогонять fill-скрипт и
   проверять `msgfmt --statistics` (112/112).
+- **2026-07-03 — Идея B2 (напоминание о незавершённой оплате): B2.1–B2.3.**
+  Разведка: настоящий cart-abandonment не ловится (email только на финальном
+  POST) — сигнал «создано, ждёт оплаты» есть во всех Stripe-доменах. Orders
+  (orders/0014, stripe+unpaid+new, 24ч) + Booking (booking/0016, депозит, 6ч)
+  + Stays (stays/0022) + Tickets (events/0022): beat раз в час, письма
+  DE=msgid (en.po 125/125), pay-again вьюхи /bezahlen/ (Checkout на лету) +
+  кнопки «Jetzt bezahlen» на подтверждениях. Transactional-гейт
+  (Vertragsanbahnung), без opt-in. B2.4 (CartLead+DOI) — отложен (UWG-серо).
