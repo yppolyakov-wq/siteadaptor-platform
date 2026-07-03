@@ -45,6 +45,17 @@ def _centered(c, page_w, y, text, font, size, *, max_width=None, color=_INK):
     c.drawCentredString(page_w / 2, y, text)
 
 
+def _hex_to_rgb(value: str):
+    """C2: фирменный цвет тенанта (#rrggbb) → RGB 0..1; мусор → дефолт-индиго."""
+    v = (value or "").strip().lstrip("#")
+    if len(v) != 6:
+        return _ACCENT
+    try:
+        return tuple(int(v[i : i + 2], 16) / 255 for i in (0, 2, 4))
+    except ValueError:
+        return _ACCENT
+
+
 def build_shop_poster_pdf(
     business_name: str,
     storefront_url: str,
@@ -53,8 +64,12 @@ def build_shop_poster_pdf(
     headline: str | None = None,
     subline: str | None = None,
     footer: str | None = None,
+    accent_hex: str = "",
 ) -> bytes:
-    """Собрать A4-постер с QR на витрину. Возвращает байты PDF."""
+    """Собрать A4-постер с QR на витрину. Возвращает байты PDF.
+
+    C2: accent_hex — фирменный цвет тенанта для рамки/заголовка (пусто → индиго)."""
+    accent = _hex_to_rgb(accent_hex)
     business_name = (business_name or "Unser Shop").strip()
     headline = headline or "Scan & Angebote sichern"
     subline = subline or "Aktuelle Angebote ansehen & direkt reservieren – mit dem Handy."
@@ -72,14 +87,14 @@ def build_shop_poster_pdf(
     page_w, page_h = A4
 
     # рамка-подсказка «вырезать/повесить»
-    c.setStrokeColorRGB(*_ACCENT)
+    c.setStrokeColorRGB(*accent)
     c.setLineWidth(1.4)
     c.roundRect(12 * mm, 12 * mm, page_w - 24 * mm, page_h - 24 * mm, 8 * mm, stroke=1, fill=0)
 
     _centered(
         c, page_w, page_h - 38 * mm, business_name, "Helvetica-Bold", 34, max_width=page_w - 40 * mm
     )
-    _centered(c, page_w, page_h - 55 * mm, headline, "Helvetica-Bold", 23, color=_ACCENT)
+    _centered(c, page_w, page_h - 55 * mm, headline, "Helvetica-Bold", 23, color=accent)
 
     qr_size = 108 * mm
     qr_x = (page_w - qr_size) / 2

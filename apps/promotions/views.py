@@ -142,17 +142,61 @@ def promotion_list(request):
     )
 
 
+# C2: цели QR-печатки — (url-name, модуль-гейт, заголовок, подпись). Невалидная/
+# неактивная цель падает на витрину (home). Канал атрибуции остаётся schaufenster.
+_POSTER_TARGETS = {
+    "home": ("storefront-home", "", None, None),
+    "termin": (
+        "storefront-termin",
+        "booking",
+        "Scan & Termin buchen",
+        "Freien Termin wählen und in 30 Sekunden buchen – mit dem Handy.",
+    ),
+    "sortiment": (
+        "storefront-products",
+        "catalog",
+        "Scan & bestellen",
+        "Unser Sortiment ansehen und direkt bestellen – mit dem Handy.",
+    ),
+    "unterkunft": (
+        "storefront-unterkunft",
+        "stays",
+        "Scan & Zimmer buchen",
+        "Verfügbarkeit prüfen und direkt buchen – mit dem Handy.",
+    ),
+    "veranstaltung": (
+        "storefront-events",
+        "events",
+        "Scan & Tickets sichern",
+        "Kommende Veranstaltungen ansehen und Tickets buchen.",
+    ),
+}
+
+
 @login_required
 def shop_poster_pdf(request):
-    """A4-постер с QR на витрину для печати (Track B4). Кабинет — на субдомене
-    бизнеса, поэтому корень витрины берём с того же хоста."""
+    """A4-постер с QR для печати (Track B4 + C2). Кабинет — на субдомене
+    бизнеса, поэтому адрес берём с того же хоста. ?ziel= выбирает цель QR
+    (меню/бронь/номера/события; гейт по модулям), цвет — фирменный."""
     tenant = getattr(request, "tenant", None)
     business_name = getattr(tenant, "name", "") or "Unser Shop"
-    storefront_url = request.build_absolute_uri(reverse("storefront-home"))
-    pdf = build_shop_poster_pdf(business_name, storefront_url)
+    ziel = request.GET.get("ziel", "home")
+    if ziel not in _POSTER_TARGETS:  # мусор → витрина (и в имени файла тоже)
+        ziel = "home"
+    url_name, module, headline, subline = _POSTER_TARGETS[ziel]
+    if module and (tenant is None or not tenant.is_module_active(module)):
+        ziel, (url_name, module, headline, subline) = "home", _POSTER_TARGETS["home"]
+    target_url = request.build_absolute_uri(reverse(url_name))
+    pdf = build_shop_poster_pdf(
+        business_name,
+        target_url,
+        headline=headline,
+        subline=subline,
+        accent_hex=getattr(tenant, "primary_color", "") or "",
+    )
     resp = HttpResponse(pdf, content_type="application/pdf")
     slug = getattr(tenant, "slug", "") or "shop"
-    resp["Content-Disposition"] = f'attachment; filename="schaufenster-poster-{slug}.pdf"'
+    resp["Content-Disposition"] = f'attachment; filename="schaufenster-poster-{slug}-{ziel}.pdf"'
     return resp
 
 

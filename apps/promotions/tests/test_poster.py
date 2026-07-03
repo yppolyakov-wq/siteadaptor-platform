@@ -58,3 +58,26 @@ def test_poster_view_without_tenant_is_safe():
     resp = views.shop_poster_pdf(_req())
     assert resp.status_code == 200
     assert resp.content.startswith(b"%PDF")
+
+
+def _ziel_req(ziel, tenant):
+    request = RequestFactory().get(f"/promotions/poster/?ziel={ziel}")
+    request.user = _User()
+    request.tenant = tenant
+    return request
+
+
+def test_poster_view_ziel_targets_and_module_gate(settings):
+    """C2: ?ziel= меняет цель QR (гейт по модулю: неактивный → home);
+    фирменный цвет не роняет сборку."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory.build(primary_color="#9333ea", disabled_modules=[])
+    resp = views.shop_poster_pdf(_ziel_req("termin", tenant))
+    assert resp["Content-Disposition"].endswith('-termin.pdf"')
+
+    off = TenantFactory.build(disabled_modules=["stays"])
+    resp = views.shop_poster_pdf(_ziel_req("unterkunft", off))
+    assert resp["Content-Disposition"].endswith('-home.pdf"')  # гейт → витрина
+
+    resp = views.shop_poster_pdf(_ziel_req("quatsch", tenant))
+    assert resp["Content-Disposition"].endswith('-home.pdf"')
