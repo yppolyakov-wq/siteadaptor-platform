@@ -1,9 +1,9 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Bestellung wurde bestätigt. Wir geben Bescheid, sobald sie abholbereit ist.
+{% trans "Ihre Bestellung wurde bestätigt. Wir geben Bescheid, sobald sie abholbereit ist." %}
 
-Abhol-Code: {{ order.reference_code }}
+{% trans "Abhol-Code" %}: {{ order.reference_code }}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

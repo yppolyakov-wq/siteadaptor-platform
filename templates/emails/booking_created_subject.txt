@@ -1,1 +1,1 @@
-Reservierungsanfrage erhalten — {{ booking.reference_code }}
+{% load i18n %}{% trans "Reservierungsanfrage erhalten" %} — {{ booking.reference_code }}

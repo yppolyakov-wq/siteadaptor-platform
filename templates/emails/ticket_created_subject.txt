@@ -1,1 +1,1 @@
-Anmeldung erhalten: {{ event.title }}
+{% load i18n %}{% trans "Anmeldung erhalten" %}: {{ event.title }}

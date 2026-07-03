@@ -1,10 +1,11 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 {% block content %}
-<h2 style="margin:0 0 16px;font-size:20px;">Vielen Dank für Ihre Reservierung!</h2>
-<p style="margin:0;">Hallo {{ customer.name }},</p>
-<p style="margin:8px 0 0;">vielen Dank für Ihre Reservierung.</p>
+<h2 style="margin:0 0 16px;font-size:20px;">{% trans "Vielen Dank für Ihre Reservierung!" %}</h2>
+<p style="margin:0;">{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}</p>
+<p style="margin:8px 0 0;">{% trans "vielen Dank für Ihre Reservierung." %}</p>
 {% include "emails/_reservation_box.html" %}
 <p style="margin:0;font-size:14px;color:#3f3f46;">
-  {% if reservation.status == 'pending' %}Status: wird vom Geschäft bestätigt.{% else %}Status: bestätigt.{% endif %}
+  {% if reservation.status == 'pending' %}{% trans "Status: wird vom Geschäft bestätigt." %}{% else %}{% trans "Status: bestätigt." %}{% endif %}
 </p>
 {% endblock %}

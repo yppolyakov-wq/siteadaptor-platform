@@ -1,13 +1,13 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Reservierung wurde bestätigt.
+{% trans "Ihre Reservierung wurde bestätigt." %}
 
-Aktion: {{ promotion.title_text }}
-Menge: {{ reservation.quantity }}
-Referenz-Code: {{ reservation.reference_code }}
+{% trans "Aktion" %}: {{ promotion.title_text }}
+{% trans "Menge" %}: {{ reservation.quantity }}
+{% trans "Referenz-Code" %}: {{ reservation.reference_code }}
 
-Bitte zeigen Sie diesen Code bei der Abholung vor.
+{% trans "Bitte zeigen Sie diesen Code bei der Abholung vor." %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

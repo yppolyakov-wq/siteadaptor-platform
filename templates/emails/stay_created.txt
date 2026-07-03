@@ -1,13 +1,13 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-vielen Dank für Ihre Anfrage — wir melden uns, sobald sie bestätigt ist.
+{% trans "vielen Dank für Ihre Anfrage — wir melden uns, sobald sie bestätigt ist." %}
 
 {{ unit.name }}
-{{ booking.arrival|date:"l, d.m.Y" }} → {{ booking.departure|date:"l, d.m.Y" }} ({{ booking.nights }} Nächte){% if booking.guests > 1 %} · {{ booking.guests }} Gäste{% endif %}
-Referenz-Code: {{ booking.reference_code }}
+{{ booking.arrival|date:"l, d.m.Y" }} → {{ booking.departure|date:"l, d.m.Y" }} ({% blocktrans with n=booking.nights %}{{ n }} Nächte{% endblocktrans %}){% if booking.guests > 1 %} · {% blocktrans with n=booking.guests %}{{ n }} Gäste{% endblocktrans %}{% endif %}
+{% trans "Referenz-Code" %}: {{ booking.reference_code }}
 {% if cancel_url %}
-Stornieren: {{ cancel_url }}
+{% trans "Stornieren" %}: {{ cancel_url }}
 {% endif %}
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

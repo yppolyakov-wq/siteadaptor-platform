@@ -1,7 +1,8 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 {% block content %}
-<h2 style="margin:0 0 16px;font-size:20px;">Reservierung bestätigt ✓</h2>
-<p style="margin:0;">Hallo {{ customer.name }},</p>
-<p style="margin:8px 0 0;">Ihre Reservierung wurde bestätigt.</p>
+<h2 style="margin:0 0 16px;font-size:20px;">{% trans "Reservierung bestätigt" %} ✓</h2>
+<p style="margin:0;">{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}</p>
+<p style="margin:8px 0 0;">{% trans "Ihre Reservierung wurde bestätigt." %}</p>
 {% include "emails/_reservation_box.html" %}
 {% endblock %}

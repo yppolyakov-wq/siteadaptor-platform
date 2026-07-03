@@ -1,4 +1,4 @@
-{% comment %}Базовый HTML-каркас писем: таблично, инлайн-стили (совместимость
+{% load i18n %}{% comment %}Базовый HTML-каркас писем: таблично, инлайн-стили (совместимость
 почтовиков), без картинок и трекинга. Текстовая версия — рядом .txt.{% endcomment %}
 <!doctype html>
 <html lang="de">
@@ -13,7 +13,7 @@
               {% block content %}{% endblock %}
               {% if unsubscribe_url %}
                 <p style="margin:32px 0 0;font-size:12px;color:#a1a1aa;">
-                  — <a href="{{ unsubscribe_url }}" style="color:#a1a1aa;">Keine E-Mails mehr erhalten</a>
+                  — <a href="{{ unsubscribe_url }}" style="color:#a1a1aa;">{% trans "Keine E-Mails mehr erhalten" %}</a>
                 </p>
               {% endif %}
             </td>

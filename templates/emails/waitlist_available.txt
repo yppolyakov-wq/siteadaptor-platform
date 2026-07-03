@@ -1,9 +1,9 @@
-Hallo{% if entry.name %} {{ entry.name }}{% endif %},
+{% load i18n %}{% trans "Hallo" %}{% if entry.name %} {{ entry.name }}{% endif %},
 
-gute Nachrichten: „{{ promotion.title_text }}“ ist wieder verfügbar.
+{% blocktrans with title=promotion.title_text %}gute Nachrichten: „{{ title }}“ ist wieder verfügbar.{% endblocktrans %}
 
-{% if promo_url %}Jetzt reservieren: {{ promo_url }}
+{% if promo_url %}{% trans "Jetzt reservieren" %}: {{ promo_url }}
 
-{% endif %}Schnell sein lohnt sich — die Menge ist begrenzt.
+{% endif %}{% trans "Schnell sein lohnt sich — die Menge ist begrenzt." %}
 
-Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste).
+{% trans "Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)." %}

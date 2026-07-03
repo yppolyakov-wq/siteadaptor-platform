@@ -1,7 +1,7 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Reservierung ({{ reservation.reference_code }}) für „{{ promotion.title_text }}" ist abgelaufen.
+{% blocktrans with code=reservation.reference_code title=promotion.title_text %}Ihre Reservierung ({{ code }}) für „{{ title }}" ist abgelaufen.{% endblocktrans %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

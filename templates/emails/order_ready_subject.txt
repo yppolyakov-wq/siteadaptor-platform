@@ -1,1 +1,1 @@
-Abholbereit! — {{ order.reference_code }}
+{% load i18n %}{% trans "Abholbereit!" %} — {{ order.reference_code }}

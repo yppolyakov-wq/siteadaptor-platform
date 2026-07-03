@@ -1,13 +1,13 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-vielen Dank für Ihren Besuch bei uns{% if booking.service %} ({{ booking.service.name }}, {{ booking.start|date:"d.m.Y" }}){% endif %}.
-Wir hoffen, Sie waren zufrieden!
+{% trans "vielen Dank für Ihren Besuch bei uns" %}{% if booking.service %} ({{ booking.service.name }}, {{ booking.start|date:"d.m.Y" }}){% endif %}.
+{% trans "Wir hoffen, Sie waren zufrieden!" %}
 {% if review_url %}
-Würden Sie uns eine kurze Bewertung hinterlassen? {{ review_url }}
+{% trans "Würden Sie uns eine kurze Bewertung hinterlassen?" %} {{ review_url }}
 {% endif %}
-Wir freuen uns auf Ihren nächsten Termin — am besten direkt über unsere Website.
+{% trans "Wir freuen uns auf Ihren nächsten Termin — am besten direkt über unsere Website." %}
 
-Herzliche Grüße
+{% trans "Herzliche Grüße" %}
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

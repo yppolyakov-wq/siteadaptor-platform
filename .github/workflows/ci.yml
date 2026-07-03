@@ -82,6 +82,14 @@ jobs:
           npm run build:css
           git diff --exit-code static/css/app.css || { echo "::error::static/css/app.css устарел — выполните 'npm run build:css' и закоммитьте."; exit 1; }
 
+      - name: Compile translations
+        # L4: .mo не в git — компилируем перед тестами (EN-рендер писем).
+        # msgfmt напрямую (без Django-настроек); --check-format ловит битые
+        # placeholder'ы в переводах.
+        run: |
+          sudo apt-get install -y --no-install-recommends gettext
+          msgfmt --check-format -o locale/en/LC_MESSAGES/django.mo locale/en/LC_MESSAGES/django.po
+
       - name: Ruff lint
         run: uv run ruff check .
 

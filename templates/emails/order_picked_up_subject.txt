@@ -1,1 +1,1 @@
-Danke für Ihren Einkauf! — {{ order.reference_code }}
+{% load i18n %}{% trans "Danke für Ihren Einkauf!" %} — {{ order.reference_code }}

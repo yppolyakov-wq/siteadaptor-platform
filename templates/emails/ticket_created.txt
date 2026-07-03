@@ -1,15 +1,15 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-vielen Dank für Ihre Anmeldung zu „{{ event.title }}“
-am {{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %}.
+{% blocktrans with title=event.title %}vielen Dank für Ihre Anmeldung zu „{{ title }}“{% endblocktrans %}
+{% blocktrans with d=event.starts_at|date:"d.m.Y H:i" %}am {{ d }}{% endblocktrans %}{% if event.location %} · {{ event.location }}{% endif %}.
 
-Plätze: {{ ticket.quantity }}
-Ticket-Code: {{ ticket.reference_code }}
-{% if ticket.total_cents %}Betrag: {{ ticket.total_eur }} {% endif %}
-Wir bestätigen Ihre Teilnahme in Kürze.
+{% trans "Plätze" %}: {{ ticket.quantity }}
+{% trans "Ticket-Code" %}: {{ ticket.reference_code }}
+{% if ticket.total_cents %}{% trans "Betrag" %}: {{ ticket.total_eur }} {% endif %}
+{% trans "Wir bestätigen Ihre Teilnahme in Kürze." %}
 {% if cancel_url %}
-Stornierung: {{ cancel_url }}
+{% trans "Stornierung" %}: {{ cancel_url }}
 {% endif %}
 {% if unsubscribe_url %}—
-Keine E-Mails mehr: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr" %}: {{ unsubscribe_url }}
 {% endif %}

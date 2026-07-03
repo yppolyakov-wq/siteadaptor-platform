@@ -49,14 +49,38 @@ def _base_url(schema_name) -> str:
         return ""
 
 
-def _render(template_base, ctx) -> tuple[str, str, str]:
-    """Рендер subject + text + (опц.) HTML-альтернативы письма."""
-    subject = render_to_string(f"emails/{template_base}_subject.txt", ctx).strip()
-    body = render_to_string(f"emails/{template_base}.txt", ctx)
+def _email_locale() -> str:
+    """L4: локаль писем тенанта — default_locale витрины. Fail-safe «de».
+
+    Per-recipient локали пока нет (не храним язык клиента — без миграции);
+    шов для неё — параметр `locale` в `_render`.
+    """
     try:
-        html = render_to_string(f"emails/{template_base}.html", ctx)
-    except TemplateDoesNotExist:
-        html = ""
+        tenant = _tenant(connection.schema_name)
+        loc = getattr(tenant, "default_locale", "") if tenant else ""
+        # только валидная строка (тесты подсовывают Mock-тенанта) — иначе DE
+        return loc if isinstance(loc, str) and loc else "de"
+    except Exception:  # noqa: BLE001
+        return "de"
+
+
+def _render(template_base, ctx, locale=None) -> tuple[str, str, str]:
+    """Рендер subject + text + (опц.) HTML-альтернативы письма.
+
+    L4: рендер в локали получателя (`locale`; не задана → default_locale
+    тенанта). Тексты писем — trans-теги с НЕМЕЦКИМ msgid: DE-рендер
+    байт-в-байт прежний (без .po), другие локали — переводы
+    locale/<lang>/LC_MESSAGES/django.po (компиляция — deploy.sh/CI).
+    """
+    from django.utils import translation
+
+    with translation.override(locale or _email_locale()):
+        subject = render_to_string(f"emails/{template_base}_subject.txt", ctx).strip()
+        body = render_to_string(f"emails/{template_base}.txt", ctx)
+        try:
+            html = render_to_string(f"emails/{template_base}.html", ctx)
+        except TemplateDoesNotExist:
+            html = ""
     return subject, body, html
 
 

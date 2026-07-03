@@ -1,1 +1,1 @@
-Wie war Ihr Aufenthalt?
+{% load i18n %}{% trans "Wie war Ihr Aufenthalt?" %}

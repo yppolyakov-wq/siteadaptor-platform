@@ -1,11 +1,11 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-vielen Dank, dass Sie bei „{{ event.title }}“ dabei waren — wir hoffen, es hat Ihnen gutgetan!
+{% blocktrans with title=event.title %}vielen Dank, dass Sie bei „{{ title }}“ dabei waren — wir hoffen, es hat Ihnen gutgetan!{% endblocktrans %}
 
-Wir würden uns sehr über eine kurze Bewertung freuen{% if review_url %}: {{ review_url }}{% endif %}. Und wenn Sie wieder auftanken möchten: unsere nächsten Termine finden Sie jederzeit{% if website_url %} auf {{ website_url }}{% endif %}.
+{% trans "Wir würden uns sehr über eine kurze Bewertung freuen" %}{% if review_url %}: {{ review_url }}{% endif %}. {% trans "Und wenn Sie wieder auftanken möchten: unsere nächsten Termine finden Sie jederzeit" %}{% if website_url %} {% trans "auf" %} {{ website_url }}{% endif %}.
 
-Herzliche Grüße
+{% trans "Herzliche Grüße" %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

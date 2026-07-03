@@ -1,1 +1,1 @@
-Bestellung storniert — {{ order.reference_code }}
+{% load i18n %}{% trans "Bestellung storniert" %} — {{ order.reference_code }}

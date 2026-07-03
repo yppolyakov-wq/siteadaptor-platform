@@ -1,7 +1,8 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 {% block content %}
-<h2 style="margin:0 0 16px;font-size:20px;">Reservierung storniert</h2>
-<p style="margin:0;">Hallo {{ customer.name }},</p>
-<p style="margin:8px 0 0;">Ihre Reservierung „{{ promotion.title_text }}“ (Code {{ reservation.reference_code }}) wurde storniert.</p>
-<p style="margin:8px 0 0;">Schauen Sie gern wieder vorbei — neue Angebote kommen regelmäßig.</p>
+<h2 style="margin:0 0 16px;font-size:20px;">{% trans "Reservierung storniert" %}</h2>
+<p style="margin:0;">{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}</p>
+<p style="margin:8px 0 0;">{% blocktrans with title=promotion.title_text code=reservation.reference_code %}Ihre Reservierung „{{ title }}“ (Code {{ code }}) wurde storniert.{% endblocktrans %}</p>
+<p style="margin:8px 0 0;">{% trans "Schauen Sie gern wieder vorbei — neue Angebote kommen regelmäßig." %}</p>
 {% endblock %}

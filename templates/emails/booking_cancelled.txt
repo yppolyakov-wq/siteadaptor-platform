@@ -1,8 +1,8 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Reservierung am {{ booking.start|date:"d.m.Y" }} um {{ booking.start|time:"H:i" }} wurde storniert.
-Bei Fragen melden Sie sich gern direkt bei uns.
+{% blocktrans with d=booking.start|date:"d.m.Y" t=booking.start|time:"H:i" %}Ihre Reservierung am {{ d }} um {{ t }} wurde storniert.{% endblocktrans %}
+{% trans "Bei Fragen melden Sie sich gern direkt bei uns." %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

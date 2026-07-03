@@ -1,1 +1,1 @@
-Reservierung eingegangen — {{ promotion.title_text }}
+{% load i18n %}{% trans "Reservierung eingegangen" %} — {{ promotion.title_text }}

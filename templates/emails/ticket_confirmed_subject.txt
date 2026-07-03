@@ -1,1 +1,1 @@
-Ticket bestätigt: {{ event.title }}
+{% load i18n %}{% trans "Ticket bestätigt" %}: {{ event.title }}

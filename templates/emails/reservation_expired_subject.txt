@@ -1,1 +1,1 @@
-Reservierung abgelaufen — {{ promotion.title_text }}
+{% load i18n %}{% trans "Reservierung abgelaufen" %} — {{ promotion.title_text }}

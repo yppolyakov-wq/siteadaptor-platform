@@ -1,1 +1,1 @@
-Erinnerung: morgen {{ booking.start|time:"H:i" }} — {{ resource.name }}
+{% load i18n %}{% blocktrans with t=booking.start|time:"H:i" %}Erinnerung: morgen {{ t }}{% endblocktrans %} — {{ resource.name }}

@@ -1,1 +1,1 @@
-Bestellung eingegangen — {{ order.reference_code }}
+{% load i18n %}{% trans "Bestellung eingegangen" %} — {{ order.reference_code }}

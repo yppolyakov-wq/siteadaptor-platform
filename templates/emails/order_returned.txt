@@ -1,9 +1,9 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-wir haben die Rücksendung Ihrer Bestellung {{ order.reference_code }} erfasst.
+{% blocktrans with code=order.reference_code %}wir haben die Rücksendung Ihrer Bestellung {{ code }} erfasst.
 Eine eventuell geleistete Zahlung wird erstattet. Bei Fragen melden Sie sich
-gern direkt bei uns.
+gern direkt bei uns.{% endblocktrans %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

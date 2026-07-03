@@ -1,1 +1,1 @@
-Rücksendung erfasst — {{ order.reference_code }}
+{% load i18n %}{% trans "Rücksendung erfasst" %} — {{ order.reference_code }}

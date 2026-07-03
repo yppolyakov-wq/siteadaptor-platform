@@ -1,1 +1,1 @@
-Buchung storniert — {{ unit.name }}
+{% load i18n %}{% trans "Buchung storniert" %} — {{ unit.name }}

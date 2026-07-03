@@ -1,1 +1,1 @@
-Wie war Ihr Termin?
+{% load i18n %}{% trans "Wie war Ihr Termin?" %}

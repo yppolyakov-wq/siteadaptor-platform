@@ -1,1 +1,1 @@
-Reservierung bestätigt — {{ promotion.title_text }}
+{% load i18n %}{% trans "Reservierung bestätigt" %} — {{ promotion.title_text }}

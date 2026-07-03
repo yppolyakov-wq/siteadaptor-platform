@@ -1,7 +1,7 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Anmeldung zu „{{ event.title }}“ ({{ ticket.reference_code }}) wurde storniert.
+{% blocktrans with title=event.title code=ticket.reference_code %}Ihre Anmeldung zu „{{ title }}“ ({{ code }}) wurde storniert.{% endblocktrans %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr" %}: {{ unsubscribe_url }}
 {% endif %}

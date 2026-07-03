@@ -1,1 +1,1 @@
-Reservierung bestätigt — {{ booking.start|date:"d.m." }} {{ booking.start|time:"H:i" }}
+{% load i18n %}{% trans "Reservierung bestätigt" %} — {{ booking.start|date:"d.m." }} {{ booking.start|time:"H:i" }}

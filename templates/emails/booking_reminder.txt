@@ -1,12 +1,12 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-kleine Erinnerung an Ihre Reservierung:
+{% trans "kleine Erinnerung an Ihre Reservierung:" %}
 
 {{ resource.name }}
-{{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}{% if booking.party_size > 1 %} · {{ booking.party_size }} Personen{% endif %}
+{{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}{% if booking.party_size > 1 %} · {% blocktrans with n=booking.party_size %}{{ n }} Personen{% endblocktrans %}{% endif %}
 
-Bis bald!
+{% trans "Bis bald!" %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

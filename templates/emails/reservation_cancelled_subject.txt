@@ -1,1 +1,1 @@
-Reservierung storniert — {{ promotion.title_text }}
+{% load i18n %}{% trans "Reservierung storniert" %} — {{ promotion.title_text }}

@@ -1,1 +1,1 @@
-Bald geht's los: {{ event.title }} am {{ event.starts_at|date:"d.m.Y" }}
+{% load i18n %}{% blocktrans with title=event.title d=event.starts_at|date:"d.m.Y" %}Bald geht's los: {{ title }} am {{ d }}{% endblocktrans %}

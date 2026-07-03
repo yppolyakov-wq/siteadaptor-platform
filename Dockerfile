@@ -9,9 +9,10 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# curl — для healthcheck; остальное тянется бинарными wheels (psycopg[binary], pillow).
+# curl — для healthcheck; gettext — compilemessages (L4, переводы писем);
+# остальное тянется бинарными wheels (psycopg[binary], pillow).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends curl gettext \
     && rm -rf /var/lib/apt/lists/*
 
 # uv для установки зависимостей.

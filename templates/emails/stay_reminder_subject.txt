@@ -1,1 +1,1 @@
-Erinnerung: Ihre Anreise am {{ booking.arrival|date:"d.m.Y" }}
+{% load i18n %}{% blocktrans with d=booking.arrival|date:"d.m.Y" %}Erinnerung: Ihre Anreise am {{ d }}{% endblocktrans %}

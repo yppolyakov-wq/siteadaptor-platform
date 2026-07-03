@@ -1,1 +1,1 @@
-Ticket storniert: {{ event.title }}
+{% load i18n %}{% trans "Ticket storniert" %}: {{ event.title }}

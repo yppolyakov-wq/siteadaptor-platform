@@ -1,7 +1,7 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Bestellung {{ order.reference_code }} wurde abgeholt. Vielen Dank und bis bald!
+{% blocktrans with code=order.reference_code %}Ihre Bestellung {{ code }} wurde abgeholt. Vielen Dank und bis bald!{% endblocktrans %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

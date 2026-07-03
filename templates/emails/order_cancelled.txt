@@ -1,8 +1,8 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Bestellung {{ order.reference_code }} wurde leider storniert.
-Bei Fragen melden Sie sich gern direkt im Laden.
+{% blocktrans with code=order.reference_code %}Ihre Bestellung {{ code }} wurde leider storniert.
+Bei Fragen melden Sie sich gern direkt im Laden.{% endblocktrans %}
 
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

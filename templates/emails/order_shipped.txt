@@ -1,12 +1,12 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-Ihre Bestellung {{ order.reference_code }} ist unterwegs! 🚚
+{% blocktrans with code=order.reference_code %}Ihre Bestellung {{ code }} ist unterwegs! 🚚{% endblocktrans %}
 {% if order.tracking_code %}
-Sendungsnummer: {{ order.tracking_code }}
+{% trans "Sendungsnummer" %}: {{ order.tracking_code }}
 {% endif %}{% if order.shipping_address %}
-Lieferadresse:
+{% trans "Lieferadresse" %}:
 {{ order.shipping_address }}
 {% endif %}
 {% if unsubscribe_url %}—
-Keine E-Mails mehr erhalten: {{ unsubscribe_url }}
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}
