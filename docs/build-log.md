@@ -3725,3 +3725,22 @@
   UE4-1 шаблоны — автоматом за REPEATABLE_BLOCKS (замок). golden-замки легаси байт-в-байт.
   Тесты test_promo_block (6). Без миграций. **Волна U-E закрыта в объёме главной**
   (остаток UE4-2 — за отложенным решением per-page).
+- **2026-07-03 — Правовой-языковой пакет L4+L5+E-2 (порядок владельца, 4 слайса).**
+  План-док `docs/legal-lang-package-plan-2026-07-03.md`. **С1 PAngV:** ноты
+  «inkl. MwSt.» на детали товара (+«zzgl. Versand» при delivery_enabled) и у Total
+  корзины — немецкие msgid (паттерн §312j-кнопки). **С2 Zusatzstoffe:** реестр
+  ADDITIVES (13 классов LMZDV, паттерн ALLERGENS) + `Product.additives`
+  (миграция catalog/0013) + чекбоксы формы + строка в LMIV-блоке детали.
+  **С3 LegalDoc (S-2b):** модель core.LegalDoc (kind×locale, unique; core/0005),
+  резолвер legal.py (LegalDoc[локаль]→LegalDoc[дефолт]→плоское поле→генерённый
+  фолбэк), `/agb/` (404 без текста) + AGB в футере по тегу agb_present,
+  LEGAL_SECTIONS+=agb, кабинет `/dashboard/recht/` (4 вида × активные локали,
+  превью автотекста, presence-guard), демо-засев: право из генераторов без
+  placeholder-хинта + AGB-заготовка по модулям кита. **С4 L4-письма:**
+  `_render(..., locale)` c translation.override (дефолт-локаль тенанта, fail-safe
+  de) — единая точка всех нотификаций; клиентские шаблоны 5 флоу (reservation+
+  HTML+waitlist/booking/stays/tickets/orders) на trans с DE=msgid (DE байт-в-байт);
+  `locale/en/.../django.po` только-письма (109 строк, все переведены); .mo не в
+  git — msgfmt-шаг в CI, compilemessages в deploy.sh, gettext в Dockerfile.
+  Остаток DE-only: owner-письма + gift_voucher/inbox/installment/job_* (по мере
+  надобности). Урок: Mock-тенант в тестах → `_email_locale` принимает только str.

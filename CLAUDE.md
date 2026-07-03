@@ -185,7 +185,24 @@ Python 3.12, менеджер uv.
   сформулирован в `docs/uc2-3-page-scope-plan-2026-07-02.md §3`.**
   Локальная грабля: `rl:*`/`resv_token:*` в Redis переживают
   прогоны (cache-префикс — чистить `scan_iter('*rl:*')`).
-- Самые свежие миграции: **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
+- **Самое свежее (2026-07-03): UE1+UE4-1 ✅ (промо-блок канвы, D2=LIVE fail-safe; U-E закрыта
+  в объёме главной; быстрые победы B3/A3/C2 ✅) + ПРАВОВОЙ-ЯЗЫКОВОЙ ПАКЕТ L4+L5+E-2 ✅ целиком**
+  (порядок владельца; план `docs/legal-lang-package-plan-2026-07-03.md`): PAngV-ноты
+  деталь/корзина («inkl. MwSt.»/«zzgl. Versand», немецкие msgid) · Zusatzstoffe
+  (`Product.additives` + реестр ADDITIVES 13 классов LMZDV, миграция catalog/0013) ·
+  **LegalDoc** per-locale (kind×locale, core/0005) + резолвер `apps/core/legal.py`
+  (LegalDoc[локаль]→[дефолт]→плоское поле→генерённый фолбэк) + `/agb/` (404 без текста) +
+  AGB-ссылка в футере (`agb_present`) + кабинет `/dashboard/recht/` + честное право в
+  демо-китах (AGB-заготовка по модулям) · **L4-письма**: `_render(locale)` +
+  translation.override (дефолт-локаль тенанта, fail-safe de), клиентские шаблоны 5 флоу
+  (reservation+HTML+waitlist/booking/stays/tickets/orders) DE=msgid байт-в-байт,
+  `locale/en/.../django.po` ТОЛЬКО письма (109, все переведены), .mo не в git — msgfmt-шаг
+  в CI, compilemessages в deploy.sh, gettext в Dockerfile. **Массовый de.po хрома —
+  отдельный трек за решением владельца (план §2: сотни англ. тест-ассертов в DE-рендере).**
+  Остаток DE-only: owner-письма + gift_voucher/inbox/installment/job_*.
+- Самые свежие миграции: **`catalog/0013` + `core/0005`** (Zusatzstoffe + LegalDoc,
+  2026-07-03 — ⚠️ требуют деплоя; деплой теперь также пересобирает образ с gettext и
+  компилирует en.mo); ранее **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
   2026-07-02 — ⚠️ требуют деплоя); ранее **`orders/0012` + `tenants/0020`** (E-7: payment_method + Vorkasse-
   реквизиты/stripe_payment_methods, 2026-07-02 — ⚠️ требуют деплоя); **`catalog/0012` +
   `booking/0014`** (остаток U-A: combo i18n + post-visit,
