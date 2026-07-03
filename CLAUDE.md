@@ -177,9 +177,12 @@ Python 3.12, менеджер uv.
   (контракт += `price_value`/`price_currency`/`ld_extra`; Offer + BreadcrumbList вторым скриптом
   + Event startDate/location), **UC4-3 ✅** (галерея услуги: шим `Service.images` dict→[dict] БЕЗ
   миграции, `service_photo_edit` → replace/add/remove, `_media_gallery` на 5/5 kind),
-  **UC5-1 ✅** (пометка `BUYBOX_CONFIGURABLE="form"` + замок границы). **Остаток U-C:
-  UC2-3 (конфиг-управление секциями листинга — normalize, горячее), UC2-4 (единый
-  инлайн-диспетчер + свод save), UC3-1/3-2 (тема каскадом; hidden_on+width).**
+  **UC5-1 ✅** (пометка `BUYBOX_CONFIGURABLE="form"` + замок границы). **UC3-1 ✅** (каскад
+  темы: sf-card на пропущенных карточках — листинг событий, похожие номера; механизм
+  `--sf-*` глобален). **Остаток U-C: UC2-4** (единый инлайн-диспетчер + свод save-блоков —
+  чистый рефактор, свежей сессией) и **пакет за ОДНИМ решением владельца** (per-page
+  хранение секций / C-блоки вне home): UC2-3(b)+UC3-2+слайс 3 UC2-2 — вопрос
+  сформулирован в `docs/uc2-3-page-scope-plan-2026-07-02.md §3`.**
   Локальная грабля: `rl:*`/`resv_token:*` в Redis переживают
   прогоны (cache-префикс — чистить `scan_iter('*rl:*')`).
 - Самые свежие миграции: **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
