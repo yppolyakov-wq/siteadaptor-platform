@@ -66,7 +66,11 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | B2.2 | Booking: зеркало (депозит, booking/0016) | ✅ | там же |
 | B2.3 | Stays + Tickets: зеркала (stays/0022 + events/0022) | ✅ | там же |
 | B2.4 | Настоящий cart-abandonment (CartLead+DOI) | ⏸ отложено (UWG-серо) | там же |
-| B4/CM-9 | Купоны-триггеры / кампании по сегментам | очередь | оба дока |
+| **B4/CM-9** | **Купоны-триггеры / кампании по сегментам** | 🚧 в работе | `b4-cm9-campaigns-plan-2026-07-03.md` |
+| B4.1 | CouponCampaign + Voucher.campaign + segment_customers | план | там же |
+| B4.2 | Кампания end-to-end (/promotions/kampagnen/ + аналитика) | план | там же |
+| B4.3 | Вход из CRM (кнопка по выборке, prefill tag) | план | там же |
+| B4.4 | v2 авто-win-back (kind=auto_winback + beat, без Tenant-миграции) | план | там же |
 | U-D | Унифицированный заказ + Kanban + склад-леджер | 🔒 свежей сессией (владелец) | `…ud-plan` |
 | D1–D3 | Pro-тариф · self-serve featured · партнёрка (идеи) | платформа, позже | `feature-ideas…` |
 | CM-5 | AI-контент-пакет | 🔒 ждёт LLM-ключ владельца | `market-content…` |
