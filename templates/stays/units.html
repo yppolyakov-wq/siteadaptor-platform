@@ -178,10 +178,15 @@
     <div class="bg-white rounded-2xl shadow-sm p-5 {% if not u.is_active %}opacity-60{% endif %}">
       <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
         <h2 class="font-semibold">{{ u.name }} <span class="text-xs text-gray-400">· {{ u.get_type_display }}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</span></h2>
-        <form method="post" class="inline">{% csrf_token %}
-          <input type="hidden" name="action" value="toggle"><input type="hidden" name="unit" value="{{ u.pk }}">
-          <button class="text-sm text-gray-500 hover:underline">{% if u.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
-        </form>
+        <div class="flex items-center gap-3">
+          {% if u.is_active %}{# D2.4: self-serve продвижение юнита в агрегаторе #}
+            <a href="{% url 'stays:unit-feature' u.pk %}" class="text-sm text-amber-600 hover:underline">★ {% trans "Feature" %}</a>
+          {% endif %}
+          <form method="post" class="inline">{% csrf_token %}
+            <input type="hidden" name="action" value="toggle"><input type="hidden" name="unit" value="{{ u.pk }}">
+            <button class="text-sm text-gray-500 hover:underline">{% if u.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+          </form>
+        </div>
       </div>
 
       <form method="post" enctype="multipart/form-data" class="grid sm:grid-cols-3 gap-3 items-end">

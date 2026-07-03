@@ -3841,3 +3841,15 @@
   rel="sponsored"), блок «Bisher: X Aufrufe · Y Klicks» на странице
   продвижения. D2.4 (stays/events) — следующий слайс; D2.5 (цены в кабинете)
   — ⏸ env достаточно.
+
+- **2026-07-03 — D2.4: self-serve featured для stays/events (идея D2 закрыта в
+  рабочем объёме).** Generic-адресация листинга в billing:
+  `create_featured_checkout_session`/`apply_featured_purchase` принимают
+  `(listing_kind, source_ref)` (легаси promo_uuid работает — незакрытые сессии),
+  вебхук прокидывает; хелперы `apps/aggregator/featuring.py`
+  (render_feature_page/start_feature_checkout) + generic-шаблон
+  `tenant/listing_feature.html` — зеркало promotion_feature; вьюхи
+  `stays:unit-feature(+checkout)` и `events:feature(+checkout)` + входы
+  «★ Feature» на units-странице и детали события. Без миграций. Тесты:
+  billing generic-адресация (4) + stays/events страницы и гейт оплаты (6).
+  D2.5 (цены в кабинете) — ⏸ env; полный E-11 (claim-your-business) — позже.

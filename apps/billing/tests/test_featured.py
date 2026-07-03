@@ -207,3 +207,63 @@ def test_apply_featured_rejects_nonpositive_days():
         )
         is False
     )
+
+
+# --- D2.4: generic-адресация (listing_kind, source_ref) --------------------
+
+
+def test_apply_featured_by_kind_and_source_ref():
+    listing = _listing(
+        promo_uuid=None,
+        listing_kind=AggregatorListing.KIND_STAY,
+        source_ref="unit-1",
+    )
+    ok = services.apply_featured_purchase(
+        tenant_schema="t1",
+        listing_kind=AggregatorListing.KIND_STAY,
+        source_ref="unit-1",
+        days=7,
+    )
+    assert ok is True
+    listing.refresh_from_db()
+    assert listing.featured_until is not None
+
+
+def test_apply_featured_without_any_key_is_noop():
+    _listing()
+    assert services.apply_featured_purchase(tenant_schema="t1", days=7) is False
+
+
+def test_checkout_requires_some_listing_key(monkeypatch):
+    monkeypatch.setattr(services, "ensure_stripe_customer", lambda t: "cus_x")
+    tenant = TenantFactory.build(schema_name="t1")
+    with pytest.raises(ValueError):
+        services.create_featured_checkout_session(
+            tenant, days=7, title="X", success_url="s", cancel_url="c"
+        )
+
+
+def test_checkout_metadata_carries_kind_and_ref(monkeypatch, settings):
+    settings.STRIPE_SECRET_KEY = "sk_test_x"
+    monkeypatch.setattr(services, "ensure_stripe_customer", lambda t: "cus_x")
+    captured = {}
+
+    def _create(**kw):
+        captured.update(kw)
+        return {"url": "https://stripe.test/session"}
+
+    monkeypatch.setattr(stripe.checkout.Session, "create", _create)
+    tenant = TenantFactory.build(schema_name="t1")
+    url = services.create_featured_checkout_session(
+        tenant,
+        listing_kind=AggregatorListing.KIND_EVENT,
+        source_ref="ev-9",
+        days=7,
+        title="Konzert",
+        success_url="s",
+        cancel_url="c",
+    )
+    assert url == "https://stripe.test/session"
+    assert captured["metadata"]["listing_kind"] == AggregatorListing.KIND_EVENT
+    assert captured["metadata"]["source_ref"] == "ev-9"
+    assert captured["metadata"]["kind"] == "featured"

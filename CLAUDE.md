@@ -208,6 +208,13 @@ Python 3.12, менеджер uv.
   `Voucher.campaign` loyalty/0004 + `segment_customers` поверх UWG-гейта + /promotions/kampagnen/
   + NavItem «Campaigns» (crm) + вход из CRM + beat авто-win-back БЕЗ Tenant-миграции).
   Дальше в очереди: платформа D1–D3 (D1 ждёт прайсинг владельца); блокированы U-D/CM-5/T-1.**
+- **Самое свежее (2026-07-03, вечер): идея D2 (self-serve featured) ✅ D2.1–D2.4** — ядро было
+  готово (P2.4b): доделаны «★ Anzeige» на карте (UWG на всех поверхностях), вход «★ Feature» из
+  списка акций, owner-аналитика показов/кликов (`aggregator/0014`: F-инкременты в split_featured +
+  редирект-счётчик `/entdecken/klick/<pk>/`, роут и в urls_portal), generic featured-checkout для
+  stays/events (`billing` по `(listing_kind, source_ref)`, `apps/aggregator/featuring.py`,
+  `tenant/listing_feature.html`, вьюхи stays/events + входы). D2.5 (цены планов в кабинете) — ⏸
+  env-оверрайда достаточно; полный E-11 (claim-your-business) — позже.**
 - Самые свежие миграции: **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает

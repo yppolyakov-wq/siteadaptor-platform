@@ -527,3 +527,55 @@ def event_photo_edit(request):
 
         bump_storefront_cache(schema)
     return HttpResponse(status=204)
+
+
+@login_required
+def event_feature(request, pk):
+    """D2.4: продвижение события в агрегаторе (self-serve featured,
+    generic-зеркало promotion_feature — apps.aggregator.featuring)."""
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from apps.aggregator import featuring
+    from apps.aggregator.models import AggregatorListing
+
+    event = get_object_or_404(Event, pk=pk)
+    listable = event.is_published and event.starts_at > timezone.now()
+    return featuring.render_feature_page(
+        request,
+        obj_title=event.title,
+        kind=AggregatorListing.KIND_EVENT,
+        source_ref=str(event.pk),
+        listable=listable,
+        not_listed_hint=(
+            "Nur veröffentlichte, kommende Veranstaltungen erscheinen im "
+            "Verzeichnis und können beworben werden."
+        ),
+        back_url=reverse("events:detail", args=[event.pk]),
+        checkout_url=reverse("events:feature-checkout", args=[event.pk]),
+        nav="events",
+    )
+
+
+@login_required
+@require_POST
+def event_feature_checkout(request, pk):
+    """D2.4: разовый Stripe-Checkout за продвижение события → редирект на оплату."""
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from apps.aggregator import featuring
+    from apps.aggregator.models import AggregatorListing
+    from apps.aggregator.tasks import sync_event_listing
+
+    event = get_object_or_404(Event, pk=pk)
+    return featuring.start_feature_checkout(
+        request,
+        kind=AggregatorListing.KIND_EVENT,
+        source_ref=str(event.pk),
+        title=event.title,
+        listable=event.is_published and event.starts_at > timezone.now(),
+        not_listable_msg="Nur veröffentlichte, kommende Veranstaltungen können beworben werden.",
+        sync=sync_event_listing,
+        feature_page_url=reverse("events:feature", args=[event.pk]),
+    )

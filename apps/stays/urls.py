@@ -12,6 +12,13 @@ urlpatterns = [
     path("new/", views.stay_create, name="stay-create"),
     path("<uuid:pk>/action/", views.stay_action, name="stay-action"),
     path("units/", views.units, name="units"),
+    # D2.4: self-serve продвижение юнита в агрегаторе.
+    path("units/<uuid:pk>/feature/", views.unit_feature, name="unit-feature"),
+    path(
+        "units/<uuid:pk>/feature/checkout/",
+        views.unit_feature_checkout,
+        name="unit-feature-checkout",
+    ),
     path("channels/", views.channels, name="channels"),
     path("checkins/", views.checkins, name="checkins"),
     path("reports/", views.reports, name="reports"),

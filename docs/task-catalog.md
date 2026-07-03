@@ -73,11 +73,11 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | B4.4 | v2 авто-win-back (kind=auto_winback + beat, без Tenant-миграции) | ✅ | там же |
 | U-D | Унифицированный заказ + Kanban + склад-леджер | 🔒 свежей сессией (владелец) | `…ud-plan` |
 | D1 | Pro-тариф / премиум-модули (идея) | 🔒 прайсинг владельца (+ ядро CM-5/A2) | `feature-ideas…` |
-| **D2** | **Self-serve featured + Anzeige (идея; ядро P2.4b готово)** | 🚧 в работе | `d2-featured-plan-2026-07-03.md` |
+| **D2** | **Self-serve featured + Anzeige (идея; ядро P2.4b готово)** | ✅ D2.1–D2.4 (2026-07-03; D2.5 ⏸) | `d2-featured-plan-2026-07-03.md` |
 | D2.1 | Anzeige-пометка на карте агрегатора | ✅ (2026-07-03) | там же |
 | D2.2 | Вход «Bewerben ★» из списка акций | ✅ (2026-07-03) | там же |
 | D2.3 | Owner-аналитика featured (показы/клики, aggregator/0014) | ✅ (2026-07-03) | там же |
-| D2.4 | Self-serve featured для stays/events | план | там же |
+| D2.4 | Self-serve featured для stays/events (featuring.py, без миграций) | ✅ (2026-07-03) | там же |
 | D2.5 | Цены планов в кабинете/суперадмине | ⏸ env достаточно | там же |
 | D3 | Партнёрка веб-студий (идея) | позже (L) | `feature-ideas…` |
 | CM-5 | AI-контент-пакет | 🔒 ждёт LLM-ключ владельца | `market-content…` |

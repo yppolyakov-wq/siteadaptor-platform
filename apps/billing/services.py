@@ -82,30 +82,38 @@ def create_usage_invoice_item(
 def create_featured_checkout_session(
     tenant: Tenant,
     *,
-    promo_uuid: str,
+    promo_uuid: str = "",
+    listing_kind: str = "",
+    source_ref: str = "",
     days: int,
     title: str,
     success_url: str,
     cancel_url: str,
 ) -> str:
-    """Разовый Checkout (mode="payment") за продвижение листинга акции (P2.4b).
+    """Разовый Checkout (mode="payment") за продвижение листинга (P2.4b/D2.4).
 
     Сумму передаём inline price_data (без заведения Price в Stripe). Эффект —
-    в metadata (kind/tenant_schema/promo_uuid/days): вебхук на public-схеме
-    проставит featured_until нужному листингу. Привязываем к Customer арендатора,
-    чтобы платёж попал в его историю/чеки. Возвращает URL оплаты.
+    в metadata: вебхук на public-схеме проставит featured_until нужному листингу.
+    Адресация листинга: (listing_kind, source_ref) — generic (D2.4: stays/events);
+    promo_uuid — легаси-ключ акций (эквивалент kind=promotion, source_ref=uuid).
+    Привязываем к Customer арендатора, чтобы платёж попал в его историю/чеки.
+    Возвращает URL оплаты.
     """
     from .featured import get_plan
 
     plan = get_plan(days)
     if plan is None:
         raise ValueError(f"unknown featured plan: {days}")
+    if not (promo_uuid or (listing_kind and source_ref)):
+        raise ValueError("featured checkout needs promo_uuid or (listing_kind, source_ref)")
     customer_id = ensure_stripe_customer(tenant)
     meta = {
         "kind": "featured",
         "tenant_id": str(tenant.id),
         "tenant_schema": tenant.schema_name,
-        "promo_uuid": str(promo_uuid),
+        "promo_uuid": str(promo_uuid or ""),
+        "listing_kind": listing_kind or "",
+        "source_ref": str(source_ref or ""),
         "days": str(plan.days),
     }
     session = _client().checkout.Session.create(
@@ -131,7 +139,13 @@ def create_featured_checkout_session(
 
 
 def apply_featured_purchase(
-    *, tenant_schema: str, promo_uuid: str, days, payment_ref: str = ""
+    *,
+    tenant_schema: str,
+    promo_uuid: str = "",
+    listing_kind: str = "",
+    source_ref: str = "",
+    days,
+    payment_ref: str = "",
 ) -> bool:
     """Оплата прошла → продлить featured_until листинга (public-схема, P2.4b).
 
@@ -150,9 +164,13 @@ def apply_featured_purchase(
     days = int(days or 0)
     if days <= 0:
         return False
-    listing = AggregatorListing.objects.filter(
-        tenant_schema=tenant_schema, promo_uuid=promo_uuid
-    ).first()
+    if listing_kind and source_ref:  # D2.4: generic-адресация (stay/event/…)
+        lookup = {"listing_kind": listing_kind, "source_ref": str(source_ref)}
+    elif promo_uuid:  # легаси-metadata незакрытых сессий
+        lookup = {"promo_uuid": promo_uuid}
+    else:
+        return False
+    listing = AggregatorListing.objects.filter(tenant_schema=tenant_schema, **lookup).first()
     if listing is None:
         return False
     # тот же платёж уже применён (реплей вебхука при утрате Redis-дедупа) → no-op

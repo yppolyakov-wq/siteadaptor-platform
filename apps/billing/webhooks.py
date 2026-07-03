@@ -61,6 +61,8 @@ def handle_event(event_type: str, obj: dict) -> None:
         ok = services.apply_featured_purchase(
             tenant_schema=meta.get("tenant_schema", ""),
             promo_uuid=meta.get("promo_uuid", ""),
+            listing_kind=meta.get("listing_kind", ""),
+            source_ref=meta.get("source_ref", ""),
             days=meta.get("days", 0),
             payment_ref=obj.get("payment_intent") or obj.get("id", ""),
         )

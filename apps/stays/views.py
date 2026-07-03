@@ -619,3 +619,48 @@ def stay_photo_edit(request):
 
         bump_storefront_cache(schema)
     return HttpResponse(status=204)
+
+
+@login_required
+def unit_feature(request, pk):
+    """D2.4: продвижение типа размещения в агрегаторе (self-serve featured,
+    generic-зеркало promotion_feature — apps.aggregator.featuring)."""
+    from apps.aggregator import featuring
+    from apps.aggregator.models import AggregatorListing
+
+    unit = get_object_or_404(StayUnit, pk=pk)
+    return featuring.render_feature_page(
+        request,
+        obj_title=unit.name,
+        kind=AggregatorListing.KIND_STAY,
+        source_ref=str(unit.pk),
+        listable=unit.is_active,
+        not_listed_hint=(
+            "Nur aktive Unterkünfte erscheinen im Verzeichnis und können "
+            "beworben werden. Aktivieren Sie die Unterkunft zuerst."
+        ),
+        back_url=reverse("stays:units"),
+        checkout_url=reverse("stays:unit-feature-checkout", args=[unit.pk]),
+        nav="stays",
+    )
+
+
+@login_required
+@require_POST
+def unit_feature_checkout(request, pk):
+    """D2.4: разовый Stripe-Checkout за продвижение юнита → редирект на оплату."""
+    from apps.aggregator import featuring
+    from apps.aggregator.models import AggregatorListing
+    from apps.aggregator.tasks import sync_stay_listing
+
+    unit = get_object_or_404(StayUnit, pk=pk)
+    return featuring.start_feature_checkout(
+        request,
+        kind=AggregatorListing.KIND_STAY,
+        source_ref=str(unit.pk),
+        title=unit.name,
+        listable=unit.is_active,
+        not_listable_msg="Nur aktive Unterkünfte können beworben werden.",
+        sync=sync_stay_listing,
+        feature_page_url=reverse("stays:unit-feature", args=[unit.pk]),
+    )
