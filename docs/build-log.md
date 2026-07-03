@@ -3877,3 +3877,20 @@
   онбординга при DB-ошибке), одноразовый `partner_ref` (pop), best-effort
   скидка (протухший купон → ретрай Checkout без discounts), N+1 админ-
   списка (annotate). Реф-коды-слаги — принятый риск. Всё в main (2fc3ddd).
+
+- **2026-07-03 — L3d.1–L3d.4: per-locale ввод форм + мультиязычный демо-засев
+  (остаток Волны L; без миграций).** План `docs/l3d-input-plan-2026-07-03.md`.
+  **L3d.1**: helper `apps/core/i18n_input.py` (extra_locales/apply_i18n_overlay/
+  i18n_inputs_for; presence-guard, базовая локаль НИКОГДА не пишется в оверлей)
+  + Service/StayUnit/Combo create+update пишут `*_i18n` из полей
+  `<field>_<locale>`, шаблоны services/units/combo_form рендерят доп. инпуты
+  только при N>1 локалях (1 локаль — паритет); update Service/StayUnit теперь
+  правит и name (только при явно присланном поле). `request.tenant` — через
+  getattr (RequestFactory-тесты без миддлвари). **L3d.2**: `_i18n_text`
+  генерализован (любые локали), `_split_i18n` → сидеры Service/StayUnit пишут
+  оверлеи; EN-примеры: friseur (2 услуги), hotel (2 номера). **L3d.3**: поле
+  `DemoKit.combos` + сидер (лукап товаров по `name__de__in` — Product.name
+  JSONField) + 2 демо-комбо ресторана с EN. **L3d.4**: инлайн-диспетчер пишет
+  в `settings.LANGUAGE_CODE` вместо хардкода "de". Тесты: test_i18n_input (8)
+  + demo-kit i18n (3) + смежные замки 75+33 зелёные. L3d.5 (ModelForm
+  Category/Product/Promotion → N-locale) — следующим батчем.

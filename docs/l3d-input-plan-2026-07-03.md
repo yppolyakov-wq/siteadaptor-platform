@@ -57,5 +57,8 @@ EN-контент не ломается.
 
 ## Статус
 
-- L3d.1–L3d.5 — очередь (старт 2026-07-03, после D3). Обновлять по мере
-  закрытия слайсов.
+- **L3d.1–L3d.4 ✅ (2026-07-03)** — детали в build-log. Грабля: Product.name —
+  i18n-JSONField, лукап демо-комбо по `name__de__in`; request.tenant в CRUD-
+  вьюхах — через getattr (тесты без tenant-миддлвари).
+- L3d.5 (ModelForm Category/Product/Promotion → N-locale динамика) — след.
+  батч, реюз helper'а.

@@ -144,8 +144,12 @@ def dispatch(request, model_key: str):
         if spec.clamp:
             value = value[: spec.clamp]
         if spec.i18n:
+            # L3d.4: базовая локаль из settings, не хардкод "de" (N-locale гигиена;
+            # инлайн-правка пишет ВСЕГДА в базу — per-locale инлайн = UC-слой).
+            from django.conf import settings as dj_settings
+
             i18n = dict(getattr(obj, spec.attr) or {})
-            i18n["de"] = value
+            i18n[dj_settings.LANGUAGE_CODE] = value
             setattr(obj, spec.attr, i18n)
         else:
             setattr(obj, spec.attr, value)

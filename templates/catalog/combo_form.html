@@ -17,6 +17,21 @@
       <label class="block text-sm font-medium mb-1">{% trans "Description" %}</label>
       <textarea name="description" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">{{ combo.description|default:'' }}</textarea>
     </div>
+    {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
+    {% for inp in combo.i18n_inputs %}
+    <div>
+      <label class="block text-sm font-medium mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
+      <input name="{{ inp.input_name }}" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+    </div>
+    {% endfor %}
+    {% if not combo %}{% for loc in extra_locales %}
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Name" %} ({{ loc|upper }})</label>
+      <input name="name_{{ loc }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+      <label class="block text-sm font-medium mb-1 mt-2">{% trans "Description" %} ({{ loc|upper }})</label>
+      <input name="description_{{ loc }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+    </div>
+    {% endfor %}{% endif %}
     <div class="flex flex-wrap gap-4">
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Fixed price" %} (€)</label>

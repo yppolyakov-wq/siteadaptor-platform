@@ -743,3 +743,38 @@ def test_kit_seeds_collections(monkeypatch):
     assert set(damen.services.values_list("name", flat=True)) == {"Schnitt", "Färben"}
     assert list(herren.services.values_list("name", flat=True)) == ["Bart"]
     assert Service.objects.count() == 3
+
+
+# --- L3d: мультиязычный демо-засев (per-locale оверлеи) ---
+
+
+def test_friseur_kit_seeds_service_i18n_overlays():
+    from apps.booking.models import Service
+
+    demo_kits.apply_kit(_tenant(), "friseur")
+    svc = Service.objects.get(name="Haarschnitt Damen")
+    assert svc.name_i18n == {"en": "Women's haircut"}
+    assert svc.description_i18n.get("en", "").startswith("Wash, cut")
+    # услуги без EN-дикта остаются без оверлея (база = плоское de)
+    assert Service.objects.filter(name_i18n={}).exists()
+
+
+def test_hotel_kit_seeds_stayunit_i18n_overlays():
+    from apps.stays.models import StayUnit
+
+    tenant = TenantFactory(schema_name="public", slug="h", name="H", business_type="hotel")
+    demo_kits.apply_kit(tenant, "hotel")
+    unit = StayUnit.objects.get(name="Doppelzimmer Seeblick")
+    assert unit.name_i18n == {"en": "Double room lake view"}
+
+
+def test_restaurant_kit_seeds_combos_with_i18n():
+    from apps.catalog.models import Combo
+
+    demo_kits.apply_kit(_tenant(), "restaurant")
+    combo = Combo.objects.get(name="Mittags-Kombo")
+    assert combo.name_i18n == {"en": "Lunch combo"}
+    assert combo.description_i18n.get("en", "").startswith("Starter")
+    group = combo.groups.first()
+    assert group is not None and group.options.count() == 2  # Bruschetta + Caprese
+    assert Combo.objects.filter(name="Familien-Paket").exists()

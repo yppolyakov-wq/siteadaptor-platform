@@ -42,11 +42,21 @@ def _image_ref(keyword: str, lock: int, alt: str) -> dict:
 
 
 def _i18n_text(value) -> dict:
-    """Привести имя/описание к i18n-дикту {"de":..,"en":..}. Строка → только de
-    (одноязычно); dict → отфильтрованные непустые de/en. Для двуязычных китов."""
+    """Привести имя/описание к i18n-дикту. Строка → только de (одноязычно);
+    dict → непустые значения ЛЮБЫХ локалей (L3d: новая локаль реестра
+    сеется без правки хелпера)."""
     if isinstance(value, dict):
-        return {loc: v for loc, v in value.items() if loc in ("de", "en") and v}
+        return {loc: v for loc, v in value.items() if v}
     return {"de": value or ""}
+
+
+def _split_i18n(value) -> tuple[str, dict]:
+    """L3d: (база_de, оверлей_без_de) для overlay-моделей (Service/StayUnit/
+    Combo): база — в плоское поле, переводы — в *_i18n. Строка → (строка, {})."""
+    if isinstance(value, dict):
+        base = value.get("de") or next((v for v in value.values() if v), "")
+        return base, {loc: v for loc, v in value.items() if loc != "de" and v}
+    return value or "", {}
 
 
 @dataclass
@@ -65,6 +75,9 @@ class DemoKit:
     # A7: кейсы «Vorher / Nachher» — список (before_kw, after_kw, text). Пусто →
     # секции нет. Рендерится интерактивным слайдером (ремесло/санация/студии).
     before_after: list = field(default_factory=list)
+    # L3d.3: комбо-наборы (Kombo-тизер A4): [{"name": str|i18n-dict, "description",
+    # "price", "groups": [{"label", "products": [имена]}]}]. Пусто → не сеются.
+    combos: list = field(default_factory=list)
     faq: list = field(default_factory=list)
     testimonials: list = field(default_factory=list)
     process: list = field(default_factory=list)  # (title, text) — «как мы работаем»
@@ -405,6 +418,31 @@ RESTAURANT = DemoKit(
         "restaurant,table",
     ],
     gallery_video="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    # L3d.3: Kombo-тизер A4 — демо-наборы с EN-оверлеем.
+    combos=[
+        {
+            "name": {"de": "Mittags-Kombo", "en": "Lunch combo"},
+            "description": {
+                "de": "Vorspeise nach Wahl + Hauptgericht — der schnelle Mittag.",
+                "en": "Starter of your choice + main dish — the quick lunch.",
+            },
+            "price": "16.90",
+            "groups": [
+                {"label": "Vorspeise", "products": ["Bruschetta", "Caprese"]},
+            ],
+        },
+        {
+            "name": {"de": "Familien-Paket", "en": "Family bundle"},
+            "description": {
+                "de": "Zwei Vorspeisen zum Teilen — ideal für den Tisch.",
+                "en": "Two starters to share — perfect for the table.",
+            },
+            "price": "24.90",
+            "groups": [
+                {"label": "Zum Teilen", "products": ["Bruschetta", "Caprese", "Vitello Tonnato"]},
+            ],
+        },
+    ],
     faq=[
         ("Kann ich einen Tisch reservieren?", "Ja, online über «Termin» oder telefonisch."),
         (
@@ -1559,7 +1597,7 @@ HOTEL = DemoKit(
     },
     stay_units=[
         {
-            "name": "Doppelzimmer Seeblick",
+            "name": {"de": "Doppelzimmer Seeblick", "en": "Double room lake view"},
             "type": "room",
             "qty": 4,
             "price": "89",
@@ -1582,7 +1620,7 @@ HOTEL = DemoKit(
             ],
         },
         {
-            "name": "Einzelzimmer Komfort",
+            "name": {"de": "Einzelzimmer Komfort", "en": "Comfort single room"},
             "type": "room",
             "qty": 3,
             "price": "69",
@@ -2130,17 +2168,24 @@ FRISEUR = DemoKit(
     services=[
         # A3: (name, min, price, description, image_kw) — богатая карточка услуги.
         (
-            "Haarschnitt Damen",
+            # L3d: i18n-дикт → база de + EN-оверлей (демо «по нескольку на фичу»)
+            {"de": "Haarschnitt Damen", "en": "Women's haircut"},
             45,
             "39",
-            "Waschen, Schnitt und Föhnen — individuell auf Sie abgestimmt.",
+            {
+                "de": "Waschen, Schnitt und Föhnen — individuell auf Sie abgestimmt.",
+                "en": "Wash, cut and blow-dry — tailored to you.",
+            },
             "woman,haircut",
         ),
         (
-            "Haarschnitt Herren",
+            {"de": "Haarschnitt Herren", "en": "Men's haircut"},
             30,
             "25",
-            "Klassischer oder moderner Schnitt inkl. Waschen.",
+            {
+                "de": "Klassischer oder moderner Schnitt inkl. Waschen.",
+                "en": "Classic or modern cut incl. wash.",
+            },
             "man,haircut",
         ),
         (
@@ -4011,8 +4056,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         for i, spec in enumerate(kit.services):
             # (name, minutes, price[, description[, image_kw[, rich]]]) — A3/UA4-3
             # богатая карточка. rich (dict) — attributes/faq/primary_action (UA4-3).
-            name, minutes, price = spec[0], spec[1], spec[2]
-            desc = spec[3] if len(spec) > 3 else ""
+            name, name_ov = _split_i18n(spec[0])  # L3d: строка ИЛИ i18n-дикт
+            minutes, price = spec[1], spec[2]
+            desc, desc_ov = _split_i18n(spec[3] if len(spec) > 3 else "")
             image_kw = spec[4] if len(spec) > 4 else ""
             rich = spec[5] if len(spec) > 5 and isinstance(spec[5], dict) else {}
             image = (
@@ -4022,7 +4068,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             )
             svc = Service.objects.create(
                 name=name,
+                name_i18n=name_ov,
                 description=desc,
+                description_i18n=desc_ov,
                 image=image,
                 duration_minutes=minutes,
                 price_cents=int(Decimal(price) * 100),
@@ -4031,6 +4079,32 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 primary_action=rich.get("primary_action", ""),
             )
             refs["services"].append(str(svc.pk))
+    if kit.combos and is_active("catalog"):
+        # L3d.3: комбо-наборы с i18n (дыра master-track §7.0 — combo в демо не было).
+        from apps.catalog.models import Combo, ComboGroup, ComboOption, Product
+
+        for ci, cspec in enumerate(kit.combos):
+            cname, cname_ov = _split_i18n(cspec.get("name", ""))
+            cdesc, cdesc_ov = _split_i18n(cspec.get("description", ""))
+            combo = Combo.objects.create(
+                name=cname,
+                name_i18n=cname_ov,
+                description=cdesc,
+                description_i18n=cdesc_ov,
+                price=Decimal(str(cspec.get("price", "0"))),
+                sort_order=ci,
+                is_active=True,
+            )
+            for gi, gspec in enumerate(cspec.get("groups", [])):
+                # Product.name — i18n-JSONField: матчим по базовой de-строке.
+                products = list(Product.objects.filter(name__de__in=gspec.get("products", [])))
+                if not products:  # fail-soft: без товаров группа не нужна
+                    continue
+                group = ComboGroup.objects.create(
+                    combo=combo, label=gspec.get("label", ""), sort_order=gi
+                )
+                for oi, product in enumerate(products):
+                    ComboOption.objects.create(group=group, product=product, sort_order=oi)
     if kit.pass_plans and is_active("booking"):  # A3/G9b: тарифы Mehrfachkarte
         from apps.booking.models import PassPlan, Service
 
@@ -4065,10 +4139,14 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 for j, ref in enumerate(imgs):
                     ref["is_primary"] = j == 0
                     ref["sort_order"] = j
+                _un, _un_ov = _split_i18n(spec["name"])  # L3d
+                _ud, _ud_ov = _split_i18n(spec.get("description", ""))
                 unit = StayUnit.objects.create(
-                    name=spec["name"],
+                    name=_un,
+                    name_i18n=_un_ov,
                     type=spec.get("type", "room"),
-                    description=spec.get("description", ""),
+                    description=_ud,
+                    description_i18n=_ud_ov,
                     quantity=spec.get("qty", 1),
                     price_cents=int(Decimal(str(spec.get("price", "0"))) * 100),
                     min_nights=spec.get("min_nights", 1),

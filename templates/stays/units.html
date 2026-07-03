@@ -195,6 +195,11 @@
         <div class="sm:col-span-3">
           <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</label>
           <textarea name="description" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea>
+          {# L3d: переводы неосновных локалей #}
+          {% for inp in u.i18n_inputs %}
+            <label class="block text-xs font-medium text-gray-500 mt-2 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
+            <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          {% endfor %}
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
@@ -350,6 +355,11 @@
   <div class="grid sm:grid-cols-2 gap-4">
     <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
     <textarea name="description" rows="2" placeholder="{% trans 'Description (amenities, view …)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
+    {% for loc in extra_locales %}
+      <input name="name_{{ loc }}" type="text" placeholder="Name ({{ loc|upper }})" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+      <textarea name="description_{{ loc }}" rows="2" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    {% endfor %}
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Type" %}</label>
       <select name="type" class="w-full rounded-lg border border-gray-300 px-3 py-2">

@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.billing import connect
 from apps.core.fsm import IllegalTransition
+from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
 from . import availability, services
 from .models import (
@@ -242,11 +243,18 @@ def units(request):
                     bed_type=request.POST.get("bed_type", "").strip()[:80],
                     amenities=[a for a in request.POST.getlist("amenities") if a in _AMENITY_KEYS],
                 )
+                # L3d: переводы неосновных локалей (после create — поля JSON)
+                if apply_i18n_overlay(unit, request.POST, getattr(request, "tenant", None)):
+                    unit.save(update_fields=["name_i18n", "description_i18n", "updated_at"])
                 _add_unit_photos(unit, request.FILES.getlist("photos"))
                 messages.success(request, _("Unit created."))
         elif action == "unit_settings":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             unit.description = request.POST.get("description", "").strip()[:5000]
+            # L3d: name правится при явно присланном поле (presence-guard).
+            _new_name = request.POST.get("name")
+            if _new_name is not None and _new_name.strip():
+                unit.name = _new_name.strip()[:120]
             unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
             unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
             unit.quantity = _int(request.POST.get("quantity", "1"), 1, 1, 999)
@@ -257,22 +265,23 @@ def units(request):
             unit.area_sqm = _int(request.POST.get("area_sqm", "0"), 0, 0, 9999)
             unit.bed_type = request.POST.get("bed_type", "").strip()[:80]
             unit.amenities = [a for a in request.POST.getlist("amenities") if a in _AMENITY_KEYS]
-            unit.save(
-                update_fields=[
-                    "description",
-                    "price_cents",
-                    "weekend_price_cents",
-                    "quantity",
-                    "min_nights",
-                    "max_guests",
-                    "deposit_cents",
-                    "require_manual_confirm",
-                    "area_sqm",
-                    "bed_type",
-                    "amenities",
-                    "updated_at",
-                ]
-            )
+            _uf = [
+                "name",
+                "description",
+                "price_cents",
+                "weekend_price_cents",
+                "quantity",
+                "min_nights",
+                "max_guests",
+                "deposit_cents",
+                "require_manual_confirm",
+                "area_sqm",
+                "bed_type",
+                "amenities",
+                "updated_at",
+            ]
+            _uf += apply_i18n_overlay(unit, request.POST, getattr(request, "tenant", None))  # L3d
+            unit.save(update_fields=_uf)
             _add_unit_photos(unit, request.FILES.getlist("photos"))
             messages.success(request, _("Unit saved."))
         elif action == "photo_delete":
@@ -418,6 +427,7 @@ def units(request):
         u.ical_export_url = request.build_absolute_uri(
             reverse("storefront-stay-ical", args=[ical_token(u)])
         )
+        u.i18n_inputs = i18n_inputs_for(u, getattr(request, "tenant", None))  # L3d
     stay_settings = StaySettings.load()
     # G4: правила авто-скидок с человекочитаемым описанием для кабинета.
     _kind_labels = dict(StaySettings.AUTO_DISCOUNT_KINDS)
@@ -437,6 +447,7 @@ def units(request):
         {
             "nav": "stays",
             "units": units,
+            "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),
             "rate_plans": list(RatePlan.objects.all()),  # H1

@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.billing import connect
 from apps.core.fsm import IllegalTransition
+from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
 from . import services
 from .models import AvailabilityRule, Booking, ClosedDate, Resource
@@ -279,7 +280,7 @@ def services_view(request):
         if action == "create":
             name = request.POST.get("name", "").strip()
             if name:
-                Service.objects.create(
+                service = Service(
                     name=name,
                     description=request.POST.get("description", "").strip(),  # A3
                     image=_uploaded_image_ref(request, "image", "services")
@@ -288,6 +289,9 @@ def services_view(request):
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                 )
+                # L3d: переводы неосновных локалей (name_<loc>/description_<loc>)
+                apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
+                service.save()
                 messages.success(request, _("Service created."))
         elif action == "update":  # инлайн: длительность + цена + описание (депозит — при создании)
             service = get_object_or_404(Service, pk=request.POST.get("service"))
@@ -295,6 +299,13 @@ def services_view(request):
             service.price_cents = _eur_to_cents(request.POST.get("price_eur"))
             service.description = request.POST.get("description", "").strip()  # A3
             fields = ["duration_minutes", "price_cents", "description", "updated_at"]
+            # L3d: name правится тоже — но только если поле явно прислано
+            # (presence-guard: старые клиенты формы без name не затронуты).
+            new_name = request.POST.get("name")
+            if new_name is not None and new_name.strip():
+                service.name = new_name.strip()
+                fields.append("name")
+            fields += apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
             # A3: новое фото заменяет старое; чекбокс «удалить» очищает.
             new_image = _uploaded_image_ref(request, "image", "services")
             if new_image or request.POST.get("remove_image"):
@@ -308,10 +319,17 @@ def services_view(request):
             service.save(update_fields=["is_active", "updated_at"])
         return redirect("booking:services")
 
+    services = list(Service.objects.order_by("-is_active", "name"))
+    for svc in services:  # L3d: данные per-locale инпутов готовим в Python
+        svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))
     return render(
         request,
         "booking/services.html",
-        {"nav": "booking", "services": Service.objects.order_by("-is_active", "name")},
+        {
+            "nav": "booking",
+            "services": services,
+            "extra_locales": extra_locales(getattr(request, "tenant", None)),
+        },
     )
 
 

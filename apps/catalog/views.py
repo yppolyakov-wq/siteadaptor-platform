@@ -14,6 +14,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+
 from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
 from .models import (
@@ -581,15 +583,25 @@ def combo_create(request):
         if not name or price is None:
             messages.error(request, _("Name and price are required."))
         else:
-            combo = Combo.objects.create(
+            combo = Combo(
                 name=name,
                 description=(request.POST.get("description") or "").strip(),
                 price=price,
                 sort_order=_parse_int(request.POST.get("sort")) or 0,
                 is_active=bool(request.POST.get("is_active")),
             )
+            apply_i18n_overlay(combo, request.POST, getattr(request, "tenant", None))  # L3d
+            combo.save()
             return redirect("catalog:combo-edit", pk=combo.pk)
-    return render(request, "catalog/combo_form.html", {"combo": None, "nav": "combos"})
+    return render(
+        request,
+        "catalog/combo_form.html",
+        {
+            "combo": None,
+            "nav": "combos",
+            "extra_locales": extra_locales(getattr(request, "tenant", None)),
+        },
+    )
 
 
 @login_required
@@ -603,16 +615,22 @@ def combo_edit(request, pk):
         combo.description = (request.POST.get("description") or "").strip()
         combo.sort_order = _parse_int(request.POST.get("sort")) or 0
         combo.is_active = bool(request.POST.get("is_active"))
-        combo.save(
-            update_fields=["name", "price", "description", "sort_order", "is_active", "updated_at"]
-        )
+        _uf = ["name", "price", "description", "sort_order", "is_active", "updated_at"]
+        _uf += apply_i18n_overlay(combo, request.POST, getattr(request, "tenant", None))  # L3d
+        combo.save(update_fields=_uf)
         messages.success(request, _("Saved."))
         return redirect("catalog:combo-edit", pk=pk)
     products = Product.objects.filter(is_active=True).order_by("name")
+    combo.i18n_inputs = i18n_inputs_for(combo, getattr(request, "tenant", None))  # L3d
     return render(
         request,
         "catalog/combo_form.html",
-        {"combo": combo, "products": products, "nav": "combos"},
+        {
+            "combo": combo,
+            "products": products,
+            "nav": "combos",
+            "extra_locales": extra_locales(getattr(request, "tenant", None)),
+        },
     )
 
 
