@@ -3784,3 +3784,8 @@
   уменьшает «zu zahlen»/payable_gross); инпут только в простом accept-пути
   (депозит-Checkout без кода); JobSM-отмена возвращает остаток. **Идея B1
   закрыта ЦЕЛИКОМ (B1.1–B1.6).**
+- **2026-07-03 — B1.7 (решение владельца «в»): потолок промокода % от чека.**
+  `Tenant.voucher_max_percent` (tenants/0022; 0=без лимита, клэмп 0..100 в
+  настройках) — кап в единой точке spend_voucher + preview_discount (превью
+  корзины orders/quote events = списанию). Только промокоды; проданные
+  Wertgutschein не капаются (Zahlungsmittel, §307 BGB).
