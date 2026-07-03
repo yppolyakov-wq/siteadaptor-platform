@@ -33,7 +33,9 @@ class BusinessSignupView(View):
             city=cd["city"],
             email=cd["email"],
             password=cd["password1"],
-            partner_code=request.session.get("partner_ref", ""),
+            # pop: код одноразовый на браузер-сессию — вторая регистрация из
+            # того же браузера уже НЕ атрибуцируется автоматически (ревью D3).
+            partner_code=request.session.pop("partner_ref", ""),
         )
         return redirect("signup-waiting", slug=tenant.slug)
 

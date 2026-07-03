@@ -147,3 +147,39 @@ def test_checkout_unchanged_without_partner_or_coupon(monkeypatch):
         tenant2, success_url="https://s", cancel_url="https://c"
     )
     assert "discounts" not in captured
+
+
+def test_signup_post_pops_ref_and_passes_code(monkeypatch, settings):
+    # pop: код одноразовый на браузер-сессию (ревью D3) — и уходит в сервис.
+    settings.ROOT_URLCONF = "config.urls_public"
+    from apps.tenants import views as tenant_views
+
+    partner = _partner()
+    captured = {}
+
+    def _fake(**kw):
+        captured.update(kw)
+
+        class _T:
+            slug = "fake"
+
+        return _T()
+
+    monkeypatch.setattr(tenant_views, "start_business_provisioning", _fake)
+    request = _req(
+        "post",
+        path="/",
+        data={
+            "business_name": "Bäckerei",
+            "slug": f"b{uuid.uuid4().hex[:8]}",
+            "business_type": "bakery",
+            "city": "Hilden",
+            "email": "o@test.de",
+            "password1": "pw12345678",
+            "password2": "pw12345678",
+        },
+    )
+    request.session["partner_ref"] = partner.code
+    tenant_views.BusinessSignupView().post(request)
+    assert captured["partner_code"] == partner.code
+    assert "partner_ref" not in request.session
