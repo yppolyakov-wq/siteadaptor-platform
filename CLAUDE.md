@@ -251,7 +251,10 @@ Python 3.12, менеджер uv.
   при правках шаблонов — прогнать `apps/core/tests/test_template_comments.py` (многострочные
   `{# #}` запрещены). ⚠️ `ruff format` по ЯВНОМУ пути обходит exclude миграций — старые
   миграции не переформатировать. `billing/tests/test_tasks.py` виснет локально (среда,
-  на CI зелёный) — локально гейтить с `--ignore`.
+  на CI зелёный) — локально гейтить с `--ignore`. ⚠️ Правки адаптеров
+  `SellableEntity` (apps/core/sellable.py) гейтить ВКЛЮЧАЯ `apps/tenants` —
+  секции главной рендерят карточки через SimpleNamespace-стабы контракта
+  (test_services_section и т.п.; урок CI 1145).
 - После мержа с миграциями — деплой на сервере (вручную владельцем):
   `git pull origin main && ./scripts/deploy.sh single`.
 - Миграции последовательные; новые TENANT-приложения — в base.py TENANT_APPS
