@@ -3681,3 +3681,11 @@
   фантомные ERRORs — не гонять одновременно.
 - **2026-07-03 — Решение владельца: per-page хост C-блоков ПОКА НЕ ДЕЛАЕМ.**
   Пакет UC2-3(b)+UC3-2+слайс 3 UC2-2 → roadmap §Отложено (анализ сохранён в план-доках).
+- **2026-07-03 — CM-2 (контент-хаб): контент-календарь + отложенная публикация.**
+  План-док `docs/cm2-content-calendar-plan-2026-07-03.md`. `SocialPost` (текст/фото/
+  ссылка/scheduled_at, SocialPostSM; шов source_kind под CM-3) поверх прежней доставки
+  `Publication` (promotion nullable + post FK, XOR-констрейнт; миграция `publishing/0005`
+  — ⚠️ деплой). Адаптеры → единый `content_for` (промо 1:1, замки каналов). Beat
+  `send_due_content` (300с): посты → Publications; отложенный блог через `published_at`
+  БЕЗ новых полей. Кабинет «Beiträge» (/dashboard/posts/, NavItem в publishing),
+  блог-формы += «Veröffentlichen am». 311 passed (свежая БД).
