@@ -20,6 +20,18 @@
   {% endfor %}
 {% endif %}
 
+{# CM-8.1: KPI-шапка — LTV (RevenueEntry) + счётчики по доменам. #}
+{% if kpi.ltv_n or kpi.counts %}
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+  {% if kpi.ltv_n %}
+    <div><span class="text-gray-400">{% trans "Revenue" %}:</span> <span class="font-bold text-base">{{ kpi.ltv_total|floatformat:2 }} €</span> <span class="text-gray-400">({{ kpi.ltv_n }}×{% if kpi.ltv_last %} · {% trans "last" %} {{ kpi.ltv_last|date:"d.m.Y" }}{% endif %})</span></div>
+  {% endif %}
+  {% for c in kpi.counts %}
+    <div><span class="text-gray-400">{{ c.label }}:</span> <span class="font-semibold">{{ c.n }}</span></div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="grid lg:grid-cols-2 gap-6 items-start">
   <div class="space-y-6">
     <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
@@ -124,6 +136,22 @@
       <button class="bg-indigo-600 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Issue" %}</button>
     </form>
   </div>
+
+  {# CM-8.2/8.3/8.4: остальные разделы 360° — generic readonly-карточки. #}
+  {% for s in sections360 %}
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="font-semibold mb-3">{{ s.title }} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
+    {% for it in s.items %}
+      {% if it.url %}<a href="{{ it.url }}" class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">{% else %}<div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">{% endif %}
+        <div class="min-w-0">
+          <p class="text-sm font-medium truncate">{{ it.title }}</p>
+          {% if it.sub %}<p class="text-xs text-gray-400 truncate">{{ it.sub }}</p>{% endif %}
+        </div>
+        {% if it.status %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">{{ it.status }}</span>{% endif %}
+      {% if it.url %}</a>{% else %}</div>{% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
   </div>
 </div>
 {% endblock %}

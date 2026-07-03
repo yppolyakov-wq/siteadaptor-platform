@@ -14,6 +14,7 @@ from django.views.decorators.http import require_POST
 from apps.core.pagination import paginate
 from apps.promotions.models import Customer
 
+from . import customer360
 from .forms import CustomerForm, NoteForm
 from .models import CustomerNote
 
@@ -117,6 +118,10 @@ def customer_detail(request, pk):
             "orders": customer.orders.prefetch_related("items").order_by("-created_at")[:20],
             # 360° (D1): ваучеры, выданные клиенту.
             "vouchers": customer.vouchers.all()[:50],
+            # CM-8: KPI-шапка (LTV из RevenueEntry) + недостающие разделы 360°
+            # (termine/passes/stays/tickets/jobs/invoices/переписка/отзывы).
+            "kpi": customer360.kpis(getattr(request, "tenant", None), customer),
+            "sections360": customer360.sections(getattr(request, "tenant", None), customer),
         },
     )
 
