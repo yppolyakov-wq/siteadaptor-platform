@@ -3778,3 +3778,9 @@
   копии _apply_voucher orders/booking/stays/events сведены) +
   `unredeem_voucher(amount)` возвращает остаток при отмене (FSM-хуки передают
   снимок). Выпуск gift: balance=номинал, max_uses=0. Кабинет: «Rest X €».
+- **2026-07-03 — B1.6 (запрос владельца): Gutschein в сметах Handwerker.**
+  Job += voucher_code/discount_cents (jobs/0011); accept Angebot с кодом →
+  spend_voucher (Wertgutschein = Zahlungsmittel: gross/счёт полный, скидка
+  уменьшает «zu zahlen»/payable_gross); инпут только в простом accept-пути
+  (депозит-Checkout без кода); JobSM-отмена возвращает остаток. **Идея B1
+  закрыта ЦЕЛИКОМ (B1.1–B1.6).**
