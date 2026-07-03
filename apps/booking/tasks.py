@@ -84,3 +84,36 @@ def send_booking_post_visits():
         with schema_context(schema):
             total += send_due_post_visits()
     return total
+
+
+def send_due_payment_reminders(now=None) -> int:
+    """B2.2: депозит запрошен, но не оплачен N часов — одно напоминание
+    (transactional-гейт в enqueue). Только будущие записи."""
+    now = now or timezone.now()
+    hours = getattr(settings, "BOOKING_PAYREMIND_HOURS", 6)
+    upper = now - timezone.timedelta(hours=hours)
+    lower = upper - timezone.timedelta(days=7)
+    due = Booking.objects.filter(
+        payment_state=Booking.PAYMENT_PENDING,
+        payment_reminder_sent_at__isnull=True,
+        start__gt=now,
+        created_at__gte=lower,
+        created_at__lte=upper,
+    )
+    sent = 0
+    for booking in due:
+        enqueue_booking_email(booking, "payment_reminder")
+        booking.payment_reminder_sent_at = timezone.now()
+        booking.save(update_fields=["payment_reminder_sent_at", "updated_at"])
+        sent += 1
+    return sent
+
+
+@shared_task
+def send_booking_payment_reminders():
+    """Beat (раз в час): напоминания о неоплаченном депозите по всем схемам."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_payment_reminders()
+    return total

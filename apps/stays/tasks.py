@@ -116,3 +116,36 @@ def sync_ical_sources():
             for source in ICalSource.objects.filter(is_active=True):
                 total += sync_ical_source(source)
     return total
+
+
+def send_due_payment_reminders(now=None) -> int:
+    """B2.3: предоплата запрошена, но не оплачен N часов — одно напоминание
+    (transactional-гейт в enqueue). Только будущие заезды."""
+    now = now or timezone.now()
+    hours = getattr(settings, "STAYS_PAYREMIND_HOURS", 6)
+    upper = now - timezone.timedelta(hours=hours)
+    lower = upper - timezone.timedelta(days=7)
+    due = StayBooking.objects.filter(
+        payment_state=StayBooking.PAYMENT_PENDING,
+        payment_reminder_sent_at__isnull=True,
+        arrival__gte=now.date(),
+        created_at__gte=lower,
+        created_at__lte=upper,
+    )
+    sent = 0
+    for booking in due:
+        enqueue_stay_email(booking, "payment_reminder")
+        booking.payment_reminder_sent_at = timezone.now()
+        booking.save(update_fields=["payment_reminder_sent_at", "updated_at"])
+        sent += 1
+    return sent
+
+
+@shared_task
+def send_stay_payment_reminders():
+    """Beat (раз в час): напоминания о неоплаченном депозите по всем схемам."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_payment_reminders()
+    return total

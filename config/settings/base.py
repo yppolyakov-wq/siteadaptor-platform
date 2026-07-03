@@ -302,6 +302,19 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.orders.tasks.send_order_payment_reminders",
         "schedule": 3600.0,
     },
+    # B2.2/B2.3: то же для депозита брони, предоплаты проживания и билета.
+    "send-booking-payment-reminders": {
+        "task": "apps.booking.tasks.send_booking_payment_reminders",
+        "schedule": 3600.0,
+    },
+    "send-stay-payment-reminders": {
+        "task": "apps.stays.tasks.send_stay_payment_reminders",
+        "schedule": 3600.0,
+    },
+    "send-ticket-payment-reminders": {
+        "task": "apps.events.tasks.send_ticket_payment_reminders",
+        "schedule": 3600.0,
+    },
     "send-service-reminders": {
         "task": "apps.jobs.tasks.send_service_reminders",
         "schedule": 86400.0,  # раз в сутки — TÜV/Service-Reminder за N дней (A9)

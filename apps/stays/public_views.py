@@ -552,6 +552,40 @@ def unterkunft_confirmation(request, code):
     )
 
 
+def stay_pay(request, code):
+    """B2.3: «Jetzt bezahlen» — перегенерация Stripe Checkout для неоплаченной
+    предоплаты проживания. Не pending/прошёл заезд → назад на подтверждение."""
+    _require_stays_active(request)
+    booking = get_object_or_404(StayBooking, reference_code=code)
+    tenant = getattr(request, "tenant", None)
+    payable = (
+        booking.payment_state == StayBooking.PAYMENT_PENDING
+        and booking.deposit_cents > 0
+        and booking.arrival >= timezone.localdate()
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+    )
+    if payable:
+        ok_url = (
+            request.build_absolute_uri(reverse("storefront-stay-ok", args=[booking.reference_code]))
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse("storefront-stay-ok", args=[booking.reference_code])
+        )
+        try:
+            return redirect(
+                payments.stay_deposit_checkout_url(
+                    booking, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            messages.error(
+                request, _("Payment is temporarily unavailable. Please try again later.")
+            )
+    return redirect("storefront-stay-ok", code=booking.reference_code)
+
+
 def hausordnung(request):
     """H6: страница «Hausordnung» (правила проживания) — свободный текст из
     StaySettings + Kurtaxe-инфо. Гейт модулем stays; нет текста → 404."""

@@ -409,6 +409,8 @@ class Ticket(TimestampedModel):
         (PAYMENT_REFUNDED, "Refunded"),
     ]
     payment_state = models.CharField(max_length=12, choices=PAYMENT_STATES, default=PAYMENT_NONE)
+    # B2.3: напоминание о незавершённой оплате билета — дедуп «одно на билет».
+    payment_reminder_sent_at = models.DateTimeField(null=True, blank=True)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)
 
     class Meta:

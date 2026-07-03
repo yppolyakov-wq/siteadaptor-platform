@@ -525,6 +525,43 @@ def veranstaltung_waitlist(request, pk):
     return redirect("storefront-event", pk=pk)
 
 
+def ticket_pay(request, code):
+    """B2.3: «Jetzt bezahlen» — перегенерация Stripe Checkout для неоплаченного
+    билета. Не pending/событие прошло → назад на подтверждение."""
+    _require_events_active(request)
+    ticket = get_object_or_404(Ticket.objects.select_related("event"), reference_code=code)
+    tenant = getattr(request, "tenant", None)
+    payable = (
+        ticket.status == Ticket.STATUS_PENDING
+        and ticket.payment_state == Ticket.PAYMENT_PENDING
+        and ticket.total_cents > 0
+        and ticket.event.starts_at > timezone.now()
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+    )
+    if payable:
+        ok_url = (
+            request.build_absolute_uri(
+                reverse("storefront-ticket-ok", args=[ticket.reference_code])
+            )
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse("storefront-ticket-ok", args=[ticket.reference_code])
+        )
+        try:
+            return redirect(
+                payments.ticket_checkout_url(
+                    ticket, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            messages.error(
+                request, _("Payment is temporarily unavailable. Please try again later.")
+            )
+    return redirect("storefront-ticket-ok", code=ticket.reference_code)
+
+
 def veranstaltung_confirmation(request, code):
     _require_events_active(request)
     ticket = get_object_or_404(

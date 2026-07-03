@@ -1,0 +1,1 @@
+{% load i18n %}{% trans "Ihre Reservierung wartet auf die Anzahlung" %} — {{ booking.reference_code }}

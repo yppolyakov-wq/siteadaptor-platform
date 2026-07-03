@@ -1,0 +1,13 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% blocktrans with title=event.title %}Ihre Anmeldung zu „{{ title }}“ wartet noch auf die Zahlung.{% endblocktrans %}
+
+{% trans "Plätze" %}: {{ ticket.quantity }} · {% trans "Ticket-Code" %}: {{ ticket.reference_code }}
+{% if pay_url %}
+{% trans "Jetzt bezahlen" %}: {{ pay_url }}
+{% endif %}
+{% trans "Wenn Sie die Anmeldung nicht mehr benötigen, können Sie diese E-Mail einfach ignorieren." %}
+
+{% if unsubscribe_url %}—
+{% trans "Keine E-Mails mehr" %}: {{ unsubscribe_url }}
+{% endif %}

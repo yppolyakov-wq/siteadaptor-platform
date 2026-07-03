@@ -1,0 +1,1 @@
+{% load i18n %}{% trans "Ihre Buchung wartet auf die Anzahlung" %} — {{ unit.name }}

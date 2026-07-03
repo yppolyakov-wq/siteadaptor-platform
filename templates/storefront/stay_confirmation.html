@@ -30,6 +30,8 @@
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 mt-4">✓ {% trans "Deposit paid." %}</p>
     {% elif booking.payment_state == 'pending' %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "Your deposit payment is still pending." %}</p>
+      {# B2: повторная оплата — Stripe Checkout перегенерируется на лету. #}
+      <a href="{% url 'storefront-stay-pay' booking.reference_code %}" class="inline-block mt-2 text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);">{% trans "Jetzt bezahlen" %}</a>
     {% endif %}
     {% if booking.status == 'pending' %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "We'll confirm your booking shortly." %}</p>

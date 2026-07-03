@@ -642,6 +642,42 @@ def termin_book(request, pk):
     return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
 
 
+def termin_pay(request, code):
+    """B2.2: «Jetzt bezahlen» — перегенерация Stripe Checkout для неоплаченного
+    депозита (URL сессии не хранится). Не pending/прошла → назад на подтверждение."""
+    _require_booking_active(request)
+    booking = get_object_or_404(Booking, reference_code=code)
+    tenant = getattr(request, "tenant", None)
+    payable = (
+        booking.payment_state == Booking.PAYMENT_PENDING
+        and booking.deposit_cents > 0
+        and booking.start > timezone.now()
+        and getattr(tenant, "payments_enabled", False)
+        and connect.is_connect_configured()
+    )
+    if payable:
+        ok_url = (
+            request.build_absolute_uri(
+                reverse("storefront-termin-ok", args=[booking.reference_code])
+            )
+            + "?paid=1"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse("storefront-termin-ok", args=[booking.reference_code])
+        )
+        try:
+            return redirect(
+                payments.deposit_checkout_url(
+                    booking, tenant, success_url=ok_url, cancel_url=cancel_url
+                )
+            )
+        except stripe.error.StripeError:
+            messages.error(
+                request, _("Payment is temporarily unavailable. Please try again later.")
+            )
+    return redirect("storefront-termin-ok", code=booking.reference_code)
+
+
 def termin_confirmation(request, code):
     _require_booking_active(request)
     booking = get_object_or_404(Booking.objects.select_related("resource"), reference_code=code)

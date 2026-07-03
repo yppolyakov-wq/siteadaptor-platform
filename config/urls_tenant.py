@@ -211,6 +211,8 @@ urlpatterns = [
         name="storefront-service-review",
     ),
     path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
+    # B2.2: повторная оплата депозита (Checkout на лету).
+    path("t/<str:code>/bezahlen/", booking_public.termin_pay, name="storefront-termin-pay"),
     # A3: онлайн-продажа Mehrfachkarte.
     path("karten/", booking_public.karten, name="storefront-karten"),
     path("karten/<uuid:pk>/kaufen/", booking_public.karte_kaufen, name="storefront-karte-kaufen"),
@@ -234,6 +236,8 @@ urlpatterns = [
         name="storefront-unterkunft-book",
     ),
     path("s/<str:code>/", stays_public.unterkunft_confirmation, name="storefront-stay-ok"),
+    # B2.3: повторная оплата предоплаты (Checkout на лету).
+    path("s/<str:code>/bezahlen/", stays_public.stay_pay, name="storefront-stay-pay"),
     # H4b: самостоятельная отмена брони гостем по подписанной ссылке.
     path("stornieren/<str:token>/", stays_public.unterkunft_cancel, name="storefront-stay-cancel"),
     # G6: Online-Checkin / цифровой Meldeschein по подписанной ссылке.
@@ -284,6 +288,8 @@ urlpatterns = [
         name="storefront-event-waitlist",
     ),
     path("e/<str:code>/", events_public.veranstaltung_confirmation, name="storefront-ticket-ok"),
+    # B2.3: повторная оплата билета (Checkout на лету).
+    path("e/<str:code>/bezahlen/", events_public.ticket_pay, name="storefront-ticket-pay"),
     path("e/<str:code>/qr.svg", events_public.ticket_qr, name="storefront-ticket-qr"),  # RT1
     # RT4: публичный блог/новости.
     path("blog/", events_public.blog_index, name="storefront-blog"),

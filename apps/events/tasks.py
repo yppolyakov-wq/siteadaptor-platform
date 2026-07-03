@@ -115,3 +115,36 @@ def charge_installments():
         totals["charged"] += r["charged"]
         totals["failed"] += r["failed"]
     return totals
+
+
+def send_due_payment_reminders(now=None) -> int:
+    """B2.3: платный билет создан, оплата не пришла N часов — одно напоминание."""
+    now = now or timezone.now()
+    hours = getattr(settings, "EVENTS_PAYREMIND_HOURS", 6)
+    upper = now - timezone.timedelta(hours=hours)
+    lower = upper - timezone.timedelta(days=7)
+    due = Ticket.objects.filter(
+        status=Ticket.STATUS_PENDING,
+        payment_state=Ticket.PAYMENT_PENDING,
+        payment_reminder_sent_at__isnull=True,
+        event__starts_at__gt=now,
+        created_at__gte=lower,
+        created_at__lte=upper,
+    )
+    sent = 0
+    for ticket in due:
+        enqueue_ticket_email(ticket, "payment_reminder")
+        ticket.payment_reminder_sent_at = timezone.now()
+        ticket.save(update_fields=["payment_reminder_sent_at", "updated_at"])
+        sent += 1
+    return sent
+
+
+@shared_task
+def send_ticket_payment_reminders():
+    """Beat (раз в час): напоминания о неоплаченном билете по всем схемам."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_payment_reminders()
+    return total

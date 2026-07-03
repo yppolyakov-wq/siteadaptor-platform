@@ -1,0 +1,15 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% trans "Ihre Reservierung wartet noch auf die Anzahlung." %}
+
+{{ resource.name }}
+{{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}
+{% trans "Referenz-Code" %}: {{ booking.reference_code }}
+{% if pay_url %}
+{% trans "Jetzt bezahlen" %}: {{ pay_url }}
+{% endif %}
+{% trans "Wenn Sie den Termin nicht mehr benötigen, können Sie diese E-Mail einfach ignorieren." %}
+
+{% if unsubscribe_url %}—
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
+{% endif %}

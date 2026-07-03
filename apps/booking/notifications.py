@@ -17,6 +17,7 @@ _CUSTOMER_TEMPLATES = {
     "cancelled": "booking_cancelled",
     "reminder": "booking_reminder",
     "post_visit": "booking_post_visit",  # UA4-4b: danke + запрос отзыва об услуге
+    "payment_reminder": "booking_payment_reminder",  # B2: незавершённая оплата
 }
 
 
@@ -29,6 +30,13 @@ def enqueue_booking_email(booking, event):
     template_base = _CUSTOMER_TEMPLATES.get(event)
     if template_base and customer.email and not customer.unsubscribed:
         base = _base_url(schema)
+        # B2: ссылка на подтверждение (там кнопка «Jetzt bezahlen»).
+        if event == "payment_reminder":
+            ctx["pay_url"] = (
+                f"{base}{reverse('storefront-termin-ok', args=[booking.reference_code])}"
+                if base
+                else ""
+            )
         unsub = (
             f"{base}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
             if base
