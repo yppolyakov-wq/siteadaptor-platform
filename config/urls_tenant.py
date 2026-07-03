@@ -29,6 +29,7 @@ from apps.core.views import (
     sections_view,
     settings_view,
     setup_view,
+    share_preview_issue,
     site_inline_edit,
     site_preview,
     site_preview_draft,
@@ -73,6 +74,8 @@ urlpatterns = [
     path("dashboard/site/pages/", pages_view, name="site-pages"),
     path("dashboard/site/preview/", site_preview, name="site-preview"),
     path("dashboard/site/preview/draft/", site_preview_draft, name="site-preview-draft"),
+    # A4: выпуск share-ссылки на снапшот черновика (read-only превью).
+    path("dashboard/site/share-preview/", share_preview_issue, name="site-share-preview"),
     path("dashboard/site/preview/edit/", site_inline_edit, name="site-inline-edit"),
     # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
     path("dashboard/modules/", modules_view, name="modules"),
@@ -316,6 +319,8 @@ urlpatterns = [
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),
     # E-2/L5: AGB — страница есть только при заданном тексте (LegalDoc).
     path("agb/", public_views.agb, name="storefront-agb"),
+    # A4: анонимное read-only превью черновика по share-токену.
+    path("vorschau/<str:token>/", public_views.shared_preview, name="shared-preview"),
     # C.1: онлайн-форма Widerruf (заявление уходит продавцу).
     path("widerruf-formular/", public_views.withdrawal_form, name="storefront-withdrawal-form"),
     path("u/<uuid:token>/", public_views.unsubscribe, name="storefront-unsubscribe"),

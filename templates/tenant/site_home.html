@@ -22,6 +22,9 @@
          (inline-edit/drag); кнопка делает её явной и переключаемой (чистое превью — выкл).{% endcomment %}
       <button type="button" id="bld-edit-toggle" aria-pressed="false" title="{% trans 'Turn on to edit headings and texts directly on the page.' %}"
               class="text-sm border border-gray-300 text-gray-500 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✍️<span class="hidden sm:inline"> {% trans "Edit on site" %}</span></button>
+      {% comment %}A4: share-ссылка на read-only превью черновика (снапшот в момент клика).{% endcomment %}
+      <button type="button" id="bld-share-preview" data-share-url="{% url 'site-share-preview' %}" title="{% trans 'Copy a read-only preview link of your draft to share.' %}"
+              class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">🔗<span class="hidden sm:inline"> {% trans "Share preview" %}</span></button>
       <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </span>
   </div>
@@ -1104,6 +1107,20 @@
   applyEditMode(editOn);  // синхронизировать вид кнопки/подсказки (док стилизуется на load фрейма)
   var url = form.getAttribute("data-draft-url");
   var token = (form.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "";
+  // A4: share-ссылка на снапшот черновика — POST → {url} → в буфер обмена.
+  var shareBtn = document.getElementById("bld-share-preview");
+  if (shareBtn) shareBtn.addEventListener("click", function () {
+    fetch(shareBtn.getAttribute("data-share-url"), {
+      method: "POST",
+      headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" },
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.url) return;
+      var done = function () { window.prompt("{% trans 'Share this read-only preview link (valid 7 days):' %}", d.url); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(d.url).then(done, done);
+      } else { done(); }
+    }).catch(function () {});
+  });
   // SE-2a-1: текущая страница превью (главная по умолчанию; переключатель меняет).
   var previewPath = "/";
   function previewUrl() {

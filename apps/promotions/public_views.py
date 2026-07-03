@@ -838,6 +838,30 @@ def withdrawal(request):
     )
 
 
+def shared_preview(request, token):
+    """A4: анонимное read-only превью черновика по share-токену.
+
+    Снапшот из cache (фиксирован при выпуске, TTL 7 дней) кладём в сессию
+    посетителя под `site_preview_draft` и уводим на `/?preview=1` — штатный
+    draft-путь витрины (главная + хром). Правок логики чтения не требуется;
+    page-кэш обходится сам (непустая сессия/GET). Нет/истёк → 410.
+    """
+    draft = cache.get(f"share_preview:{token}")
+    if not isinstance(draft, dict):
+        return render(
+            request,
+            "storefront/legal.html",
+            {
+                "legal_title": "Link abgelaufen",
+                "legal_body": "Diese Vorschau-Ansicht ist abgelaufen oder wurde "
+                "nicht gefunden. Bitten Sie den Absender um einen neuen Link.",
+            },
+            status=410,
+        )
+    request.session["site_preview_draft"] = draft
+    return redirect("/?preview=1")
+
+
 def agb(request):
     """E-2/L5: страница AGB — только при заданном тексте (фолбэка нет)."""
     from apps.core.legal import legal_text

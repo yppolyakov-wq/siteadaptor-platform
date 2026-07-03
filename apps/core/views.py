@@ -1725,6 +1725,41 @@ def site_preview_draft(request):
     return HttpResponse(status=204)
 
 
+SHARE_PREVIEW_TTL = 7 * 24 * 3600  # A4: срок жизни share-ссылки на черновик
+
+
+@login_required
+@require_POST
+def share_preview_issue(request):
+    """A4: выпуск share-ссылки на превью черновика (read-only, без логина).
+
+    Снапшот фиксируется В МОМЕНТ выпуска (cache, TTL 7 дней) — дальнейшие
+    правки владельца ссылку не меняют. Источник: черновик сессии → БД-`_draft`
+    (автосейв) → нормализованный опубликованный конфиг. Просмотр —
+    `shared_preview` (promotions.public_views): снапшот в сессию посетителя
+    → `/?preview=1` (штатный draft-путь витрины).
+    """
+    import secrets
+
+    from django.core.cache import cache
+    from django.http import JsonResponse
+
+    from apps.tenants import siteconfig
+
+    draft = request.session.get("site_preview_draft")
+    if not isinstance(draft, dict):
+        raw = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+        db_draft = raw.get("_draft")
+        draft = db_draft if isinstance(db_draft, dict) else siteconfig.normalize(raw)
+    token = secrets.token_urlsafe(32)
+    cache.set(f"share_preview:{token}", draft, SHARE_PREVIEW_TTL)
+    from django.urls import reverse
+
+    return JsonResponse(
+        {"url": request.build_absolute_uri(reverse("shared-preview", args=[token]))}
+    )
+
+
 @login_required
 @require_POST
 def site_inline_edit(request):
