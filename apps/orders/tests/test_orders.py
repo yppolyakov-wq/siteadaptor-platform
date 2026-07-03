@@ -206,3 +206,14 @@ def test_cart_order_button_is_312j_compliant():
     body = public_views.cart_view(_req(tenant=tenant, session={"cart": cart})).content.decode()
     assert "Zahlungspflichtig bestellen" in body
     assert "Place order" not in body
+
+
+def test_cart_total_shows_pangv_vat_note():
+    """E-2/PAngV: у Total корзины — «inkl. MwSt.» (Versand — отдельной строкой
+    сводки при выборе доставки, не нотой)."""
+    tenant = TenantFactory.build()
+    product = ProductFactory(base_price=Decimal("3.00"))
+    body = public_views.cart_view(
+        _req(tenant=tenant, session={"cart": {str(product.pk): 1}})
+    ).content.decode()
+    assert "inkl. MwSt." in body

@@ -35,6 +35,8 @@
   {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>
   {% endif %}{% endwith %}{% endif %}
+  {# E-2/PAngV: Gesamtpreis-Hinweis у цены; правовая строка — немецкий msgid (паттерн §312j-кнопки). #}
+  <p class="mt-1 text-xs text-gray-400">{% trans "inkl. MwSt." %}{% if request.tenant.delivery_enabled %} · {% trans "zzgl. Versand" %}{% endif %}</p>
   {% if 'description' not in product_detail_hidden %}<div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text }}</div>{% endif %}
 
   {# Lebensmittel-Kennzeichnung (LMIV, R4): при наличии данных и если секция не скрыта в билдере #}

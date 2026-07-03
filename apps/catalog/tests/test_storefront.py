@@ -276,6 +276,22 @@ def test_product_detail_renders_price_and_contacts():
     assert "Hauptstr. 1" in body  # офлайн-покупка: контакты бизнеса
 
 
+def test_product_detail_pangv_price_notes():
+    """E-2/PAngV: у цены — «inkl. MwSt.»; «zzgl. Versand» только при включённой
+    доставке (Fernabsatz)."""
+    product = ProductFactory(name={"de": "Roggenbrot"}, base_price="4.20")
+    body = public_views.product_detail(
+        _req(f"/sortiment/{product.pk}/"), pk=product.pk
+    ).content.decode()
+    assert "inkl. MwSt." in body
+    assert "zzgl. Versand" not in body  # доставка выключена → ноты о Versand нет
+
+    req = _req(f"/sortiment/{product.pk}/")
+    req.tenant.delivery_enabled = True
+    body = public_views.product_detail(req, pk=product.pk).content.decode()
+    assert "zzgl. Versand" in body
+
+
 def test_product_detail_inline_edit_markers():
     """H1.2: имя и описание товара на детальной несут data-edit-model → редактор
     (его frame.load JS) делает их contenteditable. На публичной витрине инертны."""
