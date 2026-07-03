@@ -3795,3 +3795,13 @@
   счётчики доменов; разделы Termine/Passes/Stays/Tickets/Aufträge(→кабинет)/
   Rechnungen(→кабинет)/inbox-переписка(→тред)/отзывы по email-матчу.
   Generic-рендер карточек в customer_detail. Без миграций. 8.5 timeline — опц.
+- **2026-07-03 — CM-6 (репутационный модуль): 6.1–6.4 целиком.** Новый модуль
+  reviews (⭐ «Bewertungen», актив из коробки): кабинет /dashboard/reviews/ —
+  список отзывов (фильтры, подписи сущностей fail-soft) + скрыть/показать
+  (первая модерация вообще) + сводка owner_overview. Ответы владельца
+  (reply_text/replied_at, reviews/0003) — форма в кабинете + «Reply from the
+  business» в обоих витринных рендерах. Post-purchase просьба об отзыве для
+  заказов (orders/0013, beat, DE=msgid+en.po) — круг просьб замкнут по всем
+  4 kind. Уроки: msgmerge при перегенерации en.po ТЕРЯЕТ часть переводов и
+  fuzzy-подставляет чужие — после makemessages прогонять fill-скрипт и
+  проверять `msgfmt --statistics` (112/112).
