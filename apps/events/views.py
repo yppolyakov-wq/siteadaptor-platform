@@ -201,6 +201,11 @@ def blog_list(request):
                 n += 1
                 slug = f"{base}-{n}"
             published = bool(request.POST.get("publish"))
+            # CM-2: «Veröffentlichen am» — будущая дата планирует публикацию
+            # (черновик с датой; beat send_due_content включит по наступлении).
+            publish_at = _parse_publish_at(request)
+            if publish_at is not None:
+                published = False
             BlogPost.objects.create(
                 title=title[:200],
                 slug=slug[:220],
@@ -208,7 +213,7 @@ def blog_list(request):
                 body=request.POST.get("body", "").strip(),
                 cover=_uploaded_cover(request),
                 is_published=published,
-                published_at=timezone.now() if published else None,
+                published_at=publish_at or (timezone.now() if published else None),
             )
             messages.success(request, _("Post created."))
         return redirect("blog-list")
@@ -240,13 +245,34 @@ def blog_edit(request, pk):
         if cover or request.POST.get("remove_cover"):
             post.cover = cover
         publish = bool(request.POST.get("publish"))
-        if publish and not post.is_published:
-            post.published_at = timezone.now()
-        post.is_published = publish
+        publish_at = _parse_publish_at(request)
+        if publish_at is not None:
+            # CM-2: будущая дата планирует (перекрывает чекбокс) — beat включит.
+            post.is_published = False
+            post.published_at = publish_at
+        else:
+            if publish and not post.is_published:
+                post.published_at = timezone.now()
+            post.is_published = publish
         post.save()
         messages.success(request, _("Post saved."))
         return redirect("blog-edit", pk=post.pk)
     return render(request, "events/blog_edit.html", {"nav": "events", "post": post})
+
+
+def _parse_publish_at(request):
+    """CM-2: «Veröffentlichen am» из формы блога — только БУДУЩАЯ aware-дата
+    (прошлая/пустая → None: обычная логика publish-чекбокса)."""
+    from django.utils import timezone
+    from django.utils.dateparse import parse_datetime
+
+    raw = (request.POST.get("publish_at") or "").strip()
+    dt = parse_datetime(raw) if raw else None
+    if dt is None:
+        return None
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt)
+    return dt if dt > timezone.now() else None
 
 
 def _uploaded_cover(request) -> dict:

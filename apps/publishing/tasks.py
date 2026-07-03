@@ -60,3 +60,62 @@ def publish_to_channel(*, tenant_schema, publication_id):
 def remove_from_channel(*, tenant_schema, publication_id):
     with schema_context(tenant_schema):
         return {"result": _do_remove(publication_id)}
+
+
+# --- CM-2: отложенный контент (посты календаря + запланированный блог) ----------
+
+
+def send_due_posts(now) -> int:
+    """Разослать созревшие посты: scheduled & scheduled_at<=now → Publications
+    по включённым каналам + status=sent. Чистая логика — тестируется напрямую."""
+    from .models import SocialPost
+    from .services import publish_post
+    from .state_machine import POST_SENT, SocialPostSM
+
+    sm = SocialPostSM()
+    count = 0
+    for post in SocialPost.objects.filter(
+        status=SocialPost.SCHEDULED, scheduled_at__isnull=False, scheduled_at__lte=now
+    ):
+        publish_post(post)
+        sm.apply(post, POST_SENT)
+        count += 1
+    return count
+
+
+def publish_due_blog(now) -> int:
+    """CM-2: отложенная публикация блога — черновик с датой в published_at
+    включается при её наступлении (семантика поля расширена: у черновика это
+    «когда опубликовать», у опубликованного — как было)."""
+    from apps.events.models import BlogPost
+
+    return BlogPost.objects.filter(
+        is_published=False, published_at__isnull=False, published_at__lte=now
+    ).update(is_published=True)
+
+
+@idempotent_task()
+def send_due_content():
+    """Beat (300с): по всем схемам разослать созревшие посты + включить
+    запланированный блог; при изменениях — сброс кэша витрины схемы."""
+    from django.utils import timezone
+
+    from apps.core.pagecache import bump_storefront_cache
+
+    now = timezone.now()
+    totals = {"posts": 0, "blog": 0}
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            posts = send_due_posts(now)
+            blog = publish_due_blog(now)
+        if blog:
+            bump_storefront_cache(schema)
+        totals["posts"] += posts
+        totals["blog"] += blog
+    return totals
+
+
+def _iter_tenant_schemas():
+    from apps.tenants.models import Tenant
+
+    return list(Tenant.objects.exclude(schema_name="public").values_list("schema_name", flat=True))

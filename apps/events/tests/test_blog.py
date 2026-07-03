@@ -153,3 +153,26 @@ def test_blog_detail_emits_blogposting_jsonld():
     )
     body = public_views.blog_detail(_pub(), slug=post.slug).content.decode()
     assert '"@type":"BlogPosting"' in body and "Herbst-Pflege" in body
+
+
+def test_blog_create_with_future_publish_at_schedules():
+    """CM-2: «Veröffentlichen am» в будущем → черновик с датой (beat включит)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    future = (timezone.localtime(timezone.now()) + timedelta(days=2)).strftime("%Y-%m-%dT%H:%M")
+    views.blog_list(_cab("post", {"title": "Geplant", "publish": "on", "publish_at": future}))
+    post = BlogPost.objects.get(slug="geplant")
+    assert not post.is_published and post.published_at is not None
+
+
+def test_blog_edit_past_publish_at_ignored():
+    """Прошлая дата не планирует — обычная логика чекбокса publish."""
+    post = _post(is_published=False)
+    views.blog_edit(
+        _cab("post", {"title": post.title, "publish": "on", "publish_at": "2020-01-01T10:00"}),
+        pk=post.pk,
+    )
+    post.refresh_from_db()
+    assert post.is_published  # опубликован сразу (дата в прошлом игнорируется)

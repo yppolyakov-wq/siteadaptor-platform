@@ -41,6 +41,34 @@ def _publish_all(promotion) -> None:
         )
 
 
+def publish_post(post) -> int:
+    """CM-2: разослать SocialPost по включённым каналам — та же механика, что у
+    акции (get_or_create + requeue removed/failed + очередь с dedupe). Статус
+    поста НЕ трогаем (вызывающий переводит через SocialPostSM). Возвращает
+    число каналов."""
+    schema = connection.schema_name
+    sm = PublicationSM()
+    count = 0
+    for channel in Channel.objects.filter(is_enabled=True):
+        pub, _ = Publication.objects.get_or_create(
+            post=post,
+            channel=channel,
+            defaults={
+                "dedupe_key": f"publish:post:{post.id}:{channel.id}",
+                "status": QUEUED,
+            },
+        )
+        if pub.status in (REMOVED, FAILED):
+            sm.apply(pub, QUEUED)
+        publish_to_channel.delay(
+            dedupe_key=f"pub:{pub.id}:publish",
+            tenant_schema=schema,
+            publication_id=str(pub.id),
+        )
+        count += 1
+    return count
+
+
 def _remove_all(promotion) -> None:
     schema = connection.schema_name
     for pub in Publication.objects.filter(promotion=promotion).exclude(status=REMOVED):

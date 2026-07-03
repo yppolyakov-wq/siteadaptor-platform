@@ -123,6 +123,8 @@ urlpatterns = [
     path("dashboard/help/", include("apps.support.urls")),
     # Каналы публикации (Sprint 4).
     path("dashboard/channels/", publishing_views.channels, name="channels"),
+    # CM-2: контент-календарь (посты в каналы; отложенная отправка — beat).
+    path("dashboard/posts/", publishing_views.posts, name="publishing-posts"),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
     path("dashboard/channels/config/", publishing_views.channel_config, name="channel-config"),
     # In-app OAuth (OAuth-A): старт из кабинета → провайдер → callback на public.

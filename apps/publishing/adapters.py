@@ -83,18 +83,14 @@ def _gbp_publish(publication) -> str:
     if missing:
         raise RuntimeError(f"GBP nicht konfiguriert: {', '.join(missing)} fehlt")
 
-    promotion = publication.promotion
-    summary = promotion.title_text
-    if promotion.description_text:
-        summary = f"{summary}\n\n{promotion.description_text}"
+    content = content_for(publication)
     body = {
         "languageCode": "de",
         "topicType": "STANDARD",
-        "summary": summary[:_GBP_SUMMARY_LIMIT],
+        "summary": content.caption[:_GBP_SUMMARY_LIMIT],
     }
-    promo_url = _promo_public_url(promotion)
-    if promo_url:
-        body["callToAction"] = {"actionType": "LEARN_MORE", "url": promo_url}
+    if content.link_url:
+        body["callToAction"] = {"actionType": "LEARN_MORE", "url": content.link_url}
 
     token = _gbp_access_token(config)
     response = requests.post(
@@ -139,14 +135,8 @@ def _promo_caption(promotion) -> str:
     return text
 
 
-def _promo_image_url(promotion) -> str:
-    """Абсолютный URL главного фото акции (для фетча Meta). '' если фото нет.
-
-    Относительный `/media/...` достраиваем доменом арендатора (public-схема),
-    как и ссылку на акцию.
-    """
-    img = promotion.primary_image
-    url = img.get("url") if img else None
+def _absolute_media_url(url) -> str:
+    """Относительный `/media/...` достраиваем доменом арендатора (public-схема)."""
     if not url:
         return ""
     if url.startswith(("http://", "https://")):
@@ -163,18 +153,62 @@ def _promo_image_url(promotion) -> str:
     return f"https://{domain.domain}{url}" if domain else ""
 
 
+def _promo_image_url(promotion) -> str:
+    """Абсолютный URL главного фото акции (для фетча Meta). '' если фото нет."""
+    img = promotion.primary_image
+    return _absolute_media_url(img.get("url") if img else None)
+
+
+class PostContent:
+    """CM-2: контент публикации независимо от источника (акция ИЛИ SocialPost).
+
+    caption = title + описание (промо-ветка 1:1 прежний _promo_caption; замки —
+    существующие тесты каналов). У поста title/description — первая строка/весь
+    текст (Pinterest требует их раздельно)."""
+
+    __slots__ = ("title", "description", "caption", "image_url", "link_url")
+
+    def __init__(self, title, description, caption, image_url, link_url):
+        self.title = title
+        self.description = description
+        self.caption = caption
+        self.image_url = image_url
+        self.link_url = link_url
+
+
+def content_for(publication) -> PostContent:
+    if publication.promotion_id:
+        promotion = publication.promotion
+        return PostContent(
+            title=promotion.title_text,
+            description=promotion.description_text,
+            caption=_promo_caption(promotion),
+            image_url=_promo_image_url(promotion),
+            link_url=_promo_public_url(promotion),
+        )
+    post = publication.post
+    first_line = post.text.strip().splitlines()[0] if post.text.strip() else ""
+    return PostContent(
+        title=first_line,
+        description=post.text,
+        caption=post.text,
+        image_url=_absolute_media_url(post.image_url),
+        link_url=post.link_url,
+    )
+
+
 def _fb_publish(publication) -> str:
     config = decrypted_config(publication.channel)
     missing = [key for key in ("page_id", "access_token") if not config.get(key)]
     if missing:
         raise RuntimeError(f"Facebook nicht konfiguriert: {', '.join(missing)} fehlt")
 
-    promotion = publication.promotion
+    content = content_for(publication)
     version = _meta_version()
     token = config["access_token"]
-    caption = _promo_caption(promotion)
-    link = _promo_public_url(promotion)
-    image = _promo_image_url(promotion)
+    caption = content.caption
+    link = content.link_url
+    image = content.image_url
 
     if image:
         # /photos не принимает link → ссылку добавляем в текст подписи
@@ -213,16 +247,16 @@ def _ig_publish(publication) -> str:
     if missing:
         raise RuntimeError(f"Instagram nicht konfiguriert: {', '.join(missing)} fehlt")
 
-    promotion = publication.promotion
-    image = _promo_image_url(promotion)
+    content = content_for(publication)
+    image = content.image_url
     if not image:
         raise RuntimeError("Instagram benötigt ein Bild für die Aktion")
 
     version = _meta_version()
     ig_user = config["ig_user_id"]
     token = config["access_token"]
-    caption = _promo_caption(promotion)
-    link = _promo_public_url(promotion)
+    caption = content.caption
+    link = content.link_url
     if link:  # IG-Captions ohne klickbaren Link — URL als Text
         caption = f"{caption}\n\n{link}"
 
@@ -266,12 +300,12 @@ def _tg_publish(publication) -> str:
     if missing:
         raise RuntimeError(f"Telegram nicht konfiguriert: {', '.join(missing)} fehlt")
 
-    promotion = publication.promotion
-    text = _promo_caption(promotion)
-    link = _promo_public_url(promotion)
+    content = content_for(publication)
+    text = content.caption
+    link = content.link_url
     if link:
         text = f"{text}\n\n{link}"
-    image = _promo_image_url(promotion)
+    image = content.image_url
     token, chat_id = config["bot_token"], config["chat_id"]
 
     if image:
@@ -316,18 +350,18 @@ def _pinterest_publish(publication) -> str:
     if missing:
         raise RuntimeError(f"Pinterest nicht konfiguriert: {', '.join(missing)} fehlt")
 
-    promotion = publication.promotion
-    image = _promo_image_url(promotion)
+    content = content_for(publication)
+    image = content.image_url
     if not image:
         raise RuntimeError("Pinterest benötigt ein Bild für die Aktion")
 
     body = {
         "board_id": config["board_id"],
-        "title": promotion.title_text[:100],
-        "description": promotion.description_text[:800],
+        "title": content.title[:100],
+        "description": content.description[:800],
         "media_source": {"source_type": "image_url", "url": image},
     }
-    link = _promo_public_url(promotion)
+    link = content.link_url
     if link:
         body["link"] = link
     response = requests.post(

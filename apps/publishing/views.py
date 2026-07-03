@@ -109,3 +109,93 @@ def oauth_callback(request, provider):
         return HttpResponse(_("Could not complete the connection."), status=502)
     back = oauth.tenant_channels_url(schema)
     return redirect(back) if back else HttpResponse(_("Connected. You can close this tab."))
+
+
+@login_required
+def posts(request):
+    """CM-2: контент-календарь — собственные посты (текст/фото/ссылка) с
+    отправкой в включённые каналы: «Planen» (к дате, beat send_due_content),
+    «Jetzt senden», «Entwurf». Доставка per-канал — Publications (Channels).
+    """
+    from django.contrib import messages
+    from django.core.exceptions import ValidationError
+    from django.shortcuts import get_object_or_404, redirect
+    from django.utils import timezone
+    from django.utils.dateparse import parse_datetime
+    from django.utils.translation import gettext as _t
+
+    from apps.catalog.images import save_product_image
+
+    from .models import Channel, SocialPost
+    from .services import publish_post
+    from .state_machine import POST_SCHEDULED, POST_SENT, SocialPostSM
+
+    sm = SocialPostSM()
+
+    def _send_now(post):
+        post.scheduled_at = timezone.now()
+        post.save(update_fields=["scheduled_at", "updated_at"])
+        if post.status == SocialPost.DRAFT:
+            sm.apply(post, POST_SCHEDULED)
+        publish_post(post)
+        sm.apply(post, POST_SENT)
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        pk = request.POST.get("pk", "")
+        if action in ("delete", "send_now") and pk:
+            post = get_object_or_404(SocialPost, pk=pk)
+            if action == "delete":
+                post.delete()
+                messages.success(request, _t("Post deleted."))
+            elif post.status != SocialPost.SENT:
+                _send_now(post)
+                messages.success(request, _t("Post sent to channels."))
+            return redirect("publishing-posts")
+        text = (request.POST.get("text") or "").strip()
+        if not text:
+            messages.error(request, _t("Text is required."))
+            return redirect("publishing-posts")
+        image = {}
+        uploaded = request.FILES.get("image")
+        if uploaded is not None:
+            try:
+                image = save_product_image(uploaded, folder="posts")
+            except ValidationError as exc:
+                messages.error(request, "; ".join(exc.messages))
+                return redirect("publishing-posts")
+        when = parse_datetime((request.POST.get("scheduled_at") or "").strip())
+        if when is not None and timezone.is_naive(when):
+            when = timezone.make_aware(when)
+        post = SocialPost.objects.create(
+            text=text,
+            link_url=(request.POST.get("link_url") or "").strip(),
+            image=image,
+        )
+        if action == "now":
+            _send_now(post)
+            messages.success(request, _t("Post sent to channels."))
+        elif action == "schedule" and when is not None:
+            post.scheduled_at = when
+            post.save(update_fields=["scheduled_at", "updated_at"])
+            sm.apply(post, POST_SCHEDULED)
+            messages.success(request, _t("Post scheduled."))
+        else:
+            messages.success(request, _t("Draft saved."))  # без даты — черновик
+        return redirect("publishing-posts")
+
+    return render(
+        request,
+        "publishing/posts.html",
+        {
+            "nav": "posts",
+            "scheduled": SocialPost.objects.filter(status=SocialPost.SCHEDULED).order_by(
+                "scheduled_at"
+            ),
+            "drafts": SocialPost.objects.filter(status=SocialPost.DRAFT),
+            "sent": SocialPost.objects.filter(status=SocialPost.SENT).order_by("-scheduled_at")[
+                :20
+            ],
+            "has_channels": Channel.objects.filter(is_enabled=True).exists(),
+        },
+    )

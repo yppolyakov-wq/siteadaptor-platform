@@ -31,3 +31,18 @@ class PublicationSM(StateMachine):
         Transition(REMOVED, QUEUED, "publication.requeued"),
         Transition(PUBLISHED, QUEUED, "publication.requeued"),
     ]
+
+
+# CM-2: статусы собственного поста контент-календаря. sent = разослан в каналы
+# (создан набор Publications); доставка per-канал живёт на PublicationSM.
+POST_DRAFT = "draft"
+POST_SCHEDULED = "scheduled"
+POST_SENT = "sent"
+
+
+class SocialPostSM(StateMachine):
+    transitions = [
+        Transition(POST_DRAFT, POST_SCHEDULED, "socialpost.scheduled"),
+        Transition(POST_SCHEDULED, POST_DRAFT, "socialpost.unscheduled"),
+        Transition(POST_SCHEDULED, POST_SENT, "socialpost.sent"),
+    ]

@@ -253,6 +253,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.expire_reservations",
         "schedule": 300.0,  # каждые 5 минут — просрочка броней + возврат остатка
     },
+    # CM-2: отложенные посты контент-календаря + запланированный блог.
+    "send-due-content": {
+        "task": "apps.publishing.tasks.send_due_content",
+        "schedule": 300.0,
+    },
     "roll-promotion-statuses": {
         "task": "apps.promotions.tasks.roll_promotion_statuses",
         "schedule": 300.0,  # каждые 5 минут — scheduled→active, active→ended

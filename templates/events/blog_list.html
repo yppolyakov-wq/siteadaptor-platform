@@ -15,7 +15,7 @@
   {% for p in posts %}
     <a href="{% url 'blog-edit' p.pk %}" class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
       <span class="font-medium">{{ p.title }}</span>
-      <span class="text-xs {% if p.is_published %}text-green-600{% else %}text-gray-400{% endif %}">{% if p.is_published %}{% trans "Published" %}{% else %}{% trans "Draft" %}{% endif %}</span>
+      <span class="text-xs {% if p.is_published %}text-green-600{% elif p.published_at %}text-indigo-600{% else %}text-gray-400{% endif %}">{% if p.is_published %}{% trans "Published" %}{% elif p.published_at %}⏰ {{ p.published_at|date:"d.m.Y H:i" }}{% else %}{% trans "Draft" %}{% endif %}</span>
     </a>
   {% empty %}
     <p class="text-gray-500">{% trans "No posts yet." %}</p>
@@ -33,6 +33,9 @@
     <input name="cover" type="file" accept="image/*" class="w-full text-sm">
   </div>
   <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="publish"> {% trans "Publish now" %}</label>
+  <label class="block text-sm text-gray-500">{% trans "Publish at (optional)" %}
+    <input type="datetime-local" name="publish_at" class="mt-1 rounded-lg border border-gray-300 px-3 py-2 text-sm block">
+  </label>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create post" %}</button>
 </form>
 {% endblock %}

@@ -206,8 +206,12 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="publishing",
         label_de="Veröffentlichung (Kanäle)",
         icon="📣",
-        nav_items=(NavItem("channels", _("Channels"), "channels"),),
-        url_prefixes=("/dashboard/channels/",),
+        nav_items=(
+            NavItem("channels", _("Channels"), "channels"),
+            # CM-2: контент-календарь — посты с отложенной отправкой.
+            NavItem("publishing-posts", _("Posts"), "posts"),
+        ),
+        url_prefixes=("/dashboard/channels/", "/dashboard/posts/"),
         description_de="Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, Instagram).",
     ),
     ModuleSpec(

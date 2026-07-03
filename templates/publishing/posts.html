@@ -1,0 +1,87 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Posts" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-1">{% trans "Content calendar" %}</h1>
+<p class="text-sm text-gray-500 mb-6">{% trans "Plan posts ahead — they are sent to all enabled channels at the scheduled time." %}</p>
+
+{% if not has_channels %}
+  <div class="mb-6 rounded-lg bg-amber-50 text-amber-800 px-4 py-3 text-sm max-w-xl">
+    {% trans "No channels enabled yet." %} <a href="{% url 'channels' %}" class="underline">{% trans "Enable channels" %}</a>
+  </div>
+{% endif %}
+
+{# Создание поста: текст + фото + ссылка + время → Planen / Jetzt senden / Entwurf #}
+<form method="post" enctype="multipart/form-data" class="bg-white border border-gray-200 rounded-lg p-4 max-w-xl space-y-3 mb-8">
+  {% csrf_token %}
+  <textarea name="text" rows="4" required placeholder="{% trans 'What would you like to share?' %}"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+  <div class="grid sm:grid-cols-2 gap-3">
+    <label class="block text-sm text-gray-500">{% trans "Link (optional)" %}
+      <input type="url" name="link_url" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="https://…">
+    </label>
+    <label class="block text-sm text-gray-500">{% trans "Send at" %}
+      <input type="datetime-local" name="scheduled_at" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </label>
+  </div>
+  <label class="block text-sm text-gray-500">{% trans "Photo (optional; required for Instagram/Pinterest)" %}
+    <input type="file" name="image" accept="image/*" class="mt-1 block text-sm">
+  </label>
+  <div class="flex flex-wrap gap-2 pt-1">
+    <button type="submit" name="action" value="schedule" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Schedule" %}</button>
+    <button type="submit" name="action" value="now" class="rounded-lg px-4 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-50">{% trans "Send now" %}</button>
+    <button type="submit" name="action" value="draft" class="rounded-lg px-4 py-2 text-sm text-gray-500 border border-gray-200 hover:bg-gray-50">{% trans "Save draft" %}</button>
+  </div>
+</form>
+
+{% if scheduled %}
+<h2 class="font-semibold mb-2">{% trans "Scheduled" %}</h2>
+<div class="space-y-2 max-w-xl mb-8">
+  {% for p in scheduled %}
+    <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-start gap-3">
+      {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
+      <div class="flex-1 min-w-0">
+        <p class="text-sm whitespace-pre-line line-clamp-2">{{ p.text }}</p>
+        <p class="text-xs text-indigo-600 mt-1">⏰ {{ p.scheduled_at|date:"d.m.Y H:i" }}</p>
+      </div>
+      <form method="post" class="flex gap-1">{% csrf_token %}<input type="hidden" name="pk" value="{{ p.pk }}">
+        <button name="action" value="send_now" class="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50">{% trans "Send now" %}</button>
+        <button name="action" value="delete" class="text-xs px-2 py-1 rounded border border-gray-200 text-red-600 hover:bg-red-50">✕</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if drafts %}
+<h2 class="font-semibold mb-2">{% trans "Drafts" %}</h2>
+<div class="space-y-2 max-w-xl mb-8">
+  {% for p in drafts %}
+    <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-start gap-3">
+      {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
+      <p class="flex-1 min-w-0 text-sm whitespace-pre-line line-clamp-2">{{ p.text }}</p>
+      <form method="post" class="flex gap-1">{% csrf_token %}<input type="hidden" name="pk" value="{{ p.pk }}">
+        <button name="action" value="send_now" class="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50">{% trans "Send now" %}</button>
+        <button name="action" value="delete" class="text-xs px-2 py-1 rounded border border-gray-200 text-red-600 hover:bg-red-50">✕</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if sent %}
+<h2 class="font-semibold mb-2">{% trans "Sent" %}</h2>
+<div class="space-y-2 max-w-xl">
+  {% for p in sent %}
+    <div class="bg-white border border-gray-100 rounded-lg p-3 flex items-start gap-3 opacity-70">
+      {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
+      <div class="flex-1 min-w-0">
+        <p class="text-sm whitespace-pre-line line-clamp-2">{{ p.text }}</p>
+        <p class="text-xs text-gray-400 mt-1">✓ {{ p.scheduled_at|date:"d.m.Y H:i" }} · <a href="{% url 'channels' %}" class="underline">{% trans "delivery status" %}</a></p>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
