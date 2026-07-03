@@ -24,6 +24,13 @@ class StayBookingSM(StateMachine):
 
             enqueue_stay_email(instance, t.dst)
 
+        # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
+        # FSM не даёт второй переход в cancelled).
+        if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
+            from apps.promotions.services import unredeem_voucher
+
+            unredeem_voucher(instance.voucher_code)
+
         # Выезд → запись в журнал выручки (идемпотентно по source_ref). НДС 7 %
         # — размещение (Beherbergung) льготная ставка; завтрак/доп — вне v1.
         if t.dst == "fulfilled":

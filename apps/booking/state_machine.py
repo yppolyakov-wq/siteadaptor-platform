@@ -23,6 +23,13 @@ class BookingSM(StateMachine):
 
             enqueue_booking_email(instance, t.dst)
 
+        # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
+        # FSM не даёт второй переход в cancelled).
+        if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
+            from apps.promotions.services import unredeem_voucher
+
+            unredeem_voucher(instance.voucher_code)
+
         # Услуга выполнена (G10) → выручка в журнал (НДС 19 %, идемпотентно по
         # source_ref). Общие брони без цены (стол/комната) выручку не пишут.
         if t.dst == "fulfilled" and instance.total_cents:

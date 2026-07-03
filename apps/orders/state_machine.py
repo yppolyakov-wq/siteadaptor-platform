@@ -32,6 +32,13 @@ class OrderSM(StateMachine):
         if t.dst in ("cancelled", "returned"):
             _restore_stock(instance)
 
+        # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
+        # FSM не даёт второй переход в cancelled).
+        if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
+            from apps.promotions.services import unredeem_voucher
+
+            unredeem_voucher(instance.voucher_code)
+
         # Выдан/отправлен → запись в журнал выручки (D4a, идемпотентно по
         # source_ref). Доставка включена в total → попадает в выручку.
         if t.dst in ("picked_up", "shipped"):

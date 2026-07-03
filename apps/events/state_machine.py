@@ -48,6 +48,13 @@ class TicketSM(StateMachine):
 
             enqueue_ticket_email(instance, t.dst)
 
+        # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
+        # FSM не даёт второй переход в cancelled).
+        if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
+            from apps.promotions.services import unredeem_voucher
+
+            unredeem_voucher(instance.voucher_code)
+
         # R10e: отмена билета → стоп будущих списаний рассрочки (без авто-возврата;
         # уже оплаченные доли возвращает владелец вручную в кабинете).
         if t.dst == "cancelled":

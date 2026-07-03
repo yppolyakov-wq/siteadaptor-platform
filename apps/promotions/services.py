@@ -223,6 +223,21 @@ def redeem_voucher(code):
     return voucher
 
 
+def unredeem_voucher(code) -> bool:
+    """B1.4: вернуть ОДНО использование кода при отмене брони/заказа/билета.
+
+    Идемпотентность — на вызывающем: FSM-переход в cancelled срабатывает один
+    раз (двойная отмена = IllegalTransition). Условный декремент (used_count>0)
+    гонко-безопасен; неизвестный/неиспользованный код — no-op (False)."""
+    code = (code or "").strip().upper()
+    if not code:
+        return False
+    updated = Voucher.objects.filter(code=code, used_count__gt=0).update(
+        used_count=F("used_count") - 1
+    )
+    return bool(updated)
+
+
 # ---------------------------------------------------------------------------
 # Лояльность (штампы)
 # ---------------------------------------------------------------------------
