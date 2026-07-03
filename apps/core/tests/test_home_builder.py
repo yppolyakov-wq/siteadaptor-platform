@@ -852,7 +852,9 @@ def test_home_builder_saves_service_stay_detail_hidden():
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    assert siteconfig.detail_section_hidden(cfg, "booking") == {"reviews"}
+    # B3: в реестре booking появилась секция upsell — неприсланный чекбокс при
+    # sd_present честно скрывается presence-guard'ом, как любой другой.
+    assert siteconfig.detail_section_hidden(cfg, "booking") == {"reviews", "upsell"}
     assert siteconfig.detail_section_hidden(cfg, "stays") == {"similar"}
 
 
@@ -1673,3 +1675,38 @@ def test_home_builder_se8a_global_simple_expert_mode():
         "#bld-root[data-mode=basic] [data-expert]" in body
     )  # CSS прячет технику во всём редакторе
     assert "function setEditorMode" in body
+
+
+def test_named_version_save_and_rename(settings):
+    """A3: именованные версии — save_version кладёт снимок текущего с label,
+    label_version переименовывает; label виден в билдере."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(schema_name="public", slug="a3v", site_config={"hero_title": "Alt"})
+    resp = views.home_builder_view(
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {"action": "save_version", "version_label": "vor Redesign"},
+            tenant,
+        )
+    )
+    assert resp.status_code == 302
+    history = siteconfig.normalize(tenant.site_config)["history"]
+    assert history[0]["label"] == "vor Redesign"
+    assert history[0]["config"]["hero_title"] == "Alt"
+
+    views.home_builder_view(
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {"action": "label_version:0", "version_label": "Basis"},
+            tenant,
+        )
+    )
+    history = siteconfig.normalize(tenant.site_config)["history"]
+    assert history[0]["label"] == "Basis"
+
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", None, tenant)
+    ).content.decode()
+    assert "Basis" in body and "Save version" in body

@@ -174,7 +174,12 @@ def normalize_history(raw) -> list:
         if not isinstance(item, dict) or not isinstance(item.get("config"), dict):
             continue
         snap = {k: v for k, v in item["config"].items() if k not in _SNAPSHOT_EXCLUDE}
-        out.append({"ts": _s(item.get("ts")), "config": snap})
+        entry = {"ts": _s(item.get("ts")), "config": snap}
+        # A3: именованные версии — необязательная подпись снимка (кламп 60).
+        label = _s(item.get("label"))[:60]
+        if label:
+            entry["label"] = label
+        out.append(entry)
         if len(out) >= _MAX_HISTORY:
             break
     return out

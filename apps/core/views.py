@@ -818,6 +818,40 @@ def home_builder_view(request):
             request.tenant.site_config = siteconfig.normalize(cfg)
             request.tenant.save(update_fields=["site_config", "updated_at"])
             return redirect("site-home")
+        # A3: сохранить ИМЕНОВАННУЮ версию текущего конфига (снимок в начало истории;
+        # публикация не меняется — безопасная точка отката перед экспериментами).
+        if action == "save_version":
+            cfg = siteconfig.normalize(request.tenant.site_config)
+            label = (request.POST.get("version_label") or "").strip()[:60]
+            snap = {k: v for k, v in cfg.items() if k not in siteconfig._SNAPSHOT_EXCLUDE}
+            entry = {"ts": timezone.now().isoformat(), "config": snap}
+            if label:
+                entry["label"] = label
+            cfg["history"] = siteconfig.normalize_history([entry] + list(cfg.get("history") or []))
+            request.tenant.site_config = siteconfig.normalize(cfg)
+            request.tenant.save(update_fields=["site_config", "updated_at"])
+            messages.success(request, _("Version saved."))
+            return redirect("site-home")
+        # A3: переименовать снимок истории (label_version:<idx> + version_label).
+        if action.startswith("label_version:"):
+            _verb, _sep, ident = action.partition(":")
+            cfg = siteconfig.normalize(request.tenant.site_config)
+            history = list(cfg.get("history") or [])
+            try:
+                idx = int(ident)
+            except (TypeError, ValueError):
+                idx = -1
+            if 0 <= idx < len(history):
+                label = (request.POST.get("version_label") or "").strip()[:60]
+                if label:
+                    history[idx]["label"] = label
+                else:
+                    history[idx].pop("label", None)
+                cfg["history"] = siteconfig.normalize_history(history)
+                request.tenant.site_config = siteconfig.normalize(cfg)
+                request.tenant.save(update_fields=["site_config", "updated_at"])
+                messages.success(request, _("Version renamed."))
+            return redirect("site-home")
         # SE-5b: откат на версию из истории. restore_version:<idx> — заменить текущий
         # конфиг снимком, а ТЕКУЩИЙ положить в начало истории (сам откат undoable).
         if action.startswith("restore_version:"):
@@ -1296,7 +1330,10 @@ def home_builder_view(request):
                 for tid, t in config["page_templates"].items()
             ],
             # SE-5b: история версий (откат публикации).
-            "history": [{"idx": i, "ts": h["ts"]} for i, h in enumerate(config["history"])],
+            "history": [
+                {"idx": i, "ts": h["ts"], "label": h.get("label", "")}
+                for i, h in enumerate(config["history"])
+            ],
             "block_types": [
                 ("text", _("Text")),
                 ("image", _("Image")),
