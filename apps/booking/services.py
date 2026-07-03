@@ -39,6 +39,31 @@ def _unique_booking_code() -> str:
     raise RuntimeError("could not generate unique booking reference code")
 
 
+class PromoInvalid(Exception):
+    """B1.2: промокод/Gutschein задан, но не применим (нет/исчерпан/минимум)."""
+
+
+def _apply_voucher(code, base_cents):
+    """(discount_cents, code_snapshot) для кода. Пусто → (0, "").
+    Код задан, но не применим → PromoInvalid. Зеркало events._apply_voucher;
+    гасит атомарно (used_count += 1) — откатится вместе с транзакцией book."""
+    code = (code or "").strip().upper()
+    if not code:
+        return 0, ""
+    from apps.loyalty.models import Voucher
+    from apps.promotions.services import VoucherError, redeem_voucher
+
+    voucher = Voucher.objects.filter(code=code).first()
+    discount = voucher.discount_for(base_cents) if voucher else 0
+    if not voucher or discount <= 0:
+        raise PromoInvalid()
+    try:
+        redeem_voucher(code)
+    except VoucherError as exc:
+        raise PromoInvalid() from exc
+    return discount, code
+
+
 def _get_or_create_customer(*, name, email, phone) -> Customer:
     if email:
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
@@ -88,10 +113,13 @@ def book(
     service=None,
     price_cents=0,
     extras=None,
+    voucher_code="",
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
-    ResourceClosed / ValueError (кривой интервал). service/price_cents — G10.
-    extras (#7) — снимок доп-услуг [{label, price_cents}], сумма идёт в выручку."""
+    ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
+    service/price_cents — G10. extras (#7) — снимок доп-услуг
+    [{label, price_cents}], сумма идёт в выручку. voucher_code —
+    промокод/Gutschein: скидка на услугу+Extras, гасится атомарно."""
     if end <= start:
         raise ValueError("end must be after start")
 
@@ -109,12 +137,18 @@ def book(
     if _would_overfill(resource, overlapping(resource, start, end), party_size):
         raise SlotTaken()
 
+    # B1.2: скидка на полную стоимость (услуга + Extras); снимок кода/суммы.
+    base_cents = int(price_cents or 0) + sum(int(e.get("price_cents", 0)) for e in (extras or []))
+    discount_cents, voucher_snap = _apply_voucher(voucher_code, base_cents)
+
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = Booking.objects.create(
         resource=resource,
         service=service,
         price_cents=int(price_cents or 0),
         extras=list(extras or []),
+        voucher_code=voucher_snap,
+        discount_cents=discount_cents,
         customer=customer,
         reference_code=_unique_booking_code(),
         start=start,

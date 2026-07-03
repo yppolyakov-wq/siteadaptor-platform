@@ -363,6 +363,10 @@ class Booking(TimestampedModel):
     # #7: снимок выбранных Extras [{label, price_cents}] — сумма входит в total_cents
     # (выручку), переживает изменение/удаление Extra.
     extras = models.JSONField(default=list, blank=True)
+    # B1.2: промокод/Gutschein (loyalty.Voucher) — снимок кода и скидки (центы);
+    # гасится атомарно в services.book (зеркало events/stays).
+    voucher_code = models.CharField(max_length=40, blank=True)
+    discount_cents = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["start"]
@@ -386,8 +390,8 @@ class Booking(TimestampedModel):
 
     @property
     def total_cents(self) -> int:
-        """Итого = цена услуги + Extras (выручка/отображение)."""
-        return self.price_cents + self.extras_cents
+        """Итого = цена услуги + Extras − скидка Gutschein (выручка/отображение)."""
+        return max(0, self.price_cents + self.extras_cents - self.discount_cents)
 
     @property
     def total_eur(self) -> float:

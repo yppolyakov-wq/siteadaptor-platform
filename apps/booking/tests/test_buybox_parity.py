@@ -77,6 +77,7 @@ def test_book_form_base_exact_fields():
         "email",
         "phone",
         "note",
+        "voucher_code",  # B1.2: промокод/Gutschein (услуга с ценой)
     }
     assert f'name="start" value="{slot.isoformat()}"' in form
 
@@ -101,6 +102,7 @@ def test_book_form_with_resource_and_embed_fields():
         "email",
         "phone",
         "note",
+        "voucher_code",  # B1.2: промокод/Gutschein (услуга с ценой)
     }
 
 

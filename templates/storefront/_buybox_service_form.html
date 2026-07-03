@@ -36,6 +36,13 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
       <p class="text-xs text-gray-400 mt-1">{% trans "Have a multi-visit pass? Enter the code to redeem one visit." %}</p>
     </div>
   {% endif %}
+  {% if service.price_cents %}
+    {# B1.2: промокод/Geschenkgutschein (loyalty.Voucher) — скидка на услугу+Extras. #}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_voucher">{% trans "Voucher code (optional)" %}</label>
+      <input id="id_voucher" name="voucher_code" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
+    </div>
+  {% endif %}
   {% include "storefront/_extras.html" %}
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>

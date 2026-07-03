@@ -463,7 +463,12 @@ def service_book(request, pk):
             service=service,
             price_cents=service.price_cents,
             extras=extras_snap,
+            voucher_code=request.POST.get("voucher_code", ""),
         )
+    except services.PromoInvalid:
+        # B1.2: невалидный промокод/Gutschein — бронь не создаём, слот не занят.
+        messages.error(request, _("This voucher code is not valid."))
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
