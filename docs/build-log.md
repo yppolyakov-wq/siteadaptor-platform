@@ -3698,3 +3698,10 @@
   публикация из кабинета: create published / edit-переход). Товары — осознанно без
   автомата (шум при импорте; префилл-кнопка при спросе — roadmap §Отложено). CM-3 закрыт
   в целевом объёме: блог+события авто, промо публикуется автоматом изначально.
+- **2026-07-03 — CM-4 (контент-хаб): медиа-библиотека — реестр MediaAsset + «Medien».**
+  План-док `docs/cm4-media-library-plan-2026-07-03.md`. MediaAsset-индекс ПОВЕРХ
+  FileRef-копий (миграция `core/0004` — ⚠️ деплой + опц. `backfill_media_registry`):
+  fail-safe хук в save_product_image/delete_stored_image, единая карта мест
+  `apps/core/media_registry.py` (backfill/write_back_alt/delete_unused/used_paths),
+  кабинет `/dashboard/medien/` (фильтр по папкам, alt-редактор с write-back — закрыт
+  «мёртвый alt», удаление только незанятых). Слайс C (пикер в билдере, dedup) — план §3.
