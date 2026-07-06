@@ -4142,3 +4142,17 @@
   (9) Заголовок ленты C-блока — тип блока (не «Position»). Перепины замков:
   test_home_builder ×4 (осознанно). E2E: все 8 пунктов зелёные, канва
   отодвинута (paddingTop=высота ленты), 41 contenteditable сразу.
+
+- **2026-07-06 — UC6-7a: page_blocks — хост C-блоков на ЛЮБОЙ странице (рендер).**
+  Отмашка владельца («весь функционал главной — на всех страницах») снимает
+  блокировку пакета per-page. Архитектура: НОВЫЙ ключ `page_blocks`
+  {host: [cblock,…]} — `sections` не тронут; `normalize_page_blocks` (whitelist
+  PAGE_BLOCK_HOSTS — 11 страниц, legal сознательно исключён; чистка через
+  `_clean_cblock`, кап); ключ в normalize — presence-minimal (golden живы).
+  Тег `{% page_blocks "<host>" %}` (siteui): sess-черновик при ?preview=1,
+  ряды узких блоков + `_section_block` (клик→лента/📷/инлайн бесплатно), пустой
+  хост в превью — пунктирная якорная зона. Хосты: 4 листинга (listing_after) +
+  blog + 4 детали + cart + about. План — `uc6-7-page-blocks-plan-2026-07-06.md`.
+  Замки: whitelist/чистка/golden-absence + тег (publish/preview/empty).
+  Остаток: 7b (редактор: строки в форме + draft/save + инсертер с page_key),
+  7c (drag + вставка без перезагрузки), 7d (меню в ленту).

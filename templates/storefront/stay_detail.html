@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n seo %}
+{% load i18n seo siteui %}
 {% block title %}{{ unit.name_localized }} — {{ request.tenant.name }}{% endblock %}
 
 {% block detail_back %}
@@ -61,4 +61,5 @@
 {# M20U-4: мобильная липкая панель брони (десктоп — sticky-карточка справа) #}
 {% blocktrans asvar buyprice with p=unit.price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}
 {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="stays" sold_out=False %}
+{% page_blocks "stay_detail" %}
 {% endblock %}

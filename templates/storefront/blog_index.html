@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}
+{% load i18n siteui %}
 {% block title %}{% trans "Blog" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -20,4 +20,6 @@
 {% else %}
   <p class="text-gray-400">{% trans "No posts yet." %}</p>
 {% endif %}
+{% page_blocks "blog" %}
 {% endblock %}
+

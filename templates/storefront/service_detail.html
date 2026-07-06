@@ -63,4 +63,5 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
 {% else %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="booking" sold_out=False %}
 {% endif %}
+{% page_blocks "service_detail" %}
 {% endblock %}

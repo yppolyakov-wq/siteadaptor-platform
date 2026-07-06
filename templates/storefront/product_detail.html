@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n %}{% load siteui %}
+{% load i18n siteui %}{% load siteui %}
 {% block title %}{{ product }} — {{ request.tenant.name }}{% endblock %}
 {% block meta_description %}{{ product.description_text|default:product|truncatechars:160 }}{% endblock %}
 
@@ -145,4 +145,5 @@
   {% if product.has_variants %}{% blocktrans asvar buyprice with p=product.price_from c=product.currency|cursym %}from {{ p }} {{ c }}{% endblocktrans %}{% else %}{% blocktrans asvar buyprice with p=product.base_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% endif %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#kaufen" module="catalog" sold_out=False %}
 {% endif %}
+{% page_blocks "product_detail" %}
 {% endblock %}

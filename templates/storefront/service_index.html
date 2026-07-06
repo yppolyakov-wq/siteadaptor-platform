@@ -1,5 +1,5 @@
 {% extends "storefront/listing.html" %}
-{% load i18n sellable_ui %}
+{% load i18n sellable_ui siteui %}
 {% block title %}{% trans "Book a service" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block listing_header %}
@@ -38,4 +38,5 @@
 
 {% block listing_after %}
 {% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}" class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
+{% page_blocks "services" %}
 {% endblock %}

@@ -79,6 +79,39 @@ def live_promo(pk):
 
 
 @register.simple_tag(takes_context=True)
+def page_blocks(context, page_key):
+    """UC6-7: C-блоки страницы (хост site_config.page_blocks[page_key]) —
+    рендер как на главной (ряды узких блоков + _section_block: клик→лента,
+    📷, инлайн работают). При ?preview=1 — черновик сессии (live-preview)."""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if request is None or tenant is None:
+        return ""
+    raw = tenant.site_config
+    try:
+        if request.GET.get("preview") == "1":
+            draft = request.session.get("site_preview_draft")
+            if isinstance(draft, dict):
+                raw = draft
+    except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+        pass
+    site = siteconfig.normalize(raw)
+    blocks = [
+        b for b in (site.get("page_blocks") or {}).get(page_key, []) if b.get("enabled", True)
+    ]
+    is_preview = bool(context.get("is_preview"))
+    if not blocks and not is_preview:
+        return ""
+    rows = siteconfig.group_block_rows(blocks)
+    html = render_to_string(
+        "storefront/_page_blocks.html",
+        {**context.flatten(), "pb_rows": rows, "pb_page_key": page_key},
+        request=request,
+    )
+    return mark_safe(html)
+
+
+@register.simple_tag(takes_context=True)
 def render_block(context, block):
     """D.1/D.2: отрисовать секцию главной — фикс-секция (по ключу) или C-блок (dict).
 

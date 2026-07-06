@@ -411,6 +411,46 @@ def _clean_cblock(item: dict) -> dict:
     return out
 
 
+# UC6-7: C-блоки на ЛЮБОЙ странице — отдельный хост page_blocks
+# ({page_key: [cblock,…]}); `sections` остаётся home-only (golden-паритет).
+# Whitelist страниц; legal сознательно исключён (право должно быть видимым —
+# DACH-риск, решение uc2-3-плана).
+PAGE_BLOCK_HOSTS = (
+    "catalog",
+    "events",
+    "stay_rooms",
+    "services",
+    "cart",
+    "event_detail",
+    "product_detail",
+    "service_detail",
+    "stay_detail",
+    "info",
+    "blog",
+)
+
+
+def normalize_page_blocks(raw) -> dict:
+    """UC6-7: привести page_blocks к {host: [cblock,…]} — whitelist хостов,
+    каждый блок через _clean_cblock, кап _MAX_CBLOCKS на страницу.
+    Пусто → {} (ключ в normalize добавляется presence-minimal — golden живы)."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for key in PAGE_BLOCK_HOSTS:
+        items = raw.get(key)
+        if not isinstance(items, list):
+            continue
+        blocks = []
+        for item in items:
+            if isinstance(item, dict) and item.get("key") in REPEATABLE_BLOCKS:
+                blocks.append(_clean_cblock(item))
+            if len(blocks) >= _MAX_CBLOCKS:
+                break
+        if blocks:
+            out[key] = blocks
+    return out
+
+
 # SE-4a: пользовательские блок-шаблоны (многоразовые C-блоки) — {id: {key,label,data}}
 # в site_config. Владелец сохраняет блок как шаблон и вставляет его в другие места.
 _MAX_BLOCK_TEMPLATES = 50
@@ -1678,6 +1718,10 @@ def normalize(config) -> dict:
     config = config if isinstance(config, dict) else {}
 
     normalized = {"sections": normalize_sections(config.get("sections", []))}
+    # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
+    pb = normalize_page_blocks(config.get("page_blocks"))
+    if pb:
+        normalized["page_blocks"] = pb
     # SE-4a: пользовательские блок-шаблоны (переживают нормализацию).
     normalized["block_templates"] = normalize_block_templates(config.get("block_templates"))
     # SE-4b: шаблоны страниц (снимки компоновки секций).

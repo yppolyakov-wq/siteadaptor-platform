@@ -1,0 +1,21 @@
+{% comment %}UC6-7: хост C-блоков страницы (page_blocks[pb_page_key]) — та же
+механика, что на главной: ряды узких блоков (group_block_rows) + обёртка
+_section_block (data-sf-section → клик→лента/📷/инлайн в редакторе). В превью
+без блоков — пунктирная якорная зона (цель инсертера «+», слайс 7b).{% endcomment %}
+{% if pb_rows %}
+  <div class="mt-8" data-pb-host="{{ pb_page_key }}">
+    {% for b in pb_rows %}
+      {% if b.key == "_row" %}
+        <div class="md:flex md:items-start">
+          {% for sub in b.row %}{% include "storefront/_section_block.html" with b=sub %}{% endfor %}
+        </div>
+      {% else %}
+        {% include "storefront/_section_block.html" %}
+      {% endif %}
+    {% endfor %}
+  </div>
+{% elif is_preview %}
+  <div class="mt-8" data-pb-host="{{ pb_page_key }}">
+    <div data-sf-section="pbhost:{{ pb_page_key }}" class="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center text-sm text-gray-400">＋</div>
+  </div>
+{% endif %}

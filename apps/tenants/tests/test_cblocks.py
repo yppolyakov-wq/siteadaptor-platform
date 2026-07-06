@@ -431,3 +431,53 @@ def test_promo_block_style_hint_survives_normalize():
     b1, b2 = (s for s in cfg["sections"] if s["key"] == "promo")
     assert b1["data"]["style_hint"] == "countdown"
     assert "style_hint" not in b2["data"]  # мусор → без ключа
+
+
+# --- UC6-7a: page_blocks — C-блоки на любой странице --------------------------------
+
+
+def test_normalize_page_blocks_whitelist_and_clean():
+    cfg = siteconfig.normalize(
+        {
+            "page_blocks": {
+                "services": [{"key": "text", "id": "s1", "data": {"title": "T"}, "width": "w12"}],
+                "legal": [{"key": "text", "id": "l1", "data": {"title": "X"}}],  # вне whitelist
+                "catalog": "junk",
+            }
+        }
+    )
+    pb = cfg["page_blocks"]
+    assert set(pb) == {"services"}
+    block = pb["services"][0]
+    assert block["key"] == "text" and block["width"] == "w12"
+    assert block["data"]["title"] == "T"
+    # без page_blocks — ключа в normalize НЕТ (golden-паритет)
+    assert "page_blocks" not in siteconfig.normalize({})
+
+
+def test_page_blocks_tag_renders_and_uses_preview_draft():
+    from types import SimpleNamespace
+
+    from django.template import Context
+
+    cfg = {
+        "page_blocks": {"services": [{"key": "text", "id": "s1", "data": {"title": "Live-Titel"}}]}
+    }
+    req = RequestFactory().get("/termin/")
+    req.tenant = SimpleNamespace(site_config=cfg)
+    html = siteui.page_blocks(Context({"request": req}), "services")
+    assert "Live-Titel" in html and 'data-sf-section="s1"' in html
+
+    # пустой хост на публичной странице — ничего (страница не «грязнится»)
+    assert siteui.page_blocks(Context({"request": req}), "catalog") == ""
+
+    # ?preview=1 — черновик сессии главнее опубликованного
+    req2 = RequestFactory().get("/termin/?preview=1")
+    req2.tenant = SimpleNamespace(site_config=cfg)
+    req2.session = {
+        "site_preview_draft": {
+            "page_blocks": {"services": [{"key": "text", "id": "s1", "data": {"title": "Entwurf"}}]}
+        }
+    }
+    html2 = siteui.page_blocks(Context({"request": req2}), "services")
+    assert "Entwurf" in html2 and "Live-Titel" not in html2

@@ -1,5 +1,5 @@
 {% extends "storefront/listing.html" %}
-{% load i18n sellable_ui %}
+{% load i18n sellable_ui siteui %}
 {% block title %}{% trans "Stay with us" %} — {{ request.tenant.name }}{% endblock %}
 
 {% comment %}UB1-3: листинг номеров на каркасе listing.html. Date-search — фасет этого
@@ -105,3 +105,5 @@
   <p class="text-gray-500">{% trans "No accommodation available right now." %}</p>
 {% endif %}
 {% endblock %}
+
+{% block listing_after %}{% page_blocks "stay_rooms" %}{% endblock %}

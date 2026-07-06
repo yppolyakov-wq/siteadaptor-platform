@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n %}
+{% load i18n siteui %}
 {% block title %}{{ event.title_text }} — {{ request.tenant.name }}{% endblock %}
 
 {% block detail_back %}<a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>{% endblock %}
@@ -262,4 +262,5 @@
   {# M20U-4: мобильная липкая панель покупки (десктоп — sticky-карточка выше) #}
   {% if event.has_tiers %}{% blocktrans asvar buyprice with p=event.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif event.price_cents %}{% blocktrans asvar buyprice with p=event.price_eur %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Free" as buyprice %}{% endif %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="events" sold_out=event.is_sold_out %}
+{% page_blocks "event_detail" %}
 {% endblock %}

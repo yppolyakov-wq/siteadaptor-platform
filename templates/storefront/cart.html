@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}{% load siteui %}
+{% load i18n siteui %}{% load siteui %}
 {% block title %}{% trans "Your order" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -228,4 +228,5 @@
   <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg px-5 py-2.5 text-white font-medium" style="background: var(--accent);">{% trans "Browse the menu" %} →</a>
 </div>
 {% endif %}
+{% page_blocks "cart" %}
 {% endblock %}
