@@ -205,18 +205,24 @@
          реальные контролы (живёт ВНУТРИ формы → правки идут в сабмит/превью). При открытии
          секция-область получает .focus-on → CSS прячет список блоков и прочие fieldset'ы,
          виден только этот блок + «← Ко всем блокам». Заменил прежний плавающий попап.{% endcomment %}
+      {% comment %}UC6-6a: контейнер стал ЛЕНТОЙ над канвой (fixed при .bld-ribbon-open
+         на панели; на мобильном — bottom-sheet). Живёт внутри формы — контролы
+         блока остаются в сабмите. Вкладки Просто/Эксперт — в шапке ленты.{% endcomment %}
       <div id="bld-block-popup" class="hidden">
         <div class="bg-white rounded-xl border border-indigo-200 shadow-sm mb-4">
           <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-100 bg-indigo-50/60 rounded-t-xl">
-            <button type="button" id="bld-block-popup-close" class="flex items-center gap-1 text-sm font-medium text-indigo-700 hover:text-indigo-900 shrink-0" aria-label="{% trans 'Back to all blocks' %}">← {% trans "All blocks" %}</button>
-            {% comment %}SE-1f тумблер Обычный/Эксперт (инспектор) — без data-expert, чтобы из Простого
-               режима можно было раскрыть Эксперт.{% endcomment %}
-            <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs shrink-0">
-              <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
-              <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
+            <span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700 truncate"></span>
+            <span class="flex items-center gap-2 shrink-0">
+              {% comment %}SE-1f вкладки Обычный/Эксперт — без data-expert, чтобы из Простого
+                 режима можно было раскрыть Эксперт.{% endcomment %}
+              <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs">
+                <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
+                <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
+              </span>
+              <button type="button" id="bld-ribbon-collapse" class="text-sm text-gray-500 hover:text-indigo-700 px-1" title="{% trans 'Collapse' %}" aria-label="{% trans 'Collapse' %}">▾</button>
+              <button type="button" id="bld-block-popup-close" class="text-sm font-medium text-gray-500 hover:text-indigo-700 px-1" aria-label="{% trans 'Close' %}">✕</button>
             </span>
           </div>
-          <div class="px-3 pt-2 -mb-1"><span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700"></span></div>
           <div id="bld-block-popup-body" class="p-3"></div>
         </div>
       </div>
@@ -1073,9 +1079,38 @@
 #bld-mode-expert { background: transparent; color: #4b5563; }
 #bld-block-popup[data-mode=expert] #bld-mode-basic { background: transparent; color: #4b5563; }
 #bld-block-popup[data-mode=expert] #bld-mode-expert { background: #4f46e5; color: #fff; }
-/* #2: фокус блока — внутри секции-области показываем ТОЛЬКО выбранный блок (#bld-block-popup),
-   список блоков и прочие fieldset'ы прячем. Выход — «← Ко всем блокам». */
+/* #2 (легаси, flows без ленты): фокус блока внутри секции-области. */
 [data-bld-area="sections"].focus-on > :not(#bld-block-popup) { display: none !important; }
+/* UC6-6a: ЛЕНТА настроек блока над канвой (Word-style). Панель-хозяин формы
+   становится невидимой через visibility (НЕ display — контролы остаются в
+   сабмите), transform снимается (иначе fixed-потомок позиционируется от
+   транслированной панели), а попап всплывает fixed. На мобильном — bottom-sheet. */
+#bld-editor-pane.bld-ribbon-open {
+  transform: none !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+.bld-ribbon-open #bld-block-popup {
+  visibility: visible;
+  pointer-events: auto;
+  position: fixed;
+  z-index: 60;
+  top: 3.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(960px, 96vw);
+}
+.bld-ribbon-open #bld-block-popup > div { max-height: 46vh; overflow-y: auto; box-shadow: 0 18px 40px -12px rgba(0,0,0,.28); margin-bottom: 0; }
+@media (max-width: 1023px) {
+  .bld-ribbon-open #bld-block-popup { top: auto; bottom: 0; left: 0; right: 0; transform: none; width: 100%; }
+  .bld-ribbon-open #bld-block-popup > div { border-radius: 1rem 1rem 0 0; max-height: 55vh; }
+}
+/* Свёрнутая лента — только шапка (▾ ↔ ▸). */
+#bld-block-popup.bld-ribbon-min #bld-block-popup-body { display: none; }
+/* Контролы C-блока в ленте текут горизонтально (Word-style). */
+.bld-ribbon-open #bld-block-popup .cb-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.bld-ribbon-open #bld-block-popup .cb-row > input[type="text"] { width: auto; flex: 1 1 240px; }
+.bld-ribbon-open #bld-block-popup .cb-row > textarea { flex: 1 1 100%; }
 /* H1.3: в СПИСКЕ секций (#home-blocks) показываем только шапку-идентичность; настройки
    секции (.home-block-settings) скрыты. Когда строку переносят в фокус-панель
    (#bld-block-popup-body, вне #home-blocks) — правило не действует → настройки видны. */
@@ -1743,6 +1778,10 @@
     highlightBlkBtn(null);  // SE-9c-3: снять подсветку иконки блока в рейле
     if (popup) popup.classList.add("hidden");
     if (secArea) secArea.classList.remove("focus-on");  // #2: вернуть список блоков
+    // UC6-6a: свернуть режим «ленты» — панель возвращается к своему состоянию
+    // (если была открыта область — восстановить её видимость/подсветку).
+    if (edPane) edPane.classList.remove("bld-ribbon-open");
+    if (curArea) showArea(curArea);
   }
   function openBlockPopup(key) {
     if (!popup) return false;
@@ -1761,17 +1800,27 @@
     // H1.3: имя секции — в кнопке .blk-edit (label из шапки убран); фолбэк — label/span.
     var lab = row.querySelector(".blk-edit") || row.querySelector("label") || row.querySelector("span");
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
-    // #2: фокус блока В ЛЕВОЙ панели (вместо прежнего плавающего попапа). Открываем
-    // секцию-область и помечаем .focus-on → CSS прячет список блоков и прочие fieldset'ы;
-    // виден только этот блок + шапка «← Ко всем блокам».
-    showArea("sections");
-    if (secArea) secArea.classList.add("focus-on");
-    if (edPane) edPane.scrollTop = 0;  // показать шапку «← Ко всем блокам»
+    // UC6-6a: ЛЕНТА НАД КАНВОЙ (Word-style; фидбэк владельца) вместо фокуса в
+    // левой панели: канва остаётся во весь экран. Контролы блока НЕ покидают
+    // <form id="home-form"> (сабмит/collect живы) — панель-хозяин прячется
+    // visibility (класс bld-ribbon-open снимает и transform, иначе fixed-лента
+    // позиционировалась бы от транслированной панели), попап всплывает fixed.
+    if (edPane) {
+      edPane.classList.add("bld-ribbon-open");
+      areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== "sections"); });
+    }
     popup.classList.remove("hidden");
+    popup.classList.remove("bld-ribbon-min");
     highlightBlkBtn(key);  // SE-9c-3: подсветить иконку этого блока в рейле
     return true;
   }
   if (popupClose) popupClose.addEventListener("click", closeBlockPopup);
+  // UC6-6a: свёртка ленты до шапки (▾ ↔ ▸) — настройки под рукой, канва не перекрыта.
+  var ribbonCollapse = document.getElementById("bld-ribbon-collapse");
+  if (ribbonCollapse) ribbonCollapse.addEventListener("click", function () {
+    var min = popup.classList.toggle("bld-ribbon-min");
+    ribbonCollapse.textContent = min ? "▸" : "▾";
+  });
   // SE-9c-1: иконки блоков в рейле открывают панель именно этого блока (реюз openBlockPopup,
   // который сам открывает область sections и позиционирует попап). Репитабл-блоки — в мастере.
   document.querySelectorAll(".bld-blk-btn").forEach(function (b) {
