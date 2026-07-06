@@ -386,10 +386,18 @@
   редактора (переходы по ссылкам в превью идут без ?preview=1) — без него клик грузит
   /dashboard/… в iframe, X-Frame-Options: DENY коммитит chrome-error («refused to
   connect»), и восстановление истории сабфрейма держит канву мёртвой после F5.{% endcomment %}
-  <a href="{% url 'site-home' %}" target="_top" data-owner-edit aria-label="{% trans 'Edit your site' %}"
+  <a href="{% url 'site-home' %}?page={{ request.path|urlencode }}" target="_top" data-owner-edit aria-label="{% trans 'Edit your site' %}"
      class="fixed left-4 bottom-5 z-40 flex items-center gap-2 bg-gray-900 text-white rounded-full shadow-lg px-4 py-3 hover:bg-gray-800">
     <span class="text-lg leading-none" aria-hidden="true">✏️</span><span class="text-sm font-medium">{% trans "Edit design" %}</span>
   </a>
+  <script>
+    // T-6.1: внутри канвы редактора (iframe) кнопка — дубль уже открытого редактора
+    // и источник путаницы; прячем. target="_top" выше остаётся страховкой (T-6).
+    if (window.top !== window.self) {
+      var ownerEditFab = document.querySelector("[data-owner-edit]");
+      if (ownerEditFab) ownerEditFab.remove();
+    }
+  </script>
   {% endif %}
   {% if storefront_inbox_enabled %}
   {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}

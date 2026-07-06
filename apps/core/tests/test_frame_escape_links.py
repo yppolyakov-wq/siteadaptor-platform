@@ -44,6 +44,9 @@ def test_known_traps_carry_escape_targets():
     base = (STOREFRONT_TEMPLATES / "_base.html").read_text(encoding="utf-8")
     fab = next(t for t in _A_TAG_RE.findall(base) if "data-owner-edit" in t)
     assert 'target="_top"' in fab
+    assert "?page=" in fab  # T-6.1: deep-link — редактор открывается на текущей странице
+    # T-6.1: внутри канвы (iframe) FAB прячем — дубль редактора путал владельца.
+    assert "window.top !== window.self" in base
 
     products = (STOREFRONT_TEMPLATES / "products.html").read_text(encoding="utf-8")
     cat_edit = next(t for t in _A_TAG_RE.findall(products) if "catalog:category-edit" in t)

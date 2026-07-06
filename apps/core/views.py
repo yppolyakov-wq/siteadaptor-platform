@@ -777,6 +777,26 @@ def site_view(request):
 # KEYS+LABELS+ICONS вместе); вьюха читает их через siteconfig. Дефолт — 🧩.
 
 
+def _safe_preview_page(raw):
+    """T-6.1: стартовая страница канвы из ?page= (deep-link «Edit design» с витрины).
+
+    Только внутренний path витрины: абсолютные URL/схемы, протокол-relative
+    (``//…``), бэкслэши и DENY-зона кабинета (killswitch канвы, см. T-6)
+    откатываются на главную.
+    """
+    from apps.core.middleware import StorefrontFrameOptionsMiddleware
+
+    raw = (raw or "").split("?")[0]
+    if (
+        not raw.startswith("/")
+        or raw.startswith("//")
+        or "\\" in raw
+        or raw.startswith(StorefrontFrameOptionsMiddleware._BLOCK_PREFIXES)
+    ):
+        return "/"
+    return raw
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -1424,6 +1444,8 @@ def home_builder_view(request):
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,
             "preview_pages": preview_pages,
+            # T-6.1: deep-link — канва стартует со страницы, где нажали «Edit design».
+            "preview_start_path": _safe_preview_page(request.GET.get("page")),
             # SE-2a-2/SE-2b-1: per-page инспектор раскладки лендингов (по активным модулям).
             "has_catalog": request.tenant.is_module_active("catalog"),
             "catalog_preset": (config.get("catalog_layout") or {}).get("preset", ""),

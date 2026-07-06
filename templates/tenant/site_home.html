@@ -1121,8 +1121,9 @@
       } else { done(); }
     }).catch(function () {});
   });
-  // SE-2a-1: текущая страница превью (главная по умолчанию; переключатель меняет).
-  var previewPath = "/";
+  // SE-2a-1: текущая страница превью (переключатель меняет). T-6.1: старт из
+  // ?page= (deep-link «Edit design» с витрины) — канва открывается там, где нажали.
+  var previewPath = "{{ preview_start_path|default:"/"|escapejs }}";
   function previewUrl() {
     return previewPath + (previewPath.indexOf("?") < 0 ? "?" : "&") + "preview=1";
   }
@@ -1847,7 +1848,13 @@
       applyPageScope(currentScopeGroup());
       frame.contentWindow.location.replace(previewUrl());
     });
-    applyPageScope(currentScopeGroup());  // стартовая синхронизация (главная)
+    // T-6.1: deep-link — если стартовая страница есть в селекторе, синхронизируем
+    // его (панель покажет блоки этой страницы); нет в списке — селектор остаётся
+    // на главной, страница правится прямо на канве.
+    if (previewPath !== "/")
+      for (var ppi = 0; ppi < pageSel.options.length; ppi++)
+        if (pageSel.options[ppi].value === previewPath) { pageSel.selectedIndex = ppi; break; }
+    applyPageScope(currentScopeGroup());  // стартовая синхронизация
   }
 
   // M20 WYSIWYG: тексты [data-edit] в превью редактируются прямо в билдере

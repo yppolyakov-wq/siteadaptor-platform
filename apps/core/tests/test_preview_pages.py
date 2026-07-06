@@ -202,3 +202,31 @@ def test_event_detail_sections_draggable_on_canvas():
     builder = open("templates/tenant/site_home.html").read()
     assert "function moveEdSection" in builder
     assert 'querySelectorAll("[data-ed-section]")' in builder
+
+
+def test_example_detail_pages_promotion():
+    """T-6.1: страница акции в селекторе превью — канва-правка промо (UE2/UE3)."""
+    from apps.promotions.models import Promotion
+
+    tenant = _tenant(slug="pp9", name="PP9")
+    promo = Promotion.objects.create(title={"de": "Deal"}, status="active")
+    pages = archetypes.example_detail_pages(tenant)
+    urls = [pg["url"] for pg in pages]
+    assert reverse("storefront-promotion", args=[promo.pk]) in urls
+    groups = {pg["url"]: pg["group"] for pg in pages}
+    assert groups[reverse("storefront-promotion", args=[promo.pk])] == "promotions_detail"
+
+
+def test_safe_preview_page_deep_link_guard():
+    """T-6.1: ?page= — только внутренний path витрины; DENY-зона (T-6) и внешние
+    URL откатываются на главную (иначе deep-link снова убьёт канву)."""
+    assert views._safe_preview_page("/p/abc-123/") == "/p/abc-123/"
+    assert views._safe_preview_page("/termin/?x=1") == "/termin/"
+    assert views._safe_preview_page(None) == "/"
+    assert views._safe_preview_page("") == "/"
+    assert views._safe_preview_page("relative") == "/"
+    assert views._safe_preview_page("https://evil.example/") == "/"
+    assert views._safe_preview_page("//evil.example/") == "/"
+    assert views._safe_preview_page("/x\\y") == "/"
+    assert views._safe_preview_page("/dashboard/site/home/") == "/"
+    assert views._safe_preview_page("/accounts/login/") == "/"

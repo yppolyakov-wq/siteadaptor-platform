@@ -133,6 +133,11 @@ DETAIL_ENTITIES = (
     # в «правь на канве» (как `stays_detail`); реестр секций — UA4-1.
     ("booking", "booking.Service", "storefront-service-detail", _("Service page"),
      {"is_active": True}, ("-created_at",)),
+    # T-6.1: страница акции — канва-правка промо (UE2/UE3: стили скидки, %-бейдж,
+    # цены, дата, фото). Группа promotions_detail без пер-страничных блоков →
+    # панель падает в «правь прямо на канве».
+    ("promotions", "promotions.Promotion", "storefront-promotion", _("Promotion page"),
+     {"status": "active"}, ("-created_at",)),
 )  # fmt: skip
 
 

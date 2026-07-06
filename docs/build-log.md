@@ -3943,3 +3943,17 @@
   категории в `products.html` → `target="_blank" rel="noopener"` (паттерн
   `_product_card`). Замок на весь класс: `test_frame_escape_links.py` —
   скан витринных шаблонов: `<a>` в DENY-зону обязан нести `_top`/`_blank`.
+
+- **2026-07-06 — T-6.1: deep-link «Edit design» + скрытие FAB в канве + «Страница
+  акции» в превью.** Продолжение T-6 по жалобе владельца («редактор открывается
+  на главной, где канва — непонятно»): (1) FAB «✏️ Edit design» теперь несёт
+  `?page=<текущий path>` → `home_builder_view` через `_safe_preview_page`
+  (только внутренний path; DENY-зона/внешние URL → «/») стартует канву прямо
+  на той странице, где нажали; селектор страниц синхронизируется, если путь в
+  списке. (2) Внутри канвы (iframe) FAB прячется (`window.top !== window.self`)
+  — дубль редактора путал владельца; `target="_top"` остаётся страховкой.
+  (3) `DETAIL_ENTITIES` += Promotion → пункт «Promotion page» в селекторе
+  превью (канва-правка промо UE2/UE3 стала находимой). Замки:
+  test_preview_pages (+promotion, +санитайзер deep-link), test_frame_escape_links
+  (+`?page=`, +скрытие в кадре). Проверено Playwright e2e: канва стартует на
+  `/p/<uuid>/?preview=1`, FAB в канве отсутствует.
