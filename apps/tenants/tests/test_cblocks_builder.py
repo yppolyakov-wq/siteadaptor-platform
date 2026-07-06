@@ -441,3 +441,32 @@ def test_builder_form_renders_pb_rows():
     assert 'name="pb_page_aaa" value="services"' in html
     assert 'data-pb-page="services"' in html
     assert 'name="cb_aaa_title"' in html  # поля те же, что у блоков главной
+
+
+def test_home_content_blocks_details_is_home_scoped():
+    """UC6-7b (review-fix): строка блока ГЛАВНОЙ (cb_id → sections) рендерится внутри
+    <details data-scope=\"home\">, чтобы applyPageScope прятал её на подстраницах
+    (иначе блоки главной путаются с блоками страницы). Язык-независимый якорь —
+    поле cb_<id>_title домашнего блока (у pb-строк отдельный маркер data-pb-page)."""
+    tenant = TenantFactory(
+        slug="pbscope",
+        name="X",
+        site_config={
+            "sections": [{"key": "text", "id": "hhh", "enabled": True, "data": {"title": "H"}}]
+        },
+    )
+    request = RequestFactory().get("/dashboard/site/home/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    owner = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@t.de", password="pw12345678"
+    )
+    html = core_views.home_builder_view(request).content.decode()
+    # строка блока главной — по её полю cb_hhh_title (домашняя, без data-pb-page).
+    idx = html.find('name="cb_hhh_title"')
+    assert idx > 0
+    details_open = html.rfind("<details", 0, idx)
+    assert details_open > 0
+    assert 'data-scope="home"' in html[details_open:idx]

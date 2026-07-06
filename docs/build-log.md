@@ -4177,4 +4177,13 @@
   Замки: `test_cblocks_builder` +7 (page_key/unknown-фолбэк/insert_after/template/
   save-rebuild/presence-guard/GET-рендер), `test_live_preview` +1 (draft passthrough),
   e2e verify_7b (вставка на /ueber-uns/ → канва → лента → Save → публикация, 0 ошибок).
+  **Адверсариальный ревью-воркфлоу (5 измерений × verify)** нашёл 2 реальных дефекта
+  скоупа (остальные — golden/collect-draft-save/удаление/порядок/безопасность —
+  верифицированы safe): (1) `applyPageScope`: `isHome` считал главной ЛЮБУЮ страницу
+  вне PAGE_GROUPS (2-я+ деталь, любая деталь услуги, blog: group="") → фолбэк на
+  `curPbHost` был недостижим, блоки страницы неуправляемы из панели, показывались
+  контролы главной → фикс `isHome = (!group||group==="home") && !curPbHost`; (2) блок
+  «Content blocks» главной без `data-scope` был виден на подстраницах (правки уходили
+  бы в sections не той страницы) → `data-scope="home"`. Оба проверены на стенде
+  (verify_scope: blog vs home) + замок `test_home_content_blocks_details_is_home_scoped`.
   Остаток UC6-7: 7c (drag в регионе + вставка без перезагрузки), 7d (меню в ленту).
