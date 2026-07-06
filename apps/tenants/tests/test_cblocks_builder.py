@@ -443,6 +443,60 @@ def test_builder_form_renders_pb_rows():
     assert 'name="cb_aaa_title"' in html  # поля те же, что у блоков главной
 
 
+def _req_fetch(data, tenant):
+    request = RequestFactory().post("/dashboard/site/home/", data, HTTP_X_REQUESTED_WITH="fetch")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    owner = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@t.de", password="pw12345678"
+    )
+    return request
+
+
+def test_add_block_fetch_returns_row_html():
+    """UC6-7c-2: инсертер-без-перезагрузки — fetch add_block с page_key отдаёт JSON
+    {ok, id, host, row_html}; row_html — строка _cb_row с pb-маркерами; блок сохранён."""
+    import json
+
+    tenant = TenantFactory(slug="pbf1", name="X")
+    resp = core_views.home_builder_view(
+        _req_fetch(
+            {
+                "action": "add_block",
+                "block_type": "text",
+                "page_key": "services",
+                "page_path": "/termin/",
+            },
+            tenant,
+        )
+    )
+    assert resp.status_code == 200
+    payload = json.loads(resp.content)
+    assert payload["ok"] is True and payload["host"] == "services"
+    bid = payload["id"]
+    assert f'name="pb_page_{bid}" value="services"' in payload["row_html"]
+    assert f'name="cb_{bid}_title"' in payload["row_html"]  # поля строки на месте
+    tenant.refresh_from_db()
+    assert len(_page_blocks(tenant, "services")) == 1  # блок реально сохранён
+
+
+def test_add_block_fetch_on_home_returns_not_ok():
+    """UC6-7c-2: fetch без хоста страницы (главная) → {ok:false} (клиент откатится
+    на форм-POST); блок при этом всё равно добавляется в sections."""
+    import json
+
+    tenant = TenantFactory(slug="pbf2", name="X")
+    resp = core_views.home_builder_view(
+        _req_fetch({"action": "add_block", "block_type": "text"}, tenant)
+    )
+    assert resp.status_code == 200
+    assert json.loads(resp.content)["ok"] is False
+    tenant.refresh_from_db()
+    assert len(_cblocks(tenant)) == 1  # на главную блок добавлен
+
+
 def test_home_content_blocks_details_is_home_scoped():
     """UC6-7b (review-fix): строка блока ГЛАВНОЙ (cb_id → sections) рендерится внутри
     <details data-scope=\"home\">, чтобы applyPageScope прятал её на подстраницах

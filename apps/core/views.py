@@ -864,6 +864,51 @@ def _redirect_builder(request):
     return redirect("site-home")
 
 
+def _add_block_fetch_response(request, new_id, host):
+    """UC6-7c-2: JSON-ответ инсертера-без-перезагрузки — HTML строки нового C-блока
+    (тот же партиал `_cb_row.html`, что и в форме) для вставки в редактор без
+    навигации. Только для хостов страниц (host); главная/ошибка → {ok:false} (клиент
+    откатывается на форм-POST с перезагрузкой). Блок уже сохранён в add_block."""
+    from django.http import JsonResponse
+    from django.template.loader import render_to_string
+
+    from apps.tenants import siteconfig
+
+    if not new_id or not host:
+        return JsonResponse({"ok": False})
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    container = (cfg.get("page_blocks") or {}).get(host, [])
+    row, order = None, 1
+    for i, s in enumerate(container, start=1):
+        if s.get("id") == new_id:
+            row, order = s, i
+            break
+    if row is None:
+        return JsonResponse({"ok": False})
+    b = {
+        "id": row["id"],
+        "type": row["key"],
+        "enabled": row["enabled"],
+        "data": row["data"],
+        "order": order,
+        "width": row.get("width", "contained"),
+        "pos": row.get("pos", ""),
+        "newline": bool(row.get("newline")),
+        "visual": row.get("visual") or {},
+    }
+    row_html = render_to_string(
+        "tenant/_cb_row.html",
+        {
+            "b": b,
+            "pb_page": host,
+            "promos_for_blocks": _promos_for_blocks(request),
+            "promo_style_options": _promo_style_options(),
+        },
+        request=request,
+    )
+    return JsonResponse({"ok": True, "id": new_id, "host": host, "row_html": row_html})
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -909,31 +954,44 @@ def home_builder_view(request):
         # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить
         # новый блок сразу ПОСЛЕ него (инсертер «+» на канвасе); иначе — в конец.
         if request.POST.get("action") == "add_block":
+            import uuid
+
             btype = request.POST.get("block_type", "")
+            # UC6-7c-2: инсертер на СТРАНИЦЕ шлёт fetch → отвечаем HTML новой строки
+            # (вставка без перезагрузки билдера); обычный форм-POST — прежний редирект.
+            is_fetch = request.headers.get("X-Requested-With") == "fetch"
+            new_id = None
+            page_key = request.POST.get("page_key", "")
+            host = page_key if page_key in siteconfig.PAGE_BLOCK_HOSTS else ""
             if btype in siteconfig.REPEATABLE_BLOCKS:
                 cfg = siteconfig.normalize(request.tenant.site_config)
+                new_id = uuid.uuid4().hex[:12]
                 # UC6-5/6c: новый блок — демо-данные + опц. пресет отображения
-                # (variant из двухшагового инсертера; normalize валидирует).
+                # (variant из двухшагового инсертера; normalize валидирует). id задаём
+                # ЯВНО (после спреда) — чтобы найти блок для fetch-ответа/рендера строки.
                 new_block = {
                     "key": btype,
                     "enabled": True,
                     **siteconfig.cblock_insert_preset(btype, request.POST.get("variant", "")),
+                    "id": new_id,
                 }
                 # UC6-7b: инсертер на НЕ-главной шлёт page_key (хост из data-pb-host
                 # канвы) → блок кладём в page_blocks[хост]; add_after="pbhost:<key>"
                 # (якорь пустой страницы) не матчится по id → append в конец.
-                page_key = request.POST.get("page_key", "")
-                if page_key in siteconfig.PAGE_BLOCK_HOSTS:
+                if host:
                     pb = dict(cfg.get("page_blocks") or {})
-                    rows = list(pb.get(page_key) or [])
+                    rows = list(pb.get(host) or [])
                     _insert_after_section(rows, new_block, request.POST.get("add_after"))
-                    pb[page_key] = rows
+                    pb[host] = rows
                     cfg["page_blocks"] = pb
                 else:
                     _insert_after_section(cfg["sections"], new_block, request.POST.get("add_after"))
                 request.tenant.site_config = siteconfig.normalize(cfg)
                 request.tenant.save(update_fields=["site_config", "updated_at"])
-                messages.success(request, _("Block added."))
+                if not is_fetch:
+                    messages.success(request, _("Block added."))
+            if is_fetch:
+                return _add_block_fetch_response(request, new_id, host)
             return _redirect_builder(request)
         # SE-4a: блок-шаблоны (многоразовые C-блоки). action кодирует id через ":" —
         # save_block_template:<cb_id> (сохранить текущий C-блок как шаблон, данные из
