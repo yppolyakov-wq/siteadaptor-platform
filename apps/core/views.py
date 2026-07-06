@@ -1108,6 +1108,18 @@ def home_builder_view(request):
                         "pos": request.POST.get(f"pos_cb_{bid}", ""),
                         # UC6-3a: принудительный перенос ряда узких блоков.
                         "newline": request.POST.get(f"newline_cb_{bid}") == "on",
+                        # UC6-6b: visual блока (normalize._clean_visual клампит;
+                        # фон — только при включённом тоггле, color-input шлёт всегда).
+                        "visual": {
+                            "radius": request.POST.get(f"visual_radius_px_cb_{bid}"),
+                            "shadow": request.POST.get(f"visual_shadow_cb_{bid}") == "on",
+                            "background": (
+                                request.POST.get(f"visual_bg_cb_{bid}", "")
+                                if request.POST.get(f"visual_bg_on_cb_{bid}") == "on"
+                                else ""
+                            ),
+                            "padding": request.POST.get(f"visual_padding_cb_{bid}"),
+                        },
                     },
                 )
             )
@@ -1347,6 +1359,7 @@ def home_builder_view(request):
                     "width": s.get("width", "contained"),
                     "pos": s.get("pos", ""),
                     "newline": bool(s.get("newline")),  # UC6-3a
+                    "visual": s.get("visual") or {},  # UC6-6b
                 }
             )
             continue
@@ -1739,6 +1752,8 @@ def site_preview_draft(request):
                         cb["pos"] = item["pos"]
                     if item.get("newline"):
                         cb["newline"] = True  # UC6-3a
+                    if isinstance(item.get("visual"), dict):
+                        cb["visual"] = item["visual"]  # UC6-6b
                     if "font" in item:
                         cb["font"] = item["font"]
                     if isinstance(item.get("hidden_on"), list):

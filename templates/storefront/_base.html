@@ -51,6 +51,13 @@
        объединяем с --sf-r — иначе [style*="--sf-r"] ложно совпал бы с --sf-rest). */
     [style*="--sf-bg"] .sf-card { background: var(--sf-bg) !important; }
     [style*="--sf-pad"] .sf-card { padding: var(--sf-pad) !important; }
+    /* UC6-6b: те же переменные применяются к контейнеру C-блока (.cb-box) —
+       тень/фон/отступ/радиус настраиваются из ленты блока. Без переменной —
+       без изменений (legacy-облик цел). */
+    [style*="--sf-r"] .cb-box { border-radius: var(--sf-r); }
+    [style*="--sf-sh"] .cb-box { box-shadow: var(--sf-sh); }
+    [style*="--sf-bg"] .cb-box { background: var(--sf-bg); }
+    [style*="--sf-pad"] .cb-box { padding: var(--sf-pad); }
     /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
     h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
     /* P2b: scroll-reveal — только при разрешённом движении (WCAG 2.3.3). Скрытое

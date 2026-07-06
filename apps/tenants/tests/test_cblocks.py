@@ -235,3 +235,32 @@ def test_new_widths_and_newline_validated():
     b1, b2 = (s for s in cfg["sections"] if s["key"] == "text")
     assert b1["width"] == "w14" and b1["newline"] is True
     assert b2["width"] == "w16" and "newline" not in b2
+
+
+# --- UC6-6b: visual (тень/фон/отступ/радиус) на C-блоках ----------------------------
+
+
+def test_cblock_visual_kept_only_when_set_and_wrapper_emits_vars():
+    from django.template.loader import render_to_string
+
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {
+                    "key": "text",
+                    "id": "v1",
+                    "data": {"title": "T"},
+                    "visual": {"shadow": True, "radius": 12},
+                },
+                {"key": "text", "id": "v2", "data": {"title": "U"}, "visual": {"shadow": False}},
+            ]
+        }
+    )
+    b1, b2 = (s for s in cfg["sections"] if s["key"] == "text")
+    assert b1["visual"]["shadow"] is True and b1["visual"]["radius"] == 12
+    assert "visual" not in b2  # все нули → ключа нет (golden-паритет)
+    html = render_to_string(
+        "storefront/_section_block.html", {"b": b1}, request=RequestFactory().get("/")
+    )
+    assert "--sf-sh" in html and "--sf-r:12px" in html  # обёртка отдала переменные
+    assert 'class="cb-box' in html  # контейнер блока их потребляет

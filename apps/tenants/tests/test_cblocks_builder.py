@@ -221,3 +221,26 @@ def test_save_persists_newline_flag():
     tenant.refresh_from_db()
     block = _cblocks(tenant)[0]
     assert block["width"] == "w13" and block["newline"] is True
+
+
+def test_save_persists_cblock_visual():
+    """UC6-6b: тень/радиус/фон/отступ блока переживают Save."""
+    tenant = TenantFactory(slug="cb10", name="X")
+    core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
+    tenant.refresh_from_db()
+    bid = _cblocks(tenant)[0]["id"]
+    data = {
+        "cb_id": bid,
+        f"cb_type_{bid}": "text",
+        f"enabled_cb_{bid}": "on",
+        f"cb_{bid}_title": "T",
+        f"visual_shadow_cb_{bid}": "on",
+        f"visual_radius_px_cb_{bid}": "12",
+        f"visual_padding_cb_{bid}": "16",
+        f"visual_bg_on_cb_{bid}": "on",
+        f"visual_bg_cb_{bid}": "#ffeecc",
+    }
+    core_views.home_builder_view(_req(data, tenant))
+    tenant.refresh_from_db()
+    vis = _cblocks(tenant)[0]["visual"]
+    assert vis == {"radius": 12, "shadow": True, "background": "#ffeecc", "padding": 16}

@@ -2,7 +2,7 @@
 {# D.2 C-блок: фото + текст рядом (side=left|right). Пусто → ничего. #}
 {% if block.url or block.title or block.body %}
 <section class="my-8">
-  <div class="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-6 items-center">
+  <div class="cb-box max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-6 items-center">
     {% if block.url %}
       {% comment %}UC6-4: 📷 замена фото на канве + скругление (rounded).{% endcomment %}
       <div class="relative {% if block.side == 'right' %}md:order-2{% endif %}">

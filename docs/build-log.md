@@ -4046,3 +4046,14 @@
   до live-preview (форма цела), свёртка/закрытие, JS без ошибок. Остаток UC6-6:
   (b) тень/фон/отступ на C-блоки, (c) пресеты отображения с демо (5-10/тип,
   FAQ 5 вариантов).
+
+- **2026-07-06 — UC6-6b: visual C-блоков — тень/радиус/отступ/фон из ленты.**
+  `_clean_cblock` += `visual` (реюз `_clean_visual`; ключ ТОЛЬКО при ненулевых
+  значениях — golden живы); обёртка `_section_block` уже отдаёт `--sf-*` — новые
+  CSS-правила в `_base.html` применяют их к контейнеру `.cb-box`
+  (text/image/image_text/button; legacy без переменных не меняется). Лента:
+  тень — «Просто», радиус/отступ/фон — «Эксперт» (data-expert); collect() и
+  save-путь несут visual, черновик — passthrough; live-update через form-wide
+  input/change → schedule(). Замки: test_cblocks (+presence-minimal и
+  переменные обёртки), test_cblocks_builder (+save). Остаток UC6-6:
+  (c) пресеты отображения с демо (5-10/тип; FAQ 5 вариантов).

@@ -245,6 +245,11 @@ def _clean_cblock(item: dict) -> dict:
     # UC6-3a: принудительный перенос — узкий блок начинает НОВЫЙ ряд.
     if item.get("newline"):
         out["newline"] = True
+    # UC6-6b: visual (тень/фон/отступ/радиус) на C-блоках — ключ добавляется
+    # ТОЛЬКО при ненулевых значениях (старые конфиги байт-в-байт, golden живы).
+    vis = _clean_visual(item.get("visual"))
+    if vis["radius"] or vis["shadow"] or vis["background"] or vis["padding"]:
+        out["visual"] = vis
     return out
 
 

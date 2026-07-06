@@ -699,6 +699,28 @@
                 </select>
                 <label class="flex items-center gap-1"><input type="checkbox" name="newline_cb_{{ b.id }}" {% if b.newline %}checked{% endif %} class="rounded border-gray-300">{% trans "Start new row" %}</label>
               </div>
+              {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" %}
+                {% comment %}UC6-6b: visual блока — тень (Просто) + радиус/отступ/фон (Эксперт);
+                   применяется к .cb-box через --sf-* переменные обёртки.{% endcomment %}
+                <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" name="visual_shadow_cb_{{ b.id }}" {% if b.visual.shadow %}checked{% endif %} class="rounded border-gray-300">
+                    {% trans "Shadow" %}
+                  </label>
+                  <label class="flex items-center gap-1.5" data-expert="1">
+                    {% trans "Radius" %}
+                    <input type="range" name="visual_radius_px_cb_{{ b.id }}" value="{{ b.visual.radius|default:0 }}" min="0" max="24" step="2" class="w-20">
+                  </label>
+                  <label class="flex items-center gap-1.5" data-expert="1">
+                    {% trans "Padding" %}
+                    <input type="range" name="visual_padding_cb_{{ b.id }}" value="{{ b.visual.padding|default:0 }}" min="0" max="32" step="2" class="w-20">
+                  </label>
+                  <label class="flex items-center gap-1.5" data-expert="1" title="{% trans 'Card background' %}">
+                    <input type="checkbox" name="visual_bg_on_cb_{{ b.id }}" {% if b.visual.background %}checked{% endif %} class="rounded border-gray-300">
+                    <input type="color" name="visual_bg_cb_{{ b.id }}" value="{{ b.visual.background|default:'#ffffff' }}" class="h-6 w-8 rounded border border-gray-300 p-0.5">
+                  </label>
+                </div>
+              {% endif %}
               {% comment %} SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
                  #home-form с action=save_block_template:<id> (данные блока из POST —
                  ловим текущие правки); ранний return в home_builder_view. {% endcomment %}
@@ -1481,6 +1503,18 @@
         if (cp && cp.value) cb.pos = cp.value;
         var cn = form.querySelector("[name='newline_cb_" + cbId + "']");
         if (cn && cn.checked) cb.newline = true;
+        // UC6-6b: visual блока (тень/радиус/отступ/фон) → черновик (normalize клампит).
+        var vis = {};
+        var vsh = form.querySelector("[name='visual_shadow_cb_" + cbId + "']");
+        if (vsh && vsh.checked) vis.shadow = true;
+        var vr = form.querySelector("[name='visual_radius_px_cb_" + cbId + "']");
+        if (vr && parseInt(vr.value, 10)) vis.radius = parseInt(vr.value, 10);
+        var vp = form.querySelector("[name='visual_padding_cb_" + cbId + "']");
+        if (vp && parseInt(vp.value, 10)) vis.padding = parseInt(vp.value, 10);
+        var vbOn = form.querySelector("[name='visual_bg_on_cb_" + cbId + "']");
+        var vb = form.querySelector("[name='visual_bg_cb_" + cbId + "']");
+        if (vbOn && vbOn.checked && vb && vb.value) vis.background = vb.value;
+        if (Object.keys(vis).length) cb.visual = vis;
         return cb;
       }
       var sec = { key: r.key, enabled: r.enabled };

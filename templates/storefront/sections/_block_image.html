@@ -2,7 +2,7 @@
 {# D.2 C-блок: одно фото + подпись. Пусто → ничего. UC6-4: 📷 замена на канве + скругление. #}
 {% if block.url %}
 <figure class="my-8">
-  <div class="max-w-4xl mx-auto px-4 relative">
+  <div class="cb-box max-w-4xl mx-auto px-4 relative">
     {% if is_preview and block_id %}
       <button type="button" data-photo-edit data-edit-model="cblock" data-edit-pk="{{ block_id }}"
          class="sf-photo-edit hidden absolute top-2 right-6 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
