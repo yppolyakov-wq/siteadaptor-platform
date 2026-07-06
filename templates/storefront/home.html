@@ -11,17 +11,15 @@ if/elif: единый источник правды + основа для C-бл
 секции в live-preview билдера (ключ — фикс-секция, id — C-блок).
 {% endcomment %}
 {% for b in section_blocks %}
-  {% comment %}SE-3c-mid: display:contents вынесен в класс `contents`, чтобы
-  респонсив-классы скрытия по устройствам могли его переопределить на нужном
-  брейкпойнте. --sf-* остаются inline (когда заданы).
-  SE-3e: ширина секции — `contained` (живёт в общем макс-контейнере шаблона) или
-  `full` (full-bleed во всю ширину экрана теми же утилитами, что hero: 100vw,
-  центрирование через left-1/2/-translate, + горизонтальные отступы чтобы контент
-  не липнул к краям).{% endcomment %}
-  {% comment %}UC6-3: C-блоки + ширины w23/w12 (2/3 и 1/2 контейнера, от md:) и
-  положение pos=left/right (дефолт — центр); на мобиле узкие ширины = 100 %.{% endcomment %}
-  <div data-sf-section="{% if b.id %}{{ b.id }}{% else %}{{ b.key }}{% endif %}"
-       class="{% if b.width == 'full' %}relative left-1/2 -translate-x-1/2 w-screen px-4 lg:px-8{% elif b.width == 'w23' %}md:w-2/3 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% elif b.width == 'w12' %}md:w-1/2 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% else %}contents{% endif %}{% if 'mobile' in b.hidden_on %} max-sm:hidden{% endif %}{% if 'tablet' in b.hidden_on %} sm:max-lg:hidden{% endif %}{% if 'desktop' in b.hidden_on %} lg:hidden{% endif %}"
-       style="{% if b.visual.radius %}--sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if b.visual.background %}--sf-bg:{{ b.visual.background }};{% endif %}{% if b.visual.padding %}--sf-pad:{{ b.visual.padding }}px;{% endif %}{% section_font_vars b.font %}">{% render_block b %}</div>
+  {% comment %}UC6-3a: ряд узких блоков (group_block_rows) — md:flex, каждый блок
+  сохраняет свою обёртку data-sf-section (клик-фокус/drag живут). Одиночный
+  блок/фикс-секция — обычная обёртка (_section_block.html).{% endcomment %}
+  {% if b.key == "_row" %}
+    <div class="md:flex md:items-start">
+      {% for sub in b.row %}{% include "storefront/_section_block.html" with b=sub %}{% endfor %}
+    </div>
+  {% else %}
+    {% include "storefront/_section_block.html" %}
+  {% endif %}
 {% endfor %}
 {% endblock %}

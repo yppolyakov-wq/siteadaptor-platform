@@ -648,15 +648,18 @@ def test_home_builder_get_renders_move_buttons():
 
 
 def test_home_builder_get_renders_preview_page_switcher():
-    """SE-2a-1: переключатель страницы превью (главная + лендинги активных архетипов)."""
+    """UC6-1b (перепин SE-2a-1): селектор страниц из тулбара УБРАН (фидбэк
+    владельца — «уже всё редактируется»); скоуп панели ведёт карта PAGE_GROUPS
+    по фактическому пути кадра."""
     tenant = TenantFactory(
         schema_name="public", slug="hbpg", name="HBPG", enabled_modules=["catalog", "stays"]
     )
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'id="home-prev-page"' in body  # селектор страниц
+    assert 'id="home-prev-page"' not in body  # селектор убран (UC6-1b)
+    assert "var PAGE_GROUPS = {" in body  # карта путь → группа
     assert "function previewUrl" in body  # URL превью текущей страницы
-    assert "/sortiment/" in body or "/unterkunft/" in body  # лендинг архетипа в опциях
+    assert "/sortiment/" in body or "/unterkunft/" in body  # лендинг архетипа в карте
 
 
 def test_home_builder_get_renders_landing_inspectors():

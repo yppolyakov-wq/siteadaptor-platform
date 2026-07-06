@@ -201,3 +201,23 @@ def test_cblock_demo_data_survives_normalize_unchanged():
     """UC6-5: демо-данные каждого типа проходят _clean_cblock_data без потерь."""
     for btype, demo in siteconfig.CBLOCK_DEMO_DATA.items():
         assert siteconfig._clean_cblock_data(btype, demo) == demo, btype
+
+
+def test_save_persists_newline_flag():
+    """UC6-3a: чекбокс «с новой строки» доезжает до site_config."""
+    tenant = TenantFactory(slug="cb9", name="X")
+    core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
+    tenant.refresh_from_db()
+    bid = _cblocks(tenant)[0]["id"]
+    data = {
+        "cb_id": bid,
+        f"cb_type_{bid}": "text",
+        f"enabled_cb_{bid}": "on",
+        f"cb_{bid}_title": "T",
+        f"width_cb_{bid}": "w13",
+        f"newline_cb_{bid}": "on",
+    }
+    core_views.home_builder_view(_req(data, tenant))
+    tenant.refresh_from_db()
+    block = _cblocks(tenant)[0]
+    assert block["width"] == "w13" and block["newline"] is True

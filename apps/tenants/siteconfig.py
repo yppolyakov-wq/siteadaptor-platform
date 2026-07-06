@@ -166,9 +166,33 @@ def _clean_hidden_on(raw) -> list:
     return [d for d in _DEVICES if isinstance(raw, list) and d in raw]
 
 
-# UC6-3: у C-блоков шире набор ширин, чем у секций: + 2/3 и 1/2 контейнера
-# («текст на 2/3 экрана» — запрос владельца). Секции остаются на _LAYOUT_WIDTHS.
-CBLOCK_WIDTHS = ("contained", "full", "w23", "w12")
+# UC6-3: у C-блоков шире набор ширин, чем у секций: доли контейнера
+# («текст на 2/3 экрана» — запрос владельца; UC6-3b: + 1/3..1/6).
+# Секции остаются на _LAYOUT_WIDTHS.
+CBLOCK_WIDTHS = ("contained", "full", "w23", "w12", "w13", "w14", "w15", "w16")
+# UC6-3a: узкие ширины — кандидаты на размещение В РЯД (md:flex).
+NARROW_WIDTHS = ("w23", "w12", "w13", "w14", "w15", "w16")
+
+
+def group_block_rows(blocks: list) -> list:
+    """UC6-3a: последовательные УЗКИЕ C-блоки складываются в один ряд
+    (`{"key": "_row", "row": [...]}` → home.html рендерит md:flex).
+    Блок с `newline=True` принудительно начинает новый ряд; широкие блоки
+    и фикс-секции ряд разрывают. Чистая функция — только для рендера."""
+    out, row = [], None
+    for b in blocks:
+        narrow = isinstance(b, dict) and b.get("width") in NARROW_WIDTHS
+        if not narrow:
+            row = None
+            out.append(b)
+            continue
+        if row is None or b.get("newline"):
+            row = {"key": "_row", "row": [b]}
+            out.append(row)
+        else:
+            row["row"].append(b)
+    return out
+
 
 # UC6-5: демо-данные нового C-блока — вставка сразу даёт живой пример (DE-рыба,
 # владелец правит под себя); раньше пустой блок выглядел как «ничего не произошло»
@@ -218,6 +242,9 @@ def _clean_cblock(item: dict) -> dict:
     # без ключа, чтобы старые конфиги оставались байт-в-байт.
     if item.get("pos") in ("left", "right"):
         out["pos"] = item["pos"]
+    # UC6-3a: принудительный перенос — узкий блок начинает НОВЫЙ ряд.
+    if item.get("newline"):
+        out["newline"] = True
     return out
 
 

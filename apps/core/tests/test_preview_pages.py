@@ -158,10 +158,11 @@ def test_editor_preview_switcher_tags_page_groups():
     req.user = SimpleNamespace(is_authenticated=True)
     req.tenant = tenant
     body = views.home_builder_view(req).content.decode()
-    assert 'data-group="home"' in body
-    assert 'data-group="catalog_detail"' in body
-    assert 'data-group="text"' in body  # текстовые/легал страницы
-    assert 'data-group="cart"' in body  # корзина в переключателе превью
+    # UC6-1b: вместо option-атрибутов data-group — карта PAGE_GROUPS (путь → группа).
+    assert "var PAGE_GROUPS = {" in body
+    assert '"catalog_detail"' in body
+    assert '"text"' in body  # текстовые/легал страницы
+    assert '"cart"' in body  # корзина в карте страниц
     assert 'data-scope="home"' in body and 'data-scope="landing"' in body
 
 

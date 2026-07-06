@@ -1,5 +1,6 @@
 """Общие tenant-facing вьюхи (живут в схеме арендатора)."""
 
+import json as _json
 import re
 
 from django.conf import settings
@@ -1105,6 +1106,8 @@ def home_builder_view(request):
                         # раньше width C-блока терялся при Save — жил только в черновике).
                         "width": request.POST.get(f"width_cb_{bid}", "contained"),
                         "pos": request.POST.get(f"pos_cb_{bid}", ""),
+                        # UC6-3a: принудительный перенос ряда узких блоков.
+                        "newline": request.POST.get(f"newline_cb_{bid}") == "on",
                     },
                 )
             )
@@ -1343,6 +1346,7 @@ def home_builder_view(request):
                     # UC6-3: текущие ширина/положение — для селектов формы блока.
                     "width": s.get("width", "contained"),
                     "pos": s.get("pos", ""),
+                    "newline": bool(s.get("newline")),  # UC6-3a
                 }
             )
             continue
@@ -1494,6 +1498,12 @@ def home_builder_view(request):
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,
             "preview_pages": preview_pages,
+            # UC6-1b: карта «путь → группа» для авто-скоупа панели по фактической
+            # странице кадра (селектор страниц из тулбара убран). JSON, не escapejs —
+            # тот кодирует дефисы (-) и ломает literal-сравнение путей.
+            "preview_page_groups_json": _json.dumps(
+                {p["url"]: p.get("group") or "home" for p in preview_pages}
+            ),
             # T-6.1: deep-link — канва стартует со страницы, где нажали «Edit design».
             "preview_start_path": _safe_preview_page(request.GET.get("page")),
             # SE-2a-2/SE-2b-1: per-page инспектор раскладки лендингов (по активным модулям).
@@ -1727,6 +1737,8 @@ def site_preview_draft(request):
                         cb["width"] = item["width"]
                     if item.get("pos") in ("left", "right"):
                         cb["pos"] = item["pos"]
+                    if item.get("newline"):
+                        cb["newline"] = True  # UC6-3a
                     if "font" in item:
                         cb["font"] = item["font"]
                     if isinstance(item.get("hidden_on"), list):

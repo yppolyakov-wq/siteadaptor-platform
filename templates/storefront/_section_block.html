@@ -1,0 +1,9 @@
+{% load siteui %}
+{% comment %}Обёртка одного блока главной (вынесена из home.html для UC6-3a: ряды).
+SE-3c-mid: display:contents в классе `contents` — респонсив-классы скрытия
+переопределяют на брейкпойнте. SE-3e: contained/full; UC6-3/3b: доли контейнера
+w23..w16 (от md:, на мобиле 100 %) + положение pos=left/right (дефолт — центр).
+--sf-* остаются inline (когда заданы).{% endcomment %}
+<div data-sf-section="{% if b.id %}{{ b.id }}{% else %}{{ b.key }}{% endif %}"
+     class="{% if b.width == 'full' %}relative left-1/2 -translate-x-1/2 w-screen px-4 lg:px-8{% elif b.width == 'w23' %}md:w-2/3 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% elif b.width == 'w12' %}md:w-1/2 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% elif b.width == 'w13' %}md:w-1/3 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% elif b.width == 'w14' %}md:w-1/4 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% elif b.width == 'w15' %}md:w-1/5 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% elif b.width == 'w16' %}md:w-1/6 {% if b.pos == 'left' %}md:mr-auto{% elif b.pos == 'right' %}md:ml-auto{% else %}md:mx-auto{% endif %}{% else %}contents{% endif %}{% if 'mobile' in b.hidden_on %} max-sm:hidden{% endif %}{% if 'tablet' in b.hidden_on %} sm:max-lg:hidden{% endif %}{% if 'desktop' in b.hidden_on %} lg:hidden{% endif %}"
+     style="{% if b.visual.radius %}--sf-r:{{ b.visual.radius }}px;{% endif %}{% if b.visual.shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if b.visual.background %}--sf-bg:{{ b.visual.background }};{% endif %}{% if b.visual.padding %}--sf-pad:{{ b.visual.padding }}px;{% endif %}{% section_font_vars b.font %}">{% render_block b %}</div>

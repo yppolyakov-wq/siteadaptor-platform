@@ -672,20 +672,26 @@
                 </div>
                 <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
               {% endif %}
-              {% comment %}UC6-3: ширина блока (вкл. 2/3 и 1/2 контейнера) + положение
-                 узкого блока. pos влияет только на w23/w12 (дефолт — центр).{% endcomment %}
+              {% comment %}UC6-3/3a/3b: ширина блока (доли контейнера до 1/6) + положение.
+                 Узкие блоки подряд автоматически встают В РЯД; чекбокс «с новой
+                 строки» разрывает ряд. pos влияет только на узкие (дефолт — центр).{% endcomment %}
               <div class="flex flex-wrap items-center gap-2 text-sm">
                 <select name="width_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
                   <option value="contained">{% trans "Contained" %}</option>
                   <option value="full" {% if b.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
                   <option value="w23" {% if b.width == 'w23' %}selected{% endif %}>{% trans "2/3 width" %}</option>
                   <option value="w12" {% if b.width == 'w12' %}selected{% endif %}>{% trans "1/2 width" %}</option>
+                  <option value="w13" {% if b.width == 'w13' %}selected{% endif %}>{% trans "1/3 width" %}</option>
+                  <option value="w14" {% if b.width == 'w14' %}selected{% endif %}>{% trans "1/4 width" %}</option>
+                  <option value="w15" {% if b.width == 'w15' %}selected{% endif %}>{% trans "1/5 width" %}</option>
+                  <option value="w16" {% if b.width == 'w16' %}selected{% endif %}>{% trans "1/6 width" %}</option>
                 </select>
                 <select name="pos_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
                   <option value="">{% trans "Centered" %}</option>
                   <option value="left" {% if b.pos == 'left' %}selected{% endif %}>{% trans "To the left" %}</option>
                   <option value="right" {% if b.pos == 'right' %}selected{% endif %}>{% trans "To the right" %}</option>
                 </select>
+                <label class="flex items-center gap-1"><input type="checkbox" name="newline_cb_{{ b.id }}" {% if b.newline %}checked{% endif %} class="rounded border-gray-300">{% trans "Start new row" %}</label>
               </div>
               {% comment %} SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
                  #home-form с action=save_block_template:<id> (данные блока из POST —
@@ -1010,12 +1016,10 @@
           <button type="button" id="home-redo" title="{% trans 'Redo' %} (Ctrl+Shift+Z)"
                   class="px-2.5 py-1 border-l border-gray-300 text-gray-400 cursor-not-allowed" disabled>↷ {% trans "Redo" %}</button>
         </div>
-        {% comment %}SE-2a-1: переключатель страницы превью.{% endcomment %}
-        {% if preview_pages|length > 1 %}
-          <select id="home-prev-page" class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-600 bg-white" aria-label="{% trans 'Preview page' %}" title="{% trans 'Preview page' %}">
-            {% for p in preview_pages %}<option value="{{ p.url }}" data-group="{{ p.group }}">{{ p.label }}</option>{% endfor %}
-          </select>
-        {% endif %}
+        {% comment %}UC6-1b (фидбэк владельца): селектор страниц из тулбара убран —
+        «уже всё редактируется»: переходы делаются кликами прямо в канве, а скоуп
+        панели синхронизируется автоматически по фактическому пути кадра
+        (__SF_PAGE_GROUPS + обработчик load). Deep-link ?page= работает как раньше.{% endcomment %}
         {% comment %}SE-9f: версия сайта по устройству (Desktop/Tablet/Mobile) — рамка телефона/планшета,
            выбор запоминается. Габариты показываем в #home-dev-dim.{% endcomment %}
         <div class="inline-flex items-center gap-1.5">
@@ -1173,12 +1177,16 @@
       } else { done(); }
     }).catch(function () {});
   });
-  // SE-2a-1: текущая страница превью (переключатель меняет). T-6.1: старт из
-  // ?page= (deep-link «Edit design» с витрины) — канва открывается там, где нажали.
+  // SE-2a-1: текущая страница превью. T-6.1: старт из ?page= (deep-link «Edit
+  // design» с витрины). UC6-1b: селектора страниц больше нет — previewPath
+  // синхронизируется с фактическим путём кадра в обработчике load.
   var previewPath = "{{ preview_start_path|default:"/"|escapejs }}";
   function previewUrl() {
     return previewPath + (previewPath.indexOf("?") < 0 ? "?" : "&") + "preview=1";
   }
+  // UC6-1b: карта «путь → группа блоков панели» (server-side JSON: пути с
+  // дефисами/UUID сравниваются literal, escapejs их кодировал бы).
+  var PAGE_GROUPS = {{ preview_page_groups_json|safe }};
 
   // SE-7 (Вариант 3): рейл областей + фокус-панель. Клик по иконке рейла открывает
   // ОДНУ область (остальные скрыты) → без перегруза; повторный клик / ✕ сворачивает
@@ -1431,11 +1439,13 @@
         // UE1: чекбокс кнопки промо-блока — по checked (value у чекбокса всегда "on").
         var sb = form.querySelector("[name='cb_" + cbId + "_show_button']");
         if (sb && sb.checked) cb.data.show_button = "on";
-        // UC6-3: ширина/положение блока → live-preview (черновик).
+        // UC6-3/3a: ширина/положение/перенос блока → live-preview (черновик).
         var cw = form.querySelector("select[name='width_cb_" + cbId + "']");
         if (cw && cw.value) cb.width = cw.value;
         var cp = form.querySelector("select[name='pos_cb_" + cbId + "']");
         if (cp && cp.value) cb.pos = cp.value;
+        var cn = form.querySelector("[name='newline_cb_" + cbId + "']");
+        if (cn && cn.checked) cb.newline = true;
         return cb;
       }
       var sec = { key: r.key, enabled: r.enabled };
@@ -1949,6 +1959,13 @@
     }
   }
   frame.addEventListener("load", function () {
+    // UC6-1b: скоуп панели следует за фактической страницей кадра (селектор
+    // страниц убран из тулбара — навигация кликами прямо в канве).
+    try {
+      var fPath = frame.contentWindow.location.pathname || "/";
+      previewPath = fPath;
+      applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
+    } catch (eSync) {}
     var doc;
     try { doc = frame.contentDocument; } catch (e) { return; }
     if (!doc) return;

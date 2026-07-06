@@ -188,3 +188,50 @@ def test_image_block_photo_button_only_in_preview():
     # публичная витрина (не превью) — кнопки нет
     html_pub = _render({"key": "image", "id": "px", "data": {"url": "/i.jpg"}})
     assert "data-photo-edit" not in html_pub
+
+
+# --- UC6-3a/3b: ряды узких блоков + новые ширины ------------------------------------
+
+
+def test_group_block_rows_groups_consecutive_narrow():
+    blocks = [
+        {"key": "hero", "enabled": True},
+        {"key": "text", "id": "a", "width": "w12"},
+        {"key": "text", "id": "b", "width": "w12"},
+        {"key": "text", "id": "c", "width": "contained"},
+    ]
+    out = siteconfig.group_block_rows(blocks)
+    assert [b.get("key") for b in out] == ["hero", "_row", "text"]
+    assert [x["id"] for x in out[1]["row"]] == ["a", "b"]
+
+
+def test_group_block_rows_newline_breaks_row():
+    blocks = [
+        {"key": "text", "id": "a", "width": "w13"},
+        {"key": "text", "id": "b", "width": "w13", "newline": True},
+        {"key": "text", "id": "c", "width": "w13"},
+    ]
+    out = siteconfig.group_block_rows(blocks)
+    assert len(out) == 2  # newline разорвал ряд; c прилип ко второму
+    assert [x["id"] for x in out[0]["row"]] == ["a"]
+    assert [x["id"] for x in out[1]["row"]] == ["b", "c"]
+
+
+def test_new_widths_and_newline_validated():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {
+                    "key": "text",
+                    "id": "n1",
+                    "data": {"title": "T"},
+                    "width": "w14",
+                    "newline": True,
+                },
+                {"key": "text", "id": "n2", "data": {"title": "U"}, "width": "w16"},
+            ]
+        }
+    )
+    b1, b2 = (s for s in cfg["sections"] if s["key"] == "text")
+    assert b1["width"] == "w14" and b1["newline"] is True
+    assert b2["width"] == "w16" and "newline" not in b2

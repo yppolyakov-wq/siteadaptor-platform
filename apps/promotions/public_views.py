@@ -126,7 +126,8 @@ def storefront_home(request):
     sections = [s["key"] for s in site["sections"] if s["enabled"]]
     # D.2: полные записи включённых секций (фикс + C-блоки с данными) для рендера
     # через {% render_block %}; `sections` (ключи) остаётся для гейтинга запросов.
-    section_blocks = [s for s in site["sections"] if s["enabled"]]
+    # UC6-3a: последовательные узкие C-блоки → ряды (md:flex в home.html).
+    section_blocks = siteconfig.group_block_rows([s for s in site["sections"] if s["enabled"]])
 
     promos = (
         Promotion.objects.filter(status="active").order_by("-created_at")
