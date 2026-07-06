@@ -423,7 +423,9 @@ def test_home_builder_get_renders_edit_on_site_toggle():
     tenant = TenantFactory(schema_name="public", slug="hbeos", name="HBEOS")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'id="bld-edit-toggle"' in body  # кнопка-режим в топ-баре
+    # UC6-6g (перепин): кнопка «Edit» убрана — правка всегда включена.
+    assert 'id="bld-edit-toggle"' not in body
+    assert 'id="bld-drawer-toggle"' in body  # «Шаблон» остался
     assert "function applyEditMode" in body  # переключение режима
     assert "function styleEditable" in body  # вкл/выкл редактируемости текста
     assert "sf_edit_on" in body  # запоминается (localStorage)
@@ -451,13 +453,10 @@ def test_home_builder_dynamic_block_rail():
     tenant = TenantFactory(schema_name="public", slug="hbrail", name="HBRAIL")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'class="bld-blk-btn' in body  # динамические кнопки блоков в рейле
-    # products и contact включены по умолчанию (siteconfig.SECTIONS) → иконки есть
-    assert 'data-blk="products"' in body
-    assert 'data-blk="contact"' in body
-    # клик по иконке блока открывает его панель (реюз openBlockPopup)
-    assert 'openBlockPopup(b.getAttribute("data-blk"))' in body
-    # баннер правится глобальной иконкой 🖼, иконкой блока не дублируется
+    # UC6-6g (перепин): иконки блоков убраны из рейла — блоки правятся кликом
+    # прямо на канве («Шаблон» = только глобальные настройки).
+    assert 'class="bld-blk-btn' not in body
+    assert 'data-blk="products"' not in body
     assert 'data-blk="hero"' not in body
 
 
@@ -1581,7 +1580,11 @@ def test_home_builder_se7_rail_and_areas():
     ).content.decode()
     assert 'id="bld-rail"' in body  # вертикальный рейл областей
     assert 'class="bld-rail-btn' in body and 'data-area="theme"' in body
-    assert 'data-area="sections"' in body and 'data-area="library"' in body
+    # UC6-6g (перепин): «Шаблон» = только глобальные — кнопки Sections в рейле
+    # нет, но сама ОБЛАСТЬ (data-bld-area, форма) живёт для канва-фолбэка.
+    assert 'data-bld-area="sections"' in body
+    assert 'data-area="library"' in body
+    assert 'data-area="sections"' not in body  # кнопки рейла нет
     assert 'data-bld-area="theme"' in body  # контент области Тема
     assert 'data-bld-area="sections"' in body  # контент области Секции
     assert "function showArea" in body  # JS переключения областей
@@ -1673,7 +1676,9 @@ def test_home_builder_se8a_global_simple_expert_mode():
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert 'data-mode="basic"' in body  # #bld-root стартует в Простом
-    assert 'class="bld-mode-btn' in body and 'data-mode-val="expert"' in body  # глобальный тумблер
+    # UC6-6g (перепин): глобальный тумблер убран (дубль) — вкладки в ленте блока.
+    assert 'class="bld-mode-btn' not in body
+    assert 'id="bld-mode-expert"' in body  # вкладка Эксперт в ленте
     assert (
         "#bld-root[data-mode=basic] [data-expert]" in body
     )  # CSS прячет технику во всём редакторе

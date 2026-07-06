@@ -12,16 +12,17 @@
     <a href="{% url 'site' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 shrink-0">←<span class="hidden sm:inline">{% trans "Dashboard" %}</span></a>
     <span class="hidden md:inline text-sm font-semibold text-gray-700 truncate">{% trans "Edit your site" %}</span>
     <span class="flex items-center gap-2 shrink-0">
-      {% comment %}SE-8a: глобальный Простой/Эксперт — прячет технические контролы ([data-expert]).{% endcomment %}
-      <span class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs" role="group" aria-label="{% trans 'Editor mode' %}">
-        <button type="button" aria-pressed="true" class="bld-mode-btn px-2.5 py-1.5 bg-indigo-600 text-white" data-mode-val="basic">{% trans "Simple" %}</button>
-        <button type="button" aria-pressed="false" class="bld-mode-btn px-2.5 py-1.5 border-l border-gray-300" data-mode-val="expert">{% trans "Expert" %}</button>
+      {% comment %}UC6-6g (фидбэк владельца): правка всегда включена (кнопка «Edit» убрана),
+         Simple/Expert только в ленте блока (дубль убран), девайс-переключатель — здесь,
+         вместе с глобальными контролами.{% endcomment %}
+      <span class="inline-flex items-center gap-1.5">
+        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
+          <button type="button" data-w="100%" data-dev="desktop" class="home-dev-btn px-2.5 py-1.5 bg-indigo-600 text-white">🖥<span class="hidden lg:inline"> {% trans "Desktop" %}</span></button>
+          <button type="button" data-w="834px" data-dev="tablet" class="home-dev-btn px-2.5 py-1.5 border-l border-gray-300">▭<span class="hidden lg:inline"> {% trans "Tablet" %}</span></button>
+          <button type="button" data-w="390px" data-dev="mobile" class="home-dev-btn px-2.5 py-1.5 border-l border-gray-300">📱<span class="hidden lg:inline"> {% trans "Mobile" %}</span></button>
+        </div>
+        <span id="home-dev-dim" class="hidden xl:inline text-[11px] text-gray-400 tabular-nums"></span>
       </span>
-      {% comment %}UC6-1: две кнопки вместо трёх — «✏️ Править» (канва-first: инлайн-правка
-         + клик по блоку → его настройки; вкл. по умолчанию) и «⚙️ Шаблон» (глобальные
-         настройки: тема/меню/футер/библиотека — рейл областей).{% endcomment %}
-      <button type="button" id="bld-edit-toggle" aria-pressed="true" title="{% trans 'Turn on to edit headings and texts directly on the page.' %}"
-              class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✏️<span class="hidden sm:inline"> {% trans "Edit" %}</span></button>
       <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">⚙️<span class="hidden sm:inline"> {% trans "Template" %}</span></button>
       {% comment %}A4: share-ссылка на read-only превью черновика (снапшот в момент клика).{% endcomment %}
       <button type="button" id="bld-share-preview" data-share-url="{% url 'site-share-preview' %}" title="{% trans 'Copy a read-only preview link of your draft to share.' %}"
@@ -47,17 +48,12 @@
    <nav id="bld-rail" class="hidden shrink-0 w-20 bg-white border-r border-gray-200 flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-2xl leading-none">🎨</span><span class="text-[11px] leading-tight">{% trans "Theme" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="banner"><span class="text-2xl leading-none">🖼</span><span class="text-[11px] leading-tight">{% trans "Banner" %}</span></button>
-     <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-2xl leading-none">🧱</span><span class="text-[11px] leading-tight">{% trans "Sections" %}</span></button>
+     {% comment %}UC6-6g (фидбэк владельца): «Шаблон» = ТОЛЬКО глобальные настройки —
+        кнопка «Sections» и иконки блоков убраны из рейла (блоки правятся кликом
+        прямо на канве; область sections живёт в форме и открывается фолбэком).{% endcomment %}
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="menu"><span class="text-2xl leading-none">☰</span><span class="text-[11px] leading-tight">{% trans "Menu" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="footer"><span class="text-2xl leading-none">🔻</span><span class="text-[11px] leading-tight">{% trans "Footer" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="library"><span class="text-2xl leading-none">📚</span><span class="text-[11px] leading-tight">{% trans "Templates" %}</span></button>
-     {% comment %}SE-9c-1: динамические иконки ВКЛЮЧЁННЫХ блоков → панель блока (openBlockPopup).
-        Repeatable-блоки (text/image/…) сюда не попадают — они в `cblocks`, не в `sections`.
-        Баннер пропускаем (правится глобальной иконкой 🖼).{% endcomment %}
-     <div class="shrink-0 w-7 my-1 border-t border-gray-200" aria-hidden="true"></div>
-     {% for s in sections %}{% if s.enabled and s.key != "hero" %}
-     <button type="button" class="bld-blk-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-blk="{{ s.key }}" title="{{ s.label }}"><span class="text-2xl leading-none">{{ s.icon }}</span><span class="text-[11px] leading-tight w-full truncate text-center">{{ s.label }}</span></button>
-     {% endif %}{% endfor %}
    </nav>
    {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
@@ -806,7 +802,7 @@
           <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
         </div>
         {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «✏️ Править» → клик по тексту подвала). #}
-        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — turn on “Edit” and click the footer text." %}</p>
+        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — click the footer text." %}</p>
         <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
           <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;sections&quot;]').click()">{% trans "Sections" %}</button>.</p>
       </fieldset>
@@ -1057,17 +1053,7 @@
         «уже всё редактируется»: переходы делаются кликами прямо в канве, а скоуп
         панели синхронизируется автоматически по фактическому пути кадра
         (__SF_PAGE_GROUPS + обработчик load). Deep-link ?page= работает как раньше.{% endcomment %}
-        {% comment %}SE-9f: версия сайта по устройству (Desktop/Tablet/Mobile) — рамка телефона/планшета,
-           выбор запоминается. Габариты показываем в #home-dev-dim.{% endcomment %}
-        <div class="inline-flex items-center gap-1.5">
-          <span class="text-[11px] text-gray-500 font-medium">{% trans "Version" %}:</span>
-          <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
-            <button type="button" data-w="100%" data-dev="desktop" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥 {% trans "Desktop" %}</button>
-            <button type="button" data-w="834px" data-dev="tablet" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭ {% trans "Tablet" %}</button>
-            <button type="button" data-w="390px" data-dev="mobile" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱 {% trans "Mobile" %}</button>
-          </div>
-          <span id="home-dev-dim" class="text-[11px] text-gray-400 tabular-nums"></span>
-        </div>
+        {% comment %}UC6-6g: девайс-переключатель переехал в верхний тулбар.{% endcomment %}
         <span id="home-prev-status" class="text-xs text-gray-400"></span>
         {% comment %}SE-9d: подсказка режима прямой правки (видна, когда «Править на сайте» вкл).{% endcomment %}
         <span id="bld-edit-hint" class="hidden text-[11px] text-indigo-600">✍️ {% trans "Click text on the page to edit" %}</span>
@@ -1083,7 +1069,8 @@
   </div>{% comment %}/тело (рейл + канвас){% endcomment %}
 </div>{% comment %}/#bld-root{% endcomment %}
 
-{# E.3: плавающая библиотека блоков для инсертера «+» на канвасе превью. #}
+{% comment %}E.3: плавающая библиотека блоков для инсертера «+» на канвасе превью.
+UC6-6g: внутренний скролл + кламп у нижнего края (список не обрезается).{% endcomment %}
 <div id="bld-inserter" class="hidden fixed z-50 w-64 max-w-[86vw]">
   <div class="bg-white rounded-xl shadow-2xl border border-gray-200 p-2">
     <div class="text-xs text-gray-400 px-2 pb-1">{% trans "Add block" %}</div>
@@ -1147,13 +1134,22 @@
   box-shadow: 0 10px 24px -14px rgba(0,0,0,.18);
 }
 .bld-ribbon-open #bld-block-popup .bld-ribbon-head { background: #fff; border-radius: 0; padding-top: .4rem; padding-bottom: .4rem; }
-.bld-ribbon-open #bld-block-popup-body { padding: .5rem .75rem; }
+.bld-ribbon-open #bld-block-popup-body { padding: .35rem .75rem; }
+/* UC6-6g: компактно в ~2 строки — шапка блока и настройки текут инлайн,
+   вертикальные отступы/рамки-разделители секционных обёрток гасятся. */
+.bld-ribbon-open #bld-block-popup .home-block { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1rem; padding: .35rem .5rem; border: 0; }
+.bld-ribbon-open #bld-block-popup .home-block-settings { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1rem; width: 100%; }
+.bld-ribbon-open #bld-block-popup .home-block-settings > div.w-full { display: contents; }
+.bld-ribbon-open #bld-block-popup .home-block-settings [class*="border-t"] { border-top: 0; margin-top: 0; padding-top: 0; }
+/* Тонкий разделитель «что к чему»: группы настроек отделяются вертикальной чертой. */
+.bld-ribbon-open #bld-block-popup .home-block-settings > label { border-left: 1px solid #f3f4f6; padding-left: .75rem; }
 @media (max-width: 1023px) {
   .bld-ribbon-open #bld-block-popup { top: auto; bottom: 0; }
   .bld-ribbon-open #bld-block-popup > div { border-radius: 1rem 1rem 0 0; border-bottom: 0; border-top: 1px solid #e5e7eb; max-height: 55vh; }
 }
 /* Свёрнутая лента — только шапка (▾ ↔ ▸). */
 #bld-block-popup.bld-ribbon-min #bld-block-popup-body { display: none; }
+#bld-inserter > div { max-height: min(72vh, 520px); overflow-y: auto; }
 /* Контролы C-блока в ленте текут горизонтально (Word-style). */
 .bld-ribbon-open #bld-block-popup .cb-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .bld-ribbon-open #bld-block-popup .cb-row > input[type="text"] { width: auto; flex: 1 1 240px; }
@@ -1195,10 +1191,9 @@
   // SE-9d: режим прямой правки на канве (текст/раскладка). По умолчанию ВКЛ (без регресса);
   // выкл → чистое превью (как видит посетитель). Запоминается в localStorage. Механика
   // (inline-edit/drag) уже есть ниже — здесь только явный переключатель её видимости/активности.
-  // UC6-1: по умолчанию ВКЛ (канва-first — редактор открыт, чтобы править);
-  // «0» в localStorage = владелец сам выключил (чистое превью).
+  // UC6-6g: правка ВСЕГДА включена — отдельная кнопка «Edit» убрана (фидбэк
+  // владельца: «при нажатии на блок не запускается редактирование — кнопка не нужна»).
   var editOn = true;
-  try { editOn = localStorage.getItem("sf_edit_on") !== "0"; } catch (e) {}
   var lastEditDoc = null;  // текущий документ iframe — чтобы переключать «на лету» без перезагрузки
   var editToggle = document.getElementById("bld-edit-toggle");
   function styleEditable(el, on) {
@@ -1826,7 +1821,7 @@
       x.classList.toggle("text-indigo-700", on);
     });
   }
-  function closeBlockPopup() {
+  function closeBlockPopup(restorePanel) {
     if (popupRow && popupAnchor) {
       popupRow.classList.remove("flex-wrap");
       popupAnchor.replaceWith(popupRow);
@@ -1840,10 +1835,25 @@
     highlightBlkBtn(null);  // SE-9c-3: снять подсветку иконки блока в рейле
     if (popup) popup.classList.add("hidden");
     if (secArea) secArea.classList.remove("focus-on");  // #2: вернуть список блоков
-    // UC6-6a: свернуть режим «ленты» — панель возвращается к своему состоянию
-    // (если была открыта область — восстановить её видимость/подсветку).
-    if (edPane) edPane.classList.remove("bld-ribbon-open");
-    if (curArea) showArea(curArea);
+    // UC6-6a: свернуть режим «ленты». UC6-6g: транзишн панели глушим (иначе она
+    // «выезжала сбоку»); панель восстанавливается только при явном закрытии.
+    if (edPane) {
+      edPane.style.transition = "none";
+      edPane.classList.remove("bld-ribbon-open");
+      requestAnimationFrame(function () { edPane.style.transition = ""; });
+    }
+    syncRibbonPad();
+    if (restorePanel !== false && curArea) showArea(curArea);
+  }
+  // UC6-6g: лента НЕ перекрывает сайт — канва отодвигается на её высоту.
+  var prevPane = document.getElementById("bld-preview-pane");
+  function syncRibbonPad() {
+    if (!prevPane) return;
+    if (edPane && edPane.classList.contains("bld-ribbon-open") && popup && !popup.classList.contains("hidden")) {
+      requestAnimationFrame(function () { prevPane.style.paddingTop = popup.offsetHeight + "px"; });
+    } else {
+      prevPane.style.paddingTop = "";
+    }
   }
   function openBlockPopup(key) {
     if (!popup) return false;
@@ -1853,14 +1863,14 @@
     // SE-2a-2: per-page инспектор (каталог и др.) — контрол по data-page-key.
     if (!row) row = form.querySelector('.page-block[data-page-key="' + key + '"]');
     if (!row) return false;
-    closeBlockPopup();
+    closeBlockPopup(false);  // UC6-6g: без восстановления панели (не мигает сбоку)
     popupAnchor = document.createComment("blk");
     row.parentNode.insertBefore(popupAnchor, row);
     if (row.classList.contains("home-block")) row.classList.add("flex-wrap");
     popupBody.appendChild(row);
     popupRow = row;  // FIX: без этого closeBlockPopup не возвращал строку → блоки копились в попапе
     // H1.3: имя секции — в кнопке .blk-edit (label из шапки убран); фолбэк — label/span.
-    var lab = row.querySelector(".blk-edit") || row.querySelector("label") || row.querySelector("span");
+    var lab = row.querySelector(".blk-edit") || row.querySelector(".font-medium") || row.querySelector("label") || row.querySelector("span");  // UC6-6g: у C-блока — тип, не «Position»
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
     // UC6-6a: ЛЕНТА НАД КАНВОЙ (Word-style; фидбэк владельца) вместо фокуса в
     // левой панели: канва остаётся во весь экран. Контролы блока НЕ покидают
@@ -1868,11 +1878,14 @@
     // visibility (класс bld-ribbon-open снимает и transform, иначе fixed-лента
     // позиционировалась бы от транслированной панели), попап всплывает fixed.
     if (edPane) {
+      edPane.style.transition = "none";  // UC6-6g: без бокового «выезда»
       edPane.classList.add("bld-ribbon-open");
+      requestAnimationFrame(function () { edPane.style.transition = ""; });
       areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== "sections"); });
     }
     popup.classList.remove("hidden");
     popup.classList.remove("bld-ribbon-min");
+    syncRibbonPad();
     highlightBlkBtn(key);  // SE-9c-3: подсветить иконку этого блока в рейле
     return true;
   }
@@ -1882,6 +1895,7 @@
   if (ribbonCollapse) ribbonCollapse.addEventListener("click", function () {
     var min = popup.classList.toggle("bld-ribbon-min");
     ribbonCollapse.textContent = min ? "▸" : "▾";
+    syncRibbonPad();  // UC6-6g: канва подтягивается под свёрнутую ленту
   });
   // SE-9c-1: иконки блоков в рейле открывают панель именно этого блока (реюз openBlockPopup,
   // который сам открывает область sections и позиционирует попап). Репитабл-блоки — в мастере.
@@ -1904,8 +1918,18 @@
     inserter.style.left = Math.max(8, Math.min(x, window.innerWidth - 184)) + "px";
     inserter.style.top = Math.max(8, Math.min(y, window.innerHeight - 200)) + "px";
     inserter.classList.remove("hidden");
+    clampInserter();
   }
   function hideInserter() { if (inserter) { inserter.classList.add("hidden"); resetInserterMenu(); } }
+  // UC6-6g: если список выше нижнего края — поднять инсертер (и дать скролл внутри).
+  function clampInserter() {
+    if (!inserter || inserter.classList.contains("hidden")) return;
+    requestAnimationFrame(function () {
+      var h = inserter.offsetHeight;
+      var top = parseFloat(inserter.style.top) || 0;
+      if (top + h > window.innerHeight - 8) inserter.style.top = Math.max(8, window.innerHeight - h - 8) + "px";
+    });
+  }
   // UC6-6c: второй шаг инсертера — выбор пресета отображения типа блока.
   var CB_VARIANTS = {{ cblock_variants_json|safe }};
   var insVariantsBox = document.getElementById("bld-ins-variants");
@@ -1968,6 +1992,7 @@
     html += '<button type="button" id="bld-ins-var-back" class="block w-full text-left text-xs px-3 py-1.5 text-gray-400 hover:text-gray-600">← {% trans "Back" %}</button>';
     insVariantsBox.innerHTML = html;
     insVariantsBox.classList.remove("hidden");
+    clampInserter();
     inserter.querySelectorAll(".bld-ins-btn,.bld-ins-tpl").forEach(function (x) { x.classList.add("hidden"); });
     insVariantsBox.querySelectorAll(".bld-ins-var").forEach(function (x) {
       x.addEventListener("click", function () {
