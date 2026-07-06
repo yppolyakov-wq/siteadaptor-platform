@@ -1,14 +1,54 @@
-{% load i18n siteui %}{# Секция отзывов (M20 ⑤a): имя + текст из site_config. #}
+{% load i18n siteui %}
+{% comment %}Секция отзывов (M20 ⑤a): имя + текст из site_config. UC6-6d2: 5 видов по
+section_row.style — "" карточки-сетка (текущий) | quotes | list | accent | single.{% endcomment %}
 {% if site.testimonials %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "What our customers say" %}</h2>
-  <div class="{% grid_classes site 'testimonials' %}">
-    {% for t in site.testimonials %}
-      <figure class="bg-white rounded-2xl shadow-sm p-5">
-        <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
-        {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
-      </figure>
-    {% endfor %}
-  </div>
+  {% if section_row.style == "quotes" %}
+    <div class="space-y-8 max-w-3xl mx-auto text-center">
+      {% for t in site.testimonials %}
+        <figure>
+          <blockquote class="text-xl md:text-2xl text-gray-800 leading-relaxed whitespace-pre-line">“{{ t.text }}”</blockquote>
+          {% if t.name %}<figcaption class="mt-2 text-sm font-medium" style="color:var(--accent);">— {{ t.name }}</figcaption>{% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+  {% elif section_row.style == "list" %}
+    <div class="divide-y divide-gray-100">
+      {% for t in site.testimonials %}
+        <figure class="py-3">
+          <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
+          {% if t.name %}<figcaption class="mt-1 text-sm text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+  {% elif section_row.style == "accent" %}
+    <div class="{% grid_classes site 'testimonials' %}">
+      {% for t in site.testimonials %}
+        <figure class="bg-white rounded-r-2xl shadow-sm p-5" style="border-left:4px solid var(--accent);">
+          <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
+          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+  {% elif section_row.style == "single" %}
+    <div class="max-w-2xl mx-auto space-y-6">
+      {% for t in site.testimonials %}
+        <figure class="bg-white rounded-2xl shadow-sm p-6 text-center">
+          <blockquote class="text-lg text-gray-800 whitespace-pre-line">“{{ t.text }}”</blockquote>
+          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="{% grid_classes site 'testimonials' %}">
+      {% for t in site.testimonials %}
+        <figure class="bg-white rounded-2xl shadow-sm p-5">
+          <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
+          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+        </figure>
+      {% endfor %}
+    </div>
+  {% endif %}
 </section>
 {% endif %}

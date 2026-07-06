@@ -248,12 +248,37 @@ CBLOCK_VARIANTS = {
             "data": {"size": "sm", "color": "muted"},
             "width": "w23",
         },
+        # UC6-6c2: донаполнение (курс владельца — ~10 видов на тип).
+        {
+            "key": "headline",
+            "label": "Nur Überschrift",
+            "data": {"body": "", "size": "xl", "align": "center"},
+        },
+        {
+            "key": "card",
+            "label": "Weiße Karte",
+            "visual": {"background": "#ffffff", "shadow": True, "radius": 16, "padding": 24},
+        },
+        {
+            "key": "softband",
+            "label": "Band auf Vollbreite",
+            "width": "full",
+            "data": {"align": "center"},
+            "visual": {"background": "#f9fafb", "padding": 32},
+        },
     ],
     "image": [
         {"key": "full", "label": "Vollbreite", "width": "full", "data": {"rounded": "none"}},
         {"key": "framed", "label": "Mit Schatten", "visual": {"shadow": True, "radius": 16}},
         {"key": "square", "label": "Eckig", "data": {"rounded": "none"}},
         {"key": "half", "label": "Halbbreit links", "width": "w12", "pos": "left"},
+        {"key": "half_right", "label": "Halbbreit rechts", "width": "w12", "pos": "right"},
+        {"key": "third", "label": "Drittel zentriert", "width": "w13"},
+        {
+            "key": "polaroid",
+            "label": "Polaroid",
+            "visual": {"background": "#ffffff", "shadow": True, "radius": 8, "padding": 12},
+        },
     ],
     "image_text": [
         {"key": "right", "label": "Foto rechts", "data": {"side": "right"}},
@@ -264,6 +289,19 @@ CBLOCK_VARIANTS = {
         },
         {"key": "accent", "label": "Akzent-Titel", "data": {"color": "accent", "size": "lg"}},
         {"key": "compact", "label": "Kompakt 2/3", "width": "w23", "data": {"size": "sm"}},
+        {
+            "key": "band",
+            "label": "Band auf Vollbreite",
+            "width": "full",
+            "visual": {"background": "#f9fafb", "padding": 32},
+        },
+        {"key": "muted", "label": "Gedämpft", "data": {"color": "muted"}},
+        {
+            "key": "right_card",
+            "label": "Foto rechts + Karte",
+            "data": {"side": "right"},
+            "visual": {"shadow": True, "radius": 16, "padding": 16},
+        },
     ],
     "button": [
         {
@@ -272,6 +310,13 @@ CBLOCK_VARIANTS = {
             "visual": {"shadow": True, "radius": 16, "padding": 16},
         },
         {"key": "right", "label": "Rechtsbündig 1/3", "width": "w13", "pos": "right"},
+        {"key": "left", "label": "Linksbündig 1/3", "width": "w13", "pos": "left"},
+        {
+            "key": "band",
+            "label": "Band mit Hintergrund",
+            "width": "full",
+            "visual": {"background": "#f9fafb", "padding": 24},
+        },
     ],
 }
 
@@ -1451,6 +1496,9 @@ def localize(config: dict, locale: str | None) -> dict:
 # шаблоне секции по section_row.style.
 SECTION_STYLES = {
     "faq": ("list", "twocol", "cards", "numbered"),  # "" = аккордеон (текущий)
+    # UC6-6d2: «подобные FAQ» — отзывы и шаги (по 5 видов с дефолтом).
+    "testimonials": ("quotes", "list", "accent", "single"),  # "" = карточки-сетка
+    "process": ("timeline", "row", "minimal", "twocol"),  # "" = карточки с кружками
 }
 # Лейблы вариантов для селекта билдера (DE — как прочий канва-контент).
 SECTION_STYLE_LABELS = {
@@ -1458,6 +1506,12 @@ SECTION_STYLE_LABELS = {
     "twocol": "Zwei Spalten",
     "cards": "Karten",
     "numbered": "Nummeriert",
+    "quotes": "Große Zitate",
+    "accent": "Akzent-Rand",
+    "single": "Einzeln zentriert",
+    "timeline": "Zeitstrahl",
+    "row": "In einer Reihe",
+    "minimal": "Minimal",
 }
 
 

@@ -1,15 +1,63 @@
-{% load i18n %}{# Секция «Как мы работаем» (P4): нумерованные шаги из site_config. #}
+{% load i18n %}
+{% comment %}Секция «Как мы работаем» (P4): шаги из site_config. UC6-6d2: 5 видов по
+section_row.style — "" карточки с кружками (текущий) | timeline | row | minimal | twocol.{% endcomment %}
 {% if site.process %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "How it works" %}</h2>
-  <div class="grid gap-4 sm:grid-cols-3">
-    {% for step in site.process %}
-      <div class="bg-white rounded-2xl shadow-sm p-6">
-        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold mb-3" style="background: var(--accent);">{{ forloop.counter }}</div>
-        <h3 class="font-semibold mb-1">{{ step.title }}</h3>
-        {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
-      </div>
-    {% endfor %}
-  </div>
+  {% if section_row.style == "timeline" %}
+    <ol class="relative border-l-2 border-gray-200 ml-4 space-y-8">
+      {% for step in site.process %}
+        <li class="pl-8 relative">
+          <span class="absolute -left-4 top-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:var(--accent);">{{ forloop.counter }}</span>
+          <h3 class="font-semibold mb-1">{{ step.title }}</h3>
+          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  {% elif section_row.style == "row" %}
+    <div class="flex flex-wrap gap-6">
+      {% for step in site.process %}
+        <div class="flex items-start gap-3 flex-1 min-w-[220px]">
+          <span class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:var(--accent);">{{ forloop.counter }}</span>
+          <div>
+            <h3 class="font-semibold">{{ step.title }}</h3>
+            {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% elif section_row.style == "minimal" %}
+    <ol class="space-y-3">
+      {% for step in site.process %}
+        <li class="flex items-baseline gap-3">
+          <span class="text-lg font-bold" style="color:var(--accent);">{{ forloop.counter }}.</span>
+          <div>
+            <span class="font-semibold">{{ step.title }}</span>
+            {% if step.text %}<span class="text-sm text-gray-600"> — {{ step.text }}</span>{% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% elif section_row.style == "twocol" %}
+    <div class="grid gap-4 sm:grid-cols-2">
+      {% for step in site.process %}
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold mb-3" style="background: var(--accent);">{{ forloop.counter }}</div>
+          <h3 class="font-semibold mb-1">{{ step.title }}</h3>
+          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="grid gap-4 sm:grid-cols-3">
+      {% for step in site.process %}
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold mb-3" style="background: var(--accent);">{{ forloop.counter }}</div>
+          <h3 class="font-semibold mb-1">{{ step.title }}</h3>
+          {% if step.text %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ step.text }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 </section>
 {% endif %}

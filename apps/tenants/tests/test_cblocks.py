@@ -341,3 +341,44 @@ def test_faq_renders_five_styles():
     assert "md:grid-cols-2" in render("twocol")
     assert "bg-gray-50" in render("cards")
     assert "var(--accent)" in render("numbered") and "<ol" in render("numbered")
+
+
+def test_testimonials_and_process_styles_render():
+    """UC6-6d2: «подобные FAQ» — отзывы и шаги, по 5 видов (4 варианта + дефолт)."""
+    from django.template import Context
+
+    site = {
+        "testimonials": [{"name": "Anna", "text": "Super!"}],
+        "process": [{"title": "Anruf", "text": "Wir melden uns."}],
+    }
+
+    def render(key, style):
+        row = {"key": key, "enabled": True}
+        if style:
+            row["style"] = style
+        ctx = Context({"request": RequestFactory().get("/"), "site": site})
+        return siteui.render_block(ctx, row)
+
+    assert "bg-white rounded-2xl" in render("testimonials", "")  # дефолт-карточки
+    assert "text-2xl" in render("testimonials", "quotes")
+    assert "border-left:4px solid var(--accent)" in render("testimonials", "accent")
+    assert "divide-y" in render("testimonials", "list")
+    assert "max-w-2xl" in render("testimonials", "single")
+
+    assert "sm:grid-cols-3" in render("process", "")  # дефолт-сетка
+    assert "border-l-2" in render("process", "timeline")
+    assert "flex flex-wrap" in render("process", "row")
+    assert "items-baseline" in render("process", "minimal")
+    assert "sm:grid-cols-2" in render("process", "twocol")
+
+    # реестр принимает style у testimonials/process
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "testimonials", "enabled": True, "style": "quotes"},
+                {"key": "process", "enabled": True, "style": "timeline"},
+            ]
+        }
+    )
+    assert next(s for s in cfg["sections"] if s["key"] == "testimonials")["style"] == "quotes"
+    assert next(s for s in cfg["sections"] if s["key"] == "process")["style"] == "timeline"

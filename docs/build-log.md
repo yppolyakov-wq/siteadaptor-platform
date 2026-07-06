@@ -4081,3 +4081,14 @@
   collect()/save/draft несут style. Замки: реестр-валидация (чужая секция/
   мусор → без ключа) + рендер всех 5 видов. build:css. FAQ-механизм готов
   к расширению на другие секции (testimonials/process) — по мере надобности.
+
+- **2026-07-06 — UC6-6c2/6d2: донаполнение пресетов (курс на 10/тип) + стили
+  «подобных FAQ» секций.** CBLOCK_VARIANTS: text 8 видов (+Nur Überschrift/
+  Weiße Karte/Band auf Vollbreite), image 8 (+Halbbreit rechts/Drittel/
+  Polaroid), image_text 8 (+Band/Gedämpft/Foto rechts+Karte), button 5
+  (+Linksbündig/Band) — адверсариальный normalize-замок покрывает новые
+  автоматически. SECTION_STYLES += testimonials (Große Zitate/Offene Liste/
+  Akzent-Rand/Einzeln zentriert) и process (Zeitstrahl/In einer Reihe/
+  Minimal/Zwei Spalten) — по 5 видов с дефолтом; селект «Display style»,
+  collect/save/draft — generic из UC6-6d, ноль новых прокидок. Замки:
+  рендер всех видов testimonials/process + реестр-валидация.
