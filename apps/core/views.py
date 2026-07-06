@@ -1527,9 +1527,24 @@ def home_builder_view(request):
                 {p["url"]: p.get("group") or "home" for p in preview_pages}
             ),
             # UC6-6c: пресеты типов блоков для двухшагового инсертера «+».
+            # UC6-6e: + props пресета — JS рисует миниатюру-картинку варианта.
             "cblock_variants_json": _json.dumps(
                 {
-                    t: [{"key": v["key"], "label": v["label"]} for v in vs]
+                    t: [
+                        {
+                            "key": v["key"],
+                            "label": v["label"],
+                            "w": v.get("width", ""),
+                            "pos": v.get("pos", ""),
+                            "align": (v.get("data") or {}).get("align", ""),
+                            "color": (v.get("data") or {}).get("color", ""),
+                            "side": (v.get("data") or {}).get("side", ""),
+                            "rounded": (v.get("data") or {}).get("rounded", ""),
+                            "shadow": bool((v.get("visual") or {}).get("shadow")),
+                            "bg": (v.get("visual") or {}).get("background", ""),
+                        }
+                        for v in vs
+                    ]
                     for t, vs in siteconfig.CBLOCK_VARIANTS.items()
                 }
             ),

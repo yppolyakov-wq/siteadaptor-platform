@@ -210,7 +210,7 @@
          блока остаются в сабмите. Вкладки Просто/Эксперт — в шапке ленты.{% endcomment %}
       <div id="bld-block-popup" class="hidden">
         <div class="bg-white rounded-xl border border-indigo-200 shadow-sm mb-4">
-          <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-100 bg-indigo-50/60 rounded-t-xl">
+          <div class="bld-ribbon-head flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-100 bg-indigo-50/60 rounded-t-xl">
             <span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700 truncate"></span>
             <span class="flex items-center gap-2 shrink-0">
               {% comment %}SE-1f вкладки Обычный/Эксперт — без data-expert, чтобы из Простого
@@ -803,23 +803,9 @@
       </div>{% comment %}/область 🔻 Подвал{% endcomment %}
     </form>
 
-    {% comment %}SE-7 область 📚 Шаблоны/История: добавить блок · библиотеки шаблонов · версии.{% endcomment %}
+    {% comment %}SE-7 область 📚 Шаблоны: ТОЛЬКО шаблоны (UC6-6e, фидбэк владельца) —
+       блоки добавляются инсертером «+» прямо на канве (с выбором пресета).{% endcomment %}
     <div data-bld-area="library" class="bld-area space-y-6 hidden">
-    {# D.2b: добавить C-блок (отдельная форма — сразу создаёт пустой блок для правки). #}
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="add_block">
-      <span class="text-sm font-medium mr-1">{% trans "Add block" %}:</span>
-      {% comment %}UC6-5: карточка типа блока — иконка + имя + подсказка; вставка
-         сразу с демо-данными (CBLOCK_DEMO_DATA), владелец правит под себя.{% endcomment %}
-      {% for bt in block_types %}
-        <button type="submit" name="block_type" value="{{ bt.value }}" title="{{ bt.hint }}"
-                class="flex flex-col items-start text-left border border-gray-300 rounded-lg px-3 py-2 hover:border-indigo-400 hover:text-indigo-700">
-          <span class="text-sm font-medium">{{ bt.icon }} {{ bt.label }}</span>
-          <span class="text-[11px] text-gray-400">{{ bt.hint }}</span>
-        </button>
-      {% endfor %}
-    </form>
 
     {% comment %} SE-4a: библиотека сохранённых блок-шаблонов — вставить копию или удалить
        (отдельная форма, не в #home-form). Пусто → блок скрыт. {% endcomment %}
@@ -1088,7 +1074,7 @@
 </div>{% comment %}/#bld-root{% endcomment %}
 
 {# E.3: плавающая библиотека блоков для инсертера «+» на канвасе превью. #}
-<div id="bld-inserter" class="hidden fixed z-50 w-44 max-w-[80vw]">
+<div id="bld-inserter" class="hidden fixed z-50 w-64 max-w-[86vw]">
   <div class="bg-white rounded-xl shadow-2xl border border-gray-200 p-2">
     <div class="text-xs text-gray-400 px-2 pb-1">{% trans "Add block" %}</div>
     {% comment %}UC6-5: карточка типа — иконка + подсказка (hint в title).
@@ -1128,20 +1114,33 @@
   visibility: hidden;
   pointer-events: none;
 }
+/* UC6-6e (фидбэк владельца): лента — ВО ВСЮ ШИРИНУ, компактно, в стиле верхнего
+   тулбара (белая полоса с нижней границей, без карточных скруглений). */
 .bld-ribbon-open #bld-block-popup {
   visibility: visible;
   pointer-events: auto;
   position: fixed;
   z-index: 60;
-  top: 3.4rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(960px, 96vw);
+  top: 3.35rem;
+  left: 0;
+  right: 0;
+  width: 100%;
+  transform: none;
 }
-.bld-ribbon-open #bld-block-popup > div { max-height: 46vh; overflow-y: auto; box-shadow: 0 18px 40px -12px rgba(0,0,0,.28); margin-bottom: 0; }
+.bld-ribbon-open #bld-block-popup > div {
+  max-height: 40vh;
+  overflow-y: auto;
+  margin-bottom: 0;
+  border: 0;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0;
+  box-shadow: 0 10px 24px -14px rgba(0,0,0,.18);
+}
+.bld-ribbon-open #bld-block-popup .bld-ribbon-head { background: #fff; border-radius: 0; padding-top: .4rem; padding-bottom: .4rem; }
+.bld-ribbon-open #bld-block-popup-body { padding: .5rem .75rem; }
 @media (max-width: 1023px) {
-  .bld-ribbon-open #bld-block-popup { top: auto; bottom: 0; left: 0; right: 0; transform: none; width: 100%; }
-  .bld-ribbon-open #bld-block-popup > div { border-radius: 1rem 1rem 0 0; max-height: 55vh; }
+  .bld-ribbon-open #bld-block-popup { top: auto; bottom: 0; }
+  .bld-ribbon-open #bld-block-popup > div { border-radius: 1rem 1rem 0 0; border-bottom: 0; border-top: 1px solid #e5e7eb; max-height: 55vh; }
 }
 /* Свёрнутая лента — только шапка (▾ ↔ ▸). */
 #bld-block-popup.bld-ribbon-min #bld-block-popup-body { display: none; }
@@ -1906,13 +1905,47 @@
     insVariantsBox.innerHTML = "";
     inserter.querySelectorAll(".bld-ins-btn,.bld-ins-tpl").forEach(function (x) { x.classList.remove("hidden"); });
   }
+  // UC6-6e: миниатюра-«картинка» варианта — схема блока на мини-странице
+  // (ширина/положение/выравнивание/тень/фон/фото) вместо голого текста.
+  function variantThumb(btype, v) {
+    v = v || {};
+    var wMap = { full: "100%", w23: "66%", w12: "50%", w13: "34%", w14: "26%", w15: "21%", w16: "17%" };
+    var w = wMap[v.w] || "86%";
+    var mL = "auto", mR = "auto";
+    if (v.pos === "left") mL = "1px"; else if (v.pos === "right") mR = "1px";
+    var accent = "#4f46e5", gray = "#9ca3af", light = "#d1d5db";
+    var rad = v.rounded === "none" ? "0" : v.rounded === "3xl" ? "5px" : "2px";
+    var box = "display:flex;flex-direction:column;justify-content:center;gap:2px;height:100%;box-sizing:border-box;padding:2px;border-radius:3px;width:" + w + ";margin-left:" + mL + ";margin-right:" + mR + ";";
+    if (v.bg) box += "background:" + v.bg + ";border:1px solid #e5e7eb;";
+    if (v.shadow) box += "box-shadow:0 2px 3px rgba(0,0,0,.3);";
+    function bar(wd, hp, col) {
+      var al = v.align === "center" ? "margin:0 auto;" : v.align === "right" ? "margin-left:auto;" : "";
+      return '<i style="display:block;width:' + wd + ";height:" + hp + "px;background:" + col + ';border-radius:1px;' + al + '"></i>';
+    }
+    var inner;
+    if (btype === "image") {
+      inner = '<i style="display:block;width:100%;height:16px;background:' + gray + ";border-radius:" + rad + ';"></i>';
+    } else if (btype === "image_text") {
+      var img = '<i style="display:block;width:45%;background:' + gray + ';border-radius:2px;"></i>';
+      var txt = '<span style="display:flex;flex-direction:column;gap:2px;justify-content:center;width:55%;">' + bar("90%", 2, v.color === "accent" ? accent : "#6b7280") + bar("70%", 2, light) + bar("80%", 2, light) + "</span>";
+      inner = '<span style="display:flex;gap:2px;height:100%;align-items:stretch;">' + (v.side === "right" ? txt + img : img + txt) + "</span>";
+    } else if (btype === "button") {
+      inner = '<i style="display:block;width:55%;height:7px;background:' + accent + ';border-radius:4px;margin:0 auto;"></i>';
+    } else if (btype === "promo") {
+      inner = '<i style="display:block;width:100%;height:16px;background:#f43f5e;border-radius:2px;"></i>';
+    } else {
+      inner = bar("85%", 3, v.color === "accent" ? accent : v.color === "muted" ? light : "#6b7280") + bar("95%", 2, light) + bar("60%", 2, light);
+    }
+    return '<span style="flex:none;display:block;width:56px;height:32px;border:1px solid #e5e7eb;border-radius:5px;background:#fafafa;padding:2px;overflow:hidden;"><span style="' + box + '">' + inner + "</span></span>";
+  }
   function showVariantMenu(btype) {
     var vs = CB_VARIANTS[btype] || [];
     if (!insVariantsBox || !vs.length) { submitInsert(insAfter, btype); return; }
-    var html = '<button type="button" data-vv="" class="bld-ins-var block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">{% trans "Standard" %}</button>';
-    vs.forEach(function (v) {
-      html += '<button type="button" data-vv="' + v.key + '" class="bld-ins-var block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">' + v.label + "</button>";
-    });
+    function varBtn(key, label, v) {
+      return '<button type="button" data-vv="' + key + '" class="bld-ins-var flex items-center gap-2 w-full text-left text-sm px-2 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">' + variantThumb(btype, v) + "<span>" + label + "</span></button>";
+    }
+    var html = varBtn("", "{% trans 'Standard' %}", null);
+    vs.forEach(function (v) { html += varBtn(v.key, v.label, v); });
     html += '<button type="button" id="bld-ins-var-back" class="block w-full text-left text-xs px-3 py-1.5 text-gray-400 hover:text-gray-600">← {% trans "Back" %}</button>';
     insVariantsBox.innerHTML = html;
     insVariantsBox.classList.remove("hidden");
