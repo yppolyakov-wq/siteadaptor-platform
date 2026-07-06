@@ -54,7 +54,8 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
       <span class="inline-flex items-center gap-1">
         <span data-cat-edit="{{ c.pk }}"
               class="px-3 py-1.5 rounded-full text-sm border {% if current_category.pk == c.pk %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600{% endif %}">{{ c }}</span>
-        <a href="{% url 'catalog:category-edit' c.pk %}" title="{% trans 'Edit category' %}"
+        <a href="{% url 'catalog:category-edit' c.pk %}" target="_blank" rel="noopener"
+           title="{% trans 'Edit category' %}"
            class="text-indigo-600 hover:text-indigo-800 text-sm">✎</a>
       </span>
     {% else %}

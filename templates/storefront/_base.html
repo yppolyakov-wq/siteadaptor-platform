@@ -382,8 +382,11 @@
   {% if request.user.is_authenticated and request.GET.preview != '1' %}
   {% comment %}On-canvas редактор (SE-1): владельцу видна кнопка запуска визуального
   редактора прямо с витрины. Посетители (Django-анонимы; клиенты — отдельный account)
-  не видят.{% endcomment %}
-  <a href="{% url 'site-home' %}" data-owner-edit aria-label="{% trans 'Edit your site' %}"
+  не видят. target="_top" обязателен (T-6): страница может быть открыта ВНУТРИ канвы
+  редактора (переходы по ссылкам в превью идут без ?preview=1) — без него клик грузит
+  /dashboard/… в iframe, X-Frame-Options: DENY коммитит chrome-error («refused to
+  connect»), и восстановление истории сабфрейма держит канву мёртвой после F5.{% endcomment %}
+  <a href="{% url 'site-home' %}" target="_top" data-owner-edit aria-label="{% trans 'Edit your site' %}"
      class="fixed left-4 bottom-5 z-40 flex items-center gap-2 bg-gray-900 text-white rounded-full shadow-lg px-4 py-3 hover:bg-gray-800">
     <span class="text-lg leading-none" aria-hidden="true">✏️</span><span class="text-sm font-medium">{% trans "Edit design" %}</span>
   </a>

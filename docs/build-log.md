@@ -3927,3 +3927,19 @@
   инцидента). Опс: после деплоя перезапустить caddy (очистить очередь ретраев
   мусорных имён); долгосрочно — wildcard через Cloudflare DNS (пометка в
   Caddyfile).
+
+- **2026-07-06 — T-6: «Edit design» внутри канвы убивал превью редактора
+  (X-Frame-Options).** Репродукция жалобы владельца (restaurant-demo, «refused
+  to connect» / серая канва): внутренние переходы канвы идут БЕЗ `?preview=1`
+  → на этих страницах виден витринный FAB «✏️ Edit design» (`_base.html`,
+  гейт только по `request.GET.preview`) → клик грузит `/dashboard/site/home/`
+  В КАДР → `X-Frame-Options: DENY` → Chrome коммитит chrome-error («refused
+  to connect»; в консоли цитируется ORIGIN — голый `/`, что и путало), а F5
+  восстанавливает историю сабфрейма (initiator «Other», blocked:other) —
+  канва мертва навсегда. Подтверждено Playwright headful (xvfb): дословное
+  сообщение консоли + `chrome-error://chromewebdata/` + «refused to connect».
+  Сервер здоров — инцидент T-5 ни при чём. Фикс: FAB → `target="_top"`
+  (выпрыгивает из кадра; с обычной витрины поведение прежнее), ✎ правки
+  категории в `products.html` → `target="_blank" rel="noopener"` (паттерн
+  `_product_card`). Замок на весь класс: `test_frame_escape_links.py` —
+  скан витринных шаблонов: `<a>` в DENY-зону обязан нести `_top`/`_blank`.
