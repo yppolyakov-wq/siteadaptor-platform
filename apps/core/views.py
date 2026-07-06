@@ -1176,8 +1176,9 @@ def home_builder_view(request):
         config["sections"] = [entry for _o, entry in items]
         # UC6-7b: C-блоки СТРАНИЦ (page_blocks) — пересборка целиком из pb_id-строк
         # под presence-guard (POST без формы страниц не должен стереть конфиг).
-        # Все хосты рендерятся в форме всегда (скрытие — только визуальное), поэтому
-        # полная пересборка не теряет блоки других страниц.
+        # В форме рендерится строка КАЖДОГО непустого хоста (page_cblocks; пустых
+        # хостов в конфиге и не бывает — normalize_page_blocks дропает `if blocks`),
+        # поэтому пересборка из всех pb_id-строк не теряет блоки других страниц.
         if request.POST.get("pb_present") == "1":
             pb_items: dict[str, list] = {}
             for bid in request.POST.getlist("pb_id"):
