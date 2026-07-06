@@ -1,9 +1,9 @@
-{# D.2 C-блок: заголовок + абзац. Пусто → ничего. #}
+{# D.2 C-блок: заголовок + абзац. Пусто → ничего. UC6-2: align/size/color (палитра темы). #}
 {% if block.title or block.body %}
 <section class="my-8">
-  <div class="max-w-3xl mx-auto px-4">
-    {% if block.title %}<h2 class="text-xl md:text-2xl font-bold mb-2">{{ block.title }}</h2>{% endif %}
-    {% if block.body %}<p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ block.body }}</p>{% endif %}
+  <div class="max-w-3xl mx-auto px-4{% if block.align == 'center' %} text-center{% elif block.align == 'right' %} text-right{% endif %}">
+    {% if block.title %}<h2 class="{% if block.size == 'sm' %}text-lg md:text-xl{% elif block.size == 'lg' %}text-2xl md:text-3xl{% elif block.size == 'xl' %}text-3xl md:text-4xl{% else %}text-xl md:text-2xl{% endif %} font-bold mb-2{% if block.color == 'muted' %} text-gray-500{% endif %}"{% if block.color == 'accent' %} style="color:var(--accent);"{% endif %}>{{ block.title }}</h2>{% endif %}
+    {% if block.body %}<p class="{% if block.size == 'sm' %}text-sm {% elif block.size == 'lg' %}text-lg {% elif block.size == 'xl' %}text-xl {% endif %}{% if block.color == 'muted' %}text-gray-500{% else %}text-gray-700{% endif %} leading-relaxed whitespace-pre-line"{% if block.color == 'accent' %} style="color:var(--accent);"{% endif %}>{{ block.body }}</p>{% endif %}
   </div>
 </section>
 {% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Textblock — klicken zum Bearbeiten" %}{% endif %}

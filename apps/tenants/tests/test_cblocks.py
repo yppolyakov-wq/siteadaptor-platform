@@ -76,3 +76,61 @@ def test_render_image_text_side_order():
 
 def test_render_empty_text_block_is_blank():
     assert _render({"key": "text", "id": "x", "data": {}}).strip() == ""
+
+
+# --- UC6-2: стиль текста блока (align/size/color, палитра темы) --------------------
+
+
+def test_text_style_keeps_only_valid_non_default_values():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {
+                    "key": "text",
+                    "id": "s1",
+                    "data": {
+                        "title": "T",
+                        "align": "center",
+                        "size": "xl",
+                        "color": "accent",
+                    },
+                },
+                {
+                    "key": "text",
+                    "id": "s2",
+                    # дефолты/мусор → ключей стиля НЕТ (старые конфиги байт-в-байт)
+                    "data": {"title": "U", "align": "left", "size": "#f00", "color": "red"},
+                },
+            ]
+        }
+    )
+    b1, b2 = (s for s in cfg["sections"] if s["key"] == "text")
+    assert b1["data"]["align"] == "center"
+    assert b1["data"]["size"] == "xl"
+    assert b1["data"]["color"] == "accent"
+    assert "align" not in b2["data"] and "size" not in b2["data"] and "color" not in b2["data"]
+
+
+def test_image_text_style_flows_through():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "image_text", "data": {"title": "T", "align": "right", "color": "muted"}}
+            ]
+        }
+    )
+    block = next(s for s in cfg["sections"] if s["key"] == "image_text")
+    assert block["data"]["align"] == "right" and block["data"]["color"] == "muted"
+
+
+def test_render_text_block_applies_style_classes():
+    html = _render(
+        {
+            "key": "text",
+            "enabled": True,
+            "data": {"title": "T", "body": "B", "align": "center", "size": "xl", "color": "accent"},
+        }
+    )
+    assert "text-center" in html
+    assert "md:text-4xl" in html
+    assert "var(--accent)" in html

@@ -255,12 +255,15 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
     def f(name):
         return post.get(f"cb_{bid}_{name}", "").strip()
 
+    # UC6-2: стиль текста (align/size/color) — text и image_text; normalize
+    # держит только валидные не-дефолтные значения (_text_style).
+    style = {"align": f("align"), "size": f("size"), "color": f("color")}
     if btype == "text":
-        return {"title": f("title"), "body": f("body")}
+        return {"title": f("title"), "body": f("body"), **style}
     if btype == "image":
         return {"url": f("url"), "caption": f("caption")}
     if btype == "image_text":
-        return {"url": f("url"), "title": f("title"), "body": f("body"), "side": f("side")}
+        return {"url": f("url"), "title": f("title"), "body": f("body"), "side": f("side"), **style}
     if btype == "button":
         return {"label": f("label"), "url": f("url")}
     if btype == "promo":

@@ -136,3 +136,26 @@ def test_delete_checkbox_removes_cblock():
     core_views.home_builder_view(_req(data, tenant))
     tenant.refresh_from_db()
     assert _cblocks(tenant) == []
+
+
+def test_save_persists_text_style_fields():
+    """UC6-2: align/size/color из формы билдера доезжают до site_config."""
+    tenant = TenantFactory(slug="cb6", name="X")
+    core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
+    tenant.refresh_from_db()
+    bid = _cblocks(tenant)[0]["id"]
+    data = {
+        "cb_id": bid,
+        f"cb_type_{bid}": "text",
+        f"enabled_cb_{bid}": "on",
+        f"cb_{bid}_title": "T",
+        f"cb_{bid}_align": "center",
+        f"cb_{bid}_size": "lg",
+        f"cb_{bid}_color": "muted",
+    }
+    core_views.home_builder_view(_req(data, tenant))
+    tenant.refresh_from_db()
+    block = _cblocks(tenant)[0]
+    assert block["data"]["align"] == "center"
+    assert block["data"]["size"] == "lg"
+    assert block["data"]["color"] == "muted"

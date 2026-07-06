@@ -606,6 +606,26 @@
               {% endif %}
               {% if b.type == "text" or b.type == "image_text" %}
                 <textarea name="cb_{{ b.id }}_body" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
+                {% comment %}UC6-2: стиль текста блока — выравнивание/размер/цвет (палитра темы;
+                   решение владельца 2026-07-06 — без свободного пикера).{% endcomment %}
+                <div class="flex flex-wrap items-center gap-2 text-sm">
+                  <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                    <option value="">{% trans "Text left" %}</option>
+                    <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
+                    <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
+                  </select>
+                  <select name="cb_{{ b.id }}_size" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                    <option value="">{% trans "Normal size" %}</option>
+                    <option value="sm" {% if b.data.size == 'sm' %}selected{% endif %}>{% trans "Small" %}</option>
+                    <option value="lg" {% if b.data.size == 'lg' %}selected{% endif %}>{% trans "Large" %}</option>
+                    <option value="xl" {% if b.data.size == 'xl' %}selected{% endif %}>{% trans "Extra large" %}</option>
+                  </select>
+                  <select name="cb_{{ b.id }}_color" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                    <option value="">{% trans "Default color" %}</option>
+                    <option value="accent" {% if b.data.color == 'accent' %}selected{% endif %}>{% trans "Accent color" %}</option>
+                    <option value="muted" {% if b.data.color == 'muted' %}selected{% endif %}>{% trans "Muted gray" %}</option>
+                  </select>
+                </div>
               {% endif %}
               {% if b.type == "image" or b.type == "image_text" %}
                 <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
@@ -1373,7 +1393,8 @@
         var typeEl = form.querySelector("input[name='cb_type_" + cbId + "']");
         var cb = { key: typeEl ? typeEl.value : "", id: cbId, enabled: r.enabled, data: {} };
         ["title", "body", "url", "label", "caption", "side",
-         "promo_pk", "align", "badge_pos", "button_label"].forEach(function (f) {
+         "promo_pk", "align", "badge_pos", "button_label",
+         "size", "color"].forEach(function (f) {  // UC6-2: стиль текста блока
           var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
           if (el && el.value !== "") cb.data[f] = el.value;
         });

@@ -104,11 +104,25 @@ REPEATABLE_BLOCKS = ("text", "image", "image_text", "button", "spacer", "promo")
 _MAX_CBLOCKS = 30
 
 
+def _text_style(d: dict) -> dict:
+    """UC6-2: стиль текста блока — только НЕ-дефолтные валидные значения
+    (дефолт = ключа нет → старые конфиги байт-в-байт, golden-замки живы).
+    Цвет — ТОЛЬКО палитра темы (accent/muted), решение владельца 2026-07-06."""
+    out = {}
+    if d.get("align") in ("center", "right"):
+        out["align"] = d["align"]
+    if d.get("size") in ("sm", "lg", "xl"):
+        out["size"] = d["size"]
+    if d.get("color") in ("accent", "muted"):
+        out["color"] = d["color"]
+    return out
+
+
 def _clean_cblock_data(key: str, raw) -> dict:
     """Санитизация данных C-блока по типу (строки; неизвестные ключи отброшены)."""
     d = raw if isinstance(raw, dict) else {}
     if key == "text":
-        return {"title": _s(d.get("title")), "body": _s(d.get("body"))}
+        return {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
     if key == "image":
         return {"url": _s(d.get("url")), "caption": _s(d.get("caption"))}
     if key == "image_text":
@@ -118,6 +132,7 @@ def _clean_cblock_data(key: str, raw) -> dict:
             "title": _s(d.get("title")),
             "body": _s(d.get("body")),
             "side": side if side in ("left", "right") else "left",
+            **_text_style(d),
         }
     if key == "button":
         return {"label": _s(d.get("label")), "url": _s(d.get("url"))}

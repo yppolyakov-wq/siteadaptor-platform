@@ -3970,3 +3970,13 @@
   showArea), restore-область после save-перезагрузки сохранена; (4) хинт
   подвала обновлён под новое имя кнопки. Замки test_home_builder (id обеих
   кнопок) живы; e2e Playwright: старт/шаблон/клик-по-блоку — зелёные.
+
+- **2026-07-06 — UC6-2: стиль текста C-блока — выравнивание/размер/цвет (палитра
+  темы).** text/image_text получили `align` (center/right), `size` (sm/lg/xl),
+  `color` (accent/muted): `_text_style` в `_clean_cblock_data` (только валидные
+  НЕ-дефолтные значения → старые конфиги байт-в-байт, golden живы), рендер
+  `_block_text`/`_block_image_text` (Tailwind-классы уже в app.css, accent —
+  `var(--accent)`),три селекта в строке блока билдера («Просто»-уровень),
+  collect() += size/color, `_read_cblock_data` += style. Цвет — ТОЛЬКО палитра
+  темы (решение владельца). Замки: test_cblocks (+3: валидация/паритет/рендер),
+  test_cblocks_builder (+1: save-путь).
