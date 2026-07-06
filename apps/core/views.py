@@ -857,11 +857,12 @@ def home_builder_view(request):
             btype = request.POST.get("block_type", "")
             if btype in siteconfig.REPEATABLE_BLOCKS:
                 cfg = siteconfig.normalize(request.tenant.site_config)
-                # UC6-5: новый блок — сразу с демо-данными (живой пример вместо пустоты).
+                # UC6-5/6c: новый блок — демо-данные + опц. пресет отображения
+                # (variant из двухшагового инсертера; normalize валидирует).
                 new_block = {
                     "key": btype,
                     "enabled": True,
-                    "data": dict(siteconfig.CBLOCK_DEMO_DATA.get(btype, {})),
+                    **siteconfig.cblock_insert_preset(btype, request.POST.get("variant", "")),
                 }
                 _insert_after_section(cfg["sections"], new_block, request.POST.get("add_after"))
                 request.tenant.site_config = siteconfig.normalize(cfg)
@@ -1516,6 +1517,13 @@ def home_builder_view(request):
             # тот кодирует дефисы (-) и ломает literal-сравнение путей.
             "preview_page_groups_json": _json.dumps(
                 {p["url"]: p.get("group") or "home" for p in preview_pages}
+            ),
+            # UC6-6c: пресеты типов блоков для двухшагового инсертера «+».
+            "cblock_variants_json": _json.dumps(
+                {
+                    t: [{"key": v["key"], "label": v["label"]} for v in vs]
+                    for t, vs in siteconfig.CBLOCK_VARIANTS.items()
+                }
             ),
             # T-6.1: deep-link — канва стартует со страницы, где нажали «Edit design».
             "preview_start_path": _safe_preview_page(request.GET.get("page")),

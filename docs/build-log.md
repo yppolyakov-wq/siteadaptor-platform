@@ -4057,3 +4057,16 @@
   input/change → schedule(). Замки: test_cblocks (+presence-minimal и
   переменные обёртки), test_cblocks_builder (+save). Остаток UC6-6:
   (c) пресеты отображения с демо (5-10/тип; FAQ 5 вариантов).
+
+- **2026-07-06 — UC6-6c: пресеты отображения при вставке блока (двухшаговый
+  инсертер) — UC6 ЗАКРЫТ в объёме C-блоков.** Реестр `CBLOCK_VARIANTS`
+  (text: Intro/Zitat/Akzent-Banner/Notiz-2/3 · image: Vollbreite/Schatten/
+  Eckig/Halbbreit · image_text: Foto-rechts/Karte/Akzent/Kompakt · button:
+  Schatten/Rechts-1/3; + «Standard» = демо) + `cblock_insert_preset(btype,
+  variant)` — демо-данные + оверрайды пресета (data/width/pos/visual);
+  `add_block` принимает `variant`; инсертер «+» на канве стал двухшаговым
+  (тип → варианты, ← Back). Замки: пресет-merge; АДВЕРСАРИАЛЬНЫЙ замок «каждый
+  пресет реестра проходит normalize без потерь» (иначе вариант молча давал бы
+  стандарт); builder-save. E2E: варианты в инсертере, «Akzent-Banner» даёт
+  центрированный акцент-блок на канве. FAQ-варианты отображения — отложены
+  отдельным инкрементом (fixed-секция, другой механизм) — roadmap §Отложено.

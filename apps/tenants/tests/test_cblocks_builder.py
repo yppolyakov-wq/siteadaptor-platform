@@ -244,3 +244,15 @@ def test_save_persists_cblock_visual():
     tenant.refresh_from_db()
     vis = _cblocks(tenant)[0]["visual"]
     assert vis == {"radius": 12, "shadow": True, "background": "#ffeecc", "padding": 16}
+
+
+def test_add_block_with_variant_applies_preset():
+    """UC6-6c: вставка с variant из инсертера даёт преднастроенный блок."""
+    tenant = TenantFactory(slug="cb11", name="X")
+    core_views.home_builder_view(
+        _req({"action": "add_block", "block_type": "text", "variant": "banner"}, tenant)
+    )
+    tenant.refresh_from_db()
+    block = _cblocks(tenant)[0]
+    assert block["data"]["color"] == "accent" and block["data"]["size"] == "xl"
+    assert block["visual"]["shadow"] is True and block["visual"]["radius"] == 16

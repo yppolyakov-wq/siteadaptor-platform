@@ -223,6 +223,74 @@ CBLOCK_DEMO_DATA = {
 }
 
 
+# UC6-6c: пресеты отображения при вставке блока («выбор шаблона с преднастрой-
+# ками и демо-данными» — фидбэк владельца). Стандарт (key "") — голые демо-
+# данные CBLOCK_DEMO_DATA; каждый пресет — оверрайды поверх демо: data-ключи
+# и/или block-props (width/pos/newline/visual). Лейблы DE — как демо-контент.
+CBLOCK_VARIANTS = {
+    "text": [
+        {"key": "intro", "label": "Intro zentriert", "data": {"align": "center", "size": "lg"}},
+        {
+            "key": "quote",
+            "label": "Zitat",
+            "data": {"align": "center", "size": "lg", "color": "muted"},
+            "visual": {"padding": 24},
+        },
+        {
+            "key": "banner",
+            "label": "Akzent-Banner",
+            "data": {"align": "center", "size": "xl", "color": "accent"},
+            "visual": {"padding": 24, "radius": 16, "shadow": True},
+        },
+        {
+            "key": "note",
+            "label": "Notiz 2/3",
+            "data": {"size": "sm", "color": "muted"},
+            "width": "w23",
+        },
+    ],
+    "image": [
+        {"key": "full", "label": "Vollbreite", "width": "full", "data": {"rounded": "none"}},
+        {"key": "framed", "label": "Mit Schatten", "visual": {"shadow": True, "radius": 16}},
+        {"key": "square", "label": "Eckig", "data": {"rounded": "none"}},
+        {"key": "half", "label": "Halbbreit links", "width": "w12", "pos": "left"},
+    ],
+    "image_text": [
+        {"key": "right", "label": "Foto rechts", "data": {"side": "right"}},
+        {
+            "key": "card",
+            "label": "Karte mit Schatten",
+            "visual": {"shadow": True, "radius": 16, "padding": 16},
+        },
+        {"key": "accent", "label": "Akzent-Titel", "data": {"color": "accent", "size": "lg"}},
+        {"key": "compact", "label": "Kompakt 2/3", "width": "w23", "data": {"size": "sm"}},
+    ],
+    "button": [
+        {
+            "key": "framed",
+            "label": "Mit Schatten",
+            "visual": {"shadow": True, "radius": 16, "padding": 16},
+        },
+        {"key": "right", "label": "Rechtsbündig 1/3", "width": "w13", "pos": "right"},
+    ],
+}
+
+
+def cblock_insert_preset(btype: str, variant: str) -> dict:
+    """UC6-6c: поля нового C-блока при вставке — демо-данные + оверрайды пресета.
+    Неизвестный/пустой variant → стандарт (только демо). Возвращает block-item
+    поля (data + width/pos/newline/visual); normalize дальше валидирует."""
+    out = {"data": dict(CBLOCK_DEMO_DATA.get(btype, {}))}
+    for v in CBLOCK_VARIANTS.get(btype, []):
+        if v["key"] == variant:
+            out["data"].update(v.get("data", {}))
+            for prop in ("width", "pos", "newline", "visual"):
+                if prop in v:
+                    out[prop] = v[prop]
+            break
+    return out
+
+
 def _clean_cblock(item: dict) -> dict:
     """C-блок → {key, id, enabled, data}. id сохраняется (или генерится)."""
     key = item["key"]

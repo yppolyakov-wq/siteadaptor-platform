@@ -264,3 +264,38 @@ def test_cblock_visual_kept_only_when_set_and_wrapper_emits_vars():
     )
     assert "--sf-sh" in html and "--sf-r:12px" in html  # обёртка отдала переменные
     assert 'class="cb-box' in html  # контейнер блока их потребляет
+
+
+# --- UC6-6c: пресеты отображения при вставке ----------------------------------------
+
+
+def test_cblock_insert_preset_merges_demo_and_variant():
+    p = siteconfig.cblock_insert_preset("text", "banner")
+    assert p["data"]["title"]  # демо-заголовок остался
+    assert p["data"]["color"] == "accent" and p["data"]["size"] == "xl"
+    assert p["visual"]["shadow"] is True and p["visual"]["radius"] == 16
+    # неизвестный/пустой вариант → стандарт (чистые демо-данные)
+    assert siteconfig.cblock_insert_preset("text", "nope") == {
+        "data": siteconfig.CBLOCK_DEMO_DATA["text"]
+    }
+    assert siteconfig.cblock_insert_preset("spacer", "") == {"data": {}}
+
+
+def test_all_cblock_variants_survive_normalize():
+    """Каждый пресет реестра проходит normalize БЕЗ потерь — иначе выбор
+    варианта молча давал бы стандартный блок."""
+    for btype, variants in siteconfig.CBLOCK_VARIANTS.items():
+        for v in variants:
+            preset = siteconfig.cblock_insert_preset(btype, v["key"])
+            cfg = siteconfig.normalize(
+                {"sections": [{"key": btype, "id": "x1", "enabled": True, **preset}]}
+            )
+            block = next(s for s in cfg["sections"] if s["key"] == btype)
+            for prop in ("width", "pos", "newline"):
+                if prop in preset:
+                    assert block.get(prop) == preset[prop], (btype, v["key"], prop)
+            if "visual" in preset:
+                for k, val in preset["visual"].items():
+                    assert block["visual"][k] == val, (btype, v["key"], k)
+            for k, val in preset["data"].items():
+                assert block["data"].get(k) == val, (btype, v["key"], k)

@@ -1078,10 +1078,13 @@
 <div id="bld-inserter" class="hidden fixed z-50 w-44 max-w-[80vw]">
   <div class="bg-white rounded-xl shadow-2xl border border-gray-200 p-2">
     <div class="text-xs text-gray-400 px-2 pb-1">{% trans "Add block" %}</div>
-    {% comment %}UC6-5: карточка типа — иконка + подсказка (hint в title).{% endcomment %}
+    {% comment %}UC6-5: карточка типа — иконка + подсказка (hint в title).
+       UC6-6c: у типов с пресетами клик открывает второй шаг — выбор варианта
+       отображения (#bld-ins-variants заполняет JS).{% endcomment %}
     {% for bt in block_types %}
       <button type="button" data-bt="{{ bt.value }}" title="{{ bt.hint }}" class="bld-ins-btn block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">{{ bt.icon }} {{ bt.label }}</button>
     {% endfor %}
+    <div id="bld-ins-variants" class="hidden"></div>
     {% comment %} SE-4c: вставить сохранённый блок-шаблон ПРЯМО в эту позицию (use_block_template
        + insert_after). Надёжнее cross-iframe DnD: вставка через клик-инсертер. {% endcomment %}
     {% if block_templates %}
@@ -1877,7 +1880,35 @@
     inserter.style.top = Math.max(8, Math.min(y, window.innerHeight - 200)) + "px";
     inserter.classList.remove("hidden");
   }
-  function hideInserter() { if (inserter) inserter.classList.add("hidden"); }
+  function hideInserter() { if (inserter) { inserter.classList.add("hidden"); resetInserterMenu(); } }
+  // UC6-6c: второй шаг инсертера — выбор пресета отображения типа блока.
+  var CB_VARIANTS = {{ cblock_variants_json|safe }};
+  var insVariantsBox = document.getElementById("bld-ins-variants");
+  function resetInserterMenu() {
+    if (!insVariantsBox) return;
+    insVariantsBox.classList.add("hidden");
+    insVariantsBox.innerHTML = "";
+    inserter.querySelectorAll(".bld-ins-btn,.bld-ins-tpl").forEach(function (x) { x.classList.remove("hidden"); });
+  }
+  function showVariantMenu(btype) {
+    var vs = CB_VARIANTS[btype] || [];
+    if (!insVariantsBox || !vs.length) { submitInsert(insAfter, btype); return; }
+    var html = '<button type="button" data-vv="" class="bld-ins-var block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">{% trans "Standard" %}</button>';
+    vs.forEach(function (v) {
+      html += '<button type="button" data-vv="' + v.key + '" class="bld-ins-var block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">' + v.label + "</button>";
+    });
+    html += '<button type="button" id="bld-ins-var-back" class="block w-full text-left text-xs px-3 py-1.5 text-gray-400 hover:text-gray-600">← {% trans "Back" %}</button>';
+    insVariantsBox.innerHTML = html;
+    insVariantsBox.classList.remove("hidden");
+    inserter.querySelectorAll(".bld-ins-btn,.bld-ins-tpl").forEach(function (x) { x.classList.add("hidden"); });
+    insVariantsBox.querySelectorAll(".bld-ins-var").forEach(function (x) {
+      x.addEventListener("click", function () {
+        postAction({ action: "add_block", block_type: btype, add_after: insAfter, variant: x.getAttribute("data-vv") });
+      });
+    });
+    var back = document.getElementById("bld-ins-var-back");
+    if (back) back.addEventListener("click", function (e) { e.stopPropagation(); resetInserterMenu(); });
+  }
   function postAction(fields) {
     var f = document.createElement("form");
     f.method = "post"; f.action = "";
@@ -1899,7 +1930,8 @@
   }
   if (inserter) {
     inserter.querySelectorAll(".bld-ins-btn").forEach(function (b) {
-      b.addEventListener("click", function () { submitInsert(insAfter, b.getAttribute("data-bt")); });
+      // UC6-6c: тип с пресетами → второй шаг (выбор варианта); без — сразу вставка.
+      b.addEventListener("click", function () { showVariantMenu(b.getAttribute("data-bt")); });
     });
     inserter.querySelectorAll(".bld-ins-tpl").forEach(function (b) {
       b.addEventListener("click", function () { submitInsertTemplate(insAfter, b.getAttribute("data-tpl")); });
