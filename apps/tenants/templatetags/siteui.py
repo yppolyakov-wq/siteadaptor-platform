@@ -90,9 +90,11 @@ def render_block(context, block):
     # D.2: C-блок — рендерим партиал с данными самого блока.
     if key in CBLOCK_TEMPLATES:
         data = block.get("data") if isinstance(block, dict) else {}
+        # UC6-4: id блока — для on-canvas фото-кнопки 📷 (data-edit-pk).
+        block_id = block.get("id") if isinstance(block, dict) else ""
         html = render_to_string(
             CBLOCK_TEMPLATES[key],
-            {**context.flatten(), "block": data or {}},
+            {**context.flatten(), "block": data or {}, "block_id": block_id or ""},
             request=request,
         )
         return mark_safe(html)

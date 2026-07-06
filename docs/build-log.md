@@ -4002,3 +4002,16 @@
   hint; обе поверхности (форма «Add block» в Библиотеке + плавающий инсертер
   «+» на канве) показывают иконку и подсказку. Замки: test_cblocks_builder +2
   (демо при вставке; демо-данные проходят normalize без потерь).
+
+- **2026-07-06 — UC6-4: фото C-блока — 📷 замена прямо на канве + скругление.**
+  Новый эндпоинт `site-cblock-photo-edit` (реюз `save_product_image`,
+  folder="cblock"): пишет url в data блока ПУБЛИКУЕМОГО конфига + зеркалит в
+  сессионный черновик и БД-`_draft`; JS синхронизирует поле `cb_<id>_url`
+  формы по ответу {url} ДО пере-рендера черновика (иначе push() откатывал бы
+  фото). 📷-кнопка в `_block_image`/`_block_image_text` (is_preview+block_id;
+  `render_block` прокидывает id блока), MODEL_PHOTO_URLS += cblock. Скругление:
+  data-ключ `rounded` (""=rounded-2xl | none | 3xl) — валидация в
+  `_clean_cblock_data`, селект в билдере, collect()/`_read_cblock_data` несут.
+  build:css (rounded-3xl/none). Замки: test_cblock_photo_edit (публикуемый+
+  _draft+сессия; 404/400 без порчи), test_cblocks +2 (rounded-валидация/рендер;
+  📷 только в превью).

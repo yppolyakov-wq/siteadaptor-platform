@@ -160,3 +160,31 @@ def test_section_width_not_extended_to_w23():
     cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True, "width": "w23"}]})
     sec = next(s for s in cfg["sections"] if s["key"] == "products")
     assert sec["width"] == "contained"
+
+
+# --- UC6-4: скругление фото + 📷 на канве -------------------------------------------
+
+
+def test_image_rounded_validated_and_rendered():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "image", "id": "r1", "data": {"url": "/i.jpg", "rounded": "3xl"}},
+                {"key": "image", "id": "r2", "data": {"url": "/i.jpg", "rounded": "bogus"}},
+            ]
+        }
+    )
+    b1, b2 = (s for s in cfg["sections"] if s["key"] == "image")
+    assert b1["data"]["rounded"] == "3xl"
+    assert "rounded" not in b2["data"]  # мусор → дефолт (без ключа)
+    html = _render({"key": "image", "id": "r1", "data": {"url": "/i.jpg", "rounded": "3xl"}})
+    assert "rounded-3xl" in html and "rounded-2xl" not in html
+
+
+def test_image_block_photo_button_only_in_preview():
+    ctx = Context({"request": RequestFactory().get("/"), "is_preview": True})
+    html = siteui.render_block(ctx, {"key": "image", "id": "px", "data": {"url": "/i.jpg"}})
+    assert 'data-edit-model="cblock"' in html and 'data-edit-pk="px"' in html
+    # публичная витрина (не превью) — кнопки нет
+    html_pub = _render({"key": "image", "id": "px", "data": {"url": "/i.jpg"}})
+    assert "data-photo-edit" not in html_pub

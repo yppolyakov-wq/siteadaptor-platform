@@ -261,9 +261,17 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
     if btype == "text":
         return {"title": f("title"), "body": f("body"), **style}
     if btype == "image":
-        return {"url": f("url"), "caption": f("caption")}
+        # UC6-4: rounded — скругление фото (normalize валидирует).
+        return {"url": f("url"), "caption": f("caption"), "rounded": f("rounded")}
     if btype == "image_text":
-        return {"url": f("url"), "title": f("title"), "body": f("body"), "side": f("side"), **style}
+        return {
+            "url": f("url"),
+            "title": f("title"),
+            "body": f("body"),
+            "side": f("side"),
+            "rounded": f("rounded"),
+            **style,
+        }
     if btype == "button":
         return {"label": f("label"), "url": f("url")}
     if btype == "promo":
@@ -1825,6 +1833,64 @@ def share_preview_issue(request):
     return JsonResponse(
         {"url": request.build_absolute_uri(reverse("shared-preview", args=[token]))}
     )
+
+
+@login_required
+@require_POST
+def site_cblock_photo_edit(request):
+    """UC6-4: замена фото C-блока (image/image_text) прямо на канве превью.
+
+    Файл — реюз save_product_image (валидация+storage); новый url пишем в data
+    блока ПУБЛИКУЕМОГО конфига и зеркалим в сессионный черновик + БД-`_draft`
+    (иначе следующий push() черновика откатит фото на старое из формы — форму
+    синхронизирует JS по ответу {url})."""
+    from django.core.exceptions import ValidationError
+    from django.http import JsonResponse
+
+    from apps.catalog.images import save_product_image
+    from apps.tenants import siteconfig
+
+    bid = (request.POST.get("pk") or "").strip()
+    upload = request.FILES.get("image")
+    if not bid or not upload:
+        return JsonResponse({"error": "missing pk/image"}, status=400)
+    try:
+        ref = save_product_image(upload, folder="cblock")
+    except ValidationError as exc:
+        return JsonResponse({"error": "; ".join(exc.messages)}, status=400)
+
+    def _patch(cfg_dict) -> bool:
+        hit = False
+        for s in cfg_dict.get("sections", []):
+            if (
+                isinstance(s, dict)
+                and s.get("id") == bid
+                and s.get("key") in ("image", "image_text")
+            ):
+                data = dict(s.get("data") or {})
+                data["url"] = ref["url"]
+                s["data"] = data
+                hit = True
+        return hit
+
+    published = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    cfg = siteconfig.normalize(published)
+    if not _patch(cfg):
+        return JsonResponse({"error": "block not found"}, status=404)
+    new_cfg = siteconfig.normalize(cfg)
+    # SE-5b-2: `_draft` живёт вне normalize — патчим и его, чтобы восстановление
+    # черновика не вернуло старое фото.
+    db_draft = published.get("_draft")
+    if isinstance(db_draft, dict):
+        draft = siteconfig.normalize(db_draft)
+        _patch(draft)
+        new_cfg = {**new_cfg, "_draft": draft, "_draft_ts": published.get("_draft_ts", "")}
+    request.tenant.site_config = new_cfg
+    request.tenant.save(update_fields=["site_config", "updated_at"])
+    sess = request.session.get("site_preview_draft")
+    if isinstance(sess, dict) and _patch(sess):
+        request.session["site_preview_draft"] = sess
+    return JsonResponse({"url": ref["url"]})
 
 
 @login_required

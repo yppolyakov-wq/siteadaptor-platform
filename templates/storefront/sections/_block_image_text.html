@@ -1,10 +1,17 @@
+{% load i18n %}
 {# D.2 C-блок: фото + текст рядом (side=left|right). Пусто → ничего. #}
 {% if block.url or block.title or block.body %}
 <section class="my-8">
   <div class="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-6 items-center">
     {% if block.url %}
-      <div class="{% if block.side == 'right' %}md:order-2{% endif %}">
-        <img src="{{ block.url }}" alt="{{ block.title }}" loading="lazy" decoding="async" class="w-full rounded-2xl object-cover">
+      {% comment %}UC6-4: 📷 замена фото на канве + скругление (rounded).{% endcomment %}
+      <div class="relative {% if block.side == 'right' %}md:order-2{% endif %}">
+        {% if is_preview and block_id %}
+          <button type="button" data-photo-edit data-edit-model="cblock" data-edit-pk="{{ block_id }}"
+             class="sf-photo-edit hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+             title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
+        {% endif %}
+        <img src="{{ block.url }}" alt="{{ block.title }}" loading="lazy" decoding="async" class="w-full {% if block.rounded == 'none' %}rounded-none{% elif block.rounded == '3xl' %}rounded-3xl{% else %}rounded-2xl{% endif %} object-cover">
       </div>
     {% endif %}
     {# UC6-2: align/size/color текстовой колонки (палитра темы). #}

@@ -633,6 +633,14 @@
               {% if b.type == "image" %}
                 <input type="text" name="cb_{{ b.id }}_caption" value="{{ b.data.caption }}" placeholder="{% trans 'Caption' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
               {% endif %}
+              {% if b.type == "image" or b.type == "image_text" %}
+                {% comment %}UC6-4: скругление фото ("" = стандарт rounded-2xl).{% endcomment %}
+                <select name="cb_{{ b.id }}_rounded" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                  <option value="">{% trans "Rounded corners" %}</option>
+                  <option value="none" {% if b.data.rounded == 'none' %}selected{% endif %}>{% trans "Square corners" %}</option>
+                  <option value="3xl" {% if b.data.rounded == '3xl' %}selected{% endif %}>{% trans "Extra rounded" %}</option>
+                </select>
+              {% endif %}
               {% if b.type == "image_text" %}
                 <select name="cb_{{ b.id }}_side" class="rounded border border-gray-300 px-2 py-1 text-sm">
                   <option value="left" {% if b.data.side == 'left' %}selected{% endif %}>{% trans "Image left" %}</option>
@@ -1416,7 +1424,7 @@
         var cb = { key: typeEl ? typeEl.value : "", id: cbId, enabled: r.enabled, data: {} };
         ["title", "body", "url", "label", "caption", "side",
          "promo_pk", "align", "badge_pos", "button_label",
-         "size", "color"].forEach(function (f) {  // UC6-2: стиль текста блока
+         "size", "color", "rounded"].forEach(function (f) {  // UC6-2/4: стиль текста + скругление
           var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
           if (el && el.value !== "") cb.data[f] = el.value;
         });
@@ -1933,7 +1941,7 @@
   var MODEL_EDIT_URLS = { product: "{% url 'catalog:product-inline-edit' %}", event: "{% url 'events:event-inline-edit' %}", stay: "{% url 'stays:stay-inline-edit' %}", promotion: "{% url 'promotions:promotion-inline-edit' %}", service: "{% url 'booking:service-inline-edit' %}" };
   var PHOTO_EDIT_URL = "{% url 'catalog:product-photo-edit' %}";  // M4: замена фото товара (multipart)
   // Замена фото по архетипам: эндпоинт по data-edit-model (товар/событие/номер/услуга).
-  var MODEL_PHOTO_URLS = { product: PHOTO_EDIT_URL, event: "{% url 'events:event-photo-edit' %}", stay: "{% url 'stays:stay-photo-edit' %}", service: "{% url 'booking:service-photo-edit' %}", promotion: "{% url 'promotions:promotion-photo-edit' %}" };
+  var MODEL_PHOTO_URLS = { product: PHOTO_EDIT_URL, event: "{% url 'events:event-photo-edit' %}", stay: "{% url 'stays:stay-photo-edit' %}", service: "{% url 'booking:service-photo-edit' %}", promotion: "{% url 'promotions:promotion-photo-edit' %}", cblock: "{% url 'site-cblock-photo-edit' %}" };  // UC6-4: фото C-блока
   function markSaved() {
     if (status) {
       status.textContent = "{% trans 'Saved' %} ✓";
@@ -2011,7 +2019,18 @@
         function postPhoto(fd) {
           if (status) status.textContent = "…";
           fetch(phUrl, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
-            .then(function (r) { if (r.ok) { markSaved(); schedule(); } else if (status) status.textContent = ""; })
+            .then(function (r) {
+              if (!r.ok) { if (status) status.textContent = ""; return; }
+              return r.json().catch(function () { return {}; }).then(function (d) {
+                // UC6-4: url фото C-блока живёт и в форме билдера — синхронизируем
+                // ДО пере-рендера черновика (иначе push() откатит фото на старое).
+                if (phModel === "cblock" && d && d.url) {
+                  var uInp = form.querySelector("[name='cb_" + pk + "_url']");
+                  if (uInp) uInp.value = d.url;
+                }
+                markSaved(); schedule();
+              });
+            })
             .catch(function () { if (status) status.textContent = ""; });
         }
         if (op === "remove") {

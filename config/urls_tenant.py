@@ -30,6 +30,7 @@ from apps.core.views import (
     settings_view,
     setup_view,
     share_preview_issue,
+    site_cblock_photo_edit,
     site_inline_edit,
     site_preview,
     site_preview_draft,
@@ -78,6 +79,8 @@ urlpatterns = [
     # A4: выпуск share-ссылки на снапшот черновика (read-only превью).
     path("dashboard/site/share-preview/", share_preview_issue, name="site-share-preview"),
     path("dashboard/site/preview/edit/", site_inline_edit, name="site-inline-edit"),
+    # UC6-4: замена фото C-блока прямо на канве превью (multipart).
+    path("dashboard/site/cblock-photo/", site_cblock_photo_edit, name="site-cblock-photo-edit"),
     # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
     path("dashboard/modules/", modules_view, name="modules"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.

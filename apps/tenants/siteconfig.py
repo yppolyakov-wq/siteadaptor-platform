@@ -123,8 +123,11 @@ def _clean_cblock_data(key: str, raw) -> dict:
     d = raw if isinstance(raw, dict) else {}
     if key == "text":
         return {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
+    # UC6-4: скругление фото блока — "" (стандарт rounded-2xl) | none | 3xl;
+    # только валидные НЕ-дефолтные значения (старые конфиги байт-в-байт).
+    rounded = {"rounded": d["rounded"]} if d.get("rounded") in ("none", "3xl") else {}
     if key == "image":
-        return {"url": _s(d.get("url")), "caption": _s(d.get("caption"))}
+        return {"url": _s(d.get("url")), "caption": _s(d.get("caption")), **rounded}
     if key == "image_text":
         side = d.get("side")
         return {
@@ -133,6 +136,7 @@ def _clean_cblock_data(key: str, raw) -> dict:
             "body": _s(d.get("body")),
             "side": side if side in ("left", "right") else "left",
             **_text_style(d),
+            **rounded,
         }
     if key == "button":
         return {"label": _s(d.get("label")), "url": _s(d.get("url"))}
