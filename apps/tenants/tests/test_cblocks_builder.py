@@ -180,3 +180,24 @@ def test_save_persists_cblock_width_and_pos():
     block = _cblocks(tenant)[0]
     assert block["width"] == "w23"
     assert block["pos"] == "right"
+
+
+def test_add_block_prefills_demo_data():
+    """UC6-5: вставка блока даёт живой пример (DE-рыба), а не пустоту."""
+    tenant = TenantFactory(slug="cb8", name="X")
+    core_views.home_builder_view(_req({"action": "add_block", "block_type": "image_text"}, tenant))
+    tenant.refresh_from_db()
+    block = _cblocks(tenant)[0]
+    assert block["data"]["title"]  # демо-заголовок на месте
+    assert block["data"]["url"].startswith("/medien/demo.svg")
+    # spacer — осознанно без демо-данных
+    core_views.home_builder_view(_req({"action": "add_block", "block_type": "spacer"}, tenant))
+    tenant.refresh_from_db()
+    spacer = next(b for b in _cblocks(tenant) if b["key"] == "spacer")
+    assert spacer["data"] == {}
+
+
+def test_cblock_demo_data_survives_normalize_unchanged():
+    """UC6-5: демо-данные каждого типа проходят _clean_cblock_data без потерь."""
+    for btype, demo in siteconfig.CBLOCK_DEMO_DATA.items():
+        assert siteconfig._clean_cblock_data(btype, demo) == demo, btype

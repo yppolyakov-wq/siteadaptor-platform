@@ -755,8 +755,14 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="add_block">
       <span class="text-sm font-medium mr-1">{% trans "Add block" %}:</span>
-      {% for value, label in block_types %}
-        <button type="submit" name="block_type" value="{{ value }}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">+ {{ label }}</button>
+      {% comment %}UC6-5: карточка типа блока — иконка + имя + подсказка; вставка
+         сразу с демо-данными (CBLOCK_DEMO_DATA), владелец правит под себя.{% endcomment %}
+      {% for bt in block_types %}
+        <button type="submit" name="block_type" value="{{ bt.value }}" title="{{ bt.hint }}"
+                class="flex flex-col items-start text-left border border-gray-300 rounded-lg px-3 py-2 hover:border-indigo-400 hover:text-indigo-700">
+          <span class="text-sm font-medium">{{ bt.icon }} {{ bt.label }}</span>
+          <span class="text-[11px] text-gray-400">{{ bt.hint }}</span>
+        </button>
       {% endfor %}
     </form>
 
@@ -1032,8 +1038,9 @@
 <div id="bld-inserter" class="hidden fixed z-50 w-44 max-w-[80vw]">
   <div class="bg-white rounded-xl shadow-2xl border border-gray-200 p-2">
     <div class="text-xs text-gray-400 px-2 pb-1">{% trans "Add block" %}</div>
-    {% for value, label in block_types %}
-      <button type="button" data-bt="{{ value }}" class="bld-ins-btn block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">+ {{ label }}</button>
+    {% comment %}UC6-5: карточка типа — иконка + подсказка (hint в title).{% endcomment %}
+    {% for bt in block_types %}
+      <button type="button" data-bt="{{ bt.value }}" title="{{ bt.hint }}" class="bld-ins-btn block w-full text-left text-sm px-3 py-1.5 rounded hover:bg-indigo-50 hover:text-indigo-700">{{ bt.icon }} {{ bt.label }}</button>
     {% endfor %}
     {% comment %} SE-4c: вставить сохранённый блок-шаблон ПРЯМО в эту позицию (use_block_template
        + insert_after). Надёжнее cross-iframe DnD: вставка через клик-инсертер. {% endcomment %}

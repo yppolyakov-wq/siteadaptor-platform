@@ -166,6 +166,34 @@ def _clean_hidden_on(raw) -> list:
 # («текст на 2/3 экрана» — запрос владельца). Секции остаются на _LAYOUT_WIDTHS.
 CBLOCK_WIDTHS = ("contained", "full", "w23", "w12")
 
+# UC6-5: демо-данные нового C-блока — вставка сразу даёт живой пример (DE-рыба,
+# владелец правит под себя); раньше пустой блок выглядел как «ничего не произошло»
+# (на витрине — только placeholder в превью). spacer/promo — осознанно без демо
+# (spacer без данных; promo требует реальную акцию — рендер fail-safe).
+CBLOCK_DEMO_DATA = {
+    "text": {
+        "title": "Über uns",
+        "body": (
+            "Erzählen Sie hier in zwei bis drei Sätzen, was Ihr Geschäft besonders "
+            "macht — Ihre Geschichte, Ihre Spezialität, Ihr Team."
+        ),
+    },
+    "image": {
+        "url": "/medien/demo.svg?kw=laden&w=1200&h=600",
+        "caption": "Bildunterschrift — klicken und ersetzen",
+    },
+    "image_text": {
+        "url": "/medien/demo.svg?kw=team&w=800&h=600",
+        "title": "Frisch, regional, mit Herz",
+        "body": (
+            "Beschreiben Sie hier ein Angebot oder eine Besonderheit — "
+            "das Foto können Sie jederzeit austauschen."
+        ),
+        "side": "left",
+    },
+    "button": {"label": "Mehr erfahren", "url": "/ueber-uns/"},
+}
+
 
 def _clean_cblock(item: dict) -> dict:
     """C-блок → {key, id, enabled, data}. id сохраняется (или генерится)."""

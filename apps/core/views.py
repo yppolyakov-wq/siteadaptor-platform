@@ -848,7 +848,12 @@ def home_builder_view(request):
             btype = request.POST.get("block_type", "")
             if btype in siteconfig.REPEATABLE_BLOCKS:
                 cfg = siteconfig.normalize(request.tenant.site_config)
-                new_block = {"key": btype, "enabled": True, "data": {}}
+                # UC6-5: новый блок — сразу с демо-данными (живой пример вместо пустоты).
+                new_block = {
+                    "key": btype,
+                    "enabled": True,
+                    "data": dict(siteconfig.CBLOCK_DEMO_DATA.get(btype, {})),
+                }
                 _insert_after_section(cfg["sections"], new_block, request.POST.get("add_after"))
                 request.tenant.site_config = siteconfig.normalize(cfg)
                 request.tenant.save(update_fields=["site_config", "updated_at"])
@@ -1440,13 +1445,40 @@ def home_builder_view(request):
             ],
             # UE1: селектор промо для промо-блока (активные+запланированные).
             "promos_for_blocks": _promos_for_blocks(request),
+            # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка
+            # даёт демо-данные из siteconfig.CBLOCK_DEMO_DATA).
             "block_types": [
-                ("text", _("Text")),
-                ("image", _("Image")),
-                ("image_text", _("Image + text")),
-                ("button", _("Button")),
-                ("spacer", _("Spacer")),
-                ("promo", _("Promotion")),  # UE1: LIVE-промо-блок
+                {
+                    "value": "text",
+                    "label": _("Text"),
+                    "icon": "📝",
+                    "hint": _("Heading + paragraph"),
+                },
+                {
+                    "value": "image",
+                    "label": _("Image"),
+                    "icon": "🖼️",
+                    "hint": _("Photo with caption"),
+                },
+                {
+                    "value": "image_text",
+                    "label": _("Image + text"),
+                    "icon": "🏞️",
+                    "hint": _("Photo beside text"),
+                },
+                {"value": "button", "label": _("Button"), "icon": "🔘", "hint": _("Link button")},
+                {
+                    "value": "spacer",
+                    "label": _("Spacer"),
+                    "icon": "↕️",
+                    "hint": _("Vertical spacing"),
+                },
+                {
+                    "value": "promo",
+                    "label": _("Promotion"),
+                    "icon": "🏷️",
+                    "hint": _("Live promotion"),
+                },  # UE1
             ],
             "preset_options": preset_options,
             "source_options": source_options,
