@@ -2,6 +2,62 @@
 {% if site.team %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "Our team" %}</h2>
+  {% comment %}UC6-6f: 4 вида по section_row.style — "" карточки | circles | list | compact.{% endcomment %}
+  {% if section_row.style == "circles" %}
+  <div class="flex flex-wrap justify-center gap-8">
+    {% for m in site.team %}
+      <figure class="text-center w-32">
+        <div class="w-28 h-28 mx-auto rounded-full overflow-hidden bg-gray-100">
+          {% if m.photo %}
+            <img src="{{ m.photo }}" alt="{{ m.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-300" aria-hidden="true">{{ m.name|first }}</div>
+          {% endif %}
+        </div>
+        <figcaption class="mt-2">
+          <p class="font-semibold leading-tight text-sm">{{ m.name }}</p>
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+        </figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+  {% elif section_row.style == "list" %}
+  <div class="space-y-3 max-w-2xl">
+    {% for m in site.team %}
+      <figure class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-full overflow-hidden bg-gray-100 shrink-0">
+          {% if m.photo %}
+            <img src="{{ m.photo }}" alt="{{ m.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-xl text-gray-300" aria-hidden="true">{{ m.name|first }}</div>
+          {% endif %}
+        </div>
+        <figcaption>
+          <p class="font-semibold leading-tight">{{ m.name }}</p>
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+        </figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+  {% elif section_row.style == "compact" %}
+  <div class="{% grid_classes site 'team' %}">
+    {% for m in site.team %}
+      <figure class="text-center">
+        <div class="aspect-square rounded-xl overflow-hidden bg-gray-100">
+          {% if m.photo %}
+            <img src="{{ m.photo }}" alt="{{ m.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-300" aria-hidden="true">{{ m.name|first }}</div>
+          {% endif %}
+        </div>
+        <figcaption class="pt-2">
+          <p class="font-semibold leading-tight text-sm">{{ m.name }}</p>
+          {% if m.role %}<p class="text-xs text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+        </figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+  {% else %}
   <div class="{% grid_classes site 'team' %}">
     {% for m in site.team %}
       <figure class="bg-white rounded-2xl shadow-sm overflow-hidden text-center">
@@ -19,5 +75,6 @@
       </figure>
     {% endfor %}
   </div>
+  {% endif %}
 </section>
 {% endif %}

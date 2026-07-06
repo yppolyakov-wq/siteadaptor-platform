@@ -4107,3 +4107,21 @@
   открывают ленту с контролами, 6 типов блоков вставляются, 18 страниц превью
   живые (без FAB-протечек/JS-ошибок/5xx); termin/gutschein/konto без inline-
   правок — кандидат на разработку (inline-контракт услуг в листинге).
+
+- **2026-07-06 — UC6-6f: пресеты до 10/тип + промо-пресеты из стилей скидки +
+  варианты галереи/команды/trust (заказ владельца).** (1) CBLOCK_VARIANTS:
+  text/image/image_text по 9+Standard=10 (Intro links groß, Zitat rechts 2/3,
+  Weich gerundet, Schmal 2/3, Kompakt rechts, Akzent-Karte…). (2) Промо-блок:
+  8 вариантов вставки = стили вывода скидки (style_hint в data; санитайз по
+  PROMO_STYLE_HINTS) + селект в ленте блока; КАСКАД: явный
+  Promotion.discount_style ГЛАВНЕЕ hint'а блока (расширение UE2-2 без второго
+  источника) — `eff_style` в _discount_display (+style_override из
+  _block_promo), паритет-замки живы; миниатюры промо-вариантов рисуются по
+  стилю (бейдж/зачёркнутый/countdown/mystery…). (3) SECTION_STYLES += gallery
+  (Filmstreifen/Große Kacheln/Polaroid/Stark gerundet), team (Runde Fotos/
+  Liste/Kompakt), trust (Linksbündig/Abzeichen/Ohne Karte). (4) Наблюдение
+  свипа про «нет inline-правки услуг в листингах» — FALSE POSITIVE: sellable_card
+  несёт полный inline-контракт (edit=True дефолт), нули были из-за пустых
+  данных ресторана. Замки: каскад hint (promotions), рендеры всех новых видов,
+  style_hint-санитайз; адверсариальный замок реестра покрыл новые пресеты
+  автоматически. build:css.

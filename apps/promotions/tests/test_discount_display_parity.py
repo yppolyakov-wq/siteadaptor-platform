@@ -95,3 +95,23 @@ def test_surprise_badge():
     promo = PromotionFactory(status="active", is_surprise=True)
     assert "Überraschungstüte" in _card(promo)
     assert "Surprise bag" in _detail(promo)
+
+
+def test_block_style_hint_cascade():
+    """UC6-6f: hint промо-БЛОКА (style_override) действует, ПОКА стиль самой
+    акции не задан; явный Promotion.discount_style главнее (источник един)."""
+    promo = PromotionFactory(status="active", discount_percent=30)
+
+    def badge(override="", own_style=""):
+        promo.discount_style = own_style
+        return render_to_string(
+            "storefront/_discount_display.html",
+            {"promo": promo, "part": "badge", "size": "sm", "style_override": override},
+        )
+
+    assert "−30" in badge()  # без стиля и hint — легаси-бейдж
+    assert "−30" in badge(override="percent")  # hint percent → бейдж есть
+    # hint strikethrough при НЕзаданном стиле акции → бейдж скрыт (акцент на цене)
+    assert "−30" not in badge(override="strikethrough")
+    # стиль акции percent ГЛАВНЕЕ hint'а strikethrough → бейдж есть
+    assert "−30" in badge(override="strikethrough", own_style="percent")

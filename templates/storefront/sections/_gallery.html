@@ -2,7 +2,51 @@
 {% if site.gallery or site.gallery_video %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Gallery" %}</h2>
+  {% comment %}UC6-6f: 5 видов по section_row.style — "" сетка | strip | large | polaroid | soft.{% endcomment %}
   {% if site.gallery %}
+  {% if section_row.style == "strip" %}
+  <div class="flex gap-3 overflow-x-auto pb-2">
+    {% for img in site.gallery %}
+      <button type="button" data-lightbox="{{ img.url }}"
+              class="h-40 w-56 shrink-0 rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+    {% endfor %}
+  </div>
+  {% elif section_row.style == "large" %}
+  <div class="grid gap-4 sm:grid-cols-2">
+    {% for img in site.gallery %}
+      <button type="button" data-lightbox="{{ img.url }}"
+              class="aspect-[3/2] rounded-2xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+    {% endfor %}
+  </div>
+  {% elif section_row.style == "polaroid" %}
+  <div class="{% grid_classes site 'gallery' %}">
+    {% for img in site.gallery %}
+      <button type="button" data-lightbox="{{ img.url }}"
+              class="bg-white p-2 pb-6 rounded shadow-md block cursor-zoom-in group">
+        <span class="block aspect-square overflow-hidden bg-gray-100">
+          <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
+               class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+        </span>
+      </button>
+    {% endfor %}
+  </div>
+  {% elif section_row.style == "soft" %}
+  <div class="{% grid_classes site 'gallery' %}">
+    {% for img in site.gallery %}
+      <button type="button" data-lightbox="{{ img.url }}"
+              class="aspect-square rounded-3xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+    {% endfor %}
+  </div>
+  {% else %}
   <div class="{% grid_classes site 'gallery' %}">
     {% for img in site.gallery %}
       <button type="button" data-lightbox="{{ img.url }}"
@@ -12,6 +56,7 @@
       </button>
     {% endfor %}
   </div>
+  {% endif %}
   {% endif %}
   {% with v=site.gallery_video|video_embed %}
     {% if v %}

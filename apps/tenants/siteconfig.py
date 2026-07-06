@@ -154,6 +154,8 @@ def _clean_cblock_data(key: str, raw) -> dict:
             else "top-left",
             "show_button": bool(d.get("show_button")),
             "button_label": _s(d.get("button_label"))[:40],
+            # UC6-6f: подсказка стиля скидки (каскад: акция главнее, см. PROMO_STYLE_HINTS).
+            **({"style_hint": d["style_hint"]} if d.get("style_hint") in PROMO_STYLE_HINTS else {}),
         }
     return {}  # spacer — без данных
 
@@ -266,6 +268,14 @@ CBLOCK_VARIANTS = {
             "data": {"align": "center"},
             "visual": {"background": "#f9fafb", "padding": 32},
         },
+        {"key": "intro_left", "label": "Intro links groß", "data": {"size": "lg"}},
+        {
+            "key": "quote_side",
+            "label": "Zitat rechts 2/3",
+            "data": {"color": "muted", "size": "lg"},
+            "width": "w23",
+            "pos": "right",
+        },
     ],
     "image": [
         {"key": "full", "label": "Vollbreite", "width": "full", "data": {"rounded": "none"}},
@@ -279,6 +289,13 @@ CBLOCK_VARIANTS = {
             "label": "Polaroid",
             "visual": {"background": "#ffffff", "shadow": True, "radius": 8, "padding": 12},
         },
+        {
+            "key": "wide_soft",
+            "label": "Weich gerundet + Schatten",
+            "data": {"rounded": "3xl"},
+            "visual": {"shadow": True},
+        },
+        {"key": "narrow", "label": "Schmal 2/3", "width": "w23"},
     ],
     "image_text": [
         {"key": "right", "label": "Foto rechts", "data": {"side": "right"}},
@@ -302,6 +319,18 @@ CBLOCK_VARIANTS = {
             "data": {"side": "right"},
             "visual": {"shadow": True, "radius": 16, "padding": 16},
         },
+        {
+            "key": "compact_right",
+            "label": "Kompakt 2/3, Foto rechts",
+            "width": "w23",
+            "data": {"side": "right", "size": "sm"},
+        },
+        {
+            "key": "accent_card",
+            "label": "Akzent-Karte",
+            "data": {"color": "accent"},
+            "visual": {"shadow": True, "radius": 16, "padding": 16},
+        },
     ],
     "button": [
         {
@@ -317,6 +346,22 @@ CBLOCK_VARIANTS = {
             "width": "full",
             "visual": {"background": "#f9fafb", "padding": 24},
         },
+    ],
+    # UC6-6f: варианты промо-блока = стили вывода скидки (style_hint; каскад —
+    # явный Promotion.discount_style главнее подсказки блока).
+    "promo": [
+        {"key": "percent", "label": "Prozent-Badge (−30 %)", "data": {"style_hint": "percent"}},
+        {"key": "badge", "label": "Betrag-Badge (−5 €)", "data": {"style_hint": "badge"}},
+        {
+            "key": "strikethrough",
+            "label": "Durchgestrichener Preis",
+            "data": {"style_hint": "strikethrough"},
+        },
+        {"key": "festpreis", "label": "Nur neuer Preis", "data": {"style_hint": "festpreis"}},
+        {"key": "ab", "label": "Ab-Preis", "data": {"style_hint": "ab"}},
+        {"key": "countdown", "label": "Countdown-Akzent", "data": {"style_hint": "countdown"}},
+        {"key": "surprise", "label": "Überraschungstüte", "data": {"style_hint": "surprise"}},
+        {"key": "mystery", "label": "Mystery (Preis versteckt)", "data": {"style_hint": "mystery"}},
     ],
 }
 
@@ -1499,6 +1544,10 @@ SECTION_STYLES = {
     # UC6-6d2: «подобные FAQ» — отзывы и шаги (по 5 видов с дефолтом).
     "testimonials": ("quotes", "list", "accent", "single"),  # "" = карточки-сетка
     "process": ("timeline", "row", "minimal", "twocol"),  # "" = карточки с кружками
+    # UC6-6f: остальные секции по фидбэку владельца.
+    "gallery": ("strip", "large", "polaroid", "soft"),  # "" = квадратная сетка
+    "team": ("circles", "list", "compact"),  # "" = карточки-сетка
+    "trust": ("left", "badges", "plain"),  # "" = карточка по центру
 }
 # Лейблы вариантов для селекта билдера (DE — как прочий канва-контент).
 SECTION_STYLE_LABELS = {
@@ -1512,7 +1561,32 @@ SECTION_STYLE_LABELS = {
     "timeline": "Zeitstrahl",
     "row": "In einer Reihe",
     "minimal": "Minimal",
+    "strip": "Filmstreifen",
+    "large": "Große Kacheln",
+    "polaroid": "Polaroid",
+    "soft": "Stark gerundet",
+    "circles": "Runde Fotos",
+    "compact": "Kompakt",
+    "left": "Linksbündig",
+    "badges": "Abzeichen",
+    "plain": "Ohne Karte",
 }
+
+# UC6-6f: подсказка стиля скидки у промо-БЛОКА (фидбэк владельца «пресеты промо-
+# блока из 7 стилей»). Источник стиля един — Promotion.discount_style (решение
+# UE2-2); hint блока применяется ТОЛЬКО когда у акции стиль не задан ("").
+# Ключи = Promotion.DISCOUNT_STYLES (дублируем константой: siteconfig не
+# импортирует модели приложений).
+PROMO_STYLE_HINTS = (
+    "percent",
+    "badge",
+    "strikethrough",
+    "festpreis",
+    "ab",
+    "countdown",
+    "surprise",
+    "mystery",
+)
 
 
 def _section_entry(key, enabled, raw_item):

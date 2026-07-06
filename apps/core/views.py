@@ -283,8 +283,20 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
             "badge_pos": f("badge_pos"),
             "show_button": post.get(f"cb_{bid}_show_button") == "on",
             "button_label": f("button_label"),
+            "style_hint": f("style_hint"),  # UC6-6f (normalize валидирует)
         }
     return {}
+
+
+def _promo_style_options():
+    """UC6-6f: [(key, DE-label)] стилей скидки для селекта промо-блока (без "").
+    Fail-safe: без promotions — пустой список (селект скрыт)."""
+    try:
+        from apps.promotions.models import Promotion
+
+        return [(k, label) for k, label in Promotion.DISCOUNT_STYLES if k]
+    except Exception:  # noqa: BLE001
+        return []
 
 
 def _promos_for_blocks(request):
@@ -1479,6 +1491,8 @@ def home_builder_view(request):
             ],
             # UE1: селектор промо для промо-блока (активные+запланированные).
             "promos_for_blocks": _promos_for_blocks(request),
+            # UC6-6f: стили вывода скидки для селекта промо-блока (fail-safe).
+            "promo_style_options": _promo_style_options(),
             # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка
             # даёт демо-данные из siteconfig.CBLOCK_DEMO_DATA).
             "block_types": [
@@ -1542,6 +1556,7 @@ def home_builder_view(request):
                             "rounded": (v.get("data") or {}).get("rounded", ""),
                             "shadow": bool((v.get("visual") or {}).get("shadow")),
                             "bg": (v.get("visual") or {}).get("background", ""),
+                            "hint": (v.get("data") or {}).get("style_hint", ""),
                         }
                         for v in vs
                     ]

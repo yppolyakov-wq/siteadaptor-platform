@@ -382,3 +382,52 @@ def test_testimonials_and_process_styles_render():
     )
     assert next(s for s in cfg["sections"] if s["key"] == "testimonials")["style"] == "quotes"
     assert next(s for s in cfg["sections"] if s["key"] == "process")["style"] == "timeline"
+
+
+def test_gallery_team_trust_styles_render():
+    """UC6-6f: варианты отображения галереи/команды/trust."""
+    from django.template import Context
+
+    site = {
+        "gallery": [{"url": "/a.jpg", "alt": {}}],
+        "gallery_video": "",
+        "team": [{"name": "Mia", "role": "Chefin", "photo": ""}],
+        "trust": {"since": "1998", "marks": ["Bio"]},
+    }
+
+    def render(key, style):
+        row = {"key": key, "enabled": True}
+        if style:
+            row["style"] = style
+        ctx = Context({"request": RequestFactory().get("/"), "site": site})
+        return siteui.render_block(ctx, row)
+
+    assert "aspect-square rounded-xl" in render("gallery", "")  # дефолт-сетка
+    assert "overflow-x-auto" in render("gallery", "strip")
+    assert "pb-6 rounded shadow-md" in render("gallery", "polaroid")
+    assert "rounded-3xl" in render("gallery", "soft")
+    assert "sm:grid-cols-2" in render("gallery", "large")
+
+    assert "bg-white rounded-2xl shadow-sm" in render("team", "")  # дефолт-карточки
+    assert "rounded-full" in render("team", "circles")
+    assert "w-14 h-14 rounded-full" in render("team", "list")
+    assert "aspect-square rounded-xl" in render("team", "compact")
+
+    assert "justify-center" in render("trust", "")
+    assert "justify-start text-left" in render("trust", "left")
+    assert "border-color:var(--accent)" in render("trust", "badges")
+    assert "bg-white rounded-2xl" not in render("trust", "plain")
+
+
+def test_promo_block_style_hint_survives_normalize():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "promo", "id": "p1", "data": {"promo_pk": "x", "style_hint": "countdown"}},
+                {"key": "promo", "id": "p2", "data": {"promo_pk": "x", "style_hint": "bogus"}},
+            ]
+        }
+    )
+    b1, b2 = (s for s in cfg["sections"] if s["key"] == "promo")
+    assert b1["data"]["style_hint"] == "countdown"
+    assert "style_hint" not in b2["data"]  # мусор → без ключа

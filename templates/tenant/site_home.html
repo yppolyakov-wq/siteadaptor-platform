@@ -690,6 +690,16 @@
                   <label class="flex items-center gap-1"><input type="checkbox" name="cb_{{ b.id }}_show_button" {% if b.data.show_button %}checked{% endif %} class="rounded border-gray-300">{% trans "Button" %}</label>
                 </div>
                 <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+                {% if promo_style_options %}
+                  {% comment %}UC6-6f: подсказка стиля скидки блока — действует, пока стиль
+                     самой акции не задан (источник един — Promotion.discount_style).{% endcomment %}
+                  <select name="cb_{{ b.id }}_style_hint" class="w-full rounded border border-gray-300 px-2 py-1 text-sm" title="{% trans 'Discount style (used until the promotion sets its own)' %}">
+                    <option value="">{% trans "Discount style: automatic" %}</option>
+                    {% for sk, slabel in promo_style_options %}
+                      <option value="{{ sk }}" {% if b.data.style_hint == sk %}selected{% endif %}>{{ slabel }}</option>
+                    {% endfor %}
+                  </select>
+                {% endif %}
               {% endif %}
               {% comment %}UC6-3/3a/3b: ширина блока (доли контейнера до 1/6) + положение.
                  Узкие блоки подряд автоматически встают В РЯД; чекбокс «с новой
@@ -1504,7 +1514,7 @@
         var cb = { key: typeEl ? typeEl.value : "", id: cbId, enabled: r.enabled, data: {} };
         ["title", "body", "url", "label", "caption", "side",
          "promo_pk", "align", "badge_pos", "button_label",
-         "size", "color", "rounded"].forEach(function (f) {  // UC6-2/4: стиль текста + скругление
+         "size", "color", "rounded", "style_hint"].forEach(function (f) {  // UC6-2/4/6f
           var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
           if (el && el.value !== "") cb.data[f] = el.value;
         });
@@ -1932,7 +1942,16 @@
     } else if (btype === "button") {
       inner = '<i style="display:block;width:55%;height:7px;background:' + accent + ';border-radius:4px;margin:0 auto;"></i>';
     } else if (btype === "promo") {
-      inner = '<i style="display:block;width:100%;height:16px;background:#f43f5e;border-radius:2px;"></i>';
+      // UC6-6f: миниатюра по стилю скидки (hint) — бейдж/зачёркнутый/countdown/…
+      var h = v.hint || "";
+      var base = '<i style="display:block;width:100%;height:16px;background:#fecdd3;border-radius:2px;position:relative;"></i>';
+      if (h === "percent" || h === "badge") inner = '<span style="position:relative;display:block;">' + base + '<i style="position:absolute;top:-1px;left:1px;width:16px;height:9px;background:#dc2626;border-radius:5px;"></i></span>';
+      else if (h === "strikethrough") inner = base + '<i style="display:block;width:55%;height:2px;background:#9ca3af;margin-top:2px;position:relative;"><i style="position:absolute;left:0;top:0;width:100%;height:1px;background:#4b5563;transform:rotate(-8deg);"></i></i>';
+      else if (h === "festpreis" || h === "ab") inner = base + '<i style="display:block;width:35%;height:4px;background:#dc2626;border-radius:1px;margin-top:2px;"></i>';
+      else if (h === "countdown") inner = base + '<i style="display:block;width:70%;height:3px;background:#f59e0b;border-radius:1px;margin-top:2px;"></i>';
+      else if (h === "surprise") inner = '<i style="display:block;width:100%;height:16px;background:#bbf7d0;border-radius:2px;"></i>';
+      else if (h === "mystery") inner = '<span style="display:flex;align-items:center;justify-content:center;width:100%;height:16px;background:#e5e7eb;border-radius:2px;color:#6b7280;font-size:10px;font-weight:bold;">?</span>';
+      else inner = base;
     } else {
       inner = bar("85%", 3, v.color === "accent" ? accent : v.color === "muted" ? light : "#6b7280") + bar("95%", 2, light) + bar("60%", 2, light);
     }
