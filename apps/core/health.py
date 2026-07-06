@@ -13,8 +13,11 @@ from django.core.cache import cache
 from django.db import connection
 from django.http import HttpResponse, JsonResponse
 
-# Поддомены этого базового домена авторизуются для TLS автоматически.
-_ALLOWED_TLS_SUFFIX = ".siteadaptor.de"
+# Для TLS автоматически авторизуются только корень (+www); поддомены — СТРОГО
+# по таблице Domain (инцидент 2026-07-06: blanket-allow *.siteadaptor.de давал
+# сканерам выжигать квоту Let's Encrypt (50 серт/нед) мусорными хостами вида
+# www.1www.whm...baeckerei-test.siteadaptor.de — «refused to connect» у всех
+# НОВЫХ легитимных поддоменов до конца окна лимита).
 _ALLOWED_TLS_ROOT = "siteadaptor.de"
 
 
@@ -52,11 +55,13 @@ def readiness(_request):
 def verify_domain(request):
     """Phase 2: авторизация домена для Caddy on-demand TLS.
 
-    Разрешаем поддомены основного домена и любые домены из таблицы Domain
-    (custom-домены арендаторов/порталов). Иначе 404 → Caddy не выпустит сертификат.
+    Разрешаем корень (+www) и ТОЛЬКО существующие домены из таблицы Domain —
+    субдомены тенантов, порталы и custom-домены заводят свою строку Domain при
+    создании, так что легитимным хостам blanket-allow не нужен. Иначе 404 →
+    Caddy не выпустит сертификат (и квота Let's Encrypt не тратится на мусор).
     """
     domain = (request.GET.get("domain") or "").lower().strip()
-    if domain == _ALLOWED_TLS_ROOT or domain.endswith(_ALLOWED_TLS_SUFFIX):
+    if domain in (_ALLOWED_TLS_ROOT, f"www.{_ALLOWED_TLS_ROOT}"):
         return HttpResponse("ok")
 
     from apps.tenants.models import Domain

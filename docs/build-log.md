@@ -3914,3 +3914,16 @@
   5 и семантике корзины в билдере. Кап 5 и гейтинг целей были. Замки:
   test_action_bar += 2 (custom-меню акцент/бейдж; без корзины — default);
   golden/normalize не тронуты (ключей не добавляли).
+
+- **2026-07-06 — HOTFIX T-5: verify_domain — строгий allowlist (инцидент
+  «refused to connect»).** Сканеры (Alibaba-IP) запрашивали TLS на мусорные
+  хосты вида `www.1www.whm…baeckerei-test.siteadaptor.de`; blanket-allow
+  `endswith(".siteadaptor.de")` в `apps/core/health.verify_domain` пропускал
+  их к Caddy on-demand → квота Let's Encrypt (50 серт/168ч) выжжена ботами →
+  новые легитимные поддомены (restaurant-demo) не получали сертификат до
+  2026-07-06 08:21 UTC. Фикс: разрешены корень (+www) и ТОЛЬКО строки таблицы
+  Domain (субдомены/порталы/custom-домены её и так заводят). Тесты
+  `test_verify_domain.py` (5: корень/www, Domain-строка, мусор 404, замок
+  инцидента). Опс: после деплоя перезапустить caddy (очистить очередь ретраев
+  мусорных имён); долгосрочно — wildcard через Cloudflare DNS (пометка в
+  Caddyfile).
