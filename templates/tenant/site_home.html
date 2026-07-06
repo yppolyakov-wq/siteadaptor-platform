@@ -291,6 +291,19 @@
                 <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" title="{% trans 'Show "View all" link' %}" data-expert="1">
                   <input type="checkbox" name="show_all_{{ s.key }}" {% if s.show_all %}checked{% endif %} class="rounded border-gray-300">{% trans "View all" %}</label>
               {% endif %}
+              {% if s.style_options %}
+                {% comment %}UC6-6d: вариант отображения секции (FAQ: аккордеон/список/
+                   2 колонки/карты/нумерация) — реестр SECTION_STYLES.{% endcomment %}
+                <label class="flex items-center gap-1.5 text-xs text-gray-600">
+                  {% trans "Display style" %}
+                  <select name="style_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                    <option value="">{% trans "Standard" %}</option>
+                    {% for sk, slabel in s.style_options %}
+                      <option value="{{ sk }}" {% if s.style == sk %}selected{% endif %}>{{ slabel }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+              {% endif %}
               {# SE-3d: визуальные параметры блока #}
               <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3 flex-wrap">
                 {% comment %}SE-3e: ширина контейнера секции (по контейнеру / во всю ширину).
@@ -1566,6 +1579,9 @@
       // SE-3e: ширина контейнера секции (contained/full) → в превью.
       var wSel = form.querySelector("select[name='width_" + r.key + "']");
       if (wSel && wSel.value) sec.width = wSel.value;
+      // UC6-6d: вариант отображения секции → в превью (normalize валидирует).
+      var stSel = form.querySelector("select[name='style_" + r.key + "']");
+      if (stSel && stSel.value) sec.style = stSel.value;
       // H1.5: пер-секционный шрифт → в превью ("" допустимо = наследовать).
       var fSel = form.querySelector("select[name='font_" + r.key + "']");
       if (fSel) sec.font = fSel.value;

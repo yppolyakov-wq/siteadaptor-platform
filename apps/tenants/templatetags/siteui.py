@@ -101,7 +101,12 @@ def render_block(context, block):
     tpl = BLOCK_TEMPLATES.get(key)
     if not tpl:
         return ""
-    html = render_to_string(tpl, context.flatten(), request=request)
+    # UC6-6d: строка секции — в контекст (вариант отображения section_row.style).
+    html = render_to_string(
+        tpl,
+        {**context.flatten(), "section_row": block if isinstance(block, dict) else {}},
+        request=request,
+    )
     anchor = _BLOCK_ANCHOR_ID.get(key)
     if anchor:
         return mark_safe(f'<div id="{anchor}" class="scroll-mt-24">{html}</div>')

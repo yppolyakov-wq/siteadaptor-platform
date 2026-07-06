@@ -1445,6 +1445,22 @@ def localize(config: dict, locale: str | None) -> dict:
     return base
 
 
+# UC6-6d: варианты отображения фикс-секций («FAQ — 5 примеров» — фидбэк
+# владельца). "" (без ключа) = стандартный вид — старые конфиги байт-в-байт.
+# Расширяемый реестр: новые секции со стилями добавлять сюда + ветвление в
+# шаблоне секции по section_row.style.
+SECTION_STYLES = {
+    "faq": ("list", "twocol", "cards", "numbered"),  # "" = аккордеон (текущий)
+}
+# Лейблы вариантов для селекта билдера (DE — как прочий канва-контент).
+SECTION_STYLE_LABELS = {
+    "list": "Offene Liste",
+    "twocol": "Zwei Spalten",
+    "cards": "Karten",
+    "numbered": "Nummeriert",
+}
+
+
 def _section_entry(key, enabled, raw_item):
     """Нормализовать одну фикс-секцию (порядок/видимость/layout/visual/hidden_on)."""
     # M20R-1: секции-сетки несут layout (пресет+override); прочие — нет.
@@ -1478,6 +1494,10 @@ def _section_entry(key, enabled, raw_item):
     # текстов этой секции. "" = наследовать глобальный (без регрессии).
     f = raw_item.get("font")
     entry["font"] = f if f in FONTS else ""
+    # UC6-6d: вариант отображения секции (SECTION_STYLES); дефолт — БЕЗ ключа
+    # (старые конфиги байт-в-байт, golden живы).
+    if raw_item.get("style") in SECTION_STYLES.get(key, ()):
+        entry["style"] = raw_item["style"]
     return entry
 
 

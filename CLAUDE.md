@@ -223,6 +223,26 @@ Python 3.12, менеджер uv.
   stays/events (`billing` по `(listing_kind, source_ref)`, `apps/aggregator/featuring.py`,
   `tenant/listing_feature.html`, вьюхи stays/events + входы). D2.5 (цены планов в кабинете) — ⏸
   env-оверрайда достаточно; полный E-11 (claim-your-business) — позже.**
+- **Самое свежее (2026-07-06): инциденты прода + ВОЛНА UC6 «Editor UX v2» ЦЕЛИКОМ.**
+  **T-5** hotfix verify_domain (боты выжигали LE-квоту → строгий allowlist по Domain;
+  опс: рестарт caddy). **T-6/T-6.1** «Edit design» убивал канву (XFO DENY в iframe;
+  Chrome цитирует ORIGIN — голый `/`): FAB `target="_top"`+скрыт в канве, deep-link
+  `?page=` (канва стартует со страницы клика), «Promotion page» в превью; замок
+  `test_frame_escape_links`. **UC6 (план `editor-ux-v2-plan-2026-07-06.md`, решения
+  владельца §5): 1** одна кнопка «✏️ Edit» (вкл. по умолчанию) + «⚙️ Template», канва-
+  first (рейл/панель скрыты); **2** текст C-блока: align/size/color (ТОЛЬКО палитра
+  темы); **3/3a/3b** ширины full/2-3/1-2/1-3..1-6 + положение + авто-РЯДЫ узких блоков
+  (`group_block_rows`→md:flex, `_section_block.html`) + «Start new row»; **1b** селектор
+  страниц убран — авто-скоуп по пути кадра (PAGE_GROUPS JSON, не escapejs — тот кодирует
+  дефисы); **4** фото C-блока: 📷 на канве (`site-cblock-photo-edit`, синк формы по {url})
+  + скругление; **5** библиотека блоков: иконки/подсказки + ДЕМО-данные при вставке
+  (`CBLOCK_DEMO_DATA`); **6a** ЛЕНТА настроек над канвой (Word-style; попап остаётся В
+  ФОРМЕ — панель прячется visibility+transform:none классом `bld-ribbon-open`; мобайл —
+  bottom-sheet; свёртка ▾); **6b** visual C-блоков (тень/радиус/отступ/фон → `.cb-box`
+  через `--sf-*`); **6c** пресеты при вставке (`CBLOCK_VARIANTS`, двухшаговый инсертер
+  «+», адверсариальный замок «каждый пресет проходит normalize»); **6d** FAQ 5 видов
+  (реестр `SECTION_STYLES` + `section_row` в рендер). Всё БЕЗ миграций, всё в main.
+  Остаток фидбэка владельца: «10 типов на блок» — наполнять по мере (реестры готовы).
 - Самые свежие миграции: **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает

@@ -299,3 +299,45 @@ def test_all_cblock_variants_survive_normalize():
                     assert block["visual"][k] == val, (btype, v["key"], k)
             for k, val in preset["data"].items():
                 assert block["data"].get(k) == val, (btype, v["key"], k)
+
+
+# --- UC6-6d: варианты отображения фикс-секций (FAQ) ---------------------------------
+
+
+def test_section_style_validated_by_registry():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "faq", "enabled": True, "style": "cards"},
+                {"key": "products", "enabled": True, "style": "cards"},  # не в реестре
+            ]
+        }
+    )
+    faq = next(s for s in cfg["sections"] if s["key"] == "faq")
+    products = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert faq["style"] == "cards"
+    assert "style" not in products  # только секции из SECTION_STYLES
+    # мусорный стиль → без ключа (дефолт-аккордеон)
+    cfg2 = siteconfig.normalize({"sections": [{"key": "faq", "enabled": True, "style": "xxx"}]})
+    assert "style" not in next(s for s in cfg2["sections"] if s["key"] == "faq")
+
+
+def test_faq_renders_five_styles():
+    from django.template import Context
+
+    site = {"faq": [{"q": "Frage?", "a": "Antwort."}, {"q": "F2?", "a": "A2."}]}
+
+    def render(style):
+        ctx = Context({"request": RequestFactory().get("/"), "site": site})
+        return siteui.render_block(
+            ctx,
+            {"key": "faq", "enabled": True, "style": style}
+            if style
+            else {"key": "faq", "enabled": True},
+        )
+
+    assert "<details" in render("")  # дефолт — аккордеон (байт-семантика)
+    assert "<details" not in render("list") and "Frage?" in render("list")
+    assert "md:grid-cols-2" in render("twocol")
+    assert "bg-gray-50" in render("cards")
+    assert "var(--accent)" in render("numbered") and "<ol" in render("numbered")

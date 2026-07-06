@@ -1041,6 +1041,8 @@ def home_builder_view(request):
             ]
             # SE-3e: ширина контейнера секции (contained/full). normalize валидирует.
             entry["width"] = request.POST.get(f"width_{key}", "contained")
+            # UC6-6d: вариант отображения секции (normalize валидирует по SECTION_STYLES).
+            entry["style"] = request.POST.get(f"style_{key}", "")
             # H1.5: пер-секционный шрифт ("" = наследовать). normalize валидирует по FONTS.
             entry["font"] = request.POST.get(f"font_{key}", "")
             if key in siteconfig.GRID_SECTION_DEFAULTS:
@@ -1403,6 +1405,12 @@ def home_builder_view(request):
                 "width": s.get("width", "contained"),
                 # H1.5: пер-секционный шрифт (или "" = наследовать глобальный).
                 "font": s.get("font", ""),
+                # UC6-6d: вариант отображения секции (FAQ и др. из SECTION_STYLES).
+                "style": s.get("style", ""),
+                "style_options": [
+                    (sk, siteconfig.SECTION_STYLE_LABELS.get(sk, sk))
+                    for sk in siteconfig.SECTION_STYLES.get(s["key"], ())
+                ],
             }
         )
     preset_options = [
@@ -1739,6 +1747,8 @@ def site_preview_draft(request):
                 # SE-3e: ширина контейнера секции (contained/full) → в превью.
                 if item.get("width") in ("contained", "full"):
                     row["width"] = item["width"]
+                if item.get("style"):
+                    row["style"] = item["style"]  # UC6-6d
                 # H1.5: пер-секционный шрифт → в превью (normalize валидирует по FONTS).
                 if "font" in item:
                     row["font"] = item["font"]
