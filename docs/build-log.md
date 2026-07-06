@@ -4187,3 +4187,17 @@
   бы в sections не той страницы) → `data-scope="home"`. Оба проверены на стенде
   (verify_scope: blog vs home) + замок `test_home_content_blocks_details_is_home_scoped`.
   Остаток UC6-7: 7c (drag в регионе + вставка без перезагрузки), 7d (меню в ленту).
+
+- **2026-07-06 — UC6-7c-1: drag-перестановка C-блоков НА СТРАНИЦАХ.** Ручка ⠿ drag-
+  on-canvas была home-only (гейт `previewPath === "/"`). Открыт гейт на страницы с
+  хостом C-блоков (`|| curPbHost`); на странице `[data-sf-section]` — только
+  page_blocks, поэтому перетаскивание меняет порядок именно блоков этой страницы.
+  Новый `movePageBlock(dKey,tKey,before,host)` — value-based (как moveEdSection): у
+  хоста ОТДЕЛЬНОЕ пространство `order_cb` (без фикс-секций главной), переписываем
+  1..N по новому порядку → collect группирует pb-строки по хосту и сортирует по
+  order_cb → черновик/Save отражают перестановку. Drop роутится: `curPbHost` →
+  movePageBlock, иначе moveBlock (главная). БЕЗ миграций. e2e verify_7c1 (8 блоков
+  на /ueber-uns/: ручки на канве + синтетический drag меняет order_cb, 0 JS-ошибок).
+  Settings-live на страницах (7c-3) уже работает — делегированные `form` input/change
+  → schedule покрывают строки любого хоста. Остаток: 7c-2 (вставка без перезагрузки —
+  для хостов страниц: home делит order-пространство с фикс-секциями, сложнее), 7d.
