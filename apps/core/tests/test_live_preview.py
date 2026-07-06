@@ -688,3 +688,41 @@ def test_empty_image_block_placeholder_in_preview():
         "storefront/sections/_block_image.html", {"block": {}, "is_preview": True}
     )
     assert "klicken zum Hinzuf" in out  # «klicken zum Hinzufügen»
+
+
+def test_draft_endpoint_accepts_page_blocks():
+    """UC6-7b: page_blocks в черновике — passthrough + чистка normalize (whitelist
+    хостов, _clean_cblock); опустевший хост исчезает (удаление видно в превью)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dpb",
+        name="DPB",
+        site_config={
+            "page_blocks": {
+                "services": [{"key": "text", "id": "old", "enabled": True, "data": {"title": "A"}}]
+            }
+        },
+    )
+    body = json.dumps(
+        {
+            "page_blocks": {
+                "services": [
+                    {"key": "text", "id": "old", "enabled": True, "data": {"title": "Neu"}},
+                    {"key": "button", "id": "b2", "enabled": True, "data": {"label": "M"}},
+                ],
+                "cart": [],  # все блоки хоста удалены в форме
+                "legal": [{"key": "text", "id": "l1", "data": {"title": "X"}}],  # вне whitelist
+            }
+        }
+    )
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert views.site_preview_draft(req).status_code == 204
+    pb = req.session["site_preview_draft"]["page_blocks"]
+    assert set(pb) == {"services"}
+    assert [b["data"].get("title", b["data"].get("label")) for b in pb["services"]] == ["Neu", "M"]

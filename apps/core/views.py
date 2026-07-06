@@ -288,6 +288,36 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
     return {}
 
 
+def _cblock_entry_from_post(post, bid: str, btype: str) -> dict:
+    """UC6-7b: полный entry C-блока из POST-строки формы (data + width/pos/newline/
+    visual) — общий для блоков главной (cb_id) и блоков страниц (pb_id); normalize
+    валидирует. enabled/order читает вызывающий цикл (маркеры у списков разные)."""
+    return {
+        "key": btype,
+        "id": bid,
+        "enabled": post.get(f"enabled_cb_{bid}") == "on",
+        "data": _read_cblock_data(post, bid, btype),
+        # UC6-3: ширина/положение блока (normalize валидирует;
+        # раньше width C-блока терялся при Save — жил только в черновике).
+        "width": post.get(f"width_cb_{bid}", "contained"),
+        "pos": post.get(f"pos_cb_{bid}", ""),
+        # UC6-3a: принудительный перенос ряда узких блоков.
+        "newline": post.get(f"newline_cb_{bid}") == "on",
+        # UC6-6b: visual блока (normalize._clean_visual клампит;
+        # фон — только при включённом тоггле, color-input шлёт всегда).
+        "visual": {
+            "radius": post.get(f"visual_radius_px_cb_{bid}"),
+            "shadow": post.get(f"visual_shadow_cb_{bid}") == "on",
+            "background": (
+                post.get(f"visual_bg_cb_{bid}", "")
+                if post.get(f"visual_bg_on_cb_{bid}") == "on"
+                else ""
+            ),
+            "padding": post.get(f"visual_padding_cb_{bid}"),
+        },
+    }
+
+
 def _promo_style_options():
     """UC6-6f: [(key, DE-label)] стилей скидки для селекта промо-блока (без "").
     Fail-safe: без promotions — пустой список (селект скрыт)."""
@@ -821,6 +851,19 @@ def _safe_preview_page(raw):
     return raw
 
 
+def _redirect_builder(request):
+    """UC6-7b: возврат в билдер ПОСЛЕ действия инсертера — канва открывается на той
+    же странице, где вставляли (page_path из POST → ?page= deep-link, см. T-6.1)."""
+    from urllib.parse import quote
+
+    from django.urls import reverse
+
+    page_path = _safe_preview_page(request.POST.get("page_path"))
+    if page_path != "/":
+        return redirect(f"{reverse('site-home')}?page={quote(page_path)}")
+    return redirect("site-home")
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -876,11 +919,22 @@ def home_builder_view(request):
                     "enabled": True,
                     **siteconfig.cblock_insert_preset(btype, request.POST.get("variant", "")),
                 }
-                _insert_after_section(cfg["sections"], new_block, request.POST.get("add_after"))
+                # UC6-7b: инсертер на НЕ-главной шлёт page_key (хост из data-pb-host
+                # канвы) → блок кладём в page_blocks[хост]; add_after="pbhost:<key>"
+                # (якорь пустой страницы) не матчится по id → append в конец.
+                page_key = request.POST.get("page_key", "")
+                if page_key in siteconfig.PAGE_BLOCK_HOSTS:
+                    pb = dict(cfg.get("page_blocks") or {})
+                    rows = list(pb.get(page_key) or [])
+                    _insert_after_section(rows, new_block, request.POST.get("add_after"))
+                    pb[page_key] = rows
+                    cfg["page_blocks"] = pb
+                else:
+                    _insert_after_section(cfg["sections"], new_block, request.POST.get("add_after"))
                 request.tenant.site_config = siteconfig.normalize(cfg)
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 messages.success(request, _("Block added."))
-            return redirect("site-home")
+            return _redirect_builder(request)
         # SE-4a: блок-шаблоны (многоразовые C-блоки). action кодирует id через ":" —
         # save_block_template:<cb_id> (сохранить текущий C-блок как шаблон, данные из
         # POST → ловим несохранённые правки), use_block_template:<tpl_id> (вставить
@@ -907,13 +961,21 @@ def home_builder_view(request):
                     messages.success(request, _("Block saved as template."))
             elif verb == "use_block_template" and ident in tpls:
                 tpl = tpls[ident]
+                new_block = {"key": tpl["key"], "enabled": True, "data": copy.deepcopy(tpl["data"])}
                 # SE-4c: опц. insert_after (инсертер «+» на канвасе) → вставка в позицию;
                 # иначе в конец (back-compat с кнопкой «Insert» в библиотеке).
-                _insert_after_section(
-                    cfg["sections"],
-                    {"key": tpl["key"], "enabled": True, "data": copy.deepcopy(tpl["data"])},
-                    request.POST.get("insert_after"),
-                )
+                # UC6-7b: на НЕ-главной (page_key) шаблон вставляется в page_blocks[хост].
+                page_key = request.POST.get("page_key", "")
+                if page_key in siteconfig.PAGE_BLOCK_HOSTS:
+                    pb = dict(cfg.get("page_blocks") or {})
+                    rows = list(pb.get(page_key) or [])
+                    _insert_after_section(rows, new_block, request.POST.get("insert_after"))
+                    pb[page_key] = rows
+                    cfg["page_blocks"] = pb
+                else:
+                    _insert_after_section(
+                        cfg["sections"], new_block, request.POST.get("insert_after")
+                    )
                 messages.success(request, _("Template inserted."))
             elif verb == "delete_block_template" and ident in tpls:
                 tpls.pop(ident)
@@ -921,7 +983,7 @@ def home_builder_view(request):
             cfg["block_templates"] = tpls
             request.tenant.site_config = siteconfig.normalize(cfg)
             request.tenant.save(update_fields=["site_config", "updated_at"])
-            return redirect("site-home")
+            return _redirect_builder(request)
         # SE-4b: применить/удалить шаблон страницы. use_page_template:<id> ЗАМЕНЯЕТ весь
         # набор секций снимком (это шаблон СТРАНИЦЫ, не вставка); delete_page_template:<id>
         # убирает из библиотеки. Сохранение шаблона — в основном потоке (ниже), чтобы
@@ -1109,37 +1171,35 @@ def home_builder_view(request):
                 order = int(request.POST.get(f"order_cb_{bid}", "999"))
             except (TypeError, ValueError):
                 order = 999
-            items.append(
-                (
-                    order,
-                    {
-                        "key": btype,
-                        "id": bid,
-                        "enabled": request.POST.get(f"enabled_cb_{bid}") == "on",
-                        "data": _read_cblock_data(request.POST, bid, btype),
-                        # UC6-3: ширина/положение блока (normalize валидирует;
-                        # раньше width C-блока терялся при Save — жил только в черновике).
-                        "width": request.POST.get(f"width_cb_{bid}", "contained"),
-                        "pos": request.POST.get(f"pos_cb_{bid}", ""),
-                        # UC6-3a: принудительный перенос ряда узких блоков.
-                        "newline": request.POST.get(f"newline_cb_{bid}") == "on",
-                        # UC6-6b: visual блока (normalize._clean_visual клампит;
-                        # фон — только при включённом тоггле, color-input шлёт всегда).
-                        "visual": {
-                            "radius": request.POST.get(f"visual_radius_px_cb_{bid}"),
-                            "shadow": request.POST.get(f"visual_shadow_cb_{bid}") == "on",
-                            "background": (
-                                request.POST.get(f"visual_bg_cb_{bid}", "")
-                                if request.POST.get(f"visual_bg_on_cb_{bid}") == "on"
-                                else ""
-                            ),
-                            "padding": request.POST.get(f"visual_padding_cb_{bid}"),
-                        },
-                    },
-                )
-            )
+            items.append((order, _cblock_entry_from_post(request.POST, bid, btype)))
         items.sort(key=lambda row: row[0])
         config["sections"] = [entry for _o, entry in items]
+        # UC6-7b: C-блоки СТРАНИЦ (page_blocks) — пересборка целиком из pb_id-строк
+        # под presence-guard (POST без формы страниц не должен стереть конфиг).
+        # Все хосты рендерятся в форме всегда (скрытие — только визуальное), поэтому
+        # полная пересборка не теряет блоки других страниц.
+        if request.POST.get("pb_present") == "1":
+            pb_items: dict[str, list] = {}
+            for bid in request.POST.getlist("pb_id"):
+                host = request.POST.get(f"pb_page_{bid}", "")
+                btype = request.POST.get(f"cb_type_{bid}", "")
+                if host not in siteconfig.PAGE_BLOCK_HOSTS:
+                    continue
+                if btype not in siteconfig.REPEATABLE_BLOCKS:
+                    continue
+                if request.POST.get(f"delete_cb_{bid}") == "on":
+                    continue  # удалён владельцем
+                try:
+                    order = int(request.POST.get(f"order_cb_{bid}", "999"))
+                except (TypeError, ValueError):
+                    order = 999
+                pb_items.setdefault(host, []).append(
+                    (order, _cblock_entry_from_post(request.POST, bid, btype))
+                )
+            config["page_blocks"] = {
+                host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
+                for host, rows in pb_items.items()
+            }
         # SE-4b: сохранить текущую компоновку как шаблон страницы. Снимок берём из только
         # что собранного config["sections"] → ловит несохранённые правки порядка/видимости
         # (как save_block_template ловит правки C-блока). normalize() ниже санитизирует.
@@ -1300,7 +1360,9 @@ def home_builder_view(request):
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=update_fields)
         messages.success(request, "Gespeichert.")
-        return redirect("site-home")
+        # UC6-7b: Save с канвы на подстранице возвращает канву на ТУ ЖЕ страницу
+        # (page_path — скрытое поле формы, синкается JS при навигации кадра).
+        return _redirect_builder(request)
 
     from apps.core import archetypes, modules
 
@@ -1361,6 +1423,26 @@ def home_builder_view(request):
     # порядок (его пишем в order_*-поля, чтобы при сохранении сохранить чередование).
     sections = []
     cblocks = []
+    # UC6-7b: C-блоки страниц (page_blocks) — строки формы для набора «Landing pages»
+    # (общий партиал _cb_row; порядок хостов стабильный — по PAGE_BLOCK_HOSTS).
+    page_cblocks = []
+    for host in siteconfig.PAGE_BLOCK_HOSTS:
+        host_rows = [
+            {
+                "id": s["id"],
+                "type": s["key"],
+                "enabled": s["enabled"],
+                "data": s["data"],
+                "order": index,
+                "width": s.get("width", "contained"),
+                "pos": s.get("pos", ""),
+                "newline": bool(s.get("newline")),
+                "visual": s.get("visual") or {},
+            }
+            for index, s in enumerate((config.get("page_blocks") or {}).get(host) or [], start=1)
+        ]
+        if host_rows:
+            page_cblocks.append({"page_key": host, "blocks": host_rows})
     for index, s in enumerate(config["sections"], start=1):
         if s["key"] in siteconfig.REPEATABLE_BLOCKS:
             cblocks.append(
@@ -1474,6 +1556,7 @@ def home_builder_view(request):
             "cover_specs": storefront.cover_specs(request.tenant),
             # D.2b: C-блоки (кубики) + типы для кнопок «добавить».
             "cblocks": cblocks,
+            "page_cblocks": page_cblocks,  # UC6-7b
             # SE-4a: библиотека сохранённых блок-шаблонов (id/тип/имя) для вставки.
             "block_templates": [
                 {"id": tid, "key": t["key"], "label": t["label"]}
@@ -1830,6 +1913,11 @@ def site_preview_draft(request):
     # лендингов, catalog-флаги/сорт, корзина) — одним generic-наложением по
     # реестру siteconfig.PAGE_CONFIG_KEYS; семантика веток 1:1 (см. план-док).
     siteconfig.apply_page_payload(cfg, data)
+    # UC6-7b: C-блоки страниц — passthrough целиком (collect шлёт ВСЕ хосты из
+    # формы, включая опустевшие после удаления); normalize_page_blocks чистит
+    # (whitelist хостов, _clean_cblock, кап) на normalize ниже.
+    if isinstance(data.get("page_blocks"), dict):
+        cfg["page_blocks"] = data["page_blocks"]
     # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):

@@ -57,12 +57,44 @@ config["page_blocks"] = { "<page_key>": [ <cblock-entry>, … ], … }
 
 ## §4. Слайсы
 
-| Слайс | Что | Размер |
-|---|---|---|
-| 7a | siteconfig: PAGE_BLOCK_HOSTS + normalize_page_blocks + тег page_blocks + хосты в шаблонах + рендер-замки | M |
-| 7b | Редактор: _cb_row партиал + строки page_blocks в форме + draft/save/инсертер с page_key + e2e | L |
-| 7c | Drag в регионе + вставка БЕЗ перезагрузки (fetch → row-partial в форму + schedule) — закрывает и «применять без обновления» | M/L |
-| 7d = UC6-6h | Настройки/примеры МЕНЮ в ленту (area-ribbon) | M |
+| Слайс | Что | Размер | Статус |
+|---|---|---|---|
+| 7a | siteconfig: PAGE_BLOCK_HOSTS + normalize_page_blocks + тег page_blocks + хосты в шаблонах + рендер-замки | M | ✅ (main 1f110b9) |
+| 7b | Редактор: _cb_row партиал + строки page_blocks в форме + draft/save/инсертер с page_key + e2e | L | ✅ |
+| 7c | Drag в регионе + вставка БЕЗ перезагрузки (fetch → row-partial в форму + schedule) — закрывает и «применять без обновления» | M/L | — |
+| 7d = UC6-6h | Настройки/примеры МЕНЮ в ленту (area-ribbon) | M | — |
+
+### 7b — как сделано (2026-07-06)
+
+- **Партиал `templates/tenant/_cb_row.html`** — разметка строки C-блока вынесена 1:1
+  из `site_home.html`; переключатель `pb_page`: при заданном хосте рендерит `pb_id` +
+  `pb_page_<id>=<host>` + `data-pb-page` на `.cb-row` (вместо `cb_id`). Имена полей
+  (`cb_<id>_*`, `order_cb_<id>`, `width_cb_<id>`, `visual_*_cb_<id>`) глобально
+  уникальны по id → collect()/save/save-as-template работают без переименований.
+- **GET-контекст** `page_cblocks = [{page_key, blocks:[…]}]` — по `PAGE_BLOCK_HOSTS`
+  (стабильный порядок), только хосты с блоками; рендерятся в наборе «Landing pages»
+  (`data-scope="landing"`), скрытие — существующим `applyPageScope` по `data-page-key`.
+- **Save**: `_cblock_entry_from_post(post, bid, btype)` — общий билдер entry (data +
+  width/pos/newline/visual) для главной И страниц; page-ветка под presence-guard
+  `pb_present=1` пересобирает `config["page_blocks"]` из `pb_id`-строк (host из
+  `pb_page_<id>`, whitelist, сортировка по order, удаление по `delete_cb_`); пустой
+  хост исчезает; POST без guard не трогает конфиг страниц.
+- **Draft**: `collect()` — `buildCbEntry(id)` (общий), home-ветка пропускает
+  pb-строки (`pb_page_<id>` present → null), отдельный свип `.cb-row[data-pb-page]`
+  → `payload.page_blocks={host:[…]}` (шлёт все хосты, вкл. опустевшие → удаление
+  видно в превью); server passthrough `cfg["page_blocks"]=data["page_blocks"]`,
+  чистит `normalize_page_blocks`.
+- **Инсертер «+»**: гейт снят на страницах с `curPbHost` (из `data-pb-host` кадра;
+  drag остаётся home-only до 7c); `add_block`/`use_block_template` несут `page_key`
+  (=curPbHost) + `page_path` → кладут в `page_blocks[host]` (`insert_after` по id;
+  якорь `pbhost:<key>` пустой страницы → append), редирект `_redirect_builder`
+  возвращает канву на ту же страницу (`?page=` через `_safe_preview_page`).
+- **`page_path`** — скрытое поле `#home-form`, JS синкает при навигации кадра →
+  Save/действия ленты возвращают канву на текущую страницу.
+- **Замки**: `test_cblocks_builder.py` +7 (add с page_key/unknown-key-фолбэк/
+  insert_after/template/save-rebuild/presence-guard/GET-рендер), `test_live_preview.py`
+  +1 (draft passthrough + чистка), e2e verify_7b.js (вставка на /ueber-uns/ → канва →
+  лента → Save → публикация; 0 JS-ошибок).
 
 ## §5. Замки
 - golden normalize (page_blocks отсутствует → байт-в-байт);

@@ -256,3 +256,188 @@ def test_add_block_with_variant_applies_preset():
     block = _cblocks(tenant)[0]
     assert block["data"]["color"] == "accent" and block["data"]["size"] == "xl"
     assert block["visual"]["shadow"] is True and block["visual"]["radius"] == 16
+
+
+# ---------- UC6-7b: C-блоки страниц (page_blocks) в билдере ----------
+
+
+def _page_blocks(tenant, host):
+    return siteconfig.normalize(tenant.site_config).get("page_blocks", {}).get(host, [])
+
+
+def test_add_block_with_page_key_goes_to_page_blocks():
+    """UC6-7b: инсертер на подстранице (page_key) кладёт блок в page_blocks[хост],
+    секции главной не трогает; редирект возвращает канву на ту же страницу."""
+    tenant = TenantFactory(slug="pb1", name="X")
+    resp = core_views.home_builder_view(
+        _req(
+            {
+                "action": "add_block",
+                "block_type": "text",
+                "page_key": "services",
+                "page_path": "/termin/",
+                "add_after": "pbhost:services",  # якорь пустой страницы → append
+            },
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    blocks = _page_blocks(tenant, "services")
+    assert len(blocks) == 1 and blocks[0]["key"] == "text"
+    assert _cblocks(tenant) == []  # главная не тронута
+    assert resp.url == "/dashboard/site/home/?page=/termin/"
+
+
+def test_add_block_with_unknown_page_key_falls_back_to_home():
+    """UC6-7b: page_key вне whitelist (в т.ч. legal) — блок идёт на главную."""
+    tenant = TenantFactory(slug="pb2", name="X")
+    core_views.home_builder_view(
+        _req({"action": "add_block", "block_type": "text", "page_key": "legal"}, tenant)
+    )
+    tenant.refresh_from_db()
+    assert len(_cblocks(tenant)) == 1
+    assert siteconfig.normalize(tenant.site_config).get("page_blocks", {}) == {}
+
+
+def test_add_block_page_insert_after_block_id():
+    """UC6-7b: add_after=<id pb-блока> вставляет сразу после него (внутри хоста)."""
+    tenant = TenantFactory(
+        slug="pb3",
+        name="X",
+        site_config={
+            "page_blocks": {
+                "services": [
+                    {"key": "text", "id": "aaa", "enabled": True, "data": {"title": "1"}},
+                    {"key": "text", "id": "bbb", "enabled": True, "data": {"title": "2"}},
+                ]
+            }
+        },
+    )
+    core_views.home_builder_view(
+        _req(
+            {
+                "action": "add_block",
+                "block_type": "button",
+                "page_key": "services",
+                "add_after": "aaa",
+            },
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    keys = [(b["key"], b["id"]) for b in _page_blocks(tenant, "services")]
+    assert keys[0][1] == "aaa" and keys[1][0] == "button" and keys[2][1] == "bbb"
+
+
+def test_use_block_template_with_page_key_goes_to_page_blocks():
+    """UC6-7b: вставка блок-шаблона на подстранице — в page_blocks[хост]."""
+    tenant = TenantFactory(
+        slug="pb4",
+        name="X",
+        site_config={
+            "block_templates": {"tplA": {"key": "text", "label": "G", "data": {"title": "Hi"}}}
+        },
+    )
+    core_views.home_builder_view(
+        _req(
+            {"action": "use_block_template:tplA", "page_key": "catalog", "page_path": "/waren/"},
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    blocks = _page_blocks(tenant, "catalog")
+    assert len(blocks) == 1 and blocks[0]["data"]["title"] == "Hi"
+    assert _cblocks(tenant) == []
+
+
+def test_save_rebuilds_page_blocks_from_pb_rows():
+    """UC6-7b: Save пересобирает page_blocks из pb_id-строк (данные/порядок/удаление),
+    хост вне whitelist отбрасывается."""
+    tenant = TenantFactory(
+        slug="pb5",
+        name="X",
+        site_config={
+            "page_blocks": {
+                "services": [
+                    {"key": "text", "id": "aaa", "enabled": True, "data": {"title": "Alt"}},
+                    {"key": "button", "id": "bbb", "enabled": True, "data": {"label": "X"}},
+                ],
+                "cart": [{"key": "text", "id": "ccc", "enabled": True, "data": {"title": "C"}}],
+            }
+        },
+    )
+    data = {
+        "pb_present": "1",
+        "pb_id": ["aaa", "bbb", "ccc", "zzz"],
+        # aaa: правка текста + порядок 2 (уходит после bbb)
+        "pb_page_aaa": "services",
+        "cb_type_aaa": "text",
+        "order_cb_aaa": "2",
+        "enabled_cb_aaa": "on",
+        "cb_aaa_title": "Neu",
+        # bbb: порядок 1
+        "pb_page_bbb": "services",
+        "cb_type_bbb": "button",
+        "order_cb_bbb": "1",
+        "enabled_cb_bbb": "on",
+        "cb_bbb_label": "Mehr",
+        # ccc: удаление
+        "pb_page_ccc": "cart",
+        "cb_type_ccc": "text",
+        "delete_cb_ccc": "on",
+        # zzz: хост вне whitelist — отбрасывается
+        "pb_page_zzz": "legal",
+        "cb_type_zzz": "text",
+        "cb_zzz_title": "Nope",
+    }
+    core_views.home_builder_view(_req(data, tenant))
+    tenant.refresh_from_db()
+    pb = siteconfig.normalize(tenant.site_config).get("page_blocks", {})
+    svc = pb.get("services", [])
+    assert [b["id"] for b in svc] == ["bbb", "aaa"]  # пересортировано по order
+    assert svc[1]["data"]["title"] == "Neu"
+    assert "cart" not in pb  # последний блок хоста удалён → хост исчез
+    assert "legal" not in pb
+
+
+def test_save_without_pb_present_keeps_page_blocks():
+    """UC6-7b: POST без presence-guard (старая вкладка) НЕ стирает page_blocks."""
+    tenant = TenantFactory(
+        slug="pb6",
+        name="X",
+        site_config={
+            "page_blocks": {
+                "services": [{"key": "text", "id": "aaa", "enabled": True, "data": {"title": "T"}}]
+            }
+        },
+    )
+    core_views.home_builder_view(_req({"order_contact": "5", "enabled_contact": "on"}, tenant))
+    tenant.refresh_from_db()
+    assert len(_page_blocks(tenant, "services")) == 1
+
+
+def test_builder_form_renders_pb_rows():
+    """UC6-7b: GET билдера рендерит строки page_blocks (общий партиал; маркеры
+    pb_id/pb_page_<id>/data-pb-page + presence-guard pb_present)."""
+    tenant = TenantFactory(
+        slug="pb7",
+        name="X",
+        site_config={
+            "page_blocks": {
+                "services": [{"key": "text", "id": "aaa", "enabled": True, "data": {"title": "T"}}]
+            }
+        },
+    )
+    request = RequestFactory().get("/dashboard/site/home/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    owner = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@t.de", password="pw12345678"
+    )
+    html = core_views.home_builder_view(request).content.decode()
+    assert 'name="pb_present"' in html
+    assert 'name="pb_page_aaa" value="services"' in html
+    assert 'data-pb-page="services"' in html
+    assert 'name="cb_aaa_title"' in html  # поля те же, что у блоков главной

@@ -1,0 +1,161 @@
+{% load i18n %}
+{% comment %}UC6-7b: строка настроек C-блока — ЕДИНАЯ для блоков главной (cblocks,
+маркер cb_id) и блоков страниц (page_blocks, маркер pb_id + pb_page_<id>=хост).
+Вынесена из site_home.html 1:1; имена полей глобально уникальны по b.id, поэтому
+collect()/save работают без переименований. data-cb-id нужен и pb-строкам —
+клик по блоку на канве ищет строку именно по нему (openBlockPopup).{% endcomment %}
+<div class="cb-row border border-gray-200 rounded-xl p-4 space-y-2" data-cb-id="{{ b.id }}"{% if pb_page %} data-pb-page="{{ pb_page }}"{% endif %}>
+  {% if pb_page %}
+    <input type="hidden" name="pb_id" value="{{ b.id }}">
+    <input type="hidden" name="pb_page_{{ b.id }}" value="{{ pb_page }}">
+  {% else %}
+    <input type="hidden" name="cb_id" value="{{ b.id }}">
+  {% endif %}
+  <input type="hidden" name="cb_type_{{ b.id }}" value="{{ b.type }}">
+  <div class="flex items-center justify-between gap-3 text-sm">
+    <span class="font-medium">{{ b.type }}</span>
+    <span class="flex items-center gap-3">
+      <label class="flex items-center gap-1">{% trans "Position" %}
+        <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" max="40" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
+      <label class="flex items-center gap-1"><input type="checkbox" name="enabled_cb_{{ b.id }}" {% if b.enabled %}checked{% endif %} class="rounded border-gray-300">{% trans "Visible" %}</label>
+      <label class="flex items-center gap-1 text-red-600"><input type="checkbox" name="delete_cb_{{ b.id }}" class="rounded border-gray-300">{% trans "Remove" %}</label>
+    </span>
+  </div>
+  {% if b.type == "text" or b.type == "image_text" %}
+    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" placeholder="{% trans 'Title' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+  {% endif %}
+  {% if b.type == "button" %}
+    <input type="text" name="cb_{{ b.id }}_label" value="{{ b.data.label }}" placeholder="{% trans 'Button label' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" placeholder="/termin/ {% trans 'or' %} https://…" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+  {% endif %}
+  {% if b.type == "text" or b.type == "image_text" %}
+    <textarea name="cb_{{ b.id }}_body" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
+    {% comment %}UC6-2: стиль текста блока — выравнивание/размер/цвет (палитра темы;
+       решение владельца 2026-07-06 — без свободного пикера).{% endcomment %}
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="">{% trans "Text left" %}</option>
+        <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
+        <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
+      </select>
+      <select name="cb_{{ b.id }}_size" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="">{% trans "Normal size" %}</option>
+        <option value="sm" {% if b.data.size == 'sm' %}selected{% endif %}>{% trans "Small" %}</option>
+        <option value="lg" {% if b.data.size == 'lg' %}selected{% endif %}>{% trans "Large" %}</option>
+        <option value="xl" {% if b.data.size == 'xl' %}selected{% endif %}>{% trans "Extra large" %}</option>
+      </select>
+      <select name="cb_{{ b.id }}_color" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="">{% trans "Default color" %}</option>
+        <option value="accent" {% if b.data.color == 'accent' %}selected{% endif %}>{% trans "Accent color" %}</option>
+        <option value="muted" {% if b.data.color == 'muted' %}selected{% endif %}>{% trans "Muted gray" %}</option>
+      </select>
+    </div>
+  {% endif %}
+  {% if b.type == "image" or b.type == "image_text" %}
+    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+  {% endif %}
+  {% if b.type == "image" %}
+    <input type="text" name="cb_{{ b.id }}_caption" value="{{ b.data.caption }}" placeholder="{% trans 'Caption' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+  {% endif %}
+  {% if b.type == "image" or b.type == "image_text" %}
+    {% comment %}UC6-4: скругление фото ("" = стандарт rounded-2xl).{% endcomment %}
+    <select name="cb_{{ b.id }}_rounded" class="rounded border border-gray-300 px-2 py-1 text-sm">
+      <option value="">{% trans "Rounded corners" %}</option>
+      <option value="none" {% if b.data.rounded == 'none' %}selected{% endif %}>{% trans "Square corners" %}</option>
+      <option value="3xl" {% if b.data.rounded == '3xl' %}selected{% endif %}>{% trans "Extra rounded" %}</option>
+    </select>
+  {% endif %}
+  {% if b.type == "image_text" %}
+    <select name="cb_{{ b.id }}_side" class="rounded border border-gray-300 px-2 py-1 text-sm">
+      <option value="left" {% if b.data.side == 'left' %}selected{% endif %}>{% trans "Image left" %}</option>
+      <option value="right" {% if b.data.side == 'right' %}selected{% endif %}>{% trans "Image right" %}</option>
+    </select>
+  {% endif %}
+  {% if b.type == "promo" %}
+    {# UE1 (D2=LIVE): промо из БД — цена/остаток/countdown всегда актуальны. #}
+    <select name="cb_{{ b.id }}_promo_pk" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">
+      <option value="">{% trans "Choose promotion…" %}</option>
+      {% for pk, label in promos_for_blocks %}
+        <option value="{{ pk }}" {% if b.data.promo_pk == pk %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="left" {% if b.data.align == 'left' %}selected{% endif %}>{% trans "Text left" %}</option>
+        <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
+        <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
+      </select>
+      <select name="cb_{{ b.id }}_badge_pos" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="top-left" {% if b.data.badge_pos == 'top-left' %}selected{% endif %}>{% trans "Badge top left" %}</option>
+        <option value="top-right" {% if b.data.badge_pos == 'top-right' %}selected{% endif %}>{% trans "Badge top right" %}</option>
+        <option value="bottom-left" {% if b.data.badge_pos == 'bottom-left' %}selected{% endif %}>{% trans "Badge bottom left" %}</option>
+        <option value="bottom-right" {% if b.data.badge_pos == 'bottom-right' %}selected{% endif %}>{% trans "Badge bottom right" %}</option>
+        <option value="none" {% if b.data.badge_pos == 'none' %}selected{% endif %}>{% trans "No badge" %}</option>
+      </select>
+      <label class="flex items-center gap-1"><input type="checkbox" name="cb_{{ b.id }}_show_button" {% if b.data.show_button %}checked{% endif %} class="rounded border-gray-300">{% trans "Button" %}</label>
+    </div>
+    <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    {% if promo_style_options %}
+      {% comment %}UC6-6f: подсказка стиля скидки блока — действует, пока стиль
+         самой акции не задан (источник един — Promotion.discount_style).{% endcomment %}
+      <select name="cb_{{ b.id }}_style_hint" class="w-full rounded border border-gray-300 px-2 py-1 text-sm" title="{% trans 'Discount style (used until the promotion sets its own)' %}">
+        <option value="">{% trans "Discount style: automatic" %}</option>
+        {% for sk, slabel in promo_style_options %}
+          <option value="{{ sk }}" {% if b.data.style_hint == sk %}selected{% endif %}>{{ slabel }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+  {% endif %}
+  {% comment %}UC6-3/3a/3b: ширина блока (доли контейнера до 1/6) + положение.
+     Узкие блоки подряд автоматически встают В РЯД; чекбокс «с новой
+     строки» разрывает ряд. pos влияет только на узкие (дефолт — центр).{% endcomment %}
+  <div class="flex flex-wrap items-center gap-2 text-sm">
+    <select name="width_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
+      <option value="contained">{% trans "Contained" %}</option>
+      <option value="full" {% if b.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
+      <option value="w23" {% if b.width == 'w23' %}selected{% endif %}>{% trans "2/3 width" %}</option>
+      <option value="w12" {% if b.width == 'w12' %}selected{% endif %}>{% trans "1/2 width" %}</option>
+      <option value="w13" {% if b.width == 'w13' %}selected{% endif %}>{% trans "1/3 width" %}</option>
+      <option value="w14" {% if b.width == 'w14' %}selected{% endif %}>{% trans "1/4 width" %}</option>
+      <option value="w15" {% if b.width == 'w15' %}selected{% endif %}>{% trans "1/5 width" %}</option>
+      <option value="w16" {% if b.width == 'w16' %}selected{% endif %}>{% trans "1/6 width" %}</option>
+    </select>
+    <select name="pos_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
+      <option value="">{% trans "Centered" %}</option>
+      <option value="left" {% if b.pos == 'left' %}selected{% endif %}>{% trans "To the left" %}</option>
+      <option value="right" {% if b.pos == 'right' %}selected{% endif %}>{% trans "To the right" %}</option>
+    </select>
+    <label class="flex items-center gap-1"><input type="checkbox" name="newline_cb_{{ b.id }}" {% if b.newline %}checked{% endif %} class="rounded border-gray-300">{% trans "Start new row" %}</label>
+  </div>
+  {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" %}
+    {% comment %}UC6-6b: visual блока — тень (Просто) + радиус/отступ/фон (Эксперт);
+       применяется к .cb-box через --sf-* переменные обёртки.{% endcomment %}
+    <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
+      <label class="flex items-center gap-1.5 cursor-pointer">
+        <input type="checkbox" name="visual_shadow_cb_{{ b.id }}" {% if b.visual.shadow %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Shadow" %}
+      </label>
+      <label class="flex items-center gap-1.5" data-expert="1">
+        {% trans "Radius" %}
+        <input type="range" name="visual_radius_px_cb_{{ b.id }}" value="{{ b.visual.radius|default:0 }}" min="0" max="24" step="2" class="w-20">
+      </label>
+      <label class="flex items-center gap-1.5" data-expert="1">
+        {% trans "Padding" %}
+        <input type="range" name="visual_padding_cb_{{ b.id }}" value="{{ b.visual.padding|default:0 }}" min="0" max="32" step="2" class="w-20">
+      </label>
+      <label class="flex items-center gap-1.5" data-expert="1" title="{% trans 'Card background' %}">
+        <input type="checkbox" name="visual_bg_on_cb_{{ b.id }}" {% if b.visual.background %}checked{% endif %} class="rounded border-gray-300">
+        <input type="color" name="visual_bg_cb_{{ b.id }}" value="{{ b.visual.background|default:'#ffffff' }}" class="h-6 w-8 rounded border border-gray-300 p-0.5">
+      </label>
+    </div>
+  {% endif %}
+  {% comment %} SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
+     #home-form с action=save_block_template:<id> (данные блока из POST —
+     ловим текущие правки); ранний return в home_builder_view. {% endcomment %}
+  <div class="flex items-center gap-2 pt-1">
+    <input type="text" name="tpl_label_{{ b.id }}" placeholder="{% trans 'Template name' %}"
+           class="flex-1 rounded border border-gray-200 px-2 py-1 text-xs">
+    <button type="submit" name="action" value="save_block_template:{{ b.id }}" formnovalidate
+            class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">💾 {% trans "Save as template" %}</button>
+  </div>
+</div>

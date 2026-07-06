@@ -4156,3 +4156,25 @@
   Замки: whitelist/чистка/golden-absence + тег (publish/preview/empty).
   Остаток: 7b (редактор: строки в форме + draft/save + инсертер с page_key),
   7c (drag + вставка без перезагрузки), 7d (меню в ленту).
+
+- **2026-07-06 — UC6-7b: РЕДАКТОР page_blocks — весь функционал главной на любой
+  странице.** Строка настроек C-блока вынесена в общий партиал `tenant/_cb_row.html`
+  (переключатель `pb_page`: `pb_id`+`pb_page_<id>`+`data-pb-page` vs `cb_id`); имена
+  полей уникальны по id → collect/save/save-as-template без переименований. GET:
+  `page_cblocks` по PAGE_BLOCK_HOSTS в наборе «Landing pages», скрытие существующим
+  `applyPageScope`. Save: общий `_cblock_entry_from_post` (главная+страницы),
+  page-ветка под presence-guard `pb_present` пересобирает `page_blocks` из
+  `pb_id`-строк (host из `pb_page_<id>`, whitelist, сортировка, удаление; пустой хост
+  исчезает; без guard конфиг страниц не трётся). Draft: `buildCbEntry` общий,
+  home-ветка пропускает pb-строки, отдельный свип `.cb-row[data-pb-page]` →
+  `payload.page_blocks` (все хосты, вкл. опустевшие → удаление видно в превью),
+  server passthrough + `normalize_page_blocks`. Инсертер «+»: гейт снят на страницах
+  с `curPbHost` (из `data-pb-host` кадра; drag home-only до 7c); `add_block`/
+  `use_block_template` несут `page_key`+`page_path` → `page_blocks[host]`
+  (`insert_after` по id, `pbhost:<key>` → append), `_redirect_builder` возвращает
+  канву на ту же страницу (`?page=` через `_safe_preview_page` — no-open-redirect).
+  Скрытое `page_path` в `#home-form`, JS синкает при навигации кадра. БЕЗ миграций.
+  Замки: `test_cblocks_builder` +7 (page_key/unknown-фолбэк/insert_after/template/
+  save-rebuild/presence-guard/GET-рендер), `test_live_preview` +1 (draft passthrough),
+  e2e verify_7b (вставка на /ueber-uns/ → канва → лента → Save → публикация, 0 ошибок).
+  Остаток UC6-7: 7c (drag в регионе + вставка без перезагрузки), 7d (меню в ленту).
