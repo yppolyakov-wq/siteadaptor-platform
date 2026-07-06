@@ -664,6 +664,21 @@
                 </div>
                 <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
               {% endif %}
+              {% comment %}UC6-3: ширина блока (вкл. 2/3 и 1/2 контейнера) + положение
+                 узкого блока. pos влияет только на w23/w12 (дефолт — центр).{% endcomment %}
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <select name="width_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                  <option value="contained">{% trans "Contained" %}</option>
+                  <option value="full" {% if b.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
+                  <option value="w23" {% if b.width == 'w23' %}selected{% endif %}>{% trans "2/3 width" %}</option>
+                  <option value="w12" {% if b.width == 'w12' %}selected{% endif %}>{% trans "1/2 width" %}</option>
+                </select>
+                <select name="pos_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
+                  <option value="">{% trans "Centered" %}</option>
+                  <option value="left" {% if b.pos == 'left' %}selected{% endif %}>{% trans "To the left" %}</option>
+                  <option value="right" {% if b.pos == 'right' %}selected{% endif %}>{% trans "To the right" %}</option>
+                </select>
+              </div>
               {% comment %} SE-4a: сохранить этот блок как многоразовый шаблон. Кнопка сабмитит
                  #home-form с action=save_block_template:<id> (данные блока из POST —
                  ловим текущие правки); ранний return в home_builder_view. {% endcomment %}
@@ -1401,6 +1416,11 @@
         // UE1: чекбокс кнопки промо-блока — по checked (value у чекбокса всегда "on").
         var sb = form.querySelector("[name='cb_" + cbId + "_show_button']");
         if (sb && sb.checked) cb.data.show_button = "on";
+        // UC6-3: ширина/положение блока → live-preview (черновик).
+        var cw = form.querySelector("select[name='width_cb_" + cbId + "']");
+        if (cw && cw.value) cb.width = cw.value;
+        var cp = form.querySelector("select[name='pos_cb_" + cbId + "']");
+        if (cp && cp.value) cb.pos = cp.value;
         return cb;
       }
       var sec = { key: r.key, enabled: r.enabled };

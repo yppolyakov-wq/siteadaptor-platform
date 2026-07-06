@@ -159,3 +159,24 @@ def test_save_persists_text_style_fields():
     assert block["data"]["align"] == "center"
     assert block["data"]["size"] == "lg"
     assert block["data"]["color"] == "muted"
+
+
+def test_save_persists_cblock_width_and_pos():
+    """UC6-3: ширина/положение C-блока переживают Save (раньше width терялся)."""
+    tenant = TenantFactory(slug="cb7", name="X")
+    core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
+    tenant.refresh_from_db()
+    bid = _cblocks(tenant)[0]["id"]
+    data = {
+        "cb_id": bid,
+        f"cb_type_{bid}": "text",
+        f"enabled_cb_{bid}": "on",
+        f"cb_{bid}_title": "T",
+        f"width_cb_{bid}": "w23",
+        f"pos_cb_{bid}": "right",
+    }
+    core_views.home_builder_view(_req(data, tenant))
+    tenant.refresh_from_db()
+    block = _cblocks(tenant)[0]
+    assert block["width"] == "w23"
+    assert block["pos"] == "right"

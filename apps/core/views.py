@@ -1088,6 +1088,10 @@ def home_builder_view(request):
                         "id": bid,
                         "enabled": request.POST.get(f"enabled_cb_{bid}") == "on",
                         "data": _read_cblock_data(request.POST, bid, btype),
+                        # UC6-3: ширина/положение блока (normalize валидирует;
+                        # раньше width C-блока терялся при Save — жил только в черновике).
+                        "width": request.POST.get(f"width_cb_{bid}", "contained"),
+                        "pos": request.POST.get(f"pos_cb_{bid}", ""),
                     },
                 )
             )
@@ -1323,6 +1327,9 @@ def home_builder_view(request):
                     "enabled": s["enabled"],
                     "data": s["data"],
                     "order": index,
+                    # UC6-3: текущие ширина/положение — для селектов формы блока.
+                    "width": s.get("width", "contained"),
+                    "pos": s.get("pos", ""),
                 }
             )
             continue
@@ -1675,8 +1682,11 @@ def site_preview_draft(request):
                     cb = {"key": key, "id": cbid, "enabled": bool(item.get("enabled"))}
                     if isinstance(item.get("data"), dict):
                         cb["data"] = item["data"]
-                    if item.get("width") in ("contained", "full"):
+                    # UC6-3: + w23/w12 и положение (normalize валидирует по CBLOCK_WIDTHS).
+                    if item.get("width") in siteconfig.CBLOCK_WIDTHS:
                         cb["width"] = item["width"]
+                    if item.get("pos") in ("left", "right"):
+                        cb["pos"] = item["pos"]
                     if "font" in item:
                         cb["font"] = item["font"]
                     if isinstance(item.get("hidden_on"), list):

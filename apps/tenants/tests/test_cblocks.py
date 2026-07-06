@@ -134,3 +134,29 @@ def test_render_text_block_applies_style_classes():
     assert "text-center" in html
     assert "md:text-4xl" in html
     assert "var(--accent)" in html
+
+
+# --- UC6-3: ширина блока (w23/w12) + положение --------------------------------------
+
+
+def test_cblock_width_w23_w12_and_pos():
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "text", "id": "w1", "data": {"title": "T"}, "width": "w23", "pos": "right"},
+                {"key": "text", "id": "w2", "data": {"title": "U"}, "width": "w12"},
+                {"key": "text", "id": "w3", "data": {"title": "V"}, "width": "bogus", "pos": "up"},
+            ]
+        }
+    )
+    b1, b2, b3 = (s for s in cfg["sections"] if s["key"] == "text")
+    assert b1["width"] == "w23" and b1["pos"] == "right"
+    assert b2["width"] == "w12" and "pos" not in b2  # центр = без ключа
+    assert b3["width"] == "contained" and "pos" not in b3  # мусор → дефолты
+
+
+def test_section_width_not_extended_to_w23():
+    """Секции остаются на contained/full — w23 только у C-блоков."""
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True, "width": "w23"}]})
+    sec = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert sec["width"] == "contained"

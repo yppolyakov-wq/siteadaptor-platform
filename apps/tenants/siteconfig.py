@@ -162,21 +162,31 @@ def _clean_hidden_on(raw) -> list:
     return [d for d in _DEVICES if isinstance(raw, list) and d in raw]
 
 
+# UC6-3: у C-блоков шире набор ширин, чем у секций: + 2/3 и 1/2 контейнера
+# («текст на 2/3 экрана» — запрос владельца). Секции остаются на _LAYOUT_WIDTHS.
+CBLOCK_WIDTHS = ("contained", "full", "w23", "w12")
+
+
 def _clean_cblock(item: dict) -> dict:
     """C-блок → {key, id, enabled, data}. id сохраняется (или генерится)."""
     key = item["key"]
     bid = _s(item.get("id")) or uuid.uuid4().hex[:12]
     w = item.get("width")
     f = item.get("font")
-    return {
+    out = {
         "key": key,
         "id": bid,
         "enabled": bool(item.get("enabled", True)),
         "data": _clean_cblock_data(key, item.get("data")),
         "hidden_on": _clean_hidden_on(item.get("hidden_on")),  # SE-3c-mid
-        "width": w if w in _LAYOUT_WIDTHS else "contained",  # SE-3e
+        "width": w if w in CBLOCK_WIDTHS else "contained",  # SE-3e + UC6-3
         "font": f if f in FONTS else "",  # H1.5
     }
+    # UC6-3: положение узкого блока (w23/w12) в контейнере; дефолт (центр) —
+    # без ключа, чтобы старые конфиги оставались байт-в-байт.
+    if item.get("pos") in ("left", "right"):
+        out["pos"] = item["pos"]
+    return out
 
 
 # SE-4a: пользовательские блок-шаблоны (многоразовые C-блоки) — {id: {key,label,data}}
