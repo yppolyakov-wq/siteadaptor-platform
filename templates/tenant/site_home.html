@@ -17,11 +17,12 @@
         <button type="button" aria-pressed="true" class="bld-mode-btn px-2.5 py-1.5 bg-indigo-600 text-white" data-mode-val="basic">{% trans "Simple" %}</button>
         <button type="button" aria-pressed="false" class="bld-mode-btn px-2.5 py-1.5 border-l border-gray-300" data-mode-val="expert">{% trans "Expert" %}</button>
       </span>
-      <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✏️<span class="hidden sm:inline"> {% trans "Edit panel" %}</span></button>
-      {% comment %}SE-9d: режим прямой правки на канве (текст/раскладка). Механика уже есть
-         (inline-edit/drag); кнопка делает её явной и переключаемой (чистое превью — выкл).{% endcomment %}
-      <button type="button" id="bld-edit-toggle" aria-pressed="false" title="{% trans 'Turn on to edit headings and texts directly on the page.' %}"
-              class="text-sm border border-gray-300 text-gray-500 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✍️<span class="hidden sm:inline"> {% trans "Edit on site" %}</span></button>
+      {% comment %}UC6-1: две кнопки вместо трёх — «✏️ Править» (канва-first: инлайн-правка
+         + клик по блоку → его настройки; вкл. по умолчанию) и «⚙️ Шаблон» (глобальные
+         настройки: тема/меню/футер/библиотека — рейл областей).{% endcomment %}
+      <button type="button" id="bld-edit-toggle" aria-pressed="true" title="{% trans 'Turn on to edit headings and texts directly on the page.' %}"
+              class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">✏️<span class="hidden sm:inline"> {% trans "Edit" %}</span></button>
+      <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">⚙️<span class="hidden sm:inline"> {% trans "Template" %}</span></button>
       {% comment %}A4: share-ссылка на read-only превью черновика (снапшот в момент клика).{% endcomment %}
       <button type="button" id="bld-share-preview" data-share-url="{% url 'site-share-preview' %}" title="{% trans 'Copy a read-only preview link of your draft to share.' %}"
               class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">🔗<span class="hidden sm:inline"> {% trans "Share preview" %}</span></button>
@@ -42,7 +43,8 @@
   без перегруза; свернул → рейл, сайт на всю ширину. Все id/логика сохранены.{% endcomment %}
   <div class="relative flex-1 min-h-0 flex">
    {% comment %}Рейл областей — клик открывает фокус-панель этой области (одну).{% endcomment %}
-   <nav id="bld-rail" class="shrink-0 w-20 bg-white border-r border-gray-200 flex flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
+   {% comment %}UC6-1: рейл скрыт по умолчанию (канва-first) — открывается кнопкой «⚙️ Шаблон».{% endcomment %}
+   <nav id="bld-rail" class="hidden shrink-0 w-20 bg-white border-r border-gray-200 flex-col items-center gap-1 py-2 z-30 overflow-y-auto">
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="theme"><span class="text-2xl leading-none">🎨</span><span class="text-[11px] leading-tight">{% trans "Theme" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="banner"><span class="text-2xl leading-none">🖼</span><span class="text-[11px] leading-tight">{% trans "Banner" %}</span></button>
      <button type="button" aria-pressed="false" class="bld-rail-btn flex flex-col items-center gap-0.5 w-16 py-2 rounded-lg text-gray-600 hover:bg-gray-100" data-area="sections"><span class="text-2xl leading-none">🧱</span><span class="text-[11px] leading-tight">{% trans "Sections" %}</span></button>
@@ -703,8 +705,8 @@
           <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Contact & opening hours" %}</a>
           <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
         </div>
-        {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «Edit on site» → клик по тексту подвала). #}
-        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — turn on “Edit on site” and click the footer text." %}</p>
+        {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «✏️ Править» → клик по тексту подвала). #}
+        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — turn on “Edit” and click the footer text." %}</p>
         <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
           <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;sections&quot;]').click()">{% trans "Sections" %}</button>.</p>
       </fieldset>
@@ -1057,10 +1059,10 @@
   // SE-9d: режим прямой правки на канве (текст/раскладка). По умолчанию ВКЛ (без регресса);
   // выкл → чистое превью (как видит посетитель). Запоминается в localStorage. Механика
   // (inline-edit/drag) уже есть ниже — здесь только явный переключатель её видимости/активности.
-  // По умолчанию ВЫКЛ — чистое превью; кнопка «Edit on site» включает режим правки
-  // (клик = «начать править», как ожидает владелец). Запоминаем явное «вкл».
-  var editOn = false;
-  try { editOn = localStorage.getItem("sf_edit_on") === "1"; } catch (e) {}
+  // UC6-1: по умолчанию ВКЛ (канва-first — редактор открыт, чтобы править);
+  // «0» в localStorage = владелец сам выключил (чистое превью).
+  var editOn = true;
+  try { editOn = localStorage.getItem("sf_edit_on") !== "0"; } catch (e) {}
   var lastEditDoc = null;  // текущий документ iframe — чтобы переключать «на лету» без перезагрузки
   var editToggle = document.getElementById("bld-edit-toggle");
   function styleEditable(el, on) {
@@ -1140,12 +1142,25 @@
   var areas = edPane ? edPane.querySelectorAll("[data-bld-area]") : [];
   var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
   var curArea = null;
+  // UC6-1: рейл областей виден только в режиме «⚙️ Шаблон» (канва-first).
+  var railNav = document.getElementById("bld-rail");
+  function toggleRail(show) {
+    if (!railNav) return;
+    railNav.classList.toggle("hidden", !show);
+    railNav.classList.toggle("flex", show);
+    if (drawerToggle) {
+      drawerToggle.setAttribute("aria-pressed", show ? "true" : "false");
+      drawerToggle.classList.toggle("bg-indigo-50", show);
+      drawerToggle.classList.toggle("text-indigo-700", show);
+    }
+  }
   function closePanel() {
     closeBlockPopup();  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
     curArea = null;
     try { localStorage.removeItem("sf_cur_area"); } catch (e) {}  // FIX item2: свёрнули — не восстанавливать
     if (edPane) edPane.classList.add("bld-collapsed");
     if (backdrop) backdrop.classList.add("hidden");
+    toggleRail(false);  // UC6-1: закрыли панель — вернуться к чистой канве
     railBtns.forEach(function (b) {
       b.classList.remove("bg-indigo-50", "text-indigo-700");
       b.setAttribute("aria-pressed", "false");  // SE-7 a11y: панель свёрнута
@@ -1183,17 +1198,22 @@
   function activate(which) { if (which === "editor") showArea("sections"); }
   if (drawerToggle) {
     drawerToggle.addEventListener("click", function () {
-      if (curArea) closePanel(); else showArea("sections");
+      // UC6-1: «⚙️ Шаблон» — глобальные настройки: рейл областей + тема.
+      if (curArea) closePanel(); else { toggleRail(true); showArea("theme"); }
     });
   }
   if (drawerClose) drawerClose.addEventListener("click", closePanel);
   if (backdrop) backdrop.addEventListener("click", closePanel);
-  if (!isNarrow) {
-    // FIX item2: восстановить область, где владелец был до сохранения-перезагрузки (если она есть в панели).
+  {
+    // FIX item2: восстановить область, где владелец был до сохранения-перезагрузки
+    // (слайды/обложки/лого). UC6-1: без сохранённой области стартуем канвой во весь
+    // экран (панель свёрнута, рейл скрыт) — и на широком, и на узком экране.
     var savedArea = null;
     try { savedArea = localStorage.getItem("sf_cur_area"); } catch (e) {}
-    if (savedArea && edPane && edPane.querySelector('[data-bld-area="' + savedArea + '"]')) showArea(savedArea);
-    else showArea("sections");  // на широком экране сразу секции; на узком — рейл
+    if (!isNarrow && savedArea && edPane && edPane.querySelector('[data-bld-area="' + savedArea + '"]')) {
+      toggleRail(true);
+      showArea(savedArea);
+    }
   }
   // SE-9b: открыть область с блока (gallery-media / catalog-add) с подписью панели.
   // Подписи в JS-карте (не в onclick) → апостроф в переводе не ломает кавычки атрибута.
