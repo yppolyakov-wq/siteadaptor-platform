@@ -4229,6 +4229,16 @@
   verify_7d: обе кнопки открывают своё, «Blocks» добавляет блок на /ueber-uns/ (12→13), 0
   JS-ошибок. **ВОЛНА UC6-7 ЗАКРЫТА ЦЕЛИКОМ (7a+7b+7c+7d).**
 
+- **2026-07-06 — UC6-8 (блоки): 10 видов отображения на каждый тип C-блока (курс
+  владельца «по 10 типов на блок»).** Донаполнены `CBLOCK_VARIANTS`: text/image/image_text
+  9→10, button 4→10, promo 8→10 (все пресеты — комбинации СУЩЕСТВУЮЩИХ полей
+  align/size/color/width/pos/visual/side/rounded/style_hint, БЕЗ правок шаблонов). В
+  инсертере 11 кнопок/тип (10+«Standard»), миниатюры генерятся из props автоматически.
+  Замки: адверсариальный `test_all_cblock_variants_survive_normalize` (каждый пресет
+  round-trip без потерь) + новый `test_cblock_variants_ten_per_type_unique_keys` (≥10,
+  уникальные ключи). e2e verify_uc68: 11/тип, новый button-вариант soft_band вставляется
+  (13→14), 0 JS-ошибок. Без миграций.
+
 - **2026-07-06 — UC6-7c-2: вставка C-блока БЕЗ перезагрузки билдера (хосты страниц).**
   Инсертер «+» на СТРАНИЦЕ шлёт fetch (`X-Requested-With: fetch`) → `add_block`
   сохраняет блок и отвечает JSON `{ok,id,host,row_html}` (`_add_block_fetch_response`;

@@ -276,6 +276,14 @@ CBLOCK_VARIANTS = {
             "width": "w23",
             "pos": "right",
         },
+        # UC6-8: донаполнение до 10 видов на тип.
+        {
+            "key": "small_note_left",
+            "label": "Kleiner Hinweis links 1/3",
+            "data": {"size": "sm", "color": "muted"},
+            "width": "w13",
+            "pos": "left",
+        },
     ],
     "image": [
         {"key": "full", "label": "Vollbreite", "width": "full", "data": {"rounded": "none"}},
@@ -296,6 +304,8 @@ CBLOCK_VARIANTS = {
             "visual": {"shadow": True},
         },
         {"key": "narrow", "label": "Schmal 2/3", "width": "w23"},
+        # UC6-8: донаполнение до 10 видов.
+        {"key": "quarter_right", "label": "Viertel rechts", "width": "w14", "pos": "right"},
     ],
     "image_text": [
         {"key": "right", "label": "Foto rechts", "data": {"side": "right"}},
@@ -331,6 +341,14 @@ CBLOCK_VARIANTS = {
             "data": {"color": "accent"},
             "visual": {"shadow": True, "radius": 16, "padding": 16},
         },
+        # UC6-8: донаполнение до 10 видов.
+        {
+            "key": "band_right",
+            "label": "Band Vollbreite, Foto rechts",
+            "width": "full",
+            "data": {"side": "right"},
+            "visual": {"background": "#f9fafb", "padding": 32},
+        },
     ],
     "button": [
         {
@@ -345,6 +363,19 @@ CBLOCK_VARIANTS = {
             "label": "Band mit Hintergrund",
             "width": "full",
             "visual": {"background": "#f9fafb", "padding": 24},
+        },
+        # UC6-8: донаполнение до 10 видов (кнопка = label/url; варьируем ширину/
+        # положение/фон-подложку — визуал применяется к обёртке .cb-box).
+        {"key": "center_third", "label": "Drittel zentriert", "width": "w13"},
+        {"key": "quarter_right", "label": "Viertel rechts", "width": "w14", "pos": "right"},
+        {"key": "quarter_left", "label": "Viertel links", "width": "w14", "pos": "left"},
+        {"key": "half", "label": "Halbbreit", "width": "w12"},
+        {"key": "wide", "label": "Vollbreite", "width": "full"},
+        {
+            "key": "soft_band",
+            "label": "Weiches Band",
+            "width": "full",
+            "visual": {"background": "#f3f4f6", "padding": 20, "radius": 16},
         },
     ],
     # UC6-6f: варианты промо-блока = стили вывода скидки (style_hint; каскад —
@@ -362,6 +393,18 @@ CBLOCK_VARIANTS = {
         {"key": "countdown", "label": "Countdown-Akzent", "data": {"style_hint": "countdown"}},
         {"key": "surprise", "label": "Überraschungstüte", "data": {"style_hint": "surprise"}},
         {"key": "mystery", "label": "Mystery (Preis versteckt)", "data": {"style_hint": "mystery"}},
+        # UC6-8: донаполнение до 10 видов (стиль скидки × раскладка).
+        {
+            "key": "percent_wide",
+            "label": "Prozent, Vollbreite",
+            "data": {"style_hint": "percent"},
+            "width": "full",
+        },
+        {
+            "key": "countdown_center",
+            "label": "Countdown zentriert, ohne Badge",
+            "data": {"style_hint": "countdown", "align": "center", "badge_pos": "none"},
+        },
     ],
 }
 

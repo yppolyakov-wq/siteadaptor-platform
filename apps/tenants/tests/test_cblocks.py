@@ -301,6 +301,18 @@ def test_all_cblock_variants_survive_normalize():
                 assert block["data"].get(k) == val, (btype, v["key"], k)
 
 
+def test_cblock_variants_ten_per_type_unique_keys():
+    """UC6-8 (курс владельца «~10 видов на тип»): каждый повторяемый тип C-блока
+    имеет ≥10 пресетов отображения с уникальными ключами (в инсертере +«Standard»)."""
+    for btype in ("text", "image", "image_text", "button", "promo"):
+        variants = siteconfig.CBLOCK_VARIANTS.get(btype, [])
+        keys = [v["key"] for v in variants]
+        assert len(variants) >= 10, (btype, len(variants))
+        assert len(keys) == len(set(keys)), (btype, "duplicate keys")
+        for v in variants:
+            assert v.get("key") and v.get("label"), (btype, v)
+
+
 # --- UC6-6d: варианты отображения фикс-секций (FAQ) ---------------------------------
 
 
