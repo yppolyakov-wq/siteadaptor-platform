@@ -108,6 +108,36 @@ def test_full_walkthrough_sets_fields_and_completes():
     assert onboarding.progress(tenant) == (7, 7)
 
 
+def test_step1_demo_start_loads_examples_and_advances():
+    """AB3 («дефолты вместо пустых полей»): «Mit Beispielen starten» на шаге 1 —
+    сохраняет тип, СРАЗУ заливает демо-кит архетипа и шагает к 2 (мастер заполнен)."""
+    from apps.tenants import demo
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="demostart",
+        name="DS",
+        business_type="other",
+        disabled_modules=modules.default_disabled_for("other"),
+    )
+    assert not demo.has_demo(tenant)
+    resp = core_views.setup_view(
+        _req("post", {"action": "demo_start", "business_type": "bakery"}, tenant)
+    )
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    assert tenant.business_type == "bakery"  # тип сохранён (как шаг 1)
+    assert demo.has_demo(tenant)  # демо-контент залит → мастер не пустой
+    assert onboarding.get_state(tenant)["step"] == 2  # шагнули дальше
+
+
+def test_step1_page_offers_demo_start_button():
+    """AB3: на шаге 1 виден рекомендуемый путь «Mit Beispielen starten»."""
+    tenant = TenantFactory(business_type="bakery")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'value="demo_start"' in html and "Mit Beispielen starten" in html
+
+
 def test_skip_advances_without_changes():
     tenant = TenantFactory(business_type="bakery")
     core_views.setup_view(_req("post", {"action": "skip", "business_type": "hotel"}, tenant))

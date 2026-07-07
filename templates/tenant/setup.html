@@ -32,7 +32,21 @@
           </label>
         {% endfor %}
       </div>
-      {% include "tenant/_setup_buttons.html" %}
+      {% comment %}AB3 (анти-Битрикс «дефолты вместо пустых полей»): рекомендуемый путь —
+         начать с ПРИМЕРОВ (демо-кит архетипа), чтобы дальше править, а не создавать с
+         нуля. «Ohne Beispiele» — пустой старт (вторично).{% endcomment %}
+      <div class="flex flex-wrap items-center gap-3 pt-5">
+        <button type="submit" name="action" value="demo_start"
+                class="bg-indigo-600 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-indigo-700 shadow-sm">
+          🎁 Mit Beispielen starten
+        </button>
+        <button type="submit"
+                class="text-sm text-gray-600 px-4 py-3 rounded-xl border border-gray-300 hover:border-indigo-400 hover:text-indigo-700">
+          Ohne Beispiele
+        </button>
+        <button type="submit" name="action" value="skip" formnovalidate class="text-sm text-gray-400 px-3 py-2.5 hover:underline">Überspringen</button>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und Texten — du änderst sie einfach ab.</p>
     </form>
 
   {% elif step == 2 %}

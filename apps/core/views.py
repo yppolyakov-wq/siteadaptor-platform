@@ -135,6 +135,22 @@ def setup_view(request):
     state = onboarding.get_state(tenant)
     step = state["step"]
 
+    def apply_business_type(business_type):
+        """Шаг 1: сохранить тип бизнеса + (при смене/нетронутом пресете) применить
+        стартовый набор модулей вертикали. Общий код шага 1 и «начать с примеров»."""
+        if business_type not in dict(Tenant.BUSINESS_TYPES):
+            return
+        untouched_preset = sorted(tenant.disabled_modules or []) == sorted(
+            registry.default_disabled_for(tenant.business_type)
+        )
+        type_changed = business_type != tenant.business_type
+        tenant.business_type = business_type
+        update_fields = ["business_type", "updated_at"]
+        if type_changed or untouched_preset:
+            tenant.disabled_modules = registry.default_disabled_for(business_type)
+            update_fields.insert(1, "disabled_modules")
+        tenant.save(update_fields=update_fields)
+
     if request.method == "POST":
         # AB3-v2 «живое превью»: сохранить поля текущего шага БЕЗ перехода дальше
         # (debounced fetch при вводе/выборе) — iframe-превью сразу перечитывает витрину.
@@ -155,24 +171,21 @@ def setup_view(request):
             if demo.clear_demo(tenant):
                 messages.info(request, _("Example content removed."))
             return redirect("setup")
-        if step == 1:
-            business_type = request.POST.get("business_type", "")
-            if business_type in dict(Tenant.BUSINESS_TYPES):
-                # Гибрид (решение владельца 2026-06-12): набор блоков должен
-                # подходить типу — при СМЕНЕ типа пресет вертикали применяется
-                # заново (магазину Booking выключится). Если тип не менялся,
-                # ручную/легаси конфигурацию не трогаем (hotfix run 122) —
-                # кроме случая, когда набор ещё равен пресету (нечего терять).
-                untouched_preset = sorted(tenant.disabled_modules or []) == sorted(
-                    registry.default_disabled_for(tenant.business_type)
+        # AB3 (анти-Битрикс «дефолты вместо пустых полей»): «Mit Beispielen starten» на
+        # шаге 1 — сохранить тип + СРАЗУ залить демо-кит архетипа и шагнуть дальше, чтобы
+        # весь мастер был заполнен примерами (владелец правит, а не создаёт с нуля).
+        if request.POST.get("action") == "demo_start":
+            apply_business_type(request.POST.get("business_type", ""))
+            if demo.load_demo(tenant):
+                messages.success(
+                    request, _("Example content added — just edit it, no blank pages.")
                 )
-                type_changed = business_type != tenant.business_type
-                tenant.business_type = business_type
-                update_fields = ["business_type", "updated_at"]
-                if type_changed or untouched_preset:
-                    tenant.disabled_modules = registry.default_disabled_for(business_type)
-                    update_fields.insert(1, "disabled_modules")
-                tenant.save(update_fields=update_fields)
+            onboarding.advance(tenant)
+            return redirect("setup")
+        if step == 1:
+            # Гибрид (решение владельца 2026-06-12): набор блоков должен подходить типу —
+            # при СМЕНЕ типа пресет вертикали применяется заново; см. apply_business_type.
+            apply_business_type(request.POST.get("business_type", ""))
         elif step == 2:
             # B.2: выбор шаблона витрины (раскладка+тексты+акцент) одним кликом.
             from apps.tenants import sitetemplates
