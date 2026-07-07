@@ -243,6 +243,28 @@ Python 3.12, менеджер uv.
   «+», адверсариальный замок «каждый пресет проходит normalize»); **6d** FAQ 5 видов
   (реестр `SECTION_STYLES` + `section_row` в рендер). Всё БЕЗ миграций, всё в main.
   Остаток фидбэка владельца: «10 типов на блок» — наполнять по мере (реестры готовы).
+- **Самое свежее (2026-07-06, вечер): UC6-7 «весь функционал канвы НА ВСЕХ страницах» —
+  7a+7b+7c ЦЕЛИКОМ в main (отмашка владельца «редактирование блоков должно быть на всех»).**
+  План `docs/uc6-7-page-blocks-plan-2026-07-06.md`. **7a** новый ключ `page_blocks`
+  {host:[cblock]} (sections остаётся home-only, golden-паритет), `normalize_page_blocks`
+  (whitelist `PAGE_BLOCK_HOSTS` — 11 страниц, legal исключён), тег `{% page_blocks "<host>" %}`
+  (siteui; sess-черновик при ?preview=1; пустой хост в превью → пунктирный якорь). **7b**
+  редактор: общий партиал `tenant/_cb_row.html` (pb_page-переключатель pb_id vs cb_id),
+  `page_cblocks` в наборе «Landing pages», `_cblock_entry_from_post` (общий save главная+
+  страницы, presence-guard `pb_present`), draft passthrough + инсертер «+» на страницах
+  (`add_block`/`use_block_template` с page_key+page_path, `_redirect_builder` → `?page=`).
+  **7c** drag-перестановка на страницах (`movePageBlock`, отдельное order-пространство хоста)
+  + вставка БЕЗ перезагрузки билдера (fetch `_add_block_fetch_response` → row_html → schedule
+  перерисует только канву; главная/первый блок пустого хоста — форм-POST). Settings-live на
+  страницах уже работало (делегированные form-листенеры). **Два адверсариальных ревью-воркфлоу
+  (по 5 измерений) нашли 5 реальных дефектов — все исправлены и проверены на стенде:** 7b —
+  скоуп панели вне PAGE_GROUPS (`isHome && !curPbHost`) + `data-scope="home"` на «Content
+  blocks»; 7c — drag-порядок при вставке (renumber по значению order_cb), идемпотентный
+  фолбэк `.catch`→reloadBuilderPage (сервер коммитит до ответа → без дубля), скоуп drag/«+»
+  до `[data-pb-host]` (не фикс-секции витрины). Замки: `test_cblocks_builder` (+8),
+  `test_live_preview`, `test_home_content_blocks_details_is_home_scoped`; стенд verify_7b/
+  verify_scope/verify_7c1/verify_7c_fixes/verify_scope3. **Всё БЕЗ миграций, всё в main
+  (9900b09).** Остаток UC6-7: **7d** (настройки меню + библиотека примеров в ленту).
 - Самые свежие миграции: **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает
