@@ -297,8 +297,15 @@ Python 3.12, менеджер uv.
   миграция `inventory/0001`), леджер РЯДОМ со счётчиком (D1); врезка `record_movement` только в
   orders(sale/restore)+jobs(commit) в той же atomic; кабинет `/dashboard/stock/` (приёмки/корректировки/
   инвентаризация/Meldebestand + реконсиляция «Startbestand buchen»). `app.css` пересобран. **⚠️ Миграция
-  `inventory/0001` ТРЕБУЕТ ДЕПЛОЯ.** Дальше: **UD4** (каналы уведомлений; SMS отложен, D3 external) —
-  следующей сессией. Детали — build-log 2026-07-07.
+  `inventory/0001` ТРЕБУЕТ ДЕПЛОЯ.** Детали — build-log 2026-07-07.
+- **Самое свежее (2026-07-07, продолжение): UD4-2 (каналы уведомлений email ∥ Telegram) — ЦЕЛИКОМ**
+  (решение владельца «все три»). `apps/notifications/prefs.py` — реестр событий + `channel_enabled`
+  (хранение `site_config["notify"]`, БЕЗ миграции, дефолт = всё вкл). Гейтинг customer email+telegram
+  во всех 6 доменных `enqueue_*` + закрыты пробелы (Telegram для job «Auftrag fertig» и reservation).
+  Telegram ВЛАДЕЛЬЦУ: deep-link `start=owner-<token>`, `owner_chat_id` в site_config, `send_to_owner`
+  + пуш в owner-ветках. Кабинет `/dashboard/settings/notifications/` (матрица клиента + owner-каналы +
+  «Telegram verbinden»), nav «Benachrichtigungen». SMS остаётся отложен (D3 external). Без миграций.
+  Дальше по каталогу — платформа D1 (Pro-тариф, ждёт прайсинг) / другие треки за решением владельца.
 - Самые свежие миграции: **`inventory/0001`** (U-D3 склад-леджер StockMovement, TENANT, 2026-07-07 — ⚠️ ТРЕБУЕТ ДЕПЛОЯ) + **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает

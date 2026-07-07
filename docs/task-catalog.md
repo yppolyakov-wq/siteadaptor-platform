@@ -82,7 +82,7 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | UD3-1 | Модель `StockMovement` (app `apps/inventory`) + миграция + `record_movement` | ✅ (⚠️ `inventory/0001` деплой) | там же |
 | UD3-2 | Врезка логирования ТОЛЬКО в orders(sale/restore)+jobs(commit) | ✅ | там же |
 | UD3-3 | Кабинет `/dashboard/stock/`: приёмки/корректировки/low-stock + реконсиляция | ✅ | там же |
-| UD4-2 | Выбор канала email∥telegram per-событие (UD4-1 SMS снят — D3) | ⏸ следующей сессией | там же §2 |
+| UD4-2 | Каналы email∥telegram per-событие + Telegram владельцу (UD4-1 SMS снят — D3) | ✅ 2026-07-07 (prefs+гейтинг+owner-linkage+кабинет; без миграции) | там же §2 |
 | D1 | Pro-тариф / премиум-модули (идея) | 🧊 долгий ящик (владелец, 2026-07-03) | `feature-ideas…` |
 | **D2** | **Self-serve featured + Anzeige (идея; ядро P2.4b готово)** | ✅ D2.1–D2.4 (2026-07-03; D2.5 ⏸) | `d2-featured-plan-2026-07-03.md` |
 | D2.1 | Anzeige-пометка на карте агрегатора | ✅ (2026-07-03) | там же |

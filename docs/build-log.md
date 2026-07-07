@@ -4384,3 +4384,20 @@
   stock-кабинет; анти-оверселл параллельный тест зелёный. `app.css` пересобран (новые utility-классы).
   **⚠️ Миграция `inventory/0001` ТРЕБУЕТ ДЕПЛОЯ владельцем** (`./scripts/deploy.sh single`). UD4 (SMS/каналы
   уведомлений) — следующей сессией (D3 SMS отложен — external-integrations-backlog).
+
+- **2026-07-07 — UD4-2 (каналы уведомлений email ∥ Telegram, per-событие) — ЦЕЛИКОМ.** Решение
+  владельца «все три» (клиентские каналы + матрица + Telegram владельцу). Разведка (Explore):
+  Telegram к КЛИЕНТУ уже готов (`TelegramLink`, `send_to_customer`) и шлётся всегда параллельно
+  email для orders/booking/stays/tickets; job/reservation — email-only; Telegram ВЛАДЕЛЬЦУ не
+  существовал. **UD4a:** `apps/notifications/prefs.py` — реестр клиентских событий по 6 доменам +
+  `channel_enabled(tenant, audience, domain, event, channel)` (хранение `site_config["notify"]`,
+  без миграции; дефолт = всё включено = текущее поведение). **UD4b:** гейтинг customer email+telegram
+  в 6 доменных `enqueue_*` + закрыты пробелы — добавлен `send_to_customer` для job (quoted/done/
+  service_reminder — «Auftrag fertig») и reservation. **UD4c:** привязка Telegram владельца — deep-link
+  `t.me/<bot>?start=owner-<token>` (токен/`owner_chat_id` в `site_config["notify"]`), роутинг в webhook
+  (`owner-`-префикс → `link_owner_from_start`), `send_to_owner` + owner-Telegram-пуш в owner-ветках всех
+  доменов (гейтингом). **UD4d:** кабинет `/dashboard/settings/notifications/` — матрица клиента
+  (email/telegram чекбоксы по событиям активных модулей) + owner-каналы + кнопка «Telegram verbinden»/
+  «Trennen»; сохранение НЕ затирает `owner_chat_id`/`owner_link_token`. Nav «Benachrichtigungen» в
+  группе Einstellungen. Тесты: prefs (дефолты/per-событие/матрица), gating (канал отключён → не шлётся),
+  owner-linkage/push, settings (рендер/сохранение/сброс). **БЕЗ миграций** (всё в `site_config`).
