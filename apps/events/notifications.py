@@ -8,6 +8,7 @@
 from django.db import connection
 from django.urls import reverse
 
+from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
 from apps.promotions.notifications import _base_url, _owner_email, _render, _tenant
 
@@ -25,10 +26,12 @@ def enqueue_ticket_email(ticket, event):
     """Создать Notification(ы) события билета (БД-дедуп) и поставить доставку."""
     schema = connection.schema_name
     customer = ticket.customer
+    tenant = _tenant(schema)
     ctx = {"ticket": ticket, "customer": customer, "event": ticket.event}
 
     template_base = _CUSTOMER_TEMPLATES.get(event)
-    if template_base and customer.email and not customer.unsubscribed:
+    email_on = channel_enabled(tenant, "customer", "ticket", event, "email")
+    if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
         # B2: ссылка на подтверждение (там кнопка «Jetzt bezahlen»).
         if event == "payment_reminder":
@@ -79,7 +82,11 @@ def enqueue_ticket_email(ticket, event):
             headers=headers,
         )
 
-    if template_base and customer:
+    if (
+        template_base
+        and customer
+        and channel_enabled(tenant, "customer", "ticket", event, "telegram")
+    ):
         from apps.telegram.notify import send_to_customer
 
         subject_tg, body_tg, _html = _render(template_base, {**ctx, "unsubscribe_url": ""})
@@ -90,10 +97,10 @@ def enqueue_ticket_email(ticket, event):
             text=subject_tg or body_tg,
         )
 
-    # владельцу — на новую покупку
+    # владельцу — на новую покупку (email + UD4c Telegram-пуш)
     if event == "created":
-        owner = _owner_email(_tenant(schema))
-        if owner:
+        owner = _owner_email(tenant)
+        if owner and channel_enabled(tenant, "owner", "ticket", "created", "email"):
             subject, body, html = _render("ticket_owner", {**ctx, "unsubscribe_url": ""})
             notify(
                 dedupe_key=f"ticket:{ticket.id}:created:owner",
@@ -102,6 +109,16 @@ def enqueue_ticket_email(ticket, event):
                 subject=subject,
                 body=body,
                 html=html,
+            )
+        if channel_enabled(tenant, "owner", "ticket", "created", "telegram"):
+            from apps.telegram.notify import send_to_owner
+
+            subj_o, body_o, _h = _render("ticket_owner", {**ctx, "unsubscribe_url": ""})
+            send_to_owner(
+                tenant,
+                type="ticket_created_owner",
+                dedupe_key=f"ticket:{ticket.id}:created:owner:tg",
+                text=subj_o or body_o,
             )
 
 

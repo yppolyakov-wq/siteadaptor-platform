@@ -7,6 +7,7 @@
 
 from django.db import connection
 
+from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
 from apps.promotions.notifications import _owner_email, _render, _tenant
 
@@ -54,6 +55,7 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
     (`review_url`, страница бизнеса в портале — best-effort, как post-stay/post-event)."""
     schema = connection.schema_name
     customer = job.customer
+    tenant = _tenant(schema)
     ctx = {
         "job": job,
         "customer": customer,
@@ -63,15 +65,16 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
     }
 
     if event in ("quoted", "done", "service_reminder"):  # → клиенту
-        if customer.email and not customer.unsubscribed:
+        # A9: напоминание о TÜV/Service может приходить повторно (на каждую дату),
+        # поэтому дедуп включает саму дату — иначе вторая дата не отправится.
+        suffix = (
+            f":{job.service_due_date.isoformat()}"
+            if event == "service_reminder" and job.service_due_date
+            else ""
+        )
+        email_on = channel_enabled(tenant, "customer", "job", event, "email")
+        if customer.email and not customer.unsubscribed and email_on:
             subject, body, html = _render(f"job_{event}", ctx)
-            # A9: напоминание о TÜV/Service может приходить повторно (на каждую дату),
-            # поэтому дедуп включает саму дату — иначе вторая дата не отправится.
-            suffix = (
-                f":{job.service_due_date.isoformat()}"
-                if event == "service_reminder" and job.service_due_date
-                else ""
-            )
             notify(
                 dedupe_key=f"job:{job.id}:{event}{suffix}:customer",
                 type=f"job_{event}",
@@ -80,11 +83,22 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
                 body=body,
                 html=html,
             )
+        # UD4b: Telegram клиенту (раньше Aufträge были email-only) — «Auftrag fertig» и т.п.
+        if customer and channel_enabled(tenant, "customer", "job", event, "telegram"):
+            from apps.telegram.notify import send_to_customer
+
+            subj_tg, body_tg, _h = _render(f"job_{event}", ctx)
+            send_to_customer(
+                customer,
+                type=f"job_{event}",
+                dedupe_key=f"job:{job.id}:{event}{suffix}:tg",
+                text=subj_tg or body_tg,
+            )
         return
 
-    # new / accepted / declined → владельцу
-    owner = _owner_email(_tenant(schema))
-    if owner:
+    # new / accepted / declined → владельцу (email + UD4c Telegram-пуш)
+    owner = _owner_email(tenant)
+    if owner and channel_enabled(tenant, "owner", "job", event, "email"):
         subject, body, html = _render(f"job_{event}", ctx)
         notify(
             dedupe_key=f"job:{job.id}:{event}:owner",
@@ -93,4 +107,14 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
             subject=subject,
             body=body,
             html=html,
+        )
+    if channel_enabled(tenant, "owner", "job", event, "telegram"):
+        from apps.telegram.notify import send_to_owner
+
+        subj_o, body_o, _h = _render(f"job_{event}", ctx)
+        send_to_owner(
+            tenant,
+            type=f"job_{event}",
+            dedupe_key=f"job:{job.id}:{event}:owner:tg",
+            text=subj_o or body_o,
         )

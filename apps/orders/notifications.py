@@ -8,6 +8,7 @@
 from django.db import connection
 from django.urls import reverse
 
+from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
 from apps.promotions.notifications import _base_url, _owner_email, _render, _tenant
 
@@ -42,7 +43,8 @@ def enqueue_order_email(order, event):
     }
 
     template_base = _CUSTOMER_TEMPLATES.get(event)
-    if template_base and customer.email and not customer.unsubscribed:
+    email_on = channel_enabled(tenant, "customer", "order", event, "email")
+    if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
         # B2.1: ссылка на подтверждение (там кнопка «Jetzt bezahlen»).
         if event == "payment_reminder":
@@ -86,7 +88,11 @@ def enqueue_order_email(order, event):
         )
 
     # TG3: то же событие — в Telegram, если клиент привязал бота (дополняет email).
-    if template_base and customer:
+    if (
+        template_base
+        and customer
+        and channel_enabled(tenant, "customer", "order", event, "telegram")
+    ):
         from apps.telegram.notify import send_to_customer
 
         subject_tg, body_tg, _html = _render(template_base, {**ctx, "unsubscribe_url": ""})
@@ -97,10 +103,10 @@ def enqueue_order_email(order, event):
             text=subject_tg or body_tg,
         )
 
-    # владельцу — только при новом заказе
+    # владельцу — только при новом заказе (email + UD4c Telegram-пуш)
     if event == "created":
         owner = _owner_email(tenant)
-        if owner:
+        if owner and channel_enabled(tenant, "owner", "order", "created", "email"):
             subject, body, html = _render("order_owner", {**ctx, "unsubscribe_url": ""})
             notify(
                 dedupe_key=f"order:{order.id}:created:owner",
@@ -109,4 +115,14 @@ def enqueue_order_email(order, event):
                 subject=subject,
                 body=body,
                 html=html,
+            )
+        if channel_enabled(tenant, "owner", "order", "created", "telegram"):
+            from apps.telegram.notify import send_to_owner
+
+            subj_o, body_o, _h = _render("order_owner", {**ctx, "unsubscribe_url": ""})
+            send_to_owner(
+                tenant,
+                type="order_created_owner",
+                dedupe_key=f"order:{order.id}:created:owner:tg",
+                text=subj_o or body_o,
             )

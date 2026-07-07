@@ -27,6 +27,7 @@ from apps.core.views import (
     media_library,
     menu_builder_view,
     modules_view,
+    notifications_settings,
     pages_view,
     sections_view,
     settings_view,
@@ -66,6 +67,12 @@ urlpatterns = [
     path("dashboard/setup/", setup_view, name="setup"),
     path("willkommen/", setup_view, name="willkommen"),
     path("dashboard/settings/", settings_view, name="settings"),
+    # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
+    path(
+        "dashboard/settings/notifications/",
+        notifications_settings,
+        name="notifications-settings",
+    ),
     # L2 (Волна L): кабинет «Sprachen» — включение языков витрины + дефолт.
     path("dashboard/settings/languages/", languages_view, name="languages"),
     # L5/E-2: кабинет «Recht» — правовые тексты per-locale (LegalDoc) + AGB.

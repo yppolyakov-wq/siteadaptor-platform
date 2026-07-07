@@ -426,6 +426,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(
             NavItem("site", _("Site"), "site"),
             NavItem("settings", _("Settings"), "settings"),
+            NavItem("notifications-settings", _("Notifications"), "notifications"),  # UD4-2
             NavItem("languages", _("Languages"), "languages"),  # L2 — языки витрины
             NavItem("legal-docs", _("Legal"), "legal-docs"),  # L5/E-2 — правовые тексты
             NavItem("extras", _("Extras"), "extras"),  # #7 универсальные доп-услуги
@@ -543,6 +544,7 @@ NAV_TASK_LABELS: dict[str, str] = {
     "finance": "Finanzen",
     "site": "Website gestalten",
     "settings": "Einstellungen",
+    "notifications": "Benachrichtigungen",
     "languages": "Sprachen",
     "legal-docs": "Rechtstexte",
     "extras": "Zusatzleistungen",

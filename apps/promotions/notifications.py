@@ -14,6 +14,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django_tenants.utils import get_tenant_model, schema_context
 
+from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
 
 # событие -> базовое имя шаблона письма клиенту
@@ -88,11 +89,13 @@ def enqueue_reservation_email(reservation, event):
     """Создать Notification(ы) события брони (БД-дедуп) и поставить доставку."""
     schema = connection.schema_name
     customer = reservation.customer
+    tenant = _tenant(schema)
     ctx = {"reservation": reservation, "promotion": reservation.promotion, "customer": customer}
 
     template_base = _CUSTOMER_TEMPLATES.get(event)
+    email_on = channel_enabled(tenant, "customer", "reservation", event, "email")
     # клиенту — если есть email и он не отписался
-    if template_base and customer.email and not customer.unsubscribed:
+    if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
         unsub = (
             f"{base}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
@@ -117,10 +120,26 @@ def enqueue_reservation_email(reservation, event):
             headers=headers,
         )
 
-    # владельцу — только при создании брони
+    # UD4b: Telegram клиенту (раньше резервы были email-only), если привязан бот.
+    if (
+        template_base
+        and customer
+        and channel_enabled(tenant, "customer", "reservation", event, "telegram")
+    ):
+        from apps.telegram.notify import send_to_customer
+
+        subj_tg, body_tg, _h = _render(template_base, {**ctx, "unsubscribe_url": ""})
+        send_to_customer(
+            customer,
+            type=f"reservation_{event}",
+            dedupe_key=f"resv:{reservation.id}:{event}:tg",
+            text=subj_tg or body_tg,
+        )
+
+    # владельцу — только при создании брони (email + UD4c Telegram-пуш)
     if event == "created":
-        owner = _owner_email(_tenant(schema))
-        if owner:
+        owner = _owner_email(tenant)
+        if owner and channel_enabled(tenant, "owner", "reservation", "created", "email"):
             subject, body, html = _render("reservation_owner", {**ctx, "unsubscribe_url": ""})
             notify(
                 dedupe_key=f"resv:{reservation.id}:created:owner",
@@ -129,6 +148,16 @@ def enqueue_reservation_email(reservation, event):
                 subject=subject,
                 body=body,
                 html=html,
+            )
+        if channel_enabled(tenant, "owner", "reservation", "created", "telegram"):
+            from apps.telegram.notify import send_to_owner
+
+            subj_o, body_o, _h = _render("reservation_owner", {**ctx, "unsubscribe_url": ""})
+            send_to_owner(
+                tenant,
+                type="reservation_created_owner",
+                dedupe_key=f"resv:{reservation.id}:created:owner:tg",
+                text=subj_o or body_o,
             )
 
 

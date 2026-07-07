@@ -2606,3 +2606,57 @@ def kanban_action(request, kind, pk):
     if is_fetch:
         return render(request, "core/_kanban_card.html", {"tx": tx, "kind": kind})
     return redirect(reverse("board") + f"?kind={kind}")
+
+
+# --- U-D4: настройки каналов уведомлений (email ∥ Telegram) -------------------
+
+
+@login_required
+def notifications_settings(request):
+    """UD4-2: матрица каналов per-событие (клиент) + owner-каналы + привязка
+    Telegram владельца. Хранение — Tenant.site_config['notify'] (без миграции);
+    owner_chat_id/owner_link_token в том же узле НЕ затираем при сохранении."""
+    from apps.notifications import prefs
+    from apps.telegram.notify import _notify_node, _save_notify_node, owner_chat_id, owner_deep_link
+
+    tenant = request.tenant
+    if request.method == "POST":
+        if request.POST.get("action") == "disconnect_owner":
+            node = dict(_notify_node(tenant))
+            node.pop("owner_chat_id", None)
+            _save_notify_node(tenant, node)
+            messages.success(request, _("Telegram getrennt."))
+            return redirect("notifications-settings")
+        cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+        node = dict(cfg.get("notify")) if isinstance(cfg.get("notify"), dict) else {}
+        customer = {}
+        for domain, events in prefs.CUSTOMER_EVENTS.items():
+            if not tenant.is_module_active(prefs.DOMAIN_MODULE[domain]):
+                continue
+            for event, _label in events:
+                customer[f"{domain}:{event}"] = {
+                    "email": bool(request.POST.get(f"c-{domain}-{event}-email")),
+                    "telegram": bool(request.POST.get(f"c-{domain}-{event}-telegram")),
+                }
+        node["customer"] = customer
+        node["owner"] = {
+            "email": bool(request.POST.get("o-email")),
+            "telegram": bool(request.POST.get("o-telegram")),
+        }
+        cfg["notify"] = node
+        tenant.site_config = cfg
+        tenant.save(update_fields=["site_config"])
+        messages.success(request, _("Benachrichtigungen gespeichert."))
+        return redirect("notifications-settings")
+
+    return render(
+        request,
+        "tenant/notifications.html",
+        {
+            "nav": "notifications",
+            "matrix": prefs.customer_matrix(tenant),
+            "owner": prefs.owner_channels(tenant),
+            "owner_deep_link": owner_deep_link(tenant),
+            "owner_linked": bool(owner_chat_id(tenant)),
+        },
+    )

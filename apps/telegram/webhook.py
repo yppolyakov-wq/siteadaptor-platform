@@ -20,12 +20,18 @@ def handle_update(bot, update: dict, request) -> str:
 
     shop_url = request.build_absolute_uri(reverse("storefront-home"))
     markup = {"inline_keyboard": [[{"text": _("🛍 Open shop"), "web_app": {"url": shop_url}}]]}
-    # /start <token> — привязка клиента к боту (TG3): дальше шлём ему уведомления.
+    # /start <token> — привязка к боту: owner-<token> = владелец (UD4c), иначе
+    # клиент (TG3). Дальше шлём соответствующие уведомления в этот чат.
     if text.startswith("/start"):
-        from .notify import link_from_start
+        from .notify import link_from_start, link_owner_from_start
 
         payload = text[len("/start") :].strip()
-        if payload and link_from_start(payload, chat_id):
+        tenant = getattr(request, "tenant", None)
+        if payload.startswith("owner-") and tenant is not None:
+            linked = link_owner_from_start(payload, chat_id, tenant)
+        else:
+            linked = bool(payload) and link_from_start(payload, chat_id)
+        if linked:
             body = _("✅ Connected! You'll get your updates here.")
         else:
             body = _("Welcome! Tap below to open the shop.")
