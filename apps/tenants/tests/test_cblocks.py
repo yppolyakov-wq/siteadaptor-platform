@@ -424,11 +424,24 @@ def test_gallery_team_trust_styles_render():
     assert "rounded-full" in render("team", "circles")
     assert "w-14 h-14 rounded-full" in render("team", "list")
     assert "aspect-square rounded-xl" in render("team", "compact")
+    # UC6-8: 5-й вид «duo» — широкие карточки, фото сбоку (grid + flex-строка).
+    duo = render("team", "duo")
+    assert "md:grid-cols-2" in duo and "flex items-center gap-4 bg-white" in duo
 
     assert "justify-center" in render("trust", "")
     assert "justify-start text-left" in render("trust", "left")
     assert "border-color:var(--accent)" in render("trust", "badges")
     assert "bg-white rounded-2xl" not in render("trust", "plain")
+    # UC6-8: 5-й вид «cards» — каждый показатель в рамке.
+    assert "border border-gray-200 rounded-xl px-5 py-3" in render("trust", "cards")
+
+
+def test_team_trust_five_styles_registry():
+    """UC6-8: team/trust дотянуты до 5 видов (Standard + 4 в реестре)."""
+    for key in ("team", "trust"):
+        assert len(siteconfig.SECTION_STYLES[key]) == 4, key  # +Standard = 5
+        for st in siteconfig.SECTION_STYLES[key]:
+            assert st in siteconfig.SECTION_STYLE_LABELS, (key, st)
 
 
 def test_promo_block_style_hint_survives_normalize():

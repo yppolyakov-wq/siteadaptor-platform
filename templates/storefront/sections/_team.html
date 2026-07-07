@@ -2,8 +2,27 @@
 {% if site.team %}
 <section data-reveal class="mb-10">
   <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "Our team" %}</h2>
-  {% comment %}UC6-6f: 4 вида по section_row.style — "" карточки | circles | list | compact.{% endcomment %}
-  {% if section_row.style == "circles" %}
+  {% comment %}UC6-6f/UC6-8: 5 видов по section_row.style — "" карточки | circles |
+     list | compact | duo (широкие карточки, фото сбоку).{% endcomment %}
+  {% if section_row.style == "duo" %}
+  <div class="grid md:grid-cols-2 gap-4">
+    {% for m in site.team %}
+      <figure class="flex items-center gap-4 bg-white rounded-2xl shadow-sm p-4">
+        <div class="w-20 h-20 rounded-full overflow-hidden bg-gray-100 shrink-0">
+          {% if m.photo %}
+            <img src="{{ m.photo }}" alt="{{ m.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-2xl text-gray-300" aria-hidden="true">{{ m.name|first }}</div>
+          {% endif %}
+        </div>
+        <figcaption>
+          <p class="font-semibold leading-tight">{{ m.name }}</p>
+          {% if m.role %}<p class="text-sm text-gray-500 mt-0.5">{{ m.role }}</p>{% endif %}
+        </figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+  {% elif section_row.style == "circles" %}
   <div class="flex flex-wrap justify-center gap-8">
     {% for m in site.team %}
       <figure class="text-center w-32">

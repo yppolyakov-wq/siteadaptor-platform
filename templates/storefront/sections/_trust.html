@@ -1,23 +1,24 @@
 {% load i18n seo %}{# Секция доверия (P3): рейтинг Google + год основания + знаки качества. #}
 {% business_rating as rating %}
 {% if rating or site.trust.since or site.trust.marks %}
-{% comment %}UC6-6f: виды по section_row.style — "" карточка-центр | left | badges | plain.{% endcomment %}
+{% comment %}UC6-6f/UC6-8: 5 видов по section_row.style — "" карточка-центр | left |
+   badges | plain | cards (каждый показатель в своей рамке).{% endcomment %}
 <section data-reveal class="mb-10 {% if section_row.style != "plain" %}bg-white rounded-2xl shadow-sm p-6 md:p-8{% endif %}">
-  <div class="flex flex-wrap items-center gap-x-8 gap-y-4 {% if section_row.style == "left" %}justify-start text-left{% else %}justify-center text-center{% endif %}">
+  <div class="flex flex-wrap items-center {% if section_row.style == "cards" %}gap-4{% else %}gap-x-8 gap-y-4{% endif %} {% if section_row.style == "left" %}justify-start text-left{% else %}justify-center text-center{% endif %}">
     {% if rating %}
-      <div>
+      <div{% if section_row.style == "cards" %} class="border border-gray-200 rounded-xl px-5 py-3"{% endif %}>
         <div class="text-amber-500 text-2xl leading-none">★ {{ rating.0 }}</div>
         <p class="text-xs text-gray-500 mt-1">{% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</p>
       </div>
     {% endif %}
     {% if site.trust.since %}
-      <div>
+      <div{% if section_row.style == "cards" %} class="border border-gray-200 rounded-xl px-5 py-3"{% endif %}>
         <div class="text-2xl font-bold" style="color: var(--accent);">{% blocktrans with y=site.trust.since %}Since {{ y }}{% endblocktrans %}</div>
         <p class="text-xs text-gray-500 mt-1">{% trans "Family business" %}</p>
       </div>
     {% endif %}
     {% if site.trust.marks %}
-      <div class="flex flex-wrap gap-2 justify-center">
+      <div class="flex flex-wrap gap-2 justify-center{% if section_row.style == "cards" %} border border-gray-200 rounded-xl px-5 py-3{% endif %}">
         {% for m in site.trust.marks %}
           {% if section_row.style == "badges" %}
             <span class="inline-flex items-center gap-1 rounded-full border-2 text-sm font-semibold px-4 py-2" style="border-color:var(--accent);color:var(--accent);">✓ {{ m }}</span>

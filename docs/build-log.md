@@ -4238,6 +4238,15 @@
   round-trip без потерь) + новый `test_cblock_variants_ten_per_type_unique_keys` (≥10,
   уникальные ключи). e2e verify_uc68: 11/тип, новый button-вариант soft_band вставляется
   (13→14), 0 JS-ошибок. Без миграций.
+- **2026-07-06 — UC6-8 (секции): 5 видов отображения у ВСЕХ фикс-секций со стилями
+  (фидбэк «для FAQ и подобных — 5 примеров»).** faq/testimonials/process/gallery уже
+  давали 5 видов (Standard + 4). team/trust дотянуты с 4 до 5: `SECTION_STYLES` team
+  += `duo` (широкие карточки, фото сбоку — новая ветка `_team.html`), trust += `cards`
+  (каждый показатель в рамке — условные классы `_trust.html`); лейбл `duo`=«Foto
+  seitlich» (trust `cards` реюзит лейбл «Karten»). Все 6 секций = Standard+4=5 видов.
+  Замки: `test_gallery_team_trust_styles_render` (+duo/cards рендер-ассерты),
+  `test_team_trust_five_styles_registry` (4 в реестре + лейблы). build:css без изменений
+  (классы уже в app.css). Без миграций. **UC6-8 закрыт (блоки 10/тип + секции 5/тип).**
 
 - **2026-07-06 — UC6-7c-2: вставка C-блока БЕЗ перезагрузки билдера (хосты страниц).**
   Инсертер «+» на СТРАНИЦЕ шлёт fetch (`X-Requested-With: fetch`) → `add_block`
