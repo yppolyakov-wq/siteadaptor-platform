@@ -283,16 +283,23 @@ Python 3.12, менеджер uv.
   **Затем UC6-10b** (2026-07-07, «ещё компактнее»): высота хрома простого блока 119px→~81px
   (−32%; тулбар/лента/поля тоньше, зазор под тулбаром убран), стиль полей UC6-9 сохранён;
   main `a0e221b`, без миграций.
-- **U-D — ТЗ ГОТОВО (2026-07-07), волна не начата.** По просьбе владельца «план+ТЗ для новой
-  сессии»: самодостаточный **`docs/ud-wave-tz-2026-07-07.md`** (старт-док; детали —
-  `unified-sellable-entity-ud-plan-2026-06-30.md`). Решения владельца: **Kanban = drag-drop**
-  (Trello, реюз паттерна конструктора без JS-деп), **первая сессия = вся волна U-D1..U-D3**
-  (проекция `Transaction` → drag-drop `/dashboard/board/` → склад-леджер `StockMovement`,
-  1 миграция). Зафиксировано ранее: D1 леджер append-alongside счётчика, D2 доска+per-app,
-  **D3 SMS отложен** (UD4-1 снят), D4 line-items не унифицируем. Актуализировано: E-7 уже
-  отгрузил `Order.payment_method` (UD1-1 без миграции); U-A/U-B/U-C закрыты. **Старт — UD1-1**
-  (`apps/core/transactions.py`, чистый Python). Подзадачи UD1-1…UD3-3 — в `task-catalog.md`.
-- Самые свежие миграции: **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
+- **Самое свежее (2026-07-07): ВОЛНА U-D ЗАКРЫТА ЦЕЛИКОМ (UD1..UD3) — единый заказ + Kanban-доска
+  + склад-леджер.** По ТЗ `docs/ud-wave-tz-2026-07-07.md` за одну сессию (ветка
+  `claude/unified-order-kanban-stock-af3pl7`, 4 коммита). **UD1:** `apps/core/transactions.py`
+  (`transaction_for(kind, obj)` над 6 FSM-транзакциями, ленивый резолвер модели/FSM, читает статус
+  не пишет) + `apps/core/pipeline.py` (статус→стадия intake/in_progress/done/terminal per-kind);
+  ЛК 6 билдеров на `transaction_for` (+побочно исправлен латентный баг: `_reservations` падал на
+  `get_status_display()` — Reservation без choices → раздел скрывался); `manage_sections_for`.
+  **UD2:** `_status_actions.html`+тег (замена хардкода в stays/booking-календарях), доска
+  `/dashboard/board/` (вкладки/колонки/**drag-drop** нативный HTML5, snap-back на 409), generic
+  `kanban_action` (`SM().apply` — тот же путь, что per-app; KDS не тронут, D2), модуль `board` (core).
+  **UD3:** новый TENANT-апп `apps/inventory` — `StockMovement` (append-only, идемпотентность,
+  миграция `inventory/0001`), леджер РЯДОМ со счётчиком (D1); врезка `record_movement` только в
+  orders(sale/restore)+jobs(commit) в той же atomic; кабинет `/dashboard/stock/` (приёмки/корректировки/
+  инвентаризация/Meldebestand + реконсиляция «Startbestand buchen»). `app.css` пересобран. **⚠️ Миграция
+  `inventory/0001` ТРЕБУЕТ ДЕПЛОЯ.** Дальше: **UD4** (каналы уведомлений; SMS отложен, D3 external) —
+  следующей сессией. Детали — build-log 2026-07-07.
+- Самые свежие миграции: **`inventory/0001`** (U-D3 склад-леджер StockMovement, TENANT, 2026-07-07 — ⚠️ ТРЕБУЕТ ДЕПЛОЯ) + **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает
   образ с gettext и компилирует en.mo); ранее **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,

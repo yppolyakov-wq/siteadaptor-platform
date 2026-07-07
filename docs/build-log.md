@@ -4352,3 +4352,35 @@
   выставляет в контракте, без миграции); U-A/U-B/U-C закрыты. `task-catalog.md` — U-D
   развёрнут в 10 подзадач + строка решений. Только доки, без кода/миграций. **Старт волны —
   UD1-1 свежей сессией.**
+
+- **2026-07-07 — ВОЛНА U-D ЦЕЛИКОМ (UD1..UD3): единый заказ + Kanban-доска + склад-леджер.**
+  Реализована по `docs/ud-wave-tz-2026-07-07.md` за одну сессию (решение владельца). Разведка —
+  5 параллельных Explore-агентов (6 моделей+FSM / orders+KDS / jobs+finance+anti-oversell тесты /
+  modules+nav+dashboard-urls / drag-drop-паттерн+календари), все факты адверсариально верифицированы
+  против кода. Ветка `claude/unified-order-kanban-stock-af3pl7`, 4 коммита, всё зелёно локально.
+  **UD1 (b42af98):** `apps/core/transactions.py` — `transaction_for(kind, obj)` над 6 FSM-транзакциями
+  (order/booking/stay/ticket/job/reservation), ленивый резолвер модели (`apps.get_model`) и FSM
+  (`importlib` по строковому пути) — импорт `apps.core` не тянет orders/stays на загрузке; читает
+  статус, НИКОГДА не пишет; `allowed_actions` из `SM.allowed_targets`. `apps/core/pipeline.py` —
+  статус→стадия {intake/in_progress/done/terminal} per-kind + метки колонок/действий + `is_danger`.
+  ЛК (`account_data.py`) 6 транзакц. билдеров сведены на `transaction_for` (статус-подпись+ссылка из
+  адаптера, презентация per-kind — снапшот-паритет). **Побочно исправлен латентный баг:** `_reservations`
+  падал на `get_status_display()` (Reservation без choices) → раздел молча скрывался; теперь читаемые
+  подписи. `manage_sections_for(tenant)` — активные транзакц. модули с колонками+счётчиком (фундамент доски).
+  **UD2 (0dcb80e):** `templates/core/_status_actions.html` + тег `status_actions` — кнопки из allowed_targets
+  (заменили хардкод в stays/booking-календарях). Доска `/dashboard/board/` — вкладки по kind, колонки из
+  pipeline, карточки drag-drop между колонками (нативный HTML5 DnD, паттерн конструктора, без JS-деп) —
+  оптимистично + snap-back на 409. `kanban_action` — generic-вьюха, резолвит модель+FSM, `SM().apply(target)`
+  (тот же путь, что per-app: revenue/письма/склад на on_transition, без дублей; src==dst no-op). KDS НЕ
+  тронут (D2: per-app экраны остаются, доска — дополнение). Модуль `board` (core) в группе «Verkaufen».
+  **UD3 (9b66ccf + cd3dddc):** новый TENANT-апп `apps/inventory` — `StockMovement` (append-only,
+  идемпотентность по (source, source_ref, kind), миграция `inventory/0001`), леджер РЯДОМ со счётчиком (D1,
+  не заменяет декременты). Врезка `record_movement` ТОЛЬКО в orders(sale/restore)+jobs(commit) в той же
+  atomic, что и декремент; promotions/stays/events/booking не логируются (не каталог-инвентарь). Кабинет
+  `/dashboard/stock/` — приёмки/корректировки/инвентаризация/Meldebestand + реконсиляция (счётчик↔сумма
+  дельт, «Startbestand buchen» выравнивает леджер). Ручные движения двигают счётчик И леджер в одной atomic.
+  Тесты: pipeline-покрытие, transaction-контракт (6 kind), kanban (apply один раз, без двойной выручки, 409),
+  board (рендер/гейтинг/empty), movement (идемпотентность/реконсиляция), ledger-wiring (delta↔счётчик),
+  stock-кабинет; анти-оверселл параллельный тест зелёный. `app.css` пересобран (новые utility-классы).
+  **⚠️ Миграция `inventory/0001` ТРЕБУЕТ ДЕПЛОЯ владельцем** (`./scripts/deploy.sh single`). UD4 (SMS/каналы
+  уведомлений) — следующей сессией (D3 SMS отложен — external-integrations-backlog).

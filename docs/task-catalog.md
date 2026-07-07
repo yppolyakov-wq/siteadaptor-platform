@@ -71,17 +71,17 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | B4.2 | Кампания end-to-end (/promotions/kampagnen/ + аналитика) | ✅ | там же |
 | B4.3 | Вход из CRM (кнопка по выборке, prefill tag) | ✅ | там же |
 | B4.4 | v2 авто-win-back (kind=auto_winback + beat, без Tenant-миграции) | ✅ | там же |
-| **U-D** | **Унифицированный заказ + Kanban + склад-леджер** | 📋 ТЗ готово 2026-07-07; старт UD1-1 свежей сессией | `ud-wave-tz-2026-07-07.md` (+ `…ud-plan`) |
+| **U-D** | **Унифицированный заказ + Kanban + склад-леджер** | ✅ ВОЛНА ЗАКРЫТА 2026-07-07 (UD1..UD3) | `ud-wave-tz-2026-07-07.md` (+ `…ud-plan`) |
 | U-D · реш. | Kanban=drag-drop; сессия 1=вся волна U-D1..U-D3; SMS(UD4-1) отложен | ✅ владелец 2026-07-07 | там же §0 |
-| UD1-1 | Протокол `Transaction` + 6 адаптеров (`apps/core/transactions.py`) · СТАРТ | 📋 | там же §2 |
-| UD1-2 | Обобщить ЛК (`account_data.py`, 6 разделов) на протокол; паритет | 📋 | там же |
-| UD1-3 | Кабинетный резолвер `manage_sections_for` по sell-модулям | 📋 | там же |
-| UD2-1 | `PIPELINE` + `_status_actions.html` из `allowed_targets`; 4 detail-экрана | 📋 | там же |
-| UD2-2 | Drag-drop `_kanban_board.html` + generic `kanban_action`; KDS-паритет | 📋 | там же |
-| UD2-3 | Страница `/dashboard/board/` (табы kind, колонки, drag-advance) + nav | 📋 | там же |
-| UD3-1 | Модель `StockMovement` (app `apps/inventory`) + миграция + `record_movement` | 📋 (⚠️ миграция) | там же |
-| UD3-2 | Врезка логирования ТОЛЬКО в orders(sale/restore)+jobs(commit) | 📋 | там же |
-| UD3-3 | Кабинет `/dashboard/stock/`: приёмки/корректировки/low-stock + реконсиляция | 📋 | там же |
+| UD1-1 | Протокол `Transaction` + 6 адаптеров (`apps/core/transactions.py`) | ✅ | там же §2 |
+| UD1-2 | Обобщить ЛК (`account_data.py`, 6 разделов) на протокол; паритет | ✅ (+ исправлен баг Reservation) | там же |
+| UD1-3 | Кабинетный резолвер `manage_sections_for` по sell-модулям | ✅ | там же |
+| UD2-1 | `PIPELINE` + `_status_actions.html` из `allowed_targets`; календари | ✅ | там же |
+| UD2-2 | Drag-drop `_kanban_board.html` + generic `kanban_action`; KDS не тронут | ✅ | там же |
+| UD2-3 | Страница `/dashboard/board/` (табы kind, колонки, drag-advance) + nav | ✅ | там же |
+| UD3-1 | Модель `StockMovement` (app `apps/inventory`) + миграция + `record_movement` | ✅ (⚠️ `inventory/0001` деплой) | там же |
+| UD3-2 | Врезка логирования ТОЛЬКО в orders(sale/restore)+jobs(commit) | ✅ | там же |
+| UD3-3 | Кабинет `/dashboard/stock/`: приёмки/корректировки/low-stock + реконсиляция | ✅ | там же |
 | UD4-2 | Выбор канала email∥telegram per-событие (UD4-1 SMS снят — D3) | ⏸ следующей сессией | там же §2 |
 | D1 | Pro-тариф / премиум-модули (идея) | 🧊 долгий ящик (владелец, 2026-07-03) | `feature-ideas…` |
 | **D2** | **Self-serve featured + Anzeige (идея; ядро P2.4b готово)** | ✅ D2.1–D2.4 (2026-07-03; D2.5 ⏸) | `d2-featured-plan-2026-07-03.md` |
