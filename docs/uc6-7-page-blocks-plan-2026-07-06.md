@@ -61,8 +61,22 @@ config["page_blocks"] = { "<page_key>": [ <cblock-entry>, … ], … }
 |---|---|---|---|
 | 7a | siteconfig: PAGE_BLOCK_HOSTS + normalize_page_blocks + тег page_blocks + хосты в шаблонах + рендер-замки | M | ✅ (main 1f110b9) |
 | 7b | Редактор: _cb_row партиал + строки page_blocks в форме + draft/save/инсертер с page_key + e2e | L | ✅ |
-| 7c | Drag в регионе + вставка БЕЗ перезагрузки (fetch → row-partial в форму + schedule) — закрывает и «применять без обновления» | M/L | — |
+| 7c-1 | Drag-перестановка C-блоков на страницах (movePageBlock, отдельное order-пространство хоста) | M | ✅ |
+| 7c-2 | Вставка БЕЗ перезагрузки билдера для хостов страниц (fetch add_block → row_html → schedule) | L | ✅ |
+| 7c-3 | Настройки применяются live на страницах | S | ✅ (уже работало — делегированные form-листенеры) |
+| 7c-ревью | 3 фикса адверсариального ревью (drag-порядок при вставке, идемпотентный фолбэк, скоуп ручек) | M | ✅ |
 | 7d = UC6-6h | Настройки/примеры МЕНЮ в ленту (area-ribbon) | M | — |
+
+### 7c — как сделано (2026-07-06)
+- **7c-1 drag**: гейт ⠿ открыт на страницы (`|| curPbHost`), `movePageBlock(dKey,tKey,before,host)`
+  value-based (order_cb хоста, отдельное пространство). Drop роутится curPbHost→movePageBlock / moveBlock.
+- **7c-2 no-reload insert**: `addBlockInsert` fetch (X-Requested-With) → сервер `_add_block_fetch_response`
+  (сохраняет + рендерит `_cb_row.html`) → вставка строки в форму + `schedule()` (перерисует только канву).
+  Главная и первый блок пустого хоста — форм-POST фолбэк.
+- **Ревью-фиксы (3 реальных дефекта)**: (1) renumber при вставке по ЗНАЧЕНИЮ order_cb (не DOM) — сохраняет
+  несохранённый drag; (2) `.catch` → `reloadBuilderPage` (идемпотентно, без дубля — сервер коммитит до ответа);
+  (3) цели drag/«+» на странице = `[data-pb-host] [data-sf-section]` (не фикс-секции витрины). + guard
+  fetch с невалидным page_key. Замки: verify_7c_fixes, verify_scope3 (стенд).
 
 ### 7b — как сделано (2026-07-06)
 
