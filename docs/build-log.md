@@ -4304,3 +4304,26 @@
   start_loads_examples_and_advances` (тип+has_demo+шаг 2), `test_step1_page_offers_demo_
   start_button`. Без миграций. **AB1+AB3 закрывают остаток Sprint G (AB2/AB4/AB5 уже
   были ✅).**
+
+- **2026-07-07 — UC6-10: компактный верхний тулбар билдера (фидбэк владельца со
+  скриншотом: «тулбар компактный, много пустого места; эксперт/простой — в верхнюю
+  строчку, имя редактируемого блока так же; максимум 2 узких строчки для простых
+  блоков»).** Шапка ленты (`#bld-block-popup .bld-ribbon-head`) убрана целиком: имя
+  блока (`#bld-block-popup-title`), вкладки Простой/Эксперт (`#bld-mode-basic/expert`),
+  свёртка ▾ (`#bld-ribbon-collapse`) и закрытие ✕ (`#bld-block-popup-close`) переехали
+  в ВЕРХНИЙ тулбар в группу `.bld-ctx`. Те же id → обработчики (`setEditorMode`,
+  `popupClose`, `ribbonCollapse`) не тронуты. `.bld-ctx` виден ТОЛЬКО при выбранном
+  блоке: класс `#bld-root.bld-has-block` ставит `openBlockPopup`, снимает
+  `closeBlockPopup` (через `document.getElementById("bld-root")`). Подсветка активного
+  режима перевешена с `#bld-block-popup[data-mode]` (не срабатывала — `data-mode` на
+  `#bld-root`) на `#bld-root[data-mode]`. При выбранном блоке подсказка «Click text to
+  edit» (`#bld-edit-hint`) и статус превью (`#home-prev-status`) прячутся → имя блока
+  получает ширину (иначе схлопывалось до 0). В ленте прячем дублирующую подпись блока
+  (`.home-block-head .blk-edit.flex-1`) и кладём голову (чекбокс скрытия + ⚙) в ОДНУ
+  строку с настройками (`.home-block-settings width:auto`) → для простого блока весь
+  редактор = **2 узкие строки** (тулбар + строка полей). Проверено на стенде
+  (Playwright, restaurant-demo, hero=«Welcome banner»): Простой = 1 строка полей,
+  Эксперт разворачивает все контролы в одну обёрнутую строку, тумблер Простой/Эксперт
+  работает из тулбара. Без миграций; новые arbitrary-классы `max-w-[7rem]/[11rem]` в
+  app.css. **Остаток фидбэка UC6: «10 типов на блок» — наполняется по мере (реестры
+  готовы).**
