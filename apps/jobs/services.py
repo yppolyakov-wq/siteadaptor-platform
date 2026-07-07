@@ -117,7 +117,10 @@ def commit_stock(job) -> None:
     Идемпотентно: гард ``job.stock_committed`` под select_for_update. Возврата при
     отмене нет — cancelled достижим только до done (см. JobSM).
     """
+    from math import ceil
+
     from apps.catalog.models import Product, ProductVariant
+    from apps.inventory.services import record_movement
 
     with transaction.atomic():
         locked = Job.objects.select_for_update().get(pk=job.pk)
@@ -126,18 +129,30 @@ def commit_stock(job) -> None:
         for line in locked.lines.all():
             if line.variant_id:
                 row = ProductVariant.objects.select_for_update().get(pk=line.variant_id)
+                prod, var = row.product, row
             elif line.product_id:
                 # all_objects: списываем и со снятого с витрины (soft-deleted) товара.
                 row = Product.all_objects.select_for_update().get(pk=line.product_id)
+                prod, var = row, None
             else:
                 continue  # свободная строка (Arbeit) — склад не трогаем
             if row.stock_quantity is None:
                 continue  # без учёта остатка
-            # Склад целочисленный: дробное кол-во расходника округляем вверх.
-            from math import ceil
-
-            row.stock_quantity = max(0, row.stock_quantity - ceil(line.qty))
+            # Склад целочисленный: дробное кол-во расходника округляем вверх, при
+            # нехватке клампим в 0 (работа выполнена). В леджер — ФАКТИЧЕСКИЙ расход.
+            before = row.stock_quantity
+            row.stock_quantity = max(0, before - ceil(line.qty))
             row.save(update_fields=["stock_quantity", "updated_at"])
+            if row.stock_quantity != before:  # U-D3: залогировать фактический расход
+                record_movement(
+                    product=prod,
+                    variant=var,
+                    kind="commit",
+                    delta=row.stock_quantity - before,
+                    source="job",
+                    source_ref=str(line.pk),
+                    note=locked.reference_code,
+                )
         locked.stock_committed = True
         locked.save(update_fields=["stock_committed", "updated_at"])
     job.stock_committed = True

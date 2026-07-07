@@ -72,17 +72,33 @@ class OrderSM(StateMachine):
 
 def _restore_stock(instance):
     """Вернуть остаток по позициям заказа (R3); учитываются только товары/варианты
-    со складским учётом (stock_quantity не null)."""
+    со складским учётом (stock_quantity не null).
+
+    U-D3: возврат логируется в склад-леджер (kind=return, delta=+qty) в той же
+    atomic, что и F()-инкремент; только когда реально вернули (rowcount>0)."""
+    from django.db import transaction
     from django.db.models import F
 
     from apps.catalog.models import Product, ProductVariant
+    from apps.inventory.services import record_movement
 
-    for item in instance.items.all():
-        if item.variant_id:
-            ProductVariant.objects.filter(pk=item.variant_id, stock_quantity__isnull=False).update(
-                stock_quantity=F("stock_quantity") + item.qty
-            )
-        else:
-            Product.objects.filter(pk=item.product_id, stock_quantity__isnull=False).update(
-                stock_quantity=F("stock_quantity") + item.qty
-            )
+    with transaction.atomic():
+        for item in instance.items.all():
+            if item.variant_id:
+                n = ProductVariant.objects.filter(
+                    pk=item.variant_id, stock_quantity__isnull=False
+                ).update(stock_quantity=F("stock_quantity") + item.qty)
+            else:
+                n = Product.objects.filter(pk=item.product_id, stock_quantity__isnull=False).update(
+                    stock_quantity=F("stock_quantity") + item.qty
+                )
+            if n:  # реально вернули (учитываемый остаток) → запись в леджер
+                record_movement(
+                    product=item.product,
+                    variant=item.variant,
+                    kind="return",
+                    delta=item.qty,
+                    source="order",
+                    source_ref=str(item.pk),
+                    note=instance.reference_code,
+                )

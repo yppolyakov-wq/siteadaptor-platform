@@ -13,6 +13,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
+from apps.inventory.services import record_movement
 from apps.promotions.models import Customer
 
 from .models import Order, OrderItem
@@ -212,7 +213,7 @@ def create_order(
         modifiers = [{"label": o.label, "delta": str(o.price_delta)} for o in options]
         label = variant.label if variant is not None else ""
         title = f"{product} · {label}" if label else str(product)
-        OrderItem.objects.create(
+        item = OrderItem.objects.create(
             order=order,
             product=product,
             variant=variant,
@@ -222,6 +223,20 @@ def create_order(
             title_snapshot=title[:200],
             modifiers=modifiers,
         )
+        # U-D3: залогировать списание в склад-леджер (append-only, в той же atomic
+        # create_order, что и декремент _reserve_stock). Только учитываемый остаток
+        # (stock_quantity != None); идемпотентно по позиции (source_ref=item.pk).
+        tracked = variant if variant is not None else product
+        if tracked.stock_quantity is not None:
+            record_movement(
+                product=product,
+                variant=variant,
+                kind="sale",
+                delta=-qty,
+                source="order",
+                source_ref=str(item.pk),
+                note=order.reference_code,
+            )
         total += unit_price * qty
     # Комбо-позиции (A4): одна OrderItem на набор, product=None, состав в modifiers.
     if combo_norm:
