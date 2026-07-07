@@ -41,6 +41,7 @@ from apps.core.views import (
 from apps.events import public_views as events_public
 from apps.events import views as events_views
 from apps.inbox import public_views as inbox_public
+from apps.inventory.views import stock as stock_view
 from apps.jobs import public_views as jobs_public
 from apps.loyalty import public_views as loyalty_public
 from apps.orders import public_views as orders_public
@@ -112,6 +113,8 @@ urlpatterns = [
         billing_views.payments_methods,
         name="billing-payments-methods",
     ),
+    # U-D3: кабинет склада (приёмки/корректировки/инвентаризация/реконсиляция).
+    path("dashboard/stock/", stock_view, name="stock"),
     # U-D2: единая Kanban-доска транзакций (заказы/брони/…) + generic FSM-action.
     path("dashboard/board/", board, name="board"),
     path(
