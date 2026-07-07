@@ -280,8 +280,18 @@ Python 3.12, менеджер uv.
   тег `cabinet.nav_task_label`) и **AB3** (демо-дефолты в мастере: шаг 1 «🎁 Mit Beispielen
   starten» → `apply_business_type`+`load_demo`+шаг дальше). План — `docs/anti-bitrix-admin-plan.md`
   (трек ЗАКРЫТ). Остаток фидбэка UC6: «10 типов на блок» — наполнять по мере (реестры готовы).
-  Кандидат след. крупного трека — **U-D** (унифицированный заказ + Kanban + склад-леджер),
-  свежей сессией по решению владельца.
+  **Затем UC6-10b** (2026-07-07, «ещё компактнее»): высота хрома простого блока 119px→~81px
+  (−32%; тулбар/лента/поля тоньше, зазор под тулбаром убран), стиль полей UC6-9 сохранён;
+  main `a0e221b`, без миграций.
+- **U-D — ТЗ ГОТОВО (2026-07-07), волна не начата.** По просьбе владельца «план+ТЗ для новой
+  сессии»: самодостаточный **`docs/ud-wave-tz-2026-07-07.md`** (старт-док; детали —
+  `unified-sellable-entity-ud-plan-2026-06-30.md`). Решения владельца: **Kanban = drag-drop**
+  (Trello, реюз паттерна конструктора без JS-деп), **первая сессия = вся волна U-D1..U-D3**
+  (проекция `Transaction` → drag-drop `/dashboard/board/` → склад-леджер `StockMovement`,
+  1 миграция). Зафиксировано ранее: D1 леджер append-alongside счётчика, D2 доска+per-app,
+  **D3 SMS отложен** (UD4-1 снят), D4 line-items не унифицируем. Актуализировано: E-7 уже
+  отгрузил `Order.payment_method` (UD1-1 без миграции); U-A/U-B/U-C закрыты. **Старт — UD1-1**
+  (`apps/core/transactions.py`, чистый Python). Подзадачи UD1-1…UD3-3 — в `task-catalog.md`.
 - Самые свежие миграции: **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает
