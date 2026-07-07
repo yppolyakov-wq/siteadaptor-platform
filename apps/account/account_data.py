@@ -8,6 +8,8 @@ Customer — хаб: к нему привязаны заказы/брони/сч
 
 from django.urls import reverse
 
+from apps.core.transactions import transaction_for
+
 LIMIT = 10  # последних записей в разделе
 
 
@@ -71,19 +73,27 @@ def sections_for(request, customer):
 # --- сборщики разделов -------------------------------------------------------------
 
 
+# UD1-2: транзакционные разделы (заказы/брони/проживание/билеты/заявки/резервы)
+# строятся из единого контракта `transaction_for`: статус-подпись и публичная
+# ссылка приходят из адаптера (одна точка правды с доской), а презентация
+# title/sub/extra остаётся per-kind (даты/суммы/«Nochmal bestellen» и т.п.).
+
+
 def _orders(customer):
     from apps.orders.models import Order
 
-    items = [
-        {
-            "title": f"#{o.reference_code}",
-            "sub": f"{o.total} {o.currency} · {o.created_at:%d.%m.%Y}",
-            "status": o.get_status_display(),
-            "url": reverse("storefront-order", args=[o.reference_code]),
-            "reorder": o.reference_code,  # CA4: «Nochmal bestellen»
-        }
-        for o in Order.objects.filter(customer=customer).order_by("-created_at")[:LIMIT]
-    ]
+    items = []
+    for o in Order.objects.filter(customer=customer).order_by("-created_at")[:LIMIT]:
+        tx = transaction_for("order", o)
+        items.append(
+            {
+                "title": f"#{tx.reference_code}",
+                "sub": f"{o.total} {o.currency} · {o.created_at:%d.%m.%Y}",
+                "status": tx.status_label,
+                "url": tx.detail_url_customer,
+                "reorder": tx.reference_code,  # CA4: «Nochmal bestellen»
+            }
+        )
     return {"key": "orders", "title": "Bestellungen", "icon": "🛍️", "items": items}
 
 
@@ -91,17 +101,19 @@ def _bookings(customer):
     from apps.booking.models import Booking
 
     cancelable = (Booking.STATUS_PENDING, Booking.STATUS_CONFIRMED)
-    items = [
-        {
-            "title": f"{b.start:%d.%m.%Y %H:%M}",
-            "sub": str(getattr(b, "service", "") or b.resource or ""),
-            "status": b.get_status_display(),
-            "url": reverse("storefront-termin-ok", args=[b.reference_code]),
-            # CA4: отмена — только для будущих неотменённых/невыполненных.
-            "cancel": b.reference_code if b.status in cancelable else "",
-        }
-        for b in Booking.objects.filter(customer=customer).order_by("-start")[:LIMIT]
-    ]
+    items = []
+    for b in Booking.objects.filter(customer=customer).order_by("-start")[:LIMIT]:
+        tx = transaction_for("booking", b)
+        items.append(
+            {
+                "title": f"{b.start:%d.%m.%Y %H:%M}",
+                "sub": str(getattr(b, "service", "") or b.resource or ""),
+                "status": tx.status_label,
+                "url": tx.detail_url_customer,
+                # CA4: отмена — только для будущих неотменённых/невыполненных.
+                "cancel": b.reference_code if b.status in cancelable else "",
+            }
+        )
     return {"key": "bookings", "title": "Termine", "icon": "📅", "items": items}
 
 
@@ -123,47 +135,56 @@ def _passes(customer):
 def _stays(customer):
     from apps.stays.models import StayBooking
 
-    items = [
-        {
-            "title": f"{s.arrival:%d.%m.%Y}–{s.departure:%d.%m.%Y}",
-            "sub": str(s.unit or ""),
-            "status": s.get_status_display(),
-            "url": reverse("storefront-stay-ok", args=[s.reference_code]),
-        }
-        for s in StayBooking.objects.filter(customer=customer).order_by("-arrival")[:LIMIT]
-    ]
+    items = []
+    for s in StayBooking.objects.filter(customer=customer).order_by("-arrival")[:LIMIT]:
+        tx = transaction_for("stay", s)
+        items.append(
+            {
+                "title": f"{s.arrival:%d.%m.%Y}–{s.departure:%d.%m.%Y}",
+                "sub": str(s.unit or ""),
+                "status": tx.status_label,
+                "url": tx.detail_url_customer,
+            }
+        )
     return {"key": "stays", "title": "Übernachtungen", "icon": "🛏️", "items": items}
 
 
 def _tickets(customer):
     from apps.events.models import Ticket
 
-    items = [
-        {
-            "title": str(t.event),
-            "sub": f"×{t.quantity} · {t.event.starts_at:%d.%m.%Y %H:%M}",
-            "status": t.get_status_display(),
-            "url": reverse("storefront-ticket-ok", args=[t.reference_code]),
-        }
-        for t in Ticket.objects.filter(customer=customer)
+    items = []
+    for t in (
+        Ticket.objects.filter(customer=customer)
         .select_related("event")
         .order_by("-created_at")[:LIMIT]
-    ]
+    ):
+        tx = transaction_for("ticket", t)
+        items.append(
+            {
+                "title": str(t.event),
+                "sub": f"×{t.quantity} · {t.event.starts_at:%d.%m.%Y %H:%M}",
+                "status": tx.status_label,
+                "url": tx.detail_url_customer,
+            }
+        )
     return {"key": "tickets", "title": "Tickets", "icon": "🎟️", "items": items}
 
 
 def _jobs(customer):
     from apps.jobs.models import Job
 
-    items = [
-        {
-            "title": j.title or f"#{j.reference_code}",
-            "sub": f"#{j.reference_code}",
-            "status": j.get_status_display(),
-            "url": reverse("storefront-angebot", args=[j.public_token]),
-        }
-        for j in Job.objects.filter(customer=customer).order_by("-created_at")[:LIMIT]
-    ]
+    items = []
+    for j in Job.objects.filter(customer=customer).order_by("-created_at")[:LIMIT]:
+        tx = transaction_for("job", j)
+        items.append(
+            {
+                "title": j.title or f"#{tx.reference_code}",
+                "sub": f"#{tx.reference_code}",
+                "status": tx.status_label,
+                # публичная ссылка jobs — по public_token (адаптер знает это)
+                "url": tx.detail_url_customer,
+            }
+        )
     return {"key": "jobs", "title": "Angebote & Aufträge", "icon": "🧾", "items": items}
 
 
@@ -187,17 +208,23 @@ def _invoices(customer):
 def _reservations(customer):
     from apps.promotions.models import Reservation
 
-    items = [
-        {
-            "title": str(r.promotion),
-            "sub": f"#{r.reference_code} · {r.created_at:%d.%m.%Y}",
-            "status": r.get_status_display(),
-            "url": reverse("storefront-confirmation", args=[r.reference_code]),
-        }
-        for r in Reservation.objects.filter(customer=customer)
+    items = []
+    for r in (
+        Reservation.objects.filter(customer=customer)
         .select_related("promotion")
         .order_by("-created_at")[:LIMIT]
-    ]
+    ):
+        tx = transaction_for("reservation", r)
+        items.append(
+            {
+                "title": str(r.promotion),
+                "sub": f"#{tx.reference_code} · {r.created_at:%d.%m.%Y}",
+                # Reservation.status без choices — адаптер даёт читаемую подпись
+                # (раньше get_status_display() падал → раздел скрывался).
+                "status": tx.status_label,
+                "url": tx.detail_url_customer,
+            }
+        )
     return {"key": "reservations", "title": "Reservierungen", "icon": "🔖", "items": items}
 
 

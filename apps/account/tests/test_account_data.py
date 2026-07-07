@@ -49,3 +49,18 @@ def test_section_hidden_when_module_inactive():
 def test_empty_customer_has_no_sections():
     customer = Customer.objects.create(name="", email="leer@test.de")
     assert account_data.sections_for(_req(), customer) == []
+
+
+def test_reservations_section_renders_via_transaction_adapter():
+    # UD1-2: раньше _reservations падал на get_status_display() (нет choices) и
+    # раздел молча скрывался; через transaction_for он рендерится с подписью.
+    from apps.promotions import services
+    from apps.promotions.tests.factories import PromotionFactory
+
+    promo = PromotionFactory()
+    services.reserve(promo, name="Gast", email="res@test.de")
+    customer = Customer.objects.get(email__iexact="res@test.de")
+    sections = account_data.sections_for(_req(), customer)
+    resv = next((s for s in sections if s["key"] == "reservations"), None)
+    assert resv and resv["items"]
+    assert resv["items"][0]["status"]  # читаемая подпись, не падение
