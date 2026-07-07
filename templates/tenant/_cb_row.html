@@ -32,23 +32,30 @@ collect()/save работают без переименований. data-cb-id 
     <textarea name="cb_{{ b.id }}_body" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
     {% comment %}UC6-2: стиль текста блока — выравнивание/размер/цвет (палитра темы;
        решение владельца 2026-07-06 — без свободного пикера).{% endcomment %}
+    {% comment %}UC6-9: каждый параметр — поле с заголовком (в ленте становится блоком).{% endcomment %}
     <div class="flex flex-wrap items-center gap-2 text-sm">
-      <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
-        <option value="">{% trans "Text left" %}</option>
-        <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
-        <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
-      </select>
-      <select name="cb_{{ b.id }}_size" class="rounded border border-gray-300 px-2 py-1 text-sm">
-        <option value="">{% trans "Normal size" %}</option>
-        <option value="sm" {% if b.data.size == 'sm' %}selected{% endif %}>{% trans "Small" %}</option>
-        <option value="lg" {% if b.data.size == 'lg' %}selected{% endif %}>{% trans "Large" %}</option>
-        <option value="xl" {% if b.data.size == 'xl' %}selected{% endif %}>{% trans "Extra large" %}</option>
-      </select>
-      <select name="cb_{{ b.id }}_color" class="rounded border border-gray-300 px-2 py-1 text-sm">
-        <option value="">{% trans "Default color" %}</option>
-        <option value="accent" {% if b.data.color == 'accent' %}selected{% endif %}>{% trans "Accent color" %}</option>
-        <option value="muted" {% if b.data.color == 'muted' %}selected{% endif %}>{% trans "Muted gray" %}</option>
-      </select>
+      <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Alignment" %}
+        <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
+          <option value="">{% trans "Text left" %}</option>
+          <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
+          <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Size" %}
+        <select name="cb_{{ b.id }}_size" class="rounded border border-gray-300 px-2 py-1 text-sm">
+          <option value="">{% trans "Normal size" %}</option>
+          <option value="sm" {% if b.data.size == 'sm' %}selected{% endif %}>{% trans "Small" %}</option>
+          <option value="lg" {% if b.data.size == 'lg' %}selected{% endif %}>{% trans "Large" %}</option>
+          <option value="xl" {% if b.data.size == 'xl' %}selected{% endif %}>{% trans "Extra large" %}</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Color" %}
+        <select name="cb_{{ b.id }}_color" class="rounded border border-gray-300 px-2 py-1 text-sm">
+          <option value="">{% trans "Default color" %}</option>
+          <option value="accent" {% if b.data.color == 'accent' %}selected{% endif %}>{% trans "Accent color" %}</option>
+          <option value="muted" {% if b.data.color == 'muted' %}selected{% endif %}>{% trans "Muted gray" %}</option>
+        </select>
+      </label>
     </div>
   {% endif %}
   {% if b.type == "image" or b.type == "image_text" %}
@@ -59,17 +66,21 @@ collect()/save работают без переименований. data-cb-id 
   {% endif %}
   {% if b.type == "image" or b.type == "image_text" %}
     {% comment %}UC6-4: скругление фото ("" = стандарт rounded-2xl).{% endcomment %}
-    <select name="cb_{{ b.id }}_rounded" class="rounded border border-gray-300 px-2 py-1 text-sm">
-      <option value="">{% trans "Rounded corners" %}</option>
-      <option value="none" {% if b.data.rounded == 'none' %}selected{% endif %}>{% trans "Square corners" %}</option>
-      <option value="3xl" {% if b.data.rounded == '3xl' %}selected{% endif %}>{% trans "Extra rounded" %}</option>
-    </select>
+    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Corners" %}
+      <select name="cb_{{ b.id }}_rounded" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="">{% trans "Rounded corners" %}</option>
+        <option value="none" {% if b.data.rounded == 'none' %}selected{% endif %}>{% trans "Square corners" %}</option>
+        <option value="3xl" {% if b.data.rounded == '3xl' %}selected{% endif %}>{% trans "Extra rounded" %}</option>
+      </select>
+    </label>
   {% endif %}
   {% if b.type == "image_text" %}
-    <select name="cb_{{ b.id }}_side" class="rounded border border-gray-300 px-2 py-1 text-sm">
-      <option value="left" {% if b.data.side == 'left' %}selected{% endif %}>{% trans "Image left" %}</option>
-      <option value="right" {% if b.data.side == 'right' %}selected{% endif %}>{% trans "Image right" %}</option>
-    </select>
+    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Photo side" %}
+      <select name="cb_{{ b.id }}_side" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="left" {% if b.data.side == 'left' %}selected{% endif %}>{% trans "Image left" %}</option>
+        <option value="right" {% if b.data.side == 'right' %}selected{% endif %}>{% trans "Image right" %}</option>
+      </select>
+    </label>
   {% endif %}
   {% if b.type == "promo" %}
     {# UE1 (D2=LIVE): промо из БД — цена/остаток/countdown всегда актуальны. #}
@@ -80,18 +91,22 @@ collect()/save работают без переименований. data-cb-id 
       {% endfor %}
     </select>
     <div class="flex flex-wrap items-center gap-2 text-sm">
-      <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
-        <option value="left" {% if b.data.align == 'left' %}selected{% endif %}>{% trans "Text left" %}</option>
-        <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
-        <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
-      </select>
-      <select name="cb_{{ b.id }}_badge_pos" class="rounded border border-gray-300 px-2 py-1 text-sm">
-        <option value="top-left" {% if b.data.badge_pos == 'top-left' %}selected{% endif %}>{% trans "Badge top left" %}</option>
-        <option value="top-right" {% if b.data.badge_pos == 'top-right' %}selected{% endif %}>{% trans "Badge top right" %}</option>
-        <option value="bottom-left" {% if b.data.badge_pos == 'bottom-left' %}selected{% endif %}>{% trans "Badge bottom left" %}</option>
-        <option value="bottom-right" {% if b.data.badge_pos == 'bottom-right' %}selected{% endif %}>{% trans "Badge bottom right" %}</option>
-        <option value="none" {% if b.data.badge_pos == 'none' %}selected{% endif %}>{% trans "No badge" %}</option>
-      </select>
+      <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Alignment" %}
+        <select name="cb_{{ b.id }}_align" class="rounded border border-gray-300 px-2 py-1 text-sm">
+          <option value="left" {% if b.data.align == 'left' %}selected{% endif %}>{% trans "Text left" %}</option>
+          <option value="center" {% if b.data.align == 'center' %}selected{% endif %}>{% trans "Centered" %}</option>
+          <option value="right" {% if b.data.align == 'right' %}selected{% endif %}>{% trans "Text right" %}</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Badge" %}
+        <select name="cb_{{ b.id }}_badge_pos" class="rounded border border-gray-300 px-2 py-1 text-sm">
+          <option value="top-left" {% if b.data.badge_pos == 'top-left' %}selected{% endif %}>{% trans "Badge top left" %}</option>
+          <option value="top-right" {% if b.data.badge_pos == 'top-right' %}selected{% endif %}>{% trans "Badge top right" %}</option>
+          <option value="bottom-left" {% if b.data.badge_pos == 'bottom-left' %}selected{% endif %}>{% trans "Badge bottom left" %}</option>
+          <option value="bottom-right" {% if b.data.badge_pos == 'bottom-right' %}selected{% endif %}>{% trans "Badge bottom right" %}</option>
+          <option value="none" {% if b.data.badge_pos == 'none' %}selected{% endif %}>{% trans "No badge" %}</option>
+        </select>
+      </label>
       <label class="flex items-center gap-1"><input type="checkbox" name="cb_{{ b.id }}_show_button" {% if b.data.show_button %}checked{% endif %} class="rounded border-gray-300">{% trans "Button" %}</label>
     </div>
     <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
@@ -110,21 +125,25 @@ collect()/save работают без переименований. data-cb-id 
      Узкие блоки подряд автоматически встают В РЯД; чекбокс «с новой
      строки» разрывает ряд. pos влияет только на узкие (дефолт — центр).{% endcomment %}
   <div class="flex flex-wrap items-center gap-2 text-sm">
-    <select name="width_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
-      <option value="contained">{% trans "Contained" %}</option>
-      <option value="full" {% if b.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
-      <option value="w23" {% if b.width == 'w23' %}selected{% endif %}>{% trans "2/3 width" %}</option>
-      <option value="w12" {% if b.width == 'w12' %}selected{% endif %}>{% trans "1/2 width" %}</option>
-      <option value="w13" {% if b.width == 'w13' %}selected{% endif %}>{% trans "1/3 width" %}</option>
-      <option value="w14" {% if b.width == 'w14' %}selected{% endif %}>{% trans "1/4 width" %}</option>
-      <option value="w15" {% if b.width == 'w15' %}selected{% endif %}>{% trans "1/5 width" %}</option>
-      <option value="w16" {% if b.width == 'w16' %}selected{% endif %}>{% trans "1/6 width" %}</option>
-    </select>
-    <select name="pos_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
-      <option value="">{% trans "Centered" %}</option>
-      <option value="left" {% if b.pos == 'left' %}selected{% endif %}>{% trans "To the left" %}</option>
-      <option value="right" {% if b.pos == 'right' %}selected{% endif %}>{% trans "To the right" %}</option>
-    </select>
+    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Width" %}
+      <select name="width_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="contained">{% trans "Contained" %}</option>
+        <option value="full" {% if b.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
+        <option value="w23" {% if b.width == 'w23' %}selected{% endif %}>{% trans "2/3 width" %}</option>
+        <option value="w12" {% if b.width == 'w12' %}selected{% endif %}>{% trans "1/2 width" %}</option>
+        <option value="w13" {% if b.width == 'w13' %}selected{% endif %}>{% trans "1/3 width" %}</option>
+        <option value="w14" {% if b.width == 'w14' %}selected{% endif %}>{% trans "1/4 width" %}</option>
+        <option value="w15" {% if b.width == 'w15' %}selected{% endif %}>{% trans "1/5 width" %}</option>
+        <option value="w16" {% if b.width == 'w16' %}selected{% endif %}>{% trans "1/6 width" %}</option>
+      </select>
+    </label>
+    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Position" %}
+      <select name="pos_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="">{% trans "Centered" %}</option>
+        <option value="left" {% if b.pos == 'left' %}selected{% endif %}>{% trans "To the left" %}</option>
+        <option value="right" {% if b.pos == 'right' %}selected{% endif %}>{% trans "To the right" %}</option>
+      </select>
+    </label>
     <label class="flex items-center gap-1"><input type="checkbox" name="newline_cb_{{ b.id }}" {% if b.newline %}checked{% endif %} class="rounded border-gray-300">{% trans "Start new row" %}</label>
   </div>
   {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" %}
