@@ -963,6 +963,11 @@ def home_builder_view(request):
             new_id = None
             page_key = request.POST.get("page_key", "")
             host = page_key if page_key in siteconfig.PAGE_BLOCK_HOSTS else ""
+            # UC6-7c (ревью-фикс): fetch-вставка с невалидным page_key НЕ должна молча
+            # уйти на главную — вернём ok:false без сохранения (клиент перезагрузит; на
+            # практике page_key всегда валиден — из data-pb-host витрины).
+            if is_fetch and page_key and not host:
+                return _add_block_fetch_response(request, None, "")
             if btype in siteconfig.REPEATABLE_BLOCKS:
                 cfg = siteconfig.normalize(request.tenant.site_config)
                 new_id = uuid.uuid4().hex[:12]
