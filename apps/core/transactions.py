@@ -213,7 +213,12 @@ def allowed_actions_for(kind: str, status: str) -> list[dict]:
     """Переходы FSM из `status`: ``[{target, label, stage}]`` (читает allowed_targets,
     подписи — из pipeline; логику переходов не дублирует)."""
     return [
-        {"target": t, "label": pipeline.action_label(kind, t), "stage": pipeline.stage_for(kind, t)}
+        {
+            "target": t,
+            "label": pipeline.action_label(kind, t),
+            "stage": pipeline.stage_for(kind, t),
+            "danger": pipeline.is_danger(t),
+        }
         for t in sm_for(kind).allowed_targets(status)
     ]
 
@@ -323,12 +328,15 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
         counts = {stage: 0 for stage in pipeline.STAGES}
         for tx in txs:
             counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1
+        columns = pipeline.pipeline_for(kind)
+        for col in columns:  # число карточек в колонке — в шапку колонки
+            col["count"] = counts.get(col["stage"], 0)
         out.append(
             {
                 "kind": kind,
                 "module": module,
                 "label": KIND_LABEL[kind],
-                "columns": pipeline.pipeline_for(kind),
+                "columns": columns,
                 "transactions": txs,
                 "stage_counts": counts,
                 "total": len(txs),

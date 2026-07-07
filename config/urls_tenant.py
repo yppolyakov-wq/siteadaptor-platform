@@ -13,6 +13,7 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.core import health
 from apps.core.views import (
+    board,
     dashboard,
     domain_add,
     domain_remove,
@@ -20,6 +21,7 @@ from apps.core.views import (
     domains_view,
     extras_view,
     home_builder_view,
+    kanban_action,
     languages_view,
     legal_docs_view,
     media_library,
@@ -109,6 +111,13 @@ urlpatterns = [
         "dashboard/billing/payments/methods/",
         billing_views.payments_methods,
         name="billing-payments-methods",
+    ),
+    # U-D2: единая Kanban-доска транзакций (заказы/брони/…) + generic FSM-action.
+    path("dashboard/board/", board, name="board"),
+    path(
+        "dashboard/board/<str:kind>/<uuid:pk>/action/",
+        kanban_action,
+        name="board-action",
     ),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),

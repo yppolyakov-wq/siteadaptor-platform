@@ -50,16 +50,11 @@
       </div>
       <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
         {% csrf_token %}
-        {% if b.status == 'pending' %}
-          <button name="action" value="confirmed" class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Confirm" %}</button>
-        {% elif b.status == 'confirmed' %}
-          <button name="action" value="fulfilled" class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Arrived" %}</button>
-          <button name="action" value="no_show" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "No-show" %}</button>
-        {% endif %}
+        {# UD2-1: FSM-Statusaktionen generisch aus allowed_targets (statt hardcodiert) #}
+        {% include "core/_status_actions.html" with kind="booking" obj=b %}
         {% if b.status == 'pending' or b.status == 'confirmed' %}
           <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
-          <button name="action" value="cancelled" class="text-sm border border-red-200 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Cancel" %}</button>
         {% endif %}
       </form>
     </div>

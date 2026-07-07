@@ -1,0 +1,14 @@
+{% load workflow %}
+{% comment %}
+U-D2 generischer FSM-Aktionsblock (nur die Buttons — KEIN <form>, KEIN CSRF).
+Wird INNERHALB eines vorhandenen <form> eingebunden, das an die jeweilige
+action-View postet (stays:stay-action / booking:booking-action / core:kanban-action).
+Kontext: entweder `actions` (vorberechnete allowed_actions, z. B. von der Board-
+Karte) ODER `kind` + `obj` (dann wird via {% status_actions %} berechnet).
+Jeder Button postet name="action" value="<Zielstatus>".
+{% endcomment %}
+{% if not actions %}{% status_actions kind obj as actions %}{% endif %}
+{% for a in actions %}
+  <button type="submit" name="action" value="{{ a.target }}" data-target="{{ a.target }}" data-stage="{{ a.stage }}"
+    class="text-sm rounded-lg px-3 py-1.5 {% if a.danger %}border border-red-200 text-red-600 hover:bg-red-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">{{ a.label }}</button>
+{% endfor %}

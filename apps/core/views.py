@@ -2548,3 +2548,61 @@ def media_library(request):
         "tenant/media_library.html",
         {"nav": "media", "assets": assets, "folders": folders, "folder": folder},
     )
+
+
+# --- U-D2: единая Kanban-доска транзакций ------------------------------------
+
+
+@login_required
+def board(request):
+    """UD2-3: единая доска входящих транзакций (заказы/брони/проживание/билеты/
+    заявки/резервы). Вкладки — активные транзакционные модули, колонки — стадии
+    конвейера; карточки тащатся между колонками или двигаются кнопками. Статус
+    меняется ТОЛЬКО через FSM (kanban_action). Per-app экраны остаются (D2)."""
+    from apps.core import transactions
+
+    sections = transactions.manage_sections_for(request.tenant)
+    kinds = [s["kind"] for s in sections]
+    active = request.GET.get("kind", "")
+    if active not in kinds:
+        active = kinds[0] if kinds else ""
+    return render(
+        request,
+        "core/board.html",
+        {"nav": "board", "sections": sections, "active_kind": active},
+    )
+
+
+@login_required
+@require_POST
+def kanban_action(request, kind, pk):
+    """UD2-2: применить FSM-переход к транзакции с доски (drag-drop / кнопка).
+
+    Единая точка: резолвит модель+FSM по kind и зовёт SM().apply(target) — тот
+    же путь, что per-app экраны (revenue/письма/склад на on_transition, без
+    дублей; src==dst — no-op). IllegalTransition → 409 (fetch: клиент откатывает
+    карточку) либо сообщение+redirect (обычный POST). Успех fetch → перерисованная
+    карточка (свежие бейдж/кнопки, остаётся в новой колонке)."""
+    from django.http import HttpResponse, HttpResponseBadRequest
+    from django.urls import reverse
+
+    from apps.core import transactions
+    from apps.core.fsm import IllegalTransition
+
+    if kind not in transactions.TRANSACTION_KINDS:
+        return HttpResponseBadRequest("unknown kind")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    target = request.POST.get("action", "")
+    is_fetch = request.headers.get("X-Requested-With") == "fetch"
+    try:
+        transactions.sm_for(kind).apply(obj, target, actor=request.user)
+    except IllegalTransition:
+        if is_fetch:
+            return HttpResponse(status=409)
+        messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
+        return redirect(reverse("board") + f"?kind={kind}")
+    obj.refresh_from_db()
+    tx = transactions.transaction_for(kind, obj)
+    if is_fetch:
+        return render(request, "core/_kanban_card.html", {"tx": tx, "kind": kind})
+    return redirect(reverse("board") + f"?kind={kind}")

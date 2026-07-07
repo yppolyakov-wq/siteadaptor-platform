@@ -118,6 +118,15 @@ ACTION_LABELS = {
 }
 
 
+# Отрицательные/отменяющие переходы — красная кнопка на карточке/строке.
+DANGER_TARGETS = {"cancelled", "declined", "no_show", "returned", "expired"}
+
+
+def is_danger(target: str) -> bool:
+    """True для отменяющих/негативных переходов (стиль кнопки = danger)."""
+    return target in DANGER_TARGETS
+
+
 def stage_for(kind: str, status: str) -> str:
     """Стадия-колонка для (kind, status). Неизвестный статус → 'intake' (безопасно —
     новая запись попадает в приёмную колонку, а не теряется)."""

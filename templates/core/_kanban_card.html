@@ -1,0 +1,28 @@
+{% load i18n %}
+{% comment %}
+UD2-2 Kanban-Karte einer Transaktion. `data-stage` = aktuelle Spalte; die
+Aktions-Buttons tragen data-stage/data-target → das Drag-JS liest daraus den
+Zielstatus für die Zielspalte. Wird von kanban_action bei erfolgreichem fetch
+neu gerendert (Badge/Buttons frisch, Karte bleibt in der neuen Spalte).
+{% endcomment %}
+<div class="kanban-card bg-white rounded-lg border border-gray-200 p-2.5 shadow-sm"
+     draggable="true" data-card-id="{{ tx.pk }}" data-stage="{{ tx.pipeline_stage }}" data-kind="{{ kind }}">
+  <div class="flex items-start gap-1.5">
+    <span class="drag-handle text-gray-300 select-none cursor-grab leading-none pt-0.5" title="{% trans 'Ziehen zum Verschieben' %}">⠿</span>
+    <div class="flex-1 min-w-0">
+      {% if tx.manage_url %}
+        <a href="{{ tx.manage_url }}" class="text-sm font-medium text-gray-900 hover:text-indigo-700 block truncate">{{ tx.title }}</a>
+      {% else %}
+        <span class="text-sm font-medium text-gray-900 block truncate">{{ tx.title }}</span>
+      {% endif %}
+      <p class="text-xs text-gray-500 truncate">{{ tx.customer }}{% if tx.subtotal_display %} · {{ tx.subtotal_display }}{% endif %}</p>
+      <p class="text-xs text-gray-400 truncate">#{{ tx.reference_code }} · {{ tx.status_label }}</p>
+    </div>
+  </div>
+  {% if tx.allowed_actions %}
+    <form method="post" action="{% url 'board-action' kind tx.pk %}" data-kanban-form class="flex gap-1 flex-wrap mt-2">
+      {% csrf_token %}
+      {% include "core/_status_actions.html" with actions=tx.allowed_actions %}
+    </form>
+  {% endif %}
+</div>

@@ -73,6 +73,18 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         core=True,
         description_de="Überblick über Ihr Geschäft.",
     ),
+    # U-D2: единая Kanban-доска входящих транзакций (заказы/брони/проживание/
+    # билеты/заявки/резервы) — «одна доска дел». core: всегда доступна, пустая
+    # доска показывает graceful empty-state.
+    ModuleSpec(
+        key="board",
+        label_de="Aufgaben-Board",
+        icon="🗂️",
+        nav_items=(NavItem("board", _("Board"), "board"),),
+        url_prefixes=("/dashboard/board/",),
+        core=True,
+        description_de="Alle Bestellungen, Termine, Buchungen & Anfragen als Kanban-Board.",
+    ),
     ModuleSpec(
         key="catalog",
         label_de="Katalog & Import",
@@ -480,7 +492,7 @@ def active_modules(tenant) -> list[ModuleSpec]:
 # вне карты падают в группу «sell» (бизнес-функции) как безопасный дефолт.
 NAV_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ("shop", "Mein Geschäft", ("dashboard",)),
-    ("sell", "Verkaufen", ("catalog", "orders", "booking", "stays", "events", "jobs")),
+    ("sell", "Verkaufen", ("board", "catalog", "orders", "booking", "stays", "events", "jobs")),
     (
         "marketing",
         "Kunden & Marketing",
@@ -501,6 +513,7 @@ _GROUP_BY_KEY = {mk: gkey for gkey, _label, keys in NAV_GROUPS for mk in keys}
 # (T-1 отложен), поэтому эти немецкие литералы заодно убирают английские техтермины.
 NAV_TASK_LABELS: dict[str, str] = {
     "dashboard": "Übersicht",
+    "board": "Aufgaben-Board",
     "catalog": "Sortiment",
     "categories": "Kategorien",
     "combos": "Kombi-Angebote",
