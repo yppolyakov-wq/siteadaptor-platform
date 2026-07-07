@@ -50,6 +50,12 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     assert "Einstellungen" in html
     # «➕ Funktion hinzufügen» → страница «Module».
     assert "Add function" in html or "➕" in html
+    # AB1 (язык задач): пункты сайдбара в языке задач, не техтермины/англ. сущности.
+    assert "Bestellungen" in html  # не «Orders»
+    assert "Termine" in html  # не «Booking»
+    assert "Website gestalten" in html  # не «Site»
+    assert "Aktionen" in html  # не «Promotions»
+    assert ">Orders<" not in html and ">Booking<" not in html  # старые англ-метки ушли
     # Регрессия: текст шаблонного комментария не должен утекать в разметку
     # (многострочный {# #} не комментарий — нужен {% comment %}).
     assert "apps.core.modules" not in html

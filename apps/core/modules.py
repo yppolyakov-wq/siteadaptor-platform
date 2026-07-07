@@ -494,6 +494,54 @@ NAV_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
 )
 _GROUP_BY_KEY = {mk: gkey for gkey, _label, keys in NAV_GROUPS for mk in keys}
 
+# AB1 (анти-Битрикс §0.1 «меню на языке задач, не сущностей»): подпись пункта
+# сайдбара в языке задач/по-немецки (nav_key → метка). Фолбэк — NavItem.label
+# (англ. msgid). Отдельный реестр, а не поле NavItem: все формулировки в одном
+# читаемом месте, владельцу удобно править словом. Хром кабинета пока без de.po
+# (T-1 отложен), поэтому эти немецкие литералы заодно убирают английские техтермины.
+NAV_TASK_LABELS: dict[str, str] = {
+    "dashboard": "Übersicht",
+    "catalog": "Sortiment",
+    "categories": "Kategorien",
+    "combos": "Kombi-Angebote",
+    "imports": "Import",
+    "orders": "Bestellungen",
+    "booking": "Termine",
+    "stays": "Übernachtungen",
+    "events": "Veranstaltungen",
+    "jobs": "Aufträge",
+    "crm": "Kunden",
+    "campaigns": "Kampagnen",
+    "reviews": "Bewertungen",
+    "promotions": "Aktionen",
+    "reservations": "Reservierungen",
+    "redeem": "Einlösen",
+    "vouchers": "Gutscheine",
+    "loyalty": "Treuepunkte",
+    "channels": "Kanäle",
+    "posts": "Beiträge",
+    "blog": "Blog & News",
+    "inbox": "Nachrichten",
+    "telegram": "Telegram",
+    "analytics": "Auswertungen",
+    "finance": "Finanzen",
+    "site": "Website gestalten",
+    "settings": "Einstellungen",
+    "languages": "Sprachen",
+    "legal-docs": "Rechtstexte",
+    "extras": "Zusatzleistungen",
+    "media": "Medien",
+    "domains": "Domains",
+    "modules": "Funktionen",
+    "support": "Hilfe",
+    "billing": "Abrechnung",
+}
+
+
+def nav_task_label(nav_key: str) -> str:
+    """AB1: подпись пункта сайдбара в языке задач по nav_key ("" → фолбэк на label)."""
+    return NAV_TASK_LABELS.get(nav_key, "")
+
 
 def grouped_active_modules(tenant) -> list[dict]:
     """AB1: активные модули, сгруппированные по задачам (для сайдбара кабинета).

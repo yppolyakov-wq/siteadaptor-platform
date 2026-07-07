@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block title %}{% block dash_title %}{% trans "Dashboard" %}{% endblock %} · {{ request.tenant.name }}{% endblock %}
 
 {% block extra_head %}<script src="https://unpkg.com/htmx.org@1.9.12"></script>{% endblock %}
@@ -43,10 +43,13 @@
           <div data-nav-group-items class="space-y-0.5">
           {% for module in group.modules %}
             {% for item in module.nav_items %}
-              <a href="{% url item.url_name %}" data-label="{{ item.label|lower }} {{ module.label_de|lower }} {{ group.label|lower }}"
+              {% comment %}AB1: подпись в языке задач (nav_task_label по nav_key) с фолбэком
+                 на item.label; поиск ищет и по task-метке, и по прежней.{% endcomment %}
+              {% nav_task_label item.nav_key as task_label %}
+              <a href="{% url item.url_name %}" data-label="{{ task_label|lower }} {{ item.label|lower }} {{ module.label_de|lower }} {{ group.label|lower }}"
                  class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
                 <span class="w-5 shrink-0 text-center text-base leading-none">{{ module.icon }}</span>
-                <span class="truncate">{{ item.label }}</span>
+                <span class="truncate">{{ task_label|default:item.label }}</span>
                 {% if item.url_name == 'inbox:list' %}{# M22b: живой бейдж непрочитанного #}
                 <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
               </a>
@@ -60,7 +63,7 @@
       <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
          data-label="{% trans 'add function module' %}">
         <span class="w-5 shrink-0 text-center text-base leading-none">➕</span>
-        <span class="truncate">{% trans "Add function" %}</span>
+        <span class="truncate">{% trans "Funktion hinzufügen" %}</span>
       </a>
     </nav>
   </aside>

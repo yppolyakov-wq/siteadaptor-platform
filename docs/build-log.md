@@ -4281,3 +4281,14 @@
   +2 (fetch→row_html с pb-маркерами + блок сохранён; fetch на главной → ok:false),
   e2e verify_7c2 (вставка на /ueber-uns/ БЕЗ смены URL билдера: форма 8→9, канва 8→9,
   0 JS-ошибок). Остаток UC6-7: 7d (меню/примеры в ленту).
+
+- **2026-07-06 — AB1 (Sprint G анти-Битрикс): язык задач в меню кабинета.** Аудит
+  показал: Sprint G ~85% уже в коде (AB1-структура/AB2/AB4/AB5 ✅, AB3 рабочий). Остаток
+  AB1 — подписи ПУНКТОВ сайдбара всё ещё техтерминами/англ-сущностями (Catalog/Orders/
+  Booking/Promotions), хром кабинета без de.po (T-1 отложен) → рендерил английский.
+  Реестр `modules.NAV_TASK_LABELS` (nav_key→DE-метка) + `nav_task_label()` + тег
+  `{% load cabinet %}{% nav_task_label %}`; сайдбар показывает task-метку с фолбэком на
+  label, поиск ищет и по ней. Итог: Sortiment/Bestellungen/Termine/Aufträge/Bewertungen/
+  Aktionen/Gutscheine/«Website gestalten»/«Funktion hinzufügen» — немецкий язык задач,
+  без английских техтерминов. Замок `test_cabinet_nav` (+task-метки, старые англ. ушли).
+  БЕЗ миграций. Скриншот стенда: сгруппированное меню на языке задач.
