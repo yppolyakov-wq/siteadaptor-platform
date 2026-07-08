@@ -355,6 +355,18 @@ def test_home_builder_get_renders():
     assert 'name="accent"' in body and 'name="font"' in body  # M20f: контролы дизайна
 
 
+def test_home_builder_get_renders_menu_examples():
+    """UC6-6h: область Меню отдаёт визуальные пресеты шапки (Beispiele) для всех nav-стилей."""
+    tenant = TenantFactory(schema_name="public", slug="hbme", name="HBME")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert "data-menu-examples" in body  # секция примеров есть
+    # по кнопке-пресету на каждый стиль шапки (classic/centered/minimal)
+    for style in ("classic", "centered", "minimal"):
+        assert f'data-menu-preset data-nav-style="{style}"' in body
+
+
 def test_home_builder_get_renders_undo_redo():
     """E.1: панель Undo/Redo + клиентский стек снимков отрисованы в билдере."""
     tenant = TenantFactory(schema_name="public", slug="hbur", name="HBUR")

@@ -678,9 +678,59 @@
           <input type="checkbox" name="nav_sticky" {% if nav_sticky %}checked{% endif %} class="rounded border-gray-300">
           {% trans "Sticky header (stays on top while scrolling)" %}
         </label>
+
+        {% comment %}UC6-6h: Beispiele — визуальные пресеты шапки (мини-мокапы). Клик
+           выставляет nav_style+nav_sticky в форме и шлёт change → лайв-превью канвы
+           обновляется существующим листенером; сохраняется штатным Save (#home-form).{% endcomment %}
+        <div data-menu-examples class="border-t border-gray-100 pt-3">
+          <span class="block text-sm font-medium mb-2">{% trans "Examples" %}</span>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" data-menu-preset data-nav-style="classic" data-nav-sticky="1"
+              class="group text-left rounded-lg border border-gray-200 p-2 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+              <span class="flex items-center justify-between gap-1 bg-gray-100 rounded px-1.5 py-1 mb-1">
+                <span class="h-1.5 w-5 rounded bg-indigo-400"></span>
+                <span class="flex gap-0.5"><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span></span>
+              </span>
+              <span class="block text-xs text-gray-600 group-hover:text-indigo-700">{% trans "Classic" %}</span>
+            </button>
+            <button type="button" data-menu-preset data-nav-style="centered" data-nav-sticky="1"
+              class="group text-left rounded-lg border border-gray-200 p-2 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+              <span class="flex flex-col items-center gap-0.5 bg-gray-100 rounded px-1.5 py-1 mb-1">
+                <span class="h-1.5 w-5 rounded bg-indigo-400"></span>
+                <span class="flex gap-0.5"><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span></span>
+              </span>
+              <span class="block text-xs text-gray-600 group-hover:text-indigo-700">{% trans "Centered" %}</span>
+            </button>
+            <button type="button" data-menu-preset data-nav-style="minimal" data-nav-sticky="0"
+              class="group text-left rounded-lg border border-gray-200 p-2 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+              <span class="flex items-center justify-between gap-1 bg-gray-100 rounded px-1.5 py-1 mb-1">
+                <span class="h-1.5 w-5 rounded bg-indigo-400"></span>
+                <span class="flex gap-0.5"><span class="h-1 w-3 rounded bg-gray-300"></span></span>
+              </span>
+              <span class="block text-xs text-gray-600 group-hover:text-indigo-700">{% trans "Minimal" %}</span>
+            </button>
+          </div>
+        </div>
+
         <p class="text-xs text-gray-400">{% trans "Menu items (links, dropdowns) are edited in the" %}
           <a href="{% url 'site-menu' %}" class="text-indigo-600 hover:underline">{% trans "menu builder" %}</a>.</p>
       </fieldset>
+      <script>
+      (function () {
+        // UC6-6h: применить пресет шапки к полям формы + лайв-превью (делегированно).
+        document.querySelectorAll("[data-menu-preset]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var form = btn.closest("form");
+            if (!form) return;
+            var style = btn.getAttribute("data-nav-style");
+            var radio = form.querySelector('input[name="nav_style"][value="' + style + '"]');
+            if (radio) { radio.checked = true; radio.dispatchEvent(new Event("change", { bubbles: true })); }
+            var sticky = form.querySelector('input[name="nav_sticky"]');
+            if (sticky) { sticky.checked = btn.getAttribute("data-nav-sticky") === "1"; sticky.dispatchEvent(new Event("change", { bubbles: true })); }
+          });
+        });
+      })();
+      </script>
       </div>{% comment %}/область ☰ Меню{% endcomment %}
 
       {% comment %}SE-7d область 🔻 Подвал: видимость секции контактов + ссылки в настройки
