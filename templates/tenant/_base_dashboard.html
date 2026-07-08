@@ -50,7 +50,7 @@
                  class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
                 <span class="w-5 shrink-0 text-center text-base leading-none">{{ module.icon }}</span>
                 <span class="truncate">{{ task_label|default:item.label }}</span>
-                {% if item.url_name == 'inbox:list' %}{# M22b: живой бейдж непрочитанного #}
+                {% if item.url_name == 'crm:customer-list' %}{# M22b/S4b: бейдж непрочитанного на хабе «Kunden» (inbox — вкладка хаба; JS скрывает, если модуль выкл.) #}
                 <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
               </a>
             {% endfor %}

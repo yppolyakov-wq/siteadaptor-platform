@@ -162,3 +162,32 @@ def test_marketing_hub_gates_by_module():
     assert "Beiträge" not in html
     assert "Bewertungen" not in html
     assert "Aktionen" in html  # promotions активен
+
+
+# --- S4b: хаб «Kunden» (контакты + общение) ----------------------------------
+def _render_kunden(nav, tenant=None):
+    ctx = {"nav": nav}
+    if tenant is not None:
+        ctx["request"] = SimpleNamespace(tenant=tenant)
+    return Template('{% load cabinet %}{% hub_tabs "kunden" %}').render(Context(ctx))
+
+
+def test_kunden_nav_collapsed_to_hub():
+    # Nachrichten/Telegram убраны из сайдбара → вкладки хаба «Kunden» (якорь CRM).
+    for key in ("inbox", "telegram"):
+        assert modules.get_module(key).nav_items == (), key
+    assert modules.nav_task_label("crm") == "Kunden"
+
+
+def test_kunden_hub_all_tabs_when_active():
+    html = _render_kunden("crm", _fake_tenant())
+    for lbl in ("Kontakte", "Nachrichten", "Telegram"):
+        assert lbl in html, lbl
+    assert html.count('aria-selected="true"') == 1  # активна Kontakte
+
+
+def test_kunden_hub_gates_by_module():
+    # Без inbox — вкладка Nachrichten скрыта.
+    html = _render_kunden("crm", _fake_tenant(disabled=["inbox"]))
+    assert "Nachrichten" not in html
+    assert "Kontakte" in html

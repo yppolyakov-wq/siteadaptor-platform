@@ -54,6 +54,13 @@ HUB_TABS = {
         ("channels", _("Kanäle"), "channels", "publishing", True),
         ("publishing-posts", _("Beiträge"), "posts", "publishing", True),
     ),
+    # Kunden (S4b): контакты + общение. Якорь-пункт «Kunden» на модуле crm; вкладки
+    # Nachrichten/Telegram гейтятся по своему модулю.
+    "kunden": (
+        ("crm:customer-list", _("Kontakte"), "crm", "crm", False),
+        ("inbox:list", _("Nachrichten"), "inbox", "inbox", False),
+        ("telegram-settings", _("Telegram"), "telegram", "telegram", False),
+    ),
     # Einstellungen: часто нужные настройки — прямые табы; реже нужные — в «Erweitert».
     # Модуль settings core → всё всегда видно (module_key=None). «Website» (визуальный
     # билдер) остаётся ОТДЕЛЬНЫМ пунктом сайдбара, в хаб не входит.

@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Customers" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "kunden" %}
 <div class="flex items-center justify-between mb-4 gap-3">
   <h1 class="text-2xl font-bold">{% trans "Customers" %}</h1>
   <div class="flex items-center gap-2">

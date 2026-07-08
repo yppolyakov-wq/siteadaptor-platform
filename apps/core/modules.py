@@ -345,7 +345,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="inbox",
         label_de="Nachrichten (Chat & Support)",
         icon="💬",
-        nav_items=(NavItem("inbox:list", _("Inbox"), "inbox"),),
+        # S4b: вкладка хаба «Kunden» (cabinet.HUB_TABS["kunden"]); url_prefix = гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/inbox/",),
         # Коммуникация — универсальный блок, включён из коробки у всех вертикалей
         # (recommended_for=все типы → не попадает в default_disabled_for).
@@ -381,7 +382,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="telegram",
         label_de="Telegram-Bot",
         icon="✈️",
-        nav_items=(NavItem("telegram-settings", _("Telegram"), "telegram"),),
+        # S4b: вкладка хаба «Kunden» (cabinet.HUB_TABS["kunden"]); url_prefix = гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/telegram/",),
         # Универсальный opt-in (как finance/jobs) — выключен по умолчанию у всех.
         description_de="Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram.",
