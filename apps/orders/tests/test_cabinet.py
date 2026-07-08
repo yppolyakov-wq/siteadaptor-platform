@@ -129,4 +129,4 @@ def test_nav_includes_orders_when_active():
     # S2: заказы больше не отдельный пункт сайдбара — доступны вкладкой хаба «Verkäufe».
     spec = modules.get_module("orders")
     assert spec.nav_items == ()
-    assert any(url == "orders:order-list" for url, _lbl, _k, _mod in HUB_TABS["board"])
+    assert any(t[0] == "orders:order-list" for t in HUB_TABS["board"])
