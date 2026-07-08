@@ -1,9 +1,24 @@
 """U-D3: сервис склад-леджера — идемпотентная запись + реконсиляция со счётчиком."""
 
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 
 from .models import StockMovement
+
+
+def find_entity_by_code(code):
+    """R1: найти сущность учёта по SKU или GTIN (штрихкод). Сначала вариант, затем
+    товар. → (product, variant) или (None, None). Для scan-to-count в кабинете."""
+    from apps.catalog.models import Product, ProductVariant
+
+    code = (code or "").strip()
+    if not code:
+        return (None, None)
+    v = ProductVariant.objects.filter(Q(sku=code) | Q(gtin=code)).select_related("product").first()
+    if v is not None:
+        return (v.product, v)
+    p = Product.objects.filter(Q(sku=code) | Q(gtin=code)).first()
+    return (p, None) if p is not None else (None, None)
 
 
 def record_movement(

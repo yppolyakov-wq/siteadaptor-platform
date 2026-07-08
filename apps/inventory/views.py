@@ -18,6 +18,17 @@ from .models import StockMovement
 
 DEFAULT_THRESHOLD = 5
 
+# R3: причины ручной корректировки (ретейл списывает бой/усушку/кражу отдельно).
+ADJUST_REASONS = [
+    ("korrektur", _("Korrektur")),
+    ("schwund", _("Schwund")),
+    ("bruch", _("Bruch")),
+    ("verderb", _("Verderb")),
+    ("diebstahl", _("Diebstahl")),
+    ("sonstiges", _("Sonstiges")),
+]
+_REASON_LABELS = {k: v for k, v in ADJUST_REASONS}
+
 
 def _threshold(tenant) -> int:
     cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}
@@ -58,6 +69,18 @@ def stock(request):
     low = [r for r in rows if r["counter"] <= threshold]
     diverging = [r for r in rows if not r["ok"]]
     movements = StockMovement.objects.select_related("product", "variant").all()[:50]
+    # R1: поиск по SKU/EAN (scan-to-count) — найденную сущность подсвечиваем.
+    found = None
+    code = (request.GET.get("code") or "").strip()
+    if code:
+        product, variant = services.find_entity_by_code(code)
+        if product is not None:
+            entity = variant if variant is not None else product
+            found = {
+                "value": f"v{variant.pk}" if variant is not None else f"p{product.pk}",
+                "label": f"{product} · {variant.label}" if variant is not None else str(product),
+                "counter": entity.stock_quantity,
+            }
     return render(
         request,
         "inventory/stock.html",
@@ -69,8 +92,43 @@ def stock(request):
             "movements": movements,
             "entities": services.stock_entities(),
             "threshold": threshold,
+            "reasons": ADJUST_REASONS,
+            "code": code,
+            "found": found,
         },
     )
+
+
+def _adjust_note(request):
+    """R3: собрать заметку корректировки из причины (Schwund/Bruch/…) + свободного текста."""
+    reason = str(_REASON_LABELS.get(request.POST.get("reason", ""), ""))
+    free = (request.POST.get("note") or "").strip()
+    return (f"{reason}: {free}" if reason and free else (reason or free))[:200]
+
+
+def _handle_bulk_stocktake(request, actor):
+    """R1b: инвентаризация по Zählliste — на каждую сущность с полем count_<value>
+    книжим разницу до факта (stocktake). Пустое поле — пропуск."""
+    n = 0
+    for e in services.stock_entities():
+        raw = request.POST.get(f"count_{e['value']}")
+        if raw is None or raw.strip() == "":
+            continue
+        counted = _int(raw, -1)
+        if counted < 0:
+            continue
+        mv = services.apply_manual_movement(
+            product=e["product"],
+            variant=e["variant"],
+            kind=StockMovement.KIND_STOCKTAKE,
+            set_absolute=counted,
+            actor=actor,
+            note=str(_("Inventur")),
+        )
+        if mv:
+            n += 1
+    messages.success(request, _("Inventur gebucht: %(n)s Korrektur(en).") % {"n": n})
+    return redirect("stock")
 
 
 @require_POST
@@ -86,6 +144,9 @@ def _handle_post(request):
         tenant.save(update_fields=["site_config"])
         messages.success(request, _("Meldebestand aktualisiert."))
         return redirect("stock")
+
+    if action == "stocktake_bulk":
+        return _handle_bulk_stocktake(request, actor)
 
     product, variant = _resolve_entity(request.POST.get("entity"))
     if product is None:
@@ -114,7 +175,7 @@ def _handle_post(request):
             kind=StockMovement.KIND_ADJUSTMENT,
             delta=delta,
             actor=actor,
-            note=(request.POST.get("note") or "")[:200],
+            note=_adjust_note(request),  # R3: причина (Schwund/Bruch/…) + текст
         )
         messages.success(request, _("Korrektur gebucht.") if mv else _("Keine Änderung."))
     elif action == "stocktake":
