@@ -42,10 +42,16 @@
 - **S4b — Kunden** (дальше): хаб-якорь на CRM; inbox/telegram сводятся; HUB_TABS["kunden"]
   Kontakte/Nachrichten/Telegram. 3 страницы.
 
-## S5 — режим «Простой / Эксперт» (зонтик)
-- Флаг `site_config["ui_mode"]` (без миграции; дефолт simple для новых, expert для
-  существующих — обсудить). Тумблер в шапке кабинета. Простой: скрывает «продвинутые»
-  хабы/табы (помечены `advanced`); Эксперт: всё. Модули по-прежнему на «Funktionen».
+## S5 — режим «Простой / Эксперт» (зонтик) ✅
+- Сделано: флаг `site_config["ui_mode"]` (без миграции; **дефолт expert** — не ломает
+  существующих). Хелперы `modules.ui_mode/is_simple`; `normalize` сохраняет ключ ТОЛЬКО
+  при "simple" (golden-паритет). Тумблер «Ansicht: Einfach/Experte» на странице
+  «Funktionen» (`modules_view` пишет ui_mode прямо в site_config, без normalize — прочие
+  ключи целы). Простой: `grouped_active_modules` прячет `SIMPLE_HIDDEN_MODULES`
+  ({finance, analytics}) из сайдбара (страницы остаются по URL). Эксперт: всё.
+  `test_ui_mode.py`. Проверено рендером на тенанте shop (expert→скрытие→expert).
+- Расширяемо: набор скрываемого в Простом (SIMPLE_HIDDEN_MODULES) + скрытие ХАБОВ по
+  архетипу — доводится в S6 (Friseur без Sortiment/Lager и т.п.).
 
 ## S6 — реальные архетипы (миграция) + скрытие по архетипу
 - Новые `business_type`: friseur/handwerker/werkstatt/events (+ маппинг демо-китов с

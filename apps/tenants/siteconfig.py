@@ -1801,6 +1801,10 @@ def normalize(config) -> dict:
     seo = normalize_seo(config.get("seo"))
     if seo:
         normalized["seo"] = seo
+    # S5: режим кабинета «Простой/Эксперт». Ключ материализуется ТОЛЬКО при "simple"
+    # (дефолт expert → ключа нет → golden-паритет старых конфигов сохранён).
+    if config.get("ui_mode") == "simple":
+        normalized["ui_mode"] = "simple"
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:
