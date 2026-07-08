@@ -1,12 +1,26 @@
-{% comment %}S1 (упрощение кабинета): tab-bar хаба над контентом страницы. Активный
-таб — по context.nav. Рендерится тегом {% hub_tabs "<hub>" %} (templatetags/cabinet).{% endcomment %}
-{% if tabs %}
-<div class="border-b border-gray-200 mb-5 overflow-x-auto">
-  <div class="flex gap-1 flex-nowrap" role="tablist">
+{% comment %}S1/S2/S3 (упрощение кабинета): tab-bar хаба над контентом страницы.
+Активный таб — по context.nav. Рендерится тегом {% hub_tabs "<hub>" %} (templatetags/
+cabinet). advanced-табы (more_tabs) — в свёрнутом ящике «Erweitert» справа (S3). Ящик
+вне scroll-контейнера, чтобы выпадашка не обрезалась overflow-x-auto.{% endcomment %}
+{% load i18n %}
+{% if tabs or more_tabs %}
+<div class="flex items-stretch border-b border-gray-200 mb-5">
+  <div class="flex gap-1 flex-nowrap overflow-x-auto flex-1" role="tablist">
     {% for t in tabs %}
       <a href="{% url t.url_name %}" role="tab" aria-selected="{% if t.active %}true{% else %}false{% endif %}"
          class="px-3 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap {% if t.active %}border-indigo-600 text-indigo-700{% else %}border-transparent text-gray-500 hover:text-gray-700{% endif %}">{{ t.label }}</a>
     {% endfor %}
   </div>
+  {% if more_tabs %}
+    <details class="relative shrink-0"{% if more_active %} open{% endif %}>
+      <summary class="list-none cursor-pointer select-none px-3 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap {% if more_active %}border-indigo-600 text-indigo-700{% else %}border-transparent text-gray-500 hover:text-gray-700{% endif %}">{% trans "Erweitert" %} ▾</summary>
+      <div class="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-gray-200 bg-white shadow-lg py-1">
+        {% for t in more_tabs %}
+          <a href="{% url t.url_name %}" role="tab" aria-selected="{% if t.active %}true{% else %}false{% endif %}"
+             class="block px-3 py-2 text-sm whitespace-nowrap {% if t.active %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-50{% endif %}">{{ t.label }}</a>
+        {% endfor %}
+      </div>
+    </details>
+  {% endif %}
 </div>
 {% endif %}

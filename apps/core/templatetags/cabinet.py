@@ -15,29 +15,44 @@ def nav_task_label(nav_key):
     return modules.nav_task_label(nav_key or "")
 
 
-# S1/S2 (упрощение кабинета): под-страницы хаба = tab-bar над контентом. Один пункт
-# сайдбара → страница-хаб с табами. Кортеж (url_name, метка, nav_key, module_key):
+# S1/S2/S3 (упрощение кабинета): под-страницы хаба = tab-bar над контентом. Один пункт
+# сайдбара → страница-хаб с табами. Кортеж (url_name, метка, nav_key, module_key, advanced):
 # активный таб по context["nav"]; module_key (или None) — таб виден только при
-# is_module_active(tenant, module_key), None = всегда (под-страница ядра). Расширяется
-# по мере сведения хабов (Einstellungen/Marketing/Kunden — след. инкременты).
+# is_module_active(tenant, module_key), None = всегда (под-страница ядра); advanced=True —
+# таб уходит в свёрнутый ящик «Erweitert» (реже нужные настройки). Расширяется по мере
+# сведения хабов (Marketing/Kunden — след. инкременты).
 HUB_TABS = {
     # Sortiment: под-страницы каталога (модуль core → всегда, module_key=None).
     "catalog": (
-        ("catalog:product-list", _("Produkte"), "catalog", None),
-        ("catalog:category-list", _("Kategorien"), "categories", None),
-        ("stock", _("Lager"), "stock", None),
-        ("catalog:combo-list", _("Kombi"), "combos", None),
-        ("imports:start", _("Import"), "imports", None),
+        ("catalog:product-list", _("Produkte"), "catalog", None, False),
+        ("catalog:category-list", _("Kategorien"), "categories", None, False),
+        ("stock", _("Lager"), "stock", None, False),
+        ("catalog:combo-list", _("Kombi"), "combos", None, False),
+        ("imports:start", _("Import"), "imports", None, False),
     ),
     # Verkäufe: доска (kanban, core) + продажные списки/календари. Табы продаж
     # гейтятся по своему модулю — Friseur без Übernachtung/Tickets их не покажет.
     "board": (
-        ("board", _("Board"), "board", "board"),
-        ("orders:order-list", _("Bestellungen"), "orders", "orders"),
-        ("booking:calendar", _("Termine"), "booking", "booking"),
-        ("stays:calendar", _("Übernachtungen"), "stays", "stays"),
-        ("events:list", _("Tickets"), "events", "events"),
-        ("jobs:list", _("Aufträge"), "jobs", "jobs"),
+        ("board", _("Board"), "board", "board", False),
+        ("orders:order-list", _("Bestellungen"), "orders", "orders", False),
+        ("booking:calendar", _("Termine"), "booking", "booking", False),
+        ("stays:calendar", _("Übernachtungen"), "stays", "stays", False),
+        ("events:list", _("Tickets"), "events", "events", False),
+        ("jobs:list", _("Aufträge"), "jobs", "jobs", False),
+    ),
+    # Einstellungen: часто нужные настройки — прямые табы; реже нужные — в «Erweitert».
+    # Модуль settings core → всё всегда видно (module_key=None). «Website» (визуальный
+    # билдер) остаётся ОТДЕЛЬНЫМ пунктом сайдбара, в хаб не входит.
+    "settings": (
+        ("settings", _("Einstellungen"), "settings", None, False),
+        ("notifications-settings", _("Benachrichtigungen"), "notifications", None, False),
+        ("legal-docs", _("Rechtstexte"), "legal-docs", None, False),
+        ("extras", _("Zusatzleistungen"), "extras", None, False),
+        ("languages", _("Sprachen"), "languages", None, True),
+        ("media-library", _("Medien"), "media", None, True),
+        ("domains", _("Domains"), "domains", None, True),
+        ("modules", _("Funktionen"), "modules", None, True),
+        ("support:help", _("Hilfe"), "support", None, True),
     ),
 }
 
@@ -47,13 +62,15 @@ def hub_tabs(context, hub):
     """Отрисовать tab-bar хаба `hub` (реестр HUB_TABS), подсветив активный по `nav`.
 
     Табы с module_key прячутся, если модуль не активен у тенанта (fail-open, если
-    request/tenant в контексте нет — например простой тест-рендер без запроса)."""
+    request/tenant в контексте нет — простой тест-рендер без запроса). advanced-табы
+    уходят в свёрнутый ящик «Erweitert» (открыт, если активна одна из его вкладок)."""
     cur = context.get("nav")
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
-    tabs = []
-    for u, lbl, k, mod in HUB_TABS.get(hub, ()):
+    tabs, more = [], []
+    for u, lbl, k, mod, advanced in HUB_TABS.get(hub, ()):
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
             continue
-        tabs.append({"url_name": u, "label": lbl, "nav_key": k, "active": k == cur})
-    return {"tabs": tabs}
+        entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur}
+        (more if advanced else tabs).append(entry)
+    return {"tabs": tabs, "more_tabs": more, "more_active": any(t["active"] for t in more)}

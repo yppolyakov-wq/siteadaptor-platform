@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Media" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "settings" %}
 <h1 class="text-2xl font-bold mb-1">{% trans "Media library" %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "All uploaded photos in one place — edit alt texts (SEO & accessibility), delete unused files." %}</p>
 

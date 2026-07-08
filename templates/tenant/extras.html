@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Extras" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "settings" %}
 <div class="max-w-2xl">
   <h1 class="text-2xl font-bold mb-1">{% trans "Extras" %}</h1>
   <p class="text-sm text-gray-500 mb-5">{% trans "Optional paid add-ons guests can pick when booking (breakfast, parking, late checkout …). One engine for all booking types; “scope” limits where it applies. Currently shown on Übernachtung." %}</p>

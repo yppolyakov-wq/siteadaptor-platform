@@ -86,3 +86,41 @@ def test_board_hub_fail_open_without_request():
     html = _render_board("board")
     for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen", "Tickets", "Aufträge"):
         assert lbl in html, lbl
+
+
+# --- S3: хаб «Einstellungen» (свод настроек + ящик «Erweitert») ---------------
+def _render_settings(nav):
+    return Template('{% load cabinet %}{% hub_tabs "settings" %}').render(Context({"nav": nav}))
+
+
+def test_settings_nav_collapsed_to_website_plus_hub():
+    # 10 пунктов настроек → 2: «Website» (билдер) + хаб «Einstellungen».
+    keys = [n.nav_key for n in modules.get_module("settings").nav_items]
+    assert keys == ["site", "settings"]
+    assert modules.nav_task_label("site") == "Website gestalten"
+    assert modules.nav_task_label("settings") == "Einstellungen"
+
+
+def test_settings_hub_primary_and_advanced_tabs():
+    html = _render_settings("settings")
+    # прямые (частые) вкладки
+    for lbl in ("Einstellungen", "Benachrichtigungen", "Rechtstexte", "Zusatzleistungen"):
+        assert lbl in html, lbl
+    # ящик «Erweitert» + его (редкие) вкладки
+    assert "Erweitert" in html
+    for lbl in ("Sprachen", "Medien", "Domains", "Funktionen", "Hilfe"):
+        assert lbl in html, lbl
+
+
+def test_settings_hub_erweitert_closed_on_primary_active():
+    # Активна прямая вкладка → ящик «Erweitert» свёрнут (без open).
+    html = _render_settings("settings")
+    assert " open>" not in html
+    assert html.count('aria-selected="true"') == 1  # активна одна прямая вкладка
+
+
+def test_settings_hub_erweitert_open_on_advanced_active():
+    # Активна вкладка из «Erweitert» (Sprachen) → ящик раскрыт (open), подсвечен.
+    html = _render_settings("languages")
+    assert " open>" in html
+    assert html.count('aria-selected="true"') == 1  # активна одна вкладка (в ящике)

@@ -426,17 +426,13 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="settings",
         label_de="Einstellungen",
         icon="⚙️",
+        # S3 (упрощение): «Website» (визуальный билдер) остаётся отдельным пунктом;
+        # остальные 8 настроек сведены в ОДИН пункт-хаб «Einstellungen» с tab-bar
+        # (cabinet.HUB_TABS["settings"] + «Erweitert»-ящик). url_prefixes ниже сохраняют
+        # middleware-гейт всех путей — под-страницы доступны табами хаба.
         nav_items=(
             NavItem("site", _("Site"), "site"),
             NavItem("settings", _("Settings"), "settings"),
-            NavItem("notifications-settings", _("Notifications"), "notifications"),  # UD4-2
-            NavItem("languages", _("Languages"), "languages"),  # L2 — языки витрины
-            NavItem("legal-docs", _("Legal"), "legal-docs"),  # L5/E-2 — правовые тексты
-            NavItem("extras", _("Extras"), "extras"),  # #7 универсальные доп-услуги
-            NavItem("media-library", _("Media"), "media"),  # CM-4 медиа-библиотека
-            NavItem("domains", _("Domains"), "domains"),
-            NavItem("modules", _("Modules"), "modules"),
-            NavItem("support:help", _("Help"), "support"),  # M22c — техподдержка
         ),
         url_prefixes=(
             "/dashboard/site/",

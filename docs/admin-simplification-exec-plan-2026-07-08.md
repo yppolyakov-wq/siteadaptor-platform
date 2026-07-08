@@ -23,10 +23,14 @@
   (`/dashboard/board/` уже имеет вкладки по kind). Сайдбар: board + per-тип списки →
   один пункт «Verkäufe». Списки-вьюхи остаются (переход с карточки доски).
 
-## S3 — хаб «Einstellungen» (портянка → табы + Erweitert)
-- `settings.html` (10 секций) → tab-bar Kontakt&Zeiten / Recht / Zahlungen / Versand /
-  Benachrichtigungen; ящик «Erweitert»: Sprachen/Medien/Domains/Funktionen/Abrechnung/Hilfe.
-- Сайдбар: 10 settings-пунктов → один «Einstellungen» (+ Website остаётся хабом).
+## S3 — хаб «Einstellungen» (свод сайдбара + Erweitert) ✅
+- Сделано: сайдбар 10 settings-пунктов → 2 (Website остаётся отдельным + один хаб
+  «Einstellungen»). `HUB_TABS["settings"]` расширен `advanced`-флагом (5-кортеж):
+  прямые табы Einstellungen/Benachrichtigungen/Rechtstexte/Zusatzleistungen + ящик
+  «Erweitert ▾» (Sprachen/Medien/Domains/Funktionen/Hilfe). `_hub_tabs.html` рендерит
+  ящик `<details>` (open, если активна его вкладка). Тег `hub_tabs` вернул tabs/more_tabs.
+- Отложено **S3b**: табификация самой длинной страницы `settings.html` (её form-секции
+  Kontakt/Zeiten/Zahlungen/Versand в in-page табы) — отдельный инкремент, трогает форму.
 
 ## S4 — хабы «Marketing» + «Kunden»
 - Marketing: Aktionen/Reservierungen/Einlösen/Gutscheine/Treue/Kampagnen/Bewertungen → tab-bar.
