@@ -19,8 +19,8 @@
   </script>
   {# TG2: Telegram Mini App SDK — активен только внутри Telegram (вне — no-op). #}
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <title>{% block title %}{{ seo_meta.title|default:request.tenant.name|default:"Shop" }}{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}{{ seo_meta.description|default:request.tenant.name|default:'' }}{% endblock %}">
+  <title>{% block title %}{% if seo_meta.title %}{{ seo_meta.title }}{% else %}{{ request.tenant.name|default:"Shop" }}{% endif %}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{% if seo_meta.description %}{{ seo_meta.description }}{% else %}{{ request.tenant.name|default:'' }}{% endif %}{% endblock %}">
   {% block og %}{% endblock %}
   {% localbusiness_jsonld %}
   {% block structured_data %}{% endblock %}
