@@ -4402,6 +4402,27 @@
   группе Einstellungen. Тесты: prefs (дефолты/per-событие/матрица), gating (канал отключён → не шлётся),
   owner-linkage/push, settings (рендер/сохранение/сброс). **БЕЗ миграций** (всё в `site_config`).
 
+- **2026-07-08 — SEO-модуль v2: SEO-1 (движок мета-заготовок) — ✅.** Трек #1 владельца после
+  редактора. План — `docs/seo-module-v2-plan-2026-07-08.md`. **SEO-1 (без миграции):**
+  `apps/core/seo_meta.py` — `render_template` (плейсхолдеры `{tenant}/{city}/{heading}/{name}/
+  {category}` + суффиксы `_sfx`; удаление пустых + схлопывание висячих/сдвоенных разделителей),
+  `clamp` (title 60 / desc 155, по границе слова), `resolve(tenant, page_type, ctx)` — приоритет
+  override→`site_config["seo"]["templates"][page_type]`→архетип-дефолт; title всегда непустой
+  (фолбэк = имя бизнеса). `apps/core/context_processors.py::seo` — url_name→(page_type,heading)
+  для витринных home/листингов, кладёт `seo_meta` в контекст; зарегистрирован в base.py.
+  `_base.html`: `<title>`/`<meta description>` дефолты = `seo_meta.*` (страницы с явным override
+  блока не тронуты — их миграция + кабинет = SEO-2). Проверено на реальном сиде: home
+  «Hofladen Sonnenfeld» → «Hofladen Sonnenfeld · Hilden» + осмысленный description. 15 юнит-тестов
+  (render/clamp/resolve/CP); регресс витрины (test_seo/test_public/catalog/nav) 89 зелёных.
+  Дальше: **SEO-2** (кабинет «SEO» + live-превью), **SEO-3** (AI-SEO: llms.txt/FAQPage/AI-краулеры).
+- **2026-07-08 — UC2-4 (единый инлайн-редактор) закрыт + UC6-6h (пресеты шапки).** UC2-4-инлайн-
+  диспетчер (`apps/core/inline_edit.py`, 5 вьюх-алиасов) оказался уже сделан (2026-07-07) —
+  верифицирован (57 тестов). Вторая половина «свод save-блоков `home_builder_view`» — **WONT-FIX**
+  (владелец): сквозное чтение показало, что вьюха уже чистая (action-early-return + линейный
+  комментированный форм-save + presence-guard'ы), «свод» = чурн на критичной вьюхе с риском
+  регрессии при нулевой пользе; план сохранён `docs/uc2-4b-save-blocks-plan-2026-07-08.md`.
+  **UC6-6h:** визуальные пресеты шапки (Classic/Centered/Minimal, мини-мокапы) в области «Menu»
+  канвы → клик выставляет nav_style+sticky с лайв-превью; замок-тест, без миграций.
 - **2026-07-08 — «Довести склад-леджер до продакшн-качества» (срезы T1–T5) — ЦЕЛИКОМ.** По плану
   глубины (владелец выбрал T1+T2+T3 + «retail допиши что нужно» = все срезы). План T5 —
   `docs/ud-stock-t5-plan-2026-07-08.md`. **T1 (честная реконсиляция, без миграции):** правки остатка

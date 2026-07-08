@@ -305,6 +305,15 @@ Python 3.12, менеджер uv.
   Telegram ВЛАДЕЛЬЦУ: deep-link `start=owner-<token>`, `owner_chat_id` в site_config, `send_to_owner`
   + пуш в owner-ветках. Кабинет `/dashboard/settings/notifications/` (матрица клиента + owner-каналы +
   «Telegram verbinden»), nav «Benachrichtigungen». SMS остаётся отложен (D3 external). Без миграций.
+- **Самое свежее (2026-07-08, вечер): редактор-доводка + старт SEO-модуля v2.** Порядок владельца
+  «редактор → SEO v2 → DE(T-1) → Склад-2». **UC2-4** закрыт: инлайн-диспетчер (`apps/core/inline_edit.py`)
+  оказался уже готов (верифицирован); «свод save-блоков» — **WONT-FIX** (вьюха уже чистая, рефактор =
+  риск без пользы; план `docs/uc2-4b-save-blocks-plan-2026-07-08.md`). **UC6-6h** — визуальные пресеты
+  шапки (Classic/Centered/Minimal) в области «Menu» канвы. **SEO-1 ✅** — движок мета-заготовок
+  (`apps/core/seo_meta.py`: плейсхолдеры+резолвер+клампы; `context_processors.seo`; провод `_base.html`
+  title/description; проверено на сиде — home «… · Hilden»). Всё БЕЗ миграций. Дальше по SEO: **SEO-2**
+  (кабинет+live-превью), **SEO-3** (AI-SEO). План/очередь — `docs/seo-module-v2-plan-2026-07-08.md`,
+  `docs/task-catalog.md`. Склад-2 (Chargen/MHD·мультисклад·M12) — в очереди последней.
 - **Самое свежее (2026-07-08): «склад-леджер до продакшн-качества» (T1–T5) — ЦЕЛИКОМ.** Владелец
   выбрал полную глубину (T1+T2+T3 + retail-дозапись = все срезы). План T5 —
   `docs/ud-stock-t5-plan-2026-07-08.md`. **T1** честная реконсиляция: правки остатка в форме
