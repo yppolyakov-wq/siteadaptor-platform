@@ -2485,6 +2485,19 @@ def modules_view(request):
     tenant = request.tenant
     optional = registry.optional_modules()
     if request.method == "POST":
+        # S5: отдельная форма-тумблер режима кабинета (Простой/Эксперт). Пишем ui_mode
+        # ПРЯМО в site_config (без normalize — чтобы не задеть прочие ключи); дефолт
+        # expert = отсутствие ключа. normalize сохранит ui_mode при билдер-записи.
+        if "ui_mode" in request.POST:
+            cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+            if request.POST.get("ui_mode") == "simple":
+                cfg["ui_mode"] = "simple"
+            else:
+                cfg.pop("ui_mode", None)
+            tenant.site_config = cfg
+            tenant.save(update_fields=["site_config", "updated_at"])
+            messages.success(request, "Gespeichert.")
+            return redirect("modules")
         enabled_keys = set(request.POST.getlist("modules"))
         previously_disabled = set(tenant.disabled_modules or [])
         tenant.disabled_modules = [spec.key for spec in optional if spec.key not in enabled_keys]
@@ -2539,7 +2552,13 @@ def modules_view(request):
     return render(
         request,
         "tenant/modules.html",
-        {"nav": "modules", "rows": recommended, "other_rows": other, "premium_rows": premium},
+        {
+            "nav": "modules",
+            "rows": recommended,
+            "other_rows": other,
+            "premium_rows": premium,
+            "ui_simple": registry.is_simple(tenant),  # S5: тумблер режима
+        },
     )
 
 

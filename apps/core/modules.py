@@ -557,14 +557,39 @@ def nav_task_label(nav_key: str) -> str:
     return NAV_TASK_LABELS.get(nav_key, "")
 
 
+# S5 (упрощение кабинета): режим отображения на весь кабинет. «simple» прячет
+# продвинутое (оставляя доступным по URL), «expert» — всё. Хранение — плоский ключ
+# site_config["ui_mode"] (без миграции; ДОЛЖЕН сохраняться в siteconfig.normalize —
+# иначе билдер-сохранение сотрёт). Дефолт — expert (не ломает привычный вид).
+def ui_mode(tenant) -> str:
+    """Режим кабинета: "simple" | "expert" (дефолт expert). Читает site_config."""
+    cfg = getattr(tenant, "site_config", None)
+    if isinstance(cfg, dict) and cfg.get("ui_mode") == "simple":
+        return "simple"
+    return "expert"
+
+
+def is_simple(tenant) -> bool:
+    return ui_mode(tenant) == "simple"
+
+
+# Модули, скрываемые из сайдбара в Простом режиме (продвинутые отчёты/инструменты).
+# Скрытие — только из меню; страницы остаются доступны по URL. Расширяемо по фидбэку.
+SIMPLE_HIDDEN_MODULES: frozenset[str] = frozenset({"finance", "analytics"})
+
+
 def grouped_active_modules(tenant) -> list[dict]:
     """AB1: активные модули, сгруппированные по задачам (для сайдбара кабинета).
 
     → [{"key", "label", "modules": [ModuleSpec, …]}] в порядке NAV_GROUPS; пустые
-    группы опускаются. Модуль без явной группы попадает в «sell» (бизнес-функции)."""
+    группы опускаются. Модуль без явной группы попадает в «sell» (бизнес-функции).
+    S5: в Простом режиме продвинутые модули (SIMPLE_HIDDEN_MODULES) скрыты из меню."""
+    hidden = SIMPLE_HIDDEN_MODULES if is_simple(tenant) else frozenset()
     buckets: dict[str, list[ModuleSpec]] = {gkey: [] for gkey, _l, _k in NAV_GROUPS}
     order = {mk: i for _g, _l, keys in NAV_GROUPS for i, mk in enumerate(keys)}
     for spec in active_modules(tenant):
+        if spec.key in hidden:
+            continue
         buckets[_GROUP_BY_KEY.get(spec.key, "sell")].append(spec)
     groups = []
     for gkey, label, _keys in NAV_GROUPS:
