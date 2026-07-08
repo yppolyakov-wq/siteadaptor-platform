@@ -33,8 +33,14 @@
   Kontakt/Zeiten/Zahlungen/Versand в in-page табы) — отдельный инкремент, трогает форму.
 
 ## S4 — хабы «Marketing» + «Kunden»
-- Marketing: Aktionen/Reservierungen/Einlösen/Gutscheine/Treue/Kampagnen/Bewertungen → tab-bar.
-- Kunden: Kontakte/Nachrichten/Newsletter → tab-bar.
+- **S4a ✅ Marketing** — хаб-якорь на модуле promotions; promotions/reviews/loyalty/publishing
+  сведены (nav_items=()), «Kampagnen» перенесён из CRM во вкладку хаба. HUB_TABS["marketing"]:
+  прямые Aktionen/Bewertungen/Kampagnen/Gutscheine + Erweitert Reservierungen/Einlösen/
+  Treuepunkte/Kanäle/Beiträge (гейт каждой вкладки по своему модулю). 9 страниц + тесты.
+  ⚠️ Краевой случай: promotions выключен, reviews on → Bewertungen недоступен из сайдбара
+  (только по URL). Чистое устранение — «группа=хаб» механика (roadmap-полиш, если нужно).
+- **S4b — Kunden** (дальше): хаб-якорь на CRM; inbox/telegram сводятся; HUB_TABS["kunden"]
+  Kontakte/Nachrichten/Telegram. 3 страницы.
 
 ## S5 — режим «Простой / Эксперт» (зонтик)
 - Флаг `site_config["ui_mode"]` (без миграции; дефолт simple для новых, expert для

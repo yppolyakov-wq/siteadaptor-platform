@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Coupon campaigns" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "marketing" %}
 <div class="max-w-2xl">
   <h1 class="text-2xl font-bold mb-1">{% trans "Coupon campaigns" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% blocktrans count n=consented %}{{ n }} guest has confirmed marketing consent (double opt-in).{% plural %}{{ n }} guests have confirmed marketing consent (double opt-in).{% endblocktrans %} {% trans "Personal codes are only sent to them." %}</p>

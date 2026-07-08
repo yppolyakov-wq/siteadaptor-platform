@@ -40,6 +40,20 @@ HUB_TABS = {
         ("events:list", _("Tickets"), "events", "events", False),
         ("jobs:list", _("Aufträge"), "jobs", "jobs", False),
     ),
+    # Marketing (S4a): акции/отзывы/лояльность/публикация. Якорь-пункт «Marketing»
+    # на модуле promotions; каждая вкладка гейтится по своему модулю (Friseur без
+    # publishing не покажет Kanäle/Beiträge). Часто нужные — прямые, редкие — в Erweitert.
+    "marketing": (
+        ("promotions:promotion-list", _("Aktionen"), "promotions", "promotions", False),
+        ("reviews:list", _("Bewertungen"), "reviews", "reviews", False),
+        ("promotions:coupon-campaigns", _("Kampagnen"), "campaigns", "crm", False),
+        ("promotions:voucher-list", _("Gutscheine"), "vouchers", "loyalty", False),
+        ("promotions:reservation-list", _("Reservierungen"), "reservations", "promotions", True),
+        ("promotions:redeem", _("Einlösen"), "redeem", "promotions", True),
+        ("promotions:loyalty-list", _("Treuepunkte"), "loyalty", "loyalty", True),
+        ("channels", _("Kanäle"), "channels", "publishing", True),
+        ("publishing-posts", _("Beiträge"), "posts", "publishing", True),
+    ),
     # Einstellungen: часто нужные настройки — прямые табы; реже нужные — в «Erweitert».
     # Модуль settings core → всё всегда видно (module_key=None). «Website» (визуальный
     # билдер) остаётся ОТДЕЛЬНЫМ пунктом сайдбара, в хаб не входит.

@@ -124,3 +124,41 @@ def test_settings_hub_erweitert_open_on_advanced_active():
     html = _render_settings("languages")
     assert " open>" in html
     assert html.count('aria-selected="true"') == 1  # активна одна вкладка (в ящике)
+
+
+# --- S4a: хаб «Marketing» (акции/отзывы/лояльность/публикация) ---------------
+def _render_marketing(nav, tenant=None):
+    ctx = {"nav": nav}
+    if tenant is not None:
+        ctx["request"] = SimpleNamespace(tenant=tenant)
+    return Template('{% load cabinet %}{% hub_tabs "marketing" %}').render(Context(ctx))
+
+
+def test_marketing_nav_collapsed_to_hub():
+    # промо/отзывы/лояльность/публикация убраны из сайдбара → якорь «Marketing».
+    assert modules.get_module("promotions").nav_items != ()  # якорь остаётся
+    assert modules.nav_task_label("promotions") == "Marketing"
+    for key in ("reviews", "loyalty", "publishing"):
+        assert modules.get_module(key).nav_items == (), key
+    # «Kampagnen» переехали из CRM в хаб → у CRM остался один пункт-якорь.
+    crm_keys = [n.nav_key for n in modules.get_module("crm").nav_items]
+    assert crm_keys == ["crm"]
+
+
+def test_marketing_hub_all_tabs_when_active():
+    html = _render_marketing("promotions", _fake_tenant())
+    for lbl in ("Aktionen", "Bewertungen", "Kampagnen", "Gutscheine"):  # прямые
+        assert lbl in html, lbl
+    assert "Erweitert" in html
+    for lbl in ("Reservierungen", "Einlösen", "Treuepunkte", "Kanäle", "Beiträge"):  # ящик
+        assert lbl in html, lbl
+    assert html.count('aria-selected="true"') == 1  # активна Aktionen
+
+
+def test_marketing_hub_gates_by_module():
+    # Без publishing — Kanäle/Beiträge скрыты; без reviews — Bewertungen скрыт.
+    html = _render_marketing("promotions", _fake_tenant(disabled=["publishing", "reviews"]))
+    assert "Kanäle" not in html
+    assert "Beiträge" not in html
+    assert "Bewertungen" not in html
+    assert "Aktionen" in html  # promotions активен

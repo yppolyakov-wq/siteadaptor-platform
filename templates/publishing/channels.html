@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Channels" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "marketing" %}
 <h1 class="text-2xl font-bold mb-1">{% trans "Publishing channels" %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Active promotions are published to enabled channels automatically." %}</p>
 

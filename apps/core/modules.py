@@ -106,11 +106,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="promotions",
         label_de="Aktionen & Reservierung",
         icon="🏷️",
-        nav_items=(
-            NavItem("promotions:promotion-list", _("Promotions"), "promotions"),
-            NavItem("promotions:reservation-list", _("Reservations"), "reservations"),
-            NavItem("promotions:redeem", _("Redeem"), "redeem"),
-        ),
+        # S4a (упрощение): промо/отзывы/лояльность/публикация сведены в хаб «Marketing»
+        # (tab-bar, cabinet.HUB_TABS["marketing"]). Этот якорь-пункт → страница акций;
+        # остальное — вкладки хаба. url_prefixes сохраняют middleware-гейт.
+        nav_items=(NavItem("promotions:promotion-list", _("Promotions"), "promotions"),),
         url_prefixes=("/promotions/",),
         recommended_for=(
             "bakery",
@@ -129,11 +128,9 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="crm",
         label_de="Kunden (CRM)",
         icon="👥",
-        nav_items=(
-            NavItem("crm:customer-list", _("Customers"), "crm"),
-            # B4/CM-9: купон-кампании по сегментам клиентской базы.
-            NavItem("promotions:coupon-campaigns", _("Campaigns"), "campaigns"),
-        ),
+        # S4a: «Kampagnen» переехали во вкладку хаба «Marketing» (гейт по модулю crm).
+        # Пункт CRM остаётся якорем будущего хаба «Kunden» (S4b). url_prefix кампаний цел.
+        nav_items=(NavItem("crm:customer-list", _("Customers"), "crm"),),
         url_prefixes=("/crm/", "/promotions/kampagnen/"),
         recommended_for=("hotel", "tour_operator"),
         suited_for=(
@@ -154,7 +151,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="reviews",
         label_de="Bewertungen",
         icon="⭐",
-        nav_items=(NavItem("reviews:list", _("Reviews"), "reviews"),),
+        # S4a: вкладка хаба «Marketing» (cabinet.HUB_TABS["marketing"]); url_prefix = гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/reviews/",),
         recommended_for=(
             "bakery",
@@ -221,10 +219,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="loyalty",
         label_de="Treue & Gutscheine",
         icon="💝",
-        nav_items=(
-            NavItem("promotions:voucher-list", _("Vouchers"), "vouchers"),
-            NavItem("promotions:loyalty-list", _("Loyalty"), "loyalty"),
-        ),
+        # S4a: Gutscheine/Treuepunkte — вкладки хаба «Marketing»; url_prefixes = гейт.
+        nav_items=(),
         url_prefixes=("/promotions/vouchers/", "/promotions/loyalty/"),
         depends_on=("promotions",),
         recommended_for=("bakery", "butcher", "grocery", "cafe", "restaurant"),
@@ -280,11 +276,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="publishing",
         label_de="Veröffentlichung (Kanäle)",
         icon="📣",
-        nav_items=(
-            NavItem("channels", _("Channels"), "channels"),
-            # CM-2: контент-календарь — посты с отложенной отправкой.
-            NavItem("publishing-posts", _("Posts"), "posts"),
-        ),
+        # S4a: Kanäle/Beiträge — вкладки хаба «Marketing» (Erweitert); url_prefixes = гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/channels/", "/dashboard/posts/"),
         description_de="Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, Instagram).",
     ),
@@ -530,7 +523,8 @@ NAV_TASK_LABELS: dict[str, str] = {
     "crm": "Kunden",
     "campaigns": "Kampagnen",
     "reviews": "Bewertungen",
-    "promotions": "Aktionen",
+    # S4a: пункт-хаб «Marketing» (акции/отзывы/лояльность/публикация под tab-bar).
+    "promotions": "Marketing",
     "reservations": "Reservierungen",
     "redeem": "Einlösen",
     "vouchers": "Gutscheine",

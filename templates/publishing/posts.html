@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Posts" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "marketing" %}
 <h1 class="text-2xl font-bold mb-1">{% trans "Content calendar" %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Plan posts ahead — they are sent to all enabled channels at the scheduled time." %}</p>
 

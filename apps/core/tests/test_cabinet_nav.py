@@ -55,7 +55,10 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # теперь вкладки хаба на его страницах, а не отдельные пункты сайдбара).
     assert "Verkäufe" in html  # свод продаж, язык задач
     assert "Website gestalten" in html  # не «Site»
-    assert "Aktionen" in html  # не «Promotions»
+    # S4a: акции/отзывы/лояльность/публикация сведены в пункт-хаб «Marketing»
+    # (Aktionen/Bewertungen и др. — теперь вкладки хаба, не пункты сайдбара).
+    assert "Marketing" in html
+    assert "Kunden" in html  # хаб-якорь CRM остаётся
     assert ">Orders<" not in html and ">Booking<" not in html  # старые англ-метки ушли
     # Регрессия: текст шаблонного комментария не должен утекать в разметку
     # (многострочный {# #} не комментарий — нужен {% comment %}).
