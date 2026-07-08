@@ -59,16 +59,54 @@ def _resolve_entity(value):
     return (None, None)
 
 
+def _export_csv():
+    """T4: экспорт движений склада в CSV (последние 5000)."""
+    import csv
+
+    from django.http import HttpResponse
+
+    resp = HttpResponse(content_type="text/csv; charset=utf-8")
+    resp["Content-Disposition"] = "attachment; filename=lagerbewegungen.csv"
+    w = csv.writer(resp)
+    w.writerow(["Datum", "Produkt", "Variante", "Art", "Menge", "Quelle", "Notiz"])
+    for mv in StockMovement.objects.select_related("product", "variant").all()[:5000]:
+        w.writerow(
+            [
+                mv.created_at.strftime("%Y-%m-%d %H:%M"),
+                str(mv.product),
+                mv.variant.label if mv.variant else "",
+                mv.get_kind_display(),
+                mv.delta,
+                mv.source,
+                mv.note,
+            ]
+        )
+    return resp
+
+
 @login_required
 def stock(request):
     if request.method == "POST":
         return _handle_post(request)
+    if request.GET.get("export") == "csv":  # T4: CSV-экспорт движений
+        return _export_csv()
 
     threshold = _threshold(request.tenant)
     rows = services.reconciliation_rows()  # T2: товары БЕЗ вариантов + варианты
     low = [r for r in rows if r["counter"] <= threshold]
     diverging = [r for r in rows if not r["ok"]]
-    movements = StockMovement.objects.select_related("product", "variant").all()[:50]
+    # T4: drill-down истории по сущности (?history=p<pk>/v<pk>).
+    mv_qs = StockMovement.objects.select_related("product", "variant")
+    history, history_label = request.GET.get("history", ""), ""
+    if history:
+        hp, hv = _resolve_entity(history)
+        if hp is not None:
+            mv_qs = mv_qs.filter(product=hp)
+            mv_qs = (
+                mv_qs.filter(variant=hv) if hv is not None else mv_qs.filter(variant__isnull=True)
+            )
+            history_label = f"{hp} · {hv.label}" if hv is not None else str(hp)
+    movements = mv_qs.all()[: 100 if history else 50]
     # R1: поиск по SKU/EAN (scan-to-count) — найденную сущность подсвечиваем.
     found = None
     code = (request.GET.get("code") or "").strip()
@@ -95,6 +133,8 @@ def stock(request):
             "reasons": ADJUST_REASONS,
             "code": code,
             "found": found,
+            "history": history,
+            "history_label": history_label,
         },
     )
 

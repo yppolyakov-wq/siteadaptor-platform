@@ -6,7 +6,7 @@ Drag-JS in board.html bindet Karten + Zonen.
 {% endcomment %}
 <div class="kanban flex gap-4 overflow-x-auto pb-4" data-kanban data-kind="{{ section.kind }}">
   {% for col in section.columns %}
-    <div class="kanban-col flex-shrink-0 w-64 bg-gray-50 rounded-xl p-2">
+    <div class="kanban-col flex-shrink-0 w-64 bg-gray-50 rounded-xl p-2" data-stage="{{ col.stage }}">
       <div class="flex items-center justify-between px-2 py-1 mb-2">
         <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">{{ col.label }}</span>
         <span class="text-xs text-gray-400">{{ col.count }}</span>

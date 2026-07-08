@@ -50,6 +50,13 @@ def test_board_renders_tabs_columns_and_card():
     assert 'data-board-tab="order"' in html  # вкладка заказов
 
 
+def test_board_has_archive_toggle_and_terminal_stage():
+    _make_order()
+    html = views.board(_req()).content.decode()
+    assert 'id="board-show-closed"' in html  # T4: тумблер архива
+    assert 'data-stage="terminal"' in html  # terminal-колонка помечена для скрытия
+
+
 def test_board_hides_inactive_transaction_module():
     _make_order()
     html = views.board(_req(disabled=["orders"])).content.decode()

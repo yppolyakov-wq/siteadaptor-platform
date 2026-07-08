@@ -161,7 +161,7 @@
         <tbody>
           {% for r in rows %}
             <tr class="border-b border-gray-50">
-              <td class="px-4 py-2 truncate">{{ r.label }}</td>
+              <td class="px-4 py-2 truncate"><a href="?history={{ r.value }}" class="hover:text-indigo-700" title="{% trans 'Verlauf anzeigen' %}">{{ r.label }}</a></td>
               <td class="px-4 py-2 text-right font-semibold">{{ r.counter }}</td>
               <td class="px-4 py-2 text-right text-gray-500">{{ r.ledger }}</td>
               <td class="px-4 py-2 text-right">
@@ -178,9 +178,17 @@
   {% endif %}
 </div>
 
-{# --- Letzte Bewegungen --- #}
+{# --- Letzte Bewegungen (+ T4: Verlauf-Filter & CSV-Export) --- #}
 <div class="rounded-xl border border-gray-200 bg-white p-4">
-  <h2 class="text-sm font-semibold text-gray-700 mb-3">{% trans "Letzte Bewegungen" %}</h2>
+  <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+    <h2 class="text-sm font-semibold text-gray-700">
+      {% if history_label %}{% trans "Verlauf" %}: {{ history_label }}{% else %}{% trans "Letzte Bewegungen" %}{% endif %}
+    </h2>
+    <div class="flex items-center gap-3 text-xs">
+      {% if history %}<a href="{% url 'stock' %}" class="text-indigo-600 hover:underline">← {% trans "Alle" %}</a>{% endif %}
+      <a href="?export=csv" class="text-gray-500 hover:text-indigo-700">⬇ {% trans "CSV" %}</a>
+    </div>
+  </div>
   {% if movements %}
     <ul class="divide-y divide-gray-50 text-sm">
       {% for mv in movements %}
