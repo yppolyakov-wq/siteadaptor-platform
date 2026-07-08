@@ -51,8 +51,9 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # «➕ Funktion hinzufügen» → страница «Module».
     assert "Add function" in html or "➕" in html
     # AB1 (язык задач): пункты сайдбара в языке задач, не техтермины/англ. сущности.
-    assert "Bestellungen" in html  # не «Orders»
-    assert "Termine" in html  # не «Booking»
+    # S2: продажи сведены в один пункт-хаб «Verkäufe» (Bestellungen/Termine и др. —
+    # теперь вкладки хаба на его страницах, а не отдельные пункты сайдбара).
+    assert "Verkäufe" in html  # свод продаж, язык задач
     assert "Website gestalten" in html  # не «Site»
     assert "Aktionen" in html  # не «Promotions»
     assert ">Orders<" not in html and ">Booking<" not in html  # старые англ-метки ушли
