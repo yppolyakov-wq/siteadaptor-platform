@@ -1759,9 +1759,10 @@ def normalize_seo(raw) -> dict:
 
     Только известные page_types (home/listing/detail/category); строки чистятся и
     обрезаются (шаблон, не рендер — рендер клампит resolve). Пустой тип/поле —
-    пропуск. Пусто целиком → {} (ключ `seo` НЕ материализуется в normalize —
-    golden-паритет для конфигов без SEO). Так шаблоны переживают normalize (иначе
-    любое сохранение билдера их бы стёрло — неизвестные секции отбрасываются)."""
+    пропуск. SEO-3b: `allow_ai` материализуется ТОЛЬКО когда явно False (дефолт
+    True = разрешено; golden-паритет). Пусто целиком → {} (ключ `seo` НЕ
+    материализуется). Так настройки переживают normalize (иначе любое сохранение
+    билдера их бы стёрло — неизвестные секции отбрасываются)."""
     from apps.core import seo_meta
 
     if not isinstance(raw, dict):
@@ -1779,7 +1780,12 @@ def normalize_seo(raw) -> dict:
             entry["description"] = desc
         if entry:
             templates[pt] = entry
-    return {"templates": templates} if templates else {}
+    result = {}
+    if templates:
+        result["templates"] = templates
+    if raw.get("allow_ai") is False:  # дефолт True → ключ не материализуем
+        result["allow_ai"] = False
+    return result
 
 
 def normalize(config) -> dict:

@@ -4426,6 +4426,19 @@
   главной), GET-рендер, empty-clear. Проверено на сиде: кабинет сохранил `{tenant} — Ihre Bäckerei
   in {city}` → витрина-`<title>` = «Hofladen Sonnenfeld — Ihre Bäckerei in Hilden». Дальше: SEO-3
   (AI-SEO) + миграция листингов/деталей с явным override-блока на движок.
+- **2026-07-08 — SEO-3 (AI-SEO / GEO) — ✅.** Без миграции. Три части: **FAQPage JSON-LD**
+  (`seo.faqpage_ld` + тег `faqpage_jsonld` → `<script>` рядом с видимым FAQ в `sections/_faq.html`,
+  из `site_config.faq`); **контроль AI-краулеров** (`seo.AI_CRAWLERS` — GPTBot/OAI/ChatGPT-User/
+  ClaudeBot/anthropic-ai/Claude-Web/PerplexityBot/Google-Extended/CCBot/Bytespider/Amazonbot/
+  Applebot-Extended/meta-externalagent; `robots.txt` добавляет `Disallow: /` этим ботам когда
+  `site_config["seo"]["allow_ai"] is False`; тумблер «🤖 ИИ-краулеры» в кабинете SEO;
+  `normalize_seo` материализует `allow_ai` ТОЛЬКО при False — golden-паритет); **`llms.txt`**
+  (роут `storefront-llms` — имя/город/описание бизнеса + разделы витрины из активных модулей +
+  ссылки, для AI-ассистентов). Тесты: faqpage_ld (билд/скип-неполных/пусто), normalize_seo allow_ai,
+  robots (AI on/off), llms-рендер, cabinet-toggle (survives home-save/clear). Проверено на сиде:
+  robots блокирует GPTBot/ClaudeBot, llms.txt «# Hofladen Sonnenfeld»+Angebot, home содержит
+  FAQPage JSON-LD. **Волна SEO v2 (SEO-1..3) закрыта.** Остаток идеи (миграция листингов/деталей на
+  движок мета) — по спросу.
 - **2026-07-08 — UC2-4 (единый инлайн-редактор) закрыт + UC6-6h (пресеты шапки).** UC2-4-инлайн-
   диспетчер (`apps/core/inline_edit.py`, 5 вьюх-алиасов) оказался уже сделан (2026-07-07) —
   верифицирован (57 тестов). Вторая половина «свод save-блоков `home_builder_view`» — **WONT-FIX**

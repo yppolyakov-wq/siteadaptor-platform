@@ -1,7 +1,8 @@
-{% load i18n %}
+{% load i18n seo %}
 {% comment %}Секция FAQ (M20 ⑤a): вопрос/ответ из site_config. UC6-6d: 5 видов по
 section_row.style — "" аккордеон (текущий) | list | twocol | cards | numbered.{% endcomment %}
 {% if site.faq %}
+{% faqpage_jsonld site.faq %}{# SEO-3: FAQPage JSON-LD рядом с видимым FAQ #}
 <section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
   <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Frequently asked questions" %}</h2>
   {% if section_row.style == "list" %}

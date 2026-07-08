@@ -211,8 +211,106 @@ def test_seo_view_empty_post_clears_templates(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = _TF(schema_name="public", slug="seocab3", name="X", city="")
     views.seo_settings_view(
-        _cab_req("post", "/dashboard/site/seo/", {"title_home": "{tenant}!"}, tenant=tenant)
+        _cab_req(
+            "post",
+            "/dashboard/site/seo/",
+            {"title_home": "{tenant}!", "allow_ai": "on"},
+            tenant=tenant,
+        )
     )
-    views.seo_settings_view(_cab_req("post", "/dashboard/site/seo/", {}, tenant=tenant))
+    # форма отправлена: все шаблоны пусты, ИИ разрешён (allow_ai=on) → seo не материализуется.
+    views.seo_settings_view(
+        _cab_req("post", "/dashboard/site/seo/", {"allow_ai": "on"}, tenant=tenant)
+    )
     tenant.refresh_from_db()
-    assert "seo" not in tenant.site_config  # пустой POST → шаблоны сняты, ключ не материализован
+    assert "seo" not in tenant.site_config  # шаблоны сняты + ИИ разрешён → ключ не материализован
+
+
+# --- SEO-3: FAQPage JSON-LD + AI-краулеры (allow_ai) + robots/llms -----------------
+
+from apps.core.seo import faqpage_ld  # noqa: E402
+from apps.promotions import public_views  # noqa: E402
+
+
+def test_faqpage_ld_builds_and_skips_incomplete():
+    out = faqpage_ld(
+        [{"q": "Öffnungszeiten?", "a": "Mo-Fr 8-18"}, {"q": "Q", "a": ""}, {"q": "", "a": "x"}]
+    )
+    assert '"@type":"FAQPage"' in out
+    assert "Öffnungszeiten?" in out
+    assert out.count('"Question"') == 1  # только полная пара
+
+
+def test_faqpage_ld_empty_returns_blank():
+    assert faqpage_ld([]) == ""
+    assert faqpage_ld([{"q": "only q"}]) == ""
+
+
+def test_normalize_seo_allow_ai_only_when_false():
+    assert siteconfig.normalize_seo({"allow_ai": False}) == {"allow_ai": False}
+    assert siteconfig.normalize_seo({"allow_ai": True}) == {}  # дефолт → не материализуем
+    out = siteconfig.normalize_seo({"templates": {"home": {"title": "x"}}, "allow_ai": False})
+    assert out == {"templates": {"home": {"title": "x"}}, "allow_ai": False}
+
+
+def test_robots_blocks_ai_when_disabled(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(
+        schema_name="public", slug="rob1", name="X", site_config={"seo": {"allow_ai": False}}
+    )
+    req = RequestFactory().get("/robots.txt")
+    req.tenant = tenant
+    body = public_views.robots_txt(req).content.decode()
+    assert "GPTBot" in body and "ClaudeBot" in body and "Disallow: /" in body
+
+
+def test_robots_allows_ai_by_default(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(schema_name="public", slug="rob2", name="X", site_config={})
+    req = RequestFactory().get("/robots.txt")
+    req.tenant = tenant
+    body = public_views.robots_txt(req).content.decode()
+    assert "User-agent: *" in body
+    assert "GPTBot" not in body  # дефолт: ИИ разрешён
+
+
+def test_llms_txt_renders_business(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(
+        schema_name="public",
+        slug="llm1",
+        name="Bäcker Ott",
+        city="Köln",
+        site_config={"about_text": "Frische Backwaren."},
+    )
+    req = RequestFactory().get("/llms.txt")
+    req.tenant = tenant
+    body = public_views.llms_txt(req).content.decode()
+    assert "# Bäcker Ott" in body
+    assert "Standort: Köln" in body
+    assert "Frische Backwaren." in body
+
+
+def test_seo_view_ai_toggle_off_survives_home_save(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(schema_name="public", slug="seocab4", name="X")
+    views.seo_settings_view(  # чекбокс allow_ai НЕ прислан → выключено
+        _cab_req("post", "/dashboard/site/seo/", {"title_home": "{tenant}"}, tenant=tenant)
+    )
+    tenant.refresh_from_db()
+    assert tenant.site_config["seo"]["allow_ai"] is False
+    views.home_builder_view(
+        _cab_req("post", "/dashboard/site/home/", {"order_hero": "1"}, tenant=tenant)
+    )
+    tenant.refresh_from_db()
+    assert tenant.site_config["seo"]["allow_ai"] is False  # переживает сохранение главной
+
+
+def test_seo_view_ai_toggle_on_clears_key(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(schema_name="public", slug="seocab5", name="X")
+    views.seo_settings_view(
+        _cab_req("post", "/dashboard/site/seo/", {"allow_ai": "on"}, tenant=tenant)
+    )
+    tenant.refresh_from_db()
+    assert "allow_ai" not in (tenant.site_config.get("seo") or {})  # разрешено → ключ не пишем

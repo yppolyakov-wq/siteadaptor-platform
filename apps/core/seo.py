@@ -285,3 +285,44 @@ def collectionpage_ld(*, name: str, url: str, items) -> str:
     if elements:
         data["mainEntity"] = {"@type": "ItemList", "itemListElement": elements}
     return _dumps(data)
+
+
+def faqpage_ld(items) -> str:
+    """SEO-3: JSON-LD FAQPage из [{q, a}] (site_config.faq). Пары без вопроса или
+    ответа пропускаются; пусто → '' (тег не выводит <script>)."""
+    entities = []
+    for it in items or []:
+        if not isinstance(it, dict):
+            continue
+        q = (it.get("q") or "").strip()
+        a = (it.get("a") or "").strip()
+        if q and a:
+            entities.append(
+                {
+                    "@type": "Question",
+                    "name": q,
+                    "acceptedAnswer": {"@type": "Answer", "text": a},
+                }
+            )
+    if not entities:
+        return ""
+    return _dumps({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": entities})
+
+
+# SEO-3b: известные AI-краулеры (GEO). Блокируются в robots.txt, когда владелец
+# выключил «ИИ-индексацию» (site_config["seo"]["allow_ai"] == False).
+AI_CRAWLERS = (
+    "GPTBot",
+    "OAI-SearchBot",
+    "ChatGPT-User",
+    "ClaudeBot",
+    "anthropic-ai",
+    "Claude-Web",
+    "PerplexityBot",
+    "Google-Extended",
+    "CCBot",
+    "Bytespider",
+    "Amazonbot",
+    "Applebot-Extended",
+    "meta-externalagent",
+)

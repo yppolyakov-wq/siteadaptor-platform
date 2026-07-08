@@ -2407,14 +2407,21 @@ def seo_settings_view(request):
                 entry["description"] = desc
             if entry:
                 templates[pt] = entry
-        cfg["seo"] = {"templates": templates}
+        seo = {"templates": templates}
+        # SEO-3b: чекбокс «ИИ-индексацию разрешить» снят → allow_ai=False (robots блокирует
+        # AI-краулеров). Отмечен/дефолт → разрешено (ключ не пишем, golden-паритет).
+        if request.POST.get("allow_ai") != "on":
+            seo["allow_ai"] = False
+        cfg["seo"] = seo
         request.tenant.site_config = siteconfig.normalize(cfg)
         request.tenant.save(update_fields=["site_config", "updated_at"])
         messages.success(request, "Gespeichert.")
         return redirect("site-seo")
 
     tenant = request.tenant
-    saved = (siteconfig.normalize(tenant.site_config).get("seo") or {}).get("templates") or {}
+    seo_cfg = siteconfig.normalize(tenant.site_config).get("seo") or {}
+    saved = seo_cfg.get("templates") or {}
+    allow_ai = seo_cfg.get("allow_ai") is not False  # дефолт True
     page_labels = {
         "home": _("Homepage"),
         "listing": _("Listings (catalog, rooms, events)"),
@@ -2460,6 +2467,7 @@ def seo_settings_view(request):
             "placeholders": ["{tenant}", "{city}", "{heading}", "{name}", "{category}"],
             "title_max": seo_meta.TITLE_MAX,
             "desc_max": seo_meta.DESC_MAX,
+            "allow_ai": allow_ai,
         },
     )
 

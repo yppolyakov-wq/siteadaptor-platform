@@ -998,10 +998,54 @@ def sitemap_xml(request):
 
 
 def robots_txt(request):
-    """robots.txt витрины: всё открыто + ссылка на sitemap (Track B5)."""
+    """robots.txt витрины: всё открыто + ссылка на sitemap (Track B5).
+
+    SEO-3b: если владелец выключил ИИ-индексацию (site_config["seo"]["allow_ai"]
+    == False) — добавляем Disallow для известных AI-краулеров (GEO-контроль)."""
     sitemap = request.build_absolute_uri(reverse("storefront-sitemap"))
     body = f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n"
+    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    if (cfg.get("seo") or {}).get("allow_ai") is False:
+        from apps.core.seo import AI_CRAWLERS
+
+        body += "\n" + "".join(f"\nUser-agent: {bot}\nDisallow: /\n" for bot in AI_CRAWLERS)
     return HttpResponse(body, content_type="text/plain")
+
+
+def llms_txt(request):
+    """SEO-3c: llms.txt — краткое машиночитаемое описание бизнеса для AI-ассистентов
+    (GEO). Имя, город, описание, разделы витрины + ключевые ссылки. Ошибки внутри
+    гасим (страница-обвязка не должна ронять; всегда отдаём хотя бы имя)."""
+    from django.urls import NoReverseMatch
+
+    tenant = request.tenant
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    base = request.build_absolute_uri("/").rstrip("/")
+    lines = [f"# {tenant.name}", ""]
+    desc = (cfg.get("hero_text") or cfg.get("about_text") or "").strip()
+    if desc:
+        lines += ["> " + " ".join(desc.split()), ""]
+    if (getattr(tenant, "city", "") or "").strip():
+        lines += [f"Standort: {tenant.city}", ""]
+    try:
+        from apps.core import modules
+
+        sections = []
+        for spec in modules.active_modules(tenant):
+            if not spec.storefront_landing:
+                continue
+            try:
+                url = base + reverse(spec.storefront_landing)
+            except NoReverseMatch:
+                continue
+            sections.append(f"- [{spec.storefront_label or spec.label_de}]({url})")
+        if sections:
+            lines += ["## Angebot", *sections, ""]
+    except Exception:  # noqa: BLE001 — обвязка не должна ронять llms.txt
+        pass
+    lines += ["## Seiten", f"- [Startseite]({base}/)"]
+    body = "\n".join(lines) + "\n"
+    return HttpResponse(body, content_type="text/plain; charset=utf-8")
 
 
 def product_feed_xml(request):

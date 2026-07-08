@@ -4,7 +4,7 @@ from django import template
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from apps.core.seo import blogposting_ld, breadcrumb_ld, entity_ld, localbusiness_ld
+from apps.core.seo import blogposting_ld, breadcrumb_ld, entity_ld, faqpage_ld, localbusiness_ld
 
 register = template.Library()
 
@@ -223,6 +223,19 @@ def blogposting_jsonld(context, post):
     if not payload:
         return ""
     return mark_safe(f'<script type="application/ld+json">{payload}</script>')
+
+
+@register.simple_tag
+def faqpage_jsonld(items):
+    """SEO-3: <script> FAQPage JSON-LD из списка [{q,a}] (site_config.faq). Пусто/
+    ошибка → '' (SEO-обвязка не должна ронять страницу)."""
+    try:
+        payload = faqpage_ld(items)
+        return (
+            mark_safe(f'<script type="application/ld+json">{payload}</script>') if payload else ""
+        )
+    except Exception:  # noqa: BLE001
+        return ""
 
 
 @register.simple_tag(takes_context=True)
