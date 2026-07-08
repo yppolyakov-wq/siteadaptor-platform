@@ -320,19 +320,7 @@ Python 3.12, менеджер uv.
   +3 поля; демо EK≈55% VK. Проверено на сиде shop (Warenwert 514.31 €, Vorschlag +18, Marge 45%). T1–T4
   без миграций; **⚠️ `catalog/0014` ТРЕБУЕТ ДЕПЛОЯ** (вместе с `inventory/0001`). Дальше по каталогу —
   платформа D1 (Pro-тариф, ждёт прайсинг) / другие треки за решением владельца.
-- Самые свежие миграции: **`catalog/0014`** (T5 склад: cost_price/reorder_point/reorder_target на
-  Product+ProductVariant, TENANT, 2026-07-08 — ⚠️ ТРЕБУЕТ ДЕПЛОЯ) + **`inventory/0001`** (U-D3 склад-леджер StockMovement, TENANT, 2026-07-07 — ⚠️ ТРЕБУЕТ ДЕПЛОЯ) + **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) + **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
-  **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
-  (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает
-  образ с gettext и компилирует en.mo); ранее **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,
-  2026-07-02 — ⚠️ требуют деплоя); ранее **`orders/0012` + `tenants/0020`** (E-7: payment_method + Vorkasse-
-  реквизиты/stripe_payment_methods, 2026-07-02 — ⚠️ требуют деплоя); **`catalog/0012` +
-  `booking/0014`** (остаток U-A: combo i18n + post-visit,
-  2026-07-02 — ⚠️ требуют деплоя) и **`collections/0001` + `booking/0013` + `stays/0021`** (UB3-2
-  M2M-подборки, 2026-07-02 — ⚠️ требуют деплоя); ранее `reviews/0001`+`reviews/0002` (UA4-4a generic Review + data-migration из
-  ProductReview); ранее `booking/0012` (UA4-3 attrs/faq/primary_action), `booking/0011` + `stays/0020`
-  (L3-модель i18n Service/StayUnit); ещё ранее `stays/0014–0019` + `promotions/0018` (этап витрины/UX;
-  L1/L2 миграций НЕ добавляли). Полный список — в build-log.
+- Миграции: **ЗАДЕПЛОЕНО 2026-07-08 (полный деплой владельца)** — применены ВСЕ миграции по состоянию на этот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). Незадеплоенных миграций нет. Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
