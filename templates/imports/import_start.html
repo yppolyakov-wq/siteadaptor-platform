@@ -1,9 +1,10 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% load widget_tweaks %}
 {% block dash_title %}{% trans "Imports" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "catalog" %}
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-xl font-semibold">{% trans "Product import" %}</h1>
 </div>

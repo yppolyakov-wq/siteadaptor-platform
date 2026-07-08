@@ -89,14 +89,11 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="catalog",
         label_de="Katalog & Import",
         icon="📦",
-        nav_items=(
-            NavItem("catalog:product-list", _("Catalog"), "catalog"),
-            NavItem("catalog:category-list", _("Categories"), "categories"),
-            NavItem("catalog:combo-list", _("Combos"), "combos"),
-            NavItem("imports:start", _("Imports"), "imports"),
-            # U-D3: склад-леджер — приёмки/корректировки/инвентаризация/реконсиляция.
-            NavItem("stock", _("Stock"), "stock"),
-        ),
+        # S1 (упрощение кабинета): 5 прежних пунктов каталога (Produkte/Kategorien/
+        # Lager/Kombi/Import) сведены в ОДИН хаб «Sortiment» с tab-bar над контентом
+        # (cabinet.HUB_TABS["catalog"] + _hub_tabs.html). Под-страницы доступны
+        # табами; url_prefixes ниже сохраняют middleware-гейт всех путей.
+        nav_items=(NavItem("catalog:product-list", _("Catalog"), "catalog"),),
         url_prefixes=("/catalog/", "/imports/", "/dashboard/stock/"),
         core=True,
         description_de="Produkte und Kategorien pflegen, Import aus CSV/Excel.",
