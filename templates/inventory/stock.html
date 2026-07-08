@@ -14,6 +14,14 @@
   </div>
 {% endif %}
 
+{# --- T5: Bestandswert (Warenwert = Σ Bestand × Einkaufspreis) --- #}
+{% if warenwert.total %}
+  <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex items-baseline justify-between gap-3">
+    <span class="text-sm font-medium text-emerald-800">💰 {% trans "Warenwert (Einkauf)" %}</span>
+    <span class="text-lg font-bold text-emerald-900">{{ warenwert.total|floatformat:2 }} €</span>
+  </div>
+{% endif %}
+
 {# --- R1: Suche per SKU/EAN (scan-to-count) --- #}
 <form method="get" action="{% url 'stock' %}" class="mb-3 flex items-center gap-2">
   <input type="text" name="code" value="{{ code }}" placeholder="{% trans 'SKU / EAN scannen oder eingeben' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -37,15 +45,36 @@
   </div>
 {% endif %}
 
-{# --- Meldebestand (niedriger Bestand) --- #}
-{% if low %}
+{# --- T5/R4: Bestellvorschläge (Bestand ≤ Meldebestand; mit Sollbestand-Vorschlag) --- #}
+{% if reorder %}
   <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
-    <h2 class="text-sm font-semibold text-amber-800 mb-2">⚠️ {% trans "Niedriger Bestand" %} (≤ {{ threshold }})</h2>
-    <ul class="text-sm text-amber-900 space-y-1">
-      {% for r in low %}
-        <li class="flex justify-between gap-3"><span class="truncate">{{ r.label }}</span><span class="font-semibold">{{ r.counter }}</span></li>
-      {% endfor %}
-    </ul>
+    <h2 class="text-sm font-semibold text-amber-800 mb-2">🛒 {% trans "Bestellvorschläge" %}</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-amber-900">
+        <thead class="text-xs text-amber-700/80 uppercase tracking-wide">
+          <tr class="border-b border-amber-200">
+            <th class="text-left py-1 pr-3 font-medium">{% trans "Artikel" %}</th>
+            <th class="text-right py-1 px-2 font-medium">{% trans "Bestand" %}</th>
+            <th class="text-right py-1 px-2 font-medium">{% trans "Meldebestand" %}</th>
+            <th class="text-right py-1 pl-2 font-medium">{% trans "Vorschlag" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reorder %}
+            <tr class="border-b border-amber-100/60">
+              <td class="py-1 pr-3 truncate">
+                <a href="?history={{ r.value }}" class="hover:underline">{{ r.label }}</a>
+                {% if r.counter == 0 %}<span class="ml-1 text-xs font-semibold text-red-600">{% trans "Ausverkauft" %}</span>{% endif %}
+              </td>
+              <td class="py-1 px-2 text-right font-semibold">{{ r.counter }}</td>
+              <td class="py-1 px-2 text-right text-amber-700">{{ r.point }}</td>
+              <td class="py-1 pl-2 text-right">{% if r.suggest %}+{{ r.suggest }}{% else %}—{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-amber-700/80 mt-2">{% trans "Vorschlag = Sollbestand − Bestand (Sollbestand am Artikel pflegen)." %}</p>
   </div>
 {% endif %}
 
@@ -155,20 +184,26 @@
             <th class="text-left px-4 py-2 font-medium">{% trans "Produkt" %}</th>
             <th class="text-right px-4 py-2 font-medium">{% trans "Zähler" %}</th>
             <th class="text-right px-4 py-2 font-medium">{% trans "Ledger" %}</th>
+            <th class="text-right px-4 py-2 font-medium">{% trans "Wert" %}</th>
+            <th class="text-right px-4 py-2 font-medium">{% trans "Marge" %}</th>
             <th class="text-right px-4 py-2 font-medium">{% trans "Status" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for r in rows %}
+            {% with entity=r.variant|default:r.product %}
             <tr class="border-b border-gray-50">
               <td class="px-4 py-2 truncate"><a href="?history={{ r.value }}" class="hover:text-indigo-700" title="{% trans 'Verlauf anzeigen' %}">{{ r.label }}</a></td>
               <td class="px-4 py-2 text-right font-semibold">{{ r.counter }}</td>
               <td class="px-4 py-2 text-right text-gray-500">{{ r.ledger }}</td>
+              <td class="px-4 py-2 text-right text-gray-500">{% if entity.stock_value != None %}{{ entity.stock_value|floatformat:2 }} €{% else %}—{% endif %}</td>
+              <td class="px-4 py-2 text-right {% if entity.margin_pct != None and entity.margin_pct < 0 %}text-red-600{% else %}text-gray-500{% endif %}">{% if entity.margin_pct != None %}{{ entity.margin_pct }} %{% else %}—{% endif %}</td>
               <td class="px-4 py-2 text-right">
                 {% if r.ok %}<span class="text-green-600">✓</span>
                 {% else %}<span class="text-red-600">{{ r.diff|stringformat:"+d" }}</span>{% endif %}
               </td>
             </tr>
+            {% endwith %}
           {% endfor %}
         </tbody>
       </table>

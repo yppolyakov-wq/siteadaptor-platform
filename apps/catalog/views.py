@@ -181,6 +181,9 @@ def variant_add(request, pk):
             price=_parse_price(request.POST.get("price")),
             content_amount=_parse_price(request.POST.get("content")),
             stock_quantity=_parse_int(request.POST.get("stock")),
+            cost_price=_parse_price(request.POST.get("cost")),  # T5
+            reorder_point=_parse_int(request.POST.get("reorder_point")),  # T5
+            reorder_target=_parse_int(request.POST.get("reorder_target")),  # T5
             sort_order=_parse_int(request.POST.get("sort")) or 0,
         )
         # T1: стартовый остаток варианта → в склад-леджер.
@@ -203,6 +206,9 @@ def variant_update(request, pk, vid):
     variant.price = _parse_price(request.POST.get("price"))
     variant.content_amount = _parse_price(request.POST.get("content"))
     variant.stock_quantity = _parse_int(request.POST.get("stock"))
+    variant.cost_price = _parse_price(request.POST.get("cost"))  # T5
+    variant.reorder_point = _parse_int(request.POST.get("reorder_point"))  # T5
+    variant.reorder_target = _parse_int(request.POST.get("reorder_target"))  # T5
     variant.sort_order = _parse_int(request.POST.get("sort")) or 0
     variant.gtin = (request.POST.get("gtin") or "").strip()
     variant.is_active = bool(request.POST.get("is_active"))
@@ -211,6 +217,9 @@ def variant_update(request, pk, vid):
             "price",
             "content_amount",
             "stock_quantity",
+            "cost_price",
+            "reorder_point",
+            "reorder_target",
             "sort_order",
             "gtin",
             "is_active",

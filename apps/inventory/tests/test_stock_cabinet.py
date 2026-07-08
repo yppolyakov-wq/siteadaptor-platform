@@ -92,3 +92,13 @@ def test_threshold_saved_to_site_config():
     assert resp.status_code == 302
     tenant.refresh_from_db()
     assert tenant.site_config.get("low_stock_threshold") == 3
+
+
+def test_cabinet_shows_warenwert_and_reorder(settings):
+    from decimal import Decimal
+
+    ProductFactory(base_price=Decimal("10"), stock_quantity=4, cost_price=Decimal("6.00"))
+    html = views.stock(_req()).content.decode()
+    assert "Warenwert" in html  # T5: Bestandswert-Plakette
+    assert "24" in html  # 4 × 6.00 €
+    assert "Bestellvorschläge" in html  # T5: Bestand 4 ≤ globaler Schwellwert (5)

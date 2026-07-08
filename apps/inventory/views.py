@@ -95,6 +95,8 @@ def stock(request):
     rows = services.reconciliation_rows()  # T2: товары БЕЗ вариантов + варианты
     low = [r for r in rows if r["counter"] <= threshold]
     diverging = [r for r in rows if not r["ok"]]
+    warenwert = services.inventory_value()  # T5: Bestandswert (Σ Bestand × EK)
+    reorder = services.reorder_suggestions(threshold)  # T5: Bestellvorschläge
     # T4: drill-down истории по сущности (?history=p<pk>/v<pk>).
     mv_qs = StockMovement.objects.select_related("product", "variant")
     history, history_label = request.GET.get("history", ""), ""
@@ -129,6 +131,8 @@ def stock(request):
             "diverging": diverging,
             "movements": movements,
             "entities": services.stock_entities(),
+            "warenwert": warenwert,
+            "reorder": reorder,
             "threshold": threshold,
             "reasons": ADJUST_REASONS,
             "code": code,

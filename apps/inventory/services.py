@@ -133,6 +133,53 @@ def reconciliation_rows():
     return rows
 
 
+def inventory_value():
+    """T5: суммарный Warenwert (Bestandswert) по всем учитываемым сущностям +
+    разбивка. ``{total: Decimal, rows: [{value,label,product,variant,qty,cost,value}]}``.
+
+    Считается только по сущностям с заданным EK и учитываемым остатком (иначе Wert
+    нельзя посчитать); ``total`` — сумма (Decimal, 0 если нечего считать)."""
+    from decimal import Decimal
+
+    total = Decimal("0")
+    rows = []
+    for e in stock_entities():
+        entity = e["variant"] if e["variant"] is not None else e["product"]
+        value = entity.stock_value
+        if value is None:
+            continue
+        cost = getattr(entity, "cost_value", None)
+        if cost is None:
+            cost = entity.cost_price
+        total += value
+        rows.append({**e, "qty": entity.stock_quantity, "cost": cost, "value": value})
+    return {"total": total, "rows": rows}
+
+
+def reorder_suggestions(global_threshold):
+    """T5: Bestellvorschläge — сущности учёта, где остаток ≤ Meldebestand (per-Artikel
+    ``reorder_point`` или глобальный порог). ``[{value,label,product,variant,counter,
+    point,target,suggest}]``.
+
+    ``suggest`` = max(Sollbestand − остаток, 0), если задан ``reorder_target``, иначе
+    None (просто «нужен дозаказ»). Сортировка: Ausverkauft (0) первыми, затем по
+    возрастанию остатка (самое срочное сверху). Неучитываемые (None) — пропуск."""
+    out = []
+    for e in stock_entities():
+        entity = e["variant"] if e["variant"] is not None else e["product"]
+        counter = entity.stock_quantity
+        if counter is None:
+            continue
+        point = entity.effective_reorder_point(global_threshold)
+        if point is None or counter > point:
+            continue
+        target = entity.reorder_target
+        suggest = max(target - counter, 0) if target is not None else None
+        out.append({**e, "counter": counter, "point": point, "target": target, "suggest": suggest})
+    out.sort(key=lambda r: (r["counter"] != 0, r["counter"]))
+    return out
+
+
 def apply_manual_movement(
     *, product, variant=None, kind, delta=0, set_absolute=None, actor="", note=""
 ):

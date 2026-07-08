@@ -80,6 +80,14 @@ class Product(SoftDeleteMixin, I18nMixin):
 
     stock_quantity = models.IntegerField(null=True, blank=True)
 
+    # T5 (R2/R4): Einkauf & Bestellwesen. cost_price — Einkaufspreis netto
+    # (Bestandswert/Marge). reorder_point/reorder_target — Meldebestand/Sollbestand
+    # des Artikels (Bestellvorschlag; überschreibt den globalen Schwellwert). Alle
+    # optional; None = nicht gepflegt (kein Wert/keine Empfehlung).
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    reorder_point = models.IntegerField(null=True, blank=True)
+    reorder_target = models.IntegerField(null=True, blank=True)
+
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
 
@@ -163,6 +171,25 @@ class Product(SoftDeleteMixin, I18nMixin):
         return min(prices) if prices else self.base_price
 
     @property
+    def stock_value(self):
+        """T5: Bestandswert (Bestand × EK) товара без вариантов, или None
+        (не учитывается / EK не задан). Вариантные товары считают Wert на вариантах."""
+        if self.stock_quantity is None or self.cost_price is None:
+            return None
+        return self.cost_price * self.stock_quantity
+
+    @property
+    def margin_pct(self):
+        """T5: Marge % = (VK − EK)/VK по base_price. None если нет EK или VK ≤ 0."""
+        from .pricing import margin_pct
+
+        return margin_pct(self.base_price, self.cost_price)
+
+    def effective_reorder_point(self, global_threshold):
+        """T5: Meldebestand артикула (reorder_point) или глобальный порог кабинета."""
+        return self.reorder_point if self.reorder_point is not None else global_threshold
+
+    @property
     def grundpreis(self):
         """PAngV (value, ref) или None — для товара без вариантов."""
         from .pricing import grundpreis
@@ -217,6 +244,11 @@ class ProductVariant(TimestampedModel):
     # берётся Product.content_amount. Единица (unit) — на товаре.
     content_amount = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
     stock_quantity = models.IntegerField(null=True, blank=True)
+    # T5 (R2/R4): Einkaufspreis (Fallback → Product.cost_price) + Meldebestand/
+    # Sollbestand des Varianten-Bestands.
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    reorder_point = models.IntegerField(null=True, blank=True)
+    reorder_target = models.IntegerField(null=True, blank=True)
     sort_order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -233,6 +265,30 @@ class ProductVariant(TimestampedModel):
     def price_value(self):
         """Цена варианта: своя или фолбэк на base_price товара."""
         return self.price if self.price is not None else self.product.base_price
+
+    @property
+    def cost_value(self):
+        """T5: Einkaufspreis варианта — свой или фолбэк на Product.cost_price."""
+        return self.cost_price if self.cost_price is not None else self.product.cost_price
+
+    @property
+    def stock_value(self):
+        """T5: Bestandswert варианта (Bestand × EK) или None."""
+        cost = self.cost_value
+        if self.stock_quantity is None or cost is None:
+            return None
+        return cost * self.stock_quantity
+
+    @property
+    def margin_pct(self):
+        """T5: Marge % = (VK − EK)/VK по price_value/cost_value. None если нет EK/VK≤0."""
+        from .pricing import margin_pct
+
+        return margin_pct(self.price_value, self.cost_value)
+
+    def effective_reorder_point(self, global_threshold):
+        """T5: Meldebestand варианта или глобальный порог кабинета."""
+        return self.reorder_point if self.reorder_point is not None else global_threshold
 
     @property
     def in_stock(self) -> bool:

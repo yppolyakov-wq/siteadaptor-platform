@@ -142,13 +142,22 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "sku",
             "gtin",
             "stock_quantity",
+            "cost_price",
+            "reorder_point",
+            "reorder_target",
             "origin",
             "ingredients",
             "is_active",
             "is_featured",
             "badge",
         ]
-        labels = {"gtin": _("EAN / GTIN (barcode)"), "badge": _("Badge")}
+        labels = {
+            "gtin": _("EAN / GTIN (barcode)"),
+            "badge": _("Badge"),
+            "cost_price": _("Einkaufspreis (netto)"),
+            "reorder_point": _("Meldebestand"),
+            "reorder_target": _("Sollbestand"),
+        }
 
     def __init__(self, *args, tenant=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -166,6 +175,24 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         if price is not None and price < 0:
             raise forms.ValidationError(_("Price must be ≥ 0."))
         return price
+
+    def clean_cost_price(self):
+        cost = self.cleaned_data.get("cost_price")
+        if cost is not None and cost < 0:
+            raise forms.ValidationError(_("Einkaufspreis muss ≥ 0 sein."))
+        return cost
+
+    def clean_reorder_point(self):
+        val = self.cleaned_data.get("reorder_point")
+        if val is not None and val < 0:
+            raise forms.ValidationError(_("Meldebestand muss ≥ 0 sein."))
+        return val
+
+    def clean_reorder_target(self):
+        val = self.cleaned_data.get("reorder_target")
+        if val is not None and val < 0:
+            raise forms.ValidationError(_("Sollbestand muss ≥ 0 sein."))
+        return val
 
     def save(self, commit=True):
         product = super().save(commit=False)

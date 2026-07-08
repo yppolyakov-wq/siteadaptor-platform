@@ -33,3 +33,21 @@ def grundpreis(price, unit, content_amount):
     else:
         return None
     return (price / base).quantize(Decimal("0.01")), ref
+
+
+def margin_pct(sale_price, cost_price):
+    """Marge в процентах = (VK − EK)/VK × 100 (T5).
+
+    int (усечение к нулю). None, если EK или VK отсутствуют или VK ≤ 0.
+    Отрицательный результат (продажа ниже закупки) допускается и возвращается.
+    """
+    if cost_price is None or sale_price is None:
+        return None
+    try:
+        vk = Decimal(str(sale_price))
+        ek = Decimal(str(cost_price))
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+    if vk <= 0:
+        return None
+    return int((vk - ek) / vk * 100)

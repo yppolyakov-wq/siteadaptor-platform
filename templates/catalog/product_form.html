@@ -80,6 +80,9 @@
           <input name="price" type="text" inputmode="decimal" value="{{ v.price|default_if_none:'' }}" placeholder="{{ product.base_price }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Price' %}">
           <input name="content" type="text" inputmode="decimal" value="{{ v.content_amount|default_if_none:'' }}" placeholder="{% trans 'Content' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Content' %}">
           <input name="stock" type="number" value="{{ v.stock_quantity|default_if_none:'' }}" placeholder="∞" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Stock' %}">
+          <input name="cost" type="text" inputmode="decimal" value="{{ v.cost_price|default_if_none:'' }}" placeholder="{% trans 'EK' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Einkaufspreis' %}">
+          <input name="reorder_point" type="number" value="{{ v.reorder_point|default_if_none:'' }}" placeholder="{% trans 'Meld.' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Meldebestand' %}">
+          <input name="reorder_target" type="number" value="{{ v.reorder_target|default_if_none:'' }}" placeholder="{% trans 'Soll' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Sollbestand' %}">
           <input name="gtin" type="text" value="{{ v.gtin }}" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
           <input name="sort" type="number" value="{{ v.sort_order }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="is_active" {% if v.is_active %}checked{% endif %}> {% trans "Active" %}</label>
@@ -94,6 +97,9 @@
         <input name="price" type="text" inputmode="decimal" placeholder="{% trans 'Price' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
         <input name="content" type="text" inputmode="decimal" placeholder="{% trans 'Content' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5">
         <input name="stock" type="number" placeholder="{% trans 'Stock' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="cost" type="text" inputmode="decimal" placeholder="{% trans 'EK' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Einkaufspreis' %}">
+        <input name="reorder_point" type="number" placeholder="{% trans 'Meld.' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Meldebestand' %}">
+        <input name="reorder_target" type="number" placeholder="{% trans 'Soll' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Sollbestand' %}">
         <input name="gtin" type="text" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
         <input name="sort" type="number" value="0" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
         <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add variant" %}</button>

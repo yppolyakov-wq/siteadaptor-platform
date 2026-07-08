@@ -3487,11 +3487,12 @@ def apply_kit(tenant, key: str) -> bool:
         nonlocal lock
         content = item.get("content")
         stock = item.get("stock")
+        base = Decimal(item["price"])
         name_i18n = _i18n_text(item["name"])
         product = Product.objects.create(
             name=name_i18n,
             description=_i18n_text(item["desc"]),
-            base_price=Decimal(item["price"]),
+            base_price=base,
             category=category,
             images=[_image_ref(item["img"], lock, name_i18n.get("de", ""))],
             allergens=item["allergens"],
@@ -3500,6 +3501,11 @@ def apply_kit(tenant, key: str) -> bool:
             unit=item.get("unit", ""),  # R2 Grundpreis
             content_amount=Decimal(str(content)) if content is not None else None,
             stock_quantity=stock,  # R3 остаток (None = без учёта)
+            # T5: EK ≈ 55 % VK (Marge ~45 %) + Meldebestand/Sollbestand для демо
+            # (Warenwert/Marge/Bestellvorschläge видны в кабинете склада).
+            cost_price=(base * Decimal("0.55")).quantize(Decimal("0.01")),
+            reorder_point=8 if stock is not None else None,
+            reorder_target=24 if stock is not None else None,
             gtin=item.get("gtin", ""),  # A1 EAN
             sku=item.get("sku", ""),
             is_active=True,
@@ -3523,12 +3529,18 @@ def apply_kit(tenant, key: str) -> bool:
             # Вариант — кортеж (label, price) ИЛИ dict с остатком/Grundpreis/EAN.
             if isinstance(v, dict):
                 vc = v.get("content")
+                vprice = Decimal(str(v["price"]))
+                vstock = v.get("stock")
                 variant = ProductVariant.objects.create(
                     product=product,
                     label=v["label"],
-                    price=Decimal(str(v["price"])),
+                    price=vprice,
                     content_amount=Decimal(str(vc)) if vc is not None else None,
-                    stock_quantity=v.get("stock"),
+                    stock_quantity=vstock,
+                    # T5: EK ≈ 55 % VK + Meldebestand/Sollbestand (демо)
+                    cost_price=(vprice * Decimal("0.55")).quantize(Decimal("0.01")),
+                    reorder_point=5 if vstock is not None else None,
+                    reorder_target=15 if vstock is not None else None,
                     gtin=v.get("gtin", ""),
                     sku=v.get("sku", ""),
                     sort_order=vsort,

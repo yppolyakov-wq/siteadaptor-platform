@@ -305,8 +305,23 @@ Python 3.12, менеджер uv.
   Telegram ВЛАДЕЛЬЦУ: deep-link `start=owner-<token>`, `owner_chat_id` в site_config, `send_to_owner`
   + пуш в owner-ветках. Кабинет `/dashboard/settings/notifications/` (матрица клиента + owner-каналы +
   «Telegram verbinden»), nav «Benachrichtigungen». SMS остаётся отложен (D3 external). Без миграций.
-  Дальше по каталогу — платформа D1 (Pro-тариф, ждёт прайсинг) / другие треки за решением владельца.
-- Самые свежие миграции: **`inventory/0001`** (U-D3 склад-леджер StockMovement, TENANT, 2026-07-07 — ⚠️ ТРЕБУЕТ ДЕПЛОЯ) + **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
+- **Самое свежее (2026-07-08): «склад-леджер до продакшн-качества» (T1–T5) — ЦЕЛИКОМ.** Владелец
+  выбрал полную глубину (T1+T2+T3 + retail-дозапись = все срезы). План T5 —
+  `docs/ud-stock-t5-plan-2026-07-08.md`. **T1** честная реконсиляция: правки остатка в форме
+  товара/варианта пишут леджер (`log_catalog_change`, source="catalog") → счётчик↔леджер сходятся
+  (+ починен давний баг: демо `shop`/`retail` падал `UnboundLocalError` в `_seed_kit_records`). **T2**
+  учёт по вариантам (сущность = товар-без-вариантов|вариант; `select_for_update` на варианте, пикер
+  `v/p<pk>`). **T3** ретейл: причины корректировки (Schwund/Bruch/…), поиск SKU/EAN (scan-to-count),
+  Inventur-Zählliste. **T4** ERP-lite: drill-down истории (`?history=`), CSV-экспорт, архив-тумблер
+  доски. **T5 (миграция `catalog/0014`, аддитив):** `cost_price`/`reorder_point`/`reorder_target` на
+  Product+Variant → `stock_value`/`margin_pct`/`cost_value`-фолбэк/`effective_reorder_point`; сервис
+  `inventory_value()` (Warenwert) + `reorder_suggestions()` (Bestellvorschlag = Soll−Bestand, Ausverkauft
+  первыми); кабинет: Warenwert-плашка + колонки Wert/Marge + секция Bestellvorschläge; форма товара/варианта
+  +3 поля; демо EK≈55% VK. Проверено на сиде shop (Warenwert 514.31 €, Vorschlag +18, Marge 45%). T1–T4
+  без миграций; **⚠️ `catalog/0014` ТРЕБУЕТ ДЕПЛОЯ** (вместе с `inventory/0001`). Дальше по каталогу —
+  платформа D1 (Pro-тариф, ждёт прайсинг) / другие треки за решением владельца.
+- Самые свежие миграции: **`catalog/0014`** (T5 склад: cost_price/reorder_point/reorder_target на
+  Product+ProductVariant, TENANT, 2026-07-08 — ⚠️ ТРЕБУЕТ ДЕПЛОЯ) + **`inventory/0001`** (U-D3 склад-леджер StockMovement, TENANT, 2026-07-07 — ⚠️ ТРЕБУЕТ ДЕПЛОЯ) + **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) + **`partners/0001` + `tenants/0023`** (D3 партнёрка: Partner + Tenant.partner, SHARED, 2026-07-03 — ⚠️ требуют деплоя) + **`aggregator/0014`** (D2.3 featured показы/клики, 2026-07-03 — ⚠️ требует деплоя) + **`promotions/0021` + `loyalty/0004`** (B4/CM-9 CouponCampaign + Voucher.campaign, 2026-07-03 — ⚠️ требуют деплоя) + **`orders/0014` + `booking/0016` + `stays/0022` + `events/0022`** (B2 payment_reminder, 2026-07-03 — ⚠️ требуют деплоя) + **`reviews/0003` + `orders/0013`** (CM-6 reply + post-purchase — ⚠️ требуют деплоя); задеплоено 2026-07-03 (деплой №2 владельца): **`jobs/0011` + `tenants/0022` + `loyalty/0003`** (B1) и ранее **`booking/0015`** (B1.2 voucher_code/discount_cents) +
   **`tenants/0021`** (C1 owner_digest_enabled, SHARED) + **`catalog/0013` + `core/0005`**
   (Zusatzstoffe + LegalDoc, все 2026-07-03 — ⚠️ требуют деплоя; деплой также пересобирает
   образ с gettext и компилирует en.mo); ранее **`promotions/0019` + `promotions/0020`** (discount_style + mystery-choice,

@@ -4401,3 +4401,33 @@
   «Trennen»; сохранение НЕ затирает `owner_chat_id`/`owner_link_token`. Nav «Benachrichtigungen» в
   группе Einstellungen. Тесты: prefs (дефолты/per-событие/матрица), gating (канал отключён → не шлётся),
   owner-linkage/push, settings (рендер/сохранение/сброс). **БЕЗ миграций** (всё в `site_config`).
+
+- **2026-07-08 — «Довести склад-леджер до продакшн-качества» (срезы T1–T5) — ЦЕЛИКОМ.** По плану
+  глубины (владелец выбрал T1+T2+T3 + «retail допиши что нужно» = все срезы). План T5 —
+  `docs/ud-stock-t5-plan-2026-07-08.md`. **T1 (честная реконсиляция, без миграции):** правки остатка
+  в форме товара/варианта пишут движение в леджер (`log_catalog_change` в product_create/edit +
+  variant_add/update, source="catalog") → счётчик и леджер не расходятся, история не рвётся. Побочно
+  починен ДАВНИЙ баг: демо-кит `shop`/`retail` падал `UnboundLocalError` (`timezone`/`timedelta`
+  локально-условный импорт в `_seed_kit_records`) — вынес импорты в начало функции. Стартовый остаток
+  демо-товаров/вариантов → в леджер (Startbestand). **T2 (варианты, без миграции):** сущность учёта =
+  товар-без-вариантов ИЛИ вариант; `ledger_balance`/`reconciliation`/`record_opening_balance`/
+  `apply_manual_movement` берут `variant` (variant IS NULL для товара); пикер `stock_entities()`
+  (`v<pk>`/`p<pk>`), `reconciliation_rows`, `select_for_update` на варианте. **T3-retail (без
+  миграции):** причины корректировки (`ADJUST_REASONS`: Schwund/Bruch/Verderb/Diebstahl/Sonstiges →
+  в заметку), поиск по SKU/EAN (`find_entity_by_code`, scan-to-count + found-box), Inventur-Zählliste
+  (массовая инвентаризация: `count_<value>` → stocktake на разницу). **T4 (ERP-lite, без миграции):**
+  drill-down истории по сущности (`?history=p/v<pk>`, `variant__isnull` фильтр + Alle-reset), CSV-экспорт
+  движений (`?export=csv`), архив-тумблер на доске (terminal-колонка скрыта по умолчанию, `data-stage`
+  + чекбокс). **T5 (Bestandswert + Bestellvorschlag — ЕДИНСТВЕННАЯ миграция `catalog/0014`, аддитив):**
+  `cost_price`/`reorder_point`/`reorder_target` на Product И ProductVariant (все nullable); модель:
+  `stock_value` (Bestand×EK), `margin_pct` (в `pricing.py`; (VK−EK)/VK, None при VK≤0/нет EK),
+  `cost_value` варианта (фолбэк→product), `effective_reorder_point(global)`. Сервис: `inventory_value()`
+  (Σ Warenwert + разбивка), `reorder_suggestions(threshold)` (остаток ≤ Meldebestand per-Artikel/
+  глобальный; Vorschlag = Soll−Bestand; Ausverkauft первыми). Кабинет: Warenwert-плашка, колонки
+  Wert/Marge в таблице Bestand, секция Bestellvorschläge (заменила простой low-блок). Форма товара +3
+  поля (валидация ≥0), форма варианта +3 инпута (EK/Meld./Soll) + вьюхи. Демо: EK≈55% VK (Marge ~45%)
+  + Meldebestand 8/Sollbestand 24 (вариант 5/15). Тесты: valuation (модель+форма), reorder+inventory_value
+  (сервис), cabinet-render (Warenwert/Bestellvorschläge). Проверено на реальном сиде shop: 11 товаров с EK,
+  Warenwert 514.31 €, Bestellvorschlag Erdbeer-Marmelade (Bestand 6 ≤ Meld. 8 → +18), Marge 45%. T1–T4
+  задеплоя не требуют; **⚠️ `catalog/0014` ТРЕБУЕТ ДЕПЛОЯ** (едет вместе с ожидающей `inventory/0001` —
+  один `./scripts/deploy.sh single`). `app.css` пересобран.
