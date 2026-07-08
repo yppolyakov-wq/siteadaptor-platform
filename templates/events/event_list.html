@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Events" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "board" %}
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold mb-1">{% trans "Events" %}</h1>

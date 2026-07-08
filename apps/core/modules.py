@@ -175,7 +175,9 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="orders",
         label_de="Bestellungen (Click & Collect)",
         icon="🛍️",
-        nav_items=(NavItem("orders:order-list", _("Orders"), "orders"),),
+        # S2 (упрощение): продажные списки сведены в хаб «Verkäufe» (доска + tab-bar,
+        # cabinet.HUB_TABS["board"]). Сайдбар-пункт убран, url_prefixes = гейт цел.
+        nav_items=(),
         url_prefixes=("/dashboard/orders/",),
         recommended_for=("bakery", "butcher", "grocery", "retail", "clothing"),
         suited_for=("cafe", "restaurant", "other"),
@@ -189,7 +191,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="booking",
         label_de="Reservierungen nach Zeit (Booking)",
         icon="📅",
-        nav_items=(NavItem("booking:calendar", _("Booking"), "booking"),),
+        # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/booking/",),
         recommended_for=("cafe", "restaurant", "hotel", "tour_operator"),
         suited_for=("retail", "clothing", "other"),
@@ -203,7 +206,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="stays",
         label_de="Übernachtung (nach Datum)",
         icon="🛏️",
-        nav_items=(NavItem("stays:calendar", _("Stays"), "stays"),),
+        # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/stays/",),
         recommended_for=("hotel",),
         suited_for=("tour_operator", "other"),
@@ -288,7 +292,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="jobs",
         label_de="Aufträge & Angebote",
         icon="🧰",
-        nav_items=(NavItem("jobs:list", _("Jobs"), "jobs"),),
+        # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/auftraege/",),
         # Выездной сервис/Handwerk — opt-in, универсальный (в business_type нет
         # ремесленных типов; включают вручную, как finance).
@@ -302,7 +307,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="events",
         label_de="Veranstaltungen (Tickets)",
         icon="🎟️",
-        nav_items=(NavItem("events:list", _("Events"), "events"),),
+        # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
+        nav_items=(),
         url_prefixes=("/dashboard/events/",),
         # Билеты на мероприятия/ретриты — opt-in, универсальный (как finance/jobs);
         # подходит студиям/гидам/организаторам сверх пресета.
@@ -513,7 +519,8 @@ _GROUP_BY_KEY = {mk: gkey for gkey, _label, keys in NAV_GROUPS for mk in keys}
 # (T-1 отложен), поэтому эти немецкие литералы заодно убирают английские техтермины.
 NAV_TASK_LABELS: dict[str, str] = {
     "dashboard": "Übersicht",
-    "board": "Aufgaben-Board",
+    # S2: пункт-хаб «Verkäufe» (доска + продажные списки/календари под tab-bar).
+    "board": "Verkäufe",
     "catalog": "Sortiment",
     "stock": "Lager",
     "categories": "Kategorien",

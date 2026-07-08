@@ -120,10 +120,13 @@ def test_crm_card_shows_orders():
 
 def test_nav_includes_orders_when_active():
     from apps.core import modules
+    from apps.core.templatetags.cabinet import HUB_TABS
     from apps.tenants.tests.factories import TenantFactory
 
     tenant = TenantFactory.build()
     keys = [s.key for s in modules.active_modules(tenant)]
     assert "orders" in keys
+    # S2: заказы больше не отдельный пункт сайдбара — доступны вкладкой хаба «Verkäufe».
     spec = modules.get_module("orders")
-    assert spec.nav_items and spec.nav_items[0].url_name == "orders:order-list"
+    assert spec.nav_items == ()
+    assert any(url == "orders:order-list" for url, _lbl, _k, _mod in HUB_TABS["board"])

@@ -1,4 +1,6 @@
-"""S1 (упрощение кабинета): хаб-табы Sortiment + свод nav каталога 5→1."""
+"""S1/S2 (упрощение кабинета): хаб-табы Sortiment/Verkäufe + свод nav 5→1 и продаж."""
+
+from types import SimpleNamespace
 
 import pytest
 from django.template import Context, Template
@@ -11,6 +13,7 @@ def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
+# --- S1: хаб «Sortiment» (каталог) ------------------------------------------
 def test_catalog_nav_collapsed_to_one_hub():
     cat = modules.get_module("catalog")
     assert len(cat.nav_items) == 1  # 5 пунктов → 1 хаб
@@ -40,3 +43,46 @@ def test_hub_tabs_empty_for_unknown_hub():
         Template('{% load cabinet %}{% hub_tabs "nope" %}').render(Context({"nav": "x"})).strip()
         == ""
     )
+
+
+# --- S2: хаб «Verkäufe» (доска + продажные списки/календари) -----------------
+def _fake_tenant(disabled=()):
+    return SimpleNamespace(disabled_modules=list(disabled), enabled_modules=[])
+
+
+def _render_board(nav, tenant=None):
+    ctx = {"nav": nav}
+    if tenant is not None:
+        ctx["request"] = SimpleNamespace(tenant=tenant)
+    return Template('{% load cabinet %}{% hub_tabs "board" %}').render(Context(ctx))
+
+
+def test_sales_nav_collapsed_into_verkauefe():
+    # 5 продажных пунктов сайдбара убраны (доступны табами хаба «Verkäufe»).
+    for key in ("orders", "booking", "stays", "events", "jobs"):
+        assert modules.get_module(key).nav_items == (), key
+    assert modules.nav_task_label("board") == "Verkäufe"
+
+
+def test_board_hub_all_tabs_when_active():
+    html = _render_board("board", _fake_tenant())  # ничего не выключено
+    for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen", "Tickets", "Aufträge"):
+        assert lbl in html, lbl
+    assert html.count('aria-selected="true"') == 1  # активна вкладка Board
+
+
+def test_board_hub_gates_inactive_modules():
+    # Тенант без Übernachtung/Tickets — эти вкладки скрыты, остальные видны.
+    html = _render_board("orders", _fake_tenant(disabled=["stays", "events"]))
+    assert "Übernachtungen" not in html
+    assert "Tickets" not in html
+    for lbl in ("Board", "Bestellungen", "Termine", "Aufträge"):
+        assert lbl in html, lbl
+    assert html.count('aria-selected="true"') == 1  # активна вкладка Bestellungen
+
+
+def test_board_hub_fail_open_without_request():
+    # Без request/tenant в контексте (простой рендер) — гейт fail-open, все вкладки.
+    html = _render_board("board")
+    for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen", "Tickets", "Aufträge"):
+        assert lbl in html, lbl
