@@ -311,8 +311,12 @@ Python 3.12, менеджер uv.
   риск без пользы; план `docs/uc2-4b-save-blocks-plan-2026-07-08.md`). **UC6-6h** — визуальные пресеты
   шапки (Classic/Centered/Minimal) в области «Menu» канвы. **SEO-1 ✅** — движок мета-заготовок
   (`apps/core/seo_meta.py`: плейсхолдеры+резолвер+клампы; `context_processors.seo`; провод `_base.html`
-  title/description; проверено на сиде — home «… · Hilden»). Всё БЕЗ миграций. Дальше по SEO: **SEO-2**
-  (кабинет+live-превью), **SEO-3** (AI-SEO). План/очередь — `docs/seo-module-v2-plan-2026-07-08.md`,
+  title/description; проверено на сиде — home «… · Hilden»). **SEO-2 ✅** — кабинет
+  `/dashboard/site/seo/` (per-тип редактор + плейсхолдер-чипы + **live Google-сниппет**) +
+  `siteconfig.normalize_seo` (SEO-шаблоны переживают normalize, иначе сохранение билдера их бы стёрло);
+  проверено на сиде (кабинет → `<title>` «Hofladen Sonnenfeld — Ihre Bäckerei in Hilden»). Всё БЕЗ
+  миграций. Дальше по SEO: **SEO-3** (AI-SEO: llms.txt/FAQPage/AI-краулеры) + миграция листингов/
+  деталей с явным override-блока на движок. План/очередь — `docs/seo-module-v2-plan-2026-07-08.md`,
   `docs/task-catalog.md`. Склад-2 (Chargen/MHD·мультисклад·M12) — в очереди последней.
 - **Самое свежее (2026-07-08): «склад-леджер до продакшн-качества» (T1–T5) — ЦЕЛИКОМ.** Владелец
   выбрал полную глубину (T1+T2+T3 + retail-дозапись = все срезы). План T5 —

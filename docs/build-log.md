@@ -4415,6 +4415,17 @@
   «Hofladen Sonnenfeld» → «Hofladen Sonnenfeld · Hilden» + осмысленный description. 15 юнит-тестов
   (render/clamp/resolve/CP); регресс витрины (test_seo/test_public/catalog/nav) 89 зелёных.
   Дальше: **SEO-2** (кабинет «SEO» + live-превью), **SEO-3** (AI-SEO: llms.txt/FAQPage/AI-краулеры).
+- **2026-07-08 — SEO-2 (кабинет мета-заготовок + live-превью) — ✅.** Без миграции. **Критично:**
+  `siteconfig.normalize_seo` + провод в `normalize()` (условно — ключ только при непустом, golden-
+  паритет) — иначе любое сохранение билдера стёрло бы SEO-шаблоны (normalize отбрасывает неизвестные
+  секции). Кабинет `/dashboard/site/seo/` (`seo_settings_view`): per-тип (home/listing/detail/category)
+  редактор title+description-шаблонов, плейсхолдер-чипы (вставка в фокус), **live Google-сниппет**
+  (клиентский `renderTpl`/`clamp`, зеркалит `seo_meta`), счётчики длины. Карточка «SEO» на
+  `/dashboard/site/`. Пустые поля → тип не пишется → архетип-дефолт (прогрессивность). Тесты:
+  normalize_seo (валид/дроп-unknown/пусто), **survives-home-save** (SEO переживает сохранение
+  главной), GET-рендер, empty-clear. Проверено на сиде: кабинет сохранил `{tenant} — Ihre Bäckerei
+  in {city}` → витрина-`<title>` = «Hofladen Sonnenfeld — Ihre Bäckerei in Hilden». Дальше: SEO-3
+  (AI-SEO) + миграция листингов/деталей с явным override-блока на движок.
 - **2026-07-08 — UC2-4 (единый инлайн-редактор) закрыт + UC6-6h (пресеты шапки).** UC2-4-инлайн-
   диспетчер (`apps/core/inline_edit.py`, 5 вьюх-алиасов) оказался уже сделан (2026-07-07) —
   верифицирован (57 тестов). Вторая половина «свод save-блоков `home_builder_view`» — **WONT-FIX**

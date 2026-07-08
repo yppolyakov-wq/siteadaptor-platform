@@ -1754,6 +1754,34 @@ def normalize_page_templates(raw) -> dict:
     return out
 
 
+def normalize_seo(raw) -> dict:
+    """SEO-2: per-тип шаблоны мета (title/description) для движка seo_meta.
+
+    Только известные page_types (home/listing/detail/category); строки чистятся и
+    обрезаются (шаблон, не рендер — рендер клампит resolve). Пустой тип/поле —
+    пропуск. Пусто целиком → {} (ключ `seo` НЕ материализуется в normalize —
+    golden-паритет для конфигов без SEO). Так шаблоны переживают normalize (иначе
+    любое сохранение билдера их бы стёрло — неизвестные секции отбрасываются)."""
+    from apps.core import seo_meta
+
+    if not isinstance(raw, dict):
+        return {}
+    raw_t = raw.get("templates") if isinstance(raw.get("templates"), dict) else {}
+    templates = {}
+    for pt in seo_meta.PAGE_TYPES:
+        entry_in = raw_t.get(pt) if isinstance(raw_t.get(pt), dict) else {}
+        entry = {}
+        title = _s(entry_in.get("title"))[:200]
+        desc = _s(entry_in.get("description"))[:300]
+        if title:
+            entry["title"] = title
+        if desc:
+            entry["description"] = desc
+        if entry:
+            templates[pt] = entry
+    return {"templates": templates} if templates else {}
+
+
 def normalize(config) -> dict:
     """Привести произвольный site_config к валидной схеме.
 
@@ -1763,6 +1791,10 @@ def normalize(config) -> dict:
     config = config if isinstance(config, dict) else {}
 
     normalized = {"sections": normalize_sections(config.get("sections", []))}
+    # SEO-2: per-тип мета-шаблоны (переживают нормализацию; ключ только при непустом).
+    seo = normalize_seo(config.get("seo"))
+    if seo:
+        normalized["seo"] = seo
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:

@@ -2382,6 +2382,89 @@ def menu_builder_view(request):
 
 
 @login_required
+def seo_settings_view(request):
+    """SEO-2: кабинет мета-заготовок (title/description per-тип страницы).
+
+    GET — редактор с текущими шаблонами, плейсхолдер-подсказки и live-превью
+    Google-сниппета (JS). POST — сохранить в site_config["seo"]["templates"]
+    (normalize сохраняет ключ через normalize_seo; движок seo_meta резолвит на
+    витрине). Пустые поля → тип не пишется → архетип-дефолт (прогрессивность)."""
+    import json
+
+    from apps.core import seo_meta
+    from apps.tenants import siteconfig
+
+    if request.method == "POST":
+        cfg = siteconfig.normalize(request.tenant.site_config)
+        templates = {}
+        for pt in seo_meta.PAGE_TYPES:
+            entry = {}
+            title = (request.POST.get(f"title_{pt}") or "").strip()
+            desc = (request.POST.get(f"desc_{pt}") or "").strip()
+            if title:
+                entry["title"] = title
+            if desc:
+                entry["description"] = desc
+            if entry:
+                templates[pt] = entry
+        cfg["seo"] = {"templates": templates}
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, "Gespeichert.")
+        return redirect("site-seo")
+
+    tenant = request.tenant
+    saved = (siteconfig.normalize(tenant.site_config).get("seo") or {}).get("templates") or {}
+    page_labels = {
+        "home": _("Homepage"),
+        "listing": _("Listings (catalog, rooms, events)"),
+        "detail": _("Detail pages (product, service, room)"),
+        "category": _("Category pages"),
+    }
+    # Пример-значения для превью per-тип (что подставляется на реальной странице).
+    samples = {
+        "home": {},
+        "listing": {"heading": str(_("Sortiment"))},
+        "detail": {"name": str(_("Bio-Honig 500 g"))},
+        "category": {"category": str(_("Brot & Backwaren"))},
+    }
+    name = (tenant.name or "").strip()
+    city = (getattr(tenant, "city", "") or "").strip()
+    rows = []
+    for pt in seo_meta.PAGE_TYPES:
+        entry = saved.get(pt) or {}
+        preview = seo_meta.resolve(tenant, pt, samples.get(pt))
+        # sample для клиентского live-превью (те же значения, что даёт resolve).
+        sample = {"tenant": name, "city": city, **samples.get(pt, {})}
+        sample["tenant_sfx"] = f" · {name}" if name else ""
+        sample["city_sfx"] = f" · {city}" if city else ""
+        rows.append(
+            {
+                "key": pt,
+                "label": page_labels.get(pt, pt),
+                "title": entry.get("title", ""),
+                "description": entry.get("description", ""),
+                "default_title": seo_meta.DEFAULTS[pt]["title"],
+                "default_desc": seo_meta.DEFAULTS[pt]["description"],
+                "preview_title": preview["title"],
+                "preview_desc": preview["description"],
+                "sample_json": json.dumps(sample),
+            }
+        )
+    return render(
+        request,
+        "tenant/site_seo.html",
+        {
+            "nav": "site",
+            "rows": rows,
+            "placeholders": ["{tenant}", "{city}", "{heading}", "{name}", "{category}"],
+            "title_max": seo_meta.TITLE_MAX,
+            "desc_max": seo_meta.DESC_MAX,
+        },
+    )
+
+
+@login_required
 def modules_view(request):
     """Страница «Module» (Track D / D0b): тумблеры опциональных блоков кабинета.
 

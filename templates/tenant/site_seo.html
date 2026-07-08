@@ -1,0 +1,139 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}SEO{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-3xl">
+  <div class="flex items-center justify-between mb-1">
+    <h1 class="text-2xl font-bold">🔎 {% trans "SEO — titles & descriptions" %}</h1>
+    <a href="{% url 'site' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Site" %}</a>
+  </div>
+  <p class="text-sm text-gray-500 mb-4">{% trans "How your pages appear in Google & when shared. Leave a field empty to use a smart default. Placeholders are filled automatically per page." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {# Плейсхолдер-подсказки: клик вставляет в последнее сфокусированное поле #}
+  <div class="mb-5 rounded-xl border border-gray-200 bg-white p-3">
+    <span class="text-xs font-medium text-gray-500">{% trans "Placeholders" %}:</span>
+    <span class="inline-flex flex-wrap gap-1.5 ml-1 align-middle">
+      {% for ph in placeholders %}
+        <button type="button" data-seo-ph="{{ ph }}" class="text-xs font-mono bg-indigo-50 text-indigo-700 rounded px-1.5 py-0.5 hover:bg-indigo-100">{{ ph }}</button>
+      {% endfor %}
+    </span>
+  </div>
+
+  <form method="post" class="space-y-4 pb-20" data-seo-form>
+    {% csrf_token %}
+    {% for r in rows %}
+      <div class="bg-white rounded-2xl shadow-sm p-5" data-seo-row data-sample="{{ r.sample_json }}"
+           data-default-title="{{ r.default_title }}" data-default-desc="{{ r.default_desc }}">
+        <p class="font-semibold mb-3">{{ r.label }}</p>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1" for="title_{{ r.key }}">{% trans "Title template" %}</label>
+              <input id="title_{{ r.key }}" name="title_{{ r.key }}" type="text" value="{{ r.title }}"
+                     placeholder="{{ r.default_title }}" data-seo-title
+                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1" for="desc_{{ r.key }}">{% trans "Description template" %}</label>
+              <textarea id="desc_{{ r.key }}" name="desc_{{ r.key }}" rows="2" placeholder="{{ r.default_desc }}"
+                        data-seo-desc class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono">{{ r.description }}</textarea>
+            </div>
+          </div>
+
+          {# Google-сниппет превью (обновляется на ввод) #}
+          <div>
+            <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Preview" %}</span>
+            <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
+              <div class="text-[13px] text-gray-500 truncate">{% trans "your-site.de" %}</div>
+              <div class="text-[#1a0dab] text-lg leading-snug truncate" data-seo-prev-title>{{ r.preview_title }}</div>
+              <div class="text-[13px] text-gray-600 mt-0.5" data-seo-prev-desc>{{ r.preview_desc }}</div>
+            </div>
+            <div class="text-[11px] text-gray-400 mt-1"><span data-seo-count-title>0</span>/{{ title_max }} · <span data-seo-count-desc>0</span>/{{ desc_max }}</div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="sticky bottom-0 -mx-1 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent pt-4 pb-3">
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-indigo-700 shadow">{% trans "Save changes" %}</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var TITLE_MAX = {{ title_max }}, DESC_MAX = {{ desc_max }};
+  var SEP = "[·|,–—-]";
+
+  function renderTpl(tpl, s) {
+    if (!tpl) return "";
+    var out = tpl.replace(/\{(\w+)\}/g, function (_, k) { return s[k] != null ? String(s[k]) : ""; });
+    out = out.replace(/\s{2,}/g, " ");
+    out = out.replace(new RegExp("\\s*(" + SEP + ")\\s*(?:" + SEP + "\\s*)+", "g"), " $1 ");
+    out = out.replace(new RegExp("^[\\s·|,–—-]+|[\\s·|,–—-]+$", "g"), "");
+    return out.trim();
+  }
+  function clamp(t, n) {
+    t = (t || "").trim();
+    if (t.length <= n) return t;
+    var head = t.slice(0, n).replace(/\s+\S*$/, "");
+    return (head || t.slice(0, n)) + "…";
+  }
+
+  document.querySelectorAll("[data-seo-row]").forEach(function (row) {
+    var sample = {};
+    try { sample = JSON.parse(row.getAttribute("data-sample") || "{}"); } catch (e) {}
+    var name = sample.tenant || "";
+    var titleIn = row.querySelector("[data-seo-title]");
+    var descIn = row.querySelector("[data-seo-desc]");
+    var prevTitle = row.querySelector("[data-seo-prev-title]");
+    var prevDesc = row.querySelector("[data-seo-prev-desc]");
+    var cntTitle = row.querySelector("[data-seo-count-title]");
+    var cntDesc = row.querySelector("[data-seo-count-desc]");
+
+    function update() {
+      var tTpl = titleIn.value.trim() || row.getAttribute("data-default-title");
+      var dTpl = descIn.value.trim() || row.getAttribute("data-default-desc");
+      var t = clamp(renderTpl(tTpl, sample), TITLE_MAX) || name;
+      var d = clamp(renderTpl(dTpl, sample), DESC_MAX);
+      prevTitle.textContent = t;
+      prevDesc.textContent = d;
+      cntTitle.textContent = t.length;
+      cntDesc.textContent = d.length;
+    }
+    titleIn.addEventListener("input", update);
+    descIn.addEventListener("input", update);
+    update();
+  });
+
+  // Плейсхолдер-чипы: вставка в последнее сфокусированное поле формы.
+  var lastField = null;
+  document.querySelectorAll("[data-seo-title],[data-seo-desc]").forEach(function (f) {
+    f.addEventListener("focus", function () { lastField = f; });
+  });
+  document.querySelectorAll("[data-seo-ph]").forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      var f = lastField || document.querySelector("[data-seo-title]");
+      if (!f) return;
+      var ph = chip.getAttribute("data-seo-ph");
+      var start = f.selectionStart != null ? f.selectionStart : f.value.length;
+      var end = f.selectionEnd != null ? f.selectionEnd : f.value.length;
+      f.value = f.value.slice(0, start) + ph + f.value.slice(end);
+      f.focus();
+      var pos = start + ph.length;
+      if (f.setSelectionRange) f.setSelectionRange(pos, pos);
+      f.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
+})();
+</script>
+{% endblock %}

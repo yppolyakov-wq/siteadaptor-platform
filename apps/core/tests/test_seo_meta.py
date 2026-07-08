@@ -121,3 +121,98 @@ def test_context_processor_no_tenant_returns_empty():
         resolver_match = _Match("storefront-home")
 
     assert context_processors.seo(_R()) == {}
+
+
+# --- SEO-2: normalize_seo (survives normalize) + cabinet view ----------------------
+
+from django.contrib.messages.middleware import MessageMiddleware  # noqa: E402
+from django.contrib.sessions.middleware import SessionMiddleware  # noqa: E402
+from django.test import RequestFactory  # noqa: E402
+
+from apps.core import views  # noqa: E402
+from apps.tenants import siteconfig  # noqa: E402
+from apps.tenants.tests.factories import TenantFactory as _TF  # noqa: E402
+
+
+def test_normalize_seo_keeps_valid_and_drops_unknown():
+    raw = {
+        "templates": {
+            "home": {"title": "{tenant}"},
+            "bogus": {"title": "x"},  # неизвестный page_type → отброшен
+            "listing": {"description": "d"},
+        }
+    }
+    out = siteconfig.normalize_seo(raw)
+    assert out == {"templates": {"home": {"title": "{tenant}"}, "listing": {"description": "d"}}}
+
+
+def test_normalize_seo_empty_returns_empty():
+    assert siteconfig.normalize_seo({}) == {}
+    assert siteconfig.normalize_seo(None) == {}
+    assert siteconfig.normalize_seo({"templates": {"home": {"title": "   "}}}) == {}
+
+
+def test_normalize_preserves_seo_and_omits_when_absent():
+    out = siteconfig.normalize({"seo": {"templates": {"home": {"title": "{tenant} SEO"}}}})
+    assert out["seo"]["templates"]["home"]["title"] == "{tenant} SEO"
+    assert "seo" not in siteconfig.normalize({})  # golden-паритет: пусто → нет ключа
+
+
+class _CabUser:
+    is_authenticated = True
+    is_active = True
+    username = "owner"
+
+
+def _cab_req(method, path, data=None, tenant=None):
+    req = getattr(RequestFactory(), method)(path, data or {})
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _CabUser()
+    req.tenant = tenant
+    return req
+
+
+def test_seo_view_get_renders_editor(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(schema_name="public", slug="seocab1", name="Bäcker", city="Köln")
+    body = views.seo_settings_view(
+        _cab_req("get", "/dashboard/site/seo/", tenant=tenant)
+    ).content.decode()
+    assert 'name="title_home"' in body  # редактор home
+    assert 'name="desc_listing"' in body  # редактор listing
+    assert "data-seo-ph" in body  # плейсхолдер-чипы
+    assert "data-seo-prev-title" in body  # live-превью сниппета
+
+
+def test_seo_view_saves_and_survives_home_builder_save(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(schema_name="public", slug="seocab2", name="Bäcker Ott", city="Köln")
+    resp = views.seo_settings_view(
+        _cab_req("post", "/dashboard/site/seo/", {"title_home": "{tenant} — {city}"}, tenant=tenant)
+    )
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    assert tenant.site_config["seo"]["templates"]["home"]["title"] == "{tenant} — {city}"
+    # Ключевое: сохранение конструктора главной НЕ должно стереть SEO-шаблоны.
+    views.home_builder_view(
+        _cab_req(
+            "post",
+            "/dashboard/site/home/",
+            {"order_hero": "1", "enabled_hero": "on"},
+            tenant=tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    assert tenant.site_config["seo"]["templates"]["home"]["title"] == "{tenant} — {city}"
+
+
+def test_seo_view_empty_post_clears_templates(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _TF(schema_name="public", slug="seocab3", name="X", city="")
+    views.seo_settings_view(
+        _cab_req("post", "/dashboard/site/seo/", {"title_home": "{tenant}!"}, tenant=tenant)
+    )
+    views.seo_settings_view(_cab_req("post", "/dashboard/site/seo/", {}, tenant=tenant))
+    tenant.refresh_from_db()
+    assert "seo" not in tenant.site_config  # пустой POST → шаблоны сняты, ключ не материализован
