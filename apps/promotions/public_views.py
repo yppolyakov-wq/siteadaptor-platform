@@ -1004,7 +1004,8 @@ def robots_txt(request):
     == False) — добавляем Disallow для известных AI-краулеров (GEO-контроль)."""
     sitemap = request.build_absolute_uri(reverse("storefront-sitemap"))
     body = f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n"
-    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    tenant = getattr(request, "tenant", None)
+    cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}
     if (cfg.get("seo") or {}).get("allow_ai") is False:
         from apps.core.seo import AI_CRAWLERS
 
@@ -1018,8 +1019,10 @@ def llms_txt(request):
     гасим (страница-обвязка не должна ронять; всегда отдаём хотя бы имя)."""
     from django.urls import NoReverseMatch
 
-    tenant = request.tenant
-    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return HttpResponse("", content_type="text/plain; charset=utf-8")
+    cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}
     base = request.build_absolute_uri("/").rstrip("/")
     lines = [f"# {tenant.name}", ""]
     desc = (cfg.get("hero_text") or cfg.get("about_text") or "").strip()
