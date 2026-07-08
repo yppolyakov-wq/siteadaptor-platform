@@ -4476,3 +4476,35 @@
   Warenwert 514.31 €, Bestellvorschlag Erdbeer-Marmelade (Bestand 6 ≤ Meld. 8 → +18), Marge 45%. T1–T4
   задеплоя не требуют; **⚠️ `catalog/0014` ТРЕБУЕТ ДЕПЛОЯ** (едет вместе с ожидающей `inventory/0001` —
   один `./scripts/deploy.sh single`). `app.css` пересобран.
+
+## 2026-07-08 (вечер) — Программа упрощения кабинета «анти-Битрикс v2»: S1–S4 (все в main, без миграций)
+Задача владельца: «функционал похож на Битрикс → максимально упростить создание/настройку/ведение;
+скрыть ненужное по архетипам; визуал очень простой». Утверждён макет (Artifact) + план S1–S7
+(`docs/admin-simplification-exec-plan-2026-07-08.md`, аудит `…-analysis-…`, ПОЛНОЕ ТЗ/HANDOFF
+`…-handoff-2026-07-08.md`). **Механика хабов (переиспользуемая):** реестр `HUB_TABS` в
+`apps/core/templatetags/cabinet.py` (5-кортеж `url_name,label,nav_key,module_key,advanced`) +
+inclusion-тег `{% hub_tabs "<hub>" %}` + партиал `templates/tenant/_hub_tabs.html` (tab-bar в
+scroll-контейнере + ящик «Erweitert ▾» вне него; `<details open>` при активной advanced-вкладке).
+Свод = у модуля `nav_items=()` (или 1 якорь), `url_prefixes` НЕ трогаем (middleware-гейт цел),
+под-страница получает тег после `{% block dash_content %}`. Метка якоря — `NAV_TASK_LABELS`.
+- **S1 Sortiment** (`a10da9c`): каталог Produkte/Kategorien/Lager/Kombi/Import 5→1.
+- **S2 Verkäufe** (`cfef40e` + fix `a68c5bd`): доска + Bestellungen/Termine/Übernachtungen/Tickets/
+  Aufträge 6→1; вкладки гейтятся по одноимённому модулю (архетип без Übernachtung/Tickets их не видит).
+  Fix: `test_cabinet_nav` — сайдбар показывает хаб «Verkäufe», не пункты продаж.
+- **S3 Einstellungen** (`a8cee5b` + fix `1d2c43d`): настройки сайдбара 10→2 (Website отдельно +
+  хаб); кортеж HUB_TABS расширен `advanced`-флагом (4→5) → ящик «Erweitert» (Sprachen/Medien/
+  Domains/Funktionen/Hilfe); прямые Einstellungen/Benachrichtigungen/Rechtstexte/Zusatzleistungen.
+  9 страниц. Fix: `apps/orders/tests/test_cabinet.py` распаковывал 4-кортеж → `t[0]` (урок: правка
+  формы общего реестра → grep импортёров + прогон их приложений).
+- **S4a Marketing** (`c181f58`): promotions×3/reviews/loyalty×2/publishing×2 + Kampagnen(из CRM)
+  → хаб-якорь на promotions; прямые Aktionen/Bewertungen/Kampagnen/Gutscheine + Erweitert
+  Reservierungen/Einlösen/Treuepunkte/Kanäle/Beiträge (гейт каждой по своему модулю). 9 страниц.
+- **S4b Kunden** (`050c1ee`): Kontakte(crm)/Nachrichten(inbox)/Telegram → хаб-якорь на crm;
+  inbox/telegram `nav_items=()`; бейдж непрочитанного (M22b) перенесён с inbox-пункта на пункт-хаб
+  «Kunden» (`_base_dashboard.html`). 3 страницы.
+**Итог:** сайдбар ~25 → ~8 пунктов, всё под таб-барами. Проверено рендером на тенанте `shop` +
+тесты `test_hub_tabs` (20+) / `test_cabinet_nav`. Краевое сиротство (якорь off → зависимая вкладка
+из сайдбара пропадает) задокументировано — полиш «группа=хаб» отложен. **Дальше:** S5 (режим
+Простой/Эксперт) → S6 (реальные архетипы, ⚠️ миграция Tenant.choices). Уроки: `msgfmt` локально нет
+→ `test_email_i18n` красный локально/зелёный на CI; `siteconfig.normalize` дропает неизвестные ключи
+(ui_mode для S5 сохранять в normalize). Ветка `claude/unified-order-kanban-stock-af3pl7`.
