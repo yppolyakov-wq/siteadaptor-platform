@@ -3507,11 +3507,23 @@ def apply_kit(tenant, key: str) -> bool:
             metadata={"demo": True},
         )
         lock += 1
+        # T1: стартовый остаток демо-товара → в склад-леджер (Startbestand),
+        # чтобы реконсиляция /dashboard/stock/ сходилась и была история.
+        if stock is not None:
+            from apps.inventory.services import record_movement
+
+            record_movement(
+                product=product,
+                kind="receipt",
+                delta=stock,
+                source="manual",
+                note="Startbestand (Demo)",
+            )
         for vsort, v in enumerate(item["variants"]):
             # Вариант — кортеж (label, price) ИЛИ dict с остатком/Grundpreis/EAN.
             if isinstance(v, dict):
                 vc = v.get("content")
-                ProductVariant.objects.create(
+                variant = ProductVariant.objects.create(
                     product=product,
                     label=v["label"],
                     price=Decimal(str(v["price"])),
@@ -3521,6 +3533,17 @@ def apply_kit(tenant, key: str) -> bool:
                     sku=v.get("sku", ""),
                     sort_order=vsort,
                 )
+                if v.get("stock") is not None:
+                    from apps.inventory.services import record_movement
+
+                    record_movement(
+                        product=product,
+                        variant=variant,
+                        kind="receipt",
+                        delta=v["stock"],
+                        source="manual",
+                        note="Startbestand (Demo)",
+                    )
             else:
                 vlabel, vprice = v
                 ProductVariant.objects.create(
@@ -4378,6 +4401,13 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
     чтобы кабинет демо был наполнен «как настоящий». Демо-тенант одноразовый
     (схема дропается), спец-маркировка не нужна. Адреса @example.de (RFC 2606) —
     реальным людям письма не уходят. Каждый блок изолирован (сбой не рушит сид)."""
+    # Bugfix: timezone/timedelta ниже импортируются в условных ветках (booking/
+    # stays) — при их пропуске (напр. shop-кит) имена оставались функц-локальными
+    # и не связанными → UnboundLocalError на marketing_opt_in. Связываем на входе.
+    from datetime import timedelta
+
+    from django.utils import timezone
+
     if not kit.seed_records:
         return
     is_active = tenant.is_module_active

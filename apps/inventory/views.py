@@ -7,7 +7,7 @@ apply_manual_movement). Реконсиляция сверяет счётчик �
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -34,15 +34,28 @@ def _int(value, default=0):
         return default
 
 
+def _resolve_entity(value):
+    """T2: разобрать значение пикера "p<pk>"/"v<pk>" → (product, variant)."""
+    from apps.catalog.models import ProductVariant
+
+    value = value or ""
+    if value.startswith("v"):
+        v = ProductVariant.objects.filter(pk=value[1:]).select_related("product").first()
+        return (v.product, v) if v else (None, None)
+    if value.startswith("p"):
+        p = Product.objects.filter(pk=value[1:]).first()
+        return (p, None) if p else (None, None)
+    return (None, None)
+
+
 @login_required
 def stock(request):
     if request.method == "POST":
         return _handle_post(request)
 
     threshold = _threshold(request.tenant)
-    tracked = Product.objects.filter(stock_quantity__isnull=False).order_by("name")
-    rows = [{"product": p, **services.reconciliation(p)} for p in tracked]
-    low = [r for r in rows if r["counter"] is not None and r["counter"] <= threshold]
+    rows = services.reconciliation_rows()  # T2: товары БЕЗ вариантов + варианты
+    low = [r for r in rows if r["counter"] <= threshold]
     diverging = [r for r in rows if not r["ok"]]
     movements = StockMovement.objects.select_related("product", "variant").all()[:50]
     return render(
@@ -54,7 +67,7 @@ def stock(request):
             "low": low,
             "diverging": diverging,
             "movements": movements,
-            "products": Product.objects.order_by("name"),
+            "entities": services.stock_entities(),
             "threshold": threshold,
         },
     )
@@ -74,7 +87,10 @@ def _handle_post(request):
         messages.success(request, _("Meldebestand aktualisiert."))
         return redirect("stock")
 
-    product = get_object_or_404(Product, pk=request.POST.get("product"))
+    product, variant = _resolve_entity(request.POST.get("entity"))
+    if product is None:
+        messages.error(request, _("Bitte einen Artikel wählen."))
+        return redirect("stock")
 
     if action == "receipt":
         qty = _int(request.POST.get("qty"))
@@ -83,6 +99,7 @@ def _handle_post(request):
         else:
             services.apply_manual_movement(
                 product=product,
+                variant=variant,
                 kind=StockMovement.KIND_RECEIPT,
                 delta=qty,
                 actor=actor,
@@ -93,6 +110,7 @@ def _handle_post(request):
         delta = _int(request.POST.get("delta"))
         mv = services.apply_manual_movement(
             product=product,
+            variant=variant,
             kind=StockMovement.KIND_ADJUSTMENT,
             delta=delta,
             actor=actor,
@@ -106,6 +124,7 @@ def _handle_post(request):
         else:
             mv = services.apply_manual_movement(
                 product=product,
+                variant=variant,
                 kind=StockMovement.KIND_STOCKTAKE,
                 set_absolute=counted,
                 actor=actor,
@@ -115,6 +134,6 @@ def _handle_post(request):
                 request, _("Inventur gebucht.") if mv else _("Bestand stimmt bereits.")
             )
     elif action == "reconcile":
-        mv = services.record_opening_balance(product=product, actor=actor)
+        mv = services.record_opening_balance(product=product, variant=variant, actor=actor)
         messages.success(request, _("Startbestand gebucht.") if mv else _("Bereits abgeglichen."))
     return redirect("stock")

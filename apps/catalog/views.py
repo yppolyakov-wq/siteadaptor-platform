@@ -15,6 +15,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.inventory.services import log_catalog_change
 
 from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
@@ -108,6 +109,13 @@ def product_create(request):
     form = ProductForm(request.POST or None, tenant=getattr(request, "tenant", None))
     if request.method == "POST" and form.is_valid():
         product = form.save()
+        # T1: стартовый остаток нового товара → в склад-леджер (реконсиляция).
+        log_catalog_change(
+            product=product,
+            old=None,
+            new=product.stock_quantity,
+            actor=getattr(request.user, "username", ""),
+        )
         _handle_uploads(request, product)
         return redirect("catalog:product-edit", pk=product.pk)
     return render(
@@ -120,11 +128,20 @@ def product_create(request):
 @login_required
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
+    old_stock = product.stock_quantity  # T1: до правки формы (для леджер-дельты)
     form = ProductForm(
         request.POST or None, instance=product, tenant=getattr(request, "tenant", None)
     )
     if request.method == "POST" and form.is_valid():
         product = form.save()
+        # T1: правка остатка в каталоге пишет движение (не трогая счётчик) →
+        # счётчик и леджер сходятся, реконсиляция не «расходится сама».
+        log_catalog_change(
+            product=product,
+            old=old_stock,
+            new=product.stock_quantity,
+            actor=getattr(request.user, "username", ""),
+        )
         _handle_uploads(request, product)
         return redirect("catalog:product-edit", pk=product.pk)
     return render(
@@ -156,7 +173,7 @@ def variant_add(request, pk):
     elif ProductVariant.objects.filter(product=product, label=label).exists():
         messages.error(request, _("A variant with this label already exists."))
     else:
-        ProductVariant.objects.create(
+        variant = ProductVariant.objects.create(
             product=product,
             label=label,
             sku=(request.POST.get("sku") or "").strip(),
@@ -166,6 +183,14 @@ def variant_add(request, pk):
             stock_quantity=_parse_int(request.POST.get("stock")),
             sort_order=_parse_int(request.POST.get("sort")) or 0,
         )
+        # T1: стартовый остаток варианта → в склад-леджер.
+        log_catalog_change(
+            product=product,
+            variant=variant,
+            old=None,
+            new=variant.stock_quantity,
+            actor=getattr(request.user, "username", ""),
+        )
         messages.success(request, _("Variant added."))
     return redirect("catalog:product-edit", pk=pk)
 
@@ -174,6 +199,7 @@ def variant_add(request, pk):
 @require_POST
 def variant_update(request, pk, vid):
     variant = get_object_or_404(ProductVariant, pk=vid, product_id=pk)
+    old_stock = variant.stock_quantity  # T1: до правки (для леджер-дельты)
     variant.price = _parse_price(request.POST.get("price"))
     variant.content_amount = _parse_price(request.POST.get("content"))
     variant.stock_quantity = _parse_int(request.POST.get("stock"))
@@ -190,6 +216,14 @@ def variant_update(request, pk, vid):
             "is_active",
             "updated_at",
         ]
+    )
+    # T1: правка остатка варианта в каталоге пишет движение (реконсиляция).
+    log_catalog_change(
+        product=variant.product,
+        variant=variant,
+        old=old_stock,
+        new=variant.stock_quantity,
+        actor=getattr(request.user, "username", ""),
     )
     messages.success(request, _("Variant updated."))
     return redirect("catalog:product-edit", pk=pk)

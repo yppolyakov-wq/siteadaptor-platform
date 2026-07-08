@@ -42,7 +42,7 @@ def test_get_renders_overview_with_product():
 
 def test_receipt_increments_counter_and_logs_and_keeps_diff():
     product = ProductFactory(stock_quantity=2)  # legacy diff = 2 (counter 2, ledger 0)
-    resp = views.stock(_req("post", {"action": "receipt", "product": str(product.id), "qty": "5"}))
+    resp = views.stock(_req("post", {"action": "receipt", "entity": f"p{product.id}", "qty": "5"}))
     assert resp.status_code == 302
     product.refresh_from_db()
     assert product.stock_quantity == 7
@@ -54,7 +54,7 @@ def test_receipt_increments_counter_and_logs_and_keeps_diff():
 
 def test_adjustment_moves_counter_and_clamps():
     product = ProductFactory(stock_quantity=10)
-    views.stock(_req("post", {"action": "adjustment", "product": str(product.id), "delta": "-3"}))
+    views.stock(_req("post", {"action": "adjustment", "entity": f"p{product.id}", "delta": "-3"}))
     product.refresh_from_db()
     assert product.stock_quantity == 7
     assert StockMovement.objects.filter(product=product, kind="adjustment", delta=-3).count() == 1
@@ -62,7 +62,7 @@ def test_adjustment_moves_counter_and_clamps():
 
 def test_stocktake_sets_absolute_and_logs_difference():
     product = ProductFactory(stock_quantity=10)
-    views.stock(_req("post", {"action": "stocktake", "product": str(product.id), "counted": "8"}))
+    views.stock(_req("post", {"action": "stocktake", "entity": f"p{product.id}", "counted": "8"}))
     product.refresh_from_db()
     assert product.stock_quantity == 8
     assert StockMovement.objects.filter(product=product, kind="stocktake", delta=-2).count() == 1
@@ -71,7 +71,7 @@ def test_stocktake_sets_absolute_and_logs_difference():
 def test_reconcile_aligns_ledger_without_moving_counter():
     product = ProductFactory(stock_quantity=10)  # legacy: counter 10, ledger 0
     assert services.reconciliation(product)["ok"] is False
-    views.stock(_req("post", {"action": "reconcile", "product": str(product.id)}))
+    views.stock(_req("post", {"action": "reconcile", "entity": f"p{product.id}"}))
     product.refresh_from_db()
     assert product.stock_quantity == 10  # счётчик НЕ тронут
     assert services.reconciliation(product)["ok"] is True  # ledger выровнен под счётчик
@@ -79,8 +79,8 @@ def test_reconcile_aligns_ledger_without_moving_counter():
 
 def test_reconcile_then_receipt_stays_consistent():
     product = ProductFactory(stock_quantity=10)
-    views.stock(_req("post", {"action": "reconcile", "product": str(product.id)}))  # diff→0
-    views.stock(_req("post", {"action": "receipt", "product": str(product.id), "qty": "4"}))
+    views.stock(_req("post", {"action": "reconcile", "entity": f"p{product.id}"}))  # diff→0
+    views.stock(_req("post", {"action": "receipt", "entity": f"p{product.id}", "qty": "4"}))
     product.refresh_from_db()
     assert product.stock_quantity == 14
     assert services.reconciliation(product)["ok"] is True  # 14 == ledger(10+4)
