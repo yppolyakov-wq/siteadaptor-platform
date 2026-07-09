@@ -366,6 +366,18 @@ Python 3.12, менеджер uv.
   events/hotel (товары не primary; werkstatt держит — Teile). **Программа упрощения (S1–S6)
   закрыта.** Планы — `docs/admin-simplification-s6-plan-2026-07-09.md`, handoff §4. Ветка
   `claude/admin-simplification-handoff-dfawis`.
+- **Самое свежее (2026-07-09, продолжение): глобальный АУДИТ кабинета + волны W0–W2 + языки — всё в
+  main `6b3bd79`.** Аудит `docs/admin-global-audit-2026-07-09.md` (6 разведок + стенд; волны W0–W6 §9).
+  **W0** критический баг: форма настроек стирала 6 полей на Save (в т.ч. `small_business`/НДС) —
+  не выводились в шаблоне; фикс+замки. **W1** редактор: левая панель→лист из верхнего тулбара
+  (`.bld-collapsed`=display:none, нет «прыжка»; рейл→вкладки `#bld-area-tabs`); адверсариальное
+  ревью-workflow поймало HIGH-регрессию (display:none убивал ленту настроек блока) → фикс
+  `.bld-ribbon-open{display:block!important}`; headless-верификация. **W2** форма товара: order_fields
+  (название первым), секции+аккордеоны, Простой/Эксперт, чипы, help_text, гейт пищевой маркировки;
+  замок «все поля в DOM, скрытие только CSS» (урок W0). **Языки**: `LANGUAGES` += 9 (tr/ru/uk/pl/fr/
+  it/es/nl/pt), таб «Sprachen» прямой; регресс-фиксы (form_locales/locale-замки/format), broad 1964
+  passed. **Перевод хрома (.po) — ОТЛОЖЕН в конец бэклога** (решение владельца). Дальше по аудиту:
+  **W3** онбординг/демо новых архетипов → W4 настройки → W5 настройки Kanban-доски → W6 единый источник темы.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type; AlterField, SHARED/public, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

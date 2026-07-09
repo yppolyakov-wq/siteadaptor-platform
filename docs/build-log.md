@@ -4539,3 +4539,32 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   (услуги/заявки/билеты/номера — товары не primary); werkstatt держит catalog (Teile). Страницы
   доступны по URL (принцип S5); Эксперт — всё видно. Тесты в `test_ui_mode.py` (+5). Ветка
   `claude/admin-simplification-handoff-dfawis`.
+
+### 2026-07-09 — глобальный аудит кабинета + волны W0–W2 + расширение языков (всё в main `6b3bd79`)
+- **Аудит** всего кабинета (6 параллельных разведок + живой стенд) — `docs/admin-global-audit-2026-07-09.md`;
+  волны W0–W6 в §9. **W0 (критический баг):** форма «Einstellungen» стирала 6 полей при каждом Save
+  (в т.ч. `small_business`=Kleinunternehmer/НДС) — не выводились в шаблоне, но были в `Meta.fields`.
+  Verified live. Фикс: вывести все поля (tax/small_business в Legal; service_area/owner_digest/
+  voucher_max в новый блок «Operations»). Замки: рендер всех Meta-полей + round-trip.
+- **W1** редактор: левая панель-шторка → лист, выпадающий из-под верхнего тулбара во всю ширину
+  (`site_home.html`); `.bld-collapsed`=display:none (нет «прыжка» при входе); рейл областей → вкладки
+  `#bld-area-tabs` в шапке листа; авто-restore области убран (канва-first). **Адверсариальное
+  ревью (workflow, 5 измерений) поймало HIGH-регрессию:** display:none-предок убивал ленту настроек
+  блока (`#bld-block-popup` — потомок панели) → клик по блоку не открывал настройки. Фикс:
+  `.bld-ribbon-open{display:block!important}` + 2 LOW (aria-pressed ⚙️, null .click() sections).
+  Headless-Chromium верификация. Обновлён `test_home_builder`.
+- **W2** форма товара (`docs/w2-product-form-plan-2026-07-09.md`): порядок — `order_fields` (название
+  ПЕРВЫМ, было 17-м); секции ① Basis всегда + ②–⑤ аккордеоны `<details>` (Preis/Lager/Lebensmittel/
+  Marketing); партиал `_pf_field.html` (help_text теперь выводится); режим Простой/Эксперт (S5);
+  пищевая маркировка гейтится по архетипу `FOOD_BUSINESS_TYPES`; аллергены/добавки/диеты — чипами
+  (CSS в `<style>`). ⚠️ ЗАМОК (урок W0): все поля в DOM, скрытие только CSS `hidden` → Save не стирает
+  (`test_all_fields_stay_in_dom` × 4 комбо). W2-ревью: 0 регрессий в W2.
+- **Языки** (фидбэк владельца «переключатель доп. языков»): `settings.LANGUAGES` += tr/ru/uk/pl/fr/it/
+  es/nl/pt (DACH, LTR; было DE+EN); таб «Sprachen» → прямой (не «Erweitert»). Механика генерик (страница/
+  переключатель/per-locale поля). **Регрессии от расширения (пойманы broad-прогоном 1964 passed, все
+  исправлены):** `form_locales(None)`→de+en (не весь реестр); locale-замки fr→zz; ruff format.
+  ⚠️ хром (кнопки) не переведён — трек перевода `.po` **отложен в конец бэклога** (решение владельца
+  2026-07-09). **Всё влито в main FF `6b3bd79`; миграций в W0–W2/языках нет** (ожидает деплоя только
+  `tenants/0024` из S6a). Уроки: `ruff format --check .` ЦЕЛИКОМ (не per-file); `npm run build:css` при
+  правках шаблонов (freshness ловит и удалённые классы); `rl:*` Redis переживают локальные прогоны
+  (product_review падал локально — не на CI). **Дальше: W3** онбординг/демо → W4 настройки → W5 доска → W6 тема.
