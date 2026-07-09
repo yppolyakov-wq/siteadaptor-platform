@@ -26,105 +26,11 @@
   {% endfor %}
 {% endif %}
 
-{# P2.5c: онлайн-предоплата C&C #}
-<form method="post" action="{% url 'orders:order-settings' %}" class="mb-4 bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3 flex-wrap text-sm">
-  {% csrf_token %}
-  <label class="flex items-center gap-2">
-    <input type="checkbox" name="orders_prepay" {% if orders_prepay %}checked{% endif %} onchange="this.form.submit()">
-    {% trans "Online prepayment — customers pay when ordering" %}
-  </label>
-  {% if orders_prepay and not payments_enabled %}
-    <a href="{% url 'billing-payments' %}" class="text-amber-700 hover:underline">{% trans "Connect Stripe to accept payments" %} →</a>
-  {% endif %}
-</form>
-
-{# E-7: Vorkasse/Überweisung — тумблер + банковские реквизиты (Verwendungszweck = код заказа) #}
-<form method="post" action="{% url 'orders:order-settings' %}" class="mb-4 bg-white rounded-2xl shadow-sm p-4 space-y-3 text-sm">
-  {% csrf_token %}
-  <input type="hidden" name="form" value="vorkasse">
-  <label class="flex items-center gap-2 font-medium">
-    <input type="checkbox" name="vorkasse_enabled" {% if vorkasse_enabled %}checked{% endif %}>
-    {% trans "Vorkasse (bank transfer) — customer pays in advance to your account" %}
-  </label>
-  <div class="grid sm:grid-cols-3 gap-3">
-    <div>
-      <label class="block text-xs text-gray-500 mb-1">{% trans "Account holder" %}</label>
-      <input name="bank_holder" type="text" value="{{ bank_holder }}" maxlength="120" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-xs text-gray-500 mb-1">IBAN</label>
-      <input name="bank_iban" type="text" value="{{ bank_iban }}" maxlength="34" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
-    </div>
-    <div>
-      <label class="block text-xs text-gray-500 mb-1">BIC</label>
-      <input name="bank_bic" type="text" value="{{ bank_bic }}" maxlength="11" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
-    </div>
-  </div>
-  {% if vorkasse_enabled and not bank_iban %}
-    <p class="text-amber-700">{% trans "Enter your IBAN — without it Vorkasse is not offered at checkout." %}</p>
-  {% endif %}
-  <button type="submit" class="rounded-lg bg-gray-900 text-white px-4 py-2 text-xs font-medium hover:bg-black">{% trans "Save" %}</button>
-</form>
-
-{# G4: настройки доставки/Versand #}
-<form method="post" action="{% url 'orders:order-settings' %}" class="mb-6 bg-white rounded-2xl shadow-sm p-4 space-y-3 text-sm">
-  {% csrf_token %}
-  <input type="hidden" name="form" value="delivery">
-  <label class="flex items-center gap-2 font-medium">
-    <input type="checkbox" name="delivery_enabled" {% if delivery_enabled %}checked{% endif %}>
-    {% trans "Offer delivery (Versand)" %}
-  </label>
-  <div class="grid sm:grid-cols-3 gap-3">
-    <div>
-      <label class="block text-xs text-gray-500 mb-1">{% trans "Delivery fee (€)" %}</label>
-      <input name="delivery_fee_eur" type="text" value="{{ delivery_fee_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-xs text-gray-500 mb-1">{% trans "Free from (€, 0=never)" %}</label>
-      <input name="delivery_free_eur" type="text" value="{{ delivery_free_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-xs text-gray-500 mb-1">{% trans "Min. order (€, 0=none)" %}</label>
-      <input name="delivery_min_eur" type="text" value="{{ delivery_min_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-  </div>
-  <div>
-    <label class="block text-xs text-gray-500 mb-1">{% trans "Delivery area (shown to customers, e.g. PLZ)" %}</label>
-    <input name="delivery_area" type="text" value="{{ delivery_area }}" placeholder="z. B. nur 40721, 40724" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-  </div>
-  <div>
-    <label class="block text-xs text-gray-500 mb-1">{% trans "Min. order for pickup (€, 0=none)" %}</label>
-    <input name="pickup_min_eur" type="text" value="{{ pickup_min_eur }}" class="w-full sm:w-1/3 rounded-lg border border-gray-300 px-3 py-2">
-  </div>
-  <div>
-    <label class="block text-xs text-gray-500 mb-1">📍 {% trans "Pickup points (one per line: Name | Address)" %}</label>
-    <textarea name="pickup_locations" rows="3" placeholder="Filiale Mitte | Hauptstr. 12&#10;Filiale Süd | Bahnhofweg 3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ pickup_locations_text }}</textarea>
-    <p class="text-xs text-gray-400 mt-1">{% trans "Leave empty for a single pickup at your address. Several lines = customer chooses in cart." %}</p>
-  </div>
-
-  <div class="border-t border-gray-100 pt-3">
-    <p class="font-medium mb-1">{% trans "Delivery zones by postal code" %}</p>
-    <p class="text-xs text-gray-400 mb-2">{% trans "Optional. A matching PLZ zone overrides the flat fee / free-from / min above. Leave empty to use the flat rate everywhere." %}</p>
-    <div class="space-y-2">
-      {% for z in delivery_zone_rows %}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <input name="zone_plz_{{ z.i }}" type="text" value="{{ z.plz }}" placeholder="{% trans 'PLZ e.g. 40, 41' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-          <input name="zone_fee_{{ z.i }}" type="text" value="{{ z.fee_eur }}" placeholder="{% trans 'Fee €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-          <input name="zone_free_{{ z.i }}" type="text" value="{{ z.free_eur }}" placeholder="{% trans 'Free from €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-          <input name="zone_min_{{ z.i }}" type="text" value="{{ z.min_eur }}" placeholder="{% trans 'Min €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-        </div>
-      {% endfor %}
-    </div>
-    <label class="flex items-center gap-2 mt-2 text-xs">
-      <input type="checkbox" name="delivery_restrict_to_zones" {% if delivery_restrict_to_zones %}checked{% endif %}>
-      {% trans "Deliver only to the postal codes listed above" %}
-    </label>
-  </div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save delivery settings" %}</button>
-  {% if delivery_enabled and not payments_enabled %}
-    <p class="text-xs text-amber-700">{% trans "Tip: enable online prepayment above so delivery orders are paid upfront." %}</p>
-  {% endif %}
-</form>
+{# W4-3: настройки оплаты/Vorkasse/Lieferung/Abholung сведены в единый экран. #}
+<div class="mb-4 bg-white rounded-2xl shadow-sm p-4 text-sm flex items-center justify-between gap-3 flex-wrap">
+  <span class="text-gray-700">{% trans "Prepayment, bank transfer, delivery &amp; pickup are set in one place:" %}</span>
+  <a href="{% url 'payment-settings' %}" class="font-medium text-indigo-600 hover:underline whitespace-nowrap">💳 {% trans "Payment &amp; shipping" %} →</a>
+</div>
 
 {% if orders %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">

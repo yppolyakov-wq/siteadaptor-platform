@@ -171,11 +171,13 @@ def test_payments_methods_empty_resets_to_default():
     assert tenant.stripe_payment_methods == []  # пусто = дефолт Stripe Dashboard
 
 
-def test_payments_page_shows_method_checkboxes(settings):
+def test_payments_page_links_to_unified_payment_settings(settings):
+    # W4-3: выбор способов переехал в единый экран «Zahlung & Versand»; billing-
+    # payments теперь ведёт туда ссылкой (Stripe-методы больше не тут).
     _configure_connect(settings)
     tenant = TenantFactory.build(
         business_type="cafe", stripe_connect_id="acct_1", payments_enabled=True
     )
     body = views.payments(_req_full("get", "/dashboard/billing/payments/", tenant)).content.decode()
-    assert 'name="methods"' in body
-    assert 'value="klarna"' in body and 'value="sepa_debit"' in body
+    assert "/dashboard/settings/payments/" in body  # ссылка на единый экран
+    assert 'name="methods"' not in body  # чекбоксы способов тут больше не рендерятся

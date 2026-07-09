@@ -41,24 +41,9 @@
   <p class="mt-4 text-xs text-gray-500">{% trans "Platform fee" %}: {{ fee_percent }} %</p>
 </div>
 
-{% if connected and payments_enabled %}
-{# E7-3: платёжный микс DACH — payment_method_types для Stripe Checkout #}
-<div class="bg-white border border-gray-200 rounded-2xl p-5 max-w-xl mt-4">
-  <h2 class="font-semibold text-sm mb-1">{% trans "Payment methods at checkout" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">
-    Welche Zahlarten Ihre Kunden im Online-Checkout sehen. Leer = Standard Ihres
-    Stripe-Dashboards. Die Zahlart muss in Ihrem Stripe-Dashboard aktiviert sein.
-  </p>
-  <form method="post" action="{% url 'billing-payments-methods' %}" class="space-y-2 text-sm">
-    {% csrf_token %}
-    {% for code, label in method_choices %}
-      <label class="flex items-center gap-2">
-        <input type="checkbox" name="methods" value="{{ code }}" {% if code in selected_methods %}checked{% endif %}>
-        {{ label }}
-      </label>
-    {% endfor %}
-    <button type="submit" class="mt-2 rounded-lg bg-gray-900 text-white px-4 py-2 text-xs font-medium hover:bg-black">{% trans "Save" %}</button>
-  </form>
+{# W4-3: способы оплаты/Vorkasse/Lieferung сведены в единый экран «Zahlung & Versand». #}
+<div class="bg-white border border-gray-200 rounded-2xl p-5 max-w-xl mt-4 text-sm">
+  <p class="text-gray-700">{% trans "Payment methods, bank transfer and delivery are all set in one place now:" %}</p>
+  <a href="{% url 'payment-settings' %}" class="inline-flex items-center gap-1 mt-2 font-medium text-indigo-600 hover:underline">💳 {% trans "Payment & shipping" %} →</a>
 </div>
-{% endif %}
 {% endblock %}
