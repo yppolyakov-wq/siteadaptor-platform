@@ -14,7 +14,7 @@ def test_normalize_preserves_only_supported_locale_overlays():
             "hero_title": "Hallo",
             "i18n": {
                 "en": {"hero_title": "Hello"},
-                "fr": {"hero_title": "Bonjour"},  # неподдерживаемая → отброшена
+                "zz": {"hero_title": "Bonjour"},  # вне реестра → отброшена
                 "de": {"hero_title": "x"},  # базовая локаль не оверлеится
                 "bad": "nope",
             },

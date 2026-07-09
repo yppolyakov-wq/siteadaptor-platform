@@ -139,9 +139,9 @@ def test_localize_applies_third_locale(settings):
 
 
 def test_normalize_drops_locale_outside_registry():
-    """Без FR в реестре (дефолт DE/EN) — FR-оверлей отбрасывается (как раньше EN-only)."""
+    """Локаль вне реестра settings.LANGUAGES (zz — заведомо не язык) — оверлей отброшен."""
     cfg = siteconfig.normalize(
-        {"hero_title": "Hallo", "i18n": {"en": {"hero_title": "Hello"}, "fr": {"hero_title": "x"}}}
+        {"hero_title": "Hallo", "i18n": {"en": {"hero_title": "Hello"}, "zz": {"hero_title": "x"}}}
     )
     assert cfg["i18n"] == {"en": {"hero_title": "Hello"}}
 
