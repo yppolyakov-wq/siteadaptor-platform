@@ -387,9 +387,20 @@ Python 3.12, менеджер uv.
   golden normalize НЕ затронут. **W3-4** пресеты акций 4 архетипам (discount). **W3-5** шаблоны витрины
   termine/handwerk/veranstaltung — каждый ВКЛЮЧАЕТ primary-секцию (generic-шаблоны её прятали).
   **W3-6** регистрация: business_type карточками (иконка+язык задач) вместо `<select>`. Локальный
-  broad-гейт 198 passed. **Дальше по аудиту: W4** настройки (аккордеоны, свод Zahlung/Versand, гейт
-  вкладок по архетипу) → **W5** настройки Kanban-доски (переименование/порядок колонок в site_config) →
-  **W6** единый источник темы. ⚠️ Всё ещё ОЖИДАЕТ ДЕПЛОЯ: `tenants/0024` (S6a).
+  broad-гейт 198 passed. **W3 влит в main + задеплоен владельцем (2026-07-09, `tenants/0024` = [X]).**
+- **Самое свежее (2026-07-09, W4 — упрощение настроек): ЗАКРЫТ ЦЕЛИКОМ** (ветка
+  `claude/admin-simplification-handoff-dfawis`, БЕЗ миграций; планы `w4-settings-simplification-plan`
+  + `w4-3-payment-shipping-merge-plan`). **W4-1** `/dashboard/settings/`: аккордеоны (базовые всегда +
+  Recht/Betrieb в `<details>`, Простой/Эксперт скрывает продвинутое), свод двух блоков «часы» в один.
+  **W4-2** гейт полей по модулю (loyalty→voucher/auto_redeem; jobs/orders→service_area); инвариант W0
+  (скрытие только CSS, все поля в DOM — замки). **W4-fix видимости (по фидбэку владельца):** тумблер
+  Einfach/Experte + «🌐 Sprachen» вынесены в ШАПКУ кабинета (`set-ui-mode`, `ui_simple` в
+  context-processor) — были не найдены (режим в «Erweitert», языки в табах). **W4-3 физический свод
+  (решение владельца):** единый экран `payment_settings` «Zahlung & Versand» (`/dashboard/settings/
+  payments/`) — свод оплаты/доставки с 3 экранов; save-хелперы извлечены (orders/billing делегируют,
+  поведение байт-в-байт); одна форма/Save, **guard потери по сентинелам `sec_*`**; старые экраны
+  слим-нуты до ссылки. **Дальше по аудиту: W5** (настройки Kanban-доски — переименование/порядок
+  колонок в site_config) → **W6** (единый источник темы).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type; AlterField, SHARED/public, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

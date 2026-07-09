@@ -4592,3 +4592,23 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   шаг 1) вместо `<select>`; вьюха отдаёт `business_type_cards()` в контекст (GET+POST-повтор),
   выбор переживает ошибку валидации; CSS-safe (классы 1:1 из setup.html). Локальный broad-гейт
   198 passed (вкл. golden normalize). Дальше: W4 настройки → W5 доска (Kanban settings) → W6 тема.
+- **W4** (упрощение настроек, ветка `claude/admin-simplification-handoff-dfawis`, БЕЗ миграций;
+  планы `docs/w4-settings-simplification-plan-2026-07-09.md` + `docs/w4-3-payment-shipping-merge-plan-2026-07-09.md`).
+  **W4-1** страница `/dashboard/settings/`: 4 раскрытых fieldset'а → базовые всегда (Kontakt/
+  Öffnungszeiten) + продвинутые аккордеоны (Recht & Steuer / Betrieb & Extras); свод двух блоков
+  «часы» в один (структурный редактор + free-text как «Anzeigetext»); Простой/Эксперт скрывает
+  продвинутое (класс hidden). **W4-2** гейт полей по модулю: voucher/auto_redeem — при loyalty;
+  service_area — при jobs/orders; убран обманчивый лейбл «Operations & delivery». Инвариант W0:
+  скрытие ТОЛЬКО CSS, все 21 поля в DOM (замки: Эксперт/Простой/без модулей + round-trip).
+  Партиал `_settings_field.html`. **W4-3 (физический свод, решение владельца):** оплата/доставка
+  были размазаны по 3 экранам (Stripe-Zahlarten billing · Vorkasse/Lieferung/Abholung/Prepay на
+  странице Bestellungen). **Шаг 1:** извлечены save-хелперы (`orders.save_delivery/vorkasse/prepay`,
+  `billing.save_stripe_methods`) — старые вьюхи делегируют, поведение байт-в-байт (характеризац.
+  тесты зелёные). **Шаг 2:** единый экран `core.payment_settings` (`/dashboard/settings/payments/`,
+  вкладка «Zahlung & Versand» в хабе Einstellungen) — одна форма/Save, POST диспатчит на хелперы;
+  **guard потери:** секция пишется ТОЛЬКО при своём сентинеле `sec_*` (рендерится лишь когда секция
+  показана → скрытая не затирает). Секции гейтятся Stripe-Connect/orders; Connect-OAuth отдельной
+  формой. **Шаг 3:** старые экраны billing-payments/order_list слим-нуты до ссылки на единый экран
+  (обработчики оставлены рабочими). Тесты: рендер/сохранение/guard/гейт (5) + характеризационные
+  (55) + billing-ссылка. app.css без изменений. **Дальше по аудиту: W5** (настройки Kanban-доски —
+  переименование/порядок колонок) → **W6** (единый источник темы).
