@@ -810,12 +810,18 @@ def site_view(request):
         # живёт на отдельной странице «Startseite» (home_builder_view). Здесь —
         # дизайн/контент/навигация; секции и оверрайды тизеров переносим как есть.
         current = siteconfig.normalize(request.tenant.site_config)
-        config = {"sections": current["sections"], "archetypes": current["archetypes"]}
+        # Фикс потери данных: стартуем с ПОЛНОЙ копии конфига (как home_builder_view),
+        # иначе сохранение «Site» роняет ключи, которых нет в этой форме — ui_mode (S5),
+        # board (W5), seo, типографику, стиль карточек и др. Ниже — только правки формы.
+        config = dict(current)
         for field in siteconfig.TEXT_FIELDS:
-            config[field] = request.POST.get(field, "")
-        config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
-        config["hero_image"] = request.POST.get("hero_image", "").strip()
-        config["font"] = request.POST.get("font", "system")  # P2a: шрифт витрины
+            # presence-safe: поля нет в форме → сохраняем текущее (не затираем в "").
+            config[field] = request.POST.get(field, current.get(field, ""))
+        config["hero_image"] = request.POST.get("hero_image", current.get("hero_image", "")).strip()
+        # W6: цвет/шрифт/стиль баннера — ЕДИНЫЙ источник в конструкторе главной (Theme).
+        # Здесь не редактируем; presence-guard шрифта на случай легаси-POST.
+        if "font" in request.POST:
+            config["font"] = request.POST.get("font") or "system"
         # S7b: навигация витрины правится в билдере меню (/dashboard/site/menu/).
         # Легаси-nav здесь только переносим (из него выводится menus для тенантов,
         # ещё не трогавших билдер) — пустая форма «Site» не должна его гасить.
@@ -838,13 +844,9 @@ def site_view(request):
         if isinstance(previous.get("gallery"), list):
             config["gallery"] = previous["gallery"]  # фото грузятся отдельной формой
         request.tenant.site_config = siteconfig.normalize(config)
-        update_fields = ["site_config", "updated_at"]
-        # Акцентный цвет (#rrggbb) → Tenant.primary_color (читает витрина для hero).
-        accent = request.POST.get("accent_color", "").strip()
-        if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != request.tenant.primary_color:
-            request.tenant.primary_color = accent
-            update_fields.insert(1, "primary_color")
-        request.tenant.save(update_fields=update_fields)
+        # W6: акцент/шрифт/стиль баннера — ЕДИНЫЙ источник в конструкторе главной
+        # (home_builder_view). Здесь тему не пишем (primary_color не трогаем).
+        request.tenant.save(update_fields=["site_config", "updated_at"])
         messages.success(request, "Gespeichert.")
         return redirect("site")
 

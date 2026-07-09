@@ -162,15 +162,9 @@
         <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
       </summary>
       <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-5">
-        <div class="flex flex-wrap items-center gap-5">
-          <label class="flex items-center gap-2 text-sm"><span class="text-gray-600">{% trans "Font" %}</span>
-            <select name="font" class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
-              {% for f in font_choices %}<option value="{{ f }}" {% if f == config.font %}selected{% endif %}>{% if f == 'system' %}{% trans "Standard (Sans)" %}{% elif f == 'serif' %}{% trans "Elegant (Serif headings)" %}{% else %}{% trans "Soft (Rounded)" %}{% endif %}</option>{% endfor %}
-            </select>
-          </label>
-          <label class="flex items-center gap-2 text-sm"><span class="text-gray-500">{% trans "Accent color" %}</span>
-            <input type="color" name="accent_color" value="{{ request.tenant.primary_color|default:'#4f46e5' }}" class="h-8 w-12 rounded border border-gray-300 p-0.5"></label>
-        </div>
+        {% comment %}W6: цвет, шрифт и стиль баннера — ЕДИНЫЙ источник в конструкторе
+        главной (Theme). Здесь не дублируем — ведём туда ссылкой.{% endcomment %}
+        <a href="{% url 'site-home' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline">🎨 {% trans "Colour, font & banner style — in the homepage builder" %} →</a>
         <label class="flex items-start gap-2 text-sm">
           <input type="checkbox" name="quick_add" {% if config.quick_add %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
           <span>{% trans "Quick order on cards (+ button / configurator)" %}<span class="block text-xs text-gray-400">{% trans "Off: cards just link to the product page." %}</span></span>
@@ -183,9 +177,6 @@
             <textarea id="id_hero_text" name="hero_text" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ config.hero_text }}</textarea></div>
           <div><label class="block text-sm mb-1" for="id_hero_image">{% trans "Banner background image (URL)" %}</label>
             <input id="id_hero_image" name="hero_image" type="text" value="{{ config.hero_image }}" placeholder="https://…" class="w-full rounded-lg border border-gray-300 px-3 py-2"></div>
-          <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="hero_accent" {% if config.hero_style == 'accent' %}checked{% endif %} class="rounded border-gray-300">
-            {% trans "Color banner background with accent" %}</label>
         </div>
       </div>
     </details>

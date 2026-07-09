@@ -109,17 +109,24 @@ def test_site_view_gallery_renders(rf, settings):
     assert "Café &amp; Restaurant" in html
 
 
-def test_site_view_manual_save_sets_accent_and_hero_style(rf, settings):
+def test_site_view_no_longer_touches_theme(rf, settings):
+    """W6: тема (акцент/шрифт/стиль баннера) — единый источник в конструкторе главной.
+    Сохранение «Site» темы НЕ трогает, даже если легаси-поля пришли в POST."""
     settings.ROOT_URLCONF = "config.urls_tenant"
-    tenant = TenantFactory(schema_name="t_acc", business_type="bakery", site_config={})
+    tenant = TenantFactory(
+        schema_name="t_acc",
+        business_type="bakery",
+        primary_color="#123456",
+        site_config={"hero_style": "plain"},
+    )
     user = get_user_model().objects.create_user("ua", "ua@test.de", "pw12345678")
     data = {"hero_accent": "on", "accent_color": "#0e7490", "enabled_hero": "on", "order_hero": "1"}
 
     resp = site_view(_request(rf, "post", user, tenant, data))
     assert resp.status_code in (301, 302)
     tenant.refresh_from_db()
-    assert tenant.primary_color == "#0e7490"
-    assert siteconfig.normalize(tenant.site_config)["hero_style"] == "accent"
+    assert tenant.primary_color == "#123456"  # site_view тему не пишет (единый источник)
+    assert siteconfig.normalize(tenant.site_config)["hero_style"] == "plain"
 
 
 def test_site_view_rejects_invalid_accent(rf, settings):
