@@ -36,3 +36,20 @@ def test_preset_prefills_form():
 def test_unknown_preset_is_safe():
     resp = views.promotion_create(_req("/promotions/new/?preset=nope"))
     assert resp.status_code == 200
+
+
+@pytest.mark.parametrize(
+    ("business_type", "key", "title"),
+    [
+        ("friseur", "neukunde", "Neukunden-Rabatt"),
+        ("werkstatt", "check", "Frühjahrs-Check"),
+        ("handwerker", "saison", "Saison-Aktion"),
+        ("events", "fruehbucher", "Frühbucher-Rabatt"),
+    ],
+)
+def test_s6_archetype_presets_prefill(business_type, key, title):
+    # S6-архетипы: у каждого свой пресет (не только generic _COMMON), заголовок
+    # предзаполняется в форме создания при ?preset=<key>.
+    resp = views.promotion_create(_req(f"/promotions/new/?preset={key}", business_type))
+    assert resp.status_code == 200
+    assert title.encode("utf-8") in resp.content

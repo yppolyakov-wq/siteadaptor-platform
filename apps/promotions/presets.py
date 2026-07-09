@@ -141,6 +141,52 @@ PRESETS = {
             },
         },
     ],
+    # S6-архетипы: тип «discount» (generisch %-Rabatt) — без reservation-механики
+    # (Menge/TTL), которая завязана на каталог; для услуг/термина/анфраге корректнее.
+    "friseur": [
+        {
+            "key": "neukunde",
+            "label": "Neukunden-Rabatt",
+            "initial": {
+                "title_de": "Neukunden-Rabatt",
+                "promo_type": "discount",
+                "discount_percent": 20,
+            },
+        },
+    ],
+    "werkstatt": [
+        {
+            "key": "check",
+            "label": "Saison-Check-Aktion",
+            "initial": {
+                "title_de": "Frühjahrs-Check",
+                "promo_type": "discount",
+                "discount_percent": 15,
+            },
+        },
+    ],
+    "handwerker": [
+        {
+            "key": "saison",
+            "label": "Saison-Aktion",
+            "initial": {
+                "title_de": "Saison-Aktion",
+                "promo_type": "discount",
+                "discount_percent": 10,
+            },
+        },
+    ],
+    "events": [
+        {
+            "key": "fruehbucher",
+            "label": "Frühbucher-Ticket",
+            "initial": {
+                "title_de": "Frühbucher-Rabatt",
+                "promo_type": "discount",
+                "discount_percent": 15,
+            },
+        },
+    ],
 }
 
 
