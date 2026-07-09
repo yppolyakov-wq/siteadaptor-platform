@@ -4612,3 +4612,16 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   (обработчики оставлены рабочими). Тесты: рендер/сохранение/guard/гейт (5) + характеризационные
   (55) + billing-ссылка. app.css без изменений. **Дальше по аудиту: W5** (настройки Kanban-доски —
   переименование/порядок колонок) → **W6** (единый источник темы).
+- **W5** (настройки Kanban-доски, ветка `claude/admin-simplification-handoff-dfawis`, БЕЗ миграций).
+  Владелец не находил, где переименовать/скрыть колонки доски (они были фикс — Neu/In Bearbeitung/
+  Fertig/Abgeschlossen из `pipeline.STAGE_LABELS`). Панель «⚙️ Spalten anpassen» прямо на
+  `/dashboard/board/` (discoverability). Пер-тенантно в `site_config['board']`: `labels`
+  (переименование) / `order` (порядок) / `hidden` (скрытие). `pipeline.resolve_columns(kind, board)`
+  применяет их поверх `pipeline_for`; **статусы колонок (правила переходов FSM/V4) НЕ трогаются**
+  (решение владельца). `siteconfig.normalize_board` валидирует (только известные 4 стадии, дедуп,
+  label ≤40); ключ `board` материализуется лишь при непустом → golden normalize-паритет цел.
+  `board_settings` (POST, targeted-write как set_ui_mode → прочие ключи site_config целы; дефолтный
+  порядок не материализуем). Тесты: resolve (rename/reorder/hide, statuses целы), normalize
+  (валидация + golden), view (save + targeted-write + reorder + рендер панели/кастомной метки) — 16 +
+  48 в смежных board/transactions/pipeline/kanban. app.css без изменений. **Дальше по аудиту: W6**
+  (единый источник темы — accent/шрифт дублируются между site.html и site_home; последняя волна аудита).
