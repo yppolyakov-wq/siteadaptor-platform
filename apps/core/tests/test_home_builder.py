@@ -1590,7 +1590,10 @@ def test_home_builder_se7_rail_and_areas():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'id="bld-rail"' in body  # вертикальный рейл областей
+    # W1: вертикальный левый рейл убран — переключатель областей переехал в
+    # горизонтальные вкладки #bld-area-tabs в шапке выпадающего сверху листа-тулбара.
+    assert 'id="bld-rail"' not in body  # старого рейла больше нет
+    assert 'id="bld-area-tabs"' in body  # горизонтальный переключатель областей
     assert 'class="bld-rail-btn' in body and 'data-area="theme"' in body
     # UC6-6g (перепин): «Шаблон» = только глобальные — кнопки Sections в рейле
     # нет, но сама ОБЛАСТЬ (data-bld-area, форма) живёт для канва-фолбэка.
