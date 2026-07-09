@@ -99,14 +99,20 @@ def payments(request):
     )
 
 
+def save_stripe_methods(tenant, request) -> None:
+    """W4-3: сохранить выбор способов для Stripe Checkout (payment_method_types).
+    Извлечено из payments_methods без изменения семантики — переиспользует единый
+    экран «Zahlung & Versand» (core.payment_settings)."""
+    allowed = {code for code, _label in STRIPE_METHOD_CHOICES}
+    tenant.stripe_payment_methods = [m for m in request.POST.getlist("methods") if m in allowed]
+    tenant.save(update_fields=["stripe_payment_methods", "updated_at"])
+
+
 @login_required
 @require_POST
 def payments_methods(request):
     """E7-3: сохранить выбор способов для Stripe Checkout (чекбоксы кабинета)."""
-    tenant = request.tenant
-    allowed = {code for code, _label in STRIPE_METHOD_CHOICES}
-    tenant.stripe_payment_methods = [m for m in request.POST.getlist("methods") if m in allowed]
-    tenant.save(update_fields=["stripe_payment_methods", "updated_at"])
+    save_stripe_methods(request.tenant, request)
     messages.success(request, _("Settings saved."))
     return redirect("billing-payments")
 

@@ -271,51 +271,68 @@ def _zone_rows(tenant) -> list[dict]:
     return rows
 
 
+def save_delivery(tenant, request) -> None:
+    """W4-3: сохранить настройки доставки/Abholung (Versand + зоны + pickup). Извлечено
+    из order_settings без изменения семантики — переиспользуется единым экраном
+    «Zahlung & Versand» (core.payment_settings)."""
+    tenant.delivery_enabled = bool(request.POST.get("delivery_enabled"))
+    tenant.delivery_fee_cents = _eur_to_cents(request.POST.get("delivery_fee_eur"))
+    tenant.delivery_free_cents = _eur_to_cents(request.POST.get("delivery_free_eur"))
+    tenant.delivery_min_cents = _eur_to_cents(request.POST.get("delivery_min_eur"))
+    tenant.delivery_area = request.POST.get("delivery_area", "").strip()[:2000]
+    tenant.pickup_min_cents = _eur_to_cents(request.POST.get("pickup_min_eur"))
+    tenant.delivery_restrict_to_zones = bool(request.POST.get("delivery_restrict_to_zones"))
+    tenant.delivery_zones = _parse_delivery_zones(request)
+    tenant.pickup_locations = _parse_pickup_locations(request)
+    tenant.save(
+        update_fields=[
+            "delivery_enabled",
+            "delivery_fee_cents",
+            "delivery_free_cents",
+            "delivery_min_cents",
+            "delivery_area",
+            "pickup_min_cents",
+            "delivery_restrict_to_zones",
+            "delivery_zones",
+            "pickup_locations",
+            "updated_at",
+        ]
+    )
+
+
+def save_vorkasse(tenant, request) -> None:
+    """W4-3: сохранить Vorkasse/Überweisung + банковские реквизиты. IBAN нормализуем
+    (без пробелов, верхний регистр); включение без IBAN не активирует способ на витрине
+    (guard в orders.payments.available_methods). Извлечено из order_settings 1:1."""
+    tenant.vorkasse_enabled = bool(request.POST.get("vorkasse_enabled"))
+    tenant.bank_holder = request.POST.get("bank_holder", "").strip()[:120]
+    tenant.bank_iban = request.POST.get("bank_iban", "").replace(" ", "").upper()[:34]
+    tenant.bank_bic = request.POST.get("bank_bic", "").replace(" ", "").upper()[:11]
+    tenant.save(
+        update_fields=["vorkasse_enabled", "bank_holder", "bank_iban", "bank_bic", "updated_at"]
+    )
+
+
+def save_prepay(tenant, request) -> None:
+    """W4-3: сохранить онлайн-предоплату Click&Collect (P2.5c). Извлечено 1:1."""
+    tenant.orders_prepay = bool(request.POST.get("orders_prepay"))
+    tenant.save(update_fields=["orders_prepay", "updated_at"])
+
+
 @login_required
 @require_POST
 def order_settings(request):
     """Настройки заказов: онлайн-предоплата (P2.5c) ИЛИ доставка/Versand (G4).
 
     Две независимые формы; различаем по hidden ``form`` — чтобы сохранение одной
-    не сбрасывало другую."""
+    не сбрасывало другую. Логика записи вынесена в save_* (переиспользует единый
+    экран W4-3)."""
     tenant = request.tenant
     if request.POST.get("form") == "delivery":
-        tenant.delivery_enabled = bool(request.POST.get("delivery_enabled"))
-        tenant.delivery_fee_cents = _eur_to_cents(request.POST.get("delivery_fee_eur"))
-        tenant.delivery_free_cents = _eur_to_cents(request.POST.get("delivery_free_eur"))
-        tenant.delivery_min_cents = _eur_to_cents(request.POST.get("delivery_min_eur"))
-        tenant.delivery_area = request.POST.get("delivery_area", "").strip()[:2000]
-        tenant.pickup_min_cents = _eur_to_cents(request.POST.get("pickup_min_eur"))
-        tenant.delivery_restrict_to_zones = bool(request.POST.get("delivery_restrict_to_zones"))
-        tenant.delivery_zones = _parse_delivery_zones(request)
-        tenant.pickup_locations = _parse_pickup_locations(request)
-        tenant.save(
-            update_fields=[
-                "delivery_enabled",
-                "delivery_fee_cents",
-                "delivery_free_cents",
-                "delivery_min_cents",
-                "delivery_area",
-                "pickup_min_cents",
-                "delivery_restrict_to_zones",
-                "delivery_zones",
-                "pickup_locations",
-                "updated_at",
-            ]
-        )
+        save_delivery(tenant, request)
     elif request.POST.get("form") == "vorkasse":
-        # E-7: Vorkasse/Überweisung + банковские реквизиты. IBAN нормализуем
-        # (без пробелов, верхний регистр); включение без IBAN не активирует
-        # способ на витрине (guard в orders.payments.available_methods).
-        tenant.vorkasse_enabled = bool(request.POST.get("vorkasse_enabled"))
-        tenant.bank_holder = request.POST.get("bank_holder", "").strip()[:120]
-        tenant.bank_iban = request.POST.get("bank_iban", "").replace(" ", "").upper()[:34]
-        tenant.bank_bic = request.POST.get("bank_bic", "").replace(" ", "").upper()[:11]
-        tenant.save(
-            update_fields=["vorkasse_enabled", "bank_holder", "bank_iban", "bank_bic", "updated_at"]
-        )
+        save_vorkasse(tenant, request)
     else:
-        tenant.orders_prepay = bool(request.POST.get("orders_prepay"))
-        tenant.save(update_fields=["orders_prepay", "updated_at"])
+        save_prepay(tenant, request)
     messages.success(request, _("Settings saved."))
     return redirect("orders:order-list")
