@@ -104,7 +104,13 @@ def test_settings_nav_collapsed_to_website_plus_hub():
 def test_settings_hub_primary_and_advanced_tabs():
     html = _render_settings("settings")
     # прямые (частые) вкладки (Sprachen — прямой таб: доп. языки видны без «Erweitert»)
-    for lbl in ("Einstellungen", "Benachrichtigungen", "Rechtstexte", "Zusatzleistungen", "Sprachen"):
+    for lbl in (
+        "Einstellungen",
+        "Benachrichtigungen",
+        "Rechtstexte",
+        "Zusatzleistungen",
+        "Sprachen",
+    ):
         assert lbl in html, lbl
     # ящик «Erweitert» + его (редкие) вкладки
     assert "Erweitert" in html
