@@ -158,6 +158,17 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "reorder_point": _("Meldebestand"),
             "reorder_target": _("Sollbestand"),
         }
+        # W2: подсказки под полями (шаблон теперь их выводит) — снимают непонятность.
+        help_texts = {
+            "unit": _("Für den Grundpreis (z. B. €/kg). Zusammen mit der Menge."),
+            "content_amount": _("Inhalt je Packung — z. B. 500 (bei Einheit „g“ → €/kg)."),
+            "currency": _("Standard: EUR."),
+            "cost_price": _("Nur intern — für die Margen-Anzeige, nicht öffentlich."),
+            "reorder_point": _("Ab diesem Bestand meldet der Shop „nachbestellen“."),
+            "stock_quantity": _("Leer = unbegrenzt (kein Bestandslimit)."),
+            "gtin": _("Barcode für Preisportale/Feeds — optional."),
+            "badge": _("Kleiner Aufkleber auf der Karte (z. B. „Neu“, „Beliebt“)."),
+        }
 
     def __init__(self, *args, tenant=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -169,6 +180,37 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             self.fields["allergens"].initial = list(self.instance.allergens or [])
             self.fields["additives"].initial = list(self.instance.additives or [])
             self.fields["diets"].initial = list(self.instance.diets or [])
+        # W2: порядок полей — название/описание ПЕРВЫМИ (прежде name_de рендерился 17-м).
+        # Динамические per-locale name_<loc>/description_<loc> ловим по префиксу. Секции
+        # шаблона роутят по имени; порядок внутри секции = этот. Неупомянутые (если появятся)
+        # order_fields допишет в конец — но здесь перечислены все.
+        names = [f for f in self.fields if f.startswith("name")]
+        descs = [f for f in self.fields if f.startswith("description")]
+        self.order_fields(
+            [
+                *names,
+                *descs,
+                "category",
+                "base_price",
+                "is_active",
+                "unit",
+                "content_amount",
+                "currency",
+                "stock_quantity",
+                "cost_price",
+                "reorder_point",
+                "reorder_target",
+                "sku",
+                "gtin",
+                "allergens",
+                "additives",
+                "diets",
+                "origin",
+                "ingredients",
+                "is_featured",
+                "badge",
+            ]
+        )
 
     def clean_base_price(self):
         price = self.cleaned_data["base_price"]

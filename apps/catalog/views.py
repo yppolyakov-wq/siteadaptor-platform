@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core import modules
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
 
@@ -29,6 +30,21 @@ from .models import (
     Product,
     ProductVariant,
 )
+
+# W2: пищевая маркировка (аллергены/добавки/диеты/происхождение) осмысленна только у
+# гастро/еды — секция формы товара показывается только этим архетипам (у прочих скрыта
+# CSS-ом, поля остаются в форме → Save их не стирает).
+FOOD_BUSINESS_TYPES = frozenset({"bakery", "butcher", "grocery", "restaurant", "cafe"})
+
+
+def _product_form_flags(request):
+    """W2: флаги вида формы товара — режим Простой/Эксперт (S5) + гейт пищевой секции."""
+    tenant = getattr(request, "tenant", None)
+    bt = getattr(tenant, "business_type", "") or ""
+    return {
+        "ui_simple": modules.is_simple(tenant) if tenant is not None else False,
+        "show_food_labeling": bt in FOOD_BUSINESS_TYPES,
+    }
 
 
 def _parse_price(raw):
@@ -121,7 +137,7 @@ def product_create(request):
     return render(
         request,
         "catalog/product_form.html",
-        {"form": form, "is_create": True, "nav": "catalog"},
+        {"form": form, "is_create": True, "nav": "catalog", **_product_form_flags(request)},
     )
 
 
@@ -154,6 +170,7 @@ def product_edit(request, pk):
             "variants": product.variants.all(),
             "modifier_groups": product.modifier_groups.prefetch_related("options"),
             "nav": "catalog",
+            **_product_form_flags(request),
         },
     )
 
