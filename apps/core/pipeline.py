@@ -138,6 +138,33 @@ def action_label(kind: str, target: str) -> str:
     return ACTION_LABELS.get(kind, {}).get(target, target)
 
 
+def resolve_columns(kind: str, board: dict | None = None) -> list[dict]:
+    """W5: колонки доски для `kind` с пер-тенантными настройками (переименование/
+    порядок/скрытие). `board` = ``{"labels": {stage: str}, "order": [stage,…],
+    "hidden": [stage,…]}`` (из site_config, уже нормализовано). Пусто/None → дефолт.
+
+    Переименование — labels[stage] (иначе STAGE_LABELS); порядок — order (недостающие
+    стадии добиваются в дефолтном порядке STAGES); скрытие — hidden. Статусы колонки
+    (`statuses`, правила переходов) НЕ трогаем — V4 (FSM) фикс, решение владельца.
+    """
+    board = board or {}
+    labels = board.get("labels") if isinstance(board.get("labels"), dict) else {}
+    hidden = {s for s in (board.get("hidden") or []) if s in STAGES}
+    raw_order = [s for s in (board.get("order") or []) if s in STAGES]
+    order = raw_order + [s for s in STAGES if s not in raw_order]
+    base = {c["stage"]: c for c in pipeline_for(kind)}
+    out = []
+    for stage in order:
+        if stage in hidden or stage not in base:
+            continue
+        col = dict(base[stage])
+        custom = labels.get(stage)
+        if isinstance(custom, str) and custom.strip():
+            col["label"] = custom.strip()
+        out.append(col)
+    return out
+
+
 def pipeline_for(kind: str) -> list[dict]:
     """Упорядоченные колонки доски для `kind`: ``[{stage, label, statuses}]``.
 

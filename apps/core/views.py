@@ -2780,18 +2780,78 @@ def board(request):
     заявки/резервы). Вкладки — активные транзакционные модули, колонки — стадии
     конвейера; карточки тащатся между колонками или двигаются кнопками. Статус
     меняется ТОЛЬКО через FSM (kanban_action). Per-app экраны остаются (D2)."""
-    from apps.core import transactions
+    from apps.core import pipeline, transactions
+    from apps.tenants import siteconfig
 
     sections = transactions.manage_sections_for(request.tenant)
     kinds = [s["kind"] for s in sections]
     active = request.GET.get("kind", "")
     if active not in kinds:
         active = kinds[0] if kinds else ""
+    # W5: строки для панели «Spalten anpassen» (переименование/порядок/скрытие).
+    board_cfg = siteconfig.normalize_board((request.tenant.site_config or {}).get("board"))
+    labels = board_cfg.get("labels", {})
+    hidden = set(board_cfg.get("hidden", []))
+    order = board_cfg.get("order") or list(pipeline.STAGES)
+    order = order + [s for s in pipeline.STAGES if s not in order]
+    board_stage_rows = [
+        {
+            "stage": s,
+            "default_label": str(pipeline.STAGE_LABELS[s]),
+            "label": labels.get(s, ""),
+            "hidden": s in hidden,
+            "pos": i + 1,
+        }
+        for i, s in enumerate(order)
+    ]
     return render(
         request,
         "core/board.html",
-        {"nav": "board", "sections": sections, "active_kind": active},
+        {
+            "nav": "board",
+            "sections": sections,
+            "active_kind": active,
+            "board_stage_rows": board_stage_rows,
+        },
     )
+
+
+@login_required
+@require_POST
+def board_settings(request):
+    """W5: сохранить настройки Kanban-доски (переименование/порядок/скрытие колонок)
+    в site_config['board']. Правила переходов (FSM) НЕ трогаем (V4). Targeted-write
+    (как set_ui_mode) — прочие ключи site_config целы."""
+    from apps.core import pipeline
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    labels, hidden, order_pairs = {}, [], []
+    for stage in pipeline.STAGES:
+        lbl = (request.POST.get(f"label_{stage}") or "").strip()
+        if lbl:
+            labels[stage] = lbl
+        if request.POST.get(f"hidden_{stage}"):
+            hidden.append(stage)
+        try:
+            pos = int(request.POST.get(f"order_{stage}", ""))
+        except (TypeError, ValueError):
+            pos = 999
+        order_pairs.append((pos, stage))
+    order = [s for _, s in sorted(order_pairs, key=lambda p: p[0])]
+    board_in = {"labels": labels, "hidden": hidden}
+    if order != list(pipeline.STAGES):  # дефолтный порядок не материализуем
+        board_in["order"] = order
+    board = siteconfig.normalize_board(board_in)
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    if board:
+        cfg["board"] = board
+    else:
+        cfg.pop("board", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, "Gespeichert.")
+    return redirect("board")
 
 
 @login_required

@@ -320,6 +320,12 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
     видел все свои каналы продаж. Порядок kind — как TRANSACTION_KINDS.
     """
     out = []
+    # W5: пер-тенантные настройки доски (переименование/порядок/скрытие колонок).
+    from apps.tenants import siteconfig
+
+    board_cfg = siteconfig.normalize_board(
+        (getattr(tenant, "site_config", None) or {}).get("board")
+    )
     for kind in TRANSACTION_KINDS:
         module = KIND_MODULE[kind]
         if not tenant.is_module_active(module):
@@ -328,7 +334,7 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
         counts = {stage: 0 for stage in pipeline.STAGES}
         for tx in txs:
             counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1
-        columns = pipeline.pipeline_for(kind)
+        columns = pipeline.resolve_columns(kind, board_cfg)
         for col in columns:  # число карточек в колонке — в шапку колонки
             col["count"] = counts.get(col["stage"], 0)
         out.append(

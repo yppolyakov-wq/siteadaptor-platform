@@ -1754,6 +1754,47 @@ def normalize_page_templates(raw) -> dict:
     return out
 
 
+# W5: канонические стадии Kanban-доски (= apps.core.pipeline.STAGES). Дублируем
+# кортеж, чтобы siteconfig не импортировал core (слой tenants → core только лениво).
+_BOARD_STAGES = ("intake", "in_progress", "done", "terminal")
+_BOARD_LABEL_MAX = 40
+
+
+def normalize_board(raw) -> dict:
+    """W5: настройки доски (labels/order/hidden) — только известные стадии.
+
+    labels: {stage: строка ≤40}; order: перестановка стадий (дубли/чужое отброшены);
+    hidden: скрытые стадии (в порядке STAGES). Каждый под-ключ материализуется только
+    при непустом → пустой board → {} (ключ `board` в normalize не появляется, golden-
+    паритет). Правила переходов (V4) тут НЕ трогаем."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    labels_in = raw.get("labels")
+    if isinstance(labels_in, dict):
+        labels = {}
+        for stage in _BOARD_STAGES:
+            val = _s(labels_in.get(stage))[:_BOARD_LABEL_MAX]
+            if val:
+                labels[stage] = val
+        if labels:
+            out["labels"] = labels
+    order_in = raw.get("order")
+    if isinstance(order_in, list):
+        seen, order = set(), []
+        for stage in order_in:
+            if stage in _BOARD_STAGES and stage not in seen:
+                order.append(stage)
+                seen.add(stage)
+        if order:
+            out["order"] = order
+    hidden_in = raw.get("hidden")
+    if isinstance(hidden_in, list):
+        hidden = [stage for stage in _BOARD_STAGES if stage in set(hidden_in)]
+        if hidden:
+            out["hidden"] = hidden
+    return out
+
+
 def normalize_seo(raw) -> dict:
     """SEO-2: per-тип шаблоны мета (title/description) для движка seo_meta.
 
@@ -1805,6 +1846,11 @@ def normalize(config) -> dict:
     # (дефолт expert → ключа нет → golden-паритет старых конфигов сохранён).
     if config.get("ui_mode") == "simple":
         normalized["ui_mode"] = "simple"
+    # W5: настройки Kanban-доски (переименование/порядок/скрытие колонок); ключ
+    # ТОЛЬКО при непустом (golden-паритет старых конфигов).
+    board = normalize_board(config.get("board"))
+    if board:
+        normalized["board"] = board
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:

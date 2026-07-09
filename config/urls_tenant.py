@@ -14,6 +14,7 @@ from apps.booking import public_views as booking_public
 from apps.core import health
 from apps.core.views import (
     board,
+    board_settings,
     dashboard,
     domain_add,
     domain_remove,
@@ -132,6 +133,8 @@ urlpatterns = [
     path("dashboard/stock/", stock_view, name="stock"),
     # U-D2: единая Kanban-доска транзакций (заказы/брони/…) + generic FSM-action.
     path("dashboard/board/", board, name="board"),
+    # W5: настройки колонок доски (переименование/порядок/скрытие).
+    path("dashboard/board/settings/", board_settings, name="board-settings"),
     path(
         "dashboard/board/<str:kind>/<uuid:pk>/action/",
         kanban_action,

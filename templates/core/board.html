@@ -9,6 +9,26 @@
 </div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Bestellungen, Termine, Buchungen, Tickets & Anfragen an einem Ort — Karten per Drag & Drop zwischen den Spalten bewegen oder die Buttons nutzen." %}</p>
 
+{% comment %}W5: настройки колонок доски (переименование/порядок/скрытие) — прямо здесь,
+чтобы владелец их находил. Правила переходов карт (FSM) не меняются.{% endcomment %}
+<details class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
+  <summary class="cursor-pointer text-sm font-medium text-gray-700">⚙️ {% trans "Customize columns" %}</summary>
+  <form method="post" action="{% url 'board-settings' %}" class="mt-3 space-y-2 max-w-lg">
+    {% csrf_token %}
+    <p class="text-xs text-gray-400">{% trans "Rename, reorder (number) or hide the columns. The rules for moving cards stay the same." %}</p>
+    {% for r in board_stage_rows %}
+      <div class="flex items-center gap-2 text-sm">
+        <input type="number" name="order_{{ r.stage }}" value="{{ r.pos }}" min="1" max="9" class="w-12 rounded-lg border border-gray-300 px-2 py-1.5 text-center">
+        <input type="text" name="label_{{ r.stage }}" value="{{ r.label }}" placeholder="{{ r.default_label }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
+        <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap">
+          <input type="checkbox" name="hidden_{{ r.stage }}" {% if r.hidden %}checked{% endif %}> {% trans "Hide" %}
+        </label>
+      </div>
+    {% endfor %}
+    <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save columns" %}</button>
+  </form>
+</details>
+
 {% if messages %}
   <div class="mb-3 space-y-1">
     {% for m in messages %}
