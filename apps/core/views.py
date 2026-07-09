@@ -541,6 +541,8 @@ def settings_view(request):
         tenant.save()
         messages.success(request, "Gespeichert.")
         return redirect("settings")
+    from apps.core import modules as _mod
+
     return render(
         request,
         "tenant/settings.html",
@@ -548,6 +550,12 @@ def settings_view(request):
             "form": form,
             "nav": "settings",
             "opening_hours_rows": _opening_hours_rows(request.tenant),
+            # W4-2: гейт нерелевантных полей по модулю (скрытие ТОЛЬКО CSS — поля
+            # остаются в DOM, иначе Save затрёт, урок W0). Лояльность → voucher/
+            # auto-redeem; зона обслуживания → Handwerker(jobs)/доставка(orders).
+            "settings_show_loyalty": _mod.is_module_active(request.tenant, "loyalty"),
+            "settings_show_service_area": _mod.is_module_active(request.tenant, "jobs")
+            or _mod.is_module_active(request.tenant, "orders"),
         },
     )
 

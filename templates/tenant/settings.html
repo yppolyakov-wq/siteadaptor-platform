@@ -13,25 +13,27 @@
     {% endfor %}
   {% endif %}
 
+  {% comment %}W4: секции — базовые (Kontakt/Öffnungszeiten) всегда видны; продвинутые
+  (Recht/Betrieb) — аккордеоны, в Простом режиме скрыты классом hidden, но ПОЛЯ остаются
+  в DOM (иначе Save затрёт — урок W0). Гейт полей по модулю — тоже CSS (wrap_class=hidden).{% endcomment %}
   <form method="post" class="space-y-6">
     {% csrf_token %}
 
+    {# ① Базис — контакт и адрес, всегда открыт #}
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-      <legend class="font-semibold mb-2">{% trans "Contact & hours" %}</legend>
-      {% for field in form %}
-        {% if field.name == 'name' or field.name == 'address' or field.name == 'city' or field.name == 'contact_email' or field.name == 'contact_phone' or field.name == 'website_url' or field.name == 'opening_hours' or field.name == 'map_url' or field.name == 'auto_redeem_on_scan' %}
-          <div>
-            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
-          </div>
-        {% endif %}
-      {% endfor %}
+      <legend class="font-semibold mb-2">{% trans "Contact & location" %}</legend>
+      {% include "tenant/_settings_field.html" with field=form.name %}
+      {% include "tenant/_settings_field.html" with field=form.address %}
+      {% include "tenant/_settings_field.html" with field=form.city %}
+      {% include "tenant/_settings_field.html" with field=form.contact_email %}
+      {% include "tenant/_settings_field.html" with field=form.contact_phone %}
+      {% include "tenant/_settings_field.html" with field=form.website_url %}
+      {% include "tenant/_settings_field.html" with field=form.map_url %}
     </fieldset>
 
+    {# ② Öffnungszeiten — структурный редактор (бейдж «Открыто») + свободный текст (свод обоих) #}
     <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-      <legend class="font-semibold mb-1">{% trans "Opening hours (for live status)" %}</legend>
+      <legend class="font-semibold mb-1">{% trans "Opening hours" %}</legend>
       <p class="text-xs text-gray-400 mb-4">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
       <div class="space-y-2">
         {% for r in opening_hours_rows %}
@@ -43,35 +45,57 @@
           </div>
         {% endfor %}
       </div>
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <label class="block text-sm font-medium mb-1" for="{{ form.opening_hours.id_for_label }}">{% trans "Display text (optional)" %}</label>
+        {% render_field form.opening_hours class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        <p class="text-xs text-gray-400 mt-1">{% trans "Free text shown on the site (footer/contact). Leave empty to just use the times above." %}</p>
+      </div>
     </fieldset>
 
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-      <legend class="font-semibold mb-2">{% trans "Legal (Impressum / Datenschutz / Widerruf)" %}</legend>
-      {% for field in form %}
-        {% if field.name == 'vat_id' or field.name == 'tax_number' or field.name == 'small_business' or field.name == 'register_entry' or field.name == 'legal_responsible' or field.name == 'impressum' or field.name == 'privacy_policy' or field.name == 'withdrawal_policy' %}
-          <div>
-            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
-          </div>
-        {% endif %}
-      {% endfor %}
-    </fieldset>
+    {% comment %}Продвинутые секции: в Простом режиме скрыты (поля в DOM — Save не затрёт).{% endcomment %}
+    {% if ui_simple %}
+      <p class="text-xs text-gray-400">{% trans "Legal, tax and operations settings are shown in Expert mode (toggle in the top bar)." %}</p>
+    {% endif %}
+    <div class="space-y-4{% if ui_simple %} hidden{% endif %}">
 
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-      <legend class="font-semibold mb-2">{% trans "Operations & delivery" %}</legend>
-      {% for field in form %}
-        {% if field.name == 'service_area_plz' or field.name == 'service_area_note' or field.name == 'owner_digest_enabled' or field.name == 'voucher_max_percent' %}
-          <div>
-            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
-          </div>
-        {% endif %}
-      {% endfor %}
-    </fieldset>
+      {# ③ Recht & Steuer — аккордеон (детальные правовые тексты также в «Rechtstexte») #}
+      <details class="bg-white border border-gray-200 rounded-2xl px-6 py-4">
+        <summary class="cursor-pointer font-semibold">{% trans "Legal & tax" %}</summary>
+        <div class="mt-4 space-y-4">
+          {% include "tenant/_settings_field.html" with field=form.vat_id %}
+          {% include "tenant/_settings_field.html" with field=form.tax_number %}
+          {% include "tenant/_settings_field.html" with field=form.small_business %}
+          {% include "tenant/_settings_field.html" with field=form.register_entry %}
+          {% include "tenant/_settings_field.html" with field=form.legal_responsible %}
+          {% include "tenant/_settings_field.html" with field=form.impressum %}
+          {% include "tenant/_settings_field.html" with field=form.privacy_policy %}
+          {% include "tenant/_settings_field.html" with field=form.withdrawal_policy %}
+          <p class="text-xs text-gray-400">{% trans "Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” tab above." %}</p>
+        </div>
+      </details>
+
+      {# ④ Betrieb & Extras — зона обслуживания (гейт), дайджест, лояльность (гейт) #}
+      <details class="bg-white border border-gray-200 rounded-2xl px-6 py-4">
+        <summary class="cursor-pointer font-semibold">{% trans "Operations & extras" %}</summary>
+        <div class="mt-4 space-y-4">
+          {% if settings_show_service_area %}
+            {% include "tenant/_settings_field.html" with field=form.service_area_plz %}
+            {% include "tenant/_settings_field.html" with field=form.service_area_note %}
+          {% else %}
+            {% include "tenant/_settings_field.html" with field=form.service_area_plz wrap_class="hidden" %}
+            {% include "tenant/_settings_field.html" with field=form.service_area_note wrap_class="hidden" %}
+          {% endif %}
+          {% include "tenant/_settings_field.html" with field=form.owner_digest_enabled %}
+          {% if settings_show_loyalty %}
+            {% include "tenant/_settings_field.html" with field=form.auto_redeem_on_scan %}
+            {% include "tenant/_settings_field.html" with field=form.voucher_max_percent %}
+          {% else %}
+            {% include "tenant/_settings_field.html" with field=form.auto_redeem_on_scan wrap_class="hidden" %}
+            {% include "tenant/_settings_field.html" with field=form.voucher_max_percent wrap_class="hidden" %}
+          {% endif %}
+        </div>
+      </details>
+    </div>
 
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>

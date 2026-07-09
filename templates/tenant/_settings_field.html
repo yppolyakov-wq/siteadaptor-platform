@@ -1,0 +1,18 @@
+{% load i18n widget_tweaks %}
+{% comment %}W4: одно поле формы настроек (label + виджет + help + ошибки). Обёртка
+может нести класс `hidden` (гейт по модулю/архетипу) — поле ВСЁ РАВНО в DOM, поэтому
+Save не затирает (урок W0). checkbox — inline-раскладка.{% endcomment %}
+<div class="{{ wrap_class }}">
+  {% if field.field.widget.input_type == 'checkbox' %}
+    <label class="flex items-start gap-2 text-sm">
+      {% render_field field class="mt-0.5" %}
+      <span><span class="font-medium">{{ field.label }}</span>
+        {% if field.help_text %}<span class="block text-xs text-gray-400 mt-0.5">{{ field.help_text }}</span>{% endif %}</span>
+    </label>
+  {% else %}
+    <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+    {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+  {% endif %}
+  {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+</div>

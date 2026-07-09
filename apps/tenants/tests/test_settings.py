@@ -74,6 +74,52 @@ def test_settings_page_renders_all_form_fields():
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "cfg",
+    [
+        {},  # Expert (дефолт)
+        {"ui_mode": "simple"},  # Простой — продвинутые секции hidden, поля в DOM
+    ],
+)
+def test_settings_all_fields_in_dom_any_mode(cfg, settings):
+    """W4: аккордеоны + Простой/Эксперт скрывают ТОЛЬКО CSS — все поля формы обязаны
+    быть в DOM в любом режиме (иначе Save затрёт, урок W0)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.tenants.forms import BusinessSettingsForm
+
+    tenant = TenantFactory(disabled_modules=[], site_config=cfg)
+    user = get_user_model().objects.create_user("m", "m@test.de", "pw12345678")
+    req = _attach(RequestFactory().get("/dashboard/settings/"), user)
+    req.tenant = tenant
+    html = core_views.settings_view(req).content.decode()
+    missing = [f for f in BusinessSettingsForm.Meta.fields if f"id_{f}" not in html]
+    assert not missing, f"поля не в DOM ({cfg}): {missing}"
+
+
+@pytest.mark.django_db
+def test_settings_gated_fields_stay_in_dom_when_modules_off(settings):
+    """W4-2: гейт по модулю (loyalty/service_area) скрывает поля ТОЛЬКО CSS — при
+    выключенных модулях они ВСЁ РАВНО в DOM (Save их не обнулит)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core import modules
+
+    # выключаем всё опциональное → loyalty/jobs/orders неактивны → поля гейтятся hidden.
+    disabled = [s.key for s in modules.optional_modules()]
+    tenant = TenantFactory(disabled_modules=disabled)
+    user = get_user_model().objects.create_user("g", "g@test.de", "pw12345678")
+    req = _attach(RequestFactory().get("/dashboard/settings/"), user)
+    req.tenant = tenant
+    html = core_views.settings_view(req).content.decode()
+    for f in (
+        "voucher_max_percent",
+        "auto_redeem_on_scan",
+        "service_area_plz",
+        "service_area_note",
+    ):
+        assert f"id_{f}" in html, f"гейтнутое поле {f} должно оставаться в DOM"
+
+
+@pytest.mark.django_db
 def test_settings_view_preserves_previously_dropped_fields():
     """Ранее не выводимые поля не должны обнуляться при сохранении формы."""
     tenant = TenantFactory(small_business=True, tax_number="DE-42", voucher_max_percent=25)
