@@ -134,3 +134,26 @@ def test_completeness_offer_is_archetype_aware(settings):
 
     svc = _offer("booking")
     assert svc["url_name"] == "booking:services" and reverse(svc["url_name"])
+
+
+def test_completeness_offer_safe_for_jobs_primary(settings):
+    """W3: у Handwerker (jobs primary, booking выкл) пункт «offer» ведёт в БЕЗОПАСНЫЙ
+    список (catalog — core, всегда активен), а НЕ в /dashboard/booking/ (Http404-гейт
+    при выключенном booking). jobs — CTA-архетип без «добавь товар»-флоу → generic-фолбэк."""
+    from django.urls import reverse
+
+    from apps.core import modules
+    from apps.tenants import onboarding
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    t = TenantFactory.build(
+        business_type="handwerker",
+        disabled_modules=modules.default_disabled_for("handwerker"),
+    )
+    from apps.core import archetypes
+
+    assert archetypes.primary_module(t) == "jobs"  # jobs primary, не catalog
+    offer = next(i for i in onboarding.completeness(t)["items"] if i["key"] == "offer")
+    assert offer["url_name"] == "catalog:product-list"  # core → без Http404
+    assert reverse(offer["url_name"])

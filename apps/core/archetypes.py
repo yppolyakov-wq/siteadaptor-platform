@@ -23,8 +23,11 @@ PRIMARY_SECTION = {
 
 # Приоритет выбора «главного» архетипа, если storefront_root не задан явно. booking
 # выше catalog: у салона/мастерской каталог второстепенен (мерч/Teile), главный
-# товар — услуга (Termin).
-_PRIORITY = ["events", "stays", "booking", "catalog", "promotions"]
+# товар — услуга (Termin). jobs (Anfrage/Kostenvoranschlag) — между booking и catalog:
+# у Handwerker (jobs on, booking off) главный товар — заявка/смета (hero-CTA → /anfrage/),
+# а не пустой каталог; у Werkstatt (booking+jobs on) впереди booking (Termin) — как в
+# демо-меню. Так primary_module согласован с S6-пресетом (handwerker → jobs primary).
+_PRIORITY = ["events", "stays", "booking", "jobs", "catalog", "promotions"]
 
 # M20U-5: способ покупки по архетипу — определяет виджет на детальной/листинге.
 #   cart    — добавить в корзину (товары → /warenkorb/);
@@ -207,7 +210,9 @@ def primary_item(tenant) -> dict | None:
     spec = modules.get_module(module)
     return {
         "module": module,
-        "section": PRIMARY_SECTION[module],
+        # jobs — primary-архетип без секции-грида (Anfrage-CTA, не список товаров) →
+        # section=None; hero-CTA ведёт по landing (storefront-anfrage), а не по секции.
+        "section": PRIMARY_SECTION.get(module),
         "landing": getattr(spec, "storefront_landing", "") if spec else "",
         "label": getattr(spec, "storefront_label", "") if spec else "",
         "mode": purchase_mode(module),

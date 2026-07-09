@@ -13,18 +13,18 @@ class _FakeTenant:
 
 
 def test_aggregate_orders_by_registry_priority():
-    # _PRIORITY: events > stays > booking > catalog > promotions
+    # _PRIORITY: events > stays > booking > jobs > catalog > promotions
     t = _FakeTenant({"catalog", "booking", "events"})
     agg = archetypes.aggregate_primary_sections(t)
     assert [a["key"] for a in agg] == ["events", "services", "products"]
     assert [a["module"] for a in agg] == ["events", "booking", "catalog"]
-    assert [a["order"] for a in agg] == [0, 2, 3]  # позиции в _PRIORITY
+    assert [a["order"] for a in agg] == [0, 2, 4]  # позиции в _PRIORITY (jobs=3 без секции)
 
 
 def test_aggregate_single_archetype():
     t = _FakeTenant({"catalog"})
     assert archetypes.aggregate_primary_sections(t) == [
-        {"key": "products", "module": "catalog", "order": 3}
+        {"key": "products", "module": "catalog", "order": 4}
     ]
 
 

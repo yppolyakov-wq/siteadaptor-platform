@@ -52,6 +52,27 @@ def test_booking_outranks_catalog_for_salon():
     assert archetypes.primary_section(t) == "services"
 
 
+def test_jobs_primary_for_handwerker():
+    # W3: у Handwerker (jobs on, booking off) главный архетип — jobs (Anfrage),
+    # а НЕ пустой каталог. hero-CTA ведёт на /anfrage/ (storefront-anfrage).
+    t = _Tenant(active={"jobs", "catalog", "customer_account"})
+    assert archetypes.primary_module(t) == "jobs"
+    item = archetypes.primary_item(t)
+    assert item["module"] == "jobs"
+    assert item["section"] is None  # jobs — CTA-архетип без секции-грида
+    assert item["landing"] == "storefront-anfrage"  # hero-CTA → Anfrage
+    assert item["label"]  # непустой заголовок («Angebot anfragen»)
+    assert item["mode"] == "request"
+
+
+def test_booking_outranks_jobs_for_werkstatt():
+    # W3: у Werkstatt (booking+jobs on) впереди booking (Termin) — как демо-меню
+    # (Termin, затем Kostenvoranschlag); jobs остаётся вторичным.
+    t = _Tenant(active={"booking", "jobs", "catalog"})
+    assert archetypes.primary_module(t) == "booking"
+    assert archetypes.primary_section(t) == "services"
+
+
 def test_primary_item_descriptor_carries_landing_and_label():
     item = archetypes.primary_item(_Tenant({"events"}))
     assert item["module"] == "events" and item["section"] == "events"
