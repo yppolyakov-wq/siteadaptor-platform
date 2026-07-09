@@ -123,3 +123,37 @@ def test_modules_toggle_sets_and_clears_ui_mode(rf, settings):
     tenant.refresh_from_db()
     assert "ui_mode" not in tenant.site_config
     assert tenant.site_config.get("notify") == {"x": 1}
+
+
+@pytest.mark.django_db
+def test_header_ui_mode_toggle_from_any_page(rf, settings):
+    """W3-fix: тумблер режима из ШАПКИ (set_ui_mode_view) — работает с любой
+    страницы, пишет ui_mode, возвращает на безопасный Referer (/dashboard/*)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core.views import set_ui_mode_view
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="t_uihdr", name="Hdr Co", site_config={"notify": {"x": 1}})
+    user = get_user_model().objects.create_user("uh", "uh@test.de", "pw12345678")
+
+    def _post(data, referer="/dashboard/orders/"):
+        req = rf.post("/dashboard/ui-mode/", data, HTTP_REFERER=referer)
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.user = user
+        req.tenant = tenant
+        return set_ui_mode_view(req)
+
+    resp = _post({"ui_mode": "simple"})
+    tenant.refresh_from_db()
+    assert tenant.site_config.get("ui_mode") == "simple"
+    assert tenant.site_config.get("notify") == {"x": 1}  # прочие ключи целы
+    assert resp.status_code in (301, 302) and resp["Location"] == "/dashboard/orders/"
+
+    _post({"ui_mode": "expert"})
+    tenant.refresh_from_db()
+    assert "ui_mode" not in tenant.site_config
+
+    # open-redirect защита: чужой/не-dashboard Referer → на дашборд.
+    resp = _post({"ui_mode": "simple"}, referer="https://evil.example/phish")
+    assert resp["Location"] in ("dashboard", "/dashboard/")

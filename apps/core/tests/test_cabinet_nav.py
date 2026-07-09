@@ -64,3 +64,25 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # (многострочный {# #} не комментарий — нужен {% comment %}).
     assert "apps.core.modules" not in html
     assert "групп-заголовок" not in html
+
+
+@pytest.mark.django_db
+def test_header_shows_mode_toggle_and_language_link(rf, settings):
+    """W3-fix (видимость): режим Einfach/Experte и «Sprachen» — прямо в шапке
+    кабинета (были не найдены: режим в «Erweitert», языки в табах настроек)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        schema_name="t_hdr",
+        name="Hdr Co",
+        disabled_modules=[],
+        site_config={"onboarding": {"step": 7, "skipped": [], "completed": True}},
+    )
+    user = get_user_model().objects.create_user("oh", "oh@test.de", "pw12345678")
+    html = dashboard(_request(rf, user, tenant)).content.decode()
+
+    # Тумблер режима в шапке (POST на set-ui-mode).
+    assert "/dashboard/ui-mode/" in html
+    assert "Einfach" in html and "Experte" in html
+    # Ссылка на «Sprachen» (языки витрины) в шапке.
+    assert "/dashboard/settings/languages/" in html
+    assert "Sprachen" in html

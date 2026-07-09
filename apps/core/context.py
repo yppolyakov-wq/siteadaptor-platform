@@ -249,4 +249,9 @@ def modules_nav(request):
         "storefront_table": storefront_table,
         # L1: языки переключателя витрины (по active_locales тенанта, N локалей).
         "storefront_locales": storefront_locales,
+        # W3-fix (видимость): режим кабинета (Einfach/Experte) — тумблер в шапке
+        # (_base_dashboard), чтобы был всегда виден (раньше только на «Funktionen»).
+        "ui_simple": modules.is_simple(tenant),
+        # Число включённых языков витрины — бейдж у ссылки «Sprachen» в шапке.
+        "cabinet_locale_count": len(tenant.active_locales),
     }

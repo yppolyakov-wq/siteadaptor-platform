@@ -2565,6 +2565,39 @@ def modules_view(request):
 
 
 @login_required
+@require_POST
+def set_ui_mode_view(request):
+    """W3-fix (видимость режима): переключатель Einfach/Experte из ШАПКИ кабинета —
+    работает с любой страницы (форма-POST в _base_dashboard), возвращает назад.
+
+    Логика записи 1:1 с modules_view (ui_mode в site_config; expert = отсутствие
+    ключа; normalize сохраняет). Раньше тумблер жил только на «Funktionen» (в ящике
+    «Erweitert» → его было не найти); теперь всегда виден в шапке."""
+    tenant = request.tenant
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    if request.POST.get("ui_mode") == "simple":
+        cfg["ui_mode"] = "simple"
+    else:
+        cfg.pop("ui_mode", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    return redirect(_safe_dashboard_referer(request))
+
+
+def _safe_dashboard_referer(request):
+    """Безопасный редирект назад: Referer, только если он свой (same-host) и под
+    /dashboard/ — иначе на дашборд. Защита от open-redirect."""
+    from urllib.parse import urlparse
+
+    ref = request.META.get("HTTP_REFERER") or ""
+    parsed = urlparse(ref)
+    same_host = not parsed.netloc or parsed.netloc == request.get_host()
+    if ref and same_host and parsed.path.startswith("/dashboard/"):
+        return ref
+    return "dashboard"
+
+
+@login_required
 def domains_view(request):
     """Список custom-доменов бизнеса + форма добавления и DNS-инструкция."""
     return render(

@@ -75,9 +75,19 @@
         <span class="font-semibold truncate md:hidden">{% block dash_heading %}{% endblock %}</span>
         <span class="text-sm text-gray-500 truncate hidden md:inline">{{ request.tenant.city }}</span>
       </div>
-      <div class="text-sm flex items-center gap-3">
-        <a href="{% url 'site' %}" class="hidden sm:inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'View / edit site' %}">🌐 <span class="hidden lg:inline">{% trans "Website" %}</span></a>
-        <span class="text-gray-600 hidden sm:inline truncate max-w-[160px]">{{ user.email }}</span>
+      <div class="text-sm flex items-center gap-2 sm:gap-3">
+        {% comment %}W3-fix (видимость): режим кабинета — тумблер в шапке (всегда виден,
+        не спрятан на «Funktionen»/Erweitert). POST на set-ui-mode → возврат назад.{% endcomment %}
+        <form method="post" action="{% url 'set-ui-mode' %}" class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 overflow-hidden" title="{% trans 'Simple hides pro tools; Expert shows everything' %}">
+          {% csrf_token %}
+          <button name="ui_mode" value="simple" class="px-2 py-1 text-xs font-medium {% if ui_simple %}bg-indigo-600 text-white{% else %}bg-white text-gray-500 hover:bg-gray-50{% endif %}">{% trans "Einfach" %}</button>
+          <button name="ui_mode" value="expert" class="px-2 py-1 text-xs font-medium border-l border-gray-200 {% if not ui_simple %}bg-indigo-600 text-white{% else %}bg-white text-gray-500 hover:bg-gray-50{% endif %}">{% trans "Experte" %}</button>
+        </form>
+        {% comment %}W3-fix (видимость): язык витрины — прямая ссылка на «Sprachen»
+        (включить доп. языки → на витрине появляется переключатель DE/EN/…).{% endcomment %}
+        <a href="{% url 'languages' %}" class="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'Website languages' %}">🌐 <span class="hidden lg:inline">{% trans "Sprachen" %}</span>{% if cabinet_locale_count > 1 %}<span class="text-[11px] font-semibold text-indigo-600">{{ cabinet_locale_count }}</span>{% endif %}</a>
+        <a href="{% url 'site' %}" class="hidden md:inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'View / edit site' %}">✏️ <span class="hidden lg:inline">{% trans "Website" %}</span></a>
+        <span class="text-gray-600 hidden xl:inline truncate max-w-[140px]">{{ user.email }}</span>
         <a href="{% url 'account_logout' %}" class="text-indigo-600 hover:underline whitespace-nowrap">{% trans "Sign out" %}</a>
       </div>
     </header>

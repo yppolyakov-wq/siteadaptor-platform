@@ -31,6 +31,7 @@ from apps.core.views import (
     pages_view,
     sections_view,
     seo_settings_view,
+    set_ui_mode_view,
     settings_view,
     setup_view,
     share_preview_issue,
@@ -95,6 +96,8 @@ urlpatterns = [
     path("dashboard/site/cblock-photo/", site_cblock_photo_edit, name="site-cblock-photo-edit"),
     # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
     path("dashboard/modules/", modules_view, name="modules"),
+    # W3-fix: переключатель Einfach/Experte из шапки (работает с любой страницы).
+    path("dashboard/ui-mode/", set_ui_mode_view, name="set-ui-mode"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),
     path("dashboard/domains/add/", domain_add, name="domain-add"),
