@@ -12,9 +12,12 @@ from apps.core import modules
 from apps.tenants.siteconfig import normalize
 
 
-def _t(cfg=None, disabled=()):
+def _t(cfg=None, disabled=(), business_type=""):
     return SimpleNamespace(
-        site_config=cfg or {}, disabled_modules=list(disabled), enabled_modules=[]
+        site_config=cfg or {},
+        disabled_modules=list(disabled),
+        enabled_modules=[],
+        business_type=business_type,
     )
 
 
@@ -46,6 +49,38 @@ def test_grouped_hides_advanced_in_simple():
     assert "analytics" not in keys
     # неадвансовые остаются (напр. dashboard/catalog — core)
     assert "catalog" in keys
+
+
+# --- S6b: скрытие нерелевантных хабов по архетипу в Простом ------------------
+def test_simple_hides_catalog_for_service_archetype():
+    # Friseur в Простом: Sortiment (catalog, core) скрыт — салон продаёт услуги, не товары.
+    keys = _module_keys(_t({"ui_mode": "simple"}, business_type="friseur"))
+    assert "catalog" not in keys
+    assert "dashboard" in keys and "settings" in keys  # прочие core живы
+
+
+def test_expert_keeps_catalog_for_service_archetype():
+    # В Эксперт-режиме архетип-скрытие не действует (всё видно).
+    keys = _module_keys(_t(business_type="friseur"))
+    assert "catalog" in keys
+
+
+def test_simple_keeps_catalog_for_werkstatt():
+    # Werkstatt продаёт Teile → catalog остаётся даже в Простом.
+    keys = _module_keys(_t({"ui_mode": "simple"}, business_type="werkstatt"))
+    assert "catalog" in keys
+
+
+def test_simple_hidden_modules_helper():
+    assert modules.simple_hidden_modules(_t(business_type="friseur")) == frozenset()  # expert
+    simple_friseur = modules.simple_hidden_modules(
+        _t({"ui_mode": "simple"}, business_type="friseur")
+    )
+    assert {"finance", "analytics", "catalog"} <= simple_friseur
+    # тип без записи — только универсальные продвинутые
+    assert modules.simple_hidden_modules(
+        _t({"ui_mode": "simple"}, business_type="bakery")
+    ) == frozenset({"finance", "analytics"})
 
 
 # --- сохранение ui_mode при нормализации (иначе билдер сотрёт) ---------------

@@ -612,14 +612,35 @@ def is_simple(tenant) -> bool:
 # Скрытие — только из меню; страницы остаются доступны по URL. Расширяемо по фидбэку.
 SIMPLE_HIDDEN_MODULES: frozenset[str] = frozenset({"finance", "analytics"})
 
+# S6b: в Простом режиме дополнительно скрыть из сайдбара хабы, нерелевантные архетипу
+# (даже core, как catalog «Sortiment»). Страницы остаются доступны по URL (принцип S5) —
+# в Эксперт-режиме всё видно. business_type → скрываемые ключи модулей. Расширяемо; типы
+# без записи ничего доп. не прячут. werkstatt держит catalog (продаёт Teile).
+ARCHETYPE_SIMPLE_HIDDEN: dict[str, frozenset[str]] = {
+    "friseur": frozenset({"catalog"}),  # салон: primary — услуги (Termin), не товары
+    "handwerker": frozenset({"catalog"}),  # ремесло: primary — Anfrage/Angebot
+    "events": frozenset({"catalog"}),  # организатор: primary — билеты
+    "hotel": frozenset({"catalog"}),  # отель: primary — номера (Übernachtung)
+}
+
+
+def simple_hidden_modules(tenant) -> frozenset[str]:
+    """S5+S6b: ключи модулей, скрываемые из сайдбара в Простом режиме этого тенанта
+    (универсальные продвинутые ∪ нерелевантные архетипу). В Эксперт-режиме — пусто."""
+    if not is_simple(tenant):
+        return frozenset()
+    bt = getattr(tenant, "business_type", "") or ""
+    return SIMPLE_HIDDEN_MODULES | ARCHETYPE_SIMPLE_HIDDEN.get(bt, frozenset())
+
 
 def grouped_active_modules(tenant) -> list[dict]:
     """AB1: активные модули, сгруппированные по задачам (для сайдбара кабинета).
 
     → [{"key", "label", "modules": [ModuleSpec, …]}] в порядке NAV_GROUPS; пустые
     группы опускаются. Модуль без явной группы попадает в «sell» (бизнес-функции).
-    S5: в Простом режиме продвинутые модули (SIMPLE_HIDDEN_MODULES) скрыты из меню."""
-    hidden = SIMPLE_HIDDEN_MODULES if is_simple(tenant) else frozenset()
+    S5/S6b: в Простом режиме скрыты продвинутые (SIMPLE_HIDDEN_MODULES) и нерелевантные
+    архетипу (ARCHETYPE_SIMPLE_HIDDEN) модули — см. simple_hidden_modules()."""
+    hidden = simple_hidden_modules(tenant)
     buckets: dict[str, list[ModuleSpec]] = {gkey: [] for gkey, _l, _k in NAV_GROUPS}
     order = {mk: i for _g, _l, keys in NAV_GROUPS for i, mk in enumerate(keys)}
     for spec in active_modules(tenant):

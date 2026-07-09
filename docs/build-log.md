@@ -4531,5 +4531,11 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `core+tenants+events` зелёный (после доводки onboarding-карточек). План —
   `docs/admin-simplification-s6-plan-2026-07-09.md`. **Primary handwerker витрины:** jobs не в
   `archetypes._PRIORITY` → падает на catalog (core) — пре-существующий нюанс (сегодня «other»+jobs
-  ведёт себя так же), отдельный follow-up. **Остаток S6b** (без миграции): скрытие нерелевантных
-  ХАБОВ по архетипу в Простом режиме. Ветка `claude/admin-simplification-handoff-dfawis`.
+  ведёт себя так же), отдельный follow-up.
+- **S6b скрытие хабов по архетипу в Простом** (без миграции): `ARCHETYPE_SIMPLE_HIDDEN`
+  (business_type → скрываемые ключи) + хелпер `simple_hidden_modules(tenant)` = универсальные
+  продвинутые (`SIMPLE_HIDDEN_MODULES`) ∪ нерелевантные архетипу; `grouped_active_modules` зовёт
+  хелпер. В Простом прячет `catalog` (хаб «Sortiment», даже core) у friseur/handwerker/events/hotel
+  (услуги/заявки/билеты/номера — товары не primary); werkstatt держит catalog (Teile). Страницы
+  доступны по URL (принцип S5); Эксперт — всё видно. Тесты в `test_ui_mode.py` (+5). Ветка
+  `claude/admin-simplification-handoff-dfawis`.

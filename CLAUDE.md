@@ -361,9 +361,10 @@ Python 3.12, менеджер uv.
   `Tenant.BUSINESS_TYPES += friseur/handwerker/werkstatt/events` (к 10, не заменяя) + пресеты
   модулей на архетип (`recommended_for`/`suited_for`) + маппинг демо-китов (FRISEUR/WERKSTATT/
   HANDWERKER/RETREAT) + карточки мастера (`BUSINESS_TYPE_META`) + тесты (`test_archetypes_s6`,
-  +4 параметра `test_default_disabled_for_vertical`). **Дальше: S6b** (без миграции) — скрытие
-  нерелевантных ХАБОВ по архетипу в Простом режиме. Планы —
-  `docs/admin-simplification-s6-plan-2026-07-09.md`, handoff §4. Ветка
+  +4 параметра `test_default_disabled_for_vertical`). **S6b** (без миграции): `ARCHETYPE_SIMPLE_HIDDEN`
+  + `simple_hidden_modules()` — в Простом прячет хаб «Sortiment» (catalog) у friseur/handwerker/
+  events/hotel (товары не primary; werkstatt держит — Teile). **Программа упрощения (S1–S6)
+  закрыта.** Планы — `docs/admin-simplification-s6-plan-2026-07-09.md`, handoff §4. Ветка
   `claude/admin-simplification-handoff-dfawis`.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type; AlterField, SHARED/public, данные не трогает). Полный список — в build-log.
 
