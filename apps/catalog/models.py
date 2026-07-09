@@ -113,6 +113,10 @@ class Product(SoftDeleteMixin, I18nMixin):
     diets = models.JSONField(default=list, blank=True)
     origin = models.CharField(max_length=120, blank=True)
     ingredients = models.TextField(blank=True)
+    # Ф2 (per-language): переводы неосновных локалей для origin/ingredients (overlay —
+    # база в плоском поле = LANGUAGE_CODE, переводы тут). Как name_i18n у Service/Combo.
+    origin_i18n = models.JSONField(default=dict, blank=True)
+    ingredients_i18n = models.JSONField(default=dict, blank=True)
 
     metadata = models.JSONField(default=dict, blank=True)
 
@@ -139,6 +143,14 @@ class Product(SoftDeleteMixin, I18nMixin):
     @property
     def description_text(self) -> str:
         return self.get_i18n("description")
+
+    def origin_localized(self, locale: str | None = None) -> str:
+        """Ф2: Herkunft на локали (перевод из origin_i18n, иначе базовое origin)."""
+        return self.get_overlay("origin", "origin_i18n", locale)
+
+    def ingredients_localized(self, locale: str | None = None) -> str:
+        """Ф2: Zutaten на локали (перевод из ingredients_i18n, иначе базовое ingredients)."""
+        return self.get_overlay("ingredients", "ingredients_i18n", locale)
 
     @property
     def primary_image(self) -> dict | None:

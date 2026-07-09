@@ -89,7 +89,16 @@
           </div>
         {% endif %}{% endfor %}
       </div>
-      {% for field in form %}{% if field.name == 'origin' or field.name == 'ingredients' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {# Ф2: origin/ingredients переводимы — база (de) + переводы, показ по языку (switcher) #}
+      <div data-i18n-loc="de" class="space-y-3">
+        {% for field in form %}{% if field.name == 'origin' or field.name == 'ingredients' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      </div>
+      {% for inp in origin_i18n_inputs %}
+        <div data-i18n-loc="{{ inp.locale }}" class="hidden">
+          <label class="block text-sm font-medium mb-1">{% if inp.field == 'origin' %}{% trans "Origin" %}{% else %}{% trans "Ingredients" %}{% endif %} ({{ inp.locale|upper }})</label>
+          <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+      {% endfor %}
     </div>
 
     {# Panel: Marketing #}

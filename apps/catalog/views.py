@@ -48,11 +48,29 @@ def _product_form_flags(request):
 
 
 def _i18n_ctx(form, request):
-    """Ф1: группы i18n-полей формы товара (name/description) для переключателя языка —
-    делегирует общему `i18n_form_groups` (переиспользуется формой акции с title/description)."""
-    from apps.core.i18n_input import i18n_form_groups
+    """Ф1/Ф2: группы i18n-полей формы товара для переключателя языка. name/description —
+    full-dict (i18n_groups в табе Basics); origin/ingredients — overlay (per-locale инпуты
+    в табе Kennzeichnung, `origin_i18n_inputs`). Оба переключаются глобальным свитчером."""
+    from apps.core.i18n_input import i18n_form_groups, i18n_inputs_for
 
-    return i18n_form_groups(form, getattr(request, "tenant", None), fields=("name", "description"))
+    tenant = getattr(request, "tenant", None)
+    ctx = i18n_form_groups(form, tenant, fields=("name", "description"))
+    # Ф2: overlay-переводы origin/ingredients (extra-локали; база — плоское поле формы).
+    ctx["origin_i18n_inputs"] = i18n_inputs_for(
+        getattr(form, "instance", None), tenant, fields=("origin", "ingredients")
+    )
+    return ctx
+
+
+def _save_product_overlays(product, request):
+    """Ф2: записать overlay-переводы origin/ingredients из POST (`<field>_<loc>`)."""
+    from apps.core.i18n_input import apply_i18n_overlay
+
+    changed = apply_i18n_overlay(
+        product, request.POST, getattr(request, "tenant", None), fields=("origin", "ingredients")
+    )
+    if changed:
+        product.save(update_fields=changed)
 
 
 def _parse_price(raw):
@@ -133,6 +151,7 @@ def product_create(request):
     form = ProductForm(request.POST or None, tenant=getattr(request, "tenant", None))
     if request.method == "POST" and form.is_valid():
         product = form.save()
+        _save_product_overlays(product, request)  # Ф2: переводы origin/ingredients
         # T1: стартовый остаток нового товара → в склад-леджер (реконсиляция).
         log_catalog_change(
             product=product,
@@ -164,6 +183,7 @@ def product_edit(request, pk):
     )
     if request.method == "POST" and form.is_valid():
         product = form.save()
+        _save_product_overlays(product, request)  # Ф2: переводы origin/ingredients
         # T1: правка остатка в каталоге пишет движение (не трогая счётчик) →
         # счётчик и леджер сходятся, реконсиляция не «расходится сама».
         log_catalog_change(

@@ -95,3 +95,45 @@ def test_no_language_switcher_for_single_locale(user):
     body = _render(user, TenantFactory(business_type="bakery", enabled_locales=["de"]))
     assert 'data-i18n-pill="' not in body  # кнопок-пилюль нет (JS-селектор не считаем)
     assert "id_name_de" in body
+
+
+# --- Ф2: origin/ingredients переводимы per-товар (overlay) -------------------
+@pytest.mark.django_db
+def test_origin_ingredients_translatable(user):
+    """Ф2: Herkunft/Zutaten переводимы (overlay origin_i18n/ingredients_i18n); база в
+    плоском поле, перевод — на локали; на витрине — origin_localized/ingredients_localized."""
+    from apps.catalog.models import Product
+
+    tenant = TenantFactory(business_type="bakery", enabled_locales=["de", "en"])
+    product = Product.objects.create(name={"de": "Brot"}, base_price="2.00")
+    req = RequestFactory().post(
+        f"/catalog/products/{product.pk}/edit/",
+        {
+            "name_de": "Brot",
+            "base_price": "2.00",
+            "currency": "EUR",
+            "origin": "Deutschland",
+            "origin_en": "Germany",
+            "ingredients": "Mehl, Wasser",
+            "ingredients_en": "Flour, water",
+        },
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = user
+    req.tenant = tenant
+    resp = views.product_edit(req, product.pk)
+    assert resp.status_code == 302
+    product.refresh_from_db()
+    assert product.origin == "Deutschland"  # база (de) в плоском поле
+    assert product.origin_i18n.get("en") == "Germany"  # перевод в оверлее
+    assert product.origin_localized("en") == "Germany"
+    assert product.origin_localized("de") == "Deutschland"  # база
+    assert product.ingredients_localized("en") == "Flour, water"
+
+
+@pytest.mark.django_db
+def test_origin_i18n_inputs_in_dom_multi_locale(user):
+    """Ф2: инпуты переводов origin/ingredients (origin_en/ingredients_en) в DOM при мультиязыке."""
+    body = _render(user, TenantFactory(business_type="bakery", enabled_locales=["de", "en"]))
+    assert 'name="origin_en"' in body and 'name="ingredients_en"' in body
