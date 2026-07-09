@@ -193,7 +193,7 @@ def test_gating_skips_public_schema():
 @pytest.mark.parametrize(
     ("business_type", "disabled"),
     [
-        # jobs — universal opt-in (recommended_for=()) → disabled у всех вертикалей.
+        # jobs — primary только для handwerker/werkstatt (S6); у остальных вертикалей выкл.
         (
             "bakery",
             {
@@ -267,6 +267,71 @@ def test_gating_skips_public_schema():
                 "telegram",
                 "events",
                 "customer_account",
+            },
+        ),
+        # S6: реальные архетипы. Primary-модуль вертикали НЕ выключен по умолчанию.
+        # friseur: booking (Termin) primary; loyalty/promotions вкл.
+        (
+            "friseur",
+            {
+                "crm",
+                "orders",
+                "stays",
+                "analytics",
+                "publishing",
+                "jobs",
+                "events",
+                "finance",
+                "telegram",
+            },
+        ),
+        # handwerker: jobs (Angebote) primary; booking/promotions выкл (suited, не rec).
+        (
+            "handwerker",
+            {
+                "promotions",
+                "crm",
+                "orders",
+                "booking",
+                "stays",
+                "loyalty",
+                "analytics",
+                "publishing",
+                "events",
+                "finance",
+                "telegram",
+            },
+        ),
+        # werkstatt: jobs + booking (Termin) primary.
+        (
+            "werkstatt",
+            {
+                "promotions",
+                "crm",
+                "orders",
+                "stays",
+                "loyalty",
+                "analytics",
+                "publishing",
+                "events",
+                "finance",
+                "telegram",
+            },
+        ),
+        # events (Veranstalter): events (Tickets) primary; promotions вкл; jobs выкл.
+        (
+            "events",
+            {
+                "crm",
+                "orders",
+                "booking",
+                "stays",
+                "loyalty",
+                "analytics",
+                "publishing",
+                "jobs",
+                "finance",
+                "telegram",
             },
         ),
     ],

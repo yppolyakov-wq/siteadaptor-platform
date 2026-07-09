@@ -353,7 +353,19 @@ Python 3.12, менеджер uv.
   `docs/admin-simplification-handoff-2026-07-08.md`** (+ exec-plan/analysis тех же дат).
   Уроки: правка формы HUB_TABS → grep импортёров + полный прогон; `msgfmt` локально нет →
   email_i18n падает локально/зелён на CI; `normalize` дропает неизв. ключи (ui_mode сохранять).
-- Миграции: **ЗАДЕПЛОЕНО 2026-07-08 (полный деплой владельца)** — применены ВСЕ миграции по состоянию на этот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). Незадеплоенных миграций нет. Полный список — в build-log.
+- **Самое свежее (2026-07-09): упрощение кабинета — S5 влит в main + S6a реальные архетипы.**
+  **S5** (режим Простой/Эксперт) был готов на прежней ветке `unified-order-kanban-stock-af3pl7`
+  (`0c45f44`), но НЕ влит; верифицирован (CI зелёный, 7 тестов) и FF-влит в `main` (`db412ed`,
+  без миграции): `ui_mode()`/`is_simple()`, `SIMPLE_HIDDEN_MODULES={finance,analytics}`,
+  тумблер на «Funktionen», `normalize` сохраняет `ui_mode`. **S6a** (⚠️ миграция `tenants/0024`):
+  `Tenant.BUSINESS_TYPES += friseur/handwerker/werkstatt/events` (к 10, не заменяя) + пресеты
+  модулей на архетип (`recommended_for`/`suited_for`) + маппинг демо-китов (FRISEUR/WERKSTATT/
+  HANDWERKER/RETREAT) + карточки мастера (`BUSINESS_TYPE_META`) + тесты (`test_archetypes_s6`,
+  +4 параметра `test_default_disabled_for_vertical`). **Дальше: S6b** (без миграции) — скрытие
+  нерелевантных ХАБОВ по архетипу в Простом режиме. Планы —
+  `docs/admin-simplification-s6-plan-2026-07-09.md`, handoff §4. Ветка
+  `claude/admin-simplification-handoff-dfawis`.
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type; AlterField, SHARED/public, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

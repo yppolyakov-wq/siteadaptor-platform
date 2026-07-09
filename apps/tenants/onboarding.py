@@ -29,6 +29,11 @@ BUSINESS_TYPE_META = {
     "retail": ("🛍️", "Einzelhandel — Online-Shop, Versand & Abholung"),
     "tour_operator": ("🧭", "Touren & Events — Tickets und Termine"),
     "hotel": ("🛏️", "Zimmer & Ferienwohnungen — Buchung nach Datum"),
+    # S6: реальные архетипы (язык задач, как остальные карточки).
+    "friseur": ("💇", "Salon — Termine online, Bewertungen & Treuekarte"),
+    "handwerker": ("🔧", "Handwerk — Anfragen, Angebote & Kostenvoranschläge"),
+    "werkstatt": ("🚗", "KFZ-Werkstatt — Termine & Kostenvoranschläge"),
+    "events": ("🎟️", "Veranstalter — Tickets, Termine & Teilnehmerlisten"),
     "other": ("✨", "Etwas anderes — frei konfigurierbar"),
 }
 

@@ -4508,3 +4508,28 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 Простой/Эксперт) → S6 (реальные архетипы, ⚠️ миграция Tenant.choices). Уроки: `msgfmt` локально нет
 → `test_email_i18n` красный локально/зелёный на CI; `siteconfig.normalize` дропает неизвестные ключи
 (ui_mode для S5 сохранять в normalize). Ветка `claude/unified-order-kanban-stock-af3pl7`.
+
+### 2026-07-09 — S5 (влит) + S6a реальные архетипы (упрощение кабинета, продолжение)
+- **S5 Einfach/Experte** (`0c45f44`, был готов на прежней ветке, но НЕ влит; верифицирован —
+  CI зелёный, 7 тестов — и FF-влит в `main` `db412ed`, без миграции). Зонтик-режим кабинета:
+  `modules.ui_mode()`/`is_simple()` (`site_config["ui_mode"]`, дефолт expert),
+  `SIMPLE_HIDDEN_MODULES={finance,analytics}` скрыты из сайдбара в Простом (страницы живут по URL);
+  `siteconfig.normalize` сохраняет `ui_mode` только при `"simple"` (golden-паритет); тумблер
+  «Ansicht: Einfach/Experte» на «Funktionen» (пишет `site_config` прямо — прочие ключи целы);
+  `ui_simple` в контекст `modules_view`; `test_ui_mode.py` (7).
+- **S6a реальные архетипы** (⚠️ миграция `tenants/0024_alter_tenant_business_type`, choices):
+  `Tenant.BUSINESS_TYPES += friseur/handwerker/werkstatt/events` (к 10 прежним, НЕ заменяя —
+  решение владельца 2026-07-08). Пресеты модулей на архетип (`recommended_for`/`suited_for`):
+  friseur→booking(Termin)+loyalty+promotions primary; handwerker→jobs; werkstatt→jobs+booking;
+  events→events(Tickets)+promotions; reviews/gift/blog/inbox/customer_account — все 4 из коробки;
+  crm/orders — suited. `jobs.recommended_for=(handwerker,werkstatt)`+`suited_for=(restaurant,cafe,
+  other)` (сохранён catering-Anfrage без предупреждения; suited не влияет на `default_disabled_for`).
+  promotions покрывает все 14 типов → `suited_label` «Für alle Geschäftstypen» цел. Демо-киты
+  FRISEUR/WERKSTATT/HANDWERKER/RETREAT → `business_type` нового типа (было `"other"`). Карточки
+  мастера онбординга: `BUSINESS_TYPE_META` += 4 (иконка+blurb, язык задач). Тесты: +4 параметра в
+  `test_default_disabled_for_vertical`, новый `test_archetypes_s6.py`. Локальный гейт: full
+  `core+tenants+events` зелёный (после доводки onboarding-карточек). План —
+  `docs/admin-simplification-s6-plan-2026-07-09.md`. **Primary handwerker витрины:** jobs не в
+  `archetypes._PRIORITY` → падает на catalog (core) — пре-существующий нюанс (сегодня «other»+jobs
+  ведёт себя так же), отдельный follow-up. **Остаток S6b** (без миграции): скрытие нерелевантных
+  ХАБОВ по архетипу в Простом режиме. Ветка `claude/admin-simplification-handoff-dfawis`.

@@ -13,6 +13,12 @@ class Tenant(TenantMixin):
         ("retail", "Retail / Einzelhandel"),
         ("tour_operator", "Tour Operator"),
         ("hotel", "Hotel"),
+        # S6 (упрощение кабинета): реальные архетипы вместо «other». Добавлены к
+        # существующим 10 типам (решение владельца 2026-07-08 — не заменять).
+        ("friseur", "Friseur / Salon"),
+        ("handwerker", "Handwerker"),
+        ("werkstatt", "Werkstatt / KFZ"),
+        ("events", "Veranstalter / Events"),
         ("other", "Other"),
     ]
 
