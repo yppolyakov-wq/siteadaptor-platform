@@ -8,16 +8,23 @@
     {% if is_create %}{% trans "New category" %}{% else %}{% trans "Edit category" %}{% endif %}
   </h1>
 
+  {% comment %}Ф1: категория — переключатель языка (название/описание по языкам, не все
+     сразу). Прочие поля (родитель/slug/иконка/…) — язык-независимы, видны всегда. Поля всех
+     языков в DOM → Save собирает всё (инвариант W0).{% endcomment %}
   <form method="post" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
     {% csrf_token %}
-    {% for field in form %}
+
+    {% include "tenant/_i18n_switch.html" %}
+    {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
+
+    {% for field in form %}{% if not field.name|slice:":5" == "name_" and not field.name|slice:":12" == "description_" %}
       <div>
         <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
         {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
         {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
         {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
       </div>
-    {% endfor %}
+    {% endif %}{% endfor %}
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
     <div class="flex gap-3">

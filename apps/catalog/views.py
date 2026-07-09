@@ -478,7 +478,7 @@ def category_create(request):
     return render(
         request,
         "catalog/category_form.html",
-        {"form": form, "is_create": True, "nav": "categories"},
+        {"form": form, "is_create": True, "nav": "categories", **_i18n_ctx(form, request)},
     )
 
 
@@ -494,7 +494,13 @@ def category_edit(request, pk):
     return render(
         request,
         "catalog/category_form.html",
-        {"form": form, "is_create": False, "category": category, "nav": "categories"},
+        {
+            "form": form,
+            "is_create": False,
+            "category": category,
+            "nav": "categories",
+            **_i18n_ctx(form, request),
+        },
     )
 
 

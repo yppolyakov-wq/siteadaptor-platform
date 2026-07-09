@@ -37,13 +37,20 @@
         <label class="block text-xs text-gray-500 mb-1">{% trans "Description (what's included)" %}</label>
         <input name="description" type="text" value="{{ s.description }}" placeholder="{% trans 'optional' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
       </div>
-      {# L3d: переводы неосновных локалей #}
-      {% for inp in s.i18n_inputs %}
-      <div class="sm:col-span-5 order-last">
-        <label class="block text-xs text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
-        <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-      </div>
-      {% endfor %}
+      {# Ф1: переводы неосновных локалей — свёрнуты по умолчанию (не все языки сразу). #}
+      {% if s.i18n_inputs %}
+      <details class="sm:col-span-5 order-last">
+        <summary class="cursor-pointer text-xs text-indigo-600">🌐 {% trans "Translations" %}</summary>
+        <div class="mt-2 space-y-2">
+          {% for inp in s.i18n_inputs %}
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
+            <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
       <div>
         <label class="block text-xs text-gray-500 mb-1">{% trans "Duration (min)" %}</label>
         <input name="duration" type="number" min="5" value="{{ s.duration_minutes }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">

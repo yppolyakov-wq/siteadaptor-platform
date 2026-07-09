@@ -151,6 +151,18 @@ def test_create_category_autoslug(user):
 
 
 @pytest.mark.django_db
+def test_category_form_has_language_switcher(user):
+    """Ф1: у категории — переключатель языка (name/description по языкам); прочие поля
+    (parent/slug/…) язык-независимы, видны всегда. Все поля в DOM (Save)."""
+    req = RequestFactory().get("/catalog/categories/new/")
+    _attach_session_user(req, user)  # без tenant → фолбэк de+en → свитчер виден
+    body = views.category_create(req).content.decode()
+    assert 'data-i18n-pill="de"' in body and 'data-i18n-pill="en"' in body
+    assert "id_name_de" in body and "id_name_en" in body  # оба языка в DOM
+    assert "id_slug" in body and "id_parent" in body  # прочие поля на месте
+
+
+@pytest.mark.django_db
 def test_category_list_is_nested(user):
     parent = CategoryFactory(name={"de": "Backwaren"}, slug="backwaren")
     CategoryFactory(name={"de": "Kuchen"}, slug="kuchen", parent=parent)
