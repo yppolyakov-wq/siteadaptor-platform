@@ -57,6 +57,49 @@ def test_settings_view_saves():
 
 
 @pytest.mark.django_db
+def test_settings_page_renders_all_form_fields():
+    """Регресс-замок бага потери данных: КАЖДОЕ поле формы должно рендериться на
+    странице, иначе на Save оно приходит пустым и затирает БД (small_business/НДС и т.п.)."""
+    from apps.tenants.forms import BusinessSettingsForm
+
+    tenant = TenantFactory()
+    user = get_user_model().objects.create_user("r", "r@test.de", "pw12345678")
+    req = _attach(RequestFactory().get("/dashboard/settings/"), user)
+    req.tenant = tenant
+    resp = core_views.settings_view(req)
+    assert resp.status_code == 200
+    html = resp.content.decode()
+    missing = [f for f in BusinessSettingsForm.Meta.fields if f"id_{f}" not in html]
+    assert not missing, f"поля формы не выводятся (будут стёрты на Save): {missing}"
+
+
+@pytest.mark.django_db
+def test_settings_view_preserves_previously_dropped_fields():
+    """Ранее не выводимые поля не должны обнуляться при сохранении формы."""
+    tenant = TenantFactory(small_business=True, tax_number="DE-42", voucher_max_percent=25)
+    user = get_user_model().objects.create_user("p", "p@test.de", "pw12345678")
+    # POST как из отрисованной формы (чекбоксы включены, значения переданы).
+    data = {
+        "name": tenant.name,
+        "small_business": "on",
+        "tax_number": "DE-42",
+        "owner_digest_enabled": "on",
+        "voucher_max_percent": "25",
+        "service_area_plz": "40724",
+    }
+    req = _attach(RequestFactory().post("/dashboard/settings/", data), user)
+    req.tenant = tenant
+    resp = core_views.settings_view(req)
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    assert tenant.small_business is True  # НДС-статус не слетел
+    assert tenant.tax_number == "DE-42"
+    assert tenant.owner_digest_enabled is True
+    assert tenant.voucher_max_percent == 25
+    assert tenant.service_area_plz == "40724"
+
+
+@pytest.mark.django_db
 def test_impressum_page_renders():
     tenant = TenantFactory(name="Bäckerei Y")
     req = _attach(RequestFactory().get("/impressum/"))

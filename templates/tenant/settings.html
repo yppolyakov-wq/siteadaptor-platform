@@ -48,7 +48,21 @@
     <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
       <legend class="font-semibold mb-2">{% trans "Legal (Impressum / Datenschutz / Widerruf)" %}</legend>
       {% for field in form %}
-        {% if field.name == 'vat_id' or field.name == 'register_entry' or field.name == 'legal_responsible' or field.name == 'impressum' or field.name == 'privacy_policy' or field.name == 'withdrawal_policy' %}
+        {% if field.name == 'vat_id' or field.name == 'tax_number' or field.name == 'small_business' or field.name == 'register_entry' or field.name == 'legal_responsible' or field.name == 'impressum' or field.name == 'privacy_policy' or field.name == 'withdrawal_policy' %}
+          <div>
+            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </fieldset>
+
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <legend class="font-semibold mb-2">{% trans "Operations & delivery" %}</legend>
+      {% for field in form %}
+        {% if field.name == 'service_area_plz' or field.name == 'service_area_note' or field.name == 'owner_digest_enabled' or field.name == 'voucher_max_percent' %}
           <div>
             <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
