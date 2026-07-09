@@ -34,6 +34,26 @@ def test_templates_for_puts_recommended_first():
     assert sorted(order) == sorted(t["key"] for t in sitetemplates.TEMPLATES)
 
 
+@pytest.mark.parametrize(
+    ("business_type", "template_key", "primary_section"),
+    [
+        ("friseur", "termine", "services"),
+        ("werkstatt", "termine", "services"),
+        ("handwerker", "handwerk", "before_after"),
+        ("events", "veranstaltung", "events"),
+    ],
+)
+def test_s6_archetype_template_recommended_and_keeps_primary(
+    business_type, template_key, primary_section
+):
+    # S6: у каждого нового архетипа есть рекомендованный шаблон (первым в галерее),
+    # и он ВКЛЮЧАЕТ секцию-главного-товара (не прячет её, как generic-шаблоны).
+    order = [t["key"] for t in sitetemplates.templates_for(business_type)]
+    assert order[0] == template_key
+    tpl = sitetemplates.get_template(template_key)
+    assert primary_section in tpl["sections"]
+
+
 def test_apply_template_sets_layout_and_keeps_texts_and_onboarding():
     tenant = TenantFactory(
         schema_name="t_tpl",

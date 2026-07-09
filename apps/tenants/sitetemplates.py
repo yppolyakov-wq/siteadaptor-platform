@@ -83,6 +83,54 @@ TEMPLATES = [
         "hero_style": "accent",
     },
     {
+        # S6: Friseur/Werkstatt — Termin + «Leistungen & Preise» (services) на главной.
+        "key": "termine",
+        "label": "Termine & Leistungen",
+        "description_de": "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios.",
+        "recommended_for": ("friseur", "werkstatt"),
+        "sections": ["hero", "services", "about", "promotions", "contact"],
+        "texts": {
+            "hero_title": "Ihr Termin bei uns",
+            "hero_text": "Sehen Sie unsere Leistungen und buchen Sie online Ihren Wunschtermin.",
+            "about_title": "Über uns",
+            "about_text": "",
+        },
+        "accent": "#0f766e",  # teal
+        "hero_style": "accent",
+    },
+    {
+        # S6: Handwerker — Anfrage/Angebot; Referenzen (before_after) + Ablauf (process).
+        "key": "handwerk",
+        "label": "Handwerk & Angebote",
+        "description_de": "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage.",
+        "recommended_for": ("handwerker",),
+        "sections": ["hero", "before_after", "process", "promotions", "contact"],
+        "texts": {
+            "hero_title": "Ihr Meisterbetrieb",
+            "hero_text": "Schildern Sie Ihr Vorhaben — Sie erhalten ein unverbindliches Angebot.",
+            "about_title": "Über den Betrieb",
+            "about_text": "",
+        },
+        "accent": "#ea580c",  # Handwerk-Orange
+        "hero_style": "accent",
+    },
+    {
+        # S6: Veranstalter/Events — Tickets/Termine (events) im Fokus.
+        "key": "veranstaltung",
+        "label": "Veranstaltungen & Tickets",
+        "description_de": "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios.",
+        "recommended_for": ("events", "tour_operator"),
+        "sections": ["hero", "events", "about", "contact"],
+        "texts": {
+            "hero_title": "Unsere Veranstaltungen",
+            "hero_text": "Sichern Sie sich jetzt Ihre Tickets für die nächsten Termine.",
+            "about_title": "Über uns",
+            "about_text": "",
+        },
+        "accent": "#7c3aed",  # violet
+        "hero_style": "accent",
+    },
+    {
         "key": "minimal",
         "label": "Minimal / Visitenkarte",
         "description_de": "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen.",
