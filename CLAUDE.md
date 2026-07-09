@@ -405,8 +405,16 @@ Python 3.12, менеджер uv.
   `/dashboard/board/` (владелец не находил, где настроить колонки): пер-тенантно `site_config['board']`
   — переименование (`labels`)/порядок (`order`)/скрытие (`hidden`) колонок; `pipeline.resolve_columns`
   поверх `pipeline_for`; **правила переходов карт (FSM/V4) НЕ трогаются**. `normalize_board` +
-  golden-паритет (ключ только при непустом); `board_settings` targeted-write. **Дальше по аудиту: W6**
-  (единый источник темы — accent/шрифт дублируются между site.html и site_home; ПОСЛЕДНЯЯ волна аудита).
+  golden-паритет (ключ только при непустом); `board_settings` targeted-write.
+- **Самое свежее (2026-07-09, W6 — единый источник темы + ФИКС потери данных): ВОЛНА W (W0–W6)
+  ЗАКРЫТА ЦЕЛИКОМ** (ветка `claude/admin-simplification-handoff-dfawis`, БЕЗ миграций). Найден+исправлен
+  латентный баг: **`site_view` пересобирал config из ПОДМНОЖЕСТВА ключей** → сохранение «Your site»
+  роняло `ui_mode`/`board`(W5!)/`seo`/типографику/стиль карточек. Фикс: `config = dict(current)` (как
+  home_builder_view) + presence-safe TEXT_FIELDS. **W6:** цвет/шрифт/стиль баннера — единый источник в
+  конструкторе главной (Theme); из `site.html` убраны (ссылка туда), `site_view` тему не пишет. Тесты
+  preserve-keys/no-wipe/no-dup. Диагностика CI: billing webhook-тесты по ~60с (пред-существующая
+  медлительность, не регресс), core+orders 677 зелёные. **Дальше:** T-1 (массовый de.po — в конце
+  бэклога) / другие треки за решением владельца.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type; AlterField, SHARED/public, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

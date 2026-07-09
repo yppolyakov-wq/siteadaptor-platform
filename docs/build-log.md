@@ -4625,3 +4625,18 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   (валидация + golden), view (save + targeted-write + reorder + рендер панели/кастомной метки) — 16 +
   48 в смежных board/transactions/pipeline/kanban. app.css без изменений. **Дальше по аудиту: W6**
   (единый источник темы — accent/шрифт дублируются между site.html и site_home; последняя волна аудита).
+- **W6** (единый источник темы + ФИКС потери данных, ветка `claude/admin-simplification-handoff-dfawis`,
+  БЕЗ миграций). Разбирая дубль темы, обнаружен серьёзный латентный баг: **`site_view` пересобирал
+  `config` из ПОДМНОЖЕСТВА ключей** (`{sections, archetypes}` + правки формы) → `normalize(config)` →
+  сохранение страницы «Your site» РОНЯЛО ключи, которых нет в её форме: `ui_mode` (S5), `board`
+  (W5 колонки!), `seo`, типографику, `site_defaults` (стиль карточек). Фикс: старт с ПОЛНОЙ копии
+  (`config = dict(current)` — как `home_builder_view`), TEXT_FIELDS presence-safe (`current.get`
+  дефолт, не затираем в ""). Верифицировано (ui_mode/board/seo/typography/site_defaults переживают
+  save). **W6 «единый источник темы»:** цвет/шрифт/стиль баннера дублировались (site.html:
+  `accent_color`/`font`/`hero_accent` ↔ конструктор главной Theme). Убраны из site.html (ссылка в
+  конструктор); `site_view` тему больше не пишет (акцент/`hero_style`/`font` — presence-guard/удалены).
+  Единый источник — `home_builder_view` (там же live-preview; его тест-покрытие темы цело). Тесты:
+  preserve-builder-keys, no-theme-wipe, no-duplicate-controls; obsolete-тест перенастроен на
+  W6-инвариант. `app.css` пересобран (убыль классов). **ВОЛНА W (глобальный аудит кабинета) W0–W6 —
+  ЗАКРЫТА ЦЕЛИКОМ.** Диагностика CI: билли́нг webhook-тесты по ~60с каждый (пред-существующая
+  медлительность, не регресс); мои модули (core+orders 677, tenants/billing-views) зелёные.
