@@ -378,6 +378,18 @@ Python 3.12, менеджер uv.
   it/es/nl/pt), таб «Sprachen» прямой; регресс-фиксы (form_locales/locale-замки/format), broad 1964
   passed. **Перевод хрома (.po) — ОТЛОЖЕН в конец бэклога** (решение владельца). Дальше по аудиту:
   **W3** онбординг/демо новых архетипов → W4 настройки → W5 настройки Kanban-доски → W6 единый источник темы.
+- **Самое свежее (2026-07-09, W3 — наполнение S6-архетипов): ЗАКРЫТ ЦЕЛИКОМ** (ветка
+  `claude/admin-simplification-handoff-dfawis`, всё БЕЗ миграций; детали — build-log). **W3-1** демо
+  friseur/werkstatt/events (услуги/билеты). **W3-2** CTA шага 6 мастера по архетипу (`offer_cta`).
+  **W3-3** jobs — primary-архетип: `_PRIORITY` += jobs (между booking и catalog) → Handwerker (jobs on,
+  booking off) ведёт на /anfrage/, а не в пустой каталог; werkstatt=booking (Termin); `primary_item`
+  section через `.get` (jobs без секции-грида); offer_cta jobs → безопасный catalog-фолбэк (не Http404).
+  golden normalize НЕ затронут. **W3-4** пресеты акций 4 архетипам (discount). **W3-5** шаблоны витрины
+  termine/handwerk/veranstaltung — каждый ВКЛЮЧАЕТ primary-секцию (generic-шаблоны её прятали).
+  **W3-6** регистрация: business_type карточками (иконка+язык задач) вместо `<select>`. Локальный
+  broad-гейт 198 passed. **Дальше по аудиту: W4** настройки (аккордеоны, свод Zahlung/Versand, гейт
+  вкладок по архетипу) → **W5** настройки Kanban-доски (переименование/порядок колонок в site_config) →
+  **W6** единый источник темы. ⚠️ Всё ещё ОЖИДАЕТ ДЕПЛОЯ: `tenants/0024` (S6a).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type; AlterField, SHARED/public, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

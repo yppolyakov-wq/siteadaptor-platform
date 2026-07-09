@@ -4568,3 +4568,27 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `tenants/0024` из S6a). Уроки: `ruff format --check .` ЦЕЛИКОМ (не per-file); `npm run build:css` при
   правках шаблонов (freshness ловит и удалённые классы); `rl:*` Redis переживают локальные прогоны
   (product_review падал локально — не на CI). **Дальше: W3** онбординг/демо → W4 настройки → W5 доска → W6 тема.
+- **W3** (наполнение S6-архетипов, ветка `claude/admin-simplification-handoff-dfawis`, все
+  БЕЗ миграций): **W3-1** демо-контент новым архетипам — `_SERVICES["friseur"]` (4 услуги),
+  `_SERVICES["werkstatt"]` (4), `_EVENTS["events"]` (3 билета). **W3-2** CTA шага 6 мастера по
+  архетипу: `onboarding.offer_cta(tenant)` → (label,url) из `_OFFER_CTA` по `primary_module`
+  (услуга/событие/номер/товар), провод в `setup_view` + setup.html (было хардкод «Produkt
+  anlegen»); `completeness()` переведён на него. **W3-3** jobs — primary-архетип: `primary_module`
+  возвращал `catalog` (jobs не было в `_PRIORITY`) → у Handwerker (jobs on, booking off) hero-CTA
+  вёл в пустой каталог. Fix: `_PRIORITY = [events, stays, booking, jobs, catalog, promotions]`
+  (jobs между booking и catalog → handwerker=jobs/Anfrage, werkstatt=booking/Termin, чистый
+  jobs-бизнес=jobs); `primary_item` = `PRIMARY_SECTION.get(module)` (jobs — CTA-архетип без
+  секции-грида, section=None без KeyError); offer_cta jobs → безопасный generic-фолбэк
+  (catalog:product-list core, НЕ /dashboard/booking/ Http404). Обновлены order-индексы
+  `test_aggregate_sections`; golden normalize НЕ затронут (SECTIONS без изменений). **W3-4**
+  пресеты акций S6-архетипам (`promotions/presets.py`): friseur→Neukunden-Rabatt, werkstatt→
+  Saison-Check, handwerker→Saison-Aktion, events→Frühbucher (тип discount — без reservation-
+  механики каталога). **W3-5** шаблоны витрины (`sitetemplates.py`): существующие прятали
+  primary-секцию архетипа (apply_template включает только свои секции). Добавлены termine
+  (friseur/werkstatt: hero+services+about+promotions+contact) / handwerk (handwerker: hero+
+  before_after+process+promotions+contact) / veranstaltung (events/tour_operator: hero+events+
+  about+contact) — каждый ВКЛЮЧАЕТ секцию-главного-товара, recommended_for → первым в галерее.
+  **W3-6** регистрация: business_type визуальными карточками (иконка + язык задач, как мастер
+  шаг 1) вместо `<select>`; вьюха отдаёт `business_type_cards()` в контекст (GET+POST-повтор),
+  выбор переживает ошибку валидации; CSS-safe (классы 1:1 из setup.html). Локальный broad-гейт
+  198 passed (вкл. golden normalize). Дальше: W4 настройки → W5 доска (Kanban settings) → W6 тема.
