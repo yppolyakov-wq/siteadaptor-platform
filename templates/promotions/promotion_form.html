@@ -92,23 +92,47 @@
     </div>
   {% endif %}
 
+  {% comment %}Ф1: акция — переключатель языка (title/description по языкам, не все сразу)
+     + табы вместо портянки. Поля всех языков/табов в DOM (Save собирает всё, инвариант W0).{% endcomment %}
   <form method="post" enctype="multipart/form-data" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
     {% csrf_token %}
-    {% for field in form %}
-      <div>
-        <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
-        {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
-      </div>
-    {% endfor %}
-    {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
-    <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
-      <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
-      <p class="text-xs text-gray-400 mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each. If empty, the linked product's photo is used." %}</p>
+    {% include "tenant/_i18n_switch.html" %}
+
+    <div class="flex gap-4 border-b border-gray-200 text-sm font-medium overflow-x-auto" role="tablist">
+      <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on pb-2 whitespace-nowrap">{% trans "Basics" %}</button>
+      <button type="button" data-pf-tab="rabatt" class="pf-tab pb-2 whitespace-nowrap">{% trans "Discount" %}</button>
+      <button type="button" data-pf-tab="zeit" class="pf-tab pb-2 whitespace-nowrap">{% trans "Quantity & time" %}</button>
+      <button type="button" data-pf-tab="anz" class="pf-tab pb-2 whitespace-nowrap">{% trans "Display" %}</button>
     </div>
+
+    {# Basics: заголовок/описание (per язык) + товар/раздел + фото #}
+    <div data-pf-panel="grund" class="space-y-4 pt-2">
+      {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
+      {% for field in form %}{% if field.name == 'product' or field.name == 'group' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      <div>
+        <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
+        <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
+        <p class="text-xs text-gray-400 mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each. If empty, the linked product's photo is used." %}</p>
+      </div>
+    </div>
+
+    {# Rabatt: тип, старая/новая цена, %, стиль отображения, Überraschungstüte #}
+    <div data-pf-panel="rabatt" class="space-y-3 pt-2 hidden">
+      {% for field in form %}{% if field.name == 'promo_type' or field.name == 'compare_at_price' or field.name == 'discount_percent' or field.name == 'price_override' or field.name == 'discount_style' or field.name == 'is_surprise' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+    </div>
+
+    {# Menge & Zeit #}
+    <div data-pf-panel="zeit" class="space-y-3 pt-2 hidden">
+      {% for field in form %}{% if field.name == 'available_quantity' or field.name == 'max_per_customer' or field.name == 'reservation_ttl_hours' or field.name == 'auto_confirm' or field.name == 'starts_at' or field.name == 'ends_at' or field.name == 'recurrence' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+    </div>
+
+    {# Anzeige: перечёркнутая цена, обратный отсчёт #}
+    <div data-pf-panel="anz" class="space-y-3 pt-2 hidden">
+      {% for field in form %}{% if field.name == 'strikethrough_old_price' or field.name == 'show_countdown' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+    </div>
+
+    {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
     <div class="flex gap-3">
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>

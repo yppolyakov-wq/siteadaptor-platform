@@ -47,6 +47,14 @@ def _product_form_flags(request):
     }
 
 
+def _i18n_ctx(form, request):
+    """Ф1: группы i18n-полей формы товара (name/description) для переключателя языка —
+    делегирует общему `i18n_form_groups` (переиспользуется формой акции с title/description)."""
+    from apps.core.i18n_input import i18n_form_groups
+
+    return i18n_form_groups(form, getattr(request, "tenant", None), fields=("name", "description"))
+
+
 def _parse_price(raw):
     """«4,90» / «4.90» / пусто → Decimal или None (пусто/мусор/отрицательное)."""
     raw = (raw or "").strip().replace(",", ".")
@@ -137,7 +145,13 @@ def product_create(request):
     return render(
         request,
         "catalog/product_form.html",
-        {"form": form, "is_create": True, "nav": "catalog", **_product_form_flags(request)},
+        {
+            "form": form,
+            "is_create": True,
+            "nav": "catalog",
+            **_product_form_flags(request),
+            **_i18n_ctx(form, request),
+        },
     )
 
 
@@ -171,6 +185,7 @@ def product_edit(request, pk):
             "modifier_groups": product.modifier_groups.prefetch_related("options"),
             "nav": "catalog",
             **_product_form_flags(request),
+            **_i18n_ctx(form, request),
         },
     )
 

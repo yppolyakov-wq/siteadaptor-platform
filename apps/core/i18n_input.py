@@ -87,6 +87,33 @@ def form_locales(tenant) -> list[str]:
     return [base] + [loc for loc in locs if loc != base]
 
 
+def i18n_form_groups(form, tenant, fields=("name", "description")) -> dict:
+    """Ф1 (per-language ввод): группы bound-полей формы ПО ЛОКАЛИ для переключателя языка.
+
+    Возвращает ``{"i18n_groups": [{code,label,is_base,fields:[BoundField,…]}], "i18n_multi": bool}``.
+    `fields` — базовые имена i18n-полей формы (name/description ИЛИ title/description). Шаблон
+    показывает группу только выбранного языка (data-i18n-loc), базовая (LANGUAGE_CODE) видна по
+    умолчанию. Поля ВСЕХ локалей остаются в DOM → Save собирает всё (инвариант W0). Свитчер
+    показываем при >1 языке (`i18n_multi`)."""
+    from django.conf import settings as s
+
+    base = s.LANGUAGE_CODE
+    lang_names = dict(s.LANGUAGES)
+    locs = form_locales(tenant)
+    groups = []
+    for loc in locs:
+        bound = [form[f"{f}_{loc}"] for f in fields if f"{f}_{loc}" in form.fields]
+        groups.append(
+            {
+                "code": loc,
+                "label": str(lang_names.get(loc, loc.upper())),
+                "is_base": loc == base,
+                "fields": bound,
+            }
+        )
+    return {"i18n_groups": groups, "i18n_multi": len(locs) > 1}
+
+
 class DynamicI18nFormMixin:
     """L3d.5: N-locale поля вместо хардкода пар de/en в ModelForm.
 

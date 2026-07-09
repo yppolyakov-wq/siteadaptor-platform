@@ -231,6 +231,13 @@ def shop_poster_pdf(request):
     return resp
 
 
+def _promo_i18n_groups(form, request):
+    """Ф1: группы i18n-полей акции (title/description) для переключателя языка формы."""
+    from apps.core.i18n_input import i18n_form_groups
+
+    return i18n_form_groups(form, getattr(request, "tenant", None), fields=("title", "description"))
+
+
 @login_required
 def promotion_create(request):
     # request.tenant может отсутствовать (напр. в unit-тестах через RequestFactory),
@@ -258,6 +265,7 @@ def promotion_create(request):
             "is_create": True,
             "nav": "promotions",
             "presets": presets_for(business_type),
+            **_promo_i18n_groups(form, request),
         },
     )
 
@@ -300,6 +308,7 @@ def promotion_edit(request, pk):
             "featured_listing": _featured_listing(promo),
             "featured_enabled": billing_featured.is_enabled(),
             "nav": "promotions",
+            **_promo_i18n_groups(form, request),
         },
     )
 

@@ -58,17 +58,40 @@ def test_name_renders_before_price(user):
 def test_food_section_gated_by_archetype(user):
     """Пищевая маркировка видна только гастро/еде; у прочих архетипов секция скрыта (CSS)."""
     nonfood = _render(user, TenantFactory(business_type="friseur"))
-    i = nonfood.find("Food labeling")
-    assert i != -1 and "hidden" in nonfood[i - 150 : i]  # у friseur — скрыта
+    i = nonfood.find("data-food-section")
+    assert i != -1 and "hidden" in nonfood[i : i + 80]  # у friseur — скрыта
     food = _render(user, TenantFactory(business_type="bakery"))
-    j = food.find("Food labeling")
-    assert j != -1 and "hidden" not in food[j - 150 : j]  # у пекарни — видна
+    j = food.find("data-food-section")
+    assert j != -1 and "hidden" not in food[j : j + 80]  # у пекарни — видна
 
 
 @pytest.mark.django_db
 def test_simple_mode_hides_advanced_keeps_fields(user):
-    """В Простом режиме продвинутые аккордеоны скрыты, но их поля остаются в DOM."""
+    """Ф1: в Простом режиме продвинутые ТАБЫ скрыты, но их поля остаются в DOM."""
     body = _render(user, TenantFactory(business_type="bakery", site_config={"ui_mode": "simple"}))
     assert "id_stock_quantity" in body and "id_cost_price" in body  # поля в DOM
-    i = body.find("More options")
-    assert i != -1 and "hidden" in body[i - 90 : i]  # обёртка продвинутого скрыта
+    i = body.find('data-pf-tab="preis"')
+    assert i != -1 and "hidden" in body[i : i + 80]  # продвинутый таб скрыт
+
+
+# --- Ф1: переключатель языка (per-language ввод) ----------------------------
+@pytest.mark.django_db
+def test_language_switcher_shown_for_multi_locale(user):
+    """Ф1: при ≥2 языках — пилюли-переключатель; поля неосновных языков в DOM, но
+    скрыты (data-i18n-loc), видна только базовая локаль. Все поля остаются (Save)."""
+    tenant = TenantFactory(business_type="bakery", enabled_locales=["de", "en"])
+    body = _render(user, tenant)
+    assert 'data-i18n-pill="de"' in body and 'data-i18n-pill="en"' in body  # пилюли
+    assert "id_name_de" in body and "id_name_en" in body  # оба языка в DOM
+    i = body.find('data-i18n-loc="en"')
+    assert i != -1 and "hidden" in body[i : i + 60]  # EN по умолчанию скрыт
+    j = body.find('data-i18n-loc="de"')
+    assert j != -1 and "hidden" not in body[j : j + 60]  # база (de) видна
+
+
+@pytest.mark.django_db
+def test_no_language_switcher_for_single_locale(user):
+    """Один язык → переключателя нет (форма как раньше), поля на месте."""
+    body = _render(user, TenantFactory(business_type="bakery", enabled_locales=["de"]))
+    assert 'data-i18n-pill="' not in body  # кнопок-пилюль нет (JS-селектор не считаем)
+    assert "id_name_de" in body

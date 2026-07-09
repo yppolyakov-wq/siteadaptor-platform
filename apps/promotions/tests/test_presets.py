@@ -38,6 +38,18 @@ def test_unknown_preset_is_safe():
     assert resp.status_code == 200
 
 
+def test_promotion_form_language_switcher_and_tabs():
+    """Ф1: у акции — переключатель языка (title/description по языкам, не все сразу) + табы.
+    Поля обоих языков в DOM (Save собирает всё); TenantFactory даёт de+en."""
+    body = views.promotion_create(_req("/promotions/new/")).content.decode()
+    assert 'data-i18n-pill="de"' in body and 'data-i18n-pill="en"' in body  # пилюли
+    assert "id_title_de" in body and "id_title_en" in body  # оба языка в DOM
+    assert 'data-pf-tab="rabatt"' in body and 'data-pf-tab="zeit"' in body  # табы
+    # EN-группа по умолчанию скрыта, база (de) видна
+    i = body.find('data-i18n-loc="en"')
+    assert i != -1 and "hidden" in body[i : i + 60]
+
+
 @pytest.mark.parametrize(
     ("business_type", "key", "title"),
     [

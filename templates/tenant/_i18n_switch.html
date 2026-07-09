@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}Переиспользуемый переключатель языка формы + логика табов (товар/акция/…).
+Пилюли языков (по i18n_groups; только при i18n_multi) переключают видимость групп
+`[data-i18n-loc]`; кнопки `[data-pf-tab]` — панелей `[data-pf-panel]`. Все поля всех
+языков/табов остаются в DOM (скрытие только CSS) → Save собирает всё (инвариант W0).{% endcomment %}
+{% if i18n_multi %}
+<div class="flex flex-wrap items-center gap-1 mb-4" role="group" aria-label="{% trans 'Editing language' %}">
+  <span class="text-xs text-gray-400 mr-1">🌐 {% trans "Language" %}:</span>
+  {% for g in i18n_groups %}
+    <button type="button" data-i18n-pill="{{ g.code }}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">{{ g.label }}{% if g.is_base %} ·{% endif %}</button>
+  {% endfor %}
+  <span class="text-xs text-gray-400 ml-1">{% trans "— you enter data per language" %}</span>
+</div>
+{% endif %}
+
+<style>
+  .i18n-pill { background:#fff; cursor:pointer; }
+  .i18n-pill:hover { border-color:#a5b4fc; }
+  .i18n-pill-on { background:#4f46e5; border-color:#4f46e5; color:#fff; }
+  .pf-tab { cursor:pointer; color:#6b7280; border-bottom:2px solid transparent; margin-bottom:-1px; }
+  .pf-tab:hover { color:#374151; }
+  .pf-tab-on { color:#4338ca; border-bottom-color:#4f46e5; }
+</style>
+
+<script>
+(function () {
+  "use strict";
+  // Переключатель языка: показываем группы только выбранной локали.
+  var pills = document.querySelectorAll("[data-i18n-pill]");
+  function setLoc(loc) {
+    pills.forEach(function (b) { b.classList.toggle("i18n-pill-on", b.getAttribute("data-i18n-pill") === loc); });
+    document.querySelectorAll("[data-i18n-loc]").forEach(function (el) {
+      el.classList.toggle("hidden", el.getAttribute("data-i18n-loc") !== loc);
+    });
+  }
+  pills.forEach(function (b) { b.addEventListener("click", function () { setLoc(b.getAttribute("data-i18n-pill")); }); });
+
+  // Табы содержимого: одна панель активна.
+  var tabs = document.querySelectorAll("[data-pf-tab]");
+  function setTab(t) {
+    tabs.forEach(function (b) { b.classList.toggle("pf-tab-on", b.getAttribute("data-pf-tab") === t); });
+    document.querySelectorAll("[data-pf-panel]").forEach(function (el) {
+      el.classList.toggle("hidden", el.getAttribute("data-pf-panel") !== t);
+    });
+  }
+  tabs.forEach(function (b) { b.addEventListener("click", function () { setTab(b.getAttribute("data-pf-tab")); }); });
+})();
+</script>

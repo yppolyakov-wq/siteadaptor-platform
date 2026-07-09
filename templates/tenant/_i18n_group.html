@@ -1,0 +1,14 @@
+{% load widget_tweaks %}
+{% comment %}Ф1: одна языковая группа i18n-полей (name/description или title/description).
+Обёртка `data-i18n-loc` — переключатель языка показывает только активную; базовая видна
+по умолчанию, прочие `hidden`. Все поля всех языков в DOM (Save собирает всё).{% endcomment %}
+<div data-i18n-loc="{{ g.code }}" class="space-y-3{% if not g.is_base %} hidden{% endif %}">
+  {% for f in g.fields %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+      {% if f.help_text %}<p class="text-xs text-gray-400 mt-1">{{ f.help_text }}</p>{% endif %}
+      {% for e in f.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+</div>
