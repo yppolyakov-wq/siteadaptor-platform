@@ -118,6 +118,19 @@ _SERVICES = {
         ("Weinprobe", 120, "45.00"),
         ("Fahrradtour", 180, "35.00"),
     ],
+    # W3: friseur/werkstatt — primary архетипа = услуги по времени (booking).
+    "friseur": [
+        ("Haarschnitt Damen", 45, "39.00"),
+        ("Haarschnitt Herren", 30, "25.00"),
+        ("Färben & Strähnen", 90, "69.00"),
+        ("Waschen, Schneiden, Föhnen", 60, "45.00"),
+    ],
+    "werkstatt": [
+        ("Inspektion", 90, "129.00"),
+        ("Ölwechsel", 45, "69.00"),
+        ("Reifenwechsel", 30, "39.00"),
+        ("HU/AU (TÜV)", 60, "119.00"),
+    ],
     "other": [
         ("Beratungsgespräch", 60, "60.00"),
         ("Premium-Service", 90, "95.00"),
@@ -140,6 +153,12 @@ _EVENTS = {
     "tour_operator": [
         ("Geführte Altstadt-Tour", 7, 20, "15.00"),
         ("Weinabend", 14, 30, "39.00"),
+    ],
+    # W3: архетип «Veranstalter/Events» — билеты его primary.
+    "events": [
+        ("Live-Konzert", 14, 120, "29.00"),
+        ("Comedy-Abend", 21, 80, "24.00"),
+        ("Workshop-Tag", 30, 25, "89.00"),
     ],
     "other": [("Workshop: Basics", 10, 12, "49.00")],
     "hotel": [("Candle-Light-Dinner", 5, 20, "59.00")],

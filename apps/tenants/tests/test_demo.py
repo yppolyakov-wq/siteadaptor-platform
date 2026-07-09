@@ -101,3 +101,24 @@ def test_fallback_products_for_unknown_type():
     tenant = _tenant("other")
     demo.load_demo(tenant)
     assert Product.objects.filter(metadata__demo=True).count() == 3  # fallback-набор
+
+
+# --- W3: демо-контент новых архетипов (friseur/werkstatt/events) --------------
+def test_friseur_gets_services():
+    tenant = _tenant("friseur")
+    demo.load_demo(tenant)
+    assert Service.objects.count() == 4  # услуги салона (booking primary)
+    assert StayUnit.objects.count() == 0
+
+
+def test_werkstatt_gets_services():
+    tenant = _tenant("werkstatt")
+    demo.load_demo(tenant)
+    assert Service.objects.count() == 4  # услуги мастерской (Termin)
+
+
+def test_events_type_gets_events():
+    tenant = _tenant("events")
+    demo.load_demo(tenant)
+    assert Event.objects.count() == 3  # билеты (events primary)
+    assert Service.objects.count() == 0
