@@ -75,13 +75,15 @@ def i18n_inputs_for(obj, tenant, fields=("name", "description")) -> list[dict]:
 def form_locales(tenant) -> list[str]:
     """L3d.5: локали для форм ПОЛНОГО i18n-словаря (Category/Product/Promotion:
     JSON {locale: str}, база хранится в самом словаре). Базовая локаль всегда
-    первая; без тенанта — весь реестр settings.LANGUAGES (паритет старых
-    вызовов форм без tenant-kwarg)."""
+    первая; без тенанта — базовая пара de+en (см. ниже)."""
     base = settings.LANGUAGE_CODE
     try:
         locs = list(tenant.active_locales)
     except Exception:  # noqa: BLE001
-        locs = [code for code, _label in settings.LANGUAGES]
+        # Без тенанта (тесты/edge) — базовая ПАРА de+en (полностью поддержанные локали),
+        # а НЕ весь реестр settings.LANGUAGES: рост реестра (доп. языки витрины) иначе
+        # раздувает формы 11 полями и ломает точечные i18n-ассерты. Прод всегда с тенантом.
+        locs = [base, "en"]
     return [base] + [loc for loc in locs if loc != base]
 
 
