@@ -679,3 +679,153 @@ msgstr "This is a one-time notification you requested (waiting list)."
 #, python-format
 msgid "gute Nachrichten: „%(title)s“ ist wieder verfügbar."
 msgstr "good news: “%(title)s” is available again."
+
+# --- Ф3: метки-справочники каталога (аллергены/диеты/Zusatzstoffe/бейджи) ---
+
+#: apps/catalog/food.py
+msgid "Glutenhaltiges Getreide"
+msgstr "Cereals containing gluten"
+
+#: apps/catalog/food.py
+msgid "Krebstiere"
+msgstr "Crustaceans"
+
+#: apps/catalog/food.py
+msgid "Eier"
+msgstr "Eggs"
+
+#: apps/catalog/food.py
+msgid "Fisch"
+msgstr "Fish"
+
+#: apps/catalog/food.py
+msgid "Erdnüsse"
+msgstr "Peanuts"
+
+#: apps/catalog/food.py
+msgid "Soja"
+msgstr "Soybeans"
+
+#: apps/catalog/food.py
+msgid "Milch (Laktose)"
+msgstr "Milk (lactose)"
+
+#: apps/catalog/food.py
+msgid "Schalenfrüchte (Nüsse)"
+msgstr "Tree nuts"
+
+#: apps/catalog/food.py
+msgid "Sellerie"
+msgstr "Celery"
+
+#: apps/catalog/food.py
+msgid "Senf"
+msgstr "Mustard"
+
+#: apps/catalog/food.py
+msgid "Sesam"
+msgstr "Sesame"
+
+#: apps/catalog/food.py
+msgid "Schwefeldioxid und Sulfite"
+msgstr "Sulphur dioxide and sulphites"
+
+#: apps/catalog/food.py
+msgid "Lupinen"
+msgstr "Lupin"
+
+#: apps/catalog/food.py
+msgid "Weichtiere"
+msgstr "Molluscs"
+
+#: apps/catalog/food.py
+msgid "Vegan"
+msgstr "Vegan"
+
+#: apps/catalog/food.py
+msgid "Vegetarisch"
+msgstr "Vegetarian"
+
+#: apps/catalog/food.py
+msgid "Glutenfrei"
+msgstr "Gluten-free"
+
+#: apps/catalog/food.py
+msgid "Laktosefrei"
+msgstr "Lactose-free"
+
+#: apps/catalog/food.py
+msgid "Halal"
+msgstr "Halal"
+
+#: apps/catalog/food.py
+msgid "Bio"
+msgstr "Organic"
+
+#: apps/catalog/food.py
+msgid "mit Farbstoff"
+msgstr "with colouring"
+
+#: apps/catalog/food.py
+msgid "mit Konservierungsstoff"
+msgstr "with preservative"
+
+#: apps/catalog/food.py
+msgid "mit Antioxidationsmittel"
+msgstr "with antioxidant"
+
+#: apps/catalog/food.py
+msgid "mit Geschmacksverstärker"
+msgstr "with flavour enhancer"
+
+#: apps/catalog/food.py
+msgid "geschwefelt"
+msgstr "sulphured"
+
+#: apps/catalog/food.py
+msgid "geschwärzt"
+msgstr "blackened"
+
+#: apps/catalog/food.py
+msgid "gewachst"
+msgstr "waxed"
+
+#: apps/catalog/food.py
+msgid "mit Phosphat"
+msgstr "with phosphate"
+
+#: apps/catalog/food.py
+msgid "mit Süßungsmittel"
+msgstr "with sweetener"
+
+#: apps/catalog/food.py
+msgid "enthält eine Phenylalaninquelle"
+msgstr "contains a source of phenylalanine"
+
+#: apps/catalog/food.py
+msgid "koffeinhaltig"
+msgstr "contains caffeine"
+
+#: apps/catalog/food.py
+msgid "chininhaltig"
+msgstr "contains quinine"
+
+#: apps/catalog/food.py
+msgid "mit Taurin"
+msgstr "with taurine"
+
+#: apps/catalog/models.py
+msgid "Tagesgericht"
+msgstr "Dish of the day"
+
+#: apps/catalog/models.py
+msgid "Neu"
+msgstr "New"
+
+#: apps/catalog/models.py
+msgid "Beliebt"
+msgstr "Popular"
+
+#: apps/catalog/models.py
+msgid "Empfehlung"
+msgstr "Recommended"

@@ -7,8 +7,19 @@
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel
+
+# Ф3: переводимые метки бейджа для витрины. BADGE_CHOICES на модели остаётся
+# немецким (форма кабинета/БД/миграции не трогаем) — здесь тот же msgid, но
+# lazy: на витрине резолвится в язык клиента (переводы в django.po).
+BADGE_LABELS = {
+    "tagesgericht": _("Tagesgericht"),
+    "neu": _("Neu"),
+    "beliebt": _("Beliebt"),
+    "empfehlung": _("Empfehlung"),
+}
 
 
 class Category(SoftDeleteMixin, I18nMixin):
@@ -133,8 +144,9 @@ class Product(SoftDeleteMixin, I18nMixin):
 
     @property
     def badge_label(self) -> str:
-        """Человекочитаемый бейдж («Tagesgericht») или '' если не задан."""
-        return dict(self.BADGE_CHOICES).get(self.badge, "") if self.badge else ""
+        """Человекочитаемый бейдж («Tagesgericht») или '' если не задан. Ф3:
+        переводимая метка (BADGE_LABELS, lazy) — на витрине в языке клиента."""
+        return BADGE_LABELS.get(self.badge, "") if self.badge else ""
 
     @property
     def name_text(self) -> str:

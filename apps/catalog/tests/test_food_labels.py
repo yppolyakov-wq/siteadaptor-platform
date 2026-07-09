@@ -197,3 +197,47 @@ def test_product_list_invalid_diet_ignored():
     p = ProductFactory(diets=["vegan"], is_active=True)
     body = public_views.product_list(_req("/sortiment/?diet=bogus")).content.decode()
     assert str(p.pk) in body  # фильтр не применён
+
+
+# --- Ф3: локализация меток-справочников (аллергены/диеты/Zusatzstoffe/бейджи) ---
+# DE = msgid (плоский рендер, как раньше); EN — переводы locale/en/.po
+# (.mo компилируется в CI/deploy — как email_i18n). База витрины остаётся DE.
+
+
+def test_registry_labels_en_translations():
+    """Ф3: при активной локали EN метки-справочники резолвятся в перевод из .po."""
+    from django.utils import translation
+
+    from apps.catalog.models import BADGE_LABELS
+
+    with translation.override("en"):
+        assert [str(x) for x in food.allergen_labels(["gluten", "milch"])] == [
+            "Cereals containing gluten",
+            "Milk (lactose)",
+        ]
+        assert str(food.additive_labels(["taurin"])[0]) == "with taurine"
+        assert str(food.diet_badges(["bio"])[0]["label"]) == "Organic"
+        assert str(BADGE_LABELS["beliebt"]) == "Popular"
+
+
+def test_registry_labels_de_is_msgid():
+    """Ф3: DE (база) = немецкий msgid — витрина/кабинет как раньше."""
+    from django.utils import translation
+
+    from apps.catalog.models import BADGE_LABELS
+
+    with translation.override("de"):
+        assert str(food.allergen_labels(["gluten"])[0]) == "Glutenhaltiges Getreide"
+        assert str(BADGE_LABELS["beliebt"]) == "Beliebt"
+
+
+def test_product_badge_label_translatable():
+    """Ф3: badge_label — переводимая метка (EN), BADGE_CHOICES на модели остаётся DE."""
+    from django.utils import translation
+
+    p = ProductFactory(badge="tagesgericht")
+    assert str(p.badge_label) == "Tagesgericht"  # DE база
+    with translation.override("en"):
+        assert str(p.badge_label) == "Dish of the day"
+    # форма/БД: choices на модели не тронуты (немецкие) — без миграции
+    assert dict(p.BADGE_CHOICES)["tagesgericht"] == "Tagesgericht"

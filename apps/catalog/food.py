@@ -1,25 +1,29 @@
 """LMIV: 14 EU-Allergene (Anhang II LMIV) для маркировки товаров каталога (R4).
 
 Структурный список — источник для формы товара и витрины. Коды стабильны
-(храним в Product.allergens), подписи — немецкие (DE-рынок).
+(храним в Product.allergens). Подписи — немецкие (база, msgid), но обёрнуты в
+gettext_lazy: на витрине резолвятся в язык, выбранный клиентом (Ф3 — переводы
+меток-справочников в locale/<lang>/LC_MESSAGES/django.po; DE=msgid, EN в .po).
 """
+
+from django.utils.translation import gettext_lazy as _
 
 # (код, подпись DE) — порядок как в Anhang II LMIV.
 ALLERGENS: list[tuple[str, str]] = [
-    ("gluten", "Glutenhaltiges Getreide"),
-    ("krebstiere", "Krebstiere"),
-    ("eier", "Eier"),
-    ("fisch", "Fisch"),
-    ("erdnuss", "Erdnüsse"),
-    ("soja", "Soja"),
-    ("milch", "Milch (Laktose)"),
-    ("schalenfruechte", "Schalenfrüchte (Nüsse)"),
-    ("sellerie", "Sellerie"),
-    ("senf", "Senf"),
-    ("sesam", "Sesam"),
-    ("sulfit", "Schwefeldioxid und Sulfite"),
-    ("lupine", "Lupinen"),
-    ("weichtiere", "Weichtiere"),
+    ("gluten", _("Glutenhaltiges Getreide")),
+    ("krebstiere", _("Krebstiere")),
+    ("eier", _("Eier")),
+    ("fisch", _("Fisch")),
+    ("erdnuss", _("Erdnüsse")),
+    ("soja", _("Soja")),
+    ("milch", _("Milch (Laktose)")),
+    ("schalenfruechte", _("Schalenfrüchte (Nüsse)")),
+    ("sellerie", _("Sellerie")),
+    ("senf", _("Senf")),
+    ("sesam", _("Sesam")),
+    ("sulfit", _("Schwefeldioxid und Sulfite")),
+    ("lupine", _("Lupinen")),
+    ("weichtiere", _("Weichtiere")),
 ]
 
 _LABELS = dict(ALLERGENS)
@@ -29,12 +33,12 @@ VALID_CODES = frozenset(_LABELS)
 # A4: диет-теги для меню (код, подпись DE, иконка). Источник для формы товара,
 # иконок на карточке и фасетного фильтра «/sortiment/?diet=…».
 DIETS: list[tuple[str, str, str]] = [
-    ("vegan", "Vegan", "🌱"),
-    ("vegetarisch", "Vegetarisch", "🥕"),
-    ("glutenfrei", "Glutenfrei", "🌾"),
-    ("laktosefrei", "Laktosefrei", "🥛"),
-    ("halal", "Halal", "☪️"),
-    ("bio", "Bio", "🍃"),
+    ("vegan", _("Vegan"), "🌱"),
+    ("vegetarisch", _("Vegetarisch"), "🥕"),
+    ("glutenfrei", _("Glutenfrei"), "🌾"),
+    ("laktosefrei", _("Laktosefrei"), "🥛"),
+    ("halal", _("Halal"), "☪️"),
+    ("bio", _("Bio"), "🍃"),
 ]
 _DIET_LABELS = {code: label for code, label, _icon in DIETS}
 _DIET_ICONS = {code: icon for code, _label, icon in DIETS}
@@ -44,19 +48,19 @@ VALID_DIETS = frozenset(_DIET_LABELS)
 # E-2/PAngV+LMIV: kennzeichnungspflichtige Zusatzstoff-Klassen (Gastro-Fußnoten,
 # LMZDV/LMIDV). Коды стабильны (храним в Product.additives), подписи — немецкие.
 ADDITIVES: list[tuple[str, str]] = [
-    ("farbstoff", "mit Farbstoff"),
-    ("konservierungsstoff", "mit Konservierungsstoff"),
-    ("antioxidationsmittel", "mit Antioxidationsmittel"),
-    ("geschmacksverstaerker", "mit Geschmacksverstärker"),
-    ("geschwefelt", "geschwefelt"),
-    ("geschwaerzt", "geschwärzt"),
-    ("gewachst", "gewachst"),
-    ("phosphat", "mit Phosphat"),
-    ("suessungsmittel", "mit Süßungsmittel"),
-    ("phenylalanin", "enthält eine Phenylalaninquelle"),
-    ("koffeinhaltig", "koffeinhaltig"),
-    ("chininhaltig", "chininhaltig"),
-    ("taurin", "mit Taurin"),
+    ("farbstoff", _("mit Farbstoff")),
+    ("konservierungsstoff", _("mit Konservierungsstoff")),
+    ("antioxidationsmittel", _("mit Antioxidationsmittel")),
+    ("geschmacksverstaerker", _("mit Geschmacksverstärker")),
+    ("geschwefelt", _("geschwefelt")),
+    ("geschwaerzt", _("geschwärzt")),
+    ("gewachst", _("gewachst")),
+    ("phosphat", _("mit Phosphat")),
+    ("suessungsmittel", _("mit Süßungsmittel")),
+    ("phenylalanin", _("enthält eine Phenylalaninquelle")),
+    ("koffeinhaltig", _("koffeinhaltig")),
+    ("chininhaltig", _("chininhaltig")),
+    ("taurin", _("mit Taurin")),
 ]
 _ADDITIVE_LABELS = dict(ADDITIVES)
 VALID_ADDITIVES = frozenset(_ADDITIVE_LABELS)
