@@ -66,6 +66,8 @@ HUB_TABS = {
     # билдер) остаётся ОТДЕЛЬНЫМ пунктом сайдбара, в хаб не входит.
     "settings": (
         ("settings", _("Einstellungen"), "settings", None, False),
+        # W4-3: единый экран оплаты/доставки (свод billing-Zahlarten + orders-Versand).
+        ("payment-settings", _("Zahlung & Versand"), "payments", None, False),
         ("notifications-settings", _("Benachrichtigungen"), "notifications", None, False),
         ("legal-docs", _("Rechtstexte"), "legal-docs", None, False),
         ("extras", _("Zusatzleistungen"), "extras", None, False),

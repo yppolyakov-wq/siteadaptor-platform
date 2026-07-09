@@ -29,6 +29,7 @@ from apps.core.views import (
     modules_view,
     notifications_settings,
     pages_view,
+    payment_settings,
     sections_view,
     seo_settings_view,
     set_ui_mode_view,
@@ -77,6 +78,8 @@ urlpatterns = [
     ),
     # L2 (Волна L): кабинет «Sprachen» — включение языков витрины + дефолт.
     path("dashboard/settings/languages/", languages_view, name="languages"),
+    # W4-3: единый экран «Zahlung & Versand» (свод оплаты/доставки).
+    path("dashboard/settings/payments/", payment_settings, name="payment-settings"),
     # L5/E-2: кабинет «Recht» — правовые тексты per-locale (LegalDoc) + AGB.
     path("dashboard/recht/", legal_docs_view, name="legal-docs"),
     path("dashboard/extras/", extras_view, name="extras"),
