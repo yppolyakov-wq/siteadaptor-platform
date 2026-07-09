@@ -69,7 +69,9 @@ HUB_TABS = {
         ("notifications-settings", _("Benachrichtigungen"), "notifications", None, False),
         ("legal-docs", _("Rechtstexte"), "legal-docs", None, False),
         ("extras", _("Zusatzleistungen"), "extras", None, False),
-        ("languages", _("Sprachen"), "languages", None, True),
+        # Sprachen — прямой таб (не в «Erweitert»): владелец включает доп. языки витрины
+        # и переключатель. Прежде был спрятан в ящике → «не видно настроек языка».
+        ("languages", _("Sprachen"), "languages", None, False),
         ("media-library", _("Medien"), "media", None, True),
         ("domains", _("Domains"), "domains", None, True),
         ("modules", _("Funktionen"), "modules", None, True),

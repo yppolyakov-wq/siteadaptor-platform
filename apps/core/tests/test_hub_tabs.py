@@ -103,12 +103,12 @@ def test_settings_nav_collapsed_to_website_plus_hub():
 
 def test_settings_hub_primary_and_advanced_tabs():
     html = _render_settings("settings")
-    # прямые (частые) вкладки
-    for lbl in ("Einstellungen", "Benachrichtigungen", "Rechtstexte", "Zusatzleistungen"):
+    # прямые (частые) вкладки (Sprachen — прямой таб: доп. языки видны без «Erweitert»)
+    for lbl in ("Einstellungen", "Benachrichtigungen", "Rechtstexte", "Zusatzleistungen", "Sprachen"):
         assert lbl in html, lbl
     # ящик «Erweitert» + его (редкие) вкладки
     assert "Erweitert" in html
-    for lbl in ("Sprachen", "Medien", "Domains", "Funktionen", "Hilfe"):
+    for lbl in ("Medien", "Domains", "Funktionen", "Hilfe"):
         assert lbl in html, lbl
 
 
@@ -120,8 +120,8 @@ def test_settings_hub_erweitert_closed_on_primary_active():
 
 
 def test_settings_hub_erweitert_open_on_advanced_active():
-    # Активна вкладка из «Erweitert» (Sprachen) → ящик раскрыт (open), подсвечен.
-    html = _render_settings("languages")
+    # Активна вкладка из «Erweitert» (Medien) → ящик раскрыт (open), подсвечен.
+    html = _render_settings("media")
     assert " open>" in html
     assert html.count('aria-selected="true"') == 1  # активна одна вкладка (в ящике)
 

@@ -99,3 +99,13 @@ def test_enabled_order_follows_registry_not_post():
     assert resp.status_code == 302
     tenant.refresh_from_db()
     assert tenant.enabled_locales == ["de", "en"]
+
+
+def test_registry_offers_additional_languages():
+    """Реестр расширен за пределы DE/EN → владельцу есть что включить/переключить."""
+    from django.conf import settings
+
+    codes = {c for c, _ in settings.LANGUAGES}
+    assert {"de", "en"} <= codes
+    assert "tr" in codes  # напр. Türkçe
+    assert len(codes) >= 5, "нужны доп. языки для переключателя (не только DE/EN)"
