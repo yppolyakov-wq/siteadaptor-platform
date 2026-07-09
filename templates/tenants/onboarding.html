@@ -17,12 +17,32 @@
     <form method="post" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
       {% csrf_token %}
       {% for field in form %}
-        <div>
-          <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" %}
-          {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
-          {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
-        </div>
+        {% if field.name == "business_type" %}
+          {# AB3/AB5: визуальные карточки типа бизнеса (иконка + язык задач), не dropdown. #}
+          <div>
+            <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
+            <div class="grid sm:grid-cols-2 gap-4">
+              {% for bt in business_types %}
+                <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer hover:ring-1 hover:ring-indigo-300">
+                  <input type="radio" name="business_type" value="{{ bt.value }}"
+                         {% if field.value == bt.value %}checked{% endif %} class="mt-1 border-gray-300">
+                  <span>
+                    <span class="inline-flex items-center gap-2 text-sm font-medium"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
+                    {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
+                  </span>
+                </label>
+              {% endfor %}
+            </div>
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+        {% else %}
+          <div>
+            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" %}
+            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}
       {% endfor %}
       {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
       <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700">

@@ -79,6 +79,30 @@ def test_signup_form_password_mismatch():
     assert "password2" in form.errors
 
 
+@pytest.mark.django_db
+def test_signup_renders_business_type_as_cards(rf, settings):
+    """AB3/AB5: тип бизнеса на регистрации — визуальные карточки (иконка + язык
+    задач), не сухой <select>; выбор переживает ошибку валидации (checked)."""
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.tenants.views import BusinessSignupView
+
+    settings.ROOT_URLCONF = "config.urls_public"
+    html = BusinessSignupView().get(rf.get("/create/")).content.decode()
+    assert 'type="radio" name="business_type"' in html  # карточки-радио, не dropdown
+    assert 'value="friseur"' in html and 'value="handwerker"' in html
+    assert "💇" in html and "🔧" in html  # эмодзи новых архетипов + blurb'ы
+    assert "Salon" in html  # blurb карточки friseur
+
+    # POST с одним типом (прочее пусто) → форма невалидна → повторный рендер карточками,
+    # выбранный тип остаётся отмеченным (checked).
+    req = rf.post("/create/", {"business_type": "friseur"})
+    SessionMiddleware(lambda r: None).process_request(req)
+    body = BusinessSignupView().post(req).content.decode()
+    assert 'type="radio" name="business_type"' in body  # снова карточки
+    assert "checked" in body  # выбор friseur сохранён
+
+
 # --- AB4: чек-лист готовности сайта ------------------------------------------------
 @pytest.mark.django_db
 def test_completeness_empty_tenant_low_and_structured():

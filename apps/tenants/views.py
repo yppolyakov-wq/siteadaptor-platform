@@ -3,6 +3,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
+from . import onboarding
 from .forms import BusinessSignupForm
 from .models import Tenant
 from .services import login_url_for, start_business_provisioning
@@ -11,17 +12,22 @@ from .services import login_url_for, start_business_provisioning
 class BusinessSignupView(View):
     template_name = "tenants/onboarding.html"
 
+    def _context(self, form):
+        # AB3/AB5: тип бизнеса — визуальные карточки (иконка + язык задач), как в
+        # мастере онбординга (шаг 1), а не сухой dropdown.
+        return {"form": form, "business_types": onboarding.business_type_cards()}
+
     def get(self, request):
         # D3: реф-код партнёра переживает GET→POST через сессию (?ref=<code>).
         ref = (request.GET.get("ref") or "").strip()[:40]
         if ref:
             request.session["partner_ref"] = ref
-        return render(request, self.template_name, {"form": BusinessSignupForm()})
+        return render(request, self.template_name, self._context(BusinessSignupForm()))
 
     def post(self, request):
         form = BusinessSignupForm(request.POST)
         if not form.is_valid():
-            return render(request, self.template_name, {"form": form})
+            return render(request, self.template_name, self._context(form))
 
         cd = form.cleaned_data
         # Мгновенный ответ: схема строится в фоне (~1 мин), пользователь ждёт
