@@ -178,8 +178,9 @@
         <a href="{% url 'promotions:promotion-create' %}?preset={{ p.key }}"
            class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ p.label }} →</a>
       {% endfor %}
-      <a href="{% url 'catalog:product-create' %}"
-         class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">Produkt anlegen →</a>
+      {# W3: CTA по архетипу — «услугу/событие/товар добавить», не всегда «Produkt». #}
+      <a href="{% url offer_url %}"
+         class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ offer_label }} →</a>
     </div>
     <form method="post">
       {% csrf_token %}

@@ -144,6 +144,19 @@ _OFFER_CTA = {
 }
 
 
+def offer_cta(tenant):
+    """W3: архетип-осознанный CTA «добавь первое X» — (label, url_name) по primary-архетипу
+    тенанта. Friseur/Werkstatt → услуга, events → событие, каталог → товар (фолбэк)."""
+    from django.utils.translation import gettext as _t
+
+    from apps.core import archetypes
+
+    return _OFFER_CTA.get(
+        archetypes.primary_module(tenant),
+        (_t("Add your first item to sell"), "catalog:product-list"),
+    )
+
+
 def completeness(tenant) -> dict:
     """AB4: «Dein Site ist zu X% fertig» — пункты готовности из реального наполнения.
 
@@ -152,17 +165,12 @@ def completeness(tenant) -> dict:
     допилить сайт и даёт прямой путь к действию (анти-«пустой кабинет»)."""
     from django.utils.translation import gettext as _t
 
-    from apps.core import archetypes
-
     from . import siteconfig
 
     cfg = siteconfig.normalize(tenant.site_config)
     has_photo = bool(cfg.get("hero_image")) or bool(cfg.get("gallery"))
     # Пункт «первый товар» — по главному архетипу тенанта (язык задач + верная ссылка).
-    _offer_label, _offer_url = _OFFER_CTA.get(
-        archetypes.primary_module(tenant),
-        (_t("Add your first item to sell"), "catalog:product-list"),
-    )
+    _offer_label, _offer_url = offer_cta(tenant)
     items = [
         {
             "key": "banner",

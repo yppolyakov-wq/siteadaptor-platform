@@ -191,10 +191,25 @@ def test_live_save_persists_without_advancing():
 
 
 def test_step6_shows_vertical_presets():
-    tenant = TenantFactory(business_type="bakery")
+    # disabled как в проде (create_business) → у пекарни primary=catalog.
+    tenant = TenantFactory(
+        business_type="bakery", disabled_modules=modules.default_disabled_for("bakery")
+    )
     onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "preset=feierabend" in html and "Produkt anlegen" in html
+    # W3: CTA по архетипу — у пекарни (catalog primary) «первый товар».
+    assert "preset=feierabend" in html and "Add your first product" in html
+
+
+def test_step6_offer_cta_is_archetype_aware():
+    """W3: у friseur (booking primary) CTA — услуга, не «товар»."""
+    tenant = TenantFactory(
+        business_type="friseur", disabled_modules=modules.default_disabled_for("friseur")
+    )
+    onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "Add your first service" in html
+    assert "Add your first product" not in html
 
 
 def test_step6_loads_and_clears_demo_content():

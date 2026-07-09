@@ -260,6 +260,8 @@ def setup_view(request):
     elif step == 6:
         context["presets"] = presets.presets_for(tenant.business_type)
         context["has_demo"] = demo.has_demo(tenant)  # B.1: предложить/убрать демо-контент
+        # W3: CTA «добавь первое X» — по архетипу (услуга/событие/товар), не хардкод «Produkt».
+        context["offer_label"], context["offer_url"] = onboarding.offer_cta(tenant)
     return render(request, "tenant/setup.html", context)
 
 
