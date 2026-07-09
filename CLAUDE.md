@@ -415,7 +415,22 @@ Python 3.12, менеджер uv.
   preserve-keys/no-wipe/no-dup. Диагностика CI: billing webhook-тесты по ~60с (пред-существующая
   медлительность, не регресс), core+orders 677 зелёные. **Дальше:** T-1 (массовый de.po — в конце
   бэклога) / другие треки за решением владельца.
-- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type; AlterField, SHARED/public, данные не трогает). Полный список — в build-log.
+- **Самое свежее (2026-07-09, вечер): Ф1–Ф3 «per-language ввод + переводимые витринные метки
+  товара» — ЦЕЛИКОМ** (ветка `claude/admin-simplification-handoff-dfawis`, план
+  `docs/product-i18n-entry-plan-2026-07-09.md`; детали — build-log). Запрос владельца: язык
+  переключается, поля разных языков НЕ видны одновременно; «портянка/нет табов»; ВСЕ витринные
+  параметры переводимы. **Ф1** переключатель языка (пилюли `active_locales`) + партиалы
+  `tenant/_i18n_switch.html`/`_i18n_group.html` + `core/i18n_input.py::i18n_form_groups`; форма
+  товара→ТАБЫ (вместо `<details>`-портянки), поля неосновных локалей в DOM но `hidden` (инвариант W0);
+  та же механика на форме акции. **Ф1-ext** свитчер на категориях; переводы услуг/номеров свёрнуты
+  в `<details>🌐`. **Ф2** (⚠️ миграция `catalog/0015`, аддитив overlay) `origin_i18n`/`ingredients_i18n`
+  на Product → `*_localized` на витрине, вписаны в свитчер. **Ф3** (БЕЗ миграции) метки-справочники
+  витрины переводимы — аллергены/диеты/Zusatzstoffe в `food.py` → gettext_lazy, бейджи → `BADGE_LABELS`
+  (lazy; `BADGE_CHOICES` модели остаётся DE, миграции целы); база=немецкий msgid, EN=37 переводов в
+  `locale/en/.po` (.mo компилируется в CI как L4); проверено end-to-end (EN product_detail). UNIT_CHOICES
+  не трогаем (только форма кабинета). Остаток: variant/modifier labels (per-товар free-text, за решением);
+  полный chrome-перевод — T-1 (конец бэклога).
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay-поля origin_i18n/ingredients_i18n на Product; AddField, аддитив, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

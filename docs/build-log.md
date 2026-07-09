@@ -4640,3 +4640,27 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   W6-инвариант. `app.css` пересобран (убыль классов). **ВОЛНА W (глобальный аудит кабинета) W0–W6 —
   ЗАКРЫТА ЦЕЛИКОМ.** Диагностика CI: билли́нг webhook-тесты по ~60с каждый (пред-существующая
   медлительность, не регресс); мои модули (core+orders 677, tenants/billing-views) зелёные.
+- **Ф1–Ф3 «per-language ввод + переводимые витринные метки товара»** (2026-07-09, ветка
+  `claude/admin-simplification-handoff-dfawis`, план `docs/product-i18n-entry-plan-2026-07-09.md`).
+  Запрос владельца: язык переключается — данные разных языков НЕ видны одновременно при вводе
+  названия/описания/характеристик; выбрал язык → ввёл всё на нём; ВСЕ витринные параметры переводимы
+  в админке; «портянка в товарах, нет табов». **Ф1** (`bf4d513`, без миграции): переключатель языка
+  (пилюли `active_locales`, дефолт `default_locale`) + партиалы `tenant/_i18n_switch.html`/
+  `_i18n_group.html` + хелпер `core/i18n_input.py::i18n_form_groups`; форма товара переписана на ТАБЫ
+  (Grunddaten/Preis&Lager/Kennzeichnung/Marketing вместо `<details>`-портянки); поля неосновных локалей
+  в DOM но `hidden` (data-i18n-loc; инвариант W0 — Save не стирает). Аналогично форма акции
+  (grund/rabatt/zeit/anz). **Ф1-ext** (`5aa9783`): свитчер на категориях; переводы услуг/номеров
+  (overlay) свёрнуты в `<details>🌐`. **Ф2** (`8146561`, миграция `catalog/0015` — аддитивный overlay):
+  `Product.origin_i18n`/`ingredients_i18n` + `origin_localized`/`ingredients_localized`; форма
+  `origin_<loc>`/`ingredients_<loc>` (apply_i18n_overlay), витрина рендерит `*_localized`; вписаны в
+  общий свитчер (таб Kennzeichnung, data-i18n-loc). **Ф3** (`7f74960`, БЕЗ миграции): метки-справочники
+  витрины переводимы — LMIV-аллергены(14)/диеты(6)/Zusatzstoffe(13) в `food.py` обёрнуты в
+  gettext_lazy (модульные списки); маркетинговые бейджи(4) — `BADGE_LABELS` (lazy) для `badge_label`,
+  `BADGE_CHOICES` на модели остаётся немецким (форма/БД/миграции целы). База = немецкий msgid (витрина/
+  кабинет как раньше), EN — 37 переводов в `locale/en/LC_MESSAGES/django.po` (.mo компилируется в CI/
+  deploy, как письма L4); на витрине резолвятся в язык клиента (проверено end-to-end: EN-рендер
+  product_detail → «Cereals containing gluten»/«with taurine»/«Popular»). UNIT_CHOICES не трогаем —
+  метки видны только в форме кабинета (DE). Замки: свитчер при ≥2 локалях / нет при 1 / origin-переводы
+  в DOM+резолв / EN-резолв меток / DE=msgid / badge переводим. ⚠️ Деплой: `catalog/0015`. Остаток:
+  метки variant/modifier labels (per-товар free-text, отдельным решением); полный chrome-перевод .po —
+  T-1 (в конце бэклога).
