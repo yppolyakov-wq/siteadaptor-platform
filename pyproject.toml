@@ -10,52 +10,41 @@ dependencies = [
     "django-tenants>=3.7",
     "psycopg[binary]>=3.2",
     "django-environ>=0.11",
-
     # Auth
     "django-allauth[socialaccount]>=65.0",
-
     # Async / tasks
     "celery[redis]>=5.4",
     "django-celery-beat>=2.7",
     "django-celery-results>=2.5",
     "redis>=5.0",
-
     # Admin & UI
     "django-unfold>=0.42",
     "django-htmx>=1.19",
     "django-widget-tweaks>=1.5",
-
     # Files & storage
     "django-storages[s3]>=1.14",
     "pillow>=10.4",
-
     # Email
     "django-anymail[resend]>=12.0",
-
     # Payments
     "dj-stripe>=2.9",
-
     # Import/export
     "django-import-export>=4.2",
     "openpyxl>=3.1",
-
     # QR-коды (витрина/погашение)
     "segno>=1.6",
-
     # PDF (QR-постер для витрины, Track B4)
     "reportlab>=4.2",
-
     # API (для будущего)
     "djangorestframework>=3.15",
     "drf-spectacular>=0.27",
     "django-cors-headers>=4.4",
-
     # Server
     "gunicorn>=23.0",
     "whitenoise>=6.7",
-
     # Monitoring
     "sentry-sdk>=2.15",
+    "django-rosetta>=0.10.3",
 ]
 
 [project.optional-dependencies]

@@ -113,3 +113,39 @@ def test_pilot_strings_translate_under_en():
         assert tpl.render(Context({})) == "Simple|Expert|Languages"
     with translation.override("de"):
         assert tpl.render(Context({})) == "Einfach|Experte|Sprachen"
+
+
+# --- T1-c (FB-12): django-rosetta — веб-редактор переводов .po (superuser-only) ---
+def test_rosetta_gate_superuser_only():
+    """Rosetta правит общие .po платформы → доступ только суперпользователю."""
+    from config.rosetta_access import can_translate
+
+    class Su:
+        is_active, is_superuser = True, True
+
+    class Nm:
+        is_active, is_superuser = True, False
+
+    class Inact:
+        is_active, is_superuser = False, True
+
+    assert can_translate(Su()) is True
+    assert can_translate(Nm()) is False  # обычный владелец тенанта — нет
+    assert can_translate(Inact()) is False  # неактивный суперюзер — нет
+    assert can_translate(None) is False
+
+
+def test_rosetta_uses_our_gate():
+    """Интеграция: rosetta берёт именно нашу access-функцию (не дефолт)."""
+    from rosetta.access import get_access_control_function
+
+    fn = get_access_control_function()
+    assert fn.__module__ == "config.rosetta_access" and fn.__name__ == "can_translate"
+
+
+def test_rosetta_mounted_on_public_urls():
+    """Rosetta — на public-схеме (платформа), не на субдомене тенанта."""
+    from django.urls import get_resolver
+
+    names = set(get_resolver("config.urls_public").reverse_dict.keys())
+    assert "rosetta-file-list" in names  # главный экран редактора переводов

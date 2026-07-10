@@ -34,6 +34,7 @@ SHARED_APPS = [
     "django_celery_results",
     "djstripe",
     "widget_tweaks",  # template-теги для форм (без БД)
+    "rosetta",  # T1-c (FB-12): веб-редактор переводов .po (платформенный, superuser-only)
     "apps.audit",  # журнал действий (SHARED), дополнение 1.1
     "apps.integrations.webhooks",  # scaffold исходящих вебхуков (SHARED), доп. 1.4
     "apps.billing",  # Sprint 5 — биллинг/подписки (SHARED: статус подписки на Tenant)
@@ -216,6 +217,15 @@ LANGUAGES = [
     ("pt", "Português"),
 ]
 USE_I18N = True
+
+# T1-c (FB-12): django-rosetta — веб-редактор переводов .po (на /rosetta/, public-схема).
+# ⚠️ Правит .po НА ДИСКЕ; в проде ФС эфемерна (образ) → изменения теряются на деплое,
+# пока не закоммичены в git. Рабочий цикл: править в dev/staging → скачать/закоммитить
+# .po → задеплоить. Доступ — только суперпользователю (инструмент платформы, не тенанта).
+ROSETTA_ACCESS_CONTROL_FUNCTION = "config.rosetta_access.can_translate"
+ROSETTA_MESSAGES_PER_PAGE = 25
+ROSETTA_SHOW_AT_ADMIN_PANEL = False
+ROSETTA_STORAGE_CLASS = "rosetta.storage.SessionRosettaStorage"
 
 # T1 (FB-12): язык КАБИНЕТА (админ-панели) — отдельно от языка ВИТРИНЫ. Курируемый
 # список ПЕРЕВЕДЁННЫХ языков кабинета (у которых есть `.po`); растёт по мере готовности

@@ -19,6 +19,9 @@ from apps.tenants.views import BusinessSignupView, signup_waiting
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # T1-c (FB-12): rosetta — веб-редактор переводов .po (public-схема, superuser-only
+    # через ROSETTA_ACCESS_CONTROL_FUNCTION). Инструмент платформы, не тенанта.
+    path("rosetta/", include("rosetta.urls")),
     path("accounts/", include("allauth.urls")),
     path("health/", health.liveness, name="health"),
     path("health/ready/", health.readiness, name="health-ready"),
