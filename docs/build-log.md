@@ -4762,3 +4762,22 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   витрину, пилот EN⇄DE. **Дальше: T1-b** (новой сессией с DeepL: `makemessages` + перевод всего
   обёрнутого хрома, промпт передан) → **T1-a.2** (добить необёрнутые строки). Также в этот день —
   ТЗ по фидбэку кабинета (`docs/cabinet-feedback-tz-2026-07-10.md`, 14 пунктов FB-1..FB-14).
+- **T1-a.2 + T1-c (FB-12): обёртка строк кабинета + django-rosetta** (2026-07-10, merge
+  `a69e0cb`, БЕЗ миграций). **T1-a.2:** аудит ключевых экранов — шаблоны кабинета уже почти
+  целиком в `{% trans %}` (умляут-скан по всем templates не нашёл необёрнутых видимых строк);
+  реальный пробел был на Python-стороне — flash-messages литералами. Обёрнуты: `apps/core/
+  views.py` (24), `apps/promotions/views.py` (13 простых + импорт gettext + 4 f-string через
+  `_() % {…}`; «Reservation {action}ed» → явные полные сообщения confirm/fulfill/cancel),
+  `dashboard.html` (Setup-Fortschritt → blocktrans). Инвариант: msgid = исходная немецкая
+  строка → DE-рендер байт-в-байт прежний (тесты зелёные). booking/stays/orders/catalog уже
+  были обёрнуты; динамич. `{файл}: {ошибки}` оставлены (переводить нечего). НЕ трогал
+  `locale/*.po` (его параллельно ведёт DeepL-сессия — координация без конфликта файлов).
+  **T1-c:** `django-rosetta>=0.10.3` (dep, gitignored uv.lock — CI ставит из pyproject) +
+  `rosetta` в SHARED_APPS + роут `/rosetta/` на **public-схеме** (urls_public — платформенный
+  инструмент, `.po` общие для всех тенантов) + доступ **только суперпользователю**
+  (`config.rosetta_access.can_translate` через `ROSETTA_ACCESS_CONTROL_FUNCTION`;
+  Session-storage). ⚠️ Прод-цикл: rosetta правит `.po` на диске (эфемерно в контейнере) →
+  «править в dev/staging → закоммитить `.po` → задеплоить». Замки: 12 в `test_cabinet_i18n`
+  (9 T1-a + 3 T1-c: superuser-гейт, rosetta берёт нашу функцию, роут на public). **Трек
+  перевода кабинета: T1-a/a.2/c ✅ в main; T1-b (DeepL перевод .po) — параллельной сессией.**
+  ⚠️ deploy: следующий `deploy.sh` соберёт образ с django-rosetta (без миграций).

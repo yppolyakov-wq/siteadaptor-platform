@@ -474,11 +474,12 @@ Python 3.12, менеджер uv.
   (T1/FB-12).** ТЗ `docs/cabinet-feedback-tz-2026-07-10.md` (14 пунктов FB-1..14: находимость
   food-labeling/customize-columns; пробелы — правила переходов/статусы заказа/единый «отдел
   продажных сущностей»; фото-«+»/фото категорий; гостиница; фикс иконки; перевод кабинета).
-  **T1-a ✅** (merge `b4283ce`, без миграций, план `docs/t1-cabinet-i18n-plan-2026-07-10.md`):
-  язык кабинета отделён от языка витрины — `CABINET_LANGUAGES`, `apps/core/i18n_cabinet.py`,
-  `CabinetLocaleMiddleware` (локаль только на кабинет-путях), `<select>` в шапке, пилот 3 строки.
-  **Дальше: T1-b** (DeepL-сессией: makemessages+перевод хрома) → T1-a.2 (добить строки) → T1-c
-  (django-rosetta). Разведены понятия: язык витрины (`/settings/languages/`) ≠ переводы контента
+  **T1-a/a.2/c ✅** (merge `a69e0cb`, без миграций, план `docs/t1-cabinet-i18n-plan-2026-07-10.md`):
+  T1-a — язык кабинета отделён от витрины (`CABINET_LANGUAGES`, `i18n_cabinet.py`,
+  `CabinetLocaleMiddleware`, `<select>` в шапке, пилот); T1-a.2 — обёртка Python flash-messages
+  (шаблоны уже были в `{% trans %}`); T1-c — django-rosetta `/rosetta/` (public, superuser-only;
+  прод-цикл: править→коммитить .po→деплой). **Дальше: T1-b** (DeepL перевод .po — параллельной
+  сессией; интеграция её ветки как фото). ⚠️ deploy: образ соберётся с django-rosetta. Разведены понятия: язык витрины (`/settings/languages/`) ≠ переводы контента
   (свитчер Ф1 в формах) ≠ язык кабинета (T1). ⚠️ Прод-багфикс сидинга демо-фото (`535664f`,
   плоский static-URL вместо манифеста) — в main; после деплоя нужен `seed_demo_tenants --recreate`.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
