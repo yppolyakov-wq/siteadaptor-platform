@@ -430,6 +430,18 @@ Python 3.12, менеджер uv.
   `locale/en/.po` (.mo компилируется в CI как L4); проверено end-to-end (EN product_detail). UNIT_CHOICES
   не трогаем (только форма кабинета). Остаток: variant/modifier labels (per-товар free-text, за решением);
   полный chrome-перевод — T-1 (конец бэклога).
+- **Самое свежее (2026-07-10): фидбэк-батч после Ф1–Ф3 — 5 пунктов, всё БЕЗ миграций**
+  (ветка `claude/admin-simplification-handoff-dfawis`; детали — build-log). **#1** кнопки
+  переключателя языка/табов не работали (регресс Ф1: скрипт партиала выполнялся раньше табов
+  → пустой NodeList) → делегирование клика на `document`, проверено в Chromium. **#2**
+  Varianten/Modifiers — отдельная вкладка «Variants & extras» + кнопка «Erweiterte Preise»
+  под ценой (`data-pf-goto`). **#4** ясность Einfach/Experte — `simple_hidden_labels` +
+  список скрываемого/бейдж режима на «Funktionen» и в тултипе тумблера. **#3/#5** кнопки
+  «Demo ansehen» на карточках типов бизнеса (регистрация + мастер) → живая демо-витрина
+  архетипа (`DEMO_KIT_HOST`, `demo_url` из `TENANT_DOMAIN_BASE`, гейт по засеянным `Domain`).
+  ⚠️ ops: чтобы демо-кнопки появились — прогнать `seed_demo_tenants` на сервере. Остаток
+  фидбэка: демо-сайты пока делят один kit на несколько типов (dedicated kits — по спросу);
+  variant/modifier labels перевод — отдельным решением.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay-поля origin_i18n/ingredients_i18n на Product; AddField, аддитив, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
