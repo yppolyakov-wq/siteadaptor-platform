@@ -4747,3 +4747,18 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   БД; аддитивно — код/тесты не тронуты, только SOURCES.md+webp). ⚠️ ops: фото появятся в демо
   после `seed_demo_tenants --recreate` (URL пишется при сидинге). Скомпрометированный в чате
   токен Replicate — владельцу рекомендовано отозвать.
+- **T1-a (FB-12): механизм языка кабинета** (2026-07-10, план `docs/t1-cabinet-i18n-plan-2026-07-10.md`,
+  merge `b4283ce`, БЕЗ миграций). Язык АДМИН-ПАНЕЛИ отделён от языка ВИТРИНЫ (общий субдомен →
+  нельзя делить Django-куку языка, её выбирает клиент на витрине). `settings.CABINET_LANGUAGES`
+  (курируемый список переведённых языков кабинета, старт de+en; растёт в T1-b) + `apps/core/
+  i18n_cabinet.py` (`resolve_cabinet_locale`: сессия `cabinet_lang`→иначе de; `set_cabinet_locale`
+  валидирует; `cabinet_languages` для шапки) + `CabinetLocaleMiddleware` (после LocaleMiddleware:
+  активирует локаль кабинета на путях `/dashboard/,/catalog/,/promotions/,/imports/,/crm/`; витрину
+  не трогает) + `set_cabinet_lang_view`/роут `dashboard/cabinet-lang/` + `<select>`-переключатель
+  в шапке `_base_dashboard` (отдельно от «🌐 Sprachen» = язык витрины) + контекст `cabinet_langs`/
+  `cabinet_lang`. Пилот: 3 строки шапки (Einfach/Experte/Sprachen) переведены в en.po → переключение
+  на EN видно end-to-end. Замки (9, `test_cabinet_i18n`): дефолт=de (кабинет как раньше=msgid),
+  сессия-override, невалидный отклонён, middleware активирует только кабинет-пути и не трогает
+  витрину, пилот EN⇄DE. **Дальше: T1-b** (новой сессией с DeepL: `makemessages` + перевод всего
+  обёрнутого хрома, промпт передан) → **T1-a.2** (добить необёрнутые строки). Также в этот день —
+  ТЗ по фидбэку кабинета (`docs/cabinet-feedback-tz-2026-07-10.md`, 14 пунктов FB-1..FB-14).
