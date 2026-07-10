@@ -442,7 +442,20 @@ Python 3.12, менеджер uv.
   ⚠️ ops: чтобы демо-кнопки появились — прогнать `seed_demo_tenants` на сервере. Остаток
   фидбэка: демо-сайты пока делят один kit на несколько типов (dedicated kits — по спросу);
   variant/modifier labels перевод — отдельным решением.
-- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay-поля origin_i18n/ingredients_i18n на Product; AddField, аддитив, данные не трогает). Полный список — в build-log.
+- **Самое свежее (2026-07-10): фидбэк-батч (кнопки/вкладки/демо-кнопки) + демо-трек «сайт
+  под каждый тип» волна 1 + тип Online-Shop + фото-пайплайн — всё в main `e2aa49f`.**
+  Утро: #1 фикс кнопок языка/табов (делегирование на document — партиал парсился раньше табов),
+  #2 вкладка «Variants & extras»+«Erweiterte Preise», #4 ясность Einfach/Experte, #3/#5 кнопки
+  «View demo site» на регистрации/мастере (гейт по засеянным Domain). Затем по запросу владельца
+  («демо для всех видов, Metzgerei отдельно, нет онлайн-магазина, анализ рынка»): план
+  `docs/demo-kits-per-type-plan-2026-07-10.md`; **волна 1** — dedicated-киты BAKERY «Backhaus
+  Krume» (`baeckerei`) и BUTCHER «Metzgerei Bergmann» (`metzgerei`, Partyservice через jobs);
+  **тип `online_shop`** (⚠️ миграция `tenants/0024`→`0025`, choices-only) с карточкой/пресетами/
+  JSON-LD OnlineStore; **фото-пайплайн** `static/demo/photos/` (CC0/AI, резолвер с SVG-фолбэком,
+  команда `demo_photo_report`, 248 ключей). Дальше: волна 2 (cafe+clothing), волна 3 (tours),
+  фото-сессия (сеть открыта владельцем). ⚠️ ops после деплоя: `seed_demo_tenants` (baeckerei/
+  metzgerei; handwerker на сервере не досеян — `--kit handwerker --recreate`).
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

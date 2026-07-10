@@ -4683,3 +4683,24 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   засеянным `Domain` (нет мёртвых ссылок). ⚠️ ops: на сервере нужен `seed_demo_tenants`, иначе
   кнопки не появятся. `f4bbddb`. Всё БЕЗ миграций. Замки: делегирование, вкладка вариантов
   (edit/create), simple_hidden_labels+рендер, demo_url (засеян/нет/шаринг).
+- **Демо-трек «сайт под каждый тип» — волна 1 + решения владельца** (2026-07-10, ветка
+  `claude/admin-simplification-handoff-dfawis`, план `docs/demo-kits-per-type-plan-2026-07-10.md`,
+  merge `e2aa49f`). Запрос: «демо для всех видов, Metzgerei — отдельная демка, нет просто
+  онлайн-магазина, анализ рынка, чего не хватает — обсудим». Анализ (2 агента: карта
+  demo_kits.py + свод рыночных доков): 5 типов видели чужие демо (butcher/clothing худшие).
+  **Волна 1 (`45db221`):** dedicated-киты **BAKERY «Backhaus Krume»** (`baeckerei.<base>`;
+  Brot/Brötchen/Feingebäck/Torten-Vorbestellung, LMIV, Feierabendtüte surprise + weekly/daily
+  акции, Stempelkarte, 17 товаров) и **BUTCHER «Metzgerei Bergmann»** (`metzgerei.<base>`;
+  Grundpreis €/kg, Grillpaket-Vorbestellung reservation×20, Hausmacher-Festpreis,
+  **Partyservice через jobs** — 2 сметы-примера, 16 товаров); DEMO_KIT_HOST разведён,
+  тесты apply-китов + маппинга. **Тип «Online-Shop»** (`b434033`, решение «ок»): BUSINESS_TYPES
+  += online_shop (⚠️ миграция `tenants/0025`, choices-only), карточка 📦, пресеты модулей
+  (orders primary; promotions/reviews/gift/blog/inbox/customer_account из коробки; crm/loyalty
+  suited), промо-пресеты, 8 демо-товаров, шаблон laden, JSON-LD OnlineStore; roadmap §Отложено
+  += multi-axis варианты (D3) и таймслоты туров (T6). **Фото-пайплайн** (`e2aa49f`, решение
+  «CC0/AI»; сеть среды блокирует Openverse/Wikimedia → «положи файл — подхватится»):
+  `static/demo/photos/` + README/SOURCES, `demo_images.photo_static_name` (exact→token→lock,
+  fail-safe → SVG), `demo_image_url` отдаёт фото при наличии, команда **`demo_photo_report`**
+  (248 ключей/11 китов, --kit/--missing), снимок `docs/demo-photos-shopping-list-2026-07-10.md`,
+  тесты резолвера. Осталось: волна 2 (cafe+clothing киты), волна 3 (tours), фото-сессия
+  (владелец открыл сеть; промпт передан), dedicated online_shop-кит по спросу.
