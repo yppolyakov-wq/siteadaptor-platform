@@ -98,6 +98,16 @@ _PRODUCTS = {
         ("Holzbrett", "19.90", "Aus heimischem Holz."),
         ("Seifenset", "16.90", "Natürliche Pflege."),
     ],
+    "online_shop": [
+        ("Bluetooth-Kopfhörer", "49.90", "Kabellos, 24 h Akku."),
+        ("Handyhülle", "14.90", "Stoßfest, viele Modelle."),
+        ("Edelstahl-Trinkflasche", "19.90", "0,75 L, isoliert."),
+        ('Laptop-Tasche 15"', "29.90", "Wasserabweisend, gepolstert."),
+        ("LED-Schreibtischlampe", "34.90", "Dimmbar, USB-C."),
+        ("Yogamatte", "24.90", "Rutschfest, 6 mm."),
+        ("Rucksack Daypack", "44.90", "20 L, Laptopfach."),
+        ("Powerbank 10.000 mAh", "22.90", "2 Geräte gleichzeitig."),
+    ],
     "hotel": [
         ("Frühstücksbuffet", "14.00", "Reichhaltig, pro Person."),
         ("Late Check-out", "20.00", "Bis 14 Uhr, je nach Verfügbarkeit."),

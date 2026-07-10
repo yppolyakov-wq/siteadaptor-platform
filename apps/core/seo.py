@@ -17,6 +17,7 @@ _SCHEMA_TYPES = {
     "restaurant": "Restaurant",
     "cafe": "CafeOrCoffeeShop",
     "retail": "Store",
+    "online_shop": "OnlineStore",
     "hotel": "Hotel",
 }
 

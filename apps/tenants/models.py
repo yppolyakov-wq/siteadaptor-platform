@@ -11,6 +11,9 @@ class Tenant(TenantMixin):
         ("restaurant", "Restaurant"),
         ("cafe", "Cafe"),
         ("retail", "Retail / Einzelhandel"),
+        # 2026-07-10 (решение владельца): «просто онлайн-магазин» — продажи с
+        # Versand-фокусом, без привязки к оффлайн-точке (retail = «Laden + online»).
+        ("online_shop", "Online-Shop"),
         ("tour_operator", "Tour Operator"),
         ("hotel", "Hotel"),
         # S6 (упрощение кабинета): реальные архетипы вместо «other». Добавлены к

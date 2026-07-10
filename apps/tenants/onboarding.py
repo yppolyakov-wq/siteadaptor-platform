@@ -27,6 +27,7 @@ BUSINESS_TYPE_META = {
     "restaurant": ("🍽️", "Speisekarte, Tischreservierung & Lieferung"),
     "cafe": ("☕", "Karte, Reservierung & Treuekarte"),
     "retail": ("🛍️", "Einzelhandel — Online-Shop, Versand & Abholung"),
+    "online_shop": ("📦", "Online-Shop — verkaufen & versenden, ohne Ladengeschäft"),
     "tour_operator": ("🧭", "Touren & Events — Tickets und Termine"),
     "hotel": ("🛏️", "Zimmer & Ferienwohnungen — Buchung nach Datum"),
     # S6: реальные архетипы (язык задач, как остальные карточки).
@@ -49,6 +50,7 @@ DEMO_KIT_HOST = {
     "butcher": "metzgerei",  # dedicated «Metzgerei Bergmann» (волна 1)
     "grocery": "aktionsmarkt",
     "clothing": "shop",
+    "online_shop": "shop",  # generic-магазин с Versand; dedicated — по спросу
     "restaurant": "restaurant-demo",
     "cafe": "restaurant-demo",
     "retail": "shop",

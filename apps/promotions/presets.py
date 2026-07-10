@@ -118,6 +118,26 @@ PRESETS = {
             },
         },
     ],
+    "online_shop": [
+        {
+            "key": "sale",
+            "label": "Sale-Aktion",
+            "initial": {
+                "title_de": "Sale-Aktion",
+                "promo_type": "discount",
+                "discount_percent": 25,
+            },
+        },
+        {
+            "key": "launch",
+            "label": "Neu im Shop",
+            "initial": {
+                "title_de": "Neu im Shop",
+                "promo_type": "discount",
+                "discount_percent": 10,
+            },
+        },
+    ],
     "retail": [
         {
             "key": "sale",

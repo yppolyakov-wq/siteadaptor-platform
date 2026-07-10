@@ -54,3 +54,28 @@ def test_universal_modules_enabled_for_new_types():
 )
 def test_demo_kits_mapped_to_new_types(kit_key, expected_type):
     assert KITS[kit_key].business_type == expected_type
+
+
+# --- online_shop (решение владельца 2026-07-10): «просто онлайн-магазин» -----
+def test_online_shop_type_registered_and_wired():
+    """Тип в choices; карточка с иконкой/blurb; демо-маппинг на shop; primary=orders
+    активен из коробки; универсальные модули не выключены (урок default_disabled_for)."""
+    from apps.tenants import onboarding
+
+    assert "online_shop" in dict(Tenant.BUSINESS_TYPES)
+    icon, blurb = onboarding.BUSINESS_TYPE_META["online_shop"]
+    assert icon and "Online-Shop" in blurb
+    assert onboarding.DEMO_KIT_HOST["online_shop"] == "shop"
+    disabled = modules.default_disabled_for("online_shop")
+    assert "orders" not in disabled  # primary: продажи
+    for mod in ("reviews", "gift", "blog", "inbox", "customer_account", "promotions"):
+        assert mod not in disabled, mod
+
+
+def test_online_shop_demo_and_presets():
+    """Light-seed товары и промо-пресеты есть для online_shop (мастер/AB3 не пустой)."""
+    from apps.promotions.presets import PRESETS
+    from apps.tenants.demo import _PRODUCTS
+
+    assert len(_PRODUCTS["online_shop"]) >= 6
+    assert any(p["key"] == "sale" for p in PRESETS["online_shop"])

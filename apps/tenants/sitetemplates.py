@@ -26,7 +26,7 @@ TEMPLATES = [
         "key": "laden",
         "label": "Klassischer Laden",
         "description_de": "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel.",
-        "recommended_for": ("bakery", "butcher", "grocery", "retail", "clothing"),
+        "recommended_for": ("bakery", "butcher", "grocery", "retail", "clothing", "online_shop"),
         "sections": ["hero", "promotions", "products", "about", "contact"],
         "texts": {
             "hero_title": "Willkommen",

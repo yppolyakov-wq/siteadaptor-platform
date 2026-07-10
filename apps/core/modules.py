@@ -119,6 +119,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "restaurant",
             "retail",
             "clothing",
+            "online_shop",  # 2026-07-10
             "other",
             "friseur",  # S6: салон делает Aktionen
             "events",  # S6: организатор — промо-акции
@@ -145,6 +146,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "restaurant",
             "retail",
             "clothing",
+            "online_shop",  # 2026-07-10
             "other",
             "friseur",  # S6
             "handwerker",  # S6
@@ -167,6 +169,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "butcher",
             "grocery",
             "clothing",
+            "online_shop",  # 2026-07-10
             "restaurant",
             "cafe",
             "retail",
@@ -189,7 +192,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # cabinet.HUB_TABS["board"]). Сайдбар-пункт убран, url_prefixes = гейт цел.
         nav_items=(),
         url_prefixes=("/dashboard/orders/",),
-        recommended_for=("bakery", "butcher", "grocery", "retail", "clothing"),
+        recommended_for=("bakery", "butcher", "grocery", "retail", "clothing", "online_shop"),
         # S6: friseur (Pflegeprodukte) / werkstatt (Teile) — розница как доп-канал.
         suited_for=("cafe", "restaurant", "other", "friseur", "werkstatt"),
         description_de="Kunden bestellen online und holen im Laden ab.",
@@ -239,7 +242,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         depends_on=("promotions",),
         # S6: friseur — Stempelkarte для постоянных клиентов салона.
         recommended_for=("bakery", "butcher", "grocery", "cafe", "restaurant", "friseur"),
-        suited_for=("retail", "clothing", "other"),
+        suited_for=("retail", "clothing", "online_shop", "other"),
         description_de="Gutscheine und Stempelkarten für Stammkunden.",
         storefront_label="Treueprogramm",
         storefront_blurb="Stempel sammeln und Prämien sichern.",
@@ -262,6 +265,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "butcher",
             "grocery",
             "clothing",
+            "online_shop",  # 2026-07-10
             "restaurant",
             "cafe",
             "retail",
@@ -353,6 +357,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "restaurant",
             "retail",
             "clothing",
+            "online_shop",  # 2026-07-10
             "hotel",
             "tour_operator",
             "friseur",  # S6
@@ -385,6 +390,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "restaurant",
             "retail",
             "clothing",
+            "online_shop",  # 2026-07-10
             "hotel",
             "tour_operator",
             "friseur",  # S6
@@ -436,6 +442,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "restaurant",
             "retail",
             "clothing",
+            "online_shop",  # 2026-07-10
             "hotel",
             "tour_operator",
             "friseur",  # S6: Termine/Bonuskarte
