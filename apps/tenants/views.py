@@ -12,22 +12,23 @@ from .services import login_url_for, start_business_provisioning
 class BusinessSignupView(View):
     template_name = "tenants/onboarding.html"
 
-    def _context(self, form):
+    def _context(self, form, request=None):
         # AB3/AB5: тип бизнеса — визуальные карточки (иконка + язык задач), как в
-        # мастере онбординга (шаг 1), а не сухой dropdown.
-        return {"form": form, "business_types": onboarding.business_type_cards()}
+        # мастере онбординга (шаг 1), а не сухой dropdown. #3/#5: + demo_url (кнопка
+        # «Demo ansehen» на карточке → живая демо-витрина архетипа).
+        return {"form": form, "business_types": onboarding.business_type_cards(request)}
 
     def get(self, request):
         # D3: реф-код партнёра переживает GET→POST через сессию (?ref=<code>).
         ref = (request.GET.get("ref") or "").strip()[:40]
         if ref:
             request.session["partner_ref"] = ref
-        return render(request, self.template_name, self._context(BusinessSignupForm()))
+        return render(request, self.template_name, self._context(BusinessSignupForm(), request))
 
     def post(self, request):
         form = BusinessSignupForm(request.POST)
         if not form.is_valid():
-            return render(request, self.template_name, self._context(form))
+            return render(request, self.template_name, self._context(form, request))
 
         cd = form.cleaned_data
         # Мгновенный ответ: схема строится в фоне (~1 мин), пользователь ждёт

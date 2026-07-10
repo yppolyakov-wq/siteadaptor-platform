@@ -222,7 +222,7 @@ def setup_view(request):
 
     context = {"nav": "dashboard", "step": step, "total": onboarding.TOTAL_STEPS, "state": state}
     if step == 1:
-        context["business_types"] = onboarding.business_type_cards()
+        context["business_types"] = onboarding.business_type_cards(request)
     elif step == 2:
         # B.2: шаблоны витрины как визуальные карточки (рекомендованные типу — сверху).
         from apps.tenants import sitetemplates

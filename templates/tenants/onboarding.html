@@ -29,6 +29,9 @@
                   <span>
                     <span class="inline-flex items-center gap-2 text-sm font-medium"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
                     {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
+                    {% comment %}#3/#5: живая демо-витрина архетипа (только если засеяна) —
+                       <a> внутри <label> не переключает радио (interactive content).{% endcomment %}
+                    {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 mt-1">👁 {% trans "View demo site" %} ↗</a>{% endif %}
                   </span>
                 </label>
               {% endfor %}

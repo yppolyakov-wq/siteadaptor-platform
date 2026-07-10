@@ -38,15 +38,72 @@ BUSINESS_TYPE_META = {
 }
 
 
-def business_type_cards() -> list[dict]:
-    """AB3: типы бизнеса как визуальные карточки ({value, label, icon, blurb}) в порядке
-    модели. Для шага 1 мастера онбординга и визуализации архетипов при регистрации."""
+# #3/#5 (фидбэк владельца): «Demo ansehen» на карточках типов бизнеса → открыть
+# ЖИВУЮ демо-витрину этого архетипа. Демо-тенанты создаёт `seed_demo_tenants`; они
+# живут на стабильных поддоменах (kit.subdomain или «<kit>-demo»). Тип бизнеса → kit-
+# поддомен ближайшего демо (несколько типов делят один демо: пекарня/мясная/продукты
+# → рынок; одежда/ритейл → магазин; ресторан/кафе → ресторан; туры/события → retreat).
+DEMO_KIT_HOST = {
+    "bakery": "aktionsmarkt",
+    "butcher": "aktionsmarkt",
+    "grocery": "aktionsmarkt",
+    "clothing": "shop",
+    "restaurant": "restaurant-demo",
+    "cafe": "restaurant-demo",
+    "retail": "shop",
+    "tour_operator": "retreat",
+    "hotel": "hotel",
+    "friseur": "friseur",
+    "handwerker": "handwerker",
+    "werkstatt": "werkstatt",
+    "events": "retreat",
+    # other → без демо (нейтральный тип)
+}
+
+
+def _seeded_demo_hosts() -> set[str]:
+    """Поддомены демо, реально созданные на сервере (есть Domain) — чтобы не показывать
+    мёртвые ссылки, если `seed_demo_tenants` ещё не прогнан. Пусто при любой ошибке."""
+    from django.conf import settings
+
+    from apps.tenants.models import Domain
+
+    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de").split(":")[0]
+    wanted = {f"{sub}.{base}" for sub in set(DEMO_KIT_HOST.values())}
+    try:
+        return set(Domain.objects.filter(domain__in=wanted).values_list("domain", flat=True))
+    except Exception:  # noqa: BLE001 — нет таблицы/схемы → без демо-кнопок
+        return set()
+
+
+def business_type_cards(request=None) -> list[dict]:
+    """AB3: типы бизнеса как визуальные карточки ({value, label, icon, blurb, demo_url})
+    в порядке модели. Для шага 1 мастера онбординга и визуализации архетипов при
+    регистрации. `demo_url` — ссылка на живую демо-витрину архетипа (пусто, если демо
+    для этого типа не засеяно; #3/#5)."""
+    from django.conf import settings
+
     from apps.tenants.models import Tenant
+
+    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")  # с портом (dev)
+    base_host = base.split(":")[0]
+    scheme = getattr(request, "scheme", "https") if request is not None else "https"
+    seeded = _seeded_demo_hosts()
 
     cards = []
     for value, label in Tenant.BUSINESS_TYPES:
         icon, blurb = BUSINESS_TYPE_META.get(value, ("✨", ""))
-        cards.append({"value": value, "label": str(label), "icon": icon, "blurb": blurb})
+        sub = DEMO_KIT_HOST.get(value)
+        demo_url = f"{scheme}://{sub}.{base}/" if sub and f"{sub}.{base_host}" in seeded else ""
+        cards.append(
+            {
+                "value": value,
+                "label": str(label),
+                "icon": icon,
+                "blurb": blurb,
+                "demo_url": demo_url,
+            }
+        )
     return cards
 
 
