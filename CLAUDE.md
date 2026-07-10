@@ -466,7 +466,10 @@ Python 3.12, менеджер uv.
   закрывается токен-фолбэком; актуально — `demo_photo_report`). Остальное — SVG-фолбэк.
   Провенанс — `static/demo/photos/SOURCES.md`. Портреты команды не брали (реальные лица).
   Набор сделан сессией `claude/youthful-lovelace-suk4wc`, интегрирован черри-пиком в
-  основную ветку. ⚠️ ops: фото попадут в демо после `seed_demo_tenants --kit <kit> --recreate`.
+  основную ветку. **Дополнено (2026-07-10): AI-набор FLUX.1-schnell (Replicate) — 120 ключей →
+  покрытие `demo_photo_report` 298/298 (100 %)** (нативный webp <150 KB, пропорции по типу,
+  22 вымышленных портрета; провенанс в SOURCES.md; ветка `claude/demo-photos-replicate-rtcs78`,
+  черри-пик). ⚠️ ops: фото попадут в демо после `seed_demo_tenants --recreate`.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
