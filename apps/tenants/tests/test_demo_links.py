@@ -31,11 +31,29 @@ def test_demo_url_when_seeded():
 
 
 def test_shared_demo_mapping():
-    """Несколько типов делят один демо (пекарня/мясная/продукты → рынок aktionsmarkt)."""
-    DomainFactory(domain="aktionsmarkt.siteadaptor.de", tenant=TenantFactory())
+    """Часть типов пока делит демо (одежда/ритейл → shop); grocery — родной
+    aktionsmarkt. Развод на dedicated-киты — по волнам плана demo-kits-per-type."""
+    DomainFactory(domain="shop.siteadaptor.de", tenant=TenantFactory())
+    DomainFactory(domain="aktionsmarkt.siteadaptor.de", tenant=TenantFactory(slug="am2"))
     cards = _cards()
-    for bt in ("bakery", "butcher", "grocery"):
-        assert "aktionsmarkt.siteadaptor.de" in cards[bt]["demo_url"], bt
+    for bt in ("clothing", "retail"):
+        assert "shop.siteadaptor.de" in cards[bt]["demo_url"], bt
+    assert "aktionsmarkt.siteadaptor.de" in cards["grocery"]["demo_url"]
+
+
+def test_dedicated_demo_mapping_wave1():
+    """Волна 1: у пекарни и мясной СВОИ демо (не общий рынок) — «чтоб лучше продать».
+    Кит-поддомены: baeckerei (Backhaus Krume) и metzgerei (Metzgerei Bergmann)."""
+    DomainFactory(domain="baeckerei.siteadaptor.de", tenant=TenantFactory())
+    DomainFactory(domain="metzgerei.siteadaptor.de", tenant=TenantFactory(slug="mz2"))
+    cards = _cards()
+    assert "baeckerei.siteadaptor.de" in cards["bakery"]["demo_url"]
+    assert "metzgerei.siteadaptor.de" in cards["butcher"]["demo_url"]
+    # dedicated-киты зарегистрированы и совпадают с маппингом карточек
+    from apps.tenants import demo_kits
+
+    assert demo_kits.KITS["bakery"].subdomain == "baeckerei"
+    assert demo_kits.KITS["butcher"].subdomain == "metzgerei"
 
 
 def test_card_shape_has_demo_key():

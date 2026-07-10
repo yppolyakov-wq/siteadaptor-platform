@@ -2033,6 +2033,702 @@ AKTIONSMARKT = DemoKit(
     ],
 )
 
+
+BAKERY_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Sortiment", "type": "archetype", "target": "catalog"},
+            {
+                "label": "Aktionen",
+                "type": "group",
+                "children": [
+                    {"label": "Wochenangebote", "type": "promo_group", "target": "Wochenangebote"},
+                    {
+                        "label": "Anti-Food-Waste",
+                        "type": "promo_group",
+                        "target": "Anti-Food-Waste",
+                    },
+                ],
+            },
+            {"label": "Treue", "type": "archetype", "target": "loyalty"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🥨"},
+            {"label": "Aktionen", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty", "icon": "💝"},
+        ],
+    },
+}
+
+# A1 Bäckerei (dedicated, 2026-07-10): Handwerksbäckerei mit Vorbestellung zur Abholung
+# (C&C ohne Lieferung — realistisch für die Branche), Feierabend-Überraschungstüte
+# (Anti-Food-Waste), Wochenangebot, Torten auf Vorbestellung, LMIV-Allergene, Stempelkarte.
+BAKERY = DemoKit(
+    key="bakery",
+    label="Backhaus Krume",
+    business_type="bakery",
+    subdomain="baeckerei",
+    accent="#a16207",  # Braun-Gold (Kruste)
+    hero_image_kw="bread,bakery",
+    hero_title="Backhaus Krume",
+    hero_text="Handwerksbrot aus dem Steinofen — täglich frisch ab 6 Uhr. "
+    "Online vorbestellen und ohne Warten abholen.",
+    about_title="Unsere Backstube",
+    about_text="Seit 1962 backen wir in Hilden nach eigenen Rezepten: Sauerteig ohne "
+    "Fertigmischungen, Mehl aus regionalen Mühlen, alles von Hand geformt. Bestellen Sie "
+    "Brot und Brötchen bequem online vor — wir legen es zur Wunschzeit zurück. Torten "
+    "fertigen wir auf Vorbestellung mit zwei Tagen Vorlauf.",
+    nav_style="classic",
+    address="Bäckergasse 3, 40721 Hilden",
+    opening_hours_text="Mo–Fr 6:00–18:00 · Sa 6:00–13:00",
+    opening_hours={**{d: ("06:00", "18:00") for d in range(5)}, 5: ("06:00", "13:00")},
+    gallery_kw=["bread", "bakery,oven", "croissant", "cake", "pastry", "baker,hands"],
+    process=[
+        ("Online vorbestellen", "Sortiment wählen, Abholzeit angeben — fertig."),
+        ("Wir backen frisch", "Ihre Bestellung liegt zur Wunschzeit bereit."),
+        ("Abholen ohne Warten", "An der Theke einfach den Namen nennen."),
+    ],
+    team=[
+        ("Matthias Krume", "Bäckermeister", "baker,man"),
+        ("Sofie Krume", "Konditorin", "pastry,chef"),
+    ],
+    trust={"since": "1962", "marks": ["Handwerksbäckerei", "Meisterbetrieb", "Regionales Mehl"]},
+    usp=[
+        ("clock", "Frisch ab 6 Uhr"),
+        ("local", "Mehl aus der Region"),
+        ("quality", "Meisterbetrieb seit 1962"),
+        ("payment", "Vorbestellen & abholen"),
+    ],
+    testimonials=[
+        (
+            "Frau Albers",
+            "Das Sauerteigbrot ist das beste der Stadt — und nie ausverkauft, "
+            "wenn man vorbestellt.",
+        ),
+        ("Herr Yilmaz", "Feierabendtüte gerettet, Familie glücklich. Tolle Idee!"),
+    ],
+    reviews_seed=[
+        (5, "Das Sauerteigbrot ist das beste der Stadt!", "bk.albers@example.de"),
+        (5, "Vorbestellen und ohne Schlange abholen — genau so muss das.", "bk.yilmaz@example.de"),
+        (4, "Tolle Torten nach Wunsch, sehr freundliches Team.", "bk.peters@example.de"),
+    ],
+    faq=[
+        (
+            "Wann ist frisches Brot da?",
+            "Die erste Ofenrunde ist um 6 Uhr fertig, die zweite gegen 10 Uhr. "
+            "Vorbestellungen legen wir zur Wunschzeit zurück.",
+        ),
+        (
+            "Wie funktioniert die Vorbestellung?",
+            "Online bestellen, Abholzeit wählen, an der Theke den Namen nennen. "
+            "Bezahlt wird bei Abholung oder online.",
+        ),
+        (
+            "Was ist die Feierabendtüte?",
+            "Gerettete Backwaren vom Tag zum halben Preis — der Inhalt ist eine "
+            "Überraschung. Ab 17 Uhr, solange der Vorrat reicht.",
+        ),
+        (
+            "Torten auf Bestellung?",
+            "Ja — Wunschtorten mit mindestens 2 Tagen Vorlauf. Motiv, Größe und "
+            "Füllung stimmen wir telefonisch oder per Nachricht ab.",
+        ),
+        (
+            "Allergene?",
+            "Alle Zutaten und die 14 LMIV-Allergene stehen bei jedem Produkt — "
+            "fragen Sie bei Unsicherheit gern an der Theke nach.",
+        ),
+    ],
+    cta={
+        "title": "Ihr Brot wartet schon",
+        "text": "Jetzt vorbestellen und morgen früh ohne Warten abholen.",
+        "button_label": "Sortiment ansehen",
+        "button_url": "/sortiment/",
+    },
+    enable_modules=["orders", "loyalty"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=BAKERY_MENUS,
+    loyalty={"label": "Brot-Stempelkarte", "stamps": 10, "reward": "1× Brot gratis"},
+    vouchers=[
+        {"code": "BROT10", "label": "−10 % für Neukunden", "percent": 10, "max_uses": 200},
+    ],
+    promotions_spec=[
+        {
+            "title": "Bauernbrot −15 % (Angebot der Woche)",
+            "product": 1,
+            "percent": 15,
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Wochenangebote",
+            "desc": "Jede Woche ein anderes Brot im Angebot.",
+        },
+        {
+            "title": "Brötchen ab 17 Uhr −50 %",
+            "product": 4,
+            "percent": 50,
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "group": "Anti-Food-Waste",
+            "desc": "Jeden Abend vor Ladenschluss — retten statt wegwerfen.",
+        },
+        {
+            "title": "Feierabendtüte 4,50 € statt 9 €",
+            "product": 13,
+            "surprise": True,
+            "new_price": "4.50",
+            "compare_at": "9.00",
+            "group": "Anti-Food-Waste",
+            "desc": "Gerettete Backwaren vom Tag — der Inhalt ist eine Überraschung.",
+        },
+        {
+            "title": "Butter-Croissant −30 % – nur heute",
+            "product": 8,
+            "percent": 30,
+            "countdown": True,
+            "ends_in_days": 1,
+            "group": "Wochenangebote",
+        },
+        {
+            "title": "Bienenstich −20 % (nur 8 Stück)",
+            "product": 11,
+            "type": "reservation",
+            "percent": 20,
+            "available_quantity": 8,
+            "group": "Wochenangebote",
+            "desc": "Online sichern, nachmittags abholen.",
+        },
+    ],
+    categories=[
+        (
+            "Brot",
+            "brot",
+            [
+                _p(
+                    "Roggenbrot 750 g",
+                    "3.20",
+                    "Kräftiger Natursauerteig, lange Teigführung.",
+                    "rye,bread",
+                    allergens=["gluten"],
+                    unit="g",
+                    content=750,
+                ),
+                _p(
+                    "Bauernbrot 1 kg",
+                    "3.80",
+                    "Unser Klassiker aus dem Steinofen.",
+                    "bread,loaf",
+                    allergens=["gluten"],
+                    unit="kg",
+                    content=1,
+                    badge="beliebt",
+                ),
+                _p(
+                    "Dinkelvollkornbrot 500 g",
+                    "4.20",
+                    "100 % Dinkel, mit Saaten. Vegan.",
+                    "spelt,bread",
+                    allergens=["gluten", "sesam"],
+                    diets=["vegan"],
+                    unit="g",
+                    content=500,
+                ),
+                _p(
+                    "Sauerteig-Kruste 750 g",
+                    "3.90",
+                    "Extra knusprig, 24 h Teigruhe.",
+                    "sourdough",
+                    allergens=["gluten"],
+                    unit="g",
+                    content=750,
+                    badge="empfehlung",
+                ),
+            ],
+        ),
+        (
+            "Brötchen & Kleingebäck",
+            "broetchen",
+            [
+                _p(
+                    "Brötchen",
+                    "0.60",
+                    "Knusprig aus dem Ofen.",
+                    "bread,rolls",
+                    allergens=["gluten"],
+                ),
+                _p(
+                    "Vollkornbrötchen",
+                    "0.75",
+                    "Mit Roggen- und Weizenvollkorn.",
+                    "wholegrain,roll",
+                    allergens=["gluten"],
+                    diets=["vegan"],
+                ),
+                _p(
+                    "Laugenbrezel",
+                    "1.20",
+                    "Bayerische Art, mit grobem Salz.",
+                    "pretzel",
+                    allergens=["gluten"],
+                ),
+                _p(
+                    "Käsebrötchen",
+                    "1.50",
+                    "Mit würzigem Bergkäse überbacken.",
+                    "cheese,roll",
+                    allergens=["gluten", "milch"],
+                ),
+            ],
+        ),
+        (
+            "Feingebäck & Kuchen",
+            "feingebaeck",
+            [
+                _p(
+                    "Butter-Croissant",
+                    "1.80",
+                    "Französische Art, 32 Butterschichten.",
+                    "croissant",
+                    allergens=["gluten", "milch"],
+                ),
+                _p(
+                    "Nussschnecke",
+                    "2.20",
+                    "Mit Haselnussfüllung und Zuckerguss.",
+                    "nut,pastry",
+                    allergens=["gluten", "schalenfruechte", "milch"],
+                ),
+                _p(
+                    "Apfeltasche",
+                    "2.40",
+                    "Mit Zimt und regionalen Äpfeln.",
+                    "apple,pastry",
+                    allergens=["gluten"],
+                ),
+                _p(
+                    "Bienenstich",
+                    "2.80",
+                    "Hefeteig, Mandelkruste, Vanillecreme.",
+                    "bee,sting,cake",
+                    allergens=["gluten", "milch", "eier", "schalenfruechte"],
+                ),
+                _p(
+                    "Käsekuchen (Stück)",
+                    "3.20",
+                    "Cremig nach Omas Rezept.",
+                    "cheesecake",
+                    allergens=["gluten", "milch", "eier"],
+                ),
+                _p(
+                    "Feierabendtüte",
+                    "9.00",
+                    "Gerettete Backwaren vom Tag — Wert ca. 9 €.",
+                    "bakery,bag",
+                    allergens=["gluten"],
+                ),
+            ],
+        ),
+        (
+            "Torten auf Vorbestellung",
+            "torten",
+            [
+                _p(
+                    "Erdbeer-Sahnetorte",
+                    "24.90",
+                    "Für 12 Stücke. Bitte 2 Tage Vorlauf.",
+                    "strawberry,cake",
+                    allergens=["gluten", "milch", "eier"],
+                ),
+                _p(
+                    "Schwarzwälder Kirschtorte",
+                    "26.90",
+                    "Mit Kirschwasser. Bitte 2 Tage Vorlauf.",
+                    "black,forest,cake",
+                    allergens=["gluten", "milch", "eier"],
+                ),
+                _p(
+                    "Wunschtorte nach Motiv",
+                    "34.90",
+                    "Geburtstag, Taufe, Jubiläum — Motiv nach Absprache.",
+                    "birthday,cake",
+                    allergens=["gluten", "milch", "eier"],
+                    badge="neu",
+                ),
+            ],
+        ),
+    ],
+    product_reviews=[
+        (1, 5, "Anna B.", "bk.rev1@example.de", "Das Bauernbrot hält sich tagelang frisch."),
+        (3, 5, "Jens K.", "bk.rev2@example.de", "Die Kruste ist unschlagbar — wie früher."),
+        (14, 5, "Familie Roth", "bk.rev3@example.de", "Die Erdbeertorte war der Star der Feier!"),
+    ],
+)
+
+
+BUTCHER_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Sortiment", "type": "archetype", "target": "catalog"},
+            {
+                "label": "Aktionen",
+                "type": "group",
+                "children": [
+                    {"label": "Wochenangebote", "type": "promo_group", "target": "Wochenangebote"},
+                    {"label": "Vorbestellung", "type": "promo_group", "target": "Vorbestellung"},
+                    {
+                        "label": "Hausmacher-Wochen",
+                        "type": "promo_group",
+                        "target": "Hausmacher-Wochen",
+                    },
+                ],
+            },
+            {"label": "Partyservice", "type": "archetype", "target": "jobs"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🥩"},
+            {"label": "Aktionen", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Party", "type": "archetype", "target": "jobs", "icon": "🎉"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+        ],
+    },
+}
+
+# A1 Metzgerei (dedicated, 2026-07-10): Frischetheke mit Grundpreis €/kg (PAngV),
+# Grillpaket-Vorbestellung (reservation, zum Wochenende), Partyservice über jobs
+# (Anfrage → Angebot: Buffets/Platten), Hausmacher-Wurst, Herkunft, Stempelkarte.
+BUTCHER = DemoKit(
+    key="butcher",
+    label="Metzgerei Bergmann",
+    business_type="butcher",
+    subdomain="metzgerei",
+    accent="#991b1b",  # dunkles Metzger-Rot
+    hero_image_kw="butcher,meat",
+    hero_title="Metzgerei Bergmann",
+    hero_text="Fleisch und Wurst aus eigener Herstellung — von Höfen aus der Region. "
+    "Grillpakete und Platten bequem online vorbestellen.",
+    about_title="Unsere Metzgerei",
+    about_text="Seit 1954 steht der Name Bergmann für ehrliches Handwerk: Wir kaufen "
+    "ganze Tiere von Höfen aus dem Umland, zerlegen selbst und räuchern unsere Wurst "
+    "in der eigenen Wurstküche. Für Feste liefern wir Buffets und kalte Platten — "
+    "fragen Sie einfach über den Partyservice an.",
+    nav_style="classic",
+    address="Fleischergasse 12, 40721 Hilden",
+    opening_hours_text="Mo–Fr 7:00–18:00 · Sa 7:00–13:00",
+    opening_hours={**{d: ("07:00", "18:00") for d in range(5)}, 5: ("07:00", "13:00")},
+    gallery_kw=["butcher,shop", "meat,counter", "sausage", "grill,bbq", "ham", "deli"],
+    process=[
+        ("Auswählen & vorbestellen", "Online bestellen oder Partyservice anfragen."),
+        ("Wir bereiten frisch zu", "Zerlegt, mariniert und verpackt am Abholtag."),
+        ("Abholen oder liefern lassen", "An der Theke abholen — Buffets liefern wir."),
+    ],
+    team=[
+        ("Karl Bergmann", "Metzgermeister", "butcher,man"),
+        ("Petra Lang", "Fleischerei-Fachverkäuferin", "shop,assistant"),
+    ],
+    trust={"since": "1954", "marks": ["Meisterbetrieb", "Eigene Wurstküche", "Regionale Höfe"]},
+    usp=[
+        ("local", "Fleisch von Höfen aus der Region"),
+        ("quality", "Eigene Wurstküche"),
+        ("clock", "Frischetheke ab 7 Uhr"),
+        ("payment", "Vorbestellen & abholen"),
+    ],
+    testimonials=[
+        ("Herr Brandt", "Das Grillpaket war perfekt vorbereitet — nur noch auf den Rost legen."),
+        ("Frau Kaya", "Der Partyservice hat unsere Feier gerettet. Alles pünktlich und köstlich."),
+    ],
+    reviews_seed=[
+        (
+            5,
+            "Beste Bratwurst weit und breit — eigene Herstellung schmeckt man.",
+            "mz.brandt@example.de",
+        ),
+        (
+            5,
+            "Grillpaket online vorbestellt, samstags abgeholt — top organisiert.",
+            "mz.kaya@example.de",
+        ),
+        (4, "Beratung an der Theke ist erstklassig.", "mz.otto@example.de"),
+    ],
+    faq=[
+        (
+            "Woher kommt das Fleisch?",
+            "Von Familienhöfen aus dem Umland (max. 50 km). Herkunft steht bei "
+            "jedem Produkt — fragen Sie gern nach dem Hof.",
+        ),
+        (
+            "Wie bestelle ich ein Grillpaket vor?",
+            "Online sichern, Abholtag wählen (z. B. Samstag). Wir zerlegen und "
+            "marinieren frisch am Abholtag.",
+        ),
+        (
+            "Was macht der Partyservice?",
+            "Kalte Platten, Buffets, Canapés und Grillservice für 10–100 Gäste. "
+            "Anfrage stellen — Sie erhalten ein unverbindliches Angebot.",
+        ),
+        (
+            "Kann ich nach Gewicht bestellen?",
+            "Ja — Preise an der Theke gelten pro kg (Grundpreis steht bei jedem "
+            "Produkt). Online bestellen Sie in praktischen Portionen.",
+        ),
+    ],
+    cta={
+        "title": "Grillwochenende geplant?",
+        "text": "Grillpaket jetzt vorbestellen — am Samstag ohne Warten abholen.",
+        "button_label": "Zu den Grillpaketen",
+        "button_url": "/sortiment/",
+    },
+    enable_modules=["orders", "jobs", "loyalty"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=BUTCHER_MENUS,
+    loyalty={"label": "Theken-Stempelkarte", "stamps": 10, "reward": "1× Bratwurst gratis"},
+    vouchers=[
+        {
+            "code": "GRILL10",
+            "label": "−10 % auf die erste Bestellung",
+            "percent": 10,
+            "max_uses": 200,
+        },
+    ],
+    promotions_spec=[
+        {
+            "title": "Grillpaket Familie — jetzt fürs Wochenende vorbestellen",
+            "product": 10,
+            "type": "reservation",
+            "percent": 10,
+            "available_quantity": 20,
+            "group": "Vorbestellung",
+            "desc": "Online sichern, samstags frisch abholen — nur 20 Pakete pro Woche.",
+        },
+        {
+            "title": "Schweineschnitzel −15 % (Angebot der Woche)",
+            "product": 1,
+            "percent": 15,
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Wochenangebote",
+        },
+        {
+            "title": "Marinierte Nackensteaks −20 % – Grillsaison",
+            "product": 11,
+            "percent": 20,
+            "countdown": True,
+            "ends_in_days": 2,
+            "group": "Wochenangebote",
+        },
+        {
+            "title": "Hausmacher Leberwurst zum Festpreis 2,49 €",
+            "product": 4,
+            "new_price": "2.49",
+            "compare_at": "3.20",
+            "group": "Hausmacher-Wochen",
+            "desc": "Aus der eigenen Wurstküche.",
+        },
+    ],
+    categories=[
+        (
+            "Frischfleisch",
+            "frischfleisch",
+            [
+                _p(
+                    "Rinderhackfleisch 1 kg",
+                    "9.90",
+                    "Täglich frisch gewolft.",
+                    "minced,meat",
+                    unit="kg",
+                    content=1,
+                ),
+                _p(
+                    "Schweineschnitzel 1 kg",
+                    "12.90",
+                    "Aus der Oberschale, küchenfertig.",
+                    "pork,schnitzel",
+                    unit="kg",
+                    content=1,
+                ),
+                _p(
+                    "Rinderfilet 1 kg",
+                    "29.90",
+                    "Dry-aged, 21 Tage gereift.",
+                    "beef,filet",
+                    unit="kg",
+                    content=1,
+                    badge="empfehlung",
+                ),
+                _p(
+                    "Hähnchenbrust 1 kg",
+                    "11.50",
+                    "Vom Geflügelhof Weide.",
+                    "chicken,breast",
+                    unit="kg",
+                    content=1,
+                ),
+            ],
+        ),
+        (
+            "Wurst & Aufschnitt",
+            "wurst",
+            [
+                _p(
+                    "Hausmacher Leberwurst 200 g",
+                    "3.20",
+                    "Grob, aus der eigenen Wurstküche.",
+                    "liver,sausage",
+                    unit="g",
+                    content=200,
+                ),
+                _p(
+                    "Gekochter Schinken 100 g",
+                    "2.49",
+                    "Mild gepökelt, hauchdünn geschnitten.",
+                    "ham,sliced",
+                    unit="g",
+                    content=100,
+                ),
+                _p(
+                    "Bratwurst (4 Stück)",
+                    "5.50",
+                    "Fränkische Art, eigene Rezeptur.",
+                    "bratwurst",
+                    allergens=["senf"],
+                    badge="beliebt",
+                ),
+                _p("Wiener Würstchen (Paar)", "4.50", "Zart geräuchert.", "wiener,sausage"),
+                _p(
+                    "Salami luftgetrocknet 150 g",
+                    "4.90",
+                    "3 Monate gereift.",
+                    "salami",
+                    unit="g",
+                    content=150,
+                ),
+            ],
+        ),
+        (
+            "Grill & Party",
+            "grill",
+            [
+                _p(
+                    "Grillplatte für 2",
+                    "18.90",
+                    "Steaks, Bratwurst, Nackenkotelett — fertig mariniert.",
+                    "grill,plate",
+                    allergens=["senf"],
+                ),
+                _p(
+                    "Grillpaket Familie (für 6)",
+                    "49.90",
+                    "Bunte Auswahl für den Familiengrill — auf Vorbestellung.",
+                    "bbq,family",
+                    allergens=["senf"],
+                    badge="beliebt",
+                ),
+                _p(
+                    "Marinierte Nackensteaks (4 St.)",
+                    "12.90",
+                    "Paprika- oder Kräutermarinade.",
+                    "steak,marinated",
+                    allergens=["senf"],
+                ),
+                _p("Grillfackeln (3 St.)", "8.90", "Bauchspeck am Spieß.", "bacon,skewer"),
+            ],
+        ),
+        (
+            "Feinkost & Salate",
+            "feinkost",
+            [
+                _p(
+                    "Kartoffelsalat 500 g",
+                    "4.50",
+                    "Hausgemacht mit Mayonnaise.",
+                    "potato,salad",
+                    allergens=["eier", "senf"],
+                    unit="g",
+                    content=500,
+                ),
+                _p(
+                    "Fleischsalat 250 g",
+                    "3.90",
+                    "Der Klassiker zur Brotzeit.",
+                    "meat,salad",
+                    allergens=["eier", "senf"],
+                    unit="g",
+                    content=250,
+                ),
+                _p(
+                    "Sülze hausgemacht 300 g",
+                    "4.90",
+                    "Mit Remoulade nach Art des Hauses.",
+                    "aspic",
+                    allergens=["eier", "senf"],
+                    unit="g",
+                    content=300,
+                ),
+            ],
+        ),
+    ],
+    job_samples=[
+        {
+            "title": "Partyservice: Geburtstagsbuffet für 25 Gäste",
+            "name": "Familie Ott",
+            "email": "mz.party1@example.de",
+            "phone": "02103 445566",
+            "description": "Runder Geburtstag am Samstag: Grillbuffet und kalte Platten "
+            "für 25 Gäste, Lieferung und Aufbau bis 17 Uhr.",
+            "lines": [
+                {"text": "Grillbuffet pro Person", "qty": 25, "unit_price": "14.50"},
+                {"text": "Kalte Platten (Aufschnitt & Käse)", "qty": 3, "unit_price": "24.00"},
+                {"text": "Lieferung & Aufbau", "qty": 1, "unit_price": "35.00"},
+            ],
+            "vat_rate": 7,
+        },
+        {
+            "title": "Canapés für Firmenempfang (40 Personen)",
+            "name": "Bürotech GmbH",
+            "email": "mz.party2@example.de",
+            "description": "Empfang zur Geschäftseröffnung: gemischte Canapés und "
+            "Fingerfood für ca. 40 Personen, Anlieferung 11 Uhr.",
+            "lines": [
+                {"text": "Canapés gemischt", "qty": 120, "unit_price": "1.80"},
+                {"text": "Anlieferung", "qty": 1, "unit_price": "25.00"},
+            ],
+            "vat_rate": 7,
+        },
+    ],
+    product_reviews=[
+        (
+            6,
+            5,
+            "Markus D.",
+            "mz.rev1@example.de",
+            "Die Bratwurst ist ein Traum — nie wieder Supermarkt.",
+        ),
+        (
+            10,
+            5,
+            "Sandra E.",
+            "mz.rev2@example.de",
+            "Grillpaket für 6: großzügig, frisch, top mariniert.",
+        ),
+        (13, 4, "Ralf N.", "mz.rev3@example.de", "Kartoffelsalat wie bei Oma."),
+    ],
+)
+
 FRISEUR_MENUS = {
     "top": {
         "style": "centered",
@@ -3421,6 +4117,8 @@ KITS = {
     PRANASY.key: PRANASY,
     HOTEL.key: HOTEL,
     AKTIONSMARKT.key: AKTIONSMARKT,
+    BAKERY.key: BAKERY,
+    BUTCHER.key: BUTCHER,
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
     HANDWERKER.key: HANDWERKER,

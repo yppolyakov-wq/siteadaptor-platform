@@ -778,3 +778,53 @@ def test_restaurant_kit_seeds_combos_with_i18n():
     group = combo.groups.first()
     assert group is not None and group.options.count() == 2  # Bruschetta + Caprese
     assert Combo.objects.filter(name="Familien-Paket").exists()
+
+
+def test_apply_bakery_kit_dedicated_bakery():
+    """Волна 1 (демо-под-тип): dedicated Bäckerei-кит — хлебный каталог с LMIV-
+    аллергенами и Grundpreis, killer-акции (Feierabendtüte/Wochenangebot/abends −50 %),
+    Stempelkarte, отзывы о товаре. Metzgerei-контента нет."""
+    from apps.catalog.models import Product
+    from apps.loyalty.models import LoyaltyProgram
+    from apps.promotions.models import Promotion
+    from apps.reviews.models import Review
+
+    tenant = TenantFactory(schema_name="public", slug="bk", name="BK", business_type="bakery")
+    assert demo_kits.apply_kit(tenant, "bakery") is True
+
+    # Хлебный каталог: аллергены (LMIV) и весовой Grundpreis на хлебе
+    brot = Product.objects.get(name__de="Bauernbrot 1 kg")
+    assert "gluten" in brot.allergens and brot.unit == "kg" and brot.grundpreis is not None
+    assert Product.objects.filter(name__de="Feierabendtüte").exists()
+    # killer-акции пекарни: surprise (Anti-Food-Waste) + weekly + daily
+    promos = Promotion.objects.filter(status="active")
+    assert promos.filter(is_surprise=True).exists()
+    assert promos.filter(recurrence="weekly").exists()
+    assert promos.filter(recurrence="daily").exists()
+    groups = set(promos.values_list("group", flat=True))
+    assert {"Wochenangebote", "Anti-Food-Waste"} <= groups
+    # лояльность + отзывы о товаре + модуль заказов (Vorbestellung/C&C)
+    assert LoyaltyProgram.objects.filter(is_active=True).exists()
+    assert Review.objects.filter(entity_kind="product", is_published=True).count() == 3
+    assert tenant.is_module_active("orders")
+
+
+def test_apply_butcher_kit_dedicated_metzgerei():
+    """Волна 1: dedicated Metzgerei-кит — весовой Grundpreis €/kg, Grillpaket-
+    Vorbestellung (reservation), Partyservice через jobs (Anfrage со сметой)."""
+    from apps.catalog.models import Product
+    from apps.jobs.models import Job
+    from apps.promotions.models import Promotion
+
+    tenant = TenantFactory(schema_name="public", slug="mz", name="MZ", business_type="butcher")
+    assert demo_kits.apply_kit(tenant, "butcher") is True
+
+    # Весовой товар: Grundpreis €/kg (PAngV — ключевой для мясной)
+    hack = Product.objects.get(name__de="Rinderhackfleisch 1 kg")
+    assert hack.unit == "kg" and hack.grundpreis is not None
+    # Grillpaket-Vorbestellung: reservation-акция с лимитом в группе «Vorbestellung»
+    grill = Promotion.objects.get(group="Vorbestellung")
+    assert grill.promo_type == Promotion.RESERVATION and grill.available_quantity == 20
+    # Partyservice: jobs-модуль активен, сметы-примеры (Buffet) засеяны
+    assert tenant.is_module_active("jobs")
+    assert Job.objects.filter(title__icontains="Partyservice").exists()
