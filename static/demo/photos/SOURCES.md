@@ -153,3 +153,24 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `yoga-forest.webp` — https://www.flickr.com/photos/160226114@N02/42824733652 — CC0 1.0 (flickr, автор: Kanta-Hämeen kuvapankki)
 - `yoga-nature.webp` — https://stocksnap.io/photo/landscape-mountains-RKS9M8PY0X — CC0 1.0 (stocksnap, автор: Julia Caesar)
 - `yoga-products.webp` — https://www.rawpixel.com/image/11524267/rolled-teal-yoga-mat-standing-up — CC0 1.0 (rawpixel)
+
+<!-- AI-SET:BEGIN -->
+
+## AI-набор (Replicate FLUX.1-schnell, 2026-07-10)
+
+Сгенерировано моделью `black-forest-labs/flux-schnell` (Replicate) под недостающие ключи `demo_photo_report`. Промпты — немецкие (еда/товар/интерьер/место; дневной свет, без текста и логотипов). Портреты — фиктивные лица (не существующие люди). Формат webp, cover под нужную пропорцию (4:3 товары/галереи, 16:9 hero, 1:1 портреты), <150 KB.
+
+- `ayurveda-spices.webp` — AI-generated, FLUX.1-schnell
+- `ayurveda-woman.webp` — AI-generated, FLUX.1-schnell
+- `chef-woman.webp` — AI-generated, FLUX.1-schnell
+- `cola-glass.webp` — AI-generated, FLUX.1-schnell
+- `cook-man.webp` — AI-generated, FLUX.1-schnell
+- `spiced-potato.webp` — AI-generated, FLUX.1-schnell
+- `vegan-coldcut.webp` — AI-generated, FLUX.1-schnell
+- `vegan-hotdog.webp` — AI-generated, FLUX.1-schnell
+- `vitello.webp` — AI-generated, FLUX.1-schnell
+- `waiter-man.webp` — AI-generated, FLUX.1-schnell
+- `water-bottle.webp` — AI-generated, FLUX.1-schnell
+- `yoga-teacher-woman.webp` — AI-generated, FLUX.1-schnell
+
+<!-- AI-SET:END -->
