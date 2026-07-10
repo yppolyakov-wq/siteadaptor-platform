@@ -50,10 +50,13 @@ def test_clamps_out_of_range_size():
 
 
 def test_demo_image_url_is_local():
+    # есть реальное фото → static-файл; нет → SVG-вьюха. В обоих случаях локально.
     url = demo_image("vegan, burger", w=400, h=300, lock=2)
-    assert url.startswith("/medien/demo.svg?")
+    assert url.startswith(("/static/demo/photos/", "/medien/demo.svg?"))
     assert "loremflickr" not in url
-    assert "kw=vegan%2C+burger" in url and "lock=2" in url
+    url_svg = demo_image("unfotografiertes-motiv", w=400, h=300, lock=2)
+    assert url_svg.startswith("/medien/demo.svg?")
+    assert "kw=unfotografiertes-motiv" in url_svg and "lock=2" in url_svg
 
 
 def test_view_returns_svg_response():

@@ -459,6 +459,14 @@ Python 3.12, менеджер uv.
   dedicated online_shop-кит — по спросу). Фото-сессия — сеть открыта владельцем, промпт
   передан. ⚠️ ops после деплоя: `seed_demo_tenants` (baeckerei/metzgerei/cafe/mode/touren;
   handwerker на сервере не досеян — `--kit handwerker --recreate`).
+- **Самое свежее (2026-07-10): демо-фото — реальный CC0-набор.** 146 webp в
+  `static/demo/photos/` (Openverse `license=cc0,pdm` + Wikimedia Commons, лицензии проверены
+  по метаданным API; каждое фото визуально верифицировано агентами, 4 reject-раунда);
+  на момент набора — покрытие 167/248 позиций (67 %), после волн 2–3 ключей 298 (часть
+  закрывается токен-фолбэком; актуально — `demo_photo_report`). Остальное — SVG-фолбэк.
+  Провенанс — `static/demo/photos/SOURCES.md`. Портреты команды не брали (реальные лица).
+  Набор сделан сессией `claude/youthful-lovelace-suk4wc`, интегрирован черри-пиком в
+  основную ветку. ⚠️ ops: фото попадут в демо после `seed_demo_tenants --kit <kit> --recreate`.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
