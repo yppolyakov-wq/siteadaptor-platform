@@ -2729,6 +2729,563 @@ BUTCHER = DemoKit(
     ],
 )
 
+CAFE_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Karte", "type": "archetype", "target": "catalog"},
+            {"label": "Reservieren", "type": "archetype", "target": "booking"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Karte", "type": "archetype", "target": "catalog", "icon": "☕"},
+            {"label": "Tisch", "type": "archetype", "target": "booking", "icon": "📅"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+            {"label": "Treue", "type": "archetype", "target": "loyalty", "icon": "💝"},
+        ],
+    },
+}
+
+# A4 Café (dedicated, волна 2 демо-трека): компактная кофейня — кофе/завтраки/кухен
+# (НЕ ужин-ресторан на 33 позиции), бронь столика, Kaffeepass (7-й кофе гратис),
+# Mittagstisch/Happy-Hour-акции. LMIV-аллергены, диет-теги на веган-позициях.
+CAFE = DemoKit(
+    key="cafe",
+    label="Café Morgenrot",
+    business_type="cafe",
+    subdomain="cafe",
+    accent="#78350f",  # Kaffee-Braun
+    hero_image_kw="coffee,cafe",
+    hero_title="Café Morgenrot",
+    hero_text="Specialty Coffee, hausgemachte Kuchen und Frühstück bis 14 Uhr — "
+    "mitten im Viertel. Tisch reservieren oder zum Mitnehmen bestellen.",
+    about_title="Unser Café",
+    about_text="Seit 2015 rösten wir unseren Espresso bei einer kleinen Rösterei im "
+    "Umland und backen jeden Morgen selbst. Frühstück gibt es bis 14 Uhr, freitags "
+    "wechselnden Mittagstisch. Mit dem Kaffeepass ist der siebte Kaffee gratis.",
+    nav_style="classic",
+    address="Sonnenallee 24, 40215 Düsseldorf",
+    opening_hours_text="Mo–Sa 8:00–18:00 · So 9:00–17:00",
+    opening_hours={**{d: ("08:00", "18:00") for d in range(6)}, 6: ("09:00", "17:00")},
+    gallery_kw=["coffee", "cafe,interior", "cake", "breakfast", "barista", "latte,art"],
+    process=[
+        ("Tisch reservieren", "Online den Wunschtermin sichern — auch fürs Frühstück."),
+        ("Genießen", "Kaffee, Kuchen und Frühstück — alles hausgemacht."),
+        ("Stempel sammeln", "Kaffeepass: der siebte Kaffee geht aufs Haus."),
+    ],
+    team=[
+        ("Mara Sonn", "Inhaberin & Barista", "barista,woman"),
+        ("Tom Feld", "Konditor", "pastry,chef"),
+    ],
+    trust={
+        "since": "2015",
+        "marks": ["Specialty Coffee", "Hausgemachte Kuchen", "Regionale Rösterei"],
+    },
+    usp=[
+        ("clock", "Frühstück bis 14 Uhr"),
+        ("quality", "Eigene Röstung"),
+        ("local", "Kuchen aus eigener Backstube"),
+        ("payment", "Tisch online reservieren"),
+    ],
+    testimonials=[
+        ("Lena P.", "Der beste Flat White der Stadt — und der Käsekuchen erst!"),
+        ("Herr Groß", "Sonntagsfrühstück mit reserviertem Tisch — entspannter geht's nicht."),
+    ],
+    reviews_seed=[
+        (5, "Der beste Flat White der Stadt!", "cf.lena@example.de"),
+        (5, "Frühstück top, Personal herzlich, Tisch war reserviert.", "cf.gross@example.de"),
+        (4, "Gemütlich und fair — der Kaffeepass lohnt sich.", "cf.mia@example.de"),
+    ],
+    faq=[
+        (
+            "Kann ich einen Tisch reservieren?",
+            "Ja — online mit Wunschzeit, auch fürs Wochenendfrühstück. "
+            "Ohne Reservierung vergeben wir Tische nach Verfügbarkeit.",
+        ),
+        (
+            "Wie funktioniert der Kaffeepass?",
+            "Bei jedem Kaffee einen Stempel sammeln — der siebte Kaffee ist gratis.",
+        ),
+        (
+            "Gibt es vegane Optionen?",
+            "Ja: Avocado-Toast, Porridge, veganer Schokokuchen und Hafermilch ohne Aufpreis.",
+        ),
+        (
+            "Was ist der Mittagstisch?",
+            "Freitags 12–14 Uhr ein wechselndes Gericht zum Sonderpreis — "
+            "online reservierbar, solange der Vorrat reicht.",
+        ),
+    ],
+    cta={
+        "title": "Ihr Tisch wartet",
+        "text": "Jetzt reservieren — fürs Frühstück, den Kuchen am Nachmittag oder beides.",
+        "button_label": "Tisch reservieren",
+        "button_url": "/termin/",
+    },
+    enable_modules=["orders", "booking", "loyalty"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=CAFE_MENUS,
+    loyalty={"label": "Kaffeepass", "stamps": 7, "reward": "1× Kaffee gratis"},
+    resources=[
+        {
+            "name": "Tisch",
+            "type": "table",
+            "capacity": 18,
+            "counts_party_size": True,
+            "start": "09:00",
+            "end": "17:00",
+            "slot": 60,
+            "weekdays": range(0, 7),
+        }
+    ],
+    vouchers=[
+        {
+            "code": "MORGEN10",
+            "label": "−10 % auf die erste Bestellung",
+            "percent": 10,
+            "max_uses": 200,
+        },
+    ],
+    promotions_spec=[
+        {
+            "title": "Mittagstisch — freitags 12–14 Uhr",
+            "product": 5,
+            "type": "reservation",
+            "percent": 20,
+            "available_quantity": 15,
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Mittagstisch",
+            "desc": "Wechselndes Gericht zum Sonderpreis — online reservieren.",
+        },
+        {
+            "title": "Kuchen-Happy-Hour ab 16 Uhr −30 %",
+            "product": 9,
+            "percent": 30,
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "group": "Happy Hour",
+            "desc": "Jeden Tag ab 16 Uhr auf Kuchen des Tages.",
+        },
+        {
+            "title": "Zimtschnecken-Tag −25 % – nur heute",
+            "product": 11,
+            "percent": 25,
+            "countdown": True,
+            "ends_in_days": 1,
+            "group": "Happy Hour",
+        },
+    ],
+    categories=[
+        (
+            "Kaffee & Getränke",
+            "kaffee",
+            [
+                _p(
+                    "Cappuccino",
+                    "3.20",
+                    "Doppelter Espresso, samtiger Milchschaum.",
+                    "cappuccino",
+                    variants=[("Klein", "3.20"), ("Groß", "3.90")],
+                    allergens=["milch"],
+                    badge="beliebt",
+                ),
+                _p(
+                    "Latte Macchiato",
+                    "3.50",
+                    "Mit Hafermilch ohne Aufpreis.",
+                    "latte",
+                    allergens=["milch"],
+                ),
+                _p("Espresso", "2.20", "Eigene Röstung, kräftig.", "espresso"),
+                _p(
+                    "Heiße Schokolade",
+                    "3.40",
+                    "Mit echter Belgischer Schokolade.",
+                    "hot,chocolate",
+                    allergens=["milch"],
+                ),
+                _p(
+                    "Hausgemachte Limonade",
+                    "3.90",
+                    "Zitrone-Minze oder Rhabarber.",
+                    "lemonade",
+                    diets=["vegan"],
+                ),
+            ],
+        ),
+        (
+            "Frühstück & Brunch",
+            "fruehstueck",
+            [
+                _p(
+                    "Frühstücksteller",
+                    "8.50",
+                    "Brot, Käse, Schinken, Ei, Marmelade — bis 14 Uhr.",
+                    "breakfast",
+                    allergens=["gluten", "milch", "eier"],
+                    badge="beliebt",
+                ),
+                _p(
+                    "Avocado-Toast",
+                    "7.90",
+                    "Sauerteig, Avocado, Kirschtomaten. Vegan.",
+                    "avocado,toast",
+                    allergens=["gluten"],
+                    diets=["vegan"],
+                ),
+                _p(
+                    "Porridge mit Beeren",
+                    "5.90",
+                    "Haferflocken, Beeren, Ahornsirup. Vegan.",
+                    "porridge",
+                    allergens=["gluten"],
+                    diets=["vegan"],
+                ),
+                _p(
+                    "Rührei auf Sauerteig",
+                    "6.90",
+                    "Drei Bio-Eier, Schnittlauch.",
+                    "scrambled,eggs",
+                    allergens=["gluten", "eier"],
+                ),
+            ],
+        ),
+        (
+            "Kuchen & Süßes",
+            "kuchen",
+            [
+                _p(
+                    "Käsekuchen (Stück)",
+                    "3.80",
+                    "Nach Omas Rezept, jeden Tag frisch.",
+                    "cheesecake",
+                    allergens=["gluten", "milch", "eier"],
+                    badge="empfehlung",
+                ),
+                _p(
+                    "Apfelstrudel",
+                    "3.90",
+                    "Mit Vanillesoße, lauwarm.",
+                    "apple,strudel",
+                    allergens=["gluten", "milch"],
+                ),
+                _p(
+                    "Zimtschnecke",
+                    "2.90",
+                    "Skandinavisch, mit Kardamom.",
+                    "cinnamon,roll",
+                    allergens=["gluten", "milch"],
+                ),
+                _p(
+                    "Veganer Schokokuchen",
+                    "3.60",
+                    "Saftig, mit Zartbitter. Vegan.",
+                    "chocolate,cake",
+                    allergens=["gluten"],
+                    diets=["vegan"],
+                ),
+            ],
+        ),
+    ],
+    product_reviews=[
+        (0, 5, "Lena P.", "cf.rev1@example.de", "Cappuccino wie in Mailand."),
+        (9, 5, "Jonas T.", "cf.rev2@example.de", "Käsekuchen ist ein Gedicht."),
+        (6, 4, "Aylin K.", "cf.rev3@example.de", "Avocado-Toast frisch und großzügig."),
+    ],
+)
+
+
+CLOTHING_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Damen", "type": "category", "target": "demo-damen"},
+            {"label": "Herren", "type": "category", "target": "demo-herren"},
+            {"label": "Accessoires", "type": "category", "target": "demo-accessoires"},
+            {"label": "Sale", "type": "promo_group", "target": "Sale"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Shop", "type": "archetype", "target": "catalog", "icon": "👗"},
+            {"label": "Sale", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+        ],
+    },
+}
+
+# A1/A2 Mode-Boutique (dedicated, волна 2): одежда с РАЗМЕРНЫМИ вариантами S–XL и
+# per-size остатком (ausverkauft → Warteliste), Versand deutschlandweit (без PLZ-зон),
+# Sale-акции. Multi-axis (цвет×размер) — гэп D3 в roadmap; демо честно на размерах.
+CLOTHING = DemoKit(
+    key="clothing",
+    label="Studio Nordwind",
+    business_type="clothing",
+    subdomain="mode",
+    accent="#1e293b",  # Fashion-Navy
+    hero_image_kw="fashion,boutique",
+    hero_title="Studio Nordwind",
+    hero_text="Faire Mode aus kleinen europäischen Manufakturen — kuratiert in "
+    "Hamburg, versandkostenfrei ab 80 €.",
+    about_title="Über Studio Nordwind",
+    about_text="Wir wählen jedes Teil selbst aus: faire Produktion, natürliche "
+    "Materialien, Schnitte, die bleiben. Bestellt bis 15 Uhr, versenden wir noch am "
+    "selben Tag mit DHL. Ist Ihre Größe ausverkauft, trägt die Warteliste Sie ein — "
+    "Sie bekommen eine Mail, sobald sie zurück ist.",
+    nav_style="classic",
+    address="Speicherstraße 7, 20457 Hamburg",
+    opening_hours_text="Showroom: Do–Sa 11:00–18:00 · Online-Shop rund um die Uhr",
+    opening_hours={d: ("11:00", "18:00") for d in (3, 4, 5)},
+    gallery_kw=["fashion", "clothing,rack", "dress", "knitwear", "denim", "accessories"],
+    process=[
+        ("Aussuchen", "Größe wählen — Größentabelle bei jedem Artikel."),
+        ("Bestellen", "Versand in 24 h, kostenlos ab 80 €."),
+        ("Anprobieren", "14 Tage Zeit — Rückgabe unkompliziert."),
+    ],
+    team=[
+        ("Frida Nord", "Inhaberin & Einkauf", "fashion,designer"),
+        ("Paul Wind", "Versand & Service", "shop,assistant"),
+    ],
+    trust={"since": "2018", "marks": ["Faire Marken", "Bio-Baumwolle", "Klimaneutraler Versand"]},
+    usp=[
+        ("payment", "Kostenloser Versand ab 80 €"),
+        ("clock", "Versand in 24 h"),
+        ("quality", "Faire Produktion"),
+        ("local", "Kuratiert in Hamburg"),
+    ],
+    testimonials=[
+        ("Meike S.", "Qualität, die man sofort spürt — und ehrliche Größenangaben."),
+        ("Jan H.", "Größe war ausverkauft, Warteliste hat funktioniert: 5 Tage später bestellt."),
+    ],
+    reviews_seed=[
+        (5, "Qualität, die man sofort spürt.", "nw.meike@example.de"),
+        (5, "Warteliste für meine Größe hat perfekt funktioniert.", "nw.jan@example.de"),
+        (4, "Schneller Versand, schöne Verpackung.", "nw.ines@example.de"),
+    ],
+    faq=[
+        (
+            "Wie fallen die Größen aus?",
+            "Normal bis leicht großzügig — bei jedem Artikel steht eine Größentabelle "
+            "mit Maßen in cm.",
+        ),
+        (
+            "Versand & Rückgabe?",
+            "DHL, 2–4 Werktage, 4,90 € — kostenlos ab 80 €. 14 Tage Widerruf, "
+            "Rückgabe unkompliziert.",
+        ),
+        (
+            "Meine Größe ist ausverkauft — was tun?",
+            "Auf der Produktseite in die Warteliste eintragen: Sie erhalten "
+            "automatisch eine E-Mail, sobald die Größe wieder da ist.",
+        ),
+        (
+            "Woher kommt die Ware?",
+            "Kleine Manufakturen in Portugal, Litauen und Dänemark — faire "
+            "Produktion, natürliche Materialien.",
+        ),
+    ],
+    cta={
+        "title": "Neu eingetroffen",
+        "text": "Die Herbstteile sind da — solange die Größen reichen.",
+        "button_label": "Jetzt stöbern",
+        "button_url": "/sortiment/",
+    },
+    enable_modules=["orders", "loyalty"],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=CLOTHING_MENUS,
+    delivery={
+        "enabled": True,
+        "fee_cents": 490,
+        "free_cents": 8000,  # frei ab 80 €
+        "min_cents": 0,
+        "pickup_min_cents": 0,
+        "area": "Versand deutschlandweit mit DHL — 2–4 Werktage. Kostenlos ab 80 €.",
+        "zones": [],
+    },
+    loyalty={"label": "Style-Karte", "stamps": 10, "reward": "10 € Gutschein"},
+    vouchers=[
+        {"code": "NORDWIND10", "label": "−10 % für Neukunden", "percent": 10, "max_uses": 200},
+    ],
+    promotions_spec=[
+        {
+            "title": "Schlussverkauf: Sommerkleider −30 %",
+            "product": 0,
+            "percent": 30,
+            "ends_in_days": 14,
+            "group": "Sale",
+            "desc": "Nur solange die Größen reichen.",
+        },
+        {
+            "title": "Style der Woche: Leinenbluse −20 %",
+            "product": 1,
+            "percent": 20,
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Sale",
+        },
+        {
+            "title": "Basic T-Shirt zum Festpreis 14,90 €",
+            "product": 4,
+            "new_price": "14.90",
+            "compare_at": "19.90",
+            "group": "Sale",
+        },
+    ],
+    categories=[
+        (
+            "Damen",
+            "damen",
+            [
+                _p(
+                    "Sommerkleid Nordlicht",
+                    "45.00",
+                    "Leichte Viskose, Midi-Länge. Fällt normal aus.",
+                    "summer,dress",
+                    variants=[
+                        {"label": "S", "price": "45.00", "stock": 6},
+                        {"label": "M", "price": "45.00", "stock": 8},
+                        {"label": "L", "price": "45.00", "stock": 4},
+                    ],
+                    badge="beliebt",
+                ),
+                _p(
+                    "Leinenbluse Küste",
+                    "39.90",
+                    "100 % Leinen, luftig geschnitten.",
+                    "linen,blouse",
+                    variants=[
+                        {"label": "S", "price": "39.90", "stock": 5},
+                        {"label": "M", "price": "39.90", "stock": 7},
+                        {"label": "L", "price": "39.90", "stock": 3},
+                    ],
+                ),
+                _p(
+                    "Strickcardigan Wolke",
+                    "54.90",
+                    "Weicher Feinstrick aus Bio-Baumwolle.",
+                    "cardigan",
+                    variants=[
+                        {"label": "S", "price": "54.90", "stock": 4},
+                        {"label": "M", "price": "54.90", "stock": 0},  # ausverkauft → Warteliste
+                        {"label": "L", "price": "54.90", "stock": 2},
+                    ],
+                ),
+                _p(
+                    "Jeans High-Waist",
+                    "59.90",
+                    "Stretch-Denim, gerades Bein.",
+                    "jeans",
+                    variants=[
+                        {"label": "36", "price": "59.90", "stock": 5},
+                        {"label": "38", "price": "59.90", "stock": 6},
+                        {"label": "40", "price": "59.90", "stock": 4},
+                        {"label": "42", "price": "59.90", "stock": 3},
+                    ],
+                ),
+            ],
+        ),
+        (
+            "Herren",
+            "herren",
+            [
+                _p(
+                    "Basic T-Shirt Bio-Baumwolle",
+                    "19.90",
+                    "Schwerer Jersey, sitzt gerade.",
+                    "tshirt",
+                    variants=[
+                        {"label": "S", "price": "19.90", "stock": 10},
+                        {"label": "M", "price": "19.90", "stock": 12},
+                        {"label": "L", "price": "19.90", "stock": 8},
+                        {"label": "XL", "price": "19.90", "stock": 6},
+                    ],
+                    badge="beliebt",
+                    gtin="4260000011001",
+                ),
+                _p(
+                    "Leinenhemd Hafen",
+                    "39.90",
+                    "Locker geschnitten, knitterfreundlich.",
+                    "linen,shirt",
+                    variants=[
+                        {"label": "M", "price": "39.90", "stock": 5},
+                        {"label": "L", "price": "39.90", "stock": 6},
+                        {"label": "XL", "price": "39.90", "stock": 3},
+                    ],
+                ),
+                _p(
+                    "Strickpullover Merino",
+                    "69.90",
+                    "100 % Merinowolle, mulesingfrei.",
+                    "sweater",
+                    variants=[
+                        {"label": "M", "price": "69.90", "stock": 4},
+                        {"label": "L", "price": "69.90", "stock": 3},
+                    ],
+                    badge="empfehlung",
+                ),
+                _p(
+                    "Chino-Hose Deich",
+                    "49.90",
+                    "Bio-Baumwolle, leicht verjüngt.",
+                    "chinos",
+                    variants=[
+                        {"label": "48", "price": "49.90", "stock": 4},
+                        {"label": "50", "price": "49.90", "stock": 5},
+                        {"label": "52", "price": "49.90", "stock": 3},
+                    ],
+                ),
+            ],
+        ),
+        (
+            "Accessoires",
+            "accessoires",
+            [
+                _p("Wollschal", "24.90", "Lammwolle, extra lang.", "wool,scarf", stock=15),
+                _p(
+                    "Ledergürtel",
+                    "29.90",
+                    "Pflanzlich gegerbt, made in Portugal.",
+                    "leather,belt",
+                    variants=[
+                        {"label": "85", "price": "29.90", "stock": 5},
+                        {"label": "95", "price": "29.90", "stock": 6},
+                        {"label": "105", "price": "29.90", "stock": 4},
+                    ],
+                ),
+                _p("Strickmütze", "14.90", "Merino, doppelt gestrickt.", "beanie", stock=20),
+                _p(
+                    "Canvas-Tasche",
+                    "16.90",
+                    "Schwerer Canvas, Innentasche.",
+                    "canvas,bag",
+                    stock=25,
+                    badge="neu",
+                ),
+            ],
+        ),
+    ],
+    product_reviews=[
+        (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Größentabelle stimmt."),
+        (4, 5, "Jan H.", "nw.rev2@example.de", "Bestes Basic-Shirt, das ich je hatte."),
+        (6, 5, "Ines W.", "nw.rev3@example.de", "Merino-Pulli kratzt null. Liebe."),
+    ],
+)
+
+
 FRISEUR_MENUS = {
     "top": {
         "style": "centered",
@@ -4119,6 +4676,8 @@ KITS = {
     AKTIONSMARKT.key: AKTIONSMARKT,
     BAKERY.key: BAKERY,
     BUTCHER.key: BUTCHER,
+    CAFE.key: CAFE,
+    CLOTHING.key: CLOTHING,
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
     HANDWERKER.key: HANDWERKER,

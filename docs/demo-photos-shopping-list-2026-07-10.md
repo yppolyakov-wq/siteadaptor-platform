@@ -3,7 +3,7 @@
 Решение владельца: реальные фото (CC0 или AI-генерация). Файлы кладутся в
 `static/demo/photos/` (правила — README.md там; лицензия CC0/AI-only,
 провенанс — SOURCES.md). Актуальный отчёт с покрытием:
-`python manage.py demo_photo_report [--missing]`. Снимок на 2026-07-10:
+`python manage.py demo_photo_report [--missing]`. Снимок (вкл. волну 2):
 
 ```
 [restaurant] Restaurant «Bella Vista»
@@ -176,6 +176,50 @@
   ⬜ potato-salad.webp                          ← potato,salad  (товар (800×600))
   ⬜ meat-salad.webp                            ← meat,salad  (товар (800×600))
   ⬜ aspic.webp                                 ← aspic  (товар (800×600))
+[cafe] Café Morgenrot
+  ⬜ coffee-cafe.webp                           ← coffee,cafe  (hero (1600×900))
+  ⬜ coffee.webp                                ← coffee  (галерея (800×600))
+  ⬜ cafe-interior.webp                         ← cafe,interior  (галерея (800×600))
+  ⬜ cake.webp                                  ← cake  (галерея (800×600))
+  ⬜ breakfast.webp                             ← breakfast  (галерея (800×600))
+  ⬜ barista.webp                               ← barista  (галерея (800×600))
+  ⬜ latte-art.webp                             ← latte,art  (галерея (800×600))
+  ⬜ barista-woman.webp                         ← barista,woman  (команда (400×400))
+  ⬜ pastry-chef.webp                           ← pastry,chef  (команда (400×400))
+  ⬜ cappuccino.webp                            ← cappuccino  (товар (800×600))
+  ⬜ latte.webp                                 ← latte  (товар (800×600))
+  ⬜ espresso.webp                              ← espresso  (товар (800×600))
+  ⬜ hot-chocolate.webp                         ← hot,chocolate  (товар (800×600))
+  ⬜ lemonade.webp                              ← lemonade  (товар (800×600))
+  ⬜ avocado-toast.webp                         ← avocado,toast  (товар (800×600))
+  ⬜ porridge.webp                              ← porridge  (товар (800×600))
+  ⬜ scrambled-eggs.webp                        ← scrambled,eggs  (товар (800×600))
+  ⬜ cheesecake.webp                            ← cheesecake  (товар (800×600))
+  ⬜ apple-strudel.webp                         ← apple,strudel  (товар (800×600))
+  ⬜ cinnamon-roll.webp                         ← cinnamon,roll  (товар (800×600))
+  ⬜ chocolate-cake.webp                        ← chocolate,cake  (товар (800×600))
+[clothing] Studio Nordwind
+  ⬜ fashion-boutique.webp                      ← fashion,boutique  (hero (1600×900))
+  ⬜ fashion.webp                               ← fashion  (галерея (800×600))
+  ⬜ clothing-rack.webp                         ← clothing,rack  (галерея (800×600))
+  ⬜ dress.webp                                 ← dress  (галерея (800×600))
+  ⬜ knitwear.webp                              ← knitwear  (галерея (800×600))
+  ⬜ denim.webp                                 ← denim  (галерея (800×600))
+  ⬜ accessories.webp                           ← accessories  (галерея (800×600))
+  ⬜ fashion-designer.webp                      ← fashion,designer  (команда (400×400))
+  ⬜ shop-assistant.webp                        ← shop,assistant  (команда (400×400))
+  ⬜ summer-dress.webp                          ← summer,dress  (товар (800×600))
+  ⬜ linen-blouse.webp                          ← linen,blouse  (товар (800×600))
+  ⬜ cardigan.webp                              ← cardigan  (товар (800×600))
+  ⬜ jeans.webp                                 ← jeans  (товар (800×600))
+  ⬜ tshirt.webp                                ← tshirt  (товар (800×600))
+  ⬜ linen-shirt.webp                           ← linen,shirt  (товар (800×600))
+  ⬜ sweater.webp                               ← sweater  (товар (800×600))
+  ⬜ chinos.webp                                ← chinos  (товар (800×600))
+  ⬜ wool-scarf.webp                            ← wool,scarf  (товар (800×600))
+  ⬜ leather-belt.webp                          ← leather,belt  (товар (800×600))
+  ⬜ beanie.webp                                ← beanie  (товар (800×600))
+  ⬜ canvas-bag.webp                            ← canvas,bag  (товар (800×600))
 [friseur] Salon Schöngut
   ⬜ hair-salon.webp                            ← hair,salon  (hero (1600×900))
   ⬜ hairdresser.webp                           ← hairdresser  (галерея (800×600))
@@ -266,5 +310,5 @@
   ⬜ sausage.webp                               ← sausage  (товар (800×600))
   ⬜ butter.webp                                ← butter  (товар (800×600))
 
-Покрытие: 0/248 (0 %). Файлы — в static/demo/photos/ (правила — README.md там).
+Покрытие: 0/290 (0 %). Файлы — в static/demo/photos/ (правила — README.md там).
 ```

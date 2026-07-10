@@ -43,16 +43,16 @@ BUSINESS_TYPE_META = {
 # ЖИВУЮ демо-витрину этого архетипа. Демо-тенанты создаёт `seed_demo_tenants`; они
 # живут на стабильных поддоменах (kit.subdomain или «<kit>-demo»). Тип бизнеса → kit-
 # поддомен ближайшего демо. Идёт волновой развод общих демо на dedicated-киты
-# (план docs/demo-kits-per-type-plan-2026-07-10.md): волна 1 — bakery/butcher ✅;
-# пока делят: одежда/ритейл → магазин; ресторан/кафе → ресторан; туры/события → retreat.
+# (план docs/demo-kits-per-type-plan-2026-07-10.md): волны 1–2 — bakery/butcher/cafe/clothing ✅;
+# пока делят: online_shop/ритейл → магазин; туры/события → retreat.
 DEMO_KIT_HOST = {
     "bakery": "baeckerei",  # dedicated «Backhaus Krume» (волна 1)
     "butcher": "metzgerei",  # dedicated «Metzgerei Bergmann» (волна 1)
     "grocery": "aktionsmarkt",
-    "clothing": "shop",
+    "clothing": "mode",  # dedicated «Studio Nordwind» (волна 2)
     "online_shop": "shop",  # generic-магазин с Versand; dedicated — по спросу
     "restaurant": "restaurant-demo",
-    "cafe": "restaurant-demo",
+    "cafe": "cafe",  # dedicated «Café Morgenrot» (волна 2)
     "retail": "shop",
     "tour_operator": "retreat",
     "hotel": "hotel",

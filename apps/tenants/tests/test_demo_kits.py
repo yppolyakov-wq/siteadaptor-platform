@@ -828,3 +828,54 @@ def test_apply_butcher_kit_dedicated_metzgerei():
     # Partyservice: jobs-модуль активен, сметы-примеры (Buffet) засеяны
     assert tenant.is_module_active("jobs")
     assert Job.objects.filter(title__icontains="Partyservice").exists()
+
+
+def test_apply_cafe_kit_dedicated_cafe():
+    """Волна 2: dedicated Café-кит — компактная кофейная карта (НЕ ужин-ресторан),
+    бронь столика (booking-ресурс), Kaffeepass 7 штампов, Mittagstisch/Happy-Hour."""
+    from apps.booking.models import Resource
+    from apps.catalog.models import Product
+    from apps.loyalty.models import LoyaltyProgram
+    from apps.promotions.models import Promotion
+
+    tenant = TenantFactory(schema_name="public", slug="cf", name="CF", business_type="cafe")
+    assert demo_kits.apply_kit(tenant, "cafe") is True
+
+    # кофейная карта с вариантами размеров и веган-тегами
+    capp = Product.objects.get(name__de="Cappuccino")
+    assert capp.variants.count() == 2 and "milch" in capp.allergens
+    assert Product.objects.filter(diets__contains=["vegan"]).count() >= 3
+    assert Product.objects.count() <= 20  # компактно, не ресторан на 33 позиции
+    # бронь столика + Kaffeepass (7 штампов)
+    assert tenant.is_module_active("booking")
+    assert Resource.objects.filter(type="table").exists()
+    assert LoyaltyProgram.objects.filter(stamps_required=7).exists()
+    # Mittagstisch (weekly reservation) + Happy Hour (daily)
+    promos = Promotion.objects.filter(status="active")
+    assert promos.filter(promo_type=Promotion.RESERVATION, recurrence="weekly").exists()
+    assert promos.filter(recurrence="daily").exists()
+
+
+def test_apply_clothing_kit_dedicated_boutique():
+    """Волна 2: dedicated Mode-кит — размерные варианты с per-size остатком
+    (0 → Warteliste-стори), Versand deutschlandweit (без PLZ-зон), Sale-группа."""
+    from apps.catalog.models import Product, ProductVariant
+    from apps.promotions.models import Promotion
+
+    tenant = TenantFactory(schema_name="public", slug="nw", name="NW", business_type="clothing")
+    assert demo_kits.apply_kit(tenant, "clothing") is True
+
+    # размерные варианты: у кардигана размер M ausverkauft (склад 0) → Warteliste
+    cardigan = Product.objects.get(name__de="Strickcardigan Wolke")
+    sizes = {v.label: v.stock_quantity for v in ProductVariant.objects.filter(product=cardigan)}
+    assert sizes == {"S": 4, "M": 0, "L": 2}
+    # футболка: 4 размера S–XL
+    shirt = Product.objects.get(name__de="Basic T-Shirt Bio-Baumwolle")
+    assert ProductVariant.objects.filter(product=shirt).count() == 4
+    # Versand: доставка включена БЕЗ PLZ-зон (deutschlandweit, flat 4,90/frei ab 80)
+    assert tenant.delivery_enabled and tenant.delivery_zones == []
+    assert tenant.delivery_free_cents == 8000
+    # Sale-акции: процент + festpreis (durchgestrichen)
+    promos = Promotion.objects.filter(status="active", group="Sale")
+    assert promos.filter(discount_percent=30).exists()
+    assert promos.filter(price_override__gt=0).exists()

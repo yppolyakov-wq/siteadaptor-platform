@@ -31,12 +31,12 @@ def test_demo_url_when_seeded():
 
 
 def test_shared_demo_mapping():
-    """Часть типов пока делит демо (одежда/ритейл → shop); grocery — родной
+    """Часть типов пока делит демо (online_shop/ритейл → shop); grocery — родной
     aktionsmarkt. Развод на dedicated-киты — по волнам плана demo-kits-per-type."""
     DomainFactory(domain="shop.siteadaptor.de", tenant=TenantFactory())
     DomainFactory(domain="aktionsmarkt.siteadaptor.de", tenant=TenantFactory(slug="am2"))
     cards = _cards()
-    for bt in ("clothing", "retail"):
+    for bt in ("online_shop", "retail"):
         assert "shop.siteadaptor.de" in cards[bt]["demo_url"], bt
     assert "aktionsmarkt.siteadaptor.de" in cards["grocery"]["demo_url"]
 
@@ -60,3 +60,17 @@ def test_card_shape_has_demo_key():
     """Контракт карточки: у КАЖДОЙ карточки есть ключ demo_url (пусть и пустой)."""
     for c in onboarding.business_type_cards():
         assert "demo_url" in c
+
+
+def test_dedicated_demo_mapping_wave2():
+    """Волна 2: у кафе и моды свои демо — cafe (Café Morgenrot) и mode (Studio
+    Nordwind); киты зарегистрированы и совпадают с маппингом карточек."""
+    DomainFactory(domain="cafe.siteadaptor.de", tenant=TenantFactory())
+    DomainFactory(domain="mode.siteadaptor.de", tenant=TenantFactory(slug="md2"))
+    cards = _cards()
+    assert "cafe.siteadaptor.de" in cards["cafe"]["demo_url"]
+    assert "mode.siteadaptor.de" in cards["clothing"]["demo_url"]
+    from apps.tenants import demo_kits
+
+    assert demo_kits.KITS["cafe"].subdomain == "cafe"
+    assert demo_kits.KITS["clothing"].subdomain == "mode"
