@@ -442,6 +442,13 @@ Python 3.12, менеджер uv.
   ⚠️ ops: чтобы демо-кнопки появились — прогнать `seed_demo_tenants` на сервере. Остаток
   фидбэка: демо-сайты пока делят один kit на несколько типов (dedicated kits — по спросу);
   variant/modifier labels перевод — отдельным решением.
+- **Самое свежее (2026-07-10): демо-фото — реальный CC0-набор.** 146 webp в
+  `static/demo/photos/` (Openverse `license=cc0,pdm` + Wikimedia Commons, лицензии проверены
+  по метаданным API; каждое фото визуально верифицировано агентами, 4 reject-раунда) →
+  покрытие 167/248 позиций (67 %); остальное — SVG-фолбэк. Провенанс —
+  `static/demo/photos/SOURCES.md`. Портреты команды не брали (реальные лица). ⚠️ ops: фото
+  попадут в демо после `seed_demo_tenants --kit <kit> --recreate`. Ветка
+  `claude/youthful-lovelace-suk4wc` (в main НЕ мержено — на ревью владельца).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay-поля origin_i18n/ingredients_i18n на Product; AddField, аддитив, данные не трогает). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
