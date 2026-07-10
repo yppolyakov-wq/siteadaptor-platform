@@ -3,7 +3,7 @@
 Решение владельца: реальные фото (CC0 или AI-генерация). Файлы кладутся в
 `static/demo/photos/` (правила — README.md там; лицензия CC0/AI-only,
 провенанс — SOURCES.md). Актуальный отчёт с покрытием:
-`python manage.py demo_photo_report [--missing]`. Снимок (вкл. волну 2):
+`python manage.py demo_photo_report [--missing]`. Снимок (волны 1–3):
 
 ```
 [restaurant] Restaurant «Bella Vista»
@@ -220,6 +220,15 @@
   ⬜ leather-belt.webp                          ← leather,belt  (товар (800×600))
   ⬜ beanie.webp                                ← beanie  (товар (800×600))
   ⬜ canvas-bag.webp                            ← canvas,bag  (товар (800×600))
+[tours] Stadtgold Touren
+  ⬜ city-tour.webp                             ← city,tour  (hero (1600×900))
+  ⬜ old-town.webp                              ← old,town  (галерея (800×600))
+  ⬜ wine-cellar.webp                           ← wine,cellar  (галерея (800×600))
+  ⬜ castle.webp                                ← castle  (галерея (800×600))
+  ⬜ bike-tour.webp                             ← bike,tour  (галерея (800×600))
+  ⬜ lantern-night.webp                         ← lantern,night  (галерея (800×600))
+  ⬜ tour-guide-woman.webp                      ← tour,guide,woman  (команда (400×400))
+  ⬜ tour-guide-man.webp                        ← tour,guide,man  (команда (400×400))
 [friseur] Salon Schöngut
   ⬜ hair-salon.webp                            ← hair,salon  (hero (1600×900))
   ⬜ hairdresser.webp                           ← hairdresser  (галерея (800×600))
@@ -310,5 +319,5 @@
   ⬜ sausage.webp                               ← sausage  (товар (800×600))
   ⬜ butter.webp                                ← butter  (товар (800×600))
 
-Покрытие: 0/290 (0 %). Файлы — в static/demo/photos/ (правила — README.md там).
+Покрытие: 0/298 (0 %). Файлы — в static/demo/photos/ (правила — README.md там).
 ```

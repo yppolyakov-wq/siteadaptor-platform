@@ -879,3 +879,32 @@ def test_apply_clothing_kit_dedicated_boutique():
     promos = Promotion.objects.filter(status="active", group="Sale")
     assert promos.filter(discount_percent=30).exists()
     assert promos.filter(price_override__gt=0).exists()
+
+
+def test_apply_tours_kit_dedicated_tour_operator():
+    """Волна 3: dedicated Tour-Operator-кит — регулярные туры (booking-слоты с
+    party-size), датированные события с тирами/депозитом, гиды-Teacher, без каталога."""
+    from apps.booking.models import Resource, Service
+    from apps.catalog.models import Product
+    from apps.events.models import Event, Teacher
+
+    tenant = TenantFactory(
+        schema_name="public", slug="tg", name="TG", business_type="tour_operator"
+    )
+    assert demo_kits.apply_kit(tenant, "tours") is True
+
+    # регулярные туры = booking-услуги; слот-ресурс суммирует размер группы
+    assert Service.objects.count() == 3
+    res = Resource.objects.get()
+    assert res.counts_party_size and res.capacity == 16
+    # датированные: 3 события, у Weinprobe тиры, у Ausflug депозит 20 %
+    assert Event.objects.count() == 3
+    wein = Event.objects.get(title="Weinprobe im Gewölbekeller")
+    assert wein.has_tiers and len(wein.tier_list) == 2
+    ausflug = Event.objects.get(title="Tagesausflug: Moseltal & Burg Eltz")
+    assert ausflug.deposit_percent == 20
+    # гиды как Teacher-сущности, слинкованы с событиями
+    assert Teacher.objects.count() == 2
+    assert wein.teachers.count() == 2
+    # без каталога (тур — не товар)
+    assert Product.objects.count() == 0

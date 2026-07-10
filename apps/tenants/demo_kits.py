@@ -3286,6 +3286,225 @@ CLOTHING = DemoKit(
 )
 
 
+TOURS_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Touren", "type": "archetype", "target": "booking"},
+            {"label": "Events & Ausflüge", "type": "archetype", "target": "events"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Touren", "type": "archetype", "target": "booking", "icon": "🧭"},
+            {"label": "Tickets", "type": "archetype", "target": "events", "icon": "🎟️"},
+            {"label": "Kontakt", "type": "page", "target": "contact", "icon": "📞"},
+        ],
+    },
+}
+
+# A6 Tour-Operator (dedicated, волна 3 демо-трека): экскурсии/туры — регулярные по
+# времени (booking-слоты с party-size, Treffpunkt) + датированные события с тирами/
+# депозитом/QR-билетами (events). Гиды = Teacher-сущности. Без каталога (тур — не
+# товар); таймслот-модель «product → слоты дня» — гэп T6 в roadmap, демо честно на
+# текущем движке (слот = booking-услуга, дата = событие).
+TOURS = DemoKit(
+    key="tours",
+    label="Stadtgold Touren",
+    business_type="tour_operator",
+    subdomain="touren",
+    accent="#0d9488",  # Reise-Türkis
+    hero_image_kw="city,tour",
+    hero_title="Stadtgold Touren",
+    hero_text="Stadtführungen, Radtouren und Tagesausflüge mit lizenzierten "
+    "Gästeführern — kleine Gruppen, echte Geschichten. Online buchen, "
+    "QR-Ticket aufs Handy.",
+    about_title="Über Stadtgold",
+    about_text="Seit 2017 zeigen wir unsere Stadt so, wie Reiseführer sie nicht "
+    "kennen: Hinterhöfe, Handwerk, Anekdoten. Öffentliche Touren starten täglich am "
+    "Rathaus, private Gruppen führen wir auf Wunsch — auch auf Englisch. Für "
+    "Ausflüge und Weinproben gibt es Tickets mit fester Platzzahl.",
+    nav_style="classic",
+    address="Treffpunkt: Rathausplatz 1, 50667 Köln",
+    opening_hours_text="Büro: Mo–Fr 9:00–17:00 · Touren täglich",
+    opening_hours={d: ("09:00", "17:00") for d in range(5)},
+    gallery_kw=["old,town", "city,tour", "wine,cellar", "castle", "bike,tour", "lantern,night"],
+    process=[
+        ("Tour wählen", "Öffentlich nach Termin oder privat für Ihre Gruppe."),
+        ("Online buchen", "Platz sichern — Bestätigung und QR-Ticket per E-Mail."),
+        ("Am Treffpunkt einchecken", "QR zeigen, losgehen. Bei Regen? Wir laufen trotzdem."),
+    ],
+    team=[
+        ("Katrin Gold", "Gästeführerin & Gründerin", "tour,guide,woman"),
+        ("Samir Stein", "Gästeführer (DE/EN)", "tour,guide,man"),
+    ],
+    teachers=[
+        (
+            "Katrin Gold",
+            "Gästeführerin & Gründerin",
+            "tour,guide,woman",
+            "Katrin ist lizenzierte Gästeführerin und erzählt Stadtgeschichte seit "
+            "2017 — mit Vorliebe für Hinterhöfe und Handwerkergeschichten.",
+        ),
+        (
+            "Samir Stein",
+            "Gästeführer (DE/EN)",
+            "tour,guide,man",
+            "Samir führt auf Deutsch und Englisch — Spezialgebiet: Architektur "
+            "und die Stadt bei Nacht.",
+        ),
+    ],
+    trust={"since": "2017", "marks": ["Lizenzierte Gästeführer", "Kleine Gruppen", "QR-Ticket"]},
+    usp=[
+        ("local", "Lizenzierte Gästeführer"),
+        ("quality", "Kleine Gruppen — max. 16"),
+        ("payment", "Online buchen, QR-Ticket"),
+        ("clock", "Touren täglich, auch am Wochenende"),
+    ],
+    testimonials=[
+        (
+            "Familie Krüger",
+            "Zwei Stunden wie im Flug — die Kinder reden heute noch von der Nachtwächter-Tour.",
+        ),
+        ("Peter M.", "Moselausflug perfekt organisiert: Bus, Burg, Weingut. Jeden Cent wert."),
+    ],
+    reviews_seed=[
+        (5, "Die beste Stadtführung, die wir je gemacht haben.", "tg.krueger@example.de"),
+        (5, "Moselausflug top organisiert — Buchung und QR-Ticket easy.", "tg.peter@example.de"),
+        (4, "Radtour sehr schön, Tempo entspannt.", "tg.silke@example.de"),
+    ],
+    faq=[
+        (
+            "Wo ist der Treffpunkt?",
+            "Alle öffentlichen Touren starten am Rathausplatz 1 (Brunnen). "
+            "Der genaue Treffpunkt steht in Ihrer Buchungsbestätigung.",
+        ),
+        (
+            "Was passiert bei Regen?",
+            "Touren finden bei fast jedem Wetter statt. Nur bei Unwetter sagen wir "
+            "ab — dann erhalten Sie automatisch Ersatztermin oder Erstattung.",
+        ),
+        (
+            "Private Gruppenführung?",
+            "Buchen Sie den Slot «Private Gruppenführung» — Festpreis bis 15 "
+            "Personen, Wunschtermin und Schwerpunkt nach Absprache.",
+        ),
+        (
+            "Wie funktioniert das Ticket?",
+            "Nach der Buchung kommt ein QR-Ticket per E-Mail — einfach am "
+            "Treffpunkt vorzeigen, ausgedruckt oder auf dem Handy.",
+        ),
+    ],
+    cta={
+        "title": "Die Stadt wartet",
+        "text": "Sichern Sie sich Plätze für die nächste Tour — die Gruppen sind klein.",
+        "button_label": "Touren ansehen",
+        "button_url": "/termin/",
+    },
+    enable_modules=["events", "booking", "customer_account"],
+    enable_archetypes_section=True,
+    hide_archetypes=["catalog"],
+    storefront_root="home",
+    seed_records=True,
+    menus=TOURS_MENUS,
+    services=[
+        ("Stadtführung Altstadt (öffentlich)", 90, "19"),
+        ("Fahrradtour am Fluss", 180, "35"),
+        ("Private Gruppenführung (bis 15 P.)", 120, "149"),
+    ],
+    resources=[
+        {
+            "name": "Tour ab Rathausplatz",
+            "type": "table",
+            "capacity": 16,  # мест в группе; party_size суммируется
+            "counts_party_size": True,
+            "start": "10:00",
+            "end": "18:00",
+            "slot": 120,
+            "weekdays": range(0, 7),
+        }
+    ],
+    events=[
+        {
+            "title": "Weinprobe im Gewölbekeller",
+            "in_days": 12,
+            "hour": 19,
+            "duration_hours": 3,
+            "capacity": 24,
+            "price": "39",
+            "tiers": [
+                ("Frühbucher", "34"),
+                ("Standard", "39"),
+            ],
+            "location": "Gewölbekeller, Altstadt",
+            "city": "Köln",
+            "category": "genuss",
+            "language": "de",
+            "description": "Sechs Weine von Winzern aus der Region, dazu Brot, Käse und "
+            "Geschichten aus 700 Jahren Kellergewölbe.",
+            "program": [
+                "19:00 — Empfang im Gewölbekeller",
+                "19:30 — Verkostung: 6 Weine mit Winzer-Anekdoten",
+                "21:30 — Ausklang bei Brot & Käse",
+            ],
+        },
+        {
+            "title": "Tagesausflug: Moseltal & Burg Eltz",
+            "in_days": 25,
+            "hour": 8,
+            "duration_hours": 10,
+            "capacity": 30,
+            "price": "89",
+            "deposit_percent": 20,
+            "location": "Abfahrt Busbahnhof, Steig 4",
+            "city": "Köln",
+            "category": "ausflug",
+            "language": "de",
+            "description": "Komfortbus, Burgführung, Mittagessen im Weindorf und "
+            "Verkostung bei einem Familienweingut — alles inklusive.",
+            "program": [
+                "08:00 — Abfahrt (Busbahnhof, Steig 4)",
+                "10:30 — Führung Burg Eltz",
+                "13:00 — Mittagessen im Weindorf · 15:00 Weingut mit Verkostung",
+                "18:00 — Rückkehr",
+            ],
+        },
+        {
+            "title": "Nachtwächter-Tour Spezial",
+            "in_days": 7,
+            "hour": 21,
+            "duration_hours": 2,
+            "capacity": 20,
+            "price": "15",
+            "location": "Rathausplatz 1 (Brunnen)",
+            "city": "Köln",
+            "category": "stadtfuehrung",
+            "language": "de",
+            "description": "Mit Laterne und Hellebarde durch die dunklen Gassen — "
+            "Geschichten von Wächtern, Dieben und Gespenstern.",
+        },
+    ],
+    service_reviews=[
+        (
+            0,
+            5,
+            "Familie Krüger",
+            "tg.rev1@example.de",
+            "Kurzweilig, kinderfreundlich, viele Geschichten — absolute Empfehlung.",
+        ),
+        (1, 5, "Silke B.", "tg.rev2@example.de", "Wunderschöne Route am Fluss, tolles Tempo."),
+        (0, 4, "Tom R.", "tg.rev3@example.de", "Treffpunkt easy gefunden, Guide klasse."),
+    ],
+    event_reviews=[
+        (0, 5, "Peter M.", "tg.rev4@example.de", "Weinprobe mit Herz — der Winzer war live dabei."),
+        (1, 5, "Anja L.", "tg.rev5@example.de", "Burg Eltz Ausflug: perfekt durchorganisiert."),
+    ],
+)
+
+
 FRISEUR_MENUS = {
     "top": {
         "style": "centered",
@@ -4678,6 +4897,7 @@ KITS = {
     BUTCHER.key: BUTCHER,
     CAFE.key: CAFE,
     CLOTHING.key: CLOTHING,
+    TOURS.key: TOURS,
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
     HANDWERKER.key: HANDWERKER,

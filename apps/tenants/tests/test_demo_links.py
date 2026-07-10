@@ -74,3 +74,13 @@ def test_dedicated_demo_mapping_wave2():
 
     assert demo_kits.KITS["cafe"].subdomain == "cafe"
     assert demo_kits.KITS["clothing"].subdomain == "mode"
+
+
+def test_dedicated_demo_mapping_wave3():
+    """Волна 3: у tour_operator своё демо (touren, Stadtgold) — не retreat."""
+    DomainFactory(domain="touren.siteadaptor.de", tenant=TenantFactory())
+    cards = _cards()
+    assert "touren.siteadaptor.de" in cards["tour_operator"]["demo_url"]
+    from apps.tenants import demo_kits
+
+    assert demo_kits.KITS["tours"].subdomain == "touren"
