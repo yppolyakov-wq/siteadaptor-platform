@@ -2662,6 +2662,17 @@ def set_ui_mode_view(request):
     return redirect(_safe_dashboard_referer(request))
 
 
+@login_required
+@require_POST
+def set_cabinet_lang_view(request):
+    """T1 (FB-12): переключатель ЯЗЫКА КАБИНЕТА из шапки — пишет выбор в сессию
+    (валидируется по CABINET_LANGUAGES), возвращает назад. Отдельно от языка витрины."""
+    from apps.core.i18n_cabinet import set_cabinet_locale
+
+    set_cabinet_locale(request, request.POST.get("lang", ""))
+    return redirect(_safe_dashboard_referer(request))
+
+
 def _safe_dashboard_referer(request):
     """Безопасный редирект назад: Referer, только если он свой (same-host) и под
     /dashboard/ — иначе на дашборд. Защита от open-redirect."""

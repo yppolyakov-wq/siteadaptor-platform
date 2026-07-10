@@ -10,6 +10,26 @@ public-схему и пути вне реестра не трогаем.
 from django.http import Http404
 
 from . import modules
+from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
+
+
+class CabinetLocaleMiddleware:
+    """T1 (FB-12): активирует язык КАБИНЕТА для кабинет-путей, независимо от языка
+    витрины (её выбирает клиент). Стоит после LocaleMiddleware → перекрывает его выбор
+    только в кабинете. Витрину/публичные пути не трогает.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.path.startswith(CABINET_PREFIXES):
+            from django.utils import translation
+
+            loc = resolve_cabinet_locale(request)
+            translation.activate(loc)
+            request.LANGUAGE_CODE = loc
+        return self.get_response(request)
 
 
 class ModuleGatingMiddleware:

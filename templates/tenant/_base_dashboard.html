@@ -83,6 +83,17 @@
           <button name="ui_mode" value="simple" class="px-2 py-1 text-xs font-medium {% if ui_simple %}bg-indigo-600 text-white{% else %}bg-white text-gray-500 hover:bg-gray-50{% endif %}">{% trans "Einfach" %}</button>
           <button name="ui_mode" value="expert" class="px-2 py-1 text-xs font-medium border-l border-gray-200 {% if not ui_simple %}bg-indigo-600 text-white{% else %}bg-white text-gray-500 hover:bg-gray-50{% endif %}">{% trans "Experte" %}</button>
         </form>
+        {% comment %}T1 (FB-12): язык КАБИНЕТА (админ-панели) — отдельно от языка витрины.
+        Переключатель по сессии (set-cabinet-lang), показываем при ≥2 переведённых языках.{% endcomment %}
+        {% if cabinet_langs|length > 1 %}
+        <form method="post" action="{% url 'set-cabinet-lang' %}" class="hidden sm:inline-flex items-center gap-1 text-gray-500" title="{% trans 'Cabinet language' %}">
+          {% csrf_token %}
+          <span aria-hidden="true">🗣</span>
+          <select name="lang" onchange="this.form.submit()" aria-label="{% trans 'Cabinet language' %}" class="text-xs bg-white border border-gray-200 rounded-lg px-1.5 py-1 text-gray-600 cursor-pointer">
+            {% for l in cabinet_langs %}<option value="{{ l.code }}"{% if l.code == cabinet_lang %} selected{% endif %}>{{ l.label }}</option>{% endfor %}
+          </select>
+        </form>
+        {% endif %}
         {% comment %}W3-fix (видимость): язык витрины — прямая ссылка на «Sprachen»
         (включить доп. языки → на витрине появляется переключатель DE/EN/…).{% endcomment %}
         <a href="{% url 'languages' %}" class="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'Website languages' %}">🌐 <span class="hidden lg:inline">{% trans "Sprachen" %}</span>{% if cabinet_locale_count > 1 %}<span class="text-[11px] font-semibold text-indigo-600">{{ cabinet_locale_count }}</span>{% endif %}</a>

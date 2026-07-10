@@ -829,3 +829,17 @@ msgstr "Popular"
 #: apps/catalog/models.py
 msgid "Empfehlung"
 msgstr "Recommended"
+
+# --- T1 (FB-12): пилот перевода кабинета (полный перевод — T1-b) ---
+
+#: templates/tenant/_base_dashboard.html
+msgid "Einfach"
+msgstr "Simple"
+
+#: templates/tenant/_base_dashboard.html
+msgid "Experte"
+msgstr "Expert"
+
+#: templates/tenant/_base_dashboard.html
+msgid "Sprachen"
+msgstr "Languages"

@@ -4,7 +4,11 @@
 порталы, онбординг) навигации кабинета нет → пустой контекст.
 """
 
+from django.conf import settings
+from django.utils.translation import get_language
+
 from . import modules
+from .i18n_cabinet import cabinet_languages
 
 
 def _cart_count(request) -> int:
@@ -120,7 +124,6 @@ def modules_nav(request):
         d = request.session.get("site_preview_draft")
         if isinstance(d, dict):
             _draft = d
-    from django.utils.translation import get_language
 
     # Двуязычная витрина (i18n): обложки разделов/тексты chrome — на текущей локали.
     cfg = siteconfig.localize(
@@ -257,4 +260,9 @@ def modules_nav(request):
         "ui_simple_hidden": modules.simple_hidden_labels(tenant),
         # Число включённых языков витрины — бейдж у ссылки «Sprachen» в шапке.
         "cabinet_locale_count": len(tenant.active_locales),
+        # T1 (FB-12): язык КАБИНЕТА (админ-панели) — отдельно от языка витрины.
+        # cabinet_langs — доступные переведённые языки для переключателя в шапке;
+        # cabinet_lang — текущий активный (для подсветки).
+        "cabinet_langs": cabinet_languages(),
+        "cabinet_lang": get_language() or settings.LANGUAGE_CODE,
     }

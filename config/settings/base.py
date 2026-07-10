@@ -135,6 +135,9 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    # T1 (FB-12): язык кабинета перекрывает язык витрины на кабинет-путях. После
+    # LocaleMiddleware (нужны session+tenant) и до рендера вьюх.
+    "apps.core.middleware.CabinetLocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -213,6 +216,12 @@ LANGUAGES = [
     ("pt", "Português"),
 ]
 USE_I18N = True
+
+# T1 (FB-12): язык КАБИНЕТА (админ-панели) — отдельно от языка ВИТРИНЫ. Курируемый
+# список ПЕРЕВЕДЁННЫХ языков кабинета (у которых есть `.po`); растёт по мере готовности
+# перевода (T1-b). Не путать с LANGUAGES (весь реестр витрины). de = исходный (msgid).
+CABINET_LANGUAGES = ["de", "en"]
+
 USE_TZ = True
 TIME_ZONE = "Europe/Berlin"
 LOCALE_PATHS = [BASE_DIR / "locale"]

@@ -33,6 +33,7 @@ from apps.core.views import (
     payment_settings,
     sections_view,
     seo_settings_view,
+    set_cabinet_lang_view,
     set_ui_mode_view,
     settings_view,
     setup_view,
@@ -102,6 +103,7 @@ urlpatterns = [
     path("dashboard/modules/", modules_view, name="modules"),
     # W3-fix: переключатель Einfach/Experte из шапки (работает с любой страницы).
     path("dashboard/ui-mode/", set_ui_mode_view, name="set-ui-mode"),
+    path("dashboard/cabinet-lang/", set_cabinet_lang_view, name="set-cabinet-lang"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),
     path("dashboard/domains/add/", domain_add, name="domain-add"),
