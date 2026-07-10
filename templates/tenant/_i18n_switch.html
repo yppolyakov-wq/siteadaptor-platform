@@ -25,24 +25,36 @@
 <script>
 (function () {
   "use strict";
+  // Делегирование на document: партиал со скриптом парсится РАНЬШЕ табов/панелей
+  // (они ниже в разметке формы), поэтому прямое навешивание слушателей на них
+  // ловило пустой NodeList — кнопки не работали. Делегирование + живые запросы
+  // внутри обработчиков работают независимо от порядка DOM и ajax-подмены.
+  if (window.__i18nSwitchBound) return;
+  window.__i18nSwitchBound = true;
+
   // Переключатель языка: показываем группы только выбранной локали.
-  var pills = document.querySelectorAll("[data-i18n-pill]");
   function setLoc(loc) {
-    pills.forEach(function (b) { b.classList.toggle("i18n-pill-on", b.getAttribute("data-i18n-pill") === loc); });
+    document.querySelectorAll("[data-i18n-pill]").forEach(function (b) {
+      b.classList.toggle("i18n-pill-on", b.getAttribute("data-i18n-pill") === loc);
+    });
     document.querySelectorAll("[data-i18n-loc]").forEach(function (el) {
       el.classList.toggle("hidden", el.getAttribute("data-i18n-loc") !== loc);
     });
   }
-  pills.forEach(function (b) { b.addEventListener("click", function () { setLoc(b.getAttribute("data-i18n-pill")); }); });
-
   // Табы содержимого: одна панель активна.
-  var tabs = document.querySelectorAll("[data-pf-tab]");
   function setTab(t) {
-    tabs.forEach(function (b) { b.classList.toggle("pf-tab-on", b.getAttribute("data-pf-tab") === t); });
+    document.querySelectorAll("[data-pf-tab]").forEach(function (b) {
+      b.classList.toggle("pf-tab-on", b.getAttribute("data-pf-tab") === t);
+    });
     document.querySelectorAll("[data-pf-panel]").forEach(function (el) {
       el.classList.toggle("hidden", el.getAttribute("data-pf-panel") !== t);
     });
   }
-  tabs.forEach(function (b) { b.addEventListener("click", function () { setTab(b.getAttribute("data-pf-tab")); }); });
+  document.addEventListener("click", function (e) {
+    var pill = e.target.closest("[data-i18n-pill]");
+    if (pill) { setLoc(pill.getAttribute("data-i18n-pill")); return; }
+    var tab = e.target.closest("[data-pf-tab]");
+    if (tab) { setTab(tab.getAttribute("data-pf-tab")); return; }
+  });
 })();
 </script>

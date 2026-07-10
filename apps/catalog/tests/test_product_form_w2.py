@@ -137,3 +137,13 @@ def test_origin_i18n_inputs_in_dom_multi_locale(user):
     """Ф2: инпуты переводов origin/ingredients (origin_en/ingredients_en) в DOM при мультиязыке."""
     body = _render(user, TenantFactory(business_type="bakery", enabled_locales=["de", "en"]))
     assert 'name="origin_en"' in body and 'name="ingredients_en"' in body
+
+
+@pytest.mark.django_db
+def test_switcher_uses_event_delegation(user):
+    """Регресс: скрипт свитчера/табов ДОЛЖЕН делегировать клики на document —
+    партиал парсится раньше табов/панелей, прямое навешивание ловило пустой
+    NodeList и кнопки не работали (фидбэк владельца 2026-07-09)."""
+    body = _render(user, TenantFactory(business_type="bakery", enabled_locales=["de", "en"]))
+    assert "__i18nSwitchBound" in body  # guard делегированного слушателя
+    assert 'document.addEventListener("click"' in body  # делегирование, не per-node bind
