@@ -55,6 +55,10 @@
     if (pill) { setLoc(pill.getAttribute("data-i18n-pill")); return; }
     var tab = e.target.closest("[data-pf-tab]");
     if (tab) { setTab(tab.getAttribute("data-pf-tab")); return; }
+    // Кнопка-переход на таб (напр. «Erweiterte Preise» под ценой) — не стилизуется
+    // как таб, просто активирует нужную панель.
+    var goto = e.target.closest("[data-pf-goto]");
+    if (goto) { setTab(goto.getAttribute("data-pf-goto")); return; }
   });
 })();
 </script>

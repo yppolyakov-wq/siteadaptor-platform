@@ -481,3 +481,33 @@ def test_product_photo_edit_op_add_and_remove(tmp_path, settings, user):
     assert views.product_photo_edit(rm).status_code == 204
     p.refresh_from_db()
     assert len(p.images) == 1 and p.images[0]["id"] == "a" and p.images[0]["is_primary"]
+
+
+@pytest.mark.django_db
+def test_variants_extras_on_own_tab_in_edit(user):
+    """#2 (фидбэк владельца): Varianten/Modifiers — на отдельной вкладке; под ценой —
+    кнопка «Erweiterte Preise», переключающая на неё. Панель существует и оборачивает
+    формы вариантов/модификаторов (в режиме редактирования)."""
+    p = ProductFactory(name={"de": "Brot"}, base_price="2.00")
+    req = RequestFactory().get(f"/catalog/products/{p.pk}/edit/")
+    _attach_session_user(req, user)
+    body = views.product_edit(req, pk=p.pk).content.decode()
+    assert 'data-pf-tab="varianten"' in body  # вкладка в баре
+    assert 'data-pf-panel="varianten"' in body  # панель
+    assert 'data-pf-goto="varianten"' in body  # кнопка «расширенная цена» под base_price
+    # формы вариантов/модификаторов внутри панели (панель раньше форм добавления)
+    ip = body.index('data-pf-panel="varianten"')
+    assert "Add variant" in body[ip:]  # форма добавления варианта — в панели
+    assert "Add group" in body[ip:]  # блок модификаторов — в панели
+
+
+@pytest.mark.django_db
+def test_no_variants_tab_on_create(user):
+    """#2: на СОЗДАНИИ товара вкладки вариантов нет (нужен сохранённый товар) — вместо
+    кнопки показываем подсказку «сначала сохранить»."""
+    req = RequestFactory().get("/catalog/products/new/")
+    _attach_session_user(req, user)
+    body = views.product_create(req).content.decode()
+    assert 'data-pf-tab="varianten"' not in body
+    assert 'data-pf-goto="varianten"' not in body
+    assert "Save first to add variants" in body
