@@ -539,7 +539,7 @@ def settings_view(request):
         tenant = form.save(commit=False)
         tenant.opening_hours_structured = _parse_opening_hours(request)
         tenant.save()
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("settings")
     from apps.core import modules as _mod
 
@@ -586,7 +586,7 @@ def payment_settings(request):
             save_vorkasse(tenant, request)
         if request.POST.get("sec_delivery"):
             save_delivery(tenant, request)
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("payment-settings")
 
     def _eur(cents):
@@ -737,7 +737,7 @@ def _upload_gallery_images(request) -> None:
     gallery = list(cfg.get("gallery") or [])
     for f in files:
         if len(gallery) >= siteconfig._MAX_GALLERY:
-            messages.info(request, "Galerie-Limit erreicht.")
+            messages.info(request, _("Galerie-Limit erreicht."))
             break
         try:
             gallery.append(save_product_image(f, sort_order=len(gallery), folder="gallery"))
@@ -746,7 +746,7 @@ def _upload_gallery_images(request) -> None:
     cfg["gallery"] = gallery
     request.tenant.site_config = siteconfig.normalize(cfg)
     request.tenant.save(update_fields=["site_config", "updated_at"])
-    messages.success(request, "Bilder hochgeladen.")
+    messages.success(request, _("Bilder hochgeladen."))
 
 
 def _delete_gallery_image(request, image_id: str) -> None:
@@ -766,7 +766,7 @@ def _delete_gallery_image(request, image_id: str) -> None:
         cfg["gallery"] = gallery
         request.tenant.site_config = siteconfig.normalize(cfg)
         request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, "Bild gelöscht.")
+        messages.success(request, _("Bild gelöscht."))
 
 
 @login_required
@@ -782,22 +782,22 @@ def site_view(request):
         # Применение шаблона витрины (галерея).
         if request.POST.get("action") == "apply_template":
             if sitetemplates.apply_template(request.tenant, request.POST.get("template", "")):
-                messages.success(request, "Vorlage übernommen.")
+                messages.success(request, _("Vorlage übernommen."))
             else:
-                messages.error(request, "Unbekannte Vorlage.")
+                messages.error(request, _("Unbekannte Vorlage."))
             return redirect("site")
         # Демо-контент (M20): отдельные кнопки загрузки/удаления.
         if request.POST.get("action") == "load_demo":
             if demo.load_demo(request.tenant):
-                messages.success(request, "Demo-Inhalte geladen.")
+                messages.success(request, _("Demo-Inhalte geladen."))
             else:
-                messages.info(request, "Demo-Inhalte sind bereits vorhanden.")
+                messages.info(request, _("Demo-Inhalte sind bereits vorhanden."))
             return redirect("site")
         if request.POST.get("action") == "clear_demo":
             if demo.clear_demo(request.tenant):
-                messages.success(request, "Demo-Inhalte gelöscht.")
+                messages.success(request, _("Demo-Inhalte gelöscht."))
             else:
-                messages.info(request, "Keine Demo-Inhalte vorhanden.")
+                messages.info(request, _("Keine Demo-Inhalte vorhanden."))
             return redirect("site")
         # Галерея (M20 ⑤b): загрузка/удаление фото (multipart, отдельно от save).
         if request.POST.get("action") == "upload_gallery":
@@ -847,7 +847,7 @@ def site_view(request):
         # W6: акцент/шрифт/стиль баннера — ЕДИНЫЙ источник в конструкторе главной
         # (home_builder_view). Здесь тему не пишем (primary_color не трогаем).
         request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("site")
 
     config = siteconfig.normalize(request.tenant.site_config)
@@ -1516,7 +1516,7 @@ def home_builder_view(request):
         )
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=update_fields)
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         # UC6-7b: Save с канвы на подстранице возвращает канву на ТУ ЖЕ страницу
         # (page_path — скрытое поле формы, синкается JS при навигации кадра).
         return _redirect_builder(request)
@@ -1886,7 +1886,7 @@ def _upload_cover_gallery(request, key: str) -> None:
     gallery = list(cur.get("gallery") or [])
     for f in files:
         if len(gallery) >= siteconfig._MAX_COVER_GALLERY:
-            messages.info(request, "Galerie-Limit erreicht.")
+            messages.info(request, _("Galerie-Limit erreicht."))
             break
         try:
             gallery.append(save_product_image(f, sort_order=len(gallery), folder="cover"))
@@ -1897,7 +1897,7 @@ def _upload_cover_gallery(request, key: str) -> None:
     cfg["archetypes"] = arch
     request.tenant.site_config = siteconfig.normalize(cfg)
     request.tenant.save(update_fields=["site_config", "updated_at"])
-    messages.success(request, "Bilder hochgeladen.")
+    messages.success(request, _("Bilder hochgeladen."))
 
 
 def _upload_cover_hero(request, key: str) -> None:
@@ -1926,7 +1926,7 @@ def _upload_cover_hero(request, key: str) -> None:
     cfg["archetypes"] = arch
     request.tenant.site_config = siteconfig.normalize(cfg)
     request.tenant.save(update_fields=["site_config", "updated_at"])
-    messages.success(request, "Banner hochgeladen.")
+    messages.success(request, _("Banner hochgeladen."))
 
 
 def _delete_cover_image(request, key: str, image_id: str) -> None:
@@ -1949,7 +1949,7 @@ def _delete_cover_image(request, key: str, image_id: str) -> None:
         cfg["archetypes"] = arch
         request.tenant.site_config = siteconfig.normalize(cfg)
         request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, "Bild gelöscht.")
+        messages.success(request, _("Bild gelöscht."))
 
 
 @login_required
@@ -2297,7 +2297,7 @@ def sections_view(request):
         config["archetypes"] = arch
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("site-sections")
 
     return render(
@@ -2342,7 +2342,7 @@ def pages_view(request):
         }
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("site-pages")
 
     config = siteconfig.normalize(request.tenant.site_config)
@@ -2415,7 +2415,7 @@ def menu_builder_view(request):
             config["menus"] = data
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("site-menu")
 
     tenant = request.tenant
@@ -2495,7 +2495,7 @@ def seo_settings_view(request):
         cfg["seo"] = seo
         request.tenant.site_config = siteconfig.normalize(cfg)
         request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("site-seo")
 
     tenant = request.tenant
@@ -2576,7 +2576,7 @@ def modules_view(request):
                 cfg.pop("ui_mode", None)
             tenant.site_config = cfg
             tenant.save(update_fields=["site_config", "updated_at"])
-            messages.success(request, "Gespeichert.")
+            messages.success(request, _("Gespeichert."))
             return redirect("modules")
         enabled_keys = set(request.POST.getlist("modules"))
         previously_disabled = set(tenant.disabled_modules or [])
@@ -2597,7 +2597,7 @@ def modules_view(request):
                 _("Note: %(modules)s is untypical for your business type — enabled anyway.")
                 % {"modules": ", ".join(odd)},
             )
-        messages.success(request, "Gespeichert.")
+        messages.success(request, _("Gespeichert."))
         return redirect("modules")
 
     dep_labels = {spec.key: spec.label_de for spec in registry.REGISTRY}
@@ -2863,7 +2863,7 @@ def board_settings(request):
         cfg.pop("board", None)
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
-    messages.success(request, "Gespeichert.")
+    messages.success(request, _("Gespeichert."))
     return redirect("board")
 
 

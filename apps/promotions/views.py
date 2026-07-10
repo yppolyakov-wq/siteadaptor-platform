@@ -11,6 +11,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.images import delete_stored_image, save_product_image
@@ -362,10 +363,10 @@ def promotion_feature_checkout(request, pk):
     days_raw = request.POST.get("days", "")
     plan = billing_featured.get_plan(int(days_raw)) if days_raw.isdigit() else None
     if not billing_featured.is_enabled() or plan is None:
-        messages.error(request, "Empfehlung ist derzeit nicht verfügbar.")
+        messages.error(request, _("Empfehlung ist derzeit nicht verfügbar."))
         return redirect("promotions:promotion-feature", pk=pk)
     if promo.status != "active":
-        messages.error(request, "Nur aktive Aktionen können beworben werden.")
+        messages.error(request, _("Nur aktive Aktionen können beworben werden."))
         return redirect("promotions:promotion-feature", pk=pk)
 
     # Гарантируем листинг к моменту оплаты (синк мог не успеть отработать);
@@ -502,7 +503,7 @@ def reservation_action(request, pk):
             "cancel": services.cancel,
         }.get(action)
         if handler is None:
-            messages.error(request, "Unknown action.")
+            messages.error(request, _("Unknown action."))
         else:
             try:
                 handler(res, actor=request.user)
@@ -524,7 +525,7 @@ def redeem_home(request):
         code = (request.POST.get("code") or "").strip().upper()
         if code:
             return redirect("promotions:redeem-detail", code=code)
-        messages.error(request, "Bitte einen Code eingeben.")
+        messages.error(request, _("Bitte einen Code eingeben."))
     return render(request, "promotions/redeem.html", {"nav": "redeem"})
 
 
@@ -567,7 +568,7 @@ def redeem_action(request, code):
             "cancel": services.cancel,
         }.get(action)
         if handler is None:
-            messages.error(request, "Unknown action.")
+            messages.error(request, _("Unknown action."))
         else:
             try:
                 handler(res, actor=request.user)
@@ -662,7 +663,7 @@ def loyalty_list(request):
     form = LoyaltyProgramForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Programm erstellt.")
+        messages.success(request, _("Programm erstellt."))
         return redirect("promotions:loyalty-list")
     return render(
         request,
@@ -704,11 +705,11 @@ def loyalty_stamp(request, program_id):
                     msg += f" — Belohnung: {reward.label} [{reward.code}]"
                 messages.success(request, msg)
             except services.LoyaltyError:
-                messages.error(request, "Zu schnell — bitte kurz warten.")
+                messages.error(request, _("Zu schnell — bitte kurz warten."))
             return redirect(
                 f"{reverse('promotions:loyalty-stamp', args=[program.pk])}?card={card.token}"
             )
-        messages.error(request, "Karte nicht gefunden.")
+        messages.error(request, _("Karte nicht gefunden."))
         return redirect("promotions:loyalty-stamp", program_id=program.pk)
 
     card = _resolve_card(
@@ -751,7 +752,7 @@ def coupon_campaigns(request):
                     subject=d["subject"],
                     body=(d.get("body") or "").strip(),
                 )
-                messages.success(request, "Kampagne gespeichert.")
+                messages.success(request, _("Kampagne gespeichert."))
             else:
                 messages.error(request, "; ".join(e for errs in form.errors.values() for e in errs))
         elif action == "send":
@@ -783,7 +784,7 @@ def coupon_campaigns(request):
                 )
                 obj.valid_days = max(1, min(365, int(request.POST.get("valid_days") or 30)))
             except (TypeError, ValueError):
-                messages.error(request, "Bitte gültige Zahlen eingeben.")
+                messages.error(request, _("Bitte gültige Zahlen eingeben."))
                 return redirect("promotions:coupon-campaigns")
             obj.subject = (request.POST.get("subject") or obj.subject).strip()[:200]
             obj.status = (
@@ -801,7 +802,7 @@ def coupon_campaigns(request):
                     "updated_at",
                 ]
             )
-            messages.success(request, "Auto Win-back gespeichert.")
+            messages.success(request, _("Auto Win-back gespeichert."))
         return redirect("promotions:coupon-campaigns")
 
     campaigns = list(
@@ -846,9 +847,9 @@ def newsletter_campaigns(request):
             body = (request.POST.get("body") or "").strip()
             if subject and body:
                 NewsletterCampaign.objects.create(subject=subject, body=body)
-                messages.success(request, "Entwurf gespeichert.")
+                messages.success(request, _("Entwurf gespeichert."))
             else:
-                messages.error(request, "Bitte Betreff und Text eingeben.")
+                messages.error(request, _("Bitte Betreff und Text eingeben."))
         elif action == "send":
             from .newsletter import send_campaign
 
