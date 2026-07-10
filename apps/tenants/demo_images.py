@@ -170,8 +170,56 @@ def svg_for(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> str:
     )
 
 
+# --- Реальные фото (решение владельца 2026-07-10: CC0/AI-набор) --------------
+# Фото кладутся в static/demo/photos/ (см. README там). Резолв по ключевому слову:
+#   1) <slug>-<lock>.<ext> (вариант для галерей:同 keyword, разный lock)
+#   2) <slug>.<ext>        (точный ключ: "bread,bakery" → bread-bakery.webp)
+#   3) <token>.<ext>       (по токенам ключа: "bread,rolls" → bread.webp)
+# Ничего нет → тематический SVG (как раньше). URL пишется в FileRef при СИДИНГЕ:
+# добавили фото → перезалить демо (`seed_demo_tenants --recreate`).
+_PHOTO_DIR = "demo/photos"
+_PHOTO_EXTS = (".webp", ".jpg", ".jpeg", ".png")
+
+
+def _kw_slug(text: str) -> str:
+    out = "".join(ch if ch.isalnum() else "-" for ch in text.lower().strip())
+    while "--" in out:
+        out = out.replace("--", "-")
+    return out.strip("-")
+
+
+def photo_static_name(keyword: str, *, lock: int = 1) -> str | None:
+    """Имя файла в static/demo/photos/ для ключа (или None → SVG-фолбэк).
+
+    Ищет через staticfiles.finders (работает в dev и на сервере до/после
+    collectstatic). Любая ошибка → None (сидинг не должен падать из-за фото).
+    """
+    try:
+        from django.contrib.staticfiles import finders
+
+        slug = _kw_slug(keyword)
+        candidates = [f"{slug}-{lock}"] if lock and lock != 1 else []
+        candidates.append(slug)
+        candidates += [_kw_slug(t) for t in keyword.split(",") if _kw_slug(t) != slug]
+        for name in candidates:
+            if not name:
+                continue
+            for ext in _PHOTO_EXTS:
+                if finders.find(f"{_PHOTO_DIR}/{name}{ext}"):
+                    return f"{name}{ext}"
+    except Exception:  # noqa: BLE001 — нет staticfiles/настроек → SVG
+        return None
+    return None
+
+
 def demo_image_url(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> str:
-    """URL локальной демо-картинки (для FileRef в демо-китах)."""
+    """URL локальной демо-картинки (для FileRef в демо-китах): реальное фото из
+    static/demo/photos/ (если положено) или тематический SVG-плейсхолдер."""
+    photo = photo_static_name(keyword, lock=lock)
+    if photo:
+        from django.templatetags.static import static
+
+        return static(f"{_PHOTO_DIR}/{photo}")
     qs = urlencode({"kw": keyword, "w": w, "h": h, "lock": lock})
     return f"{DEMO_IMAGE_PATH}?{qs}"
 

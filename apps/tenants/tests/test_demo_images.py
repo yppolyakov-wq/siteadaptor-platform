@@ -63,3 +63,31 @@ def test_view_returns_svg_response():
     assert resp["Content-Type"] == "image/svg+xml"
     assert b"<svg" in resp.content
     assert "max-age" in resp["Cache-Control"]
+
+
+# --- Реальные фото из static/demo/photos/ (решение владельца 2026-07-10) -----
+def test_photo_resolver_fallbacks(tmp_path, settings):
+    """Резолв: точный slug → токен-фолбэк → lock-вариант; нет файла → None (SVG)."""
+    photos = tmp_path / "demo" / "photos"
+    photos.mkdir(parents=True)
+    (photos / "bread-bakery.webp").write_bytes(b"x")  # точный ключ
+    (photos / "cake.jpg").write_bytes(b"x")  # токен-фолбэк
+    (photos / "shop-front-2.webp").write_bytes(b"x")  # lock-вариант
+    settings.STATICFILES_DIRS = [str(tmp_path)]
+
+    assert demo_images.photo_static_name("bread,bakery") == "bread-bakery.webp"
+    assert demo_images.photo_static_name("strawberry,cake") == "cake.jpg"  # по токену
+    assert demo_images.photo_static_name("shop,front", lock=2) == "shop-front-2.webp"
+    assert demo_images.photo_static_name("shop,front", lock=5) is None  # нет ни варианта,
+    # ни базового shop-front.* → SVG
+
+
+def test_demo_image_url_prefers_photo_over_svg(tmp_path, settings):
+    """Есть файл → static-URL фото; нет → прежний SVG-плейсхолдер (фолбэк цел)."""
+    photos = tmp_path / "demo" / "photos"
+    photos.mkdir(parents=True)
+    (photos / "pretzel.webp").write_bytes(b"x")
+    settings.STATICFILES_DIRS = [str(tmp_path)]
+
+    assert demo_image("pretzel") == "/static/demo/photos/pretzel.webp"
+    assert demo_image("unfotografiert").startswith("/medien/demo.svg?")
