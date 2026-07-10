@@ -74,7 +74,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         }
         help_texts = {
             "compare_at_price": _("Leave blank to use the linked product's price."),
-            "discount_percent": _("Either a % or a new price — the rest is computed."),
+            "discount_percent": _("Either a percentage or a new price — the rest is computed."),
             "is_surprise": _(
                 "Shows an „Überraschungstüte“ badge on your storefront and the aggregator."
             ),
@@ -141,7 +141,7 @@ class VoucherCreateForm(forms.Form):
     """Генерация пачки ваучеров."""
 
     label = forms.CharField(
-        label=_("Label"), max_length=120, help_text=_("e.g. −10 % or Free coffee")
+        label=_("Label"), max_length=120, help_text=_("e.g. −10 percent or Free coffee")
     )
     count = forms.IntegerField(label=_("How many"), min_value=1, max_value=200, initial=1)
     max_uses = forms.IntegerField(
@@ -170,7 +170,7 @@ class VoucherCreateForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         if cleaned.get("discount_percent") and cleaned.get("discount_eur"):
-            raise forms.ValidationError(_("Use either % or € discount, not both."))
+            raise forms.ValidationError(_("Use either a percentage or € discount, not both."))
         return cleaned
 
 
@@ -204,9 +204,9 @@ class CouponCampaignForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         if cleaned.get("discount_percent") and cleaned.get("discount_eur"):
-            raise forms.ValidationError(_("Use either % or € discount, not both."))
+            raise forms.ValidationError(_("Use either a percentage or € discount, not both."))
         if not cleaned.get("discount_percent") and not cleaned.get("discount_eur"):
-            raise forms.ValidationError(_("Set a % or € discount for the code."))
+            raise forms.ValidationError(_("Set a percentage or € discount for the code."))
         return cleaned
 
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 22:07+0200\n"
+"POT-Creation-Date: 2026-07-10 22:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2117,9 +2117,9 @@ msgid "Leave blank to use the linked product's price."
 msgstr "Оставьте поле пустым, чтобы использовать цену связанного товара."
 
 #: apps/promotions/forms.py:77
-#, python-format
-msgid "Either a % or a new price — the rest is computed."
+msgid "Either a percentage or a new price — the rest is computed."
 msgstr ""
+"Либо процент, либо новая цена — остальное рассчитывается автоматически."
 
 #: apps/promotions/forms.py:79
 msgid ""
@@ -2209,9 +2209,10 @@ msgid "Label"
 msgstr "Этикетка"
 
 #: apps/promotions/forms.py:144
-#, python-format
-msgid "e.g. −10 % or Free coffee"
-msgstr ""
+#, fuzzy
+#| msgid "e.g. −10 %%, free coffee"
+msgid "e.g. −10 percent or Free coffee"
+msgstr "например, −10 %%, бесплатный кофе"
 
 #: apps/promotions/forms.py:146
 msgid "How many"
@@ -2239,9 +2240,9 @@ msgid "Minimum order €"
 msgstr "Минимальная сумма заказа: €"
 
 #: apps/promotions/forms.py:173 apps/promotions/forms.py:207
-#, python-format
-msgid "Use either % or € discount, not both."
+msgid "Use either a percentage or € discount, not both."
 msgstr ""
+"Используйте либо процентную скидку, либо скидку в евро, но не обе сразу."
 
 #: apps/promotions/forms.py:180 templates/promotions/coupon_campaigns.html:56
 msgid "Campaign name"
@@ -2284,9 +2285,8 @@ msgid "Message"
 msgstr "Сообщение"
 
 #: apps/promotions/forms.py:209
-#, python-format
-msgid "Set a % or € discount for the code."
-msgstr ""
+msgid "Set a percentage or € discount for the code."
+msgstr "Укажите процентную скидку или скидку в евро для данного кода."
 
 #: apps/promotions/forms.py:218
 msgid "Program name"

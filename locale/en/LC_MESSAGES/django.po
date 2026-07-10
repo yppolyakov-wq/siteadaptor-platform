@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: siteadaptor\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 20:23+0200\n"
+"POT-Creation-Date: 2026-07-10 22:48+0200\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -188,6 +188,7 @@ msgid "Booking updated."
 msgstr "Booking updated."
 
 #: apps/booking/views.py:140 apps/jobs/views.py:127 apps/orders/views.py:196
+#: apps/promotions/views.py:508 apps/promotions/views.py:579
 #: apps/stays/views.py:178
 msgid "Unknown action."
 msgstr "Unknown action."
@@ -864,7 +865,7 @@ msgstr "Amenities"
 msgid "Similar rooms"
 msgstr "Similar rooms"
 
-#: apps/core/modules.py:71 config/settings/base.py:602
+#: apps/core/modules.py:71 config/settings/base.py:612
 #: templates/tenant/_base_dashboard.html:3 templates/tenant/dashboard.html:3
 #: templates/tenant/site_home.html:15
 msgid "Dashboard"
@@ -1125,7 +1126,7 @@ msgstr "Languages"
 msgid "Medien"
 msgstr "Media"
 
-#: apps/core/templatetags/cabinet.py:78 config/settings/base.py:624
+#: apps/core/templatetags/cabinet.py:78 config/settings/base.py:634
 #: templates/tenant/domains.html:3
 msgid "Domains"
 msgstr "Domains"
@@ -1188,9 +1189,56 @@ msgstr "Banner slide saved."
 msgid "Slide removed."
 msgstr "Slide removed."
 
+#: apps/core/views.py:542 apps/core/views.py:589 apps/core/views.py:850
+#: apps/core/views.py:1519 apps/core/views.py:2300 apps/core/views.py:2345
+#: apps/core/views.py:2418 apps/core/views.py:2498 apps/core/views.py:2579
+#: apps/core/views.py:2600 apps/core/views.py:2866
+#, fuzzy
+#| msgid "Weichtiere"
+msgid "Gespeichert."
+msgstr "Molluscs"
+
 #: apps/core/views.py:649
 msgid "Please enable at least one language."
 msgstr "Please enable at least one language."
+
+#: apps/core/views.py:740 apps/core/views.py:1889
+msgid "Galerie-Limit erreicht."
+msgstr "Gallery limit reached."
+
+#: apps/core/views.py:749 apps/core/views.py:1900
+msgid "Bilder hochgeladen."
+msgstr "Pictures uploaded."
+
+#: apps/core/views.py:769 apps/core/views.py:1952
+#, fuzzy
+#| msgid "Eingelöst"
+msgid "Bild gelöscht."
+msgstr "Redeemed"
+
+#: apps/core/views.py:785
+msgid "Vorlage übernommen."
+msgstr "Template adopted."
+
+#: apps/core/views.py:787
+msgid "Unbekannte Vorlage."
+msgstr "Unknown source."
+
+#: apps/core/views.py:792
+msgid "Demo-Inhalte geladen."
+msgstr "Demo content loaded."
+
+#: apps/core/views.py:794
+msgid "Demo-Inhalte sind bereits vorhanden."
+msgstr "Demo content is already available."
+
+#: apps/core/views.py:798
+msgid "Demo-Inhalte gelöscht."
+msgstr "Demo content has been deleted."
+
+#: apps/core/views.py:800
+msgid "Keine Demo-Inhalte vorhanden."
+msgstr "No demo content available."
 
 #: apps/core/views.py:1090
 msgid "Block added."
@@ -1389,6 +1437,12 @@ msgstr "Bold"
 msgid "Extra bold"
 msgstr "Extra bold"
 
+#: apps/core/views.py:1929
+#, fuzzy
+#| msgid "Banner heading"
+msgid "Banner hochgeladen."
+msgstr "Banner heading"
+
 #: apps/core/views.py:2507
 msgid "Listings (catalog, rooms, events)"
 msgstr "Listings (catalog, rooms, events)"
@@ -1489,7 +1543,7 @@ msgstr "Invoices"
 msgid "Messages"
 msgstr "Messages"
 
-#: apps/crm/customer360.py:205 config/settings/base.py:645
+#: apps/crm/customer360.py:205 config/settings/base.py:655
 #: templates/aggregator/_cards.html:77
 #: templates/aggregator/portal_business.html:41
 #: templates/reviews/review_list.html:3 templates/reviews/review_list.html:7
@@ -2080,8 +2134,9 @@ msgid "Leave blank to use the linked product's price."
 msgstr "Leave blank to use the linked product's price."
 
 #: apps/promotions/forms.py:77
-#, python-format
-msgid "Either a % or a new price — the rest is computed."
+#, fuzzy
+#| msgid "Either a % or a new price — the rest is computed."
+msgid "Either a percentage or a new price — the rest is computed."
 msgstr "Either a % or a new price — the rest is computed."
 
 #: apps/promotions/forms.py:79
@@ -2167,8 +2222,9 @@ msgid "Label"
 msgstr "Label"
 
 #: apps/promotions/forms.py:144
-#, python-format
-msgid "e.g. −10 % or Free coffee"
+#, fuzzy
+#| msgid "e.g. −10 % or Free coffee"
+msgid "e.g. −10 percent or Free coffee"
 msgstr "e.g. −10 % or Free coffee"
 
 #: apps/promotions/forms.py:146
@@ -2197,8 +2253,9 @@ msgid "Minimum order €"
 msgstr "Minimum order €"
 
 #: apps/promotions/forms.py:173 apps/promotions/forms.py:207
-#, python-format
-msgid "Use either % or € discount, not both."
+#, fuzzy
+#| msgid "Use either % or € discount, not both."
+msgid "Use either a percentage or € discount, not both."
 msgstr "Use either % or € discount, not both."
 
 #: apps/promotions/forms.py:180 templates/promotions/coupon_campaigns.html:56
@@ -2242,8 +2299,9 @@ msgid "Message"
 msgstr "Message"
 
 #: apps/promotions/forms.py:209
-#, python-format
-msgid "Set a % or € discount for the code."
+#, fuzzy
+#| msgid "Set a % or € discount for the code."
+msgid "Set a percentage or € discount for the code."
 msgstr "Set a % or € discount for the code."
 
 #: apps/promotions/forms.py:218
@@ -2288,6 +2346,103 @@ msgstr "Please enter your name and the goods."
 #, python-format
 msgid "Products from %(name)s"
 msgstr "Products from %(name)s"
+
+#: apps/promotions/views.py:366
+msgid "Empfehlung ist derzeit nicht verfügbar."
+msgstr "This recommendation is currently unavailable."
+
+#: apps/promotions/views.py:369
+msgid "Nur aktive Aktionen können beworben werden."
+msgstr "Only active promotions can be advertised."
+
+#: apps/promotions/views.py:466
+#, python-format
+msgid "Status: %(target)s"
+msgstr "Status: %(target)s"
+
+#: apps/promotions/views.py:469
+#, python-format
+msgid "Transition to %(target)s is not allowed."
+msgstr "Transition to %(target)s is not allowed."
+
+#: apps/promotions/views.py:514
+#, fuzzy
+#| msgid "Reservierung storniert"
+msgid "Reservation confirmed."
+msgstr "Reservation cancelled"
+
+#: apps/promotions/views.py:515
+#, fuzzy
+#| msgid "Reservation imported."
+msgid "Reservation fulfilled."
+msgstr "Reservation imported."
+
+#: apps/promotions/views.py:516
+#, fuzzy
+#| msgid "Reservation received"
+msgid "Reservation cancelled."
+msgstr "Reservation received"
+
+#: apps/promotions/views.py:518
+#, fuzzy
+#| msgid "Reservation imported."
+msgid "Reservation updated."
+msgstr "Reservation imported."
+
+#: apps/promotions/views.py:536
+#, fuzzy
+#| msgid "Bitte gezählten Bestand eingeben."
+msgid "Bitte einen Code eingeben."
+msgstr "Please enter the counted inventory."
+
+#: apps/promotions/views.py:616
+#, python-format
+msgid "%(count)d Voucher erstellt."
+msgstr "%(count)d Voucher created."
+
+#: apps/promotions/views.py:674
+#, fuzzy
+#| msgid "Program name"
+msgid "Programm erstellt."
+msgstr "Program name"
+
+#: apps/promotions/views.py:716
+msgid "Zu schnell — bitte kurz warten."
+msgstr "Too fast — please wait a moment."
+
+#: apps/promotions/views.py:720
+#, fuzzy
+#| msgid "Payment refunded."
+msgid "Karte nicht gefunden."
+msgstr "Payment refunded."
+
+#: apps/promotions/views.py:763
+#, fuzzy
+#| msgid "Benachrichtigungen gespeichert."
+msgid "Kampagne gespeichert."
+msgstr "Notifications saved."
+
+#: apps/promotions/views.py:795
+#, fuzzy
+#| msgid "Bitte gezählten Bestand eingeben."
+msgid "Bitte gültige Zahlen eingeben."
+msgstr "Please enter the counted inventory."
+
+#: apps/promotions/views.py:813
+msgid "Auto Win-back gespeichert."
+msgstr "Auto Win-back saved."
+
+#: apps/promotions/views.py:858
+#, fuzzy
+#| msgid "Benachrichtigungen gespeichert."
+msgid "Entwurf gespeichert."
+msgstr "Notifications saved."
+
+#: apps/promotions/views.py:860
+#, fuzzy
+#| msgid "Bitte gezählten Bestand eingeben."
+msgid "Bitte Betreff und Text eingeben."
+msgstr "Please enter the counted inventory."
 
 #: apps/publishing/views.py:46
 msgid "Channel updated."
@@ -2757,75 +2912,75 @@ msgstr "Request a quote"
 msgid "Ask a question"
 msgstr "Deal"
 
-#: config/settings/base.py:572
+#: config/settings/base.py:582
 msgid "Platform administration"
 msgstr "Platform administration"
 
-#: config/settings/base.py:598
+#: config/settings/base.py:608
 msgid "Overview"
 msgstr "Overview"
 
-#: config/settings/base.py:609
+#: config/settings/base.py:619
 msgid "Businesses"
 msgstr "Businesses"
 
-#: config/settings/base.py:613
+#: config/settings/base.py:623
 msgid "Tenants"
 msgstr "Tenants"
 
-#: config/settings/base.py:619
+#: config/settings/base.py:629
 msgid "Partners"
 msgstr "Partners"
 
-#: config/settings/base.py:631
+#: config/settings/base.py:641
 msgid "Aggregator & portals"
 msgstr "Aggregators & Portals"
 
-#: config/settings/base.py:635
+#: config/settings/base.py:645
 msgid "Portals"
 msgstr "Portals"
 
-#: config/settings/base.py:640
+#: config/settings/base.py:650
 msgid "Listings"
 msgstr "Listings"
 
-#: config/settings/base.py:650
+#: config/settings/base.py:660
 msgid "Portal bots"
 msgstr "Portal bots"
 
-#: config/settings/base.py:657
+#: config/settings/base.py:667
 msgid "Support"
 msgstr "Support"
 
-#: config/settings/base.py:661
+#: config/settings/base.py:671
 msgid "Support tickets"
 msgstr "Support tickets"
 
-#: config/settings/base.py:668
+#: config/settings/base.py:678
 msgid "Platform"
 msgstr "Platform"
 
-#: config/settings/base.py:672
+#: config/settings/base.py:682
 msgid "Secrets"
 msgstr "Secrets"
 
-#: config/settings/base.py:677
+#: config/settings/base.py:687
 msgid "Audit log"
 msgstr "Audit log"
 
-#: config/settings/base.py:682
+#: config/settings/base.py:692
 msgid "Webhooks"
 msgstr "Webhooks"
 
-#: config/settings/base.py:687
+#: config/settings/base.py:697
 msgid "Webhook deliveries"
 msgstr "Webhook deliveries"
 
-#: config/settings/base.py:692
+#: config/settings/base.py:702
 msgid "Users"
 msgstr "Users"
 
-#: config/settings/base.py:697
+#: config/settings/base.py:707
 msgid "Groups"
 msgstr "Groups"
 
@@ -9813,6 +9968,11 @@ msgstr "Icons:"
 #: templates/tenant/_section_fields.html:46
 msgid "One per line: Question | Answer."
 msgstr "One per line: Question | Answer."
+
+#: templates/tenant/dashboard.html:9
+#, python-format
+msgid "Setup-Fortschritt: %(done)s/%(total)s — weiter einrichten →"
+msgstr "Setup Progress: %(done)s / %(total)s — Continue setup →"
 
 #: templates/tenant/dashboard.html:13
 msgid "Welcome"
