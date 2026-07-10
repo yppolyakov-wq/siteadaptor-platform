@@ -4704,3 +4704,20 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   (248 ключей/11 китов, --kit/--missing), снимок `docs/demo-photos-shopping-list-2026-07-10.md`,
   тесты резолвера. Осталось: волна 2 (cafe+clothing киты), волна 3 (tours), фото-сессия
   (владелец открыл сеть; промпт передан), dedicated online_shop-кит по спросу.
+- **Демо-трек «сайт под каждый тип» — волны 2+3 ЗАКРЫТЫ (трек целиком)** (2026-07-10,
+  ветка `claude/admin-simplification-handoff-dfawis`, merge `448fcde`, БЕЗ миграций).
+  **Волна 2 (`0ad2261`):** dedicated-киты **CAFE «Café Morgenrot»** (`cafe.<base>`;
+  компактная кофейная карта 13 позиций с вариантами размеров/веган-тегами, бронь столика
+  (booking-ресурс 18 мест), Kaffeepass 7 штампов, Mittagstisch weekly-reservation +
+  Happy-Hour daily + countdown) и **CLOTHING «Studio Nordwind»** (`mode.<base>`; Damen/
+  Herren/Accessoires, размерные варианты S–XL/36–42 с per-size остатком — Strickcardigan M
+  = 0 → живая Warteliste-стори; Versand deutschlandweit БЕЗ PLZ-зон flat 4,90/frei ab 80 €;
+  Sale-группа percent+festpreis; Style-Karte). **Волна 3 (`448fcde`):** **TOURS «Stadtgold
+  Touren»** (`touren.<base>`; регулярные туры = booking-услуги со слот-ресурсом
+  party-size ≤16, датированные = events с тирами (Weinprobe)/депозитом 20 % (Moselausflug
+  с программой)/QR; гиды = Teacher; БЕЗ каталога, hide_archetypes). DEMO_KIT_HOST:
+  cafe→cafe, clothing→mode, tour_operator→touren (events остаётся retreat). Замки:
+  apply-тесты 3 китов + mapping wave2/wave3; полный apps/tenants 479 зелёных; фото-список
+  перегенерирован (298 ключей). **Итог трека: 13/14 типов со своим осмысленным демо**
+  (other — намеренно без; dedicated online_shop-кит — по спросу). Ops: после деплоя —
+  `seed_demo_tenants` (создаст cafe/mode/touren).

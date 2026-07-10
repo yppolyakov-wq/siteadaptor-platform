@@ -452,9 +452,13 @@ Python 3.12, менеджер uv.
   Krume» (`baeckerei`) и BUTCHER «Metzgerei Bergmann» (`metzgerei`, Partyservice через jobs);
   **тип `online_shop`** (⚠️ миграция `tenants/0024`→`0025`, choices-only) с карточкой/пресетами/
   JSON-LD OnlineStore; **фото-пайплайн** `static/demo/photos/` (CC0/AI, резолвер с SVG-фолбэком,
-  команда `demo_photo_report`, 248 ключей). Дальше: волна 2 (cafe+clothing), волна 3 (tours),
-  фото-сессия (сеть открыта владельцем). ⚠️ ops после деплоя: `seed_demo_tenants` (baeckerei/
-  metzgerei; handwerker на сервере не досеян — `--kit handwerker --recreate`).
+  команда `demo_photo_report`, 298 ключей). **Волны 2+3 ЗАКРЫТЫ тем же днём (merge `448fcde`,
+  без миграций): CAFE «Café Morgenrot» (`cafe`), CLOTHING «Studio Nordwind» (`mode`,
+  per-size остаток → Warteliste), TOURS «Stadtgold Touren» (`touren`, тиры/депозит/QR,
+  гиды-Teacher). Демо-трек закрыт: 13/14 типов со своим демо** (other — намеренно;
+  dedicated online_shop-кит — по спросу). Фото-сессия — сеть открыта владельцем, промпт
+  передан. ⚠️ ops после деплоя: `seed_demo_tenants` (baeckerei/metzgerei/cafe/mode/touren;
+  handwerker на сервере не досеян — `--kit handwerker --recreate`).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
