@@ -463,9 +463,11 @@ def promotion_transition(request, pk):
         target = request.POST.get("target", "")
         try:
             PromotionSM().apply(promo, target, actor=request.user)
-            messages.success(request, f"Status: {target}")
+            messages.success(request, _("Status: %(target)s") % {"target": target})
         except IllegalTransition:
-            messages.error(request, f"Transition to {target} is not allowed.")
+            messages.error(
+                request, _("Transition to %(target)s is not allowed.") % {"target": target}
+            )
     return redirect("promotions:promotion-edit", pk=pk)
 
 
@@ -507,7 +509,13 @@ def reservation_action(request, pk):
         else:
             try:
                 handler(res, actor=request.user)
-                messages.success(request, f"Reservation {action}ed.")
+                # i18n: явные полные сообщения на действие (нельзя склеивать «{action}ed»)
+                _res_done = {
+                    "confirm": _("Reservation confirmed."),
+                    "fulfill": _("Reservation fulfilled."),
+                    "cancel": _("Reservation cancelled."),
+                }
+                messages.success(request, _res_done.get(action, _("Reservation updated.")))
             except IllegalTransition:
                 messages.error(request, f"Cannot {action} a reservation in status “{res.status}”.")
     return redirect("promotions:reservation-list")
@@ -605,7 +613,7 @@ def voucher_list(request):
             discount_cents=int(d_eur * 100) if d_eur else None,
             min_order_cents=int(min_eur * 100) if min_eur else 0,
         )
-        messages.success(request, f"{len(created)} Voucher erstellt.")
+        messages.success(request, _("%(count)d Voucher erstellt.") % {"count": len(created)})
         return redirect("promotions:voucher-list")
     # B1.3: проданные Geschenkgutscheine (движок G1) — покупатель/номинал/
     # оплата/погашение; код выпускается webhook'ом после оплаты.
