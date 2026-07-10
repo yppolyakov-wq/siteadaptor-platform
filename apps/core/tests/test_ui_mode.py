@@ -83,6 +83,17 @@ def test_simple_hidden_modules_helper():
     ) == frozenset({"finance", "analytics"})
 
 
+# --- #4: ясность режима — человекочитаемый список «что скрывает Простой» ------
+def test_simple_hidden_labels_independent_of_mode():
+    """#4: список названий скрываемого — НЕЗАВИСИМО от текущего режима (чтобы показать
+    и в Эксперт-режиме, что упрощает Простой); только реально активные разделы."""
+    labels = modules.simple_hidden_labels(_t(business_type="bakery"))  # expert
+    assert "Finanzen (Umsatz)" in labels and "Auswertung" in labels
+    # friseur — плюс каталог (нерелевантен архетипу услуг)
+    fl = modules.simple_hidden_labels(_t(business_type="friseur"))
+    assert "Katalog & Import" in fl
+
+
 # --- сохранение ui_mode при нормализации (иначе билдер сотрёт) ---------------
 def test_normalize_keeps_ui_mode_simple():
     assert normalize({"ui_mode": "simple"}).get("ui_mode") == "simple"
@@ -123,6 +134,26 @@ def test_modules_toggle_sets_and_clears_ui_mode(rf, settings):
     tenant.refresh_from_db()
     assert "ui_mode" not in tenant.site_config
     assert tenant.site_config.get("notify") == {"x": 1}
+
+
+@pytest.mark.django_db
+def test_modules_page_shows_what_simple_hides(rf, settings):
+    """#4: страница «Funktionen» перечисляет конкретные разделы, которые Простой режим
+    убирает (фидбэк «непонятно, что упрощается»)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core.views import modules_view
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="t_ui2", name="UI2 Co", business_type="bakery")
+    user = get_user_model().objects.create_user("u2", "u2@test.de", "pw12345678")
+    req = rf.get("/dashboard/modules/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = user
+    req.tenant = tenant
+    body = modules_view(req).content.decode()
+    assert "Finanzen (Umsatz)" in body and "Auswertung" in body  # конкретный список
+    assert "Currently: Expert" in body  # текущий режим виден
 
 
 @pytest.mark.django_db

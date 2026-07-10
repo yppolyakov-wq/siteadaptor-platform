@@ -78,7 +78,7 @@
       <div class="text-sm flex items-center gap-2 sm:gap-3">
         {% comment %}W3-fix (видимость): режим кабинета — тумблер в шапке (всегда виден,
         не спрятан на «Funktionen»/Erweitert). POST на set-ui-mode → возврат назад.{% endcomment %}
-        <form method="post" action="{% url 'set-ui-mode' %}" class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 overflow-hidden" title="{% trans 'Simple hides pro tools; Expert shows everything' %}">
+        <form method="post" action="{% url 'set-ui-mode' %}" class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 overflow-hidden" title="{% if ui_simple_hidden %}{% blocktrans with items=ui_simple_hidden|join:', ' %}Simple mode hides from the menu: {{ items }}. Expert shows everything.{% endblocktrans %}{% else %}{% trans 'Simple hides pro tools; Expert shows everything' %}{% endif %}">
           {% csrf_token %}
           <button name="ui_mode" value="simple" class="px-2 py-1 text-xs font-medium {% if ui_simple %}bg-indigo-600 text-white{% else %}bg-white text-gray-500 hover:bg-gray-50{% endif %}">{% trans "Einfach" %}</button>
           <button name="ui_mode" value="expert" class="px-2 py-1 text-xs font-medium border-l border-gray-200 {% if not ui_simple %}bg-indigo-600 text-white{% else %}bg-white text-gray-500 hover:bg-gray-50{% endif %}">{% trans "Experte" %}</button>

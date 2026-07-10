@@ -633,6 +633,17 @@ def simple_hidden_modules(tenant) -> frozenset[str]:
     return SIMPLE_HIDDEN_MODULES | ARCHETYPE_SIMPLE_HIDDEN.get(bt, frozenset())
 
 
+def simple_hidden_labels(tenant) -> list[str]:
+    """#4 (ясность режима, фидбэк владельца «непонятно, что упрощает Einfach»):
+    человекочитаемые названия разделов, которые Простой режим убирает из меню у ЭТОГО
+    тенанта — НЕЗАВИСИМО от текущего режима (чтобы показать «что скрывается» и в
+    Эксперт-режиме). Только реально активные разделы (не перечисляем то, чего нет).
+    Порядок — как в реестре."""
+    bt = getattr(tenant, "business_type", "") or ""
+    hidden = SIMPLE_HIDDEN_MODULES | ARCHETYPE_SIMPLE_HIDDEN.get(bt, frozenset())
+    return [spec.label_de for spec in active_modules(tenant) if spec.key in hidden]
+
+
 def grouped_active_modules(tenant) -> list[dict]:
     """AB1: активные модули, сгруппированные по задачам (для сайдбара кабинета).
 

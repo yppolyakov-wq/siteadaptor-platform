@@ -14,10 +14,23 @@
     {% endfor %}
   {% endif %}
 
-  {% comment %}S5: тумблер режима кабинета — Einfach прячет продвинутое из меню.{% endcomment %}
+  {% comment %}S5/#4: тумблер режима кабинета — Einfach прячет продвинутое из меню.
+     Фидбэк владельца «непонятно, что упрощается» → показываем конкретный список
+     (ui_simple_hidden) + текущий режим.{% endcomment %}
   <div class="mb-5 rounded-xl border border-gray-200 p-4">
-    <h2 class="font-semibold mb-1">{% trans "Ansicht" %}</h2>
-    <p class="text-sm text-gray-500 mb-3">{% trans "Einfach blendet Profi-Werkzeuge aus dem Menü aus (Seiten bleiben per Link erreichbar). Experte zeigt alles." %}</p>
+    <div class="flex items-center justify-between gap-2 mb-1">
+      <h2 class="font-semibold">{% trans "Ansicht" %}</h2>
+      <span class="text-xs font-medium rounded-full px-2 py-0.5 {% if ui_simple %}bg-indigo-100 text-indigo-700{% else %}bg-gray-100 text-gray-600{% endif %}">{% if ui_simple %}{% trans "Currently: Simple" %}{% else %}{% trans "Currently: Expert" %}{% endif %}</span>
+    </div>
+    <p class="text-sm text-gray-500 mb-2">{% trans "Einfach blendet Profi-Werkzeuge aus dem Menü aus (Seiten bleiben per Link erreichbar). Experte zeigt alles." %}</p>
+    {% if ui_simple_hidden %}
+      <p class="text-sm text-gray-600 mb-3">
+        {% trans "Simple mode hides these menu items:" %}
+        {% for lbl in ui_simple_hidden %}<span class="inline-block bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 text-xs ml-1">{{ lbl }}</span>{% endfor %}
+      </p>
+    {% else %}
+      <p class="text-sm text-gray-400 mb-3">{% trans "For your business type Simple mode hides nothing extra." %}</p>
+    {% endif %}
     <form method="post" class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
       {% csrf_token %}
       <button name="ui_mode" value="simple" class="px-4 py-2 text-sm font-medium {% if ui_simple %}bg-indigo-600 text-white{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}">{% trans "Einfach" %}</button>
