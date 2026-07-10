@@ -214,12 +214,20 @@ def photo_static_name(keyword: str, *, lock: int = 1) -> str | None:
 
 def demo_image_url(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> str:
     """URL локальной демо-картинки (для FileRef в демо-китах): реальное фото из
-    static/demo/photos/ (если положено) или тематический SVG-плейсхолдер."""
+    static/demo/photos/ (если положено) или тематический SVG-плейсхолдер.
+
+    ВАЖНО: URL строим ПЛОСКИМ (`STATIC_URL + путь`), НЕ через `static()`. В проде
+    staticfiles-storage = ManifestStaticFilesStorage: `static()` (а) падает, если файла
+    нет в манифесте collectstatic (инцидент сидинга 2026-07-10), и (б) возвращает
+    хешированный URL, который пишется в site_config/Product.images и протухает на
+    следующем деплое (пере-хеш). Плоское имя WhiteNoise отдаёт из STATIC_ROOT
+    (collectstatic хранит и оригинал), а URL стабилен между деплоями."""
     photo = photo_static_name(keyword, lock=lock)
     if photo:
-        from django.templatetags.static import static
+        from django.conf import settings
 
-        return static(f"{_PHOTO_DIR}/{photo}")
+        base = (getattr(settings, "STATIC_URL", "/static/") or "/static/").rstrip("/")
+        return f"{base}/{_PHOTO_DIR}/{photo}"
     qs = urlencode({"kw": keyword, "w": w, "h": h, "lock": lock})
     return f"{DEMO_IMAGE_PATH}?{qs}"
 

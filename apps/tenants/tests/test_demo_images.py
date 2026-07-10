@@ -94,3 +94,21 @@ def test_demo_image_url_prefers_photo_over_svg(tmp_path, settings):
 
     assert demo_image("pretzel") == "/static/demo/photos/pretzel.webp"
     assert demo_image("unfotografiert").startswith("/medien/demo.svg?")
+
+
+def test_demo_image_url_survives_manifest_storage(tmp_path, settings):
+    """Регресс прод-инцидента 2026-07-10: под ManifestStaticFilesStorage сидинг падал
+    (`static()` → Missing manifest entry). demo_image_url обязан строить ПЛОСКИЙ URL
+    без обращения к манифесту — не падать и не хешировать (URL живёт в БД)."""
+    photos = tmp_path / "demo" / "photos"
+    photos.mkdir(parents=True)
+    (photos / "bruschetta.webp").write_bytes(b"x")
+    settings.STATICFILES_DIRS = [str(tmp_path)]
+    # прод-хранилище: .url() потребовал бы манифест и упал бы на несобранном файле
+    settings.STORAGES = {
+        **settings.STORAGES,
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"},
+    }
+    url = demo_image("bruschetta,tomato")  # не должно кинуть ValueError
+    assert url == "/static/demo/photos/bruschetta.webp"  # плоский, без хеша
+    assert ".webp" in url and url.count(".") == 1  # нет .<hash>.webp
