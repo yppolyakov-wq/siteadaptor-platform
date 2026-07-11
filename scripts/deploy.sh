@@ -60,8 +60,8 @@ $COMPOSE run --rm web python manage.py migrate_schemas
 
 echo "==> [6/8] Collect static"
 $COMPOSE run --rm web python manage.py collectstatic --noinput
-# L4: компиляция переводов писем (.po → .mo; .mo не в git)
-$COMPOSE run --rm web python manage.py compilemessages -l en
+# L4/T1-b: компиляция переводов (все локали) (.po → .mo; .mo не в git)
+$COMPOSE run --rm web python manage.py compilemessages
 
 echo "==> [7/8] Restart services"
 $COMPOSE up -d
