@@ -498,7 +498,17 @@ Python 3.12, менеджер uv.
   `compose run --rm compilemessages` в deploy.sh писал их в эфемерный контейнер, В ПРОДЕ
   локали (вкл. EN-письма L4) молча не работали; + `CABINET_LANGUAGES` += tr/ru/uk (селектор
   🗣 = 5 языков).
-- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
+- **Самое свежее (2026-07-11): T1-b влит (en/tr/ru/uk хром кабинета, DeepL-сессия) + фикс
+  «.mo в образ» + FB-батч 5/6/7/2 — main `217f8df`.** T1-b: перевод хрома DeepL'ом (de-тест-
+  эксперимент откачен), `CABINET_LANGUAGES=["de","en","tr","ru","uk"]`; критичный фикс: .mo
+  компилируются ПРИ СБОРКЕ ОБРАЗА (Dockerfile msgfmt; раньше compilemessages в `run --rm` →
+  прод молча без переводов; шаг из deploy.sh убран). FB-батч: «＋ Foto»-плитка на формах
+  товара/акции/категории (FB-5), фото категорий/подкатегорий + плитки витрины (FB-6,
+  ⚠️ миграция `catalog/0016`), жирные даты календаря номера (FB-7), видимая кнопка
+  «⚙️ Spalten» на доске (FB-2). FB-13 (иконка при hover) не воспроизводится в изоляции —
+  ждём контекст владельца. Остаток T1: полный de-хром НЕ трогаем (msgid=de), rosetta-цикл
+  прод: править в dev → коммит .po → деплой.
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
