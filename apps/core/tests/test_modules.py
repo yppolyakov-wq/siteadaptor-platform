@@ -383,7 +383,7 @@ class TestModulesView:
 
         html = modules_view(self._request(TenantFactory())).content.decode()
         assert "Recommended for your business" in html
-        assert "More functions" in html
+        assert "Weitere Funktionen" in html
         # Premium-секция скрыта, пока нет premium-модулей.
         assert "Available with a paid plan." not in html
 
@@ -516,4 +516,4 @@ def test_modules_view_warns_on_untypical_enable(settings):
     get_request.tenant = tenant
     get_request.user = request.user
     body = modules_view(get_request).content.decode()
-    assert "More functions" in body and "Geeignet für:" in body  # AB2: секция «weitere»
+    assert "Weitere Funktionen" in body and "Geeignet für:" in body  # AB2: секция «weitere»

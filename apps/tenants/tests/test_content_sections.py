@@ -204,4 +204,4 @@ def test_storefront_home_renders_process_and_team():
     req.tenant = tenant
     body = public_views.storefront_home(req).content.decode()
     assert "How it works" in body and "Reservieren" in body
-    assert "Our team" in body and "Maria Rossi" in body
+    assert "Unser Team" in body and "Maria Rossi" in body

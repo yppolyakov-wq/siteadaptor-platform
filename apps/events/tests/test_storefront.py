@@ -356,7 +356,7 @@ def test_detail_online_event_shows_online_and_hides_map():
         longitude="7.85",
     )
     body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
-    assert "Online event" in body  # индикатор онлайн
+    assert "Online-Veranstaltung" in body  # индикатор онлайн
     assert "openstreetmap.org/export/embed" not in body  # карта скрыта для онлайн
     assert "zoom.us" not in body  # ссылка доступа НЕ публична (только после брони)
 

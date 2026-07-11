@@ -149,7 +149,7 @@ def test_site_view_get_links_to_homepage_builder():
     # S2b: композиция секций уехала на /dashboard/site/home/ — на «Site»
     # остаётся ссылка-карточка на конструктор главной.
     body = core_views.site_view(_req("get", "/dashboard/site/", user=_owner())).content.decode()
-    assert "Homepage builder" in body
+    assert "Homepage-Baukasten" in body
     assert "site/home/" in body
 
 

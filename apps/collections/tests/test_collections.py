@@ -117,7 +117,7 @@ def test_termin_index_renders_chips_and_filters():
     body_none = public_views.termin_index(
         _req(data={"kollektion": "damen", "q": "zzz"})
     ).content.decode()
-    assert "Nothing found" in body_none
+    assert "Es wurde nichts gefunden." in body_none
 
 
 def test_unterkunft_index_chips_filter_and_no_redirect():

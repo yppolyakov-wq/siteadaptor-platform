@@ -666,7 +666,7 @@ def test_catalog_search_q_narrows_and_carries_into_cursor():
     body = public_views.product_list(_req(params={"q": "rye"})).content.decode()
     assert "Roggenbrot" in body and "Kuchen" not in body  # найден по EN-локали
     assert "data-listing-toolbar" in body
-    assert "Nothing found" in public_views.product_list(_req(params={"q": "zzz"})).content.decode()
+    assert "Es wurde nichts gefunden." in public_views.product_list(_req(params={"q": "zzz"})).content.decode()
     for i in range(25):
         ProductFactory(name={"de": f"Brot {i} Roggen"})
     body_more = public_views.product_list(_req(params={"q": "rogg"})).content.decode()
