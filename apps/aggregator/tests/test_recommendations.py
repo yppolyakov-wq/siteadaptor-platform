@@ -69,5 +69,5 @@ def test_discover_index_shows_ending_soon_rail():
         title={"de": "Letzte Chance"},
     )
     body = views.discover_index(RequestFactory().get("/entdecken/")).content.decode()
-    assert "Bald zu Ende" in body
+    assert "Ending soon" in body
     assert "Letzte Chance" in body

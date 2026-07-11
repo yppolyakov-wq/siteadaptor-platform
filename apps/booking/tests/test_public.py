@@ -199,7 +199,7 @@ def test_group_slots_page_shows_spots():
     body = public_views.termin_slots(
         _req(path=f"/termin/{resource.pk}/", data={"tag": DAY.isoformat()}), pk=resource.pk
     ).content.decode()
-    assert "Group course" in body and "3 Plätze" in body  # int-счётчик локаль-стабилен
+    assert "Group course" in body and "3 spots" in body  # int-счётчик локаль-стабилен
 
 
 def test_party_size_counts_as_spots_when_flag_on():
@@ -542,7 +542,7 @@ def test_service_index_search_and_sort():
     assert "Ölwechsel" in body and "Bremsen" not in body
     assert "data-listing-toolbar" in body  # тулбар каркаса отрендерен
     body_none = public_views.termin_index(_req(data={"q": "zzz"})).content.decode()
-    assert "Es wurde nichts gefunden." in body_none  # empty-state, не booking_index
+    assert "Nothing found" in body_none  # empty-state, не booking_index
     body_sorted = public_views.termin_index(_req(data={"sort": "price_asc"})).content.decode()
     assert body_sorted.index("Bremsen") < body_sorted.index("Ölwechsel")
 
@@ -554,13 +554,13 @@ def test_service_detail_upsell_products_section():
 
     svc = Service.objects.create(name="Schnitt", duration_minutes=30, price_cents=3500)
     body = public_views.service_detail(_req(), pk=svc.pk).content.decode()
-    assert "Passt gut dazu" not in body  # товаров нет — секции нет
+    assert "Goes well with this" not in body  # товаров нет — секции нет
 
     Product.objects.create(name={"de": "Shampoo"}, base_price="9.90", is_featured=True)
     body = public_views.service_detail(_req(), pk=svc.pk).content.decode()
-    assert "Passt gut dazu" in body and "Shampoo" in body
+    assert "Goes well with this" in body and "Shampoo" in body
 
     req = _req()
     req.tenant.site_config = {"service_detail": {"hidden": ["upsell"]}}
     body = public_views.service_detail(req, pk=svc.pk).content.decode()
-    assert "Passt gut dazu" not in body  # скрыто в билдере
+    assert "Goes well with this" not in body  # скрыто в билдере

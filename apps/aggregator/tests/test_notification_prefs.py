@@ -88,4 +88,4 @@ def test_account_page_shows_unsubscribe_state(monkeypatch):
     user.marketing_opt_out = True
     user.save(update_fields=["marketing_opt_out"])
     body = account_views.account(_req(user=user)).content.decode()
-    assert "Erneut abonnieren" in body
+    assert "Subscribe again" in body
