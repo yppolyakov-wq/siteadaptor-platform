@@ -448,5 +448,6 @@ def test_stay_index_search_and_sort():
     body_sorted = public_views.unterkunft_index(_req(data={"sort": "price_asc"})).content.decode()
     assert body_sorted.index("Seeblick") < body_sorted.index("Alpensuite")
     assert (
-        "Es wurde nichts gefunden." in public_views.unterkunft_index(_req(data={"q": "zzz"})).content.decode()
+        "Es wurde nichts gefunden."
+        in public_views.unterkunft_index(_req(data={"q": "zzz"})).content.decode()
     )
