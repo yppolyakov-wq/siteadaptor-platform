@@ -1,0 +1,183 @@
+# AB6/AB7 «анти-Битрикс v3»: мастер-слайды наполнения сайта + блочная главная кабинета
+
+> Создан 2026-07-11 по запросу владельца (продолжение концепции анти-Битрикс;
+> AB1–AB5, S1–S6, W0–W6 закрыты). Статус: **карта слайдов на обсуждении с владельцем**
+> — код НЕ начат (решение владельца «сначала обсудим каждый слайд с настройками»).
+> ID: **AB6** (мастер-слайды), **AB7** (блочная главная) — `task-catalog.md §3`.
+
+## 0. Запрос владельца (2026-07-11, дословно по смыслу)
+
+1. Создание товара и наполнение сайта — максимально просто, «слайдами по шагам»:
+   заполните общую информацию о компании, добавьте фото, логотип; выберите, как будет
+   выглядеть меню (показ шаблонов); выберите, как будет выглядеть страница
+   товара/услуги; добавьте товар/номер/услугу; настройте главную (блоки, шаблоны);
+   далее оплата и доставка, если есть; текстовые страницы. Демо-данные добавляются
+   сразу и настраиваются этими же слайдами.
+2. Отметки «какой пункт выполнен»; если в мастере что-то пропустили — именно этот
+   пункт можно дозаполнить потом.
+3. Блочная главная админки: «редактируем товар / страницу категории / главную
+   страницу сайта / оплату и доставку / доп.информацию-текстовые страницы»; ниже —
+   заказы в канбан-доске со статусами.
+4. Режим Эксперт остаётся.
+
+**Решения владельца (2026-07-11):** первый товар — мини-форма в слайде · страница
+товара v1 = стиль карточек + скрытие секций (полные пресеты раскладки — отдельный
+L-трек) · демо обогащаем по максимуму (фото + баннер + меню/тексты) · старт кода —
+после пошагового обсуждения слайдов.
+
+## 1. База (разведка 2026-07-11, верифицирована по коду) — переиспользуем
+
+| Актив | Где | Заметка |
+|---|---|---|
+| Мастер 7 шагов | `apps/tenants/onboarding.py` (state `{step,skipped,completed}` в `site_config["onboarding"]`), `setup_view` `apps/core/views.py:121-265`, `templates/tenant/setup.html` | `onboarding` проходит normalize verbatim → новая схема БЕЗ миграций и БЕЗ правок golden |
+| Live-превью в мастере | `setup.html:207-243` (iframe `/` + debounced `action=live` → 204) | уже работает |
+| Чек-лист AB4 | `onboarding.completeness()` (:220-273), `offer_cta()` (:207) | 5 пунктов по РЕАЛЬНОМУ контенту; архетип-осознан |
+| Логотип | `Tenant.logo_url` + готовый `_save_logo` `views.py:396-419` | в мастер просто не выведен |
+| Hero | `_save_hero` `views.py:375-393` | |
+| Пресеты меню | `NAV_STYLES` (`siteconfig.py:1206`) + CSS-мокапы `site_home.html:685-716` | classic/centered/minimal, live-превью |
+| Шаблоны сайта | `sitetemplates.TEMPLATES/templates_for/apply_template` (8 шт., мокапы `site.html:80-108`) | уже в шаге 2 |
+| Стиль карточек | `site_defaults` → `normalize_site_defaults` (:840) → `--sf-*`/.sf-card (W6) | глобальная тема |
+| Секции детали | `apps/core/detail_sections.py` + ключи `<module>_detail` (normalize :2025-2032) | product hide-only; events orderable |
+| Оплата/доставка | `payment_settings` `views.py:564-597` + извлечённые save-хелперы `billing/views.py:102`, `orders/views.py:274/303/316`, сентинелы `sec_*` | W4-3, реюз 1:1 |
+| Тексты | TEXT_FIELDS (`about_*`), `legal_docs_view` (LegalDoc, presence-guard `doc_<kind>_<locale>`) | |
+| Демо | `demo.load_demo/_seed_demo/clear_demo` (refs в `site_config["demo"]`), богатые киты `demo_kits.apply_kit`, фото `demo_images.demo_image_url` (webp→SVG, плоский URL) | реальному тенанту сейчас — без фото/hero/меню |
+| Канбан | данные `transactions.manage_sections_for` (:314) + `pipeline.resolve_columns` (:141); партиалы `core/_kanban_board.html`/`_kanban_card.html`; интерактив — инлайн-JS `templates/core/board.html:64-183` | для встраивания нужен вынос тела в партиал |
+| Язык задач / гейты | `NAV_TASK_LABELS`, `simple_hidden_modules`, `is_module_active` (`apps/core/modules.py`) | |
+
+**Миграции: НЕ нужны нигде** (site_config + уже задеплоенные `Tenant.logo_url`, `LegalDoc`).
+
+## 2. Архитектурное ядро: единый реестр шагов (снимает «две системы прогресса»)
+
+`SETUP_STEPS` в `apps/tenants/onboarding.py`:
+
+```python
+@dataclass(frozen=True)
+class SetupStep:
+    key: str                 # "company", "menu", "offer", ...
+    icon: str; label: str    # язык задач (DE)
+    check: Callable | None   # done по РЕАЛЬНОМУ контенту (расширение completeness)
+    gate: Callable | None    # показывать ли шаг (модули/архетип)
+    tile_url: str            # url_name целевого экрана кабинета (плитки AB7)
+```
+
+- Статус шага = `check(tenant)` **или** ключ в `state["done"]` (ручное «Weiter» для
+  шагов без контент-сигнала, напр. `menu`); третий статус — `skipped`.
+- `completeness()` → фасад над реестром; контракт `{percent,done,total,items}` для
+  `dashboard.html` и тестов сохраняется (паритет-замок).
+- Плитки AB7 читают ТОТ ЖЕ реестр → бейдж «Nicht ausgefüllt» → `setup?step=<key>`.
+- **State v2** внутри того же opaque-ключа: `{"v":2, "step":"<key>", "done":[],
+  "skipped":[], "completed":bool}` + консервативный легаси-маппинг int→slug
+  (1→business, 2/5→home, 3→business, 4→company, 6→offer, 7→completed;
+  `completed` никогда не понижается).
+- Прыжок к шагу: GET `?step=<key>` (валидация по реестру + gate; невалидный →
+  текущий). Рельса прогресса слева (мобайл — чипы сверху): ✓/⏭/○, пункты кликабельны.
+  После завершения мастер остаётся доступным как «настройка по слайдам».
+
+## 3. Карта слайдов (МАТЕРИАЛ ОБСУЖДЕНИЯ — контент / настройки / done / вопросы)
+
+1. **`business` «Was machst du?»** — карточки типа бизнеса + «🎁 Mit Beispielen
+   starten» (сеет обогащённое демо, см. AB6.8) + «View demo site».
+   Done: тип выбран.
+2. **`company` «Deine Firma»** — адрес / часы / телефон / email (быв. шаг 4) +
+   **логотип** (upload+превью, `_save_logo`) + 1–3 фото компании (→ `gallery`).
+   Done: контакты и часы. *❓ добавить название/город (сейчас только при
+   регистрации)? VAT/Steuer-поля здесь или в слайде 7?*
+3. **`menu` «Dein Menü»** — (а) 3 визуальных пресета шапки (мокапы → партиал,
+   реюз в канве и мастере) + sticky; (б) выбор пунктов меню чипами (стандартные
+   цели архетипа: Angebote/Speisekarte/Galerie/Über uns/Kontakt/Termine…) →
+   `menus` через normalize. Done: ручное подтверждение.
+   *❓ «по выбранным пунктам идёт настройка»: v1 — выбранные страницы настраиваются
+   слайдами 5/7 + канвой (page_blocks на 11 хостах); динамические слайды
+   per-страница — v2?*
+4. **`offer` «Dein Angebot»** — (а) вид страницы товара v1: 3–4 пресета стиля
+   карточек (мини-мокапы → `site_defaults`) + чекбоксы секций детали primary-модуля;
+   (б) мини-форма первого товара/номера/услуги/события (2–4 поля по kind + фото,
+   `action=create_offer`; «Alle Felder →» на полную форму с возвратом);
+   (в) список демо-позиций с «✏️ bearbeiten»; (г) пресеты акций (быв. шаг 6).
+   Done: `_has_offering()`. *❓ формат списка демо-позиций в слайде?*
+5. **`home` «Startseite»** — шаблоны сайта (8 мокапов, `apply_template`) + hero
+   (заголовок/текст/фото, `_save_hero`) + «Im Editor öffnen» (канва).
+   Done: hero или шаблон применён.
+6. **`payment` «Zahlung & Versand»** — ГЕЙТ: активен хотя бы один из
+   orders/booking/stays/events/jobs. Секции формы W4-3 → партиалы
+   `tenant/_payment_section_{stripe,prepay,vorkasse,delivery}.html`, включаются и в
+   `payment_settings.html` (байт-в-байт), и в слайд; те же save-хелперы + `sec_*`.
+   Done: способ настроен или подтверждён.
+7. **`texts` «Texte & Recht»** — Über uns (`about_title/about_text`) + Impressum
+   (LegalDoc дефолт-локали, извлечь save-хелпер из `legal_docs_view`) + ссылки
+   «Alle Rechtstexte →» / «Weitere Seiten». Done: about или LegalDoc.
+8. **`done` «Geschafft 🎉»** — сводка ✓/⏭/○ со ссылками-дозаполнением + «Funktionen»
+   (шаг «модули» убран из карты — пресет типа ставится на шаге 1; тумблеры — на
+   странице Funktionen).
+
+Архетипы: слайд 4 через `archetypes.primary_module`/`offer_cta` — у отеля «номер»
+(StayUnit), у салона «услуга» (Service), у event-бизнеса «событие».
+
+## 4. Трек AB7: блочная главная `/dashboard/`
+
+Сверху вниз: Setup-плашка (пока не completed) → **грид плиток** (2–3 колонки) →
+компактная AB4-полоса (пока <100%) → **канбан** (полный, DnD) + «Zur großen Ansicht →».
+
+Плитки — `apps/core/dashboard.py::dashboard_tiles(tenant)` (статичный список с
+гейтами; язык задач; `{key,icon,title,sub,url,badge}`):
+«✏️ <offer_cta label>» → товар/номер/услуга · «📁 Kategorien» → `catalog:category-list`
+(гейт: catalog активен и не скрыт `simple_hidden_modules`) · «🏠 Startseite gestalten»
+→ `site-home` · «💳 Zahlung & Versand» → `payment-settings` (гейт как слайд 6) ·
+«📄 Rechtstexte & Seiten» → `legal-docs`. Бейдж «Nicht ausgefüllt» — из реестра шагов
+(маппинг плитка↔step key), клик → `setup?step=<key>`. До AB6.2 — фолбэк на
+`completeness().items`.
+
+Канбан: вынос тела+JS `board.html:64-183` → `templates/core/_board_body.html`
+(include с `sections/active_kind/board_compact`; компакт = без W5-панели и hub_tabs);
+`board.html` → обёртка, вьюха `board` не меняется, рендер 1:1. Контекст `dashboard`
++= `manage_sections_for(tenant, limit=20)`. Один include на страницу → JS-дубляжа нет.
+Простой/Эксперт: плитки гейтятся `simple_hidden_modules`; канбан в обоих режимах.
+
+## 5. Инкременты (каждый = ветка → локальный гейт → CI → чекпоинт → FF-мерж)
+
+| ID | Инкремент | Объём |
+|---|---|---|
+| AB6.0 | Обсуждение карты слайдов с владельцем (этот док §3) → фиксация решений | — |
+| AB6.1 | Движок: state v2 + легаси-маппинг + `SETUP_STEPS` + разбивка `setup_view` на handler-реестр `apps/core/setup_steps.py` + партиалы `setup/_step_*.html` + рельса `?step=`. Состав шагов 1:1 старый. Замки: характеризация `test_onboarding_wizard.py` ДО; легаси-маппинг; `?step=` (валидный/невалидный/гейченный); AB5-редирект (`views.py:104` → v2); live-save 204 | M |
+| AB6.2 | Целевая карта 8 слайдов + `check()` + `completeness()`-фасад (паритет контракта) + skipped кликабелен | M |
+| AB7.1 | Вынос `core/_board_body.html` (рендер-паритет; `test_board.py` зелёные без правок) | M |
+| AB7.2 | Плитки + канбан на `/dashboard/` + бейджи. Замки: плитки по архетипам (hotel→«номер»; friseur в Простом без Kategorien); AB5-редирект жив; limit=20 | M |
+| AB6.3 | Слайд `company`: логотип + фото (live: файлы не шлём) | S |
+| AB6.4 | Слайд `menu`: партиал мокапов (реюз канва+мастер) + чипы пунктов | S |
+| AB6.5 | Слайд `offer`: пресеты карточек (golden: «пресет проходит normalize») + секции + мини-форма по kind (4 параметризованных теста) + правка демо | M |
+| AB6.6 | Слайд `payment`: партиализация `payment_settings.html` (рендер-паритет-замок ДО) + гейт | M |
+| AB6.7 | Слайд `texts`: about + Impressum (save-хелпер из `legal_docs_view`; пустая textarea не трёт чужие локали) | S |
+| AB6.8 | Демо-«kit-lite» в `load_demo`: фото (`demo_image_url`, плоские URL — урок 535664f) + hero + демо-меню + тексты-заготовки; refs аддитивно; `clear_demo` откатывает всё (hero/меню — только если не изменены владельцем); замок load→clear идемпотентен | M |
+
+Порядок: AB6.0 → AB6.1 → AB6.2 → AB7.1 → AB7.2 → AB6.3…AB6.8 (наполнение слайдов).
+
+## 6. Риски
+
+1. **normalize дропает неизвестные ключи** → ни одного нового top-level ключа
+   site_config (state в opaque `onboarding`, демо-refs в `demo`); golden-замки целы.
+2. **Легаси-state в проде** (тенанты посреди мастера) → консервативный маппинг,
+   `completed` не понижается.
+3. **Партиализация payment_settings** — единственный рефактор чужого работающего
+   экрана → рендер-паритет-замок ДО, `sec_*`-семантика 1:1.
+4. **Live-save whitelist**: файлы и платёжные поля НЕ уходят в `action=live`.
+5. **Инвариант W0**: скрытие только CSS, поля в DOM.
+6. **AB5-редирект** завязан на «нетронутый state» — переписать на v2 + тест.
+
+## 7. Верификация (per-инкремент + сквозная)
+
+- Локально: `ruff check` + `ruff format --check .` + `uv run pytest --reuse-db`
+  затронутых модулей (`apps/tenants/tests/test_onboarding*.py`,
+  `apps/core/tests/test_board*.py`, `test_admin_dashboard.py`); `npm run build:css`
+  при новых Tailwind-классах; CI на git — финальный гейт.
+- Сквозной сценарий (Chromium headless на сиде): пройти мастер слайдами — логотип
+  загружен, меню-пресет виден на витрине, мини-форма создала позицию, пропуск шага →
+  ⏭ в рельсе и `?step=` возвращает; демо load→clear откатывает фото/hero/меню;
+  `/dashboard/` — плитки с бейджами, DnD-канбан двигает заказ (FSM-путь прежний).
+
+## 8. Отложено из этого трека (в roadmap §Отложено при старте кода)
+
+- Полные пресеты раскладки страницы товара (перевод `product_detail.html` на
+  data-driven цикл секций как у события + реестр раскладок + миниатюры) — L,
+  отдельным треком после v1.
+- Динамические слайды «настройка каждой выбранной страницы меню» — v2 слайда `menu`.
+- Дерево пунктов меню внутри слайда (сейчас — ссылка на `site-menu`).
