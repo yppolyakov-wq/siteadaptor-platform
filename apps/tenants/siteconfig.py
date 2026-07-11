@@ -1760,6 +1760,33 @@ _BOARD_STAGES = ("intake", "in_progress", "done", "terminal")
 _BOARD_LABEL_MAX = 40
 
 
+# FB-4a: статусы заказа, переименовываемые владельцем (кабинет-отображение;
+# FSM/письма/публичная витрина НЕ трогаются). Пока только kind=order.
+_STATUS_LABEL_KINDS = {
+    "order": ("new", "confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"),
+}
+_STATUS_LABEL_MAX = 40
+
+
+def normalize_status_labels(raw) -> dict:
+    """FB-4a: {kind: {status: label}} — только известные kind/статусы, label ≤40.
+    Пусто → {} (ключ в normalize не появляется — golden-паритет)."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for kind, statuses in _STATUS_LABEL_KINDS.items():
+        node = raw.get(kind)
+        if not isinstance(node, dict):
+            continue
+        labels = {}
+        for st in statuses:
+            val = _s(node.get(st))[:_STATUS_LABEL_MAX]
+            if val:
+                labels[st] = val
+        if labels:
+            out[kind] = labels
+    return out
+
+
 def normalize_board(raw) -> dict:
     """W5: настройки доски (labels/order/hidden) — только известные стадии.
 
@@ -1851,6 +1878,10 @@ def normalize(config) -> dict:
     board = normalize_board(config.get("board"))
     if board:
         normalized["board"] = board
+    # FB-4a: свои имена статусов заказа; ключ ТОЛЬКО при непустом (golden-паритет).
+    sl = normalize_status_labels(config.get("status_labels"))
+    if sl:
+        normalized["status_labels"] = sl
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:

@@ -8,6 +8,23 @@ from apps.core import modules
 register = template.Library()
 
 
+@register.simple_tag(takes_context=True)
+def status_label(context, obj, kind="order"):
+    """FB-4a: имя статуса в кабинете — своё имя владельца (site_config["status_labels"])
+    или дефолт get_status_display(). FSM/письма/витрину не трогает."""
+    tenant = getattr(getattr(context.get("request"), "tenant", None), "site_config", None)
+    default = obj.get_status_display() if hasattr(obj, "get_status_display") else str(obj.status)
+    if not isinstance(tenant, dict):
+        return default
+    labels = tenant.get("status_labels")
+    if not isinstance(labels, dict):
+        return default
+    node = labels.get(kind)
+    if not isinstance(node, dict):
+        return default
+    return node.get(obj.status) or default
+
+
 @register.simple_tag
 def nav_task_label(nav_key):
     """AB1: подпись пункта сайдбара в языке задач (nav_key → DE-метка) или "" —

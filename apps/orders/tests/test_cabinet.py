@@ -130,3 +130,57 @@ def test_nav_includes_orders_when_active():
     spec = modules.get_module("orders")
     assert spec.nav_items == ()
     assert any(t[0] == "orders:order-list" for t in HUB_TABS["board"])
+
+
+# --- FB-4a: свои имена статусов заказа (кабинет-отображение) -----------------------
+
+
+def test_status_labels_save_render_and_reset():
+    """Сохранение своих имён (targeted-write, прочие ключи целы) + рендер в
+    списке/детали; пустая форма снимает ключ (presence-minimal)."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(site_config={"ui_mode": "simple"})
+    order = _order()
+    req = _req(
+        "post",
+        "/dashboard/orders/settings/",
+        {"form": "status_labels", "label_new": "Eingegangen 📥"},
+    )
+    req.tenant = tenant
+    views.order_settings(req)
+    tenant.refresh_from_db()
+    assert tenant.site_config["status_labels"]["order"]["new"] == "Eingegangen 📥"
+    assert tenant.site_config["ui_mode"] == "simple"  # прочие ключи целы (урок W0)
+
+    req = _req()
+    req.tenant = tenant
+    assert "Eingegangen 📥" in views.order_list(req).content.decode()
+    req = _req(path=f"/dashboard/orders/{order.pk}/")
+    req.tenant = tenant
+    assert "Eingegangen 📥" in views.order_detail(req, order.pk).content.decode()
+    # без кастома — дефолт (fallback тега)
+    req = _req()
+    req.tenant = TenantFactory(slug="t2")
+    assert "New" in views.order_list(req).content.decode()
+
+    req = _req("post", "/dashboard/orders/settings/", {"form": "status_labels"})
+    req.tenant = tenant
+    views.order_settings(req)
+    tenant.refresh_from_db()
+    assert "status_labels" not in tenant.site_config
+
+
+def test_normalize_status_labels_validation():
+    """Мусор отброшен; неизвестные kind/статусы игнорируются; пусто → ключа нет
+    (golden-паритет)."""
+    from apps.tenants.siteconfig import normalize, normalize_status_labels
+
+    assert normalize_status_labels(None) == {}
+    assert normalize_status_labels({"order": {"new": "  Neu!  ", "bogus": "x"}}) == {
+        "order": {"new": "Neu!"}
+    }
+    assert normalize_status_labels({"unknown_kind": {"new": "x"}}) == {}
+    assert "status_labels" not in normalize({})
+    out = normalize({"status_labels": {"order": {"ready": "Fertig zum Abholen"}}})
+    assert out["status_labels"] == {"order": {"ready": "Fertig zum Abholen"}}

@@ -35,6 +35,17 @@ def _refund_order(request, order):
         messages.error(request, _("Refund failed — please check Stripe."))
 
 
+def _status_label_rows(tenant):
+    """FB-4a: [(status, default_label, custom)] для панели переименования статусов."""
+    cfg = getattr(tenant, "site_config", None)
+    node = {}
+    if isinstance(cfg, dict):
+        raw = cfg.get("status_labels")
+        if isinstance(raw, dict) and isinstance(raw.get("order"), dict):
+            node = raw["order"]
+    return [(st, default, node.get(st, "")) for st, default in Order.STATUSES]
+
+
 @login_required
 def order_list(request):
     qs = Order.objects.select_related("customer").prefetch_related("items")
@@ -49,6 +60,8 @@ def order_list(request):
             "orders": qs[:200],
             "statuses": Order.STATUSES,
             "status": status,
+            # FB-4a: строки панели «Status-Namen» (status, дефолт, своё имя)
+            "status_label_rows": _status_label_rows(tenant),
             "orders_prepay": getattr(tenant, "orders_prepay", False),
             "payments_enabled": getattr(tenant, "payments_enabled", False),
             # E-7: Vorkasse/Überweisung — тумблер + реквизиты бизнеса.
@@ -332,7 +345,32 @@ def order_settings(request):
         save_delivery(tenant, request)
     elif request.POST.get("form") == "vorkasse":
         save_vorkasse(tenant, request)
+    elif request.POST.get("form") == "status_labels":
+        save_status_labels(tenant, request)  # FB-4a
     else:
         save_prepay(tenant, request)
     messages.success(request, _("Settings saved."))
     return redirect("orders:order-list")
+
+
+def save_status_labels(tenant, request) -> None:
+    """FB-4a: свои имена статусов заказа (кабинет-отображение). Targeted-write в
+    site_config["status_labels"]["order"] (прочие ключи целы); пусто = дефолты
+    (ключ снимается — presence-minimal, golden-паритет). FSM не трогается."""
+    node = {}
+    for st, _default in Order.STATUSES:
+        val = (request.POST.get(f"label_{st}") or "").strip()[:40]
+        if val:
+            node[st] = val
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    labels = dict(cfg.get("status_labels") or {})
+    if node:
+        labels["order"] = node
+    else:
+        labels.pop("order", None)
+    if labels:
+        cfg["status_labels"] = labels
+    else:
+        cfg.pop("status_labels", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
