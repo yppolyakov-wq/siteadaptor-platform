@@ -26,6 +26,11 @@ COPY . .
 # приоритет у исходников в /app (templates/static/locale рядом с кодом).
 RUN uv pip install --system --no-cache .
 
+# T1-b: .mo не в git — компилируем В ОБРАЗ. Раньше deploy.sh делал compilemessages
+# через `compose run --rm` → .mo умирали вместе с временным контейнером, и в проде
+# переводы молча не работали. msgfmt settings-free (gettext установлен выше).
+RUN for po in locale/*/LC_MESSAGES/django.po; do msgfmt -o "${po%.po}.mo" "$po"; done
+
 EXPOSE 8000
 
 # Дефолтная команда — web; worker/beat переопределяют command в compose.

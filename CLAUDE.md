@@ -493,7 +493,11 @@ Python 3.12, менеджер uv.
   2026-07-11): активация вскрыла 54 англ-ассерта в DE-рендере + golden-normalize зависит от
   локали — ровно предсказание `legal-lang-package-plan §2`; коммиты `93e19cf`/`1c8be62` в
   истории ветки для cherry-pick при возобновлении T-1. Правка переводов без кода — rosetta
-  (T1-c). Уроки/детали — build-log.
+  (T1-c). Уроки/детали — build-log. **Hotfix (той же датой, ветка
+  `i18n-prod-mo-cabinet-langs`):** .mo теперь компилируются В ОБРАЗ (Dockerfile msgfmt) —
+  `compose run --rm compilemessages` в deploy.sh писал их в эфемерный контейнер, В ПРОДЕ
+  локали (вкл. EN-письма L4) молча не работали; + `CABINET_LANGUAGES` += tr/ru/uk (селектор
+  🗣 = 5 языков).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

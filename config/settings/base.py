@@ -230,7 +230,7 @@ ROSETTA_STORAGE_CLASS = "rosetta.storage.SessionRosettaStorage"
 # T1 (FB-12): язык КАБИНЕТА (админ-панели) — отдельно от языка ВИТРИНЫ. Курируемый
 # список ПЕРЕВЕДЁННЫХ языков кабинета (у которых есть `.po`); растёт по мере готовности
 # перевода (T1-b). Не путать с LANGUAGES (весь реестр витрины). de = исходный (msgid).
-CABINET_LANGUAGES = ["de", "en"]
+CABINET_LANGUAGES = ["de", "en", "tr", "ru", "uk"]
 
 USE_TZ = True
 TIME_ZONE = "Europe/Berlin"

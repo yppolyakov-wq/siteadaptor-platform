@@ -60,8 +60,9 @@ $COMPOSE run --rm web python manage.py migrate_schemas
 
 echo "==> [6/8] Collect static"
 $COMPOSE run --rm web python manage.py collectstatic --noinput
-# L4/T1-b: компиляция переводов (все локали) (.po → .mo; .mo не в git)
-$COMPOSE run --rm web python manage.py compilemessages
+# L4/T1-b: .mo компилируются при СБОРКЕ ОБРАЗА (Dockerfile, msgfmt). Шаг
+# `compose run --rm … compilemessages` убран: он писал .mo в эфемерный
+# контейнер — рабочий web их не видел (в проде переводы не работали).
 
 echo "==> [7/8] Restart services"
 $COMPOSE up -d

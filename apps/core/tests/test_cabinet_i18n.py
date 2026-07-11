@@ -22,6 +22,8 @@ def _req(path):
 def test_codes_include_de_and_en():
     codes = i18n_cabinet.cabinet_language_codes()
     assert codes[0] == "de" and "en" in codes  # de первый (исходный)
+    # T1-b: переведённые локали доступны в кабинете
+    assert {"tr", "ru", "uk"} <= set(codes)
 
 
 def test_languages_have_labels():
@@ -42,9 +44,10 @@ def test_resolve_session_override():
 
 
 def test_set_rejects_unavailable_language():
-    # tr в реестре витрины, но НЕ в CABINET_LANGUAGES (ещё не переведён) → отклонён
+    # pl в реестре витрины, но НЕ в CABINET_LANGUAGES (ещё не переведён) → отклонён
+    # (tr/ru/uk переведены в T1-b и из этого кейса выбыли).
     r = _req("/dashboard/")
-    assert i18n_cabinet.set_cabinet_locale(r, "tr") is False
+    assert i18n_cabinet.set_cabinet_locale(r, "pl") is False
     assert i18n_cabinet.SESSION_KEY not in r.session
     assert i18n_cabinet.resolve_cabinet_locale(r) == "de"
 
