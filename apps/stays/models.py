@@ -368,6 +368,12 @@ class StayBooking(TimestampedModel):
 
         return Decimal(self.auto_discount_cents) / 100
 
+    @property
+    def deposit_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.deposit_cents) / 100
+
 
 class ICalSource(TimestampedModel):
     """Внешний iCal-фид (Booking.com/Airbnb) для юнита (A5b). Синк заводит блоки

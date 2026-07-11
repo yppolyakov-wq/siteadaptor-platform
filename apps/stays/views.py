@@ -221,6 +221,24 @@ def stay_create(request):
 
 
 @login_required
+def booking_detail(request, pk):
+    """FB-11: карточка брони — кто/когда/сколько (гость, даты, суммы, оплата,
+    тариф, источник, Meldeschein) + действия статуса. Ссылки: календарь, доска."""
+    booking = get_object_or_404(
+        StayBooking.objects.select_related("unit", "customer", "rate_plan"), pk=pk
+    )
+    try:
+        registration = booking.registration
+    except Exception:  # noqa: BLE001 — OneToOne может отсутствовать
+        registration = None
+    return render(
+        request,
+        "stays/booking_detail.html",
+        {"b": booking, "registration": registration, "nav": "stays"},
+    )
+
+
+@login_required
 def units(request):
     """Юниты (тип/цена/вместимость/депозит) + блокировки дат — POST-формы."""
     if request.method == "POST":

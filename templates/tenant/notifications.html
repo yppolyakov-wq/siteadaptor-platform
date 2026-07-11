@@ -18,6 +18,9 @@
 {# --- Telegram des Inhabers --- #}
 <div class="mb-6 rounded-xl border border-gray-200 bg-white p-4">
   <h2 class="text-sm font-semibold text-gray-700 mb-2">{% trans "Ihr Telegram (Inhaber)" %}</h2>
+  {% if not owner_email %}
+    <p class="mb-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">⚠️ {% trans "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden." %} <a href="{% url 'settings' %}" class="underline">{% trans "In den Einstellungen ergänzen" %}</a></p>
+  {% endif %}
   {% if owner_linked %}
     <div class="flex items-center justify-between gap-3">
       <span class="text-sm text-green-700">✅ {% trans "Verbunden — Sie erhalten Benachrichtigungen in Telegram." %}</span>
@@ -43,7 +46,7 @@
     <h2 class="text-sm font-semibold text-gray-700 mb-3">{% trans "Sie als Inhaber (neue Aufträge/Bestellungen)" %}</h2>
     <div class="flex gap-6 text-sm">
       <label class="flex items-center gap-2">
-        <input type="checkbox" name="o-email" {% if owner.email %}checked{% endif %} class="rounded border-gray-300"> {% trans "E-Mail" %}
+        <input type="checkbox" name="o-email" {% if owner.email %}checked{% endif %} class="rounded border-gray-300"> {% trans "E-Mail" %}{% if owner_email %} <span class="text-gray-400">({{ owner_email }})</span>{% endif %}
       </label>
       <label class="flex items-center gap-2">
         <input type="checkbox" name="o-telegram" {% if owner.telegram %}checked{% endif %} class="rounded border-gray-300"> {% trans "Telegram" %}

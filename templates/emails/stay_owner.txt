@@ -2,7 +2,7 @@ Neue Buchungsanfrage!
 
 {{ unit.name }} · {{ booking.arrival|date:"d.m.Y" }} → {{ booking.departure|date:"d.m.Y" }} ({{ booking.nights }} Nächte)
 Gast: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}{% if booking.guests > 1 %} · {{ booking.guests }} Gäste{% endif %}
-Code: {{ booking.reference_code }}
+Code: {{ booking.reference_code }}{% if booking.total_cents %} · {{ booking.total_eur|floatformat:2 }} €{% endif %}
 {% if booking.note %}Notiz: {{ booking.note }}{% endif %}
 
-Verwalten im Dashboard: /dashboard/stays/
+Verwalten im Dashboard: /dashboard/stays/buchung/{{ booking.pk }}/

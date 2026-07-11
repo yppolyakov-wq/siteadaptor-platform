@@ -255,7 +255,8 @@ def _manage_url(kind: str, obj) -> str:
         if kind == "booking":
             return reverse("booking:calendar")
         if kind == "stay":
-            return reverse("stays:calendar")
+            # FB-11: карточка брони (была ссылка на общий календарь)
+            return reverse("stays:booking-detail", args=[obj.pk])
         if kind == "reservation":
             return reverse("promotions:reservation-list")
     except NoReverseMatch:

@@ -2952,5 +2952,8 @@ def notifications_settings(request):
             "owner": prefs.owner_channels(tenant),
             "owner_deep_link": owner_deep_link(tenant),
             "owner_linked": bool(owner_chat_id(tenant)),
+            # FB-10: КУДА идут owner-письма (и предупреждение, если адрес пуст —
+            # частая причина «уведомления не приходят»).
+            "owner_email": tenant.owner_email,
         },
     )

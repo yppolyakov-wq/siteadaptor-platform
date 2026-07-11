@@ -76,7 +76,7 @@
           {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
           {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
         </p>
-        <p class="text-xs text-gray-400">{{ b.customer }}{% if b.guests > 1 %} · {{ b.guests }} {% trans "guests" %}{% endif %} · {{ b.reference_code }}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
+        <p class="text-xs text-gray-400">{{ b.customer }}{% if b.guests > 1 %} · {{ b.guests }} {% trans "guests" %}{% endif %} · <a href="{% url 'stays:booking-detail' b.pk %}" class="text-indigo-600 hover:underline" title="{% trans 'Buchung öffnen' %}">{{ b.reference_code }}</a>{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
       </div>
       <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
         {% csrf_token %}
