@@ -110,23 +110,28 @@ def _filtered_products(request):
     return qs
 
 
-def _handle_uploads(request, product) -> None:
-    """Сохраняет загруженные файлы в product.images (FileRef-envelope)."""
+def _handle_uploads(request, obj, *, folder="products") -> None:
+    """Сохраняет загруженные файлы в obj.images (FileRef-envelope).
+
+    FB-6: обобщено с товара на любую сущность с JSON-полем `images`
+    (Product, Category); folder — подпапка storage."""
     files = request.FILES.getlist("images")
     if not files:
         return
-    images = list(product.images or [])
+    images = list(obj.images or [])
     has_primary = any(img.get("is_primary") for img in images)
     for f in files:
         try:
-            ref = save_product_image(f, is_primary=not has_primary, sort_order=len(images))
+            ref = save_product_image(
+                f, is_primary=not has_primary, sort_order=len(images), folder=folder
+            )
         except ValidationError as exc:
             messages.error(request, f"{f.name}: {'; '.join(exc.messages)}")
             continue
         has_primary = True
         images.append(ref)
-    product.images = images
-    product.save(update_fields=["images", "updated_at"])
+    obj.images = images
+    obj.save(update_fields=["images", "updated_at"])
 
 
 @login_required
@@ -493,7 +498,8 @@ def category_list(request):
 def category_create(request):
     form = CategoryForm(request.POST or None, tenant=getattr(request, "tenant", None))
     if request.method == "POST" and form.is_valid():
-        form.save()
+        category = form.save()
+        _handle_uploads(request, category, folder="categories")  # FB-6: фото категории
         return redirect("catalog:category-list")
     return render(
         request,
@@ -510,6 +516,7 @@ def category_edit(request, pk):
     )
     if request.method == "POST" and form.is_valid():
         form.save()
+        _handle_uploads(request, category, folder="categories")  # FB-6: фото категории
         return redirect("catalog:category-list")
     return render(
         request,
@@ -612,6 +619,39 @@ def product_photo_edit(request):
 
         bump_storefront_cache(schema)
     return HttpResponse(status=204)
+
+
+@login_required
+def category_image_delete(request, pk, image_id):
+    """FB-6: удаляет одну картинку категории (из списка и из storage)."""
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == "POST":
+        images = list(category.images or [])
+        kept, removed_primary = [], False
+        for img in images:
+            if img.get("id") == image_id:
+                delete_stored_image(img)
+                removed_primary = img.get("is_primary", False)
+            else:
+                kept.append(img)
+        if removed_primary and kept:
+            kept[0]["is_primary"] = True
+        category.images = kept
+        category.save(update_fields=["images", "updated_at"])
+    return redirect("catalog:category-edit", pk=pk)
+
+
+@login_required
+def category_image_primary(request, pk, image_id):
+    """FB-6: делает выбранную картинку категории главной (плитка витрины)."""
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == "POST":
+        images = list(category.images or [])
+        for img in images:
+            img["is_primary"] = img.get("id") == image_id
+        category.images = images
+        category.save(update_fields=["images", "updated_at"])
+    return redirect("catalog:category-edit", pk=pk)
 
 
 @login_required

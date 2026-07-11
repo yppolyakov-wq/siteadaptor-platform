@@ -38,6 +38,9 @@ class Category(SoftDeleteMixin, I18nMixin):
     icon = models.CharField(max_length=50, blank=True)
     sort_order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # FB-6: фото категории/подкатегории (FileRef-конверт, как Product.images) —
+    # плитка на витрине (секция «Categories», листинг) + управление в кабинете.
+    images = models.JSONField(default=list, blank=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -54,6 +57,20 @@ class Category(SoftDeleteMixin, I18nMixin):
 
     def __str__(self):
         return self.get_i18n("name") or self.slug
+
+    @property
+    def primary_image(self) -> dict | None:
+        imgs = self.images or []
+        for img in imgs:
+            if img.get("is_primary"):
+                return img
+        return imgs[0] if imgs else None
+
+    @property
+    def image_url(self) -> str:
+        """URL главного фото ('' если фото нет) — для плитки категории на витрине."""
+        img = self.primary_image
+        return img.get("url", "") if img else ""
 
 
 class Product(SoftDeleteMixin, I18nMixin):
