@@ -121,9 +121,11 @@ def calendar(request):
     units = list(StayUnit.objects.filter(is_active=True))
     days, rows = availability.occupancy_grid(units, start, HORIZON_DAYS)
     window_end = start + timedelta(days=HORIZON_DAYS)
+    from apps.core import status_registry
+
     bookings = (
         StayBooking.objects.filter(
-            status__in=StayBooking.ACTIVE_STATUSES,
+            status__in=status_registry.active_statuses_for("stay"),
             arrival__lt=window_end,
             departure__gt=start,
         )

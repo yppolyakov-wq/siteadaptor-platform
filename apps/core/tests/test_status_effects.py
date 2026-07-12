@@ -189,3 +189,46 @@ def test_apply_hook_fires_for_custom_dst_only(monkeypatch):
     calls.clear()
     SM().apply(booking, "confirmed")  # встроенный dst → no-op
     assert calls == []
+
+
+# --- Phase 3b-2: кастом-active статус держит ёмкость (anti-oversell) -----------
+
+
+def test_custom_active_status_blocks_stay_capacity(monkeypatch):
+    """FB-3 Вариант B: бронь в кастом-active статусе занимает номер (range_available=False),
+    как built-in confirmed. Threading active_statuses_for в oversell-запросы."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core import status_registry
+    from apps.stays import availability, services
+    from apps.stays.models import StayBooking, StayUnit
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        site_config={
+            "status_defs": {
+                "stay": [
+                    {
+                        "code": "beim_lieferanten",
+                        "role": "active",
+                        "stage": "in_progress",
+                        "blocks_capacity": True,
+                    }
+                ]
+            }
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+
+    unit = StayUnit.objects.create(name="Z1", price_cents=8000, quantity=1)
+    arrival = timezone.localdate() + timedelta(days=10)
+    dep = arrival + timedelta(days=2)
+    booking = services.book_stay(unit, arrival=arrival, departure=dep, name="G")
+    # переведём в кастом-active статус напрямую (легальный переход даст Phase 4)
+    StayBooking.objects.filter(pk=booking.pk).update(status="beim_lieferanten")
+    assert availability.range_available(unit, arrival, dep) is False  # номер занят кастом-active
+    # контроль: снимем занятость (терминальный кастом не блокирует) → свободно
+    StayBooking.objects.filter(pk=booking.pk).update(status="cancelled")
+    assert availability.range_available(unit, arrival, dep) is True
