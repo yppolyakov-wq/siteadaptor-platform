@@ -311,6 +311,17 @@ def test_booking_detail_shows_meldeschein_when_filled():
     assert "Max Muster" in body
 
 
+def test_booking_detail_shows_custom_status_label():
+    """FB-4b: своё имя статуса брони (site_config['status_labels']['stay']) — в кабинете.
+    FSM/дефолт не трогаем: без своего имени показался бы get_status_display()."""
+    unit = _unit()
+    booking = _book(unit, 1, 4)  # pending
+    req = _req()
+    req.tenant = TenantFactory(site_config={"status_labels": {"stay": {"pending": "Angefragt ⭐"}}})
+    body = views.booking_detail(req, booking.pk).content.decode()
+    assert "Angefragt ⭐" in body
+
+
 # --- FB-10/11: сумма в письмах брони ------------------------------------------------
 
 

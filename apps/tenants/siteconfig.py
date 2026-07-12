@@ -1760,16 +1760,24 @@ _BOARD_STAGES = ("intake", "in_progress", "done", "terminal")
 _BOARD_LABEL_MAX = 40
 
 
-# FB-4a: статусы заказа, переименовываемые владельцем (кабинет-отображение;
-# FSM/письма/публичная витрина НЕ трогаются). Пока только kind=order.
+# FB-4a/FB-4b: статусы, переименовываемые владельцем (кабинет-отображение;
+# FSM/письма/публичная витрина НЕ трогаются). order (FB-4a) + service/stay (FB-4b).
 _STATUS_LABEL_KINDS = {
     "order": ("new", "confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"),
+    "booking": ("pending", "confirmed", "fulfilled", "cancelled", "no_show"),
+    "stay": ("pending", "confirmed", "fulfilled", "cancelled", "no_show"),
 }
 _STATUS_LABEL_MAX = 40
 
 
+def status_label_statuses(kind: str):
+    """FB-4a/b: коды статусов kind, переименовываемых владельцем (или None). Публичный
+    аксессор для core-вьюхи сохранения (слой tenants → core только лениво)."""
+    return _STATUS_LABEL_KINDS.get(kind)
+
+
 def normalize_status_labels(raw) -> dict:
-    """FB-4a: {kind: {status: label}} — только известные kind/статусы, label ≤40.
+    """FB-4a/b: {kind: {status: label}} — только известные kind/статусы, label ≤40.
     Пусто → {} (ключ в normalize не появляется — golden-паритет)."""
     raw = raw if isinstance(raw, dict) else {}
     out = {}

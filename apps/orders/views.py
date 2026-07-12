@@ -37,13 +37,9 @@ def _refund_order(request, order):
 
 def _status_label_rows(tenant):
     """FB-4a: [(status, default_label, custom)] для панели переименования статусов."""
-    cfg = getattr(tenant, "site_config", None)
-    node = {}
-    if isinstance(cfg, dict):
-        raw = cfg.get("status_labels")
-        if isinstance(raw, dict) and isinstance(raw.get("order"), dict):
-            node = raw["order"]
-    return [(st, default, node.get(st, "")) for st, default in Order.STATUSES]
+    from apps.core import status_labels
+
+    return status_labels.label_rows(tenant, "order", Order.STATUSES)
 
 
 @login_required
@@ -354,23 +350,8 @@ def order_settings(request):
 
 
 def save_status_labels(tenant, request) -> None:
-    """FB-4a: свои имена статусов заказа (кабинет-отображение). Targeted-write в
-    site_config["status_labels"]["order"] (прочие ключи целы); пусто = дефолты
-    (ключ снимается — presence-minimal, golden-паритет). FSM не трогается."""
-    node = {}
-    for st, _default in Order.STATUSES:
-        val = (request.POST.get(f"label_{st}") or "").strip()[:40]
-        if val:
-            node[st] = val
-    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
-    labels = dict(cfg.get("status_labels") or {})
-    if node:
-        labels["order"] = node
-    else:
-        labels.pop("order", None)
-    if labels:
-        cfg["status_labels"] = labels
-    else:
-        cfg.pop("status_labels", None)
-    tenant.site_config = cfg
-    tenant.save(update_fields=["site_config", "updated_at"])
+    """FB-4a: свои имена статусов заказа (кабинет-отображение). Делегирует в generic
+    core.status_labels (targeted-write, presence-minimal, golden-паритет). FSM не трогается."""
+    from apps.core import status_labels
+
+    status_labels.save_labels(tenant, "order", [st for st, _ in Order.STATUSES], request)

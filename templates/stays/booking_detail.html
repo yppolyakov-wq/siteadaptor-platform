@@ -13,7 +13,7 @@
       {% if b.status == 'confirmed' %}bg-emerald-100 text-emerald-800
       {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
       {% elif b.status == 'cancelled' or b.status == 'no_show' %}bg-gray-200 text-gray-500
-      {% else %}bg-indigo-100 text-indigo-800{% endif %}">{{ b.get_status_display }}</span>
+      {% else %}bg-indigo-100 text-indigo-800{% endif %}">{% status_label b "stay" %}</span>
   </div>
   <p class="text-sm text-gray-500 mb-4">{% trans "Eingegangen" %}: {{ b.created_at|date:"d.m.Y H:i" }}{% if b.source_channel %} · {{ b.source_channel }}{% if b.external_ref %} ({{ b.external_ref }}){% endif %}{% endif %}</p>
 

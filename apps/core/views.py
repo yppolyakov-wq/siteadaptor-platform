@@ -2896,10 +2896,36 @@ def kanban_action(request, kind, pk):
         messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
         return redirect(reverse("board") + f"?kind={kind}")
     obj.refresh_from_db()
-    tx = transactions.transaction_for(kind, obj)
+    # FB-4a/b: своё имя статуса владельца на перерисованной карточке (доска кабинета).
+    from apps.core import status_labels
+
+    tx = transactions.transaction_for(kind, obj, status_labels.custom_labels(request.tenant, kind))
     if is_fetch:
         return render(request, "core/_kanban_card.html", {"tx": tx, "kind": kind})
     return redirect(reverse("board") + f"?kind={kind}")
+
+
+@login_required
+@require_POST
+def status_labels_save(request, kind):
+    """FB-4a/FB-4b: сохранить свои имена статусов (order/booking/stay) — кабинет-
+    отображение. Targeted-write в site_config['status_labels'][kind]; FSM/переходы/
+    письма/витрину не трогаем. `next` (локальный путь) — куда вернуться."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import status_labels
+    from apps.tenants import siteconfig
+
+    statuses = siteconfig.status_label_statuses(kind)
+    if statuses is None:
+        raise Http404("unknown status kind")
+    status_labels.save_labels(request.tenant, kind, statuses, request)
+    messages.success(request, _("Gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/"):
+        nxt = reverse("board")
+    return redirect(nxt)
 
 
 # --- U-D4: настройки каналов уведомлений (email ∥ Telegram) -------------------

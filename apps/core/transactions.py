@@ -223,9 +223,14 @@ def allowed_actions_for(kind: str, status: str) -> list[dict]:
     ]
 
 
-def _status_label(kind: str, obj) -> str:
-    """Читаемая подпись статуса. `get_status_display()` (choices) где есть; у
-    Reservation (без choices) — свой словарь; иначе сырой статус."""
+def _status_label(kind: str, obj, labels: dict | None = None) -> str:
+    """Читаемая подпись статуса. FB-4a/b: своё имя владельца (`labels`, только доска
+    КАБИНЕТА — не клиентский аккаунт) поверх дефолта. Дефолт: `get_status_display()`
+    (choices) где есть; у Reservation (без choices) — свой словарь; иначе сырой статус."""
+    if labels:
+        custom = labels.get(obj.status)
+        if custom:
+            return custom
     getter = getattr(obj, "get_status_display", None)
     if callable(getter):
         return getter()
@@ -264,13 +269,14 @@ def _manage_url(kind: str, obj) -> str:
     return ""
 
 
-def transaction_for(kind: str, obj) -> Transaction:
+def transaction_for(kind: str, obj, labels: dict | None = None) -> Transaction:
     """Нормализовать транзакцию `kind` к `Transaction`.
 
     `status_label` = `obj.get_status_display()` (у Reservation без choices — сырое
-    значение, как в ЛК); `subtotal_display` — готовая DE-строка; `payment_method`
-    — read-only из модели (E-7: только Order; иначе ''). Неизвестный kind →
-    ValueError. Статус только читается.
+    значение, как в ЛК); `labels` (FB-4a/b, {status: своё-имя}) переопределяет подпись
+    ТОЛЬКО на доске кабинета (клиентский аккаунт зовёт без `labels`). `subtotal_display`
+    — готовая DE-строка; `payment_method` — read-only из модели (E-7: только Order; иначе
+    ''). Неизвестный kind → ValueError. Статус только читается.
     """
     if kind not in _FIELDS:
         raise ValueError(f"unknown transaction kind: {kind!r} (known: {TRANSACTION_KINDS})")
@@ -284,7 +290,7 @@ def transaction_for(kind: str, obj) -> Transaction:
         subtotal_display=_money_str(f["amount"], f["currency"]),
         currency=f["currency"],
         status=obj.status,
-        status_label=_status_label(kind, obj),
+        status_label=_status_label(kind, obj, labels),
         pipeline_stage=pipeline.stage_for(kind, obj.status),
         payment_method=getattr(obj, "payment_method", "") or "",
         created_at=obj.created_at,
@@ -327,11 +333,15 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
     board_cfg = siteconfig.normalize_board(
         (getattr(tenant, "site_config", None) or {}).get("board")
     )
+    from apps.core import status_labels
+
     for kind in TRANSACTION_KINDS:
         module = KIND_MODULE[kind]
         if not tenant.is_module_active(module):
             continue
-        txs = [transaction_for(kind, obj) for obj in _managed_queryset(kind)[:limit]]
+        # FB-4a/b: свои имена статусов владельца — только доска кабинета.
+        labels = status_labels.custom_labels(tenant, kind)
+        txs = [transaction_for(kind, obj, labels) for obj in _managed_queryset(kind)[:limit]]
         counts = {stage: 0 for stage in pipeline.STAGES}
         for tx in txs:
             counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1

@@ -43,6 +43,7 @@ from apps.core.views import (
     site_preview,
     site_preview_draft,
     site_view,
+    status_labels_save,
 )
 from apps.events import public_views as events_public
 from apps.events import views as events_views
@@ -141,6 +142,12 @@ urlpatterns = [
         "dashboard/board/<str:kind>/<uuid:pk>/action/",
         kanban_action,
         name="board-action",
+    ),
+    # FB-4a/b: свои имена статусов (order/booking/stay) — кабинет-отображение.
+    path(
+        "dashboard/status-labels/<str:kind>/",
+        status_labels_save,
+        name="status-labels-save",
     ),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),

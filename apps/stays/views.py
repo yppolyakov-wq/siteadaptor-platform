@@ -101,6 +101,13 @@ def _refund_deposit(request, booking):
         messages.error(request, _("Refund failed — please check Stripe."))
 
 
+def _status_rows(request):
+    """FB-4b: [(status, дефолт, своё-имя)] для панели переименования статусов брони."""
+    from apps.core import status_labels
+
+    return status_labels.label_rows(getattr(request, "tenant", None), "stay", StayBooking.STATUSES)
+
+
 @login_required
 def calendar(request):
     start = _parse_day(request.GET.get("von"))
@@ -130,6 +137,8 @@ def calendar(request):
             "bookings": bookings,
             "units": units,
             "finance_active": _finance_active(request),
+            # FB-4b: строки панели «Status-Namen» брони (status, дефолт, своё имя).
+            "status_label_rows": _status_rows(request),
         },
     )
 
