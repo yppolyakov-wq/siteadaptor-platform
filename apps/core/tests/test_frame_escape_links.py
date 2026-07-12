@@ -51,3 +51,10 @@ def test_known_traps_carry_escape_targets():
     products = (STOREFRONT_TEMPLATES / "products.html").read_text(encoding="utf-8")
     cat_edit = next(t for t in _A_TAG_RE.findall(products) if "catalog:category-edit" in t)
     assert 'target="_blank"' in cat_edit
+
+    # C-блок «Button» ведёт на ПРОИЗВОЛЬНЫЙ (часто внешний) URL. Внутри канвы
+    # редактора без target=_top внешний сайт грузится в кадр и ловит его
+    # X-Frame-Options: DENY → chrome-error вместо перехода.
+    btn = (STOREFRONT_TEMPLATES / "sections" / "_block_button.html").read_text(encoding="utf-8")
+    btn_a = next(t for t in _A_TAG_RE.findall(btn) if "block.url" in t)
+    assert 'target="_top"' in btn_a
