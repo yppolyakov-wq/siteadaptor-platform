@@ -32,6 +32,8 @@ from apps.core.views import (
     pages_view,
     payment_settings,
     sections_view,
+    sellable_manage,
+    sellable_visibility,
     seo_settings_view,
     set_cabinet_lang_view,
     set_ui_mode_view,
@@ -155,6 +157,13 @@ urlpatterns = [
         "dashboard/status-transitions/<str:kind>/",
         transitions_save,
         name="transitions-save",
+    ),
+    # FB-8: единый обзор продаваемых сущностей + тумблер видимости.
+    path("dashboard/angebote/", sellable_manage, name="sellable-manage"),
+    path(
+        "dashboard/angebote/<str:kind>/<uuid:pk>/sichtbar/",
+        sellable_visibility,
+        name="sellable-visibility",
     ),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),

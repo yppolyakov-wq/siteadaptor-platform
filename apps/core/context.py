@@ -196,6 +196,11 @@ def modules_nav(request):
     return {
         "nav_modules": _active,
         "nav_groups": modules.grouped_active_modules(tenant),  # AB1: сайдбар по задачам
+        # FB-8: «Angebote» — единый обзор продаваемых сущностей; виден при любом активном
+        # sellable-модуле (в т.ч. отелю в Простом, где хаб catalog скрыт).
+        "has_sellables": any(
+            modules.is_module_active(tenant, m) for m in ("catalog", "booking", "stays", "events")
+        ),
         "nav_primary": nav_primary,  # мобильный таб-бар кабинета
         # S1: витринные «лица» активных архетипов — для тизеров главной (S2) и
         # конструктора меню (S7). Источник правды — реестр модулей.

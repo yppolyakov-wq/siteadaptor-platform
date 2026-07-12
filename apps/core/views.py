@@ -2956,6 +2956,42 @@ def transitions_save(request, kind):
     return redirect(nxt)
 
 
+# --- FB-8: единый обзор продаваемых сущностей --------------------------------
+
+
+@login_required
+def sellable_manage(request):
+    """FB-8: «Angebote» — один экран со всеми продаваемыми сущностями (товар/услуга/
+    номер/событие/комбо): обзор + видимость + переход к РОДНОЙ форме. Единый CRUD НЕ
+    делаем — родные формы остаются авторитетными."""
+    from apps.core import sellable_manage as sm
+
+    tenant = request.tenant
+    return render(
+        request,
+        "tenant/sellable_manage.html",
+        {
+            "nav": "sellables",
+            "sections": sm.sellable_manage_sections_for(tenant),
+            "add_options": sm.add_options(tenant),
+        },
+    )
+
+
+@login_required
+@require_POST
+def sellable_visibility(request, kind, pk):
+    """FB-8: тумблер видимости сущности (is_active) — product/service/stay/combo. Event
+    публикуется через FSM (draft↔published) на своей форме → сюда не приходит."""
+    from apps.core import sellable_manage as sm
+
+    obj = sm.toggle_visibility(kind, pk)
+    messages.success(
+        request, _("Sichtbar.") if getattr(obj, "is_active", False) else _("Ausgeblendet.")
+    )
+    return redirect("sellable-manage")
+
+
 # --- U-D4: настройки каналов уведомлений (email ∥ Telegram) -------------------
 
 

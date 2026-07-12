@@ -1,0 +1,37 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Angebote" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-1">📦 {% trans "Angebote" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen." %}</p>
+
+{% if messages %}
+  <div class="mb-3 space-y-1">
+    {% for m in messages %}
+      <div class="text-sm rounded-lg px-3 py-2 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">{{ m }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% comment %}FB-8: ＋ Neu по активным типам — вход в РОДНУЮ форму создания (единый CRUD не делаем).{% endcomment %}
+{% if add_options %}
+<div class="flex flex-wrap gap-2 mb-6">
+  {% for a in add_options %}
+    <a href="{{ a.url }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-indigo-400">＋ {{ a.label }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% for s in sections %}
+  <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">{{ s.label }} <span class="text-gray-300">({{ s.count }})</span></h2>
+  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+    {% for it in s.items %}{% include "tenant/_sellable_manage_row.html" with it=it %}{% endfor %}
+  </div>
+{% empty %}
+  <div class="text-center text-gray-400 py-16">
+    <p class="text-4xl mb-2">📦</p>
+    <p>{% trans "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen." %}</p>
+  </div>
+{% endfor %}
+{% endblock %}
