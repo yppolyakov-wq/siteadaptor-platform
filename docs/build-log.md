@@ -4911,3 +4911,19 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   читал `request.tenant` напрямую — падал в тесте без tenant → `getattr(...,None)` (хелперы
   принимают None). FB-4a/FB-4b/FB-3 закрывают запрос владельца «управление статусами и
   переходами» (Вариант A); свои НОВЫЕ статусы (Вариант B) — отдельная волна за решением.
+- **FB-8 (единый обзор продаваемых сущностей, «Angebote»)** (2026-07-12, БЕЗ миграций;
+  план `docs/fb8-unified-sellable-cabinet-plan-2026-07-12.md`, Вариант A). Один экран
+  `/dashboard/angebote/` со всеми sellable (товар/услуга/номер/событие/комбо): обзор +
+  тумблер видимости + переход к РОДНОЙ форме. Единый CRUD НЕ делаем (родные формы
+  авторитетны). `apps/core/sellable_manage.py`: `ManagedSellable` +
+  `sellable_manage_sections_for` (зеркало `transactions.manage_sections_for` по оси
+  КАТАЛОГА; gated `is_module_active`; пустые kind не шумят) + `add_options` +
+  `toggle_visibility` (флип is_active; event публикуется через FSM → Http404).
+  `sellable.display_fields` — публичный доступ к витринным адаптерам без реверса маршрутов.
+  Навигация: пункт «📦 Angebote» НАД группами сайдбара (`has_sellables` в context), виден
+  при любом активном sellable-модуле → находится и когда хаб «Sortiment» скрыт (отель в
+  Простом). Урок: `Event` без `is_active` (у него status) → сортировка секции по-kind
+  (`toggle`=есть is_active). Гейт по модулю — `is_entitled` (не-premium активны всегда,
+  отключение через `disabled_modules`), не `enabled_modules`. Замки `test_sellable_manage.py`
+  (9), контракт `test_sellable` цел, широкий гейт 1123 passed. jobs — НЕ sellable
+  (транзакция). Вариант B (единый CRUD всех типов) — не делаем (риск/объём).

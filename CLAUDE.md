@@ -530,8 +530,15 @@ Python 3.12, менеджер uv.
   danger/отмена всегда; `core/transition_rules.py` + `siteconfig.normalize_transitions` +
   панель `_transition_rules_panel.html` + endpoint `transitions-save/<kind>/`). Планы —
   `docs/fb3-status-engine-plan-2026-07-12.md`, `docs/fb8-unified-sellable-cabinet-plan-2026-07-12.md`.
-  Свои НОВЫЕ статусы (FB-3 Вариант B) — отдельная волна за решением владельца. **Дальше:**
-  FB-8 (единое управление продаваемыми сущностями, план-док готов, Вариант A).
+  Свои НОВЫЕ статусы (FB-3 Вариант B) — отдельная волна за решением владельца.
+- **Самое свежее (2026-07-12, продолжение): FB-8 (Angebote) — на ветке, БЕЗ миграций.**
+  Единый экран `/dashboard/angebote/` со всеми продаваемыми сущностями (товар/услуга/
+  номер/событие/комбо): обзор + тумблер видимости + переход к родной форме (единый CRUD
+  НЕ делаем — Вариант A). `apps/core/sellable_manage.py` + пункт «📦 Angebote» в сайдбаре
+  (виден при любом активном sellable-модуле, в т.ч. отелю в Простом). jobs — не sellable.
+  **Дальше по TZ (`cabinet-feedback-tz-2026-07-10`):** отложенные FB-9/FB-13/FB-14 (ждут
+  контекста владельца); FB-3 Вариант B (свои новые статусы) — за решением. Крупные TZ-эпики
+  закрыты (FB-1/FB-3/FB-4/FB-8/FB-10/FB-11).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
