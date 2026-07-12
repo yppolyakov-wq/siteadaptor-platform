@@ -2896,10 +2896,16 @@ def kanban_action(request, kind, pk):
         messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
         return redirect(reverse("board") + f"?kind={kind}")
     obj.refresh_from_db()
-    # FB-4a/b: своё имя статуса владельца на перерисованной карточке (доска кабинета).
-    from apps.core import status_labels
+    # FB-4a/b имена + FB-3 правила переходов — на перерисованной карточке (доска кабинета).
+    from apps.core import status_labels, transition_rules
 
-    tx = transactions.transaction_for(kind, obj, status_labels.custom_labels(request.tenant, kind))
+    tenant = getattr(request, "tenant", None)
+    tx = transactions.transaction_for(
+        kind,
+        obj,
+        status_labels.custom_labels(tenant, kind),
+        transition_rules.subset_for(tenant, kind),
+    )
     if is_fetch:
         return render(request, "core/_kanban_card.html", {"tx": tx, "kind": kind})
     return redirect(reverse("board") + f"?kind={kind}")
@@ -2921,6 +2927,28 @@ def status_labels_save(request, kind):
     if statuses is None:
         raise Http404("unknown status kind")
     status_labels.save_labels(request.tenant, kind, statuses, request)
+    messages.success(request, _("Gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/"):
+        nxt = reverse("board")
+    return redirect(nxt)
+
+
+@login_required
+@require_POST
+def transitions_save(request, kind):
+    """FB-3: сохранить правила переходов статусов (order/booking/stay) — какие уже-легальные
+    не-danger переходы показывать. FSM/apply()/побочки/письма НЕ трогаем (жёсткий пол);
+    danger/отмена не прячется. `next` (локальный путь) — куда вернуться."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transition_rules
+    from apps.tenants import siteconfig
+
+    if siteconfig.status_label_statuses(kind) is None:
+        raise Http404("unknown status kind")
+    transition_rules.save(request.tenant, kind, request)
     messages.success(request, _("Gespeichert."))
     nxt = request.POST.get("next", "")
     if not nxt.startswith("/"):

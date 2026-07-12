@@ -12,7 +12,12 @@ from apps.core import transactions
 register = template.Library()
 
 
-@register.simple_tag
-def status_actions(kind, obj):
-    """``[{target, label, stage, danger}]`` переходов FSM из ``obj.status``."""
-    return transactions.allowed_actions_for(kind, obj.status)
+@register.simple_tag(takes_context=True)
+def status_actions(context, kind, obj):
+    """``[{target, label, stage, danger}]`` переходов FSM из ``obj.status``. FB-3: правила
+    переходов владельца (site_config) СКРЫВАЮТ не-danger переходы (FSM/apply не трогаем)."""
+    from apps.core import transition_rules
+
+    tenant = getattr(context.get("request"), "tenant", None)
+    subset = transition_rules.subset_for(tenant, kind) if tenant is not None else None
+    return transactions.allowed_actions_for(kind, obj.status, subset)

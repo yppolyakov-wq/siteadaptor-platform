@@ -62,6 +62,21 @@ def test_calendar_renders_grid_and_booking():
     assert booking.reference_code in body
 
 
+def test_calendar_transition_rule_hides_action_button():
+    """FB-3: скрытие перехода pending→confirmed убирает КНОПКУ действия на календаре
+    (панель-чекбокс остаётся). FSM не трогаем — apply по-прежнему разрешает переход."""
+    unit = _unit()
+    _book(unit, 1, 4)  # pending → есть кнопка «Bestätigen» (value=confirmed)
+    req = _req(data={"von": D0.isoformat()})
+    req.tenant = TenantFactory(site_config={})
+    assert 'value="confirmed"' in views.calendar(req).content.decode()  # дефолт: кнопка есть
+    req2 = _req(data={"von": D0.isoformat()})
+    req2.tenant = TenantFactory(site_config={"transitions": {"stay": {"pending": []}}})
+    body2 = views.calendar(req2).content.decode()
+    assert 'value="confirmed"' not in body2  # переход скрыт → кнопки нет
+    assert "Statusübergänge" in body2  # но панель настройки правил на месте
+
+
 # --- действия по FSM + перенос ----------------------------------------------------
 
 

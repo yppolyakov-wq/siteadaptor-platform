@@ -63,6 +63,8 @@
 <h2 class="font-semibold mb-3">{% trans "Bookings in this period" %}</h2>
 {# FB-4b: свои имена статусов брони (кабинет-отображение) #}
 {% include "tenant/_status_labels_panel.html" with rows=status_label_rows kind="stay" next_path=request.path %}
+{# FB-3: правила переходов статусов брони #}
+{% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="stay" next_path=request.path %}
 {% if bookings %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
   {% for b in bookings %}

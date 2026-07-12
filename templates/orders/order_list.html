@@ -44,6 +44,9 @@
   </form>
 </details>
 
+{# FB-3: правила переходов статусов заказа (какие следующие статусы показывать) #}
+{% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="order" next_path=request.path %}
+
 {# W4-3: настройки оплаты/Vorkasse/Lieferung/Abholung сведены в единый экран. #}
 <div class="mb-4 bg-white rounded-2xl shadow-sm p-4 text-sm flex items-center justify-between gap-3 flex-wrap">
   <span class="text-gray-700">{% trans "Prepayment, bank transfer, delivery &amp; pickup are set in one place:" %}</span>

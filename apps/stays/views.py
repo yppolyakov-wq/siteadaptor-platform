@@ -108,6 +108,13 @@ def _status_rows(request):
     return status_labels.label_rows(getattr(request, "tenant", None), "stay", StayBooking.STATUSES)
 
 
+def _transition_rows(request):
+    """FB-3: строки панели правил переходов статусов брони."""
+    from apps.core import transition_rules
+
+    return transition_rules.editor_rows(getattr(request, "tenant", None), "stay")
+
+
 @login_required
 def calendar(request):
     start = _parse_day(request.GET.get("von"))
@@ -139,6 +146,8 @@ def calendar(request):
             "finance_active": _finance_active(request),
             # FB-4b: строки панели «Status-Namen» брони (status, дефолт, своё имя).
             "status_label_rows": _status_rows(request),
+            # FB-3: строки панели «Statusübergänge» (правила переходов).
+            "transition_rows": _transition_rows(request),
         },
     )
 

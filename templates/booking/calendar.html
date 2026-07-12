@@ -28,6 +28,8 @@
 
 {# FB-4b: свои имена статусов брони (кабинет-отображение) #}
 {% include "tenant/_status_labels_panel.html" with rows=status_label_rows kind="booking" next_path=request.path %}
+{# FB-3: правила переходов статусов брони #}
+{% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="booking" next_path=request.path %}
 
 <div class="flex items-center justify-between mb-4 max-w-md">
   <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>

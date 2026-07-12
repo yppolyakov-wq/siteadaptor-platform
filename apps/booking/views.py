@@ -76,7 +76,7 @@ def calendar(request):
     )
     from django.urls import reverse
 
-    from apps.core import status_labels
+    from apps.core import status_labels, transition_rules
 
     return render(
         request,
@@ -93,6 +93,10 @@ def calendar(request):
             # FB-4b: строки панели «Status-Namen» (status, дефолт, своё имя).
             "status_label_rows": status_labels.label_rows(
                 getattr(request, "tenant", None), "booking", Booking.STATUSES
+            ),
+            # FB-3: строки панели «Statusübergänge» (правила переходов).
+            "transition_rows": transition_rules.editor_rows(
+                getattr(request, "tenant", None), "booking"
             ),
         },
     )

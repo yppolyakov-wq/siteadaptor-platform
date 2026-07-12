@@ -1795,6 +1795,29 @@ def normalize_status_labels(raw) -> dict:
     return out
 
 
+def normalize_transitions(raw) -> dict:
+    """FB-3: правила переходов {kind: {src: [dst,...]}} — какие уже-легальные переходы
+    показывать из src. СТРУКТУРНЫЙ whitelist (kind/src/dst — известные статусы); саму
+    легальность (dst ∈ allowed_targets) обеспечивает СЛОЙ ЧТЕНИЯ (transactions
+    пересекает с FSM) + apply() — тут core не импортируем (слой tenants). Пустой список
+    у src ОСМЫСЛЕН (скрыть не-danger переходы) — материализуется. Пусто → {} (golden)."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for kind, statuses in _STATUS_LABEL_KINDS.items():
+        node = raw.get(kind)
+        if not isinstance(node, dict):
+            continue
+        sset = set(statuses)
+        rules = {}
+        for src, dsts in node.items():
+            if src not in sset or not isinstance(dsts, (list, tuple)):
+                continue
+            rules[src] = [d for d in dsts if d in sset]
+        if rules:
+            out[kind] = rules
+    return out
+
+
 def normalize_board(raw) -> dict:
     """W5: настройки доски (labels/order/hidden) — только известные стадии.
 
@@ -1890,6 +1913,10 @@ def normalize(config) -> dict:
     sl = normalize_status_labels(config.get("status_labels"))
     if sl:
         normalized["status_labels"] = sl
+    # FB-3: правила переходов статусов; ключ ТОЛЬКО при непустом (golden-паритет).
+    tr = normalize_transitions(config.get("transitions"))
+    if tr:
+        normalized["transitions"] = tr
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:

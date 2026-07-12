@@ -42,6 +42,13 @@ def _status_label_rows(tenant):
     return status_labels.label_rows(tenant, "order", Order.STATUSES)
 
 
+def _transition_rows(tenant):
+    """FB-3: строки панели правил переходов статусов заказа."""
+    from apps.core import transition_rules
+
+    return transition_rules.editor_rows(tenant, "order")
+
+
 @login_required
 def order_list(request):
     qs = Order.objects.select_related("customer").prefetch_related("items")
@@ -58,6 +65,8 @@ def order_list(request):
             "status": status,
             # FB-4a: строки панели «Status-Namen» (status, дефолт, своё имя)
             "status_label_rows": _status_label_rows(tenant),
+            # FB-3: строки панели «Statusübergänge» (правила переходов заказа)
+            "transition_rows": _transition_rows(tenant),
             "orders_prepay": getattr(tenant, "orders_prepay", False),
             "payments_enabled": getattr(tenant, "payments_enabled", False),
             # E-7: Vorkasse/Überweisung — тумблер + реквизиты бизнеса.
@@ -158,15 +167,24 @@ def kitchen_action(request, pk):
 
 @login_required
 def order_detail(request, pk):
+    from apps.core import transition_rules
+
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     sm = OrderSM()
+    # FB-3: правила переходов владельца скрывают не-danger переходы (FSM не трогаем).
+    subset = transition_rules.subset_for(getattr(request, "tenant", None), "order")
+    allowed = [
+        t
+        for t in sm.allowed_targets(order.status)
+        if transition_rules.keep_target(order.status, t, subset)
+    ]
     return render(
         request,
         "orders/order_detail.html",
         {
             "order": order,
             "items": order.items.all(),
-            "allowed_targets": sm.allowed_targets(order.status),
+            "allowed_targets": allowed,
             "nav": "orders",
         },
     )
