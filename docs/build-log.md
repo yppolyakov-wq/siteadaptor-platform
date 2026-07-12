@@ -4879,3 +4879,35 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   делит колонку доски и бейдж товара → ru «Новые» (для бейджа неидеально; при жалобе —
   pgettext-контексты). Урок: реестры-обходы «пока без перевода» помечать TODO с триггером —
   иначе переживают появление переводов молча.
+- **FB-1 (пищевая маркировка только для гастро)** (2026-07-12, БЕЗ миграций). Ядро уже
+  гейтилось (`FOOD_BUSINESS_TYPES={bakery,butcher,grocery,restaurant,cafe}`, секция
+  `data-food-section`). Доведено: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/
+  Herkunft — всё пищевое) целиком скрыта у не-гастро (`ui_simple or not show_food_labeling`);
+  панель/поля в DOM (W0 → Save не стирает). Витрина уже presence-gated. Замок
+  `test_labeling_tab_hidden_for_nonfood`.
+- **FB-4b (свои имена статусов услуг/броней + на доске)** (2026-07-12, БЕЗ миграций).
+  Расширение FB-4a на service(booking)/stay. Generic `apps/core/status_labels.py`
+  (custom_labels/label_rows/save_labels), публичный `siteconfig.status_label_statuses`;
+  orders делегирует туда (DRY); `_STATUS_LABEL_KINDS += booking/stay`. Единый endpoint
+  `status-labels-save/<kind>/` + партиал `tenant/_status_labels_panel.html`; панели на
+  booking/stays календарях; тег `{% status_label b 'booking'/'stay' %}` на календарях +
+  booking_detail. **Доска:** `transaction_for(kind, obj, labels=None)` — кастом-имена
+  ТОЛЬКО кабинету (manage_sections_for/kanban_action передают labels); клиентский аккаунт
+  (`account_data`) зовёт без labels → дефолт (кастом не течёт клиенту). Замки
+  `apps/core/tests/test_status_labels.py` (9) + booking_detail кастом-имя.
+- **FB-3 (конфигуратор правил переходов статусов)** (2026-07-12, БЕЗ миграций; план
+  `docs/fb3-status-engine-plan-2026-07-12.md`, Вариант A). FSM/apply()/побочки/anti-oversell
+  — ЖЁСТКИЙ ПОЛ; владелец лишь СКРЫВАЕТ уже-легальные не-danger переходы из отображения;
+  danger/отмена (`pipeline.is_danger`) не прячется. Хранение `site_config['transitions']
+  [kind][src]=[dst,...]`, presence-minimal (пустой список src осмыслен=скрыть все не-danger).
+  `apps/core/transition_rules.py` (subset_for/keep_target/editor_rows/save) +
+  `siteconfig.normalize_transitions` (структурный whitelist, core не импортируем) +
+  материализация в normalize(). Read-side: `allowed_actions_for(kind,status,subset)`,
+  `transaction_for(...,transitions=)` (доска), `status_actions`-тег takes_context
+  (календари), order_detail фильтрует bespoke-кнопки. UI: партиал
+  `tenant/_transition_rules_panel.html` (danger=disabled «immer») + endpoint
+  `transitions-save/<kind>/` + панели на orders/booking/stays. Замки
+  `test_transition_rules.py` (8) + stays e2e «скрытие убирает кнопку». Урок: `kanban_action`
+  читал `request.tenant` напрямую — падал в тесте без tenant → `getattr(...,None)` (хелперы
+  принимают None). FB-4a/FB-4b/FB-3 закрывают запрос владельца «управление статусами и
+  переходами» (Вариант A); свои НОВЫЕ статусы (Вариант B) — отдельная волна за решением.

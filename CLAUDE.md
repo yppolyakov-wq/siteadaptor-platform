@@ -521,6 +521,17 @@ Python 3.12, менеджер uv.
   крупные FB-8 (единое управление продаваемыми сущностями в кабинете) и FB-3+FB-4b (движок
   статусов заказа/услуги/брони с правилами переходов) — план-доком до кода; отложенные
   FB-1/FB-9/FB-13/FB-14 — ждут контекста владельца.
+- **Самое свежее (2026-07-12, продолжение): FB-1 + FB-4b + FB-3 — в `main`, БЕЗ миграций.**
+  **FB-1** пищевая маркировка только для гастро (вкладка «Kennzeichnung» скрыта у не-гастро,
+  поля в DOM). **FB-4b** свои имена статусов услуг/броней (generic `core/status_labels.py`,
+  endpoint `status-labels-save/<kind>/`, панели на booking/stays, тег на календарях/
+  booking_detail; на доске кабинета — но НЕ в клиентском аккаунте). **FB-3** конфигуратор
+  правил переходов (Вариант A: FSM жёсткий пол, владелец лишь СКРЫВАЕТ не-danger переходы;
+  danger/отмена всегда; `core/transition_rules.py` + `siteconfig.normalize_transitions` +
+  панель `_transition_rules_panel.html` + endpoint `transitions-save/<kind>/`). Планы —
+  `docs/fb3-status-engine-plan-2026-07-12.md`, `docs/fb8-unified-sellable-cabinet-plan-2026-07-12.md`.
+  Свои НОВЫЕ статусы (FB-3 Вариант B) — отдельная волна за решением владельца. **Дальше:**
+  FB-8 (единое управление продаваемыми сущностями, план-док готов, Вариант A).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
