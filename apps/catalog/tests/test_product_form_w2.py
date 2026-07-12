@@ -66,6 +66,20 @@ def test_food_section_gated_by_archetype(user):
 
 
 @pytest.mark.django_db
+def test_labeling_tab_hidden_for_nonfood(user):
+    """FB-1: вся вкладка «Kennzeichnung» (пищевая: Allergene/Zusatzstoffe/Zutaten/Herkunft)
+    скрыта у не-гастро — но панель и поля остаются в DOM (W0 → Save не стирает)."""
+    nonfood = _render(user, TenantFactory(business_type="friseur"))
+    i = nonfood.find('data-pf-tab="kennz"')
+    assert i != -1 and "hidden" in nonfood[i : i + 90]  # кнопка вкладки скрыта
+    assert 'data-pf-panel="kennz"' in nonfood  # панель в DOM
+    assert 'name="origin"' in nonfood and 'name="ingredients"' in nonfood  # поля в DOM
+    food = _render(user, TenantFactory(business_type="bakery"))
+    j = food.find('data-pf-tab="kennz"')
+    assert j != -1 and "hidden" not in food[j : j + 90]  # у пекарни вкладка видна
+
+
+@pytest.mark.django_db
 def test_simple_mode_hides_advanced_keeps_fields(user):
     """Ф1: в Простом режиме продвинутые ТАБЫ скрыты, но их поля остаются в DOM."""
     body = _render(user, TenantFactory(business_type="bakery", site_config={"ui_mode": "simple"}))

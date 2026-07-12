@@ -53,7 +53,9 @@
     <div class="flex gap-4 border-b border-gray-200 text-sm font-medium" role="tablist">
       <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on pb-2">{% trans "Basics" %}</button>
       <button type="button" data-pf-tab="preis" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Price & stock" %}</button>
-      <button type="button" data-pf-tab="kennz" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Labeling" %}</button>
+      {% comment %}FB-1: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/Herkunft) —
+      пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
+      <button type="button" data-pf-tab="kennz" class="pf-tab pb-2{% if ui_simple or not show_food_labeling %} hidden{% endif %}">{% trans "Labeling" %}</button>
       <button type="button" data-pf-tab="markt" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Marketing" %}</button>
       {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
       {% if product %}<button type="button" data-pf-tab="varianten" class="pf-tab pb-2">{% trans "Variants & extras" %}</button>{% endif %}
