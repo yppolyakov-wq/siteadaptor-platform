@@ -4839,3 +4839,25 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   контейнере → прод молча без переводов; CABINET_LANGUAGES=5) — FF в main, FB-батч
   перебазирован поверх (бесконфликтно, гейт 45 зелёных на свежей БД). Тесты батча:
   21 в test_images (upload/delete/primary категории, плитка на 4 формах, витрина).
+- **M-пачка (FB-11/FB-10/FB-4a)** (2026-07-12, FF-merge в `main`, БЕЗ миграций; ТЗ
+  `cabinet-feedback-tz-2026-07-10`). **FB-11** карточка брони в кабинете
+  `/dashboard/stays/buchung/<pk>/` (`stays.booking_detail` + `stays/booking_detail.html`):
+  статус-бейдж, гость (mailto/tel), Aufenthalt (даты/ночи/тариф из `rate_snapshot`),
+  Betrag & Zahlung (total/extras/Kurtaxe/Gutschein/auto_discount/Anzahlung/payment_state),
+  Meldeschein (registration или ссылка на checkins), кнопки статуса через
+  `core/_status_actions.html` (тот же FSM-путь, что доска/календарь). `_manage_url` (UD2
+  `core/transactions.py`) для stay теперь → `booking-detail` (было `calendar`);
+  reference_code в `calendar.html` — ссылка на деталь; добавлено `StayBooking.deposit_eur`.
+  **FB-10** суммы в письмах брони: `stay_created`/`stay_confirmed` (гостю) +
+  `stay_owner` (Gesamtpreis + ссылка на карточку брони); owner-email показан в
+  `tenant/notifications.html` рядом с чекбоксом E-Mail + amber-предупреждение, если пуст
+  (`core.views` notifications-контекст += `owner_email`). **FB-4a** свои имена статусов
+  заказа (кабинет-отображение, НЕ движок переходов): `siteconfig.normalize_status_labels`
+  (kind `order`, 7 статусов, label ≤40, presence-minimal, golden-паритет цел) + тег
+  `{% status_label obj kind %}` (`core/templatetags/cabinet.py`) + `save_status_labels`
+  (targeted-write `site_config["status_labels"]["order"]`) + панель «⚙️ Status-Namen
+  anpassen» в `orders/order_list.html` + сброс к дефолту; применён в списке/детали заказа.
+  Тесты: stays `test_booking_detail_*`/`test_stay_emails_include_total`, orders
+  `test_status_labels_save_render_and_reset`/`test_normalize_status_labels_validation`.
+  Урок: вставка хелпера между `@login_required` и вьюхой смещает декоратор на хелпер
+  (3-й раз в проекте) — держать хелперы вне цепочки декораторов.

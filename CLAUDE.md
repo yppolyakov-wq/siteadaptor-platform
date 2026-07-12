@@ -508,6 +508,17 @@ Python 3.12, менеджер uv.
   «⚙️ Spalten» на доске (FB-2). FB-13 (иконка при hover) не воспроизводится в изоляции —
   ждём контекст владельца. Остаток T1: полный de-хром НЕ трогаем (msgid=de), rosetta-цикл
   прод: править в dev → коммит .po → деплой.
+- **Самое свежее (2026-07-12): M-пачка FB-11/FB-10/FB-4a — в `main`, БЕЗ миграций.**
+  **FB-11** карточка брони в кабинете `/dashboard/stays/buchung/<pk>/` (гость/даты/суммы/
+  Meldeschein/кнопки статуса тем же FSM-путём; `_manage_url` доски→booking-detail;
+  reference_code календаря — ссылка). **FB-10** суммы в письмах брони (гостю+владельцу) +
+  owner-email в `notifications.html` (+предупреждение если пуст). **FB-4a** свои имена
+  статусов заказа (кабинет-отображение): `normalize_status_labels`+тег `{% status_label %}`+
+  панель «⚙️ Status-Namen anpassen» в списке заказов+сброс (golden-паритет цел, НЕ движок
+  переходов). Детали — build-log. **Дальше по TZ (`cabinet-feedback-tz-2026-07-10`):**
+  крупные FB-8 (единое управление продаваемыми сущностями в кабинете) и FB-3+FB-4b (движок
+  статусов заказа/услуги/брони с правилами переходов) — план-доком до кода; отложенные
+  FB-1/FB-9/FB-13/FB-14 — ждут контекста владельца.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
