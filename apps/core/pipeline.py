@@ -12,6 +12,8 @@ FSM-переход, чей `stage` совпадает с колонкой (см.
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import status_registry
+
 # Канонические стадии доски (слева направо).
 STAGES = ("intake", "in_progress", "done", "terminal")
 
@@ -23,55 +25,11 @@ STAGE_LABELS = {
     "terminal": _("Abgeschlossen"),
 }
 
-# kind → {status: stage}. Каждая запись перечисляет ВСЕ статусы FSM этого kind
-# (источник — apps/<app>/state_machine.py). Пропуск статуса → фолбэк intake.
-PIPELINE = {
-    "order": {
-        "new": "intake",
-        "confirmed": "in_progress",
-        "ready": "in_progress",
-        "picked_up": "done",
-        "shipped": "done",
-        "cancelled": "terminal",
-        "returned": "terminal",
-    },
-    "booking": {
-        "pending": "intake",
-        "confirmed": "in_progress",
-        "fulfilled": "done",
-        "cancelled": "terminal",
-        "no_show": "terminal",
-    },
-    "stay": {
-        "pending": "intake",
-        "confirmed": "in_progress",
-        "fulfilled": "done",
-        "cancelled": "terminal",
-        "no_show": "terminal",
-    },
-    "ticket": {
-        "pending": "intake",
-        "confirmed": "in_progress",
-        "attended": "done",
-        "cancelled": "terminal",
-    },
-    "job": {
-        "new": "intake",
-        "quoted": "in_progress",
-        "accepted": "in_progress",
-        "done": "done",
-        "invoiced": "done",
-        "declined": "terminal",
-        "cancelled": "terminal",
-    },
-    "reservation": {
-        "pending": "intake",
-        "confirmed": "in_progress",
-        "fulfilled": "done",
-        "cancelled": "terminal",
-        "expired": "terminal",
-    },
-}
+# kind → {status: stage}. FB-3 Вариант B Phase 1: выводится из ЕДИНОГО источника —
+# реестра дескрипторов (`status_registry.BUILTIN`); порядок статусов в колонке сохранён
+# (важно для группировки pipeline_for). Пропуск статуса → фолбэк intake (stage_for).
+# Замок паритета — test_status_registry (замороженный golden-снимок).
+PIPELINE = {kind: status_registry.stage_map(kind) for kind in status_registry.BUILTIN}
 
 # kind → {target_status: немецкая подпись действия/кнопки}. Действие = переход
 # FSM в этот статус (см. allowed_actions). Фолбэк — сам код статуса.
@@ -118,8 +76,9 @@ ACTION_LABELS = {
 }
 
 
-# Отрицательные/отменяющие переходы — красная кнопка на карточке/строке.
-DANGER_TARGETS = {"cancelled", "declined", "no_show", "returned", "expired"}
+# Отрицательные/отменяющие переходы — красная кнопка на карточке/строке. Phase 1:
+# выводится из реестра (`is_danger`-флаг дескрипторов). Замок — test_status_registry.
+DANGER_TARGETS = status_registry.danger_codes()
 
 
 def is_danger(target: str) -> bool:
