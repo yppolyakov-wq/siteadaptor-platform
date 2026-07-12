@@ -912,3 +912,17 @@ def test_apply_tours_kit_dedicated_tour_operator():
     assert wein.teachers.count() == 2
     # без каталога (тур — не товар)
     assert Product.objects.count() == 0
+
+
+def test_kit_custom_statuses_applied_and_resolve():
+    """FB-3 Вариант B: демо-киты заводят кастом-статусы в site_config; резолвятся end-to-end."""
+    from apps.core import status_registry
+
+    tenant = TenantFactory(schema_name="public", slug="ws", name="WS", business_type="werkstatt")
+    assert demo_kits.apply_kit(tenant, "werkstatt") is True
+    tenant.refresh_from_db()
+    cd = status_registry.custom_descriptors(tenant, "booking")
+    assert "teile_bestellt" in cd and cd["teile_bestellt"].blocks_capacity
+    assert cd["teile_bestellt"].label == "Teile bestellt"
+    edges = status_registry.custom_edges(tenant, "booking")
+    assert ("confirmed", "teile_bestellt") in edges and ("teile_bestellt", "fulfilled") in edges
