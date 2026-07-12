@@ -10,6 +10,7 @@ from apps.core.fsm import StateMachine, Transition
 
 
 class JobSM(StateMachine):
+    kind = "job"
     transitions = [
         Transition("new", "quoted", "job.quoted"),
         Transition("new", "cancelled", "job.cancelled"),

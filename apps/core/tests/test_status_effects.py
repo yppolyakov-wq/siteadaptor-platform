@@ -145,3 +145,47 @@ def test_dispatch_cancel_after_revenue_reverses(_capture):
     src = _desc("done", revenue=True)
     status_effects.apply_custom_effects("order", object(), src, _desc("cancelled"))
     assert _capture == [("stock", "order"), "unredeem", ("reversal", "order")]
+
+
+# --- Phase 3b: хук apply() — эффекты ТОЛЬКО для кастом-статуса -----------------
+
+
+def test_apply_hook_fires_for_custom_dst_only(monkeypatch):
+    """apply() зовёт apply_custom_effects ТОЛЬКО для кастом-статуса (builtin=False);
+    встроенный dst → no-op (эффекты уже в on_transition)."""
+    import uuid
+    from datetime import datetime, timedelta
+
+    from django.utils import timezone
+
+    from apps.booking import services
+    from apps.booking.models import Resource
+    from apps.core import fsm, status_registry
+    from apps.core.status_registry import StatusDescriptor
+
+    resource = Resource.objects.create(name=f"Tisch {uuid.uuid4().hex[:6]}")
+    start = timezone.make_aware(datetime(2026, 7, 1, 12, 0))
+    booking = services.book(resource, start=start, end=start + timedelta(hours=1), name="Gast")
+
+    calls = []
+    monkeypatch.setattr(
+        status_effects, "apply_custom_effects", lambda k, i, s, d: calls.append((k, d.code))
+    )
+    custom = StatusDescriptor(code="wip", role="active", stage="in_progress", builtin=False)
+    orig = status_registry.resolve
+    monkeypatch.setattr(
+        status_registry, "resolve", lambda k, s, t=None: custom if s == "wip" else orig(k, s, t)
+    )
+
+    class SM(fsm.StateMachine):
+        kind = "booking"
+        transitions = [
+            fsm.Transition("pending", "wip", "x"),
+            fsm.Transition("wip", "confirmed", "y"),
+        ]
+
+    SM().apply(booking, "wip")  # кастом dst → хук сработал
+    assert calls == [("booking", "wip")]
+    calls.clear()
+    SM().apply(booking, "confirmed")  # встроенный dst → no-op
+    assert calls == []

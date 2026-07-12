@@ -9,6 +9,7 @@ from apps.core.fsm import StateMachine, Transition
 
 
 class BookingSM(StateMachine):
+    kind = "booking"
     transitions = [
         Transition("pending", "confirmed", "booking.confirmed"),
         Transition("pending", "cancelled", "booking.cancelled"),

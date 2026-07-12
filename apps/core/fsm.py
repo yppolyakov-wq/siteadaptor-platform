@@ -28,6 +28,9 @@ class StateMachine:
     """Базовый FSM поверх CharField-поля статуса. Наследники задают transitions."""
 
     field = "status"
+    # FB-3 Вариант B: транзакционный kind (order/booking/stay/…) — для ролевых эффектов
+    # КАСТОМ-статусов. None → машина без кастом-статусов (эффект-хук не срабатывает).
+    kind: str | None = None
     transitions: list[Transition] = []
 
     def __init__(self):
@@ -55,8 +58,24 @@ class StateMachine:
         instance.save(update_fields=update_fields)
 
         self.on_transition(instance, t, actor=actor, **ctx)
+        self._fire_custom_effects(instance, src, dst)
         self._audit(instance, t, actor=actor, ctx=ctx, src=src, dst=dst)
         return instance
+
+    def _fire_custom_effects(self, instance, src, dst):
+        """FB-3 Вариант B: если `dst` — КАСТОМ-статус тенанта, применить ролевые эффекты
+        (revenue/restore/unredeem/reversal — status_effects). Встроенные статусы уже
+        обработал on_transition → тут для них no-op (`dst_desc.builtin` → пропуск). До
+        Phase 4 кастом-переходов в _index нет → apply() до кастом-dst не доходит (инертно)."""
+        if not self.kind:
+            return
+        from apps.core import status_effects, status_registry
+
+        dst_desc = status_registry.resolve(self.kind, dst)
+        if dst_desc is None or dst_desc.builtin:
+            return
+        src_desc = status_registry.resolve(self.kind, src)
+        status_effects.apply_custom_effects(self.kind, instance, src_desc, dst_desc)
 
     def on_transition(self, instance, t: Transition, **kw):
         """Side-effects конкретного перехода. Переопределяется наследником."""
