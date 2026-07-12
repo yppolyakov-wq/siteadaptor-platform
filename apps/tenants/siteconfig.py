@@ -1818,6 +1818,49 @@ def normalize_transitions(raw) -> dict:
     return out
 
 
+def normalize_status_defs(raw) -> dict:
+    """FB-3 Вариант B: пользовательские определения статусов {kind: [def,...]}.
+
+    def = {code, label, role, stage, blocks_capacity, counts_in_reports, revenue_recognized}.
+    Whitelist: kind ∈ order/booking/stay; code — slug [a-z0-9_] ≤40, НЕ совпадает со
+    встроенным статусом и не дублируется в kind; role ∈ ROLES; stage ∈ STAGES; флаги — bool.
+    Presence-minimal → {} (golden). Реестр core импортируем лениво (слой tenants → core)."""
+    raw = raw if isinstance(raw, dict) else {}
+    from apps.core.status_registry import BUILTIN, ROLES, STAGES
+
+    out = {}
+    for kind in _STATUS_LABEL_KINDS:  # order/booking/stay
+        node = raw.get(kind)
+        if not isinstance(node, list):
+            continue
+        builtin_codes = set(BUILTIN.get(kind, {}))
+        seen, defs = set(), []
+        for d in node:
+            if not isinstance(d, dict):
+                continue
+            code = re.sub(r"[^a-z0-9_]+", "_", _s(d.get("code")).strip().lower()).strip("_")[:40]
+            role, stage = _s(d.get("role")), _s(d.get("stage"))
+            if not code or code in builtin_codes or code in seen:
+                continue
+            if role not in ROLES or stage not in STAGES:
+                continue
+            seen.add(code)
+            defs.append(
+                {
+                    "code": code,
+                    "label": _s(d.get("label"))[:40] or code,
+                    "role": role,
+                    "stage": stage,
+                    "blocks_capacity": bool(d.get("blocks_capacity")),
+                    "counts_in_reports": bool(d.get("counts_in_reports")),
+                    "revenue_recognized": bool(d.get("revenue_recognized")),
+                }
+            )
+        if defs:
+            out[kind] = defs
+    return out
+
+
 def normalize_board(raw) -> dict:
     """W5: настройки доски (labels/order/hidden) — только известные стадии.
 
@@ -1917,6 +1960,10 @@ def normalize(config) -> dict:
     tr = normalize_transitions(config.get("transitions"))
     if tr:
         normalized["transitions"] = tr
+    # FB-3 Вариант B: пользовательские определения статусов; ключ ТОЛЬКО при непустом.
+    sd = normalize_status_defs(config.get("status_defs"))
+    if sd:
+        normalized["status_defs"] = sd
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:

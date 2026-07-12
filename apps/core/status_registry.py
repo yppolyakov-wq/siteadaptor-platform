@@ -134,3 +134,79 @@ def revenue_statuses(kind: str) -> tuple[str, ...]:
 def danger_codes() -> set[str]:
     """Все отменяющие/негативные коды (= DANGER_TARGETS)."""
     return {code for kind in BUILTIN for code, d in descriptors(kind).items() if d.is_danger}
+
+
+# --- FB-3 Вариант B Phase 3: кастом-статусы тенанта (per-tenant) --------------
+# tenant передаётся явно ИЛИ берётся из текущего соединения (django-tenants). Хранение —
+# site_config["status_defs"][kind] (нормализовано siteconfig.normalize_status_defs при записи).
+
+
+def _current_tenant():
+    """Текущий тенант из соединения (django-tenants) или None (public/нет)."""
+    from django.db import connection
+
+    t = getattr(connection, "tenant", None)
+    if t is None or getattr(t, "schema_name", "public") == "public":
+        return None
+    return t
+
+
+def custom_descriptors(tenant, kind: str) -> dict[str, StatusDescriptor]:
+    """Кастом-дескрипторы тенанта для kind (builtin=False). is_danger выводится из роли
+    cancelled. Пусто, если нет. Читает уже-нормализованный site_config."""
+    cfg = getattr(tenant, "site_config", None)
+    defs = cfg.get("status_defs") if isinstance(cfg, dict) else None
+    if not isinstance(defs, dict):
+        return {}
+    out = {}
+    for d in defs.get(kind, []) or []:
+        code = d.get("code")
+        if code and code not in BUILTIN.get(kind, {}):
+            out[code] = StatusDescriptor(
+                code=code,
+                role=d.get("role", "active"),
+                stage=d.get("stage", "in_progress"),
+                blocks_capacity=bool(d.get("blocks_capacity")),
+                counts_in_reports=bool(d.get("counts_in_reports")),
+                revenue_recognized=bool(d.get("revenue_recognized")),
+                is_danger=(d.get("role") == "cancelled"),
+                builtin=False,
+            )
+    return out
+
+
+def resolve(kind: str, status: str, tenant=None) -> StatusDescriptor | None:
+    """Дескриптор (kind, status): встроенный ИЛИ кастом тенанта. tenant=None → текущий."""
+    d = BUILTIN.get(kind, {}).get(status)
+    if d is not None:
+        return d
+    if tenant is None:
+        tenant = _current_tenant()
+    return custom_descriptors(tenant, kind).get(status) if tenant is not None else None
+
+
+def all_descriptors(kind: str, tenant=None) -> dict[str, StatusDescriptor]:
+    """Встроенные ∪ кастом тенанта."""
+    out = dict(descriptors(kind))
+    if tenant is None:
+        tenant = _current_tenant()
+    if tenant is not None:
+        out.update(custom_descriptors(tenant, kind))
+    return out
+
+
+def active_statuses_for(kind: str, tenant=None) -> tuple[str, ...]:
+    """Коды, занимающие ёмкость: встроенные ∪ кастом-active тенанта (anti-oversell).
+    ВСЕГДА включает built-in (безопасное направление — кастом лишь ДОБАВЛЯЕТ)."""
+    codes = list(active_statuses(kind))
+    if tenant is None:
+        tenant = _current_tenant()
+    if tenant is not None:
+        codes += [c for c, d in custom_descriptors(tenant, kind).items() if d.blocks_capacity]
+    return tuple(codes)
+
+
+def stage_of(kind: str, status: str, tenant=None) -> str:
+    """Стадия доски для (kind, status): дескриптор или фолбэк intake (как pipeline.stage_for)."""
+    d = resolve(kind, status, tenant)
+    return d.stage if d is not None else "intake"
