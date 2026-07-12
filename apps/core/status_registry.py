@@ -34,6 +34,7 @@ class StatusDescriptor:
     revenue_recognized: bool = False
     is_danger: bool = False
     builtin: bool = True
+    label: str = ""  # отображаемая подпись кастом-статуса (Phase 6); built-in — из pipeline
 
 
 def _d(code, role, stage, **flags):
@@ -171,6 +172,7 @@ def custom_descriptors(tenant, kind: str) -> dict[str, StatusDescriptor]:
                 revenue_recognized=bool(d.get("revenue_recognized")),
                 is_danger=(d.get("role") == "cancelled"),
                 builtin=False,
+                label=d.get("label") or code,
             )
     return out
 

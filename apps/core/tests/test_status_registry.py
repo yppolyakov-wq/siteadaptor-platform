@@ -314,3 +314,65 @@ def test_custom_edges_requires_known_endpoints_and_custom():
     )
     edges = status_registry.custom_edges(t, "booking")
     assert edges == {("confirmed", "beim_lieferanten"), ("beim_lieferanten", "fulfilled")}
+
+
+# --- Phase 6: отображение (stage_for / action_label / status_label custom-aware) ---
+
+
+@pytest.mark.django_db
+def test_stage_for_and_action_label_custom_aware(monkeypatch):
+    from apps.core import pipeline
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "booking": [
+                    {
+                        "code": "beim_lieferanten",
+                        "label": "Beim Lieferanten",
+                        "role": "active",
+                        "stage": "done",
+                    }
+                ]
+            }
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: t)
+    # stage_for: built-in быстрый путь неизменен; кастом → его стадия; неизвестный → intake
+    assert pipeline.stage_for("booking", "confirmed") == "in_progress"
+    assert pipeline.stage_for("booking", "beim_lieferanten") == "done"
+    assert pipeline.stage_for("booking", "ghost") == "intake"
+    # action_label: built-in из ACTION_LABELS; кастом → его label; фолбэк — код
+    assert str(pipeline.action_label("booking", "confirmed")) == "Bestätigen"
+    assert pipeline.action_label("booking", "beim_lieferanten") == "Beim Lieferanten"
+    assert pipeline.action_label("booking", "ghost") == "ghost"
+
+
+@pytest.mark.django_db
+def test_transaction_status_label_custom(monkeypatch):
+    from types import SimpleNamespace
+
+    from apps.core import transactions
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "booking": [
+                    {
+                        "code": "beim_lieferanten",
+                        "label": "Beim Lieferanten",
+                        "role": "active",
+                        "stage": "in_progress",
+                    }
+                ]
+            }
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: t)
+    obj = SimpleNamespace(status="beim_lieferanten", get_status_display=lambda: "beim_lieferanten")
+    assert transactions._status_label("booking", obj) == "Beim Lieferanten"
+    # built-in статус — прежняя подпись (get_status_display)
+    obj2 = SimpleNamespace(status="confirmed", get_status_display=lambda: "Confirmed")
+    assert transactions._status_label("booking", obj2) == "Confirmed"

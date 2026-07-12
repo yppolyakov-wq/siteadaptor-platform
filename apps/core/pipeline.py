@@ -87,14 +87,23 @@ def is_danger(target: str) -> bool:
 
 
 def stage_for(kind: str, status: str) -> str:
-    """Стадия-колонка для (kind, status). Неизвестный статус → 'intake' (безопасно —
-    новая запись попадает в приёмную колонку, а не теряется)."""
-    return PIPELINE.get(kind, {}).get(status, "intake")
+    """Стадия-колонка для (kind, status). Built-in — быстрый путь; кастом тенанта — его
+    стадия (Phase 6); неизвестный → 'intake' (новая запись в приёмную колонку, не теряется)."""
+    stage = PIPELINE.get(kind, {}).get(status)
+    if stage is not None:
+        return stage
+    d = status_registry.resolve(kind, status)  # кастом тенанта из соединения
+    return d.stage if d is not None else "intake"
 
 
 def action_label(kind: str, target: str) -> str:
-    """Подпись кнопки/действия перехода в `target` (фолбэк — код статуса)."""
-    return ACTION_LABELS.get(kind, {}).get(target, target)
+    """Подпись кнопки/действия перехода в `target`. Built-in — из ACTION_LABELS; кастом —
+    его label (Phase 6); фолбэк — код статуса."""
+    label = ACTION_LABELS.get(kind, {}).get(target)
+    if label is not None:
+        return label
+    d = status_registry.resolve(kind, target)
+    return d.label if (d is not None and d.label) else target
 
 
 def resolve_columns(kind: str, board: dict | None = None) -> list[dict]:

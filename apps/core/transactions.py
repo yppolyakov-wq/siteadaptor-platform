@@ -236,6 +236,12 @@ def _status_label(kind: str, obj, labels: dict | None = None) -> str:
         custom = labels.get(obj.status)
         if custom:
             return custom
+    # FB-3 Вариант B Phase 6: кастом-статус → его label (get_status_display вернул бы код).
+    from apps.core import status_registry
+
+    d = status_registry.resolve(kind, obj.status)
+    if d is not None and not d.builtin and d.label:
+        return d.label
     getter = getattr(obj, "get_status_display", None)
     if callable(getter):
         return getter()
