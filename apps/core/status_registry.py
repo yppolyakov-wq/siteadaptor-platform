@@ -23,6 +23,29 @@ from dataclasses import dataclass
 STAGES = ("intake", "in_progress", "done", "terminal")
 ROLES = ("intake", "active", "done", "cancelled")
 
+# FB-3 Вариант B Phase 5: роль → стадия + дефолт-флаги (для редактора — владелец выбирает
+# роль, поведение следует; продвинутое (counts_in_reports/своя стадия) — через site_config API).
+ROLE_STAGE = {"intake": "intake", "active": "in_progress", "done": "done", "cancelled": "terminal"}
+ROLE_DEFAULT_FLAGS = {"active": {"blocks_capacity": True}, "done": {"revenue_recognized": True}}
+ROLE_LABELS = {
+    "intake": "Neu / Eingang",
+    "active": "In Arbeit (hält Kapazität)",
+    "done": "Abgeschlossen (Umsatz)",
+    "cancelled": "Storniert / Abbruch",
+}
+
+
+def def_from_role(code: str, label: str, role: str) -> dict:
+    """Кастом-определение статуса из code+label+role: стадия и флаги выводятся по роли."""
+    role = role if role in ROLES else "active"
+    return {
+        "code": code,
+        "label": label,
+        "role": role,
+        "stage": ROLE_STAGE[role],
+        **ROLE_DEFAULT_FLAGS.get(role, {}),
+    }
+
 
 @dataclass(frozen=True)
 class StatusDescriptor:

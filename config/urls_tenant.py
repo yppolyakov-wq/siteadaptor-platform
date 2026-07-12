@@ -46,6 +46,8 @@ from apps.core.views import (
     site_preview_draft,
     site_view,
     status_labels_save,
+    status_manager,
+    status_manager_save,
     transitions_save,
 )
 from apps.events import public_views as events_public
@@ -157,6 +159,13 @@ urlpatterns = [
         "dashboard/status-transitions/<str:kind>/",
         transitions_save,
         name="transitions-save",
+    ),
+    # FB-3 Вариант B: редактор своих статусов + переходов (order/booking/stay).
+    path("dashboard/status-manager/<str:kind>/", status_manager, name="status-manager"),
+    path(
+        "dashboard/status-manager/<str:kind>/save/",
+        status_manager_save,
+        name="status-manager-save",
     ),
     # FB-8: единый обзор продаваемых сущностей + тумблер видимости.
     path("dashboard/angebote/", sellable_manage, name="sellable-manage"),

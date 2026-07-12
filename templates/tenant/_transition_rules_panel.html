@@ -25,5 +25,7 @@ transitions-save. FSM/apply()/побочки/письма НЕ трогает �
     {% endfor %}
     <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
+  {# FB-3 Вариант B: редактор своих статусов (создать/связать переходами) #}
+  <a href="{% url 'status-manager' kind %}?next={{ next_path|urlencode }}" class="inline-block mt-3 text-xs font-medium text-indigo-600 hover:underline">🏷️ {% trans "Eigene Status verwalten" %} →</a>
 </details>
 {% endif %}

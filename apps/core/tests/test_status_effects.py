@@ -294,3 +294,54 @@ def test_custom_transition_reachable_via_apply(monkeypatch):
     BookingSM().apply(b, "fulfilled")
     b.refresh_from_db()
     assert b.status == "fulfilled"
+
+
+# --- Phase 5: редактор кастом-статусов (кабинет) ------------------------------
+
+
+def _mgr_req(method, data, tenant):
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    req = getattr(RequestFactory(), method)("/dashboard/status-manager/booking/", data or {})
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = get_user_model()(is_active=True)
+    req.tenant = tenant
+    return req
+
+
+def test_status_manager_editor_save_and_render(settings):
+    """Phase 5: редактор создаёт кастом-статус (роль→флаги) + ребро; рендерит их обратно."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core.views import status_manager, status_manager_save
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(site_config={})
+    resp = status_manager_save(
+        _mgr_req(
+            "post",
+            {
+                "new_label": "Beim Lieferanten",
+                "new_role": "active",
+                "edge": ["confirmed|beim_lieferanten"],
+                "next": "/dashboard/booking/",
+            },
+            t,
+        ),
+        "booking",
+    )
+    assert resp.status_code == 302 and resp.url == "/dashboard/booking/"
+    t.refresh_from_db()
+    d = t.site_config["status_defs"]["booking"][0]
+    assert d["code"] == "beim_lieferanten" and d["role"] == "active"
+    assert d["blocks_capacity"] is True and d["stage"] == "in_progress"  # флаги из роли
+    assert {"src": "confirmed", "dst": "beim_lieferanten"} in t.site_config["status_edges"][
+        "booking"
+    ]
+    # редактор рендерит новый статус + чекбокс ребра (checked)
+    body = status_manager(_mgr_req("get", {}, t), "booking").content.decode()
+    assert "Beim Lieferanten" in body
+    assert 'value="confirmed|beim_lieferanten"' in body
