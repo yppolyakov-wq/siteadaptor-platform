@@ -4927,3 +4927,29 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   отключение через `disabled_modules`), не `enabled_modules`. Замки `test_sellable_manage.py`
   (9), контракт `test_sellable` цел, широкий гейт 1123 passed. jobs — НЕ sellable
   (транзакция). Вариант B (единый CRUD всех типов) — не делаем (риск/объём).
+- **FB-3 Вариант B (ПОЛНОЦЕННЫЕ пользовательские статусы через роли) — ЗАВЕРШЁН ЦЕЛИКОМ**
+  (2026-07-12, 8 инкрементов за сессию, БЕЗ миграций; план `docs/fb3-variant-b-full-plan-2026-07-12.md`;
+  решение владельца «делать полноценно, вкл. свои статусы с денежными/складскими эффектами»).
+  Владелец создаёт свой статус (напр. «Beim Lieferanten», «Reklamation»), связывает переходами
+  с существующими — статус полностью функционален. **Ключевой приём:** снять завязку кода на
+  ЛИТЕРАЛЬНЫЕ коды статуса, перевести на РОЛЬ+ФЛАГИ (одного enum мало — `attended` держит место
+  vs `fulfilled` освобождает; отчёты считают `fulfilled`, oversell — нет → 2 независимые оси).
+  **Фазы:** **0** реестр `StatusDescriptor` (role/stage/blocks_capacity/counts_in_reports/
+  revenue_recognized/is_danger) + 24 характеризационных замка = текущий мир 1:1. **1**
+  `pipeline.PIPELINE`/`DANGER_TARGETS` выводятся из реестра (единый источник), golden-снимок;
+  oversell-критичные модельные `ACTIVE_STATUSES`/`_COUNTED` оставлены литералами. **2**
+  `apps/core/status_effects.py` — per-kind резолверы revenue/reversal/restore/unredeem
+  (зеркалят built-in on_transition 1:1, тот же source_ref → идемпотентность от двойного) +
+  `apply_custom_effects` (ролевой диспетчер); встроенные on_transition НЕ тронуты (квирки
+  сохранены). **3a** хранение `site_config['status_defs']` + `normalize_status_defs` (whitelist/
+  presence-minimal) + tenant-aware аксессоры (`custom_descriptors`/`resolve`/`active_statuses_for`/
+  `stage_of`). **3b-1** хук `StateMachine.apply()` (`_fire_custom_effects` — только для кастом-dst,
+  `kind` на 6 SM). **3b-2** `active_statuses_for` в 7 oversell-запросов booking/stay (кастом-active
+  держит номер/слот). **4** кастом-переходы: `status_edges` + `custom_edges` (валид: известные
+  эндпоинты + ≥1 кастом, built-in↔built-in shortcut запрещён — FSM жёсткий пол) + `apply()`
+  принимает кастом-ребро + `allowed_targets(+tenant)`. **6** отображение: `stage_for`/`action_label`/
+  `_status_label`/`status_label`-тег custom-aware (built-in — быстрый путь; кастом → стадия/label).
+  **5** кабинетный редактор `/dashboard/status-manager/<kind>/` (создать статус имя+роль,
+  переходы чекбоксами; `def_from_role`; вход из панели правил переходов). Замки: golden-паритет,
+  `test_status_registry`/`test_status_effects` (~60), built-in байт-в-байт (прогоны 1606/1107/
+  1092). Ограничение: кастом-статусы scoped на order/booking/stay; ticket/job/reservation — later.
