@@ -269,3 +269,48 @@ def test_stage_of_custom_and_fallback():
     assert status_registry.stage_of("booking", "beim_lieferanten", t) == "in_progress"
     assert status_registry.stage_of("booking", "confirmed", t) == "in_progress"  # built-in
     assert status_registry.stage_of("booking", "ghost", t) == "intake"  # фолбэк
+
+
+# --- Phase 4: кастом-переходы (custom_edges + normalize) -----------------------
+
+
+def test_normalize_status_edges_structural_and_presence():
+    from apps.tenants import siteconfig
+
+    out = siteconfig.normalize_status_edges(
+        {
+            "booking": [
+                {"src": "confirmed", "dst": "beim_lieferanten"},
+                {"src": "x", "dst": "x"},  # src==dst → отброшено
+                {"src": "", "dst": "y"},  # пустой src → отброшено
+                {"src": "confirmed", "dst": "beim_lieferanten"},  # дубль
+            ],
+            "nope": [{"src": "a", "dst": "b"}],
+        }
+    )
+    assert out == {"booking": [{"src": "confirmed", "dst": "beim_lieferanten"}]}
+    assert siteconfig.normalize_status_edges({}) == {}
+    assert "status_edges" not in siteconfig.normalize({})
+
+
+@pytest.mark.django_db
+def test_custom_edges_requires_known_endpoints_and_custom():
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "booking": [{"code": "beim_lieferanten", "role": "active", "stage": "in_progress"}]
+            },
+            "status_edges": {
+                "booking": [
+                    {"src": "confirmed", "dst": "beim_lieferanten"},  # ok (built-in→custom)
+                    {"src": "beim_lieferanten", "dst": "fulfilled"},  # ok (custom→built-in)
+                    {"src": "confirmed", "dst": "fulfilled"},  # built-in↔built-in → запрещён
+                    {"src": "confirmed", "dst": "ghost"},  # неизвестный эндпоинт → отброшен
+                ]
+            },
+        }
+    )
+    edges = status_registry.custom_edges(t, "booking")
+    assert edges == {("confirmed", "beim_lieferanten"), ("beim_lieferanten", "fulfilled")}

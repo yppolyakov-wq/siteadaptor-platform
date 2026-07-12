@@ -232,3 +232,65 @@ def test_custom_active_status_blocks_stay_capacity(monkeypatch):
     # контроль: снимем занятость (терминальный кастом не блокирует) → свободно
     StayBooking.objects.filter(pk=booking.pk).update(status="cancelled")
     assert availability.range_available(unit, arrival, dep) is True
+
+
+# --- Phase 4: кастом-переходы через apply() (end-to-end) -----------------------
+
+
+def test_custom_transition_reachable_via_apply(monkeypatch):
+    """Phase 4: кастом-статус ДОСТИЖИМ через apply() (граф тенанта поверх FSM); держит
+    ёмкость; allowed_targets включает кастом-ребро; нелегальный переход → IllegalTransition."""
+    import uuid
+    from datetime import datetime, timedelta
+
+    import pytest as _pt
+    from django.utils import timezone
+
+    from apps.booking import services
+    from apps.booking.models import Resource
+    from apps.booking.state_machine import BookingSM
+    from apps.core import status_registry
+    from apps.core.fsm import IllegalTransition
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        site_config={
+            "status_defs": {
+                "booking": [
+                    {
+                        "code": "beim_lieferanten",
+                        "role": "active",
+                        "stage": "in_progress",
+                        "blocks_capacity": True,
+                    }
+                ]
+            },
+            "status_edges": {
+                "booking": [
+                    {"src": "confirmed", "dst": "beim_lieferanten"},
+                    {"src": "beim_lieferanten", "dst": "fulfilled"},
+                ]
+            },
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+
+    resource = Resource.objects.create(name=f"R {uuid.uuid4().hex[:6]}")
+    start = timezone.make_aware(datetime(2026, 8, 1, 12, 0))
+    end = start + timedelta(hours=1)
+    b = services.book(resource, start=start, end=end, name="G")
+    BookingSM().apply(b, "confirmed")  # built-in
+    BookingSM().apply(b, "beim_lieferanten")  # кастом-ребро confirmed→custom легален
+    b.refresh_from_db()
+    assert b.status == "beim_lieferanten"
+    # держит слот (кастом-active в oversell-запросе)
+    assert services.overlapping(resource, start, end).filter(pk=b.pk).exists()
+    # allowed_targets из кастом-статуса включает кастом-ребро → fulfilled
+    assert "fulfilled" in BookingSM().allowed_targets("beim_lieferanten")
+    # нелегальный переход (нет built-in и нет кастом-ребра) → IllegalTransition
+    with _pt.raises(IllegalTransition):
+        BookingSM().apply(b, "no_show")
+    # кастом → built-in fulfilled (легально, on_transition встроенного fulfilled)
+    BookingSM().apply(b, "fulfilled")
+    b.refresh_from_db()
+    assert b.status == "fulfilled"

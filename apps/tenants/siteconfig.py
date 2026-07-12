@@ -1861,6 +1861,37 @@ def normalize_status_defs(raw) -> dict:
     return out
 
 
+def normalize_status_edges(raw) -> dict:
+    """FB-3 Вариант B: кастом-переходы {kind: [{src, dst}]} (граф тенанта поверх FSM).
+
+    Структурный whitelist: kind ∈ order/booking/stay; src/dst — непустые слаги, src≠dst;
+    дубли отброшены. Семантику (оба статуса известны + ≥1 кастом-эндпоинт, чтобы не
+    добавить built-in↔built-in shortcut в обход FSM) проверяет СЛОЙ ЧТЕНИЯ
+    (status_registry.custom_edges) + apply(). Presence-minimal → {} (golden)."""
+    raw = raw if isinstance(raw, dict) else {}
+
+    def _code(v):
+        return re.sub(r"[^a-z0-9_]+", "_", _s(v).strip().lower()).strip("_")[:40]
+
+    out = {}
+    for kind in _STATUS_LABEL_KINDS:  # order/booking/stay
+        node = raw.get(kind)
+        if not isinstance(node, list):
+            continue
+        seen, edges = set(), []
+        for e in node:
+            if not isinstance(e, dict):
+                continue
+            src, dst = _code(e.get("src")), _code(e.get("dst"))
+            if not src or not dst or src == dst or (src, dst) in seen:
+                continue
+            seen.add((src, dst))
+            edges.append({"src": src, "dst": dst})
+        if edges:
+            out[kind] = edges
+    return out
+
+
 def normalize_board(raw) -> dict:
     """W5: настройки доски (labels/order/hidden) — только известные стадии.
 
@@ -1964,6 +1995,10 @@ def normalize(config) -> dict:
     sd = normalize_status_defs(config.get("status_defs"))
     if sd:
         normalized["status_defs"] = sd
+    # FB-3 Вариант B: кастом-переходы; ключ ТОЛЬКО при непустом (golden-паритет).
+    se = normalize_status_edges(config.get("status_edges"))
+    if se:
+        normalized["status_edges"] = se
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:

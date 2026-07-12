@@ -210,3 +210,25 @@ def stage_of(kind: str, status: str, tenant=None) -> str:
     """Стадия доски для (kind, status): дескриптор или фолбэк intake (как pipeline.stage_for)."""
     d = resolve(kind, status, tenant)
     return d.stage if d is not None else "intake"
+
+
+def custom_edges(tenant, kind: str) -> set:
+    """FB-3 Вариант B Phase 4: валидные кастом-переходы тенанта {(src, dst)}. Оба статуса
+    ДОЛЖНЫ быть известны (built-in ∪ кастом kind) и ≥1 эндпоинт — кастомный (built-in↔built-in
+    shortcut запрещён: встроенный граф FSM — жёсткий пол). Мусор/невалидное отброшено."""
+    cfg = getattr(tenant, "site_config", None)
+    node = cfg.get("status_edges") if isinstance(cfg, dict) else None
+    edges_raw = node.get(kind, []) if isinstance(node, dict) else []
+    custom_codes = set(custom_descriptors(tenant, kind))
+    known = set(BUILTIN.get(kind, {})) | custom_codes
+    out = set()
+    for e in edges_raw:
+        src, dst = e.get("src"), e.get("dst")
+        if (
+            src in known
+            and dst in known
+            and src != dst
+            and (src in custom_codes or dst in custom_codes)
+        ):
+            out.add((src, dst))
+    return out
