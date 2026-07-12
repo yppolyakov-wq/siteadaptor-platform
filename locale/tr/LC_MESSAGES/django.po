@@ -535,7 +535,7 @@ msgstr "Günün yemeği"
 
 #: apps/catalog/models.py:19 apps/core/pipeline.py:20
 msgid "Neu"
-msgstr "Ya da"
+msgstr "Yeni"
 
 #: apps/catalog/models.py:20
 msgid "Beliebt"
@@ -884,7 +884,7 @@ msgstr "Kontrol Paneli"
 #: apps/core/modules.py:83 apps/core/templatetags/cabinet.py:36
 #: templates/core/board.html:3 templates/stays/units.html:148
 msgid "Board"
-msgstr "Yönetim Kurulu"
+msgstr "Pano"
 
 #: apps/core/modules.py:96 templates/catalog/product_list.html:3
 #: templates/promotions/promotion_list.html:16
@@ -1048,7 +1048,7 @@ msgstr "Biletler"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
-msgstr "Siparişler"
+msgstr "İş emirleri"
 
 #: apps/core/templatetags/cabinet.py:48
 msgid "Bewertungen"
@@ -11659,3 +11659,51 @@ msgstr "Hesap oluşturuldu"
 #: templates/tenants/provisioning.html:21
 msgid "Preparing your database…"
 msgstr "Veritabanınız hazırlanıyor…"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Übersicht"
+msgstr "Genel bakış"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkäufe"
+msgstr "Satışlar"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden"
+msgstr "Müşteriler"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Auswertungen"
+msgstr "Analizler"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Finanzen"
+msgstr "Finans"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Website gestalten"
+msgstr "Web sitesi tasarımı"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Abrechnung"
+msgstr "Faturalandırma"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Blog & News"
+msgstr "Blog & Haberler"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Mein Geschäft"
+msgstr "İşletmem"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkaufen"
+msgstr "Satış"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden & Marketing"
+msgstr "Müşteriler & Pazarlama"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kombi-Angebote"
+msgstr "Kombo teklifleri"

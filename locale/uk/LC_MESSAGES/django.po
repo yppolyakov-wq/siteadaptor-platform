@@ -536,7 +536,7 @@ msgstr "Страва дня"
 
 #: apps/catalog/models.py:19 apps/core/pipeline.py:20
 msgid "Neu"
-msgstr "Або"
+msgstr "Нові"
 
 #: apps/catalog/models.py:20
 msgid "Beliebt"
@@ -885,7 +885,7 @@ msgstr "Панель управління"
 #: apps/core/modules.py:83 apps/core/templatetags/cabinet.py:36
 #: templates/core/board.html:3 templates/stays/units.html:148
 msgid "Board"
-msgstr "Правління"
+msgstr "Дошка"
 
 #: apps/core/modules.py:96 templates/catalog/product_list.html:3
 #: templates/promotions/promotion_list.html:16
@@ -1015,7 +1015,7 @@ msgstr "Термін дії закінчився"
 
 #: apps/core/templatetags/cabinet.py:27
 msgid "Produkte"
-msgstr "Продукція"
+msgstr "Товари"
 
 #: apps/core/templatetags/cabinet.py:28
 msgid "Kategorien"
@@ -1049,7 +1049,7 @@ msgstr "Квитки"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
-msgstr "Замовлення"
+msgstr "Заявки"
 
 #: apps/core/templatetags/cabinet.py:48
 msgid "Bewertungen"
@@ -1121,7 +1121,7 @@ msgstr "Мови"
 
 #: apps/core/templatetags/cabinet.py:77
 msgid "Medien"
-msgstr "ЗМІ"
+msgstr "Медіа"
 
 #: apps/core/templatetags/cabinet.py:78 config/settings/base.py:634
 #: templates/tenant/domains.html:3
@@ -11724,3 +11724,51 @@ msgstr "Обліковий запис створено"
 #: templates/tenants/provisioning.html:21
 msgid "Preparing your database…"
 msgstr "Підготовка бази даних…"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Übersicht"
+msgstr "Огляд"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkäufe"
+msgstr "Продажі"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden"
+msgstr "Клієнти"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Auswertungen"
+msgstr "Аналітика"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Finanzen"
+msgstr "Фінанси"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Website gestalten"
+msgstr "Оформлення сайту"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Abrechnung"
+msgstr "Тариф і оплата"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Blog & News"
+msgstr "Блог і новини"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Mein Geschäft"
+msgstr "Мій бізнес"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkaufen"
+msgstr "Торгівля"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden & Marketing"
+msgstr "Клієнти та маркетинг"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kombi-Angebote"
+msgstr "Комбо-набори"

@@ -705,7 +705,7 @@ msgstr "Call"
 
 #: apps/core/context_processors.py:16 apps/core/views.py:2514
 msgid "Sortiment"
-msgstr "Product Line"
+msgstr "Catalog"
 
 #: apps/core/context_processors.py:17 apps/core/templatetags/cabinet.py:47
 #, fuzzy
@@ -732,7 +732,7 @@ msgstr "Offers"
 
 #: apps/core/context_processors.py:22 apps/core/templatetags/cabinet.py:50
 msgid "Gutscheine"
-msgstr "Gift Certificates"
+msgstr "Vouchers"
 
 #: apps/core/detail_sections.py:53 apps/core/detail_sections.py:80
 #: apps/core/detail_sections.py:92 templates/booking/services.html:47
@@ -1019,7 +1019,7 @@ msgstr "Categories"
 #: apps/core/templatetags/cabinet.py:29 templates/inventory/stock.html:3
 #: templates/inventory/stock.html:7
 msgid "Lager"
-msgstr "Warehouse"
+msgstr "Stock"
 
 #: apps/core/templatetags/cabinet.py:30
 msgid "Kombi"
@@ -1033,7 +1033,7 @@ msgstr "Import"
 #, fuzzy
 #| msgid "Bestellung eingegangen"
 msgid "Bestellungen"
-msgstr "Order received"
+msgstr "Orders"
 
 #: apps/core/templatetags/cabinet.py:39 apps/notifications/prefs.py:81
 msgid "Übernachtungen"
@@ -1048,7 +1048,7 @@ msgstr "Ticket code"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
-msgstr "Orders"
+msgstr "Jobs"
 
 #: apps/core/templatetags/cabinet.py:48
 msgid "Bewertungen"
@@ -1062,7 +1062,7 @@ msgstr "Campaigns"
 #, fuzzy
 #| msgid "Reservierung abgelaufen"
 msgid "Reservierungen"
-msgstr "Reservation expired"
+msgstr "Reservations"
 
 #: apps/core/templatetags/cabinet.py:52
 msgid "Einlösen"
@@ -1135,7 +1135,7 @@ msgstr "Domains"
 #, fuzzy
 #| msgid "Aktion"
 msgid "Funktionen"
-msgstr "Deal"
+msgstr "Features"
 
 #: apps/core/templatetags/cabinet.py:80
 msgid "Hilfe"
@@ -11615,3 +11615,51 @@ msgstr "Account created"
 #: templates/tenants/provisioning.html:21
 msgid "Preparing your database…"
 msgstr "Preparing your database…"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Übersicht"
+msgstr "Overview"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkäufe"
+msgstr "Sales"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden"
+msgstr "Customers"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Auswertungen"
+msgstr "Analytics"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Finanzen"
+msgstr "Finance"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Website gestalten"
+msgstr "Design website"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Abrechnung"
+msgstr "Billing"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Blog & News"
+msgstr "Blog & News"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Mein Geschäft"
+msgstr "My business"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkaufen"
+msgstr "Sell"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden & Marketing"
+msgstr "Customers & Marketing"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kombi-Angebote"
+msgstr "Combo deals"
