@@ -15,7 +15,7 @@ from apps.billing.webhooks import stripe_webhook
 from apps.core import health
 from apps.partners import views as partners_views
 from apps.publishing import views as publishing_views
-from apps.tenants.views import BusinessSignupView, signup_waiting
+from apps.tenants.views import BusinessSignupView, set_public_language, signup_waiting
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -61,6 +61,8 @@ urlpatterns = [
     # Local SEO (Track B5): sitemap + robots основного домена.
     path("sitemap.xml", aggregator_views.sitemap_xml, name="aggregator-sitemap"),
     path("robots.txt", aggregator_views.robots_txt, name="aggregator-robots"),
+    # Переключатель языка публичных страниц (регистрация и пр.) — 5 языков хрома.
+    path("sprache/", set_public_language, name="public-set-language"),
     # Онбординг: регистрация бизнеса → создаёт Tenant + Domain + владельца.
     path("", BusinessSignupView.as_view(), name="business-signup"),
     # Ожидание фонового провижининга: «Ihre Website wird eingerichtet…».

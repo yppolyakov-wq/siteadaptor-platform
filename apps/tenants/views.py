@@ -1,6 +1,8 @@
 """Публичные вьюхи онбординга (живут в public-схеме, см. urls_public)."""
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
 from . import onboarding
@@ -9,14 +11,43 @@ from .models import Tenant
 from .services import login_url_for, start_business_provisioning
 
 
+def set_public_language(request):
+    """Переключатель языка публичной страницы (регистрация бизнеса и пр.).
+
+    Валидируем `?lang=` против CABINET_LANGUAGES (языки хрома платформы: de/en/tr/
+    ru/uk); неизвестный → LANGUAGE_CODE. Кладём cookie, LocaleMiddleware подхватит
+    на следующем запросе. `next` — только относительный (open-redirect guard)."""
+    allowed = getattr(settings, "CABINET_LANGUAGES", [settings.LANGUAGE_CODE])
+    lang = request.GET.get("lang", "")
+    if lang not in allowed:
+        lang = settings.LANGUAGE_CODE
+    nxt = request.GET.get("next") or "/"
+    if not url_has_allowed_host_and_scheme(nxt, allowed_hosts=None):
+        nxt = "/"
+    resp = redirect(nxt)
+    resp.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang, max_age=60 * 60 * 24 * 365)
+    return resp
+
+
 class BusinessSignupView(View):
     template_name = "tenants/onboarding.html"
+
+    # Языки хрома публичной страницы (нативные подписи) — переключатель 5 языков.
+    _LANG_LABELS = {"de": "DE", "en": "EN", "ru": "RU", "tr": "TR", "uk": "UK"}
 
     def _context(self, form, request=None):
         # AB3/AB5: тип бизнеса — визуальные карточки (иконка + язык задач), как в
         # мастере онбординга (шаг 1), а не сухой dropdown. #3/#5: + demo_url (кнопка
         # «Demo ansehen» на карточке → живая демо-витрина архетипа).
-        return {"form": form, "business_types": onboarding.business_type_cards(request)}
+        langs = [
+            {"code": c, "label": self._LANG_LABELS.get(c, c.upper())}
+            for c in getattr(settings, "CABINET_LANGUAGES", [settings.LANGUAGE_CODE])
+        ]
+        return {
+            "form": form,
+            "business_types": onboarding.business_type_cards(request),
+            "ui_languages": langs,
+        }
 
     def get(self, request):
         # D3: реф-код партнёра переживает GET→POST через сессию (?ref=<code>).

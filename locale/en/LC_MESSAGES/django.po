@@ -11681,3 +11681,72 @@ msgstr "Custom names for the statuses (dashboard display only). Empty = default.
 
 msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
 msgstr "Which follow-up statuses are selectable from a status (display buttons only). Cancelling stays always possible."
+
+msgid "Gründe dein Geschäft"
+msgstr "Create your business"
+
+msgid "14 Tage kostenlos testen. Keine Karte nötig."
+msgstr "14-day free trial. No card required."
+
+msgid "Dein ganzes Geschäft — online in Minuten."
+msgstr "Your whole business — online in minutes."
+
+msgid "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain."
+msgstr "Website, catalog, bookings, promotions and loyalty — all in one place, on your own subdomain."
+
+msgid "Mini-Website auf deiner Subdomain — ohne Code"
+msgstr "Mini-site on your own subdomain — no code"
+
+msgid "Buchungen & Bestellungen mit Doppelbuchungs-Schutz"
+msgstr "Bookings & orders with double-booking protection"
+
+msgid "Aktionen, Gutscheine & Treue — direkt eingebaut"
+msgstr "Promotions, vouchers & loyalty, built in"
+
+msgid "Für lokale Betriebe gemacht, DSGVO-freundlich"
+msgstr "Made for local businesses, GDPR-friendly"
+
+msgid "14 Tage kostenlos · Keine Kreditkarte nötig"
+msgstr "14-day free trial · No credit card required"
+
+msgid "Demo ansehen"
+msgstr "View demo site"
+
+msgid "Geschäft erstellen"
+msgstr "Create business"
+
+msgid "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "By creating a business you agree to our terms. You can cancel anytime during the trial."
+
+msgid "Name des Geschäfts"
+msgstr "Business name"
+
+msgid "Art des Geschäfts"
+msgstr "Business type"
+
+msgid "Stadt"
+msgstr "City"
+
+msgid "Deine E-Mail"
+msgstr "Your email"
+
+msgid "Passwort"
+msgstr "Password"
+
+msgid "Passwort bestätigen"
+msgstr "Confirm password"
+
+msgid "{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."
+msgstr "{slug}.siteadaptor.de — only a-z, 0-9 and hyphen."
+
+msgid "Nur Kleinbuchstaben, Ziffern und Bindestrich."
+msgstr "Only lowercase letters, digits and hyphen."
+
+msgid "Diese Subdomain ist reserviert."
+msgstr "This subdomain is reserved."
+
+msgid "Diese Subdomain ist bereits vergeben."
+msgstr "This subdomain is already taken."
+
+msgid "Passwörter stimmen nicht überein."
+msgstr "Passwords do not match."
