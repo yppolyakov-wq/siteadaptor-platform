@@ -11794,3 +11794,27 @@ msgstr "Клиенты и маркетинг"
 #. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
 msgid "Kombi-Angebote"
 msgstr "Комбо-наборы"
+
+msgid "Pending"
+msgstr "Ожидает"
+
+msgid "Confirmed"
+msgstr "Подтверждено"
+
+msgid "No-show"
+msgstr "Неявка"
+
+msgid "Status-Namen anpassen"
+msgstr "Изменить названия статусов"
+
+msgid "Statusübergänge anpassen"
+msgstr "Настроить переходы статусов"
+
+msgid "Eigene Status verwalten"
+msgstr "Управление своими статусами"
+
+msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Свои названия статусов (только отображение в кабинете). Пусто = по умолчанию."
+
+msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
+msgstr "Какие следующие статусы доступны из текущего (только кнопки отображения). Отмена всегда возможна."

@@ -1030,8 +1030,6 @@ msgid "Import"
 msgstr "Import"
 
 #: apps/core/templatetags/cabinet.py:37 apps/notifications/prefs.py:79
-#, fuzzy
-#| msgid "Bestellung eingegangen"
 msgid "Bestellungen"
 msgstr "Orders"
 
@@ -1041,10 +1039,8 @@ msgstr "Overnight Stays"
 
 #: apps/core/templatetags/cabinet.py:40 apps/crm/customer360.py:54
 #: apps/crm/customer360.py:128 apps/notifications/prefs.py:82
-#, fuzzy
-#| msgid "Ticket-Code"
 msgid "Tickets"
-msgstr "Ticket code"
+msgstr "Tickets"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
@@ -1059,8 +1055,6 @@ msgid "Kampagnen"
 msgstr "Campaigns"
 
 #: apps/core/templatetags/cabinet.py:51 apps/notifications/prefs.py:84
-#, fuzzy
-#| msgid "Reservierung abgelaufen"
 msgid "Reservierungen"
 msgstr "Reservations"
 
@@ -11663,3 +11657,27 @@ msgstr "Customers & Marketing"
 #. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
 msgid "Kombi-Angebote"
 msgstr "Combo deals"
+
+msgid "Pending"
+msgstr "Pending"
+
+msgid "Confirmed"
+msgstr "Confirmed"
+
+msgid "No-show"
+msgstr "No-show"
+
+msgid "Status-Namen anpassen"
+msgstr "Customize status names"
+
+msgid "Statusübergänge anpassen"
+msgstr "Customize status transitions"
+
+msgid "Eigene Status verwalten"
+msgstr "Manage custom statuses"
+
+msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Custom names for the statuses (dashboard display only). Empty = default."
+
+msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
+msgstr "Which follow-up statuses are selectable from a status (display buttons only). Cancelling stays always possible."

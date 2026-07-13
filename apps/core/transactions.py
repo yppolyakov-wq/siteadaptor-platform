@@ -25,6 +25,7 @@ from decimal import Decimal
 from importlib import import_module
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import pipeline
 
@@ -83,12 +84,12 @@ _RESERVATION_STATUS_LABELS = {
 
 # kind → короткая немецкая подпись вкладки доски (= заголовки разделов ЛК).
 KIND_LABEL = {
-    "order": "Bestellungen",
-    "booking": "Termine",
-    "stay": "Übernachtungen",
-    "ticket": "Tickets",
-    "job": "Aufträge",
-    "reservation": "Reservierungen",
+    "order": _("Bestellungen"),
+    "booking": _("Termine"),
+    "stay": _("Übernachtungen"),
+    "ticket": _("Tickets"),
+    "job": _("Aufträge"),
+    "reservation": _("Reservierungen"),
 }
 
 # Последних записей на вкладку доски (UD1-3): свежие сверху, счётчик по стадиям.

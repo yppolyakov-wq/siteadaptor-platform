@@ -11707,3 +11707,27 @@ msgstr "Müşteriler & Pazarlama"
 #. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
 msgid "Kombi-Angebote"
 msgstr "Kombo teklifleri"
+
+msgid "Pending"
+msgstr "Beklemede"
+
+msgid "Confirmed"
+msgstr "Onaylandı"
+
+msgid "No-show"
+msgstr "Gelmedi"
+
+msgid "Status-Namen anpassen"
+msgstr "Durum adlarını özelleştir"
+
+msgid "Statusübergänge anpassen"
+msgstr "Durum geçişlerini özelleştir"
+
+msgid "Eigene Status verwalten"
+msgstr "Özel durumları yönet"
+
+msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Durumlar için özel adlar (yalnızca panelde gösterim). Boş = varsayılan."
+
+msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
+msgstr "Bir durumdan hangi sonraki durumların seçilebileceği (yalnızca gösterim düğmeleri). İptal her zaman mümkündür."

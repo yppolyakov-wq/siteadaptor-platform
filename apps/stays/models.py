@@ -9,6 +9,7 @@ Stripe-Connect-оплату (P2.5b/c), finance, notifications и реестр м
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
@@ -249,11 +250,11 @@ class StayBooking(TimestampedModel):
     STATUS_CANCELLED = "cancelled"
     STATUS_NO_SHOW = "no_show"
     STATUSES = [
-        (STATUS_PENDING, "Pending"),
-        (STATUS_CONFIRMED, "Confirmed"),
-        (STATUS_FULFILLED, "Fulfilled"),
-        (STATUS_CANCELLED, "Cancelled"),
-        (STATUS_NO_SHOW, "No-show"),
+        (STATUS_PENDING, _("Pending")),
+        (STATUS_CONFIRMED, _("Confirmed")),
+        (STATUS_FULFILLED, _("Fulfilled")),
+        (STATUS_CANCELLED, _("Cancelled")),
+        (STATUS_NO_SHOW, _("No-show")),
     ]
     # Статусы, занимающие ночи (пересечения считаем только по ним).
     ACTIVE_STATUSES = (STATUS_PENDING, STATUS_CONFIRMED)
