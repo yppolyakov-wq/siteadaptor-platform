@@ -1,0 +1,25 @@
+{% load i18n %}
+<h1 class="text-2xl font-bold mb-1">Die Basics</h1>
+<p class="text-sm text-gray-500 mb-4">Adresse und Öffnungszeiten erscheinen auf deiner Website.</p>
+<form method="post" class="space-y-4">
+  {% csrf_token %}
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_address">Adresse</label>
+    <textarea id="id_address" name="address" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ request.tenant.address }}</textarea>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_opening_hours">Öffnungszeiten</label>
+    <textarea id="id_opening_hours" name="opening_hours" rows="3" placeholder="Mo–Fr 8–18 Uhr&#10;Sa 8–13 Uhr" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ request.tenant.opening_hours }}</textarea>
+  </div>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_contact_phone">Telefon</label>
+      <input id="id_contact_phone" name="contact_phone" type="text" value="{{ request.tenant.contact_phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_contact_email">E-Mail</label>
+      <input id="id_contact_email" name="contact_email" type="email" value="{{ request.tenant.contact_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  {% include "tenant/_setup_buttons.html" %}
+</form>

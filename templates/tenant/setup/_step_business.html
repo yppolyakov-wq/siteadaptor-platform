@@ -1,0 +1,35 @@
+{% load i18n %}
+<h1 class="text-2xl font-bold mb-1">Was machst du?</h1>
+<p class="text-sm text-gray-500 mb-4">Wähle deine Art von Geschäft — wir schlagen dir die passenden Bausteine vor.</p>
+<form method="post" class="space-y-2">
+  {% csrf_token %}
+  {# AB3 (анти-Битрикс): визуальные карточки архетипа — иконка + язык задач, не сухой список. #}
+  <div class="grid sm:grid-cols-2 gap-4">
+    {% for bt in business_types %}
+      <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer hover:ring-1 hover:ring-indigo-300">
+        <input type="radio" name="business_type" value="{{ bt.value }}"
+               {% if request.tenant.business_type == bt.value %}checked{% endif %} class="mt-1 border-gray-300">
+        <span>
+          <span class="inline-flex items-center gap-2 text-sm font-medium"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
+          {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
+          {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 mt-1">👁 {% trans "View demo site" %} ↗</a>{% endif %}
+        </span>
+      </label>
+    {% endfor %}
+  </div>
+  {% comment %}AB3 (анти-Битрикс «дефолты вместо пустых полей»): рекомендуемый путь —
+     начать с ПРИМЕРОВ (демо-кит архетипа), чтобы дальше править, а не создавать с
+     нуля. «Ohne Beispiele» — пустой старт (вторично).{% endcomment %}
+  <div class="flex flex-wrap items-center gap-3 pt-5">
+    <button type="submit" name="action" value="demo_start"
+            class="bg-indigo-600 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-indigo-700 shadow-sm">
+      🎁 Mit Beispielen starten
+    </button>
+    <button type="submit"
+            class="text-sm text-gray-600 px-4 py-3 rounded-xl border border-gray-300 hover:border-indigo-400 hover:text-indigo-700">
+      Ohne Beispiele
+    </button>
+    <button type="submit" name="action" value="skip" formnovalidate class="text-sm text-gray-400 px-3 py-2.5 hover:underline">Überspringen</button>
+  </div>
+  <p class="text-xs text-gray-400 mt-2">Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und Texten — du änderst sie einfach ab.</p>
+</form>

@@ -1,0 +1,39 @@
+{% load i18n %}
+<h1 class="text-2xl font-bold mb-1">Was willst du anbieten?</h1>
+<p class="text-sm text-gray-500 mb-4">Du kannst Bausteine später jederzeit unter „Modules“ ändern.</p>
+<form method="post" class="space-y-2">
+  {% csrf_token %}
+  {% for row in module_rows %}
+    <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer">
+      <input type="checkbox" name="modules" value="{{ row.spec.key }}" {% if row.enabled %}checked{% endif %}
+             class="mt-1 rounded border-gray-300">
+      <span>
+        <span class="text-sm font-medium">{{ row.spec.icon }} {{ row.spec.label_de }}</span>
+        {% if row.recommended %}<span class="ml-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Recommended" %}</span>{% endif %}
+        <span class="block text-xs text-gray-500 mt-0.5">{{ row.spec.description_de }}</span>
+        <span class="block text-[11px] text-gray-400 mt-0.5">{{ row.suited_label }}</span>
+      </span>
+    </label>
+  {% endfor %}
+  {% if other_module_rows %}
+    {# Гибрид: блоки других вертикалей — включаются осознанно. #}
+    <details class="pt-2">
+      <summary class="text-sm text-gray-500 cursor-pointer">Weitere Bausteine (für andere Geschäftstypen)</summary>
+      <div class="space-y-2 mt-2">
+        {% for row in other_module_rows %}
+          <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer">
+            <input type="checkbox" name="modules" value="{{ row.spec.key }}" {% if row.enabled %}checked{% endif %}
+                   class="mt-1 rounded border-gray-300">
+            <span>
+              <span class="text-sm font-medium">{{ row.spec.icon }} {{ row.spec.label_de }}</span>
+              <span class="ml-1 bg-amber-50 text-amber-700 text-[11px] font-medium px-2 py-0.5 rounded-full">⚠ Untypisch für deinen Geschäftstyp</span>
+              <span class="block text-xs text-gray-500 mt-0.5">{{ row.spec.description_de }}</span>
+              <span class="block text-[11px] text-gray-400 mt-0.5">{{ row.suited_label }}</span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+    </details>
+  {% endif %}
+  {% include "tenant/_setup_buttons.html" %}
+</form>

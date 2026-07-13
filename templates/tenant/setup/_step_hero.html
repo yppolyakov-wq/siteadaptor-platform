@@ -1,0 +1,21 @@
+{% load i18n %}
+{# B.3 (анти-Битрикс): баннер — заголовок/подзаголовок + загрузка фото файлом. #}
+<h1 class="text-2xl font-bold mb-1">Dein Banner</h1>
+<p class="text-sm text-gray-500 mb-4">Das Erste, was Besucher sehen. Titel, kurzer Text und optional ein Foto.</p>
+<form method="post" enctype="multipart/form-data" class="space-y-4">
+  {% csrf_token %}
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_hero_title">Titel</label>
+    <input id="id_hero_title" name="hero_title" type="text" value="{{ hero_title }}" placeholder="Willkommen" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_hero_text">Untertitel</label>
+    <textarea id="id_hero_text" name="hero_text" rows="2" placeholder="Kurz, was dich ausmacht." class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ hero_text }}</textarea>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_hero_image">Foto (optional)</label>
+    {% if hero_image %}<img src="{{ hero_image }}" alt="" class="w-full h-32 object-cover rounded-lg mb-2">{% endif %}
+    <input id="id_hero_image" name="hero_image" type="file" accept="image/*" class="block w-full text-sm text-gray-600">
+  </div>
+  {% include "tenant/_setup_buttons.html" %}
+</form>

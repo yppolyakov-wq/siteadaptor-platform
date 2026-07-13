@@ -1,0 +1,18 @@
+{% load i18n %}
+{# B.2 (анти-Битрикс): выбор стиля витрины как визуальные карточки — один клик. #}
+<h1 class="text-2xl font-bold mb-1">Stil &amp; Farbe</h1>
+<p class="text-sm text-gray-500 mb-4">Wähle einen Look — Layout, Texte und Farbe werden gesetzt. Später frei anpassbar.</p>
+<form method="post" class="space-y-2">
+  {% csrf_token %}
+  {% for t in templates %}
+    <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer hover:ring-1 hover:ring-indigo-300">
+      <input type="radio" name="template" value="{{ t.key }}" {% if forloop.first %}checked{% endif %} class="mt-1 border-gray-300">
+      <span>
+        <span class="inline-flex items-center gap-2 text-sm font-medium">
+          <span class="inline-block w-4 h-4 rounded-full border border-black/10" style="background: {{ t.accent }};"></span>{{ t.label }}</span>
+        <span class="block text-xs text-gray-500 mt-0.5">{{ t.description_de }}</span>
+      </span>
+    </label>
+  {% endfor %}
+  {% include "tenant/_setup_buttons.html" %}
+</form>

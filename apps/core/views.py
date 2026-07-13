@@ -97,11 +97,17 @@ def dashboard(request):
 
     state = onboarding.get_state(request.tenant)
     # AB5 (анти-Битрикс): свежезарегистрированный владелец, ещё не тронувший
-    # мастер (нетронутое состояние: шаг 1, без пропусков, не завершён), попадает
-    # сразу в Onboarding-Wizard, а не в пустой кабинет. Любое действие в мастере
-    # (Weiter/Überspringen/Zurück) уводит из нетронутого состояния и снимает
-    # редирект — навигация остального кабинета не гейтится.
-    if not state["completed"] and state["step"] == 1 and not state["skipped"]:
+    # мастер (нетронутое состояние: первый шаг, ничего не выполнено и не
+    # пропущено, не завершён), попадает сразу в Onboarding-Wizard, а не в пустой
+    # кабинет. Любое действие в мастере (Weiter/Überspringen/Zurück) уводит из
+    # нетронутого состояния и снимает редирект — остальной кабинет не гейтится.
+    untouched = (
+        not state["completed"]
+        and state["step"] == onboarding.STEP_KEYS[0]
+        and not state["skipped"]
+        and not state["done"]
+    )
+    if untouched:
         return redirect("setup")
 
     setup_done, setup_total = onboarding.progress(request.tenant)
@@ -120,148 +126,79 @@ def dashboard(request):
 
 @login_required
 def setup_view(request):
-    """Onboarding-Wizard (Track D / D0c): пошаговая настройка после регистрации.
+    """Onboarding-Wizard: тонкий диспетчер шагов (AB6.1).
 
-    ≤5 шагов, одно решение на шаг, «Überspringen» на каждом; состояние в
-    Tenant.site_config["onboarding"] (apps.tenants.onboarding) — мастер
-    резюмируется с текущего шага.
+    Слайды (сохранение полей + контекст) — реестр apps.core.setup_steps.HANDLERS;
+    порядок/статусы — apps.tenants.onboarding.SETUP_STEPS (state v2 в
+    site_config["onboarding"], легаси-int-шаги мапятся). Рельса прогресса
+    позволяет прыгнуть к любому шагу (?step=<key>) и дозаполнить пропущенное;
+    здесь остаются только глобальные action'ы мастера.
     """
-    from apps.core import modules as registry
-    from apps.promotions import presets
-    from apps.tenants import demo, onboarding, siteconfig
-    from apps.tenants.models import Tenant
+    from apps.core import setup_steps
+    from apps.tenants import demo, onboarding
 
     tenant = request.tenant
-    state = onboarding.get_state(tenant)
-    step = state["step"]
-
-    def apply_business_type(business_type):
-        """Шаг 1: сохранить тип бизнеса + (при смене/нетронутом пресете) применить
-        стартовый набор модулей вертикали. Общий код шага 1 и «начать с примеров»."""
-        if business_type not in dict(Tenant.BUSINESS_TYPES):
-            return
-        untouched_preset = sorted(tenant.disabled_modules or []) == sorted(
-            registry.default_disabled_for(tenant.business_type)
-        )
-        type_changed = business_type != tenant.business_type
-        tenant.business_type = business_type
-        update_fields = ["business_type", "updated_at"]
-        if type_changed or untouched_preset:
-            tenant.disabled_modules = registry.default_disabled_for(business_type)
-            update_fields.insert(1, "disabled_modules")
-        tenant.save(update_fields=update_fields)
 
     if request.method == "POST":
-        # AB3-v2 «живое превью»: сохранить поля текущего шага БЕЗ перехода дальше
-        # (debounced fetch при вводе/выборе) — iframe-превью сразу перечитывает витрину.
-        is_live = request.POST.get("action") == "live"
-        if request.POST.get("action") == "skip":
+        action = request.POST.get("action", "")
+        if action == "skip":
             onboarding.advance(tenant, skip=True)
             return redirect("setup")
-        if request.POST.get("action") == "back":
+        if action == "back":
             onboarding.back(tenant)
             return redirect("setup")
         # B.1 (анти-Битрикс): наполнить сайт демо-контентом прямо из мастера, чтобы
-        # после онбординга витрина была НЕ пустой (обратимо). Остаёмся на шаге 4.
-        if request.POST.get("action") == "load_demo":
+        # после онбординга витрина была НЕ пустой (обратимо). Остаёмся на шаге.
+        if action == "load_demo":
             if demo.load_demo(tenant):
                 messages.success(request, _("Example content added — your site isn't empty."))
             return redirect("setup")
-        if request.POST.get("action") == "clear_demo":
+        if action == "clear_demo":
             if demo.clear_demo(tenant):
                 messages.info(request, _("Example content removed."))
             return redirect("setup")
         # AB3 (анти-Битрикс «дефолты вместо пустых полей»): «Mit Beispielen starten» на
-        # шаге 1 — сохранить тип + СРАЗУ залить демо-кит архетипа и шагнуть дальше, чтобы
-        # весь мастер был заполнен примерами (владелец правит, а не создаёт с нуля).
-        if request.POST.get("action") == "demo_start":
-            apply_business_type(request.POST.get("business_type", ""))
+        # шаге business — сохранить тип + СРАЗУ залить демо-кит архетипа и шагнуть дальше,
+        # чтобы весь мастер был заполнен примерами (владелец правит, а не создаёт с нуля).
+        if action == "demo_start":
+            setup_steps.apply_business_type(tenant, request.POST.get("business_type", ""))
             if demo.load_demo(tenant):
                 messages.success(
                     request, _("Example content added — just edit it, no blank pages.")
                 )
             onboarding.advance(tenant)
             return redirect("setup")
-        if step == 1:
-            # Гибрид (решение владельца 2026-06-12): набор блоков должен подходить типу —
-            # при СМЕНЕ типа пресет вертикали применяется заново; см. apply_business_type.
-            apply_business_type(request.POST.get("business_type", ""))
-        elif step == 2:
-            # B.2: выбор шаблона витрины (раскладка+тексты+акцент) одним кликом.
-            from apps.tenants import sitetemplates
-
-            sitetemplates.apply_template(tenant, request.POST.get("template", ""))
-        elif step == 3:
-            enabled_keys = set(request.POST.getlist("modules"))
-            tenant.disabled_modules = [
-                spec.key for spec in registry.optional_modules() if spec.key not in enabled_keys
-            ]
-            tenant.save(update_fields=["disabled_modules", "updated_at"])
-        elif step == 4:
-            for field in ("address", "opening_hours", "contact_phone", "contact_email"):
-                setattr(tenant, field, request.POST.get(field, "").strip())
-            tenant.save(
-                update_fields=[
-                    "address",
-                    "opening_hours",
-                    "contact_phone",
-                    "contact_email",
-                    "updated_at",
-                ]
-            )
-        elif step == 5:
-            # B.3: баннер — заголовок/подзаголовок hero + опц. загрузка фото файлом.
-            _save_hero(request, tenant)
-        # Шаг 6 — демо/пресеты (action-кнопки выше); «Weiter» просто двигает дальше.
-        if is_live:
+        handler = setup_steps.HANDLERS[onboarding.get_state(tenant)["step"]]
+        if handler.post:
+            handler.post(request)
+        # AB3-v2 «живое превью»: action=live сохраняет поля текущего шага БЕЗ перехода
+        # дальше (debounced fetch при вводе) — iframe-превью сразу перечитывает витрину.
+        if action == "live":
             from django.http import HttpResponse
 
-            return HttpResponse(status=204)  # остаёмся на шаге; превью перечитает витрину
+            return HttpResponse(status=204)
         onboarding.advance(tenant)
         return redirect("setup")
 
-    context = {"nav": "dashboard", "step": step, "total": onboarding.TOTAL_STEPS, "state": state}
-    if step == 1:
-        context["business_types"] = onboarding.business_type_cards(request)
-    elif step == 2:
-        # B.2: шаблоны витрины как визуальные карточки (рекомендованные типу — сверху).
-        from apps.tenants import sitetemplates
-
-        config = siteconfig.normalize(tenant.site_config)
-        active = [s["key"] for s in config["sections"] if s["enabled"]]
-        context["templates"] = sitetemplates.templates_for(tenant.business_type)
-        context["current_sections"] = active
-    elif step == 3:
-
-        def _row(spec):
-            return {
-                "spec": spec,
-                "enabled": spec.key not in (tenant.disabled_modules or []),
-                "recommended": tenant.business_type in spec.recommended_for,
-                "suited_label": registry.suited_label(spec),
-            }
-
-        optional = registry.optional_modules()
-        # Гибрид: подходящие типу — сверху, остальные — «Weitere Bausteine».
-        context["module_rows"] = [
-            _row(spec) for spec in optional if registry.is_suited_for(spec, tenant.business_type)
-        ]
-        context["other_module_rows"] = [
-            _row(spec)
-            for spec in optional
-            if not registry.is_suited_for(spec, tenant.business_type)
-        ]
-    elif step == 5:
-        # B.3: текущие значения баннера для предзаполнения.
-        config = siteconfig.normalize(tenant.site_config)
-        context["hero_title"] = config["hero_title"]
-        context["hero_text"] = config["hero_text"]
-        context["hero_image"] = config["hero_image"]
-    elif step == 6:
-        context["presets"] = presets.presets_for(tenant.business_type)
-        context["has_demo"] = demo.has_demo(tenant)  # B.1: предложить/убрать демо-контент
-        # W3: CTA «добавь первое X» — по архетипу (услуга/событие/товар), не хардкод «Produkt».
-        context["offer_label"], context["offer_url"] = onboarding.offer_cta(tenant)
+    # GET: рельса открывает любой шаг — ?step=<key> персистится (мастер резюмируется
+    # с него), невалидный ключ игнорируется (остаёмся на текущем).
+    wanted = request.GET.get("step")
+    state = onboarding.goto(tenant, wanted) if wanted else onboarding.get_state(tenant)
+    step = state["step"]
+    handler = setup_steps.HANDLERS[step]
+    context = {
+        "nav": "dashboard",
+        "step": step,
+        "step_num": onboarding.STEP_KEYS.index(step) + 1,
+        "total": onboarding.TOTAL_STEPS,
+        "state": state,
+        "steps": onboarding.steps_with_status(tenant),
+        "step_template": handler.template,
+        "show_preview": handler.preview,
+        "live_save": handler.live,
+    }
+    if handler.context:
+        context.update(handler.context(request))
     return render(request, "tenant/setup.html", context)
 
 
@@ -370,27 +307,6 @@ def _insert_after_section(sections: list, block: dict, after: str) -> None:
                 sections.insert(i + 1, block)
                 return
     sections.append(block)
-
-
-def _save_hero(request, tenant):
-    """B.3: сохранить баннер мастера — hero-тексты + опц. загруженное фото (файл)."""
-    from apps.tenants import siteconfig
-
-    config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-    config["hero_title"] = request.POST.get("hero_title", "").strip()
-    config["hero_text"] = request.POST.get("hero_text", "").strip()
-    uploaded = request.FILES.get("hero_image")
-    if uploaded:
-        from apps.catalog import images
-
-        try:
-            images.validate_image(uploaded)
-            ref = images.save_product_image(uploaded, folder="hero")
-            config["hero_image"] = ref["url"]
-        except Exception:
-            messages.error(request, _("Couldn't upload the image — please try another file."))
-    tenant.site_config = siteconfig.normalize(config)
-    tenant.save(update_fields=["site_config", "updated_at"])
 
 
 def _save_logo(request) -> None:
