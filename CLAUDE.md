@@ -561,6 +561,19 @@ Python 3.12, менеджер uv.
   травил previewPath; guard по body). Стенд Playwright 13/13 (вкл. живой календарь наличия
   после свопа); план `docs/editor-live-inplace-plan-2026-07-12.md`. БЕЗ миграций. Грабля:
   Django 5.1 кэширует шаблоны и в DEBUG — после правки шаблона рестартовать runserver.
+- **Самое свежее (2026-07-13): i18n-фиксы кабинета + регистрация 5 языков + Branchen-страницы.**
+  (1) Статусы брони/вкладки доски/панели статусов переводятся во всех 5 языках
+  (gettext_lazy на choices StayBooking/ServiceBooking + KIND_LABEL; en-fuzzy починены;
+  БЕЗ миграций — choices-метки схему не меняют). (2) Регистрация бизнеса: полноэкранный
+  сплит-редизайн + переключатель DE/EN/RU/TR/UK (public-роут `/sprache/`,
+  `set_public_language` по CABINET_LANGUAGES); базовый msgid — НЕМЕЦКИЙ (de.po нет —
+  откачен владельцем ранее), переводы в 4 .po. (3) **Branchen-Landingpages**:
+  `/branchen/` + `/branchen/<slug>/` (14 архетипов) — hero + проверенные хайлайты
+  (workflow research+adversarial verify против кода) + сетка модулей из REGISTRY +
+  CTA `?type=` предвыбор в регистрации; всё немецкими msgid, i18n-ready
+  (`apps/tenants/archetype_pages.py`, `tenants/industry.html`). Редактор: решение
+  владельца «A + мелочи из B» — правый инспектор вместо ленты/листа (план
+  `docs/editor-right-inspector-plan-2026-07-13.md`, В РАБОТЕ).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

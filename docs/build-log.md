@@ -4976,3 +4976,17 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `test_home_builder_double_buffered_canvas_swap` (+ инвариант «location.replace(previewUrl())
   ровно 2: фолбэк + pageSel»). Грабля стенда: Django 5.1 кэширует шаблоны и в DEBUG —
   после правки шаблона рестартовать runserver.
+- **Branchen-Landingpages (страницы архетипов) — целиком** (2026-07-13, БЕЗ миграций;
+  запрос владельца «отдельная страница для каждого архетипа с описанием возможностей,
+  сразу на немецком, но заложи язык»). Публичные `/branchen/` (обзор 14 отраслей) +
+  `/branchen/<slug>/` (все BUSINESS_TYPES кроме other): hero + архетип-специфичные
+  хайлайты + сетка рекомендованных модулей (детерминированно из `core.modules.REGISTRY`)
+  + CTA «Jetzt starten» → регистрация с предвыбором `?type=` + «Demo ansehen» (гейт по
+  засеянным Domain). Контент — исследовательский workflow (14 research + 14 adversarial
+  verify агентов): каждый хайлайт проверен против кода, выдуманные отброшены (3 шт).
+  Все строки — немецкие msgid в `_()`/`{% trans %}` (i18n-ready; переводы en/ru/tr/uk
+  — отдельным треком), переключатель 5 языков (партиал `tenants/_lang_switch.html`).
+  Карточки регистрации → «Mehr erfahren». Файлы: `apps/tenants/archetype_pages.py`
+  (DISPLAY_NAME/CONTENT/page_context), вьюхи industries_index/industry_page, шаблоны
+  `tenants/industry.html`/`industries.html`. Замки: `test_industry_pages` (рендер всех
+  14, 404 unknown/other, ?type=-предвыбор, ссылки карточек).
