@@ -1,18 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block title %}{% trans "Lösungen für deine Branche" %} · SiteAdaptor{% endblock %}
-{% block extra_head %}<meta name="description" content="{% trans 'Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen.' %}">{% endblock %}
+{% block extra_head %}{% if request.path != "/" %}<link rel="canonical" href="/">{% endif %}<meta name="description" content="{% trans 'Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen.' %}">{% endblock %}
 
 {% block body %}
-<header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-    <a href="/" class="inline-flex items-center gap-2 font-bold text-indigo-700">
-      <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 text-white text-sm">◧</span>
-      <span class="hidden sm:inline">SiteAdaptor</span>
-    </a>
-    <a href="/" class="ml-auto bg-indigo-600 text-white rounded-lg px-3.5 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Jetzt starten" %}</a>
-  </div>
-</header>
+{% include "tenants/_public_header.html" %}
 
 <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-14 pb-6 text-center">
   <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">{% trans "Lösungen für deine Branche" %}</h1>
@@ -33,4 +25,5 @@
     {% endfor %}
   </div>
 </section>
+{% include "tenants/_public_footer.html" %}
 {% endblock %}

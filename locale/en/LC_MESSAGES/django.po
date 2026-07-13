@@ -11750,3 +11750,6 @@ msgstr "This subdomain is already taken."
 
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwords do not match."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "By creating a business you agree to our <a href=\"/agb/\" class=\"underline hover:text-gray-600\">terms</a>. You can cancel anytime during the trial."

@@ -5006,3 +5006,27 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   теперь функция только снимает пад. Стенд Playwright 11/11 (панель справа/сжатие/
   возврат ширины/live-своп/Esc/мобайл/0 JS-ошибок) + визуально канва живая рядом с
   панелью. id всех элементов сохранены (замки целы), JS-логика областей/попапа не тронута.
+- **Главная платформы = /branchen/ + меню + Über uns + правовые страницы** (2026-07-13,
+  БЕЗ миграций; запрос владельца «сделай /branchen/ главной, небольшое меню, о нас и
+  правовые»). Корень siteadaptor.de — обзор Branchen (обе точки: `/` и `/branchen/`,
+  canonical на `/`); регистрация → `/registrieren/` (?type= предвыбор сохранён;
+  партнёрский `?ref` ловится и на корне — исторические ссылки из партнёрского кабинета
+  ведут на `/`). Общий хром публичных страниц: `tenants/_public_header.html` (Branchen ·
+  Über uns · языки · «Jetzt starten») + `_public_footer.html` (Über uns/Impressum/
+  Datenschutz/AGB). Новые страницы: `/ueber-uns/` + правовые ПЛАТФОРМЫ `/impressum/`,
+  `/datenschutz/`, `/agb/` (немецкие заготовки с [ПЛЕЙСХОЛДЕРАМИ] реквизитов — заполняет
+  владелец; noindex; ссылка «Bedingungen» на регистрации → /agb/, msgid обновлён в 4 .po).
+  Sitemap основного домена += корень/14 branchen/ueber-uns (замок обновлён: 21 URL).
+  Замки: test_root_serves_industries..., test_root_captures_partner_ref,
+  test_public_header_footer_menu, test_about_and_legal_pages_render.
+- **Редактор: свёртка + ресайз правого инспектора** (2026-07-13, фидбэк владельца
+  «панель хороша — позволь сворачивать и менять ширину», БЕЗ миграций). Ширина панели —
+  CSS-переменная `--bld-panel-w` на #bld-root (панель/лента/канва/ручка/шеврон следуют
+  из CSS); ручка `#bld-panel-resizer` на кромке тянет 280–640px (Pointer Capture —
+  события не теряются над iframe), персист в localStorage (`bld_panel_w`), переживает
+  перезагрузку; шеврон `#bld-panel-toggle` сворачивает открытую панель целиком
+  (`bld-panel-min`: visibility — без display-войны с .bld-ribbon-open; канва во всю
+  ширину), клик по блоку/области снимает свёртку (`__bldUnminPanel` в openBlockPopup/
+  showArea). Масштаб канвы при ресайзе пересчитывает существующий ResizeObserver.
+  Стенд Playwright 7/7 (видимость контролов, свёртка/возврат, ресайз 500px+персист,
+  unmin, 0 JS-ошибок). Desktop-only (<1024 — прежний нижний лист).

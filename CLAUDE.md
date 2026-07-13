@@ -575,7 +575,12 @@ Python 3.12, менеджер uv.
   инспектор (A+мелочи из B) СДЕЛАН** — настройки (Template-области и лента блока) в
   панели 380px справа во всю высоту, канва сжимается (right+ResizeObserver→applyDevice),
   вертикаль экрана свободна; легаси syncRibbonPad (paddingTop=высота попапа) убит —
-  схлопывал канву; стенд 11/11 (план `docs/editor-right-inspector-plan-2026-07-13.md`).
+  схлопывал канву; стенд 11/11 (план `docs/editor-right-inspector-plan-2026-07-13.md`); + свёртка
+  (шеврон, bld-panel-min) и ресайз ширины (280–640, --bld-panel-w, localStorage,
+  Pointer Capture) — стенд 7/7. **Главная платформы = /branchen/** (корень; регистрация
+  → /registrieren/, ?ref ловится на корне), общий хром `_public_header/_footer`,
+  страницы /ueber-uns/ + правовые ПЛАТФОРМЫ /impressum/ /datenschutz/ /agb/
+  (заготовки, реквизиты-[ПЛЕЙСХОЛДЕРЫ] на владельце), sitemap += 16 URL.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

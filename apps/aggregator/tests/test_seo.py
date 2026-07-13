@@ -39,8 +39,11 @@ def test_sitemap_has_index_cities_and_types():
     assert body.startswith("<?xml")
     assert "/entdecken/Hilden/" in body
     assert "/entdecken/Hilden/bakery/" in body
-    # index + 2 города + 2 (город,тип) = 5
-    assert body.count("<url>") == 5
+    # Платформенные страницы (2026-07-13): корень + 14 Branchen + Über uns.
+    assert "<loc>http://testserver/</loc>" in body
+    assert "/branchen/hotel/" in body and "/ueber-uns/" in body
+    # 16 платформенных + index + 2 города + 2 (город,тип) = 21
+    assert body.count("<url>") == 21
 
 
 @override_settings(ROOT_URLCONF="config.urls_public")

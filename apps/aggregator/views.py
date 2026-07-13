@@ -409,7 +409,13 @@ def sitemap_xml(request):
     from xml.sax.saxutils import escape
 
     active = AggregatorListing.objects.filter(is_active=True)
-    urls = [request.build_absolute_uri(reverse("aggregator-index"))]
+    # Публичные страницы платформы: главная (обзор Branchen) + отраслевые + Über uns.
+    from apps.tenants import archetype_pages
+
+    urls = [request.build_absolute_uri("/")]
+    urls += [request.build_absolute_uri(f"/branchen/{s}/") for s in archetype_pages.SLUGS]
+    urls += [request.build_absolute_uri("/ueber-uns/")]
+    urls += [request.build_absolute_uri(reverse("aggregator-index"))]
     urls += [
         request.build_absolute_uri(reverse("aggregator-city", args=[c]))
         for c in active.exclude(city="").values_list("city", flat=True).distinct().order_by("city")

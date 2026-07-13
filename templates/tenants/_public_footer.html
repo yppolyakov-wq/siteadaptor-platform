@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %}Футер публичных страниц платформы: правовые ссылки + бренд.{% endcomment %}
+<footer class="border-t border-gray-100 bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-500">
+    <span>© SiteAdaptor</span>
+    <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 sm:ml-auto">
+      <a href="/ueber-uns/" class="hover:text-gray-800">{% trans "Über uns" %}</a>
+      <a href="/impressum/" class="hover:text-gray-800">Impressum</a>
+      <a href="/datenschutz/" class="hover:text-gray-800">Datenschutz</a>
+      <a href="/agb/" class="hover:text-gray-800">AGB</a>
+    </nav>
+  </div>
+</footer>

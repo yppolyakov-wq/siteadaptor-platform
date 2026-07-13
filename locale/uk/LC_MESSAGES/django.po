@@ -11865,3 +11865,6 @@ msgstr "Цей піддомен уже зайнято."
 
 msgid "Passwörter stimmen nicht überein."
 msgstr "Паролі не збігаються."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Створюючи бізнес, ви погоджуєтеся з нашими <a href=\"/agb/\" class=\"underline hover:text-gray-600\">умовами</a>. Скасувати можна будь-коли протягом пробного періоду."

@@ -11800,3 +11800,6 @@ msgstr "Bu alt alan adı zaten alınmış."
 
 msgid "Passwörter stimmen nicht überein."
 msgstr "Şifreler eşleşmiyor."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Bir işletme oluşturarak <a href=\"/agb/\" class=\"underline hover:text-gray-600\">koşullarımızı</a> kabul edersiniz. Deneme süresi boyunca istediğiniz zaman iptal edebilirsiniz."

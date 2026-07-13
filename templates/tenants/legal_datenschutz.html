@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Datenschutzerklärung · SiteAdaptor{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block body %}
+{% include "tenants/_public_header.html" %}
+{% comment %}Заготовка Datenschutzerklärung ПЛАТФОРМЫ (siteadaptor.de) — DE-only.
+Отражает фактический стек: Hetzner-хостинг, cookie только session/language,
+Stripe (оплата подписки), Resend (транзакционные письма). [ПЛЕЙСХОЛДЕРЫ]
+и юр-проверка — на владельце (см. docs/dsgvo-review.md, Stage 0).{% endcomment %}
+<section class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
+  <h1 class="text-3xl font-bold text-gray-900">Datenschutzerklärung</h1>
+  <div class="mt-8 space-y-6 text-gray-700 leading-relaxed text-sm">
+    <div>
+      <h2 class="font-semibold text-gray-900">1. Verantwortlicher</h2>
+      <p class="mt-1">[Name / Firma], [Anschrift], E-Mail: [kontakt@siteadaptor.de] — siehe Impressum.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">2. Hosting</h2>
+      <p class="mt-1">Diese Website wird bei der Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Deutschland) gehostet. Beim Aufruf werden technisch notwendige Server-Logdaten (IP-Adresse, Zeitpunkt, aufgerufene Seite, User-Agent) verarbeitet — Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (sicherer und stabiler Betrieb). Mit Hetzner besteht ein Auftragsverarbeitungsvertrag.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">3. Cookies</h2>
+      <p class="mt-1">Wir verwenden ausschließlich technisch notwendige Cookies: ein Sitzungs-Cookie (Login/Sicherheit) und ein Cookie für die Sprachauswahl. Es werden keine Tracking- oder Marketing-Cookies gesetzt; ein Cookie-Banner ist daher nicht erforderlich.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">4. Registrierung und Kundenkonto</h2>
+      <p class="mt-1">Bei der Registrierung eines Geschäfts verarbeiten wir die von dir angegebenen Daten (Name des Geschäfts, E-Mail, Stadt, Passwort — gehasht) zur Bereitstellung der Plattform (Art. 6 Abs. 1 lit. b DSGVO). Die Daten werden gelöscht, wenn das Konto gelöscht wird und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">5. Zahlungsabwicklung (Stripe)</h2>
+      <p class="mt-1">Für Abonnement-Zahlungen nutzen wir Stripe Payments Europe Ltd. (1 Grand Canal Street Lower, Dublin, Irland). Zahlungsdaten werden direkt von Stripe verarbeitet; wir erhalten keine vollständigen Kartendaten. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO. Details: <a class="text-indigo-600 hover:underline" href="https://stripe.com/de/privacy" target="_blank" rel="noopener">stripe.com/de/privacy</a>.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">6. Transaktions-E-Mails</h2>
+      <p class="mt-1">Transaktionale E-Mails (z. B. Registrierungsbestätigung, Buchungsbestätigungen) versenden wir über einen E-Mail-Dienstleister ([Resend Inc. bzw. aktueller Anbieter]) auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO; mit dem Anbieter besteht ein Auftragsverarbeitungsvertrag.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">7. Websites unserer Kunden</h2>
+      <p class="mt-1">Betriebe, die mit SiteAdaptor ihre eigene Website betreiben, sind für die dort verarbeiteten Daten (z. B. Bestellungen, Buchungen ihrer Gäste) selbst Verantwortliche im Sinne der DSGVO; wir handeln insoweit als Auftragsverarbeiter auf Grundlage eines Auftragsverarbeitungsvertrags.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">8. Deine Rechte</h2>
+      <p class="mt-1">Du hast das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21 DSGVO) sowie das Recht auf Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO). Wende dich dazu an die im Impressum genannte Adresse.</p>
+    </div>
+    <p class="text-xs text-gray-400">Stand: [Monat Jahr]. Diese Erklärung wird bei Änderungen der Verarbeitung aktualisiert.</p>
+  </div>
+</section>
+{% include "tenants/_public_footer.html" %}
+{% endblock %}

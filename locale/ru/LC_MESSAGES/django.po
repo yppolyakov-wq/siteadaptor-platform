@@ -11887,3 +11887,6 @@ msgstr "Этот поддомен уже занят."
 
 msgid "Passwörter stimmen nicht überein."
 msgstr "Пароли не совпадают."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Создавая бизнес, вы соглашаетесь с нашими <a href=\"/agb/\" class=\"underline hover:text-gray-600\">условиями</a>. Отменить можно в любой момент в течение пробного периода."
