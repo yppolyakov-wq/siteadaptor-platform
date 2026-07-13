@@ -1,0 +1,12 @@
+{% load i18n %}
+{# AB6.2a стаб: тексты (Über uns) + правовое (Impressum/реквизиты). Наполнение — AB6.2g. #}
+<h1 class="text-2xl font-bold mb-1">Texte &amp; Recht</h1>
+<p class="text-sm text-gray-500 mb-4">„Über uns“, Impressum und rechtliche Angaben — für Vertrauen und Rechtssicherheit.</p>
+<div class="bg-white rounded-xl shadow-sm px-4 py-3 mb-4 text-sm text-gray-600 space-y-1">
+  <a href="{% url 'legal-docs' %}" class="block font-medium text-indigo-600 hover:text-indigo-800">Rechtstexte bearbeiten →</a>
+  <a href="{% url 'settings' %}" class="block font-medium text-indigo-600 hover:text-indigo-800">Über uns &amp; Angaben →</a>
+</div>
+<form method="post">
+  {% csrf_token %}
+  {% include "tenant/_setup_buttons.html" %}
+</form>

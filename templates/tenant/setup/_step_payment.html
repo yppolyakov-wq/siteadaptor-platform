@@ -1,0 +1,11 @@
+{% load i18n %}
+{# AB6.2a стаб: оплата/доставка (гейт по чекаут-модулю). Форма W4-3 — AB6.2g. #}
+<h1 class="text-2xl font-bold mb-1">Zahlung &amp; Versand</h1>
+<p class="text-sm text-gray-500 mb-4">Wie zahlen deine Kundinnen und Kunden — und lieferst du? Richte Zahlarten und Versand ein.</p>
+<div class="bg-white rounded-xl shadow-sm px-4 py-3 mb-4 text-sm text-gray-600">
+  <a href="{% url 'payment-settings' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Zahlung &amp; Versand einrichten →</a>
+</div>
+<form method="post">
+  {% csrf_token %}
+  {% include "tenant/_setup_buttons.html" %}
+</form>

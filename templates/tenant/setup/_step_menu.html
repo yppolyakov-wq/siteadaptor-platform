@@ -1,0 +1,11 @@
+{% load i18n %}
+{# AB6.2a стаб: вид меню (шапка + пункты). Наполнение вариантами — AB6.2e. #}
+<h1 class="text-2xl font-bold mb-1">Dein Menü</h1>
+<p class="text-sm text-gray-500 mb-4">Wie sieht deine Kopfzeile aus und welche Menüpunkte zeigen wir? Wähle einen Stil — später frei anpassbar.</p>
+<div class="bg-white rounded-xl shadow-sm px-4 py-3 mb-4 text-sm text-gray-600">
+  <a href="{% url 'site-menu' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Menüpunkte bearbeiten →</a>
+</div>
+<form method="post">
+  {% csrf_token %}
+  {% include "tenant/_setup_buttons.html" %}
+</form>

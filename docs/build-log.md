@@ -5083,3 +5083,32 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   прод отстаёт (branchen-фича влита сегодня, не задеплоена). Правки нет — нужен деплой.
 - **Пункты 1–2 (не показывать тип в мастере; демо-шаблоны с выбором вариантами на каждом
   слайде):** переработка AB6.2 — зафиксирована в `master-slides-v3-plan-2026-07-11.md §0c`.
+
+## 2026-07-13 — AB6.2a: структурный backbone новой карты слайдов (фидбэк владельца)
+
+- **Карта слайдов** (план §0d): реестр `SETUP_STEPS` = business(escape-hatch)/company/stil/
+  menu/offer/category/home/payment/texts/done. `business` УБРАН из потока (`gate=_gate_business`
+  = скрыт, т.к. тип задаётся при регистрации), но достижим `?step=business` («Andere Branche /
+  erweitern» на финале) — фидбэк владельца «тип уже выбран, не показывать, но дать расширение».
+  `stil` = бывш. template = «весь образ архетипа одним кликом» (галерея sitetemplates).
+- **SetupStep += check/gate/tile_url:** `check(tenant)` — авто-✓ в рельсе по РЕАЛЬНОМУ контенту
+  (company=контакты, offer=`_has_offering`, home=hero, texts=about|LegalDoc), не только ручное
+  «Weiter»; `gate(tenant)` — видимость (category при catalog, payment при чекаут-модуле,
+  business всегда скрыт). `visible_keys(tenant)` — рельса/навигация/счётчик по видимым;
+  скрытые достижимы прыжком (escape-hatch). advance/back ходят по видимым; `progress`/«Step N
+  of M»/рельса — от видимых. goto пускает к любому ключу реестра (вкл. гейченный).
+- **Легаси-ремап на новую карту:** `_REMAP` (template→stil, basics→company, hero→home,
+  content→offer, modules→company) применяется единообразно к v2-слагам старой карты AB6.1 И
+  к v1-int прода (через `_LEGACY_INT_TO_OLD`); неведомые ключи отброшены; completed не понижается.
+- **setup_view:** GET без `?step=` и позиция на скрытом шаге (свежий тенант стоит на business) →
+  снап к первому видимому (company); «Step N of M» по видимым. AB5-редирект на v2 (untouched =
+  первый ключ реестра + пусто).
+- **Слайды:** партиалы переименованы под ключи (`_step_company/stil/offer/home.html` = бывш.
+  basics/template/content/hero; старые + `_step_modules` удалены); НОВЫЕ стабы
+  `_step_menu/category/payment/texts.html` (ссылки на профильные экраны; наполнение вариантами —
+  AB6.2b-g). `_step_done` += escape-hatch «Andere Branche / erweitern».
+- **Замки:** `test_onboarding_wizard.py` переписан под новую карту (33 теста): ремап v1-int +
+  v2-AB6.1-слагов, гейты (payment у other скрыт), business вне рельсы но достижим, авто-✓ по
+  контенту, снап к первому видимому, полный проход по видимым, рельса, «каждый видимый слайд
+  рендерится» (реверс url в стабах), HANDLERS==STEP_KEYS. Смежные (admin_dashboard/cabinet_nav/
+  sitetemplates/onboarding) зелёные. БЕЗ миграций.

@@ -1,5 +1,6 @@
-"""Track D / D0c: Onboarding-Wizard — прохождение/пропуск/возобновление,
-дефолты по типу, плашка Setup-Fortschritt, сохранность состояния в site_config."""
+"""AB6 Onboarding-Wizard: движок шагов (state v2 + реестр SETUP_STEPS), новая карта
+слайдов AB6.2 (company/stil/menu/offer/category/home/payment/texts/done; business —
+escape-hatch), гейты по модулям, авто-✓ по контенту, рельса, легаси-ремап, AB5."""
 
 import uuid
 
@@ -34,23 +35,11 @@ def _req(method="get", data=None, tenant=None):
     return request
 
 
-# --- состояние ----------------------------------------------------------------
+# --- состояние + легаси-ремап на новую карту --------------------------------------
 
 
-def test_get_state_defaults_on_garbage():
-    tenant = TenantFactory.build(
-        site_config={"onboarding": {"step": 99, "skipped": ["x", 2, 7], "completed": "nope"}}
-    )
-    state = onboarding.get_state(tenant)
-    # Мусорный легаси-state: шаг 99 → первый, skipped [2] → слаг, completed truthy →
-    # True (и тогда done = всё непропущенное — консервативный маппинг).
-    assert state == {
-        "v": 2,
-        "step": "business",
-        "done": ["business", "modules", "basics", "hero", "content"],
-        "skipped": ["template"],
-        "completed": True,
-    }
+def test_get_state_defaults_and_garbage():
+    # Свежий тенант: позиция на первом ключе реестра (business), прогресс пуст.
     assert onboarding.get_state(TenantFactory.build()) == {
         "v": 2,
         "step": "business",
@@ -58,63 +47,133 @@ def test_get_state_defaults_on_garbage():
         "skipped": [],
         "completed": False,
     }
+    # Мусорный легаси-int: step 99 → первый; skipped [2]=template→stil; [7]=done (финал,
+    # отброшен); completed truthy → True (done-список пуст, флаг завершения ведёт рельсу).
+    t = TenantFactory.build(
+        site_config={"onboarding": {"step": 99, "skipped": ["x", 2, 7], "completed": "y"}}
+    )
+    s = onboarding.get_state(t)
+    assert s["step"] == "business" and s["skipped"] == ["stil"]
+    assert s["completed"] is True and s["done"] == []
 
 
-def test_legacy_int_state_maps_to_slugs():
-    """AB6.1: легаси v1 (int-шаги из прода) мапится консервативно — шаги до текущего
-    и не пропущенные считаются выполненными; completed → всё непропущенное done."""
-    tenant = TenantFactory.build(
+def test_legacy_v1_int_remaps_to_new_keys():
+    """Легаси v1 (int-шаги прода) → новые ключи через _REMAP; modules→company."""
+    t = TenantFactory.build(
         site_config={"onboarding": {"step": 4, "skipped": [2], "completed": False}}
     )
-    state = onboarding.get_state(tenant)
-    assert state["step"] == "basics"
-    assert state["skipped"] == ["template"]
-    assert state["done"] == ["business", "modules"]  # пройдено до шага 4, минус пропущенное
-    # Завершённый легаси-мастер: done = всё непропущенное (кроме финала).
-    tenant = TenantFactory.build(
-        site_config={"onboarding": {"step": 7, "skipped": [3], "completed": True}}
+    s = onboarding.get_state(t)
+    assert s["step"] == "company"  # int4=basics→company
+    assert s["skipped"] == ["stil"]  # int2=template→stil
+    # passed olds (1..3)=business,template,modules → business,stil,company минус пропущенный stil
+    assert s["done"] == ["business", "company"]
+
+
+def test_legacy_v2_ab61_slugs_remap_to_new_keys():
+    """v2-state старой карты AB6.1 (basics/template/hero...) → новые ключи."""
+    t = TenantFactory.build(
+        site_config={
+            "onboarding": {
+                "v": 2,
+                "step": "hero",
+                "done": ["business", "basics"],
+                "skipped": ["template"],
+                "completed": False,
+            }
+        }
     )
-    state = onboarding.get_state(tenant)
-    assert state["completed"] is True and state["step"] == "done"
-    assert state["skipped"] == ["modules"]
-    assert state["done"] == ["business", "template", "basics", "hero", "content"]
-
-
-def test_state_v2_roundtrip_via_advance_and_skip():
-    """AB6.1: advance/skip пишут state v2 (слаги, done-список); skip → ⏭, повторный
-    проход снимает пропуск."""
-    tenant = TenantFactory(business_type="bakery")
-    onboarding.advance(tenant)  # business выполнен
-    onboarding.advance(tenant, skip=True)  # template пропущен
-    raw = tenant.site_config["onboarding"]
-    assert raw["v"] == 2 and raw["step"] == "modules"
-    assert raw["done"] == ["business"] and raw["skipped"] == ["template"]
-    # Вернулись по рельсе и прошли пропущенный шаг → done, из skipped снят.
-    onboarding.goto(tenant, "template")
-    onboarding.advance(tenant)
-    state = onboarding.get_state(tenant)
-    assert state["done"] == ["business", "template"] and state["skipped"] == []
-
-
-def test_goto_jumps_only_to_valid_steps():
-    tenant = TenantFactory(business_type="bakery")
-    assert onboarding.goto(tenant, "hero")["step"] == "hero"
-    assert onboarding.goto(tenant, "nope")["step"] == "hero"  # невалидный ключ игнорируется
-    # goto — позиция, не прогресс: done/skipped/completed не трогаются.
-    assert onboarding.get_state(tenant)["done"] == []
+    s = onboarding.get_state(t)
+    assert s["step"] == "home"  # hero→home
+    assert s["done"] == ["business", "company"]  # basics→company
+    assert s["skipped"] == ["stil"]  # template→stil
 
 
 def test_normalize_preserves_onboarding():
-    config = siteconfig.normalize({"onboarding": {"step": 3, "skipped": [], "completed": False}})
-    assert config["onboarding"]["step"] == 3
+    config = siteconfig.normalize({"onboarding": {"v": 2, "step": "offer", "completed": False}})
+    assert config["onboarding"]["step"] == "offer"
 
 
-# --- прохождение мастера --------------------------------------------------------
+def test_state_v2_roundtrip_via_advance_and_skip():
+    """advance/skip пишут state v2 (слаги, done-список); skip → ⏭, повторный проход
+    снимает пропуск. Порядок по ВИДИМЫМ шагам тенанта."""
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.goto(tenant, "company")  # старт с первого видимого
+    onboarding.advance(tenant)  # company выполнен → stil
+    onboarding.advance(tenant, skip=True)  # stil пропущен → menu
+    raw = tenant.site_config["onboarding"]
+    assert raw["v"] == 2 and raw["step"] == "menu"
+    assert raw["done"] == ["company"] and raw["skipped"] == ["stil"]
+    # Вернулись по рельсе и прошли пропущенный шаг → done, из skipped снят.
+    onboarding.goto(tenant, "stil")
+    onboarding.advance(tenant)
+    state = onboarding.get_state(tenant)
+    assert state["done"] == ["company", "stil"] and state["skipped"] == []
 
 
-def test_full_walkthrough_sets_fields_and_completes():
-    # Новый тенант: create_business ставит пресет вертикали (D0b) — мастер
-    # вправе пересчитать его при смене типа на шаге 1. B.4: линейный 7-шаговый флоу.
+def test_goto_jumps_to_any_registry_step_incl_gated():
+    tenant = TenantFactory(business_type="bakery")
+    assert onboarding.goto(tenant, "home")["step"] == "home"
+    assert onboarding.goto(tenant, "nope")["step"] == "home"  # невалидный ключ игнорируется
+    # escape-hatch: скрытый business достижим прыжком.
+    assert onboarding.goto(tenant, "business")["step"] == "business"
+    assert onboarding.get_state(tenant)["done"] == []  # goto — позиция, не прогресс
+
+
+# --- гейты видимости шагов --------------------------------------------------------
+
+
+def test_business_hidden_from_rail_but_reachable():
+    """AB6.2: тип выбран при регистрации → business вне рельсы, но достижим ?step=."""
+    tenant = TenantFactory(schema_name="public", slug="esc", name="Esc", business_type="bakery")
+    assert "business" not in [s["key"] for s in onboarding.steps_with_status(tenant)]
+    html = core_views.setup_view(_req("get", {"step": "business"}, tenant)).content.decode()
+    assert 'name="business_type"' in html  # escape-hatch рендерит слайд выбора отрасли
+
+
+def test_payment_step_gated_by_checkout_module():
+    """payment виден только при активном чекаут-модуле (orders/booking/…)."""
+    # other: нет чекаута → payment скрыт; bakery: orders → payment виден.
+    other = TenantFactory(
+        business_type="other", disabled_modules=modules.default_disabled_for("other")
+    )
+    assert "payment" not in onboarding.visible_keys(other)
+    bakery = TenantFactory(
+        business_type="bakery", disabled_modules=modules.default_disabled_for("bakery")
+    )
+    assert "payment" in onboarding.visible_keys(bakery)
+
+
+def test_visible_total_excludes_gated_steps():
+    """«Step N of M» и прогресс считают только видимые шаги (business всегда скрыт)."""
+    other = TenantFactory(
+        business_type="other", disabled_modules=modules.default_disabled_for("other")
+    )
+    vis = onboarding.visible_keys(other)
+    assert "business" not in vis and "payment" not in vis
+    assert vis[0] == "company" and vis[-1] == "done"
+    assert onboarding.progress(other) == (0, len(vis))
+
+
+# --- авто-✓ по реальному контенту (SetupStep.check) -------------------------------
+
+
+def test_check_auto_ticks_company_and_offer_from_content():
+    tenant = TenantFactory(
+        schema_name="public", slug="chk", name="Chk", business_type="bakery", address="Hauptstr. 1"
+    )
+    from apps.tenants import demo
+
+    demo.load_demo(tenant)  # создаёт товары → offer выполнен без явного прохода
+    status = {s["key"]: s["status"] for s in onboarding.steps_with_status(tenant)}
+    assert status["company"] == "done"  # адрес заполнен
+    assert status["offer"] == "done"  # есть что продавать
+
+
+# --- прохождение мастера ----------------------------------------------------------
+
+
+def test_full_walkthrough_completes_over_visible_steps():
+    """Линейный проход по всем видимым шагам → completed; прогресс = M/M."""
     tenant = TenantFactory(
         schema_name="public",
         slug="walk",
@@ -122,49 +181,18 @@ def test_full_walkthrough_sets_fields_and_completes():
         business_type="other",
         disabled_modules=modules.default_disabled_for("other"),
     )
-    # Шаг 1: тип бизнеса → предвыбор блоков.
-    response = core_views.setup_view(_req("post", {"business_type": "cafe"}, tenant))
-    assert response.status_code == 302
-    tenant.refresh_from_db()
-    assert tenant.business_type == "cafe"
-    assert set(tenant.disabled_modules) == set(modules.default_disabled_for("cafe"))
-    assert onboarding.get_state(tenant)["step"] == "template"
-    # Шаг 2 (B.2): выбор шаблона витрины.
-    core_views.setup_view(_req("post", {"template": "gastro"}, tenant))
-    assert onboarding.get_state(tenant)["step"] == "modules"
-    # Шаг 3: владелец оставил только акции.
-    core_views.setup_view(_req("post", {"modules": ["promotions"]}, tenant))
-    tenant.refresh_from_db()
-    assert "loyalty" in tenant.disabled_modules and "promotions" not in tenant.disabled_modules
-    # Шаг 4: basics.
-    core_views.setup_view(
-        _req(
-            "post",
-            {"address": "Hauptstr. 1", "opening_hours": "Mo–Fr 8–18", "contact_phone": "0211/1"},
-            tenant,
-        )
-    )
-    tenant.refresh_from_db()
-    assert tenant.address == "Hauptstr. 1" and tenant.opening_hours == "Mo–Fr 8–18"
-    assert onboarding.get_state(tenant)["step"] == "hero"
-    # Шаг hero (B.3): баннер (hero-тексты).
-    core_views.setup_view(_req("post", {"hero_title": "Hallo", "hero_text": "Schön"}, tenant))
-    tenant.refresh_from_db()
-    assert tenant.site_config["hero_title"] == "Hallo"
-    assert onboarding.get_state(tenant)["step"] == "content"
-    # Шаг content: «Weiter» → финал.
-    core_views.setup_view(_req("post", {}, tenant))
-    # Финал: мастер завершён (повторный POST ничего не ломает).
-    core_views.setup_view(_req("post", {}, tenant))
-    tenant.refresh_from_db()
+    vis = onboarding.visible_keys(tenant)
+    for _ in range(len(vis) + 2):
+        if onboarding.get_state(tenant)["completed"]:
+            break
+        core_views.setup_view(_req("post", {}, tenant))
     state = onboarding.get_state(tenant)
-    assert state["step"] == "done" and state["completed"]
-    assert onboarding.progress(tenant) == (7, 7)
+    assert state["completed"] and state["step"] == "done"
+    assert onboarding.progress(tenant) == (len(vis), len(vis))
 
 
-def test_step1_demo_start_loads_examples_and_advances():
-    """AB3 («дефолты вместо пустых полей»): «Mit Beispielen starten» на шаге 1 —
-    сохраняет тип, СРАЗУ заливает демо-кит архетипа и шагает к 2 (мастер заполнен)."""
+def test_business_slide_demo_start_loads_examples_and_advances():
+    """AB3: «Mit Beispielen starten» на escape-hatch business — тип + демо + шаг дальше."""
     from apps.tenants import demo
 
     tenant = TenantFactory(
@@ -174,251 +202,229 @@ def test_step1_demo_start_loads_examples_and_advances():
         business_type="other",
         disabled_modules=modules.default_disabled_for("other"),
     )
+    onboarding.goto(tenant, "business")
     assert not demo.has_demo(tenant)
     resp = core_views.setup_view(
         _req("post", {"action": "demo_start", "business_type": "bakery"}, tenant)
     )
     assert resp.status_code == 302
     tenant.refresh_from_db()
-    assert tenant.business_type == "bakery"  # тип сохранён (как шаг 1)
-    assert demo.has_demo(tenant)  # демо-контент залит → мастер не пустой
-    assert onboarding.get_state(tenant)["step"] == "template"  # шагнули дальше
+    assert tenant.business_type == "bakery"
+    assert demo.has_demo(tenant)
+    assert onboarding.get_state(tenant)["step"] == "company"  # шагнули к первому видимому
 
 
-def test_step1_page_offers_demo_start_button():
-    """AB3: на шаге 1 виден рекомендуемый путь «Mit Beispielen starten»."""
+def test_stil_slide_shows_template_picker():
+    """stil = «весь образ архетипа одним кликом»: галерея sitetemplates."""
     tenant = TenantFactory(business_type="bakery")
-    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert 'value="demo_start"' in html and "Mit Beispielen starten" in html
-
-
-def test_skip_advances_without_changes():
-    tenant = TenantFactory(business_type="bakery")
-    core_views.setup_view(_req("post", {"action": "skip", "business_type": "hotel"}, tenant))
-    tenant.refresh_from_db()
-    assert tenant.business_type == "bakery"  # skip ничего не пишет
-    state = onboarding.get_state(tenant)
-    assert state["step"] == "template" and state["skipped"] == ["business"]
-
-
-def test_resume_renders_current_step():
-    tenant = TenantFactory()
-    onboarding.save_state(tenant, {"step": 4, "skipped": [], "completed": False})
-    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "Basics" in html and "Öffnungszeiten" in html
-    onboarding.save_state(tenant, {"step": 7, "skipped": [], "completed": True})
-    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "Geschafft" in html
-
-
-def test_step2_shows_theme_picker():
-    """B.2: шаг 2 — выбор шаблона витрины (визуальные карточки)."""
-    tenant = TenantFactory(business_type="bakery")
-    onboarding.save_state(tenant, {"step": 2, "skipped": [], "completed": False})
+    onboarding.goto(tenant, "stil")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert "Stil" in html and 'name="template"' in html
 
 
-def test_step5_banner_saves_hero_texts():
-    """B.3: шаг 5 — баннер (hero-тексты сохраняются в site_config)."""
+def test_home_slide_saves_hero_texts():
     tenant = TenantFactory(business_type="bakery")
-    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": False})
+    onboarding.goto(tenant, "home")
     core_views.setup_view(_req("post", {"hero_title": "Moin", "hero_text": "Frisch"}, tenant))
     tenant.refresh_from_db()
     assert tenant.site_config["hero_title"] == "Moin"
     assert tenant.site_config["hero_text"] == "Frisch"
-    assert onboarding.get_state(tenant)["step"] == "content"
 
 
 def test_live_save_persists_without_advancing():
-    """AB3-v2: action=live сохраняет поля шага для живого превью, но НЕ переходит дальше
-    (остаёмся на шаге, 204 без redirect)."""
+    """action=live сохраняет поля шага (204), шаг не сменился."""
     tenant = TenantFactory(business_type="bakery")
-    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": False})
+    onboarding.goto(tenant, "home")
     resp = core_views.setup_view(
         _req("post", {"action": "live", "hero_title": "Live!", "hero_text": "Sofort"}, tenant)
     )
     assert resp.status_code == 204
     tenant.refresh_from_db()
-    assert tenant.site_config["hero_title"] == "Live!"  # сохранено сразу
-    assert onboarding.get_state(tenant)["step"] == "hero"  # шаг не сменился
+    assert tenant.site_config["hero_title"] == "Live!"
+    assert onboarding.get_state(tenant)["step"] == "home"
 
 
-def test_step6_shows_vertical_presets():
-    # disabled как в проде (create_business) → у пекарни primary=catalog.
+def test_offer_slide_shows_archetype_presets_and_cta():
     tenant = TenantFactory(
         business_type="bakery", disabled_modules=modules.default_disabled_for("bakery")
     )
-    onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
+    onboarding.goto(tenant, "offer")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    # W3: CTA по архетипу — у пекарни (catalog primary) «первый товар».
     assert "preset=feierabend" in html and "Add your first product" in html
 
 
-def test_step6_offer_cta_is_archetype_aware():
+def test_offer_cta_is_archetype_aware():
     """W3: у friseur (booking primary) CTA — услуга, не «товар»."""
     tenant = TenantFactory(
         business_type="friseur", disabled_modules=modules.default_disabled_for("friseur")
     )
-    onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
+    onboarding.goto(tenant, "offer")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "Add your first service" in html
-    assert "Add your first product" not in html
+    assert "Add your first service" in html and "Add your first product" not in html
 
 
-def test_step6_loads_and_clears_demo_content():
-    """B.1 (анти-Битрикс): демо-контент грузится прямо из мастера, остаёмся на шаге 6."""
+def test_offer_slide_loads_and_clears_demo_content():
     from apps.tenants import demo
 
-    # schema_name=public → catalog/promotions доступны (как в test_demo).
     tenant = TenantFactory(
         schema_name="public", slug="wiz-demo", name="WizDemo", business_type="bakery"
     )
-    onboarding.save_state(tenant, {"step": 6, "skipped": [], "completed": False})
-    # GET: предложение загрузить демо.
+    onboarding.goto(tenant, "offer")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert "Beispiel-Inhalte laden" in html
-    # POST load_demo → демо загружено, шаг не сменился.
     response = core_views.setup_view(_req("post", {"action": "load_demo"}, tenant))
     assert response.status_code == 302
     assert demo.has_demo(tenant) is True
-    assert onboarding.get_state(tenant)["step"] == "content"
-    # Теперь предлагается убрать; clear_demo очищает.
-    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "entfernen" in html
+    assert onboarding.get_state(tenant)["step"] == "offer"  # остаёмся на шаге
     core_views.setup_view(_req("post", {"action": "clear_demo"}, tenant))
     assert demo.has_demo(tenant) is False
 
 
-# --- плашка на дашборде + сохранность состояния ---------------------------------
+# --- рельса прогресса + прыжок ----------------------------------------------------
+
+
+def test_get_step_param_jumps_and_persists():
+    tenant = TenantFactory(schema_name="public", slug="jump", name="Jump", business_type="bakery")
+    html = core_views.setup_view(_req("get", {"step": "home"}, tenant)).content.decode()
+    assert "Banner" in html or "Startseite" in html
+    assert onboarding.get_state(tenant)["step"] == "home"
+
+
+def test_rail_shows_visible_steps_with_status_marks():
+    tenant = TenantFactory(schema_name="public", slug="rail", name="Rail", business_type="bakery")
+    onboarding.save_state(
+        tenant,
+        {"v": 2, "step": "menu", "done": ["company"], "skipped": ["stil"], "completed": False},
+    )
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    for key in onboarding.visible_keys(tenant):
+        assert f"?step={key}" in html
+    assert "business" not in [s["key"] for s in onboarding.steps_with_status(tenant)]
+    assert "⏭" in html and "✓" in html
+    assert 'aria-current="step"' in html
+
+
+def test_handlers_registry_matches_step_keys():
+    """Замок: реестр handler'ов покрывает ровно STEP_KEYS (нет слайдов-сирот)."""
+    from apps.core import setup_steps
+
+    assert set(setup_steps.HANDLERS) == set(onboarding.STEP_KEYS)
+
+
+def test_every_visible_slide_renders():
+    """Замок AB6.2a: каждый видимый слайд (вкл. стабы menu/category/payment/texts)
+    рендерится 200 — все {% url %} в стабах реверсятся."""
+    tenant = TenantFactory(
+        schema_name="public", slug="render", name="Render", business_type="bakery"
+    )
+    for key in onboarding.visible_keys(tenant):
+        resp = core_views.setup_view(_req("get", {"step": key}, tenant))
+        assert resp.status_code == 200, key
+
+
+# --- дашборд (AB4-плашка + AB5-редирект) ------------------------------------------
 
 
 def test_dashboard_shows_progress_until_completed():
-    tenant = TenantFactory()
-    onboarding.save_state(tenant, {"step": 3, "skipped": [1], "completed": False})
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.save_state(
+        tenant,
+        {"v": 2, "step": "menu", "done": ["company"], "skipped": ["stil"], "completed": False},
+    )
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
-    assert "Setup-Fortschritt: 2/7" in html
-    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": True})
+    assert "Setup-Fortschritt" in html
+    onboarding.save_state(tenant, {"v": 2, "step": "done", "completed": True})
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
     assert "Setup-Fortschritt" not in html
 
 
 def test_dashboard_redirects_fresh_owner_to_wizard():
     """AB5: нетронутый мастер (свежая регистрация) → дашборд уводит в Wizard."""
-    tenant = TenantFactory()  # дефолтный site_config → нетронутое состояние
+    tenant = TenantFactory()
     response = core_views.dashboard(_req(tenant=tenant))
     assert response.status_code == 302
     assert response.url == "/dashboard/setup/"
 
 
 def test_dashboard_renders_once_wizard_touched():
-    """AB5: после любого действия в мастере дашборд больше не гейтит."""
-    tenant = TenantFactory()
-    # один «Weiter»/skip → шаг 2 → больше не нетронуто.
-    onboarding.save_state(tenant, {"step": 2, "skipped": [], "completed": False})
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.save_state(tenant, {"v": 2, "step": "stil", "done": ["company"], "completed": False})
     assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
-    # пропуск первого шага (skipped=[1]) тоже снимает гейт, даже если step вернули на 1.
-    onboarding.save_state(tenant, {"step": 1, "skipped": [1], "completed": False})
+    onboarding.save_state(tenant, {"v": 2, "step": "done", "completed": True})
     assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
-    # завершённый мастер → дашборд рендерится.
-    onboarding.save_state(tenant, {"step": 7, "skipped": [], "completed": True})
-    assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
+
+
+def test_fresh_setup_snaps_to_first_visible_step():
+    """Свежий тенант (позиция business, скрыт) → GET мастера показывает первый видимый
+    шаг (company), не escape-hatch."""
+    tenant = TenantFactory(schema_name="public", slug="snap", name="Snap", business_type="bakery")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert onboarding.get_state(tenant)["step"] == "company"
+    assert 'name="business_type"' not in html  # не слайд выбора отрасли
 
 
 def test_site_view_save_keeps_wizard_state():
-    tenant = TenantFactory()
-    onboarding.save_state(tenant, {"step": 2, "skipped": [], "completed": False})
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.save_state(tenant, {"v": 2, "step": "stil", "completed": False})
     response = core_views.site_view(_req("post", {"hero_title": "Hallo"}, tenant))
     assert response.status_code == 302
     tenant.refresh_from_db()
     assert tenant.site_config["hero_title"] == "Hallo"
-    assert onboarding.get_state(tenant)["step"] == "template"
+    assert onboarding.get_state(tenant)["step"] == "stil"
 
 
-def test_step1_keeps_custom_modules_of_existing_tenant():
-    """Hotfix: тот же тип на шаге 1 не сбрасывает модули настроенных компаний.
+# --- business escape-hatch: пресеты модулей (гибрид) ------------------------------
 
-    Легаси-тенант (disabled_modules=[] = всё включено) подтверждает свой тип —
-    разделы кабинета (CRM/Analytics/Channels) не должны «пропасть». Смена типа
-    — другое дело (гибрид): набор подстраивается, см. тест ниже.
-    """
+
+def test_business_slide_keeps_custom_modules_on_same_type():
     tenant = TenantFactory(business_type="bakery", disabled_modules=[])
+    onboarding.goto(tenant, "business")
     core_views.setup_view(_req("post", {"business_type": "bakery"}, tenant))
     tenant.refresh_from_db()
-    assert tenant.disabled_modules == []  # конфигурация не тронута
+    assert tenant.disabled_modules == []
 
 
-def test_step1_reapplies_untouched_preset_on_type_change():
-    """Новый тенант ещё на пресете → смена типа на шаге 1 пересчитывает пресет."""
-    preset = modules.default_disabled_for("bakery")
-    tenant = TenantFactory(business_type="bakery", disabled_modules=preset)
-    core_views.setup_view(_req("post", {"business_type": "cafe"}, tenant))
-    tenant.refresh_from_db()
-    assert sorted(tenant.disabled_modules) == sorted(modules.default_disabled_for("cafe"))
-
-
-def test_back_button_steps_back_and_unskips():
-    tenant = TenantFactory()
-    onboarding.save_state(tenant, {"step": 3, "skipped": [2], "completed": False})
-    core_views.setup_view(_req("post", {"action": "back"}, tenant))
-    state = onboarding.get_state(tenant)
-    assert state["step"] == "template" and state["skipped"] == []
-    assert state["completed"] is False
-    # с первого шага назад некуда
-    onboarding.save_state(tenant, {"step": 1, "skipped": [], "completed": False})
-    core_views.setup_view(_req("post", {"action": "back"}, tenant))
-    assert onboarding.get_state(tenant)["step"] == "business"
-    # «Zurück» с финального экрана не раз-завершает мастер
-    onboarding.save_state(tenant, {"step": 5, "skipped": [], "completed": True})
-    core_views.setup_view(_req("post", {"action": "back"}, tenant))
-    state = onboarding.get_state(tenant)
-    assert state["step"] == "basics" and state["completed"] is True
-
-
-def test_step1_type_change_reapplies_preset_even_for_custom_config():
-    """Гибрид: смена типа на шаге 1 = «я такой бизнес» → набор подстраивается
-    под тип даже у настроенного тенанта (магазину Booking выключится)."""
-    tenant = TenantFactory(business_type="cafe", disabled_modules=["crm"])  # ручной набор
+def test_business_slide_reapplies_preset_on_type_change():
+    tenant = TenantFactory(business_type="cafe", disabled_modules=["crm"])
+    onboarding.goto(tenant, "business")
     core_views.setup_view(_req("post", {"business_type": "retail"}, tenant))
     tenant.refresh_from_db()
     assert sorted(tenant.disabled_modules) == sorted(modules.default_disabled_for("retail"))
-    # тот же тип без изменений — ручной набор не трогаем
-    tenant2 = TenantFactory(business_type="bakery", disabled_modules=["crm"])
-    core_views.setup_view(_req("post", {"business_type": "bakery"}, tenant2))
-    tenant2.refresh_from_db()
-    assert tenant2.disabled_modules == ["crm"]
 
 
-# --- AB3: живое превью на шагах мастера --------------------------------------------
-def test_setup_shows_live_preview_iframe_on_content_steps(settings):
-    settings.ROOT_URLCONF = "config.urls_tenant"
-    tenant = TenantFactory(
-        schema_name="public",
-        slug="prev",
-        name="Prev",
-        business_type="cafe",
-        site_config={"onboarding": {"step": 2, "skipped": [], "completed": False}},
+def test_back_button_steps_back_over_visible():
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.save_state(
+        tenant,
+        {"v": 2, "step": "menu", "done": ["company"], "skipped": ["stil"], "completed": False},
     )
+    core_views.setup_view(_req("post", {"action": "back"}, tenant))
+    state = onboarding.get_state(tenant)
+    assert (
+        state["step"] == "stil" and state["skipped"] == []
+    )  # назад к предыдущему видимому, ⏭ снят
+    # «Zurück» с финального экрана не раз-завершает мастер
+    onboarding.save_state(tenant, {"v": 2, "step": "done", "completed": True})
+    core_views.setup_view(_req("post", {"action": "back"}, tenant))
+    assert onboarding.get_state(tenant)["completed"] is True
+
+
+# --- живое превью + карточки архетипа --------------------------------------------
+
+
+def test_setup_shows_live_preview_iframe_on_content_steps():
+    tenant = TenantFactory(schema_name="public", slug="prev", name="Prev", business_type="cafe")
+    onboarding.goto(tenant, "stil")
     html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
     assert "Live preview" in html
-    assert "data-setup-preview" in html and 'src="/"' in html  # превью витрины
-    assert 'set("action", "live")' in html  # AB3-v2: live-save JS на контент-шаге
+    assert "data-setup-preview" in html and 'src="/"' in html
+    assert 'set("action", "live")' in html
 
 
-def test_setup_no_preview_on_first_step(settings):
-    settings.ROOT_URLCONF = "config.urls_tenant"
-    tenant = TenantFactory(
-        schema_name="public",
-        slug="prev1",
-        name="Prev1",
-        business_type="cafe",
-        site_config={"onboarding": {"step": 1, "skipped": [], "completed": False}},
-    )
-    html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
-    assert "Live preview" not in html  # на выборе типа превью не нужно
-
-
-# --- AB3: визуальные карточки архетипа на шаге 1 (визуализация при регистрации) -----
+def test_setup_no_preview_on_business_escape_hatch():
+    tenant = TenantFactory(schema_name="public", slug="prev1", name="Prev1", business_type="cafe")
+    html = core_views.setup_view(_req("get", {"step": "business"}, tenant)).content.decode()
+    assert "Live preview" not in html  # на выборе отрасли превью не нужно
 
 
 def test_business_type_cards_cover_all_types_with_icon_and_blurb():
@@ -427,48 +433,3 @@ def test_business_type_cards_cover_all_types_with_icon_and_blurb():
     cards = onboarding.business_type_cards()
     assert {c["value"] for c in cards} == {v for v, _ in Tenant.BUSINESS_TYPES}
     assert all(c["icon"] and c["label"] and c["blurb"] for c in cards)
-
-
-def test_setup_step1_renders_visual_archetype_cards():
-    tenant = TenantFactory(schema_name="public", slug="ob1", name="OB1")  # шаг 1 по умолчанию
-    assert onboarding.get_state(tenant)["step"] == "business"
-    body = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
-    assert "🛏️" in body and "🥐" in body  # эмодзи-иконки архетипов
-    assert 'name="business_type"' in body
-    assert "Buchung nach Datum" in body  # язык задач (hotel-blurb)
-    assert "grid sm:grid-cols-2" in body  # карточная сетка, не сухой список
-
-
-# --- AB6.1: рельса прогресса + прыжок ?step= ----------------------------------------
-
-
-def test_get_step_param_jumps_and_persists():
-    """AB6.1: GET ?step=<key> открывает шаг и персистит позицию (мастер резюмируется
-    с него); невалидный ключ игнорируется — остаёмся на текущем шаге."""
-    tenant = TenantFactory(schema_name="public", slug="jump", name="Jump")
-    html = core_views.setup_view(_req("get", {"step": "basics"}, tenant)).content.decode()
-    assert "Die Basics" in html and "Öffnungszeiten" in html
-    assert onboarding.get_state(tenant)["step"] == "basics"  # позиция сохранена
-    html = core_views.setup_view(_req("get", {"step": "bogus"}, tenant)).content.decode()
-    assert "Die Basics" in html  # невалидный ключ → текущий шаг
-
-
-def test_rail_shows_all_steps_with_status_marks():
-    """AB6.1: рельса прогресса — все шаги реестра как ссылки ?step=; выполненные ✓,
-    пропущенные ⏭ (их можно дозаполнить кликом)."""
-    tenant = TenantFactory(schema_name="public", slug="rail", name="Rail")
-    # Легаси-state из прода: шаг 3, первый пропущен → business ⏭, template ✓.
-    onboarding.save_state(tenant, {"step": 3, "skipped": [1], "completed": False})
-    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    for key in onboarding.STEP_KEYS:
-        assert f"?step={key}" in html  # каждый шаг кликабелен
-    assert "⏭" in html and "✓" in html
-    assert 'aria-current="step"' in html  # активный шаг подсвечен
-
-
-def test_handlers_registry_matches_step_keys():
-    """Замок AB6.1: реестр handler'ов (setup_steps) покрывает ровно STEP_KEYS —
-    новый шаг без слайда (или слайд-сирота) не пройдёт."""
-    from apps.core import setup_steps
-
-    assert set(setup_steps.HANDLERS) == set(onboarding.STEP_KEYS)

@@ -13,6 +13,7 @@ completed никогда не понижается.
 — чек-лист готовности и бейджи плиток дашборда.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from django.utils.translation import gettext_lazy as _l
@@ -20,31 +21,108 @@ from django.utils.translation import gettext_lazy as _l
 
 @dataclass(frozen=True)
 class SetupStep:
-    """Шаг мастера: метаданные для рельсы/диспетчера. check/gate/tile_url —
-    расширение AB6.2 (done по реальному контенту, гейт по модулям, плитки AB7)."""
+    """Шаг мастера: метаданные для рельсы/диспетчера.
+
+    check(tenant) → bool: шаг выполнен по РЕАЛЬНОМУ контенту (авто-✓ в рельсе,
+    даже без явного «Weiter»); None = только ручное done. gate(tenant) → bool:
+    показывать ли шаг (модули/архетип); скрытый шаг вне рельсы и вне счётчика, но
+    достижим прыжком ?step= (escape-hatch). tile_url — плитки AB7 (позже)."""
 
     key: str
     icon: str
     label: str  # короткая подпись рельсы (DE, язык задач)
+    check: Callable | None = None
+    gate: Callable | None = None
+    tile_url: str = ""
 
 
-# AB6.1: состав 1:1 прежним 7 шагам (слаги вместо номеров); целевая карта
-# 8 слайдов (company/menu/offer/...) — AB6.2 (план master-slides-v3 §3).
+# --- check/gate (AB6.2): «done по реальному контенту» + видимость шага ------------
+def _check_company(t) -> bool:
+    return bool(t.public_email or t.public_phone or t.address)
+
+
+def _check_offer(t) -> bool:
+    return _has_offering(t)  # определён ниже; резолвится в рантайме
+
+
+def _check_home(t) -> bool:
+    cfg = t.site_config if isinstance(t.site_config, dict) else {}
+    return bool(cfg.get("hero_title") or cfg.get("hero_image"))
+
+
+def _has_legal_doc(t) -> bool:
+    try:
+        from apps.core.models import LegalDoc
+
+        return LegalDoc.objects.exists()
+    except Exception:  # noqa: BLE001 — модель/таблица недоступна
+        return False
+
+
+def _check_texts(t) -> bool:
+    cfg = t.site_config if isinstance(t.site_config, dict) else {}
+    return bool(cfg.get("about_title") or cfg.get("about_text")) or _has_legal_doc(t)
+
+
+_CHECKOUT_MODULES = ("orders", "booking", "stays", "events", "jobs")
+
+
+def _gate_business(t) -> bool:
+    # Тип бизнеса задаётся при регистрации → слайд скрыт (не сбивать с толку);
+    # достижим по «Andere Branche / erweitern» (?step=business) для смежных архетипов.
+    return not bool(t.business_type)
+
+
+def _gate_category(t) -> bool:
+    return t.is_module_active("catalog")
+
+
+def _gate_payment(t) -> bool:
+    return any(t.is_module_active(m) for m in _CHECKOUT_MODULES)
+
+
+# AB6.2: целевая карта слайдов (план master-slides-v3 §0d). business — escape-hatch
+# (gate скрывает, тип уже выбран при регистрации); category — только при catalog;
+# payment — только при чекаут-модуле. Порядок = порядок рельсы.
 SETUP_STEPS = (
-    SetupStep("business", "🏪", "Geschäftstyp"),
-    SetupStep("template", "🎨", "Stil & Farbe"),
-    SetupStep("modules", "🧩", "Bausteine"),
-    SetupStep("basics", "📍", "Kontakt & Zeiten"),
-    SetupStep("hero", "🖼️", "Banner"),
-    SetupStep("content", "🛍️", "Erster Inhalt"),
+    SetupStep("business", "🏪", "Branche", gate=_gate_business),
+    SetupStep("company", "🏠", "Firma & Logo", check=_check_company),
+    SetupStep("stil", "🎨", "Stil", tile_url="site-home"),
+    SetupStep("menu", "🧭", "Menü", tile_url="site-menu"),
+    SetupStep("offer", "🛍️", "Angebot", check=_check_offer),
+    SetupStep(
+        "category", "📁", "Kategorien", gate=_gate_category, tile_url="catalog:category-list"
+    ),
+    SetupStep("home", "🖼️", "Startseite", check=_check_home, tile_url="site-home"),
+    SetupStep("payment", "💳", "Zahlung", gate=_gate_payment, tile_url="payment-settings"),
+    SetupStep("texts", "📄", "Texte & Recht", check=_check_texts, tile_url="legal-docs"),
     SetupStep("done", "🎉", "Fertig"),
 )
 STEP_KEYS = tuple(s.key for s in SETUP_STEPS)
+_STEP_BY_KEY = {s.key: s for s in SETUP_STEPS}
 _FINAL = STEP_KEYS[-1]
 TOTAL_STEPS = len(SETUP_STEPS)
 
-# Легаси v1: номер шага (1..7, прод до AB6.1) → слаг того же шага.
-_LEGACY_STEP_KEYS = dict(enumerate(STEP_KEYS, start=1))
+# Легаси-ремап на новую карту. v1-int (прод до AB6.1) → старый слаг → новый ключ;
+# v2-AB6.1-слаги (business/template/modules/basics/hero/content/done) → новые ключи.
+# Дропнутые слайды (modules) приземляются на company; новые ключи маппятся сами
+# (_REMAP.get(k, k)). completed никогда не понижается.
+_LEGACY_INT_TO_OLD = {
+    1: "business",
+    2: "template",
+    3: "modules",
+    4: "basics",
+    5: "hero",
+    6: "content",
+    7: "done",
+}
+_REMAP = {
+    "template": "stil",
+    "modules": "company",
+    "basics": "company",
+    "hero": "home",
+    "content": "offer",
+}
 
 # AB3 (анти-Битрикс): визуальные карточки типов бизнеса для шага 1 мастера и
 # визуализации при регистрации — эмодзи + короткое «что это даёт» на ЯЗЫКЕ ЗАДАЧ
@@ -146,36 +224,48 @@ def _ordered(keys) -> list[str]:
     return [k for k in STEP_KEYS if k in wanted]
 
 
+def _remap_key(key: str) -> str | None:
+    """Легаси-слаг/новый ключ → актуальный ключ реестра (или None, если неведом)."""
+    new = _REMAP.get(key, key)
+    return new if new in _STEP_BY_KEY else None
+
+
 def get_state(tenant) -> dict:
     """Валидное состояние мастера из site_config (мусор → дефолты).
 
-    Понимает оба формата: v2 (слаги) и легаси v1 (int-шаги из прода до AB6.1) —
-    v1 мапится консервативно: шаги ДО текущего и не пропущенные считаются
-    выполненными (для рельсы/прогресса), completed не понижается.
+    Ремапит на текущую карту (AB6.2): v2-слаги старой карты AB6.1 и v1-int из прода
+    приводятся к новым ключам через `_REMAP`; шаги без соответствия отбрасываются,
+    дропнутые (modules) приземляются на company. completed не понижается.
     """
     config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     raw = config.get("onboarding")
     raw = raw if isinstance(raw, dict) else {}
-    non_final = STEP_KEYS[:-1]
+    non_final = set(STEP_KEYS[:-1])
+    completed = bool(raw.get("completed"))
     if raw.get("v") == 2:
-        step = raw.get("step") if raw.get("step") in STEP_KEYS else STEP_KEYS[0]
+        step = _remap_key(raw.get("step")) or STEP_KEYS[0]
         raw_skipped = raw.get("skipped") if isinstance(raw.get("skipped"), list) else []
         raw_done = raw.get("done") if isinstance(raw.get("done"), list) else []
-        skipped = [k for k in non_final if k in set(raw_skipped)]
-        done = [k for k in non_final if k in set(raw_done) and k not in skipped]
-        completed = bool(raw.get("completed"))
+        skipped_keys = {_remap_key(k) for k in raw_skipped} & non_final
+        done_keys = ({_remap_key(k) for k in raw_done} & non_final) - skipped_keys
     else:
         num = raw.get("step")
-        num = num if isinstance(num, int) and 1 <= num <= TOTAL_STEPS else 1
-        step = _LEGACY_STEP_KEYS[num]
+        num = num if isinstance(num, int) and 1 <= num <= len(_LEGACY_INT_TO_OLD) else 1
+        step = _remap_key(_LEGACY_INT_TO_OLD[num]) or STEP_KEYS[0]
         skipped_nums = {
-            s for s in raw.get("skipped", []) if isinstance(s, int) and 1 <= s < TOTAL_STEPS
+            s for s in raw.get("skipped", []) if isinstance(s, int) and s in _LEGACY_INT_TO_OLD
         }
-        skipped = [_LEGACY_STEP_KEYS[n] for n in sorted(skipped_nums)]
-        completed = bool(raw.get("completed"))
-        passed = non_final if completed else STEP_KEYS[: num - 1]
-        done = [k for k in passed if k not in skipped]
-    return {"v": 2, "step": step, "done": done, "skipped": skipped, "completed": completed}
+        skipped_keys = {_remap_key(_LEGACY_INT_TO_OLD[n]) for n in skipped_nums} & non_final
+        # v1 не хранил done-список: шаги ДО текущего int и не пропущенные — выполнены.
+        passed_olds = [_LEGACY_INT_TO_OLD[n] for n in range(1, num)]
+        done_keys = ({_remap_key(o) for o in passed_olds} & non_final) - skipped_keys
+    return {
+        "v": 2,
+        "step": step,
+        "done": _ordered(done_keys),
+        "skipped": _ordered(skipped_keys),
+        "completed": completed,
+    }
 
 
 def save_state(tenant, state: dict) -> None:
@@ -185,12 +275,31 @@ def save_state(tenant, state: dict) -> None:
     tenant.save(update_fields=["site_config", "updated_at"])
 
 
+def visible_keys(tenant) -> list[str]:
+    """AB6.2: ключи шагов, видимых ДЛЯ ЭТОГО тенанта (gate пройден) — рельса,
+    навигация и счётчик работают по ним. Скрытые (business/category/payment без
+    условий) остаются достижимы прыжком ?step= (escape-hatch)."""
+    return [k for k in STEP_KEYS if (_STEP_BY_KEY[k].gate is None or _STEP_BY_KEY[k].gate(tenant))]
+
+
+def _is_done(spec, tenant, state) -> bool:
+    """Шаг «выполнен»: явный done, ИЛИ авто-✓ по контенту (check), ИЛИ мастер
+    завершён и шаг не пропущен."""
+    if spec.key in state["skipped"]:
+        return False
+    if spec.key in state["done"]:
+        return True
+    if spec.check is not None and spec.check(tenant):
+        return True
+    return state["completed"] and spec.key != _FINAL
+
+
 def advance(tenant, *, skip: bool = False) -> dict:
-    """Перейти к следующему шагу; текущий помечается выполненным (или пропущенным
-    при skip=True). Достижение финального шага = мастер завершён."""
+    """Перейти к следующему ВИДИМОМУ шагу; текущий помечается выполненным (или
+    пропущенным при skip=True). Достижение финального шага = мастер завершён."""
     state = get_state(tenant)
     cur = state["step"]
-    idx = STEP_KEYS.index(cur)
+    vis = visible_keys(tenant)
     if cur != _FINAL:
         if skip:
             state["skipped"] = _ordered({*state["skipped"], cur})
@@ -198,7 +307,9 @@ def advance(tenant, *, skip: bool = False) -> dict:
         else:
             state["done"] = _ordered({*state["done"], cur})
             state["skipped"] = [k for k in state["skipped"] if k != cur]
-        state["step"] = STEP_KEYS[idx + 1]
+        # Следующий видимый шаг после текущего (текущий мог быть escape-hatch вне vis).
+        after = [k for k in vis if STEP_KEYS.index(k) > STEP_KEYS.index(cur)]
+        state["step"] = after[0] if after else _FINAL
     if state["step"] == _FINAL:
         state["completed"] = True
     save_state(tenant, state)
@@ -206,15 +317,13 @@ def advance(tenant, *, skip: bool = False) -> dict:
 
 
 def back(tenant) -> dict:
-    """Вернуться на шаг назад (сравнить варианты, поменять тип бизнеса).
-
-    Возврат не «раз-завершает» мастер: completed остаётся, плашка прогресса
-    на дашборде не воскресает из-за просмотра прежних шагов.
-    """
+    """Вернуться на предыдущий ВИДИМЫЙ шаг. Возврат не «раз-завершает» мастер:
+    completed остаётся, плашка прогресса на дашборде не воскресает."""
     state = get_state(tenant)
-    idx = STEP_KEYS.index(state["step"])
-    if idx > 0:
-        prev = STEP_KEYS[idx - 1]
+    vis = visible_keys(tenant)
+    before = [k for k in vis if STEP_KEYS.index(k) < STEP_KEYS.index(state["step"])]
+    if before:
+        prev = before[-1]
         state["step"] = prev
         state["skipped"] = [k for k in state["skipped"] if k != prev]
         save_state(tenant, state)
@@ -222,47 +331,45 @@ def back(tenant) -> dict:
 
 
 def goto(tenant, key: str) -> dict:
-    """AB6.1: прыжок к произвольному шагу (?step=<key> из рельсы прогресса) —
-    дозаполнить пропущенное можно в любой момент. Невалидный ключ игнорируется;
-    done/skipped/completed не трогаются (это позиция, не прогресс)."""
+    """Прыжок к произвольному шагу (?step=<key> из рельсы) — дозаполнить пропущенное
+    или escape-hatch к скрытому шагу (business «erweitern»). Любой валидный ключ
+    реестра (даже гейченный); done/skipped/completed не трогаются (это позиция)."""
     state = get_state(tenant)
-    if key in STEP_KEYS and key != state["step"]:
+    if key in _STEP_BY_KEY and key != state["step"]:
         state["step"] = key
         save_state(tenant, state)
     return state
 
 
 def progress(tenant) -> tuple[int, int]:
-    """(пройдено, всего) для плашки «Setup-Fortschritt N/7» на дашборде.
-    Пройдено = выполненные + пропущенные (позиция step на счёт не влияет —
-    прыжки по рельсе прогресс не искажают)."""
+    """(пройдено, всего) для плашки «Setup-Fortschritt N/M» на дашборде. Всего =
+    видимые шаги; пройдено = выполненные+пропущенные среди видимых (позиция step на
+    счёт не влияет — прыжки прогресс не искажают)."""
     state = get_state(tenant)
+    vis = visible_keys(tenant)
+    total = len(vis)
     if state["completed"]:
-        return TOTAL_STEPS, TOTAL_STEPS
-    return len({*state["done"], *state["skipped"]}), TOTAL_STEPS
+        return total, total
+    done = sum(1 for k in vis if _is_done(_STEP_BY_KEY[k], tenant, state) or k in state["skipped"])
+    return done, total
 
 
 def steps_with_status(tenant) -> list[dict]:
-    """AB6.1: шаги для рельсы прогресса — {key, icon, label, num, status} со
-    статусом done|skipped|pending (подсветка активного — по state["step"] в
-    шаблоне). Завершённый мастер: всё непропущенное — done, вкл. финал."""
+    """Шаги рельсы прогресса (только видимые) — {key, icon, label, num, status:
+    done|skipped|pending}; подсветка активного — по state["step"] в шаблоне.
+    done учитывает авто-✓ по реальному контенту (SetupStep.check)."""
     state = get_state(tenant)
     rows = []
-    for i, spec in enumerate(SETUP_STEPS):
-        if spec.key in state["skipped"]:
+    for i, key in enumerate(visible_keys(tenant)):
+        spec = _STEP_BY_KEY[key]
+        if key in state["skipped"]:
             status = "skipped"
-        elif spec.key in state["done"] or (state["completed"] and spec.key not in state["skipped"]):
+        elif _is_done(spec, tenant, state):
             status = "done"
         else:
             status = "pending"
         rows.append(
-            {
-                "key": spec.key,
-                "icon": spec.icon,
-                "label": spec.label,
-                "num": i + 1,
-                "status": status,
-            }
+            {"key": key, "icon": spec.icon, "label": spec.label, "num": i + 1, "status": status}
         )
     return rows
 

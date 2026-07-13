@@ -8,3 +8,8 @@
   <a href="{% url 'dashboard' %}" class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700">Zum Dashboard</a>
   <a href="{% url 'modules' %}" class="text-sm text-indigo-600 px-3 py-2.5 hover:underline">Module ansehen</a>
 </div>
+{% comment %}AB6.2 (фидбэк владельца): тип бизнеса выбран при регистрации → в мастере
+скрыт, но при желании расширить на смежный архетип — сюда (escape-hatch).{% endcomment %}
+<p class="mt-6 text-xs text-gray-400">
+  <a href="{% url 'setup' %}?step=business" class="hover:text-indigo-600 hover:underline">Andere Branche / Funktionen erweitern →</a>
+</p>

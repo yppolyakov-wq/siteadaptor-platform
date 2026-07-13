@@ -180,17 +180,28 @@ def setup_view(request):
         onboarding.advance(tenant)
         return redirect("setup")
 
-    # GET: рельса открывает любой шаг — ?step=<key> персистится (мастер резюмируется
-    # с него), невалидный ключ игнорируется (остаёмся на текущем).
+    # GET: рельса открывает любой шаг — ?step=<key> персистится (escape-hatch к
+    # скрытому business тоже), невалидный ключ игнорируется. Без ?step= позиция на
+    # скрытом шаге (свежий тенант стоит на business) → снап к первому видимому.
     wanted = request.GET.get("step")
-    state = onboarding.goto(tenant, wanted) if wanted else onboarding.get_state(tenant)
+    if wanted:
+        state = onboarding.goto(tenant, wanted)
+    else:
+        state = onboarding.get_state(tenant)
+        visible = onboarding.visible_keys(tenant)
+        if state["step"] not in visible and visible:
+            state = onboarding.goto(tenant, visible[0])
     step = state["step"]
     handler = setup_steps.HANDLERS[step]
+    # «Step N of M» — по ВИДИМЫМ шагам тенанта; escape-hatch (скрытый шаг, напр.
+    # business) не в рельсе → показываем его как «доп. шаг» без искажения счётчика.
+    visible = onboarding.visible_keys(tenant)
+    step_num = visible.index(step) + 1 if step in visible else len(visible)
     context = {
         "nav": "dashboard",
         "step": step,
-        "step_num": onboarding.STEP_KEYS.index(step) + 1,
-        "total": onboarding.TOTAL_STEPS,
+        "step_num": step_num,
+        "total": len(visible),
         "state": state,
         "steps": onboarding.steps_with_status(tenant),
         "step_template": handler.template,

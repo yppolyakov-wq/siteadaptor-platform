@@ -1,0 +1,11 @@
+{% load i18n %}
+{# AB6.2a стаб: вид страницы категории (раскладка). Наполнение вариантами — AB6.2d. #}
+<h1 class="text-2xl font-bold mb-1">Kategorieseite</h1>
+<p class="text-sm text-gray-500 mb-4">Wie werden deine Kategorien und Produkte aufgelistet? Wähle eine Darstellung — später frei anpassbar.</p>
+<div class="bg-white rounded-xl shadow-sm px-4 py-3 mb-4 text-sm text-gray-600">
+  <a href="{% url 'catalog:category-list' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Kategorien verwalten →</a>
+</div>
+<form method="post">
+  {% csrf_token %}
+  {% include "tenant/_setup_buttons.html" %}
+</form>

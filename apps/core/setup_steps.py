@@ -89,17 +89,6 @@ def _post_template(request):
     sitetemplates.apply_template(request.tenant, request.POST.get("template", ""))
 
 
-def _post_modules(request):
-    from apps.core import modules as registry
-
-    tenant = request.tenant
-    enabled_keys = set(request.POST.getlist("modules"))
-    tenant.disabled_modules = [
-        spec.key for spec in registry.optional_modules() if spec.key not in enabled_keys
-    ]
-    tenant.save(update_fields=["disabled_modules", "updated_at"])
-
-
 def _post_basics(request):
     tenant = request.tenant
     for field in ("address", "opening_hours", "contact_phone", "contact_email"):
@@ -133,33 +122,6 @@ def _ctx_template(request):
     }
 
 
-def _ctx_modules(request):
-    from apps.core import modules as registry
-
-    tenant = request.tenant
-
-    def _row(spec):
-        return {
-            "spec": spec,
-            "enabled": spec.key not in (tenant.disabled_modules or []),
-            "recommended": tenant.business_type in spec.recommended_for,
-            "suited_label": registry.suited_label(spec),
-        }
-
-    optional = registry.optional_modules()
-    # Гибрид: подходящие типу — сверху, остальные — «Weitere Bausteine».
-    return {
-        "module_rows": [
-            _row(spec) for spec in optional if registry.is_suited_for(spec, tenant.business_type)
-        ],
-        "other_module_rows": [
-            _row(spec)
-            for spec in optional
-            if not registry.is_suited_for(spec, tenant.business_type)
-        ],
-    }
-
-
 def _ctx_hero(request):
     # B.3: текущие значения баннера для предзаполнения.
     from apps.tenants import siteconfig
@@ -186,37 +148,38 @@ def _ctx_content(request):
     }
 
 
+# AB6.2: карта слайдов master-slides-v3 §0d. business — escape-hatch (gate скрывает,
+# но handler нужен для ?step=); stil = галерея архетип-шаблонов (бывш. template =
+# «весь образ архетипа одним кликом»); menu/category/payment/texts — стабы (наполнение
+# AB6.2b-g); company=бывш.basics, offer=бывш.content, home=бывш.hero.
 HANDLERS = {
     "business": StepHandler(
         template="tenant/setup/_step_business.html", post=_post_business, context=_ctx_business
     ),
-    "template": StepHandler(
-        template="tenant/setup/_step_template.html",
+    "company": StepHandler(
+        template="tenant/setup/_step_company.html", post=_post_basics, preview=True, live=True
+    ),
+    "stil": StepHandler(
+        template="tenant/setup/_step_stil.html",
         post=_post_template,
         context=_ctx_template,
         preview=True,
         live=True,
     ),
-    "modules": StepHandler(
-        template="tenant/setup/_step_modules.html",
-        post=_post_modules,
-        context=_ctx_modules,
-        preview=True,
-        live=True,
+    "menu": StepHandler(template="tenant/setup/_step_menu.html", preview=True),
+    # Шаг offer — демо/пресеты/CTA (action-кнопки в диспетчере); вид товара — AB6.2c.
+    "offer": StepHandler(
+        template="tenant/setup/_step_offer.html", context=_ctx_content, preview=True
     ),
-    "basics": StepHandler(
-        template="tenant/setup/_step_basics.html", post=_post_basics, preview=True, live=True
-    ),
-    "hero": StepHandler(
-        template="tenant/setup/_step_hero.html",
+    "category": StepHandler(template="tenant/setup/_step_category.html", preview=True),
+    "home": StepHandler(
+        template="tenant/setup/_step_home.html",
         post=_post_hero,
         context=_ctx_hero,
         preview=True,
         live=True,
     ),
-    # Шаг content — демо/пресеты (action-кнопки в диспетчере); «Weiter» просто двигает дальше.
-    "content": StepHandler(
-        template="tenant/setup/_step_content.html", context=_ctx_content, preview=True
-    ),
+    "payment": StepHandler(template="tenant/setup/_step_payment.html", preview=True),
+    "texts": StepHandler(template="tenant/setup/_step_texts.html"),
     "done": StepHandler(template="tenant/setup/_step_done.html"),
 }
