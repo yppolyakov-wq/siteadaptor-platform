@@ -4807,3 +4807,34 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   (2) DeepL авто-детект ненадёжен на коротких строках — их всегда через ревью-карту;
   (3) DeepL query-param auth мёртв (нояб. 2025) — только header `DeepL-Auth-Key`; (4) tag_handling=xml
   требует эскейпа сырых `&`/`<`/`>` до подстановки `<x>`-тегов.
+
+## 2026-07-13 — AB6.1: движок шагов мастера (state v2 + реестр SETUP_STEPS + рельса прогресса)
+
+- **Что:** старт кода трека AB6 «мастер-слайды v3» (план `master-slides-v3-plan-2026-07-11.md`,
+  решения слайдов §0b зафиксированы 2026-07-11). Инкремент AB6.1 — движок, состав шагов пока
+  1:1 прежним семи (слаги вместо номеров); целевая карта 8 слайдов — AB6.2.
+- **State v2** (`apps/tenants/onboarding.py`): `{"v":2, step:"<key>", done:[], skipped:[],
+  completed}` внутри того же opaque-ключа `onboarding` (normalize passthrough — БЕЗ миграций,
+  golden цел). Легаси v1 (int-шаги из прода) мапится консервативно в `get_state`: шаги до
+  текущего и непропущенные → done; completed → всё непропущенное done; completed не понижается.
+  Реестр `SETUP_STEPS` (dataclass `SetupStep(key, icon, label)`; check/gate/tile_url — AB6.2)
+  + `steps_with_status()` (рельса) + `goto()` (прыжок) + `progress()` теперь от done∪skipped
+  (позиция step на счёт плашки не влияет — прыжки прогресс не искажают).
+- **Диспетчер** (`apps/core/setup_steps.py`, НОВЫЙ): реестр `HANDLERS` {key: StepHandler
+  (template/post/context/preview/live)} — сохранение полей шага и контекст рендера по-слайдово;
+  сюда переехали `apply_business_type` (из замыкания setup_view) и `_save_hero`→`save_hero`.
+  `setup_view` (apps/core/views.py) слимнут 145→~75 строк: глобальные action'ы
+  (skip/back/live/demo_start/load_demo/clear_demo) + GET `?step=<key>` (валидный → goto,
+  персистится; невалидный игнорируется) + делегирование handler'у. AB5-редирект dashboard
+  переписан на v2 («нетронуто» = первый шаг ∧ ¬done ∧ ¬skipped ∧ ¬completed).
+- **UI:** `templates/tenant/setup.html` → каркас (рельса шагов: вертикально на lg / чипы-скролл
+  на мобиле; ✓ выполнен / ⏭ пропущен / иконка впереди; каждый пункт — ссылка `?step=` —
+  «дозаполнить пропущенное» работает) + `{% include step_template %}`; 7 слайдов вынесены
+  1:1 в партиалы `templates/tenant/setup/_step_*.html`; `_setup_buttons.html` → `step_num`.
+  Превью/live-гейты — флаги handler'а (поведение прежнее: превью на template..content,
+  live-save на template..hero). `app.css` пересобран (новый grid-класс рельсы).
+- **Замки:** `test_onboarding_wizard.py` 31 тест — прежние переведены на слаги (легаси-словари
+  в `save_state` оставлены нарочно = сквозная проверка маппинга) + новые: маппинг v1→v2
+  (вкл. completed), v2-roundtrip advance/skip/goto (повторный проход снимает ⏭), `?step=`
+  (валидный/невалидный), рельса (все шаги кликабельны, ⏭/✓, aria-current), замок
+  «HANDLERS == STEP_KEYS». Гейт: apps/tenants+apps/core зелёные локально, ruff/format чистые.
