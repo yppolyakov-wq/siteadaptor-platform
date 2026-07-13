@@ -90,9 +90,12 @@
                 <span class="min-w-0">
                   <span class="flex items-center gap-2 text-sm font-medium text-gray-900"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
                   {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
-                  {% comment %}#3/#5: живая демо-витрина архетипа (только если засеяна) —
+                  {% comment %}#3/#5: живая демо-витрина + Branchen-страница возможностей.
                      <a> внутри <label> не переключает радио (interactive content).{% endcomment %}
-                  {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 mt-1">👁 {% trans "Demo ansehen" %} ↗</a>{% endif %}
+                  <span class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                    {% if bt.value != "other" %}<a href="/branchen/{{ bt.value }}/" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">{% trans "Mehr erfahren" %} →</a>{% endif %}
+                    {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800">👁 {% trans "Demo ansehen" %} ↗</a>{% endif %}
+                  </span>
                 </span>
               </label>
             {% endfor %}

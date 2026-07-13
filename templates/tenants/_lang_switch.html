@@ -1,0 +1,11 @@
+{% load i18n %}{% get_current_language as CUR_LANG %}
+{% comment %}Переключатель языка публичных страниц (5 языков хрома). Путь литеральный
+(/sprache/), т.к. страница рендерится и под tenant-urlconf (тесты) — reverse не найдёт.
+Требует в контексте: ui_languages [{code,label}].{% endcomment %}
+<div class="inline-flex items-center gap-1 rounded-full bg-gray-100 p-0.5" role="group" aria-label="{% trans 'Language' %}">
+  {% for l in ui_languages %}
+    <a href="/sprache/?lang={{ l.code }}&next={{ request.path|urlencode }}"
+       class="lang-pill px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 hover:text-gray-800{% if l.code == CUR_LANG %} on shadow-sm{% endif %}"
+       {% if l.code == CUR_LANG %}aria-current="true"{% endif %}>{{ l.label }}</a>
+  {% endfor %}
+</div>

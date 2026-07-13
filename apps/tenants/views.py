@@ -1,11 +1,12 @@
 """Публичные вьюхи онбординга (живут в public-схеме, см. urls_public)."""
 
 from django.conf import settings
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
-from . import onboarding
+from . import archetype_pages, onboarding
 from .forms import BusinessSignupForm
 from .models import Tenant
 from .services import login_url_for, start_business_provisioning
@@ -54,7 +55,13 @@ class BusinessSignupView(View):
         ref = (request.GET.get("ref") or "").strip()[:40]
         if ref:
             request.session["partner_ref"] = ref
-        return render(request, self.template_name, self._context(BusinessSignupForm(), request))
+        # Предвыбор типа бизнеса из ?type= (переход с Branchen-страницы «Jetzt starten»).
+        initial = {}
+        pretype = (request.GET.get("type") or "").strip()
+        if pretype in dict(Tenant.BUSINESS_TYPES):
+            initial["business_type"] = pretype
+        form = BusinessSignupForm(initial=initial) if initial else BusinessSignupForm()
+        return render(request, self.template_name, self._context(form, request))
 
     def post(self, request):
         form = BusinessSignupForm(request.POST)
@@ -76,6 +83,23 @@ class BusinessSignupView(View):
             partner_code=request.session.pop("partner_ref", ""),
         )
         return redirect("signup-waiting", slug=tenant.slug)
+
+
+def industries_index(request):
+    """Übersicht aller Branchen-Landingpages (/branchen/)."""
+    return render(
+        request,
+        "tenants/industries.html",
+        {"cards": archetype_pages.index_cards(request)},
+    )
+
+
+def industry_page(request, slug):
+    """Branchen-Feature-Seite (/branchen/<slug>/): was die Plattform für DIESE
+    Branche kann. Unbekannter/neutraler Typ → 404."""
+    if not archetype_pages.is_valid(slug):
+        raise Http404("Unbekannte Branche")
+    return render(request, "tenants/industry.html", archetype_pages.page_context(request, slug))
 
 
 def signup_waiting(request, slug):
