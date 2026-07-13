@@ -1,8 +1,29 @@
 {% load i18n %}
-<h1 class="text-2xl font-bold mb-1">Die Basics</h1>
-<p class="text-sm text-gray-500 mb-4">Adresse und Öffnungszeiten erscheinen auf deiner Website.</p>
-<form method="post" class="space-y-4">
+{% comment %}AB6.2f (решение владельца §0b.1): название/город — ПЕРВЫМИ полями (правятся
+в мастере, а не только при регистрации) + контакты/часы + ЛОГОТИП (реюз M1-хелпера).
+Логотип грузится только на «Weiter» (файлы не идут в live-превью).{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">Deine Firma</h1>
+<p class="text-sm text-gray-500 mb-4">Name, Kontakt und Logo erscheinen auf deiner Website.</p>
+<form method="post" enctype="multipart/form-data" class="space-y-4">
   {% csrf_token %}
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_name">Firmenname</label>
+      <input id="id_name" name="name" type="text" value="{{ request.tenant.name }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_city">Stadt</label>
+      <input id="id_city" name="city" type="text" value="{{ request.tenant.city }}" placeholder="z. B. Hilden" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_logo">Logo (optional)</label>
+    <div class="flex items-center gap-3">
+      {% if logo_url %}<img src="{{ logo_url }}" alt="Logo" class="h-12 w-12 object-contain rounded border border-gray-200 bg-white">{% endif %}
+      <input id="id_logo" name="logo" type="file" accept="image/*" class="block w-full text-sm text-gray-600">
+    </div>
+    <p class="text-xs text-gray-400 mt-1">Erscheint in der Kopfzeile statt des Namens.</p>
+  </div>
   <div>
     <label class="block text-sm font-medium mb-1" for="id_address">Adresse</label>
     <textarea id="id_address" name="address" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ request.tenant.address }}</textarea>

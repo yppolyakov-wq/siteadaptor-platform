@@ -89,13 +89,35 @@ def _post_template(request):
     sitetemplates.apply_template(request.tenant, request.POST.get("template", ""))
 
 
-def _post_basics(request):
+def _post_company(request):
+    # AB6.2f: название/город (правятся в мастере, а не только при регистрации) +
+    # контакты/часы + логотип (файл). Имя не затираем пустым (обязательное поле).
     tenant = request.tenant
+    name = request.POST.get("name", "").strip()
+    if name:
+        tenant.name = name
+    tenant.city = request.POST.get("city", "").strip()
     for field in ("address", "opening_hours", "contact_phone", "contact_email"):
         setattr(tenant, field, request.POST.get(field, "").strip())
     tenant.save(
-        update_fields=["address", "opening_hours", "contact_phone", "contact_email", "updated_at"]
+        update_fields=[
+            "name",
+            "city",
+            "address",
+            "opening_hours",
+            "contact_phone",
+            "contact_email",
+            "updated_at",
+        ]
     )
+    # Логотип — файл (реюз M1-хелпер); no-op без файла. В live-режиме файлы не шлются.
+    from apps.core.views import _save_logo
+
+    _save_logo(request)
+
+
+def _ctx_company(request):
+    return {"logo_url": request.tenant.logo_url}
 
 
 def _post_hero(request):
@@ -164,7 +186,11 @@ HANDLERS = {
         template="tenant/setup/_step_start.html", context=_ctx_start, preview=True
     ),
     "company": StepHandler(
-        template="tenant/setup/_step_company.html", post=_post_basics, preview=True, live=True
+        template="tenant/setup/_step_company.html",
+        post=_post_company,
+        context=_ctx_company,
+        preview=True,
+        live=True,
     ),
     "stil": StepHandler(
         template="tenant/setup/_step_stil.html",

@@ -57,7 +57,10 @@
     inflight = true;
     var fd = new FormData(form);
     fd.set("action", "live");
-    fd.delete("hero_image");  // файл — только на сабмите
+    // Файлы (лого/hero/фото) — только на «Weiter», не на каждый ввод (AB6.2f).
+    form.querySelectorAll('input[type="file"]').forEach(function (inp) {
+      if (inp.name) fd.delete(inp.name);
+    });
     fetch(window.location.pathname, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
       .then(function (r) { if (r.ok) { try { frame.contentWindow.location.reload(); } catch (e) { frame.src = frame.src; } } })
       .catch(function () {})

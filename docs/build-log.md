@@ -5156,3 +5156,12 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `site_view` (заменил инлайн) и слайда `stil` (`_ctx_template`). Подсветка выбранной
   карточки — `has-[:checked]:ring` (Tailwind 3.4). Замок `test_stil_slide_shows_visual_
   template_gallery` (radio + бейдж + мокап); site_view/home_builder 119 зелёных. Без миграций.
+
+## 2026-07-13 — AB6.2f: слайд «Firma & Logo» (название/город первыми + логотип)
+
+- Слайд `company` наполнен: название компании + город ПЕРВЫМИ полями (решение §0b.1 —
+  правятся в мастере, а не только при регистрации; пустое имя не затирает обязательное
+  поле) + ЛОГОТИП (upload+превью, реюз M1-хелпера `_save_logo`) + адрес/часы/тел/email.
+  `_post_company`/`_ctx_company` (лого_url). Live-JS обобщён: файлы (лого/hero/фото) НЕ
+  шлются в live-превью (только на «Weiter»). Замок `test_company_slide_saves_name_city_
+  and_shows_logo_field`. Без миграций.

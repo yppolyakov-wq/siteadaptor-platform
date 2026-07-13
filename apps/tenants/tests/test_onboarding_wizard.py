@@ -276,6 +276,24 @@ def test_stil_slide_shows_visual_template_gallery():
     assert "aria-hidden" in html
 
 
+def test_company_slide_saves_name_city_and_shows_logo_field():
+    """AB6.2f: слайд company — название/город правятся в мастере (первыми) + поле лого."""
+    tenant = TenantFactory(schema_name="public", slug="co", name="Alt", business_type="bakery")
+    onboarding.goto(tenant, "company")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="name"' in html and 'name="city"' in html and 'name="logo"' in html
+    core_views.setup_view(
+        _req("post", {"name": "Bäckerei Neu", "city": "Hilden", "address": "Weg 1"}, tenant)
+    )
+    tenant.refresh_from_db()
+    assert tenant.name == "Bäckerei Neu" and tenant.city == "Hilden"
+    # пустое имя не затирает (обязательное поле)
+    onboarding.goto(tenant, "company")
+    core_views.setup_view(_req("post", {"name": "", "city": "Köln"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.name == "Bäckerei Neu" and tenant.city == "Köln"
+
+
 def test_home_slide_saves_hero_texts():
     tenant = TenantFactory(business_type="bakery")
     onboarding.goto(tenant, "home")
