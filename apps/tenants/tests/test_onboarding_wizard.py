@@ -150,7 +150,7 @@ def test_visible_total_excludes_gated_steps():
     )
     vis = onboarding.visible_keys(other)
     assert "business" not in vis and "payment" not in vis
-    assert vis[0] == "company" and vis[-1] == "done"
+    assert vis[0] == "start" and vis[-1] == "done"  # AB6.9: start — первый видимый
     assert onboarding.progress(other) == (0, len(vis))
 
 
@@ -191,27 +191,77 @@ def test_full_walkthrough_completes_over_visible_steps():
     assert onboarding.progress(tenant) == (len(vis), len(vis))
 
 
-def test_business_slide_demo_start_loads_examples_and_advances():
-    """AB3: «Mit Beispielen starten» на escape-hatch business — тип + демо + шаг дальше."""
+def test_start_slide_demo_start_loads_rich_examples_and_advances():
+    """AB6.9: «Mit Beispielen starten» на слайде start — БОГАТОЕ демо (фото+баннер+
+    шаблон архетипа) + шаг к company."""
     from apps.tenants import demo
 
     tenant = TenantFactory(
-        schema_name="public",
-        slug="demostart",
-        name="DS",
-        business_type="other",
-        disabled_modules=modules.default_disabled_for("other"),
+        schema_name="public", slug="demostart", name="DS", business_type="bakery"
     )
-    onboarding.goto(tenant, "business")
+    onboarding.goto(tenant, "start")
     assert not demo.has_demo(tenant)
-    resp = core_views.setup_view(
-        _req("post", {"action": "demo_start", "business_type": "bakery"}, tenant)
-    )
+    resp = core_views.setup_view(_req("post", {"action": "demo_start"}, tenant))
     assert resp.status_code == 302
     tenant.refresh_from_db()
-    assert tenant.business_type == "bakery"
     assert demo.has_demo(tenant)
-    assert onboarding.get_state(tenant)["step"] == "company"  # шагнули к первому видимому
+    assert tenant.site_config.get("hero_image")  # баннер добавлен (rich)
+    assert tenant.site_config.get("gallery")  # галерея добавлена
+    assert onboarding.get_state(tenant)["step"] == "company"  # к первому контент-шагу
+
+
+def test_start_is_first_visible_step():
+    tenant = TenantFactory(business_type="bakery")
+    assert onboarding.visible_keys(tenant)[0] == "start"
+
+
+def test_clear_demo_soft_deletes_ordered_products():
+    """AB6.9-фикс: демо-товар, на который уже ссылается заказ (protected FK), при
+    clear_demo не роняет ProtectedError — soft-delete (история заказа цела)."""
+    from decimal import Decimal
+
+    from apps.catalog.models import Product
+    from apps.orders.models import Order, OrderItem
+    from apps.promotions.models import Customer
+    from apps.tenants import demo
+
+    tenant = TenantFactory(schema_name="public", slug="ord", name="Ord", business_type="bakery")
+    demo.load_demo(tenant)
+    p = Product.objects.filter(metadata__demo=True).first()
+    customer = Customer.objects.create(name="Test", email="t@t.de")
+    order = Order.objects.create(customer=customer, reference_code="O-DEMO01")
+    OrderItem.objects.create(order=order, product=p, qty=1, unit_price=Decimal("1.00"))
+    # не должно падать ProtectedError; товар исчезает с витрины (soft), заказ жив
+    assert demo.clear_demo(tenant) is True
+    assert not Product.objects.filter(pk=p.pk).exists()  # снят с витрины
+    assert OrderItem.objects.filter(order=order).exists()  # история заказа цела
+
+
+def test_rich_demo_adds_photos_and_is_reversible():
+    """AB6.9: обогащённое демо — фото на товаре + hero + галерея (МЕРЖ, не замена);
+    clear_demo откатывает добавленные cfg-ключи, НЕ трогая переопределённое владельцем."""
+    from apps.catalog.models import Product
+    from apps.tenants import demo
+
+    tenant = TenantFactory(schema_name="public", slug="rich", name="Rich", business_type="bakery")
+    assert demo.load_demo(tenant) is True
+    tenant.refresh_from_db()
+    # фото на товаре
+    p = Product.objects.filter(metadata__demo=True).first()
+    assert p and p.images and p.images[0].get("url")
+    cfg = tenant.site_config
+    assert cfg.get("hero_image") and cfg.get("hero_title") and cfg.get("gallery")
+    assert cfg["demo"].get("_cfg", {}).get("hero_image")  # добавленное записано для отката
+    # владелец переопределил hero_title ПОСЛЕ демо → clear его НЕ трогает
+    cfg2 = dict(cfg)
+    cfg2["hero_title"] = "Mein echter Titel"
+    tenant.site_config = cfg2
+    tenant.save(update_fields=["site_config"])
+    demo.clear_demo(tenant)
+    tenant.refresh_from_db()
+    assert not demo.has_demo(tenant)
+    assert tenant.site_config.get("hero_title") == "Mein echter Titel"  # правка владельца цела
+    assert not tenant.site_config.get("hero_image")  # неизменённое демо-поле откачено
 
 
 def test_stil_slide_shows_template_picker():
@@ -359,8 +409,9 @@ def test_fresh_setup_snaps_to_first_visible_step():
     шаг (company), не escape-hatch."""
     tenant = TenantFactory(schema_name="public", slug="snap", name="Snap", business_type="bakery")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert onboarding.get_state(tenant)["step"] == "company"
+    assert onboarding.get_state(tenant)["step"] == "start"  # AB6.9: первый видимый = start
     assert 'name="business_type"' not in html  # не слайд выбора отрасли
+    assert "Mit Beispielen starten" in html  # приглашение добавить демо
 
 
 def test_site_view_save_keeps_wizard_state():
@@ -425,6 +476,32 @@ def test_setup_no_preview_on_business_escape_hatch():
     tenant = TenantFactory(schema_name="public", slug="prev1", name="Prev1", business_type="cafe")
     html = core_views.setup_view(_req("get", {"step": "business"}, tenant)).content.decode()
     assert "Live preview" not in html  # на выборе отрасли превью не нужно
+
+
+# --- AB6.9: focused first-run лейаут + «Später fertigstellen» ----------------------
+
+
+def test_setup_uses_focused_layout_without_cabinet_sidebar():
+    """AB6.9: мастер — полноэкранный focused-экран (extends _base_setup), БЕЗ сайдбара
+    кабинета (nav-группы/«Funktion hinzufügen» не рендерятся)."""
+    tenant = TenantFactory(schema_name="public", slug="focus", name="Focus", business_type="bakery")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "Später fertigstellen" in html  # мини-шапка focused-лейаута
+    assert 'id="sidebar"' not in html  # сайдбар кабинета отсутствует
+    assert "Funktion hinzufügen" not in html
+
+
+def test_exit_marks_touched_and_redirects_to_dashboard():
+    """AB6.9 «Später»: выход помечает мастер тронутым (⏭ текущего) и ведёт в кабинет;
+    AB5-редирект больше не возвращает в мастер."""
+    tenant = TenantFactory(schema_name="public", slug="later", name="Later", business_type="bakery")
+    resp = core_views.setup_view(_req("post", {"action": "exit"}, tenant))
+    assert resp.status_code == 302 and resp.url == "/dashboard/"
+    state = onboarding.get_state(tenant)
+    assert state["skipped"]  # текущий шаг помечен ⏭ → мастер тронут
+    assert not state["completed"]
+    # дашборд теперь рендерится (не зациклен на мастер).
+    assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
 
 
 def test_business_type_cards_cover_all_types_with_icon_and_blurb():

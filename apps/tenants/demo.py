@@ -18,6 +18,26 @@ from django.utils import timezone
 
 from . import siteconfig
 
+# AB6.9: hero-подзаголовок демо по типу бизнеса (язык витрины — DE).
+_HERO_TEXT = {
+    "bakery": "Frisches Brot, Brötchen und Kuchen — jeden Tag aus dem Ofen.",
+    "butcher": "Fleisch und Wurst aus Meisterhand — frisch und regional.",
+    "grocery": "Regionale Lebensmittel und Aktionen — frisch für Sie ausgewählt.",
+    "clothing": "Mode, die passt — online stöbern, bequem bestellen.",
+    "restaurant": "Gutes Essen, gemütlich serviert — Tisch reservieren oder bestellen.",
+    "cafe": "Kaffee, Kuchen und mehr — schau vorbei oder bestell dir was.",
+    "retail": "Ausgewählte Produkte — online bestellen, abholen oder liefern lassen.",
+    "online_shop": "Online bestellen, schnell geliefert — willkommen im Shop.",
+    "tour_operator": "Erlebnisse und Touren — jetzt Termine sichern.",
+    "hotel": "Zimmer und Ferienwohnungen — bequem nach Datum buchen.",
+    "friseur": "Dein Look, unser Handwerk — Termin in 30 Sekunden online.",
+    "handwerker": "Handwerk vom Meister — Anfrage stellen, Angebot erhalten.",
+    "werkstatt": "Service und Reparatur — Termin und Kostenvoranschlag online.",
+    "events": "Kommende Veranstaltungen — Tickets sichern.",
+}
+_HERO_TEXT_FALLBACK = "Willkommen — schön, dass du da bist."
+
+
 # --- Товары по типу бизнеса: (name_de, price_eur, description_de) --------------
 _PRODUCTS = {
     "bakery": [
@@ -189,6 +209,55 @@ def _eur(value) -> Decimal:
     return Decimal(value)
 
 
+def _photo(keyword: str, i: int) -> dict:
+    """AB6.9: FileRef-конверт демо-фото (реальное из static/demo/photos по ключевому
+    слову, иначе тематический SVG-фолбэк) — чтобы демо выглядело «как на демке»."""
+    from . import demo_images
+
+    return {
+        "id": f"demo-img-{i}",
+        "url": demo_images.demo_image_url(keyword, lock=i + 1),
+        "alt": {"de": keyword},
+        "is_primary": True,
+        "sort_order": 0,
+    }
+
+
+# AB6.9: пустые дефолты cfg-ключей, добавляемых демо (для точного отката в clear_demo —
+# сбрасываем только если владелец не переопределил после загрузки).
+_CFG_DEMO_DEFAULTS = {"hero_title": "", "hero_text": "", "hero_image": "", "gallery": []}
+
+
+def _enrich_config(tenant, cfg: dict, refs: dict) -> None:
+    """AB6.9 «rich demo»: hero-баннер + галерея, ТОЛЬКО поверх пустых значений (не
+    затирать настройки владельца). Что реально добавили — в refs["_cfg"] для отката.
+    Ключевой контраст с apply_kit: МЕРЖ, не полная замена site_config."""
+    from . import demo_images
+
+    added = {}
+    bt = tenant.business_type or "shop"
+    if not cfg.get("hero_title"):
+        cfg["hero_title"] = tenant.name
+        added["hero_title"] = tenant.name
+    if not cfg.get("hero_text"):
+        text = _HERO_TEXT.get(bt, _HERO_TEXT_FALLBACK)
+        cfg["hero_text"] = text
+        added["hero_text"] = text
+    if not cfg.get("hero_image"):
+        url = demo_images.demo_image_url(f"{bt} hero", w=1600, h=600, lock=1)
+        cfg["hero_image"] = url
+        added["hero_image"] = url
+    if not cfg.get("gallery"):
+        gallery = [
+            {"id": f"demo-gal-{i}", "url": demo_images.demo_image_url(f"{bt} {i}", lock=100 + i)}
+            for i in range(3)
+        ]
+        cfg["gallery"] = gallery
+        added["gallery"] = gallery
+    if added:
+        refs["_cfg"] = added
+
+
 def load_demo(tenant) -> bool:
     """Создать демо-контент под тип бизнеса в текущей (tenant) схеме. False — уже есть.
 
@@ -202,6 +271,28 @@ def load_demo(tenant) -> bool:
     with transaction.atomic():
         _seed_demo(tenant)
     return True
+
+
+def _remove_demo_products(product_ids) -> None:
+    """Убрать демо-товары. Hard-delete; но если на товар уже ссылается заказ
+    (OrderItem, protected FK) — soft-delete (товар исчезает с витрины/каталога,
+    история заказа цела). Иначе `demo_start`/`clear_demo`/повторная загрузка падали
+    ProtectedError, когда владелец успел оформить заказ на демо-товар (AB6.9)."""
+    from django.db.models import ProtectedError
+
+    from apps.catalog.models import Product
+
+    ids = list(product_ids or [])
+    if not ids:
+        return
+    try:
+        Product.all_objects.filter(pk__in=ids).hard_delete()
+    except ProtectedError:
+        for product in Product.all_objects.filter(pk__in=ids):
+            try:
+                Product.all_objects.filter(pk=product.pk).hard_delete()
+            except ProtectedError:
+                product.delete()  # soft-delete: ссылается заказ → историю сохраняем
 
 
 def _purge_orphan_demo() -> None:
@@ -228,7 +319,9 @@ def _purge_orphan_demo() -> None:
         Promotion.all_objects.filter(pk__in=promo_ids).hard_delete()
         for pid in promo_ids:
             sync_listing(schema, pid)
-    Product.all_objects.filter(metadata__demo=True).hard_delete()
+    _remove_demo_products(
+        Product.all_objects.filter(metadata__demo=True).values_list("pk", flat=True)
+    )
     # Категория demo-beliebt маркера не имеет (нет metadata) → чистим по слагу
     # (включая soft-deleted, чтобы освободить даже alive-уникальность наверняка).
     Category.all_objects.filter(slug="demo-beliebt").hard_delete()
@@ -266,6 +359,7 @@ def _seed_demo(tenant) -> None:
             category=category,
             is_active=True,
             is_featured=(i < 3),
+            images=[_photo(name, i)],  # AB6.9: демо-фото на товар
             metadata={"demo": True},
         )
         created_products.append(product)
@@ -295,9 +389,12 @@ def _seed_demo(tenant) -> None:
     if is_active("booking") and _SERVICES.get(tenant.business_type):
         from apps.booking.models import Service
 
-        for name, minutes, price in _SERVICES[tenant.business_type]:
+        for i, (name, minutes, price) in enumerate(_SERVICES[tenant.business_type]):
             svc = Service.objects.create(
-                name=name, duration_minutes=minutes, price_cents=int(_eur(price) * 100)
+                name=name,
+                duration_minutes=minutes,
+                price_cents=int(_eur(price) * 100),
+                image=_photo(name, i),  # AB6.9: демо-фото услуги
             )
             refs["services"].append(str(svc.pk))
 
@@ -305,7 +402,7 @@ def _seed_demo(tenant) -> None:
     if is_active("stays") and _STAY_UNITS.get(tenant.business_type):
         from apps.stays.models import StayUnit
 
-        for name, utype, qty, price, guests in _STAY_UNITS[tenant.business_type]:
+        for i, (name, utype, qty, price, guests) in enumerate(_STAY_UNITS[tenant.business_type]):
             unit = StayUnit.objects.create(
                 name=name,
                 type=utype,
@@ -313,6 +410,7 @@ def _seed_demo(tenant) -> None:
                 price_cents=int(_eur(price) * 100),
                 max_guests=guests,
                 is_active=True,
+                images=[_photo(name, i)],  # AB6.9: демо-фото номера
             )
             refs["stay_units"].append(str(unit.pk))
 
@@ -321,17 +419,19 @@ def _seed_demo(tenant) -> None:
         from apps.events.models import Event
 
         now = timezone.now()
-        for title, in_days, capacity, price in _EVENTS[tenant.business_type]:
+        for i, (title, in_days, capacity, price) in enumerate(_EVENTS[tenant.business_type]):
             event = Event.objects.create(
                 title=title,
                 starts_at=now + timedelta(days=in_days),
                 capacity=capacity,
                 price_cents=int(_eur(price) * 100),
                 status=Event.STATUS_PUBLISHED,
+                images=[_photo(title, i)],  # AB6.9: демо-фото события
             )
             refs["events"].append(str(event.pk))
 
     cfg = siteconfig.normalize(tenant.site_config)
+    _enrich_config(tenant, cfg, refs)  # AB6.9: hero+галерея поверх пустых (мерж, не замена)
     cfg["demo"] = refs
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
@@ -362,9 +462,9 @@ def clear_demo(tenant) -> bool:
             sync_listing(schema, pid)
 
     if demo.get("products") or demo.get("category"):
-        from apps.catalog.models import Category, Product
+        from apps.catalog.models import Category
 
-        Product.all_objects.filter(pk__in=demo.get("products") or []).hard_delete()
+        _remove_demo_products(demo.get("products") or [])
         if demo.get("category"):
             Category.all_objects.filter(pk=demo["category"]).hard_delete()
 
@@ -392,6 +492,11 @@ def clear_demo(tenant) -> bool:
             sync_event_listing(schema, eid)
 
     cfg = siteconfig.normalize(tenant.site_config)
+    # AB6.9: откатить hero/галерею, добавленные демо, НО только если владелец их не
+    # переопределил после загрузки (значение всё ещё == тому, что поставило демо).
+    for key, val in (demo.get("_cfg") or {}).items():
+        if key in _CFG_DEMO_DEFAULTS and cfg.get(key) == val:
+            cfg[key] = _CFG_DEMO_DEFAULTS[key]
     cfg.pop("demo", None)
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])

@@ -5112,3 +5112,34 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   контенту, снап к первому видимому, полный проход по видимым, рельса, «каждый видимый слайд
   рендерится» (реверс url в стабах), HANDLERS==STEP_KEYS. Смежные (admin_dashboard/cabinet_nav/
   sitetemplates/onboarding) зелёные. БЕЗ миграций.
+
+## 2026-07-13 — AB6.9: first-run полноэкранный мастер + rich-demo первым шагом (фидбэк владельца)
+
+- **Запрос:** «сделай мастер первым этапом после регистрации, ПОВЕРХ всего функционала, и
+  логически встроить добавление демоданных КАК НА ДЕМКЕ, далее пошаговые настройки».
+- **Разведка (workflow wfrgcwm2j, 3 агента):** ВЕРДИКТ — `demo_kits.apply_kit` на РЕАЛЬНОМ
+  тенанте ОПАСЕН (полная замена site_config → потеря настроек владельца; фейковые публичные
+  BusinessReview = UWG; перезапись адреса/LegalDoc/primary_color/disabled_modules; не атомарен;
+  не идемпотентен → IntegrityError на slug; необратим). Рекомендация — обогатить `load_demo`
+  (МЕРЖ, не замена; refs для отката). Лейаут — новый минимальный base. Мастер уже де-факто
+  первый экран (dashboard-redirect для untouched); login_url_for менять не надо.
+- **Focused-лейаут** (`templates/tenant/_base_setup.html`, НОВЫЙ, extends `base.html`): мини-шапка
+  (имя/город · «Später fertigstellen» · Sign out), БЕЗ сайдбара кабинета; `setup.html` extends его
+  (рельса/слайд/live-превью и JS не тронуты — живут в dash_content). `action=exit`+`onboarding.leave`
+  (помечает мастер тронутым → AB5-редирект не зациклит) для «Später».
+- **Слайд `start`** (первый ВИДИМЫЙ, `SetupStep("start", check=_check_start=has_demo)`; business
+  остаётся index 0 но скрыт): «🎁 Mit Beispielen starten» (demo_start) / «Leer starten».
+  `_step_start.html` + `_ctx_start`. Свежий тенант снапится на `start`.
+- **Rich demo (безопасно, `demo.py`):** `_seed_demo` += ФОТО на товар/услугу/номер/событие
+  (`_photo`→`demo_images.demo_image_url`, реальное фото или тематический SVG) + `_enrich_config`
+  (hero title/text/image + галерея ТОЛЬКО поверх пустых, не затирая владельца; добавленное →
+  `refs["_cfg"]`). `clear_demo` откатывает добавленные cfg-ключи ТОЛЬКО если владелец их не
+  переопределил (снимок значений). `apply_kit` НЕ зовём. `demo_start` = load_demo (без
+  авто-шаблона — вид выбирается на слайде Stil).
+- **Багфикс (найден живым тестом):** `_purge_orphan_demo`/`clear_demo` роняли ProtectedError,
+  когда демо-товар уже в заказе (OrderItem PROTECT). Новый `_remove_demo_products`: hard-delete,
+  а референсные — soft-delete (исчезают с витрины, история заказа цела).
+- **Замки:** +6 тестов (focused-лейаут без сайдбара, exit→dashboard, start первый видимый,
+  demo_start rich, rich-demo фото/hero/галерея+обратимость, clear soft-delete на protected).
+  Golden обновлены (snap→start, visible +1). Стенд Playwright: first-run focused start-слайд +
+  «Mit Beispielen» без краша → Step 2/10 с контентом. БЕЗ миграций.

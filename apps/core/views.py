@@ -147,6 +147,11 @@ def setup_view(request):
         if action == "back":
             onboarding.back(tenant)
             return redirect("setup")
+        # AB6.9 «Später fertigstellen»: выйти в кабинет (мастер помечается тронутым,
+        # AB5-редирект не зациклит; владелец может вернуться позже).
+        if action == "exit":
+            onboarding.leave(tenant)
+            return redirect("dashboard")
         # B.1 (анти-Битрикс): наполнить сайт демо-контентом прямо из мастера, чтобы
         # после онбординга витрина была НЕ пустой (обратимо). Остаёмся на шаге.
         if action == "load_demo":
@@ -157,9 +162,11 @@ def setup_view(request):
             if demo.clear_demo(tenant):
                 messages.info(request, _("Example content removed."))
             return redirect("setup")
-        # AB3 (анти-Битрикс «дефолты вместо пустых полей»): «Mit Beispielen starten» на
-        # шаге business — сохранить тип + СРАЗУ залить демо-кит архетипа и шагнуть дальше,
-        # чтобы весь мастер был заполнен примерами (владелец правит, а не создаёт с нуля).
+        # AB3/AB6.9 «Mit Beispielen starten» (слайд start): залить БОГАТОЕ демо — товары/
+        # услуги/номера с ФОТО + hero-баннер + галерея (load_demo обогащён), затем шагнуть
+        # дальше. Вид витрины (шаблон/раскладку) владелец выбирает на слайде «Stil» — здесь
+        # авто-шаблон НЕ применяем (не перехватывать выбор). На escape-hatch business ещё
+        # сохраняет тип (apply_business_type — no-op на слайде start).
         if action == "demo_start":
             setup_steps.apply_business_type(tenant, request.POST.get("business_type", ""))
             if demo.load_demo(tenant):

@@ -37,6 +37,14 @@ class SetupStep:
 
 
 # --- check/gate (AB6.2): «done по реальному контенту» + видимость шага ------------
+def _check_start(t) -> bool:
+    # AB6.9: слайд «Start» выполнен, когда добавлены демо-примеры (или шаг пройден
+    # явно — это учитывает state["done"] в _is_done).
+    from . import demo
+
+    return demo.has_demo(t)
+
+
 def _check_company(t) -> bool:
     return bool(t.public_email or t.public_phone or t.address)
 
@@ -86,6 +94,7 @@ def _gate_payment(t) -> bool:
 # payment — только при чекаут-модуле. Порядок = порядок рельсы.
 SETUP_STEPS = (
     SetupStep("business", "🏪", "Branche", gate=_gate_business),
+    SetupStep("start", "🚀", "Start", check=_check_start),
     SetupStep("company", "🏠", "Firma & Logo", check=_check_company),
     SetupStep("stil", "🎨", "Stil", tile_url="site-home"),
     SetupStep("menu", "🧭", "Menü", tile_url="site-menu"),
@@ -326,6 +335,17 @@ def back(tenant) -> dict:
         prev = before[-1]
         state["step"] = prev
         state["skipped"] = [k for k in state["skipped"] if k != prev]
+        save_state(tenant, state)
+    return state
+
+
+def leave(tenant) -> dict:
+    """AB6.9 «Später fertigstellen»: выйти из мастера в кабинет, пометив его тронутым
+    (текущий шаг ⏭) — чтобы AB5-редирект не вернул сразу назад. Позицию не двигаем и
+    мастер не завершаем: владелец может вернуться и дозаполнить."""
+    state = get_state(tenant)
+    if not state["completed"] and state["step"] != _FINAL and state["step"] not in state["skipped"]:
+        state["skipped"] = _ordered({*state["skipped"], state["step"]})
         save_state(tenant, state)
     return state
 

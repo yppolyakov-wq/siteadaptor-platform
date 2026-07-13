@@ -152,9 +152,19 @@ def _ctx_content(request):
 # но handler нужен для ?step=); stil = галерея архетип-шаблонов (бывш. template =
 # «весь образ архетипа одним кликом»); menu/category/payment/texts — стабы (наполнение
 # AB6.2b-g); company=бывш.basics, offer=бывш.content, home=бывш.hero.
+def _ctx_start(request):
+    from apps.tenants import demo
+
+    return {"has_demo": demo.has_demo(request.tenant)}
+
+
 HANDLERS = {
     "business": StepHandler(
         template="tenant/setup/_step_business.html", post=_post_business, context=_ctx_business
+    ),
+    # AB6.9: первый видимый слайд — «богатое» демо одним кликом (первый логический шаг).
+    "start": StepHandler(
+        template="tenant/setup/_step_start.html", context=_ctx_start, preview=True
     ),
     "company": StepHandler(
         template="tenant/setup/_step_company.html", post=_post_basics, preview=True, live=True
