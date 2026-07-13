@@ -276,6 +276,24 @@ def test_stil_slide_shows_visual_template_gallery():
     assert "aria-hidden" in html
 
 
+def test_texts_slide_saves_about_and_impressum():
+    """AB6.2g: слайд texts — «Über uns» (about_*) + Impressum (LegalDoc дефолт-локали)."""
+    from apps.core.models import LegalDoc
+
+    tenant = TenantFactory(schema_name="public", slug="tx", name="Tx", business_type="bakery")
+    onboarding.goto(tenant, "texts")
+    core_views.setup_view(
+        _req(
+            "post",
+            {"about_title": "Über uns", "about_text": "Wir backen.", "impressum": "Tx GmbH, Weg 1"},
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    assert tenant.site_config["about_text"] == "Wir backen."
+    assert LegalDoc.objects.filter(kind="impressum").first().text == "Tx GmbH, Weg 1"
+
+
 def test_menu_slide_picks_header_style():
     """AB6.2e: слайд menu — выбор вида шапки (classic/centered/minimal) → config nav.style."""
     tenant = TenantFactory(schema_name="public", slug="mn", name="Mn", business_type="bakery")

@@ -176,6 +176,51 @@ def _ctx_hero(request):
     }
 
 
+def _post_texts(request):
+    # AB6.2g: «Über uns» (about_*, presence-safe TEXT_FIELDS — мержим в существующий
+    # конфиг, урок W6) + Impressum (LegalDoc дефолт-локали, реюз семантики legal_docs).
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    for f in ("about_title", "about_text"):
+        if request.POST.get(f) is not None:
+            cfg[f] = request.POST.get(f, "").strip()
+    tenant.site_config = siteconfig.normalize(cfg)
+    tenant.save(update_fields=["site_config", "updated_at"])
+    val = request.POST.get("impressum")
+    if val is not None:
+        from apps.core.models import LegalDoc
+
+        loc = tenant.default_locale or "de"
+        if val.strip():
+            LegalDoc.objects.update_or_create(kind="impressum", locale=loc, defaults={"text": val})
+        else:
+            LegalDoc.objects.filter(kind="impressum", locale=loc).delete()
+
+
+def _ctx_texts(request):
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    cfg = siteconfig.normalize(tenant.site_config)
+    impressum = ""
+    try:
+        from apps.core.models import LegalDoc
+
+        doc = LegalDoc.objects.filter(
+            kind="impressum", locale=tenant.default_locale or "de"
+        ).first()
+        impressum = doc.text if doc else ""
+    except Exception:  # noqa: BLE001 — модель/таблица недоступна
+        impressum = ""
+    return {
+        "about_title": cfg.get("about_title", ""),
+        "about_text": cfg.get("about_text", ""),
+        "impressum": impressum,
+    }
+
+
 def _ctx_content(request):
     from apps.promotions import presets
     from apps.tenants import demo, onboarding
@@ -242,6 +287,8 @@ HANDLERS = {
         live=True,
     ),
     "payment": StepHandler(template="tenant/setup/_step_payment.html", preview=True),
-    "texts": StepHandler(template="tenant/setup/_step_texts.html"),
+    "texts": StepHandler(
+        template="tenant/setup/_step_texts.html", post=_post_texts, context=_ctx_texts
+    ),
     "done": StepHandler(template="tenant/setup/_step_done.html"),
 }

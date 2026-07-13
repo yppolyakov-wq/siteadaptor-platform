@@ -5173,3 +5173,12 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `config["nav"]["style"]` (normalize валидирует по NAV_STYLES). Пункты меню — ссылка на
   редактор `site-menu` (динамические per-страница слайды — v2). Замок
   `test_menu_slide_picks_header_style`. Без миграций.
+
+## 2026-07-13 — AB6.2g (тексты): слайд «Texte & Recht» (Über uns + Impressum)
+
+- Слайд `texts` наполнен: «Über uns» (about_title/about_text, presence-safe мерж в конфиг —
+  урок W6) + Impressum (LegalDoc дефолт-локали, реюз семантики `legal_docs_view`) + ссылки
+  на редактор «Rechtstexte» (Datenschutz/Widerruf/AGB) и «Recht & Steuer» (налоговые
+  реквизиты §0b.2). `_post_texts`/`_ctx_texts`. Замок `test_texts_slide_saves_about_and_
+  impressum`. Без миграций. Остаток слайдов: offer (вид товара+мини-форма), category
+  (раскладка — ключ уточнить), payment (партиализация W4-3).
