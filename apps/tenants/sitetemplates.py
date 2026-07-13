@@ -156,6 +156,27 @@ def templates_for(business_type):
     return recommended + rest
 
 
+def template_cards(business_type):
+    """M20/AB6.2b: шаблоны сайта как карточки с мини-превью раскладки — акцент +
+    стек секций (для рисованного мокапа) + бейдж «рекомендовано». Единый источник
+    для конструктора «Site» и слайда «Stil» мастера (рекомендованные — первыми)."""
+    from . import siteconfig
+
+    labels = {key: label for key, label, _default in siteconfig.SECTIONS}
+    return [
+        {
+            "key": t["key"],
+            "label": t["label"],
+            "description": t["description_de"],
+            "recommended": business_type in t["recommended_for"],
+            "sections": [{"key": s, "label": labels.get(s, s)} for s in t["sections"]],
+            "accent": t.get("accent", ""),
+            "hero_style": t.get("hero_style", "plain"),
+        }
+        for t in templates_for(business_type)
+    ]
+
+
 def apply_template(tenant, key) -> bool:
     """Применить шаблон к Tenant.site_config. False — неизвестный ключ."""
     template = get_template(key)

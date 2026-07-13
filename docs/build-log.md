@@ -5143,3 +5143,16 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   demo_start rich, rich-demo фото/hero/галерея+обратимость, clear soft-delete на protected).
   Golden обновлены (snap→start, visible +1). Стенд Playwright: first-run focused start-слайд +
   «Mit Beispielen» без краша → Step 2/10 с контентом. БЕЗ миграций.
+
+## 2026-07-13 — AB6.2b: слайд «Stil» — визуальная галерея шаблонов сайта
+
+- Слайд `stil` наполнен: галерея готовых образов сайта с МИНИ-МОКАПОМ раскладки (акцент +
+  стек полосок секций, hero-полоса выделена) + бейдж «Recommended» (по business_type);
+  выбор radio → live-превью перерисовывается (слайд уже preview+live) → «Weiter» применяет
+  `apply_template` (тексты владельца сохраняются, заполняются пустые). Реюз мокапа из
+  конструктора «Site» (`site.html:80-108`).
+- DRY: новый хелпер `sitetemplates.template_cards(business_type)` (карточки key/label/
+  description/recommended/sections[{key,label}]/accent/hero_style) — единый источник для
+  `site_view` (заменил инлайн) и слайда `stil` (`_ctx_template`). Подсветка выбранной
+  карточки — `has-[:checked]:ring` (Tailwind 3.4). Замок `test_stil_slide_shows_visual_
+  template_gallery` (radio + бейдж + мокап); site_view/home_builder 119 зелёных. Без миграций.

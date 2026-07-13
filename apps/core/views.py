@@ -800,19 +800,8 @@ def site_view(request):
         if s["key"] in labels
     ]
     business_type = request.tenant.business_type
-    site_templates = [
-        {
-            "key": t["key"],
-            "label": t["label"],
-            "description": t["description_de"],
-            "recommended": business_type in t["recommended_for"],
-            # для мини-превью раскладки: ключ (стиль) + человеческая подпись
-            "sections": [{"key": s, "label": labels[s]} for s in t["sections"]],
-            "accent": t.get("accent", ""),
-            "hero_style": t.get("hero_style", "plain"),
-        }
-        for t in sitetemplates.templates_for(business_type)
-    ]
+    # AB6.2b: карточки шаблонов с мини-превью — общий хелпер (реюз в слайде «Stil»).
+    site_templates = sitetemplates.template_cards(business_type)
     # Навигация витрины (M20 ④): пункты в порядке владельца + метки/гейтинг.
     nav_labels = {key: label for key, label, _u, _m in siteconfig.NAV_ITEMS}
     nav_modules_map = {key: mod for key, _l, _u, mod in siteconfig.NAV_ITEMS}

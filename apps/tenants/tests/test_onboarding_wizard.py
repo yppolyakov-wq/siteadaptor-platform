@@ -264,12 +264,16 @@ def test_rich_demo_adds_photos_and_is_reversible():
     assert not tenant.site_config.get("hero_image")  # неизменённое демо-поле откачено
 
 
-def test_stil_slide_shows_template_picker():
-    """stil = «весь образ архетипа одним кликом»: галерея sitetemplates."""
+def test_stil_slide_shows_visual_template_gallery():
+    """AB6.2b: stil = галерея готовых образов с мини-мокапом раскладки (акцент + стек
+    секций) + бейдж «рекомендовано»; выбор radio → применяется на Weiter."""
     tenant = TenantFactory(business_type="bakery")
     onboarding.goto(tenant, "stil")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "Stil" in html and 'name="template"' in html
+    assert 'name="template"' in html
+    assert "Recommended" in html  # бейдж рекомендованного типу шаблона
+    # мини-мокап: подписи секций шаблона (напр. hero-полоса) в карточке
+    assert "aria-hidden" in html
 
 
 def test_home_slide_saves_hero_texts():

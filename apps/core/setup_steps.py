@@ -112,14 +112,11 @@ def _ctx_business(request):
 
 
 def _ctx_template(request):
-    # B.2: шаблоны витрины как визуальные карточки (рекомендованные типу — сверху).
-    from apps.tenants import siteconfig, sitetemplates
+    # AB6.2b: шаблоны витрины как визуальные карточки с мини-мокапом раскладки
+    # (акцент + стек секций) — рекомендованные типу сверху; выбор одним кликом.
+    from apps.tenants import sitetemplates
 
-    config = siteconfig.normalize(request.tenant.site_config)
-    return {
-        "templates": sitetemplates.templates_for(request.tenant.business_type),
-        "current_sections": [s["key"] for s in config["sections"] if s["enabled"]],
-    }
+    return {"templates": sitetemplates.template_cards(request.tenant.business_type)}
 
 
 def _ctx_hero(request):
