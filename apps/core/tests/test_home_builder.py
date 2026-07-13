@@ -1584,6 +1584,26 @@ def test_home_builder_se6_fullscreen_overlay_shell():
     assert 'id="bld-tab-editor"' not in body  # старый сплит-таб Редактор/Превью убран
 
 
+def test_home_builder_double_buffered_canvas_swap():
+    """Канва без видимой перезагрузки: push() обновляет превью через скрытый
+    iframe-буфер (swapPreview), а не навигацией видимого кадра; инструментатор
+    именован (instrumentFrame) и гейтит не-http документы (about:blank травил
+    previewPath → буфер запрашивал blank?preview=1). Замок на механику —
+    план docs/editor-live-inplace-plan-2026-07-12.md §5."""
+    tenant = TenantFactory(schema_name="public", slug="hbswap", name="HBSwap")
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=tenant)
+    ).content.decode()
+    assert "function swapPreview()" in body  # двойная буферизация есть
+    assert "function instrumentFrame()" in body  # инструментатор именован (реюз буферами)
+    assert "buf.src = previewUrl()" in body  # буфер грузит черновик обычной навигацией
+    assert "/^https?:$/" in body  # гейт about:blank/chrome-error (порча previewPath)
+    assert "hardReloadPreview" in body  # фолбэк на прежний путь (сеть/ошибка/таймаут)
+    # push() больше НЕ навигирует видимый кадр напрямую: location.replace остался
+    # только в hardReloadPreview (фолбэк) и переключателе страниц pageSel.
+    assert body.count("frame.contentWindow.location.replace(previewUrl())") == 2
+
+
 def test_home_builder_se7_rail_and_areas():
     """SE-7a: рейл областей + фокус-панель (одна область за раз), контент партиционирован."""
     tenant = TenantFactory(schema_name="public", slug="hbse7", name="HBSE7")
