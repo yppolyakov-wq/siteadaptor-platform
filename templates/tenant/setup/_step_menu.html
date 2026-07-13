@@ -1,11 +1,40 @@
 {% load i18n %}
-{# AB6.2a стаб: вид меню (шапка + пункты). Наполнение вариантами — AB6.2e. #}
-<h1 class="text-2xl font-bold mb-1">Dein Menü</h1>
-<p class="text-sm text-gray-500 mb-4">Wie sieht deine Kopfzeile aus und welche Menüpunkte zeigen wir? Wähle einen Stil — später frei anpassbar.</p>
-<div class="bg-white rounded-xl shadow-sm px-4 py-3 mb-4 text-sm text-gray-600">
-  <a href="{% url 'site-menu' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Menüpunkte bearbeiten →</a>
-</div>
-<form method="post">
+{% comment %}AB6.2e (фидбэк владельца «покажет шаблоны с меню, выбираешь как выглядит»):
+слайд «Menü» = 3 вида шапки (Classic/Centered/Minimal) визуальными мокапами, выбор radio
+→ live-превью перерисовывается. Пункты меню (какие страницы) — отдельный редактор
+(ссылка ниже).{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">Wie sieht dein Menü aus?</h1>
+<p class="text-sm text-gray-500 mb-4">Wähle den Stil deiner Kopfzeile. Welche Menüpunkte erscheinen, legst du danach fest.</p>
+<form method="post" class="space-y-4">
   {% csrf_token %}
+  <div class="grid grid-cols-3 gap-3">
+    {% for st in nav_styles %}
+      <label class="rounded-lg border border-gray-200 p-2 cursor-pointer hover:border-indigo-400 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">
+        <input type="radio" name="nav_style" value="{{ st }}" {% if st == nav_style %}checked{% endif %} class="sr-only">
+        {% if st == 'classic' %}
+          <span class="flex items-center justify-between gap-1 bg-gray-100 rounded px-1.5 py-1 mb-1">
+            <span class="h-1.5 w-5 rounded bg-indigo-400"></span>
+            <span class="flex gap-0.5"><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span></span>
+          </span>
+          <span class="block text-xs text-center text-gray-600">{% trans "Classic" %}</span>
+        {% elif st == 'centered' %}
+          <span class="flex flex-col items-center gap-0.5 bg-gray-100 rounded px-1.5 py-1 mb-1">
+            <span class="h-1.5 w-5 rounded bg-indigo-400"></span>
+            <span class="flex gap-0.5"><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-400"></span></span>
+          </span>
+          <span class="block text-xs text-center text-gray-600">{% trans "Centered" %}</span>
+        {% else %}
+          <span class="flex items-center justify-between gap-1 bg-gray-100 rounded px-1.5 py-1 mb-1">
+            <span class="h-1.5 w-5 rounded bg-indigo-400"></span>
+            <span class="flex gap-0.5"><span class="h-1 w-3 rounded bg-gray-300"></span></span>
+          </span>
+          <span class="block text-xs text-center text-gray-600">{% trans "Minimal" %}</span>
+        {% endif %}
+      </label>
+    {% endfor %}
+  </div>
+  <div class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm text-gray-600">
+    <a href="{% url 'site-menu' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Menüpunkte bearbeiten →</a>
+  </div>
   {% include "tenant/_setup_buttons.html" %}
 </form>

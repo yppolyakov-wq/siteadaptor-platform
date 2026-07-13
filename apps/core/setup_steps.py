@@ -120,6 +120,29 @@ def _ctx_company(request):
     return {"logo_url": request.tenant.logo_url}
 
 
+def _post_menu(request):
+    # AB6.2e: вид шапки (classic/centered/minimal) → config["nav"]["style"] (normalize
+    # валидирует по NAV_STYLES). Пункты меню — отдельный редактор (ссылка в слайде).
+    from apps.tenants import siteconfig
+
+    style = request.POST.get("nav_style", "")
+    if style in siteconfig.NAV_STYLES:
+        cfg = siteconfig.normalize(request.tenant.site_config)
+        cfg.setdefault("nav", {})["style"] = style
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+
+
+def _ctx_menu(request):
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    return {
+        "nav_styles": siteconfig.NAV_STYLES,
+        "nav_style": (cfg.get("nav") or {}).get("style") or siteconfig.NAV_STYLES[0],
+    }
+
+
 def _post_hero(request):
     save_hero(request, request.tenant)
 
@@ -199,7 +222,13 @@ HANDLERS = {
         preview=True,
         live=True,
     ),
-    "menu": StepHandler(template="tenant/setup/_step_menu.html", preview=True),
+    "menu": StepHandler(
+        template="tenant/setup/_step_menu.html",
+        post=_post_menu,
+        context=_ctx_menu,
+        preview=True,
+        live=True,
+    ),
     # Шаг offer — демо/пресеты/CTA (action-кнопки в диспетчере); вид товара — AB6.2c.
     "offer": StepHandler(
         template="tenant/setup/_step_offer.html", context=_ctx_content, preview=True

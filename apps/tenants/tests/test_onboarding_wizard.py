@@ -276,6 +276,17 @@ def test_stil_slide_shows_visual_template_gallery():
     assert "aria-hidden" in html
 
 
+def test_menu_slide_picks_header_style():
+    """AB6.2e: слайд menu — выбор вида шапки (classic/centered/minimal) → config nav.style."""
+    tenant = TenantFactory(schema_name="public", slug="mn", name="Mn", business_type="bakery")
+    onboarding.goto(tenant, "menu")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="nav_style"' in html and "Menüpunkte bearbeiten" in html
+    core_views.setup_view(_req("post", {"nav_style": "centered"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config["nav"]["style"] == "centered"
+
+
 def test_company_slide_saves_name_city_and_shows_logo_field():
     """AB6.2f: слайд company — название/город правятся в мастере (первыми) + поле лого."""
     tenant = TenantFactory(schema_name="public", slug="co", name="Alt", business_type="bakery")

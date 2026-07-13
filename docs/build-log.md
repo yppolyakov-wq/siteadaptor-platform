@@ -5165,3 +5165,11 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `_post_company`/`_ctx_company` (лого_url). Live-JS обобщён: файлы (лого/hero/фото) НЕ
   шлются в live-превью (только на «Weiter»). Замок `test_company_slide_saves_name_city_
   and_shows_logo_field`. Без миграций.
+
+## 2026-07-13 — AB6.2e: слайд «Menü» — виды шапки (мокапы)
+
+- Слайд `menu` наполнен: 3 вида шапки (Classic/Centered/Minimal) визуальными CSS-мокапами
+  (реюз мини-диаграмм из редактора), выбор radio → live-превью → `_post_menu` пишет
+  `config["nav"]["style"]` (normalize валидирует по NAV_STYLES). Пункты меню — ссылка на
+  редактор `site-menu` (динамические per-страница слайды — v2). Замок
+  `test_menu_slide_picks_header_style`. Без миграций.
