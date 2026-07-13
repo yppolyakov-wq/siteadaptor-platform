@@ -183,6 +183,17 @@ _KINDS = {
 SELLABLE_KINDS = tuple(_KINDS)
 
 
+def display_fields(kind: str, obj, locale: str | None = None) -> dict:
+    """FB-8: витринные display-поля (name/description/price_display/image_url/gallery) для
+    кабинетного управления — тот же адаптер, что деталь/листинг, БЕЗ реверса маршрутов
+    витрины. Неизвестный kind → ValueError."""
+    try:
+        adapter = _KINDS[kind][0]
+    except KeyError:
+        raise ValueError(f"unknown sellable kind: {kind!r} (known: {SELLABLE_KINDS})") from None
+    return adapter(obj, locale)
+
+
 def _reverse_or_empty(url_name: str, pk) -> str:
     """Реверс маршрута сущности: с pk, затем без (cart-add/combo-add — без арга);
     нет маршрута → '' (как detail_url — без падения)."""

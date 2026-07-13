@@ -1760,6 +1760,138 @@ _BOARD_STAGES = ("intake", "in_progress", "done", "terminal")
 _BOARD_LABEL_MAX = 40
 
 
+# FB-4a/FB-4b: статусы, переименовываемые владельцем (кабинет-отображение;
+# FSM/письма/публичная витрина НЕ трогаются). order (FB-4a) + service/stay (FB-4b).
+_STATUS_LABEL_KINDS = {
+    "order": ("new", "confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"),
+    "booking": ("pending", "confirmed", "fulfilled", "cancelled", "no_show"),
+    "stay": ("pending", "confirmed", "fulfilled", "cancelled", "no_show"),
+}
+_STATUS_LABEL_MAX = 40
+
+
+def status_label_statuses(kind: str):
+    """FB-4a/b: коды статусов kind, переименовываемых владельцем (или None). Публичный
+    аксессор для core-вьюхи сохранения (слой tenants → core только лениво)."""
+    return _STATUS_LABEL_KINDS.get(kind)
+
+
+def normalize_status_labels(raw) -> dict:
+    """FB-4a/b: {kind: {status: label}} — только известные kind/статусы, label ≤40.
+    Пусто → {} (ключ в normalize не появляется — golden-паритет)."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for kind, statuses in _STATUS_LABEL_KINDS.items():
+        node = raw.get(kind)
+        if not isinstance(node, dict):
+            continue
+        labels = {}
+        for st in statuses:
+            val = _s(node.get(st))[:_STATUS_LABEL_MAX]
+            if val:
+                labels[st] = val
+        if labels:
+            out[kind] = labels
+    return out
+
+
+def normalize_transitions(raw) -> dict:
+    """FB-3: правила переходов {kind: {src: [dst,...]}} — какие уже-легальные переходы
+    показывать из src. СТРУКТУРНЫЙ whitelist (kind/src/dst — известные статусы); саму
+    легальность (dst ∈ allowed_targets) обеспечивает СЛОЙ ЧТЕНИЯ (transactions
+    пересекает с FSM) + apply() — тут core не импортируем (слой tenants). Пустой список
+    у src ОСМЫСЛЕН (скрыть не-danger переходы) — материализуется. Пусто → {} (golden)."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for kind, statuses in _STATUS_LABEL_KINDS.items():
+        node = raw.get(kind)
+        if not isinstance(node, dict):
+            continue
+        sset = set(statuses)
+        rules = {}
+        for src, dsts in node.items():
+            if src not in sset or not isinstance(dsts, (list, tuple)):
+                continue
+            rules[src] = [d for d in dsts if d in sset]
+        if rules:
+            out[kind] = rules
+    return out
+
+
+def normalize_status_defs(raw) -> dict:
+    """FB-3 Вариант B: пользовательские определения статусов {kind: [def,...]}.
+
+    def = {code, label, role, stage, blocks_capacity, counts_in_reports, revenue_recognized}.
+    Whitelist: kind ∈ order/booking/stay; code — slug [a-z0-9_] ≤40, НЕ совпадает со
+    встроенным статусом и не дублируется в kind; role ∈ ROLES; stage ∈ STAGES; флаги — bool.
+    Presence-minimal → {} (golden). Реестр core импортируем лениво (слой tenants → core)."""
+    raw = raw if isinstance(raw, dict) else {}
+    from apps.core.status_registry import BUILTIN, ROLES, STAGES
+
+    out = {}
+    for kind in _STATUS_LABEL_KINDS:  # order/booking/stay
+        node = raw.get(kind)
+        if not isinstance(node, list):
+            continue
+        builtin_codes = set(BUILTIN.get(kind, {}))
+        seen, defs = set(), []
+        for d in node:
+            if not isinstance(d, dict):
+                continue
+            code = re.sub(r"[^a-z0-9_]+", "_", _s(d.get("code")).strip().lower()).strip("_")[:40]
+            role, stage = _s(d.get("role")), _s(d.get("stage"))
+            if not code or code in builtin_codes or code in seen:
+                continue
+            if role not in ROLES or stage not in STAGES:
+                continue
+            seen.add(code)
+            defs.append(
+                {
+                    "code": code,
+                    "label": _s(d.get("label"))[:40] or code,
+                    "role": role,
+                    "stage": stage,
+                    "blocks_capacity": bool(d.get("blocks_capacity")),
+                    "counts_in_reports": bool(d.get("counts_in_reports")),
+                    "revenue_recognized": bool(d.get("revenue_recognized")),
+                }
+            )
+        if defs:
+            out[kind] = defs
+    return out
+
+
+def normalize_status_edges(raw) -> dict:
+    """FB-3 Вариант B: кастом-переходы {kind: [{src, dst}]} (граф тенанта поверх FSM).
+
+    Структурный whitelist: kind ∈ order/booking/stay; src/dst — непустые слаги, src≠dst;
+    дубли отброшены. Семантику (оба статуса известны + ≥1 кастом-эндпоинт, чтобы не
+    добавить built-in↔built-in shortcut в обход FSM) проверяет СЛОЙ ЧТЕНИЯ
+    (status_registry.custom_edges) + apply(). Presence-minimal → {} (golden)."""
+    raw = raw if isinstance(raw, dict) else {}
+
+    def _code(v):
+        return re.sub(r"[^a-z0-9_]+", "_", _s(v).strip().lower()).strip("_")[:40]
+
+    out = {}
+    for kind in _STATUS_LABEL_KINDS:  # order/booking/stay
+        node = raw.get(kind)
+        if not isinstance(node, list):
+            continue
+        seen, edges = set(), []
+        for e in node:
+            if not isinstance(e, dict):
+                continue
+            src, dst = _code(e.get("src")), _code(e.get("dst"))
+            if not src or not dst or src == dst or (src, dst) in seen:
+                continue
+            seen.add((src, dst))
+            edges.append({"src": src, "dst": dst})
+        if edges:
+            out[kind] = edges
+    return out
+
+
 def normalize_board(raw) -> dict:
     """W5: настройки доски (labels/order/hidden) — только известные стадии.
 
@@ -1851,6 +1983,22 @@ def normalize(config) -> dict:
     board = normalize_board(config.get("board"))
     if board:
         normalized["board"] = board
+    # FB-4a: свои имена статусов заказа; ключ ТОЛЬКО при непустом (golden-паритет).
+    sl = normalize_status_labels(config.get("status_labels"))
+    if sl:
+        normalized["status_labels"] = sl
+    # FB-3: правила переходов статусов; ключ ТОЛЬКО при непустом (golden-паритет).
+    tr = normalize_transitions(config.get("transitions"))
+    if tr:
+        normalized["transitions"] = tr
+    # FB-3 Вариант B: пользовательские определения статусов; ключ ТОЛЬКО при непустом.
+    sd = normalize_status_defs(config.get("status_defs"))
+    if sd:
+        normalized["status_defs"] = sd
+    # FB-3 Вариант B: кастом-переходы; ключ ТОЛЬКО при непустом (golden-паритет).
+    se = normalize_status_edges(config.get("status_edges"))
+    if se:
+        normalized["status_edges"] = se
     # UC6-7: C-блоки не-home страниц; ключ ТОЛЬКО при непустом (golden-паритет).
     pb = normalize_page_blocks(config.get("page_blocks"))
     if pb:

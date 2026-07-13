@@ -256,3 +256,125 @@ def test_image_make_primary(user):
     by_id = {i["id"]: i for i in p.images}
     assert by_id["b"]["is_primary"] is True
     assert by_id["a"]["is_primary"] is False
+
+
+# --- FB-6: фото категории/подкатегории ---------------------------------------
+@pytest.mark.django_db
+def test_category_upload_saves_fileref(user, tmp_path):
+    """Загрузка на форме категории → FileRef в Category.images, первая = главная,
+    файлы в подпапке categories/."""
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Brot"}, slug="brot")
+    with override_settings(MEDIA_ROOT=str(tmp_path)):
+        req = RequestFactory().post(
+            f"/catalog/categories/{cat.pk}/edit/",
+            {
+                "name_de": "Brot",
+                "slug": "brot",
+                "sort_order": "0",
+                "is_active": "on",
+                "images": [_png(), _png()],
+            },
+        )
+        _attach(req, user)
+        resp = views.category_edit(req, cat.pk)
+    assert resp.status_code == 302
+    cat.refresh_from_db()
+    assert len(cat.images) == 2
+    assert cat.images[0]["is_primary"] is True and cat.images[1]["is_primary"] is False
+    assert "categories/" in cat.images[0]["url"]  # своя подпапка storage
+    assert cat.image_url == cat.images[0]["url"]  # helper для плитки витрины
+
+
+@pytest.mark.django_db
+def test_category_image_delete_and_primary(user, tmp_path):
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(
+        name={"de": "X"},
+        slug="x",
+        images=[
+            {"id": "a", "url": "/media/categories/a.png", "is_primary": True, "sort_order": 0},
+            {"id": "b", "url": "/media/categories/b.png", "is_primary": False, "sort_order": 1},
+        ],
+    )
+    # сменить главную
+    req = RequestFactory().post(f"/catalog/categories/{cat.pk}/images/b/primary/")
+    _attach(req, user)
+    views.category_image_primary(req, cat.pk, "b")
+    cat.refresh_from_db()
+    assert [i["is_primary"] for i in cat.images] == [False, True]
+    # удалить главную → первая оставшаяся становится главной
+    req = RequestFactory().post(f"/catalog/categories/{cat.pk}/images/b/delete/")
+    _attach(req, user)
+    views.category_image_delete(req, cat.pk, "b")
+    cat.refresh_from_db()
+    assert len(cat.images) == 1 and cat.images[0]["id"] == "a"
+    assert cat.images[0]["is_primary"] is True
+
+
+# --- FB-5: плитка «＋ Foto» на формах ------------------------------------------
+@pytest.mark.django_db
+def test_photo_add_tile_on_forms(user):
+    """«＋ Foto» — ПЕРВОЙ в ряду фото на формах товара (создание и правка),
+    акции и категории; проксирует в input[name=images]."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(business_type="bakery")
+    # товар: создание (фото ещё нет) и правка
+    req = RequestFactory().get("/catalog/products/new/")
+    _attach(req, user)
+    req.tenant = tenant
+    body = views.product_create(req).content.decode()
+    assert "data-photo-add-proxy" in body
+    p = ProductFactory()
+    req = RequestFactory().get(f"/catalog/products/{p.pk}/edit/")
+    _attach(req, user)
+    req.tenant = tenant
+    body = views.product_edit(req, p.pk).content.decode()
+    assert "data-photo-add-proxy" in body
+    # категория
+    req = RequestFactory().get("/catalog/categories/new/")
+    _attach(req, user)
+    req.tenant = tenant
+    body = views.category_create(req).content.decode()
+    assert "data-photo-add-proxy" in body
+    assert 'name="images"' in body  # файл-инпут в форме (multipart)
+
+
+@pytest.mark.django_db
+def test_photo_add_tile_on_promotion_form(user):
+    from apps.promotions import views as promo_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    req = RequestFactory().get("/promotions/new/")
+    _attach(req, user)
+    req.tenant = TenantFactory(business_type="bakery")
+    body = promo_views.promotion_create(req).content.decode()
+    assert "data-photo-add-proxy" in body
+
+
+# --- FB-6: плитка категории с фото на витрине ---------------------------------
+@pytest.mark.django_db
+def test_storefront_category_tile_shows_image():
+    from apps.catalog.models import Category
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    Category.objects.create(
+        name={"de": "Mit Foto"},
+        slug="mit-foto",
+        is_active=True,
+        images=[{"id": "a", "url": "/media/categories/a.png", "is_primary": True}],
+    )
+    Category.objects.create(name={"de": "Ohne"}, slug="ohne", is_active=True)
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build(
+        name="X", site_config={"sections": [{"key": "categories", "enabled": True}]}
+    )
+    body = public_views.storefront_home(req).content.decode()
+    assert "/media/categories/a.png" in body  # плитка с фото
+    assert "Ohne" in body  # текстовая плитка-фолбэк осталась

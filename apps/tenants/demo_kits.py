@@ -204,6 +204,11 @@ class DemoKit:
     # RT4: записи блога — (title, excerpt, body, cover_kw). Seed создаёт опубликованные
     # BlogPost (events app). Пусто = блога нет.
     blog_posts: list = field(default_factory=list)
+    # FB-3 Вариант B: демо кастом-статусы {kind: [{code,label,role,stage,blocks_capacity,
+    #   revenue_recognized?}]} + рёбра {kind: [{src,dst}]}. Показывают фичу «Eigene Status»
+    #   в демо-тенанте (роль определяет ёмкость/деньги). Пусто = нет кастом-статусов.
+    status_defs: dict = field(default_factory=dict)
+    status_edges: dict = field(default_factory=dict)
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -1524,6 +1529,24 @@ HOTEL_MENUS = {
 HOTEL = DemoKit(
     key="hotel",
     label="Pension Seeblick",
+    # FB-3 Вариант B демо: свой статус «Anzahlung erhalten» между Anfrage и Bestätigt (держит номер).
+    status_defs={
+        "stay": [
+            {
+                "code": "anzahlung_erhalten",
+                "label": "Anzahlung erhalten",
+                "role": "active",
+                "stage": "in_progress",
+                "blocks_capacity": True,
+            }
+        ]
+    },
+    status_edges={
+        "stay": [
+            {"src": "pending", "dst": "anzahlung_erhalten"},
+            {"src": "anzahlung_erhalten", "dst": "confirmed"},
+        ]
+    },
     business_type="hotel",
     subdomain="hotel",  # → hotel.<base>
     accent="#0e7490",  # cyan/See
@@ -2073,6 +2096,23 @@ BAKERY_MENUS = {
 BAKERY = DemoKit(
     key="bakery",
     label="Backhaus Krume",
+    # FB-3 Вариант B демо: свой статус заказа «In Kommissionierung» между Bestätigt и Fertig.
+    status_defs={
+        "order": [
+            {
+                "code": "in_kommissionierung",
+                "label": "In Kommissionierung",
+                "role": "active",
+                "stage": "in_progress",
+            }
+        ]
+    },
+    status_edges={
+        "order": [
+            {"src": "confirmed", "dst": "in_kommissionierung"},
+            {"src": "in_kommissionierung", "dst": "ready"},
+        ]
+    },
     business_type="bakery",
     subdomain="baeckerei",
     accent="#a16207",  # Braun-Gold (Kruste)
@@ -3759,6 +3799,24 @@ WERKSTATT_MENUS = {
 WERKSTATT = DemoKit(
     key="werkstatt",
     label="KFZ-Werkstatt Dreyer",
+    # FB-3 Вариант B демо: свой промежуточный статус «Teile bestellt» (держит слот занятым).
+    status_defs={
+        "booking": [
+            {
+                "code": "teile_bestellt",
+                "label": "Teile bestellt",
+                "role": "active",
+                "stage": "in_progress",
+                "blocks_capacity": True,
+            }
+        ]
+    },
+    status_edges={
+        "booking": [
+            {"src": "confirmed", "dst": "teile_bestellt"},
+            {"src": "teile_bestellt", "dst": "fulfilled"},
+        ]
+    },
     business_type="werkstatt",  # S6: реальный архетип
     subdomain="werkstatt",
     jobs_vehicle=True,  # A9: Anfrage с Kennzeichen/HSN/TSN + AutoRepair-разметка
@@ -5277,6 +5335,11 @@ def apply_kit(tenant, key: str) -> bool:
             # M20U-2 (slider) EN: переводы баннеров кладём в оверлей heroes по индексу.
         }
     )
+    # FB-3 Вариант B: демо кастом-статусы + рёбра (только у китов, где заданы).
+    if kit.status_defs:
+        cfg["status_defs"] = kit.status_defs
+    if kit.status_edges:
+        cfg["status_edges"] = kit.status_edges
     tenant.site_config = cfg
     tenant.primary_color = kit.accent
     update_fields = ["site_config", "primary_color", "updated_at"]

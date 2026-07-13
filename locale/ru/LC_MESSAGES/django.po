@@ -538,7 +538,7 @@ msgstr "Блюдо дня"
 
 #: apps/catalog/models.py:19 apps/core/pipeline.py:20
 msgid "Neu"
-msgstr "Или"
+msgstr "Новые"
 
 #: apps/catalog/models.py:20
 msgid "Beliebt"
@@ -888,7 +888,7 @@ msgstr "Панель управления"
 #: apps/core/modules.py:83 apps/core/templatetags/cabinet.py:36
 #: templates/core/board.html:3 templates/stays/units.html:148
 msgid "Board"
-msgstr "Правление"
+msgstr "Доска"
 
 #: apps/core/modules.py:96 templates/catalog/product_list.html:3
 #: templates/promotions/promotion_list.html:16
@@ -1018,7 +1018,7 @@ msgstr "Срок истек"
 
 #: apps/core/templatetags/cabinet.py:27
 msgid "Produkte"
-msgstr "Продукция"
+msgstr "Товары"
 
 #: apps/core/templatetags/cabinet.py:28
 msgid "Kategorien"
@@ -1052,7 +1052,7 @@ msgstr "Билеты"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
-msgstr "Заказы"
+msgstr "Заявки"
 
 #: apps/core/templatetags/cabinet.py:48
 msgid "Bewertungen"
@@ -1124,7 +1124,7 @@ msgstr "Языки"
 
 #: apps/core/templatetags/cabinet.py:77
 msgid "Medien"
-msgstr "СМИ"
+msgstr "Медиа"
 
 #: apps/core/templatetags/cabinet.py:78 config/settings/base.py:634
 #: templates/tenant/domains.html:3
@@ -11746,3 +11746,147 @@ msgstr "Учётная запись создана"
 #: templates/tenants/provisioning.html:21
 msgid "Preparing your database…"
 msgstr "Подготовка базы данных…"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Übersicht"
+msgstr "Обзор"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkäufe"
+msgstr "Продажи"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden"
+msgstr "Клиенты"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Auswertungen"
+msgstr "Аналитика"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Finanzen"
+msgstr "Финансы"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Website gestalten"
+msgstr "Оформление сайта"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Abrechnung"
+msgstr "Тариф и оплата"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Blog & News"
+msgstr "Блог и новости"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Mein Geschäft"
+msgstr "Мой бизнес"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkaufen"
+msgstr "Торговля"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden & Marketing"
+msgstr "Клиенты и маркетинг"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kombi-Angebote"
+msgstr "Комбо-наборы"
+
+msgid "Pending"
+msgstr "Ожидает"
+
+msgid "Confirmed"
+msgstr "Подтверждено"
+
+msgid "No-show"
+msgstr "Неявка"
+
+msgid "Status-Namen anpassen"
+msgstr "Изменить названия статусов"
+
+msgid "Statusübergänge anpassen"
+msgstr "Настроить переходы статусов"
+
+msgid "Eigene Status verwalten"
+msgstr "Управление своими статусами"
+
+msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Свои названия статусов (только отображение в кабинете). Пусто = по умолчанию."
+
+msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
+msgstr "Какие следующие статусы доступны из текущего (только кнопки отображения). Отмена всегда возможна."
+
+msgid "Gründe dein Geschäft"
+msgstr "Создайте свой бизнес"
+
+msgid "14 Tage kostenlos testen. Keine Karte nötig."
+msgstr "14 дней бесплатно. Без карты."
+
+msgid "Dein ganzes Geschäft — online in Minuten."
+msgstr "Весь ваш бизнес — онлайн за минуты."
+
+msgid "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain."
+msgstr "Сайт, каталог, бронирования, акции и лояльность — всё в одном месте, на вашем поддомене."
+
+msgid "Mini-Website auf deiner Subdomain — ohne Code"
+msgstr "Мини-сайт на вашем поддомене — без кода"
+
+msgid "Buchungen & Bestellungen mit Doppelbuchungs-Schutz"
+msgstr "Бронирования и заказы с защитой от двойного бронирования"
+
+msgid "Aktionen, Gutscheine & Treue — direkt eingebaut"
+msgstr "Акции, ваучеры и лояльность — уже встроены"
+
+msgid "Für lokale Betriebe gemacht, DSGVO-freundlich"
+msgstr "Создано для локального бизнеса, соответствует GDPR"
+
+msgid "14 Tage kostenlos · Keine Kreditkarte nötig"
+msgstr "14 дней бесплатно · Без кредитной карты"
+
+msgid "Demo ansehen"
+msgstr "Посмотреть демо-сайт"
+
+msgid "Geschäft erstellen"
+msgstr "Создать бизнес"
+
+msgid "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Создавая бизнес, вы соглашаетесь с нашими условиями. Отменить можно в любой момент в течение пробного периода."
+
+msgid "Name des Geschäfts"
+msgstr "Название бизнеса"
+
+msgid "Art des Geschäfts"
+msgstr "Тип бизнеса"
+
+msgid "Stadt"
+msgstr "Город"
+
+msgid "Deine E-Mail"
+msgstr "Ваш e-mail"
+
+msgid "Passwort"
+msgstr "Пароль"
+
+msgid "Passwort bestätigen"
+msgstr "Подтвердите пароль"
+
+msgid "{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."
+msgstr "{slug}.siteadaptor.de — только a-z, 0-9 и дефис."
+
+msgid "Nur Kleinbuchstaben, Ziffern und Bindestrich."
+msgstr "Только строчные буквы, цифры и дефис."
+
+msgid "Diese Subdomain ist reserviert."
+msgstr "Этот поддомен зарезервирован."
+
+msgid "Diese Subdomain ist bereits vergeben."
+msgstr "Этот поддомен уже занят."
+
+msgid "Passwörter stimmen nicht überein."
+msgstr "Пароли не совпадают."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Создавая бизнес, вы соглашаетесь с нашими <a href=\"/agb/\" class=\"underline hover:text-gray-600\">условиями</a>. Отменить можно в любой момент в течение пробного периода."

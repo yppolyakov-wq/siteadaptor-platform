@@ -10,10 +10,19 @@
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.categories">{{ si }}</p>{% endif %}
   <div class="{% grid_classes site 'categories' %}">
     {% for c in categories %}
-      <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
-         class="sf-card flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-5 min-h-[5rem] font-medium hover:shadow-md hover:border-indigo-300 border border-transparent transition">
-        {{ c }}
-      </a>
+      {% if c.image_url %}
+        {# FB-6: плитка категории с фото (если владелец загрузил) — фото + подпись #}
+        <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+           class="sf-card block bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md hover:border-indigo-300 border border-transparent transition">
+          <span class="block aspect-[4/3] bg-gray-100"><img src="{{ c.image_url }}" alt="{{ c }}" loading="lazy" class="w-full h-full object-cover"></span>
+          <span class="block p-3 text-center font-medium">{{ c }}</span>
+        </a>
+      {% else %}
+        <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+           class="sf-card flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-5 min-h-[5rem] font-medium hover:shadow-md hover:border-indigo-300 border border-transparent transition">
+          {{ c }}
+        </a>
+      {% endif %}
     {% endfor %}
   </div>
 </section>

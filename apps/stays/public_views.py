@@ -774,7 +774,11 @@ def unterkunft_ical(request, token):
     except signing.BadSignature as exc:
         raise Http404 from exc
     unit = get_object_or_404(StayUnit, pk=unit_pk)
-    bookings = StayBooking.objects.filter(unit=unit, status__in=StayBooking.ACTIVE_STATUSES)
+    from apps.core import status_registry
+
+    bookings = StayBooking.objects.filter(
+        unit=unit, status__in=status_registry.active_statuses_for("stay")
+    )
     blocks = UnitBlock.objects.filter(unit=unit)
     body = ical.build_feed(unit, bookings, blocks, host=request.get_host())
     return HttpResponse(body, content_type="text/calendar; charset=utf-8")

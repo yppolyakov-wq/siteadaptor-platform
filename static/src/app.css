@@ -108,3 +108,35 @@
 .dark .bg-white\/90 {
   background-color: rgba(17, 24, 39, 0.9);
 }
+
+/* Тёмная тема: нативные поля ввода. Карта утилит выше покрывает наши классы, но
+   у <input>/<select>/<textarea> своё UA-оформление (фон/текст/плейсхолдер, вкл.
+   плейсхолдер `mm/dd/yyyy` у type=date и стрелки у type=number). Без color-scheme
+   браузер рисует их в светлой схеме → тёмный текст/подсказки почти не видны на
+   тёмном фоне (форма «Verfügbarkeit prüfen»). color-scheme переключает нативный
+   рендер целиком; явный плейсхолдер-цвет гарантирует контраст подсказок. */
+.dark {
+  color-scheme: dark;
+}
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Переключатель языка публичных страниц (регистрация, Branchen). Активная пилюля. */
+.lang-pill { cursor: pointer; }
+.lang-pill.on { background: #ffffff; color: #4338ca; }
+
+/* FB-13: значки правки фото на канве (📷 заменить / 🗑 удалить / ＋ добавить) —
+   кликабельны (role="button" + JS-обработчик), но без курсора-«руки» при
+   наведении казалось, что ссылки нет. Плитки «＋» уже имели cursor-pointer в
+   разметке; здесь — единая точка для всех .sf-photo-edit. */
+.sf-photo-edit {
+  cursor: pointer;
+}

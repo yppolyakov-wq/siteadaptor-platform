@@ -4,14 +4,19 @@
 
 {% block dash_content %}
 {% hub_tabs "board" %}
-<div class="flex items-baseline justify-between mb-1">
+<div class="flex items-baseline justify-between gap-3 flex-wrap mb-1">
   <h1 class="text-2xl font-bold">🗂️ {% trans "Aufgaben-Board" %}</h1>
+  {# FB-2: настройка колонок — видимой кнопкой в шапке (панель ниже была свёрнута и терялась) #}
+  <button type="button" class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700"
+          onclick="var d=document.getElementById('board-cols'); d.open=!d.open; if(d.open){d.scrollIntoView({behavior:'smooth',block:'nearest'});}">
+    ⚙️ {% trans "Customize columns" %}
+  </button>
 </div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Bestellungen, Termine, Buchungen, Tickets & Anfragen an einem Ort — Karten per Drag & Drop zwischen den Spalten bewegen oder die Buttons nutzen." %}</p>
 
 {% comment %}W5: настройки колонок доски (переименование/порядок/скрытие) — прямо здесь,
 чтобы владелец их находил. Правила переходов карт (FSM) не меняются.{% endcomment %}
-<details class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
+<details id="board-cols" class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
   <summary class="cursor-pointer text-sm font-medium text-gray-700">⚙️ {% trans "Customize columns" %}</summary>
   <form method="post" action="{% url 'board-settings' %}" class="mt-3 space-y-2 max-w-lg">
     {% csrf_token %}

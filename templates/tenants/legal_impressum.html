@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Impressum · SiteAdaptor{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block body %}
+{% include "tenants/_public_header.html" %}
+{% comment %}Правовой текст платформы — DE-only (конвенция: право не переводим).
+[ПЛЕЙСХОЛДЕРЫ] заполняет владелец реальными реквизитами перед боевым запуском.{% endcomment %}
+<section class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
+  <h1 class="text-3xl font-bold text-gray-900">Impressum</h1>
+  <div class="mt-8 space-y-6 text-gray-700 leading-relaxed text-sm">
+    <div>
+      <h2 class="font-semibold text-gray-900">Angaben gemäß § 5 DDG</h2>
+      <p class="mt-1">[Name / Firma des Betreibers]<br>[Straße Hausnummer]<br>[PLZ Ort]<br>Deutschland</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">Kontakt</h2>
+      <p class="mt-1">E-Mail: [kontakt@siteadaptor.de]<br>Telefon: [+49 …]</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">Vertreten durch</h2>
+      <p class="mt-1">[Inhaber/in bzw. Geschäftsführer/in]</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">Umsatzsteuer-ID</h2>
+      <p class="mt-1">[USt-IdNr. gemäß § 27a UStG, falls vorhanden]</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+      <p class="mt-1">[Name, Anschrift wie oben]</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">EU-Streitschlichtung</h2>
+      <p class="mt-1">Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a class="text-indigo-600 hover:underline" href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr/</a>. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+    </div>
+  </div>
+</section>
+{% include "tenants/_public_footer.html" %}
+{% endblock %}

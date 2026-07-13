@@ -493,7 +493,94 @@ Python 3.12, менеджер uv.
   2026-07-11): активация вскрыла 54 англ-ассерта в DE-рендере + golden-normalize зависит от
   локали — ровно предсказание `legal-lang-package-plan §2`; коммиты `93e19cf`/`1c8be62` в
   истории ветки для cherry-pick при возобновлении T-1. Правка переводов без кода — rosetta
-  (T1-c). Уроки/детали — build-log.
+  (T1-c). Уроки/детали — build-log. **Hotfix (той же датой, ветка
+  `i18n-prod-mo-cabinet-langs`):** .mo теперь компилируются В ОБРАЗ (Dockerfile msgfmt) —
+  `compose run --rm compilemessages` в deploy.sh писал их в эфемерный контейнер, В ПРОДЕ
+  локали (вкл. EN-письма L4) молча не работали; + `CABINET_LANGUAGES` += tr/ru/uk (селектор
+  🗣 = 5 языков). **T1-b.2 (следом):** NAV_GROUPS/NAV_TASK_LABELS (сайдбар AB1) были голыми
+  немецкими строками (обход «пока без de.po») → обёрнуты в lazy, 12 msgid добавлены в 4 .po
+  вручную + фикс DeepL-коротышей (`Neu`→«или» в 3 языках, `Board`→«правление» и др.).
+- **Самое свежее (2026-07-11): T1-b влит (en/tr/ru/uk хром кабинета, DeepL-сессия) + фикс
+  «.mo в образ» + FB-батч 5/6/7/2 — main `217f8df`.** T1-b: перевод хрома DeepL'ом (de-тест-
+  эксперимент откачен), `CABINET_LANGUAGES=["de","en","tr","ru","uk"]`; критичный фикс: .mo
+  компилируются ПРИ СБОРКЕ ОБРАЗА (Dockerfile msgfmt; раньше compilemessages в `run --rm` →
+  прод молча без переводов; шаг из deploy.sh убран). FB-батч: «＋ Foto»-плитка на формах
+  товара/акции/категории (FB-5), фото категорий/подкатегорий + плитки витрины (FB-6,
+  ⚠️ миграция `catalog/0016`), жирные даты календаря номера (FB-7), видимая кнопка
+  «⚙️ Spalten» на доске (FB-2). FB-13 (иконка при hover) не воспроизводится в изоляции —
+  ждём контекст владельца. Остаток T1: полный de-хром НЕ трогаем (msgid=de), rosetta-цикл
+  прод: править в dev → коммит .po → деплой.
+- **Самое свежее (2026-07-12): M-пачка FB-11/FB-10/FB-4a — в `main`, БЕЗ миграций.**
+  **FB-11** карточка брони в кабинете `/dashboard/stays/buchung/<pk>/` (гость/даты/суммы/
+  Meldeschein/кнопки статуса тем же FSM-путём; `_manage_url` доски→booking-detail;
+  reference_code календаря — ссылка). **FB-10** суммы в письмах брони (гостю+владельцу) +
+  owner-email в `notifications.html` (+предупреждение если пуст). **FB-4a** свои имена
+  статусов заказа (кабинет-отображение): `normalize_status_labels`+тег `{% status_label %}`+
+  панель «⚙️ Status-Namen anpassen» в списке заказов+сброс (golden-паритет цел, НЕ движок
+  переходов). Детали — build-log. **Дальше по TZ (`cabinet-feedback-tz-2026-07-10`):**
+  крупные FB-8 (единое управление продаваемыми сущностями в кабинете) и FB-3+FB-4b (движок
+  статусов заказа/услуги/брони с правилами переходов) — план-доком до кода; отложенные
+  FB-1/FB-9/FB-13/FB-14 — ждут контекста владельца.
+- **Самое свежее (2026-07-12, вечер): FB-3 Вариант B (полноценные кастом-статусы) — ЗАВЕРШЁН
+  ЦЕЛИКОМ, 8 инкрементов, БЕЗ миграций.** Владелец создаёт СВОЙ статус (роль+переходы), он
+  достижим через `apply()`, держит ёмкость (anti-oversell), двигает деньги/склад по роли,
+  корректно отображается + редактор `/dashboard/status-manager/<kind>/`. Приём: снять завязку
+  на литеральные коды → роль+флаги (реестр `apps/core/status_registry.py`; эффекты
+  `apps/core/status_effects.py`; хранение `site_config['status_defs']`/`['status_edges']`).
+  Встроенное поведение байт-в-байт (golden-замки). **Phase 0-4+6 в `main` (авто-мерж по правилу
+  сессии); Phase 5 на ветке `claude/admin-simplification-handoff-dfawis`, вливается по зелёному
+  CI.** Правило сессии (владелец): после зелёного CI сразу мержить в main. Ограничение:
+  кастом-статусы scoped на order/booking/stay. План — `docs/fb3-variant-b-full-plan-2026-07-12.md`.
+  **Дальше по TZ:** отложенные FB-9/FB-13/FB-14 (ждут контекста); прочее — за решением владельца.
+- **Самое свежее (2026-07-12, продолжение): FB-1 + FB-4b + FB-3 — в `main`, БЕЗ миграций.**
+  **FB-1** пищевая маркировка только для гастро (вкладка «Kennzeichnung» скрыта у не-гастро,
+  поля в DOM). **FB-4b** свои имена статусов услуг/броней (generic `core/status_labels.py`,
+  endpoint `status-labels-save/<kind>/`, панели на booking/stays, тег на календарях/
+  booking_detail; на доске кабинета — но НЕ в клиентском аккаунте). **FB-3** конфигуратор
+  правил переходов (Вариант A: FSM жёсткий пол, владелец лишь СКРЫВАЕТ не-danger переходы;
+  danger/отмена всегда; `core/transition_rules.py` + `siteconfig.normalize_transitions` +
+  панель `_transition_rules_panel.html` + endpoint `transitions-save/<kind>/`). Планы —
+  `docs/fb3-status-engine-plan-2026-07-12.md`, `docs/fb8-unified-sellable-cabinet-plan-2026-07-12.md`.
+  Свои НОВЫЕ статусы (FB-3 Вариант B) — отдельная волна за решением владельца.
+- **Самое свежее (2026-07-12, продолжение): FB-8 (Angebote) — на ветке, БЕЗ миграций.**
+  Единый экран `/dashboard/angebote/` со всеми продаваемыми сущностями (товар/услуга/
+  номер/событие/комбо): обзор + тумблер видимости + переход к родной форме (единый CRUD
+  НЕ делаем — Вариант A). `apps/core/sellable_manage.py` + пункт «📦 Angebote» в сайдбаре
+  (виден при любом активном sellable-модуле, в т.ч. отелю в Простом). jobs — не sellable.
+  **Дальше по TZ (`cabinet-feedback-tz-2026-07-10`):** отложенные FB-9/FB-14 (ждут
+  контекста владельца). Крупные TZ-эпики закрыты (FB-1/FB-3/FB-4/FB-8/FB-10/FB-11).
+- **Самое свежее (2026-07-12, поздний вечер): редактор — живые изменения блоков + канва БЕЗ
+  видимой перезагрузки (двойная буферизация) + FB-13/тёмная тема/frame-escape кнопки.** Мелкие
+  фиксы (main `965ddce`): курсор-«рука» на 📷/🗑 (`.sf-photo-edit`), тёмная тема — читаемые
+  поля/плейсхолдеры нативных инпутов (`color-scheme:dark` + цвета), C-блок «Button» с внешним
+  URL — `target="_top"` (не ловит XFO DENY в канве редактора). Редактор (этап 1 main `1f20ab8`
+  + этап 2): `push()` не навигирует видимый кадр — `swapPreview()` грузит черновик в скрытый
+  iframe-буфер (обычная навигация → window-гарды витрины живы; document.write отвергнут) и
+  атомарно подменяет с переносом прокрутки; оптимистичные мутации drop/видимости — мгновенно;
+  фолбэк `hardReloadPreview` (сеть/таймаут/не-http). `instrumentFrame` (гейт about:blank —
+  травил previewPath; guard по body). Стенд Playwright 13/13 (вкл. живой календарь наличия
+  после свопа); план `docs/editor-live-inplace-plan-2026-07-12.md`. БЕЗ миграций. Грабля:
+  Django 5.1 кэширует шаблоны и в DEBUG — после правки шаблона рестартовать runserver.
+- **Самое свежее (2026-07-13): i18n-фиксы кабинета + регистрация 5 языков + Branchen-страницы.**
+  (1) Статусы брони/вкладки доски/панели статусов переводятся во всех 5 языках
+  (gettext_lazy на choices StayBooking/ServiceBooking + KIND_LABEL; en-fuzzy починены;
+  БЕЗ миграций — choices-метки схему не меняют). (2) Регистрация бизнеса: полноэкранный
+  сплит-редизайн + переключатель DE/EN/RU/TR/UK (public-роут `/sprache/`,
+  `set_public_language` по CABINET_LANGUAGES); базовый msgid — НЕМЕЦКИЙ (de.po нет —
+  откачен владельцем ранее), переводы в 4 .po. (3) **Branchen-Landingpages**:
+  `/branchen/` + `/branchen/<slug>/` (14 архетипов) — hero + проверенные хайлайты
+  (workflow research+adversarial verify против кода) + сетка модулей из REGISTRY +
+  CTA `?type=` предвыбор в регистрации; всё немецкими msgid, i18n-ready
+  (`apps/tenants/archetype_pages.py`, `tenants/industry.html`). Редактор: **правый
+  инспектор (A+мелочи из B) СДЕЛАН** — настройки (Template-области и лента блока) в
+  панели 380px справа во всю высоту, канва сжимается (right+ResizeObserver→applyDevice),
+  вертикаль экрана свободна; легаси syncRibbonPad (paddingTop=высота попапа) убит —
+  схлопывал канву; стенд 11/11 (план `docs/editor-right-inspector-plan-2026-07-13.md`); + свёртка
+  (шеврон, bld-panel-min) и ресайз ширины (280–640, --bld-panel-w, localStorage,
+  Pointer Capture) — стенд 7/7. **Главная платформы = /branchen/** (корень; регистрация
+  → /registrieren/, ?ref ловится на корне), общий хром `_public_header/_footer`,
+  страницы /ueber-uns/ + правовые ПЛАТФОРМЫ /impressum/ /datenschutz/ /agb/
+  (заготовки, реквизиты-[ПЛЕЙСХОЛДЕРЫ] на владельце), sitemap += 16 URL.
 - **Самое свежее (2026-07-13): AB6.1 ✅ — движок шагов мастера (state v2 + рельса ✓/⏭ + ?step=).**
   Отмашка владельца «приступай». `apps/tenants/onboarding.py`: state v2 (слаги) в opaque
   `onboarding` + консервативный легаси-маппинг int→slug (completed не понижается), реестр
@@ -515,7 +602,7 @@ Python 3.12, менеджер uv.
   Ядро: единый реестр `SETUP_STEPS` (питает рельсу мастера, чек-лист AB4-фасадом и бейджи плиток
   AB7), state v2 в opaque-ключе `onboarding` — БЕЗ миграций и БЕЗ правок golden. SOURCE OF TRUTH —
   `docs/master-slides-v3-plan-2026-07-11.md` (карта слайдов §3, решения §0b, инкременты §5).
-- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015_product_ingredients_i18n_product_origin_i18n` (Ф2 — overlay, AddField) + `tenants/0025_alter_tenant_business_type` (online_shop — choices-only). Полный список — в build-log.
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

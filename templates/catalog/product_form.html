@@ -14,12 +14,12 @@
     {% endfor %}
   {% endif %}
 
-  {# Существующие картинки (только в режиме редактирования) #}
-  {% if product and product.images %}
+  {# FB-5: ряд фото с плиткой «＋ Foto» ПЕРВОЙ — и при создании (без фото), и при правке #}
     <div class="mb-4">
       <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
       <div class="flex flex-wrap gap-3">
-        {% for img in product.images %}
+        {% include "catalog/_photo_add_tile.html" %}
+        {% if product %}{% for img in product.images %}
           <div class="relative w-24 border rounded-lg overflow-hidden {% if img.is_primary %}ring-2 ring-indigo-500{% endif %}">
             <img src="{{ img.url }}" alt="" class="w-24 h-24 object-cover">
             <div class="flex text-xs">
@@ -37,10 +37,9 @@
               </form>
             </div>
           </div>
-        {% endfor %}
+        {% endfor %}{% endif %}
       </div>
     </div>
-  {% endif %}
 
   {% comment %}Ф1 (per-language + табы): переключатель языка показывает поля ТОЛЬКО
      выбранного языка (не все сразу); табы вместо портянки. ВСЕ поля (все языки/табы) в
@@ -54,7 +53,9 @@
     <div class="flex gap-4 border-b border-gray-200 text-sm font-medium" role="tablist">
       <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on pb-2">{% trans "Basics" %}</button>
       <button type="button" data-pf-tab="preis" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Price & stock" %}</button>
-      <button type="button" data-pf-tab="kennz" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Labeling" %}</button>
+      {% comment %}FB-1: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/Herkunft) —
+      пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
+      <button type="button" data-pf-tab="kennz" class="pf-tab pb-2{% if ui_simple or not show_food_labeling %} hidden{% endif %}">{% trans "Labeling" %}</button>
       <button type="button" data-pf-tab="markt" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Marketing" %}</button>
       {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
       {% if product %}<button type="button" data-pf-tab="varianten" class="pf-tab pb-2">{% trans "Variants & extras" %}</button>{% endif %}

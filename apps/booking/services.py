@@ -73,9 +73,12 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
 
 def overlapping(resource, start, end):
     """Активные записи ресурса, пересекающие интервал [start, end)."""
+    from apps.core import status_registry
+
     return Booking.objects.filter(
         resource=resource,
-        status__in=Booking.ACTIVE_STATUSES,
+        # FB-3 Вариант B: built-in ∪ кастом-active тенанта (кастом-статус держит слот).
+        status__in=status_registry.active_statuses_for("booking"),
         start__lt=end,
         end__gt=start,
     )

@@ -1,12 +1,52 @@
 """Публичные вьюхи онбординга (живут в public-схеме, см. urls_public)."""
 
+from django.conf import settings
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
-from . import onboarding
+from . import archetype_pages, onboarding
 from .forms import BusinessSignupForm
 from .models import Tenant
 from .services import login_url_for, start_business_provisioning
+
+# Языки хрома публичных страниц (нативные подписи) — переключатель 5 языков.
+_LANG_LABELS = {"de": "DE", "en": "EN", "ru": "RU", "tr": "TR", "uk": "UK"}
+
+
+def ui_languages():
+    return [
+        {"code": c, "label": _LANG_LABELS.get(c, c.upper())}
+        for c in getattr(settings, "CABINET_LANGUAGES", [settings.LANGUAGE_CODE])
+    ]
+
+
+def _capture_partner_ref(request):
+    """D3: реф-код партнёра из ?ref= — в сессию (переживает переходы до POST
+    регистрации). Исторические партнёрские ссылки ведут на КОРЕНЬ — поэтому
+    захват и на лендинге, и на /registrieren/."""
+    ref = (request.GET.get("ref") or "").strip()[:40]
+    if ref:
+        request.session["partner_ref"] = ref
+
+
+def set_public_language(request):
+    """Переключатель языка публичной страницы (регистрация бизнеса и пр.).
+
+    Валидируем `?lang=` против CABINET_LANGUAGES (языки хрома платформы: de/en/tr/
+    ru/uk); неизвестный → LANGUAGE_CODE. Кладём cookie, LocaleMiddleware подхватит
+    на следующем запросе. `next` — только относительный (open-redirect guard)."""
+    allowed = getattr(settings, "CABINET_LANGUAGES", [settings.LANGUAGE_CODE])
+    lang = request.GET.get("lang", "")
+    if lang not in allowed:
+        lang = settings.LANGUAGE_CODE
+    nxt = request.GET.get("next") or "/"
+    if not url_has_allowed_host_and_scheme(nxt, allowed_hosts=None):
+        nxt = "/"
+    resp = redirect(nxt)
+    resp.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang, max_age=60 * 60 * 24 * 365)
+    return resp
 
 
 class BusinessSignupView(View):
@@ -16,14 +56,21 @@ class BusinessSignupView(View):
         # AB3/AB5: тип бизнеса — визуальные карточки (иконка + язык задач), как в
         # мастере онбординга (шаг 1), а не сухой dropdown. #3/#5: + demo_url (кнопка
         # «Demo ansehen» на карточке → живая демо-витрина архетипа).
-        return {"form": form, "business_types": onboarding.business_type_cards(request)}
+        return {
+            "form": form,
+            "business_types": onboarding.business_type_cards(request),
+            "ui_languages": ui_languages(),
+        }
 
     def get(self, request):
-        # D3: реф-код партнёра переживает GET→POST через сессию (?ref=<code>).
-        ref = (request.GET.get("ref") or "").strip()[:40]
-        if ref:
-            request.session["partner_ref"] = ref
-        return render(request, self.template_name, self._context(BusinessSignupForm(), request))
+        _capture_partner_ref(request)
+        # Предвыбор типа бизнеса из ?type= (переход с Branchen-страницы «Jetzt starten»).
+        initial = {}
+        pretype = (request.GET.get("type") or "").strip()
+        if pretype in dict(Tenant.BUSINESS_TYPES):
+            initial["business_type"] = pretype
+        form = BusinessSignupForm(initial=initial) if initial else BusinessSignupForm()
+        return render(request, self.template_name, self._context(form, request))
 
     def post(self, request):
         form = BusinessSignupForm(request.POST)
@@ -45,6 +92,51 @@ class BusinessSignupView(View):
             partner_code=request.session.pop("partner_ref", ""),
         )
         return redirect("signup-waiting", slug=tenant.slug)
+
+
+def industries_index(request):
+    """Главная платформы (/ и /branchen/): обзор Branchen-Landingpages.
+
+    Корень исторически принимал партнёрский `?ref=` (ссылки в проде) — захват
+    сохранён и здесь."""
+    _capture_partner_ref(request)
+    return render(
+        request,
+        "tenants/industries.html",
+        {"cards": archetype_pages.index_cards(request), "ui_languages": ui_languages()},
+    )
+
+
+def industry_page(request, slug):
+    """Branchen-Feature-Seite (/branchen/<slug>/): was die Plattform für DIESE
+    Branche kann. Unbekannter/neutraler Typ → 404."""
+    if not archetype_pages.is_valid(slug):
+        raise Http404("Unbekannte Branche")
+    return render(request, "tenants/industry.html", archetype_pages.page_context(request, slug))
+
+
+def about_page(request):
+    """«Über uns» — о платформе (/ueber-uns/)."""
+    return render(request, "tenants/about.html", {"ui_languages": ui_languages()})
+
+
+_LEGAL_TEMPLATES = {
+    "impressum": "tenants/legal_impressum.html",
+    "datenschutz": "tenants/legal_datenschutz.html",
+    "agb": "tenants/legal_agb.html",
+}
+
+
+def platform_legal(request, kind):
+    """Правовые страницы ПЛАТФОРМЫ (siteadaptor.de): Impressum/Datenschutz/AGB.
+
+    Не путать с правовыми страницами тенантов (их витрины, tenant-urlconf).
+    Тексты — немецкие заготовки; реквизиты заполняет владелец (плейсхолдеры
+    помечены в шаблонах)."""
+    tpl = _LEGAL_TEMPLATES.get(kind)
+    if not tpl:
+        raise Http404
+    return render(request, tpl, {"ui_languages": ui_languages()})
 
 
 def signup_waiting(request, slug):

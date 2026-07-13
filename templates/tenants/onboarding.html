@@ -1,57 +1,174 @@
 {% extends "base.html" %}
 {% load i18n widget_tweaks %}
-{% block title %}{% trans "Create your business" %} · SiteAdaptor{% endblock %}
+{% block title %}{% trans "Gründe dein Geschäft" %} · SiteAdaptor{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Выбранная карточка типа бизнеса — подсветка через :has() (нативно, без JS). */
+  .bt-card { transition: border-color .15s, box-shadow .15s, background-color .15s; }
+  .bt-card:has(input:checked) {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px #6366f1;
+    background-color: #eef2ff;
+  }
+  /* Мягкие «пятна» на брендовой панели (без внешних картинок — CSP/GDPR). */
+  .brand-blob { filter: blur(40px); }
+  .lang-pill.on { background:#ffffff; color:#4338ca; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="min-h-screen flex items-center justify-center px-4 py-12">
-  <div class="w-full max-w-md">
-    <h1 class="text-2xl font-bold mb-1">{% trans "Create your business" %}</h1>
-    <p class="text-gray-500 mb-6 text-sm">{% trans "14-day free trial. No card required." %}</p>
+{% get_current_language as CUR_LANG %}
+<div class="min-h-screen lg:grid lg:grid-cols-2">
 
-    {% if messages %}
-      {% for m in messages %}
-        <div class="mb-4 rounded-lg bg-green-50 text-green-800 px-4 py-2 text-sm">{{ m }}</div>
-      {% endfor %}
-    {% endif %}
+  {# ── Левая брендовая панель (маркетинг). На мобиле скрыта, вместо неё — компактная шапка справа. ── #}
+  <aside class="relative hidden lg:flex lg:flex-col lg:justify-between lg:h-screen lg:sticky lg:top-0 overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 text-white p-10 xl:p-14">
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+      <div class="brand-blob absolute -top-16 -left-10 w-72 h-72 rounded-full bg-white/10"></div>
+      <div class="brand-blob absolute bottom-0 -right-12 w-80 h-80 rounded-full bg-fuchsia-400/20"></div>
+    </div>
 
-    <form method="post" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
-      {% csrf_token %}
-      {% for field in form %}
-        {% if field.name == "business_type" %}
-          {# AB3/AB5: визуальные карточки типа бизнеса (иконка + язык задач), не dropdown. #}
-          <div>
-            <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
-            <div class="grid sm:grid-cols-2 gap-4">
-              {% for bt in business_types %}
-                <label class="flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer hover:ring-1 hover:ring-indigo-300">
-                  <input type="radio" name="business_type" value="{{ bt.value }}"
-                         {% if field.value == bt.value %}checked{% endif %} class="mt-1 border-gray-300">
-                  <span>
-                    <span class="inline-flex items-center gap-2 text-sm font-medium"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
-                    {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
-                    {% comment %}#3/#5: живая демо-витрина архетипа (только если засеяна) —
-                       <a> внутри <label> не переключает радио (interactive content).{% endcomment %}
-                    {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 mt-1">👁 {% trans "View demo site" %} ↗</a>{% endif %}
+    <a href="/" class="relative inline-flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/15">◧</span> SiteAdaptor
+    </a>
+
+    <div class="relative max-w-md">
+      <h2 class="text-3xl xl:text-4xl font-bold leading-tight">{% trans "Dein ganzes Geschäft — online in Minuten." %}</h2>
+      <p class="mt-4 text-indigo-100 leading-relaxed">{% trans "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain." %}</p>
+
+      <ul class="mt-8 space-y-3 text-sm text-indigo-50">
+        <li class="flex items-start gap-3"><span class="mt-0.5">🌐</span><span>{% trans "Mini-Website auf deiner Subdomain — ohne Code" %}</span></li>
+        <li class="flex items-start gap-3"><span class="mt-0.5">📅</span><span>{% trans "Buchungen & Bestellungen mit Doppelbuchungs-Schutz" %}</span></li>
+        <li class="flex items-start gap-3"><span class="mt-0.5">🎁</span><span>{% trans "Aktionen, Gutscheine & Treue — direkt eingebaut" %}</span></li>
+        <li class="flex items-start gap-3"><span class="mt-0.5">🔒</span><span>{% trans "Für lokale Betriebe gemacht, DSGVO-freundlich" %}</span></li>
+      </ul>
+    </div>
+
+    <p class="relative text-xs text-indigo-200">{% trans "14 Tage kostenlos · Keine Kreditkarte nötig" %}</p>
+  </aside>
+
+  {# ── Правая колонка: форма регистрации (прокручивается; панель слева остаётся на месте). ── #}
+  <main class="flex flex-col bg-gray-50 lg:bg-white">
+    <div class="mx-auto w-full max-w-xl px-5 py-8 sm:px-8 lg:py-14">
+
+      {# Шапка: бренд для мобильных + переключатель языка (5 языков). #}
+      <div class="flex items-center justify-between gap-3 mb-6">
+        <a href="/" class="lg:hidden inline-flex items-center gap-2 text-lg font-bold text-indigo-700">
+          <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 text-white text-sm">◧</span> SiteAdaptor
+        </a>
+        <div class="ml-auto inline-flex items-center gap-1 rounded-full bg-gray-100 lg:bg-gray-100 p-0.5" role="group" aria-label="{% trans 'Language' %}">
+          {% comment %}Путь литеральный (не {% url %}): страница живёт на public-схеме,
+          но рендерится и под tenant-urlconf (тесты) — reverse там бы не нашёл имя.{% endcomment %}
+          {% for l in ui_languages %}
+            <a href="/sprache/?lang={{ l.code }}&next={{ request.path|urlencode }}"
+               class="lang-pill px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 hover:text-gray-800{% if l.code == CUR_LANG %} on shadow-sm{% endif %}"
+               {% if l.code == CUR_LANG %}aria-current="true"{% endif %}>{{ l.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{% trans "Gründe dein Geschäft" %}</h1>
+      <p class="text-gray-500 mt-1 mb-6 text-sm">{% trans "14 Tage kostenlos testen. Keine Karte nötig." %}</p>
+
+      {% if messages %}
+        {% for m in messages %}
+          <div class="mb-4 rounded-lg bg-green-50 text-green-800 px-4 py-2 text-sm">{{ m }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        {# 1. Тип бизнеса — визуальные карточки (иконка + язык задач + живое демо). #}
+        <div>
+          <label class="block text-sm font-medium text-gray-800 mb-2">{{ form.business_type.label }}</label>
+          <div class="grid sm:grid-cols-2 gap-3">
+            {% for bt in business_types %}
+              <label class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
+                <input type="radio" name="business_type" value="{{ bt.value }}"
+                       {% if form.business_type.value == bt.value %}checked{% endif %} class="mt-1 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                <span class="min-w-0">
+                  <span class="flex items-center gap-2 text-sm font-medium text-gray-900"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
+                  {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
+                  {% comment %}#3/#5: живая демо-витрина + Branchen-страница возможностей.
+                     <a> внутри <label> не переключает радио (interactive content).{% endcomment %}
+                  <span class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                    {% if bt.value != "other" %}<a href="/branchen/{{ bt.value }}/" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">{% trans "Mehr erfahren" %} →</a>{% endif %}
+                    {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800">👁 {% trans "Demo ansehen" %} ↗</a>{% endif %}
                   </span>
-                </label>
-              {% endfor %}
-            </div>
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+                </span>
+              </label>
+            {% endfor %}
           </div>
-        {% else %}
+          {% for err in form.business_type.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        </div>
+
+        {# 2. Название + город. #}
+        <div class="grid sm:grid-cols-2 gap-4">
+          {% with f=form.business_name %}
           <div>
-            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" %}
-            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+            <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
+            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
           </div>
-        {% endif %}
-      {% endfor %}
-      {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
-      <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700">
-        {% trans "Create business" %}
-      </button>
-    </form>
-  </div>
+          {% endwith %}
+          {% with f=form.city %}
+          <div>
+            <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
+            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+          {% endwith %}
+        </div>
+
+        {# 3. Субдомен. #}
+        {% with f=form.slug %}
+        <div>
+          <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
+          {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+          {% if f.help_text %}<p class="text-xs text-gray-400 mt-1">{{ f.help_text }}</p>{% endif %}
+          {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        </div>
+        {% endwith %}
+
+        {# 4. E-Mail. #}
+        {% with f=form.email %}
+        <div>
+          <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
+          {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+          {% if f.help_text %}<p class="text-xs text-gray-400 mt-1">{{ f.help_text }}</p>{% endif %}
+          {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        </div>
+        {% endwith %}
+
+        {# 5. Пароль + повтор. #}
+        <div class="grid sm:grid-cols-2 gap-4">
+          {% with f=form.password1 %}
+          <div>
+            <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
+            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% if f.help_text %}<p class="text-xs text-gray-400 mt-1">{{ f.help_text }}</p>{% endif %}
+            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+          {% endwith %}
+          {% with f=form.password2 %}
+          <div>
+            <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
+            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+          {% endwith %}
+        </div>
+
+        {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
+
+        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-3 font-medium shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none transition">
+          {% trans "Geschäft erstellen" %}
+        </button>
+
+        <p class="text-center text-xs text-gray-400">{% blocktrans %}Mit der Erstellung stimmst du unseren <a href="/agb/" class="underline hover:text-gray-600">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen.{% endblocktrans %}</p>
+      </form>
+    </div>
+  </main>
 </div>
 {% endblock %}

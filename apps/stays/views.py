@@ -101,15 +101,31 @@ def _refund_deposit(request, booking):
         messages.error(request, _("Refund failed — please check Stripe."))
 
 
+def _status_rows(request):
+    """FB-4b: [(status, дефолт, своё-имя)] для панели переименования статусов брони."""
+    from apps.core import status_labels
+
+    return status_labels.label_rows(getattr(request, "tenant", None), "stay", StayBooking.STATUSES)
+
+
+def _transition_rows(request):
+    """FB-3: строки панели правил переходов статусов брони."""
+    from apps.core import transition_rules
+
+    return transition_rules.editor_rows(getattr(request, "tenant", None), "stay")
+
+
 @login_required
 def calendar(request):
     start = _parse_day(request.GET.get("von"))
     units = list(StayUnit.objects.filter(is_active=True))
     days, rows = availability.occupancy_grid(units, start, HORIZON_DAYS)
     window_end = start + timedelta(days=HORIZON_DAYS)
+    from apps.core import status_registry
+
     bookings = (
         StayBooking.objects.filter(
-            status__in=StayBooking.ACTIVE_STATUSES,
+            status__in=status_registry.active_statuses_for("stay"),
             arrival__lt=window_end,
             departure__gt=start,
         )
@@ -130,6 +146,10 @@ def calendar(request):
             "bookings": bookings,
             "units": units,
             "finance_active": _finance_active(request),
+            # FB-4b: строки панели «Status-Namen» брони (status, дефолт, своё имя).
+            "status_label_rows": _status_rows(request),
+            # FB-3: строки панели «Statusübergänge» (правила переходов).
+            "transition_rows": _transition_rows(request),
         },
     )
 
@@ -218,6 +238,24 @@ def stay_create(request):
         return redirect("stays:calendar")
     messages.success(request, _("Stay created."))
     return redirect(f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}")
+
+
+@login_required
+def booking_detail(request, pk):
+    """FB-11: карточка брони — кто/когда/сколько (гость, даты, суммы, оплата,
+    тариф, источник, Meldeschein) + действия статуса. Ссылки: календарь, доска."""
+    booking = get_object_or_404(
+        StayBooking.objects.select_related("unit", "customer", "rate_plan"), pk=pk
+    )
+    try:
+        registration = booking.registration
+    except Exception:  # noqa: BLE001 — OneToOne может отсутствовать
+        registration = None
+    return render(
+        request,
+        "stays/booking_detail.html",
+        {"b": booking, "registration": registration, "nav": "stays"},
+    )
 
 
 @login_required

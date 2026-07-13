@@ -25,6 +25,7 @@ from decimal import Decimal
 from importlib import import_module
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import pipeline
 
@@ -83,12 +84,12 @@ _RESERVATION_STATUS_LABELS = {
 
 # kind → короткая немецкая подпись вкладки доски (= заголовки разделов ЛК).
 KIND_LABEL = {
-    "order": "Bestellungen",
-    "booking": "Termine",
-    "stay": "Übernachtungen",
-    "ticket": "Tickets",
-    "job": "Aufträge",
-    "reservation": "Reservierungen",
+    "order": _("Bestellungen"),
+    "booking": _("Termine"),
+    "stay": _("Übernachtungen"),
+    "ticket": _("Tickets"),
+    "job": _("Aufträge"),
+    "reservation": _("Reservierungen"),
 }
 
 # Последних записей на вкладку доски (UD1-3): свежие сверху, счётчик по стадиям.
@@ -209,9 +210,13 @@ def sm_for(kind: str):
     return getattr(import_module(module_path), cls_name)()
 
 
-def allowed_actions_for(kind: str, status: str) -> list[dict]:
+def allowed_actions_for(kind: str, status: str, subset: dict | None = None) -> list[dict]:
     """Переходы FSM из `status`: ``[{target, label, stage}]`` (читает allowed_targets,
-    подписи — из pipeline; логику переходов не дублирует)."""
+    подписи — из pipeline; логику переходов не дублирует). FB-3: `subset` (правила
+    переходов владельца {src: [dst]}) СКРЫВАЕТ не-danger переходы для отображения —
+    FSM/apply() при этом не трогаются (жёсткий пол)."""
+    from apps.core import transition_rules
+
     return [
         {
             "target": t,
@@ -220,12 +225,24 @@ def allowed_actions_for(kind: str, status: str) -> list[dict]:
             "danger": pipeline.is_danger(t),
         }
         for t in sm_for(kind).allowed_targets(status)
+        if subset is None or transition_rules.keep_target(status, t, subset)
     ]
 
 
-def _status_label(kind: str, obj) -> str:
-    """Читаемая подпись статуса. `get_status_display()` (choices) где есть; у
-    Reservation (без choices) — свой словарь; иначе сырой статус."""
+def _status_label(kind: str, obj, labels: dict | None = None) -> str:
+    """Читаемая подпись статуса. FB-4a/b: своё имя владельца (`labels`, только доска
+    КАБИНЕТА — не клиентский аккаунт) поверх дефолта. Дефолт: `get_status_display()`
+    (choices) где есть; у Reservation (без choices) — свой словарь; иначе сырой статус."""
+    if labels:
+        custom = labels.get(obj.status)
+        if custom:
+            return custom
+    # FB-3 Вариант B Phase 6: кастом-статус → его label (get_status_display вернул бы код).
+    from apps.core import status_registry
+
+    d = status_registry.resolve(kind, obj.status)
+    if d is not None and not d.builtin and d.label:
+        return d.label
     getter = getattr(obj, "get_status_display", None)
     if callable(getter):
         return getter()
@@ -255,7 +272,8 @@ def _manage_url(kind: str, obj) -> str:
         if kind == "booking":
             return reverse("booking:calendar")
         if kind == "stay":
-            return reverse("stays:calendar")
+            # FB-11: карточка брони (была ссылка на общий календарь)
+            return reverse("stays:booking-detail", args=[obj.pk])
         if kind == "reservation":
             return reverse("promotions:reservation-list")
     except NoReverseMatch:
@@ -263,13 +281,17 @@ def _manage_url(kind: str, obj) -> str:
     return ""
 
 
-def transaction_for(kind: str, obj) -> Transaction:
+def transaction_for(
+    kind: str, obj, labels: dict | None = None, transitions: dict | None = None
+) -> Transaction:
     """Нормализовать транзакцию `kind` к `Transaction`.
 
     `status_label` = `obj.get_status_display()` (у Reservation без choices — сырое
-    значение, как в ЛК); `subtotal_display` — готовая DE-строка; `payment_method`
-    — read-only из модели (E-7: только Order; иначе ''). Неизвестный kind →
-    ValueError. Статус только читается.
+    значение, как в ЛК); `labels` (FB-4a/b, {status: своё-имя}) переопределяет подпись,
+    `transitions` (FB-3, {src: [dst]}) скрывает не-danger переходы — ОБА только на доске
+    кабинета (клиентский аккаунт зовёт без них). `subtotal_display` — готовая DE-строка;
+    `payment_method` — read-only из модели (E-7: только Order; иначе ''). Неизвестный kind
+    → ValueError. Статус только читается.
     """
     if kind not in _FIELDS:
         raise ValueError(f"unknown transaction kind: {kind!r} (known: {TRANSACTION_KINDS})")
@@ -283,13 +305,13 @@ def transaction_for(kind: str, obj) -> Transaction:
         subtotal_display=_money_str(f["amount"], f["currency"]),
         currency=f["currency"],
         status=obj.status,
-        status_label=_status_label(kind, obj),
+        status_label=_status_label(kind, obj, labels),
         pipeline_stage=pipeline.stage_for(kind, obj.status),
         payment_method=getattr(obj, "payment_method", "") or "",
         created_at=obj.created_at,
         detail_url_customer=_customer_url(kind, obj),
         manage_url=_manage_url(kind, obj),
-        allowed_actions=allowed_actions_for(kind, obj.status),
+        allowed_actions=allowed_actions_for(kind, obj.status, transitions),
     )
 
 
@@ -326,11 +348,16 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
     board_cfg = siteconfig.normalize_board(
         (getattr(tenant, "site_config", None) or {}).get("board")
     )
+    from apps.core import status_labels, transition_rules
+
     for kind in TRANSACTION_KINDS:
         module = KIND_MODULE[kind]
         if not tenant.is_module_active(module):
             continue
-        txs = [transaction_for(kind, obj) for obj in _managed_queryset(kind)[:limit]]
+        # FB-4a/b: свои имена статусов + FB-3: правила переходов — только доска кабинета.
+        labels = status_labels.custom_labels(tenant, kind)
+        trans = transition_rules.subset_for(tenant, kind)
+        txs = [transaction_for(kind, obj, labels, trans) for obj in _managed_queryset(kind)[:limit]]
         counts = {stage: 0 for stage in pipeline.STAGES}
         for tx in txs:
             counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1

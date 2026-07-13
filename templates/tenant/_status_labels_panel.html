@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %}FB-4a/FB-4b: панель «свои имена статусов» (кабинет-отображение). Параметры include:
+rows=[(status,default,custom)], kind (order|booking|stay), next_path (куда вернуться).
+Постит на generic status-labels-save; FSM/переходы/письма/витрину НЕ трогает.{% endcomment %}
+<details class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
+  <summary class="cursor-pointer text-sm font-medium text-gray-700">⚙️ {% trans "Status-Namen anpassen" %}</summary>
+  <form method="post" action="{% url 'status-labels-save' kind %}" class="mt-3 space-y-2 max-w-md">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_path }}">
+    <p class="text-xs text-gray-400">{% trans "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard." %}</p>
+    {% for st, default, custom in rows %}
+      <div class="flex items-center gap-2 text-sm">
+        <span class="w-28 text-xs text-gray-400">{{ default }}</span>
+        <input type="text" name="label_{{ st }}" value="{{ custom }}" placeholder="{{ default }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
+      </div>
+    {% endfor %}
+    <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</details>

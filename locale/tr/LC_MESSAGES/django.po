@@ -535,7 +535,7 @@ msgstr "Günün yemeği"
 
 #: apps/catalog/models.py:19 apps/core/pipeline.py:20
 msgid "Neu"
-msgstr "Ya da"
+msgstr "Yeni"
 
 #: apps/catalog/models.py:20
 msgid "Beliebt"
@@ -884,7 +884,7 @@ msgstr "Kontrol Paneli"
 #: apps/core/modules.py:83 apps/core/templatetags/cabinet.py:36
 #: templates/core/board.html:3 templates/stays/units.html:148
 msgid "Board"
-msgstr "Yönetim Kurulu"
+msgstr "Pano"
 
 #: apps/core/modules.py:96 templates/catalog/product_list.html:3
 #: templates/promotions/promotion_list.html:16
@@ -1048,7 +1048,7 @@ msgstr "Biletler"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
-msgstr "Siparişler"
+msgstr "İş emirleri"
 
 #: apps/core/templatetags/cabinet.py:48
 msgid "Bewertungen"
@@ -11659,3 +11659,147 @@ msgstr "Hesap oluşturuldu"
 #: templates/tenants/provisioning.html:21
 msgid "Preparing your database…"
 msgstr "Veritabanınız hazırlanıyor…"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Übersicht"
+msgstr "Genel bakış"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkäufe"
+msgstr "Satışlar"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden"
+msgstr "Müşteriler"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Auswertungen"
+msgstr "Analizler"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Finanzen"
+msgstr "Finans"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Website gestalten"
+msgstr "Web sitesi tasarımı"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Abrechnung"
+msgstr "Faturalandırma"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Blog & News"
+msgstr "Blog & Haberler"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Mein Geschäft"
+msgstr "İşletmem"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkaufen"
+msgstr "Satış"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden & Marketing"
+msgstr "Müşteriler & Pazarlama"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kombi-Angebote"
+msgstr "Kombo teklifleri"
+
+msgid "Pending"
+msgstr "Beklemede"
+
+msgid "Confirmed"
+msgstr "Onaylandı"
+
+msgid "No-show"
+msgstr "Gelmedi"
+
+msgid "Status-Namen anpassen"
+msgstr "Durum adlarını özelleştir"
+
+msgid "Statusübergänge anpassen"
+msgstr "Durum geçişlerini özelleştir"
+
+msgid "Eigene Status verwalten"
+msgstr "Özel durumları yönet"
+
+msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Durumlar için özel adlar (yalnızca panelde gösterim). Boş = varsayılan."
+
+msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
+msgstr "Bir durumdan hangi sonraki durumların seçilebileceği (yalnızca gösterim düğmeleri). İptal her zaman mümkündür."
+
+msgid "Gründe dein Geschäft"
+msgstr "İşletmenizi oluşturun"
+
+msgid "14 Tage kostenlos testen. Keine Karte nötig."
+msgstr "14 gün ücretsiz deneme. Kart gerekmez."
+
+msgid "Dein ganzes Geschäft — online in Minuten."
+msgstr "Tüm işletmeniz — dakikalar içinde çevrimiçi."
+
+msgid "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain."
+msgstr "Web sitesi, katalog, rezervasyonlar, kampanyalar ve sadakat — hepsi tek yerde, kendi alt alan adınızda."
+
+msgid "Mini-Website auf deiner Subdomain — ohne Code"
+msgstr "Kendi alt alan adınızda mini site — kod yok"
+
+msgid "Buchungen & Bestellungen mit Doppelbuchungs-Schutz"
+msgstr "Çift rezervasyon korumalı rezervasyonlar ve siparişler"
+
+msgid "Aktionen, Gutscheine & Treue — direkt eingebaut"
+msgstr "Kampanyalar, kuponlar ve sadakat — yerleşik"
+
+msgid "Für lokale Betriebe gemacht, DSGVO-freundlich"
+msgstr "Yerel işletmeler için tasarlandı, GDPR uyumlu"
+
+msgid "14 Tage kostenlos · Keine Kreditkarte nötig"
+msgstr "14 gün ücretsiz · Kredi kartı gerekmez"
+
+msgid "Demo ansehen"
+msgstr "Demo siteyi görüntüle"
+
+msgid "Geschäft erstellen"
+msgstr "İşletme oluştur"
+
+msgid "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Bir işletme oluşturarak koşullarımızı kabul edersiniz. Deneme süresi boyunca istediğiniz zaman iptal edebilirsiniz."
+
+msgid "Name des Geschäfts"
+msgstr "İşletme adı"
+
+msgid "Art des Geschäfts"
+msgstr "İşletme türü"
+
+msgid "Stadt"
+msgstr "Şehir"
+
+msgid "Deine E-Mail"
+msgstr "E-postanız"
+
+msgid "Passwort"
+msgstr "Şifre"
+
+msgid "Passwort bestätigen"
+msgstr "Şifreyi onayla"
+
+msgid "{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."
+msgstr "{slug}.siteadaptor.de — yalnızca a-z, 0-9 ve tire."
+
+msgid "Nur Kleinbuchstaben, Ziffern und Bindestrich."
+msgstr "Yalnızca küçük harfler, rakamlar ve tire."
+
+msgid "Diese Subdomain ist reserviert."
+msgstr "Bu alt alan adı ayrılmış."
+
+msgid "Diese Subdomain ist bereits vergeben."
+msgstr "Bu alt alan adı zaten alınmış."
+
+msgid "Passwörter stimmen nicht überein."
+msgstr "Şifreler eşleşmiyor."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Bir işletme oluşturarak <a href=\"/agb/\" class=\"underline hover:text-gray-600\">koşullarımızı</a> kabul edersiniz. Deneme süresi boyunca istediğiniz zaman iptal edebilirsiniz."

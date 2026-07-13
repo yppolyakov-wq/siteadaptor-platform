@@ -9,6 +9,7 @@ from apps.core.fsm import StateMachine, Transition
 
 
 class OrderSM(StateMachine):
+    kind = "order"
     transitions = [
         Transition("new", "confirmed", "order.confirmed"),
         Transition("new", "cancelled", "order.cancelled"),

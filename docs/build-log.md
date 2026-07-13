@@ -4807,6 +4807,229 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   (2) DeepL авто-детект ненадёжен на коротких строках — их всегда через ревью-карту;
   (3) DeepL query-param auth мёртв (нояб. 2025) — только header `DeepL-Auth-Key`; (4) tag_handling=xml
   требует эскейпа сырых `&`/`<`/`>` до подстановки `<x>`-тегов.
+- **T1-b hotfix: .mo в ОБРАЗ + кабинет-языки tr/ru/uk** (2026-07-11, ветка
+  `claude/i18n-prod-mo-cabinet-langs`). Фидбэк владельца после деплоя: «язык меняю — ничего
+  не меняется; доступны только de/en». Разбор вскрыл ЛАТЕНТНЫЙ ПРОД-БАГ (жил с L4
+  2026-07-03): `deploy.sh` компилировал переводы через `compose run --rm web compilemessages`
+  → `.mo` записывались в ЭФЕМЕРНЫЙ контейнер и умирали с ним; volume у web только `media:` →
+  рабочие web/worker никогда не видели ни одного `.mo` — в проде НЕ работала ни одна локаль
+  (включая EN-письма L4; CI зелёный, т.к. тесты компилируют .mo в своей копии). Фикс:
+  компиляция в Dockerfile (`RUN for po in locale/*/…; do msgfmt …; done`, settings-free,
+  gettext в образе уже был) — `.mo` запекаются при `compose build` каждого деплоя; шаг из
+  deploy.sh убран (комментарий-урок оставлен). Плюс `CABINET_LANGUAGES` += tr/ru/uk (селектор
+  🗣 в шапке теперь 5 языков; тест-замок `{"tr","ru","uk"} <= codes`, кейс отклонения
+  переключён tr→pl). Напоминание по UI: язык ВИТРИНЫ — «🌐 Sprachen»
+  (`/dashboard/settings/languages/`), язык КАБИНЕТА — селектор 🗣 (скрыт на <sm-экранах),
+  переводы КОНТЕНТА — свитчер в формах. Урок: «работает в CI» ≠ «работает в проде», если
+  артефакт создаётся вне слоёв образа/volume — проверять путь артефакта до рантайма.
+- **FB-батч (5/6/7/2) + интеграция T1-b-фикса** (2026-07-11, merge `217f8df`; ⚠️ миграция
+  `catalog/0016` — аддитив). По ТЗ `cabinet-feedback-tz-2026-07-10`: **FB-5** плитка
+  «＋ Foto» ПЕРВОЙ в ряду фото на формах товара/акции/категории, и при создании
+  (партиал `catalog/_photo_add_tile.html`, делегированный proxy в `input[name=images]`,
+  бейдж «N ✓»); **FB-6** фото категорий/подкатегорий — `Category.images` (FileRef) +
+  `primary_image`/`image_url`, `_handle_uploads` обобщён (obj+folder), эндпоинты
+  `category-image-delete/primary`, форма категории multipart со скрытым input, витрина:
+  плитка категории с фото (фолбэк текстовый 1:1); **FB-7** жирные даты доступных дней
+  в `_stay_calendar` (font-semibold); **FB-2** «⚙️ Customize columns» видимой кнопкой
+  в шапке доски (раскрывает прежний details `#board-cols`). **FB-13** (иконка фото
+  пропадает при hover) — НЕ воспроизводится в изоляции витрины (Playwright: галерея +
+  карточки главной, 10 иконок/0 пропаданий) — ждём точный контекст владельца.
+  Интеграция: параллельная DeepL-сессия влила T1-b (en/tr/ru/uk) в main + фикс
+  `7c94412` (.mo компилируются В ОБРАЗ — раньше compilemessages в эфемерном
+  контейнере → прод молча без переводов; CABINET_LANGUAGES=5) — FF в main, FB-батч
+  перебазирован поверх (бесконфликтно, гейт 45 зелёных на свежей БД). Тесты батча:
+  21 в test_images (upload/delete/primary категории, плитка на 4 формах, витрина).
+- **M-пачка (FB-11/FB-10/FB-4a)** (2026-07-12, FF-merge в `main`, БЕЗ миграций; ТЗ
+  `cabinet-feedback-tz-2026-07-10`). **FB-11** карточка брони в кабинете
+  `/dashboard/stays/buchung/<pk>/` (`stays.booking_detail` + `stays/booking_detail.html`):
+  статус-бейдж, гость (mailto/tel), Aufenthalt (даты/ночи/тариф из `rate_snapshot`),
+  Betrag & Zahlung (total/extras/Kurtaxe/Gutschein/auto_discount/Anzahlung/payment_state),
+  Meldeschein (registration или ссылка на checkins), кнопки статуса через
+  `core/_status_actions.html` (тот же FSM-путь, что доска/календарь). `_manage_url` (UD2
+  `core/transactions.py`) для stay теперь → `booking-detail` (было `calendar`);
+  reference_code в `calendar.html` — ссылка на деталь; добавлено `StayBooking.deposit_eur`.
+  **FB-10** суммы в письмах брони: `stay_created`/`stay_confirmed` (гостю) +
+  `stay_owner` (Gesamtpreis + ссылка на карточку брони); owner-email показан в
+  `tenant/notifications.html` рядом с чекбоксом E-Mail + amber-предупреждение, если пуст
+  (`core.views` notifications-контекст += `owner_email`). **FB-4a** свои имена статусов
+  заказа (кабинет-отображение, НЕ движок переходов): `siteconfig.normalize_status_labels`
+  (kind `order`, 7 статусов, label ≤40, presence-minimal, golden-паритет цел) + тег
+  `{% status_label obj kind %}` (`core/templatetags/cabinet.py`) + `save_status_labels`
+  (targeted-write `site_config["status_labels"]["order"]`) + панель «⚙️ Status-Namen
+  anpassen» в `orders/order_list.html` + сброс к дефолту; применён в списке/детали заказа.
+  Тесты: stays `test_booking_detail_*`/`test_stay_emails_include_total`, orders
+  `test_status_labels_save_render_and_reset`/`test_normalize_status_labels_validation`.
+  Урок: вставка хелпера между `@login_required` и вьюхой смещает декоратор на хелпер
+  (3-й раз в проекте) — держать хелперы вне цепочки декораторов.
+- **T1-b.2: перевод НАВИГАЦИИ кабинета (сайдбар/группы/доска) + фикс DeepL-коротышей**
+  (2026-07-11, та же ветка). Фидбэк владельца после деплоя hotfix'а: «язык русский, а меню
+  осталось немецким». Причина: AB1-реестры `NAV_GROUPS` (заголовки групп) и `NAV_TASK_LABELS`
+  («язык задач», 41 подпись) в `apps/core/modules.py` были ГОЛЫМИ немецкими строками — по
+  давнему комменту «хром пока без de.po», т.е. сознательный обход эпохи до T1-b; в gettext
+  они не попадали и не переводились НИ на один язык. Фикс: все 45 меток → `gettext_lazy`
+  (msgid = немецкий, DE-рендер байт-в-байт прежний; тесты `test_hub_tabs`/`test_cabinet_nav`
+  сравнивают лейзи==str под de — целы), 12 отсутствующих msgid добавлены в 4 `.po` с РУЧНЫМИ
+  переводами (короткие UI-термины — класс, где DeepL системно врёт). Заодно исправлены
+  найденные по скриншоту владельца DeepL-провалы: `Neu`→«или» во ВСЕХ трёх языках (tr «Ya
+  da»/ru «Или»/uk «Або» — колонка доски «ИЛИ») → Yeni/Новые/Нові; `Board`→«правление
+  компании» (ru/uk/tr) → Доска/Дошка/Pano; en `Bestellungen→'Order received'`,
+  `Reservierungen→'Reservation expired'`, `Funktionen→'Deal'`, `Sortiment→'Catalog'`,
+  `Lager→'Stock'`, `Aufträge→'Jobs'` (коллизия с Orders), ru/uk `Medien`→«СМИ/ЗМІ»→Медиа/
+  Медіа, `Produkte`→Товары/Товари, `Aufträge`→Заявки. Известный компромисс: msgid `Neu`
+  делит колонку доски и бейдж товара → ru «Новые» (для бейджа неидеально; при жалобе —
+  pgettext-контексты). Урок: реестры-обходы «пока без перевода» помечать TODO с триггером —
+  иначе переживают появление переводов молча.
+- **FB-1 (пищевая маркировка только для гастро)** (2026-07-12, БЕЗ миграций). Ядро уже
+  гейтилось (`FOOD_BUSINESS_TYPES={bakery,butcher,grocery,restaurant,cafe}`, секция
+  `data-food-section`). Доведено: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/
+  Herkunft — всё пищевое) целиком скрыта у не-гастро (`ui_simple or not show_food_labeling`);
+  панель/поля в DOM (W0 → Save не стирает). Витрина уже presence-gated. Замок
+  `test_labeling_tab_hidden_for_nonfood`.
+- **FB-4b (свои имена статусов услуг/броней + на доске)** (2026-07-12, БЕЗ миграций).
+  Расширение FB-4a на service(booking)/stay. Generic `apps/core/status_labels.py`
+  (custom_labels/label_rows/save_labels), публичный `siteconfig.status_label_statuses`;
+  orders делегирует туда (DRY); `_STATUS_LABEL_KINDS += booking/stay`. Единый endpoint
+  `status-labels-save/<kind>/` + партиал `tenant/_status_labels_panel.html`; панели на
+  booking/stays календарях; тег `{% status_label b 'booking'/'stay' %}` на календарях +
+  booking_detail. **Доска:** `transaction_for(kind, obj, labels=None)` — кастом-имена
+  ТОЛЬКО кабинету (manage_sections_for/kanban_action передают labels); клиентский аккаунт
+  (`account_data`) зовёт без labels → дефолт (кастом не течёт клиенту). Замки
+  `apps/core/tests/test_status_labels.py` (9) + booking_detail кастом-имя.
+- **FB-3 (конфигуратор правил переходов статусов)** (2026-07-12, БЕЗ миграций; план
+  `docs/fb3-status-engine-plan-2026-07-12.md`, Вариант A). FSM/apply()/побочки/anti-oversell
+  — ЖЁСТКИЙ ПОЛ; владелец лишь СКРЫВАЕТ уже-легальные не-danger переходы из отображения;
+  danger/отмена (`pipeline.is_danger`) не прячется. Хранение `site_config['transitions']
+  [kind][src]=[dst,...]`, presence-minimal (пустой список src осмыслен=скрыть все не-danger).
+  `apps/core/transition_rules.py` (subset_for/keep_target/editor_rows/save) +
+  `siteconfig.normalize_transitions` (структурный whitelist, core не импортируем) +
+  материализация в normalize(). Read-side: `allowed_actions_for(kind,status,subset)`,
+  `transaction_for(...,transitions=)` (доска), `status_actions`-тег takes_context
+  (календари), order_detail фильтрует bespoke-кнопки. UI: партиал
+  `tenant/_transition_rules_panel.html` (danger=disabled «immer») + endpoint
+  `transitions-save/<kind>/` + панели на orders/booking/stays. Замки
+  `test_transition_rules.py` (8) + stays e2e «скрытие убирает кнопку». Урок: `kanban_action`
+  читал `request.tenant` напрямую — падал в тесте без tenant → `getattr(...,None)` (хелперы
+  принимают None). FB-4a/FB-4b/FB-3 закрывают запрос владельца «управление статусами и
+  переходами» (Вариант A); свои НОВЫЕ статусы (Вариант B) — отдельная волна за решением.
+- **FB-8 (единый обзор продаваемых сущностей, «Angebote»)** (2026-07-12, БЕЗ миграций;
+  план `docs/fb8-unified-sellable-cabinet-plan-2026-07-12.md`, Вариант A). Один экран
+  `/dashboard/angebote/` со всеми sellable (товар/услуга/номер/событие/комбо): обзор +
+  тумблер видимости + переход к РОДНОЙ форме. Единый CRUD НЕ делаем (родные формы
+  авторитетны). `apps/core/sellable_manage.py`: `ManagedSellable` +
+  `sellable_manage_sections_for` (зеркало `transactions.manage_sections_for` по оси
+  КАТАЛОГА; gated `is_module_active`; пустые kind не шумят) + `add_options` +
+  `toggle_visibility` (флип is_active; event публикуется через FSM → Http404).
+  `sellable.display_fields` — публичный доступ к витринным адаптерам без реверса маршрутов.
+  Навигация: пункт «📦 Angebote» НАД группами сайдбара (`has_sellables` в context), виден
+  при любом активном sellable-модуле → находится и когда хаб «Sortiment» скрыт (отель в
+  Простом). Урок: `Event` без `is_active` (у него status) → сортировка секции по-kind
+  (`toggle`=есть is_active). Гейт по модулю — `is_entitled` (не-premium активны всегда,
+  отключение через `disabled_modules`), не `enabled_modules`. Замки `test_sellable_manage.py`
+  (9), контракт `test_sellable` цел, широкий гейт 1123 passed. jobs — НЕ sellable
+  (транзакция). Вариант B (единый CRUD всех типов) — не делаем (риск/объём).
+- **FB-3 Вариант B (ПОЛНОЦЕННЫЕ пользовательские статусы через роли) — ЗАВЕРШЁН ЦЕЛИКОМ**
+  (2026-07-12, 8 инкрементов за сессию, БЕЗ миграций; план `docs/fb3-variant-b-full-plan-2026-07-12.md`;
+  решение владельца «делать полноценно, вкл. свои статусы с денежными/складскими эффектами»).
+  Владелец создаёт свой статус (напр. «Beim Lieferanten», «Reklamation»), связывает переходами
+  с существующими — статус полностью функционален. **Ключевой приём:** снять завязку кода на
+  ЛИТЕРАЛЬНЫЕ коды статуса, перевести на РОЛЬ+ФЛАГИ (одного enum мало — `attended` держит место
+  vs `fulfilled` освобождает; отчёты считают `fulfilled`, oversell — нет → 2 независимые оси).
+  **Фазы:** **0** реестр `StatusDescriptor` (role/stage/blocks_capacity/counts_in_reports/
+  revenue_recognized/is_danger) + 24 характеризационных замка = текущий мир 1:1. **1**
+  `pipeline.PIPELINE`/`DANGER_TARGETS` выводятся из реестра (единый источник), golden-снимок;
+  oversell-критичные модельные `ACTIVE_STATUSES`/`_COUNTED` оставлены литералами. **2**
+  `apps/core/status_effects.py` — per-kind резолверы revenue/reversal/restore/unredeem
+  (зеркалят built-in on_transition 1:1, тот же source_ref → идемпотентность от двойного) +
+  `apply_custom_effects` (ролевой диспетчер); встроенные on_transition НЕ тронуты (квирки
+  сохранены). **3a** хранение `site_config['status_defs']` + `normalize_status_defs` (whitelist/
+  presence-minimal) + tenant-aware аксессоры (`custom_descriptors`/`resolve`/`active_statuses_for`/
+  `stage_of`). **3b-1** хук `StateMachine.apply()` (`_fire_custom_effects` — только для кастом-dst,
+  `kind` на 6 SM). **3b-2** `active_statuses_for` в 7 oversell-запросов booking/stay (кастом-active
+  держит номер/слот). **4** кастом-переходы: `status_edges` + `custom_edges` (валид: известные
+  эндпоинты + ≥1 кастом, built-in↔built-in shortcut запрещён — FSM жёсткий пол) + `apply()`
+  принимает кастом-ребро + `allowed_targets(+tenant)`. **6** отображение: `stage_for`/`action_label`/
+  `_status_label`/`status_label`-тег custom-aware (built-in — быстрый путь; кастом → стадия/label).
+  **5** кабинетный редактор `/dashboard/status-manager/<kind>/` (создать статус имя+роль,
+  переходы чекбоксами; `def_from_role`; вход из панели правил переходов). Замки: golden-паритет,
+  `test_status_registry`/`test_status_effects` (~60), built-in байт-в-байт (прогоны 1606/1107/
+  1092). Ограничение: кастом-статусы scoped на order/booking/stay; ticket/job/reservation — later.
+- **Редактор: живые изменения блоков + канва совсем без видимой перезагрузки** (2026-07-12,
+  БЕЗ миграций; план `docs/editor-live-inplace-plan-2026-07-12.md`; запросы владельца «можно ли
+  без перезагрузки прямо в блоке» → «а совсем перезагрузку нельзя убрать?»). Диагноз: ВЕСЬ
+  live-preview шёл одним путём `schedule()`→`push()`→полная навигация кадра; текст «казался живым»
+  лишь из-за contenteditable-мутации ДО перезагрузки. **Этап 1** (`1f20ab8`): сохранение прокрутки
+  кадра через сверку (pendingScrollY) + оптимистичная перестановка drop'ом (`[data-sf-section]`
+  между истинными соседями) + оптимистичная видимость (чекбокс скрывает узел сразу). **Этап 2
+  (двойная буферизация):** `push()` больше не навигирует видимый кадр — `swapPreview()` грузит
+  `previewUrl()` в СКРЫТЫЙ iframe-буфер (обычная навигация → все инлайн-скрипты витрины и их
+  window-гарды, напр. календарь наличия `__stayCalBound`, работают как при живой загрузке;
+  `document.write` отвергнут — окно пережило бы swap и доклистенеры гардов осиротели бы), по load —
+  атомарная подмена: `frame=buf` (все замыкания читают var frame в момент вызова), scrollTo,
+  перенос id (applyDevice-lookup), удаление старого кадра (окно умирает → таймеры чисты), снятие
+  оверлей-стилей. Инструментатор канвы именован `instrumentFrame` (гейт не-http документов —
+  about:blank `pathname="blank"` травил previewPath → буфер запрашивал `blank?preview=1` 404/DENY;
+  guard по `<body>` от задвоения); гонки — `pendingBuf` (последний черновик выигрывает), таймаут
+  12с и не-http результат буфера → честный фолбэк `hardReloadPreview()`. Проверено на живом стенде
+  Playwright (hotel-кит) — 13/13: 1 iframe-инвариант, скролл, оптимизм, реинструментация, гонка,
+  **календарь наличия кликабелен ПОСЛЕ свопа** (регрессия document.write-пути — доказанно
+  избегнута), 0 JS-ошибок. Адверсариальное ревью-workflow (5 линз × верификация). Замки:
+  `test_home_builder_double_buffered_canvas_swap` (+ инвариант «location.replace(previewUrl())
+  ровно 2: фолбэк + pageSel»). Грабля стенда: Django 5.1 кэширует шаблоны и в DEBUG —
+  после правки шаблона рестартовать runserver.
+- **Branchen-Landingpages (страницы архетипов) — целиком** (2026-07-13, БЕЗ миграций;
+  запрос владельца «отдельная страница для каждого архетипа с описанием возможностей,
+  сразу на немецком, но заложи язык»). Публичные `/branchen/` (обзор 14 отраслей) +
+  `/branchen/<slug>/` (все BUSINESS_TYPES кроме other): hero + архетип-специфичные
+  хайлайты + сетка рекомендованных модулей (детерминированно из `core.modules.REGISTRY`)
+  + CTA «Jetzt starten» → регистрация с предвыбором `?type=` + «Demo ansehen» (гейт по
+  засеянным Domain). Контент — исследовательский workflow (14 research + 14 adversarial
+  verify агентов): каждый хайлайт проверен против кода, выдуманные отброшены (3 шт).
+  Все строки — немецкие msgid в `_()`/`{% trans %}` (i18n-ready; переводы en/ru/tr/uk
+  — отдельным треком), переключатель 5 языков (партиал `tenants/_lang_switch.html`).
+  Карточки регистрации → «Mehr erfahren». Файлы: `apps/tenants/archetype_pages.py`
+  (DISPLAY_NAME/CONTENT/page_context), вьюхи industries_index/industry_page, шаблоны
+  `tenants/industry.html`/`industries.html`. Замки: `test_industry_pages` (рендер всех
+  14, 404 unknown/other, ?type=-предвыбор, ссылки карточек).
+- **Редактор: правый инспектор (A + мелочи из B)** (2026-07-13, БЕЗ миграций; план
+  `docs/editor-right-inspector-plan-2026-07-13.md`; решение владельца после обсуждения
+  «верхнее меню + лента занимают треть экрана»). Вертикаль экрана освобождена: настройки
+  (области ⚙️ Template И лента выбранного блока) — узкая панель СПРАВА (380px, во всю
+  высоту, top:2.5rem..bottom:0); канва СЖИМАЕТСЯ (right у #bld-preview-pane через
+  .bld-has-block/:has), не перекрывается; поля ленты — вертикальный стек (стиль UC6-9
+  сохранён); подписи кнопок тулбара — только на xl (иконки+title). Мобайл — прежний
+  нижний лист. Пересчёт десктоп-масштаба — ResizeObserver на #bld-preview-pane (одна
+  точка на все пути открытия/закрытия; applyDevice контейнер не меняет → петли нет).
+  Esc — ступенчато (лента → панель, не из инпута). ▾-свёртка в боковом режиме прячет
+  панель целиком (канва расправляется), ▸ возвращает. **Найден и убит легаси-баг:**
+  syncRibbonPad (UC6-6g, лента-полоса сверху) ставил paddingTop = высота попапа → с
+  панелью во всю высоту канва схлопывалась в 0 (нашёл стенд: кадр 245px на y=991);
+  теперь функция только снимает пад. Стенд Playwright 11/11 (панель справа/сжатие/
+  возврат ширины/live-своп/Esc/мобайл/0 JS-ошибок) + визуально канва живая рядом с
+  панелью. id всех элементов сохранены (замки целы), JS-логика областей/попапа не тронута.
+- **Главная платформы = /branchen/ + меню + Über uns + правовые страницы** (2026-07-13,
+  БЕЗ миграций; запрос владельца «сделай /branchen/ главной, небольшое меню, о нас и
+  правовые»). Корень siteadaptor.de — обзор Branchen (обе точки: `/` и `/branchen/`,
+  canonical на `/`); регистрация → `/registrieren/` (?type= предвыбор сохранён;
+  партнёрский `?ref` ловится и на корне — исторические ссылки из партнёрского кабинета
+  ведут на `/`). Общий хром публичных страниц: `tenants/_public_header.html` (Branchen ·
+  Über uns · языки · «Jetzt starten») + `_public_footer.html` (Über uns/Impressum/
+  Datenschutz/AGB). Новые страницы: `/ueber-uns/` + правовые ПЛАТФОРМЫ `/impressum/`,
+  `/datenschutz/`, `/agb/` (немецкие заготовки с [ПЛЕЙСХОЛДЕРАМИ] реквизитов — заполняет
+  владелец; noindex; ссылка «Bedingungen» на регистрации → /agb/, msgid обновлён в 4 .po).
+  Sitemap основного домена += корень/14 branchen/ueber-uns (замок обновлён: 21 URL).
+  Замки: test_root_serves_industries..., test_root_captures_partner_ref,
+  test_public_header_footer_menu, test_about_and_legal_pages_render.
+- **Редактор: свёртка + ресайз правого инспектора** (2026-07-13, фидбэк владельца
+  «панель хороша — позволь сворачивать и менять ширину», БЕЗ миграций). Ширина панели —
+  CSS-переменная `--bld-panel-w` на #bld-root (панель/лента/канва/ручка/шеврон следуют
+  из CSS); ручка `#bld-panel-resizer` на кромке тянет 280–640px (Pointer Capture —
+  события не теряются над iframe), персист в localStorage (`bld_panel_w`), переживает
+  перезагрузку; шеврон `#bld-panel-toggle` сворачивает открытую панель целиком
+  (`bld-panel-min`: visibility — без display-войны с .bld-ribbon-open; канва во всю
+  ширину), клик по блоку/области снимает свёртку (`__bldUnminPanel` в openBlockPopup/
+  showArea). Масштаб канвы при ресайзе пересчитывает существующий ResizeObserver.
+  Стенд Playwright 7/7 (видимость контролов, свёртка/возврат, ресайз 500px+персист,
+  unmin, 0 JS-ошибок). Desktop-only (<1024 — прежний нижний лист).
 
 ## 2026-07-13 — AB6.1: движок шагов мастера (state v2 + реестр SETUP_STEPS + рельса прогресса)
 

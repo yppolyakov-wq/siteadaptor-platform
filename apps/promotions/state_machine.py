@@ -45,6 +45,7 @@ class PromotionSM(StateMachine):
 
 
 class ReservationSM(StateMachine):
+    kind = "reservation"
     transitions = [
         Transition("pending", "confirmed", "reservation.confirmed"),
         Transition("pending", "cancelled", "reservation.cancelled"),

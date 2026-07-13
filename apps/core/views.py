@@ -2812,10 +2812,236 @@ def kanban_action(request, kind, pk):
         messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
         return redirect(reverse("board") + f"?kind={kind}")
     obj.refresh_from_db()
-    tx = transactions.transaction_for(kind, obj)
+    # FB-4a/b имена + FB-3 правила переходов — на перерисованной карточке (доска кабинета).
+    from apps.core import status_labels, transition_rules
+
+    tenant = getattr(request, "tenant", None)
+    tx = transactions.transaction_for(
+        kind,
+        obj,
+        status_labels.custom_labels(tenant, kind),
+        transition_rules.subset_for(tenant, kind),
+    )
     if is_fetch:
         return render(request, "core/_kanban_card.html", {"tx": tx, "kind": kind})
     return redirect(reverse("board") + f"?kind={kind}")
+
+
+@login_required
+@require_POST
+def status_labels_save(request, kind):
+    """FB-4a/FB-4b: сохранить свои имена статусов (order/booking/stay) — кабинет-
+    отображение. Targeted-write в site_config['status_labels'][kind]; FSM/переходы/
+    письма/витрину не трогаем. `next` (локальный путь) — куда вернуться."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import status_labels
+    from apps.tenants import siteconfig
+
+    statuses = siteconfig.status_label_statuses(kind)
+    if statuses is None:
+        raise Http404("unknown status kind")
+    status_labels.save_labels(request.tenant, kind, statuses, request)
+    messages.success(request, _("Gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/"):
+        nxt = reverse("board")
+    return redirect(nxt)
+
+
+@login_required
+@require_POST
+def transitions_save(request, kind):
+    """FB-3: сохранить правила переходов статусов (order/booking/stay) — какие уже-легальные
+    не-danger переходы показывать. FSM/apply()/побочки/письма НЕ трогаем (жёсткий пол);
+    danger/отмена не прячется. `next` (локальный путь) — куда вернуться."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transition_rules
+    from apps.tenants import siteconfig
+
+    if siteconfig.status_label_statuses(kind) is None:
+        raise Http404("unknown status kind")
+    transition_rules.save(request.tenant, kind, request)
+    messages.success(request, _("Gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/"):
+        nxt = reverse("board")
+    return redirect(nxt)
+
+
+# --- FB-3 Вариант B Phase 5: редактор кастом-статусов -------------------------
+
+
+def _set_status_config(cfg, top_key, kind, value):
+    """Targeted-write cfg[top_key][kind]=value, presence-minimal (пустое снимает ключ)."""
+    node = dict(cfg.get(top_key) or {})
+    if value:
+        node[kind] = value
+    else:
+        node.pop(kind, None)
+    if node:
+        cfg[top_key] = node
+    else:
+        cfg.pop(top_key, None)
+
+
+@login_required
+def status_manager(request, kind):
+    """FB-3 Вариант B Phase 5: редактор своих статусов + переходов (order/booking/stay).
+    Владелец выбирает роль — стадия/поведение следуют; переходы — чекбоксами."""
+    from django.http import Http404
+
+    from apps.core import status_registry, transactions
+    from apps.tenants import siteconfig
+
+    if siteconfig.status_label_statuses(kind) is None:
+        raise Http404("unknown status kind")
+    tenant = request.tenant
+    builtin = status_registry.descriptors(kind)
+    custom = status_registry.custom_descriptors(tenant, kind)
+    edges = status_registry.custom_edges(tenant, kind)
+    blabels = dict(getattr(transactions.model_for(kind), "STATUSES", []))
+
+    def label_of(code):
+        d = custom.get(code)
+        return d.label if d else blabels.get(code, code)
+
+    all_codes = list(builtin) + list(custom)
+    trans_rows = []
+    for c, d in custom.items():
+        others = [
+            {
+                "code": o,
+                "label": label_of(o),
+                "from_checked": (o, c) in edges,
+                "to_checked": (c, o) in edges,
+            }
+            for o in all_codes
+            if o != c
+        ]
+        trans_rows.append({"code": c, "label": d.label, "others": others})
+    return render(
+        request,
+        "tenant/status_manager.html",
+        {
+            "nav": "board",
+            "kind": kind,
+            "kind_label": transactions.KIND_LABEL.get(kind, kind),
+            "roles": [(r, status_registry.ROLE_LABELS[r]) for r in status_registry.ROLES],
+            "custom_rows": [
+                {"code": c, "label": d.label, "role": d.role} for c, d in custom.items()
+            ],
+            "trans_rows": trans_rows,
+            "next": request.GET.get("next", ""),
+        },
+    )
+
+
+@login_required
+@require_POST
+def status_manager_save(request, kind):
+    """FB-3 Вариант B Phase 5: сохранить свои статусы (def_from_role) + переходы. Targeted-
+    write status_defs/status_edges; normalize + presence-minimal. FSM built-in не трогаем."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import status_registry
+    from apps.tenants import siteconfig
+
+    if siteconfig.status_label_statuses(kind) is None:
+        raise Http404("unknown status kind")
+    tenant = request.tenant
+    builtin_codes = set(status_registry.descriptors(kind))
+
+    def _slug(v):
+        return re.sub(r"[^a-z0-9_]+", "_", (v or "").strip().lower()).strip("_")[:40]
+
+    defs, seen = [], set()
+    for code in request.POST.getlist("custom_code"):
+        if request.POST.get(f"del_{code}"):
+            continue
+        label = (request.POST.get(f"label_{code}") or "").strip()[:40]
+        role = request.POST.get(f"role_{code}") or "active"
+        if code and label and code not in seen:
+            seen.add(code)
+            defs.append(status_registry.def_from_role(code, label, role))
+    new_label = (request.POST.get("new_label") or "").strip()[:40]
+    if new_label:
+        new_code = _slug(new_label)
+        if new_code and new_code not in builtin_codes and new_code not in seen:
+            defs.append(
+                status_registry.def_from_role(
+                    new_code, new_label, request.POST.get("new_role") or "active"
+                )
+            )
+            seen.add(new_code)
+
+    valid_defs = siteconfig.normalize_status_defs({kind: defs}).get(kind, [])
+    valid_codes = {d["code"] for d in valid_defs}
+    known = builtin_codes | valid_codes
+    edges = []
+    for val in request.POST.getlist("edge"):
+        if "|" not in val:
+            continue
+        src, dst = val.split("|", 1)
+        if (
+            src in known
+            and dst in known
+            and src != dst
+            and (src in valid_codes or dst in valid_codes)
+        ):
+            edges.append({"src": src, "dst": dst})
+    valid_edges = siteconfig.normalize_status_edges({kind: edges}).get(kind, [])
+
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    _set_status_config(cfg, "status_defs", kind, valid_defs)
+    _set_status_config(cfg, "status_edges", kind, valid_edges)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, _("Gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/"):
+        nxt = reverse("status-manager", args=[kind])
+    return redirect(nxt)
+
+
+# --- FB-8: единый обзор продаваемых сущностей --------------------------------
+
+
+@login_required
+def sellable_manage(request):
+    """FB-8: «Angebote» — один экран со всеми продаваемыми сущностями (товар/услуга/
+    номер/событие/комбо): обзор + видимость + переход к РОДНОЙ форме. Единый CRUD НЕ
+    делаем — родные формы остаются авторитетными."""
+    from apps.core import sellable_manage as sm
+
+    tenant = request.tenant
+    return render(
+        request,
+        "tenant/sellable_manage.html",
+        {
+            "nav": "sellables",
+            "sections": sm.sellable_manage_sections_for(tenant),
+            "add_options": sm.add_options(tenant),
+        },
+    )
+
+
+@login_required
+@require_POST
+def sellable_visibility(request, kind, pk):
+    """FB-8: тумблер видимости сущности (is_active) — product/service/stay/combo. Event
+    публикуется через FSM (draft↔published) на своей форме → сюда не приходит."""
+    from apps.core import sellable_manage as sm
+
+    obj = sm.toggle_visibility(kind, pk)
+    messages.success(
+        request, _("Sichtbar.") if getattr(obj, "is_active", False) else _("Ausgeblendet.")
+    )
+    return redirect("sellable-manage")
 
 
 # --- U-D4: настройки каналов уведомлений (email ∥ Telegram) -------------------
@@ -2868,5 +3094,8 @@ def notifications_settings(request):
             "owner": prefs.owner_channels(tenant),
             "owner_deep_link": owner_deep_link(tenant),
             "owner_linked": bool(owner_chat_id(tenant)),
+            # FB-10: КУДА идут owner-письма (и предупреждение, если адрес пуст —
+            # частая причина «уведомления не приходят»).
+            "owner_email": tenant.owner_email,
         },
     )

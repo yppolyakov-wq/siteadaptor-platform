@@ -35,6 +35,20 @@ def _refund_order(request, order):
         messages.error(request, _("Refund failed — please check Stripe."))
 
 
+def _status_label_rows(tenant):
+    """FB-4a: [(status, default_label, custom)] для панели переименования статусов."""
+    from apps.core import status_labels
+
+    return status_labels.label_rows(tenant, "order", Order.STATUSES)
+
+
+def _transition_rows(tenant):
+    """FB-3: строки панели правил переходов статусов заказа."""
+    from apps.core import transition_rules
+
+    return transition_rules.editor_rows(tenant, "order")
+
+
 @login_required
 def order_list(request):
     qs = Order.objects.select_related("customer").prefetch_related("items")
@@ -49,6 +63,10 @@ def order_list(request):
             "orders": qs[:200],
             "statuses": Order.STATUSES,
             "status": status,
+            # FB-4a: строки панели «Status-Namen» (status, дефолт, своё имя)
+            "status_label_rows": _status_label_rows(tenant),
+            # FB-3: строки панели «Statusübergänge» (правила переходов заказа)
+            "transition_rows": _transition_rows(tenant),
             "orders_prepay": getattr(tenant, "orders_prepay", False),
             "payments_enabled": getattr(tenant, "payments_enabled", False),
             # E-7: Vorkasse/Überweisung — тумблер + реквизиты бизнеса.
@@ -149,15 +167,24 @@ def kitchen_action(request, pk):
 
 @login_required
 def order_detail(request, pk):
+    from apps.core import transition_rules
+
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     sm = OrderSM()
+    # FB-3: правила переходов владельца скрывают не-danger переходы (FSM не трогаем).
+    subset = transition_rules.subset_for(getattr(request, "tenant", None), "order")
+    allowed = [
+        t
+        for t in sm.allowed_targets(order.status)
+        if transition_rules.keep_target(order.status, t, subset)
+    ]
     return render(
         request,
         "orders/order_detail.html",
         {
             "order": order,
             "items": order.items.all(),
-            "allowed_targets": sm.allowed_targets(order.status),
+            "allowed_targets": allowed,
             "nav": "orders",
         },
     )
@@ -332,7 +359,17 @@ def order_settings(request):
         save_delivery(tenant, request)
     elif request.POST.get("form") == "vorkasse":
         save_vorkasse(tenant, request)
+    elif request.POST.get("form") == "status_labels":
+        save_status_labels(tenant, request)  # FB-4a
     else:
         save_prepay(tenant, request)
     messages.success(request, _("Settings saved."))
     return redirect("orders:order-list")
+
+
+def save_status_labels(tenant, request) -> None:
+    """FB-4a: свои имена статусов заказа (кабинет-отображение). Делегирует в generic
+    core.status_labels (targeted-write, presence-minimal, golden-паритет). FSM не трогается."""
+    from apps.core import status_labels
+
+    status_labels.save_labels(tenant, "order", [st for st, _ in Order.STATUSES], request)

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Lösungen für deine Branche" %} · SiteAdaptor{% endblock %}
+{% block extra_head %}{% if request.path != "/" %}<link rel="canonical" href="/">{% endif %}<meta name="description" content="{% trans 'Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen.' %}">{% endblock %}
+
+{% block body %}
+{% include "tenants/_public_header.html" %}
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pt-14 pb-6 text-center">
+  <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">{% trans "Lösungen für deine Branche" %}</h1>
+  <p class="mt-3 text-gray-500 max-w-2xl mx-auto">{% trans "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist." %}</p>
+</section>
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for c in cards %}
+      <a href="/branchen/{{ c.slug }}/" class="group flex items-start gap-3 bg-white border border-gray-200 rounded-2xl p-5 hover:border-indigo-300 hover:shadow-sm transition">
+        <div class="text-3xl leading-none" aria-hidden="true">{{ c.icon }}</div>
+        <div class="min-w-0">
+          <h2 class="font-semibold text-gray-900 group-hover:text-indigo-700">{{ c.name }}</h2>
+          {% if c.blurb %}<p class="mt-0.5 text-sm text-gray-500 leading-relaxed">{{ c.blurb }}</p>{% endif %}
+          <span class="inline-block mt-2 text-xs font-medium text-indigo-600">{% trans "Mehr erfahren" %} →</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% include "tenants/_public_footer.html" %}
+{% endblock %}

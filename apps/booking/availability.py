@@ -53,10 +53,13 @@ def free_slots_with_spots(
     # Заполненность: активные брони дня одним запросом, пересечения считаем в памяти.
     day_start = min(start for start, _end in grid)
     day_end = max(end for _start, end in grid)
+    from apps.core import status_registry
+
     bookings = list(
         Booking.objects.filter(
             resource=resource,
-            status__in=Booking.ACTIVE_STATUSES,
+            # FB-3 Вариант B: built-in ∪ кастом-active тенанта.
+            status__in=status_registry.active_statuses_for("booking"),
             start__lt=day_end,
             end__gt=day_start,
         ).values_list("start", "end", "party_size")

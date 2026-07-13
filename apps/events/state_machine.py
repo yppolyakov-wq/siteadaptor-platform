@@ -34,6 +34,7 @@ class EventSM(StateMachine):
 
 
 class TicketSM(StateMachine):
+    kind = "ticket"
     transitions = [
         Transition("pending", "confirmed", "ticket.confirmed"),
         Transition("pending", "cancelled", "ticket.cancelled"),

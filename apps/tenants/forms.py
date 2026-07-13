@@ -15,36 +15,37 @@ _RESERVED_SLUGS = {"www", "admin", "api", "app", "static", "media", "public", "m
 
 
 class BusinessSignupForm(forms.Form):
-    business_name = forms.CharField(label=_("Business name"), max_length=200)
+    # Базовый msgid = немецкий (LANGUAGE_CODE="de"); переводы en/ru/tr/uk — в .po.
+    business_name = forms.CharField(label=_("Name des Geschäfts"), max_length=200)
     slug = forms.SlugField(
         label=_("Subdomain"),
         max_length=100,
-        help_text=_("{slug}.siteadaptor.de — only a-z, 0-9 and hyphen."),
+        help_text=_("{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."),
     )
-    business_type = forms.ChoiceField(label=_("Business type"), choices=Tenant.BUSINESS_TYPES)
-    city = forms.CharField(label=_("City"), max_length=100)
-    email = forms.EmailField(label=_("Your email"))
-    password1 = forms.CharField(label=_("Password"), widget=forms.PasswordInput, min_length=8)
-    password2 = forms.CharField(label=_("Confirm password"), widget=forms.PasswordInput)
+    business_type = forms.ChoiceField(label=_("Art des Geschäfts"), choices=Tenant.BUSINESS_TYPES)
+    city = forms.CharField(label=_("Stadt"), max_length=100)
+    email = forms.EmailField(label=_("Deine E-Mail"))
+    password1 = forms.CharField(label=_("Passwort"), widget=forms.PasswordInput, min_length=8)
+    password2 = forms.CharField(label=_("Passwort bestätigen"), widget=forms.PasswordInput)
 
     def clean_slug(self):
         slug = self.cleaned_data["slug"].lower()
         if not _SLUG_RE.match(slug):
-            raise forms.ValidationError(_("Only lowercase letters, digits and hyphen."))
+            raise forms.ValidationError(_("Nur Kleinbuchstaben, Ziffern und Bindestrich."))
         if slug in _RESERVED_SLUGS:
-            raise forms.ValidationError(_("This subdomain is reserved."))
+            raise forms.ValidationError(_("Diese Subdomain ist reserviert."))
         if Tenant.objects.filter(slug=slug).exists():
-            raise forms.ValidationError(_("This subdomain is already taken."))
+            raise forms.ValidationError(_("Diese Subdomain ist bereits vergeben."))
         # schema_name выводится из slug; проверим и его уникальность
         if Tenant.objects.filter(schema_name=slug.replace("-", "_")).exists():
-            raise forms.ValidationError(_("This subdomain is already taken."))
+            raise forms.ValidationError(_("Diese Subdomain ist bereits vergeben."))
         return slug
 
     def clean(self):
         cleaned = super().clean()
         p1, p2 = cleaned.get("password1"), cleaned.get("password2")
         if p1 and p2 and p1 != p2:
-            self.add_error("password2", _("Passwords do not match."))
+            self.add_error("password2", _("Passwörter stimmen nicht überein."))
         return cleaned
 
 

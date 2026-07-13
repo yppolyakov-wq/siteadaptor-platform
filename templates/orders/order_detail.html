@@ -1,12 +1,12 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{{ order.reference_code }}{% endblock %}
 
 {% block dash_content %}
 <a href="{% url 'orders:order-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Orders" %}</a>
 <div class="flex items-center gap-3 mt-1 mb-4">
   <h1 class="text-2xl font-bold">{{ order.reference_code }}</h1>
-  <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ order.get_status_display }}</span>
+  <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{% status_label order %}</span>
   {% if order.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>
   {% elif order.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "refunded" %}</span>{% endif %}
 </div>

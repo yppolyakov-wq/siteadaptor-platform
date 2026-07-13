@@ -536,7 +536,7 @@ msgstr "Страва дня"
 
 #: apps/catalog/models.py:19 apps/core/pipeline.py:20
 msgid "Neu"
-msgstr "Або"
+msgstr "Нові"
 
 #: apps/catalog/models.py:20
 msgid "Beliebt"
@@ -885,7 +885,7 @@ msgstr "Панель управління"
 #: apps/core/modules.py:83 apps/core/templatetags/cabinet.py:36
 #: templates/core/board.html:3 templates/stays/units.html:148
 msgid "Board"
-msgstr "Правління"
+msgstr "Дошка"
 
 #: apps/core/modules.py:96 templates/catalog/product_list.html:3
 #: templates/promotions/promotion_list.html:16
@@ -1015,7 +1015,7 @@ msgstr "Термін дії закінчився"
 
 #: apps/core/templatetags/cabinet.py:27
 msgid "Produkte"
-msgstr "Продукція"
+msgstr "Товари"
 
 #: apps/core/templatetags/cabinet.py:28
 msgid "Kategorien"
@@ -1049,7 +1049,7 @@ msgstr "Квитки"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
-msgstr "Замовлення"
+msgstr "Заявки"
 
 #: apps/core/templatetags/cabinet.py:48
 msgid "Bewertungen"
@@ -1121,7 +1121,7 @@ msgstr "Мови"
 
 #: apps/core/templatetags/cabinet.py:77
 msgid "Medien"
-msgstr "ЗМІ"
+msgstr "Медіа"
 
 #: apps/core/templatetags/cabinet.py:78 config/settings/base.py:634
 #: templates/tenant/domains.html:3
@@ -11724,3 +11724,147 @@ msgstr "Обліковий запис створено"
 #: templates/tenants/provisioning.html:21
 msgid "Preparing your database…"
 msgstr "Підготовка бази даних…"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Übersicht"
+msgstr "Огляд"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkäufe"
+msgstr "Продажі"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden"
+msgstr "Клієнти"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Auswertungen"
+msgstr "Аналітика"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Finanzen"
+msgstr "Фінанси"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Website gestalten"
+msgstr "Оформлення сайту"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Abrechnung"
+msgstr "Тариф і оплата"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Blog & News"
+msgstr "Блог і новини"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Mein Geschäft"
+msgstr "Мій бізнес"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkaufen"
+msgstr "Торгівля"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden & Marketing"
+msgstr "Клієнти та маркетинг"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kombi-Angebote"
+msgstr "Комбо-набори"
+
+msgid "Pending"
+msgstr "Очікує"
+
+msgid "Confirmed"
+msgstr "Підтверджено"
+
+msgid "No-show"
+msgstr "Неявка"
+
+msgid "Status-Namen anpassen"
+msgstr "Змінити назви статусів"
+
+msgid "Statusübergänge anpassen"
+msgstr "Налаштувати переходи статусів"
+
+msgid "Eigene Status verwalten"
+msgstr "Керувати власними статусами"
+
+msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Власні назви статусів (лише відображення в кабінеті). Порожньо = за замовчуванням."
+
+msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
+msgstr "Які наступні статуси доступні з поточного (лише кнопки відображення). Скасування завжди можливе."
+
+msgid "Gründe dein Geschäft"
+msgstr "Створіть свій бізнес"
+
+msgid "14 Tage kostenlos testen. Keine Karte nötig."
+msgstr "14 днів безкоштовно. Без картки."
+
+msgid "Dein ganzes Geschäft — online in Minuten."
+msgstr "Весь ваш бізнес — онлайн за хвилини."
+
+msgid "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain."
+msgstr "Сайт, каталог, бронювання, акції та лояльність — усе в одному місці, на вашому піддомені."
+
+msgid "Mini-Website auf deiner Subdomain — ohne Code"
+msgstr "Міні-сайт на вашому піддомені — без коду"
+
+msgid "Buchungen & Bestellungen mit Doppelbuchungs-Schutz"
+msgstr "Бронювання та замовлення із захистом від подвійного бронювання"
+
+msgid "Aktionen, Gutscheine & Treue — direkt eingebaut"
+msgstr "Акції, ваучери та лояльність — уже вбудовані"
+
+msgid "Für lokale Betriebe gemacht, DSGVO-freundlich"
+msgstr "Створено для локального бізнесу, сумісно з GDPR"
+
+msgid "14 Tage kostenlos · Keine Kreditkarte nötig"
+msgstr "14 днів безкоштовно · Без кредитної картки"
+
+msgid "Demo ansehen"
+msgstr "Переглянути демо-сайт"
+
+msgid "Geschäft erstellen"
+msgstr "Створити бізнес"
+
+msgid "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Створюючи бізнес, ви погоджуєтеся з нашими умовами. Скасувати можна будь-коли протягом пробного періоду."
+
+msgid "Name des Geschäfts"
+msgstr "Назва бізнесу"
+
+msgid "Art des Geschäfts"
+msgstr "Тип бізнесу"
+
+msgid "Stadt"
+msgstr "Місто"
+
+msgid "Deine E-Mail"
+msgstr "Ваша електронна пошта"
+
+msgid "Passwort"
+msgstr "Пароль"
+
+msgid "Passwort bestätigen"
+msgstr "Підтвердьте пароль"
+
+msgid "{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."
+msgstr "{slug}.siteadaptor.de — лише a-z, 0-9 і дефіс."
+
+msgid "Nur Kleinbuchstaben, Ziffern und Bindestrich."
+msgstr "Лише малі літери, цифри та дефіс."
+
+msgid "Diese Subdomain ist reserviert."
+msgstr "Цей піддомен зарезервовано."
+
+msgid "Diese Subdomain ist bereits vergeben."
+msgstr "Цей піддомен уже зайнято."
+
+msgid "Passwörter stimmen nicht überein."
+msgstr "Паролі не збігаються."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "Створюючи бізнес, ви погоджуєтеся з нашими <a href=\"/agb/\" class=\"underline hover:text-gray-600\">умовами</a>. Скасувати можна будь-коли протягом пробного періоду."

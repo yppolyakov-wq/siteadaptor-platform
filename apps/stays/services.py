@@ -310,7 +310,9 @@ def cancellation_state(booking, today=None) -> dict:
 
     if today is None:
         today = timezone.localdate()
-    if booking.status not in StayBooking.ACTIVE_STATUSES:
+    from apps.core import status_registry
+
+    if booking.status not in status_registry.active_statuses_for("stay"):
         return {"can_cancel": False, "free": False}
     snap = booking.rate_snapshot or {}
     if snap.get("cancellation") == "non_refundable":

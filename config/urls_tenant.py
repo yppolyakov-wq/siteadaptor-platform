@@ -32,6 +32,8 @@ from apps.core.views import (
     pages_view,
     payment_settings,
     sections_view,
+    sellable_manage,
+    sellable_visibility,
     seo_settings_view,
     set_cabinet_lang_view,
     set_ui_mode_view,
@@ -43,6 +45,10 @@ from apps.core.views import (
     site_preview,
     site_preview_draft,
     site_view,
+    status_labels_save,
+    status_manager,
+    status_manager_save,
+    transitions_save,
 )
 from apps.events import public_views as events_public
 from apps.events import views as events_views
@@ -141,6 +147,32 @@ urlpatterns = [
         "dashboard/board/<str:kind>/<uuid:pk>/action/",
         kanban_action,
         name="board-action",
+    ),
+    # FB-4a/b: свои имена статусов (order/booking/stay) — кабинет-отображение.
+    path(
+        "dashboard/status-labels/<str:kind>/",
+        status_labels_save,
+        name="status-labels-save",
+    ),
+    # FB-3: правила переходов статусов (скрыть не-danger переходы) — кабинет.
+    path(
+        "dashboard/status-transitions/<str:kind>/",
+        transitions_save,
+        name="transitions-save",
+    ),
+    # FB-3 Вариант B: редактор своих статусов + переходов (order/booking/stay).
+    path("dashboard/status-manager/<str:kind>/", status_manager, name="status-manager"),
+    path(
+        "dashboard/status-manager/<str:kind>/save/",
+        status_manager_save,
+        name="status-manager-save",
+    ),
+    # FB-8: единый обзор продаваемых сущностей + тумблер видимости.
+    path("dashboard/angebote/", sellable_manage, name="sellable-manage"),
+    path(
+        "dashboard/angebote/<str:kind>/<uuid:pk>/sichtbar/",
+        sellable_visibility,
+        name="sellable-visibility",
     ),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),

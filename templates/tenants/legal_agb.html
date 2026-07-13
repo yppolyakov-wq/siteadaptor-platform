@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}AGB · SiteAdaptor{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block body %}
+{% include "tenants/_public_header.html" %}
+{% comment %}Заготовка AGB ПЛАТФОРМЫ (B2B-подписка) — DE-only; регистрация ссылается
+на «Bedingungen». [ПЛЕЙСХОЛДЕРЫ] и юр-проверка перед боевым запуском — на владельце.{% endcomment %}
+<section class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
+  <h1 class="text-3xl font-bold text-gray-900">Allgemeine Geschäftsbedingungen</h1>
+  <div class="mt-8 space-y-6 text-gray-700 leading-relaxed text-sm">
+    <div>
+      <h2 class="font-semibold text-gray-900">1. Geltungsbereich</h2>
+      <p class="mt-1">Diese AGB gelten für die Nutzung der Plattform SiteAdaptor ([Betreiber, siehe Impressum]) durch Unternehmer im Sinne des § 14 BGB. Ein Angebot an Verbraucher erfolgt nicht.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">2. Leistungsgegenstand</h2>
+      <p class="mt-1">SiteAdaptor stellt eine Software-as-a-Service-Plattform bereit: Website auf einer Subdomain, Katalog, Buchungs- und Bestellfunktionen, Marketing-Werkzeuge und weitere Module gemäß aktuellem Funktionsumfang. Der konkrete Umfang kann sich weiterentwickeln; wesentliche Einschränkungen werden angekündigt.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">3. Testphase, Vertragslaufzeit, Kündigung</h2>
+      <p class="mt-1">Die Nutzung beginnt mit einer kostenlosen Testphase von 14 Tagen. Danach wird die Nutzung kostenpflichtig gemäß der bei Abschluss angezeigten Preise; Abrechnung monatlich. Der Vertrag ist jederzeit zum Ende des laufenden Abrechnungszeitraums kündbar — während der Testphase jederzeit ohne Kosten.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">4. Pflichten des Kunden</h2>
+      <p class="mt-1">Der Kunde ist für die Inhalte seiner Website (Texte, Bilder, Preise, Pflichtangaben wie Impressum, Datenschutzerklärung, Allergen-Kennzeichnung) selbst verantwortlich und stellt sicher, dass diese geltendem Recht entsprechen. Rechtswidrige Inhalte sind untersagt.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">5. Verfügbarkeit</h2>
+      <p class="mt-1">Wir bemühen uns um eine hohe Verfügbarkeit der Plattform; Wartungsfenster und Umstände außerhalb unseres Einflussbereichs bleiben vorbehalten.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">6. Datenverarbeitung</h2>
+      <p class="mt-1">Soweit der Kunde über die Plattform personenbezogene Daten seiner Endkunden verarbeitet, schließen die Parteien einen Auftragsverarbeitungsvertrag (Art. 28 DSGVO). Einzelheiten regelt die Datenschutzerklärung.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">7. Haftung</h2>
+      <p class="mt-1">Wir haften unbeschränkt für Vorsatz und grobe Fahrlässigkeit sowie nach dem Produkthaftungsgesetz. Bei einfacher Fahrlässigkeit haften wir nur für die Verletzung wesentlicher Vertragspflichten, begrenzt auf den vorhersehbaren, vertragstypischen Schaden.</p>
+    </div>
+    <div>
+      <h2 class="font-semibold text-gray-900">8. Schlussbestimmungen</h2>
+      <p class="mt-1">Es gilt deutsches Recht. Gerichtsstand ist [Ort], soweit gesetzlich zulässig. Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im Übrigen wirksam.</p>
+    </div>
+    <p class="text-xs text-gray-400">Stand: [Monat Jahr].</p>
+  </div>
+</section>
+{% include "tenants/_public_footer.html" %}
+{% endblock %}

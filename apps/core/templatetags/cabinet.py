@@ -8,6 +8,33 @@ from apps.core import modules
 register = template.Library()
 
 
+@register.simple_tag(takes_context=True)
+def status_label(context, obj, kind="order"):
+    """FB-4a: имя статуса в кабинете — своё имя владельца (site_config["status_labels"])
+    или дефолт. FB-3 Вариант B Phase 6: для КАСТОМ-статуса дефолт = его label (иначе
+    get_status_display вернул бы код). FSM/письма/витрину не трогает."""
+    from apps.core import status_registry
+
+    tenant_obj = getattr(context.get("request"), "tenant", None)
+    d = status_registry.resolve(kind, obj.status, tenant_obj)
+    if d is not None and not d.builtin and d.label:
+        default = d.label
+    elif hasattr(obj, "get_status_display"):
+        default = obj.get_status_display()
+    else:
+        default = str(obj.status)
+    cfg = getattr(tenant_obj, "site_config", None)
+    if not isinstance(cfg, dict):
+        return default
+    labels = cfg.get("status_labels")
+    if not isinstance(labels, dict):
+        return default
+    node = labels.get(kind)
+    if not isinstance(node, dict):
+        return default
+    return node.get(obj.status) or default
+
+
 @register.simple_tag
 def nav_task_label(nav_key):
     """AB1: подпись пункта сайдбара в языке задач (nav_key → DE-метка) или "" —

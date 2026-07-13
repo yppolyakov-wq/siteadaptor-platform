@@ -705,7 +705,7 @@ msgstr "Call"
 
 #: apps/core/context_processors.py:16 apps/core/views.py:2514
 msgid "Sortiment"
-msgstr "Product Line"
+msgstr "Catalog"
 
 #: apps/core/context_processors.py:17 apps/core/templatetags/cabinet.py:47
 #, fuzzy
@@ -732,7 +732,7 @@ msgstr "Offers"
 
 #: apps/core/context_processors.py:22 apps/core/templatetags/cabinet.py:50
 msgid "Gutscheine"
-msgstr "Gift Certificates"
+msgstr "Vouchers"
 
 #: apps/core/detail_sections.py:53 apps/core/detail_sections.py:80
 #: apps/core/detail_sections.py:92 templates/booking/services.html:47
@@ -1019,7 +1019,7 @@ msgstr "Categories"
 #: apps/core/templatetags/cabinet.py:29 templates/inventory/stock.html:3
 #: templates/inventory/stock.html:7
 msgid "Lager"
-msgstr "Warehouse"
+msgstr "Stock"
 
 #: apps/core/templatetags/cabinet.py:30
 msgid "Kombi"
@@ -1030,10 +1030,8 @@ msgid "Import"
 msgstr "Import"
 
 #: apps/core/templatetags/cabinet.py:37 apps/notifications/prefs.py:79
-#, fuzzy
-#| msgid "Bestellung eingegangen"
 msgid "Bestellungen"
-msgstr "Order received"
+msgstr "Orders"
 
 #: apps/core/templatetags/cabinet.py:39 apps/notifications/prefs.py:81
 msgid "Übernachtungen"
@@ -1041,14 +1039,12 @@ msgstr "Overnight Stays"
 
 #: apps/core/templatetags/cabinet.py:40 apps/crm/customer360.py:54
 #: apps/crm/customer360.py:128 apps/notifications/prefs.py:82
-#, fuzzy
-#| msgid "Ticket-Code"
 msgid "Tickets"
-msgstr "Ticket code"
+msgstr "Tickets"
 
 #: apps/core/templatetags/cabinet.py:41 apps/notifications/prefs.py:83
 msgid "Aufträge"
-msgstr "Orders"
+msgstr "Jobs"
 
 #: apps/core/templatetags/cabinet.py:48
 msgid "Bewertungen"
@@ -1059,10 +1055,8 @@ msgid "Kampagnen"
 msgstr "Campaigns"
 
 #: apps/core/templatetags/cabinet.py:51 apps/notifications/prefs.py:84
-#, fuzzy
-#| msgid "Reservierung abgelaufen"
 msgid "Reservierungen"
-msgstr "Reservation expired"
+msgstr "Reservations"
 
 #: apps/core/templatetags/cabinet.py:52
 msgid "Einlösen"
@@ -1135,7 +1129,7 @@ msgstr "Domains"
 #, fuzzy
 #| msgid "Aktion"
 msgid "Funktionen"
-msgstr "Deal"
+msgstr "Features"
 
 #: apps/core/templatetags/cabinet.py:80
 msgid "Hilfe"
@@ -11615,3 +11609,147 @@ msgstr "Account created"
 #: templates/tenants/provisioning.html:21
 msgid "Preparing your database…"
 msgstr "Preparing your database…"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Übersicht"
+msgstr "Overview"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkäufe"
+msgstr "Sales"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden"
+msgstr "Customers"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Auswertungen"
+msgstr "Analytics"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Finanzen"
+msgstr "Finance"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Website gestalten"
+msgstr "Design website"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Abrechnung"
+msgstr "Billing"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Blog & News"
+msgstr "Blog & News"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Mein Geschäft"
+msgstr "My business"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Verkaufen"
+msgstr "Sell"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kunden & Marketing"
+msgstr "Customers & Marketing"
+
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+msgid "Kombi-Angebote"
+msgstr "Combo deals"
+
+msgid "Pending"
+msgstr "Pending"
+
+msgid "Confirmed"
+msgstr "Confirmed"
+
+msgid "No-show"
+msgstr "No-show"
+
+msgid "Status-Namen anpassen"
+msgstr "Customize status names"
+
+msgid "Statusübergänge anpassen"
+msgstr "Customize status transitions"
+
+msgid "Eigene Status verwalten"
+msgstr "Manage custom statuses"
+
+msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Custom names for the statuses (dashboard display only). Empty = default."
+
+msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
+msgstr "Which follow-up statuses are selectable from a status (display buttons only). Cancelling stays always possible."
+
+msgid "Gründe dein Geschäft"
+msgstr "Create your business"
+
+msgid "14 Tage kostenlos testen. Keine Karte nötig."
+msgstr "14-day free trial. No card required."
+
+msgid "Dein ganzes Geschäft — online in Minuten."
+msgstr "Your whole business — online in minutes."
+
+msgid "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain."
+msgstr "Website, catalog, bookings, promotions and loyalty — all in one place, on your own subdomain."
+
+msgid "Mini-Website auf deiner Subdomain — ohne Code"
+msgstr "Mini-site on your own subdomain — no code"
+
+msgid "Buchungen & Bestellungen mit Doppelbuchungs-Schutz"
+msgstr "Bookings & orders with double-booking protection"
+
+msgid "Aktionen, Gutscheine & Treue — direkt eingebaut"
+msgstr "Promotions, vouchers & loyalty, built in"
+
+msgid "Für lokale Betriebe gemacht, DSGVO-freundlich"
+msgstr "Made for local businesses, GDPR-friendly"
+
+msgid "14 Tage kostenlos · Keine Kreditkarte nötig"
+msgstr "14-day free trial · No credit card required"
+
+msgid "Demo ansehen"
+msgstr "View demo site"
+
+msgid "Geschäft erstellen"
+msgstr "Create business"
+
+msgid "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "By creating a business you agree to our terms. You can cancel anytime during the trial."
+
+msgid "Name des Geschäfts"
+msgstr "Business name"
+
+msgid "Art des Geschäfts"
+msgstr "Business type"
+
+msgid "Stadt"
+msgstr "City"
+
+msgid "Deine E-Mail"
+msgstr "Your email"
+
+msgid "Passwort"
+msgstr "Password"
+
+msgid "Passwort bestätigen"
+msgstr "Confirm password"
+
+msgid "{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."
+msgstr "{slug}.siteadaptor.de — only a-z, 0-9 and hyphen."
+
+msgid "Nur Kleinbuchstaben, Ziffern und Bindestrich."
+msgstr "Only lowercase letters, digits and hyphen."
+
+msgid "Diese Subdomain ist reserviert."
+msgstr "This subdomain is reserved."
+
+msgid "Diese Subdomain ist bereits vergeben."
+msgstr "This subdomain is already taken."
+
+msgid "Passwörter stimmen nicht überein."
+msgstr "Passwords do not match."
+
+msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
+msgstr "By creating a business you agree to our <a href=\"/agb/\" class=\"underline hover:text-gray-600\">terms</a>. You can cancel anytime during the trial."

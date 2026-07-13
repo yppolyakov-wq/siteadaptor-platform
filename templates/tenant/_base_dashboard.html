@@ -31,6 +31,16 @@
     `nav_groups` (apps.core.modules.grouped_active_modules). Поиск по пунктам сохраняется
     (data-label), пустые группы скрываются при фильтрации через JS.{% endcomment %}
     <nav id="dash-nav" class="space-y-0.5 text-sm px-5 pb-5 overflow-y-auto overscroll-contain flex-1 min-h-0">
+      {% comment %}FB-8: «Angebote» — единый обзор всех продаваемых сущностей (товар/услуга/
+      номер/событие). Кросс-катящий пункт над группами; виден при любом активном sellable-
+      модуле, поэтому находится и когда хаб «Sortiment» скрыт (отель в Простом режиме).{% endcomment %}
+      {% if has_sellables %}
+      <a href="{% url 'sellable-manage' %}" data-label="angebote produkte leistungen zimmer veranstaltungen alle sortiment"
+         class="nav-link flex items-center gap-2.5 px-3 py-2 mb-2 rounded-lg {% if nav == 'sellables' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+        <span class="w-5 shrink-0 text-center text-base leading-none">📦</span>
+        <span class="truncate">{% trans "Angebote" %}</span>
+      </a>
+      {% endif %}
       {% for group in nav_groups %}
         <div class="nav-group" data-nav-group>
           {% comment %}#6: заголовок группы — кнопка-аккордеон (сворачивает пункты, состояние в

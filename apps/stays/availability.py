@@ -9,6 +9,8 @@ quantity). Источник истины при создании — services.bo
 import calendar
 from datetime import date, timedelta
 
+from apps.core import status_registry
+
 from .models import StayBooking, StayUnit, UnitBlock
 
 
@@ -37,7 +39,7 @@ def range_available(unit, arrival, departure, *, exclude_pk=None, needed=1) -> b
 
     stays = StayBooking.objects.filter(
         unit=unit,
-        status__in=StayBooking.ACTIVE_STATUSES,
+        status__in=status_registry.active_statuses_for("stay"),
         arrival__lt=departure,
         departure__gt=arrival,
     )
@@ -83,7 +85,7 @@ def occupancy_grid(units, start_day, num_days):
         stays = list(
             StayBooking.objects.filter(
                 unit=unit,
-                status__in=StayBooking.ACTIVE_STATUSES,
+                status__in=status_registry.active_statuses_for("stay"),
                 arrival__lt=end_day,
                 departure__gt=start_day,
             ).values_list("arrival", "departure", "rooms")

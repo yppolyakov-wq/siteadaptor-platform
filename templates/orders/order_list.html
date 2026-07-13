@@ -26,6 +26,27 @@
   {% endfor %}
 {% endif %}
 
+{% comment %}FB-4a: свои имена статусов заказа (кабинет-отображение; правила
+переходов/письма не меняются) — паттерн W5 «Customize columns».{% endcomment %}
+<details class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
+  <summary class="cursor-pointer text-sm font-medium text-gray-700">⚙️ {% trans "Status-Namen anpassen" %}</summary>
+  <form method="post" action="{% url 'orders:order-settings' %}" class="mt-3 space-y-2 max-w-md">
+    {% csrf_token %}
+    <input type="hidden" name="form" value="status_labels">
+    <p class="text-xs text-gray-400">{% trans "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard." %}</p>
+    {% for st, default, custom in status_label_rows %}
+      <div class="flex items-center gap-2 text-sm">
+        <span class="w-28 text-xs text-gray-400">{{ default }}</span>
+        <input type="text" name="label_{{ st }}" value="{{ custom }}" placeholder="{{ default }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
+      </div>
+    {% endfor %}
+    <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</details>
+
+{# FB-3: правила переходов статусов заказа (какие следующие статусы показывать) #}
+{% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="order" next_path=request.path %}
+
 {# W4-3: настройки оплаты/Vorkasse/Lieferung/Abholung сведены в единый экран. #}
 <div class="mb-4 bg-white rounded-2xl shadow-sm p-4 text-sm flex items-center justify-between gap-3 flex-wrap">
   <span class="text-gray-700">{% trans "Prepayment, bank transfer, delivery &amp; pickup are set in one place:" %}</span>
@@ -55,7 +76,7 @@
           {% elif o.status == 'ready' %}bg-indigo-100 text-indigo-800
           {% elif o.status == 'confirmed' %}bg-green-100 text-green-800
           {% elif o.status == 'new' %}bg-amber-100 text-amber-800
-          {% else %}bg-red-50 text-red-600{% endif %}">{{ o.get_status_display }}</span>
+          {% else %}bg-red-50 text-red-600{% endif %}">{% status_label o %}</span>
       </div>
     </a>
   {% endfor %}

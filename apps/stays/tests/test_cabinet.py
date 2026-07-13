@@ -62,6 +62,21 @@ def test_calendar_renders_grid_and_booking():
     assert booking.reference_code in body
 
 
+def test_calendar_transition_rule_hides_action_button():
+    """FB-3: скрытие перехода pending→confirmed убирает КНОПКУ действия на календаре
+    (панель-чекбокс остаётся). FSM не трогаем — apply по-прежнему разрешает переход."""
+    unit = _unit()
+    _book(unit, 1, 4)  # pending → есть кнопка «Bestätigen» (value=confirmed)
+    req = _req(data={"von": D0.isoformat()})
+    req.tenant = TenantFactory(site_config={})
+    assert 'value="confirmed"' in views.calendar(req).content.decode()  # дефолт: кнопка есть
+    req2 = _req(data={"von": D0.isoformat()})
+    req2.tenant = TenantFactory(site_config={"transitions": {"stay": {"pending": []}}})
+    body2 = views.calendar(req2).content.decode()
+    assert 'value="confirmed"' not in body2  # переход скрыт → кнопки нет
+    assert "Statusübergänge" in body2  # но панель настройки правил на месте
+
+
 # --- действия по FSM + перенос ----------------------------------------------------
 
 
@@ -273,3 +288,71 @@ def test_reports_view_renders(settings):
     assert resp.status_code == 200
     body = resp.content.decode()
     assert "RevPAR" in body and "%" in body
+
+
+# --- FB-11: карточка брони (кто/когда/сумма/оплата) --------------------------------
+
+
+def test_booking_detail_renders_guest_dates_money_actions():
+    """FB-11: деталь брони — гость (имя/email), даты/ночи, сумма, статус-действия;
+    календарь линкует на неё; manage_url доски ведёт сюда же (UD1)."""
+    unit = _unit(price_cents=9000)
+    booking = _book(unit, 1, 4, email="gast@test.de", phone="0170 123")
+    body = views.booking_detail(_req(), booking.pk).content.decode()
+    assert booking.reference_code in body and unit.name in body
+    assert "gast@test.de" in body  # контакт гостя
+    assert "270" in body  # 3 ночи × 90 € = 270.00 € (сумма на карточке)
+    assert 'kind="stay"' not in body  # партиал отрендерен, не сырой тег
+    assert "Meldeschein" in body  # секция G6 присутствует
+    # календарь линкует код брони на деталь
+    cal = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    assert f"/dashboard/stays/buchung/{booking.pk}/" in cal
+    # доска (UD1): manage_url карточки — деталь брони
+    from apps.core.transactions import transaction_for
+
+    tx = transaction_for("stay", booking)
+    assert tx.manage_url == f"/dashboard/stays/buchung/{booking.pk}/"
+
+
+def test_booking_detail_shows_meldeschein_when_filled():
+    from apps.stays.models import GuestRegistration
+
+    unit = _unit()
+    booking = _book(unit, 2, 5)
+    GuestRegistration.objects.create(
+        booking=booking, last_name="Muster", first_name="Max", nationality="DE"
+    )
+    body = views.booking_detail(_req(), booking.pk).content.decode()
+    assert "Max Muster" in body
+
+
+def test_booking_detail_shows_custom_status_label():
+    """FB-4b: своё имя статуса брони (site_config['status_labels']['stay']) — в кабинете.
+    FSM/дефолт не трогаем: без своего имени показался бы get_status_display()."""
+    unit = _unit()
+    booking = _book(unit, 1, 4)  # pending
+    req = _req()
+    req.tenant = TenantFactory(site_config={"status_labels": {"stay": {"pending": "Angefragt ⭐"}}})
+    body = views.booking_detail(req, booking.pk).content.decode()
+    assert "Angefragt ⭐" in body
+
+
+# --- FB-10/11: сумма в письмах брони ------------------------------------------------
+
+
+def test_stay_emails_include_total():
+    """Подтверждение/заявка клиенту и письмо владельцу содержат Gesamtpreis."""
+    from apps.stays.notifications import _render
+
+    unit = _unit(price_cents=9000)
+    booking = _book(unit, 1, 4, email="gast@test.de")
+    ctx = {
+        "booking": booking,
+        "unit": unit,
+        "customer": booking.customer,
+        "cancel_url": "",
+        "unsubscribe_url": "",
+    }
+    for tpl in ("stay_created", "stay_confirmed", "stay_owner"):
+        _subj, body, _html = _render(tpl, ctx)
+        assert "270" in body, tpl  # 3 × 90 €

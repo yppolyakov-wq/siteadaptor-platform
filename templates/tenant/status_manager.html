@@ -1,0 +1,75 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Eigene Status" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-1">🏷️ {% trans "Eigene Status" %} · {{ kind_label }}</h1>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert." %}</p>
+
+  {% if messages %}
+    <div class="mb-3 space-y-1">
+      {% for m in messages %}
+        <div class="text-sm rounded-lg px-3 py-2 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'status-manager-save' kind %}" class="space-y-6">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+
+    {# Секция статусов: имя + роль (стадия/поведение выводятся из роли) + удаление #}
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <h2 class="font-semibold mb-3">{% trans "Status" %}</h2>
+      {% for r in custom_rows %}
+        <div class="flex items-center gap-2 mb-2">
+          <input type="hidden" name="custom_code" value="{{ r.code }}">
+          <input type="text" name="label_{{ r.code }}" value="{{ r.label }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+          <select name="role_{{ r.code }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            {% for code, lbl in roles %}<option value="{{ code }}" {% if code == r.role %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+          </select>
+          <label class="flex items-center gap-1 text-xs text-red-500 whitespace-nowrap"><input type="checkbox" name="del_{{ r.code }}"> {% trans "Löschen" %}</label>
+        </div>
+      {% endfor %}
+      {# новый статус #}
+      <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+        <input type="text" name="new_label" placeholder="{% trans 'Neuer Status (Name)' %}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+        <select name="new_role" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          {% for code, lbl in roles %}<option value="{{ code }}">{{ lbl }}</option>{% endfor %}
+        </select>
+        <span class="text-lg text-gray-300 leading-none">＋</span>
+      </div>
+    </div>
+
+    {# Секция переходов: чекбоксы «erreichbar aus» / «führt zu» на кастом-статус #}
+    {% if trans_rows %}
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <h2 class="font-semibold mb-1">{% trans "Übergänge" %}</h2>
+      <p class="text-xs text-gray-400 mb-3">{% trans "Von welchen Status ist er erreichbar und wohin führt er weiter?" %}</p>
+      {% for row in trans_rows %}
+        <div class="mb-4">
+          <p class="font-medium text-sm mb-1">{{ row.label }}</p>
+          <p class="text-xs text-gray-500 mb-1">{% trans "Erreichbar aus:" %}</p>
+          <div class="flex flex-wrap gap-2 mb-2 pl-2">
+            {% for o in row.others %}
+              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ o.code }}|{{ row.code }}" {% if o.from_checked %}checked{% endif %}> {{ o.label }}</label>
+            {% endfor %}
+          </div>
+          <p class="text-xs text-gray-500 mb-1">{% trans "Führt zu:" %}</p>
+          <div class="flex flex-wrap gap-2 pl-2">
+            {% for o in row.others %}
+              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ row.code }}|{{ o.code }}" {% if o.to_checked %}checked{% endif %}> {{ o.label }}</label>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-xs text-gray-400">{% trans "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge." %}</p>
+    {% endif %}
+
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
+  </form>
+</div>
+{% endblock %}
