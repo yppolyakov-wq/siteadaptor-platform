@@ -539,6 +539,19 @@ def test_dashboard_shows_progress_until_completed():
     assert "Setup-Fortschritt" not in html
 
 
+def test_done_slide_shows_step_summary_with_fillin_links():
+    """AB6.2: финиш-слайд — сводка шагов ✓/⏭/○; пропущенный кликабелен (?step=<key>)."""
+    tenant = TenantFactory(schema_name="public", slug="fin", name="Fin", business_type="bakery")
+    onboarding.save_state(
+        tenant,
+        {"v": 2, "step": "done", "done": ["company"], "skipped": ["stil"], "completed": True},
+    )
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "?step=stil" in html  # пропущенный шаг → ссылка дозаполнения
+    assert "Firma" in html  # выполненный шаг company в сводке (метка «Firma & Logo»)
+    assert "Geschafft" in html  # заголовок финиша
+
+
 def test_dashboard_redirects_fresh_owner_to_wizard():
     """AB5: нетронутый мастер (свежая регистрация) → дашборд уводит в Wizard."""
     tenant = TenantFactory()

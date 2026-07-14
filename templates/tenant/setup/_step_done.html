@@ -1,6 +1,27 @@
 {% load i18n %}
 <h1 class="text-2xl font-bold mb-1">Geschafft! 🎉</h1>
 <p class="text-sm text-gray-500 mb-4">Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen.</p>
+
+{% comment %}Сводка всех шагов ✓/⏭/○ (reuse контекста `steps` = steps_with_status).
+Пропущенные/незаполненные кликабельны (?step=<key>) — дозаполнить не выходя из мастера.
+Финальный шаг «done» из сводки исключён (это она сама).{% endcomment %}
+<ul class="mb-6 max-w-md space-y-1">
+  {% for s in steps %}
+    {% if s.key != 'done' %}
+      <li>
+        {% if s.status == 'done' %}
+          <span class="flex items-center gap-2 text-sm text-gray-400"><span class="w-5 text-center text-emerald-500">✓</span> <span class="line-through">{{ s.label }}</span></span>
+        {% else %}
+          <a href="{% url 'setup' %}?step={{ s.key }}" class="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-700">
+            <span class="w-5 text-center {% if s.status == 'skipped' %}text-amber-600{% else %}text-gray-300{% endif %}">{% if s.status == 'skipped' %}⏭{% else %}○{% endif %}</span>
+            {{ s.label }} <span class="text-indigo-400">→</span>
+          </a>
+        {% endif %}
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
+
 <div class="flex items-center gap-3">
   <form method="post">{% csrf_token %}
     <button type="submit" name="action" value="back" class="text-sm text-gray-500 px-3 py-2.5 hover:underline">← Zurück</button>

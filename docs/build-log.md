@@ -5262,3 +5262,17 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   НЕ используем — сделал бы панель containing-block для fixed-ленты `#bld-block-popup`.
   Проверено headless (Playwright): 380=3кол/равные, 300=2кол, 235=1кол. `app.css` += break-words.
   Тесты `test_home_builder`/`test_cblocks_builder`/`test_template_comments` (134) зелёные. Без миграций.
+
+## 2026-07-14 — Хвост мастера: финиш-слайд «Geschafft» = сводка шагов ✓/⏭/○
+
+- `_step_done.html` наполнен: сводка ВСЕХ шагов (reuse контекста `steps`=steps_with_status,
+  без нового handler) — выполненные ✓ (line-through), пропущенные ⏭ и незаполненные ○
+  кликабельны на `?step=<key>` (дозаполнить не выходя из мастера). Финальный «done» из
+  сводки исключён. Кнопки Zum Dashboard / Module / escape-hatch «Andere Branche» сохранены.
+  Замок `test_done_slide_shows_step_summary_with_fillin_links`. Без миграций.
+- **Хвост «чипы пунктов меню в слайде Menü» — ОТЛОЖЕН** (осознанно): `normalize` всегда
+  материализует `menus.top` (из `nav` только когда `menus` отсутствует), поэтому после первого
+  Save витрина рендерит шапку из `menus.top`, а не `nav.items` — надёжно менять меню чипами
+  можно лишь генерируя структурные узлы `menus.top.items` (дублирование логики menu_builder,
+  риск сломать шапку). Слайд Menü остаётся: вид шапки (nav.style, работает) + ссылка в
+  редактор пунктов. Чипы — отдельным аккуратным инкрементом при спросе.
