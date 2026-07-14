@@ -20,7 +20,7 @@
   {% endfor %}
 </nav>
 
-<div class="max-w-xl">
+<div id="setup-slide" class="max-w-xl">
   <p class="text-xs text-gray-400 mb-2">{% blocktrans with step=step_num %}Step {{ step }} of {{ total }}{% endblocktrans %}</p>
   <div class="h-1.5 bg-gray-200 rounded-full mb-6" role="progressbar" aria-valuenow="{{ step_num }}" aria-valuemin="1" aria-valuemax="{{ total }}">
     <div class="h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio step_num total 100 %}%"></div>
@@ -47,7 +47,10 @@
 Фото (hero_image) не шлём в live — только на «Weiter» (иначе аплоад на каждый ввод).{% endcomment %}
 <script>
 (function () {
-  var form = document.querySelector('form[method="post"]');
+  // Форма ТЕКУЩЕГО слайда (внутри #setup-slide) — НЕ хедер-форма «Später fertigstellen»
+  // (она первая на странице; без скоупа live-save цеплялся к ней → превью не обновлялось,
+  // а пустой live-POST мог затирать поля шага). Скоуп чинит и то, и другое.
+  var form = document.querySelector('#setup-slide form[method="post"]');
   var frame = document.querySelector('iframe[data-setup-preview]');
   if (!form || !frame) return;
   var token = (form.querySelector('[name=csrfmiddlewaretoken]') || {}).value || "";

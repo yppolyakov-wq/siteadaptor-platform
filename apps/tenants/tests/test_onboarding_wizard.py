@@ -332,6 +332,17 @@ def test_home_slide_saves_hero_texts():
     assert tenant.site_config["hero_text"] == "Frisch"
 
 
+def test_live_preview_scoped_to_current_slide_form():
+    """Live-превью цепляется к форме ТЕКУЩЕГО слайда (#setup-slide), а НЕ к первой
+    форме страницы — хедер-форме «Später fertigstellen» (регрессия AB6.9: превью не
+    обновлялось, а пустой live-POST от хедер-формы мог затирать поля шага)."""
+    tenant = TenantFactory(business_type="bakery")
+    onboarding.goto(tenant, "company")  # live=True слайд
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'id="setup-slide"' in html
+    assert '#setup-slide form[method="post"]' in html  # live-save скоуп на форму слайда
+
+
 def test_live_save_persists_without_advancing():
     """action=live сохраняет поля шага (204), шаг не сменился."""
     tenant = TenantFactory(business_type="bakery")
