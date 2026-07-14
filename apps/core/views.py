@@ -110,7 +110,14 @@ def dashboard(request):
     if untouched:
         return redirect("setup")
 
+    from apps.core import dashboard as dash
+    from apps.core import transactions
+
     setup_done, setup_total = onboarding.progress(request.tenant)
+    # AB7-B2: блочная главная — плитки задач + встроенный канбан (тот же партиал/DnD,
+    # что на /dashboard/board/). Секции = активные транзакционные каналы (≤20 карт).
+    sections = transactions.manage_sections_for(request.tenant, limit=20)
+    kinds = [s["kind"] for s in sections]
     return render(
         request,
         "tenant/dashboard.html",
@@ -120,6 +127,9 @@ def dashboard(request):
             "setup_total": setup_total,
             "setup_completed": onboarding.get_state(request.tenant)["completed"],
             "readiness": onboarding.completeness(request.tenant),  # AB4: чек-лист готовности
+            "tiles": dash.dashboard_tiles(request.tenant),  # AB7-B2: плитки задач
+            "sections": sections,  # AB7-B2: канбан на главной
+            "active_kind": kinds[0] if kinds else "",
         },
     )
 

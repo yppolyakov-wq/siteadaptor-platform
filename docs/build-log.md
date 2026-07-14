@@ -5228,3 +5228,22 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   save всех секций eur→cents/IBAN/зоны, sentinel-guard, Stripe-gate, orders-off) зелёные
   ПОСЛЕ рефактора → извлечение поля не уронило. Новый замок `test_payment_slide_reuses_
   shared_form_and_saves` (delivery 4,50 €→450 центов через слайд). Без миграций.
+
+## 2026-07-13 — AB7-B1/B2: блочная главная кабинета (плитки задач + встроенный канбан)
+
+- **AB7-B1** (вынос тела канбан-доски): тело `board.html` (вкладки kind → панели колонок с
+  нативным HTML5-DnD, тост, пустое состояние, JS) вынесено в партиал `core/_board_body.html`
+  (контекст sections/active_kind). `board.html` → обёртка (hub_tabs + заголовок + W5-панель
+  «Spalten anpassen» + include). Рендер 1:1; вьюха `board` не меняется; `test_board.py`/
+  `test_board_settings.py` (13) зелёные без правок.
+- **AB7-B2** (блочная главная): `apps/core/dashboard.py::dashboard_tiles(tenant)` — крупные
+  плитки задач на ЯЗЫКЕ ЗАДАЧ (✏️ offer_cta / 📁 Kategorien / 🏠 Startseite / 💳 Zahlung /
+  📄 Recht) с бейджем «Not set up» из ЕДИНОГО реестра шагов (`steps_with_status`; клик →
+  `setup?step=<key>`, дозаполнение). Гейты — как сайдбар: активный модуль + `simple_hidden_
+  modules` (catalog — core, скрывается только в Простом у friseur/handwerker/events/hotel;
+  payment — при чекаут-модуле). Вьюха `dashboard` += `tiles` + `manage_sections_for(limit=20)`;
+  `dashboard.html` = setup-плашка → грид плиток → компактная AB4-полоса (<100%) → встроенный
+  `_board_body.html` (полнофункц. DnD) + «Full view →» на большую доску. AB5-редирект жив.
+- Замки: `test_dashboard_shows_task_tiles_gated_by_module` (плитки + catalog-core/simple-gate),
+  `test_dashboard_tile_badge_links_to_incomplete_step` (?step=offer), `test_dashboard_embeds_
+  kanban_board_when_channel_active` (data-drop-stage + reference_code). Без миграций.

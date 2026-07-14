@@ -4,28 +4,39 @@
 
 {% block dash_content %}
 {% if not setup_completed %}
-  {# Setup-Fortschritt (Track D / D0c): чеклист-плашка, пока мастер не пройден. #}
+  {% comment %}Setup-Fortschritt (Track D / AB6): плашка-прогресс, пока мастер не пройден.{% endcomment %}
   <a href="{% url 'setup' %}" class="block mb-4 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 hover:bg-indigo-100">
     <span class="text-sm font-medium text-indigo-800">{% blocktrans with done=setup_done total=setup_total %}Setup-Fortschritt: {{ done }}/{{ total }} — weiter einrichten →{% endblocktrans %}</span>
     <span class="block mt-2 h-1.5 bg-indigo-100 rounded-full"><span class="block h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio setup_done setup_total 100 %}%"></span></span>
   </a>
 {% endif %}
-<h1 class="text-2xl font-bold mb-2">{% trans "Welcome" %} 👋</h1>
-<p class="text-gray-600">
-  {% blocktrans with status=request.tenant.subscription_status %}
-  Your business is set up. Subscription status: {{ status }}.
-  {% endblocktrans %}
-</p>
-<a href="{% url 'catalog:product-list' %}" class="inline-block mt-4 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
-  {% trans "Manage catalog" %}
-</a>
+<h1 class="text-2xl font-bold mb-4">{% trans "Welcome" %} 👋</h1>
+
+{% comment %}AB7-B2: блочная главная — плитки задач на ЯЗЫКЕ ЗАДАЧ (крупные кнопки).
+Бейдж «Not set up» на невыполненной плитке ведёт на нужный слайд мастера
+(setup?step=<key>) — отдельная ссылка, чтобы не было вложенных <a>.{% endcomment %}
+{% if tiles %}
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+  {% for t in tiles %}
+    <div class="relative bg-white rounded-2xl shadow-sm hover:ring-1 hover:ring-indigo-300">
+      <a href="{% url t.url_name %}" class="flex flex-col items-start gap-2 p-4 h-full">
+        <span class="text-2xl leading-none">{{ t.icon }}</span>
+        <span class="text-sm font-medium text-gray-800">{{ t.label }}</span>
+      </a>
+      {% if t.needs %}
+        <a href="{% url 'setup' %}?step={{ t.step }}" class="absolute top-2 right-2 text-[10px] font-medium text-amber-700 bg-amber-50 rounded-full px-2 py-0.5 hover:bg-amber-100">{% trans "Not set up" %}</a>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 {% comment %}AB4: чек-лист готовности сайта — мотивация допилить + прямой путь к действию.
-Показываем, пока сайт не на 100%; «✓ fertig» при полной готовности.{% endcomment %}
-{% if readiness %}
-<div class="mt-8 max-w-xl bg-white rounded-2xl shadow-sm p-5">
+Показываем компактно, пока сайт не на 100%.{% endcomment %}
+{% if readiness and readiness.percent < 100 %}
+<div class="mb-8 max-w-xl bg-white rounded-2xl shadow-sm p-5">
   <div class="flex items-center justify-between mb-3">
-    <h2 class="font-semibold">{% if readiness.percent >= 100 %}{% trans "Your site is ready" %} 🎉{% else %}{% blocktrans with p=readiness.percent %}Your site is {{ p }}% ready{% endblocktrans %}{% endif %}</h2>
+    <h2 class="font-semibold text-sm">{% blocktrans with p=readiness.percent %}Your site is {{ p }}% ready{% endblocktrans %}</h2>
     <span class="text-sm text-gray-400">{{ readiness.done }}/{{ readiness.total }}</span>
   </div>
   <span class="block mb-4 h-2 bg-gray-100 rounded-full"><span class="block h-2 bg-emerald-500 rounded-full" style="width: {{ readiness.percent }}%"></span></span>
@@ -43,5 +54,15 @@
     {% endfor %}
   </ul>
 </div>
+{% endif %}
+
+{% comment %}AB7-B2: канбан входящих задач прямо на главной — тот же партиал/DnD, что на
+/dashboard/board/ (полнофункциональный). Показываем только при активных каналах.{% endcomment %}
+{% if sections %}
+  <div class="flex items-baseline justify-between gap-3 mb-3">
+    <h2 class="text-lg font-bold">🗂️ {% trans "Tasks" %}</h2>
+    <a href="{% url 'board' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Full view" %} →</a>
+  </div>
+  {% include "core/_board_body.html" %}
 {% endif %}
 {% endblock %}

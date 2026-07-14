@@ -555,6 +555,76 @@ def test_dashboard_renders_once_wizard_touched():
     assert core_views.dashboard(_req(tenant=tenant)).status_code == 200
 
 
+# --- AB7-B2: блочная главная (плитки задач + встроенный канбан) --------------------
+
+
+def test_dashboard_shows_task_tiles_gated_by_module():
+    """AB7-B2: плитки задач — offer/Kategorien/Startseite/Zahlung/Recht по модулям."""
+    from apps.core import dashboard as dash
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="tiles",
+        name="Tiles",
+        business_type="bakery",
+        disabled_modules=modules.default_disabled_for("bakery"),
+    )
+    onboarding.save_state(
+        tenant, {"v": 2, "step": "company", "done": ["company"], "completed": False}
+    )
+    urls = {t["url_name"] for t in dash.dashboard_tiles(tenant)}
+    assert {"catalog:category-list", "site-home", "payment-settings", "legal-docs"} <= urls
+    html = core_views.dashboard(_req(tenant=tenant)).content.decode()
+    assert "Categories" in html and "Design homepage" in html and "Payment &amp; shipping" in html
+    # В Простом режиме у friseur (ARCHETYPE_SIMPLE_HIDDEN) catalog скрыт → нет плитки
+    # Kategorien (тот же гейт simple_hidden_modules, что у сайдбара).
+    simple_friseur = TenantFactory.build(
+        business_type="friseur",
+        disabled_modules=modules.default_disabled_for("friseur"),
+        site_config={"ui_mode": "simple"},
+    )
+    hidden_urls = {t["url_name"] for t in dash.dashboard_tiles(simple_friseur)}
+    assert "catalog:category-list" not in hidden_urls
+
+
+def test_dashboard_tile_badge_links_to_incomplete_step():
+    """AB7-B2: невыполненный шаг → бейдж «Not set up» с ?step=<key> (дозаполнение)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="badge",
+        name="Badge",
+        business_type="bakery",
+        disabled_modules=modules.default_disabled_for("bakery"),
+    )
+    onboarding.save_state(
+        tenant, {"v": 2, "step": "company", "done": ["company"], "completed": False}
+    )
+    html = core_views.dashboard(_req(tenant=tenant)).content.decode()
+    assert "Not set up" in html and "?step=offer" in html
+
+
+def test_dashboard_embeds_kanban_board_when_channel_active():
+    """AB7-B2: канбан входящих встроен в главную (тот же партиал/DnD) при активном канале."""
+    from decimal import Decimal
+
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders.services import create_order
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="brd",
+        name="Brd",
+        business_type="restaurant",
+        disabled_modules=[],
+    )
+    onboarding.save_state(tenant, {"v": 2, "step": "done", "completed": True})
+    product = ProductFactory(base_price=Decimal("8.00"))
+    order = create_order(items=[(product, 1)], name="Max", email="max@test.de")
+    html = core_views.dashboard(_req(tenant=tenant)).content.decode()
+    assert "data-drop-stage" in html and order.reference_code in html
+    assert "/dashboard/board/" in html  # ссылка «Full view» на большую доску
+
+
 def test_fresh_setup_snaps_to_first_visible_step():
     """Свежий тенант (позиция business, скрыт) → GET мастера показывает первый видимый
     шаг (company), не escape-hatch."""
