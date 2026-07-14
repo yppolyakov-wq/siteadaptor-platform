@@ -446,6 +446,17 @@ def test_offer_slide_creates_event_with_date():
     assert ev.starts_at.year == 2026 and ev.starts_at.month == 8
 
 
+def test_category_slide_picks_catalog_layout():
+    """AB6.2d: слайд category — выбор раскладки каталога → catalog_layout.preset."""
+    tenant = TenantFactory(schema_name="public", slug="cat", name="Cat", business_type="bakery")
+    onboarding.goto(tenant, "category")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="catalog_preset"' in html and "Kategorien verwalten" in html
+    core_views.setup_view(_req("post", {"catalog_preset": "cols4"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config["catalog_layout"]["preset"] == "cols4"
+
+
 # --- рельса прогресса + прыжок ----------------------------------------------------
 
 

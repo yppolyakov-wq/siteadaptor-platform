@@ -5201,3 +5201,12 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   с pk-ссылкой), `test_offer_slide_creates_event_with_date` (events→Event published, 12 €→1200
   центов, дата распарсена). `test_offer_slide_shows_archetype_presets_and_cta`/`…_loads_and_
   clears_demo` целы. Без миграций. Остаток слайдов: category (раскладка), payment (W4-3-партиал).
+
+## 2026-07-13 — AB6.2d: слайд «Kategorieseite» — выбор раскладки каталога (мокапы)
+
+- Слайд `category` наполнен: 2/3/4 Spalten или Liste визуальными мини-мокапами (radio →
+  live-превью) → `catalog_layout.preset` (normalize материализует cols/mobile; golden-ключ,
+  паритет цел). `_post_category`/`_ctx_category` + `_CATALOG_PRESET_CARDS` (подмножество
+  `LAYOUT_PRESETS`). HANDLERS[category] += post/context/live. Ссылка «Kategorien verwalten».
+  Замок `test_category_slide_picks_catalog_layout` (cols4). Layout/page_registry-тесты целы.
+  Без миграций. Остаток слайдов: payment (партиализация формы W4-3 «Zahlung & Versand»).

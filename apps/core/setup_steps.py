@@ -143,6 +143,39 @@ def _ctx_menu(request):
     }
 
 
+# AB6.2d: пресеты раскладки каталога/категорий для слайда «Kategorien» (мокапы в
+# шаблоне по key). Подмножество LAYOUT_PRESETS, осмысленное для листинга товаров.
+_CATALOG_PRESET_CARDS = (
+    {"key": "cols2", "label": "2 Spalten"},
+    {"key": "cols3", "label": "3 Spalten"},
+    {"key": "cols4", "label": "4 Spalten"},
+    {"key": "list", "label": "Liste"},
+)
+
+
+def _post_category(request):
+    # AB6.2d: раскладка страницы каталога/категорий (columns) → catalog_layout.preset
+    # (normalize материализует cols/mobile). Какие категории — редактор (ссылка в слайде).
+    from apps.tenants import siteconfig
+
+    preset = request.POST.get("catalog_preset", "")
+    if preset in siteconfig.LAYOUT_PRESETS:
+        cfg = siteconfig.normalize(request.tenant.site_config)
+        cfg["catalog_layout"] = {"preset": preset}
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+
+
+def _ctx_category(request):
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    return {
+        "catalog_presets": _CATALOG_PRESET_CARDS,
+        "catalog_preset": (cfg.get("catalog_layout") or {}).get("preset") or "cols3",
+    }
+
+
 def _post_hero(request):
     save_hero(request, request.tenant)
 
@@ -436,7 +469,13 @@ HANDLERS = {
     "offer": StepHandler(
         template="tenant/setup/_step_offer.html", context=_ctx_content, preview=True
     ),
-    "category": StepHandler(template="tenant/setup/_step_category.html", preview=True),
+    "category": StepHandler(
+        template="tenant/setup/_step_category.html",
+        post=_post_category,
+        context=_ctx_category,
+        preview=True,
+        live=True,
+    ),
     "home": StepHandler(
         template="tenant/setup/_step_home.html",
         post=_post_hero,

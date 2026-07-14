@@ -1,11 +1,43 @@
 {% load i18n %}
-{# AB6.2a стаб: вид страницы категории (раскладка). Наполнение вариантами — AB6.2d. #}
+{% comment %}AB6.2d: слайд «Kategorieseite» — выбор раскладки каталога/категорий
+(2/3/4 Spalten или Liste) визуальными мокапами, radio → live-превью перерисовывается
+(catalog_layout.preset). Какие категории существуют — редактор (ссылка ниже).{% endcomment %}
 <h1 class="text-2xl font-bold mb-1">Kategorieseite</h1>
-<p class="text-sm text-gray-500 mb-4">Wie werden deine Kategorien und Produkte aufgelistet? Wähle eine Darstellung — später frei anpassbar.</p>
-<div class="bg-white rounded-xl shadow-sm px-4 py-3 mb-4 text-sm text-gray-600">
-  <a href="{% url 'catalog:category-list' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Kategorien verwalten →</a>
-</div>
-<form method="post">
+<p class="text-sm text-gray-500 mb-4">Wie werden deine Produkte aufgelistet? Wähle eine Darstellung — später frei anpassbar.</p>
+<form method="post" class="space-y-4">
   {% csrf_token %}
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {% for p in catalog_presets %}
+      <label class="rounded-lg border border-gray-200 p-2 cursor-pointer hover:border-indigo-400 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">
+        <input type="radio" name="catalog_preset" value="{{ p.key }}" {% if p.key == catalog_preset %}checked{% endif %} class="sr-only">
+        <span class="block bg-gray-100 rounded p-1.5 mb-1">
+          {% if p.key == 'list' %}
+            <span class="flex flex-col gap-1">
+              <span class="h-2 w-full rounded bg-gray-300"></span>
+              <span class="h-2 w-full rounded bg-gray-300"></span>
+              <span class="h-2 w-full rounded bg-gray-300"></span>
+            </span>
+          {% elif p.key == 'cols2' %}
+            <span class="grid grid-cols-2 gap-1">
+              <span class="h-4 rounded bg-gray-300"></span><span class="h-4 rounded bg-gray-300"></span>
+              <span class="h-4 rounded bg-gray-300"></span><span class="h-4 rounded bg-gray-300"></span>
+            </span>
+          {% elif p.key == 'cols4' %}
+            <span class="grid grid-cols-4 gap-0.5">
+              <span class="h-4 rounded bg-gray-300"></span><span class="h-4 rounded bg-gray-300"></span><span class="h-4 rounded bg-gray-300"></span><span class="h-4 rounded bg-gray-300"></span>
+            </span>
+          {% else %}
+            <span class="grid grid-cols-3 gap-1">
+              <span class="h-4 rounded bg-gray-300"></span><span class="h-4 rounded bg-gray-300"></span><span class="h-4 rounded bg-gray-300"></span>
+            </span>
+          {% endif %}
+        </span>
+        <span class="block text-xs text-center text-gray-600">{{ p.label }}</span>
+      </label>
+    {% endfor %}
+  </div>
+  <div class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm text-gray-600">
+    <a href="{% url 'catalog:category-list' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Kategorien verwalten →</a>
+  </div>
   {% include "tenant/_setup_buttons.html" %}
 </form>
