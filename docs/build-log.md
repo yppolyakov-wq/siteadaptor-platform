@@ -5247,3 +5247,18 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Замки: `test_dashboard_shows_task_tiles_gated_by_module` (плитки + catalog-core/simple-gate),
   `test_dashboard_tile_badge_links_to_incomplete_step` (?step=offer), `test_dashboard_embeds_
   kanban_board_when_channel_active` (data-drop-stage + reference_code). Без миграций.
+
+## 2026-07-14 — Редактор: фикс кампоновки пресетов шапки + сжатие панели «в колонку» (фидбэк)
+
+- **Фикс UC6-6h «Beispiele» (пресеты шапки Classic/Centered/Minimal в области Menu канвы):**
+  карточки сминались — метки наезжали на мокап, длинные переводы обрезались («Минимальност…»,
+  centered-мокап `flex-col` был выше остальных → ряд не выравнивался). Правка (site_home.html):
+  мокапы фикс-высоты `h-7` + `justify-center`, кнопки `text-center`, метки `leading-tight
+  break-words` — карточки равной высоты, метки центрированы и переносятся без обрезки.
+- **Панель инспектора «ещё сжимать → блоки в колонку» (фидбэк владельца):** мин. ширина
+  drag/persist 230→200; JS ставит `bld-panel-narrow`(<320)/`bld-panel-xnarrow`(<250) на
+  `#bld-root` (на drag и на загрузку из localStorage); CSS схлопывает инспекторные гриды
+  `.grid-cols-3` 3→2 (narrow) → 1 (xnarrow), `.grid-cols-2`→1 (xnarrow). `container-type`
+  НЕ используем — сделал бы панель containing-block для fixed-ленты `#bld-block-popup`.
+  Проверено headless (Playwright): 380=3кол/равные, 300=2кол, 235=1кол. `app.css` += break-words.
+  Тесты `test_home_builder`/`test_cblocks_builder`/`test_template_comments` (134) зелёные. Без миграций.
