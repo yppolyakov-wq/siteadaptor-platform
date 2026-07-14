@@ -36,16 +36,14 @@ def test_industry_page_404_for_unknown_and_other():
 
 
 def test_signup_prefills_business_type_from_query():
+    # Фидбэк владельца 2026-07-14: ?type=<branche> (переход с Branchen-страницы) →
+    # компактный баннер выбранной отрасли + скрытое поле (форма сразу на виду), а НЕ
+    # весь пикер-грид. Предвыбор фиксируется скрытым business_type.
     html = (
         BusinessSignupView().get(RequestFactory().get("/registrieren/?type=hotel")).content.decode()
     )
-    # Radio des vorgewählten Typs ist checked.
-    assert 'value="hotel"\n                       checked' in html or 'value="hotel"' in html
-    # Konkreter: das hotel-Radio trägt checked (Reihenfolge value dann checked).
-    import re
-
-    m = re.search(r'value="hotel"[^>]*?checked', html, re.S)
-    assert m, "hotel-Radio sollte bei ?type=hotel vorausgewählt sein"
+    assert 'type="hidden" name="business_type" value="hotel"' in html
+    assert 'type="radio" name="business_type"' not in html  # без грид-пикера
 
 
 def test_registration_cards_link_to_industry_pages():
