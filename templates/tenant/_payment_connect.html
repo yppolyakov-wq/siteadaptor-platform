@@ -1,0 +1,17 @@
+{% load i18n %}
+{% comment %}W4-3 / AB6.2-payment: блок Stripe-Connect (OAuth) — ОТДЕЛЬНАЯ форма
+(nested forms запрещены; редирект на Stripe). Общий для экрана «Zahlung & Versand»
+и слайда мастера. Рендерится только при настроенном Connect.{% endcomment %}
+{% if connect_configured %}
+  <div class="mb-4 bg-white rounded-2xl shadow-sm p-4 text-sm flex items-center justify-between gap-3 flex-wrap">
+    {% if connected %}
+      <span class="text-green-700">✓ {% trans "Stripe connected" %}{% if not payments_enabled %} — <span class="text-amber-700">{% trans "verification pending" %}</span>{% endif %}</span>
+    {% else %}
+      <span class="text-gray-600">{% trans "Connect Stripe to accept card & online payments." %}</span>
+      <form method="post" action="{% url 'billing-payments-connect' %}">
+        {% csrf_token %}
+        <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Connect Stripe" %}</button>
+      </form>
+    {% endif %}
+  </div>
+{% endif %}

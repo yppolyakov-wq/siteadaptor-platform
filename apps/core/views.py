@@ -499,71 +499,86 @@ def settings_view(request):
     )
 
 
+def save_payment_settings(request) -> None:
+    """W4-3: POST-диспетчер оплаты/доставки — секция сохраняется ТОЛЬКО при своём
+    скрытом сентинеле `sec_*` (рендерится лишь когда секция показана → скрытая секция
+    не затирает свои поля, guard потери). ОБЩИЙ для экрана `payment_settings` и слайда
+    мастера «Zahlung» (AB6.2 payment); та же логика записи, что у старых экранов."""
+    from apps.billing.views import save_stripe_methods
+    from apps.orders.views import save_delivery, save_prepay, save_vorkasse
+
+    tenant = request.tenant
+    if request.POST.get("sec_stripe"):
+        save_stripe_methods(tenant, request)
+    if request.POST.get("sec_prepay"):
+        save_prepay(tenant, request)
+    if request.POST.get("sec_vorkasse"):
+        save_vorkasse(tenant, request)
+    if request.POST.get("sec_delivery"):
+        save_delivery(tenant, request)
+
+
+def payment_settings_context(request) -> dict:
+    """W4-3: контекст формы оплаты/доставки (GET) — ОБЩИЙ для экрана `payment_settings`
+    и слайда мастера «Zahlung» (партиал `_payment_fields.html`/`_payment_connect.html`)."""
+    from apps.billing import connect
+    from apps.billing.views import STRIPE_METHOD_CHOICES
+    from apps.core import modules as _mod
+    from apps.orders.views import _zone_rows
+
+    tenant = request.tenant
+
+    def _eur(cents):
+        return f"{(cents or 0) / 100:.2f}"
+
+    return {
+        "orders_active": _mod.is_module_active(tenant, "orders"),
+        # Stripe-Connect + Zahlarten (E7-3).
+        "connect_configured": connect.is_connect_configured(),
+        "connected": bool(tenant.stripe_connect_id),
+        "payments_enabled": tenant.payments_enabled,
+        "method_choices": STRIPE_METHOD_CHOICES,
+        "selected_methods": set(getattr(tenant, "stripe_payment_methods", None) or []),
+        # Vorkasse + Bank.
+        "vorkasse_enabled": tenant.vorkasse_enabled,
+        "bank_holder": tenant.bank_holder,
+        "bank_iban": tenant.bank_iban,
+        "bank_bic": tenant.bank_bic,
+        # Abholung/Prepay.
+        "orders_prepay": tenant.orders_prepay,
+        # Lieferung/Versand (значения в €, как order_list).
+        "delivery_enabled": tenant.delivery_enabled,
+        "delivery_fee_eur": _eur(tenant.delivery_fee_cents),
+        "delivery_free_eur": _eur(tenant.delivery_free_cents),
+        "delivery_min_eur": _eur(tenant.delivery_min_cents),
+        "delivery_area": tenant.delivery_area,
+        "pickup_min_eur": _eur(tenant.pickup_min_cents),
+        "delivery_restrict_to_zones": tenant.delivery_restrict_to_zones,
+        "delivery_zone_rows": _zone_rows(tenant),
+        "pickup_locations_text": "\n".join(
+            f"{p['name']} | {p['address']}".rstrip(" |")
+            for p in getattr(tenant, "pickup_points", [])
+        ),
+    }
+
+
 @login_required
 def payment_settings(request):
     """W4-3: единый экран «Zahlung & Versand» — свод оплаты/доставки, раньше размазанных
     по 3 экранам (Stripe-Zahlarten billing, Vorkasse/Lieferung/Abholung orders).
 
-    Одна форма, один Save. POST диспатчит на ИЗВЛЕЧЁННЫЕ save-хелперы (billing/orders) —
-    та же логика записи, что у старых экранов (без дивергенции checkout). Секция
-    сохраняется ТОЛЬКО при своём скрытом сентинеле (`sec_*`), который рендерится лишь
-    когда секция показана → скрытая секция не может затереть свои поля (guard потери).
-    Старые экраны billing-payments/orders-settings остаются рабочими.
+    Одна форма, один Save. POST диспатчит на извлечённые save-хелперы через
+    `save_payment_settings`; контекст — `payment_settings_context`. Оба переиспользуются
+    в слайде мастера «Zahlung». Старые экраны billing-payments/orders-settings живы.
     """
-    from apps.billing import connect
-    from apps.billing.views import STRIPE_METHOD_CHOICES, save_stripe_methods
-    from apps.core import modules as _mod
-    from apps.orders.views import _zone_rows, save_delivery, save_prepay, save_vorkasse
-
-    tenant = request.tenant
     if request.method == "POST":
-        if request.POST.get("sec_stripe"):
-            save_stripe_methods(tenant, request)
-        if request.POST.get("sec_prepay"):
-            save_prepay(tenant, request)
-        if request.POST.get("sec_vorkasse"):
-            save_vorkasse(tenant, request)
-        if request.POST.get("sec_delivery"):
-            save_delivery(tenant, request)
+        save_payment_settings(request)
         messages.success(request, _("Gespeichert."))
         return redirect("payment-settings")
-
-    def _eur(cents):
-        return f"{(cents or 0) / 100:.2f}"
-
     return render(
         request,
         "tenant/payment_settings.html",
-        {
-            "nav": "payments",
-            "orders_active": _mod.is_module_active(tenant, "orders"),
-            # Stripe-Connect + Zahlarten (E7-3).
-            "connect_configured": connect.is_connect_configured(),
-            "connected": bool(tenant.stripe_connect_id),
-            "payments_enabled": tenant.payments_enabled,
-            "method_choices": STRIPE_METHOD_CHOICES,
-            "selected_methods": set(getattr(tenant, "stripe_payment_methods", None) or []),
-            # Vorkasse + Bank.
-            "vorkasse_enabled": tenant.vorkasse_enabled,
-            "bank_holder": tenant.bank_holder,
-            "bank_iban": tenant.bank_iban,
-            "bank_bic": tenant.bank_bic,
-            # Abholung/Prepay.
-            "orders_prepay": tenant.orders_prepay,
-            # Lieferung/Versand (значения в €, как order_list).
-            "delivery_enabled": tenant.delivery_enabled,
-            "delivery_fee_eur": _eur(tenant.delivery_fee_cents),
-            "delivery_free_eur": _eur(tenant.delivery_free_cents),
-            "delivery_min_eur": _eur(tenant.delivery_min_cents),
-            "delivery_area": tenant.delivery_area,
-            "pickup_min_eur": _eur(tenant.pickup_min_cents),
-            "delivery_restrict_to_zones": tenant.delivery_restrict_to_zones,
-            "delivery_zone_rows": _zone_rows(tenant),
-            "pickup_locations_text": "\n".join(
-                f"{p['name']} | {p['address']}".rstrip(" |")
-                for p in getattr(tenant, "pickup_points", [])
-            ),
-        },
+        {"nav": "payments", **payment_settings_context(request)},
     )
 
 

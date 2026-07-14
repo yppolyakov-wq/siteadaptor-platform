@@ -457,6 +457,30 @@ def test_category_slide_picks_catalog_layout():
     assert tenant.site_config["catalog_layout"]["preset"] == "cols4"
 
 
+def test_payment_slide_reuses_shared_form_and_saves():
+    """AB6.2-payment: слайд payment переиспользует форму W4-3 (партиал _payment_fields)
+    и общий save-диспетчер — секция по сентинелу сохраняется тем же путём, что экран."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="pay",
+        name="Pay",
+        business_type="bakery",
+        disabled_modules=[],  # orders активен → секции доставки/Vorkasse рендерятся
+    )
+    onboarding.goto(tenant, "payment")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="sec_delivery"' in html and 'name="vorkasse_enabled"' in html
+    core_views.setup_view(
+        _req(
+            "post",
+            {"sec_delivery": "1", "delivery_enabled": "on", "delivery_fee_eur": "4,50"},
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    assert tenant.delivery_enabled is True and tenant.delivery_fee_cents == 450
+
+
 # --- рельса прогресса + прыжок ----------------------------------------------------
 
 

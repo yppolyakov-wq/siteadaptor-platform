@@ -5210,3 +5210,21 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `LAYOUT_PRESETS`). HANDLERS[category] += post/context/live. Ссылка «Kategorien verwalten».
   Замок `test_category_slide_picks_catalog_layout` (cols4). Layout/page_registry-тесты целы.
   Без миграций. Остаток слайдов: payment (партиализация формы W4-3 «Zahlung & Versand»).
+
+## 2026-07-13 — AB6.2-payment: слайд «Zahlung & Versand» (партиализация W4-3 + reuse)
+
+- **ВСЕ слайды мастера наполнены.** Слайд `payment` переиспользует форму W4-3 без
+  дублирования: из `payment_settings` извлечены `save_payment_settings(request)`
+  (POST-диспетчер по сентинелам sec_stripe/prepay/vorkasse/delivery — guard потери) и
+  `payment_settings_context(request)` (GET-контекст); экран делегирует обоим. Секции формы
+  вынесены в партиалы `tenant/_payment_fields.html` (①Online-Zahlung ②Abholung&Vorkasse
+  ③Lieferung, verbatim) и `tenant/_payment_connect.html` (Stripe-Connect OAuth-форма) —
+  включаются и в `payment_settings.html`, и в слайд.
+- Слайд: `_post_payment`/`_ctx_payment` (reuse хелперов), HANDLERS[payment] += post/context
+  (preview, **без live** — банковские поля не пишем на каждый ввод, save на «Weiter»);
+  `_step_payment.html` = connect-партиал + форма(fields-партиал + setup-buttons). Гейт слайда —
+  активный чекаут-модуль (`_gate_payment`).
+- Паритет: существующие `apps/core/tests/test_payment_settings.py` (5: рендер секций,
+  save всех секций eur→cents/IBAN/зоны, sentinel-guard, Stripe-gate, orders-off) зелёные
+  ПОСЛЕ рефактора → извлечение поля не уронило. Новый замок `test_payment_slide_reuses_
+  shared_form_and_saves` (delivery 4,50 €→450 центов через слайд). Без миграций.

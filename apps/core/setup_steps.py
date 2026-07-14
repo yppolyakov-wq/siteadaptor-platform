@@ -176,6 +176,21 @@ def _ctx_category(request):
     }
 
 
+def _post_payment(request):
+    # AB6.2-payment: сохранить оплату/доставку общим диспетчером (те же sec_*-гейты, что
+    # у экрана payment_settings) — секция не затирается без своего сентинела. Сохранение
+    # только на «Weiter» (payment-слайд не live — не писать IBAN на каждый ввод).
+    from apps.core.views import save_payment_settings
+
+    save_payment_settings(request)
+
+
+def _ctx_payment(request):
+    from apps.core.views import payment_settings_context
+
+    return payment_settings_context(request)
+
+
 def _post_hero(request):
     save_hero(request, request.tenant)
 
@@ -483,7 +498,13 @@ HANDLERS = {
         preview=True,
         live=True,
     ),
-    "payment": StepHandler(template="tenant/setup/_step_payment.html", preview=True),
+    # payment-слайд НЕ live (не писать банковские поля на каждый ввод) — save на «Weiter».
+    "payment": StepHandler(
+        template="tenant/setup/_step_payment.html",
+        post=_post_payment,
+        context=_ctx_payment,
+        preview=True,
+    ),
     "texts": StepHandler(
         template="tenant/setup/_step_texts.html", post=_post_texts, context=_ctx_texts
     ),
