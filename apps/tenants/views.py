@@ -52,25 +52,31 @@ def set_public_language(request):
 class BusinessSignupView(View):
     template_name = "tenants/onboarding.html"
 
-    def _context(self, form, request=None):
+    def _context(self, form, request=None, preselected_type=""):
         # AB3/AB5: тип бизнеса — визуальные карточки (иконка + язык задач), как в
         # мастере онбординга (шаг 1), а не сухой dropdown. #3/#5: + demo_url (кнопка
         # «Demo ansehen» на карточке → живая демо-витрина архетипа).
+        # preselected_type: пришли с Branchen-страницы (?type=) с УЖЕ выбранной отраслью
+        # → шаблон показывает компактный баннер выбранной отрасли + форму, а не весь
+        # пикер (фидбэк владельца: «должна просто открываться форма регистрации»).
         return {
             "form": form,
             "business_types": onboarding.business_type_cards(request),
             "ui_languages": ui_languages(),
+            "preselected_type": preselected_type,
         }
 
     def get(self, request):
         _capture_partner_ref(request)
         # Предвыбор типа бизнеса из ?type= (переход с Branchen-страницы «Jetzt starten»).
-        initial = {}
         pretype = (request.GET.get("type") or "").strip()
-        if pretype in dict(Tenant.BUSINESS_TYPES):
-            initial["business_type"] = pretype
-        form = BusinessSignupForm(initial=initial) if initial else BusinessSignupForm()
-        return render(request, self.template_name, self._context(form, request))
+        preselected = pretype if pretype in dict(Tenant.BUSINESS_TYPES) else ""
+        form = (
+            BusinessSignupForm(initial={"business_type": preselected})
+            if preselected
+            else BusinessSignupForm()
+        )
+        return render(request, self.template_name, self._context(form, request, preselected))
 
     def post(self, request):
         form = BusinessSignupForm(request.POST)

@@ -103,6 +103,28 @@ def test_signup_renders_business_type_as_cards(rf, settings):
     assert "checked" in body  # выбор friseur сохранён
 
 
+def test_signup_preselected_type_shows_compact_form_not_picker(rf, settings):
+    """Фидбэк владельца: переход с Branchen-страницы (?type=restaurant) → отрасль уже
+    выбрана → компактный баннер + форма (а НЕ весь пикер), «должна просто открываться
+    форма регистрации»."""
+    from apps.tenants.views import BusinessSignupView
+
+    settings.ROOT_URLCONF = "config.urls_public"
+    html = BusinessSignupView().get(rf.get("/registrieren/?type=restaurant")).content.decode()
+    assert 'type="hidden" name="business_type" value="restaurant"' in html  # тип зафиксирован
+    assert 'type="radio" name="business_type"' not in html  # без грид-пикера
+    assert "Ändern" in html  # можно сменить отрасль → /registrieren/
+
+
+def test_signup_invalid_type_falls_back_to_full_picker(rf, settings):
+    """Неизвестный ?type= → полный пикер (не компактный баннер)."""
+    from apps.tenants.views import BusinessSignupView
+
+    settings.ROOT_URLCONF = "config.urls_public"
+    html = BusinessSignupView().get(rf.get("/registrieren/?type=nonsense")).content.decode()
+    assert 'type="radio" name="business_type"' in html
+
+
 # --- AB4: чек-лист готовности сайта ------------------------------------------------
 @pytest.mark.django_db
 def test_completeness_empty_tenant_low_and_structured():

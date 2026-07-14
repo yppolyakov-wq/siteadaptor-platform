@@ -79,29 +79,50 @@
       <form method="post" class="space-y-6">
         {% csrf_token %}
 
-        {# 1. Тип бизнеса — визуальные карточки (иконка + язык задач + живое демо). #}
-        <div>
-          <label class="block text-sm font-medium text-gray-800 mb-2">{{ form.business_type.label }}</label>
-          <div class="grid sm:grid-cols-2 gap-3">
-            {% for bt in business_types %}
-              <label class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
-                <input type="radio" name="business_type" value="{{ bt.value }}"
-                       {% if form.business_type.value == bt.value %}checked{% endif %} class="mt-1 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                <span class="min-w-0">
-                  <span class="flex items-center gap-2 text-sm font-medium text-gray-900"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
-                  {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
-                  {% comment %}#3/#5: живая демо-витрина + Branchen-страница возможностей.
-                     <a> внутри <label> не переключает радио (interactive content).{% endcomment %}
-                  <span class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                    {% if bt.value != "other" %}<a href="/branchen/{{ bt.value }}/" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">{% trans "Mehr erfahren" %} →</a>{% endif %}
-                    {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800">👁 {% trans "Demo ansehen" %} ↗</a>{% endif %}
-                  </span>
+        {# 1. Тип бизнеса. #}
+        {% if preselected_type %}
+          {% comment %}Пришли с Branchen-страницы (?type=) — отрасль уже выбрана. Показываем
+             компактный баннер (а не весь пикер) + скрытое поле, чтобы страница читалась
+             как «форма регистрации». «Ändern» → /registrieren/ (полный пикер).{% endcomment %}
+          <div>
+            <label class="block text-sm font-medium text-gray-800 mb-2">{{ form.business_type.label }}</label>
+            {% for bt in business_types %}{% if bt.value == preselected_type %}
+              <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+                <span class="text-2xl leading-none">{{ bt.icon }}</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-medium text-gray-900">{{ bt.label }}</span>
+                  {% if bt.blurb %}<span class="block text-xs text-gray-500">{{ bt.blurb }}</span>{% endif %}
                 </span>
-              </label>
-            {% endfor %}
+                <a href="/registrieren/" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0">{% trans "Ändern" %}</a>
+              </div>
+            {% endif %}{% endfor %}
+            <input type="hidden" name="business_type" value="{{ preselected_type }}">
           </div>
-          {% for err in form.business_type.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
-        </div>
+        {% else %}
+          {# Визуальные карточки (иконка + язык задач + живое демо). #}
+          <div>
+            <label class="block text-sm font-medium text-gray-800 mb-2">{{ form.business_type.label }}</label>
+            <div class="grid sm:grid-cols-2 gap-3">
+              {% for bt in business_types %}
+                <label class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
+                  <input type="radio" name="business_type" value="{{ bt.value }}"
+                         {% if form.business_type.value == bt.value %}checked{% endif %} class="mt-1 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                  <span class="min-w-0">
+                    <span class="flex items-center gap-2 text-sm font-medium text-gray-900"><span class="text-xl leading-none">{{ bt.icon }}</span>{{ bt.label }}</span>
+                    {% if bt.blurb %}<span class="block text-xs text-gray-500 mt-0.5">{{ bt.blurb }}</span>{% endif %}
+                    {% comment %}#3/#5: живая демо-витрина + Branchen-страница возможностей.
+                       <a> внутри <label> не переключает радио (interactive content).{% endcomment %}
+                    <span class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                      {% if bt.value != "other" %}<a href="/branchen/{{ bt.value }}/" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">{% trans "Mehr erfahren" %} →</a>{% endif %}
+                      {% if bt.demo_url %}<a href="{{ bt.demo_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800">👁 {% trans "Demo ansehen" %} ↗</a>{% endif %}
+                    </span>
+                  </span>
+                </label>
+              {% endfor %}
+            </div>
+            {% for err in form.business_type.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}
 
         {# 2. Название + город. #}
         <div class="grid sm:grid-cols-2 gap-4">
