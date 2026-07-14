@@ -221,17 +221,175 @@ def _ctx_texts(request):
     }
 
 
+# AB6.2c: типы сущностей, для которых слайд «Angebot» показывает мини-форму создания
+# первой позиции (по primary-архетипу). jobs (Anfrage/смета) и promotions — без
+# создаваемой сущности → только пресеты/CTA. Плейсхолдер имени — язык задач архетипа.
+_OFFER_KINDS = ("catalog", "booking", "stays", "events")
+_OFFER_NAME_PH = {
+    "catalog": "z. B. Roggenbrot",
+    "booking": "z. B. Haarschnitt",
+    "stays": "z. B. Doppelzimmer",
+    "events": "z. B. Sommerkonzert",
+}
+
+
+def _offer_kind(tenant) -> str | None:
+    """AB6.2c: тип продаваемой сущности для мини-формы (или None, если у архетипа нет
+    создаваемой позиции — jobs/promotions/выключенные модули)."""
+    from apps.core import archetypes
+
+    kind = archetypes.primary_module(tenant)
+    return kind if kind in _OFFER_KINDS else None
+
+
+def _parse_price_eur(raw: str):
+    """'12,50 €' / '12.50' → Decimal ≥ 0, иначе None (пустое/мусор). Немецкая
+    запятая-разделитель и символ € допускаются (владелец печатает как привык)."""
+    from decimal import Decimal, InvalidOperation
+
+    s = (raw or "").strip().replace("€", "").replace(" ", "").replace(",", ".")
+    if not s:
+        return None
+    try:
+        val = Decimal(s)
+    except (InvalidOperation, ValueError):
+        return None
+    return val if val >= 0 else None
+
+
+def _parse_dt_local(raw: str):
+    """'2026-07-20T14:30' (input datetime-local) → aware datetime, иначе None."""
+    from datetime import datetime
+
+    from django.utils import timezone
+
+    s = (raw or "").strip()
+    if not s:
+        return None
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError:
+        return None
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
+
+
+def _offer_items(tenant) -> list[dict]:
+    """AB6.2c: уже добавленные позиции primary-архетипа для списка «✏️» в слайде.
+    [{name, url}] (url — родная форма правки: pk-редактор для товара/события, список-
+    редактор для услуг/номеров). Fail-safe: любая ошибка → пустой список."""
+    from django.urls import reverse
+
+    kind = _offer_kind(tenant)
+    if not kind:
+        return []
+    rows: list[dict] = []
+    try:
+        if kind == "catalog":
+            from apps.catalog.models import Product
+
+            for p in Product.objects.all().order_by("-created_at")[:8]:
+                rows.append(
+                    {
+                        "name": p.name_text or "—",
+                        "url": reverse("catalog:product-edit", args=[p.pk]),
+                    }
+                )
+        elif kind == "events":
+            from apps.events.models import Event
+
+            for e in Event.objects.all().order_by("-starts_at")[:8]:
+                rows.append({"name": e.title or "—", "url": reverse("events:edit", args=[e.pk])})
+        elif kind == "booking":
+            from apps.booking.models import Service
+
+            url = reverse("booking:services")  # правка услуг — инлайн на списке
+            for s in Service.objects.all().order_by("-created_at")[:8]:
+                rows.append({"name": s.name or "—", "url": url})
+        elif kind == "stays":
+            from apps.stays.models import StayUnit
+
+            url = reverse("stays:units")  # правка номеров — инлайн на списке
+            for u in StayUnit.objects.all().order_by("-created_at")[:8]:
+                rows.append({"name": u.name or "—", "url": url})
+    except Exception:  # noqa: BLE001 — модуль выключен / нет таблицы
+        return []
+    return rows
+
+
+def create_offer(request) -> None:
+    """AB6.2c: создать первую продаваемую сущность из мини-формы слайда «Angebot».
+
+    Тип — по primary-архетипу (товар/услуга/номер/событие); минимум полей (имя + цена,
+    для события ещё дата) — детали правятся в родной форме («✏️» в списке). Остаёмся
+    на слайде (action=create_offer в диспетчере). Одну позицию не роняем весь мастер."""
+    tenant = request.tenant
+    kind = _offer_kind(tenant)
+    if not kind:
+        return
+    name = request.POST.get("offer_name", "").strip()
+    if not name:
+        messages.error(request, _("Please enter a name."))
+        return
+    price = _parse_price_eur(request.POST.get("offer_price", ""))
+    cents = int((price * 100).to_integral_value()) if price is not None else 0
+    try:
+        if kind == "catalog":
+            from decimal import Decimal
+
+            from apps.catalog.models import Product
+
+            Product.objects.create(
+                name={"de": name}, base_price=price if price is not None else Decimal("0")
+            )
+        elif kind == "booking":
+            from apps.booking.models import Service
+
+            Service.objects.create(name=name, price_cents=cents)
+        elif kind == "stays":
+            from apps.stays.models import StayUnit
+
+            StayUnit.objects.create(name=name, price_cents=cents)
+        elif kind == "events":
+            from datetime import timedelta
+
+            from django.utils import timezone
+
+            from apps.events.models import Event
+
+            starts_at = _parse_dt_local(request.POST.get("offer_starts_at", "")) or (
+                timezone.now() + timedelta(days=7)
+            )
+            Event.objects.create(
+                title=name,
+                starts_at=starts_at,
+                price_cents=cents,
+                status=Event.STATUS_PUBLISHED,
+            )
+    except Exception:  # noqa: BLE001 — не роняем мастер из-за одной позиции
+        messages.error(request, _("Couldn't add it — please try again."))
+        return
+    messages.success(request, _("Added — edit the details anytime."))
+
+
 def _ctx_content(request):
     from apps.promotions import presets
     from apps.tenants import demo, onboarding
 
     label, url = onboarding.offer_cta(request.tenant)
+    kind = _offer_kind(request.tenant)
     return {
         "presets": presets.presets_for(request.tenant.business_type),
         "has_demo": demo.has_demo(request.tenant),  # B.1: предложить/убрать демо-контент
         # W3: CTA «добавь первое X» — по архетипу, не хардкод «Produkt».
         "offer_label": label,
         "offer_url": url,
+        # AB6.2c: мини-форма первой сущности (по kind) + список уже добавленных.
+        "offer_kind": kind,
+        "offer_needs_date": kind == "events",
+        "offer_name_ph": _OFFER_NAME_PH.get(kind, ""),
+        "offer_items": _offer_items(request.tenant),
     }
 
 

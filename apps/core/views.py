@@ -162,6 +162,11 @@ def setup_view(request):
             if demo.clear_demo(tenant):
                 messages.info(request, _("Example content removed."))
             return redirect("setup")
+        # AB6.2c: мини-форма слайда «Angebot» — создать первую сущность (товар/услуга/
+        # номер/событие по архетипу) и остаться на слайде (можно добавить ещё).
+        if action == "create_offer":
+            setup_steps.create_offer(request)
+            return redirect("setup")
         # AB3/AB6.9 «Mit Beispielen starten» (слайд start): залить БОГАТОЕ демо — товары/
         # услуги/номера с ФОТО + hero-баннер + галерея (load_demo обогащён), затем шагнуть
         # дальше. Вид витрины (шаблон/раскладку) владелец выбирает на слайде «Stil» — здесь

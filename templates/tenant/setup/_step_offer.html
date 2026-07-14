@@ -1,7 +1,50 @@
 {% load i18n %}
-<h1 class="text-2xl font-bold mb-1">Dein erster Inhalt</h1>
-<p class="text-sm text-gray-500 mb-4">Starte mit einer typischen Aktion — ein Klick, fertig ausgefüllt.</p>
-{# B.1 (анти-Битрикс): наполнить сайт демо-контентом одним кликом — витрина сразу не пустая. #}
+{% comment %}AB6.2c: слайд «Angebot». Мини-форма первой продаваемой сущности по
+primary-архетипу (товар/услуга/номер/событие) — имя + цена (событие ещё дата), детали
+правятся в родной форме («✏️» в списке ниже). Плюс демо-контент одним кликом (B.1),
+пресеты акций и CTA. jobs/promotions (offer_kind пуст) — без мини-формы.{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">Dein Angebot</h1>
+<p class="text-sm text-gray-500 mb-4">Lege deine erste Position an — Details kannst du jederzeit ergänzen.</p>
+
+{% if offer_kind %}
+  {% comment %}AB6.2c: мини-форма создания первой сущности (action=create_offer → остаёмся на слайде).{% endcomment %}
+  <form method="post" class="bg-white rounded-xl shadow-sm p-4 mb-4 space-y-3">
+    {% csrf_token %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_offer_name">{{ offer_label }}</label>
+      <input id="id_offer_name" name="offer_name" type="text" required placeholder="{{ offer_name_ph }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div class="flex gap-3">
+      <div class="flex-1">
+        <label class="block text-sm font-medium mb-1" for="id_offer_price">Preis (€)</label>
+        <input id="id_offer_price" name="offer_price" type="text" inputmode="decimal" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      {% if offer_needs_date %}
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-1" for="id_offer_starts_at">Datum &amp; Uhrzeit</label>
+          <input id="id_offer_starts_at" name="offer_starts_at" type="datetime-local" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+      {% endif %}
+    </div>
+    <button type="submit" name="action" value="create_offer" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">+ Hinzufügen</button>
+  </form>
+
+  {% if offer_items %}
+    <div class="mb-4">
+      <p class="text-xs font-medium text-gray-400 mb-1">{% trans "Already added" %}</p>
+      <ul class="space-y-1">
+        {% for it in offer_items %}
+          <li class="flex items-center justify-between bg-white rounded-lg shadow-sm px-3 py-2 text-sm">
+            <span class="truncate">{{ it.name }}</span>
+            <a href="{{ it.url }}" class="shrink-0 text-indigo-600 hover:text-indigo-800 ml-2" title="{% trans 'Edit' %}">✏️</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endif %}
+
+{% comment %}B.1 (анти-Битрикс): наполнить сайт демо-контентом одним кликом — витрина сразу не пустая.{% endcomment %}
 <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-4">
   {% if has_demo %}
     <p class="text-sm text-gray-700 mb-2">✓ Beispiel-Inhalte sind geladen — schau dir deine Seite an und passe sie an.</p>
@@ -15,15 +58,17 @@
     </form>
   {% endif %}
 </div>
+
 <div class="space-y-2 mb-4">
   {% for p in presets %}
     <a href="{% url 'promotions:promotion-create' %}?preset={{ p.key }}"
        class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ p.label }} →</a>
   {% endfor %}
-  {# W3: CTA по архетипу — «услугу/событие/товар добавить», не всегда «Produkt». #}
+  {% comment %}W3: CTA по архетипу — «услугу/событие/товар добавить», ведёт в полный редактор.{% endcomment %}
   <a href="{% url offer_url %}"
-     class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ offer_label }} →</a>
+     class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ offer_label }} (alle Felder) →</a>
 </div>
+
 <form method="post">
   {% csrf_token %}
   {% include "tenant/_setup_buttons.html" %}

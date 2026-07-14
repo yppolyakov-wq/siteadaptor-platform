@@ -381,6 +381,71 @@ def test_offer_slide_loads_and_clears_demo_content():
     assert demo.has_demo(tenant) is False
 
 
+def test_offer_slide_creates_first_product():
+    """AB6.2c: мини-форма слайда offer создаёт первый товар (bakery → catalog) и
+    показывает его в списке «✏️»; остаёмся на слайде."""
+    from decimal import Decimal
+
+    from apps.catalog.models import Product
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="wiz-off",
+        name="WizOff",
+        business_type="bakery",
+        disabled_modules=modules.default_disabled_for("bakery"),
+    )
+    onboarding.goto(tenant, "offer")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="offer_name"' in html and 'value="create_offer"' in html
+    resp = core_views.setup_view(
+        _req(
+            "post",
+            {"action": "create_offer", "offer_name": "Roggenbrot", "offer_price": "3,50"},
+            tenant,
+        )
+    )
+    assert resp.status_code == 302  # остаёмся на слайде, можно добавить ещё
+    product = Product.objects.get(name__de="Roggenbrot")
+    assert product.base_price == Decimal("3.50")
+    assert onboarding.get_state(tenant)["step"] == "offer"
+    # позиция появляется в списке с ссылкой на родную форму правки
+    html2 = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "Roggenbrot" in html2 and str(product.pk) in html2
+
+
+def test_offer_slide_creates_event_with_date():
+    """AB6.2c: у events-архетипа мини-форма показывает поле даты и создаёт
+    опубликованное событие с распарсенным starts_at + ценой в центах."""
+    from apps.events.models import Event
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="wiz-ev",
+        name="WizEv",
+        business_type="events",
+        disabled_modules=modules.default_disabled_for("events"),
+    )
+    onboarding.goto(tenant, "offer")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="offer_starts_at"' in html  # поле даты только у события
+    core_views.setup_view(
+        _req(
+            "post",
+            {
+                "action": "create_offer",
+                "offer_name": "Sommerkonzert",
+                "offer_price": "12",
+                "offer_starts_at": "2026-08-20T19:30",
+            },
+            tenant,
+        )
+    )
+    ev = Event.objects.get(title="Sommerkonzert")
+    assert ev.status == Event.STATUS_PUBLISHED and ev.price_cents == 1200
+    assert ev.starts_at.year == 2026 and ev.starts_at.month == 8
+
+
 # --- рельса прогресса + прыжок ----------------------------------------------------
 
 

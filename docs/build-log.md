@@ -5182,3 +5182,22 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   реквизиты §0b.2). `_post_texts`/`_ctx_texts`. Замок `test_texts_slide_saves_about_and_
   impressum`. Без миграций. Остаток слайдов: offer (вид товара+мини-форма), category
   (раскладка — ключ уточнить), payment (партиализация W4-3).
+
+## 2026-07-13 — AB6.2c: слайд «Angebot» — мини-форма первой сущности + список позиций
+
+- Слайд `offer` наполнен ядром «добавьте товар»: **мини-форма** создания первой продаваемой
+  сущности по primary-архетипу (`archetypes.primary_module` → товар/услуга/номер/событие;
+  jobs/promotions/None — без формы, только пресеты/CTA). Минимум полей: имя + цена (событие
+  ещё дата/время `datetime-local`); детали правятся в родной форме («✏️» в списке ниже).
+  Цена — немецкий ввод (`_parse_price_eur`: «12,50 €»→Decimal, → центы для booking/stays/
+  events; товар — `base_price` Decimal). Событие → `STATUS_PUBLISHED` + `starts_at` (парс
+  `_parse_dt_local`, фолбэк now+7 дней).
+- Создание — `setup_steps.create_offer(request)` (fail-safe: одна позиция не роняет мастер),
+  `action=create_offer` в диспетчере `setup_view` → редирект на слайд (можно добавить ещё).
+  `_ctx_content` += `offer_kind`/`offer_needs_date`/`offer_name_ph`/`offer_items`
+  (`_offer_items`: до 8 позиций архетипа + ссылка на правку — pk-редактор товара/события,
+  список-редактор услуг/номеров). Шаг авто-✓ по `_check_offer` (`_has_offering`).
+- Замки: `test_offer_slide_creates_first_product` (bakery→catalog: Product 3,50 € + в списке
+  с pk-ссылкой), `test_offer_slide_creates_event_with_date` (events→Event published, 12 €→1200
+  центов, дата распарсена). `test_offer_slide_shows_archetype_presets_and_cta`/`…_loads_and_
+  clears_demo` целы. Без миграций. Остаток слайдов: category (раскладка), payment (W4-3-партиал).
