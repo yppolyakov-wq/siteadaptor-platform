@@ -414,7 +414,9 @@ def test_anfrage_rejects_spoofed_image_content_type(settings, tmp_path):
     evil = SimpleUploadedFile(
         "evil.html", b"<script>alert(document.cookie)</script>", content_type="image/png"
     )
-    request = _req("post", path="/anfrage/", data={"title": "Wand", "name": "Kunde", "photos": evil})
+    request = _req(
+        "post", path="/anfrage/", data={"title": "Wand", "name": "Kunde", "photos": evil}
+    )
     public_views.anfrage(request)
     assert JobPhoto.objects.count() == 0
 

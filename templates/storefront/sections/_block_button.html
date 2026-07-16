@@ -1,9 +1,10 @@
 {# D.2 C-блок: CTA-кнопка по центру. Пусто → ничего. #}
+{% load siteui %}
 {% if block.label and block.url %}
 <div class="cb-box my-8 text-center max-w-3xl mx-auto">
   {% comment %}target=_top: ссылка может вести на ВНЕШНИЙ сайт; внутри канвы редактора (iframe)
   без него внешний URL грузится в кадр и ловит X-Frame-Options: DENY → chrome-error.
   На обычной витрине (не в кадре) _top === переход в том же окне — поведение не меняется.{% endcomment %}
-  <a href="{{ block.url }}" target="_top" rel="noopener" class="inline-block text-white text-sm font-medium px-6 py-3 rounded-lg" style="background: var(--accent);">{{ block.label }}</a>
+  <a href="{{ block.url|safe_href }}" target="_top" rel="noopener" class="inline-block text-white text-sm font-medium px-6 py-3 rounded-lg" style="background: var(--accent);">{{ block.label }}</a>
 </div>
 {% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Button — klicken zum Bearbeiten" %}{% endif %}

@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.utils.translation import gettext as _
 from PIL import Image, UnidentifiedImageError
+from PIL.Image import DecompressionBombError
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB
 ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP"}
@@ -25,9 +26,16 @@ def validate_image(uploaded) -> str:
         img = Image.open(uploaded)
         img.verify()  # проверка целостности
         fmt = img.format
-    except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
+    except (
+        UnidentifiedImageError,
+        OSError,
+        SyntaxError,
+        ValueError,
+        DecompressionBombError,
+    ) as exc:
         # SyntaxError/ValueError: Pillow на битых чанках (напр. «broken PNG file»)
         # — отдаём чистый 400, а не 500 (важно для замены фото на канве редактора).
+        # DecompressionBombError: маленький файл с огромными размерами (bomb) → 400.
         raise ValidationError(_("Not a valid image file.")) from exc
     finally:
         uploaded.seek(0)

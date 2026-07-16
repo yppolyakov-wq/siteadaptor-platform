@@ -62,6 +62,22 @@ CBLOCK_TEMPLATES = {
 }
 
 
+@register.filter(name="safe_href")
+def safe_href(url):
+    """Разрешить только http(s)/mailto/tel/относительные ссылки; иначе '#'.
+
+    C-блоки (напр. CTA-кнопка) хранят owner-задаваемый url; без проверки схемы
+    владелец мог задать `javascript:...` → XSS на своей витрине при клике. Также
+    режем protocol-relative `//host` (навигация на чужой сайт)."""
+    s = (url or "").strip()
+    if s.startswith("//"):
+        return "#"
+    low = s.lower()
+    if low.startswith(("http://", "https://", "mailto:", "tel:")) or s.startswith(("/", "#")):
+        return s
+    return "#"
+
+
 @register.simple_tag
 def live_promo(pk):
     """UE1 (D2=LIVE): активная промо по pk или None — fail-safe к мусору/уда-

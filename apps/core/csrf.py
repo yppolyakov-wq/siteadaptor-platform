@@ -27,13 +27,13 @@ def _request_diagnostics(request, reason: str) -> dict:
     except DisallowedHost:
         host = f"<disallowed: {request._get_raw_host()!r}>"
     cookie_name = settings.CSRF_COOKIE_NAME
+    # Прокси/TLS-топологию (is_secure, X-Forwarded-Proto) НЕ раскрываем анониму —
+    # диагностики Origin/Referer/host/куки достаточно для типовых причин отказа.
     return {
         "reason": reason,
         "path": request.path,
         "method": request.method,
         "host": host,
-        "is_secure": request.is_secure(),
-        "x_forwarded_proto": request.META.get("HTTP_X_FORWARDED_PROTO", ""),
         "origin": request.META.get("HTTP_ORIGIN", "<none>"),
         "referer": request.META.get("HTTP_REFERER", "<none>"),
         "csrf_cookie_received": cookie_name in request.COOKIES,

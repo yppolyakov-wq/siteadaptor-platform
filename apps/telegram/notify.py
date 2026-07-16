@@ -107,14 +107,21 @@ def owner_deep_link(tenant) -> str:
 
 
 def link_owner_from_start(payload: str, chat_id, tenant) -> bool:
-    """Привязать chat_id владельца по /start owner-<token>. True при успехе."""
+    """Привязать chat_id владельца по /start owner-<token>. True при успехе.
+
+    Токен single-use: после успешной привязки ротируем его, чтобы утёкшая
+    deep-link-ссылка (скриншот/referrer) не позволяла привязать чужой chat
+    повторно. Новую ссылку владелец получит из кабинета (генерится заново)."""
     if not payload.startswith("owner-"):
         return False
     token = payload[len("owner-") :]
     node = _notify_node(tenant)
     if not token or node.get("owner_link_token") != token:
         return False
-    _save_notify_node(tenant, {**node, "owner_chat_id": str(chat_id)})
+    _save_notify_node(
+        tenant,
+        {**node, "owner_chat_id": str(chat_id), "owner_link_token": secrets.token_urlsafe(16)},
+    )
     return True
 
 

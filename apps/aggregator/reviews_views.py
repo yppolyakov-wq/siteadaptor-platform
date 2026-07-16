@@ -6,11 +6,12 @@
 """
 
 from django.contrib import messages
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core import ratelimit
 from apps.core.seo import localbusiness_ld
 from apps.tenants.models import Tenant
 
@@ -87,6 +88,12 @@ def submit_review(request, slug):
     user = auth.current_portal_user(request)
     if user is None:
         return redirect("portal-login")
+    # MEDIUM-11: отзыв публикуется сразу и двигает агрегатный рейтинг бизнеса (SEO
+    # JSON-LD). Отзыв на бизнес можно оставить по slug на ЛЮБОГО (не только там, где
+    # была покупка), поэтому дросселируем массовую накрутку/бомбинг по IP. Полная
+    # защита (верификация визита/модерация) — отдельным продуктовым решением владельца.
+    if ratelimit.hit("biz_review", ratelimit.client_ip(request), limit=10, window=3600):
+        return HttpResponse(status=429)
     business = _business_or_404(slug)
     try:
         rating = int(request.POST.get("rating", ""))
