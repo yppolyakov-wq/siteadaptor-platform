@@ -27,15 +27,19 @@
 </div>
 
 {% if show_preview %}
-  {% comment %}Тело в две половины: настройки | превью (фидбэк «раздели на пол экрана»).{% endcomment %}
-  <div class="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+  {% comment %}Тело в две половины: настройки | превью (фидбэк «раздели на пол экрана»).
+  Фидбэк 2026-07-16: границу можно ТЯНУТЬ влево/вправо (ручка #setup-resizer, Pointer
+  Capture — drag не теряется над iframe; клампы 25–75%, персист localStorage, dblclick
+  = сброс 50/50). Превью само подстраивает zoom (ResizeObserver в fit-JS ниже).{% endcomment %}
+  <div id="setup-split">
     <div id="setup-slide">
       {% include step_template %}
     </div>
-    {% comment %}AB3-v2: живое превью справа (половина экрана). iframe рендерится
-    десктопной шириной и масштабируется в колонку (zoom-out, JS-fit ниже) — виден
-    весь сайт, а не мобильная нарезка; без JS — фолбэк w-full/h-full.{% endcomment %}
-    <aside class="hidden lg:block lg:sticky lg:top-4 mt-8 lg:mt-0">
+    <div id="setup-resizer" class="hidden" title="{% trans 'Drag to resize · double-click to reset' %}" aria-hidden="true"><span></span></div>
+    {% comment %}AB3-v2: живое превью справа. iframe рендерится десктопной шириной и
+    масштабируется в колонку (zoom-out, JS-fit ниже) — виден весь сайт, а не мобильная
+    нарезка; без JS — фолбэк w-full/h-full.{% endcomment %}
+    <aside class="hidden lg:block lg:sticky lg:top-4 mt-8 lg:mt-0 min-w-0">
       <p class="text-xs font-medium text-gray-400 mb-2 truncate">{% trans "Live preview" %}{% if live_save %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
       <div data-preview-shell class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm h-[min(80vh,780px)]">
         <iframe data-setup-preview src="/" title="{% trans 'Website preview' %}" class="w-full h-full border-0" loading="lazy"></iframe>
@@ -43,6 +47,70 @@
       <a href="/" target="_blank" rel="noopener" class="mt-2 inline-block text-sm text-indigo-600 hover:underline">🌐 {% trans "Open website" %} →</a>
     </aside>
   </div>
+  <style>
+    /* Двухпанельный сплит мастера: [настройки | ручка | превью]. Доли — CSS-переменные
+       (--setup-l/--setup-r, fr), которые двигает resizer-JS; мобайл — обычный поток. */
+    @media (min-width: 1024px) {
+      #setup-split {
+        display: grid;
+        grid-template-columns: minmax(300px, var(--setup-l, 1fr)) 14px minmax(320px, var(--setup-r, 1fr));
+        column-gap: 0.625rem;
+        align-items: start;
+      }
+      #setup-resizer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-self: stretch;
+        cursor: ew-resize;
+        border-radius: 7px;
+        touch-action: none;
+      }
+      #setup-resizer:hover, #setup-resizer.dragging { background: rgba(99, 102, 241, .12); }
+      #setup-resizer > span { width: 4px; height: 48px; border-radius: 9999px; background: #d1d5db; }
+      #setup-resizer:hover > span, #setup-resizer.dragging > span { background: #6366f1; }
+    }
+  </style>
+  <script>
+  (function () {
+    // Тянущаяся граница панелей (реюз паттерна bld-panel-resizer: Pointer Capture —
+    // события не теряются над iframe превью). Персист доли в localStorage.
+    var split = document.getElementById("setup-split");
+    var handle = document.getElementById("setup-resizer");
+    if (!split || !handle) return;
+    var frac = 0.5;
+    function apply(f) {
+      frac = Math.min(0.75, Math.max(0.25, f));
+      split.style.setProperty("--setup-l", frac + "fr");
+      split.style.setProperty("--setup-r", (1 - frac) + "fr");
+    }
+    try {
+      var saved = parseFloat(localStorage.getItem("setup_split"));
+      if (saved >= 0.25 && saved <= 0.75) apply(saved);
+    } catch (e) {}
+    function persist() {
+      try { localStorage.setItem("setup_split", String(Math.round(frac * 100) / 100)); } catch (e) {}
+    }
+    handle.addEventListener("dblclick", function () { apply(0.5); persist(); });
+    handle.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      handle.classList.add("dragging");
+      var rect = split.getBoundingClientRect();
+      function move(ev) { apply((ev.clientX - rect.left) / rect.width); }
+      function up() {
+        handle.classList.remove("dragging");
+        handle.removeEventListener("pointermove", move);
+        handle.removeEventListener("pointerup", up);
+        handle.removeEventListener("pointercancel", up);
+        persist();
+      }
+      handle.addEventListener("pointermove", move);
+      handle.addEventListener("pointerup", up);
+      handle.addEventListener("pointercancel", up);
+    });
+  })();
+  </script>
 {% else %}
   <div id="setup-slide" class="max-w-xl">
     {% include step_template %}
