@@ -5329,6 +5329,33 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `localStorage['setup_split']`, dblclick = сброс 50/50; превью авто-перезумируется
   (ResizeObserver в fit-JS). Headless: drag 250px влево → доля 0.32, scale превью
   0.56→0.77, персист; dblclick → 0.5. Мобайл — обычный поток (ручка скрыта). Без миграций.
+
+## 2026-07-16 — AB6.2-lang: слайд «Sprachen» в мастере + per-language контент-поля
+
+- Фидбэк владельца: «выбирать базовый язык на этапе настройки (по умолчанию немецкий)
+  и далее заполнять на каждом языке, который выбран для сайта».
+- **Слайд `language` («Sprachen», 🌐)** — после «Firma & Logo», ДО контент-шагов:
+  чекбоксы языков реестра `settings.LANGUAGES` + радио «Standard» (свежий тенант —
+  немецкий включён/дефолтен через `active_locales`-фолбэк). Реюз L2 без дубля: из
+  `languages_view` извлечены `save_languages(request)` (инварианты «минимум один язык;
+  дефолт ∈ включённые») и `languages_context(tenant)` — кабинет «Sprachen» делегирует
+  им (10 L2/nav-тестов зелёные после рефактора). Авто-✓ `_check_language`
+  (enabled_locales уже настроены — в мастере или кабинете); save на «Weiter» (не live).
+- **Per-language контент-поля**: на слайдах `home` (Titel/Untertitel баннера) и `texts`
+  (Über uns Titel/Text) при >1 включённой локали — пилюли языков
+  (`setup/_loc_pills.html`) → панели `[data-loc-pane]` (скрыты hidden, поля в DOM —
+  инвариант W0; live-save шлёт все локали). База (de = LANGUAGE_CODE) — плоские поля
+  как раньше; переводы — presence-safe в оверлей `config["i18n"][loc][field]`
+  (`_save_overlay_fields`; пусто = убрать перевод → фолбэк на немецкий). Витрина
+  отдаёт их существующим `siteconfig.localize` — рендер-путь не менялся.
+  Переключение пилюль — делегированный клик в setup.html (урок Ф1 #1). Фото баннера
+  и Impressum — общие (Impressum per-locale — редактор «Rechtstexte», ссылка есть).
+- Хелперы `_content_locales`/`_save_overlay_fields`/`_i18n_panes` в setup_steps.
+  Замки: `test_language_slide_saves_enabled_and_default` (де-дефолт, advance, авто-✓),
+  `test_hero_slide_saves_per_locale_overlay` (оверлей + `localize("en")` + пусто=фолбэк),
+  `test_texts_slide_saves_about_overlay`, `test_single_locale_hides_pills`. Обновлены
+  roundtrip/progress-тесты под новый шаг (фабрика дефолтит `["de","en"]` — «свежесть»
+  задаётся `enabled_locales=[]`). Без миграций.
 - **Мастер: zoom-out live-превью** (фидбэк «сайт немного зумировать, чтоб всё было
   видно»): iframe рендерится ДЕСКТОПНОЙ шириной 1200px и масштабируется
   `transform:scale` в ширину колонки (~0.33) — виден весь десктопный сайт, а не

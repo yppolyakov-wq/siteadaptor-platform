@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}AB6.2-lang (фидбэк владельца 2026-07-16): базовый язык сайта выбирается
+в мастере (дефолт — немецкий) + доп. языки. Реюз семантики кабинета «Sprachen» (L2):
+чекбоксы реестра settings.LANGUAGES + радио дефолта → enabled_locales/default_locale.
+Контент на выбранных языках заполняется на следующих шагах (пилюли).{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">Sprachen deiner Website</h1>
+<p class="text-sm text-gray-500 mb-4">Wähle die Standardsprache (vorausgewählt: Deutsch) und weitere Sprachen. Inhalte füllst du in den nächsten Schritten pro Sprache aus.</p>
+<form method="post" class="space-y-4">
+  {% csrf_token %}
+  <div class="space-y-2">
+    {% for l in languages %}
+      <div class="flex items-center justify-between gap-3 bg-white rounded-xl shadow-sm px-4 py-2.5">
+        <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+          <input type="checkbox" name="locales" value="{{ l.code }}" {% if l.enabled %}checked{% endif %} class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+          {{ l.label }} <span class="text-xs text-gray-400 uppercase">{{ l.code }}</span>
+        </label>
+        <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
+          <input type="radio" name="default_locale" value="{{ l.code }}" {% if l.is_default %}checked{% endif %} class="text-indigo-600 focus:ring-indigo-500">
+          {% trans "Default" %}
+        </label>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="text-xs text-gray-400">Die Standardsprache sehen Besucher zuerst; weitere Sprachen erscheinen als Umschalter in der Kopfzeile. Später änderbar unter „Sprachen" in den Einstellungen.</p>
+  {% include "tenant/_setup_buttons.html" %}
+</form>

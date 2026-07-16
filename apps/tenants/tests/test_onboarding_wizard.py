@@ -98,16 +98,16 @@ def test_state_v2_roundtrip_via_advance_and_skip():
     снимает пропуск. Порядок по ВИДИМЫМ шагам тенанта."""
     tenant = TenantFactory(business_type="bakery")
     onboarding.goto(tenant, "company")  # старт с первого видимого
-    onboarding.advance(tenant)  # company выполнен → stil
-    onboarding.advance(tenant, skip=True)  # stil пропущен → menu
+    onboarding.advance(tenant)  # company выполнен → language (AB6.2-lang)
+    onboarding.advance(tenant, skip=True)  # language пропущен → stil
     raw = tenant.site_config["onboarding"]
-    assert raw["v"] == 2 and raw["step"] == "menu"
-    assert raw["done"] == ["company"] and raw["skipped"] == ["stil"]
+    assert raw["v"] == 2 and raw["step"] == "stil"
+    assert raw["done"] == ["company"] and raw["skipped"] == ["language"]
     # Вернулись по рельсе и прошли пропущенный шаг → done, из skipped снят.
-    onboarding.goto(tenant, "stil")
+    onboarding.goto(tenant, "language")
     onboarding.advance(tenant)
     state = onboarding.get_state(tenant)
-    assert state["done"] == ["company", "stil"] and state["skipped"] == []
+    assert state["done"] == ["company", "language"] and state["skipped"] == []
 
 
 def test_goto_jumps_to_any_registry_step_incl_gated():
@@ -145,8 +145,12 @@ def test_payment_step_gated_by_checkout_module():
 
 def test_visible_total_excludes_gated_steps():
     """«Step N of M» и прогресс считают только видимые шаги (business всегда скрыт)."""
+    # enabled_locales=[] = реально свежий тенант (фабрика дефолтит ["de","en"] для
+    # i18n-тестов → language был бы авто-✓ и прогресс 1/N).
     other = TenantFactory(
-        business_type="other", disabled_modules=modules.default_disabled_for("other")
+        business_type="other",
+        disabled_modules=modules.default_disabled_for("other"),
+        enabled_locales=[],
     )
     vis = onboarding.visible_keys(other)
     assert "business" not in vis and "payment" not in vis
@@ -330,6 +334,85 @@ def test_home_slide_saves_hero_texts():
     tenant.refresh_from_db()
     assert tenant.site_config["hero_title"] == "Moin"
     assert tenant.site_config["hero_text"] == "Frisch"
+
+
+# --- AB6.2-lang: языки в мастере + per-language контент-поля -----------------------
+
+
+def test_language_slide_saves_enabled_and_default():
+    """AB6.2-lang: слайд «Sprachen» — чекбоксы реестра + дефолт (по умолчанию de) →
+    enabled_locales/default_locale (та же семантика, что кабинет L2)."""
+    tenant = TenantFactory(business_type="bakery", enabled_locales=[])  # реально свежий
+    onboarding.goto(tenant, "language")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="locales"' in html and 'name="default_locale"' in html
+    # свежий тенант: немецкий включён и дефолтен (active_locales-фолбэк)
+    assert 'value="de" checked' in html
+    core_views.setup_view(_req("post", {"locales": ["de", "en"], "default_locale": "de"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.enabled_locales == ["de", "en"] and tenant.default_locale == "de"
+    assert onboarding.get_state(tenant)["step"] == "stil"  # advance после Weiter
+    # авто-✓: языки настроены → шаг done в рельсе
+    status = {s["key"]: s["status"] for s in onboarding.steps_with_status(tenant)}
+    assert status["language"] == "done"
+
+
+def test_hero_slide_saves_per_locale_overlay():
+    """AB6.2-lang: при >1 локали hero-слайд показывает пилюли + panes и пишет переводы
+    в оверлей i18n; витрина отдаёт их через siteconfig.localize."""
+    tenant = TenantFactory(business_type="bakery", enabled_locales=["de", "en"])
+    onboarding.goto(tenant, "home")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert "data-loc-pills" in html and 'name="hero_title__en"' in html
+    core_views.setup_view(
+        _req(
+            "post",
+            {"hero_title": "Moin", "hero_text": "Frisch", "hero_title__en": "Welcome"},
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    assert tenant.site_config["i18n"]["en"]["hero_title"] == "Welcome"
+    localized = siteconfig.localize(siteconfig.normalize(tenant.site_config), "en")
+    assert localized["hero_title"] == "Welcome"
+    assert localized["hero_text"] == "Frisch"  # без перевода — фолбэк на базу
+    # пустой перевод = убрать (фолбэк на немецкий)
+    onboarding.goto(tenant, "home")
+    core_views.setup_view(
+        _req("post", {"hero_title": "Moin", "hero_text": "Frisch", "hero_title__en": ""}, tenant)
+    )
+    tenant.refresh_from_db()
+    assert "hero_title" not in (tenant.site_config.get("i18n", {}).get("en") or {})
+
+
+def test_texts_slide_saves_about_overlay():
+    """AB6.2-lang: about_* на включённых локалях → оверлей i18n."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="txl",
+        name="TxL",
+        business_type="bakery",
+        enabled_locales=["de", "en"],
+    )
+    onboarding.goto(tenant, "texts")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="about_title__en"' in html
+    core_views.setup_view(
+        _req("post", {"about_title": "Über uns", "about_title__en": "About us"}, tenant)
+    )
+    tenant.refresh_from_db()
+    assert tenant.site_config["i18n"]["en"]["about_title"] == "About us"
+
+
+def test_single_locale_hides_pills():
+    """Одна локаль (свежий тенант, enabled_locales=[]) → без пилюль и панелей
+    переводов (как раньше). Фабрика дефолтит ["de","en"] → задаём явно."""
+    tenant = TenantFactory(business_type="bakery", enabled_locales=[])
+    onboarding.goto(tenant, "home")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    # 'data-loc-pills>' = маркер РАЗМЕТКИ пилюль (селектор в делегированном JS
+    # setup.html содержит '[data-loc-pills]' и включён всегда — не сигнал).
+    assert "data-loc-pills>" not in html and "hero_title__" not in html
 
 
 def test_live_preview_scoped_to_current_slide_form():

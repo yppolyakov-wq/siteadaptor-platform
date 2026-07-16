@@ -54,13 +54,66 @@ def apply_business_type(tenant, business_type: str) -> None:
     tenant.save(update_fields=update_fields)
 
 
+# --- AB6.2-lang: per-language контент-поля слайдов (фидбэк владельца 2026-07-16) ---
+# Базовая локаль (settings.LANGUAGE_CODE=de) хранится плоскими строками site_config;
+# переводы прочих ВКЛЮЧЁННЫХ локалей — оверлеем config["i18n"][loc][field]
+# (normalize сохраняет через _clean_i18n, витрина накладывает siteconfig.localize).
+
+
+def _content_locales(tenant) -> list[str]:
+    """Локали контент-полей слайда: базовая первой + прочие активные (пилюли)."""
+    from django.conf import settings
+
+    base = settings.LANGUAGE_CODE
+    return [base] + [loc for loc in tenant.active_locales if loc != base]
+
+
+def _save_overlay_fields(request, cfg: dict, fields: tuple) -> None:
+    """Presence-safe запись переводов слайда в оверлей config["i18n"][loc][field]
+    (инпуты name="<field>__<loc>"). Пусто = убрать перевод (фолбэк на базовую строку);
+    не присланное поле не трогаем (шаг мог рендериться без этой локали)."""
+    from django.conf import settings
+
+    base = settings.LANGUAGE_CODE
+    for loc in request.tenant.active_locales:
+        if loc == base:
+            continue
+        for f in fields:
+            val = request.POST.get(f"{f}__{loc}")
+            if val is None:
+                continue
+            ov = cfg.setdefault("i18n", {}).setdefault(loc, {})
+            if val.strip():
+                ov[f] = val.strip()
+            else:
+                ov.pop(f, None)
+
+
+def _i18n_panes(tenant, fields: tuple) -> list[dict]:
+    """[{loc, <field>: значение…}] — панели переводов для предзаполнения слайда
+    (только не-базовые активные локали; пусто = панелей нет, пилюли скрыты)."""
+    from django.conf import settings
+
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    i18n = cfg.get("i18n") if isinstance(cfg.get("i18n"), dict) else {}
+    panes = []
+    for loc in tenant.active_locales:
+        if loc == settings.LANGUAGE_CODE:
+            continue
+        ov = i18n.get(loc) if isinstance(i18n.get(loc), dict) else {}
+        panes.append({"loc": loc, **{f: ov.get(f, "") for f in fields}})
+    return panes
+
+
 def save_hero(request, tenant) -> None:
-    """B.3: сохранить баннер мастера — hero-тексты + опц. загруженное фото (файл)."""
+    """B.3: сохранить баннер мастера — hero-тексты + опц. загруженное фото (файл).
+    AB6.2-lang: + переводы hero-текстов на включённых локалях (оверлей i18n)."""
     from apps.tenants import siteconfig
 
     config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     config["hero_title"] = request.POST.get("hero_title", "").strip()
     config["hero_text"] = request.POST.get("hero_text", "").strip()
+    _save_overlay_fields(request, config, ("hero_title", "hero_text"))
     uploaded = request.FILES.get("hero_image")
     if uploaded:
         from apps.catalog import images
@@ -213,7 +266,7 @@ def _ctx_template(request):
 
 
 def _ctx_hero(request):
-    # B.3: текущие значения баннера для предзаполнения.
+    # B.3: текущие значения баннера для предзаполнения. AB6.2-lang: + панели переводов.
     from apps.tenants import siteconfig
 
     config = siteconfig.normalize(request.tenant.site_config)
@@ -221,12 +274,29 @@ def _ctx_hero(request):
         "hero_title": config["hero_title"],
         "hero_text": config["hero_text"],
         "hero_image": config["hero_image"],
+        "content_locales": _content_locales(request.tenant),
+        "i18n_panes": _i18n_panes(request.tenant, ("hero_title", "hero_text")),
     }
+
+
+def _post_language(request):
+    # AB6.2-lang: языки витрины + дефолт (реюз кабинета «Sprachen» — save_languages).
+    from apps.core.views import save_languages
+
+    if not save_languages(request):
+        messages.error(request, _("Please enable at least one language."))
+
+
+def _ctx_language(request):
+    from apps.core.views import languages_context
+
+    return {"languages": languages_context(request.tenant)}
 
 
 def _post_texts(request):
     # AB6.2g: «Über uns» (about_*, presence-safe TEXT_FIELDS — мержим в существующий
     # конфиг, урок W6) + Impressum (LegalDoc дефолт-локали, реюз семантики legal_docs).
+    # AB6.2-lang: + переводы about_* на включённых локалях (оверлей i18n).
     from apps.tenants import siteconfig
 
     tenant = request.tenant
@@ -234,6 +304,7 @@ def _post_texts(request):
     for f in ("about_title", "about_text"):
         if request.POST.get(f) is not None:
             cfg[f] = request.POST.get(f, "").strip()
+    _save_overlay_fields(request, cfg, ("about_title", "about_text"))
     tenant.site_config = siteconfig.normalize(cfg)
     tenant.save(update_fields=["site_config", "updated_at"])
     val = request.POST.get("impressum")
@@ -266,6 +337,8 @@ def _ctx_texts(request):
         "about_title": cfg.get("about_title", ""),
         "about_text": cfg.get("about_text", ""),
         "impressum": impressum,
+        "content_locales": _content_locales(tenant),
+        "i18n_panes": _i18n_panes(tenant, ("about_title", "about_text")),
     }
 
 
@@ -465,6 +538,14 @@ HANDLERS = {
         context=_ctx_company,
         preview=True,
         live=True,
+    ),
+    # AB6.2-lang: языки сайта (дефолт de) — до контент-шагов; save на «Weiter»
+    # (не live: инвариант «минимум один язык» не дёргать на каждом клике).
+    "language": StepHandler(
+        template="tenant/setup/_step_language.html",
+        post=_post_language,
+        context=_ctx_language,
+        preview=True,
     ),
     "stil": StepHandler(
         template="tenant/setup/_step_stil.html",

@@ -603,26 +603,47 @@ def languages_view(request):
     локалям — новая локаль в реестре появляется здесь без правки кода. Инварианты:
     минимум один язык включён; дефолт ∈ включённые.
     """
-    registry = [code for code, _label in settings.LANGUAGES]
     tenant = request.tenant
     if request.method == "POST":
-        # Порядок — как в реестре (стабильно), дубли/не-реестр отфильтрованы.
-        chosen = set(request.POST.getlist("locales"))
-        enabled = [code for code in registry if code in chosen]
-        if not enabled:
-            messages.error(request, _("Please enable at least one language."))
-        else:
-            default = request.POST.get("default_locale", "")
-            if default not in enabled:
-                default = enabled[0]  # инвариант: дефолт ∈ включённые
-            tenant.enabled_locales = enabled
-            tenant.default_locale = default
-            tenant.save(update_fields=["enabled_locales", "default_locale"])
+        if save_languages(request):
             messages.success(request, _("Saved."))
             return redirect("languages")
+        messages.error(request, _("Please enable at least one language."))
+    return render(
+        request,
+        "tenant/languages.html",
+        {"languages": languages_context(tenant), "nav": "languages"},
+    )
+
+
+def save_languages(request) -> bool:
+    """L2/AB6.2-lang: сохранить включённые языки витрины + дефолт из POST
+    (`locales` чекбоксы + `default_locale`). ОБЩИЙ для кабинета «Sprachen» и слайда
+    мастера. Инварианты: минимум один язык; дефолт ∈ включённые. False = ничего
+    не выбрано (настройки не тронуты)."""
+    registry = [code for code, _label in settings.LANGUAGES]
+    # Порядок — как в реестре (стабильно), дубли/не-реестр отфильтрованы.
+    chosen = set(request.POST.getlist("locales"))
+    enabled = [code for code in registry if code in chosen]
+    if not enabled:
+        return False
+    default = request.POST.get("default_locale", "")
+    if default not in enabled:
+        default = enabled[0]  # инвариант: дефолт ∈ включённые
+    tenant = request.tenant
+    tenant.enabled_locales = enabled
+    tenant.default_locale = default
+    tenant.save(update_fields=["enabled_locales", "default_locale"])
+    return True
+
+
+def languages_context(tenant) -> list[dict]:
+    """L2/AB6.2-lang: языки реестра как [{code,label,enabled,is_default}] — общий
+    контекст кабинета «Sprachen» и слайда мастера."""
+    registry = [code for code, _label in settings.LANGUAGES]
     lang_names = dict(settings.LANGUAGES)
     current = set(tenant.active_locales)
-    languages = [
+    return [
         {
             "code": code,
             "label": lang_names.get(code, code.upper()),
@@ -631,7 +652,6 @@ def languages_view(request):
         }
         for code in registry
     ]
-    return render(request, "tenant/languages.html", {"languages": languages, "nav": "languages"})
 
 
 @login_required

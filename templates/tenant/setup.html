@@ -142,6 +142,30 @@
 </script>
 {% endif %}
 
+{% comment %}AB6.2-lang: пилюли языка контент-полей ([data-loc-pills] → панели
+[data-loc-pane]). Делегирование на document (урок Ф1 #1 — скрипт не зависит от
+момента парсинга слайда); панели скрываются hidden — поля остаются в DOM (W0),
+live-save шлёт все локали.{% endcomment %}
+<script>
+document.addEventListener("click", function (e) {
+  var pill = e.target.closest("[data-loc-pills] [data-loc]");
+  if (!pill) return;
+  var loc = pill.getAttribute("data-loc");
+  document.querySelectorAll("[data-loc-pills] [data-loc]").forEach(function (b) {
+    var on = b === pill;
+    b.classList.toggle("bg-indigo-600", on);
+    b.classList.toggle("text-white", on);
+    b.classList.toggle("border-indigo-600", on);
+    b.classList.toggle("bg-white", !on);
+    b.classList.toggle("text-gray-600", !on);
+    b.classList.toggle("border-gray-300", !on);
+  });
+  document.querySelectorAll("[data-loc-pane]").forEach(function (p) {
+    p.hidden = p.getAttribute("data-loc-pane") !== loc;
+  });
+});
+</script>
+
 {% if live_save %}
 {% comment %}AB3-v2: на контент-шагах сохраняем введённое БЕЗ перехода (action=live → 204)
 и перечитываем iframe-превью — владелец видит баннер/стиль/контакты сразу при вводе.

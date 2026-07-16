@@ -1,17 +1,35 @@
 {% load i18n %}
-{# B.3 (анти-Битрикс): баннер — заголовок/подзаголовок + загрузка фото файлом. #}
+{% comment %}B.3 (анти-Битрикс): баннер — заголовок/подзаголовок + загрузка фото файлом.
+AB6.2-lang: тексты заполняются на каждом включённом языке (пилюли → панели; база =
+плоские поля, переводы → оверлей i18n; фото общее для всех языков).{% endcomment %}
 <h1 class="text-2xl font-bold mb-1">Dein Banner</h1>
 <p class="text-sm text-gray-500 mb-4">Das Erste, was Besucher sehen. Titel, kurzer Text und optional ein Foto.</p>
 <form method="post" enctype="multipart/form-data" class="space-y-4">
   {% csrf_token %}
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_hero_title">Titel</label>
-    <input id="id_hero_title" name="hero_title" type="text" value="{{ hero_title }}" placeholder="Willkommen" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  {% include "tenant/setup/_loc_pills.html" %}
+  <div data-loc-pane="{{ content_locales.0 }}" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_hero_title">Titel</label>
+      <input id="id_hero_title" name="hero_title" type="text" value="{{ hero_title }}" placeholder="Willkommen" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_hero_text">Untertitel</label>
+      <textarea id="id_hero_text" name="hero_text" rows="2" placeholder="Kurz, was dich ausmacht." class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ hero_text }}</textarea>
+    </div>
   </div>
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_hero_text">Untertitel</label>
-    <textarea id="id_hero_text" name="hero_text" rows="2" placeholder="Kurz, was dich ausmacht." class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ hero_text }}</textarea>
-  </div>
+  {% for p in i18n_panes %}
+    <div data-loc-pane="{{ p.loc }}" hidden class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_title__{{ p.loc }}">Titel ({{ p.loc|upper }})</label>
+        <input id="id_hero_title__{{ p.loc }}" name="hero_title__{{ p.loc }}" type="text" value="{{ p.hero_title }}" placeholder="{{ hero_title|default:'Willkommen' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_hero_text__{{ p.loc }}">Untertitel ({{ p.loc|upper }})</label>
+        <textarea id="id_hero_text__{{ p.loc }}" name="hero_text__{{ p.loc }}" rows="2" placeholder="{{ hero_text }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ p.hero_text }}</textarea>
+      </div>
+      <p class="text-xs text-gray-400">Leer = Besucher sehen den deutschen Text.</p>
+    </div>
+  {% endfor %}
   <div>
     <label class="block text-sm font-medium mb-1" for="id_hero_image">Foto (optional)</label>
     {% if hero_image %}<img src="{{ hero_image }}" alt="" class="w-full h-32 object-cover rounded-lg mb-2">{% endif %}

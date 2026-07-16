@@ -49,6 +49,12 @@ def _check_company(t) -> bool:
     return bool(t.public_email or t.public_phone or t.address)
 
 
+def _check_language(t) -> bool:
+    # AB6.2-lang: языки уже настроены (в мастере или кабинете «Sprachen») → авто-✓.
+    # Свежий тенант (enabled_locales=[]) — шаг pending, дефолт де-факто немецкий.
+    return bool(t.enabled_locales)
+
+
 def _check_offer(t) -> bool:
     return _has_offering(t)  # определён ниже; резолвится в рантайме
 
@@ -96,6 +102,9 @@ SETUP_STEPS = (
     SetupStep("business", "🏪", "Branche", gate=_gate_business),
     SetupStep("start", "🚀", "Start", check=_check_start),
     SetupStep("company", "🏠", "Firma & Logo", check=_check_company),
+    # AB6.2-lang (фидбэк владельца 2026-07-16): базовый язык + языки сайта — ДО
+    # контент-шагов (их поля заполняются на каждом включённом языке).
+    SetupStep("language", "🌐", "Sprachen", check=_check_language, tile_url="languages"),
     SetupStep("stil", "🎨", "Stil", tile_url="site-home"),
     SetupStep("menu", "🧭", "Menü", tile_url="site-menu"),
     SetupStep("offer", "🛍️", "Angebot", check=_check_offer),
