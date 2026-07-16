@@ -89,6 +89,11 @@
                         <input type="text" name="lot_code" placeholder="{% trans 'Charge' %}" class="w-20 rounded border border-gray-300 px-1.5 py-1 text-xs">
                         <input type="date" name="lot_mhd" title="{% trans 'MHD' %}" class="rounded border border-gray-300 px-1.5 py-1 text-xs">
                       {% endif %}
+                      {% if stock_locations|length > 1 %}
+                        <select name="location" title="{% trans 'Standort' %}" class="rounded border border-gray-300 px-1.5 py-1 text-xs">
+                          {% for loc in stock_locations %}<option value="{{ loc.pk }}">📍 {{ loc.name }}</option>{% endfor %}
+                        </select>
+                      {% endif %}
                       <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="update_cost" class="h-3 w-3">{% trans "EK übernehmen" %}</label>
                       <button class="text-xs bg-green-600 text-white rounded-lg px-2.5 py-1 hover:bg-green-700">{% trans "Eingang" %}</button>
                     </form>

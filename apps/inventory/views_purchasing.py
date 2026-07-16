@@ -11,8 +11,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from . import purchasing, services
-from .models import BestellPosition, Bestellung, Lieferant
-from .views import _int, _parse_date, _resolve_entity, _threshold
+from .models import BestellPosition, Bestellung, Lieferant, StockLocation
+from .views import _int, _parse_date, _resolve_entity, _resolve_location, _threshold
 
 
 def _redirect(po=None):
@@ -47,6 +47,8 @@ def purchasing_view(request):
             "reorder": services.reorder_suggestions(_threshold(request.tenant)),
             "lots_on": services.lots_enabled(request.tenant),
             "statuses": Bestellung.STATUSES,
+            # E2: селектор Standort на приёмке (виден при локациях > 1)
+            "stock_locations": list(StockLocation.objects.filter(is_active=True)),
         },
     )
 
@@ -151,6 +153,7 @@ def _handle_post(request):
             lot_code=(request.POST.get("lot_code") or "")[:64],
             actor=actor,
             update_cost=request.POST.get("update_cost") == "on",
+            location=_resolve_location(request.POST.get("location")),  # E2
         )
         if took:
             messages.success(request, _("Wareneingang gebucht: %(n)s Stück.") % {"n": took})

@@ -72,14 +72,22 @@ def set_po_status(bestellung, status, *, actor="") -> Bestellung:
 
 
 def receive_po_line(
-    position, *, qty=None, tenant=None, mhd=None, lot_code="", actor="", update_cost=False
+    position,
+    *,
+    qty=None,
+    tenant=None,
+    mhd=None,
+    lot_code="",
+    actor="",
+    update_cost=False,
+    location=None,
 ):
     """Принять `qty` штук по строке (частичная приёмка). Книжит Wareneingang складским
     путём (E1 `receive_lot` при включённых партиях, иначе `apply_manual_movement`),
     двигает счётчик один раз, помечает `qty_received += qty`. `qty=None` → принять всё
     оставшееся (`qty_open`). `tenant` — для тумблера партий (иначе connection.tenant).
     `update_cost=True` → обновить `cost_price` сущности из EK строки (форк владельца, по
-    умолчанию выкл). Возвращает принятое кол-во (int)."""
+    умолчанию выкл). `location` — Standort прихода (E2). Возвращает принятое кол-во."""
     open_qty = position.qty_open
     take = open_qty if qty is None else max(0, min(int(qty), open_qty))
     if take <= 0:
@@ -98,6 +106,7 @@ def receive_po_line(
                 actor=actor,
                 note=f"{position.bestellung.reference}",
                 source="purchase",
+                location=location,
             )
         else:
             services.apply_manual_movement(
@@ -108,6 +117,7 @@ def receive_po_line(
                 actor=actor,
                 note=f"{position.bestellung.reference}",
                 source="purchase",
+                location=location,
             )
         position.qty_received += take
         position.save(update_fields=["qty_received", "updated_at"])

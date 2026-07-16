@@ -157,6 +157,11 @@
             <input type="date" name="lot_mhd" title="{% trans 'MHD' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           </div>
         {% endif %}
+        {% if locs_on %}
+          <select name="location" title="{% trans 'Standort' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            {% for loc in stock_locations %}<option value="{{ loc.pk }}">📍 {{ loc.name }}</option>{% endfor %}
+          </select>
+        {% endif %}
         <button class="w-full text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Eingang buchen" %}</button>
       </form>
 
@@ -210,6 +215,46 @@
   </form>
 </details>
 {% endif %}
+
+{# --- Склад-2 E2: Standorte & Umlagerung (мультисклад; UI активен при >1 локации) --- #}
+<details class="mb-6 rounded-xl border border-gray-200 bg-white" {% if locs_on %}open{% endif %}>
+  <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700">📍 {% trans "Standorte" %}{% if stock_locations %} ({{ stock_locations|length }}){% endif %}</summary>
+  <div class="px-4 pb-4 space-y-3">
+    {% if stock_locations %}
+      <ul class="text-sm divide-y divide-gray-50">
+        {% for loc in stock_locations %}
+          <li class="py-1.5 flex items-center gap-2">{{ loc.name }}{% if loc.is_default %}<span class="text-xs rounded-full bg-gray-100 text-gray-500 px-2 py-0.5">{% trans "Hauptlager" %}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-xs text-gray-400">{% trans "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv." %}</p>
+    {% endif %}
+    <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="location_create">
+      <input type="text" name="name" placeholder="{% trans 'z. B. Lager hinten' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">＋ {% trans "Standort" %}</button>
+    </form>
+    {% if locs_on %}
+      <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2 flex-wrap border-t border-gray-100 pt-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="transfer">
+        <span class="text-xs font-medium text-gray-500 w-full">{% trans "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)" %}</span>
+        <select name="entity" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm flex-1 min-w-40">
+          {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
+        </select>
+        <select name="src" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          {% for loc in stock_locations %}<option value="{{ loc.pk }}">{% trans "von" %} {{ loc.name }}</option>{% endfor %}
+        </select>
+        <select name="dst" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          {% for loc in stock_locations %}<option value="{{ loc.pk }}" {% if forloop.counter == 2 %}selected{% endif %}>{% trans "nach" %} {{ loc.name }}</option>{% endfor %}
+        </select>
+        <input type="number" name="qty" min="1" placeholder="{% trans 'Menge' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Umlagern" %}</button>
+      </form>
+    {% endif %}
+  </div>
+</details>
 
 {# --- Bestandsübersicht --- #}
 <div class="mb-6 rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -271,6 +316,14 @@
       <a href="?export=csv" class="text-gray-500 hover:text-indigo-700">⬇ {% trans "CSV" %}</a>
     </div>
   </div>
+  {% if history_locations %}
+    <div class="mb-3 flex items-center gap-2 flex-wrap text-xs">
+      <span class="text-gray-400">{% trans "Nach Standort:" %}</span>
+      {% for r in history_locations %}
+        <span class="rounded-full bg-gray-100 px-2.5 py-1">📍 {{ r.location.name }}: <span class="font-semibold">{{ r.qty }}</span></span>
+      {% endfor %}
+    </div>
+  {% endif %}
   {% if movements %}
     <ul class="divide-y divide-gray-50 text-sm">
       {% for mv in movements %}

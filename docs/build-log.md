@@ -5522,3 +5522,17 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   переброс не двигает счётчик и не ломает реконсиляцию леджер↔счётчик (Σ=0); кламп по src; no-op
   на ту же/отсутствующие локации. Полный `apps/inventory` 79 зелёных. **⚠️ `inventory/0004` ТРЕБУЕТ
   ДЕПЛОЯ.** Кабинет (Standorte/Umlagerung/селектор приёмки) — E2.2.
+
+## 2026-07-16 — Склад-2 E2.2: кабинет мультисклада (без миграции)
+
+- **`/dashboard/stock/`**: секция «📍 Standorte» (создание — первый автоматически Hauptlager/
+  default; список с бейджем), форма **Umlagerung** (сущность + von/nach + Menge; подпись «bewegt
+  nur die Verteilung, nicht den Gesamtbestand») — активна при локациях > 1 (ленивая активация).
+  **Селектор Standort на приёмке** (stock + purchasing: `receive_po_line += location`); разбивка
+  «Nach Standort» — чипы в drill-down истории сущности (`?history=`, не N×M на всю таблицу).
+- POST-actions `location_create`/`transfer` (+`_resolve_location`); `receipt` прокидывает
+  `location` в оба пути (receive_lot/apply_manual_movement).
+- Замки `test_locations.py` (+4, всего 10): первый Standort = default; transfer-action двигает
+  разбивку, не счётчик; приёмка на локацию (баланс дефолта не растёт); рендер секции. Полный
+  `apps/inventory` 84 зелёных; CSS пересобран. **Эпик E2 v1 закрыт (E2.1+E2.2; E2.3 демо — по
+  спросу). ВОЛНА СКЛАД-2 (U-D2W: E1+E3+E2) В ОБЪЁМЕ v1 ЗАКРЫТА.** ⚠️ деплой: `inventory/0002..0004`.

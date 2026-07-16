@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.models import Product
 
-from . import services
+from . import locations, services
 from .models import StockMovement
 
 DEFAULT_THRESHOLD = 5
@@ -138,6 +138,17 @@ def stock(request):
     lots_on = services.lots_enabled(request.tenant)
     lots = list(services.expiring_lots(within_days=None)) if lots_on else []
     expiring_count = sum(1 for lot in lots if (lot.days_left() or 0) <= 7) if lots_on else 0
+    # Склад-2 E2: мультисклад — ленивая активация (UI при локациях > 1); разбивка
+    # по локациям — в drill-down истории (не N×M-запросов на всю таблицу).
+    from .models import StockLocation
+
+    stock_locations = list(StockLocation.objects.filter(is_active=True))
+    locs_on = len(stock_locations) > 1
+    history_locations = []
+    if history and locs_on:
+        hp, hv = _resolve_entity(history)
+        if hp is not None:
+            history_locations = locations.location_rows(hp, hv)
     return render(
         request,
         "inventory/stock.html",
@@ -160,6 +171,10 @@ def stock(request):
             "lots_on": lots_on,
             "lots": lots,
             "expiring_count": expiring_count,
+            # E2: Мультисклад
+            "stock_locations": stock_locations,
+            "locs_on": locs_on,
+            "history_locations": history_locations,
         },
     )
 
@@ -169,6 +184,34 @@ def _adjust_note(request):
     reason = str(_REASON_LABELS.get(request.POST.get("reason", ""), ""))
     free = (request.POST.get("note") or "").strip()
     return (f"{reason}: {free}" if reason and free else (reason or free))[:200]
+
+
+def _resolve_location(value):
+    """E2: id локации из формы → StockLocation | None (пусто/битое = основной склад)."""
+    from .models import StockLocation
+
+    return StockLocation.objects.filter(pk=value).first() if value else None
+
+
+def _handle_transfer(request, actor):
+    """E2: Umlagerung — переместить кол-во сущности между Standort'ами."""
+    product, variant = _resolve_entity(request.POST.get("entity"))
+    if product is None:
+        messages.error(request, _("Bitte einen Artikel wählen."))
+        return redirect("stock")
+    moved = locations.transfer(
+        product=product,
+        variant=variant,
+        src=_resolve_location(request.POST.get("src")),
+        dst=_resolve_location(request.POST.get("dst")),
+        qty=_int(request.POST.get("qty")),
+        actor=actor,
+    )
+    if moved:
+        messages.success(request, _("Umlagerung gebucht: %(n)s Stück.") % {"n": moved})
+    else:
+        messages.error(request, _("Umlagerung nicht möglich (Bestand/Standorte prüfen)."))
+    return redirect("stock")
 
 
 def _handle_verderb_lot(request, actor):
@@ -233,6 +276,20 @@ def _handle_post(request):
     if action == "verderb_lot":  # E1: списать испорченную/просроченную партию (FEFO-обзор)
         return _handle_verderb_lot(request, actor)
 
+    if action == "location_create":  # E2: новый Standort (первый = default)
+        from .models import StockLocation
+
+        name = (request.POST.get("name") or "").strip()[:100]
+        if not name:
+            messages.error(request, _("Bitte einen Namen eingeben."))
+        else:
+            StockLocation.objects.create(name=name, is_default=not StockLocation.objects.exists())
+            messages.success(request, _("Standort angelegt."))
+        return redirect("stock")
+
+    if action == "transfer":  # E2: Umlagerung src → dst (счётчик не двигается)
+        return _handle_transfer(request, actor)
+
     if action == "stocktake_bulk":
         return _handle_bulk_stocktake(request, actor)
 
@@ -243,6 +300,7 @@ def _handle_post(request):
 
     if action == "receipt":
         qty = _int(request.POST.get("qty"))
+        location = _resolve_location(request.POST.get("location"))  # E2: локация прихода
         if qty <= 0:
             messages.error(request, _("Menge muss größer als 0 sein."))
         elif services.lots_enabled(request.tenant):
@@ -255,6 +313,7 @@ def _handle_post(request):
                 lot_code=(request.POST.get("lot_code") or "")[:64],
                 actor=actor,
                 note=(request.POST.get("note") or "")[:200],
+                location=location,
             )
             messages.success(request, _("Wareneingang (Charge) gebucht."))
         else:
@@ -265,6 +324,7 @@ def _handle_post(request):
                 delta=qty,
                 actor=actor,
                 note=(request.POST.get("note") or "")[:200],
+                location=location,
             )
             messages.success(request, _("Wareneingang gebucht."))
     elif action == "adjustment":
