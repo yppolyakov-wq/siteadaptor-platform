@@ -813,6 +813,23 @@ def test_apply_bakery_kit_dedicated_bakery():
     assert tenant.is_module_active("orders")
 
 
+def test_bakery_kit_seeds_lots_with_mhd():
+    """Склад-2 E1.5: еда-кит включает учёт партий (lots_enabled) и сеет демо-Chargen с
+    MHD; Σ остатков партий сходится со счётчиком товара (реконсиляция Вариант A)."""
+    from apps.catalog.models import Product
+    from apps.inventory.models import Lot
+    from apps.inventory.services import lot_balance
+
+    tenant = TenantFactory(schema_name="public", slug="bk2", name="BK2", business_type="bakery")
+    demo_kits.apply_kit(tenant, "bakery")
+    assert tenant.site_config.get("lots_enabled") is True  # тумблер учёта партий вкл
+    assert Lot.objects.filter(mhd__isnull=False).exists()  # партии с MHD засеяны
+    # реконсиляция: у товара с партиями Σlot == счётчик (без вариантов)
+    prod = Product.objects.filter(lots__isnull=False, stock_quantity__gt=0).distinct().first()
+    assert prod is not None
+    assert lot_balance(prod) == prod.stock_quantity
+
+
 def test_apply_butcher_kit_dedicated_metzgerei():
     """Волна 1: dedicated Metzgerei-кит — весовой Grundpreis €/kg, Grillpaket-
     Vorbestellung (reservation), Partyservice через jobs (Anfrage со сметой)."""

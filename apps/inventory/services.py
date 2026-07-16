@@ -329,6 +329,35 @@ def consume_fefo(product, variant=None, *, qty):
     return qty - remaining
 
 
+def restore_fefo(product, variant=None, *, qty):
+    """E1 (возврат/отмена): вернуть `qty` в партии сущности, обращая FEFO-расход —
+    доливаем существующие партии по возрастанию MHD до их `qty_received` (то, что
+    списали первым, восстанавливаем первым). Возвращает восстановленное кол-во (может
+    быть меньше qty, если в партиях нет места — остаток докрывает чистый счётчик, как
+    при consume_fefo). НЕ трогает счётчик/леджер — вызывается рядом с F()-инкрементом
+    в atomic возврата. No-op для сущностей без партий (реюз на не-lot товарах безопасен)."""
+    qty = int(qty)
+    if qty <= 0:
+        return 0
+    remaining = qty
+    lots = list(
+        _lot_qs(product, variant)
+        .select_for_update()
+        .order_by(F("mhd").asc(nulls_last=True), "created_at")
+    )
+    for lot in lots:
+        if remaining <= 0:
+            break
+        room = lot.qty_received - lot.qty_remaining
+        if room <= 0:
+            continue
+        add = min(room, remaining)
+        lot.qty_remaining += add
+        lot.save(update_fields=["qty_remaining", "updated_at"])
+        remaining -= add
+    return qty - remaining
+
+
 def writeoff_lot(lot_pk, *, actor="", note=""):
     """E1: списать остаток партии (Verderb/просрочка). Гасит `qty_remaining` партии +
     двигает счётчик и пишет леджер (adjustment −remaining) в одной atomic. Возвращает

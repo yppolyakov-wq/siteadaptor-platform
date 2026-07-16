@@ -209,6 +209,9 @@ class DemoKit:
     #   в демо-тенанте (роль определяет ёмкость/деньги). Пусто = нет кастом-статусов.
     status_defs: dict = field(default_factory=dict)
     status_edges: dict = field(default_factory=dict)
+    # Склад-2 E1.5: учёт партий/MHD (Chargen) — тумблер `lots_enabled` + демо-партии
+    # с реалистичным сроком годности (еда: bakery/butcher). Пусто = чистый счётчик.
+    enable_lots: bool = False
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -2115,6 +2118,7 @@ BAKERY = DemoKit(
     },
     business_type="bakery",
     subdomain="baeckerei",
+    enable_lots=True,  # E1.5: Chargen/MHD (Backwaren mit kurzer Haltbarkeit)
     accent="#a16207",  # Braun-Gold (Kruste)
     hero_image_kw="bread,bakery",
     hero_title="Backhaus Krume",
@@ -2455,6 +2459,7 @@ BUTCHER = DemoKit(
     label="Metzgerei Bergmann",
     business_type="butcher",
     subdomain="metzgerei",
+    enable_lots=True,  # E1.5: Chargen/MHD (Fleisch/Wurst mit kurzer Haltbarkeit)
     accent="#991b1b",  # dunkles Metzger-Rot
     hero_image_kw="butcher,meat",
     hero_title="Metzgerei Bergmann",
@@ -5235,6 +5240,7 @@ def apply_kit(tenant, key: str) -> bool:
 
     _seed_kit_modules(tenant, kit, refs)
     _seed_kit_records(tenant, kit, refs, created_products)
+    _seed_demo_lots(kit, created_products)  # E1.5: демо-партии/MHD (еда)
     _seed_kit_reviews(tenant, kit)
     _seed_product_reviews(kit, created_products)
     _seed_entity_reviews(kit, refs)  # UA4-4b: отзывы об услуге/номере/событии в демо
@@ -5340,6 +5346,8 @@ def apply_kit(tenant, key: str) -> bool:
         cfg["status_defs"] = kit.status_defs
     if kit.status_edges:
         cfg["status_edges"] = kit.status_edges
+    if kit.enable_lots:  # Склад-2 E1.5: тумблер учёта партий/MHD (еда)
+        cfg["lots_enabled"] = True
     tenant.site_config = cfg
     tenant.primary_color = kit.accent
     update_fields = ["site_config", "primary_color", "updated_at"]
@@ -5946,6 +5954,59 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             if refs.get("teachers"):
                 event.teachers.set(Teacher.objects.filter(pk__in=refs["teachers"]))
             refs["events"].append(str(event.pk))
+
+
+def _seed_demo_lots(kit: DemoKit, products: list) -> None:
+    """Склад-2 E1.5: демо-партии (Chargen/MHD) для еда-китов. Первым ~8 товарам без
+    вариантов заводим партии с реалистичным MHD, чтобы кабинет склада показал фичу
+    наполненной. Если у демо-товара нет учёта остатка (stock_quantity=None — еда часто
+    «immer verfügbar»), назначаем демо-остаток и создаём партии под него (Σlot ==
+    счётчик, реконсиляция Вариант A). Товары с вариантами пропускаем — они ведут остаток
+    отдельно (демо-партии — на товар-уровне)."""
+    if not kit.enable_lots:
+        return
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.inventory.models import Lot
+
+    today = timezone.localdate()
+    seeded = 0
+    for i, product in enumerate(products):
+        if seeded >= 8:
+            break
+        if getattr(product, "pk", None) is None or product.variants.exists():
+            continue  # варианты ведут остаток отдельно — демо-партии на товар-уровне
+        product.refresh_from_db(fields=["stock_quantity"])
+        qty = product.stock_quantity
+        if qty is None:  # еда без учёта → назначаем демо-остаток (12..36)
+            qty = 12 + (i % 5) * 6
+            product.stock_quantity = qty
+            product.save(update_fields=["stock_quantity", "updated_at"])
+        if qty <= 0:
+            continue
+        # Первая партия (короткий срок, ~1/3) + свежая (остальное) — так в кабинете
+        # видно и «läuft bald ab», и запас. Один товар (i%4==0) делаем просроченным.
+        near_days = -1 if i % 4 == 0 else 2 + i % 3
+        near = max(1, qty // 3)
+        Lot.objects.create(
+            product=product,
+            qty_received=near,
+            qty_remaining=near,
+            mhd=today + timedelta(days=near_days),
+            lot_code=f"CH-{1000 + i}",
+        )
+        rest = qty - near
+        if rest > 0:
+            Lot.objects.create(
+                product=product,
+                qty_received=rest,
+                qty_remaining=rest,
+                mhd=today + timedelta(days=10 + i % 5),
+                lot_code=f"CH-{2000 + i}",
+            )
+        seeded += 1
 
 
 def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:

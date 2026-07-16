@@ -153,6 +153,11 @@ def commit_stock(job) -> None:
                     source_ref=str(line.pk),
                     note=locked.reference_code,
                 )
+                # Склад-2 E1.5: расход материалов гасит партии FEFO (no-op без партий).
+                from apps.inventory.services import consume_fefo, has_lots
+
+                if has_lots(prod, var):
+                    consume_fefo(prod, var, qty=before - row.stock_quantity)
         locked.stock_committed = True
         locked.save(update_fields=["stock_committed", "updated_at"])
     job.stock_committed = True

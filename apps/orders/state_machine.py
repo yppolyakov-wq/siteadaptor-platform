@@ -103,3 +103,7 @@ def _restore_stock(instance):
                     source_ref=str(item.pk),
                     note=instance.reference_code,
                 )
+                # Склад-2 E1.5: обратить FEFO-расход — долить партии (no-op без партий).
+                from apps.inventory.services import restore_fefo
+
+                restore_fefo(item.product, item.variant, qty=item.qty)

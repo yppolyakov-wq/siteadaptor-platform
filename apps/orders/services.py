@@ -59,6 +59,12 @@ def _reserve_stock(norm):
             raise OutOfStock(title=title, available=row.stock_quantity)
         row.stock_quantity -= qty
         row.save(update_fields=["stock_quantity", "updated_at"])
+        # Склад-2 E1.5: если сущность ведётся по партиям — гасим FEFO (ближайший MHD
+        # первым) в той же atomic. No-op для товаров без партий → поведение прежнее.
+        from apps.inventory.services import consume_fefo, has_lots
+
+        if has_lots(product, variant):
+            consume_fefo(product, variant, qty=qty)
 
 
 def _plz_prefixes(raw) -> list[str]:
