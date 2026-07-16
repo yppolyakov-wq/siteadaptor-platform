@@ -35,14 +35,24 @@ def find_entity_by_code(code):
 
 
 def record_movement(
-    *, product, kind, delta, variant=None, source="", source_ref="", note="", actor=""
+    *,
+    product,
+    kind,
+    delta,
+    variant=None,
+    source="",
+    source_ref="",
+    note="",
+    actor="",
+    location=None,
 ):
     """Записать движение остатка (append-only; НЕ трогает счётчик — D1).
 
     Идемпотентно по (source, source_ref, kind) для событийных движений (дубль →
     no-op, вернёт None); ручные (source_ref="") пишутся всегда. delta=0 → no-op.
     Вызывать в ТОЙ ЖЕ atomic-транзакции, что и декремент счётчика (UD3-2), но
-    движение его не заменяет. Возвращает StockMovement или None (дубль/ноль).
+    движение его не заменяет. E2: `location` — локация движения (NULL = основной
+    склад). Возвращает StockMovement или None (дубль/ноль).
     """
     if not delta:
         return None
@@ -52,6 +62,7 @@ def record_movement(
         "delta": int(delta),
         "note": (note or "")[:200],
         "actor": (actor or "")[:150],
+        "location": location,
     }
     if not source_ref:  # ручное движение — без дедупа
         return StockMovement.objects.create(kind=kind, source=source, source_ref="", **defaults)
@@ -204,6 +215,7 @@ def apply_manual_movement(
     note="",
     source="manual",
     source_ref="",
+    location=None,
 ):
     """Ручное движение: двигает СЧЁТЧИК и пишет леджер в одной atomic.
 
@@ -241,6 +253,7 @@ def apply_manual_movement(
             source_ref=source_ref,
             actor=actor,
             note=note,
+            location=location,
         )
 
 
@@ -287,12 +300,22 @@ def has_lots(product, variant=None) -> bool:
 
 
 def receive_lot(
-    *, product, variant=None, qty, mhd=None, lot_code="", actor="", note="", source="manual"
+    *,
+    product,
+    variant=None,
+    qty,
+    mhd=None,
+    lot_code="",
+    actor="",
+    note="",
+    source="manual",
+    location=None,
 ):
     """E1: оприходовать партию (Wareneingang по Charge). Двигает счётчик (+qty),
     пишет леджер (receipt) и создаёт `Lot(qty_remaining=qty)` — всё в одной atomic.
     Реюз `apply_manual_movement` для счётчика+леджера, поверх — запись партии.
-    `source` — провенанс движения (E3: приёмка по Bestellung → "purchase")."""
+    `source` — провенанс (E3: приёмка по Bestellung → "purchase"); `location` —
+    локация прихода (E2, NULL = основной склад)."""
     qty = int(qty)
     if qty <= 0:
         return None
@@ -305,6 +328,7 @@ def receive_lot(
             actor=actor,
             note=note or (f"Charge {lot_code}" if lot_code else "Wareneingang"),
             source=source,
+            location=location,
         )
         lot = Lot.objects.create(
             product=product,

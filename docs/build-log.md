@@ -5505,3 +5505,20 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   `test_bakery_kit_seeds_demo_purchasing` (+проверка «purchase-движений нет»). **Эпик E3 (Закупки/
   M12) в объёме v1 закрыт: E3.1 модели/сервисы + E3.2 кабинет + E3.3 draft_from_suggestions +
   демо. E3.5 (Lieferanten-экран/EK-история) — по спросу. Дальше — E2 (Мультисклад, план-доком).**
+
+## 2026-07-16 — Склад-2 E2.1: мультисклад — модели+сервисы (⚠️ миграция)
+
+- План `docs/sklad-2-e2-multilocation-plan-2026-07-16.md`: Вариант A — счётчик = ИТОГО-истина,
+  локации = разбивка из леджера; продажи/движки НЕ трогаются (v1 списывает «с основного»).
+- **Модели** (⚠️ миграция `inventory/0004`, аддитив): `StockLocation` (name/is_default/is_active;
+  ленивая активация — UI только при локациях > 1), `StockMovement.location` FK (SET_NULL, NULL =
+  основной склад → вся история до E2 валидна БЕЗ бэкфилла), kinds += `transfer_out`/`transfer_in`.
+- **Сервисы** (`apps/inventory/locations.py`): `location_balance` (не-дефолт = Σ её движений;
+  дефолт = счётчик − Σ не-дефолтных → Σ по локациям == счётчик ПО ПОСТРОЕНИЮ), `location_rows`,
+  **`transfer`** (Umlagerung: пара движений transfer_out/in Σ=0 в одной atomic, счётчик не
+  двигается, кламп по балансу src), `locations_enabled`/`default_location`. Проброс `location` в
+  `record_movement`/`apply_manual_movement`/`receive_lot` (дефолт None — поведение прежнее).
+- Замки `test_locations.py` (6): активация только при >1; дефолт = счётчик−Σнедефолт (Σ==счётчик);
+  переброс не двигает счётчик и не ломает реконсиляцию леджер↔счётчик (Σ=0); кламп по src; no-op
+  на ту же/отсутствующие локации. Полный `apps/inventory` 79 зелёных. **⚠️ `inventory/0004` ТРЕБУЕТ
+  ДЕПЛОЯ.** Кабинет (Standorte/Umlagerung/селектор приёмки) — E2.2.

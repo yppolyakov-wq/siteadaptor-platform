@@ -14,6 +14,23 @@ from django.db import models
 from apps.core.models import TimestampedModel
 
 
+class StockLocation(TimestampedModel):
+    """Склад-2 E2 (Мультисклад): локация/Standort. Ленивая активация — пока локаций
+    нет, весь мультисклад-UI скрыт и поведение прежнее. NULL-движения леджера читаются
+    как «основной склад» (default), т.е. история до E2 валидна без бэкфилла."""
+
+    name = models.CharField(max_length=100)
+    is_default = models.BooleanField(default=False)  # основной (NULL-леджер = он)
+    note = models.CharField(max_length=200, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-is_default", "name"]
+
+    def __str__(self):
+        return self.name
+
+
 class StockMovement(TimestampedModel):
     """Одно движение остатка товара/варианта. delta знаковый: +приход / −расход."""
 
@@ -23,6 +40,10 @@ class StockMovement(TimestampedModel):
     KIND_RETURN = "return"  # возврат остатка при отмене/возврате заказа
     KIND_STOCKTAKE = "stocktake"  # инвентаризация (корректировка до факта)
     KIND_COMMIT = "commit"  # расход материалов при выполнении заявки (Handwerker)
+    # Склад-2 E2 (Мультисклад): переброс между локациями — пара движений Σ=0,
+    # счётчик (итого) НЕ двигается, меняется только локационная разбивка.
+    KIND_TRANSFER_OUT = "transfer_out"
+    KIND_TRANSFER_IN = "transfer_in"
     KINDS = [
         (KIND_RECEIPT, "Wareneingang"),
         (KIND_SALE, "Verkauf"),
@@ -30,6 +51,8 @@ class StockMovement(TimestampedModel):
         (KIND_RETURN, "Rückgabe"),
         (KIND_STOCKTAKE, "Inventur"),
         (KIND_COMMIT, "Materialverbrauch"),
+        (KIND_TRANSFER_OUT, "Umlagerung (ab)"),
+        (KIND_TRANSFER_IN, "Umlagerung (zu)"),
     ]
 
     product = models.ForeignKey(
@@ -44,6 +67,15 @@ class StockMovement(TimestampedModel):
     )
     kind = models.CharField(max_length=20, choices=KINDS)
     delta = models.IntegerField(help_text="Signed: +Zugang / −Abgang")
+    # E2: локация движения; NULL = основной склад (вся история до E2 валидна без
+    # бэкфилла). Баланс per-location выводится из леджера (счётчик остаётся ИТОГО).
+    location = models.ForeignKey(
+        "inventory.StockLocation",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="movements",
+    )
     # Откуда движение: order/job/manual/stocktake (+ source_ref — id документа/
     # позиции, ключ идемпотентности как у finance.RevenueEntry).
     source = models.CharField(max_length=20, blank=True)
