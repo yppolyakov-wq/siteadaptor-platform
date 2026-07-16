@@ -194,7 +194,16 @@ def reorder_suggestions(global_threshold):
 
 
 def apply_manual_movement(
-    *, product, variant=None, kind, delta=0, set_absolute=None, actor="", note=""
+    *,
+    product,
+    variant=None,
+    kind,
+    delta=0,
+    set_absolute=None,
+    actor="",
+    note="",
+    source="manual",
+    source_ref="",
 ):
     """Ручное движение: двигает СЧЁТЧИК и пишет леджер в одной atomic.
 
@@ -202,7 +211,8 @@ def apply_manual_movement(
     двигают его сами). T2: variant задан → двигаем остаток варианта. `set_absolute`
     (инвентаризация) → счётчик = значение, delta = разница; иначе счётчик += delta
     (клампим в ≥0, delta = факт). None stock_quantity трактуем как 0. Нулевая
-    дельта → None. Возвращает StockMovement."""
+    дельта → None. `source`/`source_ref` — провенанс (E3: приёмка по Bestellung
+    тегируется source="purchase"). Возвращает StockMovement."""
     from apps.catalog.models import Product, ProductVariant
 
     with transaction.atomic():
@@ -227,7 +237,8 @@ def apply_manual_movement(
             variant=locked if variant is not None else None,
             kind=kind,
             delta=change,
-            source="manual",
+            source=source,
+            source_ref=source_ref,
             actor=actor,
             note=note,
         )
@@ -275,10 +286,13 @@ def has_lots(product, variant=None) -> bool:
     return _lot_qs(product, variant).filter(qty_remaining__gt=0).exists()
 
 
-def receive_lot(*, product, variant=None, qty, mhd=None, lot_code="", actor="", note=""):
+def receive_lot(
+    *, product, variant=None, qty, mhd=None, lot_code="", actor="", note="", source="manual"
+):
     """E1: оприходовать партию (Wareneingang по Charge). Двигает счётчик (+qty),
     пишет леджер (receipt) и создаёт `Lot(qty_remaining=qty)` — всё в одной atomic.
-    Реюз `apply_manual_movement` для счётчика+леджера, поверх — запись партии."""
+    Реюз `apply_manual_movement` для счётчика+леджера, поверх — запись партии.
+    `source` — провенанс движения (E3: приёмка по Bestellung → "purchase")."""
     qty = int(qty)
     if qty <= 0:
         return None
@@ -290,6 +304,7 @@ def receive_lot(*, product, variant=None, qty, mhd=None, lot_code="", actor="", 
             delta=qty,
             actor=actor,
             note=note or (f"Charge {lot_code}" if lot_code else "Wareneingang"),
+            source=source,
         )
         lot = Lot.objects.create(
             product=product,

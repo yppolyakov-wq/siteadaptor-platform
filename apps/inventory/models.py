@@ -122,3 +122,114 @@ class Lot(TimestampedModel):
         from django.utils import timezone
 
         return (self.mhd - timezone.localdate()).days if self.mhd is not None else None
+
+
+class Lieferant(TimestampedModel):
+    """Склад-2 E3 (Закупки/M12): поставщик. Аддитивно; приёмка по Bestellung двигает
+    счётчик/леджер существующим складским путём (D1 цел)."""
+
+    name = models.CharField(max_length=200)
+    contact_person = models.CharField(max_length=150, blank=True)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    address = models.TextField(blank=True)
+    customer_number = models.CharField(max_length=64, blank=True)  # наш № у поставщика
+    default_lead_days = models.PositiveIntegerField(null=True, blank=True)  # срок поставки
+    note = models.CharField(max_length=300, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Bestellung(TimestampedModel):
+    """Склад-2 E3: закупочный заказ (Purchase Order). Планирование — счётчик НЕ трогает
+    до приёмки; приёмка строк идёт существующим складским путём."""
+
+    STATUS_DRAFT = "draft"  # Entwurf — собираем позиции
+    STATUS_ORDERED = "ordered"  # bestellt — отправлен поставщику
+    STATUS_RECEIVED = "received"  # empfangen — принят полностью
+    STATUS_CANCELLED = "cancelled"  # storniert
+    STATUSES = [
+        (STATUS_DRAFT, "Entwurf"),
+        (STATUS_ORDERED, "Bestellt"),
+        (STATUS_RECEIVED, "Empfangen"),
+        (STATUS_CANCELLED, "Storniert"),
+    ]
+
+    supplier = models.ForeignKey(
+        Lieferant,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bestellungen",
+    )
+    reference = models.CharField(max_length=12, unique=True)  # "BE-XXXXXX"
+    status = models.CharField(max_length=12, choices=STATUSES, default=STATUS_DRAFT)
+    note = models.CharField(max_length=300, blank=True)
+    ordered_at = models.DateTimeField(null=True, blank=True)
+    received_at = models.DateTimeField(null=True, blank=True)
+    actor = models.CharField(max_length=150, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["status", "-created_at"], name="po_status_idx")]
+
+    def __str__(self):
+        return self.reference
+
+    @property
+    def total_cost(self):
+        """Σ строк (Menge × EK) — для отображения. Decimal."""
+        from decimal import Decimal
+
+        return sum((p.line_total for p in self.positions.all()), Decimal("0"))
+
+    @property
+    def is_fully_received(self) -> bool:
+        lines = list(self.positions.all())
+        return bool(lines) and all(p.is_fully_received for p in lines)
+
+
+class BestellPosition(TimestampedModel):
+    """Склад-2 E3: строка закупочного заказа. Сущность = товар без вариантов | вариант
+    (как в остальном складе). `qty_received` — сколько принято (частичные приёмки)."""
+
+    bestellung = models.ForeignKey(Bestellung, on_delete=models.CASCADE, related_name="positions")
+    product = models.ForeignKey(
+        "catalog.Product", on_delete=models.CASCADE, related_name="po_positions"
+    )
+    variant = models.ForeignKey(
+        "catalog.ProductVariant",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="po_positions",
+    )
+    qty = models.PositiveIntegerField(default=1)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # EK-снимок
+    qty_received = models.PositiveIntegerField(default=0)
+    note = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        label = self.variant.label if self.variant_id else ""
+        return f"{self.product} {label} × {self.qty}".strip()
+
+    @property
+    def line_total(self):
+        return self.unit_cost * self.qty
+
+    @property
+    def is_fully_received(self) -> bool:
+        return self.qty_received >= self.qty
+
+    @property
+    def qty_open(self) -> int:
+        """Ещё не принято по строке (для частичной приёмки)."""
+        return max(0, self.qty - self.qty_received)

@@ -5453,3 +5453,28 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   назначает демо-остаток; один — просрочен для показа бейджа «abgelaufen»; Σlot==счётчик). Замок
   `test_bakery_kit_seeds_lots_with_mhd`. **Волна E1 (Chargen/MHD+FEFO) закрыта. Дальше — E3 (Закупки/
   M12) → E2 (Мультисклад).** ⚠️ `inventory/0002` (E1.1) ТРЕБУЕТ ДЕПЛОЯ.
+
+## 2026-07-16 — Склад-2 E3.1: модели закупок (Lieferant/Bestellung) + сервисы (⚠️ миграция)
+
+- Старт эпика E3 (Закупки/M12) по плану `docs/sklad-2-e3-purchasing-plan-2026-07-16.md`. Владелец
+  ранее одобрил «все 3» эпика (E1→E3→E2). Форк #1 (`Product.default_supplier`) отложен (v1 проще).
+- **Модели** (`apps/inventory`, TENANT, ⚠️ миграция `inventory/0003`, аддитив): `Lieferant`
+  (name/контакты/customer_number/lead_days/is_active), `Bestellung` (supplier SET_NULL, `reference`
+  `BE-XXXXXX` unique, status draft/ordered/received/cancelled, ordered_at/received_at, свойства
+  `total_cost`/`is_fully_received`), `BestellPosition` (product/variant, qty, `unit_cost` EK-снимок,
+  `qty_received`, свойства `line_total`/`is_fully_received`/`qty_open`).
+- **Сервисы** (`apps/inventory/purchasing.py`): `create_po` (Entwurf, `_unique_po_code`), `add_po_line`
+  (EK-снимок из `cost_price` T5 или явный), `set_po_status` (штампы ordered_at/received_at, идемпотентно),
+  **`receive_po_line`** (частичная приёмка: книжит Wareneingang существующим складским путём —
+  `receive_lot` при `lots_enabled` тенанта, иначе `apply_manual_movement`; счётчик двигается ОДИН раз;
+  `qty_received += take`, клампится по `qty_open`; авто-received при полной приёмке; `update_cost` —
+  форк обновления EK, по умолч. выкл), `draft_from_suggestions` (E3.3-хелпер из T5 Bestellvorschläge),
+  `suppliers`. **D1 цел:** Bestellung счётчик НЕ трогает до приёмки; движение тегируется
+  `source="purchase"`.
+- **Инфра:** `apply_manual_movement`/`receive_lot` получили опц. `source`/`source_ref` (дефолт
+  "manual"/"" — прежнее поведение байт-в-байт) для провенанса приёмок.
+- Замки `test_purchasing.py` (8): создание PO+BE-код; EK-снимок; штампы статусов; приёмка двигает
+  счётчик один раз + провенанс purchase + авто-received; частичные приёмки накапливаются+клампятся;
+  приёмка создаёт Lot при `lots_enabled`; `update_cost` пишет cost_price; `draft_from_suggestions`.
+  Прогон `apps/inventory` 66 зелёных (сигнатуры E1 не сломаны). **⚠️ `inventory/0003` ТРЕБУЕТ ДЕПЛОЯ.**
+  Кабинет закупок — E3.2.
