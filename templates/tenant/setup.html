@@ -8,6 +8,15 @@
 витрины (iframe на «/», тот же origin → same-origin framing разрешён). Рельса —
 единый реестр onboarding.SETUP_STEPS: ✓ выполнен / ⏭ пропущен / иконка впереди;
 каждый пункт — ссылка ?step=<key>, пропущенное дозаполняется в любой момент.{% endcomment %}
+{% comment %}Фидбэк владельца 2026-07-14: «Шаг N из M» + прогресс — компактной строкой
+НАД сеткой (не в колонке слайда): вертикаль колонок освобождается под слайд и превью.{% endcomment %}
+<div class="flex items-center gap-3 mb-4">
+  <span class="text-xs text-gray-400 whitespace-nowrap">{% blocktrans with step=step_num %}Step {{ step }} of {{ total }}{% endblocktrans %}</span>
+  <div class="flex-1 h-1.5 bg-gray-200 rounded-full" role="progressbar" aria-valuenow="{{ step_num }}" aria-valuemin="1" aria-valuemax="{{ total }}">
+    <div class="h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio step_num total 100 %}%"></div>
+  </div>
+</div>
+
 <div class="lg:grid lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,400px)] lg:gap-8 lg:items-start">
 <nav aria-label="{% trans 'Setup' %}" class="flex gap-1.5 overflow-x-auto pb-2 mb-4 lg:mb-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0 lg:sticky lg:top-20">
   {% for s in steps %}
@@ -21,25 +30,49 @@
 </nav>
 
 <div id="setup-slide" class="max-w-xl">
-  <p class="text-xs text-gray-400 mb-2">{% blocktrans with step=step_num %}Step {{ step }} of {{ total }}{% endblocktrans %}</p>
-  <div class="h-1.5 bg-gray-200 rounded-full mb-6" role="progressbar" aria-valuenow="{{ step_num }}" aria-valuemin="1" aria-valuemax="{{ total }}">
-    <div class="h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio step_num total 100 %}%"></div>
-  </div>
   {% include step_template %}
 </div>
 
 {% if show_preview %}
   {% comment %}AB3-v2: живое превью витрины. На контент-шагах обновляется ПО МЕРЕ
-  ввода (debounced live-save без перехода), а не только после шага.{% endcomment %}
+  ввода (debounced live-save без перехода), а не только после шага. Фидбэк владельца
+  2026-07-14: iframe рендерится ДЕСКТОПНОЙ шириной и масштабируется в колонку
+  (zoom-out) — виден весь сайт, а не мобильная нарезка (JS-fit ниже; без JS —
+  фолбэк w-full/h-full, прежний режим).{% endcomment %}
   <aside class="hidden lg:block lg:sticky lg:top-20 mt-8 lg:mt-0">
-    <p class="text-xs font-medium text-gray-400 mb-2">{% trans "Live preview" %}{% if live_save %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
-    <div class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm">
-      <iframe data-setup-preview src="/" title="{% trans 'Website preview' %}" class="w-full h-[520px] border-0" loading="lazy"></iframe>
+    <p class="text-xs font-medium text-gray-400 mb-2 truncate">{% trans "Live preview" %}{% if live_save %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
+    <div data-preview-shell class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm h-[min(70vh,640px)]">
+      <iframe data-setup-preview src="/" title="{% trans 'Website preview' %}" class="w-full h-full border-0" loading="lazy"></iframe>
     </div>
     <a href="/" target="_blank" rel="noopener" class="mt-2 inline-block text-sm text-indigo-600 hover:underline">🌐 {% trans "Open website" %} →</a>
   </aside>
 {% endif %}
 </div>
+
+{% if show_preview %}
+<script>
+(function () {
+  // Zoom-out превью: сайт рендерится десктопной шириной (DESK) и масштабируется
+  // transform:scale в ширину колонки — владелец видит страницу целиком.
+  var shell = document.querySelector("[data-preview-shell]");
+  var frame = document.querySelector("iframe[data-setup-preview]");
+  if (!shell || !frame) return;
+  var DESK = 1200;
+  function fit() {
+    var w = shell.clientWidth;
+    if (!w) return; // колонка скрыта (мобайл) — оставляем фолбэк w-full/h-full
+    var scale = Math.min(1, w / DESK);
+    frame.style.width = DESK + "px";
+    frame.style.height = Math.round(shell.clientHeight / scale) + "px";
+    frame.style.transform = "scale(" + scale + ")";
+    frame.style.transformOrigin = "top left";
+  }
+  fit();
+  window.addEventListener("resize", fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(shell);
+})();
+</script>
+{% endif %}
 
 {% if live_save %}
 {% comment %}AB3-v2: на контент-шагах сохраняем введённое БЕЗ перехода (action=live → 204)

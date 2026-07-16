@@ -67,12 +67,28 @@
     </span>
   </div>
 
+  {% comment %}Фидбэк владельца 2026-07-14: flash-сообщения («Блок добавлен.») были
+  in-flow полосой под тулбаром — сдвигали канву вниз. Теперь — плавающий тост поверх
+  канвы с автозакрытием (ошибки живут дольше); вёрстку не двигает.{% endcomment %}
   {% if messages %}
-    <div class="shrink-0 px-3 pt-2 space-y-1">
+    <div id="bld-flash" role="status" class="fixed top-12 left-1/2 -translate-x-1/2 z-[70] space-y-1 pointer-events-none max-w-[90vw]">
     {% for m in messages %}
-      <div class="rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+      {% comment %}Ошибки: pointer-events-auto — текст можно выделить/скопировать до автоскрытия.{% endcomment %}
+      <div class="rounded-full px-4 py-2 text-sm shadow-lg text-center {% if m.tags == 'error' %}bg-red-600 text-white pointer-events-auto{% else %}bg-gray-900/90 text-white{% endif %}"{% if m.tags == 'error' %} data-flash-error{% endif %}>{{ m }}</div>
     {% endfor %}
     </div>
+    <script>
+    (function () {
+      var el = document.getElementById("bld-flash");
+      if (!el) return;
+      var delay = el.querySelector("[data-flash-error]") ? 6000 : 2500;
+      setTimeout(function () {
+        el.style.transition = "opacity .3s";
+        el.style.opacity = "0";
+        setTimeout(function () { el.remove(); }, 350);
+      }, delay);
+    })();
+    </script>
   {% endif %}
 
   {% comment %}SE-7 (Вариант 3): тело = рейл областей (слева) + фокус-панель одной области
