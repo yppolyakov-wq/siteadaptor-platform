@@ -69,3 +69,56 @@ class StockMovement(TimestampedModel):
 
     def __str__(self):
         return f"{self.get_kind_display()} {self.delta:+d}"
+
+
+class Lot(TimestampedModel):
+    """Склад-2 E1 (Chargen/MHD): партия товара/варианта с остатком и сроком годности.
+
+    Разбивка ПОВЕРХ счётчика (Вариант A, план sklad-2 §3): `Σ Lot.qty_remaining`
+    сходится со `stock_quantity` сущности (реконсиляция, как леджер↔счётчик). Партии
+    существуют только когда владелец включил `site_config["lots_enabled"]` и оприходовал
+    по партиям; товар без партий → поведение остатка как раньше (чистый счётчик).
+
+    FEFO (First-Expired-First-Out): при расходе гасим партии по возрастанию `mhd`
+    (ближайший срок первым; партии без даты — последними). Порядок Meta это отражает.
+    """
+
+    product = models.ForeignKey("catalog.Product", on_delete=models.CASCADE, related_name="lots")
+    variant = models.ForeignKey(
+        "catalog.ProductVariant",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="lots",
+    )
+    lot_code = models.CharField(max_length=64, blank=True)  # Chargennummer (опц.)
+    mhd = models.DateField(null=True, blank=True)  # Mindesthaltbarkeitsdatum / срок годности
+    qty_received = models.PositiveIntegerField(default=0)  # приход партии
+    qty_remaining = models.IntegerField(default=0)  # текущий остаток партии (гасится FEFO)
+    note = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        # FEFO-порядок: сперва с датой по возрастанию, партии без MHD — в хвост
+        # (F("mhd").asc(nulls_last=True) в запросах расхода; ordering — для UI-списка).
+        ordering = ["mhd", "created_at"]
+        indexes = [
+            models.Index(fields=["product", "mhd"], name="lot_product_mhd_idx"),
+            models.Index(fields=["variant", "mhd"], name="lot_variant_mhd_idx"),
+        ]
+
+    def __str__(self):
+        code = self.lot_code or "—"
+        return f"Charge {code} · {self.qty_remaining}/{self.qty_received}"
+
+    @property
+    def is_expired(self) -> bool:
+        """Партия просрочена (MHD в прошлом). Без даты — никогда."""
+        from django.utils import timezone
+
+        return self.mhd is not None and self.mhd < timezone.localdate()
+
+    def days_left(self):
+        """Дней до MHD (может быть отрицательным); None без даты."""
+        from django.utils import timezone
+
+        return (self.mhd - timezone.localdate()).days if self.mhd is not None else None

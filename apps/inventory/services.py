@@ -1,9 +1,21 @@
-"""U-D3: сервис склад-леджера — идемпотентная запись + реконсиляция со счётчиком."""
+"""U-D3: сервис склад-леджера — идемпотентная запись + реконсиляция со счётчиком.
+
+Склад-2 E1 (Chargen/MHD): партии `Lot` — разбивка поверх счётчика; FEFO-расход
+(`consume_fefo`) гасит партии по возрастанию MHD. Партии живут только при
+`lots_enabled` тенанта и реальном приходе по партиям.
+"""
 
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import F, Q, Sum
 
-from .models import StockMovement
+from .models import Lot, StockMovement
+
+
+def lots_enabled(tenant) -> bool:
+    """Склад-2 E1: включён ли учёт партий/MHD у тенанта (тумблер site_config).
+    По умолчанию выкл — не захламляем не-еду; товар без партий = чистый счётчик."""
+    cfg = getattr(tenant, "site_config", None)
+    return bool(isinstance(cfg, dict) and cfg.get("lots_enabled"))
 
 
 def find_entity_by_code(code):
@@ -240,3 +252,93 @@ def record_opening_balance(*, product, variant=None, actor=""):
         actor=actor,
         note="Startbestand (Abgleich)",
     )
+
+
+# --- Склад-2 E1: партии (Chargen) + FEFO ------------------------------------------
+
+
+def _lot_qs(product, variant=None):
+    """Партии сущности (товар-без-вариантов | вариант) — как ledger_balance."""
+    qs = Lot.objects.filter(product=product)
+    return qs.filter(variant=variant) if variant is not None else qs.filter(variant__isnull=True)
+
+
+def lot_balance(product, variant=None) -> int:
+    """Σ остатков партий сущности (для реконсиляции Σlot ↔ счётчик)."""
+    return _lot_qs(product, variant).aggregate(s=Sum("qty_remaining"))["s"] or 0
+
+
+def has_lots(product, variant=None) -> bool:
+    """Есть ли у сущности хоть одна партия с остатком (иначе FEFO не применяется —
+    расход идёт как раньше, только счётчик)."""
+    return _lot_qs(product, variant).filter(qty_remaining__gt=0).exists()
+
+
+def receive_lot(*, product, variant=None, qty, mhd=None, lot_code="", actor="", note=""):
+    """E1: оприходовать партию (Wareneingang по Charge). Двигает счётчик (+qty),
+    пишет леджер (receipt) и создаёт `Lot(qty_remaining=qty)` — всё в одной atomic.
+    Реюз `apply_manual_movement` для счётчика+леджера, поверх — запись партии."""
+    qty = int(qty)
+    if qty <= 0:
+        return None
+    with transaction.atomic():
+        mv = apply_manual_movement(
+            product=product,
+            variant=variant,
+            kind=StockMovement.KIND_RECEIPT,
+            delta=qty,
+            actor=actor,
+            note=note or (f"Charge {lot_code}" if lot_code else "Wareneingang"),
+        )
+        lot = Lot.objects.create(
+            product=product,
+            variant=variant,
+            lot_code=lot_code.strip(),
+            mhd=mhd,
+            qty_received=qty,
+            qty_remaining=qty,
+            note=note,
+        )
+    return lot, mv
+
+
+def consume_fefo(product, variant=None, *, qty):
+    """E1 FEFO: погасить `qty` из партий сущности по возрастанию MHD (ближайший срок
+    первым; партии без даты — последними). Возвращает списанное кол-во (может быть
+    меньше qty, если партий не хватило — недостачу докрывает чистый счётчик). НЕ
+    трогает счётчик и леджер — вызывается ВНУТРИ существующей atomic расхода рядом с
+    декрементом счётчика. Партии блокируются select_for_update (без гонок FEFO)."""
+    qty = int(qty)
+    if qty <= 0:
+        return 0
+    remaining = qty
+    lots = list(
+        _lot_qs(product, variant)
+        .filter(qty_remaining__gt=0)
+        .select_for_update()
+        .order_by(F("mhd").asc(nulls_last=True), "created_at")
+    )
+    for lot in lots:
+        if remaining <= 0:
+            break
+        take = min(lot.qty_remaining, remaining)
+        lot.qty_remaining -= take
+        lot.save(update_fields=["qty_remaining", "updated_at"])
+        remaining -= take
+    return qty - remaining
+
+
+def expiring_lots(*, within_days=None, include_expired=True):
+    """E1 MHD-обзор: партии с остатком и датой MHD — для алертов «скоро истекает» /
+    «просрочено». within_days=N → только MHD ≤ сегодня+N (None = все с датой).
+    Отсортированы FEFO (ближайший срок первым)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    qs = Lot.objects.filter(qty_remaining__gt=0, mhd__isnull=False)
+    if within_days is not None:
+        qs = qs.filter(mhd__lte=timezone.localdate() + timedelta(days=int(within_days)))
+    if not include_expired:
+        qs = qs.filter(mhd__gte=timezone.localdate())
+    return qs.select_related("product", "variant").order_by("mhd", "created_at")

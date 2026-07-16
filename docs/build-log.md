@@ -5393,3 +5393,22 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   колонке 398px, тост fixed и исчезает к t=3.3с; скриншоты сняты. Тесты
   onboarding_wizard/home_builder/cblocks_builder/template_comments (177) зелёные;
   адверсариальный ревью-workflow по диффу. app.css пересобран. Без миграций.
+
+## 2026-07-16 — Склад-2 E1.1: модель Lot (Chargen) + FEFO-сервис (⚠️ миграция)
+
+- Старт волны Склад-2 (U-D2W) по решению владельца: «все 3 эпика», порядок E1→E3→E2,
+  сразу полный FEFO. План — `docs/sklad-2-plan-2026-07-16.md` (Вариант A: счётчик=итого,
+  партии=разбивка+реконсиляция; тумблер `lots_enabled`).
+- **Модель `Lot`** (`apps/inventory`, TENANT, ⚠️ миграция `inventory/0002`): product/variant,
+  `lot_code` (Chargennummer), `mhd` (DateField null), `qty_received`, `qty_remaining`, `note`;
+  Meta ordering `[mhd, created_at]` (FEFO), индексы (product,mhd)/(variant,mhd); свойства
+  `is_expired`/`days_left`. Аддитивна.
+- **FEFO-сервис** (`inventory/services.py`): `lots_enabled(tenant)` (тумблер), `receive_lot`
+  (приёмка партии: счётчик+леджер receipt через `apply_manual_movement` + создание Lot, одна
+  atomic), `consume_fefo` (гасит партии по возрастанию MHD, `F("mhd").asc(nulls_last=True)`,
+  select_for_update — без гонок; недостачу докрывает чистый счётчик), `lot_balance`/`has_lots`
+  (реконсиляция Σlot↔счётчик, изоляция вариант/товар-уровень), `expiring_lots` (MHD-обзор:
+  within_days + include_expired). Врезки в движки/кабинет — следующими фазами.
+- Замки `test_lots_fefo.py` (6): приёмка двигает счётчик/леджер/Lot; FEFO ближайший-MHD-первым;
+  кап по остатку партий; has_lots; изоляция вариант↔товар; expiring/expired+days_left. Без
+  правок движков заказа (E1.4). **⚠️ `inventory/0002` ТРЕБУЕТ ДЕПЛОЯ.**
