@@ -15,12 +15,17 @@ pytestmark = pytest.mark.django_db
 
 def _pending_stay(hours_ago=8, arrival_in=5):
     unit = StayUnit.objects.create(name="Zimmer 1", price_cents=8000)
+    # База дат — UTC-дата (как в таске: `arrival__gte=now.date()`, now=timezone.now()).
+    # `timezone.localdate()` (Europe/Berlin) у полуночи UTC уходил на день вперёд →
+    # заезд arrival_in=-1 попадал на UTC-сегодня и проходил фильтр «будущие» → флейк
+    # прогонов в ~22–24 UTC (CI #1503). Тест-фикс, поведение таска не трогаем.
+    today = timezone.now().date()
     booking = StayBooking.objects.create(
         unit=unit,
         customer=Customer.objects.create(name="Kim", email="kim@test.de"),
         reference_code=f"S-{hours_ago}{arrival_in}X",
-        arrival=timezone.localdate() + timedelta(days=arrival_in),
-        departure=timezone.localdate() + timedelta(days=arrival_in + 2),
+        arrival=today + timedelta(days=arrival_in),
+        departure=today + timedelta(days=arrival_in + 2),
         payment_state=StayBooking.PAYMENT_PENDING,
         deposit_cents=2000,
     )
