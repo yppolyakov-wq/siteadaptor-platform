@@ -225,7 +225,33 @@ def _photo(keyword: str, i: int) -> dict:
 
 # AB6.9: пустые дефолты cfg-ключей, добавляемых демо (для точного отката в clear_demo —
 # сбрасываем только если владелец не переопределил после загрузки).
-_CFG_DEMO_DEFAULTS = {"hero_title": "", "hero_text": "", "hero_image": "", "gallery": []}
+_CFG_DEMO_DEFAULTS = {
+    "hero_title": "",
+    "hero_text": "",
+    "hero_image": "",
+    "gallery": [],
+    "about_title": "",
+    "about_text": "",
+}
+
+# A8-хвост: «Über uns»-заготовка на язык задач архетипа ({name}/{city} подставляются).
+_ABOUT_TEXT = {
+    "bakery": "{name} ist eine Bäckerei in {city}. Jeden Morgen backen wir frisch — mit regionalen Zutaten und viel Handwerk.",
+    "butcher": "{name} ist eine Metzgerei in {city}. Fleisch und Wurst aus eigener Herstellung — Qualität, der man vertraut.",
+    "grocery": "{name} bringt frische, regionale Lebensmittel nach {city} — persönlich ausgewählt, fair im Preis.",
+    "clothing": "{name} ist Mode aus {city} — kuratierte Styles, ehrliche Beratung, unkomplizierter Versand.",
+    "restaurant": "{name} in {city}: ehrliche Küche, frische Zutaten und ein Ort zum Wohlfühlen.",
+    "cafe": "{name} ist dein Café in {city} — guter Kaffee, hausgemachter Kuchen und Zeit zum Durchatmen.",
+    "retail": "{name} in {city}: ausgewählte Produkte, persönliche Beratung — vor Ort und online.",
+    "online_shop": "{name} ist ein Online-Shop mit Sorgfalt: ausgewählte Produkte, schneller Versand, echter Service.",
+    "tour_operator": "{name} zeigt dir {city} von seiner besten Seite — kleine Gruppen, echte Geschichten.",
+    "hotel": "{name} in {city}: gemütliche Zimmer, herzlicher Service und ein guter Start in den Tag.",
+    "friseur": "{name} ist dein Salon in {city} — Handwerk, Stil und Zeit für dich.",
+    "handwerker": "{name} steht für Handwerk aus {city}: sauber geplant, zuverlässig umgesetzt.",
+    "werkstatt": "{name} ist deine Werkstatt in {city} — ehrliche Diagnose, faire Preise, schnelle Termine.",
+    "events": "{name} bringt besondere Veranstaltungen nach {city} — gute Momente, gut organisiert.",
+}
+_ABOUT_TEXT_FALLBACK = "{name} ist ein lokales Geschäft in {city}. Wir freuen uns auf Sie!"
 
 
 def _enrich_config(tenant, cfg: dict, refs: dict) -> None:
@@ -254,6 +280,16 @@ def _enrich_config(tenant, cfg: dict, refs: dict) -> None:
         ]
         cfg["gallery"] = gallery
         added["gallery"] = gallery
+    # A8-хвост: «Über uns»-заготовка (слайд «Texte & Recht» приходит уже не пустым).
+    if not cfg.get("about_title"):
+        cfg["about_title"] = "Über uns"
+        added["about_title"] = "Über uns"
+    if not cfg.get("about_text"):
+        text = _ABOUT_TEXT.get(bt, _ABOUT_TEXT_FALLBACK).format(
+            name=tenant.name, city=tenant.city or "Ihrer Nähe"
+        )
+        cfg["about_text"] = text
+        added["about_text"] = text
     if added:
         refs["_cfg"] = added
 

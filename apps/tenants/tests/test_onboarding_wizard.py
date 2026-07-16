@@ -299,14 +299,72 @@ def test_texts_slide_saves_about_and_impressum():
 
 
 def test_menu_slide_picks_header_style():
-    """AB6.2e: слайд menu — выбор вида шапки (classic/centered/minimal) → config nav.style."""
+    """AB6.2e: слайд menu — выбор вида шапки (classic/centered/minimal). ФИКС: пишется
+    и в menus.top.style — то, что реально рендерит шапка (top_meta), даже на конфиге
+    с МАТЕРИАЛИЗОВАННЫМ menus (после первого Save он есть почти у всех)."""
+    from apps.tenants import menu as menu_mod
+
     tenant = TenantFactory(schema_name="public", slug="mn", name="Mn", business_type="bakery")
+    # Материализуем menus (как после любого Save через normalize) — раньше пикер
+    # на таком конфиге был no-op (писал только nav.style).
+    tenant.site_config = siteconfig.normalize(tenant.site_config)
+    tenant.save(update_fields=["site_config"])
+    assert "menus" in tenant.site_config
     onboarding.goto(tenant, "menu")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert 'name="nav_style"' in html and "Menüpunkte bearbeiten" in html
+    assert 'name="nav_style"' in html
     core_views.setup_view(_req("post", {"nav_style": "centered"}, tenant))
     tenant.refresh_from_db()
     assert tenant.site_config["nav"]["style"] == "centered"
+    assert menu_mod.top_meta(tenant)[0] == "centered"  # реальный рендер-путь шапки
+
+
+def test_menu_slide_chips_toggle_standard_items():
+    """Хвост AB6 (§0b.3): чипы стандартных пунктов правят menus.top.items — узел
+    добавляется/выключается (не удаляется), кастомные узлы не трогаются; шапка
+    (resolve_menu) сразу отражает выбор."""
+    from apps.tenants import menu as menu_mod
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="chp",
+        name="Chp",
+        business_type="bakery",
+        disabled_modules=modules.default_disabled_for("bakery"),
+    )
+    # Кастомный узел владельца — должен пережить чипы нетронутым.
+    cfg = siteconfig.normalize(tenant.site_config)
+    cfg["menus"]["top"]["items"].append(
+        {
+            "label": "Blog",
+            "type": "url",
+            "target": "/blog/",
+            "enabled": True,
+            "icon": "",
+            "children": [],
+        }
+    )
+    tenant.site_config = siteconfig.normalize(cfg)
+    tenant.save(update_fields=["site_config"])
+    onboarding.goto(tenant, "menu")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="menu_items"' in html and "Über uns" in html
+    # Выбираем Start/Angebote + Über uns; Produkte СНИМАЕМ.
+    core_views.setup_view(
+        _req(
+            "post",
+            {"nav_style": "classic", "menu_chips": "1", "menu_items": ["offers", "about"]},
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    items = tenant.site_config["menus"]["top"]["items"]
+    by = {(n["type"], n["target"]): n for n in items}
+    assert by[("page", "about")]["enabled"] is True  # добавлен
+    assert by[("archetype", "catalog")]["enabled"] is False  # выключен, НЕ удалён
+    assert by[("url", "/blog/")]["enabled"] is True  # кастомный узел цел
+    resolved = {r["label"] for r in menu_mod.resolve_menu(tenant, "top")}
+    assert "Über uns" in resolved and "Blog" in resolved
 
 
 def test_company_slide_saves_name_city_and_shows_logo_field():
@@ -573,6 +631,39 @@ def test_payment_slide_reuses_shared_form_and_saves():
     )
     tenant.refresh_from_db()
     assert tenant.delivery_enabled is True and tenant.delivery_fee_cents == 450
+
+
+def test_rich_demo_adds_about_texts_reversible():
+    """A8-хвост: load_demo заполняет «Über uns» (только поверх пустого); clear_demo
+    откатывает нетронутое, но сохраняет правку владельца."""
+    from apps.tenants import demo
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="abt",
+        name="Backhaus Krume",
+        business_type="bakery",
+        city="Hilden",
+    )
+    demo.load_demo(tenant)
+    tenant.refresh_from_db()
+    assert tenant.site_config["about_title"] == "Über uns"
+    assert "Backhaus Krume" in tenant.site_config["about_text"]  # {name} подставлен
+    assert "Hilden" in tenant.site_config["about_text"]  # {city} подставлен
+    # Откат нетронутого
+    demo.clear_demo(tenant)
+    tenant.refresh_from_db()
+    assert tenant.site_config.get("about_text", "") == ""
+    # Правка владельца переживает clear
+    demo.load_demo(tenant)
+    tenant.refresh_from_db()
+    cfg = dict(tenant.site_config)
+    cfg["about_text"] = "Unser eigener Text."
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config"])
+    demo.clear_demo(tenant)
+    tenant.refresh_from_db()
+    assert tenant.site_config["about_text"] == "Unser eigener Text."
 
 
 # --- рельса прогресса + прыжок ----------------------------------------------------
