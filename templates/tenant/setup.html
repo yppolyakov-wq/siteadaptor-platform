@@ -3,51 +3,51 @@
 {% block dash_title %}{% trans "Setup" %}{% endblock %}
 
 {% block dash_content %}
-{% comment %}AB6.1: 3 зоны — рельса шагов (вертикально слева на lg, чипы-скролл сверху
-на мобиле), слайд текущего шага (партиал из setup_steps.HANDLERS), живое превью
-витрины (iframe на «/», тот же origin → same-origin framing разрешён). Рельса —
-единый реестр onboarding.SETUP_STEPS: ✓ выполнен / ⏭ пропущен / иконка впереди;
-каждый пункт — ссылка ?step=<key>, пропущенное дозаполняется в любой момент.{% endcomment %}
-{% comment %}Фидбэк владельца 2026-07-14: «Шаг N из M» + прогресс — компактной строкой
-НАД сеткой (не в колонке слайда): вертикаль колонок освобождается под слайд и превью.{% endcomment %}
-<div class="flex items-center gap-3 mb-4">
-  <span class="text-xs text-gray-400 whitespace-nowrap">{% blocktrans with step=step_num %}Step {{ step }} of {{ total }}{% endblocktrans %}</span>
-  <div class="flex-1 h-1.5 bg-gray-200 rounded-full" role="progressbar" aria-valuenow="{{ step_num }}" aria-valuemin="1" aria-valuemax="{{ total }}">
-    <div class="h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio step_num total 100 %}%"></div>
+{% comment %}AB6.1 + фидбэк владельца 2026-07-14: рельса ВСЕХ шагов — горизонтально
+СВЕРХУ (на всю ширину, не левой колонкой), под ней прогресс-бар; тело — ДВЕ ПОЛОВИНЫ:
+настройки слева, живое превью справа. Рельса — единый реестр onboarding.SETUP_STEPS:
+✓ выполнен / ⏭ пропущен / иконка впереди; каждый пункт — ссылка ?step=<key>.{% endcomment %}
+<div class="mb-5">
+  <nav aria-label="{% trans 'Setup' %}" class="flex flex-wrap gap-1.5 mb-3">
+    {% for s in steps %}
+      <a href="{% url 'setup' %}?step={{ s.key }}"
+         {% if s.key == step %}aria-current="step"{% endif %}
+         class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm {% if s.key == step %}bg-indigo-600 text-white font-medium{% elif s.status == 'done' %}text-gray-600 hover:bg-gray-100{% elif s.status == 'skipped' %}text-amber-700 hover:bg-amber-50{% else %}text-gray-400 hover:bg-gray-100{% endif %}">
+        <span class="w-4 text-center leading-none {% if s.status == 'done' and s.key != step %}text-emerald-500{% endif %}">{% if s.status == 'done' %}✓{% elif s.status == 'skipped' %}⏭{% else %}{{ s.icon }}{% endif %}</span>
+        <span class="whitespace-nowrap">{{ s.label }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+  <div class="flex items-center gap-3">
+    <span class="text-xs text-gray-400 whitespace-nowrap">{% blocktrans with step=step_num %}Step {{ step }} of {{ total }}{% endblocktrans %}</span>
+    <div class="flex-1 h-1.5 bg-gray-200 rounded-full" role="progressbar" aria-valuenow="{{ step_num }}" aria-valuemin="1" aria-valuemax="{{ total }}">
+      <div class="h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio step_num total 100 %}%"></div>
+    </div>
   </div>
 </div>
 
-<div class="lg:grid lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,400px)] lg:gap-8 lg:items-start">
-<nav aria-label="{% trans 'Setup' %}" class="flex gap-1.5 overflow-x-auto pb-2 mb-4 lg:mb-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0 lg:sticky lg:top-20">
-  {% for s in steps %}
-    <a href="{% url 'setup' %}?step={{ s.key }}"
-       {% if s.key == step %}aria-current="step"{% endif %}
-       class="flex items-center gap-2 shrink-0 rounded-lg px-2.5 py-1.5 text-sm {% if s.key == step %}bg-indigo-600 text-white font-medium{% elif s.status == 'done' %}text-gray-600 hover:bg-gray-100{% elif s.status == 'skipped' %}text-amber-700 hover:bg-amber-50{% else %}text-gray-400 hover:bg-gray-100{% endif %}">
-      <span class="w-5 text-center leading-none {% if s.status == 'done' and s.key != step %}text-emerald-500{% endif %}">{% if s.status == 'done' %}✓{% elif s.status == 'skipped' %}⏭{% else %}{{ s.icon }}{% endif %}</span>
-      <span class="whitespace-nowrap">{{ s.label }}</span>
-    </a>
-  {% endfor %}
-</nav>
-
-<div id="setup-slide" class="max-w-xl">
-  {% include step_template %}
-</div>
-
 {% if show_preview %}
-  {% comment %}AB3-v2: живое превью витрины. На контент-шагах обновляется ПО МЕРЕ
-  ввода (debounced live-save без перехода), а не только после шага. Фидбэк владельца
-  2026-07-14: iframe рендерится ДЕСКТОПНОЙ шириной и масштабируется в колонку
-  (zoom-out) — виден весь сайт, а не мобильная нарезка (JS-fit ниже; без JS —
-  фолбэк w-full/h-full, прежний режим).{% endcomment %}
-  <aside class="hidden lg:block lg:sticky lg:top-20 mt-8 lg:mt-0">
-    <p class="text-xs font-medium text-gray-400 mb-2 truncate">{% trans "Live preview" %}{% if live_save %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
-    <div data-preview-shell class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm h-[min(70vh,640px)]">
-      <iframe data-setup-preview src="/" title="{% trans 'Website preview' %}" class="w-full h-full border-0" loading="lazy"></iframe>
+  {% comment %}Тело в две половины: настройки | превью (фидбэк «раздели на пол экрана»).{% endcomment %}
+  <div class="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+    <div id="setup-slide">
+      {% include step_template %}
     </div>
-    <a href="/" target="_blank" rel="noopener" class="mt-2 inline-block text-sm text-indigo-600 hover:underline">🌐 {% trans "Open website" %} →</a>
-  </aside>
+    {% comment %}AB3-v2: живое превью справа (половина экрана). iframe рендерится
+    десктопной шириной и масштабируется в колонку (zoom-out, JS-fit ниже) — виден
+    весь сайт, а не мобильная нарезка; без JS — фолбэк w-full/h-full.{% endcomment %}
+    <aside class="hidden lg:block lg:sticky lg:top-4 mt-8 lg:mt-0">
+      <p class="text-xs font-medium text-gray-400 mb-2 truncate">{% trans "Live preview" %}{% if live_save %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
+      <div data-preview-shell class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm h-[min(80vh,780px)]">
+        <iframe data-setup-preview src="/" title="{% trans 'Website preview' %}" class="w-full h-full border-0" loading="lazy"></iframe>
+      </div>
+      <a href="/" target="_blank" rel="noopener" class="mt-2 inline-block text-sm text-indigo-600 hover:underline">🌐 {% trans "Open website" %} →</a>
+    </aside>
+  </div>
+{% else %}
+  <div id="setup-slide" class="max-w-xl">
+    {% include step_template %}
+  </div>
 {% endif %}
-</div>
 
 {% if show_preview %}
 <script>
