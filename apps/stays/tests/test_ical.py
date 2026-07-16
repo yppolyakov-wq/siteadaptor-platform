@@ -66,13 +66,9 @@ def test_sync_ical_source_creates_inclusive_blocks():
         "BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:20260901\r\nDTEND;VALUE=DATE:20260905\r\nEND:VEVENT\r\n"
     )
 
-    class _Resp:
-        text = feed
-
-        def raise_for_status(self):
-            pass
-
-    with patch("requests.get", return_value=_Resp()):
+    # Патчим на границе safe_get: egress-фильтр SSRF проверяется в test_ssrf.py,
+    # здесь тестируем логику синка (safe_get отдаёт текст фида).
+    with patch("apps.core.ssrf.safe_get", return_value=feed):
         created = services.sync_ical_source(source)
     assert created == 1
     block = UnitBlock.objects.get(unit=unit, source_id_ref=str(source.pk))
@@ -94,13 +90,7 @@ def test_sync_is_idempotent_and_keeps_manual_blocks():
         "BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:20261101\r\nDTEND;VALUE=DATE:20261103\r\nEND:VEVENT\r\n"
     )
 
-    class _Resp:
-        text = feed
-
-        def raise_for_status(self):
-            pass
-
-    with patch("requests.get", return_value=_Resp()):
+    with patch("apps.core.ssrf.safe_get", return_value=feed):
         services.sync_ical_source(source)
         services.sync_ical_source(source)  # повтор не плодит блоки
     assert UnitBlock.objects.filter(unit=unit, source_id_ref=str(source.pk)).count() == 1
@@ -116,7 +106,7 @@ def test_sync_keeps_blocks_on_network_error():
         end_date=date(2026, 12, 2),
         source_id_ref=str(source.pk),
     )
-    with patch("requests.get", side_effect=Exception("boom")):
+    with patch("apps.core.ssrf.safe_get", side_effect=Exception("boom")):
         created = services.sync_ical_source(source)
     assert created == 0
     # при сбое старые блоки источника НЕ удаляются
