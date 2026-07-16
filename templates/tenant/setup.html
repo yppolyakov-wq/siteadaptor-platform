@@ -129,8 +129,12 @@
   function fit() {
     var w = shell.clientWidth;
     if (!w) return; // колонка скрыта (мобайл) — оставляем фолбэк w-full/h-full
-    var scale = Math.min(1, w / DESK);
-    frame.style.width = DESK + "px";
+    // Панель уже DESK → zoom-out (виден весь десктоп-сайт); панель ШИРЕ DESK →
+    // рендерим на всю её ширину 1:1 (фикс: превью упиралось в 1200px и справа
+    // оставалась пустая полоса — фидбэк владельца 2026-07-16).
+    var frameW = Math.max(DESK, w);
+    var scale = Math.min(1, w / frameW);
+    frame.style.width = frameW + "px";
     frame.style.height = Math.round(shell.clientHeight / scale) + "px";
     frame.style.transform = "scale(" + scale + ")";
     frame.style.transformOrigin = "top left";
