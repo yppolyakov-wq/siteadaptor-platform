@@ -5335,6 +5335,29 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   всю её ширину 1:1; у́же — прежний zoom-out. Headless: 1437px → frame 1437/scale 1/зазор 0;
   642px → frame 1200/scale 0.535.
 
+## 2026-07-16 — Хвосты мастера: чипы пунктов меню (+фикс стиля шапки) и демо «Über uns»
+
+- **Чипы пунктов меню на слайде «Menü» (решение §0b.3):** стандартные пункты
+  (Start/Angebote · Produkte · Termine · Übernachten · Veranstaltungen · Angebot anfragen ·
+  Frage stellen · Über uns; гейт по модулю из NAV_ITEMS) — чекбокс-чипами; выбранный
+  добавляется/включается в **menus.top.items** (настоящий источник шапки — resolve_menu),
+  снятый — `enabled=False` (НЕ удаляется: label/подменю владельца целы); кастомные узлы
+  не трогаются. Немецкие подписи создаваемых узлов (`_MENU_CHIP_LABELS` — реестр несёт
+  англ. msgid). Presence-guard `menu_chips`; live-превью обновляет шапку по клику.
+- **Найден и исправлен латентный баг стиля шапки:** слайд «Menü» и Menu-инспектор
+  home-билдера писали только `nav.style`, а шапка витрины рендерит `menus.top.style`
+  (`top_meta`) — на конфиге с материализованным `menus` (после ПЕРВОГО Save он есть
+  почти у всех) пикер стиля и пресеты UC6-6h были **no-op**. Фикс: оба места зеркалят
+  style (билдер — и sticky) в `menus.top`. `_ctx_menu` читает стиль из menus.top.
+  Замок `test_menu_slide_picks_header_style` переписан на материализованный конфиг +
+  реальный рендер-путь (top_meta); `test_menu_slide_chips_toggle_standard_items`
+  (добавление/выключение/кастомный узел цел/resolve_menu).
+- **A8-хвост — демо «Über uns»:** `load_demo` заполняет `about_title`/`about_text`
+  (только поверх пустых; `_ABOUT_TEXT` на язык задач архетипа, `{name}`/`{city}`
+  подставляются) → слайд «Texte & Recht» приходит не пустым. Откат через расширенный
+  `_CFG_DEMO_DEFAULTS` (clear_demo сбрасывает только нетронутое владельцем). Замок
+  `test_rich_demo_adds_about_texts_reversible`. Без миграций.
+
 ## 2026-07-16 — AB6.2-lang: слайд «Sprachen» в мастере + per-language контент-поля
 
 - Фидбэк владельца: «выбирать базовый язык на этапе настройки (по умолчанию немецкий)

@@ -33,8 +33,23 @@
       </label>
     {% endfor %}
   </div>
+  {% comment %}Хвост AB6 (§0b.3): чипы стандартных пунктов — меню генерится сразу
+  (узлы menus.top.items; live-превью обновляет шапку по клику). Кастомные пункты/
+  порядок/подменю — полный редактор (ссылка ниже).{% endcomment %}
+  <div class="pt-1">
+    <span class="block text-sm font-medium mb-2">Menüpunkte</span>
+    <input type="hidden" name="menu_chips" value="1">
+    <div class="flex flex-wrap gap-1.5">
+      {% for c in menu_chips %}
+        <label class="cursor-pointer rounded-full border px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border-gray-300 hover:border-indigo-400 has-[:checked]:bg-indigo-600 has-[:checked]:text-white has-[:checked]:border-indigo-600">
+          <input type="checkbox" name="menu_items" value="{{ c.key }}" {% if c.checked %}checked{% endif %} class="sr-only">
+          {{ c.label }}
+        </label>
+      {% endfor %}
+    </div>
+  </div>
   <div class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm text-gray-600">
-    <a href="{% url 'site-menu' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Menüpunkte bearbeiten →</a>
+    <a href="{% url 'site-menu' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Eigene Punkte, Reihenfolge &amp; Untermenüs →</a>
   </div>
   {% include "tenant/_setup_buttons.html" %}
 </form>

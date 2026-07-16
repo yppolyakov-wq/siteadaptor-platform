@@ -173,15 +173,82 @@ def _ctx_company(request):
     return {"logo_url": request.tenant.logo_url}
 
 
+# Хвост AB6 (решение §0b.3): чипы стандартных пунктов меню на слайде «Menü».
+# Правим menus.top.items (настоящий источник шапки — resolve_menu), а НЕ nav.items:
+# normalize выводит top из nav только пока `menus` НЕ материализован (после первого
+# Save он материализован почти у всех). Немецкие подписи — для СОЗДАВАЕМЫХ узлов
+# (реестр NAV_ITEMS несёт англ. msgid); существующие узлы держат свои label.
+_MENU_CHIP_LABELS = {
+    "offers": "Start / Angebote",
+    "products": "Produkte",
+    "booking": "Termine",
+    "stays": "Übernachten",
+    "events": "Veranstaltungen",
+    "jobs": "Angebot anfragen",
+    "inbox": "Frage stellen",
+    "about": "Über uns",
+}
+
+
+def _menu_chip_candidates(tenant) -> list[dict]:
+    """Стандартные пункты меню как кандидаты чипов: реестр NAV_ITEMS (гейт по модулю)
+    + страница «Über uns». → [{key,label,type,target}] (type/target — узел menus)."""
+    from apps.tenants import siteconfig as sc
+
+    out = []
+    for key, _label, _url, module in sc.NAV_ITEMS:
+        if module and not tenant.is_module_active(module):
+            continue
+        ntype, target = sc._NAV_KEY_TO_NODE[key]
+        out.append(
+            {"key": key, "label": _MENU_CHIP_LABELS.get(key, key), "type": ntype, "target": target}
+        )
+    out.append(
+        {"key": "about", "label": _MENU_CHIP_LABELS["about"], "type": "page", "target": "about"}
+    )
+    return out
+
+
 def _post_menu(request):
-    # AB6.2e: вид шапки (classic/centered/minimal) → config["nav"]["style"] (normalize
-    # валидирует по NAV_STYLES). Пункты меню — отдельный редактор (ссылка в слайде).
+    # AB6.2e: вид шапки (classic/centered/minimal). ФИКС: шапка витрины рендерит
+    # menus.top.style (top_meta) — на конфиге с материализованным `menus` запись
+    # только в nav.style была no-op → зеркалим в оба места.
     from apps.tenants import siteconfig
 
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    changed = False
     style = request.POST.get("nav_style", "")
     if style in siteconfig.NAV_STYLES:
-        cfg = siteconfig.normalize(request.tenant.site_config)
         cfg.setdefault("nav", {})["style"] = style
+        cfg["menus"]["top"]["style"] = style
+        changed = True
+    # Чипы пунктов (сентинел menu_chips — presence-guard): выбранный стандартный пункт
+    # включаем/добавляем в menus.top.items, снятый — выключаем (enabled=False, НЕ
+    # удаляем: label/подменю владельца переживают). Кастомные узлы не трогаем.
+    if request.POST.get("menu_chips"):
+        chosen = set(request.POST.getlist("menu_items"))
+        items = cfg["menus"]["top"]["items"]
+        for c in _menu_chip_candidates(request.tenant):
+            matches = [
+                n for n in items if n.get("type") == c["type"] and n.get("target") == c["target"]
+            ]
+            want = c["key"] in chosen
+            if matches:
+                for n in matches:
+                    n["enabled"] = want
+            elif want:
+                items.append(
+                    {
+                        "label": c["label"],
+                        "type": c["type"],
+                        "target": c["target"],
+                        "enabled": True,
+                        "icon": "",
+                        "children": [],
+                    }
+                )
+        changed = True
+    if changed:
         request.tenant.site_config = siteconfig.normalize(cfg)
         request.tenant.save(update_fields=["site_config", "updated_at"])
 
@@ -190,9 +257,19 @@ def _ctx_menu(request):
     from apps.tenants import siteconfig
 
     cfg = siteconfig.normalize(request.tenant.site_config)
+    items = cfg["menus"]["top"]["items"]
+
+    def _on(c):
+        return any(
+            n.get("type") == c["type"] and n.get("target") == c["target"] and n.get("enabled", True)
+            for n in items
+        )
+
     return {
         "nav_styles": siteconfig.NAV_STYLES,
-        "nav_style": (cfg.get("nav") or {}).get("style") or siteconfig.NAV_STYLES[0],
+        # Стиль — из menus.top (что реально рендерит шапка), не из nav.
+        "nav_style": cfg["menus"]["top"].get("style") or siteconfig.NAV_STYLES[0],
+        "menu_chips": [{**c, "checked": _on(c)} for c in _menu_chip_candidates(request.tenant)],
     }
 
 

@@ -1467,6 +1467,14 @@ def home_builder_view(request):
             nav["style"] = ns if ns in siteconfig.NAV_STYLES else nav.get("style", "classic")
             nav["sticky"] = request.POST.get("nav_sticky") == "on"
             config["nav"] = nav
+            # ФИКС (2026-07-16): шапка витрины рендерит menus.top (top_meta) — зеркалим
+            # style/sticky и туда, иначе на конфиге с материализованным `menus`
+            # (после первого Save) пикер стиля/пресеты UC6-6h были no-op. Без `menus`
+            # в конфиге normalize сам выведет top из nav — зеркалить нечего.
+            menus = config.get("menus")
+            if isinstance(menus, dict) and isinstance(menus.get("top"), dict):
+                menus["top"]["style"] = nav["style"]
+                menus["top"]["sticky"] = nav["sticky"]
         # SE-7d: область «Баннер» — заголовок/текст hero (presence-guard, чтобы прочие
         # сохранения не затирали; инпуты пред-заполнены из config → round-trip).
         if "hero_title" in request.POST:
