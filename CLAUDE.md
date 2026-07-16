@@ -589,6 +589,25 @@ Python 3.12, менеджер uv.
   `setup_view` — тонкий диспетчер (глобальные action'ы + `?step=`); AB5-редирект на v2;
   `setup.html` → каркас с рельсой (✓/⏭, клик = дозаполнить) + партиалы `setup/_step_*.html`
   (вёрстка 1:1); app.css пересобран. Без миграций.
+- **Самое свежее (2026-07-16): ВОЛНА СКЛАД-2 (U-D2W) ЗАКРЫТА ЦЕЛИКОМ в объёме v1 — E1+E3+E2,
+  main `4564e0c`, ⚠️ миграции `inventory/0002..0004` ждут деплоя.** Решения владельца: «все 3
+  эпика», порядок E1→E3→E2, сразу полный FEFO; архитектура Вариант A (счётчик = ИТОГО-истина,
+  партии/локации = разбивка поверх, реконсиляция) — движки заказов НЕ переписаны. **E1 Chargen/
+  MHD:** модель `Lot` + FEFO-сервис (consume/restore/writeoff) + врезки в атомики (orders
+  `_reserve_stock`/`_restore_stock`, jobs `_commit_stock`; паритет байт-в-байт без партий,
+  185 order/job-тестов зелёные) + кабинет (тумблер `lots_enabled`, приёмка Charge+MHD, MHD-обзор
+  с бейджами, Verderb-списание) + демо-партии bakery/butcher (`DemoKit.enable_lots`). **E3
+  Закупки/M12 v1:** `Lieferant`/`Bestellung`(BE-код)/`BestellPosition` (EK-снимок из T5
+  cost_price) + `purchasing.py` (create/add_line/set_status/receive_po_line — приёмка через
+  единственный складской путь, source="purchase", частичные приёмки, авто-received) + кабинет
+  `/dashboard/purchasing/` «Einkauf» (вкладка хаба Sortiment/Erweitert; «Aus Bestellvorschlägen»;
+  чекбокс «EK übernehmen») + демо. **E2 Мультисклад v1:** `StockLocation` + `StockMovement.
+  location` (NULL = основной → история валидна без бэкфилла) + `locations.py` (баланс: дефолт =
+  счётчик − Σ недефолтных → Σ==счётчик по построению; `transfer` = пара движений Σ=0) + кабинет
+  (Standorte, Umlagerung, селектор локации на приёмках stock+purchasing, разбивка в drill-down);
+  ленивая активация UI при локациях > 1. Продажа-с-локации/Lot.location/демо-E2 — v2 по спросу.
+  `apps/inventory` 84 зелёных. Планы: `sklad-2-plan` + `sklad-2-e3-purchasing-plan` +
+  `sklad-2-e2-multilocation-plan` (все 2026-07-16).
 - **Самое свежее (2026-07-14): AB6.2 (все 9 слайдов наполнены) + AB7 (блочная главная) — в
   `main`, БЕЗ миграций.** **AB6.2** — новая карта слайдов + наполнение: business (escape-hatch,
   gate) · start (rich-demo) · company (название/город/логотип) · stil (галерея шаблонов) · menu

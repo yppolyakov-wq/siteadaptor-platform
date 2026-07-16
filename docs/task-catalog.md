@@ -89,10 +89,10 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | T3 | Retail: причины корректировки + поиск SKU/EAN + Inventur-Zählliste | ✅ (без миграции) | там же |
 | T4 | ERP-lite: drill-down истории + CSV-экспорт + архив-тумблер доски | ✅ (без миграции) | там же |
 | T5 | Bestandswert/Marge (`cost_price`) + per-Artikel Meldebestand/Sollbestand → Bestellvorschlag | ✅ (⚠️ `catalog/0014` деплой) | там же |
-| **U-D2W** | **Волна «Склад-2 / ERP-расширение»** (поверх T1–T5) | 🚧 В РАБОТЕ (владелец 2026-07-16: «все 3», порядок E1→E3→E2) | `sklad-2-plan-2026-07-16.md` |
-| U-D2W · E1 Chargen | Партии/Годен до (Charge/Lot + MHD, полный FEFO, Verderb, демо) — для еды | ✅ E1.1–E1.5 (main `9ddaaa6`; ⚠️ `inventory/0002` деплой) | `sklad-2-plan-2026-07-16.md` |
-| U-D2W · E3 M12 | Закупки/поставщики (Lieferant + Bestellung; Bestellvorschlag→заказ→приёмка) | 📋 план готов, ждёт greenlight+форки | `sklad-2-e3-purchasing-plan-2026-07-16.md` |
-| U-D2W · E2 Mehrlager | Мультисклад (несколько локаций; StockMovement+location, Umlagerung) | ⏸ после E3 | `sklad-2-plan-2026-07-16.md` |
+| **U-D2W** | **Волна «Склад-2 / ERP-расширение»** (поверх T1–T5) | ✅ ЗАКРЫТА в объёме v1 (2026-07-16, main `4564e0c`; ⚠️ деплой `inventory/0002..0004`) | `sklad-2-plan-2026-07-16.md` |
+| U-D2W · E1 Chargen | Партии/Годен до (Charge/Lot + MHD, полный FEFO, Verderb, демо) — для еды | ✅ E1.1–E1.5 (⚠️ `inventory/0002`) | `sklad-2-plan-2026-07-16.md` |
+| U-D2W · E3 M12 | Закупки/поставщики (Lieferant + Bestellung; Bestellvorschlag→заказ→приёмка, кабинет «Einkauf», демо) | ✅ v1 (⚠️ `inventory/0003`; E3.5 EK-история — по спросу) | `sklad-2-e3-purchasing-plan-2026-07-16.md` |
+| U-D2W · E2 Mehrlager | Мультисклад (StockLocation + location в леджере, Umlagerung, кабинет) | ✅ v1 (⚠️ `inventory/0004`; E2.3 демо + продажа-с-локации — v2) | `sklad-2-e2-multilocation-plan-2026-07-16.md` |
 | D1 | Pro-тариф / премиум-модули (идея) | 🧊 долгий ящик (владелец, 2026-07-03) | `feature-ideas…` |
 | **D2** | **Self-serve featured + Anzeige (идея; ядро P2.4b готово)** | ✅ D2.1–D2.4 (2026-07-03; D2.5 ⏸) | `d2-featured-plan-2026-07-03.md` |
 | D2.1 | Anzeige-пометка на карте агрегатора | ✅ (2026-07-03) | там же |
