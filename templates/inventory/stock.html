@@ -15,6 +15,17 @@
   </div>
 {% endif %}
 
+{# --- Склад-2 E1: Chargen/MHD-Tumbler (Haltbarkeit für Lebensmittel) --- #}
+<form method="post" action="{% url 'stock' %}" class="mb-4 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2.5">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="lots_toggle">
+  <label for="lots_enabled" class="text-sm text-gray-600">🗓️ {% trans "Chargen & Haltbarkeit (MHD/FEFO)" %}</label>
+  <span class="flex items-center gap-2">
+    <input type="checkbox" id="lots_enabled" name="lots_enabled" {% if lots_on %}checked{% endif %} onchange="this.form.submit()" class="h-4 w-4">
+    <span class="text-xs text-gray-400">{% trans "für Lebensmittel" %}</span>
+  </span>
+</form>
+
 {# --- T5: Bestandswert (Warenwert = Σ Bestand × Einkaufspreis) --- #}
 {% if warenwert.total %}
   <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex items-baseline justify-between gap-3">
@@ -79,6 +90,35 @@
   </div>
 {% endif %}
 
+{# --- Склад-2 E1: Chargen / MHD-Übersicht (nur bei aktiviertem Chargen-Tumbler) --- #}
+{% if lots_on and lots %}
+  <div class="mb-5 rounded-xl border border-orange-200 bg-orange-50 p-4">
+    <h2 class="text-sm font-semibold text-orange-800 mb-2">🗓️ {% trans "Haltbarkeit / Chargen" %}{% if expiring_count %} <span class="ml-1 text-xs font-normal text-orange-600">({{ expiring_count }} {% trans "kritisch" %})</span>{% endif %}</h2>
+    <p class="text-xs text-orange-700/80 mb-3">{% trans "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)." %}</p>
+    <div class="space-y-1.5">
+      {% for lot in lots %}
+        {% with dl=lot.days_left %}
+        <div class="flex items-center justify-between gap-3 text-sm">
+          <span class="truncate flex-1">
+            {{ lot.product }}{% if lot.variant %} · {{ lot.variant.label }}{% endif %}
+            {% if lot.lot_code %}<span class="text-xs text-orange-700/70">· {{ lot.lot_code }}</span>{% endif %}
+            <span class="text-xs text-orange-700/70">· {{ lot.mhd|date:"d.m.Y" }} · {{ lot.qty_remaining }} {% trans "Stk" %}</span>
+            {% if lot.is_expired %}<span class="ml-1 text-xs font-semibold text-red-600">{% trans "abgelaufen" %}</span>
+            {% elif dl <= 7 %}<span class="ml-1 text-xs font-semibold text-orange-600">{% blocktrans %}läuft in {{ dl }} Tagen ab{% endblocktrans %}</span>{% endif %}
+          </span>
+          <form method="post" action="{% url 'stock' %}" class="flex-shrink-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="verderb_lot">
+            <input type="hidden" name="lot_id" value="{{ lot.pk }}">
+            <button class="text-xs border border-orange-300 text-orange-800 rounded-lg px-2.5 py-1 hover:bg-orange-100">{% trans "Verderb" %}</button>
+          </form>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
 {# --- Reconciliation-Warnungen --- #}
 {% if diverging %}
   <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -106,11 +146,17 @@
       <form method="post" action="{% url 'stock' %}" class="space-y-2">
         {% csrf_token %}
         <input type="hidden" name="action" value="receipt">
-        <label class="block text-xs font-medium text-gray-500">{% trans "Wareneingang (+)" %}</label>
+        <label class="block text-xs font-medium text-gray-500">{% trans "Wareneingang (+)" %}{% if lots_on %} · {% trans "Charge" %}{% endif %}</label>
         <select name="entity" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
         </select>
         <input type="number" name="qty" min="1" placeholder="{% trans 'Menge' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        {% if lots_on %}
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" name="lot_code" placeholder="{% trans 'Charge-Nr.' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="date" name="lot_mhd" title="{% trans 'MHD' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </div>
+        {% endif %}
         <button class="w-full text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Eingang buchen" %}</button>
       </form>
 

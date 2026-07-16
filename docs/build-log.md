@@ -5412,3 +5412,22 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Замки `test_lots_fefo.py` (6): приёмка двигает счётчик/леджер/Lot; FEFO ближайший-MHD-первым;
   кап по остатку партий; has_lots; изоляция вариант↔товар; expiring/expired+days_left. Без
   правок движков заказа (E1.4). **⚠️ `inventory/0002` ТРЕБУЕТ ДЕПЛОЯ.**
+
+## 2026-07-16 — Склад-2 E1.2: партии/MHD в кабинете склада (без миграции)
+
+- **Тумблер `lots_enabled`** на `/dashboard/stock/` (action `lots_toggle` → `site_config`):
+  чекбокс «Chargen & Haltbarkeit (MHD/FEFO) — für Lebensmittel», autosubmit. По умолчанию выкл
+  — не захламляем не-еду.
+- **Приёмка по партиям:** при включённом тумблере форма Wareneingang показывает поля `Charge-Nr.`
+  + `MHD` (`<input type=date>`) → `receipt` роутится через `services.receive_lot` (счётчик+леджер+
+  Lot в одной atomic); при выключенном — прежний `apply_manual_movement` (партия не создаётся).
+  `_parse_date` разбирает `YYYY-MM-DD` → date|None.
+- **MHD-обзор** (секция «🗓️ Haltbarkeit / Chargen», только при `lots_on`): партии с датой,
+  FEFO-порядок (ближайший MHD первым), бейджи «abgelaufen»/«läuft in N Tagen ab»; счётчик
+  `expiring_count` (≤7 дней). Кнопка **Verderb** на партию → `verderb_lot` → `services.writeoff_lot`
+  (гасит `qty_remaining` + счётчик + леджер adjustment −remaining, одна atomic). Lot-pk = UUID
+  (TimestampedModel) → передаём строкой, `writeoff_lot` устойчив к битому UUID (ValidationError→0).
+- Замки `test_stock_cabinet.py` (+5): toggle сохраняет site_config; приёмка создаёт Lot при
+  включённом тумблере (MHD распарсен, Σlot==счётчик); без тумблера — Lot не создаётся; verderb
+  списывает партию+счётчик+леджер; MHD-обзор рендерится. Полный прогон `apps/inventory` 54 зелёных.
+  CSS пересобран (orange-классы). Без миграции.

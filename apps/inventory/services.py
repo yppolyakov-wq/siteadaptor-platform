@@ -5,6 +5,7 @@
 `lots_enabled` тенанта и реальном приходе по партиям.
 """
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Q, Sum
 
@@ -326,6 +327,31 @@ def consume_fefo(product, variant=None, *, qty):
         lot.save(update_fields=["qty_remaining", "updated_at"])
         remaining -= take
     return qty - remaining
+
+
+def writeoff_lot(lot_pk, *, actor="", note=""):
+    """E1: списать остаток партии (Verderb/просрочка). Гасит `qty_remaining` партии +
+    двигает счётчик и пишет леджер (adjustment −remaining) в одной atomic. Возвращает
+    списанное кол-во (0 = партия уже пуста / не найдена)."""
+    with transaction.atomic():
+        try:
+            lot = Lot.objects.select_for_update().filter(pk=lot_pk).first()
+        except (ValueError, ValidationError):  # некорректный UUID из POST
+            return 0
+        if lot is None or lot.qty_remaining <= 0:
+            return 0
+        qty = lot.qty_remaining
+        apply_manual_movement(
+            product=lot.product,
+            variant=lot.variant,
+            kind=StockMovement.KIND_ADJUSTMENT,
+            delta=-qty,
+            actor=actor,
+            note=(note or "Verderb")[:200],
+        )
+        lot.qty_remaining = 0
+        lot.save(update_fields=["qty_remaining", "updated_at"])
+        return qty
 
 
 def expiring_lots(*, within_days=None, include_expired=True):

@@ -45,6 +45,19 @@ def _int(value, default=0):
         return default
 
 
+def _parse_date(value):
+    """E1: дата MHD из <input type=date> ('YYYY-MM-DD') → date | None."""
+    from datetime import date
+
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
 def _resolve_entity(value):
     """T2: разобрать значение пикера "p<pk>"/"v<pk>" → (product, variant)."""
     from apps.catalog.models import ProductVariant
@@ -121,6 +134,10 @@ def stock(request):
                 "label": f"{product} · {variant.label}" if variant is not None else str(product),
                 "counter": entity.stock_quantity,
             }
+    # Склад-2 E1: партии/MHD — только при включённом тумблере тенанта.
+    lots_on = services.lots_enabled(request.tenant)
+    lots = list(services.expiring_lots(within_days=None)) if lots_on else []
+    expiring_count = sum(1 for lot in lots if (lot.days_left() or 0) <= 7) if lots_on else 0
     return render(
         request,
         "inventory/stock.html",
@@ -139,6 +156,10 @@ def stock(request):
             "found": found,
             "history": history,
             "history_label": history_label,
+            # E1: Chargen/MHD
+            "lots_on": lots_on,
+            "lots": lots,
+            "expiring_count": expiring_count,
         },
     )
 
@@ -148,6 +169,17 @@ def _adjust_note(request):
     reason = str(_REASON_LABELS.get(request.POST.get("reason", ""), ""))
     free = (request.POST.get("note") or "").strip()
     return (f"{reason}: {free}" if reason and free else (reason or free))[:200]
+
+
+def _handle_verderb_lot(request, actor):
+    """E1: списать остаток партии (Verderb/просрочка) одной кнопкой из MHD-обзора."""
+    lot_pk = (request.POST.get("lot_id") or "").strip()  # UUID-pk (TimestampedModel)
+    qty = services.writeoff_lot(lot_pk, actor=actor, note=str(_("Verderb"))) if lot_pk else 0
+    if qty:
+        messages.success(request, _("Charge abgeschrieben: %(n)s Stück.") % {"n": qty})
+    else:
+        messages.info(request, _("Charge bereits leer."))
+    return redirect("stock")
 
 
 def _handle_bulk_stocktake(request, actor):
@@ -189,6 +221,18 @@ def _handle_post(request):
         messages.success(request, _("Meldebestand aktualisiert."))
         return redirect("stock")
 
+    if action == "lots_toggle":  # E1: вкл/выкл учёт партий (Chargen/MHD)
+        tenant = request.tenant
+        cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+        cfg["lots_enabled"] = request.POST.get("lots_enabled") == "on"
+        tenant.site_config = cfg
+        tenant.save(update_fields=["site_config"])
+        messages.success(request, _("Gespeichert."))
+        return redirect("stock")
+
+    if action == "verderb_lot":  # E1: списать испорченную/просроченную партию (FEFO-обзор)
+        return _handle_verderb_lot(request, actor)
+
     if action == "stocktake_bulk":
         return _handle_bulk_stocktake(request, actor)
 
@@ -201,6 +245,18 @@ def _handle_post(request):
         qty = _int(request.POST.get("qty"))
         if qty <= 0:
             messages.error(request, _("Menge muss größer als 0 sein."))
+        elif services.lots_enabled(request.tenant):
+            # E1: приёмка создаёт партию (Charge + MHD) + двигает счётчик/леджер.
+            services.receive_lot(
+                product=product,
+                variant=variant,
+                qty=qty,
+                mhd=_parse_date(request.POST.get("lot_mhd")),
+                lot_code=(request.POST.get("lot_code") or "")[:64],
+                actor=actor,
+                note=(request.POST.get("note") or "")[:200],
+            )
+            messages.success(request, _("Wareneingang (Charge) gebucht."))
         else:
             services.apply_manual_movement(
                 product=product,

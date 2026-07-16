@@ -102,3 +102,77 @@ def test_cabinet_shows_warenwert_and_reorder(settings):
     assert "Warenwert" in html  # T5: Bestandswert-Plakette
     assert "24" in html  # 4 × 6.00 €
     assert "Bestellvorschläge" in html  # T5: Bestand 4 ≤ globaler Schwellwert (5)
+
+
+# --- Склад-2 E1.2: Chargen/MHD в кабинете ---
+
+
+def _lot_tenant():
+    return TenantFactory.build(business_type="bakery", site_config={"lots_enabled": True})
+
+
+def test_lots_toggle_saves_site_config():
+    tenant = TenantFactory()  # saved, без тумблера
+    views.stock(_req("post", {"action": "lots_toggle", "lots_enabled": "on"}, tenant=tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config.get("lots_enabled") is True
+    views.stock(_req("post", {"action": "lots_toggle"}, tenant=tenant))  # без «on» → выкл
+    tenant.refresh_from_db()
+    assert tenant.site_config.get("lots_enabled") is False
+
+
+def test_receipt_creates_lot_when_lots_enabled():
+    from apps.inventory.models import Lot
+
+    product = ProductFactory(stock_quantity=0)
+    data = {
+        "action": "receipt",
+        "entity": f"p{product.id}",
+        "qty": "8",
+        "lot_code": "CH-77",
+        "lot_mhd": "2030-01-15",
+    }
+    views.stock(_req("post", data, tenant=_lot_tenant()))
+    product.refresh_from_db()
+    assert product.stock_quantity == 8  # счётчик двинулся
+    lot = Lot.objects.get(product=product)
+    assert lot.lot_code == "CH-77" and lot.qty_remaining == 8
+    assert lot.mhd.isoformat() == "2030-01-15"  # MHD распарсен
+    assert services.lot_balance(product) == 8  # Σ партий == счётчик
+
+
+def test_receipt_plain_counter_when_lots_disabled():
+    from apps.inventory.models import Lot
+
+    product = ProductFactory(stock_quantity=0)
+    # тумблер выкл (build без site_config) → приёмка как раньше, без партии
+    views.stock(_req("post", {"action": "receipt", "entity": f"p{product.id}", "qty": "3"}))
+    product.refresh_from_db()
+    assert product.stock_quantity == 3
+    assert Lot.objects.filter(product=product).count() == 0
+
+
+def test_verderb_lot_writes_off_charge():
+    from apps.inventory.services import receive_lot
+
+    product = ProductFactory(stock_quantity=0)
+    lot, _mv = receive_lot(product=product, qty=5, mhd=None, lot_code="X")
+    views.stock(
+        _req("post", {"action": "verderb_lot", "lot_id": str(lot.pk)}, tenant=_lot_tenant())
+    )
+    lot.refresh_from_db()
+    product.refresh_from_db()
+    assert lot.qty_remaining == 0  # партия списана
+    assert product.stock_quantity == 0  # счётчик уменьшен на списанное
+    assert StockMovement.objects.filter(product=product, kind="adjustment", delta=-5).exists()
+
+
+def test_mhd_overview_renders_when_lots_present():
+    from apps.inventory.services import receive_lot
+
+    product = ProductFactory(stock_quantity=0)
+    receive_lot(product=product, qty=2, mhd=views._parse_date("2030-06-01"), lot_code="FRESH")
+    html = views.stock(_req(tenant=_lot_tenant())).content.decode()
+    assert "Haltbarkeit" in html  # секция MHD-обзора
+    assert "FRESH" in html
+    assert "Charge" in html  # приёмка предлагает поле партии
