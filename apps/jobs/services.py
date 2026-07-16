@@ -167,17 +167,32 @@ MAX_PHOTOS = 5
 MAX_PHOTO_BYTES = 8 * 1024 * 1024  # 8 МБ на файл
 
 
+_PHOTO_EXT = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}
+
+
 def add_job_photos(job, files, *, max_count=MAX_PHOTOS) -> int:
-    """A7b: сохранить загруженные фото к заявке. Берём только изображения до 8 МБ,
-    не больше max_count. Возвращает число сохранённых."""
+    """A7b: сохранить загруженные фото к заявке. Форма ПУБЛИЧНАЯ (без логина),
+    поэтому реальный формат проверяем Pillow'ом (не доверяем клиентскому
+    content_type/расширению), а имя перезаписываем на uuid.ext — иначе аноним мог
+    залить .html/.svg и получить stored-XSS на домене бизнеса. Возвращает число
+    сохранённых."""
+    import uuid
+
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.images import validate_image
+
     from .models import JobPhoto
 
     saved = 0
     for f in (files or [])[:max_count]:
-        if not getattr(f, "content_type", "").startswith("image/"):
-            continue
         if f.size and f.size > MAX_PHOTO_BYTES:
             continue
+        try:
+            fmt = validate_image(f)  # Pillow: реальный формат ∈ JPEG/PNG/WEBP + ≤5 МБ
+        except ValidationError:
+            continue
+        f.name = f"{uuid.uuid4().hex}.{_PHOTO_EXT.get(fmt, 'jpg')}"
         JobPhoto.objects.create(job=job, image=f)
         saved += 1
     return saved

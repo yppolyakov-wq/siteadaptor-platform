@@ -403,6 +403,38 @@ def test_anfrage_skips_non_image(settings, tmp_path):
     assert JobPhoto.objects.count() == 0  # не-изображение отброшено
 
 
+def test_anfrage_rejects_spoofed_image_content_type(settings, tmp_path):
+    # HIGH-3: HTML-содержимое с поддельным content_type=image/png — НЕ сохраняется
+    # (валидация Pillow, заголовку не доверяем). Иначе stored-XSS на домене бизнеса.
+    settings.MEDIA_ROOT = str(tmp_path)
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from apps.jobs.models import JobPhoto
+
+    evil = SimpleUploadedFile(
+        "evil.html", b"<script>alert(document.cookie)</script>", content_type="image/png"
+    )
+    request = _req("post", path="/anfrage/", data={"title": "Wand", "name": "Kunde", "photos": evil})
+    public_views.anfrage(request)
+    assert JobPhoto.objects.count() == 0
+
+
+def test_anfrage_photo_stored_with_sanitized_name(settings, tmp_path):
+    # Имя файла перезаписывается на uuid.<ext> — расширение атакующего не сохраняется.
+    settings.MEDIA_ROOT = str(tmp_path)
+    from apps.jobs.models import JobPhoto
+
+    request = _req(
+        "post",
+        path="/anfrage/",
+        data={"title": "Wand", "name": "Kunde", "photos": _png_upload("evil.html.png")},
+    )
+    public_views.anfrage(request)
+    photo = JobPhoto.objects.get()
+    assert photo.image.name.endswith(".png")
+    assert "evil" not in photo.image.name
+
+
 # --- B1.6: Gutschein/промокод при принятии Angebot ---------------------------------
 
 
