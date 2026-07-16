@@ -5495,3 +5495,13 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   2 движения source=purchase); приёмка с Charge/MHD создаёт Lot; черновик из предложений (19=20−1);
   пустые предложения — без заказа-сироты; удаление строки. Прогон hub_tabs/orders-cabinet/inventory
   100 зелёных; CSS пересобран. Терминология: Einkauf/Bestellungen/Lieferanten/Wareneingang.
+
+## 2026-07-16 — Склад-2 E3-демо: закупки в еда-китах (без миграции)
+
+- `_seed_demo_purchasing` (гейт `kit.enable_lots` — bakery/butcher): поставщик «Großhandel
+  Westfalen» + received-Bestellung «Wocheneinkauf» (история; qty_received выставлен БЕЗ повторной
+  складской проводки — демо-остатки уже выставлены сидером) + ordered-Bestellung «Nachbestellung»
+  (владелец может «принять» в демо-кабинете и увидеть проводку). Замок
+  `test_bakery_kit_seeds_demo_purchasing` (+проверка «purchase-движений нет»). **Эпик E3 (Закупки/
+  M12) в объёме v1 закрыт: E3.1 модели/сервисы + E3.2 кабинет + E3.3 draft_from_suggestions +
+  демо. E3.5 (Lieferanten-экран/EK-история) — по спросу. Дальше — E2 (Мультисклад, план-доком).**

@@ -830,6 +830,22 @@ def test_bakery_kit_seeds_lots_with_mhd():
     assert lot_balance(prod) == prod.stock_quantity
 
 
+def test_bakery_kit_seeds_demo_purchasing():
+    """Склад-2 E3: еда-кит сеет поставщика + received-Bestellung (история, без повторной
+    складской проводки) + ordered-Bestellung (можно «принять» в демо-кабинете)."""
+    from apps.inventory.models import Bestellung, Lieferant, StockMovement
+
+    tenant = TenantFactory(schema_name="public", slug="bk3", name="BK3", business_type="bakery")
+    demo_kits.apply_kit(tenant, "bakery")
+    assert Lieferant.objects.filter(name="Großhandel Westfalen").exists()
+    statuses = set(Bestellung.objects.values_list("status", flat=True))
+    assert {"received", "ordered"} <= statuses
+    done = Bestellung.objects.get(status="received")
+    assert done.is_fully_received and done.received_at is not None
+    # история received-заказа НЕ книжила склад повторно (демо-остатки уже выставлены)
+    assert not StockMovement.objects.filter(source="purchase").exists()
+
+
 def test_apply_butcher_kit_dedicated_metzgerei():
     """Волна 1: dedicated Metzgerei-кит — весовой Grundpreis €/kg, Grillpaket-
     Vorbestellung (reservation), Partyservice через jobs (Anfrage со сметой)."""

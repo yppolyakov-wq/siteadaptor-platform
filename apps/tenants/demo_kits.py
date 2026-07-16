@@ -5241,6 +5241,7 @@ def apply_kit(tenant, key: str) -> bool:
     _seed_kit_modules(tenant, kit, refs)
     _seed_kit_records(tenant, kit, refs, created_products)
     _seed_demo_lots(kit, created_products)  # E1.5: демо-партии/MHD (еда)
+    _seed_demo_purchasing(kit, created_products)  # E3: демо-закупки (Lieferant+Bestellung)
     _seed_kit_reviews(tenant, kit)
     _seed_product_reviews(kit, created_products)
     _seed_entity_reviews(kit, refs)  # UA4-4b: отзывы об услуге/номере/событии в демо
@@ -6007,6 +6008,39 @@ def _seed_demo_lots(kit: DemoKit, products: list) -> None:
                 lot_code=f"CH-{2000 + i}",
             )
         seeded += 1
+
+
+def _seed_demo_purchasing(kit: DemoKit, products: list) -> None:
+    """Склад-2 E3: демо-закупки для еда-китов (enable_lots как маркер «склад важен»):
+    поставщик + одна received-Bestellung (история) + одна ordered (можно принять в демо).
+    Приёмка received-заказа НЕ книжится повторно (демо-остатки уже выставлены) — просто
+    отмечаем qty_received, история движений не раздувается."""
+    if not kit.enable_lots:
+        return
+    from apps.inventory import purchasing
+    from apps.inventory.models import Bestellung
+
+    plain = [p for p in products if getattr(p, "pk", None) is not None][:4]
+    if len(plain) < 2:
+        return
+    supplier = purchasing.Lieferant.objects.create(
+        name="Großhandel Westfalen",
+        contact_person="H. Brinkmann",
+        email="bestellung@grosshandel-westfalen.example",
+        phone="0231 555 0192",
+        customer_number="K-40412",
+    )
+    done = purchasing.create_po(supplier=supplier, actor="demo", note="Wocheneinkauf")
+    for i, product in enumerate(plain[:2]):
+        line = purchasing.add_po_line(done, product=product, qty=10 + i * 5)
+        line.qty_received = line.qty  # история: принят без повторной проводки склада
+        line.save(update_fields=["qty_received", "updated_at"])
+    purchasing.set_po_status(done, Bestellung.STATUS_ORDERED)
+    purchasing.set_po_status(done, Bestellung.STATUS_RECEIVED)
+    pending = purchasing.create_po(supplier=supplier, actor="demo", note="Nachbestellung")
+    for product in plain[2:4]:
+        purchasing.add_po_line(pending, product=product, qty=8)
+    purchasing.set_po_status(pending, Bestellung.STATUS_ORDERED)
 
 
 def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
