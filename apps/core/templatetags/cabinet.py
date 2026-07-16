@@ -54,6 +54,8 @@ HUB_TABS = {
         ("catalog:product-list", _("Produkte"), "catalog", None, False),
         ("catalog:category-list", _("Kategorien"), "categories", None, False),
         ("stock", _("Lager"), "stock", None, False),
+        # Склад-2 E3: закупки — в «Erweitert» (нужны еде/ритейлу, не захламляем прочих).
+        ("purchasing", _("Einkauf"), "purchasing", None, True),
         ("catalog:combo-list", _("Kombi"), "combos", None, False),
         ("imports:start", _("Import"), "imports", None, False),
     ),

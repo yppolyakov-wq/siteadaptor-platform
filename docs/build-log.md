@@ -5478,3 +5478,20 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   приёмка создаёт Lot при `lots_enabled`; `update_cost` пишет cost_price; `draft_from_suggestions`.
   Прогон `apps/inventory` 66 зелёных (сигнатуры E1 не сломаны). **⚠️ `inventory/0003` ТРЕБУЕТ ДЕПЛОЯ.**
   Кабинет закупок — E3.2.
+
+## 2026-07-16 — Склад-2 E3.2: кабинет закупок «Einkauf» (без миграции)
+
+- **Экран `/dashboard/purchasing/`** (`views_purchasing.py` + `inventory/purchasing.html`,
+  вкладка «Einkauf» в хабе «Sortiment» — в «Erweitert», не захламляем не-ритейл; url-гейт
+  `/dashboard/purchasing/` добавлен в catalog.url_prefixes). Один экран: список Bestellungen
+  (+ `?po=` деталь), Lieferanten в свёртке (+создание), «Neue Bestellung» (с поставщиком опц.),
+  **«Aus Bestellvorschlägen»** (черновик из T5-предложений; пустой не создаётся).
+- **Деталь заказа:** строки (добавить в draft: пикер сущности+Menge+EK с запятой; удалить),
+  статусы draft→ordered→received/cancelled кнопками, **Wareneingang по строке** (частично/
+  всё-оставшееся; при `lots_enabled` — поля Charge/MHD → Lot через E1-путь; чекбокс
+  «EK übernehmen» = форк update_cost, по умолчанию выкл), Summe.
+- Замки `test_purchasing_cabinet.py` (8): рендер; создание Lieferant+PO (редирект в деталь);
+  полный флоу add_line (EK «1,80»)→ordered→частичная приёмка 4→остаток→received (счётчик 2→8,
+  2 движения source=purchase); приёмка с Charge/MHD создаёт Lot; черновик из предложений (19=20−1);
+  пустые предложения — без заказа-сироты; удаление строки. Прогон hub_tabs/orders-cabinet/inventory
+  100 зелёных; CSS пересобран. Терминология: Einkauf/Bestellungen/Lieferanten/Wareneingang.

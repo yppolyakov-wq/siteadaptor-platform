@@ -54,6 +54,7 @@ from apps.events import public_views as events_public
 from apps.events import views as events_views
 from apps.inbox import public_views as inbox_public
 from apps.inventory.views import stock as stock_view
+from apps.inventory.views_purchasing import purchasing_view
 from apps.jobs import public_views as jobs_public
 from apps.loyalty import public_views as loyalty_public
 from apps.orders import public_views as orders_public
@@ -139,6 +140,8 @@ urlpatterns = [
     ),
     # U-D3: кабинет склада (приёмки/корректировки/инвентаризация/реконсиляция).
     path("dashboard/stock/", stock_view, name="stock"),
+    # Склад-2 E3: закупки (Lieferanten/Bestellungen/Wareneingang).
+    path("dashboard/purchasing/", purchasing_view, name="purchasing"),
     # U-D2: единая Kanban-доска транзакций (заказы/брони/…) + generic FSM-action.
     path("dashboard/board/", board, name="board"),
     # W5: настройки колонок доски (переименование/порядок/скрытие).

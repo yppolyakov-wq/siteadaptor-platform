@@ -94,7 +94,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # (cabinet.HUB_TABS["catalog"] + _hub_tabs.html). Под-страницы доступны
         # табами; url_prefixes ниже сохраняют middleware-гейт всех путей.
         nav_items=(NavItem("catalog:product-list", _("Catalog"), "catalog"),),
-        url_prefixes=("/catalog/", "/imports/", "/dashboard/stock/"),
+        url_prefixes=("/catalog/", "/imports/", "/dashboard/stock/", "/dashboard/purchasing/"),
         core=True,
         description_de="Produkte und Kategorien pflegen, Import aus CSV/Excel.",
         storefront_label="Sortiment",
