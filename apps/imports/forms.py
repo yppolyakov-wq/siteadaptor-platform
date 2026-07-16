@@ -7,6 +7,10 @@
 from django import forms
 
 ALLOWED_SUFFIXES = (".csv", ".xlsx", ".xlsm")
+# Лимит размера загрузки: без него аутентиф. staff мог залить zip-bomb .xlsx /
+# многосотмегабайтный CSV → OOM общего Celery-воркера (деградация всех тенантов).
+# 10 МБ с запасом покрывает реальные каталоги малого бизнеса. MEDIUM-4.
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 class ImportUploadForm(forms.Form):
@@ -17,4 +21,6 @@ class ImportUploadForm(forms.Form):
         name = (f.name or "").lower()
         if not name.endswith(ALLOWED_SUFFIXES):
             raise forms.ValidationError("Nur .csv, .xlsx oder .xlsm werden unterstützt.")
+        if f.size and f.size > MAX_UPLOAD_BYTES:
+            raise forms.ValidationError("Datei zu groß (max. 10 MB).")
         return f
