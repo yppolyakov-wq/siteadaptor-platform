@@ -387,17 +387,19 @@ def sync_ical_source(source) -> int:
     """
     from datetime import timedelta
 
-    import requests
     from django.utils import timezone
+
+    from apps.core.ssrf import safe_get
 
     from . import ical
     from .models import UnitBlock
 
     src = str(source.pk)
     try:
-        resp = requests.get(source.url, timeout=20)
-        resp.raise_for_status()
-        events = ical.parse_events(resp.text)
+        # safe_get: egress-фильтр (без loopback/приватных/метаданных облака) + лимит
+        # размера. source.url задаёт владелец — иначе SSRF на внутренние сервисы.
+        text = safe_get(source.url, timeout=20)
+        events = ical.parse_events(text)
     except Exception as exc:  # noqa: BLE001 — сбой фида не должен ронять синк
         source.last_status = str(exc)[:120]
         source.last_synced_at = timezone.now()
