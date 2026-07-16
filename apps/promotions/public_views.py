@@ -749,6 +749,11 @@ def waitlist_join(request, pk):
 
 
 def reservation_confirmation(request, code):
+    # MEDIUM-6: троттлим перебор короткого reference_code.
+    if ratelimit.hit(
+        "resv_confirm", ratelimit.client_ip(request), limit=QR_RL_LIMIT, window=RL_WINDOW
+    ):
+        return HttpResponse(status=429)
     res = get_object_or_404(Reservation.objects.select_related("promotion"), reference_code=code)
     return render(request, "storefront/confirmation.html", {"reservation": res})
 

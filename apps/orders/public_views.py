@@ -24,6 +24,10 @@ from .services import EmptyOrder, OutOfStock, create_order, delivery_quote
 CART_SESSION_KEY = "cart"
 RL_LIMIT = 5  # оформлений на IP
 RL_WINDOW = 600  # за 10 минут
+# Поиск по короткому reference_code (подтверждение/повтор) — троттлим перебор:
+# щедрый лимит (легитимный клиент открывает свою страницу пару раз), но энумерация
+# 30-битного кода становится непрактичной. MEDIUM-6.
+CONFIRM_RL_LIMIT = 60
 MAX_QTY = 50  # на позицию — защита от мусора
 
 
@@ -266,6 +270,10 @@ def reorder(request, code):
     переносим — у снимка нет id опций; клиент донастроит). Заказ ищем по коду.
     """
     _require_orders_active(request)
+    if ratelimit.hit(
+        "reorder", ratelimit.client_ip(request), limit=CONFIRM_RL_LIMIT, window=RL_WINDOW
+    ):
+        return HttpResponse(status=429)
     order = get_object_or_404(Order.objects.prefetch_related("items"), reference_code=code)
     cart = _cart(request)
     added = 0
@@ -637,6 +645,10 @@ def order_pay(request, code):
 
 def order_confirmation(request, code):
     _require_orders_active(request)
+    if ratelimit.hit(
+        "order_confirm", ratelimit.client_ip(request), limit=CONFIRM_RL_LIMIT, window=RL_WINDOW
+    ):
+        return HttpResponse(status=429)
     order = get_object_or_404(Order, reference_code=code)
     from apps.telegram.notify import deep_link
 

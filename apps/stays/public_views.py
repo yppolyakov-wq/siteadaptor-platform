@@ -536,6 +536,9 @@ def unterkunft_book(request, pk):
 
 def unterkunft_confirmation(request, code):
     _require_stays_active(request)
+    # MEDIUM-6: троттлим перебор короткого reference_code.
+    if ratelimit.hit("stay_confirm", ratelimit.client_ip(request), limit=60, window=RL_WINDOW):
+        return HttpResponse(status=429)
     booking = get_object_or_404(StayBooking.objects.select_related("unit"), reference_code=code)
     from apps.telegram.notify import deep_link
 

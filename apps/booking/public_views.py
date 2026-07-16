@@ -680,6 +680,10 @@ def termin_pay(request, code):
 
 def termin_confirmation(request, code):
     _require_booking_active(request)
+    # MEDIUM-6: троттлим перебор короткого reference_code (щедро — легитимный клиент
+    # открывает свою страницу пару раз).
+    if ratelimit.hit("termin_confirm", ratelimit.client_ip(request), limit=60, window=RL_WINDOW):
+        return HttpResponse(status=429)
     booking = get_object_or_404(Booking.objects.select_related("resource"), reference_code=code)
     from apps.telegram.notify import deep_link
 
