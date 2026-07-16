@@ -1,20 +1,37 @@
 """Роли пользователя в тенанте (M6 / master-plan §7, шов multi-user).
 
-Единая точка определения роли — чтобы будущий ролевой гейтинг во вьюхах
-централизовать здесь, а не размазывать. Сейчас гейтинг не применяется (один
-владелец); `role_of` отдаёт owner по умолчанию, поэтому легаси-тенанты без строки
-Membership не требуют backfill — единственный пользователь и есть владелец.
+Единая точка определения роли и доступа к кабинету. Членство живёт в схеме
+бизнеса (`django.contrib.auth` — TENANT_APP), поэтому наличие строки `Membership`
+в ТЕКУЩЕЙ схеме = пользователь принадлежит этому тенанту.
+
+Гейтинг кабинета — fail-closed: без явной `Membership` доступа к кабинету нет
+(`has_cabinet_access` → False, `role_of` → ''). Легаси-владельцы без строки
+Membership бэкфилятся миграцией `core/0006` (по одному Owner на схему).
 """
 
 from .models import Membership
 
 
-def role_of(user) -> str:
-    """Роль пользователя в текущей схеме тенанта. Аноним → ''; без Membership → owner."""
+def _membership(user):
     if not getattr(user, "is_authenticated", False):
-        return ""
-    membership = Membership.objects.filter(user=user).first()
-    return membership.role if membership else Membership.ROLE_OWNER
+        return None
+    return Membership.objects.filter(user=user).first()
+
+
+def role_of(user) -> str:
+    """Роль пользователя в текущей схеме тенанта. Нет членства / аноним → ''."""
+    membership = _membership(user)
+    return membership.role if membership else ""
+
+
+def has_cabinet_access(user) -> bool:
+    """True — пользователь принадлежит текущему тенанту (есть строка Membership).
+
+    Fail-closed: аноним или пользователь без Membership в этой схеме → False.
+    Это и есть гейт кабинета поверх `@login_required` (см.
+    apps.core.middleware.CabinetOwnerAccessMiddleware).
+    """
+    return _membership(user) is not None
 
 
 def is_owner(user) -> bool:

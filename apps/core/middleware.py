@@ -7,10 +7,11 @@ apps.core.modules: путь матчится на модуль по самому
 public-схему и пути вне реестра не трогаем.
 """
 
-from django.http import Http404
+from django.http import Http404, HttpResponseForbidden
 
 from . import modules
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
+from .roles import has_cabinet_access
 
 
 class CabinetLocaleMiddleware:
@@ -42,6 +43,38 @@ class ModuleGatingMiddleware:
             spec = modules.module_for_path(request.path)
             if spec is not None and not modules.is_module_active(tenant, spec.key):
                 raise Http404("Module is not active for this business")
+        return self.get_response(request)
+
+
+class CabinetOwnerAccessMiddleware:
+    """Гейт кабинета поверх `@login_required`: доступ только членам тенанта.
+
+    `@login_required` пропускает ЛЮБОГО аутентифицированного пользователя схемы, а
+    роль во вьюхах не проверяется. Здесь для кабинет-путей на схеме тенанта требуем
+    явную `Membership` (fail-closed): аутентифицированный, но не член → 403.
+    Аноним не трогаем — его штатно редиректит `@login_required` на логин.
+
+    Закрывает эскалацию: даже если User появится в схеме тенанта иным путём (не
+    через `create_business`), без Membership кабинет ему недоступен.
+    """
+
+    # Кабинет-пути владельца: CABINET_PREFIXES (dashboard + корневые разделы) плюс
+    # алиас мастера онбординга. Витрину/публичные пути/логин НЕ трогаем.
+    _PREFIXES = (*CABINET_PREFIXES, "/willkommen/")
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        tenant = getattr(request, "tenant", None)
+        on_tenant = tenant is not None and getattr(tenant, "schema_name", "public") != "public"
+        if (
+            on_tenant
+            and request.path.startswith(self._PREFIXES)
+            and getattr(request.user, "is_authenticated", False)
+            and not has_cabinet_access(request.user)
+        ):
+            return HttpResponseForbidden("Kein Zugriff auf dieses Konto.")
         return self.get_response(request)
 
 

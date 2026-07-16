@@ -148,6 +148,9 @@ MIDDLEWARE = [
     "apps.billing.middleware.SubscriptionGatingMiddleware",
     # Гейтинг модулей (Track D / D0a): неактивный модуль кабинета → 404.
     "apps.core.middleware.ModuleGatingMiddleware",
+    # Гейт доступа к кабинету: только члены тенанта (Membership) — fail-closed
+    # поверх @login_required. После AuthenticationMiddleware (нужен request.user).
+    "apps.core.middleware.CabinetOwnerAccessMiddleware",
     # H1.1: витрина кадрируется same-origin (live-preview редактора может переходить
     # по ссылкам между storefront-страницами). ВЫШЕ XFrameOptions → перебивает DENY.
     "apps.core.middleware.StorefrontFrameOptionsMiddleware",
@@ -263,6 +266,10 @@ CUSTOM_DOMAIN_TARGET_IP = env("CUSTOM_DOMAIN_TARGET_IP", default="")
 PUBLIC_PAGE_CACHE_TTL = env.int("PUBLIC_PAGE_CACHE_TTL", default=120)
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+# Открытая allauth-регистрация закрыта: бизнес регистрируется только через
+# BusinessSignupView (create_business с ролью владельца). Иначе аноним мог создать
+# User в схеме тенанта и захватить кабинет (см. apps.tenants.adapters).
+ACCOUNT_ADAPTER = "apps.tenants.adapters.AccountAdapter"
 # mandatory требует рабочей отправки почты (Resend). Пока RESEND_API_KEY не
 # настроен, держим optional через env, иначе вход падает 500 на отправке письма.
 # На боевом проде с настроенным Resend → ACCOUNT_EMAIL_VERIFICATION=mandatory.
@@ -270,6 +277,18 @@ ACCOUNT_EMAIL_VERIFICATION = env("ACCOUNT_EMAIL_VERIFICATION", default="optional
 # после логина — в кабинет владельца; после выхода — на публичную витрину
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
+
+# Политика паролей: без валидаторов Django принимает тривиальные пароли ("1"),
+# что критично для владельцев кабинета. Стандартный набор Django.
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
 # ---------------------------------------------------------------------------
 # Celery

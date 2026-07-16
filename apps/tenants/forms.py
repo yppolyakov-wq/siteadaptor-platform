@@ -6,6 +6,8 @@
 import re
 
 from django import forms
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 
 from .models import Tenant
@@ -46,6 +48,14 @@ class BusinessSignupForm(forms.Form):
         p1, p2 = cleaned.get("password1"), cleaned.get("password2")
         if p1 and p2 and p1 != p2:
             self.add_error("password2", _("Passwörter stimmen nicht überein."))
+        # Политика паролей (AUTH_PASSWORD_VALIDATORS): владелец задаёт пароль здесь,
+        # поэтому валидируем силу так же, как allauth/сброс пароля.
+        if p1:
+            try:
+                validate_password(p1)
+            except DjangoValidationError as exc:
+                for msg in exc.messages:
+                    self.add_error("password1", msg)
         return cleaned
 
 
