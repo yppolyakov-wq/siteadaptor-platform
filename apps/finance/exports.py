@@ -11,6 +11,8 @@ import csv
 import io
 from decimal import Decimal
 
+from apps.core.csv_safe import csv_safe
+
 # SKR03 (самый распространённый у малого бизнеса DE).
 KASSE = "1000"
 ERLOES_BY_VAT = {
@@ -33,9 +35,9 @@ def plain_csv(entries) -> str:
         writer.writerow(
             [
                 entry.date.isoformat(),
-                entry.source,
-                entry.note,
-                str(entry.customer) if entry.customer else "",
+                csv_safe(entry.source),
+                csv_safe(entry.note),
+                csv_safe(str(entry.customer)) if entry.customer else "",
                 entry.vat_rate,
                 entry.amount,
                 entry.currency,
@@ -70,8 +72,8 @@ def datev_csv(entries) -> str:
                 KASSE,
                 erloes,
                 f"{entry.date:%d%m}",
-                entry.note[:36],
-                f"{entry.get_source_display()} {entry.note}".strip()[:60],
+                csv_safe(entry.note[:36]),
+                csv_safe(f"{entry.get_source_display()} {entry.note}".strip()[:60]),
             ]
         )
     return buffer.getvalue()

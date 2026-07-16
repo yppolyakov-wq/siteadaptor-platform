@@ -78,6 +78,8 @@ def _export_csv():
 
     from django.http import HttpResponse
 
+    from apps.core.csv_safe import csv_safe
+
     resp = HttpResponse(content_type="text/csv; charset=utf-8")
     resp["Content-Disposition"] = "attachment; filename=lagerbewegungen.csv"
     w = csv.writer(resp)
@@ -86,12 +88,12 @@ def _export_csv():
         w.writerow(
             [
                 mv.created_at.strftime("%Y-%m-%d %H:%M"),
-                str(mv.product),
-                mv.variant.label if mv.variant else "",
+                csv_safe(str(mv.product)),
+                csv_safe(mv.variant.label if mv.variant else ""),
                 mv.get_kind_display(),
                 mv.delta,
-                mv.source,
-                mv.note,
+                csv_safe(mv.source),
+                csv_safe(mv.note),
             ]
         )
     return resp

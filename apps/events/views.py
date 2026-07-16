@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core.csv_safe import csv_safe
+
 from . import registration
 from .forms import EventForm, TeacherForm
 from .models import Event, Teacher, Ticket
@@ -463,16 +465,16 @@ def roster_csv(request, pk):
         writer.writerow(
             [
                 t.reference_code,
-                t.customer.name,
-                t.customer.email,
-                t.customer.phone,
+                csv_safe(t.customer.name),
+                csv_safe(t.customer.email),
+                csv_safe(t.customer.phone),
                 t.quantity,
                 t.get_status_display(),
                 t.get_payment_state_display(),
-                *([room] if show_unterkunft else []),
-                *([waiver_cell] if show_waiver else []),
-                *[answers.get(q, "") for q in question_cols],
-                *[answers.get(key, "") for key, _label in reg_cols],
+                *([csv_safe(room)] if show_unterkunft else []),
+                *([csv_safe(waiver_cell)] if show_waiver else []),
+                *[csv_safe(answers.get(q, "")) for q in question_cols],
+                *[csv_safe(answers.get(key, "")) for key, _label in reg_cols],
             ]
         )
     return response

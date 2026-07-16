@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core.csv_safe import csv_safe
 from apps.core.pagination import paginate
 from apps.promotions.models import Customer
 
@@ -66,10 +67,10 @@ def customer_export_csv(request):
     for c in customers.order_by("-created_at").iterator():
         writer.writerow(
             [
-                c.name,
-                c.email,
-                c.phone,
-                ", ".join(c.tags or []),
+                csv_safe(c.name),
+                csv_safe(c.email),
+                csv_safe(c.phone),
+                csv_safe(", ".join(c.tags or [])),
                 "yes" if c.marketing_opt_in else "no",
                 c.created_source,
                 c.created_at.date().isoformat(),
