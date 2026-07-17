@@ -13,3 +13,11 @@ class CoreConfig(AppConfig):
         from apps.core.admin import tidy_platform_admin
 
         tidy_platform_admin()
+
+        # HIGH-10: штамп схемы в сессию на логине + регистрация security-check'а.
+        from apps.core import (
+            checks,  # noqa: F401 — регистрирует @register-чек
+            session_schema,
+        )
+
+        session_schema.connect()

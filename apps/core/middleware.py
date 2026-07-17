@@ -12,6 +12,34 @@ from django.http import Http404, HttpResponseForbidden
 from . import modules
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
 from .roles import has_cabinet_access
+from .session_schema import SESSION_SCHEMA_KEY
+
+
+class SessionSchemaGuardMiddleware:
+    """HIGH-10: сбросить сессию, пришедшую на схему ≠ схеме её логина.
+
+    Django-сессия штампуется схемой на логине (apps.core.session_schema). Если
+    кука пришла на другую схему (например при ошибочно расширенном
+    SESSION_COOKIE_DOMAIN), `_auth_user_id` совпал бы с чужим владельцем
+    (pk-коллизия auth_user) — поэтому разлогиниваем. Легаси-сессии без штампа не
+    трогаем (host-only cookie их и так изолирует; штамп появится при след. логине).
+    Должен стоять ПОСЛЕ AuthenticationMiddleware (нужен request.user/сессия).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        if user is not None and getattr(user, "is_authenticated", False):
+            from django.db import connection
+
+            stamped = request.session.get(SESSION_SCHEMA_KEY)
+            if stamped is not None and stamped != connection.schema_name:
+                from django.contrib.auth import logout
+
+                logout(request)  # сессия из другой схемы → сброс (далее @login_required)
+        return self.get_response(request)
 
 
 class CabinetLocaleMiddleware:

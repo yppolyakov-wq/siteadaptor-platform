@@ -118,6 +118,10 @@ CACHES = {
 
 # Сессии — в кэш (Redis), а не в БД shared-схемы (меньше write-нагрузки
 # на каждый запрос аутентифицированного арендатора).
+# ⚠️ HIGH-10: НЕ задавать SESSION_COOKIE_DOMAIN. auth — TENANT-приложение, у каждой
+# схемы свой auth_user с независимым pk → общий cookie-domain между субдоменами
+# позволил бы кросс-тенант вход по совпадению _auth_user_id. Инвариант защищён
+# system-check'ом core.E001 и SessionSchemaGuardMiddleware (сессия ↔ схема логина).
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
@@ -142,6 +146,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # HIGH-10: сессия привязана к схеме логина — кука из чужой схемы сбрасывается
+    # (защита от pk-коллизии auth_user при расширении SESSION_COOKIE_DOMAIN).
+    "apps.core.middleware.SessionSchemaGuardMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     # Гейтинг подписки: suspended/trial_expired → кабинет read-only (Sprint 5).
