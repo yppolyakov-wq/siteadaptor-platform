@@ -1,6 +1,5 @@
 """Общие tenant-facing вьюхи (живут в схеме арендатора)."""
 
-import json as _json
 import re
 
 from django.conf import settings
@@ -984,6 +983,7 @@ def home_builder_view(request):
     правится на «Site»; здесь — только композиция главной. Сохранение мёржит в
     текущий site_config (остальные настройки не затрагиваются).
     """
+    from apps.core.seo import _dumps as _safe_json  # LOW: инлайн-<script>-safe JSON
     from apps.tenants import siteconfig, storefront
 
     if request.method == "POST":
@@ -1758,12 +1758,12 @@ def home_builder_view(request):
             # UC6-1b: карта «путь → группа» для авто-скоупа панели по фактической
             # странице кадра (селектор страниц из тулбара убран). JSON, не escapejs —
             # тот кодирует дефисы (-) и ломает literal-сравнение путей.
-            "preview_page_groups_json": _json.dumps(
+            "preview_page_groups_json": _safe_json(
                 {p["url"]: p.get("group") or "home" for p in preview_pages}
             ),
             # UC6-6c: пресеты типов блоков для двухшагового инсертера «+».
             # UC6-6e: + props пресета — JS рисует миниатюру-картинку варианта.
-            "cblock_variants_json": _json.dumps(
+            "cblock_variants_json": _safe_json(
                 {
                     t: [
                         {

@@ -77,6 +77,10 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
 
     # лимит на клиента по этой акции (по сумме активных броней)
+    # NB: неблокирующий Sum — известный LOW-MEDIUM гонок soft-cap (параллельные брони
+    # одного клиента могут превысить max_per_customer; СКЛАД при этом НЕ переполняется —
+    # его держит атомарный UPDATE ниже). Лок клиента здесь ломал anti-oversell-инвариант
+    # (см. test_concurrency) — фикс выносится в отдельную, аккуратно оттестированную задачу.
     if promotion.max_per_customer:
         active_qty = (
             Reservation.objects.filter(

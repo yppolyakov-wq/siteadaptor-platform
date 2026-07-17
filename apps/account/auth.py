@@ -11,6 +11,7 @@ import hashlib
 import secrets
 
 from django.core.cache import cache
+from django.db import connection
 
 from apps.core import ratelimit
 from apps.promotions.models import Customer
@@ -26,19 +27,25 @@ def _hash(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+def _token_key(token: str) -> str:
+    # LOW: неймспейс по схеме тенанта — токен, выпущенный на одном бизнесе, нельзя
+    # погасить на витрине другого (Redis общий; mint+consume — в одной схеме).
+    return f"acct_ml_token:{connection.schema_name}:{_hash(token)}"
+
+
 def issue_magic_link(email: str) -> str | None:
     """Одноразовый токен (или None при превышении лимита на email)."""
     email = email.strip().lower()
     if ratelimit.hit("acct_ml", email, limit=EMAIL_RL_LIMIT, window=EMAIL_RL_WINDOW):
         return None
     token = secrets.token_urlsafe(32)
-    cache.set(f"acct_ml_token:{_hash(token)}", {"email": email}, TOKEN_TTL)
+    cache.set(_token_key(token), {"email": email}, TOKEN_TTL)
     return token
 
 
 def consume_magic_link(token: str) -> dict | None:
     """Payload токена; ключ удаляется ДО использования (одноразовость)."""
-    key = f"acct_ml_token:{_hash(token)}"
+    key = _token_key(token)
     payload = cache.get(key)
     if payload is None:
         return None
