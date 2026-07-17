@@ -78,6 +78,11 @@
 
       <form method="post" class="space-y-6">
         {% csrf_token %}
+        {% comment %}AB5.1 honeypot: людям не видно (hidden), боты заполняют →
+        фейковый успех без записи и письма (паттерн newsletter_signup).{% endcomment %}
+        <div class="hidden" aria-hidden="true">
+          <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
 
         {# 1. Тип бизнеса. #}
         {% if preselected_type %}
@@ -186,6 +191,9 @@
         <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-3 font-medium shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none transition">
           {% trans "Geschäft erstellen" %}
         </button>
+        {% if email_confirmation %}
+          <p class="text-center text-xs text-gray-400">✉️ {% trans "Wir senden dir zuerst eine Bestätigungs-E-Mail — erst danach wird deine Website eingerichtet." %}</p>
+        {% endif %}
 
         <p class="text-center text-xs text-gray-400">{% blocktrans %}Mit der Erstellung stimmst du unseren <a href="/agb/" class="underline hover:text-gray-600">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen.{% endblocktrans %}</p>
       </form>

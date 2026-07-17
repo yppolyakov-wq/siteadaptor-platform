@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Bitte E-Mail bestätigen" %} · SiteAdaptor{% endblock %}
+
+{% block body %}
+{% comment %}AB5.1: после POST регистрации тенант ещё НЕ создан — ждём клика по
+ссылке из письма. Honeypot-боты видят эту же страницу (без токена → без resend).{% endcomment %}
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
+    <div class="text-5xl mb-4" aria-hidden="true">📬</div>
+    <h1 class="text-2xl font-bold mb-2">{% trans "Fast geschafft — bitte E-Mail bestätigen" %}</h1>
+    <p class="text-gray-600">
+      {% blocktrans %}Wir haben eine E-Mail an <strong>{{ email }}</strong> geschickt. Klicke auf den Link darin — erst dann wird deine Website eingerichtet.{% endblocktrans %}
+    </p>
+    <p class="text-xs text-gray-400 mt-3">{% trans "Der Link ist 72 Stunden gültig. Nichts erhalten? Schau auch im Spam-Ordner nach." %}</p>
+
+    {% if resent %}
+      <div class="mt-4 rounded-lg bg-green-50 text-green-800 px-4 py-2 text-sm">{% trans "E-Mail wurde erneut gesendet." %}</div>
+    {% elif resend_error %}
+      <div class="mt-4 rounded-lg bg-amber-50 text-amber-800 px-4 py-2 text-sm">{{ resend_error }}</div>
+    {% endif %}
+
+    {% if token %}
+      <form method="post" action="/registrieren/erneut-senden/" class="mt-5">
+        {% csrf_token %}
+        <input type="hidden" name="token" value="{{ token }}">
+        <button type="submit" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">{% trans "E-Mail erneut senden" %}</button>
+      </form>
+    {% endif %}
+
+    {% if direct_url %}
+      {% comment %}Console-бэкенд (dev / прод без Resend-ключа): письмо не уходит —
+      даём ссылку прямо здесь, чтобы регистрация работала.{% endcomment %}
+      <div class="mt-5 rounded-lg bg-gray-50 border border-dashed border-gray-300 px-4 py-3 text-left">
+        <p class="text-xs text-gray-500 mb-1">{% trans "E-Mail-Versand ist noch nicht eingerichtet — hier ist dein Bestätigungslink:" %}</p>
+        <a href="{{ direct_url }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 break-all">{{ direct_url }}</a>
+      </div>
+    {% endif %}
+
+    <p class="mt-6 text-xs text-gray-400"><a href="/registrieren/" class="underline hover:text-gray-600">{% trans "Zurück zur Registrierung" %}</a></p>
+  </div>
+</div>
+{% endblock %}

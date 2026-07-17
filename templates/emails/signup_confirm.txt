@@ -1,0 +1,11 @@
+{% load i18n %}{% trans "Hallo," %}
+
+{% blocktrans with name=signup.business_name %}du möchtest „{{ name }}“ auf SiteAdaptor erstellen. Bitte bestätige deine E-Mail-Adresse mit einem Klick:{% endblocktrans %}
+
+{{ confirm_url }}
+
+{% trans "Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website eingerichtet." %}
+
+{% trans "Wenn du das nicht warst, kannst du diese E-Mail einfach ignorieren." %}
+
+{% trans "Dein SiteAdaptor-Team" %}

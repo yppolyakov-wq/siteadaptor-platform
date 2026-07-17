@@ -69,13 +69,22 @@ def _new_tenant(*, business_name, slug, business_type, city, email, partner_code
 
 @transaction.atomic
 def start_business_provisioning(
-    *, business_name, slug, business_type, city, email, password, partner_code=""
+    *,
+    business_name,
+    slug,
+    business_type,
+    city,
+    email,
+    password="",
+    password_hash="",
+    partner_code="",
 ):
     """Мгновенная часть регистрации: Tenant (БЕЗ схемы) + Domain + фоновая задача.
 
     Создание схемы (~1 мин, миграции всех TENANT-приложений) уходит в Celery
     (tasks.provision_business) — пользователь сразу видит страницу ожидания.
-    Пароль в брокер не попадает открытым — передаём хэш.
+    Пароль в брокер не попадает открытым — передаём хэш. AB5.1 (double-opt-in)
+    передаёт сразу `password_hash` (SignupRequest пароль открытым не хранит).
     """
     from django.contrib.auth.hashers import make_password
 
@@ -94,7 +103,7 @@ def start_business_provisioning(
     base = _base_domain()
     Domain.objects.create(domain=f"{slug}.{base.split(':')[0]}", tenant=tenant, is_primary=True)
 
-    password_hash = make_password(password)
+    password_hash = password_hash or make_password(password)
     from .tasks import provision_business
 
     transaction.on_commit(lambda: provision_business.delay(str(tenant.pk), email, password_hash))

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Bestätigung nicht möglich" %} · SiteAdaptor{% endblock %}
+
+{% block body %}
+{% comment %}AB5.1: причины — invalid (битый/использованный токен), expired
+(72ч истекли), slug_taken (subdomain заняли между POST и кликом).{% endcomment %}
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
+    <div class="text-5xl mb-4" aria-hidden="true">😕</div>
+    {% if reason == "expired" %}
+      <h1 class="text-2xl font-bold mb-2">{% trans "Der Link ist abgelaufen" %}</h1>
+      <p class="text-gray-600">{% trans "Bestätigungslinks sind 72 Stunden gültig. Registriere dich einfach erneut — es dauert nur eine Minute." %}</p>
+    {% elif reason == "slug_taken" %}
+      <h1 class="text-2xl font-bold mb-2">{% trans "Subdomain inzwischen vergeben" %}</h1>
+      <p class="text-gray-600">{% blocktrans with slug=signup.slug %}Die Adresse „{{ slug }}“ wurde in der Zwischenzeit von jemand anderem registriert. Bitte wähle eine andere Subdomain.{% endblocktrans %}</p>
+    {% else %}
+      <h1 class="text-2xl font-bold mb-2">{% trans "Link ungültig" %}</h1>
+      <p class="text-gray-600">{% trans "Dieser Bestätigungslink ist ungültig oder wurde bereits verwendet." %}</p>
+    {% endif %}
+    <a href="/registrieren/" class="mt-6 inline-block bg-indigo-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm hover:bg-indigo-700">{% trans "Erneut registrieren" %} →</a>
+  </div>
+</div>
+{% endblock %}

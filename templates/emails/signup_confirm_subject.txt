@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with name=signup.business_name %}Bitte E-Mail bestätigen — {{ name }}{% endblocktrans %}

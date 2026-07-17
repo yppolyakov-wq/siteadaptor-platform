@@ -281,6 +281,10 @@ ACCOUNT_ADAPTER = "apps.tenants.adapters.AccountAdapter"
 # настроен, держим optional через env, иначе вход падает 500 на отправке письма.
 # На боевом проде с настроенным Resend → ACCOUNT_EMAIL_VERIFICATION=mandatory.
 ACCOUNT_EMAIL_VERIFICATION = env("ACCOUNT_EMAIL_VERIFICATION", default="optional")
+# AB5.1: double-opt-in регистрации бизнеса — тенант создаётся только после клика
+# по ссылке из письма (SignupRequest). env-выключатель возвращает прямой флоу.
+# При console-бэкенде (нет Resend/SMTP) confirm-ссылка показывается на странице.
+SIGNUP_EMAIL_CONFIRMATION = env.bool("SIGNUP_EMAIL_CONFIRMATION", default=True)
 # после логина — в кабинет владельца; после выхода — на публичную витрину
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"

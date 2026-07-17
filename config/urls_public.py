@@ -22,6 +22,8 @@ from apps.tenants.views import (
     industry_page,
     platform_legal,
     set_public_language,
+    signup_confirm,
+    signup_resend,
     signup_waiting,
 )
 
@@ -83,6 +85,9 @@ urlpatterns = [
     # владельца). Корень (2026-07-13, решение владельца) — обзор Branchen; корень
     # продолжает ловить партнёрский ?ref (исторические ссылки).
     path("registrieren/", BusinessSignupView.as_view(), name="business-signup"),
+    # AB5.1: double-opt-in — тенант создаётся только после клика по ссылке из письма.
+    path("registrieren/bestaetigen/<str:token>/", signup_confirm, name="business-signup-confirm"),
+    path("registrieren/erneut-senden/", signup_resend, name="business-signup-resend"),
     path("", industries_index, name="home"),
     # Ожидание фонового провижининга: «Ihre Website wird eingerichtet…».
     path("anmeldung/<slug:slug>/", signup_waiting, name="signup-waiting"),

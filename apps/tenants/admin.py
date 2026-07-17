@@ -1,7 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import Domain, Tenant
+from .models import Domain, SignupRequest, Tenant
 
 
 @admin.register(Tenant)
@@ -53,3 +53,18 @@ class DomainAdmin(ModelAdmin):
     search_fields = ("domain", "tenant__name", "tenant__schema_name")
     list_filter = ("is_primary",)
     autocomplete_fields = ("tenant",)
+
+
+@admin.register(SignupRequest)
+class SignupRequestAdmin(ModelAdmin):
+    """AB5.1: диагностика double-opt-in регистраций (дошло ли письмо, кто завис)."""
+
+    list_display = ("email", "slug", "business_type", "created_at", "confirmed_at", "tenant")
+    search_fields = ("email", "slug", "business_name")
+    list_filter = ("business_type",)
+    ordering = ("-created_at",)
+    # Заявка создаётся только формой регистрации; хэш/токен в админке не правим.
+    readonly_fields = ("token", "password_hash", "created_at", "confirmed_at", "tenant")
+
+    def has_add_permission(self, request):
+        return False

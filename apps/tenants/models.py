@@ -1,4 +1,8 @@
+import secrets
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 from django_tenants.models import DomainMixin, TenantMixin
 
 
@@ -404,6 +408,54 @@ class Tenant(TenantMixin):
 
 class Domain(DomainMixin):
     pass
+
+
+def _new_signup_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+class SignupRequest(models.Model):
+    """AB5.1: double-opt-in регистрации бизнеса (SHARED/public).
+
+    Заявка на регистрацию ДО создания Tenant: тенант/домен/схема появляются
+    только после клика по ссылке из письма — бот без работающей почты не может
+    плодить тенанты и Domain-записи (тот же класс риска, что T-5 с LE-квотой).
+    Пароль храним только хэшем; токен в URL — случайный (signed-payload был бы
+    читаемым base64). Slug заявкой НЕ резервируется — гонка решается при
+    подтверждении (занят → страница ошибки).
+    """
+
+    CONFIRM_TTL = timedelta(hours=72)
+
+    token = models.CharField(max_length=64, unique=True, default=_new_signup_token)
+    email = models.EmailField()
+    password_hash = models.CharField(max_length=128)
+    business_name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=100)
+    business_type = models.CharField(max_length=40)
+    city = models.CharField(max_length=100)
+    partner_code = models.CharField(max_length=40, blank=True)
+    locale = models.CharField(max_length=8, default="de")
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    tenant = models.ForeignKey(
+        Tenant, null=True, blank=True, on_delete=models.SET_NULL, related_name="signup_requests"
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        state = "confirmed" if self.confirmed_at else "pending"
+        return f"{self.email} → {self.slug} ({state})"
+
+    @property
+    def is_confirmed(self) -> bool:
+        return self.confirmed_at is not None
+
+    @property
+    def is_expired(self) -> bool:
+        return not self.is_confirmed and timezone.now() - self.created_at > self.CONFIRM_TTL
 
 
 class CustomDomain(models.Model):
