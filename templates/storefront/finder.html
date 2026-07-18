@@ -1,0 +1,45 @@
+{% extends "storefront/_base.html" %}
+{% load i18n sellable_ui %}
+{% comment %}FD-1: Finder «вопросы → 3 предложения». Шаги — серверные (чипы = ссылки,
+ответы копятся в ?a=), выдача — 3 карточки контракта SellableEntity, лучшая В
+СЕРЕДИНЕ («Unser Vorschlag»). План — docs/fd1-finder-plan-2026-07-18.md.{% endcomment %}
+{% block content %}
+<section class="max-w-2xl mx-auto mb-12">
+  {% if question %}
+    <p class="text-xs font-medium text-gray-400 mb-2">{% blocktrans with step=step total=total %}Frage {{ step }} von {{ total }}{% endblocktrans %}</p>
+    <h1 class="text-2xl md:text-3xl font-bold mb-5">{{ question.label }}</h1>
+    <div class="flex flex-wrap gap-3">
+      {% for chip in question.chips %}
+        <a href="?a={% if answers_carry %}{{ answers_carry|urlencode }},{% endif %}{{ question.key }}.{{ chip.key }}"
+           class="inline-block rounded-full border-2 border-gray-200 bg-white px-5 py-3 text-sm font-semibold hover:border-[var(--sf-accent,#4f46e5)] transition">{{ chip.label }}</a>
+      {% endfor %}
+    </div>
+    {% if answers_carry %}
+      <p class="mt-6"><a href="{% url 'storefront-finder' %}" class="text-sm text-gray-400 hover:underline">↺ {% trans "Von vorn beginnen" %}</a></p>
+    {% endif %}
+  {% else %}
+    <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Unsere Vorschläge für dich" %}</h1>
+    {% if fallback %}
+      <p class="text-sm text-gray-500 mb-5">{% trans "Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach direkt!" %}</p>
+    {% else %}
+      <p class="text-sm text-gray-500 mb-5">{% trans "Ausgewählt nach deinen Antworten — der mittlere ist unser Favorit." %}</p>
+    {% endif %}
+    {% if results %}
+      <div class="grid sm:grid-cols-3 gap-4 items-start">
+        {% for r in results %}
+          <div class="relative {% if r.pick %}sm:-mt-2 rounded-2xl ring-2 ring-[var(--sf-accent,#4f46e5)]{% endif %}">
+            {% if r.pick %}<span class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap rounded-full bg-[var(--sf-accent,#4f46e5)] px-3 py-0.5 text-xs font-bold text-white">{% trans "Unser Vorschlag" %}</span>{% endif %}
+            {% sellable_card r.kind r.obj cta="purchase" edit=False %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-gray-600">{% trans "Noch keine Angebote online — schreib uns, wir helfen persönlich weiter." %}</p>
+    {% endif %}
+    <div class="mt-8 flex flex-wrap items-center gap-4 text-sm">
+      <a href="{% url 'storefront-finder' %}" class="font-medium text-[var(--sf-accent,#4f46e5)] hover:underline">↺ {% trans "Noch mal suchen" %}</a>
+      <a href="/" class="text-gray-500 hover:underline">{% trans "Alle Angebote ansehen" %} →</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -212,6 +212,8 @@ class DemoKit:
     # Склад-2 E1.5: учёт партий/MHD (Chargen) — тумблер `lots_enabled` + демо-партии
     # с реалистичным сроком годности (еда: bakery/butcher). Пусто = чистый счётчик.
     enable_lots: bool = False
+    # FD-1: включить Finder «вопросы → 3 предложения» (/finder/) в демо кита.
+    enable_finder: bool = False
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -2119,6 +2121,7 @@ BAKERY = DemoKit(
     business_type="bakery",
     subdomain="baeckerei",
     enable_lots=True,  # E1.5: Chargen/MHD (Backwaren mit kurzer Haltbarkeit)
+    enable_finder=True,  # FD-1: демо Finder («Was suchst du?» → 3 предложения)
     accent="#a16207",  # Braun-Gold (Kruste)
     hero_image_kw="bread,bakery",
     hero_title="Backhaus Krume",
@@ -3577,6 +3580,7 @@ FRISEUR = DemoKit(
     label="Salon Schöngut",
     business_type="friseur",  # S6: реальный архетип
     subdomain="friseur",
+    enable_finder=True,  # FD-1: демо Finder («Was möchtest du?» → 3 услуги)
     accent="#9333ea",  # Violett
     hero_image_kw="hair,salon",
     hero_title="Salon Schöngut",
@@ -5349,6 +5353,8 @@ def apply_kit(tenant, key: str) -> bool:
         cfg["status_edges"] = kit.status_edges
     if kit.enable_lots:  # Склад-2 E1.5: тумблер учёта партий/MHD (еда)
         cfg["lots_enabled"] = True
+    if kit.enable_finder:  # FD-1: Finder — опция, в демо показываем
+        cfg["finder"] = {"enabled": True}
     tenant.site_config = cfg
     tenant.primary_color = kit.accent
     update_fields = ["site_config", "primary_color", "updated_at"]

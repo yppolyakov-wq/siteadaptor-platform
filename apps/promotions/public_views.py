@@ -246,6 +246,33 @@ def about_page(request):
     return render(request, "storefront/about.html", {"site": site, "sections": []})
 
 
+def finder_page(request):
+    """FD-1: Finder «вопросы → 3 предложения» (/finder/).
+
+    Серверные шаги БЕЗ JS: чипы — ссылки, накапливающие ответы в `?a=q.chip,…`;
+    все вопросы отвечены → 3 карточки (лучшая в середине, «Unser Vorschlag»).
+    Finder — ОПЦИЯ (решение владельца 2026-07-18): 404 пока не включён."""
+    from django.utils.translation import get_language
+
+    from apps.core import finder
+    from apps.tenants import siteconfig
+
+    if not finder.enabled(request.tenant):
+        raise Http404
+    # Ответы из ?a=: "anlass.geburtstag,budget.klein" (порядок не важен).
+    answers = {}
+    for pair in (request.GET.get("a") or "").split(","):
+        if "." in pair:
+            q_key, _, chip_key = pair.partition(".")
+            if q_key and chip_key:
+                answers[q_key[:40]] = chip_key[:40]
+    state = finder.resolve(request.tenant, answers, get_language())
+    site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+    carry = ",".join(f"{k}.{v}" for k, v in sorted(answers.items()))
+    ctx = {"site": site, "sections": [], "answers_carry": carry, **state}
+    return render(request, "storefront/finder.html", ctx)
+
+
 def loyalty_page(request):
     """Публичная страница программы лояльности /treue/ (S5).
 

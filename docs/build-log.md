@@ -5592,3 +5592,28 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - **i18n:** новые строки регистрации/слайдов — немецкие msgid; переводы en/tr/ru/uk дописаны
   в 4 `django.po` (29 записей/локаль, polib-валидация, дублей нет); rate-limit msgid
   переиспользован существующий («Zu viele Versuche. Bitte später erneut.»).
+
+## 2026-07-18 — Концепты Studio + «Живая продажа/Finder» и FD-1: движок Finder (без миграций)
+
+- **Решения владельца (2026-07-18, «действуй автономно»):** треки — FD первым → LS-3 →
+  LS-1/2 (видео v1 = WhatsApp, БЕЗ записи §201 StGB); Finder — ОПЦИЯ (не дефолт);
+  Studio: ST-1 Look'и первыми → ST-4 → ST-3, 3 Look'а на архетип, SVG-иконсет, имя «Studio».
+  Концепт-доки: `studio-concept-2026-07-18.md` (+рыночный рисёрч 07.2026),
+  `live-selling-finder-concept-2026-07-18.md` (стримы мертвы для микро-Запада, 1:1-видео
+  3× CR, payment-link-в-чат — паттерн DACH, квизы 5,5 % CR / AOV+11–15 %, LS-5 Care-цикл,
+  LS-6 «Прямая линия» владельцу). Мокапы — артефакт «SiteAdaptor Studio — концепт» (4 экрана).
+- **FD-1 (план `fd1-finder-plan-2026-07-18.md`):** guided selling «вопросы → 3 предложения»
+  без ИИ. `siteconfig.normalize_finder` (ключ `finder` presence-minimal — golden-паритет;
+  enabled + questions/chips/match: words/collection/category/price_min/max). Движок
+  `apps/core/finder.py`: пресеты деревьев по архетипу (bakery/butcher/friseur/hotel/events
+  + cafe/tour_operator-алиасы) и generic по primary-модулю; скоринг в Python по активным
+  сущностям primary-kind (display_fields адаптеров: words +2, slug +3, цена — жёсткий
+  фильтр; кап 200); выдача топ-3, ЛУЧШАЯ В СЕРЕДИНЕ («Unser Vorschlag», правило трёх +
+  дефолт-эффект); fallback-флаг при нулевых совпадениях (новейшие + CTA в чат). Витрина:
+  `/finder/` (`storefront-finder`, promotions/public_views) — серверные шаги БЕЗ JS (чипы =
+  ссылки, ответы копятся в `?a=q.chip,…`), выдача через `{% sellable_card %}`; 404 пока
+  `finder.enabled` не включён (решение «опция»). Демо: `enable_finder` у китов baeckerei
+  и friseur. Тесты `apps/promotions/tests/test_finder.py` (9): presence-minimal, чистка
+  конфига, скоринг/цена/fallback, неактивные, кастом-дерево поверх пресета, 404, полный
+  флоу страницы, мусор в `?a=`. Дальше: FD-2 (CTA-секция главной + глубже пресеты) →
+  FD-3 (кабинет-редактор) → LS-3.

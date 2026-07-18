@@ -1927,6 +1927,72 @@ def normalize_board(raw) -> dict:
     return out
 
 
+# FD-1: Finder «вопросы → 3 предложения» (план fd1-finder-plan-2026-07-18).
+_MAX_FINDER_QUESTIONS = 6
+_MAX_FINDER_CHIPS = 8
+_FINDER_MATCH_SLUGS = ("collection", "category")
+
+
+def _clean_finder_match(raw) -> dict:
+    """match-спека чипа: только известные ключи с валидными значениями.
+    words — скоринг по имени/описанию; collection/category — slug (+баллы);
+    price_min/max — жёсткий фильтр в EUR (> 0)."""
+    d = raw if isinstance(raw, dict) else {}
+    out = {}
+    words_in = d.get("words") if isinstance(d.get("words"), list) else []
+    words = [_s(w)[:40] for w in words_in if isinstance(w, str) and w.strip()]
+    if words:
+        out["words"] = words[:10]
+    for key in _FINDER_MATCH_SLUGS:
+        if _s(d.get(key)):
+            out[key] = _s(d.get(key))[:80]
+    for key in ("price_min", "price_max"):
+        try:
+            val = float(d.get(key))
+        except (TypeError, ValueError):
+            continue
+        if val > 0:
+            out[key] = round(val, 2)
+    return out
+
+
+def normalize_finder(raw) -> dict:
+    """FD-1: конфиг Finder — {"enabled": bool, "questions": [{key,label,chips}]}.
+
+    Ключ `finder` в normalize материализуется ТОЛЬКО при непустом (golden-паритет,
+    паттерн board/seo). enabled — только при True. Пустые questions → страница
+    берёт пресет архетипа (apps.core.finder); кастом-дерево пишет кабинет (FD-3)."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    if raw.get("enabled"):
+        out["enabled"] = True
+    questions_in = raw.get("questions") if isinstance(raw.get("questions"), list) else []
+    questions = []
+    for q in questions_in:
+        if not isinstance(q, dict):
+            continue
+        key, label = _s(q.get("key"))[:40], _s(q.get("label"))[:120]
+        chips_in = q.get("chips") if isinstance(q.get("chips"), list) else []
+        chips = []
+        for c in chips_in:
+            if not isinstance(c, dict):
+                continue
+            ckey, clabel = _s(c.get("key"))[:40], _s(c.get("label"))[:80]
+            if ckey and clabel:
+                chips.append(
+                    {"key": ckey, "label": clabel, "match": _clean_finder_match(c.get("match"))}
+                )
+            if len(chips) >= _MAX_FINDER_CHIPS:
+                break
+        if key and label and chips:
+            questions.append({"key": key, "label": label, "chips": chips})
+        if len(questions) >= _MAX_FINDER_QUESTIONS:
+            break
+    if questions:
+        out["questions"] = questions
+    return out
+
+
 def normalize_seo(raw) -> dict:
     """SEO-2: per-тип шаблоны мета (title/description) для движка seo_meta.
 
@@ -1983,6 +2049,10 @@ def normalize(config) -> dict:
     board = normalize_board(config.get("board"))
     if board:
         normalized["board"] = board
+    # FD-1: Finder («вопросы → 3 предложения»); ключ ТОЛЬКО при непустом.
+    fnd = normalize_finder(config.get("finder"))
+    if fnd:
+        normalized["finder"] = fnd
     # FB-4a: свои имена статусов заказа; ключ ТОЛЬКО при непустом (golden-паритет).
     sl = normalize_status_labels(config.get("status_labels"))
     if sl:
