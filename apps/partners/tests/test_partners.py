@@ -151,7 +151,9 @@ def test_checkout_unchanged_without_partner_or_coupon(monkeypatch):
 
 def test_signup_post_pops_ref_and_passes_code(monkeypatch, settings):
     # pop: код одноразовый на браузер-сессию (ревью D3) — и уходит в сервис.
+    # Прямая ветка (AB5.1: double-opt-in выключен флагом — легаси-флоу жив).
     settings.ROOT_URLCONF = "config.urls_public"
+    settings.SIGNUP_EMAIL_CONFIRMATION = False
     from apps.tenants import views as tenant_views
 
     partner = _partner()
@@ -183,6 +185,46 @@ def test_signup_post_pops_ref_and_passes_code(monkeypatch, settings):
     tenant_views.BusinessSignupView().post(request)
     assert captured["partner_code"] == partner.code
     assert "partner_ref" not in request.session
+
+
+def test_signup_ref_survives_email_confirmation(monkeypatch, settings):
+    # AB5.1: с double-opt-in реф-код проходит ДВА шага — из сессии в SignupRequest
+    # (POST), из заявки в start_business_provisioning (клик по письму).
+    settings.ROOT_URLCONF = "config.urls_public"
+    from apps.tenants import views as tenant_views
+    from apps.tenants.models import SignupRequest
+
+    partner = _partner()
+    request = _req(
+        "post",
+        path="/",
+        data={
+            "business_name": "Bäckerei",
+            "slug": f"b{uuid.uuid4().hex[:8]}",
+            "business_type": "bakery",
+            "city": "Hilden",
+            "email": "doi@test.de",
+            "password1": "pw12345678",
+            "password2": "pw12345678",
+        },
+    )
+    request.session["partner_ref"] = partner.code
+    tenant_views.BusinessSignupView().post(request)
+    assert "partner_ref" not in request.session
+    signup_req = SignupRequest.objects.get(email="doi@test.de")
+    assert signup_req.partner_code == partner.code
+
+    # Клик по письму: реальный confirm → Tenant создан С атрибуцией партнёра.
+    from apps.tenants.models import Domain, Tenant
+
+    confirm_req = _req("get", path=f"/registrieren/bestaetigen/{signup_req.token}/")
+    tenant_views.signup_confirm(confirm_req, token=signup_req.token)
+    tenant = Tenant.objects.get(slug=signup_req.slug)
+    try:
+        assert tenant.partner_id == partner.pk
+    finally:
+        Domain.objects.filter(tenant=tenant).delete()
+        Tenant.objects.filter(pk=tenant.pk).delete()
 
 
 def test_checkout_falls_back_when_coupon_invalid(monkeypatch):
