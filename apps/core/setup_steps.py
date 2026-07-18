@@ -370,10 +370,81 @@ def _ctx_language(request):
     return {"languages": languages_context(request.tenant)}
 
 
-def _post_texts(request):
-    # AB6.2g: «Über uns» (about_*, presence-safe TEXT_FIELDS — мержим в существующий
-    # конфиг, урок W6) + Impressum (LegalDoc дефолт-локали, реюз семантики legal_docs).
-    # AB6.2-lang: + переводы about_* на включённых локалях (оверлей i18n).
+# AB6.10: шаблоны страницы «Über uns» — пресеты C-блоков хоста page_blocks["info"]
+# (рендерятся на витринной /ueber-uns/ тегом {% page_blocks "info" %}). Демо-тексты —
+# та же DE-рыба, что CBLOCK_DEMO_DATA. Пресет заменяет ТОЛЬКО ранее посеянные им
+# блоки (id с префиксом pb-about-); блоки владельца не трогаются.
+_ABOUT_BLOCK_PREFIX = "pb-about-"
+_ABOUT_PRESETS = (
+    {"key": "text", "label": "Nur Text", "icon": "📝", "blocks": ()},
+    {
+        "key": "bild",
+        "label": "Text + Bild",
+        "icon": "🖼️",
+        "blocks": (
+            (
+                "image",
+                {
+                    "url": "/medien/demo.svg?kw=laden&w=1200&h=600",
+                    "caption": "Bildunterschrift — klicken und ersetzen",
+                },
+            ),
+        ),
+    },
+    {
+        "key": "geschichte",
+        "label": "Unsere Geschichte",
+        "icon": "📖",
+        "blocks": (
+            (
+                "image_text",
+                {
+                    "url": "/medien/demo.svg?kw=laden&w=800&h=600",
+                    "title": "Unsere Geschichte",
+                    "body": (
+                        "Wie alles begann: Erzählen Sie hier, wie Ihr Geschäft entstanden "
+                        "ist und was Sie antreibt — das Foto können Sie jederzeit austauschen."
+                    ),
+                    "side": "left",
+                },
+            ),
+        ),
+    },
+    {
+        "key": "team",
+        "label": "Team & Werte",
+        "icon": "🤝",
+        "blocks": (
+            (
+                "image_text",
+                {
+                    "url": "/medien/demo.svg?kw=team&w=800&h=600",
+                    "title": "Unser Team",
+                    "body": (
+                        "Stellen Sie hier die Menschen hinter Ihrem Geschäft vor — "
+                        "Namen, Rollen und was Ihre Kundschaft an ihnen schätzt."
+                    ),
+                    "side": "right",
+                },
+            ),
+            (
+                "text",
+                {
+                    "title": "Worauf wir Wert legen",
+                    "body": (
+                        "Qualität, Regionalität, Handwerk: Beschreiben Sie in zwei bis "
+                        "drei Sätzen, wofür Ihr Geschäft steht."
+                    ),
+                },
+            ),
+        ),
+    },
+)
+
+
+def _post_about(request):
+    # AB6.10: «Über uns» — тексты (presence-safe + i18n-оверлей, как texts раньше) +
+    # шаблон страницы (пресет блоков info-хоста; идемпотентно по префиксу id).
     from apps.tenants import siteconfig
 
     tenant = request.tenant
@@ -382,13 +453,62 @@ def _post_texts(request):
         if request.POST.get(f) is not None:
             cfg[f] = request.POST.get(f, "").strip()
     _save_overlay_fields(request, cfg, ("about_title", "about_text"))
+    preset = next((p for p in _ABOUT_PRESETS if p["key"] == request.POST.get("about_preset")), None)
+    if preset is not None:
+        pb = cfg.get("page_blocks") if isinstance(cfg.get("page_blocks"), dict) else {}
+        pb = dict(pb)
+        keep = [
+            b
+            for b in (pb.get("info") if isinstance(pb.get("info"), list) else [])
+            if not str((b or {}).get("id", "")).startswith(_ABOUT_BLOCK_PREFIX)
+        ]
+        seeded = [
+            {
+                "key": kind,
+                "id": f"{_ABOUT_BLOCK_PREFIX}{preset['key']}-{i}",
+                "enabled": True,
+                "data": dict(data),
+            }
+            for i, (kind, data) in enumerate(preset["blocks"], start=1)
+        ]
+        if keep + seeded:
+            pb["info"] = keep + seeded
+        else:
+            pb.pop("info", None)
+        cfg["page_blocks"] = pb
     tenant.site_config = siteconfig.normalize(cfg)
     tenant.save(update_fields=["site_config", "updated_at"])
+
+
+def _ctx_about(request):
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    cfg = siteconfig.normalize(tenant.site_config)
+    info_ids = [str(b.get("id", "")) for b in (cfg.get("page_blocks", {}).get("info") or [])]
+    current = "text"
+    for p in _ABOUT_PRESETS:
+        if p["blocks"] and any(i.startswith(f"{_ABOUT_BLOCK_PREFIX}{p['key']}-") for i in info_ids):
+            current = p["key"]
+    return {
+        "about_title": cfg.get("about_title", ""),
+        "about_text": cfg.get("about_text", ""),
+        "about_presets": [{**p, "checked": p["key"] == current} for p in _ABOUT_PRESETS],
+        "content_locales": _content_locales(tenant),
+        "i18n_panes": _i18n_panes(tenant, ("about_title", "about_text")),
+        # Превью слайда — сама страница «Über uns» (шаблон виден сразу).
+        "preview_url": "/ueber-uns/",
+    }
+
+
+def _post_texts(request):
+    # AB6.2g→AB6.10: слайд слим-нут до правового (about уехал на слайд `about`):
+    # Impressum → LegalDoc дефолт-локали (реюз семантики legal_docs, presence-safe).
     val = request.POST.get("impressum")
     if val is not None:
         from apps.core.models import LegalDoc
 
-        loc = tenant.default_locale or "de"
+        loc = request.tenant.default_locale or "de"
         if val.strip():
             LegalDoc.objects.update_or_create(kind="impressum", locale=loc, defaults={"text": val})
         else:
@@ -396,10 +516,7 @@ def _post_texts(request):
 
 
 def _ctx_texts(request):
-    from apps.tenants import siteconfig
-
     tenant = request.tenant
-    cfg = siteconfig.normalize(tenant.site_config)
     impressum = ""
     try:
         from apps.core.models import LegalDoc
@@ -410,13 +527,7 @@ def _ctx_texts(request):
         impressum = doc.text if doc else ""
     except Exception:  # noqa: BLE001 — модель/таблица недоступна
         impressum = ""
-    return {
-        "about_title": cfg.get("about_title", ""),
-        "about_text": cfg.get("about_text", ""),
-        "impressum": impressum,
-        "content_locales": _content_locales(tenant),
-        "i18n_panes": _i18n_panes(tenant, ("about_title", "about_text")),
-    }
+    return {"impressum": impressum}
 
 
 # AB6.2c: типы сущностей, для которых слайд «Angebot» показывает мини-форму создания
@@ -591,6 +702,113 @@ def _ctx_content(request):
     }
 
 
+# AB6.10: слайд «Produktseite» — вид детальной страницы primary-сущности (v1 по
+# решению владельца 2026-07-11: стиль карточек site_defaults + скрытие секций
+# реестра detail_sections; полные пресеты раскладки — отдельный L-трек).
+_CARD_STYLE_PRESETS = (
+    {
+        "key": "klar",
+        "label": "Klar",
+        "hint": "ohne Rahmen, viel Weißraum",
+        "defaults": {"card_radius": 0, "card_shadow": False, "card_bg": "", "card_padding": 0},
+    },
+    {
+        "key": "weich",
+        "label": "Weich",
+        "hint": "runde Ecken, leichter Schatten",
+        "defaults": {"card_radius": 16, "card_shadow": True, "card_bg": "", "card_padding": 0},
+    },
+    {
+        "key": "karte",
+        "label": "Karte",
+        "hint": "Kachel mit Fläche und Innenabstand",
+        "defaults": {
+            "card_radius": 12,
+            "card_shadow": True,
+            "card_bg": "#ffffff",
+            "card_padding": 12,
+        },
+    },
+)
+
+# Превью слайда «Produktseite»: деталь ПЕРВОЙ сущности primary-модуля.
+_DETAIL_PREVIEW = {
+    "catalog": ("apps.catalog.models", "Product", {"is_active": True}, "storefront-product"),
+    "booking": (
+        "apps.booking.models",
+        "Service",
+        {"is_active": True},
+        "storefront-service-detail",
+    ),
+    "stays": ("apps.stays.models", "StayUnit", {"is_active": True}, "storefront-unterkunft-unit"),
+    "events": ("apps.events.models", "Event", {}, "storefront-event"),
+}
+
+
+def _detail_preview_url(tenant) -> str:
+    """URL детали первой сущности primary-модуля (или "" → превью показывает главную)."""
+    import importlib
+
+    from django.urls import reverse
+
+    route = _DETAIL_PREVIEW.get(_offer_kind(tenant) or "")
+    if not route:
+        return ""
+    mod_path, cls_name, flt, url_name = route
+    try:
+        model = getattr(importlib.import_module(mod_path), cls_name)
+        obj = model.objects.filter(**flt).first()
+        return reverse(url_name, args=[obj.pk]) if obj else ""
+    except Exception:  # noqa: BLE001 — модуль выключен / нет таблицы
+        return ""
+
+
+def _post_detail(request):
+    # AB6.10: стиль карточек (глобальные site_defaults → --sf-*) + видимость секций
+    # детали primary-модуля (cfg["<module>_detail"]["hidden"] — семантика page_inspector).
+    from apps.core import detail_sections
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    module = _offer_kind(tenant)
+    if not module:
+        return
+    cfg = siteconfig.normalize(tenant.site_config)
+    preset = next(
+        (p for p in _CARD_STYLE_PRESETS if p["key"] == request.POST.get("card_style")), None
+    )
+    if preset is not None:
+        cfg["site_defaults"] = dict(preset["defaults"])
+    key = siteconfig.detail_section_config_key(module)
+    nd = siteconfig.normalize_detail_sections(cfg.get(key), module)
+    hideable = [s.key for s in detail_sections.sections_for(module) if s.hideable]
+    nd["hidden"] = sorted(k for k in hideable if not request.POST.get(f"ds_{k}"))
+    cfg[key] = nd
+    tenant.site_config = siteconfig.normalize(cfg)
+    tenant.save(update_fields=["site_config", "updated_at"])
+
+
+def _ctx_detail(request):
+    from apps.core import detail_sections
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    module = _offer_kind(tenant)
+    cfg = siteconfig.normalize(tenant.site_config)
+    sd = siteconfig.normalize_site_defaults(cfg.get("site_defaults"))
+    current = next((p["key"] for p in _CARD_STYLE_PRESETS if p["defaults"] == sd), "")
+    hidden = siteconfig.detail_section_hidden(cfg, module) if module else set()
+    return {
+        "card_styles": [{**p, "checked": p["key"] == current} for p in _CARD_STYLE_PRESETS],
+        "detail_sections": [
+            {"key": s.key, "label": s.label, "on": s.key not in hidden}
+            for s in (detail_sections.sections_for(module) if module else ())
+            if s.hideable
+        ],
+        "preview_url": _detail_preview_url(tenant),
+    }
+
+
 # AB6.2: карта слайдов master-slides-v3 §0d. business — escape-hatch (gate скрывает,
 # но handler нужен для ?step=); stil = галерея архетип-шаблонов (бывш. template =
 # «весь образ архетипа одним кликом»); menu/category/payment/texts — стабы (наполнение
@@ -642,6 +860,15 @@ HANDLERS = {
     "offer": StepHandler(
         template="tenant/setup/_step_offer.html", context=_ctx_content, preview=True
     ),
+    # AB6.10: вид страницы товара — стиль карточек + секции детали; превью открывает
+    # деталь первой сущности (preview_url в контексте).
+    "detail": StepHandler(
+        template="tenant/setup/_step_detail.html",
+        post=_post_detail,
+        context=_ctx_detail,
+        preview=True,
+        live=True,
+    ),
     "category": StepHandler(
         template="tenant/setup/_step_category.html",
         post=_post_category,
@@ -662,6 +889,15 @@ HANDLERS = {
         post=_post_payment,
         context=_ctx_payment,
         preview=True,
+    ),
+    # AB6.10: «Über uns» — тексты + шаблон страницы (пресеты блоков info-хоста);
+    # превью показывает саму /ueber-uns/.
+    "about": StepHandler(
+        template="tenant/setup/_step_about.html",
+        post=_post_about,
+        context=_ctx_about,
+        preview=True,
+        live=True,
     ),
     "texts": StepHandler(
         template="tenant/setup/_step_texts.html", post=_post_texts, context=_ctx_texts

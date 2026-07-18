@@ -1,0 +1,61 @@
+{% load i18n %}
+{% comment %}AB6.10: слайд «Über uns» — страница о компании: тексты (с i18n-пилюлями,
+переехали из texts) + ШАБЛОН страницы (пресеты C-блоков хоста info → витринная
+/ueber-uns/, превью справа показывает её сразу). Пресет заменяет только свои
+блоки (id pb-about-*) — блоки владельца не трогает.{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">Über uns</h1>
+<p class="text-sm text-gray-500 mb-4">„Über uns" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer ihr seid.</p>
+<form method="post" class="space-y-5">
+  {% csrf_token %}
+
+  <div>
+    <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Page template" %}</p>
+    <div class="grid grid-cols-2 gap-3">
+      {% for p in about_presets %}
+        <label class="rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-indigo-400 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">
+          <input type="radio" name="about_preset" value="{{ p.key }}" {% if p.checked %}checked{% endif %} class="sr-only">
+          <span class="flex items-center gap-2 text-sm font-medium text-gray-700"><span class="text-lg leading-none">{{ p.icon }}</span>{{ p.label }}</span>
+          <span class="mt-2 block bg-gray-100 rounded p-1.5">
+            {% if p.key == 'text' %}
+              <span class="flex flex-col gap-1"><span class="h-1.5 w-2/3 rounded bg-gray-300"></span><span class="h-1.5 w-full rounded bg-gray-300"></span><span class="h-1.5 w-2/3 rounded bg-gray-300"></span></span>
+            {% elif p.key == 'bild' %}
+              <span class="flex flex-col gap-1"><span class="h-1.5 w-2/3 rounded bg-gray-300"></span><span class="h-6 w-full rounded bg-gray-300"></span></span>
+            {% elif p.key == 'geschichte' %}
+              <span class="flex gap-1"><span class="h-8 w-1/2 rounded bg-gray-300"></span><span class="flex-1 flex flex-col gap-1"><span class="h-1.5 w-full rounded bg-gray-300"></span><span class="h-1.5 w-2/3 rounded bg-gray-300"></span></span></span>
+            {% else %}
+              <span class="flex flex-col gap-1"><span class="flex gap-1"><span class="flex-1 flex flex-col gap-1"><span class="h-1.5 w-full rounded bg-gray-300"></span><span class="h-1.5 w-2/3 rounded bg-gray-300"></span></span><span class="h-6 w-1/2 rounded bg-gray-300"></span></span><span class="h-1.5 w-2/3 rounded bg-gray-300"></span></span>
+            {% endif %}
+          </span>
+        </label>
+      {% endfor %}
+    </div>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Templates add example blocks to the page — edit or remove them anytime in the editor." %}</p>
+  </div>
+
+  {% include "tenant/setup/_loc_pills.html" %}
+  <div data-loc-pane="{{ content_locales.0 }}" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_about_title">Über uns — Titel</label>
+      <input id="id_about_title" name="about_title" type="text" value="{{ about_title }}" placeholder="Über uns" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_about_text">Über uns — Text</label>
+      <textarea id="id_about_text" name="about_text" rows="3" placeholder="Erzähl kurz, wer ihr seid und was euch ausmacht." class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ about_text }}</textarea>
+    </div>
+  </div>
+  {% for p in i18n_panes %}
+    <div data-loc-pane="{{ p.loc }}" hidden class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_about_title__{{ p.loc }}">Über uns — Titel ({{ p.loc|upper }})</label>
+        <input id="id_about_title__{{ p.loc }}" name="about_title__{{ p.loc }}" type="text" value="{{ p.about_title }}" placeholder="{{ about_title|default:'Über uns' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_about_text__{{ p.loc }}">Über uns — Text ({{ p.loc|upper }})</label>
+        <textarea id="id_about_text__{{ p.loc }}" name="about_text__{{ p.loc }}" rows="3" placeholder="{{ about_text }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ p.about_text }}</textarea>
+      </div>
+      <p class="text-xs text-gray-400">Leer = Besucher sehen den deutschen Text.</p>
+    </div>
+  {% endfor %}
+
+  {% include "tenant/_setup_buttons.html" %}
+</form>

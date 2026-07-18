@@ -73,12 +73,26 @@ def _has_legal_doc(t) -> bool:
         return False
 
 
-def _check_texts(t) -> bool:
+def _check_about(t) -> bool:
+    # AB6.10: «Über uns» — свой слайд (страница о компании + шаблоны блоков).
     cfg = t.site_config if isinstance(t.site_config, dict) else {}
-    return bool(cfg.get("about_title") or cfg.get("about_text")) or _has_legal_doc(t)
+    return bool(cfg.get("about_title") or cfg.get("about_text"))
+
+
+def _check_texts(t) -> bool:
+    # AB6.10: about уехал на слайд `about` — texts отвечает только за правовое.
+    return _has_legal_doc(t)
 
 
 _CHECKOUT_MODULES = ("orders", "booking", "stays", "events", "jobs")
+
+
+def _gate_detail(t) -> bool:
+    # AB6.10: настройка страницы товара/услуги/номера/события — только если у
+    # архетипа есть детальная страница (jobs/promotions настраивать нечего).
+    from apps.core import archetypes
+
+    return archetypes.primary_module(t) in ("catalog", "booking", "stays", "events")
 
 
 def _gate_business(t) -> bool:
@@ -95,25 +109,32 @@ def _gate_payment(t) -> bool:
     return any(t.is_module_active(m) for m in _CHECKOUT_MODULES)
 
 
-# AB6.2: целевая карта слайдов (план master-slides-v3 §0d). business — escape-hatch
-# (gate скрывает, тип уже выбран при регистрации); category — только при catalog;
-# payment — только при чекаут-модуле. Порядок = порядок рельсы.
+# AB6.2/AB6.10: целевая карта слайдов (планы master-slides-v3 §0d +
+# signup-confirm-wizard-plan-2026-07-17 §2, порядок владельца: язык → товар →
+# страница товара → категория → главная → о компании → тексты → оплата в конце).
+# business — escape-hatch (gate скрывает, тип уже выбран при регистрации);
+# detail/category/payment — гейт по архетипу/модулям. Порядок = порядок рельсы.
 SETUP_STEPS = (
     SetupStep("business", "🏪", "Branche", gate=_gate_business),
     SetupStep("start", "🚀", "Start", check=_check_start),
-    SetupStep("company", "🏠", "Firma & Logo", check=_check_company),
-    # AB6.2-lang (фидбэк владельца 2026-07-16): базовый язык + языки сайта — ДО
-    # контент-шагов (их поля заполняются на каждом включённом языке).
+    # AB6.10: языки СРАЗУ после старта (порядок владельца 2026-07-17) — контент
+    # дальнейших шагов заполняется на каждом включённом языке.
     SetupStep("language", "🌐", "Sprachen", check=_check_language, tile_url="languages"),
+    SetupStep("company", "🏠", "Firma & Logo", check=_check_company),
     SetupStep("stil", "🎨", "Stil", tile_url="site-home"),
     SetupStep("menu", "🧭", "Menü", tile_url="site-menu"),
     SetupStep("offer", "🛍️", "Angebot", check=_check_offer),
+    # AB6.10: вид страницы товара/услуги/номера (стиль карточек + секции детали).
+    SetupStep("detail", "🧾", "Produktseite", gate=_gate_detail),
     SetupStep(
         "category", "📁", "Kategorien", gate=_gate_category, tile_url="catalog:category-list"
     ),
     SetupStep("home", "🖼️", "Startseite", check=_check_home, tile_url="site-home"),
+    # AB6.10: «О компании» — свой слайд с шаблонами страницы (page_blocks["info"]).
+    SetupStep("about", "🏢", "Über uns", check=_check_about),
+    SetupStep("texts", "📄", "Recht", check=_check_texts, tile_url="legal-docs"),
+    # AB6.10: оплата/доставка — в конец («если есть» — гейт по чекаут-модулям).
     SetupStep("payment", "💳", "Zahlung", gate=_gate_payment, tile_url="payment-settings"),
-    SetupStep("texts", "📄", "Texte & Recht", check=_check_texts, tile_url="legal-docs"),
     SetupStep("done", "🎉", "Fertig"),
 )
 STEP_KEYS = tuple(s.key for s in SETUP_STEPS)

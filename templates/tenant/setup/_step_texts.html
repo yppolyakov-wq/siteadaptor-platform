@@ -1,39 +1,14 @@
 {% load i18n %}
-{% comment %}AB6.2g: тексты «Über uns» + Impressum (LegalDoc дефолт-локали). Налоговые
-реквизиты (Kleinunternehmer §19/USt-IdNr — решение §0b.2) правятся в настройках «Recht &
-Steuer» — ссылка ниже. Все правовые тексты/локали — редактор «Rechtstexte».{% endcomment %}
+{% comment %}AB6.2g→AB6.10: слайд слим-нут до правового — «Über uns» уехал на свой
+слайд `about`. Impressum (LegalDoc дефолт-локали) + ссылки на редактор правовых
+текстов и налоговые реквизиты.{% endcomment %}
 <h1 class="text-2xl font-bold mb-1">Texte &amp; Recht</h1>
-<p class="text-sm text-gray-500 mb-4">„Über uns" schafft Vertrauen, das Impressum ist Pflicht. Beides erscheint auf deiner Website.</p>
+<p class="text-sm text-gray-500 mb-4">Das Impressum ist Pflicht (§5 TMG) und erscheint auf deiner Website.</p>
 <form method="post" class="space-y-4">
   {% csrf_token %}
-  {% comment %}AB6.2-lang: «Über uns» на каждом включённом языке (пилюли → панели).{% endcomment %}
-  {% include "tenant/setup/_loc_pills.html" %}
-  <div data-loc-pane="{{ content_locales.0 }}" class="space-y-4">
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_about_title">Über uns — Titel</label>
-      <input id="id_about_title" name="about_title" type="text" value="{{ about_title }}" placeholder="Über uns" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_about_text">Über uns — Text</label>
-      <textarea id="id_about_text" name="about_text" rows="3" placeholder="Erzähl kurz, wer ihr seid und was euch ausmacht." class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ about_text }}</textarea>
-    </div>
-  </div>
-  {% for p in i18n_panes %}
-    <div data-loc-pane="{{ p.loc }}" hidden class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-1" for="id_about_title__{{ p.loc }}">Über uns — Titel ({{ p.loc|upper }})</label>
-        <input id="id_about_title__{{ p.loc }}" name="about_title__{{ p.loc }}" type="text" value="{{ p.about_title }}" placeholder="{{ about_title|default:'Über uns' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="id_about_text__{{ p.loc }}">Über uns — Text ({{ p.loc|upper }})</label>
-        <textarea id="id_about_text__{{ p.loc }}" name="about_text__{{ p.loc }}" rows="3" placeholder="{{ about_text }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ p.about_text }}</textarea>
-      </div>
-      <p class="text-xs text-gray-400">Leer = Besucher sehen den deutschen Text. Rechtstexte pro Sprache — im Editor „Rechtstexte" unten.</p>
-    </div>
-  {% endfor %}
   <div>
     <label class="block text-sm font-medium mb-1" for="id_impressum">Impressum</label>
-    <textarea id="id_impressum" name="impressum" rows="5" placeholder="Firmenname, Anschrift, vertretungsberechtigte Person, Kontakt, USt-IdNr. …" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ impressum }}</textarea>
+    <textarea id="id_impressum" name="impressum" rows="6" placeholder="Firmenname, Anschrift, vertretungsberechtigte Person, Kontakt, USt-IdNr. …" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ impressum }}</textarea>
     <p class="text-xs text-gray-400 mt-1">Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) unter „Recht &amp; Steuer".</p>
   </div>
   <div class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm text-gray-600 space-y-1">

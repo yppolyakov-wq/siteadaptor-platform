@@ -95,19 +95,19 @@ def test_normalize_preserves_onboarding():
 
 def test_state_v2_roundtrip_via_advance_and_skip():
     """advance/skip пишут state v2 (слаги, done-список); skip → ⏭, повторный проход
-    снимает пропуск. Порядок по ВИДИМЫМ шагам тенанта."""
+    снимает пропуск. Порядок по ВИДИМЫМ шагам тенанта (AB6.10: language ДО company)."""
     tenant = TenantFactory(business_type="bakery")
-    onboarding.goto(tenant, "company")  # старт с первого видимого
-    onboarding.advance(tenant)  # company выполнен → language (AB6.2-lang)
-    onboarding.advance(tenant, skip=True)  # language пропущен → stil
+    onboarding.goto(tenant, "language")  # первый контент-шаг после start
+    onboarding.advance(tenant)  # language выполнен → company
+    onboarding.advance(tenant, skip=True)  # company пропущен → stil
     raw = tenant.site_config["onboarding"]
     assert raw["v"] == 2 and raw["step"] == "stil"
-    assert raw["done"] == ["company"] and raw["skipped"] == ["language"]
+    assert raw["done"] == ["language"] and raw["skipped"] == ["company"]
     # Вернулись по рельсе и прошли пропущенный шаг → done, из skipped снят.
-    onboarding.goto(tenant, "language")
+    onboarding.goto(tenant, "company")
     onboarding.advance(tenant)
     state = onboarding.get_state(tenant)
-    assert state["done"] == ["company", "language"] and state["skipped"] == []
+    assert state["done"] == ["language", "company"] and state["skipped"] == []
 
 
 def test_goto_jumps_to_any_registry_step_incl_gated():
@@ -211,7 +211,8 @@ def test_start_slide_demo_start_loads_rich_examples_and_advances():
     assert demo.has_demo(tenant)
     assert tenant.site_config.get("hero_image")  # баннер добавлен (rich)
     assert tenant.site_config.get("gallery")  # галерея добавлена
-    assert onboarding.get_state(tenant)["step"] == "company"  # к первому контент-шагу
+    # AB6.10: первый контент-шаг после start — «Sprachen» (порядок владельца).
+    assert onboarding.get_state(tenant)["step"] == "language"
 
 
 def test_start_is_first_visible_step():
@@ -280,22 +281,22 @@ def test_stil_slide_shows_visual_template_gallery():
     assert "aria-hidden" in html
 
 
-def test_texts_slide_saves_about_and_impressum():
-    """AB6.2g: слайд texts — «Über uns» (about_*) + Impressum (LegalDoc дефолт-локали)."""
+def test_texts_slide_saves_impressum_about_slide_saves_texts():
+    """AB6.10: texts слим-нут до правового (Impressum → LegalDoc); «Über uns»
+    (about_*) уехал на слайд about."""
     from apps.core.models import LegalDoc
 
     tenant = TenantFactory(schema_name="public", slug="tx", name="Tx", business_type="bakery")
     onboarding.goto(tenant, "texts")
+    core_views.setup_view(_req("post", {"impressum": "Tx GmbH, Weg 1"}, tenant))
+    tenant.refresh_from_db()
+    assert LegalDoc.objects.filter(kind="impressum").first().text == "Tx GmbH, Weg 1"
+    onboarding.goto(tenant, "about")
     core_views.setup_view(
-        _req(
-            "post",
-            {"about_title": "Über uns", "about_text": "Wir backen.", "impressum": "Tx GmbH, Weg 1"},
-            tenant,
-        )
+        _req("post", {"about_title": "Über uns", "about_text": "Wir backen."}, tenant)
     )
     tenant.refresh_from_db()
     assert tenant.site_config["about_text"] == "Wir backen."
-    assert LegalDoc.objects.filter(kind="impressum").first().text == "Tx GmbH, Weg 1"
 
 
 def test_menu_slide_picks_header_style():
@@ -409,7 +410,8 @@ def test_language_slide_saves_enabled_and_default():
     core_views.setup_view(_req("post", {"locales": ["de", "en"], "default_locale": "de"}, tenant))
     tenant.refresh_from_db()
     assert tenant.enabled_locales == ["de", "en"] and tenant.default_locale == "de"
-    assert onboarding.get_state(tenant)["step"] == "stil"  # advance после Weiter
+    # AB6.10: language теперь ПЕРЕД company (порядок владельца).
+    assert onboarding.get_state(tenant)["step"] == "company"  # advance после Weiter
     # авто-✓: языки настроены → шаг done в рельсе
     status = {s["key"]: s["status"] for s in onboarding.steps_with_status(tenant)}
     assert status["language"] == "done"
@@ -444,7 +446,7 @@ def test_hero_slide_saves_per_locale_overlay():
 
 
 def test_texts_slide_saves_about_overlay():
-    """AB6.2-lang: about_* на включённых локалях → оверлей i18n."""
+    """AB6.2-lang→AB6.10: about_* на включённых локалях → оверлей i18n (слайд about)."""
     tenant = TenantFactory(
         schema_name="public",
         slug="txl",
@@ -452,7 +454,7 @@ def test_texts_slide_saves_about_overlay():
         business_type="bakery",
         enabled_locales=["de", "en"],
     )
-    onboarding.goto(tenant, "texts")
+    onboarding.goto(tenant, "about")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert 'name="about_title__en"' in html
     core_views.setup_view(
@@ -929,3 +931,127 @@ def test_business_type_cards_cover_all_types_with_icon_and_blurb():
     cards = onboarding.business_type_cards()
     assert {c["value"] for c in cards} == {v for v, _ in Tenant.BUSINESS_TYPES}
     assert all(c["icon"] and c["label"] and c["blurb"] for c in cards)
+
+
+# --- AB6.10: порядок владельца + слайды «Produktseite»/«Über uns» ------------------
+
+
+def test_step_order_language_first_payment_last():
+    """Замок порядка (запрос владельца 2026-07-17): язык — первый контент-шаг,
+    оплата — в конце (перед done); detail после offer, about перед texts."""
+    tenant = TenantFactory(
+        business_type="bakery", disabled_modules=modules.default_disabled_for("bakery")
+    )
+    vis = onboarding.visible_keys(tenant)
+    assert vis[0] == "start" and vis[1] == "language"
+    assert vis[-1] == "done" and vis[-2] == "payment"
+    assert vis.index("detail") == vis.index("offer") + 1
+    assert vis.index("about") == vis.index("texts") - 1
+
+
+def test_detail_slide_saves_card_style_and_sections():
+    """AB6.10: слайд «Produktseite» — пресет стиля карточек → site_defaults;
+    чекбоксы секций → product_detail.hidden (семантика page_inspector)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dt",
+        name="Dt",
+        business_type="bakery",
+        disabled_modules=modules.default_disabled_for("bakery"),  # primary = catalog
+    )
+    onboarding.goto(tenant, "detail")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="card_style"' in html and 'name="ds_description"' in html
+    # «Karte» + скрыть отзывы (ds_reviews не прислан), остальные секции включены.
+    core_views.setup_view(
+        _req(
+            "post",
+            {"card_style": "karte", "ds_description": "1", "ds_info": "1", "ds_related": "1"},
+            tenant,
+        )
+    )
+    tenant.refresh_from_db()
+    sd = siteconfig.normalize_site_defaults(tenant.site_config.get("site_defaults"))
+    assert sd["card_radius"] == 12 and sd["card_shadow"] is True
+    assert siteconfig.product_detail_hidden(tenant.site_config) == {"reviews"}
+
+
+def test_detail_slide_gated_for_archetypes_without_detail_page():
+    """detail скрыт, когда у primary-архетипа нет детальной страницы (handwerker →
+    jobs), и виден у bakery (catalog)."""
+    handwerker = TenantFactory(
+        business_type="handwerker", disabled_modules=modules.default_disabled_for("handwerker")
+    )
+    assert "detail" not in onboarding.visible_keys(handwerker)
+    bakery = TenantFactory(
+        business_type="bakery", disabled_modules=modules.default_disabled_for("bakery")
+    )
+    assert "detail" in onboarding.visible_keys(bakery)
+
+
+def test_detail_slide_preview_opens_first_entity():
+    """Превью слайда detail — деталь первой сущности primary-модуля (product)."""
+    from decimal import Decimal
+
+    from apps.catalog.models import Product
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dpv",
+        name="Dpv",
+        business_type="bakery",
+        disabled_modules=modules.default_disabled_for("bakery"),  # primary = catalog
+    )
+    onboarding.goto(tenant, "detail")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'src="/"' in html  # сущностей нет → превью на главной
+    p = Product.objects.create(name={"de": "Brot"}, base_price=Decimal("2.50"))
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert f'src="/sortiment/{p.pk}/"' in html
+
+
+def test_about_slide_presets_seed_and_replace_info_blocks():
+    """AB6.10: пресеты страницы «Über uns» сеют C-блоки хоста info (id pb-about-*);
+    смена пресета заменяет ТОЛЬКО свои блоки, блок владельца выживает; «Nur Text»
+    убирает посеянное."""
+    tenant = TenantFactory(schema_name="public", slug="ab", name="Ab", business_type="bakery")
+    # Свой блок владельца на странице info — не должен пострадать.
+    cfg = siteconfig.normalize(tenant.site_config)
+    cfg["page_blocks"] = {"info": [{"key": "text", "id": "own1", "data": {"body": "Meins"}}]}
+    tenant.site_config = siteconfig.normalize(cfg)
+    tenant.save(update_fields=["site_config"])
+
+    onboarding.goto(tenant, "about")
+    core_views.setup_view(_req("post", {"about_preset": "team"}, tenant))
+    tenant.refresh_from_db()
+    ids = [b["id"] for b in tenant.site_config["page_blocks"]["info"]]
+    assert "own1" in ids and any(i.startswith("pb-about-team-") for i in ids)
+
+    onboarding.goto(tenant, "about")  # advance после POST увёл дальше — вернуться
+    core_views.setup_view(_req("post", {"about_preset": "bild"}, tenant))
+    tenant.refresh_from_db()
+    ids = [b["id"] for b in tenant.site_config["page_blocks"]["info"]]
+    assert "own1" in ids and any(i.startswith("pb-about-bild-") for i in ids)
+    assert not any(i.startswith("pb-about-team-") for i in ids)  # старый пресет заменён
+
+    onboarding.goto(tenant, "about")
+    core_views.setup_view(_req("post", {"about_preset": "text"}, tenant))
+    tenant.refresh_from_db()
+    ids = [b["id"] for b in tenant.site_config["page_blocks"]["info"]]
+    assert ids == ["own1"]  # «Nur Text» убирает посеянное, своё цело
+
+
+def test_about_preset_blocks_survive_normalize():
+    """Адверсариальный замок: каждый посеянный пресетом блок проходит
+    normalize_page_blocks (валидный key/data) — не теряется при следующем Save."""
+    from apps.core import setup_steps
+
+    for preset in setup_steps._ABOUT_PRESETS:
+        raw = {
+            "info": [
+                {"key": kind, "id": f"pb-about-{preset['key']}-{i}", "data": dict(data)}
+                for i, (kind, data) in enumerate(preset["blocks"], start=1)
+            ]
+        }
+        cleaned = siteconfig.normalize_page_blocks(raw)
+        assert len(cleaned.get("info", [])) == len(preset["blocks"]), preset["key"]

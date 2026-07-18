@@ -42,7 +42,9 @@
     <aside class="hidden lg:block lg:sticky lg:top-4 mt-8 lg:mt-0 min-w-0">
       <p class="text-xs font-medium text-gray-400 mb-2 truncate">{% trans "Live preview" %}{% if live_save %} · <span class="text-indigo-500">{% trans "updates as you type" %}</span>{% endif %}</p>
       <div data-preview-shell class="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm h-[min(80vh,780px)]">
-        <iframe data-setup-preview src="/" title="{% trans 'Website preview' %}" class="w-full h-full border-0" loading="lazy"></iframe>
+        {% comment %}AB6.10: слайд может открыть превью на конкретной странице
+        (деталь первой сущности, /ueber-uns/) — контекст-ключ preview_url.{% endcomment %}
+        <iframe data-setup-preview src="{{ preview_url|default:'/' }}" title="{% trans 'Website preview' %}" class="w-full h-full border-0" loading="lazy"></iframe>
       </div>
       <a href="/" target="_blank" rel="noopener" class="mt-2 inline-block text-sm text-indigo-600 hover:underline">🌐 {% trans "Open website" %} →</a>
     </aside>

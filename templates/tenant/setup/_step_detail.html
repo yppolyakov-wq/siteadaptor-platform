@@ -1,0 +1,52 @@
+{% load i18n %}
+{% comment %}AB6.10: слайд «Produktseite» — вид детальной страницы primary-сущности
+(v1: стиль карточек site_defaults + секции детали чекбоксами). Превью справа
+открывает деталь ПЕРВОЙ сущности (preview_url), radio/чекбоксы live-сохраняются.{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">Produktseite</h1>
+<p class="text-sm text-gray-500 mb-4">Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, Abschnitte ein- oder ausblenden — rechts siehst du es sofort.</p>
+<form method="post" class="space-y-5">
+  {% csrf_token %}
+
+  <div>
+    <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Card style" %}</p>
+    <div class="grid grid-cols-3 gap-3">
+      {% for p in card_styles %}
+        <label class="rounded-lg border border-gray-200 p-2 cursor-pointer hover:border-indigo-400 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">
+          <input type="radio" name="card_style" value="{{ p.key }}" {% if p.checked %}checked{% endif %} class="sr-only">
+          <span class="block bg-gray-100 rounded p-2 mb-1">
+            {% if p.key == 'klar' %}
+              <span class="block h-8 bg-white border border-gray-300"></span>
+            {% elif p.key == 'weich' %}
+              <span class="block h-8 bg-white rounded-xl shadow"></span>
+            {% else %}
+              <span class="block h-8 bg-white rounded-lg shadow p-1.5"><span class="block h-full rounded bg-gray-200"></span></span>
+            {% endif %}
+          </span>
+          <span class="block text-xs text-center font-medium text-gray-700">{{ p.label }}</span>
+          <span class="block text-[10px] text-center text-gray-400">{{ p.hint }}</span>
+        </label>
+      {% endfor %}
+    </div>
+    <p class="text-xs text-gray-400 mt-1">{% trans "The card style applies across your whole site (lists and home page too)." %}</p>
+  </div>
+
+  {% if detail_sections %}
+    <div>
+      <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Sections on the page" %}</p>
+      <div class="space-y-1.5">
+        {% for s in detail_sections %}
+          <label class="flex items-center gap-2 bg-white rounded-lg shadow-sm px-3 py-2 text-sm cursor-pointer">
+            <input type="checkbox" name="ds_{{ s.key }}" value="1" {% if s.on %}checked{% endif %} class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+            {{ s.label }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if not preview_url %}
+    <p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Add your first item on the previous step to preview its page here." %}</p>
+  {% endif %}
+
+  {% include "tenant/_setup_buttons.html" %}
+</form>
