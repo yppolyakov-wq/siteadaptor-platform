@@ -5536,3 +5536,59 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   разбивку, не счётчик; приёмка на локацию (баланс дефолта не растёт); рендер секции. Полный
   `apps/inventory` 84 зелёных; CSS пересобран. **Эпик E2 v1 закрыт (E2.1+E2.2; E2.3 демо — по
   спросу). ВОЛНА СКЛАД-2 (U-D2W: E1+E3+E2) В ОБЪЁМЕ v1 ЗАКРЫТА.** ⚠️ деплой: `inventory/0002..0004`.
+
+## 2026-07-18 — AB5.1: регистрация с подтверждением почты (double-opt-in; ⚠️ миграция)
+
+- Запрос владельца 2026-07-17 («проработай регистрацию, подтверждение почты бизнеса»); план
+  `docs/signup-confirm-wizard-plan-2026-07-17.md §1`. Ветка `claude/registration-email-confirmation-698nwb`.
+- **Флоу:** POST `/registrieren/` теперь создаёт ТОЛЬКО `SignupRequest` (⚠️ миграция
+  `tenants/0026`: токен urlsafe, payload, пароль ХЭШЕМ, locale страницы, partner_code) и шлёт
+  письмо (`emails/signup_confirm*.txt`, немецкие msgid + `translation.override`); страница
+  «Bitte E-Mail bestätigen» (адрес, resend, спам-хинт). GET `/registrieren/bestaetigen/<token>/`
+  — единственная точка создания бизнеса: проверки (токен/72ч/slug ещё свободен) →
+  `start_business_provisioning(password_hash=…)` (новый опц. параметр; прежние вызовы целы) →
+  прежняя waiting-страница. Идемпотентно (select_for_update; повторный клик → waiting его
+  тенанта); slug заявкой НЕ резервируется — гонка на confirm даёт страницу ошибки (409).
+- **Анти-бот/абьюз:** боты без почты больше НЕ создают Tenant/Domain (класс риска T-5 LE-квоты);
+  honeypot `website` → фейковый успех; rate-limit signup 5/ч/IP + resend 3/10мин/токен
+  (`core.ratelimit`); просроченные заявки чистятся оппортунистически (7 дней, без beat).
+- **Страховки:** env-флаг `SIGNUP_EMAIL_CONFIRMATION` (default True; False = прежний прямой
+  флоу); console-бэкенд (нет Resend/SMTP) → confirm-ссылка показывается прямо на странице
+  (регистрация не брикается в dev/недонастроенном проде). allauth `EmailAddress` НЕ используется
+  (SHARED-таблицы vs TENANT-User — pk-коллизии, причина SessionSchemaGuard).
+- Админка unfold `SignupRequest` (read-only, диагностика доставки). Замки
+  `test_signup_confirmation.py` (9): POST без тенанта + письмо; confirm создаёт+идемпотентен;
+  invalid/expired; slug-гонка; resend+лимит; honeypot; замена pending-дубля email; флаг OFF;
+  console-ссылка. **⚠️ `tenants/0026` ТРЕБУЕТ ДЕПЛОЯ; для реальных писем — RESEND_API_KEY
+  (Stage 0), до этого прод-регистрация показывает ссылку на странице.**
+
+## 2026-07-18 — AB6.10: мастер по порядку владельца + слайды «Produktseite»/«Über uns» (без миграций)
+
+- Порядок владельца 2026-07-17 («язык → товар → страница товара → категория → главная →
+  о компании → тексты → оплата/доставка если есть» + «шаблоны этих страниц»); план
+  `…signup-confirm-wizard-plan §2`.
+- **Реестр:** `language` поднят ПЕРЕД `company` (контент дальше — на каждом включённом языке);
+  `payment` перенесён В КОНЕЦ (перед done); НОВЫЕ шаги `detail` (после offer; гейт — primary
+  ∈ catalog/booking/stays/events) и `about` (перед texts); `texts` слим-нут до правового
+  (`_check_texts` = LegalDoc; label «Recht»). Перестановка безопасна: state v2 хранит ключи,
+  goto/advance идут по visible_keys.
+- **Слайд `detail` «Produktseite»** (v1 = решение владельца 2026-07-11: стиль карточек +
+  скрытие секций): 3 пресета `site_defaults` (Klar/Weich/Karte, мини-мокапы) + чекбоксы
+  hideable-секций реестра `detail_sections` → `cfg["<module>_detail"]["hidden"]` (семантика
+  page_inspector, normalize уже поддерживает); live-превью открывает деталь ПЕРВОЙ сущности
+  (`preview_url` в контексте; setup.html iframe src = `{{ preview_url|default:'/' }}`).
+- **Слайд `about` «Über uns»:** тексты about_* с i18n-пилюлями (переехали из texts) + 4 ШАБЛОНА
+  страницы (Nur Text / Text+Bild / Geschichte / Team&Werte) — пресеты C-блоков хоста
+  `page_blocks["info"]` (витринная /ueber-uns/); id `pb-about-<preset>-<n>` → повторное
+  применение заменяет ТОЛЬКО свои блоки, блоки владельца целы; «Nur Text» убирает посеянное;
+  превью слайда = /ueber-uns/.
+- Замки: характеризация обновлена (5) + 6 новых (порядок language-first/payment-last; save
+  detail-слайда; гейт handwerker/bakery; превью первой сущности; пресеты about seed/replace/
+  survive-own; адверсариальный «каждый пресет проходит normalize_page_blocks»). 72 зелёных
+  в test_onboarding_wizard/test_onboarding. **Инвентарь «шаблонов страниц» после AB6.10:**
+  главная = галерея sitetemplates (stil) · категория = LAYOUT_PRESETS-мокапы (category) ·
+  товар = detail (НОВЫЙ) · о компании = about (НОВЫЙ) · тексты/право = LegalDoc-фолбэки ·
+  оплата = функциональный экран W4-3 (гейт «если есть»).
+- **i18n:** новые строки регистрации/слайдов — немецкие msgid; переводы en/tr/ru/uk дописаны
+  в 4 `django.po` (29 записей/локаль, polib-валидация, дублей нет); rate-limit msgid
+  переиспользован существующий («Zu viele Versuche. Bitte später erneut.»).

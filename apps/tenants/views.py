@@ -110,7 +110,7 @@ class BusinessSignupView(View):
             # AB5.1: double-opt-in — тенант появится только после клика по ссылке
             # из письма (план signup-confirm-wizard-plan-2026-07-17 §1).
             if ratelimit.hit("signup", ratelimit.client_ip(request), limit=5, window=3600):
-                form.add_error(None, _("Zu viele Versuche — bitte später erneut."))
+                form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
                 return render(request, self.template_name, self._context(form, request))
             req = signup.create_request(
                 cleaned_data=cd,
@@ -248,7 +248,7 @@ def signup_resend(request):
         "ui_languages": ui_languages(),
     }
     if ratelimit.hit("signup-resend", token, limit=3, window=600):
-        ctx["resend_error"] = _("Zu viele Versuche — bitte später erneut.")
+        ctx["resend_error"] = _("Zu viele Versuche. Bitte später erneut.")
     else:
         signup.send_confirmation_email(request, signup_req)
         ctx["resent"] = True

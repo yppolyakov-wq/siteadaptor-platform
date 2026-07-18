@@ -11803,3 +11803,123 @@ msgstr "Şifreler eşleşmiyor."
 
 msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
 msgstr "Bir işletme oluşturarak <a href=\"/agb/\" class=\"underline hover:text-gray-600\">koşullarımızı</a> kabul edersiniz. Deneme süresi boyunca istediğiniz zaman iptal edebilirsiniz."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Bitte E-Mail bestätigen"
+msgstr "Lütfen e-postanı onayla"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Fast geschafft — bitte E-Mail bestätigen"
+msgstr "Neredeyse bitti — lütfen e-postanı onayla"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+#, python-format
+msgid "Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf den Link darin — erst dann wird deine Website eingerichtet."
+msgstr "<strong>%(email)s</strong> adresine bir e-posta gönderdik. İçindeki bağlantıya tıkla — web siten ancak o zaman kurulur."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Der Link ist 72 Stunden gültig. Nichts erhalten? Schau auch im Spam-Ordner nach."
+msgstr "Bağlantı 72 saat geçerlidir. Bir şey gelmedi mi? Spam klasörüne de bak."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "E-Mail wurde erneut gesendet."
+msgstr "E-posta yeniden gönderildi."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "E-Mail erneut senden"
+msgstr "E-postayı yeniden gönder"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "E-Mail-Versand ist noch nicht eingerichtet — hier ist dein Bestätigungslink:"
+msgstr "E-posta gönderimi henüz kurulmadı — onay bağlantın burada:"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Zurück zur Registrierung"
+msgstr "Kayda geri dön"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Bestätigung nicht möglich"
+msgstr "Onay mümkün değil"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Der Link ist abgelaufen"
+msgstr "Bağlantının süresi doldu"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Bestätigungslinks sind 72 Stunden gültig. Registriere dich einfach erneut — es dauert nur eine Minute."
+msgstr "Onay bağlantıları 72 saat geçerlidir. Yeniden kaydol — sadece bir dakika sürer."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Subdomain inzwischen vergeben"
+msgstr "Alt alan adı bu arada alındı"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+#, python-format
+msgid "Die Adresse „%(slug)s“ wurde in der Zwischenzeit von jemand anderem registriert. Bitte wähle eine andere Subdomain."
+msgstr "“%(slug)s” adresi bu arada başkası tarafından kaydedildi. Lütfen başka bir alt alan adı seç."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Link ungültig"
+msgstr "Bağlantı geçersiz"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Dieser Bestätigungslink ist ungültig oder wurde bereits verwendet."
+msgstr "Bu onay bağlantısı geçersiz veya zaten kullanılmış."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Erneut registrieren"
+msgstr "Yeniden kaydol"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Wir senden dir zuerst eine Bestätigungs-E-Mail — erst danach wird deine Website eingerichtet."
+msgstr "Önce sana bir onay e-postası göndereceğiz — web siten ancak ondan sonra kurulur."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+#, python-format
+msgid "Bitte E-Mail bestätigen — %(name)s"
+msgstr "Lütfen e-postanı onayla — %(name)s"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Hallo,"
+msgstr "Merhaba,"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+#, python-format
+msgid "du möchtest „%(name)s“ auf SiteAdaptor erstellen. Bitte bestätige deine E-Mail-Adresse mit einem Klick:"
+msgstr "SiteAdaptor'da “%(name)s” oluşturmak istiyorsun. Lütfen e-posta adresini tek tıkla onayla:"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website eingerichtet."
+msgstr "Bağlantı 72 saat geçerlidir. Web siten yalnızca onaydan sonra kurulur."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Wenn du das nicht warst, kannst du diese E-Mail einfach ignorieren."
+msgstr "Bu sen değilsen bu e-postayı yok sayabilirsin."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Dein SiteAdaptor-Team"
+msgstr "SiteAdaptor ekibin"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Kartenstil"
+msgstr "Kart stili"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Der Kartenstil gilt für deine ganze Website (auch Listen und Startseite)."
+msgstr "Kart stili tüm web siten için geçerlidir (listeler ve ana sayfa dahil)."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Abschnitte auf der Seite"
+msgstr "Sayfadaki bölümler"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Lege im vorherigen Schritt deine erste Position an — dann siehst du hier ihre Seite."
+msgstr "Önceki adımda ilk ürününü ekle — sonra sayfasını burada görürsün."
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Seitenvorlage"
+msgstr "Sayfa şablonu"
+
+#. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
+msgid "Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder entfernbar."
+msgstr "Şablonlar örnek bloklar ekler — düzenleyicide istediğin zaman değiştir veya kaldır."

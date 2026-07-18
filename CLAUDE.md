@@ -633,7 +633,23 @@ Python 3.12, менеджер uv.
   Ядро: единый реестр `SETUP_STEPS` (питает рельсу мастера, чек-лист AB4-фасадом и бейджи плиток
   AB7), state v2 в opaque-ключе `onboarding` — БЕЗ миграций и БЕЗ правок golden. SOURCE OF TRUTH —
   `docs/master-slides-v3-plan-2026-07-11.md` (карта слайдов §3, решения §0b, инкременты §5).
-- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
+- **Самое свежее (2026-07-18): AB5.1 регистрация с ПОДТВЕРЖДЕНИЕМ ПОЧТЫ + AB6.10 мастер по
+  порядку владельца + шаблоны страниц товара/«О компании».** (ветка
+  `claude/registration-email-confirmation-698nwb`; план `docs/signup-confirm-wizard-plan-2026-07-17.md`).
+  **AB5.1 (⚠️ миграция `tenants/0026`):** POST /registrieren/ → `SignupRequest` (пароль хэшем,
+  тенант НЕ создаётся) → письмо → `/registrieren/bestaetigen/<token>/` → прежний фоновый
+  провижининг; идемпотентно, slug-гонка → страница ошибки; honeypot + rate-limit (боты без
+  почты не плодят Tenant/Domain — класс T-5); env-флаг `SIGNUP_EMAIL_CONFIRMATION` (default on),
+  console-бэкенд показывает ссылку на странице (⚠️ для реальных писем нужен RESEND_API_KEY —
+  Stage 0). allauth EmailAddress НЕ используется (SHARED vs TENANT-User). **AB6.10 (без
+  миграций):** порядок слайдов = запрос владельца (Sprachen ПЕРЕД Firma; Zahlung — в конец);
+  НОВЫЕ слайды `detail` «Produktseite» (3 пресета стиля карточек site_defaults + чекбоксы
+  секций detail_sections → `<module>_detail.hidden`; превью = деталь первой сущности, гейт по
+  primary-модулю) и `about` «Über uns» (тексты + 4 шаблона страницы = пресеты C-блоков
+  `page_blocks["info"]`, id `pb-about-*` — идемпотентная замена, чужие блоки целы; превью
+  /ueber-uns/); texts слим-нут до правового. setup.html: слайд задаёт `preview_url`.
+  i18n: 29 новых msgid переведены в en/tr/ru/uk .po. Тесты: 9 signup + 72 wizard зелёные.
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

@@ -8,7 +8,7 @@
   {% csrf_token %}
 
   <div>
-    <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Card style" %}</p>
+    <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Kartenstil" %}</p>
     <div class="grid grid-cols-3 gap-3">
       {% for p in card_styles %}
         <label class="rounded-lg border border-gray-200 p-2 cursor-pointer hover:border-indigo-400 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">
@@ -27,12 +27,12 @@
         </label>
       {% endfor %}
     </div>
-    <p class="text-xs text-gray-400 mt-1">{% trans "The card style applies across your whole site (lists and home page too)." %}</p>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Der Kartenstil gilt für deine ganze Website (auch Listen und Startseite)." %}</p>
   </div>
 
   {% if detail_sections %}
     <div>
-      <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Sections on the page" %}</p>
+      <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Abschnitte auf der Seite" %}</p>
       <div class="space-y-1.5">
         {% for s in detail_sections %}
           <label class="flex items-center gap-2 bg-white rounded-lg shadow-sm px-3 py-2 text-sm cursor-pointer">
@@ -45,7 +45,7 @@
   {% endif %}
 
   {% if not preview_url %}
-    <p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Add your first item on the previous step to preview its page here." %}</p>
+    <p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Lege im vorherigen Schritt deine erste Position an — dann siehst du hier ihre Seite." %}</p>
   {% endif %}
 
   {% include "tenant/_setup_buttons.html" %}

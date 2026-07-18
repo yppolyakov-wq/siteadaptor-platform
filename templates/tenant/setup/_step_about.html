@@ -9,7 +9,7 @@
   {% csrf_token %}
 
   <div>
-    <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Page template" %}</p>
+    <p class="text-xs font-medium text-gray-400 mb-1.5">{% trans "Seitenvorlage" %}</p>
     <div class="grid grid-cols-2 gap-3">
       {% for p in about_presets %}
         <label class="rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-indigo-400 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">
@@ -29,7 +29,7 @@
         </label>
       {% endfor %}
     </div>
-    <p class="text-xs text-gray-400 mt-1">{% trans "Templates add example blocks to the page — edit or remove them anytime in the editor." %}</p>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder entfernbar." %}</p>
   </div>
 
   {% include "tenant/setup/_loc_pills.html" %}
