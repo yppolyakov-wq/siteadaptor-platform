@@ -5956,3 +5956,30 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   (orders cabinet/st4_home/classic_ui/golden/booking/stays 354) зелёные. i18n:
   2 msgid (Kalender/Liste) → 4 .po. Урок CI #1551: многострочные `{# #}` в новых
   шаблонах ловит замок template_comments — прогонять при ЛЮБЫХ новых шаблонах.
+
+## 2026-07-19 — ST-6 «Marketing-центр» (этап D2 ТЗ; БЕЗ миграций)
+
+- План `docs/st6-marketing-center-plan-2026-07-19.md` (разведка Explore: все
+  инструменты уже в HUB_TABS marketing; дыры — единый обзор напоминаний, явная
+  «одна кнопка» веера, сводная панель результатов).
+- **ST-6a Marketing-центр:** НОВЫЙ `apps/core/marketing_home.py` + лендинг
+  `/dashboard/marketing/` (паттерн integrations_home, hub_tabs marketing):
+  карточки-входы в ROI-порядке ТЗ (Erinnerungen → Treue → Bewertungen →
+  «Teilen» → Kampagnen → Kanäle; гейт по модулям) + **обзор авто-касаний**
+  (read-only: reminder-события матрицы UD4-2 с индикаторами email/telegram +
+  строка B4 win-back) + **панель результатов** (views активных акций;
+  ★-показы/клики — Sum по AggregatorListing.tenant_schema, «кросс-схемность»
+  оказалась решена штатным фильтром; кампании issued/redeemed; отзывы ⌀·N —
+  все блоки _safe, только чтение). Хаб-плитка «Marketing» → центр. HUB_TABS
+  НЕ тронут (замки целы).
+- **ST-6b «Aktion überall teilen»:** `publishing.services.republish_promotion`
+  (публичная обёртка идемпотентного веера активации — get_or_create по
+  (promotion, channel) + requeue removed/failed) + экран
+  `/promotions/<pk>/teilen/` (статусы Publication по каналам, невыложенные
+  каналы, POST «Jetzt überall veröffentlichen» с гейтом active+publishing,
+  входы «Per E-Mail an Kunden» — ТОЛЬКО переход в кампании (UWG §7) — и
+  «★ In der Umgebung bewerben» при featured) + кнопка «📣 Teilen» в списке
+  акций. Ничего не рассылается автоматически.
+- Тесты: test_marketing_home (5) + test_promotion_share (4: идемпотентность
+  веера, гейт non-active, рендер, кнопка списка); смежные (st4_home/hub_tabs/
+  classic/fsm/publishing/campaigns 100+) зелёные. i18n: 28 msgid → 4 .po.
