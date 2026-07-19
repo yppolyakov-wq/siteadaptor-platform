@@ -615,6 +615,17 @@ def is_simple(tenant) -> bool:
     return ui_mode(tenant) == "simple"
 
 
+# Страховка редизайна (запрос владельца 2026-07-18, трек ST): пер-тенантный флаг
+# «классический интерфейс». Дефолт — новый вид; True возвращает прежний хром там,
+# где вышел редизайн (сегодня: главная кабинета AB7 → классический дашборд; далее
+# ОБЯЗАТЕЛЕН для каждого ST-инкремента — легаси-шаблоны не удаляются, гейт флагом).
+# Хранение — плоский ключ site_config["classic_ui"] (сохраняется в normalize).
+def classic_ui(tenant) -> bool:
+    """True — владелец выбрал «Klassische Ansicht» (site_config["classic_ui"])."""
+    cfg = getattr(tenant, "site_config", None)
+    return isinstance(cfg, dict) and bool(cfg.get("classic_ui"))
+
+
 # Модули, скрываемые из сайдбара в Простом режиме (продвинутые отчёты/инструменты).
 # Скрытие — только из меню; страницы остаются доступны по URL. Расширяемо по фидбэку.
 SIMPLE_HIDDEN_MODULES: frozenset[str] = frozenset({"finance", "analytics"})

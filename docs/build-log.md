@@ -5626,3 +5626,18 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   + предпросмотр актуального дерева вопросов (кастом → пресет архетипа) + ссылка на /finder/.
   Владелец включает опцию сам, без демо-кита. Тесты +3 (toggle on/off, сохранение кастом-
   вопросов, рендер превью) — 12 в test_finder.py; hub/nav-замки 20 зелёные; css без изменений.
+
+## 2026-07-18 — Страховка редизайна: тумблер «Klassische Ansicht» (без миграций)
+
+- Запрос владельца («возможность использовать старый интерфейс на всякий случай»).
+  Флаг `site_config["classic_ui"]` (паттерн ui_mode S5; normalize — ключ только при True),
+  `modules.classic_ui(tenant)`, контекст `classic_ui` в context-processor, endpoint
+  `set-classic-ui` (запись 1:1 с set_ui_mode_view), карточка-тумблер «Klassische Ansicht»
+  на «Funktionen» (Neu/Klassisch, рядом с Einfach/Experte).
+- Первый потребитель: главная кабинета — classic → без плиток/канбана AB7 (подсказка
+  «wieder einschalten» + быстрые ссылки Board/Site/Settings); данные и URL целы.
+- **Правило трека ST закреплено (`studio-concept §8b`):** каждый редизайн-инкремент
+  ОБЯЗАН уважать флаг — легаси-шаблоны/маршруты не удаляются, новый хром гейтится.
+- Тесты `apps/core/tests/test_classic_ui.py` (4): normalize-презервация, toggle on/off,
+  классический дашборд без канбана, новый — с плитками. Смежные замки (dashboard/golden/
+  nav) 23 зелёные; css без изменений.

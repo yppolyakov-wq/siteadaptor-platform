@@ -110,23 +110,28 @@ def dashboard(request):
         return redirect("setup")
 
     from apps.core import dashboard as dash
+    from apps.core import modules as modules_registry
     from apps.core import transactions
 
     setup_done, setup_total = onboarding.progress(request.tenant)
+    # Страховка редизайна: «Klassische Ansicht» — дашборд без плиток/канбана AB7
+    # (только прогресс мастера + чек-лист готовности; тумблер — на «Funktionen»).
+    classic = modules_registry.classic_ui(request.tenant)
     # AB7-B2: блочная главная — плитки задач + встроенный канбан (тот же партиал/DnD,
     # что на /dashboard/board/). Секции = активные транзакционные каналы (≤20 карт).
-    sections = transactions.manage_sections_for(request.tenant, limit=20)
+    sections = [] if classic else transactions.manage_sections_for(request.tenant, limit=20)
     kinds = [s["kind"] for s in sections]
     return render(
         request,
         "tenant/dashboard.html",
         {
             "nav": "dashboard",
+            "classic_ui": classic,
             "setup_done": setup_done,
             "setup_total": setup_total,
             "setup_completed": onboarding.get_state(request.tenant)["completed"],
             "readiness": onboarding.completeness(request.tenant),  # AB4: чек-лист готовности
-            "tiles": dash.dashboard_tiles(request.tenant),  # AB7-B2: плитки задач
+            "tiles": [] if classic else dash.dashboard_tiles(request.tenant),  # AB7-B2: плитки
             "sections": sections,  # AB7-B2: канбан на главной
             "active_kind": kinds[0] if kinds else "",
         },
@@ -2677,6 +2682,26 @@ def set_ui_mode_view(request):
         cfg["ui_mode"] = "simple"
     else:
         cfg.pop("ui_mode", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    return redirect(_safe_dashboard_referer(request))
+
+
+@login_required
+@require_POST
+def set_classic_ui_view(request):
+    """Страховка редизайна (владелец 2026-07-18): тумблер «Klassische Ansicht».
+
+    Логика записи 1:1 с set_ui_mode_view: True — ключ classic_ui в site_config,
+    новый вид = отсутствие ключа (normalize сохраняет). Сегодня возвращает
+    классический дашборд (без плиток/канбана AB7); каждый следующий редизайн
+    (трек ST) обязан уважать флаг — легаси-шаблоны не удаляются."""
+    tenant = request.tenant
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    if request.POST.get("classic_ui"):
+        cfg["classic_ui"] = True
+    else:
+        cfg.pop("classic_ui", None)
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     return redirect(_safe_dashboard_referer(request))

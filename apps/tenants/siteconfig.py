@@ -2044,6 +2044,9 @@ def normalize(config) -> dict:
     # (дефолт expert → ключа нет → golden-паритет старых конфигов сохранён).
     if config.get("ui_mode") == "simple":
         normalized["ui_mode"] = "simple"
+    # Страховка редизайна (трек ST): «классический интерфейс» — ключ только при True.
+    if config.get("classic_ui"):
+        normalized["classic_ui"] = True
     # W5: настройки Kanban-доски (переименование/порядок/скрытие колонок); ключ
     # ТОЛЬКО при непустом (golden-паритет старых конфигов).
     board = normalize_board(config.get("board"))

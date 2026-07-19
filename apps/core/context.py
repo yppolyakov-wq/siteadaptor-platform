@@ -260,6 +260,10 @@ def modules_nav(request):
         # W3-fix (видимость): режим кабинета (Einfach/Experte) — тумблер в шапке
         # (_base_dashboard), чтобы был всегда виден (раньше только на «Funktionen»).
         "ui_simple": modules.is_simple(tenant),
+        # Страховка редизайна (трек ST): «Klassische Ansicht» — прежний интерфейс
+        # там, где вышел новый (тумблер на «Funktionen»); каждый ST-инкремент
+        # ОБЯЗАН уважать флаг (легаси-шаблоны не удаляются, гейт только флагом).
+        "classic_ui": modules.classic_ui(tenant),
         # #4 (ясность режима): что Простой режим убирает из меню (человекочит. названия,
         # независимо от текущего режима) — для подсказки у тумблера/на «Funktionen».
         "ui_simple_hidden": modules.simple_hidden_labels(tenant),
