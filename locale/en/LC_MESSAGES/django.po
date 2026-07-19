@@ -12044,3 +12044,7 @@ msgstr "Video-call badge on your website (WhatsApp). Auto = follows opening hour
 
 msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
 msgstr "WhatsApp number missing — add it now"
+
+#. ST-1b Look-Galerie (2026-07-19)
+msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
+msgstr "Ready-made design packages for your industry — one click recolours the preview."

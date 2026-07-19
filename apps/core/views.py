@@ -1032,7 +1032,7 @@ def home_builder_view(request):
     текущий site_config (остальные настройки не затрагиваются).
     """
     from apps.core.seo import _dumps as _safe_json  # LOW: инлайн-<script>-safe JSON
-    from apps.tenants import siteconfig, storefront
+    from apps.tenants import siteconfig, sitetemplates, storefront
 
     if request.method == "POST":
         # M20e: медиа галереи — отдельные multipart-формы (upload/delete), общие
@@ -1531,6 +1531,14 @@ def home_builder_view(request):
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
         config["font"] = request.POST.get("font", config.get("font", "system"))
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
+        # ST-1b: тёмный Look — hidden-input `theme` ВСЕГДА в форме (W0-инвариант,
+        # пред-заполнен текущим значением); "dark" → ключ, иначе снимаем (билдер —
+        # единый источник темы, W6). Presence-guard: без поля в POST не трогаем.
+        if "theme" in request.POST:
+            if request.POST.get("theme") == "dark":
+                config["theme"] = "dark"
+            else:
+                config.pop("theme", None)
         # M20d: контент-секции (CTA/FAQ/Testimonials/Process/Team/Trust) — тот же парсер.
         config.update(siteconfig.parse_content_sections(request.POST.get))
         update_fields = ["site_config", "updated_at"]
@@ -1858,6 +1866,10 @@ def home_builder_view(request):
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",
+            # ST-1b: Look-карточки архетипа (клик выставляет контролы формы) +
+            # текущая тема (hidden-input `theme` — round-trip при Save).
+            "looks": sitetemplates.looks_for(request.tenant.business_type),
+            "theme": config.get("theme", ""),
             # SE-3b: типографика — текущие значения + варианты для селекторов.
             "typo_weight_head": config["typography"]["weight_head"],
             "typo_line_height": config["typography"]["line_height"],
@@ -2116,6 +2128,12 @@ def site_preview_draft(request):
         cfg["font"] = data["font"]
     if data.get("hero_style") in siteconfig.HERO_STYLES:
         cfg["hero_style"] = data["hero_style"]
+    # ST-1b: тёмный Look → в превью (пустое значение снимает тёмную тему).
+    if "theme" in data:
+        if data.get("theme") == "dark":
+            cfg["theme"] = "dark"
+        else:
+            cfg.pop("theme", None)
     # SE-8b: стиль шапки (Меню) + заголовок/текст баннера → в превью (видно вживую).
     if data.get("nav_style") in siteconfig.NAV_STYLES:
         nav = dict(cfg.get("nav") or {})

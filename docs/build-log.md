@@ -5779,3 +5779,22 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   уже умеет font/typography/site_defaults/nav_style/accent/hero_style; Apply →
   `apply_look`; Undo — стек билдера) + стенд-проверка Playwright «клик перекрашивает
   канву без перезагрузки».
+
+## 2026-07-19 — ST-1b (часть 2): область Look в билдере — ВОЛНА ST-1 ЗАКРЫТА (БЕЗ миграций)
+
+- **Билдер site_home, область «🎨 Theme»:** фieldset «✨ Look» с 3 карточками архетипа
+  (гейт `classic_ui` — железное правило §8b). Клик = JS выставляет ВСЕ существующие
+  контролы дизайна (accent/font/hero/типографика/карточки/nav_style) + hidden `theme`
+  и шлёт change → живой draft-канал перекрашивает канву БЕЗ перезагрузки (делегированные
+  листенеры, паттерн UC6-6h menu-preset), Undo — штатный стек, Save — штатный. Секции
+  билдер-Look НЕ трогает (их курируют канвой; полный Look с секциями — слайд мастера).
+- **Тема по всему циклу:** hidden `theme` пред-заполнен (round-trip W0), save
+  presence-guard'ом пишет/снимает ключ (билдер — единый источник темы, W6);
+  `site_preview_draft` принимает theme (пусто = снять); payload-сборщик шлёт его.
+  DE-локаль-грабля учтена: line_height в data-look — `stringformat:"g"`, матчинг
+  опций select — численный (опции могут быть «1,6»).
+- Замки: round-trip темы через Save, карточки в новом виде/нет в classic, draft-канал
+  принимает/снимает theme; test_looks 24 + builder/golden/w6/cblocks/classic 194 зелёные.
+  i18n +1 msgid → 4 .po. **ТЗ B1 приёмка:** 3 архетипных Look'а первыми ✅, клик
+  перекрашивает превью без перезагрузки ✅ (мастер — stateless-iframe; билдер —
+  draft-канал), Undo ✅, замок apply+normalize ✅, golden целы ✅.

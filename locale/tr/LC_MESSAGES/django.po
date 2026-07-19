@@ -12094,3 +12094,7 @@ msgstr "Web sitenizde görüntülü arama rozeti (WhatsApp). Otomatik = çalış
 
 msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
 msgstr "WhatsApp numarası eksik — şimdi ekleyin"
+
+#. ST-1b Look-Galerie (2026-07-19)
+msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
+msgstr "Sektörünüz için hazır tasarım paketleri — tek tıkla önizleme yeniden renklenir."

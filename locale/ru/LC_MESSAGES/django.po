@@ -12181,3 +12181,7 @@ msgstr "Бейдж видеозвонка на вашем сайте (WhatsApp).
 
 msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
 msgstr "Не указан номер WhatsApp — добавьте его"
+
+#. ST-1b Look-Galerie (2026-07-19)
+msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
+msgstr "Готовые дизайн-пакеты для вашей отрасли — один клик перекрашивает превью."

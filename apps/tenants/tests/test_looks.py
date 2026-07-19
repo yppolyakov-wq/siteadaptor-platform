@@ -213,3 +213,88 @@ def test_wizard_stil_template_renders_lazy_iframes():
     )
     assert "look-gallery" not in html_classic
     assert 'name="template"' in html_classic
+
+
+# --- ST-1b: билдер — Look-карточки + round-trip темы -------------------------------
+
+
+def test_builder_theme_roundtrip_and_look_cards():
+    """Hidden `theme` пред-заполнен и переживает Save (W0/W6); карточки Look'ов
+    в разметке нового вида, в classic — нет."""
+    import uuid as _uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views as core_views
+
+    tenant = TenantFactory(business_type="bakery", site_config={"theme": "dark"})
+
+    def _req(method="get", data=None):
+        request = getattr(RequestFactory(), method)("/dashboard/site/home/", data or {})
+        SessionMiddleware(lambda r: None).process_request(request)
+        MessageMiddleware(lambda r: None).process_request(request)
+        o = _uuid.uuid4().hex[:8]
+        request.user = get_user_model().objects.create_user(
+            username=f"o-{o}", email=f"o-{o}@t.de", password="pw12345678"
+        )
+        request.tenant = tenant
+        return request
+
+    html = core_views.home_builder_view(_req()).content.decode()
+    assert 'name="theme" id="bld-theme" value="dark"' in html  # round-trip префилл
+    assert 'class="bld-look' in html and "data-look=" in html  # карточки Look'ов
+
+    # Save с theme="" (светлый) → ключ снят; с "dark" → сохранён.
+    resp = core_views.home_builder_view(_req("post", {"theme": "", "font": "system"}))
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    assert "theme" not in tenant.site_config
+    core_views.home_builder_view(_req("post", {"theme": "dark", "font": "system"}))
+    tenant.refresh_from_db()
+    assert tenant.site_config["theme"] == "dark"
+
+    # classic_ui → карточек Look'ов нет (железное правило §8b).
+    cfg = dict(tenant.site_config)
+    cfg["classic_ui"] = True
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config"])
+    html = core_views.home_builder_view(_req()).content.decode()
+    assert "bld-look" not in html
+
+
+def test_preview_draft_accepts_theme():
+    """Draft-канал: theme="dark" красит превью, ""/отсутствие — снимает/не трогает."""
+    import json as _json
+    import uuid as _uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views as core_views
+
+    tenant = TenantFactory(business_type="bakery")
+
+    def _post(payload):
+        request = RequestFactory().post(
+            "/dashboard/site/preview-draft/",
+            _json.dumps(payload),
+            content_type="application/json",
+        )
+        SessionMiddleware(lambda r: None).process_request(request)
+        MessageMiddleware(lambda r: None).process_request(request)
+        o = _uuid.uuid4().hex[:8]
+        request.user = get_user_model().objects.create_user(
+            username=f"o-{o}", email=f"o-{o}@t.de", password="pw12345678"
+        )
+        request.tenant = tenant
+        core_views.site_preview_draft(request)
+        return request.session.get("site_preview_draft") or {}
+
+    assert _post({"theme": "dark"}).get("theme") == "dark"
+    assert "theme" not in _post({"theme": ""})
+    assert "theme" not in _post({})  # не прислан → не трогаем

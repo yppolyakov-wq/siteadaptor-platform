@@ -104,7 +104,11 @@ care-цикл (напоминания, «Wie war's?», лояльность) →
 
 ### Этап B — «Studio» (трек ST, редизайн; ВСЁ под classic_ui)
 
-**B1 · ST-1 «Каталог Look'ов» (L).**
+**B1 · ST-1 «Каталог Look'ов» (L) — ✅ СДЕЛАН 2026-07-19** (план
+`st1-looks-plan-2026-07-19.md`; БЕЗ миграций; 3 семейства Klar/Warm/Nacht ×
+14 палитр = 42 Look'а, ключ `theme` presence-minimal, stateless-превью
+`?look=`, галереи в мастере и билдере; попутно исправлен латентный
+wipe-баг apply_template; детали — build-log). Следующий — B2 · ST-4.
 - Реестр `sitetemplates.TEMPLATES` → **3 Look'а × 14 архетипов** (Р4; ≈42,
   вкл. тёмные): палитра+шрифт (FONTS)+стиль карточек (site_defaults)+hero-стиль+
   набор секций+фото-настроение демо; `recommended_for` по архетипу.
