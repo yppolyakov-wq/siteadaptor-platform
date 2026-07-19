@@ -82,6 +82,8 @@ HUB_TABS = {
         ("promotions:loyalty-list", _("Treuepunkte"), "loyalty", "loyalty", True),
         ("channels", _("Kanäle"), "channels", "publishing", True),
         ("publishing-posts", _("Beiträge"), "posts", "publishing", True),
+        # FD-3: Finder «вопросы → 3 предложения» — опция витрины (тумблер+превью).
+        ("finder-settings", _("Finder"), "finder", None, True),
     ),
     # Kunden (S4b): контакты + общение. Якорь-пункт «Kunden» на модуле crm; вкладки
     # Nachrichten/Telegram гейтятся по своему модулю.

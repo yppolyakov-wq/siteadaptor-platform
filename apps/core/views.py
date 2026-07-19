@@ -592,6 +592,45 @@ def payment_settings(request):
 
 
 @login_required
+def finder_settings(request):
+    """FD-3-lite: кабинет Finder — тумблер опции + предпросмотр дерева вопросов.
+
+    Finder — ОПЦИЯ витрины (решение владельца 2026-07-18): страница /finder/
+    отвечает 404, пока не включено. Targeted-write: пишем только `enabled` —
+    кастом-вопросы (полный редактор FD-3) не трогаются. Превью показывает
+    актуальное дерево (кастом → пресет архетипа)."""
+    from apps.core import finder as finder_mod
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    if request.method == "POST":
+        cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+        fnd = dict(cfg.get("finder")) if isinstance(cfg.get("finder"), dict) else {}
+        if request.POST.get("enabled"):
+            fnd["enabled"] = True
+        else:
+            fnd.pop("enabled", None)
+        if fnd:
+            cfg["finder"] = fnd
+        else:
+            cfg.pop("finder", None)
+        tenant.site_config = siteconfig.normalize(cfg)
+        tenant.save(update_fields=["site_config", "updated_at"])
+        messages.success(request, _("Saved."))
+        return redirect("finder-settings")
+    return render(
+        request,
+        "tenant/finder_settings.html",
+        {
+            "nav": "finder",
+            "finder_enabled": finder_mod.enabled(tenant),
+            "tree": finder_mod.tree_for(tenant),
+            "has_kind": bool(finder_mod.primary_kind(tenant)),
+        },
+    )
+
+
+@login_required
 def languages_view(request):
     """L2 (Волна L): кабинет «Sprachen» — какие языки витрины включены + дефолт.
 

@@ -1,0 +1,57 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}Finder{% endblock %}
+
+{% block dash_content %}
+{% hub_tabs "marketing" %}
+{% comment %}FD-3-lite: тумблер опции Finder + предпросмотр дерева вопросов
+(кастом-редактор — FD-3 полный). Finder = «вопросы → 3 предложения» на витрине.{% endcomment %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-1">Finder</h1>
+  <p class="text-gray-500 mb-4 text-sm">{% trans "Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt lange im Katalog zu suchen." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not has_kind %}
+    <div class="rounded-xl bg-amber-50 text-amber-800 px-4 py-3 text-sm mb-4">{% trans "Für diese Branche gibt es noch keine Finder-Angebote (kein passendes Sortiment-Modul aktiv)." %}</div>
+  {% else %}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+      {% csrf_token %}
+      <label class="flex items-center justify-between gap-4 cursor-pointer">
+        <span>
+          <span class="block font-semibold">{% trans "Finder auf der Website aktivieren" %}</span>
+          <span class="block text-xs text-gray-400 mt-0.5">{% trans "Erscheint unter /finder/ — verlinke ihn im Menü oder auf der Startseite." %}</span>
+        </span>
+        <input type="checkbox" name="enabled" value="1" {% if finder_enabled %}checked{% endif %} class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+      </label>
+      <div class="mt-4 flex items-center gap-4">
+        <button type="submit" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Save" %}</button>
+        {% if finder_enabled %}
+          <a href="/finder/" target="_blank" rel="noopener" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">🌐 {% trans "Finder ansehen" %} →</a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h2 class="font-semibold mb-1">{% trans "So fragt der Finder" %}</h2>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Voreingestellt für deine Branche. Eigene Fragen — bald im Editor." %}</p>
+      <div class="space-y-4">
+        {% for q in tree %}
+          <div>
+            <p class="text-sm font-medium mb-1.5">{{ forloop.counter }}. {{ q.label }}</p>
+            <div class="flex flex-wrap gap-1.5">
+              {% for c in q.chips %}
+                <span class="inline-block rounded-full bg-gray-100 border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700">{{ c.label }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

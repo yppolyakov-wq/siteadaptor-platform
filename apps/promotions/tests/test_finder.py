@@ -176,3 +176,71 @@ def test_page_garbage_answers_restart_question():
     request = _get(a="nope.nope,,broken")
     request.tenant = tenant
     assert "Frage 1 von" in public_views.finder_page(request).content.decode()
+
+
+# --- FD-3-lite: кабинет (тумблер + превью дерева) ---------------------------------
+
+
+def _cab_req(method="get", data=None, tenant=None):
+    from uuid import uuid4
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    request = getattr(RequestFactory(), method)("/dashboard/finder/", data or {})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    o = uuid4().hex[:8]
+    from django.contrib.auth import get_user_model as gum
+
+    request.user = gum().objects.create_user(
+        username=f"o-{o}", email=f"o-{o}@t.de", password="pw12345678"
+    )
+    return request
+
+
+def test_cabinet_toggle_enables_and_disables():
+    from apps.core import views as core_views
+
+    tenant = _bakery(schema_name="public", slug="fnd", name="Fnd")
+    # Включаем: POST с enabled → страница /finder/ оживает.
+    resp = core_views.finder_settings(_cab_req("post", {"enabled": "1"}, tenant))
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    assert finder.enabled(tenant) is True
+    # Выключаем: POST без enabled → ключ finder исчезает целиком (presence-minimal).
+    core_views.finder_settings(_cab_req("post", {}, tenant))
+    tenant.refresh_from_db()
+    assert finder.enabled(tenant) is False
+    assert "finder" not in tenant.site_config
+
+
+def test_cabinet_toggle_preserves_custom_questions():
+    from apps.core import views as core_views
+
+    tenant = _bakery(
+        schema_name="public",
+        slug="fndq",
+        name="FndQ",
+        site_config={
+            "finder": {
+                "questions": [
+                    {"key": "q1", "label": "Custom?", "chips": [{"key": "x", "label": "X"}]}
+                ]
+            }
+        },
+    )
+    core_views.finder_settings(_cab_req("post", {"enabled": "1"}, tenant))
+    tenant.refresh_from_db()
+    assert finder.enabled(tenant) is True
+    assert tenant.site_config["finder"]["questions"][0]["key"] == "q1"  # кастом цел
+
+
+def test_cabinet_page_renders_tree_preview():
+    from apps.core import views as core_views
+
+    tenant = _bakery(schema_name="public", slug="fndr", name="FndR")
+    html = core_views.finder_settings(_cab_req(tenant=tenant)).content.decode()
+    assert 'name="enabled"' in html
+    assert "Was suchst du?" in html  # превью пресета пекарни
