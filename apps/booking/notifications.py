@@ -45,6 +45,16 @@ def enqueue_booking_email(booking, event):
             if base
             else ""
         )
+        # LS-1: видео-услуга → wa.me-линк в подтверждении/напоминании (зеркало
+        # pay_url/review_url). Нет номера у бизнеса → письмо байт-в-байт прежнее.
+        if event in ("confirmed", "reminder") and booking.service_id and booking.service.is_video:
+            from apps.core.whatsapp import wa_link
+
+            when = booking.start.strftime("%d.%m. %H:%M") if booking.start else ""
+            ctx["whatsapp_url"] = wa_link(
+                getattr(tenant, "whatsapp_number", "") if tenant else "",
+                f"Video-Termin {when} — {booking.service.name}",
+            )
         # UA4-4b wiring: post-visit ведёт на форму отзыва об услуге (generic
         # reviews, GET → деталь с формой). Нет услуги/домена → письмо без ссылки.
         if event == "post_visit" and booking.service_id:

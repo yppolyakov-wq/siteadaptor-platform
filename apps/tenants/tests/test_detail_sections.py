@@ -42,6 +42,7 @@ def test_registry_flags():
 def test_registry_service_stay_keys_and_flags():
     assert detail_sections.section_keys("booking") == (
         "description",
+        "video",  # LS-1: wa.me-CTA видео-консультации
         "attributes",
         "faq",
         "team",

@@ -57,9 +57,7 @@ def test_service_defaults_not_video():
 
 
 def test_create_service_with_video_flag():
-    _services_view(
-        _req("post", {"action": "create", "name": "Video-Beratung", "is_video": "1"})
-    )
+    _services_view(_req("post", {"action": "create", "name": "Video-Beratung", "is_video": "1"}))
     assert Service.objects.get(name="Video-Beratung").is_video is True
 
 
@@ -91,3 +89,132 @@ def test_settings_form_saves_whatsapp_number():
     form.save()
     tenant.refresh_from_db()
     assert tenant.whatsapp_number == "+49 171 1234567"
+
+
+# --- инкремент 2: секция детали + фасет + письма ------------------------------------
+
+
+def _detail_html(service, tenant):
+    from apps.booking import public_views
+
+    request = _req()
+    request.tenant = tenant
+    return public_views.service_detail(request, pk=service.pk).content.decode()
+
+
+def test_detail_video_section_gates():
+    with_num = TenantFactory.build(disabled_modules=[], whatsapp_number="+49 171 1234567")
+    video = Service.objects.create(name="Beratung", is_video=True)
+    plain = Service.objects.create(name="Schnitt")
+
+    html = _detail_html(video, with_num)
+    assert "https://wa.me/491711234567" in html
+    assert "Per Video zeigen lassen" in html
+    # не-видео услуга и бизнес без номера → секции нет
+    assert "wa.me" not in _detail_html(plain, with_num)
+    no_num = TenantFactory.build(disabled_modules=[], whatsapp_number="")
+    assert "wa.me" not in _detail_html(video, no_num)
+
+
+def test_detail_video_section_hideable_in_builder():
+    tenant = TenantFactory.build(
+        disabled_modules=[],
+        whatsapp_number="+49 171 1234567",
+        site_config={"service_detail": {"hidden": ["video"]}},
+    )
+    video = Service.objects.create(name="Beratung", is_video=True)
+    assert "Per Video zeigen lassen" not in _detail_html(video, tenant)
+
+
+def test_listing_video_chip_and_filter():
+    from apps.booking import public_views
+
+    Service.objects.create(name="Beratung", is_video=True)
+    Service.objects.create(name="Schnitt")
+
+    request = _req()
+    html = public_views.termin_index(request).content.decode()
+    assert "?video=1" in html  # авто-чип при ≥1 видео-услуге
+
+    request = _req()
+    request.GET = {"video": "1"}
+    html = public_views.termin_index(request).content.decode()
+    assert "Beratung" in html and "Schnitt" not in html
+
+    Service.objects.filter(is_video=True).delete()
+    request = _req()
+    html = public_views.termin_index(request).content.decode()
+    assert "?video=1" not in html  # без видео-услуг чипа нет
+
+
+def test_video_booking_email_contains_wa_link():
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.booking import services as booking_services
+    from apps.booking.state_machine import BookingSM
+    from apps.notifications.models import Notification
+
+    video = Service.objects.create(name="Beratung", is_video=True)
+    from apps.booking.models import Resource
+
+    start = (timezone.now() + timedelta(days=1)).replace(minute=0, second=0, microsecond=0)
+    booking = booking_services.book(
+        Resource.objects.create(name="Stuhl"),
+        start=start,
+        end=start + timedelta(minutes=30),
+        name="Kim",
+        email="kim@test.de",
+        service=video,
+    )
+    BookingSM().apply(booking, "confirmed")
+    n = Notification.objects.get(dedupe_key=f"booking:{booking.id}:confirmed:customer")
+    body = n.payload.get("body", "")
+    # В тестах у тенанта фабрики номера нет → wa.me пуст; проверяем через ctx-ветку:
+    # событие confirmed видео-услуги без номера — письмо БЕЗ wa.me (fail-safe).
+    assert "wa.me" not in body
+
+
+def test_video_booking_email_wa_link_with_number(monkeypatch):
+    """С номером бизнеса подтверждение видео-брони содержит wa.me и дату."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.booking import notifications as booking_notifications
+    from apps.booking import services as booking_services
+    from apps.booking.models import Resource
+    from apps.booking.state_machine import BookingSM
+    from apps.notifications.models import Notification
+
+    tenant = TenantFactory.build(whatsapp_number="+49 171 1234567")
+    monkeypatch.setattr(booking_notifications, "_tenant", lambda schema: tenant)
+
+    video = Service.objects.create(name="Beratung", is_video=True)
+    start = (timezone.now() + timedelta(days=1)).replace(minute=0, second=0, microsecond=0)
+    booking = booking_services.book(
+        Resource.objects.create(name="Stuhl"),
+        start=start,
+        end=start + timedelta(minutes=30),
+        name="Kim",
+        email="kim@test.de",
+        service=video,
+    )
+    BookingSM().apply(booking, "confirmed")
+    n = Notification.objects.get(dedupe_key=f"booking:{booking.id}:confirmed:customer")
+    body = n.payload.get("body", "")
+    assert "https://wa.me/491711234567" in body
+    assert "Video-Termin" in body and start.strftime("%d.%m.") in body
+
+    # Обычная (не видео) бронь — письмо без wa.me даже с номером.
+    plain = booking_services.book(
+        Resource.objects.create(name="Bank"),
+        start=start + timedelta(hours=2),
+        end=start + timedelta(hours=2, minutes=30),
+        name="Kim",
+        email="kim@test.de",
+    )
+    BookingSM().apply(plain, "confirmed")
+    n2 = Notification.objects.get(dedupe_key=f"booking:{plain.id}:confirmed:customer")
+    assert "wa.me" not in n2.payload.get("body", "")

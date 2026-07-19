@@ -11,11 +11,15 @@ class ServiceFacets(FacetProvider):
     kind = "service"
 
     def selected(self, params) -> dict:
-        """Валидные значения фасетов из GET: пока только slug подборки (UB3-2)."""
-        return {"kollektion": (params.get("kollektion") or "").strip()}
+        """Валидные значения фасетов из GET: slug подборки (UB3-2) + видео (LS-1)."""
+        return {
+            "kollektion": (params.get("kollektion") or "").strip(),
+            "video": params.get("video") == "1",
+        }
 
     def apply(self, items, params):
-        """Отфильтровать услуги по выбранной подборке (?kollektion=<slug>).
+        """Отфильтровать услуги по выбранной подборке (?kollektion=<slug>) и/или
+        видео-признаку (?video=1, LS-1).
 
         M2M-JOIN по slug активной коллекции; distinct — услуга может входить в
         несколько подборок. Обычный WHERE → composable с поиском/сортировкой."""
@@ -24,12 +28,18 @@ class ServiceFacets(FacetProvider):
             items = items.filter(
                 collections__slug=sel["kollektion"], collections__is_active=True
             ).distinct()
+        if sel["video"]:
+            items = items.filter(is_video=True)
         return items
 
     def present(self, items, params) -> dict:
         """Чипы подборок для листинга услуг: только коллекции, где есть услуги
-        из ПЕРЕДАННОГО набора (снимок до фасет-фильтров)."""
-        return {"collection_chips": collection_chips("services", items)}
+        из ПЕРЕДАННОГО набора (снимок до фасет-фильтров). LS-1: чип
+        «Video-Beratung» появляется автоматически при ≥1 видео-услуге."""
+        return {
+            "collection_chips": collection_chips("services", items),
+            "video_available": items.filter(is_video=True).exists(),
+        }
 
     def search(self, items, q):
         q = (q or "").strip()

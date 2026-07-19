@@ -1,0 +1,8 @@
+{% load i18n %}
+{% comment %}LS-1: видео-консультация по WhatsApp (v1) — открываем чат, НИЧЕГО не
+записываем (§201 StGB). Видна только при service.is_video + номере бизнеса.{% endcomment %}
+<div class="mt-8 rounded-2xl border border-green-200 bg-green-50/50 p-4" data-sf-section="service_video">
+  <h2 class="text-lg font-semibold mb-1">📹 {% trans "Video-Beratung" %}</h2>
+  <p class="text-sm text-gray-600 mb-3">{% trans "Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt." %}</p>
+  <a href="{{ video_wa_url }}" target="_blank" rel="noopener" class="inline-block rounded-lg bg-green-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-green-700">{% trans "Per Video zeigen lassen" %}</a>
+</div>

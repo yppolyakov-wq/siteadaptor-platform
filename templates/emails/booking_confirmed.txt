@@ -5,7 +5,10 @@
 {{ resource.name }}
 {{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}{% if booking.party_size > 1 %} · {% blocktrans with n=booking.party_size %}{{ n }} Personen{% endblocktrans %}{% endif %}
 {% trans "Referenz-Code" %}: {{ booking.reference_code }}
-
+{% if whatsapp_url %}
+📹 {% trans "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach hier:" %}
+{{ whatsapp_url }}
+{% endif %}
 {% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

@@ -158,12 +158,14 @@ def termin_index(request):
     if services_base.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
         q = (request.GET.get("q") or "").strip()
         sort = request.GET.get("sort") or ""
-        kollektion = provider.selected(request.GET)["kollektion"]
+        selected = provider.selected(request.GET)
+        kollektion = selected["kollektion"]
         services_qs = provider.sort(
             provider.search(provider.apply(services_base, request.GET), q), sort
         )
         # Чипы подборок — из снимка ДО фасета (present-values).
-        collection_chips = provider.present(services_base, request.GET)["collection_chips"]
+        presented = provider.present(services_base, request.GET)
+        collection_chips = presented["collection_chips"]
         # UB1-1: раскладка листинга из site_config (+черновик канвы при ?preview=1).
         # Ключ не задан → services_grid=None → шаблон держит легаси-грид (max-w-3xl).
         from apps.tenants import siteconfig
@@ -190,10 +192,14 @@ def termin_index(request):
                 "sort": sort,
                 "sort_options": provider.sort_options(),
                 "toolbar_hidden": ([("embed", "1")] if embed else [])
-                + ([("kollektion", kollektion)] if kollektion else []),
+                + ([("kollektion", kollektion)] if kollektion else [])
+                + ([("video", "1")] if selected["video"] else []),
                 # UB3-2: чипы подборок (фасет ?kollektion=<slug>).
                 "collection_chips": collection_chips,
                 "active_kollektion": kollektion,
+                # LS-1: чип «📹 Video-Beratung» (?video=1) — авто при ≥1 видео-услуге.
+                "video_available": presented["video_available"],
+                "active_video": selected["video"],
             },
             embed,
         )
@@ -348,8 +354,18 @@ def service_detail(request, pk):
         _upsell = list(
             Product.objects.filter(is_active=True).order_by("-is_featured", "-created_at")[:4]
         )
+    # LS-1: wa.me-CTA видео-консультации — только у видео-услуги при заданном
+    # номере WhatsApp бизнеса (ссылка генерится на лету, ничего не храним).
+    from apps.core.whatsapp import wa_link
+
+    _video_wa_url = (
+        wa_link(getattr(tenant, "whatsapp_number", ""), f"Video-Beratung: {service.name}")
+        if service.is_video and tenant is not None
+        else ""
+    )
     _present = {
         "description": bool(service.description),
+        "video": bool(_video_wa_url),
         "attributes": bool(service.attributes_list),
         "faq": bool(service.faq_list),
         "team": bool(_team),
@@ -358,6 +374,7 @@ def service_detail(request, pk):
     }
     _section_template = {
         "description": "storefront/sections/detail/_service_description.html",
+        "video": "storefront/sections/detail/_service_video.html",
         "attributes": "storefront/sections/detail/_service_attributes.html",
         "faq": "storefront/sections/detail/_service_faq.html",
         "team": "storefront/sections/detail/_service_team.html",
@@ -379,6 +396,8 @@ def service_detail(request, pk):
         "storefront/service_detail.html",
         {
             "service": service,
+            # LS-1: wa.me-ссылка видео-консультации (пусто = секция не видна).
+            "video_wa_url": _video_wa_url,
             # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
             "sellable": sellable_for("service", service),
             # UA3-1 (реш.2): основное действие детали — booking | request (override).

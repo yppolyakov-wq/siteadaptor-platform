@@ -78,6 +78,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # service_detail.html (описание/атрибуты/FAQ/команда/отзывы). Hide-only.
     "booking": (
         DetailSection("description", _("Description")),
+        # LS-1: «📹 Per Video zeigen lassen» — wa.me-CTA; present-гейт: услуга
+        # is_video И у бизнеса есть whatsapp_number. Скрываемо как любая секция.
+        DetailSection("video", _("Video-Beratung")),
         DetailSection("attributes", _("Details")),
         DetailSection("faq", _("Frequently asked questions")),
         DetailSection("team", _("Our team")),
