@@ -8,6 +8,10 @@
 {% trans "Wir freuen uns auf Ihren nächsten Einkauf — am besten direkt über unsere Website." %}
 
 {% trans "Herzliche Grüße" %}
+{% if problem_url %}
+{% trans "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:" %}
+{{ problem_url|safe }}
+{% endif %}
 {% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

@@ -80,6 +80,8 @@ HUB_TABS = {
         ("promotions:reservation-list", _("Reservierungen"), "reservations", "promotions", True),
         ("promotions:redeem", _("Einlösen"), "redeem", "promotions", True),
         ("promotions:loyalty-list", _("Treuepunkte"), "loyalty", "loyalty", True),
+        # LS-5: Care-цикл — управление касаниями сделки (матрица UD4-2).
+        ("notifications-settings", _("Care-Zyklus"), "care", None, True),
         ("channels", _("Kanäle"), "channels", "publishing", True),
         ("publishing-posts", _("Beiträge"), "posts", "publishing", True),
         # FD-3: Finder «вопросы → 3 предложения» — опция витрины (тумблер+превью).

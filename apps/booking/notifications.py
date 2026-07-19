@@ -34,7 +34,7 @@ def enqueue_booking_email(booking, event):
     if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
         # LS-6: «Etwas stimmt nicht?» в подтверждении (high-тред + пуш владельцу).
-        if event == "confirmed":
+        if event in ("confirmed", "post_visit"):
             ctx["problem_url"] = (
                 f"{base}{reverse('storefront-message')}?problem=1&ref_kind=booking&ref_id={booking.reference_code}"
                 if base

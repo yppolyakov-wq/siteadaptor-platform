@@ -12276,3 +12276,11 @@ msgstr "спасибо за терпение — надеемся, нам уда
 #. LS-4 Vertrauen (2026-07-19)
 msgid "Antwortet in der Regel in ~%(n)s Min"
 msgstr "Обычно отвечает за ~%(n)s мин"
+
+#. LS-5 Care (2026-07-19)
+msgid "Care-Zyklus"
+msgstr "Care-цикл"
+
+#. LS-5 Care (2026-07-19)
+msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgstr "Не всё понравилось? Скажите нам напрямую — сразу разберёмся:"

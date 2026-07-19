@@ -248,3 +248,35 @@ def test_public_reaction_badge_gated_by_good_value(monkeypatch):
     assert "Antwortet in der Regel" in _get(15)  # хорошее значение → бейдж
     assert "Antwortet in der Regel" not in _get(600)  # медленно → без бейджа
     assert "Antwortet in der Regel" not in _get(None)  # нет данных → без бейджа
+
+
+# --- LS-5 «Care-цикл» v1: развилка настроения в «Wie war's?» ------------------------
+
+
+def test_post_purchase_email_has_mood_fork(monkeypatch):
+    """👍 отзыв (review_links — было) + 👎 прямая линия (problem_url — LS-5)."""
+    from django.utils import timezone
+
+    from apps.notifications.models import Notification
+    from apps.orders import notifications as onotif
+    from apps.orders import tasks as otasks
+    from apps.orders.models import Order
+    from apps.orders.services import create_order
+    from apps.orders.state_machine import OrderSM
+
+    monkeypatch.setattr(onotif, "_base_url", lambda schema: "https://shop.example")
+    order = create_order(items=(), custom_lines=[("X", "5.00", 1)], name="K", email="pp@t.de")
+    OrderSM().apply(order, "confirmed")
+    OrderSM().apply(order, "ready")
+    OrderSM().apply(order, "picked_up")
+    Order.objects.filter(pk=order.pk).update(updated_at=timezone.now() - timezone.timedelta(days=2))
+    assert otasks.send_due_post_purchases() >= 1
+    n = Notification.objects.get(dedupe_key__startswith=f"order:{order.id}:post_purchase")
+    body = n.payload.get("body", "")
+    assert f"problem=1&ref_kind=order&ref_id={order.reference_code}" in body
+
+
+def test_marketing_hub_has_care_tab():
+    from apps.core.templatetags.cabinet import HUB_TABS
+
+    assert any(t[0] == "notifications-settings" for t in HUB_TABS["marketing"])

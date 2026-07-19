@@ -12139,3 +12139,11 @@ msgstr "thank you for your patience — we hope we could resolve your issue at %
 #. LS-4 Vertrauen (2026-07-19)
 msgid "Antwortet in der Regel in ~%(n)s Min"
 msgstr "Usually replies within ~%(n)s min"
+
+#. LS-5 Care (2026-07-19)
+msgid "Care-Zyklus"
+msgstr "Care cycle"
+
+#. LS-5 Care (2026-07-19)
+msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgstr "Not quite happy? Tell us directly — we'll take care of it right away:"

@@ -12189,3 +12189,11 @@ msgstr "sabrınız için teşekkürler — %(business)s ile ilgili sorununuzu ç
 #. LS-4 Vertrauen (2026-07-19)
 msgid "Antwortet in der Regel in ~%(n)s Min"
 msgstr "Genellikle ~%(n)s dk içinde yanıtlar"
+
+#. LS-5 Care (2026-07-19)
+msgid "Care-Zyklus"
+msgstr "Bakım döngüsü"
+
+#. LS-5 Care (2026-07-19)
+msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgstr "Tam memnun değil misiniz? Doğrudan bize söyleyin — hemen ilgileniriz:"
