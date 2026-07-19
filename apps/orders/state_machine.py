@@ -71,6 +71,27 @@ class OrderSM(StateMachine):
             )
 
 
+class OfferSM(StateMachine):
+    """LS-3: FSM предложения (Sofort-Angebot). open → accepted/declined/cancelled.
+
+    Без kind (кастом-статусы FB-3 scoped на order/booking/stay — предложение не
+    карточка канбана). Письма владельцу на accepted/declined — как у jobs; письмо
+    клиенту «sent» — не переход (offer рождается open), шлёт offers.send_offer.
+    """
+
+    transitions = [
+        Transition("open", "accepted", "offer.accepted"),
+        Transition("open", "declined", "offer.declined"),
+        Transition("open", "cancelled", "offer.cancelled"),
+    ]
+
+    def on_transition(self, instance, t, **kw):
+        if t.dst in ("accepted", "declined"):
+            from .offers import enqueue_offer_email
+
+            enqueue_offer_email(instance, t.dst)
+
+
 def _restore_stock(instance):
     """Вернуть остаток по позициям заказа (R3); учитываются только товары/варианты
     со складским учётом (stock_quantity не null).

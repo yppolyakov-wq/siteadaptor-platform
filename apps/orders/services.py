@@ -161,6 +161,7 @@ def create_order(
     combos=(),
     voucher_code="",
     payment_method="",
+    custom_lines=(),
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -169,6 +170,11 @@ def create_order(
     options — список ModifierOption (A4b, надбавка к цене позиции). Для доставки
     (fulfillment=delivery) total включает shipping_cents. Бросает EmptyOrder без
     позиций и ValueError при qty < 1.
+
+    custom_lines (LS-3 Sofort-Angebot) — кортежи (title, unit_price, qty[,
+    product[, variant]]): позиции с ЗАМОРОЖЕННОЙ ценой/названием (из строки, не
+    из каталога). product/variant переданы → складской учёт как у обычных
+    позиций (anti-oversell + леджер); None → свободная строка, склад не тронут.
     """
     norm = []
     for item in items:
@@ -181,16 +187,34 @@ def create_order(
         norm.append((product, variant, int(qty), list(options)))
     # Комбо-набор (A4): (combo, [options], qty). Снимок состава — в modifiers.
     combo_norm = [(c, list(opts), int(q)) for c, opts, q in combos]
-    if not norm and not combo_norm:
+    custom_norm = []
+    for line in custom_lines:
+        title, unit_price, qty = line[0], line[1], line[2]
+        product = line[3] if len(line) > 3 else None
+        variant = line[4] if len(line) > 4 else None
+        custom_norm.append((str(title), Decimal(str(unit_price)), int(qty), product, variant))
+    if not norm and not combo_norm and not custom_norm:
         raise EmptyOrder()
-    if any(qty < 1 for _p, _v, qty, _o in norm) or any(q < 1 for _c, _o, q in combo_norm):
+    if (
+        any(qty < 1 for _p, _v, qty, _o in norm)
+        or any(q < 1 for _c, _o, q in combo_norm)
+        or any(q < 1 for _t, _u, q, _p, _v in custom_norm)
+    ):
         raise ValueError("qty must be >= 1")
 
-    _reserve_stock(norm)  # R3: атомарное списание; OutOfStock → откат, заказа нет
+    # R3: атомарное списание; OutOfStock → откат, заказа нет. Custom-строки с
+    # привязкой к товару резервируют сток тем же путём (цена всё равно из строки).
+    custom_reserve = [(p, v, q, []) for _t, _u, q, p, v in custom_norm if p is not None]
+    _reserve_stock(norm + custom_reserve)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     delivery = fulfillment == Order.FULFILLMENT_DELIVERY
     shipping = int(shipping_cents) if delivery else 0
-    currency = norm[0][0].currency if norm else (combo_norm[0][0].currency or "EUR")
+    if norm:
+        currency = norm[0][0].currency
+    elif combo_norm:
+        currency = combo_norm[0][0].currency or "EUR"
+    else:
+        currency = "EUR"
     order = Order.objects.create(
         customer=customer,
         reference_code=_unique_order_code(),
@@ -260,6 +284,31 @@ def create_order(
                 modifiers=combo_snapshot(combo, options),
             )
             total += unit_price * qty
+    # LS-3: custom-строки — цена/название заморожены (персональное предложение);
+    # позиции с товаром логируют списание в леджер (как обычные), свободные — нет.
+    for title, unit_price, qty, product, variant in custom_norm:
+        label = variant.label if variant is not None else ""
+        item = OrderItem.objects.create(
+            order=order,
+            product=product,
+            variant=variant,
+            variant_label=label,
+            qty=qty,
+            unit_price=unit_price,
+            title_snapshot=title[:200],
+        )
+        tracked = variant if variant is not None else product
+        if tracked is not None and tracked.stock_quantity is not None:
+            record_movement(
+                product=product,
+                variant=variant,
+                kind="sale",
+                delta=-qty,
+                source="order",
+                source_ref=str(item.pk),
+                note=order.reference_code,
+            )
+        total += unit_price * qty
     # Промокод (A4): скидка на сумму товаров+комбо (до доставки). Гашение под
     # блокировкой (redeem_voucher) — анти-двойное-списание; сбой → без скидки.
     discount = Decimal("0")

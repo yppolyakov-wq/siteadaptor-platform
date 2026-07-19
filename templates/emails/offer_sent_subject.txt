@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with business=business %}Ihr persönliches Angebot von {{ business }}{% endblocktrans %}

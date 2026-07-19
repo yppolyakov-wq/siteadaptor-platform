@@ -1,0 +1,6 @@
+{% if offer.customer_name %}{{ offer.customer_name }}{% else %}Der Kunde{% endif %} hat Ihr Angebot abgelehnt.
+
+{% for line in offer.lines.all %}{{ line.qty }}× {{ line.title }} — {{ line.line_total }} {{ offer.currency }}
+{% endfor %}Gesamt: {{ offer.total }} {{ offer.currency }}
+
+Sie können im Chat nachfragen oder ein neues Angebot senden.

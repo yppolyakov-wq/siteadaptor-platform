@@ -1,0 +1,13 @@
+{% load i18n %}{% if offer.customer_name %}{% blocktrans with name=offer.customer_name %}Hallo {{ name }},{% endblocktrans %}{% else %}{% trans "Hallo," %}{% endif %}
+
+{% blocktrans with business=business %}{{ business }} hat Ihnen ein persönliches Angebot geschickt:{% endblocktrans %}
+
+{% for line in offer.lines.all %}{{ line.qty }}× {{ line.title }} — {{ line.line_total }} {{ offer.currency }}
+{% endfor %}{% trans "Gesamt" %}: {{ offer.total }} {{ offer.currency }}
+{% if offer.valid_until %}{% trans "Gültig bis" %}: {{ offer.valid_until|date:"d.m.Y" }}
+{% endif %}{% if offer.note %}
+{{ offer.note }}
+{% endif %}{% if offer_url %}
+{% trans "Angebot ansehen und annehmen" %}:
+{{ offer_url }}
+{% endif %}
