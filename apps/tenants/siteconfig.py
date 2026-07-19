@@ -161,7 +161,11 @@ def _clean_cblock_data(key: str, raw) -> dict:
             # UC6-6f: подсказка стиля скидки (каскад: акция главнее, см. PROMO_STYLE_HINTS).
             **({"style_hint": d["style_hint"]} if d.get("style_hint") in PROMO_STYLE_HINTS else {}),
         }
-    return {}  # spacer — без данных
+    if key == "spacer":
+        # ST-7a: высота отступа — только НЕ-дефолтные валидные значения
+        # ("" = py-6 как раньше → ключа нет, старые конфиги байт-в-байт).
+        return {"height": d["height"]} if d.get("height") in ("sm", "lg", "xl") else {}
+    return {}
 
 
 _DEVICES = ("mobile", "tablet", "desktop")
@@ -409,6 +413,13 @@ CBLOCK_VARIANTS = {
             "label": "Countdown zentriert, ohne Badge",
             "data": {"style_hint": "countdown", "align": "center", "badge_pos": "none"},
         },
+    ],
+    # ST-7a: отступ — 4 высоты ("" = Standard py-6; height presence-minimal).
+    "spacer": [
+        {"key": "schmal", "label": "Schmal", "data": {"height": "sm"}},
+        {"key": "standard", "label": "Standard"},
+        {"key": "gross", "label": "Groß", "data": {"height": "lg"}},
+        {"key": "sehr_gross", "label": "Sehr groß", "data": {"height": "xl"}},
     ],
 }
 

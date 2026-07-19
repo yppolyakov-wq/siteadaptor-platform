@@ -547,3 +547,33 @@ def test_contact_styles_render():
         {"sections": [{"key": "contact", "enabled": True, "style": "compact"}]}
     )
     assert next(s for s in cfg["sections"] if s["key"] == "contact")["style"] == "compact"
+
+
+def test_spacer_height_variants():
+    """ST-7a: высота spacer — presence-minimal (дефолт = без ключа, py-6 как
+    раньше), варианты реестра проходят normalize, рендер ветвит по height."""
+    cfg = siteconfig.normalize(
+        {
+            "sections": [
+                {"key": "spacer", "id": "s1", "data": {"height": "xl"}},
+                {"key": "spacer", "id": "s2", "data": {}},
+                {"key": "spacer", "id": "s3", "data": {"height": "bogus"}},
+            ]
+        }
+    )
+    by_id = {s["id"]: s for s in cfg["sections"] if s["key"] == "spacer"}
+    assert by_id["s1"]["data"] == {"height": "xl"}
+    assert by_id["s2"]["data"] == {} and by_id["s3"]["data"] == {}  # мусор → дефолт
+
+    def render(height):
+        row = {"key": "spacer", "enabled": True, "data": ({"height": height} if height else {})}
+        return siteui.render_block(Context({"request": RequestFactory().get("/")}), row)
+
+    assert "py-6" in render("")  # дефолт байт-в-байт прежний
+    assert "py-2" in render("sm") and "py-12" in render("lg") and "py-20" in render("xl")
+
+    # варианты реестра: у spacer 4, каждый с key+label, insert-preset валиден
+    vs = siteconfig.CBLOCK_VARIANTS["spacer"]
+    assert len(vs) == 4 and len({v["key"] for v in vs}) == 4
+    preset = siteconfig.cblock_insert_preset("spacer", "sehr_gross")
+    assert preset["data"]["height"] == "xl"

@@ -1,2 +1,3 @@
-{# D.2 C-блок: вертикальный отступ (воздух). #}
-<div class="py-6" aria-hidden="true"></div>
+{% comment %}D.2 C-блок: вертикальный отступ (воздух). ST-7a: высота по
+block.height — "" = py-6 (как раньше) | sm py-2 | lg py-12 | xl py-20.{% endcomment %}
+<div class="{% if block.height == 'sm' %}py-2{% elif block.height == 'lg' %}py-12{% elif block.height == 'xl' %}py-20{% else %}py-6{% endif %}" aria-hidden="true"></div>

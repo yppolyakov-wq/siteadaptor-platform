@@ -1871,6 +1871,8 @@ def home_builder_view(request):
                             "shadow": bool((v.get("visual") or {}).get("shadow")),
                             "bg": (v.get("visual") or {}).get("background", ""),
                             "hint": (v.get("data") or {}).get("style_hint", ""),
+                            # ST-7a: высота spacer-варианта для миниатюры.
+                            "height": (v.get("data") or {}).get("height", ""),
                         }
                         for v in vs
                     ]
