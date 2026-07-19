@@ -774,8 +774,10 @@ def test_dashboard_shows_task_tiles_gated_by_module():
     )
     urls = {t["url_name"] for t in dash.dashboard_tiles(tenant)}
     assert {"catalog:category-list", "site-home", "payment-settings", "legal-docs"} <= urls
+    # ST-4a: на ХОУМЕ task-плитки заменены хабами+виджетами (builder dashboard_tiles
+    # остаётся; его гейты — выше). Рендер проверяем по новым хабам.
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
-    assert "Categories" in html and "Design homepage" in html and "Payment &amp; shipping" in html
+    assert "ic-orders" in html and "Einstellungen" in html
     # В Простом режиме у friseur (ARCHETYPE_SIMPLE_HIDDEN) catalog скрыт → нет плитки
     # Kategorien (тот же гейт simple_hidden_modules, что у сайдбара).
     simple_friseur = TenantFactory.build(
@@ -799,8 +801,12 @@ def test_dashboard_tile_badge_links_to_incomplete_step():
     onboarding.save_state(
         tenant, {"v": 2, "step": "company", "done": ["company"], "completed": False}
     )
-    html = core_views.dashboard(_req(tenant=tenant)).content.decode()
-    assert "Not set up" in html and "?step=offer" in html
+    # ST-4a: бейдж «Not set up» уехал с плиток (заменены хабами) — дозаполнение
+    # ведёт readiness-чек-лист и рельса мастера; сам механизм needs жив в builder.
+    from apps.core import dashboard as dash
+
+    needs = {t["step"]: t["needs"] for t in dash.dashboard_tiles(tenant)}
+    assert needs.get("offer") is True
 
 
 def test_dashboard_embeds_kanban_board_when_channel_active():
