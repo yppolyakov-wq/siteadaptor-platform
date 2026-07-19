@@ -26,6 +26,7 @@
 </form>
 
 {% if page.items %}
+{% if classic_ui %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
   {% for c in page.items %}
     <a href="{% url 'crm:customer-detail' c.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
@@ -41,6 +42,29 @@
     </a>
   {% endfor %}
 </div>
+{% else %}
+{% comment %}ST-5c: CRM-карточки — аватар-инициал, контакты, теги, LTV (батч из
+вьюхи; нет записей выручки → строка не показывается).{% endcomment %}
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+  {% for c in page.items %}
+    <a href="{% url 'crm:customer-detail' c.pk %}" class="bg-white rounded-2xl shadow-sm p-4 flex items-start gap-3 hover:ring-1 hover:ring-indigo-300">
+      <span class="w-10 h-10 rounded-full bg-indigo-600 text-white font-semibold shrink-0 flex items-center justify-center">{{ c|stringformat:"s"|slice:":1"|upper }}</span>
+      <span class="min-w-0 flex-1">
+        <span class="font-medium truncate block">{{ c }}</span>
+        <span class="text-xs text-gray-400 truncate block">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</span>
+        {% if c.ltv %}<span class="text-xs text-emerald-700 block mt-1">{{ c.ltv.total|floatformat:2 }} € · {{ c.ltv.n }}×</span>{% endif %}
+        {% if c.tags %}
+        <span class="flex flex-wrap items-center gap-1 mt-1.5">
+          {% for t in c.tags %}
+            <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">{{ t }}</span>
+          {% endfor %}
+        </span>
+        {% endif %}
+      </span>
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
 
 {% if page.has_more %}
 <div class="mt-6 text-center">

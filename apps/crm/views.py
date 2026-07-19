@@ -39,10 +39,29 @@ def _filtered_customers(request):
 def customer_list(request):
     customers, query = _filtered_customers(request)
     page = paginate(customers, order_field="created_at", limit=25, cursor=request.GET.get("cursor"))
+    # ST-5c: карточный грид (classic_ui → прежний список). LTV — ОДНИМ батч-
+    # запросом на страницу (25), не per-row (агрегация RevenueEntry как в
+    # customer360.kpis, но values+annotate по customer__in).
+    from apps.core import modules
+
+    classic = modules.classic_ui(getattr(request, "tenant", None))
+    if not classic and page.items:
+        from django.db.models import Count, Sum
+
+        from apps.finance.models import RevenueEntry
+
+        ltv = {
+            row["customer"]: row
+            for row in RevenueEntry.objects.filter(customer__in=[c.pk for c in page.items])
+            .values("customer")
+            .annotate(total=Sum("amount"), n=Count("id"))
+        }
+        for c in page.items:
+            c.ltv = ltv.get(c.pk)
     return render(
         request,
         "crm/customer_list.html",
-        {"nav": "crm", "page": page, "query": query},
+        {"nav": "crm", "page": page, "query": query, "classic_ui": classic},
     )
 
 
