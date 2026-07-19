@@ -857,12 +857,18 @@ def normalize_site_defaults(raw) -> dict:
     всем сеткам витрины, если у секции/страницы нет своего visual-override. Дефолты
     0/false/"" = текущее поведение (без регрессии для legacy-конфигов)."""
     sd = raw if isinstance(raw, dict) else {}
-    return {
+    out = {
         "card_radius": _clean_radius(sd.get("card_radius")),
         "card_shadow": bool(sd.get("card_shadow", False)),
         "card_bg": _clean_bg(sd.get("card_bg")),
         "card_padding": _clean_padding(sd.get("card_padding")),
     }
+    # ST-7c: ФОРМА карточки (архетипный вид: overlay — текст поверх фото,
+    # compact — узкая строка). Ключ ТОЛЬКО при валидном не-дефолте ("" =
+    # текущая форма → golden целы).
+    if sd.get("card_style") in ("overlay", "compact"):
+        out["card_style"] = sd["card_style"]
+    return out
 
 
 def effective_card_visual(config, key) -> dict:
