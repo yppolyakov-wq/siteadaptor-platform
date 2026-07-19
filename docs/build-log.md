@@ -5983,3 +5983,28 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Тесты: test_marketing_home (5) + test_promotion_share (4: идемпотентность
   веера, гейт non-active, рендер, кнопка списка); смежные (st4_home/hub_tabs/
   classic/fsm/publishing/campaigns 100+) зелёные. i18n: 28 msgid → 4 .po.
+
+## 2026-07-19 — ST-7 «Блоки: 10 видов» — 7a+7b+7c-фундамент (этап D3 ТЗ; БЕЗ миграций)
+
+- Разведка (Explore): «10 видов на блок» УЖЕ закрыт волной UC6-8 (все 5 наполняемых
+  типов ≥10, замки зелёные — ТЗ-пункт писался раньше). Честный остаток: spacer,
+  стили простых секций, ось формы карточки. План
+  `docs/st7-block-variants-plan-2026-07-19.md`.
+- **ST-7a spacer:** `data.height` ∈ {sm,lg,xl} presence-minimal ("" = py-6 как
+  раньше), рендер py-2/6/12/20, CBLOCK_VARIANTS["spacer"] = 4 варианта (инсертер
+  подхватывает сам), миниатюра-полоса в variantThumb. Адверсариальный
+  normalize-замок покрывает новые варианты автоматически.
+- **ST-7b стили секций:** SECTION_STYLES += cta(cards/minimal/left) ·
+  about(plain/accent/single) · usp_bar(plain/cards/compact) ·
+  reviews(quotes/list/single) — ВСЕ лейблы реюзятся (0 новых msgid); ветки в
+  партиалах, "" = прежний вид байт-в-байт (замки); селект билдера/валидация
+  генерические. +2 рендер-теста (cta/about/usp_bar data-driven + reviews с
+  BusinessReview).
+- **ST-7c фундамент:** `site_defaults.card_style` ∈ {overlay, compact}
+  presence-minimal в normalize_site_defaults (golden+looks целы). **Остаток
+  7c** (ветки `_product_card`/`_sellable_card` + селект билдера + draft-канал)
+  — отдельным инкрементом С ХАРАКТЕРИЗАЦИОННЫМИ замками ДО правок (шаблоны
+  переплетены с inline-edit/quick-add — резать без замков нельзя; прецедент
+  UC2-4: рефактор свежей сессией).
+- Урок (повтор!): многострочный `{# #}` в новом шаблоне снова словил замок
+  template_comments — гейт включён в каждый батч с шаблонами.

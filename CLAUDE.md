@@ -807,6 +807,19 @@ Python 3.12, менеджер uv.
   Тесты 5+4, смежные зелёные; 28 msgid → 4 .po. Остаток этапа D: **D3 · ST-7**
   (10 видов блоков — наполнение реестров) → D4 FD-3 → D5 FD-4; ST-4b и
   «продано N» — ждут владельца.
+- **Самое свежее (2026-07-19, ночь, продолжение 3): ST-7 — 7a+7b+7c-фундамент ✅
+  (этап D3 ТЗ; БЕЗ миграций).** План `docs/st7-block-variants-plan-2026-07-19.md`.
+  Разведка: «10 видов на блок» УЖЕ закрыт UC6-8 (5 типов ≥10). Дозакрыто: **7a**
+  spacer 4 высоты (data.height presence-minimal, "" = py-6; миниатюра в
+  variantThumb) · **7b** SECTION_STYLES += cta/about/usp_bar/reviews по 4 вида
+  (лейблы реюзятся, 0 msgid; "" = байт-в-байт прежний вид) · **7c-фундамент**
+  `site_defaults.card_style` (overlay|compact, presence-minimal; golden+looks
+  целы). **ОСТАТОК 7c:** ветки `_product_card`/`_sellable_card` + селект билдера
+  + draft-канал — отдельным инкрементом С характеризационными замками ДО правок
+  (шаблоны переплетены с inline-edit/quick-add). Урок-повтор: template_comments
+  снова словил многострочный `{# #}` — гейт в каждом шаблонном батче.
+  Дальше этапа D: **D4 · FD-3 полный редактор Finder** → D5 FD-4; ST-4b и
+  «продано N» — ждут владельца.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
