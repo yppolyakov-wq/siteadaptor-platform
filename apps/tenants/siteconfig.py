@@ -1020,6 +1020,7 @@ def page_section_labels(page_type: str) -> dict:
 SECTION_ICONS = {
     "hero": "🖼",
     "usp_bar": "✨",
+    "finder": "🧭",  # FD-2: CTA «вопросы → 3 предложения»
     "stay_search": "🔎",
     "stay_rooms": "🛏️",
     "services": "🛠️",
