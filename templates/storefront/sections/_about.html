@@ -1,7 +1,21 @@
-{% load i18n %}{# Секция «о нас» (Track C2): текст из site_config. #}
+{% load i18n %}{% comment %}Секция «о нас» (Track C2): текст из site_config.
+ST-7b: стили — "" белая карточка | plain — без карточки | accent — карточка с
+акцент-рамкой слева | single — узкая колонка по центру.{% endcomment %}
 {% if site.about_title or site.about_text %}
-<section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
+{% if section_row.style == "plain" %}
+<section data-reveal class="mb-10 p-1 md:p-2">
   <h2 class="text-xl md:text-2xl font-bold mb-3" data-edit="about_title">{% if site.about_title %}{{ site.about_title }}{% else %}{% trans "About us" %}{% endif %}</h2>
   <p class="text-gray-600 whitespace-pre-line" data-edit="about_text">{{ site.about_text }}</p>
 </section>
+{% elif section_row.style == "single" %}
+<section data-reveal class="mb-10 max-w-2xl mx-auto text-center p-4">
+  <h2 class="text-xl md:text-2xl font-bold mb-3" data-edit="about_title">{% if site.about_title %}{{ site.about_title }}{% else %}{% trans "About us" %}{% endif %}</h2>
+  <p class="text-gray-600 whitespace-pre-line" data-edit="about_text">{{ site.about_text }}</p>
+</section>
+{% else %}
+<section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8"{% if section_row.style == "accent" %} style="border-left:4px solid var(--accent);"{% endif %}>
+  <h2 class="text-xl md:text-2xl font-bold mb-3" data-edit="about_title">{% if site.about_title %}{{ site.about_title }}{% else %}{% trans "About us" %}{% endif %}</h2>
+  <p class="text-gray-600 whitespace-pre-line" data-edit="about_text">{{ site.about_text }}</p>
+</section>
+{% endif %}
 {% endif %}

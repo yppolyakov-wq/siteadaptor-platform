@@ -1,5 +1,6 @@
 """Спринт D.2: C-блоки (повторяемые «кубики») — нормализация + рендер."""
 
+import pytest
 from django.template import Context
 from django.test import RequestFactory
 
@@ -577,3 +578,69 @@ def test_spacer_height_variants():
     assert len(vs) == 4 and len({v["key"] for v in vs}) == 4
     preset = siteconfig.cblock_insert_preset("spacer", "sehr_gross")
     assert preset["data"]["height"] == "xl"
+
+
+def test_cta_about_usp_styles_render():
+    """ST-7b: стили простых секций cta/about/usp_bar; "" = прежний вид."""
+    site = {
+        "cta": {"title": "Jetzt buchen", "text": "", "button_label": "Los", "button_url": "/x"},
+        "about_title": "Über uns",
+        "about_text": "Wir sind da.",
+        "usp_bar": [{"icon": "truck", "label": "Versand"}],
+    }
+
+    def render(key, style):
+        row = {"key": key, "enabled": True}
+        if style:
+            row["style"] = style
+        ctx = Context({"request": RequestFactory().get("/"), "site": site})
+        return siteui.render_block(ctx, row)
+
+    std = render("cta", "")  # "" = акцент-band по центру (как раньше)
+    assert 'style="background: var(--accent);"' in std and "text-center text-white" in std
+    assert "text-left" in render("cta", "left")
+    cards = render("cta", "cards")
+    assert "bg-white rounded-2xl" in cards and "hover:opacity-90" in cards
+    minimal = render("cta", "minimal")
+    assert "shadow-sm" not in minimal and "hover:underline" in minimal
+
+    a_std = render("about", "")
+    assert "bg-white rounded-2xl shadow-sm" in a_std and "border-left" not in a_std
+    assert "border-left:4px solid var(--accent)" in render("about", "accent")
+    assert "bg-white" not in render("about", "plain")
+    assert "max-w-2xl mx-auto text-center" in render("about", "single")
+
+    assert "bg-white rounded-2xl shadow-sm" in render("usp_bar", "")
+    assert "bg-white rounded-2xl shadow-sm" not in render("usp_bar", "plain")
+    assert "border border-gray-200 rounded-xl" in render("usp_bar", "cards")
+    assert "text-xs text-gray-500" in render("usp_bar", "compact")
+
+    cfg = siteconfig.normalize({"sections": [{"key": "cta", "enabled": True, "style": "cards"}]})
+    assert next(s for s in cfg["sections"] if s["key"] == "cta")["style"] == "cards"
+
+
+@pytest.mark.django_db
+def test_reviews_section_styles_render():
+    """ST-7b: стили секции отзывов (BusinessReview SHARED по schema_name)."""
+    import uuid as _uuid
+
+    from django.db import connection
+
+    from apps.aggregator.models import BusinessReview, PortalUser
+
+    u = PortalUser.objects.create(email=f"{_uuid.uuid4().hex}@k.test")
+    BusinessReview.objects.create(
+        tenant_schema=connection.schema_name, tenant_slug="x", author=u, rating=5, comment="Top!"
+    )
+
+    def render(style):
+        row = {"key": "reviews", "enabled": True}
+        if style:
+            row["style"] = style
+        ctx = Context({"request": RequestFactory().get("/"), "site": {}})
+        return siteui.render_block(ctx, row)
+
+    assert "Top!" in render("")
+    assert "space-y-8 max-w-2xl" in render("quotes")
+    assert "divide-y divide-gray-200" in render("list")
+    assert "space-y-4 max-w-2xl" in render("single")

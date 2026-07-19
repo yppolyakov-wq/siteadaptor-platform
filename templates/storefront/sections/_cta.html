@@ -1,10 +1,31 @@
-{% load i18n %}{# Секция CTA (M20 ⑤a): заголовок + кнопка-ссылка. Акцентный фон. #}
+{% load i18n %}{% comment %}Секция CTA (M20 ⑤a): заголовок + кнопка-ссылка.
+ST-7b: стили по section_row.style — "" акцент-band по центру | left — band с
+левым выравниванием | cards — белая карточка с акцент-кнопкой | minimal — без
+хрома, только текст и кнопка-ссылка.{% endcomment %}
 {% if site.cta.title or site.cta.button_label %}
-<section data-reveal class="mb-10 rounded-2xl shadow-sm p-6 md:p-10 text-center text-white" style="background: var(--accent);">
+{% if section_row.style == "cards" %}
+<section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-10 text-center">
+  {% if site.cta.title %}<h2 class="text-xl md:text-2xl font-bold mb-2" data-edit="cta.title">{{ site.cta.title }}</h2>{% endif %}
+  {% if site.cta.text %}<p class="text-gray-600 mb-5 whitespace-pre-line" data-edit="cta.text">{{ site.cta.text }}</p>{% endif %}
+  {% if site.cta.button_label and site.cta.button_url %}
+    <a href="{{ site.cta.button_url }}" class="inline-block text-white font-semibold rounded-lg px-5 py-2.5 hover:opacity-90" style="background: var(--accent);">{{ site.cta.button_label }}</a>
+  {% endif %}
+</section>
+{% elif section_row.style == "minimal" %}
+<section data-reveal class="mb-10 p-4 md:p-6 text-center">
+  {% if site.cta.title %}<h2 class="text-xl md:text-2xl font-bold mb-2" data-edit="cta.title">{{ site.cta.title }}</h2>{% endif %}
+  {% if site.cta.text %}<p class="text-gray-600 mb-4 whitespace-pre-line" data-edit="cta.text">{{ site.cta.text }}</p>{% endif %}
+  {% if site.cta.button_label and site.cta.button_url %}
+    <a href="{{ site.cta.button_url }}" class="font-semibold hover:underline" style="color: var(--accent);">{{ site.cta.button_label }} →</a>
+  {% endif %}
+</section>
+{% else %}
+<section data-reveal class="mb-10 rounded-2xl shadow-sm p-6 md:p-10 {% if section_row.style == "left" %}text-left{% else %}text-center{% endif %} text-white" style="background: var(--accent);">
   {% if site.cta.title %}<h2 class="text-xl md:text-2xl font-bold mb-2" data-edit="cta.title">{{ site.cta.title }}</h2>{% endif %}
   {% if site.cta.text %}<p class="opacity-90 mb-5 whitespace-pre-line" data-edit="cta.text">{{ site.cta.text }}</p>{% endif %}
   {% if site.cta.button_label and site.cta.button_url %}
     <a href="{{ site.cta.button_url }}" class="inline-block bg-white/95 text-gray-900 font-semibold rounded-lg px-5 py-2.5 hover:bg-white">{{ site.cta.button_label }}</a>
   {% endif %}
 </section>
+{% endif %}
 {% endif %}

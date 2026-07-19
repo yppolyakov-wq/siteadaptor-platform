@@ -1650,6 +1650,11 @@ SECTION_STYLES = {
     "trust": ("left", "badges", "plain", "cards"),  # "" = карточка по центру
     # ST-2: контакт-секция — 4 вида ("" = карточка 2 колонки + карта снизу).
     "contact": ("split", "map_first", "compact"),
+    # ST-7b: стили простых секций — ключи-лейблы реюзятся из реестра выше.
+    "cta": ("cards", "minimal", "left"),  # "" = акцент-band по центру
+    "about": ("plain", "accent", "single"),  # "" = белая карточка
+    "usp_bar": ("plain", "cards", "compact"),  # "" = карточка-полоса
+    "reviews": ("quotes", "list", "single"),  # "" = сетка карточек
 }
 # Лейблы вариантов для селекта билдера (DE — как прочий канва-контент).
 SECTION_STYLE_LABELS = {
