@@ -244,3 +244,41 @@ def test_cabinet_page_renders_tree_preview():
     html = core_views.finder_settings(_cab_req(tenant=tenant)).content.decode()
     assert 'name="enabled"' in html
     assert "Was suchst du?" in html  # превью пресета пекарни
+
+
+# --- FD-2: секция-CTA на главной (опция) ------------------------------------------
+
+
+def _home_html(tenant, preview=False):
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+
+    request = RequestFactory().get("/", {"preview": "1"} if preview else {})
+    request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+    request.tenant = tenant
+    return public_views.storefront_home(request).content.decode()
+
+
+def _enable_home_section(cfg):
+    """Конфиг с включённой секцией finder на главной."""
+    cfg = dict(cfg or {})
+    cfg["sections"] = [{"key": "finder", "enabled": True}, {"key": "hero", "enabled": True}]
+    return cfg
+
+
+def test_home_section_renders_first_question_chips():
+    tenant = _bakery(site_config=_enable_home_section({"finder": {"enabled": True}}))
+    _product("Schokotorte", "24.00")
+    html = _home_html(tenant)
+    assert 'id="finder"' in html  # якорь секции
+    assert "?a=anlass.geburtstag" in html  # чип первого вопроса ведёт сразу на шаг 2
+    assert "Alle Fragen" in html
+
+
+def test_home_section_empty_when_finder_disabled():
+    """Секция включена в билдере, но Finder выключен → на публичной главной пусто."""
+    tenant = _bakery(site_config=_enable_home_section({}))
+    html = _home_html(tenant)
+    assert "?a=anlass." not in html
+    assert "Finder ist ausgeschaltet" not in html  # подсказка — только в превью

@@ -14,6 +14,7 @@ register = template.Library()
 BLOCK_TEMPLATES = {
     "hero": "storefront/sections/_hero.html",
     "usp_bar": "storefront/sections/_usp_bar.html",
+    "finder": "storefront/sections/_finder.html",  # FD-2: CTA «вопросы → 3 предложения»
     "stay_search": "storefront/sections/_stay_search.html",
     "stay_rooms": "storefront/sections/_stay_rooms.html",
     "services": "storefront/sections/_services.html",
@@ -36,6 +37,7 @@ BLOCK_TEMPLATES = {
 }
 # Якорь-id обёртки секции (scroll-mt-24) — пункты меню типа «anchor» ведут на #id.
 _BLOCK_ANCHOR_ID = {
+    "finder": "finder",
     "stay_search": "buchen",
     "stay_rooms": "zimmer",
     "services": "leistungen",
@@ -125,6 +127,24 @@ def page_blocks(context, page_key):
         request=request,
     )
     return mark_safe(html)
+
+
+@register.simple_tag(takes_context=True)
+def finder_home(context):
+    """FD-2: данные секции Finder главной — {enabled, question(первый вопрос)}.
+
+    Секция — ОПЦИЯ: рендер только при включённом Finder (apps.core.finder.enabled);
+    выключен → партиал показывает подсказку ТОЛЬКО в превью билдера."""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return {"enabled": False}
+    from apps.core import finder as finder_mod
+
+    if not finder_mod.enabled(tenant):
+        return {"enabled": False}
+    tree = finder_mod.tree_for(tenant)
+    return {"enabled": True, "question": tree[0] if tree else None}
 
 
 @register.simple_tag(takes_context=True)

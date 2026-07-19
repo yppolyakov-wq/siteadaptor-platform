@@ -5641,3 +5641,18 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Тесты `apps/core/tests/test_classic_ui.py` (4): normalize-презервация, toggle on/off,
   классический дашборд без канбана, новый — с плитками. Смежные замки (dashboard/golden/
   nav) 23 зелёные; css без изменений.
+
+## 2026-07-18 — FD-2: секция-CTA Finder на главной (опция; ⚠️ голден-регенерация)
+
+- Реестр `SECTIONS` += `("finder", "Finder", False)` (после usp_bar; ВЫКЛ по умолчанию —
+  решение «опция») + `BLOCK_TEMPLATES`/якорь `#finder` (siteui) + тег `finder_home`
+  (данные: enabled + первый вопрос) + партиал `sections/_finder.html`: заголовок = первый
+  вопрос, чипы-ссылки уводят в /finder/ сразу на шаг 2, «Alle Fragen →»; Finder выключен →
+  на публичной витрине секция пуста, в превью билдера — подсказка «aktivieren unter
+  Marketing → Finder».
+- **ОСОЗНАННАЯ регенерация golden-эталонов** (процедура test_normalize_golden):
+  `normalize_sections` дописывает все известные секции → в 4 эталона добавилась
+  выключенная секция finder (диф проверен — только аддитивная запись, у rich_home также
+  в снимке page_templates). Обновлён порядок в test_siteconfig (finder после usp_bar).
+- Тесты +2 (чипы на главной при enabled+секции; пусто при выключенном Finder;
+  подсказка — только в превью) — 17 в test_finder.py; css пересобран (sm:p-8/sm:text-2xl).

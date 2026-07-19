@@ -57,6 +57,7 @@ def test_normalize_empty_gives_defaults():
     assert keys == [
         "hero",
         "usp_bar",
+        "finder",  # FD-2: CTA «вопросы → 3 предложения» (опция, выкл по умолчанию)
         "stay_search",
         "stay_rooms",
         "services",

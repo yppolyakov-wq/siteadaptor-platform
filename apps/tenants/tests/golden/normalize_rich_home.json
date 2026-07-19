@@ -200,6 +200,19 @@
      "enabled": false,
      "font": "",
      "hidden_on": [],
+     "key": "finder",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
      "key": "stay_search",
      "visual": {
       "background": "",
@@ -650,6 +663,19 @@
    "font": "",
    "hidden_on": [],
    "key": "usp_bar",
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "finder",
    "visual": {
     "background": "",
     "padding": 0,

@@ -1,0 +1,21 @@
+{% load i18n siteui %}
+{% comment %}FD-2: CTA-секция Finder на главной (ОПЦИЯ, выкл по умолчанию). Чипы =
+ПЕРВЫЙ вопрос дерева (клик уводит в /finder/ с уже сделанным ответом — покупатель
+сразу на шаге 2). Finder выключен → на публичной витрине пусто, в превью билдера —
+подсказка, где включить.{% endcomment %}
+{% finder_home as fh %}
+{% if fh.enabled and fh.question %}
+  <section class="mb-10 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8">
+    <h2 class="text-xl sm:text-2xl font-bold mb-1">{{ fh.question.label }}</h2>
+    <p class="text-sm text-gray-500 mb-4">{% trans "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor." %}</p>
+    <div class="flex flex-wrap gap-3">
+      {% for chip in fh.question.chips %}
+        <a href="{% url 'storefront-finder' %}?a={{ fh.question.key }}.{{ chip.key }}"
+           class="inline-block rounded-full border-2 border-gray-200 bg-white px-5 py-3 text-sm font-semibold hover:border-[var(--sf-accent,#4f46e5)] transition">{{ chip.label }}</a>
+      {% endfor %}
+      <a href="{% url 'storefront-finder' %}" class="inline-block px-2 py-3 text-sm font-medium text-[var(--sf-accent,#4f46e5)] hover:underline">{% trans "Alle Fragen" %} →</a>
+    </div>
+  </section>
+{% elif is_preview %}
+  <div class="mb-10 rounded-2xl border border-dashed border-gray-300 px-5 py-4 text-sm text-gray-400">{% trans "Finder ist ausgeschaltet — aktivieren unter Marketing → Finder." %}</div>
+{% endif %}
