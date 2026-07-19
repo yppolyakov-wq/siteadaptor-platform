@@ -866,9 +866,9 @@ def test_home_builder_saves_service_stay_detail_hidden():
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    # B3: в реестре booking появилась секция upsell — неприсланный чекбокс при
-    # sd_present честно скрывается presence-guard'ом, как любой другой.
-    assert siteconfig.detail_section_hidden(cfg, "booking") == {"reviews", "upsell"}
+    # B3/LS-1: в реестре booking появились секции upsell и video — неприсланный
+    # чекбокс при sd_present честно скрывается presence-guard'ом, как любой другой.
+    assert siteconfig.detail_section_hidden(cfg, "booking") == {"reviews", "upsell", "video"}
     assert siteconfig.detail_section_hidden(cfg, "stays") == {"similar"}
 
 
