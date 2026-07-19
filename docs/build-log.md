@@ -5758,3 +5758,24 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   снимает dark, чужие ключи/тексты владельца целы; 19 тестов + golden/sitetemplates/
   wizard/builder 204 зелёные. Остаток ST-1: **ST-1b галерея** (слайд stil → Look,
   область в билдере, stateless-превью `?look=`, lazy iframes) — план §2.
+
+## 2026-07-19 — ST-1b (часть 1): stateless-превью Look'ов + галерея на слайде мастера
+
+- **Оверлей `?preview=1&look=<family>`** в контекст-процессоре (context.py): пачка
+  ключей семейства (font/typography/site_defaults/nav.style/hero_style/theme +
+  архетипный акцент) накладывается ПОВЕРХ cfg только на рендер — НИЧЕГО не пишет
+  (N iframe галереи не делят единственный session-слот черновика; мусорный ключ →
+  без изменений). nav_style переопределяется и в top_meta-переменной.
+- **Слайд мастера `stil`**: 3 Look-карточки архетипа НАД легаси-галереей шаблонов —
+  живые мини-превью = scaled-iframe (25 %) СВОЕГО сайта `/?preview=1&look=…`, ленивая
+  загрузка IntersectionObserver (data-src), radio-развязка (выбор Vorlage снимает
+  Look). POST: `look` приоритетнее `template` → `apply_look`. **classic_ui → блока
+  Look'ов нет** (железное правило §8b), легаси-галерея как была.
+- Замки: оверлей stateless (конфиг не тронут, вне превью не действует), контекст
+  слайда (3 Look'а + classic-флаг), POST применяет семейство, рендер lazy-iframe /
+  скрытие в классике; test_looks 22 + golden/wizard/sitetemplates/w6 86 зелёные.
+- **Остаток ST-1b (следующей сессией): область Look в БИЛДЕРЕ site_home** — карточки
+  в рейке тем (клик → draft-канал `site_preview_draft` пачкой ключей — payload-сборщик
+  уже умеет font/typography/site_defaults/nav_style/accent/hero_style; Apply →
+  `apply_look`; Undo — стек билдера) + стенд-проверка Playwright «клик перекрашивает
+  канву без перезагрузки».

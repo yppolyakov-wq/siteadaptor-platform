@@ -7,6 +7,54 @@
 <p class="text-sm text-gray-500 mb-4">Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles später frei anpassbar.</p>
 <form method="post" class="space-y-2">
   {% csrf_token %}
+  {% if looks and not looks_classic %}
+  {% comment %}ST-1b: 3 Look'а АРХЕТИПА — живые мини-превью = scaled-iframe СВОЕГО
+  сайта под ?preview=1&look=<family> (stateless-оверлей, ничего не пишет). Ленивая
+  загрузка: src ставится IntersectionObserver'ом из data-src. classic_ui → блока
+  нет, работает только легаси-галерея ниже (железное правило §8b).{% endcomment %}
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" id="look-gallery">
+    {% for lk in looks %}
+      <label class="border border-gray-200 rounded-xl p-3 flex flex-col cursor-pointer bg-white hover:ring-1 hover:ring-indigo-300 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">
+        <span class="flex items-center gap-2 mb-1">
+          <input type="radio" name="look" value="{{ lk.key }}" class="border-gray-300">
+          <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ lk.accent }};"></span>
+          <span class="font-medium text-sm">{{ lk.label }}</span>
+          {% if lk.theme == 'dark' %}<span class="text-[11px] bg-gray-800 text-gray-100 rounded-full px-2 py-0.5">Dark</span>{% endif %}
+        </span>
+        <span class="block text-xs text-gray-500 mb-2">{{ lk.description }}</span>
+        <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50" style="height:150px" aria-hidden="true">
+          <iframe data-src="/?preview=1&look={{ lk.key }}" title="{{ lk.label }}" tabindex="-1" loading="lazy"
+                  style="width:400%;height:600px;transform:scale(.25);transform-origin:0 0;pointer-events:none;border:0"></iframe>
+        </span>
+      </label>
+    {% endfor %}
+  </div>
+  <script>
+    (function () {
+      var frames = document.querySelectorAll("#look-gallery iframe[data-src]");
+      if (!("IntersectionObserver" in window)) {
+        frames.forEach(function (f) { f.src = f.getAttribute("data-src"); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && !e.target.src) {
+            e.target.src = e.target.getAttribute("data-src");
+            io.unobserve(e.target);
+          }
+        });
+      }, { rootMargin: "100px" });
+      frames.forEach(function (f) { io.observe(f); });
+      // Выбор Layout-Vorlage снимает выбор Look'а (иначе look победил бы на POST).
+      document.querySelectorAll('input[name="template"]').forEach(function (r) {
+        r.addEventListener("change", function () {
+          document.querySelectorAll('input[name="look"]').forEach(function (l) { l.checked = false; });
+        });
+      });
+    })();
+  </script>
+  <p class="text-xs text-gray-400 mb-2">Oder eine Layout-Vorlage wählen:</p>
+  {% endif %}
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     {% for t in templates %}
       <label class="border border-gray-200 rounded-xl p-4 flex flex-col cursor-pointer bg-white hover:ring-1 hover:ring-indigo-300 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">

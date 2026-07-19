@@ -137,8 +137,12 @@ def _post_business(request):
 
 def _post_template(request):
     # B.2: выбор шаблона витрины (раскладка+тексты+акцент) одним кликом.
+    # ST-1b: выбор Look'а (семейство × архетип) — приоритетнее шаблона.
     from apps.tenants import sitetemplates
 
+    look = request.POST.get("look", "")
+    if look and sitetemplates.apply_look(request.tenant, look):
+        return
     sitetemplates.apply_template(request.tenant, request.POST.get("template", ""))
 
 
@@ -337,9 +341,16 @@ def _ctx_business(request):
 def _ctx_template(request):
     # AB6.2b: шаблоны витрины как визуальные карточки с мини-мокапом раскладки
     # (акцент + стек секций) — рекомендованные типу сверху; выбор одним кликом.
+    # ST-1b: + 3 Look'а архетипа (живые scaled-iframe ?preview=1&look=) — в новом
+    # виде; classic_ui показывает только легаси-галерею (железное правило §8b).
+    from apps.core import modules as modules_registry
     from apps.tenants import sitetemplates
 
-    return {"templates": sitetemplates.template_cards(request.tenant.business_type)}
+    return {
+        "templates": sitetemplates.template_cards(request.tenant.business_type),
+        "looks": sitetemplates.looks_for(request.tenant.business_type),
+        "looks_classic": modules_registry.classic_ui(request.tenant),
+    }
 
 
 def _ctx_hero(request):

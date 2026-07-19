@@ -138,6 +138,30 @@ def modules_nav(request):
         storefront_accent = _draft["_accent"]
     else:
         storefront_accent = tenant.primary_color or ""
+    # ST-1b: stateless-превью Look'а (?preview=1&look=<family>) — оверлей пачки
+    # ключей ПОВЕРХ cfg только на этот рендер, НИЧЕГО не пишет (N iframe галереи
+    # не делят единственный session-слот черновика).
+    if request.GET.get("preview") == "1" and request.GET.get("look"):
+        from apps.tenants import sitetemplates
+
+        _fam = sitetemplates.get_look_family(request.GET.get("look", ""))
+        if _fam is not None:
+            cfg = dict(cfg)
+            cfg["font"] = _fam["font"]
+            cfg["typography"] = siteconfig.normalize_typography(_fam["typography"])
+            cfg["site_defaults"] = siteconfig.normalize_site_defaults(_fam["site_defaults"])
+            _nav = dict(cfg.get("nav") or {})
+            _nav["style"] = _fam["nav_style"]
+            cfg["nav"] = _nav
+            nav_style = _fam["nav_style"]  # top_meta считан выше — переопределяем
+            cfg["hero_style"] = _fam["hero_style"]
+            if _fam["theme"] == "dark":
+                cfg["theme"] = "dark"
+            else:
+                cfg.pop("theme", None)
+            storefront_accent = sitetemplates.look_accent(
+                getattr(tenant, "business_type", ""), _fam["key"]
+            )
     font_body, font_head = siteconfig.font_stacks(cfg["font"])
     # ST-1: тёмный Look — дефолт темы сайта ("" | "dark", draft-aware для превью).
     storefront_theme_default = cfg.get("theme", "")
