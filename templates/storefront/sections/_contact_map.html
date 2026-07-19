@@ -1,6 +1,6 @@
-{# T1: встроенная карта Leaflet/OSM (без API-ключа), маркер на адресе бизнеса.
-   ST-2: вынесена из _contact.html — позиция/размер зависят от варианта секции
-   (map_class от вызывающего include); рендерится максимум один раз на страницу. #}
+{% comment %}T1: встроенная карта Leaflet/OSM (без API-ключа), маркер на адресе
+бизнеса. ST-2: вынесена из _contact.html — позиция/размер зависят от варианта
+секции (map_class от вызывающего include); рендерится максимум раз на страницу.{% endcomment %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <div id="sf-contact-map" class="{{ map_class|default:'w-full h-64 rounded-2xl overflow-hidden mt-6 relative z-0' }}"
      data-lat="{{ request.tenant.latitude|stringformat:'s' }}"

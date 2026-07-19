@@ -1,7 +1,8 @@
-{% load i18n %}{# Секция контактов (Track C2): адрес/часы/связь из настроек бизнеса.
-   ST-2: варианты по section_row.style — "" карточка, 2 колонки, карта снизу |
-   split: карта третьей колонкой | map_first: карта сверху | compact: плоская
-   строка без карточки и карты. Гейт заполненности остаётся снаружи вариантов. #}
+{% load i18n %}{% comment %}Секция контактов (Track C2): адрес/часы/связь из
+настроек бизнеса. ST-2: варианты по section_row.style — "" карточка, 2 колонки,
+карта снизу | split: карта третьей колонкой | map_first: карта сверху |
+compact: плоская строка без карточки и карты. Гейт заполненности — снаружи
+вариантов.{% endcomment %}
 {% if request.tenant.address or request.tenant.opening_hours or request.tenant.public_phone or request.tenant.public_email or request.tenant.open_status or request.tenant.latitude %}
 {% if section_row.style == "compact" %}
 <section data-reveal class="mb-10">
