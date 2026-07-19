@@ -152,3 +152,22 @@ def test_visibility_view_flips_and_redirects():
     assert resp.status_code == 302 and resp.url.endswith("/angebote/")
     unit.refresh_from_db()
     assert unit.is_active is False
+
+
+def test_view_renders_cards_by_default():
+    """ST-5a: без classic_ui — карточный грид (aspect-фото, card-партиал)."""
+    t = TenantFactory(enabled_modules=_ALL)
+    ProductFactory(base_price=Decimal("5.00"), name={"de": "Brot"})
+    body = sellable_manage(_req(tenant=t)).content.decode()
+    assert "grid grid-cols-2" in body and "aspect-video" in body
+    assert "divide-y divide-gray-100" not in body  # старый список скрыт
+    assert "sellable-visibility" in body or "Sichtbar" in body  # тумблер жив
+
+
+def test_view_classic_keeps_row_list():
+    """ST-5a: classic_ui=True — прежний divide-y список (Р7, легаси цел)."""
+    t = TenantFactory(enabled_modules=_ALL, site_config={"classic_ui": True})
+    ProductFactory(base_price=Decimal("5.00"), name={"de": "Brot"})
+    body = sellable_manage(_req(tenant=t)).content.decode()
+    assert "divide-y divide-gray-100" in body
+    assert "aspect-video" not in body

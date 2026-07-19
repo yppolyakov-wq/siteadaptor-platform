@@ -25,9 +25,16 @@
 
 {% for s in sections %}
   <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">{{ s.label }} <span class="text-gray-300">({{ s.count }})</span></h2>
+  {% if classic_ui %}
   <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
     {% for it in s.items %}{% include "tenant/_sellable_manage_row.html" with it=it %}{% endfor %}
   </div>
+  {% else %}
+  {% comment %}ST-5a: карточный грид с фото (image_url из контракта SellableEntity).{% endcomment %}
+  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+    {% for it in s.items %}{% include "tenant/_sellable_manage_card.html" with it=it %}{% endfor %}
+  </div>
+  {% endif %}
 {% empty %}
   <div class="text-center text-gray-400 py-16">
     <p class="text-4xl mb-2">📦</p>

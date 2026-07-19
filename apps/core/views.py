@@ -3226,6 +3226,7 @@ def sellable_manage(request):
     """FB-8: «Angebote» — один экран со всеми продаваемыми сущностями (товар/услуга/
     номер/событие/комбо): обзор + видимость + переход к РОДНОЙ форме. Единый CRUD НЕ
     делаем — родные формы остаются авторитетными."""
+    from apps.core import modules as modules_registry
     from apps.core import sellable_manage as sm
 
     tenant = request.tenant
@@ -3236,6 +3237,9 @@ def sellable_manage(request):
             "nav": "sellables",
             "sections": sm.sellable_manage_sections_for(tenant),
             "add_options": sm.add_options(tenant),
+            # ST-5a: карточный грид; classic_ui → прежний divide-y список (Р7).
+            # Во вьюхе (не processor) — как dashboard: работает и на public-схеме.
+            "classic_ui": modules_registry.classic_ui(tenant),
         },
     )
 

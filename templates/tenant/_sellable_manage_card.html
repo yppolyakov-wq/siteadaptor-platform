@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}ST-5a: карточка обзора продаваемой сущности (`it` = ManagedSellable) —
+фото 16:9 (фолбэк — эмодзи-плейсхолдер), имя/цена/статус, тот же тумблер
+видимости и «Bearbeiten», что у строки. classic_ui → _sellable_manage_row.{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+  <div class="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+    {% if it.image_url %}<img src="{{ it.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy">{% else %}<span class="text-4xl text-gray-300">🏷️</span>{% endif %}
+  </div>
+  <div class="p-3 flex-1 min-w-0">
+    <p class="font-medium truncate {% if not it.is_visible %}text-gray-400{% endif %}">{{ it.name|default:"—" }}</p>
+    <p class="text-xs text-gray-400 truncate">{{ it.price_display }}{% if it.status_label %} · {{ it.status_label }}{% endif %}</p>
+  </div>
+  <div class="px-3 pb-3 flex items-center justify-between gap-2">
+    {% if it.can_toggle %}
+      <form method="post" action="{% url 'sellable-visibility' it.kind it.pk %}">
+        {% csrf_token %}
+        <button type="submit" title="{% trans 'Sichtbarkeit umschalten' %}"
+          class="text-xs font-medium px-2.5 py-1 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800 hover:bg-emerald-200{% else %}bg-gray-100 text-gray-500 hover:bg-gray-200{% endif %}">
+          {% if it.is_visible %}✓ {% trans "Sichtbar" %}{% else %}{% trans "Versteckt" %}{% endif %}
+        </button>
+      </form>
+    {% elif it.status_label %}
+      <span class="text-xs font-medium px-2.5 py-1 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-500{% endif %}">{{ it.status_label }}</span>
+    {% else %}<span></span>{% endif %}
+    {% if it.edit_url %}<a href="{{ it.edit_url }}" class="text-sm text-indigo-600 hover:underline">{% trans "Bearbeiten" %}</a>{% endif %}
+  </div>
+</div>
