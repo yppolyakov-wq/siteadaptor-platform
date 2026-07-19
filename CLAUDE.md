@@ -732,6 +732,19 @@ Python 3.12, менеджер uv.
   `dashboard_tiles` остаётся). classic_ui — прежний вид (Р7, замок). **ST-4b (сайдбар
   5+Website, Sortiment/Kunden → Erweitert) — ЖДЁТ ЧЕКПОИНТА ВЛАДЕЛЬЦА** (план §2).
   Параллельно допустимо: план-док ST-3 (Studio-оболочка).
+- **Самое свежее (2026-07-19, продолжение): ST-3 «Studio-оболочка» ✅ ЦЕЛИКОМ — в `main`
+  `adce86d` (БЕЗ миграций) + план-док LS-6 готов.** План `docs/st3-studio-shell-plan-2026-07-19.md`;
+  вывод разведки: полноэкранный хром УЖЕ был (SE-6 оверлей, правый инспектор, тулбар UC6-10,
+  двойная буферизация, Look ST-1b) → ST-3 = переупаковка: **ST-3a** рейка уровней `#st-rail`
+  (Look/Seiten/Blöcke/Medien — обёртки над showArea/инсертером/медиа; SVG +ic-pages/ic-media;
+  брендинг «Studio» в топ-баре) · **ST-3b** page-лента `#st-pages` снизу (чипы preview_pages,
+  актив по `#bld-page-path`, клик = `?page=`) · **ST-3c** кросс-фейд свопа канвы (opacity
+  180мс поверх двойной буферизации, hardReload-страховка цела). Всё под classic_ui-гейтом
+  (Р7, замок); существующие id целы (104 замка home_builder). Desktop-first (мобайл — прежние
+  кнопки тулбара, ограничение v1). Урок: context-processor modules_nav → {} при
+  schema_name="public" — тесты кабинетного хрома создают тенанта с обычной схемой.
+  **План LS-6 «Прямая линия» — `docs/ls6-direct-line-plan-2026-07-19.md`** (следующий
+  незаблокированный пункт очереди). ST-4b (сайдбар) — ждёт владельца; далее B4 ST-2.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
