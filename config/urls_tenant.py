@@ -267,6 +267,9 @@ urlpatterns = [
     path("bestellung/<str:code>/", orders_public.order_confirmation, name="storefront-order"),
     # B2.1: повторная Stripe-оплата неоплаченного заказа (Checkout на лету).
     path("bestellung/<str:code>/bezahlen/", orders_public.order_pay, name="storefront-order-pay"),
+    # LS-3: персональное предложение из чата (Sofort-Angebot) — короткий
+    # префикс /o/ (хаус-стиль /r/ /t/ /s/; /angebot/ занят сметой jobs).
+    path("o/<uuid:token>/", orders_public.offer_page, name="storefront-offer"),
     # Запись по времени (Track D / D3b): ресурс → день → слот → форма.
     path("termin/", booking_public.termin_index, name="storefront-termin"),
     path("termin/<uuid:pk>/", booking_public.termin_slots, name="storefront-termin-slots"),

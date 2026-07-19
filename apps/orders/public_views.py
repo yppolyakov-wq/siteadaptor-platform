@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 from apps.core import ratelimit
 
 from . import payments as order_payments
-from .models import Order
+from .models import Offer, Order
 from .services import EmptyOrder, OutOfStock, create_order, delivery_quote
 
 CART_SESSION_KEY = "cart"
@@ -662,3 +662,102 @@ def order_confirmation(request, code):
             "telegram_link": deep_link(order.customer),
         },
     )
+
+
+def offer_page(request, token):
+    """LS-3: публичная страница персонального предложения /o/<token>/.
+
+    БЕЗ модульного гейта (Sofort-Angebot работает у любого архетипа) — поэтому
+    страница сама служит подтверждением после принятия: success/cancel Stripe и
+    Vorkasse-реквизиты живут здесь, ссылка на /bestellung/ — только при активном
+    модуле orders. Принятие создаёт обычный Order (offers.accept_offer) и уходит
+    в существующую маршрутизацию оплаты (E7-2).
+    """
+    from . import offers as offer_service
+
+    offer = get_object_or_404(
+        Offer.objects.select_related("order").prefetch_related("lines"), token=token
+    )
+    tenant = getattr(request, "tenant", None)
+    methods = order_payments.available_methods(tenant)
+
+    if request.method == "POST":
+        if ratelimit.hit("offer", ratelimit.client_ip(request), limit=20, window=RL_WINDOW):
+            return HttpResponse(status=429)
+        action = request.POST.get("action", "")
+        if action == "decline" and offer.is_open:
+            offer_service.decline_offer(offer)
+            return redirect("storefront-offer", token=token)
+        if action == "accept" and offer.is_open:
+            chosen = request.POST.get("payment") or methods[0]
+            if chosen not in methods:
+                chosen = methods[0]
+            try:
+                order = offer_service.accept_offer(
+                    offer,
+                    name=request.POST.get("name", "").strip()[:200],
+                    email=request.POST.get("email", "").strip(),
+                    phone=request.POST.get("phone", "").strip()[:50],
+                    payment_method=chosen,
+                )
+            except offer_service.OfferUnavailable:
+                return redirect("storefront-offer", token=token)
+            except OutOfStock as exc:
+                messages.error(
+                    request,
+                    _("Sorry, “%(item)s” is no longer available in this quantity.")
+                    % {"item": exc.title},
+                )
+                return redirect("storefront-offer", token=token)
+            if chosen == Order.METHOD_STRIPE and order.total > 0:
+                return _offer_stripe_redirect(request, offer, order, tenant)
+            if chosen == Order.METHOD_STRIPE:  # total == 0 — платить нечего
+                order.payment_method = Order.METHOD_ON_SITE
+                order.save(update_fields=["payment_method", "updated_at"])
+            return redirect("storefront-offer", token=token)
+        if action == "pay" and offer.order is not None:
+            # Повторная онлайн-оплата (клиент отменил Checkout) — зеркало
+            # order_pay без orders-гейта (страница предложения без модуля жива).
+            order = offer.order
+            payable = (
+                order.payment_method == Order.METHOD_STRIPE
+                and order.payment_state == Order.PAYMENT_UNPAID
+                and order.status == Order.STATUS_NEW
+                and order.total > 0
+            )
+            if payable:
+                return _offer_stripe_redirect(request, offer, order, tenant)
+        return redirect("storefront-offer", token=token)
+
+    labels = dict(Order.PAYMENT_METHODS)
+    orders_active = tenant is not None and tenant.is_module_active("orders")
+    return render(
+        request,
+        "storefront/offer.html",
+        {
+            "offer": offer,
+            "lines": list(offer.lines.all()),
+            "just_paid": request.GET.get("paid") == "1",
+            "order_link": offer.order is not None and orders_active,
+            # Пикер способа — только при >1 (паритет-семантика E7-2 checkout).
+            "payment_methods": [{"code": m, "label": labels[m]} for m in methods]
+            if len(methods) > 1
+            else [],
+        },
+    )
+
+
+def _offer_stripe_redirect(request, offer, order, tenant):
+    """Stripe Checkout для заказа-из-предложения; success/cancel — сама страница
+    /o/<token>/. Сбой Stripe → заказ остаётся, оплата при получении (как E7-2)."""
+    self_url = request.build_absolute_uri(reverse("storefront-offer", args=[offer.token]))
+    try:
+        return redirect(
+            order_payments.order_checkout_url(
+                order, tenant, success_url=self_url + "?paid=1", cancel_url=self_url
+            )
+        )
+    except stripe.error.StripeError:
+        order.payment_method = Order.METHOD_ON_SITE
+        order.save(update_fields=["payment_method", "updated_at"])
+        return redirect("storefront-offer", token=offer.token)

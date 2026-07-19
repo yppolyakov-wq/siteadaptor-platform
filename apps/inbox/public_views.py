@@ -87,7 +87,12 @@ def thread(request, token):
     return render(
         request,
         "storefront/message_thread.html",
-        {"conversation": conversation, "messages_list": conversation.messages.all()},
+        {
+            "conversation": conversation,
+            "messages_list": conversation.messages.all(),
+            # LS-3: карточки персональных предложений (reverse-FK orders.Offer).
+            "offers_list": conversation.offers.prefetch_related("lines"),
+        },
     )
 
 

@@ -1,0 +1,104 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}{% load siteui %}
+{% block title %}{% trans "Ihr Angebot" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-1">
+      <h1 class="text-2xl font-bold">{% trans "Ihr persönliches Angebot" %}</h1>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full
+        {% if offer.status == 'accepted' %}bg-green-100 text-green-800
+        {% elif offer.is_open %}bg-blue-100 text-blue-800
+        {% else %}bg-gray-100 text-gray-600{% endif %}">
+        {% if offer.status == 'open' and offer.is_expired %}{% trans "Abgelaufen" %}{% elif offer.status == 'open' %}{% trans "Offen" %}{% elif offer.status == 'accepted' %}{% trans "Angenommen" %}{% elif offer.status == 'declined' %}{% trans "Abgelehnt" %}{% else %}{% trans "Zurückgezogen" %}{% endif %}
+      </span>
+    </div>
+    <p class="text-sm text-gray-500">{{ request.tenant.name }}</p>
+    {% if offer.valid_until %}<p class="text-sm text-gray-400">{% blocktrans with d=offer.valid_until|date:"d.m.Y" %}Gültig bis {{ d }}{% endblocktrans %}</p>{% endif %}
+    {% if offer.note %}<p class="text-gray-700 bg-gray-50 rounded-lg px-3 py-2 mt-3 whitespace-pre-line">{{ offer.note }}</p>{% endif %}
+
+    <table class="w-full text-sm mt-4 mb-4">
+      <thead class="text-gray-400 text-left border-b border-gray-100">
+        <tr><th class="py-1">{% trans "Position" %}</th><th class="py-1 text-right">{% trans "Menge" %}</th><th class="py-1 text-right">{% trans "Preis" %}</th></tr>
+      </thead>
+      <tbody>
+        {% for ln in lines %}
+          <tr class="border-b border-gray-50"><td class="py-1.5">{{ ln.title }}</td><td class="py-1.5 text-right">{{ ln.qty }}</td><td class="py-1.5 text-right">{{ ln.line_total|floatformat:2 }} {{ offer.currency|cursym }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-lg font-bold text-right text-gray-900">{% trans "Gesamt" %}: {{ offer.total|floatformat:2 }} {{ offer.currency|cursym }}</p>
+    <p class="text-xs text-right text-gray-400">{% trans "inkl. MwSt." %}</p>
+
+    {% if offer.is_open %}
+      {# Принятие без логина: имя/email (префилл из снимка), опц. пикер оплаты. #}
+      <form method="post" class="mt-6 space-y-3">{% csrf_token %}
+        <input type="hidden" name="action" value="accept">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="of-name">{% trans "Name" %}</label>
+            <input id="of-name" name="name" type="text" required value="{{ offer.customer_name }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="of-email">{% trans "E-Mail" %}</label>
+            <input id="of-email" name="email" type="email" required value="{{ offer.customer_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+        </div>
+        {% if payment_methods %}
+          <div>
+            <p class="text-sm font-medium mb-1">{% trans "Wie möchten Sie bezahlen?" %}</p>
+            <div class="grid gap-2">
+              {% for m in payment_methods %}
+                <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2 cursor-pointer"><input type="radio" name="payment" value="{{ m.code }}" {% if forloop.first %}checked{% endif %}> {{ m.label }}</label>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        <button class="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-green-700">{% trans "Annehmen & bezahlen" %}</button>
+      </form>
+      <form method="post" class="mt-3 text-center">{% csrf_token %}
+        <input type="hidden" name="action" value="decline">
+        <button class="text-sm text-gray-500 hover:text-red-600 underline">{% trans "Ablehnen" %}</button>
+      </form>
+
+    {% elif offer.status == 'accepted' %}
+      <div class="mt-6 space-y-3">
+        <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Sie haben das Angebot angenommen — vielen Dank!" %}{% if offer.order %} {% trans "Bestellnummer" %}: <span class="font-mono font-medium">{{ offer.order.reference_code }}</span>{% endif %}</p>
+        {% if just_paid %}
+          <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Zahlung eingegangen — wir melden uns in Kürze." %}</p>
+        {% elif offer.order.payment_method == 'vorkasse' %}
+          <div class="text-sm text-sky-900 bg-sky-50 rounded-lg px-3 py-2 space-y-0.5">
+            <p class="font-medium">{% trans "Bitte überweisen Sie den Betrag im Voraus:" %}</p>
+            {% if request.tenant.bank_holder %}<p>Kontoinhaber: {{ request.tenant.bank_holder }}</p>{% endif %}
+            <p>IBAN: <span class="font-mono">{{ request.tenant.bank_iban }}</span></p>
+            {% if request.tenant.bank_bic %}<p>BIC: <span class="font-mono">{{ request.tenant.bank_bic }}</span></p>{% endif %}
+            <p>{% trans "Verwendungszweck" %}: <span class="font-mono font-medium">{{ offer.order.reference_code }}</span></p>
+            <p>{% trans "Betrag" %}: <span class="font-medium">{{ offer.order.total }} {{ offer.order.currency|cursym }}</span></p>
+          </div>
+        {% elif offer.order.payment_method == 'stripe' and offer.order.payment_state == 'unpaid' and offer.order.status == 'new' %}
+          <form method="post">{% csrf_token %}
+            <input type="hidden" name="action" value="pay">
+            <button class="inline-block text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);">{% trans "Jetzt bezahlen" %}</button>
+          </form>
+        {% endif %}
+        {% if order_link %}
+          <p class="text-sm"><a href="{% url 'storefront-order' offer.order.reference_code %}" class="text-gray-500 hover:underline">{% trans "Zur Bestellung" %} →</a></p>
+        {% endif %}
+      </div>
+    {% elif offer.status == 'declined' %}
+      <p class="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mt-6">{% trans "Sie haben dieses Angebot abgelehnt. Schreiben Sie uns gern, wenn Sie Fragen haben." %}</p>
+    {% elif offer.status == 'cancelled' %}
+      <p class="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mt-6">{% trans "Dieses Angebot wurde zurückgezogen." %}</p>
+    {% else %}
+      <p class="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mt-6">{% trans "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -13,6 +13,21 @@
     {% endfor %}
   {% endif %}
 
+  {# LS-3: карточки персональных предложений из этого разговора. #}
+  {% for offer in offers_list %}
+    <div class="mb-4 rounded-2xl border {% if offer.is_open %}border-indigo-200 bg-indigo-50/50{% else %}border-gray-200 bg-white{% endif %} p-4">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <p class="font-semibold">📄 {% trans "Persönliches Angebot" %} — {{ offer.total|floatformat:2 }} €</p>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full {% if offer.status == 'accepted' %}bg-green-100 text-green-800{% elif offer.is_open %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+          {% if offer.status == 'open' and offer.is_expired %}{% trans "Abgelaufen" %}{% elif offer.status == 'open' %}{% trans "Offen" %}{% elif offer.status == 'accepted' %}{% trans "Angenommen" %}{% elif offer.status == 'declined' %}{% trans "Abgelehnt" %}{% else %}{% trans "Zurückgezogen" %}{% endif %}
+        </span>
+      </div>
+      <p class="text-sm text-gray-500 mt-1">{% for ln in offer.lines.all %}{{ ln.qty }}× {{ ln.title }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+      {% if offer.valid_until and offer.is_open %}<p class="text-xs text-gray-400 mt-0.5">{% blocktrans with d=offer.valid_until|date:"d.m.Y" %}Gültig bis {{ d }}{% endblocktrans %}</p>{% endif %}
+      <a href="{% url 'storefront-offer' offer.token %}" class="inline-block mt-2 {% if offer.is_open %}bg-indigo-600 text-white hover:bg-indigo-700{% else %}border border-gray-300 text-gray-600{% endif %} rounded-lg px-4 py-2 text-sm font-medium">{% if offer.is_open %}{% trans "Angebot ansehen & annehmen" %}{% else %}{% trans "Angebot ansehen" %}{% endif %}</a>
+    </div>
+  {% endfor %}
+
   <div id="msg-list" class="space-y-3 mb-6" data-poll-url="{% url 'storefront-message-thread-poll' conversation.public_token %}">
     {% for m in messages_list %}
       <div class="flex {% if m.author_role == 'customer' %}justify-end{% endif %}" data-msg-id="{{ m.pk }}">
