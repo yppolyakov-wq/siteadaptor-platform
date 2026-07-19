@@ -745,6 +745,22 @@ Python 3.12, менеджер uv.
   schema_name="public" — тесты кабинетного хрома создают тенанта с обычной схемой.
   **План LS-6 «Прямая линия» — `docs/ls6-direct-line-plan-2026-07-19.md`** (следующий
   незаблокированный пункт очереди). ST-4b (сайдбар) — ждёт владельца; далее B4 ST-2.
+- **Самое свежее (2026-07-19, поздний вечер): ЭТАП C ТЗ ЗАКРЫТ — LS-6 + LS-4 v1 + LS-5 v1
+  в `main` (БЕЗ миграций).** **LS-6 «Прямая линия»** (план `ls6-direct-line-plan`):
+  «⚠️ Etwas stimmt nicht?» на 6 поверхностях сделок + 4 confirmed-письмах → ДОВЕРЕННЫЙ
+  problem-гейт contact (high только с ref; сырой priority игнорируется) → high-тред +
+  Telegram-пуш владельцу (dedupe на тред) · полоса «Problem — Kunde wartet» на канбане
+  (`Transaction.has_problem`, ОДИН batch-запрос на секцию — N+1-замок) · SLA v1 без миграции
+  (⚡ реакция треда + ⌀ Reaktionszeit 30 дней в списке) · recovery «Alles wieder gut?» при
+  resolve high-треда (дедуп + UWG-гейты). **LS-4 «Слой доверия» v1:** имя сотрудника над
+  staff-пузырём публичного треда + живая подпись в письме-ответе; публичный бейдж
+  «Antwortet in ~N Min» на контакт-странице ТОЛЬКО при ⌀ ≤ 2 ч (честность важнее украшения);
+  фото сотрудника — v2. **LS-5 «Care-цикл» v1:** развилка настроения в 4 «Wie war's?»-письмах
+  (👍 отзыв / 👎 → прямая линия LS-6 — перехват ДО публичного отзыва) + вкладка «Care-Zyklus»
+  в Marketing-хабе → матрица UD4-2; ДР — v2. Уроки: rl:*-Redis — публичные POST-тесты с
+  уникальным IP; автоэскейп & в plain-text письмах → `|safe` для URL с параметрами.
+  **Открытые решения владельца: (1) ST-4b сайдбар 5 хабов, (2) счётчики «продано N» (LS-4).**
+  Остаток очереди ТЗ без владельца: B4 · ST-2 «Шаблоны всех страниц» → этап D.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
