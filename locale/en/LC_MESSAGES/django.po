@@ -11873,3 +11873,124 @@ msgstr "Page template"
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder entfernbar."
 msgstr "Templates insert example blocks — adjust or remove them in the editor anytime."
+
+#. LS-3 Sofort-Angebot (2026-07-19)
+msgid "Abgelehnt"
+msgstr "Declined"
+
+msgid "Angebot"
+msgstr "Offer"
+
+msgid "Angebot ansehen"
+msgstr "View offer"
+
+msgid "Angebot ansehen & annehmen"
+msgstr "View & accept offer"
+
+msgid "Angebot ansehen und annehmen"
+msgstr "View and accept the offer"
+
+msgid "Angebot gesendet."
+msgstr "Offer sent."
+
+msgid "Angebot zurückgezogen."
+msgstr "Offer withdrawn."
+
+msgid "Angenommen"
+msgstr "Accepted"
+
+msgid "Annehmen & bezahlen"
+msgstr "Accept & pay"
+
+msgid "Beschreibung"
+msgstr "Description"
+
+msgid "Bestellnummer"
+msgstr "Order number"
+
+msgid "Bestellung"
+msgstr "Order"
+
+msgid "Bitte mindestens eine Position mit Preis angeben."
+msgstr "Please add at least one item with a price."
+
+msgid "Bitte überweisen Sie den Betrag im Voraus:"
+msgstr "Please transfer the amount in advance:"
+
+msgid "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
+msgstr "This offer has expired. Write to us for a new offer."
+
+msgid "Dieses Angebot wurde zurückgezogen."
+msgstr "This offer was withdrawn."
+
+msgid "Freie Positionen"
+msgstr "Custom items"
+
+msgid "Gast"
+msgstr "Guest"
+
+msgid "Gültig bis"
+msgstr "Valid until"
+
+msgid "Gültig bis %(d)s"
+msgstr "Valid until %(d)s"
+
+msgid "Ihr Angebot"
+msgstr "Your offer"
+
+msgid "Ihr persönliches Angebot"
+msgstr "Your personal offer"
+
+msgid "Ihr persönliches Angebot von %(business)s"
+msgstr "Your personal offer from %(business)s"
+
+msgid "Kundenseite öffnen"
+msgstr "Open customer page"
+
+msgid "Offen"
+msgstr "Open"
+
+msgid "Persönliche Nachricht"
+msgstr "Personal message"
+
+msgid "Persönliches Angebot"
+msgstr "Personal offer"
+
+msgid "Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; der Kunde nimmt es per Link an und bezahlt."
+msgstr "Personal offer for %(who)s — pick items or enter them freely; the customer accepts via link and pays."
+
+msgid "Preis"
+msgstr "Price"
+
+msgid "Sie haben das Angebot angenommen — vielen Dank!"
+msgstr "You accepted the offer — thank you!"
+
+msgid "Sie haben dieses Angebot abgelehnt. Schreiben Sie uns gern, wenn Sie Fragen haben."
+msgstr "You declined this offer. Feel free to write to us if you have questions."
+
+msgid "Wie möchten Sie bezahlen?"
+msgstr "How would you like to pay?"
+
+msgid "Zahlung eingegangen — wir melden uns in Kürze."
+msgstr "Payment received — we'll be in touch shortly."
+
+msgid "Zur Bestellung"
+msgstr "Go to order"
+
+msgid "Zurückgezogen"
+msgstr "Withdrawn"
+
+msgid "Zurückziehen"
+msgstr "Withdraw"
+
+msgid "ausgeblendet"
+msgstr "hidden"
+
+msgid "gültig bis %(d)s"
+msgstr "valid until %(d)s"
+
+msgid "z. B. Gerne reservieren wir das bis Freitag für Sie."
+msgstr "e.g. We'll gladly reserve this for you until Friday."
+
+msgid "%(business)s hat Ihnen ein persönliches Angebot geschickt:"
+msgstr "%(business)s has sent you a personal offer:"

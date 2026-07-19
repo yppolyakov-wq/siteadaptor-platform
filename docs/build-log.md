@@ -5656,3 +5656,39 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   в снимке page_templates). Обновлён порядок в test_siteconfig (finder после usp_bar).
 - Тесты +2 (чипы на главной при enabled+секции; пусто при выключенном Finder;
   подсказка — только в превью) — 17 в test_finder.py; css пересобран (sm:p-8/sm:text-2xl).
+
+## 2026-07-19 — LS-3 «Sofort-Angebot»: персональное предложение из чата → оплата в 1 клик (⚠️ миграция orders/0015)
+
+- План `docs/ls3-sofort-angebot-plan-2026-07-19.md` (развилка решена: НЕ обобщаем jobs.Job —
+  новая лёгкая модель `Offer`+`OfferLine` в apps/orders; jobs не тронут ни одним файлом =
+  «паритет сметы байт-в-байт» тривиально). Разведка — фоновый Explore до кода.
+- **Модель/сервис:** `Offer` (token UUID, conversation FK SET_NULL, снимок customer_name/email,
+  note, valid_until, status open/accepted/declined/cancelled, order FK) + `OfferLine`
+  (kind/ref_id-СТРОКА — pk бывает UUID; title/qty/unit_price БРУТТО — без net/VAT jobs);
+  `OfferSM` (терминалы заперты; письма владельцу на accepted/declined); `apps/orders/offers.py`
+  — send/accept/decline/cancel (все @atomic + select_for_update, идемпотентны), парсер
+  немецких цен («8,50», «1.234,56»). **`create_order(custom_lines=...)`** — позиции с
+  ЗАМОРОЖЕННОЙ ценой/названием; с product-FK → _reserve_stock/леджер как обычные (anti-oversell),
+  без — свободная строка, склад не тронут; EmptyOrder/qty-валидация/currency-фолбэк EUR.
+- **Принятие → обычный Order:** kind=product с живым активным товаром получает FK (сток
+  списывается; деактивирован/удалён → свободная строка); тред получает ref order + system-message;
+  повторный POST возвращает тот же заказ. Письма: клиенту offer_sent (прямая ссылка, L4-локаль),
+  владельцу offer_accepted/declined; system-message в тред писем не плодит (enqueue_message_email
+  шлёт только staff/customer-роли).
+- **Публичная страница `/o/<token>/`** (короткий префикс — хаус-стиль /r/ /t/ /s/; /angebot/
+  занят jobs): строки/итог/срок/note, принятие без логина (имя/email префилл из снимка),
+  пикер способа только при >1 (семантика E7-2), маршрутизация оплаты СТРОГО существующими
+  путями (order_checkout_url / Vorkasse-реквизиты / on_site). БЕЗ гейта модуля orders
+  (работает у любого архетипа) → страница сама служит подтверждением: Stripe success/cancel
+  на неё, «Jetzt bezahlen» повторный Checkout, ссылка на /bestellung/ только при активном orders.
+  Rate-limit POST 20/10мин; истёкшее/терминальное — честные состояния, формы скрыты.
+- **Кабинет:** кнопка «💶 Angebot senden» в треде → композер `/dashboard/inbox/<pk>/angebot/`
+  (server-rendered без JS): пикер позиций FB-8 `sellable_manage` (названия/kind резолвятся ИЗ
+  СЕКЦИЙ, не из hidden-инпутов; `ManagedSellable` += `price_value` — аддитивно) с редактируемой
+  ценой (спеццена) и кол-вом + 3 свободные строки + срок + заметка. Карточки предложений в
+  обоих тредах (кабинет: статус/ссылка клиента/Bestellung/«Zurückziehen»; клиент: CTA на /o/).
+- Тесты: 13 test_offers (сервис/FSM/custom_lines) + 7 test_offer_page (e2e accept/vorkasse/
+  decline/expired/карточка клиента) + 5 test_offer_compose (композер/отзыв) — 143 orders+inbox
+  зелёные. i18n: 40 msgid → en/tr/ru/uk .po (polib-валидация, дублей нет). CSS пересобран
+  (npm ci, tailwind 3.4.17). Урок: скрипт-пробник с keepdb НАСЛЕДИЛ в reuse-БД (стрей-Conversation
+  уронил чужой тест) → после ручных пробников на тест-БД прогонять --create-db.

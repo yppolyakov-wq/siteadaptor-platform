@@ -12010,3 +12010,124 @@ msgstr "Шаблон страницы"
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder entfernbar."
 msgstr "Шаблоны добавляют блоки-примеры — в редакторе их можно изменить или удалить."
+
+#. LS-3 Sofort-Angebot (2026-07-19)
+msgid "Abgelehnt"
+msgstr "Отклонено"
+
+msgid "Angebot"
+msgstr "Предложение"
+
+msgid "Angebot ansehen"
+msgstr "Посмотреть предложение"
+
+msgid "Angebot ansehen & annehmen"
+msgstr "Посмотреть и принять предложение"
+
+msgid "Angebot ansehen und annehmen"
+msgstr "Посмотреть и принять предложение"
+
+msgid "Angebot gesendet."
+msgstr "Предложение отправлено."
+
+msgid "Angebot zurückgezogen."
+msgstr "Предложение отозвано."
+
+msgid "Angenommen"
+msgstr "Принято"
+
+msgid "Annehmen & bezahlen"
+msgstr "Принять и оплатить"
+
+msgid "Beschreibung"
+msgstr "Описание"
+
+msgid "Bestellnummer"
+msgstr "Номер заказа"
+
+msgid "Bestellung"
+msgstr "Заказ"
+
+msgid "Bitte mindestens eine Position mit Preis angeben."
+msgstr "Укажите хотя бы одну позицию с ценой."
+
+msgid "Bitte überweisen Sie den Betrag im Voraus:"
+msgstr "Пожалуйста, переведите сумму заранее:"
+
+msgid "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
+msgstr "Срок действия этого предложения истёк. Напишите нам, и мы отправим новое."
+
+msgid "Dieses Angebot wurde zurückgezogen."
+msgstr "Это предложение было отозвано."
+
+msgid "Freie Positionen"
+msgstr "Свободные позиции"
+
+msgid "Gast"
+msgstr "Гость"
+
+msgid "Gültig bis"
+msgstr "Действует до"
+
+msgid "Gültig bis %(d)s"
+msgstr "Действует до %(d)s"
+
+msgid "Ihr Angebot"
+msgstr "Ваше предложение"
+
+msgid "Ihr persönliches Angebot"
+msgstr "Ваше персональное предложение"
+
+msgid "Ihr persönliches Angebot von %(business)s"
+msgstr "Ваше персональное предложение от %(business)s"
+
+msgid "Kundenseite öffnen"
+msgstr "Открыть страницу клиента"
+
+msgid "Offen"
+msgstr "Открыто"
+
+msgid "Persönliche Nachricht"
+msgstr "Личное сообщение"
+
+msgid "Persönliches Angebot"
+msgstr "Персональное предложение"
+
+msgid "Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; der Kunde nimmt es per Link an und bezahlt."
+msgstr "Персональное предложение для %(who)s — выберите позиции или впишите свои; клиент принимает по ссылке и оплачивает."
+
+msgid "Preis"
+msgstr "Цена"
+
+msgid "Sie haben das Angebot angenommen — vielen Dank!"
+msgstr "Вы приняли предложение — спасибо!"
+
+msgid "Sie haben dieses Angebot abgelehnt. Schreiben Sie uns gern, wenn Sie Fragen haben."
+msgstr "Вы отклонили это предложение. Напишите нам, если есть вопросы."
+
+msgid "Wie möchten Sie bezahlen?"
+msgstr "Как вы хотите оплатить?"
+
+msgid "Zahlung eingegangen — wir melden uns in Kürze."
+msgstr "Оплата получена — мы скоро свяжемся с вами."
+
+msgid "Zur Bestellung"
+msgstr "К заказу"
+
+msgid "Zurückgezogen"
+msgstr "Отозвано"
+
+msgid "Zurückziehen"
+msgstr "Отозвать"
+
+msgid "ausgeblendet"
+msgstr "скрыто"
+
+msgid "gültig bis %(d)s"
+msgstr "действует до %(d)s"
+
+msgid "z. B. Gerne reservieren wir das bis Freitag für Sie."
+msgstr "напр. С удовольствием зарезервируем это для вас до пятницы."
+
+msgid "%(business)s hat Ihnen ein persönliches Angebot geschickt:"
+msgstr "%(business)s отправил вам персональное предложение:"
