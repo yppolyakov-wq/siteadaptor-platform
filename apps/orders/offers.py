@@ -41,8 +41,11 @@ def _clean_lines(lines) -> list[dict]:
         title = str(line.get("title") or "").strip()
         if not title:
             continue
+        raw = str(line.get("unit_price", "0")).strip()
+        if "," in raw:  # немецкий формат: точка = разряды, запятая = десятичные
+            raw = raw.replace(".", "").replace(",", ".")
         try:
-            unit_price = Decimal(str(line.get("unit_price", "0")).replace(",", "."))
+            unit_price = Decimal(raw or "0")
         except (InvalidOperation, ValueError):
             continue
         if unit_price < 0:

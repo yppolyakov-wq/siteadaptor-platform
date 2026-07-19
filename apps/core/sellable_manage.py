@@ -77,6 +77,8 @@ class ManagedSellable:
     can_toggle: bool
     status_label: str
     edit_url: str
+    # LS-3: машиночитаемая цена (Decimal|None) — префилл композера Sofort-Angebot.
+    price_value: object = None
 
 
 def _model(kind):
@@ -115,6 +117,7 @@ def _managed(kind, obj, locale) -> ManagedSellable:
         can_toggle=cfg["toggle"],
         status_label=status_label,
         edit_url=_reverse(cfg["edit"], obj.pk),
+        price_value=f.get("price_value"),
     )
 
 

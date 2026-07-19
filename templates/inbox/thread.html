@@ -37,7 +37,33 @@
       {% for value, label in priorities %}<option value="{{ value }}" {% if conversation.priority == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
   </form>
+  {# LS-3: персональное предложение прямо из разговора — мгновенная продажа. #}
+  <a href="{% url 'inbox:offer-compose' conversation.pk %}" class="border border-indigo-300 text-indigo-700 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-50">💶 {% trans "Angebot senden" %}</a>
 </div>
+
+{# LS-3: карточки предложений этого треда. #}
+{% for offer in offers_list %}
+  <div class="mb-3 max-w-2xl rounded-2xl border {% if offer.is_open %}border-indigo-200 bg-indigo-50/50{% else %}border-gray-200 bg-white{% endif %} p-4">
+    <div class="flex items-center justify-between gap-2 flex-wrap">
+      <p class="font-semibold text-sm">📄 {% trans "Angebot" %} — {{ offer.total|floatformat:2 }} €</p>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full {% if offer.status == 'accepted' %}bg-green-100 text-green-800{% elif offer.is_open %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+        {% if offer.status == 'open' and offer.is_expired %}{% trans "Abgelaufen" %}{% elif offer.status == 'open' %}{% trans "Offen" %}{% elif offer.status == 'accepted' %}{% trans "Angenommen" %}{% elif offer.status == 'declined' %}{% trans "Abgelehnt" %}{% else %}{% trans "Zurückgezogen" %}{% endif %}
+      </span>
+    </div>
+    <p class="text-xs text-gray-500 mt-1">{% for ln in offer.lines.all %}{{ ln.qty }}× {{ ln.title }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if offer.valid_until %} · {% blocktrans with d=offer.valid_until|date:"d.m.Y" %}gültig bis {{ d }}{% endblocktrans %}{% endif %}</p>
+    <div class="flex items-center gap-3 mt-2">
+      <a href="{% url 'storefront-offer' offer.token %}" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline">{% trans "Kundenseite öffnen" %} ↗</a>
+      {% if offer.order %}<span class="text-xs text-gray-500">{% trans "Bestellung" %}: <span class="font-mono">{{ offer.order.reference_code }}</span></span>{% endif %}
+      {% if offer.is_open %}
+        <form method="post" class="ml-auto">{% csrf_token %}
+          <input type="hidden" name="action" value="offer-cancel">
+          <input type="hidden" name="offer_id" value="{{ offer.pk }}">
+          <button class="text-xs text-gray-400 hover:text-red-600 underline">{% trans "Zurückziehen" %}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
 
 {# тред сообщений #}
 <div id="msg-list" class="space-y-3 mb-6 max-w-2xl" data-poll-url="{% url 'inbox:thread-poll' conversation.pk %}">

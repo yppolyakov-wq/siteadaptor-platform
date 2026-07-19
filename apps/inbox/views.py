@@ -63,6 +63,14 @@ def thread(request, pk):
             if priority in dict(Conversation.PRIORITIES):
                 conversation.priority = priority
                 conversation.save(update_fields=["priority", "updated_at"])
+        elif action == "offer-cancel":
+            # LS-3: отозвать открытое предложение (только из ЭТОГО треда).
+            from apps.orders import offers as order_offers
+
+            offer = conversation.offers.filter(pk=request.POST.get("offer_id")).first()
+            if offer is not None:
+                order_offers.cancel_offer(offer)
+                messages.success(request, _("Angebot zurückgezogen."))
         return redirect("inbox:thread", pk=conversation.pk)
 
     # Открыли тред — для владельца прочитано.
@@ -78,7 +86,64 @@ def thread(request, pk):
             "messages_list": conversation.messages.select_related("author_user"),
             "allowed": ConversationSM().allowed_targets(conversation.status),
             "priorities": Conversation.PRIORITIES,
+            # LS-3: карточки предложений этого треда (reverse-FK orders.Offer).
+            "offers_list": conversation.offers.select_related("order").prefetch_related("lines"),
         },
+    )
+
+
+@login_required
+def offer_compose(request, pk):
+    """LS-3: композер «Angebot senden» из треда — пикер позиций (FB-8
+    sellable_manage, цены редактируемы) + свободные строки + срок + заметка.
+    Server-rendered без JS; названия/kind позиций резолвятся ИЗ СЕКЦИЙ (не из
+    hidden-инпутов) — клиентскому вводу доверяем только цену/кол-во."""
+    from django.utils.dateparse import parse_date
+
+    from apps.core.sellable_manage import sellable_manage_sections_for
+    from apps.orders import offers as order_offers
+
+    conversation = get_object_or_404(Conversation.objects.select_related("customer"), pk=pk)
+    sections = sellable_manage_sections_for(request.tenant)
+    if request.method == "POST":
+        by_token = {f"{s['kind']}:{i.pk}": i for s in sections for i in s["items"]}
+        lines = []
+        for token in request.POST.getlist("pick"):
+            item = by_token.get(token)
+            if item is None:
+                continue
+            lines.append(
+                {
+                    "kind": item.kind,
+                    "ref_id": str(item.pk),
+                    "title": item.name,
+                    "unit_price": request.POST.get(f"price:{token}", "") or item.price_value or "0",
+                    "qty": request.POST.get(f"qty:{token}", "1"),
+                }
+            )
+        for title, price, qty in zip(
+            request.POST.getlist("free_title"),
+            request.POST.getlist("free_price"),
+            request.POST.getlist("free_qty"),
+            strict=False,
+        ):
+            lines.append({"title": title, "unit_price": price, "qty": qty or "1"})
+        try:
+            order_offers.send_offer(
+                conversation,
+                lines=lines,
+                valid_until=parse_date(request.POST.get("valid_until", "")),
+                note=request.POST.get("note", "").strip()[:2000],
+                author=request.user,
+            )
+            messages.success(request, _("Angebot gesendet."))
+            return redirect("inbox:thread", pk=conversation.pk)
+        except ValueError:
+            messages.error(request, _("Bitte mindestens eine Position mit Preis angeben."))
+    return render(
+        request,
+        "inbox/offer_compose.html",
+        {"nav": "inbox", "conversation": conversation, "sections": sections},
     )
 
 

@@ -1,0 +1,61 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Angebot senden" %}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'inbox:thread' conversation.pk %}" class="text-sm text-gray-500 hover:underline">← {{ conversation.subject|default:"Inbox" }}</a>
+<h1 class="text-2xl font-bold mt-1 mb-1">💶 {% trans "Angebot senden" %}</h1>
+<p class="text-sm text-gray-500 mb-5">{% blocktrans with who=conversation.customer|default:_("Gast") %}Persönliches Angebot für {{ who }} — Positionen wählen oder frei eintragen; der Kunde nimmt es per Link an und bezahlt.{% endblocktrans %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="max-w-2xl space-y-5">{% csrf_token %}
+
+  {# Пикер позиций из ассортимента (FB-8): чекбокс + кол-во + редактируемая цена. #}
+  {% for section in sections %}
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <h2 class="font-semibold mb-2">{{ section.label }}</h2>
+      <div class="divide-y divide-gray-50">
+        {% for item in section.items %}
+          <label class="flex items-center gap-3 py-2 cursor-pointer">
+            <input type="checkbox" name="pick" value="{{ item.kind }}:{{ item.pk }}" class="rounded border-gray-300">
+            {% if item.image_url %}<img src="{{ item.image_url }}" alt="" class="w-9 h-9 rounded-lg object-cover shrink-0">{% endif %}
+            <span class="flex-1 min-w-0 text-sm truncate">{{ item.name }}{% if not item.is_visible %} <span class="text-xs text-gray-400">({% trans "ausgeblendet" %})</span>{% endif %}</span>
+            <input type="number" name="qty:{{ item.kind }}:{{ item.pk }}" value="1" min="1" max="99" class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right" aria-label="{% trans 'Menge' %}">
+            <input type="text" inputmode="decimal" name="price:{{ item.kind }}:{{ item.pk }}" value="{{ item.price_value|default_if_none:'' }}" placeholder="{{ item.price_display }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right" aria-label="{% trans 'Preis' %}"> €
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+
+  {# Свободные строки: название + цена + кол-во (пустые игнорируются). #}
+  <div class="bg-white rounded-2xl shadow-sm p-4">
+    <h2 class="font-semibold mb-2">{% trans "Freie Positionen" %}</h2>
+    {% for _ in "123" %}
+      <div class="flex items-center gap-3 py-1.5">
+        <input type="text" name="free_title" placeholder="{% trans 'Beschreibung' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+        <input type="number" name="free_qty" value="1" min="1" max="99" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right" aria-label="{% trans 'Menge' %}">
+        <input type="text" inputmode="decimal" name="free_price" placeholder="0,00" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right" aria-label="{% trans 'Preis' %}"> €
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="of-valid">{% trans "Gültig bis" %} <span class="text-gray-400 font-normal">({% trans "optional" %})</span></label>
+      <input id="of-valid" type="date" name="valid_until" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="of-note">{% trans "Persönliche Nachricht" %} <span class="text-gray-400 font-normal">({% trans "optional" %})</span></label>
+      <textarea id="of-note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'z. B. Gerne reservieren wir das bis Freitag für Sie.' %}"></textarea>
+    </div>
+  </div>
+
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-indigo-700">💶 {% trans "Angebot senden" %}</button>
+</form>
+{% endblock %}
