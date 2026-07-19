@@ -5737,3 +5737,24 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Тесты: 5 в test_presence.py (normalize-minimal/golden, режимы+часы, гейты бейджа,
   targeted-write); golden+siteconfig+home_builder 125 зелёные. i18n: 8 msgid →
   en/tr/ru/uk. CSS пересобран.
+
+## 2026-07-19 — ST-1a: движок «Каталога Look'ов» (этап B1 ТЗ, БЕЗ миграций)
+
+- План `docs/st1-looks-plan-2026-07-19.md`. Look = СЕМЕЙСТВО × архетипный акцент ×
+  секции рекомендованного шаблона: `LOOK_FAMILIES` (Klar — светлый/system/плоско/nav
+  classic; Warm — serif/мягкие тени/centered; Nacht — ТЁМНЫЙ/жирные заголовки/minimal)
+  + `ARCHETYPE_LOOK_ACCENTS` (14 палитр × 3; nacht-тона светлее для контраста) +
+  `looks_for(bt)`/`apply_look` в `sitetemplates.py`. 3×14 = 42 Look'а из чистых данных.
+- **Ключ `theme` («dark»)** — presence-minimal в normalize (golden целы) + тёмный
+  ДЕФОЛТ витрины в `_base.html` (tenantDark в theme-init; localStorage-выбор посетителя
+  сильнее); `storefront_theme_default` в контекст-процессоре (draft-aware — превью
+  Look'а сможет красить тему вживую).
+- **Исправлен латентный баг класса W6:** `apply_template` строил конфиг С НУЛЯ —
+  применение шаблона стирало ui_mode/board/seo/presence/page_blocks/menus и пр.
+  Теперь общая база `_apply` = полная копия конфига; переписываются только секции/
+  пустые тексты/hero_style (+пачка Look'а при family). Замок в test_looks.
+- Замок адверсариальный (образец CBLOCK_VARIANTS): все 42 Look'а — apply→normalize
+  идемпотентно, значения семейства 1:1, тёмная тема только у Nacht, светлый Look
+  снимает dark, чужие ключи/тексты владельца целы; 19 тестов + golden/sitetemplates/
+  wizard/builder 204 зелёные. Остаток ST-1: **ST-1b галерея** (слайд stil → Look,
+  область в билдере, stateless-превью `?look=`, lazy iframes) — план §2.
