@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import detail_sections
+from apps.core import detail_sections, presence
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
 from apps.tenants.models import CustomDomain
@@ -134,6 +134,10 @@ def dashboard(request):
             "tiles": [] if classic else dash.dashboard_tiles(request.tenant),  # AB7-B2: плитки
             "sections": sections,  # AB7-B2: канбан на главной
             "active_kind": kinds[0] if kinds else "",
+            # LS-2: карточка присутствия «Jetzt erreichbar» (режим + живой статус).
+            "presence_mode": presence.mode(request.tenant),
+            "presence_now": presence.available_now(request.tenant),
+            "presence_number": getattr(request.tenant, "whatsapp_number", ""),
         },
     )
 
@@ -2702,6 +2706,24 @@ def set_classic_ui_view(request):
         cfg["classic_ui"] = True
     else:
         cfg.pop("classic_ui", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    return redirect(_safe_dashboard_referer(request))
+
+
+@login_required
+def set_presence_view(request):
+    """LS-2: режим присутствия «Jetzt erreichbar» (auto/on/off).
+
+    Targeted-write: правит ТОЛЬКО ключ presence (паттерн set-classic-ui) —
+    остальной site_config цел. auto = отсутствие ключа (presence-minimal)."""
+    tenant = request.tenant
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    new_mode = request.POST.get("mode", "")
+    if new_mode in ("on", "off"):
+        cfg["presence"] = {"mode": new_mode}
+    else:  # auto — дефолт, ключ убираем
+        cfg.pop("presence", None)
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     return redirect(_safe_dashboard_referer(request))

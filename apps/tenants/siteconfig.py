@@ -1961,6 +1961,14 @@ def _clean_finder_match(raw) -> dict:
     return out
 
 
+def normalize_presence(raw) -> dict:
+    """LS-2 «Jetzt erreichbar»: {"mode": "on"|"off"}; auto — ДЕФОЛТ и в конфиг
+    не пишется (presence-minimal, golden-паритет). Мусор → auto (пусто)."""
+    raw = raw if isinstance(raw, dict) else {}
+    mode = raw.get("mode")
+    return {"mode": mode} if mode in ("on", "off") else {}
+
+
 def normalize_finder(raw) -> dict:
     """FD-1: конфиг Finder — {"enabled": bool, "questions": [{key,label,chips}]}.
 
@@ -2061,6 +2069,10 @@ def normalize(config) -> dict:
     fnd = normalize_finder(config.get("finder"))
     if fnd:
         normalized["finder"] = fnd
+    # LS-2: присутствие «Jetzt erreichbar»; ключ ТОЛЬКО при override (auto = нет ключа).
+    presence = normalize_presence(config.get("presence"))
+    if presence:
+        normalized["presence"] = presence
     # FB-4a: свои имена статусов заказа; ключ ТОЛЬКО при непустом (golden-паритет).
     sl = normalize_status_labels(config.get("status_labels"))
     if sl:

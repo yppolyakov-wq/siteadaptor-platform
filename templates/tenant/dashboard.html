@@ -12,6 +12,27 @@
 {% endif %}
 <h1 class="text-2xl font-bold mb-4">{% trans "Welcome" %} 👋</h1>
 
+{% comment %}LS-2: присутствие «Jetzt erreichbar» — живой статус + режим Auto/An/Aus.
+Бейдж видео-звонка на витрине живёт по этому режиму (и только при WhatsApp-Nummer).{% endcomment %}
+<form method="post" action="{% url 'set-presence' %}" class="mb-6 max-w-xl bg-white rounded-2xl shadow-sm px-4 py-3">
+  {% csrf_token %}
+  <div class="flex flex-wrap items-center gap-3">
+    <span class="flex items-center gap-2 text-sm font-medium">
+      <span class="inline-flex h-2.5 w-2.5 rounded-full {% if presence_now %}bg-green-500{% else %}bg-gray-300{% endif %}" aria-hidden="true"></span>
+      {% if presence_now %}{% trans "Jetzt erreichbar" %}{% else %}{% trans "Gerade nicht erreichbar" %}{% endif %}
+    </span>
+    <span class="flex gap-1 ml-auto">
+      <button name="mode" value="auto" class="px-2.5 py-1 rounded-lg text-xs border {% if presence_mode == 'auto' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Auto" %}</button>
+      <button name="mode" value="on" class="px-2.5 py-1 rounded-lg text-xs border {% if presence_mode == 'on' %}bg-green-600 text-white border-green-600{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "An" %}</button>
+      <button name="mode" value="off" class="px-2.5 py-1 rounded-lg text-xs border {% if presence_mode == 'off' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Aus" %}</button>
+    </span>
+  </div>
+  <p class="mt-1.5 text-xs text-gray-400">
+    {% trans "Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten." %}
+    {% if not presence_number %}<a href="{% url 'settings' %}" class="text-amber-700 hover:underline">{% trans "WhatsApp-Nummer fehlt — jetzt hinterlegen" %} →</a>{% endif %}
+  </p>
+</form>
+
 {% comment %}AB7-B2: блочная главная — плитки задач на ЯЗЫКЕ ЗАДАЧ (крупные кнопки).
 Бейдж «Not set up» на невыполненной плитке ведёт на нужный слайд мастера
 (setup?step=<key>) — отдельная ссылка, чтобы не было вложенных <a>.{% endcomment %}

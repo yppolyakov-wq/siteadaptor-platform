@@ -38,6 +38,7 @@ from apps.core.views import (
     seo_settings_view,
     set_cabinet_lang_view,
     set_classic_ui_view,
+    set_presence_view,
     set_ui_mode_view,
     settings_view,
     setup_view,
@@ -116,6 +117,8 @@ urlpatterns = [
     path("dashboard/ui-mode/", set_ui_mode_view, name="set-ui-mode"),
     # Страховка редизайна (трек ST): тумблер «Klassische Ansicht» (на «Funktionen»).
     path("dashboard/classic-ui/", set_classic_ui_view, name="set-classic-ui"),
+    # LS-2: режим присутствия «Jetzt erreichbar» (auto/on/off, targeted-write).
+    path("dashboard/presence/", set_presence_view, name="set-presence"),
     path("dashboard/cabinet-lang/", set_cabinet_lang_view, name="set-cabinet-lang"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),

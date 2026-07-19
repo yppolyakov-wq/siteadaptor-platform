@@ -5716,3 +5716,24 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Тесты: 10 в test_video_service.py (wa_link/формы-сентинел/гейты секции/скрытие/чип+фильтр/
   письма с номером и без) + замок section_keys обновлён; booking 144 + detail_sections/settings
   зелёные. i18n: 8 msgid → en/tr/ru/uk. CSS пересобран.
+
+## 2026-07-19 — LS-2 «Jetzt erreichbar»: живое присутствие + мгновенный видео-звонок (БЕЗ миграций)
+
+- План `docs/ls2-jetzt-erreichbar-plan-2026-07-19.md`. Хранение `site_config["presence"]
+  = {"mode": on|off}` presence-minimal (`normalize_presence`; auto = дефолт, ключа нет →
+  golden-эталоны целы — замок). Резолвер `apps/core/presence.py`: off→False, on→True,
+  auto→`openinghours.open_status` (тот же источник, что «Jetzt geöffnet»; часов нет →
+  недоступен).
+- **Витрина:** inclusion-тег `presence_fab` (siteui) в `_base.html` над чат-FAB —
+  зелёная пульсирующая пилюля «Jetzt erreichbar — Video-Anruf» → wa.me (реюз `wa_link`
+  LS-1, pre-filled «Ich bin gerade auf Ihrer Website…»). Гейт номером: без
+  `Tenant.whatsapp_number` бейджа нет ни в одном режиме. Недоступен → фолбэки уже
+  существуют (чат-FAB inbox «Nachricht schreiben», CTA брони). 30-сек-фолбэк концепта
+  через wa.me не детектируем — v1 = бейдж просто исчезает вне присутствия.
+- **Кабинет:** карточка на главной кабинета (обе ветки — AB7 и classic): живой статус
+  (зелёная точка) + режим Auto/An/Aus + предупреждение «WhatsApp-Nummer fehlt» со
+  ссылкой в настройки; endpoint `set-presence` targeted-write (правит ТОЛЬКО ключ
+  presence — паттерн set-classic-ui; чужие ключи целы — замок).
+- Тесты: 5 в test_presence.py (normalize-minimal/golden, режимы+часы, гейты бейджа,
+  targeted-write); golden+siteconfig+home_builder 125 зелёные. i18n: 8 msgid →
+  en/tr/ru/uk. CSS пересобран.

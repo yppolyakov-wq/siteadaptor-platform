@@ -12069,3 +12069,28 @@ msgstr "Randevunuz görüntülü olarak gerçekleşecek — randevu saatinde bur
 
 msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
 msgstr "Uluslararası format, örn. +49 171 1234567. Görüntülü danışma ve anında iletişim için; boş = WhatsApp düğmeleri gösterilmez."
+
+#. LS-2 Jetzt erreichbar (2026-07-19)
+msgid "Jetzt erreichbar — Video-Anruf"
+msgstr "Şimdi ulaşılabilir — görüntülü arama"
+
+msgid "Jetzt erreichbar"
+msgstr "Şimdi ulaşılabilir"
+
+msgid "Gerade nicht erreichbar"
+msgstr "Şu anda ulaşılamıyor"
+
+msgid "Auto"
+msgstr "Otomatik"
+
+msgid "An"
+msgstr "Açık"
+
+msgid "Aus"
+msgstr "Kapalı"
+
+msgid "Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten."
+msgstr "Web sitenizde görüntülü arama rozeti (WhatsApp). Otomatik = çalışma saatlerine göre."
+
+msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
+msgstr "WhatsApp numarası eksik — şimdi ekleyin"

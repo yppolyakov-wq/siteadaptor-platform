@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}LS-2: живой бейдж присутствия — CTA мгновенного WhatsApp-видеозвонка.
+Пустой wa_url (недоступен/нет номера) → ничего; фолбэк = чат-FAB и CTA брони.{% endcomment %}
+{% if wa_url %}
+<a href="{{ wa_url }}" target="_blank" rel="noopener" aria-label="{% trans 'Jetzt erreichbar — Video-Anruf' %}"
+   class="fixed right-4 bottom-36 sm:bottom-20 z-30 flex items-center gap-2 bg-green-600 text-white rounded-full shadow-lg px-4 py-3 hover:bg-green-700">
+  <span class="relative flex h-2.5 w-2.5" aria-hidden="true"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-60"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span></span>
+  <span class="hidden sm:inline text-sm font-medium">{% trans "Jetzt erreichbar — Video-Anruf" %}</span><span class="sm:hidden text-lg leading-none" aria-hidden="true">📹</span>
+</a>
+{% endif %}

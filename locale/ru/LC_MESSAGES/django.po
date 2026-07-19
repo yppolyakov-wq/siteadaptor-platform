@@ -12156,3 +12156,28 @@ msgstr "Ваша встреча пройдёт по видео — просто 
 
 msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
 msgstr "В международном формате, напр. +49 171 1234567. Для видео-консультаций и мгновенной связи; пусто = кнопки WhatsApp не показываются."
+
+#. LS-2 Jetzt erreichbar (2026-07-19)
+msgid "Jetzt erreichbar — Video-Anruf"
+msgstr "Сейчас на связи — видеозвонок"
+
+msgid "Jetzt erreichbar"
+msgstr "Сейчас на связи"
+
+msgid "Gerade nicht erreichbar"
+msgstr "Сейчас не на связи"
+
+msgid "Auto"
+msgstr "Авто"
+
+msgid "An"
+msgstr "Вкл"
+
+msgid "Aus"
+msgstr "Выкл"
+
+msgid "Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten."
+msgstr "Бейдж видеозвонка на вашем сайте (WhatsApp). Авто = по часам работы."
+
+msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
+msgstr "Не указан номер WhatsApp — добавьте его"

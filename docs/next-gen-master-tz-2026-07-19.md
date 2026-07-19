@@ -93,7 +93,10 @@ care-цикл (напоминания, «Wie war's?», лояльность) →
 - Приёмка: услуга-видео бронируется, письмо содержит wa.me-линк; §201 —
   никакой записи; секция детали скрываема.
 
-**A3 · LS-2 «Jetzt erreichbar» (M).**
+**A3 · LS-2 «Jetzt erreichbar» (M) — ✅ СДЕЛАН 2026-07-19** (план
+`ls2-jetzt-erreichbar-plan-2026-07-19.md`; БЕЗ миграций; presence-minimal ключ
+`presence`, авто по `open_status`, бейдж-FAB wa.me, карточка Auto/An/Aus на
+главной кабинета; детали — build-log). **Этап A закрыт целиком** → Этап B (ST-1).
 - Тумблер присутствия (site_config, авто по часам + ручной override; паттерн
   classic_ui) → бейдж на витрине «Jetzt im Laden — Video-Anruf möglich» +
   кнопка wa.me; таймаут/выключено → фолбэк «Nachricht schreiben» (inbox) или

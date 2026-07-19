@@ -1,4 +1,4 @@
-{% load i18n seo static l10n %}<!doctype html>
+{% load i18n seo siteui static l10n %}<!doctype html>
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -406,6 +406,8 @@
     }
   </script>
   {% endif %}
+  {# LS-2: бейдж «Jetzt erreichbar — Video-Anruf» (пусто, если недоступен/нет номера). #}
+  {% presence_fab %}
   {% if storefront_inbox_enabled %}
   {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}
   <a href="{% url 'storefront-message' %}" data-chat-fab aria-label="{% trans 'Ask us a question' %}"

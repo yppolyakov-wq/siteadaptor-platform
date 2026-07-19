@@ -253,3 +253,25 @@ _CURRENCY_SYMBOLS = {"EUR": "€", "USD": "$", "GBP": "£", "CHF": "CHF"}
 def cursym(code):
     """Код валюты → символ («EUR» → «€»); неизвестный — как есть."""
     return _CURRENCY_SYMBOLS.get((code or "").strip().upper(), code)
+
+
+@register.inclusion_tag("storefront/_presence_fab.html", takes_context=True)
+def presence_fab(context):
+    """LS-2: плавающий бейдж «Jetzt erreichbar — Video-Anruf» (wa.me, LS-1).
+
+    Показывается только когда бизнес доступен (apps.core.presence: авто по
+    часам или override) И задан Tenant.whatsapp_number — иначе пусто (фолбэк =
+    чат-FAB inbox и обычные CTA брони)."""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    wa_url = ""
+    if tenant is not None:
+        from apps.core import presence
+        from apps.core.whatsapp import wa_link
+
+        if presence.available_now(tenant):
+            wa_url = wa_link(
+                getattr(tenant, "whatsapp_number", ""),
+                "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?",
+            )
+    return {"wa_url": wa_url}

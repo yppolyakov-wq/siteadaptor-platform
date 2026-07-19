@@ -12019,3 +12019,28 @@ msgstr "Your appointment takes place via video — just start it here at the app
 
 msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
 msgstr "International format, e.g. +49 171 1234567. Used for video consultations and instant contact; leave blank to hide all WhatsApp buttons."
+
+#. LS-2 Jetzt erreichbar (2026-07-19)
+msgid "Jetzt erreichbar — Video-Anruf"
+msgstr "Available now — video call"
+
+msgid "Jetzt erreichbar"
+msgstr "Available now"
+
+msgid "Gerade nicht erreichbar"
+msgstr "Currently unavailable"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "An"
+msgstr "On"
+
+msgid "Aus"
+msgstr "Off"
+
+msgid "Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten."
+msgstr "Video-call badge on your website (WhatsApp). Auto = follows opening hours."
+
+msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
+msgstr "WhatsApp number missing — add it now"
