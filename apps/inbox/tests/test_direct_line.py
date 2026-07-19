@@ -202,3 +202,49 @@ def test_resolved_normal_thread_no_recovery():
     conv = services.start_conversation(subject="Frage", body="?", email="n@t.de")
     ConversationSM().apply(conv, "resolved")
     assert not Notification.objects.filter(type="inbox_recovery").exists()
+
+
+# --- LS-4 «Слой доверия»: лицо в касаниях + публичный бейдж реакции ----------------
+
+
+def test_staff_name_in_public_thread_and_email(monkeypatch):
+    from django.contrib.auth import get_user_model
+    from django.test import RequestFactory as RF
+
+    from apps.inbox import notifications as inotif
+    from apps.inbox.models import Message
+    from apps.notifications.models import Notification
+
+    staff = get_user_model().objects.create_user(
+        username="maria", first_name="Maria", email="m@laden.de", password="pw12345678"
+    )
+    conv = services.start_conversation(subject="F", body="Hi", email="kunde@t.de", name="Kim")
+    monkeypatch.setattr(inotif, "_base_url", lambda schema: "https://laden.example")
+    services.post_message(
+        conv, body="Gern helfe ich!", author_role=Message.AUTHOR_STAFF, author_user=staff
+    )
+    # письмо клиенту — подпись живым именем
+    n = Notification.objects.filter(type="inbox_reply").latest("created_at")
+    assert "Maria" in n.payload.get("body", "")
+    # публичный тред — имя над staff-пузырём
+    request = RF().get("/n/")
+    request.tenant = TenantFactory.build(disabled_modules=[])
+    html = public_views.thread(request, token=conv.public_token).content.decode()
+    assert ">Maria</p>" in html
+
+
+def test_public_reaction_badge_gated_by_good_value(monkeypatch):
+    from apps.inbox import public_views as pv
+
+    def _get(minutes):
+        monkeypatch.setattr(pv, "_badge_probe", None, raising=False)
+        import apps.inbox.views as iv
+
+        monkeypatch.setattr(iv, "avg_reaction_minutes", lambda **kw: minutes)
+        request = RequestFactory().get("/nachricht/")
+        request.tenant = TenantFactory.build(disabled_modules=[])
+        return pv.contact(request).content.decode()
+
+    assert "Antwortet in der Regel" in _get(15)  # хорошее значение → бейдж
+    assert "Antwortet in der Regel" not in _get(600)  # медленно → без бейджа
+    assert "Antwortet in der Regel" not in _get(None)  # нет данных → без бейджа

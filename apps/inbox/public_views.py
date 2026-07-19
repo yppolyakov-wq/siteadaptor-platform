@@ -74,6 +74,11 @@ def contact(request):
         )
         return redirect("storefront-message-thread", token=conversation.public_token)
 
+    # LS-4 «Слой доверия»: публичный бейдж времени ответа — только при ХОРОШЕМ
+    # значении (≤ 2 ч; мало данных/медленно → без бейджа, честность важнее).
+    from .views import avg_reaction_minutes
+
+    minutes = avg_reaction_minutes()
     return render(
         request,
         "storefront/message_contact.html",
@@ -81,6 +86,7 @@ def contact(request):
             **_ref(request.GET),
             "prefill_subject": request.GET.get("subject", ""),
             "problem": request.GET.get("problem", ""),
+            "reaction_minutes": minutes if minutes is not None and minutes <= 120 else None,
         },
     )
 

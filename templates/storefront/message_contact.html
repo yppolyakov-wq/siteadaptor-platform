@@ -13,7 +13,11 @@
     {% endfor %}
   {% endif %}
 
-  <form method="post" action="{% url 'storefront-message' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+  {% if reaction_minutes %}
+  {# LS-4: бейдж доверия — показываем только при хорошем ⌀ (гейт во вью). #}
+  <p class="mb-3 text-sm text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 inline-block">⚡ {% blocktrans with n=reaction_minutes %}Antwortet in der Regel in ~{{ n }} Min{% endblocktrans %}</p>
+{% endif %}
+<form method="post" action="{% url 'storefront-message' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
     {% csrf_token %}
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
     <input type="hidden" name="ref_kind" value="{{ ref_kind }}">

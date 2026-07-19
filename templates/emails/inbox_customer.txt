@@ -7,4 +7,5 @@ Sie haben eine neue Antwort{% if business %} von {{ business }}{% endif %}{% if 
 Antworten / Verlauf ansehen:
 {{ thread_url }}
 {% endif %}
-Mit freundlichen Grüßen
+Mit freundlichen Grüßen{% if staff_name %}
+{{ staff_name }}{% if business %} · {{ business }}{% endif %}{% endif %}

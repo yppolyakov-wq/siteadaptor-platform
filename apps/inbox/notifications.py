@@ -30,6 +30,12 @@ def enqueue_message_email(message):
         "message": message,
         "thread_url": thread_url,
         "business": tenant.name if tenant else "",
+        # LS-4 «Слой доверия»: живое имя сотрудника в подписи письма-ответа.
+        "staff_name": (
+            (message.author_user.first_name or message.author_user.get_username())
+            if message.author_user_id
+            else ""
+        ),
         "unsubscribe_url": "",
     }
 

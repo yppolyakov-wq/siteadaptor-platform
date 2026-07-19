@@ -12135,3 +12135,7 @@ msgstr "Everything all right? — %(business)s"
 
 msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
 msgstr "thank you for your patience — we hope we could resolve your issue at %(business)s."
+
+#. LS-4 Vertrauen (2026-07-19)
+msgid "Antwortet in der Regel in ~%(n)s Min"
+msgstr "Usually replies within ~%(n)s min"

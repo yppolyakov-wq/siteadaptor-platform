@@ -12185,3 +12185,7 @@ msgstr "Her şey yolunda mı? — %(business)s"
 
 msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
 msgstr "sabrınız için teşekkürler — %(business)s ile ilgili sorununuzu çözebildiğimizi umuyoruz."
+
+#. LS-4 Vertrauen (2026-07-19)
+msgid "Antwortet in der Regel in ~%(n)s Min"
+msgstr "Genellikle ~%(n)s dk içinde yanıtlar"

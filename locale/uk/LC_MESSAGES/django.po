@@ -12250,3 +12250,7 @@ msgstr "Усе гаразд? — %(business)s"
 
 msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
 msgstr "дякуємо за терпіння — сподіваємося, нам вдалося вирішити ваше питання в %(business)s."
+
+#. LS-4 Vertrauen (2026-07-19)
+msgid "Antwortet in der Regel in ~%(n)s Min"
+msgstr "Зазвичай відповідає за ~%(n)s хв"

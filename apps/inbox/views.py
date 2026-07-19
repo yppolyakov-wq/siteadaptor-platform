@@ -50,6 +50,31 @@ def _avg_reaction(days: int = 30, cap: int = 200):
     return _fmt_minutes(sum(deltas, deltas[0] - deltas[0]) / len(deltas))
 
 
+def avg_reaction_minutes(days: int = 30, cap: int = 200):
+    """LS-4: ⌀ реакция в МИНУТАХ (int|None) — публичный бейдж доверия гейтится
+    «хорошим значением» на вызывающей стороне (та же выборка, что _avg_reaction)."""
+    from datetime import timedelta
+
+    from django.db.models import Min, Q
+    from django.utils import timezone
+
+    qs = Conversation.objects.filter(
+        status__in=(Conversation.STATUS_RESOLVED, Conversation.STATUS_CLOSED),
+        created_at__gte=timezone.now() - timedelta(days=days),
+    ).annotate(
+        first_staff=Min(
+            "messages__created_at", filter=Q(messages__author_role=Message.AUTHOR_STAFF)
+        )
+    )[:cap]
+    deltas = [
+        c.first_staff - c.created_at for c in qs if c.first_staff and c.first_staff > c.created_at
+    ]
+    if not deltas:
+        return None
+    avg = sum(deltas, deltas[0] - deltas[0]) / len(deltas)
+    return max(int(avg.total_seconds() // 60), 1)
+
+
 @login_required
 def inbox_list(request):
     conversations = Conversation.objects.select_related("customer")

@@ -12272,3 +12272,7 @@ msgstr "Всё в порядке? — %(business)s"
 
 msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
 msgstr "спасибо за терпение — надеемся, нам удалось решить ваш вопрос в %(business)s."
+
+#. LS-4 Vertrauen (2026-07-19)
+msgid "Antwortet in der Regel in ~%(n)s Min"
+msgstr "Обычно отвечает за ~%(n)s мин"
