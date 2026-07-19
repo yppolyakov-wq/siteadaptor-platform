@@ -12153,3 +12153,10 @@ msgstr "Portallardan rezervasyon aktar"
 
 msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
 msgstr "Dışarıya bağlantılar: ödeme, kanallar, alan adı — hepsi tek yerde."
+
+#. ST-3 Studio-Shell (2026-07-19)
+msgid "Seiten"
+msgstr "Sayfalar"
+
+msgid "Blöcke"
+msgstr "Bloklar"

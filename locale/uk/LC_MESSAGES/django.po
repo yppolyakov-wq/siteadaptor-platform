@@ -12218,3 +12218,10 @@ msgstr "Імпорт бронювань з порталів"
 
 msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
 msgstr "Зв'язки із зовнішнім світом: оплата, канали, домен — усе в одному місці."
+
+#. ST-3 Studio-Shell (2026-07-19)
+msgid "Seiten"
+msgstr "Сторінки"
+
+msgid "Blöcke"
+msgstr "Блоки"

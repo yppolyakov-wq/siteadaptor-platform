@@ -5822,3 +5822,26 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   спарклайн-края/лендинг по модулям) + обновлён замок classic («плитки»→«хабы»); core 698
   зелёные (1 фейл — документированная локальная грабля msgfmt/.mo, на CI зелёный). i18n:
   18 msgid → 4 .po. CSS пересобран.
+
+## 2026-07-19 — ST-3 «Studio-оболочка» (a+b+c) — переупаковка готового хрома (БЕЗ миграций)
+
+- План `docs/st3-studio-shell-plan-2026-07-19.md`; вывод разведки: полноэкранная оболочка
+  УЖЕ есть (#bld-root fixed inset-0 SE-6, правый инспектор, тонкий тулбар UC6-10, двойная
+  буферизация editor-live-inplace, Look ST-1b, история версий) — ST-3 добавляет три куска.
+- **ST-3a Рейка уровней** `#st-rail` (desktop-only, слева): Look/Seiten/Blöcke/Medien —
+  тонкие обёртки над существующим (клик по area-вкладке theme + скролл к Look-fieldset /
+  page-лента / #bld-blocks-btn инсертер / __sfShowArea gallery-media); SVG-иконки спрайта
+  (+ic-pages/ic-media); брендинг «Studio» в топ-баре. Существующие id НЕ переименованы
+  (замки test_home_builder целы — 104 зелёных).
+- **ST-3b Page-лента** `#st-pages` снизу: чипы страниц из preview_pages, активная — по
+  `#bld-page-path`; клик = навигация `?page=` (семантика reloadBuilderPage). Канва
+  сдвигается CSS-ом (`:has(#st-rail)` left 4rem / .st-pages-open bottom), масштаб
+  пересчитывает существующий ResizeObserver.
+- **ST-3c Кросс-фейд** свопа канвы: в `swapPreview` буфер проявляется opacity-transition
+  (180мс) ПОВЕРХ старого кадра, старый умирает после перехода, финальная геометрия =
+  liveCss (opacity ⊥ transform applyDevice; страховка hardReloadPreview цела).
+- **classic_ui (Р7)**: весь новый хром под `{% if not classic_ui %}` (вариант A плана) —
+  в классике билдер byte-обычный (замок). Урок: context-processor modules_nav возвращает
+  {} для schema_name="public" → тесты кабинетного хрома создают тенанта с обычной схемой.
+- Тесты: 2 test_studio_shell + 156 (home_builder/looks/classic/cblocks) на СВЕЖЕЙ БД
+  (пробник опять наследил в keepdb — чищено --create-db). i18n +2 msgid. CSS пересобран.

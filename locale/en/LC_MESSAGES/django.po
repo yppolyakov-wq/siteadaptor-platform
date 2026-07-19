@@ -12103,3 +12103,10 @@ msgstr "Import bookings from portals"
 
 msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
 msgstr "Connections to the outside: payments, channels, domain — all in one place."
+
+#. ST-3 Studio-Shell (2026-07-19)
+msgid "Seiten"
+msgstr "Pages"
+
+msgid "Blöcke"
+msgstr "Blocks"

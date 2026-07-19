@@ -12240,3 +12240,10 @@ msgstr "Импорт броней из порталов"
 
 msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
 msgstr "Связи с внешним миром: оплата, каналы, домен — всё в одном месте."
+
+#. ST-3 Studio-Shell (2026-07-19)
+msgid "Seiten"
+msgstr "Страницы"
+
+msgid "Blöcke"
+msgstr "Блоки"
