@@ -1,0 +1,57 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}Marketing{% endblock %}
+
+{% block dash_content %}
+{% hub_tabs "marketing" %}
+<h1 class="text-2xl font-bold mb-1">📣 Marketing</h1>
+<p class="text-sm text-gray-500 mb-5">{% trans "Erinnerungen, Treue, Bewertungen, Kampagnen — alles an einem Ort." %}</p>
+
+{% if metrics %}
+{% comment %}ST-6a: панель результатов — готовые источники, только чтение.{% endcomment %}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mb-6">
+  {% for m in metrics %}
+    <a href="{{ m.url }}" class="bg-white rounded-2xl shadow-sm p-4 hover:ring-1 hover:ring-indigo-300">
+      <span class="block text-lg font-bold">{{ m.value }}</span>
+      <span class="block text-xs text-gray-400 mt-0.5">{{ m.label }}</span>
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid sm:grid-cols-2 gap-3 max-w-3xl">
+  {% for c in cards %}
+    <a href="{% url c.url_name %}" class="bg-white rounded-2xl shadow-sm p-4 hover:ring-1 hover:ring-indigo-300 flex items-start gap-3">
+      <span class="text-2xl leading-none">{{ c.icon }}</span>
+      <span>
+        <span class="block text-sm font-medium text-gray-800">{{ c.label }}</span>
+        <span class="block text-xs text-gray-400 mt-0.5">{{ c.hint }}</span>
+      </span>
+    </a>
+  {% endfor %}
+</div>
+
+{% if reminders.rows or reminders.winback %}
+{% comment %}ST-6a ROI №1: read-only обзор авто-касаний — матрица UD4-2 + win-back.{% endcomment %}
+<h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-8 mb-2">{% trans "Aktive Erinnerungen" %}</h2>
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">
+  {% for r in reminders.rows %}
+    <a href="{{ r.url }}" class="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-gray-50">
+      <span class="text-sm text-gray-700">{{ r.label }}</span>
+      <span class="flex items-center gap-2 text-xs shrink-0">
+        <span class="{% if r.email %}text-emerald-700{% else %}text-gray-300 line-through{% endif %}">✉️ E-Mail</span>
+        <span class="{% if r.telegram %}text-emerald-700{% else %}text-gray-300 line-through{% endif %}">💬 Telegram</span>
+      </span>
+    </a>
+  {% endfor %}
+  {% if reminders.winback %}
+    <a href="{{ reminders.winback.url }}" class="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-gray-50">
+      <span class="text-sm text-gray-700">{{ reminders.winback.label }}</span>
+      <span class="text-xs font-medium px-2.5 py-1 rounded-full {% if reminders.winback.active %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-500{% endif %}">
+        {% if reminders.winback.active %}{% trans "Aktiv" %}{% else %}{% trans "Pausiert" %}{% endif %}
+      </span>
+    </a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

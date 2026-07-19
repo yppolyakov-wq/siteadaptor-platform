@@ -12369,3 +12369,54 @@ msgstr "Календар"
 
 msgid "Liste"
 msgstr "Список"
+
+msgid "Erinnerungen & Care-Zyklus"
+msgstr "Нагадування та цикл турботи"
+
+msgid "Zahlungs-/Termin-Erinnerungen, «Wie war's?»-Mails"
+msgstr "Нагадування про оплату/запис, листи «Як усе пройшло?»"
+
+msgid "Treue & Gutscheine"
+msgstr "Лояльність і купони"
+
+msgid "Gutscheine, Treuepunkte, Geschenkgutscheine"
+msgstr "Купони, бали лояльності, подарункові сертифікати"
+
+msgid "Antworten, verwalten, um Bewertungen bitten"
+msgstr "Відповідати, керувати, просити відгуки"
+
+msgid "Aktion überall teilen"
+msgstr "Поділитися акцією всюди"
+
+msgid "Kanäle, ★ Anzeige und E-Mail — von der Aktion aus"
+msgstr "Канали, ★-реклама та e-mail — просто з акції"
+
+msgid "Coupon-Kampagnen nach Kundensegmenten"
+msgstr "Купонні кампанії за сегментами клієнтів"
+
+msgid "Kanäle & Beiträge"
+msgstr "Канали та публікації"
+
+msgid "Google/Facebook/Instagram/Telegram verbinden"
+msgstr "Підключити Google/Facebook/Instagram/Telegram"
+
+msgid "Win-back (inaktive Kunden)"
+msgstr "Win-back (неактивні клієнти)"
+
+msgid "Aufrufe aktiver Aktionen"
+msgstr "Перегляди активних акцій"
+
+msgid "★ Anzeige: Aufrufe · Klicks"
+msgstr "★ Реклама: покази · кліки"
+
+msgid "Kampagnen: ausgegeben · eingelöst"
+msgstr "Кампанії: видано · погашено"
+
+msgid "Bewertungen: ⌀ · Anzahl"
+msgstr "Відгуки: середній · кількість"
+
+msgid "Erinnerungen, Treue, Bewertungen, Kampagnen — alles an einem Ort."
+msgstr "Нагадування, лояльність, відгуки, кампанії — все в одному місці."
+
+msgid "Aktive Erinnerungen"
+msgstr "Активні нагадування"

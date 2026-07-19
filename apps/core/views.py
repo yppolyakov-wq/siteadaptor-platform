@@ -3336,6 +3336,27 @@ def notifications_settings(request):
 
 
 @login_required
+def marketing_home(request):
+    """ST-6a: Marketing-центр — лендинг с карточками в ROI-порядке ТЗ, read-only
+    обзором авто-напоминаний и панелью результатов (готовые источники, только
+    чтение). Новая страница (ничего не заменяет) — classic-гейт не нужен
+    (прецедент integrations_home)."""
+    from apps.core import marketing_home as mh
+
+    tenant = request.tenant
+    return render(
+        request,
+        "tenant/marketing_home.html",
+        {
+            "nav": "promotions",
+            "cards": mh.cards(tenant),
+            "reminders": mh.reminder_overview(tenant),
+            "metrics": mh.results_panel(tenant),
+        },
+    )
+
+
+@login_required
 def integrations_home(request):
     """ST-4a: лёгкий лендинг «Integrationen» — карточки-входы в существующие
     интеграционные точки (свода-хаба не было — план st4-admin-home-plan §1,

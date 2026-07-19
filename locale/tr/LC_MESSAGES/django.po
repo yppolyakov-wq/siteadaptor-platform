@@ -12303,3 +12303,55 @@ msgstr "Takvim"
 
 msgid "Liste"
 msgstr "Liste"
+
+msgid "Erinnerungen & Care-Zyklus"
+msgstr "Hatırlatmalar ve özen döngüsü"
+
+msgid "Zahlungs-/Termin-Erinnerungen, «Wie war's?»-Mails"
+msgstr "Ödeme/randevu hatırlatmaları, «Nasıldı?» e-postaları"
+
+msgid "Treue & Gutscheine"
+msgstr "Sadakat ve kuponlar"
+
+msgid "Gutscheine, Treuepunkte, Geschenkgutscheine"
+msgstr "Kuponlar, sadakat puanları, hediye çekleri"
+
+msgid "Antworten, verwalten, um Bewertungen bitten"
+msgstr "Yanıtlayın, yönetin, değerlendirme isteyin"
+
+msgid "Aktion überall teilen"
+msgstr "Kampanyayı her yerde paylaş"
+
+msgid "Kanäle, ★ Anzeige und E-Mail — von der Aktion aus"
+msgstr "Kanallar, ★ ilan ve e-posta — doğrudan kampanyadan"
+
+msgid "Coupon-Kampagnen nach Kundensegmenten"
+msgstr "Müşteri segmentlerine göre kupon kampanyaları"
+
+msgid "Kanäle & Beiträge"
+msgstr "Kanallar ve gönderiler"
+
+msgid "Google/Facebook/Instagram/Telegram verbinden"
+msgstr "Google/Facebook/Instagram/Telegram'ı bağlayın"
+
+msgid "Win-back (inaktive Kunden)"
+msgstr "Geri kazanım (pasif müşteriler)"
+
+msgid "Aufrufe aktiver Aktionen"
+msgstr "Aktif kampanya görüntülenmeleri"
+
+msgid "★ Anzeige: Aufrufe · Klicks"
+msgstr "★ İlan: görüntülenme · tıklama"
+
+msgid "Kampagnen: ausgegeben · eingelöst"
+msgstr "Kampanyalar: verilen · kullanılan"
+
+msgid "Bewertungen: ⌀ · Anzahl"
+msgstr "Değerlendirmeler: ort. · sayı"
+
+msgid "Erinnerungen, Treue, Bewertungen, Kampagnen — alles an einem Ort."
+msgstr ""
+"Hatırlatmalar, sadakat, değerlendirmeler, kampanyalar — hepsi tek yerde."
+
+msgid "Aktive Erinnerungen"
+msgstr "Aktif hatırlatmalar"

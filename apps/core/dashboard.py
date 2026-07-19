@@ -250,11 +250,13 @@ def hub_tiles(tenant) -> list[dict]:
             "label": _t("Angebot"),
             "url_name": "sellable-manage",
         },
+        # ST-6a: вход «Marketing» — центр-лендинг (карточки ROI-порядка,
+        # обзор напоминаний, панель результатов), не голый список акций.
         {
             "key": "marketing",
             "icon": "ic-marketing",
             "label": _t("Marketing"),
-            "url_name": "promotions:promotion-list",
+            "url_name": "marketing-home",
         },
         {
             "key": "integrations",

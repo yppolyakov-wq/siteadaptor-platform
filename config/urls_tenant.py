@@ -27,6 +27,7 @@ from apps.core.views import (
     kanban_action,
     languages_view,
     legal_docs_view,
+    marketing_home,
     media_library,
     menu_builder_view,
     modules_view,
@@ -125,6 +126,9 @@ urlpatterns = [
     path("dashboard/orders-view/", set_orders_view, name="set-orders-view"),
     # ST-4a: лендинг «Integrationen» (карточки-входы; хаб-плитка главной).
     path("dashboard/integrationen/", integrations_home, name="integrations-home"),
+    # ST-6a: Marketing-центр (лендинг: карточки ROI-порядка + обзор напоминаний
+    # + панель результатов).
+    path("dashboard/marketing/", marketing_home, name="marketing-home"),
     path("dashboard/cabinet-lang/", set_cabinet_lang_view, name="set-cabinet-lang"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),

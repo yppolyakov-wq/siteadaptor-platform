@@ -12256,3 +12256,54 @@ msgstr "Calendar"
 
 msgid "Liste"
 msgstr "List"
+
+msgid "Erinnerungen & Care-Zyklus"
+msgstr "Reminders & care cycle"
+
+msgid "Zahlungs-/Termin-Erinnerungen, «Wie war's?»-Mails"
+msgstr "Payment/appointment reminders, “How was it?” mails"
+
+msgid "Treue & Gutscheine"
+msgstr "Loyalty & vouchers"
+
+msgid "Gutscheine, Treuepunkte, Geschenkgutscheine"
+msgstr "Vouchers, loyalty points, gift vouchers"
+
+msgid "Antworten, verwalten, um Bewertungen bitten"
+msgstr "Reply, manage, ask for reviews"
+
+msgid "Aktion überall teilen"
+msgstr "Share promotion everywhere"
+
+msgid "Kanäle, ★ Anzeige und E-Mail — von der Aktion aus"
+msgstr "Channels, ★ ad and e-mail — right from the promotion"
+
+msgid "Coupon-Kampagnen nach Kundensegmenten"
+msgstr "Coupon campaigns by customer segments"
+
+msgid "Kanäle & Beiträge"
+msgstr "Channels & posts"
+
+msgid "Google/Facebook/Instagram/Telegram verbinden"
+msgstr "Connect Google/Facebook/Instagram/Telegram"
+
+msgid "Win-back (inaktive Kunden)"
+msgstr "Win-back (inactive customers)"
+
+msgid "Aufrufe aktiver Aktionen"
+msgstr "Views of active promotions"
+
+msgid "★ Anzeige: Aufrufe · Klicks"
+msgstr "★ Ad: views · clicks"
+
+msgid "Kampagnen: ausgegeben · eingelöst"
+msgstr "Campaigns: issued · redeemed"
+
+msgid "Bewertungen: ⌀ · Anzahl"
+msgstr "Reviews: avg · count"
+
+msgid "Erinnerungen, Treue, Bewertungen, Kampagnen — alles an einem Ort."
+msgstr "Reminders, loyalty, reviews, campaigns — all in one place."
+
+msgid "Aktive Erinnerungen"
+msgstr "Active reminders"
