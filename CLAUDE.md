@@ -667,7 +667,10 @@ Python 3.12, менеджер uv.
   **Страховка редизайна ✅** (запрос владельца): тумблер «Klassische Ansicht»
   (`site_config["classic_ui"]`, карточка на «Funktionen», контекст в processor);
   первый потребитель — главная кабинета без плиток/канбана AB7; ЖЕЛЕЗНОЕ ПРАВИЛО трека
-  ST — каждый редизайн уважает флаг (`studio-concept §8b`). Дальше: LS-3 → ST-1.
+  ST — каждый редизайн уважает флаг (`studio-concept §8b`). **ПОЛНОЕ ТЗ треков
+  FD/LS/ST — `docs/next-gen-master-tz-2026-07-19.md` (SOURCE OF TRUTH очереди:
+  этапы A LS-3→LS-1/2 · B ST-1→ST-4→ST-3→ST-2 · C LS-6→LS-4→LS-5 · D своды;
+  правила исполнения §4, ops §5).** Дальше: LS-3 (план-док обязателен).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
