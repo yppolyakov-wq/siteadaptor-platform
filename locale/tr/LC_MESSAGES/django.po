@@ -12044,3 +12044,28 @@ msgstr "örn. Bunu sizin için cuma gününe kadar memnuniyetle ayırırız."
 
 msgid "%(business)s hat Ihnen ein persönliches Angebot geschickt:"
 msgstr "%(business)s size kişisel bir teklif gönderdi:"
+
+#. LS-1 Video-Beratung (2026-07-19)
+msgid "WhatsApp-Nummer"
+msgstr "WhatsApp numarası"
+
+msgid "Video-Beratung"
+msgstr "Görüntülü danışma"
+
+msgid "Video-Beratung möglich"
+msgstr "Görüntülü danışma mümkün"
+
+msgid "WhatsApp-Link in Bestätigung"
+msgstr "Onayda WhatsApp bağlantısı"
+
+msgid "Per Video zeigen lassen"
+msgstr "Video ile göster"
+
+msgid "Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
+msgstr "Ekip size WhatsApp video üzerinden göstersin — yol zahmeti olmadan."
+
+msgid "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach hier:"
+msgstr "Randevunuz görüntülü olarak gerçekleşecek — randevu saatinde buradan başlatın:"
+
+msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
+msgstr "Uluslararası format, örn. +49 171 1234567. Görüntülü danışma ve anında iletişim için; boş = WhatsApp düğmeleri gösterilmez."

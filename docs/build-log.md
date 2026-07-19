@@ -5692,3 +5692,27 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   зелёные. i18n: 40 msgid → en/tr/ru/uk .po (polib-валидация, дублей нет). CSS пересобран
   (npm ci, tailwind 3.4.17). Урок: скрипт-пробник с keepdb НАСЛЕДИЛ в reuse-БД (стрей-Conversation
   уронил чужой тест) → после ручных пробников на тест-БД прогонять --create-db.
+
+## 2026-07-19 — LS-1 «Video-Beratung по записи» v1 = WhatsApp (⚠️ миграции booking/0017 + tenants/0027)
+
+- План `docs/ls1-video-beratung-plan-2026-07-19.md`; развилка «is_video без миграции» решена
+  В ПОЛЬЗУ миграции: у Service нет свободного dict-JSON (attributes/faq типизированы под показ),
+  site_config-список требовал бы правки normalize + синка. `Service.is_video` (booking/0017) +
+  `Tenant.whatsapp_number` (SHARED tenants/0027) — оба аддитивные. §201 StGB: НИКАКОЙ записи —
+  только открытие чата wa.me.
+- **Хелпер `apps/core/whatsapp.py::wa_link(number, text)`** — digits-нормализация + urlencode;
+  пустой номер → "" (fail-safe). Единый строитель (до этого wa.me один раз inline в share);
+  LS-2 реюзает следующим инкрементом.
+- **Кабинет:** «WhatsApp-Nummer» в BusinessSettingsForm + settings.html (W0-инвариант: поле
+  рендерится); чекбокс «📹 Video-Beratung möglich» в форме услуги (create + update с
+  presence-сентинелом `is_video_present` — чужой клиент формы без чекбокса флаг не сбросит).
+- **Витрина:** секция `video` в `DETAIL_SECTIONS["booking"]` (после description; замок порядка
+  обновлён осознанно) + `_service_video.html` («Per Video zeigen lassen», wa.me с названием
+  услуги); present-гейт = is_video И номер; скрытие — обычный builder-hidden. **Фасет `?video=1`**
+  в ServiceFacets (selected/apply/present) → авто-чип «📹 Video-Beratung» на /termin/ при ≥1
+  видео-услуге (единый источник = is_video, без дублирования в Collection); carry в тулбаре.
+- **Письма:** `ctx["whatsapp_url"]` в confirmed/reminder (зеркало pay_url/review_url) — wa.me с
+  датой «Video-Termin d.m. H:i — услуга»; без номера/не-видео → письмо байт-в-байт прежнее.
+- Тесты: 10 в test_video_service.py (wa_link/формы-сентинел/гейты секции/скрытие/чип+фильтр/
+  письма с номером и без) + замок section_keys обновлён; booking 144 + detail_sections/settings
+  зелёные. i18n: 8 msgid → en/tr/ru/uk. CSS пересобран.

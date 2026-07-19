@@ -12109,3 +12109,28 @@ msgstr "напр. Із задоволенням зарезервуємо це д
 
 msgid "%(business)s hat Ihnen ein persönliches Angebot geschickt:"
 msgstr "%(business)s надіслав вам персональну пропозицію:"
+
+#. LS-1 Video-Beratung (2026-07-19)
+msgid "WhatsApp-Nummer"
+msgstr "Номер WhatsApp"
+
+msgid "Video-Beratung"
+msgstr "Відеоконсультація"
+
+msgid "Video-Beratung möglich"
+msgstr "Можлива відеоконсультація"
+
+msgid "WhatsApp-Link in Bestätigung"
+msgstr "WhatsApp-посилання у підтвердженні"
+
+msgid "Per Video zeigen lassen"
+msgstr "Подивитися по відео"
+
+msgid "Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
+msgstr "Вам усе покажуть по WhatsApp-відео — прямо від команди, без поїздки."
+
+msgid "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach hier:"
+msgstr "Ваша зустріч відбудеться по відео — просто відкрийте це посилання у призначений час:"
+
+msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
+msgstr "У міжнародному форматі, напр. +49 171 1234567. Для відеоконсультацій і миттєвого зв'язку; порожньо = кнопки WhatsApp не показуються."

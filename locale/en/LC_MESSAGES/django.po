@@ -11994,3 +11994,28 @@ msgstr "e.g. We'll gladly reserve this for you until Friday."
 
 msgid "%(business)s hat Ihnen ein persönliches Angebot geschickt:"
 msgstr "%(business)s has sent you a personal offer:"
+
+#. LS-1 Video-Beratung (2026-07-19)
+msgid "WhatsApp-Nummer"
+msgstr "WhatsApp number"
+
+msgid "Video-Beratung"
+msgstr "Video consultation"
+
+msgid "Video-Beratung möglich"
+msgstr "Video consultation available"
+
+msgid "WhatsApp-Link in Bestätigung"
+msgstr "WhatsApp link in confirmation"
+
+msgid "Per Video zeigen lassen"
+msgstr "See it via video"
+
+msgid "Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
+msgstr "Let the team show it to you via WhatsApp video — no trip needed."
+
+msgid "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach hier:"
+msgstr "Your appointment takes place via video — just start it here at the appointed time:"
+
+msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
+msgstr "International format, e.g. +49 171 1234567. Used for video consultations and instant contact; leave blank to hide all WhatsApp buttons."
