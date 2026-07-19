@@ -297,6 +297,15 @@
                 <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="sd_card_bg_on" {% if card_bg %}checked{% endif %} class="rounded border-gray-300">{% trans "use" %}</label>
               </span>
             </label>
+            {# ST-7c: ФОРМА карточки — вертикальная / текст поверх фото / строка-прайс. #}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">Kartenform</span>
+              <select name="sd_card_style" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">Standard</option>
+                <option value="overlay" {% if card_style == 'overlay' %}selected{% endif %}>Text auf Foto</option>
+                <option value="compact" {% if card_style == 'compact' %}selected{% endif %}>Kompakte Zeile</option>
+              </select>
+            </label>
           </div>
           <p class="text-xs text-gray-400 mt-2">{% trans "Applies to all cards across the site; a single block can override it." %}</p>
         </div>
@@ -1999,11 +2008,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdPad = form.querySelector("input[name='sd_card_padding']");
       var sdBgOn = form.querySelector("input[name='sd_card_bg_on']");
       var sdBg = form.querySelector("input[name='sd_card_bg']");
+      // ST-7c: форма карточки (select sd_card_style; "" = прежняя).
+      var sdStyle = form.querySelector("select[name='sd_card_style']");
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
         card_padding: sdPad && sdPad.value !== "" ? parseInt(sdPad.value, 10) || 0 : 0,
         card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
+        card_style: sdStyle ? sdStyle.value : "",
       };
     }
     // UC6-7b: C-блоки СТРАНИЦ (pb-строки) → черновик {хост: [entry,…]}. Шлём ВСЕ

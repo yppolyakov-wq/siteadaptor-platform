@@ -271,6 +271,8 @@ def modules_nav(request):
         "storefront_card_shadow": cfg["site_defaults"]["card_shadow"],
         "storefront_card_bg": cfg["site_defaults"]["card_bg"],
         "storefront_card_padding": cfg["site_defaults"]["card_padding"],
+        # ST-7c: глобальная ФОРМА карточки ("" | overlay | compact; draft-aware).
+        "storefront_card_style": cfg["site_defaults"].get("card_style", ""),
         # H1.2: тэглайн подвала (draft-aware) — правится инлайн (data-edit="footer_text").
         "storefront_footer_text": cfg.get("footer_text", ""),
         # Режим редактора (?preview=1): витрина показывает превью-аффордансы (пустые

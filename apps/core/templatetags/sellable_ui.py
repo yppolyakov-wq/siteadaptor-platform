@@ -18,8 +18,9 @@ register = template.Library()
 _EDIT_MODELS = {"service": "service", "stay": "stay"}
 
 
-@register.inclusion_tag("storefront/_sellable_card.html")
+@register.inclusion_tag("storefront/_sellable_card.html", takes_context=True)
 def sellable_card(
+    context,
     kind,
     obj,
     variant="vertical",
@@ -49,6 +50,10 @@ def sellable_card(
     return {
         "card": card,
         "obj": obj,
+        # ST-7c: глобальная ФОРМА карточки (site_defaults.card_style) — из
+        # processor-переменной вызывающего контекста (inclusion-шаблон иначе
+        # её не видит); "" = прежняя форма.
+        "card_style": context.get("storefront_card_style", ""),
         "variant": variant,
         "href": (href or card.detail_url) + query,
         "edit": edit,

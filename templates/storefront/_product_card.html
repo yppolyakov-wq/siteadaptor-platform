@@ -1,4 +1,97 @@
 {% load i18n %}{% load siteui %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c/R5: цена+кнопка в одну линию. #}
+{% comment %}ST-7c: глобальная ФОРМА карточки storefront_card_style — "" прежняя
+вертикальная | compact — строка-прайс (фото слева) | overlay — текст поверх фото.
+"" обязана рендерить прежнюю разметку байт-в-байт (замки test_card_style).{% endcomment %}
+{% if storefront_card_style == "compact" %}
+<div class="sf-card relative group flex items-center gap-3 bg-white rounded-2xl shadow-sm p-3 hover:shadow-md transition">
+  <a href="{% url 'catalog:product-edit' p.pk %}" target="_blank" rel="noopener"
+     class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"
+     title="{% trans 'Edit product' %}" aria-label="{% trans 'Edit product' %}">✎</a>
+  <button type="button" data-photo-edit data-edit-pk="{{ p.pk }}"
+     class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+     title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
+  <a href="{% url 'storefront-product' p.pk %}" class="flex items-center gap-3 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 rounded-xl">
+    <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+      {% with img=p.primary_image %}
+        {% if img %}<img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+        {% else %}<div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>{% endif %}
+      {% endwith %}
+      {% if not p.in_stock %}<span class="absolute inset-x-0 bottom-0 bg-gray-800/80 text-white text-[10px] font-bold text-center py-0.5">{% trans "sold out" %}</span>{% endif %}
+    </div>
+    <div class="min-w-0 flex-1">
+      {% if p.category %}<p class="text-xs text-gray-400 truncate">{{ p.category }}</p>{% endif %}
+      <h3 class="font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
+      {% if p.review_avg %}<p class="text-xs leading-none mt-0.5"><span class="text-amber-500">★</span> <span class="text-gray-600 font-medium">{{ p.review_avg|floatformat:1 }}</span> <span class="text-gray-400">({{ p.review_count }})</span></p>{% endif %}
+      <div class="font-bold leading-tight mt-0.5">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</div>
+      {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-[11px] text-gray-400 leading-tight">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
+    </div>
+  </a>
+  {% if storefront_quick_add and p.in_stock %}
+    {% if p.has_variants or p.has_modifiers %}
+      <button type="button" data-quick-url="{% url 'storefront-quick-add' p.pk %}"
+              class="js-add-btn shrink-0 w-10 h-10 rounded-full bg-white ring-1 ring-gray-200 shadow hover:bg-gray-50 active:scale-90 transition flex items-center justify-center"
+              style="color: var(--accent);" aria-label="{% trans 'Choose options' %}" title="{% trans 'Choose options' %}">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.4" fill="white"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.4" fill="white"/></svg>
+      </button>
+    {% else %}
+      <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form shrink-0">
+        {% csrf_token %}
+        <input type="hidden" name="product" value="{{ p.pk }}">
+        <input type="hidden" name="qty" value="1">
+        <button type="submit"
+                class="js-add-btn w-10 h-10 rounded-full text-white shadow active:scale-90 transition flex items-center justify-center"
+                style="background: var(--accent);" aria-label="{% trans 'Add to cart' %}" title="{% trans 'Add to cart' %}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+        </button>
+      </form>
+    {% endif %}
+  {% endif %}
+</div>
+{% elif storefront_card_style == "overlay" %}
+<div class="sf-card relative group rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+  <a href="{% url 'catalog:product-edit' p.pk %}" target="_blank" rel="noopener"
+     class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"
+     title="{% trans 'Edit product' %}" aria-label="{% trans 'Edit product' %}">✎</a>
+  <button type="button" data-photo-edit data-edit-pk="{{ p.pk }}"
+     class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+     title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
+  <a href="{% url 'storefront-product' p.pk %}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <div class="relative aspect-square bg-gray-100">
+      {% with img=p.primary_image %}
+        {% if img %}<img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-[1.02] transition">
+        {% else %}<div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>{% endif %}
+      {% endwith %}
+      {% if p.badge_label %}<span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
+      {% elif p.is_featured %}<span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>{% endif %}
+      {% if not p.in_stock %}<span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>{% endif %}
+      <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-3 pt-10">
+        <h3 class="text-white font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
+        <p class="text-white/90 font-bold leading-tight">{% if p.has_variants %}<span class="text-xs font-normal text-white/70">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</p>
+      </div>
+    </div>
+  </a>
+  {% if storefront_quick_add and p.in_stock %}
+    {% if p.has_variants or p.has_modifiers %}
+      <button type="button" data-quick-url="{% url 'storefront-quick-add' p.pk %}"
+              class="js-add-btn absolute bottom-3 right-3 z-10 w-10 h-10 rounded-full bg-white ring-1 ring-gray-200 shadow hover:bg-gray-50 active:scale-90 transition flex items-center justify-center"
+              style="color: var(--accent);" aria-label="{% trans 'Choose options' %}" title="{% trans 'Choose options' %}">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.4" fill="white"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.4" fill="white"/></svg>
+      </button>
+    {% else %}
+      <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form absolute bottom-3 right-3 z-10">
+        {% csrf_token %}
+        <input type="hidden" name="product" value="{{ p.pk }}">
+        <input type="hidden" name="qty" value="1">
+        <button type="submit"
+                class="js-add-btn w-10 h-10 rounded-full text-white shadow active:scale-90 transition flex items-center justify-center"
+                style="background: var(--accent);" aria-label="{% trans 'Add to cart' %}" title="{% trans 'Add to cart' %}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+        </button>
+      </form>
+    {% endif %}
+  {% endif %}
+</div>
+{% else %}
 <div class="sf-card relative group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
   {% comment %}#7-A: ✎ к полной форме товара (цена/фото/варианты) — для владельца в превью
   редактора. На публичной витрине остаётся hidden (раскрывает только JS билдера). target=_blank —
@@ -75,3 +168,4 @@
     {% endif %}
   </div>
 </div>
+{% endif %}

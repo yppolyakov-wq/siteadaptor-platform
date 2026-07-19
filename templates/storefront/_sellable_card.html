@@ -7,7 +7,9 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
 Класс sf-card — глобальный стиль карточек SE-2d действует и на листингах
 (решение владельца 2026-07-02).
 {% endcomment %}
-{% if variant == "horizontal" %}
+{% comment %}ST-7c: card_style — compact ⇒ горизонтальная строка (реюз ветки),
+overlay ⇒ заголовок поверх фото в вертикальной; "" = прежний вид байт-в-байт.{% endcomment %}
+{% if variant == "horizontal" or card_style == "compact" %}
 <a href="{{ href }}" class="sf-card group relative flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
   {% if edit %}<span data-photo-edit data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 left-2 z-20 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>{% endif %}
   {% if card.image_url %}
@@ -33,11 +35,13 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
 <a href="{{ href }}" class="sf-card relative block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
   {% if edit %}<span data-photo-edit data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>{% endif %}
   {% if card.image_url %}
-    {% if card.kind == "stay" %}<div class="aspect-[4/3] bg-gray-100"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></div>
+    {% if card.kind == "stay" %}<div class="{% if card_style == "overlay" %}relative {% endif %}aspect-[4/3] bg-gray-100"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">{% if card_style == "overlay" %}<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</span></div>{% endif %}</div>
+    {% elif card_style == "overlay" %}<div class="relative"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover"><div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</span></div></div>
     {% else %}<img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover">{% endif %}
   {% endif %}
   <div class="p-5">
-    {% if h2 %}<h2 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h2>
+    {% if card_style == "overlay" and card.image_url %}{% comment %}имя уже поверх фото{% endcomment %}
+    {% elif h2 %}<h2 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h2>
     {% else %}<h3 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>{% endif %}
     {% if card.kind == "stay" %}
       <p class="text-sm text-gray-500">{{ obj.get_type_display }} · {% blocktrans with n=obj.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if show_area and obj.area_sqm %} · {{ obj.area_sqm }} m²{% endif %}</p>

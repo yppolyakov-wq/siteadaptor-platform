@@ -1540,6 +1540,8 @@ def home_builder_view(request):
                 else ""
             ),
             "card_padding": request.POST.get("sd_card_padding", ""),
+            # ST-7c: форма карточки ("" = прежняя; normalize отбрасывает мусор).
+            "card_style": request.POST.get("sd_card_style", ""),
         }
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
@@ -1932,6 +1934,7 @@ def home_builder_view(request):
             "card_shadow": config["site_defaults"]["card_shadow"],
             "card_bg": config["site_defaults"]["card_bg"],
             "card_padding": config["site_defaults"]["card_padding"],
+            "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
