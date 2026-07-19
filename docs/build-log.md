@@ -5900,3 +5900,35 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Тесты: +2 (post_purchase-письмо содержит problem_url end-to-end через beat; вкладка в
   HUB_TABS) — 16 в test_direct_line; post-flows orders/booking/stays/events 407 зелёные.
   i18n +2 msgid → 4 .po.
+
+## 2026-07-19 — ST-2 «Шаблоны всех страниц» (этап B4 ТЗ; БЕЗ миграций)
+
+- Разведка (Explore): листинги услуг/номеров/событий УЖЕ на LAYOUT_PRESETS (fieldset
+  «Landing pages» + «Apply to all», SE-2d/UB1-1), меню — 3 пресета UC6-6h, детали —
+  card-style+секции (AB6.10); реально без пресетов были: «О нас» вне мастера, корзина,
+  контакт. План — `docs/st2-page-templates-plan-2026-07-19.md`.
+- **ST-2a/b (реестр + пикер в билдере):** НОВЫЙ `apps/core/page_presets.py` —
+  PAGE_PRESETS {host: {prefix, presets}} (обобщение _ABOUT_PRESETS: пресет = C-блоки
+  page_blocks[host] + плоские ключи normalize), `apply_page_preset` идемпотентен
+  (заменяет ТОЛЬКО блоки с префиксом семейства, блоки владельца целы),
+  `current_preset` (блоки → плоские ключи → дефолт), `presets_for` (recommended_for
+  по business_type первыми — паттерн template_cards). `_post_about`/`_ctx_about`
+  мастера делегируют реестру (байт-в-байт, префикс pb-about- сохранён). Билдер:
+  action `use_page_preset:<host>:<id>` (ранний обработчик, `_redirect_builder` —
+  канва остаётся на странице) + карточки пресетов в scoped-строках панели
+  (`data-page-key="info"` — про хост curPbHost; cart — SCOPE_PAGE_KEY; работает и в
+  classic_ui — пикер в ОБЫЧНОЙ панели, Studio лишь добавляет путь через page-ленту).
+  Корзина: 3 пресета (Schlicht / Mit Empfehlungen / Vertrauen&Hinweise — 2 текст-блока
+  + upsell). Новых normalize-ключей НЕТ — golden целы.
+- **ST-2c (контакт + мастер):** SECTION_STYLES += `contact` (split «Karte seitlich» /
+  map_first «Karte zuerst» / compact; "" = прежняя карточка) — селект билдера и
+  валидация генерические, `style` не материализуется (golden целы); карта Leaflet
+  вынесена в `_contact_map.html` (позиция/размер per-вариант). Мастер: чекбокс
+  «Auch für andere Listen übernehmen» на слайде category — LAYOUT_PRESET зеркалится
+  в листинги ТОЛЬКО активных модулей (events/stays/booking; «Standard = pop» услуг
+  не нарушен — запись по явному чекбоксу).
+- Тесты: НОВЫЙ `apps/core/tests/test_page_presets.py` (9: normalize-выживаемость всех
+  пресетов всех хостов, идемпотентность+блоки владельца, flat-ключи существуют в
+  normalize, current_preset, view-action/рендер пикеров) + contact-стили в
+  test_cblocks + apply-all в test_onboarding_wizard; смежные замки 210 зелёные.
+  CSS пересобран (min-h-[16rem]); i18n +1 msgid → en/tr/ru/uk .po.
