@@ -2060,6 +2060,11 @@ def normalize(config) -> dict:
     # Страховка редизайна (трек ST): «классический интерфейс» — ключ только при True.
     if config.get("classic_ui"):
         normalized["classic_ui"] = True
+    # ST-1: тёмный Look витрины — ключ ТОЛЬКО при "dark" (presence-minimal,
+    # golden-паритет; светлая = отсутствие ключа). Посетительский тумблер
+    # sf-theme (localStorage) остаётся сильнее — это лишь ДЕФОЛТ сайта.
+    if config.get("theme") == "dark":
+        normalized["theme"] = "dark"
     # W5: настройки Kanban-доски (переименование/порядок/скрытие колонок); ключ
     # ТОЛЬКО при непустом (golden-паритет старых конфигов).
     board = normalize_board(config.get("board"))

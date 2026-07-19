@@ -139,6 +139,8 @@ def modules_nav(request):
     else:
         storefront_accent = tenant.primary_color or ""
     font_body, font_head = siteconfig.font_stacks(cfg["font"])
+    # ST-1: тёмный Look — дефолт темы сайта ("" | "dark", draft-aware для превью).
+    storefront_theme_default = cfg.get("theme", "")
     # P5: hero-фото — LCP-кандидат. Браузер находит background-image поздно
     # (после CSS+layout), поэтому отдаём URL для <link rel=preload> в <head>.
     # Только если секция hero включена (иначе зря тянем картинку).
@@ -237,6 +239,8 @@ def modules_nav(request):
         "storefront_line_height": cfg["typography"]["line_height"],
         # M20: override акцента в live-preview (пусто → tenant.primary_color).
         "storefront_accent": storefront_accent,
+        # ST-1: тёмный Look — дефолт темы сайта (посетительский тумблер сильнее).
+        "storefront_theme_default": storefront_theme_default,
         # SE-2d/SE-3d: глобальный стиль карточек («весь сайт»; draft-aware). Пустые
         # (0/false/"") → шаблон не эмитит inline-переменные → витрина без регрессии.
         "storefront_card_radius": cfg["site_defaults"]["card_radius"],

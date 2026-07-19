@@ -144,9 +144,115 @@ TEMPLATES = [
 
 _BY_KEY = {t["key"]: t for t in TEMPLATES}
 
+# ST-1 «Каталог Look'ов» (план st1-looks-plan-2026-07-19): Look = целостный
+# визуальный образ = СЕМЕЙСТВО (шрифт/типографика/карточки/шапка/hero/тема) ×
+# архетипный акцент (ARCHETYPE_LOOK_ACCENTS) × набор секций рекомендованного
+# шаблона архетипа. 3 семейства × 14 архетипов = 42 Look'а из чистых данных.
+LOOK_FAMILIES = [
+    {
+        "key": "klar",
+        "label": "Klar",
+        "description_de": "Hell und aufgeräumt — klare Flächen, ruhige Typografie.",
+        "font": "system",
+        "typography": {"weight_head": 0, "line_height": 0.0},  # дефолты витрины
+        "site_defaults": {"card_radius": 0, "card_shadow": False, "card_bg": "", "card_padding": 0},
+        "nav_style": "classic",
+        "hero_style": "plain",
+        "theme": "",
+    },
+    {
+        "key": "warm",
+        "label": "Warm",
+        "description_de": "Serif-Überschriften, weiche Karten — einladend und persönlich.",
+        "font": "serif",
+        "typography": {"weight_head": 600, "line_height": 1.6},
+        "site_defaults": {
+            "card_radius": 16,
+            "card_shadow": True,
+            "card_bg": "",
+            "card_padding": 0,
+        },
+        "nav_style": "centered",
+        "hero_style": "accent",
+        "theme": "",
+    },
+    {
+        "key": "nacht",
+        "label": "Nacht",
+        "description_de": "Dunkler Auftritt mit kräftigen Überschriften — modern und markant.",
+        "font": "system",
+        "typography": {"weight_head": 800, "line_height": 0.0},
+        "site_defaults": {
+            "card_radius": 16,
+            "card_shadow": True,
+            "card_bg": "",
+            "card_padding": 0,
+        },
+        "nav_style": "minimal",
+        "hero_style": "accent",
+        "theme": "dark",  # ST-1: site_config["theme"]="dark" (посетитель может переключить)
+    },
+]
+
+_FAMILY_BY_KEY = {f["key"]: f for f in LOOK_FAMILIES}
+
+# Акценты per-архетип: {business_type: (klar, warm, nacht)}. Nacht-тона светлее
+# (контраст на тёмном фоне). Неизвестный тип → retail-палитра.
+ARCHETYPE_LOOK_ACCENTS = {
+    "bakery": ("#b45309", "#9a3412", "#f59e0b"),
+    "butcher": ("#b91c1c", "#7f1d1d", "#f87171"),
+    "grocery": ("#15803d", "#166534", "#4ade80"),
+    "clothing": ("#111827", "#9d174d", "#e879f9"),
+    "restaurant": ("#b45309", "#7c2d12", "#fbbf24"),
+    "cafe": ("#92400e", "#78350f", "#fbbf24"),
+    "retail": ("#4f46e5", "#1e40af", "#818cf8"),
+    "online_shop": ("#4f46e5", "#0f766e", "#a78bfa"),
+    "tour_operator": ("#0e7490", "#155e75", "#22d3ee"),
+    "hotel": ("#0e7490", "#1e3a8a", "#38bdf8"),
+    "friseur": ("#0f766e", "#9d174d", "#f472b6"),
+    "handwerker": ("#ea580c", "#9a3412", "#fb923c"),
+    "werkstatt": ("#1e40af", "#374151", "#60a5fa"),
+    "events": ("#7c3aed", "#6d28d9", "#c084fc"),
+}
+_DEFAULT_ACCENTS = ARCHETYPE_LOOK_ACCENTS["retail"]
+
 
 def get_template(key):
     return _BY_KEY.get(key)
+
+
+def get_look_family(key):
+    return _FAMILY_BY_KEY.get(key)
+
+
+def look_accent(business_type, family_key) -> str:
+    """Акцент Look'а для архетипа (неизвестный тип → retail-палитра)."""
+    accents = ARCHETYPE_LOOK_ACCENTS.get(business_type, _DEFAULT_ACCENTS)
+    idx = next((i for i, f in enumerate(LOOK_FAMILIES) if f["key"] == family_key), 0)
+    return accents[idx]
+
+
+def looks_for(business_type) -> list[dict]:
+    """ST-1: 3 Look-карточки архетипа для галереи (мастер/билдер).
+
+    Приёмка ТЗ «пекарь видит 3 пекарских Look'а первыми» выполняется по
+    построению: каждый Look уже собран ПОД архетип (акцент+секции его шаблона).
+    """
+    return [
+        {
+            "key": f["key"],
+            "label": f["label"],
+            "description": f["description_de"],
+            "accent": look_accent(business_type, f["key"]),
+            "font": f["font"],
+            "nav_style": f["nav_style"],
+            "hero_style": f["hero_style"],
+            "theme": f["theme"],
+            "site_defaults": dict(f["site_defaults"]),
+            "typography": dict(f["typography"]),
+        }
+        for f in LOOK_FAMILIES
+    ]
 
 
 def templates_for(business_type):
@@ -177,13 +283,16 @@ def template_cards(business_type):
     ]
 
 
-def apply_template(tenant, key) -> bool:
-    """Применить шаблон к Tenant.site_config. False — неизвестный ключ."""
-    template = get_template(key)
-    if template is None:
-        return False
+def _apply(tenant, template, *, family=None, accent=None) -> None:
+    """Общее применение шаблона/Look'а к Tenant.site_config.
 
+    ST-1 (исправлен латентный баг класса W6): база = ПОЛНАЯ копия текущего
+    конфига — применение шаблона больше не стирает чужие ключи (ui_mode/board/
+    seo/presence/page_blocks/menus/…). Переписываются только раскладка секций,
+    пустые тексты, hero_style и — при family — пачка ключей Look'а.
+    """
     current = siteconfig.normalize(tenant.site_config)
+    config = dict(current)
     enabled = set(template["sections"])
     # Все известные секции явно: сначала включённые из шаблона (в его порядке),
     # затем прочие — выключенными.
@@ -191,21 +300,51 @@ def apply_template(tenant, key) -> bool:
     for sec_key, _label, _default in siteconfig.SECTIONS:
         if sec_key not in enabled:
             ordered.append(sec_key)
-
-    config = {"sections": [{"key": k, "enabled": k in enabled} for k in ordered]}
+    config["sections"] = [{"key": k, "enabled": k in enabled} for k in ordered]
     for field in siteconfig.TEXT_FIELDS:
         # Непустой текст владельца не трогаем; пустой — заполняем дефолтом шаблона.
         config[field] = current.get(field) or template["texts"].get(field, "")
-    config["hero_style"] = template.get("hero_style", "plain")
-    if isinstance(current.get("onboarding"), dict):
-        config["onboarding"] = current["onboarding"]
+    config["hero_style"] = (family or template).get("hero_style", "plain")
+
+    if family is not None:
+        # ST-1: пачка ключей Look'а (все ключи уже существуют в normalize-схеме).
+        config["font"] = family["font"]
+        config["typography"] = dict(family["typography"])
+        config["site_defaults"] = dict(family["site_defaults"])
+        nav = dict(config.get("nav") or {})
+        nav["style"] = family["nav_style"]
+        config["nav"] = nav
+        if family.get("theme") == "dark":
+            config["theme"] = "dark"
+        else:
+            config.pop("theme", None)  # светлый Look снимает тёмный дефолт
 
     tenant.site_config = siteconfig.normalize(config)
     update_fields = ["site_config", "updated_at"]
-    # Акцентный цвет шаблона → Tenant.primary_color (его читает витрина для hero).
-    accent = template.get("accent")
+    # Акцентный цвет → Tenant.primary_color (его читает витрина для hero).
     if accent:
         tenant.primary_color = accent
         update_fields.insert(1, "primary_color")
     tenant.save(update_fields=update_fields)
+
+
+def apply_template(tenant, key) -> bool:
+    """Применить шаблон к Tenant.site_config. False — неизвестный ключ."""
+    template = get_template(key)
+    if template is None:
+        return False
+    _apply(tenant, template, accent=template.get("accent"))
+    return True
+
+
+def apply_look(tenant, family_key) -> bool:
+    """ST-1: применить Look (семейство × архетипный акцент × секции шаблона
+    архетипа). False — неизвестное семейство. Идемпотентно (двойной normalize);
+    чужие ключи конфига целы (_apply — полная копия)."""
+    family = get_look_family(family_key)
+    if family is None:
+        return False
+    business_type = getattr(tenant, "business_type", "") or "retail"
+    template = templates_for(business_type)[0]  # рекомендованный архетипу первым
+    _apply(tenant, template, family=family, accent=look_accent(business_type, family_key))
     return True

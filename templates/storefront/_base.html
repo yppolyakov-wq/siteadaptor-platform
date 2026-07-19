@@ -11,7 +11,9 @@
     (function () {
       try {
         var t = localStorage.getItem("sf-theme");
-        if (t === "dark" || (!t && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches)) {
+        // ST-1: тёмный Look сайта = дефолт при отсутствии выбора посетителя.
+        var tenantDark = "{{ storefront_theme_default }}" === "dark";
+        if (t === "dark" || (!t && (tenantDark || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches)))) {
           document.documentElement.classList.add("dark");
         }
       } catch (e) {}
