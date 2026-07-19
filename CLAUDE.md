@@ -777,6 +777,21 @@ Python 3.12, менеджер uv.
   Тесты: test_page_presets (9) + contact-стили + apply-all; 1 msgid → 4 .po.
   **Очередь ТЗ дальше: этап D** (ST-5/6/7, FD-3 полный, FD-4) — первым план-док
   следующего незаблокированного пункта; ST-4b и «продано N» — ждут владельца.
+- **Самое свежее (2026-07-19, ночь, продолжение): ST-5 «Списки → визуал» ✅ ЦЕЛИКОМ
+  (этап D1 ТЗ; БЕЗ миграций).** План `docs/st5-lists-visual-plan-2026-07-19.md`.
+  **ST-5a** Angebote карточным гридом (aspect-video фото из `ManagedSellable.image_url`,
+  фолбэк; тумблер/Bearbeiten как у строки; classic_ui → divide-y список, гейт во
+  вьюхе). **ST-5b** НОВЫЙ `apps/core/orders_view.py` — Канбан⇄Календарь⇄Лента:
+  архетип-дефолт (booking|stays→Kalender, catalog→Liste, прочее→Board; недостижимое→
+  kanban), ключ `orders_view` presence-minimal в normalize, сеттер `set-orders-view`
+  (targeted-write), тег `orders_view_switch` — сегмент-контрол на board/списке
+  заказов/календарях booking+stays (classic → пусто), хаб-плитка «Bestellungen»
+  уважает выбор; v1 — навигационный (без встраивания движков). **ST-5c** CRM-карточки
+  (аватар-инициал, теги, LTV «Σ € · N×» — ОДИН annotate-запрос RevenueEntry на
+  страницу 25); ?q/Show more целы. Тесты: +2 sellable, test_orders_view (6), +2 crm,
+  смежные 354 зелёные; 2 msgid → 4 .po. Урок CI #1551: новые шаблоны гонять через
+  замок template_comments (многострочный `{# #}` запрещён). Дальше по этапу D:
+  **D2 · ST-6 Marketing-центр** (план-доком) → D3 ST-7 → D4 FD-3 → D5 FD-4.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

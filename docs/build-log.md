@@ -5932,3 +5932,27 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   normalize, current_preset, view-action/рендер пикеров) + contact-стили в
   test_cblocks + apply-all в test_onboarding_wizard; смежные замки 210 зелёные.
   CSS пересобран (min-h-[16rem]); i18n +1 msgid → en/tr/ru/uk .po.
+
+## 2026-07-19 — ST-5 «Списки → визуал» (этап D1 ТЗ; БЕЗ миграций)
+
+- План `docs/st5-lists-visual-plan-2026-07-19.md` (разведка Explore: фото sellable уже
+  унифицировано контрактом, календари per-domain — переиспользуем навигацией,
+  UI-ключи — паттерн presence-minimal/targeted-write).
+- **ST-5a Angebote карточками:** `_sellable_manage_card.html` (aspect-video фото из
+  `ManagedSellable.image_url`, фолбэк-плейсхолдер; тумблер видимости/Bearbeiten как у
+  строки) + грид 2/3/4; classic_ui → прежний divide-y список (гейт во вьюхе — паттерн
+  dashboard, работает на public-схеме тестов).
+- **ST-5b представления заказов:** `apps/core/orders_view.py` — resolve/default
+  (booking|stays → Kalender, catalog → Liste, прочее → Board; недостижимое → kanban),
+  `switch_options`/`entry_url(_name)`; ключ `orders_view` presence-minimal в normalize;
+  сеттер `set-orders-view` (targeted-write → редирект на представление); тег
+  `orders_view_switch` — сегмент-контрол на board/список заказов/календари booking+stays
+  (classic_ui → пусто); хаб-плитка «Bestellungen» ведёт на предпочтённое представление.
+  v1 — НАВИГАЦИОННЫЙ переключатель (без встраивания трёх движков в одну страницу).
+- **ST-5c CRM-карточки:** грид sm:2/lg:3 (аватар-инициал, контакты, теги, LTV
+  «Σ € · N×» — один values/annotate RevenueEntry на страницу из 25); ?q/Show more целы;
+  classic_ui → прежний список.
+- Тесты: +2 sellable_manage, НОВЫЙ test_orders_view (6), +2 crm; смежные замки
+  (orders cabinet/st4_home/classic_ui/golden/booking/stays 354) зелёные. i18n:
+  2 msgid (Kalender/Liste) → 4 .po. Урок CI #1551: многострочные `{# #}` в новых
+  шаблонах ловит замок template_comments — прогонять при ЛЮБЫХ новых шаблонах.
