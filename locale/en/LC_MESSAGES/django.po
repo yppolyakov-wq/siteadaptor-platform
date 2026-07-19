@@ -12048,3 +12048,58 @@ msgstr "WhatsApp number missing — add it now"
 #. ST-1b Look-Galerie (2026-07-19)
 msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
 msgstr "Ready-made design packages for your industry — one click recolours the preview."
+
+#. ST-4a Admin-Home (2026-07-19)
+msgid "Umsatz heute"
+msgstr "Revenue today"
+
+msgid "letzte 7 Tage"
+msgstr "last 7 days"
+
+msgid "Bestellungen fertig zur Abholung"
+msgstr "Orders ready for pickup"
+
+msgid "Marketing-Puls"
+msgstr "Marketing pulse"
+
+msgid "Aufrufe aktiver Angebote · %(n)s Gutscheine eingelöst"
+msgstr "Views of active offers · %(n)s vouchers redeemed"
+
+msgid "%(n)s ohne Antwort"
+msgstr "%(n)s without a reply"
+
+msgid "Integrationen"
+msgstr "Integrations"
+
+msgid "Zahlung & Stripe"
+msgstr "Payments & Stripe"
+
+msgid "Online-Zahlung, Vorkasse, Zahlarten"
+msgstr "Online payment, prepayment, payment methods"
+
+msgid "Benachrichtigungen & Telegram"
+msgstr "Notifications & Telegram"
+
+msgid "E-Mail/Telegram-Kanäle, Telegram verbinden"
+msgstr "Email/Telegram channels, connect Telegram"
+
+msgid "Eigene Domain"
+msgstr "Custom domain"
+
+msgid "Custom-Domain verbinden"
+msgstr "Connect a custom domain"
+
+msgid "Publishing (Google/Facebook/Instagram)"
+msgstr "Publishing (Google/Facebook/Instagram)"
+
+msgid "Kanäle verbinden und Beiträge planen"
+msgstr "Connect channels and schedule posts"
+
+msgid "Channel Manager (OTA)"
+msgstr "Channel manager (OTA)"
+
+msgid "Buchungen aus Portalen importieren"
+msgstr "Import bookings from portals"
+
+msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
+msgstr "Connections to the outside: payments, channels, domain — all in one place."

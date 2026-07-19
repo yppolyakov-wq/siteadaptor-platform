@@ -12163,3 +12163,58 @@ msgstr "Не вказано номер WhatsApp — додайте його"
 #. ST-1b Look-Galerie (2026-07-19)
 msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
 msgstr "Готові дизайн-пакети для вашої галузі — один клік перефарбовує прев'ю."
+
+#. ST-4a Admin-Home (2026-07-19)
+msgid "Umsatz heute"
+msgstr "Виручка сьогодні"
+
+msgid "letzte 7 Tage"
+msgstr "останні 7 днів"
+
+msgid "Bestellungen fertig zur Abholung"
+msgstr "Замовлення готові до видачі"
+
+msgid "Marketing-Puls"
+msgstr "Пульс маркетингу"
+
+msgid "Aufrufe aktiver Angebote · %(n)s Gutscheine eingelöst"
+msgstr "Перегляди активних акцій · погашено купонів: %(n)s"
+
+msgid "%(n)s ohne Antwort"
+msgstr "%(n)s без відповіді"
+
+msgid "Integrationen"
+msgstr "Інтеграції"
+
+msgid "Zahlung & Stripe"
+msgstr "Оплата і Stripe"
+
+msgid "Online-Zahlung, Vorkasse, Zahlarten"
+msgstr "Онлайн-оплата, передоплата, способи оплати"
+
+msgid "Benachrichtigungen & Telegram"
+msgstr "Сповіщення і Telegram"
+
+msgid "E-Mail/Telegram-Kanäle, Telegram verbinden"
+msgstr "Канали email/Telegram, підключення Telegram"
+
+msgid "Eigene Domain"
+msgstr "Власний домен"
+
+msgid "Custom-Domain verbinden"
+msgstr "Підключити власний домен"
+
+msgid "Publishing (Google/Facebook/Instagram)"
+msgstr "Публікації (Google/Facebook/Instagram)"
+
+msgid "Kanäle verbinden und Beiträge planen"
+msgstr "Підключити канали і планувати дописи"
+
+msgid "Channel Manager (OTA)"
+msgstr "Channel Manager (OTA)"
+
+msgid "Buchungen aus Portalen importieren"
+msgstr "Імпорт бронювань з порталів"
+
+msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
+msgstr "Зв'язки із зовнішнім світом: оплата, канали, домен — усе в одному місці."

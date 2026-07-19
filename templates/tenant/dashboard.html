@@ -33,21 +33,36 @@
   </p>
 </form>
 
-{% comment %}AB7-B2: блочная главная — плитки задач на ЯЗЫКЕ ЗАДАЧ (крупные кнопки).
-Бейдж «Not set up» на невыполненной плитке ведёт на нужный слайд мастера
-(setup?step=<key>) — отдельная ссылка, чтобы не было вложенных <a>.{% endcomment %}
-{% if tiles %}
-<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
-  {% for t in tiles %}
-    <div class="relative bg-white rounded-2xl shadow-sm hover:ring-1 hover:ring-indigo-300">
-      <a href="{% url t.url_name %}" class="flex flex-col items-start gap-2 p-4 h-full">
-        <span class="text-2xl leading-none">{{ t.icon }}</span>
-        <span class="text-sm font-medium text-gray-800">{{ t.label }}</span>
-      </a>
-      {% if t.needs %}
-        <a href="{% url 'setup' %}?step={{ t.step }}" class="absolute top-2 right-2 text-[10px] font-medium text-amber-700 bg-amber-50 rounded-full px-2 py-0.5 hover:bg-amber-100">{% trans "Not set up" %}</a>
+{% comment %}ST-4a: виджеты «что сегодня» — хоум отвечает без кликов (план
+st4-admin-home-plan §1). classic_ui → widgets/hubs пустые (Р7).{% endcomment %}
+{% if widgets %}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  {% for w in widgets %}
+    <a href="{% url w.url_name %}{{ w.url_query }}" class="bg-white rounded-2xl shadow-sm p-4 hover:ring-1 hover:ring-indigo-300">
+      <span class="flex items-center justify-between gap-2">
+        <span class="text-xs text-gray-500">{{ w.icon }} {{ w.label }}</span>
+      </span>
+      <span class="block text-xl font-bold text-gray-900 mt-1">{{ w.value }}</span>
+      {% if w.sparkline %}
+        {# ST-4a: первый чарт кабинета — 7-дневный спарклайн выручки. #}
+        <svg viewBox="0 0 120 32" class="w-full h-8 mt-1 text-emerald-500" aria-hidden="true"><polyline points="{{ w.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       {% endif %}
-    </div>
+      <span class="block text-[11px] text-gray-400 mt-1">{{ w.hint }}</span>
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% comment %}ST-4a: 5 плиток-хабов + «Website → Studio» (SVG-иконсет, тег icon).
+Заменяют прежние task-плитки AB7 (их job-to-be-done — в виджетах и readiness).{% endcomment %}
+{% if hubs %}
+{% load cabinet %}
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+  {% for h in hubs %}
+    <a href="{% url h.url_name %}" class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 hover:ring-1 hover:ring-indigo-300 {% if h.wide %}sm:col-span-1{% endif %}">
+      <span class="text-indigo-600">{% icon h.icon "w-7 h-7" %}</span>
+      <span class="text-sm font-medium text-gray-800">{{ h.label }}</span>
+    </a>
   {% endfor %}
 </div>
 {% endif %}

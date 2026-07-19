@@ -131,7 +131,10 @@ def dashboard(request):
             "setup_total": setup_total,
             "setup_completed": onboarding.get_state(request.tenant)["completed"],
             "readiness": onboarding.completeness(request.tenant),  # AB4: чек-лист готовности
-            "tiles": [] if classic else dash.dashboard_tiles(request.tenant),  # AB7-B2: плитки
+            # ST-4a: виджеты «что сегодня» + 5 хаб-плиток (classic → пусто, Р7).
+            # Прежние task-плитки AB7 заменены (dashboard_tiles остаётся для истории).
+            "widgets": [] if classic else dash.home_widgets(request.tenant),
+            "hubs": [] if classic else dash.hub_tiles(request.tenant),
             "sections": sections,  # AB7-B2: канбан на главной
             "active_kind": kinds[0] if kinds else "",
             # LS-2: карточка присутствия «Jetzt erreichbar» (режим + живой статус).
@@ -3267,4 +3270,54 @@ def notifications_settings(request):
             # частая причина «уведомления не приходят»).
             "owner_email": tenant.owner_email,
         },
+    )
+
+
+@login_required
+def integrations_home(request):
+    """ST-4a: лёгкий лендинг «Integrationen» — карточки-входы в существующие
+    интеграционные точки (свода-хаба не было — план st4-admin-home-plan §1,
+    риск 3 разведки). Показываются только доступные по модулям."""
+    tenant = request.tenant
+    cards = [
+        {
+            "icon": "💳",
+            "label": _("Zahlung & Stripe"),
+            "hint": _("Online-Zahlung, Vorkasse, Zahlarten"),
+            "url_name": "payment-settings",
+            "show": True,
+        },
+        {
+            "icon": "📨",
+            "label": _("Benachrichtigungen & Telegram"),
+            "hint": _("E-Mail/Telegram-Kanäle, Telegram verbinden"),
+            "url_name": "notifications-settings",
+            "show": True,
+        },
+        {
+            "icon": "🌐",
+            "label": _("Eigene Domain"),
+            "hint": _("Custom-Domain verbinden"),
+            "url_name": "domains",
+            "show": True,
+        },
+        {
+            "icon": "📣",
+            "label": _("Publishing (Google/Facebook/Instagram)"),
+            "hint": _("Kanäle verbinden und Beiträge planen"),
+            "url_name": "channels",
+            "show": tenant.is_module_active("publishing"),
+        },
+        {
+            "icon": "🏨",
+            "label": _("Channel Manager (OTA)"),
+            "hint": _("Buchungen aus Portalen importieren"),
+            "url_name": "stays:channels",
+            "show": tenant.is_module_active("stays"),
+        },
+    ]
+    return render(
+        request,
+        "tenant/integrations_home.html",
+        {"nav": "settings", "cards": [c for c in cards if c["show"]]},
     )

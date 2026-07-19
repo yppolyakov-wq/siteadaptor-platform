@@ -5,6 +5,8 @@
 {% block extra_head %}<script src="https://unpkg.com/htmx.org@1.9.12"></script>{% endblock %}
 
 {% block body %}
+{# ST-4a: SVG-спрайт иконсета кабинета (иконки хабов главной). #}
+{% include "tenant/_icons.html" %}
 <div class="min-h-screen flex">
   {# Затемнение под выехавшим меню (только мобайл) #}
   <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-20 hidden md:hidden"></div>

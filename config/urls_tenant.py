@@ -23,6 +23,7 @@ from apps.core.views import (
     extras_view,
     finder_settings,
     home_builder_view,
+    integrations_home,
     kanban_action,
     languages_view,
     legal_docs_view,
@@ -119,6 +120,8 @@ urlpatterns = [
     path("dashboard/classic-ui/", set_classic_ui_view, name="set-classic-ui"),
     # LS-2: режим присутствия «Jetzt erreichbar» (auto/on/off, targeted-write).
     path("dashboard/presence/", set_presence_view, name="set-presence"),
+    # ST-4a: лендинг «Integrationen» (карточки-входы; хаб-плитка главной).
+    path("dashboard/integrationen/", integrations_home, name="integrations-home"),
     path("dashboard/cabinet-lang/", set_cabinet_lang_view, name="set-cabinet-lang"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),

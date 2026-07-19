@@ -12098,3 +12098,58 @@ msgstr "WhatsApp numarası eksik — şimdi ekleyin"
 #. ST-1b Look-Galerie (2026-07-19)
 msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
 msgstr "Sektörünüz için hazır tasarım paketleri — tek tıkla önizleme yeniden renklenir."
+
+#. ST-4a Admin-Home (2026-07-19)
+msgid "Umsatz heute"
+msgstr "Bugünkü ciro"
+
+msgid "letzte 7 Tage"
+msgstr "son 7 gün"
+
+msgid "Bestellungen fertig zur Abholung"
+msgstr "Teslim almaya hazır siparişler"
+
+msgid "Marketing-Puls"
+msgstr "Pazarlama nabzı"
+
+msgid "Aufrufe aktiver Angebote · %(n)s Gutscheine eingelöst"
+msgstr "Aktif tekliflerin görüntülenmesi · %(n)s kupon kullanıldı"
+
+msgid "%(n)s ohne Antwort"
+msgstr "%(n)s yanıtsız"
+
+msgid "Integrationen"
+msgstr "Entegrasyonlar"
+
+msgid "Zahlung & Stripe"
+msgstr "Ödeme & Stripe"
+
+msgid "Online-Zahlung, Vorkasse, Zahlarten"
+msgstr "Online ödeme, ön ödeme, ödeme yöntemleri"
+
+msgid "Benachrichtigungen & Telegram"
+msgstr "Bildirimler & Telegram"
+
+msgid "E-Mail/Telegram-Kanäle, Telegram verbinden"
+msgstr "E-posta/Telegram kanalları, Telegram'ı bağla"
+
+msgid "Eigene Domain"
+msgstr "Özel alan adı"
+
+msgid "Custom-Domain verbinden"
+msgstr "Özel alan adı bağla"
+
+msgid "Publishing (Google/Facebook/Instagram)"
+msgstr "Yayınlama (Google/Facebook/Instagram)"
+
+msgid "Kanäle verbinden und Beiträge planen"
+msgstr "Kanalları bağla ve gönderileri planla"
+
+msgid "Channel Manager (OTA)"
+msgstr "Kanal yöneticisi (OTA)"
+
+msgid "Buchungen aus Portalen importieren"
+msgstr "Portallardan rezervasyon aktar"
+
+msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
+msgstr "Dışarıya bağlantılar: ödeme, kanallar, alan adı — hepsi tek yerde."

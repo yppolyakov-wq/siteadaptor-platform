@@ -130,3 +130,11 @@ def hub_tabs(context, hub):
         entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur}
         (more if advanced else tabs).append(entry)
     return {"tabs": tabs, "more_tabs": more, "more_active": any(t["active"] for t in more)}
+
+
+@register.simple_tag
+def icon(name, css="w-6 h-6"):
+    """ST-4a: SVG-иконка из спрайта tenant/_icons.html (<use href="#<name>">)."""
+    from django.utils.html import format_html
+
+    return format_html('<svg class="{}" aria-hidden="true"><use href="#{}"></use></svg>', css, name)

@@ -80,5 +80,5 @@ def test_dashboard_new_view_keeps_tiles():
     )
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
     assert "Klassische Ansicht ist aktiv" not in html
-    # AB7-плитки на месте (хоть одна плитка задач рендерится).
-    assert "Nicht ausgefüllt" in html or "tile" in html.lower() or "🏠" in html
+    # ST-4a: task-плитки AB7 заменены хабами+виджетами — новый вид показывает хабы.
+    assert "ic-orders" in html and "Einstellungen" in html

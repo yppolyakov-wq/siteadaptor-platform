@@ -5798,3 +5798,27 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   i18n +1 msgid → 4 .po. **ТЗ B1 приёмка:** 3 архетипных Look'а первыми ✅, клик
   перекрашивает превью без перезагрузки ✅ (мастер — stateless-iframe; билдер —
   draft-канал), Undo ✅, замок apply+normalize ✅, golden целы ✅.
+
+## 2026-07-19 — ST-4a: админ-хоум — виджеты «сегодня» + 5 хаб-плиток + SVG-иконсет (БЕЗ миграций)
+
+- План `docs/st4-admin-home-plan-2026-07-19.md` (разбивка: ST-4a хоум сейчас; ST-4b сайдбар
+  5+Website — отдельным инкрементом с чекпоинтом владельца). Разведка — фоновый Explore.
+- **Виджеты `home_widgets`** (apps/core/dashboard.py, digest-паттерн: per-module гейты +
+  simple_hidden + _safe): 💶 Umsatz heute + 7-дневный SVG-спарклайн (`RevenueEntry`
+  values(date)/Sum; `_sparkline_points` — ПЕРВЫЙ чарт кабинета, инлайн polyline) ·
+  📦 Abholbereit (orders ready → `?status=ready`) · 📣 Marketing-Puls v1 (Σ views активных
+  акций + погашения кампаний; featured отложен — кросс-схема, риск 2 разведки) ·
+  ⭐ Bewertungen (`owner_overview`: avg/count/unanswered).
+- **5 хаб-плиток + «Website» `hub_tiles`**: Bestellungen→board · Angebot→sellable-manage ·
+  Marketing→promotions · Integrationen→НОВЫЙ лендинг `/dashboard/integrationen/`
+  (карточки-входы: Zahlung&Versand, Benachrichtigungen/Telegram, Domain, Publishing,
+  Channel Manager — гейты по модулям; свода раньше не существовало) · Einstellungen→settings ·
+  Website→site-home. **Прежние task-плитки AB7 заменены** (их job-to-be-done — виджеты +
+  readiness; `dashboard_tiles` в коде остаётся). **SVG-иконсет (Р5 старт):** спрайт
+  `tenant/_icons.html` (7 symbol) + тег `{% icon %}` (cabinet.py) + подключение в
+  `_base_dashboard.html`; emoji сайдбара пока не тронуты (v2).
+- classic_ui (Р7): view отдаёт пустые widgets/hubs, разметка под `{% if %}` — прежний вид цел
+  (замок). Тесты: 5 в test_st4_home (гейты виджетов/resolve всех плиток/рендер+спрайт/classic/
+  спарклайн-края/лендинг по модулям) + обновлён замок classic («плитки»→«хабы»); core 698
+  зелёные (1 фейл — документированная локальная грабля msgfmt/.mo, на CI зелёный). i18n:
+  18 msgid → 4 .po. CSS пересобран.
