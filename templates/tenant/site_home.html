@@ -539,7 +539,7 @@
 
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
          переносит контрол в попап (data-page-key). Раскладка → черновик/Save. {% endcomment %}
-      {% if has_catalog or has_events or has_stays or has_booking or page_cblocks %}
+      {% if has_catalog or has_events or has_stays or has_booking or page_cblocks or page_preset_ui %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="landing">
         <legend class="font-semibold mb-1">{% trans "Landing pages" %}</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans "Switch the preview to a page and click its grid to edit the layout here." %}</p>
@@ -695,6 +695,26 @@
             </label>
           </div>
           {% endif %}
+          {% comment %}ST-2: пресеты страницы (реестр page_presets: «Über uns», корзина).
+             Кнопка шлёт action=use_page_preset:<host>:<id> — ранний обработчик,
+             прочие поля формы игнорируются (паттерн use_page_template); блоки
+             владельца целы, канва возвращается на ту же страницу (page_path).{% endcomment %}
+          {% for pp in page_preset_ui %}
+          <div class="page-block" data-page-key="{{ pp.page_key }}">
+            <span class="text-sm font-medium block mb-2">🎨 {% trans "Page template" %}</span>
+            <div class="flex flex-wrap gap-2">
+              {% for p in pp.presets %}
+              <button type="submit" name="action" value="use_page_preset:{{ pp.host }}:{{ p.key }}"
+                      class="text-left border rounded-xl px-3 py-2 text-xs {% if p.key == pp.current %}border-indigo-500 ring-1 ring-indigo-200 text-indigo-700{% else %}border-gray-300 text-gray-600 hover:border-indigo-400{% endif %}">
+                <span class="block text-base" aria-hidden="true">{{ p.icon }}</span>
+                <span class="font-medium">{{ p.label }}</span>
+                {% if p.recommended %}<span class="block text-[10px] text-emerald-600 mt-0.5">★ {% trans "Recommended" %}</span>{% endif %}
+              </button>
+              {% endfor %}
+            </div>
+            <p class="text-[11px] text-gray-400 mt-1">{% trans "Your own blocks stay — only template blocks are replaced." %}</p>
+          </div>
+          {% endfor %}
           {% comment %}UC6-7b: C-блоки СТРАНИЦ (page_blocks) — те же строки-настройки, что
              у блоков главной (общий партиал; маркер pb_id + pb_page_<id>=хост). Показ —
              только на «своей» странице канвы (applyPageScope по data-page-key/pb-хосту);

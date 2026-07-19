@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from django.contrib import messages
 from django.utils.translation import gettext as _
 
+from apps.core import page_presets as _page_presets
+
 
 @dataclass(frozen=True)
 class StepHandler:
@@ -381,81 +383,16 @@ def _ctx_language(request):
     return {"languages": languages_context(request.tenant)}
 
 
-# AB6.10: шаблоны страницы «Über uns» — пресеты C-блоков хоста page_blocks["info"]
-# (рендерятся на витринной /ueber-uns/ тегом {% page_blocks "info" %}). Демо-тексты —
-# та же DE-рыба, что CBLOCK_DEMO_DATA. Пресет заменяет ТОЛЬКО ранее посеянные им
-# блоки (id с префиксом pb-about-); блоки владельца не трогаются.
-_ABOUT_BLOCK_PREFIX = "pb-about-"
-_ABOUT_PRESETS = (
-    {"key": "text", "label": "Nur Text", "icon": "📝", "blocks": ()},
-    {
-        "key": "bild",
-        "label": "Text + Bild",
-        "icon": "🖼️",
-        "blocks": (
-            (
-                "image",
-                {
-                    "url": "/medien/demo.svg?kw=laden&w=1200&h=600",
-                    "caption": "Bildunterschrift — klicken und ersetzen",
-                },
-            ),
-        ),
-    },
-    {
-        "key": "geschichte",
-        "label": "Unsere Geschichte",
-        "icon": "📖",
-        "blocks": (
-            (
-                "image_text",
-                {
-                    "url": "/medien/demo.svg?kw=laden&w=800&h=600",
-                    "title": "Unsere Geschichte",
-                    "body": (
-                        "Wie alles begann: Erzählen Sie hier, wie Ihr Geschäft entstanden "
-                        "ist und was Sie antreibt — das Foto können Sie jederzeit austauschen."
-                    ),
-                    "side": "left",
-                },
-            ),
-        ),
-    },
-    {
-        "key": "team",
-        "label": "Team & Werte",
-        "icon": "🤝",
-        "blocks": (
-            (
-                "image_text",
-                {
-                    "url": "/medien/demo.svg?kw=team&w=800&h=600",
-                    "title": "Unser Team",
-                    "body": (
-                        "Stellen Sie hier die Menschen hinter Ihrem Geschäft vor — "
-                        "Namen, Rollen und was Ihre Kundschaft an ihnen schätzt."
-                    ),
-                    "side": "right",
-                },
-            ),
-            (
-                "text",
-                {
-                    "title": "Worauf wir Wert legen",
-                    "body": (
-                        "Qualität, Regionalität, Handwerk: Beschreiben Sie in zwei bis "
-                        "drei Sätzen, wofür Ihr Geschäft steht."
-                    ),
-                },
-            ),
-        ),
-    },
-)
+# AB6.10 → ST-2: шаблоны страницы «Über uns» уехали в общий реестр пресетов
+# страниц (apps/core/page_presets.py, host "info", префикс pb-about- сохранён).
+# Alias — для замков/истории; слайд работает через generic-апплаер.
+_ABOUT_PRESETS = _page_presets.PAGE_PRESETS["info"]["presets"]
 
 
 def _post_about(request):
     # AB6.10: «Über uns» — тексты (presence-safe + i18n-оверлей, как texts раньше) +
-    # шаблон страницы (пресет блоков info-хоста; идемпотентно по префиксу id).
+    # шаблон страницы (ST-2 generic: пресет блоков info-хоста, идемпотентно по
+    # префиксу id; блоки владельца целы).
     from apps.tenants import siteconfig
 
     tenant = request.tenant
@@ -464,29 +401,8 @@ def _post_about(request):
         if request.POST.get(f) is not None:
             cfg[f] = request.POST.get(f, "").strip()
     _save_overlay_fields(request, cfg, ("about_title", "about_text"))
-    preset = next((p for p in _ABOUT_PRESETS if p["key"] == request.POST.get("about_preset")), None)
-    if preset is not None:
-        pb = cfg.get("page_blocks") if isinstance(cfg.get("page_blocks"), dict) else {}
-        pb = dict(pb)
-        keep = [
-            b
-            for b in (pb.get("info") if isinstance(pb.get("info"), list) else [])
-            if not str((b or {}).get("id", "")).startswith(_ABOUT_BLOCK_PREFIX)
-        ]
-        seeded = [
-            {
-                "key": kind,
-                "id": f"{_ABOUT_BLOCK_PREFIX}{preset['key']}-{i}",
-                "enabled": True,
-                "data": dict(data),
-            }
-            for i, (kind, data) in enumerate(preset["blocks"], start=1)
-        ]
-        if keep + seeded:
-            pb["info"] = keep + seeded
-        else:
-            pb.pop("info", None)
-        cfg["page_blocks"] = pb
+    if request.POST.get("about_preset"):
+        _page_presets.apply_page_preset(cfg, "info", request.POST.get("about_preset"))
     tenant.site_config = siteconfig.normalize(cfg)
     tenant.save(update_fields=["site_config", "updated_at"])
 
@@ -496,11 +412,7 @@ def _ctx_about(request):
 
     tenant = request.tenant
     cfg = siteconfig.normalize(tenant.site_config)
-    info_ids = [str(b.get("id", "")) for b in (cfg.get("page_blocks", {}).get("info") or [])]
-    current = "text"
-    for p in _ABOUT_PRESETS:
-        if p["blocks"] and any(i.startswith(f"{_ABOUT_BLOCK_PREFIX}{p['key']}-") for i in info_ids):
-            current = p["key"]
+    current = _page_presets.current_preset(cfg, "info")
     return {
         "about_title": cfg.get("about_title", ""),
         "about_text": cfg.get("about_text", ""),

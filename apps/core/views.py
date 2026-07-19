@@ -980,6 +980,25 @@ def _redirect_builder(request):
     return redirect("site-home")
 
 
+def _page_preset_ui(tenant, config):
+    """ST-2: данные пикеров пресетов страниц для scoped-строк панели билдера
+    («Über uns» всегда — страница есть у всех; корзина — при активном каталоге).
+    config — уже нормализованный site_config."""
+    from apps.core import page_presets
+
+    hosts = (("info", True), ("cart", tenant.is_module_active("catalog")))
+    return [
+        {
+            "host": host,
+            "page_key": host,
+            "presets": page_presets.presets_for(host, tenant.business_type),
+            "current": page_presets.current_preset(config, host),
+        }
+        for host, enabled in hosts
+        if enabled
+    ]
+
+
 def _add_block_fetch_response(request, new_id, host):
     """UC6-7c-2: JSON-ответ инсертера-без-перезагрузки — HTML строки нового C-блока
     (тот же партиал `_cb_row.html`, что и в форме) для вставки в редактор без
@@ -1184,6 +1203,21 @@ def home_builder_view(request):
             request.tenant.site_config = siteconfig.normalize(cfg)
             request.tenant.save(update_fields=["site_config", "updated_at"])
             return redirect("site-home")
+        # ST-2: пресет НЕ-home страницы (реестр page_presets; сейчас info/cart).
+        # use_page_preset:<host>:<id> — идемпотентная замена посеянных блоков
+        # page_blocks[host] + плоские ключи; блоки владельца целы. Редирект
+        # через _redirect_builder — канва остаётся на настраиваемой странице.
+        if action.startswith("use_page_preset:"):
+            from apps.core import page_presets
+
+            _verb, _sep, rest = action.partition(":")
+            host, _sep2, preset_id = rest.partition(":")
+            cfg = siteconfig.normalize(request.tenant.site_config)
+            if page_presets.apply_page_preset(cfg, host, preset_id):
+                request.tenant.site_config = siteconfig.normalize(cfg)
+                request.tenant.save(update_fields=["site_config", "updated_at"])
+                messages.success(request, _("Page template applied."))
+            return _redirect_builder(request)
         # A3: сохранить ИМЕНОВАННУЮ версию текущего конфига (снимок в начало истории;
         # публикация не меняется — безопасная точка отката перед экспериментами).
         if action == "save_version":
@@ -1852,6 +1886,10 @@ def home_builder_view(request):
             "catalog_sort": config.get("catalog_sort", "newest"),
             "catalog_subcats_first": config.get("catalog_subcats_first", True),
             "cart_show_upsell": config.get("cart_show_upsell", True),
+            # ST-2: пикеры пресетов НЕ-home страниц (реестр page_presets) —
+            # карточки в scoped-строках панели; рекомендованные типу бизнеса
+            # первыми, актив подсвечен current_preset.
+            "page_preset_ui": _page_preset_ui(request.tenant, config),
             "has_events": request.tenant.is_module_active("events"),
             "events_preset": (config.get("events_index_layout") or {}).get("preset", ""),
             "has_stays": request.tenant.is_module_active("stays"),
