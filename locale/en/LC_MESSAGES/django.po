@@ -12110,3 +12110,28 @@ msgstr "Pages"
 
 msgid "Blöcke"
 msgstr "Blocks"
+
+#. LS-6 Direkter Draht (2026-07-19)
+msgid "Etwas stimmt nicht?"
+msgstr "Something not right?"
+
+msgid "Problem — Kunde wartet"
+msgstr "Problem — customer waiting"
+
+msgid "Reaktionszeit (30 Tage)"
+msgstr "Response time (30 days)"
+
+msgid "Etwas stimmt nicht? Direkter Draht zu uns:"
+msgstr "Something not right? Direct line to us:"
+
+msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
+msgstr "Is everything all right now? If not, just reply here:"
+
+msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgstr "And if you were happy with us, we'd appreciate a short review."
+
+msgid "Alles wieder gut? — %(business)s"
+msgstr "Everything all right? — %(business)s"
+
+msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
+msgstr "thank you for your patience — we hope we could resolve your issue at %(business)s."

@@ -19,3 +19,11 @@ class ConversationSM(StateMachine):
         Transition("resolved", "closed", "conv.closed"),
         Transition("closed", "open", "conv.reopen"),
     ]
+
+    def on_transition(self, instance, t, **kw):
+        # LS-6 service recovery: решённый ПРОБЛЕМНЫЙ тред → мягкое «Alles wieder
+        # gut?» клиенту (дедуп на тред; гейты email/unsubscribed внутри).
+        if t.dst == "resolved" and instance.priority == "high":
+            from .notifications import enqueue_recovery_email
+
+            enqueue_recovery_email(instance)

@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with business=business %}Alles wieder gut? — {{ business }}{% endblocktrans %}

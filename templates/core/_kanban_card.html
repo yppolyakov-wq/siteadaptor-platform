@@ -5,8 +5,11 @@ Aktions-Buttons tragen data-stage/data-target → das Drag-JS liest daraus den
 Zielstatus für die Zielspalte. Wird von kanban_action bei erfolgreichem fetch
 neu gerendert (Badge/Buttons frisch, Karte bleibt in der neuen Spalte).
 {% endcomment %}
-<div class="kanban-card bg-white rounded-lg border border-gray-200 p-2.5 shadow-sm"
+<div class="kanban-card bg-white rounded-lg border {% if tx.has_problem %}border-red-300 border-l-4 border-l-red-500{% else %}border-gray-200{% endif %} p-2.5 shadow-sm"
      draggable="true" data-card-id="{{ tx.pk }}" data-stage="{{ tx.pipeline_stage }}" data-kind="{{ kind }}">
+  {% if tx.has_problem %}{# LS-6: открытый high-тред с ref на сделку. #}
+  <p class="text-[11px] font-medium text-red-600 mb-1">⚠️ {% trans "Problem — Kunde wartet" %}</p>
+  {% endif %}
   <div class="flex items-start gap-1.5">
     <span class="drag-handle text-gray-300 select-none cursor-grab leading-none pt-0.5" title="{% trans 'Ziehen zum Verschieben' %}">⠿</span>
     <div class="flex-1 min-w-0">

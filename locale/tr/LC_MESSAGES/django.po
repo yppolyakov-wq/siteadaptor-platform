@@ -12160,3 +12160,28 @@ msgstr "Sayfalar"
 
 msgid "Blöcke"
 msgstr "Bloklar"
+
+#. LS-6 Direkter Draht (2026-07-19)
+msgid "Etwas stimmt nicht?"
+msgstr "Bir sorun mu var?"
+
+msgid "Problem — Kunde wartet"
+msgstr "Sorun — müşteri bekliyor"
+
+msgid "Reaktionszeit (30 Tage)"
+msgstr "Yanıt süresi (30 gün)"
+
+msgid "Etwas stimmt nicht? Direkter Draht zu uns:"
+msgstr "Bir sorun mu var? Bize doğrudan hat:"
+
+msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
+msgstr "Şimdi her şey yolunda mı? Değilse, buradan yanıtlayın:"
+
+msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgstr "Memnun kaldıysanız kısa bir değerlendirmeye seviniriz."
+
+msgid "Alles wieder gut? — %(business)s"
+msgstr "Her şey yolunda mı? — %(business)s"
+
+msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
+msgstr "sabrınız için teşekkürler — %(business)s ile ilgili sorununuzu çözebildiğimizi umuyoruz."

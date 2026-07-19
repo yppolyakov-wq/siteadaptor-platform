@@ -5845,3 +5845,30 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   {} для schema_name="public" → тесты кабинетного хрома создают тенанта с обычной схемой.
 - Тесты: 2 test_studio_shell + 156 (home_builder/looks/classic/cblocks) на СВЕЖЕЙ БД
   (пробник опять наследил в keepdb — чищено --create-db). i18n +2 msgid. CSS пересобран.
+
+## 2026-07-19 — LS-6 «Прямая линия» ЦЕЛИКОМ (этап C1 ТЗ; БЕЗ миграций)
+
+- План `docs/ls6-direct-line-plan-2026-07-19.md`. **Инкремент 1:** партиал
+  `storefront/_problem_cta.html` («⚠️ Etwas stimmt nicht?») на 6 поверхностях сделок
+  (подтверждения order/booking/stay/ticket/reservation + LS-3 offer после принятия;
+  гейт storefront_inbox_enabled) → contact с ДОВЕРЕННЫМ маркером `problem=1`: high
+  только вместе с непустым ref (сырой ?priority= игнорируется — аноним не поставит high),
+  `priority=` в `start_conversation` + best-effort `send_to_owner` (dedupe
+  `inbox:conv:{id}:problem:owner:tg` — одна тревога на тред) · `problem_url` в 4
+  confirmed-письмах (`|safe` — автоэскейп ломал & в plain-text).
+- **Инкремент 2:** «⚠️ Problem»-полоса на канбане — `Transaction.has_problem` batch-lookup
+  ОДНИМ запросом на секцию (open/pending high-треды, `ref_id__in` кодов; замок
+  CaptureQueriesContext — не per-card, N+1 риск разведки закрыт); красная полоса+бейдж в
+  `_kanban_card.html`. **SLA v1 без миграции:** `_thread_reaction` (первый staff-ответ −
+  created) в шапке треда + `_avg_reaction` (⌀ по решённым за 30 дней, cap 200) в списке
+  inbox.
+- **Инкремент 3 (service recovery):** `ConversationSM.on_transition` — resolved у
+  HIGH-треда → письмо «Alles wieder gut?» (`inbox_recovery`, приглашение к отзыву;
+  дедуп `inbox:conv:{id}:recovery` — reopen→resolve второго письма не шлёт; UWG-гейты:
+  email/unsubscribed/unsubscribe-ссылка). Обычный resolved — без письма.
+- Тесты: 12 в test_direct_line (гейт high, игнор сырого priority, пуш+fail-safe, CTA на
+  подтверждении, problem_url в письме, полоса batch+N+1-замок, SLA, recovery once) +
+  inbox/board 39 смежных. Урок: rl:*-Redis-грабля — публичные POST-тесты с уникальным IP.
+  i18n: 8 msgid → 4 .po. CSS пересобран. Приёмка C1: клиент → владелец в Telegram/канбане
+  за секунды ✅, SLA виден ✅, recovery ✅. Деталь: ЛК клиента (konto) без CTA — v2
+  (входы в тред там уже есть); отклонение от плана отмечено.

@@ -109,3 +109,96 @@ def test_confirmed_email_contains_problem_url(monkeypatch):
     n = Notification.objects.get(dedupe_key=f"order:{order.id}:confirmed:customer")
     body = n.payload.get("body", "")
     assert f"problem=1&ref_kind=order&ref_id={order.reference_code}" in body
+
+
+# --- инкремент 2: канбан has_problem + SLA ------------------------------------------
+
+
+def test_kanban_marks_problem_cards_batch():
+    from apps.core import transactions
+    from apps.orders.services import create_order
+
+    tenant = TenantFactory.build(disabled_modules=[])
+    good = create_order(items=(), custom_lines=[("A", "5.00", 1)], name="K", email="k@t.de")
+    bad = create_order(items=(), custom_lines=[("B", "5.00", 1)], name="K", email="k@t.de")
+    services.start_conversation(
+        subject="Problem",
+        body="!",
+        email="k@t.de",
+        ref_kind="order",
+        ref_id=bad.reference_code,
+        priority="high",
+    )
+    # обычный тред на good — полосы не даёт
+    services.start_conversation(
+        subject="Frage",
+        body="?",
+        email="k@t.de",
+        ref_kind="order",
+        ref_id=good.reference_code,
+    )
+    section = next(s for s in transactions.manage_sections_for(tenant) if s["kind"] == "order")
+    flags = {tx.reference_code: tx.has_problem for tx in section["transactions"]}
+    assert flags[bad.reference_code] is True
+    assert flags[good.reference_code] is False
+
+
+def test_kanban_problem_lookup_single_query():
+    """N+1-замок: problem-lookup — ОДИН запрос на секцию, не per-card."""
+    from django.db import connection as dj_connection
+    from django.test.utils import CaptureQueriesContext
+
+    from apps.core import transactions
+    from apps.orders.services import create_order
+
+    tenant = TenantFactory.build(disabled_modules=[])
+    for i in range(5):
+        create_order(items=(), custom_lines=[(f"P{i}", "5.00", 1)], name="K", email="k@t.de")
+    with CaptureQueriesContext(dj_connection) as ctx:
+        transactions.manage_sections_for(tenant)
+    conv_queries = [q for q in ctx.captured_queries if "inbox_conversation" in q["sql"]]
+    sections = [s for s in transactions.manage_sections_for(tenant) if s["transactions"]]
+    assert len(conv_queries) <= len(sections)  # ≤1 на непустую секцию
+
+
+def test_sla_reaction_time_computed():
+    from apps.inbox.models import Message
+    from apps.inbox.views import _thread_reaction
+
+    conv = services.start_conversation(subject="F", body="Hi", email="k@t.de")
+    assert _thread_reaction(conv) is None  # ответа staff ещё нет
+    services.post_message(conv, body="Antwort", author_role=Message.AUTHOR_STAFF)
+    assert _thread_reaction(conv) is not None  # «~1 Min»
+
+
+# --- инкремент 3: service recovery --------------------------------------------------
+
+
+def test_resolved_problem_thread_sends_recovery_once():
+    from apps.inbox.state_machine import ConversationSM
+    from apps.notifications.models import Notification
+
+    conv = services.start_conversation(
+        subject="Problem",
+        body="!",
+        email="rec@t.de",
+        ref_kind="order",
+        ref_id="O-1",
+        priority="high",
+    )
+    ConversationSM().apply(conv, "resolved")
+    n = Notification.objects.get(dedupe_key=f"inbox:conv:{conv.pk}:recovery")
+    assert n.recipient == "rec@t.de"
+    # reopen → resolve повторно: дедуп держит одно письмо
+    ConversationSM().apply(conv, "open")
+    ConversationSM().apply(conv, "resolved")
+    assert Notification.objects.filter(dedupe_key=f"inbox:conv:{conv.pk}:recovery").count() == 1
+
+
+def test_resolved_normal_thread_no_recovery():
+    from apps.inbox.state_machine import ConversationSM
+    from apps.notifications.models import Notification
+
+    conv = services.start_conversation(subject="Frage", body="?", email="n@t.de")
+    ConversationSM().apply(conv, "resolved")
+    assert not Notification.objects.filter(type="inbox_recovery").exists()

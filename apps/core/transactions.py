@@ -116,6 +116,8 @@ class Transaction:
     detail_url_customer: str
     manage_url: str
     allowed_actions: list = field(default_factory=list)
+    # LS-6: открытый ПРИОРИТЕТНЫЙ тред inbox с ref на эту сделку («⚠️ Problem»).
+    has_problem: bool = False
 
 
 def _money_str(value, currency: str = "EUR") -> str:
@@ -358,6 +360,28 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
         labels = status_labels.custom_labels(tenant, kind)
         trans = transition_rules.subset_for(tenant, kind)
         txs = [transaction_for(kind, obj, labels, trans) for obj in _managed_queryset(kind)[:limit]]
+        # LS-6: «⚠️ Problem»-полоса — открытые high-треды с ref на карточки секции.
+        # ОДИН запрос на секцию по множеству кодов (не per-card — N+1); ключ =
+        # reference_code (то же кладёт problem-кнопка витрины). Fail-safe.
+        try:
+            from dataclasses import replace as _dc_replace
+
+            from apps.inbox.models import Conversation
+
+            problem_codes = set(
+                Conversation.objects.filter(
+                    status__in=(Conversation.STATUS_OPEN, Conversation.STATUS_PENDING),
+                    priority=Conversation.PRIORITY_HIGH,
+                    ref_kind=kind,
+                    ref_id__in={tx.reference_code for tx in txs if tx.reference_code},
+                ).values_list("ref_id", flat=True)
+            )
+            if problem_codes:
+                txs = [
+                    _dc_replace(tx, has_problem=tx.reference_code in problem_codes) for tx in txs
+                ]
+        except Exception:  # noqa: BLE001 — полоса best-effort, доска важнее
+            pass
         counts = {stage: 0 for stage in pipeline.STAGES}
         for tx in txs:
             counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1

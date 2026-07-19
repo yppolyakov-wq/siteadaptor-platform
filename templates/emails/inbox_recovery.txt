@@ -1,0 +1,12 @@
+{% load i18n %}{% if customer.name %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}{% else %}{% trans "Hallo," %}{% endif %}
+
+{% blocktrans with business=business %}danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei {{ business }} lösen.{% endblocktrans %}
+
+{% trans "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:" %}
+{{ thread_url|safe }}
+
+{% trans "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung." %}
+
+{% if unsubscribe_url %}—
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
+{% endif %}

@@ -12247,3 +12247,28 @@ msgstr "Страницы"
 
 msgid "Blöcke"
 msgstr "Блоки"
+
+#. LS-6 Direkter Draht (2026-07-19)
+msgid "Etwas stimmt nicht?"
+msgstr "Что-то не так?"
+
+msgid "Problem — Kunde wartet"
+msgstr "Проблема — клиент ждёт"
+
+msgid "Reaktionszeit (30 Tage)"
+msgstr "Время реакции (30 дней)"
+
+msgid "Etwas stimmt nicht? Direkter Draht zu uns:"
+msgstr "Что-то не так? Прямая линия с нами:"
+
+msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
+msgstr "Теперь всё в порядке? Если нет — просто ответьте здесь:"
+
+msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgstr "А если вы остались довольны — будем рады короткому отзыву."
+
+msgid "Alles wieder gut? — %(business)s"
+msgstr "Всё в порядке? — %(business)s"
+
+msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
+msgstr "спасибо за терпение — надеемся, нам удалось решить ваш вопрос в %(business)s."

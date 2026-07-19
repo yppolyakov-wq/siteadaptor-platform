@@ -57,3 +57,43 @@ def enqueue_message_email(message):
                 body=body,
                 html=html,
             )
+
+
+def enqueue_recovery_email(conversation):
+    """LS-6 service recovery: после решения ПРОБЛЕМНОГО треда — мягкое письмо
+    «Alles wieder gut?» с приглашением к отзыву. Дедуп на тред; UWG-гейты:
+    только с email, не отписан, с unsubscribe-ссылкой."""
+    customer = conversation.customer
+    if customer is None or not customer.email or getattr(customer, "unsubscribed", False):
+        return
+    schema = connection.schema_name
+    tenant = _tenant(schema)
+    base = _base_url(schema)
+    unsub = (
+        f"{base}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
+        if base
+        else ""
+    )
+    thread_url = (
+        f"{base}{reverse('storefront-message-thread', args=[conversation.public_token])}"
+        if base
+        else ""
+    )
+    subject, body, html = _render(
+        "inbox_recovery",
+        {
+            "conversation": conversation,
+            "customer": customer,
+            "business": tenant.name if tenant else "",
+            "thread_url": thread_url,
+            "unsubscribe_url": unsub,
+        },
+    )
+    notify(
+        dedupe_key=f"inbox:conv:{conversation.pk}:recovery",
+        type="inbox_recovery",
+        recipient=customer.email,
+        subject=subject,
+        body=body,
+        html=html,
+    )

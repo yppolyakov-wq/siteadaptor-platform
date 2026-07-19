@@ -16,6 +16,40 @@ from .models import Conversation, Message
 from .state_machine import ConversationSM
 
 
+def _fmt_minutes(delta) -> str:
+    """LS-6: «~12 Min» / «~3 Std» — грубая, честная величина реакции."""
+    minutes = int(delta.total_seconds() // 60)
+    if minutes < 60:
+        return f"~{max(minutes, 1)} Min"
+    return f"~{minutes // 60} Std"
+
+
+def _avg_reaction(days: int = 30, cap: int = 200):
+    """⌀ время до ПЕРВОГО ответа staff по решённым тредам за `days` дней.
+
+    Без миграции (план LS-6): Min(messages.created_at, staff) − created_at,
+    ограничено `cap` тредами. None — данных нет."""
+    from datetime import timedelta
+
+    from django.db.models import Min, Q
+    from django.utils import timezone
+
+    qs = Conversation.objects.filter(
+        status__in=(Conversation.STATUS_RESOLVED, Conversation.STATUS_CLOSED),
+        created_at__gte=timezone.now() - timedelta(days=days),
+    ).annotate(
+        first_staff=Min(
+            "messages__created_at", filter=Q(messages__author_role=Message.AUTHOR_STAFF)
+        )
+    )[:cap]
+    deltas = [
+        c.first_staff - c.created_at for c in qs if c.first_staff and c.first_staff > c.created_at
+    ]
+    if not deltas:
+        return None
+    return _fmt_minutes(sum(deltas, deltas[0] - deltas[0]) / len(deltas))
+
+
 @login_required
 def inbox_list(request):
     conversations = Conversation.objects.select_related("customer")
@@ -31,6 +65,8 @@ def inbox_list(request):
             "statuses": Conversation.STATUSES,
             "active_status": status,
             "open_count": Conversation.objects.filter(status=Conversation.STATUS_OPEN).count(),
+            # LS-6: ⌀ Reaktionszeit (30 дней, решённые) — SLA на виду у владельца.
+            "avg_reaction": _avg_reaction(),
         },
     )
 
@@ -88,6 +124,8 @@ def thread(request, pk):
             "priorities": Conversation.PRIORITIES,
             # LS-3: карточки предложений этого треда (reverse-FK orders.Offer).
             "offers_list": conversation.offers.select_related("order").prefetch_related("lines"),
+            # LS-6: время первой реакции ЭТОГО треда (None — staff ещё не отвечал).
+            "reaction_time": _thread_reaction(conversation),
         },
     )
 
@@ -180,3 +218,15 @@ def thread_poll(request, pk):
             ]
         }
     )
+
+
+def _thread_reaction(conversation):
+    """LS-6: «~N Min» до первого staff-ответа треда (None — ответа ещё нет)."""
+    first = (
+        conversation.messages.filter(author_role=Message.AUTHOR_STAFF)
+        .order_by("created_at")
+        .first()
+    )
+    if first is None or first.created_at <= conversation.created_at:
+        return None
+    return _fmt_minutes(first.created_at - conversation.created_at)
