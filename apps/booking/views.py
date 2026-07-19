@@ -298,6 +298,7 @@ def services_view(request):
                     duration_minutes=_int(request.POST.get("duration"), 30, 5, 1440),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
+                    is_video=bool(request.POST.get("is_video")),  # LS-1
                 )
                 # L3d: переводы неосновных локалей (name_<loc>/description_<loc>)
                 apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
@@ -315,6 +316,11 @@ def services_view(request):
             if new_name is not None and new_name.strip():
                 service.name = new_name.strip()
                 fields.append("name")
+            # LS-1: чекбокс «видео» — только при сентинеле (unchecked не шлётся;
+            # presence-guard спасает флаг от чужих клиентов формы без чекбокса).
+            if request.POST.get("is_video_present"):
+                service.is_video = bool(request.POST.get("is_video"))
+                fields.append("is_video")
             fields += apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
             # A3: новое фото заменяет старое; чекбокс «удалить» очищает.
             new_image = _uploaded_image_ref(request, "image", "services")

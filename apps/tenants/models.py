@@ -126,6 +126,9 @@ class Tenant(TenantMixin):
     # Публичные контакты для витрины (могут отличаться от контактов владельца)
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=30, blank=True)
+    # LS-1: номер WhatsApp бизнеса (wa.me-линки: Video-Beratung, LS-2 «Jetzt
+    # erreichbar»). Пусто = видео-CTA нигде не показывается (opt-in владельца).
+    whatsapp_number = models.CharField(max_length=30, blank=True)
     website_url = models.URLField(blank=True)
     opening_hours = models.TextField(blank=True)  # свободный текст / по строкам
     # Структурные часы работы (P1b): {"0":["09:00","18:00"], …} по дням недели

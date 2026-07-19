@@ -81,6 +81,9 @@ class Service(I18nMixin, TimestampedModel):
     price_cents = models.PositiveIntegerField(default=0)
     deposit_cents = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # LS-1: видео-консультация (v1 = WhatsApp-видео, wa.me-линк в письмах и на
+    # детали; НИКАКОЙ записи разговоров — §201 StGB). Бронь — обычным движком.
+    is_video = models.BooleanField(default=False)
     # UA4-3: богатая карточка услуги (A3/A7/A9). attributes — свободные строки
     # (спецификации/фичи, list[str]); faq — вопросы-ответы (list[{q,a}]); оба
     # нормализуются на чтении (garbage-safe, см. *_list). primary_action — per-service

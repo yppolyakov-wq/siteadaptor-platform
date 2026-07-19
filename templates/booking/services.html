@@ -32,6 +32,9 @@
       <div class="sm:col-span-5 order-last flex flex-wrap items-center gap-3">
         <label class="text-xs text-gray-500">{% trans "Photo" %}: <input name="image" type="file" accept="image/*" class="text-sm"></label>
         {% if s.image_url %}<label class="text-xs text-gray-500"><input type="checkbox" name="remove_image" value="1"> {% trans "Remove photo" %}</label>{% endif %}
+        {# LS-1: сентинел — presence-guard (чужой клиент формы без чекбокса не сбросит флаг). #}
+        <input type="hidden" name="is_video_present" value="1">
+        <label class="text-xs text-gray-500"><input type="checkbox" name="is_video" value="1" {% if s.is_video %}checked{% endif %}> 📹 {% trans "Video-Beratung möglich" %}</label>
       </div>
       <div class="sm:col-span-5 order-last">
         <label class="block text-xs text-gray-500 mb-1">{% trans "Description (what's included)" %}</label>
@@ -84,6 +87,7 @@
     <label class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</label>
     <input name="image" type="file" accept="image/*" class="w-full text-sm">
   </div>
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_video" value="1"> 📹 {% trans "Video-Beratung möglich" %} <span class="text-xs text-gray-400">({% trans "WhatsApp-Link in Bestätigung" %})</span></label>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</label>

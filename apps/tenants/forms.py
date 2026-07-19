@@ -70,6 +70,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "city",
             "contact_email",
             "contact_phone",
+            "whatsapp_number",
             "website_url",
             "opening_hours",
             "map_url",
@@ -95,11 +96,16 @@ class BusinessSettingsForm(forms.ModelForm):
             "withdrawal_policy": forms.Textarea(attrs={"rows": 4}),
         }
         labels = {
+            "whatsapp_number": _("WhatsApp-Nummer"),
             "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
             "owner_digest_enabled": _("Morning digest email"),
             "voucher_max_percent": _("Max. promo-code share of order (%)"),
         }
         help_texts = {
+            "whatsapp_number": _(
+                "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung "
+                "und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
+            ),
             "service_area_plz": _(
                 "Postal codes you serve, comma-separated (e.g. 40724, 42697). "
                 "Leave blank if you serve everyone."
