@@ -34,6 +34,7 @@ def start_conversation(
     ref_label="",
     author_role=Message.AUTHOR_CUSTOMER,
     author_user=None,
+    priority="",
 ):
     """Создать тред с первым сообщением. Customer — по email (если есть)."""
     with transaction.atomic():
@@ -46,6 +47,13 @@ def start_conversation(
             ref_kind=(ref_kind or "")[:20],
             ref_id=str(ref_id or "")[:64],
             ref_label=(ref_label or "")[:200],
+            # LS-6 «Прямая линия»: high выставляет ТОЛЬКО доверенный problem-гейт
+            # (contact ?problem=1 + ref) или кабинет — не сырой публичный ввод.
+            priority=(
+                priority
+                if priority in dict(Conversation.PRIORITIES)
+                else Conversation.PRIORITY_NORMAL
+            ),
         )
         post_message(
             conversation,
@@ -54,7 +62,33 @@ def start_conversation(
             author_user=author_user,
             channel=channel,
         )
+    # LS-6: проблемный тред → НЕМЕДЛЕННЫЙ Telegram-пуш владельцу (канал UD4-2;
+    # no-op без бота/линка; одна тревога на тред — dedupe по conversation).
+    if conversation.priority == Conversation.PRIORITY_HIGH:
+        _notify_owner_problem(conversation)
     return conversation
+
+
+def _notify_owner_problem(conversation) -> None:
+    """LS-6: пуш «⚠️ Problem» владельцу — fail-safe (сбой не роняет создание треда)."""
+    try:
+        from django.db import connection
+
+        from apps.promotions.notifications import _tenant
+        from apps.telegram.notify import send_to_owner
+
+        tenant = _tenant(connection.schema_name)
+        if tenant is None:
+            return
+        label = conversation.ref_label or conversation.subject or ""
+        send_to_owner(
+            tenant,
+            type="inbox_problem",
+            dedupe_key=f"inbox:conv:{conversation.pk}:problem:owner:tg",
+            text=f"⚠️ Problem: {label}".strip(),
+        )
+    except Exception:  # noqa: BLE001 — тревога best-effort, тред уже создан
+        pass
 
 
 def post_message(

@@ -45,5 +45,6 @@
     {% endif %}
   </div>
   {% include "storefront/_telegram_cta.html" %}
+  {% include "storefront/_problem_cta.html" with pc_kind="stay" pc_id=booking.reference_code %}
 </div>
 {% endblock %}

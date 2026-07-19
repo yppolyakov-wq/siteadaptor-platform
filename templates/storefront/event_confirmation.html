@@ -65,5 +65,6 @@
     {% endif %}
   </div>
   {% include "storefront/_telegram_cta.html" %}
+  {% include "storefront/_problem_cta.html" with pc_kind="ticket" pc_id=ticket.reference_code %}
 </div>
 {% endblock %}

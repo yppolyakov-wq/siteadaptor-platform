@@ -1,0 +1,11 @@
+{% load i18n %}
+{% comment %}LS-6 «Прямая линия»: недовольный клиент попадает к владельцу ДО публичного
+отзыва. Ссылка ведёт в contact с доверенным маркером problem=1 + ref сделки →
+high-тред + немедленный Telegram-пуш владельцу. Использование:
+{% include "storefront/_problem_cta.html" with pc_kind="order" pc_id=order.reference_code pc_label="Bestellung X" %}{% endcomment %}
+{% if storefront_inbox_enabled and pc_kind and pc_id %}
+<p class="mt-4 text-sm text-center">
+  <a href="{% url 'storefront-message' %}?problem=1&ref_kind={{ pc_kind|urlencode }}&ref_id={{ pc_id|urlencode }}&ref_label={{ pc_label|default:pc_id|urlencode }}&subject=Problem%3A%20{{ pc_label|default:pc_id|urlencode }}"
+     class="text-gray-400 hover:text-red-600 underline">⚠️ {% trans "Etwas stimmt nicht?" %}</a>
+</p>
+{% endif %}

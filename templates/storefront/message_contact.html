@@ -19,6 +19,8 @@
     <input type="hidden" name="ref_kind" value="{{ ref_kind }}">
     <input type="hidden" name="ref_id" value="{{ ref_id }}">
     <input type="hidden" name="ref_label" value="{{ ref_label }}">
+    {# LS-6: маркер problem-кнопки (high только вместе с ref — серверный гейт). #}
+    {% if problem %}<input type="hidden" name="problem" value="1">{% endif %}
     <div>
       <label class="block text-sm font-medium mb-1" for="id_subject">{% trans "Subject" %}</label>
       <input id="id_subject" name="subject" type="text" value="{{ prefill_subject }}{% if not prefill_subject and ref_label %}{{ ref_label }}{% endif %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">

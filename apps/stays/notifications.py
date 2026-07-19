@@ -34,6 +34,14 @@ def enqueue_stay_email(booking, event):
     email_on = channel_enabled(tenant, "customer", "stay", event, "email")
     if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
+        # LS-6 «Прямая линия»: ссылка «Etwas stimmt nicht?» в подтверждении —
+        # доверенный problem-гейт contact (high-тред + пуш владельцу).
+        if event == "confirmed":
+            ctx["problem_url"] = (
+                f"{base}{reverse('storefront-message')}?problem=1&ref_kind=stay&ref_id={booking.reference_code}"
+                if base
+                else ""
+            )
         # B2: ссылка на подтверждение (там кнопка «Jetzt bezahlen»).
         if event == "payment_reminder":
             ctx["pay_url"] = (

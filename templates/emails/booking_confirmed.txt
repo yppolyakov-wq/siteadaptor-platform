@@ -9,6 +9,10 @@
 📹 {% trans "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach hier:" %}
 {{ whatsapp_url }}
 {% endif %}
+{% if problem_url %}
+{% trans "Etwas stimmt nicht? Direkter Draht zu uns:" %}
+{{ problem_url|safe }}
+{% endif %}
 {% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

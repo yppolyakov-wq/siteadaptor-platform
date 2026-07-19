@@ -30,4 +30,5 @@
 
   <a href="{% url 'storefront-home' %}" class="inline-block mt-6 text-indigo-600 hover:underline">{% trans "Back to offers" %}</a>
 </div>
+{% include "storefront/_problem_cta.html" with pc_kind="reservation" pc_id=reservation.reference_code %}
 {% endblock %}

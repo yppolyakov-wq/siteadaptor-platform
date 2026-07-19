@@ -88,6 +88,7 @@
             <button class="inline-block text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);">{% trans "Jetzt bezahlen" %}</button>
           </form>
         {% endif %}
+        {% include "storefront/_problem_cta.html" with pc_kind="order" pc_id=offer.order.reference_code %}
         {% if order_link %}
           <p class="text-sm"><a href="{% url 'storefront-order' offer.order.reference_code %}" class="text-gray-500 hover:underline">{% trans "Zur Bestellung" %} →</a></p>
         {% endif %}

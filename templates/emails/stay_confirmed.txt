@@ -9,6 +9,10 @@
 {% if cancel_url %}
 {% trans "Stornieren" %}: {{ cancel_url }}
 {% endif %}
+{% if problem_url %}
+{% trans "Etwas stimmt nicht? Direkter Draht zu uns:" %}
+{{ problem_url|safe }}
+{% endif %}
 {% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

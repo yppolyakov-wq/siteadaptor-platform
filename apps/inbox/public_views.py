@@ -49,8 +49,19 @@ def contact(request):
             return render(
                 request,
                 "storefront/message_contact.html",
-                {**ref, "prefill_subject": request.POST.get("subject", "")},
+                {
+                    **ref,
+                    "prefill_subject": request.POST.get("subject", ""),
+                    "problem": request.POST.get("problem", ""),
+                },
             )
+        # LS-6: маркер problem-кнопки + непустой ref сделки → приоритет high
+        # (сырой ?priority= НЕ принимаем — аноним поставил бы high всем).
+        problem = (
+            bool(request.POST.get("problem"))
+            and bool(ref.get("ref_kind"))
+            and bool(ref.get("ref_id"))
+        )
         conversation = services.start_conversation(
             subject=request.POST.get("subject", "").strip()[:200],
             body=body[:5000],
@@ -58,6 +69,7 @@ def contact(request):
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
             channel=Conversation.CHANNEL_WEB,
+            priority=Conversation.PRIORITY_HIGH if problem else "",
             **ref,
         )
         return redirect("storefront-message-thread", token=conversation.public_token)
@@ -65,7 +77,11 @@ def contact(request):
     return render(
         request,
         "storefront/message_contact.html",
-        {**_ref(request.GET), "prefill_subject": request.GET.get("subject", "")},
+        {
+            **_ref(request.GET),
+            "prefill_subject": request.GET.get("subject", ""),
+            "problem": request.GET.get("problem", ""),
+        },
     )
 
 

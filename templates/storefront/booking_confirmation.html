@@ -30,5 +30,6 @@
     {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-4">{{ request.tenant.address }}</p>{% endif %}
   </div>
   {% include "storefront/_telegram_cta.html" %}
+  {% include "storefront/_problem_cta.html" with pc_kind="booking" pc_id=booking.reference_code %}
 </div>
 {% endblock %}

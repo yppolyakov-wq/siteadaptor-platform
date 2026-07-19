@@ -65,5 +65,6 @@
   </div>
 
   {% include "storefront/_telegram_cta.html" %}
+  {% include "storefront/_problem_cta.html" with pc_kind="order" pc_id=order.reference_code %}
 </div>
 {% endblock %}
