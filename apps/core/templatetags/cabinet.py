@@ -140,3 +140,16 @@ def icon(name, css="w-6 h-6"):
     from django.utils.html import format_html
 
     return format_html('<svg class="{}" aria-hidden="true"><use href="#{}"></use></svg>', css, name)
+
+
+@register.inclusion_tag("core/_orders_view_switch.html", takes_context=True)
+def orders_view_switch(context, active):
+    """ST-5b: сегмент-контрол Канбан⇄Календарь⇄Лента на поверхностях хаба
+    «Verkäufe» (board/календари/список заказов). classic_ui → пусто (Р7)."""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if tenant is None or modules.classic_ui(tenant):
+        return {"options": []}
+    from apps.core import orders_view as ov
+
+    return {"options": ov.switch_options(tenant, active), "csrf_token": context.get("csrf_token")}

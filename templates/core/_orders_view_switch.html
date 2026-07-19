@@ -1,0 +1,17 @@
+{% comment %}ST-5b: сегмент-контрол представлений раздела заказов (тег
+orders_view_switch). Каждая опция — мини-форма POST на set-orders-view:
+персист выбора + переход. classic_ui → options пуст, ничего не рендерим.{% endcomment %}
+{% if options %}
+<div class="inline-flex items-center rounded-lg border border-gray-300 overflow-hidden text-sm mb-4" role="group">
+  {% for o in options %}
+  <form method="post" action="{% url 'set-orders-view' %}" class="contents">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="view" value="{{ o.view }}">
+    <button type="submit"
+      class="px-3 py-1.5 {% if not forloop.first %}border-l border-gray-300{% endif %} {% if o.active %}bg-indigo-600 text-white font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+      {{ o.icon }} {{ o.label }}
+    </button>
+  </form>
+  {% endfor %}
+</div>
+{% endif %}

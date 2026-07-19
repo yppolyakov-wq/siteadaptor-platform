@@ -4,6 +4,7 @@
 
 {% block dash_content %}
 {% hub_tabs "board" %}
+{% orders_view_switch "kanban" %}
 <div class="flex items-baseline justify-between gap-3 flex-wrap mb-1">
   <h1 class="text-2xl font-bold">🗂️ {% trans "Aufgaben-Board" %}</h1>
   {# FB-2: настройка колонок — видимой кнопкой в шапке (панель ниже была свёрнута и терялась) #}

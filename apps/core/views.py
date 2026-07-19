@@ -2790,6 +2790,26 @@ def set_presence_view(request):
 
 @login_required
 @require_POST
+def set_orders_view(request):
+    """ST-5b: сегмент-контрол Канбан⇄Календарь⇄Лента — персист выбора
+    (targeted-write ключа orders_view, presence-minimal: невалидное значение =
+    сброс на архетип-дефолт) и переход на выбранное представление."""
+    from apps.core import orders_view as ov
+
+    tenant = request.tenant
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    view = request.POST.get("view", "")
+    if view in ov.VIEWS:
+        cfg["orders_view"] = view
+    else:
+        cfg.pop("orders_view", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    return redirect(ov.entry_url(tenant))
+
+
+@login_required
+@require_POST
 def set_cabinet_lang_view(request):
     """T1 (FB-12): переключатель ЯЗЫКА КАБИНЕТА из шапки — пишет выбор в сессию
     (валидируется по CABINET_LANGUAGES), возвращает назад. Отдельно от языка витрины."""

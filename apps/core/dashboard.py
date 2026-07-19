@@ -233,8 +233,17 @@ def hub_tiles(tenant) -> list[dict]:
     гейты по модулям — плитка выключенного модуля не показывается."""
     from django.utils.translation import gettext as _t
 
+    from apps.core import orders_view as ov
+
     tiles = [
-        {"key": "orders", "icon": "ic-orders", "label": _t("Bestellungen"), "url_name": "board"},
+        # ST-5b: вход «Bestellungen» уважает выбранное представление
+        # (kanban/calendar/feed; отсутствие выбора = архетип-дефолт).
+        {
+            "key": "orders",
+            "icon": "ic-orders",
+            "label": _t("Bestellungen"),
+            "url_name": ov.entry_url_name(tenant),
+        },
         {
             "key": "offer",
             "icon": "ic-offer",

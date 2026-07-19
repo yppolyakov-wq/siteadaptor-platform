@@ -12363,3 +12363,9 @@ msgstr "Не все сподобалося? Скажіть нам напряму
 
 msgid "Your own blocks stay — only template blocks are replaced."
 msgstr "Ваші власні блоки залишаються — замінюються лише блоки шаблону."
+
+msgid "Kalender"
+msgstr "Календар"
+
+msgid "Liste"
+msgstr "Список"

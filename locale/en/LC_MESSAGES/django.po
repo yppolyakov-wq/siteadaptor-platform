@@ -12250,3 +12250,9 @@ msgstr "Not quite happy? Tell us directly — we'll take care of it right away:"
 
 msgid "Your own blocks stay — only template blocks are replaced."
 msgstr "Your own blocks stay — only template blocks are replaced."
+
+msgid "Kalender"
+msgstr "Calendar"
+
+msgid "Liste"
+msgstr "List"

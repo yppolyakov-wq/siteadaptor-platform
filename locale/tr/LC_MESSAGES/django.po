@@ -12297,3 +12297,9 @@ msgstr "Tam memnun değil misiniz? Doğrudan bize söyleyin — hemen ilgileniri
 
 msgid "Your own blocks stay — only template blocks are replaced."
 msgstr "Kendi bloklarınız kalır — yalnızca şablon blokları değiştirilir."
+
+msgid "Kalender"
+msgstr "Takvim"
+
+msgid "Liste"
+msgstr "Liste"

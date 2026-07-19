@@ -12382,3 +12382,9 @@ msgstr "Не всё понравилось? Скажите нам напряму
 
 msgid "Your own blocks stay — only template blocks are replaced."
 msgstr "Ваши собственные блоки сохраняются — заменяются только блоки шаблона."
+
+msgid "Kalender"
+msgstr "Календарь"
+
+msgid "Liste"
+msgstr "Список"

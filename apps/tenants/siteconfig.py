@@ -2074,6 +2074,10 @@ def normalize(config) -> dict:
     board = normalize_board(config.get("board"))
     if board:
         normalized["board"] = board
+    # ST-5b: представление раздела заказов (kanban/calendar/feed); ключ ТОЛЬКО
+    # при явном выборе владельца (отсутствие = архетип-дефолт, golden-паритет).
+    if config.get("orders_view") in ("kanban", "calendar", "feed"):
+        normalized["orders_view"] = config["orders_view"]
     # FD-1: Finder («вопросы → 3 предложения»); ключ ТОЛЬКО при непустом.
     fnd = normalize_finder(config.get("finder"))
     if fnd:
