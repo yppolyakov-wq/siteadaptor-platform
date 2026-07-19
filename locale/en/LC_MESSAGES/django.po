@@ -11610,51 +11610,63 @@ msgstr "Account created"
 msgid "Preparing your database…"
 msgstr "Preparing your database…"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Übersicht"
 msgstr "Overview"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Verkäufe"
 msgstr "Sales"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Kunden"
 msgstr "Customers"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Auswertungen"
 msgstr "Analytics"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Finanzen"
 msgstr "Finance"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Website gestalten"
 msgstr "Design website"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Abrechnung"
 msgstr "Billing"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Blog & News"
 msgstr "Blog & News"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Mein Geschäft"
 msgstr "My business"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Verkaufen"
 msgstr "Sell"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Kunden & Marketing"
 msgstr "Customers & Marketing"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Kombi-Angebote"
 msgstr "Combo deals"
 
@@ -11676,11 +11688,17 @@ msgstr "Customize status transitions"
 msgid "Eigene Status verwalten"
 msgstr "Manage custom statuses"
 
-msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
-msgstr "Custom names for the statuses (dashboard display only). Empty = default."
+msgid ""
+"Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr ""
+"Custom names for the statuses (dashboard display only). Empty = default."
 
-msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
-msgstr "Which follow-up statuses are selectable from a status (display buttons only). Cancelling stays always possible."
+msgid ""
+"Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). "
+"Stornieren/Absagen bleibt immer möglich."
+msgstr ""
+"Which follow-up statuses are selectable from a status (display buttons "
+"only). Cancelling stays always possible."
 
 msgid "Gründe dein Geschäft"
 msgstr "Create your business"
@@ -11691,8 +11709,12 @@ msgstr "14-day free trial. No card required."
 msgid "Dein ganzes Geschäft — online in Minuten."
 msgstr "Your whole business — online in minutes."
 
-msgid "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain."
-msgstr "Website, catalog, bookings, promotions and loyalty — all in one place, on your own subdomain."
+msgid ""
+"Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf "
+"deiner eigenen Subdomain."
+msgstr ""
+"Website, catalog, bookings, promotions and loyalty — all in one place, on "
+"your own subdomain."
 
 msgid "Mini-Website auf deiner Subdomain — ohne Code"
 msgstr "Mini-site on your own subdomain — no code"
@@ -11715,8 +11737,12 @@ msgstr "View demo site"
 msgid "Geschäft erstellen"
 msgstr "Create business"
 
-msgid "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der Testphase jederzeit kündigen."
-msgstr "By creating a business you agree to our terms. You can cancel anytime during the trial."
+msgid ""
+"Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der "
+"Testphase jederzeit kündigen."
+msgstr ""
+"By creating a business you agree to our terms. You can cancel anytime during"
+" the trial."
 
 msgid "Name des Geschäfts"
 msgstr "Business name"
@@ -11751,8 +11777,13 @@ msgstr "This subdomain is already taken."
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwords do not match."
 
-msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
-msgstr "By creating a business you agree to our <a href=\"/agb/\" class=\"underline hover:text-gray-600\">terms</a>. You can cancel anytime during the trial."
+msgid ""
+"Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline "
+"hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase "
+"jederzeit kündigen."
+msgstr ""
+"By creating a business you agree to our <a href=\"/agb/\" class=\"underline "
+"hover:text-gray-600\">terms</a>. You can cancel anytime during the trial."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Bitte E-Mail bestätigen"
@@ -11764,12 +11795,20 @@ msgstr "Almost there — please confirm your email"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
-msgid "Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf den Link darin — erst dann wird deine Website eingerichtet."
-msgstr "We've sent an email to <strong>%(email)s</strong>. Click the link inside — only then will your website be set up."
+msgid ""
+"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf "
+"den Link darin — erst dann wird deine Website eingerichtet."
+msgstr ""
+"We've sent an email to <strong>%(email)s</strong>. Click the link inside — "
+"only then will your website be set up."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Der Link ist 72 Stunden gültig. Nichts erhalten? Schau auch im Spam-Ordner nach."
-msgstr "The link is valid for 72 hours. Nothing received? Check your spam folder too."
+msgid ""
+"Der Link ist 72 Stunden gültig. Nichts erhalten? Schau auch im Spam-Ordner "
+"nach."
+msgstr ""
+"The link is valid for 72 hours. Nothing received? Check your spam folder "
+"too."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "E-Mail wurde erneut gesendet."
@@ -11780,7 +11819,8 @@ msgid "E-Mail erneut senden"
 msgstr "Resend email"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "E-Mail-Versand ist noch nicht eingerichtet — hier ist dein Bestätigungslink:"
+msgid ""
+"E-Mail-Versand ist noch nicht eingerichtet — hier ist dein Bestätigungslink:"
 msgstr "Email sending isn't set up yet — here is your confirmation link:"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
@@ -11796,8 +11836,12 @@ msgid "Der Link ist abgelaufen"
 msgstr "The link has expired"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Bestätigungslinks sind 72 Stunden gültig. Registriere dich einfach erneut — es dauert nur eine Minute."
-msgstr "Confirmation links are valid for 72 hours. Simply register again — it only takes a minute."
+msgid ""
+"Bestätigungslinks sind 72 Stunden gültig. Registriere dich einfach erneut — "
+"es dauert nur eine Minute."
+msgstr ""
+"Confirmation links are valid for 72 hours. Simply register again — it only "
+"takes a minute."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Subdomain inzwischen vergeben"
@@ -11805,8 +11849,12 @@ msgstr "Subdomain taken in the meantime"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
-msgid "Die Adresse „%(slug)s“ wurde in der Zwischenzeit von jemand anderem registriert. Bitte wähle eine andere Subdomain."
-msgstr "The address “%(slug)s” has since been registered by someone else. Please choose another subdomain."
+msgid ""
+"Die Adresse „%(slug)s“ wurde in der Zwischenzeit von jemand anderem "
+"registriert. Bitte wähle eine andere Subdomain."
+msgstr ""
+"The address “%(slug)s” has since been registered by someone else. Please "
+"choose another subdomain."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Link ungültig"
@@ -11821,8 +11869,12 @@ msgid "Erneut registrieren"
 msgstr "Register again"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Wir senden dir zuerst eine Bestätigungs-E-Mail — erst danach wird deine Website eingerichtet."
-msgstr "We'll first send you a confirmation email — only then will your website be set up."
+msgid ""
+"Wir senden dir zuerst eine Bestätigungs-E-Mail — erst danach wird deine "
+"Website eingerichtet."
+msgstr ""
+"We'll first send you a confirmation email — only then will your website be "
+"set up."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
@@ -11835,12 +11887,20 @@ msgstr "Hello,"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
-msgid "du möchtest „%(name)s“ auf SiteAdaptor erstellen. Bitte bestätige deine E-Mail-Adresse mit einem Klick:"
-msgstr "you want to create “%(name)s” on SiteAdaptor. Please confirm your email address with one click:"
+msgid ""
+"du möchtest „%(name)s“ auf SiteAdaptor erstellen. Bitte bestätige deine "
+"E-Mail-Adresse mit einem Klick:"
+msgstr ""
+"you want to create “%(name)s” on SiteAdaptor. Please confirm your email "
+"address with one click:"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website eingerichtet."
-msgstr "The link is valid for 72 hours. Your website will be set up only after confirmation."
+msgid ""
+"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website"
+" eingerichtet."
+msgstr ""
+"The link is valid for 72 hours. Your website will be set up only after "
+"confirmation."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Wenn du das nicht warst, kannst du diese E-Mail einfach ignorieren."
@@ -11855,24 +11915,33 @@ msgid "Kartenstil"
 msgstr "Card style"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Der Kartenstil gilt für deine ganze Website (auch Listen und Startseite)."
-msgstr "The card style applies to your whole website (lists and home page too)."
+msgid ""
+"Der Kartenstil gilt für deine ganze Website (auch Listen und Startseite)."
+msgstr ""
+"The card style applies to your whole website (lists and home page too)."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Abschnitte auf der Seite"
 msgstr "Sections on the page"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Lege im vorherigen Schritt deine erste Position an — dann siehst du hier ihre Seite."
-msgstr "Add your first item in the previous step — then you'll see its page here."
+msgid ""
+"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier "
+"ihre Seite."
+msgstr ""
+"Add your first item in the previous step — then you'll see its page here."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Seitenvorlage"
 msgstr "Page template"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder entfernbar."
-msgstr "Templates insert example blocks — adjust or remove them in the editor anytime."
+msgid ""
+"Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder "
+"entfernbar."
+msgstr ""
+"Templates insert example blocks — adjust or remove them in the editor "
+"anytime."
 
 #. LS-3 Sofort-Angebot (2026-07-19)
 msgid "Abgelehnt"
@@ -11917,7 +11986,8 @@ msgstr "Please add at least one item with a price."
 msgid "Bitte überweisen Sie den Betrag im Voraus:"
 msgstr "Please transfer the amount in advance:"
 
-msgid "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
+msgid ""
+"Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
 msgstr "This offer has expired. Write to us for a new offer."
 
 msgid "Dieses Angebot wurde zurückgezogen."
@@ -11956,8 +12026,12 @@ msgstr "Personal message"
 msgid "Persönliches Angebot"
 msgstr "Personal offer"
 
-msgid "Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; der Kunde nimmt es per Link an und bezahlt."
-msgstr "Personal offer for %(who)s — pick items or enter them freely; the customer accepts via link and pays."
+msgid ""
+"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; "
+"der Kunde nimmt es per Link an und bezahlt."
+msgstr ""
+"Personal offer for %(who)s — pick items or enter them freely; the customer "
+"accepts via link and pays."
 
 msgid "Preis"
 msgstr "Price"
@@ -11965,8 +12039,11 @@ msgstr "Price"
 msgid "Sie haben das Angebot angenommen — vielen Dank!"
 msgstr "You accepted the offer — thank you!"
 
-msgid "Sie haben dieses Angebot abgelehnt. Schreiben Sie uns gern, wenn Sie Fragen haben."
-msgstr "You declined this offer. Feel free to write to us if you have questions."
+msgid ""
+"Sie haben dieses Angebot abgelehnt. Schreiben Sie uns gern, wenn Sie Fragen "
+"haben."
+msgstr ""
+"You declined this offer. Feel free to write to us if you have questions."
 
 msgid "Wie möchten Sie bezahlen?"
 msgstr "How would you like to pay?"
@@ -12011,14 +12088,24 @@ msgstr "WhatsApp link in confirmation"
 msgid "Per Video zeigen lassen"
 msgstr "See it via video"
 
-msgid "Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
+msgid ""
+"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne "
+"Anfahrt."
 msgstr "Let the team show it to you via WhatsApp video — no trip needed."
 
-msgid "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach hier:"
-msgstr "Your appointment takes place via video — just start it here at the appointed time:"
+msgid ""
+"Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach "
+"hier:"
+msgstr ""
+"Your appointment takes place via video — just start it here at the appointed"
+" time:"
 
-msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
-msgstr "International format, e.g. +49 171 1234567. Used for video consultations and instant contact; leave blank to hide all WhatsApp buttons."
+msgid ""
+"Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und "
+"Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
+msgstr ""
+"International format, e.g. +49 171 1234567. Used for video consultations and"
+" instant contact; leave blank to hide all WhatsApp buttons."
 
 #. LS-2 Jetzt erreichbar (2026-07-19)
 msgid "Jetzt erreichbar — Video-Anruf"
@@ -12039,15 +12126,20 @@ msgstr "On"
 msgid "Aus"
 msgstr "Off"
 
-msgid "Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten."
-msgstr "Video-call badge on your website (WhatsApp). Auto = follows opening hours."
+msgid ""
+"Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten."
+msgstr ""
+"Video-call badge on your website (WhatsApp). Auto = follows opening hours."
 
 msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
 msgstr "WhatsApp number missing — add it now"
 
 #. ST-1b Look-Galerie (2026-07-19)
-msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
-msgstr "Ready-made design packages for your industry — one click recolours the preview."
+msgid ""
+"Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
+msgstr ""
+"Ready-made design packages for your industry — one click recolours the "
+"preview."
 
 #. ST-4a Admin-Home (2026-07-19)
 msgid "Umsatz heute"
@@ -12101,8 +12193,10 @@ msgstr "Channel manager (OTA)"
 msgid "Buchungen aus Portalen importieren"
 msgstr "Import bookings from portals"
 
-msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
-msgstr "Connections to the outside: payments, channels, domain — all in one place."
+msgid ""
+"Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
+msgstr ""
+"Connections to the outside: payments, channels, domain — all in one place."
 
 #. ST-3 Studio-Shell (2026-07-19)
 msgid "Seiten"
@@ -12127,14 +12221,19 @@ msgstr "Something not right? Direct line to us:"
 msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
 msgstr "Is everything all right now? If not, just reply here:"
 
-msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgid ""
+"Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
 msgstr "And if you were happy with us, we'd appreciate a short review."
 
 msgid "Alles wieder gut? — %(business)s"
 msgstr "Everything all right? — %(business)s"
 
-msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
-msgstr "thank you for your patience — we hope we could resolve your issue at %(business)s."
+msgid ""
+"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei "
+"%(business)s lösen."
+msgstr ""
+"thank you for your patience — we hope we could resolve your issue at "
+"%(business)s."
 
 #. LS-4 Vertrauen (2026-07-19)
 msgid "Antwortet in der Regel in ~%(n)s Min"
@@ -12145,5 +12244,9 @@ msgid "Care-Zyklus"
 msgstr "Care cycle"
 
 #. LS-5 Care (2026-07-19)
-msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgid ""
+"Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
 msgstr "Not quite happy? Tell us directly — we'll take care of it right away:"
+
+msgid "Your own blocks stay — only template blocks are replaced."
+msgstr "Your own blocks stay — only template blocks are replaced."

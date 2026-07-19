@@ -1,11 +1,30 @@
-{% load i18n %}{# Секция контактов (Track C2): адрес/часы/связь из настроек бизнеса. #}
+{% load i18n %}{# Секция контактов (Track C2): адрес/часы/связь из настроек бизнеса.
+   ST-2: варианты по section_row.style — "" карточка, 2 колонки, карта снизу |
+   split: карта третьей колонкой | map_first: карта сверху | compact: плоская
+   строка без карточки и карты. Гейт заполненности остаётся снаружи вариантов. #}
 {% if request.tenant.address or request.tenant.opening_hours or request.tenant.public_phone or request.tenant.public_email or request.tenant.open_status or request.tenant.latitude %}
+{% if section_row.style == "compact" %}
+<section data-reveal class="mb-10">
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
+    <h2 class="text-base font-bold text-gray-800">{% trans "Contact & opening hours" %}</h2>
+    {% with st=request.tenant.open_status %}{% include "storefront/_open_badge.html" %}{% endwith %}
+    {% if request.tenant.address %}<span>{{ request.tenant.address }}</span>{% endif %}
+    {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a>{% endif %}
+    {% if request.tenant.public_email %}<a href="mailto:{{ request.tenant.public_email }}" class="hover:underline">{{ request.tenant.public_email }}</a>{% endif %}
+    {% if request.tenant.open_status %}<span>{% trans "Today" %}: {{ request.tenant.todays_hours }}</span>{% endif %}
+    {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" rel="noopener" class="text-indigo-600 hover:underline">{% trans "Open map" %} →</a>{% endif %}
+  </div>
+</section>
+{% else %}
 <section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
   <div class="flex items-center gap-3 mb-4 flex-wrap">
     <h2 class="text-xl md:text-2xl font-bold">{% trans "Contact & opening hours" %}</h2>
     {% with st=request.tenant.open_status %}{% include "storefront/_open_badge.html" %}{% endwith %}
   </div>
-  <div class="grid sm:grid-cols-2 gap-6 text-sm text-gray-600">
+  {% if section_row.style == "map_first" and request.tenant.latitude and request.tenant.longitude %}
+    {% include "storefront/sections/_contact_map.html" with map_class="w-full h-64 rounded-2xl overflow-hidden mb-6 relative z-0" %}
+  {% endif %}
+  <div class="grid sm:grid-cols-2 {% if section_row.style == "split" and request.tenant.latitude and request.tenant.longitude %}lg:grid-cols-3{% endif %} gap-6 text-sm text-gray-600">
     <div>
       {% if request.tenant.address %}<p class="whitespace-pre-line">{{ request.tenant.address }}</p>{% endif %}
       {% if request.tenant.public_phone %}<p class="mt-2"><a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
@@ -20,26 +39,15 @@
         {% if request.tenant.opening_hours %}<p class="whitespace-pre-line">{{ request.tenant.opening_hours }}</p>{% endif %}
       </div>
     {% endif %}
+    {% if section_row.style == "split" and request.tenant.latitude and request.tenant.longitude %}
+      <div class="sm:col-span-2 lg:col-span-1">
+        {% include "storefront/sections/_contact_map.html" with map_class="w-full h-full min-h-[16rem] rounded-2xl overflow-hidden relative z-0" %}
+      </div>
+    {% endif %}
   </div>
-  {% if request.tenant.latitude and request.tenant.longitude %}
-    {# T1: встроенная карта Leaflet/OSM (без API-ключа), маркер на адресе бизнеса. #}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <div id="sf-contact-map" class="w-full h-64 rounded-2xl overflow-hidden mt-6 relative z-0"
-         data-lat="{{ request.tenant.latitude|stringformat:'s' }}"
-         data-lng="{{ request.tenant.longitude|stringformat:'s' }}"></div>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-    (function () {
-      var el = document.getElementById("sf-contact-map");
-      if (!el || !window.L) return;
-      var lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
-      if (isNaN(lat) || isNaN(lng)) return;
-      var map = L.map("sf-contact-map").setView([lat, lng], 16);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
-      L.marker([lat, lng]).addTo(map);
-    })();
-    </script>
+  {% if section_row.style != "split" and section_row.style != "map_first" and request.tenant.latitude and request.tenant.longitude %}
+    {% include "storefront/sections/_contact_map.html" %}
   {% endif %}
 </section>
+{% endif %}
 {% endif %}

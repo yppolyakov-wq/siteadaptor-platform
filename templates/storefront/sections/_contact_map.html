@@ -1,0 +1,20 @@
+{# T1: встроенная карта Leaflet/OSM (без API-ключа), маркер на адресе бизнеса.
+   ST-2: вынесена из _contact.html — позиция/размер зависят от варианта секции
+   (map_class от вызывающего include); рендерится максимум один раз на страницу. #}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<div id="sf-contact-map" class="{{ map_class|default:'w-full h-64 rounded-2xl overflow-hidden mt-6 relative z-0' }}"
+     data-lat="{{ request.tenant.latitude|stringformat:'s' }}"
+     data-lng="{{ request.tenant.longitude|stringformat:'s' }}"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var el = document.getElementById("sf-contact-map");
+  if (!el || !window.L) return;
+  var lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
+  if (isNaN(lat) || isNaN(lng)) return;
+  var map = L.map("sf-contact-map").setView([lat, lng], 16);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+  L.marker([lat, lng]).addTo(map);
+})();
+</script>

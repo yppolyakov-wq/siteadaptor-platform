@@ -611,6 +611,30 @@ def test_category_slide_picks_catalog_layout():
     assert tenant.site_config["catalog_layout"]["preset"] == "cols4"
 
 
+def test_category_slide_apply_all_listings():
+    """ST-2: чекбокс «Auch für andere Listen» зеркалит пресет в листинги ТОЛЬКО
+    активных модулей (stays выключен → его раскладка остаётся дефолтной)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="catall",
+        name="CatAll",
+        business_type="bakery",
+        disabled_modules=["stays"],  # events/booking активны, stays нет
+    )
+    onboarding.goto(tenant, "category")
+    html = core_views.setup_view(_req(tenant=tenant)).content.decode()
+    assert 'name="apply_all_listings"' in html
+    core_views.setup_view(
+        _req("post", {"catalog_preset": "cols2", "apply_all_listings": "on"}, tenant)
+    )
+    tenant.refresh_from_db()
+    cfg = tenant.site_config
+    assert cfg["catalog_layout"]["preset"] == "cols2"
+    assert cfg["events_index_layout"]["preset"] == "cols2"
+    assert cfg["service_index_layout"]["preset"] == "cols2"
+    assert cfg["stay_index_layout"]["preset"] == "cols3"  # дефолт, не тронут
+
+
 def test_payment_slide_reuses_shared_form_and_saves():
     """AB6.2-payment: слайд payment переиспользует форму W4-3 (партиал _payment_fields)
     и общий save-диспетчер — секция по сентинелу сохраняется тем же путём, что экран."""

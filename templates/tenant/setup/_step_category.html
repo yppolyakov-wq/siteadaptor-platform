@@ -36,6 +36,14 @@
       </label>
     {% endfor %}
   </div>
+  {% if category_other_listings %}
+  {% comment %}ST-2: та же раскладка для листингов услуг/номеров/событий активных
+     модулей (зеркало «Apply to all» билдера; сохранение — в _post_category).{% endcomment %}
+  <label class="flex items-center gap-2 text-sm text-gray-600">
+    <input type="checkbox" name="apply_all_listings" class="rounded border-gray-300">
+    Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)
+  </label>
+  {% endif %}
   <div class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm text-gray-600">
     <a href="{% url 'catalog:category-list' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Kategorien verwalten →</a>
   </div>

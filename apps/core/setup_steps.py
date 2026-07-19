@@ -289,6 +289,15 @@ _CATALOG_PRESET_CARDS = (
 )
 
 
+# ST-2: листинги других модулей — та же раскладка по чекбоксу слайда category
+# (зеркало «Apply to all» билдера; пишем ТОЛЬКО активным модулям).
+_OTHER_LISTING_KEYS = (
+    ("events", "events_index_layout"),
+    ("stays", "stay_index_layout"),
+    ("booking", "service_index_layout"),
+)
+
+
 def _post_category(request):
     # AB6.2d: раскладка страницы каталога/категорий (columns) → catalog_layout.preset
     # (normalize материализует cols/mobile). Какие категории — редактор (ссылка в слайде).
@@ -298,6 +307,10 @@ def _post_category(request):
     if preset in siteconfig.LAYOUT_PRESETS:
         cfg = siteconfig.normalize(request.tenant.site_config)
         cfg["catalog_layout"] = {"preset": preset}
+        if request.POST.get("apply_all_listings"):
+            for module, key in _OTHER_LISTING_KEYS:
+                if request.tenant.is_module_active(module):
+                    cfg[key] = {"preset": preset}
         request.tenant.site_config = siteconfig.normalize(cfg)
         request.tenant.save(update_fields=["site_config", "updated_at"])
 
@@ -309,6 +322,10 @@ def _ctx_category(request):
     return {
         "catalog_presets": _CATALOG_PRESET_CARDS,
         "catalog_preset": (cfg.get("catalog_layout") or {}).get("preset") or "cols3",
+        # ST-2: чекбокс «для всех списков» — только если есть другие листинги.
+        "category_other_listings": any(
+            request.tenant.is_module_active(m) for m, _k in _OTHER_LISTING_KEYS
+        ),
     }
 
 

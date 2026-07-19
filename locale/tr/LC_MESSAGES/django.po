@@ -11660,51 +11660,63 @@ msgstr "Hesap oluşturuldu"
 msgid "Preparing your database…"
 msgstr "Veritabanınız hazırlanıyor…"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Übersicht"
 msgstr "Genel bakış"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Verkäufe"
 msgstr "Satışlar"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Kunden"
 msgstr "Müşteriler"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Auswertungen"
 msgstr "Analizler"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Finanzen"
 msgstr "Finans"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Website gestalten"
 msgstr "Web sitesi tasarımı"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Abrechnung"
 msgstr "Faturalandırma"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Blog & News"
 msgstr "Blog & Haberler"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Mein Geschäft"
 msgstr "İşletmem"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Verkaufen"
 msgstr "Satış"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Kunden & Marketing"
 msgstr "Müşteriler & Pazarlama"
 
-#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS, apps/core/modules.py)
+#. T1-b.2: навигация кабинета (NAV_GROUPS/NAV_TASK_LABELS,
+#. apps/core/modules.py)
 msgid "Kombi-Angebote"
 msgstr "Kombo teklifleri"
 
@@ -11726,11 +11738,17 @@ msgstr "Durum geçişlerini özelleştir"
 msgid "Eigene Status verwalten"
 msgstr "Özel durumları yönet"
 
-msgid "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
-msgstr "Durumlar için özel adlar (yalnızca panelde gösterim). Boş = varsayılan."
+msgid ""
+"Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr ""
+"Durumlar için özel adlar (yalnızca panelde gösterim). Boş = varsayılan."
 
-msgid "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). Stornieren/Absagen bleibt immer möglich."
-msgstr "Bir durumdan hangi sonraki durumların seçilebileceği (yalnızca gösterim düğmeleri). İptal her zaman mümkündür."
+msgid ""
+"Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). "
+"Stornieren/Absagen bleibt immer möglich."
+msgstr ""
+"Bir durumdan hangi sonraki durumların seçilebileceği (yalnızca gösterim "
+"düğmeleri). İptal her zaman mümkündür."
 
 msgid "Gründe dein Geschäft"
 msgstr "İşletmenizi oluşturun"
@@ -11741,8 +11759,12 @@ msgstr "14 gün ücretsiz deneme. Kart gerekmez."
 msgid "Dein ganzes Geschäft — online in Minuten."
 msgstr "Tüm işletmeniz — dakikalar içinde çevrimiçi."
 
-msgid "Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf deiner eigenen Subdomain."
-msgstr "Web sitesi, katalog, rezervasyonlar, kampanyalar ve sadakat — hepsi tek yerde, kendi alt alan adınızda."
+msgid ""
+"Website, Katalog, Buchungen, Aktionen und Treue — alles an einem Ort, auf "
+"deiner eigenen Subdomain."
+msgstr ""
+"Web sitesi, katalog, rezervasyonlar, kampanyalar ve sadakat — hepsi tek "
+"yerde, kendi alt alan adınızda."
 
 msgid "Mini-Website auf deiner Subdomain — ohne Code"
 msgstr "Kendi alt alan adınızda mini site — kod yok"
@@ -11765,8 +11787,12 @@ msgstr "Demo siteyi görüntüle"
 msgid "Geschäft erstellen"
 msgstr "İşletme oluştur"
 
-msgid "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der Testphase jederzeit kündigen."
-msgstr "Bir işletme oluşturarak koşullarımızı kabul edersiniz. Deneme süresi boyunca istediğiniz zaman iptal edebilirsiniz."
+msgid ""
+"Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der "
+"Testphase jederzeit kündigen."
+msgstr ""
+"Bir işletme oluşturarak koşullarımızı kabul edersiniz. Deneme süresi boyunca"
+" istediğiniz zaman iptal edebilirsiniz."
 
 msgid "Name des Geschäfts"
 msgstr "İşletme adı"
@@ -11801,8 +11827,14 @@ msgstr "Bu alt alan adı zaten alınmış."
 msgid "Passwörter stimmen nicht überein."
 msgstr "Şifreler eşleşmiyor."
 
-msgid "Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen."
-msgstr "Bir işletme oluşturarak <a href=\"/agb/\" class=\"underline hover:text-gray-600\">koşullarımızı</a> kabul edersiniz. Deneme süresi boyunca istediğiniz zaman iptal edebilirsiniz."
+msgid ""
+"Mit der Erstellung stimmst du unseren <a href=\"/agb/\" class=\"underline "
+"hover:text-gray-600\">Bedingungen</a> zu. Du kannst während der Testphase "
+"jederzeit kündigen."
+msgstr ""
+"Bir işletme oluşturarak <a href=\"/agb/\" class=\"underline hover:text-"
+"gray-600\">koşullarımızı</a> kabul edersiniz. Deneme süresi boyunca "
+"istediğiniz zaman iptal edebilirsiniz."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Bitte E-Mail bestätigen"
@@ -11814,12 +11846,19 @@ msgstr "Neredeyse bitti — lütfen e-postanı onayla"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
-msgid "Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf den Link darin — erst dann wird deine Website eingerichtet."
-msgstr "<strong>%(email)s</strong> adresine bir e-posta gönderdik. İçindeki bağlantıya tıkla — web siten ancak o zaman kurulur."
+msgid ""
+"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf "
+"den Link darin — erst dann wird deine Website eingerichtet."
+msgstr ""
+"<strong>%(email)s</strong> adresine bir e-posta gönderdik. İçindeki "
+"bağlantıya tıkla — web siten ancak o zaman kurulur."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Der Link ist 72 Stunden gültig. Nichts erhalten? Schau auch im Spam-Ordner nach."
-msgstr "Bağlantı 72 saat geçerlidir. Bir şey gelmedi mi? Spam klasörüne de bak."
+msgid ""
+"Der Link ist 72 Stunden gültig. Nichts erhalten? Schau auch im Spam-Ordner "
+"nach."
+msgstr ""
+"Bağlantı 72 saat geçerlidir. Bir şey gelmedi mi? Spam klasörüne de bak."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "E-Mail wurde erneut gesendet."
@@ -11830,7 +11869,8 @@ msgid "E-Mail erneut senden"
 msgstr "E-postayı yeniden gönder"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "E-Mail-Versand ist noch nicht eingerichtet — hier ist dein Bestätigungslink:"
+msgid ""
+"E-Mail-Versand ist noch nicht eingerichtet — hier ist dein Bestätigungslink:"
 msgstr "E-posta gönderimi henüz kurulmadı — onay bağlantın burada:"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
@@ -11846,8 +11886,12 @@ msgid "Der Link ist abgelaufen"
 msgstr "Bağlantının süresi doldu"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Bestätigungslinks sind 72 Stunden gültig. Registriere dich einfach erneut — es dauert nur eine Minute."
-msgstr "Onay bağlantıları 72 saat geçerlidir. Yeniden kaydol — sadece bir dakika sürer."
+msgid ""
+"Bestätigungslinks sind 72 Stunden gültig. Registriere dich einfach erneut — "
+"es dauert nur eine Minute."
+msgstr ""
+"Onay bağlantıları 72 saat geçerlidir. Yeniden kaydol — sadece bir dakika "
+"sürer."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Subdomain inzwischen vergeben"
@@ -11855,8 +11899,12 @@ msgstr "Alt alan adı bu arada alındı"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
-msgid "Die Adresse „%(slug)s“ wurde in der Zwischenzeit von jemand anderem registriert. Bitte wähle eine andere Subdomain."
-msgstr "“%(slug)s” adresi bu arada başkası tarafından kaydedildi. Lütfen başka bir alt alan adı seç."
+msgid ""
+"Die Adresse „%(slug)s“ wurde in der Zwischenzeit von jemand anderem "
+"registriert. Bitte wähle eine andere Subdomain."
+msgstr ""
+"“%(slug)s” adresi bu arada başkası tarafından kaydedildi. Lütfen başka bir "
+"alt alan adı seç."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Link ungültig"
@@ -11871,8 +11919,12 @@ msgid "Erneut registrieren"
 msgstr "Yeniden kaydol"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Wir senden dir zuerst eine Bestätigungs-E-Mail — erst danach wird deine Website eingerichtet."
-msgstr "Önce sana bir onay e-postası göndereceğiz — web siten ancak ondan sonra kurulur."
+msgid ""
+"Wir senden dir zuerst eine Bestätigungs-E-Mail — erst danach wird deine "
+"Website eingerichtet."
+msgstr ""
+"Önce sana bir onay e-postası göndereceğiz — web siten ancak ondan sonra "
+"kurulur."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
@@ -11885,12 +11937,19 @@ msgstr "Merhaba,"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
-msgid "du möchtest „%(name)s“ auf SiteAdaptor erstellen. Bitte bestätige deine E-Mail-Adresse mit einem Klick:"
-msgstr "SiteAdaptor'da “%(name)s” oluşturmak istiyorsun. Lütfen e-posta adresini tek tıkla onayla:"
+msgid ""
+"du möchtest „%(name)s“ auf SiteAdaptor erstellen. Bitte bestätige deine "
+"E-Mail-Adresse mit einem Klick:"
+msgstr ""
+"SiteAdaptor'da “%(name)s” oluşturmak istiyorsun. Lütfen e-posta adresini tek"
+" tıkla onayla:"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website eingerichtet."
-msgstr "Bağlantı 72 saat geçerlidir. Web siten yalnızca onaydan sonra kurulur."
+msgid ""
+"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website"
+" eingerichtet."
+msgstr ""
+"Bağlantı 72 saat geçerlidir. Web siten yalnızca onaydan sonra kurulur."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Wenn du das nicht warst, kannst du diese E-Mail einfach ignorieren."
@@ -11905,15 +11964,19 @@ msgid "Kartenstil"
 msgstr "Kart stili"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Der Kartenstil gilt für deine ganze Website (auch Listen und Startseite)."
-msgstr "Kart stili tüm web siten için geçerlidir (listeler ve ana sayfa dahil)."
+msgid ""
+"Der Kartenstil gilt für deine ganze Website (auch Listen und Startseite)."
+msgstr ""
+"Kart stili tüm web siten için geçerlidir (listeler ve ana sayfa dahil)."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Abschnitte auf der Seite"
 msgstr "Sayfadaki bölümler"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Lege im vorherigen Schritt deine erste Position an — dann siehst du hier ihre Seite."
+msgid ""
+"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier "
+"ihre Seite."
 msgstr "Önceki adımda ilk ürününü ekle — sonra sayfasını burada görürsün."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
@@ -11921,8 +11984,12 @@ msgid "Seitenvorlage"
 msgstr "Sayfa şablonu"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
-msgid "Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder entfernbar."
-msgstr "Şablonlar örnek bloklar ekler — düzenleyicide istediğin zaman değiştir veya kaldır."
+msgid ""
+"Vorlagen fügen Beispiel-Blöcke ein — im Editor jederzeit anpassbar oder "
+"entfernbar."
+msgstr ""
+"Şablonlar örnek bloklar ekler — düzenleyicide istediğin zaman değiştir veya "
+"kaldır."
 
 #. LS-3 Sofort-Angebot (2026-07-19)
 msgid "Abgelehnt"
@@ -11967,7 +12034,8 @@ msgstr "Lütfen fiyatı olan en az bir kalem girin."
 msgid "Bitte überweisen Sie den Betrag im Voraus:"
 msgstr "Lütfen tutarı önceden havale edin:"
 
-msgid "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
+msgid ""
+"Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
 msgstr "Bu teklifin süresi doldu. Yeni bir teklif için bize yazın."
 
 msgid "Dieses Angebot wurde zurückgezogen."
@@ -12006,8 +12074,12 @@ msgstr "Kişisel mesaj"
 msgid "Persönliches Angebot"
 msgstr "Kişisel teklif"
 
-msgid "Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; der Kunde nimmt es per Link an und bezahlt."
-msgstr "%(who)s için kişisel teklif — kalemleri seçin veya serbestçe girin; müşteri bağlantı üzerinden kabul eder ve öder."
+msgid ""
+"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; "
+"der Kunde nimmt es per Link an und bezahlt."
+msgstr ""
+"%(who)s için kişisel teklif — kalemleri seçin veya serbestçe girin; müşteri "
+"bağlantı üzerinden kabul eder ve öder."
 
 msgid "Preis"
 msgstr "Fiyat"
@@ -12015,7 +12087,9 @@ msgstr "Fiyat"
 msgid "Sie haben das Angebot angenommen — vielen Dank!"
 msgstr "Teklifi kabul ettiniz — teşekkürler!"
 
-msgid "Sie haben dieses Angebot abgelehnt. Schreiben Sie uns gern, wenn Sie Fragen haben."
+msgid ""
+"Sie haben dieses Angebot abgelehnt. Schreiben Sie uns gern, wenn Sie Fragen "
+"haben."
 msgstr "Bu teklifi reddettiniz. Sorularınız varsa bize yazabilirsiniz."
 
 msgid "Wie möchten Sie bezahlen?"
@@ -12061,14 +12135,24 @@ msgstr "Onayda WhatsApp bağlantısı"
 msgid "Per Video zeigen lassen"
 msgstr "Video ile göster"
 
-msgid "Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
+msgid ""
+"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne "
+"Anfahrt."
 msgstr "Ekip size WhatsApp video üzerinden göstersin — yol zahmeti olmadan."
 
-msgid "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach hier:"
-msgstr "Randevunuz görüntülü olarak gerçekleşecek — randevu saatinde buradan başlatın:"
+msgid ""
+"Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach "
+"hier:"
+msgstr ""
+"Randevunuz görüntülü olarak gerçekleşecek — randevu saatinde buradan "
+"başlatın:"
 
-msgid "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
-msgstr "Uluslararası format, örn. +49 171 1234567. Görüntülü danışma ve anında iletişim için; boş = WhatsApp düğmeleri gösterilmez."
+msgid ""
+"Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und "
+"Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
+msgstr ""
+"Uluslararası format, örn. +49 171 1234567. Görüntülü danışma ve anında "
+"iletişim için; boş = WhatsApp düğmeleri gösterilmez."
 
 #. LS-2 Jetzt erreichbar (2026-07-19)
 msgid "Jetzt erreichbar — Video-Anruf"
@@ -12089,15 +12173,21 @@ msgstr "Açık"
 msgid "Aus"
 msgstr "Kapalı"
 
-msgid "Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten."
-msgstr "Web sitenizde görüntülü arama rozeti (WhatsApp). Otomatik = çalışma saatlerine göre."
+msgid ""
+"Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten."
+msgstr ""
+"Web sitenizde görüntülü arama rozeti (WhatsApp). Otomatik = çalışma "
+"saatlerine göre."
 
 msgid "WhatsApp-Nummer fehlt — jetzt hinterlegen"
 msgstr "WhatsApp numarası eksik — şimdi ekleyin"
 
 #. ST-1b Look-Galerie (2026-07-19)
-msgid "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
-msgstr "Sektörünüz için hazır tasarım paketleri — tek tıkla önizleme yeniden renklenir."
+msgid ""
+"Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
+msgstr ""
+"Sektörünüz için hazır tasarım paketleri — tek tıkla önizleme yeniden "
+"renklenir."
 
 #. ST-4a Admin-Home (2026-07-19)
 msgid "Umsatz heute"
@@ -12151,7 +12241,8 @@ msgstr "Kanal yöneticisi (OTA)"
 msgid "Buchungen aus Portalen importieren"
 msgstr "Portallardan rezervasyon aktar"
 
-msgid "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
+msgid ""
+"Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort."
 msgstr "Dışarıya bağlantılar: ödeme, kanallar, alan adı — hepsi tek yerde."
 
 #. ST-3 Studio-Shell (2026-07-19)
@@ -12177,14 +12268,19 @@ msgstr "Bir sorun mu var? Bize doğrudan hat:"
 msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
 msgstr "Şimdi her şey yolunda mı? Değilse, buradan yanıtlayın:"
 
-msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgid ""
+"Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
 msgstr "Memnun kaldıysanız kısa bir değerlendirmeye seviniriz."
 
 msgid "Alles wieder gut? — %(business)s"
 msgstr "Her şey yolunda mı? — %(business)s"
 
-msgid "danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s lösen."
-msgstr "sabrınız için teşekkürler — %(business)s ile ilgili sorununuzu çözebildiğimizi umuyoruz."
+msgid ""
+"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei "
+"%(business)s lösen."
+msgstr ""
+"sabrınız için teşekkürler — %(business)s ile ilgili sorununuzu "
+"çözebildiğimizi umuyoruz."
 
 #. LS-4 Vertrauen (2026-07-19)
 msgid "Antwortet in der Regel in ~%(n)s Min"
@@ -12195,5 +12291,9 @@ msgid "Care-Zyklus"
 msgstr "Bakım döngüsü"
 
 #. LS-5 Care (2026-07-19)
-msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgid ""
+"Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
 msgstr "Tam memnun değil misiniz? Doğrudan bize söyleyin — hemen ilgileniriz:"
+
+msgid "Your own blocks stay — only template blocks are replaced."
+msgstr "Kendi bloklarınız kalır — yalnızca şablon blokları değiştirilir."

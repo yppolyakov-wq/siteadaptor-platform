@@ -506,3 +506,44 @@ def test_page_blocks_tag_renders_and_uses_preview_draft():
     }
     html2 = siteui.page_blocks(Context({"request": req2}), "services")
     assert "Entwurf" in html2 and "Live-Titel" not in html2
+
+
+def test_contact_styles_render():
+    """ST-2: варианты контакт-секции — "" карта снизу | split сбоку | map_first
+    сверху | compact плоско без карты; normalize принимает style у contact."""
+    from types import SimpleNamespace
+
+    tenant = SimpleNamespace(
+        address="Hauptstr. 1",
+        opening_hours="Mo–Fr 9–18",
+        public_phone="+49 2103 111",
+        public_email="",
+        open_status="",
+        todays_hours="",
+        map_url="",
+        latitude=51.16,
+        longitude=6.93,
+    )
+
+    def render(style):
+        row = {"key": "contact", "enabled": True}
+        if style:
+            row["style"] = style
+        req = RequestFactory().get("/")
+        req.tenant = tenant
+        return siteui.render_block(Context({"request": req, "site": {}}), row)
+
+    std = render("")
+    assert "bg-white rounded-2xl" in std and "overflow-hidden mt-6 relative" in std
+    split = render("split")
+    assert "lg:grid-cols-3" in split and "min-h-[16rem]" in split
+    first = render("map_first")
+    assert "overflow-hidden mb-6 relative" in first
+    compact = render("compact")
+    assert "sf-contact-map" not in compact and "bg-white rounded-2xl" not in compact
+    assert "+49 2103 111" in compact
+
+    cfg = siteconfig.normalize(
+        {"sections": [{"key": "contact", "enabled": True, "style": "compact"}]}
+    )
+    assert next(s for s in cfg["sections"] if s["key"] == "contact")["style"] == "compact"

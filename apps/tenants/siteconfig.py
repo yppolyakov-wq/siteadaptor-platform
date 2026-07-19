@@ -1637,6 +1637,8 @@ SECTION_STYLES = {
     # UC6-8: team/trust дотянуты до 5 видов (Standard + 4) — как faq/подобные.
     "team": ("circles", "list", "compact", "duo"),  # "" = карточки-сетка
     "trust": ("left", "badges", "plain", "cards"),  # "" = карточка по центру
+    # ST-2: контакт-секция — 4 вида ("" = карточка 2 колонки + карта снизу).
+    "contact": ("split", "map_first", "compact"),
 }
 # Лейблы вариантов для селекта билдера (DE — как прочий канва-контент).
 SECTION_STYLE_LABELS = {
@@ -1660,6 +1662,8 @@ SECTION_STYLE_LABELS = {
     "badges": "Abzeichen",
     "plain": "Ohne Karte",
     "duo": "Foto seitlich",  # UC6-8: team — широкие карточки
+    "split": "Karte seitlich",  # ST-2: contact
+    "map_first": "Karte zuerst",
 }
 
 # UC6-6f: подсказка стиля скидки у промо-БЛОКА (фидбэк владельца «пресеты промо-
