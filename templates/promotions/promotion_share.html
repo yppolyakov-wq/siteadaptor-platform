@@ -1,0 +1,66 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Teilen" %}{% endblock %}
+
+{% block dash_content %}
+{% hub_tabs "marketing" %}
+<h1 class="text-2xl font-bold mb-1">📣 {% trans "Aktion überall teilen" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{{ promo }}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if publishing_on %}
+<div class="bg-white rounded-2xl shadow-sm p-5 max-w-2xl mb-4">
+  <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{% trans "Kanäle" %}</h2>
+  {% if publications or pending_channels %}
+    <div class="divide-y divide-gray-100">
+      {% for pub in publications %}
+        <div class="flex items-center justify-between gap-3 py-2">
+          <span class="text-sm text-gray-700">{{ pub.channel.name|default:pub.channel.get_type_display }}</span>
+          <span class="text-xs font-medium px-2.5 py-1 rounded-full {% if pub.status == 'published' %}bg-emerald-100 text-emerald-800{% elif pub.status == 'failed' %}bg-red-50 text-red-700{% else %}bg-gray-100 text-gray-500{% endif %}">{{ pub.status }}</span>
+        </div>
+      {% endfor %}
+      {% for c in pending_channels %}
+        <div class="flex items-center justify-between gap-3 py-2">
+          <span class="text-sm text-gray-700">{{ c.name|default:c.get_type_display }}</span>
+          <span class="text-xs text-gray-400">{% trans "Noch nicht veröffentlicht" %}</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% if promo.status == 'active' %}
+    <form method="post" class="mt-4">
+      {% csrf_token %}
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">📣 {% trans "Jetzt überall veröffentlichen" %}</button>
+    </form>
+    {% else %}
+    <p class="text-xs text-gray-400 mt-3">{% trans "Nur aktive Aktionen können geteilt werden." %}</p>
+    {% endif %}
+  {% else %}
+    <p class="text-sm text-gray-400">{% trans "Keine Kanäle verbunden." %} <a href="{% url 'channels' %}" class="text-indigo-600 hover:underline">{% trans "Kanäle verbinden" %} →</a></p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="grid sm:grid-cols-2 gap-3 max-w-2xl">
+  <a href="{% url 'promotions:coupon-campaigns' %}" class="bg-white rounded-2xl shadow-sm p-4 hover:ring-1 hover:ring-indigo-300 flex items-start gap-3">
+    <span class="text-2xl leading-none">✉️</span>
+    <span>
+      <span class="block text-sm font-medium text-gray-800">{% trans "Per E-Mail an Kunden" %}</span>
+      <span class="block text-xs text-gray-400 mt-0.5">{% trans "Coupon-Kampagne an Ihre Kundschaft (nur mit Einwilligung)" %}</span>
+    </span>
+  </a>
+  {% if featured_enabled %}
+  <a href="{% url 'promotions:promotion-feature' promo.pk %}" class="bg-white rounded-2xl shadow-sm p-4 hover:ring-1 hover:ring-indigo-300 flex items-start gap-3">
+    <span class="text-2xl leading-none">★</span>
+    <span>
+      <span class="block text-sm font-medium text-gray-800">{% trans "In der Umgebung bewerben" %}</span>
+      <span class="block text-xs text-gray-400 mt-0.5">{% trans "★ Anzeige im lokalen Verzeichnis" %}</span>
+    </span>
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

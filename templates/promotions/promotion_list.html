@@ -60,6 +60,10 @@
           <td class="py-2">{% if p.available_quantity is None %}∞{% else %}{{ p.available_quantity }}{% endif %}</td>
           <td class="py-2 text-gray-500">{{ p.starts_at|default:"—" }} → {{ p.ends_at|default:"—" }}</td>
           <td class="py-2 text-right whitespace-nowrap">
+            {# ST-6b: «Teilen» — экран «во все каналы» (публикации/email/★) #}
+            {% if p.status == 'active' %}
+              <a href="{% url 'promotions:promotion-share' p.pk %}" class="mr-2 text-gray-500 hover:underline">📣 {% trans "Teilen" %}</a>
+            {% endif %}
             {# D2.2: self-serve featured — вход прямо из списка (только active) #}
             {% if featured_enabled and p.status == 'active' %}
               <a href="{% url 'promotions:promotion-feature' p.pk %}" class="mr-2 {% if p.is_featured_agg %}text-amber-600{% else %}text-gray-500{% endif %} hover:underline">

@@ -14,6 +14,8 @@ urlpatterns = [
     path("<uuid:pk>/edit/", views.promotion_edit, name="promotion-edit"),
     path("<uuid:pk>/transition/", views.promotion_transition, name="promotion-transition"),
     # Платное продвижение акции в агрегаторе (P2.4b): страница + Stripe-Checkout.
+    # ST-6b: экран «Teilen» — публикации по каналам + «überall veröffentlichen».
+    path("<uuid:pk>/teilen/", views.promotion_share, name="promotion-share"),
     path("<uuid:pk>/feature/", views.promotion_feature, name="promotion-feature"),
     path(
         "<uuid:pk>/feature/checkout/",

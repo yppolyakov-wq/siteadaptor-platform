@@ -12420,3 +12420,36 @@ msgstr "Нагадування, лояльність, відгуки, кампа
 
 msgid "Aktive Erinnerungen"
 msgstr "Активні нагадування"
+
+msgid "Nur aktive Aktionen können geteilt werden."
+msgstr "Ділитися можна лише активними акціями."
+
+msgid "In %(n)s Kanäle eingereiht — Veröffentlichung läuft."
+msgstr "Поставлено в чергу до %(n)s каналів — публікація триває."
+
+msgid "Teilen"
+msgstr "Поділитися"
+
+msgid "Noch nicht veröffentlicht"
+msgstr "Ще не опубліковано"
+
+msgid "Jetzt überall veröffentlichen"
+msgstr "Опублікувати всюди зараз"
+
+msgid "Keine Kanäle verbunden."
+msgstr "Канали не підключені."
+
+msgid "Kanäle verbinden"
+msgstr "Підключити канали"
+
+msgid "Per E-Mail an Kunden"
+msgstr "Електронною поштою клієнтам"
+
+msgid "Coupon-Kampagne an Ihre Kundschaft (nur mit Einwilligung)"
+msgstr "Купонна кампанія вашим клієнтам (лише за згодою)"
+
+msgid "In der Umgebung bewerben"
+msgstr "Рекламувати поблизу"
+
+msgid "★ Anzeige im lokalen Verzeichnis"
+msgstr "★-реклама в локальному каталозі"

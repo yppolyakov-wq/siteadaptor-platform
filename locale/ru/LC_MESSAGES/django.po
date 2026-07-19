@@ -12439,3 +12439,36 @@ msgstr "Напоминания, лояльность, отзывы, кампан
 
 msgid "Aktive Erinnerungen"
 msgstr "Активные напоминания"
+
+msgid "Nur aktive Aktionen können geteilt werden."
+msgstr "Делиться можно только активными акциями."
+
+msgid "In %(n)s Kanäle eingereiht — Veröffentlichung läuft."
+msgstr "Поставлено в очередь в %(n)s каналов — публикация идёт."
+
+msgid "Teilen"
+msgstr "Поделиться"
+
+msgid "Noch nicht veröffentlicht"
+msgstr "Ещё не опубликовано"
+
+msgid "Jetzt überall veröffentlichen"
+msgstr "Опубликовать везде сейчас"
+
+msgid "Keine Kanäle verbunden."
+msgstr "Каналы не подключены."
+
+msgid "Kanäle verbinden"
+msgstr "Подключить каналы"
+
+msgid "Per E-Mail an Kunden"
+msgstr "По e-mail клиентам"
+
+msgid "Coupon-Kampagne an Ihre Kundschaft (nur mit Einwilligung)"
+msgstr "Купон-кампания вашим клиентам (только с согласия)"
+
+msgid "In der Umgebung bewerben"
+msgstr "Рекламировать поблизости"
+
+msgid "★ Anzeige im lokalen Verzeichnis"
+msgstr "★-реклама в локальном каталоге"

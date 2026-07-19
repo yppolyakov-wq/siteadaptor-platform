@@ -12307,3 +12307,36 @@ msgstr "Reminders, loyalty, reviews, campaigns — all in one place."
 
 msgid "Aktive Erinnerungen"
 msgstr "Active reminders"
+
+msgid "Nur aktive Aktionen können geteilt werden."
+msgstr "Only active promotions can be shared."
+
+msgid "In %(n)s Kanäle eingereiht — Veröffentlichung läuft."
+msgstr "Queued to %(n)s channels — publishing is under way."
+
+msgid "Teilen"
+msgstr "Share"
+
+msgid "Noch nicht veröffentlicht"
+msgstr "Not published yet"
+
+msgid "Jetzt überall veröffentlichen"
+msgstr "Publish everywhere now"
+
+msgid "Keine Kanäle verbunden."
+msgstr "No channels connected."
+
+msgid "Kanäle verbinden"
+msgstr "Connect channels"
+
+msgid "Per E-Mail an Kunden"
+msgstr "By e-mail to customers"
+
+msgid "Coupon-Kampagne an Ihre Kundschaft (nur mit Einwilligung)"
+msgstr "Coupon campaign to your customers (opt-in only)"
+
+msgid "In der Umgebung bewerben"
+msgstr "Advertise nearby"
+
+msgid "★ Anzeige im lokalen Verzeichnis"
+msgstr "★ ad in the local directory"

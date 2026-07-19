@@ -331,6 +331,49 @@ def _featured_listing(promo):
 
 
 @login_required
+def promotion_share(request, pk):
+    """ST-6b: экран «Teilen» акции — статус публикаций по каналам + идемпотентная
+    кнопка «Jetzt überall veröffentlichen» (тот же веер, что при активации;
+    дублей Publication нет) + входы «остальных каналов»: e-mail-кампания
+    (ТОЛЬКО переход — UWG §7, ничего не рассылаем) и ★ Feature."""
+    from apps.billing import featured as billing_featured
+
+    promo = get_object_or_404(Promotion, pk=pk)
+    publishing_on = request.tenant.is_module_active("publishing")
+    if request.method == "POST":
+        if not publishing_on or promo.status != "active":
+            messages.error(request, _("Nur aktive Aktionen können geteilt werden."))
+        else:
+            from apps.publishing import services as publishing_services
+
+            n = publishing_services.republish_promotion(promo)
+            messages.success(
+                request, _("In %(n)s Kanäle eingereiht — Veröffentlichung läuft.") % {"n": n}
+            )
+        return redirect("promotions:promotion-share", pk=promo.pk)
+
+    publications, pending_channels = [], []
+    if publishing_on:
+        from apps.publishing.models import Channel, Publication
+
+        publications = list(Publication.objects.filter(promotion=promo).select_related("channel"))
+        have = {p.channel_id for p in publications}
+        pending_channels = [c for c in Channel.objects.filter(is_enabled=True) if c.id not in have]
+    return render(
+        request,
+        "promotions/promotion_share.html",
+        {
+            "nav": "promotions",
+            "promo": promo,
+            "publications": publications,
+            "pending_channels": pending_channels,
+            "publishing_on": publishing_on,
+            "featured_enabled": billing_featured.is_enabled() and promo.status == "active",
+        },
+    )
+
+
+@login_required
 def promotion_feature(request, pk):
     """Страница продвижения акции в агрегаторе (P2.4b): планы, цена, статус."""
     from apps.billing import featured as billing_featured

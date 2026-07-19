@@ -41,6 +41,15 @@ def _publish_all(promotion) -> None:
         )
 
 
+def republish_promotion(promotion) -> int:
+    """ST-6b: явная кнопка «Jetzt überall veröffentlichen» с экрана «Teilen» —
+    ТОТ ЖЕ идемпотентный веер, что при активации (get_or_create по
+    (promotion, channel) + requeue removed/failed; дублей Publication нет).
+    Возвращает число включённых каналов."""
+    _publish_all(promotion)
+    return Channel.objects.filter(is_enabled=True).count()
+
+
 def publish_post(post) -> int:
     """CM-2: разослать SocialPost по включённым каналам — та же механика, что у
     акции (get_or_create + requeue removed/failed + очередь с dedupe). Статус

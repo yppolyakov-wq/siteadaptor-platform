@@ -12355,3 +12355,36 @@ msgstr ""
 
 msgid "Aktive Erinnerungen"
 msgstr "Aktif hatırlatmalar"
+
+msgid "Nur aktive Aktionen können geteilt werden."
+msgstr "Yalnızca aktif kampanyalar paylaşılabilir."
+
+msgid "In %(n)s Kanäle eingereiht — Veröffentlichung läuft."
+msgstr "%(n)s kanala sıraya alındı — yayınlama sürüyor."
+
+msgid "Teilen"
+msgstr "Paylaş"
+
+msgid "Noch nicht veröffentlicht"
+msgstr "Henüz yayınlanmadı"
+
+msgid "Jetzt überall veröffentlichen"
+msgstr "Şimdi her yerde yayınla"
+
+msgid "Keine Kanäle verbunden."
+msgstr "Bağlı kanal yok."
+
+msgid "Kanäle verbinden"
+msgstr "Kanalları bağla"
+
+msgid "Per E-Mail an Kunden"
+msgstr "Müşterilere e-posta ile"
+
+msgid "Coupon-Kampagne an Ihre Kundschaft (nur mit Einwilligung)"
+msgstr "Müşterilerinize kupon kampanyası (yalnızca izinle)"
+
+msgid "In der Umgebung bewerben"
+msgstr "Çevrede tanıtın"
+
+msgid "★ Anzeige im lokalen Verzeichnis"
+msgstr "Yerel dizinde ★ ilan"
