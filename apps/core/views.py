@@ -3407,5 +3407,7 @@ def integrations_home(request):
     return render(
         request,
         "tenant/integrations_home.html",
-        {"nav": "settings", "cards": [c for c in cards if c["show"]]},
+        # ST-4b: свой nav-ключ — якорь «Integrationen» компактного сайдбара
+        # подсвечивается только здесь (не вместе с «Einstellungen»).
+        {"nav": "integrations", "cards": [c for c in cards if c["show"]]},
     )

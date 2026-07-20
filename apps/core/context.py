@@ -209,12 +209,25 @@ def modules_nav(request):
     else:
         bottom_nav = _storefront_bottom_nav(request, tenant)
     # Кабинет: плоский список первых пунктов для мобильного таб-бара (нативно).
+    # ST-4b: в компактном виде таб-бар = первая четвёрка якорей сайдбара.
     _active = modules.active_modules(tenant)
-    nav_primary = [
-        {"url_name": it.url_name, "nav_key": it.nav_key, "label": it.label, "icon": m.icon}
-        for m in _active
-        for it in m.nav_items
-    ][:4]
+    _compact = modules.sidebar_nav(tenant)
+    if _compact:
+        nav_primary = [
+            {
+                "url_name": it["url_name"],
+                "nav_key": it["nav_key"],
+                "label": it["label"],
+                "icon": it["icon"],
+            }
+            for it in _compact[:4]
+        ]
+    else:
+        nav_primary = [
+            {"url_name": it.url_name, "nav_key": it.nav_key, "label": it.label, "icon": m.icon}
+            for m in _active
+            for it in m.nav_items
+        ][:4]
     # L1 (Волна L): языки переключателя витрины — по `active_locales` тенанта (N
     # локалей, генерик). Метка — короткий код (DE/EN/…); переключатель скрывается
     # при одной локали (шаблон). Активный язык шаблон берёт из request.LANGUAGE_CODE.
@@ -222,6 +235,9 @@ def modules_nav(request):
     return {
         "nav_modules": _active,
         "nav_groups": modules.grouped_active_modules(tenant),  # AB1: сайдбар по задачам
+        # ST-4b: компактный сайдбар «хабы + Website» (classic_ui → [] → шаблон
+        # рендерит прежние группы AB1).
+        "nav_compact": _compact,
         # FB-8: «Angebote» — единый обзор продаваемых сущностей; виден при любом активном
         # sellable-модуле (в т.ч. отелю в Простом, где хаб catalog скрыт).
         "has_sellables": any(

@@ -80,12 +80,29 @@ HUB_TABS = {
         ("promotions:reservation-list", _("Reservierungen"), "reservations", "promotions", True),
         ("promotions:redeem", _("Einlösen"), "redeem", "promotions", True),
         ("promotions:loyalty-list", _("Treuepunkte"), "loyalty", "loyalty", True),
+        # ST-4b: якорь «Kunden» ушёл из сайдбара — контакты/общение достижимы
+        # из Marketing-хаба (страницы Kunden-хаба и их tab-bar целы).
+        ("crm:customer-list", _("Kontakte"), "crm", "crm", True),
+        ("inbox:list", _("Nachrichten"), "inbox", "inbox", True),
+        ("telegram-settings", _("Telegram"), "telegram", "telegram", True),
         # LS-5: Care-цикл — управление касаниями сделки (матрица UD4-2).
         ("notifications-settings", _("Care-Zyklus"), "care", None, True),
         ("channels", _("Kanäle"), "channels", "publishing", True),
         ("publishing-posts", _("Beiträge"), "posts", "publishing", True),
         # FD-3: Finder «вопросы → 3 предложения» — опция витрины (тумблер+превью).
         ("finder-settings", _("Finder"), "finder", None, True),
+    ),
+    # ST-4b: «Angebote» — хаб продаваемого; Sortiment-страницы в «Erweitert»
+    # (якорь «Sortiment» ушёл из компакт-сайдбара; catalog-хаб на самих
+    # страницах каталога цел — это дубль-вход, не перенос).
+    "sellables": (
+        ("sellable-manage", _("Angebote"), "sellables", None, False),
+        ("catalog:product-list", _("Produkte"), "catalog", None, True),
+        ("catalog:category-list", _("Kategorien"), "categories", None, True),
+        ("stock", _("Lager"), "stock", None, True),
+        ("purchasing", _("Einkauf"), "purchasing", None, True),
+        ("catalog:combo-list", _("Kombi"), "combos", None, True),
+        ("imports:start", _("Import"), "imports", None, True),
     ),
     # Kunden (S4b): контакты + общение. Якорь-пункт «Kunden» на модуле crm; вкладки
     # Nachrichten/Telegram гейтятся по своему модулю.

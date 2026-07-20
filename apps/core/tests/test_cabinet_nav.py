@@ -40,13 +40,14 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     resp = dashboard(_request(rf, user, tenant))
     html = resp.content.decode()
 
-    # Иконка модуля рядом с пунктом (Katalog & Import).
+    # Иконка модуля рядом с пунктом (Angebote).
     assert "📦" in html
-    # AB1: сайдбар сгруппирован по задачам (Mein Geschäft / Verkaufen / Kunden &
-    # Marketing / Einstellungen), а не плоским тех-списком (& → &amp; в HTML).
-    assert "Mein Geschäft" in html
-    assert "Verkaufen" in html
-    assert "Kunden &amp; Marketing" in html
+    # ST-4b (осознанная замена AB1-групп, одобрено 2026-07-19): компактный
+    # сайдбар — плоские якоря хабов; группы AB1 остаются в classic_ui (замок в
+    # test_sidebar_st4b). Здесь — состав компакт-вида.
+    assert "Mein Geschäft" not in html
+    assert 'href="/dashboard/marketing/"' in html
+    assert 'href="/dashboard/integrationen/"' in html
     assert "Einstellungen" in html
     # «➕ Funktion hinzufügen» → страница «Module».
     assert "Add function" in html or "➕" in html
@@ -54,11 +55,11 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # S2: продажи сведены в один пункт-хаб «Verkäufe» (Bestellungen/Termine и др. —
     # теперь вкладки хаба на его страницах, а не отдельные пункты сайдбара).
     assert "Verkäufe" in html  # свод продаж, язык задач
-    assert "Website gestalten" in html  # не «Site»
-    # S4a: акции/отзывы/лояльность/публикация сведены в пункт-хаб «Marketing»
-    # (Aktionen/Bewertungen и др. — теперь вкладки хаба, не пункты сайдбара).
+    # ST-4b: якорь «Website» (короткая метка компакт-вида; «Website gestalten»
+    # остаётся в classic-группах).
+    assert "Website" in html
+    # S4a→ST-4b: «Marketing» — якорь компакт-сайдбара (ведёт в центр ST-6).
     assert "Marketing" in html
-    assert "Kunden" in html  # хаб-якорь CRM остаётся
     assert ">Orders<" not in html and ">Booking<" not in html  # старые англ-метки ушли
     # Регрессия: текст шаблонного комментария не должен утекать в разметку
     # (многострочный {# #} не комментарий — нужен {% comment %}).

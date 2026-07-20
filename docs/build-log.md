@@ -6033,3 +6033,21 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - **Тест-гид** `docs/demo-test-guide-2026-07-19.md`: «функция → домен → где
   кликнуть» для витрины и кабинета (логин <slug>@example.de / demo-12345678).
   ⚠️ ops: `seed_demo_tenants --recreate` после деплоя (полный ~15-20 мин).
+
+## 2026-07-19 — ST-4b «Сайдбар: хабы + Website» (одобрен владельцем; БЕЗ миграций)
+
+- План `docs/st4b-sidebar-plan-2026-07-19.md`. **Инкремент 1:** `modules.sidebar_nav`
+  — компактный плоский сайдбар (Übersicht · Verkäufe · Angebote · Marketing →
+  marketing-home ST-6 · Integrationen · Website · Einstellungen; гейты по модулям;
+  catalog=core → «Angebote» всегда, как прежний has_sellables). classic_ui → []
+  → шаблон рендерит ПРЕЖНИЙ группированный сайдбар AB1 (легаси-ветка байт-в-байт).
+  Бейдж непрочитанного inbox переехал с «Kunden» на якорь Marketing. Мобильный
+  таб-бар = первая четвёрка якорей. integrations_home получил свой nav-ключ
+  (не подсвечивать вместе с Einstellungen).
+- **Инкремент 2 (переезды HUB_TABS):** НОВЫЙ хаб `sellables` на экране Angebote
+  (якорь + Erweitert: Produkte/Kategorien/Lager/Einkauf/Kombi/Import — ДУБЛЬ-вход,
+  catalog-хаб на страницах каталога цел); Marketing-хаб += Erweitert-вкладки
+  Kontakte/Nachrichten/Telegram (Kunden-хаб на своих страницах цел).
+- Замки: НОВЫЙ test_sidebar_st4b (4: состав/гейты/classic/рендер) + ОСОЗНАННОЕ
+  обновление test_cabinet_nav (группы AB1 → только classic; якоря компакт-вида);
+  hub_tabs/sellable_manage/st4_home/classic целы; широкий прогон 774 зелёных.

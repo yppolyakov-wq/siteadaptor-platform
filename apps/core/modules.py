@@ -599,6 +599,78 @@ def nav_task_label(nav_key: str) -> str:
     return NAV_TASK_LABELS.get(nav_key, "")
 
 
+# ST-4b (одобрено владельцем 2026-07-19): компактный сайдбар «хабы + Website» —
+# плоский список якорей вместо групп AB1. Sortiment/Kunden/Finanzen/Auswertungen
+# достижимы через хаб-табы и «Funktion hinzufügen» — из первого уровня убраны.
+# classic_ui → пусто (шаблон рендерит прежний группированный сайдбар, Р7).
+def sidebar_nav(tenant) -> list[dict]:
+    """Якоря компактного сайдбара (не-classic). Гейты — по активным модулям;
+    nav_key = значение `nav` целевой страницы (подсветка актива)."""
+    if classic_ui(tenant):
+        return []
+    items = [
+        {
+            "url_name": "dashboard",
+            "nav_key": "dashboard",
+            "icon": "🏠",
+            "label": NAV_TASK_LABELS["dashboard"],
+            "search": "übersicht dashboard heute",
+        },
+        {
+            "url_name": "board",
+            "nav_key": "board",
+            "icon": "🗂️",
+            "label": NAV_TASK_LABELS["board"],
+            "search": "verkäufe bestellungen termine board kalender",
+        },
+    ]
+    if any(is_module_active(tenant, m) for m in ("catalog", "booking", "stays", "events")):
+        items.append(
+            {
+                "url_name": "sellable-manage",
+                "nav_key": "sellables",
+                "icon": "📦",
+                "label": _("Angebote"),
+                "search": "angebote sortiment produkte leistungen zimmer",
+            }
+        )
+    if is_module_active(tenant, "promotions"):
+        items.append(
+            {
+                "url_name": "marketing-home",
+                "nav_key": "promotions",
+                "icon": "📣",
+                "label": NAV_TASK_LABELS["promotions"],
+                "badge": "inbox",  # бейдж непрочитанного переезжает с «Kunden»
+                "search": "marketing aktionen kunden kampagnen nachrichten bewertungen",
+            }
+        )
+    items += [
+        {
+            "url_name": "integrations-home",
+            "nav_key": "integrations",
+            "icon": "🔌",
+            "label": _("Integrationen"),
+            "search": "integrationen kanäle telegram zahlung",
+        },
+        {
+            "url_name": "site",
+            "nav_key": "site",
+            "icon": "✏️",
+            "label": _("Website"),
+            "search": "website gestalten studio design",
+        },
+        {
+            "url_name": "settings",
+            "nav_key": "settings",
+            "icon": "⚙️",
+            "label": NAV_TASK_LABELS["settings"],
+            "search": "einstellungen finanzen auswertungen funktionen",
+        },
+    ]
+    return items
+
+
 # S5 (упрощение кабинета): режим отображения на весь кабинет. «simple» прячет
 # продвинутое (оставляя доступным по URL), «expert» — всё. Хранение — плоский ключ
 # site_config["ui_mode"] (без миграции; ДОЛЖЕН сохраняться в siteconfig.normalize —

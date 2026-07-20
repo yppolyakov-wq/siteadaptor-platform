@@ -33,6 +33,26 @@
     `nav_groups` (apps.core.modules.grouped_active_modules). Поиск по пунктам сохраняется
     (data-label), пустые группы скрываются при фильтрации через JS.{% endcomment %}
     <nav id="dash-nav" class="space-y-0.5 text-sm px-5 pb-5 overflow-y-auto overscroll-contain flex-1 min-h-0">
+      {% if nav_compact %}
+      {% comment %}ST-4b (одобрено 2026-07-19): компактный сайдбар «хабы + Website» —
+      плоские якоря без групп; Sortiment/Kunden/Finanzen достижимы через хаб-табы.
+      classic_ui → nav_compact пуст → прежний группированный сайдбар ниже (Р7).{% endcomment %}
+      {% for it in nav_compact %}
+      <a href="{% url it.url_name %}" data-label="{{ it.search }}"
+         class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+        <span class="w-5 shrink-0 text-center text-base leading-none">{{ it.icon }}</span>
+        <span class="truncate">{{ it.label }}</span>
+        {% if it.badge == "inbox" %}{# ST-4b: бейдж непрочитанного — на якоре Marketing #}
+        <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
+      </a>
+      {% endfor %}
+      <p id="nav-empty" class="hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
+      <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
+         data-label="{% trans 'add function module' %}">
+        <span class="w-5 shrink-0 text-center text-base leading-none">➕</span>
+        <span class="truncate">{% trans "Funktion hinzufügen" %}</span>
+      </a>
+      {% else %}
       {% comment %}FB-8: «Angebote» — единый обзор всех продаваемых сущностей (товар/услуга/
       номер/событие). Кросс-катящий пункт над группами; виден при любом активном sellable-
       модуле, поэтому находится и когда хаб «Sortiment» скрыт (отель в Простом режиме).{% endcomment %}
@@ -77,6 +97,7 @@
         <span class="w-5 shrink-0 text-center text-base leading-none">➕</span>
         <span class="truncate">{% trans "Funktion hinzufügen" %}</span>
       </a>
+      {% endif %}
     </nav>
   </aside>
 
