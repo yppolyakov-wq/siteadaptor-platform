@@ -1030,3 +1030,26 @@ def test_aktionsmarkt_new_ideology_discount_styles():
         Promotion.objects.exclude(discount_style="").values_list("discount_style", flat=True)
     )
     assert {"badge", "countdown", "festpreis", "strikethrough"} <= styles  # UE2-2
+
+
+def test_friseur_seeds_inbox_offer_and_problem_thread():
+    """LS-3/4/6: демо-треды — открытое Sofort-Angebot + high-«Problem»-тред."""
+    from apps.inbox.models import Conversation
+    from apps.orders.models import Offer
+
+    t = TenantFactory(slug="ni9", name="NI9", business_type="friseur")
+    assert demo_kits.apply_kit(t, "friseur")
+    offer = Offer.objects.get()
+    assert offer.status == "open" and offer.lines.count() == 2
+    assert offer.conversation is not None
+    assert Conversation.objects.filter(priority=Conversation.PRIORITY_HIGH).exists()
+
+
+def test_cafe_seeds_active_winback_campaign():
+    """B4/LS-5: активная auto-win-back кампания в демо cafe."""
+    from apps.promotions.models import CouponCampaign
+
+    t = TenantFactory(slug="ni10", name="NI10", business_type="cafe")
+    assert demo_kits.apply_kit(t, "cafe")
+    wb = CouponCampaign.objects.get(kind=CouponCampaign.KIND_AUTO_WINBACK)
+    assert wb.status == CouponCampaign.STATUS_ACTIVE and wb.discount_percent == 10

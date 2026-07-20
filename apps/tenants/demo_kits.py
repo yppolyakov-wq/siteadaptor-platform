@@ -233,6 +233,12 @@ class DemoKit:
     page_presets: list = field(default_factory=list)
     # ST-7a: демо-spacer'ы [{"after": "<section_key>", "height": "sm|lg|xl"}].
     spacers: list = field(default_factory=list)
+    # LS-3/4/6: демо-треды «Прямой линии» (вопрос + staff-ответ + открытое
+    # Sofort-Angebot; second — high-тред «Etwas stimmt nicht?»). Без писем.
+    seed_inbox: bool = False
+    # B4/LS-5: активная auto-win-back кампания {"inactive_days", "percent",
+    # "subject"} — видна в Kampagnen и в обзоре напоминаний Marketing-центра.
+    winback: dict = field(default_factory=dict)
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -2830,6 +2836,7 @@ CAFE_MENUS = {
 CAFE = DemoKit(
     key="cafe",
     card_style="compact",  # ST-7c: строка-прайс (меню)
+    winback={"inactive_days": 60, "percent": 10},  # B4/LS-5
     section_styles={"cta": "cards", "usp_bar": "cards"},  # ST-7b
     label="Café Morgenrot",
     business_type="cafe",
@@ -3607,6 +3614,7 @@ FRISEUR_MENUS = {
 FRISEUR = DemoKit(
     key="friseur",
     look="warm",  # ST-1: тёплый Look (архетип-акцент friseur)
+    seed_inbox=True,  # LS-3/4/6: демо «Прямой линии» + Sofort-Angebot
     whatsapp_number="+49 170 2000001",  # LS-1/LS-2
     presence_mode="on",  # LS-2: «Jetzt erreichbar» видна всегда
     label="Salon Schöngut",
@@ -5300,6 +5308,10 @@ def apply_kit(tenant, key: str) -> bool:
 
     _seed_kit_modules(tenant, kit, refs)
     _seed_kit_records(tenant, kit, refs, created_products)
+    if kit.seed_inbox:  # LS-3/4/6: демо «Прямой линии» + Sofort-Angebot
+        _seed_kit_inbox()
+    if kit.winback:  # B4/LS-5: активная auto-win-back кампания
+        _seed_kit_winback(kit)
     _seed_demo_lots(kit, created_products)  # E1.5: демо-партии/MHD (еда)
     _seed_demo_purchasing(kit, created_products)  # E3: демо-закупки (Lieferant+Bestellung)
     _seed_kit_reviews(tenant, kit)
@@ -6141,6 +6153,90 @@ def _seed_demo_purchasing(kit: DemoKit, products: list) -> None:
     for product in plain[2:4]:
         purchasing.add_po_line(pending, product=product, qty=8)
     purchasing.set_po_status(pending, Bestellung.STATUS_ORDERED)
+
+
+def _seed_kit_inbox() -> None:
+    """LS-3/4/6: демо-треды «Прямой линии» — вопрос клиента со staff-ответом и
+    открытым Sofort-Angebot (карточка в треде + публичная /o/<token>/) + high-тред
+    «Etwas stimmt nicht?» (красная полоса на доске, SLA-бейджи). Сеем ПРЯМО
+    моделями — без enqueue-хуков, демо не шлёт писем."""
+    from decimal import Decimal as D
+
+    from django.utils import timezone as tz
+
+    from apps.inbox.models import Conversation, Message
+    from apps.orders.models import Offer, OfferLine
+    from apps.promotions.models import Customer
+
+    kunde, _ = Customer.objects.get_or_create(
+        email="sabine.k@example.de", defaults={"name": "Sabine K."}
+    )
+    conv = Conversation.objects.create(
+        customer=kunde,
+        subject="Balayage für schulterlanges Haar?",
+        status=Conversation.STATUS_PENDING,
+        channel=Conversation.CHANNEL_WEB,
+        last_message_at=tz.now(),
+    )
+    Message.objects.create(
+        conversation=conv,
+        author_role=Message.AUTHOR_CUSTOMER,
+        body="Hallo! Was würde ein Balayage bei schulterlangem Haar ungefähr kosten?",
+    )
+    Message.objects.create(
+        conversation=conv,
+        author_role=Message.AUTHOR_STAFF,
+        body="Gern! Ich habe Ihnen ein persönliches Angebot zusammengestellt — siehe unten.",
+    )
+    offer = Offer.objects.create(
+        conversation=conv,
+        customer=kunde,
+        customer_name="Sabine K.",
+        customer_email="sabine.k@example.de",
+        note="Inklusive Pflege-Kur und Beratung vor Ort.",
+        valid_until=(tz.now() + timedelta(days=14)).date(),
+    )
+    OfferLine.objects.create(
+        offer=offer, title="Balayage inkl. Beratung", qty=1, unit_price=D("119.00"), position=1
+    )
+    OfferLine.objects.create(
+        offer=offer, title="Pflege-Kur Intensiv", qty=1, unit_price=D("15.00"), position=2
+    )
+    problem = Conversation.objects.create(
+        customer=kunde,
+        subject="Problem: Termin",
+        priority=Conversation.PRIORITY_HIGH,
+        status=Conversation.STATUS_OPEN,
+        channel=Conversation.CHANNEL_WEB,
+        ref_kind="booking",
+        ref_id="DEMO-1",
+        ref_label="Termin Sa 10:00",
+        unread_for_staff=True,
+        last_message_at=tz.now(),
+    )
+    Message.objects.create(
+        conversation=problem,
+        author_role=Message.AUTHOR_CUSTOMER,
+        body="Ich stehe vor dem Salon, aber es ist geschlossen — mein Termin war doch heute?",
+    )
+
+
+def _seed_kit_winback(kit: DemoKit) -> None:
+    """B4/LS-5: активная auto-win-back кампания — видна в /promotions/kampagnen/
+    и в обзоре напоминаний Marketing-центра (ST-6). Писем не шлёт (beat)."""
+    from apps.promotions.models import CouponCampaign
+
+    wb = kit.winback
+    CouponCampaign.objects.create(
+        name="Wir vermissen Sie",
+        kind=CouponCampaign.KIND_AUTO_WINBACK,
+        status=CouponCampaign.STATUS_ACTIVE,
+        inactive_days=wb.get("inactive_days", 60),
+        discount_percent=wb.get("percent", 10),
+        valid_days=30,
+        subject=wb.get("subject", "Wir vermissen Sie — 10 % auf Ihren nächsten Besuch"),
+        body="Kommen Sie wieder vorbei — Ihr persönlicher Code liegt bei.",
+    )
 
 
 def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
