@@ -615,21 +615,56 @@ def finder_settings(request):
     from apps.tenants import siteconfig
 
     tenant = request.tenant
+    kind = finder_mod.primary_kind(tenant)
+    # FD-3: тип slug-маппинга по primary-kind (events — только words/price:
+    # у Event category — CharField, slug-скоринг не работает — селектор скрыт).
+    slug_field = {"product": "category", "service": "collection", "stay": "collection"}.get(
+        kind, ""
+    )
     if request.method == "POST":
         cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
         fnd = dict(cfg.get("finder")) if isinstance(cfg.get("finder"), dict) else {}
-        if request.POST.get("enabled"):
-            fnd["enabled"] = True
-        else:
-            fnd.pop("enabled", None)
+        action = request.POST.get("action", "")
+        if action == "save_questions":
+            # FD-3: собрать сырой questions-dict — normalize_finder валидирует
+            # (капы 6×8×10, дроп мусора, presence-minimal). enabled НЕ трогаем
+            # (targeted-write — замок toggle_preserves_custom_questions).
+            questions = _finder_questions_from_post(request.POST, slug_field)
+            if questions:
+                fnd["questions"] = questions
+            else:
+                fnd.pop("questions", None)  # пусто → возврат к пресету архетипа
+            messages.success(request, _("Saved."))
+        elif action == "load_preset":
+            # «Branchen-Vorlage laden» — пресет как стартовая точка редактирования.
+            fnd["questions"] = finder_mod.preset_tree(tenant)
+            messages.success(request, _("Vorlage geladen."))
+        else:  # FD-3-lite: тумблер опции
+            if request.POST.get("enabled"):
+                fnd["enabled"] = True
+            else:
+                fnd.pop("enabled", None)
+            messages.success(request, _("Saved."))
         if fnd:
             cfg["finder"] = fnd
         else:
             cfg.pop("finder", None)
         tenant.site_config = siteconfig.normalize(cfg)
         tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, _("Saved."))
         return redirect("finder-settings")
+    # FD-3: живые slug-опции для селектора маппинга (не свободный ввод —
+    # мёртвый slug молча даёт 0 совпадений; принцип LS-3).
+    slug_options = []
+    if slug_field == "category":
+        from apps.catalog.models import Category
+
+        slug_options = list(Category.objects.values_list("slug", "name")[:100])
+    elif slug_field == "collection":
+        from apps.collections.models import Collection
+
+        slug_options = list(Collection.objects.values_list("slug", "name")[:100])
+    cfg_now = siteconfig.normalize(tenant.site_config)
+    custom_questions = (cfg_now.get("finder") or {}).get("questions") or []
     return render(
         request,
         "tenant/finder_settings.html",
@@ -637,9 +672,109 @@ def finder_settings(request):
             "nav": "finder",
             "finder_enabled": finder_mod.enabled(tenant),
             "tree": finder_mod.tree_for(tenant),
-            "has_kind": bool(finder_mod.primary_kind(tenant)),
+            "has_kind": bool(kind),
+            # FD-3: редактор — существующие кастом-вопросы + пустые слоты.
+            "finder_editor_rows": _finder_editor_rows(custom_questions),
+            "finder_has_custom": bool(custom_questions),
+            "finder_slug_field": slug_field,
+            "finder_slug_options": slug_options,
         },
     )
+
+
+def _finder_questions_from_post(post, slug_field):
+    """FD-3: сырой questions-список из индексированных полей формы (q_<i>_… /
+    q_<i>_chip_<j>_…). Пустые слоты пропускаются; key автогенерятся slugify с
+    суффиксом при коллизии; капы/валидацию делает normalize_finder."""
+    from django.utils.text import slugify
+
+    from apps.tenants import siteconfig
+
+    def uniq(base, used, fallback):
+        key = slugify(base)[:40] or fallback
+        candidate, n = key, 2
+        while candidate in used:
+            candidate, n = f"{key[:36]}-{n}", n + 1
+        used.add(candidate)
+        return candidate
+
+    rows = []
+    used_q = set()
+    for i in range(siteconfig._MAX_FINDER_QUESTIONS):
+        qlabel = (post.get(f"q_{i}_label") or "").strip()
+        if not qlabel:
+            continue
+        try:
+            pos = int(post.get(f"q_{i}_pos", "") or i)
+        except (TypeError, ValueError):
+            pos = i
+        chips = []
+        used_c = set()
+        for j in range(siteconfig._MAX_FINDER_CHIPS):
+            clabel = (post.get(f"q_{i}_chip_{j}_label") or "").strip()
+            if not clabel:
+                continue
+            match = {}
+            words = [
+                w.strip() for w in (post.get(f"q_{i}_chip_{j}_words") or "").split(",") if w.strip()
+            ]
+            if words:
+                match["words"] = words
+            slug = (post.get(f"q_{i}_chip_{j}_slug") or "").strip()
+            if slug and slug_field:
+                match[slug_field] = slug
+            for pf in ("price_min", "price_max"):
+                raw = (post.get(f"q_{i}_chip_{j}_{pf}") or "").replace(",", ".").strip()
+                if raw:
+                    match[pf] = raw
+            chips.append(
+                {"key": uniq(clabel, used_c, f"chip-{j + 1}"), "label": clabel, "match": match}
+            )
+        if chips:
+            rows.append(
+                (
+                    pos,
+                    {
+                        "key": uniq(qlabel, used_q, f"frage-{i + 1}"),
+                        "label": qlabel,
+                        "chips": chips,
+                    },
+                )
+            )
+    rows.sort(key=lambda r: r[0])
+    return [q for _p, q in rows]
+
+
+def _finder_editor_rows(custom_questions):
+    """FD-3: слоты формы — существующие кастом-вопросы + 1 пустой (до капа);
+    у вопроса — его чипы + 2 пустых слота (до капа). Без JS: «добавить ещё» =
+    сохранить и открыть снова (слоты дорастают)."""
+    from apps.tenants import siteconfig
+
+    rows = []
+    for i in range(siteconfig._MAX_FINDER_QUESTIONS):
+        q = custom_questions[i] if i < len(custom_questions) else None
+        if q is None and i > len(custom_questions):
+            break  # ровно один пустой слот после существующих
+        chips = list((q or {}).get("chips") or [])
+        chip_rows = []
+        for j in range(siteconfig._MAX_FINDER_CHIPS):
+            c = chips[j] if j < len(chips) else None
+            if c is None and j > len(chips) + 1:
+                break  # два пустых чип-слота
+            match = (c or {}).get("match") or {}
+            chip_rows.append(
+                {
+                    "j": j,
+                    "label": (c or {}).get("label", ""),
+                    "words": ", ".join(match.get("words") or []),
+                    "slug": match.get("collection") or match.get("category") or "",
+                    "price_min": match.get("price_min", ""),
+                    "price_max": match.get("price_max", ""),
+                }
+            )
+        rows.append({"i": i, "label": (q or {}).get("label", ""), "chips": chip_rows})
+    return rows
 
 
 @login_required

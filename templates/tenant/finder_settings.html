@@ -36,9 +36,9 @@
       </div>
     </form>
 
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
       <h2 class="font-semibold mb-1">{% trans "So fragt der Finder" %}</h2>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Voreingestellt für deine Branche. Eigene Fragen — bald im Editor." %}</p>
+      <p class="text-xs text-gray-400 mb-4">{% if finder_has_custom %}{% trans "Eigene Fragen (unten bearbeiten)." %}{% else %}{% trans "Voreingestellt für deine Branche — unten anpassbar." %}{% endif %}</p>
       <div class="space-y-4">
         {% for q in tree %}
           <div>
@@ -52,6 +52,50 @@
         {% endfor %}
       </div>
     </div>
+
+    {% comment %}FD-3: полный редактор дерева — до 6 вопросов × 8 чипов; key
+    автогенерятся из лейблов; маппинг чипа = слова / slug-селект (по primary-kind;
+    у events скрыт) / ценовой диапазон. Пустые слоты игнорируются; «добавить ещё»
+    = сохранить (слоты дорастают). Пустая форма = возврат к Branchen-Vorlage.{% endcomment %}
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-6">
+      {% csrf_token %}
+      <div class="flex items-center justify-between gap-3 mb-1">
+        <h2 class="font-semibold">{% trans "Eigene Fragen" %}</h2>
+        <button type="submit" name="action" value="load_preset" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">↻ {% trans "Branchen-Vorlage laden" %}</button>
+      </div>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. Für mehr Zeilen: speichern — es wachsen neue nach." %}</p>
+      <div class="space-y-5">
+        {% for q in finder_editor_rows %}
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <input type="number" name="q_{{ q.i }}_pos" value="{{ forloop.counter }}" min="1" max="9" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Reihenfolge' %}">
+            <input type="text" name="q_{{ q.i }}_label" value="{{ q.label }}" maxlength="120" placeholder="{% trans 'Frage, z. B.: Wofür suchst du?' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium">
+          </div>
+          <div class="space-y-2">
+            {% for c in q.chips %}
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-2 items-center text-sm">
+              <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_label" value="{{ c.label }}" maxlength="80" placeholder="{% trans 'Antwort-Chip' %}" class="md:col-span-2 rounded-lg border border-gray-300 px-2.5 py-1.5">
+              <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_words" value="{{ c.words }}" placeholder="{% trans 'Wörter, mit Komma' %}" title="{% trans 'Treffer in Name/Beschreibung' %}" class="md:col-span-2 rounded-lg border border-gray-300 px-2.5 py-1.5 text-gray-600">
+              {% if finder_slug_field %}
+              <select name="q_{{ q.i }}_chip_{{ c.j }}_slug" class="rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600" title="{% if finder_slug_field == 'category' %}{% trans 'Kategorie' %}{% else %}{% trans 'Kollektion' %}{% endif %}">
+                <option value="">—</option>
+                {% for slug, name in finder_slug_options %}<option value="{{ slug }}" {% if c.slug == slug %}selected{% endif %}>{{ name }}</option>{% endfor %}
+              </select>
+              {% endif %}
+              <span class="flex items-center gap-1">
+                <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_min" value="{{ c.price_min }}" placeholder="€ min" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
+                <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_max" value="{{ c.price_max }}" placeholder="€ max" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-4">
+        <button type="submit" name="action" value="save_questions" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Fragen speichern" %}</button>
+      </div>
+    </form>
   {% endif %}
 </div>
 {% endblock %}

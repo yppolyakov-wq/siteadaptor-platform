@@ -214,6 +214,15 @@ def enabled(tenant) -> bool:
     return bool(fnd.get("enabled")) and bool(primary_kind(tenant))
 
 
+def preset_tree(tenant) -> list[dict]:
+    """FD-3: пресетное дерево архетипа (ИГНОРИРУЯ кастом) — «Branchen-Vorlage»
+    как стартовая точка редактора."""
+    if tenant.business_type in _TREES:
+        return _TREES[tenant.business_type]
+    module = archetypes.primary_module(tenant)
+    return _MODULE_TREES.get(module, _MODULE_TREES["catalog"])
+
+
 def tree_for(tenant) -> list[dict]:
     """Дерево вопросов: кастом (site_config, FD-3) → пресет архетипа → generic."""
     from apps.tenants import siteconfig
@@ -222,10 +231,7 @@ def tree_for(tenant) -> list[dict]:
     custom = siteconfig.normalize_finder(cfg.get("finder")).get("questions")
     if custom:
         return custom
-    if tenant.business_type in _TREES:
-        return _TREES[tenant.business_type]
-    module = archetypes.primary_module(tenant)
-    return _MODULE_TREES.get(module, _MODULE_TREES["catalog"])
+    return preset_tree(tenant)
 
 
 def _candidates(tenant):

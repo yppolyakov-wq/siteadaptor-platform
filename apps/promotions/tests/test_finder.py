@@ -282,3 +282,97 @@ def test_home_section_empty_when_finder_disabled():
     html = _home_html(tenant)
     assert "?a=anlass." not in html
     assert "Finder ist ausgeschaltet" not in html  # подсказка — только в превью
+
+
+# --- FD-3: полный редактор дерева (кабинет) ---------------------------------------
+
+
+def test_editor_saves_questions_roundtrip():
+    """FD-3: POST формы → кастом-дерево в конфиге, tree_for отдаёт его; enabled цел."""
+    from apps.core import views as core_views
+
+    t = TenantFactory(
+        slug="fed1", name="Fed1", business_type="bakery", site_config={"finder": {"enabled": True}}
+    )
+    core_views.finder_settings(
+        _cab_req(
+            "post",
+            {
+                "action": "save_questions",
+                "q_0_pos": "1",
+                "q_0_label": "Wofür suchst du?",
+                "q_0_chip_0_label": "Geburtstag",
+                "q_0_chip_0_words": "torte, geburtstag",
+                "q_0_chip_1_label": "Bis 20 €",
+                "q_0_chip_1_price_max": "20",
+            },
+            t,
+        )
+    )
+    t.refresh_from_db()
+    fnd = t.site_config["finder"]
+    assert fnd["enabled"] is True  # targeted-write: тумблер цел
+    q = fnd["questions"][0]
+    assert q["label"] == "Wofür suchst du?" and q["key"]
+    assert q["chips"][0]["match"]["words"] == ["torte", "geburtstag"]
+    assert q["chips"][1]["match"]["price_max"] == 20.0
+    from apps.core import finder as finder_mod
+
+    assert finder_mod.tree_for(t)[0]["label"] == "Wofür suchst du?"
+
+
+def test_editor_empty_form_returns_to_preset():
+    from apps.core import views as core_views
+
+    t = TenantFactory(
+        slug="fed2",
+        name="Fed2",
+        business_type="bakery",
+        site_config={
+            "finder": {
+                "enabled": True,
+                "questions": [
+                    {
+                        "key": "q1",
+                        "label": "Alt?",
+                        "chips": [{"key": "c1", "label": "Ja", "match": {"words": ["x"]}}],
+                    }
+                ],
+            }
+        },
+    )
+    core_views.finder_settings(_cab_req("post", {"action": "save_questions"}, t))
+    t.refresh_from_db()
+    assert "questions" not in t.site_config["finder"]  # вернулись к пресету
+    from apps.core import finder as finder_mod
+
+    assert finder_mod.tree_for(t)[0]["label"]  # пресет пекарни жив
+
+
+def test_editor_load_preset_and_duplicate_labels():
+    from apps.core import views as core_views
+
+    t = TenantFactory(
+        slug="fed3", name="Fed3", business_type="bakery", site_config={"finder": {"enabled": True}}
+    )
+    core_views.finder_settings(_cab_req("post", {"action": "load_preset"}, t))
+    t.refresh_from_db()
+    assert t.site_config["finder"]["questions"]  # пресет записан как кастом
+    # два одинаковых лейбла чипов → уникальные key (суффикс)
+    core_views.finder_settings(
+        _cab_req(
+            "post",
+            {
+                "action": "save_questions",
+                "q_0_label": "Frage",
+                "q_0_chip_0_label": "Chip",
+                "q_0_chip_0_words": "a",
+                "q_0_chip_1_label": "Chip",
+                "q_0_chip_1_words": "b",
+            },
+            t,
+        )
+    )
+    t.refresh_from_db()
+    chips = t.site_config["finder"]["questions"][0]["chips"]
+    assert chips[0]["key"] != chips[1]["key"]

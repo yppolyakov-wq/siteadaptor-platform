@@ -6082,3 +6082,18 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   data-page-only (JS прячет на главной), server-side гейт add_block и
   Save-пересборки. Вариант B (per-page ДАННЫЕ секций) — отдельное решение
   владельца, предложено в отчёте. 5 тестов; golden/cblocks/builder 207 зелёных.
+
+## 2026-07-20 — FD-3 «Полный редактор дерева Finder» (этап D4 ТЗ; БЕЗ миграций)
+
+- План `docs/fd3-finder-editor-plan-2026-07-20.md`. Разведка: схема
+  site_config["finder"] УЖЕ полная (questions/chips/match, капы 6×8×10 в
+  normalize), движок читает кастом — FD-3 = чистый UI. Кабинет /dashboard/finder/:
+  форма «Eigene Fragen» (вопрос-слоты pos+label, чип-строки label + маппинги:
+  Wörter через запятую / slug-СЕЛЕКТ из живых Category|Collection по primary-kind
+  (events — скрыт: slug-скоринг у них не работает) / € min-max), POST
+  save_questions → сырой dict → normalize_finder (валидация/капы/presence-minimal
+  бесплатно; targeted-write — enabled цел), пустая форма → возврат к пресету;
+  кнопка «Branchen-Vorlage laden» (finder.preset_tree — новый публичный хелпер);
+  key автогенерятся slugify с суффиксом при коллизии (дубль-key ломал бы resolve).
+  Слоты «дорастают» после сохранения (без JS). +3 теста (round-trip/пустая
+  форма/пресет+дубль-лейблы) — 17 в test_finder зелёные.
