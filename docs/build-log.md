@@ -6008,3 +6008,28 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   UC2-4: рефактор свежей сессией).
 - Урок (повтор!): многострочный `{# #}` в новом шаблоне снова словил замок
   template_comments — гейт включён в каждый батч с шаблонами.
+
+## 2026-07-19 — ST-7c-рендер (формы карточек) + Демо «по новой идеологии» + тест-гид
+
+- **ST-7c-рендер (ST-7 ЗАКРЫТ ЦЕЛИКОМ):** характеризационные замки ДО правок
+  (test_card_style, "" = байт-в-байт); `_product_card` — compact (строка-прайс,
+  quick-add/inline-edit целы) и overlay (имя+цена на градиенте, бейджи целы);
+  `_sellable_card` — compact реюзает горизонтальную ветку, overlay = имя на фото
+  (без фото — fail-safe); тег sellable_card → takes_context (card_style из
+  processor); processor `storefront_card_style` (draft-aware); билдер: select
+  `sd_card_style` «Kartenform» + save + JS-payload (живой draft-канал).
+- **Демо-волна (запрос владельца «тестовый вариант всех новых функций»):**
+  разведка — ни один из 14 китов не показывал новых фич. Поля DemoKit: look
+  (ВИЗУАЛЬНЫЙ Look-оверлей — паттерн stateless-превью, контент кита цел),
+  card_style, whatsapp_number+presence_mode, orders_view, section_styles,
+  page_presets, spacers, seed_inbox, winback. Раскладка носителей: friseur =
+  warm+видео-услуга+presence+**инбокс-демо** (тред с Sofort-Angebot + high
+  «Problem»-тред; прямо моделями, без писем) · mode = nacht+overlay ·
+  cafe = compact+стили cta/usp+**win-back кампания** · restaurant = стили
+  contact/reviews/about · retreat = spacer · shop = пресеты cart/info ·
+  bakery = info-пресет · werkstatt = orders_view+whatsapp · aktionsmarkt =
+  4 discount_style. Подборки товаров НЕ сеются (M2M только Service/StayUnit).
+  Тесты: 44 в test_demo_kits (34 старых + 10 новых пер-кит).
+- **Тест-гид** `docs/demo-test-guide-2026-07-19.md`: «функция → домен → где
+  кликнуть» для витрины и кабинета (логин <slug>@example.de / demo-12345678).
+  ⚠️ ops: `seed_demo_tenants --recreate` после деплоя (полный ~15-20 мин).

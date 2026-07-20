@@ -820,6 +820,23 @@ Python 3.12, менеджер uv.
   снова словил многострочный `{# #}` — гейт в каждом шаблонном батче.
   Дальше этапа D: **D4 · FD-3 полный редактор Finder** → D5 FD-4; ST-4b и
   «продано N» — ждут владельца.
+- **Самое свежее (2026-07-19, ночь, финал): решения владельца + ST-7c-рендер ✅
+  (ST-7 ЦЕЛИКОМ) + ДЕМО «по новой идеологии» + тест-гид.** Решения: ST-4b ДА
+  (план `st4b-sidebar-plan-2026-07-19.md`) · «продано N» ДА (честный порог) ·
+  ST-7c ДА · UC2-3 per-page секции ДА (пакет разблокирован) · Pro/de.po/FB-мелочь
+  отложены · **деплой очереди миграций сделан владельцем**. **ST-7c-рендер:**
+  card_style ЦЕЛИКОМ — ветки overlay/compact в `_product_card`/`_sellable_card`
+  (характеризационные замки ДО правок, "" байт-в-байт; sellable_card →
+  takes_context), processor `storefront_card_style`, селект «Kartenform» в
+  билдере (draft-канал). **Демо-волна (план `demo-new-ideology-plan`):** поля
+  DemoKit look/card_style/whatsapp+presence/orders_view/section_styles/
+  page_presets/spacers/seed_inbox/winback; носители: friseur (warm+видео+
+  presence+инбокс-демо: тред с Sofort-Angebot + high-«Problem») · mode
+  (nacht+overlay) · cafe (compact+стили+win-back) · restaurant (стили секций) ·
+  retreat (spacer) · shop/bakery (пресеты страниц) · werkstatt (orders_view) ·
+  aktionsmarkt (4 discount_style). **Тест-гид** `docs/demo-test-guide-2026-07-19.md`.
+  ⚠️ ops: `seed_demo_tenants --recreate` после мержа. Очередь: ST-4b →
+  «продано N» → UC2-3(b) → FD-3 → FD-4.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
