@@ -837,6 +837,22 @@ Python 3.12, менеджер uv.
   aktionsmarkt (4 discount_style). **Тест-гид** `docs/demo-test-guide-2026-07-19.md`.
   ⚠️ ops: `seed_demo_tenants --recreate` после мержа. Очередь: ST-4b →
   «продано N» → UC2-3(b) → FD-3 → FD-4.
+- **Самое свежее (2026-07-20): ST-4b сайдбар ✅ + «Verkauft N diese Woche» ✅ —
+  оба «делаем» владельца закрыты; ЭТАП B ТЗ ЗАКРЫТ ЦЕЛИКОМ (в main).**
+  **ST-4b:** `modules.sidebar_nav` — компактный плоский сайдбар (Übersicht ·
+  Verkäufe · Angebote · Marketing→marketing-home · Integrationen · Website ·
+  Einstellungen; catalog=core → Angebote всегда); classic_ui → прежние группы
+  AB1 (легаси-ветка шаблона цела, замок); бейдж inbox на якоре Marketing;
+  мобильный таб-бар = первая четвёрка; НОВЫЙ хаб `sellables` (Angebote +
+  Erweitert: Produkte/Kategorien/Lager/Einkauf/Kombi/Import — дубль-вход) +
+  Marketing-хаб += Erweitert Kontakte/Nachrichten/Telegram; integrations_home —
+  свой nav-ключ. Осознанно обновлён замок AB1-групп (test_cabinet_nav).
+  **«Продано N» (LS-4 v2):** `apps/core/social_proof.py` — sold_last_week
+  (committed-статусы 4 kind, окно 7 дней, ЧЕСТНЫЙ порог ≥5 → иначе None),
+  тег `sold_badge` на 4 детальных ВНЕ _buybox (паритет-замки целы); 3 msgid →
+  4 .po. Урок-повтор CI-1116: `ruff format --check .` ЦЕЛИКОМ перед пушем.
+  Дальше очереди: **пакет UC2-3(b) per-page секций (владелец дал ДА)** → FD-3
+  → FD-4.
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
