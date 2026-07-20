@@ -49,6 +49,8 @@ urlpatterns = [
     # D3: кабинет партнёра-реселлера (public-учётка, read-only список клиентов).
     path("partner/", partners_views.dashboard, name="partner-dashboard"),
     path("entdecken/", aggregator_views.discover_index, name="aggregator-index"),
+    # FD-4: платформенный Finder — ВЫШЕ catch-all города (иначе «finder» = city).
+    path("entdecken/finder/", aggregator_views.platform_finder, name="aggregator-finder"),
     # D2.3: клик-счётчик featured (имя дублируется в urls_portal — {% url %} везде).
     path(
         "entdecken/klick/<int:pk>/",

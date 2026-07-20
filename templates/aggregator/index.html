@@ -6,6 +6,15 @@
 
 {% include "aggregator/_search_form.html" %}
 
+{% comment %}FD-4: вход в диалоговый подбор «2 вопроса → 3 Angebote».{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-8 flex items-center justify-between gap-4 flex-wrap">
+  <div>
+    <p class="font-semibold">🧭 {% trans "Nicht sicher, was du suchst?" %}</p>
+    <p class="text-sm text-gray-500">{% trans "Beantworte 2 Fragen — wir zeigen dir 3 passende Angebote." %}</p>
+  </div>
+  <a href="{% url 'aggregator-finder' %}" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Finder starten" %} →</a>
+</div>
+
 {% if ending_soon %}
 <section class="mb-8">
   <h2 class="text-lg font-semibold mb-3">⏳ {% trans "Ending soon" %}</h2>

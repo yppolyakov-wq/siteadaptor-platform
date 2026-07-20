@@ -12349,3 +12349,118 @@ msgstr "%(n)s× booked this week"
 
 msgid "%(n)s Tickets diese Woche"
 msgstr "%(n)s tickets this week"
+
+msgid "Frage %(step)s von %(total)s"
+msgstr "Question %(step)s of %(total)s"
+
+msgid "Was suchst du?"
+msgstr "What are you looking for?"
+
+msgid "Wo?"
+msgstr "Where?"
+
+msgid "Von vorn beginnen"
+msgstr "Start over"
+
+msgid "Unsere Treffer für dich"
+msgstr "Our matches for you"
+
+msgid ""
+"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier "
+"beliebt:"
+msgstr "Nothing matching in this city right now — but this is popular:"
+
+msgid "Noch mal suchen"
+msgstr "Search again"
+
+msgid "Alle Angebote ansehen"
+msgstr "View all offers"
+
+msgid "Nicht sicher, was du suchst?"
+msgstr "Not sure what you're looking for?"
+
+msgid "Beantworte 2 Fragen — wir zeigen dir 3 passende Angebote."
+msgstr "Answer 2 questions — we'll show you 3 matching offers."
+
+msgid "Finder starten"
+msgstr "Start finder"
+
+msgid "Unsere Vorschläge für dich"
+msgstr "Our suggestions for you"
+
+msgid ""
+"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach"
+" direkt!"
+msgstr ""
+"No exact match found — here's our most popular. Or just ask us directly!"
+
+msgid "Ausgewählt nach deinen Antworten — der mittlere ist unser Favorit."
+msgstr "Chosen based on your answers — the middle one is our favourite."
+
+msgid "Unser Vorschlag"
+msgstr "Our pick"
+
+msgid ""
+"Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
+msgstr "No offers online yet — write to us and we'll help you personally."
+
+msgid "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor."
+msgstr "Answer 2–3 questions — we'll suggest what fits."
+
+msgid "Alle Fragen"
+msgstr "All questions"
+
+msgid "Finder ist ausgeschaltet — aktivieren unter Marketing → Finder."
+msgstr "Finder is switched off — enable it under Marketing → Finder."
+
+msgid ""
+"Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt "
+"lange im Katalog zu suchen."
+msgstr ""
+"Visitors answer 2–3 questions and get 3 matching suggestions — instead of "
+"searching the catalog for ages."
+
+msgid ""
+"Für diese Branche gibt es noch keine Finder-Angebote (kein passendes "
+"Sortiment-Modul aktiv)."
+msgstr ""
+"No finder offers for this industry yet (no matching assortment module "
+"active)."
+
+msgid "Finder auf der Website aktivieren"
+msgstr "Enable finder on the website"
+
+msgid ""
+"Erscheint unter /finder/ — verlinke ihn im Menü oder auf der Startseite."
+msgstr "Appears at /finder/ — link it in the menu or on the home page."
+
+msgid "Finder ansehen"
+msgstr "View finder"
+
+msgid "So fragt der Finder"
+msgstr "How the finder asks"
+
+msgid "Eigene Fragen (unten bearbeiten)."
+msgstr "Custom questions (edit below)."
+
+msgid "Voreingestellt für deine Branche — unten anpassbar."
+msgstr "Preset for your industry — adjustable below."
+
+msgid "Eigene Fragen"
+msgstr "Custom questions"
+
+msgid "Branchen-Vorlage laden"
+msgstr "Load industry template"
+
+msgid ""
+"Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. "
+"Für mehr Zeilen: speichern — es wachsen neue nach."
+msgstr ""
+"Empty rows are ignored. Clear everything = back to the industry template. "
+"Need more rows? Save — new ones appear."
+
+msgid "Fragen speichern"
+msgstr "Save questions"
+
+msgid "Vorlage geladen."
+msgstr "Template loaded."

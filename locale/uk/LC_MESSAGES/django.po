@@ -12462,3 +12462,121 @@ msgstr "%(n)s× заброньовано за тиждень"
 
 msgid "%(n)s Tickets diese Woche"
 msgstr "%(n)s квитків за тиждень"
+
+msgid "Frage %(step)s von %(total)s"
+msgstr "Питання %(step)s з %(total)s"
+
+msgid "Was suchst du?"
+msgstr "Що ви шукаєте?"
+
+msgid "Wo?"
+msgstr "Де?"
+
+msgid "Von vorn beginnen"
+msgstr "Почати спочатку"
+
+msgid "Unsere Treffer für dich"
+msgstr "Наші збіги для вас"
+
+msgid ""
+"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier "
+"beliebt:"
+msgstr ""
+"У цьому місті зараз немає нічого відповідного — зате ось що популярне:"
+
+msgid "Noch mal suchen"
+msgstr "Шукати знову"
+
+msgid "Alle Angebote ansehen"
+msgstr "Переглянути всі пропозиції"
+
+msgid "Nicht sicher, was du suchst?"
+msgstr "Не впевнені, що шукаєте?"
+
+msgid "Beantworte 2 Fragen — wir zeigen dir 3 passende Angebote."
+msgstr "Дайте відповідь на 2 запитання — покажемо 3 відповідні пропозиції."
+
+msgid "Finder starten"
+msgstr "Запустити підбір"
+
+msgid "Unsere Vorschläge für dich"
+msgstr "Наші пропозиції для вас"
+
+msgid ""
+"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach"
+" direkt!"
+msgstr ""
+"Точного збігу немає — ось найпопулярніше в нас. Або просто запитайте нас "
+"напряму!"
+
+msgid "Ausgewählt nach deinen Antworten — der mittlere ist unser Favorit."
+msgstr "Підібрано за вашими відповідями — середній варіант наш фаворит."
+
+msgid "Unser Vorschlag"
+msgstr "Наш вибір"
+
+msgid ""
+"Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
+msgstr "Пропозицій поки немає онлайн — напишіть нам, допоможемо особисто."
+
+msgid "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor."
+msgstr "Дайте відповідь на 2–3 запитання — запропонуємо відповідне."
+
+msgid "Alle Fragen"
+msgstr "Усі питання"
+
+msgid "Finder ist ausgeschaltet — aktivieren unter Marketing → Finder."
+msgstr "Підбір вимкнено — увімкніть у Marketing → Finder."
+
+msgid ""
+"Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt "
+"lange im Katalog zu suchen."
+msgstr ""
+"Відвідувачі відповідають на 2–3 запитання й отримують 3 відповідні "
+"пропозиції — замість довгого пошуку в каталозі."
+
+msgid ""
+"Für diese Branche gibt es noch keine Finder-Angebote (kein passendes "
+"Sortiment-Modul aktiv)."
+msgstr ""
+"Для цієї галузі поки немає пропозицій підбору (немає активного відповідного "
+"модуля асортименту)."
+
+msgid "Finder auf der Website aktivieren"
+msgstr "Увімкнути підбір на сайті"
+
+msgid ""
+"Erscheint unter /finder/ — verlinke ihn im Menü oder auf der Startseite."
+msgstr ""
+"Доступний за адресою /finder/ — додайте посилання в меню або на головну."
+
+msgid "Finder ansehen"
+msgstr "Відкрити підбір"
+
+msgid "So fragt der Finder"
+msgstr "Так запитує підбір"
+
+msgid "Eigene Fragen (unten bearbeiten)."
+msgstr "Власні питання (редагуються нижче)."
+
+msgid "Voreingestellt für deine Branche — unten anpassbar."
+msgstr "Попередньо налаштовано для вашої галузі — можна змінити нижче."
+
+msgid "Eigene Fragen"
+msgstr "Власні питання"
+
+msgid "Branchen-Vorlage laden"
+msgstr "Завантажити галузевий шаблон"
+
+msgid ""
+"Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. "
+"Für mehr Zeilen: speichern — es wachsen neue nach."
+msgstr ""
+"Порожні рядки ігноруються. Очистити все = повернутися до галузевого шаблону."
+" Потрібно більше рядків — збережіть, з'являться нові."
+
+msgid "Fragen speichern"
+msgstr "Зберегти питання"
+
+msgid "Vorlage geladen."
+msgstr "Шаблон завантажено."

@@ -1,0 +1,40 @@
+{% extends "aggregator/_base.html" %}
+{% load i18n %}
+{% comment %}FD-4: платформенный Finder — серверные шаги (?typ= → ?stadt=) → 3
+Angebote. Выдача органическая (UWG §5a): порядок не переприоритизируется
+платно, featured несёт обычную метку «★ Anzeige» из _cards.html.{% endcomment %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  {% if step == 1 %}
+    <p class="text-sm text-gray-400 mb-1">{% blocktrans with step=step total=total %}Frage {{ step }} von {{ total }}{% endblocktrans %}</p>
+    <h1 class="text-2xl md:text-3xl font-bold mb-5">{% trans "Was suchst du?" %}</h1>
+    <div class="flex flex-wrap gap-2">
+      {% for t, label in type_options %}
+        <a href="?typ={{ t|urlencode }}" class="inline-block rounded-full bg-white border border-gray-200 shadow-sm px-4 py-2 text-sm font-medium hover:border-indigo-400 hover:text-indigo-700">{{ label }}</a>
+      {% endfor %}
+    </div>
+  {% elif step == 2 %}
+    <p class="text-sm text-gray-400 mb-1">{% blocktrans with step=step total=total %}Frage {{ step }} von {{ total }}{% endblocktrans %}</p>
+    <h1 class="text-2xl md:text-3xl font-bold mb-5">{% trans "Wo?" %}</h1>
+    <div class="flex flex-wrap gap-2">
+      {% for c in city_options %}
+        <a href="?typ={{ typ|urlencode }}&amp;stadt={{ c|urlencode }}" class="inline-block rounded-full bg-white border border-gray-200 shadow-sm px-4 py-2 text-sm font-medium hover:border-indigo-400 hover:text-indigo-700">{{ c }}</a>
+      {% endfor %}
+    </div>
+    <p class="mt-6"><a href="{% url 'aggregator-finder' %}" class="text-sm text-gray-500 hover:text-indigo-700">← {% trans "Von vorn beginnen" %}</a></p>
+  {% else %}
+    <h1 class="text-2xl md:text-3xl font-bold mb-2">{% trans "Unsere Treffer für dich" %}</h1>
+    {% if fallback %}
+      <p class="text-sm text-gray-500 mb-5">{% trans "In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier beliebt:" %}</p>
+    {% else %}
+      <p class="text-sm text-gray-500 mb-5">{{ stadt }}</p>
+    {% endif %}
+    {% include "aggregator/_cards.html" with items=results %}
+    <div class="mt-8 flex items-center gap-4">
+      <a href="{% url 'aggregator-finder' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">↻ {% trans "Noch mal suchen" %}</a>
+      <a href="{% url 'aggregator-index' %}" class="text-sm text-gray-500 hover:text-indigo-700">{% trans "Alle Angebote ansehen" %}</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

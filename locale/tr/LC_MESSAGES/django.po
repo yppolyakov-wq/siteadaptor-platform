@@ -12397,3 +12397,117 @@ msgstr "Bu hafta %(n)s× rezerve edildi"
 
 msgid "%(n)s Tickets diese Woche"
 msgstr "Bu hafta %(n)s bilet"
+
+msgid "Frage %(step)s von %(total)s"
+msgstr "Soru %(step)s / %(total)s"
+
+msgid "Was suchst du?"
+msgstr "Ne arıyorsun?"
+
+msgid "Wo?"
+msgstr "Nerede?"
+
+msgid "Von vorn beginnen"
+msgstr "Baştan başla"
+
+msgid "Unsere Treffer für dich"
+msgstr "Senin için bulduklarımız"
+
+msgid ""
+"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier "
+"beliebt:"
+msgstr "Bu şehirde şu an uygun bir şey yok — ama şunlar popüler:"
+
+msgid "Noch mal suchen"
+msgstr "Tekrar ara"
+
+msgid "Alle Angebote ansehen"
+msgstr "Tüm teklifleri gör"
+
+msgid "Nicht sicher, was du suchst?"
+msgstr "Ne aradığından emin değil misin?"
+
+msgid "Beantworte 2 Fragen — wir zeigen dir 3 passende Angebote."
+msgstr "2 soruyu yanıtla — sana uygun 3 teklif gösterelim."
+
+msgid "Finder starten"
+msgstr "Bulucuyu başlat"
+
+msgid "Unsere Vorschläge für dich"
+msgstr "Senin için önerilerimiz"
+
+msgid ""
+"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach"
+" direkt!"
+msgstr ""
+"Tam eşleşme bulunamadı — işte en popülerimiz. Ya da bize doğrudan sor!"
+
+msgid "Ausgewählt nach deinen Antworten — der mittlere ist unser Favorit."
+msgstr "Cevaplarına göre seçildi — ortadaki bizim favorimiz."
+
+msgid "Unser Vorschlag"
+msgstr "Önerimiz"
+
+msgid ""
+"Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
+msgstr "Henüz çevrimiçi teklif yok — bize yaz, sana bizzat yardımcı olalım."
+
+msgid "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor."
+msgstr "2–3 soruyu yanıtla — sana uygun olanı önerelim."
+
+msgid "Alle Fragen"
+msgstr "Tüm sorular"
+
+msgid "Finder ist ausgeschaltet — aktivieren unter Marketing → Finder."
+msgstr "Bulucu kapalı — Marketing → Finder altından etkinleştir."
+
+msgid ""
+"Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt "
+"lange im Katalog zu suchen."
+msgstr ""
+"Ziyaretçiler 2–3 soruyu yanıtlar ve katalogda uzun uzun aramak yerine 3 "
+"uygun öneri alır."
+
+msgid ""
+"Für diese Branche gibt es noch keine Finder-Angebote (kein passendes "
+"Sortiment-Modul aktiv)."
+msgstr ""
+"Bu sektör için henüz bulucu teklifi yok (uygun ürün modülü etkin değil)."
+
+msgid "Finder auf der Website aktivieren"
+msgstr "Bulucuyu web sitesinde etkinleştir"
+
+msgid ""
+"Erscheint unter /finder/ — verlinke ihn im Menü oder auf der Startseite."
+msgstr "/finder/ altında görünür — menüde veya ana sayfada bağlantı ver."
+
+msgid "Finder ansehen"
+msgstr "Bulucuyu görüntüle"
+
+msgid "So fragt der Finder"
+msgstr "Bulucu böyle soruyor"
+
+msgid "Eigene Fragen (unten bearbeiten)."
+msgstr "Özel sorular (aşağıda düzenle)."
+
+msgid "Voreingestellt für deine Branche — unten anpassbar."
+msgstr "Sektörün için önceden ayarlı — aşağıdan uyarlanabilir."
+
+msgid "Eigene Fragen"
+msgstr "Özel sorular"
+
+msgid "Branchen-Vorlage laden"
+msgstr "Sektör şablonunu yükle"
+
+msgid ""
+"Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. "
+"Für mehr Zeilen: speichern — es wachsen neue nach."
+msgstr ""
+"Boş satırlar yok sayılır. Hepsini boşalt = sektör şablonuna dön. Daha fazla "
+"satır için: kaydet — yenileri eklenir."
+
+msgid "Fragen speichern"
+msgstr "Soruları kaydet"
+
+msgid "Vorlage geladen."
+msgstr "Şablon yüklendi."

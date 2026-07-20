@@ -12481,3 +12481,119 @@ msgstr "%(n)s× забронировано за неделю"
 
 msgid "%(n)s Tickets diese Woche"
 msgstr "%(n)s билетов за неделю"
+
+msgid "Frage %(step)s von %(total)s"
+msgstr "Вопрос %(step)s из %(total)s"
+
+msgid "Was suchst du?"
+msgstr "Что вы ищете?"
+
+msgid "Wo?"
+msgstr "Где?"
+
+msgid "Von vorn beginnen"
+msgstr "Начать сначала"
+
+msgid "Unsere Treffer für dich"
+msgstr "Наши совпадения для вас"
+
+msgid ""
+"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier "
+"beliebt:"
+msgstr "В этом городе сейчас нет подходящего — зато вот что популярно:"
+
+msgid "Noch mal suchen"
+msgstr "Искать снова"
+
+msgid "Alle Angebote ansehen"
+msgstr "Смотреть все предложения"
+
+msgid "Nicht sicher, was du suchst?"
+msgstr "Не уверены, что ищете?"
+
+msgid "Beantworte 2 Fragen — wir zeigen dir 3 passende Angebote."
+msgstr "Ответьте на 2 вопроса — покажем 3 подходящих предложения."
+
+msgid "Finder starten"
+msgstr "Запустить подбор"
+
+msgid "Unsere Vorschläge für dich"
+msgstr "Наши предложения для вас"
+
+msgid ""
+"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach"
+" direkt!"
+msgstr ""
+"Точного совпадения нет — вот самое популярное у нас. Или просто спросите нас"
+" напрямую!"
+
+msgid "Ausgewählt nach deinen Antworten — der mittlere ist unser Favorit."
+msgstr "Подобрано по вашим ответам — средний вариант наш фаворит."
+
+msgid "Unser Vorschlag"
+msgstr "Наш выбор"
+
+msgid ""
+"Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
+msgstr "Предложений пока нет онлайн — напишите нам, поможем лично."
+
+msgid "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor."
+msgstr "Ответьте на 2–3 вопроса — предложим подходящее."
+
+msgid "Alle Fragen"
+msgstr "Все вопросы"
+
+msgid "Finder ist ausgeschaltet — aktivieren unter Marketing → Finder."
+msgstr "Подбор выключен — включите в Marketing → Finder."
+
+msgid ""
+"Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt "
+"lange im Katalog zu suchen."
+msgstr ""
+"Посетители отвечают на 2–3 вопроса и получают 3 подходящих предложения — "
+"вместо долгого поиска по каталогу."
+
+msgid ""
+"Für diese Branche gibt es noch keine Finder-Angebote (kein passendes "
+"Sortiment-Modul aktiv)."
+msgstr ""
+"Для этой отрасли пока нет предложений подбора (нет активного подходящего "
+"модуля ассортимента)."
+
+msgid "Finder auf der Website aktivieren"
+msgstr "Включить подбор на сайте"
+
+msgid ""
+"Erscheint unter /finder/ — verlinke ihn im Menü oder auf der Startseite."
+msgstr "Доступен по адресу /finder/ — добавьте ссылку в меню или на главную."
+
+msgid "Finder ansehen"
+msgstr "Открыть подбор"
+
+msgid "So fragt der Finder"
+msgstr "Так спрашивает подбор"
+
+msgid "Eigene Fragen (unten bearbeiten)."
+msgstr "Свои вопросы (редактируются ниже)."
+
+msgid "Voreingestellt für deine Branche — unten anpassbar."
+msgstr "Преднастроено для вашей отрасли — можно изменить ниже."
+
+msgid "Eigene Fragen"
+msgstr "Свои вопросы"
+
+msgid "Branchen-Vorlage laden"
+msgstr "Загрузить отраслевой шаблон"
+
+msgid ""
+"Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. "
+"Für mehr Zeilen: speichern — es wachsen neue nach."
+msgstr ""
+"Пустые строки игнорируются. Очистить всё = вернуться к отраслевому шаблону. "
+"Нужно больше строк — сохраните, появятся новые."
+
+msgid "Fragen speichern"
+msgstr "Сохранить вопросы"
+
+msgid "Vorlage geladen."
+msgstr "Шаблон загружен."

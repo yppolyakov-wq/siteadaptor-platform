@@ -216,6 +216,27 @@ def _distinct_types():
 
 
 @cache_public_page
+def platform_finder(request):
+    """FD-4: диалоговый подбор «2 вопроса → 3 Angebote» на /entdecken/finder/.
+
+    Серверные шаги без JS (зеркало тенантского /finder/): ?typ= → ?stadt=;
+    невалидное значение = возврат на шаг. cache_public_page кэширует только
+    GET без query → закэширован лишь шаг 1, выдача всегда свежая. Выдача
+    органическая (UWG §5a — платное не переприоритизируется, метка
+    «★ Anzeige» из общего партиала карточек)."""
+    from . import finder as agg_finder
+    from . import reviews
+
+    state = agg_finder.resolve_public(
+        (request.GET.get("typ") or "").strip()[:40],
+        (request.GET.get("stadt") or "").strip()[:80],
+    )
+    if state.get("results"):
+        reviews.attach_ratings(state["results"])
+        _attach_open_status(state["results"])
+    return render(request, "aggregator/finder.html", state)
+
+
 def discover_index(request):
     # P2.7: поиск/фильтры. При q/city/type — страница результатов (cache_public_page
     # кэширует только GET без query, поэтому результаты не кэшируются); иначе —
