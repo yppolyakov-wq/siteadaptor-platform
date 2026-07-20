@@ -959,3 +959,74 @@ def test_kit_custom_statuses_applied_and_resolve():
     assert cd["teile_bestellt"].label == "Teile bestellt"
     edges = status_registry.custom_edges(tenant, "booking")
     assert ("confirmed", "teile_bestellt") in edges and ("teile_bestellt", "fulfilled") in edges
+
+
+# --- Демо «по новой идеологии» (2026-07-19): носители новых фич по китам -----
+# Киты применяются по одному на тест (слаги категорий пересекаются между китами).
+
+
+def test_friseur_new_ideology_video_presence_look():
+    from apps.booking.models import Service
+
+    t = TenantFactory(slug="ni1", name="NI1", business_type="friseur")
+    assert demo_kits.apply_kit(t, "friseur")
+    cfg = t.site_config
+    assert cfg.get("presence") == {"mode": "on"}  # LS-2
+    assert t.whatsapp_number  # LS-1
+    assert Service.objects.filter(is_video=True).exists()  # LS-1 видео-услуга
+    assert "theme" not in cfg  # warm — светлый Look
+
+
+def test_clothing_new_ideology_dark_overlay():
+    t = TenantFactory(slug="ni2", name="NI2", business_type="clothing")
+    assert demo_kits.apply_kit(t, "clothing")
+    assert t.site_config.get("theme") == "dark"  # ST-1 nacht
+    assert t.site_config["site_defaults"]["card_style"] == "overlay"  # ST-7c
+
+
+def test_cafe_new_ideology_compact_section_styles():
+    t = TenantFactory(slug="ni3", name="NI3", business_type="cafe")
+    assert demo_kits.apply_kit(t, "cafe")
+    cfg = t.site_config
+    assert cfg["site_defaults"]["card_style"] == "compact"
+    styles = {s["key"]: s.get("style") for s in cfg["sections"]}
+    assert styles.get("cta") == "cards" and styles.get("usp_bar") == "cards"
+
+
+def test_restaurant_new_ideology_section_styles():
+    t = TenantFactory(slug="ni4", name="NI4", business_type="restaurant")
+    assert demo_kits.apply_kit(t, "restaurant")
+    styles = {s["key"]: s.get("style") for s in t.site_config["sections"]}
+    assert styles.get("contact") == "map_first" and styles.get("reviews") == "quotes"
+
+
+def test_retreat_new_ideology_spacer():
+    t = TenantFactory(slug="ni5", name="NI5", business_type="events")
+    assert demo_kits.apply_kit(t, "retreat")
+    spacers = [s for s in t.site_config["sections"] if s["key"] == "spacer"]
+    assert spacers and spacers[0]["data"]["height"] == "lg"  # ST-7a
+
+
+def test_shop_new_ideology_page_presets():
+    t = TenantFactory(slug="ni6", name="NI6", business_type="retail")
+    assert demo_kits.apply_kit(t, "shop")
+    pb = t.site_config.get("page_blocks", {})
+    assert any(b["id"].startswith("pb-cart-vertrauen-") for b in pb.get("cart", []))
+    assert any(b["id"].startswith("pb-about-geschichte-") for b in pb.get("info", []))
+    assert t.site_config["cart_show_upsell"] is True  # ST-2 flat-ключ
+
+
+def test_werkstatt_new_ideology_orders_view():
+    t = TenantFactory(slug="ni7", name="NI7", business_type="werkstatt")
+    assert demo_kits.apply_kit(t, "werkstatt")
+    assert t.site_config.get("orders_view") == "kanban"  # ST-5b
+    assert t.whatsapp_number  # LS-1
+
+
+def test_aktionsmarkt_new_ideology_discount_styles():
+    t = TenantFactory(slug="ni8", name="NI8", business_type="grocery")
+    assert demo_kits.apply_kit(t, "aktionsmarkt")
+    styles = set(
+        Promotion.objects.exclude(discount_style="").values_list("discount_style", flat=True)
+    )
+    assert {"badge", "countdown", "festpreis", "strikethrough"} <= styles  # UE2-2

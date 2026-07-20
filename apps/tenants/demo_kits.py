@@ -214,6 +214,25 @@ class DemoKit:
     enable_lots: bool = False
     # FD-1: включить Finder «вопросы → 3 предложения» (/finder/) в демо кита.
     enable_finder: bool = False
+    # --- Демо «по новой идеологии» (2026-07-19): носители новых фич ---
+    # ST-1: Look-семейство ("" = как было; klar|warm|nacht) — ВИЗУАЛЬНЫЙ оверлей
+    # (font/typography/site_defaults/nav.style/hero_style/theme/акцент); секции
+    # и тексты кита НЕ трогаются (полный apply_look переписал бы раскладку).
+    look: str = ""
+    # ST-7c: форма карточек витрины ("" | overlay | compact) → site_defaults.
+    card_style: str = ""
+    # LS-1/LS-2: WhatsApp-номер бизнеса (гейт видео-CTA и presence-пилюли) +
+    # явный режим присутствия ("" = auto по часам; "on"/"off").
+    whatsapp_number: str = ""
+    presence_mode: str = ""
+    # ST-5b: представление раздела заказов в кабинете ("" = архетип-дефолт).
+    orders_view: str = ""
+    # ST-2c/ST-7b: стили секций {section_key: style} (валидные SECTION_STYLES).
+    section_styles: dict = field(default_factory=dict)
+    # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
+    page_presets: list = field(default_factory=list)
+    # ST-7a: демо-spacer'ы [{"after": "<section_key>", "height": "sm|lg|xl"}].
+    spacers: list = field(default_factory=list)
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -407,6 +426,7 @@ _RETREAT_PHOTOS = ["yoga,forest", "meditation,nature", "lake,forest", "campfire,
 
 RESTAURANT = DemoKit(
     key="restaurant",
+    section_styles={"contact": "map_first", "reviews": "quotes", "about": "accent"},  # ST-2c/7b
     label="Restaurant «Bella Vista»",
     business_type="restaurant",
     accent="#b45309",
@@ -1906,6 +1926,7 @@ AKTIONSMARKT = DemoKit(
             "title": "Äpfel −20 %",
             "product": 0,
             "percent": 20,
+            "discount_style": "badge",
             "group": "Wochenangebote",
             "ends_in_days": 7,
             "desc": "Knackige Äpfel aus der Region.",
@@ -1914,6 +1935,7 @@ AKTIONSMARKT = DemoKit(
             "title": "Croissant −30 % – nur heute!",
             "product": 6,
             "percent": 30,
+            "discount_style": "countdown",
             "countdown": True,
             "ends_in_days": 2,
             "group": "Wochenangebote",
@@ -1922,6 +1944,7 @@ AKTIONSMARKT = DemoKit(
             "title": "Brot zum Festpreis 0,99 €",
             "product": 4,
             "new_price": "0.99",
+            "discount_style": "festpreis",
             "compare_at": "1.99",
             "group": "Dauertiefpreis",
         },
@@ -1929,6 +1952,7 @@ AKTIONSMARKT = DemoKit(
             "title": "Cola Dauertiefpreis 0,79 €",
             "product": 9,
             "new_price": "0.79",
+            "discount_style": "strikethrough",
             "group": "Dauertiefpreis",
         },
         {
@@ -2100,6 +2124,7 @@ BAKERY_MENUS = {
 # (Anti-Food-Waste), Wochenangebot, Torten auf Vorbestellung, LMIV-Allergene, Stempelkarte.
 BAKERY = DemoKit(
     key="bakery",
+    page_presets=[("info", "team")],  # ST-2: шаблон «Über uns»
     label="Backhaus Krume",
     # FB-3 Вариант B демо: свой статус заказа «In Kommissionierung» между Bestätigt и Fertig.
     status_defs={
@@ -2804,6 +2829,8 @@ CAFE_MENUS = {
 # Mittagstisch/Happy-Hour-акции. LMIV-аллергены, диет-теги на веган-позициях.
 CAFE = DemoKit(
     key="cafe",
+    card_style="compact",  # ST-7c: строка-прайс (меню)
+    section_styles={"cta": "cards", "usp_bar": "cards"},  # ST-7b
     label="Café Morgenrot",
     business_type="cafe",
     subdomain="cafe",
@@ -3078,6 +3105,8 @@ CLOTHING_MENUS = {
 # Sale-акции. Multi-axis (цвет×размер) — гэп D3 в roadmap; демо честно на размерах.
 CLOTHING = DemoKit(
     key="clothing",
+    look="nacht",  # ST-1: тёмный Look (мода)
+    card_style="overlay",  # ST-7c: текст поверх фото
     label="Studio Nordwind",
     business_type="clothing",
     subdomain="mode",
@@ -3577,6 +3606,9 @@ FRISEUR_MENUS = {
 
 FRISEUR = DemoKit(
     key="friseur",
+    look="warm",  # ST-1: тёплый Look (архетип-акцент friseur)
+    whatsapp_number="+49 170 2000001",  # LS-1/LS-2
+    presence_mode="on",  # LS-2: «Jetzt erreichbar» видна всегда
     label="Salon Schöngut",
     business_type="friseur",  # S6: реальный архетип
     subdomain="friseur",
@@ -3723,6 +3755,7 @@ FRISEUR = DemoKit(
             "89",
             "Natürliche Highlights für mehr Tiefe und Glanz.",
             "hair,highlights",
+            {"is_video": True},  # LS-1: Farbberatung per Video
         ),
         ("Bart trimmen", 15, "12", "Konturen schneiden und in Form bringen.", "beard,barber"),
     ],
@@ -3807,6 +3840,8 @@ WERKSTATT_MENUS = {
 
 WERKSTATT = DemoKit(
     key="werkstatt",
+    whatsapp_number="+49 170 2000002",  # LS-1: видео-смета
+    orders_view="kanban",  # ST-5b: не архетип-дефолт (calendar) — showcase
     label="KFZ-Werkstatt Dreyer",
     # FB-3 Вариант B демо: свой промежуточный статус «Teile bestellt» (держит слот занятым).
     status_defs={
@@ -4289,6 +4324,7 @@ RETREAT_MENUS = {
 
 RETREAT = DemoKit(
     key="retreat",
+    spacers=[{"after": "gallery", "height": "lg"}],  # ST-7a
     label="Waldlicht Retreat",
     business_type="events",  # S6: архетип «Veranstalter/Events» (билеты primary)
     subdomain="retreat",
@@ -4708,6 +4744,7 @@ SHOP_MENUS = {
 # Grundpreis €/kg|l (R2), остаток (R3), GTIN/EAN (A1), доставка с PLZ-зонами (A2).
 SHOP = DemoKit(
     key="shop",
+    page_presets=[("cart", "vertrauen"), ("info", "geschichte")],  # ST-2
     label="Hofladen Sonnenfeld",
     business_type="retail",
     subdomain="shop",
@@ -4975,7 +5012,7 @@ KITS = {
 
 def _kit_sections(kit: DemoKit) -> list[dict]:
     """Раскладка секций кита: фото-hero, меню, акции, галерея, отзывы, FAQ, CTA, контакты."""
-    return [
+    rows = [
         {"key": "hero", "enabled": True},
         # A.3 (T-B): полоса доверия сразу под hero (если заданы пункты).
         {"key": "usp_bar", "enabled": bool(kit.usp)},
@@ -5002,6 +5039,22 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "about", "enabled": bool(kit.about_text)},
         {"key": "contact", "enabled": True},
     ]
+    # ST-2c/ST-7b: вариант отображения секции (валидность — normalize по SECTION_STYLES).
+    for s in rows:
+        style = kit.section_styles.get(s["key"])
+        if style:
+            s["style"] = style
+    # ST-7a: демо-spacer'ы между секциями (высота presence-minimal; "" = py-6).
+    for i, spec in enumerate(kit.spacers):
+        idx = next((j for j, s in enumerate(rows) if s["key"] == spec.get("after")), None)
+        block = {
+            "key": "spacer",
+            "id": f"demo-spacer-{i + 1}",
+            "enabled": True,
+            "data": {"height": spec.get("height", "")},
+        }
+        rows.insert(idx + 1 if idx is not None else len(rows), block)
+    return rows
 
 
 def apply_kit(tenant, key: str) -> bool:
@@ -5180,6 +5233,9 @@ def apply_kit(tenant, key: str) -> bool:
             }
             if spec.get("percent"):
                 fields["discount_percent"] = spec["percent"]
+            # UE2-2: стиль вывода скидки (showcase 7 стилей на aktionsmarkt).
+            if spec.get("discount_style"):
+                fields["discount_style"] = spec["discount_style"]
             if spec.get("new_price"):
                 fields["price_override"] = Decimal(str(spec["new_price"]))
             if spec.get("compare_at"):
@@ -5355,8 +5411,40 @@ def apply_kit(tenant, key: str) -> bool:
         cfg["lots_enabled"] = True
     if kit.enable_finder:  # FD-1: Finder — опция, в демо показываем
         cfg["finder"] = {"enabled": True}
+    # --- Демо «по новой идеологии» (2026-07-19): пост-патчи новых фич ---
+    accent = kit.accent
+    if kit.look:
+        # ST-1: визуальный оверлей Look-семейства (паттерн stateless-превью
+        # ST-1b) — секции/тексты кита целы, полный apply_look их переписал бы.
+        from apps.tenants import sitetemplates
+
+        fam = sitetemplates.get_look_family(kit.look)
+        if fam is not None:
+            cfg["font"] = fam["font"]
+            cfg["typography"] = siteconfig.normalize_typography(fam["typography"])
+            cfg["site_defaults"] = dict(siteconfig.normalize_site_defaults(fam["site_defaults"]))
+            nav_cfg = dict(cfg.get("nav") or {})
+            nav_cfg["style"] = fam["nav_style"]
+            cfg["nav"] = nav_cfg
+            cfg["hero_style"] = fam["hero_style"]
+            if fam["theme"] == "dark":
+                cfg["theme"] = "dark"
+            accent = sitetemplates.look_accent(kit.business_type, kit.look)
+    if kit.card_style in ("overlay", "compact"):  # ST-7c: форма карточек
+        sd = dict(cfg.get("site_defaults") or {})
+        sd["card_style"] = kit.card_style
+        cfg["site_defaults"] = sd
+    if kit.presence_mode in ("on", "off"):  # LS-2: «Jetzt erreichbar»
+        cfg["presence"] = {"mode": kit.presence_mode}
+    if kit.orders_view in ("kanban", "calendar", "feed"):  # ST-5b
+        cfg["orders_view"] = kit.orders_view
+    if kit.page_presets:  # ST-2: пресеты страниц (блоки выживают normalize — замок)
+        from apps.core import page_presets as page_presets_mod
+
+        for host, preset_id in kit.page_presets:
+            page_presets_mod.apply_page_preset(cfg, host, preset_id)
     tenant.site_config = cfg
-    tenant.primary_color = kit.accent
+    tenant.primary_color = accent
     update_fields = ["site_config", "primary_color", "updated_at"]
     if kit.enable_modules:
         update_fields.append("disabled_modules")
@@ -5391,6 +5479,9 @@ def apply_kit(tenant, key: str) -> bool:
         tenant.service_area_plz = kit.service_area_plz
         tenant.service_area_note = kit.service_area_note
         update_fields += ["service_area_plz", "service_area_note"]
+    if kit.whatsapp_number:  # LS-1/LS-2: гейт видео-CTA и presence-пилюли
+        tenant.whatsapp_number = kit.whatsapp_number
+        update_fields.append("whatsapp_number")
     tenant.save(update_fields=update_fields)
     _seed_legal_docs(tenant, kit)  # E-2/L5: честное право в демо (вместо placeholder)
     return True
@@ -5667,6 +5758,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 attributes=rich.get("attributes", []),
                 faq=rich.get("faq", []),
                 primary_action=rich.get("primary_action", ""),
+                # LS-1: видео-услуга (CTA «Per Video zeigen lassen» — гейт
+                # whatsapp_number кита).
+                is_video=bool(rich.get("is_video")),
             )
             refs["services"].append(str(svc.pk))
     if kit.combos and is_active("catalog"):
