@@ -1104,7 +1104,10 @@ def home_builder_view(request):
             # практике page_key всегда валиден — из data-pb-host витрины).
             if is_fetch and page_key and not host:
                 return _add_block_fetch_response(request, None, "")
-            if btype in siteconfig.REPEATABLE_BLOCKS:
+            # UC2-3(b): ссылочные секции-справочники валидны ТОЛЬКО на странице
+            # (host); на главной живут настоящие секции — там тип отклоняется.
+            _allowed = siteconfig.REPEATABLE_BLOCKS + (siteconfig.PAGE_REF_BLOCKS if host else ())
+            if btype in _allowed:
                 cfg = siteconfig.normalize(request.tenant.site_config)
                 new_id = uuid.uuid4().hex[:12]
                 # UC6-5/6c: новый блок — демо-данные + опц. пресет отображения
@@ -1400,7 +1403,11 @@ def home_builder_view(request):
                 btype = request.POST.get(f"cb_type_{bid}", "")
                 if host not in siteconfig.PAGE_BLOCK_HOSTS:
                     continue
-                if btype not in siteconfig.REPEATABLE_BLOCKS:
+                # UC2-3(b): на страницах валидны и ссылочные секции-справочники.
+                if (
+                    btype not in siteconfig.REPEATABLE_BLOCKS
+                    and btype not in siteconfig.PAGE_REF_BLOCKS
+                ):
                     continue
                 if request.POST.get(f"delete_cb_{bid}") == "on":
                     continue  # удалён владельцем
@@ -1843,6 +1850,36 @@ def home_builder_view(request):
                     "icon": "🏷️",
                     "hint": _("Live promotion"),
                 },  # UE1
+                # UC2-3(b): ссылочные секции-справочники — ТОЛЬКО на страницах
+                # (page_only → JS прячет на главной; контент общий с главной).
+                {
+                    "value": "faq_ref",
+                    "label": "FAQ anzeigen",
+                    "icon": "❓",
+                    "hint": "Der FAQ-Block der Startseite — auch auf dieser Seite",
+                    "page_only": True,
+                },
+                {
+                    "value": "team_ref",
+                    "label": "Team anzeigen",
+                    "icon": "👥",
+                    "hint": "Der Team-Block der Startseite — auch auf dieser Seite",
+                    "page_only": True,
+                },
+                {
+                    "value": "gallery_ref",
+                    "label": "Galerie anzeigen",
+                    "icon": "🖼️",
+                    "hint": "Die Galerie der Startseite — auch auf dieser Seite",
+                    "page_only": True,
+                },
+                {
+                    "value": "testimonials_ref",
+                    "label": "Stimmen anzeigen",
+                    "icon": "💬",
+                    "hint": "Kundenstimmen der Startseite — auch auf dieser Seite",
+                    "page_only": True,
+                },
             ],
             "preset_options": preset_options,
             "source_options": source_options,

@@ -3,6 +3,7 @@
 from django import template
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
+from django.utils.translation import get_language
 
 from apps.tenants import siteconfig, video
 
@@ -121,11 +122,12 @@ def page_blocks(context, page_key):
     if not blocks and not is_preview:
         return ""
     rows = siteconfig.group_block_rows(blocks)
-    html = render_to_string(
-        "storefront/_page_blocks.html",
-        {**context.flatten(), "pb_rows": rows, "pb_page_key": page_key},
-        request=request,
-    )
+    ctx = {**context.flatten(), "pb_rows": rows, "pb_page_key": page_key}
+    # UC2-3(b): ссылочным секциям (faq_ref/…) нужен глобальный `site` — на
+    # страницах его нет в контексте (в отличие от главной); отдаём локализованный
+    # normalize-конфиг, НЕ переопределяя, если вьюха уже положила свой.
+    ctx.setdefault("site", siteconfig.localize(site, get_language()))
+    html = render_to_string("storefront/_page_blocks.html", ctx, request=request)
     return mark_safe(html)
 
 
@@ -156,6 +158,20 @@ def render_block(context, block):
     """
     key = block if isinstance(block, str) else block.get("key")
     request = context.get("request")
+    # UC2-3(b): ссылочная секция-справочник (faq_ref/team_ref/…) на странице —
+    # рендер готового партиала БАЗОВОЙ секции с глобальным site.<key> (контент
+    # общий; оси width/pos/visual блока применяет обёртка _section_block).
+    if key in siteconfig.PAGE_REF_BLOCKS:
+        base = key[: -len("_ref")]
+        tpl = BLOCK_TEMPLATES.get(base)
+        if not tpl:
+            return ""
+        html = render_to_string(
+            tpl,
+            {**context.flatten(), "section_row": {"key": base}},
+            request=request,
+        )
+        return mark_safe(html)
     # D.2: C-блок — рендерим партиал с данными самого блока.
     if key in CBLOCK_TEMPLATES:
         data = block.get("data") if isinstance(block, dict) else {}

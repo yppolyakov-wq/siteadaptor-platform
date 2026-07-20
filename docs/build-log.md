@@ -6068,3 +6068,17 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - main = 237ca22: компактный сайдбар (classic-гейт) + хаб sellables + Kunden в
   Marketing-Erweitert + social-proof бейдж с честным порогом. CI-красный #1566
   (ruff format точечно вместо целиком — повтор урока 1116) починен фикс-коммитом.
+
+## 2026-07-20 — UC2-3(b) «Секции на всех страницах» — вариант A (ссылочные блоки)
+
+- Разведка: «C-блоки вне home» из пакета уже закрыты UC6-7; данные секций
+  ГЛОБАЛЬНЫ (site.faq/team/…) — «секция на странице» = показ общего справочника.
+  Принята трактовка A (план `uc23b-page-sections-plan-2026-07-20.md`):
+  **PAGE_REF_BLOCKS** (faq_ref/team_ref/gallery_ref/testimonials_ref) — типы
+  блоков ТОЛЬКО для page_blocks (в home-sections отбрасываются → golden целы);
+  рендер = готовый партиал секции с глобальным site.<key> (тег page_blocks
+  прокидывает локализованный site setdefault'ом); оси width/pos/visual C-блока
+  работают. Инсертер: 4 карточки «FAQ/Team/Galerie/Stimmen anzeigen» с
+  data-page-only (JS прячет на главной), server-side гейт add_block и
+  Save-пересборки. Вариант B (per-page ДАННЫЕ секций) — отдельное решение
+  владельца, предложено в отчёте. 5 тестов; golden/cblocks/builder 207 зелёных.

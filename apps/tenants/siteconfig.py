@@ -125,6 +125,10 @@ def _text_style(d: dict) -> dict:
 def _clean_cblock_data(key: str, raw) -> dict:
     """Санитизация данных C-блока по типу (строки; неизвестные ключи отброшены)."""
     d = raw if isinstance(raw, dict) else {}
+    # UC2-3(b): ссылочные секции-справочники — без собственных данных (контент
+    # глобальный site.<key>; оси width/pos/visual — общие оси C-блока).
+    if key in PAGE_REF_BLOCKS:
+        return {}
     if key == "text":
         return {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
     # UC6-4: скругление фото блока — "" (стандарт rounded-2xl) | none | 3xl;
@@ -487,6 +491,14 @@ PAGE_BLOCK_HOSTS = (
     "blog",
 )
 
+# UC2-3(b) («да» владельца 2026-07-19): ссылочные секции-справочники — типы
+# блоков, разрешённые ТОЛЬКО в page_blocks (страницы), НЕ в home-sections (там
+# настоящие секции; normalize_sections их отбрасывает → golden целы). Рендер —
+# готовый партиал секции с ГЛОБАЛЬНЫМ справочником site.<key> (контент один на
+# весь сайт, правится в конструкторе главной — честная семантика «показать
+# этот блок и здесь»).
+PAGE_REF_BLOCKS = ("faq_ref", "team_ref", "gallery_ref", "testimonials_ref")
+
 
 def normalize_page_blocks(raw) -> dict:
     """UC6-7: привести page_blocks к {host: [cblock,…]} — whitelist хостов,
@@ -500,7 +512,12 @@ def normalize_page_blocks(raw) -> dict:
             continue
         blocks = []
         for item in items:
-            if isinstance(item, dict) and item.get("key") in REPEATABLE_BLOCKS:
+            # UC2-3(b): на страницах, кроме обычных C-блоков, допускаются
+            # ссылочные секции-справочники (PAGE_REF_BLOCKS); в home-sections
+            # они по-прежнему невалидны.
+            if isinstance(item, dict) and (
+                item.get("key") in REPEATABLE_BLOCKS or item.get("key") in PAGE_REF_BLOCKS
+            ):
                 blocks.append(_clean_cblock(item))
             if len(blocks) >= _MAX_CBLOCKS:
                 break
