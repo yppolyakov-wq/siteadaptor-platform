@@ -43,9 +43,7 @@ def test_cancelled_orders_excluded():
 def test_window_excludes_old_sales():
     p = ProductFactory(name={"de": "Brot"})
     order = _sell(p, 6)
-    Order.objects.filter(pk=order.pk).update(
-        created_at=timezone.now() - timedelta(days=10)
-    )
+    Order.objects.filter(pk=order.pk).update(created_at=timezone.now() - timedelta(days=10))
     assert social_proof.sold_last_week("product", p.pk) is None
 
 
