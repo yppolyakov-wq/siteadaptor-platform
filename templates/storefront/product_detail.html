@@ -50,6 +50,7 @@
   {% endif %}{% endif %}
 
   {# UA3-1 слайс 2: buy-box — единый партиал, mode=cart из контракта sellable. #}
+  {% sold_badge sellable.kind sellable.pk %}
   {% include "storefront/_buybox.html" %}
   <p class="mt-6 text-sm text-gray-500">
     {% trans "Available in store." %}

@@ -12472,3 +12472,12 @@ msgstr "Рекламировать поблизости"
 
 msgid "★ Anzeige im lokalen Verzeichnis"
 msgstr "★-реклама в локальном каталоге"
+
+msgid "%(n)s× verkauft diese Woche"
+msgstr "%(n)s× продано за неделю"
+
+msgid "%(n)s× gebucht diese Woche"
+msgstr "%(n)s× забронировано за неделю"
+
+msgid "%(n)s Tickets diese Woche"
+msgstr "%(n)s билетов за неделю"

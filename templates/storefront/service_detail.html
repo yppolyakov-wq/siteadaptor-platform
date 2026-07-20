@@ -29,6 +29,7 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
 {% endblock %}
 
 {% block detail_aside %}
+{% sold_badge sellable.kind sellable.pk %}
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <div>
     {# L3c: показываем локализованное имя (перевод из name_i18n, иначе база). Инлайн-правка редактирует ПЛОСКОЕ base-поле (data-edit-field=name). #}

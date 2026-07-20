@@ -12388,3 +12388,12 @@ msgstr "Çevrede tanıtın"
 
 msgid "★ Anzeige im lokalen Verzeichnis"
 msgstr "Yerel dizinde ★ ilan"
+
+msgid "%(n)s× verkauft diese Woche"
+msgstr "Bu hafta %(n)s× satıldı"
+
+msgid "%(n)s× gebucht diese Woche"
+msgstr "Bu hafta %(n)s× rezerve edildi"
+
+msgid "%(n)s Tickets diese Woche"
+msgstr "Bu hafta %(n)s bilet"

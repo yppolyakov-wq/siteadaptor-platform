@@ -6051,3 +6051,14 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Замки: НОВЫЙ test_sidebar_st4b (4: состав/гейты/classic/рендер) + ОСОЗНАННОЕ
   обновление test_cabinet_nav (группы AB1 → только classic; якоря компакт-вида);
   hub_tabs/sellable_manage/st4_home/classic целы; широкий прогон 774 зелёных.
+
+## 2026-07-20 — «Verkauft N diese Woche» (social-proof, одобрен владельцем; БЕЗ миграций)
+
+- План `docs/sold-badge-plan-2026-07-20.md`. `apps/core/social_proof.py`:
+  `sold_last_week(kind, pk)` — продажи за 7 дней committed-статусов (product =
+  Σ qty не-отменённых заказов; service/stay = confirmed/fulfilled-брони; event =
+  confirmed/attended-билеты), ЧЕСТНЫЙ порог SOLD_BADGE_MIN=5 (меньше → None →
+  бейджа нет), fail-safe. Тег `sold_badge` + партиал `_sold_badge.html`
+  («🔥 N× verkauft/gebucht/Tickets diese Woche») — на 4 детальных (aside),
+  ВНЕ `_buybox.html` (его паритет-замки байт-в-байт не тронуты). Одна агрегация
+  на страницу, карточки листингов не трогаем (v1). 5 тестов; 3 msgid → 4 .po.

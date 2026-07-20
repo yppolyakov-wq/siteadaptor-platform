@@ -14,6 +14,7 @@
 {% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=unit.images alt=unit.name edit_model="stay" edit_pk=unit.pk %}{% endblock %}
 
 {% block detail_aside %}
+{% sold_badge sellable.kind sellable.pk %}
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <div>
     {# L3c: локализованное имя номера; инлайн-правка редактирует base-поле. #}

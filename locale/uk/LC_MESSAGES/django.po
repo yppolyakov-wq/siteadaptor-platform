@@ -12453,3 +12453,12 @@ msgstr "Рекламувати поблизу"
 
 msgid "★ Anzeige im lokalen Verzeichnis"
 msgstr "★-реклама в локальному каталозі"
+
+msgid "%(n)s× verkauft diese Woche"
+msgstr "%(n)s× продано за тиждень"
+
+msgid "%(n)s× gebucht diese Woche"
+msgstr "%(n)s× заброньовано за тиждень"
+
+msgid "%(n)s Tickets diese Woche"
+msgstr "%(n)s квитків за тиждень"

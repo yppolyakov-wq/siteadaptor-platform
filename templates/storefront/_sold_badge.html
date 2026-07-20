@@ -1,0 +1,3 @@
+{% load i18n %}{% comment %}LS-4 v2: social-proof «Verkauft N diese Woche» —
+рендер ТОЛЬКО при n >= порога (social_proof.SOLD_BADGE_MIN); иначе пусто.{% endcomment %}
+{% if n %}<p class="text-xs font-medium text-amber-700 bg-amber-50 rounded-full px-2.5 py-1 inline-flex items-center gap-1 mb-2">🔥 {% if kind == "stay" %}{% blocktrans %}{{ n }}× gebucht diese Woche{% endblocktrans %}{% elif kind == "event" %}{% blocktrans %}{{ n }} Tickets diese Woche{% endblocktrans %}{% else %}{% blocktrans %}{{ n }}× verkauft diese Woche{% endblocktrans %}{% endif %}</p>{% endif %}

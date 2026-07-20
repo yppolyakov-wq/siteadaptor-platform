@@ -275,3 +275,12 @@ def presence_fab(context):
                 "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?",
             )
     return {"wa_url": wa_url}
+
+
+@register.inclusion_tag("storefront/_sold_badge.html")
+def sold_badge(kind, pk):
+    """LS-4 v2 «Verkauft N diese Woche» — честный порог (social_proof).
+    n=None (мало/нет данных/ошибка) → партиал рендерит пусто."""
+    from apps.core import social_proof
+
+    return {"n": social_proof.sold_last_week(kind, pk), "kind": kind}
