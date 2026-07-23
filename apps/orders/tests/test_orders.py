@@ -105,6 +105,9 @@ def test_cart_add_view_and_checkout_flow():
     cart = {str(product.pk): 2}
     body = public_views.cart_view(_req(tenant=tenant, session={"cart": cart})).content.decode()
     assert "6,00" in body or "6.00" in body  # total в DE-локали
+    # R4: прогресс-степпер C&C — корзина с позициями = шаг 1 (Warenkorb current).
+    assert 'aria-label="Fortschritt"' in body
+    assert "Warenkorb" in body and 'aria-current="step"' in body
 
     request = _req(
         "post",
@@ -123,6 +126,8 @@ def test_cart_add_view_and_checkout_flow():
         _req(tenant=tenant), code=order.reference_code
     ).content.decode()
     assert order.reference_code in body
+    # R4: степпер на подтверждении = шаг 3 (Bestätigt current).
+    assert 'aria-label="Fortschritt"' in body and "Bestätigt" in body
 
 
 def test_cart_renders_editable_title_and_note():

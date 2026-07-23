@@ -20,6 +20,9 @@
 {% endif %}
 
 {% if rows or combo_rows %}
+{% comment %}R4: прогресс-степпер C&C-воронки (Warenkorb → Versand → Bestätigt).
+Комбинированная страница корзина+оформление = шаг 1; подтверждение = шаг 3.{% endcomment %}
+{% funnel_steps "order" 1 %}
 <div class="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
   {# Левая колонка: позиции + форма оформления #}
   <div class="lg:col-span-2 space-y-4">
