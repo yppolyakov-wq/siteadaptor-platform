@@ -6120,3 +6120,51 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - **Очередь `next-gen-master-tz-2026-07-19.md` (этапы A–D) исчерпана целиком.**
   Остались только owner-gated (Pro D1 / T-1 de.po / variant B per-page секций /
   FB-мелочь) и external-gated (LLM-Finder, WhatsApp Business API и пр.).
+
+---
+
+## 2026-07-23 — Трек DL «языки на всех демо-витринах» (свитчер + полный EN-перевод)
+
+Запрос владельца: добавить выбор языков на ВСЕ демо-витрины (скрытый блок/таб в
+меню), перевести ВСЕ тексты (вспомогательные + контент) на всех архетипах,
+рабочая смена языков, соответствие языков во всех разделах + сверка кабинета.
+
+- **DL-1 (свитчер + языки на демо, `fe08731`):** языковой переключатель витрины
+  из ряда кнопок → выпадающий скрытый блок (`<details>/<summary>`, без JS):
+  пилюля с кодом текущего языка → список РОДНЫХ имён языков («Deutsch»/«English»).
+  Генерик по `active_locales`. `context.py::_native_language_name` (через
+  `get_language_info`, фолбэк на код). `DemoKit.enabled_locales` (дефолт
+  `["de","en"]`) → `apply_kit` ставит `tenant.enabled_locales`/`default_locale`
+  (только валидные из LANGUAGES, первый = default). Все 14 демо-китов двуязычны.
+  Замки: `storefront_locales` native (test_locale), enable/custom locales.
+- **DL-2 (полный EN-перевод контента, `5c4ab20`):** демо были двуязычны, но
+  контент — только DE (при EN названия/тексты оставались немецкими). Решение —
+  централизованный словарь + пост-сид проход, БЕЗ правки 14 больших определений
+  китов:
+  * `apps/tenants/demo_i18n_en.json` — словарь DE→EN (993 записи; переведены
+    проф. переводом через 7 параллельных субагентов со style-guide; идентичные
+    en==de отброшены → фолбэк на DE).
+  * `apps/tenants/demo_i18n.py` (ленивая загрузка словаря): `overlay_config_en(cfg)`
+    строит `cfg[i18n][en]` из немецких site_config-текстов (hero/about/
+    section_titles/cta/faq/testimonials/process/heroes/trust/archetypes), зеркаля
+    структуру базы (позиционный merge `localize._deep_overlay`); ручной оверлей
+    кита (pranasy) имеет приоритет. `translate_tenant_content(tenant)` заполняет
+    `*_i18n[en]` у Product/Category (full-JSON) и Service/StayUnit/Combo/Event/
+    Collection (flat+overlay). Идемпотентно (курируемый/двуязычный en не трётся).
+  * `apply_kit` зовёт оба прохода при `en ∈ enabled_locales`.
+  * **Аудит покрытия (14 китов):** config-проза 91–95 %, товары 84–100 %,
+    категории 75–100 %, услуги/номера/события 100 %. Остаток <100 % — имена
+    собственные (бренды, интернац. блюда) → корректно совпадают с DE.
+  * Замки: config+content EN localize, идемпотентность overlay, no-identity
+    словарь; обновлён friseur-замок (теперь все услуги переведены).
+- **DL-3 (сверка кабинета):** селектор языка кабинета есть (`_base_dashboard.html`,
+  `CABINET_LANGUAGES=de/en/tr/ru/uk`); .po здоровы (0 проблемных fuzzy, 0
+  untranslated, 2905 msgid × 4 локали); ключевые строки переводятся (Übersicht→
+  Overview, Einstellungen→Settings…). Остаточные немецкие утечки хрома = отложенный
+  T-1 (полный de.po), не DL-регресс.
+- **CI-фикс (`3384199`):** CI ставит ruff через `uv pip install -e '.[dev]'`
+  (спецификатор `>=0.7` → ПОСЛЕДНЯЯ версия, не uv.lock 0.15.22), а новый ruff
+  форматирует Markdown-код-блоки по умолчанию → CI переформатировал 15 доков.
+  Фикс: `extend-exclude += "*.md"` (доки иллюстративны; python-формат между
+  версиями идентичен — CI показал 0 py-диффов). **Урок:** плавающая версия ruff
+  на CI ≠ локальная 0.15.22; при странном format-фейле проверять версию.
