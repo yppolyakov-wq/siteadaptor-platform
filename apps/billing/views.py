@@ -10,6 +10,7 @@ import secrets
 import stripe
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -156,3 +157,12 @@ def payments_callback(request):
     tenant.save(update_fields=["stripe_connect_id", "payments_enabled", "updated_at"])
     messages.success(request, _("Stripe connected — you can now accept customer payments."))
     return redirect(reverse("billing-payments") + "?status=connected")
+
+
+@staff_member_required
+def platform_bi(request):
+    """R5: платформенная BI-панель (MRR/churn/LTV/usage-fee/регистрации) на
+    ПУБЛИЧНОМ домене — только суперадмин (staff). Снимок из SHARED-данных."""
+    from . import analytics
+
+    return render(request, "billing/platform_bi.html", {"m": analytics.platform_metrics()})

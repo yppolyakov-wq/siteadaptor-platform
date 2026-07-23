@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Platform BI · SiteAdaptor{% endblock %}
+{% block body %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="flex items-baseline justify-between mb-6">
+    <h1 class="text-2xl font-bold">Platform BI</h1>
+    <a href="/admin/" class="text-sm text-indigo-600 hover:underline">← Admin</a>
+  </div>
+
+  {% comment %}R5: снимок ключевых метрик. churn/LTV — приблизительные v1 (без
+  снапшотов истории), помечены явно.{% endcomment %}
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">MRR</p>
+      <p class="text-3xl font-bold">{{ m.mrr }} €</p>
+      <p class="text-xs text-gray-500 mt-1">{{ m.active }} × {{ m.price }} €</p>
+      {% if m.sparkline %}
+      <svg viewBox="0 0 120 32" class="w-full h-8 mt-3" preserveAspectRatio="none" aria-hidden="true">
+        <polyline fill="none" stroke="#4f46e5" stroke-width="1.5" points="{{ m.sparkline }}"/>
+      </svg>
+      <p class="text-xs text-gray-400">{% blocktrans with n=m.signups_30 %}{{ n }} signups / 30 days{% endblocktrans %}</p>
+      {% endif %}
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">ARPA</p>
+      <p class="text-3xl font-bold">{{ m.arpa }} €</p>
+      <p class="text-xs text-gray-500 mt-1">{% trans "per active account / month" %}</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">Churn (30d)*</p>
+      <p class="text-3xl font-bold">{{ m.churn_pct }} %</p>
+      <p class="text-xs text-gray-500 mt-1">{% blocktrans with n=m.churned_30 %}{{ n }} suspended{% endblocktrans %}</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">LTV*</p>
+      <p class="text-3xl font-bold">{% if m.ltv %}{{ m.ltv }} €{% else %}—{% endif %}</p>
+      <p class="text-xs text-gray-500 mt-1">ARPA / churn</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <h2 class="font-semibold mb-3">{% trans "Subscriptions" %}</h2>
+      <dl class="text-sm divide-y divide-gray-100">
+        <div class="flex justify-between py-2"><dt class="text-gray-500">Trial</dt><dd class="font-medium">{{ m.counts.trial }}</dd></div>
+        <div class="flex justify-between py-2"><dt class="text-green-700">Active</dt><dd class="font-semibold">{{ m.counts.active }}</dd></div>
+        <div class="flex justify-between py-2"><dt class="text-amber-700">Past due</dt><dd class="font-medium">{{ m.counts.past_due }}</dd></div>
+        <div class="flex justify-between py-2"><dt class="text-gray-500">Trial expired</dt><dd class="font-medium">{{ m.counts.trial_expired }}</dd></div>
+        <div class="flex justify-between py-2"><dt class="text-red-700">Suspended</dt><dd class="font-medium">{{ m.counts.suspended }}</dd></div>
+        <div class="flex justify-between py-2"><dt class="font-medium">{% trans "Total" %}</dt><dd class="font-semibold">{{ m.total }} · {{ m.active_pct }} % {% trans "active" %}</dd></div>
+      </dl>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <h2 class="font-semibold mb-3">{% blocktrans with p=m.period %}Usage fees — {{ p }}{% endblocktrans %}</h2>
+      <dl class="text-sm divide-y divide-gray-100">
+        <div class="flex justify-between py-2"><dt class="text-gray-500">{% trans "Fees collected" %}</dt><dd class="font-semibold">{{ m.fee_eur }} €</dd></div>
+        <div class="flex justify-between py-2"><dt class="text-gray-500">GMV</dt><dd class="font-medium">{{ m.gmv_eur }} €</dd></div>
+      </dl>
+      <p class="text-xs text-gray-400 mt-4">* {% trans "Churn/LTV are estimates (v1, no historical snapshots yet)." %}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

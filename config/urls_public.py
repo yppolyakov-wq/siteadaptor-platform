@@ -11,6 +11,7 @@ from django.views.static import serve
 
 from apps.aggregator import reviews_views as aggregator_reviews_views
 from apps.aggregator import views as aggregator_views
+from apps.billing import views as billing_views
 from apps.billing.webhooks import stripe_webhook
 from apps.core import health
 from apps.partners import views as partners_views
@@ -48,6 +49,8 @@ urlpatterns = [
     # Локальный агрегатор (Sprint 4): городские страницы на основном домене.
     # D3: кабинет партнёра-реселлера (public-учётка, read-only список клиентов).
     path("partner/", partners_views.dashboard, name="partner-dashboard"),
+    # R5: платформенная BI-панель (MRR/churn/LTV) — только суперадмин (staff).
+    path("plattform/bi/", billing_views.platform_bi, name="platform-bi"),
     path("entdecken/", aggregator_views.discover_index, name="aggregator-index"),
     # FD-4: платформенный Finder — ВЫШЕ catch-all города (иначе «finder» = city).
     path("entdecken/finder/", aggregator_views.platform_finder, name="aggregator-finder"),
