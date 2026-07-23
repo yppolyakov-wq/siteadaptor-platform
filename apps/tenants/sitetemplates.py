@@ -318,7 +318,14 @@ def _apply(tenant, template, *, family=None, accent=None) -> None:
         # ST-1: пачка ключей Look'а (все ключи уже существуют в normalize-схеме).
         config["font"] = family["font"]
         config["typography"] = dict(family["typography"])
-        config["site_defaults"] = dict(family["site_defaults"])
+        # Look = ВИЗУАЛЬНАЯ тема (card-стиль семейства). hero_widget — не визуал,
+        # а выбор раскладки первого экрана (E4): сохраняем существующий выбор
+        # тенанта, чтобы смена Look'а не сбрасывала date-search-в-hero.
+        fam_sd = dict(family["site_defaults"])
+        prev_hw = (current.get("site_defaults") or {}).get("hero_widget")
+        if prev_hw in ("stays", "services"):
+            fam_sd["hero_widget"] = prev_hw
+        config["site_defaults"] = fam_sd
         nav = dict(config.get("nav") or {})
         nav["style"] = family["nav_style"]
         config["nav"] = nav
@@ -327,11 +334,12 @@ def _apply(tenant, template, *, family=None, accent=None) -> None:
         else:
             config.pop("theme", None)  # светлый Look снимает тёмный дефолт
 
-    # E4 «задача-первым»: шаблон может нести витринные дефолты (напр. интерактивный
-    # hero отеля hero_widget="stays") — мержим ПОВЕРХ (после Look'а). normalize
-    # оставит ключ только при валидном значении → golden целы.
+    # E4 «задача-первым»: ПРИ ВЫБОРЕ ШАБЛОНА (не Look'а) переносим его витринные
+    # дефолты (напр. интерактивный hero отеля hero_widget="stays"). В пути Look'а
+    # НЕ трогаем (там site_defaults = card-стиль семейства + сохранённый hero_widget
+    # выше) — иначе смена Look ломала бы контракт «site_defaults == семейство».
     tpl_sd = template.get("site_defaults")
-    if tpl_sd:
+    if family is None and tpl_sd:
         config["site_defaults"] = {**(config.get("site_defaults") or {}), **tpl_sd}
 
     tenant.site_config = siteconfig.normalize(config)

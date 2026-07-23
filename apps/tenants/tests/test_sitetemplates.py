@@ -74,6 +74,11 @@ def test_gastgeber_hero_carries_stay_search_widget():
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["site_defaults"]["hero_widget"] == "stays"
+    # E4: смена Look'а не сбрасывает интерактивный hero (hero_widget сохраняется,
+    # т.к. это выбор раскладки, а не визуальная тема семейства).
+    assert sitetemplates.apply_look(tenant, "nacht") is True
+    tenant.refresh_from_db()
+    assert tenant.site_config["site_defaults"]["hero_widget"] == "stays"
 
 
 def test_hero_widget_partial_renders_date_search_gated_by_module(settings):
