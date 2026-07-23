@@ -42,11 +42,11 @@
   <div class="grid sm:grid-cols-5 gap-3 items-end">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
-      <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_von" name="von" type="date" required value="{% if von %}{{ von|date:'Y-m-d' }}{% else %}{% default_date 1 %}{% endif %}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
-      <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_bis" name="bis" type="date" required value="{% if bis %}{{ bis|date:'Y-m-d' }}{% else %}{% default_date 3 %}{% endif %}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>

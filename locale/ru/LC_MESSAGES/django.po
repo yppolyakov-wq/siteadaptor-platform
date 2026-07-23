@@ -13295,3 +13295,6 @@ msgstr "Доставка"
 
 msgid "Fortschritt"
 msgstr "Прогресс"
+
+msgid "Earliest free time"
+msgstr "Ближайшее свободное время"

@@ -13110,3 +13110,6 @@ msgstr "Delivery"
 
 msgid "Fortschritt"
 msgstr "Progress"
+
+msgid "Earliest free time"
+msgstr "Earliest free time"

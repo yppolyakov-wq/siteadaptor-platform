@@ -1,7 +1,8 @@
-{% load i18n %}
+{% load i18n siteui %}
 {% comment %}
 H2: быстрый поиск размещения по датам на главной (ТЗ §2.1). Рендерится только
-при активном модуле stays; ведёт на /unterkunft/ с датами.
+при активном модуле stays; ведёт на /unterkunft/ с датами. E5b: даты
+предзаполнены (завтра / +2 ночи) — «просто нажми Suchen».
 {% endcomment %}
 {% if storefront_stays_enabled %}
 <section class="mb-8">
@@ -11,11 +12,11 @@ H2: быстрый поиск размещения по датам на глав
       <div class="grid sm:grid-cols-5 gap-3 items-end">
         <div>
           <label class="block text-sm font-medium mb-1" for="hs_von">{% trans "Arrival" %}</label>
-          <input id="hs_von" name="von" type="date" required min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input id="hs_von" name="von" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 1 %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="hs_bis">{% trans "Departure" %}</label>
-          <input id="hs_bis" name="bis" type="date" required min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input id="hs_bis" name="bis" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 3 %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="hs_erw">{% trans "Adults" %}</label>

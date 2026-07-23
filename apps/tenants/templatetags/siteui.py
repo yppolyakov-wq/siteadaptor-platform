@@ -81,6 +81,18 @@ def safe_href(url):
     return "#"
 
 
+@register.simple_tag
+def default_date(days=1):
+    """E5b «умные дефолты»: дата = сегодня + days (ISO YYYY-MM-DD) для предзаполнения
+    date-search (Anreise = завтра, Abreise = +2 ночи) — «просто нажми Suchen».
+    Поиск НЕ запускается: это лишь значение инпута, посетитель меняет свободно."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    return (timezone.localdate() + timedelta(days=int(days))).isoformat()
+
+
 @register.inclusion_tag("storefront/_funnel_steps.html")
 def funnel_steps(kind, current):
     """E5 «задача-первым»: прогресс-степпер воронки (Schritt N/M) — ведём клиента

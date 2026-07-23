@@ -13218,3 +13218,6 @@ msgstr "Teslimat"
 
 msgid "Fortschritt"
 msgstr "İlerleme"
+
+msgid "Earliest free time"
+msgstr "En erken müsait saat"
