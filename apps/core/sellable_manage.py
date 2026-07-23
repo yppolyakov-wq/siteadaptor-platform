@@ -14,6 +14,7 @@ leistungen/, номера /stays/units/, события /events/). У мульт
 from dataclasses import dataclass
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import sellable
 
@@ -24,7 +25,7 @@ _MANAGE = {
     "product": {
         "model": "catalog.Product",
         "module": "catalog",
-        "label": "Produkte",
+        "label": _("Produkte"),
         "edit": ("catalog:product-edit", True),
         "add": ("catalog:product-create", False),
         "toggle": True,
@@ -32,7 +33,7 @@ _MANAGE = {
     "service": {
         "model": "booking.Service",
         "module": "booking",
-        "label": "Leistungen",
+        "label": _("Leistungen"),
         "edit": ("booking:services", False),
         "add": ("booking:services", False),
         "toggle": True,
@@ -40,7 +41,7 @@ _MANAGE = {
     "stay": {
         "model": "stays.StayUnit",
         "module": "stays",
-        "label": "Zimmer & Einheiten",
+        "label": _("Zimmer & Einheiten"),
         "edit": ("stays:units", False),
         "add": ("stays:units", False),
         "toggle": True,
@@ -48,7 +49,7 @@ _MANAGE = {
     "event": {
         "model": "events.Event",
         "module": "events",
-        "label": "Veranstaltungen",
+        "label": _("Veranstaltungen"),
         "edit": ("events:edit", True),
         "add": ("events:create", False),
         "toggle": False,
@@ -56,7 +57,7 @@ _MANAGE = {
     "combo": {
         "model": "catalog.Combo",
         "module": "catalog",
-        "label": "Kombis",
+        "label": _("Kombis"),
         "edit": ("catalog:combo-edit", True),
         "add": ("catalog:combo-create", False),
         "toggle": True,

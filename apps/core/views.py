@@ -2850,7 +2850,7 @@ def modules_view(request):
         # Гибрид: включение неподходящего вертикали блока — с предупреждением
         # (осознанный выбор, не запрет).
         odd = [
-            spec.label_de
+            str(spec.label_de)
             for spec in optional
             if spec.key in enabled_keys
             and spec.key in previously_disabled

@@ -708,10 +708,9 @@ msgid "Sortiment"
 msgstr "Catalog"
 
 #: apps/core/context_processors.py:17 apps/core/templatetags/cabinet.py:47
-#, fuzzy
 #| msgid "Aktion"
 msgid "Aktionen"
-msgstr "Deal"
+msgstr "Deals"
 
 #: apps/core/context_processors.py:18 apps/core/templatetags/cabinet.py:38
 #: apps/notifications/prefs.py:80
@@ -936,10 +935,9 @@ msgstr "Completed"
 
 #: apps/core/pipeline.py:80 apps/core/pipeline.py:88 apps/core/pipeline.py:94
 #: apps/core/pipeline.py:100 apps/core/pipeline.py:113
-#, fuzzy
 #| msgid "Buchung bestätigt"
 msgid "Bestätigen"
-msgstr "Booking confirmed"
+msgstr "Confirm"
 
 #: apps/core/pipeline.py:81
 msgid "Fertig zur Abholung"
@@ -973,10 +971,9 @@ msgid "No-Show"
 msgstr "No-Show"
 
 #: apps/core/pipeline.py:95
-#, fuzzy
 #| msgid "Abreise"
 msgid "Abgereist"
-msgstr "Departure"
+msgstr "Departed"
 
 #: apps/core/pipeline.py:101
 msgid "Teilgenommen"
@@ -987,10 +984,9 @@ msgid "Angebot senden"
 msgstr "Send a quote"
 
 #: apps/core/pipeline.py:106
-#, fuzzy
 #| msgid "Betrag"
 msgid "Beauftragt"
-msgstr "Amount"
+msgstr "Commissioned"
 
 #: apps/core/pipeline.py:108
 msgid "Abgerechnet"
@@ -1075,10 +1071,9 @@ msgid "Beiträge"
 msgstr "Posts"
 
 #: apps/core/templatetags/cabinet.py:60
-#, fuzzy
 #| msgid "Kontoinhaber"
 msgid "Kontakte"
-msgstr "Account holder"
+msgstr "Contacts"
 
 #: apps/core/templatetags/cabinet.py:61
 msgid "Nachrichten"
@@ -1126,7 +1121,6 @@ msgid "Domains"
 msgstr "Domains"
 
 #: apps/core/templatetags/cabinet.py:79
-#, fuzzy
 #| msgid "Aktion"
 msgid "Funktionen"
 msgstr "Features"
@@ -1187,10 +1181,9 @@ msgstr "Slide removed."
 #: apps/core/views.py:1519 apps/core/views.py:2300 apps/core/views.py:2345
 #: apps/core/views.py:2418 apps/core/views.py:2498 apps/core/views.py:2579
 #: apps/core/views.py:2600 apps/core/views.py:2866
-#, fuzzy
 #| msgid "Weichtiere"
 msgid "Gespeichert."
-msgstr "Molluscs"
+msgstr "Saved."
 
 #: apps/core/views.py:649
 msgid "Please enable at least one language."
@@ -1205,10 +1198,9 @@ msgid "Bilder hochgeladen."
 msgstr "Pictures uploaded."
 
 #: apps/core/views.py:769 apps/core/views.py:1952
-#, fuzzy
 #| msgid "Eingelöst"
 msgid "Bild gelöscht."
-msgstr "Redeemed"
+msgstr "Image deleted."
 
 #: apps/core/views.py:785
 msgid "Vorlage übernommen."
@@ -1432,10 +1424,9 @@ msgid "Extra bold"
 msgstr "Extra bold"
 
 #: apps/core/views.py:1929
-#, fuzzy
 #| msgid "Banner heading"
 msgid "Banner hochgeladen."
-msgstr "Banner heading"
+msgstr "Banner uploaded."
 
 #: apps/core/views.py:2507
 msgid "Listings (catalog, rooms, events)"
@@ -1680,10 +1671,9 @@ msgid "Marked as paid."
 msgstr "Marked as paid."
 
 #: apps/events/views.py:187
-#, fuzzy
 #| msgid "Ticket-Code"
 msgid "Ticket updated."
-msgstr "Ticket code"
+msgstr "Ticket updated."
 
 #: apps/events/views.py:234
 msgid "Post created."
@@ -1939,24 +1929,21 @@ msgstr "Order received"
 #: apps/notifications/prefs.py:21 apps/notifications/prefs.py:32
 #: apps/notifications/prefs.py:40 apps/notifications/prefs.py:48
 #: apps/notifications/prefs.py:61
-#, fuzzy
 #| msgid "Buchung bestätigt"
 msgid "Bestätigt"
-msgstr "Booking confirmed"
+msgstr "Confirmed"
 
 #: apps/notifications/prefs.py:22
-#, fuzzy
 #| msgid "Abholbereit!"
 msgid "Abholbereit"
-msgstr "Ready for pickup!"
+msgstr "Ready for pickup"
 
 #: apps/notifications/prefs.py:25 apps/notifications/prefs.py:33
 #: apps/notifications/prefs.py:41 apps/notifications/prefs.py:49
 #: apps/notifications/prefs.py:62
-#, fuzzy
 #| msgid "Stornieren"
 msgid "Storniert"
-msgstr "Cancel"
+msgstr "Cancelled"
 
 #: apps/notifications/prefs.py:27 apps/notifications/prefs.py:35
 #: apps/notifications/prefs.py:43 apps/notifications/prefs.py:51
@@ -1969,36 +1956,32 @@ msgid "Zahlungserinnerung"
 msgstr "Payment Reminder"
 
 #: apps/notifications/prefs.py:31
-#, fuzzy
 #| msgid "Reservierung eingegangen"
 msgid "Termin eingegangen"
-msgstr "Reservation received"
+msgstr "Appointment received"
 
 #: apps/notifications/prefs.py:34
 msgid "Terminerinnerung"
 msgstr "Appointment Reminder"
 
 #: apps/notifications/prefs.py:39
-#, fuzzy
 #| msgid "Bestellung eingegangen"
 msgid "Buchung eingegangen"
-msgstr "Order received"
+msgstr "Booking received"
 
 #: apps/notifications/prefs.py:42
 msgid "Anreise-Erinnerung"
 msgstr "Arrival Reminder"
 
 #: apps/notifications/prefs.py:47
-#, fuzzy
 #| msgid "Bestellung eingegangen"
 msgid "Ticket eingegangen"
-msgstr "Order received"
+msgstr "Ticket received"
 
 #: apps/notifications/prefs.py:50
-#, fuzzy
 #| msgid "Stornierung"
 msgid "Erinnerung"
-msgstr "Cancellation"
+msgstr "Reminder"
 
 #: apps/notifications/prefs.py:55
 msgid "Angebot gesendet"
@@ -2013,10 +1996,9 @@ msgid "Service-Erinnerung"
 msgstr "Service Reminder"
 
 #: apps/notifications/prefs.py:60
-#, fuzzy
 #| msgid "Reservierung storniert"
 msgid "Reserviert"
-msgstr "Reservation cancelled"
+msgstr "Reserved"
 
 #: apps/orders/public_views.py:203 apps/orders/public_views.py:280
 #: apps/orders/public_views.py:303 templates/storefront/_base.html:284
@@ -2128,10 +2110,9 @@ msgid "Leave blank to use the linked product's price."
 msgstr "Leave blank to use the linked product's price."
 
 #: apps/promotions/forms.py:77
-#, fuzzy
 #| msgid "Either a % or a new price — the rest is computed."
 msgid "Either a percentage or a new price — the rest is computed."
-msgstr "Either a % or a new price — the rest is computed."
+msgstr "Either a percentage or a new price — the rest is computed."
 
 #: apps/promotions/forms.py:79
 msgid ""
@@ -2216,10 +2197,9 @@ msgid "Label"
 msgstr "Label"
 
 #: apps/promotions/forms.py:144
-#, fuzzy
 #| msgid "e.g. −10 % or Free coffee"
 msgid "e.g. −10 percent or Free coffee"
-msgstr "e.g. −10 % or Free coffee"
+msgstr "e.g. −10 percent or Free coffee"
 
 #: apps/promotions/forms.py:146
 msgid "How many"
@@ -2247,10 +2227,9 @@ msgid "Minimum order €"
 msgstr "Minimum order €"
 
 #: apps/promotions/forms.py:173 apps/promotions/forms.py:207
-#, fuzzy
 #| msgid "Use either % or € discount, not both."
 msgid "Use either a percentage or € discount, not both."
-msgstr "Use either % or € discount, not both."
+msgstr "Use either a percentage or € discount, not both."
 
 #: apps/promotions/forms.py:180 templates/promotions/coupon_campaigns.html:56
 msgid "Campaign name"
@@ -2293,10 +2272,9 @@ msgid "Message"
 msgstr "Message"
 
 #: apps/promotions/forms.py:209
-#, fuzzy
 #| msgid "Set a % or € discount for the code."
 msgid "Set a percentage or € discount for the code."
-msgstr "Set a % or € discount for the code."
+msgstr "Set a percentage or € discount for the code."
 
 #: apps/promotions/forms.py:218
 msgid "Program name"
@@ -2327,10 +2305,9 @@ msgstr ""
 "associated with this email address."
 
 #: apps/promotions/public_views.py:602 apps/reviews/submit.py:60
-#, fuzzy
 #| msgid "Vielen Dank für Ihre Reservierung!"
 msgid "Danke für Ihre Bewertung!"
-msgstr "Thank you for your reservation!"
+msgstr "Thank you for your review!"
 
 #: apps/promotions/public_views.py:892
 msgid "Please enter your name and the goods."
@@ -2360,34 +2337,29 @@ msgid "Transition to %(target)s is not allowed."
 msgstr "Transition to %(target)s is not allowed."
 
 #: apps/promotions/views.py:514
-#, fuzzy
 #| msgid "Reservierung storniert"
 msgid "Reservation confirmed."
-msgstr "Reservation cancelled"
+msgstr "Reservation confirmed."
 
 #: apps/promotions/views.py:515
-#, fuzzy
 #| msgid "Reservation imported."
 msgid "Reservation fulfilled."
-msgstr "Reservation imported."
+msgstr "Reservation fulfilled."
 
 #: apps/promotions/views.py:516
-#, fuzzy
 #| msgid "Reservation received"
 msgid "Reservation cancelled."
-msgstr "Reservation received"
+msgstr "Reservation cancelled."
 
 #: apps/promotions/views.py:518
-#, fuzzy
 #| msgid "Reservation imported."
 msgid "Reservation updated."
-msgstr "Reservation imported."
+msgstr "Reservation updated."
 
 #: apps/promotions/views.py:536
-#, fuzzy
 #| msgid "Bitte gezählten Bestand eingeben."
 msgid "Bitte einen Code eingeben."
-msgstr "Please enter the counted inventory."
+msgstr "Please enter a code."
 
 #: apps/promotions/views.py:616
 #, python-format
@@ -2395,48 +2367,42 @@ msgid "%(count)d Voucher erstellt."
 msgstr "%(count)d Voucher created."
 
 #: apps/promotions/views.py:674
-#, fuzzy
 #| msgid "Program name"
 msgid "Programm erstellt."
-msgstr "Program name"
+msgstr "Program created."
 
 #: apps/promotions/views.py:716
 msgid "Zu schnell — bitte kurz warten."
 msgstr "Too fast — please wait a moment."
 
 #: apps/promotions/views.py:720
-#, fuzzy
 #| msgid "Payment refunded."
 msgid "Karte nicht gefunden."
-msgstr "Payment refunded."
+msgstr "Card not found."
 
 #: apps/promotions/views.py:763
-#, fuzzy
 #| msgid "Benachrichtigungen gespeichert."
 msgid "Kampagne gespeichert."
-msgstr "Notifications saved."
+msgstr "Campaign saved."
 
 #: apps/promotions/views.py:795
-#, fuzzy
 #| msgid "Bitte gezählten Bestand eingeben."
 msgid "Bitte gültige Zahlen eingeben."
-msgstr "Please enter the counted inventory."
+msgstr "Please enter valid numbers."
 
 #: apps/promotions/views.py:813
 msgid "Auto Win-back gespeichert."
 msgstr "Auto Win-back saved."
 
 #: apps/promotions/views.py:858
-#, fuzzy
 #| msgid "Benachrichtigungen gespeichert."
 msgid "Entwurf gespeichert."
-msgstr "Notifications saved."
+msgstr "Draft saved."
 
 #: apps/promotions/views.py:860
-#, fuzzy
 #| msgid "Bitte gezählten Bestand eingeben."
 msgid "Bitte Betreff und Text eingeben."
-msgstr "Please enter the counted inventory."
+msgstr "Please enter a subject and text."
 
 #: apps/publishing/views.py:46
 msgid "Channel updated."
@@ -2901,10 +2867,9 @@ msgstr "Request a quote"
 #: templates/storefront/message_contact.html:3
 #: templates/storefront/message_contact.html:7
 #: templates/storefront/stay_detail.html:34
-#, fuzzy
 #| msgid "Aktion"
 msgid "Ask a question"
-msgstr "Deal"
+msgstr "Ask a question"
 
 #: config/settings/base.py:582
 msgid "Platform administration"
@@ -3066,12 +3031,12 @@ msgid "opens"
 msgstr "opens"
 
 #: templates/aggregator/_cards.html:35
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Personen"
 msgid "%(n)s room type"
 msgid_plural "%(n)s room types"
-msgstr[0] "%(n)s people"
-msgstr[1] "%(n)s people"
+msgstr[0] "%(n)s room type"
+msgstr[1] "%(n)s room types"
 
 #: templates/aggregator/_cards.html:43 templates/aggregator/_cards.html:49
 #: templates/storefront/_discount_display.html:49
@@ -3090,11 +3055,11 @@ msgstr "from"
 #: templates/storefront/_buybox_stay_form.html:44
 #: templates/storefront/stay_confirmation.html:11
 #: templates/storefront/stay_index.html:68
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Nächte"
 msgid "%(n)s night"
 msgid_plural "%(n)s nights"
-msgstr[0] "%(n)s nights"
+msgstr[0] "%(n)s night"
 msgstr[1] "%(n)s nights"
 
 #: templates/aggregator/_cards.html:50 templates/stays/units.html:109
@@ -3240,10 +3205,9 @@ msgid "My account"
 msgstr "My account"
 
 #: templates/aggregator/portal_account.html:11
-#, fuzzy
 #| msgid "mit Antioxidationsmittel"
 msgid "Email notifications"
-msgstr "with antioxidant"
+msgstr "Email notifications"
 
 #: templates/aggregator/portal_account.html:13
 msgid ""
@@ -3298,12 +3262,12 @@ msgstr "Discover"
 #: templates/storefront/_entity_reviews.html:16
 #: templates/storefront/product_detail.html:78
 #: templates/storefront/sections/_trust.html:12
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Personen"
 msgid "%(n)s review"
 msgid_plural "%(n)s reviews"
-msgstr[0] "%(n)s people"
-msgstr[1] "%(n)s people"
+msgstr[0] "%(n)s review"
+msgstr[1] "%(n)s reviews"
 
 #: templates/aggregator/portal_business.html:29
 #: templates/storefront/_base.html:200
@@ -4120,10 +4084,9 @@ msgstr "product"
 #: templates/catalog/combo_form.html:97
 #: templates/catalog/product_form.html:215
 #: templates/storefront/_add_to_cart_form.html:6
-#, fuzzy
 #| msgid "Aktion"
 msgid "Option"
-msgstr "Deal"
+msgstr "Option"
 
 #: templates/catalog/combo_form.html:103
 msgid "Remove group"
@@ -4314,10 +4277,9 @@ msgid "Option (e.g. Pommes)"
 msgstr "Option (e.g. Fries)"
 
 #: templates/catalog/product_form.html:230
-#, fuzzy
 #| msgid "Aktion"
 msgid "Add option"
-msgstr "Deal"
+msgstr "Add option"
 
 #: templates/catalog/product_form.html:238
 msgid "Group (e.g. Size)"
@@ -5798,20 +5760,18 @@ msgstr ""
 "reconciliation against the inventory counter."
 
 #: templates/inventory/stock.html:21
-#, fuzzy
 #| msgid "Wie war Ihr Einkauf?"
 msgid "Warenwert (Einkauf)"
-msgstr "How was your purchase?"
+msgstr "Stock value (purchase)"
 
 #: templates/inventory/stock.html:28
 msgid "SKU / EAN scannen oder eingeben"
 msgstr "Scan or enter the SKU / EAN"
 
 #: templates/inventory/stock.html:29
-#, fuzzy
 #| msgid "Sprachen"
 msgid "Suchen"
-msgstr "Languages"
+msgstr "Search"
 
 #: templates/inventory/stock.html:32
 msgid "Kein Artikel mit diesem Code gefunden."
@@ -5881,10 +5841,9 @@ msgid "Startbestand buchen"
 msgstr "Post Opening Balance"
 
 #: templates/inventory/stock.html:103
-#, fuzzy
 #| msgid "Rücksendung erfasst"
 msgid "Buchung erfassen"
-msgstr "Return received"
+msgstr "Record booking"
 
 #: templates/inventory/stock.html:109
 msgid "Wareneingang (+)"
@@ -6069,10 +6028,9 @@ msgid "Save quote"
 msgstr "Save quote"
 
 #: templates/jobs/detail.html:130 templates/storefront/angebot.html:36
-#, fuzzy
 #| msgid "Neu"
 msgid "Net"
-msgstr "New"
+msgstr "Net"
 
 #: templates/jobs/detail.html:134
 msgid "Deposit"
@@ -6231,7 +6189,6 @@ msgid "Delete my data"
 msgstr "Delete my data"
 
 #: templates/orders/_kitchen_board.html:8
-#, fuzzy
 #| msgid "Neu"
 msgid "New"
 msgstr "New"
@@ -6309,10 +6266,9 @@ msgid "Delivery note (PDF)"
 msgstr "Delivery note (PDF)"
 
 #: templates/orders/order_detail.html:71
-#, fuzzy
 #| msgid "Aktion"
 msgid "Actions"
-msgstr "Deal"
+msgstr "Actions"
 
 #: templates/orders/order_detail.html:78
 msgid "Tracking number (optional)"
@@ -6605,12 +6561,12 @@ msgid "All programs"
 msgstr "All programs"
 
 #: templates/promotions/loyalty_stamp.html:22
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Personen"
 msgid "%(n)s reward earned"
 msgid_plural "%(n)s rewards earned"
-msgstr[0] "%(n)s people"
-msgstr[1] "%(n)s people"
+msgstr[0] "%(n)s reward earned"
+msgstr[1] "%(n)s rewards earned"
 
 #: templates/promotions/loyalty_stamp.html:26
 msgid "Stamp"
@@ -6646,12 +6602,12 @@ msgid "Emails are only sent to them."
 msgstr "Emails are only sent to them."
 
 #: templates/promotions/newsletter.html:42
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Personen"
 msgid "%(n)s recipient"
 msgid_plural "%(n)s recipients"
-msgstr[0] "%(n)s people"
-msgstr[1] "%(n)s people"
+msgstr[0] "%(n)s recipient"
+msgstr[1] "%(n)s recipients"
 
 #: templates/promotions/newsletter.html:46
 msgid "Send this newsletter to all confirmed guests?"
@@ -6774,10 +6730,9 @@ msgid "Shop poster (PDF)"
 msgstr "Shop poster (PDF)"
 
 #: templates/promotions/promotion_list.html:14
-#, fuzzy
 #| msgid "Stornieren"
 msgid "Storefront"
-msgstr "Cancel"
+msgstr "Storefront"
 
 #: templates/promotions/promotion_list.html:17
 #: templates/storefront/_buybox_stay_select.html:30
@@ -7809,12 +7764,12 @@ msgstr "Pick a time to continue."
 #: templates/storefront/_buybox_stay_form.html:11
 #: templates/storefront/_buybox_stay_form.html:44
 #: templates/storefront/stay_confirmation.html:11
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Personen"
 msgid "%(n)s room"
 msgid_plural "%(n)s rooms"
-msgstr[0] "%(n)s people"
-msgstr[1] "%(n)s people"
+msgstr[0] "%(n)s room"
+msgstr[1] "%(n)s rooms"
 
 #: templates/storefront/_buybox_stay_form.html:15
 msgid "Choose your rate"
@@ -8155,10 +8110,9 @@ msgid "Fr"
 msgstr "Fr"
 
 #: templates/storefront/_stay_calendar.html:24
-#, fuzzy
 #| msgid "Soja"
 msgid "Sa"
-msgstr "Soybeans"
+msgstr "Sa"
 
 #: templates/storefront/_stay_calendar.html:24
 msgid "Su"
@@ -8340,7 +8294,7 @@ msgid "Thank you! Your booking is in."
 msgstr "Thank you! Your booking is in."
 
 #: templates/storefront/booking_confirmation.html:11
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Gäste"
 msgid "%(n)s guests"
 msgstr "%(n)s guests"
@@ -8403,12 +8357,12 @@ msgid "Group course — pick a time, free spots are shown."
 msgstr "Group course — pick a time, free spots are shown."
 
 #: templates/storefront/booking_slots.html:45
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Gäste"
 msgid "%(n)s spot"
 msgid_plural "%(n)s spots"
-msgstr[0] "%(n)s guests"
-msgstr[1] "%(n)s guests"
+msgstr[0] "%(n)s spot"
+msgstr[1] "%(n)s spots"
 
 #: templates/storefront/booking_slots.html:50
 msgid "No free slots on this day — try another date."
@@ -8524,17 +8478,15 @@ msgid "No combos available right now."
 msgstr "No combos available right now."
 
 #: templates/storefront/confirmation.html:3
-#, fuzzy
 #| msgid "Reservierung storniert"
 msgid "Reservation confirmed"
-msgstr "Reservation cancelled"
+msgstr "Reservation confirmed"
 
 #: templates/storefront/confirmation.html:8
 msgid "Reservation received"
 msgstr "Reservation received"
 
 #: templates/storefront/confirmation.html:12
-#, fuzzy
 #| msgid "Referenz-Code"
 msgid "Reference code"
 msgstr "Reference code"
@@ -8646,10 +8598,9 @@ msgid "Your ticket code:"
 msgstr "Your ticket code:"
 
 #: templates/storefront/event_confirmation.html:27
-#, fuzzy
 #| msgid "Ticket-Code"
 msgid "Ticket QR code"
-msgstr "Ticket code"
+msgstr "Ticket QR code"
 
 #: templates/storefront/event_confirmation.html:28
 msgid "Show this at the entrance"
@@ -8709,10 +8660,9 @@ msgid "Only %(n)s spots left"
 msgstr "Only %(n)s spots left"
 
 #: templates/storefront/event_detail.html:31
-#, fuzzy
 #| msgid "Reservierung storniert"
 msgid "Reserve a spot"
-msgstr "Reservation cancelled"
+msgstr "Reserve a spot"
 
 #: templates/storefront/event_detail.html:55
 #, python-format
@@ -8724,10 +8674,9 @@ msgstr ""
 "atmosphere."
 
 #: templates/storefront/event_detail.html:61
-#, fuzzy
 #| msgid "Reservierung storniert"
 msgid "Reserve your spot"
-msgstr "Reservation cancelled"
+msgstr "Reserve your spot"
 
 #: templates/storefront/event_detail.html:67
 msgid "Join the waitlist and we'll email you the moment a spot opens up."
@@ -8739,16 +8688,15 @@ msgid "Phone (optional)"
 msgstr "Phone (optional)"
 
 #: templates/storefront/event_detail.html:95
-#, fuzzy
 #| msgid "Ticket-Code"
 msgid "Ticket"
-msgstr "Ticket code"
+msgstr "Ticket"
 
 #: templates/storefront/event_detail.html:101
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Gäste"
 msgid "%(n)s left"
-msgstr "%(n)s guests"
+msgstr "%(n)s left"
 
 #: templates/storefront/event_detail.html:115
 msgid "Without accommodation"
@@ -8851,10 +8799,10 @@ msgstr "Any teacher"
 
 #: templates/storefront/event_index.html:103
 #: templates/storefront/event_index.html:137
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Gäste"
 msgid "%(n)s seats left"
-msgstr "%(n)s guests"
+msgstr "%(n)s seats left"
 
 #: templates/storefront/event_index.html:149
 msgid "No events match your filters."
@@ -9065,10 +9013,9 @@ msgid "Please transfer the total in advance:"
 msgstr "Please transfer the total in advance:"
 
 #: templates/storefront/order_confirmation.html:50
-#, fuzzy
 #| msgid "Referenz-Code"
 msgid "Reference"
-msgstr "Reference code"
+msgstr "Reference"
 
 #: templates/storefront/order_confirmation.html:57
 msgid "Pay on delivery."
@@ -9461,20 +9408,20 @@ msgid "Complete check-in"
 msgstr "Complete check-in"
 
 #: templates/storefront/stay_confirmation.html:11
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Gäste"
 msgid "%(n)s adult"
 msgid_plural "%(n)s adults"
-msgstr[0] "%(n)s guests"
-msgstr[1] "%(n)s guests"
+msgstr[0] "%(n)s adult"
+msgstr[1] "%(n)s adults"
 
 #: templates/storefront/stay_confirmation.html:11
-#, fuzzy, python-format
+#, python-format
 #| msgid "%(n)s Nächte"
 msgid "%(n)s child"
 msgid_plural "%(n)s children"
-msgstr[0] "%(n)s nights"
-msgstr[1] "%(n)s nights"
+msgstr[0] "%(n)s child"
+msgstr[1] "%(n)s children"
 
 #: templates/storefront/stay_confirmation.html:24
 #, python-format
@@ -9742,10 +9689,9 @@ msgid "Image URL"
 msgstr "Image URL"
 
 #: templates/tenant/_cb_row.html:68
-#, fuzzy
 #| msgid "Aktion"
 msgid "Caption"
-msgstr "Deal"
+msgstr "Caption"
 
 #: templates/tenant/_cb_row.html:73
 msgid "Corners"
@@ -10311,10 +10257,9 @@ msgid "Keine aktiven Verkaufsmodule."
 msgstr "No active sales modules."
 
 #: templates/tenant/notifications.html:85
-#, fuzzy
 #| msgid "Weichtiere"
 msgid "Speichern"
-msgstr "Molluscs"
+msgstr "Save"
 
 #: templates/tenant/payment_settings.html:9
 msgid "Everything about paying and delivery in one place."
@@ -10719,7 +10664,6 @@ msgid "Simple"
 msgstr "Simple"
 
 #: templates/tenant/site_home.html:36
-#, fuzzy
 #| msgid "Experte"
 msgid "Expert"
 msgstr "Expert"
@@ -12464,3 +12408,334 @@ msgstr "Save questions"
 
 msgid "Vorlage geladen."
 msgstr "Template loaded."
+
+msgid "Aktionen & Reservierung"
+msgstr "Deals & reservations"
+
+msgid "Kunden (CRM)"
+msgstr "Customers (CRM)"
+
+msgid "Bestellungen (Click & Collect)"
+msgstr "Orders (Click & Collect)"
+
+msgid "Reservierungen nach Zeit (Booking)"
+msgstr "Time-based reservations (booking)"
+
+msgid "Übernachtung (nach Datum)"
+msgstr "Overnight stay (by date)"
+
+msgid "Treueprogramm"
+msgstr "Loyalty program"
+
+msgid "Geschenkgutscheine"
+msgstr "Gift vouchers"
+
+msgid "Auswertung"
+msgstr "Analytics"
+
+msgid "Veröffentlichung (Kanäle)"
+msgstr "Publishing (channels)"
+
+msgid "Aufträge & Angebote"
+msgstr "Jobs & quotes"
+
+msgid "Telegram-Bot"
+msgstr "Telegram bot"
+
+msgid "Nachrichten (Chat & Support)"
+msgstr "Messages (chat & support)"
+
+msgid "Veranstaltungen (Tickets)"
+msgstr "Events (tickets)"
+
+msgid "Kundenkonto (Login für Kunden)"
+msgstr "Customer account (customer login)"
+
+msgid "Blog / Neuigkeiten"
+msgstr "Blog / news"
+
+msgid "Finanzen (Umsatz)"
+msgstr "Finances (revenue)"
+
+msgid "Abo & Zahlung"
+msgstr "Subscription & payment"
+
+msgid "Katalog & Import"
+msgstr "Catalog & import"
+
+msgid "Zimmer & Einheiten"
+msgstr "Rooms & units"
+
+msgid "Überblick über Ihr Geschäft."
+msgstr "Overview of your business."
+
+msgid "Alle Bestellungen, Termine, Buchungen & Anfragen als Kanban-Board."
+msgstr "All orders, appointments, bookings & requests as a Kanban board."
+
+msgid "Produkte und Kategorien pflegen, Import aus CSV/Excel."
+msgstr "Manage products and categories, import from CSV/Excel."
+
+msgid "Aktionen erstellen, Reservierungen annehmen und im Laden einlösen."
+msgstr "Create deals, accept reservations and redeem them in store."
+
+msgid "Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie."
+msgstr "Keep a customer list: contacts, tags, notes, booking history."
+
+msgid ""
+"Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: ansehen, "
+"ausblenden, beantworten."
+msgstr ""
+"Reviews of your products, services, rooms and events: view, hide, reply."
+
+msgid "Kunden bestellen online und holen im Laden ab."
+msgstr "Customers order online and pick up in store."
+
+msgid "Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."
+msgstr "Let tables, appointments or rooms be reserved by time."
+
+msgid "Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen."
+msgstr "Let rooms, holiday flats or pitches be booked by night."
+
+msgid "Gutscheine und Stempelkarten für Stammkunden."
+msgstr "Vouchers and stamp cards for regulars."
+
+msgid ""
+"Geschenkgutscheine online verkaufen: Käufer zahlt online, Beschenkte lösen "
+"den Code beim Bestellen oder Buchen ein. Voraussetzung: Online-Zahlungen "
+"(Stripe) aktiviert."
+msgstr ""
+"Sell gift vouchers online: the buyer pays online, recipients redeem the code"
+" when ordering or booking. Requires online payments (Stripe) enabled."
+
+msgid "Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."
+msgstr "Analytics for your deals: views, reservations, redemptions."
+
+msgid ""
+"Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und "
+"Google."
+msgstr "Publish news and posts — fresh content for customers and Google."
+
+msgid ""
+"Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, "
+"Instagram)."
+msgstr ""
+"Publish deals automatically on channels (Google, Facebook, Instagram)."
+
+msgid ""
+"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge "
+"abrechnen."
+msgstr "Accept requests, create quotes/estimates, bill jobs."
+
+msgid ""
+"Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram."
+msgstr ""
+"Your own Telegram bot: customers open your shop as a Mini App in Telegram."
+
+msgid "Kundennachrichten und Support-Tickets an einem Ort beantworten."
+msgstr "Answer customer messages and support tickets in one place."
+
+msgid "Veranstaltungen mit bezahlten Tickets und Teilnehmerliste."
+msgstr "Events with paid tickets and attendee list."
+
+msgid ""
+"Kunden melden sich per E-Mail-Link an und sehen Bestellungen, Termine, "
+"Rechnungen und Bonuskarten."
+msgstr ""
+"Customers log in via an email link and see orders, appointments, invoices "
+"and loyalty cards."
+
+msgid "Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."
+msgstr "Revenue journal: income from orders, reservations and manual entries."
+
+msgid "Abo und Zahlung."
+msgstr "Subscription and payment."
+
+msgid "Einstellungen, Website-Baukasten, Domains, Module, Hilfe."
+msgstr "Settings, website builder, domains, modules, help."
+
+msgid "Bestellungen, Termine und Bonuskarten einsehen."
+msgstr "View orders, appointments and loyalty cards."
+
+msgid "Stöbern Sie in unserem Angebot."
+msgstr "Browse our range."
+
+msgid "Online bestellen"
+msgstr "Order online"
+
+msgid "Termin buchen"
+msgstr "Book an appointment"
+
+msgid "Übernachten"
+msgstr "Stay overnight"
+
+msgid "Gutschein verschenken"
+msgstr "Give a voucher"
+
+msgid "Neuigkeiten"
+msgstr "News"
+
+msgid "Angebot anfragen"
+msgstr "Request a quote"
+
+msgid "Mein Konto"
+msgstr "My account"
+
+msgid "Kontakt"
+msgstr "Contact"
+
+msgid "Bestellen und im Laden abholen oder liefern lassen."
+msgstr "Order and pick up in store or have it delivered."
+
+msgid "Reservieren Sie online Ihren Tisch oder Termin."
+msgstr "Reserve your table or appointment online."
+
+msgid "Verfügbarkeit prüfen und Übernachtung buchen."
+msgstr "Check availability and book your stay."
+
+msgid "Stempel sammeln und Prämien sichern."
+msgstr "Collect stamps and earn rewards."
+
+msgid "Geschenkgutschein kaufen — Betrag frei wählbar."
+msgstr "Buy a gift voucher — choose any amount."
+
+msgid "Aktuelles aus unserem Betrieb."
+msgstr "Latest from our business."
+
+msgid "Fordern Sie online einen Kostenvoranschlag an."
+msgstr "Request an estimate online."
+
+msgid "Stellen Sie uns eine Frage."
+msgstr "Ask us a question."
+
+msgid "Tickets für unsere Events sichern."
+msgstr "Grab tickets for our events."
+
+msgid "Für alle Geschäftstypen"
+msgstr "For all business types"
+
+#, python-format
+msgid "Geeignet für: %(list)s"
+msgstr "Suitable for: %(list)s"
+
+msgid "Neu / Eingang"
+msgstr "New / incoming"
+
+msgid "In Arbeit (hält Kapazität)"
+msgstr "In progress (holds capacity)"
+
+msgid "Abgeschlossen (Umsatz)"
+msgstr "Completed (revenue)"
+
+msgid "Storniert / Abbruch"
+msgstr "Cancelled / aborted"
+
+msgid "Leistungen"
+msgstr "Services"
+
+msgid "Kombis"
+msgstr "Combos"
+
+msgid "Brot, Brötchen & Kuchen — Vorbestellung & Abholung"
+msgstr "Bread, rolls & cakes — pre-order & pickup"
+
+msgid "Fleisch & Wurst — Vorbestellung, Partyservice"
+msgstr "Meat & sausage — pre-order, party service"
+
+msgid "Lebensmittel — Sortiment, Aktionen & Treue"
+msgstr "Groceries — range, deals & loyalty"
+
+msgid "Mode — Online-Shop mit Größen & Versand"
+msgstr "Fashion — online shop with sizes & shipping"
+
+msgid "Speisekarte, Tischreservierung & Lieferung"
+msgstr "Menu, table reservation & delivery"
+
+msgid "Karte, Reservierung & Treuekarte"
+msgstr "Menu, reservation & loyalty card"
+
+msgid "Einzelhandel — Online-Shop, Versand & Abholung"
+msgstr "Retail — online shop, shipping & pickup"
+
+msgid "Online-Shop — verkaufen & versenden, ohne Ladengeschäft"
+msgstr "Online shop — sell & ship, without a physical store"
+
+msgid "Touren & Events — Tickets und Termine"
+msgstr "Tours & events — tickets and dates"
+
+msgid "Zimmer & Ferienwohnungen — Buchung nach Datum"
+msgstr "Rooms & holiday flats — booking by date"
+
+msgid "Salon — Termine online, Bewertungen & Treuekarte"
+msgstr "Salon — online appointments, reviews & loyalty card"
+
+msgid "Handwerk — Anfragen, Angebote & Kostenvoranschläge"
+msgstr "Trades — requests, quotes & estimates"
+
+msgid "KFZ-Werkstatt — Termine & Kostenvoranschläge"
+msgstr "Car workshop — appointments & estimates"
+
+msgid "Veranstalter — Tickets, Termine & Teilnehmerlisten"
+msgstr "Organizer — tickets, dates & attendee lists"
+
+msgid "Etwas anderes — frei konfigurierbar"
+msgstr "Something else — freely configurable"
+
+msgid "Widerruf"
+msgstr "Withdrawal"
+
+msgid "Widerrufsbelehrung"
+msgstr "Withdrawal policy"
+
+msgid "Widerruf eingegangen"
+msgstr "Withdrawal received"
+
+msgid "Zur Startseite"
+msgstr "To the home page"
+
+msgid "Widerruf erklären"
+msgstr "Declare withdrawal"
+
+msgid ""
+"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: "
+"Name und Ware."
+msgstr ""
+"Fill in the form to withdraw from your purchase. Required fields: name and "
+"goods."
+
+msgid "Welche Ware widerrufen Sie?"
+msgstr "Which goods are you withdrawing?"
+
+msgid "Bestellt / erhalten am"
+msgstr "Ordered / received on"
+
+msgid "TT.MM.JJJJ"
+msgstr "DD.MM.YYYY"
+
+msgid "Anschrift"
+msgstr "Address"
+
+msgid "Widerruf absenden"
+msgstr "Send withdrawal"
+
+#, python-format
+msgid ""
+"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten "
+"in Kürze eine Bestätigung."
+msgstr ""
+"Thank you, %(name)s. Your withdrawal has been submitted to us. You will "
+"receive a confirmation shortly."
+
+msgid "z. B. VW Golf 1.6 TDI"
+msgstr "e.g. VW Golf 1.6 TDI"
+
+msgid "z. B. VW Golf · M-AB 1234"
+msgstr "e.g. VW Golf · M-AB 1234"
+
+msgid "Kartenform"
+msgstr "Card shape"
+
+msgid "Text auf Foto"
+msgstr "Text over photo"
+
+msgid "Kompakte Zeile"
+msgstr "Compact row"

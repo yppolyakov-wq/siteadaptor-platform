@@ -2209,10 +2209,9 @@ msgid "Label"
 msgstr "Этикетка"
 
 #: apps/promotions/forms.py:144
-#, fuzzy
 #| msgid "e.g. −10 %%, free coffee"
 msgid "e.g. −10 percent or Free coffee"
-msgstr "например, −10 %%, бесплатный кофе"
+msgstr "например, −10 %, бесплатный кофе"
 
 #: apps/promotions/forms.py:146
 msgid "How many"
@@ -12597,3 +12596,337 @@ msgstr "Сохранить вопросы"
 
 msgid "Vorlage geladen."
 msgstr "Шаблон загружен."
+
+msgid "Aktionen & Reservierung"
+msgstr "Акции и бронирование"
+
+msgid "Kunden (CRM)"
+msgstr "Клиенты (CRM)"
+
+msgid "Bestellungen (Click & Collect)"
+msgstr "Заказы (Click & Collect)"
+
+msgid "Reservierungen nach Zeit (Booking)"
+msgstr "Бронирование по времени (Booking)"
+
+msgid "Übernachtung (nach Datum)"
+msgstr "Проживание (по датам)"
+
+msgid "Treueprogramm"
+msgstr "Программа лояльности"
+
+msgid "Geschenkgutscheine"
+msgstr "Подарочные сертификаты"
+
+msgid "Auswertung"
+msgstr "Аналитика"
+
+msgid "Veröffentlichung (Kanäle)"
+msgstr "Публикация (каналы)"
+
+msgid "Aufträge & Angebote"
+msgstr "Заказы и сметы"
+
+msgid "Telegram-Bot"
+msgstr "Telegram-бот"
+
+msgid "Nachrichten (Chat & Support)"
+msgstr "Сообщения (чат и поддержка)"
+
+msgid "Veranstaltungen (Tickets)"
+msgstr "Мероприятия (билеты)"
+
+msgid "Kundenkonto (Login für Kunden)"
+msgstr "Личный кабинет клиента (вход для клиентов)"
+
+msgid "Blog / Neuigkeiten"
+msgstr "Блог / новости"
+
+msgid "Finanzen (Umsatz)"
+msgstr "Финансы (выручка)"
+
+msgid "Abo & Zahlung"
+msgstr "Подписка и оплата"
+
+msgid "Katalog & Import"
+msgstr "Каталог и импорт"
+
+msgid "Zimmer & Einheiten"
+msgstr "Номера и объекты"
+
+msgid "Überblick über Ihr Geschäft."
+msgstr "Обзор вашего бизнеса."
+
+msgid "Alle Bestellungen, Termine, Buchungen & Anfragen als Kanban-Board."
+msgstr "Все заказы, встречи, брони и запросы на Kanban-доске."
+
+msgid "Produkte und Kategorien pflegen, Import aus CSV/Excel."
+msgstr "Управление товарами и категориями, импорт из CSV/Excel."
+
+msgid "Aktionen erstellen, Reservierungen annehmen und im Laden einlösen."
+msgstr "Создавайте акции, принимайте брони и погашайте их в магазине."
+
+msgid "Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie."
+msgstr "Ведите список клиентов: контакты, теги, заметки, история броней."
+
+msgid ""
+"Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: ansehen, "
+"ausblenden, beantworten."
+msgstr ""
+"Отзывы о ваших товарах, услугах, номерах и событиях: смотреть, скрывать, "
+"отвечать."
+
+msgid "Kunden bestellen online und holen im Laden ab."
+msgstr "Клиенты заказывают онлайн и забирают в магазине."
+
+msgid "Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."
+msgstr "Приём броней столов, встреч или номеров по времени."
+
+msgid "Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen."
+msgstr "Приём броней номеров, апартаментов или мест по ночам."
+
+msgid "Gutscheine und Stempelkarten für Stammkunden."
+msgstr "Купоны и карты штампов для постоянных клиентов."
+
+msgid ""
+"Geschenkgutscheine online verkaufen: Käufer zahlt online, Beschenkte lösen "
+"den Code beim Bestellen oder Buchen ein. Voraussetzung: Online-Zahlungen "
+"(Stripe) aktiviert."
+msgstr ""
+"Продавайте подарочные сертификаты онлайн: покупатель платит онлайн, "
+"получатели гасят код при заказе или брони. Требуется включённая онлайн-"
+"оплата (Stripe)."
+
+msgid "Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."
+msgstr "Аналитика ваших акций: показы, брони, погашения."
+
+msgid ""
+"Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und "
+"Google."
+msgstr "Публикуйте новости и посты — свежий контент для клиентов и Google."
+
+msgid ""
+"Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, "
+"Instagram)."
+msgstr "Автопубликация акций в каналах (Google, Facebook, Instagram)."
+
+msgid ""
+"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge "
+"abrechnen."
+msgstr ""
+"Принимайте заявки, создавайте сметы/предложения, выставляйте счета за "
+"работы."
+
+msgid ""
+"Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram."
+msgstr ""
+"Собственный Telegram-бот: клиенты открывают ваш магазин как Mini App в "
+"Telegram."
+
+msgid "Kundennachrichten und Support-Tickets an einem Ort beantworten."
+msgstr "Отвечайте на сообщения клиентов и тикеты поддержки в одном месте."
+
+msgid "Veranstaltungen mit bezahlten Tickets und Teilnehmerliste."
+msgstr "События с платными билетами и списком участников."
+
+msgid ""
+"Kunden melden sich per E-Mail-Link an und sehen Bestellungen, Termine, "
+"Rechnungen und Bonuskarten."
+msgstr ""
+"Клиенты входят по ссылке из письма и видят заказы, встречи, счета и бонусные"
+" карты."
+
+msgid "Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."
+msgstr "Журнал выручки: доход от заказов, броней и вручную."
+
+msgid "Abo und Zahlung."
+msgstr "Подписка и оплата."
+
+msgid "Einstellungen, Website-Baukasten, Domains, Module, Hilfe."
+msgstr "Настройки, конструктор сайта, домены, модули, помощь."
+
+msgid "Bestellungen, Termine und Bonuskarten einsehen."
+msgstr "Просмотр заказов, встреч и бонусных карт."
+
+msgid "Stöbern Sie in unserem Angebot."
+msgstr "Загляните в наш ассортимент."
+
+msgid "Online bestellen"
+msgstr "Заказать онлайн"
+
+msgid "Termin buchen"
+msgstr "Записаться"
+
+msgid "Übernachten"
+msgstr "Проживание"
+
+msgid "Gutschein verschenken"
+msgstr "Подарить сертификат"
+
+msgid "Neuigkeiten"
+msgstr "Новости"
+
+msgid "Angebot anfragen"
+msgstr "Запросить смету"
+
+msgid "Mein Konto"
+msgstr "Мой кабинет"
+
+msgid "Kontakt"
+msgstr "Контакт"
+
+msgid "Bestellen und im Laden abholen oder liefern lassen."
+msgstr "Закажите и заберите в магазине или закажите доставку."
+
+msgid "Reservieren Sie online Ihren Tisch oder Termin."
+msgstr "Забронируйте столик или запись онлайн."
+
+msgid "Verfügbarkeit prüfen und Übernachtung buchen."
+msgstr "Проверьте наличие и забронируйте проживание."
+
+msgid "Stempel sammeln und Prämien sichern."
+msgstr "Собирайте штампы и получайте награды."
+
+msgid "Geschenkgutschein kaufen — Betrag frei wählbar."
+msgstr "Купите подарочный сертификат — сумма на выбор."
+
+msgid "Aktuelles aus unserem Betrieb."
+msgstr "Новости нашего дела."
+
+msgid "Fordern Sie online einen Kostenvoranschlag an."
+msgstr "Запросите смету онлайн."
+
+msgid "Stellen Sie uns eine Frage."
+msgstr "Задайте нам вопрос."
+
+msgid "Tickets für unsere Events sichern."
+msgstr "Возьмите билеты на наши события."
+
+msgid "Für alle Geschäftstypen"
+msgstr "Для всех типов бизнеса"
+
+#, python-format
+msgid "Geeignet für: %(list)s"
+msgstr "Подходит для: %(list)s"
+
+msgid "Neu / Eingang"
+msgstr "Новый / поступление"
+
+msgid "In Arbeit (hält Kapazität)"
+msgstr "В работе (держит ёмкость)"
+
+msgid "Abgeschlossen (Umsatz)"
+msgstr "Завершён (выручка)"
+
+msgid "Storniert / Abbruch"
+msgstr "Отменён / прерван"
+
+msgid "Leistungen"
+msgstr "Услуги"
+
+msgid "Kombis"
+msgstr "Комбо"
+
+msgid "Brot, Brötchen & Kuchen — Vorbestellung & Abholung"
+msgstr "Хлеб, булочки и торты — предзаказ и самовывоз"
+
+msgid "Fleisch & Wurst — Vorbestellung, Partyservice"
+msgstr "Мясо и колбасы — предзаказ, кейтеринг"
+
+msgid "Lebensmittel — Sortiment, Aktionen & Treue"
+msgstr "Продукты — ассортимент, акции и лояльность"
+
+msgid "Mode — Online-Shop mit Größen & Versand"
+msgstr "Мода — интернет-магазин с размерами и доставкой"
+
+msgid "Speisekarte, Tischreservierung & Lieferung"
+msgstr "Меню, бронь столов и доставка"
+
+msgid "Karte, Reservierung & Treuekarte"
+msgstr "Меню, бронь и карта лояльности"
+
+msgid "Einzelhandel — Online-Shop, Versand & Abholung"
+msgstr "Розница — интернет-магазин, доставка и самовывоз"
+
+msgid "Online-Shop — verkaufen & versenden, ohne Ladengeschäft"
+msgstr "Интернет-магазин — продавайте и отправляйте без розничной точки"
+
+msgid "Touren & Events — Tickets und Termine"
+msgstr "Туры и события — билеты и даты"
+
+msgid "Zimmer & Ferienwohnungen — Buchung nach Datum"
+msgstr "Номера и апартаменты — бронирование по датам"
+
+msgid "Salon — Termine online, Bewertungen & Treuekarte"
+msgstr "Салон — записи онлайн, отзывы и карта лояльности"
+
+msgid "Handwerk — Anfragen, Angebote & Kostenvoranschläge"
+msgstr "Ремёсла — заявки, предложения и сметы"
+
+msgid "KFZ-Werkstatt — Termine & Kostenvoranschläge"
+msgstr "Автосервис — записи и сметы"
+
+msgid "Veranstalter — Tickets, Termine & Teilnehmerlisten"
+msgstr "Организатор — билеты, даты и списки участников"
+
+msgid "Etwas anderes — frei konfigurierbar"
+msgstr "Что-то другое — свободная настройка"
+
+msgid "Widerruf"
+msgstr "Отзыв (возврат)"
+
+msgid "Widerrufsbelehrung"
+msgstr "Инструкция по отзыву"
+
+msgid "Widerruf eingegangen"
+msgstr "Отзыв получен"
+
+msgid "Zur Startseite"
+msgstr "На главную"
+
+msgid "Widerruf erklären"
+msgstr "Оформить отзыв"
+
+msgid ""
+"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: "
+"Name und Ware."
+msgstr ""
+"Заполните форму, чтобы отказаться от покупки. Обязательные поля: имя и "
+"товар."
+
+msgid "Welche Ware widerrufen Sie?"
+msgstr "Какой товар вы возвращаете?"
+
+msgid "Bestellt / erhalten am"
+msgstr "Заказано / получено"
+
+msgid "TT.MM.JJJJ"
+msgstr "ДД.ММ.ГГГГ"
+
+msgid "Anschrift"
+msgstr "Адрес"
+
+msgid "Widerruf absenden"
+msgstr "Отправить отзыв"
+
+#, python-format
+msgid ""
+"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten "
+"in Kürze eine Bestätigung."
+msgstr ""
+"Спасибо, %(name)s. Ваш отзыв передан нам. Вскоре вы получите подтверждение."
+
+msgid "z. B. VW Golf 1.6 TDI"
+msgstr "напр. VW Golf 1.6 TDI"
+
+msgid "z. B. VW Golf · M-AB 1234"
+msgstr "напр. VW Golf · M-AB 1234"
+
+msgid "Kartenform"
+msgstr "Форма карточки"
+
+msgid "Text auf Foto"
+msgstr "Текст на фото"
+
+msgid "Kompakte Zeile"
+msgstr "Компактная строка"

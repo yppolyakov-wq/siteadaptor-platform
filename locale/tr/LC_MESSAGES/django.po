@@ -2196,10 +2196,9 @@ msgid "Label"
 msgstr "Etiket"
 
 #: apps/promotions/forms.py:144
-#, fuzzy
 #| msgid "e.g. −10 %%, free coffee"
 msgid "e.g. −10 percent or Free coffee"
-msgstr "örn. −10 %%, bedava kahve"
+msgstr "örn. −10 %, bedava kahve"
 
 #: apps/promotions/forms.py:146
 msgid "How many"
@@ -12511,3 +12510,343 @@ msgstr "Soruları kaydet"
 
 msgid "Vorlage geladen."
 msgstr "Şablon yüklendi."
+
+msgid "Aktionen & Reservierung"
+msgstr "Kampanyalar ve rezervasyon"
+
+msgid "Kunden (CRM)"
+msgstr "Müşteriler (CRM)"
+
+msgid "Bestellungen (Click & Collect)"
+msgstr "Siparişler (Click & Collect)"
+
+msgid "Reservierungen nach Zeit (Booking)"
+msgstr "Zamana göre rezervasyon (Booking)"
+
+msgid "Übernachtung (nach Datum)"
+msgstr "Konaklama (tarihe göre)"
+
+msgid "Treueprogramm"
+msgstr "Sadakat programı"
+
+msgid "Geschenkgutscheine"
+msgstr "Hediye kuponları"
+
+msgid "Auswertung"
+msgstr "Değerlendirme"
+
+msgid "Veröffentlichung (Kanäle)"
+msgstr "Yayınlama (kanallar)"
+
+msgid "Aufträge & Angebote"
+msgstr "İşler ve teklifler"
+
+msgid "Telegram-Bot"
+msgstr "Telegram botu"
+
+msgid "Nachrichten (Chat & Support)"
+msgstr "Mesajlar (sohbet ve destek)"
+
+msgid "Veranstaltungen (Tickets)"
+msgstr "Etkinlikler (biletler)"
+
+msgid "Kundenkonto (Login für Kunden)"
+msgstr "Müşteri hesabı (müşteri girişi)"
+
+msgid "Blog / Neuigkeiten"
+msgstr "Blog / haberler"
+
+msgid "Finanzen (Umsatz)"
+msgstr "Finans (ciro)"
+
+msgid "Abo & Zahlung"
+msgstr "Abonelik ve ödeme"
+
+msgid "Katalog & Import"
+msgstr "Katalog ve içe aktarma"
+
+msgid "Zimmer & Einheiten"
+msgstr "Odalar ve birimler"
+
+msgid "Überblick über Ihr Geschäft."
+msgstr "İşletmenize genel bakış."
+
+msgid "Alle Bestellungen, Termine, Buchungen & Anfragen als Kanban-Board."
+msgstr ""
+"Tüm siparişler, randevular, rezervasyonlar ve talepler Kanban panosunda."
+
+msgid "Produkte und Kategorien pflegen, Import aus CSV/Excel."
+msgstr "Ürünleri ve kategorileri yönetin, CSV/Excel'den içe aktarın."
+
+msgid "Aktionen erstellen, Reservierungen annehmen und im Laden einlösen."
+msgstr "Kampanyalar oluşturun, rezervasyon alın ve mağazada kullandırın."
+
+msgid "Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie."
+msgstr ""
+"Müşteri listesi tutun: kişiler, etiketler, notlar, rezervasyon geçmişi."
+
+msgid ""
+"Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: ansehen, "
+"ausblenden, beantworten."
+msgstr ""
+"Ürünlerinizin, hizmetlerinizin, odalarınızın ve etkinliklerinizin "
+"değerlendirmeleri: görüntüleyin, gizleyin, yanıtlayın."
+
+msgid "Kunden bestellen online und holen im Laden ab."
+msgstr "Müşteriler çevrimiçi sipariş verir ve mağazadan alır."
+
+msgid "Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."
+msgstr "Masaları, randevuları veya odaları saate göre rezerve ettirin."
+
+msgid "Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen."
+msgstr ""
+"Odaları, tatil dairelerini veya park yerlerini geceye göre rezerve ettirin."
+
+msgid "Gutscheine und Stempelkarten für Stammkunden."
+msgstr "Sadık müşteriler için kuponlar ve damga kartları."
+
+msgid ""
+"Geschenkgutscheine online verkaufen: Käufer zahlt online, Beschenkte lösen "
+"den Code beim Bestellen oder Buchen ein. Voraussetzung: Online-Zahlungen "
+"(Stripe) aktiviert."
+msgstr ""
+"Hediye kuponlarını çevrimiçi satın: alıcı çevrimiçi öder, hediye edilenler "
+"kodu sipariş veya rezervasyonda kullanır. Gereksinim: çevrimiçi ödemeler "
+"(Stripe) etkin."
+
+msgid "Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."
+msgstr ""
+"Kampanyalarınızın değerlendirmesi: görüntülemeler, rezervasyonlar, "
+"kullanımlar."
+
+msgid ""
+"Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und "
+"Google."
+msgstr ""
+"Haberler ve gönderiler yayınlayın — müşteriler ve Google için taze içerik."
+
+msgid ""
+"Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, "
+"Instagram)."
+msgstr ""
+"Kampanyaları kanallarda otomatik yayınlayın (Google, Facebook, Instagram)."
+
+msgid ""
+"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge "
+"abrechnen."
+msgstr "Talepleri alın, teklif/keşif oluşturun, işleri faturalandırın."
+
+msgid ""
+"Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram."
+msgstr ""
+"Kendi Telegram botunuz: müşteriler mağazanızı Telegram'da Mini App olarak "
+"açar."
+
+msgid "Kundennachrichten und Support-Tickets an einem Ort beantworten."
+msgstr "Müşteri mesajlarını ve destek taleplerini tek yerde yanıtlayın."
+
+msgid "Veranstaltungen mit bezahlten Tickets und Teilnehmerliste."
+msgstr "Ücretli biletler ve katılımcı listesiyle etkinlikler."
+
+msgid ""
+"Kunden melden sich per E-Mail-Link an und sehen Bestellungen, Termine, "
+"Rechnungen und Bonuskarten."
+msgstr ""
+"Müşteriler e-posta bağlantısıyla giriş yapar ve siparişleri, randevuları, "
+"faturaları ve bonus kartları görür."
+
+msgid "Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."
+msgstr ""
+"Ciro günlüğü: siparişlerden, rezervasyonlardan ve manuel girişlerden gelir."
+
+msgid "Abo und Zahlung."
+msgstr "Abonelik ve ödeme."
+
+msgid "Einstellungen, Website-Baukasten, Domains, Module, Hilfe."
+msgstr "Ayarlar, web sitesi oluşturucu, alan adları, modüller, yardım."
+
+msgid "Bestellungen, Termine und Bonuskarten einsehen."
+msgstr "Siparişleri, randevuları ve bonus kartları görüntüleyin."
+
+msgid "Stöbern Sie in unserem Angebot."
+msgstr "Ürün yelpazemize göz atın."
+
+msgid "Online bestellen"
+msgstr "Çevrimiçi sipariş"
+
+msgid "Termin buchen"
+msgstr "Randevu al"
+
+msgid "Übernachten"
+msgstr "Konaklama"
+
+msgid "Gutschein verschenken"
+msgstr "Kupon hediye et"
+
+msgid "Neuigkeiten"
+msgstr "Haberler"
+
+msgid "Angebot anfragen"
+msgstr "Teklif iste"
+
+msgid "Mein Konto"
+msgstr "Hesabım"
+
+msgid "Kontakt"
+msgstr "İletişim"
+
+msgid "Bestellen und im Laden abholen oder liefern lassen."
+msgstr "Sipariş verin, mağazadan alın veya teslim aldırın."
+
+msgid "Reservieren Sie online Ihren Tisch oder Termin."
+msgstr "Masanızı veya randevunuzu çevrimiçi ayırtın."
+
+msgid "Verfügbarkeit prüfen und Übernachtung buchen."
+msgstr "Uygunluğu kontrol edin ve konaklama rezervasyonu yapın."
+
+msgid "Stempel sammeln und Prämien sichern."
+msgstr "Damga toplayın ve ödüller kazanın."
+
+msgid "Geschenkgutschein kaufen — Betrag frei wählbar."
+msgstr "Hediye kuponu alın — tutarı serbestçe seçin."
+
+msgid "Aktuelles aus unserem Betrieb."
+msgstr "İşletmemizden son haberler."
+
+msgid "Fordern Sie online einen Kostenvoranschlag an."
+msgstr "Çevrimiçi keşif isteyin."
+
+msgid "Stellen Sie uns eine Frage."
+msgstr "Bize bir soru sorun."
+
+msgid "Tickets für unsere Events sichern."
+msgstr "Etkinliklerimiz için bilet alın."
+
+msgid "Für alle Geschäftstypen"
+msgstr "Tüm işletme türleri için"
+
+#, python-format
+msgid "Geeignet für: %(list)s"
+msgstr "Şunlar için uygun: %(list)s"
+
+msgid "Neu / Eingang"
+msgstr "Yeni / gelen"
+
+msgid "In Arbeit (hält Kapazität)"
+msgstr "İşlemde (kapasiteyi tutar)"
+
+msgid "Abgeschlossen (Umsatz)"
+msgstr "Tamamlandı (ciro)"
+
+msgid "Storniert / Abbruch"
+msgstr "İptal / vazgeçme"
+
+msgid "Leistungen"
+msgstr "Hizmetler"
+
+msgid "Kombis"
+msgstr "Kombolar"
+
+msgid "Brot, Brötchen & Kuchen — Vorbestellung & Abholung"
+msgstr "Ekmek, sandviç ekmeği ve pasta — ön sipariş ve teslim alma"
+
+msgid "Fleisch & Wurst — Vorbestellung, Partyservice"
+msgstr "Et ve sucuk — ön sipariş, parti servisi"
+
+msgid "Lebensmittel — Sortiment, Aktionen & Treue"
+msgstr "Gıda — ürün yelpazesi, kampanyalar ve sadakat"
+
+msgid "Mode — Online-Shop mit Größen & Versand"
+msgstr "Moda — bedenler ve kargo ile çevrimiçi mağaza"
+
+msgid "Speisekarte, Tischreservierung & Lieferung"
+msgstr "Menü, masa rezervasyonu ve teslimat"
+
+msgid "Karte, Reservierung & Treuekarte"
+msgstr "Menü, rezervasyon ve sadakat kartı"
+
+msgid "Einzelhandel — Online-Shop, Versand & Abholung"
+msgstr "Perakende — çevrimiçi mağaza, kargo ve teslim alma"
+
+msgid "Online-Shop — verkaufen & versenden, ohne Ladengeschäft"
+msgstr "Çevrimiçi mağaza — mağaza olmadan sat ve gönder"
+
+msgid "Touren & Events — Tickets und Termine"
+msgstr "Turlar ve etkinlikler — biletler ve tarihler"
+
+msgid "Zimmer & Ferienwohnungen — Buchung nach Datum"
+msgstr "Odalar ve tatil daireleri — tarihe göre rezervasyon"
+
+msgid "Salon — Termine online, Bewertungen & Treuekarte"
+msgstr "Salon — çevrimiçi randevular, değerlendirmeler ve sadakat kartı"
+
+msgid "Handwerk — Anfragen, Angebote & Kostenvoranschläge"
+msgstr "Zanaat — talepler, teklifler ve keşifler"
+
+msgid "KFZ-Werkstatt — Termine & Kostenvoranschläge"
+msgstr "Oto servisi — randevular ve keşifler"
+
+msgid "Veranstalter — Tickets, Termine & Teilnehmerlisten"
+msgstr "Organizatör — biletler, tarihler ve katılımcı listeleri"
+
+msgid "Etwas anderes — frei konfigurierbar"
+msgstr "Başka bir şey — serbestçe yapılandırılabilir"
+
+msgid "Widerruf"
+msgstr "Cayma"
+
+msgid "Widerrufsbelehrung"
+msgstr "Cayma bildirimi"
+
+msgid "Widerruf eingegangen"
+msgstr "Cayma alındı"
+
+msgid "Zur Startseite"
+msgstr "Ana sayfaya"
+
+msgid "Widerruf erklären"
+msgstr "Cayma bildir"
+
+msgid ""
+"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: "
+"Name und Ware."
+msgstr ""
+"Satın alımınızdan caymak için formu doldurun. Zorunlu alanlar: ad ve ürün."
+
+msgid "Welche Ware widerrufen Sie?"
+msgstr "Hangi ürünü iade ediyorsunuz?"
+
+msgid "Bestellt / erhalten am"
+msgstr "Sipariş / teslim tarihi"
+
+msgid "TT.MM.JJJJ"
+msgstr "GG.AA.YYYY"
+
+msgid "Anschrift"
+msgstr "Adres"
+
+msgid "Widerruf absenden"
+msgstr "Cayma gönder"
+
+#, python-format
+msgid ""
+"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten "
+"in Kürze eine Bestätigung."
+msgstr ""
+"Teşekkürler, %(name)s. Cayma talebiniz bize iletildi. Kısa süre içinde bir "
+"onay alacaksınız."
+
+msgid "z. B. VW Golf 1.6 TDI"
+msgstr "örn. VW Golf 1.6 TDI"
+
+msgid "z. B. VW Golf · M-AB 1234"
+msgstr "örn. VW Golf · M-AB 1234"
+
+msgid "Kartenform"
+msgstr "Kart biçimi"
+
+msgid "Text auf Foto"
+msgstr "Fotoğraf üzerinde metin"
+
+msgid "Kompakte Zeile"
+msgstr "Kompakt satır"

@@ -167,22 +167,22 @@ _REMAP = {
 # визуализации при регистрации — эмодзи + короткое «что это даёт» на ЯЗЫКЕ ЗАДАЧ
 # (не сущностей). Ключи — Tenant.BUSINESS_TYPES; неизвестный → нейтральная иконка.
 BUSINESS_TYPE_META = {
-    "bakery": ("🥐", "Brot, Brötchen & Kuchen — Vorbestellung & Abholung"),
-    "butcher": ("🥩", "Fleisch & Wurst — Vorbestellung, Partyservice"),
-    "grocery": ("🛒", "Lebensmittel — Sortiment, Aktionen & Treue"),
-    "clothing": ("👗", "Mode — Online-Shop mit Größen & Versand"),
-    "restaurant": ("🍽️", "Speisekarte, Tischreservierung & Lieferung"),
-    "cafe": ("☕", "Karte, Reservierung & Treuekarte"),
-    "retail": ("🛍️", "Einzelhandel — Online-Shop, Versand & Abholung"),
-    "online_shop": ("📦", "Online-Shop — verkaufen & versenden, ohne Ladengeschäft"),
-    "tour_operator": ("🧭", "Touren & Events — Tickets und Termine"),
-    "hotel": ("🛏️", "Zimmer & Ferienwohnungen — Buchung nach Datum"),
+    "bakery": ("🥐", _l("Brot, Brötchen & Kuchen — Vorbestellung & Abholung")),
+    "butcher": ("🥩", _l("Fleisch & Wurst — Vorbestellung, Partyservice")),
+    "grocery": ("🛒", _l("Lebensmittel — Sortiment, Aktionen & Treue")),
+    "clothing": ("👗", _l("Mode — Online-Shop mit Größen & Versand")),
+    "restaurant": ("🍽️", _l("Speisekarte, Tischreservierung & Lieferung")),
+    "cafe": ("☕", _l("Karte, Reservierung & Treuekarte")),
+    "retail": ("🛍️", _l("Einzelhandel — Online-Shop, Versand & Abholung")),
+    "online_shop": ("📦", _l("Online-Shop — verkaufen & versenden, ohne Ladengeschäft")),
+    "tour_operator": ("🧭", _l("Touren & Events — Tickets und Termine")),
+    "hotel": ("🛏️", _l("Zimmer & Ferienwohnungen — Buchung nach Datum")),
     # S6: реальные архетипы (язык задач, как остальные карточки).
-    "friseur": ("💇", "Salon — Termine online, Bewertungen & Treuekarte"),
-    "handwerker": ("🔧", "Handwerk — Anfragen, Angebote & Kostenvoranschläge"),
-    "werkstatt": ("🚗", "KFZ-Werkstatt — Termine & Kostenvoranschläge"),
-    "events": ("🎟️", "Veranstalter — Tickets, Termine & Teilnehmerlisten"),
-    "other": ("✨", "Etwas anderes — frei konfigurierbar"),
+    "friseur": ("💇", _l("Salon — Termine online, Bewertungen & Treuekarte")),
+    "handwerker": ("🔧", _l("Handwerk — Anfragen, Angebote & Kostenvoranschläge")),
+    "werkstatt": ("🚗", _l("KFZ-Werkstatt — Termine & Kostenvoranschläge")),
+    "events": ("🎟️", _l("Veranstalter — Tickets, Termine & Teilnehmerlisten")),
+    "other": ("✨", _l("Etwas anderes — frei konfigurierbar")),
 }
 
 

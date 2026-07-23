@@ -2200,10 +2200,9 @@ msgid "Label"
 msgstr "Етикетка"
 
 #: apps/promotions/forms.py:144
-#, fuzzy
 #| msgid "e.g. −10 %%, free coffee"
 msgid "e.g. −10 percent or Free coffee"
-msgstr "наприклад, −10 %%, безкоштовна кава"
+msgstr "наприклад, −10 %, безкоштовна кава"
 
 #: apps/promotions/forms.py:146
 msgid "How many"
@@ -12580,3 +12579,339 @@ msgstr "Зберегти питання"
 
 msgid "Vorlage geladen."
 msgstr "Шаблон завантажено."
+
+msgid "Aktionen & Reservierung"
+msgstr "Акції та бронювання"
+
+msgid "Kunden (CRM)"
+msgstr "Клієнти (CRM)"
+
+msgid "Bestellungen (Click & Collect)"
+msgstr "Замовлення (Click & Collect)"
+
+msgid "Reservierungen nach Zeit (Booking)"
+msgstr "Бронювання за часом (Booking)"
+
+msgid "Übernachtung (nach Datum)"
+msgstr "Проживання (за датами)"
+
+msgid "Treueprogramm"
+msgstr "Програма лояльності"
+
+msgid "Geschenkgutscheine"
+msgstr "Подарункові сертифікати"
+
+msgid "Auswertung"
+msgstr "Аналітика"
+
+msgid "Veröffentlichung (Kanäle)"
+msgstr "Публікація (канали)"
+
+msgid "Aufträge & Angebote"
+msgstr "Замовлення та кошториси"
+
+msgid "Telegram-Bot"
+msgstr "Telegram-бот"
+
+msgid "Nachrichten (Chat & Support)"
+msgstr "Повідомлення (чат і підтримка)"
+
+msgid "Veranstaltungen (Tickets)"
+msgstr "Заходи (квитки)"
+
+msgid "Kundenkonto (Login für Kunden)"
+msgstr "Особистий кабінет клієнта (вхід для клієнтів)"
+
+msgid "Blog / Neuigkeiten"
+msgstr "Блог / новини"
+
+msgid "Finanzen (Umsatz)"
+msgstr "Фінанси (виручка)"
+
+msgid "Abo & Zahlung"
+msgstr "Підписка та оплата"
+
+msgid "Katalog & Import"
+msgstr "Каталог та імпорт"
+
+msgid "Zimmer & Einheiten"
+msgstr "Номери та об'єкти"
+
+msgid "Überblick über Ihr Geschäft."
+msgstr "Огляд вашого бізнесу."
+
+msgid "Alle Bestellungen, Termine, Buchungen & Anfragen als Kanban-Board."
+msgstr "Усі замовлення, зустрічі, бронювання та запити на Kanban-дошці."
+
+msgid "Produkte und Kategorien pflegen, Import aus CSV/Excel."
+msgstr "Керування товарами та категоріями, імпорт із CSV/Excel."
+
+msgid "Aktionen erstellen, Reservierungen annehmen und im Laden einlösen."
+msgstr "Створюйте акції, приймайте бронювання та погашайте їх у магазині."
+
+msgid "Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie."
+msgstr "Ведіть список клієнтів: контакти, теги, нотатки, історія бронювань."
+
+msgid ""
+"Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: ansehen, "
+"ausblenden, beantworten."
+msgstr ""
+"Відгуки про ваші товари, послуги, номери та події: переглядати, приховувати,"
+" відповідати."
+
+msgid "Kunden bestellen online und holen im Laden ab."
+msgstr "Клієнти замовляють онлайн і забирають у магазині."
+
+msgid "Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."
+msgstr "Прийом бронювань столів, зустрічей або номерів за часом."
+
+msgid "Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen."
+msgstr "Прийом бронювань номерів, апартаментів або місць за ночами."
+
+msgid "Gutscheine und Stempelkarten für Stammkunden."
+msgstr "Купони та картки штампів для постійних клієнтів."
+
+msgid ""
+"Geschenkgutscheine online verkaufen: Käufer zahlt online, Beschenkte lösen "
+"den Code beim Bestellen oder Buchen ein. Voraussetzung: Online-Zahlungen "
+"(Stripe) aktiviert."
+msgstr ""
+"Продавайте подарункові сертифікати онлайн: покупець платить онлайн, "
+"отримувачі гасять код під час замовлення чи бронювання. Потрібна увімкнена "
+"онлайн-оплата (Stripe)."
+
+msgid "Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."
+msgstr "Аналітика ваших акцій: покази, бронювання, погашення."
+
+msgid ""
+"Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und "
+"Google."
+msgstr "Публікуйте новини та дописи — свіжий контент для клієнтів і Google."
+
+msgid ""
+"Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, "
+"Instagram)."
+msgstr "Автопублікація акцій у каналах (Google, Facebook, Instagram)."
+
+msgid ""
+"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge "
+"abrechnen."
+msgstr ""
+"Приймайте заявки, створюйте кошториси/пропозиції, виставляйте рахунки за "
+"роботи."
+
+msgid ""
+"Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram."
+msgstr ""
+"Власний Telegram-бот: клієнти відкривають ваш магазин як Mini App у "
+"Telegram."
+
+msgid "Kundennachrichten und Support-Tickets an einem Ort beantworten."
+msgstr ""
+"Відповідайте на повідомлення клієнтів і тікети підтримки в одному місці."
+
+msgid "Veranstaltungen mit bezahlten Tickets und Teilnehmerliste."
+msgstr "Події з платними квитками та списком учасників."
+
+msgid ""
+"Kunden melden sich per E-Mail-Link an und sehen Bestellungen, Termine, "
+"Rechnungen und Bonuskarten."
+msgstr ""
+"Клієнти входять за посиланням з листа й бачать замовлення, зустрічі, рахунки"
+" та бонусні картки."
+
+msgid "Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."
+msgstr "Журнал виручки: дохід від замовлень, бронювань і вручну."
+
+msgid "Abo und Zahlung."
+msgstr "Підписка та оплата."
+
+msgid "Einstellungen, Website-Baukasten, Domains, Module, Hilfe."
+msgstr "Налаштування, конструктор сайту, домени, модулі, допомога."
+
+msgid "Bestellungen, Termine und Bonuskarten einsehen."
+msgstr "Перегляд замовлень, зустрічей і бонусних карток."
+
+msgid "Stöbern Sie in unserem Angebot."
+msgstr "Загляньте в наш асортимент."
+
+msgid "Online bestellen"
+msgstr "Замовити онлайн"
+
+msgid "Termin buchen"
+msgstr "Записатися"
+
+msgid "Übernachten"
+msgstr "Проживання"
+
+msgid "Gutschein verschenken"
+msgstr "Подарувати сертифікат"
+
+msgid "Neuigkeiten"
+msgstr "Новини"
+
+msgid "Angebot anfragen"
+msgstr "Запросити кошторис"
+
+msgid "Mein Konto"
+msgstr "Мій кабінет"
+
+msgid "Kontakt"
+msgstr "Контакт"
+
+msgid "Bestellen und im Laden abholen oder liefern lassen."
+msgstr "Замовте й заберіть у магазині або замовте доставку."
+
+msgid "Reservieren Sie online Ihren Tisch oder Termin."
+msgstr "Забронюйте столик або запис онлайн."
+
+msgid "Verfügbarkeit prüfen und Übernachtung buchen."
+msgstr "Перевірте наявність і забронюйте проживання."
+
+msgid "Stempel sammeln und Prämien sichern."
+msgstr "Збирайте штампи та отримуйте нагороди."
+
+msgid "Geschenkgutschein kaufen — Betrag frei wählbar."
+msgstr "Купіть подарунковий сертифікат — сума на вибір."
+
+msgid "Aktuelles aus unserem Betrieb."
+msgstr "Новини нашої справи."
+
+msgid "Fordern Sie online einen Kostenvoranschlag an."
+msgstr "Запросіть кошторис онлайн."
+
+msgid "Stellen Sie uns eine Frage."
+msgstr "Поставте нам запитання."
+
+msgid "Tickets für unsere Events sichern."
+msgstr "Візьміть квитки на наші події."
+
+msgid "Für alle Geschäftstypen"
+msgstr "Для всіх типів бізнесу"
+
+#, python-format
+msgid "Geeignet für: %(list)s"
+msgstr "Підходить для: %(list)s"
+
+msgid "Neu / Eingang"
+msgstr "Новий / надходження"
+
+msgid "In Arbeit (hält Kapazität)"
+msgstr "У роботі (тримає ємність)"
+
+msgid "Abgeschlossen (Umsatz)"
+msgstr "Завершено (виручка)"
+
+msgid "Storniert / Abbruch"
+msgstr "Скасовано / перервано"
+
+msgid "Leistungen"
+msgstr "Послуги"
+
+msgid "Kombis"
+msgstr "Комбо"
+
+msgid "Brot, Brötchen & Kuchen — Vorbestellung & Abholung"
+msgstr "Хліб, булочки та торти — передзамовлення й самовивіз"
+
+msgid "Fleisch & Wurst — Vorbestellung, Partyservice"
+msgstr "М'ясо та ковбаси — передзамовлення, кейтеринг"
+
+msgid "Lebensmittel — Sortiment, Aktionen & Treue"
+msgstr "Продукти — асортимент, акції та лояльність"
+
+msgid "Mode — Online-Shop mit Größen & Versand"
+msgstr "Мода — інтернет-магазин з розмірами й доставкою"
+
+msgid "Speisekarte, Tischreservierung & Lieferung"
+msgstr "Меню, бронювання столів і доставка"
+
+msgid "Karte, Reservierung & Treuekarte"
+msgstr "Меню, бронювання та картка лояльності"
+
+msgid "Einzelhandel — Online-Shop, Versand & Abholung"
+msgstr "Роздріб — інтернет-магазин, доставка й самовивіз"
+
+msgid "Online-Shop — verkaufen & versenden, ohne Ladengeschäft"
+msgstr "Інтернет-магазин — продавайте й відправляйте без роздрібної точки"
+
+msgid "Touren & Events — Tickets und Termine"
+msgstr "Тури та події — квитки й дати"
+
+msgid "Zimmer & Ferienwohnungen — Buchung nach Datum"
+msgstr "Номери та апартаменти — бронювання за датами"
+
+msgid "Salon — Termine online, Bewertungen & Treuekarte"
+msgstr "Салон — записи онлайн, відгуки та картка лояльності"
+
+msgid "Handwerk — Anfragen, Angebote & Kostenvoranschläge"
+msgstr "Ремесла — заявки, пропозиції та кошториси"
+
+msgid "KFZ-Werkstatt — Termine & Kostenvoranschläge"
+msgstr "Автосервіс — записи та кошториси"
+
+msgid "Veranstalter — Tickets, Termine & Teilnehmerlisten"
+msgstr "Організатор — квитки, дати та списки учасників"
+
+msgid "Etwas anderes — frei konfigurierbar"
+msgstr "Щось інше — вільне налаштування"
+
+msgid "Widerruf"
+msgstr "Відкликання (повернення)"
+
+msgid "Widerrufsbelehrung"
+msgstr "Інструкція щодо відкликання"
+
+msgid "Widerruf eingegangen"
+msgstr "Відкликання отримано"
+
+msgid "Zur Startseite"
+msgstr "На головну"
+
+msgid "Widerruf erklären"
+msgstr "Оформити відкликання"
+
+msgid ""
+"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: "
+"Name und Ware."
+msgstr ""
+"Заповніть форму, щоб відмовитися від покупки. Обов'язкові поля: ім'я та "
+"товар."
+
+msgid "Welche Ware widerrufen Sie?"
+msgstr "Який товар ви повертаєте?"
+
+msgid "Bestellt / erhalten am"
+msgstr "Замовлено / отримано"
+
+msgid "TT.MM.JJJJ"
+msgstr "ДД.ММ.РРРР"
+
+msgid "Anschrift"
+msgstr "Адреса"
+
+msgid "Widerruf absenden"
+msgstr "Надіслати відкликання"
+
+#, python-format
+msgid ""
+"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten "
+"in Kürze eine Bestätigung."
+msgstr ""
+"Дякуємо, %(name)s. Ваше відкликання передано нам. Незабаром ви отримаєте "
+"підтвердження."
+
+msgid "z. B. VW Golf 1.6 TDI"
+msgstr "напр. VW Golf 1.6 TDI"
+
+msgid "z. B. VW Golf · M-AB 1234"
+msgstr "напр. VW Golf · M-AB 1234"
+
+msgid "Kartenform"
+msgstr "Форма картки"
+
+msgid "Text auf Foto"
+msgstr "Текст на фото"
+
+msgid "Kompakte Zeile"
+msgstr "Компактний рядок"

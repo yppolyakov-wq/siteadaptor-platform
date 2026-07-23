@@ -53,7 +53,7 @@ PLZ; показываем только если бизнес её задал (Ha
     <legend class="text-sm font-medium px-1">{% trans "Vehicle details (optional)" %}</legend>
     <div>
       <label class="block text-sm mb-1" for="id_vehicle">{% trans "Make & model" %}</label>
-      <input id="id_vehicle" name="vehicle" type="text" placeholder="z. B. VW Golf 1.6 TDI" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_vehicle" name="vehicle" type="text" placeholder="{% trans 'z. B. VW Golf 1.6 TDI' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div class="grid sm:grid-cols-3 gap-3">
       <div>
@@ -74,7 +74,7 @@ PLZ; показываем только если бизнес её задал (Ha
   {% else %}
   <div>
     <label class="block text-sm font-medium mb-1" for="id_vehicle">{% trans "Vehicle / licence plate (optional)" %}</label>
-    <input id="id_vehicle" name="vehicle" type="text" placeholder="z. B. VW Golf · M-AB 1234" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <input id="id_vehicle" name="vehicle" type="text" placeholder="{% trans 'z. B. VW Golf · M-AB 1234' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   </div>
   {% endif %}
   <div class="grid sm:grid-cols-3 gap-4">

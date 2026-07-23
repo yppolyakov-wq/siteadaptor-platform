@@ -20,6 +20,8 @@ Phase 0 = ТОЛЬКО описать текущий мир 1:1 (реестр + 
 
 from dataclasses import dataclass
 
+from django.utils.translation import gettext_lazy as _
+
 STAGES = ("intake", "in_progress", "done", "terminal")
 ROLES = ("intake", "active", "done", "cancelled")
 
@@ -28,10 +30,10 @@ ROLES = ("intake", "active", "done", "cancelled")
 ROLE_STAGE = {"intake": "intake", "active": "in_progress", "done": "done", "cancelled": "terminal"}
 ROLE_DEFAULT_FLAGS = {"active": {"blocks_capacity": True}, "done": {"revenue_recognized": True}}
 ROLE_LABELS = {
-    "intake": "Neu / Eingang",
-    "active": "In Arbeit (hält Kapazität)",
-    "done": "Abgeschlossen (Umsatz)",
-    "cancelled": "Storniert / Abbruch",
+    "intake": _("Neu / Eingang"),
+    "active": _("In Arbeit (hält Kapazität)"),
+    "done": _("Abgeschlossen (Umsatz)"),
+    "cancelled": _("Storniert / Abbruch"),
 }
 
 

@@ -299,11 +299,11 @@
             </label>
             {# ST-7c: ФОРМА карточки — вертикальная / текст поверх фото / строка-прайс. #}
             <label class="text-sm">
-              <span class="block font-medium mb-1">Kartenform</span>
+              <span class="block font-medium mb-1">{% trans "Kartenform" %}</span>
               <select name="sd_card_style" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">Standard</option>
-                <option value="overlay" {% if card_style == 'overlay' %}selected{% endif %}>Text auf Foto</option>
-                <option value="compact" {% if card_style == 'compact' %}selected{% endif %}>Kompakte Zeile</option>
+                <option value="">{% trans "Standard" %}</option>
+                <option value="overlay" {% if card_style == 'overlay' %}selected{% endif %}>{% trans "Text auf Foto" %}</option>
+                <option value="compact" {% if card_style == 'compact' %}selected{% endif %}>{% trans "Kompakte Zeile" %}</option>
               </select>
             </label>
           </div>

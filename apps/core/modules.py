@@ -66,28 +66,28 @@ class ModuleSpec:
 REGISTRY: tuple[ModuleSpec, ...] = (
     ModuleSpec(
         key="dashboard",
-        label_de="Übersicht",
+        label_de=_("Übersicht"),
         icon="🏠",
         nav_items=(NavItem("dashboard", _("Dashboard"), "dashboard"),),
         url_prefixes=("/dashboard/",),
         core=True,
-        description_de="Überblick über Ihr Geschäft.",
+        description_de=_("Überblick über Ihr Geschäft."),
     ),
     # U-D2: единая Kanban-доска входящих транзакций (заказы/брони/проживание/
     # билеты/заявки/резервы) — «одна доска дел». core: всегда доступна, пустая
     # доска показывает graceful empty-state.
     ModuleSpec(
         key="board",
-        label_de="Aufgaben-Board",
+        label_de=_("Aufgaben-Board"),
         icon="🗂️",
         nav_items=(NavItem("board", _("Board"), "board"),),
         url_prefixes=("/dashboard/board/",),
         core=True,
-        description_de="Alle Bestellungen, Termine, Buchungen & Anfragen als Kanban-Board.",
+        description_de=_("Alle Bestellungen, Termine, Buchungen & Anfragen als Kanban-Board."),
     ),
     ModuleSpec(
         key="catalog",
-        label_de="Katalog & Import",
+        label_de=_("Katalog & Import"),
         icon="📦",
         # S1 (упрощение кабинета): 5 прежних пунктов каталога (Produkte/Kategorien/
         # Lager/Kombi/Import) сведены в ОДИН хаб «Sortiment» с tab-bar над контентом
@@ -96,15 +96,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("catalog:product-list", _("Catalog"), "catalog"),),
         url_prefixes=("/catalog/", "/imports/", "/dashboard/stock/", "/dashboard/purchasing/"),
         core=True,
-        description_de="Produkte und Kategorien pflegen, Import aus CSV/Excel.",
-        storefront_label="Sortiment",
-        storefront_blurb="Stöbern Sie in unserem Angebot.",
+        description_de=_("Produkte und Kategorien pflegen, Import aus CSV/Excel."),
+        storefront_label=_("Sortiment"),
+        storefront_blurb=_("Stöbern Sie in unserem Angebot."),
         storefront_landing="storefront-products",
         storefront_icon="🍽️",
     ),
     ModuleSpec(
         key="promotions",
-        label_de="Aktionen & Reservierung",
+        label_de=_("Aktionen & Reservierung"),
         icon="🏷️",
         # S4a (упрощение): промо/отзывы/лояльность/публикация сведены в хаб «Marketing»
         # (tab-bar, cabinet.HUB_TABS["marketing"]). Этот якорь-пункт → страница акций;
@@ -127,11 +127,11 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # S6: handwerker/werkstatt — suited (не вкл по умолчанию, но подходит) →
         # promotions покрывает все типы → suited_label остаётся «Für alle Geschäftstypen».
         suited_for=("hotel", "tour_operator", "handwerker", "werkstatt"),
-        description_de="Aktionen erstellen, Reservierungen annehmen und im Laden einlösen.",
+        description_de=_("Aktionen erstellen, Reservierungen annehmen und im Laden einlösen."),
     ),
     ModuleSpec(
         key="crm",
-        label_de="Kunden (CRM)",
+        label_de=_("Kunden (CRM)"),
         icon="👥",
         # S4a: «Kampagnen» переехали во вкладку хаба «Marketing» (гейт по модулю crm).
         # Пункт CRM остаётся якорем будущего хаба «Kunden» (S4b). url_prefix кампаний цел.
@@ -153,13 +153,13 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "werkstatt",  # S6
             "events",  # S6
         ),
-        description_de="Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie.",
+        description_de=_("Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie."),
     ),
     ModuleSpec(
         # CM-6: репутационный модуль — модерация отзывов о сущностях (reviews.Review).
         # recommended_for = ВСЕ типы: активен из коробки (урок default_disabled_for).
         key="reviews",
-        label_de="Bewertungen",
+        label_de=_("Bewertungen"),
         icon="⭐",
         # S4a: вкладка хаба «Marketing» (cabinet.HUB_TABS["marketing"]); url_prefix = гейт.
         nav_items=(),
@@ -181,12 +181,14 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "events",  # S6
             "other",
         ),
-        description_de="Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: "
-        "ansehen, ausblenden, beantworten.",
+        description_de=_(
+            "Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: "
+            "ansehen, ausblenden, beantworten."
+        ),
     ),
     ModuleSpec(
         key="orders",
-        label_de="Bestellungen (Click & Collect)",
+        label_de=_("Bestellungen (Click & Collect)"),
         icon="🛍️",
         # S2 (упрощение): продажные списки сведены в хаб «Verkäufe» (доска + tab-bar,
         # cabinet.HUB_TABS["board"]). Сайдбар-пункт убран, url_prefixes = гейт цел.
@@ -195,15 +197,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         recommended_for=("bakery", "butcher", "grocery", "retail", "clothing", "online_shop"),
         # S6: friseur (Pflegeprodukte) / werkstatt (Teile) — розница как доп-канал.
         suited_for=("cafe", "restaurant", "other", "friseur", "werkstatt"),
-        description_de="Kunden bestellen online und holen im Laden ab.",
-        storefront_label="Online bestellen",
-        storefront_blurb="Bestellen und im Laden abholen oder liefern lassen.",
+        description_de=_("Kunden bestellen online und holen im Laden ab."),
+        storefront_label=_("Online bestellen"),
+        storefront_blurb=_("Bestellen und im Laden abholen oder liefern lassen."),
         storefront_landing="storefront-cart",
         storefront_icon="🛍️",
     ),
     ModuleSpec(
         key="booking",
-        label_de="Reservierungen nach Zeit (Booking)",
+        label_de=_("Reservierungen nach Zeit (Booking)"),
         icon="📅",
         # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
         nav_items=(),
@@ -211,30 +213,30 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # S6: Friseur/Werkstatt — услуги по времени (Termin) primary; Handwerker — suited.
         recommended_for=("cafe", "restaurant", "hotel", "tour_operator", "friseur", "werkstatt"),
         suited_for=("retail", "clothing", "other", "handwerker"),
-        description_de="Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen.",
-        storefront_label="Termin buchen",
-        storefront_blurb="Reservieren Sie online Ihren Tisch oder Termin.",
+        description_de=_("Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."),
+        storefront_label=_("Termin buchen"),
+        storefront_blurb=_("Reservieren Sie online Ihren Tisch oder Termin."),
         storefront_landing="storefront-termin",
         storefront_icon="📅",
     ),
     ModuleSpec(
         key="stays",
-        label_de="Übernachtung (nach Datum)",
+        label_de=_("Übernachtung (nach Datum)"),
         icon="🛏️",
         # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
         nav_items=(),
         url_prefixes=("/dashboard/stays/",),
         recommended_for=("hotel",),
         suited_for=("tour_operator", "other"),
-        description_de="Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen.",
-        storefront_label="Übernachten",
-        storefront_blurb="Verfügbarkeit prüfen und Übernachtung buchen.",
+        description_de=_("Zimmer, Ferienwohnungen oder Stellplätze nach Nächten buchen lassen."),
+        storefront_label=_("Übernachten"),
+        storefront_blurb=_("Verfügbarkeit prüfen und Übernachtung buchen."),
         storefront_landing="storefront-unterkunft",
         storefront_icon="🛏️",
     ),
     ModuleSpec(
         key="loyalty",
-        label_de="Treue & Gutscheine",
+        label_de=_("Treue & Gutscheine"),
         icon="💝",
         # S4a: Gutscheine/Treuepunkte — вкладки хаба «Marketing»; url_prefixes = гейт.
         nav_items=(),
@@ -243,9 +245,9 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # S6: friseur — Stempelkarte для постоянных клиентов салона.
         recommended_for=("bakery", "butcher", "grocery", "cafe", "restaurant", "friseur"),
         suited_for=("retail", "clothing", "online_shop", "other"),
-        description_de="Gutscheine und Stempelkarten für Stammkunden.",
-        storefront_label="Treueprogramm",
-        storefront_blurb="Stempel sammeln und Prämien sichern.",
+        description_de=_("Gutscheine und Stempelkarten für Stammkunden."),
+        storefront_label=_("Treueprogramm"),
+        storefront_blurb=_("Stempel sammeln und Prämien sichern."),
         storefront_landing="storefront-loyalty",
         storefront_icon="💝",
     ),
@@ -254,7 +256,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # Активен из коробки (non-premium, universal); страница /gutschein/
         # дополнительно требует онлайн-оплату (payments_enabled + Connect).
         key="gift",
-        label_de="Geschenkgutscheine",
+        label_de=_("Geschenkgutscheine"),
         icon="🎁",
         nav_items=(),
         url_prefixes=(),
@@ -277,36 +279,40 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "events",  # S6
             "other",
         ),
-        description_de="Geschenkgutscheine online verkaufen: Käufer zahlt online, "
-        "Beschenkte lösen den Code beim Bestellen oder Buchen ein. "
-        "Voraussetzung: Online-Zahlungen (Stripe) aktiviert.",
-        storefront_label="Gutschein verschenken",
-        storefront_blurb="Geschenkgutschein kaufen — Betrag frei wählbar.",
+        description_de=_(
+            "Geschenkgutscheine online verkaufen: Käufer zahlt online, "
+            "Beschenkte lösen den Code beim Bestellen oder Buchen ein. "
+            "Voraussetzung: Online-Zahlungen (Stripe) aktiviert."
+        ),
+        storefront_label=_("Gutschein verschenken"),
+        storefront_blurb=_("Geschenkgutschein kaufen — Betrag frei wählbar."),
         storefront_landing="storefront-gutschein",
         storefront_icon="🎁",
         storefront_teaser=False,  # ссылка в футере/меню, не «направление» в сетке
     ),
     ModuleSpec(
         key="analytics",
-        label_de="Auswertung",
+        label_de=_("Auswertung"),
         icon="📊",
         nav_items=(NavItem("promotions:analytics", _("Analytics"), "analytics"),),
         url_prefixes=("/promotions/analytics/",),
         depends_on=("promotions",),
-        description_de="Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen.",
+        description_de=_("Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."),
     ),
     ModuleSpec(
         key="publishing",
-        label_de="Veröffentlichung (Kanäle)",
+        label_de=_("Veröffentlichung (Kanäle)"),
         icon="📣",
         # S4a: Kanäle/Beiträge — вкладки хаба «Marketing» (Erweitert); url_prefixes = гейт.
         nav_items=(),
         url_prefixes=("/dashboard/channels/", "/dashboard/posts/"),
-        description_de="Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, Instagram).",
+        description_de=_(
+            "Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, Instagram)."
+        ),
     ),
     ModuleSpec(
         key="jobs",
-        label_de="Aufträge & Angebote",
+        label_de=_("Aufträge & Angebote"),
         icon="🧰",
         # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
         nav_items=(),
@@ -316,15 +322,17 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # предупреждения; suited НЕ влияет на пресет (default_disabled читает recommended).
         recommended_for=("handwerker", "werkstatt"),
         suited_for=("restaurant", "cafe", "other"),
-        description_de="Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen.",
-        storefront_label="Angebot anfragen",
-        storefront_blurb="Fordern Sie online einen Kostenvoranschlag an.",
+        description_de=_(
+            "Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen."
+        ),
+        storefront_label=_("Angebot anfragen"),
+        storefront_blurb=_("Fordern Sie online einen Kostenvoranschlag an."),
         storefront_landing="storefront-anfrage",
         storefront_icon="🧰",
     ),
     ModuleSpec(
         key="events",
-        label_de="Veranstaltungen (Tickets)",
+        label_de=_("Veranstaltungen (Tickets)"),
         icon="🎟️",
         # S2: свод в хаб «Verkäufe» (tab-bar). url_prefixes сохраняют middleware-гейт.
         nav_items=(),
@@ -333,15 +341,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # пресета подходит гидам/студиям (tour_operator/other).
         recommended_for=("events",),
         suited_for=("tour_operator", "other"),
-        description_de="Veranstaltungen mit bezahlten Tickets und Teilnehmerliste.",
-        storefront_label="Veranstaltungen",
-        storefront_blurb="Tickets für unsere Events sichern.",
+        description_de=_("Veranstaltungen mit bezahlten Tickets und Teilnehmerliste."),
+        storefront_label=_("Veranstaltungen"),
+        storefront_blurb=_("Tickets für unsere Events sichern."),
         storefront_landing="storefront-events",
         storefront_icon="🎟️",
     ),
     ModuleSpec(
         key="blog",
-        label_de="Blog / Neuigkeiten",
+        label_de=_("Blog / Neuigkeiten"),
         icon="📰",
         nav_items=(NavItem("blog-list", _("Blog"), "blog"),),
         # CM-1: контент first-class для ВСЕХ архетипов (модель живёт в apps/events
@@ -366,16 +374,18 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "events",  # S6
             "other",
         ),
-        description_de="Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und Google.",
-        storefront_label="Neuigkeiten",
-        storefront_blurb="Aktuelles aus unserem Betrieb.",
+        description_de=_(
+            "Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und Google."
+        ),
+        storefront_label=_("Neuigkeiten"),
+        storefront_blurb=_("Aktuelles aus unserem Betrieb."),
         storefront_landing="storefront-blog",
         storefront_icon="📰",
         storefront_teaser=False,  # контент-ссылка, не «направление» в сетке архетипов
     ),
     ModuleSpec(
         key="inbox",
-        label_de="Nachrichten (Chat & Support)",
+        label_de=_("Nachrichten (Chat & Support)"),
         icon="💬",
         # S4b: вкладка хаба «Kunden» (cabinet.HUB_TABS["kunden"]); url_prefix = гейт.
         nav_items=(),
@@ -399,35 +409,37 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "events",  # S6
             "other",
         ),
-        description_de="Kundennachrichten und Support-Tickets an einem Ort beantworten.",
-        storefront_label="Kontakt",
-        storefront_blurb="Stellen Sie uns eine Frage.",
+        description_de=_("Kundennachrichten und Support-Tickets an einem Ort beantworten."),
+        storefront_label=_("Kontakt"),
+        storefront_blurb=_("Stellen Sie uns eine Frage."),
         storefront_landing="storefront-message",
         storefront_icon="💬",
         storefront_teaser=False,  # утилитарная ссылка, не «направление» в сетке
     ),
     ModuleSpec(
         key="finance",
-        label_de="Finanzen (Umsatz)",
+        label_de=_("Finanzen (Umsatz)"),
         icon="💶",
         nav_items=(NavItem("finance:journal", _("Finance"), "finance"),),
         url_prefixes=("/dashboard/finance/",),
         # «добавь, когда дорастёшь» (ТЗ D0b) — по умолчанию выключен у всех вертикалей
-        description_de="Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell.",
+        description_de=_("Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."),
     ),
     ModuleSpec(
         key="telegram",
-        label_de="Telegram-Bot",
+        label_de=_("Telegram-Bot"),
         icon="✈️",
         # S4b: вкладка хаба «Kunden» (cabinet.HUB_TABS["kunden"]); url_prefix = гейт.
         nav_items=(),
         url_prefixes=("/dashboard/telegram/",),
         # Универсальный opt-in (как finance/jobs) — выключен по умолчанию у всех.
-        description_de="Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram.",
+        description_de=_(
+            "Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram."
+        ),
     ),
     ModuleSpec(
         key="customer_account",
-        label_de="Kundenkonto (Login für Kunden)",
+        label_de=_("Kundenkonto (Login für Kunden)"),
         icon="👤",
         # Витринный модуль: в кабинете нет своего пункта; /konto/ гейтится во
         # вьюхах (не ModuleGatingMiddleware). Default ВКЛ у транзакционных типов
@@ -451,17 +463,19 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "events",  # S6: Tickets
         ),
         suited_for=("other",),
-        description_de="Kunden melden sich per E-Mail-Link an und sehen Bestellungen, "
-        "Termine, Rechnungen und Bonuskarten.",
-        storefront_label="Mein Konto",
-        storefront_blurb="Bestellungen, Termine und Bonuskarten einsehen.",
+        description_de=_(
+            "Kunden melden sich per E-Mail-Link an und sehen Bestellungen, "
+            "Termine, Rechnungen und Bonuskarten."
+        ),
+        storefront_label=_("Mein Konto"),
+        storefront_blurb=_("Bestellungen, Termine und Bonuskarten einsehen."),
         storefront_landing="account-home",
         storefront_icon="👤",
         storefront_teaser=False,  # вход в ЛК, не «направление» в сетке
     ),
     ModuleSpec(
         key="settings",
-        label_de="Einstellungen",
+        label_de=_("Einstellungen"),
         icon="⚙️",
         # S3 (упрощение): «Website» (визуальный билдер) остаётся отдельным пунктом;
         # остальные 8 настроек сведены в ОДИН пункт-хаб «Einstellungen» с tab-bar
@@ -481,16 +495,16 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "/dashboard/help/",
         ),
         core=True,
-        description_de="Einstellungen, Website-Baukasten, Domains, Module, Hilfe.",
+        description_de=_("Einstellungen, Website-Baukasten, Domains, Module, Hilfe."),
     ),
     ModuleSpec(
         key="billing",
-        label_de="Abo & Zahlung",
+        label_de=_("Abo & Zahlung"),
         icon="💳",
         nav_items=(NavItem("billing", _("Billing"), "billing"),),
         url_prefixes=("/dashboard/billing/",),
         core=True,
-        description_de="Abo und Zahlung.",
+        description_de=_("Abo und Zahlung."),
     ),
 )
 
@@ -780,9 +794,9 @@ def suited_label(spec: ModuleSpec) -> str:
     labels = dict(Tenant.BUSINESS_TYPES)
     union = dict.fromkeys((*spec.recommended_for, *spec.suited_for))  # порядок без дублей
     if not union or len(union) >= len(labels):
-        return "Für alle Geschäftstypen"
+        return _("Für alle Geschäftstypen")
     names = [str(labels.get(bt, bt)).split("/")[-1].strip() for bt in union]
-    return "Geeignet für: " + ", ".join(names)
+    return _("Geeignet für: %(list)s") % {"list": ", ".join(names)}
 
 
 def default_disabled_for(business_type: str) -> list[str]:

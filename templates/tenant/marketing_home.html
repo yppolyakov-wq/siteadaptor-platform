@@ -1,10 +1,10 @@
 {% extends "tenant/_base_dashboard.html" %}
 {% load i18n cabinet %}
-{% block dash_title %}Marketing{% endblock %}
+{% block dash_title %}{% trans "Marketing" %}{% endblock %}
 
 {% block dash_content %}
 {% hub_tabs "marketing" %}
-<h1 class="text-2xl font-bold mb-1">📣 Marketing</h1>
+<h1 class="text-2xl font-bold mb-1">📣 {% trans "Marketing" %}</h1>
 <p class="text-sm text-gray-500 mb-5">{% trans "Erinnerungen, Treue, Bewertungen, Kampagnen — alles an einem Ort." %}</p>
 
 {% if metrics %}
