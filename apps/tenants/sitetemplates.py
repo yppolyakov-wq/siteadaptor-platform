@@ -75,10 +75,12 @@ TEMPLATES = [
         "label": "Übernachtung & Gastgeber",
         "description_de": "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel.",
         "recommended_for": ("hotel",),
-        # «Задача-первым» (E1): date-search + карточки номеров сразу под hero —
-        # главная задача гостя (свободно ли на мои даты) на первом экране. Секции
-        # гейтятся модулем stays (неактивен → не рендерятся). Совпадает с демо-китом.
-        "sections": ["hero", "stay_search", "stay_rooms", "about", "contact"],
+        # «Задача-первым» (E4): поиск дат ВНУТРИ hero (site_defaults.hero_widget=
+        # "stays") — первый экран сразу ведёт гостя к его задаче «свободно ли на
+        # мои даты». Секция stay_search убрана (жила бы дублем к hero-виджету);
+        # карточки номеров идут сразу под баннером. Гейт — модуль stays.
+        "sections": ["hero", "stay_rooms", "about", "contact"],
+        "site_defaults": {"hero_widget": "stays"},
         "texts": {
             "hero_title": "Willkommen bei uns",
             "hero_text": "Ihre Unterkunft für eine schöne Zeit — jetzt Verfügbarkeit prüfen.",
@@ -324,6 +326,13 @@ def _apply(tenant, template, *, family=None, accent=None) -> None:
             config["theme"] = "dark"
         else:
             config.pop("theme", None)  # светлый Look снимает тёмный дефолт
+
+    # E4 «задача-первым»: шаблон может нести витринные дефолты (напр. интерактивный
+    # hero отеля hero_widget="stays") — мержим ПОВЕРХ (после Look'а). normalize
+    # оставит ключ только при валидном значении → golden целы.
+    tpl_sd = template.get("site_defaults")
+    if tpl_sd:
+        config["site_defaults"] = {**(config.get("site_defaults") or {}), **tpl_sd}
 
     tenant.site_config = siteconfig.normalize(config)
     update_fields = ["site_config", "updated_at"]

@@ -13255,3 +13255,6 @@ msgstr "Змінити галузь / розширити функції"
 
 msgid "Already added"
 msgstr "Вже додано"
+
+msgid "Min"
+msgstr "хв"

@@ -1,0 +1,44 @@
+{% load i18n %}{% comment %}
+E4 «задача-первым»: primary-виджет ВНУТРИ hero — первый экран сразу ведёт клиента
+к его задаче. Управляется site_defaults.hero_widget ("stays"|"services"); секция
+рендерит партиал только при активном соответствующем модуле (иначе пусто — без
+регрессии). Белая карточка читаема поверх фото/акцент-баннера.
+{% endcomment %}
+{% if hero_widget == "stays" and storefront_stays_enabled %}
+<div class="mt-6 bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 max-w-3xl mx-auto text-left">
+  <p class="font-semibold mb-3 text-center md:text-left">{% trans "Check availability" %}</p>
+  <form method="get" action="{% url 'storefront-unterkunft' %}">
+    <div class="grid sm:grid-cols-5 gap-3 items-end">
+      <div>
+        <label class="block text-xs font-medium mb-1 text-gray-600" for="hh_von">{% trans "Arrival" %}</label>
+        <input id="hh_von" name="von" type="date" required min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1 text-gray-600" for="hh_bis">{% trans "Departure" %}</label>
+        <input id="hh_bis" name="bis" type="date" required min="{% now 'Y-m-d' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1 text-gray-600" for="hh_erw">{% trans "Adults" %}</label>
+        <input id="hh_erw" name="erw" type="number" min="1" value="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1 text-gray-600" for="hh_kinder">{% trans "Children" %}</label>
+        <input id="hh_kinder" name="kinder" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <button type="submit" class="rounded-lg px-4 py-2.5 font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Search" %}</button>
+    </div>
+  </form>
+</div>
+{% elif hero_widget == "services" and services_preview %}
+<div class="mt-6 bg-white text-gray-900 rounded-2xl shadow-lg p-3 md:p-4 max-w-2xl mx-auto text-left divide-y divide-gray-100">
+  {% for s in services_preview|slice:":3" %}
+  <div class="flex items-center justify-between gap-3 py-2.5 px-1">
+    <div class="min-w-0">
+      <p class="font-medium text-sm truncate">{{ s.name_localized }}</p>
+      {% if s.duration_minutes %}<p class="text-xs text-gray-500">{{ s.duration_minutes }} {% trans "Min" %}</p>{% endif %}
+    </div>
+    <a href="{% url 'storefront-service-slots' s.pk %}" class="shrink-0 rounded-lg px-3.5 py-1.5 text-sm font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Termin buchen" %}</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

@@ -221,6 +221,9 @@ class DemoKit:
     look: str = ""
     # ST-7c: форма карточек витрины ("" | overlay | compact) → site_defaults.
     card_style: str = ""
+    # E4 «задача-первым»: primary-виджет ВНУТРИ hero ("" | stays | services) →
+    # site_defaults.hero_widget. При "stays" секция stay_search гасится (hero несёт).
+    hero_widget: str = ""
     # LS-1/LS-2: WhatsApp-номер бизнеса (гейт видео-CTA и presence-пилюли) +
     # явный режим присутствия ("" = auto по часам; "on"/"off").
     whatsapp_number: str = ""
@@ -1560,6 +1563,7 @@ HOTEL_MENUS = {
 HOTEL = DemoKit(
     key="hotel",
     label="Pension Seeblick",
+    hero_widget="stays",  # E4 «задача-первым»: поиск дат ВНУТРИ hero (первый экран)
     # FB-3 Вариант B демо: свой статус «Anzahlung erhalten» между Anfrage и Bestätigt (держит номер).
     status_defs={
         "stay": [
@@ -5024,8 +5028,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "hero", "enabled": True},
         # A.3 (T-B): полоса доверия сразу под hero (если заданы пункты).
         {"key": "usp_bar", "enabled": bool(kit.usp)},
-        # H2: поиск размещения по датам сразу под hero — для отелей/пансионов.
-        {"key": "stay_search", "enabled": bool(kit.stay_units)},
+        # H2/E4: поиск размещения по датам. При hero_widget="stays" поиск живёт
+        # ВНУТРИ hero (первый экран) → секцию гасим, чтобы не было дубля.
+        {"key": "stay_search", "enabled": bool(kit.stay_units) and kit.hero_widget != "stays"},
         # Карточки номеров прямо на главной — для отелей/пансионов.
         {"key": "stay_rooms", "enabled": bool(kit.stay_units)},
         # A3: блок услуг «Leistungen & Preise» — если у кита есть услуги (booking).
@@ -5445,6 +5450,10 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.card_style in ("overlay", "compact"):  # ST-7c: форма карточек
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
+        cfg["site_defaults"] = sd
+    if kit.hero_widget in ("stays", "services"):  # E4: интерактивный hero
+        sd = dict(cfg.get("site_defaults") or {})
+        sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd
     if kit.presence_mode in ("on", "off"):  # LS-2: «Jetzt erreichbar»
         cfg["presence"] = {"mode": kit.presence_mode}

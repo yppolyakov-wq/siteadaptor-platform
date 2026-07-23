@@ -383,8 +383,10 @@ def test_apply_hotel_kit_builds_stays_site():
     assert {r.prepayment_percent for r in prepay_rates} == {30, 100}
     # G4a/H4a: 2 промокода (процентный SOMMER10 + фикс-сумма WILLKOMMEN20)
     assert Voucher.objects.get(code="WILLKOMMEN20").discount_cents == 2000
-    # H2 секция поиска на главной включена
-    assert "stay_search" in {s["key"] for s in cfg["sections"] if s["enabled"]}
+    # H2/E4: поиск дат ВНУТРИ hero (первый экран) — site_defaults.hero_widget=
+    # "stays"; отдельная секция stay_search погашена (жила бы дублем к hero).
+    assert cfg["site_defaults"]["hero_widget"] == "stays"
+    assert "stay_search" not in {s["key"] for s in cfg["sections"] if s["enabled"]}
     # брони в кабинете (подтверждённые) с H5 adults и H9 Kurtaxe в итоге
     confirmed = StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED)
     assert confirmed.count() >= 1

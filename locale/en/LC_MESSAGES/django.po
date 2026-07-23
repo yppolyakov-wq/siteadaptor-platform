@@ -13083,3 +13083,6 @@ msgstr "Change industry / expand features"
 
 msgid "Already added"
 msgstr "Already added"
+
+msgid "Min"
+msgstr "min"

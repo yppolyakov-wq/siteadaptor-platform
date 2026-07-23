@@ -13191,3 +13191,6 @@ msgstr "Sektörü değiştir / özellikleri genişlet"
 
 msgid "Already added"
 msgstr "Zaten eklendi"
+
+msgid "Min"
+msgstr "dk"

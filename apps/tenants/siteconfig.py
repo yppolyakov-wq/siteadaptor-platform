@@ -885,6 +885,12 @@ def normalize_site_defaults(raw) -> dict:
     # текущая форма → golden целы).
     if sd.get("card_style") in ("overlay", "compact"):
         out["card_style"] = sd["card_style"]
+    # E4 «задача-первым»: интерактивный hero — primary-виджет ВНУТРИ баннера
+    # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
+    # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →
+    # golden целы; существующие сайты не затрагиваются).
+    if sd.get("hero_widget") in ("stays", "services"):
+        out["hero_widget"] = sd["hero_widget"]
     return out
 
 

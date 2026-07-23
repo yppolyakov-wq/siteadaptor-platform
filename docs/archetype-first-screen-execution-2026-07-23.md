@@ -64,9 +64,24 @@ normalize цел (новые ключи presence-minimal) · паритет не
   на `type=staff` (сейчас показывает любой ресурс при >1; для friseur = staff,
   для ресторана столы — но рестораны обычно не дают гостю выбирать стол).
 
-### E4 — G1 «Интерактивный hero» (по спросу после E1–E3)
-- Вариант секции hero со встроенным primary-виджетом (date-search / услуги /
-  афиша). Больший визуальный сдвиг; делаем, если после E1–E3 видна ценность.
+### E4 — G1 «Интерактивный hero» ✅ (запрос владельца: «ведём клиента с первого экрана»)
+- **Механизм (без миграции, presence-minimal):** `site_defaults.hero_widget`
+  ("" | "stays" | "services") — primary-виджет ВНУТРИ баннера. Партиал
+  `_hero_widget.html` (белая карточка поверх фото/акцент/plain-hero), гейт по
+  модулю (stays → date-search на /unterkunft/; services → топ-3 услуги с
+  «Termin buchen»). `apply_template` доносит `template["site_defaults"]`;
+  golden целы (ключ только при валидном значении).
+- **Отель (флагман):** `gastgeber` → hero несёт date-search (site_defaults
+  hero_widget=stays), секция stay_search убрана (жила бы дублем), карточки
+  номеров — сразу под баннером. Демо-кит HOTEL так же (`hero_widget="stays"`,
+  `_kit_sections` гасит дубль). **Существующие отели не затрагиваются** (нет
+  ключа hero_widget → баннер как прежде).
+- **Замки:** render-тест партиала (поиск дат + гейт модуля), gastgeber
+  hero_widget=stays через apply_template, демо-отель (секция off + флаг),
+  golden/template_comments целы. 1 msgid («Min») → 4 .po.
+- **Дальше (services-вариант для friseur):** механизм готов (hero_widget=
+  "services" рендерит топ-услуги); включить у `termine`/демо friseur —
+  отдельный микро-инкремент E4b по желанию владельца.
 
 ## Порядок / итог
 E1 ✅ → E2 ✅ → E3 (уже был готов, поправка) → [E4 опц.]. Каждый: локальный

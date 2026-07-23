@@ -41,9 +41,9 @@ def test_templates_for_puts_recommended_first():
         ("werkstatt", "termine", "services"),
         ("handwerker", "handwerk", "before_after"),
         ("events", "veranstaltung", "events"),
-        # E1 «задача-первым»: у отеля primary-задача (поиск дат/номера) должна
-        # быть на дефолт-главной — раньше hotel не проверялся и дыра проскочила.
-        ("hotel", "gastgeber", "stay_search"),
+        # E1/E4 «задача-первым»: у отеля primary-задача на дефолт-главной. Поиск
+        # дат переехал В hero (hero_widget, отдельный замок ниже), карточки
+        # номеров — секцией. Раньше hotel не проверялся и дыра проскочила.
         ("hotel", "gastgeber", "stay_rooms"),
         # E2: tour_operator дефолтит на events-first veranstaltung (не about-first
         # dienstleister) — туры/события с датами на первом экране.
@@ -59,6 +59,39 @@ def test_s6_archetype_template_recommended_and_keeps_primary(
     assert order[0] == template_key
     tpl = sitetemplates.get_template(template_key)
     assert primary_section in tpl["sections"]
+
+
+def test_gastgeber_hero_carries_stay_search_widget():
+    # E4 «задача-первым»: у отеля поиск дат ВНУТРИ hero (первый экран). Шаблон
+    # несёт site_defaults.hero_widget="stays"; apply_template доносит его до
+    # конфига (normalize оставляет валидное значение).
+    from apps.tenants import siteconfig
+
+    tpl = sitetemplates.get_template("gastgeber")
+    assert tpl["site_defaults"]["hero_widget"] == "stays"
+    tenant = TenantFactory(schema_name="t_hw", business_type="hotel")
+    assert sitetemplates.apply_template(tenant, "gastgeber") is True
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["site_defaults"]["hero_widget"] == "stays"
+
+
+def test_hero_widget_partial_renders_date_search_gated_by_module(settings):
+    # E4: партиал hero-виджета рендерит поиск дат при hero_widget="stays" +
+    # активном модуле stays; при неактивном — пусто (без регрессии).
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from django.template.loader import render_to_string
+
+    on = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "stays", "storefront_stays_enabled": True},
+    )
+    assert "Check availability" in on and 'name="von"' in on
+    off = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "stays", "storefront_stays_enabled": False},
+    )
+    assert off.strip() == ""
 
 
 def test_apply_template_sets_layout_and_keeps_texts_and_onboarding():
