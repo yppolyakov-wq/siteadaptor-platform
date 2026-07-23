@@ -12739,3 +12739,347 @@ msgstr "Text over photo"
 
 msgid "Kompakte Zeile"
 msgstr "Compact row"
+
+msgid "Branche"
+msgstr "Industry"
+
+msgid "Firma & Logo"
+msgstr "Company & logo"
+
+msgid "Stil"
+msgstr "Style"
+
+msgid "Menü"
+msgstr "Menu"
+
+msgid "Produktseite"
+msgstr "Product page"
+
+msgid "Startseite"
+msgstr "Home page"
+
+msgid "Über uns"
+msgstr "About us"
+
+msgid "Recht"
+msgstr "Legal"
+
+msgid "Zahlung"
+msgstr "Payment"
+
+msgid "Willkommen!"
+msgstr "Welcome!"
+
+msgid ""
+"Am schnellsten startest du mit fertigen Beispielen — mit Fotos, Banner und "
+"Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen "
+"sich jederzeit wieder entfernen."
+msgstr ""
+"The quickest way to start is with ready-made examples — with photos, a "
+"banner and offers. Then you adjust everything step by step. Examples can be "
+"removed again at any time."
+
+msgid ""
+"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe "
+"sie in den nächsten Schritten an."
+msgstr ""
+"Example content is loaded — take a look at your site on the right and adjust"
+" it in the next steps."
+
+msgid "Beispiele wieder entfernen"
+msgstr "Remove examples again"
+
+msgid "Weiter"
+msgstr "Continue"
+
+msgid "Mit Beispielen starten"
+msgstr "Start with examples"
+
+msgid "Leer starten"
+msgstr "Start empty"
+
+msgid ""
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten (mit Fotos), "
+"Banner und einer passenden Startseite — du änderst sie einfach ab."
+msgstr ""
+"With examples we fill your shop with sample offers (with photos), a banner "
+"and a matching home page — you simply edit them."
+
+msgid "Was machst du?"
+msgstr "What do you do?"
+
+msgid ""
+"Wähle deine Art von Geschäft — wir schlagen dir die passenden Bausteine vor."
+msgstr ""
+"Choose your type of business — we'll suggest the right building blocks."
+
+msgid "Ohne Beispiele"
+msgstr "Without examples"
+
+msgid "Überspringen"
+msgstr "Skip"
+
+msgid ""
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und "
+"Texten — du änderst sie einfach ab."
+msgstr ""
+"With examples we fill your shop with sample offers, a banner and texts — you"
+" simply edit them."
+
+msgid "Deine Firma"
+msgstr "Your company"
+
+msgid "Name, Kontakt und Logo erscheinen auf deiner Website."
+msgstr "Name, contact and logo appear on your website."
+
+msgid "Firmenname"
+msgstr "Company name"
+
+msgid "z. B. Hilden"
+msgstr "e.g. Hilden"
+
+msgid "Logo (optional)"
+msgstr "Logo (optional)"
+
+msgid "Erscheint in der Kopfzeile statt des Namens."
+msgstr "Appears in the header instead of the name."
+
+msgid "Adresse"
+msgstr "Address"
+
+msgid "Öffnungszeiten"
+msgstr "Opening hours"
+
+msgid "Mo–Fr 8–18 Uhr"
+msgstr "Mon–Fri 8am–6pm"
+
+msgid "Sa 8–13 Uhr"
+msgstr "Sat 8am–1pm"
+
+msgid "Telefon"
+msgstr "Phone"
+
+msgid "Dein Angebot"
+msgstr "Your offer"
+
+msgid "Lege deine erste Position an — Details kannst du jederzeit ergänzen."
+msgstr "Create your first item — you can add details at any time."
+
+msgid "Preis (€)"
+msgstr "Price (€)"
+
+msgid "Datum & Uhrzeit"
+msgstr "Date & time"
+
+msgid "Hinzufügen"
+msgstr "Add"
+
+msgid ""
+"Beispiel-Inhalte sind geladen — schau dir deine Seite an und passe sie an."
+msgstr "Example content is loaded — take a look at your site and adjust it."
+
+msgid "Beispiel-Inhalte wieder entfernen"
+msgstr "Remove example content again"
+
+msgid "Noch leer?"
+msgstr "Still empty?"
+
+msgid ""
+"Lade Beispiel-Produkte, Bilder und Aktionen — zum Ansehen und Anpassen. "
+"Jederzeit wieder entfernbar."
+msgstr ""
+"Load sample products, images and deals — to view and adjust. Removable again"
+" at any time."
+
+msgid "Beispiel-Inhalte laden"
+msgstr "Load example content"
+
+msgid "(alle Felder)"
+msgstr "(all fields)"
+
+msgid "Dein Banner"
+msgstr "Your banner"
+
+msgid ""
+"Das Erste, was Besucher sehen. Titel, kurzer Text und optional ein Foto."
+msgstr ""
+"The first thing visitors see. A title, a short text and optionally a photo."
+
+msgid "Titel"
+msgstr "Title"
+
+msgid "Willkommen"
+msgstr "Welcome"
+
+msgid "Untertitel"
+msgstr "Subtitle"
+
+msgid "Kurz, was dich ausmacht."
+msgstr "Briefly, what makes you special."
+
+#, python-format
+msgid "Titel (%(loc)s)"
+msgstr "Title (%(loc)s)"
+
+#, python-format
+msgid "Untertitel (%(loc)s)"
+msgstr "Subtitle (%(loc)s)"
+
+msgid "Leer = Besucher sehen den deutschen Text."
+msgstr "Empty = visitors see the German text."
+
+msgid "Foto (optional)"
+msgstr "Photo (optional)"
+
+msgid ""
+"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer"
+" ihr seid."
+msgstr ""
+"“About us” builds trust. Choose a page template and briefly tell who you "
+"are."
+
+msgid "Über uns — Titel"
+msgstr "About us — title"
+
+msgid "Über uns — Text"
+msgstr "About us — text"
+
+msgid "Erzähl kurz, wer ihr seid und was euch ausmacht."
+msgstr "Briefly tell who you are and what makes you special."
+
+#, python-format
+msgid "Über uns — Titel (%(loc)s)"
+msgstr "About us — title (%(loc)s)"
+
+#, python-format
+msgid "Über uns — Text (%(loc)s)"
+msgstr "About us — text (%(loc)s)"
+
+msgid "Kategorieseite"
+msgstr "Category page"
+
+msgid ""
+"Wie werden deine Produkte aufgelistet? Wähle eine Darstellung — später frei "
+"anpassbar."
+msgstr ""
+"How are your products listed? Choose a layout — freely adjustable later."
+
+msgid ""
+"Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
+msgstr "Apply to other lists too (services, rooms, events)"
+
+msgid "Kategorien verwalten"
+msgstr "Manage categories"
+
+msgid ""
+"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, "
+"Abschnitte ein- oder ausblenden — rechts siehst du es sofort."
+msgstr ""
+"How should a single offer's page look? Choose a style, show or hide sections"
+" — you see it instantly on the right."
+
+msgid "Wie sieht dein Menü aus?"
+msgstr "What does your menu look like?"
+
+msgid ""
+"Wähle den Stil deiner Kopfzeile. Welche Menüpunkte erscheinen, legst du "
+"danach fest."
+msgstr ""
+"Choose the style of your header. You'll define which menu items appear "
+"afterwards."
+
+msgid "Menüpunkte"
+msgstr "Menu items"
+
+msgid "Eigene Punkte, Reihenfolge & Untermenüs"
+msgstr "Custom items, order & submenus"
+
+msgid "Sprachen deiner Website"
+msgstr "Languages of your website"
+
+msgid ""
+"Wähle die Standardsprache (vorausgewählt: Deutsch) und weitere Sprachen. "
+"Inhalte füllst du in den nächsten Schritten pro Sprache aus."
+msgstr ""
+"Choose the default language (preselected: German) and additional languages. "
+"You'll fill in content per language in the next steps."
+
+msgid ""
+"Die Standardsprache sehen Besucher zuerst; weitere Sprachen erscheinen als "
+"Umschalter in der Kopfzeile. Später änderbar unter „Sprachen\" in den "
+"Einstellungen."
+msgstr ""
+"Visitors see the default language first; additional languages appear as a "
+"switcher in the header. Changeable later under “Languages” in settings."
+
+msgid ""
+"Wie bezahlen und erhalten deine Kund:innen? Alles an einem Ort — jederzeit "
+"änderbar."
+msgstr ""
+"How do your customers pay and receive? All in one place — changeable at any "
+"time."
+
+msgid ""
+"Nothing to set up here yet — you can enable online payment for this later."
+msgstr ""
+"Nothing to set up here yet — you can enable online payment for this later."
+
+msgid "Texte & Recht"
+msgstr "Texts & legal"
+
+msgid "Das Impressum ist Pflicht (§5 TMG) und erscheint auf deiner Website."
+msgstr "The imprint is mandatory (§5 TMG) and appears on your website."
+
+msgid ""
+"Firmenname, Anschrift, vertretungsberechtigte Person, Kontakt, USt-IdNr. …"
+msgstr "Company name, address, authorised representative, contact, VAT ID …"
+
+msgid ""
+"Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) "
+"unter „Recht & Steuer\"."
+msgstr ""
+"Mandatory information under §5 TMG. Tax details (small business §19, VAT ID)"
+" under “Legal & tax”."
+
+msgid "Alle Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "All legal texts (privacy, withdrawal, terms)"
+
+msgid "Recht & Steuer (Kleinunternehmer, USt-IdNr.)"
+msgstr "Legal & tax (small business, VAT ID)"
+
+msgid "Wie soll deine Seite aussehen?"
+msgstr "How should your site look?"
+
+msgid ""
+"Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles "
+"später frei anpassbar."
+msgstr ""
+"Choose a ready-made look — layout, texts and colour are set. Everything "
+"freely adjustable later."
+
+msgid "Oder eine Layout-Vorlage wählen:"
+msgstr "Or choose a layout template:"
+
+msgid "Geschafft!"
+msgstr "Done!"
+
+msgid ""
+"Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen."
+msgstr ""
+"Your business is ready to go. Everything can be adjusted later in the "
+"dashboard."
+
+msgid "Zurück"
+msgstr "Back"
+
+msgid "Zum Dashboard"
+msgstr "To the dashboard"
+
+msgid "Module ansehen"
+msgstr "View modules"
+
+msgid "Andere Branche / Funktionen erweitern"
+msgstr "Change industry / expand features"
+
+msgid "Already added"
+msgstr "Already added"

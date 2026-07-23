@@ -115,27 +115,27 @@ def _gate_payment(t) -> bool:
 # business — escape-hatch (gate скрывает, тип уже выбран при регистрации);
 # detail/category/payment — гейт по архетипу/модулям. Порядок = порядок рельсы.
 SETUP_STEPS = (
-    SetupStep("business", "🏪", "Branche", gate=_gate_business),
-    SetupStep("start", "🚀", "Start", check=_check_start),
+    SetupStep("business", "🏪", _l("Branche"), gate=_gate_business),
+    SetupStep("start", "🚀", _l("Start"), check=_check_start),
     # AB6.10: языки СРАЗУ после старта (порядок владельца 2026-07-17) — контент
     # дальнейших шагов заполняется на каждом включённом языке.
-    SetupStep("language", "🌐", "Sprachen", check=_check_language, tile_url="languages"),
-    SetupStep("company", "🏠", "Firma & Logo", check=_check_company),
-    SetupStep("stil", "🎨", "Stil", tile_url="site-home"),
-    SetupStep("menu", "🧭", "Menü", tile_url="site-menu"),
-    SetupStep("offer", "🛍️", "Angebot", check=_check_offer),
+    SetupStep("language", "🌐", _l("Sprachen"), check=_check_language, tile_url="languages"),
+    SetupStep("company", "🏠", _l("Firma & Logo"), check=_check_company),
+    SetupStep("stil", "🎨", _l("Stil"), tile_url="site-home"),
+    SetupStep("menu", "🧭", _l("Menü"), tile_url="site-menu"),
+    SetupStep("offer", "🛍️", _l("Angebot"), check=_check_offer),
     # AB6.10: вид страницы товара/услуги/номера (стиль карточек + секции детали).
-    SetupStep("detail", "🧾", "Produktseite", gate=_gate_detail),
+    SetupStep("detail", "🧾", _l("Produktseite"), gate=_gate_detail),
     SetupStep(
-        "category", "📁", "Kategorien", gate=_gate_category, tile_url="catalog:category-list"
+        "category", "📁", _l("Kategorien"), gate=_gate_category, tile_url="catalog:category-list"
     ),
-    SetupStep("home", "🖼️", "Startseite", check=_check_home, tile_url="site-home"),
+    SetupStep("home", "🖼️", _l("Startseite"), check=_check_home, tile_url="site-home"),
     # AB6.10: «О компании» — свой слайд с шаблонами страницы (page_blocks["info"]).
-    SetupStep("about", "🏢", "Über uns", check=_check_about),
-    SetupStep("texts", "📄", "Recht", check=_check_texts, tile_url="legal-docs"),
+    SetupStep("about", "🏢", _l("Über uns"), check=_check_about),
+    SetupStep("texts", "📄", _l("Recht"), check=_check_texts, tile_url="legal-docs"),
     # AB6.10: оплата/доставка — в конец («если есть» — гейт по чекаут-модулям).
-    SetupStep("payment", "💳", "Zahlung", gate=_gate_payment, tile_url="payment-settings"),
-    SetupStep("done", "🎉", "Fertig"),
+    SetupStep("payment", "💳", _l("Zahlung"), gate=_gate_payment, tile_url="payment-settings"),
+    SetupStep("done", "🎉", _l("Fertig")),
 )
 STEP_KEYS = tuple(s.key for s in SETUP_STEPS)
 _STEP_BY_KEY = {s.key: s for s in SETUP_STEPS}

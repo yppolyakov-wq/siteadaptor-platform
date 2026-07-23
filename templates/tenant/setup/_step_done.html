@@ -1,6 +1,6 @@
 {% load i18n %}
-<h1 class="text-2xl font-bold mb-1">Geschafft! 🎉</h1>
-<p class="text-sm text-gray-500 mb-4">Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Geschafft!" %} 🎉</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen." %}</p>
 
 {% comment %}Сводка всех шагов ✓/⏭/○ (reuse контекста `steps` = steps_with_status).
 Пропущенные/незаполненные кликабельны (?step=<key>) — дозаполнить не выходя из мастера.
@@ -24,13 +24,13 @@
 
 <div class="flex items-center gap-3">
   <form method="post">{% csrf_token %}
-    <button type="submit" name="action" value="back" class="text-sm text-gray-500 px-3 py-2.5 hover:underline">← Zurück</button>
+    <button type="submit" name="action" value="back" class="text-sm text-gray-500 px-3 py-2.5 hover:underline">← {% trans "Zurück" %}</button>
   </form>
-  <a href="{% url 'dashboard' %}" class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700">Zum Dashboard</a>
-  <a href="{% url 'modules' %}" class="text-sm text-indigo-600 px-3 py-2.5 hover:underline">Module ansehen</a>
+  <a href="{% url 'dashboard' %}" class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700">{% trans "Zum Dashboard" %}</a>
+  <a href="{% url 'modules' %}" class="text-sm text-indigo-600 px-3 py-2.5 hover:underline">{% trans "Module ansehen" %}</a>
 </div>
 {% comment %}AB6.2 (фидбэк владельца): тип бизнеса выбран при регистрации → в мастере
 скрыт, но при желании расширить на смежный архетип — сюда (escape-hatch).{% endcomment %}
 <p class="mt-6 text-xs text-gray-400">
-  <a href="{% url 'setup' %}?step=business" class="hover:text-indigo-600 hover:underline">Andere Branche / Funktionen erweitern →</a>
+  <a href="{% url 'setup' %}?step=business" class="hover:text-indigo-600 hover:underline">{% trans "Andere Branche / Funktionen erweitern" %} →</a>
 </p>

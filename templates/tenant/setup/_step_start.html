@@ -2,18 +2,18 @@
 {% comment %}AB6.9 (фидбэк владельца): первый экран мастера — «добавить демо-данные
 как на демке» одним кликом (богатое демо: товары/услуги с ФОТО + баннер + галерея),
 затем пошаговая настройка. «Leer starten» — пустой старт.{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">Willkommen! 👋</h1>
-<p class="text-sm text-gray-500 mb-5">Am schnellsten startest du mit fertigen Beispielen — mit Fotos, Banner und Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen sich jederzeit wieder entfernen.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Willkommen!" %} 👋</h1>
+<p class="text-sm text-gray-500 mb-5">{% trans "Am schnellsten startest du mit fertigen Beispielen — mit Fotos, Banner und Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen sich jederzeit wieder entfernen." %}</p>
 {% if has_demo %}
   <div class="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-4">
-    <p class="text-sm text-gray-700 mb-2">✓ Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe sie in den nächsten Schritten an.</p>
+    <p class="text-sm text-gray-700 mb-2">✓ {% trans "Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe sie in den nächsten Schritten an." %}</p>
     <form method="post" class="inline">{% csrf_token %}
-      <button type="submit" name="action" value="clear_demo" class="text-sm text-gray-500 hover:underline">Beispiele wieder entfernen</button>
+      <button type="submit" name="action" value="clear_demo" class="text-sm text-gray-500 hover:underline">{% trans "Beispiele wieder entfernen" %}</button>
     </form>
   </div>
   <form method="post">
     {% csrf_token %}
-    <button type="submit" class="bg-indigo-600 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-indigo-700 shadow-sm">Weiter →</button>
+    <button type="submit" class="bg-indigo-600 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-indigo-700 shadow-sm">{% trans "Weiter" %} →</button>
   </form>
 {% else %}
   <form method="post" class="space-y-3">
@@ -21,13 +21,13 @@
     <div class="flex flex-wrap items-center gap-3">
       <button type="submit" name="action" value="demo_start"
               class="bg-indigo-600 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-indigo-700 shadow-sm">
-        🎁 Mit Beispielen starten
+        🎁 {% trans "Mit Beispielen starten" %}
       </button>
       <button type="submit"
               class="text-sm text-gray-600 px-4 py-3 rounded-xl border border-gray-300 hover:border-indigo-400 hover:text-indigo-700">
-        Leer starten
+        {% trans "Leer starten" %}
       </button>
     </div>
-    <p class="text-xs text-gray-400">Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten (mit Fotos), Banner und einer passenden Startseite — du änderst sie einfach ab.</p>
+    <p class="text-xs text-gray-400">{% trans "Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten (mit Fotos), Banner und einer passenden Startseite — du änderst sie einfach ab." %}</p>
   </form>
 {% endif %}

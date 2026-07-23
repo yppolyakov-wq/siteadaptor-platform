@@ -3,8 +3,8 @@
 переехали из texts) + ШАБЛОН страницы (пресеты C-блоков хоста info → витринная
 /ueber-uns/, превью справа показывает её сразу). Пресет заменяет только свои
 блоки (id pb-about-*) — блоки владельца не трогает.{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">Über uns</h1>
-<p class="text-sm text-gray-500 mb-4">„Über uns" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer ihr seid.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Über uns" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans '„Über uns" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer ihr seid.' %}</p>
 <form method="post" class="space-y-5">
   {% csrf_token %}
 
@@ -35,25 +35,25 @@
   {% include "tenant/setup/_loc_pills.html" %}
   <div data-loc-pane="{{ content_locales.0 }}" class="space-y-4">
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_about_title">Über uns — Titel</label>
-      <input id="id_about_title" name="about_title" type="text" value="{{ about_title }}" placeholder="Über uns" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <label class="block text-sm font-medium mb-1" for="id_about_title">{% trans "Über uns — Titel" %}</label>
+      <input id="id_about_title" name="about_title" type="text" value="{{ about_title }}" placeholder="{% trans 'Über uns' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_about_text">Über uns — Text</label>
-      <textarea id="id_about_text" name="about_text" rows="3" placeholder="Erzähl kurz, wer ihr seid und was euch ausmacht." class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ about_text }}</textarea>
+      <label class="block text-sm font-medium mb-1" for="id_about_text">{% trans "Über uns — Text" %}</label>
+      <textarea id="id_about_text" name="about_text" rows="3" placeholder="{% trans 'Erzähl kurz, wer ihr seid und was euch ausmacht.' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ about_text }}</textarea>
     </div>
   </div>
   {% for p in i18n_panes %}
     <div data-loc-pane="{{ p.loc }}" hidden class="space-y-4">
       <div>
-        <label class="block text-sm font-medium mb-1" for="id_about_title__{{ p.loc }}">Über uns — Titel ({{ p.loc|upper }})</label>
+        <label class="block text-sm font-medium mb-1" for="id_about_title__{{ p.loc }}">{% blocktrans with loc=p.loc|upper %}Über uns — Titel ({{ loc }}){% endblocktrans %}</label>
         <input id="id_about_title__{{ p.loc }}" name="about_title__{{ p.loc }}" type="text" value="{{ p.about_title }}" placeholder="{{ about_title|default:'Über uns' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" for="id_about_text__{{ p.loc }}">Über uns — Text ({{ p.loc|upper }})</label>
+        <label class="block text-sm font-medium mb-1" for="id_about_text__{{ p.loc }}">{% blocktrans with loc=p.loc|upper %}Über uns — Text ({{ loc }}){% endblocktrans %}</label>
         <textarea id="id_about_text__{{ p.loc }}" name="about_text__{{ p.loc }}" rows="3" placeholder="{{ about_text }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ p.about_text }}</textarea>
       </div>
-      <p class="text-xs text-gray-400">Leer = Besucher sehen den deutschen Text.</p>
+      <p class="text-xs text-gray-400">{% trans "Leer = Besucher sehen den deutschen Text." %}</p>
     </div>
   {% endfor %}
 

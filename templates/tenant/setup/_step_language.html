@@ -3,8 +3,8 @@
 в мастере (дефолт — немецкий) + доп. языки. Реюз семантики кабинета «Sprachen» (L2):
 чекбоксы реестра settings.LANGUAGES + радио дефолта → enabled_locales/default_locale.
 Контент на выбранных языках заполняется на следующих шагах (пилюли).{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">Sprachen deiner Website</h1>
-<p class="text-sm text-gray-500 mb-4">Wähle die Standardsprache (vorausgewählt: Deutsch) und weitere Sprachen. Inhalte füllst du in den nächsten Schritten pro Sprache aus.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Sprachen deiner Website" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Wähle die Standardsprache (vorausgewählt: Deutsch) und weitere Sprachen. Inhalte füllst du in den nächsten Schritten pro Sprache aus." %}</p>
 <form method="post" class="space-y-4">
   {% csrf_token %}
   <div class="space-y-2">
@@ -21,6 +21,6 @@
       </div>
     {% endfor %}
   </div>
-  <p class="text-xs text-gray-400">Die Standardsprache sehen Besucher zuerst; weitere Sprachen erscheinen als Umschalter in der Kopfzeile. Später änderbar unter „Sprachen" in den Einstellungen.</p>
+  <p class="text-xs text-gray-400">{% trans 'Die Standardsprache sehen Besucher zuerst; weitere Sprachen erscheinen als Umschalter in der Kopfzeile. Später änderbar unter „Sprachen" in den Einstellungen.' %}</p>
   {% include "tenant/_setup_buttons.html" %}
 </form>

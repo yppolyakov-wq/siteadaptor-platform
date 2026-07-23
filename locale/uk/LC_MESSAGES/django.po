@@ -12915,3 +12915,343 @@ msgstr "Текст на фото"
 
 msgid "Kompakte Zeile"
 msgstr "Компактний рядок"
+
+msgid "Branche"
+msgstr "Галузь"
+
+msgid "Firma & Logo"
+msgstr "Компанія та логотип"
+
+msgid "Stil"
+msgstr "Стиль"
+
+msgid "Menü"
+msgstr "Меню"
+
+msgid "Produktseite"
+msgstr "Сторінка товару"
+
+msgid "Startseite"
+msgstr "Головна"
+
+msgid "Über uns"
+msgstr "Про нас"
+
+msgid "Recht"
+msgstr "Право"
+
+msgid "Zahlung"
+msgstr "Оплата"
+
+msgid "Willkommen!"
+msgstr "Ласкаво просимо!"
+
+msgid ""
+"Am schnellsten startest du mit fertigen Beispielen — mit Fotos, Banner und "
+"Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen "
+"sich jederzeit wieder entfernen."
+msgstr ""
+"Найшвидше почати з готових прикладів — із фото, банером і пропозиціями. "
+"Потім усе налаштуєте крок за кроком. Приклади можна будь-коли прибрати."
+
+msgid ""
+"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe "
+"sie in den nächsten Schritten an."
+msgstr ""
+"Приклади завантажено — подивіться на сайт праворуч і налаштуйте його на "
+"наступних кроках."
+
+msgid "Beispiele wieder entfernen"
+msgstr "Прибрати приклади"
+
+msgid "Weiter"
+msgstr "Далі"
+
+msgid "Mit Beispielen starten"
+msgstr "Почати з прикладами"
+
+msgid "Leer starten"
+msgstr "Почати з порожнього"
+
+msgid ""
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten (mit Fotos), "
+"Banner und einer passenden Startseite — du änderst sie einfach ab."
+msgstr ""
+"З прикладами ми наповнимо магазин зразками пропозицій (з фото), банером і "
+"відповідною головною — ви просто їх зміните."
+
+msgid "Was machst du?"
+msgstr "Чим ви займаєтеся?"
+
+msgid ""
+"Wähle deine Art von Geschäft — wir schlagen dir die passenden Bausteine vor."
+msgstr "Виберіть тип бізнесу — ми запропонуємо відповідні блоки."
+
+msgid "Ohne Beispiele"
+msgstr "Без прикладів"
+
+msgid "Überspringen"
+msgstr "Пропустити"
+
+msgid ""
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und "
+"Texten — du änderst sie einfach ab."
+msgstr ""
+"З прикладами ми наповнимо магазин зразками пропозицій, банером і текстами — "
+"ви просто їх зміните."
+
+msgid "Deine Firma"
+msgstr "Ваша компанія"
+
+msgid "Name, Kontakt und Logo erscheinen auf deiner Website."
+msgstr "Назва, контакти та логотип з'являться на сайті."
+
+msgid "Firmenname"
+msgstr "Назва компанії"
+
+msgid "z. B. Hilden"
+msgstr "напр. Хільден"
+
+msgid "Logo (optional)"
+msgstr "Логотип (необов'язково)"
+
+msgid "Erscheint in der Kopfzeile statt des Namens."
+msgstr "З'являється у шапці замість назви."
+
+msgid "Adresse"
+msgstr "Адреса"
+
+msgid "Öffnungszeiten"
+msgstr "Години роботи"
+
+msgid "Mo–Fr 8–18 Uhr"
+msgstr "Пн–Пт 8–18"
+
+msgid "Sa 8–13 Uhr"
+msgstr "Сб 8–13"
+
+msgid "Telefon"
+msgstr "Телефон"
+
+msgid "Dein Angebot"
+msgstr "Ваша пропозиція"
+
+msgid "Lege deine erste Position an — Details kannst du jederzeit ergänzen."
+msgstr "Створіть першу позицію — деталі можна додати будь-коли."
+
+msgid "Preis (€)"
+msgstr "Ціна (€)"
+
+msgid "Datum & Uhrzeit"
+msgstr "Дата й час"
+
+msgid "Hinzufügen"
+msgstr "Додати"
+
+msgid ""
+"Beispiel-Inhalte sind geladen — schau dir deine Seite an und passe sie an."
+msgstr "Приклади завантажено — подивіться на сайт і налаштуйте його."
+
+msgid "Beispiel-Inhalte wieder entfernen"
+msgstr "Прибрати приклади"
+
+msgid "Noch leer?"
+msgstr "Ще порожньо?"
+
+msgid ""
+"Lade Beispiel-Produkte, Bilder und Aktionen — zum Ansehen und Anpassen. "
+"Jederzeit wieder entfernbar."
+msgstr ""
+"Завантажте зразки товарів, зображення та акції — для перегляду й "
+"налаштування. Будь-коли можна прибрати."
+
+msgid "Beispiel-Inhalte laden"
+msgstr "Завантажити приклади"
+
+msgid "(alle Felder)"
+msgstr "(усі поля)"
+
+msgid "Dein Banner"
+msgstr "Ваш банер"
+
+msgid ""
+"Das Erste, was Besucher sehen. Titel, kurzer Text und optional ein Foto."
+msgstr ""
+"Перше, що бачать відвідувачі. Заголовок, короткий текст і за бажанням фото."
+
+msgid "Titel"
+msgstr "Заголовок"
+
+msgid "Willkommen"
+msgstr "Ласкаво просимо"
+
+msgid "Untertitel"
+msgstr "Підзаголовок"
+
+msgid "Kurz, was dich ausmacht."
+msgstr "Коротко про те, чим ви особливі."
+
+#, python-format
+msgid "Titel (%(loc)s)"
+msgstr "Заголовок (%(loc)s)"
+
+#, python-format
+msgid "Untertitel (%(loc)s)"
+msgstr "Підзаголовок (%(loc)s)"
+
+msgid "Leer = Besucher sehen den deutschen Text."
+msgstr "Порожньо = відвідувачі бачать німецький текст."
+
+msgid "Foto (optional)"
+msgstr "Фото (необов'язково)"
+
+msgid ""
+"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer"
+" ihr seid."
+msgstr ""
+"«Про нас» викликає довіру. Виберіть шаблон сторінки й коротко розкажіть, хто"
+" ви."
+
+msgid "Über uns — Titel"
+msgstr "Про нас — заголовок"
+
+msgid "Über uns — Text"
+msgstr "Про нас — текст"
+
+msgid "Erzähl kurz, wer ihr seid und was euch ausmacht."
+msgstr "Коротко розкажіть, хто ви і чим особливі."
+
+#, python-format
+msgid "Über uns — Titel (%(loc)s)"
+msgstr "Про нас — заголовок (%(loc)s)"
+
+#, python-format
+msgid "Über uns — Text (%(loc)s)"
+msgstr "Про нас — текст (%(loc)s)"
+
+msgid "Kategorieseite"
+msgstr "Сторінка категорій"
+
+msgid ""
+"Wie werden deine Produkte aufgelistet? Wähle eine Darstellung — später frei "
+"anpassbar."
+msgstr ""
+"Як виводяться ваші товари? Виберіть розкладку — потім вільно налаштовується."
+
+msgid ""
+"Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
+msgstr "Застосувати й до інших списків (послуги, номери, події)"
+
+msgid "Kategorien verwalten"
+msgstr "Керування категоріями"
+
+msgid ""
+"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, "
+"Abschnitte ein- oder ausblenden — rechts siehst du es sofort."
+msgstr ""
+"Як має виглядати сторінка окремої пропозиції? Виберіть стиль, показуйте або "
+"приховуйте розділи — праворуч видно одразу."
+
+msgid "Wie sieht dein Menü aus?"
+msgstr "Як виглядає ваше меню?"
+
+msgid ""
+"Wähle den Stil deiner Kopfzeile. Welche Menüpunkte erscheinen, legst du "
+"danach fest."
+msgstr "Виберіть стиль шапки. Які пункти меню показувати — задасте потім."
+
+msgid "Menüpunkte"
+msgstr "Пункти меню"
+
+msgid "Eigene Punkte, Reihenfolge & Untermenüs"
+msgstr "Власні пункти, порядок і підменю"
+
+msgid "Sprachen deiner Website"
+msgstr "Мови вашого сайту"
+
+msgid ""
+"Wähle die Standardsprache (vorausgewählt: Deutsch) und weitere Sprachen. "
+"Inhalte füllst du in den nächsten Schritten pro Sprache aus."
+msgstr ""
+"Виберіть мову за замовчуванням (попередньо вибрано: німецька) та додаткові "
+"мови. Контент заповните на наступних кроках для кожної мови."
+
+msgid ""
+"Die Standardsprache sehen Besucher zuerst; weitere Sprachen erscheinen als "
+"Umschalter in der Kopfzeile. Später änderbar unter „Sprachen\" in den "
+"Einstellungen."
+msgstr ""
+"Відвідувачі спочатку бачать мову за замовчуванням; додаткові мови "
+"з'являються перемикачем у шапці. Пізніше змінюється в налаштуваннях у "
+"розділі «Мови»."
+
+msgid ""
+"Wie bezahlen und erhalten deine Kund:innen? Alles an einem Ort — jederzeit "
+"änderbar."
+msgstr ""
+"Як ваші клієнти платять і отримують? Усе в одному місці — можна змінювати "
+"будь-коли."
+
+msgid ""
+"Nothing to set up here yet — you can enable online payment for this later."
+msgstr ""
+"Тут поки нема чого налаштовувати — онлайн-оплату можна ввімкнути пізніше."
+
+msgid "Texte & Recht"
+msgstr "Тексти та право"
+
+msgid "Das Impressum ist Pflicht (§5 TMG) und erscheint auf deiner Website."
+msgstr "Impressum обов'язковий (§5 TMG) і з'являється на сайті."
+
+msgid ""
+"Firmenname, Anschrift, vertretungsberechtigte Person, Kontakt, USt-IdNr. …"
+msgstr "Назва компанії, адреса, уповноважена особа, контакт, ПДВ-номер …"
+
+msgid ""
+"Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) "
+"unter „Recht & Steuer\"."
+msgstr ""
+"Обов'язкові відомості за §5 TMG. Податкові дані (малий бізнес §19, ПДВ-"
+"номер) у розділі «Право та податки»."
+
+msgid "Alle Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "Усі правові тексти (конфіденційність, відкликання, умови)"
+
+msgid "Recht & Steuer (Kleinunternehmer, USt-IdNr.)"
+msgstr "Право та податки (малий бізнес, ПДВ-номер)"
+
+msgid "Wie soll deine Seite aussehen?"
+msgstr "Як має виглядати ваш сайт?"
+
+msgid ""
+"Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles "
+"später frei anpassbar."
+msgstr ""
+"Виберіть готовий вигляд — макет, тексти й колір задаються. Усе потім вільно "
+"налаштовується."
+
+msgid "Oder eine Layout-Vorlage wählen:"
+msgstr "Або виберіть шаблон макета:"
+
+msgid "Geschafft!"
+msgstr "Готово!"
+
+msgid ""
+"Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen."
+msgstr ""
+"Ваш бізнес готовий до запуску. Усе можна налаштувати пізніше в панелі."
+
+msgid "Zurück"
+msgstr "Назад"
+
+msgid "Zum Dashboard"
+msgstr "До панелі"
+
+msgid "Module ansehen"
+msgstr "Переглянути модулі"
+
+msgid "Andere Branche / Funktionen erweitern"
+msgstr "Змінити галузь / розширити функції"
+
+msgid "Already added"
+msgstr "Вже додано"

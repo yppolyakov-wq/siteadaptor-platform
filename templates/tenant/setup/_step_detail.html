@@ -2,8 +2,8 @@
 {% comment %}AB6.10: слайд «Produktseite» — вид детальной страницы primary-сущности
 (v1: стиль карточек site_defaults + секции детали чекбоксами). Превью справа
 открывает деталь ПЕРВОЙ сущности (preview_url), radio/чекбоксы live-сохраняются.{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">Produktseite</h1>
-<p class="text-sm text-gray-500 mb-4">Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, Abschnitte ein- oder ausblenden — rechts siehst du es sofort.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Produktseite" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, Abschnitte ein- oder ausblenden — rechts siehst du es sofort." %}</p>
 <form method="post" class="space-y-5">
   {% csrf_token %}
 

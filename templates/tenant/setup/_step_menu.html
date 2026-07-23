@@ -3,8 +3,8 @@
 слайд «Menü» = 3 вида шапки (Classic/Centered/Minimal) визуальными мокапами, выбор radio
 → live-превью перерисовывается. Пункты меню (какие страницы) — отдельный редактор
 (ссылка ниже).{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">Wie sieht dein Menü aus?</h1>
-<p class="text-sm text-gray-500 mb-4">Wähle den Stil deiner Kopfzeile. Welche Menüpunkte erscheinen, legst du danach fest.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Wie sieht dein Menü aus?" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Wähle den Stil deiner Kopfzeile. Welche Menüpunkte erscheinen, legst du danach fest." %}</p>
 <form method="post" class="space-y-4">
   {% csrf_token %}
   <div class="grid grid-cols-3 gap-3">
@@ -37,7 +37,7 @@
   (узлы menus.top.items; live-превью обновляет шапку по клику). Кастомные пункты/
   порядок/подменю — полный редактор (ссылка ниже).{% endcomment %}
   <div class="pt-1">
-    <span class="block text-sm font-medium mb-2">Menüpunkte</span>
+    <span class="block text-sm font-medium mb-2">{% trans "Menüpunkte" %}</span>
     <input type="hidden" name="menu_chips" value="1">
     <div class="flex flex-wrap gap-1.5">
       {% for c in menu_chips %}
@@ -49,7 +49,7 @@
     </div>
   </div>
   <div class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm text-gray-600">
-    <a href="{% url 'site-menu' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Eigene Punkte, Reihenfolge &amp; Untermenüs →</a>
+    <a href="{% url 'site-menu' %}" class="font-medium text-indigo-600 hover:text-indigo-800">{% trans "Eigene Punkte, Reihenfolge & Untermenüs" %} →</a>
   </div>
   {% include "tenant/_setup_buttons.html" %}
 </form>

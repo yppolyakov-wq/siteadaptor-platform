@@ -12850,3 +12850,344 @@ msgstr "Fotoğraf üzerinde metin"
 
 msgid "Kompakte Zeile"
 msgstr "Kompakt satır"
+
+msgid "Branche"
+msgstr "Sektör"
+
+msgid "Firma & Logo"
+msgstr "Firma ve logo"
+
+msgid "Stil"
+msgstr "Stil"
+
+msgid "Menü"
+msgstr "Menü"
+
+msgid "Produktseite"
+msgstr "Ürün sayfası"
+
+msgid "Startseite"
+msgstr "Ana sayfa"
+
+msgid "Über uns"
+msgstr "Hakkımızda"
+
+msgid "Recht"
+msgstr "Hukuk"
+
+msgid "Zahlung"
+msgstr "Ödeme"
+
+msgid "Willkommen!"
+msgstr "Hoş geldin!"
+
+msgid ""
+"Am schnellsten startest du mit fertigen Beispielen — mit Fotos, Banner und "
+"Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen "
+"sich jederzeit wieder entfernen."
+msgstr ""
+"En hızlı başlangıç hazır örneklerle olur — fotoğraflar, afiş ve tekliflerle."
+" Sonra her şeyi adım adım uyarlarsın. Örnekler istediğin zaman "
+"kaldırılabilir."
+
+msgid ""
+"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe "
+"sie in den nächsten Schritten an."
+msgstr "Örnek içerik yüklendi — sağda sitene bak ve sonraki adımlarda uyarla."
+
+msgid "Beispiele wieder entfernen"
+msgstr "Örnekleri tekrar kaldır"
+
+msgid "Weiter"
+msgstr "Devam"
+
+msgid "Mit Beispielen starten"
+msgstr "Örneklerle başla"
+
+msgid "Leer starten"
+msgstr "Boş başla"
+
+msgid ""
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten (mit Fotos), "
+"Banner und einer passenden Startseite — du änderst sie einfach ab."
+msgstr ""
+"Örneklerle mağazanı örnek tekliflerle (fotoğraflı), afiş ve uygun bir ana "
+"sayfayla doldururuz — sen sadece düzenlersin."
+
+msgid "Was machst du?"
+msgstr "Ne yapıyorsun?"
+
+msgid ""
+"Wähle deine Art von Geschäft — wir schlagen dir die passenden Bausteine vor."
+msgstr "İşletme türünü seç — sana uygun yapı taşlarını öneririz."
+
+msgid "Ohne Beispiele"
+msgstr "Örneksiz"
+
+msgid "Überspringen"
+msgstr "Atla"
+
+msgid ""
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und "
+"Texten — du änderst sie einfach ab."
+msgstr ""
+"Örneklerle mağazanı örnek teklifler, afiş ve metinlerle doldururuz — sen "
+"sadece düzenlersin."
+
+msgid "Deine Firma"
+msgstr "Firman"
+
+msgid "Name, Kontakt und Logo erscheinen auf deiner Website."
+msgstr "Ad, iletişim ve logo web sitende görünür."
+
+msgid "Firmenname"
+msgstr "Firma adı"
+
+msgid "z. B. Hilden"
+msgstr "örn. Hilden"
+
+msgid "Logo (optional)"
+msgstr "Logo (isteğe bağlı)"
+
+msgid "Erscheint in der Kopfzeile statt des Namens."
+msgstr "Başlıkta ad yerine görünür."
+
+msgid "Adresse"
+msgstr "Adres"
+
+msgid "Öffnungszeiten"
+msgstr "Çalışma saatleri"
+
+msgid "Mo–Fr 8–18 Uhr"
+msgstr "Pzt–Cum 8–18"
+
+msgid "Sa 8–13 Uhr"
+msgstr "Cmt 8–13"
+
+msgid "Telefon"
+msgstr "Telefon"
+
+msgid "Dein Angebot"
+msgstr "Teklifin"
+
+msgid "Lege deine erste Position an — Details kannst du jederzeit ergänzen."
+msgstr "İlk kalemini oluştur — ayrıntıları istediğin zaman ekleyebilirsin."
+
+msgid "Preis (€)"
+msgstr "Fiyat (€)"
+
+msgid "Datum & Uhrzeit"
+msgstr "Tarih ve saat"
+
+msgid "Hinzufügen"
+msgstr "Ekle"
+
+msgid ""
+"Beispiel-Inhalte sind geladen — schau dir deine Seite an und passe sie an."
+msgstr "Örnek içerik yüklendi — sitene bak ve uyarla."
+
+msgid "Beispiel-Inhalte wieder entfernen"
+msgstr "Örnek içeriği tekrar kaldır"
+
+msgid "Noch leer?"
+msgstr "Hâlâ boş mu?"
+
+msgid ""
+"Lade Beispiel-Produkte, Bilder und Aktionen — zum Ansehen und Anpassen. "
+"Jederzeit wieder entfernbar."
+msgstr ""
+"Örnek ürünler, görseller ve kampanyalar yükle — görüntülemek ve uyarlamak "
+"için. İstediğin zaman kaldırılabilir."
+
+msgid "Beispiel-Inhalte laden"
+msgstr "Örnek içerik yükle"
+
+msgid "(alle Felder)"
+msgstr "(tüm alanlar)"
+
+msgid "Dein Banner"
+msgstr "Afişin"
+
+msgid ""
+"Das Erste, was Besucher sehen. Titel, kurzer Text und optional ein Foto."
+msgstr ""
+"Ziyaretçilerin ilk gördüğü şey. Başlık, kısa metin ve isteğe bağlı bir "
+"fotoğraf."
+
+msgid "Titel"
+msgstr "Başlık"
+
+msgid "Willkommen"
+msgstr "Hoş geldiniz"
+
+msgid "Untertitel"
+msgstr "Alt başlık"
+
+msgid "Kurz, was dich ausmacht."
+msgstr "Kısaca seni özel kılan şey."
+
+#, python-format
+msgid "Titel (%(loc)s)"
+msgstr "Başlık (%(loc)s)"
+
+#, python-format
+msgid "Untertitel (%(loc)s)"
+msgstr "Alt başlık (%(loc)s)"
+
+msgid "Leer = Besucher sehen den deutschen Text."
+msgstr "Boş = ziyaretçiler Almanca metni görür."
+
+msgid "Foto (optional)"
+msgstr "Fotoğraf (isteğe bağlı)"
+
+msgid ""
+"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer"
+" ihr seid."
+msgstr ""
+"“Hakkımızda” güven oluşturur. Bir sayfa şablonu seç ve kim olduğunuzu kısaca"
+" anlat."
+
+msgid "Über uns — Titel"
+msgstr "Hakkımızda — başlık"
+
+msgid "Über uns — Text"
+msgstr "Hakkımızda — metin"
+
+msgid "Erzähl kurz, wer ihr seid und was euch ausmacht."
+msgstr "Kim olduğunuzu ve sizi özel kılan şeyi kısaca anlatın."
+
+#, python-format
+msgid "Über uns — Titel (%(loc)s)"
+msgstr "Hakkımızda — başlık (%(loc)s)"
+
+#, python-format
+msgid "Über uns — Text (%(loc)s)"
+msgstr "Hakkımızda — metin (%(loc)s)"
+
+msgid "Kategorieseite"
+msgstr "Kategori sayfası"
+
+msgid ""
+"Wie werden deine Produkte aufgelistet? Wähle eine Darstellung — später frei "
+"anpassbar."
+msgstr ""
+"Ürünlerin nasıl listeleniyor? Bir düzen seç — sonra serbestçe uyarlanabilir."
+
+msgid ""
+"Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
+msgstr "Diğer listelere de uygula (hizmetler, odalar, etkinlikler)"
+
+msgid "Kategorien verwalten"
+msgstr "Kategorileri yönet"
+
+msgid ""
+"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, "
+"Abschnitte ein- oder ausblenden — rechts siehst du es sofort."
+msgstr ""
+"Tek bir teklifin sayfası nasıl görünmeli? Bir stil seç, bölümleri göster "
+"veya gizle — sağda anında görürsün."
+
+msgid "Wie sieht dein Menü aus?"
+msgstr "Menün nasıl görünüyor?"
+
+msgid ""
+"Wähle den Stil deiner Kopfzeile. Welche Menüpunkte erscheinen, legst du "
+"danach fest."
+msgstr ""
+"Başlığının stilini seç. Hangi menü öğelerinin görüneceğini sonra "
+"belirlersin."
+
+msgid "Menüpunkte"
+msgstr "Menü öğeleri"
+
+msgid "Eigene Punkte, Reihenfolge & Untermenüs"
+msgstr "Özel öğeler, sıralama ve alt menüler"
+
+msgid "Sprachen deiner Website"
+msgstr "Web sitenin dilleri"
+
+msgid ""
+"Wähle die Standardsprache (vorausgewählt: Deutsch) und weitere Sprachen. "
+"Inhalte füllst du in den nächsten Schritten pro Sprache aus."
+msgstr ""
+"Varsayılan dili (önceden seçili: Almanca) ve ek dilleri seç. İçeriği sonraki"
+" adımlarda her dil için doldurursun."
+
+msgid ""
+"Die Standardsprache sehen Besucher zuerst; weitere Sprachen erscheinen als "
+"Umschalter in der Kopfzeile. Später änderbar unter „Sprachen\" in den "
+"Einstellungen."
+msgstr ""
+"Ziyaretçiler önce varsayılan dili görür; ek diller başlıkta bir geçiş "
+"düğmesi olarak görünür. Sonra ayarlarda “Diller” altından değiştirilebilir."
+
+msgid ""
+"Wie bezahlen und erhalten deine Kund:innen? Alles an einem Ort — jederzeit "
+"änderbar."
+msgstr ""
+"Müşterilerin nasıl ödüyor ve teslim alıyor? Hepsi tek yerde — istediğin "
+"zaman değiştirilebilir."
+
+msgid ""
+"Nothing to set up here yet — you can enable online payment for this later."
+msgstr ""
+"Burada henüz ayarlanacak bir şey yok — çevrimiçi ödemeyi bunun için sonra "
+"etkinleştirebilirsin."
+
+msgid "Texte & Recht"
+msgstr "Metinler ve hukuk"
+
+msgid "Das Impressum ist Pflicht (§5 TMG) und erscheint auf deiner Website."
+msgstr "Künye zorunludur (§5 TMG) ve web sitende görünür."
+
+msgid ""
+"Firmenname, Anschrift, vertretungsberechtigte Person, Kontakt, USt-IdNr. …"
+msgstr "Firma adı, adres, yetkili temsilci, iletişim, KDV No. …"
+
+msgid ""
+"Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) "
+"unter „Recht & Steuer\"."
+msgstr ""
+"§5 TMG uyarınca zorunlu bilgiler. Vergi bilgileri (küçük işletme §19, KDV "
+"No.) “Hukuk ve vergi” altında."
+
+msgid "Alle Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "Tüm hukuki metinler (gizlilik, cayma, şartlar)"
+
+msgid "Recht & Steuer (Kleinunternehmer, USt-IdNr.)"
+msgstr "Hukuk ve vergi (küçük işletme, KDV No.)"
+
+msgid "Wie soll deine Seite aussehen?"
+msgstr "Siten nasıl görünmeli?"
+
+msgid ""
+"Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles "
+"später frei anpassbar."
+msgstr ""
+"Hazır bir görünüm seç — düzen, metinler ve renk ayarlanır. Her şey sonra "
+"serbestçe uyarlanabilir."
+
+msgid "Oder eine Layout-Vorlage wählen:"
+msgstr "Ya da bir düzen şablonu seç:"
+
+msgid "Geschafft!"
+msgstr "Tamamlandı!"
+
+msgid ""
+"Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen."
+msgstr "İşletmen başlamaya hazır. Her şey sonra panelden uyarlanabilir."
+
+msgid "Zurück"
+msgstr "Geri"
+
+msgid "Zum Dashboard"
+msgstr "Panele git"
+
+msgid "Module ansehen"
+msgstr "Modülleri gör"
+
+msgid "Andere Branche / Funktionen erweitern"
+msgstr "Sektörü değiştir / özellikleri genişlet"
+
+msgid "Already added"
+msgstr "Zaten eklendi"

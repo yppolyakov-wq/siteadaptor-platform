@@ -3,8 +3,8 @@
 слайд «Stil» = галерея готовых образов сайта с мини-мокапом раскладки (акцент + стек
 секций). Выбор одним кликом (radio) → live-превью справа перерисовывается; «Weiter»
 применяет. Тексты владельца сохраняются — заполняются только пустые поля.{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">Wie soll deine Seite aussehen?</h1>
-<p class="text-sm text-gray-500 mb-4">Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles später frei anpassbar.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Wie soll deine Seite aussehen?" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles später frei anpassbar." %}</p>
 <form method="post" class="space-y-2">
   {% csrf_token %}
   {% if looks and not looks_classic %}
@@ -53,7 +53,7 @@
       });
     })();
   </script>
-  <p class="text-xs text-gray-400 mb-2">Oder eine Layout-Vorlage wählen:</p>
+  <p class="text-xs text-gray-400 mb-2">{% trans "Oder eine Layout-Vorlage wählen:" %}</p>
   {% endif %}
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     {% for t in templates %}

@@ -2,18 +2,18 @@
 {% comment %}AB6.2g→AB6.10: слайд слим-нут до правового — «Über uns» уехал на свой
 слайд `about`. Impressum (LegalDoc дефолт-локали) + ссылки на редактор правовых
 текстов и налоговые реквизиты.{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">Texte &amp; Recht</h1>
-<p class="text-sm text-gray-500 mb-4">Das Impressum ist Pflicht (§5 TMG) und erscheint auf deiner Website.</p>
+<h1 class="text-2xl font-bold mb-1">{% trans "Texte & Recht" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Das Impressum ist Pflicht (§5 TMG) und erscheint auf deiner Website." %}</p>
 <form method="post" class="space-y-4">
   {% csrf_token %}
   <div>
-    <label class="block text-sm font-medium mb-1" for="id_impressum">Impressum</label>
-    <textarea id="id_impressum" name="impressum" rows="6" placeholder="Firmenname, Anschrift, vertretungsberechtigte Person, Kontakt, USt-IdNr. …" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ impressum }}</textarea>
-    <p class="text-xs text-gray-400 mt-1">Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) unter „Recht &amp; Steuer".</p>
+    <label class="block text-sm font-medium mb-1" for="id_impressum">{% trans "Impressum" %}</label>
+    <textarea id="id_impressum" name="impressum" rows="6" placeholder="{% trans 'Firmenname, Anschrift, vertretungsberechtigte Person, Kontakt, USt-IdNr. …' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ impressum }}</textarea>
+    <p class="text-xs text-gray-400 mt-1">{% trans 'Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) unter „Recht & Steuer".' %}</p>
   </div>
   <div class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm text-gray-600 space-y-1">
-    <a href="{% url 'legal-docs' %}" class="block font-medium text-indigo-600 hover:text-indigo-800">Alle Rechtstexte (Datenschutz, Widerruf, AGB) →</a>
-    <a href="{% url 'settings' %}" class="block font-medium text-indigo-600 hover:text-indigo-800">Recht &amp; Steuer (Kleinunternehmer, USt-IdNr.) →</a>
+    <a href="{% url 'legal-docs' %}" class="block font-medium text-indigo-600 hover:text-indigo-800">{% trans "Alle Rechtstexte (Datenschutz, Widerruf, AGB)" %} →</a>
+    <a href="{% url 'settings' %}" class="block font-medium text-indigo-600 hover:text-indigo-800">{% trans "Recht & Steuer (Kleinunternehmer, USt-IdNr.)" %} →</a>
   </div>
   {% include "tenant/_setup_buttons.html" %}
 </form>
