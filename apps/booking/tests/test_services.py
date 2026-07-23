@@ -77,6 +77,38 @@ def test_resource_photo_url_property():
     assert Resource(name="x", photo=None).photo_url == ""
 
 
+# --- R3 «Nächster freier Termin» (empty-state конверсия) ---------------------
+def test_next_free_slot_scans_forward_to_available_day():
+    r = _resource(type="staff")
+    target = _future_day(4)
+    _rule(r, target)  # слоты каждую неделю в этот weekday
+    svc = _service()
+    nf = availability.next_free_slot(svc, from_day=timezone.localdate())
+    assert nf is not None
+    assert nf.date().weekday() == target.weekday()  # ближайший день с правилом
+
+
+def test_next_free_slot_none_without_rules():
+    assert availability.next_free_slot(_service(), from_day=timezone.localdate()) is None
+
+
+def test_service_slots_empty_state_offers_next_free(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    r = _resource(type="staff")
+    target = _future_day(5)
+    _rule(r, target)
+    svc = _service()
+    empty_day = target + timedelta(days=1)  # другой weekday → без слотов
+    request = RequestFactory().get(f"/t/{svc.pk}/?tag={empty_day:%Y-%m-%d}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build(name="Salon")
+    body = public_views.service_slots(request, pk=svc.pk).content.decode()
+    assert "No free times on this day" in body
+    assert "Next free appointment" in body  # R3: перехват уходящего клиента
+    assert f"tag={target:%Y-%m-%d}" in body  # ссылка ведёт на ближайший свободный день
+
+
 def test_service_slots_picker_shows_master_profile(settings):
     """A3: пикер специалиста показывает фото+должность; био выбранного мастера."""
     settings.ROOT_URLCONF = "config.urls_tenant"

@@ -69,7 +69,15 @@
   {% endfor %}
 </div>
 {% else %}
-<p class="text-gray-500 mb-6">{% trans "No free times on this day — try another date." %}</p>
+<p class="text-gray-500 mb-3">{% trans "No free times on this day — try another date." %}</p>
+{% comment %}R3 empty-state: перехват уходящего клиента — прямая ссылка на
+ближайший свободный день/старт (вместо тупика «нет слотов»).{% endcomment %}
+{% if next_free %}
+<a href="?tag={{ next_free|date:'Y-m-d' }}{% if chosen_resource %}&resource={{ rq }}{% endif %}{{ embed_qs }}"
+   class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 mb-6 text-sm font-semibold text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">
+  {% blocktrans with d=next_free|date:"l, d.m." t=next_free|time:"H:i" %}Next free appointment: {{ d }} at {{ t }}{% endblocktrans %} →
+</a>
+{% endif %}
 {% endif %}{% endwith %}
 
 {% comment %}UA3-2: POST-форма брони — через контрактный _buybox.html (форма только

@@ -98,6 +98,19 @@ def service_slots(service, day, resource=None) -> list[datetime]:
     return sorted(starts)
 
 
+def next_free_slot(service, from_day=None, max_days=60, resource=None):
+    """R3 «Nächster freier Termin»: ближайший свободный старт услуги, скан вперёд
+    от `from_day` (вкл.) до `max_days` дней. Возвращает datetime первого старта
+    или None (нет свободных в горизонте). Перехват уходящего клиента в момент
+    отказа (день без слотов → «ближайший свободный: …»)."""
+    start = from_day or timezone.localdate()
+    for i in range(max_days + 1):
+        slots = service_slots(service, start + timedelta(days=i), resource=resource)
+        if slots:
+            return slots[0]
+    return None
+
+
 def assign_resource(service, start, resource=None):
     """G10: ресурс под услугу на [start, start+duration); None если занят.
 

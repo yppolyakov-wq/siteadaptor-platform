@@ -273,6 +273,13 @@ def service_slots(request, pk):
     if rid:
         chosen = next((r for r in resources if str(r.pk) == rid), None)
     starts = availability.service_slots(service, day, resource=chosen)
+    # R3 empty-state: день без слотов → ближайший свободный старт (перехват
+    # уходящего клиента). Скан от завтра выбранного дня; вычисляем лишь при пустом.
+    next_free = None
+    if not starts:
+        next_free = availability.next_free_slot(
+            service, day + timedelta(days=1), max_days=MAX_DAYS_AHEAD, resource=chosen
+        )
     selected = None
     raw = request.GET.get("slot", "")
     if raw:
@@ -301,6 +308,7 @@ def service_slots(request, pk):
             "sellable": sellable_for("service", service, buybox_ready=selected is not None),
             "day": day,
             "starts": starts,
+            "next_free": next_free,  # R3: ближайший свободный старт (empty-state)
             "selected": selected,
             "resources": resources if len(resources) > 1 else [],  # пикер только при >1
             "chosen_resource": chosen,

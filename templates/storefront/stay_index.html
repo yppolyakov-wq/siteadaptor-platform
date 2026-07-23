@@ -65,6 +65,15 @@
 {% if searched %}
   {# --- результаты поиска с ценой за диапазон --------------------------------- #}
   {% if results %}<p class="text-sm text-gray-500 mb-3">{{ von|date:"d.m.Y" }} → {{ bis|date:"d.m.Y" }} · {% blocktrans count n=results.0.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</p>{% endif %}
+  {% comment %}R3 empty-state: искомые даты заняты → баннер с ближайшим свободным
+  диапазоном (перехват уходящего гостя вместо тупика «alles belegt»).{% endcomment %}
+  {% if next_free_stay %}
+  <a href="?von={{ next_free_stay.von|date:'Y-m-d' }}&bis={{ next_free_stay.bis|date:'Y-m-d' }}&erw={{ adults }}&kinder={{ children }}"
+     class="flex items-center justify-between gap-3 rounded-xl px-4 py-3 mb-4 text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">
+    <span class="text-sm font-semibold">{% blocktrans with v=next_free_stay.von|date:"d.m." b=next_free_stay.bis|date:"d.m." %}Next free nights: {{ v }}–{{ b }}{% endblocktrans %}</span>
+    <span aria-hidden="true">→</span>
+  </a>
+  {% endif %}
   <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for r in results %}
       {% if r.available %}

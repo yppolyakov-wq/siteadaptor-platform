@@ -1,9 +1,10 @@
 """A5/C1: availability.month_availability — occupancy на календарный месяц для
 визуального календаря витрины (без UI)."""
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
+from django.utils import timezone
 
 from apps.stays import availability
 from apps.stays.models import StayUnit, UnitBlock
@@ -40,6 +41,19 @@ def test_booking_marks_nights_occupied_but_not_checkout_day():
     assert rows[date(2027, 2, 12)]["is_free"] is False
     assert rows[date(2027, 2, 13)]["is_free"] is True  # день выезда свободен
     assert rows[date(2027, 2, 9)]["is_free"] is True  # до заезда свободен
+
+
+def test_next_free_range_skips_booked_and_finds_next():
+    # R3 «Nächste freie Nacht»: искомая ночь занята → возвращаем ближайшую свободную.
+    unit = _unit(quantity=1)
+    start = timezone.localdate() + timedelta(days=10)
+    book_stay(unit, arrival=start, departure=start + timedelta(days=1), name="A", adults=2)
+    nf = availability.next_free_range(1, guests=2, from_day=start, max_days=30)
+    assert nf == (start + timedelta(days=1), start + timedelta(days=2))
+
+
+def test_next_free_range_none_without_units():
+    assert availability.next_free_range(1, from_day=timezone.localdate()) is None
 
 
 def test_quantity_partial_occupancy_still_free():

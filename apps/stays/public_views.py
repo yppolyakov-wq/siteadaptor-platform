@@ -144,6 +144,7 @@ def unterkunft_index(request):
         return redirect(f"{url}?embed=1" if embed else url)
 
     results = None
+    next_free_stay = None  # R3: ближайший свободный диапазон (empty-state)
     search_qs = ""  # UB1-2: query-хвост карточки результата (даты/гости + embed)
     if searched:
         search_qs = f"?von={von:%Y-%m-%d}&bis={bis:%Y-%m-%d}&erw={adults}&kinder={children}" + (
@@ -167,6 +168,14 @@ def unterkunft_index(request):
         # Доступные — вперёд (UX); внутри — дешевле сверху.
         rows.sort(key=lambda r: (not r["available"], r["from_eur"]))
         results = rows
+        # R3 empty-state: искомые даты полностью заняты → ближайший свободный
+        # диапазон (перехват уходящего гостя вместо тупика «нет мест»).
+        if not any(r["available"] for r in rows):
+            nf = availability.next_free_range(
+                nights, guests=guests, from_day=von, max_days=MAX_DAYS_AHEAD
+            )
+            if nf:
+                next_free_stay = {"von": nf[0], "bis": nf[1]}
 
     # M20U-7 (per-page): раскладка сетки номеров из конфига витрины.
     from apps.tenants import siteconfig
@@ -191,6 +200,7 @@ def unterkunft_index(request):
             "children": children,
             "searched": searched,
             "results": results,
+            "next_free_stay": next_free_stay,  # R3: ближайший свободный диапазон
             "search_qs": search_qs,
             "rooms_grid": rooms_grid,
             # UB2-2: тулбар каркаса. Даты/гостей несём в carry (поиск не сбрасывает

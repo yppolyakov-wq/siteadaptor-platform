@@ -71,6 +71,23 @@ def free_units(arrival, departure, *, guests=1) -> list:
     ]
 
 
+def next_free_range(nights, *, guests=1, from_day=None, max_days=60):
+    """R3 «Nächste freie Nacht»: ближайший диапазон из ``nights`` ночей (начиная с
+    ``from_day``, вкл.), где есть свободный юнит на ``guests`` гостей. Возвращает
+    ``(arrival, departure)`` или ``None`` (нет в горизонте). Перехват уходящего
+    гостя: искомые даты заняты → предлагаем ближайшие свободные."""
+    from django.utils import timezone
+
+    nights = max(1, int(nights or 1))
+    start = from_day or timezone.localdate()
+    for i in range(max_days + 1):
+        arrival = start + timedelta(days=i)
+        departure = arrival + timedelta(days=nights)
+        if free_units(arrival, departure, guests=guests):
+            return (arrival, departure)
+    return None
+
+
 def occupancy_grid(units, start_day, num_days):
     """Календарь загрузки для кабинета (E2): ``(days, rows)``.
 
