@@ -134,7 +134,8 @@ def test_filters_hidden_on_small_storefront():
     _event(category="meditation", city="Berlin")
     body = public_views.veranstaltung_index(_req()).content.decode()
     assert 'name="cat"' not in body  # селектов фильтра нет
-    assert "<details" not in body
+    # DL-1: свитчер языков — тоже <details>; проверяем ИМЕННО панель фильтров.
+    assert '<details class="mb-5"' not in body
 
 
 def test_filters_collapsed_when_enough_events():
@@ -142,7 +143,7 @@ def test_filters_collapsed_when_enough_events():
     for i in range(public_views._FILTER_MIN_EVENTS + 1):
         _event(title=f"E{i}", category="yoga", city="Freiburg")
     body = public_views.veranstaltung_index(_req()).content.decode()
-    assert "<details" in body and 'name="cat"' in body
+    assert '<details class="mb-5"' in body and 'name="cat"' in body
     assert "open>" not in body  # без активного фильтра — свёрнута
 
 
@@ -151,7 +152,7 @@ def test_filters_expanded_when_active():
     _event(title="Yoga-Tag", category="yoga")
     _event(title="Klang", category="klang")
     body = public_views.veranstaltung_index(_req({"cat": "yoga"})).content.decode()
-    assert "<details" in body and "open>" in body
+    assert '<details class="mb-5"' in body and "open>" in body
 
 
 # --- cabinet form ----------------------------------------------------------
