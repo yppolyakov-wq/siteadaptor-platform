@@ -3,6 +3,7 @@
 {% block title %}{{ unit.name_localized }} — {{ request.tenant.name }}{% endblock %}
 
 {% block detail_back %}
+{% funnel_steps "stay" 2 %}
 <a href="{% url 'storefront-unterkunft' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All accommodation" %}</a>
 {% if messages %}
   {% for m in messages %}

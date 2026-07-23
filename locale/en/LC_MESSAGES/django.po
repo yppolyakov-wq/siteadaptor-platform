@@ -13086,3 +13086,27 @@ msgstr "Already added"
 
 msgid "Min"
 msgstr "min"
+
+msgid "Leistung"
+msgstr "Service"
+
+msgid "Termin"
+msgstr "Time"
+
+msgid "Auswahl"
+msgstr "Selection"
+
+msgid "Daten"
+msgstr "Details"
+
+msgid "Veranstaltung"
+msgstr "Event"
+
+msgid "Warenkorb"
+msgstr "Cart"
+
+msgid "Versand"
+msgstr "Delivery"
+
+msgid "Fortschritt"
+msgstr "Progress"

@@ -13258,3 +13258,27 @@ msgstr "Вже додано"
 
 msgid "Min"
 msgstr "хв"
+
+msgid "Leistung"
+msgstr "Послуга"
+
+msgid "Termin"
+msgstr "Час"
+
+msgid "Auswahl"
+msgstr "Вибір"
+
+msgid "Daten"
+msgstr "Дані"
+
+msgid "Veranstaltung"
+msgstr "Подія"
+
+msgid "Warenkorb"
+msgstr "Кошик"
+
+msgid "Versand"
+msgstr "Доставка"
+
+msgid "Fortschritt"
+msgstr "Прогрес"

@@ -13271,3 +13271,27 @@ msgstr "Уже добавлено"
 
 msgid "Min"
 msgstr "мин"
+
+msgid "Leistung"
+msgstr "Услуга"
+
+msgid "Termin"
+msgstr "Время"
+
+msgid "Auswahl"
+msgstr "Выбор"
+
+msgid "Daten"
+msgstr "Данные"
+
+msgid "Veranstaltung"
+msgstr "Событие"
+
+msgid "Warenkorb"
+msgstr "Корзина"
+
+msgid "Versand"
+msgstr "Доставка"
+
+msgid "Fortschritt"
+msgstr "Прогресс"

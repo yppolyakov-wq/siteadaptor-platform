@@ -1,8 +1,9 @@
 {% extends base_template|default:"storefront/_base.html" %}
-{% load i18n %}
+{% load i18n siteui %}
 {% block title %}{{ service.name }} — {% trans "Pick a time" %}{% endblock %}
 
 {% block content %}
+{% funnel_steps "service" 2 %}
 <a href="{% url 'storefront-termin' %}{% if embed %}?embed=1{% endif %}" class="text-sm text-gray-500 hover:underline">← {% trans "All services" %}</a>
 <div class="relative max-w-2xl">
   <span data-photo-edit data-edit-model="service" data-edit-pk="{{ service.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-5 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>

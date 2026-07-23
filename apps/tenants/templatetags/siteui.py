@@ -81,6 +81,17 @@ def safe_href(url):
     return "#"
 
 
+@register.inclusion_tag("storefront/_funnel_steps.html")
+def funnel_steps(kind, current):
+    """E5 «задача-первым»: прогресс-степпер воронки (Schritt N/M) — ведём клиента
+    последовательно. kind = service|stay|event|order; current = 1-based шаг.
+    Вне диапазона → пусто (партиал ничего не рендерит)."""
+    from apps.core import funnels
+
+    steps = funnels.funnel_steps(kind, current)
+    return {"steps": steps, "total": len(steps), "current": current}
+
+
 @register.simple_tag
 def live_promo(pk):
     """UE1 (D2=LIVE): активная промо по pk или None — fail-safe к мусору/уда-

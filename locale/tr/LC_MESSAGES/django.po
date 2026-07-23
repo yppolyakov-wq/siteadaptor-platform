@@ -13194,3 +13194,27 @@ msgstr "Zaten eklendi"
 
 msgid "Min"
 msgstr "dk"
+
+msgid "Leistung"
+msgstr "Hizmet"
+
+msgid "Termin"
+msgstr "Randevu"
+
+msgid "Auswahl"
+msgstr "Seçim"
+
+msgid "Daten"
+msgstr "Bilgiler"
+
+msgid "Veranstaltung"
+msgstr "Etkinlik"
+
+msgid "Warenkorb"
+msgstr "Sepet"
+
+msgid "Versand"
+msgstr "Teslimat"
+
+msgid "Fortschritt"
+msgstr "İlerleme"

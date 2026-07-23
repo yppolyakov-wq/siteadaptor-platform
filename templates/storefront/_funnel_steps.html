@@ -1,0 +1,23 @@
+{% load i18n %}{% comment %}
+E5 «задача-первым»: прогресс-степпер воронки — где клиент сейчас и сколько
+осталось. Рендерится только при непустом steps (валидный kind+шаг). Акцент из
+темы (--sf-accent). Пусто = ничего (без регрессии).
+{% endcomment %}
+{% if steps %}
+<nav class="mb-6 overflow-x-auto" aria-label="{% trans 'Fortschritt' %}">
+  <ol class="flex items-center gap-1.5 text-sm min-w-max">
+    {% for s in steps %}
+    <li class="flex items-center gap-2">
+      <span class="flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold shrink-0
+        {% if s.state == 'done' %}text-white{% elif s.state == 'current' %}text-white ring-2 ring-offset-2{% else %}bg-gray-200 text-gray-500{% endif %}"
+        {% if s.state != 'upcoming' %}style="background: var(--sf-accent, #4f46e5);"{% endif %}
+        aria-current="{% if s.state == 'current' %}step{% else %}false{% endif %}">
+        {% if s.state == 'done' %}&#10003;{% else %}{{ s.n }}{% endif %}
+      </span>
+      <span class="{% if s.state == 'upcoming' %}text-gray-400{% else %}font-medium{% endif %} whitespace-nowrap">{{ s.label }}</span>
+    </li>
+    {% if not forloop.last %}<span class="w-5 sm:w-9 h-px bg-gray-200 shrink-0" aria-hidden="true"></span>{% endif %}
+    {% endfor %}
+  </ol>
+</nav>
+{% endif %}
