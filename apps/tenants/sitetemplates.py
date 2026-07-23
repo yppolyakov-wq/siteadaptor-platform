@@ -56,7 +56,10 @@ TEMPLATES = [
         "key": "dienstleister",
         "label": "Dienstleister & Termine",
         "description_de": "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung).",
-        "recommended_for": ("tour_operator", "other"),
+        # E2 «задача-первым»: tour_operator убран — его primary-задача (туры/
+        # события с датами) обслуживает шаблон `veranstaltung` (events-first), а
+        # не «about»-first dienstleister. Остаётся generic-фолбэком для «other».
+        "recommended_for": ("other",),
         "sections": ["hero", "about", "promotions", "contact"],
         "texts": {
             "hero_title": "Ihr Termin bei uns",

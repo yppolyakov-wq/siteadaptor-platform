@@ -45,6 +45,9 @@ def test_templates_for_puts_recommended_first():
         # быть на дефолт-главной — раньше hotel не проверялся и дыра проскочила.
         ("hotel", "gastgeber", "stay_search"),
         ("hotel", "gastgeber", "stay_rooms"),
+        # E2: tour_operator дефолтит на events-first veranstaltung (не about-first
+        # dienstleister) — туры/события с датами на первом экране.
+        ("tour_operator", "veranstaltung", "events"),
     ],
 )
 def test_s6_archetype_template_recommended_and_keeps_primary(

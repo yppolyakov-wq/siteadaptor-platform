@@ -28,11 +28,24 @@ normalize цел (новые ключи presence-minimal) · паритет не
 - **Риск:** минимальный. gastgeber = hotel-only; существующие отели хранят свой
   config (не затрагиваются); demo уже так делает.
 
-### E2 — Аудит «primary-секция на дефолт-главной» для ВСЕХ архетипов
-- Пройти все шаблоны (`laden`/`gastro`/`dienstleister`/`termine`/`handwerk`/
-  `veranstaltung`) — primary-секция архетипа должна быть высоко (после hero),
-  а не 3-й. Точечные правки порядка; замки паритета. Restaurant/Café — узел
-  (два равных CTA R-1/R-2, gastro сейчас ведёт products) — решаем в E2.
+### E2 — Аудит «primary-секция на дефолт-главной» для ВСЕХ архетипов ✅
+- **Вывод аудита: почти всё уже верно, hotel был выбросом (E1).** Честно, не
+  выдумываем правок:
+  - `termine` (services 2-й) · `handwerk` (before_after 2-й) · `veranstaltung`
+    (events 2-й) — primary сразу после hero. ✓ уже correct.
+  - `laden` (bakery/butcher/grocery/retail/clothing/online_shop) = hero →
+    **promotions** → products. Для еды promotions-first = Wochenangebote
+    ИНТЕНЦИОНАЛЬНО (MB-1 утверждён). Для retail/clothing/online_shop products-
+    first был бы чуть лучше, но шаблон общий с едой → оставляем; возможный
+    сплит (retail-вариант products-first) — future, не выдумываем сейчас.
+  - `gastro` (cafe/restaurant): hero → products (Speisekarte) → promotions.
+    Reservation идёт через hero-CTA (`primary_module=booking` → «Termin buchen»).
+    Два РАВНЫХ CTA (R-1/R-2) — визуальный hero-узел → E4.
+  - **`dienstleister` для tour_operator — РЕАЛЬНЫЙ гэп (исправлен):** дефолтил
+    на `dienstleister` (about-first), хотя primary тура = события с датами.
+    Убран `tour_operator` из `dienstleister.recommended_for` → дефолт стал
+    `veranstaltung` (events-first). Замок: параметр
+    `("tour_operator","veranstaltung","events")` в S6-тесте.
 
 ### E3 — G2 «Выбор мастера» при записи (функциональный)
 - Слот-пикер booking фильтрует слоты по выбранному staff; шаг «Мастер» с
