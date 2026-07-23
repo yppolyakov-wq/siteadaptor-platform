@@ -6168,3 +6168,32 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   Фикс: `extend-exclude += "*.md"` (доки иллюстративны; python-формат между
   версиями идентичен — CI показал 0 py-диффов). **Урок:** плавающая версия ruff
   на CI ≠ локальная 0.15.22; при странном format-фейле проверять версию.
+
+## 2026-07-23 (продолжение) — Трек «5 из готового» (R1–R5)
+
+По рекомендации карты `dev-options` (5 пунктов ready-стека). Каждый — свой батч,
+локальный гейт → CI → FF-merge.
+
+- **R4 «Степпер C&C»:** прогресс-степпер `funnel_steps "order"` вшит в C&C-воронку
+  (cart.html = шаг 1 Warenkorb, order_confirmation.html = шаг 3 Bestätigt).
+  Реестр FUNNELS["order"] уже был (E5). Автозаполнение checkout для залогиненного
+  клиента (account_customer → name/email/phone) уже работало. Витринный слой.
+- **R2 «Первый экран архетипов»:** шаблон `termine` (friseur/werkstatt) несёт
+  `site_defaults.hero_widget="services"` → баннер сразу показывает топ-3 услуги +
+  «Termin buchen» (как date-search у отеля, E4). gastro/handwerk ведут иными флоу —
+  не форсируем. apply_look сохраняет hero_widget (E4-фикс, test_looks-замок).
+- **R3 «Empty-state конверсия»:** `booking.availability.next_free_slot()` +
+  `stays.availability.next_free_range()` (скан вперёд). service_slots empty-state →
+  «Next free appointment: <день> um <время>»; stay_index при занятых искомых датах →
+  баннер «Next free nights: <von>–<bis>». Перехват уходящего клиента.
+- **R5 «Платформенная BI»:** `apps/billing/analytics.py::platform_metrics()`
+  (MRR=активные×39€, ARPA, churn-30д v1, LTV=ARPA/churn, usage-fee периода,
+  регистрации-спарклайн) + `/plattform/bi/` (public, `@staff_member_required`) +
+  `platform_bi.html`. churn/LTV помечены как оценка v1 (нет снапшотов истории).
+- **R1 «k6 на стенде»:** скрипт `scripts/load/anti_oversell.js` ВЕРИФИЦИРОВАН
+  актуальным — POST-поля (csrfmiddlewaretoken/name/email/quantity/form_token/
+  website-honeypot) совпадают с живым `/p/<uuid>/reserve/`. Реальный прогon «0
+  oversell на полном стеке» — Stage-0 задача владельца (нужен Hetzner-сервер).
+- **Попутный CI-фикс:** тесты панели фильтров событий использовали `<details>` как
+  прокси — уточнены на `<details class="mb-5"` (свитчер языков DL-1 тоже `<details>`;
+  TenantFactory дефолтит 2 локали → свитчер рендерится в каждой витрине).
