@@ -5469,6 +5469,10 @@ def apply_kit(tenant, key: str) -> bool:
 
         for host, preset_id in kit.page_presets:
             page_presets_mod.apply_page_preset(cfg, host, preset_id)
+    if kit.enabled_locales and "en" in kit.enabled_locales:  # DL-2: EN-оверлей текстов
+        from . import demo_i18n
+
+        demo_i18n.overlay_config_en(cfg)
     tenant.site_config = cfg
     tenant.primary_color = accent
     update_fields = ["site_config", "primary_color", "updated_at"]
@@ -5517,6 +5521,10 @@ def apply_kit(tenant, key: str) -> bool:
             update_fields += ["enabled_locales", "default_locale"]
     tenant.save(update_fields=update_fields)
     _seed_legal_docs(tenant, kit)  # E-2/L5: честное право в демо (вместо placeholder)
+    if kit.enabled_locales and "en" in kit.enabled_locales:  # DL-2: EN на контент
+        from . import demo_i18n
+
+        demo_i18n.translate_tenant_content(tenant)
     return True
 
 

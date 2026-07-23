@@ -148,6 +148,60 @@ def test_apply_kit_respects_custom_locales(monkeypatch):
     assert tenant.default_locale == "en"
 
 
+def test_apply_kit_translates_config_and_content_to_en():
+    """DL-2: пост-сид перевод — site_config-тексты и модельный контент получают
+    EN-оверлей; localize('en') отличается от DE, база DE не тронута."""
+    from apps.booking.models import Service
+    from apps.tenants import siteconfig
+
+    tenant = _tenant()
+    assert demo_kits.apply_kit(tenant, "friseur") is True
+    tenant.refresh_from_db()
+    cfg = tenant.site_config
+
+    de = siteconfig.localize(cfg, "de")
+    en = siteconfig.localize(cfg, "en")
+    # hero + faq переведены, немецкая база сохранена.
+    assert de["hero_title"] and en["hero_title"]
+    assert de["hero_text"] != en["hero_text"]  # текст реально локализован
+    if de.get("faq"):
+        assert de["faq"][0]["q"] != en["faq"][0]["q"]
+
+    # Услуга: EN в name_i18n, база DE во flat-поле (get_overlay).
+    svc = Service.objects.exclude(name="").first()
+    assert svc is not None
+    en_name = svc.name_localized("en")
+    de_name = svc.name_localized("de")
+    assert de_name  # немецкое имя есть
+    assert en_name != de_name  # переведено (у friseur услуги есть в словаре)
+
+
+def test_translate_overlay_preserves_existing_en():
+    """DL-2 идемпотентность: уже заданный en-перевод не перезаписывается."""
+    from types import SimpleNamespace
+
+    from apps.tenants import demo_i18n
+
+    # существующий en — не трогаем даже если в словаре есть перевод базы
+    obj = SimpleNamespace(name="Haarschnitt Herren", name_i18n={"en": "Custom EN"})
+    assert demo_i18n._fill_overlay(obj, "name", "name_i18n") is False
+    assert obj.name_i18n["en"] == "Custom EN"
+
+    # пустой overlay + база в словаре → добавляется en
+    obj2 = SimpleNamespace(name="Haarschnitt Herren", name_i18n={})
+    assert demo_i18n._fill_overlay(obj2, "name", "name_i18n") is True
+    assert obj2.name_i18n["en"] and obj2.name_i18n["en"] != "Haarschnitt Herren"
+
+
+def test_demo_i18n_map_has_no_identity_entries():
+    """DL-2: словарь не хранит en==de (идентичные — фолбэк на DE даёт то же)."""
+    from apps.tenants import demo_i18n
+
+    m = demo_i18n._map()
+    assert m, "словарь не должен быть пустым"
+    assert not [k for k, v in m.items() if k == v]
+
+
 def test_demo_image_is_themed_and_deterministic():
     # ключ без реального фото → детерминированный SVG-URL (фолбэк)
     url = demo_kits.demo_image("unfotografiertes gericht", lock=5)
@@ -790,11 +844,14 @@ def test_friseur_kit_seeds_service_i18n_overlays():
     from apps.booking.models import Service
 
     demo_kits.apply_kit(_tenant(), "friseur")
+    # Курируемый двуязычный оверлей кита сохранён (DL-2 не перезаписывает en).
     svc = Service.objects.get(name="Haarschnitt Damen")
     assert svc.name_i18n == {"en": "Women's haircut"}
     assert svc.description_i18n.get("en", "").startswith("Wash, cut")
-    # услуги без EN-дикта остаются без оверлея (база = плоское de)
-    assert Service.objects.filter(name_i18n={}).exists()
+    # DL-2: услуги, что были только на DE, теперь тоже переведены из словаря.
+    plain = Service.objects.get(name="Waschen & Föhnen")
+    assert plain.name_i18n.get("en") == "Wash & blow-dry" or plain.name_i18n.get("en")
+    assert plain.name_i18n.get("en") != "Waschen & Föhnen"
 
 
 def test_hotel_kit_seeds_stayunit_i18n_overlays():
