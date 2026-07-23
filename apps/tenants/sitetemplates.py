@@ -70,9 +70,12 @@ TEMPLATES = [
     {
         "key": "gastgeber",
         "label": "Übernachtung & Gastgeber",
-        "description_de": "Vorstellung, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel.",
+        "description_de": "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel.",
         "recommended_for": ("hotel",),
-        "sections": ["hero", "about", "contact"],
+        # «Задача-первым» (E1): date-search + карточки номеров сразу под hero —
+        # главная задача гостя (свободно ли на мои даты) на первом экране. Секции
+        # гейтятся модулем stays (неактивен → не рендерятся). Совпадает с демо-китом.
+        "sections": ["hero", "stay_search", "stay_rooms", "about", "contact"],
         "texts": {
             "hero_title": "Willkommen bei uns",
             "hero_text": "Ihre Unterkunft für eine schöne Zeit — jetzt Verfügbarkeit prüfen.",

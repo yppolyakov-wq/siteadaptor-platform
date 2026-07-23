@@ -41,6 +41,10 @@ def test_templates_for_puts_recommended_first():
         ("werkstatt", "termine", "services"),
         ("handwerker", "handwerk", "before_after"),
         ("events", "veranstaltung", "events"),
+        # E1 «задача-первым»: у отеля primary-задача (поиск дат/номера) должна
+        # быть на дефолт-главной — раньше hotel не проверялся и дыра проскочила.
+        ("hotel", "gastgeber", "stay_search"),
+        ("hotel", "gastgeber", "stay_rooms"),
     ],
 )
 def test_s6_archetype_template_recommended_and_keeps_primary(
