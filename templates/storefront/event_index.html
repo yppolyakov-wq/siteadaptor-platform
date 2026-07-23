@@ -7,6 +7,7 @@
 {% block listing_width %}max-w-3xl mx-auto{% endblock %}
 
 {% block listing_header %}
+  {% funnel_steps "event" 1 %}
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-2xl font-bold">{% trans "Retreats & events" %}</h1>
     <a href="{% url 'storefront-events-calendar' %}" class="text-sm text-indigo-600 hover:underline whitespace-nowrap">📅 {% trans "Calendar" %}</a>

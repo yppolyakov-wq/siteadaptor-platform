@@ -112,6 +112,14 @@ normalize цел (новые ключи presence-minimal) · паритет не
 - Замок `default_date` (tomorrow/+2), stays/booking render 329 зелёных, 1 msgid
   → 4 .po. Витринный слой, миграций/golden/classic нет.
 
+### E5c — Степпер на воронку событий ✅
+- Вшит `funnel_steps "event"` в event index(1)/detail(2)/confirmation(3). Page-
+  level степпер (Veranstaltung → Tickets → Bestätigt) сосуществует с внутренним
+  in-page 2-step формы билета (Auswahl → Ihre Daten) — разные уровни (журнал vs
+  форма), степпер сверху. events 225 зелёных (вкл. index-parity — степпер вне
+  сравниваемой области). msgid'ы event-воронки уже были (E5). Все 3 воронки
+  (stay/service/event) теперь ведут клиента.
+
 ## Порядок / итог
 E1 ✅ → E2 ✅ → E3 (уже был готов, поправка) → [E4 опц.]. Каждый: локальный
 гейт (ruff+pytest+template_comments) → push → CI → FF-merge.
