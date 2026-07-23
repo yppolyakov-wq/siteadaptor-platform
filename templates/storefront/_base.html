@@ -93,13 +93,25 @@
           <button id="sf-theme-toggle" type="button" aria-label="{% trans 'Toggle dark mode' %}" aria-pressed="false"
                   class="text-lg leading-none w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100">🌙</button>
           {% if storefront_locales|length > 1 %}
-          {# L1: N-locale переключатель — цикл по active_locales тенанта. #}
-          <nav aria-label="{% trans 'Language' %}" class="text-sm flex items-center gap-1">
-            {% for loc in storefront_locales %}
-            <a href="{% url 'storefront-set-language' %}?lang={{ loc.code }}&next={{ request.get_full_path|urlencode }}"
-               class="px-2 py-1 rounded {% if request.LANGUAGE_CODE == loc.code %}bg-gray-900 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}" hreflang="{{ loc.code }}">{{ loc.label }}</a>
-            {% endfor %}
-          </nav>
+          {% comment %}DL-1: переключатель языка витрины — скрытый блок (details/summary,
+          без JS). Пилюля показывает текущий язык (код); клик раскрывает список родных
+          имён языков. Генерик по active_locales тенанта.{% endcomment %}
+          <details class="sf-lang relative text-sm">
+            <summary aria-label="{% trans 'Language' %}" class="list-none cursor-pointer select-none inline-flex items-center gap-1 px-2 py-1 rounded-full text-gray-600 hover:bg-gray-100">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span class="font-medium">{{ request.LANGUAGE_CODE|upper }}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <nav aria-label="{% trans 'Language' %}" class="absolute right-0 mt-1 min-w-[9rem] bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30">
+              {% for loc in storefront_locales %}
+              <a href="{% url 'storefront-set-language' %}?lang={{ loc.code }}&next={{ request.get_full_path|urlencode }}"
+                 class="flex items-center justify-between gap-3 px-3 py-2 {% if request.LANGUAGE_CODE == loc.code %}font-semibold text-gray-900{% else %}text-gray-600 hover:bg-gray-50{% endif %}" hreflang="{{ loc.code }}">
+                <span>{{ loc.native }}</span>
+                {% if request.LANGUAGE_CODE == loc.code %}<span aria-hidden="true">✓</span>{% else %}<span class="text-xs text-gray-400">{{ loc.label }}</span>{% endif %}
+              </a>
+              {% endfor %}
+            </nav>
+          </details>
           {% endif %}
           {% if storefront_account_enabled %}
             <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900" aria-label="{% trans 'My account' %}">👤 <span>{% trans "Account" %}</span></a>

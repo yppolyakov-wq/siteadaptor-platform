@@ -116,6 +116,38 @@ def test_seeds_subcategories_and_bilingual_names(monkeypatch):
         assert menu.resolve_menu(tenant, "top")[0]["label"] == "Über uns"
 
 
+def test_apply_kit_enables_demo_locales():
+    """DL-1: kit включает языки витрины (переключатель в шапке демо) —
+    enabled_locales по умолчанию DE+EN, первый = default_locale."""
+    tenant = _tenant()
+    assert demo_kits.apply_kit(tenant, "restaurant") is True
+    tenant.refresh_from_db()
+    assert tenant.enabled_locales == ["de", "en"]
+    assert tenant.default_locale == "de"
+    assert tenant.active_locales == ["de", "en"]  # оба в реестре LANGUAGES
+
+
+def test_apply_kit_respects_custom_locales(monkeypatch):
+    """Кит с явным enabled_locales → на тенант попадают только валидные коды,
+    первый становится default_locale."""
+    kit = demo_kits.DemoKit(
+        key="t_loc",
+        label="Loc",
+        business_type="retail",
+        accent="#000",
+        hero_image_kw="shop",
+        hero_title="H",
+        hero_text="T",
+        enabled_locales=["en", "de", "zz"],  # zz — не в реестре, отбрасывается
+    )
+    monkeypatch.setitem(demo_kits.KITS, kit.key, kit)
+    tenant = _tenant()
+    assert demo_kits.apply_kit(tenant, kit.key) is True
+    tenant.refresh_from_db()
+    assert tenant.enabled_locales == ["en", "de"]
+    assert tenant.default_locale == "en"
+
+
 def test_demo_image_is_themed_and_deterministic():
     # ключ без реального фото → детерминированный SVG-URL (фолбэк)
     url = demo_kits.demo_image("unfotografiertes gericht", lock=5)

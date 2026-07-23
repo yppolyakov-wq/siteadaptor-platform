@@ -157,7 +157,8 @@ def test_context_exposes_storefront_locales(_tenant_urlconf, settings):
     req = RequestFactory().get("/")
     req.tenant = tenant
     ctx = context.modules_nav(req)
+    # DL-1: + родное имя языка («Deutsch»/«Français») для выпадающего блока.
     assert ctx["storefront_locales"] == [
-        {"code": "de", "label": "DE"},
-        {"code": "fr", "label": "FR"},
+        {"code": "de", "label": "DE", "native": "Deutsch"},
+        {"code": "fr", "label": "FR", "native": "Français"},
     ]

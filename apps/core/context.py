@@ -5,10 +5,22 @@
 """
 
 from django.conf import settings
-from django.utils.translation import get_language
+from django.utils.translation import get_language, get_language_info
 
 from . import modules
 from .i18n_cabinet import cabinet_languages
+
+
+def _native_language_name(code: str) -> str:
+    """Родное имя языка («Deutsch»/«English»/…) для переключателя витрины.
+
+    Django знает имена для всех кодов из `LANGUAGES`; для неизвестного —
+    фолбэк на верхний регистр кода (не падаем).
+    """
+    try:
+        return get_language_info(code)["name_local"].capitalize()
+    except Exception:  # noqa: BLE001 — генерик, любой сбой → фолбэк на код
+        return code.upper()
 
 
 def _cart_count(request) -> int:
@@ -229,9 +241,13 @@ def modules_nav(request):
             for it in m.nav_items
         ][:4]
     # L1 (Волна L): языки переключателя витрины — по `active_locales` тенанта (N
-    # локалей, генерик). Метка — короткий код (DE/EN/…); переключатель скрывается
-    # при одной локали (шаблон). Активный язык шаблон берёт из request.LANGUAGE_CODE.
-    storefront_locales = [{"code": code, "label": code.upper()} for code in tenant.active_locales]
+    # локалей, генерик). Метка — короткий код (DE/EN/…) для пилюли + родное имя
+    # («Deutsch»/«English») для выпадающего блока. Переключатель скрывается при
+    # одной локали (шаблон). Активный язык шаблон берёт из request.LANGUAGE_CODE.
+    storefront_locales = [
+        {"code": code, "label": code.upper(), "native": _native_language_name(code)}
+        for code in tenant.active_locales
+    ]
     return {
         "nav_modules": _active,
         "nav_groups": modules.grouped_active_modules(tenant),  # AB1: сайдбар по задачам

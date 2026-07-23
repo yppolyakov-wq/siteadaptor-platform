@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.utils import timezone
 
 from . import siteconfig
@@ -242,6 +243,10 @@ class DemoKit:
     # B4/LS-5: активная auto-win-back кампания {"inactive_days", "percent",
     # "subject"} — видна в Kampagnen и в обзоре напоминаний Marketing-центра.
     winback: dict = field(default_factory=dict)
+    # DL-1: языки витрины демо-кита — включают переключатель языка (скрытый блок в
+    # шапке) и определяют, какие локали видны. Дефолт ["de", "en"] (двуязычная демо:
+    # немецкий контент + EN-оверлей). Первый = default_locale. Пусто → только DE.
+    enabled_locales: list = field(default_factory=lambda: ["de", "en"])
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -5503,6 +5508,13 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.whatsapp_number:  # LS-1/LS-2: гейт видео-CTA и presence-пилюли
         tenant.whatsapp_number = kit.whatsapp_number
         update_fields.append("whatsapp_number")
+    if kit.enabled_locales:  # DL-1: языки витрины (переключатель в шапке демо)
+        # Только валидные коды из реестра LANGUAGES; первый — default_locale.
+        valid = [c for c in kit.enabled_locales if c in dict(settings.LANGUAGES)]
+        if valid:
+            tenant.enabled_locales = valid
+            tenant.default_locale = valid[0]
+            update_fields += ["enabled_locales", "default_locale"]
     tenant.save(update_fields=update_fields)
     _seed_legal_docs(tenant, kit)  # E-2/L5: честное право в демо (вместо placeholder)
     return True
