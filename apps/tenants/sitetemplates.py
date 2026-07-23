@@ -105,6 +105,10 @@ TEMPLATES = [
         },
         "accent": "#0f766e",  # teal
         "hero_style": "accent",
+        # R2 «первый экран»: топ-услуги + «Termin buchen» ВНУТРИ баннера (услуги-
+        # primary; services-секция и services_preview есть). Как hero_widget=stays
+        # у отеля. Существующие сайты не трогаем (применяется дефолт-шаблоном).
+        "site_defaults": {"hero_widget": "services"},
     },
     {
         # S6: Handwerker — Anfrage/Angebot; Referenzen (before_after) + Ablauf (process).

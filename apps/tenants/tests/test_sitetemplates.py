@@ -81,6 +81,46 @@ def test_gastgeber_hero_carries_stay_search_widget():
     assert tenant.site_config["site_defaults"]["hero_widget"] == "stays"
 
 
+def test_termine_hero_carries_services_widget():
+    # R2 «первый экран»: у friseur/werkstatt топ-услуги + «Termin buchen» ВНУТРИ
+    # hero. Шаблон termine несёт site_defaults.hero_widget="services"; apply_template
+    # доносит; смена Look'а сохраняет (как у отеля).
+    from apps.tenants import siteconfig
+
+    tpl = sitetemplates.get_template("termine")
+    assert tpl["site_defaults"]["hero_widget"] == "services"
+    tenant = TenantFactory(schema_name="t_sw", business_type="friseur")
+    assert sitetemplates.apply_template(tenant, "termine") is True
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["site_defaults"]["hero_widget"] == "services"
+    assert sitetemplates.apply_look(tenant, "warm") is True
+    tenant.refresh_from_db()
+    assert tenant.site_config["site_defaults"]["hero_widget"] == "services"
+
+
+def test_hero_widget_partial_renders_services_gated_by_module(settings):
+    # R2: партиал hero-виджета рендерит топ-услуги при hero_widget="services" +
+    # непустом services_preview; при пустом — ничего (без регрессии).
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    import uuid
+    from types import SimpleNamespace
+
+    from django.template.loader import render_to_string
+
+    svc = SimpleNamespace(pk=uuid.uuid4(), name_localized=lambda *a: "Haarschnitt")
+    on = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "services", "services_preview": [svc]},
+    )
+    assert "Haarschnitt" in on
+    off = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "services", "services_preview": []},
+    )
+    assert off.strip() == ""
+
+
 def test_hero_widget_partial_renders_date_search_gated_by_module(settings):
     # E4: партиал hero-виджета рендерит поиск дат при hero_widget="stays" +
     # активном модуле stays; при неактивном — пусто (без регрессии).
