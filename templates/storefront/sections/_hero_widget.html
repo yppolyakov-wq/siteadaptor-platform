@@ -9,10 +9,12 @@ E4 «задача-первым»: primary-виджет ВНУТРИ hero — п�
 <div class="mt-6 bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 max-w-3xl mx-auto text-left">
   <p class="font-semibold mb-3 text-center md:text-left">{% trans "Check availability" %}</p>
   <form method="get" action="{% url 'storefront-unterkunft' %}">
-    <div class="grid sm:grid-cols-5 gap-3 items-end">
+    {% comment %}min-w-0 на ячейках грида: iOS `type=date` имеет большую intrinsic-
+    ширину и без этого вылезает за границы формы на мобильном.{% endcomment %}
+    <div class="grid sm:grid-cols-5 gap-3 items-end [&>div]:min-w-0">
       <div>
         <label class="block text-xs font-medium mb-1 text-gray-600" for="hh_von">{% trans "Arrival" %}</label>
-        <input id="hh_von" name="von" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 1 %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <input id="hh_von" name="von" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 1 %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
       </div>
       <div>
         <label class="block text-xs font-medium mb-1 text-gray-600" for="hh_bis">{% trans "Departure" %}</label>
