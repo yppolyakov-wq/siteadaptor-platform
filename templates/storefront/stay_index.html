@@ -39,14 +39,16 @@
   {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
   {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
   {% if active_kollektion %}<input type="hidden" name="kollektion" value="{{ active_kollektion }}">{% endif %}
-  <div class="grid sm:grid-cols-5 gap-3 items-end">
+  {% comment %}min-w-0 на ячейках: iOS type=date не сжимается ниже intrinsic-ширины
+  и вылезает за форму на мобильном.{% endcomment %}
+  <div class="grid sm:grid-cols-5 gap-3 items-end [&>div]:min-w-0">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
-      <input id="id_von" name="von" type="date" required value="{% if von %}{{ von|date:'Y-m-d' }}{% else %}{% default_date 1 %}{% endif %}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_von" name="von" type="date" required value="{% if von %}{{ von|date:'Y-m-d' }}{% else %}{% default_date 1 %}{% endif %}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
-      <input id="id_bis" name="bis" type="date" required value="{% if bis %}{{ bis|date:'Y-m-d' }}{% else %}{% default_date 3 %}{% endif %}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_bis" name="bis" type="date" required value="{% if bis %}{{ bis|date:'Y-m-d' }}{% else %}{% default_date 3 %}{% endif %}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>

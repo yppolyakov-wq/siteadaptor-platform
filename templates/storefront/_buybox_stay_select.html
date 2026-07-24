@@ -7,14 +7,14 @@
 <form method="get" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
   {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
   <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
-  <div class="grid grid-cols-2 gap-3">
+  <div class="grid grid-cols-2 gap-3 [&>div]:min-w-0">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
-      <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
-      <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>

@@ -13298,3 +13298,81 @@ msgstr "Прогресс"
 
 msgid "Earliest free time"
 msgstr "Ближайшее свободное время"
+
+msgid "Galerie"
+msgstr "Галерея"
+
+msgid "Zimmer & Preise"
+msgstr "Номера и цены"
+
+msgid "Hausordnung"
+msgstr "Правила проживания"
+
+msgid "Jetzt buchen"
+msgstr "Забронировать"
+
+msgid "Buchen"
+msgstr "Бронирование"
+
+msgid "Speisekarte"
+msgstr "Меню"
+
+msgid "Anfahrt"
+msgstr "Как добраться"
+
+msgid "In den Warenkorb"
+msgstr "В корзину"
+
+msgid "Reservieren"
+msgstr "Зарезервировать"
+
+msgid "Anfrage senden"
+msgstr "Отправить запрос"
+
+msgid "WLAN"
+msgstr "Wi-Fi"
+
+msgid "TV"
+msgstr "Телевизор"
+
+msgid "Eigenes Bad"
+msgstr "Своя ванная"
+
+msgid "Dusche"
+msgstr "Душ"
+
+msgid "Balkon/Terrasse"
+msgstr "Балкон/терраса"
+
+msgid "Klimaanlage"
+msgstr "Кондиционер"
+
+msgid "Küche/Kitchenette"
+msgstr "Кухня/мини-кухня"
+
+msgid "Minibar"
+msgstr "Мини-бар"
+
+msgid "Safe"
+msgstr "Сейф"
+
+msgid "Schreibtisch"
+msgstr "Рабочий стол"
+
+msgid "Kaffee/Tee"
+msgstr "Кофе/чай"
+
+msgid "Föhn"
+msgstr "Фен"
+
+msgid "Parkplatz"
+msgstr "Парковка"
+
+msgid "Haustiere erlaubt"
+msgstr "Можно с животными"
+
+msgid "Barrierefrei"
+msgstr "Без барьеров"
+
+msgid "Nichtraucher"
+msgstr "Для некурящих"

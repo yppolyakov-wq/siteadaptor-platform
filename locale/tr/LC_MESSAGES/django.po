@@ -13221,3 +13221,81 @@ msgstr "İlerleme"
 
 msgid "Earliest free time"
 msgstr "En erken müsait saat"
+
+msgid "Galerie"
+msgstr "Galeri"
+
+msgid "Zimmer & Preise"
+msgstr "Odalar ve fiyatlar"
+
+msgid "Hausordnung"
+msgstr "Ev kuralları"
+
+msgid "Jetzt buchen"
+msgstr "Şimdi rezervasyon yap"
+
+msgid "Buchen"
+msgstr "Rezervasyon"
+
+msgid "Speisekarte"
+msgstr "Menü"
+
+msgid "Anfahrt"
+msgstr "Yol tarifi"
+
+msgid "In den Warenkorb"
+msgstr "Sepete ekle"
+
+msgid "Reservieren"
+msgstr "Rezerve et"
+
+msgid "Anfrage senden"
+msgstr "Talep gönder"
+
+msgid "WLAN"
+msgstr "Wi-Fi"
+
+msgid "TV"
+msgstr "TV"
+
+msgid "Eigenes Bad"
+msgstr "Özel banyo"
+
+msgid "Dusche"
+msgstr "Duş"
+
+msgid "Balkon/Terrasse"
+msgstr "Balkon/teras"
+
+msgid "Klimaanlage"
+msgstr "Klima"
+
+msgid "Küche/Kitchenette"
+msgstr "Mutfak/mini mutfak"
+
+msgid "Minibar"
+msgstr "Minibar"
+
+msgid "Safe"
+msgstr "Kasa"
+
+msgid "Schreibtisch"
+msgstr "Çalışma masası"
+
+msgid "Kaffee/Tee"
+msgstr "Kahve/çay"
+
+msgid "Föhn"
+msgstr "Saç kurutma makinesi"
+
+msgid "Parkplatz"
+msgstr "Otopark"
+
+msgid "Haustiere erlaubt"
+msgstr "Evcil hayvan kabul edilir"
+
+msgid "Barrierefrei"
+msgstr "Engelsiz erişim"
+
+msgid "Nichtraucher"
+msgstr "Sigara içilmez"

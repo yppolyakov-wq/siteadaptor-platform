@@ -13113,3 +13113,81 @@ msgstr "Progress"
 
 msgid "Earliest free time"
 msgstr "Earliest free time"
+
+msgid "Galerie"
+msgstr "Gallery"
+
+msgid "Zimmer & Preise"
+msgstr "Rooms & prices"
+
+msgid "Hausordnung"
+msgstr "House rules"
+
+msgid "Jetzt buchen"
+msgstr "Book now"
+
+msgid "Buchen"
+msgstr "Book"
+
+msgid "Speisekarte"
+msgstr "Menu"
+
+msgid "Anfahrt"
+msgstr "Directions"
+
+msgid "In den Warenkorb"
+msgstr "Add to cart"
+
+msgid "Reservieren"
+msgstr "Reserve"
+
+msgid "Anfrage senden"
+msgstr "Send request"
+
+msgid "WLAN"
+msgstr "Wi-Fi"
+
+msgid "TV"
+msgstr "TV"
+
+msgid "Eigenes Bad"
+msgstr "Private bathroom"
+
+msgid "Dusche"
+msgstr "Shower"
+
+msgid "Balkon/Terrasse"
+msgstr "Balcony/terrace"
+
+msgid "Klimaanlage"
+msgstr "Air conditioning"
+
+msgid "Küche/Kitchenette"
+msgstr "Kitchen/kitchenette"
+
+msgid "Minibar"
+msgstr "Minibar"
+
+msgid "Safe"
+msgstr "Safe"
+
+msgid "Schreibtisch"
+msgstr "Desk"
+
+msgid "Kaffee/Tee"
+msgstr "Coffee/tea"
+
+msgid "Föhn"
+msgstr "Hairdryer"
+
+msgid "Parkplatz"
+msgstr "Parking"
+
+msgid "Haustiere erlaubt"
+msgstr "Pets allowed"
+
+msgid "Barrierefrei"
+msgstr "Accessible"
+
+msgid "Nichtraucher"
+msgstr "Non-smoking"

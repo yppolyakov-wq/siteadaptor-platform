@@ -53,10 +53,10 @@ def purchase_mode(module: str) -> str:
 # M20U-5: подпись основного действия по режиму покупки (DE, как storefront_label).
 # Для CTA на карточках/детальной: «купить» vs «забронировать» vs «запросить».
 PURCHASE_LABELS = {
-    "cart": "In den Warenkorb",
-    "booking": "Jetzt buchen",
-    "reserve": "Reservieren",
-    "request": "Anfrage senden",
+    "cart": _("In den Warenkorb"),
+    "booking": _("Jetzt buchen"),
+    "reserve": _("Reservieren"),
+    "request": _("Anfrage senden"),
 }
 
 

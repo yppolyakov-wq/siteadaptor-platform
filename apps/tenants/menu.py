@@ -8,6 +8,7 @@
 """
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import modules
 
@@ -83,12 +84,41 @@ def _node_url(tenant, node: dict):
     return None
 
 
+# Якоря перевода: стандартные подписи меню приходят из ДАННЫХ (site_config/демо-
+# киты), а не из gettext-литералов, поэтому makemessages их не извлечёт. Перечисляем
+# их здесь gettext_lazy, чтобы msgid'ы жили в каталогах и переводились на язык
+# витрины через фолбэк _node_label. (Кастомные подписи владельца — не msgid'ы,
+# gettext вернёт их без изменений.)
+_MENU_LABEL_ANCHORS = (
+    _("Start"),
+    _("Galerie"),
+    _("Zimmer & Preise"),
+    _("Bewertungen"),
+    _("Hausordnung"),
+    _("FAQ"),
+    _("Über uns"),
+    _("Kontakt"),
+    _("Jetzt buchen"),
+    _("Buchen"),
+    _("Zimmer"),
+    _("Speisekarte"),
+    _("Angebote"),
+    _("Termine"),
+    _("Leistungen"),
+    _("Anfahrt"),
+)
+
+
 def _node_label(node: dict) -> str:
-    """Подпись узла на текущей локали (i18n): label_i18n[locale] → фолбэк label."""
-    from django.utils.translation import get_language
+    """Подпись узла на текущей локали (i18n): явный `label_i18n[locale]` →
+    иначе gettext базовой подписи. Стандартные пункты («Kontakt», «Galerie»,
+    «Jetzt buchen» …) — msgid'ы хрома и переводятся на язык витрины; кастомные
+    подписи владельца не являются msgid'ами → gettext вернёт их без изменений."""
+    from django.utils.translation import get_language, gettext
 
     li18n = node.get("label_i18n") or {}
-    return li18n.get(get_language() or "de") or node["label"]
+    explicit = li18n.get(get_language() or "de")
+    return explicit or gettext(node["label"])
 
 
 def _resolve(tenant, node: dict):

@@ -13285,3 +13285,81 @@ msgstr "Прогрес"
 
 msgid "Earliest free time"
 msgstr "Найближчий вільний час"
+
+msgid "Galerie"
+msgstr "Галерея"
+
+msgid "Zimmer & Preise"
+msgstr "Номери та ціни"
+
+msgid "Hausordnung"
+msgstr "Правила проживання"
+
+msgid "Jetzt buchen"
+msgstr "Забронювати"
+
+msgid "Buchen"
+msgstr "Бронювання"
+
+msgid "Speisekarte"
+msgstr "Меню"
+
+msgid "Anfahrt"
+msgstr "Як дістатися"
+
+msgid "In den Warenkorb"
+msgstr "До кошика"
+
+msgid "Reservieren"
+msgstr "Зарезервувати"
+
+msgid "Anfrage senden"
+msgstr "Надіслати запит"
+
+msgid "WLAN"
+msgstr "Wi-Fi"
+
+msgid "TV"
+msgstr "Телевізор"
+
+msgid "Eigenes Bad"
+msgstr "Власна ванна"
+
+msgid "Dusche"
+msgstr "Душ"
+
+msgid "Balkon/Terrasse"
+msgstr "Балкон/тераса"
+
+msgid "Klimaanlage"
+msgstr "Кондиціонер"
+
+msgid "Küche/Kitchenette"
+msgstr "Кухня/міні-кухня"
+
+msgid "Minibar"
+msgstr "Міні-бар"
+
+msgid "Safe"
+msgstr "Сейф"
+
+msgid "Schreibtisch"
+msgstr "Робочий стіл"
+
+msgid "Kaffee/Tee"
+msgstr "Кава/чай"
+
+msgid "Föhn"
+msgstr "Фен"
+
+msgid "Parkplatz"
+msgstr "Парковка"
+
+msgid "Haustiere erlaubt"
+msgstr "Можна з тваринами"
+
+msgid "Barrierefrei"
+msgstr "Без бар'єрів"
+
+msgid "Nichtraucher"
+msgstr "Для некурящих"
