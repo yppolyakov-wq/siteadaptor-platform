@@ -13299,3 +13299,33 @@ msgstr "Engelsiz erişim"
 
 msgid "Nichtraucher"
 msgstr "Sigara içilmez"
+
+msgid "Ohne Verpflegung"
+msgstr "Yemeksiz"
+
+msgid "Frühstück"
+msgstr "Kahvaltı"
+
+msgid "Halbpension"
+msgstr "Yarım pansiyon"
+
+msgid "Vollpension"
+msgstr "Tam pansiyon"
+
+msgid "Kostenlose Stornierung"
+msgstr "Ücretsiz iptal"
+
+msgid "Nicht erstattbar"
+msgstr "İade edilemez"
+
+msgid "Ferienwohnung"
+msgstr "Tatil dairesi"
+
+msgid "Ferienhaus"
+msgstr "Tatil evi"
+
+msgid "Bett (Schlafsaal)"
+msgstr "Yatak (ranza)"
+
+msgid "Stellplatz"
+msgstr "Kamp alanı"

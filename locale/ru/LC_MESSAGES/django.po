@@ -13376,3 +13376,33 @@ msgstr "Без барьеров"
 
 msgid "Nichtraucher"
 msgstr "Для некурящих"
+
+msgid "Ohne Verpflegung"
+msgstr "Без питания"
+
+msgid "Frühstück"
+msgstr "Завтрак"
+
+msgid "Halbpension"
+msgstr "Полупансион"
+
+msgid "Vollpension"
+msgstr "Полный пансион"
+
+msgid "Kostenlose Stornierung"
+msgstr "Бесплатная отмена"
+
+msgid "Nicht erstattbar"
+msgstr "Без возврата средств"
+
+msgid "Ferienwohnung"
+msgstr "Апартаменты"
+
+msgid "Ferienhaus"
+msgstr "Дом для отдыха"
+
+msgid "Bett (Schlafsaal)"
+msgstr "Кровать (общий номер)"
+
+msgid "Stellplatz"
+msgstr "Место для кемпинга"

@@ -857,6 +857,26 @@ def test_friseur_kit_seeds_service_i18n_overlays():
     assert plain.name_i18n.get("en") != "Waschen & Föhnen"
 
 
+def test_hotel_kit_translates_rate_plans_and_house_rules():
+    """DL-витрина (батч 2): тарифы (RatePlan) и Hausordnung переводятся на все
+    локали (пост-сид overlay)."""
+    from apps.stays.models import RatePlan, StaySettings
+
+    tenant = TenantFactory(schema_name="public", slug="h2", name="H", business_type="hotel")
+    demo_kits.apply_kit(tenant, "hotel")
+
+    rp = RatePlan.objects.get(name="Basistarif")
+    for loc in ("en", "ru", "uk", "tr"):
+        assert rp.name_localized(loc) != "Basistarif"  # переведено из словаря
+    assert rp.name_localized("de") == "Basistarif"  # база сохранена
+
+    st = StaySettings.objects.first()
+    assert st is not None and st.house_rules  # Hausordnung засеян
+    for loc in ("en", "ru", "uk", "tr"):
+        assert st.house_rules_localized(loc) != st.house_rules  # переведён
+    assert st.house_rules_localized("de") == st.house_rules
+
+
 def test_hotel_kit_seeds_stayunit_i18n_overlays():
     from apps.stays.models import StayUnit
 

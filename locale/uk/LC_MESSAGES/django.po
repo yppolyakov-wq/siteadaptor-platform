@@ -13363,3 +13363,33 @@ msgstr "Без бар'єрів"
 
 msgid "Nichtraucher"
 msgstr "Для некурящих"
+
+msgid "Ohne Verpflegung"
+msgstr "Без харчування"
+
+msgid "Frühstück"
+msgstr "Сніданок"
+
+msgid "Halbpension"
+msgstr "Напівпансіон"
+
+msgid "Vollpension"
+msgstr "Повний пансіон"
+
+msgid "Kostenlose Stornierung"
+msgstr "Безкоштовне скасування"
+
+msgid "Nicht erstattbar"
+msgstr "Без повернення коштів"
+
+msgid "Ferienwohnung"
+msgstr "Апартаменти"
+
+msgid "Ferienhaus"
+msgstr "Будинок для відпочинку"
+
+msgid "Bett (Schlafsaal)"
+msgstr "Ліжко (загальна кімната)"
+
+msgid "Stellplatz"
+msgstr "Місце для кемпінгу"

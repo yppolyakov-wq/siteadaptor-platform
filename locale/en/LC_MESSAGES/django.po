@@ -13191,3 +13191,33 @@ msgstr "Accessible"
 
 msgid "Nichtraucher"
 msgstr "Non-smoking"
+
+msgid "Ohne Verpflegung"
+msgstr "Without meals"
+
+msgid "Frühstück"
+msgstr "Breakfast"
+
+msgid "Halbpension"
+msgstr "Half board"
+
+msgid "Vollpension"
+msgstr "Full board"
+
+msgid "Kostenlose Stornierung"
+msgstr "Free cancellation"
+
+msgid "Nicht erstattbar"
+msgstr "Non-refundable"
+
+msgid "Ferienwohnung"
+msgstr "Holiday apartment"
+
+msgid "Ferienhaus"
+msgstr "Holiday home"
+
+msgid "Bett (Schlafsaal)"
+msgstr "Bed (dormitory)"
+
+msgid "Stellplatz"
+msgstr "Pitch"

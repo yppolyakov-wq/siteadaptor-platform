@@ -49,11 +49,11 @@ class StayUnit(I18nMixin, TimestampedModel):
     TYPE_BED = "bed"
     TYPE_PITCH = "pitch"
     TYPES = [
-        (TYPE_ROOM, "Zimmer"),
-        (TYPE_APARTMENT, "Ferienwohnung"),
-        (TYPE_HOUSE, "Ferienhaus"),
-        (TYPE_BED, "Bett (Schlafsaal)"),
-        (TYPE_PITCH, "Stellplatz"),
+        (TYPE_ROOM, _("Zimmer")),
+        (TYPE_APARTMENT, _("Ferienwohnung")),
+        (TYPE_HOUSE, _("Ferienhaus")),
+        (TYPE_BED, _("Bett (Schlafsaal)")),
+        (TYPE_PITCH, _("Stellplatz")),
     ]
 
     name = models.CharField(max_length=120)
@@ -143,7 +143,7 @@ class StayUnit(I18nMixin, TimestampedModel):
         return self.weekend_price_cents / 100
 
 
-class RatePlan(TimestampedModel):
+class RatePlan(I18nMixin, TimestampedModel):
     """Тариф (Rate Plan, H1) — альтернативный способ продать те же номера: Basis,
     Nicht-stornierbar, mit Frühstück, Halbpension, Frühbucher, Flexibel. На тенанта
     (применяется ко всем юнитам). Цена = посуточная (база/сезон/выходные) с
@@ -155,21 +155,24 @@ class RatePlan(TimestampedModel):
     MEAL_HALF = "half_board"
     MEAL_FULL = "full_board"
     MEALS = [
-        (MEAL_NONE, "Ohne Verpflegung"),
-        (MEAL_BREAKFAST, "Frühstück"),
-        (MEAL_HALF, "Halbpension"),
-        (MEAL_FULL, "Vollpension"),
+        (MEAL_NONE, _("Ohne Verpflegung")),
+        (MEAL_BREAKFAST, _("Frühstück")),
+        (MEAL_HALF, _("Halbpension")),
+        (MEAL_FULL, _("Vollpension")),
     ]
 
     CANCEL_FLEXIBLE = "flexible"
     CANCEL_NONREF = "non_refundable"
     CANCELLATIONS = [
-        (CANCEL_FLEXIBLE, "Kostenlose Stornierung"),
-        (CANCEL_NONREF, "Nicht erstattbar"),
+        (CANCEL_FLEXIBLE, _("Kostenlose Stornierung")),
+        (CANCEL_NONREF, _("Nicht erstattbar")),
     ]
 
     name = models.CharField(max_length=120)
     description = models.CharField(max_length=300, blank=True)
+    # L3/DL: overlay-переводы (база в плоском поле = de, переводы тут).
+    name_i18n = models.JSONField(default=dict, blank=True)
+    description_i18n = models.JSONField(default=dict, blank=True)
     # Модификатор посуточной цены, % со знаком: −10 = тариф дешевле на 10 %,
     # +5 = надбавка. 0 = базовая цена.
     percent_adjust = models.SmallIntegerField(default=0)
@@ -199,6 +202,13 @@ class RatePlan(TimestampedModel):
     @property
     def surcharge_eur(self) -> float:
         return self.surcharge_cents / 100
+
+    def name_localized(self, locale: str | None = None) -> str:
+        """L3/DL: имя тарифа на локали (перевод из name_i18n, иначе базовое name)."""
+        return self.get_overlay("name", "name_i18n", locale)
+
+    def description_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("description", "description_i18n", locale)
 
 
 class SeasonRate(TimestampedModel):
@@ -428,7 +438,7 @@ class Channel(TimestampedModel):
         return self.name or self.get_kind_display()
 
 
-class StaySettings(TimestampedModel):
+class StaySettings(I18nMixin, TimestampedModel):
     """Настройки размещения на тенанта (H9) — синглтон в схеме тенанта.
 
     Kurtaxe/Tourismusabgabe: сбор за взрослого за ночь (центы; 0 = выключено). Дети
@@ -440,6 +450,13 @@ class StaySettings(TimestampedModel):
     kurtaxe_children_free = models.BooleanField(default=True)
     # H6: Hausordnung / правила проживания (свободный текст; пусто = страницы нет).
     house_rules = models.TextField(blank=True)
+    # L3/DL: overlay-перевод Hausordnung (база = de-плоское поле, переводы тут).
+    house_rules_i18n = models.JSONField(default=dict, blank=True)
+
+    def house_rules_localized(self, locale: str | None = None) -> str:
+        """L3/DL: Hausordnung на локали (перевод из house_rules_i18n, иначе база)."""
+        return self.get_overlay("house_rules", "house_rules_i18n", locale)
+
     # G4: авто-скидки на проживание — список правил (несколько на тип, многоступенчато).
     # Правило: {"kind": los|early_bird|last_minute, "threshold": int, "percent": int}.
     #   los: ночей ≥ threshold; early_bird: до заезда ≥ threshold дней;

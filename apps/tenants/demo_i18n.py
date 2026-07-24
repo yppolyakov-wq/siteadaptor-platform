@@ -200,7 +200,7 @@ def translate_tenant_content(tenant, locales) -> None:
     from apps.booking.models import Service
     from apps.catalog.models import Category, Combo, Product
     from apps.events.models import Event
-    from apps.stays.models import StayUnit
+    from apps.stays.models import RatePlan, StaySettings, StayUnit
 
     for prod in Product.objects.all():
         changed = _fill_full(prod, "name", locales) | _fill_full(prod, "description", locales)
@@ -238,6 +238,18 @@ def translate_tenant_content(tenant, locales) -> None:
         )
         if changed:
             ev.save(update_fields=["title_i18n", "description_i18n"])
+
+    for rp in RatePlan.objects.all():
+        changed = _fill_overlay(rp, "name", "name_i18n", locales) | _fill_overlay(
+            rp, "description", "description_i18n", locales
+        )
+        if changed:
+            rp.save(update_fields=["name_i18n", "description_i18n"])
+
+    # Hausordnung (StaySettings — синглтон): перевод свободного текста.
+    settings_obj = StaySettings.objects.first()
+    if settings_obj and _fill_overlay(settings_obj, "house_rules", "house_rules_i18n", locales):
+        settings_obj.save(update_fields=["house_rules_i18n"])
 
     # Collection — TENANT-апп, но может быть отключён в тест-настройках; мягкий импорт.
     try:
