@@ -243,10 +243,11 @@ class DemoKit:
     # B4/LS-5: активная auto-win-back кампания {"inactive_days", "percent",
     # "subject"} — видна в Kampagnen и в обзоре напоминаний Marketing-центра.
     winback: dict = field(default_factory=dict)
-    # DL-1: языки витрины демо-кита — включают переключатель языка (скрытый блок в
-    # шапке) и определяют, какие локали видны. Дефолт ["de", "en"] (двуязычная демо:
-    # немецкий контент + EN-оверлей). Первый = default_locale. Пусто → только DE.
-    enabled_locales: list = field(default_factory=lambda: ["de", "en"])
+    # DL-1/DL-3: языки витрины демо-кита — включают переключатель языка (скрытый блок
+    # в шапке) и определяют, какие локали видны. Дефолт — все 5 языков реестра/кабинета
+    # (немецкий контент = база + оверлеи en/ru/uk/tr из demo_i18n). Первый =
+    # default_locale. Пусто → только DE. Невалидные коды отбрасываются в apply_kit.
+    enabled_locales: list = field(default_factory=lambda: ["de", "en", "ru", "uk", "tr"])
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -5469,10 +5470,11 @@ def apply_kit(tenant, key: str) -> bool:
 
         for host, preset_id in kit.page_presets:
             page_presets_mod.apply_page_preset(cfg, host, preset_id)
-    if kit.enabled_locales and "en" in kit.enabled_locales:  # DL-2: EN-оверлей текстов
+    _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
+    if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n
 
-        demo_i18n.overlay_config_en(cfg)
+        demo_i18n.overlay_config(cfg, _demo_locales)
     tenant.site_config = cfg
     tenant.primary_color = accent
     update_fields = ["site_config", "primary_color", "updated_at"]
@@ -5521,10 +5523,10 @@ def apply_kit(tenant, key: str) -> bool:
             update_fields += ["enabled_locales", "default_locale"]
     tenant.save(update_fields=update_fields)
     _seed_legal_docs(tenant, kit)  # E-2/L5: честное право в демо (вместо placeholder)
-    if kit.enabled_locales and "en" in kit.enabled_locales:  # DL-2: EN на контент
+    if _demo_locales:  # DL-2/DL-3: переводы контента на все включённые локали
         from . import demo_i18n
 
-        demo_i18n.translate_tenant_content(tenant)
+        demo_i18n.translate_tenant_content(tenant, _demo_locales)
     return True
 
 

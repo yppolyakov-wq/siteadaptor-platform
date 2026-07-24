@@ -95,11 +95,12 @@ def test_seeds_subcategories_and_bilingual_names(monkeypatch):
     assert children.count() == 2
     wurst = Category.objects.get(slug="demo-wuerstchen")
     assert wurst.parent_id == shop.pk
-    # Двуязычное имя категории и товара.
-    assert wurst.name == {"de": "Würstchen", "en": "Sausages"}
+    # Двуязычное имя категории и товара (DL-3: пост-сид может дозаполнить ru/uk/tr,
+    # если слово есть в словаре — проверяем ключи de/en, не точное равенство дикта).
+    assert wurst.name["de"] == "Würstchen" and wurst.name["en"] == "Sausages"
     bratwurst = Product.objects.get(name__de="Bratwurst")
     assert bratwurst.name["en"] == "Grill Sausage"
-    assert bratwurst.description == {"de": "lecker", "en": "tasty"}
+    assert bratwurst.description["de"] == "lecker" and bratwurst.description["en"] == "tasty"
 
     # i18n-оверлей site_config сохранён, localize даёт EN.
     cfg = tenant.site_config
@@ -117,14 +118,15 @@ def test_seeds_subcategories_and_bilingual_names(monkeypatch):
 
 
 def test_apply_kit_enables_demo_locales():
-    """DL-1: kit включает языки витрины (переключатель в шапке демо) —
-    enabled_locales по умолчанию DE+EN, первый = default_locale."""
+    """DL-1/DL-3: kit включает языки витрины (переключатель в шапке демо) —
+    enabled_locales по умолчанию все 5 (de+en+ru+uk+tr), первый = default_locale."""
     tenant = _tenant()
     assert demo_kits.apply_kit(tenant, "restaurant") is True
     tenant.refresh_from_db()
-    assert tenant.enabled_locales == ["de", "en"]
+    assert tenant.enabled_locales == ["de", "en", "ru", "uk", "tr"]
     assert tenant.default_locale == "de"
-    assert tenant.active_locales == ["de", "en"]  # оба в реестре LANGUAGES
+    # все 5 в реестре LANGUAGES (расширен в W-волне) → все активны
+    assert tenant.active_locales == ["de", "en", "ru", "uk", "tr"]
 
 
 def test_apply_kit_respects_custom_locales(monkeypatch):
@@ -148,9 +150,9 @@ def test_apply_kit_respects_custom_locales(monkeypatch):
     assert tenant.default_locale == "en"
 
 
-def test_apply_kit_translates_config_and_content_to_en():
-    """DL-2: пост-сид перевод — site_config-тексты и модельный контент получают
-    EN-оверлей; localize('en') отличается от DE, база DE не тронута."""
+def test_apply_kit_translates_config_and_content_to_all_locales():
+    """DL-2/DL-3: пост-сид перевод — site_config-тексты и модельный контент получают
+    оверлеи en/ru/uk/tr; localize(loc) отличается от DE, база DE не тронута."""
     from apps.booking.models import Service
     from apps.tenants import siteconfig
 
@@ -160,46 +162,46 @@ def test_apply_kit_translates_config_and_content_to_en():
     cfg = tenant.site_config
 
     de = siteconfig.localize(cfg, "de")
-    en = siteconfig.localize(cfg, "en")
-    # hero + faq переведены, немецкая база сохранена.
-    assert de["hero_title"] and en["hero_title"]
-    assert de["hero_text"] != en["hero_text"]  # текст реально локализован
-    if de.get("faq"):
-        assert de["faq"][0]["q"] != en["faq"][0]["q"]
+    for loc in ("en", "ru", "uk", "tr"):
+        loc_cfg = siteconfig.localize(cfg, loc)
+        assert loc_cfg["hero_title"]  # заголовок есть
+        assert loc_cfg["hero_text"] != de["hero_text"]  # текст реально локализован
 
-    # Услуга: EN в name_i18n, база DE во flat-поле (get_overlay).
+    # Услуга: перевод в name_i18n, база DE во flat-поле (get_overlay).
     svc = Service.objects.exclude(name="").first()
     assert svc is not None
-    en_name = svc.name_localized("en")
     de_name = svc.name_localized("de")
-    assert de_name  # немецкое имя есть
-    assert en_name != de_name  # переведено (у friseur услуги есть в словаре)
+    assert de_name
+    for loc in ("en", "ru", "uk", "tr"):
+        assert svc.name_localized(loc) != de_name  # у friseur услуги есть в словаре
 
 
-def test_translate_overlay_preserves_existing_en():
-    """DL-2 идемпотентность: уже заданный en-перевод не перезаписывается."""
+def test_translate_overlay_preserves_existing_locale():
+    """DL-2 идемпотентность: уже заданный перевод локали не перезаписывается."""
     from types import SimpleNamespace
 
     from apps.tenants import demo_i18n
 
     # существующий en — не трогаем даже если в словаре есть перевод базы
     obj = SimpleNamespace(name="Haarschnitt Herren", name_i18n={"en": "Custom EN"})
-    assert demo_i18n._fill_overlay(obj, "name", "name_i18n") is False
+    assert demo_i18n._fill_overlay(obj, "name", "name_i18n", ["en"]) is False
     assert obj.name_i18n["en"] == "Custom EN"
 
-    # пустой overlay + база в словаре → добавляется en
+    # пустой overlay + база в словаре → добавляются все запрошенные локали
     obj2 = SimpleNamespace(name="Haarschnitt Herren", name_i18n={})
-    assert demo_i18n._fill_overlay(obj2, "name", "name_i18n") is True
-    assert obj2.name_i18n["en"] and obj2.name_i18n["en"] != "Haarschnitt Herren"
+    assert demo_i18n._fill_overlay(obj2, "name", "name_i18n", ["en", "ru", "uk", "tr"]) is True
+    for loc in ("en", "ru", "uk", "tr"):
+        assert obj2.name_i18n.get(loc) and obj2.name_i18n[loc] != "Haarschnitt Herren"
 
 
-def test_demo_i18n_map_has_no_identity_entries():
-    """DL-2: словарь не хранит en==de (идентичные — фолбэк на DE даёт то же)."""
+def test_demo_i18n_maps_have_no_identity_entries():
+    """DL-2/DL-3: словари всех локалей непусты и не хранят перевод==оригинал."""
     from apps.tenants import demo_i18n
 
-    m = demo_i18n._map()
-    assert m, "словарь не должен быть пустым"
-    assert not [k for k, v in m.items() if k == v]
+    for loc in demo_i18n.DEMO_LOCALES:
+        m = demo_i18n._map(loc)
+        assert m, f"словарь {loc} не должен быть пустым"
+        assert not [k for k, v in m.items() if k == v], f"{loc}: есть identity-записи"
 
 
 def test_demo_image_is_themed_and_deterministic():
@@ -846,7 +848,8 @@ def test_friseur_kit_seeds_service_i18n_overlays():
     demo_kits.apply_kit(_tenant(), "friseur")
     # Курируемый двуязычный оверлей кита сохранён (DL-2 не перезаписывает en).
     svc = Service.objects.get(name="Haarschnitt Damen")
-    assert svc.name_i18n == {"en": "Women's haircut"}
+    # DL-3: курируемый en сохранён (не перезаписан), рядом дозаполнены ru/uk/tr.
+    assert svc.name_i18n.get("en") == "Women's haircut"
     assert svc.description_i18n.get("en", "").startswith("Wash, cut")
     # DL-2: услуги, что были только на DE, теперь тоже переведены из словаря.
     plain = Service.objects.get(name="Waschen & Föhnen")
@@ -860,7 +863,7 @@ def test_hotel_kit_seeds_stayunit_i18n_overlays():
     tenant = TenantFactory(schema_name="public", slug="h", name="H", business_type="hotel")
     demo_kits.apply_kit(tenant, "hotel")
     unit = StayUnit.objects.get(name="Doppelzimmer Seeblick")
-    assert unit.name_i18n == {"en": "Double room lake view"}
+    assert unit.name_i18n.get("en") == "Double room lake view"  # DL-3: +ru/uk/tr рядом
 
 
 def test_restaurant_kit_seeds_combos_with_i18n():
@@ -868,7 +871,7 @@ def test_restaurant_kit_seeds_combos_with_i18n():
 
     demo_kits.apply_kit(_tenant(), "restaurant")
     combo = Combo.objects.get(name="Mittags-Kombo")
-    assert combo.name_i18n == {"en": "Lunch combo"}
+    assert combo.name_i18n.get("en") == "Lunch combo"  # DL-3: +ru/uk/tr рядом
     assert combo.description_i18n.get("en", "").startswith("Starter")
     group = combo.groups.first()
     assert group is not None and group.options.count() == 2  # Bruschetta + Caprese

@@ -1,21 +1,21 @@
-"""DL-2: централизованный DE→EN словарь демо-контента + пост-сид перевод.
+"""DL-2/DL-3: централизованный DE→{локаль} словарь демо-контента + пост-сид перевод.
 
-Демо-витрины двуязычны (DL-1: ``DemoKit.enabled_locales=["de","en"]`` → в шапке
-переключатель языка). Немецкий контент — источник (плоские поля / база оверлея),
-английский накладывается оверлеем. Чтобы не править 14 больших определений китов
-и не выравнивать вручную позиционные списки, держим ОДИН словарь ``EN[de]=en`` +
-два генерик-прохода, вызываемых из ``apply_kit``:
+Демо-витрины многоязычны (DL-1: ``DemoKit.enabled_locales``). Немецкий контент —
+источник (плоские поля / база оверлея), остальные локали накладываются оверлеем.
+Чтобы не править 14 больших определений китов и не выравнивать вручную позиционные
+списки, держим ПО ОДНОМУ словарю на локаль (``demo_i18n_<loc>.json`` = {de: перевод})
++ два генерик-прохода, вызываемых из ``apply_kit``:
 
-  * :func:`overlay_config_en` — строит ``cfg["i18n"]["en"]`` из немецких значений
+  * :func:`overlay_config` — строит ``cfg["i18n"][loc]`` из немецких значений
     site_config (hero/about/section_titles/cta/faq/testimonials/process/heroes/
-    trust/archetypes), зеркаля структуру базы (позиционный merge ``localize``).
-  * :func:`translate_tenant_content` — заполняет ``*_i18n["en"]`` у Product/Category
-    (full-JSON) и Service/StayUnit/Combo/Event/Collection (flat+overlay), где перевод
-    есть в словаре.
+    trust/archetypes) для каждой локали, зеркаля структуру базы (позиционный merge
+    ``localize``).
+  * :func:`translate_tenant_content` — заполняет ``*_i18n[loc]`` у Product/Category
+    (full-JSON) и Service/StayUnit/Combo/Event/Collection (flat+overlay).
 
-Идемпотентно: уже заданный ``en`` (напр. ручной оверлей кита ``pranasy`` или
-двуязычные позиции) НЕ перезаписывается. Словарь — данные (``demo_i18n_en.json``),
-грузится лениво (нужен только при сидинге демо, не в рантайме витрины).
+Идемпотентно: уже заданный перевод локали (ручной оверлей кита ``pranasy`` или
+двуязычные позиции) НЕ перезаписывается. Словари — данные, грузятся лениво (нужны
+только при сидинге демо, не в рантайме витрины).
 """
 
 from __future__ import annotations
@@ -23,26 +23,31 @@ from __future__ import annotations
 import json
 import os
 
-_DATA_PATH = os.path.join(os.path.dirname(__file__), "demo_i18n_en.json")
-_EN: dict[str, str] | None = None
+# Целевые локали демо-перевода (кроме базовой de). Каждой соответствует файл
+# ``demo_i18n_<loc>.json`` рядом с этим модулем. Порядок = порядок пилюль свитчера
+# (после de) для новых демо-китов.
+DEMO_LOCALES = ("en", "ru", "uk", "tr")
+
+_DIR = os.path.dirname(__file__)
+_MAPS: dict[str, dict[str, str]] = {}
 
 
-def _map() -> dict[str, str]:
-    global _EN
-    if _EN is None:
+def _map(locale: str) -> dict[str, str]:
+    if locale not in _MAPS:
+        path = os.path.join(_DIR, f"demo_i18n_{locale}.json")
         try:
-            with open(_DATA_PATH, encoding="utf-8") as fh:
-                _EN = json.load(fh)
+            with open(path, encoding="utf-8") as fh:
+                _MAPS[locale] = json.load(fh)
         except (OSError, ValueError):
-            _EN = {}
-    return _EN
+            _MAPS[locale] = {}
+    return _MAPS[locale]
 
 
-def t(de: str) -> str | None:
-    """EN-перевод немецкой строки (``None``, если перевода нет)."""
+def t(de: str, locale: str) -> str | None:
+    """Перевод немецкой строки на локаль (``None``, если перевода нет)."""
     if not isinstance(de, str):
         return None
-    return _map().get(de.strip())
+    return _map(locale).get(de.strip())
 
 
 # --- site_config оверлей ---------------------------------------------------
@@ -65,19 +70,19 @@ _TRANSLATABLE_CONFIG_KEYS = (
 )
 
 
-def _tr_node(node):
-    """Рекурсивно построить EN-оверлей узла (та же форма, только переведённые
+def _tr_node(node, locale: str):
+    """Рекурсивно построить оверлей узла на локаль (та же форма, только переведённые
     листья). ``None`` — если ничего не переведено (узел не оверлеится).
 
     Для СПИСКОВ индексы сохраняются (``localize._deep_overlay`` мерджит позиционно):
     непереведённая строка остаётся немецкой (no-op), непереведённый dict → ``{}``.
     """
     if isinstance(node, str):
-        return t(node)
+        return t(node, locale)
     if isinstance(node, dict):
         out = {}
         for key, val in node.items():
-            res = _tr_node(val)
+            res = _tr_node(val, locale)
             if res is not None:
                 out[key] = res
         return out or None
@@ -86,19 +91,19 @@ def _tr_node(node):
         any_tr = False
         for item in node:
             if isinstance(item, str):
-                en = t(item)
-                if en is not None:
+                tr = t(item, locale)
+                if tr is not None:
                     any_tr = True
-                out.append(en if en is not None else item)
+                out.append(tr if tr is not None else item)
             elif isinstance(item, dict):
-                res = _tr_node(item)
+                res = _tr_node(item, locale)
                 if res is not None:
                     any_tr = True
                     out.append(res)
                 else:
                     out.append({})  # пустой оверлей = no-op merge, индекс цел
             elif isinstance(item, list):
-                res = _tr_node(item)
+                res = _tr_node(item, locale)
                 if res is not None:
                     any_tr = True
                     out.append(res)
@@ -122,98 +127,114 @@ def _deep_merge_prefer_b(a: dict, b: dict) -> dict:
     return out
 
 
-def overlay_config_en(cfg: dict) -> None:
-    """Добавить/дополнить ``cfg["i18n"]["en"]`` сгенерированным EN-оверлеем
-    site_config. Изменяет ``cfg`` на месте. Существующий ручной оверлей (pranasy)
-    имеет приоритет — генерённый лишь заполняет пробелы."""
+def overlay_config(cfg: dict, locales) -> None:
+    """Добавить/дополнить ``cfg["i18n"][loc]`` сгенерированным оверлеем site_config
+    для каждой локали из ``locales``. Изменяет ``cfg`` на месте. Существующий ручной
+    оверлей (pranasy) имеет приоритет — генерённый лишь заполняет пробелы."""
     if not isinstance(cfg, dict):
         return
     source = {k: cfg.get(k) for k in _TRANSLATABLE_CONFIG_KEYS if k in cfg}
-    generated = _tr_node(source) or {}
     i18n = dict(cfg.get("i18n") or {})
-    existing_en = i18n.get("en") if isinstance(i18n.get("en"), dict) else {}
-    merged = _deep_merge_prefer_b(generated, existing_en)
-    if merged:
-        i18n["en"] = merged
+    for loc in locales:
+        generated = _tr_node(source, loc) or {}
+        existing = i18n.get(loc) if isinstance(i18n.get(loc), dict) else {}
+        merged = _deep_merge_prefer_b(generated, existing)
+        if merged:
+            i18n[loc] = merged
+    if i18n:
         cfg["i18n"] = i18n
 
 
 # --- модельный контент -----------------------------------------------------
 
 
-def _fill_full(obj, field: str) -> bool:
-    """Full-JSON поле (Product/Category ``name``/``description`` = ``{de,en}``):
-    добавить ``en``, если его нет и перевод найден."""
+def _fill_full(obj, field: str, locales) -> bool:
+    """Full-JSON поле (Product/Category ``name``/``description`` = ``{de,en,…}``):
+    добавить перевод локали, если его нет и перевод найден. Возвращает True, если
+    хоть что-то добавлено."""
     val = getattr(obj, field, None)
-    if isinstance(val, dict):
-        de = val.get("de")
-        if de and not val.get("en"):
-            en = t(de)
-            if en:
-                val["en"] = en
-                return True
-    return False
+    if not isinstance(val, dict):
+        return False
+    de = val.get("de")
+    if not de:
+        return False
+    changed = False
+    for loc in locales:
+        if not val.get(loc):
+            tr = t(de, loc)
+            if tr:
+                val[loc] = tr
+                changed = True
+    return changed
 
 
-def _fill_overlay(obj, base_field: str, overlay_field: str) -> bool:
-    """Flat+overlay (Service/StayUnit/Combo/Event/Collection): база — плоское
-    поле (de), перевод — в ``*_i18n["en"]``. Добавить ``en``, если его нет."""
+def _fill_overlay(obj, base_field: str, overlay_field: str, locales) -> bool:
+    """Flat+overlay (Service/StayUnit/Combo/Event/Collection): база — плоское поле
+    (de), переводы — в ``*_i18n[loc]``. Добавить недостающие локали."""
     de = getattr(obj, base_field, "") or ""
+    if not de:
+        return False
     ov = getattr(obj, overlay_field, None)
     ov = dict(ov) if isinstance(ov, dict) else {}
-    if de and not ov.get("en"):
-        en = t(de)
-        if en:
-            ov["en"] = en
-            setattr(obj, overlay_field, ov)
-            return True
-    return False
+    changed = False
+    for loc in locales:
+        if not ov.get(loc):
+            tr = t(de, loc)
+            if tr:
+                ov[loc] = tr
+                changed = True
+    if changed:
+        setattr(obj, overlay_field, ov)
+    return changed
 
 
-def translate_tenant_content(tenant) -> None:
-    """Проставить EN-переводы на весь демо-контент тенанта (вызывать В СХЕМЕ
-    тенанта, после сидинга). Идемпотентно: существующий ``en`` не трогаем.
-
-    Тенант демо свежий/пересоздаётся сидером → безопасно обходить все объекты.
+def translate_tenant_content(tenant, locales) -> None:
+    """Проставить переводы (для всех ``locales``) на весь демо-контент тенанта
+    (вызывать В СХЕМЕ тенанта, после сидинга). Идемпотентно: существующий перевод
+    локали не трогаем. Тенант демо свежий/пересоздаётся → безопасно обходить всё.
     """
+    locales = [loc for loc in locales if loc != "de"]
+    if not locales:
+        return
+
     from apps.booking.models import Service
     from apps.catalog.models import Category, Combo, Product
     from apps.events.models import Event
     from apps.stays.models import StayUnit
 
     for prod in Product.objects.all():
-        changed = _fill_full(prod, "name") | _fill_full(prod, "description")
+        changed = _fill_full(prod, "name", locales) | _fill_full(prod, "description", locales)
         if changed:
             prod.save(update_fields=["name", "description"])
 
     for cat in Category.objects.all():
-        if _fill_full(cat, "name"):
+        if _fill_full(cat, "name", locales):
             cat.save(update_fields=["name"])
 
     for svc in Service.objects.all():
-        changed = _fill_overlay(svc, "name", "name_i18n") | _fill_overlay(
-            svc, "description", "description_i18n"
+        changed = _fill_overlay(svc, "name", "name_i18n", locales) | _fill_overlay(
+            svc, "description", "description_i18n", locales
         )
         if changed:
             svc.save(update_fields=["name_i18n", "description_i18n"])
 
     for unit in StayUnit.objects.all():
-        changed = _fill_overlay(unit, "name", "name_i18n") | _fill_overlay(
-            unit, "description", "description_i18n"
+        changed = _fill_overlay(unit, "name", "name_i18n", locales) | _fill_overlay(
+            unit, "description", "description_i18n", locales
         )
         if changed:
             unit.save(update_fields=["name_i18n", "description_i18n"])
 
     for combo in Combo.objects.all():
-        changed = _fill_overlay(combo, "name", "name_i18n") | _fill_overlay(
-            combo, "description", "description_i18n"
+        changed = _fill_overlay(combo, "name", "name_i18n", locales) | _fill_overlay(
+            combo, "description", "description_i18n", locales
         )
         if changed:
             combo.save(update_fields=["name_i18n", "description_i18n"])
 
     for ev in Event.objects.all():
-        changed = _fill_overlay(ev, "title", "title_i18n") | _fill_overlay(
-            ev, "description", "description_i18n"
+        changed = _fill_overlay(ev, "title", "title_i18n", locales) | _fill_overlay(
+            ev, "description", "description_i18n", locales
         )
         if changed:
             ev.save(update_fields=["title_i18n", "description_i18n"])
@@ -224,5 +245,5 @@ def translate_tenant_content(tenant) -> None:
     except ImportError:
         return
     for coll in Collection.objects.all():
-        if _fill_overlay(coll, "name", "name_i18n"):
+        if _fill_overlay(coll, "name", "name_i18n", locales):
             coll.save(update_fields=["name_i18n"])
