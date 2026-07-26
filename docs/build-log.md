@@ -6217,3 +6217,31 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   дикта на subset (`.get(loc)`) — пост-сид дозаполняет ru/uk/tr рядом с en. 65+48
   зелёных локально.
 - ⚠️ ops: демо покажут ru/uk/tr после `seed_demo_tenants --recreate` на сервере.
+
+## 2026-07-27 — Гастро-сплит + Belegungsplan + гостевой флоу отеля (батчи A/C/B)
+
+Концепт `gastro-split-hotel-flow-concept-2026-07-27.md`; решения владельца:
+«всё ок, drag сразу», автономно, мерж по зелёному.
+
+- **Батч A (гастро-сплит):** `hero_widget="gastro"` — 2-3 плитки в баннере кафе/
+  ресторана: Reservieren (/termin/), Speisekarte (/sortiment/), Angebot des Tages
+  (тег `deal_of_day`: active, recurrence=daily первой, остаток scarcity; нет акции
+  → 2 плитки). Шаблон gastro + демо cafe/restaurant; whitelist normalize +
+  Look-preserve. Без миграций.
+- **Батч C (Belegungsplan):** календарь кабинета отеля = tape chart.
+  `availability.booking_bars` (дорожки сегментов; quantity>1 → lanes; клип ‹›;
+  UnitBlock inclusive→exclusive). Плашки «Имя · S-XXXXXX» (цвет=статус, клик →
+  FB-11, draggable). Drag: горизонталь = даты (ночи сохраняются), вертикаль =
+  другой номер; fetch → stay-action (204/409 snap-back); ЦЕНА СОХРАНЯЕТСЯ
+  (reprice=0). `move_stay += unit/reprice` (двойная блокировка по pk, MaxGuests-
+  гейт). Клик по свободной клетке → префил walk-in; форма умеет «Block dates»
+  (mode=block, end включителен). FB-11: hard-delete ТОЛЬКО manual+без денег
+  (GoBD); попутно починен латентный баг — FSM-кнопки FB-11 были без <form>.
+  12 замков. Без миграций.
+- **Батч B (гостевой флоу):** деталь номера не просит даты в третий раз —
+  дата-полоса + «Change dates»; календарь = главный селектор (range-paint,
+  min-nights гасит дни, checkout-only на занятые ночи); fetch-своп buy-box
+  (?buybox=1 → фрагмент в #stay-buybox); тарифы «Best price» + дельта к базовому.
+  POST-приёмник/поля не тронуты — паритет-замки UA3-2 без правок; 1 замок
+  календаря обновлён осознанно (busy-ночь несёт data-date). Без миграций.
+- Итого +14 msgid × 4 .po; миграций НЕТ во всех трёх батчах.
