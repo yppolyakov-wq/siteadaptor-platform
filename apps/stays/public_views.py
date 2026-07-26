@@ -277,6 +277,15 @@ def unterkunft_unit(request, pk):
                         "prepay_eur": rp_prepay / 100,
                     }
                 )
+            # Батч B (решение владельца B-2): тарифы — абсолютная сумма + ДЕЛЬТА
+            # к первому (базовому) тарифу («+84 € Frühstück») и метка «Bestpreis»
+            # на самом дешёвом. Только презентация — поля/приёмник не меняются.
+            if rate_options:
+                base_eur = rate_options[0]["total_eur"]
+                cheapest = min(ro["total_eur"] for ro in rate_options)
+                for ro in rate_options:
+                    ro["delta_eur"] = ro["total_eur"] - base_eur
+                    ro["is_cheapest"] = ro["total_eur"] == cheapest
     tenant = getattr(request, "tenant", None)
     payments_on = getattr(tenant, "payments_enabled", False) and connect.is_connect_configured()
     # G7: оплата при брони нужна, если бизнес принимает платежи и есть депозит юнита
@@ -326,51 +335,56 @@ def unterkunft_unit(request, pk):
     ]
     show_similar = bool(similar) and "similar" not in _hidden
 
-    return _render_embed(
-        request,
-        "storefront/stay_detail.html",
-        {
-            "unit": unit,
-            # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
-            # UA3-2: buybox_ready = валидный выбор дат → _buybox рендерит POST-форму.
-            "sellable": sellable_for("stay", unit, buybox_ready=bool(quote and quote["available"])),
-            # UA4-4b: отзывы о номере (generic reviews.Review, только верифиц. гости).
-            "reviews": list(review_services.published_for("stay", unit.pk)),
-            "review_summary": review_services.summary("stay", unit.pk),
-            "review_form_token": uuid.uuid4().hex,
-            "review_action": reverse("storefront-stay-review", args=[unit.pk]),
-            # UA4-1 slice C: скрытые секции (совместимость); UA4-2: рендер — через body_sections.
-            "detail_hidden": _hidden,
-            # UA4-2: упорядоченные секции тела (data-driven) + флаг блока «похожие» (detail_wide).
-            "body_sections": body_sections,
-            "show_similar": show_similar,
-            "today": today,
-            "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
-            "von": von,
-            "bis": bis,
-            "adults": adults,
-            "children": children,
-            "guests": guests,
-            "rooms": rooms,  # G5: выбранное число номеров
-            "room_choices": range(1, unit.quantity + 1),  # G5: варианты для селектора
-            "max_party": unit.max_guests * unit.quantity,  # G5: верх для гостей
-            "quote": quote,
-            "rate_options": rate_options,  # H1 тарифы для выбранного диапазона
-            "kurtaxe_eur": kurtaxe_eur,  # H9 (в total уже включена)
-            "extras": extras_engine.active_for("stays"),  # #7 доп-услуги
-            "deposit_required": deposit_required,
-            "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
-            "similar": similar,  # H3 похожие номера
-            # C3: встроенный календарь наличия — начальный месяц = месяц заезда (или текущий).
-            **_calendar_context(
-                unit,
-                (von or today).replace(day=1),
-                today,
-                embed_qs="&embed=1" if _is_embed(request) else "",
-            ),
-        },
-        _is_embed(request),
-    )
+    ctx = {
+        "unit": unit,
+        # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
+        # UA3-2: buybox_ready = валидный выбор дат → _buybox рендерит POST-форму.
+        "sellable": sellable_for("stay", unit, buybox_ready=bool(quote and quote["available"])),
+        # UA4-4b: отзывы о номере (generic reviews.Review, только верифиц. гости).
+        "reviews": list(review_services.published_for("stay", unit.pk)),
+        "review_summary": review_services.summary("stay", unit.pk),
+        "review_form_token": uuid.uuid4().hex,
+        "review_action": reverse("storefront-stay-review", args=[unit.pk]),
+        # UA4-1 slice C: скрытые секции (совместимость); UA4-2: рендер — через body_sections.
+        "detail_hidden": _hidden,
+        # UA4-2: упорядоченные секции тела (data-driven) + флаг блока «похожие» (detail_wide).
+        "body_sections": body_sections,
+        "show_similar": show_similar,
+        "today": today,
+        "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
+        "von": von,
+        "bis": bis,
+        "adults": adults,
+        "children": children,
+        "guests": guests,
+        "rooms": rooms,  # G5: выбранное число номеров
+        "room_choices": range(1, unit.quantity + 1),  # G5: варианты для селектора
+        "max_party": unit.max_guests * unit.quantity,  # G5: верх для гостей
+        "quote": quote,
+        "rate_options": rate_options,  # H1 тарифы для выбранного диапазона
+        "kurtaxe_eur": kurtaxe_eur,  # H9 (в total уже включена)
+        "extras": extras_engine.active_for("stays"),  # #7 доп-услуги
+        "deposit_required": deposit_required,
+        "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
+        "similar": similar,  # H3 похожие номера
+        # C3: встроенный календарь наличия — начальный месяц = месяц заезда (или текущий).
+        **_calendar_context(
+            unit,
+            (von or today).replace(day=1),
+            today,
+            embed_qs="&embed=1" if _is_embed(request) else "",
+        ),
+    }
+    if request.GET.get("buybox") == "1":
+        # Батч B: fetch-своп из календаря дат — отдаём ТОЛЬКО фрагмент buy-box
+        # (#stay-buybox на детали); партиалы диспатча — те же, что в шаблоне.
+        ctx.update(
+            buybox_selector="storefront/_buybox_stay_select.html",
+            buybox_form="storefront/_buybox_stay_form.html",
+            buybox_fallback="storefront/_buybox_stay_unavailable.html",
+        )
+        return render(request, "storefront/_buybox.html", ctx)
+    return _render_embed(request, "storefront/stay_detail.html", ctx, _is_embed(request))
 
 
 def stay_review_submit(request, pk):

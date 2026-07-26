@@ -13443,3 +13443,12 @@ msgstr "Удалять можно только ручные неоплаченн
 
 msgid "Move not possible."
 msgstr "Перенос невозможен."
+
+msgid "Change dates"
+msgstr "Изменить даты"
+
+msgid "Enter dates manually"
+msgstr "Ввести даты вручную"
+
+msgid "Best price"
+msgstr "Лучшая цена"

@@ -327,8 +327,15 @@ def test_calendar_marks_booked_and_free_days():
     # бронь 1–4 окт → ночи 1,2,3 заняты; 4 (выезд) и 5 свободны
     services.book_stay(unit, arrival=D0, departure=D0 + timedelta(days=3), name="A", adults=2)
     body = _cal(unit, 2026, 10)
-    assert 'data-date="2026-10-05"' in body  # свободный день — кликабелен
-    assert 'data-date="2026-10-02"' not in body  # занятая ночь — не кликабельна
+    import re
+
+    assert re.search(r'stay-cal-day[^>]*data-date="2026-10-05"', body) or re.search(
+        r'data-date="2026-10-05"[^>]*class="stay-cal-day', body
+    )  # свободный день — кнопка выбора
+    # Батч B (checkout-only): занятая ночь — НЕ кнопка заезда (не .stay-cal-day),
+    # но несёт data-date как кандидат в ВЫЕЗД (ночь выезда не потребляется).
+    assert not re.search(r'stay-cal-day[^>]*data-date="2026-10-02"', body)
+    assert re.search(r'stay-cal-busy[^>]*data-date="2026-10-02"', body)
 
 
 def test_calendar_month_navigation_links():

@@ -3,7 +3,7 @@
 клик по «‹ ›» (vanilla fetch, делегированный обработчик ниже) свапает этот же
 #stay-cal. Свободные ночи кликабельны (data-date — выбор диапазона в C3); занятые/
 прошлые — некликабельны. Без htmx (витрина на vanilla/Alpine).{% endcomment %}
-<div id="stay-cal" class="bg-white rounded-2xl shadow-sm p-4">
+<div id="stay-cal" data-min-nights="{{ unit.min_nights }}" class="bg-white rounded-2xl shadow-sm p-4">
   <div class="flex items-center justify-between mb-3">
     {% if show_prev %}
       <button type="button" aria-label="{% trans 'Previous month' %}"
@@ -34,8 +34,12 @@
           {{ d.date.day }}{% if cal_multi %}<span class="block text-[9px] text-emerald-600 mt-0.5">{{ d.free }}×</span>{% endif %}
         </button>
       {% else %}
-        <div class="rounded-lg py-1.5 leading-none {% if d.in_past %}text-gray-300{% else %}text-gray-300 line-through bg-gray-50{% endif %}"
-             {% if not d.in_past %}title="{% trans 'Booked' %}"{% endif %}>{{ d.date.day }}</div>
+        {% comment %}Батч B: занятый (не прошлый) день несёт data-date — JS может
+        принять его КАК ВЫЕЗД (checkout-only: ночь выезда не потребляется), если
+        все ночи между заездом и ним свободны. Заездом он стать не может
+        (класс stay-cal-busy, не stay-cal-day).{% endcomment %}
+        <div class="rounded-lg py-1.5 leading-none {% if d.in_past %}text-gray-300{% else %}stay-cal-busy text-gray-300 line-through bg-gray-50{% endif %}"
+             {% if not d.in_past %}data-date="{{ d.date|date:'Y-m-d' }}" title="{% trans 'Booked' %}"{% endif %}>{{ d.date.day }}</div>
       {% endif %}
     {% endfor %}
   </div>

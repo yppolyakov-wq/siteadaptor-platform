@@ -1,82 +1,194 @@
 {% load i18n %}
-{% comment %}UA3-2 (A+): ШАГ ВЫБОРА buy-box номера — GET-форма дат + визуальный
-календарь C3 + JS выбора диапазона. Разметка перенесена 1:1 из stay_detail.html;
-включается ТОЛЬКО через storefront/_buybox.html (buybox_selector). Контекст —
-вьюхи unterkunft_unit (von/bis/adults/children/rooms/room_choices/embed/…).{% endcomment %}
-{# выбор дат (GET) #}
-<form method="get" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-  {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
-  <h2 class="font-semibold">{% trans "Choose your dates" %}</h2>
-  <div class="grid grid-cols-2 gap-3 [&>div]:min-w-0">
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_von">{% trans "Arrival" %}</label>
-      <input id="id_von" name="von" type="date" required value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_bis">{% trans "Departure" %}</label>
-      <input id="id_bis" name="bis" type="date" required value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>
-      <input id="id_erw" name="erw" type="number" min="1" max="{{ max_party }}" value="{{ adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_kinder">{% trans "Children" %}</label>
-      <input id="id_kinder" name="kinder" type="number" min="0" max="{{ max_party }}" value="{{ children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    {% if unit.quantity > 1 %}
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_rooms">{% trans "Rooms" %}</label>
-      <select id="id_rooms" name="rooms" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-        {% for n in room_choices %}<option value="{{ n }}" {% if n == rooms %}selected{% endif %}>{{ n }}</option>{% endfor %}
-      </select>
-    </div>
-    {% endif %}
-  </div>
-  <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
-</form>
+{% comment %}UA3-2 (A+) → Батч B (концепт 2026-07-27): ШАГ ВЫБОРА buy-box номера.
+Даты вводятся ОДИН РАЗ: при выбранных датах — компактная дата-полоса («24.07 →
+31.07 · 2 Gäste · ändern») вместо третьей формы; без дат — КАЛЕНДАРЬ как главный
+селектор («коридор доступности»: клики заезд→выезд красят диапазон, min-nights
+гасит невалидные дни, занятый день допустим как выезд) + компактные гости +
+ручной ввод дат мелким details-фолбэком. Выбор подтягивает цены fetch-свопом
+#stay-buybox БЕЗ перезагрузки (фолбэк — обычный GET-сабмит). Контекст — вьюха
+unterkunft_unit (von/bis/adults/children/rooms/room_choices/embed/…).{% endcomment %}
+{% if von and bis %}
+<div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3 flex-wrap">
+  <p class="text-sm font-semibold">📅 {{ von|date:"d.m.Y" }} → {{ bis|date:"d.m.Y" }}
+    <span class="text-gray-500 font-normal">· 👤 {{ adults }}{% if children %} + {{ children }}{% endif %}{% if rooms > 1 %} · {{ rooms }} {% trans "Rooms" %}{% endif %}</span></p>
+  <button type="button" data-datebar-toggle class="text-sm text-indigo-600 hover:underline">{% trans "Change dates" %}</button>
+</div>
+{% endif %}
 
-{% comment %}C3: визуальный календарь наличия — клик по свободным ночам выбирает
-заезд→выезд и сабмитит форму дат. На узких экранах свёрнут в details.{% endcomment %}
-<details class="group" open>
-  <summary class="flex items-center justify-between cursor-pointer list-none text-sm font-medium text-gray-600 mb-2">
-    📅 {% trans "Availability" %}
-    <span class="text-gray-400 group-open:rotate-180 transition lg:hidden">▾</span>
-  </summary>
+<div id="stay-dateselect" {% if von and bis %}hidden{% endif %}>
+  {% if not von or not bis %}<h2 class="font-semibold mb-2">{% trans "Choose your dates" %}</h2>{% endif %}
+  {% comment %}C3/Батч B: календарь — главный селектор дат (клик заезд → клик выезд).{% endcomment %}
   {% include "storefront/_stay_calendar.html" %}
-</details>
+
+  <form method="get" id="stay-date-form" class="bg-white rounded-2xl shadow-sm p-5 space-y-4 mt-3">
+    {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
+    <div class="grid grid-cols-2 gap-3 [&>div]:min-w-0">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>
+        <input id="id_erw" name="erw" type="number" min="1" max="{{ max_party }}" value="{{ adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_kinder">{% trans "Children" %}</label>
+        <input id="id_kinder" name="kinder" type="number" min="0" max="{{ max_party }}" value="{{ children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      {% if unit.quantity > 1 %}
+      <div>
+        <label class="block text-sm font-medium mb-1" for="id_rooms">{% trans "Rooms" %}</label>
+        <select id="id_rooms" name="rooms" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          {% for n in room_choices %}<option value="{{ n }}" {% if n == rooms %}selected{% endif %}>{{ n }}</option>{% endfor %}
+        </select>
+      </div>
+      {% endif %}
+    </div>
+    {% comment %}Ручной ввод дат — мелкий фолбэк (решение владельца B-1: календарь
+    первичен). НЕ required: свёрнутый required-инпут блокировал бы сабмит.{% endcomment %}
+    <details class="text-sm">
+      <summary class="cursor-pointer select-none text-gray-500 hover:text-gray-700">✏️ {% trans "Enter dates manually" %}</summary>
+      <div class="grid grid-cols-2 gap-3 mt-2 [&>div]:min-w-0">
+        <div>
+          <label class="block text-xs font-medium mb-1 text-gray-600" for="id_von">{% trans "Arrival" %}</label>
+          <input id="id_von" name="von" type="date" value="{{ von|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1 text-gray-600" for="id_bis">{% trans "Departure" %}</label>
+          <input id="id_bis" name="bis" type="date" value="{{ bis|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
+        </div>
+      </div>
+    </details>
+    <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Check availability" %}</button>
+  </form>
+</div>
 
 <script>
 (function () {
-  {% comment %}Выбор диапазона на календаре: 1-й клик = заезд, 2-й (позже) = выезд →
-  подставить в форму дат и отправить (сервер посчитает _quote). Делегирование на
-  document — переживает свап фрагмента при перелистывании месяца. ISO-даты
-  сравниваются лексикографически.{% endcomment %}
+  {% comment %}Батч B: выбор диапазона на календаре — 1-й клик = заезд (подсветка),
+  дальше hover красит диапазон-кандидат, min-nights гасит слишком близкие дни,
+  занятый день принимается КАК ВЫЕЗД если все ночи между свободны; 2-й клик →
+  fetch-своп #stay-buybox (цены без перезагрузки; фолбэк — GET-сабмит).
+  Делегирование на document — переживает свапы месяца/буйбокса.{% endcomment %}
   if (window.__stayCalSelectBound) return;
   window.__stayCalSelectBound = true;
   var arrival = null;
+
+  function freeDates() {
+    var s = {};
+    document.querySelectorAll(".stay-cal-day[data-date]").forEach(function (b) {
+      s[b.getAttribute("data-date")] = true;
+    });
+    return s;
+  }
+  function nightsBetween(a, b) {
+    return Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
+  }
+  function eachDate(a, b, fn) {
+    var d = new Date(Date.parse(a));
+    while (d.toISOString().slice(0, 10) < b) {
+      fn(d.toISOString().slice(0, 10));
+      d.setUTCDate(d.getUTCDate() + 1);
+    }
+  }
+  function clearPaint() {
+    document.querySelectorAll(".stay-cal-day.is-range, .stay-cal-busy.is-range").forEach(function (x) {
+      x.classList.remove("is-range", "bg-emerald-100");
+    });
+    document.querySelectorAll(".stay-cal-day.is-dim").forEach(function (x) {
+      x.classList.remove("is-dim", "opacity-40");
+    });
+  }
+  function paintRange(a, b) {
+    document.querySelectorAll("[data-date]").forEach(function (cell) {
+      var d = cell.getAttribute("data-date");
+      if (d > a && d <= b) cell.classList.add("is-range", "bg-emerald-100");
+    });
+  }
+  function dimTooClose(a) {
+    var cal = document.getElementById("stay-cal");
+    var minN = cal ? parseInt(cal.getAttribute("data-min-nights"), 10) || 1 : 1;
+    if (minN <= 1) return;
+    document.querySelectorAll(".stay-cal-day[data-date]").forEach(function (cell) {
+      var d = cell.getAttribute("data-date");
+      if (d > a && nightsBetween(a, d) < minN) cell.classList.add("is-dim", "opacity-40");
+    });
+  }
+  function rangeFree(a, b) {
+    var free = freeDates();
+    var ok = true;
+    eachDate(a, b, function (d) { if (!free[d]) ok = false; });
+    return ok;
+  }
+  function swapBuybox(form) {
+    var box = document.getElementById("stay-buybox");
+    if (!box || !window.fetch) return false;
+    var qs = new URLSearchParams(new FormData(form)).toString();
+    var url = location.pathname + "?" + qs;
+    fetch(url + "&buybox=1", { headers: { "X-Requested-With": "fetch" } })
+      .then(function (r) { if (!r.ok) throw 0; return r.text(); })
+      .then(function (html) {
+        box.innerHTML = html;
+        history.replaceState(null, "", url);
+        box.scrollIntoView({ behavior: "smooth", block: "start" });
+      })
+      .catch(function () { form.submit(); });
+    return true;
+  }
+
   document.addEventListener("click", function (e) {
-    var cell = e.target.closest(".stay-cal-day[data-date]");
+    var toggle = e.target.closest("[data-datebar-toggle]");
+    if (toggle) {
+      var sel = document.getElementById("stay-dateselect");
+      if (sel) sel.hidden = !sel.hidden;
+      return;
+    }
+    var cell = e.target.closest(".stay-cal-day[data-date], .stay-cal-busy[data-date]");
     if (!cell) return;
+    var isBusy = cell.classList.contains("stay-cal-busy");
     var von = document.getElementById("id_von");
     var bis = document.getElementById("id_bis");
     if (!von || !bis) return;
     var d = cell.getAttribute("data-date");
     if (!arrival || d <= arrival) {
+      if (isBusy) return; // занятый день не может быть заездом
       arrival = d;
       von.value = d;
       bis.value = "";
-      document.querySelectorAll(".stay-cal-day.is-sel").forEach(function (x) {
+      clearPaint();
+      document.querySelectorAll(".is-sel").forEach(function (x) {
         x.classList.remove("is-sel", "ring-2", "ring-emerald-500");
       });
       cell.classList.add("is-sel", "ring-2", "ring-emerald-500");
+      dimTooClose(d);
     } else {
+      var cal = document.getElementById("stay-cal");
+      var minN = cal ? parseInt(cal.getAttribute("data-min-nights"), 10) || 1 : 1;
+      if (nightsBetween(arrival, d) < minN) return; // min-nights: день погашен
+      if (!rangeFree(arrival, d)) return; // между датами есть занятая ночь
       von.value = arrival;
       bis.value = d;
+      paintRange(arrival, d);
       arrival = null;
-      if (von.form.requestSubmit) von.form.requestSubmit();
-      else von.form.submit();
+      var form = document.getElementById("stay-date-form");
+      if (form && !swapBuybox(form)) {
+        if (form.requestSubmit) form.requestSubmit();
+        else form.submit();
+      }
     }
+  });
+
+  document.addEventListener("mouseover", function (e) {
+    if (!arrival) return;
+    var cell = e.target.closest(".stay-cal-day[data-date], .stay-cal-busy[data-date]");
+    if (!cell) return;
+    var d = cell.getAttribute("data-date");
+    if (d <= arrival) return;
+    clearPaint();
+    dimTooClose(arrival);
+    if (rangeFree(arrival, d)) paintRange(arrival, d);
+  });
+
+  document.addEventListener("submit", function (e) {
+    var form = e.target.closest && e.target.closest("#stay-date-form");
+    if (!form) return;
+    if (swapBuybox(form)) e.preventDefault();
   });
 })();
 </script>

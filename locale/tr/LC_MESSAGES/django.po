@@ -13366,3 +13366,12 @@ msgstr "Yalnızca manuel, ödenmemiş rezervasyonlar silinebilir."
 
 msgid "Move not possible."
 msgstr "Taşıma mümkün değil."
+
+msgid "Change dates"
+msgstr "Tarihleri değiştir"
+
+msgid "Enter dates manually"
+msgstr "Tarihleri elle girin"
+
+msgid "Best price"
+msgstr "En iyi fiyat"

@@ -13430,3 +13430,12 @@ msgstr "Видаляти можна лише ручні неоплачені б�
 
 msgid "Move not possible."
 msgstr "Перенесення неможливе."
+
+msgid "Change dates"
+msgstr "Змінити дати"
+
+msgid "Enter dates manually"
+msgstr "Ввести дати вручну"
+
+msgid "Best price"
+msgstr "Найкраща ціна"

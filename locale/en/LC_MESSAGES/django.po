@@ -13258,3 +13258,12 @@ msgstr "Only manual, unpaid bookings can be deleted."
 
 msgid "Move not possible."
 msgstr "Move not possible."
+
+msgid "Change dates"
+msgstr "Change dates"
+
+msgid "Enter dates manually"
+msgstr "Enter dates manually"
+
+msgid "Best price"
+msgstr "Best price"
