@@ -13399,3 +13399,34 @@ msgstr "Забронювати столик"
 
 msgid "Angebot des Tages"
 msgstr "Акція дня"
+
+msgid "Name (reason when blocking)"
+msgstr "Ім'я (при блокуванні — причина)"
+
+msgid "Block dates"
+msgstr "Заблокувати дати"
+
+msgid "Blocked"
+msgstr "Заблоковано"
+
+msgid ""
+"Drag a booking to move it (price is kept) · click a free cell to add a "
+"booking"
+msgstr ""
+"Перетягніть бронь для перенесення (ціна зберігається) · клік по вільній "
+"клітинці — нова бронь"
+
+msgid "Delete this booking permanently?"
+msgstr "Видалити цю бронь безповоротно?"
+
+msgid "Delete booking"
+msgstr "Видалити бронь"
+
+msgid "Booking deleted."
+msgstr "Бронь видалено."
+
+msgid "Only manual, unpaid bookings can be deleted."
+msgstr "Видаляти можна лише ручні неоплачені броні."
+
+msgid "Move not possible."
+msgstr "Перенесення неможливе."

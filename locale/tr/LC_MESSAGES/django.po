@@ -13335,3 +13335,34 @@ msgstr "Masa ayırt"
 
 msgid "Angebot des Tages"
 msgstr "Günün fırsatı"
+
+msgid "Name (reason when blocking)"
+msgstr "İsim (bloke ederken: neden)"
+
+msgid "Block dates"
+msgstr "Tarihleri engelle"
+
+msgid "Blocked"
+msgstr "Engellendi"
+
+msgid ""
+"Drag a booking to move it (price is kept) · click a free cell to add a "
+"booking"
+msgstr ""
+"Rezervasyonu taşımak için sürükleyin (fiyat korunur) · boş hücreye tıklayıp "
+"rezervasyon ekleyin"
+
+msgid "Delete this booking permanently?"
+msgstr "Bu rezervasyon kalıcı olarak silinsin mi?"
+
+msgid "Delete booking"
+msgstr "Rezervasyonu sil"
+
+msgid "Booking deleted."
+msgstr "Rezervasyon silindi."
+
+msgid "Only manual, unpaid bookings can be deleted."
+msgstr "Yalnızca manuel, ödenmemiş rezervasyonlar silinebilir."
+
+msgid "Move not possible."
+msgstr "Taşıma mümkün değil."

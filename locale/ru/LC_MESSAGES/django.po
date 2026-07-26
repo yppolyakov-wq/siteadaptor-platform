@@ -13412,3 +13412,34 @@ msgstr "Забронировать столик"
 
 msgid "Angebot des Tages"
 msgstr "Акция дня"
+
+msgid "Name (reason when blocking)"
+msgstr "Имя (при блокировке — причина)"
+
+msgid "Block dates"
+msgstr "Заблокировать даты"
+
+msgid "Blocked"
+msgstr "Заблокировано"
+
+msgid ""
+"Drag a booking to move it (price is kept) · click a free cell to add a "
+"booking"
+msgstr ""
+"Перетащите бронь для переноса (цена сохраняется) · клик по свободной клетке "
+"— новая бронь"
+
+msgid "Delete this booking permanently?"
+msgstr "Удалить эту бронь безвозвратно?"
+
+msgid "Delete booking"
+msgstr "Удалить бронь"
+
+msgid "Booking deleted."
+msgstr "Бронь удалена."
+
+msgid "Only manual, unpaid bookings can be deleted."
+msgstr "Удалять можно только ручные неоплаченные брони."
+
+msgid "Move not possible."
+msgstr "Перенос невозможен."

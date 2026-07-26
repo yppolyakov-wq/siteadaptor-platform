@@ -29,33 +29,71 @@
 </div>
 
 {% if rows %}
+{% comment %}Батч C (Belegungsplan, концепт 2026-07-27): tape chart — на юнит:
+строка счётчиков свободного (drop-цель drag'а; свободная клетка кликабельна →
+префил формы брони внизу) + дорожки с ПЛАШКАМИ броней «Имя · S-XXXXXX» (цвет =
+статус, клик → карточка FB-11, drag = перенос дат/номера с СОХРАНЕНИЕМ цены) и
+блокировок. Обрезка окном — маркеры ‹ ›.{% endcomment %}
 <div class="bg-white rounded-2xl shadow-sm overflow-x-auto mb-6">
-  <table class="text-xs border-collapse">
+  <table class="text-xs border-collapse w-full" id="belegungsplan">
     <thead>
       <tr class="text-gray-400">
         <th class="sticky left-0 bg-white text-left font-medium px-3 py-2 z-10">{% trans "Unit" %}</th>
         {% for d in days %}
-          <th class="px-1 py-2 font-medium text-center min-w-[1.6rem] {% if d == today %}text-indigo-600{% endif %}">{{ d|date:"d" }}<br><span class="text-[10px] text-gray-300">{{ d|date:"D"|slice:":2" }}</span></th>
+          <th class="px-1 py-2 font-medium text-center min-w-[1.9rem] {% if d == today %}text-indigo-600{% endif %}">{{ d|date:"d" }}<br><span class="text-[10px] text-gray-300">{{ d|date:"D"|slice:":2" }}</span></th>
         {% endfor %}
       </tr>
     </thead>
     <tbody>
-      {% for unit, cells in rows %}
-        <tr class="border-t border-gray-50">
+      {% for unit, cells, lanes in grid %}
+        <tr class="border-t border-gray-100">
           <td class="sticky left-0 bg-white px-3 py-1.5 font-medium whitespace-nowrap z-10">{{ unit.name }}{% if unit.quantity > 1 %} <span class="text-gray-400">×{{ unit.quantity }}</span>{% endif %}</td>
           {% for c in cells %}
-            <td class="px-1 py-1.5 text-center
+            <td data-unit="{{ unit.pk }}" data-date="{{ c.day|date:'Y-m-d' }}"{% if not c.blocked and c.free > 0 %} data-free="1" role="button" tabindex="0" aria-label="{{ unit.name }} · {{ c.day|date:'d.m.Y' }}"{% endif %}
+              class="px-1 py-1 text-center align-middle
               {% if c.blocked %}bg-gray-200 text-gray-400
               {% elif c.free == 0 %}bg-red-100 text-red-500
-              {% else %}bg-green-50 text-green-700{% endif %}"
+              {% else %}bg-green-50 text-green-700 cursor-pointer hover:bg-green-100{% endif %}"
               title="{{ c.day|date:'d.m.Y' }}">{% if c.blocked %}✕{% else %}{{ c.free }}{% endif %}</td>
           {% endfor %}
         </tr>
+        {% for lane in lanes %}
+        <tr>
+          <td class="sticky left-0 bg-white z-10"></td>
+          {% for item in lane %}
+            {% if item.gap %}
+              <td colspan="{{ item.gap }}"></td>
+            {% elif item.kind == "booking" %}
+              <td colspan="{{ item.span }}" class="px-0.5 py-0.5">
+                <div draggable="{% if item.obj.status == 'pending' or item.obj.status == 'confirmed' %}true{% else %}false{% endif %}"
+                     data-bar-pk="{{ item.obj.pk }}" data-nights="{{ item.obj.nights }}"
+                     data-action-url="{% url 'stays:stay-action' item.obj.pk %}"
+                     class="group flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium truncate select-none
+                     {% if item.obj.status == 'confirmed' %}bg-green-200/80 text-green-900
+                     {% elif item.obj.status == 'pending' %}bg-amber-200/80 text-amber-900
+                     {% else %}bg-gray-200 text-gray-600{% endif %}
+                     {% if item.obj.status == 'pending' or item.obj.status == 'confirmed' %}cursor-grab active:cursor-grabbing{% endif %}"
+                     title="{{ item.obj.customer }} · {{ item.obj.arrival|date:'d.m.' }}–{{ item.obj.departure|date:'d.m.Y' }} · {{ item.obj.reference_code }}">
+                  {% if item.clip_left %}<span aria-hidden="true">‹</span>{% endif %}
+                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false">{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
+                  {% if item.clip_right %}<span class="ml-auto" aria-hidden="true">›</span>{% endif %}
+                </div>
+              </td>
+            {% else %}
+              <td colspan="{{ item.span }}" class="px-0.5 py-0.5">
+                <div class="rounded-md px-1.5 py-1 text-[11px] bg-gray-700/80 text-white truncate" title="{% trans 'Blocked' %}{% if item.obj.reason %} · {{ item.obj.reason }}{% endif %}">
+                  {% if item.clip_left %}‹ {% endif %}✕ {{ item.obj.reason|default:_("Blocked") }}{% if item.clip_right %} ›{% endif %}
+                </div>
+              </td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
       {% endfor %}
     </tbody>
   </table>
 </div>
-<p class="text-xs text-gray-400 mb-6">{% trans "Number = free units that night · ✕ = blocked" %}</p>
+<p class="text-xs text-gray-400 mb-6">{% trans "Number = free units that night · ✕ = blocked" %} · {% trans "Drag a booking to move it (price is kept) · click a free cell to add a booking" %}</p>
 {% else %}
 <p class="text-gray-500 mb-6">{% trans "No units yet." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Create a unit" %} →</a></p>
 {% endif %}
@@ -109,34 +147,138 @@
 
 {# --- ручная бронь ---------------------------------------------------------- #}
 {% if units %}
-<form method="post" action="{% url 'stays:stay-create' %}" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+<form method="post" action="{% url 'stays:stay-create' %}" id="walkin-form" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="sm:col-span-2">
       <label class="block text-sm font-medium mb-1">{% trans "Unit" %}</label>
-      <select name="unit" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="unit" id="walkin-unit" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Arrival" %}</label>
-      <input type="date" name="arrival" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input type="date" name="arrival" id="walkin-arrival" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Departure" %}</label>
-      <input type="date" name="departure" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input type="date" name="departure" id="walkin-departure" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
   <div class="grid sm:grid-cols-4 gap-4">
-    <input name="name" type="text" placeholder="{% trans 'Name' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <input name="name" type="text" placeholder="{% trans 'Name (reason when blocking)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
     <input name="guests" type="number" min="1" value="1" placeholder="{% trans 'Guests' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
     <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
+  <div class="flex items-center gap-3 flex-wrap">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
+    {% comment %}Батч C: та же форма блокирует даты (ремонт/своё проживание) —
+    mode=block, поле имени = причина; гость/контакты игнорируются.{% endcomment %}
+    <button type="submit" name="mode" value="block" formnovalidate class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:border-gray-500" onclick="return !!(document.getElementById('walkin-arrival').value && document.getElementById('walkin-departure').value)">✕ {% trans "Block dates" %}</button>
+  </div>
 </form>
 {% endif %}
+
+<div id="cal-toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden rounded-lg bg-gray-900 text-white text-sm px-4 py-2 shadow-lg"></div>
+<script>
+  // Батч C (Belegungsplan): drag плашки → перенос (даты по горизонтали, номер по
+  // вертикали; ЦЕНА СОХРАНЯЕТСЯ — reprice=0, решение владельца) через fetch на
+  // stay-action (204 → reload, 409 → toast + snap-back «ничего не менялось»).
+  // Клик по свободной клетке → префил формы walk-in внизу. Паттерн — доска UD2.
+  (function () {
+    var toastEl = document.getElementById("cal-toast");
+    var toastTimer = null;
+    function toast(msg) {
+      if (!toastEl) return;
+      toastEl.textContent = msg;
+      toastEl.classList.remove("hidden");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.classList.add("hidden"); }, 3500);
+    }
+    function csrf() {
+      var el = document.querySelector('input[name="csrfmiddlewaretoken"]');
+      return el ? el.value : "";
+    }
+    function addDays(iso, n) {
+      var p = iso.split("-");
+      var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+      d.setUTCDate(d.getUTCDate() + n);
+      return d.toISOString().slice(0, 10);
+    }
+
+    var dragged = null;
+    document.addEventListener("dragstart", function (e) {
+      var bar = e.target.closest && e.target.closest("[data-bar-pk]");
+      if (!bar || bar.getAttribute("draggable") !== "true") return;
+      dragged = bar;
+      bar.classList.add("opacity-40");
+      if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+    });
+    document.addEventListener("dragend", function () {
+      if (dragged) dragged.classList.remove("opacity-40");
+      dragged = null;
+      document.querySelectorAll("#belegungsplan td.ring-2").forEach(function (td) {
+        td.classList.remove("ring-2", "ring-indigo-400");
+      });
+    });
+    document.addEventListener("dragover", function (e) {
+      if (!dragged) return;
+      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
+      if (!td) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+      td.classList.add("ring-2", "ring-indigo-400");
+    });
+    document.addEventListener("dragleave", function (e) {
+      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
+      if (td) td.classList.remove("ring-2", "ring-indigo-400");
+    });
+    document.addEventListener("drop", function (e) {
+      if (!dragged) return;
+      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
+      if (!td) return;
+      e.preventDefault();
+      var arrival = td.getAttribute("data-date");
+      var nights = parseInt(dragged.getAttribute("data-nights"), 10) || 1;
+      var body = "action=move&reprice=0" +
+        "&arrival=" + encodeURIComponent(arrival) +
+        "&departure=" + encodeURIComponent(addDays(arrival, nights)) +
+        "&unit=" + encodeURIComponent(td.getAttribute("data-unit"));
+      fetch(dragged.getAttribute("data-action-url"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": csrf(),
+          "X-Requested-With": "fetch",
+        },
+        body: body,
+      }).then(function (resp) {
+        if (resp.status === 204) { location.reload(); return; }
+        return resp.text().then(function (t) { toast(t || "{% trans 'Move not possible.' %}"); });
+      }).catch(function () { toast("{% trans 'Move not possible.' %}"); });
+    });
+
+    // Клик по свободной клетке → префил walk-in формы (юнит + даты) + скролл.
+    document.addEventListener("click", function (e) {
+      var td = e.target.closest && e.target.closest("td[data-free]");
+      if (!td) return;
+      var form = document.getElementById("walkin-form");
+      if (!form) return;
+      var unitSel = document.getElementById("walkin-unit");
+      if (unitSel) unitSel.value = td.getAttribute("data-unit");
+      var a = document.getElementById("walkin-arrival");
+      var d = document.getElementById("walkin-departure");
+      var day = td.getAttribute("data-date");
+      if (a) a.value = day;
+      if (d) d.value = addDays(day, 1);
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+      form.classList.add("ring-2", "ring-indigo-300");
+      setTimeout(function () { form.classList.remove("ring-2", "ring-indigo-300"); }, 1200);
+    });
+  })();
+</script>
 {% endblock %}

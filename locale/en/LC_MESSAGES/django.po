@@ -13227,3 +13227,34 @@ msgstr "Reserve a table"
 
 msgid "Angebot des Tages"
 msgstr "Deal of the day"
+
+msgid "Name (reason when blocking)"
+msgstr "Name (reason when blocking)"
+
+msgid "Block dates"
+msgstr "Block dates"
+
+msgid "Blocked"
+msgstr "Blocked"
+
+msgid ""
+"Drag a booking to move it (price is kept) · click a free cell to add a "
+"booking"
+msgstr ""
+"Drag a booking to move it (price is kept) · click a free cell to add a "
+"booking"
+
+msgid "Delete this booking permanently?"
+msgstr "Delete this booking permanently?"
+
+msgid "Delete booking"
+msgstr "Delete booking"
+
+msgid "Booking deleted."
+msgstr "Booking deleted."
+
+msgid "Only manual, unpaid bookings can be deleted."
+msgstr "Only manual, unpaid bookings can be deleted."
+
+msgid "Move not possible."
+msgstr "Move not possible."

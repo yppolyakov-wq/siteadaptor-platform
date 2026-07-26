@@ -71,6 +71,74 @@ def free_units(arrival, departure, *, guests=1) -> list:
     ]
 
 
+def booking_bars(units, start_day, num_days, bookings, blocks):
+    """Батч C (Belegungsplan, концепт 2026-07-27): render-ready плашки броней и
+    блокировок по юнитам для tape-chart-сетки кабинета.
+
+    Возвращает {unit_id: [lane, …]}, lane = список элементов слева направо:
+      {"gap": N}                      — N пустых ячеек;
+      {"seg": {...}, "span": N, ...}  — плашка на N ячеек:
+         kind booking|block · obj · clip_left/clip_right (диапазон выходит за
+         окно — на плашке рисуем ‹/›).
+
+    Брони одного юнита могут пересекаться (quantity>1) → раскладываем жадно по
+    «дорожкам» (первая, чей последний сегмент кончился к началу нового). Ночь
+    выезда свободна (departure эксклюзивен); у UnitBlock end_date ВКЛЮЧИТЕЛЕН —
+    конвертируем в эксклюзивный конец здесь, чтобы шаблон жил в одной системе.
+    """
+    window_end = start_day + timedelta(days=num_days)
+    segs_by_unit = {u.id: [] for u in units}
+
+    def _add(unit_id, kind, obj, seg_start, seg_end_excl):
+        if unit_id not in segs_by_unit:
+            return
+        clip_start = max(seg_start, start_day)
+        clip_end = min(seg_end_excl, window_end)
+        if clip_end <= clip_start:
+            return
+        segs_by_unit[unit_id].append(
+            {
+                "kind": kind,
+                "obj": obj,
+                "offset": (clip_start - start_day).days,
+                "span": (clip_end - clip_start).days,
+                "clip_left": seg_start < start_day,
+                "clip_right": seg_end_excl > window_end,
+            }
+        )
+
+    for b in bookings:
+        _add(b.unit_id, "booking", b, b.arrival, b.departure)
+    for blk in blocks:
+        _add(blk.unit_id, "block", blk, blk.start_date, blk.end_date + timedelta(days=1))
+
+    bars = {}
+    for unit_id, segs in segs_by_unit.items():
+        segs.sort(key=lambda s: (s["offset"], -s["span"]))
+        lanes = []  # [(next_free_offset, [seg, …]), …]
+        for seg in segs:
+            for lane in lanes:
+                if lane[0] <= seg["offset"]:
+                    lane[1].append(seg)
+                    lane[0] = seg["offset"] + seg["span"]
+                    break
+            else:
+                lanes.append([seg["offset"] + seg["span"], [seg]])
+        rows = []
+        for _end, lane_segs in lanes:
+            cells, cursor = [], 0
+            for seg in lane_segs:
+                if seg["offset"] > cursor:
+                    cells.append({"gap": seg["offset"] - cursor})
+                cells.append(seg)
+                cursor = seg["offset"] + seg["span"]
+            if cursor < num_days:
+                cells.append({"gap": num_days - cursor})
+            rows.append(cells)
+        bars[unit_id] = rows
+    return bars
+
+
 def next_free_range(nights, *, guests=1, from_day=None, max_days=60):
     """R3 «Nächste freie Nacht»: ближайший диапазон из ``nights`` ночей (начиная с
     ``from_day``, вкл.), где есть свободный юнит на ``guests`` гостей. Возвращает

@@ -22,8 +22,19 @@
   {% endfor %}{% endif %}
 
   {# Действия статуса — тот же FSM-путь, что календарь/доска (UD2) #}
-  <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
-    {% include "core/_status_actions.html" with kind="stay" obj=b %}
+  <div class="bg-white rounded-2xl shadow-sm p-4 mb-4 flex items-center justify-between gap-3 flex-wrap">
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
+      {% csrf_token %}
+      {% include "core/_status_actions.html" with kind="stay" obj=b %}
+    </form>
+    {% comment %}Батч C (решение владельца): hard-delete только для ручных броней
+    без денег (manual + не оплачено + без счёта) — GoBD; прочие лишь отменяются.{% endcomment %}
+    {% if can_delete %}
+    <form method="post" action="{% url 'stays:booking-delete' b.pk %}" onsubmit="return confirm('{% trans 'Delete this booking permanently?' %}')">
+      {% csrf_token %}
+      <button type="submit" class="text-sm text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50">🗑 {% trans "Delete booking" %}</button>
+    </form>
+    {% endif %}
   </div>
 
   <div class="grid sm:grid-cols-2 gap-4 mb-4">

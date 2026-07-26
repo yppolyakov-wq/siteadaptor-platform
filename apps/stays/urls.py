@@ -13,6 +13,8 @@ urlpatterns = [
     path("<uuid:pk>/action/", views.stay_action, name="stay-action"),
     # FB-11: карточка брони (кто/когда/сумма/оплата/Meldeschein + действия)
     path("buchung/<uuid:pk>/", views.booking_detail, name="booking-detail"),
+    # Батч C: hard-delete ручной брони без денег (гейт во вьюхе; GoBD-safe).
+    path("buchung/<uuid:pk>/loeschen/", views.booking_delete, name="booking-delete"),
     path("units/", views.units, name="units"),
     # D2.4: self-serve продвижение юнита в агрегаторе.
     path("units/<uuid:pk>/feature/", views.unit_feature, name="unit-feature"),

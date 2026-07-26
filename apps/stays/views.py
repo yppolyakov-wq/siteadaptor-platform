@@ -11,6 +11,7 @@ from datetime import date, timedelta
 import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -132,6 +133,12 @@ def calendar(request):
         .select_related("unit", "customer")
         .order_by("arrival")
     )
+    # Батч C (Belegungsplan): плашки броней/блокировок по дорожкам поверх сетки.
+    blocks = UnitBlock.objects.filter(
+        unit__in=units, start_date__lt=window_end, end_date__gte=start
+    ).select_related("unit")
+    bars = availability.booking_bars(units, start, HORIZON_DAYS, bookings, blocks)
+    grid = [(unit, cells, bars.get(unit.id) or []) for unit, cells in rows]
     return render(
         request,
         "stays/calendar.html",
@@ -143,6 +150,7 @@ def calendar(request):
             "today": timezone.localdate(),
             "days": days,
             "rows": rows,
+            "grid": grid,
             "bookings": bookings,
             "units": units,
             "finance_active": _finance_active(request),
@@ -168,16 +176,39 @@ def stay_action(request, pk):
         invoice = services.stay_to_invoice(booking, small_business=small_business)
         return redirect(reverse("finance:invoice-detail", args=[invoice.pk]))
     if action == "move":
+        # Батч C: drag на Belegungsplan шлёт fetch (X-Requested-With) + опц. целевой
+        # юнит; цена при drag СОХРАНЯЕТСЯ (reprice=0 — решение владельца). Кнопки
+        # «Move» из списка работают как раньше (без unit, с перерасчётом).
+        is_fetch = request.headers.get("X-Requested-With") == "fetch"
+        target_unit = None
+        unit_pk = request.POST.get("unit", "")
+        if unit_pk:
+            target_unit = get_object_or_404(StayUnit, pk=unit_pk, is_active=True)
+        reprice = request.POST.get("reprice", "1") != "0"
         try:
             arrival = date.fromisoformat(request.POST.get("arrival", ""))
             departure = date.fromisoformat(request.POST.get("departure", ""))
-            services.move_stay(booking, arrival=arrival, departure=departure)
+            services.move_stay(
+                booking, arrival=arrival, departure=departure, unit=target_unit, reprice=reprice
+            )
+            if is_fetch:
+                return HttpResponse(status=204)
             messages.success(request, _("Stay moved."))
         except ValueError:
+            if is_fetch:
+                return HttpResponse(_("Invalid dates."), status=409)
             messages.error(request, _("Invalid dates."))
         except services.MinStay:
+            if is_fetch:
+                return HttpResponse(_("Below the minimum number of nights."), status=409)
             messages.error(request, _("Below the minimum number of nights."))
+        except services.MaxGuests:
+            if is_fetch:
+                return HttpResponse(_("Too many guests for this unit."), status=409)
+            messages.error(request, _("Too many guests for this unit."))
         except services.StayUnavailable:
+            if is_fetch:
+                return HttpResponse(_("Those dates are no longer available."), status=409)
             messages.error(request, _("Those dates are no longer available."))
         return redirect(back)
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
@@ -202,7 +233,11 @@ def stay_action(request, pk):
 @login_required
 @require_POST
 def stay_create(request):
-    """Ручное добавление (телефонная/личная бронь): сразу confirmed."""
+    """Ручное добавление (телефонная/личная бронь): сразу confirmed.
+
+    Батч C: та же форма умеет «Blockieren» (mode=block) — вместо брони создаёт
+    UnitBlock на выбранный диапазон (ремонт/своё проживание); поле имени служит
+    причиной. departure эксклюзивен → end_date = departure − 1 (включителен)."""
     unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"), is_active=True)
     try:
         arrival = date.fromisoformat(request.POST.get("arrival", ""))
@@ -210,6 +245,18 @@ def stay_create(request):
     except ValueError:
         messages.error(request, _("Invalid dates."))
         return redirect("stays:calendar")
+    if request.POST.get("mode") == "block":
+        if departure <= arrival:
+            messages.error(request, _("Invalid dates."))
+            return redirect("stays:calendar")
+        UnitBlock.objects.create(
+            unit=unit,
+            start_date=arrival,
+            end_date=departure - timedelta(days=1),
+            reason=request.POST.get("name", "").strip()[:120],
+        )
+        messages.success(request, _("Dates blocked."))
+        return redirect(f"{reverse('stays:calendar')}?von={arrival.isoformat()}")
     name = request.POST.get("name", "").strip() or _("Walk-in")
     try:
         booking = services.book_stay(
@@ -254,8 +301,39 @@ def booking_detail(request, pk):
     return render(
         request,
         "stays/booking_detail.html",
-        {"b": booking, "registration": registration, "nav": "stays"},
+        {
+            "b": booking,
+            "registration": registration,
+            "nav": "stays",
+            "can_delete": _can_delete_booking(booking),
+        },
     )
+
+
+def _can_delete_booking(booking) -> bool:
+    """Батч C (решение владельца): hard-delete ТОЛЬКО для ручных броней без денег —
+    manual-канал, не оплачена, без Stripe-интента и без счёта (GoBD: брони с
+    деньгами/документами не удаляются — только отмена, запись остаётся)."""
+    return (
+        booking.source_channel == "manual"
+        and booking.payment_state != StayBooking.PAYMENT_PAID
+        and not booking.stripe_payment_intent
+        and booking.invoice_id is None
+    )
+
+
+@login_required
+@require_POST
+def booking_delete(request, pk):
+    """Батч C: удалить ручную бронь без денег (гейт _can_delete_booking)."""
+    booking = get_object_or_404(StayBooking, pk=pk)
+    if not _can_delete_booking(booking):
+        messages.error(request, _("Only manual, unpaid bookings can be deleted."))
+        return redirect("stays:booking-detail", pk=pk)
+    back = f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}"
+    booking.delete()
+    messages.success(request, _("Booking deleted."))
+    return redirect(back)
 
 
 @login_required

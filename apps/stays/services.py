@@ -204,22 +204,42 @@ def book_stay(
 
 
 @transaction.atomic
-def move_stay(booking, *, arrival, departure):
-    """Перенос брони на новый диапазон с той же anti-overbook-проверкой."""
+def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
+    """Перенос брони на новый диапазон (и опц. в другой юнит) с той же
+    anti-overbook-проверкой.
+
+    Батч C (Belegungsplan): ``unit`` — целевой юнит (drag по вертикали);
+    ``reprice=False`` — цена/суммы СОХРАНЯЮТСЯ (решение владельца: PMS-стандарт,
+    гость уже согласился на цену; drag держит число ночей → Kurtaxe валидна).
+    Обе блокировки строк берём в стабильном порядке pk (без дедлоков)."""
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
-    unit = StayUnit.objects.select_for_update().get(id=booking.unit_id)
-    if (departure - arrival).days < unit.min_nights:
+    ids = {booking.unit_id}
+    if unit is not None:
+        ids.add(unit.pk)
+    locked = {u.pk: u for u in StayUnit.objects.select_for_update().filter(id__in=ids)}
+    dest = locked[unit.pk] if unit is not None else locked[booking.unit_id]
+    if (departure - arrival).days < dest.min_nights:
         raise MinStay()
-    # G5: бронь занимает свои rooms; при переносе исключаем её же из подсчёта.
+    if booking.guests > dest.max_guests * booking.rooms:
+        raise MaxGuests()
+    # G5: бронь занимает свои rooms; при переносе в ТОТ ЖЕ юнит исключаем её же
+    # из подсчёта; в другой юнит — она там ещё не занимает ничего.
+    exclude = booking.pk if dest.pk == booking.unit_id else None
     if not availability.range_available(
-        unit, arrival, departure, exclude_pk=booking.pk, needed=booking.rooms
+        dest, arrival, departure, exclude_pk=exclude, needed=booking.rooms
     ):
         raise StayUnavailable()
     from apps.core import extras as extras_engine
 
+    if dest.pk != booking.unit_id:
+        booking.unit = dest
+    unit = dest
     booking.arrival = arrival
     booking.departure = departure
+    if not reprice:
+        booking.save(update_fields=["unit", "arrival", "departure", "updated_at"])
+        return booking
     # A5a база + H1 тариф (снимок) + #7 Extras (снимки) − H4a скидка (снимок) +
     # H9 Kurtaxe (пересчёт по ночам). Промокод не перегашиваем — держим снимок скидки.
     nights = (departure - arrival).days
