@@ -51,6 +51,10 @@ TEMPLATES = [
         },
         "accent": "#b45309",  # amber/warm
         "hero_style": "accent",
+        # Батч A «гастро-сплит» (концепт 2026-07-27): 2-3 плитки-входа В баннере
+        # (Reservieren / Speisekarte / Angebot des Tages) — первый экран сразу
+        # ведёт гостя к его задаче (как date-search у отеля, услуги у friseur).
+        "site_defaults": {"hero_widget": "gastro"},
     },
     {
         "key": "dienstleister",
@@ -327,7 +331,7 @@ def _apply(tenant, template, *, family=None, accent=None) -> None:
         # тенанта, чтобы смена Look'а не сбрасывала date-search-в-hero.
         fam_sd = dict(family["site_defaults"])
         prev_hw = (current.get("site_defaults") or {}).get("hero_widget")
-        if prev_hw in ("stays", "services"):
+        if prev_hw in ("stays", "services", "gastro"):
             fam_sd["hero_widget"] = prev_hw
         config["site_defaults"] = fam_sd
         nav = dict(config.get("nav") or {})

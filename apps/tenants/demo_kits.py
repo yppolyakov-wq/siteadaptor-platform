@@ -222,8 +222,9 @@ class DemoKit:
     look: str = ""
     # ST-7c: форма карточек витрины ("" | overlay | compact) → site_defaults.
     card_style: str = ""
-    # E4 «задача-первым»: primary-виджет ВНУТРИ hero ("" | stays | services) →
-    # site_defaults.hero_widget. При "stays" секция stay_search гасится (hero несёт).
+    # E4 «задача-первым»: primary-виджет ВНУТРИ hero ("" | stays | services |
+    # gastro) → site_defaults.hero_widget. При "stays" секция stay_search гасится
+    # (hero несёт); "gastro" = плитки Reservieren/Speisekarte/Angebot des Tages.
     hero_widget: str = ""
     # LS-1/LS-2: WhatsApp-номер бизнеса (гейт видео-CTA и presence-пилюли) +
     # явный режим присутствия ("" = auto по часам; "on"/"off").
@@ -451,6 +452,7 @@ RESTAURANT = DemoKit(
     about_title="Über uns",
     about_text="Seit 1998 kochen wir mit Leidenschaft und frischen Zutaten aus der Region.",
     nav_style="centered",
+    hero_widget="gastro",  # батч A: плитки Reservieren/Speisekarte/Angebot des Tages
     address="Hauptstraße 12, 40721 Hilden",
     opening_hours_text="Mo–So 11:00–22:00",
     opening_hours={d: ("11:00", "22:00") for d in range(7)},
@@ -2861,6 +2863,7 @@ CAFE = DemoKit(
     "Umland und backen jeden Morgen selbst. Frühstück gibt es bis 14 Uhr, freitags "
     "wechselnden Mittagstisch. Mit dem Kaffeepass ist der siebte Kaffee gratis.",
     nav_style="classic",
+    hero_widget="gastro",  # батч A: плитки Reservieren/Speisekarte/Angebot des Tages
     address="Sonnenallee 24, 40215 Düsseldorf",
     opening_hours_text="Mo–Sa 8:00–18:00 · So 9:00–17:00",
     opening_hours={**{d: ("08:00", "18:00") for d in range(6)}, 6: ("09:00", "17:00")},
@@ -5457,7 +5460,7 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
         cfg["site_defaults"] = sd
-    if kit.hero_widget in ("stays", "services"):  # E4: интерактивный hero
+    if kit.hero_widget in ("stays", "services", "gastro"):  # E4/батч A: интерактивный hero
         sd = dict(cfg.get("site_defaults") or {})
         sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd

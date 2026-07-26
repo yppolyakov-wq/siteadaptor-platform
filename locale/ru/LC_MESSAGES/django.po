@@ -13406,3 +13406,9 @@ msgstr "Кровать (общий номер)"
 
 msgid "Stellplatz"
 msgstr "Место для кемпинга"
+
+msgid "Tisch reservieren"
+msgstr "Забронировать столик"
+
+msgid "Angebot des Tages"
+msgstr "Акция дня"

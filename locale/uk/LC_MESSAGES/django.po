@@ -13393,3 +13393,9 @@ msgstr "Ліжко (загальна кімната)"
 
 msgid "Stellplatz"
 msgstr "Місце для кемпінгу"
+
+msgid "Tisch reservieren"
+msgstr "Забронювати столик"
+
+msgid "Angebot des Tages"
+msgstr "Акція дня"

@@ -13221,3 +13221,9 @@ msgstr "Bed (dormitory)"
 
 msgid "Stellplatz"
 msgstr "Pitch"
+
+msgid "Tisch reservieren"
+msgstr "Reserve a table"
+
+msgid "Angebot des Tages"
+msgstr "Deal of the day"

@@ -13329,3 +13329,9 @@ msgstr "Yatak (ranza)"
 
 msgid "Stellplatz"
 msgstr "Kamp alanı"
+
+msgid "Tisch reservieren"
+msgstr "Masa ayırt"
+
+msgid "Angebot des Tages"
+msgstr "Günün fırsatı"

@@ -121,6 +121,73 @@ def test_hero_widget_partial_renders_services_gated_by_module(settings):
     assert off.strip() == ""
 
 
+def test_gastro_hero_carries_tiles_widget():
+    # Батч A «гастро-сплит»: у кафе/ресторана плитки-входы ВНУТРИ hero. Шаблон
+    # gastro несёт site_defaults.hero_widget="gastro"; apply_template доносит;
+    # смена Look'а сохраняет (как stays/services).
+    from apps.tenants import siteconfig
+
+    tpl = sitetemplates.get_template("gastro")
+    assert tpl["site_defaults"]["hero_widget"] == "gastro"
+    tenant = TenantFactory(schema_name="t_gw", business_type="restaurant")
+    assert sitetemplates.apply_template(tenant, "gastro") is True
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["site_defaults"]["hero_widget"] == "gastro"
+    assert sitetemplates.apply_look(tenant, "warm") is True
+    tenant.refresh_from_db()
+    assert tenant.site_config["site_defaults"]["hero_widget"] == "gastro"
+
+
+def test_hero_widget_gastro_renders_tiles(settings):
+    # Батч A: плитки Reservieren (гейт booking) + Speisekarte всегда + Angebot des
+    # Tages только при активной акции (fail-safe: нет акции → плитки две).
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from django.template.loader import render_to_string
+
+    from apps.promotions.models import Promotion
+
+    two = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "gastro", "storefront_booking_enabled": True},
+    )
+    assert "Tisch reservieren" in two and "Speisekarte" in two
+    assert "Angebot des Tages" not in two  # активных акций нет
+
+    Promotion.objects.create(
+        title={"de": "Mittagstisch"},
+        status="active",
+        promo_type="reservation",
+        available_quantity=5,
+    )
+    three = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "gastro", "storefront_booking_enabled": True},
+    )
+    assert "Angebot des Tages" in three and "Mittagstisch" in three
+
+    no_booking = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "gastro", "storefront_booking_enabled": False},
+    )
+    assert "Tisch reservieren" not in no_booking and "Speisekarte" in no_booking
+
+
+def test_deal_of_day_prefers_daily_recurrence():
+    # Тег deal_of_day: recurrence=daily — «акция дня» — приоритетнее прочих.
+    from apps.promotions.models import Promotion
+    from apps.tenants.templatetags.siteui import deal_of_day
+
+    assert deal_of_day() is None  # нет активных → None (fail-safe)
+    other = Promotion.objects.create(title={"de": "Sonstige"}, status="active")
+    daily = Promotion.objects.create(
+        title={"de": "Tagesdeal"}, status="active", recurrence=Promotion.DAILY
+    )
+    assert deal_of_day().pk == daily.pk
+    daily.delete()
+    assert deal_of_day().pk == other.pk
+
+
 def test_hero_widget_partial_renders_date_search_gated_by_module(settings):
     # E4: партиал hero-виджета рендерит поиск дат при hero_widget="stays" +
     # активном модуле stays; при неактивном — пусто (без регрессии).

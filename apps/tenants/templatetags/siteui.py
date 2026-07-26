@@ -93,6 +93,30 @@ def default_date(days=1):
     return (timezone.localdate() + timedelta(days=int(days))).isoformat()
 
 
+@register.simple_tag
+def deal_of_day():
+    """Батч A (гастро-сплит, концепт 2026-07-27): «Angebot des Tages» для плитки
+    hero — первая активная акция: recurrence=daily первой (это и есть «акция
+    дня»), затем ближайшая по ends_at (NULL — в конец), затем свежайшая. None —
+    плитки нет (fail-safe, hero остаётся 2-плиточным)."""
+    from django.db.models import Case, F, IntegerField, Value, When
+
+    from apps.promotions.models import Promotion
+
+    return (
+        Promotion.objects.filter(status="active")
+        .annotate(
+            daily_first=Case(
+                When(recurrence=Promotion.DAILY, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+        )
+        .order_by("daily_first", F("ends_at").asc(nulls_last=True), "-created_at")
+        .first()
+    )
+
+
 @register.inclusion_tag("storefront/_funnel_steps.html")
 def funnel_steps(kind, current):
     """E5 «задача-первым»: прогресс-степпер воронки (Schritt N/M) — ведём клиента
