@@ -67,7 +67,12 @@
         var tmp = document.createElement("div");
         tmp.innerHTML = html;
         var fresh = tmp.querySelector("#stay-cal");
-        if (fresh) cur.replaceWith(fresh);
+        if (fresh) {
+          cur.replaceWith(fresh);
+          {% comment %}Багфикс 2026-07-27: селектор дат (в _buybox_stay_select)
+          восстанавливает подсветку выбранного заезда в новом месяце.{% endcomment %}
+          document.dispatchEvent(new CustomEvent("staycal:swap"));
+        }
       })
       .catch(function () {});
   });

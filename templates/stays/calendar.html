@@ -57,8 +57,11 @@
               title="{{ c.day|date:'d.m.Y' }}">{% if c.blocked %}✕{% else %}{{ c.free }}{% endif %}</td>
           {% endfor %}
         </tr>
+        {% comment %}Багфикс 2026-07-27: data-unit на дорожках — drop плашки
+        принимается по ВСЕЙ строке юнита (день = колонка под курсором), а не
+        только по строке счётчиков.{% endcomment %}
         {% for lane in lanes %}
-        <tr>
+        <tr data-unit="{{ unit.pk }}">
           <td class="sticky left-0 bg-white z-10"></td>
           {% for item in lane %}
             {% if item.gap %}
@@ -67,6 +70,7 @@
               <td colspan="{{ item.span }}" class="px-0.5 py-0.5">
                 <div draggable="{% if item.obj.status == 'pending' or item.obj.status == 'confirmed' %}true{% else %}false{% endif %}"
                      data-bar-pk="{{ item.obj.pk }}" data-nights="{{ item.obj.nights }}"
+                     data-arrival="{{ item.obj.arrival|date:'Y-m-d' }}"
                      data-action-url="{% url 'stays:stay-action' item.obj.pk %}"
                      class="group flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium truncate select-none
                      {% if item.obj.status == 'confirmed' %}bg-green-200/80 text-green-900
@@ -210,44 +214,79 @@
       return d.toISOString().slice(0, 10);
     }
 
+    // Багфикс 2026-07-27: drop раньше принимали ТОЛЬКО клетки строки счётчиков —
+    // бросок плашки на её же дорожку (естественный жест) молча игнорировался.
+    // Теперь целится ВСЯ строка юнита: день = колонка под курсором (по клеткам
+    // счётчиков того же юнита), плюс grab-offset — за какую ночь плашку взяли,
+    // той ночью она и ложится (заезд не прыгает под курсор).
+    function daysBetween(a, b) {
+      return Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
+    }
+    function cellAt(unit, clientX) {
+      var hit = null;
+      document.querySelectorAll('#belegungsplan td[data-unit="' + unit + '"][data-date]').forEach(function (td) {
+        var r = td.getBoundingClientRect();
+        if (clientX >= r.left && clientX < r.right) hit = td;
+      });
+      return hit;
+    }
+    function resolveTarget(e) {
+      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
+      if (td) return { unit: td.getAttribute("data-unit"), date: td.getAttribute("data-date") };
+      var tr = e.target.closest && e.target.closest("tr[data-unit]");
+      if (!tr) return null;
+      var cell = cellAt(tr.getAttribute("data-unit"), e.clientX);
+      return cell ? { unit: cell.getAttribute("data-unit"), date: cell.getAttribute("data-date") } : null;
+    }
+    function clearHighlight() {
+      document.querySelectorAll("#belegungsplan td.ring-2").forEach(function (td) {
+        td.classList.remove("ring-2", "ring-indigo-400");
+      });
+    }
+
     var dragged = null;
+    var grabOffset = 0; // ночей между заездом брони и ночью, за которую взяли плашку
     document.addEventListener("dragstart", function (e) {
       var bar = e.target.closest && e.target.closest("[data-bar-pk]");
       if (!bar || bar.getAttribute("draggable") !== "true") return;
       dragged = bar;
+      grabOffset = 0;
+      var tr = bar.closest("tr[data-unit]");
+      var start = bar.getAttribute("data-arrival");
+      if (tr && start) {
+        var under = cellAt(tr.getAttribute("data-unit"), e.clientX);
+        if (under) grabOffset = Math.max(0, daysBetween(start, under.getAttribute("data-date")));
+      }
       bar.classList.add("opacity-40");
       if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
     });
     document.addEventListener("dragend", function () {
       if (dragged) dragged.classList.remove("opacity-40");
       dragged = null;
-      document.querySelectorAll("#belegungsplan td.ring-2").forEach(function (td) {
-        td.classList.remove("ring-2", "ring-indigo-400");
-      });
+      clearHighlight();
     });
     document.addEventListener("dragover", function (e) {
       if (!dragged) return;
-      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
-      if (!td) return;
+      var t = resolveTarget(e);
+      if (!t) return;
       e.preventDefault();
       if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-      td.classList.add("ring-2", "ring-indigo-400");
-    });
-    document.addEventListener("dragleave", function (e) {
-      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
-      if (td) td.classList.remove("ring-2", "ring-indigo-400");
+      clearHighlight();
+      var arrival = addDays(t.date, -grabOffset);
+      var cell = document.querySelector('#belegungsplan td[data-unit="' + t.unit + '"][data-date="' + arrival + '"]');
+      if (cell) cell.classList.add("ring-2", "ring-indigo-400");
     });
     document.addEventListener("drop", function (e) {
       if (!dragged) return;
-      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
-      if (!td) return;
+      var t = resolveTarget(e);
+      if (!t) return;
       e.preventDefault();
-      var arrival = td.getAttribute("data-date");
+      var arrival = addDays(t.date, -grabOffset);
       var nights = parseInt(dragged.getAttribute("data-nights"), 10) || 1;
       var body = "action=move&reprice=0" +
         "&arrival=" + encodeURIComponent(arrival) +
         "&departure=" + encodeURIComponent(addDays(arrival, nights)) +
-        "&unit=" + encodeURIComponent(td.getAttribute("data-unit"));
+        "&unit=" + encodeURIComponent(t.unit);
       fetch(dragged.getAttribute("data-action-url"), {
         method: "POST",
         headers: {
@@ -258,7 +297,7 @@
         body: body,
       }).then(function (resp) {
         if (resp.status === 204) { location.reload(); return; }
-        return resp.text().then(function (t) { toast(t || "{% trans 'Move not possible.' %}"); });
+        return resp.text().then(function (t2) { toast(t2 || "{% trans 'Move not possible.' %}"); });
       }).catch(function () { toast("{% trans 'Move not possible.' %}"); });
     });
 

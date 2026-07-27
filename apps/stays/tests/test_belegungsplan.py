@@ -245,3 +245,7 @@ def test_calendar_renders_bar_with_name_code_and_drag():
     assert f"/dashboard/stays/buchung/{booking.pk}/" in body  # клик → FB-11
     assert "Wartung" in body  # блокировка плашкой
     assert 'data-free="1"' in body  # свободные клетки кликабельны (префил)
+    # Багфикс 2026-07-27: drop принимает ВСЯ строка юнита — дорожки несут
+    # data-unit, плашка несёт заезд (grab-offset: за какую ночь взяли, той и ложится).
+    assert f'<tr data-unit="{unit.pk}">' in body
+    assert f'data-arrival="{booking.arrival.isoformat()}"' in body

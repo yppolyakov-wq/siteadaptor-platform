@@ -70,9 +70,14 @@ unterkunft_unit (von/bis/adults/children/rooms/room_choices/embed/…).{% endcom
   window.__stayCalSelectBound = true;
   var arrival = null;
 
-  function freeDates() {
+  {% comment %}Багфикс 2026-07-27: диапазон через границу месяца. Раньше каждая
+  ночь обязана была быть ВИДИМЫМ свободным днём — после перелистывания месяца дни
+  прошлого месяца исчезали из DOM и выбор молча отвергался. Теперь блокируют
+  только видимые ЗАНЯТЫЕ ночи; невидимые (другой месяц) считаются свободными —
+  сервер всё равно ре-валидирует наличие и честно покажет причину отказа.{% endcomment %}
+  function busyDates() {
     var s = {};
-    document.querySelectorAll(".stay-cal-day[data-date]").forEach(function (b) {
+    document.querySelectorAll(".stay-cal-busy[data-date]").forEach(function (b) {
       s[b.getAttribute("data-date")] = true;
     });
     return s;
@@ -111,10 +116,17 @@ unterkunft_unit (von/bis/adults/children/rooms/room_choices/embed/…).{% endcom
     });
   }
   function rangeFree(a, b) {
-    var free = freeDates();
+    var busy = busyDates();
     var ok = true;
-    eachDate(a, b, function (d) { if (!free[d]) ok = false; });
+    eachDate(a, b, function (d) { if (busy[d]) ok = false; });
     return ok;
+  }
+  function markArrival(d) {
+    document.querySelectorAll(".is-sel").forEach(function (x) {
+      x.classList.remove("is-sel", "ring-2", "ring-emerald-500");
+    });
+    var cell = document.querySelector('.stay-cal-day[data-date="' + d + '"]');
+    if (cell) cell.classList.add("is-sel", "ring-2", "ring-emerald-500");
   }
   function swapBuybox(form) {
     var box = document.getElementById("stay-buybox");
@@ -152,10 +164,7 @@ unterkunft_unit (von/bis/adults/children/rooms/room_choices/embed/…).{% endcom
       von.value = d;
       bis.value = "";
       clearPaint();
-      document.querySelectorAll(".is-sel").forEach(function (x) {
-        x.classList.remove("is-sel", "ring-2", "ring-emerald-500");
-      });
-      cell.classList.add("is-sel", "ring-2", "ring-emerald-500");
+      markArrival(d);
       dimTooClose(d);
     } else {
       var cal = document.getElementById("stay-cal");
@@ -189,6 +198,16 @@ unterkunft_unit (von/bis/adults/children/rooms/room_choices/embed/…).{% endcom
     var form = e.target.closest && e.target.closest("#stay-date-form");
     if (!form) return;
     if (swapBuybox(form)) e.preventDefault();
+  });
+
+  {% comment %}Багфикс 2026-07-27: перелистывание месяца свапает #stay-cal новым
+  DOM — выбранный заезд оставался в переменной, но визуально терялся. Событие из
+  _stay_calendar.html восстанавливает кольцо заезда (если день виден) и гашение
+  min-nights в новом месяце.{% endcomment %}
+  document.addEventListener("staycal:swap", function () {
+    if (!arrival) return;
+    markArrival(arrival);
+    dimTooClose(arrival);
   });
 })();
 </script>
