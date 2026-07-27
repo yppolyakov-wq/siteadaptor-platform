@@ -6,6 +6,7 @@ confirmed), управление юнитами (тип/цена/min_nights/max_
 блокировками дат. Гейтинг — модуль «stays» из реестра (ModuleGatingMiddleware).
 """
 
+import uuid
 from datetime import date, timedelta
 
 import stripe
@@ -88,6 +89,14 @@ def _parse_day(raw) -> date:
         return timezone.localdate()
 
 
+def _is_uuid(raw) -> bool:
+    try:
+        uuid.UUID(str(raw))
+        return True
+    except (TypeError, ValueError, AttributeError):
+        return False
+
+
 def _refund_deposit(request, booking):
     """Анти-фрод: вернуть депозит при отмене оплаченной брони (Stripe Connect)."""
     try:
@@ -139,10 +148,38 @@ def calendar(request):
     ).select_related("unit")
     bars = availability.booking_bars(units, start, HORIZON_DAYS, bookings, blocks)
     grid = [(unit, cells, bars.get(unit.id) or []) for unit, cells in rows]
+    # Фидбэк 2026-07-27: клик по плашке открывает карточку брони СРАЗУ ПОД
+    # календарём (?buchung=<pk>; &box=1 — fetch-фрагмент без перезагрузки).
+    selected = None
+    sel_registration = None
+    sel_pk = request.GET.get("buchung", "")
+    if sel_pk:
+        selected = (
+            StayBooking.objects.select_related("unit", "customer", "rate_plan")
+            .filter(pk__in=[sel_pk] if _is_uuid(sel_pk) else [])
+            .first()
+        )
+        if selected is not None:
+            try:
+                sel_registration = selected.registration
+            except Exception:  # noqa: BLE001 — OneToOne может отсутствовать
+                sel_registration = None
+    panel_ctx = {
+        "b": selected,
+        "registration": sel_registration,
+        "can_delete": _can_delete_booking(selected) if selected else False,
+        "units": units,
+    }
+    if request.GET.get("box") == "1":
+        if selected is None:
+            return HttpResponse(status=404)
+        return render(request, "stays/_booking_card.html", panel_ctx)
     return render(
         request,
         "stays/calendar.html",
         {
+            **panel_ctx,
+            "selected_booking": selected,
             "nav": "stays",
             "start": start,
             "prev": start - timedelta(days=HORIZON_DAYS),
@@ -211,6 +248,61 @@ def stay_action(request, pk):
                 return HttpResponse(_("Those dates are no longer available."), status=409)
             messages.error(request, _("Those dates are no longer available."))
         return redirect(back)
+    if action == "update":
+        # Фидбэк 2026-07-27: форма «Buchung bearbeiten» — даты/номер/гости/заметка
+        # одним сохранением. Даты/номер — через move_stay (те же локи и
+        # anti-oversell); гости валидируются вместимостью; walk-in-правки
+        # владельца Verkaufsregeln НЕ гейтят (как и создание).
+        if booking.status not in (StayBooking.STATUS_PENDING, StayBooking.STATUS_CONFIRMED):
+            messages.error(request, _("This step is not possible in the current status."))
+            return redirect(back)
+        target_unit = booking.unit
+        unit_pk = request.POST.get("unit", "")
+        if unit_pk and str(booking.unit_id) != unit_pk:
+            target_unit = get_object_or_404(StayUnit, pk=unit_pk, is_active=True)
+        adults = _int(request.POST.get("adults", str(booking.adults)), booking.adults, 1, 50)
+        children = _int(
+            request.POST.get("children", str(booking.children)), booking.children, 0, 50
+        )
+        if adults + children > target_unit.max_guests * booking.rooms:
+            messages.error(request, _("Too many guests for this unit."))
+            return redirect(back)
+        reprice = bool(request.POST.get("reprice"))
+        try:
+            arrival = date.fromisoformat(request.POST.get("arrival", ""))
+            departure = date.fromisoformat(request.POST.get("departure", ""))
+        except ValueError:
+            messages.error(request, _("Invalid dates."))
+            return redirect(back)
+        # Гости/заметка — ДО move_stay: перерасчёт (Kurtaxe по adults) увидит
+        # свежие значения.
+        booking.adults = adults
+        booking.children = children
+        booking.guests = adults + children
+        booking.note = request.POST.get("note", "").strip()[:2000]
+        booking.save(update_fields=["adults", "children", "guests", "note", "updated_at"])
+        try:
+            services.move_stay(
+                booking,
+                arrival=arrival,
+                departure=departure,
+                unit=target_unit,
+                reprice=reprice,
+            )
+            messages.success(request, _("Stay updated."))
+        except services.MinStay:
+            messages.error(request, _("Below the minimum number of nights."))
+        except services.MaxGuests:
+            messages.error(request, _("Too many guests for this unit."))
+        except services.StayUnavailable:
+            messages.error(request, _("Those dates are no longer available."))
+        except ValueError:
+            messages.error(request, _("Invalid dates."))
+        # von — по АКТУАЛЬНОМУ заезду (move_stay мог его изменить); панель брони
+        # остаётся открытой под календарём (?buchung=).
+        return redirect(
+            f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}&buchung={booking.pk}"
+        )
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:
             StayBookingSM().apply(booking, action, actor=request.user)
@@ -306,6 +398,8 @@ def booking_detail(request, pk):
             "registration": registration,
             "nav": "stays",
             "can_delete": _can_delete_booking(booking),
+            # Фидбэк 2026-07-27: селект номера в форме «Buchung bearbeiten».
+            "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
         },
     )
 

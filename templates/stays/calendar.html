@@ -102,6 +102,13 @@
 <p class="text-gray-500 mb-6">{% trans "No units yet." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Create a unit" %} →</a></p>
 {% endif %}
 
+{% comment %}Фидбэк владельца 2026-07-27: клик по плашке открывает карточку брони
+СРАЗУ ПОД календарём (fetch ?buchung=<pk>&box=1 без перезагрузки; фолбэк —
+страница брони). Формы карточки редиректят обратно на календарь.{% endcomment %}
+<div id="booking-panel" class="max-w-2xl scroll-mt-24 mb-6 {% if not selected_booking %}hidden{% endif %}">
+  {% if selected_booking %}{% include "stays/_booking_card.html" %}{% endif %}
+</div>
+
 {# --- брони в окне ---------------------------------------------------------- #}
 <h2 class="font-semibold mb-3">{% trans "Bookings in this period" %}</h2>
 {# FB-4b: свои имена статусов брони (кабинет-отображение) #}
@@ -299,6 +306,30 @@
         if (resp.status === 204) { location.reload(); return; }
         return resp.text().then(function (t2) { toast(t2 || "{% trans 'Move not possible.' %}"); });
       }).catch(function () { toast("{% trans 'Move not possible.' %}"); });
+    });
+
+    // Фидбэк 2026-07-27: клик по плашке → карточка брони ПОД календарём
+    // (fetch-фрагмент; при ошибке — обычный переход на страницу брони).
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest && e.target.closest("[data-bar-pk] a");
+      if (!link || !window.fetch) return;
+      var bar = link.closest("[data-bar-pk]");
+      var pk = bar.getAttribute("data-bar-pk");
+      var panel = document.getElementById("booking-panel");
+      if (!panel) return;
+      e.preventDefault();
+      var url = location.pathname + location.search;
+      url = url.replace(/([?&])buchung=[^&]*/, "$1").replace(/[?&]$/, "");
+      url += (url.indexOf("?") === -1 ? "?" : "&") + "buchung=" + encodeURIComponent(pk);
+      fetch(url + "&box=1", { headers: { "X-Requested-With": "fetch" } })
+        .then(function (r) { if (!r.ok) throw 0; return r.text(); })
+        .then(function (html) {
+          panel.innerHTML = html;
+          panel.classList.remove("hidden");
+          history.replaceState(null, "", url);
+          panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        })
+        .catch(function () { location.href = link.getAttribute("href"); });
     });
 
     // Клик по свободной клетке → префил walk-in формы (юнит + даты) + скролл.

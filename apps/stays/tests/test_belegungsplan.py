@@ -249,3 +249,99 @@ def test_calendar_renders_bar_with_name_code_and_drag():
     # data-unit, плашка несёт заезд (grab-offset: за какую ночь взяли, той и ложится).
     assert f'<tr data-unit="{unit.pk}">' in body
     assert f'data-arrival="{booking.arrival.isoformat()}"' in body
+
+
+# --- Фидбэк 2026-07-27: правка брони + карточка под календарём -----------------
+
+
+def test_stay_action_update_edits_dates_guests_note():
+    unit = _unit(price_cents=10000, max_guests=4)
+    booking = _book(unit, 1, 4)  # 3 ночи → 300 €
+    total_before = booking.total_cents
+    resp = views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "update",
+                "arrival": (D0 + timedelta(days=2)).isoformat(),
+                "departure": (D0 + timedelta(days=6)).isoformat(),  # 4 ночи
+                "unit": str(unit.pk),
+                "adults": "2",
+                "children": "1",
+                "note": "Späte Anreise",
+                "reprice": "1",
+            },
+        ),
+        pk=booking.pk,
+    )
+    assert resp.status_code == 302 and f"buchung={booking.pk}" in resp.url
+    booking.refresh_from_db()
+    assert booking.arrival == D0 + timedelta(days=2) and booking.nights == 4
+    assert booking.adults == 2 and booking.children == 1 and booking.guests == 3
+    assert booking.note == "Späte Anreise"
+    assert booking.total_cents == 40000 != total_before  # перерасчёт
+
+    # Без reprice цена сохраняется (правка только заметки/гостей).
+    views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "update",
+                "arrival": booking.arrival.isoformat(),
+                "departure": booking.departure.isoformat(),
+                "adults": "1",
+                "children": "0",
+                "note": "",
+            },
+        ),
+        pk=booking.pk,
+    )
+    booking.refresh_from_db()
+    assert booking.total_cents == 40000 and booking.guests == 1
+
+
+def test_stay_action_update_guest_overflow_rejected():
+    unit = _unit(max_guests=2)
+    booking = _book(unit, 1, 3)
+    views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "update",
+                "arrival": booking.arrival.isoformat(),
+                "departure": booking.departure.isoformat(),
+                "adults": "3",
+                "children": "1",
+            },
+        ),
+        pk=booking.pk,
+    )
+    booking.refresh_from_db()
+    assert booking.guests == 1  # отказ, ничего не изменилось
+
+
+def test_calendar_booking_panel_and_fragment():
+    unit = _unit()
+    booking = _book(unit, 1, 4)
+    body = views.calendar(
+        _req(data={"von": D0.isoformat(), "buchung": str(booking.pk)})
+    ).content.decode()
+    assert 'id="booking-panel"' in body and booking.reference_code in body
+    assert 'value="update"' in body  # форма «Buchung bearbeiten» в панели
+
+    frag = views.calendar(
+        _req(data={"von": D0.isoformat(), "buchung": str(booking.pk), "box": "1"})
+    ).content.decode()
+    assert booking.reference_code in frag and 'value="update"' in frag
+    assert 'id="belegungsplan"' not in frag  # ТОЛЬКО фрагмент карточки
+
+    # мусорный pk — страница живёт, панель скрыта
+    body = views.calendar(_req(data={"von": D0.isoformat(), "buchung": "junk"})).content.decode()
+    assert 'id="booking-panel"' in body
+
+
+def test_booking_detail_page_has_edit_form():
+    unit = _unit()
+    booking = _book(unit, 1, 4)
+    body = views.booking_detail(_req(), pk=booking.pk).content.decode()
+    assert 'value="update"' in body and "Buchung bearbeiten" in body
