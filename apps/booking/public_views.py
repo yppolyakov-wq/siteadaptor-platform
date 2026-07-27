@@ -298,32 +298,37 @@ def service_slots(request, pk):
     )
     from apps.core.sellable import sellable_for
 
-    return _render_embed(
-        request,
-        "storefront/service_slots.html",
-        {
-            "service": service,
-            # UA3-2: контракт для _buybox; buybox_ready = валидный выбранный слот
-            # (сервер всё равно ре-валидирует в service_book).
-            "sellable": sellable_for("service", service, buybox_ready=selected is not None),
-            "day": day,
-            "starts": starts,
-            "next_free": next_free,  # R3: ближайший свободный старт (empty-state)
-            "selected": selected,
-            "resources": resources if len(resources) > 1 else [],  # пикер только при >1
-            "chosen_resource": chosen,
-            "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
-            "deposit_required": service.deposit_cents > 0
-            and getattr(tenant, "payments_enabled", False),
-            "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
-            "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
-            "prev_day": day - timedelta(days=1) if day > today else None,
-            "next_day": day + timedelta(days=1) if day < max_day else None,
-            "cal_qs": f"&resource={chosen.pk}" if chosen else "",  # A3: параметр дня
-            **cal,
-        },
-        _is_embed(request),
-    )
+    ctx = {
+        "service": service,
+        # UA3-2: контракт для _buybox; buybox_ready = валидный выбранный слот
+        # (сервер всё равно ре-валидирует в service_book).
+        "sellable": sellable_for("service", service, buybox_ready=selected is not None),
+        "day": day,
+        "starts": starts,
+        "next_free": next_free,  # R3: ближайший свободный старт (empty-state)
+        "selected": selected,
+        "resources": resources if len(resources) > 1 else [],  # пикер только при >1
+        "chosen_resource": chosen,
+        "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
+        "deposit_required": service.deposit_cents > 0
+        and getattr(tenant, "payments_enabled", False),
+        "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
+        "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
+        "prev_day": day - timedelta(days=1) if day > today else None,
+        "next_day": day + timedelta(days=1) if day < max_day else None,
+        "cal_qs": f"&resource={chosen.pk}" if chosen else "",  # A3: параметр дня
+        **cal,
+    }
+    embed = _is_embed(request)
+    if request.GET.get("box") == "1":
+        # Багфикс 2026-07-27: фрагмент #svc-box для fetch-свопа селектора
+        # (выбор даты/времени без перезагрузки страницы; фолбэк — обычный GET).
+        return render(
+            request,
+            "storefront/_service_slots_box.html",
+            {**ctx, "embed": embed, "embed_qs": "&embed=1" if embed else ""},
+        )
+    return _render_embed(request, "storefront/service_slots.html", ctx, embed)
 
 
 def service_detail(request, pk):
@@ -560,25 +565,35 @@ def termin_slots(request, pk):
         today,
         max_day,
     )
+    ctx = {
+        "resource": resource,
+        "day": day,
+        "slots": slots,
+        "group": resource.capacity > 1,
+        "selected": selected,
+        "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
+        "deposit_required": resource.deposit_cents > 0
+        and getattr(getattr(request, "tenant", None), "payments_enabled", False),
+        "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
+        "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
+        "prev_day": day - timedelta(days=1) if day > today else None,
+        "next_day": day + timedelta(days=1) if day < max_day else None,
+        "cal_qs": "",  # A3: ресурс уже в пути URL — доп. параметров дня нет
+        **cal,
+    }
+    embed = _is_embed(request)
+    if request.GET.get("box") == "1":
+        # Багфикс 2026-07-27: фрагмент #svc-box для fetch-свопа селектора
+        # (выбор даты/времени столика без перезагрузки; фолбэк — обычный GET).
+        return render(
+            request,
+            "storefront/_booking_slots_box.html",
+            {**ctx, "embed": embed, "embed_qs": "&embed=1" if embed else ""},
+        )
     return _render_embed(
         request,
         "storefront/booking_slots.html",
-        {
-            "resource": resource,
-            "day": day,
-            "slots": slots,
-            "group": resource.capacity > 1,
-            "selected": selected,
-            "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
-            "deposit_required": resource.deposit_cents > 0
-            and getattr(getattr(request, "tenant", None), "payments_enabled", False),
-            "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
-            "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
-            "prev_day": day - timedelta(days=1) if day > today else None,
-            "next_day": day + timedelta(days=1) if day < max_day else None,
-            "cal_qs": "",  # A3: ресурс уже в пути URL — доп. параметров дня нет
-            **cal,
-        },
+        ctx,
         _is_embed(request),
     )
 

@@ -21,81 +21,13 @@
   {% endfor %}
 {% endif %}
 
-{# A3: визуальный календарь наличия (день со слотами кликабелен) над дневной навигацией. #}
-{% include "storefront/_booking_calendar.html" %}
-
-<div class="flex items-center justify-between mb-4 max-w-md">
-  {% if prev_day %}
-    <a href="?tag={{ prev_day|date:'Y-m-d' }}{{ embed_qs }}" class="hover:underline text-sm" style="color: var(--accent);">← {{ prev_day|date:"D d.m." }}</a>
-  {% else %}<span></span>{% endif %}
-  <span class="font-semibold">{{ day|date:"l, d.m.Y" }}</span>
-  {% if next_day %}
-    <a href="?tag={{ next_day|date:'Y-m-d' }}{{ embed_qs }}" class="hover:underline text-sm" style="color: var(--accent);">{{ next_day|date:"D d.m." }} →</a>
-  {% else %}<span></span>{% endif %}
+{% comment %}Багфикс 2026-07-27: динамическая часть (календарь/дни/времена/форма)
+— в партиале; выбор даты и времени свапает #svc-box fetch'ем (?box=1) БЕЗ
+перезагрузки страницы (фидбэк владельца: ресторан «при выборе даты страница
+обновляется, так же при выборе столика»).{% endcomment %}
+<div id="svc-box">
+{% include "storefront/_booking_slots_box.html" %}
 </div>
 
-{% if slots %}
-{% if group %}<p class="text-sm text-gray-500 mb-2">{% trans "Group course — pick a time, free spots are shown." %}</p>{% endif %}
-<div class="flex flex-wrap gap-2 mb-6 max-w-xl">
-  {% for start, end, spots in slots %}
-    <a href="?tag={{ day|date:'Y-m-d' }}&slot={{ start.isoformat|urlencode }}{{ embed_qs }}"
-       class="px-4 py-2 rounded-lg text-sm font-medium border
-              {% if selected and selected.0 == start %}text-white border-transparent{% else %}bg-white border-gray-300 hover:border-gray-400{% endif %}"
-       {% if selected and selected.0 == start %}style="background: var(--accent);"{% endif %}>
-      {{ start|time:"H:i" }}{% if group %} <span class="text-xs opacity-75">· {% blocktrans count n=spots %}{{ n }} spot{% plural %}{{ n }} spots{% endblocktrans %}</span>{% endif %}
-    </a>
-  {% endfor %}
-</div>
-{% else %}
-<p class="text-gray-500 mb-6">{% trans "No free slots on this day — try another date." %}</p>
-{% endif %}
-
-{% if selected %}
-<form method="post" action="{% url 'storefront-termin-book' resource.pk %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
-  {% csrf_token %}
-  {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
-  <h2 class="font-semibold">{{ day|date:"d.m.Y" }} · {{ selected.0|time:"H:i" }}–{{ selected.1|time:"H:i" }}</h2>
-  <input type="hidden" name="start" value="{{ selected.0.isoformat }}">
-  <input type="hidden" name="end" value="{{ selected.1.isoformat }}">
-  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
-      <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_party">{% trans "Guests" %}</label>
-      <input id="id_party" name="party_size" type="number" value="2" min="1" max="50" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-  </div>
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-      <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-      <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-  </div>
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
-    <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
-  </div>
-  {% if passes_enabled %}
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_pass">{% trans "Pass code (optional)" %}</label>
-      <input id="id_pass" name="pass_code" type="text" placeholder="K-XXXXXX" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-      <p class="text-xs text-gray-400 mt-1">{% trans "Have a multi-visit pass? Enter the code to redeem one visit." %}</p>
-    </div>
-  {% endif %}
-  {% include "storefront/_extras.html" %}
-  {% if deposit_required %}
-    <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
-  {% endif %}
-  <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
-</form>
-{% elif slots %}
-<p class="text-sm text-gray-400">{% trans "Pick a time to continue." %}</p>
-{% endif %}
+{% include "storefront/_svc_box_script.html" %}
 {% endblock %}

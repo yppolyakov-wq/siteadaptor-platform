@@ -1,0 +1,31 @@
+{% comment %}Багфикс 2026-07-27 (фидбэк владельца: «при выборе даты/столика
+страница обновляется»): делегированный перехват внутренних ссылок селектора
+(#svc-box: ?tag/?cal/?slot/?resource) — fetch того же URL с &box=1 отдаёт только
+фрагмент, innerHTML-своп без перезагрузки; выбранное время докручивает к форме.
+Фолбэк при любой ошибке — обычная навигация. Общий для service_slots (услуги)
+и booking_slots (ресурсы: столики/курсы).{% endcomment %}
+<script>
+(function () {
+  if (window.__svcBoxBound) return;
+  window.__svcBoxBound = true;
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('#svc-box a[href^="?"]');
+    if (!a || !window.fetch) return;
+    e.preventDefault();
+    var url = location.pathname + a.getAttribute("href");
+    fetch(url + "&box=1", { headers: { "X-Requested-With": "fetch" } })
+      .then(function (r) { if (!r.ok) throw 0; return r.text(); })
+      .then(function (html) {
+        var box = document.getElementById("svc-box");
+        if (!box) throw 0;
+        box.innerHTML = html;
+        history.replaceState(null, "", url);
+        if (url.indexOf("slot=") !== -1) {
+          var f = box.querySelector('form[method="post"]');
+          if (f) f.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      })
+      .catch(function () { location.href = url; });
+  });
+})();
+</script>

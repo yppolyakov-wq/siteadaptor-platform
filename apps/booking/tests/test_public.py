@@ -564,3 +564,42 @@ def test_service_detail_upsell_products_section():
     req.tenant.site_config = {"service_detail": {"hidden": ["upsell"]}}
     body = public_views.service_detail(req, pk=svc.pk).content.decode()
     assert "Goes well with this" not in body  # скрыто в билдере
+
+
+# --- Багфикс 2026-07-27: fetch-своп селектора (?box=1) — дата/время без перезагрузки
+
+
+def test_termin_slots_page_wraps_selector_in_box():
+    resource = _resource()
+    body = public_views.termin_slots(_req(), pk=resource.pk).content.decode()
+    assert 'id="svc-box"' in body and "__svcBoxBound" in body  # обёртка + скрипт
+
+
+def test_termin_slots_box_fragment_mode():
+    resource = _resource()
+    body = public_views.termin_slots(
+        _req(data={"tag": DAY.isoformat(), "box": "1"}), pk=resource.pk
+    ).content.decode()
+    assert "10:00" in body and "slot=" in body  # сетка времён во фрагменте
+    assert "<html" not in body and 'id="svc-box"' not in body  # ТОЛЬКО фрагмент
+    assert "Reserve your spot online" not in body  # hero-шапка не входит
+    # embed переживает своп: ссылки фрагмента несут embed=1
+    embed = public_views.termin_slots(
+        _req(data={"tag": DAY.isoformat(), "box": "1", "embed": "1"}), pk=resource.pk
+    ).content.decode()
+    assert "embed=1" in embed
+
+
+def test_service_slots_page_and_box_fragment():
+    service = _service()
+    _resource()  # расписание ресурса даёт старты услуге
+    page = public_views.service_slots(
+        _req(path=f"/termin/leistung/{service.pk}/"), pk=service.pk
+    ).content.decode()
+    assert 'id="svc-box"' in page and "__svcBoxBound" in page
+    frag = public_views.service_slots(
+        _req(path=f"/termin/leistung/{service.pk}/", data={"tag": DAY.isoformat(), "box": "1"}),
+        pk=service.pk,
+    ).content.decode()
+    assert "<html" not in frag and 'id="svc-box"' not in frag
+    assert "?tag=" in frag and "slot=" in frag  # селектор дней + стартов во фрагменте
