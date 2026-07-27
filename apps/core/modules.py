@@ -617,6 +617,30 @@ def nav_task_label(nav_key: str) -> str:
 # плоский список якорей вместо групп AB1. Sortiment/Kunden/Finanzen/Auswertungen
 # достижимы через хаб-табы и «Funktion hinzufügen» — из первого уровня убраны.
 # classic_ui → пусто (шаблон рендерит прежний группированный сайдбар, Р7).
+def _sales_nav_item(tenant) -> dict:
+    """Якорь «Verkäufe»: ведёт в представление ST-5b (архетип-дефолт/выбор
+    владельца) — у отеля это Belegungsplan (календарь = главная доска, запрос
+    владельца 2026-07-27), у магазина — лента заказов; Board открывается
+    дополнительно сегмент-контролом на самой странице. nav_key = nav целевой
+    страницы (подсветка актива)."""
+    from apps.core import orders_view as ov
+
+    url_name = ov.entry_url_name(tenant)
+    nav_key = {
+        "board": "board",
+        "orders:order-list": "orders",
+        "booking:calendar": "booking",
+        "stays:calendar": "stays",
+    }.get(url_name, "board")
+    return {
+        "url_name": url_name,
+        "nav_key": nav_key,
+        "icon": "🗂️",
+        "label": NAV_TASK_LABELS["board"],
+        "search": "verkäufe bestellungen termine board kalender belegungsplan",
+    }
+
+
 def sidebar_nav(tenant) -> list[dict]:
     """Якоря компактного сайдбара (не-classic). Гейты — по активным модулям;
     nav_key = значение `nav` целевой страницы (подсветка актива)."""
@@ -630,13 +654,7 @@ def sidebar_nav(tenant) -> list[dict]:
             "label": NAV_TASK_LABELS["dashboard"],
             "search": "übersicht dashboard heute",
         },
-        {
-            "url_name": "board",
-            "nav_key": "board",
-            "icon": "🗂️",
-            "label": NAV_TASK_LABELS["board"],
-            "search": "verkäufe bestellungen termine board kalender",
-        },
+        _sales_nav_item(tenant),
     ]
     if any(is_module_active(tenant, m) for m in ("catalog", "booking", "stays", "events")):
         items.append(

@@ -95,3 +95,28 @@ def test_compact_sidebar_renders_on_dashboard():
     assert 'href="/dashboard/marketing/"' in html  # якорь Marketing → центр ST-6
     assert 'href="/dashboard/integrationen/"' in html
     assert "data-inbox-badge" in html  # бейдж переехал на Marketing-якорь
+
+
+def test_sales_anchor_respects_orders_view_default():
+    """Запрос владельца 2026-07-27: у отеля «Verkäufe» = Belegungsplan (календарь
+    как главная доска); Board открывается дополнительно сегмент-контролом ST-5b."""
+    # Фабрика включает все модули → выключаем конкурентов primary (как в
+    # test_orders_view): у реального отеля events/booking выключены пресетом.
+    hotel = TenantFactory(
+        slug="sbho", name="SbHo", business_type="hotel", disabled_modules=["events", "booking"]
+    )
+    item = next(
+        it for it in modules.sidebar_nav(hotel) if it["url_name"] in ("board", "stays:calendar")
+    )
+    assert item["url_name"] == "stays:calendar" and item["nav_key"] == "stays"
+
+    shop = TenantFactory(
+        slug="sbsh",
+        name="SbSh",
+        business_type="shop",
+        disabled_modules=["events", "booking", "stays", "jobs"],
+    )
+    item = next(
+        it for it in modules.sidebar_nav(shop) if it["url_name"] in ("board", "orders:order-list")
+    )
+    assert item["url_name"] == "orders:order-list" and item["nav_key"] == "orders"
