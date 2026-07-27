@@ -13356,3 +13356,13 @@ msgstr "Add room"
 
 msgid "Room added."
 msgstr "Room added."
+
+msgid "no room assigned"
+msgstr "no room assigned"
+
+msgid "This room is taken for those dates."
+msgstr "This room is taken for those dates."
+
+#, python-format
+msgid "%(n)s bookings without an assigned room — click a booking to assign one."
+msgstr "%(n)s bookings without an assigned room — click a booking to assign one."

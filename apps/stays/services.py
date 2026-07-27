@@ -103,6 +103,49 @@ def _apply_voucher(code, base_cents):
     return discount, code
 
 
+class RoomConflict(Exception):
+    """PMS-R2: на выбранной комнате уже есть пересекающаяся активная бронь."""
+
+
+def free_rooms_for(booking):
+    """PMS-R2: активные комнаты категории брони, свободные на её диапазон
+    (для селекта назначения; своя комната включена). Пусто, если комнат нет."""
+    from apps.core import status_registry
+
+    from .models import Room, StayBooking
+
+    rooms = list(Room.objects.filter(unit_id=booking.unit_id, is_active=True))
+    if not rooms:
+        return []
+    busy = set(
+        StayBooking.objects.filter(
+            room__in=rooms,
+            status__in=status_registry.active_statuses_for("stay"),
+            arrival__lt=booking.departure,
+            departure__gt=booking.arrival,
+        )
+        .exclude(pk=booking.pk)
+        .values_list("room_id", flat=True)
+    )
+    return [r for r in rooms if r.id not in busy]
+
+
+def assign_room(booking, room) -> None:
+    """PMS-R2: назначить/снять физический номер. room=None — снять; комната
+    чужой категории или занятая на диапазон → RoomConflict."""
+    if room is None:
+        if booking.room_id:
+            booking.room = None
+            booking.save(update_fields=["room", "updated_at"])
+        return
+    if room.unit_id != booking.unit_id:
+        raise RoomConflict()
+    if room.id not in {r.id for r in free_rooms_for(booking)}:
+        raise RoomConflict()
+    booking.room = room
+    booking.save(update_fields=["room", "updated_at"])
+
+
 def sync_room_quantity(unit) -> None:
     """PMS-R1: при заведённых физических комнатах quantity = число активных.
 
@@ -266,11 +309,13 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
 
     if dest.pk != booking.unit_id:
         booking.unit = dest
+        # PMS-R2: физический номер принадлежит категории — при смене сбрасываем.
+        booking.room = None
     unit = dest
     booking.arrival = arrival
     booking.departure = departure
     if not reprice:
-        booking.save(update_fields=["unit", "arrival", "departure", "updated_at"])
+        booking.save(update_fields=["unit", "room", "arrival", "departure", "updated_at"])
         return booking
     # A5a база + H1 тариф (снимок) + #7 Extras (снимки) − H4a скидка (снимок) +
     # H9 Kurtaxe (пересчёт по ночам). Промокод не перегашиваем — держим снимок скидки.
@@ -290,6 +335,11 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     booking.total_cents = max(0, lodging_cents - booking.discount_cents) + booking.kurtaxe_cents
     booking.save(
         update_fields=[
+            # PMS-R2 (фикс латентного бага): смена юнита раньше НЕ сохранялась
+            # в reprice-ветке — "unit" отсутствовал в update_fields (путь был
+            # недостижим: кнопка Move юнит не передавала; форма правки — передаёт).
+            "unit",
+            "room",
             "arrival",
             "departure",
             "total_cents",

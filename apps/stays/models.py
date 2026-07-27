@@ -300,6 +300,12 @@ class StayBooking(TimestampedModel):
     # G5: число забронированных номеров этого типа в одной брони (семьи/группы).
     # Бронь занимает ``rooms`` из quantity на каждую ночь; цена/депозит × rooms.
     rooms = models.PositiveSmallIntegerField(default=1)
+    # PMS-R2: назначенный физический номер (NULL = «ohne Zimmer» — легитимно:
+    # онлайн/OTA-брони приходят без номера; назначает стойка). Комната
+    # принадлежит категории — при смене unit сбрасывается (move_stay).
+    room = models.ForeignKey(
+        Room, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
+    )
     # H5: разбивка гостей (вместимость = adults + children ≤ max_guests). guests
     # держим как итог для совместимости; adults/children — для Kurtaxe и отображения.
     adults = models.PositiveSmallIntegerField(default=1)

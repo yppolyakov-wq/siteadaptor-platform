@@ -21,6 +21,11 @@
   {% endfor %}
 {% endif %}
 
+{% if ohne_zimmer %}
+{# PMS-R2: брони без назначенного номера (категория с комнатами) #}
+<p class="mb-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 text-sm">⚠️ {% blocktrans with n=ohne_zimmer %}{{ n }} bookings without an assigned room — click a booking to assign one.{% endblocktrans %}</p>
+{% endif %}
+
 {# --- Belegungskalender: юниты × ночи --------------------------------------- #}
 <div class="flex items-center justify-between mb-3 max-w-md">
   <a href="?von={{ prev|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {% trans "Previous" %}</a>
@@ -78,7 +83,8 @@
                      {% if item.obj.bar_draggable %}cursor-grab active:cursor-grabbing{% endif %}"
                      title="{{ item.obj.customer }} · {{ item.obj.arrival|date:'d.m.' }}–{{ item.obj.departure|date:'d.m.Y' }} · {{ item.obj.reference_code }}">
                   {% if item.clip_left %}<span aria-hidden="true">‹</span>{% endif %}
-                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false">{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
+                  {# PMS-R2: назначенный номер видно прямо на плашке #}
+                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false">{% if item.obj.room %}🚪{{ item.obj.room.number }} · {% endif %}{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
                   {% if item.clip_right %}<span class="ml-auto" aria-hidden="true">›</span>{% endif %}
                 </div>
               </td>

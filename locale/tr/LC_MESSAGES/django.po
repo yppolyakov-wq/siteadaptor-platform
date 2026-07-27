@@ -13464,3 +13464,13 @@ msgstr "Oda ekle"
 
 msgid "Room added."
 msgstr "Oda eklendi."
+
+msgid "no room assigned"
+msgstr "oda atanmadı"
+
+msgid "This room is taken for those dates."
+msgstr "Bu oda o tarihlerde dolu."
+
+#, python-format
+msgid "%(n)s bookings without an assigned room — click a booking to assign one."
+msgstr "%(n)s rezervasyonun atanmış odası yok — atamak için rezervasyona tıklayın."

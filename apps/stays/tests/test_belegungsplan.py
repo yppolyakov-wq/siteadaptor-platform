@@ -413,3 +413,84 @@ def test_units_without_rooms_keep_manual_quantity():
     )
     unit.refresh_from_db()
     assert unit.quantity == 5  # ленивая активация: без комнат — как раньше
+
+
+# --- PMS-R2: назначение физического номера --------------------------------------
+
+
+def test_assign_room_and_conflict():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=2)
+    r101 = Room.objects.create(unit=unit, number="101")
+    Room.objects.create(unit=unit, number="102")
+    a = _book(unit, 1, 4)
+    b = _book(unit, 2, 5)  # пересекается с a
+    services.assign_room(a, r101)
+    a.refresh_from_db()
+    assert a.room_id == r101.id
+    with pytest.raises(services.RoomConflict):
+        services.assign_room(b, r101)  # занята пересекающейся бронью
+    assert [r.number for r in services.free_rooms_for(b)] == ["102"]
+    services.assign_room(a, None)  # снять
+    a.refresh_from_db()
+    assert a.room_id is None
+
+
+def test_update_action_assigns_room_and_unit_change_clears_it():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=1)
+    other = _unit()
+    room = Room.objects.create(unit=unit, number="301")
+    booking = _book(unit, 1, 4)
+    views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "update",
+                "arrival": booking.arrival.isoformat(),
+                "departure": booking.departure.isoformat(),
+                "unit": str(unit.pk),
+                "adults": "1",
+                "children": "0",
+                "room": str(room.pk),
+            },
+        ),
+        pk=booking.pk,
+    )
+    booking.refresh_from_db()
+    assert booking.room_id == room.id
+    # смена категории → комната сброшена (принадлежит старой)
+    views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "update",
+                "arrival": booking.arrival.isoformat(),
+                "departure": booking.departure.isoformat(),
+                "unit": str(other.pk),
+                "adults": "1",
+                "children": "0",
+                "room": str(room.pk),  # устаревший селект — игнор
+                "reprice": "1",
+            },
+        ),
+        pk=booking.pk,
+    )
+    booking.refresh_from_db()
+    assert booking.unit_id == other.id and booking.room_id is None
+
+
+def test_calendar_shows_ohne_zimmer_chip_and_room_on_bar():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=2)
+    r = Room.objects.create(unit=unit, number="101")
+    Room.objects.create(unit=unit, number="102")
+    with_room = _book(unit, 1, 4)
+    services.assign_room(with_room, r)
+    _book(unit, 2, 5)  # без номера
+    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    assert "without an assigned room" in body  # чип «ohne Zimmer»
+    assert "🚪101" in body  # номер на плашке

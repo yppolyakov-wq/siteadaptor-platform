@@ -5,7 +5,7 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
 Плюс форма «Bearbeiten» — даты/номер/гости/заметка с опц. перерасчётом цены
 (до сих пор бронь редактировалась только переносом дат).{% endcomment %}
 <div class="flex items-center justify-between gap-3 flex-wrap mt-2 mb-1">
-  <h1 class="text-2xl font-bold">{{ b.unit.name }} · {{ b.reference_code }}</h1>
+  <h1 class="text-2xl font-bold">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %} · {{ b.reference_code }}</h1>
   <span class="text-xs font-semibold px-2.5 py-1 rounded-full
     {% if b.status == 'confirmed' %}bg-emerald-100 text-emerald-800
     {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
@@ -75,6 +75,16 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
         {% for u in units %}<option value="{{ u.pk }}" {% if u.pk == b.unit_id %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
       </select>
     </div>
+    {% if free_rooms or b.room %}
+    {# PMS-R2: физический номер — только свободные на диапазон комнаты категории #}
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">🚪 {% trans "Zimmer" %}</label>
+      <select name="room" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
+        <option value="">— {% trans "no room assigned" %}</option>
+        {% for r in free_rooms %}<option value="{{ r.pk }}" {% if r.pk == b.room_id %}selected{% endif %}>🚪 {{ r.number }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Erwachsene" %}</label>

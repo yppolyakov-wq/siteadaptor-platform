@@ -13528,3 +13528,13 @@ msgstr "Додати кімнату"
 
 msgid "Room added."
 msgstr "Кімнату додано."
+
+msgid "no room assigned"
+msgstr "номер не призначено"
+
+msgid "This room is taken for those dates."
+msgstr "Ця кімната зайнята на обрані дати."
+
+#, python-format
+msgid "%(n)s bookings without an assigned room — click a booking to assign one."
+msgstr "Броней без призначеного номера: %(n)s — натисніть на бронь, щоб призначити."

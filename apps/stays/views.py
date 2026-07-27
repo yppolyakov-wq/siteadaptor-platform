@@ -140,7 +140,7 @@ def calendar(request):
             arrival__lt=window_end,
             departure__gt=start,
         )
-        .select_related("unit", "customer")
+        .select_related("unit", "customer", "room")
         .order_by("arrival")
     )
     # Батч C (Belegungsplan): плашки броней/блокировок по дорожкам поверх сетки.
@@ -165,6 +165,11 @@ def calendar(request):
         )
     bars = availability.booking_bars(units, start, HORIZON_DAYS, bookings, blocks)
     grid = [(unit, cells, bars.get(unit.id) or []) for unit, cells in rows]
+    # PMS-R2: брони «ohne Zimmer» (категория с комнатами, номер не назначен).
+    _units_with_rooms = set(
+        Room.objects.filter(unit__in=units, is_active=True).values_list("unit_id", flat=True)
+    )
+    ohne_zimmer = sum(1 for b in bookings if b.room_id is None and b.unit_id in _units_with_rooms)
     # Фидбэк 2026-07-27: клик по плашке открывает карточку брони СРАЗУ ПОД
     # календарём (?buchung=<pk>; &box=1 — fetch-фрагмент без перезагрузки).
     selected = None
@@ -186,6 +191,8 @@ def calendar(request):
         "registration": sel_registration,
         "can_delete": _can_delete_booking(selected) if selected else False,
         "units": units,
+        # PMS-R2: селект физического номера (пусто = у категории нет комнат).
+        "free_rooms": services.free_rooms_for(selected) if selected else [],
     }
     if request.GET.get("box") == "1":
         if selected is None:
@@ -197,6 +204,7 @@ def calendar(request):
         {
             **panel_ctx,
             "selected_booking": selected,
+            "ohne_zimmer": ohne_zimmer,
             "nav": "stays",
             "start": start,
             "prev": start - timedelta(days=HORIZON_DAYS),
@@ -306,6 +314,18 @@ def stay_action(request, pk):
                 unit=target_unit,
                 reprice=reprice,
             )
+            # PMS-R2: назначение физического номера (после переноса — даты
+            # финальные). Селект другой категории (unit сменился) — устарел,
+            # игнорируем: комнату уже сбросил move_stay.
+            room_obj = None
+            room_pk = request.POST.get("room", "")
+            if room_pk:
+                room_obj = Room.objects.filter(pk=room_pk, unit_id=booking.unit_id).first()
+            if room_obj is not None or not room_pk:
+                try:
+                    services.assign_room(booking, room_obj)
+                except services.RoomConflict:
+                    messages.error(request, _("This room is taken for those dates."))
             messages.success(request, _("Stay updated."))
         except services.MinStay:
             messages.error(request, _("Below the minimum number of nights."))
@@ -417,6 +437,8 @@ def booking_detail(request, pk):
             "can_delete": _can_delete_booking(booking),
             # Фидбэк 2026-07-27: селект номера в форме «Buchung bearbeiten».
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
+            # PMS-R2: селект физического номера (пусто = у категории нет комнат).
+            "free_rooms": services.free_rooms_for(booking),
         },
     )
 
