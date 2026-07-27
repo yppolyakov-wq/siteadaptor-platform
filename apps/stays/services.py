@@ -103,6 +103,19 @@ def _apply_voucher(code, base_cents):
     return discount, code
 
 
+def sync_room_quantity(unit) -> None:
+    """PMS-R1: при заведённых физических комнатах quantity = число активных.
+
+    Счётчик остаётся единственным источником ёмкости для anti-oversell/цен;
+    комнаты — разбивка поверх (Вариант A). Без комнат — ничего не трогаем."""
+    if not unit.rooms.exists():
+        return
+    count = unit.rooms.filter(is_active=True).count()
+    if unit.quantity != count:
+        unit.quantity = count
+        unit.save(update_fields=["quantity", "updated_at"])
+
+
 def _get_or_create_customer(*, name, email, phone) -> Customer:
     if email:
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()

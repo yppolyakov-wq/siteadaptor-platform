@@ -13344,3 +13344,15 @@ msgstr "Please fill in at least one restriction."
 
 msgid "Online-Check-in (Meldeschein) schon jetzt ausfüllen"
 msgstr "Complete your online check-in (registration form) now"
+
+msgid "Rooms (physical numbers)"
+msgstr "Rooms (physical numbers)"
+
+msgid "capacity follows the room count"
+msgstr "capacity follows the room count"
+
+msgid "Add room"
+msgstr "Add room"
+
+msgid "Room added."
+msgstr "Room added."

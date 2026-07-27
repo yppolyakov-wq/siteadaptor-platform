@@ -13516,3 +13516,15 @@ msgstr "Заповніть хоча б одне обмеження."
 
 msgid "Online-Check-in (Meldeschein) schon jetzt ausfüllen"
 msgstr "Заповніть онлайн-реєстрацію (Meldeschein) заздалегідь"
+
+msgid "Rooms (physical numbers)"
+msgstr "Кімнати (фізичні номери)"
+
+msgid "capacity follows the room count"
+msgstr "місткість рахується за кількістю кімнат"
+
+msgid "Add room"
+msgstr "Додати кімнату"
+
+msgid "Room added."
+msgstr "Кімнату додано."

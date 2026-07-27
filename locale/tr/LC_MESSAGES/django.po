@@ -13452,3 +13452,15 @@ msgstr "Lütfen en az bir kısıtlama girin."
 
 msgid "Online-Check-in (Meldeschein) schon jetzt ausfüllen"
 msgstr "Online check-in'i (kayıt formunu) şimdiden doldurun"
+
+msgid "Rooms (physical numbers)"
+msgstr "Odalar (fiziksel numaralar)"
+
+msgid "capacity follows the room count"
+msgstr "kapasite oda sayısını izler"
+
+msgid "Add room"
+msgstr "Oda ekle"
+
+msgid "Room added."
+msgstr "Oda eklendi."

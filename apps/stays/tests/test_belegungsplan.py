@@ -345,3 +345,71 @@ def test_booking_detail_page_has_edit_form():
     booking = _book(unit, 1, 4)
     body = views.booking_detail(_req(), pk=booking.pk).content.decode()
     assert 'value="update"' in body and "Buchung bearbeiten" in body
+
+
+# --- PMS-R1: физические номера (Zimmer) поверх quantity -------------------------
+
+
+def test_room_add_delete_syncs_quantity():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=3)
+    views.units(_req("post", data={"action": "room_add", "unit": str(unit.pk), "number": "101"}))
+    views.units(_req("post", data={"action": "room_add", "unit": str(unit.pk), "number": "102"}))
+    unit.refresh_from_db()
+    assert unit.rooms.count() == 2 and unit.quantity == 2  # ёмкость = число комнат
+
+    # дубль номера не плодится (get_or_create)
+    views.units(_req("post", data={"action": "room_add", "unit": str(unit.pk), "number": "101"}))
+    assert unit.rooms.count() == 2
+
+    room = Room.objects.get(unit=unit, number="101")
+    views.units(_req("post", data={"action": "room_delete", "room": str(room.pk)}))
+    unit.refresh_from_db()
+    assert unit.quantity == 1
+
+
+def test_unit_settings_quantity_readonly_with_rooms():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=1)
+    Room.objects.create(unit=unit, number="201")
+    Room.objects.create(unit=unit, number="202")
+    views.units(
+        _req(
+            "post",
+            data={
+                "action": "unit_settings",
+                "unit": str(unit.pk),
+                "name": unit.name,
+                "description": "",
+                "price_eur": "80",
+                "quantity": "9",  # ручной ввод игнорируется
+                "min_nights": "1",
+                "max_guests": "2",
+            },
+        )
+    )
+    unit.refresh_from_db()
+    assert unit.quantity == 2  # ёмкость = активные комнаты, не POST
+
+
+def test_units_without_rooms_keep_manual_quantity():
+    unit = _unit(quantity=1)
+    views.units(
+        _req(
+            "post",
+            data={
+                "action": "unit_settings",
+                "unit": str(unit.pk),
+                "name": unit.name,
+                "description": "",
+                "price_eur": "80",
+                "quantity": "5",
+                "min_nights": "1",
+                "max_guests": "2",
+            },
+        )
+    )
+    unit.refresh_from_db()
+    assert unit.quantity == 5  # ленивая активация: без комнат — как раньше

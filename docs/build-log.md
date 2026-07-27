@@ -6379,3 +6379,19 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - **DSGVO-purge видит отельных гостей:** кандидаты = без активных резерваций И
   без активных stays; last_activity = GREATEST(reservations, stays) — раньше
   гость только с StayBooking не обезличивался никогда.
+
+## 2026-07-28 — PMS-R1: физические номера (Zimmer) — модель + CRUD + синк ёмкости
+
+План `docs/pms-rooms-plan-2026-07-28.md` (развилка одобрена владельцем).
+⚠️ миграция `stays/0025` (модель Room, аддитивная).
+
+- Модель `stays.Room` (unit FK, number, sort, is_active, notes; unique
+  (unit, number)) — разбивка ПОВЕРХ счётчика quantity (Вариант A, паттерн
+  склада): движки брони/цен не тронуты, без комнат всё байт-в-байт.
+- `services.sync_room_quantity` — при заведённых комнатах quantity = число
+  активных; ручной ввод quantity в форме юнита игнорируется (комнаты — истина).
+- Кабинет: секция «Rooms (physical numbers)» на `stays:units` (чипы 🚪 +
+  добавить/удалить, get_or_create от дублей), actions `room_add`/`room_delete`.
+- Замки: +3 теста (синк при add/delete/дубле; quantity read-only при комнатах;
+  ленивая активация без комнат). 4 msgid × 4 .po. Дальше: R2 (назначение
+  номера брони + «Ohne Zimmer»), R3 (шахматка построчно), R4 (хаускипинг-lite).

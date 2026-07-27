@@ -233,6 +233,28 @@ class SeasonRate(TimestampedModel):
         return self.price_cents / 100
 
 
+class Room(TimestampedModel):
+    """PMS-R1 (план pms-rooms-plan-2026-07-28): физический номер («101») внутри
+    категории StayUnit. Разбивка ПОВЕРХ счётчика (Вариант A, паттерн склада):
+    пока комнат нет — ничего не меняется нигде; при заведённых quantity
+    синхронизируется с числом активных комнат (services.sync_room_quantity)."""
+
+    unit = models.ForeignKey(StayUnit, on_delete=models.CASCADE, related_name="rooms")
+    number = models.CharField(max_length=40)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    notes = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ["sort_order", "number"]
+        constraints = [
+            models.UniqueConstraint(fields=["unit", "number"], name="stays_room_unique_number")
+        ]
+
+    def __str__(self):
+        return f"{self.number} · {self.unit.name}"
+
+
 class UnitBlock(TimestampedModel):
     """Блокировка дат юнита (ремонт/своё проживание/Wartung). Занимает ночи
     ``[start_date, end_date]`` ВКЛЮЧИТЕЛЬНО — считается как занятость при подборе

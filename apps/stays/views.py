@@ -29,6 +29,7 @@ from .models import (
     AMENITIES,
     ICalSource,
     RatePlan,
+    Room,
     SeasonRate,
     StayBooking,
     StaySettings,
@@ -484,6 +485,10 @@ def units(request):
             unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
             unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
             unit.quantity = _int(request.POST.get("quantity", "1"), 1, 1, 999)
+            # PMS-R1: при заведённых комнатах ёмкость считается по ним —
+            # ручной ввод quantity игнорируется (поле в форме read-only).
+            if unit.rooms.exists():
+                unit.quantity = unit.rooms.filter(is_active=True).count()
             unit.min_nights = _int(request.POST.get("min_nights", "1"), 1, 1, 365)
             unit.max_guests = _int(request.POST.get("max_guests", "2"), 2, 1, 99)
             unit.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
@@ -564,6 +569,18 @@ def units(request):
                 messages.error(request, _("Invalid dates."))
         elif action == "block_delete":
             UnitBlock.objects.filter(pk=request.POST.get("block")).delete()
+        elif action == "room_add":  # PMS-R1: физический номер категории («101»)
+            unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
+            number = request.POST.get("number", "").strip()[:40]
+            if number:
+                Room.objects.get_or_create(unit=unit, number=number)
+                services.sync_room_quantity(unit)
+                messages.success(request, _("Room added."))
+        elif action == "room_delete":  # PMS-R1: удалить комнату + синк ёмкости
+            room = get_object_or_404(Room, pk=request.POST.get("room"))
+            room_unit = room.unit
+            room.delete()
+            services.sync_room_quantity(room_unit)
         elif action == "ical_add":  # A5b: подписка на внешний iCal-фид
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             url = request.POST.get("url", "").strip()
@@ -684,9 +701,9 @@ def units(request):
         return redirect("stays:units")
 
     units = list(
-        StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources").order_by(
-            "-is_active", "name"
-        )
+        StayUnit.objects.prefetch_related(
+            "blocks", "season_rates", "ical_sources", "rooms"
+        ).order_by("-is_active", "name")
     )
     for u in units:
         u.ical_export_url = request.build_absolute_uri(

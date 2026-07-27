@@ -351,6 +351,27 @@
       </div>
       {% endif %}
 
+      {# PMS-R1: физические номера (Zimmer) — разбивка поверх quantity #}
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Rooms (physical numbers)" %} <span class="text-gray-300">· {% trans "capacity follows the room count" %}</span></p>
+        <div class="flex items-center gap-2 flex-wrap mb-1">
+        {% for r in u.rooms.all %}
+          <span class="inline-flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 rounded-lg px-2 py-1">🚪 {{ r.number }}
+            <form method="post" class="inline">{% csrf_token %}
+              <input type="hidden" name="action" value="room_delete"><input type="hidden" name="room" value="{{ r.pk }}">
+              <button class="text-red-500 hover:underline text-xs" title="{% trans 'Remove' %}">×</button>
+            </form>
+          </span>
+        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
+        </div>
+        <form method="post" class="flex items-end gap-2 flex-wrap mt-1">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="room_add"><input type="hidden" name="unit" value="{{ u.pk }}">
+          <input type="text" name="number" required placeholder="101" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add room" %}</button>
+        </form>
+      </div>
+
       {# блокировки дат #}
       <div class="mt-4 pt-4 border-t border-gray-100">
         <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Blocked dates" %}</p>
