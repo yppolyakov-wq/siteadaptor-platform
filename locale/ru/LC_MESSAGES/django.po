@@ -13551,3 +13551,21 @@ msgstr "Эта комната занята на выбранные даты."
 #, python-format
 msgid "%(n)s bookings without an assigned room — click a booking to assign one."
 msgstr "Броней без назначенного номера: %(n)s — нажмите на бронь, чтобы назначить."
+
+msgid "Housekeeping"
+msgstr "Уборка номеров"
+
+msgid "Rooms to clean after check-out."
+msgstr "Комнаты к уборке после выезда."
+
+msgid "Room marked clean."
+msgstr "Комната отмечена убранной."
+
+msgid "Sauber"
+msgstr "Убрано"
+
+msgid "Zu reinigen"
+msgstr "Требует уборки"
+
+msgid "Geprüft"
+msgstr "Проверено"

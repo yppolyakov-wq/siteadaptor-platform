@@ -180,7 +180,14 @@ def room_lane_rows(unit, rooms, start_day, num_days, bookings, blocks):
         ]
         packed = _pack_lanes(segs, num_days) or [[{"gap": num_days}]]
         for cells in packed:
-            out.append({"label": room.number, "room_id": room.id, "cells": cells})
+            out.append(
+                {
+                    "label": room.number,
+                    "room_id": room.id,
+                    "hk": room.housekeeping,  # PMS-R4: 🧹-бейдж на строке
+                    "cells": cells,
+                }
+            )
     free_segs = [
         s
         for b in bookings

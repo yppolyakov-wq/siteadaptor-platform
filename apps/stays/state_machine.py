@@ -35,6 +35,13 @@ class StayBookingSM(StateMachine):
                 instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
             )
 
+        # PMS-R4: выезд освобождает физический номер грязным — хаускипинг видит
+        # его в списке уборки, стойка отмечает «Sauber».
+        if t.dst == "fulfilled" and instance.room_id:
+            from .models import Room
+
+            Room.objects.filter(pk=instance.room_id).update(housekeeping=Room.HK_DIRTY)
+
         # Выезд → запись в журнал выручки (идемпотентно по source_ref). НДС 7 %
         # — размещение (Beherbergung) льготная ставка; завтрак/доп — вне v1.
         if t.dst == "fulfilled":

@@ -13538,3 +13538,21 @@ msgstr "Ця кімната зайнята на обрані дати."
 #, python-format
 msgid "%(n)s bookings without an assigned room — click a booking to assign one."
 msgstr "Броней без призначеного номера: %(n)s — натисніть на бронь, щоб призначити."
+
+msgid "Housekeeping"
+msgstr "Прибирання номерів"
+
+msgid "Rooms to clean after check-out."
+msgstr "Кімнати до прибирання після виїзду."
+
+msgid "Room marked clean."
+msgstr "Кімнату позначено прибраною."
+
+msgid "Sauber"
+msgstr "Прибрано"
+
+msgid "Zu reinigen"
+msgstr "Потребує прибирання"
+
+msgid "Geprüft"
+msgstr "Перевірено"

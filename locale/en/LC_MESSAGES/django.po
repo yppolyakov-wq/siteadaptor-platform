@@ -13366,3 +13366,21 @@ msgstr "This room is taken for those dates."
 #, python-format
 msgid "%(n)s bookings without an assigned room — click a booking to assign one."
 msgstr "%(n)s bookings without an assigned room — click a booking to assign one."
+
+msgid "Housekeeping"
+msgstr "Housekeeping"
+
+msgid "Rooms to clean after check-out."
+msgstr "Rooms to clean after check-out."
+
+msgid "Room marked clean."
+msgstr "Room marked clean."
+
+msgid "Sauber"
+msgstr "Clean"
+
+msgid "Zu reinigen"
+msgstr "Needs cleaning"
+
+msgid "Geprüft"
+msgstr "Inspected"

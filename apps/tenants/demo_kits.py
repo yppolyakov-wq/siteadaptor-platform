@@ -1676,6 +1676,7 @@ HOTEL = DemoKit(
             "area": 24,  # H3
             "bed": "Queensize-Bett",
             "amenities": ["wifi", "tv", "bath", "shower", "balcony", "coffee", "nonsmoking"],
+            "rooms": ["101", "102", "103", "104"],  # PMS-R: физические номера
             "season": [  # A5a: Hochsaison-Tarif
                 {
                     "label": "Hochsaison (Sommer)",
@@ -5855,7 +5856,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
     if kit.stay_units and is_active("stays"):
         from datetime import date
 
-        from apps.stays.models import SeasonRate, StayUnit
+        from apps.stays.models import Room, SeasonRate, StayUnit
 
         refs["stay_units"] = []
         for idx, spec in enumerate(kit.stay_units):
@@ -5896,6 +5897,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                         end_date=date.fromisoformat(s["end"]),
                         price_cents=int(Decimal(str(s["price"])) * 100),
                     )
+                # PMS-R: физические номера («101») — число = qty (синк ёмкости).
+                for j, num in enumerate(spec.get("rooms", [])):
+                    Room.objects.create(unit=unit, number=str(num), sort_order=j)
             else:
                 name, utype, qty, price, guests = spec
                 unit = StayUnit.objects.create(

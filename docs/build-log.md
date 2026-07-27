@@ -6426,3 +6426,19 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
 - Замки: +3 (раскладка строк; data-room/🚪 в рендере; назначение drop'ом +
   409 до переноса). Дальше PMS-R: R4 хаускипинг-lite; демо-комнаты hotel-кита —
   вместе с R4.
+
+## 2026-07-28 — PMS-R4: хаускипинг-lite + демо-комнаты hotel-кита — ВОЛНА PMS-R (R1–R4) ЗАКРЫТА
+
+⚠️ миграция `stays/0027` (Room.housekeeping, аддитивная; вся волна PMS-R:
+`stays/0025`+`0026`+`0027` — деплой владельцем).
+
+- `Room.housekeeping` (clean/dirty/inspected, лейблы lazy). Выезд
+  (`fulfilled`-хук StayBookingSM) помечает назначенную комнату dirty.
+- Панель «🧹 Housekeeping» на Belegungsplan (комнаты к уборке + кнопка
+  «✓ Sauber» → endpoint `stays:room-clean`, uuid-pk); 🧹-бейдж на строке
+  комнаты в шахматке.
+- Демо: hotel-кит заводит комнаты 101–104 у «Doppelzimmer Seeblick»
+  (dict-спека китов поддерживает "rooms"; ёмкость синкается = qty).
+  ⚠️ ops: `seed_demo_tenants --kit hotel --recreate` после деплоя.
+- Замок: выезд→dirty→панель/бейдж→Sauber→clean (полный цикл). 6 msgid × 4 .po.
+  Урок: pk Room — UUID (TimestampedModel) → маршруты `<uuid:pk>`, не int.

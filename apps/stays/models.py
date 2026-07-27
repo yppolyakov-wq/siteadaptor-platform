@@ -239,11 +239,22 @@ class Room(TimestampedModel):
     пока комнат нет — ничего не меняется нигде; при заведённых quantity
     синхронизируется с числом активных комнат (services.sync_room_quantity)."""
 
+    HK_CLEAN = "clean"
+    HK_DIRTY = "dirty"
+    HK_INSPECTED = "inspected"
+    HK_STATES = [
+        (HK_CLEAN, _("Sauber")),
+        (HK_DIRTY, _("Zu reinigen")),
+        (HK_INSPECTED, _("Geprüft")),
+    ]
+
     unit = models.ForeignKey(StayUnit, on_delete=models.CASCADE, related_name="rooms")
     number = models.CharField(max_length=40)
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     notes = models.CharField(max_length=200, blank=True)
+    # PMS-R4 (хаускипинг-lite): выезд гостя → dirty; стойка отмечает «Sauber».
+    housekeeping = models.CharField(max_length=12, choices=HK_STATES, default=HK_CLEAN)
 
     class Meta:
         ordering = ["sort_order", "number"]

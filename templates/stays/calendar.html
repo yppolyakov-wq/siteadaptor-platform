@@ -67,7 +67,7 @@
         строка на КАЖДУЮ комнату (🚪label; data-room = drop-назначение).{% endcomment %}
         {% for lr in lanes %}
         <tr data-unit="{{ unit.pk }}"{% if lr.room_id %} data-room="{{ lr.room_id }}"{% endif %}>
-          <td class="sticky left-0 bg-white z-10 px-3 text-[10px] text-gray-400 whitespace-nowrap">{% if lr.label %}🚪{{ lr.label }}{% endif %}</td>
+          <td class="sticky left-0 bg-white z-10 px-3 text-[10px] text-gray-400 whitespace-nowrap">{% if lr.label %}🚪{{ lr.label }}{% if lr.hk == "dirty" %} <span title="{% trans 'Zu reinigen' %}">🧹</span>{% endif %}{% endif %}</td>
           {% for item in lr.cells %}
             {% if item.gap %}
               <td colspan="{{ item.gap }}"></td>
@@ -113,6 +113,22 @@
 <div id="booking-panel" class="max-w-2xl scroll-mt-24 mb-6 {% if not selected_booking %}hidden{% endif %}">
   {% if selected_booking %}{% include "stays/_booking_card.html" %}{% endif %}
 </div>
+
+{% if dirty_rooms %}
+{# PMS-R4 (хаускипинг-lite): выезды пометили комнаты dirty — список уборки. #}
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-6 max-w-xl">
+  <h2 class="font-semibold mb-1">🧹 {% trans "Housekeeping" %}</h2>
+  <p class="text-xs text-gray-500 mb-2">{% trans "Rooms to clean after check-out." %}</p>
+  {% for r in dirty_rooms %}
+    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
+      <span>🚪{{ r.number }} · {{ r.unit.name }}</span>
+      <form method="post" action="{% url 'stays:room-clean' r.pk %}">{% csrf_token %}
+        <button class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1 hover:bg-emerald-50">✓ {% trans "Sauber" %}</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 {# --- брони в окне ---------------------------------------------------------- #}
 <h2 class="font-semibold mb-3">{% trans "Bookings in this period" %}</h2>

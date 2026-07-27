@@ -15,6 +15,7 @@ urlpatterns = [
     path("buchung/<uuid:pk>/", views.booking_detail, name="booking-detail"),
     # Батч C: hard-delete ручной брони без денег (гейт во вьюхе; GoBD-safe).
     path("buchung/<uuid:pk>/loeschen/", views.booking_delete, name="booking-delete"),
+    path("zimmer/<uuid:pk>/sauber/", views.room_clean, name="room-clean"),
     path("units/", views.units, name="units"),
     # D2.4: self-serve продвижение юнита в агрегаторе.
     path("units/<uuid:pk>/feature/", views.unit_feature, name="unit-feature"),

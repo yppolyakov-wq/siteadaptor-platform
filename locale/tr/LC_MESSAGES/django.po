@@ -13474,3 +13474,21 @@ msgstr "Bu oda o tarihlerde dolu."
 #, python-format
 msgid "%(n)s bookings without an assigned room — click a booking to assign one."
 msgstr "%(n)s rezervasyonun atanmış odası yok — atamak için rezervasyona tıklayın."
+
+msgid "Housekeeping"
+msgstr "Kat hizmetleri"
+
+msgid "Rooms to clean after check-out."
+msgstr "Çıkış sonrası temizlenecek odalar."
+
+msgid "Room marked clean."
+msgstr "Oda temiz olarak işaretlendi."
+
+msgid "Sauber"
+msgstr "Temiz"
+
+msgid "Zu reinigen"
+msgstr "Temizlenecek"
+
+msgid "Geprüft"
+msgstr "Kontrol edildi"

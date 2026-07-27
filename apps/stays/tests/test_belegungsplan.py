@@ -578,3 +578,28 @@ def test_move_with_room_assigns_and_conflict_409():
     assert resp.status_code == 409
     b.refresh_from_db()
     assert b.arrival == D0 + timedelta(days=10)  # перенос НЕ состоялся
+
+
+# --- PMS-R4: хаускипинг-lite ------------------------------------------------------
+
+
+def test_checkout_marks_room_dirty_and_clean_action():
+    from apps.stays.models import Room
+    from apps.stays.state_machine import StayBookingSM
+
+    unit = _unit(quantity=1)
+    room = Room.objects.create(unit=unit, number="101")
+    booking = _book(unit, -3, -1)  # прошедшее проживание
+    services.assign_room(booking, room)
+    StayBookingSM().apply(booking, "confirmed")
+    StayBookingSM().apply(booking, "fulfilled")  # выезд
+    room.refresh_from_db()
+    assert room.housekeeping == Room.HK_DIRTY  # выезд пометил к уборке
+
+    body = views.calendar(_req(data={"von": (D0 - timedelta(days=5)).isoformat()})).content.decode()
+    assert "🧹" in body and "Housekeeping" in body  # бейдж + панель уборки
+
+    resp = views.room_clean(_req("post"), pk=room.pk)
+    assert resp.status_code == 302
+    room.refresh_from_db()
+    assert room.housekeeping == Room.HK_CLEAN

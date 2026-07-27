@@ -220,6 +220,10 @@ def calendar(request):
             **panel_ctx,
             "selected_booking": selected,
             "ohne_zimmer": ohne_zimmer,
+            # PMS-R4: комнаты к уборке (выезды пометили dirty).
+            "dirty_rooms": Room.objects.filter(
+                unit__in=units, is_active=True, housekeeping=Room.HK_DIRTY
+            ).select_related("unit"),
             "nav": "stays",
             "start": start,
             "prev": start - timedelta(days=HORIZON_DAYS),
@@ -502,6 +506,17 @@ def _can_delete_booking(booking) -> bool:
         and not booking.stripe_payment_intent
         and booking.invoice_id is None
     )
+
+
+@login_required
+@require_POST
+def room_clean(request, pk):
+    """PMS-R4 (хаускипинг-lite): отметить комнату убранной (→ clean)."""
+    room = get_object_or_404(Room, pk=pk)
+    room.housekeeping = Room.HK_CLEAN
+    room.save(update_fields=["housekeeping", "updated_at"])
+    messages.success(request, _("Room marked clean."))
+    return redirect("stays:calendar")
 
 
 @login_required
