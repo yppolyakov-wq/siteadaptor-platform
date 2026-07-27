@@ -494,3 +494,87 @@ def test_calendar_shows_ohne_zimmer_chip_and_room_on_bar():
     body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
     assert "without an assigned room" in body  # чип «ohne Zimmer»
     assert "🚪101" in body  # номер на плашке
+
+
+# --- PMS-R3: шахматка построчно по комнатам + drop-назначение --------------------
+
+
+def test_room_lane_rows_layout():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=2)
+    r101 = Room.objects.create(unit=unit, number="101")
+    Room.objects.create(unit=unit, number="102")
+    assigned = _book(unit, 1, 4)
+    services.assign_room(assigned, r101)
+    unassigned = _book(unit, 2, 5)  # noqa: F841 — без номера
+    rows_out = availability.room_lane_rows(
+        unit, list(unit.rooms.all()), D0, 10, list(StayBooking.objects.all()), []
+    )
+    labels = [r["label"] for r in rows_out]
+    assert labels[0] == "101" and labels[1] == "102"  # строка на каждую комнату
+    assert "" in labels  # безымянная дорожка «ohne Zimmer»
+    r101_row = rows_out[0]
+    assert any(c.get("kind") == "booking" for c in r101_row["cells"])  # бронь на своей строке
+    r102_row = rows_out[1]
+    assert r102_row["cells"] == [{"gap": 10}]  # пустая комната — пустая строка
+
+
+def test_calendar_renders_room_rows_with_drop_targets():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=1)
+    room = Room.objects.create(unit=unit, number="101")
+    _book(unit, 1, 4)  # без номера → безымянная дорожка + чип
+    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    assert f'data-room="{room.id}"' in body  # строка комнаты — drop-цель
+    assert "🚪101" in body  # подпись строки
+
+
+def test_move_with_room_assigns_and_conflict_409():
+    from apps.stays.models import Room
+
+    unit = _unit(quantity=2)
+    r101 = Room.objects.create(unit=unit, number="101")
+    Room.objects.create(unit=unit, number="102")
+    a = _book(unit, 1, 4)
+    b = _book(unit, 10, 13)
+    services.assign_room(a, r101)
+    # drop b на строку 101 в свободные даты → назначение
+    resp = views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "move",
+                "arrival": (D0 + timedelta(days=10)).isoformat(),
+                "departure": (D0 + timedelta(days=13)).isoformat(),
+                "unit": str(unit.pk),
+                "room": str(r101.pk),
+                "reprice": "0",
+            },
+            fetch=True,
+        ),
+        pk=b.pk,
+    )
+    assert resp.status_code == 204
+    b.refresh_from_db()
+    assert b.room_id == r101.id
+    # drop b на 101 в даты, пересекающиеся с a → 409 ДО переноса (даты целы)
+    resp = views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "move",
+                "arrival": (D0 + timedelta(days=2)).isoformat(),
+                "departure": (D0 + timedelta(days=5)).isoformat(),
+                "unit": str(unit.pk),
+                "room": str(r101.pk),
+                "reprice": "0",
+            },
+            fetch=True,
+        ),
+        pk=b.pk,
+    )
+    assert resp.status_code == 409
+    b.refresh_from_db()
+    assert b.arrival == D0 + timedelta(days=10)  # перенос НЕ состоялся

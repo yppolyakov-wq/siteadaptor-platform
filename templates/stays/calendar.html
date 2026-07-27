@@ -63,12 +63,12 @@
           {% endfor %}
         </tr>
         {% comment %}Багфикс 2026-07-27: data-unit на дорожках — drop плашки
-        принимается по ВСЕЙ строке юнита (день = колонка под курсором), а не
-        только по строке счётчиков.{% endcomment %}
-        {% for lane in lanes %}
-        <tr data-unit="{{ unit.pk }}">
-          <td class="sticky left-0 bg-white z-10"></td>
-          {% for item in lane %}
+        принимается по ВСЕЙ строке юнита. PMS-R3: у категорий с комнатами —
+        строка на КАЖДУЮ комнату (🚪label; data-room = drop-назначение).{% endcomment %}
+        {% for lr in lanes %}
+        <tr data-unit="{{ unit.pk }}"{% if lr.room_id %} data-room="{{ lr.room_id }}"{% endif %}>
+          <td class="sticky left-0 bg-white z-10 px-3 text-[10px] text-gray-400 whitespace-nowrap">{% if lr.label %}🚪{{ lr.label }}{% endif %}</td>
+          {% for item in lr.cells %}
             {% if item.gap %}
               <td colspan="{{ item.gap }}"></td>
             {% elif item.kind == "booking" %}
@@ -243,12 +243,15 @@
       return hit;
     }
     function resolveTarget(e) {
-      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
-      if (td) return { unit: td.getAttribute("data-unit"), date: td.getAttribute("data-date") };
+      // PMS-R3: drop на строку комнаты несёт room → перенос заодно назначает номер.
       var tr = e.target.closest && e.target.closest("tr[data-unit]");
+      var room = tr ? (tr.getAttribute("data-room") || "") : "";
+      var td = e.target.closest && e.target.closest("td[data-unit][data-date]");
+      if (td) return { unit: td.getAttribute("data-unit"), date: td.getAttribute("data-date"), room: room };
       if (!tr) return null;
       var cell = cellAt(tr.getAttribute("data-unit"), e.clientX);
-      return cell ? { unit: cell.getAttribute("data-unit"), date: cell.getAttribute("data-date") } : null;
+      if (!cell) return null;
+      return { unit: cell.getAttribute("data-unit"), date: cell.getAttribute("data-date"), room: room };
     }
     function clearHighlight() {
       document.querySelectorAll("#belegungsplan td.ring-2").forEach(function (td) {
@@ -298,7 +301,8 @@
       var body = "action=move&reprice=0" +
         "&arrival=" + encodeURIComponent(arrival) +
         "&departure=" + encodeURIComponent(addDays(arrival, nights)) +
-        "&unit=" + encodeURIComponent(t.unit);
+        "&unit=" + encodeURIComponent(t.unit) +
+        (t.room ? "&room=" + encodeURIComponent(t.room) : "");
       fetch(dragged.getAttribute("data-action-url"), {
         method: "POST",
         headers: {

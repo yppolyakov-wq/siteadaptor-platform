@@ -114,29 +114,97 @@ def booking_bars(units, start_day, num_days, bookings, blocks):
 
     bars = {}
     for unit_id, segs in segs_by_unit.items():
-        segs.sort(key=lambda s: (s["offset"], -s["span"]))
-        lanes = []  # [(next_free_offset, [seg, …]), …]
-        for seg in segs:
-            for lane in lanes:
-                if lane[0] <= seg["offset"]:
-                    lane[1].append(seg)
-                    lane[0] = seg["offset"] + seg["span"]
-                    break
-            else:
-                lanes.append([seg["offset"] + seg["span"], [seg]])
-        rows = []
-        for _end, lane_segs in lanes:
-            cells, cursor = [], 0
-            for seg in lane_segs:
-                if seg["offset"] > cursor:
-                    cells.append({"gap": seg["offset"] - cursor})
-                cells.append(seg)
-                cursor = seg["offset"] + seg["span"]
-            if cursor < num_days:
-                cells.append({"gap": num_days - cursor})
-            rows.append(cells)
-        bars[unit_id] = rows
+        bars[unit_id] = _pack_lanes(segs, num_days)
     return bars
+
+
+def _pack_lanes(segs, num_days):
+    """Жадная укладка сегментов по «дорожкам» + заполнение gap'ов (общая часть
+    booking_bars и room_lane_rows)."""
+    segs = sorted(segs, key=lambda s: (s["offset"], -s["span"]))
+    lanes = []  # [(next_free_offset, [seg, …]), …]
+    for seg in segs:
+        for lane in lanes:
+            if lane[0] <= seg["offset"]:
+                lane[1].append(seg)
+                lane[0] = seg["offset"] + seg["span"]
+                break
+        else:
+            lanes.append([seg["offset"] + seg["span"], [seg]])
+    rows = []
+    for _end, lane_segs in lanes:
+        cells, cursor = [], 0
+        for seg in lane_segs:
+            if seg["offset"] > cursor:
+                cells.append({"gap": seg["offset"] - cursor})
+            cells.append(seg)
+            cursor = seg["offset"] + seg["span"]
+        if cursor < num_days:
+            cells.append({"gap": num_days - cursor})
+        rows.append(cells)
+    return rows
+
+
+def _clipped_seg(kind, obj, seg_start, seg_end_excl, start_day, window_end):
+    """Сегмент, обрезанный окном (None — целиком вне окна)."""
+    clip_start = max(seg_start, start_day)
+    clip_end = min(seg_end_excl, window_end)
+    if clip_end <= clip_start:
+        return None
+    return {
+        "kind": kind,
+        "obj": obj,
+        "offset": (clip_start - start_day).days,
+        "span": (clip_end - clip_start).days,
+        "clip_left": seg_start < start_day,
+        "clip_right": seg_end_excl > window_end,
+    }
+
+
+def room_lane_rows(unit, rooms, start_day, num_days, bookings, blocks):
+    """PMS-R3: render-ready строки дорожек юнита С КОМНАТАМИ — по строке на
+    каждую комнату (назначенные брони; пустая комната = пустая строка) +
+    безымянные дорожки «ohne Zimmer» (неназначенные брони + блокировки юнита).
+
+    Возвращает [{"label": "101"|"", "room_id": pk|None, "cells": [...]}] —
+    ячейки в той же системе, что booking_bars (gap/seg)."""
+    window_end = start_day + timedelta(days=num_days)
+    room_ids = {r.id for r in rooms}
+    out = []
+    for room in rooms:
+        segs = [
+            s
+            for b in bookings
+            if b.unit_id == unit.id and b.room_id == room.id
+            if (s := _clipped_seg("booking", b, b.arrival, b.departure, start_day, window_end))
+        ]
+        packed = _pack_lanes(segs, num_days) or [[{"gap": num_days}]]
+        for cells in packed:
+            out.append({"label": room.number, "room_id": room.id, "cells": cells})
+    free_segs = [
+        s
+        for b in bookings
+        if b.unit_id == unit.id and b.room_id not in room_ids
+        if (s := _clipped_seg("booking", b, b.arrival, b.departure, start_day, window_end))
+    ]
+    free_segs += [
+        s
+        for blk in blocks
+        if blk.unit_id == unit.id
+        if (
+            s := _clipped_seg(
+                "block",
+                blk,
+                blk.start_date,
+                blk.end_date + timedelta(days=1),
+                start_day,
+                window_end,
+            )
+        )
+    ]
+    for cells in _pack_lanes(free_segs, num_days):
+        out.append({"label": "", "room_id": None, "cells": cells})
+    return out
 
 
 def next_free_range(nights, *, guests=1, from_day=None, max_days=60):

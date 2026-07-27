@@ -164,11 +164,26 @@ def calendar(request):
             "bg-indigo-200/80 text-indigo-900" if b.bar_draggable else "bg-gray-200 text-gray-600",
         )
     bars = availability.booking_bars(units, start, HORIZON_DAYS, bookings, blocks)
-    grid = [(unit, cells, bars.get(unit.id) or []) for unit, cells in rows]
+    # PMS-R3: у категорий с комнатами шахматка построчная — дорожка на КАЖДУЮ
+    # комнату (🚪label, data-room = drop-цель назначения) + безымянные «ohne
+    # Zimmer»; без комнат — прежние жадные лейны (адаптер к общему виду).
+    rooms_by_unit = {}
+    for _r in Room.objects.filter(unit__in=units, is_active=True):
+        rooms_by_unit.setdefault(_r.unit_id, []).append(_r)
+    grid = []
+    for unit, cells in rows:
+        unit_rooms = rooms_by_unit.get(unit.id)
+        if unit_rooms:
+            lane_rows = availability.room_lane_rows(
+                unit, unit_rooms, start, HORIZON_DAYS, bookings, blocks
+            )
+        else:
+            lane_rows = [
+                {"label": "", "room_id": None, "cells": c} for c in (bars.get(unit.id) or [])
+            ]
+        grid.append((unit, cells, lane_rows))
     # PMS-R2: брони «ohne Zimmer» (категория с комнатами, номер не назначен).
-    _units_with_rooms = set(
-        Room.objects.filter(unit__in=units, is_active=True).values_list("unit_id", flat=True)
-    )
+    _units_with_rooms = set(rooms_by_unit)
     ohne_zimmer = sum(1 for b in bookings if b.room_id is None and b.unit_id in _units_with_rooms)
     # Фидбэк 2026-07-27: клик по плашке открывает карточку брони СРАЗУ ПОД
     # календарём (?buchung=<pk>; &box=1 — fetch-фрагмент без перезагрузки).
@@ -250,9 +265,43 @@ def stay_action(request, pk):
         try:
             arrival = date.fromisoformat(request.POST.get("arrival", ""))
             departure = date.fromisoformat(request.POST.get("departure", ""))
+            # PMS-R3: drop на строку комнаты — назначение; конфликт проверяем
+            # ДО переноса (иначе drag «отскочил», а даты уже переехали).
+            room_obj = None
+            room_param = request.POST.get("room", "")
+            if room_param:
+                from apps.core import status_registry
+
+                dest = target_unit or booking.unit
+                room_obj = Room.objects.filter(
+                    pk=room_param, unit_id=dest.pk, is_active=True
+                ).first()
+                if room_obj is not None and (
+                    StayBooking.objects.filter(
+                        room=room_obj,
+                        status__in=status_registry.active_statuses_for("stay"),
+                        arrival__lt=departure,
+                        departure__gt=arrival,
+                    )
+                    .exclude(pk=booking.pk)
+                    .exists()
+                ):
+                    if is_fetch:
+                        return HttpResponse(_("This room is taken for those dates."), status=409)
+                    messages.error(request, _("This room is taken for those dates."))
+                    return redirect(back)
             services.move_stay(
                 booking, arrival=arrival, departure=departure, unit=target_unit, reprice=reprice
             )
+            if room_obj is not None:
+                try:
+                    services.assign_room(booking, room_obj)
+                except services.RoomConflict:  # гонка — перенос состоялся, номер нет
+                    pass
+            elif booking.room_id and booking.room_id not in {
+                r.id for r in services.free_rooms_for(booking)
+            }:
+                services.assign_room(booking, None)  # даты переехали в конфликт
             if is_fetch:
                 return HttpResponse(status=204)
             messages.success(request, _("Stay moved."))
