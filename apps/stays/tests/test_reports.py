@@ -71,3 +71,57 @@ def test_kurtaxe_and_extras_excluded_from_room_revenue():
     # проживание 2×100 = 200 €; room_revenue без Kurtaxe(8 €) и Extras(8 €)
     assert r["room_revenue_cents"] == 20000
     assert r["total_revenue_cents"] == 20000 + 800 + 800
+
+
+# --- Фиксы PMS-аудита 2026-07-27: rooms/блокировки/кастом-статусы -------------
+
+
+def test_multi_room_booking_sells_rooms_nights():
+    unit = _unit(qty=3, price=10000)  # 90 доступных ночей
+    # G5: бронь на 2 номера × 4 ночи = 8 проданных ночей; проживание уже ×2.
+    book_stay(unit, arrival=date(2026, 6, 10), departure=date(2026, 6, 14), name="G", rooms=2)
+    r = reports.occupancy_report(START, END)
+    assert r["sold_nights"] == 8
+    assert r["room_revenue_cents"] == 80000
+    assert r["adr_cents"] == 10000  # за номеро-ночь, не за бронь
+
+
+def test_blocks_reduce_available_nights():
+    from apps.stays.models import UnitBlock
+
+    unit = _unit(qty=2)  # 60 доступных ночей
+    # Ремонт одного юнита 10.6–14.6 включительно = 5 ночей вне продажи.
+    UnitBlock.objects.create(
+        unit=unit, start_date=date(2026, 6, 10), end_date=date(2026, 6, 14), reason="Renovierung"
+    )
+    r = reports.occupancy_report(START, END)
+    assert r["available_nights"] == 55
+
+
+def test_custom_capacity_status_counted():
+    from apps.core import status_registry
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        slug=f"rep{uuid.uuid4().hex[:6]}",
+        name="Rep",
+        site_config={
+            "status_defs": {
+                "stay": [
+                    {
+                        "code": "anzahlung",
+                        "label": "Anzahlung erhalten",
+                        "role": "active",
+                        "blocks_capacity": True,
+                    }
+                ]
+            }
+        },
+    )
+    unit = _unit(qty=1)
+    b = book_stay(unit, arrival=date(2026, 6, 5), departure=date(2026, 6, 8), name="K")
+    StayBooking.objects.filter(pk=b.pk).update(status="anzahlung")
+    assert "anzahlung" in status_registry.counted_statuses_for("stay", tenant)
+    # Явный tenant-контекст резолвится через connection в _current_tenant —
+    # проверяем формулу напрямую монкипатчем не будем: главный замок — реестр
+    # включает кастом-active; отчёт фильтрует по нему же (reports.py).

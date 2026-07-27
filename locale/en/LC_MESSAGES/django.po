@@ -13341,3 +13341,6 @@ msgstr "Sales rule added."
 
 msgid "Please fill in at least one restriction."
 msgstr "Please fill in at least one restriction."
+
+msgid "Online-Check-in (Meldeschein) schon jetzt ausfüllen"
+msgstr "Complete your online check-in (registration form) now"

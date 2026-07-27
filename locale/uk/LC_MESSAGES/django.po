@@ -13513,3 +13513,6 @@ msgstr "Правило продажу додано."
 
 msgid "Please fill in at least one restriction."
 msgstr "Заповніть хоча б одне обмеження."
+
+msgid "Online-Check-in (Meldeschein) schon jetzt ausfüllen"
+msgstr "Заповніть онлайн-реєстрацію (Meldeschein) заздалегідь"

@@ -6,7 +6,9 @@
 {{ booking.arrival|date:"l, d.m.Y" }} → {{ booking.departure|date:"l, d.m.Y" }} ({% blocktrans with n=booking.nights %}{{ n }} Nächte{% endblocktrans %}){% if booking.guests > 1 %} · {% blocktrans with n=booking.guests %}{{ n }} Gäste{% endblocktrans %}{% endif %}
 {% if booking.total_cents %}{% trans "Gesamtpreis" %}: {{ booking.total_eur|floatformat:2 }} €
 {% endif %}{% trans "Referenz-Code" %}: {{ booking.reference_code }}
-{% if cancel_url %}
+{% if checkin_url %}
+{% trans "Online-Check-in (Meldeschein) schon jetzt ausfüllen" %}: {{ checkin_url }}
+{% endif %}{% if cancel_url %}
 {% trans "Stornieren" %}: {{ cancel_url }}
 {% endif %}
 {% if problem_url %}

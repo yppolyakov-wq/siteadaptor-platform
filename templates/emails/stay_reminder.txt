@@ -6,7 +6,9 @@
 {% trans "Anreise" %}: {{ booking.arrival|date:"l, d.m.Y" }}
 {% trans "Abreise" %}: {{ booking.departure|date:"l, d.m.Y" }}{% if booking.guests > 1 %} · {% blocktrans with n=booking.guests %}{{ n }} Gäste{% endblocktrans %}{% endif %}
 {% trans "Referenz-Code" %}: {{ booking.reference_code }}
-
+{% if checkin_url %}
+{% trans "Online-Check-in (Meldeschein) schon jetzt ausfüllen" %}: {{ checkin_url }}
+{% endif %}
 {% trans "Bis bald!" %}
 
 {% if unsubscribe_url %}—

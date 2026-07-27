@@ -356,3 +356,26 @@ def test_stay_emails_include_total():
     for tpl in ("stay_created", "stay_confirmed", "stay_owner"):
         _subj, body, _html = _render(tpl, ctx)
         assert "270" in body, tpl  # 3 × 90 €
+
+
+def test_stay_emails_include_checkin_link_until_signed():
+    """G6-фикс (PMS-аудит 2026-07-27): подтверждение и pre-arrival напоминание
+    несут ссылку на Online-Checkin, пока Meldeschein не подписан."""
+    from apps.stays.notifications import _render
+
+    unit = _unit(price_cents=9000)
+    booking = _book(unit, 1, 4, email="gast@test.de")
+    ctx = {
+        "booking": booking,
+        "unit": unit,
+        "customer": booking.customer,
+        "cancel_url": "",
+        "unsubscribe_url": "",
+        "checkin_url": "https://hotel.example/checkin/tok",
+    }
+    for tpl in ("stay_confirmed", "stay_reminder"):
+        _subj, body, _html = _render(tpl, ctx)
+        assert "https://hotel.example/checkin/tok" in body, tpl
+    # без ссылки (подписан/нет базы) — строка не рендерится
+    _subj, body, _html = _render("stay_confirmed", {**ctx, "checkin_url": ""})
+    assert "Online-Check-in" not in body

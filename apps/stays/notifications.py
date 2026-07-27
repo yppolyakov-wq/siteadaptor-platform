@@ -60,6 +60,16 @@ def enqueue_stay_email(booking, event):
             from .public_views import cancel_token
 
             cancel_link = f"{base}{reverse('storefront-stay-cancel', args=[cancel_token(booking)])}"
+        # G6-фикс (PMS-аудит 2026-07-27): ссылка на Online-Checkin (Meldeschein)
+        # в подтверждении и pre-arrival напоминании, пока регкарта не подписана —
+        # раньше жила ТОЛЬКО на странице подтверждения и была почти недостижима.
+        checkin_link = ""
+        if base and event in ("confirmed", "reminder"):
+            registration = getattr(booking, "registration", None)
+            if registration is None or not registration.signed_at:
+                from .public_views import checkin_url as _checkin_url
+
+                checkin_link = f"{base}{_checkin_url(booking)}"
         # UA4-4b wiring: post-stay ведёт на форму отзыва о номере на витрине
         # (generic reviews, GET → деталь с формой) — раньше вёл в hotel-портал.
         # Нет домена → письмо без ссылки.
@@ -70,7 +80,13 @@ def enqueue_stay_email(booking, event):
         )
         subject, body, html = _render(
             template_base,
-            {**ctx, "unsubscribe_url": unsub, "cancel_url": cancel_link, "review_url": review_link},
+            {
+                **ctx,
+                "unsubscribe_url": unsub,
+                "cancel_url": cancel_link,
+                "review_url": review_link,
+                "checkin_url": checkin_link,
+            },
         )
         headers = None
         if unsub:

@@ -13449,3 +13449,6 @@ msgstr "Satış kuralı eklendi."
 
 msgid "Please fill in at least one restriction."
 msgstr "Lütfen en az bir kısıtlama girin."
+
+msgid "Online-Check-in (Meldeschein) schon jetzt ausfüllen"
+msgstr "Online check-in'i (kayıt formunu) şimdiden doldurun"

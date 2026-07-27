@@ -233,6 +233,23 @@ def active_statuses_for(kind: str, tenant=None) -> tuple[str, ...]:
     return tuple(codes)
 
 
+def counted_statuses_for(kind: str, tenant=None) -> tuple[str, ...]:
+    """Отчётные коды: встроенные counted ∪ кастом-статусы тенанта, занимающие
+    ёмкость или фиксирующие выручку. Бронь в кастом-статусе («Anzahlung
+    erhalten» и т.п.) занимает номер — из Belegung/ADR она пропадать не должна
+    (PMS-аудит 2026-07-27)."""
+    codes = list(counted_statuses(kind))
+    if tenant is None:
+        tenant = _current_tenant()
+    if tenant is not None:
+        codes += [
+            c
+            for c, d in custom_descriptors(tenant, kind).items()
+            if d.blocks_capacity or d.revenue_recognized
+        ]
+    return tuple(dict.fromkeys(codes))
+
+
 def stage_of(kind: str, status: str, tenant=None) -> str:
     """Стадия доски для (kind, status): дескриптор или фолбэк intake (как pipeline.stage_for)."""
     d = resolve(kind, status, tenant)

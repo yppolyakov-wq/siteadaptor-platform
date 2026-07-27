@@ -142,9 +142,13 @@ def test_model_active_statuses_equal_golden():
 
 
 def test_stay_reports_counted_equal_golden():
-    from apps.stays import reports
+    # PMS-аудит 2026-07-27: reports.py перешёл с хардкода _COUNTED на реестр —
+    # замок теперь фиксирует эквивалентность tenant-aware аксессора golden'у
+    # (без тенанта = встроенные counted; кастом-active лишь ДОБАВЛЯЮТ).
+    from apps.stays import reports  # noqa: F401 — модуль импортируется без _COUNTED
 
-    assert set(reports._COUNTED) == GOLDEN_STAY_COUNTED
+    assert set(status_registry.counted_statuses_for("stay", tenant=None)) >= GOLDEN_STAY_COUNTED
+    assert set(status_registry.counted_statuses("stay")) == GOLDEN_STAY_COUNTED
 
 
 # --- Phase 3: normalize кастом-определений + tenant-aware аксессоры ------------

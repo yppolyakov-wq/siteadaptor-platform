@@ -582,7 +582,3 @@ class GuestRegistration(TimestampedModel):
 
     def __str__(self):
         return f"Meldeschein {self.booking.reference_code}"
-
-    @property
-    def kurtaxe_eur(self) -> float:
-        return self.kurtaxe_cents / 100
