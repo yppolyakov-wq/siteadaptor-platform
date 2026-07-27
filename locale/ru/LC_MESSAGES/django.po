@@ -13452,3 +13452,77 @@ msgstr "Ввести даты вручную"
 
 msgid "Best price"
 msgstr "Лучшая цена"
+
+#, python-format
+msgid "Bookings are possible at most %(n)s days in advance."
+msgstr "Бронирование возможно максимум за %(n)s дн. вперёд."
+
+#, python-format
+msgid "Bookings must be made at least %(n)s days before arrival."
+msgstr "Бронировать нужно минимум за %(n)s дн. до заезда."
+
+#, python-format
+msgid "These dates require a stay of at least %(n)s nights."
+msgstr "В эти даты минимальное проживание — %(n)s ноч."
+
+#, python-format
+msgid "These dates allow a stay of at most %(n)s nights."
+msgstr "В эти даты максимальное проживание — %(n)s ноч."
+
+msgid "Check-in is not possible on this weekday — please pick another arrival day."
+msgstr "Заезд в этот день недели невозможен — выберите другой день заезда."
+
+msgid "Check-out is not possible on this weekday — please pick another departure day."
+msgstr "Выезд в этот день недели невозможен — выберите другой день выезда."
+
+msgid "Sales rules"
+msgstr "Правила продаж"
+
+msgid "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
+msgstr "Ограничивают ОНЛАЙН-бронирование: сезонный мин./макс. срок, дни без заезда/выезда, окно бронирования. Ваши собственные брони в календаре не ограничиваются."
+
+msgid "Bookable up to … days ahead (0 = no limit)"
+msgstr "Бронь максимум за … дн. вперёд (0 = без лимита)"
+
+msgid "At least … days before arrival (0 = same day)"
+msgstr "Минимум за … дн. до заезда (0 = можно в тот же день)"
+
+msgid "Always"
+msgstr "Всегда"
+
+msgid "All units"
+msgstr "Все номера"
+
+#, python-format
+msgid "max. %(n)s nights"
+msgstr "макс. %(n)s ноч."
+
+msgid "no check-in:"
+msgstr "без заезда:"
+
+msgid "no check-out:"
+msgstr "без выезда:"
+
+msgid "From (optional)"
+msgstr "С (необязательно)"
+
+msgid "Until (optional)"
+msgstr "По (необязательно)"
+
+msgid "Max. nights"
+msgstr "Макс. ночей"
+
+msgid "No check-in on"
+msgstr "Дни без заезда"
+
+msgid "No check-out on"
+msgstr "Дни без выезда"
+
+msgid "No sales rules yet."
+msgstr "Правил продаж пока нет."
+
+msgid "Sales rule added."
+msgstr "Правило продаж добавлено."
+
+msgid "Please fill in at least one restriction."
+msgstr "Заполните хотя бы одно ограничение."

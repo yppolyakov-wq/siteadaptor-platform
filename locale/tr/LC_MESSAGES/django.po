@@ -13375,3 +13375,77 @@ msgstr "Tarihleri elle girin"
 
 msgid "Best price"
 msgstr "En iyi fiyat"
+
+#, python-format
+msgid "Bookings are possible at most %(n)s days in advance."
+msgstr "Rezervasyonlar en fazla %(n)s gün önceden yapılabilir."
+
+#, python-format
+msgid "Bookings must be made at least %(n)s days before arrival."
+msgstr "Rezervasyonlar varıştan en az %(n)s gün önce yapılmalıdır."
+
+#, python-format
+msgid "These dates require a stay of at least %(n)s nights."
+msgstr "Bu tarihler için en az %(n)s gece konaklama gerekir."
+
+#, python-format
+msgid "These dates allow a stay of at most %(n)s nights."
+msgstr "Bu tarihlerde en fazla %(n)s gece konaklanabilir."
+
+msgid "Check-in is not possible on this weekday — please pick another arrival day."
+msgstr "Bu haftanın gününde giriş yapılamaz — lütfen başka bir varış günü seçin."
+
+msgid "Check-out is not possible on this weekday — please pick another departure day."
+msgstr "Bu haftanın gününde çıkış yapılamaz — lütfen başka bir ayrılış günü seçin."
+
+msgid "Sales rules"
+msgstr "Satış kuralları"
+
+msgid "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
+msgstr "ONLINE rezervasyonları sınırlayın: sezonluk min/maks konaklama, giriş/çıkış yapılamayan günler, rezervasyon penceresi. Takvimdeki kendi kayıtlarınız asla sınırlanmaz."
+
+msgid "Bookable up to … days ahead (0 = no limit)"
+msgstr "En fazla … gün önceden rezerve edilebilir (0 = sınırsız)"
+
+msgid "At least … days before arrival (0 = same day)"
+msgstr "Varıştan en az … gün önce (0 = aynı gün)"
+
+msgid "Always"
+msgstr "Her zaman"
+
+msgid "All units"
+msgstr "Tüm birimler"
+
+#, python-format
+msgid "max. %(n)s nights"
+msgstr "maks. %(n)s gece"
+
+msgid "no check-in:"
+msgstr "giriş yok:"
+
+msgid "no check-out:"
+msgstr "çıkış yok:"
+
+msgid "From (optional)"
+msgstr "Başlangıç (isteğe bağlı)"
+
+msgid "Until (optional)"
+msgstr "Bitiş (isteğe bağlı)"
+
+msgid "Max. nights"
+msgstr "Maks. gece"
+
+msgid "No check-in on"
+msgstr "Şu günlerde giriş yok"
+
+msgid "No check-out on"
+msgstr "Şu günlerde çıkış yok"
+
+msgid "No sales rules yet."
+msgstr "Henüz satış kuralı yok."
+
+msgid "Sales rule added."
+msgstr "Satış kuralı eklendi."
+
+msgid "Please fill in at least one restriction."
+msgstr "Lütfen en az bir kısıtlama girin."

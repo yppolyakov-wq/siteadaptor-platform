@@ -13267,3 +13267,77 @@ msgstr "Enter dates manually"
 
 msgid "Best price"
 msgstr "Best price"
+
+#, python-format
+msgid "Bookings are possible at most %(n)s days in advance."
+msgstr "Bookings are possible at most %(n)s days in advance."
+
+#, python-format
+msgid "Bookings must be made at least %(n)s days before arrival."
+msgstr "Bookings must be made at least %(n)s days before arrival."
+
+#, python-format
+msgid "These dates require a stay of at least %(n)s nights."
+msgstr "These dates require a stay of at least %(n)s nights."
+
+#, python-format
+msgid "These dates allow a stay of at most %(n)s nights."
+msgstr "These dates allow a stay of at most %(n)s nights."
+
+msgid "Check-in is not possible on this weekday — please pick another arrival day."
+msgstr "Check-in is not possible on this weekday — please pick another arrival day."
+
+msgid "Check-out is not possible on this weekday — please pick another departure day."
+msgstr "Check-out is not possible on this weekday — please pick another departure day."
+
+msgid "Sales rules"
+msgstr "Sales rules"
+
+msgid "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
+msgstr "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
+
+msgid "Bookable up to … days ahead (0 = no limit)"
+msgstr "Bookable up to … days ahead (0 = no limit)"
+
+msgid "At least … days before arrival (0 = same day)"
+msgstr "At least … days before arrival (0 = same day)"
+
+msgid "Always"
+msgstr "Always"
+
+msgid "All units"
+msgstr "All units"
+
+#, python-format
+msgid "max. %(n)s nights"
+msgstr "max. %(n)s nights"
+
+msgid "no check-in:"
+msgstr "no check-in:"
+
+msgid "no check-out:"
+msgstr "no check-out:"
+
+msgid "From (optional)"
+msgstr "From (optional)"
+
+msgid "Until (optional)"
+msgstr "Until (optional)"
+
+msgid "Max. nights"
+msgstr "Max. nights"
+
+msgid "No check-in on"
+msgstr "No check-in on"
+
+msgid "No check-out on"
+msgstr "No check-out on"
+
+msgid "No sales rules yet."
+msgstr "No sales rules yet."
+
+msgid "Sales rule added."
+msgstr "Sales rule added."
+
+msgid "Please fill in at least one restriction."
+msgstr "Please fill in at least one restriction."

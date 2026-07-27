@@ -6290,3 +6290,31 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   перезагружается, форма появляется на месте) и friseur (мастер/дата на
   сервисном флоу). Замки: +3 теста (?box=1 фрагмент/обёртка/embed-carry).
   Без миграций, без новых msgid.
+
+## 2026-07-27 — G12 «Verkaufsregeln» (тарифные ограничения v2) + «Verkäufe» = Belegungsplan у отеля
+
+Из gap-анализа Booking-Engine TravelLine (§3.5 — главный функциональный гэп);
+план `docs/g12-stay-restrictions-plan-2026-07-27.md`, «делай» владельца.
+
+- **G12 (⚠️ миграция `stays/0024`, аддитив):** `StaySettings` += `restriction_rules`
+  (JSON-правила по паттерну G4: период + опц. номер + min/max ночей + дни без
+  заезда/выезда 0-6) + `max_advance_days`/`min_advance_days` (окно бронирования).
+  Резолвер `apps/stays/restrictions.py` (`violation` → (code, n); семантика PMS:
+  min/max/CTA по дате заезда, CTD по дате выезда; строжайшее из пересекающихся).
+  Гейт ТОЛЬКО витрина: `_quote` (деталь+поиск, reason/reason_n) +
+  `book_stay(enforce_restrictions=True)` из `unterkunft_book`
+  (`RestrictionViolated`); кабинет/walk-in/демо НЕ гейтятся (владелец главнее).
+  Тексты причин в `_buybox_stay_unavailable` (msgid 1:1 c `restrictions.message`),
+  `max_date` date-инпутов ⊆ окно. Кабинет: секция «Sales rules» на
+  `stays:units` (окно бронирования + список правил + форма с чекбоксами дней,
+  actions по образцу G4). Замки: `test_restrictions.py` (13: резолвер 6 срезов,
+  _quote, витрина блок/кабинет проходит, деталь-текст, max-cap, actions);
+  23 msgid × 4 .po (polib-валидация).
+- **«Verkäufe» → представление ST-5b (запрос владельца, тот же день):** якорь
+  сайдбара «Verkäufe» больше не хардкодит Board — ведёт в
+  `orders_view.entry_url_name` (отель → Belegungsplan `stays:calendar` как
+  ГЛАВНАЯ доска; магазин → лента заказов; прочее → Board); Board открывается
+  дополнительно сегмент-контролом на самой странице. nav_key = nav целевой
+  страницы (подсветка чинится для дефолт-лендинга). Замок
+  `test_sales_anchor_respects_orders_view_default` (отель/магазин); мобильный
+  таб-бар наследует автоматически. Без миграций.

@@ -36,6 +36,16 @@ class PromoInvalid(Exception):
     """Промокод указан, но не применим (нет такого/просрочен/исчерпан/не достигнут мин)."""
 
 
+class RestrictionViolated(Exception):
+    """G12: бронь нарушает правила онлайн-продаж (Verkaufsregeln). Держит код
+    причины и число для текста (см. restrictions.violation)."""
+
+    def __init__(self, code: str, n=None):
+        super().__init__(code)
+        self.code = code
+        self.n = n
+
+
 def _unique_stay_code() -> str:
     for _ in range(10):
         code = "S-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
@@ -123,6 +133,7 @@ def book_stay(
     rate_plan=None,
     voucher_code="",
     rooms=1,
+    enforce_restrictions=False,
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable, PromoInvalid.
@@ -153,6 +164,14 @@ def book_stay(
 
     if (departure - arrival).days < unit.min_nights:
         raise MinStay()
+    # G12: правила онлайн-продаж — ре-валидация ТОЛЬКО для витрины
+    # (enforce_restrictions=True из unterkunft_book); кабинет/walk-in — без гейта.
+    if enforce_restrictions:
+        from . import restrictions
+
+        hit = restrictions.violation(unit, arrival, departure)
+        if hit:
+            raise RestrictionViolated(*hit)
     if guests > unit.max_guests * rooms:  # G5: вместимость × число номеров
         raise MaxGuests()
     if not availability.range_available(unit, arrival, departure, needed=rooms):

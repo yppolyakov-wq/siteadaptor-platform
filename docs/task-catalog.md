@@ -25,7 +25,7 @@
 | Контент-хаб | CM-1…CM-9 | `market-content-analysis-2026-07-02.md` |
 | **Идеи (одобренный стек)** | A3, A4, B1…B5, C1…C3, D1…D3 | `feature-ideas-2026-07-02.md` ⚠️ коллизия букв с архетипами/бэклогами — говорить «идея A4» |
 | Архетипы | A1…A9 (пекарня…werkstatt) | `master-plan.md`, market-gap-доки |
-| Отель | H1…H9 ядро, G1…G11 рост | `hotel-archetype-plan/growth/channel-manager` |
+| Отель | H1…H9 ядро, G1…G12 рост (G12 — Verkaufsregeln, тарифные ограничения v2) | `hotel-archetype-plan/growth/channel-manager`, `g12-stay-restrictions-plan-2026-07-27` |
 | Модули платформы | M1…M23 (M20 билдер, M21 импорт) | `master-plan.md` / `full-platform-vision.md` |
 | Анти-Битрикс кабинет | AB1…AB5 | `anti-bitrix-admin-plan.md` |
 | Витринный этап (заверш.) | Спринты A–F; D1…D10 completeness | `archetype-ux-execution-plan.md`, `archetype-completeness-audit` |

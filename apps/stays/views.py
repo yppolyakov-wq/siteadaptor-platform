@@ -532,6 +532,45 @@ def units(request):
                 rules.pop(idx)
                 settings_obj.auto_discount_rules = rules
                 settings_obj.save(update_fields=["auto_discount_rules", "updated_at"])
+        elif action == "booking_window":  # G12: окно бронирования (глубина + мин. срок)
+            settings_obj = StaySettings.load()
+            settings_obj.max_advance_days = _int(
+                request.POST.get("max_advance_days", "0"), 0, 0, 365
+            )
+            settings_obj.min_advance_days = _int(
+                request.POST.get("min_advance_days", "0"), 0, 0, 90
+            )
+            settings_obj.save(update_fields=["max_advance_days", "min_advance_days", "updated_at"])
+            messages.success(request, _("Settings saved."))
+        elif action == "restriction_add":  # G12: правило продаж (Verkaufsregel)
+            settings_obj = StaySettings.load()
+            rule = {
+                "start": request.POST.get("start", "").strip()[:10],
+                "end": request.POST.get("end", "").strip()[:10],
+                "unit": request.POST.get("unit", "").strip()[:40],
+                "min_nights": _int(request.POST.get("min_nights", "0"), 0, 0, 365),
+                "max_nights": _int(request.POST.get("max_nights", "0"), 0, 0, 365),
+                "no_checkin": request.POST.getlist("no_checkin"),
+                "no_checkout": request.POST.getlist("no_checkout"),
+            }
+            rules = settings_obj.clean_restriction_rules()
+            rules.append(rule)
+            settings_obj.restriction_rules = rules
+            cleaned = settings_obj.clean_restriction_rules()
+            if len(cleaned) > len(rules) - 1:  # правило не пустое → сохранилось
+                settings_obj.restriction_rules = cleaned
+                settings_obj.save(update_fields=["restriction_rules", "updated_at"])
+                messages.success(request, _("Sales rule added."))
+            else:
+                messages.error(request, _("Please fill in at least one restriction."))
+        elif action == "restriction_delete":  # G12: удалить правило по индексу
+            settings_obj = StaySettings.load()
+            rules = settings_obj.clean_restriction_rules()
+            idx = _int(request.POST.get("index", "-1"), -1, 0, len(rules) - 1)
+            if 0 <= idx < len(rules):
+                rules.pop(idx)
+                settings_obj.restriction_rules = rules
+                settings_obj.save(update_fields=["restriction_rules", "updated_at"])
         return redirect("stays:units")
 
     units = list(
@@ -545,6 +584,12 @@ def units(request):
         )
         u.i18n_inputs = i18n_inputs_for(u, getattr(request, "tenant", None))  # L3d
     stay_settings = StaySettings.load()
+    # G12: правила продаж (Verkaufsregeln) — индекс для удаления + имя номера.
+    _unit_names = {str(u.pk): u.name for u in units}
+    restriction_rules = [
+        {**r, "index": i, "unit_name": _unit_names.get(r["unit"], "")}
+        for i, r in enumerate(stay_settings.clean_restriction_rules())
+    ]
     # G4: правила авто-скидок с человекочитаемым описанием для кабинета.
     _kind_labels = dict(StaySettings.AUTO_DISCOUNT_KINDS)
     auto_rules = [
@@ -573,6 +618,17 @@ def units(request):
             "stay_settings": stay_settings,  # H9 Kurtaxe
             "auto_rules": auto_rules,  # G4 правила авто-скидок
             "auto_kinds": StaySettings.AUTO_DISCOUNT_KINDS,
+            # G12: правила продаж + дни недели для чекбоксов CTA/CTD.
+            "restriction_rules": restriction_rules,
+            "weekdays": [
+                (0, _("Mo")),
+                (1, _("Tu")),
+                (2, _("We")),
+                (3, _("Th")),
+                (4, _("Fr")),
+                (5, _("Sa")),
+                (6, _("Su")),
+            ],
             "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
             "feed_url": request.build_absolute_uri(reverse("storefront-stay-feed")),  # G8 метапоиск
         },

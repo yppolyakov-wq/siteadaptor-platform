@@ -22,12 +22,20 @@ from apps.billing import connect
 from apps.core import ratelimit
 from apps.loyalty.public_views import gift_purchase_active as _gift_purchase_active
 
-from . import availability, payments, pricing, services
+from . import availability, payments, pricing, restrictions, services
 from .models import RatePlan, StayBooking, StayUnit
 
 RL_LIMIT = 5  # попыток брони на IP
 RL_WINDOW = 600  # за 10 минут
 MAX_DAYS_AHEAD = 365  # горизонт заезда
+
+
+def _horizon_days() -> int:
+    """G12: горизонт date-инпутов = min(жёсткий кап, окно бронирования тенанта)."""
+    from .models import StaySettings
+
+    window = StaySettings.load().max_advance_days
+    return min(MAX_DAYS_AHEAD, window) if window else MAX_DAYS_AHEAD
 
 
 def _require_stays_active(request):
@@ -68,16 +76,21 @@ def _parse_rooms(params, unit):
 
 
 def _quote(unit, von, bis, guests, rooms=1):
-    """(nights, total_cents, available, reason) для диапазона. G5: rooms номеров —
-    вместимость × rooms, занятость needed=rooms, проживание × rooms."""
+    """(nights, total_cents, available, reason, reason_n) для диапазона. G5: rooms
+    номеров — вместимость × rooms, занятость needed=rooms, проживание × rooms.
+    G12: reason — код (в т.ч. правил продаж), reason_n — число для текста
+    (дни окна/минимум ночей; None, если не применимо)."""
     nights = (bis - von).days
     if nights < unit.min_nights:
-        return nights, 0, False, "min_nights"
+        return nights, 0, False, "min_nights", None
+    hit = restrictions.violation(unit, von, bis)  # G12: Verkaufsregeln (онлайн)
+    if hit:
+        return nights, 0, False, hit[0], hit[1]
     if guests > unit.max_guests * rooms:
-        return nights, 0, False, "guests"
+        return nights, 0, False, "guests", None
     if not availability.range_available(unit, von, bis, needed=rooms):
-        return nights, 0, False, "unavailable"
-    return nights, pricing.quote_total_cents(unit, von, bis) * rooms, True, None
+        return nights, 0, False, "unavailable", None
+    return nights, pricing.quote_total_cents(unit, von, bis) * rooms, True, None, None
 
 
 def _unit_from_price_cents(unit, von, bis, rate_plans):
@@ -154,13 +167,14 @@ def unterkunft_index(request):
         nights = (bis - von).days
         rows = []
         for unit in units:
-            _nights_q, _total_cents, available, reason = _quote(unit, von, bis, guests)
+            _nights_q, _total_cents, available, reason, reason_n = _quote(unit, von, bis, guests)
             from_cents = _unit_from_price_cents(unit, von, bis, rate_plans) if available else 0
             rows.append(
                 {
                     "unit": unit,
                     "available": available,
                     "reason": reason,
+                    "reason_n": reason_n,  # G12: число для текста причины
                     "from_eur": from_cents / 100,
                     "nights": nights,
                 }
@@ -193,7 +207,7 @@ def unterkunft_index(request):
         {
             "units": units,
             "today": today,
-            "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
+            "max_date": today + timedelta(days=_horizon_days()),  # G12: окно бронирования
             "von": von,
             "bis": bis,
             "adults": adults,
@@ -239,7 +253,7 @@ def unterkunft_unit(request, pk):
     rate_options = []
     kurtaxe_eur = 0
     if von and bis and von >= today and bis > von:
-        nights, total_cents, available, reason = _quote(unit, von, bis, guests, rooms)
+        nights, total_cents, available, reason, reason_n = _quote(unit, von, bis, guests, rooms)
         # H9: Kurtaxe (adults × ночи × ставка) — поверх проживания, в итог брони.
         kurtaxe_cents = pricing.kurtaxe_total_cents(adults, nights) if available else 0
         kurtaxe_eur = kurtaxe_cents / 100
@@ -261,6 +275,7 @@ def unterkunft_unit(request, pk):
             "nightly_eur": (total_cents / nights / rooms / 100) if nights and rooms else 0,
             "available": available,
             "reason": reason,
+            "reason_n": reason_n,  # G12: число для текста причины (окно/ночи)
         }
         if available and rate_plans:
             for rp in rate_plans:
@@ -351,7 +366,7 @@ def unterkunft_unit(request, pk):
         "body_sections": body_sections,
         "show_similar": show_similar,
         "today": today,
-        "max_date": today + timedelta(days=MAX_DAYS_AHEAD),
+        "max_date": today + timedelta(days=_horizon_days()),  # G12: окно бронирования
         "von": von,
         "bis": bis,
         "adults": adults,
@@ -507,7 +522,11 @@ def unterkunft_book(request, pk):
             rate_plan=rate_plan,
             voucher_code=request.POST.get("voucher_code", "").strip(),
             rooms=rooms,
+            enforce_restrictions=True,  # G12: витрина уважает Verkaufsregeln
         )
+    except services.RestrictionViolated as exc:
+        messages.error(request, restrictions.message(exc.code, exc.n))
+        return redirect(back)
     except services.MinStay:
         messages.error(request, _("Please book at least the minimum number of nights."))
         return redirect(back)

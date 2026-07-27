@@ -90,6 +90,8 @@
             <p class="text-sm text-gray-500">{{ r.unit.get_type_display }} · {% blocktrans with n=r.unit.max_guests %}up to {{ n }} guests{% endblocktrans %}</p>
             <p class="mt-3 text-sm text-amber-700">
               {% if r.reason == 'min_nights' %}{% blocktrans with n=r.unit.min_nights %}min. {{ n }} nights{% endblocktrans %}
+              {# G12: сезонный min-stay в поиске — тот же msgid, что и min_nights #}
+              {% elif r.reason == 'rule_min_nights' %}{% blocktrans with n=r.reason_n %}min. {{ n }} nights{% endblocktrans %}
               {% elif r.reason == 'guests' %}{% blocktrans with n=r.unit.max_guests %}fits up to {{ n }} guests{% endblocktrans %}
               {% else %}{% trans "Not available for these dates" %}{% endif %}
             </p>

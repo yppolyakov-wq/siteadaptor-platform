@@ -473,6 +473,50 @@ class StaySettings(I18nMixin, TimestampedModel):
         (KIND_LAST, "Last-Minute (bis N Tage vorher)"),
     ]
 
+    # G12: правила продаж («Verkaufsregeln», revenue management) — список правил
+    # (паттерн G4). Правило: {"start": "YYYY-MM-DD"|"", "end": ""|…, "unit": "<pk>"|"",
+    #   "min_nights": int, "max_nights": int, "no_checkin": [0..6], "no_checkout": [0..6]}
+    # min/max/no_checkin матчатся по ДАТЕ ЗАЕЗДА в периоде, no_checkout — по дате
+    # выезда; пустые границы = всегда, пустой unit = все номера. Гейтится ТОЛЬКО
+    # витрина (кабинет владельца — walk-in — правила не ограничивают).
+    restriction_rules = models.JSONField(default=list, blank=True)
+    # G12: окно бронирования — глубина (макс. дней вперёд; 0 = выкл, жёсткий кап —
+    # горизонт витрины) и минимальный срок до заезда в днях (0 = можно на сегодня).
+    max_advance_days = models.PositiveSmallIntegerField(default=0)
+    min_advance_days = models.PositiveSmallIntegerField(default=0)
+
+    def clean_restriction_rules(self) -> list[dict]:
+        """G12: очищенный список правил продаж (кап 50, валидные поля/диапазоны)."""
+        out = []
+        for r in self.restriction_rules or []:
+            if not isinstance(r, dict):
+                continue
+            try:
+                rule = {
+                    "start": str(r.get("start", ""))[:10],
+                    "end": str(r.get("end", ""))[:10],
+                    "unit": str(r.get("unit", ""))[:40],
+                    "min_nights": max(0, min(int(r.get("min_nights", 0) or 0), 365)),
+                    "max_nights": max(0, min(int(r.get("max_nights", 0) or 0), 365)),
+                    "no_checkin": sorted(
+                        {int(d) for d in (r.get("no_checkin") or []) if 0 <= int(d) <= 6}
+                    ),
+                    "no_checkout": sorted(
+                        {int(d) for d in (r.get("no_checkout") or []) if 0 <= int(d) <= 6}
+                    ),
+                }
+            except (TypeError, ValueError):
+                continue
+            # Пустое правило (ничего не ограничивает) не храним.
+            if (
+                rule["min_nights"]
+                or rule["max_nights"]
+                or rule["no_checkin"]
+                or rule["no_checkout"]
+            ):
+                out.append(rule)
+        return out[:50]
+
     def clean_auto_rules(self) -> list[dict]:
         """Очищенный список правил авто-скидок (валидные kind/threshold/percent)."""
         kinds = {k for k, _ in self.AUTO_DISCOUNT_KINDS}

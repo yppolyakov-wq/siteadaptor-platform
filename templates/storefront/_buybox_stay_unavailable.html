@@ -6,6 +6,14 @@ storefront/_buybox.html когда выбор НЕ готов; без quote (д�
   <div class="bg-amber-50 text-amber-800 rounded-2xl px-5 py-4 text-sm">
     {% if quote.reason == 'min_nights' %}{% blocktrans with n=unit.min_nights %}This place requires at least {{ n }} nights.{% endblocktrans %}
     {% elif quote.reason == 'guests' %}{% blocktrans with n=unit.max_guests %}This place fits up to {{ n }} guests.{% endblocktrans %}
+    {% comment %}G12: причины правил продаж (Verkaufsregeln) — msgid 1:1 с
+    restrictions.message (server re-validation в unterkunft_book).{% endcomment %}
+    {% elif quote.reason == 'window' %}{% blocktrans with n=quote.reason_n %}Bookings are possible at most {{ n }} days in advance.{% endblocktrans %}
+    {% elif quote.reason == 'lead' %}{% blocktrans with n=quote.reason_n %}Bookings must be made at least {{ n }} days before arrival.{% endblocktrans %}
+    {% elif quote.reason == 'rule_min_nights' %}{% blocktrans with n=quote.reason_n %}These dates require a stay of at least {{ n }} nights.{% endblocktrans %}
+    {% elif quote.reason == 'rule_max_nights' %}{% blocktrans with n=quote.reason_n %}These dates allow a stay of at most {{ n }} nights.{% endblocktrans %}
+    {% elif quote.reason == 'no_checkin' %}{% trans "Check-in is not possible on this weekday — please pick another arrival day." %}
+    {% elif quote.reason == 'no_checkout' %}{% trans "Check-out is not possible on this weekday — please pick another departure day." %}
     {% else %}{% trans "Sorry, these dates are not available. Please try another range." %}{% endif %}
   </div>
 {% endif %}
