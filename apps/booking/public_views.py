@@ -505,6 +505,13 @@ def service_book(request, pk):
         messages.error(request, _("This time is no longer available. Please pick another."))
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
 
+    # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
+    # (прямой opt-in не ставим; подписанным/отписанным — тишина).
+    if request.POST.get("marketing") == "on":
+        from apps.promotions.newsletter import maybe_send_doi
+
+        maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
+
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     if _redeem_pass_if_code(request, booking):
         return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
@@ -646,6 +653,13 @@ def termin_book(request, pk):
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
         return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+
+    # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
+    # (прямой opt-in не ставим; подписанным/отписанным — тишина).
+    if request.POST.get("marketing") == "on":
+        from apps.promotions.newsletter import maybe_send_doi
+
+        maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     if _redeem_pass_if_code(request, booking):

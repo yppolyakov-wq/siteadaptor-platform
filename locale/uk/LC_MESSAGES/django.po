@@ -13556,3 +13556,6 @@ msgstr "Потребує прибирання"
 
 msgid "Geprüft"
 msgstr "Перевірено"
+
+msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
+msgstr "Надсилайте мені новини та пропозиції (необов'язково) — спершу надійде лист-підтвердження, відписка в один клік."

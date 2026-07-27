@@ -13384,3 +13384,6 @@ msgstr "Needs cleaning"
 
 msgid "Geprüft"
 msgstr "Inspected"
+
+msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
+msgstr "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."

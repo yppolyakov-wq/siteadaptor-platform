@@ -13492,3 +13492,6 @@ msgstr "Temizlenecek"
 
 msgid "Geprüft"
 msgstr "Kontrol edildi"
+
+msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
+msgstr "Bana haber ve teklifler gönderin (isteğe bağlı) — önce onay e-postası gelir, istediğiniz an çıkabilirsiniz."

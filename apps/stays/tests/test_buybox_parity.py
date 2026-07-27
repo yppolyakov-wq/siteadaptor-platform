@@ -69,6 +69,7 @@ def test_book_form_base_exact_fields():
         "rooms",
         "voucher_code",
         "website",  # honeypot
+        "marketing",  # PMS-B1: opt-in чекбокс (UWG, не предотмечен)
         "name",
         "email",
         "phone",
@@ -94,6 +95,7 @@ def test_book_form_with_rate_extra_embed_fields():
         "extra",  # чекбоксы доп-услуг
         "voucher_code",
         "website",
+        "marketing",  # PMS-B1
         "name",
         "email",
         "phone",

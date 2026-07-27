@@ -542,6 +542,13 @@ def unterkunft_book(request, pk):
         )
         return redirect(back)
 
+    # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
+    # (прямой opt-in не ставим; уже подписанным/отписанным — тишина).
+    if request.POST.get("marketing") == "on":
+        from apps.promotions.newsletter import maybe_send_doi
+
+        maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
+
     # Онлайн-оплата при брони: предоплата по тарифу (G7, % от итога) или, если её
     # нет, депозит юнита (E4). Если сумма > 0 и бизнес принимает оплату — ведём на
     # Stripe Checkout (на счёт бизнеса). Иначе — обычная бронь без оплаты.

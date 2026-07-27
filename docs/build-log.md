@@ -6442,3 +6442,19 @@ scroll-контейнере + ящик «Erweitert ▾» вне него; `<deta
   ⚠️ ops: `seed_demo_tenants --kit hotel --recreate` после деплоя.
 - Замок: выезд→dirty→панель/бейдж→Sauber→clean (полный цикл). 6 msgid × 4 .po.
   Урок: pk Room — UUID (TimestampedModel) → маршруты `<uuid:pk>`, не int.
+
+## 2026-07-28 — PMS-B1: согласие на рассылки в воронке брони (Double-Opt-In), БЕЗ миграций
+
+Бутылочное горлышко блока рассылок (CRM-аудит): база opt-in не наполнялась —
+входы были только в футере и ЛК.
+
+- Чекбокс «Email me news and offers (optional)…» — НЕ предотмечен (UWG §7) —
+  в трёх формах брони: номер (`_buybox_stay_form`), услуга
+  (`_buybox_service_form`), ресурс/столик (`_booking_slots_box`).
+- `newsletter.maybe_send_doi(customer, base_url)` — шлёт Double-Opt-In письмо
+  ТОЛЬКО когда осмысленно (email есть, не opt-in, не отписан); прямой opt-in
+  из воронки НЕ ставится — подтверждение по ссылке как в существующем DOI-флоу.
+  Врезки: `unterkunft_book`, `service_book`, `termin_book`.
+- Паритет-замки полей buybox-форм обновлены ОСОЗНАННО (+`marketing` optional).
+  Замки: test_consent_doi (4: DOI без прямого opt-in / тишина без галки /
+  тишина подписанному / чекбокс не предотмечен). 1 msgid × 4 .po.

@@ -96,6 +96,16 @@ def send_doi_email(customer, *, base_url: str) -> None:
     )
 
 
+def maybe_send_doi(customer, *, base_url) -> bool:
+    """PMS-B1: галка согласия в воронке брони → Double-Opt-In письмо (UWG §7 —
+    прямой opt-in НЕ ставим). Шлём только когда осмысленно: есть email, ещё не
+    opt-in, не отписан. Возвращает, отправлено ли."""
+    if not customer.email or customer.marketing_opt_in or customer.unsubscribed:
+        return False
+    send_doi_email(customer, base_url=base_url)
+    return True
+
+
 def _coupon_terms(campaign) -> str:
     """Строка условий кода для письма («−10 % · gültig bis …»)."""
     parts = []

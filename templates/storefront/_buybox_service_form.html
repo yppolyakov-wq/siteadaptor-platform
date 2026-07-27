@@ -47,5 +47,11 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
   {% endif %}
+  {% comment %}PMS-B1 (UWG §7): согласие на рассылки — НЕ предотмечено;
+  подтверждается Double-Opt-In письмом.{% endcomment %}
+  <label class="flex items-start gap-2 text-xs text-gray-500">
+    <input type="checkbox" name="marketing" value="on" class="mt-0.5 rounded border-gray-300">
+    <span>{% trans "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime." %}</span>
+  </label>
   <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
 </form>

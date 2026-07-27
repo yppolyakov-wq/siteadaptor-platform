@@ -73,6 +73,7 @@ def test_book_form_base_exact_fields():
         "csrfmiddlewaretoken",
         "start",  # hidden ISO выбранного слота
         "website",  # honeypot
+        "marketing",  # PMS-B1: opt-in чекбокс (UWG, не предотмечен)
         "name",
         "email",
         "phone",
@@ -98,6 +99,7 @@ def test_book_form_with_resource_and_embed_fields():
         "start",
         "resource",  # hidden pk выбранного мастера
         "website",
+        "marketing",  # PMS-B1
         "name",
         "email",
         "phone",

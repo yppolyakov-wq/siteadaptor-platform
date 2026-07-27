@@ -92,6 +92,12 @@ sellable.buybox_ready (= quote.available); сервер ре-валидируе�
     <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
     <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   </div>
+  {% comment %}PMS-B1 (UWG §7): согласие на рассылки — НЕ предотмечено;
+  подтверждается Double-Opt-In письмом.{% endcomment %}
+  <label class="flex items-start gap-2 text-xs text-gray-500">
+    <input type="checkbox" name="marketing" value="on" class="mt-0.5 rounded border-gray-300">
+    <span>{% trans "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime." %}</span>
+  </label>
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "A payment is required for this booking — you'll pay securely in the next step (amount depends on the chosen rate)." %}</p>
   {% endif %}
