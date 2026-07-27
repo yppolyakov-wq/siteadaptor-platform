@@ -48,13 +48,15 @@ def consented_customers():
     return Customer.objects.filter(marketing_opt_in=True, unsubscribed=False).exclude(email="")
 
 
-def segment_customers(*, tag="", inactive_days=None, top_ltv=None):
+def segment_customers(*, tag="", inactive_days=None, top_ltv=None, exclude_ids=None):
     """B4/CM-9: сегмент ПОВЕРХ consented_customers() (UWG-гейт по построению).
 
     Фильтры комбинируются AND; всё пустое = вся opt-in-база.
     - tag: точное совпадение тега (теги хранятся lower-case);
     - inactive_days: последняя покупка (Max по RevenueEntry) старше N дней —
       клиенты БЕЗ покупок отсекаются (win-back целит бывших покупателей);
+    - exclude_ids: исключить клиентов ДО top_ltv-слайса (PMS-аудит 2026-07-27:
+      .exclude() после слайса ронял TypeError в авто-win-back с top_ltv);
     - top_ltv: топ-N по сумме выручки (слайс — последним, дальше не фильтровать).
     """
     from datetime import timedelta
@@ -69,6 +71,8 @@ def segment_customers(*, tag="", inactive_days=None, top_ltv=None):
         qs = qs.annotate(_last_purchase=Max("revenue_entries__date")).filter(
             _last_purchase__lt=cutoff
         )
+    if exclude_ids is not None:
+        qs = qs.exclude(id__in=exclude_ids)
     if top_ltv:
         qs = qs.annotate(_ltv=Sum("revenue_entries__amount")).filter(_ltv__gt=0)
         qs = qs.order_by("-_ltv")[: int(top_ltv)]

@@ -146,6 +146,22 @@ def calendar(request):
     blocks = UnitBlock.objects.filter(
         unit__in=units, start_date__lt=window_end, end_date__gte=start
     ).select_related("unit")
+    # PMS-аудит 2026-07-27: цвет/drag плашки — по РОЛИ статуса из реестра
+    # (кастом-статус «Anzahlung erhalten» был серым и терял drag). Встроенные
+    # цвета байт-в-байт прежние; кастом-active — индиго и draggable.
+    _builtin_colors = {
+        "confirmed": "bg-green-200/80 text-green-900",
+        "pending": "bg-amber-200/80 text-amber-900",
+    }
+    for b in bookings:
+        d = status_registry.resolve("stay", b.status)
+        # Двигать можно бронь, занимающую ёмкость (pending/confirmed/кастом-active);
+        # done/cancelled — статичные плашки.
+        b.bar_draggable = bool(d and d.blocks_capacity)
+        b.bar_color = _builtin_colors.get(
+            b.status,
+            "bg-indigo-200/80 text-indigo-900" if b.bar_draggable else "bg-gray-200 text-gray-600",
+        )
     bars = availability.booking_bars(units, start, HORIZON_DAYS, bookings, blocks)
     grid = [(unit, cells, bars.get(unit.id) or []) for unit, cells in rows]
     # Фидбэк 2026-07-27: клик по плашке открывает карточку брони СРАЗУ ПОД

@@ -58,3 +58,42 @@ def test_purge_is_idempotent():
 
     assert purge_due_customers() == 1
     assert purge_due_customers() == 0  # повторно уже обезличенного не трогаем
+
+
+@pytest.mark.django_db
+def test_purge_covers_stays_only_guests():
+    """PMS-аудит 2026-07-27: отельные гости (только StayBooking, без Reservation)
+    раньше НЕ попадали под DSGVO-обезличивание вовсе."""
+    from datetime import date, timedelta
+
+    from django.utils import timezone
+
+    from apps.promotions.models import Customer
+    from apps.promotions.tasks import purge_due_customers
+    from apps.stays import services as stay_services
+    from apps.stays.models import StayBooking, StayUnit
+
+    unit = StayUnit.objects.create(name="Zi Purge", price_cents=8000)
+    old = stay_services.book_stay(
+        unit,
+        arrival=date(2026, 9, 1),
+        departure=date(2026, 9, 3),
+        name="Alt Gast",
+        email="alt@test.de",
+    )
+    old.status = StayBooking.STATUS_FULFILLED
+    old.save(update_fields=["status"])
+    # давность больше retention: подвинем updated_at брони в прошлое
+    StayBooking.objects.filter(pk=old.pk).update(updated_at=timezone.now() - timedelta(days=4000))
+    fresh = stay_services.book_stay(
+        unit,
+        arrival=date(2026, 10, 1),
+        departure=date(2026, 10, 3),
+        name="Aktiv Gast",
+        email="aktiv@test.de",
+    )
+    assert purge_due_customers() >= 1
+    old_customer = Customer.objects.get(pk=old.customer_id)
+    assert old_customer.email == "" and old_customer.name != "Alt Gast"  # обезличен
+    active_customer = Customer.objects.get(pk=fresh.customer_id)
+    assert active_customer.email == "aktiv@test.de"  # активный гость не тронут

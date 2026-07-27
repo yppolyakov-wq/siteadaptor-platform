@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -100,11 +101,21 @@ def profile_view(request):
         customer.phone = request.POST.get("phone", "").strip()[:40]
         # UWG §7: галка = получать рассылки (opt_in + снять one-click отписку).
         opt = request.POST.get("marketing") == "on"
+        # PMS-аудит 2026-07-27: фиксируем МОМЕНТ согласия (доказательство UWG §7).
+        if opt and not customer.marketing_opt_in:
+            customer.marketing_opt_in_at = timezone.now()
         customer.marketing_opt_in = opt
         if opt:
             customer.unsubscribed = False
         customer.save(
-            update_fields=["name", "phone", "marketing_opt_in", "unsubscribed", "updated_at"]
+            update_fields=[
+                "name",
+                "phone",
+                "marketing_opt_in",
+                "marketing_opt_in_at",
+                "unsubscribed",
+                "updated_at",
+            ]
         )
         messages.success(request, _("Saved."))
         return redirect("account-profile")

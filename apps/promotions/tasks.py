@@ -187,20 +187,32 @@ def roll_recurring_promotions():
 def purge_due_customers(now=None) -> int:
     """DSGVO: обезличить контакты клиентов без активных броней (в текущей схеме).
 
-    Кандидат — клиент, у которого нет pending/confirmed броней и чья последняя
-    активность по броням старше RESERVATION_PII_RETENTION_DAYS. Сама строка
-    Customer остаётся (для агрегатной статистики), но PII затирается.
+    Кандидат — клиент, у которого нет pending/confirmed резерваций И активных
+    отельных броней, и чья последняя активность (резервации ИЛИ stays — PMS-аудит
+    2026-07-27: раньше отельные гости под purge не попадали вовсе) старше
+    RESERVATION_PII_RETENTION_DAYS. Сама строка Customer остаётся (для
+    агрегатной статистики), но PII затирается.
     """
+    from django.db.models.functions import Greatest
+
+    from apps.core import status_registry
+    from apps.stays.models import StayBooking
+
     now = now or timezone.now()
     cutoff = now - timedelta(days=settings.RESERVATION_PII_RETENTION_DAYS)
 
     active_customer_ids = Reservation.objects.filter(
         status__in=["pending", "confirmed"]
     ).values_list("customer_id", flat=True)
+    active_stay_ids = StayBooking.objects.filter(
+        status__in=status_registry.active_statuses_for("stay")
+    ).values_list("customer_id", flat=True)
 
     stale = (
         Customer.objects.exclude(id__in=active_customer_ids)
-        .annotate(last_activity=Max("reservations__updated_at"))
+        .exclude(id__in=active_stay_ids)
+        # PostgreSQL GREATEST игнорирует NULL → работает и для «только stays».
+        .annotate(last_activity=Greatest(Max("reservations__updated_at"), Max("stays__updated_at")))
         .filter(last_activity__isnull=False, last_activity__lt=cutoff)
         # уже обезличенные не трогаем повторно
         .exclude(name=_ANONYMIZED_NAME, email="", phone="", note="")
@@ -245,10 +257,14 @@ def send_due_winback_coupons(now=None, base_url=None) -> int:
         recent_ids = campaign.vouchers.filter(
             created_at__gte=now - timedelta(days=days), customer__isnull=False
         ).values_list("customer_id", flat=True)
+        # PMS-аудит 2026-07-27: exclude ДО top_ltv-слайса (иначе TypeError).
         customers = list(
             segment_customers(
-                tag=campaign.tag, inactive_days=days, top_ltv=campaign.top_ltv
-            ).exclude(id__in=recent_ids)
+                tag=campaign.tag,
+                inactive_days=days,
+                top_ltv=campaign.top_ltv,
+                exclude_ids=list(recent_ids),
+            )
         )
         if not customers:
             continue

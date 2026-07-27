@@ -41,6 +41,12 @@ class CustomerForm(forms.ModelForm):
     def save(self, commit=True):
         customer = super().save(commit=False)
         customer.tags = self.cleaned_data.get("tags_input", [])
+        # PMS-аудит 2026-07-27: фиксируем момент согласия (доказательство UWG §7)
+        # при переводе галки владельцем в True.
+        if customer.marketing_opt_in and not customer.marketing_opt_in_at:
+            from django.utils import timezone
+
+            customer.marketing_opt_in_at = timezone.now()
         if commit:
             customer.save()
         return customer

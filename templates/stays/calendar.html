@@ -68,15 +68,14 @@
               <td colspan="{{ item.gap }}"></td>
             {% elif item.kind == "booking" %}
               <td colspan="{{ item.span }}" class="px-0.5 py-0.5">
-                <div draggable="{% if item.obj.status == 'pending' or item.obj.status == 'confirmed' %}true{% else %}false{% endif %}"
+                {# PMS-аудит 2026-07-27: цвет/drag по роли статуса (кастом-статусы живут) #}
+                <div draggable="{% if item.obj.bar_draggable %}true{% else %}false{% endif %}"
                      data-bar-pk="{{ item.obj.pk }}" data-nights="{{ item.obj.nights }}"
                      data-arrival="{{ item.obj.arrival|date:'Y-m-d' }}"
                      data-action-url="{% url 'stays:stay-action' item.obj.pk %}"
                      class="group flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium truncate select-none
-                     {% if item.obj.status == 'confirmed' %}bg-green-200/80 text-green-900
-                     {% elif item.obj.status == 'pending' %}bg-amber-200/80 text-amber-900
-                     {% else %}bg-gray-200 text-gray-600{% endif %}
-                     {% if item.obj.status == 'pending' or item.obj.status == 'confirmed' %}cursor-grab active:cursor-grabbing{% endif %}"
+                     {{ item.obj.bar_color }}
+                     {% if item.obj.bar_draggable %}cursor-grab active:cursor-grabbing{% endif %}"
                      title="{{ item.obj.customer }} · {{ item.obj.arrival|date:'d.m.' }}–{{ item.obj.departure|date:'d.m.Y' }} · {{ item.obj.reference_code }}">
                   {% if item.clip_left %}<span aria-hidden="true">‹</span>{% endif %}
                   <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false">{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>

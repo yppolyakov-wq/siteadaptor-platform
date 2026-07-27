@@ -61,3 +61,11 @@ def test_delete_anonymizes_and_logs_out():
     c.refresh_from_db()
     assert c.email == "" and not c.marketing_opt_in
     assert auth.SESSION_KEY not in req.session
+
+
+def test_profile_opt_in_records_consent_timestamp():
+    """PMS-аудит 2026-07-27: момент согласия (UWG §7) фиксируется при включении."""
+    c = Customer.objects.create(name="G", email="g@test.de")
+    views.profile_view(_req("post", {"name": "G", "marketing": "on"}, c))
+    c.refresh_from_db()
+    assert c.marketing_opt_in and c.marketing_opt_in_at is not None

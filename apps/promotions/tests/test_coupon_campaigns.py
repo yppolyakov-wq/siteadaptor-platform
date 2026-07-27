@@ -278,3 +278,15 @@ def test_winback_paused_or_recent_buyer_is_silent():
     n = tasks.send_due_winback_coupons(base_url=_BASE)
     assert n == 1  # только lost; fresh покупал недавно
     assert not Voucher.objects.filter(customer=fresh).exists()
+
+
+def test_winback_with_top_ltv_no_typeerror():
+    """PMS-аудит 2026-07-27: exclude после top_ltv-слайса ронял TypeError —
+    теперь exclude_ids применяется ДО слайса."""
+    lost = _customer("lost-ltv@test.de")
+    _purchase(lost, days_ago=90)
+    _winback(top_ltv=5)
+
+    assert tasks.send_due_winback_coupons(base_url=_BASE) == 1
+    # второй прогон: свежий ваучер исключает клиента ДО слайса — тишина, не крэш
+    assert tasks.send_due_winback_coupons(base_url=_BASE) == 0
