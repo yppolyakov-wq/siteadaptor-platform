@@ -68,14 +68,69 @@ def quote_total_cents(
     return total
 
 
-def auto_discount(lodging_cents, nights, arrival, today=None, settings=None) -> tuple[int, str]:
+def gap_discount(unit, arrival, departure, settings, today=None) -> tuple[int, str]:
+    """Lücken-Deal (план gap-deal-plan-2026-07-28): (percent, label) | (0, "").
+
+    Промежуток = свободный отрезок ночей (free > 0 в семантике
+    range_available), зажатый ПОЛНОСТЬЮ занятыми/блокированными ночами с
+    обеих сторон, длиной ≤ gap_max_nights; диапазон гостя должен лежать в нём
+    целиком. Передний край «сегодня» границей НЕ считается (иначе всё близкое
+    дисконтилось бы)."""
+    from datetime import timedelta
+
+    max_nights = int(getattr(settings, "gap_max_nights", 0) or 0)
+    if max_nights <= 0:
+        return 0, ""
+    nights = (departure - arrival).days
+    if nights <= 0 or nights > max_nights:
+        return 0, ""
+    if today is None:
+        from django.utils import timezone
+
+        today = timezone.localdate()
+    from . import availability
+
+    scan_lo = arrival - timedelta(days=max_nights)
+    scan_hi = departure + timedelta(days=max_nights)
+    occ = availability.occupancy_by_day(unit, scan_lo, scan_hi)
+
+    def _free(day) -> bool:
+        return occ.get(day, 0) < 100
+
+    for day in (arrival + timedelta(days=i) for i in range(nights)):
+        if not _free(day):  # запрошенные ночи должны быть свободны
+            return 0, ""
+    lo = arrival
+    while lo > scan_lo and _free(lo - timedelta(days=1)):
+        lo -= timedelta(days=1)
+    hi = departure
+    while hi < scan_hi and _free(hi):
+        hi += timedelta(days=1)
+    bounded_left = lo > scan_lo and not _free(lo - timedelta(days=1))
+    bounded_right = hi < scan_hi and not _free(hi)
+    if not (bounded_left and bounded_right):
+        return 0, ""
+    if lo <= today:  # отрезок упирается в «сегодня» — не люка между бронями
+        return 0, ""
+    if (hi - lo).days > max_nights:
+        return 0, ""
+    percent = max(1, min(int(getattr(settings, "gap_discount_percent", 0) or 0), 70))
+    return percent, f"Lücken-Deal −{percent}%"
+
+
+def auto_discount(
+    lodging_cents, nights, arrival, today=None, settings=None, *, unit=None, departure=None
+) -> tuple[int, str]:
     """G4: авто-скидка на проживание (LOS / Frühbucher / Last-Minute), много правил.
 
     Возвращает (discount_cents, label). Из всех подходящих правил берём максимальный
     процент (предсказуемо, не суммируем). Считается от ``lodging_cents`` (проживание
     без Extras/Kurtaxe). ``arrival`` + ``today`` дают срок до заезда. Промокод (H4a)
     применяется отдельно, поверх этой скидки.
-    """
+
+    Lücken-Deal: при переданных ``unit``+``departure`` скидка короткого
+    промежутка между бронями участвует обычным кандидатом (без них — поведение
+    байт-в-байт прежнее)."""
     if settings is None:
         from .models import StaySettings
 
@@ -96,6 +151,10 @@ def auto_discount(lodging_cents, nights, arrival, today=None, settings=None) -> 
             candidates.append((percent, f"Frühbucher −{percent}%"))
         elif kind == StaySettings.KIND_LAST and 0 <= lead <= threshold:
             candidates.append((percent, f"Last-Minute −{percent}%"))
+    if unit is not None and departure is not None:
+        gap_percent, gap_label = gap_discount(unit, arrival, departure, settings, today=today)
+        if gap_percent:
+            candidates.append((gap_percent, gap_label))
     if not candidates:
         return 0, ""
     percent, label = max(candidates, key=lambda c: c[0])

@@ -209,6 +209,29 @@
   </form>
 </div>
 
+{# Lücken-Deal: суперскидка на короткие промежутки между бронями. #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
+  <h2 class="font-semibold mb-1">💥 {% trans "Lücken-Deal" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt die beste Ermäßigung (wird nicht addiert)." %}</p>
+  <form method="post" class="flex items-end gap-3 flex-wrap">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="gap_deal">
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="enabled" value="1" {% if stay_settings.gap_max_nights %}checked{% endif %} class="rounded border-gray-300">
+      {% trans "Enabled" %}
+    </label>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücke bis … Nächte" %}</label>
+      <input name="gap_max_nights" type="number" min="1" max="14" value="{{ stay_settings.gap_max_nights|default:3 }}" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Rabatt %" %}</label>
+      <input name="gap_discount_percent" type="number" min="1" max="70" value="{{ stay_settings.gap_discount_percent|default:25 }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</div>
+
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
   <h2 class="font-semibold mb-1">{% trans "Rate plans" %}</h2>

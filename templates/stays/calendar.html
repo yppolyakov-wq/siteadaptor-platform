@@ -42,6 +42,19 @@
 </div>
 {% endif %}
 
+{% if gap_hint %}
+{# Lücken-Deal: автопредложение — короткие люки между бронями найдены, фича выключена. #}
+<div class="mb-3 flex items-center justify-between gap-3 flex-wrap rounded-2xl bg-indigo-50 border border-indigo-200 px-4 py-3">
+  <p class="text-sm text-indigo-900">💥 {% trans "Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen sich schwer. Lücken-Rabatt aktivieren?" %}</p>
+  <form method="post" action="{% url 'stays:units' %}" class="shrink-0">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="gap_deal"><input type="hidden" name="enabled" value="1">
+    <input type="hidden" name="gap_max_nights" value="3"><input type="hidden" name="gap_discount_percent" value="25">
+    <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Aktivieren (−25 % bis 3 Nächte)" %}</button>
+  </form>
+</div>
+{% endif %}
+
 {% if ohne_zimmer %}
 {# PMS-R2: брони без назначенного номера (категория с комнатами) #}
 <p class="mb-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 text-sm">⚠️ {% blocktrans with n=ohne_zimmer %}{{ n }} bookings without an assigned room — click a booking to assign one.{% endblocktrans %}</p>

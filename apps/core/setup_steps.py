@@ -597,9 +597,19 @@ def create_offer(request) -> None:
 
             Service.objects.create(name=name, price_cents=cents)
         elif kind == "stays":
-            from apps.stays.models import StayUnit
+            from apps.stays.models import StaySettings, StayUnit
 
             StayUnit.objects.create(name=name, price_cents=cents)
+            # Lücken-Deal из первичных настроек (чекбокс слайда; дефолты 3/25,
+            # включаем только если владелец ещё не настраивал).
+            if request.POST.get("gap_deal"):
+                stay_settings = StaySettings.load()
+                if stay_settings.gap_max_nights == 0:
+                    stay_settings.gap_max_nights = 3
+                    stay_settings.gap_discount_percent = 25
+                    stay_settings.save(
+                        update_fields=["gap_max_nights", "gap_discount_percent", "updated_at"]
+                    )
         elif kind == "events":
             from datetime import timedelta
 

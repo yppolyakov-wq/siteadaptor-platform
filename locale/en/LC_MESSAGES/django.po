@@ -13611,3 +13611,39 @@ msgstr "%(n)s left"
 
 msgid "Menü einklappen"
 msgstr "Collapse menu"
+
+msgid "Lücken-Deal"
+msgstr "Gap deal"
+
+msgid ""
+"Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
+"schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
+"gewinnt die beste Ermäßigung (wird nicht addiert)."
+msgstr ""
+"Short free gaps between bookings (e.g. 2–3 nights) are hard to sell — offer "
+"them with an automatic discount. Applies when the whole stay fits into such "
+"a gap; like the automatic discounts, the best reduction wins (not added up)."
+
+msgid "Lücke bis … Nächte"
+msgstr "Gap up to … nights"
+
+msgid "Rabatt %"
+msgstr "Discount %"
+
+msgid ""
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
+" sich schwer. Lücken-Rabatt aktivieren?"
+msgstr ""
+"We found short gaps between bookings — such nights are hard to sell. Enable "
+"the gap discount?"
+
+msgid "Aktivieren (−25 % bis 3 Nächte)"
+msgstr "Enable (−25 % up to 3 nights)"
+
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Enable gap discount: automatically offer short gaps between bookings (up to "
+"3 nights) at −25 %. Adjustable later under “Units”."

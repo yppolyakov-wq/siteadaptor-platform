@@ -124,7 +124,9 @@ def _unit_from_price_cents(unit, von, bis, rate_plans):
         )
     else:
         room = pricing.quote_total_cents(unit, von, bis, **occ)
-    auto_cents, _label = pricing.auto_discount(room, (bis - von).days, von)
+    auto_cents, _label = pricing.auto_discount(
+        room, (bis - von).days, von, unit=unit, departure=bis
+    )
     return room - auto_cents
 
 
@@ -280,7 +282,9 @@ def unterkunft_unit(request, pk):
         kurtaxe_eur = kurtaxe_cents / 100
         # G4: авто-скидка на проживание (без тарифа) — для показа итога без тарифов.
         auto_cents, auto_label = (
-            pricing.auto_discount(total_cents, nights, von) if available else (0, "")
+            pricing.auto_discount(total_cents, nights, von, unit=unit, departure=bis)
+            if available
+            else (0, "")
         )
         quote = {
             "von": von,
@@ -302,7 +306,9 @@ def unterkunft_unit(request, pk):
             occ = _occupancy_kwargs(unit, von, bis)  # PMS-D: карточки = приёмник
             for rp in rate_plans:
                 rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp, **occ) * rooms
-                rp_auto, rp_label = pricing.auto_discount(rp_cents, nights, von)
+                rp_auto, rp_label = pricing.auto_discount(
+                    rp_cents, nights, von, unit=unit, departure=bis
+                )
                 rp_total_cents = rp_cents - rp_auto + kurtaxe_cents
                 rp_prepay = pricing.prepayment_cents(rp_total_cents, rp)  # G7
                 rate_options.append(

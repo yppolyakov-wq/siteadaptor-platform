@@ -13720,3 +13720,41 @@ msgstr "son %(n)s"
 
 msgid "Menü einklappen"
 msgstr "Menüyü daralt"
+
+msgid "Lücken-Deal"
+msgstr "Boşluk fırsatı"
+
+msgid ""
+"Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
+"schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
+"gewinnt die beste Ermäßigung (wird nicht addiert)."
+msgstr ""
+"Rezervasyonlar arasındaki kısa boşluklar (örn. 2–3 gece) zor satılır — "
+"bunları otomatik indirimle sunun. Tüm konaklama böyle bir boşluğa sığdığında"
+" geçerlidir; otomatik indirimlerde olduğu gibi en iyi indirim kazanır "
+"(toplanmaz)."
+
+msgid "Lücke bis … Nächte"
+msgstr "En fazla … gecelik boşluk"
+
+msgid "Rabatt %"
+msgstr "İndirim %"
+
+msgid ""
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
+" sich schwer. Lücken-Rabatt aktivieren?"
+msgstr ""
+"Rezervasyonlar arasında kısa boşluklar bulduk — bu geceler zor satılır. "
+"Boşluk indirimi etkinleştirilsin mi?"
+
+msgid "Aktivieren (−25 % bis 3 Nächte)"
+msgstr "Etkinleştir (3 geceye kadar −%25)"
+
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Boşluk indirimini etkinleştir: rezervasyonlar arası kısa boşlukları (3 "
+"geceye kadar) otomatik olarak −%25 ile sun. Daha sonra “Units” altında "
+"ayarlanabilir."

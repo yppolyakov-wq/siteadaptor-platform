@@ -26,6 +26,13 @@ primary-архетипу (товар/услуга/номер/событие) —
         </div>
       {% endif %}
     </div>
+    {% if offer_kind == "stays" %}
+      {# Lücken-Deal (фидбэк 2026-07-28): предложение прямо в первичных настройках. #}
+      <label class="flex items-start gap-2 text-sm text-gray-600">
+        <input type="checkbox" name="gap_deal" value="1" class="rounded border-gray-300 mt-0.5">
+        <span>💥 {% trans "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 % anbieten. Später unter „Units“ anpassbar." %}</span>
+      </label>
+    {% endif %}
     <button type="submit" name="action" value="create_offer" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">+ {% trans "Hinzufügen" %}</button>
   </form>
 

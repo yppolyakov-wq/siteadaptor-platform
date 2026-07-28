@@ -64,6 +64,28 @@ def _extras_for_walkin():
     return extras_engine.active_for("stays")
 
 
+def _has_short_gaps(units, *, max_nights=3, horizon=60) -> bool:
+    """Lücken-Deal: есть ли впереди короткие свободные промежутки между
+    занятыми ночами (кандидаты на скидку) — для автопредложения владельцу."""
+    today = timezone.localdate()
+    start, end = today + timedelta(days=1), today + timedelta(days=1 + horizon)
+    for unit in units:
+        occ = availability.occupancy_by_day(unit, start, end)
+        run = 0
+        bounded_left = False
+        day = start
+        while day < end:
+            if occ.get(day, 0) < 100:
+                run += 1
+            else:
+                if bounded_left and 0 < run <= max_nights:
+                    return True
+                bounded_left = True
+                run = 0
+            day += timedelta(days=1)
+    return False
+
+
 def _finance_active(request) -> bool:
     tenant = getattr(request, "tenant", None)
     return bool(tenant is not None and tenant.is_module_active("finance"))
@@ -263,6 +285,12 @@ def calendar(request):
             # Фидбэк 2026-07-28: поиск броней.
             "search_q": search_q,
             "search_results": search_results,
+            # Lücken-Deal: автопредложение, когда фича выключена, а люки есть.
+            "gap_hint": (
+                StaySettings.load().gap_max_nights == 0
+                and bool(bookings)
+                and _has_short_gaps(units)
+            ),
             # PMS-A1: паритет walk-in формы с витриной — тарифы и доп-услуги.
             "rate_plans": list(RatePlan.objects.filter(is_active=True)),
             "walkin_extras": _extras_for_walkin(),
@@ -903,6 +931,19 @@ def units(request):
                 rules.pop(idx)
                 settings_obj.occupancy_rules = rules
                 settings_obj.save(update_fields=["occupancy_rules", "updated_at"])
+        elif action == "gap_deal":  # Lücken-Deal: скидка на короткие промежутки
+            settings_obj = StaySettings.load()
+            enabled = bool(request.POST.get("enabled"))
+            settings_obj.gap_max_nights = (
+                _int(request.POST.get("gap_max_nights", "3"), 3, 1, 14) if enabled else 0
+            )
+            settings_obj.gap_discount_percent = _int(
+                request.POST.get("gap_discount_percent", "25"), 25, 1, 70
+            )
+            settings_obj.save(
+                update_fields=["gap_max_nights", "gap_discount_percent", "updated_at"]
+            )
+            messages.success(request, _("Settings saved."))
         return redirect("stays:units")
 
     units = list(

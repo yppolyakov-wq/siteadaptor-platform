@@ -255,7 +255,9 @@ def book_stay(
         pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan, **occ_kwargs)
         * rooms
     )
-    auto_discount_cents, auto_discount_label = pricing.auto_discount(room_cents, nights, arrival)
+    auto_discount_cents, auto_discount_label = pricing.auto_discount(
+        room_cents, nights, arrival, unit=unit, departure=departure
+    )
     # H4a: промокод применяется к проживанию (после авто-скидки) + услугам, не к Kurtaxe.
     lodging_cents = room_cents - auto_discount_cents + extras_engine.total_cents(extras_snap)
     discount_cents, voucher_code_snap = _apply_voucher(voucher_code, lodging_cents)

@@ -13779,3 +13779,39 @@ msgstr "залишилось %(n)s"
 
 msgid "Menü einklappen"
 msgstr "Згорнути меню"
+
+msgid "Lücken-Deal"
+msgstr "Знижка на «вікна»"
+
+msgid ""
+"Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
+"schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
+"gewinnt die beste Ermäßigung (wird nicht addiert)."
+msgstr ""
+"Короткі «вікна» між бронями (2–3 ночі) продаються погано — пропонуйте їх "
+"автоматично зі знижкою. Діє, коли все проживання вміщується в таке вікно; як"
+" і в авто-знижок, перемагає найкраща (не додаються)."
+
+msgid "Lücke bis … Nächte"
+msgstr "Вікно до … ночей"
+
+msgid "Rabatt %"
+msgstr "Знижка %"
+
+msgid ""
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
+" sich schwer. Lücken-Rabatt aktivieren?"
+msgstr ""
+"Ми знайшли короткі «вікна» між бронями — такі ночі продаються погано. "
+"Увімкнути знижку на вікна?"
+
+msgid "Aktivieren (−25 % bis 3 Nächte)"
+msgstr "Увімкнути (−25 % до 3 ночей)"
+
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Увімкнути знижку на вікна: короткі проміжки між бронями (до 3 ночей) "
+"автоматично з −25 %. Пізніше налаштовується в «Units»."

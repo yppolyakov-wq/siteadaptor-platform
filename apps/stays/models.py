@@ -529,6 +529,13 @@ class StaySettings(I18nMixin, TimestampedModel):
     # (стойка/reprice — базовая цена); без автопилота и цен конкурентов.
     occupancy_rules = models.JSONField(default=list, blank=True)
 
+    # Lücken-Deal (фидбэк 2026-07-28): суперскидка на короткие промежутки
+    # между бронями. gap_max_nights = 0 → выкл; иначе свободный отрезок
+    # ≤ N ночей, зажатый занятыми ночами с обеих сторон, продаётся со
+    # скидкой gap_discount_percent (лучший из кандидатов G4, не суммируется).
+    gap_max_nights = models.PositiveSmallIntegerField(default=0)
+    gap_discount_percent = models.PositiveSmallIntegerField(default=25)
+
     def clean_restriction_rules(self) -> list[dict]:
         """G12: очищенный список правил продаж (кап 50, валидные поля/диапазоны)."""
         out = []

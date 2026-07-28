@@ -13748,3 +13748,40 @@ msgstr "noch %(n)s"
 
 msgid "Menü einklappen"
 msgstr "Menü einklappen"
+
+msgid "Lücken-Deal"
+msgstr "Lücken-Deal"
+
+msgid ""
+"Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
+"schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
+"gewinnt die beste Ermäßigung (wird nicht addiert)."
+msgstr ""
+"Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
+"schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
+"gewinnt die beste Ermäßigung (wird nicht addiert)."
+
+msgid "Lücke bis … Nächte"
+msgstr "Lücke bis … Nächte"
+
+msgid "Rabatt %"
+msgstr "Rabatt %"
+
+msgid ""
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
+" sich schwer. Lücken-Rabatt aktivieren?"
+msgstr ""
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
+" sich schwer. Lücken-Rabatt aktivieren?"
+
+msgid "Aktivieren (−25 % bis 3 Nächte)"
+msgstr "Aktivieren (−25 % bis 3 Nächte)"
+
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."

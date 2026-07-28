@@ -13792,3 +13792,39 @@ msgstr "осталось %(n)s"
 
 msgid "Menü einklappen"
 msgstr "Свернуть меню"
+
+msgid "Lücken-Deal"
+msgstr "Скидка на «окна»"
+
+msgid ""
+"Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
+"schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
+"gewinnt die beste Ermäßigung (wird nicht addiert)."
+msgstr ""
+"Короткие «окна» между бронями (2–3 ночи) продаются плохо — предлагайте их "
+"автоматически со скидкой. Действует, когда всё проживание помещается в такое"
+" окно; как и у авто-скидок, побеждает лучшая (не суммируются)."
+
+msgid "Lücke bis … Nächte"
+msgstr "Окно до … ночей"
+
+msgid "Rabatt %"
+msgstr "Скидка %"
+
+msgid ""
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
+" sich schwer. Lücken-Rabatt aktivieren?"
+msgstr ""
+"Мы нашли короткие «окна» между бронями — такие ночи продаются плохо. "
+"Включить скидку на окна?"
+
+msgid "Aktivieren (−25 % bis 3 Nächte)"
+msgstr "Включить (−25 % до 3 ночей)"
+
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Включить скидку на окна: короткие промежутки между бронями (до 3 ночей) "
+"автоматически с −25 %. Позже настраивается в «Units»."
