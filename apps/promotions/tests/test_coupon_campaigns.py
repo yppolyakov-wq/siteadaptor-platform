@@ -356,3 +356,53 @@ def test_birthday_feb29_celebrated_feb28_in_non_leap_year():
     Voucher.objects.all().delete()
     assert tasks.send_due_birthday_coupons(today=date(2028, 2, 28), base_url=_BASE) == 0
     assert tasks.send_due_birthday_coupons(today=date(2028, 2, 29), base_url=_BASE) == 1
+
+
+# ---------------------------------------------------------------------------
+# Telegram — дубль-канал кампаний (план campaign-telegram-plan-2026-07-28)
+# ---------------------------------------------------------------------------
+
+
+def _tg_link(customer, chat="777"):
+    from apps.telegram.models import TelegramBot, TelegramLink
+
+    TelegramBot.objects.get_or_create(
+        token="t", defaults={"bot_username": "ShopBot", "is_active": True}
+    )
+    return TelegramLink.objects.create(
+        customer=customer, link_token=f"tok-{customer.pk}", chat_id=chat
+    )
+
+
+def test_coupon_campaign_duplicates_to_telegram_for_linked():
+    linked = _customer("tg@test.de")
+    _tg_link(linked)
+    only_mail = _customer("mail@test.de")
+    campaign = CouponCampaign.objects.create(
+        name="Aktion", subject="Ihr Code", discount_percent=10, valid_days=30
+    )
+
+    assert newsletter.send_coupon_campaign(campaign, base_url=_BASE) == 2
+    voucher = Voucher.objects.get(customer=linked)
+    tg = Notification.objects.get(dedupe_key=f"coupon:{campaign.id}:{linked.id}:{voucher.code}:tg")
+    assert tg.channel == Notification.TELEGRAM and voucher.code in tg.payload["body"]
+    assert "Abmelden" in tg.payload["body"]  # отписка и в Telegram-тексте
+    # без привязки — только email
+    assert not Notification.objects.filter(
+        dedupe_key__startswith=f"coupon:{campaign.id}:{only_mail.id}", channel=Notification.TELEGRAM
+    ).exists()
+
+
+def test_newsletter_campaign_duplicates_to_telegram_idempotent():
+    from apps.promotions.models import NewsletterCampaign
+
+    linked = _customer("tg2@test.de")
+    _tg_link(linked, chat="888")
+    campaign = NewsletterCampaign.objects.create(subject="News", body="Hallo!")
+
+    assert newsletter.send_campaign(campaign, base_url=_BASE) == 1
+    key = f"campaign:{campaign.id}:{linked.id}:tg"
+    assert Notification.objects.filter(dedupe_key=key, channel=Notification.TELEGRAM).count() == 1
+    # повторный вызов отправленной кампании — no-op (ни email, ни tg дублей)
+    assert newsletter.send_campaign(campaign, base_url=_BASE) == 1
+    assert Notification.objects.filter(dedupe_key=key).count() == 1

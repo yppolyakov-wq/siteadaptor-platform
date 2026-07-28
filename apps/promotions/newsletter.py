@@ -176,6 +176,17 @@ def send_coupon_campaign(campaign, *, base_url: str, customers=None) -> int:
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
             },
         )
+        # Telegram — дубль-канал той же кампании привязавшим бота (план
+        # campaign-telegram-plan-2026-07-28): согласие то же (DOI), отписка
+        # глушит оба канала по построению; no-op без привязки/бота.
+        from apps.telegram.notify import send_to_customer as tg_send
+
+        tg_send(
+            customer,
+            type="coupon_campaign",
+            dedupe_key=f"coupon:{campaign.id}:{customer.id}:{voucher.code}:tg",
+            text=f"{campaign.subject}\n\n" + "\n\n".join(body_parts),
+        )
         count += 1
     if campaign.kind == campaign.KIND_MANUAL:
         campaign.status = campaign.STATUS_SENT
@@ -207,6 +218,15 @@ def send_campaign(campaign: NewsletterCampaign, *, base_url: str) -> int:
                 "List-Unsubscribe": f"<{unsub}>",
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
             },
+        )
+        # Telegram — дубль-канал рассылки (см. send_coupon_campaign).
+        from apps.telegram.notify import send_to_customer as tg_send
+
+        tg_send(
+            customer,
+            type="newsletter_campaign",
+            dedupe_key=f"campaign:{campaign.id}:{customer.id}:tg",
+            text=f"{campaign.subject}\n\n{campaign.body}\n\n—\nAbmelden: {unsub}",
         )
         count += 1
     campaign.status = NewsletterCampaign.STATUS_SENT
