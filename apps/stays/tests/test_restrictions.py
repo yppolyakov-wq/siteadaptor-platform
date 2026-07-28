@@ -196,7 +196,7 @@ def test_detail_shows_restriction_reason():
         ),
         pk=unit.pk,
     ).content.decode()
-    assert "at least 4 nights" in body  # причина в buybox-фолбэке
+    assert "von 4 Nächten" in body  # причина в buybox-фолбэке
 
 
 def test_max_date_respects_booking_window():

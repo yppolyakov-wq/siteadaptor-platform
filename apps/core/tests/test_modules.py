@@ -382,8 +382,8 @@ class TestModulesView:
         from apps.core.views import modules_view
 
         html = modules_view(self._request(TenantFactory())).content.decode()
-        assert "Recommended for your business" in html
-        assert "More functions" in html
+        assert "Empfehlungen für Ihr Unternehmen" in html
+        assert "Weitere Funktionen" in html
         # Premium-секция скрыта, пока нет premium-модулей.
         assert "Available with a paid plan." not in html
 
@@ -507,7 +507,7 @@ def test_modules_view_warns_on_untypical_enable(settings):
     tenant.refresh_from_db()
     assert "booking" not in tenant.disabled_modules
     texts = [str(m) for m in get_messages(request)]
-    assert any("Booking" in t and "untypical" in t.lower() for t in texts)
+    assert any("Booking" in t and "untypisch" in t for t in texts)
 
     # GET: untypical-блок ушёл в other_rows с подписью «Geeignet für…»
     get_request = RequestFactory().get("/dashboard/modules/")
@@ -516,4 +516,4 @@ def test_modules_view_warns_on_untypical_enable(settings):
     get_request.tenant = tenant
     get_request.user = request.user
     body = modules_view(get_request).content.decode()
-    assert "More functions" in body and "Geeignet für:" in body  # AB2: секция «weitere»
+    assert "Weitere Funktionen" in body and "Geeignet für:" in body  # AB2: секция «weitere»

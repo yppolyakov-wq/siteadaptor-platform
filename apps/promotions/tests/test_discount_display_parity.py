@@ -75,9 +75,9 @@ def test_strikethrough_old_and_bold_red_new_price():
 def test_scarcity_line_thresholds():
     low = PromotionFactory(status="active", available_quantity=2)
     calm = PromotionFactory(status="active", available_quantity=9)
-    assert "Only 2 left" in _card(low) and "text-red-600 font-medium" in _card(low)
-    assert "Only 9 left" in _card(calm) and "text-gray-400" in _card(calm)
-    assert "Only 2 left" in _detail(low)
+    assert "Nur noch 2 übrig" in _card(low) and "text-red-600 font-medium" in _card(low)
+    assert "Nur noch 9 übrig" in _card(calm) and "text-gray-400" in _card(calm)
+    assert "Nur noch 2 übrig" in _detail(low)
 
 
 def test_countdown_and_valid_until():
@@ -88,13 +88,13 @@ def test_countdown_and_valid_until():
     assert f'data-countdown="{local_iso}"' in _card(ticking)
     assert f'data-countdown="{local_iso}"' in _detail(ticking)
     assert "data-countdown" not in _card(plain)
-    assert "Valid until" in _detail(plain)  # деталь без тикера показывает срок
+    assert "Gültig bis" in _detail(plain)  # деталь без тикера показывает срок
 
 
 def test_surprise_badge():
     promo = PromotionFactory(status="active", is_surprise=True)
     assert "Überraschungstüte" in _card(promo)
-    assert "Surprise bag" in _detail(promo)
+    assert "Überraschungstüte" in _detail(promo)
 
 
 def test_block_style_hint_cascade():

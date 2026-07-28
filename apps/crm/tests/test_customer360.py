@@ -52,7 +52,7 @@ def test_kpi_header_ltv_and_counts():
     record_revenue(source="order", source_ref="r1", amount=Decimal("42.50"), customer=customer)
     body = views.customer_detail(_req(), pk=customer.pk).content.decode()
     assert "42,50" in body or "42.50" in body  # LTV из RevenueEntry
-    assert "Orders" in body  # счётчик заказов в KPI-строке
+    assert "Bestellungen" in body  # счётчик заказов в KPI-строке
 
 
 def test_sections_gated_by_module():
@@ -69,11 +69,11 @@ def test_sections_gated_by_module():
         email="gate@test.de",
     )
     on = views.customer_detail(_req(), pk=customer.pk).content.decode()
-    assert "Appointments" in on
+    assert "Termine" in on
     off = views.customer_detail(
         _req(tenant=TenantFactory.build(disabled_modules=["booking"])), pk=customer.pk
     ).content.decode()
-    assert "Appointments" not in off  # модуль выключен → раздела нет
+    assert "Termine" not in off  # модуль выключен → раздела нет
 
 
 def test_reviews_matched_by_email_only():

@@ -153,7 +153,7 @@ def test_modules_page_shows_what_simple_hides(rf, settings):
     req.tenant = tenant
     body = modules_view(req).content.decode()
     assert "Finanzen (Umsatz)" in body and "Auswertung" in body  # конкретный список
-    assert "Currently: Expert" in body  # текущий режим виден
+    assert "Derzeit: Experte" in body  # текущий режим виден
 
 
 @pytest.mark.django_db

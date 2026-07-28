@@ -111,7 +111,7 @@ def test_media_library_view_lists_and_saves_alt(settings):
 
     asset = MediaAsset.objects.create(path="products/x.jpg", url="/m/x.jpg", folder="products")
     body = media_library(_req()).content.decode()
-    assert "/m/x.jpg" in body and "unused" in body
+    assert "/m/x.jpg" in body and "unbenutzt" in body
 
     resp = media_library(_req("post", {"action": "alt", "pk": str(asset.pk), "alt_de": "Torte"}))
     assert resp.status_code == 302

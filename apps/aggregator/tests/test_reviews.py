@@ -228,4 +228,4 @@ def test_business_page_renders_on_main_domain_without_portal(settings):
     assert "Werkstatt Müller" in body
     assert "TopService" in body  # отзывы читаются
     assert "portal-login" not in body and "Log in" not in body  # логина нет
-    assert "city portal" in body  # хинт про сабмит на портале
+    assert "Stadtportal" in body  # хинт про сабмит на портале

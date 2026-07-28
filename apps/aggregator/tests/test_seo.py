@@ -168,5 +168,5 @@ def test_city_listing_card_shows_open_status_badge():
     assert "Offen" in body and "OhneZeiten" in body  # оба в выдаче
     # Открытый бизнес: бейдж «Geöffnet · until 23:59» (open_until только у карточки, не у
     # чекбокса фасета). Бизнес без часов — без ложного «Geschlossen» (часы не заданы).
-    assert "until 23:59" in body
+    assert "bis 23:59" in body
     assert "Closed" not in body

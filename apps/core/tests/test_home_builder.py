@@ -1752,4 +1752,4 @@ def test_named_version_save_and_rename(settings):
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", None, tenant)
     ).content.decode()
-    assert "Basis" in body and "Save version" in body
+    assert "Basis" in body and "Version speichern" in body

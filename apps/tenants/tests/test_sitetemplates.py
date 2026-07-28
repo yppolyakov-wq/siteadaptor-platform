@@ -198,7 +198,7 @@ def test_hero_widget_partial_renders_date_search_gated_by_module(settings):
         "storefront/sections/_hero_widget.html",
         {"hero_widget": "stays", "storefront_stays_enabled": True},
     )
-    assert "Check availability" in on and 'name="von"' in on
+    assert "Verfügbarkeit prüfen" in on and 'name="von"' in on
     off = render_to_string(
         "storefront/sections/_hero_widget.html",
         {"hero_widget": "stays", "storefront_stays_enabled": False},

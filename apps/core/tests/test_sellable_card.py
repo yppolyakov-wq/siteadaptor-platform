@@ -70,9 +70,9 @@ def test_stay_card_vertical_browse():
     )
     html = _render("{% sellable_card 'stay' u h2=True show_min_nights=True %}", u=u)
     assert "sf-card" in html and "Zimmer Alpenblick" in html
-    assert "up to" in html  # мета: тип · гости
-    assert "/ night" in html and "data-price-edit" in html
-    assert "min." in html  # заметка min_nights (min_nights=2 > 1)
+    assert "bis zu" in html  # мета: тип · гости
+    assert "/ Nacht" in html and "data-price-edit" in html
+    assert "mindestens 2" in html  # заметка min_nights (min_nights=2 > 1)
     assert 'data-edit-model="stay"' in html
 
 
@@ -93,7 +93,7 @@ def test_stay_card_search_result_total_no_edit():
         "{% sellable_card 'stay' u href='/s/1/?von=x' edit=False cta='select' price_total=240 show_description=False %}",
         u=u,
     )
-    assert "total" in html and "/ night" not in html  # цена за диапазон, не за ночь
+    assert "insgesamt" in html and "/ Nacht" not in html  # цена за диапазон, не за ночь
     assert "data-edit-model" not in html and "data-photo-edit" not in html  # без едит-хуков
     assert "bg-indigo-600" in html  # пилюля «Select» (как была у поиска)
     assert 'href="/s/1/?von=x"' in html

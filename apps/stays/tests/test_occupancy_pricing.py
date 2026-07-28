@@ -165,7 +165,7 @@ def test_units_page_occupancy_rule_add_delete():
     assert StaySettings.load().clean_occupancy_rules() == [{"occupancy": 80, "percent": 12}]
 
     body = views.units(_req()).content.decode()
-    assert "Dynamic prices" in body and "80" in body
+    assert "Dynamische Preise" in body and "80" in body
 
     resp = views.units(_req("post", {"action": "occupancy_delete", "index": "0"}))
     assert resp.status_code == 302

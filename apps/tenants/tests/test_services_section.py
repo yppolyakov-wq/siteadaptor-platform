@@ -90,7 +90,7 @@ def test_services_section_shows_festpreis_for_trades(settings):
             "request": _req(),
         },
     )
-    assert "Fixed price" in html  # пометка Festpreis
+    assert "Festpreis" in html  # пометка Festpreis
 
 
 def test_services_section_no_festpreis_without_flag(settings):
@@ -100,7 +100,7 @@ def test_services_section_no_festpreis_without_flag(settings):
         "storefront/sections/_services.html",
         {"site": {}, "services_preview": [_priced_service()], "request": _req()},
     )
-    assert "Fixed price" not in html
+    assert "Festpreis" not in html
 
 
 def test_services_section_shows_description(settings):

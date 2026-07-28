@@ -128,7 +128,7 @@ def test_service_detail_section_order_parity():
     )
     body = public_views.service_detail(_req(path=f"/leistung/{s.pk}/"), pk=s.pk).content.decode()
     markers = [
-        "About this service",  # description
+        "Über diese Leistung",  # description
         'data-sf-section="service_attributes"',
         'data-sf-section="service_faq"',
         'data-sf-section="service_team"',

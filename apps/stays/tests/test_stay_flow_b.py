@@ -45,7 +45,7 @@ def _dates(nights=3):
 def test_datebar_replaces_third_form_when_dates_given():
     unit = _unit()
     body = _detail(unit, _dates())
-    assert "Change dates" in body  # компактная дата-полоса
+    assert "Reisedaten ändern" in body  # компактная дата-полоса
     assert re.search(r'<div id="stay-dateselect"[^>]*\bhidden\b', body)  # селектор спрятан
     assert 'id="stay-buybox"' in body  # цель fetch-свопа
 
@@ -53,7 +53,7 @@ def test_datebar_replaces_third_form_when_dates_given():
 def test_no_dates_calendar_first_selector():
     unit = _unit()
     body = _detail(unit)
-    assert "Choose your dates" in body
+    assert "Wählen Sie Ihre Reisedaten aus" in body
     assert 'id="stay-cal"' in body  # календарь — главный селектор
     assert "Enter dates manually" in body  # ручной ввод — мелкий фолбэк
     assert 'name="von"' in body  # контракт селектора цел (паритет-замок)
@@ -81,7 +81,7 @@ def test_rate_cards_best_price_and_delta():
         sort_order=3,
     )
     body = _detail(unit, _dates())
-    assert "Best price" in body  # метка на самом дешёвом (Sparpreis)
+    assert "Bestpreis" in body  # метка на самом дешёвом (Sparpreis)
     assert re.search(r"\+\s*36[.,]00\s*€", body)  # дельта завтрака: 12 € × 3 ночи
 
 

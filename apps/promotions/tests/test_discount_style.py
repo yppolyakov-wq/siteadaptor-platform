@@ -76,7 +76,7 @@ def test_ab_style_from_price_prefix():
     for body in (_card(promo), _detail(promo)):
         assert BADGE_MARK not in body
         assert "line-through" not in body
-        assert "from" in body and "7,50" in body
+        assert "ab" in body and "7,50" in body
 
 
 def test_countdown_style_forces_timer_without_flag():
@@ -92,7 +92,7 @@ def test_surprise_style_hides_badge_keeps_pill():
     promo = _discounted(discount_style="surprise", is_surprise=True)
     assert BADGE_MARK not in _card(promo)
     assert "Überraschungstüte" in _card(promo)
-    assert "Surprise bag" in _detail(promo)
+    assert "Überraschungstüte" in _detail(promo)
 
 
 def test_default_style_is_legacy_view():

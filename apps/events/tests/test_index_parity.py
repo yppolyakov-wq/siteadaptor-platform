@@ -88,16 +88,19 @@ def test_event_index_filters_panel_before_grid():
     assert "<details" in body and body.index("<details") < body.index('data-sf-section="events"')
     assert 'name="city"' in body  # фасет города присутствует
     assert "Stadtfest" in body and "Landfest" not in body  # фильтр реально применён
-    assert "Reset" in body or "storefront-events" in body  # сброс фильтров
+    assert "Zurücksetzen" in body or "storefront-events" in body  # сброс фильтров
 
 
 def test_event_index_empty_states():
     """Пустой листинг: без фильтров и с фильтрами — разные подписи."""
     body = _body()
-    assert "No upcoming events." in body
+    assert "Es sind keine Veranstaltungen geplant." in body
     _event(title="Solo", city="Bern")
     body_filtered = _body(data={"city": "Zermatt"})
-    assert "No events match your filters." in body_filtered
+    assert (
+        "Es wurden keine Veranstaltungen gefunden, die Ihren Suchkriterien entsprechen."
+        in body_filtered
+    )
 
 
 def test_event_index_search_and_price_sort():
@@ -107,6 +110,9 @@ def test_event_index_search_and_price_sort():
     _event(title="Jazz Konzert", price_cents=1000)
     body = _body(data={"q": "jazz"})
     assert "Jazz Konzert" in body and "Yoga Retreat" not in body
-    assert "No events match your filters." in _body(data={"q": "zzz"})  # q = активный фильтр
+    assert (
+        "Es wurden keine Veranstaltungen gefunden, die Ihren Suchkriterien entsprechen."
+        in _body(data={"q": "zzz"})
+    )  # q = активный фильтр
     body_sorted = _body(data={"sort": "price_asc"})
     assert body_sorted.index("Jazz Konzert") < body_sorted.index("Yoga Retreat")

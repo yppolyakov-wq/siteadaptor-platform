@@ -104,7 +104,7 @@ def test_service_slots_empty_state_offers_next_free(settings):
     MessageMiddleware(lambda rq: None).process_request(request)
     request.tenant = TenantFactory.build(name="Salon")
     body = public_views.service_slots(request, pk=svc.pk).content.decode()
-    assert "No free times on this day" in body
+    assert "An diesem Tag sind keine Termine frei" in body
     assert "Next free appointment" in body  # R3: перехват уходящего клиента
     assert f"tag={target:%Y-%m-%d}" in body  # ссылка ведёт на ближайший свободный день
 

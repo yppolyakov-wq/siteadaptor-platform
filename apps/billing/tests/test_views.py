@@ -23,7 +23,7 @@ def test_billing_page_renders():
     tenant = TenantFactory.build(subscription_status=TRIAL)
     resp = views.billing(_request("get", "/dashboard/billing/", tenant))
     assert resp.status_code == 200
-    assert b"Billing" in resp.content
+    assert b"Rechnungsstellung" in resp.content
 
 
 def test_checkout_redirects_to_stripe(monkeypatch, settings):

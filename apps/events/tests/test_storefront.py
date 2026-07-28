@@ -276,7 +276,7 @@ def test_index_grid_layout_shows_cover_cards_and_countdown():
     tenant = TenantFactory.build(site_config={"events_index_layout": {"preset": "cols2"}})
     body = public_views.veranstaltung_index(_req("get", tenant=tenant)).content.decode()
     assert "aspect-[4/3]" in body  # грид-обложки RV3
-    assert "In 5 days" in body  # countdown-пилюля скорого события
+    assert "In 5 Tagen" in body  # countdown-пилюля скорого события
 
 
 def test_index_list_layout_has_no_cover_grid():
@@ -356,7 +356,7 @@ def test_detail_online_event_shows_online_and_hides_map():
         longitude="7.85",
     )
     body = public_views.veranstaltung_detail(_req("get"), ev.pk).content.decode()
-    assert "Online event" in body  # индикатор онлайн
+    assert "Online-Veranstaltung" in body  # индикатор онлайн
     assert "openstreetmap.org/export/embed" not in body  # карта скрыта для онлайн
     assert "zoom.us" not in body  # ссылка доступа НЕ публична (только после брони)
 

@@ -95,7 +95,7 @@ def test_reply_saved_and_rendered_on_storefront():
     MM(lambda x: None).process_request(sreq)
     sreq.tenant = TenantFactory.build(name="B")
     body = promo_public.product_detail(sreq, pk=p.pk).content.decode()
-    assert "Danke, Kim!" in body and "Reply from the business" in body
+    assert "Danke, Kim!" in body and "Antwort des Unternehmens" in body
 
     # пустой текст убирает ответ
     views.review_reply(_req("post", {"reply_text": "  "}), pk=r.pk)

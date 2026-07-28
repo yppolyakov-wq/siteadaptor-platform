@@ -493,7 +493,7 @@ def test_calendar_shows_ohne_zimmer_chip_and_room_on_bar():
     services.assign_room(with_room, r)
     _book(unit, 2, 5)  # без номера
     body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
-    assert "without an assigned room" in body  # чип «ohne Zimmer»
+    assert "ohne zugewiesenes Zimmer" in body  # чип «ohne Zimmer»
     assert "🚪101" in body  # номер на плашке
 
 

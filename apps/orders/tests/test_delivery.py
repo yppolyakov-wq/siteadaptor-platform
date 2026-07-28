@@ -230,7 +230,7 @@ def test_cart_renders_delivery_options():
     request.session.update({"cart": {str(product.pk): 1}})
     request.tenant = _delivery_tenant(delivery_free_cents=3000, delivery_min_cents=1500)
     body = public_views.cart_view(request).content.decode()
-    assert "Delivery" in body  # опция доставки отрисована
+    assert "Lieferung" in body  # опция доставки отрисована
 
 
 def test_order_confirmation_renders_delivery():

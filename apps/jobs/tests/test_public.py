@@ -122,7 +122,7 @@ def test_anfrage_stores_site_plz_and_warns_when_outside_area():
     public_views.anfrage(request)
     assert Job.objects.get(title="Malern").site_plz == "99999"
     texts = [m.message for m in get_messages(request)]
-    assert any("outside our usual service area" in t for t in texts)
+    assert any("außerhalb unseres üblichen Versorgun" in t for t in texts)
 
 
 def test_anfrage_no_warning_when_plz_in_area():
@@ -144,7 +144,7 @@ def test_rueckruf_creates_lead_job():
     resp = public_views.rueckruf(request)
     assert resp.status_code == 302
     job = Job.objects.get(title="Rückrufbitte")
-    assert job.customer.phone == "0151 222" and "Callback" in job.description
+    assert job.customer.phone == "0151 222" and "Rückruf" in job.description
 
 
 def test_rueckruf_requires_name_and_phone():

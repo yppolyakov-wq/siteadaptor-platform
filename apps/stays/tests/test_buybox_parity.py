@@ -107,7 +107,7 @@ def test_unavailable_range_renders_reason_not_form():
     unit = _unit(min_nights=5)
     body = _detail(unit, _dates(nights=2))  # 2 ночи < min 5
     assert f"/unterkunft/{unit.pk}/buchen/" not in body
-    assert "requires at least" in body  # amber-бокс причины min_nights
+    assert "mindestens" in body  # amber-бокс причины min_nights
 
 
 def test_no_dates_selector_only():
