@@ -34,6 +34,19 @@
           <input id="hero_{{ a.key }}" name="hero_{{ a.key }}" type="text" value="{{ a.hero_image }}"
                  placeholder="https://…/banner.jpg"
                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-3">
+          {# Фидбэк 2026-07-28: кнопка прямо на слайдере обложки (пусто = «Discover» вниз). #}
+          <div class="grid sm:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1" for="btn_label_{{ a.key }}">{% trans "Button label" %}</label>
+              <input id="btn_label_{{ a.key }}" name="btn_label_{{ a.key }}" type="text" value="{{ a.button_label }}"
+                     placeholder="{% trans 'Discover' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="btn_url_{{ a.key }}">{% trans "Button link" %}</label>
+              <input id="btn_url_{{ a.key }}" name="btn_url_{{ a.key }}" type="text" value="{{ a.button_url }}"
+                     placeholder="/aktionen/" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            </div>
+          </div>
           <button type="submit" class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
         </form>
 

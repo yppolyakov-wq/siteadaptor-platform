@@ -70,13 +70,15 @@ def test_normalize_sanitizes_archetype_overrides():
     cfg = siteconfig.normalize(
         {"archetypes": {"catalog": {"label": "X", "blurb": 5, "hidden": "yes"}, "bad": "nope"}}
     )
-    # S3 добавил поля обложки (intro/hero_image) — пустые по умолчанию.
+    # S3 добавил поля обложки (intro/hero_image), фидбэк 2026-07-28 — кнопку слайдера.
     assert cfg["archetypes"]["catalog"] == {
         "label": "X",
         "blurb": "",
         "hidden": True,
         "intro": "",
         "hero_image": "",
+        "button_label": "",
+        "button_url": "",
         "gallery": [],
     }
     assert "bad" not in cfg["archetypes"]  # значение не-dict отброшено

@@ -2282,6 +2282,10 @@ def _normalize_impl(config) -> dict:
                 # S3: «обложка» раздела — интро-текст и hero-фото над лендингом.
                 "intro": _s(ov.get("intro")),
                 "hero_image": _s(ov.get("hero_image")),
+                # Фидбэк 2026-07-28: кнопка на слайдере обложки (пусто = дефолтный
+                # якорь «Discover» вниз к содержимому).
+                "button_label": _s(ov.get("button_label")),
+                "button_url": _s(ov.get("button_url")),
                 # S3b: галерея раздела (FileRef-список, как галерея главной).
                 "gallery": _clean_gallery(ov.get("gallery"), _MAX_COVER_GALLERY),
             }

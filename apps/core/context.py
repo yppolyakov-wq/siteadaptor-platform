@@ -190,10 +190,17 @@ def modules_nav(request):
         ckey = modules.archetype_by_landing(getattr(rm, "url_name", "") or "")
         ov = cfg["archetypes"].get(ckey) if ckey else None
         if ov and (ov.get("intro") or ov.get("hero_image") or ov.get("gallery")):
+            # Фидбэк 2026-07-28: обложка = ОДИН узкий слайдер — hero-фото и галерея
+            # сведены в общий список слайдов (hero первым, без дублей).
+            slides = [ov.get("hero_image", "")] if ov.get("hero_image") else []
+            for img in ov.get("gallery", []):
+                if img.get("url") and img["url"] not in slides:
+                    slides.append(img["url"])
             archetype_cover = {
                 "intro": ov.get("intro", ""),
-                "hero_image": ov.get("hero_image", ""),
-                "gallery": ov.get("gallery", []),
+                "slides": slides,
+                "button_label": ov.get("button_label", ""),
+                "button_url": ov.get("button_url", ""),
             }
     # S7: нижнее меню — кастомное (из menus.bottom) либо авто таб-бар (T2b).
     if menu_mod.bottom_enabled(tenant):

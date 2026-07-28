@@ -4,6 +4,8 @@
  "archetypes": {
   "booking": {
    "blurb": "",
+   "button_label": "",
+   "button_url": "",
    "gallery": [],
    "hero_image": "",
    "hidden": false,

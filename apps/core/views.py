@@ -2566,6 +2566,9 @@ def sections_view(request):
             cur = dict(arch.get(key) or {})
             cur["intro"] = request.POST.get(f"intro_{key}", "").strip()
             cur["hero_image"] = request.POST.get(f"hero_{key}", "").strip()
+            # Фидбэк 2026-07-28: кнопка на слайдере обложки (пусто = дефолт «Discover»).
+            cur["button_label"] = request.POST.get(f"btn_label_{key}", "").strip()
+            cur["button_url"] = request.POST.get(f"btn_url_{key}", "").strip()
             arch[key] = cur
         config["archetypes"] = arch
         request.tenant.site_config = siteconfig.normalize(config)

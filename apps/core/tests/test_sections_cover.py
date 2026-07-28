@@ -55,7 +55,8 @@ def test_cover_present_on_its_landing_only():
         }
     )
     cover = _ctx_request("storefront-products", tenant)["archetype_cover"]
-    assert cover["intro"] == "Frisch & vegan" and cover["hero_image"] == "/m/h.jpg"
+    # Фидбэк 2026-07-28: контекст отдаёт единый список слайдов (hero + галерея).
+    assert cover["intro"] == "Frisch & vegan" and cover["slides"] == ["/m/h.jpg"]
     # на другой странице обложки нет
     assert _ctx_request("storefront-home", tenant)["archetype_cover"] == {}
     assert _ctx_request("storefront-termin", tenant)["archetype_cover"] == {}
@@ -70,7 +71,12 @@ def test_sections_view_saves_cover_and_keeps_teaser_overrides():
     )
     req = RequestFactory().post(
         "/dashboard/site/sections/",
-        {"intro_catalog": "  Willkommen  ", "hero_catalog": "/m/banner.jpg"},
+        {
+            "intro_catalog": "  Willkommen  ",
+            "hero_catalog": "/m/banner.jpg",
+            "btn_label_catalog": "Zur Karte",
+            "btn_url_catalog": "/sortiment/",
+        },
     )
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)
@@ -80,5 +86,6 @@ def test_sections_view_saves_cover_and_keeps_teaser_overrides():
     assert resp.status_code == 302
     cat = siteconfig.normalize(tenant.site_config)["archetypes"]["catalog"]
     assert cat["intro"] == "Willkommen" and cat["hero_image"] == "/m/banner.jpg"
+    assert cat["button_label"] == "Zur Karte" and cat["button_url"] == "/sortiment/"
     # оверрайды тизера из S2 не затёрты
     assert cat["label"] == "Speisekarte" and cat["hidden"] is True
