@@ -90,14 +90,16 @@ def test_hotel_with_both_calendar_modules_enters_belegungsplan():
     t = TenantFactory(slug="ovb2", name="OvB2", disabled_modules=["events"])
     assert t.is_module_active("booking") and t.is_module_active("stays")
     assert ov.entry_url_name(t) == "stays:calendar"
-    assert ov.create_option(t)["url"].endswith("#walkin-form")
+    assert ov.create_option(t)["url"].endswith("/stays/neu/")
 
 
 def test_create_option_third_in_switch():
-    # Отель → «＋ Buchung» с якорем на walk-in форму календаря stays.
+    # Отель → «＋ Buchung» — отдельная страница только с формой (stays:stay-new).
     hotel = TenantFactory(slug="ovn", name="OvN", disabled_modules=["events", "booking"])
     opts = ov.switch_options(hotel, "calendar")
-    assert opts[-1]["view"] == "create" and opts[-1]["url"].endswith("#walkin-form")
+    assert opts[-1]["view"] == "create" and opts[-1]["url"].endswith("/stays/neu/")
+    # на самой странице «＋ Buchung» вкладка подсвечена
+    assert ov.switch_options(hotel, "create")[-1]["active"] is True
     # Услуги (booking) → «＋ Termin» с якорем #neu.
     services = TenantFactory(slug="ovt", name="OvT", disabled_modules=["events", "stays"])
     opts = ov.switch_options(services, "calendar")

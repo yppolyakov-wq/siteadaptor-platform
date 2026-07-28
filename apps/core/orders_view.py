@@ -95,15 +95,16 @@ def entry_url_name(tenant):
     return "board"
 
 
-def create_option(tenant):
-    """Третий пункт сегмента (фидбэк 2026-07-28): «＋ Buchung»/«＋ Termin» —
-    якорь на форму создания брони/термина в календаре. Нет календаря → None."""
-    extras = {
-        "stays": ("#walkin-form", _("New booking")),
-        "booking": ("#neu", _("New appointment")),
+def create_option(tenant, active=False):
+    """Третий пункт сегмента (фидбэк 2026-07-28): «＋ Buchung» — ОТДЕЛЬНАЯ
+    страница только с формой (stays); для booking — якорь на форму календаря.
+    Нет календарного модуля → None."""
+    targets = {
+        "stays": ("stays:stay-new", "", _("New booking")),
+        "booking": ("booking:calendar", "#neu", _("New appointment")),
     }
-    for module, url_name in _calendar_order(tenant):
-        anchor, label = extras[module]
+    for module, _url in _calendar_order(tenant):
+        url_name, anchor, label = targets[module]
         if tenant.is_module_active(module):
             try:
                 return {
@@ -111,7 +112,7 @@ def create_option(tenant):
                     "label": label,
                     "icon": "＋",
                     "url": reverse(url_name) + anchor,
-                    "active": False,
+                    "active": active,
                 }
             except NoReverseMatch:  # pragma: no cover — модуль без маршрута
                 continue
@@ -135,7 +136,7 @@ def switch_options(tenant, active=""):
                 "active": view == active,
             }
         )
-    create = create_option(tenant)
+    create = create_option(tenant, active=(active == "create"))
     if create:
         out.append(create)
     return out

@@ -3131,6 +3131,14 @@ def board(request):
         }
         for i, s in enumerate(order)
     ]
+    # Фидбэк 2026-07-28: панели статусов ушли с календаря stays — настройки
+    # статусов достижимы отсюда (ящик «⚙️ Spalten»), по активным kind'ам.
+    _kind_modules = (("order", "orders"), ("booking", "booking"), ("stay", "stays"))
+    status_kinds = [
+        (k, transactions.KIND_LABEL.get(k, k))
+        for k, m in _kind_modules
+        if request.tenant.is_module_active(m)
+    ]
     return render(
         request,
         "core/board.html",
@@ -3139,6 +3147,7 @@ def board(request):
             "sections": sections,
             "active_kind": active,
             "board_stage_rows": board_stage_rows,
+            "status_kinds": status_kinds,
         },
     )
 

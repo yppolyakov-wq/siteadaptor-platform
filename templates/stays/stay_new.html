@@ -1,0 +1,18 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Add booking" %}{% endblock %}
+
+{% block dash_content %}
+{% orders_view_switch "create" %}
+<h1 class="text-2xl font-bold mb-1">＋ {% trans "Add booking" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "e.g. phone call" %} · <a href="{% url 'stays:calendar' %}" class="text-indigo-600 hover:underline">{% trans "Kalender" %} →</a></p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% include "stays/_walkin_form.html" %}
+{% if not units %}<p class="text-gray-500">{% trans "No units yet." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Create a unit" %} →</a></p>{% endif %}
+{% endblock %}

@@ -33,6 +33,14 @@
     {% endfor %}
     <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save columns" %}</button>
   </form>
+  {% if status_kinds %}
+  {# Фидбэк 2026-07-28: имена/переходы статусов настраиваются здесь (с календаря убраны) #}
+  <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-1">
+    {% for k, label in status_kinds %}
+      <a href="{% url 'status-manager' k %}?next={{ request.path|urlencode }}" class="text-xs font-medium text-indigo-600 hover:underline">🏷️ {% trans "Status & Übergänge" %} · {{ label }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
 </details>
 
 {% if messages %}

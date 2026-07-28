@@ -57,6 +57,23 @@ def _eur_to_cents(raw) -> int:
         return 0
 
 
+@login_required
+def stay_new(request):
+    """Фидбэк 2026-07-28: «＋ Buchung» — отдельная вкладка раздела «Verkäufe»,
+    ТОЛЬКО форма добавления брони/блокировки (та же walk-in форма партиалом;
+    POST идёт в stay-create, бронь появляется на календаре)."""
+    return render(
+        request,
+        "stays/stay_new.html",
+        {
+            "nav": "stays",
+            "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
+            "rate_plans": list(RatePlan.objects.filter(is_active=True)),
+            "walkin_extras": _extras_for_walkin(),
+        },
+    )
+
+
 def _extras_for_walkin():
     """PMS-A1: активные доп-услуги stays для walk-in формы (как на витрине)."""
     from apps.core import extras as extras_engine

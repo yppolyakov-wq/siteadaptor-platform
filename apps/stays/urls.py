@@ -20,6 +20,8 @@ urlpatterns = [
     # Батч C: hard-delete ручной брони без денег (гейт во вьюхе; GoBD-safe).
     path("buchung/<uuid:pk>/loeschen/", views.booking_delete, name="booking-delete"),
     path("zimmer/<uuid:pk>/sauber/", views.room_clean, name="room-clean"),
+    # Фидбэк 2026-07-28: «＋ Buchung» — отдельная вкладка (только форма).
+    path("neu/", views.stay_new, name="stay-new"),
     path("units/", views.units, name="units"),
     # Фидбэк 2026-07-28: каждый номер редактируется на СВОЕЙ странице.
     path("units/<uuid:pk>/", views.units, name="unit-edit"),

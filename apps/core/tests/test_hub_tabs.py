@@ -64,16 +64,32 @@ def test_sales_nav_collapsed_into_verkauefe():
     assert modules.nav_task_label("board") == "Verkäufe"
 
 
-def test_board_hub_all_tabs_when_active():
+def test_board_hub_hides_tabs_covered_by_segment():
+    """Фидбэк 2026-07-28: сегмент Kalender/Board/＋ (ST-5b) покрывает доску/
+    календари/ленту — дублирующие hub-табы скрыты; Tickets/Aufträge (не в
+    сегменте) остаются."""
     html = _render_board("board", _fake_tenant())  # ничего не выключено
+    for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen"):
+        assert lbl not in html, lbl
+    for lbl in ("Tickets", "Aufträge"):
+        assert lbl in html, lbl
+
+
+def test_board_hub_full_in_classic_ui():
+    # classic_ui без сегмента → полный tab-bar как раньше.
+    tenant = _fake_tenant()
+    tenant.site_config = {"classic_ui": True}
+    html = _render_board("board", tenant)
     for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen", "Tickets", "Aufträge"):
         assert lbl in html, lbl
     assert html.count('aria-selected="true"') == 1  # активна вкладка Board
 
 
 def test_board_hub_gates_inactive_modules():
-    # Тенант без Übernachtung/Tickets — эти вкладки скрыты, остальные видны.
-    html = _render_board("orders", _fake_tenant(disabled=["stays", "events"]))
+    # Классика, тенант без Übernachtung/Tickets — эти вкладки скрыты, остальные видны.
+    tenant = _fake_tenant(disabled=["stays", "events"])
+    tenant.site_config = {"classic_ui": True}
+    html = _render_board("orders", tenant)
     assert "Übernachtungen" not in html
     assert "Tickets" not in html
     for lbl in ("Board", "Bestellungen", "Termine", "Aufträge"):

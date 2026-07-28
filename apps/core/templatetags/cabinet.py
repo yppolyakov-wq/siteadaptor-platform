@@ -142,8 +142,16 @@ def hub_tabs(context, hub):
     cur = context.get("nav")
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
+    # Фидбэк 2026-07-28: в хабе «Verkäufe» сегмент Kalender/Board/＋ (ST-5b)
+    # покрывает доску/календари/ленту — дублирующие hub-табы прячем (classic_ui
+    # без сегмента держит полный tab-bar).
+    covered = set()
+    if hub == "board" and tenant is not None and not modules.classic_ui(tenant):
+        covered = {"board", "orders:order-list", "booking:calendar", "stays:calendar"}
     tabs, more = [], []
     for u, lbl, k, mod, advanced in HUB_TABS.get(hub, ()):
+        if u in covered:
+            continue
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
             continue
         entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur}
