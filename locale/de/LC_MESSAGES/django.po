@@ -543,7 +543,7 @@ msgstr "Tagesgericht"
 
 #: apps/catalog/models.py:19 apps/core/pipeline.py:20
 msgid "Neu"
-msgstr "Oder"
+msgstr "Neu"
 
 #: apps/catalog/models.py:20
 msgid "Beliebt"

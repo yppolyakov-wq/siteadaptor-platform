@@ -62,11 +62,11 @@ def test_catalog_empty_states():
     """Пустой каталог → «No products yet.»; категория только с подкатегориями →
     подсказка выбора подкатегории (грида нет)."""
     body = _body()
-    assert "No products yet." in body
+    assert "Noch keine Produkte." in body
     assert 'data-sf-section="catalog"' not in body
 
     parent = CategoryFactory(slug="leer", name={"de": "Leer"})
     CategoryFactory(slug="unter", name={"de": "Unter"}, parent=parent)
     body2 = _body(params={"kategorie": "leer"})
-    assert "Choose a subcategory above." in body2
+    assert "Wählen Sie oben eine Unterkategorie aus." in body2
     assert 'data-sf-section="catalog"' not in body2

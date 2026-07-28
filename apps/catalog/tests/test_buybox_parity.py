@@ -61,7 +61,7 @@ def test_cart_form_variants_and_modifiers_fields():
 def test_sold_out_hides_form_and_buybar():
     p = ProductFactory(stock_quantity=0)
     body = _detail(p)
-    assert "Sold out" in body
+    assert "Ausverkauft" in body
     assert "/warenkorb/add/" not in body  # формы нет (waitlist у товара нет по дизайну)
     assert "data-buybar" not in body  # мобильный buybar скрыт без in_stock
 
@@ -70,4 +70,4 @@ def test_orders_module_off_hides_buybox_entirely():
     p = ProductFactory()
     body = _detail(p, tenant=TenantFactory.build(disabled_modules=["orders"]))
     assert "/warenkorb/add/" not in body
-    assert "Sold out" not in body  # блока нет целиком, не sold-out-ветка
+    assert "Ausverkauft" not in body  # блока нет целиком, не sold-out-ветка

@@ -210,7 +210,7 @@ def test_catalog_card_shows_product_rating():
         entity_kind="product", entity_id=p.pk, rating=4, author_name="B", email="b@x.de"
     )
     body = public_views.product_list(_req()).content.decode()
-    assert 'title="2 reviews"' in body and "(2)" in body  # рейтинг-строка + число отзывов
+    assert 'title="2 Bewertungen"' in body and "(2)" in body  # рейтинг-строка + число отзывов
     assert "4,5" in body or "4.5" in body  # среднее (5+4)/2 (DE-локаль → запятая)
 
 

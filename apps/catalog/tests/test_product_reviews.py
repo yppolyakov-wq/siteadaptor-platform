@@ -202,7 +202,7 @@ def test_product_detail_section_order_parity():
         'data-edit-field="description"',  # описание (aside)
         "Region Allgäu",  # LMIV-инфо (aside)
         'id="bewertungen"',  # отзывы (body) — не href="#bewertungen" из aside-рейтинга
-        "More from this category",  # похожие (wide)
+        "Mehr aus dieser Kategorie",  # похожие (wide)
     ]
     positions = [body.find(m) for m in markers]
     assert all(p >= 0 for p in positions), positions

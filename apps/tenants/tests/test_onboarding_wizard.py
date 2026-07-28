@@ -276,7 +276,7 @@ def test_stil_slide_shows_visual_template_gallery():
     onboarding.goto(tenant, "stil")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
     assert 'name="template"' in html
-    assert "Recommended" in html  # бейдж рекомендованного типу шаблона
+    assert "Empfohlen" in html  # бейдж рекомендованного типу шаблона
     # мини-мокап: подписи секций шаблона (напр. hero-полоса) в карточке
     assert "aria-hidden" in html
 
@@ -918,7 +918,7 @@ def test_setup_shows_live_preview_iframe_on_content_steps():
     tenant = TenantFactory(schema_name="public", slug="prev", name="Prev", business_type="cafe")
     onboarding.goto(tenant, "stil")
     html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
-    assert "Live preview" in html
+    assert "Live-Vorschau" in html
     assert "data-setup-preview" in html and 'src="/"' in html
     assert 'set("action", "live")' in html
 
@@ -926,7 +926,7 @@ def test_setup_shows_live_preview_iframe_on_content_steps():
 def test_setup_no_preview_on_business_escape_hatch():
     tenant = TenantFactory(schema_name="public", slug="prev1", name="Prev1", business_type="cafe")
     html = core_views.setup_view(_req("get", {"step": "business"}, tenant)).content.decode()
-    assert "Live preview" not in html  # на выборе отрасли превью не нужно
+    assert "Live-Vorschau" not in html  # на выборе отрасли превью не нужно
 
 
 # --- AB6.9: focused first-run лейаут + «Später fertigstellen» ----------------------

@@ -497,8 +497,8 @@ def test_variants_extras_on_own_tab_in_edit(user):
     assert 'data-pf-goto="varianten"' in body  # кнопка «расширенная цена» под base_price
     # формы вариантов/модификаторов внутри панели (панель раньше форм добавления)
     ip = body.index('data-pf-panel="varianten"')
-    assert "Add variant" in body[ip:]  # форма добавления варианта — в панели
-    assert "Add group" in body[ip:]  # блок модификаторов — в панели
+    assert "Variante hinzufügen" in body[ip:]  # форма добавления варианта — в панели
+    assert "Gruppe hinzufügen" in body[ip:]  # блок модификаторов — в панели
 
 
 @pytest.mark.django_db
@@ -510,4 +510,4 @@ def test_no_variants_tab_on_create(user):
     body = views.product_create(req).content.decode()
     assert 'data-pf-tab="varianten"' not in body
     assert 'data-pf-goto="varianten"' not in body
-    assert "Save first to add variants" in body
+    assert "Speichern Sie zunächst, um Varianten" in body
