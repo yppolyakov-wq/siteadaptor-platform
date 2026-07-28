@@ -18,7 +18,8 @@
 {% endif %}
 
 <div class="bg-white rounded-2xl shadow-sm p-4">
-  <table class="w-full text-sm">
+  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
+  <table class="w-full text-sm min-w-[560px]">
     <thead class="text-left text-gray-500 border-b">
       <tr>
         <th class="py-2">{% trans "Name" %}</th>
@@ -52,5 +53,6 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endblock %}

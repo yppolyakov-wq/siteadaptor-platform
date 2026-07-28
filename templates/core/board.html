@@ -23,7 +23,7 @@
     {% csrf_token %}
     <p class="text-xs text-gray-400">{% trans "Rename, reorder (number) or hide the columns. The rules for moving cards stay the same." %}</p>
     {% for r in board_stage_rows %}
-      <div class="flex items-center gap-2 text-sm">
+      <div class="flex flex-wrap items-center gap-2 text-sm">
         <input type="number" name="order_{{ r.stage }}" value="{{ r.pos }}" min="1" max="9" class="w-12 rounded-lg border border-gray-300 px-2 py-1.5 text-center">
         <input type="text" name="label_{{ r.stage }}" value="{{ r.label }}" placeholder="{{ r.default_label }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
         <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap">

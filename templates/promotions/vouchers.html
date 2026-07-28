@@ -31,7 +31,8 @@
 </form>
 
 <div class="bg-white rounded-2xl shadow-sm p-4">
-  <table class="w-full text-sm">
+  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
+  <table class="w-full text-sm min-w-[640px]">
     <thead class="text-left text-gray-500 border-b">
       <tr><th class="py-2">{% trans "Code" %}</th><th class="py-2">{% trans "Label" %}</th><th class="py-2">{% trans "Discount" %}</th><th class="py-2">{% trans "Uses" %}</th><th class="py-2">{% trans "Active" %}</th><th class="py-2"></th></tr>
     </thead>
@@ -52,13 +53,15 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 
 {% if gift_sales %}
 {# B1.3: проданные Geschenkgutscheine — оплата и погашение (код = обычный Voucher выше). #}
 <div class="bg-white rounded-2xl shadow-sm p-4 mt-6">
   <h2 class="font-semibold mb-3">🎁 {% trans "Sold gift vouchers" %}</h2>
-  <table class="w-full text-sm">
+  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
+  <table class="w-full text-sm min-w-[640px]">
     <thead class="text-left text-gray-500 border-b">
       <tr><th class="py-2">{% trans "Date" %}</th><th class="py-2">{% trans "Buyer" %}</th><th class="py-2">{% trans "Recipient" %}</th><th class="py-2">{% trans "Amount" %}</th><th class="py-2">{% trans "Paid" %}</th><th class="py-2">{% trans "Code" %}</th><th class="py-2">{% trans "Redeemed" %}</th></tr>
     </thead>
@@ -76,6 +79,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

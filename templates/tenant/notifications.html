@@ -58,7 +58,8 @@
   {% for group in matrix %}
     <div class="mb-5 rounded-xl border border-gray-200 bg-white overflow-hidden">
       <div class="px-4 py-2.5 border-b border-gray-100 text-sm font-semibold text-gray-700">{{ group.label }}</div>
-      <table class="w-full text-sm">
+      <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
+      <table class="w-full text-sm min-w-[480px]">
         <thead class="text-xs text-gray-400">
           <tr class="border-b border-gray-100">
             <th class="text-left px-4 py-2 font-medium">{% trans "Ereignis (Kunde)" %}</th>
@@ -80,6 +81,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   {% empty %}
     <p class="text-sm text-gray-400 mb-5">{% trans "Keine aktiven Verkaufsmodule." %}</p>

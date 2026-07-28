@@ -35,7 +35,8 @@
     </select>
   </div>
 
-  <table class="w-full text-sm">
+  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
+  <table class="w-full text-sm min-w-[640px]">
     <thead class="text-left text-gray-500 border-b">
       <tr>
         <th class="py-2"></th>
@@ -51,5 +52,6 @@
       {% include "catalog/_product_rows.html" %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endblock %}

@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 {% hub_tabs "marketing" %}
-<div class="flex items-center justify-between mb-4">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
   <h1 class="text-2xl font-bold">{% trans "Promotions" %}</h1>
   <div class="flex items-center gap-2">
     {# C2: цель QR-печатки — дропдаун (модуль-неактивные цели сервер вернёт на витрину). #}
@@ -40,7 +40,8 @@
     </select>
   </form>
 
-  <table class="w-full text-sm">
+  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
+  <table class="w-full text-sm min-w-[640px]">
     <thead class="text-left text-gray-500 border-b">
       <tr>
         <th class="py-2">{% trans "Title" %}</th>
@@ -78,5 +79,6 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endblock %}

@@ -23,7 +23,7 @@
     <div class="bg-white rounded-2xl shadow-sm p-4">
       <h2 class="font-semibold mb-3">{% trans "Status" %}</h2>
       {% for r in custom_rows %}
-        <div class="flex items-center gap-2 mb-2">
+        <div class="flex flex-wrap items-center gap-2 mb-2">
           <input type="hidden" name="custom_code" value="{{ r.code }}">
           <input type="text" name="label_{{ r.code }}" value="{{ r.label }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
           <select name="role_{{ r.code }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
@@ -33,7 +33,7 @@
         </div>
       {% endfor %}
       {# новый статус #}
-      <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+      <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100">
         <input type="text" name="new_label" placeholder="{% trans 'Neuer Status (Name)' %}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
         <select name="new_role" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for code, lbl in roles %}<option value="{{ code }}">{{ lbl }}</option>{% endfor %}

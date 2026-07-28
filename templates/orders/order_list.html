@@ -5,7 +5,7 @@
 {% block dash_content %}
 {% hub_tabs "board" %}
 {% orders_view_switch "feed" %}
-<div class="flex items-center justify-between mb-4 gap-3">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4 gap-3">
   <h1 class="text-2xl font-bold">{% trans "Orders" %}</h1>
   <div class="flex items-center gap-3">
   <a href="{% url 'orders:kitchen' %}" class="rounded-lg bg-gray-800 text-white px-3 py-2 text-sm font-medium hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
