@@ -356,6 +356,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.auto_tag_customers",
         "schedule": 86400.0,
     },
+    # PMS-B2: «Geburtstagsgruß» — персональный код именинникам (opt-in-база,
+    # настройки на кампании kind=birthday, годовой дедуп).
+    "send-birthday-coupons": {
+        "task": "apps.promotions.tasks.send_birthday_coupons",
+        "schedule": 86400.0,
+    },
     "roll-subscriptions": {
         "task": "apps.billing.tasks.roll_subscriptions",
         "schedule": 86400.0,  # раз в сутки — жизненный цикл подписок + напоминания

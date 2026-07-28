@@ -13747,3 +13747,29 @@ msgstr "Занятость от (%)"
 
 msgid "Price change (%, e.g. 10 or −15)"
 msgstr "Изменение цены (%, напр. 10 или −15)"
+
+msgid "Birthday"
+msgstr "День рождения"
+
+msgid "Powers the automatic birthday greeting (if enabled)."
+msgstr "Питает автоматическое поздравление с днём рождения (если включено)."
+
+msgid "Birthday (optional)"
+msgstr "День рождения (необязательно)"
+
+msgid "Only used for a birthday greeting — leave empty if you prefer."
+msgstr "Используется только для поздравления — можно оставить пустым."
+
+msgid ""
+"Subscribers get a personal code on their birthday — once a year, opt-in "
+"only. Birthdays come from the customer card or the guest's own account."
+msgstr ""
+"Подписчики получают персональный код в день рождения — раз в год, только при"
+" согласии. Даты — из карточки клиента или личного кабинета гостя."
+
+#, python-format
+msgid "%(n)s subscribers with a known birthday"
+msgstr "%(n)s подписчиков с известной датой рождения"
+
+msgid "Geburtstagsgruß gespeichert."
+msgstr "Поздравление с ДР сохранено."

@@ -224,7 +224,8 @@ def purge_due_customers(now=None) -> int:
         customer.email = ""
         customer.phone = ""
         customer.note = ""
-        customer.save(update_fields=["name", "email", "phone", "note", "updated_at"])
+        customer.birthday = None  # PMS-B2: дата рождения — PII, чистим вместе
+        customer.save(update_fields=["name", "email", "phone", "note", "birthday", "updated_at"])
         count += 1
     return count
 
@@ -286,6 +287,58 @@ def send_winback_coupons():
     for schema in _iter_tenant_schemas():
         with schema_context(schema):
             total += send_due_winback_coupons(now)
+    return {"sent": total}
+
+
+def send_due_birthday_coupons(today=None, base_url=None) -> int:
+    """PMS-B2: «Geburtstagsgruß» в текущей схеме — персональный код именинникам.
+
+    По активным birthday-кампаниям: получатели = consented_customers()
+    [+tag кампании] с днём рождения СЕГОДНЯ (29.02 в невисокосный год
+    празднуем 28.02). Годовой дедуп окном 300 дней (< 365 повторов не даёт,
+    устойчив к сдвигам прогона). UWG §7 — по построению сегмента."""
+    import calendar
+
+    from .models import CouponCampaign
+    from .newsletter import segment_customers, send_coupon_campaign
+
+    today = today or timezone.localdate()
+    day_pairs = [(today.month, today.day)]
+    if today.month == 2 and today.day == 28 and not calendar.isleap(today.year):
+        day_pairs.append((2, 29))
+    total = 0
+    for campaign in CouponCampaign.objects.filter(
+        kind=CouponCampaign.KIND_BIRTHDAY, status=CouponCampaign.STATUS_ACTIVE
+    ):
+        recent_ids = campaign.vouchers.filter(
+            created_at__gte=timezone.now() - timedelta(days=300), customer__isnull=False
+        ).values_list("customer_id", flat=True)
+        base = segment_customers(tag=campaign.tag, exclude_ids=list(recent_ids))
+        from django.db.models import Q
+
+        cond = Q()
+        for month, day in day_pairs:
+            cond |= Q(birthday__month=month, birthday__day=day)
+        customers = list(base.filter(cond))
+        if not customers:
+            continue
+        if base_url is None:
+            from django.db import connection
+
+            from .notifications import _base_url
+
+            base_url = _base_url(connection.schema_name)
+        total += send_coupon_campaign(campaign, base_url=base_url, customers=customers)
+    return total
+
+
+@idempotent_task()
+def send_birthday_coupons():
+    """Beat (раз в сутки): поздравления именинников по всем схемам арендаторов."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += send_due_birthday_coupons()
     return {"sent": total}
 
 

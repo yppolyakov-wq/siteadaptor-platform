@@ -99,6 +99,14 @@ def profile_view(request):
     if request.method == "POST":
         customer.name = request.POST.get("name", "").strip()[:200]
         customer.phone = request.POST.get("phone", "").strip()[:40]
+        # PMS-B2: опциональный ДР (пусто = стереть; кривая дата — прежнее значение).
+        raw_birthday = request.POST.get("birthday", "").strip()
+        try:
+            from datetime import date as _date
+
+            customer.birthday = _date.fromisoformat(raw_birthday) if raw_birthday else None
+        except ValueError:
+            pass
         # UWG §7: галка = получать рассылки (opt_in + снять one-click отписку).
         opt = request.POST.get("marketing") == "on"
         # PMS-аудит 2026-07-27: фиксируем МОМЕНТ согласия (доказательство UWG §7).
@@ -111,6 +119,7 @@ def profile_view(request):
             update_fields=[
                 "name",
                 "phone",
+                "birthday",
                 "marketing_opt_in",
                 "marketing_opt_in_at",
                 "unsubscribed",

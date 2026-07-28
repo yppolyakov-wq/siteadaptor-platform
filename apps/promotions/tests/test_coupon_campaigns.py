@@ -290,3 +290,69 @@ def test_winback_with_top_ltv_no_typeerror():
     assert tasks.send_due_winback_coupons(base_url=_BASE) == 1
     # второй прогон: свежий ваучер исключает клиента ДО слайса — тишина, не крэш
     assert tasks.send_due_winback_coupons(base_url=_BASE) == 0
+
+
+# ---------------------------------------------------------------------------
+# PMS-B2: «Geburtstagsgruß» — персональный код именинникам
+# ---------------------------------------------------------------------------
+
+
+def _birthday_campaign(**kw):
+    defaults = dict(
+        kind=CouponCampaign.KIND_BIRTHDAY,
+        status=CouponCampaign.STATUS_ACTIVE,
+        name="Geburtstagsgruß",
+        subject="Alles Gute zum Geburtstag",
+        discount_percent=10,
+        valid_days=30,
+    )
+    defaults.update(kw)
+    return CouponCampaign.objects.create(**defaults)
+
+
+def test_birthday_sends_to_todays_opt_in_only():
+    from datetime import date
+
+    today = date(2026, 7, 15)
+    jubilar = _customer("jubilar@test.de", birthday=date(1990, 7, 15))
+    _customer("andere@test.de", birthday=date(1990, 8, 1))  # не сегодня
+    _customer("kein-optin@test.de", opt_in=False, birthday=date(1990, 7, 15))
+    _customer("ohne-datum@test.de")  # дата неизвестна
+    _birthday_campaign()
+
+    assert tasks.send_due_birthday_coupons(today=today, base_url=_BASE) == 1
+    voucher = Voucher.objects.get(customer=jubilar)
+    assert voucher.campaign.kind == CouponCampaign.KIND_BIRTHDAY
+    assert Notification.objects.filter(recipient="jubilar@test.de").exists()
+
+
+def test_birthday_yearly_dedupe_and_paused():
+    from datetime import date
+
+    today = date(2026, 7, 15)
+    _customer("jubilar2@test.de", birthday=date(1985, 7, 15))
+    campaign = _birthday_campaign()
+
+    assert tasks.send_due_birthday_coupons(today=today, base_url=_BASE) == 1
+    # повторные прогоны (тот же день, через месяц) — дедуп окном 300 дней
+    assert tasks.send_due_birthday_coupons(today=today, base_url=_BASE) == 0
+    assert tasks.send_due_birthday_coupons(today=date(2026, 8, 15), base_url=_BASE) == 0
+
+    campaign.status = CouponCampaign.STATUS_PAUSED
+    campaign.save(update_fields=["status"])
+    _customer("jubilar3@test.de", birthday=date(1985, 7, 15))
+    assert tasks.send_due_birthday_coupons(today=today, base_url=_BASE) == 0
+
+
+def test_birthday_feb29_celebrated_feb28_in_non_leap_year():
+    from datetime import date
+
+    _customer("schalt@test.de", birthday=date(2000, 2, 29))
+    _birthday_campaign()
+
+    # 2026 — невисокосный: празднуем 28.02.
+    assert tasks.send_due_birthday_coupons(today=date(2026, 2, 28), base_url=_BASE) == 1
+    # 2028 — високосный: 28.02 не шлём (день придёт 29.02).
+    Voucher.objects.all().delete()
+    assert tasks.send_due_birthday_coupons(today=date(2028, 2, 28), base_url=_BASE) == 0
+    assert tasks.send_due_birthday_coupons(today=date(2028, 2, 29), base_url=_BASE) == 1

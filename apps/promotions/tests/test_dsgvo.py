@@ -17,8 +17,12 @@ def _age_reservation(res, days):
 
 @pytest.mark.django_db
 def test_purge_anonymizes_old_terminal_customer():
+    from datetime import date
+
     promo = PromotionFactory(available_quantity=5)
     res = reserve(promo, name="Anna", email="anna@test.de", phone="0151")
+    # PMS-B2: дата рождения — PII, обезличивание её тоже чистит.
+    Customer.objects.filter(pk=res.customer_id).update(birthday=date(1990, 5, 1))
     cancel(res)  # терминальный статус
     _age_reservation(res, 200)
 
@@ -27,6 +31,7 @@ def test_purge_anonymizes_old_terminal_customer():
     assert c.email == ""
     assert c.phone == ""
     assert c.name == "—"
+    assert c.birthday is None
 
 
 @pytest.mark.django_db

@@ -13566,3 +13566,29 @@ msgstr "Occupancy from (%)"
 
 msgid "Price change (%, e.g. 10 or −15)"
 msgstr "Price change (%, e.g. 10 or −15)"
+
+msgid "Birthday"
+msgstr "Birthday"
+
+msgid "Powers the automatic birthday greeting (if enabled)."
+msgstr "Powers the automatic birthday greeting (if enabled)."
+
+msgid "Birthday (optional)"
+msgstr "Birthday (optional)"
+
+msgid "Only used for a birthday greeting — leave empty if you prefer."
+msgstr "Only used for a birthday greeting — leave empty if you prefer."
+
+msgid ""
+"Subscribers get a personal code on their birthday — once a year, opt-in "
+"only. Birthdays come from the customer card or the guest's own account."
+msgstr ""
+"Subscribers get a personal code on their birthday — once a year, opt-in "
+"only. Birthdays come from the customer card or the guest's own account."
+
+#, python-format
+msgid "%(n)s subscribers with a known birthday"
+msgstr "%(n)s subscribers with a known birthday"
+
+msgid "Geburtstagsgruß gespeichert."
+msgstr "Birthday greeting saved."

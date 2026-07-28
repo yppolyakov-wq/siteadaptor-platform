@@ -13674,3 +13674,30 @@ msgstr "Doluluk eşiği (%)"
 
 msgid "Price change (%, e.g. 10 or −15)"
 msgstr "Fiyat değişimi (%, örn. 10 veya −15)"
+
+msgid "Birthday"
+msgstr "Doğum günü"
+
+msgid "Powers the automatic birthday greeting (if enabled)."
+msgstr "Otomatik doğum günü tebriğini besler (etkinse)."
+
+msgid "Birthday (optional)"
+msgstr "Doğum günü (isteğe bağlı)"
+
+msgid "Only used for a birthday greeting — leave empty if you prefer."
+msgstr "Yalnızca doğum günü tebriği için kullanılır — isterseniz boş bırakın."
+
+msgid ""
+"Subscribers get a personal code on their birthday — once a year, opt-in "
+"only. Birthdays come from the customer card or the guest's own account."
+msgstr ""
+"Aboneler doğum günlerinde kişisel bir kod alır — yılda bir kez, yalnızca "
+"izinli. Doğum günleri müşteri kartından veya misafirin kendi hesabından "
+"gelir."
+
+#, python-format
+msgid "%(n)s subscribers with a known birthday"
+msgstr "%(n)s abonenin doğum günü biliniyor"
+
+msgid "Geburtstagsgruß gespeichert."
+msgstr "Doğum günü tebriği kaydedildi."

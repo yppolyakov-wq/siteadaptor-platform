@@ -854,6 +854,34 @@ def coupon_campaigns(request):
                 ]
             )
             messages.success(request, _("Auto Win-back gespeichert."))
+        elif action == "birthday":
+            # PMS-B2: настройки «Geburtstagsgruß» на кампании-синглтоне.
+            obj = CouponCampaign.objects.filter(kind=CouponCampaign.KIND_BIRTHDAY).first()
+            if obj is None:
+                obj = CouponCampaign.objects.create(
+                    kind=CouponCampaign.KIND_BIRTHDAY,
+                    name="Geburtstagsgruß",
+                    subject="Alles Gute zum Geburtstag – Ihr Geschenk wartet",
+                    status=CouponCampaign.STATUS_PAUSED,
+                )
+            try:
+                obj.discount_percent = max(
+                    1, min(100, int(request.POST.get("discount_percent") or 10))
+                )
+                obj.valid_days = max(1, min(365, int(request.POST.get("valid_days") or 30)))
+            except (TypeError, ValueError):
+                messages.error(request, _("Bitte gültige Zahlen eingeben."))
+                return redirect("promotions:coupon-campaigns")
+            obj.subject = (request.POST.get("subject") or obj.subject).strip()[:200]
+            obj.status = (
+                CouponCampaign.STATUS_ACTIVE
+                if request.POST.get("enabled")
+                else CouponCampaign.STATUS_PAUSED
+            )
+            obj.save(
+                update_fields=["discount_percent", "valid_days", "subject", "status", "updated_at"]
+            )
+            messages.success(request, _("Geburtstagsgruß gespeichert."))
         return redirect("promotions:coupon-campaigns")
 
     campaigns = list(
@@ -880,6 +908,9 @@ def coupon_campaigns(request):
             "consented": consented_customers().count(),
             "form": form,
             "winback": CouponCampaign.objects.filter(kind=CouponCampaign.KIND_AUTO_WINBACK).first(),
+            # PMS-B2: панель «Geburtstagsgruß» + счётчик клиентов с датой рождения.
+            "birthday": CouponCampaign.objects.filter(kind=CouponCampaign.KIND_BIRTHDAY).first(),
+            "birthday_known": consented_customers().exclude(birthday=None).count(),
         },
     )
 

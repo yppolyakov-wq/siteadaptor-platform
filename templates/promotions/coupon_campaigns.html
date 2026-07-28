@@ -47,6 +47,36 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 
+  {# PMS-B2: «Geburtstagsgruß» — настройки на кампании kind=birthday #}
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="birthday">
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold">🎂 Geburtstagsgruß</h2>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="enabled" value="1" {% if birthday and birthday.status == 'active' %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Enabled" %}
+      </label>
+    </div>
+    <p class="text-xs text-gray-500">{% trans "Subscribers get a personal code on their birthday — once a year, opt-in only. Birthdays come from the customer card or the guest's own account." %}
+      <span class="text-gray-400">({% blocktrans with n=birthday_known %}{{ n }} subscribers with a known birthday{% endblocktrans %})</span></p>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-medium mb-1" for="id_bd_percent">{% trans "Discount %" %}</label>
+        <input id="id_bd_percent" name="discount_percent" type="number" min="1" max="100" value="{{ birthday.discount_percent|default:10 }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1" for="id_bd_valid">{% trans "Code valid for days" %}</label>
+        <input id="id_bd_valid" name="valid_days" type="number" min="1" max="365" value="{{ birthday.valid_days|default:30 }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+    </div>
+    <div>
+      <label class="block text-xs font-medium mb-1" for="id_bd_subject">{% trans "Subject" %}</label>
+      <input id="id_bd_subject" name="subject" type="text" maxlength="200" value="{{ birthday.subject|default:'Alles Gute zum Geburtstag – Ihr Geschenk wartet' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+
   {# Создать кампанию #}
   <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3">
     {% csrf_token %}

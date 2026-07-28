@@ -59,6 +59,9 @@ class Customer(TimestampedModel):
     marketing_opt_in = models.BooleanField(default=False)
     # G3: момент подтверждения согласия (Double-Opt-In, UWG §7) — доказательство.
     marketing_opt_in_at = models.DateTimeField(null=True, blank=True)
+    # PMS-B2: день рождения (опционально, гость/владелец заполняют сами) —
+    # питает «Geburtstagsgruß»-кампанию; DSGVO-purge обнуляет вместе с PII.
+    birthday = models.DateField(null=True, blank=True)
 
     # быстрая отписка от писем (one-click): токен в ссылке + флаг
     unsubscribed = models.BooleanField(default=False)
@@ -110,7 +113,13 @@ class CouponCampaign(TimestampedModel):
 
     KIND_MANUAL = "manual"
     KIND_AUTO_WINBACK = "auto_winback"
-    KINDS = [(KIND_MANUAL, "Manuell"), (KIND_AUTO_WINBACK, "Auto Win-back")]
+    # PMS-B2: авто-поздравление в день рождения (настройки на кампании-синглтоне).
+    KIND_BIRTHDAY = "birthday"
+    KINDS = [
+        (KIND_MANUAL, "Manuell"),
+        (KIND_AUTO_WINBACK, "Auto Win-back"),
+        (KIND_BIRTHDAY, "Geburtstag"),
+    ]
 
     STATUS_DRAFT = "draft"
     STATUS_SENT = "sent"

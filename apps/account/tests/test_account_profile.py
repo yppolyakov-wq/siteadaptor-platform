@@ -47,6 +47,24 @@ def test_profile_unchecking_marketing_clears_opt_in():
     assert c.marketing_opt_in is False
 
 
+def test_profile_birthday_saved_and_cleared():
+    """PMS-B2: гость сам дарит/забирает дату рождения; мусор не рушит форму."""
+    from datetime import date
+
+    c = Customer.objects.create(name="B", email="b@test.de")
+    views.profile_view(_req("post", {"name": "B", "birthday": "1990-07-15"}, c))
+    c.refresh_from_db()
+    assert c.birthday == date(1990, 7, 15)
+
+    views.profile_view(_req("post", {"name": "B", "birthday": "kaputt"}, c))
+    c.refresh_from_db()
+    assert c.birthday == date(1990, 7, 15)  # кривая дата — прежнее значение
+
+    views.profile_view(_req("post", {"name": "B", "birthday": ""}, c))
+    c.refresh_from_db()
+    assert c.birthday is None
+
+
 def test_export_returns_json_with_customer():
     c = Customer.objects.create(name="Max", email="max@test.de")
     body = views.export_data(_req(customer=c)).content.decode()

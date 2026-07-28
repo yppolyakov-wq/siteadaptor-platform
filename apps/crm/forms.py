@@ -17,14 +17,23 @@ class CustomerForm(forms.ModelForm):
 
     class Meta:
         model = Customer
-        fields = ["name", "email", "phone", "company", "note", "marketing_opt_in"]
-        labels = {"marketing_opt_in": _("Marketing consent"), "company": _("Company")}
+        fields = ["name", "email", "phone", "company", "birthday", "note", "marketing_opt_in"]
+        labels = {
+            "marketing_opt_in": _("Marketing consent"),
+            "company": _("Company"),
+            "birthday": _("Birthday"),
+        }
         help_texts = {
             "marketing_opt_in": _(
                 "Only tick if the customer explicitly agreed to receive offers (UWG §7)."
             )
         }
-        widgets = {"note": forms.Textarea(attrs={"rows": 3})}
+        widgets = {
+            "note": forms.Textarea(attrs={"rows": 3}),
+            # PMS-B2: питает «Geburtstagsgruß»-кампанию.
+            "birthday": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+        }
+        help_texts = {"birthday": _("Powers the automatic birthday greeting (if enabled).")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
