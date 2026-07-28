@@ -13387,3 +13387,19 @@ msgstr "Inspected"
 
 msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
 msgstr "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
+
+msgid "Market position"
+msgstr "Market position"
+
+#, python-format
+msgid "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
+msgstr "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
+
+msgid "median"
+msgstr "median"
+
+msgid "you"
+msgstr "you"
+
+msgid "Public base prices of hotels on this platform in your city — for orientation only."
+msgstr "Public base prices of hotels on this platform in your city — for orientation only."

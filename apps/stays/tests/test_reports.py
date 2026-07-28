@@ -125,3 +125,42 @@ def test_custom_capacity_status_counted():
     # Явный tenant-контекст резолвится через connection в _current_tenant —
     # проверяем формулу напрямую монкипатчем не будем: главный замок — реестр
     # включает кастом-active; отчёт фильтрует по нему же (reports.py).
+
+
+# --- CP-1: Marktposition (цены отелей города, одобрено владельцем) ---------------
+
+
+def test_market_position_ranks_and_gates():
+    from apps.aggregator.models import AggregatorListing
+    from apps.stays.views import _market_position
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(schema_name="tenant_cp1", city="Hilden")
+
+    def _listing(schema, name, price):
+        AggregatorListing.objects.create(
+            tenant_schema=schema,
+            tenant_slug=schema,
+            business_name=name,
+            city="Hilden",
+            listing_kind=AggregatorListing.KIND_STAY,
+            source_ref=uuid.uuid4().hex[:12],  # unique (schema, kind, source_ref)
+            new_price=price,
+            is_active=True,
+            title={"de": name},
+        )
+
+    _listing("tenant_cp1", "Unser Hotel", 90)
+    _listing("tenant_cp1", "Unser Hotel", 120)  # второй номер — схлопывается в min
+    _listing("tenant_other1", "Seehof", 80)
+    m = _market_position(tenant)
+    assert m is None  # < 3 отелей → карточка скрыта
+
+    _listing("tenant_other2", "Bergblick", 110)
+    m = _market_position(tenant)
+    assert m["total"] == 3 and m["position"] == 2  # 80 < 90 < 110
+    assert [h["name"] for h in m["hotels"]] == ["Seehof", "Unser Hotel", "Bergblick"]
+    assert m["hotels"][1]["own"] is True
+    assert m["min"] == 80 and m["max"] == 110
+
+    assert _market_position(TenantFactory.build(schema_name="x", city="")) is None

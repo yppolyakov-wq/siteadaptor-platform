@@ -13495,3 +13495,19 @@ msgstr "Kontrol edildi"
 
 msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
 msgstr "Bana haber ve teklifler gönderin (isteğe bağlı) — önce onay e-postası gelir, istediğiniz an çıkabilirsiniz."
+
+msgid "Market position"
+msgstr "Pazar konumu"
+
+#, python-format
+msgid "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
+msgstr "Baz fiyatınız şehrinizdeki %(n)s otel arasında %(p)s. sırada (platform ilanları, «gecelik €'dan»)."
+
+msgid "median"
+msgstr "medyan"
+
+msgid "you"
+msgstr "siz"
+
+msgid "Public base prices of hotels on this platform in your city — for orientation only."
+msgstr "Şehrinizdeki bu platform otellerinin herkese açık baz fiyatları — yalnızca fikir vermesi için."

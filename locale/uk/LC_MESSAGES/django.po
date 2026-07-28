@@ -13559,3 +13559,19 @@ msgstr "Перевірено"
 
 msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
 msgstr "Надсилайте мені новини та пропозиції (необов'язково) — спершу надійде лист-підтвердження, відписка в один клік."
+
+msgid "Market position"
+msgstr "Позиція на ринку"
+
+#, python-format
+msgid "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
+msgstr "Ваша базова ціна — %(p)s-ша з %(n)s готелів міста (лістинги платформи, «від €/ніч»)."
+
+msgid "median"
+msgstr "медіана"
+
+msgid "you"
+msgstr "ви"
+
+msgid "Public base prices of hotels on this platform in your city — for orientation only."
+msgstr "Публічні базові ціни готелів платформи у вашому місті — лише для орієнтиру."

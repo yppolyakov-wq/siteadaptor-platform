@@ -860,6 +860,50 @@ def _month_bounds(raw):
     return start, end
 
 
+def _market_position(tenant):
+    """CP-1 «Marktposition» (одобрено владельцем): базовые цены «ab €» отелей
+    платформы в том же городе (публичные данные листингов агрегатора).
+    Схлопывание: отель = min(new_price) его KIND_STAY-листингов. Показываем
+    только при ≥3 отелях (включая свой); рекомендаций цены НЕ даём (только
+    факт позиции — картельный риск). Нет города/агрегатор пуст → None."""
+    from statistics import median
+
+    from apps.aggregator.models import AggregatorListing
+
+    city = (getattr(tenant, "city", "") or "").strip()
+    schema = getattr(tenant, "schema_name", "")
+    if not city:
+        return None
+    listings = AggregatorListing.objects.filter(
+        listing_kind=AggregatorListing.KIND_STAY,
+        is_active=True,
+        city__iexact=city,
+        new_price__isnull=False,
+    ).values("tenant_schema", "business_name", "new_price")
+    per_hotel = {}
+    for row in listings:
+        cur = per_hotel.get(row["tenant_schema"])
+        if cur is None or row["new_price"] < cur["price"]:
+            per_hotel[row["tenant_schema"]] = {
+                "name": row["business_name"],
+                "price": row["new_price"],
+                "own": row["tenant_schema"] == schema,
+            }
+    hotels = sorted(per_hotel.values(), key=lambda h: h["price"])
+    if len(hotels) < 3 or not any(h["own"] for h in hotels):
+        return None
+    prices = [h["price"] for h in hotels]
+    return {
+        "city": city,
+        "hotels": hotels,
+        "position": next(i for i, h in enumerate(hotels, start=1) if h["own"]),
+        "total": len(hotels),
+        "min": min(prices),
+        "median": median(prices),
+        "max": max(prices),
+    }
+
+
 @login_required
 def reports(request):
     """G9: отчёт загрузки/выручки за месяц (Belegung %, ADR, RevPAR, Umsatz)."""
@@ -880,6 +924,8 @@ def reports(request):
             "prev_month": prev_m.strftime("%Y-%m"),
             "next_month": nxt.strftime("%Y-%m"),
             "is_current": start == timezone.localdate().replace(day=1),
+            # CP-1: позиция цены среди отелей города (None → карточка скрыта).
+            "market": _market_position(getattr(request, "tenant", None)),
         },
     )
 

@@ -46,4 +46,26 @@
   </div>
 </div>
 <p class="text-xs text-gray-400 mt-4 max-w-2xl">{% trans "Counts pending/confirmed/fulfilled bookings; revenue across month edges is prorated by nights. Room revenue excludes extras and Kurtaxe." %}</p>
+
+{% if market %}
+{# CP-1 «Marktposition»: публичные базовые цены отелей платформы в этом городе. #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mt-6 max-w-2xl">
+  <h2 class="font-semibold mb-1">📊 {% trans "Market position" %} · {{ market.city }}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% blocktrans with p=market.position n=market.total %}Your base price ranks {{ p }} of {{ n }} hotels in your city (platform listings, “from €/night”).{% endblocktrans %}</p>
+  <div class="flex items-center gap-4 text-sm mb-3">
+    <span>{% trans "min" %}: <b>{{ market.min|floatformat:2 }} €</b></span>
+    <span>{% trans "median" %}: <b>{{ market.median|floatformat:2 }} €</b></span>
+    <span>{% trans "max" %}: <b>{{ market.max|floatformat:2 }} €</b></span>
+  </div>
+  <div class="divide-y divide-gray-100">
+    {% for h in market.hotels %}
+      <div class="flex items-center justify-between py-1.5 text-sm {% if h.own %}font-semibold text-indigo-700{% endif %}">
+        <span>{{ forloop.counter }}. {{ h.name }}{% if h.own %} · {% trans "you" %}{% endif %}</span>
+        <span>{% trans "from" %} {{ h.price|floatformat:2 }} €</span>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="text-[11px] text-gray-400 mt-2">{% trans "Public base prices of hotels on this platform in your city — for orientation only." %}</p>
+</div>
+{% endif %}
 {% endblock %}
