@@ -74,3 +74,18 @@
   test_tasks) ПОСЛЕДОВАТЕЛЬНО (не параллелить — общая тест-БД!), чинить
   той же методикой; затем один коммит T-1: de.po + все тест-правки +
   normalize-фикс + build-log; push → CI → merge.
+
+## Кластер 2 (stays/booking/orders/events): 20 падений к разбору
+
+test_belegungsplan(ohne_zimmer chip) · test_buybox_parity stays(unavailable
+reason) · test_occupancy_pricing(units add/delete — вероятно «Dynamic prices»
+→ «Dynamische Preise») · test_restrictions(detail reason) · test_stay_flow_b
+(datebar/calendar_first/rate_cards ×3) · booking: buybox_parity(hint) +
+test_public(slots/group_slots/search_sort/upsell ×4) + service_reviews(order
+parity) + services(next_free) · orders: delivery(cart options) · events:
+index_parity ×3 + storefront ×2 (cover cards, online event).
+Методика та же: немецкие строки в ассертах (сверяться с de.po значениями).
+Затем кластер 3: promotions/crm/account/aggregator/jobs/collections/finance/
+inventory/loyalty/imports/notifications/telegram/reviews/partners/core-остаток
+(billing без test_tasks). После зелёного: git add de.po + все тест-правки +
+build-log → push → CI → merge. НЕ параллелить прогоны (общая тест-БД).
