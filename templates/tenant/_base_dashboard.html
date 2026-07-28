@@ -8,6 +8,15 @@
 {# ST-4a: SVG-спрайт иконсета кабинета (иконки хабов главной). #}
 {% include "tenant/_icons.html" %}
 <div class="min-h-screen flex">
+  {# Фидбэк 2026-07-28: сворачиваемый сайдбар (desktop) — уезжает влево, состояние в localStorage. #}
+  <style>
+    @media (min-width: 768px) {
+      body.sb-min #sidebar { display: none; }
+      body.sb-min #sidebar-expand { display: block; }
+    }
+  </style>
+  <script>if (localStorage.getItem("sb_min") === "1") document.body.classList.add("sb-min");</script>
+  <button id="sidebar-expand" class="hidden fixed top-4 left-2 z-40 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1.5 text-gray-500 hover:text-gray-800" aria-label="{% trans 'Open menu' %}">☰</button>
   {# Затемнение под выехавшим меню (только мобайл) #}
   <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-20 hidden md:hidden"></div>
 
@@ -17,6 +26,7 @@
                 -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen md:z-auto transition-transform duration-200">
     <div class="flex items-center justify-between p-5 pb-3">
       <a href="{% url 'dashboard' %}" class="font-bold text-lg truncate">{{ request.tenant.name }}</a>
+      <button id="sidebar-collapse" class="hidden md:block text-gray-400 hover:text-gray-700 text-lg leading-none" title="{% trans 'Menü einklappen' %}" aria-label="{% trans 'Menü einklappen' %}">⟨</button>
       <button id="sidebar-close" class="md:hidden text-gray-400 text-xl leading-none" aria-label="{% trans 'Close menu' %}">✕</button>
     </div>
     {# Быстрый фильтр пунктов меню — нативный поиск по разделам кабинета. #}
@@ -198,6 +208,15 @@
   document.getElementById("sidebar-open").addEventListener("click", open);
   document.getElementById("sidebar-close").addEventListener("click", close);
   ov.addEventListener("click", close);
+  // Фидбэк 2026-07-28: сворачивание на десктопе (сайдбар уезжает влево).
+  document.getElementById("sidebar-collapse").addEventListener("click", function () {
+    document.body.classList.add("sb-min");
+    localStorage.setItem("sb_min", "1");
+  });
+  document.getElementById("sidebar-expand").addEventListener("click", function () {
+    document.body.classList.remove("sb-min");
+    localStorage.setItem("sb_min", "0");
+  });
   var tb = document.getElementById("tabbar-menu");
   if (tb) tb.addEventListener("click", open);
 

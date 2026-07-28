@@ -13608,3 +13608,6 @@ msgstr "Arrivals, bookings & rooms at a glance"
 #, python-format
 msgid "noch %(n)s"
 msgstr "%(n)s left"
+
+msgid "Menü einklappen"
+msgstr "Collapse menu"

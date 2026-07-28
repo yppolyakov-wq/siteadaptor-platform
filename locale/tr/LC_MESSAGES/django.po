@@ -13717,3 +13717,6 @@ msgstr "Girişler, rezervasyonlar ve odalar bir bakışta"
 #, python-format
 msgid "noch %(n)s"
 msgstr "son %(n)s"
+
+msgid "Menü einklappen"
+msgstr "Menüyü daralt"

@@ -13776,3 +13776,6 @@ msgstr "Заїзди, броні та номери одним поглядом"
 #, python-format
 msgid "noch %(n)s"
 msgstr "залишилось %(n)s"
+
+msgid "Menü einklappen"
+msgstr "Згорнути меню"

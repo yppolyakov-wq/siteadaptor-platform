@@ -13789,3 +13789,6 @@ msgstr "Заезды, брони и номера одним взглядом"
 #, python-format
 msgid "noch %(n)s"
 msgstr "осталось %(n)s"
+
+msgid "Menü einklappen"
+msgstr "Свернуть меню"
