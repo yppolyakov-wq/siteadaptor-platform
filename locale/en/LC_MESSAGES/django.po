@@ -13667,3 +13667,55 @@ msgstr "Prices & discounts"
 #: templates/stays/units.html:0
 msgid "Channels & export"
 msgstr "Channels & export"
+
+#: templates/storefront/_booking_info.html:0
+msgid "How booking works"
+msgstr "How booking works"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Three steps — no account needed."
+msgstr "Three steps — no account needed."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Pick a service"
+msgstr "Pick a service"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Duration and price are shown up front — no surprises."
+msgstr "Duration and price are shown up front — no surprises."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Choose a free time"
+msgstr "Choose a free time"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Only slots we can really offer are shown."
+msgstr "Only slots we can really offer are shown."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Get your confirmation"
+msgstr "Get your confirmation"
+
+#: templates/storefront/_booking_info.html:0
+msgid "By email, with a link to reschedule or cancel."
+msgstr "By email, with a link to reschedule or cancel."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Where to find us"
+msgstr "Where to find us"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Open in maps"
+msgstr "Open in maps"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Questions before booking?"
+msgstr "Questions before booking?"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Pick a free time — we will confirm by email."
+msgstr "Pick a free time — we will confirm by email."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Choose a time"
+msgstr "Choose a time"

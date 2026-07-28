@@ -28,7 +28,12 @@ def test_svg_deterministic_by_keyword_and_lock():
 
 def test_emoji_fallbacks():
     assert "🌿" in demo_images.svg_for("vegan,unknownthing")  # веган-фолбэк
-    assert "🍽️" in demo_images.svg_for("etwas,anderes")  # общий фолбэк
+    # Фидбэк 2026-07-28: «тарелка» — только для гастро-контекста, иначе нейтраль
+    # (в карточке стрижки тарелка выглядела ошибкой).
+    assert "🍽️" in demo_images.svg_for("essen,anderes")
+    assert "✨" in demo_images.svg_for("etwas,anderes")
+    assert "💇" in demo_images.svg_for("hair,styling")  # сервисные темы покрыты
+    assert "🚗" in demo_images.svg_for("auto,inspektion")
 
 
 def test_small_image_has_no_caption():
@@ -81,8 +86,10 @@ def test_photo_resolver_fallbacks(tmp_path, settings):
     assert demo_images.photo_static_name("bread,bakery") == "bread-bakery.webp"
     assert demo_images.photo_static_name("strawberry,cake") == "cake.jpg"  # по токену
     assert demo_images.photo_static_name("shop,front", lock=2) == "shop-front-2.webp"
-    assert demo_images.photo_static_name("shop,front", lock=5) is None  # нет ни варианта,
-    # ни базового shop-front.* → SVG
+    # Фидбэк 2026-07-28: точного файла нет → берём тематически близкий по префиксу
+    # токена (детерминированно), вместо SVG-заглушки.
+    assert demo_images.photo_static_name("shop,front", lock=5) == "shop-front-2.webp"
+    assert demo_images.photo_static_name("voellig,unbekannt") is None  # группы нет → SVG
 
 
 def test_demo_image_url_prefers_photo_over_svg(tmp_path, settings):

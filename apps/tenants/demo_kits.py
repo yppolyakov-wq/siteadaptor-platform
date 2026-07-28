@@ -1662,6 +1662,50 @@ HOTEL = DemoKit(
         "button_label": "Zimmer ansehen",
         "button_url": "/unterkunft/",
     },
+    # Фидбэк 2026-07-28: у отеля Termine-страница была пустой («Online booking is
+    # not set up yet») — гостевые доп-услуги дают архетипу живое содержимое.
+    services=[
+        (
+            {"de": "Wellness-Massage", "en": "Wellness massage"},
+            50,
+            "59",
+            {
+                "de": "Klassische Rückenmassage im hauseigenen Wellnessbereich.",
+                "en": "Classic back massage in our own wellness area.",
+            },
+            "massage,spa",
+        ),
+        (
+            {"de": "Private Sauna", "en": "Private sauna"},
+            90,
+            "39",
+            {
+                "de": "Die Panorama-Sauna exklusiv für Sie und Ihre Begleitung.",
+                "en": "The panorama sauna exclusively for you and your companion.",
+            },
+            "sauna,wellness",
+        ),
+        (
+            {"de": "Seeblick-Frühstück am Zimmer", "en": "Lake-view breakfast in your room"},
+            60,
+            "24",
+            {
+                "de": "Frühstück mit Blick auf den See — direkt aufs Zimmer serviert.",
+                "en": "Breakfast with a lake view — served straight to your room.",
+            },
+            "breakfast,hotel",
+        ),
+        (
+            {"de": "E-Bike-Verleih (Tag)", "en": "E-bike rental (day)"},
+            480,
+            "29",
+            {
+                "de": "Tourenrad inklusive Helm, Schloss und Kartenmaterial.",
+                "en": "Touring bike including helmet, lock and maps.",
+            },
+            "bike,tour",
+        ),
+    ],
     stay_units=[
         {
             "name": {"de": "Doppelzimmer Seeblick", "en": "Double room lake view"},

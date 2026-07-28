@@ -13835,3 +13835,55 @@ msgstr "Ціни та знижки"
 #: templates/stays/units.html:0
 msgid "Channels & export"
 msgstr "Канали та експорт"
+
+#: templates/storefront/_booking_info.html:0
+msgid "How booking works"
+msgstr "Як відбувається запис"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Three steps — no account needed."
+msgstr "Три кроки — без реєстрації."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Pick a service"
+msgstr "Оберіть послугу"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Duration and price are shown up front — no surprises."
+msgstr "Тривалість і ціна відомі заздалегідь — без сюрпризів."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Choose a free time"
+msgstr "Оберіть вільний час"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Only slots we can really offer are shown."
+msgstr "Показуємо лише той час, який справді вільний."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Get your confirmation"
+msgstr "Отримайте підтвердження"
+
+#: templates/storefront/_booking_info.html:0
+msgid "By email, with a link to reschedule or cancel."
+msgstr "На пошту — з посиланням на перенесення чи скасування."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Where to find us"
+msgstr "Як нас знайти"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Open in maps"
+msgstr "Відкрити на карті"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Questions before booking?"
+msgstr "Питання перед записом?"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Pick a free time — we will confirm by email."
+msgstr "Оберіть вільний час — підтвердження надійде на пошту."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Choose a time"
+msgstr "Обрати час"

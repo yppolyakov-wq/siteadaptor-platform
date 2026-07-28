@@ -18,6 +18,10 @@ from urllib.parse import urlencode
 # URL на этапе сидинга, без request/reverse.
 DEMO_IMAGE_PATH = "/medien/demo.svg"
 
+# Кэш списка файлов демо-фото по корню каталога (см. _photo_index): ключ —
+# найденный путь, иначе смена STATICFILES_DIRS (тесты) отдавала бы старый список.
+_PHOTO_INDEX: dict[str, list[str]] = {}
+
 # Тема → эмодзи. Подбор по подстроке ключевого слова (первое совпадение), иначе
 # фолбэк по «вегану»/общий. Ключи — латиницей, как в demo-kit keywords.
 _EMOJI = [
@@ -93,6 +97,55 @@ _EMOJI = [
     ("lake", "🏞️"),
     ("terrace", "⛱️"),
     ("breakfast", "🥐"),
+    # Фидбэк 2026-07-28: у сервисных архетипов (Friseur/Werkstatt/Handwerker…)
+    # ключи не попадали ни в одну гастро-тему → карточки услуг получали «тарелку».
+    ("haircut", "💇"),
+    ("hair", "💇"),
+    ("barber", "💈"),
+    ("beard", "🧔"),
+    ("bart", "🧔"),
+    ("nail", "💅"),
+    ("kosmetik", "💄"),
+    ("makeup", "💄"),
+    ("massage", "💆"),
+    ("spa", "🧖"),
+    ("wellness", "🧖"),
+    ("sauna", "🧖"),
+    ("fitness", "🏋️"),
+    ("workshop", "🧰"),
+    ("werkstatt", "🔧"),
+    ("tool", "🧰"),
+    ("handwerk", "🧰"),
+    ("maler", "🎨"),
+    ("paint", "🎨"),
+    ("garten", "🌱"),
+    ("garden", "🌱"),
+    ("elektro", "⚡"),
+    ("sanitaer", "🚿"),
+    ("bad", "🚿"),
+    ("dach", "🏠"),
+    ("bau", "🏗️"),
+    ("auto", "🚗"),
+    ("car", "🚗"),
+    ("kfz", "🚗"),
+    ("reifen", "🛞"),
+    ("tire", "🛞"),
+    ("motor", "🔧"),
+    ("inspektion", "🔍"),
+    ("foto", "📷"),
+    ("photo", "📷"),
+    ("tattoo", "🖋️"),
+    ("physio", "💆"),
+    ("praxis", "🩺"),
+    ("tier", "🐾"),
+    ("hund", "🐕"),
+    ("styling", "💇"),
+    ("beratung", "💬"),
+    ("video", "📹"),
+    ("ticket", "🎟️"),
+    ("tour", "🧭"),
+    ("stadt", "🏙️"),
+    ("city", "🏙️"),
 ]
 
 # Палитры градиентов (тёплые/свежие/зелёные) — выбор детерминирован по хэшу.
@@ -108,12 +161,19 @@ _PALETTES = [
 ]
 
 
+# Фидбэк 2026-07-28: гастро-фолбэк 🍽️ оставляем только для «съедобных» контекстов —
+# сервисным архетипам он выглядел как ошибка (тарелка в карточке стрижки).
+_FOOD_HINTS = ("food", "essen", "menu", "speise", "gericht", "kueche", "kitchen", "teller")
+
+
 def _emoji_for(keyword: str) -> str:
     kw = keyword.lower()
     for needle, emoji in _EMOJI:
         if needle in kw:
             return emoji
-    return "🌿" if "vegan" in kw else "🍽️"
+    if "vegan" in kw:
+        return "🌿"
+    return "🍽️" if any(h in kw for h in _FOOD_HINTS) else "✨"
 
 
 def _caption(keyword: str) -> str:
@@ -188,6 +248,28 @@ def _kw_slug(text: str) -> str:
     return out.strip("-")
 
 
+def _photo_index() -> list[str]:
+    """Отсортированный список файлов static/demo/photos (кэш процесса). Нужен для
+    префиксного фолбэка; пуст при любой ошибке — сидинг не должен падать."""
+    import os
+
+    from django.contrib.staticfiles import finders
+
+    try:
+        root = finders.find(_PHOTO_DIR)
+        if isinstance(root, list):  # несколько источников — берём первый
+            root = root[0] if root else None
+        if not root:
+            return []
+        if root not in _PHOTO_INDEX:
+            _PHOTO_INDEX[root] = sorted(
+                f for f in os.listdir(root) if f.lower().endswith(_PHOTO_EXTS)
+            )
+        return _PHOTO_INDEX[root]
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def photo_static_name(keyword: str, *, lock: int = 1) -> str | None:
     """Имя файла в static/demo/photos/ для ключа (или None → SVG-фолбэк).
 
@@ -207,6 +289,16 @@ def photo_static_name(keyword: str, *, lock: int = 1) -> str | None:
             for ext in _PHOTO_EXTS:
                 if finders.find(f"{_PHOTO_DIR}/{name}{ext}"):
                     return f"{name}{ext}"
+        # Фидбэк 2026-07-28: точного файла нет → берём тематически близкий по
+        # ПРЕФИКСУ токена (hair,styling → hair-salon.webp). Выбор детерминирован
+        # (sorted + lock), чтобы демо не «прыгало» между пересидами.
+        index = _photo_index()
+        for name in candidates:
+            if not name:
+                continue
+            group = [f for f in index if f.rsplit(".", 1)[0].startswith(f"{name}-")]
+            if group:
+                return group[(max(lock, 1) - 1) % len(group)]
     except Exception:  # noqa: BLE001 — нет staticfiles/настроек → SVG
         return None
     return None

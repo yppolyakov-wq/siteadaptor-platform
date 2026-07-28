@@ -1,0 +1,53 @@
+{% load i18n %}
+{% comment %}Фидбэк 2026-07-28: страницы Termine были «сдвинуты влево и пусты» —
+под листингом услуг единый инфо-блок для ВСЕХ booking-архетипов (Friseur/
+Werkstatt/Handwerker/Studio…): как проходит запись + практическая информация
+(часы, адрес, контакт). Всё гейтится по наличию данных тенанта — пустых
+карточек не показываем.{% endcomment %}
+<section class="mt-12">
+  <h2 class="text-xl font-bold mb-1">{% trans "How booking works" %}</h2>
+  <p class="text-gray-500 text-sm mb-5">{% trans "Three steps — no account needed." %}</p>
+  <div class="grid sm:grid-cols-3 gap-4 mb-10">
+    <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-semibold mb-3" style="background: var(--accent);">1</span>
+      <h3 class="font-semibold mb-1">{% trans "Pick a service" %}</h3>
+      <p class="text-sm text-gray-500">{% trans "Duration and price are shown up front — no surprises." %}</p>
+    </div>
+    <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-semibold mb-3" style="background: var(--accent);">2</span>
+      <h3 class="font-semibold mb-1">{% trans "Choose a free time" %}</h3>
+      <p class="text-sm text-gray-500">{% trans "Only slots we can really offer are shown." %}</p>
+    </div>
+    <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-semibold mb-3" style="background: var(--accent);">3</span>
+      <h3 class="font-semibold mb-1">{% trans "Get your confirmation" %}</h3>
+      <p class="text-sm text-gray-500">{% trans "By email, with a link to reschedule or cancel." %}</p>
+    </div>
+  </div>
+
+  {% if request.tenant.opening_hours or request.tenant.address or request.tenant.public_phone %}
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% if request.tenant.opening_hours %}
+    <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-semibold mb-2">🕒 {% trans "Opening hours" %}</h3>
+      <p class="text-sm text-gray-600 whitespace-pre-line">{{ request.tenant.opening_hours }}</p>
+    </div>
+    {% endif %}
+    {% if request.tenant.address %}
+    <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-semibold mb-2">📍 {% trans "Where to find us" %}</h3>
+      <p class="text-sm text-gray-600">{{ request.tenant.address }}</p>
+      {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline mt-1 inline-block">{% trans "Open in maps" %} →</a>{% endif %}
+    </div>
+    {% endif %}
+    {% if request.tenant.public_phone or request.tenant.whatsapp_number %}
+    <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-semibold mb-2">📞 {% trans "Questions before booking?" %}</h3>
+      {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="block text-sm text-indigo-600 hover:underline">{{ request.tenant.public_phone }}</a>{% endif %}
+      {% if request.tenant.whatsapp_number %}<a href="https://wa.me/{{ request.tenant.whatsapp_number|cut:'+'|cut:' ' }}" target="_blank" rel="noopener" class="block text-sm text-indigo-600 hover:underline mt-1">WhatsApp</a>{% endif %}
+      <a href="{% url 'storefront-message' %}" class="block text-sm text-gray-500 hover:underline mt-1">{% trans "Contact" %} →</a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>

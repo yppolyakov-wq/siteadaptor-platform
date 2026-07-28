@@ -13778,3 +13778,55 @@ msgstr "Fiyatlar ve indirimler"
 #: templates/stays/units.html:0
 msgid "Channels & export"
 msgstr "Kanallar ve dışa aktarım"
+
+#: templates/storefront/_booking_info.html:0
+msgid "How booking works"
+msgstr "Randevu nasıl alınır"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Three steps — no account needed."
+msgstr "Üç adım — hesap gerekmez."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Pick a service"
+msgstr "Hizmet seçin"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Duration and price are shown up front — no surprises."
+msgstr "Süre ve fiyat baştan bellidir — sürpriz yok."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Choose a free time"
+msgstr "Boş bir saat seçin"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Only slots we can really offer are shown."
+msgstr "Yalnızca gerçekten sunabildiğimiz saatler gösterilir."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Get your confirmation"
+msgstr "Onayınızı alın"
+
+#: templates/storefront/_booking_info.html:0
+msgid "By email, with a link to reschedule or cancel."
+msgstr "E-posta ile, erteleme veya iptal bağlantısıyla."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Where to find us"
+msgstr "Bizi nerede bulursunuz"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Open in maps"
+msgstr "Haritada aç"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Questions before booking?"
+msgstr "Randevudan önce sorunuz mu var?"
+
+#: templates/storefront/_booking_info.html:0
+msgid "Pick a free time — we will confirm by email."
+msgstr "Boş bir saat seçin — onayı e-posta ile göndeririz."
+
+#: templates/storefront/_booking_info.html:0
+msgid "Choose a time"
+msgstr "Saat seçin"

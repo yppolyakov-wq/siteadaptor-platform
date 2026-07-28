@@ -3,19 +3,30 @@
 {% block title %}{% trans "Book a slot" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Book a slot" %}</h1>
+{% comment %}Фидбэк 2026-07-28: ветка «ресурсы» (бизнес без прайс-листа услуг) была
+голой — заголовок + одна строка. Теперь: интро, карточки ресурсов на всю ширину и
+общий инфо-блок «как проходит запись» + часы/адрес/контакт, как на /termin/ с
+услугами. Пустое состояние тоже ведёт к контакту, а не в тупик.{% endcomment %}
+<h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Book a slot" %}</h1>
 {% if resources %}
-<div class="grid sm:grid-cols-2 gap-4">
+<p class="text-gray-500 mb-6">{% trans "Pick a free time — we will confirm by email." %}</p>
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
   {% for r in resources %}
     <a href="{% url 'storefront-termin-slots' r.pk %}{% if embed %}?embed=1{% endif %}"
-       class="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+       class="sf-card bg-white rounded-2xl shadow-sm p-5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
       <p class="font-semibold">{{ r.name }}</p>
       <p class="text-sm text-gray-500 mt-1">{{ r.get_type_display }}</p>
+      <span class="mt-3 inline-block text-sm text-white rounded-lg px-3 py-1.5" style="background: var(--accent);">{% trans "Choose a time" %} →</span>
     </a>
   {% endfor %}
 </div>
 {% else %}
-<p class="text-gray-500">{% trans "Online booking is not set up yet — please call us." %}</p>
+<p class="text-gray-500 mb-6">{% trans "Online booking is not set up yet — please call us." %}</p>
+{% if request.tenant.public_phone %}
+  <a href="tel:{{ request.tenant.public_phone }}" class="inline-block text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent);">📞 {{ request.tenant.public_phone }}</a>
+{% endif %}
+<a href="{% url 'storefront-message' %}" class="inline-block ml-3 text-indigo-600 hover:underline">{% trans "Contact" %} →</a>
 {% endif %}
 {% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}" class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
+{% include "storefront/_booking_info.html" %}
 {% endblock %}

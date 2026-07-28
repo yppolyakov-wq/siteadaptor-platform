@@ -494,12 +494,14 @@ def test_service_index_on_listing_skeleton_has_sf_section_marker():
     assert "/karten/" in body  # listing_after: ссылка на Mehrfachkarte
 
 
-def test_service_index_legacy_grid_without_layout_key():
-    # UB1-1: без service_index_layout в конфиге витрина держит прежний хардкод-грид
-    # (пиксельная неизменность), движковые классы не подмешиваются.
+def test_service_index_default_grid_uses_full_width():
+    # Фидбэк владельца 2026-07-28: дефолт был `max-w-3xl` — на широком экране
+    # карточки прижимались влево, справа пустота. Дефолт (без ключа
+    # service_index_layout) теперь на всю ширину: 1/2/3 колонки.
     _service()
     body = public_views.termin_index(_req()).content.decode()
-    assert "grid sm:grid-cols-2 gap-4 max-w-3xl" in body
+    assert "grid sm:grid-cols-2 lg:grid-cols-3 gap-4" in body
+    assert "max-w-3xl" not in body
 
 
 def test_service_index_layout_from_config():
