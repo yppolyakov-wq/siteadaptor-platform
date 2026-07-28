@@ -105,10 +105,17 @@ st4-admin-home-plan §1). classic_ui → widgets/hubs пустые (Р7).{% endc
 
 {% comment %}AB7-B2: канбан входящих задач прямо на главной — тот же партиал/DnD, что на
 /dashboard/board/ (полнофункциональный). Показываем только при активных каналах.{% endcomment %}
+{% if sales_is_calendar and not classic_ui %}
+{# Фидбэк 2026-07-28: отель — Belegungsplan главный (вход первым), канбан ниже лишь дополнение. #}
+<a href="{{ sales_entry_url }}" class="flex items-center justify-between gap-3 bg-indigo-600 text-white rounded-2xl shadow-sm px-5 py-4 mb-4 hover:bg-indigo-700">
+  <span class="font-semibold">📅 {% trans "Belegungsplan" %}</span>
+  <span class="text-sm opacity-90">{% trans "Anreisen, Buchungen & Zimmer auf einen Blick" %} →</span>
+</a>
+{% endif %}
 {% if sections %}
   <div class="flex items-baseline justify-between gap-3 mb-3">
     <h2 class="text-lg font-bold">🗂️ {% trans "Tasks" %}</h2>
-    <a href="{% url 'board' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Full view" %} →</a>
+    <a href="{% if sales_is_calendar %}{{ sales_entry_url }}{% else %}{% url 'board' %}{% endif %}" class="text-sm text-indigo-600 hover:underline">{% trans "Full view" %} →</a>
   </div>
   {% include "core/_board_body.html" %}
 {% endif %}

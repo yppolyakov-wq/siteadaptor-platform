@@ -91,3 +91,23 @@ def test_integrations_landing_gates_by_modules():
     html = core_views.integrations_home(_req(tenant)).content.decode()
     assert "Zahlung &amp; Stripe" in html and "Eigene Domain" in html  # HTML-escape &
     assert "Channel Manager" not in html and "Publishing" not in html
+
+
+def test_hotel_home_leads_to_belegungsplan_first():
+    """Фидбэк 2026-07-28: отель — Belegungsplan главный вид продаж (вход
+    первым), встроенный канбан остаётся дополнением."""
+    tenant = TenantFactory(
+        business_type="hotel",
+        slug="st4h",
+        name="St4h",
+        schema_name="st4h",
+        disabled_modules=["events", "booking"],
+        site_config={"onboarding": dict(_TOUCHED)},
+    )
+    html = core_views.dashboard(_req(tenant)).content.decode()
+    assert "Belegungsplan" in html
+    assert "/dashboard/stays/" in html  # вход в календарь с главной
+
+    bakery = _tenant(slug="st4i", name="St4i", disabled_modules=[])
+    html = core_views.dashboard(_req(bakery)).content.decode()
+    assert "Belegungsplan" not in html

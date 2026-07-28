@@ -157,9 +157,11 @@ def calendar(request):
     # PMS-аудит 2026-07-27: цвет/drag плашки — по РОЛИ статуса из реестра
     # (кастом-статус «Anzahlung erhalten» был серым и терял drag). Встроенные
     # цвета байт-в-байт прежние; кастом-active — индиго и draggable.
+    # Фидбэк 2026-07-28: сплошные цвета (полупрозрачные /80-классы не попадали
+    # в собранный CSS → плашки выглядели бесцветным текстом под сеткой).
     _builtin_colors = {
-        "confirmed": "bg-green-200/80 text-green-900",
-        "pending": "bg-amber-200/80 text-amber-900",
+        "confirmed": "bg-green-200 text-green-900",
+        "pending": "bg-amber-200 text-amber-900",
     }
     for b in bookings:
         d = status_registry.resolve("stay", b.status)
@@ -168,7 +170,7 @@ def calendar(request):
         b.bar_draggable = bool(d and d.blocks_capacity)
         b.bar_color = _builtin_colors.get(
             b.status,
-            "bg-indigo-200/80 text-indigo-900" if b.bar_draggable else "bg-gray-200 text-gray-600",
+            "bg-indigo-200 text-indigo-900" if b.bar_draggable else "bg-gray-200 text-gray-600",
         )
     bars = availability.booking_bars(units, start, HORIZON_DAYS, bookings, blocks)
     # PMS-R3: у категорий с комнатами шахматка построчная — дорожка на КАЖДУЮ
@@ -192,6 +194,22 @@ def calendar(request):
     # PMS-R2: брони «ohne Zimmer» (категория с комнатами, номер не назначен).
     _units_with_rooms = set(rooms_by_unit)
     ohne_zimmer = sum(1 for b in bookings if b.room_id is None and b.unit_id in _units_with_rooms)
+    # Фидбэк 2026-07-28: поиск по гостю/почте/номеру брони (?q=) — панель
+    # результатов над сеткой, любая дата/статус; ссылка открывает карточку.
+    search_q = request.GET.get("q", "").strip()
+    search_results = []
+    if search_q:
+        from django.db.models import Q as _Q
+
+        search_results = list(
+            StayBooking.objects.filter(
+                _Q(customer__name__icontains=search_q)
+                | _Q(customer__email__icontains=search_q)
+                | _Q(reference_code__icontains=search_q)
+            )
+            .select_related("unit", "customer", "room")
+            .order_by("-arrival")[:20]
+        )
     # Фидбэк 2026-07-27: клик по плашке открывает карточку брони СРАЗУ ПОД
     # календарём (?buchung=<pk>; &box=1 — fetch-фрагмент без перезагрузки).
     selected = None
@@ -242,6 +260,9 @@ def calendar(request):
             "bookings": bookings,
             "units": units,
             "finance_active": _finance_active(request),
+            # Фидбэк 2026-07-28: поиск броней.
+            "search_q": search_q,
+            "search_results": search_results,
             # PMS-A1: паритет walk-in формы с витриной — тарифы и доп-услуги.
             "rate_plans": list(RatePlan.objects.filter(is_active=True)),
             "walkin_extras": _extras_for_walkin(),

@@ -121,6 +121,11 @@ def dashboard(request):
     # что на /dashboard/board/). Секции = активные транзакционные каналы (≤20 карт).
     sections = [] if classic else transactions.manage_sections_for(request.tenant, limit=20)
     kinds = [s["kind"] for s in sections]
+    # Фидбэк владельца 2026-07-28: у отеля (orders_view=calendar) главный вид
+    # продаж — Belegungsplan; встроенный канбан остаётся дополнением.
+    from apps.core import orders_view as ov
+
+    sales_view = ov.resolve_view(request.tenant)
     return render(
         request,
         "tenant/dashboard.html",
@@ -137,6 +142,9 @@ def dashboard(request):
             "hubs": [] if classic else dash.hub_tiles(request.tenant),
             "sections": sections,  # AB7-B2: канбан на главной
             "active_kind": kinds[0] if kinds else "",
+            # Отель/услуги: календарь — главный вид продаж (вход первым).
+            "sales_is_calendar": sales_view == "calendar",
+            "sales_entry_url": ov.entry_url(request.tenant),
             # LS-2: карточка присутствия «Jetzt erreichbar» (режим + живой статус).
             "presence_mode": presence.mode(request.tenant),
             "presence_now": presence.available_now(request.tenant),

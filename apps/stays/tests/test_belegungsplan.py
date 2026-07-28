@@ -247,7 +247,8 @@ def test_calendar_renders_bar_with_name_code_and_drag():
     assert 'data-free="1"' in body  # свободные клетки кликабельны (префил)
     # Багфикс 2026-07-27: drop принимает ВСЯ строка юнита — дорожки несут
     # data-unit, плашка несёт заезд (grab-offset: за какую ночь взяли, той и ложится).
-    assert f'<tr data-unit="{unit.pk}">' in body
+    # Фидбэк 2026-07-28: дорожка получила align-top (плашки прижаты к сетке).
+    assert f'<tr data-unit="{unit.pk}" class="align-top">' in body
     assert f'data-arrival="{booking.arrival.isoformat()}"' in body
 
 
@@ -635,3 +636,33 @@ def test_auto_fulfil_departed():
     assert room.housekeeping == Room.HK_DIRTY  # R4-хук сработал
 
     assert tasks.auto_fulfil_departed(today=D0) == 0  # идемпотентно
+
+
+# --- Фидбэк 2026-07-28: поиск броней + цветные плашки ------------------------
+
+
+def test_calendar_search_by_name_email_and_reference():
+    unit = _unit()
+    b1 = _book(unit, 2, 4, name="Familie Suchbar", email="such@test.de")
+    _book(unit, 6, 8, name="Andere Person")
+
+    body = views.calendar(_req(data={"q": "Suchbar", "von": D0.isoformat()})).content.decode()
+    assert "Familie Suchbar" in body and f"buchung={b1.pk}" in body
+    assert "Andere Person" in body  # в сетке остаётся; в панели поиска — нет дубля
+
+    body = views.calendar(_req(data={"q": "such@test.de"})).content.decode()
+    assert f"buchung={b1.pk}" in body
+    body = views.calendar(_req(data={"q": b1.reference_code})).content.decode()
+    assert f"buchung={b1.pk}" in body
+    body = views.calendar(_req(data={"q": "gibtsnicht-xyz"})).content.decode()
+    assert "Nichts gefunden." in body
+
+
+def test_bar_colors_are_solid_compiled_classes():
+    """Фидбэк 2026-07-28: /80-классы не попадали в собранный CSS — плашки были
+    без фона. Сплошные классы + safelist в tailwind.config.js."""
+    unit = _unit()
+    _book(unit, 2, 4, auto_confirm=True)
+    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    assert "bg-green-200 text-green-900" in body
+    assert "bg-green-200/80" not in body

@@ -23,6 +23,25 @@
   {% endfor %}
 {% endif %}
 
+{# Фидбэк 2026-07-28: поиск по гостю/почте/номеру брони — любая дата и статус. #}
+<form method="get" class="mb-3 flex items-center gap-2 max-w-md">
+  <input type="search" name="q" value="{{ search_q }}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
+         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  {% if search_q %}<a href="{% url 'stays:calendar' %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
+</form>
+{% if search_q %}
+<div class="mb-4 bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">
+  {% for b in search_results %}
+    <a href="{% url 'stays:calendar' %}?von={{ b.arrival|date:'Y-m-d' }}&amp;buchung={{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+      <span class="min-w-0 truncate"><span class="font-medium">{{ b.customer.name|default:b.customer }}</span> · {{ b.reference_code }}{% if b.customer.email %} · <span class="text-gray-400">{{ b.customer.email }}</span>{% endif %}</span>
+      <span class="shrink-0 text-gray-500">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %} · {{ b.arrival|date:"d.m.y" }}–{{ b.departure|date:"d.m.y" }} · {% status_label b "stay" %}</span>
+    </a>
+  {% empty %}
+    <p class="px-4 py-3 text-sm text-gray-400">{% trans "Nichts gefunden." %}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
 {% if ohne_zimmer %}
 {# PMS-R2: брони без назначенного номера (категория с комнатами) #}
 <p class="mb-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 text-sm">⚠️ {% blocktrans with n=ohne_zimmer %}{{ n }} bookings without an assigned room — click a booking to assign one.{% endblocktrans %}</p>
@@ -67,8 +86,10 @@
         {% comment %}Багфикс 2026-07-27: data-unit на дорожках — drop плашки
         принимается по ВСЕЙ строке юнита. PMS-R3: у категорий с комнатами —
         строка на КАЖДУЮ комнату (🚪label; data-room = drop-назначение).{% endcomment %}
+        {% comment %}Фидбэк 2026-07-28: дорожки прижаты к строке юнита (без
+        зазора) — цветные плашки читаются как часть сетки, а не список под ней.{% endcomment %}
         {% for lr in lanes %}
-        <tr data-unit="{{ unit.pk }}"{% if lr.room_id %} data-room="{{ lr.room_id }}"{% endif %}>
+        <tr data-unit="{{ unit.pk }}"{% if lr.room_id %} data-room="{{ lr.room_id }}"{% endif %} class="align-top">
           <td class="sticky left-0 bg-white z-10 px-3 text-[10px] text-gray-400 whitespace-nowrap">{% if lr.label %}🚪{{ lr.label }}{% if lr.hk == "dirty" %} <span title="{% trans 'Zu reinigen' %}">🧹</span>{% endif %}{% endif %}</td>
           {% for item in lr.cells %}
             {% if item.gap %}

@@ -13773,3 +13773,15 @@ msgstr "%(n)s подписчиков с известной датой рожде
 
 msgid "Geburtstagsgruß gespeichert."
 msgstr "Поздравление с ДР сохранено."
+
+msgid "Belegungsplan"
+msgstr "Шахматка"
+
+msgid "Nichts gefunden."
+msgstr "Ничего не найдено."
+
+msgid "Gast, E-Mail oder Buchungsnummer suchen…"
+msgstr "Поиск по гостю, почте или номеру брони…"
+
+msgid "Anreisen, Buchungen & Zimmer auf einen Blick"
+msgstr "Заезды, брони и номера одним взглядом"

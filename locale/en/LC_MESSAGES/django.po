@@ -13592,3 +13592,15 @@ msgstr "%(n)s subscribers with a known birthday"
 
 msgid "Geburtstagsgruß gespeichert."
 msgstr "Birthday greeting saved."
+
+msgid "Belegungsplan"
+msgstr "Occupancy board"
+
+msgid "Nichts gefunden."
+msgstr "Nothing found."
+
+msgid "Gast, E-Mail oder Buchungsnummer suchen…"
+msgstr "Search guest, e-mail or booking number…"
+
+msgid "Anreisen, Buchungen & Zimmer auf einen Blick"
+msgstr "Arrivals, bookings & rooms at a glance"
