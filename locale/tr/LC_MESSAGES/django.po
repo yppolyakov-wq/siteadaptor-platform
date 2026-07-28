@@ -13625,3 +13625,22 @@ msgstr "Bugünkü girişler"
 #, python-format
 msgid "Abreisen heute: %(n)s"
 msgstr "Bugünkü çıkışlar: %(n)s"
+
+msgid "Avg. length of stay"
+msgstr "Ort. konaklama süresi"
+
+#, python-format
+msgid "nights · %(n)s arrivals this month"
+msgstr "gece · bu ay %(n)s giriş"
+
+msgid "By channel"
+msgstr "Kanala göre"
+
+msgid "By rate"
+msgstr "Tarifeye göre"
+
+msgid "By room type"
+msgstr "Oda tipine göre"
+
+msgid "Base rate"
+msgstr "Temel tarife"

@@ -44,8 +44,61 @@
     <p class="text-xs text-gray-500 mb-1">{% trans "Bookings" %}</p>
     <p class="text-2xl font-bold">{{ report.bookings }}</p>
   </div>
+  {# PMS-C: Ø длина проживания — по заездам месяца. #}
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <p class="text-xs text-gray-500 mb-1">{% trans "Avg. length of stay" %}</p>
+    <p class="text-2xl font-bold">{{ breakdowns.avg_los|floatformat:1 }}</p>
+    <p class="text-xs text-gray-400 mt-1">{% blocktrans with n=breakdowns.arrivals %}nights · {{ n }} arrivals this month{% endblocktrans %}</p>
+  </div>
 </div>
 <p class="text-xs text-gray-400 mt-4 max-w-2xl">{% trans "Counts pending/confirmed/fulfilled bookings; revenue across month edges is prorated by nights. Room revenue excludes extras and Kurtaxe." %}</p>
+
+{# PMS-C: разрезы месяца — канал / тариф / категория (выручка пропорциональна). #}
+<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 max-w-5xl items-start">
+  {% if breakdowns.by_channel %}
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold mb-2">{% trans "By channel" %}</h2>
+    <div class="divide-y divide-gray-100 text-sm">
+      {% for r in breakdowns.by_channel %}
+        <div class="flex items-center justify-between py-1.5 gap-2">
+          <span class="truncate">{{ r.label }}</span>
+          <span class="text-gray-500 shrink-0">{{ r.bookings }}× · {{ r.nights }} {% trans "room-nights" %}</span>
+          <span class="font-medium shrink-0">{% widthratio r.revenue_cents 100 1 %} €</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% if breakdowns.by_rate %}
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold mb-2">{% trans "By rate" %}</h2>
+    <div class="divide-y divide-gray-100 text-sm">
+      {% for r in breakdowns.by_rate %}
+        <div class="flex items-center justify-between py-1.5 gap-2">
+          <span class="truncate">{{ r.label|default:_("Base rate") }}</span>
+          <span class="text-gray-500 shrink-0">{{ r.bookings }}× · {{ r.nights }} {% trans "room-nights" %}</span>
+          <span class="font-medium shrink-0">{% widthratio r.revenue_cents 100 1 %} €</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% if breakdowns.by_unit %}
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold mb-2">{% trans "By room type" %}</h2>
+    <div class="divide-y divide-gray-100 text-sm">
+      {% for r in breakdowns.by_unit %}
+        <div class="flex items-center justify-between py-1.5 gap-2">
+          <span class="truncate">{{ r.label }}</span>
+          <span class="text-gray-500 shrink-0">{{ r.bookings }}× · {{ r.nights }} {% trans "room-nights" %}</span>
+          <span class="font-medium shrink-0">{% widthratio r.revenue_cents 100 1 %} €</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<a href="{% url 'stays:reports-export' %}?month={{ month_param }}" class="inline-block mt-4 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">⬇ {% trans "Export CSV" %}</a>
 
 {% if market %}
 {# CP-1 «Marktposition»: публичные базовые цены отелей платформы в этом городе. #}

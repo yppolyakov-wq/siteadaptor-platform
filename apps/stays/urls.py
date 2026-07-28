@@ -12,6 +12,8 @@ urlpatterns = [
     path("new/", views.stay_create, name="stay-create"),
     # PMS-A2: стойка «Heute» — заезды/выезды/в доме.
     path("heute/", views.today_view, name="today"),
+    # PMS-C: CSV броней месяца (те же выборки, что отчёт).
+    path("berichte/export.csv", views.reports_export_csv, name="reports-export"),
     path("<uuid:pk>/action/", views.stay_action, name="stay-action"),
     # FB-11: карточка брони (кто/когда/сумма/оплата/Meldeschein + действия)
     path("buchung/<uuid:pk>/", views.booking_detail, name="booking-detail"),

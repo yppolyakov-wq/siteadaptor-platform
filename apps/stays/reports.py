@@ -74,3 +74,60 @@ def occupancy_report(start, end) -> dict:
         "room_revenue_cents": room_rev,
         "total_revenue_cents": total_rev,
     }
+
+
+def _window_bookings(start, end):
+    """Брони, пересекающие окно ``[start, end)`` — считаемые статусы реестра."""
+    return StayBooking.objects.filter(
+        status__in=status_registry.counted_statuses_for("stay"),
+        arrival__lt=end,
+        departure__gt=start,
+    )
+
+
+def breakdowns(start, end) -> dict:
+    """PMS-C: разрезы периода — канал/тариф/категория + Ø длина проживания.
+
+    Та же пропорциональная выручка, что в occupancy_report (доля ночей в окне);
+    LOS — по броням с ЗАЕЗДОМ в окне (индустриальная семантика: длина
+    прибывшего проживания, хвосты прошлых месяцев её не размывают)."""
+    by_channel: dict = {}
+    by_rate: dict = {}
+    by_unit: dict = {}
+    los_total = 0
+    los_n = 0
+    for b in _window_bookings(start, end).select_related("unit"):
+        lo = max(b.arrival, start)
+        hi = min(b.departure, end)
+        overlap = (hi - lo).days
+        if overlap <= 0:
+            continue
+        frac = overlap / max(1, b.nights)
+        revenue = round(b.total_cents * frac)
+        nights = overlap * b.rooms
+        channel = (b.source_channel or "").strip() or "direct"
+        rate = (b.rate_snapshot or {}).get("name") or ""
+        for bucket, key in ((by_channel, channel), (by_rate, rate), (by_unit, b.unit.name)):
+            row = bucket.setdefault(key, {"bookings": 0, "nights": 0, "revenue_cents": 0})
+            row["bookings"] += 1
+            row["nights"] += nights
+            row["revenue_cents"] += revenue
+        if start <= b.arrival < end:
+            los_total += b.nights
+            los_n += 1
+
+    def _rows(bucket):
+        return [
+            {"label": k, **v}
+            for k, v in sorted(bucket.items(), key=lambda kv: -kv[1]["revenue_cents"])
+        ]
+
+    # Тарифный разрез скрываем, пока тарифы не используются (все брони базовые).
+    rate_rows = _rows(by_rate) if any(k for k in by_rate) else []
+    return {
+        "by_channel": _rows(by_channel),
+        "by_rate": rate_rows,
+        "by_unit": _rows(by_unit),
+        "avg_los": (los_total / los_n) if los_n else 0.0,
+        "arrivals": los_n,
+    }

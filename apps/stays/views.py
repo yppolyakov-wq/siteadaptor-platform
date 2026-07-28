@@ -997,10 +997,77 @@ def reports(request):
             "prev_month": prev_m.strftime("%Y-%m"),
             "next_month": nxt.strftime("%Y-%m"),
             "is_current": start == timezone.localdate().replace(day=1),
+            # PMS-C: разрезы канал/тариф/категория + Ø длина проживания.
+            "breakdowns": reports_mod.breakdowns(start, end),
+            "month_param": start.strftime("%Y-%m"),
             # CP-1: позиция цены среди отелей города (None → карточка скрыта).
             "market": _market_position(getattr(request, "tenant", None)),
         },
     )
+
+
+@login_required
+def reports_export_csv(request):
+    """PMS-C: CSV броней месяца (utf-8-sig для Excel) — считаемые статусы,
+    те же выборки, что отчёт; персональные данные — файл владельца (DSGVO)."""
+    import csv
+
+    from apps.core.csv_safe import csv_safe
+
+    from . import reports as reports_mod
+
+    start, end = _month_bounds(request.GET.get("month"))
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = (
+        f'attachment; filename="uebernachtungen_{start.strftime("%Y-%m")}.csv"'
+    )
+    response.write("\ufeff")  # BOM: Excel понимает умляуты
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            "reference",
+            "guest",
+            "unit",
+            "room",
+            "arrival",
+            "departure",
+            "nights",
+            "adults",
+            "children",
+            "rooms",
+            "channel",
+            "rate",
+            "total_eur",
+            "payment",
+            "status",
+        ]
+    )
+    qs = (
+        reports_mod._window_bookings(start, end)
+        .select_related("unit", "room", "customer")
+        .order_by("arrival")
+    )
+    for b in qs.iterator():
+        writer.writerow(
+            [
+                b.reference_code,
+                csv_safe(str(b.customer)),
+                csv_safe(b.unit.name),
+                csv_safe(b.room.number) if b.room else "",
+                b.arrival.isoformat(),
+                b.departure.isoformat(),
+                b.nights,
+                b.adults,
+                b.children,
+                b.rooms,
+                csv_safe(b.source_channel or "direct"),
+                csv_safe((b.rate_snapshot or {}).get("name") or ""),
+                f"{b.total_cents / 100:.2f}",
+                b.payment_state,
+                b.status,
+            ]
+        )
+    return response
 
 
 @login_required

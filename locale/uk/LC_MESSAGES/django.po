@@ -13687,3 +13687,22 @@ msgstr "Заїзди сьогодні"
 #, python-format
 msgid "Abreisen heute: %(n)s"
 msgstr "Виїзди сьогодні: %(n)s"
+
+msgid "Avg. length of stay"
+msgstr "Середня тривалість проживання"
+
+#, python-format
+msgid "nights · %(n)s arrivals this month"
+msgstr "ночей · %(n)s заїздів цього місяця"
+
+msgid "By channel"
+msgstr "За каналами"
+
+msgid "By rate"
+msgstr "За тарифами"
+
+msgid "By room type"
+msgstr "За категоріями"
+
+msgid "Base rate"
+msgstr "Базовий тариф"

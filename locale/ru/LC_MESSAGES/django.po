@@ -13701,3 +13701,22 @@ msgstr "Заезды сегодня"
 #, python-format
 msgid "Abreisen heute: %(n)s"
 msgstr "Выезды сегодня: %(n)s"
+
+msgid "Avg. length of stay"
+msgstr "Средняя длительность проживания"
+
+#, python-format
+msgid "nights · %(n)s arrivals this month"
+msgstr "ночей · %(n)s заездов в этом месяце"
+
+msgid "By channel"
+msgstr "По каналам"
+
+msgid "By rate"
+msgstr "По тарифам"
+
+msgid "By room type"
+msgstr "По категориям"
+
+msgid "Base rate"
+msgstr "Базовый тариф"

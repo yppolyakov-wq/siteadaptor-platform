@@ -164,3 +164,88 @@ def test_market_position_ranks_and_gates():
     assert m["min"] == 80 and m["max"] == 110
 
     assert _market_position(TenantFactory.build(schema_name="x", city="")) is None
+
+
+def test_breakdowns_channel_rate_unit_and_los():
+    """PMS-C: разрезы канал/тариф/категория + Ø LOS по заездам месяца."""
+    from apps.stays.models import RatePlan
+
+    unit_a = _unit(qty=2, price=10000)
+    unit_b = _unit(qty=1, price=20000)
+    rate = RatePlan.objects.create(name="Mit Frühstück", surcharge_cents=0)
+    book_stay(unit_a, arrival=date(2026, 6, 10), departure=date(2026, 6, 14), name="A")  # 4 ночи
+    book_stay(
+        unit_a,
+        arrival=date(2026, 6, 20),
+        departure=date(2026, 6, 22),
+        name="B",
+        source_channel="booking",
+        rate_plan=rate,
+    )  # 2 ночи
+    book_stay(unit_b, arrival=date(2026, 6, 5), departure=date(2026, 6, 7), name="C")  # 2 ночи
+    b = reports.breakdowns(START, END)
+
+    channels = {r["label"]: r for r in b["by_channel"]}
+    assert channels["direct"]["bookings"] == 2 and channels["direct"]["nights"] == 6
+    assert channels["booking"]["bookings"] == 1 and channels["booking"]["nights"] == 2
+
+    rates = {r["label"]: r for r in b["by_rate"]}
+    assert rates["Mit Frühstück"]["bookings"] == 1
+    assert rates[""]["bookings"] == 2  # базовые брони — пустой лейбл (Base rate)
+
+    units = {r["label"]: r for r in b["by_unit"]}
+    assert units[unit_a.name]["nights"] == 6 and units[unit_b.name]["revenue_cents"] == 40000
+
+    # LOS: (4 + 2 + 2) / 3
+    assert round(b["avg_los"], 2) == round(8 / 3, 2)
+    assert b["arrivals"] == 3
+
+
+def test_breakdowns_rate_table_hidden_without_rate_plans():
+    unit = _unit()
+    book_stay(unit, arrival=date(2026, 6, 10), departure=date(2026, 6, 12), name="D")
+    b = reports.breakdowns(START, END)
+    assert b["by_rate"] == []  # только базовые брони → таблица тарифов скрыта
+
+
+def test_breakdowns_los_ignores_prev_month_arrivals():
+    """Хвост брони прошлого месяца влияет на выручку, но не на LOS."""
+    unit = _unit()
+    book_stay(unit, arrival=date(2026, 5, 28), departure=date(2026, 6, 3), name="E")
+    b = reports.breakdowns(START, END)
+    assert b["arrivals"] == 0 and b["avg_los"] == 0.0
+    assert b["by_channel"][0]["nights"] == 2  # 1.6/2.6 в окне
+
+
+def test_reports_export_csv():
+    """PMS-C: CSV месяца — те же считаемые статусы, фильтр по окну."""
+    import uuid as uuid_mod
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.stays import views
+
+    unit = _unit()
+    book_stay(
+        unit,
+        arrival=date(2026, 6, 10),
+        departure=date(2026, 6, 12),
+        name="Gast Juni",
+        source_channel="booking",
+    )
+    book_stay(unit, arrival=date(2026, 7, 10), departure=date(2026, 7, 12), name="Gast Juli")
+
+    request = RequestFactory().get("/dashboard/stays/berichte/export.csv", {"month": "2026-06"})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    o = uuid_mod.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(username=f"o-{o}", password="pw12345678")
+    resp = views.reports_export_csv(request)
+    assert resp["Content-Type"].startswith("text/csv")
+    body = resp.content.decode("utf-8-sig")
+    assert "Gast Juni" in body and "Gast Juli" not in body
+    assert body.splitlines()[0].startswith("reference,guest,unit")
+    assert "booking" in body and "200.00" in body

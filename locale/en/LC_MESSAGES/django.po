@@ -13518,3 +13518,22 @@ msgstr "Arrivals today"
 #, python-format
 msgid "Abreisen heute: %(n)s"
 msgstr "Departures today: %(n)s"
+
+msgid "Avg. length of stay"
+msgstr "Avg. length of stay"
+
+#, python-format
+msgid "nights · %(n)s arrivals this month"
+msgstr "nights · %(n)s arrivals this month"
+
+msgid "By channel"
+msgstr "By channel"
+
+msgid "By rate"
+msgstr "By rate"
+
+msgid "By room type"
+msgstr "By room type"
+
+msgid "Base rate"
+msgstr "Base rate"
