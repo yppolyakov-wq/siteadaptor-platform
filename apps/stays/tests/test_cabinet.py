@@ -387,7 +387,7 @@ def test_unit_form_tabs_keep_all_fields_in_dom():
     таба сохраняет всё."""
     StayUnit.objects.create(name="TabZimmer", price_cents=9000)
     body = views.units(_req()).content.decode()
-    assert 'data-unit-tabs' in body and 'data-ut-tab="preise"' in body
+    assert "data-unit-tabs" in body and 'data-ut-tab="preise"' in body
     for field in (
         'name="description"',
         'name="price_eur"',
