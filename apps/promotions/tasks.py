@@ -287,3 +287,49 @@ def send_winback_coupons():
         with schema_context(schema):
             total += send_due_winback_coupons(now)
     return {"sent": total}
+
+
+# PMS-B (остаток CRM-волны): авто-тег постоянного клиента. Порог — честные
+# 3+ покупки; источник — RevenueEntry (generic-деньги всех движков, как LTV).
+STAMMKUNDE_TAG = "stammkunde"
+STAMMKUNDE_MIN_PURCHASES = 3
+
+
+def tag_regular_customers() -> int:
+    """Добавить «stammkunde» клиентам с ≥3 покупками (текущая схема).
+
+    Только ДОБАВЛЯЕМ этот один тег: остальные теги владельца не трогаем и
+    ничего не удаляем. Тег поддерживается автоматикой: снятый вручную
+    вернётся следующим прогоном, пока клиент проходит порог (тег отражает
+    факт «постоянный», а не мнение). Питает сегменты кампаний B4."""
+    from django.db.models import Count
+
+    from apps.finance.models import RevenueEntry
+
+    ids = list(
+        RevenueEntry.objects.filter(customer__isnull=False)
+        .values("customer")
+        .annotate(n=Count("id"))
+        .filter(n__gte=STAMMKUNDE_MIN_PURCHASES)
+        .values_list("customer", flat=True)
+    )
+    tagged = 0
+    for customer in Customer.objects.filter(pk__in=ids):
+        tags = list(customer.tags or [])
+        if STAMMKUNDE_TAG in tags:
+            continue
+        tags.append(STAMMKUNDE_TAG)
+        customer.tags = tags
+        customer.save(update_fields=["tags", "updated_at"])
+        tagged += 1
+    return tagged
+
+
+@idempotent_task()
+def auto_tag_customers():
+    """Beat (раз в сутки): авто-теги клиентов по всем схемам арендаторов."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += tag_regular_customers()
+    return {"tagged": total}

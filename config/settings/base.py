@@ -350,6 +350,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.send_winback_coupons",
         "schedule": 86400.0,
     },
+    # PMS-B: авто-тег «stammkunde» (≥3 покупки по RevenueEntry) — питает
+    # сегменты кампаний; только добавление, ручные теги владельца целы.
+    "auto-tag-customers": {
+        "task": "apps.promotions.tasks.auto_tag_customers",
+        "schedule": 86400.0,
+    },
     "roll-subscriptions": {
         "task": "apps.billing.tasks.roll_subscriptions",
         "schedule": 86400.0,  # раз в сутки — жизненный цикл подписок + напоминания
