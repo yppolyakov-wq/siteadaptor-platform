@@ -2094,7 +2094,19 @@ def normalize(config) -> dict:
 
     Неизвестные секции отбрасываются, отсутствующие дописываются в конец со
     своим дефолтом — старые конфиги переживают добавление новых секций.
+
+    T-1: нормализация ЛОКАЛЕ-СТАБИЛЬНА — lazy-подписи (метки меню и т.п.)
+    материализуются в ХРАНИМЫЙ конфиг всегда как msgid (перевод выключен на
+    время прогона), иначе содержимое site_config зависело бы от языка
+    запроса, а golden-эталоны — от активного каталога переводов.
     """
+    from django.utils import translation
+
+    with translation.override(None):
+        return _normalize_impl(config)
+
+
+def _normalize_impl(config) -> dict:
     config = config if isinstance(config, dict) else {}
 
     normalized = {"sections": normalize_sections(config.get("sections", []))}
