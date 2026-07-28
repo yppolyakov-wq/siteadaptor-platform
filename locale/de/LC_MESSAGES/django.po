@@ -13797,3 +13797,11 @@ msgstr "Buchung"
 #: apps/core/orders_view.py:0
 msgid "New appointment"
 msgstr "Termin"
+
+#: templates/stays/units.html:0
+msgid "Prices & discounts"
+msgstr "Preise & Rabatte"
+
+#: templates/stays/units.html:0
+msgid "Channels & export"
+msgstr "Kanäle & Export"

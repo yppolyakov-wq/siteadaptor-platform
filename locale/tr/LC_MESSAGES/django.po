@@ -13770,3 +13770,11 @@ msgstr "Rezervasyon"
 #: apps/core/orders_view.py:0
 msgid "New appointment"
 msgstr "Randevu"
+
+#: templates/stays/units.html:0
+msgid "Prices & discounts"
+msgstr "Fiyatlar ve indirimler"
+
+#: templates/stays/units.html:0
+msgid "Channels & export"
+msgstr "Kanallar ve dışa aktarım"

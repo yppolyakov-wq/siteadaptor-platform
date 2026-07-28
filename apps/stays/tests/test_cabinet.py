@@ -457,6 +457,31 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     assert body_list.index("TabZimmer") < body_list.index('<details class="bg-white')
 
 
+def test_units_list_page_tabs_and_settings_groups():
+    """Фидбэк 2026-07-28 (№2): список разделён табами «Einheiten» (список +
+    кнопка «＋ Neue Einheit») / «Einstellungen» (4 группы). W0: обе панели в
+    DOM, скрытие только CSS; Save настройки возвращает на таб настроек."""
+    StayUnit.objects.create(name="TabZimmer", price_cents=9000)
+    body = views.units(_req()).content.decode()
+    assert 'data-pt-tab="einheiten"' in body and 'data-pt-tab="einstellungen"' in body
+    # дефолт: активен список, настройки скрыты (но в DOM — W0)
+    assert 'data-pt-panel="einstellungen" class="hidden"' in body
+    assert 'name="kurtaxe_eur"' in body
+    # группы настроек в заданном порядке (эмодзи-маркеры h3 уникальны на странице)
+    assert body.index("💶") < body.index("📅") < body.index("🏛") < body.index("🔗")
+    assert "Preise & Rabatte" in body and "Kanäle & Export" in body
+    # ?tab=einstellungen → активен таб настроек, список скрыт
+    body2 = views.units(_req(data={"tab": "einstellungen"})).content.decode()
+    assert 'data-pt-panel="einstellungen" class="hidden"' not in body2
+    assert 'data-pt-panel="einheiten" class="hidden ' in body2
+    # Save глобальной настройки редиректит на таб настроек
+    resp = views.units(_req("post", data={"action": "gap_deal", "gap_discount_percent": "25"}))
+    assert resp.status_code == 302 and resp.url.endswith("?tab=einstellungen")
+    # создание юнита — редирект на страницу нового номера (не на таб)
+    resp2 = views.units(_req("post", data={"action": "unit", "name": "Neu Z", "type": "room"}))
+    assert "/units/" in resp2.url and "tab=" not in resp2.url
+
+
 def test_units_list_is_compact_and_links_to_unit_page():
     """Фидбэк 2026-07-28: «это же разные номера» — список компактный (строка =
     номер, ссылка «Bearbeiten» на СВОЮ страницу), портянки настроек на нём нет;

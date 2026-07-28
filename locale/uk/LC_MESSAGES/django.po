@@ -13827,3 +13827,11 @@ msgstr "Бронювання"
 #: apps/core/orders_view.py:0
 msgid "New appointment"
 msgstr "Запис"
+
+#: templates/stays/units.html:0
+msgid "Prices & discounts"
+msgstr "Ціни та знижки"
+
+#: templates/stays/units.html:0
+msgid "Channels & export"
+msgstr "Канали та експорт"

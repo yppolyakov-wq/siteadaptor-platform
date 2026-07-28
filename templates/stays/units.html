@@ -26,8 +26,15 @@
 {% if not unit_page %}
 {% comment %}Фидбэк 2026-07-28: «это же разные номера, почему на одной странице» —
 список стал КОМПАКТНЫМ (строка = номер, «Bearbeiten» ведёт на его страницу);
-вся портянка настроек номера живёт на /units/<pk>/.{% endcomment %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-8">
+вся портянка настроек номера живёт на /units/<pk>/. Фидбэк №2: страница списка
+разделена ТАБАМИ «Einheiten» (список + «＋ Neue Einheit») / «Einstellungen»
+(глобальные настройки 4 группами). Инвариант W0: панели скрываются только CSS,
+все поля в DOM; активный таб приходит с сервера (?tab= из redirect'а Save).{% endcomment %}
+<div class="flex items-center gap-1.5 flex-wrap mb-4">
+  <button type="button" data-pt-tab="einheiten" aria-selected="{% if tab != 'einstellungen' %}true{% else %}false{% endif %}" class="pt-pill rounded-full px-4 py-1.5 text-sm font-medium {% if tab != 'einstellungen' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🛏 {% trans "Units" %}</button>
+  <button type="button" data-pt-tab="einstellungen" aria-selected="{% if tab == 'einstellungen' %}true{% else %}false{% endif %}" class="pt-pill rounded-full px-4 py-1.5 text-sm font-medium {% if tab == 'einstellungen' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">⚙️ {% trans "Settings" %}</button>
+</div>
+<div data-pt-panel="einheiten" class="{% if tab == 'einstellungen' %}hidden {% endif %}bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
   {% for u in units %}
     <div class="flex items-center gap-4 px-5 py-3 {% if not u.is_active %}opacity-60{% endif %}">
       {% if u.images %}<img src="{{ u.images.0.url }}" alt="" class="w-14 h-14 object-cover rounded-lg shrink-0">
@@ -279,11 +286,12 @@
 {% endif %}
 
 {% if not unit_page %}
-{# --- новый юнит ------------------------------------------------------------ #}
-<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
+{# --- новый юнит: кнопка «＋» раскрывает форму (пустой список — раскрыта) ---- #}
+<details data-pt-panel="einheiten" class="{% if tab == 'einstellungen' %}hidden {% endif %}max-w-2xl mb-8"{% if not units %} open{% endif %}>
+  <summary class="cursor-pointer select-none inline-flex items-center gap-2 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">＋ {% trans "New unit" %}</summary>
+<form method="post" enctype="multipart/form-data" class="mt-3 bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
   {% csrf_token %}
   <input type="hidden" name="action" value="unit">
-  <h2 class="font-semibold">{% trans "New unit" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
     <textarea name="description" rows="2" placeholder="{% trans 'Description (amenities, view …)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></textarea>
@@ -341,10 +349,12 @@
   </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create unit" %}</button>
 </form>
-{% comment %}Фидбэк 2026-07-28: глобальные настройки (тарифы/скидки/правила/фиды) — под
-списком номеров и СВЁРНУТЫЕ: страница открывается номерами, а не стеной опций.{% endcomment %}
-
-<h2 class="text-sm font-semibold text-gray-500 mb-2">⚙️ {% trans "Settings for all units" %}</h2>
+</details>
+{% comment %}Фидбэк 2026-07-28 (№2): глобальные настройки — отдельный таб
+«Einstellungen», 4 смысловые группы (цены → правила продаж → Kurtaxe →
+каналы/экспорт), внутри — прежние свёрнутые details.{% endcomment %}
+<div data-pt-panel="einstellungen" class="{% if tab != 'einstellungen' %}hidden{% endif %}">
+<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">💶 {% trans "Prices & discounts" %}</h3>
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Rate plans" %} <span class="text-xs font-normal text-gray-400">{% if rate_plans %}· {{ rate_plans|length }}{% endif %}</span></summary>
@@ -419,7 +429,6 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
   </form>
 </details>
-
 {# G4: авто-скидки на проживание — список правил (несколько на тип) ----------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Automatic discounts" %} <span class="text-xs font-normal text-gray-400">{% if auto_rules %}· {{ auto_rules|length }}{% endif %}</span></summary>
@@ -461,7 +470,6 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
   </form>
 </details>
-
 {# PMS-D: ручные occupancy-правила цены — «занятость ≥ X % → ±Y % на ночь». #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">📈 {% trans "Dynamic prices" %} <span class="text-xs font-normal text-gray-400">{% if occupancy_rules %}· {{ occupancy_rules|length }}{% endif %}</span></summary>
@@ -495,7 +503,6 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
   </form>
 </details>
-
 {# Lücken-Deal: суперскидка на короткие промежутки между бронями. #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">💥 {% trans "Lücken-Deal" %}</summary>
@@ -518,7 +525,7 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </details>
-
+<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">📅 {% trans "Sales rules" %}</h3>
 {# G12: правила продаж (Verkaufsregeln) — сезонный min/max-stay, CTA/CTD, окно #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Sales rules" %} <span class="text-xs font-normal text-gray-400">{% if restriction_rules %}· {{ restriction_rules|length }}{% endif %}</span></summary>
@@ -596,7 +603,7 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
   </form>
 </details>
-
+<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">🏛 {% trans "Kurtaxe & house rules" %}</h3>
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Kurtaxe & house rules" %}</summary>
@@ -619,22 +626,42 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </details>
-
+<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">🔗 {% trans "Channels & export" %}</h3>
 {# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Booking widget for your website" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
   <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
 </details>
-
 {# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Metasearch & Google (rates feed)" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
   <input type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 font-mono text-[11px]">
 </details>
-
-
+</div>
+<script>
+// Фидбэк 2026-07-28 (№2): табы страницы списка «Einheiten / Einstellungen».
+// Делегирование на document (урок Ф1); панели скрываются только классом hidden
+// (инвариант W0); начальное состояние рендерит сервер (?tab= из redirect'а).
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-pt-tab]");
+  if (!btn) return;
+  var key = btn.getAttribute("data-pt-tab");
+  document.querySelectorAll("[data-pt-panel]").forEach(function (p) {
+    p.classList.toggle("hidden", p.getAttribute("data-pt-panel") !== key);
+  });
+  document.querySelectorAll("[data-pt-tab]").forEach(function (b) {
+    var active = b === btn;
+    b.setAttribute("aria-selected", active ? "true" : "false");
+    b.classList.toggle("bg-indigo-600", active);
+    b.classList.toggle("text-white", active);
+    b.classList.toggle("bg-gray-100", !active);
+    b.classList.toggle("text-gray-600", !active);
+  });
+  try { history.replaceState(null, "", key === "einstellungen" ? "?tab=einstellungen" : location.pathname); } catch (err) {}
+});
+</script>
 {% endif %}
 {% if unit_page %}
 <script>

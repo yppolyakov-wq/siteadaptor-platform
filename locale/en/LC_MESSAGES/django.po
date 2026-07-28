@@ -13659,3 +13659,11 @@ msgstr "New booking"
 #: apps/core/orders_view.py:0
 msgid "New appointment"
 msgstr "New appointment"
+
+#: templates/stays/units.html:0
+msgid "Prices & discounts"
+msgstr "Prices & discounts"
+
+#: templates/stays/units.html:0
+msgid "Channels & export"
+msgstr "Channels & export"
