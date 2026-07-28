@@ -111,6 +111,8 @@ class DemoKit:
     # G4: авто-скидки на проживание (StaySettings) — список правил (несколько на тип):
     #   {"kind": los|early_bird|last_minute, "threshold": int, "percent": int}.
     auto_discounts: list = field(default_factory=list)
+    # PMS-D: occupancy-правила цены — {"occupancy": 1..100, "percent": −50..+50}.
+    occupancy_pricing: list = field(default_factory=list)
     # События: (title, in_days, capacity, price_eur) ИЛИ dict с богатой спецификацией
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
@@ -1789,6 +1791,11 @@ HOTEL = DemoKit(
         {"kind": "early_bird", "threshold": 60, "percent": 12},  # ≥60 дней −12 %
         {"kind": "last_minute", "threshold": 3, "percent": 12},  # ≤3 дня −12 %
         {"kind": "last_minute", "threshold": 7, "percent": 8},  # ≤7 дней −8 %
+    ],
+    # PMS-D: ручной revenue-management — последние номера дороже.
+    occupancy_pricing=[
+        {"occupancy": 60, "percent": 5},
+        {"occupancy": 85, "percent": 12},
     ],
     # H4a/G4a: 2 промокода — процентный и на фикс-сумму.
     stay_promo={"code": "SOMMER10", "label": "−10 % Sommer", "percent": 10},
@@ -5931,7 +5938,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 if idx < len(unit_ids):
                     col.stay_units.add(unit_ids[idx])
             refs["collections"].append(str(col.pk))
-    if (kit.kurtaxe or kit.house_rules or kit.auto_discounts) and is_active("stays"):
+    if (
+        kit.kurtaxe or kit.house_rules or kit.auto_discounts or kit.occupancy_pricing
+    ) and is_active("stays"):
         from apps.stays.models import StaySettings  # H9 Kurtaxe + H6 Hausordnung + G4 авто-скидки
 
         settings_obj = StaySettings.load()
@@ -5941,8 +5950,16 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             settings_obj.house_rules = kit.house_rules
         if kit.auto_discounts:  # G4: список правил {kind, threshold, percent}
             settings_obj.auto_discount_rules = list(kit.auto_discounts)
+        if kit.occupancy_pricing:  # PMS-D: ручные occupancy-правила цены
+            settings_obj.occupancy_rules = list(kit.occupancy_pricing)
         settings_obj.save(
-            update_fields=["kurtaxe_cents", "house_rules", "auto_discount_rules", "updated_at"]
+            update_fields=[
+                "kurtaxe_cents",
+                "house_rules",
+                "auto_discount_rules",
+                "occupancy_rules",
+                "updated_at",
+            ]
         )
     if kit.stay_promo and is_active("stays"):  # H4a промокод брони
         from apps.loyalty.models import Voucher

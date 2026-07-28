@@ -15,7 +15,7 @@ from django.db import transaction
 from apps.promotions.models import Customer
 
 from . import availability, pricing
-from .models import StayBooking, StayUnit
+from .models import StayBooking, StaySettings, StayUnit
 
 _ALPHABET = string.ascii_uppercase + string.digits
 
@@ -190,6 +190,7 @@ def book_stay(
     voucher_code="",
     rooms=1,
     enforce_restrictions=False,
+    dynamic_pricing=False,
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable, PromoInvalid.
@@ -240,7 +241,20 @@ def book_stay(
     kurtaxe = pricing.kurtaxe_total_cents(adults, nights)  # H9 (по гостям, не × номера)
     # G4: авто-скидка (LOS/Frühbucher/Last-Minute) — на проживание (без Extras/Kurtaxe).
     # G5: проживание × число номеров.
-    room_cents = pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan) * rooms
+    # PMS-D: динамическая цена — ТОЛЬКО витрина (dynamic_pricing=True из
+    # unterkunft_book); занятость считается под локом юнита, без новой брони.
+    occ_kwargs = {}
+    if dynamic_pricing:
+        rules = StaySettings.load().clean_occupancy_rules()
+        if rules:
+            occ_kwargs = {
+                "occupancy_rules": rules,
+                "occupancy_by_day": availability.occupancy_by_day(unit, arrival, departure),
+            }
+    room_cents = (
+        pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan, **occ_kwargs)
+        * rooms
+    )
     auto_discount_cents, auto_discount_label = pricing.auto_discount(room_cents, nights, arrival)
     # H4a: промокод применяется к проживанию (после авто-скидки) + услугам, не к Kurtaxe.
     lodging_cents = room_cents - auto_discount_cents + extras_engine.total_cents(extras_snap)

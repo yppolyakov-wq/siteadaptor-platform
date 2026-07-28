@@ -13537,3 +13537,32 @@ msgstr "By room type"
 
 msgid "Base rate"
 msgstr "Base rate"
+
+msgid "Dynamic prices"
+msgstr "Dynamic prices"
+
+msgid ""
+"Nights in demand cost more, empty nights less: when a night's occupancy "
+"reaches the threshold, its ONLINE price changes by the given percent. Your "
+"own bookings at the desk keep the base price. The strictest matching rule "
+"wins."
+msgstr ""
+"Nights in demand cost more, empty nights less: when a night's occupancy "
+"reaches the threshold, its ONLINE price changes by the given percent. Your "
+"own bookings at the desk keep the base price. The strictest matching rule "
+"wins."
+
+#, python-format
+msgid "Occupancy ≥ %(n)s"
+msgstr "Occupancy ≥ %(n)s"
+
+msgid ""
+"No dynamic price rules yet — online prices always match the base price."
+msgstr ""
+"No dynamic price rules yet — online prices always match the base price."
+
+msgid "Occupancy from (%)"
+msgstr "Occupancy from (%)"
+
+msgid "Price change (%, e.g. 10 or −15)"
+msgstr "Price change (%, e.g. 10 or −15)"

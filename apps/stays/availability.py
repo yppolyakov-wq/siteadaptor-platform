@@ -61,6 +61,36 @@ def range_available(unit, arrival, departure, *, exclude_pk=None, needed=1) -> b
     return True
 
 
+def occupancy_by_day(unit, arrival, departure) -> dict:
+    """PMS-D: занятость ночей ``[arrival, departure)`` юнита в процентах (0..100).
+
+    Та же семантика подсчёта, что range_available: активные брони × rooms +
+    блокировки (блок выводит номер из продажи → дефицит честно растёт)."""
+    nights = nights_between(arrival, departure)
+    if not nights:
+        return {}
+    stays = list(
+        StayBooking.objects.filter(
+            unit=unit,
+            status__in=status_registry.active_statuses_for("stay"),
+            arrival__lt=departure,
+            departure__gt=arrival,
+        ).values_list("arrival", "departure", "rooms")
+    )
+    blocks = list(
+        UnitBlock.objects.filter(
+            unit=unit, start_date__lte=nights[-1], end_date__gte=arrival
+        ).values_list("start_date", "end_date")
+    )
+    quantity = max(1, unit.quantity)
+    out = {}
+    for night in nights:
+        occupied = sum(rooms for s_arr, s_dep, rooms in stays if s_arr <= night < s_dep)
+        occupied += sum(1 for b_start, b_end in blocks if b_start <= night <= b_end)
+        out[night] = min(100, round(occupied * 100 / quantity))
+    return out
+
+
 def free_units(arrival, departure, *, guests=1) -> list:
     """Активные юниты, свободные на весь диапазон и вмещающие ``guests`` гостей."""
     nights = (departure - arrival).days

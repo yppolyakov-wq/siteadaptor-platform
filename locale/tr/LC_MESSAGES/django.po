@@ -13644,3 +13644,33 @@ msgstr "Oda tipine göre"
 
 msgid "Base rate"
 msgstr "Temel tarife"
+
+msgid "Dynamic prices"
+msgstr "Dinamik fiyatlar"
+
+msgid ""
+"Nights in demand cost more, empty nights less: when a night's occupancy "
+"reaches the threshold, its ONLINE price changes by the given percent. Your "
+"own bookings at the desk keep the base price. The strictest matching rule "
+"wins."
+msgstr ""
+"Talep gören geceler daha pahalı, boş geceler daha ucuz: bir gecenin doluluğu"
+" eşiğe ulaştığında ONLINE fiyatı belirtilen yüzde kadar değişir. "
+"Resepsiyondaki kendi kayıtlarınız temel fiyatta kalır. En katı eşleşen kural"
+" geçerlidir."
+
+#, python-format
+msgid "Occupancy ≥ %(n)s"
+msgstr "Doluluk ≥ %(n)s"
+
+msgid ""
+"No dynamic price rules yet — online prices always match the base price."
+msgstr ""
+"Henüz dinamik fiyat kuralı yok — online fiyatlar her zaman temel fiyata "
+"eşittir."
+
+msgid "Occupancy from (%)"
+msgstr "Doluluk eşiği (%)"
+
+msgid "Price change (%, e.g. 10 or −15)"
+msgstr "Fiyat değişimi (%, örn. 10 veya −15)"

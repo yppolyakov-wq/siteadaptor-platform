@@ -13706,3 +13706,31 @@ msgstr "За категоріями"
 
 msgid "Base rate"
 msgstr "Базовий тариф"
+
+msgid "Dynamic prices"
+msgstr "Динамічні ціни"
+
+msgid ""
+"Nights in demand cost more, empty nights less: when a night's occupancy "
+"reaches the threshold, its ONLINE price changes by the given percent. Your "
+"own bookings at the desk keep the base price. The strictest matching rule "
+"wins."
+msgstr ""
+"Затребувані ночі дорожчі, порожні — дешевші: коли зайнятість ночі досягає "
+"порога, її ОНЛАЙН-ціна змінюється на заданий відсоток. Ваші броні на стійці "
+"залишаються за базовою ціною. Перемагає найсуворіше відповідне правило."
+
+#, python-format
+msgid "Occupancy ≥ %(n)s"
+msgstr "Зайнятість ≥ %(n)s"
+
+msgid ""
+"No dynamic price rules yet — online prices always match the base price."
+msgstr ""
+"Правил динамічних цін поки немає — онлайн-ціни завжди дорівнюють базовій."
+
+msgid "Occupancy from (%)"
+msgstr "Зайнятість від (%)"
+
+msgid "Price change (%, e.g. 10 or −15)"
+msgstr "Зміна ціни (%, напр. 10 або −15)"

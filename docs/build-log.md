@@ -6546,3 +6546,24 @@ CO корпоративный контур v1 — обе развилки «да
 - CSV-экспорт броней месяца `berichte/export.csv` (utf-8-sig BOM, csv_safe,
   те же считаемые статусы реестра, кнопка на отчётах).
 - Тесты test_reports.py +4. 6 msgid × 4 .po.
+
+## 2026-07-28 — PMS-D: occupancy-правила цены (ручной revenue-management)
+
+План `docs/pms-d-occupancy-pricing-plan-2026-07-28.md`. ⚠️ Миграция
+`stays/0028` (аддитив: StaySettings.occupancy_rules).
+
+- Правила «занятость ночи ≥ X % → онлайн-цена ночи ±Y %» (кап 10, percent
+  −50..+50, `clean_occupancy_rules` паттерном G4/G12); применяется правило с
+  МАКСИМАЛЬНЫМ порогом, не суммируются. Без автопилота/AI/цен конкурентов.
+- `availability.occupancy_by_day` (семантика range_available: брони × rooms +
+  блокировки) + `pricing.occupancy_adjust`; `quote_total_cents` — опц.
+  kwargs, БЕЗ kwargs итог байт-в-байт прежний (характеризационный замок;
+  events/агрегатор/reprice не трогались).
+- Включает ТОЛЬКО витрина: `_quote`/«ab €»/тариф-карточки через
+  `_occupancy_kwargs` + `book_stay(dynamic_pricing=True)` из unterkunft_book
+  (занятость считается под локом юнита). Стойка walk-in/move — базовая цена.
+- Кабинет: секция «📈 Dynamic prices» на units (occupancy_add/delete,
+  паттерн G12). Демо hotel-кита: ≥60 % → +5 %, ≥85 % → +12 %
+  (`DemoKit.occupancy_pricing`).
+- Тесты test_occupancy_pricing.py (6). 6 msgid × 4 .po. Урок T1-b учтён:
+  литеральный % вынесен из blocktrans (python-format msgid не ломается).

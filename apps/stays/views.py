@@ -857,6 +857,31 @@ def units(request):
                 rules.pop(idx)
                 settings_obj.restriction_rules = rules
                 settings_obj.save(update_fields=["restriction_rules", "updated_at"])
+        elif action == "occupancy_add":  # PMS-D: правило «занятость ≥ X % → ±Y %»
+            settings_obj = StaySettings.load()
+            rules = settings_obj.clean_occupancy_rules()
+            rules.append(
+                {
+                    "occupancy": _int(request.POST.get("occupancy", "0"), 0, 0, 100),
+                    "percent": _int(request.POST.get("percent", "0"), 0, -50, 50),
+                }
+            )
+            settings_obj.occupancy_rules = rules
+            cleaned = settings_obj.clean_occupancy_rules()
+            if len(cleaned) > len(rules) - 1:  # правило валидное → сохранилось
+                settings_obj.occupancy_rules = cleaned
+                settings_obj.save(update_fields=["occupancy_rules", "updated_at"])
+                messages.success(request, _("Settings saved."))
+            else:
+                messages.error(request, _("Please fill in at least one restriction."))
+        elif action == "occupancy_delete":  # PMS-D: удалить правило по индексу
+            settings_obj = StaySettings.load()
+            rules = settings_obj.clean_occupancy_rules()
+            idx = _int(request.POST.get("index", "-1"), -1, 0, len(rules) - 1)
+            if 0 <= idx < len(rules):
+                rules.pop(idx)
+                settings_obj.occupancy_rules = rules
+                settings_obj.save(update_fields=["occupancy_rules", "updated_at"])
         return redirect("stays:units")
 
     units = list(
@@ -906,6 +931,10 @@ def units(request):
             "auto_kinds": StaySettings.AUTO_DISCOUNT_KINDS,
             # G12: правила продаж + дни недели для чекбоксов CTA/CTD.
             "restriction_rules": restriction_rules,
+            # PMS-D: occupancy-правила цены (ручной revenue-management).
+            "occupancy_rules": [
+                {**r, "index": i} for i, r in enumerate(stay_settings.clean_occupancy_rules())
+            ],
             "weekdays": [
                 (0, _("Mo")),
                 (1, _("Tu")),

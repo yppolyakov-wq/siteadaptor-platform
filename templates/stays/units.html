@@ -175,6 +175,40 @@
   </form>
 </div>
 
+{# PMS-D: ручные occupancy-правила цены — «занятость ≥ X % → ±Y % на ночь». #}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
+  <h2 class="font-semibold mb-1">📈 {% trans "Dynamic prices" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Nights in demand cost more, empty nights less: when a night's occupancy reaches the threshold, its ONLINE price changes by the given percent. Your own bookings at the desk keep the base price. The strictest matching rule wins." %}</p>
+
+  {% for r in occupancy_rules %}
+    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
+      <span>
+        {# % — вне blocktrans: литеральный % в python-format msgid ломает msgfmt. #}
+        <span class="font-medium">{% blocktrans with n=r.occupancy %}Occupancy ≥ {{ n }}{% endblocktrans %} %</span>
+        <span class="{% if r.percent > 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">→ {% if r.percent > 0 %}+{% endif %}{{ r.percent }} %</span>
+      </span>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="occupancy_delete"><input type="hidden" name="index" value="{{ r.index }}">
+        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No dynamic price rules yet — online prices always match the base price." %}</p>{% endfor %}
+
+  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="occupancy_add">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Occupancy from (%)" %}</label>
+      <input name="occupancy" type="number" min="1" max="100" value="80" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. 10 or −15)" %}</label>
+      <input name="percent" type="number" min="-50" max="50" value="10" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
+  </form>
+</div>
+
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
   <h2 class="font-semibold mb-1">{% trans "Rate plans" %}</h2>

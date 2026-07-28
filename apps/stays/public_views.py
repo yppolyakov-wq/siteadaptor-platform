@@ -75,6 +75,23 @@ def _parse_rooms(params, unit):
     return max(1, min(n, unit.quantity))
 
 
+def _occupancy_kwargs(unit, von, bis) -> dict:
+    """PMS-D: kwargs динамической цены для quote_total_cents.
+
+    {} пока правила не заведены (цена байт-в-байт прежняя); включает ТОЛЬКО
+    витрина — стойка/reprice кабинета остаются на базовой цене (план
+    pms-d-occupancy-pricing-plan-2026-07-28)."""
+    from .models import StaySettings
+
+    rules = StaySettings.load().clean_occupancy_rules()
+    if not rules:
+        return {}
+    return {
+        "occupancy_rules": rules,
+        "occupancy_by_day": availability.occupancy_by_day(unit, von, bis),
+    }
+
+
 def _quote(unit, von, bis, guests, rooms=1):
     """(nights, total_cents, available, reason, reason_n) для диапазона. G5: rooms
     номеров — вместимость × rooms, занятость needed=rooms, проживание × rooms.
@@ -90,7 +107,8 @@ def _quote(unit, von, bis, guests, rooms=1):
         return nights, 0, False, "guests", None
     if not availability.range_available(unit, von, bis, needed=rooms):
         return nights, 0, False, "unavailable", None
-    return nights, pricing.quote_total_cents(unit, von, bis) * rooms, True, None, None
+    total = pricing.quote_total_cents(unit, von, bis, **_occupancy_kwargs(unit, von, bis))
+    return nights, total * rooms, True, None, None
 
 
 def _unit_from_price_cents(unit, von, bis, rate_plans):
@@ -99,10 +117,13 @@ def _unit_from_price_cents(unit, von, bis, rate_plans):
     отражала реальную к оплате цену проживания."""
     from . import pricing
 
+    occ = _occupancy_kwargs(unit, von, bis)  # PMS-D: честная «ab …» при спросе
     if rate_plans:
-        room = min(pricing.quote_total_cents(unit, von, bis, rate_plan=rp) for rp in rate_plans)
+        room = min(
+            pricing.quote_total_cents(unit, von, bis, rate_plan=rp, **occ) for rp in rate_plans
+        )
     else:
-        room = pricing.quote_total_cents(unit, von, bis)
+        room = pricing.quote_total_cents(unit, von, bis, **occ)
     auto_cents, _label = pricing.auto_discount(room, (bis - von).days, von)
     return room - auto_cents
 
@@ -278,8 +299,9 @@ def unterkunft_unit(request, pk):
             "reason_n": reason_n,  # G12: число для текста причины (окно/ночи)
         }
         if available and rate_plans:
+            occ = _occupancy_kwargs(unit, von, bis)  # PMS-D: карточки = приёмник
             for rp in rate_plans:
-                rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp) * rooms  # G5
+                rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp, **occ) * rooms
                 rp_auto, rp_label = pricing.auto_discount(rp_cents, nights, von)
                 rp_total_cents = rp_cents - rp_auto + kurtaxe_cents
                 rp_prepay = pricing.prepayment_cents(rp_total_cents, rp)  # G7
@@ -523,6 +545,7 @@ def unterkunft_book(request, pk):
             voucher_code=request.POST.get("voucher_code", "").strip(),
             rooms=rooms,
             enforce_restrictions=True,  # G12: витрина уважает Verkaufsregeln
+            dynamic_pricing=True,  # PMS-D: occupancy-правила цены (только витрина)
         )
     except services.RestrictionViolated as exc:
         messages.error(request, restrictions.message(exc.code, exc.n))

@@ -524,6 +524,11 @@ class StaySettings(I18nMixin, TimestampedModel):
     max_advance_days = models.PositiveSmallIntegerField(default=0)
     min_advance_days = models.PositiveSmallIntegerField(default=0)
 
+    # PMS-D: ручные occupancy-правила цены («занятость ≥ X % → ±Y % на ночь»).
+    # Правило: {"occupancy": 1..100, "percent": −50..+50}. ТОЛЬКО витрина
+    # (стойка/reprice — базовая цена); без автопилота и цен конкурентов.
+    occupancy_rules = models.JSONField(default=list, blank=True)
+
     def clean_restriction_rules(self) -> list[dict]:
         """G12: очищенный список правил продаж (кап 50, валидные поля/диапазоны)."""
         out = []
@@ -571,6 +576,25 @@ class StaySettings(I18nMixin, TimestampedModel):
             if threshold and percent:
                 out.append({"kind": r["kind"], "threshold": threshold, "percent": percent})
         return out
+
+    def clean_occupancy_rules(self) -> list[dict]:
+        """PMS-D: очищенные правила «занятость ночи ≥ X % → цена ночи ±Y %».
+
+        Кап 10 правил; occupancy 1..100, percent −50..+50 (0 отбрасываем).
+        Применение выбирает правило с МАКСИМАЛЬНЫМ порогом (не суммирует) —
+        см. pricing.occupancy_adjust; ручной режим, без автопилота/AI."""
+        out = []
+        for r in self.occupancy_rules or []:
+            if not isinstance(r, dict):
+                continue
+            try:
+                occupancy = int(r.get("occupancy", 0))
+                percent = int(r.get("percent", 0))
+            except (TypeError, ValueError):
+                continue
+            if 1 <= occupancy <= 100 and percent and -50 <= percent <= 50:
+                out.append({"occupancy": occupancy, "percent": percent})
+        return out[:10]
 
     class Meta:
         verbose_name = "Stay settings"

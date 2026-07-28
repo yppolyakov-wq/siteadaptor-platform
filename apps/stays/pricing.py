@@ -32,13 +32,40 @@ def apply_rate_plan(base_cents, rate_plan) -> int:
     return max(0, adjusted)
 
 
-def quote_total_cents(unit, arrival, departure, rate_plan=None) -> int:
-    """Итог за диапазон с учётом сезон/выходных тарифов и тарифа-плана (сумма по ночам)."""
+def occupancy_adjust(cents, occupancy_pct, rules) -> int:
+    """PMS-D: ±Y % к цене ночи по правилу с МАКСИМАЛЬНЫМ подходящим порогом.
+
+    rules — из StaySettings.clean_occupancy_rules(); occupancy_pct 0..100
+    (None → без изменений). Правила не суммируются (предсказуемо, паттерн G4)."""
+    if occupancy_pct is None:
+        return cents
+    best = None
+    for rule in rules:
+        if occupancy_pct >= rule["occupancy"] and (
+            best is None or rule["occupancy"] > best["occupancy"]
+        ):
+            best = rule
+    if best is None:
+        return cents
+    return max(0, round(cents * (100 + best["percent"]) / 100))
+
+
+def quote_total_cents(
+    unit, arrival, departure, rate_plan=None, *, occupancy_by_day=None, occupancy_rules=None
+) -> int:
+    """Итог за диапазон с учётом сезон/выходных тарифов и тарифа-плана (сумма по ночам).
+
+    PMS-D: occupancy_by_day ({date: 0..100}) + occupancy_rules включают ручную
+    динамическую цену ПО НОЧАМ; оба None/пусто — итог байт-в-байт прежний
+    (все существующие вызовы не меняются; включает только витрина stays)."""
     seasons = list(unit.season_rates.all())
-    return sum(
-        apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
-        for day in nights_between(arrival, departure)
-    )
+    total = 0
+    for day in nights_between(arrival, departure):
+        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
+        if occupancy_rules and occupancy_by_day is not None:
+            cents = occupancy_adjust(cents, occupancy_by_day.get(day), occupancy_rules)
+        total += cents
+    return total
 
 
 def auto_discount(lodging_cents, nights, arrival, today=None, settings=None) -> tuple[int, str]:
