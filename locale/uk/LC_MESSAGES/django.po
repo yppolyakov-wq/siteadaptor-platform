@@ -13641,3 +13641,6 @@ msgstr "Видалити компанію? Клієнти залишаться, 
 
 msgid "Delete company"
 msgstr "Видалити компанію"
+
+msgid "Open in customer list"
+msgstr "Відкрити у списку клієнтів"

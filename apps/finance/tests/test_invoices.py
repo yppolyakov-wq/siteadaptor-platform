@@ -119,6 +119,32 @@ def test_create_draft_via_view_small_business():
     assert invoice.vat_amount == Decimal("0.00") and invoice.gross == Decimal("100.00")
 
 
+def test_invoice_recipient_prefills_from_company():
+    """CO-2: корпоративный гость без явного получателя → реквизиты компании;
+    явный текст владельца всегда сильнее."""
+    from apps.crm.models import Company
+    from apps.promotions.models import Customer
+
+    company = Company.objects.create(
+        name="Müller GmbH", street="Hauptstr. 5", postal_code="40721", city="Hilden"
+    )
+    customer = Customer.objects.create(name="Frau Müller", company=company)
+    data = {
+        "customer": str(customer.pk),
+        "recipient": "",
+        "vat_rate": "19.00",
+        "line_text_1": "Tagung",
+        "line_qty_1": "1",
+        "line_price_1": "100,00",
+    }
+    assert views.invoices(_req("post", data)).status_code == 302
+    assert Invoice.objects.get().recipient == "Müller GmbH\nHauptstr. 5\n40721 Hilden"
+
+    Invoice.objects.all().delete()
+    assert views.invoices(_req("post", {**data, "recipient": "Anders GmbH"})).status_code == 302
+    assert Invoice.objects.get().recipient == "Anders GmbH"
+
+
 def test_invoice_pdf_renders():
     tenant = TenantFactory.build(small_business=True, vat_id="DE123456789")
     invoice = issue_invoice(_draft(recipient="Max Mustermann"))

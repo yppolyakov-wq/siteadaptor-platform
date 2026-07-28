@@ -13579,3 +13579,6 @@ msgstr "Bu firma silinsin mi? Müşteriler kalır, yalnızca bağlantı kaldır�
 
 msgid "Delete company"
 msgstr "Firmayı sil"
+
+msgid "Open in customer list"
+msgstr "Müşteri listesinde aç"

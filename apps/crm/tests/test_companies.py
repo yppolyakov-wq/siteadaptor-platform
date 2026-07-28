@@ -121,3 +121,24 @@ def test_discount_capped_at_50():
     form = CompanyForm(_company_data(discount_percent="60"))
     assert not form.is_valid() and "discount_percent" in form.errors
     assert CompanyForm(_company_data(discount_percent="50")).is_valid()
+
+
+def test_firma_filter_on_list_and_csv():
+    """CO-2: ?firma= сужает список и CSV; кривой uuid — молча игнорируется."""
+    company = Company.objects.create(name="Bäcker AG")
+    Customer.objects.create(name="Herr Korn", company=company)
+    Customer.objects.create(name="Frau Frei")
+
+    body = views.customer_list(_req(path="/crm/", data={"firma": str(company.pk)}))
+    body = body.content.decode()
+    assert "Herr Korn" in body and "Frau Frei" not in body
+    assert "✕" in body  # чип активного фильтра со сбросом
+
+    csv_body = views.customer_export_csv(
+        _req(path="/crm/export.csv", data={"firma": str(company.pk)})
+    ).content.decode()
+    assert "Herr Korn" in csv_body and "Frau Frei" not in csv_body
+
+    # мусорный uuid → фильтр игнорируется, оба клиента на месте (не 500)
+    body = views.customer_list(_req(path="/crm/", data={"firma": "kaputt"})).content.decode()
+    assert "Herr Korn" in body and "Frau Frei" in body

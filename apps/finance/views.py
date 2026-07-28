@@ -146,10 +146,20 @@ def invoices(request):
         )
         small = request.tenant.small_business
         net, vat, gross = compute_totals(lines, vat_rate, small_business=small)
-        customer = Customer.objects.filter(pk=request.POST.get("customer") or None).first()
+        customer = (
+            Customer.objects.select_related("company")
+            .filter(pk=request.POST.get("customer") or None)
+            .first()
+        )
+        # CO-2: корпоративный гость без явного получателя → реквизиты компании
+        # (name + адрес + USt-IdNr), а не свободный текст/имя клиента.
+        company_recipient = (
+            customer.company.invoice_recipient if customer and customer.company_id else ""
+        )
         invoice = Invoice.objects.create(
             customer=customer,
             recipient=request.POST.get("recipient", "").strip()[:500]
+            or company_recipient
             or (str(customer) if customer else ""),
             lines=lines,
             vat_rate=Decimal("0") if small else vat_rate,

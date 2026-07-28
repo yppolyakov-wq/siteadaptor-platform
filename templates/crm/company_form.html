@@ -23,7 +23,10 @@
 
   {% if company %}
   <div class="bg-white rounded-2xl shadow-sm p-6 mt-6">
-    <h2 class="font-semibold mb-3">{% trans "Customers" %}</h2>
+    <h2 class="font-semibold mb-3 flex items-center justify-between gap-3">{% trans "Customers" %}
+      {# CO-2: та же выборка фильтром в CRM-списке (поиск/CSV поверх). #}
+      <a href="{% url 'crm:customer-list' %}?firma={{ company.pk }}" class="text-xs font-normal text-indigo-600 hover:underline">{% trans "Open in customer list" %}</a>
+    </h2>
     {% for c in customers %}
       <a href="{% url 'crm:customer-detail' c.pk %}" class="border-t border-gray-100 py-2.5 flex items-center justify-between gap-3 hover:bg-gray-50">
         <span class="text-sm font-medium truncate">{{ c }}</span>

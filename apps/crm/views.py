@@ -20,9 +20,23 @@ from .forms import CompanyForm, CustomerForm, NoteForm
 from .models import Company, CustomerNote
 
 
+def _firma(request):
+    """CO-2: компания из ?firma=<uuid> (кривой uuid → None, не 500)."""
+    import uuid as uuid_mod
+
+    raw = request.GET.get("firma", "").strip()
+    try:
+        return Company.objects.filter(pk=uuid_mod.UUID(raw)).first() if raw else None
+    except ValueError:
+        return None
+
+
 def _filtered_customers(request):
-    """Клиенты по поисковому запросу ?q= — общий фильтр списка и CSV-экспорта."""
+    """Клиенты по ?q= и ?firma= — общий фильтр списка и CSV-экспорта."""
     customers = Customer.objects.select_related("company")
+    firma = _firma(request)
+    if firma:
+        customers = customers.filter(company=firma)
     query = request.GET.get("q", "").strip()
     if query:
         customers = customers.filter(
@@ -32,12 +46,12 @@ def _filtered_customers(request):
             # тег — точным совпадением (JSONB containment; теги хранятся lower)
             | Q(tags__contains=[query.lower()])
         )
-    return customers, query
+    return customers, query, firma
 
 
 @login_required
 def customer_list(request):
-    customers, query = _filtered_customers(request)
+    customers, query, firma = _filtered_customers(request)
     page = paginate(customers, order_field="created_at", limit=25, cursor=request.GET.get("cursor"))
     # ST-5c: карточный грид (classic_ui → прежний список). LTV — ОДНИМ батч-
     # запросом на страницу (25), не per-row (агрегация RevenueEntry как в
@@ -61,7 +75,7 @@ def customer_list(request):
     return render(
         request,
         "crm/customer_list.html",
-        {"nav": "crm", "page": page, "query": query, "classic_ui": classic},
+        {"nav": "crm", "page": page, "query": query, "firma": firma, "classic_ui": classic},
     )
 
 
@@ -76,7 +90,7 @@ def customer_export_csv(request):
 
     from django.http import HttpResponse
 
-    customers, _query = _filtered_customers(request)
+    customers, _query, _firma = _filtered_customers(request)
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="kunden.csv"'
     writer = csv.writer(response)

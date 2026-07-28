@@ -13472,3 +13472,6 @@ msgstr "Delete this company? Customers stay and are just unlinked."
 
 msgid "Delete company"
 msgstr "Delete company"
+
+msgid "Open in customer list"
+msgstr "Open in customer list"
