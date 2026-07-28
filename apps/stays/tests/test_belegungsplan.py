@@ -603,3 +603,35 @@ def test_checkout_marks_room_dirty_and_clean_action():
     assert resp.status_code == 302
     room.refresh_from_db()
     assert room.housekeeping == Room.HK_CLEAN
+
+
+# --- PMS-B2: авто-выселение beat'ом ----------------------------------------------
+
+
+def test_auto_fulfil_departed():
+    from apps.finance.models import RevenueEntry
+    from apps.stays import tasks
+    from apps.stays.models import Room
+    from apps.stays.state_machine import StayBookingSM
+
+    unit = _unit(quantity=2)
+    room = Room.objects.create(unit=unit, number="101")
+    past = _book(unit, -5, -2)
+    StayBookingSM().apply(past, "confirmed")
+    services.assign_room(past, room)
+    future = _book(unit, 5, 8)
+    StayBookingSM().apply(future, "confirmed")
+    pending_past = _book(unit, -4, -1)  # pending — автоматика не трогает
+
+    done = tasks.auto_fulfil_departed(today=D0)
+    assert done == 1
+    past.refresh_from_db()
+    future.refresh_from_db()
+    pending_past.refresh_from_db()
+    assert past.status == "fulfilled"  # выехал → закрыт штатным FSM-путём
+    assert future.status == "confirmed" and pending_past.status == "pending"
+    assert RevenueEntry.objects.filter(source="stay", source_ref=str(past.id)).exists()
+    room.refresh_from_db()
+    assert room.housekeeping == Room.HK_DIRTY  # R4-хук сработал
+
+    assert tasks.auto_fulfil_departed(today=D0) == 0  # идемпотентно

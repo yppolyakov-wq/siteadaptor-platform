@@ -51,6 +51,39 @@ def send_stay_reminders():
     return total
 
 
+def auto_fulfil_departed(today=None) -> int:
+    """PMS-B2: авто-«выселение» — confirmed-брони с прошедшим выездом переводятся
+    в fulfilled ШТАТНЫМ FSM-путём (та же цепочка, что кнопка владельца: выручка
+    RevenueEntry + комната → dirty R4 + audit). Без этого LTV отеля и win-back
+    структурно пусты, пока владелец не жмёт «Abgereist» руками. pending НЕ
+    трогаем (no-show — решение владельца, не автоматики)."""
+    from apps.core.fsm import IllegalTransition
+
+    from .state_machine import StayBookingSM
+
+    today = today or timezone.localdate()
+    due = StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED, departure__lte=today)
+    sm = StayBookingSM()
+    done = 0
+    for booking in due:
+        try:
+            sm.apply(booking, "fulfilled")
+            done += 1
+        except IllegalTransition:  # кастом-правила переходов могли сузить путь
+            continue
+    return done
+
+
+@shared_task
+def auto_fulfil_stays():
+    """Beat (раз в сутки): авто-выселение прошедших броней по всем схемам."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += auto_fulfil_departed()
+    return {"fulfilled": total}
+
+
 def send_due_post_stay(today=None) -> int:
     """G2: post-stay письмо после выезда — ровно одно на бронь. Окно [departure не
     раньше N+7 дней назад … departure ≤ N дней назад], только состоявшиеся брони."""
