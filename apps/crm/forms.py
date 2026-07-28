@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.promotions.models import Customer
 
+from .models import Company
+
 
 class CustomerForm(forms.ModelForm):
     tags_input = forms.CharField(
@@ -15,8 +17,8 @@ class CustomerForm(forms.ModelForm):
 
     class Meta:
         model = Customer
-        fields = ["name", "email", "phone", "note", "marketing_opt_in"]
-        labels = {"marketing_opt_in": _("Marketing consent")}
+        fields = ["name", "email", "phone", "company", "note", "marketing_opt_in"]
+        labels = {"marketing_opt_in": _("Marketing consent"), "company": _("Company")}
         help_texts = {
             "marketing_opt_in": _(
                 "Only tick if the customer explicitly agreed to receive offers (UWG §7)."
@@ -28,6 +30,12 @@ class CustomerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields["tags_input"].initial = ", ".join(self.instance.tags or [])
+        # CO-1: селект появляется только когда справочник не пуст — форма
+        # клиента без компаний остаётся прежней (не пугаем маленький бизнес).
+        if Company.objects.exists():
+            self.fields["company"].empty_label = "—"
+        else:
+            self.fields.pop("company")
 
     def clean_tags_input(self):
         raw = self.cleaned_data.get("tags_input", "")
@@ -54,3 +62,33 @@ class CustomerForm(forms.ModelForm):
 
 class NoteForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), max_length=2000)
+
+
+class CompanyForm(forms.ModelForm):
+    """CO-1: реквизиты компании для счетов и привязки корпоративных гостей."""
+
+    class Meta:
+        model = Company
+        fields = [
+            "name",
+            "vat_id",
+            "street",
+            "postal_code",
+            "city",
+            "email",
+            "phone",
+            "discount_percent",
+            "note",
+        ]
+        labels = {
+            "vat_id": _("USt-IdNr. (VAT ID)"),
+            "street": _("Street"),
+            "postal_code": _("Postal code"),
+            "city": _("City"),
+            "discount_percent": _("Discount %"),
+        }
+        help_texts = {
+            "vat_id": _("Shown on invoices for this company."),
+            "discount_percent": _("Groundwork for corporate rates (v2) — shown on the card."),
+        }
+        widgets = {"note": forms.Textarea(attrs={"rows": 3})}

@@ -13284,17 +13284,29 @@ msgstr "These dates require a stay of at least %(n)s nights."
 msgid "These dates allow a stay of at most %(n)s nights."
 msgstr "These dates allow a stay of at most %(n)s nights."
 
-msgid "Check-in is not possible on this weekday — please pick another arrival day."
-msgstr "Check-in is not possible on this weekday — please pick another arrival day."
+msgid ""
+"Check-in is not possible on this weekday — please pick another arrival day."
+msgstr ""
+"Check-in is not possible on this weekday — please pick another arrival day."
 
-msgid "Check-out is not possible on this weekday — please pick another departure day."
-msgstr "Check-out is not possible on this weekday — please pick another departure day."
+msgid ""
+"Check-out is not possible on this weekday — please pick another departure "
+"day."
+msgstr ""
+"Check-out is not possible on this weekday — please pick another departure "
+"day."
 
 msgid "Sales rules"
 msgstr "Sales rules"
 
-msgid "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
-msgstr "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
+msgid ""
+"Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-"
+"out weekdays, booking window. Your own bookings in the calendar are never "
+"limited."
+msgstr ""
+"Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-"
+"out weekdays, booking window. Your own bookings in the calendar are never "
+"limited."
 
 msgid "Bookable up to … days ahead (0 = no limit)"
 msgstr "Bookable up to … days ahead (0 = no limit)"
@@ -13364,8 +13376,10 @@ msgid "This room is taken for those dates."
 msgstr "This room is taken for those dates."
 
 #, python-format
-msgid "%(n)s bookings without an assigned room — click a booking to assign one."
-msgstr "%(n)s bookings without an assigned room — click a booking to assign one."
+msgid ""
+"%(n)s bookings without an assigned room — click a booking to assign one."
+msgstr ""
+"%(n)s bookings without an assigned room — click a booking to assign one."
 
 msgid "Housekeeping"
 msgstr "Housekeeping"
@@ -13385,15 +13399,23 @@ msgstr "Needs cleaning"
 msgid "Geprüft"
 msgstr "Inspected"
 
-msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
-msgstr "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
+msgid ""
+"Email me news and offers (optional) — a confirmation email follows, "
+"unsubscribe anytime."
+msgstr ""
+"Email me news and offers (optional) — a confirmation email follows, "
+"unsubscribe anytime."
 
 msgid "Market position"
 msgstr "Market position"
 
 #, python-format
-msgid "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
-msgstr "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
+msgid ""
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
+" “from €/night”)."
+msgstr ""
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
+" “from €/night”)."
 
 msgid "median"
 msgstr "median"
@@ -13401,5 +13423,52 @@ msgstr "median"
 msgid "you"
 msgstr "you"
 
-msgid "Public base prices of hotels on this platform in your city — for orientation only."
-msgstr "Public base prices of hotels on this platform in your city — for orientation only."
+msgid ""
+"Public base prices of hotels on this platform in your city — for orientation"
+" only."
+msgstr ""
+"Public base prices of hotels on this platform in your city — for orientation"
+" only."
+
+msgid "Company"
+msgstr "Company"
+
+msgid "Companies"
+msgstr "Companies"
+
+msgid "Add company"
+msgstr "Add company"
+
+msgid "Company created."
+msgstr "Company created."
+
+msgid "Company deleted."
+msgstr "Company deleted."
+
+msgid ""
+"No companies yet. Add one to link corporate guests and put proper billing "
+"details on their invoices."
+msgstr ""
+"No companies yet. Add one to link corporate guests and put proper billing "
+"details on their invoices."
+
+msgid "Street"
+msgstr "Street"
+
+msgid "USt-IdNr. (VAT ID)"
+msgstr "USt-IdNr. (VAT ID)"
+
+msgid "Shown on invoices for this company."
+msgstr "Shown on invoices for this company."
+
+msgid "Groundwork for corporate rates (v2) — shown on the card."
+msgstr "Groundwork for corporate rates (v2) — shown on the card."
+
+msgid "No customers linked yet — pick this company on a customer's card."
+msgstr "No customers linked yet — pick this company on a customer's card."
+
+msgid "Delete this company? Customers stay and are just unlinked."
+msgstr "Delete this company? Customers stay and are just unlinked."
+
+msgid "Delete company"
+msgstr "Delete company"

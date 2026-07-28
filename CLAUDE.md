@@ -874,7 +874,29 @@ Python 3.12, менеджер uv.
   инкременты шли без .po; немецкий фолбэк маскировал). **Остаток бэклога — только
   owner-gated (Pro D1, T-1 de.po, variant B, FB-мелочь) и external-gated (LLM-
   Finder, WhatsApp Business API, OTA-API и пр.); см. ТЗ §3-финал + task-catalog.**
-- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
+- **Самое свежее (2026-07-27/28): PMS-этап по спекам TravelLine — G12 + фидбэк-фиксы +
+  волна PMS-R + PMS-B1/B2 + CP-1 (всё в main, автономные FF-мержи по зелёному CI).**
+  Gap-анализ 5 разведчиков — `docs/pms-gap-analysis-2026-07-27.md` (очередь волн §5);
+  решения владельца: физические номера ДА · корпоративный контур ДА · цены конкурентов ДА.
+  Сделано: **G12 Verkaufsregeln** (сезонный min/max-stay, CTA/CTD по дням недели, окно
+  бронирования; гейт ТОЛЬКО витрина; ⚠️ `stays/0024`) · багфиксы календарей (drop по всей
+  строке Belegungsplan + grab-offset; кросс-месячный выбор дат витрины) · ресторан/запись
+  без перезагрузок (`?box=1`-фрагменты селектора слотов) · «Verkäufe» отеля = Belegungsplan
+  (entry ST-5b) · фиксы формулы G9 (rooms/блокировки/кастом-статусы →
+  `counted_statuses_for`) + Online-Checkin-ссылка в письмах · **фидбэк владельца**: форма
+  «Buchung bearbeiten» (даты/гости/номер/заметка, action=update) + карточка брони ПОД
+  календарём (`?buchung=<pk>&box=1`) · **волна PMS-R ЦЕЛИКОМ** (план `pms-rooms-plan`):
+  R1 `stays.Room` + синк ёмкости (⚠️ `stays/0025`) · R2 назначение номера (`free_rooms_for`/
+  `assign_room`, «Ohne Zimmer»; ⚠️ `stays/0026`; попутно фикс: reprice-ветка move_stay не
+  сохраняла смену юнита) · R3 шахматка построчно по комнатам + drop-назначение
+  (`room_lane_rows`) · R4 хаускипинг-lite (выезд→dirty→«Sauber»; ⚠️ `stays/0027`; демо-отель
+  с комнатами 101–104) · **PMS-B1** чекбокс согласия UWG в 3 формах брони → Double-Opt-In
+  (+фикс `marketing_opt_in_at` в ЛК/CRM) · **PMS-B2** авто-fulfilled beat (LTV/win-back
+  отеля живы) · **CP-1 Marktposition** (позиция цены среди отелей города из агрегатора,
+  без рекомендаций) · багфиксы CRM-аудита (win-back TypeError, DSGVO-purge stays-гостей).
+  Планы дальше: `pms-corporate-competitor-plans-2026-07-28.md` (CO-1/CO-2 корпоративный
+  контур — следующие). ⚠️ ops: после деплоя `seed_demo_tenants --kit hotel --recreate`.
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). **Новое 2026-07-27/28:** `stays/0024` (G12 Verkaufsregeln) + `stays/0025` (Room) + `stays/0026` (StayBooking.room) + `stays/0027` (Room.housekeeping) + `crm/0002` (CO-1 Company) + `promotions/0022` (Customer.company FK) — все аддитивные. Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

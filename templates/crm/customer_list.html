@@ -7,6 +7,8 @@
 <div class="flex items-center justify-between mb-4 gap-3">
   <h1 class="text-2xl font-bold">{% trans "Customers" %}</h1>
   <div class="flex items-center gap-2">
+    {# CO-1: справочник компаний (корпоративные гости). #}
+    <a href="{% url 'crm:company-list' %}" class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">🏢 {% trans "Companies" %}</a>
     {# B4.3: вход в купон-кампанию; активный фильтр уходит prefill'ом тега #}
     <a href="{% url 'promotions:coupon-campaigns' %}{% if query %}?tag={{ query|urlencode }}{% endif %}" class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">{% trans "Coupon campaign" %}</a>
     <a href="{% url 'crm:customer-export' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">{% trans "Export CSV" %}</a>
@@ -35,6 +37,7 @@
         <p class="text-xs text-gray-400 truncate">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</p>
       </div>
       <div class="flex items-center gap-1 shrink-0">
+        {% if c.company %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">🏢 {{ c.company.name }}</span>{% endif %}
         {% for t in c.tags %}
           <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">{{ t }}</span>
         {% endfor %}
@@ -53,8 +56,9 @@
         <span class="font-medium truncate block">{{ c }}</span>
         <span class="text-xs text-gray-400 truncate block">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</span>
         {% if c.ltv %}<span class="text-xs text-emerald-700 block mt-1">{{ c.ltv.total|floatformat:2 }} € · {{ c.ltv.n }}×</span>{% endif %}
-        {% if c.tags %}
+        {% if c.tags or c.company %}
         <span class="flex flex-wrap items-center gap-1 mt-1.5">
+          {% if c.company %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">🏢 {{ c.company.name }}</span>{% endif %}
           {% for t in c.tags %}
             <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">{{ t }}</span>
           {% endfor %}

@@ -6,6 +6,9 @@
 <a href="{% url 'crm:customer-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Customers" %}</a>
 <div class="flex items-center gap-3 mt-1 mb-4">
   <h1 class="text-2xl font-bold">{{ customer }}</h1>
+  {% if customer.company %}
+    <a href="{% url 'crm:company-detail' customer.company.pk %}" class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">🏢 {{ customer.company.name }}</a>
+  {% endif %}
   {% for t in customer.tags %}
     <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ t }}</span>
   {% endfor %}

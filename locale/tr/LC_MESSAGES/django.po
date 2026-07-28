@@ -13392,17 +13392,28 @@ msgstr "Bu tarihler için en az %(n)s gece konaklama gerekir."
 msgid "These dates allow a stay of at most %(n)s nights."
 msgstr "Bu tarihlerde en fazla %(n)s gece konaklanabilir."
 
-msgid "Check-in is not possible on this weekday — please pick another arrival day."
-msgstr "Bu haftanın gününde giriş yapılamaz — lütfen başka bir varış günü seçin."
+msgid ""
+"Check-in is not possible on this weekday — please pick another arrival day."
+msgstr ""
+"Bu haftanın gününde giriş yapılamaz — lütfen başka bir varış günü seçin."
 
-msgid "Check-out is not possible on this weekday — please pick another departure day."
-msgstr "Bu haftanın gününde çıkış yapılamaz — lütfen başka bir ayrılış günü seçin."
+msgid ""
+"Check-out is not possible on this weekday — please pick another departure "
+"day."
+msgstr ""
+"Bu haftanın gününde çıkış yapılamaz — lütfen başka bir ayrılış günü seçin."
 
 msgid "Sales rules"
 msgstr "Satış kuralları"
 
-msgid "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
-msgstr "ONLINE rezervasyonları sınırlayın: sezonluk min/maks konaklama, giriş/çıkış yapılamayan günler, rezervasyon penceresi. Takvimdeki kendi kayıtlarınız asla sınırlanmaz."
+msgid ""
+"Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-"
+"out weekdays, booking window. Your own bookings in the calendar are never "
+"limited."
+msgstr ""
+"ONLINE rezervasyonları sınırlayın: sezonluk min/maks konaklama, giriş/çıkış "
+"yapılamayan günler, rezervasyon penceresi. Takvimdeki kendi kayıtlarınız "
+"asla sınırlanmaz."
 
 msgid "Bookable up to … days ahead (0 = no limit)"
 msgstr "En fazla … gün önceden rezerve edilebilir (0 = sınırsız)"
@@ -13472,8 +13483,10 @@ msgid "This room is taken for those dates."
 msgstr "Bu oda o tarihlerde dolu."
 
 #, python-format
-msgid "%(n)s bookings without an assigned room — click a booking to assign one."
-msgstr "%(n)s rezervasyonun atanmış odası yok — atamak için rezervasyona tıklayın."
+msgid ""
+"%(n)s bookings without an assigned room — click a booking to assign one."
+msgstr ""
+"%(n)s rezervasyonun atanmış odası yok — atamak için rezervasyona tıklayın."
 
 msgid "Housekeeping"
 msgstr "Kat hizmetleri"
@@ -13493,15 +13506,23 @@ msgstr "Temizlenecek"
 msgid "Geprüft"
 msgstr "Kontrol edildi"
 
-msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
-msgstr "Bana haber ve teklifler gönderin (isteğe bağlı) — önce onay e-postası gelir, istediğiniz an çıkabilirsiniz."
+msgid ""
+"Email me news and offers (optional) — a confirmation email follows, "
+"unsubscribe anytime."
+msgstr ""
+"Bana haber ve teklifler gönderin (isteğe bağlı) — önce onay e-postası gelir,"
+" istediğiniz an çıkabilirsiniz."
 
 msgid "Market position"
 msgstr "Pazar konumu"
 
 #, python-format
-msgid "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
-msgstr "Baz fiyatınız şehrinizdeki %(n)s otel arasında %(p)s. sırada (platform ilanları, «gecelik €'dan»)."
+msgid ""
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
+" “from €/night”)."
+msgstr ""
+"Baz fiyatınız şehrinizdeki %(n)s otel arasında %(p)s. sırada (platform "
+"ilanları, «gecelik €'dan»)."
 
 msgid "median"
 msgstr "medyan"
@@ -13509,5 +13530,52 @@ msgstr "medyan"
 msgid "you"
 msgstr "siz"
 
-msgid "Public base prices of hotels on this platform in your city — for orientation only."
-msgstr "Şehrinizdeki bu platform otellerinin herkese açık baz fiyatları — yalnızca fikir vermesi için."
+msgid ""
+"Public base prices of hotels on this platform in your city — for orientation"
+" only."
+msgstr ""
+"Şehrinizdeki bu platform otellerinin herkese açık baz fiyatları — yalnızca "
+"fikir vermesi için."
+
+msgid "Company"
+msgstr "Firma"
+
+msgid "Companies"
+msgstr "Firmalar"
+
+msgid "Add company"
+msgstr "Firma ekle"
+
+msgid "Company created."
+msgstr "Firma oluşturuldu."
+
+msgid "Company deleted."
+msgstr "Firma silindi."
+
+msgid ""
+"No companies yet. Add one to link corporate guests and put proper billing "
+"details on their invoices."
+msgstr ""
+"Henüz firma yok. Kurumsal misafirleri bağlamak ve faturalara doğru fatura "
+"bilgilerini eklemek için bir firma ekleyin."
+
+msgid "Street"
+msgstr "Sokak"
+
+msgid "USt-IdNr. (VAT ID)"
+msgstr "USt-IdNr. (KDV no)"
+
+msgid "Shown on invoices for this company."
+msgstr "Bu firmanın faturalarında gösterilir."
+
+msgid "Groundwork for corporate rates (v2) — shown on the card."
+msgstr "Kurumsal tarifeler için hazırlık (v2) — kartta gösterilir."
+
+msgid "No customers linked yet — pick this company on a customer's card."
+msgstr "Henüz bağlı müşteri yok — bu firmayı müşteri kartında seçin."
+
+msgid "Delete this company? Customers stay and are just unlinked."
+msgstr "Bu firma silinsin mi? Müşteriler kalır, yalnızca bağlantı kaldırılır."
+
+msgid "Delete company"
+msgstr "Firmayı sil"

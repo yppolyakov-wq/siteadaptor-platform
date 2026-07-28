@@ -1,0 +1,42 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Companies" %}{% endblock %}
+
+{% block dash_content %}
+{% hub_tabs "kunden" %}
+<div class="flex items-center justify-between mb-4 gap-3">
+  <div>
+    <a href="{% url 'crm:customer-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Customers" %}</a>
+    <h1 class="text-2xl font-bold mt-1">{% trans "Companies" %}</h1>
+  </div>
+  <a href="{% url 'crm:company-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add company" %}</a>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if companies %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">
+  {% for co in companies %}
+    <a href="{% url 'crm:company-detail' co.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+      <div class="min-w-0">
+        <p class="font-medium truncate">🏢 {{ co.name }}</p>
+        <p class="text-xs text-gray-400 truncate">
+          {% if co.city %}{{ co.city }}{% endif %}
+          {% if co.vat_id %}{% if co.city %} · {% endif %}{{ co.vat_id }}{% endif %}
+        </p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0 text-xs">
+        {% if co.discount_percent %}<span class="font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">−{{ co.discount_percent }} %</span>{% endif %}
+        <span class="text-gray-400">{{ co.n_customers }} 👤</span>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% else %}
+  <p class="text-gray-400 text-sm max-w-xl">{% trans "No companies yet. Add one to link corporate guests and put proper billing details on their invoices." %}</p>
+{% endif %}
+{% endblock %}

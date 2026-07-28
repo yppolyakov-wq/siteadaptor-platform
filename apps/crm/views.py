@@ -16,13 +16,13 @@ from apps.core.pagination import paginate
 from apps.promotions.models import Customer
 
 from . import customer360
-from .forms import CustomerForm, NoteForm
-from .models import CustomerNote
+from .forms import CompanyForm, CustomerForm, NoteForm
+from .models import Company, CustomerNote
 
 
 def _filtered_customers(request):
     """Клиенты по поисковому запросу ?q= — общий фильтр списка и CSV-экспорта."""
-    customers = Customer.objects.all()
+    customers = Customer.objects.select_related("company")
     query = request.GET.get("q", "").strip()
     if query:
         customers = customers.filter(
@@ -160,6 +160,55 @@ def _issue_voucher(request, customer):
     else:
         messages.error(request, _("Please describe what the voucher gives."))
     return redirect("crm:customer-detail", pk=customer.pk)
+
+
+@login_required
+def company_list(request):
+    """CO-1: справочник компаний тенанта (корпоративные гости, счета)."""
+    from django.db.models import Count
+
+    companies = Company.objects.annotate(n_customers=Count("customers"))
+    return render(request, "crm/company_list.html", {"nav": "crm", "companies": companies})
+
+
+@login_required
+def company_create(request):
+    form = CompanyForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        company = form.save()
+        messages.success(request, _("Company created."))
+        return redirect("crm:company-detail", pk=company.pk)
+    return render(request, "crm/company_form.html", {"nav": "crm", "form": form})
+
+
+@login_required
+def company_detail(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+    form = CompanyForm(request.POST or None, instance=company)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, _("Saved."))
+        return redirect("crm:company-detail", pk=company.pk)
+    return render(
+        request,
+        "crm/company_form.html",
+        {
+            "nav": "crm",
+            "form": form,
+            "company": company,
+            "customers": company.customers.order_by("name")[:100],
+        },
+    )
+
+
+@login_required
+@require_POST
+def company_delete(request, pk):
+    """Удаление компании: клиенты остаются (FK SET_NULL), лишь отвязываются."""
+    company = get_object_or_404(Company, pk=pk)
+    company.delete()
+    messages.success(request, _("Company deleted."))
+    return redirect("crm:company-list")
 
 
 @login_required

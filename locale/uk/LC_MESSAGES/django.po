@@ -13456,17 +13456,26 @@ msgstr "У ці дати мінімальне проживання — %(n)s н�
 msgid "These dates allow a stay of at most %(n)s nights."
 msgstr "У ці дати максимальне проживання — %(n)s ноч."
 
-msgid "Check-in is not possible on this weekday — please pick another arrival day."
+msgid ""
+"Check-in is not possible on this weekday — please pick another arrival day."
 msgstr "Заїзд у цей день тижня неможливий — оберіть інший день заїзду."
 
-msgid "Check-out is not possible on this weekday — please pick another departure day."
+msgid ""
+"Check-out is not possible on this weekday — please pick another departure "
+"day."
 msgstr "Виїзд у цей день тижня неможливий — оберіть інший день виїзду."
 
 msgid "Sales rules"
 msgstr "Правила продажу"
 
-msgid "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited."
-msgstr "Обмежують ОНЛАЙН-бронювання: сезонний мін./макс. термін, дні без заїзду/виїзду, вікно бронювання. Ваші власні броні в календарі не обмежуються."
+msgid ""
+"Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-"
+"out weekdays, booking window. Your own bookings in the calendar are never "
+"limited."
+msgstr ""
+"Обмежують ОНЛАЙН-бронювання: сезонний мін./макс. термін, дні без "
+"заїзду/виїзду, вікно бронювання. Ваші власні броні в календарі не "
+"обмежуються."
 
 msgid "Bookable up to … days ahead (0 = no limit)"
 msgstr "Бронь щонайбільше за … дн. наперед (0 = без ліміту)"
@@ -13536,8 +13545,10 @@ msgid "This room is taken for those dates."
 msgstr "Ця кімната зайнята на обрані дати."
 
 #, python-format
-msgid "%(n)s bookings without an assigned room — click a booking to assign one."
-msgstr "Броней без призначеного номера: %(n)s — натисніть на бронь, щоб призначити."
+msgid ""
+"%(n)s bookings without an assigned room — click a booking to assign one."
+msgstr ""
+"Броней без призначеного номера: %(n)s — натисніть на бронь, щоб призначити."
 
 msgid "Housekeeping"
 msgstr "Прибирання номерів"
@@ -13557,15 +13568,23 @@ msgstr "Потребує прибирання"
 msgid "Geprüft"
 msgstr "Перевірено"
 
-msgid "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime."
-msgstr "Надсилайте мені новини та пропозиції (необов'язково) — спершу надійде лист-підтвердження, відписка в один клік."
+msgid ""
+"Email me news and offers (optional) — a confirmation email follows, "
+"unsubscribe anytime."
+msgstr ""
+"Надсилайте мені новини та пропозиції (необов'язково) — спершу надійде лист-"
+"підтвердження, відписка в один клік."
 
 msgid "Market position"
 msgstr "Позиція на ринку"
 
 #, python-format
-msgid "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, “from €/night”)."
-msgstr "Ваша базова ціна — %(p)s-ша з %(n)s готелів міста (лістинги платформи, «від €/ніч»)."
+msgid ""
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
+" “from €/night”)."
+msgstr ""
+"Ваша базова ціна — %(p)s-ша з %(n)s готелів міста (лістинги платформи, «від "
+"€/ніч»)."
 
 msgid "median"
 msgstr "медіана"
@@ -13573,5 +13592,52 @@ msgstr "медіана"
 msgid "you"
 msgstr "ви"
 
-msgid "Public base prices of hotels on this platform in your city — for orientation only."
-msgstr "Публічні базові ціни готелів платформи у вашому місті — лише для орієнтиру."
+msgid ""
+"Public base prices of hotels on this platform in your city — for orientation"
+" only."
+msgstr ""
+"Публічні базові ціни готелів платформи у вашому місті — лише для орієнтиру."
+
+msgid "Company"
+msgstr "Компанія"
+
+msgid "Companies"
+msgstr "Компанії"
+
+msgid "Add company"
+msgstr "Додати компанію"
+
+msgid "Company created."
+msgstr "Компанію створено."
+
+msgid "Company deleted."
+msgstr "Компанію видалено."
+
+msgid ""
+"No companies yet. Add one to link corporate guests and put proper billing "
+"details on their invoices."
+msgstr ""
+"Компаній поки немає. Додайте компанію, щоб прив'язувати корпоративних гостей"
+" і виставляти рахунки з реквізитами."
+
+msgid "Street"
+msgstr "Вулиця"
+
+msgid "USt-IdNr. (VAT ID)"
+msgstr "USt-IdNr. (номер ПДВ)"
+
+msgid "Shown on invoices for this company."
+msgstr "Показується в рахунках цієї компанії."
+
+msgid "Groundwork for corporate rates (v2) — shown on the card."
+msgstr "Основа для корпоративних тарифів (v2) — поки показується в картці."
+
+msgid "No customers linked yet — pick this company on a customer's card."
+msgstr ""
+"Поки немає прив'язаних клієнтів — виберіть цю компанію в картці клієнта."
+
+msgid "Delete this company? Customers stay and are just unlinked."
+msgstr "Видалити компанію? Клієнти залишаться, лише будуть відв'язані."
+
+msgid "Delete company"
+msgstr "Видалити компанію"

@@ -30,6 +30,15 @@ class Customer(TimestampedModel):
     phone = models.CharField(max_length=40, blank=True)
     note = models.TextField(blank=True)
     tags = models.JSONField(default=list, blank=True)  # ["stammkunde", "vip", …]
+    # CO-1 (корпоративный контур v1): привязка гостя к компании-справочнику.
+    # Строковая ссылка — crm импортирует promotions, не наоборот.
+    company = models.ForeignKey(
+        "crm.Company",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="customers",
+    )
 
     # CRM-lite (Track D / D1): откуда появилась запись и явное согласие на
     # маркетинг (UWG §7: рассылать можно только при opt-in; one-click отписка
