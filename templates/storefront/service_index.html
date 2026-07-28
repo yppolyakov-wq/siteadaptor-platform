@@ -44,6 +44,6 @@
 
 {% block listing_after %}
 {% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}" class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
-{% include "storefront/_booking_info.html" %}
+{% booking_info %}
 {% page_blocks "services" %}
 {% endblock %}

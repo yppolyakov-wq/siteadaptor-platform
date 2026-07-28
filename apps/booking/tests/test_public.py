@@ -605,3 +605,43 @@ def test_service_slots_page_and_box_fragment():
     ).content.decode()
     assert "<html" not in frag and 'id="svc-box"' not in frag
     assert "?tag=" in frag and "slot=" in frag  # селектор дней + стартов во фрагменте
+
+
+# --- Фидбэк 2026-07-28: инфо-блок Termine (booking_info) --------------------
+def test_booking_info_renders_practical_info_but_not_in_embed():
+    """Инфо-блок под листингом: шаги + часы/адрес/контакт из данных тенанта;
+    в embed-виджете (iframe на чужом сайте) не рендерится."""
+    _service()
+    tenant = TenantFactory.build(
+        business_type="friseur",
+        opening_hours="Di–Sa 9:00–18:00",
+        address="Altstadtgasse 7, 79098 Freiburg",
+        contact_phone="+49 761 123456",
+        whatsapp_number="+49 (0) 170 1234-567",
+    )
+    body = public_views.termin_index(_req(tenant=tenant)).content.decode()
+    assert "How booking works" in body or "So läuft die Buchung" in body
+    assert "Di–Sa 9:00–18:00" in body and "Altstadtgasse 7" in body
+    # wa.me строится хелпером LS-1: только цифры (скобки/дефисы/пробелы убраны)
+    assert "https://wa.me/4901701234567" in body
+    # embed → блок не рендерится (в виджете нужна только воронка)
+    embed_body = public_views.termin_index(
+        _req(data={"embed": "1"}, tenant=tenant)
+    ).content.decode()
+    assert "How booking works" not in embed_body and "So läuft die Buchung" not in embed_body
+
+
+def test_booking_info_hides_empty_cards():
+    """Пустые данные тенанта → карточек часов/адреса/контакта нет (без «дыр»)."""
+    _service()
+    tenant = TenantFactory.build(
+        business_type="friseur",
+        opening_hours="",
+        address="",
+        contact_phone="",
+        owner_phone="",
+        whatsapp_number="",
+    )
+    body = public_views.termin_index(_req(tenant=tenant)).content.decode()
+    assert "Opening hours" not in body and "Öffnungszeiten" not in body
+    assert "wa.me" not in body

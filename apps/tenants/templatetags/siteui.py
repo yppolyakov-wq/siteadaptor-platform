@@ -340,6 +340,29 @@ def presence_fab(context):
     return {"wa_url": wa_url}
 
 
+@register.inclusion_tag("storefront/_booking_info.html", takes_context=True)
+def booking_info(context):
+    """Фидбэк 2026-07-28: инфо-блок под листингом Termine для всех booking-
+    архетипов («как проходит запись» + часы/адрес/контакт).
+
+    В embed-режиме (iframe-виджет на чужом сайте) не рендерится — там нужна
+    только воронка. wa.me строим хелпером LS-1 (номер с пробелами/скобками
+    фильтрами не очищался)."""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if tenant is None or context.get("embed"):
+        return {"tenant": None}
+    from apps.core.whatsapp import wa_link
+
+    return {
+        "tenant": tenant,
+        "wa_url": wa_link(getattr(tenant, "whatsapp_number", "")),
+        "has_contact_card": bool(
+            getattr(tenant, "public_phone", "") or getattr(tenant, "whatsapp_number", "")
+        ),
+    }
+
+
 @register.inclusion_tag("storefront/_sold_badge.html")
 def sold_badge(kind, pk):
     """LS-4 v2 «Verkauft N diese Woche» — честный порог (social_proof).

@@ -1,5 +1,5 @@
 {% extends base_template|default:"storefront/_base.html" %}
-{% load i18n %}
+{% load i18n siteui %}
 {% block title %}{% trans "Book a slot" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -28,5 +28,5 @@
 <a href="{% url 'storefront-message' %}" class="inline-block ml-3 text-indigo-600 hover:underline">{% trans "Contact" %} →</a>
 {% endif %}
 {% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}" class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
-{% include "storefront/_booking_info.html" %}
+{% booking_info %}
 {% endblock %}
