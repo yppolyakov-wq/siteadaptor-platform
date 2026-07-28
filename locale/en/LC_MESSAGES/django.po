@@ -13475,3 +13475,46 @@ msgstr "Delete company"
 
 msgid "Open in customer list"
 msgstr "Open in customer list"
+
+msgid "Rate"
+msgstr "Rate"
+
+msgid "More options"
+msgstr "More options"
+
+msgid "Note"
+msgstr "Note"
+
+msgid "Heute"
+msgstr "Today"
+
+msgid "Anreisen"
+msgstr "Arrivals"
+
+msgid "Abreisen"
+msgstr "Departures"
+
+msgid "Im Haus"
+msgstr "In house"
+
+msgid "Keine Anreisen heute."
+msgstr "No arrivals today."
+
+msgid "Keine Abreisen heute."
+msgstr "No departures today."
+
+msgid "Niemand im Haus."
+msgstr "Nobody in house."
+
+msgid "offen"
+msgstr "open"
+
+msgid "Als bezahlt markieren"
+msgstr "Mark as paid"
+
+msgid "Anreisen heute"
+msgstr "Arrivals today"
+
+#, python-format
+msgid "Abreisen heute: %(n)s"
+msgstr "Departures today: %(n)s"

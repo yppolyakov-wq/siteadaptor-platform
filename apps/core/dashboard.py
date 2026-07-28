@@ -175,6 +175,38 @@ def home_widgets(tenant) -> list[dict]:
             }
         )
 
+    # 🛎 Anreisen heute (PMS-A2): стойка отеля/пансиона — сегодняшние заезды,
+    # в hint выезды; клик ведёт на экран «Heute».
+    if tenant.is_module_active("stays") and "stays" not in hidden:
+
+        def _stays_today():
+            from django.utils import timezone as _tz
+
+            from apps.stays.models import StayBooking
+
+            today = _tz.localdate()
+            arrivals = StayBooking.objects.filter(
+                arrival=today, status__in=StayBooking.ACTIVE_STATUSES
+            ).count()
+            departures = StayBooking.objects.filter(
+                departure=today, status=StayBooking.STATUS_CONFIRMED
+            ).count()
+            return arrivals, departures
+
+        arrivals_n, departures_n = _safe(_stays_today, (0, 0))
+        widgets.append(
+            {
+                "key": "stays_today",
+                "icon": "🛎",
+                "label": _t("Anreisen heute"),
+                "value": str(arrivals_n),
+                "hint": _t("Abreisen heute: %(n)s") % {"n": departures_n},
+                "url_name": "stays:today",
+                "url_query": "",
+                "sparkline": "",
+            }
+        )
+
     # 📣 Marketing-Puls (v1): Σ просмотров активных акций + погашения кампаний.
     if tenant.is_module_active("promotions") and "promotions" not in hidden:
 

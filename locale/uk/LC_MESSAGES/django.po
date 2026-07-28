@@ -13644,3 +13644,46 @@ msgstr "Видалити компанію"
 
 msgid "Open in customer list"
 msgstr "Відкрити у списку клієнтів"
+
+msgid "Rate"
+msgstr "Тариф"
+
+msgid "More options"
+msgstr "Більше опцій"
+
+msgid "Note"
+msgstr "Нотатка"
+
+msgid "Heute"
+msgstr "Сьогодні"
+
+msgid "Anreisen"
+msgstr "Заїзди"
+
+msgid "Abreisen"
+msgstr "Виїзди"
+
+msgid "Im Haus"
+msgstr "У домі"
+
+msgid "Keine Anreisen heute."
+msgstr "Сьогодні заїздів немає."
+
+msgid "Keine Abreisen heute."
+msgstr "Сьогодні виїздів немає."
+
+msgid "Niemand im Haus."
+msgstr "У домі нікого."
+
+msgid "offen"
+msgstr "не оплачено"
+
+msgid "Als bezahlt markieren"
+msgstr "Позначити оплаченим"
+
+msgid "Anreisen heute"
+msgstr "Заїзди сьогодні"
+
+#, python-format
+msgid "Abreisen heute: %(n)s"
+msgstr "Виїзди сьогодні: %(n)s"

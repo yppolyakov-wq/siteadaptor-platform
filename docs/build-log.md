@@ -6514,3 +6514,22 @@ CO корпоративный контур v1 — обе развилки «да
   кривой uuid игнорируется (guard, не 500). Вход «Open in customer list»
   с карточки компании.
 - Тесты: prefill/override счёта + фильтр список/CSV/guard. 1 msgid × 4 .po.
+
+## 2026-07-28 — PMS-A «стойка»: walk-in паритет + экран «Heute» + оплата на стойке
+
+План `docs/pms-a-front-desk-plan-2026-07-28.md`. БЕЗ миграций (все поля были).
+
+- **A1** форма «Add booking» календаря = паритет витрины: Erwachsene/Kinder
+  (Kurtaxe считалась по всем гостям — теперь честно по взрослым), тариф-select,
+  «Mehr Optionen» (extras/rooms/Gutschein/Notiz — поле note читалось вьюхой,
+  но в шаблоне отсутствовало); `stay_create` зовёт `book_stay` полным набором;
+  **фикс: неверный промокод на стойке ронял 500** (PromoInvalid не ловился).
+  Легаси-поле guests живёт фолбэком. G12-гейт на стойку осознанно не действует.
+- **A2** экран `/dashboard/stays/heute/` — Anreisen/Abreisen/Im Haus одним
+  взглядом (строка: гость·юнит/🚪·даты·гости·оплата + статус-кнопки тем же
+  FSM-путём); вход «📋 Heute» из календаря; виджет хоума «Anreisen heute»
+  (гейт модуля stays + _safe, hint = выезды).
+- **A3** «💶 Als bezahlt markieren» на карточке брони (`stay_action mark_paid`
+  по образцу orders): none/pending→paid; refunded не перетирается; Stripe-пути
+  не тронуты; панель под календарём остаётся открытой.
+- Тесты `test_front_desk.py` (7). 14 msgid × 4 .po.

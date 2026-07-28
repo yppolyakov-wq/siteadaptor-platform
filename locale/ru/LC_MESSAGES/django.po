@@ -13658,3 +13658,46 @@ msgstr "Удалить компанию"
 
 msgid "Open in customer list"
 msgstr "Открыть в списке клиентов"
+
+msgid "Rate"
+msgstr "Тариф"
+
+msgid "More options"
+msgstr "Больше опций"
+
+msgid "Note"
+msgstr "Заметка"
+
+msgid "Heute"
+msgstr "Сегодня"
+
+msgid "Anreisen"
+msgstr "Заезды"
+
+msgid "Abreisen"
+msgstr "Выезды"
+
+msgid "Im Haus"
+msgstr "В доме"
+
+msgid "Keine Anreisen heute."
+msgstr "Сегодня заездов нет."
+
+msgid "Keine Abreisen heute."
+msgstr "Сегодня выездов нет."
+
+msgid "Niemand im Haus."
+msgstr "В доме никого."
+
+msgid "offen"
+msgstr "не оплачено"
+
+msgid "Als bezahlt markieren"
+msgstr "Отметить оплаченным"
+
+msgid "Anreisen heute"
+msgstr "Заезды сегодня"
+
+#, python-format
+msgid "Abreisen heute: %(n)s"
+msgstr "Выезды сегодня: %(n)s"

@@ -133,6 +133,14 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
     {% elif b.payment_state == 'refunded' %}<span class="text-gray-500">{% trans "erstattet" %}</span>
     {% else %}<span class="text-gray-500">{% trans "vor Ort" %}</span>{% endif %}
   </p>
+  {# PMS-A3: оплата на стойке (наличные/EC) — тот же stay-action, что статусы. #}
+  {% if b.payment_state != 'paid' and b.payment_state != 'refunded' and b.status != 'cancelled' %}
+  <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="mark_paid">
+    <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% trans "Als bezahlt markieren" %}</button>
+  </form>
+  {% endif %}
 </div>
 
 {# Meldeschein (G6) #}

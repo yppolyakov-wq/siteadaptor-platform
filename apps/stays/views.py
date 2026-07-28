@@ -57,6 +57,13 @@ def _eur_to_cents(raw) -> int:
         return 0
 
 
+def _extras_for_walkin():
+    """PMS-A1: активные доп-услуги stays для walk-in формы (как на витрине)."""
+    from apps.core import extras as extras_engine
+
+    return extras_engine.active_for("stays")
+
+
 def _finance_active(request) -> bool:
     tenant = getattr(request, "tenant", None)
     return bool(tenant is not None and tenant.is_module_active("finance"))
@@ -235,6 +242,9 @@ def calendar(request):
             "bookings": bookings,
             "units": units,
             "finance_active": _finance_active(request),
+            # PMS-A1: паритет walk-in формы с витриной — тарифы и доп-услуги.
+            "rate_plans": list(RatePlan.objects.filter(is_active=True)),
+            "walkin_extras": _extras_for_walkin(),
             # FB-4b: строки панели «Status-Namen» брони (status, дефолт, своё имя).
             "status_label_rows": _status_rows(request),
             # FB-3: строки панели «Statusübergänge» (правила переходов).
@@ -393,6 +403,17 @@ def stay_action(request, pk):
         return redirect(
             f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}&buchung={booking.pk}"
         )
+    if action == "mark_paid":
+        # PMS-A3: оплата на стойке (наличные/карта) — образец orders.mark_paid.
+        # refunded не перетираем; Stripe-пути (вебхук/refund) не трогаются.
+        if booking.payment_state == StayBooking.PAYMENT_REFUNDED:
+            messages.error(request, _("This step is not possible in the current status."))
+            return redirect(back)
+        booking.payment_state = StayBooking.PAYMENT_PAID
+        booking.save(update_fields=["payment_state", "updated_at"])
+        messages.success(request, _("Marked as paid."))
+        # Панель брони остаётся открытой (как у action=update).
+        return redirect(f"{back}&buchung={booking.pk}")
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:
             StayBookingSM().apply(booking, action, actor=request.user)
@@ -440,6 +461,21 @@ def stay_create(request):
         messages.success(request, _("Dates blocked."))
         return redirect(f"{reverse('stays:calendar')}?von={arrival.isoformat()}")
     name = request.POST.get("name", "").strip() or _("Walk-in")
+    # PMS-A1: паритет со витриной — взрослые/дети (Kurtaxe по взрослым!), тариф,
+    # extras, несколько номеров, промокод. Легаси-поле guests остаётся фолбэком
+    # (= взрослые). G12-ограничения на стойку осознанно НЕ действуют.
+    adults = _int(request.POST.get("erw", "") or request.POST.get("guests", "1"), 1, 1, 50)
+    children = _int(request.POST.get("kinder", "0"), 0, 0, 50)
+    rate_plan = None
+    active_rates = list(RatePlan.objects.filter(is_active=True))
+    if active_rates:
+        rate_pk = request.POST.get("rate_plan")
+        rate_plan = next((r for r in active_rates if str(r.pk) == str(rate_pk)), active_rates[0])
+    from apps.core import extras as extras_engine
+
+    extras_snap = extras_engine.snapshot(
+        request.POST.getlist("extra"), "stays", nights=max((departure - arrival).days, 1)
+    )
     try:
         booking = services.book_stay(
             unit,
@@ -448,10 +484,15 @@ def stay_create(request):
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
-            guests=_int(request.POST.get("guests", "1"), 1, 1, 50),
+            adults=adults,
+            children=children,
             note=request.POST.get("note", "").strip()[:2000],
             source_channel="manual",
             auto_confirm=True,
+            extras=extras_snap,
+            rate_plan=rate_plan,
+            voucher_code=request.POST.get("voucher_code", "").strip(),
+            rooms=_int(request.POST.get("rooms", "1"), 1, 1, 20),
         )
     except services.MinStay:
         messages.error(request, _("Below the minimum number of nights."))
@@ -462,11 +503,43 @@ def stay_create(request):
     except services.StayUnavailable:
         messages.error(request, _("Those dates are no longer available."))
         return redirect("stays:calendar")
+    except services.PromoInvalid:
+        # Раньше неверный промокод на стойке ронял 500 — теперь честная ошибка.
+        messages.error(request, _("This promo code is not valid for this booking."))
+        return redirect("stays:calendar")
     except ValueError:
         messages.error(request, _("Invalid dates."))
         return redirect("stays:calendar")
     messages.success(request, _("Stay created."))
     return redirect(f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}")
+
+
+@login_required
+def today_view(request):
+    """PMS-A2: «Heute» — заезды/выезды/в доме одним экраном (стойка утром).
+
+    Только выборки + обычные статус-кнопки (тот же FSM-путь, что карточка);
+    «Check-out» = переход fulfilled (он же помечает комнату dirty, R4)."""
+    today = timezone.localdate()
+    base = StayBooking.objects.select_related("unit", "room", "customer")
+    return render(
+        request,
+        "stays/today.html",
+        {
+            "nav": "stays",
+            "today": today,
+            "arrivals": base.filter(arrival=today, status__in=StayBooking.ACTIVE_STATUSES).order_by(
+                "unit__name"
+            ),
+            "departures": base.filter(
+                departure=today,
+                status__in=(StayBooking.STATUS_CONFIRMED, StayBooking.STATUS_FULFILLED),
+            ).order_by("unit__name"),
+            "in_house": base.filter(
+                arrival__lt=today, departure__gt=today, status=StayBooking.STATUS_CONFIRMED
+            ).order_by("departure"),
+        },
+    )
 
 
 @login_required

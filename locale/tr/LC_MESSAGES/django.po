@@ -13582,3 +13582,46 @@ msgstr "Firmayı sil"
 
 msgid "Open in customer list"
 msgstr "Müşteri listesinde aç"
+
+msgid "Rate"
+msgstr "Tarife"
+
+msgid "More options"
+msgstr "Daha fazla seçenek"
+
+msgid "Note"
+msgstr "Not"
+
+msgid "Heute"
+msgstr "Bugün"
+
+msgid "Anreisen"
+msgstr "Girişler"
+
+msgid "Abreisen"
+msgstr "Çıkışlar"
+
+msgid "Im Haus"
+msgstr "Otelde"
+
+msgid "Keine Anreisen heute."
+msgstr "Bugün giriş yok."
+
+msgid "Keine Abreisen heute."
+msgstr "Bugün çıkış yok."
+
+msgid "Niemand im Haus."
+msgstr "Otelde kimse yok."
+
+msgid "offen"
+msgstr "açık"
+
+msgid "Als bezahlt markieren"
+msgstr "Ödendi olarak işaretle"
+
+msgid "Anreisen heute"
+msgstr "Bugünkü girişler"
+
+#, python-format
+msgid "Abreisen heute: %(n)s"
+msgstr "Bugünkü çıkışlar: %(n)s"
