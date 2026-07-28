@@ -477,9 +477,10 @@ def test_units_list_page_tabs_and_settings_groups():
     # Save глобальной настройки редиректит на таб настроек
     resp = views.units(_req("post", data={"action": "gap_deal", "gap_discount_percent": "25"}))
     assert resp.status_code == 302 and resp.url.endswith("?tab=einstellungen")
-    # создание юнита — редирект на страницу нового номера (не на таб)
+    # создание юнита — редирект ТОЧНО на страницу нового номера (не на список/таб)
     resp2 = views.units(_req("post", data={"action": "unit", "name": "Neu Z", "type": "room"}))
-    assert "/units/" in resp2.url and "tab=" not in resp2.url
+    neu = StayUnit.objects.get(name="Neu Z")
+    assert resp2.url.endswith(f"/units/{neu.pk}/")
 
 
 def test_units_list_is_compact_and_links_to_unit_page():

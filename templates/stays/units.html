@@ -658,6 +658,8 @@ document.addEventListener("click", function (e) {
     b.classList.toggle("text-white", active);
     b.classList.toggle("bg-gray-100", !active);
     b.classList.toggle("text-gray-600", !active);
+    // hover-класс только у неактивных — иначе белый текст на сером при ховере
+    b.classList.toggle("hover:bg-gray-200", !active);
   });
   try { history.replaceState(null, "", key === "einstellungen" ? "?tab=einstellungen" : location.pathname); } catch (err) {}
 });
@@ -686,6 +688,8 @@ document.addEventListener("click", function (e) {
     b.classList.toggle("text-white", active);
     b.classList.toggle("bg-gray-100", !active);
     b.classList.toggle("text-gray-600", !active);
+    // тот же ховер-фикс, что и у page-табов (ревью 2026-07-28)
+    b.classList.toggle("hover:bg-gray-200", !active);
   });
 });
 </script>
