@@ -233,7 +233,6 @@ class DemoKit:
     whatsapp_number: str = ""
     presence_mode: str = ""
     # ST-5b: представление раздела заказов в кабинете ("" = архетип-дефолт).
-    orders_view: str = ""
     # ST-2c/ST-7b: стили секций {section_key: style} (валидные SECTION_STYLES).
     section_styles: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
@@ -3870,7 +3869,6 @@ WERKSTATT_MENUS = {
 WERKSTATT = DemoKit(
     key="werkstatt",
     whatsapp_number="+49 170 2000002",  # LS-1: видео-смета
-    orders_view="kanban",  # ST-5b: не архетип-дефолт (calendar) — showcase
     label="KFZ-Werkstatt Dreyer",
     # FB-3 Вариант B демо: свой промежуточный статус «Teile bestellt» (держит слот занятым).
     status_defs={
@@ -5474,8 +5472,6 @@ def apply_kit(tenant, key: str) -> bool:
         cfg["site_defaults"] = sd
     if kit.presence_mode in ("on", "off"):  # LS-2: «Jetzt erreichbar»
         cfg["presence"] = {"mode": kit.presence_mode}
-    if kit.orders_view in ("kanban", "calendar", "feed"):  # ST-5b
-        cfg["orders_view"] = kit.orders_view
     if kit.page_presets:  # ST-2: пресеты страниц (блоки выживают normalize — замок)
         from apps.core import page_presets as page_presets_mod
 

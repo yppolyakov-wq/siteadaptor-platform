@@ -13789,3 +13789,11 @@ msgstr ""
 #: templates/stays/units.html:0
 msgid "Settings for all units"
 msgstr "Einstellungen für alle Zimmer"
+
+#: apps/core/orders_view.py:0
+msgid "New booking"
+msgstr "Buchung"
+
+#: apps/core/orders_view.py:0
+msgid "New appointment"
+msgstr "Termin"

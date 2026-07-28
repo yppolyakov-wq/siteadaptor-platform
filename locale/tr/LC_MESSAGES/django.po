@@ -13762,3 +13762,11 @@ msgstr ""
 #: templates/stays/units.html:0
 msgid "Settings for all units"
 msgstr "Tüm odalar için ayarlar"
+
+#: apps/core/orders_view.py:0
+msgid "New booking"
+msgstr "Rezervasyon"
+
+#: apps/core/orders_view.py:0
+msgid "New appointment"
+msgstr "Randevu"

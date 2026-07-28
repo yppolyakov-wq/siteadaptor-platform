@@ -71,7 +71,7 @@
 <p class="text-gray-500 mb-6">{% trans "No bookings on this day." %}</p>
 {% endif %}
 
-<form method="post" action="{% url 'booking:booking-create' %}" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4 scroll-mt-24">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-3 gap-4">

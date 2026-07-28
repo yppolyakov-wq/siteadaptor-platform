@@ -1,10 +1,11 @@
 """ST-5b: представление раздела заказов — Канбан ⇄ Календарь ⇄ Лента.
 
-Хранение: плоский ключ site_config["orders_view"] ∈ {"kanban","calendar","feed"},
-presence-minimal (отсутствие = дефолт по архетипу; ТЗ D1: «календарь — услуги,
-лента — магазин»). Представления НЕ встраиваются друг в друга — сегмент-контрол
-навигирует между существующими страницами хаба «Verkäufe» (board / календарь
-booking|stays / список заказов) и персистит выбор.
+Фидбэк владельца 2026-07-28: маппинг ФИКСИРОВАННЫЙ — «Verkäufe» всегда
+открывает архетип-дефолт (отель → Belegungsplan, магазин → лента, прочее →
+канбан), сегмент-контрол — чистая навигация между страницами хаба (Board /
+календарь booking|stays / список заказов) БЕЗ персиста выбора; третьим пунктом
+— «＋ Buchung/Termin» (якорь на форму создания в календаре). Прежний персист
+site_config["orders_view"] удалён (v1 ST-5b), ключ больше не нормализуется.
 """
 
 from django.urls import NoReverseMatch, reverse
@@ -20,10 +21,21 @@ _LABELS = {
 _ICONS = {"kanban": "🧮", "calendar": "📅", "feed": "📃"}
 
 
+def _calendar_order(tenant):
+    """Порядок календарей по PRIMARY-архетипу (фикс 2026-07-28: у отеля активны
+    ОБА модуля — «Verkäufe» обязан открывать Belegungsplan, не booking)."""
+    from apps.core import archetypes
+
+    pairs = [("booking", "booking:calendar"), ("stays", "stays:calendar")]
+    if archetypes.primary_module(tenant) == "stays":
+        pairs.reverse()
+    return pairs
+
+
 def calendar_url(tenant):
-    """URL календарного представления: booking приоритетнее (день/ресурсы),
-    иначе stays (occupancy). Нет обоих модулей → "" (календарь недоступен)."""
-    for module, url_name in (("booking", "booking:calendar"), ("stays", "stays:calendar")):
+    """URL календарного представления: календарь primary-модуля первым (отель →
+    stays/Belegungsplan, услуги → booking). Нет обоих → "" (недоступен)."""
+    for module, url_name in _calendar_order(tenant):
         if tenant.is_module_active(module):
             try:
                 return reverse(url_name)
@@ -57,12 +69,9 @@ def default_view(tenant):
 
 
 def resolve_view(tenant):
-    """Выбранное владельцем представление (валидное и достижимое), иначе
-    архетип-дефолт; недостижимый вариант откатывается на kanban (board есть всегда)."""
-    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-    view = cfg.get("orders_view")
-    if view not in VIEWS:
-        view = default_view(tenant)
+    """Архетип-дефолт (фиксированный маппинг, фидбэк 2026-07-28); недостижимый
+    вариант откатывается на kanban (board есть всегда)."""
+    view = default_view(tenant)
     if not _view_url(tenant, view):
         return "kanban"
     return view
@@ -80,12 +89,38 @@ def entry_url_name(tenant):
     if view == "feed":
         return "orders:order-list"
     if view == "calendar":
-        return "booking:calendar" if tenant.is_module_active("booking") else "stays:calendar"
+        for module, url_name in _calendar_order(tenant):
+            if tenant.is_module_active(module):
+                return url_name
     return "board"
 
 
+def create_option(tenant):
+    """Третий пункт сегмента (фидбэк 2026-07-28): «＋ Buchung»/«＋ Termin» —
+    якорь на форму создания брони/термина в календаре. Нет календаря → None."""
+    extras = {
+        "stays": ("#walkin-form", _("New booking")),
+        "booking": ("#neu", _("New appointment")),
+    }
+    for module, url_name in _calendar_order(tenant):
+        anchor, label = extras[module]
+        if tenant.is_module_active(module):
+            try:
+                return {
+                    "view": "create",
+                    "label": label,
+                    "icon": "＋",
+                    "url": reverse(url_name) + anchor,
+                    "active": False,
+                }
+            except NoReverseMatch:  # pragma: no cover — модуль без маршрута
+                continue
+    return None
+
+
 def switch_options(tenant, active=""):
-    """Опции сегмент-контрола (только достижимые представления)."""
+    """Опции сегмент-контрола (только достижимые представления) + «＋ Buchung»
+    третьим пунктом. Чистая навигация — выбор больше не персистится."""
     out = []
     for view in VIEWS:
         url = _view_url(tenant, view)
@@ -100,4 +135,7 @@ def switch_options(tenant, active=""):
                 "active": view == active,
             }
         )
+    create = create_option(tenant)
+    if create:
+        out.append(create)
     return out

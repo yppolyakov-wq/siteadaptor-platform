@@ -1,17 +1,15 @@
 {% comment %}ST-5b: сегмент-контрол представлений раздела заказов (тег
-orders_view_switch). Каждая опция — мини-форма POST на set-orders-view:
-персист выбора + переход. classic_ui → options пуст, ничего не рендерим.{% endcomment %}
+orders_view_switch). Фидбэк 2026-07-28: чистая навигация ссылками (персист
+выбора удалён — «Verkäufe» всегда открывает архетип-дефолт); третьим пунктом
+«＋ Buchung/Termin» — якорь на форму создания в календаре. classic_ui →
+options пуст, ничего не рендерим.{% endcomment %}
 {% if options %}
-<div class="inline-flex items-center rounded-lg border border-gray-300 overflow-hidden text-sm mb-4" role="group">
+<div class="inline-flex items-center rounded-lg border border-gray-300 overflow-hidden text-sm mb-4" role="group" data-ov-switch>
   {% for o in options %}
-  <form method="post" action="{% url 'set-orders-view' %}" class="contents">
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <input type="hidden" name="view" value="{{ o.view }}">
-    <button type="submit"
-      class="px-3 py-1.5 {% if not forloop.first %}border-l border-gray-300{% endif %} {% if o.active %}bg-indigo-600 text-white font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
-      {{ o.icon }} {{ o.label }}
-    </button>
-  </form>
+  <a href="{{ o.url }}"
+     class="px-3 py-1.5 {% if not forloop.first %}border-l border-gray-300{% endif %} {% if o.active %}bg-indigo-600 text-white font-medium{% elif o.view == 'create' %}text-indigo-700 font-medium hover:bg-indigo-50{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+    {{ o.icon }} {{ o.label }}
+  </a>
   {% endfor %}
 </div>
 {% endif %}

@@ -1,9 +1,10 @@
-"""ST-5b: представление раздела заказов — Канбан ⇄ Календарь ⇄ Лента.
+"""ST-5b (ревизия по фидбэку 2026-07-28): фиксированный маппинг раздела заказов.
 
-Замки: normalize хранит ключ presence-minimal, дефолт по архетипу (услуги/
-отель → календарь, магазин → лента, прочее → канбан), недостижимое →
-kanban-фолбэк, сеттер персистит и редиректит, сегмент-контрол рендерится на
-доске и НЕ рендерится в classic_ui, хаб-плитка уважает выбор.
+Замки: «Verkäufе»/хаб-плитка всегда открывают архетип-дефолт (услуги/отель →
+календарь, магазин → лента, прочее → канбан), недостижимое → kanban-фолбэк;
+сегмент-контрол — чистая навигация ссылками (персист удалён, легаси-ключ
+orders_view дропается нормализацией) + «＋ Buchung/Termin» третьим пунктом;
+в classic_ui сегмент не рендерится.
 """
 
 from uuid import uuid4
@@ -40,9 +41,9 @@ def _req(method="get", data=None, tenant=None, path="/dashboard/board/"):
     return req
 
 
-def test_normalize_orders_view_presence_minimal():
-    assert siteconfig.normalize({"orders_view": "feed"})["orders_view"] == "feed"
-    assert "orders_view" not in siteconfig.normalize({"orders_view": "bogus"})
+def test_normalize_drops_retired_orders_view_key():
+    # Персист удалён (фидбэк 2026-07-28) — легаси-значения самоочищаются.
+    assert "orders_view" not in siteconfig.normalize({"orders_view": "feed"})
     assert "orders_view" not in siteconfig.normalize({})
 
 
@@ -70,24 +71,48 @@ def test_unreachable_choice_falls_back_to_kanban():
     assert ov.entry_url_name(t) == "board"
 
 
-def test_setter_persists_and_redirects_to_view():
-    t = TenantFactory(slug="ovp", name="OvP", enabled_modules=["catalog", "orders"])
-    resp = core_views.set_orders_view(
-        _req("post", {"view": "kanban"}, t, path="/dashboard/orders-view/")
+def test_stored_choice_is_ignored_fixed_mapping():
+    # Ключ в site_config (легаси после прежнего персиста) больше НЕ влияет:
+    # отель с сохранённым "kanban" всё равно входит через Belegungsplan.
+    t = TenantFactory(
+        slug="ovp",
+        name="OvP",
+        disabled_modules=["events", "booking"],
+        site_config={"orders_view": "kanban"},
     )
-    assert resp.status_code == 302 and resp.url.endswith("/board/")
-    t.refresh_from_db()
-    assert t.site_config["orders_view"] == "kanban"
-    # невалидное значение = сброс на архетип-дефолт (ключ удаляется)
-    core_views.set_orders_view(_req("post", {"view": "zzz"}, t, path="/dashboard/orders-view/"))
-    t.refresh_from_db()
-    assert "orders_view" not in t.site_config
+    assert ov.resolve_view(t) == "calendar"
+    assert ov.entry_url_name(t) == "stays:calendar"
+
+
+def test_hotel_with_both_calendar_modules_enters_belegungsplan():
+    # Демо-отель: booking И stays активны, primary = stays → «Verkäufe» обязан
+    # открывать Belegungsplan (не booking-календарь), «＋» ведёт на walk-in.
+    t = TenantFactory(slug="ovb2", name="OvB2", disabled_modules=["events"])
+    assert t.is_module_active("booking") and t.is_module_active("stays")
+    assert ov.entry_url_name(t) == "stays:calendar"
+    assert ov.create_option(t)["url"].endswith("#walkin-form")
+
+
+def test_create_option_third_in_switch():
+    # Отель → «＋ Buchung» с якорем на walk-in форму календаря stays.
+    hotel = TenantFactory(slug="ovn", name="OvN", disabled_modules=["events", "booking"])
+    opts = ov.switch_options(hotel, "calendar")
+    assert opts[-1]["view"] == "create" and opts[-1]["url"].endswith("#walkin-form")
+    # Услуги (booking) → «＋ Termin» с якорем #neu.
+    services = TenantFactory(slug="ovt", name="OvT", disabled_modules=["events", "stays"])
+    opts = ov.switch_options(services, "calendar")
+    assert opts[-1]["view"] == "create" and opts[-1]["url"].endswith("#neu")
+    # Чистый магазин (без календарей) — третьего пункта нет.
+    shop = TenantFactory(
+        slug="ovm", name="OvM", disabled_modules=["events", "stays", "booking", "jobs"]
+    )
+    assert all(o["view"] != "create" for o in ov.switch_options(shop, "feed"))
 
 
 def test_switch_renders_on_board_and_hidden_in_classic():
     t = TenantFactory(slug="ovr", name="OvR", enabled_modules=["catalog", "orders"])
     body = core_views.board(_req(tenant=t)).content.decode()
-    assert "/dashboard/orders-view/" in body and "Liste" in body
+    assert "data-ov-switch" in body and "Liste" in body
     classic = TenantFactory(
         slug="ovc",
         name="OvC",
@@ -95,15 +120,13 @@ def test_switch_renders_on_board_and_hidden_in_classic():
         site_config={"classic_ui": True},
     )
     body_c = core_views.board(_req(tenant=classic)).content.decode()
-    assert "/dashboard/orders-view/" not in body_c
+    assert "data-ov-switch" not in body_c
 
 
-def test_hub_tile_orders_honors_choice():
+def test_hub_tile_orders_uses_archetype_default():
+    # Чистый магазин (календарные модули выключены) → архетип-дефолт «лента».
     t = TenantFactory(
-        slug="ovh",
-        name="OvH",
-        enabled_modules=["catalog", "orders"],
-        site_config={"orders_view": "feed"},
+        slug="ovh", name="OvH", disabled_modules=["events", "stays", "booking", "jobs"]
     )
     tiles = dash.hub_tiles(t)
     assert tiles[0]["key"] == "orders" and tiles[0]["url_name"] == "orders:order-list"

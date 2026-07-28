@@ -40,7 +40,6 @@ from apps.core.views import (
     seo_settings_view,
     set_cabinet_lang_view,
     set_classic_ui_view,
-    set_orders_view,
     set_presence_view,
     set_ui_mode_view,
     settings_view,
@@ -122,8 +121,6 @@ urlpatterns = [
     path("dashboard/classic-ui/", set_classic_ui_view, name="set-classic-ui"),
     # LS-2: режим присутствия «Jetzt erreichbar» (auto/on/off, targeted-write).
     path("dashboard/presence/", set_presence_view, name="set-presence"),
-    # ST-5b: представление раздела заказов (kanban/calendar/feed, targeted-write).
-    path("dashboard/orders-view/", set_orders_view, name="set-orders-view"),
     # ST-4a: лендинг «Integrationen» (карточки-входы; хаб-плитка главной).
     path("dashboard/integrationen/", integrations_home, name="integrations-home"),
     # ST-6a: Marketing-центр (лендинг: карточки ROI-порядка + обзор напоминаний

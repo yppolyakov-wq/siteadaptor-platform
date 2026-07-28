@@ -1131,9 +1131,11 @@ def test_shop_new_ideology_page_presets():
 
 
 def test_werkstatt_new_ideology_orders_view():
+    # ST-5b ревизия (фидбэк 2026-07-28): персист orders_view удалён — кит его
+    # больше не пишет, вход «Verkäufe» = архетип-дефолт.
     t = TenantFactory(slug="ni7", name="NI7", business_type="werkstatt")
     assert demo_kits.apply_kit(t, "werkstatt")
-    assert t.site_config.get("orders_view") == "kanban"  # ST-5b
+    assert "orders_view" not in t.site_config
     assert t.whatsapp_number  # LS-1
 
 

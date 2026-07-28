@@ -13832,3 +13832,11 @@ msgstr ""
 #: templates/stays/units.html:0
 msgid "Settings for all units"
 msgstr "Настройки для всех номеров"
+
+#: apps/core/orders_view.py:0
+msgid "New booking"
+msgstr "Бронирование"
+
+#: apps/core/orders_view.py:0
+msgid "New appointment"
+msgstr "Запись"

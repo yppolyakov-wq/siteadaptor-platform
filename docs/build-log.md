@@ -6720,3 +6720,26 @@ S3-обложка `_archetype_cover.html` (баннер 16/6 → абзац intr
   страница 2577 → 1987 px. Playwright: 4 слайда/4 точки, клик по точке листает,
   кнопка «Entdecken» (DE). Демо-киты не трогали — их hero+галерея сами
   собираются в слайды. Без миграций.
+
+### 2026-07-28 (ночь) — «Verkäufe» = фиксированный вход + «＋ Buchung» в сегменте (фидбэк)
+
+Спецификация владельца: «Verkäufe» открывает Belegungsplan (у отеля), кнопка
+Board — переход на канбан (настройка колонок уже внутри доски, W5/FB-2),
+третьим пунктом рядом с Kalender/Board — «Добавить бронирование».
+
+- **Персист выбора ST-5b удалён** (сегмент ПЕРСИСТИЛ клик — визит на Board
+  перебиндивал «Verkäufe» на канбан, что противоречит спецификации): сегмент-
+  контрол теперь чистые GET-ссылки; `resolve_view` = архетип-дефолт; endpoint
+  `set-orders-view` и normalize-ключ `orders_view` удалены (легаси-значения
+  самоочищаются normalize'ом); демо-кит werkstatt ключ больше не пишет.
+- **Фикс приоритета календаря**: у демо-отеля активны booking И stays —
+  `entry_url_name` вёл в booking-календарь. Новый `_calendar_order` по
+  `primary_module`: отель → stays/Belegungsplan первым (замок
+  test_hotel_with_both_calendar_modules_enters_belegungsplan).
+- **«＋ Buchung» третьим пунктом** сегмента (create_option): якорь на форму
+  создания — stays `#walkin-form`, booking `#neu` (id добавлен); магазин без
+  календарей — пункта нет. 2 msgid × 5 .po.
+- Стенд Playwright: Verkäufe → /dashboard/stays/ (Belegungsplan), сегмент
+  «Board · Kalender · ＋ Buchung», «＋» скроллит к walk-in форме, Board →
+  канбан с «⚙️ Spalten», после визита Board «Verkäufe» ПО-ПРЕЖНЕМУ ведёт в
+  календарь. Без миграций.

@@ -13819,3 +13819,11 @@ msgstr ""
 #: templates/stays/units.html:0
 msgid "Settings for all units"
 msgstr "Налаштування для всіх номерів"
+
+#: apps/core/orders_view.py:0
+msgid "New booking"
+msgstr "Бронювання"
+
+#: apps/core/orders_view.py:0
+msgid "New appointment"
+msgstr "Запис"
