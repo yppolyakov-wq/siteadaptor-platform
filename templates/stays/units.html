@@ -301,73 +301,91 @@
         </div>
       </div>
 
-      <form method="post" enctype="multipart/form-data" class="grid sm:grid-cols-3 gap-3 items-end">
+      {% comment %}Фидбэк 2026-07-28: «портянка» настроек номера → ТАБЫ. Инвариант W0:
+      ВСЕ поля остаются в DOM (панели скрываются только CSS-классом hidden) — одна
+      форма, один Save сохраняет всё независимо от активного таба.{% endcomment %}
+      <form method="post" enctype="multipart/form-data" data-unit-tabs>
         {% csrf_token %}
         <input type="hidden" name="action" value="unit_settings"><input type="hidden" name="unit" value="{{ u.pk }}">
-        <div class="sm:col-span-3">
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</label>
-          <textarea name="description" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea>
-          {# Ф1: переводы неосновных локалей — свёрнуты по умолчанию (не «все языки сразу»). #}
-          {% if u.i18n_inputs %}
-          <details class="mt-2">
-            <summary class="cursor-pointer text-xs text-indigo-600">🌐 {% trans "Translations" %}</summary>
-            <div class="mt-1 space-y-2">
-              {% for inp in u.i18n_inputs %}
-                <label class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
-                <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <div class="flex items-center gap-1.5 flex-wrap mb-3">
+          <button type="button" data-ut-tab="basis" aria-selected="true" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-indigo-600 text-white">{% trans "Grunddaten" %}</button>
+          <button type="button" data-ut-tab="preise" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Preise" %}</button>
+          <button type="button" data-ut-tab="regeln" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Regeln & Kapazität" %}</button>
+        </div>
+
+        <div data-ut-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end">
+          <div class="sm:col-span-3">
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</label>
+            <textarea name="description" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea>
+            {# Ф1: переводы неосновных локалей — свёрнуты по умолчанию (не «все языки сразу»). #}
+            {% if u.i18n_inputs %}
+            <details class="mt-2">
+              <summary class="cursor-pointer text-xs text-indigo-600">🌐 {% trans "Translations" %}</summary>
+              <div class="mt-1 space-y-2">
+                {% for inp in u.i18n_inputs %}
+                  <label class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
+                  <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                {% endfor %}
+              </div>
+            </details>
+            {% endif %}
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bed type" %}</label>
+            <input name="bed_type" type="text" value="{{ u.bed_type }}" placeholder="{% trans 'e.g. Doppelbett, 2 Einzelbetten' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Area (m², 0 = hide)" %}</label>
+            <input name="area_sqm" type="number" min="0" value="{{ u.area_sqm }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amenities" %}</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 text-sm text-gray-700">
+              {% for key, label, icon in amenities %}
+                <label class="flex items-center gap-2"><input type="checkbox" name="amenities" value="{{ key }}" {% if key in u.amenities %}checked{% endif %} class="rounded"> {{ icon }} {{ label }}</label>
               {% endfor %}
             </div>
-          </details>
-          {% endif %}
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
-          <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Weekend / night (€, Fr+Sa; 0 = same)" %}</label>
-          <input name="weekend_price_eur" type="text" value="{{ u.weekend_price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Quantity (identical units)" %}</label>
-          <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</label>
-          <input name="min_nights" type="number" min="1" value="{{ u.min_nights }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. guests" %}</label>
-          <input name="max_guests" type="number" min="1" value="{{ u.max_guests }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</label>
-          <input name="deposit_eur" type="text" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <label class="flex items-center gap-2 text-sm text-gray-600">
-          <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
-        </label>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Area (m², 0 = hide)" %}</label>
-          <input name="area_sqm" type="number" min="0" value="{{ u.area_sqm }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <div class="sm:col-span-2">
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bed type" %}</label>
-          <input name="bed_type" type="text" value="{{ u.bed_type }}" placeholder="{% trans 'e.g. Doppelbett, 2 Einzelbetten' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </div>
-        <div class="sm:col-span-3">
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amenities" %}</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 text-sm text-gray-700">
-            {% for key, label, icon in amenities %}
-              <label class="flex items-center gap-2"><input type="checkbox" name="amenities" value="{{ key }}" {% if key in u.amenities %}checked{% endif %} class="rounded"> {{ icon }} {{ label }}</label>
-            {% endfor %}
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</label>
+            <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
           </div>
         </div>
-        <div class="sm:col-span-2">
-          <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</label>
-          <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
+
+        <div data-ut-panel="preise" class="hidden grid sm:grid-cols-3 gap-3 items-end">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
+            <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Weekend / night (€, Fr+Sa; 0 = same)" %}</label>
+            <input name="weekend_price_eur" type="text" value="{{ u.weekend_price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</label>
+            <input name="deposit_eur" type="text" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
         </div>
-        <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+
+        <div data-ut-panel="regeln" class="hidden grid sm:grid-cols-3 gap-3 items-end">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Quantity (identical units)" %}</label>
+            <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</label>
+            <input name="min_nights" type="number" min="1" value="{{ u.min_nights }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. guests" %}</label>
+            <input name="max_guests" type="number" min="1" value="{{ u.max_guests }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          </div>
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
+          </label>
+        </div>
+
+        <button class="mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
       </form>
 
       {# фото номера: миниатюры + удаление (отдельные формы — не вкладывать в settings) #}
@@ -549,4 +567,27 @@
   </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create unit" %}</button>
 </form>
+<script>
+// Фидбэк 2026-07-28: табы формы номера. Делегирование на document (урок Ф1:
+// инлайн-скрипты партиалов могут парситься раньше разметки). Панели скрываются
+// ТОЛЬКО классом hidden — все поля остаются в форме (инвариант W0).
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-ut-tab]");
+  if (!btn) return;
+  var form = btn.closest("[data-unit-tabs]");
+  if (!form) return;
+  var key = btn.getAttribute("data-ut-tab");
+  form.querySelectorAll("[data-ut-panel]").forEach(function (p) {
+    p.classList.toggle("hidden", p.getAttribute("data-ut-panel") !== key);
+  });
+  form.querySelectorAll("[data-ut-tab]").forEach(function (b) {
+    var active = b === btn;
+    b.setAttribute("aria-selected", active ? "true" : "false");
+    b.classList.toggle("bg-indigo-600", active);
+    b.classList.toggle("text-white", active);
+    b.classList.toggle("bg-gray-100", !active);
+    b.classList.toggle("text-gray-600", !active);
+  });
+});
+</script>
 {% endblock %}

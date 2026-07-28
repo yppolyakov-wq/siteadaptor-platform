@@ -379,3 +379,29 @@ def test_stay_emails_include_checkin_link_until_signed():
     # без ссылки (подписан/нет базы) — строка не рендерится
     _subj, body, _html = _render("stay_confirmed", {**ctx, "checkin_url": ""})
     assert "Online-Check-in" not in body
+
+
+def test_unit_form_tabs_keep_all_fields_in_dom():
+    """Фидбэк 2026-07-28: форма номера — табы Grunddaten/Preise/Regeln.
+    Инвариант W0: ВСЕ поля в DOM (панели скрыты только CSS) — Save с любого
+    таба сохраняет всё."""
+    StayUnit.objects.create(name="TabZimmer", price_cents=9000)
+    body = views.units(_req()).content.decode()
+    assert 'data-unit-tabs' in body and 'data-ut-tab="preise"' in body
+    for field in (
+        'name="description"',
+        'name="price_eur"',
+        'name="weekend_price_eur"',
+        'name="deposit_eur"',
+        'name="quantity"',
+        'name="min_nights"',
+        'name="max_guests"',
+        'name="require_manual_confirm"',
+        'name="area_sqm"',
+        'name="bed_type"',
+        'name="amenities"',
+        'name="photos"',
+    ):
+        assert field in body, field
+    # скрытие — только классом hidden на панелях, поля не выпадают из формы
+    assert 'data-ut-panel="preise" class="hidden' in body
