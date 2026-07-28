@@ -13713,3 +13713,7 @@ msgstr "Misafir, e-posta veya rezervasyon numarası ara…"
 
 msgid "Anreisen, Buchungen & Zimmer auf einen Blick"
 msgstr "Girişler, rezervasyonlar ve odalar bir bakışta"
+
+#, python-format
+msgid "noch %(n)s"
+msgstr "son %(n)s"

@@ -13772,3 +13772,7 @@ msgstr "Пошук за гостем, поштою або номером бро�
 
 msgid "Anreisen, Buchungen & Zimmer auf einen Blick"
 msgstr "Заїзди, броні та номери одним поглядом"
+
+#, python-format
+msgid "noch %(n)s"
+msgstr "залишилось %(n)s"

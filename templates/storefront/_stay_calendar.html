@@ -31,7 +31,8 @@
         <button type="button" data-date="{{ d.date|date:'Y-m-d' }}"
                 class="stay-cal-day rounded-lg py-1.5 leading-none font-semibold text-gray-900 ring-1 ring-emerald-100 hover:ring-2 hover:ring-emerald-400 hover:bg-emerald-50 transition"
                 {% if cal_multi %}title="{% blocktrans with n=d.free %}{{ n }} available{% endblocktrans %}"{% endif %}>
-          {{ d.date.day }}{% if cal_multi %}<span class="block text-[9px] text-emerald-600 mt-0.5">{{ d.free }}×</span>{% endif %}
+          {# Фидбэк 2026-07-28: «4×» непонятен — число показываем только при дефиците («noch 2»), полная инфа в title. #}
+          {{ d.date.day }}{% if cal_multi and d.free <= 2 %}<span class="block text-[9px] text-amber-600 font-medium mt-0.5">{% blocktrans with n=d.free %}noch {{ n }}{% endblocktrans %}</span>{% endif %}
         </button>
       {% else %}
         {% comment %}Батч B: занятый (не прошлый) день несёт data-date — JS может

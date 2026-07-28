@@ -54,3 +54,23 @@
   тесте/normalize), test_services_section (2), test_sitetemplates(hero_widget).
 - Правило: ассерты с англ. текстом в DE-рендере → менять на немецкий текст
   ЛИБО убирать зависимость от локали (id/классы вместо строк) — что чище.
+
+## Прогресс (2026-07-28, продолжение)
+
+- Кластер 1 (catalog+tenants+core) ПОЛНОСТЬЮ ЗЕЛЁНЫЙ под DE. Сделано:
+  (1) normalize стал локале-стабильным (`translation.override(None)` вокруг
+  `_normalize_impl` в siteconfig.py — golden целы, хранимый конфиг не зависит
+  от языка запроса); (2) de.po QA-фиксы DeepL-коротышей: Board/Tickets
+  identity, Book→Buchen, Stay→Übernachtung, Kontakte identity,
+  Messages→Nachrichten, `%(m)s min`→identity (было «Ich habe»!), Set/Min;
+  (3) EN→DE ассерты обновлены в: test_sellable_card (insgesamt, bis zu,
+  / Nacht, mindestens 2), test_media_registry (unbenutzt), test_ui_mode
+  (Derzeit: Experte), test_home_builder (Version speichern),
+  test_sitetemplates (Verfügbarkeit prüfen), test_modules (Empfehlungen für
+  Ihr Unternehmen, untypisch), test_hub_tabs — БЕЗ правок (после словаря).
+- ОСТАЛОСЬ: прогнать кластер 2 (stays/booking/orders/events) и кластер 3
+  (promotions/crm/account/aggregator/jobs/collections/finance/inventory/
+  loyalty/imports/notifications/telegram/reviews/partners + billing без
+  test_tasks) ПОСЛЕДОВАТЕЛЬНО (не параллелить — общая тест-БД!), чинить
+  той же методикой; затем один коммит T-1: de.po + все тест-правки +
+  normalize-фикс + build-log; push → CI → merge.

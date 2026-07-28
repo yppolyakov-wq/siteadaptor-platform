@@ -13604,3 +13604,7 @@ msgstr "Search guest, e-mail or booking number…"
 
 msgid "Anreisen, Buchungen & Zimmer auf einen Blick"
 msgstr "Arrivals, bookings & rooms at a glance"
+
+#, python-format
+msgid "noch %(n)s"
+msgstr "%(n)s left"
