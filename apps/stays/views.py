@@ -967,23 +967,25 @@ def units(request, pk=None):
             messages.success(request, _("Settings saved."))
         if pk:
             return redirect("stays:unit-edit", pk=pk)
-        # Фидбэк 2026-07-28 (№2): Save глобальной настройки возвращает на её таб.
-        _settings_actions = {
-            "kurtaxe",
-            "rateplan",
-            "rateplan_toggle",
-            "rateplan_delete",
-            "autodiscount_add",
-            "autodiscount_delete",
-            "booking_window",
-            "restriction_add",
-            "restriction_delete",
-            "occupancy_add",
-            "occupancy_delete",
-            "gap_deal",
+        # Фидбэк 2026-07-28 (№2/№3): Save глобальной настройки возвращает на её
+        # таб И на её ПОД-ТАБ (секцию), чтобы владелец не искал место заново.
+        _settings_sections = {
+            "rateplan": "preise",
+            "rateplan_toggle": "preise",
+            "rateplan_delete": "preise",
+            "autodiscount_add": "preise",
+            "autodiscount_delete": "preise",
+            "occupancy_add": "preise",
+            "occupancy_delete": "preise",
+            "gap_deal": "preise",
+            "booking_window": "regeln",
+            "restriction_add": "regeln",
+            "restriction_delete": "regeln",
+            "kurtaxe": "kurtaxe",
         }
-        if action in _settings_actions:
-            return redirect(reverse("stays:units") + "?tab=einstellungen")
+        sec = _settings_sections.get(action)
+        if sec:
+            return redirect(reverse("stays:units") + f"?tab=einstellungen&sec={sec}")
         return redirect("stays:units")
 
     unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")
@@ -1026,6 +1028,8 @@ def units(request, pk=None):
             "unit_page": unit_page,  # 2026-07-28: страница одного номера
             # Фидбэк №2: активный таб списка (einheiten | einstellungen)
             "tab": request.GET.get("tab", ""),
+            # Фидбэк №3: активная секция настроек (preise | regeln | kurtaxe | kanaele)
+            "sec": request.GET.get("sec", ""),
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),

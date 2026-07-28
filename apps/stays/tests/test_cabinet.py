@@ -441,9 +441,14 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     assert 'data-ut-panel="basis preise regeln"' in body
     for panel in ("zimmer", "ical"):
         assert f'data-ut-panel="{panel}" class="hidden' in body, panel
-    # глобальные настройки живут на СПИСКЕ — в аккордеонах, поля в DOM (W0)
+    # глобальные настройки живут на СПИСКЕ — 8 карточек (часть раскрыта в своих
+    # под-табах), поля в DOM (W0)
     body_list = views.units(_req()).content.decode()
-    assert body_list.count('<details class="bg-white') == 8
+    assert (
+        body_list.count('<details class="bg-white')
+        + body_list.count('<details open class="bg-white')
+        == 8
+    )
     for field in (
         'name="kurtaxe_eur"',  # Kurtaxe
         'name="max_advance_days"',  # Verkaufsregeln
@@ -467,16 +472,29 @@ def test_units_list_page_tabs_and_settings_groups():
     # дефолт: активен список, настройки скрыты (но в DOM — W0)
     assert 'data-pt-panel="einstellungen" class="hidden"' in body
     assert 'name="kurtaxe_eur"' in body
-    # группы настроек в заданном порядке (эмодзи-маркеры h3 уникальны на странице)
+    # группы настроек — ПОД-ТАБЫ в заданном порядке, все панели в DOM (W0)
+    for st in ("preise", "regeln", "kurtaxe", "kanaele"):
+        assert f'data-st-tab="{st}"' in body and f'data-st-panel="{st}"' in body, st
     assert body.index("💶") < body.index("📅") < body.index("🏛") < body.index("🔗")
     assert "Preise & Rabatte" in body and "Kanäle & Export" in body
+    # дефолт: активна секция «Preise», остальные скрыты только CSS
+    assert 'data-st-panel="regeln" class="hidden"' in body
+    assert 'name="max_advance_days"' in body  # но поля скрытой секции в DOM
+    # ?sec=regeln → активна её панель
+    body_sec = views.units(_req(data={"tab": "einstellungen", "sec": "regeln"})).content.decode()
+    assert 'data-st-panel="regeln" class="hidden"' not in body_sec
+    assert 'data-st-panel="preise" class="hidden"' in body_sec
     # ?tab=einstellungen → активен таб настроек, список скрыт
     body2 = views.units(_req(data={"tab": "einstellungen"})).content.decode()
     assert 'data-pt-panel="einstellungen" class="hidden"' not in body2
     assert 'data-pt-panel="einheiten" class="hidden ' in body2
-    # Save глобальной настройки редиректит на таб настроек
+    # Save настройки редиректит на её таб И под-таб (секцию)
     resp = views.units(_req("post", data={"action": "gap_deal", "gap_discount_percent": "25"}))
-    assert resp.status_code == 302 and resp.url.endswith("?tab=einstellungen")
+    assert resp.status_code == 302 and resp.url.endswith("?tab=einstellungen&sec=preise")
+    resp_k = views.units(_req("post", data={"action": "kurtaxe", "kurtaxe_eur": "2,00"}))
+    assert resp_k.url.endswith("?tab=einstellungen&sec=kurtaxe")
+    resp_r = views.units(_req("post", data={"action": "booking_window", "max_advance_days": "30"}))
+    assert resp_r.url.endswith("?tab=einstellungen&sec=regeln")
     # создание юнита — редирект ТОЧНО на страницу нового номера (не на список/таб)
     resp2 = views.units(_req("post", data={"action": "unit", "name": "Neu Z", "type": "room"}))
     neu = StayUnit.objects.get(name="Neu Z")

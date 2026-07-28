@@ -354,7 +354,16 @@
 «Einstellungen», 4 смысловые группы (цены → правила продаж → Kurtaxe →
 каналы/экспорт), внутри — прежние свёрнутые details.{% endcomment %}
 <div data-pt-panel="einstellungen" class="{% if tab != 'einstellungen' %}hidden{% endif %}">
-<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">💶 {% trans "Prices & discounts" %}</h3>
+{% comment %}Фидбэк 2026-07-28 (№3): группы настроек — ПОД-ТАБЫ (не заголовки подряд).
+Активная секция приходит с сервера (?sec= из redirect'а Save), переключение —
+делегированным JS; полоса табов скроллится на мобиле (overflow-x-auto).{% endcomment %}
+<div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
+  <button type="button" data-st-tab="preise" aria-selected="{% if sec != 'regeln' and sec != 'kurtaxe' and sec != 'kanaele' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec != 'regeln' and sec != 'kurtaxe' and sec != 'kanaele' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">💶 {% trans "Prices & discounts" %}</button>
+  <button type="button" data-st-tab="regeln" aria-selected="{% if sec == 'regeln' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'regeln' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">📅 {% trans "Sales rules" %}</button>
+  <button type="button" data-st-tab="kurtaxe" aria-selected="{% if sec == 'kurtaxe' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'kurtaxe' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🏛 {% trans "Kurtaxe & house rules" %}</button>
+  <button type="button" data-st-tab="kanaele" aria-selected="{% if sec == 'kanaele' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'kanaele' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🔗 {% trans "Channels & export" %}</button>
+</div>
+<div data-st-panel="preise" class="{% if sec == 'regeln' or sec == 'kurtaxe' or sec == 'kanaele' %}hidden{% endif %}">
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Rate plans" %} <span class="text-xs font-normal text-gray-400">{% if rate_plans %}· {{ rate_plans|length }}{% endif %}</span></summary>
@@ -525,9 +534,10 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </details>
-<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">📅 {% trans "Sales rules" %}</h3>
+</div>
+<div data-st-panel="regeln" class="{% if sec != 'regeln' %}hidden{% endif %}">
 {# G12: правила продаж (Verkaufsregeln) — сезонный min/max-stay, CTA/CTD, окно #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Sales rules" %} <span class="text-xs font-normal text-gray-400">{% if restriction_rules %}· {{ restriction_rules|length }}{% endif %}</span></summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited." %}</p>
 
@@ -603,9 +613,10 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
   </form>
 </details>
-<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">🏛 {% trans "Kurtaxe & house rules" %}</h3>
+</div>
+<div data-st-panel="kurtaxe" class="{% if sec != 'kurtaxe' %}hidden{% endif %}">
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Kurtaxe & house rules" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %}</p>
   <form method="post" class="flex items-end gap-3 flex-wrap">
@@ -626,19 +637,21 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </details>
-<h3 class="text-sm font-semibold text-gray-500 mt-6 mb-2 first:mt-0">🔗 {% trans "Channels & export" %}</h3>
+</div>
+<div data-st-panel="kanaele" class="{% if sec != 'kanaele' %}hidden{% endif %}">
 {# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Booking widget for your website" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
   <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
 </details>
 {# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Metasearch & Google (rates feed)" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
   <input type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 font-mono text-[11px]">
 </details>
+</div>
 </div>
 <script>
 // Фидбэк 2026-07-28 (№2): табы страницы списка «Einheiten / Einstellungen».
@@ -662,6 +675,25 @@ document.addEventListener("click", function (e) {
     b.classList.toggle("hover:bg-gray-200", !active);
   });
   try { history.replaceState(null, "", key === "einstellungen" ? "?tab=einstellungen" : location.pathname); } catch (err) {}
+});
+// Под-табы внутри «Einstellungen» (💶 / 📅 / 🏛 / 🔗).
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-st-tab]");
+  if (!btn) return;
+  var key = btn.getAttribute("data-st-tab");
+  document.querySelectorAll("[data-st-panel]").forEach(function (p) {
+    p.classList.toggle("hidden", p.getAttribute("data-st-panel") !== key);
+  });
+  document.querySelectorAll("[data-st-tab]").forEach(function (b) {
+    var active = b === btn;
+    b.setAttribute("aria-selected", active ? "true" : "false");
+    b.classList.toggle("bg-indigo-600", active);
+    b.classList.toggle("text-white", active);
+    b.classList.toggle("bg-gray-100", !active);
+    b.classList.toggle("text-gray-600", !active);
+    b.classList.toggle("hover:bg-gray-200", !active);
+  });
+  try { history.replaceState(null, "", "?tab=einstellungen&sec=" + key); } catch (err) {}
 });
 </script>
 {% endif %}
