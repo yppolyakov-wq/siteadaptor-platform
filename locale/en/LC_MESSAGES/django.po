@@ -13647,3 +13647,7 @@ msgid ""
 msgstr ""
 "Enable gap discount: automatically offer short gaps between bookings (up to "
 "3 nights) at −25 %. Adjustable later under “Units”."
+
+#: templates/stays/units.html:0
+msgid "Settings for all units"
+msgstr "Settings for all units"

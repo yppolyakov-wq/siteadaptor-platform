@@ -405,3 +405,31 @@ def test_unit_form_tabs_keep_all_fields_in_dom():
         assert field in body, field
     # скрытие — только классом hidden на панелях, поля не выпадают из формы
     assert 'data-ut-panel="preise" class="hidden' in body
+
+
+def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
+    """Фидбэк 2026-07-28 (доводка): табы охватывают ВЕСЬ блок номера — Zimmer/
+    Sperrzeiten/Saisonpreise/iCal тоже панели, а не хвост «портянки». Глобальные
+    настройки (тарифы/скидки/правила/фиды) — свёрнутые <details> под номерами.
+    Инвариант W0: все поля остаются в DOM."""
+    StayUnit.objects.create(name="TabZimmer", price_cents=9000)
+    body = views.units(_req()).content.decode()
+    for tab in ("basis", "preise", "regeln", "zimmer", "ical"):
+        assert f'data-ut-tab="{tab}"' in body, tab
+    # форма принадлежит трём табам сразу и прячется на Zimmer/iCal (там свой Save)
+    assert 'data-ut-panel="basis preise regeln"' in body
+    for panel in ("zimmer", "ical"):
+        assert f'data-ut-panel="{panel}" class="hidden' in body, panel
+    # глобальные настройки — в аккордеонах, но все их поля в DOM (W0)
+    assert body.count('<details class="bg-white') == 8
+    for field in (
+        'name="kurtaxe_eur"',  # Kurtaxe
+        'name="max_advance_days"',  # Verkaufsregeln
+        'name="occupancy"',  # PMS-D
+        'name="gap_max_nights"',  # Lücken-Deal
+        'name="free_cancel_days"',  # Ratenpläne
+        'name="threshold"',  # Automatik-Rabatte
+    ):
+        assert field in body, field
+    # порядок: номера ВЫШЕ глобальных настроек (страница открывается номерами)
+    assert body.index("TabZimmer") < body.index('<details class="bg-white')

@@ -18,299 +18,10 @@
   {% endfor %}
 {% endif %}
 
-{# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">{% trans "Booking widget for your website" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
-  <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
-</div>
-
-{# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">{% trans "Metasearch & Google (rates feed)" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
-  <input type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 font-mono text-[11px]">
-</div>
-
-{# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">{% trans "Kurtaxe & house rules" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %}</p>
-  <form method="post" class="flex items-end gap-3 flex-wrap">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="kurtaxe">
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amount / adult / night (€)" %}</label>
-      <input name="kurtaxe_eur" type="text" value="{{ stay_settings.kurtaxe_eur|stringformat:'.2f' }}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label" %}</label>
-      <input name="kurtaxe_label" type="text" value="{{ stay_settings.kurtaxe_label }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div class="w-full">
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</label>
-      <textarea name="house_rules" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea>
-    </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-  </form>
-</div>
-
-{# G4: авто-скидки на проживание — список правил (несколько на тип) ----------- #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">{% trans "Automatic discounts" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Applied to the room price (not extras/Kurtaxe). Add several rules — if more than one applies, the highest discount wins." %}</p>
-  {% for r in auto_rules %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
-      <span>
-        <span class="font-medium">{{ r.kind_label }}</span>
-        <span class="text-gray-500">·
-          {% if r.kind == 'los' %}{% blocktrans with n=r.threshold %}from {{ n }} nights{% endblocktrans %}
-          {% elif r.kind == 'early_bird' %}{% blocktrans with n=r.threshold %}{{ n }}+ days ahead{% endblocktrans %}
-          {% else %}{% blocktrans with n=r.threshold %}within {{ n }} days{% endblocktrans %}{% endif %}
-          → −{{ r.percent }} %</span>
-      </span>
-      <form method="post">{% csrf_token %}
-        <input type="hidden" name="action" value="autodiscount_delete"><input type="hidden" name="index" value="{{ r.index }}">
-        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-      </form>
-    </div>
-  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No automatic discounts yet." %}</p>{% endfor %}
-
-  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="autodiscount_add">
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Type" %}</label>
-      <select name="kind" class="rounded-lg border border-gray-300 px-2 py-2 text-sm">
-        {% for value, label in auto_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-      </select>
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Threshold (nights / days)" %}</label>
-      <input name="threshold" type="number" min="1" max="365" value="7" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Discount %" %}</label>
-      <input name="percent" type="number" min="1" max="90" value="10" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
-  </form>
-</div>
-
-{# G12: правила продаж (Verkaufsregeln) — сезонный min/max-stay, CTA/CTD, окно #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">{% trans "Sales rules" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited." %}</p>
-
-  <form method="post" class="flex items-end gap-3 flex-wrap mb-4">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="booking_window">
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bookable up to … days ahead (0 = no limit)" %}</label>
-      <input name="max_advance_days" type="number" min="0" max="365" value="{{ stay_settings.max_advance_days }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "At least … days before arrival (0 = same day)" %}</label>
-      <input name="min_advance_days" type="number" min="0" max="90" value="{{ stay_settings.min_advance_days }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-  </form>
-
-  {% for r in restriction_rules %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
-      <span>
-        <span class="font-medium">{% if r.start or r.end %}{{ r.start|default:"…" }} – {{ r.end|default:"…" }}{% else %}{% trans "Always" %}{% endif %}</span>
-        <span class="text-gray-500">· {% if r.unit_name %}{{ r.unit_name }}{% else %}{% trans "All units" %}{% endif %}
-          {% if r.min_nights %}· {% blocktrans with n=r.min_nights %}min. {{ n }} nights{% endblocktrans %}{% endif %}
-          {% if r.max_nights %}· {% blocktrans with n=r.max_nights %}max. {{ n }} nights{% endblocktrans %}{% endif %}
-          {% if r.no_checkin %}· {% trans "no check-in:" %} {% for d in weekdays %}{% if d.0 in r.no_checkin %}{{ d.1 }} {% endif %}{% endfor %}{% endif %}
-          {% if r.no_checkout %}· {% trans "no check-out:" %} {% for d in weekdays %}{% if d.0 in r.no_checkout %}{{ d.1 }} {% endif %}{% endfor %}{% endif %}</span>
-      </span>
-      <form method="post">{% csrf_token %}
-        <input type="hidden" name="action" value="restriction_delete"><input type="hidden" name="index" value="{{ r.index }}">
-        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-      </form>
-    </div>
-  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No sales rules yet." %}</p>{% endfor %}
-
-  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="restriction_add">
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "From (optional)" %}</label>
-      <input name="start" type="date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Until (optional)" %}</label>
-      <input name="end" type="date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Unit" %}</label>
-      <select name="unit" class="rounded-lg border border-gray-300 px-2 py-2 text-sm">
-        <option value="">{% trans "All units" %}</option>
-        {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
-      </select>
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</label>
-      <input name="min_nights" type="number" min="0" max="365" value="0" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. nights" %}</label>
-      <input name="max_nights" type="number" min="0" max="365" value="0" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "No check-in on" %}</span>
-      <div class="flex gap-1.5 flex-wrap">
-        {% for d in weekdays %}<label class="inline-flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-1 cursor-pointer"><input type="checkbox" name="no_checkin" value="{{ d.0 }}" class="rounded border-gray-300">{{ d.1 }}</label>{% endfor %}
-      </div>
-    </div>
-    <div>
-      <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "No check-out on" %}</span>
-      <div class="flex gap-1.5 flex-wrap">
-        {% for d in weekdays %}<label class="inline-flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-1 cursor-pointer"><input type="checkbox" name="no_checkout" value="{{ d.0 }}" class="rounded border-gray-300">{{ d.1 }}</label>{% endfor %}
-      </div>
-    </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
-  </form>
-</div>
-
-{# PMS-D: ручные occupancy-правила цены — «занятость ≥ X % → ±Y % на ночь». #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">📈 {% trans "Dynamic prices" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Nights in demand cost more, empty nights less: when a night's occupancy reaches the threshold, its ONLINE price changes by the given percent. Your own bookings at the desk keep the base price. The strictest matching rule wins." %}</p>
-
-  {% for r in occupancy_rules %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
-      <span>
-        {# % — вне blocktrans: литеральный % в python-format msgid ломает msgfmt. #}
-        <span class="font-medium">{% blocktrans with n=r.occupancy %}Occupancy ≥ {{ n }}{% endblocktrans %} %</span>
-        <span class="{% if r.percent > 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">→ {% if r.percent > 0 %}+{% endif %}{{ r.percent }} %</span>
-      </span>
-      <form method="post">{% csrf_token %}
-        <input type="hidden" name="action" value="occupancy_delete"><input type="hidden" name="index" value="{{ r.index }}">
-        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-      </form>
-    </div>
-  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No dynamic price rules yet — online prices always match the base price." %}</p>{% endfor %}
-
-  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="occupancy_add">
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Occupancy from (%)" %}</label>
-      <input name="occupancy" type="number" min="1" max="100" value="80" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. 10 or −15)" %}</label>
-      <input name="percent" type="number" min="-50" max="50" value="10" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
-  </form>
-</div>
-
-{# Lücken-Deal: суперскидка на короткие промежутки между бронями. #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">💥 {% trans "Lücken-Deal" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt die beste Ermäßigung (wird nicht addiert)." %}</p>
-  <form method="post" class="flex items-end gap-3 flex-wrap">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="gap_deal">
-    <label class="flex items-center gap-2 text-sm">
-      <input type="checkbox" name="enabled" value="1" {% if stay_settings.gap_max_nights %}checked{% endif %} class="rounded border-gray-300">
-      {% trans "Enabled" %}
-    </label>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücke bis … Nächte" %}</label>
-      <input name="gap_max_nights" type="number" min="1" max="14" value="{{ stay_settings.gap_max_nights|default:3 }}" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Rabatt %" %}</label>
-      <input name="gap_discount_percent" type="number" min="1" max="70" value="{{ stay_settings.gap_discount_percent|default:25 }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-  </form>
-</div>
-
-{# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-  <h2 class="font-semibold mb-1">{% trans "Rate plans" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Ways to sell the same rooms — base, non-refundable, with breakfast, half board… Guests pick a rate when booking. Apply to all rooms." %}</p>
-  {% for r in rate_plans %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2 {% if not r.is_active %}opacity-50{% endif %}">
-      <div>
-        <span class="font-medium">{{ r.name }}</span>
-        {% if r.percent_adjust %}<span class="text-xs text-gray-500">· {% if r.percent_adjust > 0 %}+{% endif %}{{ r.percent_adjust }} %</span>{% endif %}
-        {% if r.surcharge_cents %}<span class="text-xs text-gray-500">· +{{ r.surcharge_eur|stringformat:".2f" }} €/{% trans "night" %}</span>{% endif %}
-        {% if r.meal_included %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ r.get_meal_plan_display }}</span>{% endif %}
-        <span class="text-xs text-gray-400">· {{ r.get_cancellation_display }}{% if r.cancellation == 'flexible' and r.free_cancel_days %} ({{ r.free_cancel_days }} {% trans "days" %}){% endif %}</span>
-        {% if r.prepayment_percent %}<span class="text-xs bg-sky-100 text-sky-700 rounded px-1.5 py-0.5">{% blocktrans with p=r.prepayment_percent %}{{ p }}% prepay{% endblocktrans %}</span>{% endif %}
-        {% if r.description %}<span class="block text-xs text-gray-400">{{ r.description }}</span>{% endif %}
-      </div>
-      <div class="flex items-center gap-2 whitespace-nowrap">
-        <form method="post" class="inline">{% csrf_token %}
-          <input type="hidden" name="action" value="rateplan_toggle"><input type="hidden" name="rateplan" value="{{ r.pk }}">
-          <button class="text-gray-500 hover:underline text-xs">{% if r.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
-        </form>
-        <form method="post" class="inline">{% csrf_token %}
-          <input type="hidden" name="action" value="rateplan_delete"><input type="hidden" name="rateplan" value="{{ r.pk }}">
-          <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-        </form>
-      </div>
-    </div>
-  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No rate plans yet — guests book at the room's base price." %}</p>{% endfor %}
-
-  <form method="post" class="grid sm:grid-cols-2 gap-3 items-end mt-4 pt-4 border-t border-gray-100">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="rateplan">
-    <div class="sm:col-span-2">
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Name" %}</label>
-      <input name="name" type="text" required placeholder="{% trans 'e.g. Nicht erstattbar, Mit Frühstück' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div class="sm:col-span-2">
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Short description (optional)" %}</label>
-      <input name="description" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. -10)" %}</label>
-      <input name="percent_adjust" type="number" min="-90" max="200" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Surcharge / night (€, e.g. breakfast)" %}</label>
-      <input name="surcharge_eur" type="text" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Board" %}</label>
-      <select name="meal_plan" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        {% for value, label in meals %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-      </select>
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Cancellation" %}</label>
-      <select name="cancellation" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        {% for value, label in cancellations %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-      </select>
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Free cancel until (days before, flexible only)" %}</label>
-      <input name="free_cancel_days" type="number" min="0" max="365" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Prepayment (% of total, 0 = none, 100 = full)" %}</label>
-      <input name="prepayment_percent" type="number" min="0" max="100" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Sort order" %}</label>
-      <input name="sort_order" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
-  </form>
-</div>
-
 {# --- список юнитов --------------------------------------------------------- #}
 <div class="space-y-4 mb-8">
   {% for u in units %}
-    <div class="bg-white rounded-2xl shadow-sm p-5 {% if not u.is_active %}opacity-60{% endif %}">
+    <div data-unit-tabs class="bg-white rounded-2xl shadow-sm p-5 {% if not u.is_active %}opacity-60{% endif %}">
       <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
         <h2 class="font-semibold">{{ u.name }} <span class="text-xs text-gray-400">· {{ u.get_type_display }}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</span></h2>
         <div class="flex items-center gap-3">
@@ -324,17 +35,23 @@
         </div>
       </div>
 
-      {% comment %}Фидбэк 2026-07-28: «портянка» настроек номера → ТАБЫ. Инвариант W0:
-      ВСЕ поля остаются в DOM (панели скрываются только CSS-классом hidden) — одна
-      форма, один Save сохраняет всё независимо от активного таба.{% endcomment %}
-      <form method="post" enctype="multipart/form-data" data-unit-tabs>
+      {% comment %}Фидбэк 2026-07-28: «портянка» настроек номера → ТАБЫ на ВЕСЬ блок номера
+      (поля + фото + Zimmer + Sperrzeiten + Saisonpreise + iCal), а не только на форму.
+      Инвариант W0: ВСЕ поля остаются в DOM (панели скрываются только CSS-классом hidden) —
+      одна форма, один Save сохраняет всё независимо от активного таба. Панель может
+      принадлежать нескольким табам (список через пробел) — так форма видна на трёх
+      «своих» табах и спрятана на Zimmer/iCal, где Save к ней не относится.{% endcomment %}
+      <div class="flex items-center gap-1.5 flex-wrap mb-3">
+        <button type="button" data-ut-tab="basis" aria-selected="true" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-indigo-600 text-white">{% trans "Grunddaten" %}</button>
+        <button type="button" data-ut-tab="preise" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Preise" %}</button>
+        <button type="button" data-ut-tab="regeln" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Regeln & Kapazität" %}</button>
+        <button type="button" data-ut-tab="zimmer" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">🚪 {% trans "Rooms" %}{% if u.rooms.all %} · {{ u.rooms.all|length }}{% endif %}</button>
+        <button type="button" data-ut-tab="ical" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">🔗 {% trans "Calendar sync (iCal)" %}</button>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" data-ut-panel="basis preise regeln">
         {% csrf_token %}
         <input type="hidden" name="action" value="unit_settings"><input type="hidden" name="unit" value="{{ u.pk }}">
-        <div class="flex items-center gap-1.5 flex-wrap mb-3">
-          <button type="button" data-ut-tab="basis" aria-selected="true" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-indigo-600 text-white">{% trans "Grunddaten" %}</button>
-          <button type="button" data-ut-tab="preise" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Preise" %}</button>
-          <button type="button" data-ut-tab="regeln" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Regeln & Kapazität" %}</button>
-        </div>
 
         <div data-ut-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end">
           <div class="sm:col-span-3">
@@ -413,7 +130,7 @@
 
       {# фото номера: миниатюры + удаление (отдельные формы — не вкладывать в settings) #}
       {% if u.images %}
-      <div class="mt-3 flex flex-wrap gap-2">
+      <div data-ut-panel="basis" class="mt-3 flex flex-wrap gap-2">
         {% for img in u.images %}
           <div class="relative">
             <img src="{{ img.url }}" alt="" class="w-20 h-20 object-cover rounded-lg border border-gray-200">
@@ -427,7 +144,7 @@
       {% endif %}
 
       {# PMS-R1: физические номера (Zimmer) — разбивка поверх quantity #}
-      <div class="mt-4 pt-4 border-t border-gray-100">
+      <div data-ut-panel="zimmer" class="hidden mt-4 pt-4 border-t border-gray-100">
         <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Rooms (physical numbers)" %} <span class="text-gray-300">· {% trans "capacity follows the room count" %}</span></p>
         <div class="flex items-center gap-2 flex-wrap mb-1">
         {% for r in u.rooms.all %}
@@ -447,8 +164,8 @@
         </form>
       </div>
 
-      {# блокировки дат #}
-      <div class="mt-4 pt-4 border-t border-gray-100">
+      {# блокировки дат — таб «Regeln & Kapazität» #}
+      <div data-ut-panel="regeln" class="hidden mt-4 pt-4 border-t border-gray-100">
         <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Blocked dates" %}</p>
         {% for bl in u.blocks.all %}
           <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
@@ -469,8 +186,8 @@
         </form>
       </div>
 
-      {# сезонные тарифы (A5a) #}
-      <div class="mt-4 pt-4 border-t border-gray-100">
+      {# сезонные тарифы (A5a) — таб «Preise» #}
+      <div data-ut-panel="preise" class="hidden mt-4 pt-4 border-t border-gray-100">
         <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Season rates (€/night for a date range)" %}</p>
         {% for r in u.season_rates.all %}
           <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
@@ -493,7 +210,7 @@
       </div>
 
       {# iCal-синхронизация (A5b): экспорт занятости + импорт Booking.com/Airbnb #}
-      <div class="mt-4 pt-4 border-t border-gray-100">
+      <div data-ut-panel="ical" class="hidden mt-4 pt-4 border-t border-gray-100">
         <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Calendar sync (iCal)" %}</p>
         <div class="text-xs text-gray-600 mb-3">
           <p class="mb-1">{% trans "Export this unit's availability — paste this link into Booking.com / Airbnb / Google:" %}</p>
@@ -590,6 +307,299 @@
   </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create unit" %}</button>
 </form>
+{% comment %}Фидбэк 2026-07-28: глобальные настройки (тарифы/скидки/правила/фиды) — под
+списком номеров и СВЁРНУТЫЕ: страница открывается номерами, а не стеной опций.{% endcomment %}
+<h2 class="text-sm font-semibold text-gray-500 mb-2">⚙️ {% trans "Settings for all units" %}</h2>
+{# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Rate plans" %} <span class="text-xs font-normal text-gray-400">{% if rate_plans %}· {{ rate_plans|length }}{% endif %}</span></summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Ways to sell the same rooms — base, non-refundable, with breakfast, half board… Guests pick a rate when booking. Apply to all rooms." %}</p>
+  {% for r in rate_plans %}
+    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2 {% if not r.is_active %}opacity-50{% endif %}">
+      <div>
+        <span class="font-medium">{{ r.name }}</span>
+        {% if r.percent_adjust %}<span class="text-xs text-gray-500">· {% if r.percent_adjust > 0 %}+{% endif %}{{ r.percent_adjust }} %</span>{% endif %}
+        {% if r.surcharge_cents %}<span class="text-xs text-gray-500">· +{{ r.surcharge_eur|stringformat:".2f" }} €/{% trans "night" %}</span>{% endif %}
+        {% if r.meal_included %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ r.get_meal_plan_display }}</span>{% endif %}
+        <span class="text-xs text-gray-400">· {{ r.get_cancellation_display }}{% if r.cancellation == 'flexible' and r.free_cancel_days %} ({{ r.free_cancel_days }} {% trans "days" %}){% endif %}</span>
+        {% if r.prepayment_percent %}<span class="text-xs bg-sky-100 text-sky-700 rounded px-1.5 py-0.5">{% blocktrans with p=r.prepayment_percent %}{{ p }}% prepay{% endblocktrans %}</span>{% endif %}
+        {% if r.description %}<span class="block text-xs text-gray-400">{{ r.description }}</span>{% endif %}
+      </div>
+      <div class="flex items-center gap-2 whitespace-nowrap">
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="action" value="rateplan_toggle"><input type="hidden" name="rateplan" value="{{ r.pk }}">
+          <button class="text-gray-500 hover:underline text-xs">{% if r.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+        </form>
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="action" value="rateplan_delete"><input type="hidden" name="rateplan" value="{{ r.pk }}">
+          <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No rate plans yet — guests book at the room's base price." %}</p>{% endfor %}
+
+  <form method="post" class="grid sm:grid-cols-2 gap-3 items-end mt-4 pt-4 border-t border-gray-100">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="rateplan">
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Name" %}</label>
+      <input name="name" type="text" required placeholder="{% trans 'e.g. Nicht erstattbar, Mit Frühstück' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Short description (optional)" %}</label>
+      <input name="description" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. -10)" %}</label>
+      <input name="percent_adjust" type="number" min="-90" max="200" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Surcharge / night (€, e.g. breakfast)" %}</label>
+      <input name="surcharge_eur" type="text" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Board" %}</label>
+      <select name="meal_plan" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for value, label in meals %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Cancellation" %}</label>
+      <select name="cancellation" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for value, label in cancellations %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Free cancel until (days before, flexible only)" %}</label>
+      <input name="free_cancel_days" type="number" min="0" max="365" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Prepayment (% of total, 0 = none, 100 = full)" %}</label>
+      <input name="prepayment_percent" type="number" min="0" max="100" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Sort order" %}</label>
+      <input name="sort_order" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
+  </form>
+</details>
+
+{# G4: авто-скидки на проживание — список правил (несколько на тип) ----------- #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Automatic discounts" %} <span class="text-xs font-normal text-gray-400">{% if auto_rules %}· {{ auto_rules|length }}{% endif %}</span></summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Applied to the room price (not extras/Kurtaxe). Add several rules — if more than one applies, the highest discount wins." %}</p>
+  {% for r in auto_rules %}
+    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
+      <span>
+        <span class="font-medium">{{ r.kind_label }}</span>
+        <span class="text-gray-500">·
+          {% if r.kind == 'los' %}{% blocktrans with n=r.threshold %}from {{ n }} nights{% endblocktrans %}
+          {% elif r.kind == 'early_bird' %}{% blocktrans with n=r.threshold %}{{ n }}+ days ahead{% endblocktrans %}
+          {% else %}{% blocktrans with n=r.threshold %}within {{ n }} days{% endblocktrans %}{% endif %}
+          → −{{ r.percent }} %</span>
+      </span>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="autodiscount_delete"><input type="hidden" name="index" value="{{ r.index }}">
+        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No automatic discounts yet." %}</p>{% endfor %}
+
+  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="autodiscount_add">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Type" %}</label>
+      <select name="kind" class="rounded-lg border border-gray-300 px-2 py-2 text-sm">
+        {% for value, label in auto_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Threshold (nights / days)" %}</label>
+      <input name="threshold" type="number" min="1" max="365" value="7" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Discount %" %}</label>
+      <input name="percent" type="number" min="1" max="90" value="10" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
+  </form>
+</details>
+
+{# PMS-D: ручные occupancy-правила цены — «занятость ≥ X % → ±Y % на ночь». #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">📈 {% trans "Dynamic prices" %} <span class="text-xs font-normal text-gray-400">{% if occupancy_rules %}· {{ occupancy_rules|length }}{% endif %}</span></summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Nights in demand cost more, empty nights less: when a night's occupancy reaches the threshold, its ONLINE price changes by the given percent. Your own bookings at the desk keep the base price. The strictest matching rule wins." %}</p>
+
+  {% for r in occupancy_rules %}
+    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
+      <span>
+        {# % — вне blocktrans: литеральный % в python-format msgid ломает msgfmt. #}
+        <span class="font-medium">{% blocktrans with n=r.occupancy %}Occupancy ≥ {{ n }}{% endblocktrans %} %</span>
+        <span class="{% if r.percent > 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">→ {% if r.percent > 0 %}+{% endif %}{{ r.percent }} %</span>
+      </span>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="occupancy_delete"><input type="hidden" name="index" value="{{ r.index }}">
+        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No dynamic price rules yet — online prices always match the base price." %}</p>{% endfor %}
+
+  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="occupancy_add">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Occupancy from (%)" %}</label>
+      <input name="occupancy" type="number" min="1" max="100" value="80" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. 10 or −15)" %}</label>
+      <input name="percent" type="number" min="-50" max="50" value="10" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
+  </form>
+</details>
+
+{# Lücken-Deal: суперскидка на короткие промежутки между бронями. #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">💥 {% trans "Lücken-Deal" %}</summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt die beste Ermäßigung (wird nicht addiert)." %}</p>
+  <form method="post" class="flex items-end gap-3 flex-wrap">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="gap_deal">
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="enabled" value="1" {% if stay_settings.gap_max_nights %}checked{% endif %} class="rounded border-gray-300">
+      {% trans "Enabled" %}
+    </label>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücke bis … Nächte" %}</label>
+      <input name="gap_max_nights" type="number" min="1" max="14" value="{{ stay_settings.gap_max_nights|default:3 }}" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Rabatt %" %}</label>
+      <input name="gap_discount_percent" type="number" min="1" max="70" value="{{ stay_settings.gap_discount_percent|default:25 }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</details>
+
+{# G12: правила продаж (Verkaufsregeln) — сезонный min/max-stay, CTA/CTD, окно #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Sales rules" %} <span class="text-xs font-normal text-gray-400">{% if restriction_rules %}· {{ restriction_rules|length }}{% endif %}</span></summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited." %}</p>
+
+  <form method="post" class="flex items-end gap-3 flex-wrap mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="booking_window">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bookable up to … days ahead (0 = no limit)" %}</label>
+      <input name="max_advance_days" type="number" min="0" max="365" value="{{ stay_settings.max_advance_days }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "At least … days before arrival (0 = same day)" %}</label>
+      <input name="min_advance_days" type="number" min="0" max="90" value="{{ stay_settings.min_advance_days }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+
+  {% for r in restriction_rules %}
+    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
+      <span>
+        <span class="font-medium">{% if r.start or r.end %}{{ r.start|default:"…" }} – {{ r.end|default:"…" }}{% else %}{% trans "Always" %}{% endif %}</span>
+        <span class="text-gray-500">· {% if r.unit_name %}{{ r.unit_name }}{% else %}{% trans "All units" %}{% endif %}
+          {% if r.min_nights %}· {% blocktrans with n=r.min_nights %}min. {{ n }} nights{% endblocktrans %}{% endif %}
+          {% if r.max_nights %}· {% blocktrans with n=r.max_nights %}max. {{ n }} nights{% endblocktrans %}{% endif %}
+          {% if r.no_checkin %}· {% trans "no check-in:" %} {% for d in weekdays %}{% if d.0 in r.no_checkin %}{{ d.1 }} {% endif %}{% endfor %}{% endif %}
+          {% if r.no_checkout %}· {% trans "no check-out:" %} {% for d in weekdays %}{% if d.0 in r.no_checkout %}{{ d.1 }} {% endif %}{% endfor %}{% endif %}</span>
+      </span>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="restriction_delete"><input type="hidden" name="index" value="{{ r.index }}">
+        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No sales rules yet." %}</p>{% endfor %}
+
+  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="restriction_add">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "From (optional)" %}</label>
+      <input name="start" type="date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Until (optional)" %}</label>
+      <input name="end" type="date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Unit" %}</label>
+      <select name="unit" class="rounded-lg border border-gray-300 px-2 py-2 text-sm">
+        <option value="">{% trans "All units" %}</option>
+        {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</label>
+      <input name="min_nights" type="number" min="0" max="365" value="0" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. nights" %}</label>
+      <input name="max_nights" type="number" min="0" max="365" value="0" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "No check-in on" %}</span>
+      <div class="flex gap-1.5 flex-wrap">
+        {% for d in weekdays %}<label class="inline-flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-1 cursor-pointer"><input type="checkbox" name="no_checkin" value="{{ d.0 }}" class="rounded border-gray-300">{{ d.1 }}</label>{% endfor %}
+      </div>
+    </div>
+    <div>
+      <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "No check-out on" %}</span>
+      <div class="flex gap-1.5 flex-wrap">
+        {% for d in weekdays %}<label class="inline-flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-1 cursor-pointer"><input type="checkbox" name="no_checkout" value="{{ d.0 }}" class="rounded border-gray-300">{{ d.1 }}</label>{% endfor %}
+      </div>
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
+  </form>
+</details>
+
+{# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Kurtaxe & house rules" %}</summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %}</p>
+  <form method="post" class="flex items-end gap-3 flex-wrap">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="kurtaxe">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amount / adult / night (€)" %}</label>
+      <input name="kurtaxe_eur" type="text" value="{{ stay_settings.kurtaxe_eur|stringformat:'.2f' }}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label" %}</label>
+      <input name="kurtaxe_label" type="text" value="{{ stay_settings.kurtaxe_label }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div class="w-full">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</label>
+      <textarea name="house_rules" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea>
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</details>
+
+{# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Booking widget for your website" %}</summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
+  <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
+</details>
+
+{# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Metasearch & Google (rates feed)" %}</summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
+  <input type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 font-mono text-[11px]">
+</details>
+
+
 <script>
 // Фидбэк 2026-07-28: табы формы номера. Делегирование на document (урок Ф1:
 // инлайн-скрипты партиалов могут парситься раньше разметки). Панели скрываются
@@ -597,13 +607,15 @@
 document.addEventListener("click", function (e) {
   var btn = e.target.closest("[data-ut-tab]");
   if (!btn) return;
-  var form = btn.closest("[data-unit-tabs]");
-  if (!form) return;
+  var card = btn.closest("[data-unit-tabs]");
+  if (!card) return;
   var key = btn.getAttribute("data-ut-tab");
-  form.querySelectorAll("[data-ut-panel]").forEach(function (p) {
-    p.classList.toggle("hidden", p.getAttribute("data-ut-panel") !== key);
+  card.querySelectorAll("[data-ut-panel]").forEach(function (p) {
+    // Панель может принадлежать нескольким табам: data-ut-panel="basis preise regeln".
+    var keys = p.getAttribute("data-ut-panel").split(/\s+/);
+    p.classList.toggle("hidden", keys.indexOf(key) < 0);
   });
-  form.querySelectorAll("[data-ut-tab]").forEach(function (b) {
+  card.querySelectorAll("[data-ut-tab]").forEach(function (b) {
     var active = b === btn;
     b.setAttribute("aria-selected", active ? "true" : "false");
     b.classList.toggle("bg-indigo-600", active);

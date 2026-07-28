@@ -13758,3 +13758,7 @@ msgstr ""
 "Boşluk indirimini etkinleştir: rezervasyonlar arası kısa boşlukları (3 "
 "geceye kadar) otomatik olarak −%25 ile sun. Daha sonra “Units” altında "
 "ayarlanabilir."
+
+#: templates/stays/units.html:0
+msgid "Settings for all units"
+msgstr "Tüm odalar için ayarlar"
