@@ -21,6 +21,8 @@ urlpatterns = [
     path("buchung/<uuid:pk>/loeschen/", views.booking_delete, name="booking-delete"),
     path("zimmer/<uuid:pk>/sauber/", views.room_clean, name="room-clean"),
     path("units/", views.units, name="units"),
+    # Фидбэк 2026-07-28: каждый номер редактируется на СВОЕЙ странице.
+    path("units/<uuid:pk>/", views.units, name="unit-edit"),
     # D2.4: self-serve продвижение юнита в агрегаторе.
     path("units/<uuid:pk>/feature/", views.unit_feature, name="unit-feature"),
     path(

@@ -656,8 +656,10 @@ def booking_delete(request, pk):
 
 
 @login_required
-def units(request):
-    """Юниты (тип/цена/вместимость/депозит) + блокировки дат — POST-формы."""
+def units(request, pk=None):
+    """Юниты + блокировки дат — POST-формы. Фидбэк 2026-07-28: с pk —
+    страница редактирования ОДНОГО номера (формы постят на неё же и
+    возвращаются на неё); без pk — компактный список + глобальные настройки."""
     if request.method == "POST":
         action = request.POST.get("action", "")
         if action == "unit":
@@ -683,6 +685,8 @@ def units(request):
                     unit.save(update_fields=["name_i18n", "description_i18n", "updated_at"])
                 _add_unit_photos(unit, request.FILES.getlist("photos"))
                 messages.success(request, _("Unit created."))
+                # Новый номер — сразу на его страницу редактирования.
+                return redirect("stays:unit-edit", pk=unit.pk)
         elif action == "unit_settings":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             unit.description = request.POST.get("description", "").strip()[:5000]
@@ -944,13 +948,17 @@ def units(request):
                 update_fields=["gap_max_nights", "gap_discount_percent", "updated_at"]
             )
             messages.success(request, _("Settings saved."))
+        if pk:
+            return redirect("stays:unit-edit", pk=pk)
         return redirect("stays:units")
 
-    units = list(
-        StayUnit.objects.prefetch_related(
-            "blocks", "season_rates", "ical_sources", "rooms"
-        ).order_by("-is_active", "name")
-    )
+    unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")
+    if pk:
+        unit_page = get_object_or_404(unit_qs, pk=pk)
+        units = [unit_page]
+    else:
+        unit_page = None
+        units = list(unit_qs.order_by("-is_active", "name"))
     for u in units:
         u.ical_export_url = request.build_absolute_uri(
             reverse("storefront-stay-ical", args=[ical_token(u)])
@@ -981,6 +989,7 @@ def units(request):
         {
             "nav": "stays",
             "units": units,
+            "unit_page": unit_page,  # 2026-07-28: страница одного номера
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),

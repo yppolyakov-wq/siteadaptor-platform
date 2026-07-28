@@ -207,7 +207,10 @@ def test_units_page_creates_unit_and_block():
     assert block.reason == "Renovierung"
 
     body = views.units(_req(path="/dashboard/stays/units/")).content.decode()
-    assert "Ferienwohnung Süd" in body and "Renovierung" in body
+    assert "Ferienwohnung Süd" in body  # компактная строка списка
+    # блокировки — на странице номера (список компактен)
+    page = views.units(_req(), pk=unit.pk).content.decode()
+    assert "Renovierung" in page
 
 
 def test_unit_settings_saves_deposit():
@@ -382,11 +385,11 @@ def test_stay_emails_include_checkin_link_until_signed():
 
 
 def test_unit_form_tabs_keep_all_fields_in_dom():
-    """Фидбэк 2026-07-28: форма номера — табы Grunddaten/Preise/Regeln.
-    Инвариант W0: ВСЕ поля в DOM (панели скрыты только CSS) — Save с любого
-    таба сохраняет всё."""
-    StayUnit.objects.create(name="TabZimmer", price_cents=9000)
-    body = views.units(_req()).content.decode()
+    """Фидбэк 2026-07-28: форма номера — табы Grunddaten/Preise/Regeln (теперь
+    на СТРАНИЦЕ номера /units/<pk>/). Инвариант W0: ВСЕ поля в DOM (панели
+    скрыты только CSS) — Save с любого таба сохраняет всё."""
+    unit = StayUnit.objects.create(name="TabZimmer", price_cents=9000)
+    body = views.units(_req(), pk=unit.pk).content.decode()
     assert "data-unit-tabs" in body and 'data-ut-tab="preise"' in body
     for field in (
         'name="description"',
@@ -410,18 +413,19 @@ def test_unit_form_tabs_keep_all_fields_in_dom():
 def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     """Фидбэк 2026-07-28 (доводка): табы охватывают ВЕСЬ блок номера — Zimmer/
     Sperrzeiten/Saisonpreise/iCal тоже панели, а не хвост «портянки». Глобальные
-    настройки (тарифы/скидки/правила/фиды) — свёрнутые <details> под номерами.
+    настройки (тарифы/скидки/правила/фиды) — свёрнутые <details> под списком.
     Инвариант W0: все поля остаются в DOM."""
-    StayUnit.objects.create(name="TabZimmer", price_cents=9000)
-    body = views.units(_req()).content.decode()
+    unit = StayUnit.objects.create(name="TabZimmer", price_cents=9000)
+    body = views.units(_req(), pk=unit.pk).content.decode()
     for tab in ("basis", "preise", "regeln", "zimmer", "ical"):
         assert f'data-ut-tab="{tab}"' in body, tab
     # форма принадлежит трём табам сразу и прячется на Zimmer/iCal (там свой Save)
     assert 'data-ut-panel="basis preise regeln"' in body
     for panel in ("zimmer", "ical"):
         assert f'data-ut-panel="{panel}" class="hidden' in body, panel
-    # глобальные настройки — в аккордеонах, но все их поля в DOM (W0)
-    assert body.count('<details class="bg-white') == 8
+    # глобальные настройки живут на СПИСКЕ — в аккордеонах, поля в DOM (W0)
+    body_list = views.units(_req()).content.decode()
+    assert body_list.count('<details class="bg-white') == 8
     for field in (
         'name="kurtaxe_eur"',  # Kurtaxe
         'name="max_advance_days"',  # Verkaufsregeln
@@ -430,6 +434,27 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
         'name="free_cancel_days"',  # Ratenpläne
         'name="threshold"',  # Automatik-Rabatte
     ):
-        assert field in body, field
+        assert field in body_list, field
     # порядок: номера ВЫШЕ глобальных настроек (страница открывается номерами)
-    assert body.index("TabZimmer") < body.index('<details class="bg-white')
+    assert body_list.index("TabZimmer") < body_list.index('<details class="bg-white')
+
+
+def test_units_list_is_compact_and_links_to_unit_page():
+    """Фидбэк 2026-07-28: «это же разные номера» — список компактный (строка =
+    номер, ссылка «Bearbeiten» на СВОЮ страницу), портянки настроек на нём нет;
+    страница номера не содержит глобальных настроек и чужих номеров."""
+    a = StayUnit.objects.create(name="ZimmerA", price_cents=9000)
+    StayUnit.objects.create(name="ZimmerB", price_cents=8000)
+    body = views.units(_req()).content.decode()
+    assert f"/dashboard/stays/units/{a.pk}/" in body
+    assert "data-unit-tabs" not in body  # полной карточки на списке нет
+    page = views.units(_req(), pk=a.pk).content.decode()
+    assert "data-unit-tabs" in page and "ZimmerA" in page
+    assert "ZimmerB" not in page  # только свой номер
+    assert '<details class="bg-white' not in page  # без глобальных настроек
+    # POST со страницы номера возвращает на неё же
+    resp = views.units(
+        _req("post", {"action": "unit_settings", "unit": str(a.pk), "price_eur": "95"}),
+        pk=a.pk,
+    )
+    assert resp.status_code == 302 and resp.url.endswith(f"/units/{a.pk}/")

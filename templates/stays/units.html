@@ -4,12 +4,17 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Units & blocked dates" %}</h1>
-  <div class="flex gap-4">
-    {# UB3-2: подборки номеров → чипы-фасет на /unterkunft/. #}
-    <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
-    <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
-  </div>
+  {% if unit_page %}
+    <h1 class="text-2xl font-bold">{{ unit_page.name }} <span class="text-sm font-normal text-gray-400">· {{ unit_page.get_type_display }}</span></h1>
+    <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>
+  {% else %}
+    <h1 class="text-2xl font-bold">{% trans "Units & blocked dates" %}</h1>
+    <div class="flex gap-4">
+      {# UB3-2: подборки номеров → чипы-фасет на /unterkunft/. #}
+      <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
+      <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+    </div>
+  {% endif %}
 </div>
 
 {% if messages %}
@@ -18,7 +23,36 @@
   {% endfor %}
 {% endif %}
 
-{# --- список юнитов --------------------------------------------------------- #}
+{% if not unit_page %}
+{% comment %}Фидбэк 2026-07-28: «это же разные номера, почему на одной странице» —
+список стал КОМПАКТНЫМ (строка = номер, «Bearbeiten» ведёт на его страницу);
+вся портянка настроек номера живёт на /units/<pk>/.{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-8">
+  {% for u in units %}
+    <div class="flex items-center gap-4 px-5 py-3 {% if not u.is_active %}opacity-60{% endif %}">
+      {% if u.images %}<img src="{{ u.images.0.url }}" alt="" class="w-14 h-14 object-cover rounded-lg shrink-0">
+      {% else %}<div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-xl shrink-0">🛏️</div>{% endif %}
+      <div class="min-w-0 flex-1">
+        <a href="{% url 'stays:unit-edit' u.pk %}" class="font-semibold hover:text-indigo-700">{{ u.name }}</a>
+        <p class="text-xs text-gray-400 truncate">{{ u.get_type_display }} · {{ u.price_eur|stringformat:".2f" }} €/{% trans "night" %} · ×{{ u.quantity }}{% if u.rooms.all %} · 🚪 {{ u.rooms.all|length }}{% endif %}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</p>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        {% if u.is_active %}<a href="{% url 'stays:unit-feature' u.pk %}" class="text-sm text-amber-600 hover:underline">★</a>{% endif %}
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="action" value="toggle"><input type="hidden" name="unit" value="{{ u.pk }}">
+          <button class="text-sm text-gray-500 hover:underline">{% if u.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+        </form>
+        <a href="{% url 'stays:unit-edit' u.pk %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "Edit" %} →</a>
+      </div>
+    </div>
+  {% empty %}
+    <p class="px-5 py-4 text-gray-500">{% trans "No units yet — create your first below." %}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if unit_page %}
+{# --- полная карточка номера (только на его странице) ----------------------- #}
 <div class="space-y-4 mb-8">
   {% for u in units %}
     <div data-unit-tabs class="bg-white rounded-2xl shadow-sm p-5 {% if not u.is_active %}opacity-60{% endif %}">
@@ -240,11 +274,11 @@
         </form>
       </div>
     </div>
-  {% empty %}
-    <p class="text-gray-500">{% trans "No units yet — create your first below." %}</p>
   {% endfor %}
 </div>
+{% endif %}
 
+{% if not unit_page %}
 {# --- новый юнит ------------------------------------------------------------ #}
 <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
   {% csrf_token %}
@@ -309,6 +343,7 @@
 </form>
 {% comment %}Фидбэк 2026-07-28: глобальные настройки (тарифы/скидки/правила/фиды) — под
 списком номеров и СВЁРНУТЫЕ: страница открывается номерами, а не стеной опций.{% endcomment %}
+
 <h2 class="text-sm font-semibold text-gray-500 mb-2">⚙️ {% trans "Settings for all units" %}</h2>
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
@@ -600,6 +635,8 @@
 </details>
 
 
+{% endif %}
+{% if unit_page %}
 <script>
 // Фидбэк 2026-07-28: табы формы номера. Делегирование на document (урок Ф1:
 // инлайн-скрипты партиалов могут парситься раньше разметки). Панели скрываются
@@ -625,4 +662,5 @@ document.addEventListener("click", function (e) {
   });
 });
 </script>
+{% endif %}
 {% endblock %}
