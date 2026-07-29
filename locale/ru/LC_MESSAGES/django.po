@@ -13900,3 +13900,19 @@ msgstr "Выберите свободное время — подтвержде�
 #: templates/storefront/_booking_info.html:0
 msgid "Choose a time"
 msgstr "Выбрать время"
+
+#: templates/stays/units.html:0
+msgid "Contact"
+msgstr "Связаться"
+
+#: templates/stays/units.html:0
+msgid "Basic data"
+msgstr "Основные данные"
+
+#: templates/stays/units.html:0
+msgid "Prices"
+msgstr "Цены"
+
+#: templates/stays/units.html:0
+msgid "Rules & capacity"
+msgstr "Правила и вместимость"

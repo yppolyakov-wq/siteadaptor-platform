@@ -13857,3 +13857,19 @@ msgstr "Freie Zeit wählen — die Bestätigung kommt per E-Mail."
 #: templates/storefront/_booking_info.html:0
 msgid "Choose a time"
 msgstr "Zeit wählen"
+
+#: templates/stays/units.html:0
+msgid "Contact"
+msgstr "Kontakt"
+
+#: templates/stays/units.html:0
+msgid "Basic data"
+msgstr "Grunddaten"
+
+#: templates/stays/units.html:0
+msgid "Prices"
+msgstr "Preise"
+
+#: templates/stays/units.html:0
+msgid "Rules & capacity"
+msgstr "Regeln & Kapazität"

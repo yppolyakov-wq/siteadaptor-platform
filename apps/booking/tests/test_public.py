@@ -510,7 +510,9 @@ def test_service_index_layout_from_config():
     request = _req()
     request.tenant.site_config = {"service_index_layout": {"preset": "cols3"}}
     body = public_views.termin_index(request).content.decode()
-    assert "lg:grid-cols-3" in body
+    # полная строка движка: после смены дефолта (c3dd835) подстрока
+    # "lg:grid-cols-3" есть и в дефолтном гриде — замок стал бы вакуумным
+    assert "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" in body
     assert "max-w-3xl" not in body
 
 

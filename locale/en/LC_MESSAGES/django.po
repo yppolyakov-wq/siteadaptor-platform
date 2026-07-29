@@ -13719,3 +13719,19 @@ msgstr "Pick a free time — we will confirm by email."
 #: templates/storefront/_booking_info.html:0
 msgid "Choose a time"
 msgstr "Choose a time"
+
+#: templates/stays/units.html:0
+msgid "Contact"
+msgstr "Contact"
+
+#: templates/stays/units.html:0
+msgid "Basic data"
+msgstr "Basic data"
+
+#: templates/stays/units.html:0
+msgid "Prices"
+msgstr "Prices"
+
+#: templates/stays/units.html:0
+msgid "Rules & capacity"
+msgstr "Rules & capacity"

@@ -31,8 +31,8 @@
 (глобальные настройки 4 группами). Инвариант W0: панели скрываются только CSS,
 все поля в DOM; активный таб приходит с сервера (?tab= из redirect'а Save).{% endcomment %}
 <div class="flex items-center gap-1.5 flex-wrap mb-4">
-  <button type="button" data-pt-tab="einheiten" aria-selected="{% if tab != 'einstellungen' %}true{% else %}false{% endif %}" class="pt-pill rounded-full px-4 py-1.5 text-sm font-medium {% if tab != 'einstellungen' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🛏 {% trans "Units" %}</button>
-  <button type="button" data-pt-tab="einstellungen" aria-selected="{% if tab == 'einstellungen' %}true{% else %}false{% endif %}" class="pt-pill rounded-full px-4 py-1.5 text-sm font-medium {% if tab == 'einstellungen' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">⚙️ {% trans "Settings" %}</button>
+  <button type="button" data-pt-tab="einheiten" aria-pressed="{% if tab != 'einstellungen' %}true{% else %}false{% endif %}" class="pt-pill rounded-full px-4 py-1.5 text-sm font-medium {% if tab != 'einstellungen' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🛏 {% trans "Units" %}</button>
+  <button type="button" data-pt-tab="einstellungen" aria-pressed="{% if tab == 'einstellungen' %}true{% else %}false{% endif %}" class="pt-pill rounded-full px-4 py-1.5 text-sm font-medium {% if tab == 'einstellungen' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">⚙️ {% trans "Settings" %}</button>
 </div>
 <div data-pt-panel="einheiten" class="{% if tab == 'einstellungen' %}hidden {% endif %}bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
   {% for u in units %}
@@ -83,11 +83,11 @@
       принадлежать нескольким табам (список через пробел) — так форма видна на трёх
       «своих» табах и спрятана на Zimmer/iCal, где Save к ней не относится.{% endcomment %}
       <div class="flex items-center gap-1.5 flex-wrap mb-3">
-        <button type="button" data-ut-tab="basis" aria-selected="true" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-indigo-600 text-white">{% trans "Grunddaten" %}</button>
-        <button type="button" data-ut-tab="preise" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Preise" %}</button>
-        <button type="button" data-ut-tab="regeln" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Regeln & Kapazität" %}</button>
-        <button type="button" data-ut-tab="zimmer" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">🚪 {% trans "Rooms" %}{% if u.rooms.all %} · {{ u.rooms.all|length }}{% endif %}</button>
-        <button type="button" data-ut-tab="ical" aria-selected="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">🔗 {% trans "Calendar sync (iCal)" %}</button>
+        <button type="button" data-ut-tab="basis" aria-pressed="true" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-indigo-600 text-white">{% trans "Basic data" %}</button>
+        <button type="button" data-ut-tab="preise" aria-pressed="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Prices" %}</button>
+        <button type="button" data-ut-tab="regeln" aria-pressed="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">{% trans "Rules & capacity" %}</button>
+        <button type="button" data-ut-tab="zimmer" aria-pressed="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">🚪 {% trans "Rooms" %}{% if u.rooms.all %} · {{ u.rooms.all|length }}{% endif %}</button>
+        <button type="button" data-ut-tab="ical" aria-pressed="false" class="ut-pill rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">🔗 {% trans "Calendar sync (iCal)" %}</button>
       </div>
 
       <form method="post" enctype="multipart/form-data" data-ut-panel="basis preise regeln">
@@ -358,10 +358,10 @@
 Активная секция приходит с сервера (?sec= из redirect'а Save), переключение —
 делегированным JS; полоса табов скроллится на мобиле (overflow-x-auto).{% endcomment %}
 <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
-  <button type="button" data-st-tab="preise" aria-selected="{% if sec != 'regeln' and sec != 'kurtaxe' and sec != 'kanaele' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec != 'regeln' and sec != 'kurtaxe' and sec != 'kanaele' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">💶 {% trans "Prices & discounts" %}</button>
-  <button type="button" data-st-tab="regeln" aria-selected="{% if sec == 'regeln' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'regeln' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">📅 {% trans "Sales rules" %}</button>
-  <button type="button" data-st-tab="kurtaxe" aria-selected="{% if sec == 'kurtaxe' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'kurtaxe' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🏛 {% trans "Kurtaxe & house rules" %}</button>
-  <button type="button" data-st-tab="kanaele" aria-selected="{% if sec == 'kanaele' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'kanaele' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🔗 {% trans "Channels & export" %}</button>
+  <button type="button" data-st-tab="preise" aria-pressed="{% if sec != 'regeln' and sec != 'kurtaxe' and sec != 'kanaele' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec != 'regeln' and sec != 'kurtaxe' and sec != 'kanaele' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">💶 {% trans "Prices & discounts" %}</button>
+  <button type="button" data-st-tab="regeln" aria-pressed="{% if sec == 'regeln' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'regeln' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">📅 {% trans "Sales rules" %}</button>
+  <button type="button" data-st-tab="kurtaxe" aria-pressed="{% if sec == 'kurtaxe' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'kurtaxe' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🏛 {% trans "Kurtaxe & house rules" %}</button>
+  <button type="button" data-st-tab="kanaele" aria-pressed="{% if sec == 'kanaele' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'kanaele' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🔗 {% trans "Channels & export" %}</button>
 </div>
 <div data-st-panel="preise" class="{% if sec == 'regeln' or sec == 'kurtaxe' or sec == 'kanaele' %}hidden{% endif %}">
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
@@ -666,7 +666,7 @@ document.addEventListener("click", function (e) {
   });
   document.querySelectorAll("[data-pt-tab]").forEach(function (b) {
     var active = b === btn;
-    b.setAttribute("aria-selected", active ? "true" : "false");
+    b.setAttribute("aria-pressed", active ? "true" : "false");
     b.classList.toggle("bg-indigo-600", active);
     b.classList.toggle("text-white", active);
     b.classList.toggle("bg-gray-100", !active);
@@ -674,7 +674,12 @@ document.addEventListener("click", function (e) {
     // hover-класс только у неактивных — иначе белый текст на сером при ховере
     b.classList.toggle("hover:bg-gray-200", !active);
   });
-  try { history.replaceState(null, "", key === "einstellungen" ? "?tab=einstellungen" : location.pathname); } catch (err) {}
+  // Ревью 2026-07-28: сохраняем и активный под-таб, иначе F5 сбрасывает секцию.
+  var st = document.querySelector('[data-st-tab][aria-pressed="true"]');
+  var url = key === "einstellungen"
+    ? "?tab=einstellungen" + (st ? "&sec=" + st.getAttribute("data-st-tab") : "")
+    : location.pathname;
+  try { history.replaceState(null, "", url); } catch (err) {}
 });
 // Под-табы внутри «Einstellungen» (💶 / 📅 / 🏛 / 🔗).
 document.addEventListener("click", function (e) {
@@ -686,7 +691,7 @@ document.addEventListener("click", function (e) {
   });
   document.querySelectorAll("[data-st-tab]").forEach(function (b) {
     var active = b === btn;
-    b.setAttribute("aria-selected", active ? "true" : "false");
+    b.setAttribute("aria-pressed", active ? "true" : "false");
     b.classList.toggle("bg-indigo-600", active);
     b.classList.toggle("text-white", active);
     b.classList.toggle("bg-gray-100", !active);
@@ -715,7 +720,7 @@ document.addEventListener("click", function (e) {
   });
   card.querySelectorAll("[data-ut-tab]").forEach(function (b) {
     var active = b === btn;
-    b.setAttribute("aria-selected", active ? "true" : "false");
+    b.setAttribute("aria-pressed", active ? "true" : "false");
     b.classList.toggle("bg-indigo-600", active);
     b.classList.toggle("text-white", active);
     b.classList.toggle("bg-gray-100", !active);

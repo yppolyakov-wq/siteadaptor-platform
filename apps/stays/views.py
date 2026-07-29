@@ -853,8 +853,10 @@ def units(request, pk=None):
             rp = get_object_or_404(RatePlan, pk=request.POST.get("rateplan"))
             rp.is_active = not rp.is_active
             rp.save(update_fields=["is_active", "updated_at"])
+            messages.success(request, _("Settings saved."))
         elif action == "rateplan_delete":
             RatePlan.objects.filter(pk=request.POST.get("rateplan")).delete()
+            messages.success(request, _("Settings saved."))
         elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung
             settings_obj = StaySettings.load()
             settings_obj.kurtaxe_cents = _eur_to_cents(request.POST.get("kurtaxe_eur"))
@@ -888,6 +890,7 @@ def units(request, pk=None):
                 rules.pop(idx)
                 settings_obj.auto_discount_rules = rules
                 settings_obj.save(update_fields=["auto_discount_rules", "updated_at"])
+                messages.success(request, _("Settings saved."))
         elif action == "booking_window":  # G12: окно бронирования (глубина + мин. срок)
             settings_obj = StaySettings.load()
             settings_obj.max_advance_days = _int(
@@ -927,6 +930,7 @@ def units(request, pk=None):
                 rules.pop(idx)
                 settings_obj.restriction_rules = rules
                 settings_obj.save(update_fields=["restriction_rules", "updated_at"])
+                messages.success(request, _("Settings saved."))
         elif action == "occupancy_add":  # PMS-D: правило «занятость ≥ X % → ±Y %»
             settings_obj = StaySettings.load()
             rules = settings_obj.clean_occupancy_rules()
@@ -952,6 +956,7 @@ def units(request, pk=None):
                 rules.pop(idx)
                 settings_obj.occupancy_rules = rules
                 settings_obj.save(update_fields=["occupancy_rules", "updated_at"])
+                messages.success(request, _("Settings saved."))
         elif action == "gap_deal":  # Lücken-Deal: скидка на короткие промежутки
             settings_obj = StaySettings.load()
             enabled = bool(request.POST.get("enabled"))

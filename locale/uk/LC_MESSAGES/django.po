@@ -13887,3 +13887,19 @@ msgstr "Оберіть вільний час — підтвердження на
 #: templates/storefront/_booking_info.html:0
 msgid "Choose a time"
 msgstr "Обрати час"
+
+#: templates/stays/units.html:0
+msgid "Contact"
+msgstr "Написати"
+
+#: templates/stays/units.html:0
+msgid "Basic data"
+msgstr "Основні дані"
+
+#: templates/stays/units.html:0
+msgid "Prices"
+msgstr "Ціни"
+
+#: templates/stays/units.html:0
+msgid "Rules & capacity"
+msgstr "Правила та місткість"

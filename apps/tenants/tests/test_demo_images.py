@@ -130,7 +130,11 @@ def test_photo_group_choice_is_stable_per_keyword(tmp_path, settings):
         (photos / name).write_bytes(b"x")
     settings.STATICFILES_DIRS = [str(tmp_path)]
 
-    first = demo_images.photo_static_name("hair,styling", lock=3)
-    assert first == demo_images.photo_static_name("hair,styling", lock=99)  # lock не влияет
-    assert first == "hair-salon.webp"  # явный синоним ключа
+    # hair-styling/hair-highlights короткозамкнуты _PHOTO_ALIASES — для проверки
+    # самой формулы group[seed % len(group)] берём ключ БЕЗ алиаса
+    picked = demo_images.photo_static_name("hair,pflege", lock=3)
+    assert picked in {"hair-salon.webp", "hair-colorist.webp", "hair-oil.webp"}
+    assert picked == demo_images.photo_static_name("hair,pflege", lock=99)  # lock не влияет
+    # алиасы ведут на подобранный вручную сюжет
+    assert demo_images.photo_static_name("hair,styling", lock=3) == "hair-salon.webp"
     assert demo_images.photo_static_name("hair,highlights", lock=1) == "hair-colorist.webp"

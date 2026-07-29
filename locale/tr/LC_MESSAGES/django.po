@@ -13830,3 +13830,19 @@ msgstr "Boş bir saat seçin — onayı e-posta ile göndeririz."
 #: templates/storefront/_booking_info.html:0
 msgid "Choose a time"
 msgstr "Saat seçin"
+
+#: templates/stays/units.html:0
+msgid "Contact"
+msgstr "İletişim"
+
+#: templates/stays/units.html:0
+msgid "Basic data"
+msgstr "Temel veriler"
+
+#: templates/stays/units.html:0
+msgid "Prices"
+msgstr "Fiyatlar"
+
+#: templates/stays/units.html:0
+msgid "Rules & capacity"
+msgstr "Kurallar ve kapasite"

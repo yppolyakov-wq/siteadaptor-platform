@@ -1,6 +1,7 @@
 """Track E / E2: кабинет date-range-броней — календарь загрузки, действия по
 FSM, перенос дат, ручная бронь, управление юнитами и блокировками."""
 
+import re
 import uuid
 from datetime import date, timedelta
 
@@ -513,7 +514,8 @@ def test_units_list_is_compact_and_links_to_unit_page():
     page = views.units(_req(), pk=a.pk).content.decode()
     assert "data-unit-tabs" in page and "ZimmerA" in page
     assert "ZimmerB" not in page  # только свой номер
-    assert '<details class="bg-white' not in page  # без глобальных настроек
+    # ловим ОБЕ формы карточки (после под-табов часть рендерится <details open>)
+    assert not re.search(r'<details(?: open)? class="bg-white', page)
     # POST со страницы номера возвращает на неё же
     resp = views.units(
         _req("post", {"action": "unit_settings", "unit": str(a.pk), "price_eur": "95"}),
