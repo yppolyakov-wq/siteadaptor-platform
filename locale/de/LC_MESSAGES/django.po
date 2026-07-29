@@ -13873,3 +13873,29 @@ msgstr "Preise"
 #: templates/stays/units.html:0
 msgid "Rules & capacity"
 msgstr "Regeln & Kapazität"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Reserve online, pick up in store"
+msgstr "Online reservieren, im Laden abholen"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Every day"
+msgstr "Jeden Tag"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Every week"
+msgstr "Jede Woche"
+
+#: templates/storefront/_discount_display.html:0
+#, python-format
+msgid "until %(d)s"
+msgstr "bis %(d)s"
+
+#: templates/storefront/_discount_display.html:0
+msgid "More offers"
+msgstr "Weitere Angebote"
+
+#: templates/storefront/_discount_display.html:0
+#, python-format
+msgid "You save %(amount)s €"
+msgstr "Sie sparen %(amount)s €"

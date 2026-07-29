@@ -2002,6 +2002,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Croissant −30 % – nur heute!",
+            "new": True,
             "product": 6,
             "percent": 30,
             "discount_style": "countdown",
@@ -2082,6 +2083,19 @@ AKTIONSMARKT = DemoKit(
             "percent": 20,
             "available_quantity": 5,
             "group": "Wochenangebote",
+        },
+        {
+            # Фидбэк 2026-07-29: mystery — единственный стиль, которого не было
+            # в showcase; цена скрыта до клика-раскрытия.
+            "title": "Mystery-Deal der Woche",
+            "new": True,
+            "product": 11,
+            "new_price": "2.49",
+            "compare_at": "4.99",
+            "discount_style": "mystery",
+            "group": "Wochenangebote",
+            "ends_in_days": 7,
+            "desc": "Ein Überraschungs-Artikel zum halben Preis — Preis erst beim Klick.",
         },
     ],
     categories=[
@@ -5295,7 +5309,9 @@ def apply_kit(tenant, key: str) -> bool:
                 if spec.get("type") == "reservation"
                 else Promotion.DISCOUNT,
                 "status": "active",
-                "starts_at": now,
+                # Фидбэк 2026-07-29: чип «Neu» (is_new ≤ 7 дней) — только у явно
+                # помеченных spec'ов, иначе у свежего сида все акции «новые».
+                "starts_at": now if spec.get("new") else now - timedelta(days=10),
                 "ends_at": now + timedelta(days=spec.get("ends_in_days", 14)),
                 "group": spec.get("group", ""),
                 "show_countdown": bool(spec.get("countdown")),

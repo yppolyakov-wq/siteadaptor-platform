@@ -53,7 +53,9 @@ def test_badge_style_forces_amount_badge_even_with_percent():
     promo = _discounted(discount_style="badge", discount_percent=None)
     for body in (_card(promo), _detail(promo)):
         assert "−2,50 €" in body  # DE-локаль: запятая
-        assert "−25 %" not in body
+        # именно БЕЙДЖ процента скрыт; строка выгоды «Sie sparen … (−25 %)»
+        # (фидбэк 2026-07-29) легитимна и стилем не управляется
+        assert ">−25 %</span>" not in body
 
 
 def test_strikethrough_style_hides_badge_keeps_struck_price():

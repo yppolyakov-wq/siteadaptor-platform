@@ -25,6 +25,7 @@
     {% include "storefront/_discount_display.html" with promo=p part="surprise" size="sm" %}
     <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
     <div class="mt-2">{% include "storefront/_discount_display.html" with promo=p part="price" %}</div>
+    {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
     {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}
     {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
   </div>

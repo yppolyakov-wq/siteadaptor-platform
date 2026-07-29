@@ -15,7 +15,21 @@
     </div>
   {% endif %}
 
-  {% if promotions %}
+  {% if grouped_promotions %}
+    {% comment %}Фидбэк 2026-07-29: группы акций — секциями с заголовками (Prospekt-
+    логика: Wochenangebote / Räumung / Anti-Food-Waste читаются с первого взгляда).{% endcomment %}
+    {% for group, items in grouped_promotions %}
+      <section class="mb-8">
+        <h2 class="text-lg font-bold mb-3">{% if group %}{{ group }}{% else %}{% trans "More offers" %}{% endif %}
+          <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {% for p in items %}
+            {% include "storefront/_promo_card.html" %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  {% elif promotions %}
     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
       {% for p in promotions %}
         {% include "storefront/_promo_card.html" %}

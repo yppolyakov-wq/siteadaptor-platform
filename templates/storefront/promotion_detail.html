@@ -53,6 +53,8 @@
     {% include "storefront/_discount_display.html" with promo=promotion part="surprise" size="lg" %}
 
     <div class="mt-3 text-2xl">{% include "storefront/_discount_display.html" with promo=promotion part="price" %}</div>
+    {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
+    {% include "storefront/_discount_display.html" with promo=promotion part="flags" size="lg" %}
 
     {% include "storefront/_discount_display.html" with promo=promotion part="scarcity" size="lg" %}
     {% include "storefront/_discount_display.html" with promo=promotion part="countdown" size="lg" %}

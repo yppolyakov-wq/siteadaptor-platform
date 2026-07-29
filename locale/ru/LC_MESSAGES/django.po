@@ -13916,3 +13916,29 @@ msgstr "Цены"
 #: templates/stays/units.html:0
 msgid "Rules & capacity"
 msgstr "Правила и вместимость"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Reserve online, pick up in store"
+msgstr "Бронируйте онлайн, забирайте в магазине"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Every day"
+msgstr "Каждый день"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Every week"
+msgstr "Каждую неделю"
+
+#: templates/storefront/_discount_display.html:0
+#, python-format
+msgid "until %(d)s"
+msgstr "до %(d)s"
+
+#: templates/storefront/_discount_display.html:0
+msgid "More offers"
+msgstr "Ещё предложения"
+
+#: templates/storefront/_discount_display.html:0
+#, python-format
+msgid "You save %(amount)s €"
+msgstr "Вы экономите %(amount)s €"

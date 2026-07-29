@@ -13846,3 +13846,29 @@ msgstr "Fiyatlar"
 #: templates/stays/units.html:0
 msgid "Rules & capacity"
 msgstr "Kurallar ve kapasite"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Reserve online, pick up in store"
+msgstr "Online ayırt, mağazadan al"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Every day"
+msgstr "Her gün"
+
+#: templates/storefront/_discount_display.html:0
+msgid "Every week"
+msgstr "Her hafta"
+
+#: templates/storefront/_discount_display.html:0
+#, python-format
+msgid "until %(d)s"
+msgstr "%(d)s tarihine kadar"
+
+#: templates/storefront/_discount_display.html:0
+msgid "More offers"
+msgstr "Diğer fırsatlar"
+
+#: templates/storefront/_discount_display.html:0
+#, python-format
+msgid "You save %(amount)s €"
+msgstr "%(amount)s € tasarruf edersiniz"

@@ -229,10 +229,32 @@ def promotion_list(request):
     selected = (request.GET.get("gruppe") or "").strip()
     if selected:
         qs = qs.filter(group=selected)
+    # Фидбэк 2026-07-29: группы акций (Wochenangebote/Räumung/…) — СЕКЦИЯМИ с
+    # заголовками, а не только чипами-фильтрами (иначе типы акций не считывались).
+    # Порядок — по первому вхождению в выдачу (свежая группа первой); акции без
+    # группы — в конец под «More offers». Выбран фильтр или групп нет → прежняя
+    # плоская сетка.
+    grouped = []
+    if not selected and groups:
+        by_group: dict[str, list] = {}
+        order: list[str] = []
+        for promo in qs:
+            key = promo.group or ""
+            if key not in by_group:
+                by_group[key] = []
+                order.append(key)
+            by_group[key].append(promo)
+        order.sort(key=lambda g: g == "")  # безгрупповые в конец
+        grouped = [(g, by_group[g]) for g in order]
     return render(
         request,
         "storefront/promotions_list.html",
-        {"promotions": qs, "groups": groups, "selected_group": selected},
+        {
+            "promotions": qs,
+            "groups": groups,
+            "selected_group": selected,
+            "grouped_promotions": grouped,
+        },
     )
 
 

@@ -348,6 +348,15 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         """Лимитированная акция распродана (остаток 0)."""
         return self.available_quantity is not None and self.available_quantity <= 0
 
+    @property
+    def is_new(self) -> bool:
+        """Стартовала в последние 7 дней — чип «Neu» на карточке (Prospekt-культура:
+        покупатель ищет новинки недели). Повторяющиеся акции новыми не считаем."""
+        if self.recurrence:
+            return False
+        start = self.starts_at or self.created_at
+        return bool(start) and (timezone.now() - start).days < 7
+
 
 class Reservation(TimestampedModel):
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name="reservations")
