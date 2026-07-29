@@ -48,6 +48,7 @@
   <form method="post" action="{% url 'stays:units' %}" class="shrink-0">
     {% csrf_token %}
     <input type="hidden" name="action" value="gap_deal"><input type="hidden" name="enabled" value="1">
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <input type="hidden" name="gap_max_nights" value="3"><input type="hidden" name="gap_discount_percent" value="25">
     <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Aktivieren (−25 % bis 3 Nächte)" %}</button>
   </form>

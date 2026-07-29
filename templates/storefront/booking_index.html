@@ -25,8 +25,8 @@
 {% if request.tenant.public_phone %}
   <a href="tel:{{ request.tenant.public_phone }}" class="inline-block text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent);">📞 {{ request.tenant.public_phone }}</a>
 {% endif %}
-<a href="{% url 'storefront-message' %}" class="inline-block ml-3 text-indigo-600 hover:underline">{% trans "Contact" %} →</a>
+{% if storefront_inbox_enabled %}<a href="{% url 'storefront-message' %}"{% if embed %} target="_top" rel="noopener"{% endif %} class="inline-block ml-3 text-indigo-600 hover:underline">{% trans "Contact" %} →</a>{% endif %}
 {% endif %}
-{% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}" class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
+{% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}"{% if embed %} target="_top" rel="noopener"{% endif %} class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
 {% booking_info %}
 {% endblock %}

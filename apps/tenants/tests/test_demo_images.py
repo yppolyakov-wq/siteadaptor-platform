@@ -119,3 +119,18 @@ def test_demo_image_url_survives_manifest_storage(tmp_path, settings):
     url = demo_image("bruschetta,tomato")  # не должно кинуть ValueError
     assert url == "/static/demo/photos/bruschetta.webp"  # плоский, без хеша
     assert ".webp" in url and url.count(".") == 1  # нет .<hash>.webp
+
+
+def test_photo_group_choice_is_stable_per_keyword(tmp_path, settings):
+    """Ревью 2026-07-28: член префиксной группы выбирается по КЛЮЧУ, а не по
+    lock — вставка позиции в кит не перетасовывает фото у соседей."""
+    photos = tmp_path / "demo" / "photos"
+    photos.mkdir(parents=True)
+    for name in ("hair-salon.webp", "hair-colorist.webp", "hair-oil.webp"):
+        (photos / name).write_bytes(b"x")
+    settings.STATICFILES_DIRS = [str(tmp_path)]
+
+    first = demo_images.photo_static_name("hair,styling", lock=3)
+    assert first == demo_images.photo_static_name("hair,styling", lock=99)  # lock не влияет
+    assert first == "hair-salon.webp"  # явный синоним ключа
+    assert demo_images.photo_static_name("hair,highlights", lock=1) == "hair-colorist.webp"

@@ -622,8 +622,9 @@ def test_booking_info_renders_practical_info_but_not_in_embed():
     body = public_views.termin_index(_req(tenant=tenant)).content.decode()
     assert "How booking works" in body or "So läuft die Buchung" in body
     assert "Di–Sa 9:00–18:00" in body and "Altstadtgasse 7" in body
-    # wa.me строится хелпером LS-1: только цифры (скобки/дефисы/пробелы убраны)
-    assert "https://wa.me/4901701234567" in body
+    # wa.me строится хелпером LS-1: только цифры, национальный trunk-ноль в
+    # скобках снят (ревью 2026-07-28: «49 0 170…» — невалидный международный)
+    assert "https://wa.me/491701234567" in body
     # embed → блок не рендерится (в виджете нужна только воронка)
     embed_body = public_views.termin_index(
         _req(data={"embed": "1"}, tenant=tenant)
@@ -645,3 +646,15 @@ def test_booking_info_hides_empty_cards():
     body = public_views.termin_index(_req(tenant=tenant)).content.decode()
     assert "Opening hours" not in body and "Öffnungszeiten" not in body
     assert "wa.me" not in body
+
+
+def test_contact_link_gated_by_inbox_module():
+    """Ревью 2026-07-28: ссылка «Contact» не должна вести в выключенный модуль
+    (посетитель получал 404). Гейт — и в инфо-блоке, и в пустом состоянии."""
+    _service()
+    on = TenantFactory.build(business_type="friseur", contact_phone="+49 761 1")
+    assert "/nachricht/" in public_views.termin_index(_req(tenant=on)).content.decode()
+    off = TenantFactory.build(
+        business_type="friseur", contact_phone="+49 761 1", disabled_modules=["inbox"]
+    )
+    assert "/nachricht/" not in public_views.termin_index(_req(tenant=off)).content.decode()

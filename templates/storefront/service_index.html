@@ -43,7 +43,7 @@
 {% endblock %}
 
 {% block listing_after %}
-{% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}" class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
+{% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}"{% if embed %} target="_top" rel="noopener"{% endif %} class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
 {% booking_info %}
 {% page_blocks "services" %}
 {% endblock %}

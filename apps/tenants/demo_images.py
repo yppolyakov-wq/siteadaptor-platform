@@ -240,6 +240,14 @@ def svg_for(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> str:
 _PHOTO_DIR = "demo/photos"
 _PHOTO_EXTS = (".webp", ".jpg", ".jpeg", ".png")
 
+# Ревью 2026-07-28: там, где точного файла нет, а префиксная группа смешивает
+# сюжеты (hair-* — и интерьеры салона, и бутылочки средств), сюжет выбираем
+# вручную.
+_PHOTO_ALIASES = {
+    "hair-styling": "hair-salon",
+    "hair-highlights": "hair-colorist",
+}
+
 
 def _kw_slug(text: str) -> str:
     out = "".join(ch if ch.isalnum() else "-" for ch in text.lower().strip())
@@ -292,13 +300,22 @@ def photo_static_name(keyword: str, *, lock: int = 1) -> str | None:
         # Фидбэк 2026-07-28: точного файла нет → берём тематически близкий по
         # ПРЕФИКСУ токена (hair,styling → hair-salon.webp). Выбор детерминирован
         # (sorted + lock), чтобы демо не «прыгало» между пересидами.
+        alias = _PHOTO_ALIASES.get(slug)
+        if alias:
+            for ext in _PHOTO_EXTS:
+                if finders.find(f"{_PHOTO_DIR}/{alias}{ext}"):
+                    return f"{alias}{ext}"
         index = _photo_index()
         for name in candidates:
             if not name:
                 continue
             group = [f for f in index if f.rsplit(".", 1)[0].startswith(f"{name}-")]
             if group:
-                return group[(max(lock, 1) - 1) % len(group)]
+                # Выбор члена группы детерминирован по КЛЮЧУ, а не по lock:
+                # lock — позиция в списке кита, поэтому вставка новой позиции
+                # перетасовывала бы фото у соседей (ревью 2026-07-28).
+                seed = int(hashlib.sha1(slug.encode()).hexdigest()[:8], 16)
+                return group[seed % len(group)]
     except Exception:  # noqa: BLE001 — нет staticfiles/настроек → SVG
         return None
     return None

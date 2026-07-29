@@ -967,6 +967,12 @@ def units(request, pk=None):
             messages.success(request, _("Settings saved."))
         if pk:
             return redirect("stays:unit-edit", pk=pk)
+        # Ревью 2026-07-28: кросс-страничные постеры (баннер Lücken-Deal на
+        # Belegungsplan) возвращают владельца туда, откуда он пришёл. Только
+        # относительный путь — guard от open-redirect (в т.ч. protocol-relative).
+        nxt = request.POST.get("next", "")
+        if nxt.startswith("/") and not nxt.startswith("//"):
+            return redirect(nxt)
         # Фидбэк 2026-07-28 (№2/№3): Save глобальной настройки возвращает на её
         # таб И на её ПОД-ТАБ (секцию), чтобы владелец не искал место заново.
         _settings_sections = {

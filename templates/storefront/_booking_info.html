@@ -46,7 +46,7 @@ wa.me строится хелпером LS-1.{% endcomment %}
       <h3 class="font-semibold mb-2">📞 {% trans "Questions before booking?" %}</h3>
       {% if tenant.public_phone %}<a href="tel:{{ tenant.public_phone }}" class="block text-sm text-indigo-600 hover:underline">{{ tenant.public_phone }}</a>{% endif %}
       {% if wa_url %}<a href="{{ wa_url }}" target="_blank" rel="noopener" class="block text-sm text-indigo-600 hover:underline mt-1">WhatsApp</a>{% endif %}
-      <a href="{% url 'storefront-message' %}" class="block text-sm text-gray-500 hover:underline mt-1">{% trans "Contact" %} →</a>
+      {% if inbox_on %}<a href="{% url 'storefront-message' %}" class="block text-sm text-gray-500 hover:underline mt-1">{% trans "Contact" %} →</a>{% endif %}
     </div>
     {% endif %}
   </div>

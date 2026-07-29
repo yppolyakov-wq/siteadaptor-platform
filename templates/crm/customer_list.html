@@ -4,9 +4,9 @@
 
 {% block dash_content %}
 {% hub_tabs "kunden" %}
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4 gap-3">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
   <h1 class="text-2xl font-bold">{% trans "Customers" %}</h1>
-  <div class="flex items-center gap-2">
+  <div class="flex flex-wrap items-center justify-end gap-2">
     {# CO-1: справочник компаний (корпоративные гости). #}
     <a href="{% url 'crm:company-list' %}" class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">🏢 {% trans "Companies" %}</a>
     {# B4.3: вход в купон-кампанию; активный фильтр уходит prefill'ом тега #}

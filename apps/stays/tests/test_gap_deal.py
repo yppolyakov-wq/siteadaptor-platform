@@ -173,3 +173,16 @@ def test_wizard_offer_checkbox_enables_gap_deal():
     assert StayUnit.objects.filter(name="Doppelzimmer").exists()
     s = StaySettings.load()
     assert (s.gap_max_nights, s.gap_discount_percent) == (3, 25)
+
+
+def test_gap_deal_banner_returns_to_calendar():
+    """Ревью 2026-07-28: баннер Lücken-Deal живёт на Belegungsplan — после
+    включения владелец должен вернуться туда, а не в настройки номеров."""
+    back = "/dashboard/stays/?von=2026-09-01"
+    resp = views.units(_req("post", {"action": "gap_deal", "enabled": "1", "next": back}))
+    assert resp.status_code == 302 and resp.url == back
+    # open-redirect guard: чужой хост игнорируется, работает обычный маршрут
+    resp2 = views.units(
+        _req("post", {"action": "gap_deal", "enabled": "1", "next": "//evil.example"})
+    )
+    assert resp2.url.endswith("?tab=einstellungen&sec=preise")
