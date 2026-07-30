@@ -10,6 +10,7 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
@@ -37,7 +38,10 @@ def collections_view(request):
     tenant = getattr(request, "tenant", None)
     has_booking = bool(tenant and tenant.is_module_active("booking"))
     has_stays = bool(tenant and tenant.is_module_active("stays"))
-    if not (has_booking or has_stays):
+    # M4-B Lookbook: подборки теперь и для ТОВАРОВ (бутик: «Herbst-Looks»).
+    # catalog — core-модуль, поэтому страница доступна всем; 404-гейт снят.
+    has_catalog = bool(tenant and tenant.is_module_active("catalog"))
+    if not (has_booking or has_stays or has_catalog):
         raise Http404
 
     if request.method == "POST":
@@ -70,7 +74,30 @@ def collections_view(request):
                 collection.stay_units.set(
                     StayUnit.objects.filter(pk__in=request.POST.getlist("units"))
                 )
+            if has_catalog and request.POST.get("products_present"):
+                from apps.catalog.models import Product
+
+                collection.products.set(
+                    Product.objects.filter(pk__in=request.POST.getlist("products"))
+                )
             messages.success(request, _("Collection saved."))
+        elif action == "photo":  # M4-B: фото образа (лукбук) — добавить/удалить
+            from apps.catalog.images import apply_gallery_op
+
+            collection = get_object_or_404(Collection, pk=request.POST.get("collection"))
+            try:
+                collection.images = apply_gallery_op(
+                    collection.images,
+                    op="remove" if request.POST.get("remove") else "add",
+                    image_id=request.POST.get("remove") or "",
+                    uploaded=request.FILES.get("photo"),
+                    folder="collections",
+                )
+            except ValidationError as exc:
+                messages.error(request, "; ".join(exc.messages))
+            else:
+                collection.save(update_fields=["images", "updated_at"])
+                messages.success(request, _("Collection saved."))
         elif action == "toggle":
             collection = get_object_or_404(Collection, pk=request.POST.get("collection"))
             collection.is_active = not collection.is_active
@@ -81,7 +108,7 @@ def collections_view(request):
         return redirect("collections:list")
 
     # GET: подборки + пары (сущность, входит?) для чекбоксов состава.
-    services, units = [], []
+    services, units, products = [], [], []
     if has_booking:
         from apps.booking.models import Service
 
@@ -90,12 +117,18 @@ def collections_view(request):
         from apps.stays.models import StayUnit
 
         units = list(StayUnit.objects.filter(is_active=True))
+    if has_catalog:
+        from apps.catalog.models import Product
+
+        products = list(Product.objects.filter(is_active=True).order_by("name")[:200])
     collections = list(Collection.objects.all())
     for collection in collections:
         svc_ids = set(collection.services.values_list("pk", flat=True))
         unit_ids = set(collection.stay_units.values_list("pk", flat=True))
+        prod_ids = set(collection.products.values_list("pk", flat=True))
         collection.svc_rows = [(s, s.pk in svc_ids) for s in services]
         collection.unit_rows = [(u, u.pk in unit_ids) for u in units]
+        collection.product_rows = [(p, p.pk in prod_ids) for p in products]
     return render(
         request,
         "collections/list.html",
@@ -104,6 +137,7 @@ def collections_view(request):
             "collections": collections,
             "has_booking": has_booking,
             "has_stays": has_stays,
-            "has_entities": bool(services or units),
+            "has_catalog": has_catalog,
+            "has_entities": bool(services or units or products),
         },
     )

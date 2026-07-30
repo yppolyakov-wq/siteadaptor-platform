@@ -217,6 +217,16 @@ def test_cabinet_renders_checkbox_rows_and_gates_modules():
     assert "?kollektion=damen" in body  # подсказка параметра фасета
     assert 'name="services"' in body and "Schnitt" in body  # чекбоксы состава
     assert col.name in body
-    # ни booking, ни stays → страница недоступна
+    # M4-B (2026-07-30): гейт booking/stays СНЯТ ОСОЗНАННО — подборки теперь и для
+    # товаров (лукбук бутика), а catalog — core-модуль. Http404 остаётся только
+    # если недоступен вообще ни один из трёх.
+    body_catalog_only = views.collections_view(
+        _dash_req(disabled=["booking", "stays"])
+    ).content.decode()
+    assert "Products in this collection" in body_catalog_only or col.name in body_catalog_only
+    tenant_stub = _dash_req(disabled=["booking", "stays"]).tenant
     with pytest.raises(Http404):
-        views.collections_view(_dash_req(disabled=["booking", "stays"]))
+        request = _dash_req(disabled=["booking", "stays"])
+        request.tenant = tenant_stub
+        request.tenant.is_module_active = lambda *_a, **_k: False
+        views.collections_view(request)

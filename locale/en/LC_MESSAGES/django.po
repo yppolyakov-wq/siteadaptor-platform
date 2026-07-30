@@ -13911,7 +13911,7 @@ msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 msgstr "Gap deal: max nights (0 = as global)"
 
 msgid "Lücken-Deal: Rabatt % (0 = wie allgemein)"
-msgstr "Gap deal: discount %% (0 = as global)"
+msgstr "Gap deal: discount % (0 = as global)"
 
 #. hero-tiles / price-nav 2026-07-30
 msgid "Freie Zeiten sofort sehen"
@@ -14061,3 +14061,35 @@ msgstr ""
 #. hero-tiles / price-nav 2026-07-30
 msgid "Öffnungszeiten festlegen"
 msgstr "Set opening hours"
+
+#. M4-B lookbook 2026-07-30
+msgid "All collections"
+msgstr "All collections"
+
+#. M4-B lookbook 2026-07-30
+msgid "Products in this collection"
+msgstr "Products in this collection"
+
+#. M4-B lookbook 2026-07-30
+msgid "Lookbook-Fotos"
+msgstr "Lookbook photos"
+
+#. M4-B lookbook 2026-07-30
+msgid "Mit einem Foto bekommt die Kollektion eine eigene Look-Seite."
+msgstr "With a photo the collection gets its own look page."
+
+#. M4-B lookbook 2026-07-30
+msgid "Foto"
+msgstr "Photo"
+
+#. M4-B lookbook 2026-07-30
+msgid "Diese Teile gehören zum Look"
+msgstr "These pieces belong to the look"
+
+#. M4-B lookbook 2026-07-30
+msgid "Alle Teile im Sortiment ansehen"
+msgstr "See all pieces in the shop"
+
+#. M4-B lookbook 2026-07-30
+msgid "Zu diesem Look sind noch keine Artikel zugeordnet."
+msgstr "No items are assigned to this look yet."

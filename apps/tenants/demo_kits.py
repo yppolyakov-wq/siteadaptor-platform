@@ -171,9 +171,10 @@ class DemoKit:
     # created_products. Seed создаёт опубликованные отзывы напрямую (демо доверенный;
     # верификация — на витрине).
     product_reviews: list = field(default_factory=list)
-    # UB3-2: подборки (Collection) — [(name, {"services": [idx…], "stay_units": [idx…]})];
-    # индексы — позиции в refs (порядок создания сидером). На витрине — чипы-фасет
-    # листинга (?kollektion=<slug>); slug генерируется из имени.
+    # UB3-2: подборки (Collection) — [(name, {"services": [idx…], "stay_units": [idx…],
+    # "products": [idx…], "photos": ["kw"…]})]; индексы — позиции в refs (порядок
+    # создания сидером). На витрине — чипы-фасет листинга (?kollektion=<slug>);
+    # M4-B: с "photos" подборка становится «луком» со страницей /lookbook/<slug>/.
     collections: list = field(default_factory=list)
     # UA4-4b: отзывы об УСЛУГЕ/НОМЕРЕ/СОБЫТИИ (generic reviews.Review) — (index, rating,
     # name, email, comment). index — позиция в refs["services"]/["stay_units"]/["events"]
@@ -3527,6 +3528,19 @@ CLOTHING = DemoKit(
     seed_records=True,
     menus=CLOTHING_MENUS,
     enable_anprobe=True,  # M3: Click&Reserve — киллер-механика бутика
+    # M4-B Lookbook: подборки товаров с фото → страницы /lookbook/<slug>/
+    # (индексы — позиции товаров в порядке создания сидером).
+    collections=[
+        (
+            "Herbst-Looks",
+            {"products": [0, 1, 2], "photos": ["autumn,fashion", "coat,street", "boots,autumn"]},
+        ),
+        (
+            "Business",
+            {"products": [3, 4], "photos": ["business,outfit", "blazer,woman"]},
+        ),
+        ("Basics", {"products": [5, 6, 7]}),  # без фото → обычный фасет-чип
+    ],
     size_tables={
         "damen": "Größe | Brust (cm) | Taille (cm)\nS | 86–90 | 68–72\nM | 91–95 | 73–77\nL | 96–101 | 78–83\nXL | 102–108 | 84–90",
         "herren": "Größe | Brust (cm) | Bund (cm)\n48 | 94–97 | 82–85\n50 | 98–101 | 86–89\n52 | 102–105 | 90–94",
@@ -6456,6 +6470,23 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             for idx in members.get("stay_units", []):
                 if idx < len(unit_ids):
                     col.stay_units.add(unit_ids[idx])
+            # M4-B Lookbook: товары подборки + фото образа (страница /lookbook/<slug>/).
+            prod_ids = refs.get("products", [])
+            for idx in members.get("products", []):
+                if idx < len(prod_ids):
+                    col.products.add(prod_ids[idx])
+            photos = members.get("photos") or []
+            if photos:
+                col.images = [
+                    {
+                        **_image_ref(kw, 9300 + i * 10 + n, col_name),
+                        "id": f"look-{i}-{n}",
+                        "is_primary": n == 0,
+                        "sort_order": n,
+                    }
+                    for n, kw in enumerate(photos)
+                ]
+                col.save(update_fields=["images", "updated_at"])
             refs["collections"].append(str(col.pk))
     if (
         kit.kurtaxe or kit.house_rules or kit.auto_discounts or kit.occupancy_pricing

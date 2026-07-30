@@ -14079,7 +14079,7 @@ msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 msgstr "Знижка на вікно: макс. ночей (0 = як у загальних)"
 
 msgid "Lücken-Deal: Rabatt % (0 = wie allgemein)"
-msgstr "Знижка на вікно: %% (0 = як у загальних)"
+msgstr "Знижка на «вікно»: % (0 = як у загальних)"
 
 #. hero-tiles / price-nav 2026-07-30
 msgid "Freie Zeiten sofort sehen"
@@ -14228,3 +14228,35 @@ msgstr ""
 #. hero-tiles / price-nav 2026-07-30
 msgid "Öffnungszeiten festlegen"
 msgstr "Задати години роботи"
+
+#. M4-B lookbook 2026-07-30
+msgid "All collections"
+msgstr "Усі добірки"
+
+#. M4-B lookbook 2026-07-30
+msgid "Products in this collection"
+msgstr "Товари в цій добірці"
+
+#. M4-B lookbook 2026-07-30
+msgid "Lookbook-Fotos"
+msgstr "Фото лукбуку"
+
+#. M4-B lookbook 2026-07-30
+msgid "Mit einem Foto bekommt die Kollektion eine eigene Look-Seite."
+msgstr "З фото добірка отримує власну сторінку образу."
+
+#. M4-B lookbook 2026-07-30
+msgid "Foto"
+msgstr "Фото"
+
+#. M4-B lookbook 2026-07-30
+msgid "Diese Teile gehören zum Look"
+msgstr "Речі з цього образу"
+
+#. M4-B lookbook 2026-07-30
+msgid "Alle Teile im Sortiment ansehen"
+msgstr "Дивитися всі речі в каталозі"
+
+#. M4-B lookbook 2026-07-30
+msgid "Zu diesem Look sind noch keine Artikel zugeordnet."
+msgstr "До цього образу поки не прив’язані товари."

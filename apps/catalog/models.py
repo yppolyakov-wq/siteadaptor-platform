@@ -105,6 +105,14 @@ class Product(SoftDeleteMixin, I18nMixin):
     # [{"id","url","alt":{de,en},"mime_type","size","is_primary","sort_order"}]
     images = models.JSONField(default=list, blank=True)
 
+    # M4-B Lookbook (план m4-boutique-plan-2026-07-30 §B): подборки владельца —
+    # «Herbst-Looks», «Business». Товар может входить в несколько; на витрине это
+    # фасет-чипы каталога (?kollektion=<slug>) и страница образа /lookbook/<slug>/.
+    # Тот же M2M-паттерн, что у Service/StayUnit (UB3-2).
+    collections = models.ManyToManyField(
+        "collections.Collection", blank=True, related_name="products"
+    )
+
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default="EUR")
 

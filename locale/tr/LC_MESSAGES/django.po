@@ -14022,7 +14022,7 @@ msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 msgstr "Boşluk fırsatı: maks. gece (0 = genel ayar)"
 
 msgid "Lücken-Deal: Rabatt % (0 = wie allgemein)"
-msgstr "Boşluk fırsatı: indirim %% (0 = genel ayar)"
+msgstr "Boşluk fırsatı: indirim % (0 = genel ayar)"
 
 #. hero-tiles / price-nav 2026-07-30
 msgid "Freie Zeiten sofort sehen"
@@ -14173,3 +14173,35 @@ msgstr ""
 #. hero-tiles / price-nav 2026-07-30
 msgid "Öffnungszeiten festlegen"
 msgstr "Çalışma saatlerini belirle"
+
+#. M4-B lookbook 2026-07-30
+msgid "All collections"
+msgstr "Tüm koleksiyonlar"
+
+#. M4-B lookbook 2026-07-30
+msgid "Products in this collection"
+msgstr "Bu koleksiyondaki ürünler"
+
+#. M4-B lookbook 2026-07-30
+msgid "Lookbook-Fotos"
+msgstr "Lookbook fotoğrafları"
+
+#. M4-B lookbook 2026-07-30
+msgid "Mit einem Foto bekommt die Kollektion eine eigene Look-Seite."
+msgstr "Bir fotoğrafla koleksiyon kendi look sayfasını alır."
+
+#. M4-B lookbook 2026-07-30
+msgid "Foto"
+msgstr "Fotoğraf"
+
+#. M4-B lookbook 2026-07-30
+msgid "Diese Teile gehören zum Look"
+msgstr "Bu parçalar look'a dahil"
+
+#. M4-B lookbook 2026-07-30
+msgid "Alle Teile im Sortiment ansehen"
+msgstr "Tüm parçaları mağazada görün"
+
+#. M4-B lookbook 2026-07-30
+msgid "Zu diesem Look sind noch keine Artikel zugeordnet."
+msgstr "Bu look'a henüz ürün atanmadı."

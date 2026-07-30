@@ -30,6 +30,10 @@ class Collection(I18nMixin, TimestampedModel):
     description_i18n = models.JSONField(default=dict, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # M4-B Lookbook: фото образа (FileRef-envelope, как `Product.images`) —
+    # подборка становится «луком» со своей страницей /lookbook/<slug>/.
+    # Пусто = обычная подборка-фасет (обратная совместимость с UB3-2).
+    images = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["sort_order", "name"]

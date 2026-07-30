@@ -12,7 +12,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.facets import FacetProvider, i18n_icontains_q
+from apps.core.facets import FacetProvider, collection_chips, i18n_icontains_q
 
 # Пороги фасета рейтинга (минимум звёзд) — те же значения, что _RATING_THRESHOLDS
 # агрегатора (A8); только их принимаем из GET.
@@ -49,6 +49,8 @@ class CatalogFacets(FacetProvider):
             "herkunft": (params.get("herkunft") or "").strip(),
             # M2 Boutique: фасет размера (по variant.label, только доступные).
             "groesse": (params.get("groesse") or "").strip(),
+            # M4-B Lookbook: подборка товаров владельца (M2M Collection).
+            "kollektion": (params.get("kollektion") or "").strip(),
             "bewertung": bewertung if bewertung in RATING_THRESHOLDS else 0,
         }
 
@@ -75,6 +77,12 @@ class CatalogFacets(FacetProvider):
                 Q(variants__label=sel["groesse"], variants__is_active=True)
                 & (Q(variants__stock_quantity__isnull=True) | Q(variants__stock_quantity__gt=0))
             )
+        if sel["kollektion"]:
+            # M2M-JOIN по slug активной подборки; distinct — товар может входить
+            # в несколько (тот же приём, что у услуг/номеров UB3-2).
+            items = items.filter(
+                collections__slug=sel["kollektion"], collections__is_active=True
+            ).distinct()
         if sel["bewertung"]:
             items = items.filter(pk__in=self._rated_ids(items, sel["bewertung"]))
         return items
@@ -137,6 +145,8 @@ class CatalogFacets(FacetProvider):
             "show_stock_filter": show_stock,
             # UB2-3: Bio/Regional-Herkunft — только реально указанные значения.
             "origin_chips": sorted(set(items.exclude(origin="").values_list("origin", flat=True))),
+            # M4-B: чипы подборок — только те, где есть товары ЭТОГО набора.
+            "collection_chips": collection_chips("products", items),
             # UB2-3: рейтинг-фасет показываем, лишь когда есть отзывы (bulk, без N+1).
             "show_rating_filter": bool(
                 review_services.bulk_summary("product", items.values_list("pk", flat=True))

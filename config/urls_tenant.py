@@ -11,6 +11,7 @@ from django.views.static import serve
 
 from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
+from apps.collections import public_views as collections_public
 from apps.core import health
 from apps.core.views import (
     board,
@@ -251,6 +252,8 @@ urlpatterns = [
     path("lang/", public_views.set_language, name="storefront-set-language"),
     # Каталог товаров на витрине (Track C1).
     path("sortiment/", public_views.product_list, name="storefront-products"),
+    # M4-B Lookbook: страница образа (подборка товаров с фото).
+    path("lookbook/<slug:slug>/", collections_public.lookbook, name="storefront-lookbook"),
     path("sortiment/<uuid:pk>/", public_views.product_detail, name="storefront-product"),
     # M2 Boutique: Warteliste товара/размера («ausverkauft → benachrichtigen»).
     path(

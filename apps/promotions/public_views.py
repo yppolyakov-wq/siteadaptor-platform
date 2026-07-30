@@ -382,6 +382,7 @@ def product_list(request):
     only_available = sel["nur_verfuegbar"]
     herkunft, bewertung = sel["herkunft"], sel["bewertung"]
     groesse = sel.get("groesse", "")  # M2 Boutique: фасет размера
+    kollektion = sel.get("kollektion", "")  # M4-B Lookbook: подборка товаров
 
     # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие;
     # остаётся во вьюхе (вне единого набора UB2-3). ---
@@ -449,6 +450,7 @@ def product_list(request):
         or only_available
         or herkunft
         or groesse
+        or kollektion
         or bewertung
         or q
     )
@@ -475,6 +477,7 @@ def product_list(request):
         "nur_verfuegbar": "1" if only_available else "",
         "herkunft": herkunft,  # UB2-3: Bio/Regional-происхождение
         "groesse": groesse,  # M2: размер
+        "kollektion": kollektion,  # M4-B: подборка (лукбук)
         "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
         "preview": "1" if is_preview else "",
@@ -542,6 +545,9 @@ def product_list(request):
             # M2 Boutique: фасет размера (чипы из вариантов, только доступные).
             "size_chips": chips["size_chips"],
             "active_groesse": groesse,
+            # M4-B Lookbook: чипы подборок владельца (?kollektion=<slug>).
+            "collection_chips": chips["collection_chips"],
+            "active_kollektion": kollektion,
             # UB2-3: рейтинг-фасет (минимум звёзд) — только когда есть отзывы.
             "show_rating_filter": chips["show_rating_filter"],
             "rating_thresholds": chips["rating_thresholds"],

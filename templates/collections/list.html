@@ -10,6 +10,7 @@
   <div class="flex gap-4">
     {% if has_booking %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     {% if has_stays %}<a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>{% endif %}
+    {% if has_catalog %}<a href="{% url 'catalog:product-list' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Products" %}</a>{% endif %}
   </div>
 </div>
 
@@ -64,6 +65,21 @@
         </div>
       </fieldset>
       {% endif %}
+      {% if has_catalog and col.product_rows %}
+      {% comment %}M4-B Lookbook: подборка товаров («Herbst-Looks») — чипы-фасет
+      каталога + собственная страница образа /lookbook/<slug>/.{% endcomment %}
+      <fieldset>
+        <legend class="text-xs text-gray-500 mb-1">{% trans "Products in this collection" %}</legend>
+        <input type="hidden" name="products_present" value="1">
+        <div class="flex flex-wrap gap-x-4 gap-y-1 max-h-48 overflow-y-auto">
+          {% for p, checked in col.product_rows %}
+          <label class="flex items-center gap-1.5 text-sm text-gray-700">
+            <input type="checkbox" name="products" value="{{ p.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ p.name }}
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endif %}
       {% if has_stays and col.unit_rows %}
       <fieldset>
         <legend class="text-xs text-gray-500 mb-1">{% trans "Rooms in this collection" %}</legend>
@@ -79,6 +95,33 @@
       {% endif %}
       <button type="submit" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">{% trans "Save" %}</button>
     </form>
+    {% if has_catalog %}
+    {% comment %}M4-B: фото образа. Есть хотя бы одно → подборка получает
+    публичную страницу /lookbook/<slug>/ (галерея + товары образа).{% endcomment %}
+    <div class="mt-3 border-t border-gray-100 pt-3">
+      <p class="text-xs text-gray-500 mb-2">{% trans "Lookbook-Fotos" %}
+        {% if col.images %}<a href="{% url 'storefront-lookbook' col.slug %}" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">/lookbook/{{ col.slug }}/ →</a>
+        {% else %}<span class="text-gray-400">{% trans "Mit einem Foto bekommt die Kollektion eine eigene Look-Seite." %}</span>{% endif %}
+      </p>
+      <div class="flex flex-wrap items-center gap-2">
+        {% for img in col.images %}
+        <span class="relative inline-block">
+          <img src="{{ img.url }}" alt="" class="w-16 h-20 object-cover rounded-lg">
+          <form method="post" class="absolute -top-1.5 -right-1.5">{% csrf_token %}
+            <input type="hidden" name="action" value="photo"><input type="hidden" name="collection" value="{{ col.pk }}">
+            <input type="hidden" name="remove" value="{{ img.id }}">
+            <button type="submit" title="{% trans 'Delete' %}" class="w-5 h-5 rounded-full bg-white shadow text-xs text-red-600">✕</button>
+          </form>
+        </span>
+        {% endfor %}
+        <form method="post" enctype="multipart/form-data" class="flex items-center gap-2">{% csrf_token %}
+          <input type="hidden" name="action" value="photo"><input type="hidden" name="collection" value="{{ col.pk }}">
+          <input type="file" name="photo" accept="image/*" required class="text-xs text-gray-600 w-44">
+          <button type="submit" class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">＋ {% trans "Foto" %}</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
     <div class="flex gap-2 mt-2">
       <form method="post">{% csrf_token %}
         <input type="hidden" name="action" value="toggle"><input type="hidden" name="collection" value="{{ col.pk }}">

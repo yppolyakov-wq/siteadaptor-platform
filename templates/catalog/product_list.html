@@ -6,9 +6,13 @@
 {% hub_tabs "catalog" %}
 <div class="flex items-center justify-between mb-4">
   <h1 class="text-2xl font-bold">{% trans "Products" %}</h1>
-  <a href="{% url 'catalog:product-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
-    + {% trans "New product" %}
-  </a>
+  <div class="flex items-center gap-4">
+    {# M4-B Lookbook: подборки товаров («Herbst-Looks») — вход из каталога. #}
+    <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
+    <a href="{% url 'catalog:product-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+      + {% trans "New product" %}
+    </a>
+  </div>
 </div>
 
 <div class="bg-white rounded-2xl shadow-sm p-4">

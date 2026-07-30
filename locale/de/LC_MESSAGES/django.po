@@ -14048,5 +14048,187 @@ msgstr "Preis pro Nacht anzeigen"
 msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 msgstr "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 
-msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
-msgstr "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgid "Lücken-Deal: Rabatt % (0 = wie allgemein)"
+msgstr "Lücken-Deal: Rabatt % (0 = wie allgemein)"
+
+#. sync 2026-07-30
+msgid "Aktuelle Deals"
+msgstr "Aktuelle Deals"
+
+#. sync 2026-07-30
+msgid "Allgemeine Tarife, Rabatte und dynamische Preise"
+msgstr "Allgemeine Tarife, Rabatte und dynamische Preise"
+
+#. sync 2026-07-30
+msgid "Anfrage stellen"
+msgstr "Anfrage stellen"
+
+#. sync 2026-07-30
+msgid "Angebot anfordern"
+msgstr "Angebot anfordern"
+
+#. sync 2026-07-30
+msgid "Bei jedem Einkauf sammeln"
+msgstr "Bei jedem Einkauf sammeln"
+
+#. sync 2026-07-30
+msgid "Beratung vor Ort"
+msgstr "Beratung vor Ort"
+
+#. sync 2026-07-30
+msgid "Deals per E-Mail"
+msgstr "Deals per E-Mail"
+
+#. sync 2026-07-30
+msgid "Einzeltermin"
+msgstr "Einzeltermin"
+
+#. sync 2026-07-30
+msgid "Freie Zeiten sofort sehen"
+msgstr "Freie Zeiten sofort sehen"
+
+#. sync 2026-07-30
+msgid "Gruppen und Wunschtermine"
+msgstr "Gruppen und Wunschtermine"
+
+#. sync 2026-07-30
+msgid "Inspektion, Reifen, Service"
+msgstr "Inspektion, Reifen, Service"
+
+#. sync 2026-07-30
+msgid "Kein Angebot verpassen"
+msgstr "Kein Angebot verpassen"
+
+#. sync 2026-07-30
+msgid "Kostenlos & unverbindlich"
+msgstr "Kostenlos & unverbindlich"
+
+#. sync 2026-07-30
+msgid "Kostenvoranschlag"
+msgstr "Kostenvoranschlag"
+
+#. sync 2026-07-30
+msgid "Massage, Beratung, Coaching"
+msgstr "Massage, Beratung, Coaching"
+
+#. sync 2026-07-30
+msgid "Noch keine Öffnungszeiten hinterlegt."
+msgstr "Noch keine Öffnungszeiten hinterlegt."
+
+#. sync 2026-07-30
+msgid ""
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
+" der Leistung."
+msgstr ""
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
+" der Leistung."
+
+#. sync 2026-07-30
+msgid "Pflegeprodukte"
+msgstr "Pflegeprodukte"
+
+#. sync 2026-07-30
+msgid "Preise & Saison"
+msgstr "Preise & Saison"
+
+#. sync 2026-07-30
+msgid "Private Führung"
+msgstr "Private Führung"
+
+#. sync 2026-07-30
+msgid "Retreats & Kurse"
+msgstr "Retreats & Kurse"
+
+#. sync 2026-07-30
+msgid "Rückruf anfordern"
+msgstr "Rückruf anfordern"
+
+#. sync 2026-07-30
+msgid ""
+"Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest."
+msgstr ""
+"Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest."
+
+#. sync 2026-07-30
+msgid "Salonqualität für zu Hause"
+msgstr "Salonqualität für zu Hause"
+
+#. sync 2026-07-30
+msgid "Schaden beschreiben — Festpreis erhalten"
+msgstr "Schaden beschreiben — Festpreis erhalten"
+
+#. sync 2026-07-30
+msgid "Teile & Zubehör"
+msgstr "Teile & Zubehör"
+
+#. sync 2026-07-30
+msgid "Termin vereinbaren"
+msgstr "Termin vereinbaren"
+
+#. sync 2026-07-30
+msgid "Termine ansehen und Plätze sichern"
+msgstr "Termine ansehen und Plätze sichern"
+
+#. sync 2026-07-30
+msgid "Termine und freie Plätze"
+msgstr "Termine und freie Plätze"
+
+#. sync 2026-07-30
+msgid "Touren & Termine"
+msgstr "Touren & Termine"
+
+#. sync 2026-07-30
+msgid "Verfügbarkeit prüfen"
+msgstr "Verfügbarkeit prüfen"
+
+#. sync 2026-07-30
+msgid "Wir melden uns zurück"
+msgstr "Wir melden uns zurück"
+
+#. sync 2026-07-30
+msgid "Wunschtermin für Ihre Gruppe"
+msgstr "Wunschtermin für Ihre Gruppe"
+
+#. sync 2026-07-30
+msgid "Öffnungszeiten & Ressourcen"
+msgstr "Öffnungszeiten & Ressourcen"
+
+#. sync 2026-07-30
+msgid "Öffnungszeiten festlegen"
+msgstr "Öffnungszeiten festlegen"
+
+#. sync 2026-07-30
+msgid "Übernachtung"
+msgstr "Übernachtung"
+
+#. M4-B lookbook 2026-07-30
+msgid "All collections"
+msgstr "All collections"
+
+#. M4-B lookbook 2026-07-30
+msgid "Products in this collection"
+msgstr "Products in this collection"
+
+#. M4-B lookbook 2026-07-30
+msgid "Lookbook-Fotos"
+msgstr "Lookbook-Fotos"
+
+#. M4-B lookbook 2026-07-30
+msgid "Mit einem Foto bekommt die Kollektion eine eigene Look-Seite."
+msgstr "Mit einem Foto bekommt die Kollektion eine eigene Look-Seite."
+
+#. M4-B lookbook 2026-07-30
+msgid "Foto"
+msgstr "Foto"
+
+#. M4-B lookbook 2026-07-30
+msgid "Diese Teile gehören zum Look"
+msgstr "Diese Teile gehören zum Look"
+
+#. M4-B lookbook 2026-07-30
+msgid "Alle Teile im Sortiment ansehen"
+msgstr "Alle Teile im Sortiment ansehen"
+
+#. M4-B lookbook 2026-07-30
+msgid "Zu diesem Look sind noch keine Artikel zugeordnet."
+msgstr "Zu diesem Look sind noch keine Artikel zugeordnet."
