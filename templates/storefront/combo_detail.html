@@ -14,7 +14,7 @@
   {% endfor %}
 {% endif %}
 
-<form method="post" action="{% url 'storefront-combo-add' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-5 max-w-lg">
+<form method="post" action="{% url 'storefront-combo-add' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-5 max-w-lg mx-auto">
   {% csrf_token %}
   <input type="hidden" name="combo" value="{{ combo.pk }}">
   {% for g in combo.groups_active %}

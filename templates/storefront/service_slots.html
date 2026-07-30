@@ -5,7 +5,7 @@
 {% block content %}
 {% funnel_steps "service" 2 %}
 <a href="{% url 'storefront-termin' %}{% if embed %}?embed=1{% endif %}" class="text-sm text-gray-500 hover:underline">← {% trans "All services" %}</a>
-<div class="relative max-w-2xl">
+<div class="relative max-w-2xl mx-auto">
   <span data-photo-edit data-edit-model="service" data-edit-pk="{{ service.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-5 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
   {% if service.image_url %}
     <img src="{{ service.image_url }}" alt="{{ service.name }}" class="w-full aspect-[5/2] object-cover rounded-2xl mt-3 mb-2">

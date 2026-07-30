@@ -3,7 +3,7 @@
 {% block title %}{% trans "Your message" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-xl">
+<div class="max-w-xl mx-auto">
   <h1 class="text-2xl font-bold mb-1">{{ conversation.subject|default:_("Your message") }}</h1>
   <p class="text-sm text-gray-500 mb-5">{% trans "Keep this page bookmarked to follow the conversation." %}</p>
 

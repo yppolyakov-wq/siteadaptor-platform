@@ -3,7 +3,7 @@
 {% block title %}{% trans "Your quote" %} {{ job.reference_code }} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl">
+<div class="max-w-2xl mx-auto">
   {% if messages %}
     {% for m in messages %}
       <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>

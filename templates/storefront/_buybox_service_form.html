@@ -4,7 +4,7 @@
 storefront-service-book, паритет-замок test_buybox_parity). Включается ТОЛЬКО через
 storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot=); сервер
 ре-валидирует слот в service_book (anti-oversell).{% endcomment %}
-<form method="post" action="{{ sellable.submit_url }}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
+<form method="post" action="{{ sellable.submit_url }}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mx-auto">
   {% csrf_token %}
   {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
   <h2 class="font-semibold">{{ day|date:"d.m.Y" }} · {{ selected|time:"H:i" }} · {{ service.name }}{% if chosen_resource %} · {{ chosen_resource.name }}{% endif %}</h2>

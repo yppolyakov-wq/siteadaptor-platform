@@ -3,26 +3,26 @@
 {% block title %}{% trans "Request a quote" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Request a quote" %}</h1>
-<p class="text-gray-500 mb-6">{% trans "Tell us what you need — we'll send you a quote." %}</p>
+<h1 class="max-w-2xl mx-auto text-2xl md:text-3xl font-bold mb-1">{% trans "Request a quote" %}</h1>
+<p class="max-w-2xl mx-auto text-gray-500 mb-6">{% trans "Tell us what you need — we'll send you a quote." %}</p>
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'info' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div class="max-w-2xl mx-auto mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'info' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
 {% comment %}A7: зона обслуживания (Einzugsgebiet) — баннер с текстовой пометкой и списком
 PLZ; показываем только если бизнес её задал (Handwerker/Werkstatt/мобильные услуги).{% endcomment %}
 {% if has_service_area %}
-<div class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm max-w-xl">
+<div class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm max-w-2xl mx-auto">
   <p class="font-medium text-indigo-900">📍 {% trans "Our service area" %}</p>
   {% if service_area_note %}<p class="mt-0.5 text-indigo-800">{{ service_area_note }}</p>{% endif %}
   {% if service_area_plz_list %}<p class="mt-1 text-indigo-700">{% trans "Postal codes" %}: {{ service_area_plz_list|join:", " }}</p>{% endif %}
 </div>
 {% endif %}
 
-<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-2xl mx-auto">
   {% csrf_token %}
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
@@ -104,7 +104,7 @@ PLZ; показываем только если бизнес её задал (Ha
 
 {% comment %}A7: Rückruf-Anfrage — низкопороговая альтернатива «просто перезвоните мне»
 (имя + телефон + опц. удобное время). Отдельная форма → POST /rueckruf/.{% endcomment %}
-<div class="mt-4 bg-white rounded-2xl shadow-sm p-6 max-w-xl">
+<div class="mt-4 bg-white rounded-2xl shadow-sm p-6 max-w-2xl mx-auto">
   <h2 class="font-semibold">{% trans "Prefer a callback?" %}</h2>
   <p class="text-sm text-gray-500 mb-3">{% trans "Leave your number — we'll call you back." %}</p>
   <form method="post" action="{% url 'storefront-rueckruf' %}" class="grid sm:grid-cols-3 gap-3 items-end">

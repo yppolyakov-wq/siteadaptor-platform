@@ -3,7 +3,7 @@
 Контекст: cal_first, cal_days [{day,has_slots,is_past}], cal_lead_blanks, cal_prev,
 cal_next, cal_show_prev, cal_show_next, cal_qs (доп. параметры дня, напр. &resource=…),
 day (выбранный). Дни со слотами кликабельны (?tag=), нав месяца — ?cal=YYYY-MM.{% endcomment %}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-4 max-w-sm">
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-4 max-w-sm mx-auto">
   <div class="flex items-center justify-between mb-2">
     {% if cal_show_prev %}<a href="?cal={{ cal_prev|date:'Y-m' }}&amp;tag={{ day|date:'Y-m-d' }}{{ cal_qs }}{{ embed_qs }}" class="px-2 py-1 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="{% trans 'Previous month' %}">‹</a>{% else %}<span class="px-2"></span>{% endif %}
     <span class="font-semibold text-sm">{{ cal_first|date:"F Y" }}</span>
