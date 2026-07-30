@@ -275,8 +275,11 @@ def resources(request):
 
 
 @login_required
-def services_view(request):
-    """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами."""
+def services_view(request, pk=None):
+    """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами.
+
+    Фидбэк 2026-07-30: с `pk` — страница ОДНОЙ услуги (как stays:unit-edit),
+    без pk — список; POST со страницы услуги возвращает на неё же."""
     from .models import Service
 
     def _int(raw, default, lo, hi):
@@ -333,15 +336,23 @@ def services_view(request):
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             service.is_active = not service.is_active
             service.save(update_fields=["is_active", "updated_at"])
+        if pk:
+            return redirect("booking:service-edit", pk=pk)
         return redirect("booking:services")
 
-    services = list(Service.objects.order_by("-is_active", "name"))
+    if pk:
+        service_page = get_object_or_404(Service, pk=pk)
+        services = [service_page]
+    else:
+        service_page = None
+        services = list(Service.objects.order_by("-is_active", "name"))
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
         svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))
     return render(
         request,
         "booking/services.html",
         {
+            "service_page": service_page,
             "nav": "booking",
             "services": services,
             "extra_locales": extra_locales(getattr(request, "tenant", None)),

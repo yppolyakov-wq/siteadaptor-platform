@@ -553,9 +553,11 @@ def _offer_items(tenant) -> list[dict]:
         elif kind == "booking":
             from apps.booking.models import Service
 
-            url = reverse("booking:services")  # правка услуг — инлайн на списке
+            # Фидбэк 2026-07-30: у услуги своя страница — per-pk ссылка.
             for s in Service.objects.all().order_by("-created_at")[:8]:
-                rows.append({"name": s.name or "—", "url": url})
+                rows.append(
+                    {"name": s.name or "—", "url": reverse("booking:service-edit", args=[s.pk])}
+                )
         elif kind == "stays":
             from apps.stays.models import StayUnit
 

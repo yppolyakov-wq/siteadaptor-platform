@@ -4,10 +4,11 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Services" %}</h1>
+  <h1 class="text-2xl font-bold">{% if service_page %}{{ service_page.name }}{% else %}{% trans "Services" %}{% endif %}</h1>
   <div class="flex gap-4">
     {# UB3-2: подборки услуг → чипы-фасет на /termin/. #}
     <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
+    {% if service_page %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
   </div>
 </div>
@@ -18,7 +19,7 @@
   {% endfor %}
 {% endif %}
 
-<p class="text-sm text-gray-500 mb-4">{% trans "Bookable services with price and duration — customers pick a service and a time on /termin/." %}</p>
+{% if not service_page %}<p class="text-sm text-gray-500 mb-4">{% trans "Bookable services with price and duration — customers pick a service and a time on /termin/." %}</p>{% endif %}
 
 <div class="space-y-3 mb-8">
   {% for s in services %}
@@ -27,7 +28,7 @@
       <input type="hidden" name="action" value="update"><input type="hidden" name="service" value="{{ s.pk }}">
       <div class="sm:col-span-2 flex items-center gap-3">
         {% if s.image_url %}<img src="{{ s.image_url }}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0">{% endif %}
-        <span class="font-medium">{{ s.name }}</span>{% if not s.is_active %} <span class="text-xs text-gray-400">· {% trans "inactive" %}</span>{% endif %}
+        {% if service_page %}<span class="font-medium">{{ s.name }}</span>{% else %}<a href="{% url 'booking:service-edit' s.pk %}" class="font-medium hover:text-indigo-700">{{ s.name }}</a>{% endif %}{% if not s.is_active %} <span class="text-xs text-gray-400">· {% trans "inactive" %}</span>{% endif %}
       </div>
       <div class="sm:col-span-5 order-last flex flex-wrap items-center gap-3">
         <label class="text-xs text-gray-500">{% trans "Photo" %}: <input name="image" type="file" accept="image/*" class="text-sm"></label>
@@ -72,6 +73,7 @@
   {% endfor %}
 </div>
 
+{% if not service_page %}
 <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
@@ -104,4 +106,5 @@
   </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create service" %}</button>
 </form>
+{% endif %}
 {% endblock %}

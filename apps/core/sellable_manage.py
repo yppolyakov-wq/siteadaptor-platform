@@ -34,7 +34,8 @@ _MANAGE = {
         "model": "booking.Service",
         "module": "booking",
         "label": _("Leistungen"),
-        "edit": ("booking:services", False),
+        # Фидбэк 2026-07-30: своя страница услуги (как у номера/товара).
+        "edit": ("booking:service-edit", True),
         "add": ("booking:services", False),
         "toggle": True,
     },
