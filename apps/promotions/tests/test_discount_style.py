@@ -44,9 +44,11 @@ def _discounted(**kwargs):
 
 def test_percent_style_forces_percent_badge():
     promo = _discounted(discount_style="percent")
-    for body in (_card(promo), _detail(promo)):
-        assert "−25 %" in body  # 10 → 7.50
-        assert "€</span>" not in body.split(BADGE_MARK)[1][:60]  # бейдж не −€
+    card, detail = _card(promo), _detail(promo)
+    assert "−25 %" in card  # 10 → 7.50
+    assert "€</span>" not in card.split(BADGE_MARK)[1][:60]  # бейдж не −€
+    # деталь (2026-07-30, референс): пилюля у зачёркнутой цены — процент, не −€
+    assert ">−25 %</span>" in detail.split("data-price-badge")[1][:120]
 
 
 def test_badge_style_forces_amount_badge_even_with_percent():
@@ -85,9 +87,13 @@ def test_countdown_style_forces_timer_without_flag():
     ends = timezone.now() + timedelta(hours=5)
     promo = _discounted(discount_style="countdown", ends_at=ends, show_countdown=False)
     local_iso = timezone.localtime(ends).isoformat()
-    for body in (_card(promo), _detail(promo)):
-        assert BADGE_MARK not in body
-        assert f'data-countdown="{local_iso}"' in body
+    card, detail = _card(promo), _detail(promo)
+    assert BADGE_MARK not in card
+    assert f'data-countdown="{local_iso}"' in card
+    # деталь (2026-07-30, референс): сегментный баннер Tage|Std|Min|Sek
+    assert BADGE_MARK not in detail
+    assert f'data-cd="{local_iso}"' in detail
+    assert "data-cd-d" in detail
 
 
 def test_surprise_style_hides_badge_keeps_pill():

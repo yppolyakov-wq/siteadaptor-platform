@@ -13876,3 +13876,23 @@ msgstr "%(amount)s € tasarruf edersiniz"
 #: templates/storefront/promotion_detail.html:0
 msgid "No account needed — reserve in 30 seconds."
 msgstr "Hesap gerekmez — 30 saniyede ayırtın."
+
+#: templates/storefront/promotion_detail.html:0
+msgid "In stock"
+msgstr "Stokta"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "Limited-time offer"
+msgstr "Sınırlı süreli fırsat"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "Offer ends in:"
+msgstr "Fırsatın bitmesine:"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "hrs"
+msgstr "saat"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "sec"
+msgstr "saniye"

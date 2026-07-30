@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n siteui widget_tweaks %}
 {% block title %}{{ promotion.title_text }} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
 {% block meta_description %}{{ promotion.description_text|default:promotion.title_text }}{% endblock %}
 
@@ -43,8 +43,8 @@
         {% endif %}
       {% endwith %}
     </div>
-    {# UE2-1: вывод скидки — единый компонент (одна точка правды условий). #}
-    {% include "storefront/_discount_display.html" with promo=promotion part="badge" size="lg" %}
+    {% comment %}Фидбэк 2026-07-29 (референс): бейдж скидки переехал с фото в блок
+    цены (пилюля у зачёркнутой старой цены) — на карточках листинга остаётся.{% endcomment %}
     {% comment %}Фидбэк 2026-07-29: галерея миниатюр под главным фото (свои фото
     акции, иначе фото товара) — клик свапает главное изображение.{% endcomment %}
     {% with gallery=promotion.gallery_images %}
@@ -66,15 +66,61 @@
     <h1 class="text-2xl md:text-3xl font-bold">{{ promotion.title_text }}</h1>
     {% include "storefront/_discount_display.html" with promo=promotion part="surprise" size="lg" %}
 
-    {% comment %}Фидбэк 2026-07-29: цена — стилизованной карточкой (цена + выгода +
-    чипы механики + остаток/срок в одном тонированном блоке), форма брони — за
-    CTA-кнопкой в попапе (см. модал ниже), а не открытой простынёй.{% endcomment %}
-    <div class="mt-4 rounded-2xl bg-gradient-to-br from-red-50 to-amber-50 ring-1 ring-red-100 p-4 md:p-5">
-      <div class="text-2xl md:text-3xl">{% include "storefront/_discount_display.html" with promo=promotion part="price" %}</div>
+    {% comment %}Фидбэк 2026-07-29 (референс владельца): иерархия «сначала итоговая
+    цена» — крупная новая цена, ПОД ней зачёркнутая старая + пилюля скидки; строка
+    наличия; промо-баннер группы с СЕГМЕНТНЫМ отсчётом (Tage|Std|Min|Sek); CTA.
+    mystery-стиль по-прежнему прячет цену до раскрытия (part="price").{% endcomment %}
+    <div class="mt-4 rounded-2xl bg-white ring-1 ring-gray-200 shadow-sm p-4 md:p-5">
+      {% with eff=promotion.discount_style %}
+      {% if eff == "mystery" %}
+        <div class="text-2xl md:text-3xl">{% include "storefront/_discount_display.html" with promo=promotion part="price" %}</div>
+      {% elif promotion.new_price is not None %}
+        <p class="text-3xl md:text-4xl font-extrabold {% if promotion.has_discount %}text-red-600{% endif %} leading-none" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.new_price }}">{% if eff == "ab" %}<span class="text-base font-normal text-gray-400 align-middle">{% trans "from" %}</span> {% endif %}{{ promotion.new_price }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %}</p>
+        {% if promotion.has_discount and eff != "festpreis" and eff != "ab" %}
+        <div class="mt-1.5 flex items-center gap-2">
+          <span class="text-gray-400 line-through" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.old_price }}">{{ promotion.old_price }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %}</span>
+          {% if eff == "badge" and promotion.discount_amount %}
+            <span data-price-badge class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">−{{ promotion.discount_amount }} €</span>
+          {% elif promotion.discount_percent_display and eff != "strikethrough" %}
+            <span data-price-badge class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">−{{ promotion.discount_percent_display }} %</span>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% elif promotion.discount_percent_display %}
+        {# Акция только с процентом (цены не заданы): размер скидки и есть оффер. #}
+        <p class="text-3xl md:text-4xl font-extrabold text-red-600 leading-none" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.discount_percent_display }}">−{{ promotion.discount_percent_display }} %</p>
+      {% endif %}
       {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
+      {# Статус наличия (референс: «В наличии» отдельной строкой). #}
+      {% if promotion.is_sold_out %}
+        <p class="mt-2 text-sm font-medium text-gray-400">{% trans "Sold out" %}</p>
+      {% elif promotion.available_quantity is not None %}
+        {% include "storefront/_discount_display.html" with promo=promotion part="scarcity" size="lg" %}
+      {% else %}
+        <p class="mt-2 text-sm font-medium text-emerald-600">✓ {% trans "In stock" %}</p>
+      {% endif %}
       {% include "storefront/_discount_display.html" with promo=promotion part="flags" size="lg" %}
-      {% include "storefront/_discount_display.html" with promo=promotion part="scarcity" size="lg" %}
-      {% include "storefront/_discount_display.html" with promo=promotion part="countdown" size="lg" %}
+
+      {% if promotion.seconds_left and promotion.show_countdown or promotion.seconds_left and eff == "countdown" %}
+      {% comment %}Промо-баннер с сегментным отсчётом (референс владельца): группа
+      акции как заголовок + крупные Tage|Std|Min|Sek на белой вложенной карточке.{% endcomment %}
+      <div class="mt-4 rounded-xl p-3.5 text-white" style="background: var(--accent, #dc2626);">
+        <p class="font-semibold leading-snug">🏷️ {% if promotion.group %}{{ promotion.group }}{% else %}{% trans "Limited-time offer" %}{% endif %}</p>
+        <div class="mt-2.5 bg-white text-gray-900 rounded-lg px-3 py-2.5 flex items-stretch" data-cd="{{ promotion.ends_at|date:'c' }}">
+          <p class="text-xs text-gray-500 self-center pr-3 leading-tight">{% trans "Offer ends in:" %}</p>
+          <div class="flex-1 grid grid-cols-4 divide-x divide-gray-200 text-center">
+            <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-d>–</p><p class="text-[11px] text-gray-500">{% trans "days" %}</p></div>
+            <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-h>–</p><p class="text-[11px] text-gray-500">{% trans "hrs" %}</p></div>
+            <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-m>–</p><p class="text-[11px] text-gray-500">{% trans "min" %}</p></div>
+            <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-s>–</p><p class="text-[11px] text-gray-500">{% trans "sec" %}</p></div>
+          </div>
+        </div>
+      </div>
+      {% elif promotion.ends_at %}
+        <p class="mt-3 text-sm text-gray-500" data-dt-edit data-dt-model="promotion" data-dt-field="ends_at" data-edit-pk="{{ promotion.pk }}" data-dt="{{ promotion.ends_at|date:'Y-m-d' }}T{{ promotion.ends_at|date:'H:i' }}">{% blocktrans with d=promotion.ends_at|date:"d.m.Y H:i" %}Valid until {{ d }}{% endblocktrans %}</p>
+      {% endif %}
+      {% endwith %}
+
       <button type="button" data-modal-open="promo-reserve-modal"
               class="mt-4 w-full text-white rounded-xl px-4 py-3 font-semibold shadow-sm hover:opacity-90 focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
               style="background: var(--accent, #dc2626);">
@@ -151,6 +197,26 @@
       b.classList.toggle("ring-transparent", b !== t);
     });
   });
+  // Сегментный отсчёт промо-баннера (референс 2026-07-29): Tage|Std|Min|Sek.
+  (function () {
+    var box = document.querySelector("[data-cd]");
+    if (!box) return;
+    var end = new Date(box.getAttribute("data-cd")).getTime();
+    if (isNaN(end)) return;
+    var el = {
+      d: box.querySelector("[data-cd-d]"), h: box.querySelector("[data-cd-h]"),
+      m: box.querySelector("[data-cd-m]"), s: box.querySelector("[data-cd-s]"),
+    };
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function tick() {
+      var diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      el.d.textContent = Math.floor(diff / 86400);
+      el.h.textContent = pad(Math.floor((diff % 86400) / 3600));
+      el.m.textContent = pad(Math.floor((diff % 3600) / 60));
+      el.s.textContent = pad(diff % 60);
+    }
+    tick(); setInterval(tick, 1000);
+  })();
   // Ошибки формы после POST — модал уже открыт (без hidden) → зафиксировать скролл.
   var m0 = document.getElementById("promo-reserve-modal");
   if (m0 && !m0.classList.contains("hidden")) document.body.style.overflow = "hidden";

@@ -13946,3 +13946,23 @@ msgstr "Вы экономите %(amount)s €"
 #: templates/storefront/promotion_detail.html:0
 msgid "No account needed — reserve in 30 seconds."
 msgstr "Без регистрации — бронь за 30 секунд."
+
+#: templates/storefront/promotion_detail.html:0
+msgid "In stock"
+msgstr "В наличии"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "Limited-time offer"
+msgstr "Акция ограничена по времени"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "Offer ends in:"
+msgstr "До конца акции:"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "hrs"
+msgstr "часов"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "sec"
+msgstr "секунд"
