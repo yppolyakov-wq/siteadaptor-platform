@@ -896,6 +896,19 @@ Python 3.12, менеджер uv.
   без рекомендаций) · багфиксы CRM-аудита (win-back TypeError, DSGVO-purge stays-гостей).
   Планы дальше: `pms-corporate-competitor-plans-2026-07-28.md` (CO-1/CO-2 корпоративный
   контур — следующие). ⚠️ ops: после деплоя `seed_demo_tenants --kit hotel --recreate`.
+- **Самое свежее (2026-07-29/30): фидбэк-батч «акции явными» (aktionsmarkt) — 3 инкремента,
+  всё в main, БЕЗ миграций.** (1) Типы акций явными: чипы механики на карточках/детали
+  (`part="flags"`/`part="savings"` в `_discount_display.html`: 🆕/📦 reservieren/🔁 повтор/
+  📅 срок + «Sie sparen X €»), секции групп на /aktionen/ (безгрупповые в конце), демо-кит
+  += Mystery-Deal + галереи Kaffee/Bio-Kiste (`spec["images"]` списком). (2) Деталь акции:
+  форма брони в ПОПАПЕ за CTA (тот же `_buybox` в DOM — паритет-замки целы; авто-открытие
+  при ошибках POST), галерея миниатюр под главным фото (`Promotion.gallery_images`, свап
+  кликом). (3) Блок цены по референсу владельца: крупная итоговая → зачёркнутая старая +
+  пилюля `data-price-badge` → «Sie sparen» → строка наличия → промо-баннер группы с
+  СЕГМЕНТНЫМ отсчётом Tage|Std|Min|Sek (`data-cd`, page-тикер; карточки листинга держат
+  прежний `data-countdown`); стили UE2-2 уважены; регресс-фикс: процент-акция без цен —
+  крупный «−N %» вместо цены. 3 замка обновлены осознанно. ⚠️ ops: после деплоя
+  `seed_demo_tenants --kit aktionsmarkt --recreate` (галерея демо).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). **Новое 2026-07-27/28:** `stays/0024` (G12 Verkaufsregeln) + `stays/0025` (Room) + `stays/0026` (StayBooking.room) + `stays/0027` (Room.housekeeping) + `crm/0002` (CO-1 Company) + `promotions/0022` (Customer.company FK) + `stays/0028` (PMS-D occupancy_rules) + `promotions/0023` (PMS-B2 Customer.birthday) + `stays/0029` (Lücken-Deal gap-поля) — все аддитивные. Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
