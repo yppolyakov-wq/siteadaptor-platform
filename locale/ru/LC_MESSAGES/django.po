@@ -14032,3 +14032,31 @@ msgstr "Укажите корректный e-mail."
 
 msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
 msgstr "Сообщим, как только снова появится."
+
+msgid "In der Anprobe zurücklegen"
+msgstr "Отложить в примерочную"
+
+msgid ""
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
+" Bezahlung erst im Geschäft."
+msgstr ""
+"Ни к чему не обязывающий резерв — держим вещь 48 часов. Покупка и оплата "
+"только в магазине."
+
+msgid "Bitte Name und eine gültige E-Mail angeben."
+msgstr "Укажите имя и корректный e-mail."
+
+msgid "Leider gerade nicht verfügbar."
+msgstr "К сожалению, сейчас недоступно."
+
+msgid "Zurückgelegt bis %(until)s — wir freuen uns auf Sie!"
+msgstr "Отложено до %(until)s — ждём вас!"
+
+msgid "Anprobe bis"
+msgstr "Примерочная до"
+
+msgid "Anprobe-Reservierung bis"
+msgstr "Резерв примерочной до"
+
+msgid "unverbindlich, Kauf im Geschäft"
+msgstr "без обязательств, покупка в магазине"

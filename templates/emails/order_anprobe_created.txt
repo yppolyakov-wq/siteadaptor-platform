@@ -1,0 +1,10 @@
+{% load i18n %}{% blocktrans with name=order.customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% trans "wir haben Folgendes für Sie in der Anprobe zurückgelegt:" %}
+{% for item in items %}- {{ item.title_snapshot }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}
+{% endfor %}
+{% blocktrans with until=order.reserve_expires_at|date:"d.m.Y H:i" %}Wir halten die Reservierung bis {{ until }} für Sie bereit.{% endblocktrans %}
+
+{% trans "Wichtig: Dies ist eine unverbindliche Reservierung — KEIN Kaufvertrag und keine Zahlungspflicht. Sie entscheiden in Ruhe bei der Anprobe im Geschäft; gekauft und bezahlt wird erst vor Ort." %}
+
+{% trans "Bis bald!" %}

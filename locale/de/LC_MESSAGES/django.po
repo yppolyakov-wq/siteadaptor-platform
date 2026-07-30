@@ -13989,3 +13989,31 @@ msgstr "Bitte eine gültige E-Mail angeben."
 
 msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
 msgstr "Wir benachrichtigen Sie, sobald wieder verfügbar."
+
+msgid "In der Anprobe zurücklegen"
+msgstr "In der Anprobe zurücklegen"
+
+msgid ""
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
+" Bezahlung erst im Geschäft."
+msgstr ""
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
+" Bezahlung erst im Geschäft."
+
+msgid "Bitte Name und eine gültige E-Mail angeben."
+msgstr "Bitte Name und eine gültige E-Mail angeben."
+
+msgid "Leider gerade nicht verfügbar."
+msgstr "Leider gerade nicht verfügbar."
+
+msgid "Zurückgelegt bis %(until)s — wir freuen uns auf Sie!"
+msgstr "Zurückgelegt bis %(until)s — wir freuen uns auf Sie!"
+
+msgid "Anprobe bis"
+msgstr "Anprobe bis"
+
+msgid "Anprobe-Reservierung bis"
+msgstr "Anprobe-Reservierung bis"
+
+msgid "unverbindlich, Kauf im Geschäft"
+msgstr "unverbindlich, Kauf im Geschäft"

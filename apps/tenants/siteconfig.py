@@ -2306,6 +2306,10 @@ def _normalize_impl(config) -> dict:
     _pm = _s(config.get("primary_module"))
     if _pm in {"events", "stays", "booking", "jobs", "catalog", "promotions"}:
         normalized["primary_module"] = _pm
+    # M3 Boutique: Click&Reserve «In der Anprobe» — presence-minimal (ключ только
+    # при True; выключено = ключа нет, golden целы).
+    if config.get("anprobe"):
+        normalized["anprobe"] = True
     # M20U-7 (per-page): раскладка сетки страницы каталога /sortiment/. Дефолт cols3
     # воспроизводит прежнюю захардкоженную сетку (grid-cols-2 lg:grid-cols-3).
     normalized["catalog_layout"] = normalize_layout(

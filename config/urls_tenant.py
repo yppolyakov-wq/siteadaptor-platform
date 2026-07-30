@@ -258,6 +258,12 @@ urlpatterns = [
         public_views.product_waitlist_join,
         name="storefront-product-waitlist",
     ),
+    # M3 Boutique: Click&Reserve — «In der Anprobe zurücklegen» (48 ч, без оплаты).
+    path(
+        "sortiment/<uuid:pk>/anprobe/",
+        public_views.product_anprobe_reserve,
+        name="storefront-product-anprobe",
+    ),
     # A1/A2: отзыв о товаре (только верифицированный покупатель).
     path(
         "sortiment/<uuid:pk>/bewerten/",

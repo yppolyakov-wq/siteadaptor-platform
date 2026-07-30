@@ -1,0 +1,5 @@
+{% load i18n %}{% blocktrans with name=order.customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% trans "Ihre Anprobe-Reservierung wurde aufgehoben — die Artikel sind wieder frei verfügbar." %}
+
+{% trans "Das war eine unverbindliche Reservierung, es entstehen keine Kosten. Gern legen wir Ihnen jederzeit etwas Neues zurück." %}

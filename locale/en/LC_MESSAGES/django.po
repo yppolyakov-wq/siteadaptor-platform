@@ -13851,3 +13851,31 @@ msgstr "Please enter a valid email address."
 
 msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
 msgstr "We'll notify you as soon as it's back."
+
+msgid "In der Anprobe zurücklegen"
+msgstr "Reserve for fitting in store"
+
+msgid ""
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
+" Bezahlung erst im Geschäft."
+msgstr ""
+"Non-binding reservation — we'll hold it for 48 hours. Purchase and payment "
+"in store only."
+
+msgid "Bitte Name und eine gültige E-Mail angeben."
+msgstr "Please enter your name and a valid email."
+
+msgid "Leider gerade nicht verfügbar."
+msgstr "Unfortunately not available right now."
+
+msgid "Zurückgelegt bis %(until)s — wir freuen uns auf Sie!"
+msgstr "Reserved until %(until)s — see you soon!"
+
+msgid "Anprobe bis"
+msgstr "Fitting hold until"
+
+msgid "Anprobe-Reservierung bis"
+msgstr "Fitting reservation until"
+
+msgid "unverbindlich, Kauf im Geschäft"
+msgstr "non-binding, purchase in store"

@@ -602,6 +602,11 @@ def product_detail(request, pk):
             "sellable": sellable_for("product", product),
             # M2 Boutique: распроданные размеры → форма Warteliste на карточке.
             "waitlist_variants": list(product.variants.filter(is_active=True, stock_quantity=0)),
+            # M3 Boutique: Click&Reserve — гейт опции + доступные размеры.
+            "site_anprobe": bool(_cfg.get("anprobe")),
+            "anprobe_variants": list(
+                product.variants.filter(is_active=True).exclude(stock_quantity=0)
+            ),
             "related": related,
             "related_grid": related_grid,
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
@@ -836,6 +841,51 @@ def product_waitlist_join(request, pk):
         variant = ProductVariant.objects.filter(pk=variant_pk, product=product).first()
     product_waitlist.join(product, email, variant=variant)
     messages.success(request, _("Wir benachrichtigen Sie, sobald wieder verfügbar."))
+    return redirect("storefront-product", pk=pk)
+
+
+def product_anprobe_reserve(request, pk):
+    """M3 Boutique: Click&Reserve — зарезервировать вещь в примерочную (48 ч,
+    без оплаты). Гейты: site_config.anprobe + модуль orders + наличие; honeypot +
+    rate-limit как у Warteliste."""
+    from django.utils import timezone
+
+    from apps.catalog.models import Product, ProductVariant
+    from apps.orders.anprobe import create_anprobe
+    from apps.orders.services import OutOfStock
+    from apps.tenants import siteconfig
+
+    product = get_object_or_404(Product, pk=pk, is_active=True)
+    if request.method != "POST" or request.POST.get("website"):
+        return redirect("storefront-product", pk=pk)
+    cfg = siteconfig.normalize(getattr(request.tenant, "site_config", {}) or {})
+    if not cfg.get("anprobe") or not request.tenant.is_module_active("orders"):
+        return redirect("storefront-product", pk=pk)
+    rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
+    if ratelimit.hit("anprobe", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return redirect("storefront-product", pk=pk)
+    name = (request.POST.get("name") or "").strip()
+    email = (request.POST.get("email") or "").strip().lower()
+    if not name or not email or "@" not in email:
+        messages.error(request, _("Bitte Name und eine gültige E-Mail angeben."))
+        return redirect("storefront-product", pk=pk)
+    variant = None
+    variant_pk = (request.POST.get("variant") or "").strip()
+    if variant_pk:
+        variant = ProductVariant.objects.filter(pk=variant_pk, product=product).first()
+    try:
+        order = create_anprobe(product=product, variant=variant, name=name, email=email)
+    except OutOfStock:
+        messages.error(request, _("Leider gerade nicht verfügbar."))
+        return redirect("storefront-product", pk=pk)
+    from django.utils import formats
+
+    until = formats.date_format(timezone.localtime(order.reserve_expires_at), "d.m.Y H:i")
+    messages.success(
+        request,
+        _("Zurückgelegt bis %(until)s — wir freuen uns auf Sie!") % {"until": until},
+    )
     return redirect("storefront-product", pk=pk)
 
 

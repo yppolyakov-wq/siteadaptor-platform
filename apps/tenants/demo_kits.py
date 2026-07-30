@@ -243,6 +243,8 @@ class DemoKit:
     page_presets: list = field(default_factory=list)
     # M2 Boutique: Größentabellen per категория {slug: text} (строки «S | 86–90»).
     size_tables: dict = field(default_factory=dict)
+    # M3 Boutique: Click&Reserve «In der Anprobe» (site_config["anprobe"]).
+    enable_anprobe: bool = False
     # ST-7a: демо-spacer'ы [{"after": "<section_key>", "height": "sm|lg|xl"}].
     spacers: list = field(default_factory=list)
     # LS-3/4/6: демо-треды «Прямой линии» (вопрос + staff-ответ + открытое
@@ -3408,6 +3410,7 @@ CLOTHING = DemoKit(
     storefront_root="home",
     seed_records=True,
     menus=CLOTHING_MENUS,
+    enable_anprobe=True,  # M3: Click&Reserve — киллер-механика бутика
     size_tables={
         "damen": "Größe | Brust (cm) | Taille (cm)\nS | 86–90 | 68–72\nM | 91–95 | 73–77\nL | 96–101 | 78–83\nXL | 102–108 | 84–90",
         "herren": "Größe | Brust (cm) | Bund (cm)\n48 | 94–97 | 82–85\n50 | 98–101 | 86–89\n52 | 102–105 | 90–94",
@@ -5626,6 +5629,7 @@ def apply_kit(tenant, key: str) -> bool:
             "menus": kit.menus or None,  # S7 меню (пусто → выводится из nav, без регрессии)
             "storefront_root": kit.storefront_root,  # S4 стартовая страница
             "primary_module": kit.primary_module,  # явный primary (пусто → эвристика)
+            "anprobe": kit.enable_anprobe,  # M3 Click&Reserve (presence-minimal)
             "hero_title": kit.hero_title,
             "hero_text": kit.hero_text,
             "hero_image": demo_image(kit.hero_image_kw, w=1600, h=600, lock=999),

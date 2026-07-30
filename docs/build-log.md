@@ -7040,3 +7040,20 @@ Neuheiten ?sort=newest/Geschenkgutschein — гейт gift, НОВЫЙ конт�
   Тесты +6 (вкл. django_capture_on_commit_callbacks-урок). 6+7 msgid × 5 .po.
   ⚠️ миграции catalog/0017..0019 ждут деплоя; ops: `seed_demo_tenants --kit
   clothing --recreate`. Остаток плана: M3 Click&Reserve (план-доком) + M4.
+
+## 2026-07-30 — Mode M3: Click&Reserve «In der Anprobe» (план m3-click-reserve-plan)
+Резерв в примерочную 48 ч БЕЗ оплаты — киллер-механика бутика (рыночная разведка).
+Приём (разведка кода, вариант «а»): резерв = обычный Order (pickup, on_site, qty=1)
+— anti-oversell/restore/канбан штатные. **Миграция `orders/0016`**:
+`reserve_expires_at` (+`is_anprobe`); kwarg в `create_order` (дедлайн ДО письма).
+Правовой риск №1 закрыт: created/cancelled ремапятся в `enqueue_order_email` на
+письма `order_anprobe_*` («unverbindliche Reservierung, KEIN Kaufvertrag; Kauf
+erst im Geschäft»). Beat `expire_anprobe_reservations` (5 мин, клон паттерна
+промо): new/confirmed+unpaid+просрочен → OrderSM cancelled (restore стока).
+Витрина: details-форма после `_buybox` (образец M2-Warteliste — замки buybox
+целы): размер (доступные)+имя+email → POST `/sortiment/<pk>/anprobe/`
+(honeypot+RL) → «Zurückgelegt bis <дата>». Гейт `site_config["anprobe"]`
+presence-minimal; кит mode включает. Кабинет: бейджи «🛍 Anprobe bis …» в
+списке/детали заказа. Тесты +6 (сток снят/возвращён, unverbindlich-письмо,
+beat идемпотентен, гейты); 8 msgid × 5 .po. Адверсариальное ревью-workflow
+(4 измерения) — фиксы отдельным коммитом при находках.

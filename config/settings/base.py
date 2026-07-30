@@ -321,6 +321,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.expire_reservations",
         "schedule": 300.0,  # каждые 5 минут — просрочка броней + возврат остатка
     },
+    # M3 Boutique: просрочка Anprobe-резервов (Click&Reserve) — тот же ритм.
+    "expire-anprobe": {
+        "task": "apps.orders.tasks.expire_anprobe_reservations",
+        "schedule": 300.0,
+    },
     # C1: утренний дайджест владельцу — раз в час; внутри гейт «локальный час
     # тенанта == 7» (tenant.timezone) + дедуп по дате (unique dedupe_key).
     "owner-digests": {

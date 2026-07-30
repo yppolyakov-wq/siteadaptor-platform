@@ -14019,3 +14019,31 @@ msgstr "Вкажіть коректну e-mail адресу."
 
 msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
 msgstr "Повідомимо, щойно знову з'явиться."
+
+msgid "In der Anprobe zurücklegen"
+msgstr "Відкласти в примірочну"
+
+msgid ""
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
+" Bezahlung erst im Geschäft."
+msgstr ""
+"Резерв без зобов'язань — тримаємо річ 48 годин. Купівля та оплата лише в "
+"магазині."
+
+msgid "Bitte Name und eine gültige E-Mail angeben."
+msgstr "Вкажіть ім'я та коректну e-mail адресу."
+
+msgid "Leider gerade nicht verfügbar."
+msgstr "На жаль, зараз недоступно."
+
+msgid "Zurückgelegt bis %(until)s — wir freuen uns auf Sie!"
+msgstr "Відкладено до %(until)s — чекаємо на вас!"
+
+msgid "Anprobe bis"
+msgstr "Примірочна до"
+
+msgid "Anprobe-Reservierung bis"
+msgstr "Резерв примірочної до"
+
+msgid "unverbindlich, Kauf im Geschäft"
+msgstr "без зобов'язань, купівля в магазині"

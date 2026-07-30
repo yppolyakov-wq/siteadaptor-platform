@@ -61,6 +61,7 @@
       <div class="min-w-0">
         <p class="font-medium">{{ o.reference_code }} · {{ o.customer }}
           {% if o.is_delivery %}<span class="text-xs text-gray-400">· 🚚 {% trans "Delivery" %}</span>{% endif %}
+          {% if o.is_anprobe %}<span class="text-xs font-medium text-purple-600">· 🛍 {% trans "Anprobe bis" %} {{ o.reserve_expires_at|date:"d.m. H:i" }}</span>{% endif %}
         </p>
         <p class="text-xs text-gray-400 truncate">
           {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}

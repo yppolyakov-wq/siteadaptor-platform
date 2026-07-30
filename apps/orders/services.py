@@ -162,6 +162,7 @@ def create_order(
     voucher_code="",
     payment_method="",
     custom_lines=(),
+    reserve_expires_at=None,
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -231,6 +232,9 @@ def create_order(
         # E-7: способ оплаты известен ДО создания (пикер checkout) — письмо
         # `created` рендерится внутри этой функции и должно его видеть.
         payment_method=payment_method,
+        # M3 Boutique: дедлайн Anprobe-резерва задаётся ДО письма `created` —
+        # enqueue_order_email ремапит его на unverbindlich-текст.
+        reserve_expires_at=reserve_expires_at,
     )
     total = Decimal("0")
     for product, variant, qty, options in norm:

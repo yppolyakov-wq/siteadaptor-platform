@@ -23,11 +23,20 @@ _CUSTOMER_TEMPLATES = {
     "returned": "order_returned",  # A2c: возврат/Widerruf
     "post_purchase": "order_post_purchase",  # CM-6.4: danke + запрос отзыва о товарах
     "payment_reminder": "order_payment_reminder",  # B2.1: незавершённая Stripe-оплата
+    # M3 Boutique: Anprobe-резерв — свои тексты (unverbindliche Reservierung,
+    # KEIN Kaufvertrag; Kauf erst im Geschäft) вместо языка договора купли-продажи.
+    "anprobe_created": "order_anprobe_created",
+    "anprobe_cancelled": "order_anprobe_cancelled",
 }
 
 
 def enqueue_order_email(order, event):
     """Создать Notification(ы) события заказа (БД-дедуп) и поставить доставку."""
+    # M3: у Anprobe-резервов created/cancelled ремапятся на свои шаблоны (юр-риск:
+    # обычные письма говорят языком Kaufvertrag/Widerruf). Остальные события —
+    # штатные (confirmed/ready уместны и для резерва).
+    if getattr(order, "is_anprobe", False) and event in ("created", "cancelled"):
+        event = f"anprobe_{event}"
     schema = connection.schema_name
     customer = order.customer
     tenant = _tenant(schema)

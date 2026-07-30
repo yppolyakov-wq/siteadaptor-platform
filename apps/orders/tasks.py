@@ -87,3 +87,39 @@ def send_order_payment_reminders():
         with schema_context(schema):
             total += send_due_payment_reminders()
     return total
+
+
+def expire_due_anprobe(now=None) -> int:
+    """M3 Boutique: отменить просроченные Anprobe-резервы текущей схемы.
+
+    Только неоплаченные new/confirmed с прошедшим reserve_expires_at; отмена —
+    штатный FSM-путь cancelled (возврат стока + леджер), письмо ремапится на
+    order_anprobe_cancelled в enqueue_order_email. Идемпотентно: отменённый
+    заказ из фильтра выпадает."""
+    from apps.orders.state_machine import OrderSM
+
+    now = now or timezone.now()
+    count = 0
+    due = Order.objects.filter(
+        reserve_expires_at__lt=now,
+        status__in=[Order.STATUS_NEW, Order.STATUS_CONFIRMED],
+        payment_state=Order.PAYMENT_UNPAID,
+    )
+    for order in due:
+        try:
+            OrderSM().apply(order, "cancelled", actor="system:anprobe-ttl")
+            count += 1
+        except Exception:  # noqa: BLE001 — одна битая запись не должна стопить beat
+            continue
+    return count
+
+
+@shared_task
+def expire_anprobe_reservations():
+    """Beat (5 мин): просрочка Anprobe-резервов по всем схемам."""
+    now = timezone.now()
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += expire_due_anprobe(now)
+    return {"expired": total}

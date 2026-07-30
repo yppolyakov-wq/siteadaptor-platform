@@ -91,6 +91,11 @@ class Order(TimestampedModel):
     post_purchase_sent_at = models.DateTimeField(null=True, blank=True)
     # B2.1: напоминание о незавершённой Stripe-оплате — дедуп «одно на заказ».
     payment_reminder_sent_at = models.DateTimeField(null=True, blank=True)
+    # M3 Boutique (Click&Reserve, план m3-click-reserve-plan-2026-07-30):
+    # дедлайн резерва «In der Anprobe» — задан ТОЛЬКО у Anprobe-резервов
+    # (unverbindliche Reservierung, kein Kaufvertrag). Beat expire_due_anprobe
+    # отменяет просроченные (restore стока — штатный путь cancelled).
+    reserve_expires_at = models.DateTimeField(null=True, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
     shipped_at = models.DateTimeField(null=True, blank=True)
@@ -116,6 +121,11 @@ class Order(TimestampedModel):
     @property
     def is_delivery(self) -> bool:
         return self.fulfillment == self.FULFILLMENT_DELIVERY
+
+    @property
+    def is_anprobe(self) -> bool:
+        """M3: заказ-резерв «In der Anprobe» (без оплаты, TTL, свои письма)."""
+        return self.reserve_expires_at is not None
 
     @property
     def shipping_eur(self):

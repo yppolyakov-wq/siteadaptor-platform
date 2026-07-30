@@ -13962,3 +13962,31 @@ msgstr "Lütfen geçerli bir e-posta adresi girin."
 
 msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
 msgstr "Tekrar geldiğinde size haber vereceğiz."
+
+msgid "In der Anprobe zurücklegen"
+msgstr "Mağazada prova için ayırt"
+
+msgid ""
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
+" Bezahlung erst im Geschäft."
+msgstr ""
+"Bağlayıcı olmayan rezervasyon — 48 saat sizin için ayırıyoruz. Satın alma ve"
+" ödeme yalnızca mağazada."
+
+msgid "Bitte Name und eine gültige E-Mail angeben."
+msgstr "Lütfen adınızı ve geçerli bir e-posta girin."
+
+msgid "Leider gerade nicht verfügbar."
+msgstr "Maalesef şu anda mevcut değil."
+
+msgid "Zurückgelegt bis %(until)s — wir freuen uns auf Sie!"
+msgstr "%(until)s tarihine kadar ayrıldı — sizi bekliyoruz!"
+
+msgid "Anprobe bis"
+msgstr "Prova rezervi:"
+
+msgid "Anprobe-Reservierung bis"
+msgstr "Prova rezervasyonu:"
+
+msgid "unverbindlich, Kauf im Geschäft"
+msgstr "bağlayıcı değil, satın alma mağazada"

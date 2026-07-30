@@ -72,6 +72,27 @@
   {# UA3-1 слайс 2: buy-box — единый партиал, mode=cart из контракта sellable. #}
   {% sold_badge sellable.kind sellable.pk %}
   {% include "storefront/_buybox.html" %}
+  {% if site_anprobe and storefront_orders_enabled and product.in_stock %}
+    {% comment %}M3 Boutique (Click&Reserve): «In der Anprobe zurücklegen» — резерв
+    48 ч БЕЗ оплаты (unverbindlich, kein Kaufvertrag); вторая форма с другим
+    action — замки buybox целы (образец M2-Warteliste).{% endcomment %}
+    <details class="mt-3">
+      <summary class="text-sm text-indigo-600 cursor-pointer select-none">🛍 {% trans "In der Anprobe zurücklegen" %}</summary>
+      <p class="mt-1 text-xs text-gray-500">{% trans "Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und Bezahlung erst im Geschäft." %}</p>
+      <form method="post" action="{% url 'storefront-product-anprobe' product.pk %}" class="mt-2 flex flex-wrap items-end gap-2">
+        {% csrf_token %}
+        <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+        {% if anprobe_variants %}
+        <select name="variant" aria-label="{% trans 'Größe' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          {% for v in anprobe_variants %}<option value="{{ v.pk }}">{{ v.label }}</option>{% endfor %}
+        </select>
+        {% endif %}
+        <input type="text" name="name" required placeholder="{% trans 'Name' %}" aria-label="{% trans 'Name' %}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <input type="email" name="email" required placeholder="ihre@mail.de" aria-label="E-Mail" class="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Reservieren" %}</button>
+      </form>
+    </details>
+  {% endif %}
   {% if waitlist_variants or not product.in_stock %}
     {% comment %}M2 Boutique: Warteliste по размеру — распроданные размеры (или весь
     товар) → email-подписка; письмо уходит при приёмке склада.{% endcomment %}
