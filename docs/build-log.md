@@ -6967,3 +6967,26 @@ sm:w-64 snap-start`. Стенд Playwright 390px: на 9 страницах ка
   tenants+core 1362 passed. Стенд: hero-CTA «Sortiment», меню Partyservice,
   /anfrage/ без авто-поля, 2 заявки в кабинете. ⚠️ ops: `seed_demo_tenants
   --kit bakery --recreate` (+ `--kit butcher` для primary-фикса метцгерай).
+
+## 2026-07-30 — Меню витрины v2 + формы по ширине + главная Bäckerei (план
+`docs/storefront-nav-forms-bakery-plan-2026-07-30.md`, фидбэк владельца ×3, референс unitheme.net)
+- **NAV-v2 (все архетипы)**: шапка перестроена «лого | меню | иконки» (classic/minimal;
+  centered — прежний двухэтажный порядок), партиалы `_header_logo/_header_icons/_header_nav`;
+  пункты `whitespace-nowrap` (лечит перенос «About us»), hover-пилюли; НЕ влезающие пункты
+  JS-fitNav прячет и показывает их копии в дропдауне «Mehr ▾» (рендер двойной, JS только
+  видимость; resize-aware); дропдауны групп — hover + focus-within (клавиатура).
+- **Формы/страницы по ширине**: ~30 шаблонов витрины с `max-w-*` без центра получили
+  `mx-auto` (подтверждения/gift/чек-ин/legal/about/loyalty/offer/angebot/combo/stay-поиск/
+  buybox-партиалы …); `anfrage` расширена до `max-w-2xl mx-auto` (заголовок+messages+обе
+  формы). Паритет-замки buybox целы (правки в партиалах — обе стороны сравнения).
+- **Главная Bäckerei**: `hero_widget="bakery"` (whitelist normalize+сидер) — плитки-
+  направления 2×2 первым экраном: 🔥 Aktionen (гейт: живая акция, тег deal_of_day,
+  янтарная рамка) / 🥨 Sortiment / ⏰ Zur Wunschzeit vorbestellen (гейт orders) /
+  🎉 Partyservice (гейт jobs); порядок владельца «акции → каталог → заявка».
+  Кит: 3 hero-слайда (Steinofenbrot/Torten/Feierabendtüte), `enable_archetypes_section=False»
+  («Our offerings» долой). **Латентный пробел закрыт**: `_hero.html` не включал
+  hero_widget при слайдере (heroes-ветка) — теперь виджет рендерится под слайдером
+  у всех (гейт: ключ задан).
+- Замки: +2 (bakery-виджет рендер с гейтами + кит слайдер/виджет/без-архетипов);
+  6 msgid × 5 .po; app.css пересобран; tenants+buybox+jobs 992 passed суммарно.
+  ⚠️ ops: `seed_demo_tenants --kit bakery --recreate`.

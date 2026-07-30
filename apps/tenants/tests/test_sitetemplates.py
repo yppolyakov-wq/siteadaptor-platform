@@ -308,3 +308,50 @@ def test_accent_hero_renders_in_storefront(rf, settings):
     body = public_views.storefront_home(request).content.decode()
     assert "var(--accent" in body  # цветной hero использует CSS-переменную
     assert "#0e7490" in body  # переменная определена из primary_color
+
+
+def test_hero_widget_bakery_renders_direction_tiles(settings):
+    """Фидбэк 2026-07-30 («Our offerings не практичен»): плитки-направления
+    Bäckerei — Aktionen (гейт: активная акция) / Sortiment всегда /
+    Wunschzeit (гейт orders) / Partyservice (гейт jobs)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from django.template.loader import render_to_string
+
+    from apps.promotions.models import Promotion
+
+    ctx = {
+        "hero_widget": "bakery",
+        "storefront_orders_enabled": True,
+        "storefront_jobs_enabled": True,
+    }
+    body = render_to_string("storefront/sections/_hero_widget.html", ctx)
+    assert "Sortiment ansehen" in body
+    assert "Zur Wunschzeit vorbestellen" in body
+    assert "Partyservice anfragen" in body
+    assert "Aktionen & Angebote" not in body  # активных акций нет — плитка скрыта
+
+    Promotion.objects.create(title={"de": "Brotdeal"}, status="active")
+    with_promo = render_to_string("storefront/sections/_hero_widget.html", ctx)
+    assert "Aktionen & Angebote" in with_promo and "Brotdeal" in with_promo
+
+    lean = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {"hero_widget": "bakery", "storefront_orders_enabled": False},
+    )
+    assert "Partyservice anfragen" not in lean
+    assert "Zur Wunschzeit vorbestellen" not in lean
+    assert "Sortiment ansehen" in lean  # fail-safe: минимум — каталог
+
+
+def test_bakery_kit_slider_plus_widget_and_no_archetypes_section():
+    """Кит BAKERY: слайдер (3 слайда) + hero_widget="bakery"; секция архетипов
+    выключена; виджет не теряется при слайдере (включение в _hero.html)."""
+    from apps.tenants import siteconfig
+    from apps.tenants.demo_kits import KITS
+
+    kit = KITS["bakery"]
+    assert kit.hero_widget == "bakery"
+    assert len(kit.heroes) == 3
+    assert kit.enable_archetypes_section is False
+    cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "bakery"}, "heroes": kit.heroes})
+    assert cfg["site_defaults"]["hero_widget"] == "bakery"

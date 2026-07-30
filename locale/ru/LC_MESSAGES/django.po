@@ -13966,3 +13966,21 @@ msgstr "часов"
 #: templates/storefront/promotion_detail.html:0
 msgid "sec"
 msgstr "секунд"
+
+msgid "Aktionen & Angebote"
+msgstr "Акции и предложения"
+
+msgid "Sortiment ansehen"
+msgstr "Смотреть ассортимент"
+
+msgid "Zur Wunschzeit vorbestellen"
+msgstr "Предзаказ к нужному времени"
+
+msgid "Jetzt bestellen, ohne Warten abholen"
+msgstr "Закажите сейчас — заберите без очереди"
+
+msgid "Partyservice anfragen"
+msgstr "Заказать кейтеринг"
+
+msgid "Buffets & belegte Brötchen für Ihre Feier"
+msgstr "Фуршеты и сэндвичи для вашего праздника"

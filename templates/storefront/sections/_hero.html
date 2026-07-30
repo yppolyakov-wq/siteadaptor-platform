@@ -22,6 +22,12 @@
   </div>
   {% endif %}
 </section>
+{% if site.site_defaults.hero_widget %}
+{% comment %}Фидбэк 2026-07-30: primary-виджет (плитки направлений/поиск) раньше
+ТЕРЯЛСЯ при слайдере (включался только в single-hero ветках) — теперь рендерится
+сразу под слайдером. Гейт: ключ hero_widget задан (presence-minimal).{% endcomment %}
+<div class="-mt-6 mb-10">{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}</div>
+{% endif %}
 <script>
 (function () {
   document.querySelectorAll('[data-hero-slider]').forEach(function (s) {

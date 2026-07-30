@@ -13923,3 +13923,21 @@ msgstr "Std."
 #: templates/storefront/promotion_detail.html:0
 msgid "sec"
 msgstr "Sek."
+
+msgid "Aktionen & Angebote"
+msgstr "Aktionen & Angebote"
+
+msgid "Sortiment ansehen"
+msgstr "Sortiment ansehen"
+
+msgid "Zur Wunschzeit vorbestellen"
+msgstr "Zur Wunschzeit vorbestellen"
+
+msgid "Jetzt bestellen, ohne Warten abholen"
+msgstr "Jetzt bestellen, ohne Warten abholen"
+
+msgid "Partyservice anfragen"
+msgstr "Partyservice anfragen"
+
+msgid "Buffets & belegte Brötchen für Ihre Feier"
+msgstr "Buffets & belegte Brötchen für Ihre Feier"

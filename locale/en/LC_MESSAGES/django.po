@@ -13785,3 +13785,21 @@ msgstr "hrs"
 #: templates/storefront/promotion_detail.html:0
 msgid "sec"
 msgstr "sec"
+
+msgid "Aktionen & Angebote"
+msgstr "Deals & offers"
+
+msgid "Sortiment ansehen"
+msgstr "Browse our range"
+
+msgid "Zur Wunschzeit vorbestellen"
+msgstr "Pre-order for your pickup time"
+
+msgid "Jetzt bestellen, ohne Warten abholen"
+msgstr "Order now, pick up without waiting"
+
+msgid "Partyservice anfragen"
+msgstr "Request party service"
+
+msgid "Buffets & belegte Brötchen für Ihre Feier"
+msgstr "Buffets & sandwiches for your celebration"

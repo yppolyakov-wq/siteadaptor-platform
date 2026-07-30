@@ -2242,6 +2242,32 @@ BAKERY = DemoKit(
     hero_title="Backhaus Krume",
     hero_text="Handwerksbrot aus dem Steinofen — täglich frisch ab 6 Uhr. "
     "Online vorbestellen und ohne Warten abholen.",
+    # Фидбэк 2026-07-30: главная «ловит направления» — слайдер (3 слайда) +
+    # плитки hero_widget="bakery" (Aktionen/Sortiment/Wunschzeit/Partyservice).
+    hero_widget="bakery",
+    heroes=[
+        {
+            "image_kw": "bread,bakery",
+            "title": "Backhaus Krume",
+            "text": "Handwerksbrot aus dem Steinofen — täglich frisch ab 6 Uhr.",
+            "button_label": "Sortiment ansehen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "strawberry,cake",
+            "title": "Torten auf Vorbestellung",
+            "text": "Wunschtorte mit 2 Tagen Vorlauf — Motiv nach Absprache.",
+            "button_label": "Torten ansehen",
+            "button_url": "/sortiment/?kategorie=torten",
+        },
+        {
+            "image_kw": "bakery,bag",
+            "title": "Feierabendtüte ab 17 Uhr",
+            "text": "Gerettete Backwaren zum halben Preis — solange der Vorrat reicht.",
+            "button_label": "Zu den Aktionen",
+            "button_url": "/aktionen/",
+        },
+    ],
     about_title="Unsere Backstube",
     about_text="Seit 1962 backen wir in Hilden nach eigenen Rezepten: Sauerteig ohne "
     "Fertigmischungen, Mehl aus regionalen Mühlen, alles von Hand geformt. Bestellen Sie "
@@ -2328,7 +2354,9 @@ BAKERY = DemoKit(
     },
     # jobs = Partyservice (Kuchenbuffets/belegte Brötchen), как у Metzgerei (2026-07-30).
     enable_modules=["orders", "jobs", "loyalty"],
-    enable_archetypes_section=True,
+    # Фидбэк 2026-07-30: «Our offerings» непрактичен — направления ловят плитки
+    # hero_widget="bakery" (секция архетипов выключена).
+    enable_archetypes_section=False,
     storefront_root="home",
     primary_module="catalog",  # hero-CTA → Sortiment (jobs — дополнение, не primary)
     seed_records=True,
@@ -5585,7 +5613,7 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
         cfg["site_defaults"] = sd
-    if kit.hero_widget in ("stays", "services", "gastro"):  # E4/батч A: интерактивный hero
+    if kit.hero_widget in ("stays", "services", "gastro", "bakery"):  # E4/A/2026-07-30
         sd = dict(cfg.get("site_defaults") or {})
         sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd

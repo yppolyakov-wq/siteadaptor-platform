@@ -13896,3 +13896,21 @@ msgstr "saat"
 #: templates/storefront/promotion_detail.html:0
 msgid "sec"
 msgstr "saniye"
+
+msgid "Aktionen & Angebote"
+msgstr "Kampanyalar ve fırsatlar"
+
+msgid "Sortiment ansehen"
+msgstr "Ürünlere göz atın"
+
+msgid "Zur Wunschzeit vorbestellen"
+msgstr "İstediğiniz saate ön sipariş verin"
+
+msgid "Jetzt bestellen, ohne Warten abholen"
+msgstr "Şimdi sipariş verin, beklemeden teslim alın"
+
+msgid "Partyservice anfragen"
+msgstr "Parti servisi talep edin"
+
+msgid "Buffets & belegte Brötchen für Ihre Feier"
+msgstr "Kutlamanız için büfe ve sandviçler"
