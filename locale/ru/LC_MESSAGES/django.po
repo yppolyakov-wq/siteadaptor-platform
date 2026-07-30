@@ -14060,3 +14060,15 @@ msgstr "Резерв примерочной до"
 
 msgid "unverbindlich, Kauf im Geschäft"
 msgstr "без обязательств, покупка в магазине"
+
+msgid "Neue Anprobe-Reservierung — bitte zurücklegen:"
+msgstr "Новый резерв в примерочную — отложите, пожалуйста:"
+
+msgid "Kunde:"
+msgstr "Клиент:"
+
+msgid "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft."
+msgstr "Резерв без обязательств — покупка и оплата в магазине."
+
+msgid "Pickup in store"
+msgstr "Самовывоз из магазина"

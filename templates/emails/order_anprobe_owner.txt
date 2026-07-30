@@ -1,0 +1,8 @@
+{% load i18n %}{% trans "Neue Anprobe-Reservierung — bitte zurücklegen:" %}
+{% for item in items %}- {{ item.title_snapshot }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}
+{% endfor %}
+{% blocktrans with until=order.reserve_expires_at|date:"d.m.Y H:i" %}Reserviert bis {{ until }} — danach wird automatisch freigegeben.{% endblocktrans %}
+
+{% trans "Kunde:" %} {{ customer.name }}{% if customer.email %} · {{ customer.email }}{% endif %}{% if customer.phone %} · {{ customer.phone }}{% endif %}
+
+{% trans "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft." %}

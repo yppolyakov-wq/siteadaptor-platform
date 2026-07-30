@@ -42,7 +42,9 @@ _MANAGE = {
         "model": "stays.StayUnit",
         "module": "stays",
         "label": _("Zimmer & Einheiten"),
-        "edit": ("stays:units", False),
+        # Фидбэк 2026-07-30: «Bearbeiten» вёл на СПИСОК номеров — у юнита есть
+        # своя страница (stays:unit-edit, per-pk).
+        "edit": ("stays:unit-edit", True),
         "add": ("stays:units", False),
         "toggle": True,
     },

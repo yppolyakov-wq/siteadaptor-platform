@@ -120,11 +120,15 @@ def enqueue_order_email(order, event):
             text=subject_tg or body_tg,
         )
 
-    # владельцу — только при новом заказе (email + UD4c Telegram-пуш)
-    if event == "created":
+    # владельцу — только при новом заказе (email + UD4c Telegram-пуш).
+    # Ревью M3 (HIGH): ремап anprobe_created ломал эту ветку — владелец НЕ узнавал
+    # о резерве, хотя клиенту обещано «wir legen es zurück». Событие prefs-матрицы
+    # остаётся "created" (UD4-2 знает только его), шаблон — свой для резерва.
+    if event in ("created", "anprobe_created"):
         owner = _owner_email(tenant)
+        owner_tpl = "order_anprobe_owner" if event == "anprobe_created" else "order_owner"
         if owner and channel_enabled(tenant, "owner", "order", "created", "email"):
-            subject, body, html = _render("order_owner", {**ctx, "unsubscribe_url": ""})
+            subject, body, html = _render(owner_tpl, {**ctx, "unsubscribe_url": ""})
             notify(
                 dedupe_key=f"order:{order.id}:created:owner",
                 type="order_created_owner",
@@ -136,7 +140,7 @@ def enqueue_order_email(order, event):
         if channel_enabled(tenant, "owner", "order", "created", "telegram"):
             from apps.telegram.notify import send_to_owner
 
-            subj_o, body_o, _h = _render("order_owner", {**ctx, "unsubscribe_url": ""})
+            subj_o, body_o, _h = _render(owner_tpl, {**ctx, "unsubscribe_url": ""})
             send_to_owner(
                 tenant,
                 type="order_created_owner",

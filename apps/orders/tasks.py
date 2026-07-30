@@ -5,6 +5,8 @@
 момент перехода), дедуп post_purchase_sent_at + БД-дедуп notify.
 """
 
+import logging
+
 from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
@@ -12,6 +14,8 @@ from django_tenants.utils import get_tenant_model, schema_context
 
 from .models import Order
 from .notifications import enqueue_order_email
+
+logger = logging.getLogger(__name__)
 
 
 def _iter_tenant_schemas():
@@ -96,20 +100,39 @@ def expire_due_anprobe(now=None) -> int:
     штатный FSM-путь cancelled (возврат стока + леджер), письмо ремапится на
     order_anprobe_cancelled в enqueue_order_email. Идемпотентно: отменённый
     заказ из фильтра выпадает."""
+    from django.db import transaction
+
     from apps.orders.state_machine import OrderSM
 
     now = now or timezone.now()
     count = 0
-    due = Order.objects.filter(
-        reserve_expires_at__lt=now,
-        status__in=[Order.STATUS_NEW, Order.STATUS_CONFIRMED],
-        payment_state=Order.PAYMENT_UNPAID,
+    due_pks = list(
+        Order.objects.filter(
+            reserve_expires_at__lt=now,
+            status__in=[Order.STATUS_NEW, Order.STATUS_CONFIRMED],
+            payment_state=Order.PAYMENT_UNPAID,
+        ).values_list("pk", flat=True)
     )
-    for order in due:
+    for pk in due_pks:
+        # Ревью M3 (HIGH): как в promotions.services.expire — блокировка строки
+        # и ПОВТОРНАЯ проверка под локом. Иначе клиент, оплативший/забравший
+        # вещь в последнюю минуту, получал отмену по устаревшему снапшоту
+        # (статус затирался, сток возвращался у проданной вещи). atomic —
+        # per-order: статус и restore коммитятся вместе.
         try:
-            OrderSM().apply(order, "cancelled", actor="system:anprobe-ttl")
-            count += 1
-        except Exception:  # noqa: BLE001 — одна битая запись не должна стопить beat
+            with transaction.atomic():
+                order = Order.objects.select_for_update().get(pk=pk)
+                if (
+                    order.status not in (Order.STATUS_NEW, Order.STATUS_CONFIRMED)
+                    or order.payment_state != Order.PAYMENT_UNPAID
+                    or not order.reserve_expires_at
+                    or order.reserve_expires_at >= now
+                ):
+                    continue
+                OrderSM().apply(order, "cancelled", actor="system:anprobe-ttl")
+                count += 1
+        except Exception:
+            logger.exception("anprobe-ttl: не удалось отменить резерв %s", pk)
             continue
     return count
 

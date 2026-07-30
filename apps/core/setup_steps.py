@@ -559,9 +559,9 @@ def _offer_items(tenant) -> list[dict]:
         elif kind == "stays":
             from apps.stays.models import StayUnit
 
-            url = reverse("stays:units")  # правка номеров — инлайн на списке
+            # Фидбэк 2026-07-30: у номера своя страница — per-pk ссылка.
             for u in StayUnit.objects.all().order_by("-created_at")[:8]:
-                rows.append({"name": u.name or "—", "url": url})
+                rows.append({"name": u.name or "—", "url": reverse("stays:unit-edit", args=[u.pk])})
     except Exception:  # noqa: BLE001 — модуль выключен / нет таблицы
         return []
     return rows

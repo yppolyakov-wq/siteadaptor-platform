@@ -7,8 +7,11 @@ hover + focus-within (клавиатура/тап по chevron-пункту бе
 {% for item in storefront_menu %}
   {% if item.children %}
     <div class="relative group shrink-0" data-nav-i="{{ forloop.counter0 }}">
-      {% if item.url %}<a href="{{ item.url }}"{% else %}<span tabindex="0"{% endif %} class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium cursor-pointer">{{ item.label }} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>{% if item.url %}</a>{% else %}</span>{% endif %}
-      <div class="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-30">
+      {% comment %}Фидбэк 2026-07-30: группа без собственной ссылки раскрывается
+      КЛИКОМ (data-nav-group), а не только наведением — на тач-экранах и при
+      клике «Aktionen» иначе ничего не происходит.{% endcomment %}
+      {% if item.url %}<a href="{{ item.url }}"{% else %}<button type="button" data-nav-group{% endif %} class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium cursor-pointer">{{ item.label }} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>{% if item.url %}</a>{% else %}</button>{% endif %}
+      <div data-nav-panel class="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-30">
         <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[200px]">
           {% for c in item.children %}
             <a href="{{ c.url }}" class="block px-4 py-2 whitespace-nowrap text-gray-700 hover:bg-gray-50">{{ c.label }}</a>

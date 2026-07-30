@@ -136,6 +136,27 @@ def switch_options(tenant, active=""):
                 "active": view == active,
             }
         )
+    # Фидбэк 2026-07-30 (отель): активны ОБА календарных модуля — второй
+    # календарь (Termine услуг у отеля / Belegungsplan у услуг с номерами)
+    # добавляется отдельным пунктом, иначе booking-календарь недостижим из
+    # хаба «Verkäufe» (ST-5b показывал только primary).
+    if any(o["view"] == "calendar" for o in out):
+        order = _calendar_order(tenant)
+        if len(order) > 1 and tenant.is_module_active(order[1][0]):
+            try:
+                alt_url = reverse(order[1][1])
+            except NoReverseMatch:  # pragma: no cover — модуль без маршрута
+                alt_url = ""
+            if alt_url:
+                out.append(
+                    {
+                        "view": "calendar_alt",
+                        "label": _("Termine") if order[1][0] == "booking" else _("Belegungsplan"),
+                        "icon": "📅",
+                        "url": alt_url,
+                        "active": active == "calendar_alt",
+                    }
+                )
     create = create_option(tenant, active=(active == "create"))
     if create:
         out.append(create)

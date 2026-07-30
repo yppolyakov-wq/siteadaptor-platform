@@ -111,3 +111,37 @@ def test_detail_shows_anprobe_form_only_when_enabled():
     assert "In der Anprobe zurücklegen" in on and f"/sortiment/{p.pk}/anprobe/" in on
     off = _body({})
     assert "In der Anprobe zurücklegen" not in off
+
+
+def test_owner_is_notified_about_anprobe_reservation(monkeypatch):
+    """Ревью M3 (HIGH): ремап глушил owner-ветку — владелец не узнавал о
+    резерве, хотя клиенту обещано «legen wir zurück». Своё owner-письмо."""
+    from apps.notifications.models import Notification
+    from apps.orders import notifications as notif
+
+    monkeypatch.setattr(notif, "_owner_email", lambda tenant: "chef@example.de")
+    p = _product()
+    create_anprobe(product=p, name="Mia", email="mia@example.de")
+    owner = Notification.objects.filter(recipient="chef@example.de").first()
+    assert owner is not None
+    body = (owner.payload or {}).get("body", "")
+    assert "Anprobe-Reservierung" in body
+    assert "Click-&-Collect" not in body  # не язык договора купли-продажи
+
+
+def test_expire_skips_paid_or_advanced_orders():
+    """Ревью M3 (HIGH): гонка — оплаченный/выданный резерв не должен отменяться
+    beat'ом (лок + повторная проверка под ним)."""
+    p = _product(stock=5)
+    paid = create_anprobe(product=p, name="Mia", email="mia@example.de")
+    Order.objects.filter(pk=paid.pk).update(
+        reserve_expires_at=timezone.now() - timedelta(hours=1), payment_state="paid"
+    )
+    advanced = create_anprobe(product=p, name="Ben", email="ben@example.de")
+    Order.objects.filter(pk=advanced.pk).update(
+        reserve_expires_at=timezone.now() - timedelta(hours=1), status="ready"
+    )
+    assert expire_due_anprobe() == 0
+    paid.refresh_from_db()
+    advanced.refresh_from_db()
+    assert paid.status != "cancelled" and advanced.status == "ready"

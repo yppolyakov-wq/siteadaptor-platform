@@ -14017,3 +14017,15 @@ msgstr "Anprobe-Reservierung bis"
 
 msgid "unverbindlich, Kauf im Geschäft"
 msgstr "unverbindlich, Kauf im Geschäft"
+
+msgid "Neue Anprobe-Reservierung — bitte zurücklegen:"
+msgstr "Neue Anprobe-Reservierung — bitte zurücklegen:"
+
+msgid "Kunde:"
+msgstr "Kunde:"
+
+msgid "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft."
+msgstr "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft."
+
+msgid "Pickup in store"
+msgstr "Abholung im Geschäft"

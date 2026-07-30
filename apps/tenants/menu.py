@@ -81,6 +81,15 @@ def _node_url(tenant, node: dict):
             return None
         return target if target.startswith(("#", "/")) else f"/#{target}"
     # group: своей ссылки нет — родитель выпадающего подменю, держится на детях.
+    # Фидбэк 2026-07-30 («кнопка Акция не кликабельная»): если ВСЕ дети —
+    # promo_group, у группы есть осмысленная цель — страница всех акций;
+    # клик по пункту ведёт туда, hover по-прежнему раскрывает подменю.
+    if ntype == "group":
+        kids = node.get("children") or []
+        if kids and all(k.get("type") == "promo_group" for k in kids):
+            return (
+                _reverse("storefront-aktionen") if tenant.is_module_active("promotions") else None
+            )
     return None
 
 

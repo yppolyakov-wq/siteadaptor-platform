@@ -14047,3 +14047,15 @@ msgstr "Резерв примірочної до"
 
 msgid "unverbindlich, Kauf im Geschäft"
 msgstr "без зобов'язань, купівля в магазині"
+
+msgid "Neue Anprobe-Reservierung — bitte zurücklegen:"
+msgstr "Нове бронювання в примірочну — відкладіть, будь ласка:"
+
+msgid "Kunde:"
+msgstr "Клієнт:"
+
+msgid "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft."
+msgstr "Резерв без зобов'язань — купівля та оплата в магазині."
+
+msgid "Pickup in store"
+msgstr "Самовивіз із магазину"

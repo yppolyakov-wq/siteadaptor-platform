@@ -129,6 +129,21 @@
         btn.setAttribute("aria-expanded", open ? "true" : "false");
       });
     }
+    // Фидбэк 2026-07-30: клик по группе без ссылки раскрывает подменю (тач/мышь).
+    document.addEventListener("click", function (e) {
+      var g = e.target.closest("[data-nav-group]");
+      document.querySelectorAll("[data-nav-panel].nav-open").forEach(function (p) {
+        if (!g || p !== g.parentNode.querySelector("[data-nav-panel]")) {
+          p.classList.remove("nav-open", "block");
+        }
+      });
+      if (!g) return;
+      var panel = g.parentNode.querySelector("[data-nav-panel]");
+      if (!panel) return;
+      var open = panel.classList.toggle("nav-open");
+      panel.classList.toggle("block", open);
+      panel.classList.toggle("hidden", !open);
+    });
     // NAV-v2: overflow «Mehr ▾» — не влезающие пункты ряда прячем, показываем их
     // копии в панели (рендер двойной, JS только переключает видимость).
     var dnav = document.getElementById("sf-nav-desktop");

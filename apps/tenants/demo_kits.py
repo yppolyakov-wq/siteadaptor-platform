@@ -1564,10 +1564,7 @@ HOTEL_MENUS = {
             {"label": "Galerie", "type": "anchor", "target": "/#galerie"},
             {"label": "Bewertungen", "type": "anchor", "target": "/#bewertungen"},
             {"label": "Hausordnung", "type": "url", "target": "/hausordnung/"},
-            {"label": "FAQ", "type": "anchor", "target": "/#faq"},
-            {"label": "Über uns", "type": "page", "target": "about"},
             {"label": "Kontakt", "type": "anchor", "target": "/#kontakt"},
-            {"label": "Jetzt buchen", "type": "anchor", "target": "/#buchen"},
         ],
     },
     "bottom": {
@@ -1676,6 +1673,26 @@ HOTEL = DemoKit(
     },
     # Фидбэк 2026-07-28: у отеля Termine-страница была пустой («Online booking is
     # not set up yet») — гостевые доп-услуги дают архетипу живое содержимое.
+    # Фидбэк 2026-07-30: без ресурсов слоты записи не строились («нет доступных») —
+    # AvailabilityRule живёт на Resource; два общих ресурса закрывают все 4 услуги.
+    resources=[
+        {
+            "name": "Wellnessbereich",
+            "type": "service",
+            "start": "09:00",
+            "end": "19:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+        {
+            "name": "Rezeption",
+            "type": "service",
+            "start": "08:00",
+            "end": "20:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+    ],
     services=[
         (
             {"de": "Wellness-Massage", "en": "Wellness massage"},

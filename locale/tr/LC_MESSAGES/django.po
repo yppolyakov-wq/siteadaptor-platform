@@ -13990,3 +13990,15 @@ msgstr "Prova rezervasyonu:"
 
 msgid "unverbindlich, Kauf im Geschäft"
 msgstr "bağlayıcı değil, satın alma mağazada"
+
+msgid "Neue Anprobe-Reservierung — bitte zurücklegen:"
+msgstr "Yeni prova rezervasyonu — lütfen ayırın:"
+
+msgid "Kunde:"
+msgstr "Müşteri:"
+
+msgid "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft."
+msgstr "Bağlayıcı olmayan rezervasyon — satın alma ve ödeme mağazada yapılır."
+
+msgid "Pickup in store"
+msgstr "Mağazadan teslim alma"

@@ -13879,3 +13879,15 @@ msgstr "Fitting reservation until"
 
 msgid "unverbindlich, Kauf im Geschäft"
 msgstr "non-binding, purchase in store"
+
+msgid "Neue Anprobe-Reservierung — bitte zurücklegen:"
+msgstr "New fitting reservation — please set aside:"
+
+msgid "Kunde:"
+msgstr "Customer:"
+
+msgid "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft."
+msgstr "Non-binding reservation — purchase and payment happen in store."
+
+msgid "Pickup in store"
+msgstr "Pickup in store"

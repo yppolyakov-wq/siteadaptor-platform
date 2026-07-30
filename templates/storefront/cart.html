@@ -99,7 +99,12 @@
             </div>
           </div>
         {% else %}
+          {% comment %}Фидбэк 2026-07-30: без доставки шаг «как получить» скрывался
+          молча — теперь способ получения назван явно (Abholung im Geschäft).{% endcomment %}
           <input type="hidden" name="fulfillment" value="pickup">
+          <p class="flex items-center gap-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+            🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}
+          </p>
         {% endif %}
 
         {# E7-2: способ оплаты — только при >1 доступного (первый — дефолт). #}
