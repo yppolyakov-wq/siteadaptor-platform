@@ -55,7 +55,7 @@
       <button type="button" data-pf-tab="preis" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Price & stock" %}</button>
       {% comment %}FB-1: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/Herkunft) —
       пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
-      <button type="button" data-pf-tab="kennz" class="pf-tab pb-2{% if ui_simple or not show_food_labeling %} hidden{% endif %}">{% trans "Labeling" %}</button>
+      <button type="button" data-pf-tab="kennz" class="pf-tab pb-2{% if ui_simple or not show_labeling_tab %} hidden{% endif %}">{% trans "Labeling" %}</button>
       <button type="button" data-pf-tab="markt" class="pf-tab pb-2{% if ui_simple %} hidden{% endif %}">{% trans "Marketing" %}</button>
       {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
       {% if product %}<button type="button" data-pf-tab="varianten" class="pf-tab pb-2">{% trans "Variants & extras" %}</button>{% endif %}
@@ -100,6 +100,12 @@
             {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
           </div>
         {% endif %}{% endfor %}
+      </div>
+      {% comment %}M1 Boutique: Textilkennzeichnung (EU 1007/2011) — состав волокон +
+      Pflege. Гейт по типу (clothing); W0-инвариант — поля в DOM, скрытие CSS.{% endcomment %}
+      <div data-textile-section class="space-y-3{% if not show_textile_labeling %} hidden{% endif %}">
+        <p class="text-sm font-medium">{% trans "Textile labeling" %}</p>
+        {% for field in form %}{% if field.name == 'material' or field.name == 'care' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       </div>
       {# Ф2: origin/ingredients переводимы — база (de) + переводы, показ по языку (switcher) #}
       <div data-i18n-loc="de" class="space-y-3">

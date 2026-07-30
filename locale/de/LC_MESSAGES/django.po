@@ -13959,3 +13959,15 @@ msgstr "Geschenkgutschein"
 
 msgid "Freude schenken"
 msgstr "Freude schenken"
+
+msgid "Material"
+msgstr "Material"
+
+msgid "Care"
+msgstr "Pflege"
+
+msgid "Textile labeling"
+msgstr "Textilkennzeichnung"
+
+msgid "Lowest price in the last 30 days: %(p)s €"
+msgstr "Niedrigster Preis der letzten 30 Tage: %(p)s €"

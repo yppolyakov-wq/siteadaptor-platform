@@ -39,9 +39,12 @@
   <p class="mt-1 text-xs text-gray-400">{% trans "inkl. MwSt." %}{% if request.tenant.delivery_enabled %} · {% trans "zzgl. Versand" %}{% endif %}</p>
   {% if 'description' not in product_detail_hidden %}<div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text }}</div>{% endif %}
 
-  {# Lebensmittel-Kennzeichnung (LMIV, R4): при наличии данных и если секция не скрыта в билдере #}
-  {% if 'info' not in product_detail_hidden %}{% if product.origin or product.ingredients or product.allergen_labels or product.additive_labels %}
+  {% comment %}Lebensmittel-Kennzeichnung (LMIV, R4) при наличии данных + M1 Boutique:
+  Textilkennzeichnung (EU 1007/2011) — Material/Pflege ДО кнопки заказа.{% endcomment %}
+  {% if 'info' not in product_detail_hidden %}{% if product.origin or product.ingredients or product.allergen_labels or product.additive_labels or product.material or product.care %}
     <div class="mt-5 rounded-xl bg-gray-50 border border-gray-100 p-4 text-sm text-gray-700 space-y-1">
+      {% if product.material %}<p><span class="font-medium">{% trans "Material" %}:</span> {{ product.material_localized }}</p>{% endif %}
+      {% if product.care %}<p><span class="font-medium">{% trans "Care" %}:</span> {{ product.care_localized }}</p>{% endif %}
       {% if product.origin %}<p><span class="font-medium">{% trans "Origin" %}:</span> {{ product.origin_localized }}</p>{% endif %}
       {% if product.ingredients %}<p><span class="font-medium">{% trans "Ingredients" %}:</span> {{ product.ingredients_localized }}</p>{% endif %}
       {% if product.allergen_labels %}<p><span class="font-medium">{% trans "Allergens" %}:</span> {{ product.allergen_labels|join:", " }}</p>{% endif %}

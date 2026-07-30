@@ -13821,3 +13821,15 @@ msgstr "Gift voucher"
 
 msgid "Freude schenken"
 msgstr "Give the gift of joy"
+
+msgid "Material"
+msgstr "Material"
+
+msgid "Care"
+msgstr "Care"
+
+msgid "Textile labeling"
+msgstr "Textile labeling"
+
+msgid "Lowest price in the last 30 days: %(p)s €"
+msgstr "Lowest price in the last 30 days: %(p)s €"

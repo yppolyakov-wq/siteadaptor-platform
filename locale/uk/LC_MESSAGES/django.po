@@ -13989,3 +13989,15 @@ msgstr "Подарунковий сертифікат"
 
 msgid "Freude schenken"
 msgstr "Подаруйте радість"
+
+msgid "Material"
+msgstr "Склад"
+
+msgid "Care"
+msgstr "Догляд"
+
+msgid "Textile labeling"
+msgstr "Маркування текстилю"
+
+msgid "Lowest price in the last 30 days: %(p)s €"
+msgstr "Найнижча ціна за останні 30 днів: %(p)s €"

@@ -147,11 +147,16 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "reorder_target",
             "origin",
             "ingredients",
+            "material",
+            "care",
             "is_active",
             "is_featured",
             "badge",
         ]
         labels = {
+            # M1 Boutique: Textilkennzeichnung (EU 1007/2011) + Pflegehinweise.
+            "material": _("Material / Zusammensetzung"),
+            "care": _("Pflegehinweise"),
             "gtin": _("EAN / GTIN (barcode)"),
             "badge": _("Badge"),
             "cost_price": _("Einkaufspreis (netto)"),
@@ -168,6 +173,11 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "stock_quantity": _("Leer = unbegrenzt (kein Bestandslimit)."),
             "gtin": _("Barcode für Preisportale/Feeds — optional."),
             "badge": _("Kleiner Aufkleber auf der Karte (z. B. „Neu“, „Beliebt“)."),
+            "material": _(
+                "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, "
+                "5 % Elasthan“ — Pflichtangabe bei Kleidung."
+            ),
+            "care": _("z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."),
         }
 
     def __init__(self, *args, tenant=None, **kwargs):
@@ -207,6 +217,8 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "diets",
                 "origin",
                 "ingredients",
+                "material",
+                "care",
                 "is_featured",
                 "badge",
             ]

@@ -90,6 +90,10 @@
         {# Акция только с процентом (цены не заданы): размер скидки и есть оффер. #}
         <p class="text-3xl md:text-4xl font-extrabold text-red-600 leading-none" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.discount_percent_display }}">−{{ promotion.discount_percent_display }} %</p>
       {% endif %}
+      {% if lowest_30d is not None %}
+        {# §11 PAngV (M1): референс зачёркнутой цены — низшая цена последних 30 дней. #}
+        <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+      {% endif %}
       {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
       {# Статус наличия (референс: «В наличии» отдельной строкой). #}
       {% if promotion.is_sold_out %}

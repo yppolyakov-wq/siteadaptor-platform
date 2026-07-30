@@ -54,6 +54,13 @@ def _detail_ctx(request, promo, form) -> dict:
     img = promo.primary_image
     og_image = request.build_absolute_uri(img["url"]) if img and img.get("url") else ""
     share_url = _abs_promo_url(request, promo.pk)
+    # §11 PAngV (M1 Boutique): у зачёркнутой Sale-цены — низшая цена товара за
+    # 30 дней (PriceLog). Нет привязанного товара/данных → None, строка молчит.
+    lowest_30d = None
+    if promo.has_discount and promo.product_id:
+        from apps.catalog.price_history import lowest_price_30d
+
+        lowest_30d = lowest_price_30d(promo.product)
     return {
         "promotion": promo,
         "form": form,
@@ -62,6 +69,7 @@ def _detail_ctx(request, promo, form) -> dict:
         "qr_url": reverse("storefront-promotion-qr", args=[promo.pk]),
         "og_image": og_image,
         "ld_offer": offer_ld(promo, url=share_url, image_url=og_image),
+        "lowest_30d": lowest_30d,
     }
 
 

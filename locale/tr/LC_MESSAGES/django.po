@@ -13932,3 +13932,15 @@ msgstr "Hediye çeki"
 
 msgid "Freude schenken"
 msgstr "Mutluluk hediye edin"
+
+msgid "Material"
+msgstr "Malzeme"
+
+msgid "Care"
+msgstr "Bakım"
+
+msgid "Textile labeling"
+msgstr "Tekstil etiketi"
+
+msgid "Lowest price in the last 30 days: %(p)s €"
+msgstr "Son 30 günün en düşük fiyatı: %(p)s €"

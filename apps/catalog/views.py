@@ -35,15 +35,23 @@ from .models import (
 # гастро/еды — секция формы товара показывается только этим архетипам (у прочих скрыта
 # CSS-ом, поля остаются в форме → Save их не стирает).
 FOOD_BUSINESS_TYPES = frozenset({"bakery", "butcher", "grocery", "restaurant", "cafe"})
+# M1 Boutique: типы с текстильной маркировкой (Textilkennzeichnung EU 1007/2011).
+TEXTILE_BUSINESS_TYPES = frozenset({"clothing"})
 
 
 def _product_form_flags(request):
-    """W2: флаги вида формы товара — режим Простой/Эксперт (S5) + гейт пищевой секции."""
+    """W2: флаги вида формы товара — режим Простой/Эксперт (S5) + гейт пищевой секции.
+    M1 Boutique: текстильная маркировка (material/care) — вкладка Kennzeichnung
+    видна и одежде (W0-инвариант: поля всегда в DOM, скрытие CSS)."""
     tenant = getattr(request, "tenant", None)
     bt = getattr(tenant, "business_type", "") or ""
+    show_food = bt in FOOD_BUSINESS_TYPES
+    show_textile = bt in TEXTILE_BUSINESS_TYPES
     return {
         "ui_simple": modules.is_simple(tenant) if tenant is not None else False,
-        "show_food_labeling": bt in FOOD_BUSINESS_TYPES,
+        "show_food_labeling": show_food,
+        "show_textile_labeling": show_textile,
+        "show_labeling_tab": show_food or show_textile,
     }
 
 

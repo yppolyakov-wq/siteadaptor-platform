@@ -14002,3 +14002,15 @@ msgstr "Подарочный сертификат"
 
 msgid "Freude schenken"
 msgstr "Подарите радость"
+
+msgid "Material"
+msgstr "Состав"
+
+msgid "Care"
+msgstr "Уход"
+
+msgid "Textile labeling"
+msgstr "Маркировка текстиля"
+
+msgid "Lowest price in the last 30 days: %(p)s €"
+msgstr "Самая низкая цена за последние 30 дней: %(p)s €"

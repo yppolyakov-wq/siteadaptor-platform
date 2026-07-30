@@ -276,6 +276,8 @@ def _p(
     gtin="",
     sku="",
     diets=None,
+    material="",
+    care="",
 ):
     return {
         "name": name,
@@ -292,6 +294,8 @@ def _p(
         "stock": stock,
         "gtin": gtin,
         "sku": sku,
+        "material": material,  # M1: Textilkennzeichnung (Boutique)
+        "care": care,
     }
 
 
@@ -3457,6 +3461,8 @@ CLOTHING = DemoKit(
                         {"label": "L", "price": "45.00", "stock": 4},
                     ],
                     badge="beliebt",
+                    material="100 % Viskose (LENZING™ ECOVERO™)",
+                    care="30 °C Schonwäsche, nicht trocknergeeignet",
                 ),
                 _p(
                     "Leinenbluse Küste",
@@ -3468,6 +3474,8 @@ CLOTHING = DemoKit(
                         {"label": "M", "price": "39.90", "stock": 7},
                         {"label": "L", "price": "39.90", "stock": 3},
                     ],
+                    material="100 % Leinen",
+                    care="30 °C Schonwäsche, bügelfeucht bügeln",
                 ),
                 _p(
                     "Strickcardigan Wolke",
@@ -3479,6 +3487,8 @@ CLOTHING = DemoKit(
                         {"label": "M", "price": "54.90", "stock": 0},  # ausverkauft → Warteliste
                         {"label": "L", "price": "54.90", "stock": 2},
                     ],
+                    material="70 % Wolle, 30 % Polyamid",
+                    care="Handwäsche kalt, liegend trocknen",
                 ),
                 _p(
                     "Jeans High-Waist",
@@ -3491,6 +3501,8 @@ CLOTHING = DemoKit(
                         {"label": "40", "price": "59.90", "stock": 4},
                         {"label": "42", "price": "59.90", "stock": 3},
                     ],
+                    material="99 % Baumwolle, 1 % Elasthan",
+                    care="30 °C, auf links waschen, nicht trocknergeeignet",
                 ),
             ],
         ),
@@ -3511,6 +3523,8 @@ CLOTHING = DemoKit(
                     ],
                     badge="beliebt",
                     gtin="4260000011001",
+                    material="100 % Bio-Baumwolle (GOTS)",
+                    care="40 °C Buntwäsche, trocknergeeignet",
                 ),
                 _p(
                     "Leinenhemd Hafen",
@@ -3522,6 +3536,8 @@ CLOTHING = DemoKit(
                         {"label": "L", "price": "39.90", "stock": 6},
                         {"label": "XL", "price": "39.90", "stock": 3},
                     ],
+                    material="100 % Leinen",
+                    care="30 °C Schonwäsche, bügelfeucht bügeln",
                 ),
                 _p(
                     "Strickpullover Merino",
@@ -3533,6 +3549,8 @@ CLOTHING = DemoKit(
                         {"label": "L", "price": "69.90", "stock": 3},
                     ],
                     badge="empfehlung",
+                    material="100 % Merinowolle (mulesingfrei)",
+                    care="Handwäsche kalt oder Wollprogramm",
                 ),
                 _p(
                     "Chino-Hose Deich",
@@ -3544,6 +3562,8 @@ CLOTHING = DemoKit(
                         {"label": "50", "price": "49.90", "stock": 5},
                         {"label": "52", "price": "49.90", "stock": 3},
                     ],
+                    material="98 % Bio-Baumwolle, 2 % Elasthan",
+                    care="30 °C, auf links waschen",
                 ),
             ],
         ),
@@ -3551,7 +3571,15 @@ CLOTHING = DemoKit(
             "Accessoires",
             "accessoires",
             [
-                _p("Wollschal", "24.90", "Lammwolle, extra lang.", "wool,scarf", stock=15),
+                _p(
+                    "Wollschal",
+                    "24.90",
+                    "Lammwolle, extra lang.",
+                    "wool,scarf",
+                    stock=15,
+                    material="100 % Lammwolle",
+                    care="Handwäsche kalt",
+                ),
                 _p(
                     "Ledergürtel",
                     "29.90",
@@ -3563,7 +3591,15 @@ CLOTHING = DemoKit(
                         {"label": "105", "price": "29.90", "stock": 4},
                     ],
                 ),
-                _p("Strickmütze", "14.90", "Merino, doppelt gestrickt.", "beanie", stock=20),
+                _p(
+                    "Strickmütze",
+                    "14.90",
+                    "Merino, doppelt gestrickt.",
+                    "beanie",
+                    stock=20,
+                    material="100 % Merinowolle",
+                    care="Handwäsche kalt",
+                ),
                 _p(
                     "Canvas-Tasche",
                     "16.90",
@@ -5326,6 +5362,8 @@ def apply_kit(tenant, key: str) -> bool:
             reorder_target=24 if stock is not None else None,
             gtin=item.get("gtin", ""),  # A1 EAN
             sku=item.get("sku", ""),
+            material=item.get("material", ""),  # M1 Textilkennzeichnung
+            care=item.get("care", ""),
             is_active=True,
             is_featured=(len(created_products) < 3),
             metadata={"demo": True},

@@ -146,6 +146,16 @@ class Product(SoftDeleteMixin, I18nMixin):
     origin_i18n = models.JSONField(default=dict, blank=True)
     ingredients_i18n = models.JSONField(default=dict, blank=True)
 
+    # M1 Boutique (Textilkennzeichnung EU 1007/2011, план mode-boutique-plan §3):
+    # состав материала («95 % Baumwolle, 5 % Elasthan») — у одежды ОБЯЗАН стоять
+    # на карточке до кнопки заказа (официальные названия волокон); care —
+    # Pflegehinweise. Витрина показывает только при наличии; overlay-i18n как у
+    # origin/ingredients (Ф2).
+    material = models.CharField(max_length=255, blank=True)
+    care = models.CharField(max_length=255, blank=True)
+    material_i18n = models.JSONField(default=dict, blank=True)
+    care_i18n = models.JSONField(default=dict, blank=True)
+
     metadata = models.JSONField(default=dict, blank=True)
 
     class Meta:
@@ -180,6 +190,14 @@ class Product(SoftDeleteMixin, I18nMixin):
     def ingredients_localized(self, locale: str | None = None) -> str:
         """Ф2: Zutaten на локали (перевод из ingredients_i18n, иначе базовое ingredients)."""
         return self.get_overlay("ingredients", "ingredients_i18n", locale)
+
+    def material_localized(self, locale: str | None = None) -> str:
+        """M1: состав материала на локали (Textilkennzeichnung)."""
+        return self.get_overlay("material", "material_i18n", locale)
+
+    def care_localized(self, locale: str | None = None) -> str:
+        """M1: Pflegehinweise на локали."""
+        return self.get_overlay("care", "care_i18n", locale)
 
     @property
     def primary_image(self) -> dict | None:
@@ -522,3 +540,30 @@ class ProductReview(TimestampedModel):
     @property
     def stars(self) -> str:
         return "★" * self.rating + "☆" * (5 - self.rating)
+
+
+class PriceLog(TimestampedModel):
+    """§11 PAngV (M1 Boutique, план mode-boutique-plan-2026-07-30): append-only
+    журнал цен товара/варианта. Пишется сигналом при ИЗМЕНЕНИИ цены (первая
+    запись — при создании); 30-дневный минимум питает строку «Niedrigster
+    Preis der letzten 30 Tage» у зачёркнутой Sale-цены (без данных — честно
+    молчим). Не редактируется и не чистится (лог)."""
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="price_logs")
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="price_logs",
+    )
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["product", "created_at"], name="pricelog_product_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.product_id}: {self.price} ({self.created_at:%Y-%m-%d})"
