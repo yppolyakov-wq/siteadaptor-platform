@@ -336,6 +336,16 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         return None
 
     @property
+    def gallery_images(self) -> list:
+        """Фото для галереи детальной: своя галерея акции, иначе фото товара
+        (фидбэк 2026-07-29 — миниатюры под главным фото)."""
+        if self.images:
+            return list(self.images)
+        if self.product_id and self.product:
+            return list(self.product.images or [])
+        return []
+
+    @property
     def seconds_left(self):
         """Секунд до ends_at (для обратного отсчёта). None если конца нет."""
         if not self.ends_at:

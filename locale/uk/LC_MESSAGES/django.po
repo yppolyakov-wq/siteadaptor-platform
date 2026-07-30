@@ -13929,3 +13929,7 @@ msgstr "Ще пропозиції"
 #, python-format
 msgid "You save %(amount)s €"
 msgstr "Ви заощаджуєте %(amount)s €"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "No account needed — reserve in 30 seconds."
+msgstr "Без реєстрації — бронь за 30 секунд."

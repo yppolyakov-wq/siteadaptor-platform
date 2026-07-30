@@ -13872,3 +13872,7 @@ msgstr "Diğer fırsatlar"
 #, python-format
 msgid "You save %(amount)s €"
 msgstr "%(amount)s € tasarruf edersiniz"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "No account needed — reserve in 30 seconds."
+msgstr "Hesap gerekmez — 30 saniyede ayırtın."

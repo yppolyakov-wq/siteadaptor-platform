@@ -13942,3 +13942,7 @@ msgstr "Ещё предложения"
 #, python-format
 msgid "You save %(amount)s €"
 msgstr "Вы экономите %(amount)s €"
+
+#: templates/storefront/promotion_detail.html:0
+msgid "No account needed — reserve in 30 seconds."
+msgstr "Без регистрации — бронь за 30 секунд."

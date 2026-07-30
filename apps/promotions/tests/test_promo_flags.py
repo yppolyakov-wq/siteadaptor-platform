@@ -89,3 +89,48 @@ def test_promotion_detail_shows_savings():
     )
     body = promotion_detail(_req(f"/p/{promo.pk}/"), pk=promo.pk).content.decode()
     assert "Sie sparen" in body and "2.00" in body
+
+
+def test_promotion_detail_modal_and_gallery():
+    """Фидбэк 2026-07-29 (№2): форма брони — в попапе за CTA (в DOM всегда —
+    паритет-замок buybox цел), при ошибках формы модал открыт; галерея-миниатюры
+    под главным фото при >1 изображении."""
+    promo = _flags_promo(
+        title={"de": "Popup"},
+        promo_type=Promotion.RESERVATION,
+        available_quantity=5,
+        images=[
+            {"id": "a", "url": "/static/demo/a.webp", "is_primary": True},
+            {"id": "b", "url": "/static/demo/b.webp"},
+        ],
+    )
+    body = promotion_detail(_req(f"/p/{promo.pk}/"), pk=promo.pk).content.decode()
+    # CTA открывает модал; сам модал скрыт (hidden), но форма брони — в DOM
+    assert 'data-modal-open="promo-reserve-modal"' in body
+    assert 'id="promo-reserve-modal" class="fixed inset-0 z-50 hidden"' in body
+    assert f"/p/{promo.pk}/reserve/" in body  # форма внутри модала (замок buybox)
+    # галерея: две миниатюры со свапом (атрибут+data-full; в JS селекторы тоже
+    # содержат имя атрибута — считаем по разметке кнопки)
+    assert body.count("data-gallery-thumb data-full") == 2
+    assert "data-gallery-main" in body
+    # sold-out → CTA становится «Benachrichtigen»
+    promo.available_quantity = 0
+    promo.save(update_fields=["available_quantity"])
+    body2 = promotion_detail(_req(f"/p/{promo.pk}/"), pk=promo.pk).content.decode()
+    assert "🔔" in body2 and f"/p/{promo.pk}/waitlist/" in body2
+
+
+def test_promotion_detail_modal_opens_on_form_errors():
+    """POST с ошибками ре-рендерит страницу — модал должен быть ОТКРЫТ
+    (без hidden), иначе покупатель не увидит ошибку."""
+    from apps.promotions.public_views import reservation_create
+
+    promo = _flags_promo(
+        title={"de": "Fehler"}, promo_type=Promotion.RESERVATION, available_quantity=5
+    )
+    request = RequestFactory().post(f"/p/{promo.pk}/reserve/", {"name": ""})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = TenantFactory.build(business_type="grocery")
+    body = reservation_create(request, pk=promo.pk).content.decode()
+    assert 'id="promo-reserve-modal" class="fixed inset-0 z-50 "' in body  # открыт

@@ -2027,6 +2027,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Gemahlener Kaffee −25 % (limitiert)",
+            "images": ["coffee,ground", "coffee,cafe", "espresso"],
             "product": 10,
             "type": "reservation",
             "percent": 25,
@@ -2078,6 +2079,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Bio-Gemüsekiste −20 % – nur 5 Stück",
+            "images": ["vegetables", "vegetable,box", "farm,vegetables"],
             "product": 3,
             "type": "reservation",
             "percent": 20,
@@ -5333,6 +5335,13 @@ def apply_kit(tenant, key: str) -> bool:
             if spec.get("image"):
                 lock += 1
                 fields["images"] = [_image_ref(spec["image"], lock, spec["title"])]
+            elif spec.get("images"):  # 2026-07-29: галерея детали (миниатюры)
+                refs_imgs = []
+                for kw in spec["images"]:
+                    lock += 1
+                    refs_imgs.append(_image_ref(kw, lock, spec["title"]))
+                refs_imgs[0]["is_primary"] = True
+                fields["images"] = refs_imgs
             promo = Promotion.objects.create(**fields)
             refs["promotions"].append(str(promo.pk))
     else:

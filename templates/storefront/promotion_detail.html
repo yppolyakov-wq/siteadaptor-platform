@@ -35,7 +35,7 @@
     <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
       {% with img=promotion.primary_image %}
         {% if img %}
-          <img src="{{ img.url }}" alt="{{ promotion.title_text }}"{% if promotion.discount_style == 'mystery' %} data-mystery-blur{% endif %} class="w-full h-full object-cover{% if promotion.discount_style == 'mystery' %} blur-lg{% endif %}">
+          <img src="{{ img.url }}" alt="{{ promotion.title_text }}" data-gallery-main{% if promotion.discount_style == 'mystery' %} data-mystery-blur{% endif %} class="w-full h-full object-cover{% if promotion.discount_style == 'mystery' %} blur-lg{% endif %}">
         {% else %}
           <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
@@ -45,6 +45,20 @@
     </div>
     {# UE2-1: вывод скидки — единый компонент (одна точка правды условий). #}
     {% include "storefront/_discount_display.html" with promo=promotion part="badge" size="lg" %}
+    {% comment %}Фидбэк 2026-07-29: галерея миниатюр под главным фото (свои фото
+    акции, иначе фото товара) — клик свапает главное изображение.{% endcomment %}
+    {% with gallery=promotion.gallery_images %}
+      {% if gallery|length > 1 %}
+      <div class="mt-3 flex gap-2 overflow-x-auto pb-1">
+        {% for img in gallery %}
+          <button type="button" data-gallery-thumb data-full="{{ img.url }}"
+                  class="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden ring-2 {% if forloop.first %}ring-indigo-500{% else %}ring-transparent hover:ring-gray-300{% endif %}">
+            <img src="{{ img.url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover">
+          </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
   </div>
 
   {# Инфо #}
@@ -52,19 +66,26 @@
     <h1 class="text-2xl md:text-3xl font-bold">{{ promotion.title_text }}</h1>
     {% include "storefront/_discount_display.html" with promo=promotion part="surprise" size="lg" %}
 
-    <div class="mt-3 text-2xl">{% include "storefront/_discount_display.html" with promo=promotion part="price" %}</div>
-    {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
-    {% include "storefront/_discount_display.html" with promo=promotion part="flags" size="lg" %}
-
-    {% include "storefront/_discount_display.html" with promo=promotion part="scarcity" size="lg" %}
-    {% include "storefront/_discount_display.html" with promo=promotion part="countdown" size="lg" %}
+    {% comment %}Фидбэк 2026-07-29: цена — стилизованной карточкой (цена + выгода +
+    чипы механики + остаток/срок в одном тонированном блоке), форма брони — за
+    CTA-кнопкой в попапе (см. модал ниже), а не открытой простынёй.{% endcomment %}
+    <div class="mt-4 rounded-2xl bg-gradient-to-br from-red-50 to-amber-50 ring-1 ring-red-100 p-4 md:p-5">
+      <div class="text-2xl md:text-3xl">{% include "storefront/_discount_display.html" with promo=promotion part="price" %}</div>
+      {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
+      {% include "storefront/_discount_display.html" with promo=promotion part="flags" size="lg" %}
+      {% include "storefront/_discount_display.html" with promo=promotion part="scarcity" size="lg" %}
+      {% include "storefront/_discount_display.html" with promo=promotion part="countdown" size="lg" %}
+      <button type="button" data-modal-open="promo-reserve-modal"
+              class="mt-4 w-full text-white rounded-xl px-4 py-3 font-semibold shadow-sm hover:opacity-90 focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
+              style="background: var(--accent, #dc2626);">
+        {% if promotion.is_sold_out %}🔔 {% trans "Notify me" %}{% else %}{% trans "Reserve now" %}{% endif %}
+      </button>
+      <p class="mt-2 text-center text-xs text-gray-500">{% trans "No account needed — reserve in 30 seconds." %}</p>
+    </div>
 
     {% if promotion.description_text %}
       <p class="mt-4 text-gray-600 whitespace-pre-line">{{ promotion.description_text }}</p>
     {% endif %}
-
-    {# UA3-1 слайс 2: buy-box (reserve / sold-out→waitlist) — единый партиал; promotion вне реестра SellableEntity → mode явно. #}
-    {% include "storefront/_buybox.html" with buybox_mode="reserve" %}
 
     {# Поделиться + QR #}
     <div class="mt-5 flex flex-wrap items-center gap-2">
@@ -82,4 +103,57 @@
     </div>
   </div>
 </div>
+
+{% comment %}Фидбэк 2026-07-29: форма брони/листа ожидания — в попапе за CTA.
+Внутри тот же единый _buybox (паритет-замки целы — форма в DOM). При ошибках
+формы (ре-рендер POST'а) модал открывается сам.{% endcomment %}
+<div id="promo-reserve-modal" class="fixed inset-0 z-50 {% if not form.errors and not waitlist_form.errors %}hidden{% endif %}" role="dialog" aria-modal="true" aria-label="{% trans 'Reserve' %}">
+  <div class="absolute inset-0 bg-black/45" data-modal-close></div>
+  <div class="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center p-0 md:p-4 pointer-events-none">
+    <div class="pointer-events-auto bg-gray-50 md:rounded-2xl rounded-t-2xl shadow-xl w-full md:max-w-md max-h-[88vh] overflow-y-auto relative">
+      <button type="button" data-modal-close class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white shadow ring-1 ring-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900" aria-label="{% trans 'Close' %}">✕</button>
+      <div class="px-4 pb-4 md:px-5 md:pb-5 -mt-1">
+        {# UA3-1 слайс 2: buy-box (reserve / sold-out→waitlist) — единый партиал; promotion вне реестра SellableEntity → mode явно. #}
+        {% include "storefront/_buybox.html" with buybox_mode="reserve" %}
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  // Фидбэк 2026-07-29: попап формы брони. Делегирование на document (урок Ф1).
+  document.addEventListener("click", function (e) {
+    var open = e.target.closest("[data-modal-open]");
+    if (open) {
+      var m = document.getElementById(open.getAttribute("data-modal-open"));
+      if (m) { m.classList.remove("hidden"); document.body.style.overflow = "hidden"; }
+      return;
+    }
+    if (e.target.closest("[data-modal-close]")) {
+      var mm = e.target.closest('[role="dialog"]');
+      if (mm) { mm.classList.add("hidden"); document.body.style.overflow = ""; }
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(function (m) {
+      m.classList.add("hidden"); document.body.style.overflow = "";
+    });
+  });
+  // Галерея: клик по миниатюре свапает главное фото.
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-gallery-thumb]");
+    if (!t) return;
+    var main = document.querySelector("[data-gallery-main]");
+    if (main) main.src = t.getAttribute("data-full");
+    document.querySelectorAll("[data-gallery-thumb]").forEach(function (b) {
+      b.classList.toggle("ring-indigo-500", b === t);
+      b.classList.toggle("ring-transparent", b !== t);
+    });
+  });
+  // Ошибки формы после POST — модал уже открыт (без hidden) → зафиксировать скролл.
+  var m0 = document.getElementById("promo-reserve-modal");
+  if (m0 && !m0.classList.contains("hidden")) document.body.style.overflow = "hidden";
+})();
+</script>
 {% endblock %}
