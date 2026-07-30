@@ -13984,3 +13984,6 @@ msgstr "Заказать кейтеринг"
 
 msgid "Buffets & belegte Brötchen für Ihre Feier"
 msgstr "Фуршеты и сэндвичи для вашего праздника"
+
+msgid "Platten, Buffets & Grillservice für Ihre Feier"
+msgstr "Мясные тарелки, фуршеты и гриль-сервис для вашего праздника"

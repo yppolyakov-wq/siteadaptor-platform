@@ -13803,3 +13803,6 @@ msgstr "Request party service"
 
 msgid "Buffets & belegte Brötchen für Ihre Feier"
 msgstr "Buffets & sandwiches for your celebration"
+
+msgid "Platten, Buffets & Grillservice für Ihre Feier"
+msgstr "Platters, buffets & grill service for your celebration"

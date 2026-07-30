@@ -355,3 +355,36 @@ def test_bakery_kit_slider_plus_widget_and_no_archetypes_section():
     assert kit.enable_archetypes_section is False
     cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "bakery"}, "heroes": kit.heroes})
     assert cfg["site_defaults"]["hero_widget"] == "bakery"
+
+
+def test_hero_widget_butcher_same_tiles_meat_flavor(settings):
+    """2026-07-30 («тот же набор»): butcher — та же ветка направлений, что bakery
+    (Aktionen/Sortiment/Wunschzeit/Partyservice), мясной сабтекст Partyservice."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from django.template.loader import render_to_string
+
+    body = render_to_string(
+        "storefront/sections/_hero_widget.html",
+        {
+            "hero_widget": "butcher",
+            "storefront_orders_enabled": True,
+            "storefront_jobs_enabled": True,
+        },
+    )
+    assert "Sortiment ansehen" in body
+    assert "Zur Wunschzeit vorbestellen" in body
+    assert "Platten, Buffets & Grillservice für Ihre Feier" in body
+    assert "belegte Brötchen" not in body  # bakery-сабтекст не течёт в мясную
+
+
+def test_butcher_kit_slider_plus_widget():
+    """Кит BUTCHER: слайдер (3 слайда) + hero_widget="butcher", архетипы выкл."""
+    from apps.tenants import siteconfig
+    from apps.tenants.demo_kits import KITS
+
+    kit = KITS["butcher"]
+    assert kit.hero_widget == "butcher"
+    assert len(kit.heroes) == 3
+    assert kit.enable_archetypes_section is False
+    cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "butcher"}})
+    assert cfg["site_defaults"]["hero_widget"] == "butcher"

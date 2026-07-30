@@ -2654,6 +2654,32 @@ BUTCHER = DemoKit(
     hero_title="Metzgerei Bergmann",
     hero_text="Fleisch und Wurst aus eigener Herstellung — von Höfen aus der Region. "
     "Grillpakete und Platten bequem online vorbestellen.",
+    # 2026-07-30 («тот же набор, что Bäckerei»): главная «ловит направления» —
+    # слайдер (3 слайда) + плитки hero_widget="butcher".
+    hero_widget="butcher",
+    heroes=[
+        {
+            "image_kw": "butcher,meat",
+            "title": "Metzgerei Bergmann",
+            "text": "Fleisch und Wurst aus eigener Herstellung — von Höfen aus der Region.",
+            "button_label": "Sortiment ansehen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "grill,bbq",
+            "title": "Grillpakete fürs Wochenende",
+            "text": "Jetzt vorbestellen — samstags frisch mariniert abholen.",
+            "button_label": "Grillpakete ansehen",
+            "button_url": "/sortiment/?kategorie=grill",
+        },
+        {
+            "image_kw": "deli",
+            "title": "Partyservice für Ihre Feier",
+            "text": "Buffets, Platten und Canapés für 10–100 Gäste.",
+            "button_label": "Anfrage stellen",
+            "button_url": "/anfrage/",
+        },
+    ],
     about_title="Unsere Metzgerei",
     about_text="Seit 1954 steht der Name Bergmann für ehrliches Handwerk: Wir kaufen "
     "ganze Tiere von Höfen aus dem Umland, zerlegen selbst und räuchern unsere Wurst "
@@ -2726,7 +2752,8 @@ BUTCHER = DemoKit(
         "button_url": "/sortiment/",
     },
     enable_modules=["orders", "jobs", "loyalty"],
-    enable_archetypes_section=True,
+    # 2026-07-30: направления ловят плитки hero_widget="butcher" (архетипы выкл).
+    enable_archetypes_section=False,
     storefront_root="home",
     primary_module="catalog",  # hero-CTA → Sortiment (Partyservice — дополнение)
     seed_records=True,
@@ -5613,7 +5640,7 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
         cfg["site_defaults"] = sd
-    if kit.hero_widget in ("stays", "services", "gastro", "bakery"):  # E4/A/2026-07-30
+    if kit.hero_widget in ("stays", "services", "gastro", "bakery", "butcher"):  # E4/A/07-30
         sd = dict(cfg.get("site_defaults") or {})
         sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd

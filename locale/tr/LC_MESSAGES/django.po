@@ -13914,3 +13914,6 @@ msgstr "Parti servisi talep edin"
 
 msgid "Buffets & belegte Brötchen für Ihre Feier"
 msgstr "Kutlamanız için büfe ve sandviçler"
+
+msgid "Platten, Buffets & Grillservice für Ihre Feier"
+msgstr "Kutlamanız için tabaklar, büfe ve mangal servisi"

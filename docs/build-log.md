@@ -6990,3 +6990,15 @@ sm:w-64 snap-start`. Стенд Playwright 390px: на 9 страницах ка
 - Замки: +2 (bakery-виджет рендер с гейтами + кит слайдер/виджет/без-архетипов);
   6 msgid × 5 .po; app.css пересобран; tenants+buybox+jobs 992 passed суммарно.
   ⚠️ ops: `seed_demo_tenants --kit bakery --recreate`.
+
+## 2026-07-30 — Metzgerei: главная-«ловушка» (тот же набор, что Bäckerei)
+Запрос владельца «следующий архетип, тот же набор». Функциональный набор (товары/
+акции/C&C/Partyservice) у мясной уже был — добавлена главная-«ловушка»:
+- `hero_widget="butcher"` — ТА ЖЕ ветка направлений, что bakery (whitelist normalize+
+  сидер += butcher): 🔥 Aktionen / 🥩 Sortiment / ⏰ Wunschzeit / 🎉 Partyservice;
+  вариации — иконка 🥩 и мясной сабтекст «Platten, Buffets & Grillservice…».
+- Кит BUTCHER: 3 hero-слайда (Frischetheke/Grillpakete/Partyservice),
+  `enable_archetypes_section=False`.
+- Замки +2 (butcher-рендер: bakery-сабтекст не течёт; кит), 1 msgid × 5 .po.
+  Стенд: слайдер+плитки с живой акцией «Nackensteaks −20 %». ⚠️ ops:
+  `seed_demo_tenants --kit butcher --recreate`.

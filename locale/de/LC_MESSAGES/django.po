@@ -13941,3 +13941,6 @@ msgstr "Partyservice anfragen"
 
 msgid "Buffets & belegte Brötchen für Ihre Feier"
 msgstr "Buffets & belegte Brötchen für Ihre Feier"
+
+msgid "Platten, Buffets & Grillservice für Ihre Feier"
+msgstr "Platten, Buffets & Grillservice für Ihre Feier"

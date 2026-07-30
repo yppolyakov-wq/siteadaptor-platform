@@ -889,7 +889,7 @@ def normalize_site_defaults(raw) -> dict:
     # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
     # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →
     # golden целы; существующие сайты не затрагиваются).
-    if sd.get("hero_widget") in ("stays", "services", "gastro", "bakery"):
+    if sd.get("hero_widget") in ("stays", "services", "gastro", "bakery", "butcher"):
         out["hero_widget"] = sd["hero_widget"]
     return out
 
