@@ -186,3 +186,35 @@ def test_gap_deal_banner_returns_to_calendar():
         _req("post", {"action": "gap_deal", "enabled": "1", "next": "//evil.example"})
     )
     assert resp2.url.endswith("?tab=einstellungen&sec=preise")
+
+
+def test_gap_deal_per_unit_overrides_global_settings():
+    """Фидбэк владельца 2026-07-30: Lücken-Deal задаётся ДЛЯ КОНКРЕТНОГО номера —
+    значения юнита перебивают общие настройки; 0 = наследовать общие."""
+    unit = _unit()
+    s = _settings(nights=3, percent=25)
+    services.book_stay(
+        unit, arrival=D0 + timedelta(days=1), departure=D0 + timedelta(days=3), name="L"
+    )
+    services.book_stay(
+        unit, arrival=D0 + timedelta(days=6), departure=D0 + timedelta(days=9), name="R"
+    )
+    gap_from, gap_to = D0 + timedelta(days=3), D0 + timedelta(days=6)
+
+    # 0/0 у номера → работает общая настройка (25 %)
+    assert pricing.gap_discount(unit, gap_from, gap_to, s)[0] == 25
+
+    # свой процент номера перебивает общий
+    unit.gap_discount_percent = 40
+    assert pricing.gap_discount(unit, gap_from, gap_to, s)[0] == 40
+
+    # своя длина промежутка у номера: лимит 2 < длины люки (3 ночи) → скидки нет
+    # ни на всю люку, ни на её часть (лимит меряет ЛЮКУ, не бронь).
+    unit.gap_max_nights = 2
+    assert pricing.gap_discount(unit, gap_from, gap_to, s)[0] == 0
+    assert pricing.gap_discount(unit, gap_from, D0 + timedelta(days=5), s)[0] == 0
+
+    # обратный случай: общий лимит 1 (не сработал бы), у номера 3 → скидка номера
+    strict = _settings(nights=1, percent=25)
+    unit.gap_max_nights, unit.gap_discount_percent = 3, 40
+    assert pricing.gap_discount(unit, gap_from, gap_to, strict)[0] == 40

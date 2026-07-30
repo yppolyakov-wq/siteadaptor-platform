@@ -14078,3 +14078,18 @@ msgstr "До бесплатной доставки осталось %(amount)s �
 
 msgid "Standardversand"
 msgstr "стандартная доставка"
+
+msgid "Saisonpreis"
+msgstr "Сезонная цена"
+
+msgid "Wochenende"
+msgstr "Выходные"
+
+msgid "Preis pro Nacht anzeigen"
+msgstr "Показать цену за ночь"
+
+msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
+msgstr "Скидка на окно: макс. ночей (0 = как в общих)"
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr "Скидка на окно: %% (0 = как в общих)"

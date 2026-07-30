@@ -14008,3 +14008,18 @@ msgstr "Ücretsiz kargoya sadece %(amount)s € kaldı"
 
 msgid "Standardversand"
 msgstr "standart kargo"
+
+msgid "Saisonpreis"
+msgstr "Sezon fiyatı"
+
+msgid "Wochenende"
+msgstr "Hafta sonu"
+
+msgid "Preis pro Nacht anzeigen"
+msgstr "Gecelik fiyatı göster"
+
+msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
+msgstr "Boşluk fırsatı: maks. gece (0 = genel ayar)"
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr "Boşluk fırsatı: indirim %% (0 = genel ayar)"

@@ -41,6 +41,52 @@ def test_season_rate_overrides_base_and_weekend():
     assert total == 40000
 
 
+def test_multi_season_booking_prices_each_night(  # noqa: D103
+):
+    """Фидбэк владельца 2026-07-30: бронь через 2+ сезона считается ПОНОЧНО —
+    каждая ночь берёт свой сезон (не один сезон по дате заезда)."""
+    unit = _unit(price_cents=10000, weekend_price_cents=0)
+    SeasonRate.objects.create(  # Nebensaison
+        unit=unit, start_date=date(2026, 12, 1), end_date=date(2026, 12, 23), price_cents=8000
+    )
+    SeasonRate.objects.create(  # Weihnachten/Hochsaison
+        unit=unit, start_date=date(2026, 12, 24), end_date=date(2027, 1, 6), price_cents=20000
+    )
+    # 22.12 → 27.12: ночи 22,23 (Neben 80 €) + 24,25,26 (Hoch 200 €)
+    total = pricing.quote_total_cents(unit, date(2026, 12, 22), date(2026, 12, 27))
+    assert total == 8000 * 2 + 20000 * 3
+
+
+def test_booking_spanning_season_and_base_price():
+    """Часть ночей в сезоне, часть — вне: вне сезона действует базовая цена."""
+    unit = _unit(price_cents=10000, weekend_price_cents=0)
+    SeasonRate.objects.create(
+        unit=unit, start_date=date(2026, 7, 1), end_date=date(2026, 7, 3), price_cents=15000
+    )
+    # 30.06 → 04.07: ночи 30.06 (база), 01,02,03.07 (сезон)
+    total = pricing.quote_total_cents(unit, date(2026, 6, 30), date(2026, 7, 4))
+    assert total == 10000 + 15000 * 3
+
+
+def test_price_breakdown_lists_every_night_with_source():
+    """Разбивка «за что платим»: строка на ночь + пометка сезона/выходных."""
+    unit = _unit(price_cents=10000, weekend_price_cents=15000)
+    SeasonRate.objects.create(
+        unit=unit,
+        label="Hochsaison",
+        start_date=date(2026, 12, 24),
+        end_date=date(2026, 12, 31),
+        price_cents=20000,
+    )
+    rows = pricing.price_breakdown(unit, date(2026, 12, 23), date(2026, 12, 26))
+    assert [r["cents"] for r in rows] == [10000, 20000, 20000]
+    assert rows[0]["label"] == ""  # 23.12 — базовая цена (Mi)
+    assert rows[1]["label"] == "Hochsaison" and rows[2]["label"] == "Hochsaison"
+    assert sum(r["cents"] for r in rows) == pricing.quote_total_cents(
+        unit, date(2026, 12, 23), date(2026, 12, 26)
+    )
+
+
 def test_book_stay_stores_total_with_rates():
     unit = _unit(price_cents=10000, weekend_price_cents=15000)
     booking = book_stay(

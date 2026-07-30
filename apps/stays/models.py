@@ -70,6 +70,10 @@ class StayUnit(I18nMixin, TimestampedModel):
     # A5a: цена за ночь в Fr/Sa, если задана (0 = как обычная). Сезонные окна —
     # в SeasonRate (перебивают и базу, и выходные).
     weekend_price_cents = models.PositiveIntegerField(default=0)
+    # Фидбэк 2026-07-30: Lücken-Deal НА КОНКРЕТНЫЙ номер (не только глобально).
+    # 0 = наследовать настройку тенанта (StaySettings.gap_*); >0 перебивает её.
+    gap_max_nights = models.PositiveSmallIntegerField(default=0)
+    gap_discount_percent = models.PositiveSmallIntegerField(default=0)
     min_nights = models.PositiveSmallIntegerField(default=1)
     max_guests = models.PositiveSmallIntegerField(default=2)
     is_active = models.BooleanField(default=True)

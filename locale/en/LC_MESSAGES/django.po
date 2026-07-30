@@ -13897,3 +13897,18 @@ msgstr "Only %(amount)s € to go for free shipping"
 
 msgid "Standardversand"
 msgstr "standard shipping"
+
+msgid "Saisonpreis"
+msgstr "Season rate"
+
+msgid "Wochenende"
+msgstr "Weekend"
+
+msgid "Preis pro Nacht anzeigen"
+msgstr "Show price per night"
+
+msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
+msgstr "Gap deal: max nights (0 = as global)"
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr "Gap deal: discount %% (0 = as global)"

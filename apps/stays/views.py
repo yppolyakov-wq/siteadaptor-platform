@@ -23,7 +23,7 @@ from apps.billing import connect
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
-from . import availability, services
+from . import availability, pricing, services
 from .models import (
     _AMENITY_KEYS,
     AMENITIES,
@@ -625,6 +625,13 @@ def booking_detail(request, pk):
         {
             "b": booking,
             "registration": registration,
+            # Фидбэк 2026-07-30: разбивка цены ПО НОЧАМ (сезоны/выходные) —
+            # владелец видит, из чего сложился итог мультисезонной брони.
+            "price_rows": pricing.price_breakdown(
+                booking.unit, booking.arrival, booking.departure, rate_plan=booking.rate_plan
+            )
+            if booking.unit_id
+            else [],
             "nav": "stays",
             "can_delete": _can_delete_booking(booking),
             # Фидбэк 2026-07-27: селект номера в форме «Buchung bearbeiten».
@@ -721,6 +728,14 @@ def units(request, pk=None):
             unit.min_nights = _int(request.POST.get("min_nights", "1"), 1, 1, 365)
             unit.max_guests = _int(request.POST.get("max_guests", "2"), 2, 1, 99)
             unit.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
+            # Фидбэк 2026-07-30: Lücken-Deal для КОНКРЕТНОГО номера (0 = как в
+            # общих настройках). Presence-guard: поля приходят только со страницы
+            # номера — на списке значения не затираются.
+            if request.POST.get("gap_present"):
+                unit.gap_max_nights = _int(request.POST.get("gap_max_nights", "0"), 0, 0, 14)
+                unit.gap_discount_percent = _int(
+                    request.POST.get("gap_discount_percent", "0"), 0, 0, 70
+                )
             unit.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
             unit.area_sqm = _int(request.POST.get("area_sqm", "0"), 0, 0, 9999)
             unit.bed_type = request.POST.get("bed_type", "").strip()[:80]

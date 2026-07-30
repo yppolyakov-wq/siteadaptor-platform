@@ -122,6 +122,22 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
       {% if b.voucher_code %}<li>{% trans "Gutschein" %} {{ b.voucher_code }}: −{{ b.discount_eur|floatformat:2 }} €</li>{% endif %}
       {% if b.auto_discount_cents %}<li>{{ b.auto_discount_label|default:"Rabatt" }}: −{{ b.auto_discount_eur|floatformat:2 }} €</li>{% endif %}
     </ul>
+    {% if price_rows %}
+      {% comment %}Фидбэк 2026-07-30: разбивка ПО НОЧАМ — видно, какая ночь по
+      какому сезону/выходному тарифу посчитана (мультисезонная бронь).{% endcomment %}
+      <details class="mt-2">
+        <summary class="text-sm text-indigo-600 cursor-pointer select-none">{% trans "Preis pro Nacht anzeigen" %}</summary>
+        <table class="mt-2 w-full text-sm">
+          {% for r in price_rows %}
+            <tr class="border-t border-gray-100">
+              <td class="py-1 text-gray-600">{{ r.date|date:"D, d.m.Y" }}</td>
+              <td class="py-1 text-gray-400 text-xs">{{ r.label }}</td>
+              <td class="py-1 text-right tabular-nums">{{ r.eur|floatformat:2 }} €</td>
+            </tr>
+          {% endfor %}
+        </table>
+      </details>
+    {% endif %}
   {% else %}
     <p class="text-sm text-gray-400">{% trans "Kein Preis hinterlegt." %}</p>
   {% endif %}

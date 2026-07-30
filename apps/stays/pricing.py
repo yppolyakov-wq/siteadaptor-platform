@@ -5,6 +5,8 @@
 за ночь). quote_total суммирует по ночам [arrival, departure).
 """
 
+from django.utils.translation import gettext_lazy as _
+
 from .availability import nights_between
 
 WEEKEND_WEEKDAYS = (4, 5)  # ночь пятницы и субботы (Mo=0 … So=6)
@@ -18,6 +20,34 @@ def nightly_price_cents(unit, day, seasons=None) -> int:
     if day.weekday() in WEEKEND_WEEKDAYS and unit.weekend_price_cents:
         return unit.weekend_price_cents
     return unit.price_cents
+
+
+def price_breakdown(
+    unit, arrival, departure, rate_plan=None, *, occupancy_by_day=None, occupancy_rules=None
+) -> list[dict]:
+    """Фидбэк владельца 2026-07-30: прозрачная разбивка цены ПО НОЧАМ.
+
+    Возвращает [{date, cents, label}] — label = имя сезона («Hochsaison»),
+    «Wochenende» для выходной цены или "" для базовой. Сумма строк равна
+    `quote_total_cents` с теми же аргументами (замок в тестах) — то есть это
+    именно объяснение итога, а не второй расчёт.
+    """
+    seasons = list(unit.season_rates.all())
+    rows = []
+    for day in nights_between(arrival, departure):
+        label = ""
+        for rate in seasons:
+            if rate.start_date <= day <= rate.end_date:
+                label = rate.label or _("Saisonpreis")
+                break
+        else:
+            if day.weekday() in WEEKEND_WEEKDAYS and unit.weekend_price_cents:
+                label = _("Wochenende")
+        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
+        if occupancy_rules and occupancy_by_day is not None:
+            cents = occupancy_adjust(cents, occupancy_by_day.get(day), occupancy_rules)
+        rows.append({"date": day, "cents": cents, "eur": cents / 100, "label": label})
+    return rows
 
 
 def apply_rate_plan(base_cents, rate_plan) -> int:
@@ -78,7 +108,9 @@ def gap_discount(unit, arrival, departure, settings, today=None) -> tuple[int, s
     дисконтилось бы)."""
     from datetime import timedelta
 
-    max_nights = int(getattr(settings, "gap_max_nights", 0) or 0)
+    # Фидбэк 2026-07-30: настройка номера перебивает глобальную (0 = наследовать).
+    unit_max = int(getattr(unit, "gap_max_nights", 0) or 0)
+    max_nights = unit_max or int(getattr(settings, "gap_max_nights", 0) or 0)
     if max_nights <= 0:
         return 0, ""
     nights = (departure - arrival).days
@@ -114,7 +146,8 @@ def gap_discount(unit, arrival, departure, settings, today=None) -> tuple[int, s
         return 0, ""
     if (hi - lo).days > max_nights:
         return 0, ""
-    percent = max(1, min(int(getattr(settings, "gap_discount_percent", 0) or 0), 70))
+    unit_pct = int(getattr(unit, "gap_discount_percent", 0) or 0)
+    percent = max(1, min(unit_pct or int(getattr(settings, "gap_discount_percent", 0) or 0), 70))
     return percent, f"Lücken-Deal −{percent}%"
 
 

@@ -14035,3 +14035,18 @@ msgstr "Nur noch %(amount)s € bis zum kostenlosen Versand"
 
 msgid "Standardversand"
 msgstr "Standardversand"
+
+msgid "Saisonpreis"
+msgstr "Saisonpreis"
+
+msgid "Wochenende"
+msgstr "Wochenende"
+
+msgid "Preis pro Nacht anzeigen"
+msgstr "Preis pro Nacht anzeigen"
+
+msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
+msgstr "Lücken-Deal: max. Nächte (0 = wie allgemein)"
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
