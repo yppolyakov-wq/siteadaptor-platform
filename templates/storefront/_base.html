@@ -83,71 +83,27 @@
   телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}
   {% with style=storefront_nav_style|default:'classic' %}
   <header class="{% if storefront_nav_sticky %}sticky top-0 {% endif %}z-20 bg-white/90 backdrop-blur border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 {% if style == 'centered' %}py-2{% else %}h-14{% endif %} flex items-center {% if style == 'centered' %}flex-col gap-1{% else %}justify-between{% endif %}">
-      <div class="w-full flex items-center justify-between {% if style == 'centered' %}sm:justify-center{% endif %}">
-        <a href="{% url 'storefront-home' %}" class="flex items-center gap-2 font-bold tracking-tight">
-          {% if request.tenant.logo_url %}<img src="{{ request.tenant.logo_url }}" alt="{{ request.tenant.name|default:'' }}" class="h-8 w-auto max-w-[170px] object-contain">{% else %}<span class="text-lg">{{ request.tenant.name|default:"Shop" }}</span>{% endif %}
-        </a>
-        <div class="flex items-center gap-2">
-          {# P5c: переключатель тёмной темы (иконка проставляется скриптом ниже). #}
-          <button id="sf-theme-toggle" type="button" aria-label="{% trans 'Toggle dark mode' %}" aria-pressed="false"
-                  class="text-lg leading-none w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100">🌙</button>
-          {% if storefront_locales|length > 1 %}
-          {% comment %}DL-1: переключатель языка витрины — скрытый блок (details/summary,
-          без JS). Пилюля показывает текущий язык (код); клик раскрывает список родных
-          имён языков. Генерик по active_locales тенанта.{% endcomment %}
-          <details class="sf-lang relative text-sm">
-            <summary aria-label="{% trans 'Language' %}" class="list-none cursor-pointer select-none inline-flex items-center gap-1 px-2 py-1 rounded-full text-gray-600 hover:bg-gray-100">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              <span class="font-medium">{{ request.LANGUAGE_CODE|upper }}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-            </summary>
-            <nav aria-label="{% trans 'Language' %}" class="absolute right-0 mt-1 min-w-[9rem] bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30">
-              {% for loc in storefront_locales %}
-              <a href="{% url 'storefront-set-language' %}?lang={{ loc.code }}&next={{ request.get_full_path|urlencode }}"
-                 class="flex items-center justify-between gap-3 px-3 py-2 {% if request.LANGUAGE_CODE == loc.code %}font-semibold text-gray-900{% else %}text-gray-600 hover:bg-gray-50{% endif %}" hreflang="{{ loc.code }}">
-                <span>{{ loc.native }}</span>
-                {% if request.LANGUAGE_CODE == loc.code %}<span aria-hidden="true">✓</span>{% else %}<span class="text-xs text-gray-400">{{ loc.label }}</span>{% endif %}
-              </a>
-              {% endfor %}
-            </nav>
-          </details>
-          {% endif %}
-          {% if storefront_account_enabled %}
-            <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900" aria-label="{% trans 'My account' %}">👤 <span>{% trans "Account" %}</span></a>
-          {% endif %}
-          {% if storefront_orders_enabled %}
-            {# R1: иконка корзины в шапке + бейдж кол-ва (обновляется AJAX'ом). #}
-            <a href="{% url 'storefront-cart' %}" class="relative inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-700 hover:bg-gray-100" aria-label="{% trans 'Cart' %}">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
-              <span data-cart-badge class="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full text-white text-[10px] font-bold leading-[17px] text-center {% if not storefront_cart_count %}hidden{% endif %}" style="background: var(--accent);">{{ storefront_cart_count }}</span>
-            </a>
-          {% endif %}
-          {# Бургер: на мобильном всегда, на десктопе — только в стиле minimal. #}
-          <button id="sf-nav-toggle" type="button" aria-label="{% trans 'Menu' %}" aria-expanded="false"
-                  class="text-2xl leading-none text-gray-700 {% if style != 'minimal' %}sm:hidden{% endif %}">☰</button>
-        </div>
+    {% if style == 'centered' %}
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center flex-col gap-1">
+      <div class="w-full flex items-center justify-between sm:justify-center">
+        {% include "storefront/_header_logo.html" %}
+        <div class="flex items-center gap-2">{% include "storefront/_header_icons.html" %}</div>
       </div>
-      {# S7: десктоп-меню с подменю (выпадает по hover); minimal — скрыто. #}
-      <nav class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-3 {% if style == 'centered' %}justify-center{% endif %}">
-        {% for item in storefront_menu %}
-          {% if item.children %}
-            <div class="relative group">
-              {% if item.url %}<a href="{{ item.url }}"{% else %}<span{% endif %} class="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium cursor-pointer">{{ item.label }} <span class="text-[10px]">▾</span>{% if item.url %}</a>{% else %}</span>{% endif %}
-              <div class="absolute left-0 top-full pt-2 hidden group-hover:block z-30">
-                <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[180px]">
-                  {% for c in item.children %}
-                    <a href="{{ c.url }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">{{ c.label }}</a>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-          {% else %}
-            <a href="{{ item.url }}" class="text-gray-600 hover:text-gray-900 font-medium">{{ item.label }}</a>
-          {% endif %}
-        {% endfor %}
+      {# NAV-v2: десктоп-меню одной строкой (overflow → «Mehr ▾», партиал). #}
+      <nav id="sf-nav-desktop" class="text-sm hidden sm:flex items-center gap-1 justify-center w-full min-w-0 overflow-hidden">
+        {% include "storefront/_header_nav.html" %}
       </nav>
     </div>
+    {% else %}
+    {# NAV-v2 (референс UniTheme): classic/minimal — «лого | меню | иконки» одной строкой. #}
+    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-2">
+      {% include "storefront/_header_logo.html" %}
+      <nav id="sf-nav-desktop" class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-1 flex-1 min-w-0 overflow-hidden px-2">
+        {% include "storefront/_header_nav.html" %}
+      </nav>
+      <div class="flex items-center gap-2 shrink-0 ml-auto">{% include "storefront/_header_icons.html" %}</div>
+    </div>
+    {% endif %}
     {# Раскрывающееся меню (мобильный + minimal-десктоп): дети с отступом. #}
     <nav id="sf-nav-mobile" class="hidden border-t border-gray-100 px-4 py-2 {% if style != 'minimal' %}sm:hidden{% endif %}">
       {% for item in storefront_menu %}
@@ -172,6 +128,34 @@
         var open = menu.classList.toggle("hidden") === false;
         btn.setAttribute("aria-expanded", open ? "true" : "false");
       });
+    }
+    // NAV-v2: overflow «Mehr ▾» — не влезающие пункты ряда прячем, показываем их
+    // копии в панели (рендер двойной, JS только переключает видимость).
+    var dnav = document.getElementById("sf-nav-desktop");
+    var more = document.getElementById("sf-nav-more");
+    if (dnav && more) {
+      var rowItems = Array.prototype.slice.call(dnav.querySelectorAll("[data-nav-i]"));
+      var setPanel = function (i, show) {
+        dnav.querySelectorAll('[data-nav-p="' + i + '"]').forEach(function (el) {
+          el.classList.toggle("hidden", !show);
+          el.classList.toggle("block", show);
+        });
+      };
+      var fitNav = function () {
+        if (!dnav.offsetParent) return; // меню скрыто (мобайл / стиль minimal)
+        more.classList.add("hidden");
+        rowItems.forEach(function (el, i) { el.classList.remove("hidden"); setPanel(i, false); });
+        if (dnav.scrollWidth <= dnav.clientWidth + 1) return;
+        more.classList.remove("hidden");
+        for (var i = rowItems.length - 1; i >= 0; i--) {
+          if (dnav.scrollWidth <= dnav.clientWidth + 1) break;
+          rowItems[i].classList.add("hidden");
+          setPanel(i, true);
+        }
+      };
+      fitNav();
+      window.addEventListener("resize", fitNav);
+      if (window.ResizeObserver) new ResizeObserver(fitNav).observe(dnav);
     }
     // P5c: переключатель тёмной темы — иконка ☀️/🌙, выбор в localStorage.
     var theme = document.getElementById("sf-theme-toggle");

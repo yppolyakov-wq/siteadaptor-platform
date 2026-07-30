@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}NAV-v2 (2026-07-30, референс UniTheme): десктоп-меню одной строкой.
+Пункты whitespace-nowrap; не влезающие JS (_base.html fitNav) прячет и
+показывает их копии в дропдауне «Mehr ▾» — пункты отрендерены дважды
+(ряд + панель), JS лишь переключает видимость. Дропдауны групп —
+hover + focus-within (клавиатура/тап по chevron-пункту без url).{% endcomment %}
+{% for item in storefront_menu %}
+  {% if item.children %}
+    <div class="relative group shrink-0" data-nav-i="{{ forloop.counter0 }}">
+      {% if item.url %}<a href="{{ item.url }}"{% else %}<span tabindex="0"{% endif %} class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium cursor-pointer">{{ item.label }} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>{% if item.url %}</a>{% else %}</span>{% endif %}
+      <div class="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-30">
+        <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[200px]">
+          {% for c in item.children %}
+            <a href="{{ c.url }}" class="block px-4 py-2 whitespace-nowrap text-gray-700 hover:bg-gray-50">{{ c.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <a href="{{ item.url }}" data-nav-i="{{ forloop.counter0 }}" class="shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium">{{ item.label }}</a>
+  {% endif %}
+{% endfor %}
+{# Overflow-дропдаун: сюда fitNav переносит хвост, когда строка не влезает. #}
+<div id="sf-nav-more" class="relative group shrink-0 hidden">
+  <button type="button" class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium">{% trans "More" %} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="absolute right-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-30">
+    <div id="sf-nav-more-panel" class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[200px]">
+      {% for item in storefront_menu %}
+        {% if item.url %}
+          <a href="{{ item.url }}" data-nav-p="{{ forloop.counter0 }}" class="hidden px-4 py-2 whitespace-nowrap text-gray-700 hover:bg-gray-50 font-medium">{{ item.label }}</a>
+        {% else %}
+          <div data-nav-p="{{ forloop.counter0 }}" class="hidden px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 whitespace-nowrap">{{ item.label }}</div>
+        {% endif %}
+        {% for c in item.children %}
+          <a href="{{ c.url }}" data-nav-p="{{ forloop.parentloop.counter0 }}" class="hidden px-4 py-2 pl-7 whitespace-nowrap text-gray-600 hover:bg-gray-50">{{ c.label }}</a>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
