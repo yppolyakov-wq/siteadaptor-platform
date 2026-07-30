@@ -409,9 +409,7 @@ def test_hero_widget_mode_renders_boutique_tiles(settings):
     with_sale = render_to_string("storefront/sections/_hero_widget.html", ctx)
     assert ">Sale</span>" in with_sale and "Sommerkleider" in with_sale
 
-    no_gift = render_to_string(
-        "storefront/sections/_hero_widget.html", {"hero_widget": "mode"}
-    )
+    no_gift = render_to_string("storefront/sections/_hero_widget.html", {"hero_widget": "mode"})
     assert "Geschenkgutschein" not in no_gift
 
 
