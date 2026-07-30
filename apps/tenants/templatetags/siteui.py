@@ -117,6 +117,20 @@ def deal_of_day():
     )
 
 
+@register.inclusion_tag("storefront/sections/_hero_tiles.html", takes_context=True)
+def hero_tiles(context, widget):
+    """Плитки-направления первого экрана из реестра `core.hero_tiles` (архетипы
+    без кастомной ветки в `_hero_widget.html`). Неизвестный widget / нет
+    активных модулей → пустой список → партиал ничего не рендерит."""
+    from apps.core import hero_tiles as registry
+
+    tenant = getattr(context.get("request"), "tenant", None) or context.get("tenant")
+    if tenant is None:
+        return {"tiles": []}
+    deal = deal_of_day() if registry.needs_deal(widget) else None
+    return {"tiles": registry.tiles_for(widget, tenant, deal=deal)}
+
+
 @register.inclusion_tag("storefront/_funnel_steps.html")
 def funnel_steps(kind, current):
     """E5 «задача-первым»: прогресс-степпер воронки (Schritt N/M) — ведём клиента

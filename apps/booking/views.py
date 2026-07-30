@@ -355,6 +355,10 @@ def services_view(request, pk=None):
             "service_page": service_page,
             "nav": "booking",
             "services": services,
+            # Фидбэк 2026-07-30 («на сайте пишет: нет доступных»): без рабочих часов
+            # слоты не генерируются вообще. Показываем причину ЗДЕСЬ, где владелец
+            # правит услугу, — иначе он ищет «календарь услуги», которого нет.
+            "has_hours": AvailabilityRule.objects.exists(),
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
         },
     )

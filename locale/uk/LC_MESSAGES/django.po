@@ -14078,5 +14078,153 @@ msgstr "Показати ціну за ніч"
 msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 msgstr "Знижка на вікно: макс. ночей (0 = як у загальних)"
 
-msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgid "Lücken-Deal: Rabatt % (0 = wie allgemein)"
 msgstr "Знижка на вікно: %% (0 = як у загальних)"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Freie Zeiten sofort sehen"
+msgstr "Одразу видно вільні вікна"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Pflegeprodukte"
+msgstr "Засоби догляду"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Salonqualität für zu Hause"
+msgstr "Салонна якість удома"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termin vereinbaren"
+msgstr "Записатися"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Inspektion, Reifen, Service"
+msgstr "Техогляд, шини, сервіс"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kostenvoranschlag"
+msgstr "Кошторис"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Schaden beschreiben — Festpreis erhalten"
+msgstr "Опишіть поломку — отримайте фіксовану ціну"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Teile & Zubehör"
+msgstr "Запчастини та аксесуари"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Angebot anfordern"
+msgstr "Запросити пропозицію"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kostenlos & unverbindlich"
+msgstr "Безкоштовно й ні до чого не зобов’язує"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Beratung vor Ort"
+msgstr "Консультація на об’єкті"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Rückruf anfordern"
+msgstr "Замовити зворотний дзвінок"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Wir melden uns zurück"
+msgstr "Ми вам передзвонимо"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Bei jedem Einkauf sammeln"
+msgstr "Накопичуються з кожної покупки"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Aktuelle Deals"
+msgstr "Актуальні пропозиції"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Deals per E-Mail"
+msgstr "Знижки на пошту"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kein Angebot verpassen"
+msgstr "Не пропустити жодної акції"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Touren & Termine"
+msgstr "Тури й дати"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termine ansehen und Plätze sichern"
+msgstr "Переглянути дати й зайняти місце"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Private Führung"
+msgstr "Приватна екскурсія"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Wunschtermin für Ihre Gruppe"
+msgstr "Зручна дата для вашої групи"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Retreats & Kurse"
+msgstr "Ретрити й курси"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termine und freie Plätze"
+msgstr "Дати та вільні місця"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Übernachtung"
+msgstr "Проживання"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Verfügbarkeit prüfen"
+msgstr "Перевірити наявність"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Einzeltermin"
+msgstr "Разовий прийом"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Massage, Beratung, Coaching"
+msgstr "Масаж, консультація, коучинг"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Anfrage stellen"
+msgstr "Надіслати запит"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Gruppen und Wunschtermine"
+msgstr "Групи та зручні дати"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid ""
+"Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest."
+msgstr "Сезонні ціни на періоди задаються нижче на цій самій сторінці."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Allgemeine Tarife, Rabatte und dynamische Preise"
+msgstr "Загальні тарифи, знижки та динамічні ціни"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Preise & Saison"
+msgstr "Ціни та сезони"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Öffnungszeiten & Ressourcen"
+msgstr "Години роботи та ресурси"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Noch keine Öffnungszeiten hinterlegt."
+msgstr "Години роботи ще не задано."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid ""
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
+" der Leistung."
+msgstr ""
+"Без робочих годин сайт пише «немає вільних часів» — незалежно від послуги."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Öffnungszeiten festlegen"
+msgstr "Задати години роботи"

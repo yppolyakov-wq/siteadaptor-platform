@@ -457,6 +457,30 @@ RESTAURANT = DemoKit(
     key="restaurant",
     section_styles={"contact": "map_first", "reviews": "quotes", "about": "accent"},  # ST-2c/7b
     label="Restaurant «Bella Vista»",
+    # 2026-07-30: слайдер над гастро-плитками (первый экран).
+    heroes=[
+        {
+            "image_kw": "restaurant,interior",
+            "title": "Bella Vista",
+            "text": "Italienische Küche mit Herz — frische Pasta und knusprige Pizza.",
+            "button_label": "Tisch reservieren",
+            "button_url": "/termin/",
+        },
+        {
+            "image_kw": "pasta,food",
+            "title": "Pasta wie in Bologna",
+            "text": "Jeden Morgen frisch gemacht — mit Zutaten aus der Region.",
+            "button_label": "Speisekarte ansehen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "wine,restaurant",
+            "title": "Mittagstisch & Weinabende",
+            "text": "Wechselnde Gerichte unter der Woche, Weinproben am Freitag.",
+            "button_label": "Zu den Aktionen",
+            "button_url": "/aktionen/",
+        },
+    ],
     business_type="restaurant",
     accent="#b45309",
     hero_image_kw="restaurant,interior",
@@ -899,6 +923,7 @@ PRANASY = DemoKit(
     label="Pranasy — Vegan & Ayurveda",
     business_type="restaurant",
     subdomain="pranasy",  # → pranasy.<base> (а не pranasy-demo)
+    hero_widget="gastro",  # 2026-07-30: плитки Reservieren/Speisekarte/Angebot des Tages
     accent="#16a34a",  # frisches Grün
     hero_image_kw="vegan,food",
     hero_title="Pranasy",
@@ -1602,6 +1627,30 @@ HOTEL = DemoKit(
     },
     business_type="hotel",
     subdomain="hotel",  # → hotel.<base>
+    # 2026-07-30: слайдер над поиском дат (первый экран).
+    heroes=[
+        {
+            "image_kw": "hotel,room",
+            "title": "Pension Seeblick",
+            "text": "Ruhige Zimmer mit Seeblick — Frühstück inklusive.",
+            "button_label": "Zimmer ansehen",
+            "button_url": "/unterkunft/",
+        },
+        {
+            "image_kw": "lake,morning",
+            "title": "Aufwachen am Wasser",
+            "text": "Steg, Ruderboot und Morgennebel — direkt vor der Tür.",
+            "button_label": "Verfügbarkeit prüfen",
+            "button_url": "/unterkunft/",
+        },
+        {
+            "image_kw": "breakfast,hotel",
+            "title": "Frühstück bis 11 Uhr",
+            "text": "Regionale Produkte, frisches Brot und Zeit zum Ausschlafen.",
+            "button_label": "Angebote ansehen",
+            "button_url": "/aktionen/",
+        },
+    ],
     accent="#0e7490",  # cyan/See
     hero_image_kw="hotel,room",
     hero_title="Pension Seeblick",
@@ -1925,6 +1974,32 @@ AKTIONSMARKT = DemoKit(
     label="Aktionsmarkt Sparfuchs",
     business_type="grocery",
     subdomain="aktionsmarkt",
+    # 2026-07-30: слайдер + плитки hero_widget="aktionsmarkt"
+    # (Deals/Sortiment/Treuepunkte/Newsletter).
+    hero_widget="aktionsmarkt",
+    heroes=[
+        {
+            "image_kw": "supermarket,sale",
+            "title": "Aktionsmarkt Sparfuchs",
+            "text": "Jede Woche neue Angebote — sparen bei allem, was Sie täglich brauchen.",
+            "button_label": "Aktuelle Deals",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": "grocery,discount",
+            "title": "Dauertiefpreise",
+            "text": "Grundnahrungsmittel dauerhaft günstig — ohne Kleingedrucktes.",
+            "button_label": "Sortiment ansehen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "food,box",
+            "title": "Überraschungstüten",
+            "text": "Gerettete Lebensmittel zum halben Preis — solange der Vorrat reicht.",
+            "button_label": "Zu den Aktionen",
+            "button_url": "/aktionen/",
+        },
+    ],
     accent="#dc2626",  # Sale-Rot
     hero_image_kw="supermarket,sale",
     hero_title="Aktionsmarkt Sparfuchs",
@@ -3049,6 +3124,30 @@ CAFE = DemoKit(
     label="Café Morgenrot",
     business_type="cafe",
     subdomain="cafe",
+    # 2026-07-30: слайдер над гастро-плитками (первый экран).
+    heroes=[
+        {
+            "image_kw": "coffee,cafe",
+            "title": "Café Morgenrot",
+            "text": "Specialty Coffee und hausgemachte Kuchen — mitten im Viertel.",
+            "button_label": "Tisch reservieren",
+            "button_url": "/termin/",
+        },
+        {
+            "image_kw": "breakfast,cafe",
+            "title": "Frühstück bis 14 Uhr",
+            "text": "Auch am Wochenende — mit Zeit für die zweite Tasse.",
+            "button_label": "Speisekarte ansehen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "cake,bakery",
+            "title": "Kuchen zum Mitnehmen",
+            "text": "Ganze Torten auf Vorbestellung — für Ihren Anlass.",
+            "button_label": "Jetzt bestellen",
+            "button_url": "/sortiment/",
+        },
+    ],
     accent="#78350f",  # Kaffee-Braun
     hero_image_kw="coffee,cafe",
     hero_title="Café Morgenrot",
@@ -3674,6 +3773,32 @@ TOURS = DemoKit(
     label="Stadtgold Touren",
     business_type="tour_operator",
     subdomain="touren",
+    # 2026-07-30: слайдер + плитки hero_widget="touren"
+    # (Touren & Termine / Private Führung / Gutschein / Aktionen).
+    hero_widget="touren",
+    heroes=[
+        {
+            "image_kw": "city,tour",
+            "title": "Stadtgold Touren",
+            "text": "Stadtführungen und Radtouren in kleinen Gruppen — täglich ab Rathaus.",
+            "button_label": "Termine ansehen",
+            "button_url": "/veranstaltung/",
+        },
+        {
+            "image_kw": "bicycle,city",
+            "title": "Radtour ins Umland",
+            "text": "Halbtagestour mit Weinprobe — Räder und Guide inklusive.",
+            "button_label": "Plätze sichern",
+            "button_url": "/veranstaltung/",
+        },
+        {
+            "image_kw": "group,guide",
+            "title": "Private Führung",
+            "text": "Firmenevent oder Familienfeier? Wunschtermin auf Anfrage.",
+            "button_label": "Wunschtermin anfragen",
+            "button_url": "/termin/",
+        },
+    ],
     accent="#0d9488",  # Reise-Türkis
     hero_image_kw="city,tour",
     hero_title="Stadtgold Touren",
@@ -3894,6 +4019,32 @@ FRISEUR = DemoKit(
     label="Salon Schöngut",
     business_type="friseur",  # S6: реальный архетип
     subdomain="friseur",
+    # Фидбэк 2026-07-30: первый экран «ловит направления» — слайдер (3 слайда) +
+    # плитки hero_widget="friseur" (Termin/Aktionen/Pflege/Gutschein).
+    hero_widget="friseur",
+    heroes=[
+        {
+            "image_kw": "hair,salon",
+            "title": "Salon Schöngut",
+            "text": "Schnitt, Farbe und Styling von Profis — mitten in der Altstadt.",
+            "button_label": "Termin buchen",
+            "button_url": "/termin/",
+        },
+        {
+            "image_kw": "hair,color",
+            "title": "Balayage & Farbe",
+            "text": "Schonende Farbtechniken mit ausführlicher Beratung vorab.",
+            "button_label": "Leistungen ansehen",
+            "button_url": "/termin/",
+        },
+        {
+            "image_kw": "hair,products",
+            "title": "Pflege für zu Hause",
+            "text": "Die Produkte, mit denen wir arbeiten — direkt mitnehmen.",
+            "button_label": "Produkte ansehen",
+            "button_url": "/sortiment/",
+        },
+    ],
     enable_finder=True,  # FD-1: демо Finder («Was möchtest du?» → 3 услуги)
     accent="#9333ea",  # Violett
     hero_image_kw="hair,salon",
@@ -4144,6 +4295,32 @@ WERKSTATT = DemoKit(
     },
     business_type="werkstatt",  # S6: реальный архетип
     subdomain="werkstatt",
+    # 2026-07-30: слайдер + плитки hero_widget="werkstatt"
+    # (Termin/Kostenvoranschlag/Teile/Aktionen).
+    hero_widget="werkstatt",
+    heroes=[
+        {
+            "image_kw": "car,workshop",
+            "title": "KFZ-Werkstatt Dreyer",
+            "text": "Inspektion, HU-Vorbereitung und Reparatur — Meisterbetrieb seit 1994.",
+            "button_label": "Termin vereinbaren",
+            "button_url": "/termin/",
+        },
+        {
+            "image_kw": "car,repair",
+            "title": "Festpreis statt Überraschung",
+            "text": "Schaden beschreiben, Fotos hochladen — Kostenvoranschlag per E-Mail.",
+            "button_label": "Kostenvoranschlag",
+            "button_url": "/anfrage/",
+        },
+        {
+            "image_kw": "tire,wheel",
+            "title": "Reifenwechsel & Einlagerung",
+            "text": "Räder wechseln, prüfen und trocken einlagern — alles aus einer Hand.",
+            "button_label": "Teile & Zubehör",
+            "button_url": "/sortiment/",
+        },
+    ],
     jobs_vehicle=True,  # A9: Anfrage с Kennzeichen/HSN/TSN + AutoRepair-разметка
     accent="#1d4ed8",  # Werkstatt-Blau
     hero_image_kw="car,workshop",
@@ -4378,6 +4555,32 @@ HANDWERKER = DemoKit(
     label="Meisterbetrieb Krause",
     business_type="handwerker",  # S6: реальный архетип
     subdomain="handwerker",
+    # 2026-07-30: слайдер + плитки hero_widget="handwerker"
+    # (Angebot/Termin/Rückruf/Aktionen).
+    hero_widget="handwerker",
+    heroes=[
+        {
+            "image_kw": "craftsman,renovation",
+            "title": "Meisterbetrieb Krause",
+            "text": "Maler, Elektro & Sanitär aus einer Hand — Festpreis-Garantie.",
+            "button_label": "Angebot anfordern",
+            "button_url": "/anfrage/",
+        },
+        {
+            "image_kw": "bathroom,renovation",
+            "title": "Bad-Sanierung schlüsselfertig",
+            "text": "Von der Planung bis zur letzten Fuge — ein Ansprechpartner.",
+            "button_label": "Vorhaben schildern",
+            "button_url": "/anfrage/",
+        },
+        {
+            "image_kw": "electrician,work",
+            "title": "24h-Notdienst",
+            "text": "Wasserrohrbruch oder Stromausfall? Wir sind erreichbar.",
+            "button_label": "Rückruf anfordern",
+            "button_url": "/rueckruf/",
+        },
+    ],
     accent="#ea580c",  # Handwerk-Orange
     hero_image_kw="craftsman,renovation",
     hero_title="Meisterbetrieb Krause",
@@ -4609,6 +4812,32 @@ RETREAT = DemoKit(
     label="Waldlicht Retreat",
     business_type="events",  # S6: архетип «Veranstalter/Events» (билеты primary)
     subdomain="retreat",
+    # 2026-07-30: слайдер + плитки hero_widget="retreat"
+    # (Kurse / Übernachtung / Einzeltermin / Anfrage).
+    hero_widget="retreat",
+    heroes=[
+        {
+            "image_kw": "yoga,forest",
+            "title": "Waldlicht Retreat",
+            "text": "Wochenend-Retreats, Tagesworkshops und Abende, die guttun.",
+            "button_label": "Termine ansehen",
+            "button_url": "/veranstaltung/",
+        },
+        {
+            "image_kw": "cabin,forest",
+            "title": "Übernachten am Waldrand",
+            "text": "Ruhige Zimmer und Hütten — mit Frühstück aus der Region.",
+            "button_label": "Verfügbarkeit prüfen",
+            "button_url": "/unterkunft/",
+        },
+        {
+            "image_kw": "massage,wellness",
+            "title": "Einzeltermine",
+            "text": "Massage, Ayurveda-Beratung und Coaching — auch ohne Retreat.",
+            "button_label": "Termin buchen",
+            "button_url": "/termin/",
+        },
+    ],
     accent="#15803d",  # Wald-Grün
     hero_image_kw="yoga,forest",
     hero_title="Waldlicht Retreat",
@@ -5029,6 +5258,32 @@ SHOP = DemoKit(
     label="Hofladen Sonnenfeld",
     business_type="retail",
     subdomain="shop",
+    # 2026-07-30: слайдер + плитки hero_widget="shop"
+    # (Aktionen/Sortiment/Wunschzeit/Treuepunkte).
+    hero_widget="shop",
+    heroes=[
+        {
+            "image_kw": "farm,shop",
+            "title": "Hofladen Sonnenfeld",
+            "text": "Obst, Gemüse und Spezialitäten direkt vom Hof — täglich frisch.",
+            "button_label": "Sortiment ansehen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "vegetables,box",
+            "title": "Gemüsekiste der Woche",
+            "text": "Was gerade reif ist, bunt gemischt — online bestellen, abholen.",
+            "button_label": "Jetzt bestellen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "cheese,honey",
+            "title": "Aus der Region",
+            "text": "Käse, Honig und Wurst von Höfen, die wir persönlich kennen.",
+            "button_label": "Zu den Aktionen",
+            "button_url": "/aktionen/",
+        },
+    ],
     accent="#65a30d",  # Hofladen-Grün
     hero_image_kw="farm,shop",
     hero_title="Hofladen Sonnenfeld",
@@ -5734,7 +5989,7 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
         cfg["site_defaults"] = sd
-    if kit.hero_widget in ("stays", "services", "gastro", "bakery", "butcher", "mode"):  # 07-30
+    if kit.hero_widget in siteconfig.HERO_WIDGETS:  # 07-30: кастомные + реестр плиток
         sd = dict(cfg.get("site_defaults") or {})
         sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd

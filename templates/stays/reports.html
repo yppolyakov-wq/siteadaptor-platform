@@ -5,7 +5,11 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   <h1 class="text-2xl font-bold">{% trans "Occupancy & revenue" %}</h1>
-  <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+    {# 2026-07-30: увидел слабую загрузку — сразу вход в ценовые правила. #}
+    <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-sm text-indigo-600 hover:underline">💶 {% trans "Preise & Saison" %} →</a>
+    <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+  </div>
 </div>
 
 <div class="flex items-center gap-3 mb-6">

@@ -13910,5 +13910,154 @@ msgstr "Show price per night"
 msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 msgstr "Gap deal: max nights (0 = as global)"
 
-msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgid "Lücken-Deal: Rabatt % (0 = wie allgemein)"
 msgstr "Gap deal: discount %% (0 = as global)"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Freie Zeiten sofort sehen"
+msgstr "See free times right away"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Pflegeprodukte"
+msgstr "Care products"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Salonqualität für zu Hause"
+msgstr "Salon quality for home"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termin vereinbaren"
+msgstr "Book an appointment"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Inspektion, Reifen, Service"
+msgstr "Inspection, tyres, service"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kostenvoranschlag"
+msgstr "Cost estimate"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Schaden beschreiben — Festpreis erhalten"
+msgstr "Describe the damage — get a fixed price"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Teile & Zubehör"
+msgstr "Parts & accessories"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Angebot anfordern"
+msgstr "Request a quote"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kostenlos & unverbindlich"
+msgstr "Free and without obligation"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Beratung vor Ort"
+msgstr "On-site consultation"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Rückruf anfordern"
+msgstr "Request a callback"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Wir melden uns zurück"
+msgstr "We will get back to you"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Bei jedem Einkauf sammeln"
+msgstr "Collect with every purchase"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Aktuelle Deals"
+msgstr "Current deals"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Deals per E-Mail"
+msgstr "Deals by e-mail"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kein Angebot verpassen"
+msgstr "Never miss an offer"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Touren & Termine"
+msgstr "Tours & dates"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termine ansehen und Plätze sichern"
+msgstr "See dates and secure your place"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Private Führung"
+msgstr "Private tour"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Wunschtermin für Ihre Gruppe"
+msgstr "Your preferred date for your group"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Retreats & Kurse"
+msgstr "Retreats & courses"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termine und freie Plätze"
+msgstr "Dates and free places"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Übernachtung"
+msgstr "Overnight stay"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Verfügbarkeit prüfen"
+msgstr "Check availability"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Einzeltermin"
+msgstr "Single appointment"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Massage, Beratung, Coaching"
+msgstr "Massage, consultation, coaching"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Anfrage stellen"
+msgstr "Send an enquiry"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Gruppen und Wunschtermine"
+msgstr "Groups and preferred dates"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid ""
+"Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest."
+msgstr "Season prices for date ranges are set further down on this page."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Allgemeine Tarife, Rabatte und dynamische Preise"
+msgstr "General rates, discounts and dynamic pricing"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Preise & Saison"
+msgstr "Prices & season"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Öffnungszeiten & Ressourcen"
+msgstr "Opening hours & resources"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Noch keine Öffnungszeiten hinterlegt."
+msgstr "No opening hours set yet."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid ""
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
+" der Leistung."
+msgstr ""
+"Without working hours the website shows “no free appointments” — no matter "
+"which service."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Öffnungszeiten festlegen"
+msgstr "Set opening hours"

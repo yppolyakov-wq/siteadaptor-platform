@@ -1,9 +1,11 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n cabinet %}
+{% load i18n %}
 {% block dash_title %}{% trans "Buchung" %} {{ b.reference_code }}{% endblock %}
 
 {% block dash_content %}
-{% hub_tabs "stays" %}
+{% comment %}2026-07-30: был мёртвый вызов hub_tabs "stays" — ключа "stays" в
+реестре HUB_TABS нет (хаб продаж называется "board"), тег молча рендерил пустоту.
+Навигация страницы — ссылка «← Belegungskalender» ниже.{% endcomment %}
 <div class="max-w-2xl">
   <a href="{% url 'stays:calendar' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Belegungskalender" %}</a>
 

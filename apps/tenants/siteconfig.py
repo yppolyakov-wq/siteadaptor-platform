@@ -19,6 +19,19 @@ import uuid
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import detail_sections
+from apps.core.hero_tiles import HERO_TILE_WIDGETS
+
+# E4/2026-07-30: допустимые значения site_defaults.hero_widget — кастомные ветки
+# `sections/_hero_widget.html` + архетипы из реестра плиток `core.hero_tiles`
+# (иначе normalize выбросил бы ключ и первый экран потерял бы направления).
+HERO_WIDGETS = (
+    "stays",
+    "services",
+    "gastro",
+    "bakery",
+    "butcher",
+    "mode",
+) + HERO_TILE_WIDGETS
 
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
@@ -889,7 +902,7 @@ def normalize_site_defaults(raw) -> dict:
     # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
     # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →
     # golden целы; существующие сайты не затрагиваются).
-    if sd.get("hero_widget") in ("stays", "services", "gastro", "bakery", "butcher", "mode"):
+    if sd.get("hero_widget") in HERO_WIDGETS:
         out["hero_widget"] = sd["hero_widget"]
     return out
 

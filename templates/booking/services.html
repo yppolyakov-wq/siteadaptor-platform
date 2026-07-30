@@ -8,6 +8,10 @@
   <div class="flex gap-4">
     {# UB3-2: подборки услуг → чипы-фасет на /termin/. #}
     <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
+    {% comment %}Фидбэк 2026-07-30 («у услуг нет календаря / на сайте пишет: нет
+    доступных»): рабочие часы и ресурсы задаются на ДРУГОМ экране, вход туда был
+    только из календаря записей. Даём его там, где владелец правит услугу.{% endcomment %}
+    <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">🕒 {% trans "Öffnungszeiten & Ressourcen" %} →</a>
     {% if service_page %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
   </div>
@@ -17,6 +21,17 @@
   {% for m in messages %}
     <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
+{% endif %}
+
+{% if not has_hours %}
+{% comment %}Фидбэк 2026-07-30: «у услуг нет календаря и на сайте пишет: нет
+доступных». Причина — не заданы рабочие часы (слоты строятся из AvailabilityRule),
+а этот экран о ней молчал. Плашка называет причину и ведёт прямо к настройке.{% endcomment %}
+<div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
+  <strong>{% trans "Noch keine Öffnungszeiten hinterlegt." %}</strong>
+  {% trans "Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von der Leistung." %}
+  <a href="{% url 'booking:resources' %}" class="font-medium underline">{% trans "Öffnungszeiten festlegen" %} →</a>
+</div>
 {% endif %}
 
 {% if not service_page %}<p class="text-sm text-gray-500 mb-4">{% trans "Bookable services with price and duration — customers pick a service and a time on /termin/." %}</p>{% endif %}

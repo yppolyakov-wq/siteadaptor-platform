@@ -14021,5 +14021,155 @@ msgstr "Gecelik fiyatı göster"
 msgid "Lücken-Deal: max. Nächte (0 = wie allgemein)"
 msgstr "Boşluk fırsatı: maks. gece (0 = genel ayar)"
 
-msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgid "Lücken-Deal: Rabatt % (0 = wie allgemein)"
 msgstr "Boşluk fırsatı: indirim %% (0 = genel ayar)"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Freie Zeiten sofort sehen"
+msgstr "Boş saatleri hemen görün"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Pflegeprodukte"
+msgstr "Bakım ürünleri"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Salonqualität für zu Hause"
+msgstr "Evde salon kalitesi"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termin vereinbaren"
+msgstr "Randevu alın"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Inspektion, Reifen, Service"
+msgstr "Muayene, lastik, servis"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kostenvoranschlag"
+msgstr "Fiyat teklifi"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Schaden beschreiben — Festpreis erhalten"
+msgstr "Hasarı anlatın — sabit fiyat alın"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Teile & Zubehör"
+msgstr "Parça ve aksesuar"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Angebot anfordern"
+msgstr "Teklif isteyin"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kostenlos & unverbindlich"
+msgstr "Ücretsiz ve bağlayıcı değil"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Beratung vor Ort"
+msgstr "Yerinde danışmanlık"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Rückruf anfordern"
+msgstr "Geri arama isteyin"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Wir melden uns zurück"
+msgstr "Size geri döneceğiz"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Bei jedem Einkauf sammeln"
+msgstr "Her alışverişte biriktirin"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Aktuelle Deals"
+msgstr "Güncel fırsatlar"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Deals per E-Mail"
+msgstr "E-posta ile fırsatlar"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Kein Angebot verpassen"
+msgstr "Hiçbir fırsatı kaçırmayın"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Touren & Termine"
+msgstr "Turlar ve tarihler"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termine ansehen und Plätze sichern"
+msgstr "Tarihleri görün ve yerinizi ayırtın"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Private Führung"
+msgstr "Özel tur"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Wunschtermin für Ihre Gruppe"
+msgstr "Grubunuz için istediğiniz tarih"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Retreats & Kurse"
+msgstr "İnzivalar ve kurslar"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Termine und freie Plätze"
+msgstr "Tarihler ve boş yerler"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Übernachtung"
+msgstr "Konaklama"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Verfügbarkeit prüfen"
+msgstr "Uygunluğu kontrol edin"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Einzeltermin"
+msgstr "Tekil randevu"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Massage, Beratung, Coaching"
+msgstr "Masaj, danışmanlık, koçluk"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Anfrage stellen"
+msgstr "Talep gönderin"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Gruppen und Wunschtermine"
+msgstr "Gruplar ve istenen tarihler"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid ""
+"Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest."
+msgstr ""
+"Tarih aralıkları için sezon fiyatlarını bu sayfanın altında belirlersiniz."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Allgemeine Tarife, Rabatte und dynamische Preise"
+msgstr "Genel tarifeler, indirimler ve dinamik fiyatlar"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Preise & Saison"
+msgstr "Fiyatlar ve sezon"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Öffnungszeiten & Ressourcen"
+msgstr "Çalışma saatleri ve kaynaklar"
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Noch keine Öffnungszeiten hinterlegt."
+msgstr "Henüz çalışma saati girilmedi."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid ""
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
+" der Leistung."
+msgstr ""
+"Çalışma saatleri olmadan site, hizmetten bağımsız olarak “boş randevu yok” "
+"gösterir."
+
+#. hero-tiles / price-nav 2026-07-30
+msgid "Öffnungszeiten festlegen"
+msgstr "Çalışma saatlerini belirle"

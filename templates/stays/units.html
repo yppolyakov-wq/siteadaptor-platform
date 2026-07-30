@@ -134,6 +134,15 @@
         </div>
 
         <div data-ut-panel="preise" class="hidden grid sm:grid-cols-3 gap-3 items-end">
+          {% comment %}Фидбэк 2026-07-30 («непонятно, где задаётся календарь цен»):
+          на странице номера видны ТОЛЬКО его цены. Сезоны — ниже на этой же
+          вкладке, тарифы/автоскидки/динамика — в общих настройках. Даём явные
+          входы, иначе владелец о них не узнаёт (подпись «0 = wie allgemein»
+          ссылалась в никуда).{% endcomment %}
+          <p class="sm:col-span-3 text-xs text-gray-500 -mb-1">
+            {% trans "Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest." %}
+            <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-indigo-600 hover:underline">{% trans "Allgemeine Tarife, Rabatte und dynamische Preise" %} →</a>
+          </p>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
             <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -155,7 +164,7 @@
             <input name="gap_max_nights" type="number" min="0" max="14" value="{{ u.gap_max_nights }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: Rabatt %% (0 = wie allgemein)" %}</label>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: Rabatt % (0 = wie allgemein)" %}</label>
             <input name="gap_discount_percent" type="number" min="0" max="70" value="{{ u.gap_discount_percent }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
           </div>
         </div>

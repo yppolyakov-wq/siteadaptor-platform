@@ -7119,3 +7119,31 @@ name="variant"` (замок buybox); wishlist в tenant-схеме отсутс�
   zum kostenlosen Versand» + прогресс-бар в корзине (гейт: доставка включена И выбрана;
   оговорка «Standardversand» из-за PLZ-зон). 3 замка, 2 msgid × 5 .po.
 - 5 msgid × 5 .po; app.css пересобран; stays 272 passed.
+
+## 2026-07-30 (ночь, продолжение) — Первый экран ВСЕХ архетипов + навигация к «календарю цен»
+Продолжение очереди таймера (пп. 3 и 5). Планы: `hero-tiles-all-archetypes-plan-2026-07-30.md`.
+- **Страница услуги** (фидбэк «та же проблема с переходами, что и в номерах»):
+  `booking:service-edit` = `/dashboard/booking/leistungen/<pk>/` (зеркало `stays:unit-edit`) —
+  заголовок = имя услуги, список сведён к одной карточке, форма создания/интро скрыты,
+  POST возвращает на ту же страницу; имя в списке — ссылка. `sellable_manage` и
+  `setup_steps` переведены на per-pk URL. 4 замка.
+- **Первый экран для всех архетипов** (не 7 хардкод-веток, а реестр): НОВЫЙ
+  `apps/core/hero_tiles.py` — `HERO_TILE_SETS` (friseur/werkstatt/handwerker/shop/
+  aktionsmarkt/touren/retreat) + резолвер `tiles_for` (гейт модуля / `"deal"` / всегда;
+  мёртвый url_name гасит ПЛИТКУ, не страницу) + `needs_deal` (без deal-плиток нет лишнего
+  SQL); тег `{% hero_tiles %}` → партиал `sections/_hero_tiles.html`; в `_hero_widget.html`
+  подключён `{% else %}`-веткой — кастомные ветки (stays/services/gastro/bakery/butcher/mode)
+  и их замки не тронуты. Whitelist `hero_widget` вынесен в `siteconfig.HERO_WIDGETS`
+  (единый источник для normalize и demo_kits). Слайдеры `heroes` (3 слайда) добавлены
+  10 китам (friseur/werkstatt/handwerker/shop/aktionsmarkt/touren/retreat/cafe/restaurant/
+  hotel), pranasy получил `hero_widget="gastro"`. Замок «у каждого кита есть первый экран».
+- **Навигация к ценам/часам** (фидбэк «непонятно, где в админке задаётся календарь цен»;
+  разведка дала карту 12 пробелов): вход `?tab=einstellungen&sec=preise` с Belegungsplan,
+  с отчёта Auslastung и со страницы номера (там же сказано, что сезоны — ниже на странице);
+  «Units page» в channels стал ссылкой; на страницах услуг — вход «🕒 Öffnungszeiten &
+  Ressourcen» + честная плашка «Noch keine Öffnungszeiten hinterlegt» (причина «keine
+  freien Termine» называлась нигде). Убран мёртвый `{% hub_tabs "stays" %}` в
+  booking_detail (ключа "stays" в HUB_TABS нет — тег молча рендерил пустоту).
+- Багфикс i18n: msgid `Lücken-Deal: Rabatt %% (…)` в `{% trans %}` рендерился бы в
+  немецком буквально (`%%`) — исправлен на одинарный `%`, msgid переименован в 4 .po.
+- 36 msgid × 4 .po; app.css пересобран; без миграций.

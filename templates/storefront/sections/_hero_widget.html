@@ -148,4 +148,10 @@ Geschenkgutschein (гейт модуля gift). Reserve&Anprobe — волна M
   </div>
   {% endfor %}
 </div>
+{% else %}
+{% comment %}Остальные архетипы (friseur/werkstatt/handwerker/shop/aktionsmarkt/
+touren/retreat) — плитки из реестра apps/core/hero_tiles.py. Ветка самогейтится:
+неизвестный widget или неактивные модули → пустой список → ничего не рендерится
+(поэтому «stays без модуля» / «services без превью» падают сюда безопасно).{% endcomment %}
+{% hero_tiles hero_widget %}
 {% endif %}

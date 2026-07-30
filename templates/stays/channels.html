@@ -8,7 +8,10 @@
     <h1 class="text-2xl font-bold">{% trans "Sales channels" %}</h1>
     <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
   </div>
-  <p class="text-sm text-gray-500 mb-4">{% trans "Track your OTA channels and import their reservations into your calendar (no double bookings). Availability import via iCal is on the Units page; live 2-way sync needs OTA partner keys." %}</p>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Track your OTA channels and import their reservations into your calendar (no double bookings). Availability import via iCal is on the Units page; live 2-way sync needs OTA partner keys." %}
+    {# 2026-07-30: текст ссылался на «Units page» словами — теперь это ссылка. #}
+    <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Units & blocked dates" %} →</a>
+  </p>
 
   {% if messages %}
     {% for m in messages %}

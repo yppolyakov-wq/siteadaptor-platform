@@ -13,6 +13,10 @@
     <a href="{% url 'stays:checkins' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Check-ins" %} →</a>
     <a href="{% url 'stays:reports' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Reports" %} →</a>
     <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Units & blocked dates" %} →</a>
+    {% comment %}Фидбэк 2026-07-30: «непонятно, где в админке задаётся календарь
+    цен» — с главного экрана отеля прямой вход в ценовые настройки (раньше он был
+    достижим только пилюлей ВНУТРИ списка номеров).{% endcomment %}
+    <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-sm text-indigo-600 hover:underline">💶 {% trans "Preise & Saison" %} →</a>
   </div>
 </div>
 
