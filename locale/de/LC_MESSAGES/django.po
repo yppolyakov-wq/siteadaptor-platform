@@ -14029,3 +14029,9 @@ msgstr "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft."
 
 msgid "Pickup in store"
 msgstr "Abholung im Geschäft"
+
+msgid "Nur noch %(amount)s € bis zum kostenlosen Versand"
+msgstr "Nur noch %(amount)s € bis zum kostenlosen Versand"
+
+msgid "Standardversand"
+msgstr "Standardversand"

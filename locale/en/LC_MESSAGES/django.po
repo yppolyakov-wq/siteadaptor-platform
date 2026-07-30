@@ -13891,3 +13891,9 @@ msgstr "Non-binding reservation — purchase and payment happen in store."
 
 msgid "Pickup in store"
 msgstr "Pickup in store"
+
+msgid "Nur noch %(amount)s € bis zum kostenlosen Versand"
+msgstr "Only %(amount)s € to go for free shipping"
+
+msgid "Standardversand"
+msgstr "standard shipping"

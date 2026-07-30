@@ -7084,3 +7084,17 @@ beat идемпотентен, гейты); 8 msgid × 5 .po. Адверсари
   узнавал о резерве (клиенту обещано «legen wir zurück») → owner email/Telegram
   для anprobe со своим шаблоном `order_anprobe_owner`. Замки +2; 4 msgid × 5 .po.
   Локально: orders/tenants/core/booking 1663 passed.
+
+## 2026-07-30 — M4 бутика: разведка + план-док + M4-D (порог бесплатной доставки)
+Разведка (агент, 73 tool-uses) → **план `docs/m4-boutique-plan-2026-07-30.md`**
+(порядок по риску: D → B lookbook → C wishlist → A цвет×размер). Ключевые выводы:
+`label` варианта — лишь подпись/ключ импорта (склад/заказы уже по FK) → цвет×размер
+дешевле полями `size`/`color` + генерация label, НО обязателен перевод фасета Größe
+на `variants__size` (иначе чипы = декартово произведение) и один `select
+name="variant"` (замок buybox); wishlist в tenant-схеме отсутствует (FavoriteListing —
+портал агрегатора), v1 = сессия по образцу корзины; Collection не связан с Product.
+**M4-D сделан** (0 миграций): `delivery_free_gap_cents/_eur/_progress` в контексте
+корзины + плашка «Nur noch X € bis zum kostenlosen Versand» с прогресс-баром над
+итогом; гейт — только при включённой доставке И выбранной доставке (JS-тумблер,
+при самовывозе прячется), оговорка «(Standardversand)» из-за возможных PLZ-зон.
+3 замка; 2 msgid × 5 .po; delivery-замки целы (28 passed).

@@ -170,6 +170,19 @@
         {% if promo_min_not_met %}<p class="text-xs text-amber-600">{% trans "This code needs a higher order total." %}</p>{% endif %}
       {% endif %}
 
+      {% if delivery_free_gap_cents %}
+        {% comment %}M4-D: прогресс до бесплатной доставки. Показываем только при
+        выбранной доставке (JS ниже) — при самовывозе строка вводила бы в
+        заблуждение; при PLZ-зонах порог может отличаться → оговорка.{% endcomment %}
+        <div id="free-shipping-hint" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+          <p class="text-sm text-emerald-800">🚚 {% blocktrans with amount=delivery_free_gap_eur %}Nur noch {{ amount }} € bis zum kostenlosen Versand{% endblocktrans %}
+            <span class="text-emerald-600/70 text-xs">({% trans "Standardversand" %})</span></p>
+          <div class="mt-1.5 h-1.5 rounded-full bg-emerald-100 overflow-hidden">
+            <div class="h-full rounded-full bg-emerald-500" style="width: {{ delivery_free_progress }}%"></div>
+          </div>
+        </div>
+      {% endif %}
+
       <div id="order-summary" class="space-y-1.5 border-t border-gray-100 pt-4 text-sm"
            data-grand-cents="{{ grand_cents }}" data-fee-cents="{{ delivery_fee_cents|default:0 }}"
            data-free-cents="{{ delivery_free_cents|default:0 }}" data-sym="{{ currency|cursym }}">
@@ -206,6 +219,9 @@
               var f = delivery ? (free && grand >= free ? 0 : fee) : 0;
               line.classList.toggle("hidden", !delivery);
               line.classList.toggle("flex", delivery);
+              // M4-D: подсказка «ещё X € до бесплатной доставки» — только при доставке.
+              var hint = document.getElementById("free-shipping-hint");
+              if (hint) hint.classList.toggle("hidden", !delivery);
               if (delivery) feeEl.textContent = f ? eur(f) : "{% trans 'free' %}";
               totEl.textContent = eur(grand + f);
             }

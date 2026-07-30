@@ -14072,3 +14072,9 @@ msgstr "Резерв без обязательств — покупка и оп�
 
 msgid "Pickup in store"
 msgstr "Самовывоз из магазина"
+
+msgid "Nur noch %(amount)s € bis zum kostenlosen Versand"
+msgstr "До бесплатной доставки осталось %(amount)s €"
+
+msgid "Standardversand"
+msgstr "стандартная доставка"

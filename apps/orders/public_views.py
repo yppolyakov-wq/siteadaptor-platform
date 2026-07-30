@@ -445,6 +445,14 @@ def cart_view(request):
         ctx["delivery_min_eur"] = f"{getattr(tenant, 'delivery_min_cents', 0) / 100:.2f}"
         ctx["delivery_min_cents"] = getattr(tenant, "delivery_min_cents", 0)
         ctx["delivery_area"] = getattr(tenant, "delivery_area", "")
+        # M4-D (план m4-boutique-plan-2026-07-30): «Noch X € bis kostenlosem
+        # Versand» — остаток до бесплатной доставки (0 = порог достигнут/не задан).
+        _free = getattr(tenant, "delivery_free_cents", 0) or 0
+        _grand = int(ctx.get("grand_cents") or 0)
+        _gap = max(0, _free - _grand) if _free else 0
+        ctx["delivery_free_gap_cents"] = _gap
+        ctx["delivery_free_gap_eur"] = f"{_gap / 100:.2f}" if _gap else ""
+        ctx["delivery_free_progress"] = min(100, int((_grand * 100) / _free)) if _free else 0
     # Заголовок/примечание корзины + кросс-селл — правятся на канве. При ?preview=1
     # читаем черновик (тумблер кросс-селла виден в превью вживую).
     from apps.tenants import siteconfig
