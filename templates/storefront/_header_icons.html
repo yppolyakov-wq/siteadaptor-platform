@@ -24,7 +24,8 @@
 </details>
 {% endif %}
 {% if storefront_account_enabled %}
-  <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900" aria-label="{% trans 'My account' %}">👤 <span>{% trans "Account" %}</span></a>
+  {# Фидбэк 2026-07-30: без слова «Account» — иконки достаточно (круглая, как корзина). #}
+  <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100" aria-label="{% trans 'My account' %}" title="{% trans 'My account' %}">👤</a>
 {% endif %}
 {% if storefront_orders_enabled %}
   {# R1: иконка корзины в шапке + бейдж кол-ва (обновляется AJAX'ом). #}
