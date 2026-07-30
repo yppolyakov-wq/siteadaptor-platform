@@ -13806,3 +13806,18 @@ msgstr "Buffets & sandwiches for your celebration"
 
 msgid "Platten, Buffets & Grillservice für Ihre Feier"
 msgstr "Platters, buffets & grill service for your celebration"
+
+msgid "Sale"
+msgstr "Sale"
+
+msgid "Neuheiten"
+msgstr "New arrivals"
+
+msgid "Neu eingetroffen"
+msgstr "Just arrived"
+
+msgid "Geschenkgutschein"
+msgstr "Gift voucher"
+
+msgid "Freude schenken"
+msgstr "Give the gift of joy"

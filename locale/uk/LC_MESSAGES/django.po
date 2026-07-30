@@ -13974,3 +13974,18 @@ msgstr "Фуршети та сендвічі для вашого свята"
 
 msgid "Platten, Buffets & Grillservice für Ihre Feier"
 msgstr "М'ясні тарілки, фуршети та гриль-сервіс для вашого свята"
+
+msgid "Sale"
+msgstr "Розпродаж"
+
+msgid "Neuheiten"
+msgstr "Новинки"
+
+msgid "Neu eingetroffen"
+msgstr "Щойно надійшло"
+
+msgid "Geschenkgutschein"
+msgstr "Подарунковий сертифікат"
+
+msgid "Freude schenken"
+msgstr "Подаруйте радість"

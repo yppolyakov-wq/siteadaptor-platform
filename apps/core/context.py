@@ -277,6 +277,7 @@ def modules_nav(request):
         "storefront_inbox_enabled": modules.is_module_active(tenant, "inbox"),  # M22b
         "storefront_events_enabled": modules.is_module_active(tenant, "events"),  # A6c
         "storefront_orders_enabled": modules.is_module_active(tenant, "orders"),  # T2c quick-add
+        "storefront_gift_enabled": modules.is_module_active(tenant, "gift"),  # M0 mode-плитка
         # CA1: ЛК клиента (ссылка «Mein Konto» в шапке/таб-баре при активном модуле).
         "storefront_account_enabled": modules.is_module_active(tenant, "customer_account"),
         # CA4: вошедший клиент (автозаполнение форм; None если не вошёл/модуль выкл).

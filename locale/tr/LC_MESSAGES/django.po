@@ -13917,3 +13917,18 @@ msgstr "Kutlamanız için büfe ve sandviçler"
 
 msgid "Platten, Buffets & Grillservice für Ihre Feier"
 msgstr "Kutlamanız için tabaklar, büfe ve mangal servisi"
+
+msgid "Sale"
+msgstr "İndirim"
+
+msgid "Neuheiten"
+msgstr "Yeni gelenler"
+
+msgid "Neu eingetroffen"
+msgstr "Yeni geldi"
+
+msgid "Geschenkgutschein"
+msgstr "Hediye çeki"
+
+msgid "Freude schenken"
+msgstr "Mutluluk hediye edin"

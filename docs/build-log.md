@@ -7002,3 +7002,19 @@ sm:w-64 snap-start`. Стенд Playwright 390px: на 9 страницах ка
 - Замки +2 (butcher-рендер: bakery-сабтекст не течёт; кит), 1 msgid × 5 .po.
   Стенд: слайдер+плитки с живой акцией «Nackensteaks −20 %». ⚠️ ops:
   `seed_demo_tenants --kit butcher --recreate`.
+
+## 2026-07-30 — Магазин одежды: разведка (код+рынок DACH) + волна M0
+Запрос владельца «нужен магазин одежды — разведка, что добавить». Двойная
+разведка (код-агент 93 tool-uses + рыночный агент с web-источниками) →
+**план `docs/mode-boutique-plan-2026-07-30.md`** (гэпы + волны M0–M4).
+Главные находки: Warteliste per-size у товара НЕ реализована (демо её обещало —
+расхождение «маркетинг↔код»); нет цвет×размер (D3), фасета размера, Größentabelle,
+Textilkennzeichnung-поля (юр-риск №1), §11 PAngV-истории цены; Click&Reserve
+«в примерочную» — киллер-механика бутика (волна M3).
+**M0 сделан**: `hero_widget="mode"` (плитки Sale-с-живой-акцией/Sortiment/
+Neuheiten ?sort=newest/Geschenkgutschein — гейт gift, НОВЫЙ контекст-флаг
+`storefront_gift_enabled`), кит: 3 hero-слайда (Kollektion/Neuheiten/Sale),
+`enable_archetypes_section=False`; **демо-тексты СДЕЛАНЫ ЧЕСТНЫМИ** (5 правок:
+отзывы/FAQ/process больше не обещают Warteliste/Größentabelle — до волны M2).
+Замки +2 (mode-плитки с гейтами + кит/честность текстов), 5 msgid × 5 .po.
+⚠️ ops: `seed_demo_tenants --kit clothing --recreate`.

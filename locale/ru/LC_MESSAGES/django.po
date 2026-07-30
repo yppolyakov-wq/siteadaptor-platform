@@ -13987,3 +13987,18 @@ msgstr "Фуршеты и сэндвичи для вашего праздник�
 
 msgid "Platten, Buffets & Grillservice für Ihre Feier"
 msgstr "Мясные тарелки, фуршеты и гриль-сервис для вашего праздника"
+
+msgid "Sale"
+msgstr "Распродажа"
+
+msgid "Neuheiten"
+msgstr "Новинки"
+
+msgid "Neu eingetroffen"
+msgstr "Только поступило"
+
+msgid "Geschenkgutschein"
+msgstr "Подарочный сертификат"
+
+msgid "Freude schenken"
+msgstr "Подарите радость"

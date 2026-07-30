@@ -3306,18 +3306,46 @@ CLOTHING = DemoKit(
     hero_title="Studio Nordwind",
     hero_text="Faire Mode aus kleinen europäischen Manufakturen — kuratiert in "
     "Hamburg, versandkostenfrei ab 80 €.",
+    # M0 (план mode-boutique-plan-2026-07-30): главная «ловит направления» —
+    # слайдер (3 слайда) + плитки hero_widget="mode" (Sale/Sortiment/Neuheiten/Gutschein).
+    hero_widget="mode",
+    heroes=[
+        {
+            "image_kw": "fashion,boutique",
+            "title": "Studio Nordwind",
+            "text": "Faire Mode aus kleinen europäischen Manufakturen.",
+            "button_label": "Sortiment ansehen",
+            "button_url": "/sortiment/",
+        },
+        {
+            "image_kw": "clothing,rack",
+            "title": "Neu eingetroffen",
+            "text": "Die neue Kollektion ist da — natürliche Materialien, klare Schnitte.",
+            "button_label": "Neuheiten ansehen",
+            "button_url": "/sortiment/?sort=newest",
+        },
+        {
+            "image_kw": "dress",
+            "title": "Sale bis −30 %",
+            "text": "Ausgewählte Teile der Saison reduziert.",
+            "button_label": "Zum Sale",
+            "button_url": "/aktionen/",
+        },
+    ],
     about_title="Über Studio Nordwind",
+    # Честность демо (2026-07-30): Warteliste per-size у товара пока НЕТ (волна M2
+    # плана) — текст не обещает несуществующее.
     about_text="Wir wählen jedes Teil selbst aus: faire Produktion, natürliche "
     "Materialien, Schnitte, die bleiben. Bestellt bis 15 Uhr, versenden wir noch am "
-    "selben Tag mit DHL. Ist Ihre Größe ausverkauft, trägt die Warteliste Sie ein — "
-    "Sie bekommen eine Mail, sobald sie zurück ist.",
+    "selben Tag mit DHL. Ist Ihre Größe ausverkauft, schreiben Sie uns kurz — wir "
+    "melden uns, sobald sie zurück ist.",
     nav_style="classic",
     address="Speicherstraße 7, 20457 Hamburg",
     opening_hours_text="Showroom: Do–Sa 11:00–18:00 · Online-Shop rund um die Uhr",
     opening_hours={d: ("11:00", "18:00") for d in (3, 4, 5)},
     gallery_kw=["fashion", "clothing,rack", "dress", "knitwear", "denim", "accessories"],
     process=[
-        ("Aussuchen", "Größe wählen — Größentabelle bei jedem Artikel."),
+        ("Aussuchen", "Größe wählen — Verfügbarkeit pro Größe direkt am Artikel."),
         ("Bestellen", "Versand in 24 h, kostenlos ab 80 €."),
         ("Anprobieren", "14 Tage Zeit — Rückgabe unkompliziert."),
     ],
@@ -3334,18 +3362,18 @@ CLOTHING = DemoKit(
     ],
     testimonials=[
         ("Meike S.", "Qualität, die man sofort spürt — und ehrliche Größenangaben."),
-        ("Jan H.", "Größe war ausverkauft, Warteliste hat funktioniert: 5 Tage später bestellt."),
+        ("Jan H.", "Größe war ausverkauft — kurz geschrieben, 5 Tage später war sie zurück."),
     ],
     reviews_seed=[
         (5, "Qualität, die man sofort spürt.", "nw.meike@example.de"),
-        (5, "Warteliste für meine Größe hat perfekt funktioniert.", "nw.jan@example.de"),
+        (5, "Meine Größe kam schnell wieder — super Service auf Nachfrage.", "nw.jan@example.de"),
         (4, "Schneller Versand, schöne Verpackung.", "nw.ines@example.de"),
     ],
     faq=[
         (
             "Wie fallen die Größen aus?",
-            "Normal bis leicht großzügig — bei jedem Artikel steht eine Größentabelle "
-            "mit Maßen in cm.",
+            "Normal bis leicht großzügig — die genauen Maße in cm nennen wir Ihnen "
+            "gern per Nachricht.",
         ),
         (
             "Versand & Rückgabe?",
@@ -3354,8 +3382,8 @@ CLOTHING = DemoKit(
         ),
         (
             "Meine Größe ist ausverkauft — was tun?",
-            "Auf der Produktseite in die Warteliste eintragen: Sie erhalten "
-            "automatisch eine E-Mail, sobald die Größe wieder da ist.",
+            "Schreiben Sie uns kurz über das Kontaktformular — wir melden uns, "
+            "sobald die Größe wieder da ist.",
         ),
         (
             "Woher kommt die Ware?",
@@ -3370,7 +3398,8 @@ CLOTHING = DemoKit(
         "button_url": "/sortiment/",
     },
     enable_modules=["orders", "loyalty"],
-    enable_archetypes_section=True,
+    # M0: направления ловят плитки hero_widget="mode" (архетип-секция выкл).
+    enable_archetypes_section=False,
     storefront_root="home",
     seed_records=True,
     menus=CLOTHING_MENUS,
@@ -3547,7 +3576,7 @@ CLOTHING = DemoKit(
         ),
     ],
     product_reviews=[
-        (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Größentabelle stimmt."),
+        (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Maßangaben stimmen."),
         (4, 5, "Jan H.", "nw.rev2@example.de", "Bestes Basic-Shirt, das ich je hatte."),
         (6, 5, "Ines W.", "nw.rev3@example.de", "Merino-Pulli kratzt null. Liebe."),
     ],
@@ -5640,7 +5669,7 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
         cfg["site_defaults"] = sd
-    if kit.hero_widget in ("stays", "services", "gastro", "bakery", "butcher"):  # E4/A/07-30
+    if kit.hero_widget in ("stays", "services", "gastro", "bakery", "butcher", "mode"):  # 07-30
         sd = dict(cfg.get("site_defaults") or {})
         sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd

@@ -388,3 +388,45 @@ def test_butcher_kit_slider_plus_widget():
     assert kit.enable_archetypes_section is False
     cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "butcher"}})
     assert cfg["site_defaults"]["hero_widget"] == "butcher"
+
+
+def test_hero_widget_mode_renders_boutique_tiles(settings):
+    """M0 Boutique (план mode-boutique-plan-2026-07-30): плитки-направления —
+    Sale (гейт: живая акция) / Sortiment / Neuheiten / Gutschein (гейт gift)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from django.template.loader import render_to_string
+
+    from apps.promotions.models import Promotion
+
+    ctx = {"hero_widget": "mode", "storefront_gift_enabled": True}
+    body = render_to_string("storefront/sections/_hero_widget.html", ctx)
+    assert "Sortiment ansehen" in body
+    assert "Neuheiten" in body and "?sort=newest" in body
+    assert "Geschenkgutschein" in body
+    assert ">Sale</span>" not in body  # живой акции нет — плитка Sale скрыта
+
+    Promotion.objects.create(title={"de": "Sommerkleider"}, status="active")
+    with_sale = render_to_string("storefront/sections/_hero_widget.html", ctx)
+    assert ">Sale</span>" in with_sale and "Sommerkleider" in with_sale
+
+    no_gift = render_to_string(
+        "storefront/sections/_hero_widget.html", {"hero_widget": "mode"}
+    )
+    assert "Geschenkgutschein" not in no_gift
+
+
+def test_clothing_kit_slider_widget_honest_texts():
+    """Кит CLOTHING: слайдер (3) + hero_widget=mode, архетип-секция выкл;
+    тексты демо НЕ обещают несуществующую Warteliste/Größentabelle (разведка
+    2026-07-30: фича — волна M2)."""
+    from apps.tenants import siteconfig
+    from apps.tenants.demo_kits import KITS
+
+    kit = KITS["clothing"]
+    assert kit.hero_widget == "mode"
+    assert len(kit.heroes) == 3
+    assert kit.enable_archetypes_section is False
+    assert "Warteliste" not in kit.about_text
+    assert all("Größentabelle" not in txt for _t, txt in kit.process)
+    cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "mode"}})
+    assert cfg["site_defaults"]["hero_widget"] == "mode"

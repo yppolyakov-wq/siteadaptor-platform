@@ -13944,3 +13944,18 @@ msgstr "Buffets & belegte Brötchen für Ihre Feier"
 
 msgid "Platten, Buffets & Grillservice für Ihre Feier"
 msgstr "Platten, Buffets & Grillservice für Ihre Feier"
+
+msgid "Sale"
+msgstr "Sale"
+
+msgid "Neuheiten"
+msgstr "Neuheiten"
+
+msgid "Neu eingetroffen"
+msgstr "Neu eingetroffen"
+
+msgid "Geschenkgutschein"
+msgstr "Geschenkgutschein"
+
+msgid "Freude schenken"
+msgstr "Freude schenken"
