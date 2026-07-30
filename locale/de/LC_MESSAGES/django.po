@@ -13971,3 +13971,21 @@ msgstr "Textilkennzeichnung"
 
 msgid "Lowest price in the last 30 days: %(p)s €"
 msgstr "Niedrigster Preis der letzten 30 Tage: %(p)s €"
+
+msgid "Größentabelle"
+msgstr "Größentabelle"
+
+msgid "Größe"
+msgstr "Größe"
+
+msgid "Ausverkauft? Benachrichtigen lassen"
+msgstr "Ausverkauft? Benachrichtigen lassen"
+
+msgid "Benachrichtigen"
+msgstr "Benachrichtigen"
+
+msgid "Bitte eine gültige E-Mail angeben."
+msgstr "Bitte eine gültige E-Mail angeben."
+
+msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
+msgstr "Wir benachrichtigen Sie, sobald wieder verfügbar."

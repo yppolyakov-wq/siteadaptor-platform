@@ -7018,3 +7018,25 @@ Neuheiten ?sort=newest/Geschenkgutschein — гейт gift, НОВЫЙ конт�
 отзывы/FAQ/process больше не обещают Warteliste/Größentabelle — до волны M2).
 Замки +2 (mode-плитки с гейтами + кит/честность текстов), 5 msgid × 5 .po.
 ⚠️ ops: `seed_demo_tenants --kit clothing --recreate`.
+
+## 2026-07-30 — Mode M1+M2: Textilkennzeichnung, §11 PAngV, Warteliste per-size,
+фасет Größe, Größentabelle (отмашка владельца «Делай», план mode-boutique-plan §3)
+- **M1** (миграция `catalog/0017`): `Product.material/care` (+i18n-оверлей) → блок
+  на карточке ДО CTA (EU 1007/2011); вкладка Kennzeichnung формы — и для clothing
+  (текстильная секция, W0). `PriceLog` (append-only; post_save-сигналы товара/
+  варианта, ресиверы модульного уровня — weak-refs-урок) + `lowest_price_30d`
+  (учитывает цену на начало окна) → «Niedrigster Preis der letzten 30 Tage» на
+  детали Sale-акции. Демо: material/care у 10 товаров. Тесты +5.
+- **M2** (миграции `catalog/0018` ProductWaitlist + `catalog/0019` Category.size_table):
+  Warteliste по товару/размеру — форма на карточке (details, распроданные размеры
+  селектом), POST `/sortiment/<pk>/warteliste/` (honeypot+RL), письма при приёмке
+  склада (`apply_manual_movement` change>0 → on_commit, fail-safe;
+  variant-scoped: приёмка M не будит подписчиков L); шаблон письма
+  `product_waitlist_available`. Фасет «Größe» (variant.label, только доступные,
+  один джойн; чипы прячутся при ≤1 размере). `Category.size_table` (строки «S |
+  86–90», парсер `size_table_rows`) → details-таблица на карточке + textarea в
+  форме категории. Кит: size_tables damen/herren, честные тексты Warteliste/
+  Größentabelle ВОЗВРАЩЕНЫ (фичи теперь есть; замок перевёрнут осознанно).
+  Тесты +6 (вкл. django_capture_on_commit_callbacks-урок). 6+7 msgid × 5 .po.
+  ⚠️ миграции catalog/0017..0019 ждут деплоя; ops: `seed_demo_tenants --kit
+  clothing --recreate`. Остаток плана: M3 Click&Reserve (план-доком) + M4.

@@ -414,9 +414,9 @@ def test_hero_widget_mode_renders_boutique_tiles(settings):
 
 
 def test_clothing_kit_slider_widget_honest_texts():
-    """Кит CLOTHING: слайдер (3) + hero_widget=mode, архетип-секция выкл;
-    тексты демо НЕ обещают несуществующую Warteliste/Größentabelle (разведка
-    2026-07-30: фича — волна M2)."""
+    """Кит CLOTHING: слайдер (3) + hero_widget=mode, архетип-секция выкл.
+    M2 (2026-07-30): Warteliste per-size и Größentabelle РЕАЛИЗОВАНЫ — тексты
+    демо снова обещают их честно (замок перевёрнут осознанно), таблицы заданы."""
     from apps.tenants import siteconfig
     from apps.tenants.demo_kits import KITS
 
@@ -424,7 +424,7 @@ def test_clothing_kit_slider_widget_honest_texts():
     assert kit.hero_widget == "mode"
     assert len(kit.heroes) == 3
     assert kit.enable_archetypes_section is False
-    assert "Warteliste" not in kit.about_text
-    assert all("Größentabelle" not in txt for _t, txt in kit.process)
+    assert "Warteliste" in kit.about_text
+    assert set(kit.size_tables) == {"damen", "herren"}
     cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "mode"}})
     assert cfg["site_defaults"]["hero_widget"] == "mode"

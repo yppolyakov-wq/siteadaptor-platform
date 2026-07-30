@@ -241,6 +241,8 @@ class DemoKit:
     section_styles: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
     page_presets: list = field(default_factory=list)
+    # M2 Boutique: Größentabellen per категория {slug: text} (строки «S | 86–90»).
+    size_tables: dict = field(default_factory=dict)
     # ST-7a: демо-spacer'ы [{"after": "<section_key>", "height": "sm|lg|xl"}].
     spacers: list = field(default_factory=list)
     # LS-3/4/6: демо-треды «Прямой линии» (вопрос + staff-ответ + открытое
@@ -3337,19 +3339,18 @@ CLOTHING = DemoKit(
         },
     ],
     about_title="Über Studio Nordwind",
-    # Честность демо (2026-07-30): Warteliste per-size у товара пока НЕТ (волна M2
-    # плана) — текст не обещает несуществующее.
+    # M2 (2026-07-30): Warteliste per-size реализована — текст снова честен.
     about_text="Wir wählen jedes Teil selbst aus: faire Produktion, natürliche "
     "Materialien, Schnitte, die bleiben. Bestellt bis 15 Uhr, versenden wir noch am "
-    "selben Tag mit DHL. Ist Ihre Größe ausverkauft, schreiben Sie uns kurz — wir "
-    "melden uns, sobald sie zurück ist.",
+    "selben Tag mit DHL. Ist Ihre Größe ausverkauft, trägt die Warteliste Sie ein — "
+    "Sie bekommen eine Mail, sobald sie zurück ist.",
     nav_style="classic",
     address="Speicherstraße 7, 20457 Hamburg",
     opening_hours_text="Showroom: Do–Sa 11:00–18:00 · Online-Shop rund um die Uhr",
     opening_hours={d: ("11:00", "18:00") for d in (3, 4, 5)},
     gallery_kw=["fashion", "clothing,rack", "dress", "knitwear", "denim", "accessories"],
     process=[
-        ("Aussuchen", "Größe wählen — Verfügbarkeit pro Größe direkt am Artikel."),
+        ("Aussuchen", "Größe wählen — Größentabelle bei jedem Artikel."),
         ("Bestellen", "Versand in 24 h, kostenlos ab 80 €."),
         ("Anprobieren", "14 Tage Zeit — Rückgabe unkompliziert."),
     ],
@@ -3366,18 +3367,18 @@ CLOTHING = DemoKit(
     ],
     testimonials=[
         ("Meike S.", "Qualität, die man sofort spürt — und ehrliche Größenangaben."),
-        ("Jan H.", "Größe war ausverkauft — kurz geschrieben, 5 Tage später war sie zurück."),
+        ("Jan H.", "Größe war ausverkauft, Warteliste hat funktioniert: 5 Tage später bestellt."),
     ],
     reviews_seed=[
         (5, "Qualität, die man sofort spürt.", "nw.meike@example.de"),
-        (5, "Meine Größe kam schnell wieder — super Service auf Nachfrage.", "nw.jan@example.de"),
+        (5, "Warteliste für meine Größe hat perfekt funktioniert.", "nw.jan@example.de"),
         (4, "Schneller Versand, schöne Verpackung.", "nw.ines@example.de"),
     ],
     faq=[
         (
             "Wie fallen die Größen aus?",
-            "Normal bis leicht großzügig — die genauen Maße in cm nennen wir Ihnen "
-            "gern per Nachricht.",
+            "Normal bis leicht großzügig — die Größentabelle mit Maßen in cm finden "
+            "Sie bei jedem Artikel.",
         ),
         (
             "Versand & Rückgabe?",
@@ -3386,8 +3387,8 @@ CLOTHING = DemoKit(
         ),
         (
             "Meine Größe ist ausverkauft — was tun?",
-            "Schreiben Sie uns kurz über das Kontaktformular — wir melden uns, "
-            "sobald die Größe wieder da ist.",
+            "Auf der Produktseite in die Warteliste eintragen: Sie erhalten "
+            "automatisch eine E-Mail, sobald die Größe wieder da ist.",
         ),
         (
             "Woher kommt die Ware?",
@@ -3407,6 +3408,10 @@ CLOTHING = DemoKit(
     storefront_root="home",
     seed_records=True,
     menus=CLOTHING_MENUS,
+    size_tables={
+        "damen": "Größe | Brust (cm) | Taille (cm)\nS | 86–90 | 68–72\nM | 91–95 | 73–77\nL | 96–101 | 78–83\nXL | 102–108 | 84–90",
+        "herren": "Größe | Brust (cm) | Bund (cm)\n48 | 94–97 | 82–85\n50 | 98–101 | 86–89\n52 | 102–105 | 90–94",
+    },
     delivery={
         "enabled": True,
         "fee_cents": 490,
@@ -3612,7 +3617,7 @@ CLOTHING = DemoKit(
         ),
     ],
     product_reviews=[
-        (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Maßangaben stimmen."),
+        (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Größentabelle stimmt."),
         (4, 5, "Jan H.", "nw.rev2@example.de", "Bestes Basic-Shirt, das ich je hatte."),
         (6, 5, "Ines W.", "nw.rev3@example.de", "Merino-Pulli kratzt null. Liebe."),
     ],
@@ -5446,6 +5451,7 @@ def apply_kit(tenant, key: str) -> bool:
             sort_order=sort,
             is_active=True,
             parent=parent,
+            size_table=kit.size_tables.get(slug, ""),  # M2 Größentabelle
         )
         refs["categories"].append(str(category.pk))
         first_in_cat = True

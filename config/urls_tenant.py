@@ -252,6 +252,12 @@ urlpatterns = [
     # Каталог товаров на витрине (Track C1).
     path("sortiment/", public_views.product_list, name="storefront-products"),
     path("sortiment/<uuid:pk>/", public_views.product_detail, name="storefront-product"),
+    # M2 Boutique: Warteliste товара/размера («ausverkauft → benachrichtigen»).
+    path(
+        "sortiment/<uuid:pk>/warteliste/",
+        public_views.product_waitlist_join,
+        name="storefront-product-waitlist",
+    ),
     # A1/A2: отзыв о товаре (только верифицированный покупатель).
     path(
         "sortiment/<uuid:pk>/bewerten/",

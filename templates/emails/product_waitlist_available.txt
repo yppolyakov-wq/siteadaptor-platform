@@ -1,0 +1,7 @@
+{% load i18n %}{% trans "Gute Nachricht!" %}
+
+{% if variant %}{% blocktrans with name=product.name_text size=variant.label %}„{{ name }}“ ist in Größe {{ size }} wieder verfügbar.{% endblocktrans %}{% else %}{% blocktrans with name=product.name_text %}„{{ name }}“ ist wieder verfügbar.{% endblocktrans %}{% endif %}
+
+{% if product_url %}{% trans "Jetzt ansehen:" %} {{ product_url|safe }}{% endif %}
+
+{% trans "Kleiner Tipp: Beliebte Größen sind schnell wieder weg." %}

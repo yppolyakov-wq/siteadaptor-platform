@@ -244,6 +244,15 @@ def apply_manual_movement(
             return None
         locked.stock_quantity = new
         locked.save(update_fields=["stock_quantity", "updated_at"])
+        if change > 0:
+            # M2 Boutique: приёмка → письма Warteliste товара/размера (после
+            # коммита, fail-safe — письмо не должно ронять движение).
+            from apps.catalog import waitlist as product_waitlist
+
+            _wl_variant = locked if variant is not None else None
+            transaction.on_commit(
+                lambda p=prod, v=_wl_variant: product_waitlist.notify_available_safe(p, v)
+            )
         return record_movement(
             product=prod,
             variant=locked if variant is not None else None,

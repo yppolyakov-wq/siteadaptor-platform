@@ -26,7 +26,15 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
 
     class Meta:
         model = Category
-        fields = ["parent", "slug", "icon", "sort_order", "is_active"]
+        fields = ["parent", "slug", "icon", "sort_order", "is_active", "size_table"]
+        labels = {"size_table": _("Größentabelle")}
+        help_texts = {
+            "size_table": _(
+                "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — "
+                "erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
+            )
+        }
+        widgets = {"size_table": forms.Textarea(attrs={"rows": 4})}
 
     def __init__(self, *args, tenant=None, **kwargs):
         super().__init__(*args, **kwargs)

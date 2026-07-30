@@ -41,6 +41,10 @@ class Category(SoftDeleteMixin, I18nMixin):
     # FB-6: фото категории/подкатегории (FileRef-конверт, как Product.images) —
     # плитка на витрине (секция «Categories», листинг) + управление в кабинете.
     images = models.JSONField(default=list, blank=True)
+    # M2 Boutique: Größentabelle категории — строки «S | 86–90 | 70–74» (первая
+    # строка = заголовки, ячейки через «|»); карточка товара показывает модалку
+    # «📏 Größentabelle» при непустой таблице категории.
+    size_table = models.TextField(blank=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -71,6 +75,16 @@ class Category(SoftDeleteMixin, I18nMixin):
         """URL главного фото ('' если фото нет) — для плитки категории на витрине."""
         img = self.primary_image
         return img.get("url", "") if img else ""
+
+    @property
+    def size_table_rows(self) -> list[list[str]]:
+        """M2: разобранная Größentabelle — [[ячейки], …]; пусто при отсутствии."""
+        rows = []
+        for line in (self.size_table or "").splitlines():
+            cells = [c.strip() for c in line.split("|")]
+            if any(cells):
+                rows.append(cells)
+        return rows
 
 
 class Product(SoftDeleteMixin, I18nMixin):
@@ -567,3 +581,33 @@ class PriceLog(TimestampedModel):
 
     def __str__(self):
         return f"{self.product_id}: {self.price} ({self.created_at:%Y-%m-%d})"
+
+
+class ProductWaitlist(TimestampedModel):
+    """M2 Boutique (план mode-boutique-plan-2026-07-30): лист ожидания товара/
+    размера («Größe M ausverkauft → benachrichtigen»). Уведомление уходит при
+    приёмке склада (inventory.apply_manual_movement, change>0, on_commit);
+    notified=True защищает от повторов, уникальность — на ЖИВУЮ подписку."""
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="waitlist_entries")
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="waitlist_entries",
+    )
+    email = models.EmailField()
+    notified = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "variant", "email"],
+                condition=models.Q(notified=False),
+                name="uniq_product_waitlist_pending",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.product_id}/{self.variant_id or '-'}: {self.email}"

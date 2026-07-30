@@ -47,6 +47,8 @@ class CatalogFacets(FacetProvider):
             "preis_bis": _money(params.get("preis_bis")),
             "nur_verfuegbar": params.get("nur_verfuegbar") == "1",
             "herkunft": (params.get("herkunft") or "").strip(),
+            # M2 Boutique: фасет размера (по variant.label, только доступные).
+            "groesse": (params.get("groesse") or "").strip(),
             "bewertung": bewertung if bewertung in RATING_THRESHOLDS else 0,
         }
 
@@ -64,6 +66,15 @@ class CatalogFacets(FacetProvider):
             items = self._only_available(items)
         if sel["herkunft"]:
             items = items.filter(origin=sel["herkunft"])
+        if sel["groesse"]:
+            from django.db.models import Q
+
+            # Один filter() → один джойн варианта: размер И его доступность
+            # (NULL-остаток = безлимит). Дублей нет — label уникален per товар.
+            items = items.filter(
+                Q(variants__label=sel["groesse"], variants__is_active=True)
+                & (Q(variants__stock_quantity__isnull=True) | Q(variants__stock_quantity__gt=0))
+            )
         if sel["bewertung"]:
             items = items.filter(pk__in=self._rated_ids(items, sel["bewertung"]))
         return items
@@ -131,7 +142,26 @@ class CatalogFacets(FacetProvider):
                 review_services.bulk_summary("product", items.values_list("pk", flat=True))
             ),
             "rating_thresholds": RATING_THRESHOLDS,
+            # M2 Boutique: чипы размеров (порядок — по sort_order вариантов);
+            # один размер на весь каталог = шум, чипы прячем.
+            "size_chips": self._size_chips(items),
         }
+
+    @staticmethod
+    def _size_chips(items) -> list:
+        from django.db.models import Min
+
+        from apps.catalog.models import ProductVariant
+
+        rows = (
+            ProductVariant.objects.filter(product__in=items, is_active=True)
+            .exclude(label="")
+            .values("label")
+            .annotate(o=Min("sort_order"))
+            .order_by("o", "label")
+        )
+        sizes = [r["label"] for r in rows]
+        return sizes if len(sizes) > 1 else []
 
     def search(self, items, q):
         q = (q or "").strip()

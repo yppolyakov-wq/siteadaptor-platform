@@ -14014,3 +14014,21 @@ msgstr "Маркировка текстиля"
 
 msgid "Lowest price in the last 30 days: %(p)s €"
 msgstr "Самая низкая цена за последние 30 дней: %(p)s €"
+
+msgid "Größentabelle"
+msgstr "Таблица размеров"
+
+msgid "Größe"
+msgstr "Размер"
+
+msgid "Ausverkauft? Benachrichtigen lassen"
+msgstr "Нет в наличии? Сообщим о поступлении"
+
+msgid "Benachrichtigen"
+msgstr "Сообщить"
+
+msgid "Bitte eine gültige E-Mail angeben."
+msgstr "Укажите корректный e-mail."
+
+msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
+msgstr "Сообщим, как только снова появится."

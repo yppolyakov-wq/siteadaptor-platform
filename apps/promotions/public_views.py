@@ -381,6 +381,7 @@ def product_list(request):
     price_max_val = request.GET.get("preis_bis", "").strip() if price_max is not None else ""
     only_available = sel["nur_verfuegbar"]
     herkunft, bewertung = sel["herkunft"], sel["bewertung"]
+    groesse = sel.get("groesse", "")  # M2 Boutique: фасет размера
 
     # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие;
     # остаётся во вьюхе (вне единого набора UB2-3). ---
@@ -447,6 +448,7 @@ def product_list(request):
         or price_max is not None
         or only_available
         or herkunft
+        or groesse
         or bewertung
         or q
     )
@@ -472,6 +474,7 @@ def product_list(request):
         "preis_bis": price_max_val,
         "nur_verfuegbar": "1" if only_available else "",
         "herkunft": herkunft,  # UB2-3: Bio/Regional-происхождение
+        "groesse": groesse,  # M2: размер
         "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
         "preview": "1" if is_preview else "",
@@ -536,6 +539,9 @@ def product_list(request):
             # UB2-3: происхождение (Bio/Regional) — чипы реально указанных значений.
             "origin_chips": chips["origin_chips"],
             "active_herkunft": herkunft,
+            # M2 Boutique: фасет размера (чипы из вариантов, только доступные).
+            "size_chips": chips["size_chips"],
+            "active_groesse": groesse,
             # UB2-3: рейтинг-фасет (минимум звёзд) — только когда есть отзывы.
             "show_rating_filter": chips["show_rating_filter"],
             "rating_thresholds": chips["rating_thresholds"],
@@ -594,6 +600,8 @@ def product_detail(request, pk):
             # UA2-1 (U-A): единый контракт продаваемой сущности в контексте детали
             # (шов для buy-box UA3 / секций UA4 / JSON-LD UA4-4b).
             "sellable": sellable_for("product", product),
+            # M2 Boutique: распроданные размеры → форма Warteliste на карточке.
+            "waitlist_variants": list(product.variants.filter(is_active=True, stock_quantity=0)),
             "related": related,
             "related_grid": related_grid,
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
@@ -803,6 +811,32 @@ def waitlist_join(request, pk):
     else:
         messages.error(request, "Bitte eine gültige E-Mail angeben.")
     return redirect("storefront-promotion", pk=pk)
+
+
+def product_waitlist_join(request, pk):
+    """M2 Boutique: подписка на возврат товара/размера (Warteliste). Гейты — как
+    у промо-waitlist: honeypot + rate-limit по IP+товару; идемпотентно."""
+    from apps.catalog import waitlist as product_waitlist
+    from apps.catalog.models import Product, ProductVariant
+
+    product = get_object_or_404(Product, pk=pk, is_active=True)
+    if request.method != "POST" or request.POST.get("website"):
+        return redirect("storefront-product", pk=pk)
+    rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
+    if ratelimit.hit("waitlist", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return redirect("storefront-product", pk=pk)
+    email = (request.POST.get("email") or "").strip().lower()
+    if not email or "@" not in email:
+        messages.error(request, _("Bitte eine gültige E-Mail angeben."))
+        return redirect("storefront-product", pk=pk)
+    variant = None
+    variant_pk = (request.POST.get("variant") or "").strip()
+    if variant_pk:
+        variant = ProductVariant.objects.filter(pk=variant_pk, product=product).first()
+    product_waitlist.join(product, email, variant=variant)
+    messages.success(request, _("Wir benachrichtigen Sie, sobald wieder verfügbar."))
+    return redirect("storefront-product", pk=pk)
 
 
 def reservation_confirmation(request, code):

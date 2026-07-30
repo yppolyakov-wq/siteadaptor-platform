@@ -13944,3 +13944,21 @@ msgstr "Tekstil etiketi"
 
 msgid "Lowest price in the last 30 days: %(p)s €"
 msgstr "Son 30 günün en düşük fiyatı: %(p)s €"
+
+msgid "Größentabelle"
+msgstr "Beden tablosu"
+
+msgid "Größe"
+msgstr "Beden"
+
+msgid "Ausverkauft? Benachrichtigen lassen"
+msgstr "Tükendi mi? Haber verelim"
+
+msgid "Benachrichtigen"
+msgstr "Haber ver"
+
+msgid "Bitte eine gültige E-Mail angeben."
+msgstr "Lütfen geçerli bir e-posta adresi girin."
+
+msgid "Wir benachrichtigen Sie, sobald wieder verfügbar."
+msgstr "Tekrar geldiğinde size haber vereceğiz."
