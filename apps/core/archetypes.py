@@ -183,10 +183,17 @@ def example_detail_pages(tenant) -> list[dict]:
 def primary_module(tenant) -> str | None:
     """Ключ модуля «главного товара» тенанта.
 
-    `site_config.storefront_root` (если это архетип из PRIMARY_SECTION и он активен)
-    → иначе первый активный архетип по приоритету `_PRIORITY` → иначе None.
+    Явный `site_config.primary_module` (активный архетип) → `storefront_root`
+    (если это архетип из PRIMARY_SECTION и он активен) → иначе первый активный
+    архетип по приоритету `_PRIORITY` → иначе None.
     """
     cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}
+    # 2026-07-30: явный выбор сильнее эвристики — Bäckerei/Metzgerei держат
+    # Partyservice (jobs on), но hero-CTA должен вести на Sortiment, а не на
+    # «Angebot anfragen» (_PRIORITY ставит jobs выше catalog).
+    explicit = cfg.get("primary_module")
+    if explicit in _PRIORITY and tenant.is_module_active(explicit):
+        return explicit
     root = cfg.get("storefront_root")
     if root in PRIMARY_SECTION and tenant.is_module_active(root):
         return root

@@ -71,7 +71,10 @@ PLZ; показываем только если бизнес её задал (Ha
     </div>
     <p class="text-xs text-gray-400">{% trans "HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us find the exact parts." %}</p>
   </fieldset>
-  {% else %}
+  {% elif request.tenant.business_type == "werkstatt" %}
+  {% comment %}Свободное авто-поле — только там, где авто уместно (Werkstatt без
+  структурных полей A9). У Bäckerei/Metzgerei/Handwerker Anfrage — без него
+  (2026-07-30, Partyservice-формы выглядели чужеродно).{% endcomment %}
   <div>
     <label class="block text-sm font-medium mb-1" for="id_vehicle">{% trans "Vehicle / licence plate (optional)" %}</label>
     <input id="id_vehicle" name="vehicle" type="text" placeholder="{% trans 'z. B. VW Golf · M-AB 1234' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">

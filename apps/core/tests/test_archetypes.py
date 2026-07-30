@@ -100,3 +100,18 @@ def test_purchase_label_by_archetype():
 def test_primary_none_when_no_archetype_active():
     assert archetypes.primary_module(_Tenant(active=set())) is None
     assert archetypes.primary_item(_Tenant(active=set())) is None
+
+
+def test_explicit_primary_module_overrides_priority():
+    """2026-07-30: Bäckerei/Metzgerei — jobs (Partyservice) активен, но primary
+    задан явно (site_config.primary_module=catalog) → hero-CTA ведёт на Sortiment,
+    а не «Angebot anfragen» (_PRIORITY ставит jobs выше catalog)."""
+    t = _Tenant(active={"jobs", "catalog"}, site_config={"primary_module": "catalog"})
+    assert archetypes.primary_module(t) == "catalog"
+
+
+def test_explicit_primary_module_ignored_if_inactive_or_unknown():
+    t = _Tenant(active={"jobs", "catalog"}, site_config={"primary_module": "stays"})
+    assert archetypes.primary_module(t) == "jobs"  # неактивен → эвристика
+    t2 = _Tenant(active={"jobs", "catalog"}, site_config={"primary_module": "bogus"})
+    assert archetypes.primary_module(t2) == "jobs"

@@ -185,6 +185,10 @@ class DemoKit:
     # apps.core.Extra — гость отмечает при бронировании (сейчас на stays).
     extras: list = field(default_factory=list)
     storefront_root: str = "home"  # S4: стартовая страница (home или ключ архетипа)
+    # Явный «главный товар» (hero-CTA/buybar); пусто = эвристика _PRIORITY. Нужен китам,
+    # где дополнение-архетип приоритетнее по эвристике (Bäckerei/Metzgerei: jobs on,
+    # но primary — Sortiment).
+    primary_module: str = ""
     # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
     subdomain: str = ""
     # Наполнить кабинет примерами транзакций (заказы/заявки/брони/билеты) по
@@ -2189,6 +2193,7 @@ BAKERY_MENUS = {
                     },
                 ],
             },
+            {"label": "Partyservice", "type": "archetype", "target": "jobs"},
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
@@ -2198,8 +2203,8 @@ BAKERY_MENUS = {
         "items": [
             {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🥨"},
             {"label": "Aktionen", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Party", "type": "archetype", "target": "jobs", "icon": "🎉"},
             {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
-            {"label": "Treue", "type": "archetype", "target": "loyalty", "icon": "💝"},
         ],
     },
 }
@@ -2241,7 +2246,9 @@ BAKERY = DemoKit(
     about_text="Seit 1962 backen wir in Hilden nach eigenen Rezepten: Sauerteig ohne "
     "Fertigmischungen, Mehl aus regionalen Mühlen, alles von Hand geformt. Bestellen Sie "
     "Brot und Brötchen bequem online vor — wir legen es zur Wunschzeit zurück. Torten "
-    "fertigen wir auf Vorbestellung mit zwei Tagen Vorlauf.",
+    "fertigen wir auf Vorbestellung mit zwei Tagen Vorlauf. Für Feiern und Firmen "
+    "liefern wir Kuchenbuffets und belegte Brötchen — fragen Sie einfach über den "
+    "Partyservice an.",
     nav_style="classic",
     address="Bäckergasse 3, 40721 Hilden",
     opening_hours_text="Mo–Fr 6:00–18:00 · Sa 6:00–13:00",
@@ -2270,6 +2277,11 @@ BAKERY = DemoKit(
             "wenn man vorbestellt.",
         ),
         ("Herr Yilmaz", "Feierabendtüte gerettet, Familie glücklich. Tolle Idee!"),
+        (
+            "Frau Novak",
+            "Das Kuchenbuffet zur Taufe war ein Traum — pünktlich geliefert und "
+            "wunderschön angerichtet.",
+        ),
     ],
     reviews_seed=[
         (5, "Das Sauerteigbrot ist das beste der Stadt!", "bk.albers@example.de"),
@@ -2302,6 +2314,11 @@ BAKERY = DemoKit(
             "Alle Zutaten und die 14 LMIV-Allergene stehen bei jedem Produkt — "
             "fragen Sie bei Unsicherheit gern an der Theke nach.",
         ),
+        (
+            "Gibt es einen Partyservice?",
+            "Ja — Kuchenbuffets, belegte Brötchen, Brezel- und Frühstückskörbe für "
+            "10–80 Gäste. Anfrage stellen — Sie erhalten ein unverbindliches Angebot.",
+        ),
     ],
     cta={
         "title": "Ihr Brot wartet schon",
@@ -2309,9 +2326,11 @@ BAKERY = DemoKit(
         "button_label": "Sortiment ansehen",
         "button_url": "/sortiment/",
     },
-    enable_modules=["orders", "loyalty"],
+    # jobs = Partyservice (Kuchenbuffets/belegte Brötchen), как у Metzgerei (2026-07-30).
+    enable_modules=["orders", "jobs", "loyalty"],
     enable_archetypes_section=True,
     storefront_root="home",
+    primary_module="catalog",  # hero-CTA → Sortiment (jobs — дополнение, не primary)
     seed_records=True,
     menus=BAKERY_MENUS,
     loyalty={"label": "Brot-Stempelkarte", "stamps": 10, "reward": "1× Brot gratis"},
@@ -2522,6 +2541,35 @@ BAKERY = DemoKit(
             ],
         ),
     ],
+    job_samples=[
+        {
+            "title": "Partyservice: Kuchenbuffet zum 60. Geburtstag (30 Gäste)",
+            "name": "Familie Winter",
+            "email": "bk.party1@example.de",
+            "phone": "02103 778899",
+            "description": "Jubiläum am Sonntag: Kuchenbuffet aus 4 Torten und "
+            "Blechkuchen für 30 Gäste, Lieferung und Aufbau bis 13 Uhr.",
+            "lines": [
+                {"text": "Torte nach Wahl (12 Stücke)", "qty": 4, "unit_price": "26.90"},
+                {"text": "Blechkuchen gemischt (20 Stücke)", "qty": 2, "unit_price": "18.00"},
+                {"text": "Lieferung & Aufbau", "qty": 1, "unit_price": "25.00"},
+            ],
+            "vat_rate": 7,
+        },
+        {
+            "title": "Belegte Brötchen für Firmenfrühstück (35 Personen)",
+            "name": "Steuerbüro Hansen",
+            "email": "bk.party2@example.de",
+            "description": "Monatsmeeting am Freitag: belegte Brötchen gemischt und "
+            "Laugengebäck, Anlieferung 8:30 Uhr.",
+            "lines": [
+                {"text": "Belegtes Brötchen gemischt", "qty": 70, "unit_price": "2.20"},
+                {"text": "Laugenbrezel", "qty": 35, "unit_price": "1.20"},
+                {"text": "Anlieferung", "qty": 1, "unit_price": "20.00"},
+            ],
+            "vat_rate": 7,
+        },
+    ],
     product_reviews=[
         (1, 5, "Anna B.", "bk.rev1@example.de", "Das Bauernbrot hält sich tagelang frisch."),
         (3, 5, "Jens K.", "bk.rev2@example.de", "Die Kruste ist unschlagbar — wie früher."),
@@ -2652,6 +2700,7 @@ BUTCHER = DemoKit(
     enable_modules=["orders", "jobs", "loyalty"],
     enable_archetypes_section=True,
     storefront_root="home",
+    primary_module="catalog",  # hero-CTA → Sortiment (Partyservice — дополнение)
     seed_records=True,
     menus=BUTCHER_MENUS,
     loyalty={"label": "Theken-Stempelkarte", "stamps": 10, "reward": "1× Bratwurst gratis"},
@@ -5448,6 +5497,7 @@ def apply_kit(tenant, key: str) -> bool:
             "archetypes": archetypes_cfg,  # S3 обложки разделов
             "menus": kit.menus or None,  # S7 меню (пусто → выводится из nav, без регрессии)
             "storefront_root": kit.storefront_root,  # S4 стартовая страница
+            "primary_module": kit.primary_module,  # явный primary (пусто → эвристика)
             "hero_title": kit.hero_title,
             "hero_text": kit.hero_text,
             "hero_image": demo_image(kit.hero_image_kw, w=1600, h=600, lock=999),

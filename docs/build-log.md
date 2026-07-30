@@ -6947,3 +6947,23 @@ sm:w-64 snap-start`. Стенд Playwright 390px: на 9 страницах ка
   countdown → `data-cd`+сегменты); 5 msgid × 5 .po; app.css пересобран.
   Стенд: Kaffee (цены+галерея+пилюля), Toilettenpapier (баннер Räumung
   0|23|58|33), мобильный Croissant. promotions 255 passed.
+
+## 2026-07-30 — Bäckerei-демо: Partyservice (запрос владельца «товары, акции, click, Partyservice»)
+Товары/акции/Click&Collect в ките уже были; дотянут Partyservice по образцу Metzgerei.
+- **Кит BAKERY**: `enable_modules` += jobs; меню top «Partyservice» + bottom «Party» 🎉
+  (Treue остаётся в top); about/FAQ/отзыв о Partyservice; `job_samples` — Kuchenbuffet
+  к юбилею (30 гостей) + belegte Brötchen для фирмы (35 чел.), USt 7 %.
+- **Фикс primary_module (класс W3-3)**: с активным jobs эвристика `_PRIORITY` делала
+  primary=jobs → hero-CTA пекарни «Angebot anfragen» вместо Sortiment (у Metzgerei —
+  та же скрытая проблема). НОВЫЙ presence-minimal ключ `site_config["primary_module"]`
+  (normalize валидирует по 6 архетипам; пусто → ключа нет, golden целы) + явный ключ
+  первым в `archetypes.primary_module()` (неактивный/мусор → прежняя эвристика);
+  поле `DemoKit.primary_module`, BAKERY/BUTCHER = "catalog".
+- **Фикс формы Anfrage**: свободное поле «Fahrzeug / Kennzeichen» показывалось ВСЕМ
+  не-Werkstatt (чужеродно на Partyservice-форме пекарни/мясной/Handwerker) → гейт
+  `business_type == "werkstatt"` (структурные A9-поля Werkstatt — прежний jobs_vehicle).
+- jobs `suited_for` += bakery/butcher (косметика «Funktionen», пресет не тронут).
+  Замки: +2 test_archetypes (explicit primary), +1 normalize presence-minimal;
+  tenants+core 1362 passed. Стенд: hero-CTA «Sortiment», меню Partyservice,
+  /anfrage/ без авто-поля, 2 заявки в кабинете. ⚠️ ops: `seed_demo_tenants
+  --kit bakery --recreate` (+ `--kit butcher` для primary-фикса метцгерай).

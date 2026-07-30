@@ -2299,6 +2299,13 @@ def _normalize_impl(config) -> dict:
     # архетипа (standalone: корень `/` ведёт на его лендинг). Валидность (активен
     # ли архетип) проверяется при рендере; здесь просто строка.
     normalized["storefront_root"] = _s(config.get("storefront_root")) or "home"
+    # 2026-07-30: явный «главный товар» (hero-CTA/buybar) НЕЗАВИСИМО от корня витрины.
+    # С активным jobs эвристика _PRIORITY делала primary=jobs (Bäckerei/Metzgerei c
+    # Partyservice: hero-CTA «Angebot anfragen» вместо Sortiment). Presence-minimal:
+    # пусто/не-архетип → ключа нет (легаси-резолюция по приоритету, golden целы).
+    _pm = _s(config.get("primary_module"))
+    if _pm in {"events", "stays", "booking", "jobs", "catalog", "promotions"}:
+        normalized["primary_module"] = _pm
     # M20U-7 (per-page): раскладка сетки страницы каталога /sortiment/. Дефолт cols3
     # воспроизводит прежнюю захардкоженную сетку (grid-cols-2 lg:grid-cols-3).
     normalized["catalog_layout"] = normalize_layout(

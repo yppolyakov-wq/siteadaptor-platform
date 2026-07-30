@@ -320,8 +320,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # S6: Handwerker/Werkstatt — Angebote/Kostenvoranschläge их primary (default-ON).
         # suited_for сохраняет catering-Anfrage (Restaurant/Cafe/Retreat-демо) без
         # предупреждения; suited НЕ влияет на пресет (default_disabled читает recommended).
+        # Bäckerei/Metzgerei: Partyservice (Kuchenbuffets/Platten) — классика, демо-киты
+        # включают jobs (2026-07-30, запрос владельца «bakery: Partyservice»).
         recommended_for=("handwerker", "werkstatt"),
-        suited_for=("restaurant", "cafe", "other"),
+        suited_for=("restaurant", "cafe", "bakery", "butcher", "other"),
         description_de=_(
             "Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen."
         ),

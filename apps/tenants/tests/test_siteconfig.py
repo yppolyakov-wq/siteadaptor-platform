@@ -175,3 +175,12 @@ def test_site_view_post_saves_texts_and_preserves_sections():
     assert config["hero_text"] == "Schön, dass Sie da sind."  # trim
     enabled = {s["key"] for s in config["sections"] if s["enabled"]}
     assert "promotions" in enabled  # секция не погашена пустой формой
+
+
+def test_normalize_primary_module_presence_minimal():
+    """2026-07-30: явный «главный товар» — presence-minimal: ключа нет в пустом
+    конфиге (golden целы), валидный архетип сохраняется, мусор отбрасывается."""
+    assert "primary_module" not in siteconfig.normalize({})
+    cfg = siteconfig.normalize({"primary_module": "catalog"})
+    assert cfg["primary_module"] == "catalog"
+    assert "primary_module" not in siteconfig.normalize({"primary_module": "bogus"})
