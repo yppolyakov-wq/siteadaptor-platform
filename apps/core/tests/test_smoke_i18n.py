@@ -8,8 +8,8 @@ pytestmark = pytest.mark.django_db
 
 def test_status_and_registry_labels_translate():
     from apps.orders.models import Order
-    from apps.tenants.models import Tenant
     from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
 
     with translation.override("ru"):
         assert str(dict(Order.STATUSES)[Order.STATUS_NEW]) == "Новый" or str(
