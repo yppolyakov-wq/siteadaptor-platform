@@ -15019,3 +15019,179 @@ msgstr "Kuponun süresi doldu."
 #. I18N-5 messages 2026-07-30
 msgid "Voucher bereits eingelöst."
 msgstr "Kupon zaten kullanıldı."
+
+#. I18N-6 finder 2026-07-30
+msgid "10–30 €"
+msgstr "10–30 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "15–50 €"
+msgstr "15–50 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "20–50 €"
+msgstr "20–50 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "20–60 €"
+msgstr "20–60 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "30–60 €"
+msgstr "30–60 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "50–150 €"
+msgstr "50–150 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "80–150 €/Nacht"
+msgstr "gecelik 80–150 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "Egal"
+msgstr "Fark etmez"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was brauchst du? 📅"
+msgstr "Neye ihtiyacın var? 📅"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was ist geplant? 🥩"
+msgstr "Ne planlıyorsun? 🥩"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was möchtest du? 💇"
+msgstr "Ne istersin? 💇"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was suchst du? 🛍"
+msgstr "Ne arıyorsun? 🛍"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was suchst du? 🥨"
+msgstr "Ne arıyorsun? 🥨"
+
+#. I18N-6 finder 2026-07-30
+msgid "Wer reist? 🛏"
+msgstr "Kim seyahat ediyor? 🛏"
+
+#. I18N-6 finder 2026-07-30
+msgid "Wonach suchst du? 🎟"
+msgstr "Ne arıyorsun? 🎟"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 10 €"
+msgstr "10 €'a kadar"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 15 €"
+msgstr "15 €'a kadar"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 20 €"
+msgstr "20 €'a kadar"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 30 €"
+msgstr "30 €'a kadar"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 50 €"
+msgstr "50 €'a kadar"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 80 €/Nacht"
+msgstr "gecelik 80 €'a kadar"
+
+#. I18N-6 finder 2026-07-30
+msgid "✂️ Schnitt"
+msgstr "✂️ Kesim"
+
+#. I18N-6 finder 2026-07-30
+msgid "✨ Etwas Besonderes"
+msgstr "✨ Özel bir şey"
+
+#. I18N-6 finder 2026-07-30
+msgid "✨ Pflege / Extras"
+msgstr "✨ Bakım / ekstralar"
+
+#. I18N-6 finder 2026-07-30
+msgid "✨ Styling / Pflege"
+msgstr "✨ Şekillendirme / bakım"
+
+#. I18N-6 finder 2026-07-30
+msgid "🌄 Erlebnis / Tour"
+msgstr "🌄 Deneyim / tur"
+
+#. I18N-6 finder 2026-07-30
+msgid "🍰 Etwas Süßes"
+msgstr "🍰 Tatlı bir şey"
+
+#. I18N-6 finder 2026-07-30
+msgid "🍽 Für den Alltag"
+msgstr "🍽 Günlük için"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎁 Ein Geschenk"
+msgstr "🎁 Bir hediye"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎂 Etwas zum Geburtstag"
+msgstr "🎂 Doğum günü için"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎉 Für eine Feier"
+msgstr "🎉 Bir kutlama için"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎉 Party / Gäste"
+msgstr "🎉 Parti / misafirler"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎨 Farbe"
+msgstr "🎨 Renk"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎵 Konzert / Show"
+msgstr "🎵 Konser / gösteri"
+
+#. I18N-6 finder 2026-07-30
+msgid "👨‍👩‍👧 Familie"
+msgstr "👨‍👩‍👧 Aile"
+
+#. I18N-6 finder 2026-07-30
+msgid "💑 Zu zweit"
+msgstr "💑 İki kişi"
+
+#. I18N-6 finder 2026-07-30
+msgid "💬 Beratung"
+msgstr "💬 Danışma"
+
+#. I18N-6 finder 2026-07-30
+msgid "🔥 Grillen"
+msgstr "🔥 Mangal"
+
+#. I18N-6 finder 2026-07-30
+msgid "🔧 Service / Behandlung"
+msgstr "🔧 Servis / bakım"
+
+#. I18N-6 finder 2026-07-30
+msgid "🥖 Brot & Brötchen"
+msgstr "🥖 Ekmek ve poğaça"
+
+#. I18N-6 finder 2026-07-30
+msgid "🧑‍🎓 Kurs / Workshop"
+msgstr "🧑‍🎓 Kurs / atölye"
+
+#. I18N-6 finder 2026-07-30
+msgid "🧳 Allein"
+msgstr "🧳 Tek başına"
+
+#. I18N-6 finder 2026-07-30
+msgid "🧺 Für den Alltag"
+msgstr "🧺 Günlük için"
+
+#. I18N-6 finder 2026-07-30
+msgid "Und dein Budget?"
+msgstr "Bütçen nedir?"

@@ -223,15 +223,35 @@ def preset_tree(tenant) -> list[dict]:
     return _MODULE_TREES.get(module, _MODULE_TREES["catalog"])
 
 
+def localize_tree(tree: list[dict]) -> list[dict]:
+    """I18N-6: перевести подписи ПРЕСЕТНОГО дерева на язык посетителя.
+
+    Пресеты — немецкие литералы-msgid (переводы в .po). Кастомное дерево владельца
+    НЕ трогаем: там его собственный текст. Значения (`words`/`slug`/цены) не
+    касаемся — переводится только то, что видит глаз."""
+    from django.utils.translation import gettext
+
+    out = []
+    for q in tree:
+        chips = [
+            {**c, "label": gettext(c["label"]) if c.get("label") else ""}
+            for c in (q.get("chips") or [])
+        ]
+        out.append({**q, "label": gettext(q["label"]) if q.get("label") else "", "chips": chips})
+    return out
+
+
 def tree_for(tenant) -> list[dict]:
-    """Дерево вопросов: кастом (site_config, FD-3) → пресет архетипа → generic."""
+    """Дерево вопросов: кастом (site_config, FD-3) → пресет архетипа → generic.
+
+    Кастом отдаём как есть (контент владельца), пресет — локализованным."""
     from apps.tenants import siteconfig
 
     cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     custom = siteconfig.normalize_finder(cfg.get("finder")).get("questions")
     if custom:
         return custom
-    return preset_tree(tenant)
+    return localize_tree(preset_tree(tenant))
 
 
 def _candidates(tenant):

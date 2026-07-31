@@ -15,6 +15,7 @@ from django.test import RequestFactory
 from apps.aggregator import middleware
 from apps.aggregator.middleware import AggregatorPortalMiddleware, resolve_portal
 from apps.aggregator.models import AggregatorPortal
+from apps.tenants.models import Tenant
 
 pytestmark = pytest.mark.django_db
 
@@ -64,7 +65,10 @@ def test_str_uses_business_type_when_no_city():
     )
     s = str(p)
     assert "baeckerei.siteadaptor.de" in s
-    assert "Bakery" in s  # get_business_type_display()
+    # I18N-1 (2026-07-30): метки BUSINESS_TYPES переведены (gettext_lazy), поэтому
+    # сверяемся с реестром, а не с сырым литералом «Bakery» — иначе замок пинил бы
+    # непереведённость.
+    assert str(dict(Tenant.BUSINESS_TYPES)["bakery"]) in s  # get_business_type_display()
 
 
 def test_i18n_title_fallback_and_empty_tagline():

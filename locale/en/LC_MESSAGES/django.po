@@ -14912,3 +14912,179 @@ msgstr "Voucher expired."
 #. I18N-5 messages 2026-07-30
 msgid "Voucher bereits eingelöst."
 msgstr "Voucher already redeemed."
+
+#. I18N-6 finder 2026-07-30
+msgid "10–30 €"
+msgstr "10–30 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "15–50 €"
+msgstr "15–50 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "20–50 €"
+msgstr "20–50 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "20–60 €"
+msgstr "20–60 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "30–60 €"
+msgstr "30–60 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "50–150 €"
+msgstr "50–150 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "80–150 €/Nacht"
+msgstr "80–150 €/night"
+
+#. I18N-6 finder 2026-07-30
+msgid "Egal"
+msgstr "Doesn't matter"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was brauchst du? 📅"
+msgstr "What do you need? 📅"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was ist geplant? 🥩"
+msgstr "What's the occasion? 🥩"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was möchtest du? 💇"
+msgstr "What would you like? 💇"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was suchst du? 🛍"
+msgstr "What are you looking for? 🛍"
+
+#. I18N-6 finder 2026-07-30
+msgid "Was suchst du? 🥨"
+msgstr "What are you looking for? 🥨"
+
+#. I18N-6 finder 2026-07-30
+msgid "Wer reist? 🛏"
+msgstr "Who's travelling? 🛏"
+
+#. I18N-6 finder 2026-07-30
+msgid "Wonach suchst du? 🎟"
+msgstr "What are you after? 🎟"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 10 €"
+msgstr "up to 10 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 15 €"
+msgstr "up to 15 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 20 €"
+msgstr "up to 20 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 30 €"
+msgstr "up to 30 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 50 €"
+msgstr "up to 50 €"
+
+#. I18N-6 finder 2026-07-30
+msgid "bis 80 €/Nacht"
+msgstr "up to 80 €/night"
+
+#. I18N-6 finder 2026-07-30
+msgid "✂️ Schnitt"
+msgstr "✂️ Haircut"
+
+#. I18N-6 finder 2026-07-30
+msgid "✨ Etwas Besonderes"
+msgstr "✨ Something special"
+
+#. I18N-6 finder 2026-07-30
+msgid "✨ Pflege / Extras"
+msgstr "✨ Care / extras"
+
+#. I18N-6 finder 2026-07-30
+msgid "✨ Styling / Pflege"
+msgstr "✨ Styling / care"
+
+#. I18N-6 finder 2026-07-30
+msgid "🌄 Erlebnis / Tour"
+msgstr "🌄 Experience / tour"
+
+#. I18N-6 finder 2026-07-30
+msgid "🍰 Etwas Süßes"
+msgstr "🍰 Something sweet"
+
+#. I18N-6 finder 2026-07-30
+msgid "🍽 Für den Alltag"
+msgstr "🍽 For every day"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎁 Ein Geschenk"
+msgstr "🎁 A gift"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎂 Etwas zum Geburtstag"
+msgstr "🎂 Something for a birthday"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎉 Für eine Feier"
+msgstr "🎉 For a celebration"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎉 Party / Gäste"
+msgstr "🎉 Party / guests"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎨 Farbe"
+msgstr "🎨 Colour"
+
+#. I18N-6 finder 2026-07-30
+msgid "🎵 Konzert / Show"
+msgstr "🎵 Concert / show"
+
+#. I18N-6 finder 2026-07-30
+msgid "👨‍👩‍👧 Familie"
+msgstr "👨‍👩‍👧 Family"
+
+#. I18N-6 finder 2026-07-30
+msgid "💑 Zu zweit"
+msgstr "💑 For two"
+
+#. I18N-6 finder 2026-07-30
+msgid "💬 Beratung"
+msgstr "💬 Consultation"
+
+#. I18N-6 finder 2026-07-30
+msgid "🔥 Grillen"
+msgstr "🔥 Barbecue"
+
+#. I18N-6 finder 2026-07-30
+msgid "🔧 Service / Behandlung"
+msgstr "🔧 Service / treatment"
+
+#. I18N-6 finder 2026-07-30
+msgid "🥖 Brot & Brötchen"
+msgstr "🥖 Bread & rolls"
+
+#. I18N-6 finder 2026-07-30
+msgid "🧑‍🎓 Kurs / Workshop"
+msgstr "🧑‍🎓 Course / workshop"
+
+#. I18N-6 finder 2026-07-30
+msgid "🧳 Allein"
+msgstr "🧳 Solo"
+
+#. I18N-6 finder 2026-07-30
+msgid "🧺 Für den Alltag"
+msgstr "🧺 For every day"
+
+#. I18N-6 finder 2026-07-30
+msgid "Und dein Budget?"
+msgstr "And your budget?"
