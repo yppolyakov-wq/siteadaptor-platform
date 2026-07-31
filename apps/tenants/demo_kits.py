@@ -1715,6 +1715,7 @@ HOTEL = DemoKit(
         {
             "title": "Frühbucher: 10 % auf alle Zimmer",
             "percent": 10,
+            "images": ["hotel,room", "lake,view"],
             "desc": "Mindestens 30 Tage im Voraus buchen und sparen.",
             "group": "Zimmer-Angebote",
             "ends_in_days": 45,
@@ -1723,6 +1724,7 @@ HOTEL = DemoKit(
         {
             "title": "3 Nächte zum Preis von 2",
             "new": True,
+            "images": ["hotel,bed", "hotel,interior"],
             "desc": "Sonntag bis Donnerstag, in allen Doppelzimmern mit Seeblick.",
             "group": "Zimmer-Angebote",
             "ends_in_days": 21,
@@ -1731,6 +1733,7 @@ HOTEL = DemoKit(
         {
             "title": "Wellness-Paket: Sauna + Massage",
             "desc": "Private Sauna (60 Min.) und Wellness-Massage im Paket — 15 % günstiger.",
+            "images": ["terrace", "hotel,bathroom"],
             "percent": 15,
             "group": "Pakete",
             "ends_in_days": 60,
@@ -1808,46 +1811,156 @@ HOTEL = DemoKit(
             "weekdays": range(0, 7),
         },
     ],
+    # Фидбэк владельца 2026-07-31 («добавь описания к услугам»): у услуг были
+    # однострочники — страница услуги выглядела пустой. Теперь у каждой полное
+    # описание + характеристики и FAQ (богатая карточка UA4-3).
     services=[
         (
             {"de": "Wellness-Massage", "en": "Wellness massage"},
             50,
             "59",
             {
-                "de": "Klassische Rückenmassage im hauseigenen Wellnessbereich.",
-                "en": "Classic back massage in our own wellness area.",
+                "de": "Klassische Rückenmassage im hauseigenen Wellnessbereich. "
+                "Unsere Masseurin löst Verspannungen in Nacken, Schultern und "
+                "unterem Rücken — mit warmem Mandelöl und einem Tempo, das Sie "
+                "vorgeben. Nach der Behandlung ruhen Sie im Kaminzimmer nach, "
+                "Kräutertee und Wasser stehen bereit.",
+                "en": "Classic back massage in our own wellness area. Our masseuse "
+                "releases tension in the neck, shoulders and lower back — with warm "
+                "almond oil and at a pace you set. Afterwards you rest in the "
+                "fireplace room, herbal tea and water included.",
             },
             "massage,spa",
+            {
+                "attributes": [
+                    "50 Minuten Behandlung + 20 Minuten Ruhezeit",
+                    "Warmes Mandelöl (auf Wunsch parfümfrei)",
+                    "Auch für Nicht-Hausgäste buchbar",
+                    "Handtücher und Bademantel inklusive",
+                ],
+                "faq": [
+                    {
+                        "q": "Muss ich im Haus wohnen?",
+                        "a": "Nein — die Massage können Sie auch als Tagesgast buchen. "
+                        "Bitte kommen Sie 10 Minuten vor dem Termin an die Rezeption.",
+                    },
+                    {
+                        "q": "Was, wenn ich Rückenprobleme habe?",
+                        "a": "Sagen Sie es uns vor Beginn: Wir passen Druck und Griffe an "
+                        "und lassen empfindliche Stellen auf Wunsch ganz aus.",
+                    },
+                ],
+            },
         ),
         (
             {"de": "Private Sauna", "en": "Private sauna"},
             90,
             "39",
             {
-                "de": "Die Panorama-Sauna exklusiv für Sie und Ihre Begleitung.",
-                "en": "The panorama sauna exclusively for you and your companion.",
+                "de": "Die Panorama-Sauna exklusiv für Sie und Ihre Begleitung. "
+                "90 Minuten gehört der ganze Wellnessbereich Ihnen allein: "
+                "finnische Sauna bei 85 °C, Kaltwasserbecken und Liegen mit "
+                "Blick über den See. Aufgüsse machen Sie selbst — Duftkonzentrate "
+                "liegen bereit.",
+                "en": "The panorama sauna exclusively for you and your companion. "
+                "For 90 minutes the whole wellness area is yours: Finnish sauna at "
+                "85 °C, cold plunge pool and loungers overlooking the lake. You do "
+                "the infusions yourself — scent concentrates are provided.",
             },
             "sauna,wellness",
+            {
+                "attributes": [
+                    "Bis zu 4 Personen — der Preis gilt pro Buchung",
+                    "Finnische Sauna 85 °C + Kaltwasserbecken",
+                    "Handtücher, Bademantel und Wasser inklusive",
+                    "Letzter Termin 21:00 Uhr",
+                ],
+                "faq": [
+                    {
+                        "q": "Gilt der Preis pro Person?",
+                        "a": "Nein, pro Buchung — bis zu vier Personen kosten dasselbe.",
+                    },
+                    {
+                        "q": "Können wir spontan verlängern?",
+                        "a": "Wenn danach niemand gebucht hat, gerne: 30 Minuten "
+                        "Verlängerung kosten 15 €, direkt an der Rezeption.",
+                    },
+                ],
+            },
         ),
         (
             {"de": "Seeblick-Frühstück am Zimmer", "en": "Lake-view breakfast in your room"},
             60,
             "24",
             {
-                "de": "Frühstück mit Blick auf den See — direkt aufs Zimmer serviert.",
-                "en": "Breakfast with a lake view — served straight to your room.",
+                "de": "Frühstück mit Blick auf den See — direkt aufs Zimmer serviert. "
+                "Wir bringen frische Brötchen aus der Dorfbäckerei, Rührei oder "
+                "gekochte Eier, Käse und Schinken aus der Region, Obst, Joghurt, "
+                "Butter und Marmelade aus eigener Herstellung, dazu Kaffee, Tee "
+                "und frisch gepressten Orangensaft.",
+                "en": "Breakfast with a lake view — served straight to your room. We "
+                "bring fresh rolls from the village bakery, scrambled or boiled eggs, "
+                "regional cheese and ham, fruit, yoghurt, butter and our own jam, plus "
+                "coffee, tea and freshly squeezed orange juice.",
             },
             "breakfast,hotel",
+            {
+                "attributes": [
+                    "Servierzeit 07:30–10:30 Uhr nach Wunsch",
+                    "Preis pro Person, Kinder bis 6 Jahre frei",
+                    "Vegetarisch, vegan und glutenfrei möglich",
+                    "Bestellung bis 20:00 Uhr am Vorabend",
+                ],
+                "faq": [
+                    {
+                        "q": "Bis wann muss ich bestellen?",
+                        "a": "Bis 20:00 Uhr am Vorabend — dann ist alles frisch beim "
+                        "Bäcker vorbestellt.",
+                    },
+                    {
+                        "q": "Geht das auch vegan?",
+                        "a": "Ja. Schreiben Sie es in die Notiz zur Buchung, wir stellen "
+                        "das Tablett komplett pflanzlich zusammen.",
+                    },
+                ],
+            },
         ),
         (
             {"de": "E-Bike-Verleih (Tag)", "en": "E-bike rental (day)"},
             480,
             "29",
             {
-                "de": "Tourenrad inklusive Helm, Schloss und Kartenmaterial.",
-                "en": "Touring bike including helmet, lock and maps.",
+                "de": "Tourenrad inklusive Helm, Schloss und Kartenmaterial. "
+                "Unsere E-Bikes haben 500-Wh-Akkus — damit fahren Sie die "
+                "Seeumrundung (42 km) bequem an einem Tag. Wir stellen Sattel "
+                "und Lenker vor der Abfahrt auf Sie ein und zeigen Ihnen auf der "
+                "Karte die schönsten Einkehrmöglichkeiten.",
+                "en": "Touring bike including helmet, lock and maps. Our e-bikes have "
+                "500 Wh batteries — enough to ride around the lake (42 km) comfortably "
+                "in one day. We adjust saddle and handlebars for you before you set off "
+                "and point out the nicest stops on the map.",
             },
             "bike,tour",
+            {
+                "attributes": [
+                    "500-Wh-Akku — rund 80 km Reichweite",
+                    "Helm, Schloss und Satteltasche inklusive",
+                    "Ausgabe ab 08:00 Uhr, Rückgabe bis 20:00 Uhr",
+                    "Körpergrößen 155–195 cm",
+                ],
+                "faq": [
+                    {
+                        "q": "Brauche ich Erfahrung mit E-Bikes?",
+                        "a": "Nein. Wir erklären Unterstützungsstufen und Bremsen vor "
+                        "der Abfahrt und drehen mit Ihnen eine kurze Proberunde.",
+                    },
+                    {
+                        "q": "Was ist bei Regen?",
+                        "a": "Bis 18:00 Uhr am Vortag können Sie kostenfrei absagen — "
+                        "danach verschieben wir den Termin auf einen trockenen Tag.",
+                    },
+                ],
+            },
         ),
     ],
     stay_units=[

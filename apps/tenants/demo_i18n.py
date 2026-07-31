@@ -218,6 +218,15 @@ def translate_tenant_content(tenant, locales) -> None:
         if changed:
             svc.save(update_fields=["name_i18n", "description_i18n"])
 
+    # Фидбэк владельца 2026-07-31: акции демо оставались немецкими на любой
+    # локали — их просто не было в этом обходе. Поля те же full-JSON, что у товара.
+    from apps.promotions.models import Promotion
+
+    for promo in Promotion.objects.all():
+        changed = _fill_full(promo, "title", locales) | _fill_full(promo, "description", locales)
+        if changed:
+            promo.save(update_fields=["title", "description"])
+
     for unit in StayUnit.objects.all():
         changed = _fill_overlay(unit, "name", "name_i18n", locales) | _fill_overlay(
             unit, "description", "description_i18n", locales
