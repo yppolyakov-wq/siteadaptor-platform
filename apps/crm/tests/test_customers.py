@@ -132,7 +132,10 @@ def test_manual_create_sets_source_and_consent():
     # Бейджи на карточке: источник и согласие видны владельцу.
     body = views.customer_detail(_req(path=f"/crm/{customer.pk}/"), pk=customer.pk)
     body = body.content.decode()
-    assert "Marketing" in body and "Manual" in body
+    # I18N-1 (2026-07-30): метки SOURCES переведены (gettext_lazy) — сверяемся с
+    # реестром, а не с сырым «Manual» (иначе замок пинил бы непереведённость).
+    assert "Marketing" in body
+    assert str(dict(Customer.CREATED_SOURCES)[Customer.SOURCE_MANUAL]) in body
 
 
 def test_detail_shows_loyalty_cards():

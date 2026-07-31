@@ -453,8 +453,12 @@ def test_is_suited_for_union_and_universal():
 
 
 def test_suited_label_lists_and_universal():
+    from apps.tenants.models import Tenant
+
     label = modules.suited_label(modules.get_module("booking"))
-    assert label.startswith("Geeignet für:") and "Cafe" in label
+    # I18N-1: метки типов бизнеса переведены — сверяемся с реестром.
+    assert label.startswith("Geeignet für:")
+    assert str(dict(Tenant.BUSINESS_TYPES)["cafe"]) in label
     # promotions: пресет(8) + suited(2) = все типы → универсальная подпись
     assert modules.suited_label(modules.get_module("promotions")) == "Für alle Geschäftstypen"
     assert modules.suited_label(modules.get_module("analytics")) == "Für alle Geschäftstypen"
