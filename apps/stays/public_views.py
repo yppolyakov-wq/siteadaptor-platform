@@ -377,6 +377,7 @@ def unterkunft_unit(request, pk):
         if k in _stay_templates  # similar — не в body (detail_wide), исключаем из цикла
     ]
     show_similar = bool(similar) and "similar" not in _hidden
+    cal_first_month, cal_month_days = _calendar_start(unit, von, today)
 
     ctx = {
         "unit": unit,
@@ -410,11 +411,13 @@ def unterkunft_unit(request, pk):
         "deposit_required": deposit_required,
         "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
         "similar": similar,  # H3 похожие номера
-        # C3: встроенный календарь наличия — начальный месяц = месяц заезда (или текущий).
+        # C3: встроенный календарь наличия — начальный месяц = месяц заезда, а без
+        # дат — первый месяц, где ВООБЩЕ есть что выбрать (HF-0, см. _calendar_start).
         **_calendar_context(
             unit,
-            (von or today).replace(day=1),
+            cal_first_month,
             today,
+            cal_month_days,
             embed_qs="&embed=1" if _is_embed(request) else "",
         ),
     }
@@ -445,22 +448,56 @@ def stay_review_submit(request, pk):
     )
 
 
-def _calendar_context(unit, first, today, *, embed_qs="") -> dict:
-    """A5: контекст партиала `_stay_calendar.html` на месяц `first` (1-е число).
-    Общий для встроенного календаря страницы номера (C3) и hx/fetch-свапа (C2)."""
+def _calendar_start(unit, von, today):
+    """HF-0 (#12): месяц, с которого открывать календарь, + его готовые дни.
+
+    С датой заезда — её месяц (как раньше). Без дат раньше всегда показывался
+    ТЕКУЩИЙ месяц: 31-го числа это ровно один кликабельный день, и гость
+    (особенно на телефоне, где стрелка «›» — мелкая мишень) делал вывод «выбор
+    дат не работает». Теперь без дат листаем вперёд до первого месяца, где есть
+    что выбрать: нужны ДВА свободных дня (заезд + выезд) — иначе диапазон не
+    собрать. Скан ограничен окном брони; в норме это один запрос (текущий месяц
+    подходит), на стыке месяцев — два.
+    """
+    if von:
+        return (von.replace(day=1), None)
     cur_first = today.replace(day=1)
     max_first = (today + timedelta(days=MAX_DAYS_AHEAD)).replace(day=1)
-    first = min(max(first, cur_first), max_first)
+    first = cur_first
+    while True:
+        days = availability.month_availability(unit, first.year, first.month, today=today)
+        if sum(1 for d in days if d["is_free"]) >= 2 or first >= max_first:
+            return (first, days)
+        m = first.month  # следующий месяц (1-е число)
+        first = date(first.year + m // 12, m % 12 + 1, 1)
+
+
+def _calendar_context(unit, first, today, days=None, *, embed_qs="") -> dict:
+    """A5: контекст партиала `_stay_calendar.html` на месяц `first` (1-е число).
+    Общий для встроенного календаря страницы номера (C3) и hx/fetch-свапа (C2).
+    `days` — уже посчитанная доступность месяца (см. `_calendar_start`), чтобы не
+    ходить в БД дважды за один и тот же месяц."""
+    cur_first = today.replace(day=1)
+    max_first = (today + timedelta(days=MAX_DAYS_AHEAD)).replace(day=1)
+    clamped = min(max(first, cur_first), max_first)
+    if clamped != first:
+        days = None  # месяц подрезали окном — прежние дни не о нём
+    first = clamped
 
     def _shift(d, delta):
         m = d.month - 1 + delta
         return date(d.year + m // 12, m % 12 + 1, 1)
 
     prev_first, next_first = _shift(first, -1), _shift(first, 1)
+    if days is None:
+        days = availability.month_availability(unit, first.year, first.month, today=today)
     return {
         "unit": unit,
         "cal_first": first,
-        "cal_days": availability.month_availability(unit, first.year, first.month, today=today),
+        "cal_days": days,
+        # HF-0: месяц без выбираемых дней — календарь честно скажет об этом и
+        # позовёт листать дальше (иначе выглядит как «ничего не нажимается»).
+        "cal_free_count": sum(1 for d in days if d["is_free"]),
         "cal_lead_blanks": range(first.weekday()),  # пустые ячейки до 1-го (Mo-первый)
         "cal_multi": unit.quantity > 1,  # показывать «N frei»
         "prev_year": prev_first.year,

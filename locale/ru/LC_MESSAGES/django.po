@@ -16654,3 +16654,11 @@ msgstr "Язык счёта"
 
 msgid "The invoice is issued in this language — pick the customer's language."
 msgstr "Счёт будет выставлен на этом языке — выберите язык клиента."
+
+#: templates/storefront/_stay_calendar.html
+msgid "This month is fully booked — check the next month with ›."
+msgstr "Этот месяц полностью занят — посмотрите следующий кнопкой ›."
+
+#: templates/storefront/_stay_calendar.html
+msgid "No free dates in this month."
+msgstr "В этом месяце нет свободных дат."

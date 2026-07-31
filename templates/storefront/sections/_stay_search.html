@@ -9,14 +9,16 @@ H2: быстрый поиск размещения по датам на глав
   <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 max-w-3xl mx-auto">
     <h2 class="font-semibold text-lg mb-3">{% trans "Check availability" %}</h2>
     <form method="get" action="{% url 'storefront-unterkunft' %}">
-      <div class="grid sm:grid-cols-5 gap-3 items-end">
+      {% comment %}HF-0: min-w-0 на ячейках — без него iOS-поле даты растягивает
+      колонку грида и форма вылезает за карточку (см. правило в static/src/app.css).{% endcomment %}
+      <div class="grid sm:grid-cols-5 gap-3 items-end [&>div]:min-w-0">
         <div>
           <label class="block text-sm font-medium mb-1" for="hs_von">{% trans "Arrival" %}</label>
-          <input id="hs_von" name="von" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 1 %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input id="hs_von" name="von" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 1 %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="hs_bis">{% trans "Departure" %}</label>
-          <input id="hs_bis" name="bis" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 3 %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input id="hs_bis" name="bis" type="date" required min="{% now 'Y-m-d' %}" value="{% default_date 3 %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="hs_erw">{% trans "Adults" %}</label>

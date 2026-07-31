@@ -95,3 +95,53 @@ def test_busy_calendar_day_carries_date_hook():
     body = _detail(unit, _dates())
     busy_day = (D0 + timedelta(days=5)).isoformat()
     assert re.search(rf'stay-cal-busy[^>]*data-date="{busy_day}"', body)
+
+
+def test_calendar_starts_at_first_month_with_selectable_days():
+    """HF-0 (#12): без дат календарь открывается на месяце, где есть ЧТО выбрать.
+
+    Раньше показывался текущий месяц всегда — 31-го числа это один кликабельный
+    день, и «выбор нескольких дат не работает» (жалоба владельца с телефона)."""
+    from datetime import date as _date
+
+    from django.utils import timezone
+
+    unit = _unit(quantity=1)
+    today = timezone.localdate()
+    # Занимаем остаток текущего месяца — свободных дней в нём не остаётся.
+    m = today.month
+    next_first = _date(today.year + m // 12, m % 12 + 1, 1)
+    services.book_stay(
+        unit=unit,
+        arrival=today,
+        departure=next_first,
+        name="Dauergast",
+        email="dauer@example.com",
+    )
+    ctx_first, days = public_views._calendar_start(unit, None, today)
+    assert ctx_first == next_first  # перелистнули вперёд сами
+    assert sum(1 for d in days if d["is_free"]) >= 2  # и там реально есть выбор
+    # С явной датой заезда поведение прежнее — месяц заезда (паритет).
+    later = next_first.replace(day=15)
+    assert public_views._calendar_start(unit, later, today)[0] == next_first
+
+
+def test_fully_booked_month_says_so():
+    """HF-0: полностью занятый месяц объясняется словами, а не пустой сеткой."""
+    from datetime import date as _date
+
+    from django.utils import timezone
+
+    unit = _unit(quantity=1)
+    today = timezone.localdate()
+    m = today.month
+    next_first = _date(today.year + m // 12, m % 12 + 1, 1)
+    services.book_stay(
+        unit=unit,
+        arrival=today,
+        departure=next_first,
+        name="Dauergast",
+        email="dauer2@example.com",
+    )
+    ctx = public_views._calendar_context(unit, today.replace(day=1), today)
+    assert ctx["cal_free_count"] == 0

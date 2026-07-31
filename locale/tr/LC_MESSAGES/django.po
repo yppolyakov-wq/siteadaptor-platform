@@ -16575,3 +16575,11 @@ msgstr "Fatura dili"
 
 msgid "The invoice is issued in this language — pick the customer's language."
 msgstr "Fatura bu dilde düzenlenir — müşterinin dilini seçin."
+
+#: templates/storefront/_stay_calendar.html
+msgid "This month is fully booked — check the next month with ›."
+msgstr "Bu ay tamamen dolu — › ile bir sonraki aya bakın."
+
+#: templates/storefront/_stay_calendar.html
+msgid "No free dates in this month."
+msgstr "Bu ayda boş tarih yok."

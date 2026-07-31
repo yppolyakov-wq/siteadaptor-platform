@@ -16612,3 +16612,11 @@ msgstr "Rechnungssprache"
 
 msgid "The invoice is issued in this language — pick the customer's language."
 msgstr "Die Rechnung wird in dieser Sprache ausgestellt — wählen Sie die Sprache des Kunden."
+
+#: templates/storefront/_stay_calendar.html
+msgid "This month is fully booked — check the next month with ›."
+msgstr "Dieser Monat ist ausgebucht — schauen Sie mit › in den nächsten Monat."
+
+#: templates/storefront/_stay_calendar.html
+msgid "No free dates in this month."
+msgstr "In diesem Monat sind keine Termine frei."
