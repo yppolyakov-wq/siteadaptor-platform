@@ -42,7 +42,9 @@ DELIMITER_CHOICES = [
 VARIANT_FIELDS = [
     ("product_sku", _("Produkt-SKU *")),
     ("product_name_de", _("Produkt-Name (DE) *")),
-    ("label", _("Variante (z. B. 100 g, M) *")),
+    ("label", _("Variante (leer = aus Größe/Farbe)")),
+    ("size", _("Größe")),
+    ("color", _("Farbe")),
     ("sku", _("Varianten-SKU")),
     ("gtin", _("EAN/GTIN")),
     ("price", _("Preis (leer = Grundpreis)")),

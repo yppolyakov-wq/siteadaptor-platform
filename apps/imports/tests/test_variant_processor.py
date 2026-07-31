@@ -69,6 +69,58 @@ def test_reimport_same_label_upserts_not_duplicates():
     assert ProductVariant.objects.filter(label="100 g").count() == 1
 
 
+def test_axes_only_row_is_valid_and_label_generated():
+    """M4-A: файл может нести только оси — label соберётся моделью."""
+    _product(sku="MO-1")
+    proc = ProductVariantProcessor()
+    assert proc.validate({"product_sku": "MO-1", "size": "M", "color": "Blau"}) == []
+    variant = proc.create_or_update(
+        {"product_sku": "MO-1", "size": "M", "color": "Blau"}, update_existing=False
+    )
+    assert (variant.size, variant.color) == ("M", "Blau")
+    assert variant.label == "M · Blau"
+
+
+def test_reimport_by_axes_upserts_not_duplicates():
+    """Ловушка 4 плана: повторный импорт тех же осей не плодит варианты."""
+    _product(sku="MO-1")
+    proc = ProductVariantProcessor()
+    proc.create_or_update(
+        {"product_sku": "MO-1", "size": "M", "color": "Blau", "price": "39.00"},
+        update_existing=False,
+    )
+    again = proc.create_or_update(
+        {"product_sku": "MO-1", "size": "M", "color": "Blau", "price": "29.00"},
+        update_existing=False,
+    )
+    assert again.price == Decimal("29.00")
+    assert ProductVariant.objects.filter(product__sku="MO-1").count() == 1
+
+
+def test_axes_import_upgrades_existing_label_only_variant():
+    """Вариант заведён до осей — импорт с осями дополняет его, а не дублирует."""
+    product = _product(sku="MO-1")
+    ProductVariant.objects.create(product=product, label="M · Blau", price=Decimal("39.00"))
+    proc = ProductVariantProcessor()
+    variant = proc.create_or_update(
+        {"product_sku": "MO-1", "size": "M", "color": "Blau", "stock_quantity": "4"},
+        update_existing=False,
+    )
+    assert ProductVariant.objects.filter(product=product).count() == 1
+    assert (variant.size, variant.color, variant.stock_quantity) == ("M", "Blau", 4)
+
+
+def test_explicit_label_wins_over_generated():
+    _product(sku="MO-1")
+    proc = ProductVariantProcessor()
+    variant = proc.create_or_update(
+        {"product_sku": "MO-1", "label": "Sondergröße", "size": "XXL", "color": "Rot"},
+        update_existing=False,
+    )
+    assert variant.label == "Sondergröße"
+    assert variant.size == "XXL"
+
+
 def test_parent_found_by_name_when_no_sku():
     _product(sku="", name="Honig")
     proc = ProductVariantProcessor()

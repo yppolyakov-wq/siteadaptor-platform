@@ -15856,3 +15856,12 @@ msgid "%(n)s ungelesene Nachricht"
 msgid_plural "%(n)s ungelesene Nachrichten"
 msgstr[0] "%(n)s unread message"
 msgstr[1] "%(n)s unread messages"
+
+msgid "Farbe"
+msgstr "Colour"
+
+msgid "Variante (leer = aus Größe/Farbe)"
+msgstr "Variant (empty = from size/colour)"
+
+msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
+msgstr "For fashion: enter size and colour separately — the label is generated from them."

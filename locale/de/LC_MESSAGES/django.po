@@ -16004,3 +16004,12 @@ msgid "%(n)s ungelesene Nachricht"
 msgid_plural "%(n)s ungelesene Nachrichten"
 msgstr[0] "%(n)s ungelesene Nachricht"
 msgstr[1] "%(n)s ungelesene Nachrichten"
+
+msgid "Farbe"
+msgstr ""
+
+msgid "Variante (leer = aus Größe/Farbe)"
+msgstr ""
+
+msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
+msgstr ""

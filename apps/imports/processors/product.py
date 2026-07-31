@@ -145,9 +145,12 @@ class ProductVariantProcessor(BaseProcessor):
     """Массовый импорт вариантов товара (R1, A1): чай 100/250 г, размеры одежды.
 
     Родитель ищется по product_sku или product_name_de; вариант уникален в
-    пределах товара по label (variant_product_label_uniq) — повтор label
-    обновляет существующий вариант (upsert), что и нужно для массовой правки
-    цен/остатков. Пустая цена варианта → берётся Product.base_price (R1).
+    пределах товара по label (variant_product_label_uniq). Матч при повторном
+    импорте (M4-A): сначала по осям (product, size, color), затем фолбэк по
+    label — иначе тот же товар задвоился бы, когда файл содержит оси, а
+    существующий вариант заведён ещё без них. Label можно не передавать: при
+    заданных осях он собирается моделью («S · Blau»). Пустая цена варианта →
+    берётся Product.base_price (R1).
     """
 
     model = ProductVariant
@@ -160,8 +163,12 @@ class ProductVariantProcessor(BaseProcessor):
             errors.append("product_sku or product_name_de is required")
         elif _find_parent_product(data) is None:
             errors.append("parent product not found")
-        if not (data.get("label") or "").strip():
-            errors.append("label is required")
+        if not (
+            (data.get("label") or "").strip()
+            or (data.get("size") or "").strip()
+            or (data.get("color") or "").strip()
+        ):
+            errors.append("label or size/color is required")
         raw_price = data.get("price")
         if raw_price not in (None, "") and _parse_decimal(raw_price) is None:
             errors.append("price is not a valid number")
@@ -171,7 +178,9 @@ class ProductVariantProcessor(BaseProcessor):
         product = _find_parent_product(data)
         if product is None:  # validate уже отсеял; страховка на гонку
             raise ValueError("parent product not found")
-        label = str(data["label"]).strip()
+        label = (str(data["label"]).strip() if data.get("label") else "") or ""
+        size = (str(data["size"]).strip() if data.get("size") else "") or ""
+        color = (str(data["color"]).strip() if data.get("color") else "") or ""
 
         fields = {
             "sku": (str(data["sku"]).strip() if data.get("sku") else "") or "",
@@ -181,9 +190,22 @@ class ProductVariantProcessor(BaseProcessor):
             "stock_quantity": _parse_int(data.get("stock_quantity")),
             "is_active": _parse_bool(data.get("is_active"), default=True),
         }
-        # Вариант уникален по (product, label) — upsert по этой паре всегда
-        # (label — естественный ключ варианта; не плодим дубли при повторном импорте).
-        variant, _created = ProductVariant.objects.get_or_create(product=product, label=label)
+
+        variant = None
+        if size or color:
+            variant = ProductVariant.objects.filter(product=product, size=size, color=color).first()
+        if variant is None:
+            # Фолбэк по label (в т.ч. по собранному из осей) — вариант мог быть
+            # заведён до появления осей; upsert вместо дубля.
+            probe_label = label or ProductVariant(size=size, color=color).axis_label()
+            if probe_label:
+                variant = ProductVariant.objects.filter(product=product, label=probe_label).first()
+        if variant is None:
+            variant = ProductVariant(product=product)
+        if size or color:
+            variant.size, variant.color = size, color
+        if label:
+            variant.label = label
         for key, value in fields.items():
             setattr(variant, key, value)
         variant.save()

@@ -3,9 +3,13 @@
   {% csrf_token %}
   <input type="hidden" name="product" value="{{ product.pk }}">
   {% if product.has_variants %}
-    <select name="variant" required class="rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Option' %}">
+    {% comment %}M4-A: селектор осей (размер/цвет) — ТОЛЬКО data-атрибуты поверх
+    единственного select name="variant". Набор полей формы пинится замком
+    test_cart_form_variants_and_modifiers_fields, поэтому свои имена оси не шлют;
+    без JS остаётся ровно прежний селект (полный список вариантов).{% endcomment %}
+    <select name="variant" required data-variant-select class="rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Option' %}">
       {% for v in product.active_variants %}
-        <option value="{{ v.pk }}"{% if not v.in_stock %} disabled{% endif %}>{{ v.label }} — {{ v.price_value }} {{ product.currency|cursym }}{% with gp=v.grundpreis %}{% if gp %} ({{ gp.0 }} {{ product.currency|cursym }}/{{ gp.1 }}){% endif %}{% endwith %}{% if not v.in_stock %} — {% trans "sold out" %}{% endif %}</option>
+        <option value="{{ v.pk }}"{% if not v.in_stock %} disabled{% endif %} data-size="{{ v.size }}" data-color="{{ v.color }}" data-image="{{ v.image_url }}">{{ v.label }} — {{ v.price_value }} {{ product.currency|cursym }}{% with gp=v.grundpreis %}{% if gp %} ({{ gp.0 }} {{ product.currency|cursym }}/{{ gp.1 }}){% endif %}{% endwith %}{% if not v.in_stock %} — {% trans "sold out" %}{% endif %}</option>
       {% endfor %}
     </select>
   {% endif %}
@@ -39,3 +43,22 @@
   <input type="number" name="qty" value="1" min="1" max="50" class="w-20 rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Quantity' %}">
   <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Order for pickup" %}</button>
 </form>
+
+{% comment %}M4-A: подмена главного фото при выборе варианта с собственным фото
+(галерея товара не трогается — её правит канва). Без JS ничего не меняется.{% endcomment %}
+<script>
+(function () {
+  document.querySelectorAll("[data-variant-select]").forEach(function (sel) {
+    if (sel.dataset.vinit) return;
+    sel.dataset.vinit = "1";
+    var img = document.querySelector(".js-media-main");  // главное фото галереи
+    if (!img) return;
+    var original = img.getAttribute("src");
+    sel.addEventListener("change", function () {
+      var opt = sel.options[sel.selectedIndex];
+      var url = opt && opt.dataset.image;
+      img.setAttribute("src", url || original);
+    });
+  });
+})();
+</script>

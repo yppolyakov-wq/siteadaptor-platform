@@ -16029,3 +16029,12 @@ msgstr[0] "%(n)s непрочитане повідомлення"
 msgstr[1] "%(n)s непрочитані повідомлення"
 msgstr[2] "%(n)s непрочитаних повідомлень"
 msgstr[3] "%(n)s непрочитаного повідомлення"
+
+msgid "Farbe"
+msgstr "Колір"
+
+msgid "Variante (leer = aus Größe/Farbe)"
+msgstr "Варіант (порожньо = з розміру/кольору)"
+
+msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
+msgstr "Для одягу: вводьте розмір і колір окремо — назва складеться з них."

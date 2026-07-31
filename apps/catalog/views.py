@@ -233,6 +233,12 @@ def product_edit(request, pk):
 def variant_add(request, pk):
     product = get_object_or_404(Product, pk=pk)
     label = (request.POST.get("label") or "").strip()
+    # M4-A: варианты можно заводить осями (размер/цвет) — label тогда собирается
+    # из них («S · Blau»). Прежний путь «только label» работает как раньше.
+    size = (request.POST.get("size") or "").strip()
+    color = (request.POST.get("color") or "").strip()
+    if not label:
+        label = " · ".join(part for part in (size, color) if part)
     if not label:
         messages.error(request, _("Variant label is required."))
     elif ProductVariant.objects.filter(product=product, label=label).exists():
@@ -241,6 +247,8 @@ def variant_add(request, pk):
         variant = ProductVariant.objects.create(
             product=product,
             label=label,
+            size=size,
+            color=color,
             sku=(request.POST.get("sku") or "").strip(),
             gtin=(request.POST.get("gtin") or "").strip(),
             price=_parse_price(request.POST.get("price")),
@@ -277,8 +285,16 @@ def variant_update(request, pk, vid):
     variant.sort_order = _parse_int(request.POST.get("sort")) or 0
     variant.gtin = (request.POST.get("gtin") or "").strip()
     variant.is_active = bool(request.POST.get("is_active"))
+    fields = []
+    # M4-A: оси пишем ТОЛЬКО если форма их прислала (presence-guard, инвариант W0)
+    # — иначе частичная форма стёрла бы размер/цвет.
+    if request.POST.get("axes_present"):
+        variant.size = (request.POST.get("size") or "").strip()
+        variant.color = (request.POST.get("color") or "").strip()
+        fields += ["size", "color"]
     variant.save(
-        update_fields=[
+        update_fields=fields
+        + [
             "price",
             "content_amount",
             "stock_quantity",

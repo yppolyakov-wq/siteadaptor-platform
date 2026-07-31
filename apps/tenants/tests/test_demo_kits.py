@@ -1020,9 +1020,17 @@ def test_apply_clothing_kit_dedicated_boutique():
     cardigan = Product.objects.get(name__de="Strickcardigan Wolke")
     sizes = {v.label: v.stock_quantity for v in ProductVariant.objects.filter(product=cardigan)}
     assert sizes == {"S": 4, "M": 0, "L": 2}
-    # футболка: 4 размера S–XL
+    # M4-A: футболка — 4 размера × 2 цвета, label собран из осей («S · Weiß»)
     shirt = Product.objects.get(name__de="Basic T-Shirt Bio-Baumwolle")
-    assert ProductVariant.objects.filter(product=shirt).count() == 4
+    shirt_variants = ProductVariant.objects.filter(product=shirt)
+    assert shirt_variants.count() == 8
+    assert set(shirt_variants.values_list("size", flat=True)) == {"S", "M", "L", "XL"}
+    assert set(shirt_variants.values_list("color", flat=True)) == {"Weiß", "Schwarz"}
+    assert shirt_variants.filter(size="S", color="Weiß").first().label == "S · Weiß"
+    # M4-A: у платья фото на цвет — подмена главного фото при выборе варианта
+    dress = Product.objects.get(name__de="Sommerkleid Nordlicht")
+    assert ProductVariant.objects.filter(product=dress).count() == 6
+    assert all(v.image_url for v in ProductVariant.objects.filter(product=dress))
     # Versand: доставка включена БЕЗ PLZ-зон (deutschlandweit, flat 4,90/frei ab 80)
     assert tenant.delivery_enabled and tenant.delivery_zones == []
     assert tenant.delivery_free_cents == 8000

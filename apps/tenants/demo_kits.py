@@ -3593,10 +3593,50 @@ CLOTHING = DemoKit(
                     "45.00",
                     "Leichte Viskose, Midi-Länge. Fällt normal aus.",
                     "summer,dress",
+                    # M4-A: размер × цвет + фото варианта (label собирается сам).
                     variants=[
-                        {"label": "S", "price": "45.00", "stock": 6},
-                        {"label": "M", "price": "45.00", "stock": 8},
-                        {"label": "L", "price": "45.00", "stock": 4},
+                        {
+                            "size": "S",
+                            "color": "Blau",
+                            "price": "45.00",
+                            "stock": 3,
+                            "images": ["blue,dress"],
+                        },
+                        {
+                            "size": "M",
+                            "color": "Blau",
+                            "price": "45.00",
+                            "stock": 4,
+                            "images": ["blue,dress"],
+                        },
+                        {
+                            "size": "L",
+                            "color": "Blau",
+                            "price": "45.00",
+                            "stock": 2,
+                            "images": ["blue,dress"],
+                        },
+                        {
+                            "size": "S",
+                            "color": "Sand",
+                            "price": "45.00",
+                            "stock": 3,
+                            "images": ["beige,dress"],
+                        },
+                        {
+                            "size": "M",
+                            "color": "Sand",
+                            "price": "45.00",
+                            "stock": 4,
+                            "images": ["beige,dress"],
+                        },
+                        {
+                            "size": "L",
+                            "color": "Sand",
+                            "price": "45.00",
+                            "stock": 2,
+                            "images": ["beige,dress"],
+                        },
                     ],
                     badge="beliebt",
                     material="100 % Viskose (LENZING™ ECOVERO™)",
@@ -3653,11 +3693,11 @@ CLOTHING = DemoKit(
                     "19.90",
                     "Schwerer Jersey, sitzt gerade.",
                     "tshirt",
+                    # M4-A: размер × цвет (без фото — фолбэк на фото товара).
                     variants=[
-                        {"label": "S", "price": "19.90", "stock": 10},
-                        {"label": "M", "price": "19.90", "stock": 12},
-                        {"label": "L", "price": "19.90", "stock": 8},
-                        {"label": "XL", "price": "19.90", "stock": 6},
+                        {"size": size, "color": color, "price": "19.90", "stock": stock}
+                        for size, stock in (("S", 5), ("M", 6), ("L", 4), ("XL", 3))
+                        for color in ("Weiß", "Schwarz")
                     ],
                     badge="beliebt",
                     gtin="4260000011001",
@@ -5681,9 +5721,18 @@ def apply_kit(tenant, key: str) -> bool:
                 vc = v.get("content")
                 vprice = Decimal(str(v["price"]))
                 vstock = v.get("stock")
+                # M4-A: оси размер/цвет (label собирается моделью, если не задан)
+                # + фото варианта (подмена главного фото при выборе).
+                vimages = [
+                    _image_ref(kw, lock + 1000 + vsort, v.get("color", ""))
+                    for kw in (v.get("images") or [])
+                ]
                 variant = ProductVariant.objects.create(
                     product=product,
-                    label=v["label"],
+                    label=v.get("label", ""),
+                    size=v.get("size", ""),
+                    color=v.get("color", ""),
+                    images=vimages,
                     price=vprice,
                     content_amount=Decimal(str(vc)) if vc is not None else None,
                     stock_quantity=vstock,

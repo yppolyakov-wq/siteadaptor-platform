@@ -15967,3 +15967,12 @@ msgid "%(n)s ungelesene Nachricht"
 msgid_plural "%(n)s ungelesene Nachrichten"
 msgstr[0] "%(n)s okunmamış mesaj"
 msgstr[1] "%(n)s okunmamış mesaj"
+
+msgid "Farbe"
+msgstr "Renk"
+
+msgid "Variante (leer = aus Größe/Farbe)"
+msgstr "Varyant (boş = beden/renkten)"
+
+msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
+msgstr "Moda için: beden ve rengi ayrı girin — etiket bunlardan otomatik oluşur."

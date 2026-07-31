@@ -81,3 +81,57 @@ def test_size_facet_filters_by_axis():
     ProductVariant.objects.create(product=large, label="", size="XL", color="Blau")
     found = CatalogFacets().apply(Product.objects.all(), {"groesse": "S"})
     assert list(found) == [small]
+
+
+def test_mixed_catalog_keeps_legacy_label_sizes():
+    """Смешанный каталог: товар с осями НЕ должен вытеснять легаси-label из
+    чипов и фильтра (иначе половина ассортимента становится ненаходимой)."""
+    from apps.catalog.facets import CatalogFacets
+
+    axed, legacy = _product("Kleid"), _product("Tee")
+    ProductVariant.objects.create(product=axed, label="", size="S", color="Blau")
+    ProductVariant.objects.create(product=legacy, label="100 g")
+    facets = CatalogFacets()
+    chips = facets.present(Product.objects.filter(is_active=True), {})["size_chips"]
+    assert sorted(chips) == ["100 g", "S"]
+    assert list(facets.apply(Product.objects.all(), {"groesse": "100 g"})) == [legacy]
+    assert list(facets.apply(Product.objects.all(), {"groesse": "S"})) == [axed]
+
+
+def test_size_facet_skips_sold_out_variant():
+    """Чип показывает только доступный размер (остаток 0 → товар не в выдаче)."""
+    from apps.catalog.facets import CatalogFacets
+
+    p = _product("Kleid")
+    ProductVariant.objects.create(product=p, label="", size="S", color="Blau", stock_quantity=0)
+    assert list(CatalogFacets().apply(Product.objects.all(), {"groesse": "S"})) == []
+
+
+def test_cart_form_field_set_unchanged_with_axes(settings):
+    """Ловушка №2 плана: оси НЕ добавляют полей формы — замок buybox пинит набор
+    ровно {csrf, product, variant, mod, qty}. Оси живут в data-атрибутах."""
+    import re
+
+    from django.template.loader import render_to_string
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    p = _product()
+    ProductVariant.objects.create(product=p, label="", size="S", color="Blau")
+    html = render_to_string("storefront/_add_to_cart_form.html", {"product": p})
+    names = set(re.findall(r'name="([a-z_]+)"', html))
+    assert names <= {"csrfmiddlewaretoken", "product", "variant", "mod", "qty"}
+    assert 'data-size="S"' in html and 'data-color="Blau"' in html
+
+
+def test_variant_photo_exposed_for_swap(settings):
+    """Фото варианта попадает в data-image — JS подменяет главное фото галереи."""
+    from django.template.loader import render_to_string
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    p = _product()
+    ProductVariant.objects.create(
+        product=p, label="M", images=[{"id": "a", "url": "/media/blau.webp"}]
+    )
+    html = render_to_string("storefront/_add_to_cart_form.html", {"product": p})
+    assert 'data-image="/media/blau.webp"' in html
+    assert "js-media-main" in html  # цель подмены — существующая галерея

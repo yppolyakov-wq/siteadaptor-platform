@@ -19,6 +19,17 @@ from apps.core.facets import FacetProvider, collection_chips, i18n_icontains_q
 RATING_THRESHOLDS = (3, 4, 5)
 
 
+def _with_size_axis(variants):
+    """M4-A: аннотация `size_axis` = ось `size`, а если она пуста — легаси-label.
+
+    Чипы и фильтр обязаны смотреть на ОДНО значение, иначе в смешанном каталоге
+    (часть товаров с осями, часть — со старым label) клик по чипу ничего не найдёт."""
+    from django.db.models import F, Value
+    from django.db.models.functions import Coalesce, NullIf
+
+    return variants.annotate(size_axis=Coalesce(NullIf(F("size"), Value("")), F("label")))
+
+
 def _money(raw):
     """Decimal из пользовательского ввода цены («12,50» тоже); мусор/минус → None."""
     try:
@@ -71,21 +82,17 @@ class CatalogFacets(FacetProvider):
         if sel["groesse"]:
             from django.db.models import Q
 
-            # Один filter() → один джойн варианта: размер И его доступность
-            # (NULL-остаток = безлимит). Дублей нет — label уникален per товар.
-            # M4-A: ось `size` при наличии, иначе легаси-label (чипы и фильтр
-            # обязаны смотреть на ОДНО поле — иначе клик по чипу ничего не найдёт).
+            # M4-A: размер = ось `size`, а где её нет — легаси-label (смешанный
+            # каталог: часть товаров заведена осями, часть — одним label).
+            # pk__in по вариантам вместо джойна: доступность (NULL-остаток =
+            # безлимит) считается на варианте, дублей товара не даёт.
             from apps.catalog.models import ProductVariant
 
-            axis = (
-                "variants__size"
-                if ProductVariant.objects.filter(is_active=True).exclude(size="").exists()
-                else "variants__label"
+            available = ProductVariant.objects.filter(product__in=items, is_active=True).filter(
+                Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)
             )
-            items = items.filter(
-                Q(**{axis: sel["groesse"]}, variants__is_active=True)
-                & (Q(variants__stock_quantity__isnull=True) | Q(variants__stock_quantity__gt=0))
-            )
+            matched = _with_size_axis(available).filter(size_axis=sel["groesse"])
+            items = items.filter(pk__in=matched.values("product_id"))
         if sel["kollektion"]:
             # M2M-JOIN по slug активной подборки; distinct — товар может входить
             # в несколько (тот же приём, что у услуг/номеров UB3-2).
@@ -168,23 +175,24 @@ class CatalogFacets(FacetProvider):
 
     @staticmethod
     def _size_chips(items) -> list:
-        """Чипы размера. M4-A: при заполненной оси `size` берём ЕЁ, иначе — label.
+        """Чипы размера. M4-A: ось `size`, а где её нет — label (тот же резолвер,
+        что у фильтра — иначе клик по чипу ничего не нашёл бы).
 
-        Иначе у товара с осями (S · Blau, S · Rot, M · Blau…) чипы превратились бы
-        в декартово произведение и фильтр стал бы бессмысленным."""
+        Без оси у товара с цветами чипы были бы декартовым произведением
+        («S · Blau», «S · Rot», «M · Blau»…) и фильтр стал бы бессмысленным."""
         from django.db.models import Min
 
         from apps.catalog.models import ProductVariant
 
         active = ProductVariant.objects.filter(product__in=items, is_active=True)
-        field = "size" if active.exclude(size="").exists() else "label"
         rows = (
-            active.exclude(**{field: ""})
-            .values(field)
+            _with_size_axis(active)
+            .exclude(size_axis="")
+            .values("size_axis")
             .annotate(o=Min("sort_order"))
-            .order_by("o", field)
+            .order_by("o", "size_axis")
         )
-        sizes = [r[field] for r in rows]
+        sizes = [r["size_axis"] for r in rows]
         return sizes if len(sizes) > 1 else []
 
     def search(self, items, q):
