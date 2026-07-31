@@ -14660,3 +14660,279 @@ msgstr "Online-Shop"
 #. I18N-1 choices 2026-07-30
 msgid "Datenschutz"
 msgstr "Datenschutz"
+
+#. I18N-2 builder 2026-07-30
+msgid "Ab-Preis"
+msgstr "Ab-Preis"
+
+#. I18N-2 builder 2026-07-30
+msgid "Abzeichen"
+msgstr "Abzeichen"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Banner"
+msgstr "Akzent-Banner"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Karte"
+msgstr "Akzent-Karte"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Rand"
+msgstr "Akzent-Rand"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Titel"
+msgstr "Akzent-Titel"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band Vollbreite, Foto rechts"
+msgstr "Band Vollbreite, Foto rechts"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band auf Vollbreite"
+msgstr "Band auf Vollbreite"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band mit Hintergrund"
+msgstr "Band mit Hintergrund"
+
+#. I18N-2 builder 2026-07-30
+msgid "Betrag-Badge (−5 €)"
+msgstr "Betrag-Badge (−5 €)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Countdown zentriert, ohne Badge"
+msgstr "Countdown zentriert, ohne Badge"
+
+#. I18N-2 builder 2026-07-30
+msgid "Countdown-Akzent"
+msgstr "Countdown-Akzent"
+
+#. I18N-2 builder 2026-07-30
+msgid "Drittel zentriert"
+msgstr "Drittel zentriert"
+
+#. I18N-2 builder 2026-07-30
+msgid "Durchgestrichener Preis"
+msgstr "Durchgestrichener Preis"
+
+#. I18N-2 builder 2026-07-30
+msgid "Eckig"
+msgstr "Eckig"
+
+#. I18N-2 builder 2026-07-30
+msgid "Einzeln zentriert"
+msgstr "Einzeln zentriert"
+
+#. I18N-2 builder 2026-07-30
+msgid "Filmstreifen"
+msgstr "Filmstreifen"
+
+#. I18N-2 builder 2026-07-30
+msgid "Finder"
+msgstr "Finder"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto rechts"
+msgstr "Foto rechts"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto rechts + Karte"
+msgstr "Foto rechts + Karte"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto seitlich"
+msgstr "Foto seitlich"
+
+#. I18N-2 builder 2026-07-30
+msgid "Gedämpft"
+msgstr "Gedämpft"
+
+#. I18N-2 builder 2026-07-30
+msgid "Groß"
+msgstr "Groß"
+
+#. I18N-2 builder 2026-07-30
+msgid "Große Kacheln"
+msgstr "Große Kacheln"
+
+#. I18N-2 builder 2026-07-30
+msgid "Große Zitate"
+msgstr "Große Zitate"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit"
+msgstr "Halbbreit"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit links"
+msgstr "Halbbreit links"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit rechts"
+msgstr "Halbbreit rechts"
+
+#. I18N-2 builder 2026-07-30
+msgid "In einer Reihe"
+msgstr "In einer Reihe"
+
+#. I18N-2 builder 2026-07-30
+msgid "Intro links groß"
+msgstr "Intro links groß"
+
+#. I18N-2 builder 2026-07-30
+msgid "Intro zentriert"
+msgstr "Intro zentriert"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte mit Schatten"
+msgstr "Karte mit Schatten"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte seitlich"
+msgstr "Karte seitlich"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte zuerst"
+msgstr "Karte zuerst"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karten"
+msgstr "Karten"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kleiner Hinweis links 1/3"
+msgstr "Kleiner Hinweis links 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt"
+msgstr "Kompakt"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt 2/3"
+msgstr "Kompakt 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt 2/3, Foto rechts"
+msgstr "Kompakt 2/3, Foto rechts"
+
+#. I18N-2 builder 2026-07-30
+msgid "Linksbündig"
+msgstr "Linksbündig"
+
+#. I18N-2 builder 2026-07-30
+msgid "Linksbündig 1/3"
+msgstr "Linksbündig 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Mit Schatten"
+msgstr "Mit Schatten"
+
+#. I18N-2 builder 2026-07-30
+msgid "Mystery (Preis versteckt)"
+msgstr "Mystery (Preis versteckt)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Notiz 2/3"
+msgstr "Notiz 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nummeriert"
+msgstr "Nummeriert"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nur neuer Preis"
+msgstr "Nur neuer Preis"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nur Überschrift"
+msgstr "Nur Überschrift"
+
+#. I18N-2 builder 2026-07-30
+msgid "Offene Liste"
+msgstr "Offene Liste"
+
+#. I18N-2 builder 2026-07-30
+msgid "Ohne Karte"
+msgstr "Ohne Karte"
+
+#. I18N-2 builder 2026-07-30
+msgid "Polaroid"
+msgstr "Polaroid"
+
+#. I18N-2 builder 2026-07-30
+msgid "Prozent, Vollbreite"
+msgstr "Prozent, Vollbreite"
+
+#. I18N-2 builder 2026-07-30
+msgid "Prozent-Badge (−30 %)"
+msgstr "Prozent-Badge (−30 %)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Rechtsbündig 1/3"
+msgstr "Rechtsbündig 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Runde Fotos"
+msgstr "Runde Fotos"
+
+#. I18N-2 builder 2026-07-30
+msgid "Schmal"
+msgstr "Schmal"
+
+#. I18N-2 builder 2026-07-30
+msgid "Schmal 2/3"
+msgstr "Schmal 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Sehr groß"
+msgstr "Sehr groß"
+
+#. I18N-2 builder 2026-07-30
+msgid "Stark gerundet"
+msgstr "Stark gerundet"
+
+#. I18N-2 builder 2026-07-30
+msgid "Viertel links"
+msgstr "Viertel links"
+
+#. I18N-2 builder 2026-07-30
+msgid "Viertel rechts"
+msgstr "Viertel rechts"
+
+#. I18N-2 builder 2026-07-30
+msgid "Vollbreite"
+msgstr "Vollbreite"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weich gerundet + Schatten"
+msgstr "Weich gerundet + Schatten"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weiches Band"
+msgstr "Weiches Band"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weiße Karte"
+msgstr "Weiße Karte"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zeitstrahl"
+msgstr "Zeitstrahl"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zitat"
+msgstr "Zitat"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zitat rechts 2/3"
+msgstr "Zitat rechts 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zwei Spalten"
+msgstr "Zwei Spalten"
+
+#. I18N-2 builder 2026-07-30
+msgid "Überraschungstüte"
+msgstr "Überraschungstüte"

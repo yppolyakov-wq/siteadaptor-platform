@@ -8,6 +8,8 @@ JSON-строку — шаблон вставляет её в <script type="appl
 
 import json
 
+from django.core.serializers.json import DjangoJSONEncoder
+
 # business_type тенанта → более конкретный тип schema.org (точнее LocalBusiness)
 _SCHEMA_TYPES = {
     "bakery": "Bakery",
@@ -37,7 +39,11 @@ _JSONLD_ESCAPES = {
 
 
 def _dumps(data: dict) -> str:
-    return json.dumps(data, ensure_ascii=False, separators=(",", ":")).translate(_JSONLD_ESCAPES)
+    # I18N-2: cls=DjangoJSONEncoder — реестры билдера отдают lazy-строки
+    # (gettext_lazy) в label'ах; штатный энкодер на них падает TypeError.
+    return json.dumps(
+        data, ensure_ascii=False, separators=(",", ":"), cls=DjangoJSONEncoder
+    ).translate(_JSONLD_ESCAPES)
 
 
 def localbusiness_ld(

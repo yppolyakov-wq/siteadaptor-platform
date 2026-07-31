@@ -14633,3 +14633,279 @@ msgstr "Online mağaza"
 #. I18N-1 choices 2026-07-30
 msgid "Datenschutz"
 msgstr "Gizlilik"
+
+#. I18N-2 builder 2026-07-30
+msgid "Ab-Preis"
+msgstr "Başlangıç fiyatı"
+
+#. I18N-2 builder 2026-07-30
+msgid "Abzeichen"
+msgstr "Rozetler"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Banner"
+msgstr "Vurgulu banner"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Karte"
+msgstr "Vurgulu kart"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Rand"
+msgstr "Vurgulu kenar"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Titel"
+msgstr "Vurgulu başlık"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band Vollbreite, Foto rechts"
+msgstr "Tam genişlik şerit, fotoğraf sağda"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band auf Vollbreite"
+msgstr "Tam genişlik şerit"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band mit Hintergrund"
+msgstr "Arka planlı şerit"
+
+#. I18N-2 builder 2026-07-30
+msgid "Betrag-Badge (−5 €)"
+msgstr "Tutar rozeti (−5 €)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Countdown zentriert, ohne Badge"
+msgstr "Ortalanmış geri sayım, rozetsiz"
+
+#. I18N-2 builder 2026-07-30
+msgid "Countdown-Akzent"
+msgstr "Geri sayım vurgusu"
+
+#. I18N-2 builder 2026-07-30
+msgid "Drittel zentriert"
+msgstr "Üçte bir, ortalanmış"
+
+#. I18N-2 builder 2026-07-30
+msgid "Durchgestrichener Preis"
+msgstr "Üstü çizili fiyat"
+
+#. I18N-2 builder 2026-07-30
+msgid "Eckig"
+msgstr "Köşeli"
+
+#. I18N-2 builder 2026-07-30
+msgid "Einzeln zentriert"
+msgstr "Tek, ortalanmış"
+
+#. I18N-2 builder 2026-07-30
+msgid "Filmstreifen"
+msgstr "Film şeridi"
+
+#. I18N-2 builder 2026-07-30
+msgid "Finder"
+msgstr "Bulucu"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto rechts"
+msgstr "Fotoğraf sağda"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto rechts + Karte"
+msgstr "Fotoğraf sağda + kart"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto seitlich"
+msgstr "Fotoğraf yanda"
+
+#. I18N-2 builder 2026-07-30
+msgid "Gedämpft"
+msgstr "Soluk"
+
+#. I18N-2 builder 2026-07-30
+msgid "Groß"
+msgstr "Büyük"
+
+#. I18N-2 builder 2026-07-30
+msgid "Große Kacheln"
+msgstr "Büyük kutular"
+
+#. I18N-2 builder 2026-07-30
+msgid "Große Zitate"
+msgstr "Büyük alıntılar"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit"
+msgstr "Yarım genişlik"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit links"
+msgstr "Yarım genişlik, sol"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit rechts"
+msgstr "Yarım genişlik, sağ"
+
+#. I18N-2 builder 2026-07-30
+msgid "In einer Reihe"
+msgstr "Tek sırada"
+
+#. I18N-2 builder 2026-07-30
+msgid "Intro links groß"
+msgstr "Giriş solda, büyük"
+
+#. I18N-2 builder 2026-07-30
+msgid "Intro zentriert"
+msgstr "Giriş ortalanmış"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte mit Schatten"
+msgstr "Gölgeli kart"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte seitlich"
+msgstr "Harita yanda"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte zuerst"
+msgstr "Önce harita"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karten"
+msgstr "Kartlar"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kleiner Hinweis links 1/3"
+msgstr "Küçük not, solda 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt"
+msgstr "Kompakt"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt 2/3"
+msgstr "Kompakt 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt 2/3, Foto rechts"
+msgstr "Kompakt 2/3, fotoğraf sağda"
+
+#. I18N-2 builder 2026-07-30
+msgid "Linksbündig"
+msgstr "Sola hizalı"
+
+#. I18N-2 builder 2026-07-30
+msgid "Linksbündig 1/3"
+msgstr "Sola hizalı 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Mit Schatten"
+msgstr "Gölgeli"
+
+#. I18N-2 builder 2026-07-30
+msgid "Mystery (Preis versteckt)"
+msgstr "Gizemli (fiyat gizli)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Notiz 2/3"
+msgstr "Not 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nummeriert"
+msgstr "Numaralı"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nur neuer Preis"
+msgstr "Sadece yeni fiyat"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nur Überschrift"
+msgstr "Sadece başlık"
+
+#. I18N-2 builder 2026-07-30
+msgid "Offene Liste"
+msgstr "Açık liste"
+
+#. I18N-2 builder 2026-07-30
+msgid "Ohne Karte"
+msgstr "Kartsız"
+
+#. I18N-2 builder 2026-07-30
+msgid "Polaroid"
+msgstr "Polaroid"
+
+#. I18N-2 builder 2026-07-30
+msgid "Prozent, Vollbreite"
+msgstr "Yüzde, tam genişlik"
+
+#. I18N-2 builder 2026-07-30
+msgid "Prozent-Badge (−30 %)"
+msgstr "Yüzde rozeti (−30 %)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Rechtsbündig 1/3"
+msgstr "Sağa hizalı 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Runde Fotos"
+msgstr "Yuvarlak fotoğraflar"
+
+#. I18N-2 builder 2026-07-30
+msgid "Schmal"
+msgstr "Dar"
+
+#. I18N-2 builder 2026-07-30
+msgid "Schmal 2/3"
+msgstr "Dar 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Sehr groß"
+msgstr "Çok büyük"
+
+#. I18N-2 builder 2026-07-30
+msgid "Stark gerundet"
+msgstr "Çok yuvarlatılmış"
+
+#. I18N-2 builder 2026-07-30
+msgid "Viertel links"
+msgstr "Çeyrek, sol"
+
+#. I18N-2 builder 2026-07-30
+msgid "Viertel rechts"
+msgstr "Çeyrek, sağ"
+
+#. I18N-2 builder 2026-07-30
+msgid "Vollbreite"
+msgstr "Tam genişlik"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weich gerundet + Schatten"
+msgstr "Yumuşak yuvarlak + gölge"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weiches Band"
+msgstr "Yumuşak şerit"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weiße Karte"
+msgstr "Beyaz kart"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zeitstrahl"
+msgstr "Zaman çizelgesi"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zitat"
+msgstr "Alıntı"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zitat rechts 2/3"
+msgstr "Alıntı sağda 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zwei Spalten"
+msgstr "İki sütun"
+
+#. I18N-2 builder 2026-07-30
+msgid "Überraschungstüte"
+msgstr "Sürpriz paket"

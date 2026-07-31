@@ -14688,3 +14688,279 @@ msgstr "Інтернет-магазин"
 #. I18N-1 choices 2026-07-30
 msgid "Datenschutz"
 msgstr "Політика конфіденційності"
+
+#. I18N-2 builder 2026-07-30
+msgid "Ab-Preis"
+msgstr "Ціна «від»"
+
+#. I18N-2 builder 2026-07-30
+msgid "Abzeichen"
+msgstr "Значки"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Banner"
+msgstr "Акцентний банер"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Karte"
+msgstr "Акцентна картка"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Rand"
+msgstr "Акцентна рамка"
+
+#. I18N-2 builder 2026-07-30
+msgid "Akzent-Titel"
+msgstr "Акцентний заголовок"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band Vollbreite, Foto rechts"
+msgstr "Смуга на всю ширину, фото праворуч"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band auf Vollbreite"
+msgstr "Смуга на всю ширину"
+
+#. I18N-2 builder 2026-07-30
+msgid "Band mit Hintergrund"
+msgstr "Смуга з тлом"
+
+#. I18N-2 builder 2026-07-30
+msgid "Betrag-Badge (−5 €)"
+msgstr "Бейдж суми (−5 €)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Countdown zentriert, ohne Badge"
+msgstr "Відлік по центру, без бейджа"
+
+#. I18N-2 builder 2026-07-30
+msgid "Countdown-Akzent"
+msgstr "Акцент на відліку"
+
+#. I18N-2 builder 2026-07-30
+msgid "Drittel zentriert"
+msgstr "Третина по центру"
+
+#. I18N-2 builder 2026-07-30
+msgid "Durchgestrichener Preis"
+msgstr "Закреслена ціна"
+
+#. I18N-2 builder 2026-07-30
+msgid "Eckig"
+msgstr "Прямі кути"
+
+#. I18N-2 builder 2026-07-30
+msgid "Einzeln zentriert"
+msgstr "Одиночний по центру"
+
+#. I18N-2 builder 2026-07-30
+msgid "Filmstreifen"
+msgstr "Кіноплівка"
+
+#. I18N-2 builder 2026-07-30
+msgid "Finder"
+msgstr "Добірник"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto rechts"
+msgstr "Фото праворуч"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto rechts + Karte"
+msgstr "Фото праворуч + картка"
+
+#. I18N-2 builder 2026-07-30
+msgid "Foto seitlich"
+msgstr "Фото збоку"
+
+#. I18N-2 builder 2026-07-30
+msgid "Gedämpft"
+msgstr "Приглушений"
+
+#. I18N-2 builder 2026-07-30
+msgid "Groß"
+msgstr "Великий"
+
+#. I18N-2 builder 2026-07-30
+msgid "Große Kacheln"
+msgstr "Великі плитки"
+
+#. I18N-2 builder 2026-07-30
+msgid "Große Zitate"
+msgstr "Великі цитати"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit"
+msgstr "Половина ширини"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit links"
+msgstr "Половина ширини ліворуч"
+
+#. I18N-2 builder 2026-07-30
+msgid "Halbbreit rechts"
+msgstr "Половина ширини праворуч"
+
+#. I18N-2 builder 2026-07-30
+msgid "In einer Reihe"
+msgstr "В один рядок"
+
+#. I18N-2 builder 2026-07-30
+msgid "Intro links groß"
+msgstr "Інтро ліворуч, великим"
+
+#. I18N-2 builder 2026-07-30
+msgid "Intro zentriert"
+msgstr "Інтро по центру"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte mit Schatten"
+msgstr "Картка з тінню"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte seitlich"
+msgstr "Мапа збоку"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karte zuerst"
+msgstr "Спершу мапа"
+
+#. I18N-2 builder 2026-07-30
+msgid "Karten"
+msgstr "Картки"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kleiner Hinweis links 1/3"
+msgstr "Маленька нотатка ліворуч 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt"
+msgstr "Компактно"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt 2/3"
+msgstr "Компактно 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Kompakt 2/3, Foto rechts"
+msgstr "Компактно 2/3, фото праворуч"
+
+#. I18N-2 builder 2026-07-30
+msgid "Linksbündig"
+msgstr "За лівим краєм"
+
+#. I18N-2 builder 2026-07-30
+msgid "Linksbündig 1/3"
+msgstr "За лівим краєм 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Mit Schatten"
+msgstr "З тінню"
+
+#. I18N-2 builder 2026-07-30
+msgid "Mystery (Preis versteckt)"
+msgstr "Mystery (ціна прихована)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Notiz 2/3"
+msgstr "Нотатка 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nummeriert"
+msgstr "З нумерацією"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nur neuer Preis"
+msgstr "Лише нова ціна"
+
+#. I18N-2 builder 2026-07-30
+msgid "Nur Überschrift"
+msgstr "Лише заголовок"
+
+#. I18N-2 builder 2026-07-30
+msgid "Offene Liste"
+msgstr "Відкритий список"
+
+#. I18N-2 builder 2026-07-30
+msgid "Ohne Karte"
+msgstr "Без картки"
+
+#. I18N-2 builder 2026-07-30
+msgid "Polaroid"
+msgstr "Полароїд"
+
+#. I18N-2 builder 2026-07-30
+msgid "Prozent, Vollbreite"
+msgstr "Відсоток, на всю ширину"
+
+#. I18N-2 builder 2026-07-30
+msgid "Prozent-Badge (−30 %)"
+msgstr "Бейдж відсотка (−30 %)"
+
+#. I18N-2 builder 2026-07-30
+msgid "Rechtsbündig 1/3"
+msgstr "За правим краєм 1/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Runde Fotos"
+msgstr "Круглі фото"
+
+#. I18N-2 builder 2026-07-30
+msgid "Schmal"
+msgstr "Вузько"
+
+#. I18N-2 builder 2026-07-30
+msgid "Schmal 2/3"
+msgstr "Вузько 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Sehr groß"
+msgstr "Дуже великий"
+
+#. I18N-2 builder 2026-07-30
+msgid "Stark gerundet"
+msgstr "Сильно заокруглений"
+
+#. I18N-2 builder 2026-07-30
+msgid "Viertel links"
+msgstr "Чверть ліворуч"
+
+#. I18N-2 builder 2026-07-30
+msgid "Viertel rechts"
+msgstr "Чверть праворуч"
+
+#. I18N-2 builder 2026-07-30
+msgid "Vollbreite"
+msgstr "На всю ширину"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weich gerundet + Schatten"
+msgstr "М’яке заокруглення + тінь"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weiches Band"
+msgstr "М’яка смуга"
+
+#. I18N-2 builder 2026-07-30
+msgid "Weiße Karte"
+msgstr "Біла картка"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zeitstrahl"
+msgstr "Таймлайн"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zitat"
+msgstr "Цитата"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zitat rechts 2/3"
+msgstr "Цитата праворуч 2/3"
+
+#. I18N-2 builder 2026-07-30
+msgid "Zwei Spalten"
+msgstr "Дві колонки"
+
+#. I18N-2 builder 2026-07-30
+msgid "Überraschungstüte"
+msgstr "Сюрприз-пакет"
