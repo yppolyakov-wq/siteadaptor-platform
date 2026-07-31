@@ -10,6 +10,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
@@ -23,12 +24,12 @@ class RevenueEntry(TimestampedModel):
     SOURCE_EVENT = "event"
     SOURCE_MANUAL = "manual"
     SOURCES = [
-        (SOURCE_ORDER, "Order"),
-        (SOURCE_RESERVATION, "Reservation"),
-        (SOURCE_STAY, "Stay"),
-        (SOURCE_BOOKING, "Booking"),
-        (SOURCE_EVENT, "Event"),
-        (SOURCE_MANUAL, "Manual"),
+        (SOURCE_ORDER, _("Order")),
+        (SOURCE_RESERVATION, _("Reservation")),
+        (SOURCE_STAY, _("Stay")),
+        (SOURCE_BOOKING, _("Booking")),
+        (SOURCE_EVENT, _("Event")),
+        (SOURCE_MANUAL, _("Manual")),
     ]
     # Ставки НДС DE: 19 стандарт, 7 еда/печать, 0 — §19 Kleinunternehmer и пр.
     VAT_RATES = [Decimal("19.00"), Decimal("7.00"), Decimal("0.00")]
@@ -88,10 +89,10 @@ class Invoice(TimestampedModel):
     STATUS_PAID = "paid"
     STATUS_CANCELLED = "cancelled"
     STATUSES = [
-        (STATUS_DRAFT, "Entwurf"),
-        (STATUS_ISSUED, "Gestellt"),
-        (STATUS_PAID, "Bezahlt"),
-        (STATUS_CANCELLED, "Storniert"),
+        (STATUS_DRAFT, _("Entwurf")),
+        (STATUS_ISSUED, _("Gestellt")),
+        (STATUS_PAID, _("Bezahlt")),
+        (STATUS_CANCELLED, _("Storniert")),
     ]
 
     number = models.PositiveIntegerField(null=True, blank=True, unique=True)

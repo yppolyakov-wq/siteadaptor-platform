@@ -11,6 +11,7 @@ import uuid
 from decimal import Decimal
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
@@ -25,13 +26,13 @@ class Job(TimestampedModel):
     STATUS_DECLINED = "declined"  # abgelehnt
     STATUS_CANCELLED = "cancelled"
     STATUSES = [
-        (STATUS_NEW, "Anfrage"),
-        (STATUS_QUOTED, "Angebot gesendet"),
-        (STATUS_ACCEPTED, "Beauftragt"),
-        (STATUS_DONE, "Erledigt"),
-        (STATUS_INVOICED, "Abgerechnet"),
-        (STATUS_DECLINED, "Abgelehnt"),
-        (STATUS_CANCELLED, "Storniert"),
+        (STATUS_NEW, _("Anfrage")),
+        (STATUS_QUOTED, _("Angebot gesendet")),
+        (STATUS_ACCEPTED, _("Beauftragt")),
+        (STATUS_DONE, _("Erledigt")),
+        (STATUS_INVOICED, _("Abgerechnet")),
+        (STATUS_DECLINED, _("Abgelehnt")),
+        (STATUS_CANCELLED, _("Storniert")),
     ]
 
     # PROTECT, как у Reservation/Order: клиента с заявками не удалить молча
@@ -86,9 +87,9 @@ class Job(TimestampedModel):
     PAYMENT_PAID = "paid"
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
-        (PAYMENT_UNPAID, "Unpaid"),
-        (PAYMENT_PAID, "Paid"),
-        (PAYMENT_REFUNDED, "Refunded"),
+        (PAYMENT_UNPAID, _("Unpaid")),
+        (PAYMENT_PAID, _("Paid")),
+        (PAYMENT_REFUNDED, _("Refunded")),
     ]
     deposit_cents = models.PositiveIntegerField(default=0)  # 0 = без Anzahlung
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_UNPAID)

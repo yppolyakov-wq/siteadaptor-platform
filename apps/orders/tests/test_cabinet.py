@@ -12,6 +12,7 @@ from django.test import RequestFactory
 from apps.catalog.tests.factories import ProductFactory
 from apps.notifications.models import Notification
 from apps.orders import services, views
+from apps.orders.models import Order
 from apps.orders.state_machine import OrderSM
 
 pytestmark = pytest.mark.django_db
@@ -159,10 +160,13 @@ def test_status_labels_save_render_and_reset():
     req = _req(path=f"/dashboard/orders/{order.pk}/")
     req.tenant = tenant
     assert "Eingegangen 📥" in views.order_detail(req, order.pk).content.decode()
-    # без кастома — дефолт (fallback тега)
+    # без кастома — дефолт (fallback тега). I18N-1 (2026-07-30): метки STATUSES
+    # обёрнуты в gettext_lazy, поэтому сверяемся с ПЕРЕВЕДЁННЫМ значением реестра,
+    # а не с английским литералом (раньше замок пинил непереведённость).
     req = _req()
     req.tenant = TenantFactory(slug="t2")
-    assert "New" in views.order_list(req).content.decode()
+    default_label = str(dict(Order.STATUSES)[Order.STATUS_NEW])
+    assert default_label in views.order_list(req).content.decode()
 
     req = _req("post", "/dashboard/orders/settings/", {"form": "status_labels"})
     req.tenant = tenant

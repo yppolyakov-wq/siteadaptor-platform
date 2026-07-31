@@ -14205,3 +14205,431 @@ msgstr "Tüm parçaları mağazada görün"
 #. M4-B lookbook 2026-07-30
 msgid "Zu diesem Look sind noch keine Artikel zugeordnet."
 msgstr "Bu look'a henüz ürün atanmadı."
+
+#. I18N-1 choices 2026-07-30
+msgid "Accepted"
+msgstr "Kabul edildi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Completed"
+msgstr "Tamamlandı"
+
+#. I18N-1 choices 2026-07-30
+msgid "Delivered"
+msgstr "Teslim edildi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Failed"
+msgstr "Başarısız"
+
+#. I18N-1 choices 2026-07-30
+msgid "Paused"
+msgstr "Duraklatıldı"
+
+#. I18N-1 choices 2026-07-30
+msgid "Resolved"
+msgstr "Çözüldü"
+
+#. I18N-1 choices 2026-07-30
+msgid "Returned"
+msgstr "İade edildi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Unpaid"
+msgstr "Ödenmedi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Deposit paid"
+msgstr "Kapora ödendi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Installment plan"
+msgstr "Taksit planı"
+
+#. I18N-1 choices 2026-07-30
+msgid "Manual"
+msgstr "Manuel"
+
+#. I18N-1 choices 2026-07-30
+msgid "Admin"
+msgstr "Yönetici"
+
+#. I18N-1 choices 2026-07-30
+msgid "Owner"
+msgstr "Sahibi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Staff"
+msgstr "Personel"
+
+#. I18N-1 choices 2026-07-30
+msgid "User"
+msgstr "Kullanıcı"
+
+#. I18N-1 choices 2026-07-30
+msgid "Cron"
+msgstr "Cron"
+
+#. I18N-1 choices 2026-07-30
+msgid "Integration"
+msgstr "Entegrasyon"
+
+#. I18N-1 choices 2026-07-30
+msgid "Product"
+msgstr "Ürün"
+
+#. I18N-1 choices 2026-07-30
+msgid "Service"
+msgstr "Hizmet"
+
+#. I18N-1 choices 2026-07-30
+msgid "Event"
+msgstr "Etkinlik"
+
+#. I18N-1 choices 2026-07-30
+msgid "Reservation"
+msgstr "Rezervasyon"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tab"
+msgstr "Sekme"
+
+#. I18N-1 choices 2026-07-30
+msgid "Vertical"
+msgstr "Sektör"
+
+#. I18N-1 choices 2026-07-30
+msgid "City + type"
+msgstr "Şehir + tür"
+
+#. I18N-1 choices 2026-07-30
+msgid "Other"
+msgstr "Diğer"
+
+#. I18N-1 choices 2026-07-30
+msgid "Airbnb"
+msgstr "Airbnb"
+
+#. I18N-1 choices 2026-07-30
+msgid "Booking.com"
+msgstr "Booking.com"
+
+#. I18N-1 choices 2026-07-30
+msgid "Expedia"
+msgstr "Expedia"
+
+#. I18N-1 choices 2026-07-30
+msgid "Facebook"
+msgstr "Facebook"
+
+#. I18N-1 choices 2026-07-30
+msgid "Instagram"
+msgstr "Instagram"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pinterest"
+msgstr "Pinterest"
+
+#. I18N-1 choices 2026-07-30
+msgid "PayPal"
+msgstr "PayPal"
+
+#. I18N-1 choices 2026-07-30
+msgid "Google Business Profile"
+msgstr "Google Business Profile"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anderer Kanal"
+msgstr "Diğer kanal"
+
+#. I18N-1 choices 2026-07-30
+msgid "Log (internal)"
+msgstr "Günlük (dahili)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Montag"
+msgstr "Pazartesi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Dienstag"
+msgstr "Salı"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mittwoch"
+msgstr "Çarşamba"
+
+#. I18N-1 choices 2026-07-30
+msgid "Donnerstag"
+msgstr "Perşembe"
+
+#. I18N-1 choices 2026-07-30
+msgid "Freitag"
+msgstr "Cuma"
+
+#. I18N-1 choices 2026-07-30
+msgid "Samstag"
+msgstr "Cumartesi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Sonntag"
+msgstr "Pazar"
+
+#. I18N-1 choices 2026-07-30
+msgid "Stück / —"
+msgstr "Adet / —"
+
+#. I18N-1 choices 2026-07-30
+msgid "Gramm"
+msgstr "Gram"
+
+#. I18N-1 choices 2026-07-30
+msgid "Kilogramm"
+msgstr "Kilogram"
+
+#. I18N-1 choices 2026-07-30
+msgid "Milliliter"
+msgstr "Mililitre"
+
+#. I18N-1 choices 2026-07-30
+msgid "Liter"
+msgstr "Litre"
+
+#. I18N-1 choices 2026-07-30
+msgid "Wareneingang"
+msgstr "Mal girişi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Verkauf"
+msgstr "Satış"
+
+#. I18N-1 choices 2026-07-30
+msgid "Rückgabe"
+msgstr "İade"
+
+#. I18N-1 choices 2026-07-30
+msgid "Materialverbrauch"
+msgstr "Malzeme kullanımı"
+
+#. I18N-1 choices 2026-07-30
+msgid "Umlagerung (ab)"
+msgstr "Transfer (çıkış)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Umlagerung (zu)"
+msgstr "Transfer (giriş)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Entwurf"
+msgstr "Taslak"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bestellt"
+msgstr "Sipariş edildi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Empfangen"
+msgstr "Teslim alındı"
+
+#. I18N-1 choices 2026-07-30
+msgid "Barzahlung bei Abholung"
+msgstr "Teslimatta nakit"
+
+#. I18N-1 choices 2026-07-30
+msgid "Online-Zahlung"
+msgstr "Online ödeme"
+
+#. I18N-1 choices 2026-07-30
+msgid "Vorkasse (Überweisung)"
+msgstr "Ön ödeme (havale)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Karte"
+msgstr "Kart"
+
+#. I18N-1 choices 2026-07-30
+msgid "Klarna (u. a. Kauf auf Rechnung)"
+msgstr "Klarna (fatura ile ödeme dahil)"
+
+#. I18N-1 choices 2026-07-30
+msgid "SEPA-Lastschrift"
+msgstr "SEPA otomatik ödeme"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bezahlt"
+msgstr "Ödendi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Gestellt"
+msgstr "Düzenlendi"
+
+#. I18N-1 choices 2026-07-30
+msgid "Manuell"
+msgstr "Manuel"
+
+#. I18N-1 choices 2026-07-30
+msgid "Auto Win-back"
+msgstr "Otomatik geri kazanım"
+
+#. I18N-1 choices 2026-07-30
+msgid "Geburtstag"
+msgstr "Doğum günü"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anfrage"
+msgstr "Talep"
+
+#. I18N-1 choices 2026-07-30
+msgid "Langzeit (ab N Nächten)"
+msgstr "Uzun konaklama (N geceden itibaren)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Frühbucher (ab N Tagen vorher)"
+msgstr "Erken rezervasyon (N gün önce)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Last-Minute (bis N Tage vorher)"
+msgstr "Son dakika (N güne kadar)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bis zur Veranstaltung"
+msgstr "Etkinliğe kadar"
+
+#. I18N-1 choices 2026-07-30
+msgid "Feste Monatsraten"
+msgstr "Sabit aylık taksitler"
+
+#. I18N-1 choices 2026-07-30
+msgid "Achtsamkeit"
+msgstr "Farkındalık"
+
+#. I18N-1 choices 2026-07-30
+msgid "Yoga"
+msgstr "Yoga"
+
+#. I18N-1 choices 2026-07-30
+msgid "Meditation"
+msgstr "Meditasyon"
+
+#. I18N-1 choices 2026-07-30
+msgid "Ayurveda"
+msgstr "Ayurveda"
+
+#. I18N-1 choices 2026-07-30
+msgid "Fasten & Detox"
+msgstr "Oruç ve detoks"
+
+#. I18N-1 choices 2026-07-30
+msgid "Klang & Musik"
+msgstr "Ses ve müzik"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pilgern & Spiritualität"
+msgstr "Hac ve maneviyat"
+
+#. I18N-1 choices 2026-07-30
+msgid "Natur & Wandern"
+msgstr "Doğa ve yürüyüş"
+
+#. I18N-1 choices 2026-07-30
+msgid "Persönlichkeitsentwicklung"
+msgstr "Kişisel gelişim"
+
+#. I18N-1 choices 2026-07-30
+msgid "Alle Level"
+msgstr "Tüm seviyeler"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anfänger"
+msgstr "Başlangıç"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mittel"
+msgstr "Orta"
+
+#. I18N-1 choices 2026-07-30
+msgid "Fortgeschritten"
+msgstr "İleri"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tagesveranstaltung"
+msgstr "Tek günlük etkinlik"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mehrtägig"
+msgstr "Çok günlü"
+
+#. I18N-1 choices 2026-07-30
+msgid "Komma  ,"
+msgstr "Virgül  ,"
+
+#. I18N-1 choices 2026-07-30
+msgid "Semikolon  ;"
+msgstr "Noktalı virgül  ;"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pipe  |"
+msgstr "Dikey çizgi  |"
+
+#. I18N-1 choices 2026-07-30
+msgid "Produktvarianten"
+msgstr "Ürün varyantları"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bakery / Bäckerei"
+msgstr "Fırın"
+
+#. I18N-1 choices 2026-07-30
+msgid "Butcher / Metzgerei"
+msgstr "Kasap"
+
+#. I18N-1 choices 2026-07-30
+msgid "Cafe"
+msgstr "Kafe"
+
+#. I18N-1 choices 2026-07-30
+msgid "Restaurant"
+msgstr "Restoran"
+
+#. I18N-1 choices 2026-07-30
+msgid "Retail / Einzelhandel"
+msgstr "Perakende"
+
+#. I18N-1 choices 2026-07-30
+msgid "Grocery / Lebensmittel"
+msgstr "Market"
+
+#. I18N-1 choices 2026-07-30
+msgid "Clothing / Bekleidung"
+msgstr "Giyim"
+
+#. I18N-1 choices 2026-07-30
+msgid "Hotel"
+msgstr "Otel"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tour Operator"
+msgstr "Tur operatörü"
+
+#. I18N-1 choices 2026-07-30
+msgid "Friseur / Salon"
+msgstr "Kuaför"
+
+#. I18N-1 choices 2026-07-30
+msgid "Handwerker"
+msgstr "Zanaatkâr"
+
+#. I18N-1 choices 2026-07-30
+msgid "Werkstatt / KFZ"
+msgstr "Oto servis"
+
+#. I18N-1 choices 2026-07-30
+msgid "Veranstalter / Events"
+msgstr "Etkinlik düzenleyici"
+
+#. I18N-1 choices 2026-07-30
+msgid "Online-Shop"
+msgstr "Online mağaza"
+
+#. I18N-1 choices 2026-07-30
+msgid "Datenschutz"
+msgstr "Gizlilik"

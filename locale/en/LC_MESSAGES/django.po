@@ -14093,3 +14093,431 @@ msgstr "See all pieces in the shop"
 #. M4-B lookbook 2026-07-30
 msgid "Zu diesem Look sind noch keine Artikel zugeordnet."
 msgstr "No items are assigned to this look yet."
+
+#. I18N-1 choices 2026-07-30
+msgid "Accepted"
+msgstr "Accepted"
+
+#. I18N-1 choices 2026-07-30
+msgid "Completed"
+msgstr "Completed"
+
+#. I18N-1 choices 2026-07-30
+msgid "Delivered"
+msgstr "Delivered"
+
+#. I18N-1 choices 2026-07-30
+msgid "Failed"
+msgstr "Failed"
+
+#. I18N-1 choices 2026-07-30
+msgid "Paused"
+msgstr "Paused"
+
+#. I18N-1 choices 2026-07-30
+msgid "Resolved"
+msgstr "Resolved"
+
+#. I18N-1 choices 2026-07-30
+msgid "Returned"
+msgstr "Returned"
+
+#. I18N-1 choices 2026-07-30
+msgid "Unpaid"
+msgstr "Unpaid"
+
+#. I18N-1 choices 2026-07-30
+msgid "Deposit paid"
+msgstr "Deposit paid"
+
+#. I18N-1 choices 2026-07-30
+msgid "Installment plan"
+msgstr "Installment plan"
+
+#. I18N-1 choices 2026-07-30
+msgid "Manual"
+msgstr "Manual"
+
+#. I18N-1 choices 2026-07-30
+msgid "Admin"
+msgstr "Admin"
+
+#. I18N-1 choices 2026-07-30
+msgid "Owner"
+msgstr "Owner"
+
+#. I18N-1 choices 2026-07-30
+msgid "Staff"
+msgstr "Staff"
+
+#. I18N-1 choices 2026-07-30
+msgid "User"
+msgstr "User"
+
+#. I18N-1 choices 2026-07-30
+msgid "Cron"
+msgstr "Cron"
+
+#. I18N-1 choices 2026-07-30
+msgid "Integration"
+msgstr "Integration"
+
+#. I18N-1 choices 2026-07-30
+msgid "Product"
+msgstr "Product"
+
+#. I18N-1 choices 2026-07-30
+msgid "Service"
+msgstr "Service"
+
+#. I18N-1 choices 2026-07-30
+msgid "Event"
+msgstr "Event"
+
+#. I18N-1 choices 2026-07-30
+msgid "Reservation"
+msgstr "Reservation"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tab"
+msgstr "Tab"
+
+#. I18N-1 choices 2026-07-30
+msgid "Vertical"
+msgstr "Vertical"
+
+#. I18N-1 choices 2026-07-30
+msgid "City + type"
+msgstr "City + type"
+
+#. I18N-1 choices 2026-07-30
+msgid "Other"
+msgstr "Other"
+
+#. I18N-1 choices 2026-07-30
+msgid "Airbnb"
+msgstr "Airbnb"
+
+#. I18N-1 choices 2026-07-30
+msgid "Booking.com"
+msgstr "Booking.com"
+
+#. I18N-1 choices 2026-07-30
+msgid "Expedia"
+msgstr "Expedia"
+
+#. I18N-1 choices 2026-07-30
+msgid "Facebook"
+msgstr "Facebook"
+
+#. I18N-1 choices 2026-07-30
+msgid "Instagram"
+msgstr "Instagram"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pinterest"
+msgstr "Pinterest"
+
+#. I18N-1 choices 2026-07-30
+msgid "PayPal"
+msgstr "PayPal"
+
+#. I18N-1 choices 2026-07-30
+msgid "Google Business Profile"
+msgstr "Google Business Profile"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anderer Kanal"
+msgstr "Other channel"
+
+#. I18N-1 choices 2026-07-30
+msgid "Log (internal)"
+msgstr "Log (internal)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Montag"
+msgstr "Monday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Dienstag"
+msgstr "Tuesday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mittwoch"
+msgstr "Wednesday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Donnerstag"
+msgstr "Thursday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Freitag"
+msgstr "Friday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Samstag"
+msgstr "Saturday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Sonntag"
+msgstr "Sunday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Stück / —"
+msgstr "Piece / —"
+
+#. I18N-1 choices 2026-07-30
+msgid "Gramm"
+msgstr "Gram"
+
+#. I18N-1 choices 2026-07-30
+msgid "Kilogramm"
+msgstr "Kilogram"
+
+#. I18N-1 choices 2026-07-30
+msgid "Milliliter"
+msgstr "Millilitre"
+
+#. I18N-1 choices 2026-07-30
+msgid "Liter"
+msgstr "Litre"
+
+#. I18N-1 choices 2026-07-30
+msgid "Wareneingang"
+msgstr "Goods receipt"
+
+#. I18N-1 choices 2026-07-30
+msgid "Verkauf"
+msgstr "Sale"
+
+#. I18N-1 choices 2026-07-30
+msgid "Rückgabe"
+msgstr "Return"
+
+#. I18N-1 choices 2026-07-30
+msgid "Materialverbrauch"
+msgstr "Material usage"
+
+#. I18N-1 choices 2026-07-30
+msgid "Umlagerung (ab)"
+msgstr "Transfer (out)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Umlagerung (zu)"
+msgstr "Transfer (in)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Entwurf"
+msgstr "Draft"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bestellt"
+msgstr "Ordered"
+
+#. I18N-1 choices 2026-07-30
+msgid "Empfangen"
+msgstr "Received"
+
+#. I18N-1 choices 2026-07-30
+msgid "Barzahlung bei Abholung"
+msgstr "Cash on pickup"
+
+#. I18N-1 choices 2026-07-30
+msgid "Online-Zahlung"
+msgstr "Online payment"
+
+#. I18N-1 choices 2026-07-30
+msgid "Vorkasse (Überweisung)"
+msgstr "Prepayment (bank transfer)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Karte"
+msgstr "Card"
+
+#. I18N-1 choices 2026-07-30
+msgid "Klarna (u. a. Kauf auf Rechnung)"
+msgstr "Klarna (incl. pay on invoice)"
+
+#. I18N-1 choices 2026-07-30
+msgid "SEPA-Lastschrift"
+msgstr "SEPA direct debit"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bezahlt"
+msgstr "Paid"
+
+#. I18N-1 choices 2026-07-30
+msgid "Gestellt"
+msgstr "Issued"
+
+#. I18N-1 choices 2026-07-30
+msgid "Manuell"
+msgstr "Manual"
+
+#. I18N-1 choices 2026-07-30
+msgid "Auto Win-back"
+msgstr "Auto win-back"
+
+#. I18N-1 choices 2026-07-30
+msgid "Geburtstag"
+msgstr "Birthday"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anfrage"
+msgstr "Enquiry"
+
+#. I18N-1 choices 2026-07-30
+msgid "Langzeit (ab N Nächten)"
+msgstr "Long stay (from N nights)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Frühbucher (ab N Tagen vorher)"
+msgstr "Early bird (N days ahead)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Last-Minute (bis N Tage vorher)"
+msgstr "Last minute (up to N days ahead)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bis zur Veranstaltung"
+msgstr "Until the event"
+
+#. I18N-1 choices 2026-07-30
+msgid "Feste Monatsraten"
+msgstr "Fixed monthly instalments"
+
+#. I18N-1 choices 2026-07-30
+msgid "Achtsamkeit"
+msgstr "Mindfulness"
+
+#. I18N-1 choices 2026-07-30
+msgid "Yoga"
+msgstr "Yoga"
+
+#. I18N-1 choices 2026-07-30
+msgid "Meditation"
+msgstr "Meditation"
+
+#. I18N-1 choices 2026-07-30
+msgid "Ayurveda"
+msgstr "Ayurveda"
+
+#. I18N-1 choices 2026-07-30
+msgid "Fasten & Detox"
+msgstr "Fasting & detox"
+
+#. I18N-1 choices 2026-07-30
+msgid "Klang & Musik"
+msgstr "Sound & music"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pilgern & Spiritualität"
+msgstr "Pilgrimage & spirituality"
+
+#. I18N-1 choices 2026-07-30
+msgid "Natur & Wandern"
+msgstr "Nature & hiking"
+
+#. I18N-1 choices 2026-07-30
+msgid "Persönlichkeitsentwicklung"
+msgstr "Personal development"
+
+#. I18N-1 choices 2026-07-30
+msgid "Alle Level"
+msgstr "All levels"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anfänger"
+msgstr "Beginner"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mittel"
+msgstr "Intermediate"
+
+#. I18N-1 choices 2026-07-30
+msgid "Fortgeschritten"
+msgstr "Advanced"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tagesveranstaltung"
+msgstr "Single-day event"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mehrtägig"
+msgstr "Multi-day"
+
+#. I18N-1 choices 2026-07-30
+msgid "Komma  ,"
+msgstr "Comma  ,"
+
+#. I18N-1 choices 2026-07-30
+msgid "Semikolon  ;"
+msgstr "Semicolon  ;"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pipe  |"
+msgstr "Pipe  |"
+
+#. I18N-1 choices 2026-07-30
+msgid "Produktvarianten"
+msgstr "Product variants"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bakery / Bäckerei"
+msgstr "Bakery"
+
+#. I18N-1 choices 2026-07-30
+msgid "Butcher / Metzgerei"
+msgstr "Butcher"
+
+#. I18N-1 choices 2026-07-30
+msgid "Cafe"
+msgstr "Café"
+
+#. I18N-1 choices 2026-07-30
+msgid "Restaurant"
+msgstr "Restaurant"
+
+#. I18N-1 choices 2026-07-30
+msgid "Retail / Einzelhandel"
+msgstr "Retail"
+
+#. I18N-1 choices 2026-07-30
+msgid "Grocery / Lebensmittel"
+msgstr "Grocery"
+
+#. I18N-1 choices 2026-07-30
+msgid "Clothing / Bekleidung"
+msgstr "Clothing"
+
+#. I18N-1 choices 2026-07-30
+msgid "Hotel"
+msgstr "Hotel"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tour Operator"
+msgstr "Tour operator"
+
+#. I18N-1 choices 2026-07-30
+msgid "Friseur / Salon"
+msgstr "Hair salon"
+
+#. I18N-1 choices 2026-07-30
+msgid "Handwerker"
+msgstr "Craft business"
+
+#. I18N-1 choices 2026-07-30
+msgid "Werkstatt / KFZ"
+msgstr "Car workshop"
+
+#. I18N-1 choices 2026-07-30
+msgid "Veranstalter / Events"
+msgstr "Event organiser"
+
+#. I18N-1 choices 2026-07-30
+msgid "Online-Shop"
+msgstr "Online shop"
+
+#. I18N-1 choices 2026-07-30
+msgid "Datenschutz"
+msgstr "Privacy policy"

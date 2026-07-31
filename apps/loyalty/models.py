@@ -16,6 +16,7 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 
@@ -127,7 +128,7 @@ class GiftVoucher(TimestampedModel):
 
     PAYMENT_PENDING = "pending"
     PAYMENT_PAID = "paid"
-    PAYMENT_STATES = [(PAYMENT_PENDING, "Pending"), (PAYMENT_PAID, "Paid")]
+    PAYMENT_STATES = [(PAYMENT_PENDING, _("Pending")), (PAYMENT_PAID, _("Paid"))]
 
     buyer_name = models.CharField(max_length=120)
     buyer_email = models.EmailField()

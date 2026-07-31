@@ -10,6 +10,7 @@
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 
@@ -45,14 +46,14 @@ class StockMovement(TimestampedModel):
     KIND_TRANSFER_OUT = "transfer_out"
     KIND_TRANSFER_IN = "transfer_in"
     KINDS = [
-        (KIND_RECEIPT, "Wareneingang"),
-        (KIND_SALE, "Verkauf"),
-        (KIND_ADJUSTMENT, "Korrektur"),
-        (KIND_RETURN, "Rückgabe"),
-        (KIND_STOCKTAKE, "Inventur"),
-        (KIND_COMMIT, "Materialverbrauch"),
-        (KIND_TRANSFER_OUT, "Umlagerung (ab)"),
-        (KIND_TRANSFER_IN, "Umlagerung (zu)"),
+        (KIND_RECEIPT, _("Wareneingang")),
+        (KIND_SALE, _("Verkauf")),
+        (KIND_ADJUSTMENT, _("Korrektur")),
+        (KIND_RETURN, _("Rückgabe")),
+        (KIND_STOCKTAKE, _("Inventur")),
+        (KIND_COMMIT, _("Materialverbrauch")),
+        (KIND_TRANSFER_OUT, _("Umlagerung (ab)")),
+        (KIND_TRANSFER_IN, _("Umlagerung (zu)")),
     ]
 
     product = models.ForeignKey(
@@ -186,10 +187,10 @@ class Bestellung(TimestampedModel):
     STATUS_RECEIVED = "received"  # empfangen — принят полностью
     STATUS_CANCELLED = "cancelled"  # storniert
     STATUSES = [
-        (STATUS_DRAFT, "Entwurf"),
-        (STATUS_ORDERED, "Bestellt"),
-        (STATUS_RECEIVED, "Empfangen"),
-        (STATUS_CANCELLED, "Storniert"),
+        (STATUS_DRAFT, _("Entwurf")),
+        (STATUS_ORDERED, _("Bestellt")),
+        (STATUS_RECEIVED, _("Empfangen")),
+        (STATUS_CANCELLED, _("Storniert")),
     ]
 
     supplier = models.ForeignKey(

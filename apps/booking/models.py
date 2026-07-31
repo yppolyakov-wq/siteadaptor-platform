@@ -21,10 +21,10 @@ class Resource(TimestampedModel):
     TYPE_ROOM = "room"
     TYPE_SERVICE = "service"
     TYPES = [
-        (TYPE_TABLE, "Table"),
-        (TYPE_STAFF, "Staff"),
-        (TYPE_ROOM, "Room"),
-        (TYPE_SERVICE, "Service"),
+        (TYPE_TABLE, _("Table")),
+        (TYPE_STAFF, _("Staff")),
+        (TYPE_ROOM, _("Room")),
+        (TYPE_SERVICE, _("Service")),
     ]
 
     name = models.CharField(max_length=120)
@@ -93,7 +93,7 @@ class Service(I18nMixin, TimestampedModel):
     primary_action = models.CharField(
         max_length=10,
         blank=True,
-        choices=[("booking", "Termin buchen"), ("request", "Anfrage")],
+        choices=[("booking", _("Termin buchen")), ("request", _("Anfrage"))],
     )
     # UB3-2: подборки владельца («Damen», «Färben & Pflege») — услуга может входить
     # в несколько; на витрине это фасет-чипы листинга (?kollektion=<slug>).
@@ -203,13 +203,13 @@ class AvailabilityRule(TimestampedModel):
     """Недельное правило работы ресурса: weekday + окно + шаг слота."""
 
     WEEKDAYS = [
-        (0, "Montag"),
-        (1, "Dienstag"),
-        (2, "Mittwoch"),
-        (3, "Donnerstag"),
-        (4, "Freitag"),
-        (5, "Samstag"),
-        (6, "Sonntag"),
+        (0, _("Montag")),
+        (1, _("Dienstag")),
+        (2, _("Mittwoch")),
+        (3, _("Donnerstag")),
+        (4, _("Freitag")),
+        (5, _("Samstag")),
+        (6, _("Sonntag")),
     ]
 
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name="rules")
@@ -358,10 +358,10 @@ class Booking(TimestampedModel):
     PAYMENT_PAID = "paid"
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
-        (PAYMENT_NONE, "None"),
-        (PAYMENT_PENDING, "Pending"),
-        (PAYMENT_PAID, "Paid"),
-        (PAYMENT_REFUNDED, "Refunded"),
+        (PAYMENT_NONE, _("None")),
+        (PAYMENT_PENDING, _("Pending")),
+        (PAYMENT_PAID, _("Paid")),
+        (PAYMENT_REFUNDED, _("Refunded")),
     ]
     deposit_cents = models.PositiveIntegerField(default=0)  # снимок с ресурса
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)

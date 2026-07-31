@@ -3,30 +3,31 @@ from datetime import timedelta
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django_tenants.models import DomainMixin, TenantMixin
 
 
 class Tenant(TenantMixin):
     BUSINESS_TYPES = [
-        ("bakery", "Bakery / Bäckerei"),
-        ("butcher", "Butcher / Metzgerei"),
-        ("grocery", "Grocery / Lebensmittel"),
-        ("clothing", "Clothing / Bekleidung"),
-        ("restaurant", "Restaurant"),
-        ("cafe", "Cafe"),
-        ("retail", "Retail / Einzelhandel"),
+        ("bakery", _("Bakery / Bäckerei")),
+        ("butcher", _("Butcher / Metzgerei")),
+        ("grocery", _("Grocery / Lebensmittel")),
+        ("clothing", _("Clothing / Bekleidung")),
+        ("restaurant", _("Restaurant")),
+        ("cafe", _("Cafe")),
+        ("retail", _("Retail / Einzelhandel")),
         # 2026-07-10 (решение владельца): «просто онлайн-магазин» — продажи с
         # Versand-фокусом, без привязки к оффлайн-точке (retail = «Laden + online»).
-        ("online_shop", "Online-Shop"),
-        ("tour_operator", "Tour Operator"),
-        ("hotel", "Hotel"),
+        ("online_shop", _("Online-Shop")),
+        ("tour_operator", _("Tour Operator")),
+        ("hotel", _("Hotel")),
         # S6 (упрощение кабинета): реальные архетипы вместо «other». Добавлены к
         # существующим 10 типам (решение владельца 2026-07-08 — не заменять).
-        ("friseur", "Friseur / Salon"),
-        ("handwerker", "Handwerker"),
-        ("werkstatt", "Werkstatt / KFZ"),
-        ("events", "Veranstalter / Events"),
-        ("other", "Other"),
+        ("friseur", _("Friseur / Salon")),
+        ("handwerker", _("Handwerker")),
+        ("werkstatt", _("Werkstatt / KFZ")),
+        ("events", _("Veranstalter / Events")),
+        ("other", _("Other")),
     ]
 
     name = models.CharField(max_length=200)
@@ -172,9 +173,9 @@ class Tenant(TenantMixin):
     PROVISIONING_READY = "ready"
     PROVISIONING_FAILED = "failed"
     PROVISIONING_STATUSES = [
-        (PROVISIONING_PENDING, "Pending"),
-        (PROVISIONING_READY, "Ready"),
-        (PROVISIONING_FAILED, "Failed"),
+        (PROVISIONING_PENDING, _("Pending")),
+        (PROVISIONING_READY, _("Ready")),
+        (PROVISIONING_FAILED, _("Failed")),
     ]
     provisioning_status = models.CharField(
         max_length=10, choices=PROVISIONING_STATUSES, default=PROVISIONING_READY
@@ -474,7 +475,7 @@ class CustomDomain(models.Model):
     PENDING = "pending"
     ACTIVE = "active"
     FAILED = "failed"
-    STATUSES = [(PENDING, "Pending"), (ACTIVE, "Active"), (FAILED, "Failed")]
+    STATUSES = [(PENDING, _("Pending")), (ACTIVE, _("Active")), (FAILED, _("Failed"))]
 
     domain = models.CharField(max_length=253, unique=True)
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="custom_domains")

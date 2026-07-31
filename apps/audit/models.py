@@ -5,14 +5,15 @@ Audit-данные нельзя backfill'ить, поэтому модуль п�
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class AuditEvent(models.Model):
     ACTOR_TYPES = [
-        ("user", "User"),
-        ("system", "System"),
-        ("cron", "Cron"),
-        ("integration", "Integration"),
+        ("user", _("User")),
+        ("system", _("System")),
+        ("cron", _("Cron")),
+        ("integration", _("Integration")),
     ]
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

@@ -11,6 +11,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
@@ -22,10 +23,10 @@ class Conversation(TimestampedModel):
     STATUS_RESOLVED = "resolved"
     STATUS_CLOSED = "closed"
     STATUSES = [
-        (STATUS_OPEN, "Open"),
-        (STATUS_PENDING, "Pending"),
-        (STATUS_RESOLVED, "Resolved"),
-        (STATUS_CLOSED, "Closed"),
+        (STATUS_OPEN, _("Open")),
+        (STATUS_PENDING, _("Pending")),
+        (STATUS_RESOLVED, _("Resolved")),
+        (STATUS_CLOSED, _("Closed")),
     ]
     PRIORITY_LOW = "low"
     PRIORITY_NORMAL = "normal"
@@ -79,9 +80,9 @@ class Message(TimestampedModel):
     AUTHOR_CUSTOMER = "customer"
     AUTHOR_SYSTEM = "system"
     AUTHOR_ROLES = [
-        (AUTHOR_STAFF, "Staff"),
-        (AUTHOR_CUSTOMER, "Customer"),
-        (AUTHOR_SYSTEM, "System"),
+        (AUTHOR_STAFF, _("Staff")),
+        (AUTHOR_CUSTOMER, _("Customer")),
+        (AUTHOR_SYSTEM, _("System")),
     ]
 
     conversation = models.ForeignKey(

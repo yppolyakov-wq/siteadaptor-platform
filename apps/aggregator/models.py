@@ -8,6 +8,7 @@
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin
 from apps.tenants.models import Tenant
@@ -20,9 +21,9 @@ class AggregatorListing(I18nMixin, models.Model):
     KIND_STAY = "stay"
     KIND_EVENT = "event"
     KINDS = [
-        (KIND_PROMOTION, "Promotion"),
-        (KIND_STAY, "Stay"),
-        (KIND_EVENT, "Event"),
+        (KIND_PROMOTION, _("Promotion")),
+        (KIND_STAY, _("Stay")),
+        (KIND_EVENT, _("Event")),
     ]
 
     # --- источник (тенант + объект) ---
@@ -129,9 +130,9 @@ class AggregatorPortal(I18nMixin, models.Model):
     KIND_VERTICAL = "vertical"
     KIND_COMBO = "combo"
     KINDS = [
-        (KIND_CITY, "City"),
-        (KIND_VERTICAL, "Vertical"),
-        (KIND_COMBO, "City + type"),
+        (KIND_CITY, _("City")),
+        (KIND_VERTICAL, _("Vertical")),
+        (KIND_COMBO, _("City + type")),
     ]
 
     host = models.CharField(max_length=253, unique=True)  # полный хост — ключ резолвера
@@ -265,7 +266,7 @@ class BusinessReview(models.Model):
 
     STATUS_PUBLISHED = "published"
     STATUS_HIDDEN = "hidden"
-    STATUSES = [(STATUS_PUBLISHED, "Published"), (STATUS_HIDDEN, "Hidden")]
+    STATUSES = [(STATUS_PUBLISHED, _("Published")), (STATUS_HIDDEN, _("Hidden"))]
 
     tenant_schema = models.CharField(max_length=63)
     tenant_slug = models.SlugField(max_length=100)

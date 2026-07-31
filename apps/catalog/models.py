@@ -119,11 +119,11 @@ class Product(SoftDeleteMixin, I18nMixin):
     # PAngV (R2): Grundpreis (€/kg|l). unit — единица контента, content_amount —
     # количество (250 г, 0.75 л). Stück/пусто → без Grundpreis (несчётные товары).
     UNIT_CHOICES = [
-        ("", "Stück / —"),
-        ("g", "Gramm"),
-        ("kg", "Kilogramm"),
-        ("ml", "Milliliter"),
-        ("l", "Liter"),
+        ("", _("Stück / —")),
+        ("g", _("Gramm")),
+        ("kg", _("Kilogramm")),
+        ("ml", _("Milliliter")),
+        ("l", _("Liter")),
     ]
     unit = models.CharField(max_length=4, blank=True, choices=UNIT_CHOICES)
     content_amount = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
@@ -145,10 +145,10 @@ class Product(SoftDeleteMixin, I18nMixin):
     # Пусто = без бейджа. is_featured (популярные на главной) — отдельно.
     BADGE_CHOICES = [
         ("", "—"),
-        ("tagesgericht", "Tagesgericht"),
-        ("neu", "Neu"),
-        ("beliebt", "Beliebt"),
-        ("empfehlung", "Empfehlung"),
+        ("tagesgericht", _("Tagesgericht")),
+        ("neu", _("Neu")),
+        ("beliebt", _("Beliebt")),
+        ("empfehlung", _("Empfehlung")),
     ]
     badge = models.CharField(max_length=20, blank=True, choices=BADGE_CHOICES)
 

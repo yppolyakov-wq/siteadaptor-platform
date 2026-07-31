@@ -6,6 +6,7 @@ SHARED-scope (как billing/aggregator): тред привязан к Tenant, �
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class SupportThread(models.Model):
@@ -14,10 +15,10 @@ class SupportThread(models.Model):
     STATUS_RESOLVED = "resolved"
     STATUS_CLOSED = "closed"
     STATUSES = [
-        (STATUS_OPEN, "Open"),
-        (STATUS_PENDING, "Pending"),
-        (STATUS_RESOLVED, "Resolved"),
-        (STATUS_CLOSED, "Closed"),
+        (STATUS_OPEN, _("Open")),
+        (STATUS_PENDING, _("Pending")),
+        (STATUS_RESOLVED, _("Resolved")),
+        (STATUS_CLOSED, _("Closed")),
     ]
     PRIORITY_LOW = "low"
     PRIORITY_NORMAL = "normal"
@@ -49,9 +50,9 @@ class SupportMessage(models.Model):
     AUTHOR_PLATFORM = "platform"  # SiteAdaptor-поддержка
     AUTHOR_SYSTEM = "system"
     AUTHOR_ROLES = [
-        (AUTHOR_OWNER, "Owner"),
-        (AUTHOR_PLATFORM, "Platform"),
-        (AUTHOR_SYSTEM, "System"),
+        (AUTHOR_OWNER, _("Owner")),
+        (AUTHOR_PLATFORM, _("Platform")),
+        (AUTHOR_SYSTEM, _("System")),
     ]
 
     thread = models.ForeignKey(SupportThread, on_delete=models.CASCADE, related_name="messages")

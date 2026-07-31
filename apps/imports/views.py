@@ -8,6 +8,7 @@ tenant-контекста.
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext_lazy as _
 
 from .forms import ImportUploadForm
 from .models import ImportJob
@@ -30,11 +31,11 @@ PRODUCT_FIELDS = [
 
 # Выбор разделителя CSV (значение → подпись).
 DELIMITER_CHOICES = [
-    ("auto", "Auto"),
-    ("comma", "Komma  ,"),
-    ("semicolon", "Semikolon  ;"),
-    ("tab", "Tab"),
-    ("pipe", "Pipe  |"),
+    ("auto", _("Auto")),
+    ("comma", _("Komma  ,")),
+    ("semicolon", _("Semikolon  ;")),
+    ("tab", _("Tab")),
+    ("pipe", _("Pipe  |")),
 ]
 
 # логические поля варианта товара (R1, A1): родитель + атрибуты варианта
@@ -71,14 +72,14 @@ PROMOTION_FIELDS = [
 
 # Поле, по которому ищем существующую запись при обновлении.
 MATCH_FIELD_CHOICES = [
-    ("sku", "SKU"),
-    ("name_de", "Name (DE)"),
+    ("sku", _("SKU")),
+    ("name_de", _("Name (DE)")),
 ]
 
 RESOURCE_CHOICES = [
-    ("product", "Produkte"),
-    ("product_variant", "Produktvarianten"),
-    ("promotion", "Aktionen"),
+    ("product", _("Produkte")),
+    ("product_variant", _("Produktvarianten")),
+    ("promotion", _("Aktionen")),
 ]
 RESOURCE_FIELDS = {
     "product": PRODUCT_FIELDS,

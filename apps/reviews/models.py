@@ -6,6 +6,7 @@
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 
@@ -27,10 +28,10 @@ class Review(TimestampedModel):
     KIND_STAY = "stay"
     KIND_EVENT = "event"
     ENTITY_KINDS = [
-        (KIND_PRODUCT, "Product"),
-        (KIND_SERVICE, "Service"),
-        (KIND_STAY, "Stay"),
-        (KIND_EVENT, "Event"),
+        (KIND_PRODUCT, _("Product")),
+        (KIND_SERVICE, _("Service")),
+        (KIND_STAY, _("Stay")),
+        (KIND_EVENT, _("Event")),
     ]
 
     entity_kind = models.CharField(max_length=16, choices=ENTITY_KINDS)

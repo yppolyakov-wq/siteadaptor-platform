@@ -360,10 +360,10 @@ class StayBooking(TimestampedModel):
     PAYMENT_PAID = "paid"
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
-        (PAYMENT_NONE, "None"),
-        (PAYMENT_PENDING, "Pending"),
-        (PAYMENT_PAID, "Paid"),
-        (PAYMENT_REFUNDED, "Refunded"),
+        (PAYMENT_NONE, _("None")),
+        (PAYMENT_PENDING, _("Pending")),
+        (PAYMENT_PAID, _("Paid")),
+        (PAYMENT_REFUNDED, _("Refunded")),
     ]
     deposit_cents = models.PositiveIntegerField(default=0)  # снимок с юнита
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)
@@ -461,10 +461,10 @@ class Channel(TimestampedModel):
     KIND_EXPEDIA = "expedia"
     KIND_OTHER = "other"
     KINDS = [
-        (KIND_BOOKING, "Booking.com"),
-        (KIND_AIRBNB, "Airbnb"),
-        (KIND_EXPEDIA, "Expedia"),
-        (KIND_OTHER, "Anderer Kanal"),
+        (KIND_BOOKING, _("Booking.com")),
+        (KIND_AIRBNB, _("Airbnb")),
+        (KIND_EXPEDIA, _("Expedia")),
+        (KIND_OTHER, _("Anderer Kanal")),
     ]
 
     kind = models.CharField(max_length=20, choices=KINDS, default=KIND_OTHER)
@@ -511,9 +511,9 @@ class StaySettings(I18nMixin, TimestampedModel):
     KIND_EARLY = "early_bird"
     KIND_LAST = "last_minute"
     AUTO_DISCOUNT_KINDS = [
-        (KIND_LOS, "Langzeit (ab N Nächten)"),
-        (KIND_EARLY, "Frühbucher (ab N Tagen vorher)"),
-        (KIND_LAST, "Last-Minute (bis N Tage vorher)"),
+        (KIND_LOS, _("Langzeit (ab N Nächten)")),
+        (KIND_EARLY, _("Frühbucher (ab N Tagen vorher)")),
+        (KIND_LAST, _("Last-Minute (bis N Tage vorher)")),
     ]
 
     # G12: правила продаж («Verkaufsregeln», revenue management) — список правил

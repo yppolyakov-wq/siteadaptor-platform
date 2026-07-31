@@ -72,10 +72,10 @@ def portal(request):
 # передаём (дефолт Stripe Dashboard бизнеса). Способ должен быть активирован
 # в Stripe Dashboard — иначе Stripe вернёт ошибку (у флоу есть фолбэки).
 STRIPE_METHOD_CHOICES = [
-    ("card", "Karte"),
-    ("paypal", "PayPal"),
-    ("klarna", "Klarna (u. a. Kauf auf Rechnung)"),
-    ("sepa_debit", "SEPA-Lastschrift"),
+    ("card", _("Karte")),
+    ("paypal", _("PayPal")),
+    ("klarna", _("Klarna (u. a. Kauf auf Rechnung)")),
+    ("sepa_debit", _("SEPA-Lastschrift")),
 ]
 
 

@@ -10,6 +10,7 @@ Connect (как P2.5/E4, A6c), выручка — в finance. Переиспуе
 from decimal import Decimal
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
@@ -29,9 +30,9 @@ class Event(I18nMixin, TimestampedModel):
     STATUS_PUBLISHED = "published"
     STATUS_CANCELLED = "cancelled"
     STATUSES = [
-        (STATUS_DRAFT, "Draft"),
-        (STATUS_PUBLISHED, "Published"),
-        (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_DRAFT, _("Draft")),
+        (STATUS_PUBLISHED, _("Published")),
+        (STATUS_CANCELLED, _("Cancelled")),
     ]
 
     title = models.CharField(max_length=200)
@@ -91,8 +92,8 @@ class Event(I18nMixin, TimestampedModel):
     INSTALLMENT_UNTIL_EVENT = "until_event"
     INSTALLMENT_FIXED = "fixed"
     INSTALLMENT_MODES = [
-        (INSTALLMENT_UNTIL_EVENT, "Bis zur Veranstaltung"),  # депозит + равные до старта
-        (INSTALLMENT_FIXED, "Feste Monatsraten"),  # фикс. число помесячно
+        (INSTALLMENT_UNTIL_EVENT, _("Bis zur Veranstaltung")),  # депозит + равные до старта
+        (INSTALLMENT_FIXED, _("Feste Monatsraten")),  # фикс. число помесячно
     ]
     allow_installments = models.BooleanField(default=False)
     installment_mode = models.CharField(
@@ -349,10 +350,10 @@ class Ticket(TimestampedModel):
     STATUS_ATTENDED = "attended"
     STATUS_CANCELLED = "cancelled"
     STATUSES = [
-        (STATUS_PENDING, "Pending"),
-        (STATUS_CONFIRMED, "Confirmed"),
-        (STATUS_ATTENDED, "Attended"),
-        (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_PENDING, _("Pending")),
+        (STATUS_CONFIRMED, _("Confirmed")),
+        (STATUS_ATTENDED, _("Attended")),
+        (STATUS_CANCELLED, _("Cancelled")),
     ]
     # Занимают места (для анти-овердрафта). Отмена освобождает.
     ACTIVE_STATUSES = (STATUS_PENDING, STATUS_CONFIRMED, STATUS_ATTENDED)
@@ -401,12 +402,12 @@ class Ticket(TimestampedModel):
     PAYMENT_INSTALLMENT = "installment"  # R10: рассрочка активна (часть долей оплачена)
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
-        (PAYMENT_NONE, "None"),
-        (PAYMENT_PENDING, "Pending"),
-        (PAYMENT_PAID, "Paid"),
-        (PAYMENT_DEPOSIT, "Deposit paid"),
-        (PAYMENT_INSTALLMENT, "Installment plan"),
-        (PAYMENT_REFUNDED, "Refunded"),
+        (PAYMENT_NONE, _("None")),
+        (PAYMENT_PENDING, _("Pending")),
+        (PAYMENT_PAID, _("Paid")),
+        (PAYMENT_DEPOSIT, _("Deposit paid")),
+        (PAYMENT_INSTALLMENT, _("Installment plan")),
+        (PAYMENT_REFUNDED, _("Refunded")),
     ]
     payment_state = models.CharField(max_length=12, choices=PAYMENT_STATES, default=PAYMENT_NONE)
     # B2.3: напоминание о незавершённой оплате билета — дедуп «одно на билет».
@@ -566,10 +567,10 @@ class InstallmentPlan(TimestampedModel):
     STATUS_FAILED = "failed"
     STATUS_CANCELLED = "cancelled"
     STATUSES = [
-        (STATUS_ACTIVE, "Active"),
-        (STATUS_COMPLETED, "Completed"),
-        (STATUS_FAILED, "Failed"),
-        (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_ACTIVE, _("Active")),
+        (STATUS_COMPLETED, _("Completed")),
+        (STATUS_FAILED, _("Failed")),
+        (STATUS_CANCELLED, _("Cancelled")),
     ]
 
     ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name="installment_plan")
@@ -612,10 +613,10 @@ class InstallmentCharge(TimestampedModel):
     STATUS_FAILED = "failed"
     STATUS_REFUNDED = "refunded"
     STATUSES = [
-        (STATUS_SCHEDULED, "Scheduled"),
-        (STATUS_PAID, "Paid"),
-        (STATUS_FAILED, "Failed"),
-        (STATUS_REFUNDED, "Refunded"),
+        (STATUS_SCHEDULED, _("Scheduled")),
+        (STATUS_PAID, _("Paid")),
+        (STATUS_FAILED, _("Failed")),
+        (STATUS_REFUNDED, _("Refunded")),
     ]
 
     plan = models.ForeignKey(InstallmentPlan, on_delete=models.CASCADE, related_name="charges")

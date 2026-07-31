@@ -909,7 +909,28 @@ Python 3.12, менеджер uv.
   прежний `data-countdown`); стили UE2-2 уважены; регресс-фикс: процент-акция без цен —
   крупный «−N %» вместо цены. 3 замка обновлены осознанно. ⚠️ ops: после деплоя
   `seed_demo_tenants --kit aktionsmarkt --recreate` (галерея демо).
-- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). **Новое 2026-07-27/28:** `stays/0024` (G12 Verkaufsregeln) + `stays/0025` (Room) + `stays/0026` (StayBooking.room) + `stays/0027` (Room.housekeeping) + `crm/0002` (CO-1 Company) + `promotions/0022` (Customer.company FK) + `stays/0028` (PMS-D occupancy_rules) + `promotions/0023` (PMS-B2 Customer.birthday) + `stays/0029` (Lücken-Deal gap-поля) — все аддитивные. Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
+- **Самое свежее (2026-07-30, ночь): фидбэк отеля/услуг + первый экран ВСЕХ архетипов +
+  M4-B Lookbook + старт i18n-волны.** (1) **Отель ×4:** мультисезонный расчёт ПРОВЕРЕН
+  (`quote_total_cents` идёт по ночам — дефекта не было) + прозрачность `price_breakdown`
+  («Preis pro Nacht anzeigen» на карточке брони) + **Lücken-Deal per-Zimmer**
+  (⚠️ `stays/0030`). (2) **Страница услуги** `booking:service-edit` (зеркало
+  `stays:unit-edit`) — «Bearbeiten» больше не высаживает в общий список. (3) **Навигация
+  к «календарю цен»** (разведка дала карту 12 пробелов): вход `?tab=einstellungen&sec=preise`
+  с Belegungsplan/отчёта/страницы номера, «🕒 Öffnungszeiten & Ressourcen» + плашка
+  «Noch keine Öffnungszeiten hinterlegt» на страницах услуг (причина витринного «keine
+  freien Termine» раньше не называлась); убран мёртвый `hub_tabs "stays"`. (4) **Первый
+  экран для всех архетипов** — НОВЫЙ реестр `apps/core/hero_tiles.py` (7 архетипов ×
+  плитки, гейты модуля/акции, fail-safe на мёртвом url) + тег `{% hero_tiles %}`,
+  подключён `{% else %}`-веткой `_hero_widget.html` (кастомные ветки целы); слайдеры
+  `heroes` у 10 китов; whitelist → `siteconfig.HERO_WIDGETS`. (5) **M4-B Lookbook**
+  (⚠️ `catalog/0020` + `collections/0002`): `Product.collections` + `Collection.images`,
+  `/lookbook/<slug>/`, фасет `?kollektion=` в каталоге, кабинет подборок открыт каталогу,
+  демо CLOTHING. (6) **i18n**: 3 разведки → план `docs/i18n-full-coverage-plan-2026-07-30.md`;
+  `.po` формально полны и **de.po существует**, но **~1100 строк не доезжают до `.po`**;
+  **I18N-1 ✅** — 216 меток `choices` в 22 файлах обёрнуты в lazy (+107 msgid × 5 .po),
+  миграции не нужны; исправлен `%%` в msgstr (рендерился бы буквально), de.po досинхронизирован.
+  Дальше по плану: I18N-2 (конструктор сайта) → I18N-3 (шаблоны кабинета) → I18N-4..8.
+- Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). **Новое 2026-07-27/28:** `stays/0024` (G12 Verkaufsregeln) + `stays/0025` (Room) + `stays/0026` (StayBooking.room) + `stays/0027` (Room.housekeeping) + `crm/0002` (CO-1 Company) + `promotions/0022` (Customer.company FK) + `stays/0028` (PMS-D occupancy_rules) + `promotions/0023` (PMS-B2 Customer.birthday) + `stays/0029` (Lücken-Deal gap-поля) — все аддитивные. **Новое 2026-07-30:** `catalog/0017` (M1 material/care) + `catalog/0018` (M2 ProductWaitlist) + `catalog/0019` (M2 Category.size_table) + `orders/0016` (M3 Anprobe) + `stays/0030` (Lücken-Deal per-Zimmer) + `catalog/0020` (M4-B Product.collections) + `collections/0002` (M4-B Collection.images) — все аддитивные. Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

@@ -12,6 +12,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel
 
@@ -48,10 +49,10 @@ class Customer(TimestampedModel):
     SOURCE_IMPORT = "import"
     SOURCE_ORDER = "order"  # Click & Collect (Track D / D2)
     CREATED_SOURCES = [
-        (SOURCE_RESERVATION, "Reservation"),
-        (SOURCE_MANUAL, "Manual"),
-        (SOURCE_IMPORT, "Import"),
-        (SOURCE_ORDER, "Order"),
+        (SOURCE_RESERVATION, _("Reservation")),
+        (SOURCE_MANUAL, _("Manual")),
+        (SOURCE_IMPORT, _("Import")),
+        (SOURCE_ORDER, _("Order")),
     ]
     created_source = models.CharField(
         max_length=20, choices=CREATED_SOURCES, default=SOURCE_RESERVATION
@@ -86,7 +87,7 @@ class NewsletterCampaign(TimestampedModel):
 
     STATUS_DRAFT = "draft"
     STATUS_SENT = "sent"
-    STATUSES = [(STATUS_DRAFT, "Draft"), (STATUS_SENT, "Sent")]
+    STATUSES = [(STATUS_DRAFT, _("Draft")), (STATUS_SENT, _("Sent"))]
 
     subject = models.CharField(max_length=200)
     body = models.TextField()
@@ -116,9 +117,9 @@ class CouponCampaign(TimestampedModel):
     # PMS-B2: авто-поздравление в день рождения (настройки на кампании-синглтоне).
     KIND_BIRTHDAY = "birthday"
     KINDS = [
-        (KIND_MANUAL, "Manuell"),
-        (KIND_AUTO_WINBACK, "Auto Win-back"),
-        (KIND_BIRTHDAY, "Geburtstag"),
+        (KIND_MANUAL, _("Manuell")),
+        (KIND_AUTO_WINBACK, _("Auto Win-back")),
+        (KIND_BIRTHDAY, _("Geburtstag")),
     ]
 
     STATUS_DRAFT = "draft"
@@ -126,10 +127,10 @@ class CouponCampaign(TimestampedModel):
     STATUS_ACTIVE = "active"  # только auto_winback
     STATUS_PAUSED = "paused"  # только auto_winback
     STATUSES = [
-        (STATUS_DRAFT, "Draft"),
-        (STATUS_SENT, "Sent"),
-        (STATUS_ACTIVE, "Active"),
-        (STATUS_PAUSED, "Paused"),
+        (STATUS_DRAFT, _("Draft")),
+        (STATUS_SENT, _("Sent")),
+        (STATUS_ACTIVE, _("Active")),
+        (STATUS_PAUSED, _("Paused")),
     ]
 
     name = models.CharField(max_length=200)
@@ -168,7 +169,7 @@ class CouponCampaign(TimestampedModel):
 class Promotion(SoftDeleteMixin, I18nMixin):
     DISCOUNT = "discount"
     RESERVATION = "reservation"
-    PROMO_TYPES = [(DISCOUNT, "Discount"), (RESERVATION, "Reservation")]
+    PROMO_TYPES = [(DISCOUNT, _("Discount")), (RESERVATION, _("Reservation"))]
 
     title = models.JSONField(default=dict)  # {"de": "...", "en": "..."}
     description = models.JSONField(default=dict)

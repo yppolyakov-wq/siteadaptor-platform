@@ -6,6 +6,7 @@ Publication — факт публикации акции в канал (стат
 """
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 
@@ -18,15 +19,15 @@ class Channel(TimestampedModel):
     TELEGRAM = "telegram"
     PINTEREST = "pinterest"
     CHANNEL_TYPES = [
-        (LOG, "Log (internal)"),
+        (LOG, _("Log (internal)")),
         # Track B1: Google Posts; настройка — docs/gbp-setup.md
-        (GOOGLE_BUSINESS, "Google Business Profile"),
+        (GOOGLE_BUSINESS, _("Google Business Profile")),
         # M23a: соц-постинг (Meta Graph API); настройка — docs/meta-social-setup.md
-        (FACEBOOK, "Facebook"),
-        (INSTAGRAM, "Instagram"),
+        (FACEBOOK, _("Facebook")),
+        (INSTAGRAM, _("Instagram")),
         # M23 доп.каналы: постинг в Telegram-канал бизнеса и Pinterest
-        (TELEGRAM, "Telegram"),
-        (PINTEREST, "Pinterest"),
+        (TELEGRAM, _("Telegram")),
+        (PINTEREST, _("Pinterest")),
     ]
 
     type = models.CharField(max_length=30, choices=CHANNEL_TYPES, default=LOG)

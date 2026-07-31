@@ -6,25 +6,27 @@
 «Tagesworkshop / Wochenende / Mehrtägig».
 """
 
+from django.utils.translation import gettext_lazy as _
+
 # Направления / темы (для каталога, SEO-страниц и фильтра агрегатора).
 CATEGORIES = [
-    ("yoga", "Yoga"),
-    ("meditation", "Meditation"),
-    ("achtsamkeit", "Achtsamkeit"),
-    ("ayurveda", "Ayurveda"),
-    ("fasten", "Fasten & Detox"),
-    ("klang", "Klang & Musik"),
-    ("pilgern", "Pilgern & Spiritualität"),
-    ("natur", "Natur & Wandern"),
-    ("coaching", "Persönlichkeitsentwicklung"),
+    ("yoga", _("Yoga")),
+    ("meditation", _("Meditation")),
+    ("achtsamkeit", _("Achtsamkeit")),
+    ("ayurveda", _("Ayurveda")),
+    ("fasten", _("Fasten & Detox")),
+    ("klang", _("Klang & Musik")),
+    ("pilgern", _("Pilgern & Spiritualität")),
+    ("natur", _("Natur & Wandern")),
+    ("coaching", _("Persönlichkeitsentwicklung")),
 ]
 
 # Требуемый уровень подготовки участника.
 LEVELS = [
-    ("alle", "Alle Level"),
-    ("anfaenger", "Anfänger"),
-    ("mittel", "Mittel"),
-    ("fortgeschritten", "Fortgeschritten"),
+    ("alle", _("Alle Level")),
+    ("anfaenger", _("Anfänger")),
+    ("mittel", _("Mittel")),
+    ("fortgeschritten", _("Fortgeschritten")),
 ]
 
 # Язык проведения (контент-тег; не влияет на язык интерфейса витрины).
@@ -36,9 +38,9 @@ LANGUAGES = [
 
 # Длительность (выводится из дат события) — ключ → метка.
 DURATIONS = [
-    ("tag", "Tagesveranstaltung"),
-    ("wochenende", "Wochenende"),
-    ("mehrtaegig", "Mehrtägig"),
+    ("tag", _("Tagesveranstaltung")),
+    ("wochenende", _("Wochenende")),
+    ("mehrtaegig", _("Mehrtägig")),
 ]
 
 _CATEGORY_LABELS = dict(CATEGORIES)

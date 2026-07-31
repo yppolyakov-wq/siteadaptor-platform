@@ -15,6 +15,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import get_language
+from django.utils.translation import gettext_lazy as _
 
 
 class TimestampedModel(models.Model):
@@ -147,7 +148,7 @@ class Membership(TimestampedModel):
     ROLE_OWNER = "owner"
     ROLE_ADMIN = "admin"
     ROLE_STAFF = "staff"
-    ROLES = [(ROLE_OWNER, "Owner"), (ROLE_ADMIN, "Admin"), (ROLE_STAFF, "Staff")]
+    ROLES = [(ROLE_OWNER, _("Owner")), (ROLE_ADMIN, _("Admin")), (ROLE_STAFF, _("Staff"))]
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="membership"
@@ -242,10 +243,10 @@ class LegalDoc(TimestampedModel):
     """
 
     KIND_CHOICES = [
-        ("impressum", "Impressum"),
-        ("datenschutz", "Datenschutz"),
-        ("widerruf", "Widerruf"),
-        ("agb", "AGB"),
+        ("impressum", _("Impressum")),
+        ("datenschutz", _("Datenschutz")),
+        ("widerruf", _("Widerruf")),
+        ("agb", _("AGB")),
     ]
     kind = models.CharField(max_length=20, choices=KIND_CHOICES)
     locale = models.CharField(max_length=8)

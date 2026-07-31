@@ -12,6 +12,7 @@ UUID-pk и смена статусов только FSM-хуками — зад�
 import uuid
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
@@ -26,25 +27,25 @@ class Order(TimestampedModel):
     STATUS_CANCELLED = "cancelled"
     STATUS_RETURNED = "returned"  # A2c: возврат после выдачи/отправки (Widerruf)
     STATUSES = [
-        (STATUS_NEW, "New"),
-        (STATUS_CONFIRMED, "Confirmed"),
-        (STATUS_READY, "Ready"),
-        (STATUS_PICKED_UP, "Picked up"),
-        (STATUS_SHIPPED, "Shipped"),
-        (STATUS_CANCELLED, "Cancelled"),
-        (STATUS_RETURNED, "Returned"),
+        (STATUS_NEW, _("New")),
+        (STATUS_CONFIRMED, _("Confirmed")),
+        (STATUS_READY, _("Ready")),
+        (STATUS_PICKED_UP, _("Picked up")),
+        (STATUS_SHIPPED, _("Shipped")),
+        (STATUS_CANCELLED, _("Cancelled")),
+        (STATUS_RETURNED, _("Returned")),
     ]
     # G4: способ получения. pickup — самовывоз (как раньше); delivery — доставка.
     FULFILLMENT_PICKUP = "pickup"
     FULFILLMENT_DELIVERY = "delivery"
-    FULFILLMENTS = [(FULFILLMENT_PICKUP, "Pickup"), (FULFILLMENT_DELIVERY, "Delivery")]
+    FULFILLMENTS = [(FULFILLMENT_PICKUP, _("Pickup")), (FULFILLMENT_DELIVERY, _("Delivery"))]
     PAYMENT_UNPAID = "unpaid"
     PAYMENT_PAID = "paid"
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
-        (PAYMENT_UNPAID, "Unpaid"),
-        (PAYMENT_PAID, "Paid"),
-        (PAYMENT_REFUNDED, "Refunded"),
+        (PAYMENT_UNPAID, _("Unpaid")),
+        (PAYMENT_PAID, _("Paid")),
+        (PAYMENT_REFUNDED, _("Refunded")),
     ]
     # E-7: СПОСОБ оплаты (платёжный микс DACH) — ортогонален payment_state.
     # "" = легаси-заказы до введения поля. Реестр расширяем (paypal/klarna/sepa —
@@ -53,9 +54,9 @@ class Order(TimestampedModel):
     METHOD_STRIPE = "stripe"  # Online-Zahlung (Stripe Checkout, P2.5c)
     METHOD_VORKASSE = "vorkasse"  # Überweisung/Vorkasse (реквизиты в письме)
     PAYMENT_METHODS = [
-        (METHOD_ON_SITE, "Barzahlung bei Abholung"),
-        (METHOD_STRIPE, "Online-Zahlung"),
-        (METHOD_VORKASSE, "Vorkasse (Überweisung)"),
+        (METHOD_ON_SITE, _("Barzahlung bei Abholung")),
+        (METHOD_STRIPE, _("Online-Zahlung")),
+        (METHOD_VORKASSE, _("Vorkasse (Überweisung)")),
     ]
 
     # PROTECT, как у Reservation: клиента с заказами нельзя удалить молча
@@ -206,10 +207,10 @@ class Offer(TimestampedModel):
     STATUS_DECLINED = "declined"
     STATUS_CANCELLED = "cancelled"  # владелец отозвал
     STATUSES = [
-        (STATUS_OPEN, "Open"),
-        (STATUS_ACCEPTED, "Accepted"),
-        (STATUS_DECLINED, "Declined"),
-        (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_OPEN, _("Open")),
+        (STATUS_ACCEPTED, _("Accepted")),
+        (STATUS_DECLINED, _("Declined")),
+        (STATUS_CANCELLED, _("Cancelled")),
     ]
 
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)

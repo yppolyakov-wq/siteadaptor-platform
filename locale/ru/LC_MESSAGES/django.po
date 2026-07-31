@@ -14273,3 +14273,431 @@ msgstr "Смотреть все вещи в каталоге"
 #. M4-B lookbook 2026-07-30
 msgid "Zu diesem Look sind noch keine Artikel zugeordnet."
 msgstr "К этому образу пока не привязаны товары."
+
+#. I18N-1 choices 2026-07-30
+msgid "Accepted"
+msgstr "Принято"
+
+#. I18N-1 choices 2026-07-30
+msgid "Completed"
+msgstr "Завершено"
+
+#. I18N-1 choices 2026-07-30
+msgid "Delivered"
+msgstr "Доставлено"
+
+#. I18N-1 choices 2026-07-30
+msgid "Failed"
+msgstr "Ошибка"
+
+#. I18N-1 choices 2026-07-30
+msgid "Paused"
+msgstr "Приостановлено"
+
+#. I18N-1 choices 2026-07-30
+msgid "Resolved"
+msgstr "Решено"
+
+#. I18N-1 choices 2026-07-30
+msgid "Returned"
+msgstr "Возврат"
+
+#. I18N-1 choices 2026-07-30
+msgid "Unpaid"
+msgstr "Не оплачено"
+
+#. I18N-1 choices 2026-07-30
+msgid "Deposit paid"
+msgstr "Задаток оплачен"
+
+#. I18N-1 choices 2026-07-30
+msgid "Installment plan"
+msgstr "Рассрочка"
+
+#. I18N-1 choices 2026-07-30
+msgid "Manual"
+msgstr "Вручную"
+
+#. I18N-1 choices 2026-07-30
+msgid "Admin"
+msgstr "Администратор"
+
+#. I18N-1 choices 2026-07-30
+msgid "Owner"
+msgstr "Владелец"
+
+#. I18N-1 choices 2026-07-30
+msgid "Staff"
+msgstr "Сотрудник"
+
+#. I18N-1 choices 2026-07-30
+msgid "User"
+msgstr "Пользователь"
+
+#. I18N-1 choices 2026-07-30
+msgid "Cron"
+msgstr "Планировщик"
+
+#. I18N-1 choices 2026-07-30
+msgid "Integration"
+msgstr "Интеграция"
+
+#. I18N-1 choices 2026-07-30
+msgid "Product"
+msgstr "Товар"
+
+#. I18N-1 choices 2026-07-30
+msgid "Service"
+msgstr "Услуга"
+
+#. I18N-1 choices 2026-07-30
+msgid "Event"
+msgstr "Событие"
+
+#. I18N-1 choices 2026-07-30
+msgid "Reservation"
+msgstr "Резервирование"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tab"
+msgstr "Вкладка"
+
+#. I18N-1 choices 2026-07-30
+msgid "Vertical"
+msgstr "Вертикаль"
+
+#. I18N-1 choices 2026-07-30
+msgid "City + type"
+msgstr "Город + тип"
+
+#. I18N-1 choices 2026-07-30
+msgid "Other"
+msgstr "Другое"
+
+#. I18N-1 choices 2026-07-30
+msgid "Airbnb"
+msgstr "Airbnb"
+
+#. I18N-1 choices 2026-07-30
+msgid "Booking.com"
+msgstr "Booking.com"
+
+#. I18N-1 choices 2026-07-30
+msgid "Expedia"
+msgstr "Expedia"
+
+#. I18N-1 choices 2026-07-30
+msgid "Facebook"
+msgstr "Facebook"
+
+#. I18N-1 choices 2026-07-30
+msgid "Instagram"
+msgstr "Instagram"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pinterest"
+msgstr "Pinterest"
+
+#. I18N-1 choices 2026-07-30
+msgid "PayPal"
+msgstr "PayPal"
+
+#. I18N-1 choices 2026-07-30
+msgid "Google Business Profile"
+msgstr "Google Business Profile"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anderer Kanal"
+msgstr "Другой канал"
+
+#. I18N-1 choices 2026-07-30
+msgid "Log (internal)"
+msgstr "Журнал (внутренний)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Montag"
+msgstr "Понедельник"
+
+#. I18N-1 choices 2026-07-30
+msgid "Dienstag"
+msgstr "Вторник"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mittwoch"
+msgstr "Среда"
+
+#. I18N-1 choices 2026-07-30
+msgid "Donnerstag"
+msgstr "Четверг"
+
+#. I18N-1 choices 2026-07-30
+msgid "Freitag"
+msgstr "Пятница"
+
+#. I18N-1 choices 2026-07-30
+msgid "Samstag"
+msgstr "Суббота"
+
+#. I18N-1 choices 2026-07-30
+msgid "Sonntag"
+msgstr "Воскресенье"
+
+#. I18N-1 choices 2026-07-30
+msgid "Stück / —"
+msgstr "Штука / —"
+
+#. I18N-1 choices 2026-07-30
+msgid "Gramm"
+msgstr "Грамм"
+
+#. I18N-1 choices 2026-07-30
+msgid "Kilogramm"
+msgstr "Килограмм"
+
+#. I18N-1 choices 2026-07-30
+msgid "Milliliter"
+msgstr "Миллилитр"
+
+#. I18N-1 choices 2026-07-30
+msgid "Liter"
+msgstr "Литр"
+
+#. I18N-1 choices 2026-07-30
+msgid "Wareneingang"
+msgstr "Приёмка"
+
+#. I18N-1 choices 2026-07-30
+msgid "Verkauf"
+msgstr "Продажа"
+
+#. I18N-1 choices 2026-07-30
+msgid "Rückgabe"
+msgstr "Возврат"
+
+#. I18N-1 choices 2026-07-30
+msgid "Materialverbrauch"
+msgstr "Расход материалов"
+
+#. I18N-1 choices 2026-07-30
+msgid "Umlagerung (ab)"
+msgstr "Перемещение (со склада)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Umlagerung (zu)"
+msgstr "Перемещение (на склад)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Entwurf"
+msgstr "Черновик"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bestellt"
+msgstr "Заказано"
+
+#. I18N-1 choices 2026-07-30
+msgid "Empfangen"
+msgstr "Получено"
+
+#. I18N-1 choices 2026-07-30
+msgid "Barzahlung bei Abholung"
+msgstr "Наличными при получении"
+
+#. I18N-1 choices 2026-07-30
+msgid "Online-Zahlung"
+msgstr "Онлайн-оплата"
+
+#. I18N-1 choices 2026-07-30
+msgid "Vorkasse (Überweisung)"
+msgstr "Предоплата (перевод)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Karte"
+msgstr "Карта"
+
+#. I18N-1 choices 2026-07-30
+msgid "Klarna (u. a. Kauf auf Rechnung)"
+msgstr "Klarna (в т. ч. оплата по счёту)"
+
+#. I18N-1 choices 2026-07-30
+msgid "SEPA-Lastschrift"
+msgstr "SEPA-дебет"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bezahlt"
+msgstr "Оплачено"
+
+#. I18N-1 choices 2026-07-30
+msgid "Gestellt"
+msgstr "Выставлен"
+
+#. I18N-1 choices 2026-07-30
+msgid "Manuell"
+msgstr "Вручную"
+
+#. I18N-1 choices 2026-07-30
+msgid "Auto Win-back"
+msgstr "Авто-возврат клиентов"
+
+#. I18N-1 choices 2026-07-30
+msgid "Geburtstag"
+msgstr "День рождения"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anfrage"
+msgstr "Запрос"
+
+#. I18N-1 choices 2026-07-30
+msgid "Langzeit (ab N Nächten)"
+msgstr "Длительное проживание (от N ночей)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Frühbucher (ab N Tagen vorher)"
+msgstr "Раннее бронирование (за N дней)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Last-Minute (bis N Tage vorher)"
+msgstr "Горящее (не более чем за N дней)"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bis zur Veranstaltung"
+msgstr "До мероприятия"
+
+#. I18N-1 choices 2026-07-30
+msgid "Feste Monatsraten"
+msgstr "Фиксированные месячные платежи"
+
+#. I18N-1 choices 2026-07-30
+msgid "Achtsamkeit"
+msgstr "Осознанность"
+
+#. I18N-1 choices 2026-07-30
+msgid "Yoga"
+msgstr "Йога"
+
+#. I18N-1 choices 2026-07-30
+msgid "Meditation"
+msgstr "Медитация"
+
+#. I18N-1 choices 2026-07-30
+msgid "Ayurveda"
+msgstr "Аюрведа"
+
+#. I18N-1 choices 2026-07-30
+msgid "Fasten & Detox"
+msgstr "Голодание и детокс"
+
+#. I18N-1 choices 2026-07-30
+msgid "Klang & Musik"
+msgstr "Звук и музыка"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pilgern & Spiritualität"
+msgstr "Паломничество и духовность"
+
+#. I18N-1 choices 2026-07-30
+msgid "Natur & Wandern"
+msgstr "Природа и походы"
+
+#. I18N-1 choices 2026-07-30
+msgid "Persönlichkeitsentwicklung"
+msgstr "Личностное развитие"
+
+#. I18N-1 choices 2026-07-30
+msgid "Alle Level"
+msgstr "Любой уровень"
+
+#. I18N-1 choices 2026-07-30
+msgid "Anfänger"
+msgstr "Начинающий"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mittel"
+msgstr "Средний"
+
+#. I18N-1 choices 2026-07-30
+msgid "Fortgeschritten"
+msgstr "Продвинутый"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tagesveranstaltung"
+msgstr "Однодневное"
+
+#. I18N-1 choices 2026-07-30
+msgid "Mehrtägig"
+msgstr "Многодневное"
+
+#. I18N-1 choices 2026-07-30
+msgid "Komma  ,"
+msgstr "Запятая  ,"
+
+#. I18N-1 choices 2026-07-30
+msgid "Semikolon  ;"
+msgstr "Точка с запятой  ;"
+
+#. I18N-1 choices 2026-07-30
+msgid "Pipe  |"
+msgstr "Вертикальная черта  |"
+
+#. I18N-1 choices 2026-07-30
+msgid "Produktvarianten"
+msgstr "Варианты товара"
+
+#. I18N-1 choices 2026-07-30
+msgid "Bakery / Bäckerei"
+msgstr "Пекарня"
+
+#. I18N-1 choices 2026-07-30
+msgid "Butcher / Metzgerei"
+msgstr "Мясная лавка"
+
+#. I18N-1 choices 2026-07-30
+msgid "Cafe"
+msgstr "Кафе"
+
+#. I18N-1 choices 2026-07-30
+msgid "Restaurant"
+msgstr "Ресторан"
+
+#. I18N-1 choices 2026-07-30
+msgid "Retail / Einzelhandel"
+msgstr "Розничный магазин"
+
+#. I18N-1 choices 2026-07-30
+msgid "Grocery / Lebensmittel"
+msgstr "Продукты"
+
+#. I18N-1 choices 2026-07-30
+msgid "Clothing / Bekleidung"
+msgstr "Одежда"
+
+#. I18N-1 choices 2026-07-30
+msgid "Hotel"
+msgstr "Отель"
+
+#. I18N-1 choices 2026-07-30
+msgid "Tour Operator"
+msgstr "Туроператор"
+
+#. I18N-1 choices 2026-07-30
+msgid "Friseur / Salon"
+msgstr "Парикмахерская"
+
+#. I18N-1 choices 2026-07-30
+msgid "Handwerker"
+msgstr "Мастер/ремонт"
+
+#. I18N-1 choices 2026-07-30
+msgid "Werkstatt / KFZ"
+msgstr "Автосервис"
+
+#. I18N-1 choices 2026-07-30
+msgid "Veranstalter / Events"
+msgstr "Организатор мероприятий"
+
+#. I18N-1 choices 2026-07-30
+msgid "Online-Shop"
+msgstr "Интернет-магазин"
+
+#. I18N-1 choices 2026-07-30
+msgid "Datenschutz"
+msgstr "Политика конфиденциальности"

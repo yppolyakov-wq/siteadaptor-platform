@@ -7,6 +7,7 @@ backoff, DLQ) появится в Phase 2 — см. docs/references/patterns/web
 import secrets
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 def _gen_secret() -> str:
@@ -39,9 +40,9 @@ class WebhookDelivery(models.Model):
     """Одна попытка доставки события. event_id — idempotency-ключ для получателя."""
 
     STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("delivered", "Delivered"),
-        ("failed", "Failed"),
+        ("pending", _("Pending")),
+        ("delivered", _("Delivered")),
+        ("failed", _("Failed")),
     ]
 
     created_at = models.DateTimeField(auto_now_add=True)
