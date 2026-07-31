@@ -26,8 +26,11 @@ AggregateRating из отзывов — из контракта sellable, на �
     <div class="lg:sticky lg:top-20">{% block detail_aside %}{% endblock %}</div>
   </div>
 
-  {# Тело — читаемая ширина #}
-  <div class="max-w-3xl mx-auto">{% block detail_body %}{% endblock %}</div>
+  {% comment %}Тело — читаемая ширина, ВЫРОВНЕННАЯ по левому краю галереи.
+  Фидбэк владельца 2026-07-31 («описание съехало»): `mx-auto` центрировал блок
+  внутри обёртки max-w-5xl, из-за чего описание начиналось на 128 px правее
+  фотографии над ним и выглядело сдвинутым.{% endcomment %}
+  <div class="max-w-3xl">{% block detail_body %}{% endblock %}</div>
 
   {# Полноширинные блоки (похожие товары и т. п.) #}
   {% block detail_wide %}{% endblock %}

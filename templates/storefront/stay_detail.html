@@ -50,8 +50,10 @@
   {% comment %}Батч B: обёртка #stay-buybox — цель fetch-свопа при выборе дат на
   календаре (цены обновляются без перезагрузки; ?buybox=1 отдаёт этот фрагмент).{% endcomment %}
   <div id="stay-buybox" class="space-y-4">
-  {% include "storefront/_buybox.html" with buybox_selector="storefront/_buybox_stay_select.html" buybox_form="storefront/_buybox_stay_form.html" buybox_fallback="storefront/_buybox_stay_unavailable.html" %}
+  {% include "storefront/_buybox.html" with buybox_selector="storefront/_buybox_stay_select.html" buybox_form="storefront/_buybox_stay_form.html" buybox_fallback="storefront/_buybox_stay_unavailable.html" buybox_in_modal=True %}
   </div>
+  {# Попап формы: скрипт вне #stay-buybox (fetch-своп его не исполняет). #}
+  {% include "storefront/_modal_script.html" %}
 </div>
 {% endblock %}
 

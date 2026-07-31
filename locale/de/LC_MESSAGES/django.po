@@ -16733,3 +16733,23 @@ msgid "Closed for the whole business — reopen it under “Whole business”"
 msgstr ""
 "Für den ganzen Betrieb geschlossen — unter „Ganzer Betrieb“ wieder "
 "öffnen"
+
+msgid "Part of a multi-slot booking"
+msgstr "Teil einer Sammelbuchung"
+
+msgid "Alle Termine dieser Buchung"
+msgstr "Alle Termine dieser Buchung"
+
+msgid "Continue to booking"
+msgstr "Weiter zur Buchung"
+
+msgid "Tap several times to book them together (up to %(n)s)."
+msgstr "Mehrere Zeiten antippen, um sie zusammen zu buchen (bis zu %(n)s)."
+
+msgid "Overlaps a time you already picked"
+msgstr "Überschneidet sich mit einer bereits gewählten Zeit"
+
+msgid "%(n)s time selected"
+msgid_plural "%(n)s times selected"
+msgstr[0] "%(n)s Zeit gewählt"
+msgstr[1] "%(n)s Zeiten gewählt"

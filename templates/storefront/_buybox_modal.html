@@ -1,0 +1,32 @@
+{% load i18n %}{% comment %}Фидбэк владельца 2026-07-31: ввод контактных данных
+(имя/почта/телефон/заметка/купон/согласие) занимал всю правую колонку номера и
+услуги — из-за него блок покупки уезжал на пол-экрана вниз. Форма переезжает в
+ПОПАП за кнопкой: на странице остаётся только выбор (даты/время) и итог.
+
+Приём тот же, что у детали акции (2026-07-29): форма остаётся В DOM внутри
+скрытого диалога, поэтому паритет-замки на разметку формы целы; при ошибках
+POST-рендера диалог открывается сам. Параметры include: buybox_form (партиал
+формы), modal_cta (подпись кнопки).{% endcomment %}
+<button type="button" data-modal-open="buybox-modal"
+        class="w-full text-white rounded-xl px-4 py-3 font-semibold shadow-sm hover:opacity-90 focus:ring-2 focus:ring-offset-1"
+        style="background: var(--accent, #4f46e5);">
+  {% firstof modal_cta _("Continue to booking") %}
+</button>
+
+<div id="buybox-modal" class="fixed inset-0 z-50 {% if not messages %}hidden{% endif %}" role="dialog" aria-modal="true" aria-label="{% trans 'Booking' %}">
+  <div class="absolute inset-0 bg-black/45" data-modal-close></div>
+  <div class="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center p-0 md:p-4 pointer-events-none">
+    <div class="pointer-events-auto bg-gray-50 md:rounded-2xl rounded-t-2xl shadow-xl w-full md:max-w-md max-h-[88vh] overflow-y-auto relative">
+      <button type="button" data-modal-close class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white shadow ring-1 ring-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900" aria-label="{% trans 'Close' %}">✕</button>
+      <div class="px-4 pb-4 md:px-5 md:pb-5">
+        {% comment %}Диалог открыт сам = POST не прошёл. Причину повторяем ЗДЕСЬ:
+        сообщение страницы осталось бы за затемнением, и гость видел бы форму,
+        открывшуюся «без причины».{% endcomment %}
+        {% if messages %}{% for m in messages %}
+          <div class="mt-4 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+        {% endfor %}{% endif %}
+        {% include buybox_form %}
+      </div>
+    </div>
+  </div>
+</div>

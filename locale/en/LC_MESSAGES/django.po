@@ -16582,3 +16582,23 @@ msgstr "Please enter a price for these dates."
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Closed for the whole business — reopen it under “Whole business”"
 msgstr "Closed for the whole business — reopen it under “Whole business”"
+
+msgid "Part of a multi-slot booking"
+msgstr "Part of a multi-slot booking"
+
+msgid "Alle Termine dieser Buchung"
+msgstr "All times of this booking"
+
+msgid "Continue to booking"
+msgstr "Continue to booking"
+
+msgid "Tap several times to book them together (up to %(n)s)."
+msgstr "Tap several times to book them together (up to %(n)s)."
+
+msgid "Overlaps a time you already picked"
+msgstr "Overlaps a time you already picked"
+
+msgid "%(n)s time selected"
+msgid_plural "%(n)s times selected"
+msgstr[0] "%(n)s time selected"
+msgstr[1] "%(n)s times selected"

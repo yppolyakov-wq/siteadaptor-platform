@@ -16694,3 +16694,23 @@ msgstr "Lütfen bu tarihler için bir fiyat girin."
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Closed for the whole business — reopen it under “Whole business”"
 msgstr "Tüm işletme için kapalı — „Tüm işletme“ altında yeniden açın"
+
+msgid "Part of a multi-slot booking"
+msgstr "Çoklu randevu rezervasyonunun parçası"
+
+msgid "Alle Termine dieser Buchung"
+msgstr "Bu rezervasyondaki tüm randevular"
+
+msgid "Continue to booking"
+msgstr "Rezervasyona devam et"
+
+msgid "Tap several times to book them together (up to %(n)s)."
+msgstr "Birlikte rezerve etmek için birden fazla saate dokunun (en fazla %(n)s)."
+
+msgid "Overlaps a time you already picked"
+msgstr "Zaten seçtiğiniz bir saatle çakışıyor"
+
+msgid "%(n)s time selected"
+msgid_plural "%(n)s times selected"
+msgstr[0] "%(n)s saat seçildi"
+msgstr[1] "%(n)s saat seçildi"

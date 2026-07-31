@@ -28,6 +28,16 @@ def enqueue_booking_email(booking, event):
     customer = booking.customer
     tenant = _tenant(schema)
     ctx = {"booking": booking, "customer": customer, "resource": booking.resource}
+    # HF-6d: бронь на несколько периодов — письмо перечисляет ВСЕ времена группы
+    # (одиночная бронь: список пуст, письмо байт-в-байт прежнее).
+    if booking.group_code:
+        from .models import Booking
+
+        ctx["group_bookings"] = list(
+            Booking.objects.filter(group_code=booking.group_code)
+            .exclude(status="cancelled")
+            .order_by("start")
+        )
 
     template_base = _CUSTOMER_TEMPLATES.get(event)
     email_on = channel_enabled(tenant, "customer", "booking", event, "email")

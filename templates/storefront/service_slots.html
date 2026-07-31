@@ -52,6 +52,8 @@
   </div>
   {% include "storefront/_svc_box_script.html" %}
 </div>
+{# Попап формы: скрипт вне #svc-box, иначе fetch-своп его теряет. #}
+{% include "storefront/_modal_script.html" %}
 {% endblock %}
 
 {% block detail_body %}

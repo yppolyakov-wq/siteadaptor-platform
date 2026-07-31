@@ -16757,3 +16757,25 @@ msgstr "Вкажіть ціну на цей період."
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Closed for the whole business — reopen it under “Whole business”"
 msgstr "Закрито для всього бізнесу — відкрийте в режимі «Весь бізнес»"
+
+msgid "Part of a multi-slot booking"
+msgstr "Частина броні на кілька часів"
+
+msgid "Alle Termine dieser Buchung"
+msgstr "Усі часи цієї броні"
+
+msgid "Continue to booking"
+msgstr "Перейти до броні"
+
+msgid "Tap several times to book them together (up to %(n)s)."
+msgstr "Позначте кілька часів, щоб забронювати їх разом (до %(n)s)."
+
+msgid "Overlaps a time you already picked"
+msgstr "Перетинається з уже вибраним часом"
+
+msgid "%(n)s time selected"
+msgid_plural "%(n)s times selected"
+msgstr[0] "вибрано %(n)s час"
+msgstr[1] "вибрано %(n)s часи"
+msgstr[2] "вибрано %(n)s часів"
+msgstr[3] "вибрано %(n)s часу"

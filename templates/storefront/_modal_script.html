@@ -1,0 +1,56 @@
+{% comment %}Обработчик попапов витрины. ЖИВЁТ ВНЕ свапаемых fetch-зон
+(#svc-box, #stay-buybox): innerHTML НЕ исполняет <script>, поэтому скрипт внутри
+партиала формы переставал работать сразу после первого свопа — кнопка была, а
+попап не открывался. Делегирование на document (урок Ф1) + гард от повторного
+включения.
+
+Диалог ПОРТИРУЕМ в <body>: он лежит внутри sticky-колонки детали
+(`lg:sticky`), а sticky создаёт stacking-контекст — из-за этого шапка сайта
+(z-20) рисовалась ПОВЕРХ затемнения, и клик в её зоне уходил в меню, а не в
+диалог (проверено elementFromPoint на стенде). Портированные копии протухают
+после fetch-свопа селектора, поэтому перед открытием выбрасываем их и берём
+диалог, который сейчас в потоке страницы.{% endcomment %}
+<script>
+(function () {
+  if (window.__buyModalBound) return;
+  window.__buyModalBound = true;
+
+  function pick(id) {
+    var all = document.querySelectorAll('[id="' + id + '"]');
+    var fresh = null;
+    all.forEach(function (n) { if (!n.hasAttribute("data-modal-portal") && !fresh) fresh = n; });
+    all.forEach(function (n) { if (n !== fresh && n.hasAttribute("data-modal-portal")) n.remove(); });
+    return fresh || document.getElementById(id);
+  }
+  function show(m) {
+    if (!m) return;
+    m.setAttribute("data-modal-portal", "1");
+    document.body.appendChild(m);
+    m.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+  function hide(m) {
+    if (!m) return;
+    m.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("click", function (e) {
+    var open = e.target.closest("[data-modal-open]");
+    if (open) { show(pick(open.getAttribute("data-modal-open"))); return; }
+    if (e.target.closest("[data-modal-close]")) hide(e.target.closest('[role="dialog"]'));
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(hide);
+  });
+
+  // POST не прошёл → диалог отрендерен открытым: его тоже нужно вынести из
+  // sticky-контекста, иначе гость увидит форму под шапкой.
+  function init() {
+    document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(show);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>

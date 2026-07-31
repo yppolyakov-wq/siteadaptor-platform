@@ -3,6 +3,8 @@
 {{ resource.name }} · {{ booking.start|date:"l, d.m.Y" }} {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}
 {% trans "Gast" %}: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}{% if booking.party_size > 1 %} · {% blocktrans with n=booking.party_size %}{{ n }} Personen{% endblocktrans %}{% endif %}
 {% trans "Code" %}: {{ booking.reference_code }}
-{% if booking.note %}{% trans "Notiz" %}: {{ booking.note }}{% endif %}
+{% if group_bookings %}{% trans "Alle Termine dieser Buchung" %}:
+{% for g in group_bookings %}- {{ g.start|date:"d.m.Y" }} · {{ g.start|time:"H:i" }}–{{ g.end|time:"H:i" }}
+{% endfor %}{% endif %}{% if booking.note %}{% trans "Notiz" %}: {{ booking.note }}{% endif %}
 
 {% trans "Bestätigen im Dashboard" %}: /dashboard/booking/

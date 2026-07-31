@@ -115,3 +115,17 @@ def test_no_dates_selector_only():
     body = _detail(unit)  # без von/bis — quote нет
     assert f"/unterkunft/{unit.pk}/buchen/" not in body  # POST-формы нет
     assert 'id="buchen"' in body and 'name="von"' in body  # селектор дат на месте
+
+
+def test_book_form_lives_inside_a_hidden_dialog():
+    """Фидбэк 2026-07-31: контактные данные — в попапе.
+
+    Форма остаётся В DOM (паритет полей выше цел), но скрыта в диалоге за
+    кнопкой: правая колонка номера перестала занимать пол-экрана."""
+    unit = _unit()
+    body = _detail(unit, _dates())
+    assert 'data-modal-open="buybox-modal"' in body
+    dialog = re.search(r'<div id="buybox-modal"[^>]*>', body)
+    assert dialog and "hidden" in dialog.group(0)  # закрыт по умолчанию
+    # форма — внутри диалога, а не в потоке страницы
+    assert body.index('id="buybox-modal"') < body.index(f'action="/unterkunft/{unit.pk}/buchen/"')

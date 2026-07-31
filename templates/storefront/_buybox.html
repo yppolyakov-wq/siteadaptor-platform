@@ -72,7 +72,14 @@ test_public (порядок CTA/точные href). Двухшаговость (
   {% if buybox_selector %}{% include buybox_selector %}{% endif %}
   {% if buybox_form %}
     {% if sellable.buybox_ready %}
-      {% include buybox_form %}
+      {% comment %}Фидбэк владельца 2026-07-31: контактные данные — в попапе, иначе
+      форма занимала всю правую колонку. Страница просит это флагом buybox_in_modal
+      (номер/услуга); прочие поверхности рендерят форму как раньше.{% endcomment %}
+      {% if buybox_in_modal %}
+        {% include "storefront/_buybox_modal.html" %}
+      {% else %}
+        {% include buybox_form %}
+      {% endif %}
     {% elif buybox_fallback %}
       {% include buybox_fallback %}
     {% endif %}

@@ -114,3 +114,18 @@ def test_no_slot_selected_hint_not_form():
     body = _slots_page(service, {"tag": DAY.isoformat()})
     assert f"/termin/leistung/{service.pk}/buchen/" not in body  # POST-формы нет
     assert "Wähle einen Zeitpunkt aus, um fortzufahren." in body  # хинт при доступных стартах
+
+
+def test_service_book_form_lives_inside_a_hidden_dialog():
+    """Фидбэк 2026-07-31: контактные данные услуги — в попапе.
+
+    Разметка формы не тронута (замки выше), она лишь переехала в закрытый
+    диалог за кнопкой — страница услуги снова про услугу, а не про форму."""
+    _resource()
+    service = _service()
+    slot = availability.service_slots(service, DAY)[0]
+    body = _slots_page(service, {"tag": DAY.isoformat(), "slot": slot.isoformat()})
+    assert 'data-modal-open="buybox-modal"' in body
+    dialog = re.search(r'<div id="buybox-modal"[^>]*>', body)
+    assert dialog and "hidden" in dialog.group(0)  # закрыт по умолчанию
+    assert body.index('id="buybox-modal"') < body.index('name="start"')

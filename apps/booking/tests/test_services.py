@@ -794,3 +794,114 @@ def test_seasonal_price_requires_a_price(settings):
     from apps.booking import pricing
 
     assert pricing.price_cents_for(svc, day) == 4900  # цена осталась базовой
+
+
+# --- HF-6c/6d: мультивыбор времён на витрине -------------------------------------
+def _slots_get(svc, day, picked=(), tag=None):
+    """GET страницы слотов услуги с уже отмеченными временами (?slot=…)."""
+    from urllib.parse import urlencode
+
+    qs = urlencode([("tag", (tag or day).isoformat())] + [("slot", s.isoformat()) for s in picked])
+    request = RequestFactory().get(f"/termin/leistung/{svc.pk}/?{qs}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    return public_views.service_slots(request, pk=svc.pk)
+
+
+def test_slot_grid_blocks_times_that_overlap_the_picked_one(settings):
+    """HF-6c: услуга длиннее шага сетки — соседние старты вместе НЕ бронируются.
+
+    Раньше их можно было отметить, а отправка ловила отказ «время занято».
+    Теперь пересекающиеся времена показаны, но не кликабельны."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(duration_minutes=60)  # шаг сетки 30 мин → сосед пересекается
+    starts = availability.service_slots(svc, day)
+    html = _slots_get(svc, day, picked=[starts[0]]).content.decode()
+    assert 'data-slot="picked"' in html
+    assert 'data-slot="blocked"' in html
+    # соседний старт (+30 мин) в сетке есть, но кликнуть его нельзя
+    neighbour = starts[1].strftime("%H:%M")
+    assert 'data-slot="blocked" title=' in html and neighbour in html
+
+
+def test_multi_slot_selection_posts_every_picked_time(settings):
+    """HF-6c: два непересекающихся времени → две hidden-строки формы и одна группа."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(duration_minutes=60)
+    starts = availability.service_slots(svc, day)
+    picked = [starts[0], starts[2]]  # каждый второй — без пересечения
+    html = _slots_get(svc, day, picked=picked).content.decode()
+    assert html.count('name="start"') == 2
+
+    request = RequestFactory().post(
+        f"/termin/leistung/{svc.pk}/buchen/",
+        {"start": [s.isoformat() for s in picked], "name": "Gast", "email": "g@test.de"},
+        REMOTE_ADDR="10.6.1.1",
+    )
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    public_views.service_book(request, pk=svc.pk)
+    made = list(Booking.objects.filter(service=svc).order_by("start"))
+    assert len(made) == 2
+    assert made[0].group_code and made[0].group_code == made[1].group_code
+
+
+def test_selection_survives_navigation_to_another_day(settings):
+    """HF-6c: гость добирает времена на соседнем дне — набор и форма не теряются.
+
+    Без этого выбор жил только на «своём» дне, а форма исчезала при переходе."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    other = day + timedelta(days=1)
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    _rule(r, other, end="18:00")
+    svc = _service(duration_minutes=60)
+    first = availability.service_slots(svc, day)[0]
+    html = _slots_get(svc, other, picked=[first], tag=other).content.decode()
+    assert f'value="{first.isoformat()}"' in html  # выбор дня 1 доезжает до POST
+    assert 'name="start"' in html  # форма доступна, хотя на этом дне ничего не выбрано
+
+
+def test_stale_and_garbage_slot_params_are_dropped(settings):
+    """Мусор в ?slot= не должен ронять страницу и не должен уходить в POST."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+    svc = _service(duration_minutes=60)
+    request = RequestFactory().get(f"/termin/leistung/{svc.pk}/?tag={day}&slot=nonsense")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    html = public_views.service_slots(request, pk=svc.pk).content.decode()
+    assert 'data-slot="free"' in html  # страница жива
+    assert 'data-slot="picked"' not in html  # мусор ничего не «выбрал»
+    assert 'name="start"' not in html  # и не доехал до POST-формы
+
+
+def test_confirmation_lists_every_time_of_the_group(settings):
+    """HF-6d: подтверждение называет ВСЕ периоды группы, не только первый."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(duration_minutes=60)
+    created = services.book_many(
+        [_slot_tuple(svc, day, 0), _slot_tuple(svc, day, 1)], name="Gast", email="g@test.de"
+    )
+    request = RequestFactory().get(f"/t/{created[0].reference_code}/", REMOTE_ADDR="10.6.2.2")
+    request.tenant = TenantFactory.build()
+    html = public_views.termin_confirmation(
+        request, code=created[0].reference_code
+    ).content.decode()
+    for b in created:
+        assert b.start.strftime("%H:%M") in html

@@ -45,6 +45,14 @@ def _parse_day(raw) -> date:
     return min(max(day, today), today + timedelta(days=MAX_DAYS_AHEAD))
 
 
+def _parse_start(raw):
+    """HF-6c: ISO-время из URL (?slot=…) или None. Мусор не должен ронять страницу."""
+    try:
+        return datetime.fromisoformat(raw)
+    except (TypeError, ValueError):
+        return None
+
+
 def _cal_first(request, day) -> date:
     """A3: 1-е число отображаемого месяца календаря — из ?cal=YYYY-MM или месяц `day`."""
     try:
@@ -280,10 +288,41 @@ def service_slots(request, pk):
         next_free = availability.next_free_slot(
             service, day + timedelta(days=1), max_days=MAX_DAYS_AHEAD, resource=chosen
         )
-    selected = None
-    raw = request.GET.get("slot", "")
-    if raw:
-        selected = next((s for s in starts if s.isoformat() == raw), None)
+    # HF-6c (фидбэк владельца: «нельзя выбрать услугу сразу на 2-3 времени»):
+    # выбор — СПИСОК стартов (?slot=A&slot=B). Валидируем каждый по живой сетке,
+    # порядок — как в сетке, кап — тот же, что у services.book_many.
+    raw_slots = request.GET.getlist("slot")
+    picked = {r for r in raw_slots if r}
+    # Сетка стартов идёт с шагом расписания, а услуга может длиться дольше шага
+    # (демо-прокат — 8 часов при шаге 30 мин): соседние времена ПЕРЕСЕКАЮТСЯ и
+    # вместе не бронируются. Пересечения выкидываем здесь и гасим в сетке ниже —
+    # иначе гость набирал заведомо невозможный набор и получал отказ на отправке.
+    duration = timedelta(minutes=service.duration_minutes)
+    selected_list = []
+    for one in starts:
+        if one.isoformat() not in picked:
+            continue
+        if any(one < k + duration and k < one + duration for k in selected_list):
+            continue
+        selected_list.append(one)
+        if len(selected_list) >= services.MAX_GROUP_SLOTS:
+            break
+    # Выбор с ДРУГИХ дней несём через URL, чтобы навигация по дням его не теряла.
+    # Мусор и «протухшие» времена ТЕКУЩЕГО дня (их уже нет в сетке — заняли)
+    # отбрасываем: иначе POST падал бы целиком из-за слота, которого гость не видит.
+    other_day_dts = []
+    for raw in sorted(picked - {s.isoformat() for s in starts}):
+        one = _parse_start(raw)
+        if one is None or one.date() == day:
+            continue
+        other_day_dts.append(one)
+    other_day_dts = other_day_dts[: max(0, services.MAX_GROUP_SLOTS - len(selected_list))]
+    other_days = [s.isoformat() for s in other_day_dts]
+    selected = selected_list[0] if selected_list else None
+    # Чистый набор: только то, что реально уйдёт в POST (он же — состояние ссылок).
+    picked = {s.isoformat() for s in selected_list} | set(other_days)
+    # Времена всей брони в хронологии — hidden-поля формы и её заголовок.
+    booking_slots = sorted(selected_list + other_day_dts)
     tenant = getattr(request, "tenant", None)
     from apps.core import extras as extras_engine
 
@@ -302,11 +341,31 @@ def service_slots(request, pk):
         "service": service,
         # UA3-2: контракт для _buybox; buybox_ready = валидный выбранный слот
         # (сервер всё равно ре-валидирует в service_book).
-        "sellable": sellable_for("service", service, buybox_ready=selected is not None),
+        # HF-6c: форма нужна при ЛЮБОМ выбранном времени — в том числе когда гость
+        # ушёл на соседний день добирать периоды (иначе набор есть, а оформить нечем).
+        "sellable": sellable_for("service", service, buybox_ready=bool(booking_slots)),
         "day": day,
         "starts": starts,
         "next_free": next_free,  # R3: ближайший свободный старт (empty-state)
         "selected": selected,
+        # HF-6c: мультивыбор — список выбранных стартов этого дня + с других дней.
+        "selected_list": selected_list,
+        "booking_slots": booking_slots,
+        "selected_isos": [s.isoformat() for s in booking_slots],
+        "cross_day": bool(other_day_dts),
+        "other_day_slots": other_days,
+        "selected_count": len(booking_slots),
+        # Навигация по дням несёт уже выбранные времена (иначе набор терялся).
+        "slot_qs_prev": _slot_carry_qs(
+            day - timedelta(days=1), chosen, selected_list, other_days, embed=_is_embed(request)
+        ),
+        "slot_qs_next": _slot_carry_qs(
+            day + timedelta(days=1), chosen, selected_list, other_days, embed=_is_embed(request)
+        ),
+        "slot_toggles": _slot_toggles(
+            day, chosen, starts, picked, selected_list, duration, embed=_is_embed(request)
+        ),
+        "max_group_slots": services.MAX_GROUP_SLOTS,
         "resources": resources if len(resources) > 1 else [],  # пикер только при >1
         "chosen_resource": chosen,
         "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
@@ -473,6 +532,60 @@ def service_review_submit(request, pk):
     )
 
 
+def _slot_carry_qs(day, resource, selected_list, other_days, *, embed=False) -> str:
+    """HF-6c: query-хвост, СОХРАНЯЮЩИЙ выбранные времена при навигации по дням.
+
+    Без него переход на соседний день терял уже отмеченные слоты — а гость
+    как раз и хочет набрать два-три времени, возможно на разных днях.
+    """
+    from urllib.parse import urlencode
+
+    pairs = [("tag", day.isoformat())]
+    if resource is not None:
+        pairs.append(("resource", str(resource.pk)))
+    for iso in [s.isoformat() for s in selected_list] + list(other_days):
+        pairs.append(("slot", iso))
+    if embed:
+        pairs.append(("embed", "1"))
+    return "?" + urlencode(pairs)
+
+
+def _slot_toggles(day, resource, starts, picked, selected_list, duration, *, embed=False) -> list:
+    """HF-6c: для каждого старта — ссылка, которая ДОБАВЛЯЕТ или СНИМАЕТ его.
+
+    Мультивыбор без JS: состояние живёт в URL (?slot=A&slot=B), клик по времени
+    переключает его. `picked` уже очищен вьюхой и включает выбор с других дней —
+    его ссылки несут как есть. Старт, ПЕРЕСЕКАЮЩИЙСЯ с уже выбранным (услуга
+    длиннее шага сетки), помечаем `blocked`: кликать его нечестно — бронь всё
+    равно не состоится.
+    """
+    from urllib.parse import urlencode
+
+    rows = []
+    for start in starts:
+        iso = start.isoformat()
+        chosen_now = iso in picked
+        blocked = not chosen_now and any(
+            start < k + duration and k < start + duration for k in selected_list
+        )
+        keep = [x for x in picked if x != iso] if chosen_now else list(picked) + [iso]
+        pairs = [("tag", day.isoformat())]
+        if resource is not None:
+            pairs.append(("resource", str(resource.pk)))
+        pairs += [("slot", x) for x in sorted(keep)]
+        if embed:
+            pairs.append(("embed", "1"))
+        rows.append(
+            {
+                "start": start,
+                "selected": chosen_now,
+                "blocked": blocked,
+                "url": "?" + urlencode(pairs),
+            }
+        )
+    return rows
+
+
 def service_book(request, pk):
     _require_booking_active(request)
     embed = _is_embed(request)  # A4: сохраняем iframe-режим во всём флоу
@@ -483,17 +596,40 @@ def service_book(request, pk):
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
     if ratelimit.hit("termin", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
+    # HF-6c: гость мог отметить НЕСКОЛЬКО времён — приходит список `start`.
+    # Разбираем все, порядок сохраняем; кривой формат = 404 (как было).
     try:
-        start = datetime.fromisoformat(request.POST.get("start", ""))
+        picked_starts = [
+            datetime.fromisoformat(raw) for raw in request.POST.getlist("start") if raw
+        ]
     except ValueError:
         raise Http404 from None
+    if not picked_starts:
+        raise Http404
+    picked_starts = picked_starts[: services.MAX_GROUP_SLOTS]
     # #4: выбранный мастер/ресурс (если был) — бронируем именно его.
     rid = request.POST.get("resource", "")
     chosen = Resource.objects.filter(pk=rid, is_active=True).first() if rid else None
-    if start not in availability.service_slots(service, start.date(), resource=chosen):
-        messages.error(request, _("This time is no longer available. Please pick another."))
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
-    resource = availability.assign_resource(service, start, resource=chosen)
+    # Каждое время ре-валидируем по живой сетке и назначаем ему свой ресурс:
+    # разные периоды может обслуживать разный мастер.
+    slot_plan = []
+    for one in picked_starts:
+        if one not in availability.service_slots(service, one.date(), resource=chosen):
+            messages.error(request, _("This time is no longer available. Please pick another."))
+            return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        one_resource = availability.assign_resource(service, one, resource=chosen)
+        if one_resource is None:
+            messages.error(request, _("This time is no longer available. Please pick another."))
+            return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        slot_plan.append(
+            (
+                one_resource,
+                one,
+                one + timedelta(minutes=service.duration_minutes),
+                pricing.price_cents_for(service, one.date()),
+            )
+        )
+    resource = slot_plan[0][0]
     name = request.POST.get("name", "").strip()
     if resource is None or not name:
         messages.error(
@@ -507,22 +643,22 @@ def service_book(request, pk):
 
     extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
     try:
-        booking = services.book(
-            resource,
-            start=start,
-            end=start + timedelta(minutes=service.duration_minutes),
+        # HF-6c: один период = обычная бронь (байт-в-байт как раньше), несколько —
+        # группа в одной транзакции: занятый период откатывает весь набор.
+        # Цена каждого периода — на его дату (HF-5), Extras/промокод — на первую
+        # бронь (набор оформляется как один заказ).
+        created = services.book_many(
+            slot_plan,
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
             service=service,
-            # HF-5: цена — на ДАТУ визита (сезонный тариф перебивает базовую).
-            # Считается ровно тем же резолвером, что показан на витрине.
-            price_cents=pricing.price_cents_for(service, start.date()),
             extras=extras_snap,
             voucher_code=request.POST.get("voucher_code", ""),
         )
+        booking = created[0]
     except services.PromoInvalid:
         # B1.2: невалидный промокод/Gutschein — бронь не создаём, слот не занят.
         messages.error(request, _("This voucher code is not valid."))
@@ -769,9 +905,23 @@ def termin_confirmation(request, code):
     booking = get_object_or_404(Booking.objects.select_related("resource"), reference_code=code)
     from apps.telegram.notify import deep_link
 
+    # HF-6d: бронь на несколько периодов — показываем ВСЕ времена группы. Иначе
+    # гость выбрал два времени, а подтверждение называет одно (и он думает, что
+    # второе не записалось).
+    group = []
+    if booking.group_code:
+        group = list(
+            Booking.objects.filter(group_code=booking.group_code)
+            .exclude(status="cancelled")
+            .order_by("start")
+        )
     return _render_embed(
         request,
         "storefront/booking_confirmation.html",
-        {"booking": booking, "telegram_link": deep_link(booking.customer)},
+        {
+            "booking": booking,
+            "group_bookings": group,
+            "telegram_link": deep_link(booking.customer),
+        },
         _is_embed(request),
     )
