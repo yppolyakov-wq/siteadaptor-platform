@@ -16602,3 +16602,6 @@ msgid "%(n)s time selected"
 msgid_plural "%(n)s times selected"
 msgstr[0] "%(n)s time selected"
 msgstr[1] "%(n)s times selected"
+
+msgid "Pass applied — %(n)d visits redeemed."
+msgstr "Pass applied — %(n)d visits redeemed."

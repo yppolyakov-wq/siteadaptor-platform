@@ -427,10 +427,14 @@ def unterkunft_unit(request, pk):
     if request.GET.get("buybox") == "1":
         # Батч B: fetch-своп из календаря дат — отдаём ТОЛЬКО фрагмент buy-box
         # (#stay-buybox на детали); партиалы диспатча — те же, что в шаблоне.
+        # Ревью 2026-07-31: без buybox_in_modal фрагмент рендерил форму контактов
+        # ИНЛАЙНОМ — а через него проходит ОСНОВНОЙ флоу (гость выбирает даты на
+        # календаре), так что попап работал только при заходе с датами в URL.
         ctx.update(
             buybox_selector="storefront/_buybox_stay_select.html",
             buybox_form="storefront/_buybox_stay_form.html",
             buybox_fallback="storefront/_buybox_stay_unavailable.html",
+            buybox_in_modal=True,
         )
         return render(request, "storefront/_buybox.html", ctx)
     return _render_embed(request, "storefront/stay_detail.html", ctx, _is_embed(request))

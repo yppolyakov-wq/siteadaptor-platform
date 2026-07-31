@@ -46,11 +46,17 @@ def _parse_day(raw) -> date:
 
 
 def _parse_start(raw):
-    """HF-6c: ISO-время из URL (?slot=…) или None. Мусор не должен ронять страницу."""
+    """HF-6c: ISO-время из URL (?slot=…) или None. Мусор не должен ронять страницу.
+
+    Ревью 2026-07-31: строка БЕЗ смещения («2026-08-08T10:00:00») парсится успешно и
+    даёт naive datetime — при сортировке вперемешку с aware-стартами сетки это давало
+    TypeError и 500. Наивное время — такой же мусор, как нечисло: отбрасываем.
+    """
     try:
-        return datetime.fromisoformat(raw)
+        parsed = datetime.fromisoformat(raw)
     except (TypeError, ValueError):
         return None
+    return parsed if timezone.is_aware(parsed) else None
 
 
 def _cal_first(request, day) -> date:
@@ -112,12 +118,19 @@ def _render_embed(request, template, ctx, embed):
     return resp
 
 
-def _redeem_pass_if_code(request, booking) -> bool:
-    """G9: если предъявлен Mehrfachkarte-Code — гасим один визит. Возвращает True,
-    когда код был предъявлен (тогда депозит/оплату пропускаем — карта вместо денег).
+def _redeem_pass_if_code(request, bookings) -> bool:
+    """G9: если предъявлен Mehrfachkarte-Code — гасим по визиту НА КАЖДЫЙ период.
 
-    Невалидный/исчерпанный код: бронь остаётся, на оплату НЕ уводим (не списываем
-    деньги при ошибке карты), показываем сообщение — владелец разберётся."""
+    Возвращает True, когда код был предъявлен (тогда депозит/оплату пропускаем —
+    карта вместо денег). Невалидный/исчерпанный код: брони остаются, на оплату НЕ
+    уводим (не списываем деньги при ошибке карты), показываем сообщение — владелец
+    разберётся.
+
+    Ревью 2026-07-31 (HF-6c): раньше сюда приходила ОДНА бронь, и запись на N времён
+    стоила гостю один визит с карты (до MAX_GROUP_SLOTS=6), а подтверждалась только
+    первая. Гасим ровно столько визитов, сколько периодов забронировано; если визитов
+    не хватило — честно говорим, сколько удалось погасить.
+    """
     code = request.POST.get("pass_code", "").strip()
     if not code:
         return False
@@ -125,9 +138,13 @@ def _redeem_pass_if_code(request, booking) -> bool:
     if card is None:
         messages.error(request, _("This pass code is not valid."))
         return True
-    try:
-        services.redeem_pass(card, booking=booking)
-        messages.success(request, _("Pass applied — one visit redeemed."))
+    done = 0
+    for booking in bookings:
+        try:
+            services.redeem_pass(card, booking=booking)
+        except services.PassInvalid:
+            break
+        done += 1
         # Карта = оплачено → авто-подтверждаем бронь (если ресурс не требует
         # ручного подтверждения), как при оплаченном депозите.
         if not booking.resource.require_manual_confirm:
@@ -135,7 +152,14 @@ def _redeem_pass_if_code(request, booking) -> bool:
                 BookingSM().apply(booking, "confirmed")
             except IllegalTransition:
                 pass
-    except services.PassInvalid:
+    if done == 1:
+        messages.success(request, _("Pass applied — one visit redeemed."))
+    elif done:
+        # Отдельная строка, а не ngettext: тот же msgid уже живёт в .po как
+        # ОДИНОЧНЫЙ — makemessages падает на строке, которая одновременно
+        # singular и plural (урок 2026-07-31).
+        messages.success(request, _("Pass applied — %(n)d visits redeemed.") % {"n": done})
+    if done < len(bookings):
         messages.error(request, _("This pass has no visits left or has expired."))
     return True
 
@@ -675,7 +699,8 @@ def service_book(request, pk):
         maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
-    if _redeem_pass_if_code(request, booking):
+    # HF-6c: гасим визит на КАЖДЫЙ период группы (created), а не только на первый.
+    if _redeem_pass_if_code(request, created):
         return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
 
     # Депозит услуги (P2.5b): на Stripe Checkout, иначе обычная запись.
@@ -824,7 +849,7 @@ def termin_book(request, pk):
         maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
-    if _redeem_pass_if_code(request, booking):
+    if _redeem_pass_if_code(request, [booking]):
         return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
 
     # Депозит (P2.5b): если у ресурса задан и бизнес принимает оплату — ведём на
@@ -908,19 +933,24 @@ def termin_confirmation(request, code):
     # HF-6d: бронь на несколько периодов — показываем ВСЕ времена группы. Иначе
     # гость выбрал два времени, а подтверждение называет одно (и он думает, что
     # второе не записалось).
-    group = []
+    group, group_total_eur = [], None
     if booking.group_code:
         group = list(
             Booking.objects.filter(group_code=booking.group_code)
             .exclude(status="cancelled")
             .order_by("start")
         )
+        # Ревью 2026-07-31: страница перечисляла N времён, но цену показывала за
+        # ОДИН период. Считаем итог по всей группе (Extras/скидка — на первой брони).
+        if group:
+            group_total_eur = sum(b.total_cents for b in group) / 100
     return _render_embed(
         request,
         "storefront/booking_confirmation.html",
         {
             "booking": booking,
             "group_bookings": group,
+            "group_total_eur": group_total_eur,
             "telegram_link": deep_link(booking.customer),
         },
         _is_embed(request),

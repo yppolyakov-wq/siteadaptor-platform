@@ -16779,3 +16779,6 @@ msgstr[0] "вибрано %(n)s час"
 msgstr[1] "вибрано %(n)s часи"
 msgstr[2] "вибрано %(n)s часів"
 msgstr[3] "вибрано %(n)s часу"
+
+msgid "Pass applied — %(n)d visits redeemed."
+msgstr "Картку застосовано — списано візитів: %(n)d."

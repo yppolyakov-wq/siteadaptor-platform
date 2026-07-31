@@ -16714,3 +16714,6 @@ msgid "%(n)s time selected"
 msgid_plural "%(n)s times selected"
 msgstr[0] "%(n)s saat seçildi"
 msgstr[1] "%(n)s saat seçildi"
+
+msgid "Pass applied — %(n)d visits redeemed."
+msgstr "Kart uygulandı — %(n)d ziyaret düşüldü."

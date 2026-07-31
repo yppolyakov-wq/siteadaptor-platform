@@ -30,14 +30,16 @@ def enqueue_booking_email(booking, event):
     ctx = {"booking": booking, "customer": customer, "resource": booking.resource}
     # HF-6d: бронь на несколько периодов — письмо перечисляет ВСЕ времена группы
     # (одиночная бронь: список пуст, письмо байт-в-байт прежнее).
+    # Ревью 2026-07-31: письмо «Reservierung bestätigt» перечисляло и те периоды,
+    # которые ещё ждут подтверждения (владелец может подтвердить их по одному) —
+    # для этого события берём только периоды в том же статусе.
     if booking.group_code:
         from .models import Booking
 
-        ctx["group_bookings"] = list(
-            Booking.objects.filter(group_code=booking.group_code)
-            .exclude(status="cancelled")
-            .order_by("start")
-        )
+        group_qs = Booking.objects.filter(group_code=booking.group_code).exclude(status="cancelled")
+        if event == "confirmed":
+            group_qs = group_qs.filter(status=booking.status)
+        ctx["group_bookings"] = list(group_qs.order_by("start"))
 
     template_base = _CUSTOMER_TEMPLATES.get(event)
     email_on = channel_enabled(tenant, "customer", "booking", event, "email")

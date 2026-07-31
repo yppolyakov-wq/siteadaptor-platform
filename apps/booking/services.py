@@ -195,6 +195,14 @@ def book_many(starts, **kwargs):
         raise ValueError("too many slots")
     single = len(slots) == 1
     code = "" if single else _unique_group_code()
+    # Ревью 2026-07-31: промокод и Extras — ОДИН РАЗ на заказ, не на каждый период.
+    # Раньше они уезжали в каждый `book` через **kwargs: одноразовый Gutschein
+    # гасился первой бронью и ронял всю транзакцию («код недействителен» при
+    # валидном коде), многоразовый давал N-кратную скидку, Extras оплачивались N раз.
+    once = {
+        "voucher_code": kwargs.pop("voucher_code", ""),
+        "extras": kwargs.pop("extras", None),
+    }
     created = []
     for resource, start, end, price_cents in slots:
         created.append(
@@ -206,6 +214,7 @@ def book_many(starts, **kwargs):
                 group_code=code,
                 # Одно письмо на всю группу — шлём после успешного создания всех.
                 notify=single,
+                **(once if not created else {}),
                 **kwargs,
             )
         )

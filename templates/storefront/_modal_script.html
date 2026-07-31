@@ -19,8 +19,13 @@
     var all = document.querySelectorAll('[id="' + id + '"]');
     var fresh = null;
     all.forEach(function (n) { if (!n.hasAttribute("data-modal-portal") && !fresh) fresh = n; });
-    all.forEach(function (n) { if (n !== fresh && n.hasAttribute("data-modal-portal")) n.remove(); });
-    return fresh || document.getElementById(id);
+    // Ревью 2026-07-31: без этой проверки ВТОРОЕ открытие удаляло единственный
+    // (уже портированный) диалог — кнопка после первого закрытия становилась
+    // мёртвой. Выбрасываем протухшие копии ТОЛЬКО когда в потоке страницы
+    // появился свежий диалог (после fetch-свопа селектора).
+    if (!fresh) return all[0] || null;
+    all.forEach(function (n) { if (n !== fresh) n.remove(); });
+    return fresh;
   }
   function show(m) {
     if (!m) return;

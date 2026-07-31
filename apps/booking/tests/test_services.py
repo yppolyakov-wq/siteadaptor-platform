@@ -905,3 +905,160 @@ def test_confirmation_lists_every_time_of_the_group(settings):
     ).content.decode()
     for b in created:
         assert b.start.strftime("%H:%M") in html
+
+
+# --- ревью HF-6c: деньги и карта в мультислот-брони ------------------------------
+def _post_group(svc, day, picked, **extra):
+    """POST брони услуги на несколько времён (как шлёт форма витрины).
+
+    IP уникален на вызов: rate-limit живёт в Redis и переживает прогоны."""
+    request = RequestFactory().post(
+        f"/termin/leistung/{svc.pk}/buchen/",
+        {
+            "start": [s.isoformat() for s in picked],
+            "name": "Gast",
+            "email": "g@test.de",
+            **extra,
+        },
+        REMOTE_ADDR=f"10.7.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}",
+    )
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    return public_views.service_book(request, pk=svc.pk)
+
+
+def _two_free_starts(svc, day):
+    starts = availability.service_slots(svc, day)
+    step = max(1, svc.duration_minutes // 30)
+    return [starts[0], starts[step]]
+
+
+def test_voucher_is_spent_once_per_group_not_per_slot(settings):
+    """Ревью: промокод уезжал в КАЖДЫЙ период через **kwargs.
+
+    Одноразовый код гасился первой бронью, вторая падала PromoInvalid и откатывала
+    ВСЮ транзакцию — гость видел «код недействителен» при валидном коде."""
+    from apps.loyalty.models import Voucher
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(price_cents=5000)
+    voucher = Voucher.objects.create(code="EINMAL", label="1×", discount_cents=1000, max_uses=1)
+    _post_group(svc, day, _two_free_starts(svc, day), voucher_code="EINMAL")
+
+    made = list(Booking.objects.filter(service=svc).order_by("start"))
+    assert len(made) == 2, "одноразовый код не должен ронять групповую бронь"
+    voucher.refresh_from_db()
+    assert voucher.used_count == 1  # гашение ровно одно
+    assert [b.discount_cents for b in made] == [1000, 0]  # скидка на заказ, не на период
+
+
+def test_extras_are_charged_once_per_group(settings):
+    """Ревью: Extras тем же splat'ом попадали в каждую бронь и в выручку N раз."""
+    from apps.core.models import Extra
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(price_cents=5000)
+    extra = Extra.objects.create(label="Handtuch", price_cents=300, scope="booking", is_active=True)
+    _post_group(svc, day, _two_free_starts(svc, day), extra=[str(extra.pk)])
+
+    made = list(Booking.objects.filter(service=svc).order_by("start"))
+    assert len(made) == 2
+    assert sum(b.extras_cents for b in made) == 300  # один раз на заказ
+
+
+def test_pass_redeems_one_visit_per_period(settings):
+    """Ревью: карта гасила ОДИН визит за N периодов (до 6 слотов за один визит),
+    и подтверждалась только первая бронь."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(price_cents=5000)
+    card = services.issue_pass(name="Yogi", email="y@t.de", credits=10)
+    _post_group(svc, day, _two_free_starts(svc, day), pass_code=card.code)
+
+    made = list(Booking.objects.filter(service=svc).order_by("start"))
+    card.refresh_from_db()
+    assert len(made) == 2
+    assert card.credits_used == 2  # по визиту на период
+    assert all(b.card_id == card.id for b in made)
+    assert {b.status for b in made} == {"confirmed"}  # подтверждены обе
+
+
+def test_naive_slot_param_does_not_crash_the_page(settings):
+    """Ревью: ISO без смещения давал naive datetime → sorted() с aware-стартами
+    ронял страницу в 500 вместо того, чтобы отбросить мусор."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    other = day + timedelta(days=1)
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(duration_minutes=60)
+    good = availability.service_slots(svc, day)[0]
+    from urllib.parse import urlencode
+
+    qs = urlencode(
+        [("tag", day.isoformat()), ("slot", good.isoformat()), ("slot", f"{other}T10:00:00")]
+    )
+    request = RequestFactory().get(f"/termin/leistung/{svc.pk}/?{qs}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    resp = public_views.service_slots(request, pk=svc.pk)
+    assert resp.status_code == 200
+    assert resp.content.decode().count('name="start"') == 1  # naive-мусор отброшен
+
+
+def test_confirmation_shows_the_total_of_the_whole_group(settings):
+    """Ревью: страница перечисляла N времён, а цену показывала за один период."""
+    import re
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(price_cents=5000)
+    created = services.book_many(
+        [_slot_tuple(svc, day, 0), _slot_tuple(svc, day, 1)],
+        name="Gast",
+        email="g@test.de",
+        service=svc,
+    )
+    request = RequestFactory().get(f"/t/{created[0].reference_code}/", REMOTE_ADDR="10.7.9.9")
+    request.tenant = TenantFactory.build()
+    html = public_views.termin_confirmation(
+        request, code=created[0].reference_code
+    ).content.decode()
+    prices = re.findall(r"[0-9]+[.,][0-9]{2} €", html)
+    assert prices and prices[0] in ("100,00 €", "100.00 €"), prices  # 2 × 50 €
+
+
+def test_confirmed_email_lists_only_confirmed_periods(settings):
+    """Ревью: письмо «Reservierung bestätigt» перечисляло и неподтверждённые периоды."""
+    from apps.booking.notifications import enqueue_booking_email
+    from apps.notifications.models import Notification
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service(price_cents=5000)
+    created = services.book_many(
+        [_slot_tuple(svc, day, 0), _slot_tuple(svc, day, 1)], name="Gast", email="g@test.de"
+    )
+    BookingSM().apply(created[0], "confirmed")  # владелец подтвердил только первый
+    enqueue_booking_email(created[0], "confirmed")
+    note = Notification.objects.filter(type="booking_confirmed").order_by("-id").first()
+    assert note is not None
+    # Сверяем именно блок «Alle Termine dieser Buchung» — в теле письма время
+    # второго периода могло бы совпасть с временем ОКОНЧАНИЯ первого.
+    listed = [ln for ln in note.payload.get("body", "").split("\n") if ln.startswith("- ")]
+    assert len(listed) == 1
+    assert created[0].start.strftime("%H:%M") in listed[0]
