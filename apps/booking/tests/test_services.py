@@ -105,7 +105,9 @@ def test_service_slots_empty_state_offers_next_free(settings):
     request.tenant = TenantFactory.build(name="Salon")
     body = public_views.service_slots(request, pk=svc.pk).content.decode()
     assert "An diesem Tag sind keine Termine frei" in body
-    assert "Next free appointment" in body  # R3: перехват уходящего клиента
+    # R3: перехват уходящего клиента. Строка теперь переведена (I18N-9) — витрина
+    # рендерится по-немецки, поэтому замок сверяется с немецким текстом.
+    assert "Nächster freier Termin" in body
     assert f"tag={target:%Y-%m-%d}" in body  # ссылка ведёт на ближайший свободный день
 
 
