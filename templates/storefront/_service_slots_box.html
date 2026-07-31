@@ -42,6 +42,20 @@
   {% if next_day %}<a href="{{ slot_qs_next }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>{% else %}<span></span>{% endif %}
 </div>
 
+{% comment %}HF-7 (фидбэк владельца: «не удаётся забронировать услугу на несколько
+единиц времени, к примеру с 8:30 до 12:30»): сколько подряд идущих единиц берёт
+гость. Показываем только достижимые в этот день длительности; выбор — в URL
+(?dauer=N), поэтому работает без JS и в iframe.{% endcomment %}
+{% if unit_options %}
+<p class="text-xs text-gray-500 mb-2 max-w-xl mx-auto">{% trans "How long?" %}</p>
+<div class="flex flex-wrap gap-2 mb-3 max-w-xl mx-auto">
+  {% for u in unit_options %}
+    <a href="{{ u.url }}" data-unit="{{ u.n }}"
+       class="px-3 py-1.5 rounded-lg text-sm font-medium border {% if u.selected %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300 hover:border-indigo-400{% endif %}">{{ u.n }}× · {% blocktrans with m=u.minutes %}{{ m }} min{% endblocktrans %}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
 {% if starts %}
 {% comment %}HF-6c (фидбэк владельца: «нельзя выбрать услугу сразу на 2-3 времени»):
 времена — переключатели, состояние в URL (?slot=A&slot=B). Без JS: работает и

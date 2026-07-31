@@ -162,3 +162,16 @@ def test_context_exposes_storefront_locales(_tenant_urlconf, settings):
         {"code": "de", "label": "DE", "native": "Deutsch"},
         {"code": "fr", "label": "FR", "native": "Français"},
     ]
+
+
+# --- HF-7: ярлык украинского — UA, внутренний код остаётся uk ---------------------
+def test_ukrainian_badge_is_ua_but_code_stays_uk():
+    """Фидбэк владельца 2026-07-31: «Украинский обозначение не uk а ua».
+
+    Меняем ТОЛЬКО ярлык переключателя: `uk` — ISO 639-1 украинского, на нём
+    завязаны locale/uk/, .po/.mo и сохранённые active_locales тенантов."""
+    from apps.core.langs import badge
+
+    assert badge("uk") == "UA"
+    assert badge("de") == "DE" and badge("en") == "EN"
+    assert badge("") == "" and badge(None) == ""

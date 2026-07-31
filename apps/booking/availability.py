@@ -82,18 +82,21 @@ def free_slots(resource, day, duration_minutes=None) -> list[tuple[datetime, dat
     return [(s, e) for s, e, _spots in free_slots_with_spots(resource, day, duration_minutes)]
 
 
-def service_slots(service, day, resource=None) -> list[datetime]:
+def service_slots(service, day, resource=None, duration_minutes=None) -> list[datetime]:
     """G10: объединённые свободные старты по ресурсам под услугу.
 
     Услуга бизнес-уровня — старт доступен, если ХОТЯ БЫ один ресурс свободен на
     [start, start+duration). Ресурс к старту назначается при брони (assign_resource).
-    resource (#4) — ограничить выбранным мастером/ресурсом; None = любой."""
+    resource (#4) — ограничить выбранным мастером/ресурсом; None = любой.
+    duration_minutes (HF-7) — переопределить длину: гость берёт услугу на НЕСКОЛЬКО
+    единиц подряд («с 8:30 до 12:30»), тогда сюда приходит N × длительность."""
     from .models import Resource
 
+    length = duration_minutes or service.duration_minutes
     pool = [resource] if resource is not None else list(Resource.objects.filter(is_active=True))
     starts = set()
     for r in pool:
-        for start, _end in free_slots(r, day, duration_minutes=service.duration_minutes):
+        for start, _end in free_slots(r, day, duration_minutes=length):
             starts.add(start)
     return sorted(starts)
 
@@ -111,16 +114,18 @@ def next_free_slot(service, from_day=None, max_days=60, resource=None):
     return None
 
 
-def assign_resource(service, start, resource=None):
+def assign_resource(service, start, resource=None, duration_minutes=None):
     """G10: ресурс под услугу на [start, start+duration); None если занят.
 
     resource задан → проверяем только его (выбор конкретного мастера, #4); иначе
-    первый свободный из активных."""
+    первый свободный из активных. duration_minutes (HF-7) — длина брони, если гость
+    взял несколько единиц подряд."""
     from .models import Resource
 
-    end = start + timedelta(minutes=service.duration_minutes)
+    length = duration_minutes or service.duration_minutes
+    end = start + timedelta(minutes=length)
     pool = [resource] if resource is not None else list(Resource.objects.filter(is_active=True))
     for r in pool:
-        if (start, end) in free_slots(r, start.date(), duration_minutes=service.duration_minutes):
+        if (start, end) in free_slots(r, start.date(), duration_minutes=length):
             return r
     return None

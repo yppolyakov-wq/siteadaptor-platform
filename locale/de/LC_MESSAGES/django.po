@@ -16756,3 +16756,6 @@ msgstr[1] "%(n)s Zeiten gewählt"
 
 msgid "Pass applied — %(n)d visits redeemed."
 msgstr "Karte eingelöst — %(n)d Besuche abgebucht."
+
+msgid "How long?"
+msgstr "Wie lange?"

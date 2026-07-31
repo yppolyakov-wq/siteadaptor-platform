@@ -1062,3 +1062,71 @@ def test_confirmed_email_lists_only_confirmed_periods(settings):
     listed = [ln for ln in note.payload.get("body", "").split("\n") if ln.startswith("- ")]
     assert len(listed) == 1
     assert created[0].start.strftime("%H:%M") in listed[0]
+
+
+# --- HF-7: услуга на несколько единиц времени подряд («с 8:30 до 12:30») ----------
+def test_units_book_one_continuous_block(settings):
+    """Фидбэк владельца: «не удаётся забронировать услугу на несколько единиц
+    времени». ?dauer=4 → ОДНА бронь длиной 4×услуга и цена ×4."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, start="08:30", end="18:00")
+    svc = _service(duration_minutes=60, price_cents=2500)
+    starts = availability.service_slots(svc, day, duration_minutes=240)
+    assert starts, "нужен старт, куда влезает 4 часа"
+    request = RequestFactory().post(
+        f"/termin/leistung/{svc.pk}/buchen/",
+        {"start": starts[0].isoformat(), "dauer": "4", "name": "Gast", "email": "g@test.de"},
+        REMOTE_ADDR=f"10.8.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}",
+    )
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    public_views.service_book(request, pk=svc.pk)
+    made = list(Booking.objects.filter(service=svc))
+    assert len(made) == 1
+    assert made[0].end - made[0].start == timedelta(minutes=240)
+    assert made[0].price_cents == 2500 * 4
+
+
+def test_units_grid_only_offers_starts_where_the_whole_block_fits(settings):
+    """Сетка при ?dauer=N считается на ВЕСЬ отрезок: старт без места под него
+    не предлагается (иначе гость упёрся бы в отказ на отправке)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, start="09:00", end="12:00")  # окно 3 часа
+    svc = _service(duration_minutes=60)
+    assert len(availability.service_slots(svc, day, duration_minutes=60)) > 0
+    assert availability.service_slots(svc, day, duration_minutes=240) == []  # 4 ч не влезают
+
+    html = _slots_get(svc, day).content.decode()
+    assert 'href="?tag=' in html and "dauer=2" in html  # чип 2× доступен
+    assert "dauer=4" not in html  # недостижимая длительность не предлагается
+
+
+def test_units_parse_is_capped_and_garbage_safe(settings):
+    """Мусор/вне капа в ?dauer= → 1 (прежнее поведение байт-в-байт)."""
+    assert public_views._parse_units("3") == 3
+    assert public_views._parse_units("0") == 1
+    assert public_views._parse_units("999") == public_views.MAX_UNITS
+    assert public_views._parse_units("abc") == 1
+    assert public_views._parse_units(None) == 1
+
+
+def test_detail_page_carries_the_picker(settings):
+    """HF-7: /leistung/<pk>/ показывает календарь и времена сразу — без второй
+    страницы и без перезагрузки по кнопке."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day, end="18:00")
+    svc = _service()
+    request = RequestFactory().get(f"/leistung/{svc.pk}/?tag={day}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    html = public_views.service_detail(request, pk=svc.pk).content.decode()
+    assert 'id="svc-box"' in html
+    assert 'data-slot="free"' in html

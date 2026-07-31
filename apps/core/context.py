@@ -271,8 +271,10 @@ def modules_nav(request):
     # локалей, генерик). Метка — короткий код (DE/EN/…) для пилюли + родное имя
     # («Deutsch»/«English») для выпадающего блока. Переключатель скрывается при
     # одной локали (шаблон). Активный язык шаблон берёт из request.LANGUAGE_CODE.
+    from apps.core.langs import badge as _lang_badge
+
     storefront_locales = [
-        {"code": code, "label": code.upper(), "native": _native_language_name(code)}
+        {"code": code, "label": _lang_badge(code), "native": _native_language_name(code)}
         for code in tenant.active_locales
     ]
     return {

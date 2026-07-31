@@ -28,6 +28,7 @@ from .state_machine import BookingSM
 RL_LIMIT = 5  # попыток записи на IP
 RL_WINDOW = 600  # за 10 минут
 MAX_DAYS_AHEAD = 30  # горизонт записи
+MAX_UNITS = 8  # HF-7: максимум подряд идущих единиц услуги в одной брони
 
 
 def _require_booking_active(request):
@@ -57,6 +58,21 @@ def _parse_start(raw):
     except (TypeError, ValueError):
         return None
     return parsed if timezone.is_aware(parsed) else None
+
+
+def _parse_units(raw) -> int:
+    """HF-7: сколько подряд идущих единиц услуги берёт гость (?dauer=N).
+
+    Фидбэк владельца: «не удаётся забронировать услугу на несколько единиц
+    времени, к примеру с 8:30 до 12:30». Единица неделима (мойку 60 мин нельзя
+    взять на 90), поэтому вводом служит количество единиц, а не произвольные
+    границы; получившийся отрезок подписан на витрине. Мусор/вне капа → 1, то
+    есть прежнее поведение байт-в-байт.
+    """
+    try:
+        return max(1, min(MAX_UNITS, int(raw)))
+    except (TypeError, ValueError):
+        return 1
 
 
 def _cal_first(request, day) -> date:
@@ -292,6 +308,35 @@ def karte_kaufen(request, pk):
         return redirect("storefront-karten")
 
 
+def service_detail(request, pk):
+    """Страница услуги: описание + ВЫБОР ВРЕМЕНИ на одном экране.
+
+    Фидбэк владельца 2026-07-31: раньше деталь была SEO-страницей с кнопкой,
+    которая ПЕРЕЗАГРУЖАЛА витрину на отдельный слот-пикер — гость жал «забронировать»
+    и только после перезагрузки видел календарь. Теперь календарь и времена видны
+    сразу, а кнопка брони появляется по выбору времени (двухшаговый buy-box).
+    Старый адрес `/termin/leistung/<pk>/` остаётся (письма, QR, внешние ссылки) и
+    показывает ту же страницу.
+
+    Исключение — услуги, у которых первичное действие «запрос сметы» (A7/A9
+    Handwerker, override `primary_service_cta='request'`): там бизнес СПЕЦИАЛЬНО
+    хочет сначала заявку, а не бронь, поэтому деталь остаётся страницей с парой
+    CTA (замки test_service_detail_primary_action_request_override и др.).
+    """
+    _require_booking_active(request)
+    service = get_object_or_404(Service, pk=pk, is_active=True)
+    tenant = getattr(request, "tenant", None)
+    from apps.core import archetypes
+
+    if archetypes.primary_service_action(service, tenant) == "request":
+        return render(
+            request,
+            "storefront/service_detail.html",
+            _service_rich_context(request, service, tenant),
+        )
+    return service_slots(request, pk)
+
+
 def service_slots(request, pk):
     """G10: свободные старты под услугу (по всем ресурсам), форма брони."""
     _require_booking_active(request)
@@ -304,7 +349,13 @@ def service_slots(request, pk):
     rid = request.GET.get("resource", "")
     if rid:
         chosen = next((r for r in resources if str(r.pk) == rid), None)
-    starts = availability.service_slots(service, day, resource=chosen)
+    # HF-7: длина брони = N единиц услуги подряд (?dauer=N). Сетка считается на
+    # суммарную длительность — старт годится, только если свободен ВЕСЬ отрезок.
+    units = _parse_units(request.GET.get("dauer"))
+    total_minutes = units * service.duration_minutes
+    starts = availability.service_slots(
+        service, day, resource=chosen, duration_minutes=total_minutes
+    )
     # R3 empty-state: день без слотов → ближайший свободный старт (перехват
     # уходящего клиента). Скан от завтра выбранного дня; вычисляем лишь при пустом.
     next_free = None
@@ -321,7 +372,7 @@ def service_slots(request, pk):
     # (демо-прокат — 8 часов при шаге 30 мин): соседние времена ПЕРЕСЕКАЮТСЯ и
     # вместе не бронируются. Пересечения выкидываем здесь и гасим в сетке ниже —
     # иначе гость набирал заведомо невозможный набор и получал отказ на отправке.
-    duration = timedelta(minutes=service.duration_minutes)
+    duration = timedelta(minutes=total_minutes)
     selected_list = []
     for one in starts:
         if one.isoformat() not in picked:
@@ -354,7 +405,9 @@ def service_slots(request, pk):
     # (на выбранном мастере или любом). resource-параметр несём в ссылки дня.
     max_day = today + timedelta(days=MAX_DAYS_AHEAD)
     cal = _slot_month(
-        lambda d: bool(availability.service_slots(service, d, resource=chosen)),
+        lambda d: bool(
+            availability.service_slots(service, d, resource=chosen, duration_minutes=total_minutes)
+        ),
         _cal_first(request, day),
         today,
         max_day,
@@ -381,14 +434,39 @@ def service_slots(request, pk):
         "selected_count": len(booking_slots),
         # Навигация по дням несёт уже выбранные времена (иначе набор терялся).
         "slot_qs_prev": _slot_carry_qs(
-            day - timedelta(days=1), chosen, selected_list, other_days, embed=_is_embed(request)
+            day - timedelta(days=1),
+            chosen,
+            selected_list,
+            other_days,
+            embed=_is_embed(request),
+            units=units,
         ),
         "slot_qs_next": _slot_carry_qs(
-            day + timedelta(days=1), chosen, selected_list, other_days, embed=_is_embed(request)
+            day + timedelta(days=1),
+            chosen,
+            selected_list,
+            other_days,
+            embed=_is_embed(request),
+            units=units,
         ),
         "slot_toggles": _slot_toggles(
-            day, chosen, starts, picked, selected_list, duration, embed=_is_embed(request)
+            day,
+            chosen,
+            starts,
+            picked,
+            selected_list,
+            duration,
+            embed=_is_embed(request),
+            units=units,
         ),
+        # HF-7: выбор длительности — чипы «1× / 2× / …» над сеткой; отрезки
+        # (начало-конец) для честного заголовка формы «09:00–12:00».
+        "selected_spans": [{"start": x, "end": x + duration} for x in selected_list],
+        "booking_spans": [{"start": x, "end": x + duration} for x in booking_slots],
+        "units": units,
+        "unit_minutes": service.duration_minutes,
+        "total_minutes": total_minutes,
+        "unit_options": _unit_options(day, chosen, service, units, embed=_is_embed(request)),
         "max_group_slots": services.MAX_GROUP_SLOTS,
         "resources": resources if len(resources) > 1 else [],  # пикер только при >1
         "chosen_resource": chosen,
@@ -402,7 +480,7 @@ def service_slots(request, pk):
         "cal_qs": f"&resource={chosen.pk}" if chosen else "",  # A3: параметр дня
         # HF-5: цена на ВЫБРАННЫЙ день. Показываем ровно то, что спишем при брони
         # (тот же резолвер) — иначе гость видел базовую цену, а платил сезонную.
-        "day_price_eur": pricing.price_cents_for(service, day) / 100,
+        "day_price_eur": pricing.price_cents_for(service, day) * units / 100,
         "day_price_label": pricing.season_label_for(service, day),
         "day_price_differs": pricing.price_cents_for(service, day) != service.price_cents,
         **cal,
@@ -524,23 +602,6 @@ def _service_rich_context(request, service, tenant) -> dict:
     }
 
 
-def service_detail(request, pk):
-    """UA1-1 (E-1): страница-деталь услуги (описание/фото/цена) с CTA на слот-пикер.
-
-    Сплит (решение владельца): деталь = SEO/описание услуги; сама бронь (выбор
-    слота) остаётся на `storefront-service-slots`, куда ведёт primary-CTA. Для A7/A9
-    (активен jobs) показываем вторичную кнопку «запрос сметы» (`/anfrage/`).
-    """
-    _require_booking_active(request)
-    service = get_object_or_404(Service, pk=pk, is_active=True)
-    tenant = getattr(request, "tenant", None)
-    return render(
-        request,
-        "storefront/service_detail.html",
-        _service_rich_context(request, service, tenant),
-    )
-
-
 def service_review_submit(request, pk):
     """UA4-4b: приём отзыва об услуге (только верифицированный клиент — есть бронь
     этой услуги по e-mail). Один отзыв на (услуга, email) — повтор обновляет."""
@@ -556,7 +617,38 @@ def service_review_submit(request, pk):
     )
 
 
-def _slot_carry_qs(day, resource, selected_list, other_days, *, embed=False) -> str:
+def _unit_options(day, resource, service, units, *, embed=False) -> list[dict]:
+    """HF-7: чипы длительности («1× 90 Min · 09:00–10:30» … ) — сколько единиц
+    услуги подряд. Показываем только те N, для которых в этот день ЕСТЬ старт:
+    предлагать заведомо невозможную длину нечестно."""
+    from urllib.parse import urlencode
+
+    rows = []
+    for n in range(1, MAX_UNITS + 1):
+        total = n * service.duration_minutes
+        if n > 1 and not availability.service_slots(
+            service, day, resource=resource, duration_minutes=total
+        ):
+            continue
+        pairs = [("tag", day.isoformat())]
+        if resource is not None:
+            pairs.append(("resource", str(resource.pk)))
+        if n > 1:
+            pairs.append(("dauer", str(n)))
+        if embed:
+            pairs.append(("embed", "1"))
+        rows.append(
+            {
+                "n": n,
+                "minutes": total,
+                "selected": n == units,
+                "url": "?" + urlencode(pairs),
+            }
+        )
+    return rows if len(rows) > 1 else []
+
+
+def _slot_carry_qs(day, resource, selected_list, other_days, *, embed=False, units=1) -> str:
     """HF-6c: query-хвост, СОХРАНЯЮЩИЙ выбранные времена при навигации по дням.
 
     Без него переход на соседний день терял уже отмеченные слоты — а гость
@@ -567,6 +659,8 @@ def _slot_carry_qs(day, resource, selected_list, other_days, *, embed=False) -> 
     pairs = [("tag", day.isoformat())]
     if resource is not None:
         pairs.append(("resource", str(resource.pk)))
+    if units > 1:
+        pairs.append(("dauer", str(units)))
     for iso in [s.isoformat() for s in selected_list] + list(other_days):
         pairs.append(("slot", iso))
     if embed:
@@ -574,7 +668,9 @@ def _slot_carry_qs(day, resource, selected_list, other_days, *, embed=False) -> 
     return "?" + urlencode(pairs)
 
 
-def _slot_toggles(day, resource, starts, picked, selected_list, duration, *, embed=False) -> list:
+def _slot_toggles(
+    day, resource, starts, picked, selected_list, duration, *, embed=False, units=1
+) -> list:
     """HF-6c: для каждого старта — ссылка, которая ДОБАВЛЯЕТ или СНИМАЕТ его.
 
     Мультивыбор без JS: состояние живёт в URL (?slot=A&slot=B), клик по времени
@@ -596,6 +692,8 @@ def _slot_toggles(day, resource, starts, picked, selected_list, duration, *, emb
         pairs = [("tag", day.isoformat())]
         if resource is not None:
             pairs.append(("resource", str(resource.pk)))
+        if units > 1:
+            pairs.append(("dauer", str(units)))
         pairs += [("slot", x) for x in sorted(keep)]
         if embed:
             pairs.append(("embed", "1"))
@@ -634,14 +732,23 @@ def service_book(request, pk):
     # #4: выбранный мастер/ресурс (если был) — бронируем именно его.
     rid = request.POST.get("resource", "")
     chosen = Resource.objects.filter(pk=rid, is_active=True).first() if rid else None
+    # HF-7: гость мог взять услугу на НЕСКОЛЬКО единиц подряд («с 8:30 до 12:30»)
+    # — длина брони и цена умножаются на число единиц, сетка проверяется на весь
+    # отрезок. dauer вне капа/мусор → 1 (прежнее поведение).
+    units = _parse_units(request.POST.get("dauer") or request.GET.get("dauer"))
+    total_minutes = units * service.duration_minutes
     # Каждое время ре-валидируем по живой сетке и назначаем ему свой ресурс:
     # разные периоды может обслуживать разный мастер.
     slot_plan = []
     for one in picked_starts:
-        if one not in availability.service_slots(service, one.date(), resource=chosen):
+        if one not in availability.service_slots(
+            service, one.date(), resource=chosen, duration_minutes=total_minutes
+        ):
             messages.error(request, _("This time is no longer available. Please pick another."))
             return _embed_redirect("storefront-service-slots", embed, pk=pk)
-        one_resource = availability.assign_resource(service, one, resource=chosen)
+        one_resource = availability.assign_resource(
+            service, one, resource=chosen, duration_minutes=total_minutes
+        )
         if one_resource is None:
             messages.error(request, _("This time is no longer available. Please pick another."))
             return _embed_redirect("storefront-service-slots", embed, pk=pk)
@@ -649,8 +756,8 @@ def service_book(request, pk):
             (
                 one_resource,
                 one,
-                one + timedelta(minutes=service.duration_minutes),
-                pricing.price_cents_for(service, one.date()),
+                one + timedelta(minutes=total_minutes),
+                pricing.price_cents_for(service, one.date()) * units,
             )
         )
     resource = slot_plan[0][0]

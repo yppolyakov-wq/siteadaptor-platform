@@ -805,8 +805,10 @@ def page_context(request, slug: str) -> dict:
     label = dict(Tenant.BUSINESS_TYPES).get(slug, slug)
     content = CONTENT.get(slug, {})
     icon = _meta().get(slug, ("✨", ""))[0]
+    from apps.core.langs import badge
+
     langs = [
-        {"code": c, "label": c.upper()}
+        {"code": c, "label": badge(c)}
         for c in getattr(settings, "CABINET_LANGUAGES", [settings.LANGUAGE_CODE])
     ]
     return {

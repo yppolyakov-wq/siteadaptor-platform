@@ -16,13 +16,13 @@ from .forms import BusinessSignupForm
 from .models import SignupRequest, Tenant
 from .services import login_url_for, start_business_provisioning
 
-# Языки хрома публичных страниц (нативные подписи) — переключатель 5 языков.
-_LANG_LABELS = {"de": "DE", "en": "EN", "ru": "RU", "tr": "TR", "uk": "UK"}
-
 
 def ui_languages():
+    """Языки хрома публичных страниц — переключатель 5 языков (ярлыки из core.langs)."""
+    from apps.core.langs import badge
+
     return [
-        {"code": c, "label": _LANG_LABELS.get(c, c.upper())}
+        {"code": c, "label": badge(c)}
         for c in getattr(settings, "CABINET_LANGUAGES", [settings.LANGUAGE_CODE])
     ]
 

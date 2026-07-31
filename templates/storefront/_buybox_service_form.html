@@ -12,8 +12,10 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   каждое. Одно время = ровно прежняя разметка (паритет-замки целы). Набор с
   РАЗНЫХ дней подписываем датами, иначе заголовок «01.08 · 08:00, 09:00» врал бы
   про день второго периода.{% endcomment %}
-  <h2 class="font-semibold">{% if cross_day %}{% for s in booking_slots %}{{ s|date:"d.m." }} {{ s|time:"H:i" }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}{{ day|date:"d.m.Y" }} · {% for s in selected_list %}{{ s|time:"H:i" }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %} · {{ service.name }}{% if chosen_resource %} · {{ chosen_resource.name }}{% endif %}</h2>
+  <h2 class="font-semibold">{% if cross_day %}{% for sp in booking_spans %}{{ sp.start|date:"d.m." }} {{ sp.start|time:"H:i" }}{% if units > 1 %}–{{ sp.end|time:"H:i" }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}{{ day|date:"d.m.Y" }} · {% for sp in selected_spans %}{{ sp.start|time:"H:i" }}{% if units > 1 %}–{{ sp.end|time:"H:i" }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %} · {{ service.name }}{% if chosen_resource %} · {{ chosen_resource.name }}{% endif %}</h2>
   {% for iso in selected_isos %}<input type="hidden" name="start" value="{{ iso }}">{% endfor %}
+  {# HF-7: длительность (число единиц) — сервер ре-валидирует отрезок целиком. #}
+  {% if units > 1 %}<input type="hidden" name="dauer" value="{{ units }}">{% endif %}
   {% if chosen_resource %}<input type="hidden" name="resource" value="{{ chosen_resource.pk }}">{% endif %}
   {% if passes_enabled %}
     <div>

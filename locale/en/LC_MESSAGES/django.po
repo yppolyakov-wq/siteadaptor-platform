@@ -16605,3 +16605,6 @@ msgstr[1] "%(n)s times selected"
 
 msgid "Pass applied — %(n)d visits redeemed."
 msgstr "Pass applied — %(n)d visits redeemed."
+
+msgid "How long?"
+msgstr "How long?"

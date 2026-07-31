@@ -354,16 +354,20 @@ def _service(**kw):
     return Service.objects.create(**defaults)
 
 
-def test_service_detail_renders_with_cta_to_slots():
+def test_service_detail_shows_the_picker_without_a_second_page():
+    """HF-7 (фидбэк владельца): календарь и времена — сразу на детали услуги.
+
+    Раньше деталь была SEO-страницей с кнопкой, которая ПЕРЕЗАГРУЖАЛА витрину на
+    отдельный слот-пикер: гость жал «забронировать» и только потом видел календарь."""
+    _resource()
     service = _service()
     body = public_views.service_detail(
-        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+        _req(path=f"/leistung/{service.pk}/", data={"tag": DAY.isoformat()}), pk=service.pk
     ).content.decode()
     assert "Ölwechsel" in body  # название
-    assert "Inkl. Öl und Filter." in body  # описание (богатая карточка)
-    # primary-CTA ведёт на слот-пикер брони, а НЕ бронирует прямо на детали
-    assert f"/termin/leistung/{service.pk}/" in body
-    assert "Jetzt buchen" in body  # подпись действия покупки (booking)
+    assert "Inkl. Öl und Filter." in body  # описание (богатая карточка) осталось
+    assert 'id="svc-box"' in body  # селектор времени прямо здесь
+    assert 'data-slot="free"' in body  # и в нём есть кликабельные времена
 
 
 def test_service_detail_shows_anfrage_only_when_jobs_active():
@@ -381,17 +385,17 @@ def test_service_detail_shows_anfrage_only_when_jobs_active():
     assert "/anfrage/" not in body_off
 
 
-def test_service_detail_default_primary_is_booking_slots():
-    """UA3-1: без override primary = бронь слота (в aside слот-ссылка раньше Anfrage)."""
+def test_service_detail_default_primary_is_the_inline_picker():
+    """UA3-1 + HF-7: без override первичное действие — бронь, и она делается ЗДЕСЬ
+    (сетка времени), а не ссылкой на вторую страницу."""
+    _resource()
     service = _service()
     body = public_views.service_detail(
-        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+        _req(path=f"/leistung/{service.pk}/", data={"tag": DAY.isoformat()}), pk=service.pk
     ).content.decode()
     aside = body[body.find('id="buchen"') :]  # только колонка действий (не nav)
-    idx_slots = aside.find(f"/termin/leistung/{service.pk}/")
-    idx_anfrage = aside.find("/anfrage/")
-    assert idx_slots != -1 and idx_anfrage != -1
-    assert idx_slots < idx_anfrage  # бронь — первичная (выше Anfrage)
+    assert 'id="svc-box"' in aside  # выбор времени — в колонке действий
+    assert aside.find('id="svc-box"') < aside.find("/anfrage/")  # бронь первична
 
 
 def test_service_detail_primary_action_request_override():
@@ -411,11 +415,17 @@ def test_service_detail_primary_action_request_override():
 
 
 def test_service_detail_buybox_exact_ctas():
-    """UA3-1 слайс 2 (шаг 0): точные href обоих CTA внутри #buchen — паритет-замок
-    перед сводом buy-box на единый _buybox.html."""
+    """UA3-1 слайс 2: точные href обоих CTA внутри #buchen — паритет-замок buy-box.
+
+    HF-7: пара CTA осталась там, где она осмысленна — у услуг с первичным
+    действием «запрос сметы» (A7/A9). У обычных услуг деталь показывает сам
+    пикер (см. test_service_detail_shows_the_picker_without_a_second_page)."""
     service = _service()
+    tenant = TenantFactory.build(
+        business_type="cafe", site_config={"primary_service_cta": "request"}
+    )
     body = public_views.service_detail(
-        _req(path=f"/leistung/{service.pk}/"), pk=service.pk
+        _req(path=f"/leistung/{service.pk}/", tenant=tenant), pk=service.pk
     ).content.decode()
     aside = body[body.find('id="buchen"') :]
     assert f'href="/termin/leistung/{service.pk}/"' in aside

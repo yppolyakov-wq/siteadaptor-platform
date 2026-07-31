@@ -16797,3 +16797,6 @@ msgstr[3] "выбрано %(n)s времени"
 
 msgid "Pass applied — %(n)d visits redeemed."
 msgstr "Карта применена — списано визитов: %(n)d."
+
+msgid "How long?"
+msgstr "На сколько времени?"

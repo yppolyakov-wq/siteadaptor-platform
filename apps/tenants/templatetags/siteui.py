@@ -390,3 +390,13 @@ def sold_badge(kind, pk):
     from apps.core import social_proof
 
     return {"n": social_proof.sold_last_week(kind, pk), "kind": kind}
+
+
+@register.filter(name="lang_badge")
+def lang_badge(code):
+    """Ярлык локали для пилюли переключателя (фидбэк 2026-07-31: украинский — UA).
+
+    Внутренний код при этом остаётся `uk` — см. apps/core/langs.py."""
+    from apps.core.langs import badge
+
+    return badge(code)
