@@ -113,3 +113,34 @@ def test_reserve_out_of_stock_message():
     resp = public_views.reservation_create(req, pk=promo.pk)
     assert resp.status_code == 200  # ре-рендер с сообщением
     assert Reservation.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_home_news_section_needs_published_posts(settings):
+    """HF-1: секция «Neuigkeiten» на главной — только при опубликованных постах.
+
+    Гейт двойной: секция включена в конфиге И у бизнеса есть что показать —
+    иначе на главной висел бы пустой заголовок."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.events.models import BlogPost
+    from apps.tenants.tests.factories import TenantFactory
+
+    def _home():
+        req = _req(RequestFactory().get("/"))
+        req.tenant = TenantFactory.build(
+            disabled_modules=[], site_config={"sections": [{"key": "blog", "enabled": True}]}
+        )
+        return public_views.storefront_home(req).content.decode()
+
+    assert "Neue Seeterrasse" not in _home()  # постов нет — секции не видно
+
+    BlogPost.objects.create(
+        title="Neue Seeterrasse",
+        slug="neue-seeterrasse",
+        excerpt="Ab Mai am Wasser.",
+        body="…",
+        is_published=True,
+    )
+    body = _home()
+    assert "Neue Seeterrasse" in body
+    assert "/blog/neue-seeterrasse/" in body

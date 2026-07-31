@@ -63,6 +63,10 @@ SECTIONS = [
     ("events", _("Events"), False),
     # S2: сетка тизеров активных архетипов («Наши разделы / Unsere Bereiche»).
     # По умолчанию выкл — легаси-витрины не затронуты; включают в кабинете/демо.
+    # HF-1 (фидбэк владельца 2026-07-31, п. 14): лента новостей/блога на главной.
+    # Выкл по умолчанию; рендер дополнительно гейтится активным модулем blog и
+    # наличием опубликованных постов — пустой секции не появится.
+    ("blog", _("News"), False),
     ("archetypes", _("Our offerings"), False),
     ("about", _("About us"), False),
     # P4: «как мы работаем» (шаги) и команда — по умолчанию выключены.
@@ -668,6 +672,7 @@ def micro_templates() -> list[dict]:
 GRID_SECTION_DEFAULTS = {
     "categories": {"preset": "cols4"},  # M20U-2: карточки категорий
     "events": {"preset": "cols3"},  # M20U-2: карточки ближайших мероприятий
+    "blog": {"preset": "cols3"},  # HF-1: карточки новостей
     "services": {"preset": "cols2"},  # A3: услуги (как service_index sm:grid-cols-2)
     "products": {"preset": "cols4"},  # было grid-cols-2 lg:grid-cols-4 (mobile 2)
     "stay_rooms": {"preset": "cols3", "mobile": 1},  # было grid-cols-1 sm:2 lg:3
@@ -682,7 +687,7 @@ GRID_SECTION_DEFAULTS = {
 # M20U-7: секции-превью на главной с настраиваемым числом элементов (source.limit).
 # Ключ → дефолт (воспроизводит текущее поведение storefront_home). Прочие секции-
 # сетки (categories/stay_rooms/team/…) показывают всё — лимит к ним не применяем.
-GRID_SECTION_LIMITS = {"products": 8, "events": 6}
+GRID_SECTION_LIMITS = {"products": 8, "events": 6, "blog": 3}
 _SECTION_LIMIT_MAX = 24
 
 # M20U-7: источник товаров секции products. featured_first — текущее поведение
@@ -791,7 +796,15 @@ def section_limit(config, key) -> int:
 
 # M20U-7: секции главной с настраиваемым владельцем заголовком (иначе шаблон берёт
 # дефолтный {% trans %}). Хранится в config["section_titles"][key].
-SECTION_TITLE_KEYS = {"promotions", "categories", "products", "events", "stay_rooms", "services"}
+SECTION_TITLE_KEYS = {
+    "promotions",
+    "categories",
+    "products",
+    "events",
+    "stay_rooms",
+    "services",
+    "blog",
+}
 _SECTION_TITLE_MAX = 80
 
 # H1 (контент-настройка секции, Q4): опциональное описание под заголовком секции
@@ -801,7 +814,7 @@ SECTION_INTRO_KEYS = SECTION_TITLE_KEYS
 _SECTION_INTRO_MAX = 300
 
 # M20U-7: секции с ссылкой «View all» → её можно скрыть (show_all=False).
-SECTION_VIEWALL_KEYS = {"categories", "products", "events", "stay_rooms", "services"}
+SECTION_VIEWALL_KEYS = {"categories", "products", "events", "stay_rooms", "services", "blog"}
 
 
 def section_title(config, key) -> str:
@@ -1261,6 +1274,13 @@ NAV_ITEMS = [
     ("events", _("Events"), "storefront-events", "events"),
     ("jobs", _("Request a quote"), "storefront-anfrage", "jobs"),
     ("inbox", _("Ask a question"), "storefront-message", "inbox"),
+    # HF-1 (фидбэк владельца 2026-07-31, пп. 7/9/14): акции, страница «О нас» и
+    # новости были достижимы только вручную собранным меню — в дефолтной шапке их
+    # не было вовсе. Теперь это обычные пункты: акции и новости гейтятся своим
+    # модулем, «О нас» доступна всегда (страница витрины есть у каждого бизнеса).
+    ("promotions", _("Aktionen"), "storefront-aktionen", "promotions"),
+    ("blog", _("News"), "storefront-blog", "blog"),
+    ("about", _("About us"), "storefront-about", None),
 ]
 _NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
 # Стиль шапки: classic (лого слева + ссылки справа, как было), centered (лого
@@ -1288,6 +1308,9 @@ _NAV_KEY_TO_NODE = {
     "events": ("archetype", "events"),
     "jobs": ("archetype", "jobs"),
     "inbox": ("archetype", "inbox"),
+    "promotions": ("archetype", "promotions"),  # HF-1
+    "blog": ("archetype", "blog"),  # HF-1
+    "about": ("page", "about"),  # HF-1
 }
 
 

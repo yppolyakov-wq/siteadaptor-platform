@@ -192,6 +192,15 @@ def storefront_home(request):
                 status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
             ).order_by("starts_at")[: siteconfig.section_limit(site, "events")]
         )
+    # HF-1: лента новостей (модуль blog). Черновики и запланированные посты сюда
+    # не попадают — на главную идёт только опубликованное.
+    blog_preview = []
+    if "blog" in sections and modules.is_module_active(request.tenant, "blog"):
+        from apps.events.models import BlogPost
+
+        blog_preview = list(
+            BlogPost.objects.filter(is_published=True)[: siteconfig.section_limit(site, "blog")]
+        )
     # A3: блок «Leistungen & Preise» — услуги (Service) при активном модуле booking.
     services_preview = []
     if "services" in sections and modules.is_module_active(request.tenant, "booking"):
@@ -219,6 +228,7 @@ def storefront_home(request):
             "archetype_teasers": archetype_teasers,
             "stay_rooms": stay_rooms,
             "events_preview": events_preview,
+            "blog_preview": blog_preview,  # HF-1: секция новостей
             "services_preview": services_preview,
             "services_festpreis": services_festpreis,
             "primary_item": primary_item,

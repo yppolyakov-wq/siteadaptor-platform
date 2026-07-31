@@ -16472,3 +16472,11 @@ msgstr "This month is fully booked — check the next month with ›."
 #: templates/storefront/_stay_calendar.html
 msgid "No free dates in this month."
 msgstr "No free dates in this month."
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "News"
+msgstr "News"
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "Read"
+msgstr "Read"

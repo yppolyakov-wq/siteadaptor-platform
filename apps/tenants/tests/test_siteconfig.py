@@ -65,6 +65,7 @@ def test_normalize_empty_gives_defaults():
         "categories",
         "products",
         "events",
+        "blog",  # HF-1: лента новостей
         "archetypes",
         "about",
         "process",

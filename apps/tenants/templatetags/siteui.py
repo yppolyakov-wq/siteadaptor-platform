@@ -23,6 +23,7 @@ BLOCK_TEMPLATES = {
     "categories": "storefront/sections/_categories.html",
     "products": "storefront/sections/_products.html",
     "events": "storefront/sections/_events.html",
+    "blog": "storefront/sections/_blog.html",  # HF-1: лента новостей
     "archetypes": "storefront/sections/_archetypes.html",
     "about": "storefront/sections/_about.html",
     "process": "storefront/sections/_process.html",
@@ -47,6 +48,7 @@ _BLOCK_ANCHOR_ID = {
     "reviews": "bewertungen",
     "faq": "faq",
     "gallery": "galerie",
+    "blog": "neuigkeiten",  # HF-1: якорь для пункта меню типа anchor
     "before_after": "referenzen",
     "contact": "kontakt",
 }

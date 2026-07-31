@@ -393,6 +393,9 @@ def unterkunft_unit(request, pk):
         "detail_hidden": _hidden,
         # UA4-2: упорядоченные секции тела (data-driven) + флаг блока «похожие» (detail_wide).
         "body_sections": body_sections,
+        # HF-3: какие секции рендерить ПОД галереей (левая колонка), а не в теле —
+        # рассказ о номере читается рядом с фото, под ним не остаётся пустоты.
+        "under_gallery_keys": ("description", "amenities"),
         "show_similar": show_similar,
         "today": today,
         "max_date": today + timedelta(days=_horizon_days()),  # G12: окно бронирования

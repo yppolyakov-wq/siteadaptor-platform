@@ -128,6 +128,13 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # promotions покрывает все типы → suited_label остаётся «Für alle Geschäftstypen».
         suited_for=("hotel", "tour_operator", "handwerker", "werkstatt"),
         description_de=_("Aktionen erstellen, Reservierungen annehmen und im Laden einlösen."),
+        # HF-1 (фидбэк владельца 2026-07-31, п. 7): у модуля не было витринной
+        # посадочной — из-за этого пункт меню «Aktionen» нельзя было собрать
+        # архетипным узлом, только сырым URL. Страница акций существовала всегда.
+        storefront_label=_("Aktionen"),
+        storefront_landing="storefront-aktionen",
+        storefront_icon="🏷️",
+        storefront_teaser=False,
     ),
     ModuleSpec(
         key="crm",

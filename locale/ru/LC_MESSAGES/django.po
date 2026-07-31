@@ -16662,3 +16662,11 @@ msgstr "Этот месяц полностью занят — посмотрит
 #: templates/storefront/_stay_calendar.html
 msgid "No free dates in this month."
 msgstr "В этом месяце нет свободных дат."
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "News"
+msgstr "Новости"
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "Read"
+msgstr "Читать"

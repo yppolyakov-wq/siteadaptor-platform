@@ -328,19 +328,25 @@ def service_slots(request, pk):
             "storefront/_service_slots_box.html",
             {**ctx, "embed": embed, "embed_qs": "&embed=1" if embed else ""},
         )
+    # HF-3 (фидбэк владельца #11): страница услуги — как карточка товара (галерея
+    # слева, блок цены/выбора справа, описание и прочие секции ниже). Богатый
+    # контент берём тем же билдером, что деталь, — двух разных «страниц услуги»
+    # с расходящимся содержимым больше нет.
+    rich = _service_rich_context(request, service, tenant)
+    # Контракт sellable у слот-страницы СВОЙ: он несёт buybox_ready (выбран слот) —
+    # без него двухшаговый buy-box никогда не показал бы POST-форму.
+    rich.pop("sellable", None)
+    ctx.update(rich)
     return _render_embed(request, "storefront/service_slots.html", ctx, embed)
 
 
-def service_detail(request, pk):
-    """UA1-1 (E-1): страница-деталь услуги (описание/фото/цена) с CTA на слот-пикер.
+def _service_rich_context(request, service, tenant) -> dict:
+    """Богатый контент услуги: галерея-контракт, секции тела, отзывы, апселл.
 
-    Сплит (решение владельца): деталь = SEO/описание услуги; сама бронь (выбор
-    слота) остаётся на `storefront-service-slots`, куда ведёт primary-CTA. Для A7/A9
-    (активен jobs) показываем вторичную кнопку «запрос сметы» (`/anfrage/`).
+    Общий для детали (`service_detail`) и страницы слотов (HF-3): обе показывают
+    одну и ту же услугу, и расхождение содержимого между ними было бы багом по
+    построению. Выбор слота сюда НЕ входит — он остаётся частью слот-страницы.
     """
-    _require_booking_active(request)
-    service = get_object_or_404(Service, pk=pk, is_active=True)
-    tenant = getattr(request, "tenant", None)
     resources = list(Resource.objects.filter(is_active=True))
     from apps.core import archetypes, detail_sections
     from apps.core.sellable import sellable_for
@@ -404,33 +410,46 @@ def service_detail(request, pk):
         if k in _section_template
     ]
 
+    return {
+        "service": service,
+        # LS-1: wa.me-ссылка видео-консультации (пусто = секция не видна).
+        "video_wa_url": _video_wa_url,
+        # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
+        "sellable": sellable_for("service", service),
+        # UA3-1 (реш.2): основное действие детали — booking | request (override).
+        "primary_action": archetypes.primary_service_action(service, tenant),
+        "resources": _team,
+        "upsell": _upsell,
+        "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
+        "deposit_required": service.deposit_cents > 0
+        and getattr(tenant, "payments_enabled", False),
+        "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
+        # UA4-4b: отзывы об услуге (generic reviews.Review, только верифиц. клиенты).
+        "reviews": list(review_services.published_for("service", service.pk)),
+        "review_summary": review_services.summary("service", service.pk),
+        "review_form_token": uuid.uuid4().hex,
+        "review_action": reverse("storefront-service-review", args=[service.pk]),
+        # UA4-1 slice C: скрытые секции (для совместимости/отладки); рендер — через body_sections.
+        "detail_hidden": _hidden,
+        # UA4-2: упорядоченные секции тела детали (data-driven рендер).
+        "body_sections": body_sections,
+    }
+
+
+def service_detail(request, pk):
+    """UA1-1 (E-1): страница-деталь услуги (описание/фото/цена) с CTA на слот-пикер.
+
+    Сплит (решение владельца): деталь = SEO/описание услуги; сама бронь (выбор
+    слота) остаётся на `storefront-service-slots`, куда ведёт primary-CTA. Для A7/A9
+    (активен jobs) показываем вторичную кнопку «запрос сметы» (`/anfrage/`).
+    """
+    _require_booking_active(request)
+    service = get_object_or_404(Service, pk=pk, is_active=True)
+    tenant = getattr(request, "tenant", None)
     return render(
         request,
         "storefront/service_detail.html",
-        {
-            "service": service,
-            # LS-1: wa.me-ссылка видео-консультации (пусто = секция не видна).
-            "video_wa_url": _video_wa_url,
-            # UA2-1 (U-A): единый контракт продаваемой сущности (шов UA3/UA4).
-            "sellable": sellable_for("service", service),
-            # UA3-1 (реш.2): основное действие детали — booking | request (override).
-            "primary_action": archetypes.primary_service_action(service, tenant),
-            "resources": _team,
-            "upsell": _upsell,
-            "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
-            "deposit_required": service.deposit_cents > 0
-            and getattr(tenant, "payments_enabled", False),
-            "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
-            # UA4-4b: отзывы об услуге (generic reviews.Review, только верифиц. клиенты).
-            "reviews": list(review_services.published_for("service", service.pk)),
-            "review_summary": review_services.summary("service", service.pk),
-            "review_form_token": uuid.uuid4().hex,
-            "review_action": reverse("storefront-service-review", args=[service.pk]),
-            # UA4-1 slice C: скрытые секции (для совместимости/отладки); рендер — через body_sections.
-            "detail_hidden": _hidden,
-            # UA4-2: упорядоченные секции тела детали (data-driven рендер).
-            "body_sections": body_sections,
-        },
+        _service_rich_context(request, service, tenant),
     )
 
 

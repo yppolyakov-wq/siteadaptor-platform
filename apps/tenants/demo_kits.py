@@ -1587,8 +1587,14 @@ HOTEL_MENUS = {
         "items": [
             {"label": "Start", "type": "page", "target": "home"},
             {"label": "Zimmer & Preise", "type": "archetype", "target": "stays"},
+            # HF-1 (фидбэк владельца 2026-07-31): у отеля есть услуги, акции и
+            # новости, но в шапке их не было — гость их просто не находил.
+            {"label": "Wellness & Extras", "type": "archetype", "target": "booking"},
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
+            {"label": "Neuigkeiten", "type": "archetype", "target": "blog"},
             {"label": "Galerie", "type": "anchor", "target": "/#galerie"},
             {"label": "Bewertungen", "type": "anchor", "target": "/#bewertungen"},
+            {"label": "Über uns", "type": "page", "target": "about"},
             {"label": "Hausordnung", "type": "url", "target": "/hausordnung/"},
             {"label": "Kontakt", "type": "anchor", "target": "/#kontakt"},
         ],
@@ -1700,7 +1706,66 @@ HOTEL = DemoKit(
         ("Später Check-out (bis 14 Uhr)", "20", "stays", False),
         ("Haustier", "15", "stays", False),
     ],
-    enable_modules=["stays"],
+    # HF-1: promotions у типа hotel только suited_for (по умолчанию выключен) —
+    # включаем явно, иначе пункт меню «Angebote» и секция акций отпадают по гейту.
+    enable_modules=["stays", "promotions"],
+    # HF-1 (фидбэк владельца, п. 7): акции для НОМЕРОВ и пакетные предложения —
+    # без привязки к товару (у отеля каталога нет).
+    promotions_spec=[
+        {
+            "title": "Frühbucher: 10 % auf alle Zimmer",
+            "percent": 10,
+            "desc": "Mindestens 30 Tage im Voraus buchen und sparen.",
+            "group": "Zimmer-Angebote",
+            "ends_in_days": 45,
+            "discount_style": "badge",
+        },
+        {
+            "title": "3 Nächte zum Preis von 2",
+            "new": True,
+            "desc": "Sonntag bis Donnerstag, in allen Doppelzimmern mit Seeblick.",
+            "group": "Zimmer-Angebote",
+            "ends_in_days": 21,
+            "countdown": True,
+        },
+        {
+            "title": "Wellness-Paket: Sauna + Massage",
+            "desc": "Private Sauna (60 Min.) und Wellness-Massage im Paket — 15 % günstiger.",
+            "percent": 15,
+            "group": "Pakete",
+            "ends_in_days": 60,
+        },
+    ],
+    # HF-1 (п. 14): новости пансиона — лента на главной и страница /blog/.
+    blog_posts=[
+        (
+            "Neue Seeterrasse ab Mai geöffnet",
+            "Frühstück und Abendkarte künftig direkt am Wasser.",
+            "Den ganzen Winter über haben wir gebaut: Ab Mai servieren wir "
+            "Frühstück und Abendkarte auf der neuen Seeterrasse.\n\n"
+            "30 Plätze, windgeschützt und mit Blick über den ganzen See. "
+            "Für Hausgäste ist keine Reservierung nötig.",
+            "garden,terrace",
+        ),
+        (
+            "Wanderwoche im Herbst: geführte Touren ab Haustür",
+            "Drei Touren pro Woche, Rucksackverpflegung inklusive.",
+            "Im Oktober starten wir dreimal pro Woche zu geführten Wanderungen "
+            "rund um den See.\n\n"
+            "Die Touren dauern drei bis fünf Stunden, Rucksackverpflegung aus "
+            "unserer Küche ist inklusive. Anmeldung an der Rezeption.",
+            "forest,path",
+        ),
+        (
+            "Wir sind jetzt klimaneutral beheizt",
+            "Neue Pelletheizung ersetzt den alten Ölkessel.",
+            "Seit dieser Saison heizen wir mit Pellets aus der Region — "
+            "der Ölkessel ist Geschichte.\n\n"
+            "Zusammen mit der Photovoltaik auf dem Nebengebäude deckt das den "
+            "Großteil unseres Wärmebedarfs.",
+            "hotel,interior",
+        ),
+    ],
     # Карточки номеров показываем напрямую (секция stay_rooms), поэтому тизер-
     # секция «Unsere Bereiche» для отеля не нужна (была бы дублем).
     enable_archetypes_section=False,
@@ -5615,8 +5680,12 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "services", "enabled": bool(kit.services)},
         {"key": "archetypes", "enabled": kit.enable_archetypes_section},  # S2: «Unsere Bereiche»
         # Акции/товары — только если у кита есть каталог (иначе пустые секции).
-        {"key": "promotions", "enabled": bool(kit.categories)},
+        # HF-1: акции бывают и без каталога (отель: «3 Nächte zum Preis von 2») —
+        # секция включается и по наличию промо-спеки.
+        {"key": "promotions", "enabled": bool(kit.categories or kit.promotions_spec)},
         {"key": "products", "enabled": bool(kit.categories)},
+        # HF-1: лента новостей — если у кита есть посты (иначе секция была бы пустой).
+        {"key": "blog", "enabled": bool(kit.blog_posts)},
         {"key": "process", "enabled": bool(kit.process)},
         {"key": "team", "enabled": bool(kit.team)},
         {"key": "gallery", "enabled": bool(kit.gallery_kw)},

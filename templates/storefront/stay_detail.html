@@ -12,7 +12,15 @@
 {% endif %}
 {% endblock %}
 
-{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=unit.images alt=unit.name edit_model="stay" edit_pk=unit.pk %}{% endblock %}
+{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=unit.images alt=unit.name edit_model="stay" edit_pk=unit.pk %}
+{% comment %}HF-3 (фидбэк владельца 2026-07-31, п. 4): описание и оснащение номера
+живут ПОД фотографиями, в левой колонке. Правая колонка (даты → тарифы) высокая,
+левая была только галереей — под фото зияла пустота на пол-экрана. Порядок секций
+в документе не меняется (левая колонка идёт перед правой), поэтому реестровый
+паритет description → amenities → reviews → similar цел.{% endcomment %}
+<div class="mt-4 space-y-4" data-sf-section="stay_detail">
+{% for s in body_sections %}{% if s.visible and s.key in under_gallery_keys %}{% include s.template %}{% endif %}{% endfor %}
+</div>{% endblock %}
 
 {% block detail_aside %}
 {% sold_badge sellable.kind sellable.pk %}
@@ -54,7 +62,7 @@
    Замок паритета — test_stay_detail_section_order_parity.{% endcomment %}
 {# UC2-2: обёртка data-sf-section — клик на канве открывает инспектор секций страницы. #}
 <div data-sf-section="stay_detail">
-{% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
+{% for s in body_sections %}{% if s.visible and s.key not in under_gallery_keys %}{% include s.template %}{% endif %}{% endfor %}
 </div>
 {% endblock %}
 

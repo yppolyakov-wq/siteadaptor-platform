@@ -103,6 +103,7 @@ SECTION_ARCHETYPE_MODULE = {
     "categories": "catalog",
     "events": "events",
     "before_after": "jobs",
+    "blog": "blog",  # HF-1: секция новостей — только при активном модуле блога
 }
 
 

@@ -138,6 +138,30 @@
      "label": "Ask a question",
      "target": "inbox",
      "type": "archetype"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Aktionen",
+     "target": "promotions",
+     "type": "archetype"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "News",
+     "target": "blog",
+     "type": "archetype"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "About us",
+     "target": "about",
+     "type": "page"
     }
    ],
    "sticky": true,
@@ -173,6 +197,18 @@
    {
     "enabled": true,
     "key": "inbox"
+   },
+   {
+    "enabled": true,
+    "key": "promotions"
+   },
+   {
+    "enabled": true,
+    "key": "blog"
+   },
+   {
+    "enabled": true,
+    "key": "about"
    }
   ],
   "sticky": true,
@@ -366,6 +402,29 @@
     "width": "contained"
    },
    "limit": 6,
+   "show_all": true,
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "blog",
+   "layout": {
+    "cols": 3,
+    "gap": "md",
+    "mobile": 2,
+    "preset": "cols3",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "limit": 3,
    "show_all": true,
    "visual": {
     "background": "",

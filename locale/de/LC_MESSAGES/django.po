@@ -16620,3 +16620,11 @@ msgstr "Dieser Monat ist ausgebucht — schauen Sie mit › in den nächsten Mon
 #: templates/storefront/_stay_calendar.html
 msgid "No free dates in this month."
 msgstr "In diesem Monat sind keine Termine frei."
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "News"
+msgstr "Neuigkeiten"
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "Read"
+msgstr "Lesen"

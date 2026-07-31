@@ -1,33 +1,65 @@
-{% extends base_template|default:"storefront/_base.html" %}
+{% extends "storefront/detail.html" %}
 {% load i18n siteui %}
-{% block title %}{{ service.name }} — {% trans "Pick a time" %}{% endblock %}
+{% comment %}HF-3 (фидбэк владельца 2026-07-31, п. 11): страница услуги живёт на том
+же каркасе, что товар и номер — галерея с миниатюрами слева, блок цены и выбора
+времени справа (sticky), описание/удобства/FAQ/отзывы ниже. Раньше это была
+отдельная узкая колонка (max-w-2xl) с широким баннером: посетитель видел не
+карточку услуги, а форму. Контекст даёт booking.public_views.service_slots —
+слот-пикер (#svc-box) остаётся его частью, богатый контент общий с деталью
+(_service_rich_context).{% endcomment %}
+{% block title %}{{ service.name_localized }} — {% trans "Pick a time" %}{% endblock %}
 
-{% block content %}
+{% block detail_back %}
 {% funnel_steps "service" 2 %}
 <a href="{% url 'storefront-termin' %}{% if embed %}?embed=1{% endif %}" class="text-sm text-gray-500 hover:underline">← {% trans "All services" %}</a>
-<div class="relative max-w-2xl mx-auto">
-  <span data-photo-edit data-edit-model="service" data-edit-pk="{{ service.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-5 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
-  {% if service.image_url %}
-    <img src="{{ service.image_url }}" alt="{{ service.name }}" class="w-full aspect-[5/2] object-cover rounded-2xl mt-3 mb-2">
-  {% endif %}
-</div>
-<h1 class="text-2xl md:text-3xl font-bold mt-1 mb-1" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="name">{{ service.name }}</h1>
-{% if service.description %}<p class="text-gray-600 mb-1 whitespace-pre-line" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="description">{{ service.description }}</p>{% endif %}
-<p class="text-gray-500 mb-4">{% blocktrans with m=service.duration_minutes %}{{ m }} min{% endblocktrans %}{% if service.price_cents %} · <span data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ service.pk }}" data-price="{{ service.price_eur|floatformat:2 }}">{{ service.price_eur|floatformat:2 }} €</span>{% endif %}</p>
+{% endblock %}
 
-{% if messages %}
-  {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-  {% endfor %}
+{% block detail_gallery %}
+{% comment %}Та же галерея, что у товара/номера (лайтбокс + миниатюры + правка фото
+в редакторе). Пусто — плейсхолдер с 📷, чтобы владелец видел, куда класть фото.{% endcomment %}
+{% if service.images %}
+  {% include "storefront/_media_gallery.html" with images=service.images alt=service.name_localized edit_model="service" edit_pk=service.pk %}
+{% else %}
+<div class="relative mt-3">
+  <span data-photo-edit data-edit-model="service" data-edit-pk="{{ service.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
+  <div class="w-full aspect-[4/3] rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300" aria-hidden="true">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+  </div>
+</div>
 {% endif %}
+{% endblock %}
 
-{% comment %}Багфикс 2026-07-27: динамическая часть (пикер мастера/календарь/дни/
-старты/buy-box) — в партиале; клики по внутренним ссылкам (?tag/?cal/?slot/
-?resource) свапают #svc-box fetch'ем (?box=1) БЕЗ перезагрузки страницы
-(фидбэк владельца: ресторан «при выборе даты страница обновляется»).{% endcomment %}
-<div id="svc-box">
-{% include "storefront/_service_slots_box.html" %}
+{% block detail_aside %}
+<div id="buchen" class="space-y-4 scroll-mt-24">
+  <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="name">{{ service.name_localized }}</h1>
+  <p class="text-gray-500 -mt-2">{% blocktrans with m=service.duration_minutes %}{{ m }} min{% endblocktrans %}{% if service.price_cents %} · <span class="font-semibold text-gray-700" data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ service.pk }}" data-price="{{ service.price_eur|floatformat:2 }}">{{ service.price_eur|floatformat:2 }} €</span>{% endif %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% comment %}Багфикс 2026-07-27: динамическая часть (пикер мастера/календарь/дни/
+  старты/buy-box) — в партиале; клики по внутренним ссылкам (?tag/?cal/?slot/
+  ?resource) свапают #svc-box fetch'ем (?box=1) БЕЗ перезагрузки страницы
+  (фидбэк владельца: ресторан «при выборе даты страница обновляется»).{% endcomment %}
+  <div id="svc-box">
+  {% include "storefront/_service_slots_box.html" %}
+  </div>
+  {% include "storefront/_svc_box_script.html" %}
 </div>
+{% endblock %}
 
-{% include "storefront/_svc_box_script.html" %}
+{% block detail_body %}
+{% comment %}Секции услуги — тот же data-driven цикл, что на детали (описание/видео/
+характеристики/FAQ/команда/отзывы/кросс-селл); порядок и видимость из реестра.{% endcomment %}
+<div data-sf-section="service_detail">
+{% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
+</div>
+{% endblock %}
+
+{% block detail_buybar %}
+{% if service.price_cents %}{% blocktrans asvar buyprice with p=service.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Book" as buyprice %}{% endif %}
+{% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="booking" sold_out=False %}
 {% endblock %}

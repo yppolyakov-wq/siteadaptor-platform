@@ -16583,3 +16583,11 @@ msgstr "Bu ay tamamen dolu — › ile bir sonraki aya bakın."
 #: templates/storefront/_stay_calendar.html
 msgid "No free dates in this month."
 msgstr "Bu ayda boş tarih yok."
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "News"
+msgstr "Haberler"
+
+#: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
+msgid "Read"
+msgstr "Oku"

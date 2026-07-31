@@ -166,3 +166,16 @@ def test_submit_404_when_stays_module_off():
     request.tenant = TenantFactory.build(disabled_modules=["stays"])  # модуль выключен
     with pytest.raises(Http404):
         public_views.stay_review_submit(request, pk=u.pk)
+
+
+def test_description_and_amenities_render_under_gallery():
+    """HF-3 (#4): рассказ о номере — в ЛЕВОЙ колонке под фото, а не под правой.
+
+    Замок держит именно раскладку: описание обязано стоять ДО блока брони
+    (#buchen), иначе под галереей снова зияет пустота во весь экран."""
+    u = _unit(description="Gemütliches Zimmer mit Blick.", amenities=["wifi", "tv"])
+    body = public_views.unterkunft_unit(_req(path=f"/unterkunft/{u.pk}/"), pk=u.pk).content.decode()
+    assert body.find("Gemütliches Zimmer mit Blick.") < body.find('id="buchen"')
+    assert body.find('data-sf-section="stay_amenities"') < body.find('id="buchen"')
+    # и в теле страницы дубля нет — секция рендерится ровно один раз
+    assert body.count('data-sf-section="stay_amenities"') == 1

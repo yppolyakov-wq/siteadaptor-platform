@@ -511,3 +511,26 @@ def test_service_detail_renders_media_gallery():
     svc = _service(name="GalC", image={"id": "x", "url": "/a.jpg", "is_primary": True})
     body = public_views.service_detail(_pub_req(), pk=svc.pk).content.decode()
     assert "js-media-gallery" in body
+
+
+def test_service_slots_page_uses_product_layout(settings):
+    """HF-3 (#11): страница услуги — карточка товара, а не голая форма.
+
+    Контракт: единый каркас детали (галерея слева / блок покупки справа), выбор
+    времени внутри блока покупки, описание и прочие секции из реестра — ниже.
+    Раньше это была узкая колонка с баннером, и владелец не узнавал в ней
+    «страницу услуги»."""
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+    svc = _service(image={"url": "https://img.example/color.jpg"}, description="Schöne Farbe.")
+    request = RequestFactory().get(f"/termin/leistung/{svc.pk}/?tag={day:%Y-%m-%d}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build(name="Salon")
+    body = public_views.service_slots(request, pk=svc.pk).content.decode()
+    assert 'id="buchen"' in body  # блок покупки каркаса (и якорь мобильного buybar)
+    assert 'id="svc-box"' in body  # выбор времени — внутри него
+    assert body.find("https://img.example/color.jpg") < body.find('id="buchen"')  # фото слева
+    assert 'data-sf-section="service_detail"' in body  # секции описания/FAQ/отзывов
+    assert "Schöne Farbe." in body

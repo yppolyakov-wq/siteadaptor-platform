@@ -22,8 +22,11 @@ def test_default_tenant_lists_archetypes_with_landing():
     # Архетипы с публичной страницей попадают в список…
     for expected in ("catalog", "orders", "booking", "stays", "events", "jobs", "loyalty"):
         assert expected in keys  # loyalty получил публичную /treue/ в S5
+    # HF-1: у promotions теперь ЕСТЬ публичная страница (/aktionen/) — без неё
+    # пункт меню «Aktionen» нельзя было собрать архетипным узлом. В сетку
+    # «Наши разделы» она при этом не попадает (teaser=False, см. ниже).
+    assert "promotions" in keys
     # …а модули без публичной «главной» — нет.
-    assert "promotions" not in keys  # инлайн на главной, своей страницы нет
     assert "analytics" not in keys  # чисто кабинетный
     assert "finance" not in keys
 
@@ -52,6 +55,8 @@ def test_presentation_fields_filled():
     assert catalog.teaser is True
     assert by_key["inbox"].teaser is False
     assert by_key["customer_account"].teaser is False
+    # HF-1: акции — пункт меню, но не «раздел» бизнеса (на главной уже есть блок).
+    assert by_key["promotions"].teaser is False
 
 
 def test_label_falls_back_to_label_de():
