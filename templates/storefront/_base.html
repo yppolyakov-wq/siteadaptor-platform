@@ -260,6 +260,39 @@
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
     })();
   </script>
+  <script>
+    // M4-C: сердечко «отложить» без перехода — форма постится AJAX'ом, кнопка и
+    // бейдж перекрашиваются на месте. Без JS форма работает обычным POST.
+    (function () {
+      document.addEventListener("submit", function (e) {
+        var form = e.target.closest("form[data-wish-form]");
+        if (!form) return;
+        e.preventDefault();
+        var btn = form.querySelector("[data-wish-btn]");
+        fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { "X-Requested-With": "fetch" },
+          credentials: "same-origin",
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+          .then(function (d) {
+            if (btn) {
+              btn.dataset.on = d.on ? "1" : "0";
+              btn.setAttribute("aria-pressed", d.on ? "true" : "false");
+              btn.textContent = d.on ? "\u2665" : "\u2661";
+              btn.classList.toggle("text-rose-600", !!d.on);
+              btn.classList.toggle("text-gray-400", !d.on);
+            }
+            document.querySelectorAll("[data-wish-badge]").forEach(function (b) {
+              b.textContent = d.count;
+              b.classList.toggle("hidden", !d.count);
+            });
+          })
+          .catch(function () { form.submit(); });  // сеть/ошибка → обычный POST
+      });
+    })();
+  </script>
   {# R1: тост подтверждения добавления в корзину. #}
   <div id="sf-toast" role="status" aria-live="polite"></div>
   <script>

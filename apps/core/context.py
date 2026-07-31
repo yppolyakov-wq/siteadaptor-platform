@@ -23,6 +23,26 @@ def _native_language_name(code: str) -> str:
         return code.upper()
 
 
+def _wishlist_enabled(tenant) -> bool:
+    """M4-C: показывать ли «Merkzettel» (опция витрины, дефолт по архетипу)."""
+    from apps.orders import wishlist
+
+    return wishlist.enabled(tenant) if tenant is not None else False
+
+
+def _wishlist_count(request) -> int:
+    from apps.orders import wishlist
+
+    return wishlist.count(request) if hasattr(request, "session") else 0
+
+
+def _wishlist_ids(request) -> list:
+    """pk отложенного — карточка красит сердечко без запроса на товар."""
+    from apps.orders import wishlist
+
+    return wishlist.ids(request) if hasattr(request, "session") else []
+
+
 def _cart_count(request) -> int:
     """Всего позиций в корзине (товары + комбо) — для бейджа иконки корзины."""
     total = 0
@@ -284,6 +304,11 @@ def modules_nav(request):
         "account_customer": account_customer,
         # R1: всего позиций в корзине — бейдж иконки корзины в шапке.
         "storefront_cart_count": _cart_count(request),
+        # M4-C: список отложенного — опция витрины (бутик/ритейл) + счётчик
+        # для иконки-сердца в шапке. Сессия, без аккаунта (DSGVO-чисто).
+        "storefront_wishlist_enabled": _wishlist_enabled(tenant),
+        "storefront_wishlist_count": _wishlist_count(request),
+        "storefront_wishlist_ids": _wishlist_ids(request),
         # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
         "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
         # M20 ④: легаси-навигация (плоская) — на случай старых шаблонов.

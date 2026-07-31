@@ -277,6 +277,9 @@ urlpatterns = [
     path("warenkorb/", orders_public.cart_view, name="storefront-cart"),
     path("warenkorb/add/", orders_public.cart_add, name="storefront-cart-add"),
     path("warenkorb/quick/<uuid:pk>/", orders_public.quick_add_form, name="storefront-quick-add"),
+    # M4-C: список отложенного (сессия, без аккаунта).
+    path("merkzettel/", orders_public.wishlist_view, name="storefront-wishlist"),
+    path("merkzettel/<uuid:pk>/", orders_public.wishlist_toggle, name="storefront-wishlist-toggle"),
     path("warenkorb/remove/", orders_public.cart_remove, name="storefront-cart-remove"),
     path("warenkorb/combo-remove/", orders_public.combo_remove, name="storefront-combo-remove"),
     path("warenkorb/nochmal/<str:code>/", orders_public.reorder, name="storefront-reorder"),

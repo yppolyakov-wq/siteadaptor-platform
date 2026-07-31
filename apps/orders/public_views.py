@@ -293,6 +293,39 @@ def _is_ajax(request) -> bool:
     return request.headers.get("X-Requested-With") == "fetch"
 
 
+# --- M4-C Merkzettel (список отложенного, сессия) ---------------------------------
+
+
+def wishlist_toggle(request, pk):
+    """Переключить товар в списке отложенного. AJAX → JSON (сердечко
+    перекрашивается без перехода), обычный POST → назад на ту же страницу."""
+    from django.http import JsonResponse
+
+    from apps.orders import wishlist
+
+    if not wishlist.enabled(request.tenant):
+        raise Http404
+    if request.method != "POST":
+        return redirect("storefront-wishlist")
+    state = wishlist.toggle(request, pk)
+    if _is_ajax(request):
+        return JsonResponse({"ok": True, "on": state, "count": wishlist.count(request)})
+    return redirect(request.POST.get("next") or "storefront-wishlist")
+
+
+def wishlist_view(request):
+    """Страница «Merkzettel» — отложенные товары обычными карточками."""
+    from apps.orders import wishlist
+
+    if not wishlist.enabled(request.tenant):
+        raise Http404
+    return render(
+        request,
+        "storefront/wishlist.html",
+        {"products": wishlist.products(request)},
+    )
+
+
 def _cart_total_count(request) -> int:
     total = 0
     for key in (CART_SESSION_KEY, COMBO_SESSION_KEY):

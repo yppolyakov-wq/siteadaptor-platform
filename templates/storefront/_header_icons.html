@@ -27,6 +27,12 @@
   {# Фидбэк 2026-07-30: без слова «Account» — иконки достаточно (круглая, как корзина). #}
   <a href="{% url 'account-home' %}" class="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100" aria-label="{% trans 'My account' %}" title="{% trans 'My account' %}">👤</a>
 {% endif %}
+{% if storefront_wishlist_enabled %}
+  {# M4-C: сердце-счётчик отложенного (список в сессии — без аккаунта). #}
+  <a href="{% url 'storefront-wishlist' %}" class="relative hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100" aria-label="{% trans 'Merkzettel' %}" title="{% trans 'Merkzettel' %}">♥
+    <span data-wish-badge class="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full text-white text-[10px] font-bold leading-[17px] text-center {% if not storefront_wishlist_count %}hidden{% endif %}" style="background: var(--accent);">{{ storefront_wishlist_count }}</span>
+  </a>
+{% endif %}
 {% if storefront_orders_enabled %}
   {# R1: иконка корзины в шапке + бейдж кол-ва (обновляется AJAX'ом). #}
   <a href="{% url 'storefront-cart' %}" class="relative inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-700 hover:bg-gray-100" aria-label="{% trans 'Cart' %}">

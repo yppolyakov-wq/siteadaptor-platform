@@ -72,6 +72,9 @@
   {# UA3-1 слайс 2: buy-box — единый партиал, mode=cart из контракта sellable. #}
   {% sold_badge sellable.kind sellable.pk %}
   {% include "storefront/_buybox.html" %}
+  {% comment %}M4-C: «отложить» на детали — под кнопкой покупки, статичной
+  строкой (не абсолютным сердечком, как на карточке).{% endcomment %}
+  {% include "storefront/_wish_heart.html" with p=product pos="mt-3 inline-flex" %}
   {% if site_anprobe and storefront_orders_enabled and product.in_stock %}
     {% comment %}M3 Boutique (Click&Reserve): «In der Anprobe zurücklegen» — резерв
     48 ч БЕЗ оплаты (unverbindlich, kein Kaufvertrag); вторая форма с другим

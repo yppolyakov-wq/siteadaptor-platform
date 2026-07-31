@@ -15420,3 +15420,27 @@ msgstr "Para birimi"
 #. I18N-4 forms/import 2026-07-31
 msgid "Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)"
 msgstr "Sertifikalar / ödüller (ad | veren | logo URL)"
+
+#. M4-C wishlist 2026-07-31
+msgid "Merkzettel"
+msgstr "Favoriler"
+
+#. M4-C wishlist 2026-07-31
+msgid "Auf den Merkzettel"
+msgstr "Favorilere ekle"
+
+#. M4-C wishlist 2026-07-31
+msgid "Vom Merkzettel entfernen"
+msgstr "Favorilerden çıkar"
+
+#. M4-C wishlist 2026-07-31
+msgid "Ihre gemerkten Teile — nur auf diesem Gerät gespeichert."
+msgstr "Kaydettikleriniz — yalnızca bu cihazda saklanır."
+
+#. M4-C wishlist 2026-07-31
+msgid "Noch nichts gemerkt. Tippen Sie auf ♡ an einem Artikel."
+msgstr "Henüz bir şey kaydedilmedi. Bir üründe ♡ simgesine dokunun."
+
+#. M4-C wishlist 2026-07-31
+msgid "Zum Sortiment"
+msgstr "Mağazaya"

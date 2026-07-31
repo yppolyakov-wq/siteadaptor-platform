@@ -15470,3 +15470,27 @@ msgstr "Валюта"
 #. I18N-4 forms/import 2026-07-31
 msgid "Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)"
 msgstr "Сертифікати / нагороди (назва | ким видано | URL логотипа)"
+
+#. M4-C wishlist 2026-07-31
+msgid "Merkzettel"
+msgstr "Обране"
+
+#. M4-C wishlist 2026-07-31
+msgid "Auf den Merkzettel"
+msgstr "До обраного"
+
+#. M4-C wishlist 2026-07-31
+msgid "Vom Merkzettel entfernen"
+msgstr "Прибрати з обраного"
+
+#. M4-C wishlist 2026-07-31
+msgid "Ihre gemerkten Teile — nur auf diesem Gerät gespeichert."
+msgstr "Відкладені речі — зберігаються лише на цьому пристрої."
+
+#. M4-C wishlist 2026-07-31
+msgid "Noch nichts gemerkt. Tippen Sie auf ♡ an einem Artikel."
+msgstr "Поки порожньо. Натисніть ♡ біля товару."
+
+#. M4-C wishlist 2026-07-31
+msgid "Zum Sortiment"
+msgstr "До каталогу"
