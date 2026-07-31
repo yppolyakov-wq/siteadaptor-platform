@@ -16013,3 +16013,534 @@ msgstr ""
 
 msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
 msgstr ""
+
+msgid "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
+msgstr ""
+
+msgid "Material / Zusammensetzung"
+msgstr ""
+
+msgid "Pflegehinweise"
+msgstr ""
+
+msgid "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % Elasthan“ — Pflichtangabe bei Kleidung."
+msgstr ""
+
+msgid "z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."
+msgstr ""
+
+msgid "Please enter a name."
+msgstr "Bitte einen Namen eingeben."
+
+msgid "Couldn't add it — please try again."
+msgstr "Konnte nicht angelegt werden — bitte erneut versuchen."
+
+msgid "Added — edit the details anytime."
+msgstr "Angelegt — Details jederzeit änderbar."
+
+msgid "Einkauf"
+msgstr ""
+
+msgid "Sichtbar."
+msgstr ""
+
+msgid "Ausgeblendet."
+msgstr ""
+
+msgid "Umlagerung gebucht: %(n)s Stück."
+msgstr ""
+
+msgid "Umlagerung nicht möglich (Bestand/Standorte prüfen)."
+msgstr ""
+
+msgid "Charge abgeschrieben: %(n)s Stück."
+msgstr ""
+
+msgid "Charge bereits leer."
+msgstr ""
+
+msgid "Bitte einen Namen eingeben."
+msgstr ""
+
+msgid "Standort angelegt."
+msgstr ""
+
+msgid "Wareneingang (Charge) gebucht."
+msgstr ""
+
+msgid "Lieferant angelegt."
+msgstr ""
+
+msgid "Bestellung angelegt: %(ref)s"
+msgstr ""
+
+msgid "Keine Vorschläge mit Sollbestand — Bestellung nicht angelegt."
+msgstr ""
+
+msgid "Entwurf aus Bestellvorschlägen: %(ref)s"
+msgstr ""
+
+msgid "Bestellung nicht gefunden."
+msgstr ""
+
+msgid "Position hinzugefügt."
+msgstr ""
+
+msgid "Position entfernt."
+msgstr ""
+
+msgid "Status aktualisiert."
+msgstr ""
+
+msgid "Position nicht gefunden."
+msgstr ""
+
+msgid "Wareneingang gebucht: %(n)s Stück."
+msgstr ""
+
+msgid "Nichts zu buchen (Position bereits vollständig)."
+msgstr ""
+
+msgid "%(n)s signups / 30 days"
+msgstr "%(n)s Registrierungen / 30 Tage"
+
+msgid "per active account / month"
+msgstr "pro aktivem Konto / Monat"
+
+msgid "%(n)s suspended"
+msgstr "%(n)s pausiert"
+
+msgid "Subscriptions"
+msgstr "Abonnements"
+
+msgid "Usage fees — %(p)s"
+msgstr "Nutzungsgebühren — %(p)s"
+
+msgid "Fees collected"
+msgstr "Eingenommene Gebühren"
+
+msgid "Churn/LTV are estimates (v1, no historical snapshots yet)."
+msgstr "Churn/LTV sind Schätzwerte (v1, noch ohne historische Snapshots)."
+
+msgid "The photo is shown on the category tile of your storefront."
+msgstr "Das Foto erscheint auf der Kategorie-Kachel Ihrer Website."
+
+msgid "Status & Übergänge"
+msgstr ""
+
+msgid "einem Gast"
+msgstr ""
+
+msgid "Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang bucht Bestand & Ledger."
+msgstr ""
+
+msgid "— Lieferant (optional) —"
+msgstr ""
+
+msgid "Entwurf anlegen"
+msgstr ""
+
+msgid "Aus Bestellvorschlägen"
+msgstr ""
+
+msgid "Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = Sollbestand − Bestand)."
+msgstr ""
+
+msgid "Entwurf erstellen"
+msgstr ""
+
+msgid "Als bestellt markieren"
+msgstr ""
+
+msgid "Charge"
+msgstr ""
+
+msgid "MHD"
+msgstr ""
+
+msgid "Standort"
+msgstr ""
+
+msgid "EK übernehmen"
+msgstr ""
+
+msgid "Eingang"
+msgstr ""
+
+msgid "Summe"
+msgstr ""
+
+msgid "Noch keine Positionen."
+msgstr ""
+
+msgid "EK €"
+msgstr ""
+
+msgid "Noch keine Bestellungen."
+msgstr ""
+
+msgid "Lieferanten"
+msgstr ""
+
+msgid "inaktiv"
+msgstr ""
+
+msgid "Ansprechpartner"
+msgstr ""
+
+msgid "Lieferant"
+msgstr ""
+
+msgid "Chargen & Haltbarkeit (MHD/FEFO)"
+msgstr ""
+
+msgid "für Lebensmittel"
+msgstr ""
+
+msgid "Haltbarkeit / Chargen"
+msgstr ""
+
+msgid "kritisch"
+msgstr ""
+
+msgid "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)."
+msgstr ""
+
+msgid "Stk"
+msgstr ""
+
+msgid "abgelaufen"
+msgstr ""
+
+msgid "läuft in %(dl)s Tagen ab"
+msgstr ""
+
+msgid "Charge-Nr."
+msgstr ""
+
+msgid "Standorte"
+msgstr ""
+
+msgid "Hauptlager"
+msgstr ""
+
+msgid "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
+msgstr ""
+
+msgid "z. B. Lager hinten"
+msgstr ""
+
+msgid "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)"
+msgstr ""
+
+msgid "von"
+msgstr ""
+
+msgid "nach"
+msgstr ""
+
+msgid "Umlagern"
+msgstr ""
+
+msgid "Nach Standort:"
+msgstr ""
+
+msgid "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr ""
+
+msgid "Aktiv beworben bis %(until)s"
+msgstr ""
+
+msgid "Bisher: %(views)s Aufrufe · %(clicks)s Klicks"
+msgstr ""
+
+msgid "Eingegangen"
+msgstr ""
+
+msgid "Erwachsene"
+msgstr ""
+
+msgid "Kinder"
+msgstr ""
+
+msgid "Aufenthalt"
+msgstr ""
+
+msgid "Tarif"
+msgstr ""
+
+msgid "Buchung bearbeiten"
+msgstr ""
+
+msgid "Preis neu berechnen"
+msgstr ""
+
+msgid "unchecked = price is kept"
+msgstr "nicht angehakt = Preis bleibt"
+
+msgid "Betrag & Zahlung"
+msgstr ""
+
+msgid "inkl. Kurtaxe"
+msgstr ""
+
+msgid "Gutschein"
+msgstr ""
+
+msgid "Kein Preis hinterlegt."
+msgstr ""
+
+msgid "Anzahlung"
+msgstr ""
+
+msgid "bezahlt"
+msgstr ""
+
+msgid "ausstehend"
+msgstr ""
+
+msgid "erstattet"
+msgstr ""
+
+msgid "vor Ort"
+msgstr ""
+
+msgid "Meldeschein"
+msgstr ""
+
+msgid "Online ausgefüllt"
+msgstr ""
+
+msgid "Noch nicht ausgefüllt."
+msgstr ""
+
+msgid "Online-Checkins"
+msgstr ""
+
+msgid "Buchung"
+msgstr ""
+
+msgid "Belegungskalender"
+msgstr ""
+
+msgid "Aktivieren (−25 %% bis 3 Nächte)"
+msgstr ""
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr ""
+
+msgid "Occupancy from (%%)"
+msgstr "Belegung ab (%%)"
+
+msgid "Price change (%%, e.g. 10 or −15)"
+msgstr "Preisänderung (%%, z. B. 10 oder −15)"
+
+msgid "Rabatt %%"
+msgstr ""
+
+msgid "Next free appointment: %(d)s at %(t)s"
+msgstr "Nächster freier Termin: %(d)s um %(t)s"
+
+msgid "Next free nights: %(v)s–%(b)s"
+msgstr "Nächste freie Nächte: %(v)s–%(b)s"
+
+msgid "Später fertigstellen"
+msgstr ""
+
+msgid "Sichtbarkeit umschalten"
+msgstr ""
+
+msgid "Sichtbar"
+msgstr ""
+
+msgid "Versteckt"
+msgstr ""
+
+msgid "Bearbeiten"
+msgstr ""
+
+msgid "immer"
+msgstr ""
+
+msgid "Klassische Ansicht ist aktiv."
+msgstr ""
+
+msgid "Neue Startseite wieder einschalten"
+msgstr ""
+
+msgid "Tasks"
+msgstr "Aufgaben"
+
+msgid "Full view"
+msgstr "Vollansicht"
+
+msgid "Reihenfolge"
+msgstr ""
+
+msgid "Frage, z. B.: Wofür suchst du?"
+msgstr ""
+
+msgid "Antwort-Chip"
+msgstr ""
+
+msgid "Wörter, mit Komma"
+msgstr ""
+
+msgid "Treffer in Name/Beschreibung"
+msgstr ""
+
+msgid "Kategorie"
+msgstr ""
+
+msgid "Kollektion"
+msgstr ""
+
+msgid "Pausiert"
+msgstr ""
+
+msgid "Klassische Ansicht"
+msgstr ""
+
+msgid "Currently: Classic"
+msgstr "Aktuell: Klassisch"
+
+msgid "Currently: New"
+msgstr "Aktuell: Neu"
+
+msgid "Falls dir das neue Design nicht liegt: schalte hier auf die bisherige Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
+msgstr ""
+
+msgid "Klassisch"
+msgstr ""
+
+msgid "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden."
+msgstr ""
+
+msgid "In den Einstellungen ergänzen"
+msgstr ""
+
+msgid "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen."
+msgstr ""
+
+msgid "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen."
+msgstr ""
+
+msgid "Drag to resize · double-click to reset"
+msgstr "Ziehen zum Ändern der Breite · Doppelklick setzt zurück"
+
+msgid "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+
+msgid "Compact inspector — denser fields, all controls kept"
+msgstr "Kompakter Inspektor — dichtere Felder, alle Bedienelemente bleiben"
+
+msgid "Compact"
+msgstr "Kompakt"
+
+msgid "Collapse panel"
+msgstr "Panel einklappen"
+
+msgid "Button link"
+msgstr "Button-Link"
+
+msgid "Eigene Status"
+msgstr ""
+
+msgid "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert."
+msgstr ""
+
+msgid "Löschen"
+msgstr ""
+
+msgid "Neuer Status (Name)"
+msgstr ""
+
+msgid "Übergänge"
+msgstr ""
+
+msgid "Von welchen Status ist er erreichbar und wohin führt er weiter?"
+msgstr ""
+
+msgid "Erreichbar aus:"
+msgstr ""
+
+msgid "Führt zu:"
+msgstr ""
+
+msgid "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge."
+msgstr ""
+
+msgid "Branchen"
+msgstr ""
+
+msgid "Jetzt starten"
+msgstr ""
+
+msgid "SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale Betriebe — aus einer Hand, DSGVO-freundlich."
+msgstr ""
+
+msgid "SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, ohne Technik-Stress und ohne Baukasten-Frust."
+msgstr ""
+
+msgid "Was wir anders machen"
+msgstr ""
+
+msgid "Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und Fotos — fertig."
+msgstr ""
+
+msgid "Alles an einem Ort"
+msgstr ""
+
+msgid "Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein Werkzeug. Ohne Provisionen pro Bestellung."
+msgstr ""
+
+msgid "Datenschutz von Anfang an"
+msgstr ""
+
+msgid "Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, kein Add-on."
+msgstr ""
+
+msgid "Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du im Impressum."
+msgstr ""
+
+msgid "Jetzt kostenlos starten"
+msgstr ""
+
+msgid "Branchen ansehen"
+msgstr ""
+
+msgid "Lösungen für deine Branche"
+msgstr ""
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen."
+msgstr ""
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist."
+msgstr ""
+
+msgid "Mehr erfahren"
+msgstr ""
+
+msgid "Website für %(display_name)s"
+msgstr ""
+
+msgid "Deine Website & dein Online-Geschäft für %(display_name)s"
+msgstr ""
+
+msgid "Besonders für %(display_name)s"
+msgstr ""
+
+msgid "Alles, was du brauchst — an einem Ort"
+msgstr ""
+
+msgid "Empfohlen für deine Branche. Alles ein- und ausschaltbar."
+msgstr ""
+
+msgid "Bereit? Deine Website in wenigen Minuten."
+msgstr ""
+
+msgid "Andere Branchen ansehen"
+msgstr ""
+
+msgid "Ändern"
+msgstr ""

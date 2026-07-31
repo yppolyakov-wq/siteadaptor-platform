@@ -11,7 +11,9 @@ test_public (порядок CTA/точные href). Двухшаговость (
   {% if orders_enabled %}
     {% if product.in_stock %}
       {% if not product.has_variants and product.stock_quantity and product.stock_quantity <= 5 %}
-        <p class="mt-3 text-sm text-amber-700">{% blocktrans with n=product.stock_quantity %}Only {{ n }} left{% endblocktrans %}</p>
+        {% comment %}count-форма (а не with): та же строка у акций — плюрал, и без
+        счёта перевод НЕ находился (msgid искался как единственное число).{% endcomment %}
+        <p class="mt-3 text-sm text-amber-700">{% blocktrans count n=product.stock_quantity %}Only {{ n }} left{% plural %}Only {{ n }} left{% endblocktrans %}</p>
       {% endif %}
       {% include "storefront/_add_to_cart_form.html" %}
     {% else %}

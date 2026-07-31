@@ -92,6 +92,11 @@ jobs:
             msgfmt --check-format -o "${po%.po}.mo" "$po"
           done
 
+      - name: i18n coverage (I18N-9)
+        # Строка в коде без записи в .po молча выводится по-немецки в ru/tr/uk/en.
+        # Гейт гоняет makemessages во временную локаль и сверяет с реальными .po.
+        run: uv run python scripts/i18n_gap.py
+
       - name: Ruff lint
         run: uv run ruff check .
 

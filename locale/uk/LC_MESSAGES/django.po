@@ -16038,3 +16038,534 @@ msgstr "Варіант (порожньо = з розміру/кольору)"
 
 msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
 msgstr "Для одягу: вводьте розмір і колір окремо — назва складеться з них."
+
+msgid "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
+msgstr "Необов’язково (одяг/взуття): по рядку на розмір, колонки через «|» — перший рядок = заголовки. Приклад: «Розмір | Груди (см)»."
+
+msgid "Material / Zusammensetzung"
+msgstr "Матеріал / склад"
+
+msgid "Pflegehinweise"
+msgstr "Догляд"
+
+msgid "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % Elasthan“ — Pflichtangabe bei Kleidung."
+msgstr "Маркування текстилю: офіційні назви волокон, напр. «95 % бавовна, 5 % еластан» — обов’язкове для одягу."
+
+msgid "z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."
+msgstr "напр. «30 °C делікатне прання, сушіння в машині заборонено» — необов’язково."
+
+msgid "Please enter a name."
+msgstr "Введіть назву."
+
+msgid "Couldn't add it — please try again."
+msgstr "Не вдалося додати — спробуйте ще раз."
+
+msgid "Added — edit the details anytime."
+msgstr "Додано — деталі можна змінити будь-коли."
+
+msgid "Einkauf"
+msgstr "Закупівлі"
+
+msgid "Sichtbar."
+msgstr "Показується."
+
+msgid "Ausgeblendet."
+msgstr "Приховано."
+
+msgid "Umlagerung gebucht: %(n)s Stück."
+msgstr "Переміщення проведено: %(n)s шт."
+
+msgid "Umlagerung nicht möglich (Bestand/Standorte prüfen)."
+msgstr "Переміщення неможливе (перевірте залишок і склади)."
+
+msgid "Charge abgeschrieben: %(n)s Stück."
+msgstr "Партію списано: %(n)s шт."
+
+msgid "Charge bereits leer."
+msgstr "Партія вже порожня."
+
+msgid "Bitte einen Namen eingeben."
+msgstr "Введіть назву."
+
+msgid "Standort angelegt."
+msgstr "Склад створено."
+
+msgid "Wareneingang (Charge) gebucht."
+msgstr "Приймання партії проведено."
+
+msgid "Lieferant angelegt."
+msgstr "Постачальника створено."
+
+msgid "Bestellung angelegt: %(ref)s"
+msgstr "Замовлення постачальнику створено: %(ref)s"
+
+msgid "Keine Vorschläge mit Sollbestand — Bestellung nicht angelegt."
+msgstr "Немає позицій із цільовим залишком — замовлення не створено."
+
+msgid "Entwurf aus Bestellvorschlägen: %(ref)s"
+msgstr "Чернетка з пропозицій до замовлення: %(ref)s"
+
+msgid "Bestellung nicht gefunden."
+msgstr "Замовлення не знайдено."
+
+msgid "Position hinzugefügt."
+msgstr "Позицію додано."
+
+msgid "Position entfernt."
+msgstr "Позицію видалено."
+
+msgid "Status aktualisiert."
+msgstr "Статус оновлено."
+
+msgid "Position nicht gefunden."
+msgstr "Позицію не знайдено."
+
+msgid "Wareneingang gebucht: %(n)s Stück."
+msgstr "Приймання проведено: %(n)s шт."
+
+msgid "Nichts zu buchen (Position bereits vollständig)."
+msgstr "Нічого проводити (позицію вже прийнято повністю)."
+
+msgid "%(n)s signups / 30 days"
+msgstr "%(n)s реєстрацій / 30 днів"
+
+msgid "per active account / month"
+msgstr "на активний акаунт / місяць"
+
+msgid "%(n)s suspended"
+msgstr "%(n)s призупинено"
+
+msgid "Subscriptions"
+msgstr "Підписки"
+
+msgid "Usage fees — %(p)s"
+msgstr "Комісії за використання — %(p)s"
+
+msgid "Fees collected"
+msgstr "Зібрано комісій"
+
+msgid "Churn/LTV are estimates (v1, no historical snapshots yet)."
+msgstr "Відтік/LTV — оцінка (v1, історичних зрізів поки немає)."
+
+msgid "The photo is shown on the category tile of your storefront."
+msgstr "Фото показується на плитці категорії вашого сайта."
+
+msgid "Status & Übergänge"
+msgstr "Статуси та переходи"
+
+msgid "einem Gast"
+msgstr "гостя"
+
+msgid "Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang bucht Bestand & Ledger."
+msgstr "Замовлення постачальникам — чернетка, замовлено, приймання. Приймання пише залишок і леджер."
+
+msgid "— Lieferant (optional) —"
+msgstr "— Постачальник (необов’язково) —"
+
+msgid "Entwurf anlegen"
+msgstr "Створити чернетку"
+
+msgid "Aus Bestellvorschlägen"
+msgstr "З пропозицій до замовлення"
+
+msgid "Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = Sollbestand − Bestand)."
+msgstr "Створює чернетку з усіма товарами нижче точки замовлення (кількість = ціль − залишок)."
+
+msgid "Entwurf erstellen"
+msgstr "Створити чернетку"
+
+msgid "Als bestellt markieren"
+msgstr "Позначити як замовлено"
+
+msgid "Charge"
+msgstr "Партія"
+
+msgid "MHD"
+msgstr "Придатний до"
+
+msgid "Standort"
+msgstr "Склад"
+
+msgid "EK übernehmen"
+msgstr "Записати закупівельну ціну"
+
+msgid "Eingang"
+msgstr "Приймання"
+
+msgid "Summe"
+msgstr "Разом"
+
+msgid "Noch keine Positionen."
+msgstr "Позицій поки немає."
+
+msgid "EK €"
+msgstr "Закупівля €"
+
+msgid "Noch keine Bestellungen."
+msgstr "Замовлень поки немає."
+
+msgid "Lieferanten"
+msgstr "Постачальники"
+
+msgid "inaktiv"
+msgstr "неактивний"
+
+msgid "Ansprechpartner"
+msgstr "Контактна особа"
+
+msgid "Lieferant"
+msgstr "Постачальник"
+
+msgid "Chargen & Haltbarkeit (MHD/FEFO)"
+msgstr "Партії та терміни придатності (МХД/FEFO)"
+
+msgid "für Lebensmittel"
+msgstr "для продуктів харчування"
+
+msgid "Haltbarkeit / Chargen"
+msgstr "Терміни придатності / партії"
+
+msgid "kritisch"
+msgstr "критично"
+
+msgid "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)."
+msgstr "Партії з терміном придатності, найближчий першим (FEFO). Прострочені та ті, що скоро спливають, — списуйте (псування)."
+
+msgid "Stk"
+msgstr "шт"
+
+msgid "abgelaufen"
+msgstr "прострочено"
+
+msgid "läuft in %(dl)s Tagen ab"
+msgstr "спливає через %(dl)s дн."
+
+msgid "Charge-Nr."
+msgstr "№ партії"
+
+msgid "Standorte"
+msgstr "Склади"
+
+msgid "Hauptlager"
+msgstr "Основний склад"
+
+msgid "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
+msgstr "Кілька місць зберігання (магазин, склад, авто …)? Створіть другий склад — стануть доступні переміщення та вибір складу під час приймання."
+
+msgid "z. B. Lager hinten"
+msgstr "напр. склад за залом"
+
+msgid "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)"
+msgstr "Переміщення (змінює лише розподіл, не загальний залишок)"
+
+msgid "von"
+msgstr "звідки"
+
+msgid "nach"
+msgstr "куди"
+
+msgid "Umlagern"
+msgstr "Перемістити"
+
+msgid "Nach Standort:"
+msgstr "За складами:"
+
+msgid "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Власні назви статусів замовлення (лише відображення в кабінеті). Порожньо = стандартне."
+
+msgid "Aktiv beworben bis %(until)s"
+msgstr "Просувається до %(until)s"
+
+msgid "Bisher: %(views)s Aufrufe · %(clicks)s Klicks"
+msgstr "Наразі: %(views)s показів · %(clicks)s кліків"
+
+msgid "Eingegangen"
+msgstr "Надійшла"
+
+msgid "Erwachsene"
+msgstr "Дорослі"
+
+msgid "Kinder"
+msgstr "Діти"
+
+msgid "Aufenthalt"
+msgstr "Проживання"
+
+msgid "Tarif"
+msgstr "Тариф"
+
+msgid "Buchung bearbeiten"
+msgstr "Змінити бронювання"
+
+msgid "Preis neu berechnen"
+msgstr "Перерахувати ціну"
+
+msgid "unchecked = price is kept"
+msgstr "без галочки — ціна не змінюється"
+
+msgid "Betrag & Zahlung"
+msgstr "Сума та оплата"
+
+msgid "inkl. Kurtaxe"
+msgstr "вкл. курортний збір"
+
+msgid "Gutschein"
+msgstr "Сертифікат"
+
+msgid "Kein Preis hinterlegt."
+msgstr "Ціну не задано."
+
+msgid "Anzahlung"
+msgstr "Передоплата"
+
+msgid "bezahlt"
+msgstr "оплачено"
+
+msgid "ausstehend"
+msgstr "очікується"
+
+msgid "erstattet"
+msgstr "повернено"
+
+msgid "vor Ort"
+msgstr "на місці"
+
+msgid "Meldeschein"
+msgstr "Реєстраційний лист"
+
+msgid "Online ausgefüllt"
+msgstr "Заповнено онлайн"
+
+msgid "Noch nicht ausgefüllt."
+msgstr "Ще не заповнено."
+
+msgid "Online-Checkins"
+msgstr "Онлайн-реєстрації"
+
+msgid "Buchung"
+msgstr "Бронювання"
+
+msgid "Belegungskalender"
+msgstr "Шахівниця"
+
+msgid "Aktivieren (−25 %% bis 3 Nächte)"
+msgstr "Увімкнути (−25 %% до 3 ночей)"
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr "Знижка на «вікно»: %% (0 = як у загальному налаштуванні)"
+
+msgid "Occupancy from (%%)"
+msgstr "Завантаження від (%%)"
+
+msgid "Price change (%%, e.g. 10 or −15)"
+msgstr "Зміна ціни (%%, напр. 10 або −15)"
+
+msgid "Rabatt %%"
+msgstr "Знижка %%"
+
+msgid "Next free appointment: %(d)s at %(t)s"
+msgstr "Найближчий вільний час: %(d)s о %(t)s"
+
+msgid "Next free nights: %(v)s–%(b)s"
+msgstr "Найближчі вільні ночі: %(v)s–%(b)s"
+
+msgid "Später fertigstellen"
+msgstr "Завершити пізніше"
+
+msgid "Sichtbarkeit umschalten"
+msgstr "Показати / приховати"
+
+msgid "Sichtbar"
+msgstr "Показується"
+
+msgid "Versteckt"
+msgstr "Приховано"
+
+msgid "Bearbeiten"
+msgstr "Змінити"
+
+msgid "immer"
+msgstr "завжди"
+
+msgid "Klassische Ansicht ist aktiv."
+msgstr "Увімкнено класичний вигляд."
+
+msgid "Neue Startseite wieder einschalten"
+msgstr "Повернути нову головну"
+
+msgid "Tasks"
+msgstr "Завдання"
+
+msgid "Full view"
+msgstr "Повний вигляд"
+
+msgid "Reihenfolge"
+msgstr "Порядок"
+
+msgid "Frage, z. B.: Wofür suchst du?"
+msgstr "Питання, напр.: Що ви шукаєте?"
+
+msgid "Antwort-Chip"
+msgstr "Варіант відповіді"
+
+msgid "Wörter, mit Komma"
+msgstr "Слова через кому"
+
+msgid "Treffer in Name/Beschreibung"
+msgstr "Збіг у назві/описі"
+
+msgid "Kategorie"
+msgstr "Категорія"
+
+msgid "Kollektion"
+msgstr "Добірка"
+
+msgid "Pausiert"
+msgstr "Призупинено"
+
+msgid "Klassische Ansicht"
+msgstr "Класичний вигляд"
+
+msgid "Currently: Classic"
+msgstr "Зараз: класичний"
+
+msgid "Currently: New"
+msgstr "Зараз: новий"
+
+msgid "Falls dir das neue Design nicht liegt: schalte hier auf die bisherige Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
+msgstr "Якщо новий дизайн не підійшов — перемкніться тут на попередній інтерфейс: оборотно будь-коли, дані й функції ті самі."
+
+msgid "Klassisch"
+msgstr "Класичний"
+
+msgid "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden."
+msgstr "E-mail власника не вказано — сповіщення вам не буде куди надіслати."
+
+msgid "In den Einstellungen ergänzen"
+msgstr "Додати в налаштуваннях"
+
+msgid "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen."
+msgstr "Усе, що ви продаєте, в одному місці — показати/приховати або відкрити на редагування."
+
+msgid "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen."
+msgstr "Пропозицій поки немає — натисніть «＋» вище, щоб створити першу."
+
+msgid "Drag to resize · double-click to reset"
+msgstr "Тягніть, щоб змінити ширину · подвійний клік — скидання"
+
+msgid "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
+msgstr "Увімкнути знижку на «вікна»: короткі проміжки між бронюваннями (до 3 ночей) автоматично пропонуються з −25 %%. Пізніше налаштовується в розділі «Units»."
+
+msgid "Compact inspector — denser fields, all controls kept"
+msgstr "Компактний інспектор — щільніші поля, усі елементи на місці"
+
+msgid "Compact"
+msgstr "Компактно"
+
+msgid "Collapse panel"
+msgstr "Згорнути панель"
+
+msgid "Button link"
+msgstr "Посилання кнопки"
+
+msgid "Eigene Status"
+msgstr "Власні статуси"
+
+msgid "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert."
+msgstr "Створюйте власні проміжні статуси та зв’язуйте їх з наявними. Роль задає поведінку (місткість, виторг). Вбудовані статуси не змінюються."
+
+msgid "Löschen"
+msgstr "Видалити"
+
+msgid "Neuer Status (Name)"
+msgstr "Новий статус (назва)"
+
+msgid "Übergänge"
+msgstr "Переходи"
+
+msgid "Von welchen Status ist er erreichbar und wohin führt er weiter?"
+msgstr "З яких статусів у нього можна перейти і куди він веде далі?"
+
+msgid "Erreichbar aus:"
+msgstr "Доступний із:"
+
+msgid "Führt zu:"
+msgstr "Веде до:"
+
+msgid "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge."
+msgstr "Спочатку створіть і збережіть статус — після цього тут з’являться переходи."
+
+msgid "Branchen"
+msgstr "Галузі"
+
+msgid "Jetzt starten"
+msgstr "Почати"
+
+msgid "SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale Betriebe — aus einer Hand, DSGVO-freundlich."
+msgstr "SiteAdaptor: сайт, бронювання, замовлення та маркетинг для локального бізнесу — в одному місці, з повагою до GDPR."
+
+msgid "SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, ohne Technik-Stress und ohne Baukasten-Frust."
+msgstr "SiteAdaptor — платформа для локального бізнесу в німецькомовній Європі: пекарні, салони, майстерні, готелі, ресторани та багато іншого. Ідея проста: малий бізнес має опинитися онлайн за хвилини — без агенції, без технічного стресу й без мук із конструктором."
+
+msgid "Was wir anders machen"
+msgstr "Що ми робимо інакше"
+
+msgid "Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und Fotos — fertig."
+msgstr "Замість порожнього конструктора ви отримуєте готове рішення для своєї галузі: потрібні сторінки, потрібні функції (передзамовлення, запис, бронювання номера, акції, квитки) та влучні приклади. Змінюєте тексти й фото — готово."
+
+msgid "Alles an einem Ort"
+msgstr "Усе в одному місці"
+
+msgid "Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein Werkzeug. Ohne Provisionen pro Bestellung."
+msgstr "Сайт, каталог, бронювання та замовлення, акції, сертифікати й програми лояльності, відгуки та повідомлення клієнтів — один вхід, один інструмент. Без комісії із замовлення."
+
+msgid "Datenschutz von Anfang an"
+msgstr "Приватність від початку"
+
+msgid "Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, kein Add-on."
+msgstr "Хостинг у Європі, жодних трекінг-куків на вашому сайті, double-opt-in для розсилок, гості бронюють без акаунта. GDPR — наше налаштування за замовчуванням, а не додаток."
+
+msgid "Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du im Impressum."
+msgstr "Питання, відгуки, партнерство? Напишіть нам — контакти в розділі Impressum."
+
+msgid "Jetzt kostenlos starten"
+msgstr "Почати безкоштовно"
+
+msgid "Branchen ansehen"
+msgstr "Переглянути галузі"
+
+msgid "Lösungen für deine Branche"
+msgstr "Рішення для вашої галузі"
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen."
+msgstr "Сайт, бронювання, замовлення, акції та лояльність — під вашу галузь. 14 днів безкоштовно."
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist."
+msgstr "Сайт, бронювання, замовлення, акції та лояльність — під ваш бізнес. Оберіть галузь і подивіться, що можливо."
+
+msgid "Mehr erfahren"
+msgstr "Докладніше"
+
+msgid "Website für %(display_name)s"
+msgstr "Сайт для: %(display_name)s"
+
+msgid "Deine Website & dein Online-Geschäft für %(display_name)s"
+msgstr "Ваш сайт і онлайн-продажі для: %(display_name)s"
+
+msgid "Besonders für %(display_name)s"
+msgstr "Спеціально для: %(display_name)s"
+
+msgid "Alles, was du brauchst — an einem Ort"
+msgstr "Усе, що потрібно, — в одному місці"
+
+msgid "Empfohlen für deine Branche. Alles ein- und ausschaltbar."
+msgstr "Рекомендовано для вашої галузі. Усе можна ввімкнути й вимкнути."
+
+msgid "Bereit? Deine Website in wenigen Minuten."
+msgstr "Готові? Ваш сайт за лічені хвилини."
+
+msgid "Andere Branchen ansehen"
+msgstr "Інші галузі"
+
+msgid "Ändern"
+msgstr "Змінити"

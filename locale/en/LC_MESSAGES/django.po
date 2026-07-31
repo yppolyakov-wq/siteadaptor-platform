@@ -15865,3 +15865,534 @@ msgstr "Variant (empty = from size/colour)"
 
 msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
 msgstr "For fashion: enter size and colour separately — the label is generated from them."
+
+msgid "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
+msgstr "Optional (fashion/shoes): one line per size, columns separated by “|” — first line = headings. Example: “Size | Chest (cm)”."
+
+msgid "Material / Zusammensetzung"
+msgstr "Material / composition"
+
+msgid "Pflegehinweise"
+msgstr "Care instructions"
+
+msgid "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % Elasthan“ — Pflichtangabe bei Kleidung."
+msgstr "Textile labelling: official fibre names, e.g. “95 % cotton, 5 % elastane” — mandatory for clothing."
+
+msgid "z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."
+msgstr "e.g. “30 °C gentle cycle, not tumble dryer safe” — optional."
+
+msgid "Please enter a name."
+msgstr ""
+
+msgid "Couldn't add it — please try again."
+msgstr ""
+
+msgid "Added — edit the details anytime."
+msgstr ""
+
+msgid "Einkauf"
+msgstr "Purchasing"
+
+msgid "Sichtbar."
+msgstr "Visible."
+
+msgid "Ausgeblendet."
+msgstr "Hidden."
+
+msgid "Umlagerung gebucht: %(n)s Stück."
+msgstr "Transfer booked: %(n)s pcs."
+
+msgid "Umlagerung nicht möglich (Bestand/Standorte prüfen)."
+msgstr "Transfer not possible (check stock/locations)."
+
+msgid "Charge abgeschrieben: %(n)s Stück."
+msgstr "Batch written off: %(n)s pcs."
+
+msgid "Charge bereits leer."
+msgstr "Batch is already empty."
+
+msgid "Bitte einen Namen eingeben."
+msgstr "Please enter a name."
+
+msgid "Standort angelegt."
+msgstr "Location created."
+
+msgid "Wareneingang (Charge) gebucht."
+msgstr "Goods receipt (batch) booked."
+
+msgid "Lieferant angelegt."
+msgstr "Supplier created."
+
+msgid "Bestellung angelegt: %(ref)s"
+msgstr "Purchase order created: %(ref)s"
+
+msgid "Keine Vorschläge mit Sollbestand — Bestellung nicht angelegt."
+msgstr "No suggestions with a target stock — no order created."
+
+msgid "Entwurf aus Bestellvorschlägen: %(ref)s"
+msgstr "Draft from reorder suggestions: %(ref)s"
+
+msgid "Bestellung nicht gefunden."
+msgstr "Purchase order not found."
+
+msgid "Position hinzugefügt."
+msgstr "Line added."
+
+msgid "Position entfernt."
+msgstr "Line removed."
+
+msgid "Status aktualisiert."
+msgstr "Status updated."
+
+msgid "Position nicht gefunden."
+msgstr "Line not found."
+
+msgid "Wareneingang gebucht: %(n)s Stück."
+msgstr "Goods receipt booked: %(n)s pcs."
+
+msgid "Nichts zu buchen (Position bereits vollständig)."
+msgstr "Nothing to book (line already complete)."
+
+msgid "%(n)s signups / 30 days"
+msgstr ""
+
+msgid "per active account / month"
+msgstr ""
+
+msgid "%(n)s suspended"
+msgstr ""
+
+msgid "Subscriptions"
+msgstr ""
+
+msgid "Usage fees — %(p)s"
+msgstr ""
+
+msgid "Fees collected"
+msgstr ""
+
+msgid "Churn/LTV are estimates (v1, no historical snapshots yet)."
+msgstr ""
+
+msgid "The photo is shown on the category tile of your storefront."
+msgstr ""
+
+msgid "Status & Übergänge"
+msgstr "Statuses & transitions"
+
+msgid "einem Gast"
+msgstr "a guest"
+
+msgid "Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang bucht Bestand & Ledger."
+msgstr "Purchase orders to suppliers — draft, ordered, goods receipt. The receipt books stock & ledger."
+
+msgid "— Lieferant (optional) —"
+msgstr "— Supplier (optional) —"
+
+msgid "Entwurf anlegen"
+msgstr "Create draft"
+
+msgid "Aus Bestellvorschlägen"
+msgstr "From reorder suggestions"
+
+msgid "Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = Sollbestand − Bestand)."
+msgstr "Creates a draft with every item below its reorder point (quantity = target − stock)."
+
+msgid "Entwurf erstellen"
+msgstr "Create draft"
+
+msgid "Als bestellt markieren"
+msgstr "Mark as ordered"
+
+msgid "Charge"
+msgstr "Batch"
+
+msgid "MHD"
+msgstr "Best before"
+
+msgid "Standort"
+msgstr "Location"
+
+msgid "EK übernehmen"
+msgstr "Apply purchase price"
+
+msgid "Eingang"
+msgstr "Receipt"
+
+msgid "Summe"
+msgstr "Total"
+
+msgid "Noch keine Positionen."
+msgstr "No lines yet."
+
+msgid "EK €"
+msgstr "Cost €"
+
+msgid "Noch keine Bestellungen."
+msgstr "No purchase orders yet."
+
+msgid "Lieferanten"
+msgstr "Suppliers"
+
+msgid "inaktiv"
+msgstr "inactive"
+
+msgid "Ansprechpartner"
+msgstr "Contact person"
+
+msgid "Lieferant"
+msgstr "Supplier"
+
+msgid "Chargen & Haltbarkeit (MHD/FEFO)"
+msgstr "Batches & shelf life (best before / FEFO)"
+
+msgid "für Lebensmittel"
+msgstr "for food products"
+
+msgid "Haltbarkeit / Chargen"
+msgstr "Shelf life / batches"
+
+msgid "kritisch"
+msgstr "critical"
+
+msgid "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)."
+msgstr "Batches with a best-before date, earliest first (FEFO). Write off expired or soon-expiring batches (spoilage)."
+
+msgid "Stk"
+msgstr "pcs"
+
+msgid "abgelaufen"
+msgstr "expired"
+
+msgid "läuft in %(dl)s Tagen ab"
+msgstr "expires in %(dl)s days"
+
+msgid "Charge-Nr."
+msgstr "Batch no."
+
+msgid "Standorte"
+msgstr "Locations"
+
+msgid "Hauptlager"
+msgstr "Main warehouse"
+
+msgid "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
+msgstr "Several locations (shop, warehouse, van …)? Create a second location — transfers and the location picker on goods receipt become active."
+
+msgid "z. B. Lager hinten"
+msgstr "e.g. back store room"
+
+msgid "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)"
+msgstr "Transfer (moves the distribution only, not the total stock)"
+
+msgid "von"
+msgstr "from"
+
+msgid "nach"
+msgstr "to"
+
+msgid "Umlagern"
+msgstr "Transfer"
+
+msgid "Nach Standort:"
+msgstr "By location:"
+
+msgid "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Custom names for order statuses (display only, in the dashboard). Empty = default."
+
+msgid "Aktiv beworben bis %(until)s"
+msgstr "Promoted until %(until)s"
+
+msgid "Bisher: %(views)s Aufrufe · %(clicks)s Klicks"
+msgstr "So far: %(views)s views · %(clicks)s clicks"
+
+msgid "Eingegangen"
+msgstr "Received"
+
+msgid "Erwachsene"
+msgstr "Adults"
+
+msgid "Kinder"
+msgstr "Children"
+
+msgid "Aufenthalt"
+msgstr "Stay"
+
+msgid "Tarif"
+msgstr "Rate"
+
+msgid "Buchung bearbeiten"
+msgstr "Edit booking"
+
+msgid "Preis neu berechnen"
+msgstr "Recalculate price"
+
+msgid "unchecked = price is kept"
+msgstr ""
+
+msgid "Betrag & Zahlung"
+msgstr "Amount & payment"
+
+msgid "inkl. Kurtaxe"
+msgstr "incl. tourist tax"
+
+msgid "Gutschein"
+msgstr "Voucher"
+
+msgid "Kein Preis hinterlegt."
+msgstr "No price set."
+
+msgid "Anzahlung"
+msgstr "Deposit"
+
+msgid "bezahlt"
+msgstr "paid"
+
+msgid "ausstehend"
+msgstr "outstanding"
+
+msgid "erstattet"
+msgstr "refunded"
+
+msgid "vor Ort"
+msgstr "on site"
+
+msgid "Meldeschein"
+msgstr "Registration form"
+
+msgid "Online ausgefüllt"
+msgstr "Filled in online"
+
+msgid "Noch nicht ausgefüllt."
+msgstr "Not filled in yet."
+
+msgid "Online-Checkins"
+msgstr "Online check-ins"
+
+msgid "Buchung"
+msgstr "Booking"
+
+msgid "Belegungskalender"
+msgstr "Occupancy calendar"
+
+msgid "Aktivieren (−25 %% bis 3 Nächte)"
+msgstr "Activate (−25 %% up to 3 nights)"
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr "Gap deal: discount %% (0 = as general setting)"
+
+msgid "Occupancy from (%%)"
+msgstr ""
+
+msgid "Price change (%%, e.g. 10 or −15)"
+msgstr ""
+
+msgid "Rabatt %%"
+msgstr "Discount %%"
+
+msgid "Next free appointment: %(d)s at %(t)s"
+msgstr ""
+
+msgid "Next free nights: %(v)s–%(b)s"
+msgstr ""
+
+msgid "Später fertigstellen"
+msgstr "Finish later"
+
+msgid "Sichtbarkeit umschalten"
+msgstr "Toggle visibility"
+
+msgid "Sichtbar"
+msgstr "Visible"
+
+msgid "Versteckt"
+msgstr "Hidden"
+
+msgid "Bearbeiten"
+msgstr "Edit"
+
+msgid "immer"
+msgstr "always"
+
+msgid "Klassische Ansicht ist aktiv."
+msgstr "Classic view is active."
+
+msgid "Neue Startseite wieder einschalten"
+msgstr "Switch the new home page back on"
+
+msgid "Tasks"
+msgstr ""
+
+msgid "Full view"
+msgstr ""
+
+msgid "Reihenfolge"
+msgstr "Order"
+
+msgid "Frage, z. B.: Wofür suchst du?"
+msgstr "Question, e.g.: What are you looking for?"
+
+msgid "Antwort-Chip"
+msgstr "Answer chip"
+
+msgid "Wörter, mit Komma"
+msgstr "Words, comma-separated"
+
+msgid "Treffer in Name/Beschreibung"
+msgstr "Match in name/description"
+
+msgid "Kategorie"
+msgstr "Category"
+
+msgid "Kollektion"
+msgstr "Collection"
+
+msgid "Pausiert"
+msgstr "Paused"
+
+msgid "Klassische Ansicht"
+msgstr "Classic view"
+
+msgid "Currently: Classic"
+msgstr ""
+
+msgid "Currently: New"
+msgstr ""
+
+msgid "Falls dir das neue Design nicht liegt: schalte hier auf die bisherige Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
+msgstr "If the new design isn’t for you, switch back to the previous interface here — reversible at any time, data and features stay the same."
+
+msgid "Klassisch"
+msgstr "Classic"
+
+msgid "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden."
+msgstr "No owner e-mail set — e-mail notifications to you cannot be delivered."
+
+msgid "In den Einstellungen ergänzen"
+msgstr "Add it in the settings"
+
+msgid "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen."
+msgstr "Everything you sell in one place — toggle visibility or open it for editing."
+
+msgid "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen."
+msgstr "Nothing on offer yet — use “＋” above to create your first item."
+
+msgid "Drag to resize · double-click to reset"
+msgstr ""
+
+msgid "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
+msgstr "Enable the gap discount: short gaps between bookings (up to 3 nights) are automatically offered at −25 %%. Adjustable later under “Units”."
+
+msgid "Compact inspector — denser fields, all controls kept"
+msgstr ""
+
+msgid "Compact"
+msgstr ""
+
+msgid "Collapse panel"
+msgstr ""
+
+msgid "Button link"
+msgstr ""
+
+msgid "Eigene Status"
+msgstr "Custom statuses"
+
+msgid "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert."
+msgstr "Create your own intermediate statuses and connect them to existing ones. The role defines the behaviour (capacity, revenue). Built-in statuses stay unchanged."
+
+msgid "Löschen"
+msgstr "Delete"
+
+msgid "Neuer Status (Name)"
+msgstr "New status (name)"
+
+msgid "Übergänge"
+msgstr "Transitions"
+
+msgid "Von welchen Status ist er erreichbar und wohin führt er weiter?"
+msgstr "Which statuses can reach it, and where does it lead next?"
+
+msgid "Erreichbar aus:"
+msgstr "Reachable from:"
+
+msgid "Führt zu:"
+msgstr "Leads to:"
+
+msgid "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge."
+msgstr "Create and save a status first — the transitions will appear here afterwards."
+
+msgid "Branchen"
+msgstr "Industries"
+
+msgid "Jetzt starten"
+msgstr "Get started"
+
+msgid "SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale Betriebe — aus einer Hand, DSGVO-freundlich."
+msgstr "SiteAdaptor: website, bookings, orders and marketing for local businesses — all in one, GDPR-friendly."
+
+msgid "SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, ohne Technik-Stress und ohne Baukasten-Frust."
+msgstr "SiteAdaptor is a platform for local businesses in German-speaking Europe: bakeries, salons, workshops, hotels, restaurants and many more. Our idea is simple — a small business should be online in minutes, without an agency, without technical stress and without website-builder frustration."
+
+msgid "Was wir anders machen"
+msgstr "What we do differently"
+
+msgid "Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und Fotos — fertig."
+msgstr "Instead of an empty website builder you get a ready-made solution for your industry: the right pages, the right features (pre-orders, appointments, room bookings, offers, tickets) and matching examples. You swap texts and photos — done."
+
+msgid "Alles an einem Ort"
+msgstr "Everything in one place"
+
+msgid "Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein Werkzeug. Ohne Provisionen pro Bestellung."
+msgstr "Website, catalogue, bookings and orders, promotions, vouchers and loyalty programmes, reviews and customer messages — one login, one tool. No commission per order."
+
+msgid "Datenschutz von Anfang an"
+msgstr "Privacy from day one"
+
+msgid "Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, kein Add-on."
+msgstr "Hosted in Europe, no tracking cookies on your website, double opt-in for newsletters, guests book without an account. GDPR is our default, not an add-on."
+
+msgid "Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du im Impressum."
+msgstr "Questions, feedback, partnerships? Write to us — you’ll find our contact details in the imprint."
+
+msgid "Jetzt kostenlos starten"
+msgstr "Start for free"
+
+msgid "Branchen ansehen"
+msgstr "Browse industries"
+
+msgid "Lösungen für deine Branche"
+msgstr "Solutions for your industry"
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen."
+msgstr "Website, bookings, orders, promotions and loyalty — tailored to your industry. Try it free for 14 days."
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist."
+msgstr "Website, bookings, orders, promotions and loyalty — matched to your business. Pick your industry and see what’s possible."
+
+msgid "Mehr erfahren"
+msgstr "Learn more"
+
+msgid "Website für %(display_name)s"
+msgstr "Website for %(display_name)s"
+
+msgid "Deine Website & dein Online-Geschäft für %(display_name)s"
+msgstr "Your website & online business for %(display_name)s"
+
+msgid "Besonders für %(display_name)s"
+msgstr "Made for %(display_name)s"
+
+msgid "Alles, was du brauchst — an einem Ort"
+msgstr "Everything you need — in one place"
+
+msgid "Empfohlen für deine Branche. Alles ein- und ausschaltbar."
+msgstr "Recommended for your industry. Everything can be switched on and off."
+
+msgid "Bereit? Deine Website in wenigen Minuten."
+msgstr "Ready? Your website in just a few minutes."
+
+msgid "Andere Branchen ansehen"
+msgstr "See other industries"
+
+msgid "Ändern"
+msgstr "Change"

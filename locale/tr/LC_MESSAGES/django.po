@@ -15976,3 +15976,534 @@ msgstr "Varyant (boş = beden/renkten)"
 
 msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
 msgstr "Moda için: beden ve rengi ayrı girin — etiket bunlardan otomatik oluşur."
+
+msgid "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
+msgstr "İsteğe bağlı (moda/ayakkabı): her beden için bir satır, sütunlar „|“ ile — ilk satır = başlıklar. Örnek: „Beden | Göğüs (cm)“."
+
+msgid "Material / Zusammensetzung"
+msgstr "Malzeme / bileşim"
+
+msgid "Pflegehinweise"
+msgstr "Bakım talimatları"
+
+msgid "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % Elasthan“ — Pflichtangabe bei Kleidung."
+msgstr "Tekstil etiketi: resmî elyaf adları, örn. „%95 pamuk, %5 elastan“ — giyimde zorunlu."
+
+msgid "z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."
+msgstr "örn. „30 °C hassas yıkama, kurutucuya uygun değil“ — isteğe bağlı."
+
+msgid "Please enter a name."
+msgstr "Lütfen bir ad girin."
+
+msgid "Couldn't add it — please try again."
+msgstr "Eklenemedi — lütfen tekrar deneyin."
+
+msgid "Added — edit the details anytime."
+msgstr "Eklendi — ayrıntıları istediğiniz zaman düzenleyebilirsiniz."
+
+msgid "Einkauf"
+msgstr "Satın alma"
+
+msgid "Sichtbar."
+msgstr "Görünür."
+
+msgid "Ausgeblendet."
+msgstr "Gizlendi."
+
+msgid "Umlagerung gebucht: %(n)s Stück."
+msgstr "Transfer kaydedildi: %(n)s adet."
+
+msgid "Umlagerung nicht möglich (Bestand/Standorte prüfen)."
+msgstr "Transfer mümkün değil (stok/konumları kontrol edin)."
+
+msgid "Charge abgeschrieben: %(n)s Stück."
+msgstr "Parti zayi yazıldı: %(n)s adet."
+
+msgid "Charge bereits leer."
+msgstr "Parti zaten boş."
+
+msgid "Bitte einen Namen eingeben."
+msgstr "Lütfen bir ad girin."
+
+msgid "Standort angelegt."
+msgstr "Konum oluşturuldu."
+
+msgid "Wareneingang (Charge) gebucht."
+msgstr "Mal kabulü (parti) kaydedildi."
+
+msgid "Lieferant angelegt."
+msgstr "Tedarikçi oluşturuldu."
+
+msgid "Bestellung angelegt: %(ref)s"
+msgstr "Sipariş oluşturuldu: %(ref)s"
+
+msgid "Keine Vorschläge mit Sollbestand — Bestellung nicht angelegt."
+msgstr "Hedef stoklu öneri yok — sipariş oluşturulmadı."
+
+msgid "Entwurf aus Bestellvorschlägen: %(ref)s"
+msgstr "Sipariş önerilerinden taslak: %(ref)s"
+
+msgid "Bestellung nicht gefunden."
+msgstr "Sipariş bulunamadı."
+
+msgid "Position hinzugefügt."
+msgstr "Kalem eklendi."
+
+msgid "Position entfernt."
+msgstr "Kalem kaldırıldı."
+
+msgid "Status aktualisiert."
+msgstr "Durum güncellendi."
+
+msgid "Position nicht gefunden."
+msgstr "Kalem bulunamadı."
+
+msgid "Wareneingang gebucht: %(n)s Stück."
+msgstr "Mal kabulü kaydedildi: %(n)s adet."
+
+msgid "Nichts zu buchen (Position bereits vollständig)."
+msgstr "Kaydedilecek bir şey yok (kalem zaten tamamlandı)."
+
+msgid "%(n)s signups / 30 days"
+msgstr "%(n)s kayıt / 30 gün"
+
+msgid "per active account / month"
+msgstr "aktif hesap başına / ay"
+
+msgid "%(n)s suspended"
+msgstr "%(n)s askıya alındı"
+
+msgid "Subscriptions"
+msgstr "Abonelikler"
+
+msgid "Usage fees — %(p)s"
+msgstr "Kullanım ücretleri — %(p)s"
+
+msgid "Fees collected"
+msgstr "Tahsil edilen ücretler"
+
+msgid "Churn/LTV are estimates (v1, no historical snapshots yet)."
+msgstr "Churn/LTV tahminidir (v1, henüz geçmiş anlık görüntü yok)."
+
+msgid "The photo is shown on the category tile of your storefront."
+msgstr "Fotoğraf, sitenizin kategori kartında gösterilir."
+
+msgid "Status & Übergänge"
+msgstr "Durumlar ve geçişler"
+
+msgid "einem Gast"
+msgstr "bir misafir"
+
+msgid "Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang bucht Bestand & Ledger."
+msgstr "Tedarikçilere siparişler — taslak, sipariş, mal kabulü. Kabul, stok ve defteri günceller."
+
+msgid "— Lieferant (optional) —"
+msgstr "— Tedarikçi (isteğe bağlı) —"
+
+msgid "Entwurf anlegen"
+msgstr "Taslak oluştur"
+
+msgid "Aus Bestellvorschlägen"
+msgstr "Sipariş önerilerinden"
+
+msgid "Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = Sollbestand − Bestand)."
+msgstr "Sipariş noktasının altındaki tüm ürünlerle bir taslak oluşturur (miktar = hedef − stok)."
+
+msgid "Entwurf erstellen"
+msgstr "Taslak oluştur"
+
+msgid "Als bestellt markieren"
+msgstr "Sipariş edildi olarak işaretle"
+
+msgid "Charge"
+msgstr "Parti"
+
+msgid "MHD"
+msgstr "SKT"
+
+msgid "Standort"
+msgstr "Konum"
+
+msgid "EK übernehmen"
+msgstr "Alış fiyatını uygula"
+
+msgid "Eingang"
+msgstr "Kabul"
+
+msgid "Summe"
+msgstr "Toplam"
+
+msgid "Noch keine Positionen."
+msgstr "Henüz kalem yok."
+
+msgid "EK €"
+msgstr "Alış €"
+
+msgid "Noch keine Bestellungen."
+msgstr "Henüz sipariş yok."
+
+msgid "Lieferanten"
+msgstr "Tedarikçiler"
+
+msgid "inaktiv"
+msgstr "pasif"
+
+msgid "Ansprechpartner"
+msgstr "İlgili kişi"
+
+msgid "Lieferant"
+msgstr "Tedarikçi"
+
+msgid "Chargen & Haltbarkeit (MHD/FEFO)"
+msgstr "Partiler ve raf ömrü (SKT/FEFO)"
+
+msgid "für Lebensmittel"
+msgstr "gıda ürünleri için"
+
+msgid "Haltbarkeit / Chargen"
+msgstr "Raf ömrü / partiler"
+
+msgid "kritisch"
+msgstr "kritik"
+
+msgid "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)."
+msgstr "SKT’li partiler, en erken tarih önce (FEFO). Süresi dolan veya dolmak üzere olan partileri zayi yazın."
+
+msgid "Stk"
+msgstr "adet"
+
+msgid "abgelaufen"
+msgstr "süresi doldu"
+
+msgid "läuft in %(dl)s Tagen ab"
+msgstr "%(dl)s gün içinde doluyor"
+
+msgid "Charge-Nr."
+msgstr "Parti no."
+
+msgid "Standorte"
+msgstr "Konumlar"
+
+msgid "Hauptlager"
+msgstr "Ana depo"
+
+msgid "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
+msgstr "Birden fazla konum (dükkân, depo, araç …)? İkinci bir konum oluşturun — transfer ve mal kabulünde konum seçimi etkinleşir."
+
+msgid "z. B. Lager hinten"
+msgstr "örn. arka depo"
+
+msgid "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)"
+msgstr "Transfer (yalnızca dağılımı değiştirir, toplam stoğu değil)"
+
+msgid "von"
+msgstr "kimden"
+
+msgid "nach"
+msgstr "nereye"
+
+msgid "Umlagern"
+msgstr "Transfer et"
+
+msgid "Nach Standort:"
+msgstr "Konuma göre:"
+
+msgid "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard."
+msgstr "Sipariş durumları için kendi adlarınız (yalnızca panelde gösterim). Boş = varsayılan."
+
+msgid "Aktiv beworben bis %(until)s"
+msgstr "%(until)s tarihine kadar öne çıkarılıyor"
+
+msgid "Bisher: %(views)s Aufrufe · %(clicks)s Klicks"
+msgstr "Şu ana kadar: %(views)s görüntüleme · %(clicks)s tıklama"
+
+msgid "Eingegangen"
+msgstr "Alındı"
+
+msgid "Erwachsene"
+msgstr "Yetişkin"
+
+msgid "Kinder"
+msgstr "Çocuk"
+
+msgid "Aufenthalt"
+msgstr "Konaklama"
+
+msgid "Tarif"
+msgstr "Tarife"
+
+msgid "Buchung bearbeiten"
+msgstr "Rezervasyonu düzenle"
+
+msgid "Preis neu berechnen"
+msgstr "Fiyatı yeniden hesapla"
+
+msgid "unchecked = price is kept"
+msgstr "işaretli değil = fiyat korunur"
+
+msgid "Betrag & Zahlung"
+msgstr "Tutar ve ödeme"
+
+msgid "inkl. Kurtaxe"
+msgstr "konaklama vergisi dâhil"
+
+msgid "Gutschein"
+msgstr "Hediye çeki"
+
+msgid "Kein Preis hinterlegt."
+msgstr "Fiyat girilmemiş."
+
+msgid "Anzahlung"
+msgstr "Ön ödeme"
+
+msgid "bezahlt"
+msgstr "ödendi"
+
+msgid "ausstehend"
+msgstr "bekliyor"
+
+msgid "erstattet"
+msgstr "iade edildi"
+
+msgid "vor Ort"
+msgstr "yerinde"
+
+msgid "Meldeschein"
+msgstr "Konaklama kayıt formu"
+
+msgid "Online ausgefüllt"
+msgstr "Çevrimiçi dolduruldu"
+
+msgid "Noch nicht ausgefüllt."
+msgstr "Henüz doldurulmadı."
+
+msgid "Online-Checkins"
+msgstr "Çevrimiçi check-in’ler"
+
+msgid "Buchung"
+msgstr "Rezervasyon"
+
+msgid "Belegungskalender"
+msgstr "Doluluk takvimi"
+
+msgid "Aktivieren (−25 %% bis 3 Nächte)"
+msgstr "Etkinleştir (3 geceye kadar −%%25)"
+
+msgid "Lücken-Deal: Rabatt %% (0 = wie allgemein)"
+msgstr "Boşluk fırsatı: indirim %% (0 = genel ayar gibi)"
+
+msgid "Occupancy from (%%)"
+msgstr "Doluluk şu orandan (%%)"
+
+msgid "Price change (%%, e.g. 10 or −15)"
+msgstr "Fiyat değişimi (%%, örn. 10 veya −15)"
+
+msgid "Rabatt %%"
+msgstr "İndirim %%"
+
+msgid "Next free appointment: %(d)s at %(t)s"
+msgstr "Bir sonraki uygun randevu: %(d)s saat %(t)s"
+
+msgid "Next free nights: %(v)s–%(b)s"
+msgstr "Bir sonraki uygun geceler: %(v)s–%(b)s"
+
+msgid "Später fertigstellen"
+msgstr "Daha sonra tamamla"
+
+msgid "Sichtbarkeit umschalten"
+msgstr "Görünürlüğü değiştir"
+
+msgid "Sichtbar"
+msgstr "Görünür"
+
+msgid "Versteckt"
+msgstr "Gizli"
+
+msgid "Bearbeiten"
+msgstr "Düzenle"
+
+msgid "immer"
+msgstr "her zaman"
+
+msgid "Klassische Ansicht ist aktiv."
+msgstr "Klasik görünüm etkin."
+
+msgid "Neue Startseite wieder einschalten"
+msgstr "Yeni başlangıç sayfasını tekrar aç"
+
+msgid "Tasks"
+msgstr "Görevler"
+
+msgid "Full view"
+msgstr "Tam görünüm"
+
+msgid "Reihenfolge"
+msgstr "Sıra"
+
+msgid "Frage, z. B.: Wofür suchst du?"
+msgstr "Soru, örn.: Ne arıyorsunuz?"
+
+msgid "Antwort-Chip"
+msgstr "Yanıt etiketi"
+
+msgid "Wörter, mit Komma"
+msgstr "Kelimeler, virgülle"
+
+msgid "Treffer in Name/Beschreibung"
+msgstr "Ad/açıklamada eşleşme"
+
+msgid "Kategorie"
+msgstr "Kategori"
+
+msgid "Kollektion"
+msgstr "Koleksiyon"
+
+msgid "Pausiert"
+msgstr "Duraklatıldı"
+
+msgid "Klassische Ansicht"
+msgstr "Klasik görünüm"
+
+msgid "Currently: Classic"
+msgstr "Şu anda: Klasik"
+
+msgid "Currently: New"
+msgstr "Şu anda: Yeni"
+
+msgid "Falls dir das neue Design nicht liegt: schalte hier auf die bisherige Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
+msgstr "Yeni tasarım size uymuyorsa buradan eski arayüze geçin — istediğiniz zaman geri alınabilir, veriler ve özellikler aynı kalır."
+
+msgid "Klassisch"
+msgstr "Klasik"
+
+msgid "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden."
+msgstr "İşletme sahibi e-postası girilmemiş — size e-posta bildirimi gönderilemez."
+
+msgid "In den Einstellungen ergänzen"
+msgstr "Ayarlarda ekleyin"
+
+msgid "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen."
+msgstr "Sattığınız her şey tek yerde — görünürlüğü değiştirin ya da düzenlemek için açın."
+
+msgid "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen."
+msgstr "Henüz teklif yok — ilkini oluşturmak için yukarıdaki „＋“ düğmesini kullanın."
+
+msgid "Drag to resize · double-click to reset"
+msgstr "Genişliği değiştirmek için sürükleyin · sıfırlamak için çift tıklayın"
+
+msgid "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
+msgstr "Boşluk indirimini etkinleştirin: rezervasyonlar arasındaki kısa boşluklar (3 geceye kadar) otomatik olarak −%%25 ile sunulur. Daha sonra „Units“ altında değiştirilebilir."
+
+msgid "Compact inspector — denser fields, all controls kept"
+msgstr "Kompakt denetleyici — daha sık alanlar, tüm kontroller korunur"
+
+msgid "Compact"
+msgstr "Kompakt"
+
+msgid "Collapse panel"
+msgstr "Paneli daralt"
+
+msgid "Button link"
+msgstr "Düğme bağlantısı"
+
+msgid "Eigene Status"
+msgstr "Özel durumlar"
+
+msgid "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert."
+msgstr "Kendi ara durumlarınızı oluşturup mevcut olanlara bağlayın. Rol, davranışı belirler (kapasite, ciro). Yerleşik durumlar değişmez."
+
+msgid "Löschen"
+msgstr "Sil"
+
+msgid "Neuer Status (Name)"
+msgstr "Yeni durum (ad)"
+
+msgid "Übergänge"
+msgstr "Geçişler"
+
+msgid "Von welchen Status ist er erreichbar und wohin führt er weiter?"
+msgstr "Hangi durumlardan erişilebilir ve nereye götürür?"
+
+msgid "Erreichbar aus:"
+msgstr "Şuradan erişilebilir:"
+
+msgid "Führt zu:"
+msgstr "Şuraya götürür:"
+
+msgid "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge."
+msgstr "Önce bir durum oluşturup kaydedin — geçişler daha sonra burada görünür."
+
+msgid "Branchen"
+msgstr "Sektörler"
+
+msgid "Jetzt starten"
+msgstr "Hemen başla"
+
+msgid "SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale Betriebe — aus einer Hand, DSGVO-freundlich."
+msgstr "SiteAdaptor: yerel işletmeler için web sitesi, rezervasyon, sipariş ve pazarlama — tek elden, KVKK/GDPR dostu."
+
+msgid "SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, ohne Technik-Stress und ohne Baukasten-Frust."
+msgstr "SiteAdaptor, Almanca konuşulan Avrupa’daki yerel işletmeler için bir platformdur: fırınlar, kuaförler, atölyeler, oteller, restoranlar ve daha fazlası. Fikrimiz basit — küçük bir işletme dakikalar içinde çevrimiçi olmalı; ajans olmadan, teknik stres olmadan ve site kurucu çilesi olmadan."
+
+msgid "Was wir anders machen"
+msgstr "Neyi farklı yapıyoruz"
+
+msgid "Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und Fotos — fertig."
+msgstr "Boş bir site kurucu yerine sektörünüze hazır bir çözüm alırsınız: uygun sayfalar, uygun özellikler (ön sipariş, randevu, oda rezervasyonu, teklifler, biletler) ve uygun örnekler. Metin ve fotoğrafları değiştirirsiniz — bu kadar."
+
+msgid "Alles an einem Ort"
+msgstr "Her şey tek yerde"
+
+msgid "Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein Werkzeug. Ohne Provisionen pro Bestellung."
+msgstr "Web sitesi, katalog, rezervasyon ve siparişler, kampanyalar, hediye çekleri ve sadakat programları, değerlendirmeler ve müşteri mesajları — tek giriş, tek araç. Sipariş başına komisyon yok."
+
+msgid "Datenschutz von Anfang an"
+msgstr "İlk günden veri koruma"
+
+msgid "Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, kein Add-on."
+msgstr "Avrupa’da barındırılır, sitenizde takip çerezi yok, bültenler için çift onay, misafirler hesapsız rezervasyon yapar. GDPR bizde varsayılan, eklenti değil."
+
+msgid "Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du im Impressum."
+msgstr "Soru, geri bildirim, iş birliği? Bize yazın — iletişim bilgileri künyede."
+
+msgid "Jetzt kostenlos starten"
+msgstr "Ücretsiz başla"
+
+msgid "Branchen ansehen"
+msgstr "Sektörlere göz at"
+
+msgid "Lösungen für deine Branche"
+msgstr "Sektörünüz için çözümler"
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen."
+msgstr "Web sitesi, rezervasyon, sipariş, kampanya ve sadakat — sektörünüze uygun. 14 gün ücretsiz deneyin."
+
+msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist."
+msgstr "Web sitesi, rezervasyon, sipariş, kampanya ve sadakat — işinize göre. Sektörünüzü seçin ve nelerin mümkün olduğunu görün."
+
+msgid "Mehr erfahren"
+msgstr "Daha fazla bilgi"
+
+msgid "Website für %(display_name)s"
+msgstr "%(display_name)s için web sitesi"
+
+msgid "Deine Website & dein Online-Geschäft für %(display_name)s"
+msgstr "%(display_name)s için web siteniz ve çevrimiçi işiniz"
+
+msgid "Besonders für %(display_name)s"
+msgstr "Özellikle %(display_name)s için"
+
+msgid "Alles, was du brauchst — an einem Ort"
+msgstr "İhtiyacınız olan her şey — tek yerde"
+
+msgid "Empfohlen für deine Branche. Alles ein- und ausschaltbar."
+msgstr "Sektörünüz için önerilir. Her şey açılıp kapatılabilir."
+
+msgid "Bereit? Deine Website in wenigen Minuten."
+msgstr "Hazır mısınız? Web siteniz birkaç dakikada."
+
+msgid "Andere Branchen ansehen"
+msgstr "Diğer sektörlere bakın"
+
+msgid "Ändern"
+msgstr "Değiştir"
