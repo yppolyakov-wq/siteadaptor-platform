@@ -768,7 +768,7 @@ def reservation_create(request, pk):
     # rate-limit по IP+акции (атомарный, см. apps.core.ratelimit)
     rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
     if ratelimit.hit("resv", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
-        messages.error(request, "Zu viele Versuche. Bitte später erneut.")
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
         return render(request, "storefront/promotion_detail.html", ctx)
 
     # идемпотентность: токен «занимаем» на время попытки, на успехе оставляем,
@@ -791,12 +791,12 @@ def reservation_create(request, pk):
     except OutOfStock:
         if token_key:
             cache.delete(token_key)
-        messages.error(request, "Leider ausverkauft.")
+        messages.error(request, _("Leider ausverkauft."))
         return render(request, "storefront/promotion_detail.html", ctx)
     except ReservationLimitReached:
         if token_key:
             cache.delete(token_key)
-        messages.error(request, "Limit pro Kunde erreicht.")
+        messages.error(request, _("Limit pro Kunde erreicht."))
         return render(request, "storefront/promotion_detail.html", ctx)
 
     return redirect("storefront-confirmation", code=res.reference_code)
@@ -809,7 +809,7 @@ def waitlist_join(request, pk):
         return redirect("storefront-promotion", pk=pk)
     rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
     if ratelimit.hit("waitlist", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
-        messages.error(request, "Zu viele Versuche. Bitte später erneut.")
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
         return redirect("storefront-promotion", pk=pk)
     form = WaitlistForm(request.POST)
     if form.is_valid():
@@ -818,9 +818,9 @@ def waitlist_join(request, pk):
             email=form.cleaned_data["email"].lower(),
             defaults={"name": form.cleaned_data.get("name", "")},
         )
-        messages.success(request, "Wir benachrichtigen Sie, sobald wieder verfügbar.")
+        messages.success(request, _("Wir benachrichtigen Sie, sobald wieder verfügbar."))
     else:
-        messages.error(request, "Bitte eine gültige E-Mail angeben.")
+        messages.error(request, _("Bitte eine gültige E-Mail angeben."))
     return redirect("storefront-promotion", pk=pk)
 
 

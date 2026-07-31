@@ -8,7 +8,7 @@
 
 {% if status == 'connected' %}
   <div class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm">
-    Stripe verbunden — Sie können jetzt Zahlungen Ihrer Kunden annehmen.
+    {% trans "Stripe verbunden — Sie können jetzt Zahlungen Ihrer Kunden annehmen." %}
   </div>
 {% endif %}
 {% if messages %}
@@ -19,8 +19,7 @@
 
 <div class="bg-white border border-gray-200 rounded-2xl p-5 max-w-xl">
   <p class="text-sm text-gray-700">
-    Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an
-    (z. B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht direkt an Sie.
+    {% trans "Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z. B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht direkt an Sie." %}
   </p>
 
   {% if not connect_configured %}

@@ -19,7 +19,7 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="winback">
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold">Auto Win-back</h2>
+      <h2 class="font-semibold">{% trans "Auto Win-back" %}</h2>
       <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" name="enabled" value="1" {% if winback and winback.status == 'active' %}checked{% endif %} class="rounded border-gray-300">
         {% trans "Enabled" %}
@@ -52,7 +52,7 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="birthday">
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold">🎂 Geburtstagsgruß</h2>
+      <h2 class="font-semibold">🎂 {% trans "Geburtstagsgruß" %}</h2>
       <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" name="enabled" value="1" {% if birthday and birthday.status == 'active' %}checked{% endif %} class="rounded border-gray-300">
         {% trans "Enabled" %}

@@ -14909,3 +14909,113 @@ msgstr "İki sütun"
 #. I18N-2 builder 2026-07-30
 msgid "Überraschungstüte"
 msgstr "Sürpriz paket"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "(UWG-konforme Kennzeichnung)."
+msgstr "(rekabet hukukuna uygun etiketleme)."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Aktiv beworben bis {{ until }}"
+msgstr "{{ until }} tarihine kadar aktif tanıtım"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Aktivieren Sie die Aktion zuerst."
+msgstr "Önce kampanyayı etkinleştirin."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Anzeige"
+msgstr "Reklam"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Bisher: {{ views }} Aufrufe · {{ clicks }} Klicks"
+msgstr "Şu ana kadar: {{ views }} görüntüleme · {{ clicks }} tıklama"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Ein weiterer Kauf verlängert die Laufzeit."
+msgstr "Yeni bir satın alma süreyi uzatır."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Einmalzahlung über Stripe. Keine Abo-Bindung."
+msgstr "Stripe ile tek seferlik ödeme. Abonelik yok."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Geburtstagsgruß"
+msgstr "Doğum günü mesajı"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Mit einer Empfehlung steht Ihr Eintrag im Stadt-Verzeichnis ganz oben — mit "
+"dem Hinweis"
+msgstr ""
+"Öne çıkarma ile kaydınız şehir rehberinin en üstünde görünür — şu etiketle"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Mit einer Empfehlung steht Ihre Aktion im Stadt-Verzeichnis ganz oben — mit "
+"dem Hinweis"
+msgstr ""
+"Öne çıkarma ile kampanyanız şehir rehberinin en üstünde görünür — şu "
+"etiketle"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z."
+" B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht "
+"direkt an Sie."
+msgstr ""
+"Müşterilerinizden ödemeleri doğrudan kendi Stripe hesabınıza alın (ör. "
+"rezervasyon kaporası, teslim alma için ön ödeme). Para doğrudan size gelir."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Nur aktive Aktionen erscheinen im Verzeichnis und können beworben werden."
+msgstr "Yalnızca aktif kampanyalar rehberde görünür ve öne çıkarılabilir."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Stripe verbunden — Sie können jetzt Zahlungen Ihrer Kunden annehmen."
+msgstr "Stripe bağlandı — artık müşteri ödemelerini kabul edebilirsiniz."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Untypisch für deinen Geschäftstyp"
+msgstr "İşletme türünüz için alışılmadık"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Zahlung eingegangen — Ihr Eintrag wird gleich oben im Verzeichnis "
+"hervorgehoben."
+msgstr "Ödeme alındı — kaydınız birazdan rehberin en üstünde öne çıkarılacak."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Zahlung eingegangen — Ihre Aktion wird gleich oben im Verzeichnis "
+"hervorgehoben."
+msgstr ""
+"Ödeme alındı — kampanyanız birazdan rehberin en üstünde öne çıkarılacak."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Zahlungen sind noch nicht eingerichtet. Bitte später erneut versuchen."
+msgstr "Ödemeler henüz ayarlanmadı. Lütfen daha sonra tekrar deneyin."
+
+#. I18N-5 messages 2026-07-30
+msgid "Leider ausverkauft."
+msgstr "Maalesef tükendi."
+
+#. I18N-5 messages 2026-07-30
+msgid "Limit pro Kunde erreicht."
+msgstr "Müşteri başına limit doldu."
+
+#. I18N-5 messages 2026-07-30
+msgid "Code nicht gefunden."
+msgstr "Kod bulunamadı."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher deaktiviert."
+msgstr "Kupon devre dışı."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher abgelaufen."
+msgstr "Kuponun süresi doldu."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher bereits eingelöst."
+msgstr "Kupon zaten kullanıldı."

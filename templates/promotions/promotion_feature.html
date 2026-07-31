@@ -10,7 +10,7 @@
 
   {% if checkout_status == 'success' %}
     <div class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm">
-      Zahlung eingegangen — Ihre Aktion wird gleich oben im Verzeichnis hervorgehoben.
+      {% trans "Zahlung eingegangen — Ihre Aktion wird gleich oben im Verzeichnis hervorgehoben." %}
     </div>
   {% elif checkout_status == 'cancel' %}
     <div class="mb-4 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 text-sm">
@@ -26,31 +26,31 @@
 
   <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4">
     <p class="text-sm text-gray-700">
-      Mit einer Empfehlung steht Ihre Aktion im Stadt-Verzeichnis ganz oben — mit dem Hinweis
-      <span class="whitespace-nowrap font-medium text-amber-700">★ Anzeige</span> (UWG-konforme Kennzeichnung).
+      {% trans "Mit einer Empfehlung steht Ihre Aktion im Stadt-Verzeichnis ganz oben — mit dem Hinweis" %}
+      <span class="whitespace-nowrap font-medium text-amber-700">★ {% trans "Anzeige" %}</span> {% trans "(UWG-konforme Kennzeichnung)." %}
     </p>
     {% if listing and listing.is_featured_now %}
       <p class="mt-3 text-sm font-medium text-amber-700">
-        ★ Aktiv beworben bis {{ listing.featured_until|date:"d.m.Y H:i" }}
+        ★ {% blocktrans with until=listing.featured_until|date:"d.m.Y H:i" %}Aktiv beworben bis {{ until }}{% endblocktrans %}
       </p>
-      <p class="text-xs text-gray-500">Ein weiterer Kauf verlängert die Laufzeit.</p>
+      <p class="text-xs text-gray-500">{% trans "Ein weiterer Kauf verlängert die Laufzeit." %}</p>
     {% endif %}
     {# D2.3: эффект продвижения — суммарно по всем оплаченным окнам #}
     {% if listing and listing.featured_impressions %}
       <p class="mt-2 text-xs text-gray-500">
-        Bisher: {{ listing.featured_impressions }} Aufrufe · {{ listing.featured_clicks }} Klicks
+        {% blocktrans with views=listing.featured_impressions clicks=listing.featured_clicks %}Bisher: {{ views }} Aufrufe · {{ clicks }} Klicks{% endblocktrans %}
       </p>
     {% endif %}
   </div>
 
   {% if not is_listed %}
     <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-      Nur aktive Aktionen erscheinen im Verzeichnis und können beworben werden.
-      Aktivieren Sie die Aktion zuerst.
+      {% trans "Nur aktive Aktionen erscheinen im Verzeichnis und können beworben werden." %}
+      {% trans "Aktivieren Sie die Aktion zuerst." %}
     </div>
   {% elif not featured_enabled %}
     <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-      Zahlungen sind noch nicht eingerichtet. Bitte später erneut versuchen.
+      {% trans "Zahlungen sind noch nicht eingerichtet. Bitte später erneut versuchen." %}
     </div>
   {% else %}
     <div class="grid gap-3 sm:grid-cols-3">
@@ -68,7 +68,7 @@
         </form>
       {% endfor %}
     </div>
-    <p class="text-xs text-gray-500 mt-3">Einmalzahlung über Stripe. Keine Abo-Bindung.</p>
+    <p class="text-xs text-gray-500 mt-3">{% trans "Einmalzahlung über Stripe. Keine Abo-Bindung." %}</p>
   {% endif %}
 </div>
 {% endblock %}

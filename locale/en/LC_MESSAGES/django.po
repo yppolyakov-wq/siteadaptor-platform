@@ -14797,3 +14797,118 @@ msgstr "Two columns"
 #. I18N-2 builder 2026-07-30
 msgid "Überraschungstüte"
 msgstr "Surprise bag"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "(UWG-konforme Kennzeichnung)."
+msgstr "(labelling compliant with German competition law)."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Aktiv beworben bis {{ until }}"
+msgstr "Actively promoted until {{ until }}"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Aktivieren Sie die Aktion zuerst."
+msgstr "Activate the promotion first."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Anzeige"
+msgstr "Ad"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Bisher: {{ views }} Aufrufe · {{ clicks }} Klicks"
+msgstr "So far: {{ views }} views · {{ clicks }} clicks"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Ein weiterer Kauf verlängert die Laufzeit."
+msgstr "Another purchase extends the run time."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Einmalzahlung über Stripe. Keine Abo-Bindung."
+msgstr "One-off payment via Stripe. No subscription."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Geburtstagsgruß"
+msgstr "Birthday greeting"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Mit einer Empfehlung steht Ihr Eintrag im Stadt-Verzeichnis ganz oben — mit "
+"dem Hinweis"
+msgstr ""
+"With a promotion your listing appears at the top of the city directory — "
+"labelled"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Mit einer Empfehlung steht Ihre Aktion im Stadt-Verzeichnis ganz oben — mit "
+"dem Hinweis"
+msgstr ""
+"With a promotion your offer appears at the top of the city directory — "
+"labelled"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z."
+" B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht "
+"direkt an Sie."
+msgstr ""
+"Accept payments from your customers straight into your own Stripe account "
+"(e.g. deposit for reservations, prepayment for pickup). The money goes "
+"directly to you."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Nur aktive Aktionen erscheinen im Verzeichnis und können beworben werden."
+msgstr "Only active promotions appear in the directory and can be promoted."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Stripe verbunden — Sie können jetzt Zahlungen Ihrer Kunden annehmen."
+msgstr "Stripe connected — you can now accept customer payments."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Untypisch für deinen Geschäftstyp"
+msgstr "Unusual for your business type"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Zahlung eingegangen — Ihr Eintrag wird gleich oben im Verzeichnis "
+"hervorgehoben."
+msgstr ""
+"Payment received — your listing will be highlighted at the top of the "
+"directory shortly."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Zahlung eingegangen — Ihre Aktion wird gleich oben im Verzeichnis "
+"hervorgehoben."
+msgstr ""
+"Payment received — your promotion will be highlighted at the top of the "
+"directory shortly."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Zahlungen sind noch nicht eingerichtet. Bitte später erneut versuchen."
+msgstr "Payments are not set up yet. Please try again later."
+
+#. I18N-5 messages 2026-07-30
+msgid "Leider ausverkauft."
+msgstr "Sold out, sorry."
+
+#. I18N-5 messages 2026-07-30
+msgid "Limit pro Kunde erreicht."
+msgstr "Limit per customer reached."
+
+#. I18N-5 messages 2026-07-30
+msgid "Code nicht gefunden."
+msgstr "Code not found."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher deaktiviert."
+msgstr "Voucher deactivated."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher abgelaufen."
+msgstr "Voucher expired."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher bereits eingelöst."
+msgstr "Voucher already redeemed."

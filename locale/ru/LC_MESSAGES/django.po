@@ -14977,3 +14977,113 @@ msgstr "Две колонки"
 #. I18N-2 builder 2026-07-30
 msgid "Überraschungstüte"
 msgstr "Сюрприз-пакет"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "(UWG-konforme Kennzeichnung)."
+msgstr "(маркировка по требованиям закона о конкуренции)."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Aktiv beworben bis {{ until }}"
+msgstr "Активно продвигается до {{ until }}"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Aktivieren Sie die Aktion zuerst."
+msgstr "Сначала активируйте акцию."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Anzeige"
+msgstr "Реклама"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Bisher: {{ views }} Aufrufe · {{ clicks }} Klicks"
+msgstr "Пока что: {{ views }} показов · {{ clicks }} кликов"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Ein weiterer Kauf verlängert die Laufzeit."
+msgstr "Повторная покупка продлевает срок."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Einmalzahlung über Stripe. Keine Abo-Bindung."
+msgstr "Разовый платёж через Stripe. Без подписки."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Geburtstagsgruß"
+msgstr "Поздравление с днём рождения"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Mit einer Empfehlung steht Ihr Eintrag im Stadt-Verzeichnis ganz oben — mit "
+"dem Hinweis"
+msgstr ""
+"С продвижением ваша запись показывается вверху городского каталога — с "
+"пометкой"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Mit einer Empfehlung steht Ihre Aktion im Stadt-Verzeichnis ganz oben — mit "
+"dem Hinweis"
+msgstr ""
+"С продвижением ваша акция показывается вверху городского каталога — с "
+"пометкой"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z."
+" B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht "
+"direkt an Sie."
+msgstr ""
+"Принимайте оплату клиентов прямо на свой счёт Stripe (например, задаток за "
+"бронь, предоплата при самовывозе). Деньги идут напрямую вам."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Nur aktive Aktionen erscheinen im Verzeichnis und können beworben werden."
+msgstr "В каталоге показываются и продвигаются только активные акции."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Stripe verbunden — Sie können jetzt Zahlungen Ihrer Kunden annehmen."
+msgstr "Stripe подключён — теперь вы можете принимать оплату клиентов."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Untypisch für deinen Geschäftstyp"
+msgstr "Нетипично для вашего типа бизнеса"
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Zahlung eingegangen — Ihr Eintrag wird gleich oben im Verzeichnis "
+"hervorgehoben."
+msgstr "Оплата получена — ваша запись скоро появится вверху каталога."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid ""
+"Zahlung eingegangen — Ihre Aktion wird gleich oben im Verzeichnis "
+"hervorgehoben."
+msgstr "Оплата получена — ваша акция скоро появится вверху каталога."
+
+#. I18N-3 cabinet templates 2026-07-30
+msgid "Zahlungen sind noch nicht eingerichtet. Bitte später erneut versuchen."
+msgstr "Приём оплаты ещё не настроен. Попробуйте позже."
+
+#. I18N-5 messages 2026-07-30
+msgid "Leider ausverkauft."
+msgstr "К сожалению, распродано."
+
+#. I18N-5 messages 2026-07-30
+msgid "Limit pro Kunde erreicht."
+msgstr "Достигнут лимит на клиента."
+
+#. I18N-5 messages 2026-07-30
+msgid "Code nicht gefunden."
+msgstr "Код не найден."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher deaktiviert."
+msgstr "Ваучер отключён."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher abgelaufen."
+msgstr "Срок ваучера истёк."
+
+#. I18N-5 messages 2026-07-30
+msgid "Voucher bereits eingelöst."
+msgstr "Ваучер уже использован."

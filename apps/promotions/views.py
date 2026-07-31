@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.views.decorators.http import require_POST
 
 from apps.catalog.images import delete_stored_image, save_product_image
@@ -633,11 +634,13 @@ def redeem_action(request, code):
 # Ваучеры / промокоды
 # ---------------------------------------------------------------------------
 
+# Модульный словарь → gettext_LAZY: обычный gettext вычислился бы один раз при
+# импорте и заморозил язык первого запроса.
 _VOUCHER_ERRORS = {
-    "not_found": "Code nicht gefunden.",
-    "inactive": "Voucher deaktiviert.",
-    "expired": "Voucher abgelaufen.",
-    "used_up": "Voucher bereits eingelöst.",
+    "not_found": _lazy("Code nicht gefunden."),
+    "inactive": _lazy("Voucher deaktiviert."),
+    "expired": _lazy("Voucher abgelaufen."),
+    "used_up": _lazy("Voucher bereits eingelöst."),
 }
 
 

@@ -9,6 +9,7 @@
 from django.contrib import messages
 from django.db import connection
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 
 
 def _listing(kind: str, source_ref: str):
@@ -77,7 +78,7 @@ def start_feature_checkout(
     days_raw = request.POST.get("days", "")
     plan = billing_featured.get_plan(int(days_raw)) if days_raw.isdigit() else None
     if not billing_featured.is_enabled() or plan is None:
-        messages.error(request, "Empfehlung ist derzeit nicht verfügbar.")
+        messages.error(request, _("Empfehlung ist derzeit nicht verfügbar."))
         return redirect(feature_page_url)
     if not listable:
         messages.error(request, not_listable_msg)
