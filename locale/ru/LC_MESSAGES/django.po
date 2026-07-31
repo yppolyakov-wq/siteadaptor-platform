@@ -16736,3 +16736,27 @@ msgstr "Можно записаться"
 #: templates/booking/availability.html
 msgid "No opening hours"
 msgstr "Часы работы не заданы"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price saved."
+msgstr "Сезонная цена сохранена."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price removed."
+msgstr "Сезонная цена удалена."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Prices for date ranges"
+msgstr "Цены на периоды дат"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "From"
+msgstr "С"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "To"
+msgstr "По"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "High season"
+msgstr "Высокий сезон"

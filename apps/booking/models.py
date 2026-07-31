@@ -402,3 +402,30 @@ class Booking(TimestampedModel):
     @property
     def total_eur(self) -> float:
         return self.total_cents / 100
+
+
+class ServiceSeasonRate(TimestampedModel):
+    """HF-5 (фидбэк владельца 2026-07-31, п. 2): цена услуги на диапазон дат.
+
+    Зеркало `stays.SeasonRate`: у номеров сезонные цены были, у услуг — нет, хотя
+    сезонность у мастера ровно та же (праздники, высокий сезон, акционная неделя).
+    Перебивает базовую цену услуги на [start_date, end_date] включительно. Окна
+    пересекаться не должны (гард в кабинете); при пересечении берётся первое по
+    дате начала — как у номеров.
+    """
+
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="season_rates")
+    label = models.CharField(max_length=120, blank=True)  # «Feiertage», «Hochsaison»
+    start_date = models.DateField()
+    end_date = models.DateField()  # включительно
+    price_cents = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["start_date"]
+
+    def __str__(self):
+        return f"{self.service}: {self.start_date}–{self.end_date}"
+
+    @property
+    def price_eur(self) -> float:
+        return self.price_cents / 100

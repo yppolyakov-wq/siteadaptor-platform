@@ -84,6 +84,36 @@
         <button name="action" value="toggle" class="text-xs text-gray-500 hover:underline">{% if s.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</button>
       </div>
     </form>
+
+    {% comment %}HF-5 (фидбэк владельца 2026-07-31, п. 2): цена услуги на диапазон дат —
+    зеркало сезонных тарифов номера. Перебивает базовую цену на эти дни; считается
+    одним резолвером и на витрине, и при приёме брони.{% endcomment %}
+    <details class="border-t border-gray-100 mt-3 pt-3 text-sm">
+      <summary class="cursor-pointer text-gray-600 hover:text-gray-900">💶 {% trans "Prices for date ranges" %}{% if s.seasons %} <span class="text-xs text-gray-400">· {{ s.seasons|length }}</span>{% endif %}</summary>
+      {% for r in s.seasons %}
+        <form method="post" class="flex items-center justify-between gap-2 border-t border-gray-100 py-1.5">
+          {% csrf_token %}
+          <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }}{% if r.label %} · {{ r.label }}{% endif %}
+            <span class="font-medium">{{ r.price_eur|stringformat:".2f" }} €</span></span>
+          <input type="hidden" name="season" value="{{ r.pk }}">
+          <button name="action" value="season_delete" class="text-xs text-gray-400 hover:text-red-600">{% trans "Delete" %}</button>
+        </form>
+      {% endfor %}
+      <form method="post" class="flex flex-wrap items-end gap-2 mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="service" value="{{ s.pk }}">
+        <input type="hidden" name="action" value="season_add">
+        <div><label class="block text-xs text-gray-500 mb-1">{% trans "From" %}</label>
+          <input name="start_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+        <div><label class="block text-xs text-gray-500 mb-1">{% trans "To" %}</label>
+          <input name="end_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+        <div><label class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</label>
+          <input name="price_eur" type="text" inputmode="decimal" placeholder="59" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+        <div class="flex-1 min-w-[8rem]"><label class="block text-xs text-gray-500 mb-1">{% trans "Label (optional)" %}</label>
+          <input name="label" type="text" placeholder="{% trans 'High season' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Add" %}</button>
+      </form>
+    </details>
   {% empty %}
     <p class="text-gray-500">{% trans "No services yet." %}</p>
   {% endfor %}

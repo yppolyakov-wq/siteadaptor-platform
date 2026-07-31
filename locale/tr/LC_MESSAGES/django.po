@@ -16658,3 +16658,27 @@ msgstr "Rezerve edilebilir"
 #: templates/booking/availability.html
 msgid "No opening hours"
 msgstr "Çalışma saati yok"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price saved."
+msgstr "Sezon fiyatı kaydedildi."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price removed."
+msgstr "Sezon fiyatı kaldırıldı."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Prices for date ranges"
+msgstr "Tarih aralıkları için fiyatlar"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "From"
+msgstr "Başlangıç"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "To"
+msgstr "Bitiş"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "High season"
+msgstr "Yüksek sezon"

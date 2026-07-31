@@ -16546,3 +16546,27 @@ msgstr "No opening hours"
 #: templates/booking/availability.html
 msgid "Opening hours & resources"
 msgstr "Opening hours & resources"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price saved."
+msgstr "Seasonal price saved."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price removed."
+msgstr "Seasonal price removed."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Prices for date ranges"
+msgstr "Prices for date ranges"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "From"
+msgstr "From"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "To"
+msgstr "To"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "High season"
+msgstr "High season"

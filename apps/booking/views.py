@@ -23,7 +23,7 @@ from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
 from . import services
-from .models import AvailabilityRule, Booking, ClosedDate, Resource
+from .models import AvailabilityRule, Booking, ClosedDate, Resource, ServiceSeasonRate
 from .state_machine import BookingSM
 
 
@@ -439,6 +439,24 @@ def services_view(request, pk=None):
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             service.is_active = not service.is_active
             service.save(update_fields=["is_active", "updated_at"])
+        elif action == "season_add":  # HF-5: цена услуги на диапазон дат
+            service = get_object_or_404(Service, pk=request.POST.get("service"))
+            start = _parse_day_or_none(request.POST.get("start_date"))
+            end = _parse_day_or_none(request.POST.get("end_date"))
+            if start is None or end is None or end < start:
+                messages.error(request, _("Invalid date."))
+            else:
+                ServiceSeasonRate.objects.create(
+                    service=service,
+                    label=request.POST.get("label", "").strip()[:120],
+                    start_date=start,
+                    end_date=end,
+                    price_cents=_eur_to_cents(request.POST.get("price_eur")),
+                )
+                messages.success(request, _("Seasonal price saved."))
+        elif action == "season_delete":
+            ServiceSeasonRate.objects.filter(pk=request.POST.get("season")).delete()
+            messages.success(request, _("Seasonal price removed."))
         if pk:
             return redirect("booking:service-edit", pk=pk)
         return redirect("booking:services")
@@ -451,6 +469,7 @@ def services_view(request, pk=None):
         services = list(Service.objects.order_by("-is_active", "name"))
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
         svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))
+        svc.seasons = list(svc.season_rates.all())  # HF-5: цены на диапазоны дат
     return render(
         request,
         "booking/services.html",

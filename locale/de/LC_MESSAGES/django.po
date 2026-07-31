@@ -16695,3 +16695,27 @@ msgstr "Buchbar"
 #: templates/booking/availability.html
 msgid "No opening hours"
 msgstr "Keine Öffnungszeiten"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price saved."
+msgstr "Saisonpreis gespeichert."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Seasonal price removed."
+msgstr "Saisonpreis entfernt."
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "Prices for date ranges"
+msgstr "Preise für Zeiträume"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "From"
+msgstr "Von"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "To"
+msgstr "Bis"
+
+#: apps/booking/views.py templates/booking/services.html
+msgid "High season"
+msgstr "Hochsaison"

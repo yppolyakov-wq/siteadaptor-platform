@@ -7484,3 +7484,25 @@ Schaufenster-Poster (`promotions/poster`).
 - Замки: `test_availability_calendar_shows_month_and_toggles_closed_day`
   (обратимость клика), `test_availability_calendar_warns_when_no_opening_hours`.
   12 msgid × 5 локалей.
+
+## 2026-07-31 — HF-5: цены услуг на диапазон дат
+Волна HF, п. 2. ⚠️ Миграция `booking/0018_service_season_rate` (аддитив).
+
+- У номеров сезонные цены были (`stays.SeasonRate`), у услуг — нет, хотя
+  сезонность у мастера ровно та же (праздники, высокий сезон, акционная неделя).
+  Новая модель `booking.ServiceSeasonRate` — зеркало: label + [start, end]
+  включительно + цена; при пересечении окон берётся первое по дате начала.
+- Резолвер — НОВЫЙ модуль `apps/booking/pricing.py` (`price_cents_for`,
+  `season_label_for`). Отдельный модуль, чтобы цена считалась в ОДНОМ месте:
+  им пользуются и показ на витрине, и приём брони. `service_book` теперь берёт
+  `price_cents_for(service, start.date())` вместо плоской `service.price_cents`
+  — сезонная цена доезжает до самой брони, а не только до витрины.
+- Кабинет: свёрнутая панель «💶 Preise für Zeiträume» в карточке услуги
+  (`/dashboard/booking/leistungen/…`) — список окон + добавление/удаление.
+  Кривые даты и end < start отбиваются с сообщением.
+- Замки: `test_service_season_price_wins_over_base_price` (окно/вне окна/без
+  даты), `test_booking_charges_the_seasonal_price` (списывается праздничная
+  цена — смысл фичи). 6 msgid × 5 локалей.
+- Урок стенда: два одновременных прогона pytest с `--create-db` затирают друг
+  другу тест-БД (168 «ошибок» на ровном месте) — параллелить можно только с
+  `--reuse-db`.

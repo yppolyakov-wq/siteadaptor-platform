@@ -588,3 +588,53 @@ def test_availability_calendar_warns_when_no_opening_hours(settings):
     request.user = _staff_user()
     body = views.availability_calendar(request).content.decode()
     assert "No opening hours yet" in body or "Öffnungszeiten" in body
+
+
+def test_service_season_price_wins_over_base_price():
+    """HF-5 (#2): цена услуги на диапазон дат перебивает базовую.
+
+    Зеркало сезонных тарифов номера — у услуг такой возможности не было вовсе."""
+    from datetime import date as _date
+
+    from apps.booking import pricing
+    from apps.booking.models import ServiceSeasonRate
+
+    svc = _service(price_cents=4900)
+    ServiceSeasonRate.objects.create(
+        service=svc,
+        label="Feiertage",
+        start_date=_date(2026, 12, 24),
+        end_date=_date(2026, 12, 26),
+        price_cents=6900,
+    )
+    assert pricing.price_cents_for(svc, _date(2026, 12, 25)) == 6900
+    assert pricing.season_label_for(svc, _date(2026, 12, 25)) == "Feiertage"
+    assert pricing.price_cents_for(svc, _date(2026, 12, 27)) == 4900  # вне окна — базовая
+    assert pricing.price_cents_for(svc, None) == 4900  # без даты — базовая
+
+
+def test_booking_charges_the_seasonal_price(settings):
+    """HF-5: сезонная цена доезжает до БРОНИ, а не только до показа.
+
+    Это и есть смысл фичи: в праздники списывается праздничная цена."""
+    from apps.booking.models import ServiceSeasonRate
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+    svc = _service(price_cents=4900)
+    ServiceSeasonRate.objects.create(service=svc, start_date=day, end_date=day, price_cents=7900)
+    starts = availability.service_slots(svc, day)
+    assert starts, "нужен свободный старт для брони"
+    request = RequestFactory().post(
+        f"/termin/leistung/{svc.pk}/buchen/",
+        {"start": starts[0].isoformat(), "name": "Gast", "email": "g@test.de"},
+        REMOTE_ADDR=f"10.9.{day.day}.{day.month}",  # свой IP: rate-limit не мешает
+    )
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    public_views.service_book(request, pk=svc.pk)
+    booking = Booking.objects.filter(service=svc).order_by("-created_at").first()
+    assert booking is not None and booking.price_cents == 7900

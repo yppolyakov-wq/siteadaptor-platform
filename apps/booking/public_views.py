@@ -21,7 +21,7 @@ from apps.billing import connect
 from apps.core import ratelimit
 from apps.core.fsm import IllegalTransition
 
-from . import availability, payments, services
+from . import availability, payments, pricing, services
 from .models import Booking, Pass, Resource, Service
 from .state_machine import BookingSM
 
@@ -512,7 +512,9 @@ def service_book(request, pk):
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
             service=service,
-            price_cents=service.price_cents,
+            # HF-5: цена — на ДАТУ визита (сезонный тариф перебивает базовую).
+            # Считается ровно тем же резолвером, что показан на витрине.
+            price_cents=pricing.price_cents_for(service, start.date()),
             extras=extras_snap,
             voucher_code=request.POST.get("voucher_code", ""),
         )
