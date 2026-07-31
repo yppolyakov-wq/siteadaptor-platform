@@ -442,13 +442,13 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     assert 'data-ut-panel="basis preise regeln"' in body
     for panel in ("zimmer", "ical"):
         assert f'data-ut-panel="{panel}" class="hidden' in body, panel
-    # глобальные настройки живут на СПИСКЕ — 8 карточек (часть раскрыта в своих
-    # под-табах), поля в DOM (W0)
+    # глобальные настройки живут на СПИСКЕ — 9 карточек (часть раскрыта в своих
+    # под-табах), поля в DOM (W0). HF-2 добавила «Ausstattung auf der Zimmerkarte».
     body_list = views.units(_req()).content.decode()
     assert (
         body_list.count('<details class="bg-white')
         + body_list.count('<details open class="bg-white')
-        == 8
+        == 9
     )
     for field in (
         'name="kurtaxe_eur"',  # Kurtaxe

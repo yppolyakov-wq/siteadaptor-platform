@@ -16628,3 +16628,17 @@ msgstr "Neuigkeiten"
 #: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
 msgid "Read"
 msgstr "Lesen"
+
+#: templates/stays/units.html
+msgid "Amenities on the room card"
+msgstr "Ausstattung auf der Zimmerkarte"
+
+#: templates/stays/units.html
+msgid ""
+"Which icons guests see on the room cards (list and home page). Only "
+"amenities the room actually has are shown. Leave everything "
+"unchecked to show the room's first few amenities."
+msgstr ""
+"Welche Symbole Gäste auf den Zimmerkarten sehen (Liste und "
+"Startseite). Gezeigt wird nur, was das Zimmer wirklich hat. Nichts "
+"angehakt = die ersten Ausstattungsmerkmale des Zimmers."

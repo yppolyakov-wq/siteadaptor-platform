@@ -16670,3 +16670,17 @@ msgstr "Новости"
 #: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
 msgid "Read"
 msgstr "Читать"
+
+#: templates/stays/units.html
+msgid "Amenities on the room card"
+msgstr "Удобства на карточке номера"
+
+#: templates/stays/units.html
+msgid ""
+"Which icons guests see on the room cards (list and home page). Only "
+"amenities the room actually has are shown. Leave everything "
+"unchecked to show the room's first few amenities."
+msgstr ""
+"Какие значки гость видит на карточках номеров (список и главная). "
+"Показываем только то, что в номере действительно есть. Ничего не "
+"отмечено — первые удобства самого номера."

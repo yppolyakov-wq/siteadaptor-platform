@@ -126,6 +126,17 @@ class StayUnit(I18nMixin, TimestampedModel):
         chosen = set(self.amenities or [])
         return [(label, icon) for key, label, icon in AMENITIES if key in chosen]
 
+    def card_amenity_badges(self, only=(), limit=4) -> list:
+        """HF-2: пиктограммы удобств для КАРТОЧКИ номера (короткий список).
+
+        `only` — выбор владельца (site_config["stay_card_amenities"]): показываем
+        пересечение с удобствами номера, чтобы карточка не обещала того, чего в
+        этом номере нет. Пусто — первые `limit` удобств самого номера."""
+        chosen = set(self.amenities or [])
+        if only:
+            chosen &= set(only)
+        return [(label, icon) for key, label, icon in AMENITIES if key in chosen][:limit]
+
     @property
     def image_url(self) -> str:
         """URL обложки (primary или первое фото); пусто, если фото нет."""

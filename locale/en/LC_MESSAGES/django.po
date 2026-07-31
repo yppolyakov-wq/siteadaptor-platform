@@ -16480,3 +16480,17 @@ msgstr "News"
 #: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
 msgid "Read"
 msgstr "Read"
+
+#: templates/stays/units.html
+msgid "Amenities on the room card"
+msgstr "Amenities on the room card"
+
+#: templates/stays/units.html
+msgid ""
+"Which icons guests see on the room cards (list and home page). Only "
+"amenities the room actually has are shown. Leave everything "
+"unchecked to show the room's first few amenities."
+msgstr ""
+"Which icons guests see on the room cards (list and home page). Only "
+"amenities the room actually has are shown. Leave everything "
+"unchecked to show the room's first few amenities."

@@ -54,6 +54,13 @@ def sellable_card(
         # processor-переменной вызывающего контекста (inclusion-шаблон иначе
         # её не видит); "" = прежняя форма.
         "card_style": context.get("storefront_card_style", ""),
+        # HF-2: пиктограммы удобств на карточке номера (пересечение выбора
+        # владельца с удобствами номера; у прочих kind — пусто).
+        "amenities": (
+            obj.card_amenity_badges(only=context.get("storefront_card_amenities", ()))
+            if kind == "stay"
+            else []
+        ),
         "variant": variant,
         "href": (href or card.detail_url) + query,
         "edit": edit,

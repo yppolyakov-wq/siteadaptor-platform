@@ -145,3 +145,30 @@ def test_fully_booked_month_says_so():
     )
     ctx = public_views._calendar_context(unit, today.replace(day=1), today)
     assert ctx["cal_free_count"] == 0
+
+
+def test_card_amenities_default_and_owner_choice():
+    """HF-2 (#5): пиктограммы удобств на карточке номера.
+
+    Дефолт — первые удобства самого номера; выбор владельца ОГРАНИЧИВАЕТ набор,
+    но никогда не дописывает то, чего в номере нет (иначе карточка врала бы)."""
+    unit = _unit(amenities=["wifi", "tv", "balcony", "parking", "safe"])
+    keys = [icon for _label, icon in unit.card_amenity_badges()]
+    assert len(keys) == 4  # дефолтный лимит карточки
+
+    chosen = [label for label, _icon in unit.card_amenity_badges(only=["wifi", "aircon"])]
+    assert len(chosen) == 1  # aircon в номере нет — не показываем
+    assert unit.card_amenity_badges(only=["aircon"]) == []
+
+
+def test_normalize_card_amenities_validates_against_registry():
+    from apps.tenants import siteconfig
+
+    assert siteconfig.normalize_card_amenities(["tv", "wifi"]) == ["wifi", "tv"]  # порядок реестра
+    assert siteconfig.normalize_card_amenities(["nope", 5, None]) == []  # мусор отброшен
+    assert siteconfig.normalize_card_amenities("wifi") == []  # не список
+    # Ключ не материализуется при пустом выборе — golden-паритет normalize.
+    assert "stay_card_amenities" not in siteconfig.normalize({})
+    assert siteconfig.normalize({"stay_card_amenities": ["wifi"]})["stay_card_amenities"] == [
+        "wifi"
+    ]

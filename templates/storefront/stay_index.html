@@ -105,8 +105,10 @@
   {% comment %}UB1-2: карточка — единый партиал _sellable_card.html.{% endcomment %}
   <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for u in units %}
-      {% if embed %}{% sellable_card 'stay' u h2=True show_min_nights=True query='?embed=1' %}
-      {% else %}{% sellable_card 'stay' u h2=True show_min_nights=True %}{% endif %}
+      {% comment %}HF-2 (п. 6): кнопка брони прямо в карточке категории — раньше
+      карточка вела «куда-то», и гостю приходилось догадываться, что она кликабельна.{% endcomment %}
+      {% if embed %}{% sellable_card 'stay' u h2=True show_min_nights=True cta='purchase' query='?embed=1' %}
+      {% else %}{% sellable_card 'stay' u h2=True show_min_nights=True cta='purchase' %}{% endif %}
     {% endfor %}
   </div>
 {% endif %}

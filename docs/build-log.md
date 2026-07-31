@@ -7438,3 +7438,29 @@ Schaufenster-Poster (`promotions/poster`).
   Обновлены замки `test_siteconfig` (порядок секций) и `test_storefront_archetypes`
   (у promotions появился landing, teaser остался False).
 - Тесты: `test_home_news_section_needs_published_posts`; 2 msgid × 5 локалей.
+
+## 2026-07-31 — HF-2: пиктограммы удобств и кнопка брони в карточке номера
+Волна HF, пп. 5/6. Без миграций.
+
+- **Пиктограммы удобств на карточке номера** (список номеров + секция главной).
+  Что показывать — выбирает владелец: `/dashboard/stays/` → «⚙️ Einstellungen» →
+  «🏛 Kurtaxe & Hausordnung» → «Ausstattung auf der Zimmerkarte» (чекбоксы
+  реестра `stays.AMENITIES`). Хранение — `site_config["stay_card_amenities"]`,
+  presence-minimal: пустой выбор = дефолт (первые 4 удобства самого номера) и в
+  конфиг не пишется, поэтому golden normalize не тронут. Сохранение —
+  targeted-write (как `board_settings`), прочие ключи конфига целы.
+- Резолвер `StayUnit.card_amenity_badges(only=…, limit=4)` считает ПЕРЕСЕЧЕНИЕ
+  выбора владельца с удобствами конкретного номера: карточка не может обещать
+  того, чего в номере нет (выбрал «Klimaanlage» — покажем только там, где она
+  есть). Кап 6 в нормализаторе: больше пиктограмм — уже шум.
+- **Кнопка «Jetzt buchen» в карточке номера** на `/unterkunft/` (на главной она
+  была). Заодно строка «min. N Nächte» больше не пропадает при наличии кнопки —
+  раньше в ветке с CTA её не рендерили, и гость узнавал о минимальном сроке
+  только на странице номера.
+- Замки: `test_card_amenities_default_and_owner_choice` (в т.ч. «не дописываем
+  отсутствующее»), `test_normalize_card_amenities_validates_against_registry`
+  (валидация по реестру + отсутствие ключа при пустом выборе). Осознанно обновлён
+  счётчик `<details>` в `test_unit_tabs_cover_whole_card_and_settings_are_collapsed`
+  (8 → 9). Попутно добавлена иконка секции `blog` (реестр `SECTION_ICONS`
+  обязан покрывать все секции главной — замок `test_page_registry`).
+- 2 msgid × 5 локалей.

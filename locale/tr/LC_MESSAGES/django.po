@@ -16591,3 +16591,17 @@ msgstr "Haberler"
 #: apps/tenants/siteconfig.py templates/storefront/sections/_blog.html
 msgid "Read"
 msgstr "Oku"
+
+#: templates/stays/units.html
+msgid "Amenities on the room card"
+msgstr "Oda kartındaki olanaklar"
+
+#: templates/stays/units.html
+msgid ""
+"Which icons guests see on the room cards (list and home page). Only "
+"amenities the room actually has are shown. Leave everything "
+"unchecked to show the room's first few amenities."
+msgstr ""
+"Misafirlerin oda kartlarında (liste ve ana sayfa) gördüğü simgeler. "
+"Yalnızca odada gerçekten bulunan olanaklar gösterilir. Hiçbirini "
+"işaretlemezseniz odanın ilk birkaç olanağı gösterilir."

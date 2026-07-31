@@ -45,14 +45,26 @@ overlay ⇒ заголовок поверх фото в вертикальной
     {% else %}<h3 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>{% endif %}
     {% if card.kind == "stay" %}
       <p class="text-sm text-gray-500">{{ obj.get_type_display }} · {% blocktrans with n=obj.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if show_area and obj.area_sqm %} · {{ obj.area_sqm }} m²{% endif %}</p>
+      {% comment %}HF-2 (фидбэк владельца 2026-07-31, п. 5): пиктограммы удобств прямо
+      в карточке — гость видит WLAN/балкон/парковку не открывая номер. Что показывать,
+      выбирает владелец (site_config["stay_card_amenities"]); по умолчанию — первые
+      удобства самого номера.{% endcomment %}
+      {% if amenities %}
+      <ul class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+        {% for label, icon in amenities %}<li title="{{ label }}"><span aria-hidden="true">{{ icon }}</span> {{ label }}</li>{% endfor %}
+      </ul>
+      {% endif %}
       {% if card.description and show_description %}<p class="text-sm text-gray-600 mt-2 line-clamp-3"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
       {% if price_total %}
         <p class="mt-3 font-semibold">{% blocktrans with p=price_total|floatformat:2 %}from {{ p }} € total{% endblocktrans %}</p>
       {% elif cta == "purchase" %}
-        <div class="mt-3 flex items-baseline justify-between">
+        <div class="mt-3 flex items-baseline justify-between gap-2">
           <p class="font-semibold"><span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="{{ obj.price_eur|floatformat:2 }}">{% blocktrans with p=obj.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</span></p>
-          <span class="inline-block text-sm text-white rounded-lg px-3 py-1.5" style="background: var(--accent);" data-purchase-action>{{ card.purchase_label }}</span>
+          <span class="inline-block shrink-0 text-sm text-white rounded-lg px-3 py-1.5" style="background: var(--accent);" data-purchase-action>{{ card.purchase_label }}</span>
         </div>
+        {% comment %}HF-2: минимальный срок остаётся видимым и с кнопкой брони —
+        иначе гость узнавал бы о нём только на странице номера.{% endcomment %}
+        {% if show_min_nights and obj.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=obj.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
       {% else %}
         <p class="mt-3 font-semibold"><span data-price-edit data-edit-model="{{ edit_model }}" data-price-field="price_eur" data-edit-pk="{{ card.pk }}" data-price="{{ obj.price_eur|floatformat:2 }}">{% blocktrans with p=obj.price_eur|floatformat:2 %}from {{ p }} € / night{% endblocktrans %}</span></p>
         {% if show_min_nights and obj.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=obj.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}

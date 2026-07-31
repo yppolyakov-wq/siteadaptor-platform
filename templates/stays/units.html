@@ -636,6 +636,26 @@
 </details>
 </div>
 <div data-st-panel="kurtaxe" class="{% if sec != 'kurtaxe' %}hidden{% endif %}">
+{% comment %}HF-2 (фидбэк владельца 2026-07-31, п. 5): владелец сам решает, какие
+пиктограммы удобств выносить на карточку номера. Пустой выбор = первые удобства
+самого номера (дефолт), поэтому в конфиг ничего не пишется.{% endcomment %}
+<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Amenities on the room card" %}</summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Which icons guests see on the room cards (list and home page). Only amenities the room actually has are shown. Leave everything unchecked to show the room's first few amenities." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="card_amenities">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-1.5 gap-x-4 text-sm mb-3">
+      {% for key, label, icon in amenities %}
+        <label class="flex items-center gap-2">
+          <input type="checkbox" name="card_amenity" value="{{ key }}" {% if key in card_amenities %}checked{% endif %} class="rounded border-gray-300">
+          <span aria-hidden="true">{{ icon }}</span> {{ label }}
+        </label>
+      {% endfor %}
+    </div>
+    <button class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Save" %}</button>
+  </form>
+</details>
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
 <details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Kurtaxe & house rules" %}</summary>

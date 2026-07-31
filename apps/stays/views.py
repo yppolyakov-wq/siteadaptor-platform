@@ -872,6 +872,20 @@ def units(request, pk=None):
         elif action == "rateplan_delete":
             RatePlan.objects.filter(pk=request.POST.get("rateplan")).delete()
             messages.success(request, _("Settings saved."))
+        elif action == "card_amenities":  # HF-2: пиктограммы удобств на карточке номера
+            from apps.tenants import siteconfig
+
+            tenant = request.tenant
+            keys = siteconfig.normalize_card_amenities(request.POST.getlist("card_amenity"))
+            # Targeted-write (как board_settings): прочие ключи site_config целы.
+            cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+            if keys:
+                cfg["stay_card_amenities"] = keys
+            else:
+                cfg.pop("stay_card_amenities", None)  # пусто = дефолт, ключ не храним
+            tenant.site_config = cfg
+            tenant.save(update_fields=["site_config", "updated_at"])
+            messages.success(request, _("Settings saved."))
         elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung
             settings_obj = StaySettings.load()
             settings_obj.kurtaxe_cents = _eur_to_cents(request.POST.get("kurtaxe_eur"))
@@ -1008,6 +1022,7 @@ def units(request, pk=None):
             "restriction_add": "regeln",
             "restriction_delete": "regeln",
             "kurtaxe": "kurtaxe",
+            "card_amenities": "kurtaxe",  # HF-2: живёт рядом с прочей «подачей» номеров
         }
         sec = _settings_sections.get(action)
         if sec:
@@ -1063,6 +1078,12 @@ def units(request, pk=None):
             "meals": RatePlan.MEALS,
             "cancellations": RatePlan.CANCELLATIONS,
             "amenities": AMENITIES,  # H3 чек-лист удобств
+            # HF-2: выбор удобств, показываемых на карточке номера (пусто = дефолт).
+            "card_amenities": set(
+                (getattr(getattr(request, "tenant", None), "site_config", None) or {}).get(
+                    "stay_card_amenities", []
+                )
+            ),
             "stay_settings": stay_settings,  # H9 Kurtaxe
             "auto_rules": auto_rules,  # G4 правила авто-скидок
             "auto_kinds": StaySettings.AUTO_DISCOUNT_KINDS,

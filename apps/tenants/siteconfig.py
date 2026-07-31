@@ -1098,6 +1098,7 @@ SECTION_ICONS = {
     "categories": "🗂️",
     "products": "🛍️",
     "events": "📅",
+    "blog": "📰",  # HF-1: лента новостей
     "archetypes": "🧭",
     "about": "ℹ️",
     "process": "🪜",
@@ -2058,6 +2059,22 @@ def normalize_presence(raw) -> dict:
     return {"mode": mode} if mode in ("on", "off") else {}
 
 
+CARD_AMENITIES_MAX = 6  # больше пиктограмм на карточке — уже шум, не информация
+
+
+def normalize_card_amenities(raw) -> list:
+    """HF-2: ключи удобств, показываемых пиктограммами на карточке номера.
+
+    Пустой список = дефолт (первые несколько удобств самого номера), поэтому в
+    конфиг ключ не пишется. Валидация по реестру `stays.AMENITIES` — мусор и
+    несуществующие ключи отбрасываются, порядок реестра, дубли схлопываются."""
+    from apps.stays.models import AMENITIES
+
+    known = [key for key, _label, _icon in AMENITIES]
+    chosen = {k for k in (raw if isinstance(raw, list) else []) if isinstance(k, str)}
+    return [k for k in known if k in chosen][:CARD_AMENITIES_MAX]
+
+
 def normalize_finder(raw) -> dict:
     """FD-1: конфиг Finder — {"enabled": bool, "questions": [{key,label,chips}]}.
 
@@ -2181,6 +2198,11 @@ def _normalize_impl(config) -> dict:
     presence = normalize_presence(config.get("presence"))
     if presence:
         normalized["presence"] = presence
+    # HF-2: какие удобства показывать на карточке номера; ключ ТОЛЬКО при выборе
+    # владельца (пусто = дефолт «первые несколько удобств номера») — golden-паритет.
+    ca = normalize_card_amenities(config.get("stay_card_amenities"))
+    if ca:
+        normalized["stay_card_amenities"] = ca
     # FB-4a: свои имена статусов заказа; ключ ТОЛЬКО при непустом (golden-паритет).
     sl = normalize_status_labels(config.get("status_labels"))
     if sl:
