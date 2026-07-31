@@ -54,6 +54,13 @@
       {% for d in cal_days %}
         {% if d.in_past %}
           <div class="rounded-lg py-2 leading-none text-gray-300">{{ d.date.day }}</div>
+        {% elif d.closed and not d.closed_here %}
+          {% comment %}Ревью HF-4: день закрыт НЕ здесь (глобально, при выбранном
+          ресурсе). Кликом его отсюда не открыть — клик лишь создавал бы вторую,
+          ресурс-скоупную запись, а день оставался бы закрытым. Показываем как есть
+          и объясняем, где снимать.{% endcomment %}
+          <div title="{% trans 'Closed for the whole business — reopen it under “Whole business”' %}"
+               class="rounded-lg py-2 leading-none bg-red-50 text-red-400 line-through cursor-not-allowed">{{ d.date.day }}</div>
         {% else %}
           <button type="submit" name="date" value="{{ d.date|date:'Y-m-d' }}"
                   title="{% if d.closed %}{{ d.reason|default:_('Closed — click to reopen') }}{% elif d.no_rules %}{% trans 'No opening hours on this weekday' %}{% else %}{% trans 'Open — click to close sales' %}{% endif %}"

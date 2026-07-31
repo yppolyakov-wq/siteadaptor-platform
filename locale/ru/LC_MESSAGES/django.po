@@ -16764,3 +16764,11 @@ msgstr "Высокий сезон"
 #: templates/storefront/service_slots.html
 msgid "Seasonal price"
 msgstr "Сезонная цена"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Please enter a price for these dates."
+msgstr "Укажите цену на этот период."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Closed for the whole business — reopen it under “Whole business”"
+msgstr "Закрыто для всего бизнеса — откройте в режиме «Весь бизнес»"

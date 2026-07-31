@@ -443,15 +443,21 @@ def services_view(request, pk=None):
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             start = _parse_day_or_none(request.POST.get("start_date"))
             end = _parse_day_or_none(request.POST.get("end_date"))
+            price_cents = _eur_to_cents(request.POST.get("price_eur"))
             if start is None or end is None or end < start:
                 messages.error(request, _("Invalid date."))
+            elif price_cents <= 0:
+                # Ревью HF-5: пустое/нулевое поле цены молча делало услугу в эти
+                # даты БЕСПЛАТНОЙ — ноль доезжал до брони. Хочет бесплатно —
+                # ставит 0 в базовой цене услуги, а не в сезонном окне.
+                messages.error(request, _("Please enter a price for these dates."))
             else:
                 ServiceSeasonRate.objects.create(
                     service=service,
                     label=request.POST.get("label", "").strip()[:120],
                     start_date=start,
                     end_date=end,
-                    price_cents=_eur_to_cents(request.POST.get("price_eur")),
+                    price_cents=price_cents,
                 )
                 messages.success(request, _("Seasonal price saved."))
         elif action == "season_delete":

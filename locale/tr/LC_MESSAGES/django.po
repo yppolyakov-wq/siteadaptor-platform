@@ -16686,3 +16686,11 @@ msgstr "Yüksek sezon"
 #: templates/storefront/service_slots.html
 msgid "Seasonal price"
 msgstr "Sezon fiyatı"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Please enter a price for these dates."
+msgstr "Lütfen bu tarihler için bir fiyat girin."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Closed for the whole business — reopen it under “Whole business”"
+msgstr "Tüm işletme için kapalı — „Tüm işletme“ altında yeniden açın"

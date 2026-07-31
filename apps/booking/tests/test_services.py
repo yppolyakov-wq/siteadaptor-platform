@@ -739,3 +739,58 @@ def test_storefront_shows_the_price_it_will_charge(settings):
 
 def views_module_service_slots(request, svc):
     return public_views.service_slots(request, pk=svc.pk).content.decode()
+
+
+def test_globally_closed_day_is_not_clickable_under_a_resource(settings):
+    """Ревью HF-4: день, закрытый для всего бизнеса, нельзя «открыть» из вида
+    ресурса — иначе клик плодил вторую запись, а день оставался закрытым."""
+    from apps.booking.models import ClosedDate
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    anna = _resource(type="staff")
+    _rule(anna, day)
+    ClosedDate.objects.create(date=day, reason="")  # глобальная блокировка
+
+    request = RequestFactory().get(
+        "/dashboard/booking/verfuegbarkeit/",
+        {"year": day.year, "month": day.month, "resource": str(anna.pk)},
+    )
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    request.user = _staff_user()
+    body = views.availability_calendar(request).content.decode()
+    assert f'value="{day.isoformat()}"' not in body  # кнопки нет
+    assert "cursor-not-allowed" in body  # и видно, что клик не поможет
+
+
+def test_seasonal_price_requires_a_price(settings):
+    """Ревью HF-5: пустая цена делала услугу в эти даты бесплатной.
+
+    Денежный дефект: `_eur_to_cents("")` → 0, ноль доезжал до брони."""
+    from apps.booking.models import ServiceSeasonRate
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    svc = _service(price_cents=4900)
+    request = RequestFactory().post(
+        "/dashboard/booking/leistungen/",
+        {
+            "action": "season_add",
+            "service": str(svc.pk),
+            "start_date": day.isoformat(),
+            "end_date": day.isoformat(),
+            "label": "Sommer",  # цену владелец оставил пустой
+        },
+    )
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    request.user = _staff_user()
+    views.services_view(request)
+    assert not ServiceSeasonRate.objects.filter(service=svc).exists()
+
+    from apps.booking import pricing
+
+    assert pricing.price_cents_for(svc, day) == 4900  # цена осталась базовой

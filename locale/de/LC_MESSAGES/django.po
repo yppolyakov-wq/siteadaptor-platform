@@ -16723,3 +16723,13 @@ msgstr "Hochsaison"
 #: templates/storefront/service_slots.html
 msgid "Seasonal price"
 msgstr "Saisonpreis"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Please enter a price for these dates."
+msgstr "Bitte geben Sie einen Preis für diesen Zeitraum an."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Closed for the whole business — reopen it under “Whole business”"
+msgstr ""
+"Für den ganzen Betrieb geschlossen — unter „Ganzer Betrieb“ wieder "
+"öffnen"
