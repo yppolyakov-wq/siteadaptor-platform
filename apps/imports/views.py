@@ -17,16 +17,16 @@ from .tasks import preview_import, run_import
 
 # логические поля товара для маппинга колонок
 PRODUCT_FIELDS = [
-    ("name_de", "Name (DE) *"),
-    ("name_en", "Name (EN)"),
-    ("description_de", "Beschreibung (DE)"),
-    ("description_en", "Beschreibung (EN)"),
-    ("sku", "SKU"),
-    ("base_price", "Preis *"),
-    ("currency", "Währung"),
-    ("stock_quantity", "Lagerbestand"),
-    ("category_slug", "Kategorie (slug)"),
-    ("is_active", "Aktiv"),
+    ("name_de", _("Name (DE) *")),
+    ("name_en", _("Name (EN)")),
+    ("description_de", _("Beschreibung (DE)")),
+    ("description_en", _("Beschreibung (EN)")),
+    ("sku", _("SKU")),
+    ("base_price", _("Preis *")),
+    ("currency", _("Währung")),
+    ("stock_quantity", _("Lagerbestand")),
+    ("category_slug", _("Kategorie (slug)")),
+    ("is_active", _("Aktiv")),
 ]
 
 # Выбор разделителя CSV (значение → подпись).
@@ -40,34 +40,34 @@ DELIMITER_CHOICES = [
 
 # логические поля варианта товара (R1, A1): родитель + атрибуты варианта
 VARIANT_FIELDS = [
-    ("product_sku", "Produkt-SKU *"),
-    ("product_name_de", "Produkt-Name (DE) *"),
-    ("label", "Variante (z. B. 100 g, M) *"),
-    ("sku", "Varianten-SKU"),
-    ("gtin", "EAN/GTIN"),
-    ("price", "Preis (leer = Grundpreis)"),
-    ("content_amount", "Inhalt (Grundpreis)"),
-    ("stock_quantity", "Lagerbestand"),
-    ("is_active", "Aktiv"),
+    ("product_sku", _("Produkt-SKU *")),
+    ("product_name_de", _("Produkt-Name (DE) *")),
+    ("label", _("Variante (z. B. 100 g, M) *")),
+    ("sku", _("Varianten-SKU")),
+    ("gtin", _("EAN/GTIN")),
+    ("price", _("Preis (leer = Grundpreis)")),
+    ("content_amount", _("Inhalt (Grundpreis)")),
+    ("stock_quantity", _("Lagerbestand")),
+    ("is_active", _("Aktiv")),
 ]
 
 # логические поля акции для маппинга колонок
 PROMOTION_FIELDS = [
-    ("title_de", "Titel (DE) *"),
-    ("title_en", "Titel (EN)"),
-    ("description_de", "Beschreibung (DE)"),
-    ("description_en", "Beschreibung (EN)"),
-    ("product_sku", "Produkt-SKU"),
-    ("promo_type", "Typ (reservation/discount)"),
-    ("discount_percent", "Rabatt %"),
-    ("price_override", "Neuer Preis"),
-    ("compare_at_price", "Alter Preis"),
-    ("available_quantity", "Menge"),
-    ("max_per_customer", "Max pro Kunde"),
-    ("reservation_ttl_hours", "Reservierung gültig (Std.)"),
-    ("auto_confirm", "Auto-Bestätigung"),
-    ("starts_at", "Start (YYYY-MM-DD HH:MM)"),
-    ("ends_at", "Ende (YYYY-MM-DD HH:MM)"),
+    ("title_de", _("Titel (DE) *")),
+    ("title_en", _("Titel (EN)")),
+    ("description_de", _("Beschreibung (DE)")),
+    ("description_en", _("Beschreibung (EN)")),
+    ("product_sku", _("Produkt-SKU")),
+    ("promo_type", _("Typ (reservation/discount)")),
+    ("discount_percent", _("Rabatt %")),
+    ("price_override", _("Neuer Preis")),
+    ("compare_at_price", _("Alter Preis")),
+    ("available_quantity", _("Menge")),
+    ("max_per_customer", _("Max pro Kunde")),
+    ("reservation_ttl_hours", _("Reservierung gültig (Std.)")),
+    ("auto_confirm", _("Auto-Bestätigung")),
+    ("starts_at", _("Start (YYYY-MM-DD HH:MM)")),
+    ("ends_at", _("Ende (YYYY-MM-DD HH:MM)")),
 ]
 
 # Поле, по которому ищем существующую запись при обновлении.
@@ -89,8 +89,8 @@ RESOURCE_FIELDS = {
 RESOURCE_MATCH_FIELDS = {
     "product": MATCH_FIELD_CHOICES,
     # Вариант всегда upsert по (товар, label) — поле синхронизации не выбирается.
-    "product_variant": [("label", "Variante (label)")],
-    "promotion": [("title_de", "Titel (DE)")],
+    "product_variant": [("label", _("Variante (label)"))],
+    "promotion": [("title_de", _("Titel (DE)"))],
 }
 RESOURCE_DEFAULT_MATCH = {"product": "sku", "product_variant": "label", "promotion": "title_de"}
 

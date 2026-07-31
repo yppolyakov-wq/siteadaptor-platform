@@ -15261,3 +15261,227 @@ msgstr "🧺 На каждый день"
 #. I18N-6 finder 2026-07-30
 msgid "Und dein Budget?"
 msgstr "А бюджет?"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Ablauf / Programm (ein Punkt pro Zeile)"
+msgstr "Программа (по пункту в строке)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Aktiv"
+msgstr "Активен"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Alter Preis"
+msgstr "Старая цена"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Anmelde-Felder (Vorlagen — zusätzlich zu freien Fragen)"
+msgstr "Поля анкеты (шаблоны — в дополнение к свободным вопросам)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Anmelde-Fragen (eine pro Zeile)"
+msgstr "Вопросы при записи (по одному в строке)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Anzahlung online (%, 0 = voll)"
+msgstr "Онлайн-предоплата (%, 0 = полностью)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Auto-Bestätigung"
+msgstr "Автоподтверждение"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Beschreibung (DE)"
+msgstr "Описание (DE)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Beschreibung (EN)"
+msgstr "Описание (EN)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "CSV- oder Excel-Datei"
+msgstr "Файл CSV или Excel"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "EAN/GTIN"
+msgstr "EAN/GTIN"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Ende (YYYY-MM-DD HH:MM)"
+msgstr "Окончание (YYYY-MM-DD HH:MM)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "FAQ (Frage | Antwort)"
+msgstr "FAQ (вопрос | ответ)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Für wen (eine Zeile pro Punkt)"
+msgstr "Для кого (по пункту в строке)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Idee / Atmosphäre"
+msgstr "Идея / атмосфера"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Im Preis enthalten (eine Zeile pro Punkt)"
+msgstr "Входит в цену (по пункту в строке)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Inhalt (Grundpreis)"
+msgstr "Содержимое (для цены за единицу)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Kategorie (slug)"
+msgstr "Категория (slug)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Kurzversprechen (Hero)"
+msgstr "Короткое обещание (баннер)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Lagerbestand"
+msgstr "Остаток"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Leitung (Name | Rolle | Foto-URL)"
+msgstr "Ведущие (имя | роль | URL фото)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Level"
+msgstr "Уровень"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Max pro Kunde"
+msgstr "Максимум на клиента"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Mitbringen (eine Zeile pro Punkt)"
+msgstr "Что взять с собой (по пункту в строке)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Name (DE) *"
+msgstr "Название (DE) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Name (EN)"
+msgstr "Название (EN)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Neuer Preis"
+msgstr "Новая цена"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Nicht enthalten (eine Zeile pro Punkt)"
+msgstr "Не входит (по пункту в строке)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Ort / Veranstaltungsort"
+msgstr "Место проведения"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis (leer = Grundpreis)"
+msgstr "Цена (пусто = базовая)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis *"
+msgstr "Цена *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis je Platz (€)"
+msgstr "Цена за место (€)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis-Hinweis (Frühbucher, Varianten …)"
+msgstr "Примечание к цене (раннее бронирование, варианты …)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid ""
+"Preiskategorien (Label | Preis € | Kontingent, eine pro Zeile; Kontingent "
+"optional, leer = einheitlicher Preis)"
+msgstr ""
+"Ценовые категории (метка | цена € | квота, по одной в строке; квота "
+"необязательна, пусто = единая цена)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Produkt-Name (DE) *"
+msgstr "Название товара (DE) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Produkt-SKU"
+msgstr "SKU товара"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Produkt-SKU *"
+msgstr "SKU товара *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Reservierung gültig (Std.)"
+msgstr "Бронь действует (часов)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Richtung / Thema"
+msgstr "Направление / тема"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Sprache"
+msgstr "Язык"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Start (YYYY-MM-DD HH:MM)"
+msgstr "Начало (YYYY-MM-DD HH:MM)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Stimmen (Name | Stadt | Text | Foto-URL | Sterne 1–5)"
+msgstr "Отзывы (имя | город | текст | URL фото | звёзды 1–5)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Titel (DE)"
+msgstr "Заголовок (DE)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Titel (DE) *"
+msgstr "Заголовок (DE) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Titel (EN)"
+msgstr "Заголовок (EN)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Typ (reservation/discount)"
+msgstr "Тип (reservation/discount)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Unterkunft (eine Zeile pro Punkt)"
+msgstr "Проживание (по пункту в строке)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Variante (label)"
+msgstr "Вариант (метка)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Variante (z. B. 100 g, M) *"
+msgstr "Вариант (напр. 100 г, M) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Varianten-SKU"
+msgstr "SKU варианта"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Verpflegung"
+msgstr "Питание"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Vorher/Nachher (Vorher-URL | Nachher-URL | Text)"
+msgstr "До/после (URL «до» | URL «после» | текст)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Was ist dabei (Titel | Text)"
+msgstr "Что входит (заголовок | текст)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Währung"
+msgstr "Валюта"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)"
+msgstr "Сертификаты / награды (название | кем выдан | URL логотипа)"

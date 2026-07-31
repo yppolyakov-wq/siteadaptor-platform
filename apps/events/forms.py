@@ -7,6 +7,7 @@
 from decimal import Decimal, InvalidOperation
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from . import details as details_mod
 from . import registration, taxonomy
@@ -19,92 +20,96 @@ def _ta(rows=3, ph=""):
 
 class EventForm(forms.ModelForm):
     price_eur = forms.DecimalField(
-        min_value=0, max_digits=8, decimal_places=2, required=False, label="Preis je Platz (€)"
+        min_value=0, max_digits=8, decimal_places=2, required=False, label=_("Preis je Platz (€)")
     )
     questions_text = forms.CharField(
-        required=False, widget=_ta(3), label="Anmelde-Fragen (eine pro Zeile)"
+        required=False, widget=_ta(3), label=_("Anmelde-Fragen (eine pro Zeile)")
     )
     program_text = forms.CharField(
-        required=False, widget=_ta(4), label="Ablauf / Programm (ein Punkt pro Zeile)"
+        required=False, widget=_ta(4), label=_("Ablauf / Programm (ein Punkt pro Zeile)")
     )
     tiers_text = forms.CharField(
         required=False,
         widget=_ta(3, "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"),
         label=(
-            "Preiskategorien (Label | Preis € | Kontingent, eine pro Zeile; "
-            "Kontingent optional, leer = einheitlicher Preis)"
+            _(
+                "Preiskategorien (Label | Preis € | Kontingent, eine pro Zeile; "
+                "Kontingent optional, leer = einheitlicher Preis)"
+            )
         ),
     )
     # R2: таксономия (направление/уровень/язык) — для каталога и фильтров.
     category = forms.ChoiceField(
-        required=False, choices=[("", "—")] + taxonomy.CATEGORIES, label="Richtung / Thema"
+        required=False, choices=[("", "—")] + taxonomy.CATEGORIES, label=_("Richtung / Thema")
     )
-    level = forms.ChoiceField(required=False, choices=[("", "—")] + taxonomy.LEVELS, label="Level")
+    level = forms.ChoiceField(
+        required=False, choices=[("", "—")] + taxonomy.LEVELS, label=_("Level")
+    )
     language = forms.ChoiceField(
-        required=False, choices=[("", "—")] + taxonomy.LANGUAGES, label="Sprache"
+        required=False, choices=[("", "—")] + taxonomy.LANGUAGES, label=_("Sprache")
     )
     # R4: онлайн-предоплата %, 0 = полная оплата (1..99 = депозит, остаток на месте).
     deposit_percent = forms.IntegerField(
-        required=False, min_value=0, max_value=100, label="Anzahlung online (%, 0 = voll)"
+        required=False, min_value=0, max_value=100, label=_("Anzahlung online (%, 0 = voll)")
     )
     # R1: какие пресет-поля анкеты показывать на витрине (страна/ДР/питание…).
     registration_fields = forms.MultipleChoiceField(
         required=False,
         choices=registration.choices,
         widget=forms.CheckboxSelectMultiple,
-        label="Anmelde-Felder (Vorlagen — zusätzlich zu freien Fragen)",
+        label=_("Anmelde-Felder (Vorlagen — zusätzlich zu freien Fragen)"),
     )
     # --- Retreat-Landing (alles optional) ---------------------------------
-    promise = forms.CharField(required=False, label="Kurzversprechen (Hero)")
+    promise = forms.CharField(required=False, label=_("Kurzversprechen (Hero)"))
     for_whom_text = forms.CharField(
-        required=False, widget=_ta(4), label="Für wen (eine Zeile pro Punkt)"
+        required=False, widget=_ta(4), label=_("Für wen (eine Zeile pro Punkt)")
     )
-    idea = forms.CharField(required=False, widget=_ta(3), label="Idee / Atmosphäre")
+    idea = forms.CharField(required=False, widget=_ta(3), label=_("Idee / Atmosphäre"))
     includes_text = forms.CharField(
         required=False,
         widget=_ta(5, "Yoga | Sanfte Praxis morgens & abends"),
-        label="Was ist dabei (Titel | Text)",
+        label=_("Was ist dabei (Titel | Text)"),
     )
-    venue = forms.CharField(required=False, widget=_ta(3), label="Ort / Veranstaltungsort")
+    venue = forms.CharField(required=False, widget=_ta(3), label=_("Ort / Veranstaltungsort"))
     accommodation_text = forms.CharField(
-        required=False, widget=_ta(4), label="Unterkunft (eine Zeile pro Punkt)"
+        required=False, widget=_ta(4), label=_("Unterkunft (eine Zeile pro Punkt)")
     )
-    food = forms.CharField(required=False, widget=_ta(3), label="Verpflegung")
+    food = forms.CharField(required=False, widget=_ta(3), label=_("Verpflegung"))
     hosts_text = forms.CharField(
         required=False,
         widget=_ta(3, "Mara Lind | Yogalehrerin | https://…/foto.jpg"),
-        label="Leitung (Name | Rolle | Foto-URL)",
+        label=_("Leitung (Name | Rolle | Foto-URL)"),
     )
     price_includes_text = forms.CharField(
-        required=False, widget=_ta(4), label="Im Preis enthalten (eine Zeile pro Punkt)"
+        required=False, widget=_ta(4), label=_("Im Preis enthalten (eine Zeile pro Punkt)")
     )
     price_excludes_text = forms.CharField(
-        required=False, widget=_ta(3), label="Nicht enthalten (eine Zeile pro Punkt)"
+        required=False, widget=_ta(3), label=_("Nicht enthalten (eine Zeile pro Punkt)")
     )
-    price_note = forms.CharField(required=False, label="Preis-Hinweis (Frühbucher, Varianten …)")
+    price_note = forms.CharField(required=False, label=_("Preis-Hinweis (Frühbucher, Varianten …)"))
     bring_text = forms.CharField(
-        required=False, widget=_ta(4), label="Mitbringen (eine Zeile pro Punkt)"
+        required=False, widget=_ta(4), label=_("Mitbringen (eine Zeile pro Punkt)")
     )
     faq_text = forms.CharField(
         required=False,
         widget=_ta(5, "Für Anfänger geeignet? | Ja, alle Level willkommen."),
-        label="FAQ (Frage | Antwort)",
+        label=_("FAQ (Frage | Antwort)"),
     )
     testimonials_text = forms.CharField(
         required=False,
         widget=_ta(4, "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"),
-        label="Stimmen (Name | Stadt | Text | Foto-URL | Sterne 1–5)",
+        label=_("Stimmen (Name | Stadt | Text | Foto-URL | Sterne 1–5)"),
     )
     # R13: истории «до/после» (Bild-URLs + Text) и значки сертификации.
     before_after_text = forms.CharField(
         required=False,
         widget=_ta(3, "https://…/vorher.jpg | https://…/nachher.jpg | 3 Tage Detox"),
-        label="Vorher/Nachher (Vorher-URL | Nachher-URL | Text)",
+        label=_("Vorher/Nachher (Vorher-URL | Nachher-URL | Text)"),
     )
     certifications_text = forms.CharField(
         required=False,
         widget=_ta(3, "Yoga Alliance RYT-500 | Yoga Alliance | https://…/logo.svg"),
-        label="Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)",
+        label=_("Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)"),
     )
 
     # form-field → (details-key, record-keys|None)

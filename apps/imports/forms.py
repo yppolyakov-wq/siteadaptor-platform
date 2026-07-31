@@ -5,6 +5,7 @@
 """
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 ALLOWED_SUFFIXES = (".csv", ".xlsx", ".xlsm")
 # Лимит размера загрузки: без него аутентиф. staff мог залить zip-bomb .xlsx /
@@ -14,7 +15,7 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 class ImportUploadForm(forms.Form):
-    source_file = forms.FileField(label="CSV- oder Excel-Datei")
+    source_file = forms.FileField(label=_("CSV- oder Excel-Datei"))
 
     def clean_source_file(self):
         f = self.cleaned_data["source_file"]

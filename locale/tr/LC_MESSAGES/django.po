@@ -15196,3 +15196,227 @@ msgstr "🧺 Günlük için"
 #. I18N-6 finder 2026-07-30
 msgid "Und dein Budget?"
 msgstr "Bütçen nedir?"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Ablauf / Programm (ein Punkt pro Zeile)"
+msgstr "Akış / program (her satıra bir madde)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Aktiv"
+msgstr "Aktif"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Alter Preis"
+msgstr "Eski fiyat"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Anmelde-Felder (Vorlagen — zusätzlich zu freien Fragen)"
+msgstr "Kayıt alanları (şablonlar — serbest sorulara ek)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Anmelde-Fragen (eine pro Zeile)"
+msgstr "Kayıt soruları (her satıra bir)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Anzahlung online (%, 0 = voll)"
+msgstr "Online kapora (%, 0 = tamamı)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Auto-Bestätigung"
+msgstr "Otomatik onay"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Beschreibung (DE)"
+msgstr "Açıklama (DE)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Beschreibung (EN)"
+msgstr "Açıklama (EN)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "CSV- oder Excel-Datei"
+msgstr "CSV veya Excel dosyası"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "EAN/GTIN"
+msgstr "EAN/GTIN"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Ende (YYYY-MM-DD HH:MM)"
+msgstr "Bitiş (YYYY-MM-DD HH:MM)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "FAQ (Frage | Antwort)"
+msgstr "SSS (soru | cevap)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Für wen (eine Zeile pro Punkt)"
+msgstr "Kimler için (her satıra bir madde)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Idee / Atmosphäre"
+msgstr "Fikir / atmosfer"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Im Preis enthalten (eine Zeile pro Punkt)"
+msgstr "Fiyata dahil (her satıra bir madde)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Inhalt (Grundpreis)"
+msgstr "İçerik (birim fiyat)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Kategorie (slug)"
+msgstr "Kategori (slug)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Kurzversprechen (Hero)"
+msgstr "Kısa vaat (hero)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Lagerbestand"
+msgstr "Stok"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Leitung (Name | Rolle | Foto-URL)"
+msgstr "Ekip (ad | rol | fotoğraf URL)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Level"
+msgstr "Seviye"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Max pro Kunde"
+msgstr "Müşteri başına en fazla"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Mitbringen (eine Zeile pro Punkt)"
+msgstr "Getirilecekler (her satıra bir madde)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Name (DE) *"
+msgstr "Ad (DE) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Name (EN)"
+msgstr "Ad (EN)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Neuer Preis"
+msgstr "Yeni fiyat"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Nicht enthalten (eine Zeile pro Punkt)"
+msgstr "Dahil değil (her satıra bir madde)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Ort / Veranstaltungsort"
+msgstr "Yer / mekân"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis (leer = Grundpreis)"
+msgstr "Fiyat (boş = temel fiyat)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis *"
+msgstr "Fiyat *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis je Platz (€)"
+msgstr "Kişi başı fiyat (€)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Preis-Hinweis (Frühbucher, Varianten …)"
+msgstr "Fiyat notu (erken rezervasyon, seçenekler …)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid ""
+"Preiskategorien (Label | Preis € | Kontingent, eine pro Zeile; Kontingent "
+"optional, leer = einheitlicher Preis)"
+msgstr ""
+"Fiyat kategorileri (etiket | fiyat € | kontenjan, her satıra bir; kontenjan "
+"isteğe bağlı, boş = tek fiyat)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Produkt-Name (DE) *"
+msgstr "Ürün adı (DE) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Produkt-SKU"
+msgstr "Ürün SKU"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Produkt-SKU *"
+msgstr "Ürün SKU *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Reservierung gültig (Std.)"
+msgstr "Rezervasyon geçerlilik (saat)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Richtung / Thema"
+msgstr "Yön / konu"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Sprache"
+msgstr "Dil"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Start (YYYY-MM-DD HH:MM)"
+msgstr "Başlangıç (YYYY-MM-DD HH:MM)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Stimmen (Name | Stadt | Text | Foto-URL | Sterne 1–5)"
+msgstr "Yorumlar (ad | şehir | metin | fotoğraf URL | yıldız 1–5)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Titel (DE)"
+msgstr "Başlık (DE)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Titel (DE) *"
+msgstr "Başlık (DE) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Titel (EN)"
+msgstr "Başlık (EN)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Typ (reservation/discount)"
+msgstr "Tür (reservation/discount)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Unterkunft (eine Zeile pro Punkt)"
+msgstr "Konaklama (her satıra bir madde)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Variante (label)"
+msgstr "Varyant (etiket)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Variante (z. B. 100 g, M) *"
+msgstr "Varyant (ör. 100 g, M) *"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Varianten-SKU"
+msgstr "Varyant SKU"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Verpflegung"
+msgstr "Yemek"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Vorher/Nachher (Vorher-URL | Nachher-URL | Text)"
+msgstr "Öncesi/sonrası (öncesi URL | sonrası URL | metin)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Was ist dabei (Titel | Text)"
+msgstr "Neler dahil (başlık | metin)"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Währung"
+msgstr "Para birimi"
+
+#. I18N-4 forms/import 2026-07-31
+msgid "Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)"
+msgstr "Sertifikalar / ödüller (ad | veren | logo URL)"
