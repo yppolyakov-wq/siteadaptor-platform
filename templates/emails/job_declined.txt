@@ -1,3 +1,3 @@
-{{ customer.name }} hat das Angebot {{ job.reference_code }} abgelehnt.
+{% load i18n %}{% blocktrans with name=customer.name code=job.reference_code %}{{ name }} hat das Angebot {{ code }} abgelehnt.{% endblocktrans %}
 
 {{ job.title }}

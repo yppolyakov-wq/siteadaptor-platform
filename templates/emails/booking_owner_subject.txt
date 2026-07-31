@@ -1,1 +1,1 @@
-Neue Reservierung: {{ booking.start|date:"d.m." }} {{ booking.start|time:"H:i" }} ({{ resource.name }})
+{% load i18n %}{% trans "Neue Reservierung" %}: {{ booking.start|date:"d.m." }} {{ booking.start|time:"H:i" }} ({{ resource.name }})

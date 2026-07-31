@@ -1,6 +1,6 @@
-Neue Ticket-Anmeldung für „{{ event.title }}“.
+{% load i18n %}{% blocktrans with title=event.title %}Neue Ticket-Anmeldung für „{{ title }}“.{% endblocktrans %}
 
-Kunde: {{ customer.name }}{% if customer.email %} · {{ customer.email }}{% endif %}{% if customer.phone %} · {{ customer.phone }}{% endif %}
-Plätze: {{ ticket.quantity }} · Code: {{ ticket.reference_code }}{% if ticket.total_cents %} · {{ ticket.total_eur }}{% endif %}
+{% trans "Kunde" %}: {{ customer.name }}{% if customer.email %} · {{ customer.email }}{% endif %}{% if customer.phone %} · {{ customer.phone }}{% endif %}
+{% trans "Plätze" %}: {{ ticket.quantity }} · {% trans "Code" %}: {{ ticket.reference_code }}{% if ticket.total_cents %} · {{ ticket.total_eur }}{% endif %}
 
-Teilnehmerliste im Dashboard: /dashboard/events/
+{% trans "Teilnehmerliste im Dashboard" %}: /dashboard/events/

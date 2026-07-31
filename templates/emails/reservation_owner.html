@@ -1,7 +1,8 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 {% block content %}
-<h2 style="margin:0 0 16px;font-size:20px;">Neue Reservierung</h2>
-<p style="margin:0;">Neue Reservierung über Ihre Website:</p>
+<h2 style="margin:0 0 16px;font-size:20px;">{% trans "Neue Reservierung" %}</h2>
+<p style="margin:0;">{% trans "Neue Reservierung über Ihre Website:" %}</p>
 {% include "emails/_reservation_box.html" %}
-<p style="margin:0;font-size:14px;color:#3f3f46;">Kunde: {{ customer.name }}{% if customer.email %} ({{ customer.email }}){% endif %}{% if customer.phone %}, Tel. {{ customer.phone }}{% endif %}</p>
+<p style="margin:0;font-size:14px;color:#3f3f46;">{% trans "Kunde" %}: {{ customer.name }}{% if customer.email %} ({{ customer.email }}){% endif %}{% if customer.phone %}, {% trans "Tel." %} {{ customer.phone }}{% endif %}</p>
 {% endblock %}

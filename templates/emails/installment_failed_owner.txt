@@ -1,6 +1,3 @@
-Hinweis: Die Ratenzahlung zu Ticket {{ ticket.reference_code }} („{{ event.title }}“,
-{{ customer.name }}) ist nach {{ attempt }} Versuchen fehlgeschlagen — der Plan wurde
-auf „failed“ gesetzt. Offener Betrag: {{ plan.remaining_cents }} Cent.
+{% load i18n %}{% blocktrans with code=ticket.reference_code title=event.title name=customer.name n=attempt %}Hinweis: Die Ratenzahlung zu Ticket {{ code }} („{{ title }}“, {{ name }}) ist nach {{ n }} Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt.{% endblocktrans %} {% blocktrans with cents=plan.remaining_cents %}Offener Betrag: {{ cents }} Cent.{% endblocktrans %}
 
-Bitte den Gast kontaktieren bzw. die Zahlung manuell klären (ggf. Rückerstattung
-bereits gezahlter Raten im Dashboard).
+{% trans "Bitte den Gast kontaktieren bzw. die Zahlung manuell klären (ggf. Rückerstattung bereits gezahlter Raten im Dashboard)." %}

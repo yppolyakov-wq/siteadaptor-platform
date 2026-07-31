@@ -1,1 +1,1 @@
-Ratenzahlung gescheitert — {{ ticket.reference_code }}
+{% load i18n %}{% trans "Ratenzahlung gescheitert" %} — {{ ticket.reference_code }}

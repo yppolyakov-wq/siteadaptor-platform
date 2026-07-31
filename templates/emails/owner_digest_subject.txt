@@ -1,1 +1,1 @@
-Ihr Tagesüberblick — {{ d.date|date:"d.m.Y" }}
+{% load i18n %}{% trans "Ihr Tagesüberblick" %} — {{ d.date|date:"d.m.Y" }}

@@ -1,1 +1,1 @@
-Neue Anfrage — {{ job.title }}
+{% load i18n %}{% trans "Neue Anfrage" %} — {{ job.title }}

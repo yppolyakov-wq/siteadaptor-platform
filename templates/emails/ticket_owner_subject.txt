@@ -1,1 +1,1 @@
-Neue Ticket-Anmeldung: {{ event.title }}
+{% load i18n %}{% trans "Neue Ticket-Anmeldung" %}: {{ event.title }}

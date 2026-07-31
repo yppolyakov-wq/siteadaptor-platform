@@ -1,1 +1,1 @@
-Angebot {{ job.reference_code }} angenommen
+{% load i18n %}{% blocktrans with code=job.reference_code %}Angebot {{ code }} angenommen{% endblocktrans %}

@@ -1,11 +1,11 @@
-Hallo,
+{% load i18n %}{% trans "Hallo," %}
 
-Sie haben eine neue Antwort{% if business %} von {{ business }}{% endif %}{% if conversation.subject %} zu „{{ conversation.subject }}“{% endif %}:
+{% if business and conversation.subject %}{% blocktrans with business=business subject=conversation.subject %}Sie haben eine neue Antwort von {{ business }} zu „{{ subject }}“:{% endblocktrans %}{% elif business %}{% blocktrans with business=business %}Sie haben eine neue Antwort von {{ business }}:{% endblocktrans %}{% elif conversation.subject %}{% blocktrans with subject=conversation.subject %}Sie haben eine neue Antwort zu „{{ subject }}“:{% endblocktrans %}{% else %}{% trans "Sie haben eine neue Antwort:" %}{% endif %}
 
 {{ message.body }}
 {% if thread_url %}
-Antworten / Verlauf ansehen:
+{% trans "Antworten / Verlauf ansehen:" %}
 {{ thread_url }}
 {% endif %}
-Mit freundlichen Grüßen{% if staff_name %}
+{% trans "Mit freundlichen Grüßen" %}{% if staff_name %}
 {{ staff_name }}{% if business %} · {{ business }}{% endif %}{% endif %}

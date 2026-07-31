@@ -1,6 +1,6 @@
-{% if offer.customer_name %}{{ offer.customer_name }}{% else %}Der Kunde{% endif %} hat Ihr Angebot abgelehnt.
+{% load i18n %}{% if offer.customer_name %}{% blocktrans with name=offer.customer_name %}{{ name }} hat Ihr Angebot abgelehnt.{% endblocktrans %}{% else %}{% trans "Der Kunde hat Ihr Angebot abgelehnt." %}{% endif %}
 
 {% for line in offer.lines.all %}{{ line.qty }}× {{ line.title }} — {{ line.line_total }} {{ offer.currency }}
-{% endfor %}Gesamt: {{ offer.total }} {{ offer.currency }}
+{% endfor %}{% trans "Gesamt" %}: {{ offer.total }} {{ offer.currency }}
 
-Sie können im Chat nachfragen oder ein neues Angebot senden.
+{% trans "Sie können im Chat nachfragen oder ein neues Angebot senden." %}

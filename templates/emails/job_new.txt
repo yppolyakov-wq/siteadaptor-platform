@@ -1,10 +1,10 @@
-Neue Anfrage!
+{% load i18n %}{% trans "Neue Anfrage!" %}
 
 {{ job.title }}
-Kunde: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}
-{% if job.site_address %}Adresse: {{ job.site_address }}
+{% trans "Kunde" %}: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}
+{% if job.site_address %}{% trans "Adresse" %}: {{ job.site_address }}
 {% endif %}{% if job.description %}
 {{ job.description }}
-{% endif %}Code: {{ job.reference_code }}
+{% endif %}{% trans "Code" %}: {{ job.reference_code }}
 
-Angebot erstellen im Dashboard: /dashboard/auftraege/
+{% trans "Angebot erstellen im Dashboard" %}: /dashboard/auftraege/

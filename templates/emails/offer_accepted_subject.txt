@@ -1,1 +1,1 @@
-Angebot angenommen{% if order %} — Bestellung {{ order.reference_code }}{% endif %}
+{% load i18n %}{% trans "Angebot angenommen" %}{% if order %} — {% blocktrans with code=order.reference_code %}Bestellung {{ code }}{% endblocktrans %}{% endif %}

@@ -1,5 +1,5 @@
-Neue Nachricht von {{ conversation.customer|default:"einem Gast" }}{% if conversation.ref_label %} ({{ conversation.ref_label }}){% endif %}:
+{% load i18n %}{% blocktrans with who=conversation.customer|default:_("einem Gast") %}Neue Nachricht von {{ who }}{% endblocktrans %}{% if conversation.ref_label %} ({{ conversation.ref_label }}){% endif %}:
 
 {{ message.body }}
 {% if thread_url %}
-Im Postfach öffnen (Dashboard → Inbox).{% endif %}
+{% trans "Im Postfach öffnen (Dashboard → Inbox)." %}{% endif %}

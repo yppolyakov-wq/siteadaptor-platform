@@ -1,1 +1,1 @@
-Angebot abgelehnt
+{% load i18n %}{% trans "Angebot abgelehnt" %}

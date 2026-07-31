@@ -1,1 +1,1 @@
-Ihr Angebot {{ job.reference_code }}
+{% load i18n %}{% blocktrans with code=job.reference_code %}Ihr Angebot {{ code }}{% endblocktrans %}

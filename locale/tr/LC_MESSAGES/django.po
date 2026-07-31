@@ -15444,3 +15444,526 @@ msgstr "Henüz bir şey kaydedilmedi. Bir üründe ♡ simgesine dokunun."
 #. M4-C wishlist 2026-07-31
 msgid "Zum Sortiment"
 msgstr "Mağazaya"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat Ihr Angebot abgelehnt."
+msgstr "%(name)s teklifinizi reddetti."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat Ihr Angebot angenommen."
+msgstr "%(name)s teklifinizi kabul etti."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat das Angebot %(code)s abgelehnt."
+msgstr "%(name)s %(code)s numaralı teklifi reddetti."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat das Angebot %(code)s angenommen."
+msgstr "%(name)s %(code)s numaralı teklifi kabul etti."
+
+#. I18N-7a emails 2026-07-31
+msgid "Abholort"
+msgstr "Teslim alma yeri"
+
+#. I18N-7a emails 2026-07-31
+msgid "Alles Weitere im Dashboard Ihrer Website."
+msgstr "Diğer her şey web sitenizin panelinde."
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot %(code)s abgelehnt"
+msgstr "Teklif %(code)s reddedildi"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot %(code)s angenommen"
+msgstr "Teklif %(code)s kabul edildi"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot abgelehnt"
+msgstr "Teklif reddedildi"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot angenommen"
+msgstr "Teklif kabul edildi"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot ansehen und annehmen:"
+msgstr "Teklifi görüntüleyin ve kabul edin:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot erstellen im Dashboard"
+msgstr "Panelde teklif oluşturun"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebots-Nr."
+msgstr "Teklif no"
+
+#. I18N-7a emails 2026-07-31
+msgid "Antworten / Verlauf ansehen:"
+msgstr "Yanıtla / geçmişi görüntüle:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Auftrag im Dashboard"
+msgstr "Paneldeki iş"
+
+#. I18N-7a emails 2026-07-31
+msgid "Auftrags-Nr."
+msgstr "İş no"
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestellung %(code)s"
+msgstr "Sipariş %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestellung im Dashboard bestätigen"
+msgstr "Siparişi panelde onaylayın"
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestellung: %(code)s — im Dashboard unter Verkäufe."
+msgstr "Sipariş: %(code)s — panelde Satışlar altında."
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestätigen im Dashboard"
+msgstr "Panelde onaylayın"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Bitte den Gast kontaktieren bzw. die Zahlung manuell klären (ggf. "
+"Rückerstattung bereits gezahlter Raten im Dashboard)."
+msgstr ""
+"Lütfen misafirle iletişime geçin veya ödemeyi manuel olarak çözün (gerekirse"
+" ödenmiş taksitleri panelden iade edin)."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Das war eine unverbindliche Reservierung, es entstehen keine Kosten. Gern "
+"legen wir Ihnen jederzeit etwas Neues zurück."
+msgstr ""
+"Bu bağlayıcı olmayan bir rezervasyondu, herhangi bir ücret doğmaz. "
+"Dilediğiniz zaman sizin için yeniden ayırabiliriz."
+
+#. I18N-7a emails 2026-07-31
+msgid "Der Kunde hat Ihr Angebot abgelehnt."
+msgstr "Müşteri teklifinizi reddetti."
+
+#. I18N-7a emails 2026-07-31
+msgid "Der Kunde hat Ihr Angebot angenommen."
+msgstr "Müşteri teklifinizi kabul etti."
+
+#. I18N-7a emails 2026-07-31
+msgid "Diesen Überblick können Sie in den Einstellungen abschalten."
+msgstr "Bu özeti ayarlardan kapatabilirsiniz."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Dieser Code kann als Promo-Code bei einer Buchung auf unserer Website "
+"eingelöst werden."
+msgstr ""
+"Bu kod, web sitemizden rezervasyon yaparken promosyon kodu olarak "
+"kullanılabilir."
+
+#. I18N-7a emails 2026-07-31
+msgid "Erinnerung: TÜV / Service fällig"
+msgstr "Hatırlatma: muayene / servis zamanı"
+
+#. I18N-7a emails 2026-07-31
+msgid "Fahrzeug"
+msgstr "Araç"
+
+#. I18N-7a emails 2026-07-31
+msgid "Für"
+msgstr "İçin"
+
+#. I18N-7a emails 2026-07-31
+msgid "Gesamtpreis"
+msgstr "Toplam fiyat"
+
+#. I18N-7a emails 2026-07-31
+msgid "Gute Nachricht!"
+msgstr "İyi haber!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Guten Morgen!"
+msgstr "Günaydın!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Gutscheincode"
+msgstr "Kupon kodu"
+
+#. I18N-7a emails 2026-07-31
+msgid "Heute:"
+msgstr "Bugün:"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist "
+"nach %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
+msgstr ""
+"Not: %(code)s numaralı bilet için taksit planı (“%(title)s”, %(name)s) %(n)s"
+" denemeden sonra başarısız oldu — plan “failed” olarak ayarlandı."
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Angebot %(code)s"
+msgstr "Teklifiniz %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Auftrag %(code)s ist fertig"
+msgstr "İşiniz %(code)s tamamlandı"
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Tagesüberblick"
+msgstr "Günlük özetiniz"
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Tagesüberblick für %(business)s (%(day)s):"
+msgstr "%(business)s için günlük özetiniz (%(day)s):"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Ihre Anprobe-Reservierung wurde aufgehoben — die Artikel sind wieder frei "
+"verfügbar."
+msgstr "Prova rezervasyonunuz iptal edildi — ürünler tekrar müsait."
+
+#. I18N-7a emails 2026-07-31
+msgid "Im Postfach öffnen (Dashboard → Inbox)."
+msgstr "Gelen kutusunda açın (Panel → Gelen kutusu)."
+
+#. I18N-7a emails 2026-07-31
+msgid "Jetzt Platz sichern"
+msgstr "Yerinizi hemen ayırtın"
+
+#. I18N-7a emails 2026-07-31
+msgid "Jetzt ansehen:"
+msgstr "Şimdi görüntüleyin:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Kleiner Tipp: Beliebte Größen sind schnell wieder weg."
+msgstr "Küçük bir ipucu: popüler bedenler hızla tükenir."
+
+#. I18N-7a emails 2026-07-31
+msgid "Kunde"
+msgstr "Müşteri"
+
+#. I18N-7a emails 2026-07-31
+msgid "Mit freundlichen Grüßen"
+msgstr "Saygılarımızla"
+
+#. I18N-7a emails 2026-07-31
+msgid "Nachricht"
+msgstr "Mesaj"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Anfrage"
+msgstr "Yeni talep"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Anfrage!"
+msgstr "Yeni talep!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Anprobe-Reservierung %(code)s"
+msgstr "Yeni prova rezervasyonu %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Antwort auf Ihre Nachricht"
+msgstr "Mesajınıza yeni yanıt"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Antwort von %(business)s"
+msgstr "%(business)s'den yeni yanıt"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Bestellung"
+msgstr "Yeni sipariş"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Buchung"
+msgstr "Yeni rezervasyon"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Buchungsanfrage!"
+msgstr "Yeni rezervasyon talebi!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Click-&-Collect-Bestellung!"
+msgstr "Yeni al-götür siparişi!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Kundennachricht"
+msgstr "Yeni müşteri mesajı"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Nachricht von %(who)s"
+msgstr "%(who)s tarafından yeni mesaj"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Reservierung"
+msgstr "Yeni rezervasyon"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Reservierung über Ihre Website:"
+msgstr "Web siteniz üzerinden yeni rezervasyon:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Reservierungsanfrage!"
+msgstr "Yeni rezervasyon talebi!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Ticket-Anmeldung"
+msgstr "Yeni bilet kaydı"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Ticket-Anmeldung für „%(title)s“."
+msgstr "“%(title)s” için yeni bilet kaydı."
+
+#. I18N-7a emails 2026-07-31
+msgid "Notiz"
+msgstr "Not"
+
+#. I18N-7a emails 2026-07-31
+msgid "Offener Betrag: %(cents)s Cent."
+msgstr "Ödenmemiş tutar: %(cents)s kuruş."
+
+#. I18N-7a emails 2026-07-31
+msgid "Ratenzahlung gescheitert"
+msgstr "Taksit planı başarısız"
+
+#. I18N-7a emails 2026-07-31
+msgid "Reserviert bis %(until)s — danach wird automatisch freigegeben."
+msgstr ""
+"%(until)s tarihine kadar ayrıldı — sonrasında otomatik olarak serbest "
+"bırakılır."
+
+#. I18N-7a emails 2026-07-31
+msgid "Reservierung %(code)s aufgehoben"
+msgstr "Rezervasyon %(code)s iptal edildi"
+
+#. I18N-7a emails 2026-07-31
+msgid "Schnell sein lohnt sich — die Gruppe ist klein."
+msgstr "Hızlı olmak avantajlı — grup küçük."
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort von %(business)s zu „%(subject)s“:"
+msgstr "%(business)s tarafından “%(subject)s” hakkında yeni yanıt:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort von %(business)s:"
+msgstr "%(business)s tarafından yeni yanıtınız var:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort zu „%(subject)s“:"
+msgstr "“%(subject)s” hakkında yeni yanıtınız var:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort:"
+msgstr "Yeni yanıtınız var:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie können im Chat nachfragen oder ein neues Angebot senden."
+msgstr "Sohbetten sorabilir veya yeni bir teklif gönderebilirsiniz."
+
+#. I18N-7a emails 2026-07-31
+msgid "Status ansehen:"
+msgstr "Durumu görüntüle:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Teilnehmerliste im Dashboard"
+msgstr "Panelde katılımcı listesi"
+
+#. I18N-7a emails 2026-07-31
+msgid "Tel."
+msgstr "Tel."
+
+#. I18N-7a emails 2026-07-31
+msgid "Tisch"
+msgstr "Masa"
+
+#. I18N-7a emails 2026-07-31
+msgid "Umsatz gestern"
+msgstr "Dünkü ciro"
+
+#. I18N-7a emails 2026-07-31
+msgid "Vereinbaren Sie am besten gleich einen Termin — wir kümmern uns darum."
+msgstr "En iyisi hemen randevu alın — biz hallederiz."
+
+#. I18N-7a emails 2026-07-31
+msgid "Verwalten im Dashboard"
+msgstr "Panelde yönetin"
+
+#. I18N-7a emails 2026-07-31
+msgid "Vielen Dank für Ihr Vertrauen."
+msgstr "Güveniniz için teşekkürler."
+
+#. I18N-7a emails 2026-07-31
+msgid "Vielen Dank!"
+msgstr "Teşekkürler!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Waren Sie zufrieden? Über eine kurze Bewertung freuen wir uns sehr:"
+msgstr "Memnun kaldınız mı? Kısa bir değerlendirme bizi çok mutlu eder:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wartet auf Sie:"
+msgstr "Sizi bekliyor:"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Wichtig: Dies ist eine unverbindliche Reservierung — KEIN Kaufvertrag und "
+"keine Zahlungspflicht. Sie entscheiden in Ruhe bei der Anprobe im Geschäft; "
+"gekauft und bezahlt wird erst vor Ort."
+msgstr ""
+"Önemli: bu bağlayıcı olmayan bir rezervasyondur — satış sözleşmesi DEĞİLDİR "
+"ve ödeme yükümlülüğü yoktur. Mağazada denerken rahatça karar verirsiniz; "
+"satın alma ve ödeme yerinde yapılır."
+
+#. I18N-7a emails 2026-07-31
+msgid "Wieder da: %(name)s"
+msgstr "Tekrar stokta: %(name)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wieder ein Platz frei 🎉"
+msgstr "Bir yer tekrar boşaldı 🎉"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wieder frei"
+msgstr "Tekrar müsait"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wir halten die Reservierung bis %(until)s für Sie bereit."
+msgstr "Rezervasyonu %(until)s tarihine kadar sizin için tutacağız."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden"
+" Sie sich bei uns, um die Ratenzahlung fortzusetzen."
+msgstr ""
+"Birkaç denemeden sonra ödemeyi tahsil edemedik. Taksit planına devam etmek "
+"için lütfen bizimle iletişime geçin."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten"
+" auch hier prüfen:"
+msgstr ""
+"Önümüzdeki günlerde tekrar deneyeceğiz. Ödeme bilgilerinizi buradan da "
+"kontrol edebilirsiniz:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Zahlung fehlgeschlagen"
+msgstr "Ödeme başarısız"
+
+#. I18N-7a emails 2026-07-31
+msgid "Zur Anprobe zurückgelegt — Reservierung %(code)s"
+msgstr "Prova için ayrıldı — rezervasyon %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "am %(due)s"
+msgstr "%(due)s tarihinde"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht "
+"eingezogen werden"
+msgstr ""
+"“%(title)s” için %(n)s. taksit (%(amount)s €) maalesef tahsil edilemedi"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"eine kurze Erinnerung: Ihr nächster TÜV / Service ist am %(due)s fällig."
+msgstr ""
+"kısa bir hatırlatma: bir sonraki muayene / servisiniz %(due)s tarihinde."
+
+#. I18N-7a emails 2026-07-31
+msgid "eine kurze Erinnerung: Ihr nächster TÜV / Service steht an."
+msgstr "kısa bir hatırlatma: bir sonraki muayene / servisiniz yaklaşıyor."
+
+#. I18N-7a emails 2026-07-31
+msgid "gute Nachrichten — Ihr Auftrag ist erledigt:"
+msgstr "iyi haber — işiniz tamamlandı:"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz "
+"frei."
+msgstr "iyi haber: <strong>“%(title)s”</strong> için bir yer tekrar boşaldı."
+
+#. I18N-7a emails 2026-07-31
+msgid "gute Nachrichten: für „%(title)s“ ist wieder ein Platz frei."
+msgstr "iyi haber: “%(title)s” için bir yer tekrar boşaldı."
+
+#. I18N-7a emails 2026-07-31
+msgid "gültig bis %(until)s"
+msgstr "%(until)s tarihine kadar geçerli"
+
+#. I18N-7a emails 2026-07-31
+msgid "vielen Dank für Ihre Anfrage — hier ist Ihr Angebot:"
+msgstr "talebiniz için teşekkürler — işte teklifiniz:"
+
+#. I18N-7a emails 2026-07-31
+msgid "vielen Dank für Ihren Geschenkgutschein über %(amount)s €."
+msgstr "%(amount)s € tutarındaki hediye kuponunuz için teşekkürler."
+
+#. I18N-7a emails 2026-07-31
+msgid "wir haben Folgendes für Sie in der Anprobe zurückgelegt:"
+msgstr "prova kabininde sizin için şunları ayırdık:"
+
+#. I18N-7a emails 2026-07-31
+msgid "„%(name)s“ ist in Größe %(size)s wieder verfügbar."
+msgstr "“%(name)s” %(size)s bedeninde tekrar mevcut."
+
+#. I18N-7a emails 2026-07-31
+msgid "„%(name)s“ ist wieder verfügbar."
+msgstr "“%(name)s” tekrar mevcut."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s Anreise"
+msgid_plural "%(n)s Anreisen"
+msgstr[0] "%(n)s varış"
+msgstr[1] "%(n)s varış"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s Termin"
+msgid_plural "%(n)s Termine"
+msgstr[0] "%(n)s randevu"
+msgstr[1] "%(n)s randevu"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s Veranstaltung"
+msgid_plural "%(n)s Veranstaltungen"
+msgstr[0] "%(n)s etkinlik"
+msgstr[1] "%(n)s etkinlik"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s neue Anfrage"
+msgid_plural "%(n)s neue Anfragen"
+msgstr[0] "%(n)s yeni talep"
+msgstr[1] "%(n)s yeni talep"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s neue Bestellung"
+msgid_plural "%(n)s neue Bestellungen"
+msgstr[0] "%(n)s yeni sipariş"
+msgstr[1] "%(n)s yeni sipariş"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s unbestätigte Anmeldung"
+msgid_plural "%(n)s unbestätigte Anmeldungen"
+msgstr[0] "%(n)s onaylanmamış kayıt"
+msgstr[1] "%(n)s onaylanmamış kayıt"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s unbestätigte Buchung"
+msgid_plural "%(n)s unbestätigte Buchungen"
+msgstr[0] "%(n)s onaylanmamış rezervasyon"
+msgstr[1] "%(n)s onaylanmamış rezervasyon"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s unbestätigte Reservierung"
+msgid_plural "%(n)s unbestätigte Reservierungen"
+msgstr[0] "%(n)s onaylanmamış rezervasyon"
+msgstr[1] "%(n)s onaylanmamış rezervasyon"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s ungelesene Nachricht"
+msgid_plural "%(n)s ungelesene Nachrichten"
+msgstr[0] "%(n)s okunmamış mesaj"
+msgstr[1] "%(n)s okunmamış mesaj"

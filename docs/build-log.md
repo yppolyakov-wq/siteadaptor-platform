@@ -7219,3 +7219,19 @@ name="variant"` (замок buybox); wishlist в tenant-схеме отсутс�
   (работает без JS).
 - 8 замков; 6 msgid × 5 .po. Грабля-повтор: rate-limit `rl:*` в Redis переживает
   прогоны и валит соседние тесты отзывов — чистить `scan_iter('*rl*')` в БД 1.
+
+## 2026-07-31 — I18N-7a: письма (41 шаблон, +116 msgid × 5 .po)
+Волна I18N-7 в части ПИСЕМ (PDF/счета остаются за решением владельца — юридика,
+см. план §3). Механизм локали уже был централизован: все notification-модули
+зовут `promotions.notifications._render`, который делает `translation.override`.
+- Обёрнуты 41 шаблон: owner-письма (order/stay/ticket/reservation/booking/digest),
+  job_* (5 флоу), offer_accepted/declined, inbox_customer/owner, installment_failed
+  (+owner), gift_voucher, event_waitlist_available (txt+html), reservation_owner.html.
+- Числа/имена — через `{% blocktrans with %}`; дайджест владельца получил
+  НАСТОЯЩИЕ плюралы (`{% blocktrans count %}`) вместо «Termin(e)» — у ru/uk 4 формы.
+- Грабля: свой regex по шаблонам дал 142 «пропуска», а реальных было 107+9 —
+  Django нормализует blocktrans иначе. Правильный способ — прогнать шаблоны через
+  `django.utils.translation.template.templatize` (то же, что makemessages) и уже
+  из результата тянуть msgid: `%(name)s`, а не `{{ name }}`.
+- Замок `apps/core/tests/test_email_i18n_owner.py`: owner/job/offer/gift/waitlist
+  реально переводятся, DE байт-в-байт прежний, плюралы дайджеста языкоспецифичны.

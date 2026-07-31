@@ -1,7 +1,7 @@
-{% if offer.customer_name %}{{ offer.customer_name }}{% else %}Der Kunde{% endif %} hat Ihr Angebot angenommen.
+{% load i18n %}{% if offer.customer_name %}{% blocktrans with name=offer.customer_name %}{{ name }} hat Ihr Angebot angenommen.{% endblocktrans %}{% else %}{% trans "Der Kunde hat Ihr Angebot angenommen." %}{% endif %}
 
 {% for line in offer.lines.all %}{{ line.qty }}× {{ line.title }} — {{ line.line_total }} {{ offer.currency }}
-{% endfor %}Gesamt: {{ offer.total }} {{ offer.currency }}
+{% endfor %}{% trans "Gesamt" %}: {{ offer.total }} {{ offer.currency }}
 {% if order %}
-Bestellung: {{ order.reference_code }} — im Dashboard unter Verkäufe.
+{% blocktrans with code=order.reference_code %}Bestellung: {{ code }} — im Dashboard unter Verkäufe.{% endblocktrans %}
 {% endif %}

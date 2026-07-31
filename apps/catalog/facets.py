@@ -73,8 +73,17 @@ class CatalogFacets(FacetProvider):
 
             # Один filter() → один джойн варианта: размер И его доступность
             # (NULL-остаток = безлимит). Дублей нет — label уникален per товар.
+            # M4-A: ось `size` при наличии, иначе легаси-label (чипы и фильтр
+            # обязаны смотреть на ОДНО поле — иначе клик по чипу ничего не найдёт).
+            from apps.catalog.models import ProductVariant
+
+            axis = (
+                "variants__size"
+                if ProductVariant.objects.filter(is_active=True).exclude(size="").exists()
+                else "variants__label"
+            )
             items = items.filter(
-                Q(variants__label=sel["groesse"], variants__is_active=True)
+                Q(**{axis: sel["groesse"]}, variants__is_active=True)
                 & (Q(variants__stock_quantity__isnull=True) | Q(variants__stock_quantity__gt=0))
             )
         if sel["kollektion"]:
@@ -159,18 +168,23 @@ class CatalogFacets(FacetProvider):
 
     @staticmethod
     def _size_chips(items) -> list:
+        """Чипы размера. M4-A: при заполненной оси `size` берём ЕЁ, иначе — label.
+
+        Иначе у товара с осями (S · Blau, S · Rot, M · Blau…) чипы превратились бы
+        в декартово произведение и фильтр стал бы бессмысленным."""
         from django.db.models import Min
 
         from apps.catalog.models import ProductVariant
 
+        active = ProductVariant.objects.filter(product__in=items, is_active=True)
+        field = "size" if active.exclude(size="").exists() else "label"
         rows = (
-            ProductVariant.objects.filter(product__in=items, is_active=True)
-            .exclude(label="")
-            .values("label")
+            active.exclude(**{field: ""})
+            .values(field)
             .annotate(o=Min("sort_order"))
-            .order_by("o", "label")
+            .order_by("o", field)
         )
-        sizes = [r["label"] for r in rows]
+        sizes = [r[field] for r in rows]
         return sizes if len(sizes) > 1 else []
 
     def search(self, items, q):

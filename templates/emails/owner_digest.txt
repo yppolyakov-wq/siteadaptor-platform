@@ -1,22 +1,22 @@
-Guten Morgen!
+{% load i18n %}{% trans "Guten Morgen!" %}
 
-Ihr Tagesüberblick für {{ tenant.name }} ({{ d.date|date:"l, d.m.Y" }}):
+{% blocktrans with business=tenant.name day=d.date|date:"l, d.m.Y" %}Ihr Tagesüberblick für {{ business }} ({{ day }}):{% endblocktrans %}
 {% if d.revenue_yesterday is not None %}
-Umsatz gestern: {{ d.revenue_yesterday }} €
+{% trans "Umsatz gestern" %}: {{ d.revenue_yesterday }} €
 {% endif %}{% if d.bookings_today or d.arrivals_today or d.events_today %}
-Heute:
-{% if d.bookings_today %}- {{ d.bookings_today }} Termin(e)
-{% endif %}{% if d.arrivals_today %}- {{ d.arrivals_today }} Anreise(n)
-{% endif %}{% if d.events_today %}- {{ d.events_today }} Veranstaltung(en)
+{% trans "Heute:" %}
+{% if d.bookings_today %}- {% blocktrans count n=d.bookings_today %}{{ n }} Termin{% plural %}{{ n }} Termine{% endblocktrans %}
+{% endif %}{% if d.arrivals_today %}- {% blocktrans count n=d.arrivals_today %}{{ n }} Anreise{% plural %}{{ n }} Anreisen{% endblocktrans %}
+{% endif %}{% if d.events_today %}- {% blocktrans count n=d.events_today %}{{ n }} Veranstaltung{% plural %}{{ n }} Veranstaltungen{% endblocktrans %}
 {% endif %}{% endif %}{% if d.bookings_pending or d.stays_pending or d.tickets_pending or d.orders_new or d.jobs_new or d.inbox_unread %}
-Wartet auf Sie:
-{% if d.bookings_pending %}- {{ d.bookings_pending }} unbestätigte Reservierung(en)
-{% endif %}{% if d.stays_pending %}- {{ d.stays_pending }} unbestätigte Buchung(en)
-{% endif %}{% if d.tickets_pending %}- {{ d.tickets_pending }} unbestätigte Anmeldung(en)
-{% endif %}{% if d.orders_new %}- {{ d.orders_new }} neue Bestellung(en)
-{% endif %}{% if d.jobs_new %}- {{ d.jobs_new }} neue Anfrage(n)
-{% endif %}{% if d.inbox_unread %}- {{ d.inbox_unread }} ungelesene Nachricht(en)
+{% trans "Wartet auf Sie:" %}
+{% if d.bookings_pending %}- {% blocktrans count n=d.bookings_pending %}{{ n }} unbestätigte Reservierung{% plural %}{{ n }} unbestätigte Reservierungen{% endblocktrans %}
+{% endif %}{% if d.stays_pending %}- {% blocktrans count n=d.stays_pending %}{{ n }} unbestätigte Buchung{% plural %}{{ n }} unbestätigte Buchungen{% endblocktrans %}
+{% endif %}{% if d.tickets_pending %}- {% blocktrans count n=d.tickets_pending %}{{ n }} unbestätigte Anmeldung{% plural %}{{ n }} unbestätigte Anmeldungen{% endblocktrans %}
+{% endif %}{% if d.orders_new %}- {% blocktrans count n=d.orders_new %}{{ n }} neue Bestellung{% plural %}{{ n }} neue Bestellungen{% endblocktrans %}
+{% endif %}{% if d.jobs_new %}- {% blocktrans count n=d.jobs_new %}{{ n }} neue Anfrage{% plural %}{{ n }} neue Anfragen{% endblocktrans %}
+{% endif %}{% if d.inbox_unread %}- {% blocktrans count n=d.inbox_unread %}{{ n }} ungelesene Nachricht{% plural %}{{ n }} ungelesene Nachrichten{% endblocktrans %}
 {% endif %}{% endif %}
-Alles Weitere im Dashboard Ihrer Website.
+{% trans "Alles Weitere im Dashboard Ihrer Website." %}
 
-Diesen Überblick können Sie in den Einstellungen abschalten.
+{% trans "Diesen Überblick können Sie in den Einstellungen abschalten." %}

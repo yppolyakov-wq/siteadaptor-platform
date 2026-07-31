@@ -1,1 +1,1 @@
-Neue Bestellung: {{ order.reference_code }} ({{ order.total }} {{ order.currency }})
+{% load i18n %}{% trans "Neue Bestellung" %}: {{ order.reference_code }} ({{ order.total }} {{ order.currency }})

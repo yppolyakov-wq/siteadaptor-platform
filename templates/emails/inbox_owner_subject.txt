@@ -1,1 +1,1 @@
-Neue Kundennachricht{% if conversation.subject %}: {{ conversation.subject }}{% endif %}
+{% load i18n %}{% trans "Neue Kundennachricht" %}{% if conversation.subject %}: {{ conversation.subject }}{% endif %}

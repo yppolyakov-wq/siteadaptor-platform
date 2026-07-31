@@ -1,14 +1,14 @@
-Hallo {{ customer.name }},
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-gute Nachrichten — Ihr Auftrag ist erledigt:
+{% trans "gute Nachrichten — Ihr Auftrag ist erledigt:" %}
 
 {{ job.title }}
-Auftrags-Nr.: {{ job.reference_code }}
+{% trans "Auftrags-Nr." %}: {{ job.reference_code }}
 {% if status_url %}
-Status ansehen:
+{% trans "Status ansehen:" %}
 {{ status_url }}
 {% endif %}{% if review_url %}
-Waren Sie zufrieden? Über eine kurze Bewertung freuen wir uns sehr:
+{% trans "Waren Sie zufrieden? Über eine kurze Bewertung freuen wir uns sehr:" %}
 {{ review_url }}
 {% endif %}
-Vielen Dank für Ihr Vertrauen.
+{% trans "Vielen Dank für Ihr Vertrauen." %}

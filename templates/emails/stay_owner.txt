@@ -1,8 +1,8 @@
-Neue Buchungsanfrage!
+{% load i18n %}{% trans "Neue Buchungsanfrage!" %}
 
-{{ unit.name }} · {{ booking.arrival|date:"d.m.Y" }} → {{ booking.departure|date:"d.m.Y" }} ({{ booking.nights }} Nächte)
-Gast: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}{% if booking.guests > 1 %} · {{ booking.guests }} Gäste{% endif %}
-Code: {{ booking.reference_code }}{% if booking.total_cents %} · {{ booking.total_eur|floatformat:2 }} €{% endif %}
-{% if booking.note %}Notiz: {{ booking.note }}{% endif %}
+{{ unit.name }} · {{ booking.arrival|date:"d.m.Y" }} → {{ booking.departure|date:"d.m.Y" }} ({% blocktrans with n=booking.nights %}{{ n }} Nächte{% endblocktrans %})
+{% trans "Gast" %}: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}{% if booking.guests > 1 %} · {% blocktrans with n=booking.guests %}{{ n }} Gäste{% endblocktrans %}{% endif %}
+{% trans "Code" %}: {{ booking.reference_code }}{% if booking.total_cents %} · {{ booking.total_eur|floatformat:2 }} €{% endif %}
+{% if booking.note %}{% trans "Notiz" %}: {{ booking.note }}{% endif %}
 
-Verwalten im Dashboard: /dashboard/stays/buchung/{{ booking.pk }}/
+{% trans "Verwalten im Dashboard" %}: /dashboard/stays/buchung/{{ booking.pk }}/

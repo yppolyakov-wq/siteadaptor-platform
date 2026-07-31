@@ -1,1 +1,1 @@
-{% if business %}Neue Antwort von {{ business }}{% else %}Neue Antwort auf Ihre Nachricht{% endif %}
+{% load i18n %}{% if business %}{% blocktrans with business=business %}Neue Antwort von {{ business }}{% endblocktrans %}{% else %}{% trans "Neue Antwort auf Ihre Nachricht" %}{% endif %}

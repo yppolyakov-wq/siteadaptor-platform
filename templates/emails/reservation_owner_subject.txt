@@ -1,1 +1,1 @@
-Neue Reservierung — {{ promotion.title_text }}
+{% load i18n %}{% trans "Neue Reservierung" %} — {{ promotion.title_text }}

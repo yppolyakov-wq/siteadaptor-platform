@@ -317,7 +317,16 @@ class ProductVariant(TimestampedModel):
     """
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
-    label = models.CharField(max_length=100)  # «100 g», «M», «6er-Pack»
+    label = models.CharField(max_length=100)  # «100 g», «M», «6er-Pack», «S · Blau»
+    # M4-A (план m4a-variant-axes-plan-2026-07-31): ОСИ варианта. Добавлены РЯДОМ
+    # с label, а не вместо него: на label держатся склад-леджер, позиции заказа,
+    # PDF, фид и CSV-импорт (match по (product,label)) — замена ключа переписала бы
+    # пять подсистем. Обе оси пусты = поведение ровно как раньше.
+    size = models.CharField(max_length=40, blank=True)  # «S», «38», «100 g»
+    color = models.CharField(max_length=40, blank=True)  # «Blau», «Anthrazit»
+    # Фото варианта (FileRef-конверт как Product.images): при выборе подменяет
+    # главное фото на витрине; галерея товара не трогается.
+    images = models.JSONField(default=list, blank=True)
     sku = models.CharField(max_length=100, blank=True)
     gtin = models.CharField(max_length=14, blank=True)  # A1: EAN/GTIN варианта
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -341,6 +350,31 @@ class ProductVariant(TimestampedModel):
 
     def __str__(self):
         return f"{self.product} · {self.label}"
+
+    def axis_label(self) -> str:
+        """Подпись из осей («S · Blau»); пусто, если ни одна ось не задана."""
+        return " · ".join(p for p in (self.size, self.color) if p)
+
+    def save(self, *args, **kwargs):
+        """label — производный ключ: заполняем из осей ТОЛЬКО когда он пуст.
+        Ручной label и старые варианты остаются как есть (их держат заказы/склад)."""
+        if not (self.label or "").strip():
+            self.label = self.axis_label()
+        super().save(*args, **kwargs)
+
+    @property
+    def primary_image(self) -> dict | None:
+        imgs = self.images or []
+        for img in imgs:
+            if img.get("is_primary"):
+                return img
+        return imgs[0] if imgs else None
+
+    @property
+    def image_url(self) -> str:
+        """URL фото варианта ('' если нет) — подмена главного фото на витрине."""
+        img = self.primary_image
+        return img.get("url", "") if img else ""
 
     @property
     def price_value(self):

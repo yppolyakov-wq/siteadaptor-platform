@@ -1,1 +1,1 @@
-Ihr Auftrag {{ job.reference_code }} ist fertig
+{% load i18n %}{% blocktrans with code=job.reference_code %}Ihr Auftrag {{ code }} ist fertig{% endblocktrans %}

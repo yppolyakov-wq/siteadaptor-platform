@@ -15494,3 +15494,538 @@ msgstr "Поки порожньо. Натисніть ♡ біля товару.
 #. M4-C wishlist 2026-07-31
 msgid "Zum Sortiment"
 msgstr "До каталогу"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat Ihr Angebot abgelehnt."
+msgstr "%(name)s відхилив(ла) вашу пропозицію."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat Ihr Angebot angenommen."
+msgstr "%(name)s прийняв(ла) вашу пропозицію."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat das Angebot %(code)s abgelehnt."
+msgstr "%(name)s відхилив(ла) пропозицію %(code)s."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(name)s hat das Angebot %(code)s angenommen."
+msgstr "%(name)s прийняв(ла) пропозицію %(code)s."
+
+#. I18N-7a emails 2026-07-31
+msgid "Abholort"
+msgstr "Місце видачі"
+
+#. I18N-7a emails 2026-07-31
+msgid "Alles Weitere im Dashboard Ihrer Website."
+msgstr "Решта — у панелі вашого сайту."
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot %(code)s abgelehnt"
+msgstr "Пропозицію %(code)s відхилено"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot %(code)s angenommen"
+msgstr "Пропозицію %(code)s прийнято"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot abgelehnt"
+msgstr "Пропозицію відхилено"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot angenommen"
+msgstr "Пропозицію прийнято"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot ansehen und annehmen:"
+msgstr "Переглянути та прийняти пропозицію:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebot erstellen im Dashboard"
+msgstr "Створити кошторис у панелі"
+
+#. I18N-7a emails 2026-07-31
+msgid "Angebots-Nr."
+msgstr "№ пропозиції"
+
+#. I18N-7a emails 2026-07-31
+msgid "Antworten / Verlauf ansehen:"
+msgstr "Відповісти / переглянути листування:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Auftrag im Dashboard"
+msgstr "Замовлення в панелі"
+
+#. I18N-7a emails 2026-07-31
+msgid "Auftrags-Nr."
+msgstr "№ замовлення"
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestellung %(code)s"
+msgstr "Замовлення %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestellung im Dashboard bestätigen"
+msgstr "Підтвердити замовлення в панелі"
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestellung: %(code)s — im Dashboard unter Verkäufe."
+msgstr "Замовлення: %(code)s — у панелі, розділ «Продажі»."
+
+#. I18N-7a emails 2026-07-31
+msgid "Bestätigen im Dashboard"
+msgstr "Підтвердити в панелі"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Bitte den Gast kontaktieren bzw. die Zahlung manuell klären (ggf. "
+"Rückerstattung bereits gezahlter Raten im Dashboard)."
+msgstr ""
+"Зв’яжіться з гостем або врегулюйте оплату вручну (за потреби поверніть уже "
+"сплачені частини в панелі)."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Das war eine unverbindliche Reservierung, es entstehen keine Kosten. Gern "
+"legen wir Ihnen jederzeit etwas Neues zurück."
+msgstr ""
+"Це було необов’язкове бронювання, жодних витрат не виникає. Залюбки "
+"відкладемо для вас щось нове будь-коли."
+
+#. I18N-7a emails 2026-07-31
+msgid "Der Kunde hat Ihr Angebot abgelehnt."
+msgstr "Клієнт відхилив вашу пропозицію."
+
+#. I18N-7a emails 2026-07-31
+msgid "Der Kunde hat Ihr Angebot angenommen."
+msgstr "Клієнт прийняв вашу пропозицію."
+
+#. I18N-7a emails 2026-07-31
+msgid "Diesen Überblick können Sie in den Einstellungen abschalten."
+msgstr "Цю зведення можна вимкнути в налаштуваннях."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Dieser Code kann als Promo-Code bei einer Buchung auf unserer Website "
+"eingelöst werden."
+msgstr ""
+"Цей код можна використати як промокод під час бронювання на нашому сайті."
+
+#. I18N-7a emails 2026-07-31
+msgid "Erinnerung: TÜV / Service fällig"
+msgstr "Нагадування: час на техогляд / сервіс"
+
+#. I18N-7a emails 2026-07-31
+msgid "Fahrzeug"
+msgstr "Автомобіль"
+
+#. I18N-7a emails 2026-07-31
+msgid "Für"
+msgstr "Для"
+
+#. I18N-7a emails 2026-07-31
+msgid "Gesamtpreis"
+msgstr "Підсумкова ціна"
+
+#. I18N-7a emails 2026-07-31
+msgid "Gute Nachricht!"
+msgstr "Гарна новина!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Guten Morgen!"
+msgstr "Доброго ранку!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Gutscheincode"
+msgstr "Код сертифіката"
+
+#. I18N-7a emails 2026-07-31
+msgid "Heute:"
+msgstr "Сьогодні:"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist "
+"nach %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
+msgstr ""
+"Увага: розстрочка за квитком %(code)s («%(title)s», %(name)s) не пройшла "
+"після %(n)s спроб — план переведено у «failed»."
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Angebot %(code)s"
+msgstr "Ваша пропозиція %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Auftrag %(code)s ist fertig"
+msgstr "Ваше замовлення %(code)s готове"
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Tagesüberblick"
+msgstr "Ваше зведення за день"
+
+#. I18N-7a emails 2026-07-31
+msgid "Ihr Tagesüberblick für %(business)s (%(day)s):"
+msgstr "Ваше зведення по %(business)s (%(day)s):"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Ihre Anprobe-Reservierung wurde aufgehoben — die Artikel sind wieder frei "
+"verfügbar."
+msgstr "Ваше бронювання для примірки знято — речі знову доступні."
+
+#. I18N-7a emails 2026-07-31
+msgid "Im Postfach öffnen (Dashboard → Inbox)."
+msgstr "Відкрити в пошті (Панель → Повідомлення)."
+
+#. I18N-7a emails 2026-07-31
+msgid "Jetzt Platz sichern"
+msgstr "Зайняти місце"
+
+#. I18N-7a emails 2026-07-31
+msgid "Jetzt ansehen:"
+msgstr "Переглянути:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Kleiner Tipp: Beliebte Größen sind schnell wieder weg."
+msgstr "Підказка: ходові розміри розбирають швидко."
+
+#. I18N-7a emails 2026-07-31
+msgid "Kunde"
+msgstr "Клієнт"
+
+#. I18N-7a emails 2026-07-31
+msgid "Mit freundlichen Grüßen"
+msgstr "З повагою"
+
+#. I18N-7a emails 2026-07-31
+msgid "Nachricht"
+msgstr "Повідомлення"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Anfrage"
+msgstr "Новий запит"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Anfrage!"
+msgstr "Новий запит!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Anprobe-Reservierung %(code)s"
+msgstr "Нове бронювання для примірки %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Antwort auf Ihre Nachricht"
+msgstr "Нова відповідь на ваше повідомлення"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Antwort von %(business)s"
+msgstr "Нова відповідь від %(business)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Bestellung"
+msgstr "Нове замовлення"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Buchung"
+msgstr "Нове бронювання"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Buchungsanfrage!"
+msgstr "Новий запит на бронювання!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Click-&-Collect-Bestellung!"
+msgstr "Нове замовлення на самовивіз!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Kundennachricht"
+msgstr "Нове повідомлення від клієнта"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Nachricht von %(who)s"
+msgstr "Нове повідомлення від %(who)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Reservierung"
+msgstr "Нове бронювання"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Reservierung über Ihre Website:"
+msgstr "Нове бронювання через ваш сайт:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Reservierungsanfrage!"
+msgstr "Новий запит на бронювання!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Ticket-Anmeldung"
+msgstr "Нова реєстрація на квиток"
+
+#. I18N-7a emails 2026-07-31
+msgid "Neue Ticket-Anmeldung für „%(title)s“."
+msgstr "Нова реєстрація на «%(title)s»."
+
+#. I18N-7a emails 2026-07-31
+msgid "Notiz"
+msgstr "Нотатка"
+
+#. I18N-7a emails 2026-07-31
+msgid "Offener Betrag: %(cents)s Cent."
+msgstr "Залишок до сплати: %(cents)s центів."
+
+#. I18N-7a emails 2026-07-31
+msgid "Ratenzahlung gescheitert"
+msgstr "Розстрочка не пройшла"
+
+#. I18N-7a emails 2026-07-31
+msgid "Reserviert bis %(until)s — danach wird automatisch freigegeben."
+msgstr "Відкладено до %(until)s — потім знімається автоматично."
+
+#. I18N-7a emails 2026-07-31
+msgid "Reservierung %(code)s aufgehoben"
+msgstr "Бронювання %(code)s знято"
+
+#. I18N-7a emails 2026-07-31
+msgid "Schnell sein lohnt sich — die Gruppe ist klein."
+msgstr "Варто поспішити — група невелика."
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort von %(business)s zu „%(subject)s“:"
+msgstr "У вас нова відповідь від %(business)s щодо «%(subject)s»:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort von %(business)s:"
+msgstr "У вас нова відповідь від %(business)s:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort zu „%(subject)s“:"
+msgstr "У вас нова відповідь щодо «%(subject)s»:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie haben eine neue Antwort:"
+msgstr "У вас нова відповідь:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Sie können im Chat nachfragen oder ein neues Angebot senden."
+msgstr "Можна уточнити в чаті або надіслати нову пропозицію."
+
+#. I18N-7a emails 2026-07-31
+msgid "Status ansehen:"
+msgstr "Переглянути статус:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Teilnehmerliste im Dashboard"
+msgstr "Список учасників у панелі"
+
+#. I18N-7a emails 2026-07-31
+msgid "Tel."
+msgstr "Тел."
+
+#. I18N-7a emails 2026-07-31
+msgid "Tisch"
+msgstr "Столик"
+
+#. I18N-7a emails 2026-07-31
+msgid "Umsatz gestern"
+msgstr "Виручка вчора"
+
+#. I18N-7a emails 2026-07-31
+msgid "Vereinbaren Sie am besten gleich einen Termin — wir kümmern uns darum."
+msgstr "Найкраще одразу записатися — ми все зробимо."
+
+#. I18N-7a emails 2026-07-31
+msgid "Verwalten im Dashboard"
+msgstr "Керувати в панелі"
+
+#. I18N-7a emails 2026-07-31
+msgid "Vielen Dank für Ihr Vertrauen."
+msgstr "Дякуємо за довіру."
+
+#. I18N-7a emails 2026-07-31
+msgid "Vielen Dank!"
+msgstr "Дякуємо!"
+
+#. I18N-7a emails 2026-07-31
+msgid "Waren Sie zufrieden? Über eine kurze Bewertung freuen wir uns sehr:"
+msgstr "Все сподобалося? Будемо раді короткому відгуку:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wartet auf Sie:"
+msgstr "Чекає на вас:"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Wichtig: Dies ist eine unverbindliche Reservierung — KEIN Kaufvertrag und "
+"keine Zahlungspflicht. Sie entscheiden in Ruhe bei der Anprobe im Geschäft; "
+"gekauft und bezahlt wird erst vor Ort."
+msgstr ""
+"Важливо: це необов’язкове бронювання — НЕ договір купівлі-продажу і не "
+"зобов’язання оплати. Ви спокійно вирішуєте під час примірки в магазині; "
+"купівля та оплата — лише на місці."
+
+#. I18N-7a emails 2026-07-31
+msgid "Wieder da: %(name)s"
+msgstr "Знову в наявності: %(name)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wieder ein Platz frei 🎉"
+msgstr "Звільнилося місце 🎉"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wieder frei"
+msgstr "Знову вільно"
+
+#. I18N-7a emails 2026-07-31
+msgid "Wir halten die Reservierung bis %(until)s für Sie bereit."
+msgstr "Ми тримаємо бронювання для вас до %(until)s."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden"
+" Sie sich bei uns, um die Ratenzahlung fortzusetzen."
+msgstr ""
+"Списати платіж після кількох спроб не вдалося. Зв’яжіться з нами, щоб "
+"продовжити розстрочку."
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten"
+" auch hier prüfen:"
+msgstr ""
+"Ми повторимо спробу найближчими днями. Перевірити платіжні дані можна тут:"
+
+#. I18N-7a emails 2026-07-31
+msgid "Zahlung fehlgeschlagen"
+msgstr "Платіж не пройшов"
+
+#. I18N-7a emails 2026-07-31
+msgid "Zur Anprobe zurückgelegt — Reservierung %(code)s"
+msgstr "Відкладено для примірки — бронювання %(code)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "am %(due)s"
+msgstr "%(due)s"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht "
+"eingezogen werden"
+msgstr "%(n)s-й платіж (%(amount)s €) за «%(title)s», на жаль, не пройшов"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"eine kurze Erinnerung: Ihr nächster TÜV / Service ist am %(due)s fällig."
+msgstr "коротке нагадування: наступний техогляд / сервіс — %(due)s."
+
+#. I18N-7a emails 2026-07-31
+msgid "eine kurze Erinnerung: Ihr nächster TÜV / Service steht an."
+msgstr "коротке нагадування: настає час техогляду / сервісу."
+
+#. I18N-7a emails 2026-07-31
+msgid "gute Nachrichten — Ihr Auftrag ist erledigt:"
+msgstr "гарна новина — ваше замовлення готове:"
+
+#. I18N-7a emails 2026-07-31
+msgid ""
+"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz "
+"frei."
+msgstr "гарна новина: на «<strong>%(title)s</strong>» знову є місце."
+
+#. I18N-7a emails 2026-07-31
+msgid "gute Nachrichten: für „%(title)s“ ist wieder ein Platz frei."
+msgstr "гарна новина: на «%(title)s» знову є місце."
+
+#. I18N-7a emails 2026-07-31
+msgid "gültig bis %(until)s"
+msgstr "діє до %(until)s"
+
+#. I18N-7a emails 2026-07-31
+msgid "vielen Dank für Ihre Anfrage — hier ist Ihr Angebot:"
+msgstr "дякуємо за запит — ось ваша пропозиція:"
+
+#. I18N-7a emails 2026-07-31
+msgid "vielen Dank für Ihren Geschenkgutschein über %(amount)s €."
+msgstr "дякуємо за подарунковий сертифікат на %(amount)s €."
+
+#. I18N-7a emails 2026-07-31
+msgid "wir haben Folgendes für Sie in der Anprobe zurückgelegt:"
+msgstr "ми відклали для вас у примірочній:"
+
+#. I18N-7a emails 2026-07-31
+msgid "„%(name)s“ ist in Größe %(size)s wieder verfügbar."
+msgstr "«%(name)s» знову доступний у розмірі %(size)s."
+
+#. I18N-7a emails 2026-07-31
+msgid "„%(name)s“ ist wieder verfügbar."
+msgstr "«%(name)s» знову в наявності."
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s Anreise"
+msgid_plural "%(n)s Anreisen"
+msgstr[0] "%(n)s заїзд"
+msgstr[1] "%(n)s заїзди"
+msgstr[2] "%(n)s заїздів"
+msgstr[3] "%(n)s заїзду"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s Termin"
+msgid_plural "%(n)s Termine"
+msgstr[0] "%(n)s запис"
+msgstr[1] "%(n)s записи"
+msgstr[2] "%(n)s записів"
+msgstr[3] "%(n)s запису"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s Veranstaltung"
+msgid_plural "%(n)s Veranstaltungen"
+msgstr[0] "%(n)s захід"
+msgstr[1] "%(n)s заходи"
+msgstr[2] "%(n)s заходів"
+msgstr[3] "%(n)s заходу"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s neue Anfrage"
+msgid_plural "%(n)s neue Anfragen"
+msgstr[0] "%(n)s новий запит"
+msgstr[1] "%(n)s нові запити"
+msgstr[2] "%(n)s нових запитів"
+msgstr[3] "%(n)s нового запиту"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s neue Bestellung"
+msgid_plural "%(n)s neue Bestellungen"
+msgstr[0] "%(n)s нове замовлення"
+msgstr[1] "%(n)s нові замовлення"
+msgstr[2] "%(n)s нових замовлень"
+msgstr[3] "%(n)s нового замовлення"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s unbestätigte Anmeldung"
+msgid_plural "%(n)s unbestätigte Anmeldungen"
+msgstr[0] "%(n)s непідтверджена реєстрація"
+msgstr[1] "%(n)s непідтверджені реєстрації"
+msgstr[2] "%(n)s непідтверджених реєстрацій"
+msgstr[3] "%(n)s непідтвердженої реєстрації"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s unbestätigte Buchung"
+msgid_plural "%(n)s unbestätigte Buchungen"
+msgstr[0] "%(n)s непідтверджене бронювання"
+msgstr[1] "%(n)s непідтверджені бронювання"
+msgstr[2] "%(n)s непідтверджених бронювань"
+msgstr[3] "%(n)s непідтвердженого бронювання"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s unbestätigte Reservierung"
+msgid_plural "%(n)s unbestätigte Reservierungen"
+msgstr[0] "%(n)s непідтверджена бронь"
+msgstr[1] "%(n)s непідтверджені броні"
+msgstr[2] "%(n)s непідтверджених броней"
+msgstr[3] "%(n)s непідтвердженої броні"
+
+#. I18N-7a emails 2026-07-31
+msgid "%(n)s ungelesene Nachricht"
+msgid_plural "%(n)s ungelesene Nachrichten"
+msgstr[0] "%(n)s непрочитане повідомлення"
+msgstr[1] "%(n)s непрочитані повідомлення"
+msgstr[2] "%(n)s непрочитаних повідомлень"
+msgstr[3] "%(n)s непрочитаного повідомлення"

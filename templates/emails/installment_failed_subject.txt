@@ -1,1 +1,1 @@
-Zahlung fehlgeschlagen — {{ event.title }}
+{% load i18n %}{% trans "Zahlung fehlgeschlagen" %} — {{ event.title }}

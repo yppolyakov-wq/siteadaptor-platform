@@ -1,12 +1,12 @@
-Hallo {{ gift.buyer_name }},
+{% load i18n %}{% blocktrans with name=gift.buyer_name %}Hallo {{ name }},{% endblocktrans %}
 
-vielen Dank für Ihren Geschenkgutschein über {{ gift.amount_eur|floatformat:0 }} €.
+{% blocktrans with amount=gift.amount_eur|floatformat:0 %}vielen Dank für Ihren Geschenkgutschein über {{ amount }} €.{% endblocktrans %}
 
-Gutscheincode: {{ code }}
+{% trans "Gutscheincode" %}: {{ code }}
 
-Dieser Code kann als Promo-Code bei einer Buchung auf unserer Website eingelöst werden.
+{% trans "Dieser Code kann als Promo-Code bei einer Buchung auf unserer Website eingelöst werden." %}
 {% if gift.recipient_name %}
-Für: {{ gift.recipient_name }}{% endif %}{% if gift.message %}
-Nachricht: {{ gift.message }}{% endif %}
+{% trans "Für" %}: {{ gift.recipient_name }}{% endif %}{% if gift.message %}
+{% trans "Nachricht" %}: {{ gift.message }}{% endif %}
 
-Herzliche Grüße
+{% trans "Herzliche Grüße" %}

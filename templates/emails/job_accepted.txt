@@ -1,6 +1,6 @@
-{{ customer.name }} hat das Angebot {{ job.reference_code }} angenommen.
+{% load i18n %}{% blocktrans with name=customer.name code=job.reference_code %}{{ name }} hat das Angebot {{ code }} angenommen.{% endblocktrans %}
 
 {{ job.title }}
-Gesamt: {{ job.gross }} EUR
+{% trans "Gesamt" %}: {{ job.gross }} EUR
 
-Auftrag im Dashboard: /dashboard/auftraege/
+{% trans "Auftrag im Dashboard" %}: /dashboard/auftraege/

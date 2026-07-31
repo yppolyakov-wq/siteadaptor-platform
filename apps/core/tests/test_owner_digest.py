@@ -56,8 +56,10 @@ def test_send_digest_email_content_and_dedupe():
     assert "Tagesüberblick" in n.subject
     body = n.payload["body"]
     assert "123,45" in body or "123.45" in body
-    assert "1 Termin(e)" in body
-    assert "1 neue Bestellung(en)" in body
+    # I18N-7a (2026-07-31): дайджест получил НАСТОЯЩИЕ плюралы вместо заглушки
+    # «Termin(e)» — при n=1 немецкий даёт единственное число.
+    assert "1 Termin" in body and "Termin(e)" not in body
+    assert "1 neue Bestellung" in body and "Bestellung(en)" not in body
     # дедуп: второй прогон в тот же день письмо не плодит
     assert tasks.send_digest_for_tenant(tenant, force_hour=True) is False
     assert Notification.objects.filter(type="owner_digest").count() == 1
