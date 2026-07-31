@@ -1,0 +1,35 @@
+{% load i18n %}{% comment %}Личные данные гостя (имя/почта/телефон/заметка/согласие) +
+кнопка отправки — общий хвост форм брони номера и услуги. Единственная часть,
+которую фидбэк владельца 2026-07-31 велел прятать в попап: выбор (тарифы, даты,
+времена, Extras, промокод) остаётся на странице.
+
+`form="buybox-form"` на каждом поле: при открытии диалог ПОРТИРУЕТСЯ в <body>
+(sticky-колонка создаёт stacking-контекст и накрывает его шапкой), то есть поля
+физически покидают <form> — атрибут сохраняет их привязку к ней.{% endcomment %}
+<input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" form="buybox-form">
+<div class="grid sm:grid-cols-2 gap-4">
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
+    <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2" form="buybox-form">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
+    <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2" form="buybox-form">
+  </div>
+</div>
+<div>
+  <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
+  <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2" form="buybox-form">
+</div>
+<div>
+  <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
+  <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2" form="buybox-form"></textarea>
+</div>
+{% comment %}PMS-B1 (UWG §7): согласие на рассылки — НЕ предотмечено;
+подтверждается Double-Opt-In письмом.{% endcomment %}
+<label class="flex items-start gap-2 text-xs text-gray-500">
+  <input type="checkbox" name="marketing" value="on" class="mt-0.5 rounded border-gray-300" form="buybox-form">
+  <span>{% trans "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime." %}</span>
+</label>
+{% if deposit_note %}<p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{{ deposit_note }}</p>{% endif %}
+<button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700" form="buybox-form">{{ submit_label }}</button>

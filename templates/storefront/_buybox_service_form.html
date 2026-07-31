@@ -4,7 +4,8 @@
 storefront-service-book, паритет-замок test_buybox_parity). Включается ТОЛЬКО через
 storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot=); сервер
 ре-валидирует слот в service_book (anti-oversell).{% endcomment %}
-<form method="post" action="{{ sellable.submit_url }}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mx-auto">
+{# id — якорь для form="buybox-form" у полей, уезжающих в портированный диалог. #}
+<form id="buybox-form" method="post" action="{{ sellable.submit_url }}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mx-auto">
   {% csrf_token %}
   {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
   {% comment %}HF-6c: в брони может быть НЕСКОЛЬКО времён — по hidden-полю на
@@ -14,25 +15,6 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   <h2 class="font-semibold">{% if cross_day %}{% for s in booking_slots %}{{ s|date:"d.m." }} {{ s|time:"H:i" }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}{{ day|date:"d.m.Y" }} · {% for s in selected_list %}{{ s|time:"H:i" }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %} · {{ service.name }}{% if chosen_resource %} · {{ chosen_resource.name }}{% endif %}</h2>
   {% for iso in selected_isos %}<input type="hidden" name="start" value="{{ iso }}">{% endfor %}
   {% if chosen_resource %}<input type="hidden" name="resource" value="{{ chosen_resource.pk }}">{% endif %}
-  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
-    <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
-  </div>
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-      <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-      <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-  </div>
-  <div>
-    <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
-    <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
-  </div>
   {% if passes_enabled %}
     <div>
       <label class="block text-sm font-medium mb-1" for="id_pass">{% trans "Pass code (optional)" %}</label>
@@ -48,14 +30,9 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
     </div>
   {% endif %}
   {% include "storefront/_extras.html" %}
-  {% if deposit_required %}
-    <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
-  {% endif %}
-  {% comment %}PMS-B1 (UWG §7): согласие на рассылки — НЕ предотмечено;
-  подтверждается Double-Opt-In письмом.{% endcomment %}
-  <label class="flex items-start gap-2 text-xs text-gray-500">
-    <input type="checkbox" name="marketing" value="on" class="mt-0.5 rounded border-gray-300">
-    <span>{% trans "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime." %}</span>
-  </label>
-  <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if deposit_required %}{% trans "Continue to payment" %}{% else %}{% trans "Book now" %}{% endif %}</button>
+  {% comment %}Личные данные — общий хвост (в попапе или инлайном, см.
+  _buybox_contact.html). Выбор времени, абонемент, промокод и Extras — выше.{% endcomment %}
+  {% if deposit_required %}{% blocktrans asvar dep_note %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}{% endif %}
+  {% if deposit_required %}{% trans "Continue to payment" as sub_label %}{% else %}{% trans "Book now" as sub_label %}{% endif %}
+  {% include "storefront/_buybox_contact.html" with submit_label=sub_label deposit_note=dep_note %}
 </form>

@@ -117,15 +117,19 @@ def test_no_dates_selector_only():
     assert 'id="buchen"' in body and 'name="von"' in body  # селектор дат на месте
 
 
-def test_book_form_lives_inside_a_hidden_dialog():
-    """Фидбэк 2026-07-31: контактные данные — в попапе.
-
-    Форма остаётся В DOM (паритет полей выше цел), но скрыта в диалоге за
-    кнопкой: правая колонка номера перестала занимать пол-экрана."""
+def test_only_contact_fields_live_inside_the_dialog():
+    """Фидбэк 2026-07-31 (+уточнение владельца): в попап уходят ТОЛЬКО личные
+    данные. Тарифы, цена и Extras остаются на странице — гость выбирает тариф,
+    не открывая диалог."""
     unit = _unit()
+    RatePlan.objects.create(name="Frühstück")
     body = _detail(unit, _dates())
     assert 'data-modal-open="buybox-modal"' in body
     dialog = re.search(r'<div id="buybox-modal"[^>]*>', body)
     assert dialog and "hidden" in dialog.group(0)  # закрыт по умолчанию
-    # форма — внутри диалога, а не в потоке страницы
-    assert body.index('id="buybox-modal"') < body.index(f'action="/unterkunft/{unit.pk}/buchen/"')
+    at = body.index('id="buybox-modal"')
+    assert body.index('name="rate_plan"') < at, "тарифы должны остаться на странице"
+    assert body.index('name="voucher_code"') < at, "промокод — на странице"
+    assert at < body.index('id="id_name"'), "личные данные — в диалоге"
+    # поля диалога не теряют форму при портировании в <body>
+    assert 'id="buybox-form"' in body and body.count('form="buybox-form"') >= 6
