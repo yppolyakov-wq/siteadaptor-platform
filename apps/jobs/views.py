@@ -303,7 +303,14 @@ def job_delete(request, pk):
 
 @login_required
 def job_pdf(request, pk):
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
     job = get_object_or_404(Job.objects.select_related("customer"), pk=pk)
-    response = HttpResponse(build_quote_pdf(job, request.tenant), content_type="application/pdf")
+    # I18N-7b: смета уходит клиенту — язык задаётся ссылкой `?lang=`.
+    with translation.override(document_language(request)):
+        pdf = build_quote_pdf(job, request.tenant)
+    response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="angebot_{job.reference_code}.pdf"'
     return response

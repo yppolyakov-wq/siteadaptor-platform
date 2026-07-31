@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{{ job.reference_code }}{% endblock %}
 
 {% block dash_content %}
@@ -20,7 +20,10 @@
       {% elif job.status == 'done' or job.status == 'invoiced' %}bg-gray-100 text-gray-600
       {% else %}bg-red-50 text-red-600{% endif %}">{{ job.get_status_display }}</span>
   </h1>
-  <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Angebot PDF" %} ↗</a>
+  <span class="flex flex-wrap items-center gap-1">
+    <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Angebot PDF" %} ↗</a>
+    {% url 'jobs:pdf' job.pk as quote_url %}{% doc_langs quote_url %}
+  </span>
 </div>
 
 {# контакты / заявка #}

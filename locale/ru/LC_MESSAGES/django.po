@@ -16584,3 +16584,64 @@ msgstr "Другие отрасли"
 
 msgid "Ändern"
 msgstr "Изменить"
+
+msgid "Participant information sheet"
+msgstr "Памятка участника"
+
+msgid "Programme"
+msgstr "Программа"
+
+msgid "Please bring"
+msgstr "Возьмите с собой"
+
+msgid "Liability waiver signed on %(date)s (%(name)s)"
+msgstr "Отказ от ответственности подписан %(date)s (%(name)s)"
+
+msgid "Unit price"
+msgstr "Цена за единицу"
+
+msgid "No VAT is charged in accordance with § 19 UStG."
+msgstr "Согласно § 19 UStG НДС не начисляется."
+
+msgid "CANCELLED"
+msgstr "АННУЛИРОВАНО"
+
+msgid "This is a non-binding quote / cost estimate."
+msgstr "Это необязывающее предложение / смета."
+
+msgid "Item"
+msgstr "Товар"
+
+msgid "Our shop"
+msgstr "Наш магазин"
+
+msgid "Scan & grab the offers"
+msgstr "Сканируйте и ловите акции"
+
+msgid "See current offers and reserve right away — with your phone."
+msgstr "Смотрите актуальные акции и бронируйте сразу — с телефона."
+
+msgid "Free · no app needed · no sign-up"
+msgstr "Бесплатно · без приложения · без регистрации"
+
+msgid "Open PDF"
+msgstr "Открыть PDF"
+
+msgid "%(n)s place"
+msgid_plural "%(n)s places"
+msgstr[0] "%(n)s место"
+msgstr[1] "%(n)s места"
+msgstr[2] "%(n)s мест"
+msgstr[3] "%(n)s места"
+
+msgid "Invoice"
+msgstr "Счёт"
+
+msgid "Delivery note"
+msgstr "Накладная"
+
+msgid "Sender"
+msgstr "Отправитель"
+
+msgid "Location"
+msgstr "Место"

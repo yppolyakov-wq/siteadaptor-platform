@@ -178,3 +178,19 @@ def orders_view_switch(context, active):
     from apps.core import orders_view as ov
 
     return {"options": ov.switch_options(tenant, active), "csrf_token": context.get("csrf_token")}
+
+
+@register.inclusion_tag("tenant/_doc_langs.html", takes_context=True)
+def doc_langs(context, url):
+    """I18N-7b: языки печатного документа рядом с кнопкой скачивания.
+
+    Владелец отдаёт клиенту счёт/смету/накладную на его языке (`?lang=`), не
+    переключая язык всего кабинета. При одном доступном языке партиал пуст."""
+    from apps.core.documents import allowed_languages
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    return {
+        "url": url,
+        "doc_languages": [{"code": code} for code in allowed_languages(tenant)],
+    }

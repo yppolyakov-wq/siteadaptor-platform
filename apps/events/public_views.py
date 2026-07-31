@@ -350,9 +350,16 @@ def veranstaltung_memo(request, code):
     ticket = get_object_or_404(
         Ticket.objects.select_related("event", "stay_booking__unit"), reference_code=code
     )
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
     from . import memo
 
-    pdf = memo.build_memo_pdf(ticket, request.tenant)
+    # I18N-7b: памятку скачивает гость — печатаем на языке, выбранном им на
+    # витрине (или на явном `?lang=`, если ссылку прислали на другом языке).
+    with translation.override(document_language(request)):
+        pdf = memo.build_memo_pdf(ticket, request.tenant)
     resp = HttpResponse(pdf, content_type="application/pdf")
     resp["Content-Disposition"] = f'inline; filename="memo-{code}.pdf"'
     return resp

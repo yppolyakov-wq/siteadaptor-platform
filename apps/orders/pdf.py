@@ -1,15 +1,20 @@
-"""Lieferschein-PDF (A2b) — reportlab, зеркало jobs.pdf/finance.pdf.
+"""Lieferschein-PDF — накладная к заказу (A2b), reportlab, зеркало jobs/finance.
 
 Накладная к заказу доставки: шапка-отправитель из Tenant, получатель и адрес из
 Order, позиции (количество + название, без цен — это Lieferschein, не Rechnung) +
 вырезаемая адресная этикетка внизу для наклейки на посылку.
+
+I18N-7b: подписи переводятся, язык задаёт вьюха (`translation.override`).
 """
 
 import io
 
+from django.utils.translation import gettext as _
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
+
+from apps.core.documents import doc_date, fonts
 
 _INK = (0.10, 0.10, 0.12)
 _MUTED = (0.42, 0.42, 0.48)
@@ -25,6 +30,7 @@ def _item_label(item) -> str:
 
 
 def build_delivery_note_pdf(order, tenant) -> bytes:
+    font, font_bold = fonts()
     buffer = io.BytesIO()
     page_w, page_h = A4
     c = canvas.Canvas(buffer, pagesize=A4)
@@ -33,9 +39,9 @@ def build_delivery_note_pdf(order, tenant) -> bytes:
 
     # Шапка: бизнес-отправитель.
     c.setFillColorRGB(*_INK)
-    c.setFont("Helvetica-Bold", 14)
+    c.setFont(font_bold, 14)
     c.drawString(x, y, tenant.name)
-    c.setFont("Helvetica", 9)
+    c.setFont(font, 9)
     c.setFillColorRGB(*_MUTED)
     for bit in [b for b in [tenant.address, tenant.city] if b]:
         y -= 5 * mm
@@ -44,7 +50,7 @@ def build_delivery_note_pdf(order, tenant) -> bytes:
     # Получатель (адрес доставки).
     y -= 15 * mm
     c.setFillColorRGB(*_INK)
-    c.setFont("Helvetica", 10)
+    c.setFont(font, 10)
     recipient = str(order.customer)
     if order.shipping_address:
         recipient = f"{recipient}\n{order.shipping_address}"
@@ -54,21 +60,23 @@ def build_delivery_note_pdf(order, tenant) -> bytes:
 
     # Заголовок документа.
     y -= 8 * mm
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(x, y, f"Lieferschein {order.reference_code}")
-    c.setFont("Helvetica", 9)
+    c.setFont(font_bold, 16)
+    title = _("Delivery note")
+    c.drawString(x, y, f"{title} {order.reference_code}")
+    c.setFont(font, 9)
     c.setFillColorRGB(*_MUTED)
-    c.drawRightString(page_w - x, y, f"Datum: {order.created_at:%d.%m.%Y}")
+    label_date = _("Date")
+    c.drawRightString(page_w - x, y, f"{label_date}: {doc_date(order.created_at)}")
 
     # Таблица позиций (без цен).
     y -= 12 * mm
     c.setFillColorRGB(*_INK)
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(x, y, "Menge")
-    c.drawString(x + 25 * mm, y, "Artikel")
+    c.setFont(font_bold, 9)
+    c.drawString(x, y, _("Quantity"))
+    c.drawString(x + 25 * mm, y, _("Item"))
     y -= 2 * mm
     c.line(x, y, page_w - x, y)
-    c.setFont("Helvetica", 9)
+    c.setFont(font, 9)
     for item in order.items.all():
         y -= 6 * mm
         c.drawString(x, y, f"{item.qty}×")
@@ -76,8 +84,9 @@ def build_delivery_note_pdf(order, tenant) -> bytes:
     if order.note:
         y -= 10 * mm
         c.setFillColorRGB(*_MUTED)
-        c.setFont("Helvetica", 8)
-        c.drawString(x, y, f"Hinweis: {order.note[:90]}")
+        c.setFont(font, 8)
+        label_note = _("Note")
+        c.drawString(x, y, f"{label_note}: {order.note[:90]}")
 
     # Адресная этикетка (вырезать и наклеить на посылку).
     box_h = 40 * mm
@@ -88,11 +97,12 @@ def build_delivery_note_pdf(order, tenant) -> bytes:
     c.setDash()
     ly = box_y + box_h - 8 * mm
     c.setFillColorRGB(*_MUTED)
-    c.setFont("Helvetica", 7)
-    c.drawString(x + 4 * mm, ly, f"Absender: {tenant.name}")
+    c.setFont(font, 7)
+    label_sender = _("Sender")
+    c.drawString(x + 4 * mm, ly, f"{label_sender}: {tenant.name}")
     ly -= 8 * mm
     c.setFillColorRGB(*_INK)
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont(font_bold, 12)
     for line in recipient.splitlines()[:5]:
         c.drawString(x + 4 * mm, ly, line[:60])
         ly -= 6 * mm

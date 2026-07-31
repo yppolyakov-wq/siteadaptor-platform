@@ -11,11 +11,13 @@ from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import translation
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.views.decorators.http import require_POST
 
 from apps.catalog.images import delete_stored_image, save_product_image
+from apps.core.documents import document_language
 from apps.core.fsm import IllegalTransition
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 
@@ -182,26 +184,26 @@ _POSTER_TARGETS = {
     "termin": (
         "storefront-termin",
         "booking",
-        "Scan & Termin buchen",
-        "Freien Termin wählen und in 30 Sekunden buchen – mit dem Handy.",
+        _lazy("Scan & book an appointment"),
+        _lazy("Pick a free slot and book in 30 seconds — with your phone."),
     ),
     "sortiment": (
         "storefront-products",
         "catalog",
-        "Scan & bestellen",
-        "Unser Sortiment ansehen und direkt bestellen – mit dem Handy.",
+        _lazy("Scan & order"),
+        _lazy("Browse our range and order right away — with your phone."),
     ),
     "unterkunft": (
         "storefront-unterkunft",
         "stays",
-        "Scan & Zimmer buchen",
-        "Verfügbarkeit prüfen und direkt buchen – mit dem Handy.",
+        _lazy("Scan & book a room"),
+        _lazy("Check availability and book right away — with your phone."),
     ),
     "veranstaltung": (
         "storefront-events",
         "events",
-        "Scan & Tickets sichern",
-        "Kommende Veranstaltungen ansehen und Tickets buchen.",
+        _lazy("Scan & grab tickets"),
+        _lazy("See upcoming events and book tickets."),
     ),
 }
 
@@ -220,13 +222,16 @@ def shop_poster_pdf(request):
     if module and (tenant is None or not tenant.is_module_active(module)):
         ziel, (url_name, module, headline, subline) = "home", _POSTER_TARGETS["home"]
     target_url = request.build_absolute_uri(reverse(url_name))
-    pdf = build_shop_poster_pdf(
-        business_name,
-        target_url,
-        headline=headline,
-        subline=subline,
-        accent_hex=getattr(tenant, "primary_color", "") or "",
-    )
+    # I18N-7b: постер печатает владелец — язык кабинета или явный `?lang=`
+    # (напр. турецкий постер для турецкого квартала).
+    with translation.override(document_language(request)):
+        pdf = build_shop_poster_pdf(
+            business_name,
+            target_url,
+            headline=str(headline) if headline else None,
+            subline=str(subline) if subline else None,
+            accent_hex=getattr(tenant, "primary_color", "") or "",
+        )
     resp = HttpResponse(pdf, content_type="application/pdf")
     slug = getattr(tenant, "slug", "") or "shop"
     resp["Content-Disposition"] = f'attachment; filename="schaufenster-poster-{slug}-{ziel}.pdf"'

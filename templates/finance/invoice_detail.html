@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{{ invoice.number_display }}{% endblock %}
 
 {% block dash_content %}
@@ -35,7 +35,9 @@
 
   <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
     <a href="{% url 'finance:invoice-pdf' invoice.pk %}" target="_blank"
-       class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">PDF öffnen</a>
+       class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Open PDF" %}</a>
+    {% url 'finance:invoice-pdf' invoice.pk as pdf_url %}
+    <div class="flex flex-wrap items-center gap-1">{% doc_langs pdf_url %}</div>
     <form method="post" class="flex flex-wrap gap-2">
       {% csrf_token %}
       {% if invoice.is_editable %}

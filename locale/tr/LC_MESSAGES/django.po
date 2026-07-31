@@ -16507,3 +16507,62 @@ msgstr "Diğer sektörlere bakın"
 
 msgid "Ändern"
 msgstr "Değiştir"
+
+msgid "Participant information sheet"
+msgstr "Katılımcı bilgi formu"
+
+msgid "Programme"
+msgstr "Program"
+
+msgid "Please bring"
+msgstr "Lütfen yanınızda getirin"
+
+msgid "Liability waiver signed on %(date)s (%(name)s)"
+msgstr "Sorumluluk feragatnamesi %(date)s tarihinde imzalandı (%(name)s)"
+
+msgid "Unit price"
+msgstr "Birim fiyat"
+
+msgid "No VAT is charged in accordance with § 19 UStG."
+msgstr "§ 19 UStG uyarınca KDV hesaplanmaz."
+
+msgid "CANCELLED"
+msgstr "İPTAL EDİLDİ"
+
+msgid "This is a non-binding quote / cost estimate."
+msgstr "Bu, bağlayıcı olmayan bir teklif / maliyet tahminidir."
+
+msgid "Item"
+msgstr "Ürün"
+
+msgid "Our shop"
+msgstr "Dükkânımız"
+
+msgid "Scan & grab the offers"
+msgstr "Tara & fırsatları yakala"
+
+msgid "See current offers and reserve right away — with your phone."
+msgstr "Güncel fırsatları görün ve hemen ayırtın — telefonunuzla."
+
+msgid "Free · no app needed · no sign-up"
+msgstr "Ücretsiz · uygulama gerekmez · kayıt yok"
+
+msgid "Open PDF"
+msgstr "PDF’i aç"
+
+msgid "%(n)s place"
+msgid_plural "%(n)s places"
+msgstr[0] "%(n)s kişilik yer"
+msgstr[1] "%(n)s kişilik yer"
+
+msgid "Invoice"
+msgstr "Fatura"
+
+msgid "Delivery note"
+msgstr "İrsaliye"
+
+msgid "Sender"
+msgstr "Gönderen"
+
+msgid "Location"
+msgstr "Konum"

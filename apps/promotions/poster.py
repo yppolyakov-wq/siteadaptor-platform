@@ -2,18 +2,25 @@
 
 «Scan & Angebote sichern»: крупный QR на корень витрины + слоган + URL. QR несёт
 ?ch=schaufenster — брони с постера попадают в атрибуцию каналов (см. analytics).
-QR рисует segno (нативный PNG, без Pillow), вёрстку — reportlab (встроенный
-Helvetica, без файлов шрифтов; WinAnsi покрывает äöüß).
+QR рисует segno (нативный PNG, без Pillow), вёрстку — reportlab.
+
+I18N-7b: тексты переводимы, шрифт берём из `apps.core.documents.fonts()` —
+встроенного Helvetica хватает для de/en/tr, но не для кириллицы, поэтому при
+наличии DejaVu печатаем им (курсив подвала заменён обычным начертанием:
+у DejaVu-набора в образе только regular+bold).
 """
 
 import io
 from urllib.parse import quote, urlsplit
 
 import segno
+from django.utils.translation import gettext as _
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
+
+from apps.core.documents import fonts
 
 _INK = (0.10, 0.10, 0.12)
 _ACCENT = (0.31, 0.27, 0.90)  # индиго, как в кабинете/витрине
@@ -69,11 +76,12 @@ def build_shop_poster_pdf(
     """Собрать A4-постер с QR на витрину. Возвращает байты PDF.
 
     C2: accent_hex — фирменный цвет тенанта для рамки/заголовка (пусто → индиго)."""
+    font, font_bold = fonts()
     accent = _hex_to_rgb(accent_hex)
-    business_name = (business_name or "Unser Shop").strip()
-    headline = headline or "Scan & Angebote sichern"
-    subline = subline or "Aktuelle Angebote ansehen & direkt reservieren – mit dem Handy."
-    footer = footer or "Kostenlos · keine App nötig · keine Anmeldung"
+    business_name = (business_name or _("Our shop")).strip()
+    headline = headline or _("Scan & grab the offers")
+    subline = subline or _("See current offers and reserve right away — with your phone.")
+    footer = footer or _("Free · no app needed · no sign-up")
 
     qr_buf = io.BytesIO()
     segno.make(_with_channel(storefront_url, channel), error="m").save(
@@ -91,10 +99,8 @@ def build_shop_poster_pdf(
     c.setLineWidth(1.4)
     c.roundRect(12 * mm, 12 * mm, page_w - 24 * mm, page_h - 24 * mm, 8 * mm, stroke=1, fill=0)
 
-    _centered(
-        c, page_w, page_h - 38 * mm, business_name, "Helvetica-Bold", 34, max_width=page_w - 40 * mm
-    )
-    _centered(c, page_w, page_h - 55 * mm, headline, "Helvetica-Bold", 23, color=accent)
+    _centered(c, page_w, page_h - 38 * mm, business_name, font_bold, 34, max_width=page_w - 40 * mm)
+    _centered(c, page_w, page_h - 55 * mm, headline, font_bold, 23, color=accent)
 
     qr_size = 108 * mm
     qr_x = (page_w - qr_size) / 2
@@ -106,7 +112,7 @@ def build_shop_poster_pdf(
         page_w,
         qr_y - 13 * mm,
         _pretty_url(storefront_url),
-        "Helvetica-Bold",
+        font_bold,
         16,
         max_width=page_w - 40 * mm,
         color=_INK,
@@ -116,12 +122,12 @@ def build_shop_poster_pdf(
         page_w,
         qr_y - 25 * mm,
         subline,
-        "Helvetica",
+        font,
         13,
         max_width=page_w - 44 * mm,
         color=_MUTED,
     )
-    _centered(c, page_w, 24 * mm, footer, "Helvetica-Oblique", 12, color=_MUTED)
+    _centered(c, page_w, 24 * mm, footer, font, 12, color=_MUTED)
 
     c.showPage()
     c.save()

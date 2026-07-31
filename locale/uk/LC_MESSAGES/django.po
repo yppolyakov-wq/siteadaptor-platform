@@ -16569,3 +16569,64 @@ msgstr "Інші галузі"
 
 msgid "Ändern"
 msgstr "Змінити"
+
+msgid "Participant information sheet"
+msgstr "Пам’ятка учасника"
+
+msgid "Programme"
+msgstr "Програма"
+
+msgid "Please bring"
+msgstr "Візьміть із собою"
+
+msgid "Liability waiver signed on %(date)s (%(name)s)"
+msgstr "Відмову від відповідальності підписано %(date)s (%(name)s)"
+
+msgid "Unit price"
+msgstr "Ціна за одиницю"
+
+msgid "No VAT is charged in accordance with § 19 UStG."
+msgstr "Згідно з § 19 UStG ПДВ не нараховується."
+
+msgid "CANCELLED"
+msgstr "АНУЛЬОВАНО"
+
+msgid "This is a non-binding quote / cost estimate."
+msgstr "Це необов’язкова пропозиція / кошторис."
+
+msgid "Item"
+msgstr "Товар"
+
+msgid "Our shop"
+msgstr "Наш магазин"
+
+msgid "Scan & grab the offers"
+msgstr "Скануйте та ловіть акції"
+
+msgid "See current offers and reserve right away — with your phone."
+msgstr "Дивіться актуальні акції та бронюйте одразу — з телефона."
+
+msgid "Free · no app needed · no sign-up"
+msgstr "Безкоштовно · без застосунку · без реєстрації"
+
+msgid "Open PDF"
+msgstr "Відкрити PDF"
+
+msgid "%(n)s place"
+msgid_plural "%(n)s places"
+msgstr[0] "%(n)s місце"
+msgstr[1] "%(n)s місця"
+msgstr[2] "%(n)s місць"
+msgstr[3] "%(n)s місця"
+
+msgid "Invoice"
+msgstr "Рахунок"
+
+msgid "Delivery note"
+msgstr "Накладна"
+
+msgid "Sender"
+msgstr "Відправник"
+
+msgid "Location"
+msgstr "Місце"

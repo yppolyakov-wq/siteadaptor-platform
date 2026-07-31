@@ -16396,3 +16396,62 @@ msgstr "See other industries"
 
 msgid "Ändern"
 msgstr "Change"
+
+msgid "Participant information sheet"
+msgstr ""
+
+msgid "Programme"
+msgstr ""
+
+msgid "Please bring"
+msgstr ""
+
+msgid "Liability waiver signed on %(date)s (%(name)s)"
+msgstr ""
+
+msgid "Unit price"
+msgstr ""
+
+msgid "No VAT is charged in accordance with § 19 UStG."
+msgstr ""
+
+msgid "CANCELLED"
+msgstr ""
+
+msgid "This is a non-binding quote / cost estimate."
+msgstr ""
+
+msgid "Item"
+msgstr ""
+
+msgid "Our shop"
+msgstr ""
+
+msgid "Scan & grab the offers"
+msgstr ""
+
+msgid "See current offers and reserve right away — with your phone."
+msgstr ""
+
+msgid "Free · no app needed · no sign-up"
+msgstr ""
+
+msgid "Open PDF"
+msgstr ""
+
+msgid "%(n)s place"
+msgid_plural "%(n)s places"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Invoice"
+msgstr ""
+
+msgid "Delivery note"
+msgstr ""
+
+msgid "Sender"
+msgstr ""
+
+msgid "Location"
+msgstr ""

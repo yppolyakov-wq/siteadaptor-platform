@@ -10,9 +10,11 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # curl — для healthcheck; gettext — compilemessages (L4, переводы писем);
-# остальное тянется бинарными wheels (psycopg[binary], pillow).
+# fonts-dejavu-core — шрифт с кириллицей для PDF (I18N-7b): встроенного в
+# reportlab Helvetica хватает только на WinAnsi, ru/uk/tr вышли бы рваными.
+# Остальное тянется бинарными wheels (psycopg[binary], pillow).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl gettext \
+    && apt-get install -y --no-install-recommends curl gettext fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 # uv для установки зависимостей.

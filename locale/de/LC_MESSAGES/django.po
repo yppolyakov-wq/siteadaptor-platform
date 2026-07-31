@@ -6075,7 +6075,7 @@ msgstr "Angebot speichern"
 
 #: templates/jobs/detail.html:130 templates/storefront/angebot.html:36
 msgid "Net"
-msgstr "Nicht"
+msgstr "Netto"
 
 #: templates/jobs/detail.html:134
 msgid "Deposit"
@@ -8309,7 +8309,7 @@ msgstr "Ihr Zitat"
 
 #: templates/storefront/angebot.html:15
 msgid "Quote"
-msgstr "Zitat"
+msgstr "Angebot"
 
 #: templates/storefront/angebot.html:39
 #: templates/storefront/event_confirmation.html:39
@@ -8779,7 +8779,7 @@ msgstr "Telefonnummer (optional)"
 
 #: templates/storefront/event_detail.html:95
 msgid "Ticket"
-msgstr "Fahrkarte"
+msgstr "Ticket"
 
 #: templates/storefront/event_detail.html:101
 #, python-format
@@ -16544,3 +16544,62 @@ msgstr ""
 
 msgid "Ändern"
 msgstr ""
+
+msgid "Participant information sheet"
+msgstr "Teilnehmer-Infoblatt"
+
+msgid "Programme"
+msgstr "Programm"
+
+msgid "Please bring"
+msgstr "Bitte mitbringen"
+
+msgid "Liability waiver signed on %(date)s (%(name)s)"
+msgstr "Haftungsausschluss unterschrieben am %(date)s (%(name)s)"
+
+msgid "Unit price"
+msgstr "Einzelpreis"
+
+msgid "No VAT is charged in accordance with § 19 UStG."
+msgstr "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
+
+msgid "CANCELLED"
+msgstr "STORNIERT"
+
+msgid "This is a non-binding quote / cost estimate."
+msgstr "Dies ist ein unverbindliches Angebot / Kostenvoranschlag."
+
+msgid "Item"
+msgstr "Artikel"
+
+msgid "Our shop"
+msgstr "Unser Shop"
+
+msgid "Scan & grab the offers"
+msgstr "Scan & Angebote sichern"
+
+msgid "See current offers and reserve right away — with your phone."
+msgstr "Aktuelle Angebote ansehen & direkt reservieren – mit dem Handy."
+
+msgid "Free · no app needed · no sign-up"
+msgstr "Kostenlos · keine App nötig · keine Anmeldung"
+
+msgid "Open PDF"
+msgstr "PDF öffnen"
+
+msgid "%(n)s place"
+msgid_plural "%(n)s places"
+msgstr[0] "%(n)s Platz"
+msgstr[1] "%(n)s Plätze"
+
+msgid "Invoice"
+msgstr "Rechnung"
+
+msgid "Delivery note"
+msgstr "Lieferschein"
+
+msgid "Sender"
+msgstr "Absender"
+
+msgid "Location"
+msgstr "Ort"

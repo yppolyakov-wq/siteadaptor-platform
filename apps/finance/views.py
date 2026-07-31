@@ -230,14 +230,19 @@ def invoice_detail(request, pk):
 def invoice_pdf(request, pk):
     from django.http import HttpResponse
     from django.shortcuts import get_object_or_404
+    from django.utils import translation
+
+    from apps.core.documents import document_language
 
     from .models import Invoice
     from .pdf import build_invoice_pdf
 
     invoice = get_object_or_404(Invoice, pk=pk)
-    response = HttpResponse(
-        build_invoice_pdf(invoice, request.tenant), content_type="application/pdf"
-    )
+    # I18N-7b: счёт для клиента — владелец выбирает язык ссылкой `?lang=`,
+    # без параметра печатаем на языке кабинета.
+    with translation.override(document_language(request)):
+        pdf = build_invoice_pdf(invoice, request.tenant)
+    response = HttpResponse(pdf, content_type="application/pdf")
     name = invoice.number_display if invoice.number else f"entwurf-{invoice.pk}"
     response["Content-Disposition"] = f'inline; filename="{name}.pdf"'
     return response

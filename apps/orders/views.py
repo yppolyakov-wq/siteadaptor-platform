@@ -232,7 +232,13 @@ def delivery_note_pdf(request, pk):
     order = get_object_or_404(
         Order.objects.select_related("customer").prefetch_related("items"), pk=pk
     )
-    pdf = build_delivery_note_pdf(order, request.tenant)
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
+    # I18N-7b: накладная едет с посылкой к клиенту — язык ссылкой `?lang=`.
+    with translation.override(document_language(request)):
+        pdf = build_delivery_note_pdf(order, request.tenant)
     resp = HttpResponse(pdf, content_type="application/pdf")
     resp["Content-Disposition"] = f'inline; filename="Lieferschein-{order.reference_code}.pdf"'
     return resp

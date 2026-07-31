@@ -1,0 +1,12 @@
+{% load i18n %}
+{% comment %}I18N-7b: языки печатного документа. Ссылка `?lang=` рядом с кнопкой
+скачивания — владелец отдаёт клиенту счёт/смету/накладную на его языке, не меняя
+язык всего кабинета. Показываем только при >1 доступном языке.{% endcomment %}
+{% if doc_languages|length > 1 %}
+  <span class="text-xs text-gray-400">{% trans "Language" %}:</span>
+  {% for lang in doc_languages %}
+    <a href="{{ url }}{% if '?' in url %}&amp;{% else %}?{% endif %}lang={{ lang.code }}"
+       target="_blank" rel="noopener"
+       class="text-xs px-1.5 py-0.5 rounded border border-gray-200 text-gray-600 hover:bg-gray-50">{{ lang.code|upper }}</a>
+  {% endfor %}
+{% endif %}

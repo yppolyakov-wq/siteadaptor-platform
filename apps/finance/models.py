@@ -119,7 +119,11 @@ class Invoice(TimestampedModel):
 
     @property
     def number_display(self) -> str:
-        return f"RE-{self.number:05d}" if self.number else "Entwurf"
+        """Номер счёта или «черновик» (I18N-7b: подпись переводится — она попадает
+        и в PDF, и в кабинет; сам номер RE-00001 языконезависим)."""
+        if self.number:
+            return f"RE-{self.number:05d}"
+        return str(_("Draft"))
 
     @property
     def is_editable(self) -> bool:

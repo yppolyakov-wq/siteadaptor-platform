@@ -2,30 +2,27 @@
 
 Шапка-отправитель из Tenant, получатель из Job, позиции из JobLine, итоги-снимок,
 §19-Hinweis. Без юридических Pflichtangaben счёта (это смета, не Rechnung).
+
+I18N-7b: язык — активный в момент сборки (вьюха оборачивает в override),
+шрифт/форматы — `apps.core.documents`. Немецкие налоговые идентификаторы
+(USt-IdNr./Steuernummer) и ссылка на § 19 UStG не переводятся.
 """
 
 import io
-from decimal import Decimal
 
+from django.utils.translation import gettext as _
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
+
+from apps.core.documents import doc_date, fonts, money, qty
 
 _INK = (0.10, 0.10, 0.12)
 _MUTED = (0.42, 0.42, 0.48)
 
 
-def _money(value) -> str:
-    return f"{Decimal(value):.2f}".replace(".", ",") + " EUR"
-
-
-def _qty(value) -> str:
-    """Дробное кол-во без хвостовых нулей: 3,50→«3,5», 2,00→«2»."""
-    s = f"{Decimal(value):.2f}".rstrip("0").rstrip(".")
-    return s.replace(".", ",")
-
-
 def build_quote_pdf(job, tenant) -> bytes:
+    font, font_bold = fonts()
     buffer = io.BytesIO()
     page_w, page_h = A4
     c = canvas.Canvas(buffer, pagesize=A4)
@@ -34,9 +31,9 @@ def build_quote_pdf(job, tenant) -> bytes:
 
     # Шапка: бизнес-отправитель.
     c.setFillColorRGB(*_INK)
-    c.setFont("Helvetica-Bold", 14)
+    c.setFont(font_bold, 14)
     c.drawString(x, y, tenant.name)
-    c.setFont("Helvetica", 9)
+    c.setFont(font, 9)
     c.setFillColorRGB(*_MUTED)
     for bit in [b for b in [tenant.address, tenant.city] if b]:
         y -= 5 * mm
@@ -51,7 +48,7 @@ def build_quote_pdf(job, tenant) -> bytes:
     # Получатель.
     y -= 15 * mm
     c.setFillColorRGB(*_INK)
-    c.setFont("Helvetica", 10)
+    c.setFont(font, 10)
     recipient = str(job.customer)
     if job.site_address:
         recipient = f"{recipient}\n{job.site_address}"
@@ -61,61 +58,67 @@ def build_quote_pdf(job, tenant) -> bytes:
 
     # Заголовок документа.
     y -= 10 * mm
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(x, y, f"Angebot {job.reference_code}")
-    c.setFont("Helvetica", 9)
+    c.setFont(font_bold, 16)
+    title = _("Quote")
+    c.drawString(x, y, f"{title} {job.reference_code}")
+    c.setFont(font, 9)
     c.setFillColorRGB(*_MUTED)
-    c.drawRightString(page_w - x, y, f"Datum: {job.created_at:%d.%m.%Y}")
+    label_date = _("Date")
+    c.drawRightString(page_w - x, y, f"{label_date}: {doc_date(job.created_at)}")
     if job.valid_until:
         y -= 5 * mm
-        c.drawRightString(page_w - x, y, f"Gültig bis: {job.valid_until:%d.%m.%Y}")
+        label_valid = _("Valid until")
+        c.drawRightString(page_w - x, y, f"{label_valid}: {doc_date(job.valid_until)}")
 
     # Заголовок/описание работ.
     y -= 10 * mm
     c.setFillColorRGB(*_INK)
-    c.setFont("Helvetica-Bold", 11)
+    c.setFont(font_bold, 11)
     c.drawString(x, y, job.title[:80])
 
     # Таблица позиций.
     y -= 10 * mm
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(x, y, "Bezeichnung")
-    c.drawRightString(page_w - x - 60 * mm, y, "Menge")
-    c.drawRightString(page_w - x - 30 * mm, y, "Einzelpreis")
-    c.drawRightString(page_w - x, y, "Summe")
+    c.setFont(font_bold, 9)
+    c.drawString(x, y, _("Description"))
+    c.drawRightString(page_w - x - 60 * mm, y, _("Quantity"))
+    c.drawRightString(page_w - x - 30 * mm, y, _("Unit price"))
+    c.drawRightString(page_w - x, y, _("Amount"))
     y -= 2 * mm
     c.line(x, y, page_w - x, y)
-    c.setFont("Helvetica", 9)
+    c.setFont(font, 9)
     for line in job.lines.all():
         y -= 6 * mm
         c.drawString(x, y, str(line.text)[:70])
-        c.drawRightString(page_w - x - 60 * mm, y, _qty(line.qty))
-        c.drawRightString(page_w - x - 30 * mm, y, _money(line.unit_price))
-        c.drawRightString(page_w - x, y, _money(line.line_total))
+        c.drawRightString(page_w - x - 60 * mm, y, qty(line.qty))
+        c.drawRightString(page_w - x - 30 * mm, y, money(line.unit_price))
+        c.drawRightString(page_w - x, y, money(line.line_total))
 
     # Итоги.
     y -= 4 * mm
     c.line(page_w / 2, y, page_w - x, y)
     y -= 6 * mm
-    c.drawRightString(page_w - x - 30 * mm, y, "Netto:")
-    c.drawRightString(page_w - x, y, _money(job.net))
+    label_net = _("Net")
+    c.drawRightString(page_w - x - 30 * mm, y, f"{label_net}:")
+    c.drawRightString(page_w - x, y, money(job.net))
     if not tenant.small_business:
         y -= 6 * mm
-        c.drawRightString(page_w - x - 30 * mm, y, f"USt. {job.vat_rate:.0f} %:")
-        c.drawRightString(page_w - x, y, _money(job.vat_amount))
+        label_vat = _("VAT")
+        c.drawRightString(page_w - x - 30 * mm, y, f"{label_vat} {job.vat_rate:.0f} %:")
+        c.drawRightString(page_w - x, y, money(job.vat_amount))
     y -= 7 * mm
-    c.setFont("Helvetica-Bold", 11)
-    c.drawRightString(page_w - x - 30 * mm, y, "Gesamt:")
-    c.drawRightString(page_w - x, y, _money(job.gross))
+    c.setFont(font_bold, 11)
+    label_total = _("Total")
+    c.drawRightString(page_w - x - 30 * mm, y, f"{label_total}:")
+    c.drawRightString(page_w - x, y, money(job.gross))
 
     # Hinweise.
     y -= 14 * mm
-    c.setFont("Helvetica", 8)
+    c.setFont(font, 8)
     c.setFillColorRGB(*_MUTED)
     if tenant.small_business:
-        c.drawString(x, y, "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.")
+        c.drawString(x, y, _("No VAT is charged in accordance with § 19 UStG."))
         y -= 5 * mm
-    c.drawString(x, y, "Dies ist ein unverbindliches Angebot / Kostenvoranschlag.")
+    c.drawString(x, y, _("This is a non-binding quote / cost estimate."))
 
     c.showPage()
     c.save()

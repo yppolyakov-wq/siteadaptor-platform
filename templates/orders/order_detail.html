@@ -64,6 +64,8 @@
       {% if order.shipped_at %}<p class="text-xs text-gray-400 mt-1">{% trans "Shipped" %}: {{ order.shipped_at }}</p>{% endif %}
       <a href="{% url 'orders:order-delivery-note' order.pk %}" target="_blank" rel="noopener"
          class="inline-block mt-3 text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Delivery note (PDF)" %}</a>
+      {% url 'orders:order-delivery-note' order.pk as note_url %}
+      <span class="inline-flex flex-wrap items-center gap-1 ml-2">{% doc_langs note_url %}</span>
     </div>
     {% endif %}
 
