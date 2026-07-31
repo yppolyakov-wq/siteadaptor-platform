@@ -487,7 +487,8 @@ msgstr ""
 
 #: apps/catalog/forms.py:167
 msgid "Ab diesem Bestand meldet der Shop „nachbestellen“."
-msgstr "Bu stok seviyesinden itibaren mağaza “yeniden sipariş” bildirir."
+msgstr ""
+"Bu stok seviyesinden itibaren mağaza ürünü yeniden sipariş için işaretler."
 
 #: apps/catalog/forms.py:168
 msgid "Leer = unbegrenzt (kein Bestandslimit)."
@@ -511,7 +512,7 @@ msgstr "Satın alma fiyatı ≥ 0 olmalıdır."
 
 #: apps/catalog/forms.py:230
 msgid "Meldebestand muss ≥ 0 sein."
-msgstr "Bildirim stoku ≥ 0 olmalıdır."
+msgstr "Kritik stok ≥ 0 olmalıdır."
 
 #: apps/catalog/forms.py:236
 msgid "Sollbestand muss ≥ 0 sein."
@@ -1812,7 +1813,7 @@ msgstr "Envanter kaydı yapıldı: %(n)s Düzeltme(ler)."
 
 #: apps/inventory/views.py:189
 msgid "Meldebestand aktualisiert."
-msgstr "Kayıtlı veriler güncellendi."
+msgstr "Kritik stok güncellendi."
 
 #: apps/inventory/views.py:197
 msgid "Bitte einen Artikel wählen."
@@ -1820,7 +1821,7 @@ msgstr "Lütfen bir ürün seçin."
 
 #: apps/inventory/views.py:203
 msgid "Menge muss größer als 0 sein."
-msgstr "Değer 0'dan büyük olmalıdır."
+msgstr "Miktar 0'dan büyük olmalıdır."
 
 #: apps/inventory/views.py:213
 msgid "Wareneingang gebucht."
@@ -5907,7 +5908,7 @@ msgstr ""
 
 #: templates/inventory/stock.html:175
 msgid "Meldebestand ≤"
-msgstr "Bildirim sayısı ≤"
+msgstr "Kritik stok ≤"
 
 #: templates/inventory/stock.html:177
 msgid "OK"

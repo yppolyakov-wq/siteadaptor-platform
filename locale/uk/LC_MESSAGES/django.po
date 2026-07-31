@@ -374,7 +374,7 @@ msgstr "сірчані"
 
 #: apps/catalog/food.py:56
 msgid "geschwärzt"
-msgstr "зафарбовано"
+msgstr "пофарбовано в чорний"
 
 #: apps/catalog/food.py:57
 msgid "gewachst"
@@ -486,9 +486,7 @@ msgstr ""
 
 #: apps/catalog/forms.py:167
 msgid "Ab diesem Bestand meldet der Shop „nachbestellen“."
-msgstr ""
-"Починаючи з цього запасу, магазин повідомляє про необхідність "
-"«дозамовлення»."
+msgstr "З цього залишку магазин позначає товар як «час дозамовити»."
 
 #: apps/catalog/forms.py:168
 msgid "Leer = unbegrenzt (kein Bestandslimit)."
@@ -512,7 +510,7 @@ msgstr "Ціна закупівлі повинна бути ≥ 0."
 
 #: apps/catalog/forms.py:230
 msgid "Meldebestand muss ≥ 0 sein."
-msgstr "Значення «Meldebestand» має бути ≥ 0."
+msgstr "Мін. залишок має бути ≥ 0."
 
 #: apps/catalog/forms.py:236
 msgid "Sollbestand muss ≥ 0 sein."
@@ -1007,7 +1005,7 @@ msgstr "Відхилити"
 
 #: apps/core/pipeline.py:114
 msgid "Eingelöst"
-msgstr "Виконано"
+msgstr "Погашено"
 
 #: apps/core/pipeline.py:116 apps/notifications/prefs.py:63
 msgid "Abgelaufen"
@@ -1065,7 +1063,7 @@ msgstr "Бронювання"
 
 #: apps/core/templatetags/cabinet.py:52
 msgid "Einlösen"
-msgstr "Використати"
+msgstr "Погасити"
 
 #: apps/core/templatetags/cabinet.py:53
 msgid "Treuepunkte"
@@ -1814,11 +1812,11 @@ msgstr "Обліковано інвентаризацію: %(n)s коригув�
 
 #: apps/inventory/views.py:189
 msgid "Meldebestand aktualisiert."
-msgstr "Оновлено дані реєстру."
+msgstr "Мін. залишок оновлено."
 
 #: apps/inventory/views.py:197
 msgid "Bitte einen Artikel wählen."
-msgstr "Будь ласка, виберіть статтю."
+msgstr "Виберіть товар."
 
 #: apps/inventory/views.py:203
 msgid "Menge muss größer als 0 sein."
@@ -5938,7 +5936,7 @@ msgstr ""
 
 #: templates/inventory/stock.html:175
 msgid "Meldebestand ≤"
-msgstr "Кількість зареєстрованих осіб ≤"
+msgstr "Мін. залишок ≤"
 
 #: templates/inventory/stock.html:177
 msgid "OK"

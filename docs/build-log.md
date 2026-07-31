@@ -7167,3 +7167,28 @@ name="variant"` (замок buybox); wishlist в tenant-схеме отсутс�
   с умляутами → работаем в bytes). Миграции НЕ нужны (метки схему не меняют, конвенция
   2026-07-13). 107 новых msgid × 5 .po с переводами. Осознанно обновлён замок
   `test_status_labels_save_render_and_reset` (сверялся с английским литералом «New»).
+
+## 2026-07-31 — i18n-волны I18N-2/3/5/6 (конструктор, шаблоны кабинета, messages, Finder)
+Продолжение `docs/i18n-full-coverage-plan-2026-07-30.md`.
+- **I18N-2 (конструктор сайта):** 76 label-меток реестров билдера (CBLOCK_VARIANTS,
+  MICRO_TEMPLATES, SECTION_STYLE_LABELS) → `gettext_lazy`; CBLOCK_DEMO_DATA НЕ тронут
+  (демо-контент пишется в site_config JSON). Ловушка сработала на другом пути:
+  `cblock_variants_json` сериализует реестр для инсертера «+» и падал TypeError на
+  lazy → `seo._dumps` переведён на `DjangoJSONEncoder` (умеет Promise). Поймано
+  замками `test_cblocks_builder`. +69 msgid × 5 .po.
+- **I18N-3 (шаблоны кабинета):** promotion_feature + listing_feature (близнецы,
+  msgid переиспользуются), billing/payments, `_setup_buttons` (кнопки КАЖДОГО шага
+  мастера; партиалу добавлен `{% load i18n %}`), coupon_campaigns, `_module_row`,
+  aggregator/`_cards`. Числа/даты — через `{% blocktrans with %}`.
+- **I18N-5 (флеш-сообщения):** 6 сообщений waitlist/reserve в
+  `promotions/public_views.py` были не обёрнуты при обёрнутых соседях (регрессия);
+  + `aggregator/featuring.py`; `_VOUCHER_ERRORS` — модульный словарь → `gettext_lazy`
+  (обычный gettext заморозил бы язык первого запроса). +33 msgid (I18N-3+5).
+- **I18N-6 (витринный Finder):** развилка решена явно — пресет архетипа
+  локализуется (`localize_tree` в `tree_for`), кастомное дерево владельца НЕ
+  подменяется, `preset_tree` (кнопка «Branchen-Vorlage laden») отдаёт сырой
+  немецкий (он пишется в site_config как контент). 3 замка; +44 msgid × 5 .po.
+- **Грабля сессии:** `.mo` локально были старше `.po` → переводы в тестах не
+  работали и класс «замок пинит сырой литерал» всплывал бы только на CI.
+  После `msgfmt` по всем локалям нашёлся `test_str_uses_business_type_when_no_city`
+  (сверялся с «Bakery») — обновлён осознанно, как и orders-замок в I18N-1.

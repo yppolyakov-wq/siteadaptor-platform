@@ -25,7 +25,7 @@ msgstr "Сохранено."
 
 #: apps/account/views.py:157 apps/stays/public_views.py:646
 msgid "This booking can no longer be cancelled."
-msgstr "Этот бронирование больше нельзя отменить."
+msgstr "Это бронирование уже нельзя отменить."
 
 #: apps/account/views.py:174
 msgid "Your booking was cancelled."
@@ -375,7 +375,7 @@ msgstr "сернистый"
 
 #: apps/catalog/food.py:56
 msgid "geschwärzt"
-msgstr "зачеркнуто"
+msgstr "окрашено в чёрный"
 
 #: apps/catalog/food.py:57
 msgid "gewachst"
@@ -488,9 +488,7 @@ msgstr ""
 
 #: apps/catalog/forms.py:167
 msgid "Ab diesem Bestand meldet der Shop „nachbestellen“."
-msgstr ""
-"При достижении этого уровня запасов магазин выдает уведомление «необходимо "
-"пополнить запасы»."
+msgstr "С этого остатка магазин отмечает товар как «пора дозаказать»."
 
 #: apps/catalog/forms.py:168
 msgid "Leer = unbegrenzt (kein Bestandslimit)."
@@ -514,7 +512,7 @@ msgstr "Покупная цена должна быть ≥ 0."
 
 #: apps/catalog/forms.py:230
 msgid "Meldebestand muss ≥ 0 sein."
-msgstr "Значение в отчете должно быть ≥ 0."
+msgstr "Мин. остаток должен быть ≥ 0."
 
 #: apps/catalog/forms.py:236
 msgid "Sollbestand muss ≥ 0 sein."
@@ -1010,7 +1008,7 @@ msgstr "Отклонить"
 
 #: apps/core/pipeline.py:114
 msgid "Eingelöst"
-msgstr "Выполнено"
+msgstr "Погашено"
 
 #: apps/core/pipeline.py:116 apps/notifications/prefs.py:63
 msgid "Abgelaufen"
@@ -1818,11 +1816,11 @@ msgstr "Проведена инвентаризация: %(n)s корректи�
 
 #: apps/inventory/views.py:189
 msgid "Meldebestand aktualisiert."
-msgstr "Обновлены данные учета."
+msgstr "Мин. остаток обновлён."
 
 #: apps/inventory/views.py:197
 msgid "Bitte einen Artikel wählen."
-msgstr "Пожалуйста, выберите статью."
+msgstr "Выберите товар."
 
 #: apps/inventory/views.py:203
 msgid "Menge muss größer als 0 sein."
@@ -5952,7 +5950,7 @@ msgstr ""
 
 #: templates/inventory/stock.html:175
 msgid "Meldebestand ≤"
-msgstr "Число зарегистрированных ≤"
+msgstr "Мин. остаток ≤"
 
 #: templates/inventory/stock.html:177
 msgid "OK"

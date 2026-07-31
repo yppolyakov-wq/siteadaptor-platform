@@ -474,9 +474,7 @@ msgstr "For internal use only—for margin display, not for public viewing."
 
 #: apps/catalog/forms.py:167
 msgid "Ab diesem Bestand meldet der Shop „nachbestellen“."
-msgstr ""
-"Once inventory reaches this level, the store will notify customers to "
-"“reorder.”"
+msgstr "From this stock level the shop flags the item for reordering."
 
 #: apps/catalog/forms.py:168
 msgid "Leer = unbegrenzt (kein Bestandslimit)."
