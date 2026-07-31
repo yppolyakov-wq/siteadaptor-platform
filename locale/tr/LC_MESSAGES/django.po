@@ -16566,3 +16566,12 @@ msgstr "Gönderen"
 
 msgid "Location"
 msgstr "Konum"
+
+msgid "Document language saved."
+msgstr "Belge dili kaydedildi."
+
+msgid "Invoice language"
+msgstr "Fatura dili"
+
+msgid "The invoice is issued in this language — pick the customer's language."
+msgstr "Fatura bu dilde düzenlenir — müşterinin dilini seçin."

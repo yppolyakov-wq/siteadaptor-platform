@@ -97,6 +97,11 @@ class Invoice(TimestampedModel):
 
     number = models.PositiveIntegerField(null=True, blank=True, unique=True)
     status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_DRAFT)
+    # I18N-7b/2: язык документа фиксируется ПРИ ВЫСТАВЛЕНИИ и живёт со счётом.
+    # Иначе повторное скачивание тем же владельцем на другом языке кабинета дало
+    # бы другой документ под тем же номером — это ломает GoBD-неизменяемость.
+    # Пусто = язык бизнеса (Tenant.default_locale) на момент печати (легаси-счета).
+    language = models.CharField(max_length=10, blank=True)
     customer = models.ForeignKey(
         Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name="invoices"
     )

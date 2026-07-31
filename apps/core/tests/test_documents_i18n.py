@@ -59,17 +59,97 @@ def test_money_and_date_follow_locale():
         assert documents.qty("3.50") == "3.5"
 
 
+def pdf_text(data: bytes) -> str:
+    """Текст из PDF: reportlab жмёт потоки ASCII85+zlib, строки лежат как (…).
+
+    Сравнивать БАЙТЫ бессмысленно — в PDF есть CreationDate/ID, они меняются от
+    запуска к запуску, и такой «замок» проходил бы даже без перевода."""
+    import base64
+    import re
+    import zlib
+
+    out = []
+    for m in re.finditer(rb"stream\r?\n(.*?)endstream", data, re.S):
+        try:
+            chunk = zlib.decompress(base64.a85decode(m.group(1).strip(), adobe=True))
+        except Exception:  # noqa: BLE001 — не текстовый поток (шрифт/картинка)
+            continue
+        for tok in re.findall(rb"\(((?:[^()\\]|\\.)*)\)", chunk):
+            out.append(tok.decode("latin-1", "replace"))
+    return " ".join(out)
+
+
 @pytest.mark.django_db
-def test_invoice_pdf_differs_between_languages():
+def test_invoice_pdf_text_is_translated(monkeypatch):
     from apps.finance.pdf import build_invoice_pdf
     from apps.finance.services import issue_invoice
     from apps.finance.tests.test_invoices import _draft
 
+    # Helvetica-режим: строки в потоке читаемы (у subset-TTF они закодированы).
+    monkeypatch.setattr(documents, "unicode_fonts_available", lambda: False)
     tenant = TenantFactory.build(small_business=True)
     invoice = issue_invoice(_draft(recipient="Max Mustermann"))
     with translation.override("de"):
-        de_pdf = build_invoice_pdf(invoice, tenant)
+        de_text = pdf_text(build_invoice_pdf(invoice, tenant))
     with translation.override("en"):
-        en_pdf = build_invoice_pdf(invoice, tenant)
-    assert de_pdf.startswith(b"%PDF") and en_pdf.startswith(b"%PDF")
-    assert de_pdf != en_pdf  # подписи реально переведены, а не захардкожены
+        en_text = pdf_text(build_invoice_pdf(invoice, tenant))
+    assert "Rechnung" in de_text and "Netto" in de_text
+    assert "Invoice" in en_text and "Net:" in en_text
+    assert "Rechnung" not in en_text  # немецкие подписи не протекают в EN-документ
+
+
+@pytest.mark.django_db
+def test_issued_invoice_keeps_its_language(monkeypatch):
+    """I18N-7b/2: язык выставленного счёта зафиксирован — тот же номер обязан
+    давать тот же документ (GoBD), независимо от языка кабинета читателя."""
+    from django.test import RequestFactory
+
+    from apps.finance import views
+    from apps.finance.pdf import build_invoice_pdf
+    from apps.finance.services import issue_invoice
+    from apps.finance.tests.test_invoices import _draft
+
+    monkeypatch.setattr(documents, "unicode_fonts_available", lambda: False)
+    tenant = TenantFactory.build(enabled_locales=["de", "en"], default_locale="de")
+    invoice = _draft(recipient="Max Mustermann")
+    invoice.language = "en"
+    invoice.save(update_fields=["language"])
+    invoice = issue_invoice(invoice)
+
+    request = RequestFactory().get("/x/?lang=de")  # владелец кликает «de»
+    request.tenant = tenant
+    with translation.override("de"):  # и кабинет тоже по-немецки
+        lang = documents.document_language(request, explicit=invoice.language, tenant=tenant)
+    assert lang == "en"  # выигрывает язык, зафиксированный на счёте
+    with translation.override(lang):
+        text = pdf_text(build_invoice_pdf(invoice, tenant))
+    assert "Invoice" in text and "Rechnung" not in text
+    assert views  # вьюха импортируется (регресс-страховка на провод)
+
+
+@pytest.mark.django_db
+def test_draft_language_can_be_changed_but_issued_cannot():
+    from apps.finance.services import issue_invoice
+    from apps.finance.tests.test_invoices import _draft
+
+    invoice = _draft(recipient="X")
+    assert invoice.is_editable  # черновик — язык ещё можно менять
+    invoice.language = "en"
+    invoice.save(update_fields=["language"])
+    issued = issue_invoice(invoice)
+    assert not issued.is_editable and issued.language == "en"
+
+
+def test_clean_language_accepts_renderable_and_rejects_garbage():
+    """Счёт можно выставить на любом языке, который мы умеем печатать (в т.ч. не
+    включённом на витрине — язык клиента ≠ язык сайта). Мусор отбрасывается."""
+    tenant = TenantFactory.build(enabled_locales=["de"])
+    assert documents.clean_language("de", tenant) == "de"
+    assert documents.clean_language("ru", tenant) == "ru"  # язык клиента
+    assert documents.clean_language("zz", tenant) == ""
+    assert documents.clean_language("", tenant) == ""
+
+
+def test_business_language_is_tenant_default():
+    tenant = TenantFactory.build(enabled_locales=["de", "en"], default_locale="en")
+    assert documents.business_language(tenant) == "en"

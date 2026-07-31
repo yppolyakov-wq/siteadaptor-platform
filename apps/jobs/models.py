@@ -55,6 +55,9 @@ class Job(TimestampedModel):
     # Публичная Angebot-страница: клиент принимает/отклоняет смету онлайн (F3).
     public_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     valid_until = models.DateField(null=True, blank=True)  # Angebot gültig bis
+    # I18N-7b/2: язык сметы (Angebot) — выбирается владельцем и хранится, чтобы
+    # клиент повторно скачал ТОТ ЖЕ документ. Пусто = язык бизнеса.
+    language = models.CharField(max_length=10, blank=True)
     # A9: следующий TÜV/Service — дата, когда напомнить клиенту (Werkstatt-ретеншн).
     # Beat шлёт письмо за SERVICE_REMINDER_LEAD_DAYS до даты; sent_at — дедуп (одно
     # напоминание на дату; смена даты в кабинете сбрасывает sent_at → новое напоминание).

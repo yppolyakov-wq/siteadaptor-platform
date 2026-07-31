@@ -116,6 +116,7 @@ def invoices(request):
     """Счета (D4b): список + создание черновика (до 8 позиций без JS)."""
     from decimal import Decimal, InvalidOperation
 
+    from apps.core.documents import business_language, language_choices
     from apps.promotions.models import Customer
 
     from .models import Invoice
@@ -156,8 +157,15 @@ def invoices(request):
         company_recipient = (
             customer.company.invoice_recipient if customer and customer.company_id else ""
         )
+        from apps.core.documents import business_language, clean_language
+
         invoice = Invoice.objects.create(
             customer=customer,
+            # I18N-7b/2: язык документа выбирает владелец при создании (дефолт —
+            # язык бизнеса); дальше он живёт со счётом и не зависит от того, кто
+            # и на каком языке кабинета нажал «скачать».
+            language=clean_language(request.POST.get("language"), request.tenant)
+            or business_language(request.tenant),
             recipient=request.POST.get("recipient", "").strip()[:500]
             or company_recipient
             or (str(customer) if customer else ""),
@@ -180,6 +188,8 @@ def invoices(request):
             "customers": Customer.objects.order_by("name")[:200],
             "vat_rates": RevenueEntry.VAT_RATES,
             "small_business": request.tenant.small_business,
+            "doc_languages": language_choices(request.tenant),
+            "doc_language_default": business_language(request.tenant),
         },
     )
 
@@ -187,6 +197,8 @@ def invoices(request):
 @login_required
 def invoice_detail(request, pk):
     from django.shortcuts import get_object_or_404
+
+    from apps.core.documents import language_choices
 
     from .models import Invoice
     from .state_machine import InvoiceSM
@@ -199,7 +211,22 @@ def invoice_detail(request, pk):
 
         action = request.POST.get("action", "")
         try:
-            if action == "issue" and invoice.is_editable:
+            if action == "language" and invoice.is_editable:
+                # Менять язык можно только у ЧЕРНОВИКА: выставленный счёт
+                # неизменяем (GoBD) — иначе один номер дал бы два документа.
+                from apps.core.documents import clean_language
+
+                invoice.language = clean_language(request.POST.get("language"), request.tenant)
+                invoice.save(update_fields=["language", "updated_at"])
+                messages.success(request, _("Document language saved."))
+            elif action == "issue" and invoice.is_editable:
+                # Язык фиксируется в момент выставления (если владелец его не
+                # выбрал — язык бизнеса), дальше документ неизменяем.
+                if not invoice.language:
+                    from apps.core.documents import business_language
+
+                    invoice.language = business_language(request.tenant)
+                    invoice.save(update_fields=["language", "updated_at"])
                 invoice = issue_invoice(invoice)
                 messages.success(request, _("Invoice issued."))
             elif action == "delete" and invoice.is_editable:
@@ -222,6 +249,7 @@ def invoice_detail(request, pk):
             "nav": "finance",
             "invoice": invoice,
             "allowed": InvoiceSM().allowed_targets(invoice.status),
+            "doc_languages": language_choices(request.tenant),
         },
     )
 
@@ -238,9 +266,10 @@ def invoice_pdf(request, pk):
     from .pdf import build_invoice_pdf
 
     invoice = get_object_or_404(Invoice, pk=pk)
-    # I18N-7b: счёт для клиента — владелец выбирает язык ссылкой `?lang=`,
-    # без параметра печатаем на языке кабинета.
-    with translation.override(document_language(request)):
+    # I18N-7b/2: язык зафиксирован на счёте (GoBD: один номер — один документ); `?lang=`
+    # остаётся только для черновика-предпросмотра.
+    explicit = invoice.language if not invoice.is_editable else ""
+    with translation.override(document_language(request, explicit=explicit)):
         pdf = build_invoice_pdf(invoice, request.tenant)
     response = HttpResponse(pdf, content_type="application/pdf")
     name = invoice.number_display if invoice.number else f"entwurf-{invoice.pk}"

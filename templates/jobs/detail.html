@@ -22,7 +22,19 @@
   </h1>
   <span class="flex flex-wrap items-center gap-1">
     <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Angebot PDF" %} ↗</a>
-    {% url 'jobs:pdf' job.pk as quote_url %}{% doc_langs quote_url %}
+    {% comment %}I18N-7b/2: язык сметы хранится на заявке — клиент повторно
+    скачает тот же документ.{% endcomment %}
+    {% if doc_languages|length > 1 %}
+      <form method="post" class="inline-flex items-center gap-1">
+        {% csrf_token %}
+        <select name="language" class="rounded-lg border border-gray-300 px-2 py-1 text-xs">
+          {% for lang in doc_languages %}
+            <option value="{{ lang.code }}" {% if lang.code == job.language %}selected{% endif %}>{{ lang.label }}</option>
+          {% endfor %}
+        </select>
+        <button name="action" value="language" class="text-xs rounded-lg border border-gray-300 px-2 py-1 hover:bg-gray-50">{% trans "Save" %}</button>
+      </form>
+    {% endif %}
   </span>
 </div>
 

@@ -72,6 +72,19 @@
     {% endfor %}
   </div>
   <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  {% if doc_languages|length > 1 %}
+    {% comment %}I18N-7b/2: язык счёта выбирается при создании и хранится с
+    документом — выставленный счёт неизменяем (GoBD).{% endcomment %}
+    <div class="max-w-xs">
+      <label class="block text-sm font-medium mb-1">{% trans "Invoice language" %}</label>
+      <select name="language" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        {% for lang in doc_languages %}
+          <option value="{{ lang.code }}" {% if lang.code == doc_language_default %}selected{% endif %}>{{ lang.label }}</option>
+        {% endfor %}
+      </select>
+      <p class="text-xs text-gray-400 mt-1">{% trans "The invoice is issued in this language — pick the customer's language." %}</p>
+    </div>
+  {% endif %}
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">Entwurf anlegen</button>
 </form>
 {% endblock %}

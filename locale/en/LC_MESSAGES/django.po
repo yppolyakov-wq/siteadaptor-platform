@@ -16455,3 +16455,12 @@ msgstr ""
 
 msgid "Location"
 msgstr ""
+
+msgid "Document language saved."
+msgstr ""
+
+msgid "Invoice language"
+msgstr ""
+
+msgid "The invoice is issued in this language — pick the customer's language."
+msgstr ""

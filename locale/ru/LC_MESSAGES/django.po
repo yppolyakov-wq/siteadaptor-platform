@@ -16645,3 +16645,12 @@ msgstr "Отправитель"
 
 msgid "Location"
 msgstr "Место"
+
+msgid "Document language saved."
+msgstr "Язык документа сохранён."
+
+msgid "Invoice language"
+msgstr "Язык счёта"
+
+msgid "The invoice is issued in this language — pick the customer's language."
+msgstr "Счёт будет выставлен на этом языке — выберите язык клиента."

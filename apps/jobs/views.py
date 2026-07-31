@@ -124,6 +124,15 @@ def job_detail(request, pk):
             return _transition(request, job, action)
         if action in ("link_booking", "unlink_booking"):
             return _link_booking(request, job, attach=action == "link_booking")
+        if action == "language":
+            # I18N-7b/2: язык сметы хранится на заявке — клиент повторно скачает
+            # ТОТ ЖЕ документ, независимо от языка кабинета.
+            from apps.core.documents import clean_language
+
+            job.language = clean_language(request.POST.get("language"), request.tenant)
+            job.save(update_fields=["language", "updated_at"])
+            messages.success(request, _("Document language saved."))
+            return redirect("jobs:detail", pk=job.pk)
         messages.error(request, _("Unknown action."))
         return redirect("jobs:detail", pk=job.pk)
 
@@ -153,8 +162,16 @@ def job_detail(request, pk):
             "deposit_eur": f"{job.deposit_cents / 100:.2f}",
             "payments_enabled": getattr(request.tenant, "payments_enabled", False),
             "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
+            "doc_languages": _doc_languages(request),
         },
     )
+
+
+def _doc_languages(request):
+    """I18N-7b/2: языки, на которых можно выставить смету (локали тенанта)."""
+    from apps.core.documents import language_choices
+
+    return language_choices(getattr(request, "tenant", None))
 
 
 def _customer_bookings(job):
@@ -308,8 +325,8 @@ def job_pdf(request, pk):
     from apps.core.documents import document_language
 
     job = get_object_or_404(Job.objects.select_related("customer"), pk=pk)
-    # I18N-7b: смета уходит клиенту — язык задаётся ссылкой `?lang=`.
-    with translation.override(document_language(request)):
+    # I18N-7b/2: язык сметы задан на заявке (`?lang=` — разовый предпросмотр).
+    with translation.override(document_language(request, explicit=job.language)):
         pdf = build_quote_pdf(job, request.tenant)
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="angebot_{job.reference_code}.pdf"'

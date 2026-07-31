@@ -16630,3 +16630,12 @@ msgstr "Відправник"
 
 msgid "Location"
 msgstr "Місце"
+
+msgid "Document language saved."
+msgstr "Мову документа збережено."
+
+msgid "Invoice language"
+msgstr "Мова рахунку"
+
+msgid "The invoice is issued in this language — pick the customer's language."
+msgstr "Рахунок буде виставлено цією мовою — оберіть мову клієнта."

@@ -120,6 +120,27 @@ def document_language(request=None, *, explicit: str = "", tenant=None) -> str:
     return lang
 
 
+def business_language(tenant=None) -> str:
+    """Язык бизнеса — дефолт для НОВОГО документа (Tenant.default_locale)."""
+    allowed = allowed_languages(tenant)
+    lang = (getattr(tenant, "default_locale", "") or "").strip()
+    if lang not in allowed:
+        lang = settings.LANGUAGE_CODE
+    return lang
+
+
+def clean_language(raw, tenant=None) -> str:
+    """Валидировать выбор языка документа из формы («» = не выбран)."""
+    lang = (raw or "").strip()
+    return lang if lang in allowed_languages(tenant) else ""
+
+
+def language_choices(tenant=None) -> list[dict]:
+    """[{code, label}] для селектора языка документа в кабинете."""
+    names = dict(settings.LANGUAGES)
+    return [{"code": c, "label": names.get(c, c.upper())} for c in allowed_languages(tenant)]
+
+
 def money(value, currency: str = "EUR") -> str:
     """Сумма по активной локали + код валюты («1.234,50 EUR» / «1,234.50 EUR»)."""
     amount = Decimal(str(value or 0)).quantize(Decimal("0.01"))
