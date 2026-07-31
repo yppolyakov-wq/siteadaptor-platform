@@ -16642,3 +16642,56 @@ msgstr ""
 "Welche Symbole Gäste auf den Zimmerkarten sehen (Liste und "
 "Startseite). Gezeigt wird nur, was das Zimmer wirklich hat. Nichts "
 "angehakt = die ersten Ausstattungsmerkmale des Zimmers."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Day reopened."
+msgstr "Tag wieder geöffnet."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Sales closed for this day."
+msgstr "Verkauf für diesen Tag geschlossen."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Opening hours & resources"
+msgstr "Öffnungszeiten & Ressourcen"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"No opening hours yet — that is why the website shows no free "
+"appointments. Add weekly hours under “Opening hours & resources”."
+msgstr ""
+"Noch keine Öffnungszeiten — deshalb zeigt die Website keine freien "
+"Termine. Legen Sie Wochenzeiten unter „Öffnungszeiten & Ressourcen“ "
+"an."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Whole business"
+msgstr "Ganzer Betrieb"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Closed — click to reopen"
+msgstr "Geschlossen — zum Öffnen klicken"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "No opening hours on this weekday"
+msgstr "An diesem Wochentag keine Öffnungszeiten"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Open — click to close sales"
+msgstr "Geöffnet — zum Schließen klicken"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"A closed day disappears from the website for all services (or for "
+"the selected resource only)."
+msgstr ""
+"Ein geschlossener Tag verschwindet auf der Website für alle "
+"Leistungen (oder nur für die gewählte Ressource)."
+
+#: templates/booking/availability.html
+msgid "Bookable"
+msgstr "Buchbar"
+
+#: templates/booking/availability.html
+msgid "No opening hours"
+msgstr "Keine Öffnungszeiten"

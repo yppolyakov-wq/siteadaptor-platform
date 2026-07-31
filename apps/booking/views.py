@@ -11,6 +11,7 @@ from datetime import datetime, time, timedelta
 import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -186,6 +187,108 @@ def booking_create(request):
         return redirect("booking:calendar")
     messages.success(request, _("Booking created."))
     return redirect(f"{reverse('booking:calendar')}?tag={booking.start.date().isoformat()}")
+
+
+@login_required
+def availability_calendar(request):
+    """HF-4 (фидбэк владельца 2026-07-31, п. 1): визуальный календарь доступности.
+
+    Движок закрытия дней (`ClosedDate`) и недельного расписания
+    (`AvailabilityRule`) существовал давно, но управлялся списком дат в форме —
+    владелец его попросту не находил и не видел картины месяца. Здесь месяц-сетка:
+    клик по дню закрывает/открывает продажи на этот день (для всего бизнеса или
+    выбранного ресурса), цветом видно, где расписания нет вовсе.
+    """
+    import calendar as _calendar
+    from datetime import date as _date
+
+    from .models import Service
+
+    today = timezone.localdate()
+    try:
+        first = _date(int(request.GET.get("year") or today.year), int(request.GET["month"]), 1)
+    except (TypeError, ValueError, KeyError):
+        first = today.replace(day=1)
+    resources_qs = list(Resource.objects.filter(is_active=True))
+    chosen = next((r for r in resources_qs if str(r.pk) == request.GET.get("resource", "")), None)
+
+    if request.method == "POST":
+        day = _parse_day_or_none(request.POST.get("date"))
+        if day is None:
+            messages.error(request, _("Invalid date."))
+        else:
+            qs = ClosedDate.objects.filter(date=day, resource=chosen)
+            if qs.exists():
+                qs.delete()
+                messages.success(request, _("Day reopened."))
+            else:
+                ClosedDate.objects.create(
+                    date=day, resource=chosen, reason=request.POST.get("reason", "").strip()[:120]
+                )
+                messages.success(request, _("Sales closed for this day."))
+        return redirect(_calendar_url(first, chosen))
+
+    # Дни месяца: закрыт вручную / нет расписания на этот день недели / открыт.
+    closed = {
+        c.date: c
+        for c in ClosedDate.objects.filter(
+            date__gte=first, date__lt=first + timedelta(days=32)
+        ).filter(Q(resource=chosen) | Q(resource__isnull=True))
+    }
+    pool = [chosen] if chosen else resources_qs
+    weekdays_with_rules = set(
+        AvailabilityRule.objects.filter(resource__in=pool).values_list("weekday", flat=True)
+    )
+    days = []
+    for num in range(1, _calendar.monthrange(first.year, first.month)[1] + 1):
+        day = _date(first.year, first.month, num)
+        hit = closed.get(day)
+        days.append(
+            {
+                "date": day,
+                "in_past": day < today,
+                "is_today": day == today,
+                # Чужой ClosedDate (всего бизнеса при выбранном ресурсе) снять
+                # с этой страницы нельзя — показываем, но не предлагаем клик.
+                "closed": hit is not None,
+                "closed_here": hit is not None
+                and hit.resource_id == (chosen.pk if chosen else None),
+                "reason": hit.reason if hit else "",
+                "no_rules": day.weekday() not in weekdays_with_rules,
+            }
+        )
+    prev_first = (first - timedelta(days=1)).replace(day=1)
+    next_first = (first + timedelta(days=32)).replace(day=1)
+    return render(
+        request,
+        "booking/availability.html",
+        {
+            "nav": "booking",
+            "cal_first": first,
+            "cal_days": days,
+            "cal_lead_blanks": range(first.weekday()),
+            "prev_url": _calendar_url(prev_first, chosen),
+            "next_url": _calendar_url(next_first, chosen),
+            "resources": resources_qs,
+            "chosen_resource": chosen,
+            "has_rules": bool(weekdays_with_rules),
+            "services": list(Service.objects.filter(is_active=True)[:50]),
+        },
+    )
+
+
+def _calendar_url(first, resource=None) -> str:
+    url = f"{reverse('booking:availability')}?year={first.year}&month={first.month}"
+    return f"{url}&resource={resource.pk}" if resource else url
+
+
+def _parse_day_or_none(raw):
+    from datetime import date as _date
+
+    try:
+        return _date.fromisoformat(raw or "")
+    except (TypeError, ValueError):
+        return None
 
 
 @login_required

@@ -16669,3 +16669,55 @@ msgstr ""
 "Які значки гість бачить на картках номерів (список і головна). "
 "Показуємо лише те, що в номері справді є. Нічого не позначено — "
 "перші зручності самого номера."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Day reopened."
+msgstr "День знову відкрито."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Sales closed for this day."
+msgstr "Продажі на цей день закрито."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Opening hours & resources"
+msgstr "Години роботи та ресурси"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"No opening hours yet — that is why the website shows no free "
+"appointments. Add weekly hours under “Opening hours & resources”."
+msgstr ""
+"Години роботи ще не задані — тому сайт не показує вільного часу. "
+"Задайте тижневий розклад у «Години роботи та ресурси»."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Whole business"
+msgstr "Весь бізнес"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Closed — click to reopen"
+msgstr "Закрито — натисніть, щоб відкрити"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "No opening hours on this weekday"
+msgstr "У цей день тижня години роботи не задані"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Open — click to close sales"
+msgstr "Відкрито — натисніть, щоб закрити продажі"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"A closed day disappears from the website for all services (or for "
+"the selected resource only)."
+msgstr ""
+"Закритий день зникає із сайту для всіх послуг (або лише для обраного "
+"ресурсу)."
+
+#: templates/booking/availability.html
+msgid "Bookable"
+msgstr "Можна записатися"
+
+#: templates/booking/availability.html
+msgid "No opening hours"
+msgstr "Години роботи не задані"

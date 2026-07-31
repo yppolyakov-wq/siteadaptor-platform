@@ -16605,3 +16605,56 @@ msgstr ""
 "Misafirlerin oda kartlarında (liste ve ana sayfa) gördüğü simgeler. "
 "Yalnızca odada gerçekten bulunan olanaklar gösterilir. Hiçbirini "
 "işaretlemezseniz odanın ilk birkaç olanağı gösterilir."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Day reopened."
+msgstr "Gün yeniden açıldı."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Sales closed for this day."
+msgstr "Bu gün için satış kapatıldı."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Opening hours & resources"
+msgstr "Çalışma saatleri ve kaynaklar"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"No opening hours yet — that is why the website shows no free "
+"appointments. Add weekly hours under “Opening hours & resources”."
+msgstr ""
+"Henüz çalışma saati yok — bu yüzden web sitesi boş randevu "
+"göstermiyor. „Çalışma saatleri ve kaynaklar“ altında haftalık "
+"saatleri ekleyin."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Whole business"
+msgstr "Tüm işletme"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Closed — click to reopen"
+msgstr "Kapalı — açmak için tıklayın"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "No opening hours on this weekday"
+msgstr "Bu hafta günü için çalışma saati yok"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Open — click to close sales"
+msgstr "Açık — satışı kapatmak için tıklayın"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"A closed day disappears from the website for all services (or for "
+"the selected resource only)."
+msgstr ""
+"Kapatılan gün web sitesinde tüm hizmetler için (veya yalnızca seçili "
+"kaynak için) görünmez olur."
+
+#: templates/booking/availability.html
+msgid "Bookable"
+msgstr "Rezerve edilebilir"
+
+#: templates/booking/availability.html
+msgid "No opening hours"
+msgstr "Çalışma saati yok"

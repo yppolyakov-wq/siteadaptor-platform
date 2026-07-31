@@ -534,3 +534,57 @@ def test_service_slots_page_uses_product_layout(settings):
     assert body.find("https://img.example/color.jpg") < body.find('id="buchen"')  # фото слева
     assert 'data-sf-section="service_detail"' in body  # секции описания/FAQ/отзывов
     assert "Schöne Farbe." in body
+
+
+def _staff_user():
+    """HF-4: владелец кабинета для вьюх под @login_required."""
+    tag = uuid.uuid4().hex[:8]
+    return get_user_model().objects.create_user(
+        username=f"o-{tag}", email=f"o-{tag}@test.de", password="pw12345678"
+    )
+
+
+def test_availability_calendar_shows_month_and_toggles_closed_day(settings):
+    """HF-4 (#1): визуальный календарь доступности + закрытие продаж кликом.
+
+    Движок (ClosedDate) был давно, но управлялся списком дат — владелец его не
+    находил. Замок держит и картину месяца, и обратимость: повторный клик по
+    закрытому дню снова открывает продажи."""
+    from apps.booking.models import ClosedDate
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+
+    def _view(method="get", data=None):
+        request = getattr(RequestFactory(), method)(
+            "/dashboard/booking/verfuegbarkeit/", data or {}
+        )
+        SessionMiddleware(lambda rq: None).process_request(request)
+        MessageMiddleware(lambda rq: None).process_request(request)
+        request.tenant = TenantFactory.build()
+        request.user = _staff_user()
+        return views.availability_calendar(request)
+
+    body = _view(data={"year": day.year, "month": day.month}).content.decode()
+    assert str(day.day) in body and 'name="date"' in body  # сетка месяца с кликом
+
+    resp = _view("post", {"date": day.isoformat()})
+    assert resp.status_code == 302
+    assert ClosedDate.objects.filter(date=day, resource=None).exists()  # продажи закрыты
+    _view("post", {"date": day.isoformat()})
+    assert not ClosedDate.objects.filter(date=day).exists()  # тот же клик открывает
+
+
+def test_availability_calendar_warns_when_no_opening_hours(settings):
+    """HF-4: причина витринного «keine freien Termine» называется словами."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    _resource(type="staff")  # ресурс есть, недельных правил нет
+    request = RequestFactory().get("/dashboard/booking/verfuegbarkeit/")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build()
+    request.user = _staff_user()
+    body = views.availability_calendar(request).content.decode()
+    assert "No opening hours yet" in body or "Öffnungszeiten" in body

@@ -9,6 +9,8 @@ urlpatterns = [
     path("new/", views.booking_create, name="booking-create"),
     path("<uuid:pk>/action/", views.booking_action, name="booking-action"),
     path("ressourcen/", views.resources, name="resources"),
+    # HF-4: визуальный календарь доступности (закрыть/открыть продажи на день).
+    path("verfuegbarkeit/", views.availability_calendar, name="availability"),
     path("leistungen/", views.services_view, name="services"),
     # Фидбэк 2026-07-30: у каждой услуги своя страница (паттерн stays:unit-edit) —
     # «Bearbeiten» из хаба «Angebote» больше не высаживает в общий список.

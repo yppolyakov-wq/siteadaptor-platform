@@ -1,0 +1,91 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% comment %}HF-4: визуальный календарь доступности услуг. Клик по дню закрывает или
+открывает продажи (ClosedDate); цветом видно дни без недельного расписания —
+именно они давали на витрине «keine freien Termine» без объяснения причины.{% endcomment %}
+{% block dash_title %}{% trans "Availability" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-3xl mx-auto">
+  <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+    <h1 class="text-2xl font-bold">📅 {% trans "Availability" %}</h1>
+    <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">🕒 {% trans "Opening hours & resources" %} →</a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not has_rules %}
+    <p class="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      {% trans "No opening hours yet — that is why the website shows no free appointments. Add weekly hours under “Opening hours & resources”." %}
+    </p>
+  {% endif %}
+
+  {% if resources %}
+  <form method="get" class="flex items-center gap-2 mb-4 text-sm">
+    <label for="res">{% trans "Applies to" %}</label>
+    <select id="res" name="resource" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-1.5">
+      <option value="">{% trans "Whole business" %}</option>
+      {% for r in resources %}<option value="{{ r.pk }}" {% if chosen_resource and chosen_resource.pk == r.pk %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
+    </select>
+    <input type="hidden" name="year" value="{{ cal_first|date:'Y' }}">
+    <input type="hidden" name="month" value="{{ cal_first|date:'n' }}">
+  </form>
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm p-4 md:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <a href="{{ prev_url }}" aria-label="{% trans 'Previous month' %}" class="w-11 h-11 flex items-center justify-center rounded-lg text-lg text-gray-600 hover:bg-gray-100">‹</a>
+      <span class="font-semibold capitalize">{{ cal_first|date:"F Y" }}</span>
+      <a href="{{ next_url }}" aria-label="{% trans 'Next month' %}" class="w-11 h-11 flex items-center justify-center rounded-lg text-lg text-gray-600 hover:bg-gray-100">›</a>
+    </div>
+
+    <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-gray-400 mb-1">
+      <div>{% trans "Mo" %}</div><div>{% trans "Tu" %}</div><div>{% trans "We" %}</div>
+      <div>{% trans "Th" %}</div><div>{% trans "Fr" %}</div><div>{% trans "Sa" %}</div><div>{% trans "Su" %}</div>
+    </div>
+
+    <form method="post" class="grid grid-cols-7 gap-1 text-center text-sm">
+      {% csrf_token %}
+      {% for _ in cal_lead_blanks %}<div></div>{% endfor %}
+      {% for d in cal_days %}
+        {% if d.in_past %}
+          <div class="rounded-lg py-2 leading-none text-gray-300">{{ d.date.day }}</div>
+        {% else %}
+          <button type="submit" name="date" value="{{ d.date|date:'Y-m-d' }}"
+                  title="{% if d.closed %}{{ d.reason|default:_('Closed — click to reopen') }}{% elif d.no_rules %}{% trans 'No opening hours on this weekday' %}{% else %}{% trans 'Open — click to close sales' %}{% endif %}"
+                  class="rounded-lg py-2 leading-none font-semibold transition
+                         {% if d.closed %}bg-red-100 text-red-700 line-through
+                         {% elif d.no_rules %}bg-gray-100 text-gray-400
+                         {% else %}ring-1 ring-emerald-200 text-gray-900 hover:ring-2 hover:ring-emerald-400 hover:bg-emerald-50{% endif %}
+                         {% if d.is_today %}ring-2 ring-indigo-400{% endif %}">
+            {{ d.date.day }}
+          </button>
+        {% endif %}
+      {% endfor %}
+    </form>
+
+    <p class="flex flex-wrap items-center gap-3 text-[11px] text-gray-400 mt-3">
+      <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded ring-1 ring-emerald-300"></span>{% trans "Bookable" %}</span>
+      <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-100"></span>{% trans "Closed" %}</span>
+      <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded bg-gray-100"></span>{% trans "No opening hours" %}</span>
+    </p>
+  </div>
+
+  <p class="text-xs text-gray-500 mt-3">{% trans "A closed day disappears from the website for all services (or for the selected resource only)." %}</p>
+
+  {% if services %}
+  <div class="bg-white rounded-2xl shadow-sm p-5 mt-4">
+    <h2 class="font-semibold mb-2">{% trans "Services" %}</h2>
+    <div class="flex flex-wrap gap-2">
+      {% for s in services %}
+        <a href="{% url 'booking:service-edit' s.pk %}" class="text-sm rounded-lg border border-gray-200 px-3 py-1.5 hover:border-indigo-400">{{ s.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

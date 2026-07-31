@@ -16494,3 +16494,55 @@ msgstr ""
 "Which icons guests see on the room cards (list and home page). Only "
 "amenities the room actually has are shown. Leave everything "
 "unchecked to show the room's first few amenities."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Day reopened."
+msgstr "Day reopened."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Sales closed for this day."
+msgstr "Sales closed for this day."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"No opening hours yet — that is why the website shows no free "
+"appointments. Add weekly hours under “Opening hours & resources”."
+msgstr ""
+"No opening hours yet — that is why the website shows no free "
+"appointments. Add weekly hours under “Opening hours & resources”."
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Whole business"
+msgstr "Whole business"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Closed — click to reopen"
+msgstr "Closed — click to reopen"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "No opening hours on this weekday"
+msgstr "No opening hours on this weekday"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid "Open — click to close sales"
+msgstr "Open — click to close sales"
+
+#: apps/booking/views.py templates/booking/availability.html
+msgid ""
+"A closed day disappears from the website for all services (or for "
+"the selected resource only)."
+msgstr ""
+"A closed day disappears from the website for all services (or for "
+"the selected resource only)."
+
+#: templates/booking/availability.html
+msgid "Bookable"
+msgstr "Bookable"
+
+#: templates/booking/availability.html
+msgid "No opening hours"
+msgstr "No opening hours"
+
+#: templates/booking/availability.html
+msgid "Opening hours & resources"
+msgstr "Opening hours & resources"

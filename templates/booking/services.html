@@ -11,6 +11,7 @@
     {% comment %}Фидбэк 2026-07-30 («у услуг нет календаря / на сайте пишет: нет
     доступных»): рабочие часы и ресурсы задаются на ДРУГОМ экране, вход туда был
     только из календаря записей. Даём его там, где владелец правит услугу.{% endcomment %}
+    <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Availability" %} →</a>
     <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">🕒 {% trans "Öffnungszeiten & Ressourcen" %} →</a>
     {% if service_page %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
