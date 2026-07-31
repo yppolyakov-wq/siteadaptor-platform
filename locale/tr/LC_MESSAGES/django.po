@@ -6047,7 +6047,7 @@ msgstr "Alıntıyı kaydet"
 
 #: templates/jobs/detail.html:130 templates/storefront/angebot.html:36
 msgid "Net"
-msgstr "Değil"
+msgstr "Net"
 
 #: templates/jobs/detail.html:134
 msgid "Deposit"
@@ -6911,7 +6911,7 @@ msgstr "Alıcı"
 #: templates/promotions/vouchers.html:63
 #: templates/storefront/order_confirmation.html:51
 msgid "Amount"
-msgstr "Miktar"
+msgstr "Tutar"
 
 #: templates/promotions/vouchers.html:63
 msgid "Redeemed"
@@ -8272,7 +8272,7 @@ msgstr "Alıntınız"
 
 #: templates/storefront/angebot.html:15
 msgid "Quote"
-msgstr "Alıntı"
+msgstr "Teklif"
 
 #: templates/storefront/angebot.html:39
 #: templates/storefront/event_confirmation.html:39

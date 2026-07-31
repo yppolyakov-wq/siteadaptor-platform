@@ -5300,7 +5300,7 @@ msgstr "Видалити цей допис?"
 
 #: templates/events/blog_list.html:18
 msgid "Draft"
-msgstr "Проект"
+msgstr "Чернетка"
 
 #: templates/events/blog_list.html:21 templates/storefront/blog_index.html:21
 msgid "No posts yet."
@@ -6076,7 +6076,7 @@ msgstr "Зберегти цитату"
 
 #: templates/jobs/detail.html:130 templates/storefront/angebot.html:36
 msgid "Net"
-msgstr "Ні"
+msgstr "Нетто"
 
 #: templates/jobs/detail.html:134
 msgid "Deposit"
@@ -8315,7 +8315,7 @@ msgstr "Ваша пропозиція"
 
 #: templates/storefront/angebot.html:15
 msgid "Quote"
-msgstr "Цитата"
+msgstr "Кошторис"
 
 #: templates/storefront/angebot.html:39
 #: templates/storefront/event_confirmation.html:39

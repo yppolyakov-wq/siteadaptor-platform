@@ -5313,7 +5313,7 @@ msgstr "Удалить этот пост?"
 
 #: templates/events/blog_list.html:18
 msgid "Draft"
-msgstr "Проект"
+msgstr "Черновик"
 
 #: templates/events/blog_list.html:21 templates/storefront/blog_index.html:21
 msgid "No posts yet."
@@ -6090,7 +6090,7 @@ msgstr "Сохранить цитату"
 
 #: templates/jobs/detail.html:130 templates/storefront/angebot.html:36
 msgid "Net"
-msgstr "Нет"
+msgstr "Нетто"
 
 #: templates/jobs/detail.html:134
 msgid "Deposit"
@@ -8330,7 +8330,7 @@ msgstr "Ваша цитата"
 
 #: templates/storefront/angebot.html:15
 msgid "Quote"
-msgstr "Цитата"
+msgstr "Смета"
 
 #: templates/storefront/angebot.html:39
 #: templates/storefront/event_confirmation.html:39
