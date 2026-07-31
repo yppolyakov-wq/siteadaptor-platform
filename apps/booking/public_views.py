@@ -317,6 +317,11 @@ def service_slots(request, pk):
         "prev_day": day - timedelta(days=1) if day > today else None,
         "next_day": day + timedelta(days=1) if day < max_day else None,
         "cal_qs": f"&resource={chosen.pk}" if chosen else "",  # A3: параметр дня
+        # HF-5: цена на ВЫБРАННЫЙ день. Показываем ровно то, что спишем при брони
+        # (тот же резолвер) — иначе гость видел базовую цену, а платил сезонную.
+        "day_price_eur": pricing.price_cents_for(service, day) / 100,
+        "day_price_label": pricing.season_label_for(service, day),
+        "day_price_differs": pricing.price_cents_for(service, day) != service.price_cents,
         **cal,
     }
     embed = _is_embed(request)

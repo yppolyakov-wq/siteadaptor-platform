@@ -16682,3 +16682,7 @@ msgstr "Bitiş"
 #: apps/booking/views.py templates/booking/services.html
 msgid "High season"
 msgstr "Yüksek sezon"
+
+#: templates/storefront/service_slots.html
+msgid "Seasonal price"
+msgstr "Sezon fiyatı"

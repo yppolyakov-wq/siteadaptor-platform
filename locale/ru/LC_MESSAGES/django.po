@@ -16760,3 +16760,7 @@ msgstr "По"
 #: apps/booking/views.py templates/booking/services.html
 msgid "High season"
 msgstr "Высокий сезон"
+
+#: templates/storefront/service_slots.html
+msgid "Seasonal price"
+msgstr "Сезонная цена"

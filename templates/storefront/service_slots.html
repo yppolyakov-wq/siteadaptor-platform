@@ -32,7 +32,10 @@
 {% block detail_aside %}
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="name">{{ service.name_localized }}</h1>
-  <p class="text-gray-500 -mt-2">{% blocktrans with m=service.duration_minutes %}{{ m }} min{% endblocktrans %}{% if service.price_cents %} · <span class="font-semibold text-gray-700" data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ service.pk }}" data-price="{{ service.price_eur|floatformat:2 }}">{{ service.price_eur|floatformat:2 }} €</span>{% endif %}</p>
+  {% comment %}HF-5: цена — на ВЫБРАННУЮ дату (сезонный тариф). Показываем то же
+  число, которое спишем при брони; при отличии от базовой называем причину
+  («Feiertage»), чтобы разница в цене не выглядела ошибкой.{% endcomment %}
+  <p class="text-gray-500 -mt-2">{% blocktrans with m=service.duration_minutes %}{{ m }} min{% endblocktrans %}{% if service.price_cents %} · <span class="font-semibold text-gray-700" data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ service.pk }}" data-price="{{ service.price_eur|floatformat:2 }}">{{ day_price_eur|floatformat:2 }} €</span>{% if day_price_differs %}<span class="ml-1 text-xs text-amber-700 bg-amber-50 rounded px-1.5 py-0.5">{% if day_price_label %}{{ day_price_label }}{% else %}{% trans "Seasonal price" %}{% endif %}</span>{% endif %}{% endif %}</p>
 
   {% if messages %}
     {% for m in messages %}
@@ -60,6 +63,7 @@
 {% endblock %}
 
 {% block detail_buybar %}
-{% if service.price_cents %}{% blocktrans asvar buyprice with p=service.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Book" as buyprice %}{% endif %}
+{# HF-5: в липкой панели — та же цена дня, что в шапке и в счёте. #}
+{% if service.price_cents %}{% blocktrans asvar buyprice with p=day_price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Book" as buyprice %}{% endif %}
 {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="booking" sold_out=False %}
 {% endblock %}

@@ -16719,3 +16719,7 @@ msgstr "Bis"
 #: apps/booking/views.py templates/booking/services.html
 msgid "High season"
 msgstr "Hochsaison"
+
+#: templates/storefront/service_slots.html
+msgid "Seasonal price"
+msgstr "Saisonpreis"

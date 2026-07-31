@@ -338,6 +338,11 @@ class Booking(TimestampedModel):
     )
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="bookings")
     reference_code = models.CharField(max_length=12, unique=True)  # "T-XXXXXX"
+    # HF-6: несколько периодов, выбранных гостем ЗА ОДИН РАЗ, — это N записей с
+    # общим кодом группы (план hf6-multislot-plan-2026-07-31 §2, вариант A). Так
+    # движок занятости, календарь и перенос продолжают работать с обычными
+    # интервалами; пусто = одиночная бронь, поведение прежнее.
+    group_code = models.CharField(max_length=12, blank=True, db_index=True)
     start = models.DateTimeField()
     end = models.DateTimeField()
     party_size = models.PositiveSmallIntegerField(default=1)

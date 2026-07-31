@@ -113,12 +113,16 @@ def book(
     price_cents=0,
     extras=None,
     voucher_code="",
+    group_code="",
+    notify=True,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
     service/price_cents — G10. extras (#7) — снимок доп-услуг
     [{label, price_cents}], сумма идёт в выручку. voucher_code —
-    промокод/Gutschein: скидка на услугу+Extras, гасится атомарно."""
+    промокод/Gutschein: скидка на услугу+Extras, гасится атомарно.
+    group_code/notify (HF-6) — принадлежность к мультислот-брони: письмо о такой
+    брони шлёт `book_many` ОДНО на всю группу, а не N штук клиенту."""
     if end <= start:
         raise ValueError("end must be after start")
 
@@ -150,6 +154,7 @@ def book(
         discount_cents=discount_cents,
         customer=customer,
         reference_code=_unique_booking_code(),
+        group_code=group_code or "",
         start=start,
         end=end,
         party_size=party_size,
@@ -158,10 +163,65 @@ def book(
         source_channel=(source_channel or "")[:50],
     )
     # письмо «заявка принята» — Notification в этой же транзакции (D3c)
-    from .notifications import enqueue_booking_email
+    if notify:
+        from .notifications import enqueue_booking_email
 
-    enqueue_booking_email(booking, "created")
+        enqueue_booking_email(booking, "created")
     return booking
+
+
+MAX_GROUP_SLOTS = 6  # больше периодов за раз — уже не бронь, а расписание
+
+
+@transaction.atomic
+def book_many(starts, **kwargs):
+    """HF-6: несколько периодов ОДНОЙ броней — N записей с общим group_code.
+
+    Всё в одной транзакции: если хотя бы один период занят, не создаётся НИ ОДНОЙ
+    брони (гость не получает половину заказа). Anti-oversell не дублируем — каждый
+    период идёт через обычный `book`. Один период → обычная одиночная бронь с
+    пустым group_code, то есть прежнее поведение байт-в-байт.
+
+    `starts` — [(resource, start, end, price_cents)]: ресурс на КАЖДЫЙ период свой
+    (разные периоды может обслуживать разный мастер — назначает вызывающая сторона
+    через availability.assign_resource), цена — на дату периода (apps.booking.pricing).
+    Остальные поля брони (имя/почта/услуга/…) — общие, приходят в kwargs.
+    Возвращает список созданных броней в порядке периодов.
+    """
+    slots = list(starts)
+    if not slots:
+        raise ValueError("no slots given")
+    if len(slots) > MAX_GROUP_SLOTS:
+        raise ValueError("too many slots")
+    single = len(slots) == 1
+    code = "" if single else _unique_group_code()
+    created = []
+    for resource, start, end, price_cents in slots:
+        created.append(
+            book(
+                resource,
+                start=start,
+                end=end,
+                price_cents=price_cents,
+                group_code=code,
+                # Одно письмо на всю группу — шлём после успешного создания всех.
+                notify=single,
+                **kwargs,
+            )
+        )
+    if not single:
+        from .notifications import enqueue_booking_email
+
+        enqueue_booking_email(created[0], "created")
+    return created
+
+
+def _unique_group_code() -> str:
+    for _ in range(10):
+        code = "G-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
+        if not Booking.objects.filter(group_code=code).exists():
+            return code
+    raise RuntimeError("could not generate unique booking group code")
 
 
 def _unique_pass_code() -> str:

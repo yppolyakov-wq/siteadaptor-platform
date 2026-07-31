@@ -16570,3 +16570,7 @@ msgstr "To"
 #: apps/booking/views.py templates/booking/services.html
 msgid "High season"
 msgstr "High season"
+
+#: templates/storefront/service_slots.html
+msgid "Seasonal price"
+msgstr "Seasonal price"

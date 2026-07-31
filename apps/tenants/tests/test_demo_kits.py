@@ -480,12 +480,16 @@ def test_apply_hotel_kit_builds_stays_site():
     assert confirmed.count() >= 1
     b = confirmed.first()
     assert b.adults >= 1 and b.kurtaxe_cents > 0
-    # секции акций/товаров выключены (нет каталога); карточки номеров на главной
-    # включены, а тизер-секция «Bereiche» для отеля выключена (был бы дубль).
+    # Карточки номеров на главной включены, тизер-секция «Bereiche» — выключена
+    # (был бы дубль). Товаров у отеля нет → секция products выключена.
+    # HF-1 (фидбэк владельца 2026-07-31, п. 7): акции для НОМЕРОВ и пакетов теперь
+    # есть, поэтому секция promotions включена ОСОЗНАННО — раньше замок фиксировал
+    # прежнюю правду «у отеля нет каталога, значит нет и акций».
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert "stay_rooms" in enabled
     assert "archetypes" not in enabled
-    assert "promotions" not in enabled and "products" not in enabled
+    assert "promotions" in enabled and "products" not in enabled
+    assert "blog" in enabled  # HF-1 (п. 14): лента новостей пансиона
     # пустые архетипы по-прежнему помечены скрытыми в конфиге (на случай включения)
     assert cfg["archetypes"]["catalog"]["hidden"] is True
     assert cfg["archetypes"]["booking"]["hidden"] is True

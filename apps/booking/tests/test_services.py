@@ -638,3 +638,104 @@ def test_booking_charges_the_seasonal_price(settings):
     public_views.service_book(request, pk=svc.pk)
     booking = Booking.objects.filter(service=svc).order_by("-created_at").first()
     assert booking is not None and booking.price_cents == 7900
+
+
+def _slot_tuple(svc, day, nth=0):
+    """HF-6: (resource, start, end, price) для book_many из реальной сетки слотов.
+
+    `nth` — номер НЕПЕРЕСЕКАЮЩЕГОСЯ периода: сетка идёт шагом 30 мин, а услуга
+    длится 60 → соседние старты накладываются друг на друга и как набор
+    невозможны. Берём каждый второй."""
+    from apps.booking import pricing
+
+    starts = availability.service_slots(svc, day)
+    step = max(1, svc.duration_minutes // 30)
+    start = starts[nth * step]
+    resource = availability.assign_resource(svc, start)
+    return (
+        resource,
+        start,
+        start + timedelta(minutes=svc.duration_minutes),
+        pricing.price_cents_for(svc, start.date()),
+    )
+
+
+def test_book_many_single_slot_is_byte_for_byte_the_old_behaviour():
+    """HF-6a: один период через book_many = обычная одиночная бронь.
+
+    Паритет-замок: группа не должна менять обычный сценарий (99 % случаев)."""
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+    svc = _service(price_cents=4900)
+    created = services.book_many([_slot_tuple(svc, day)], name="Gast", email="g@test.de")
+    assert len(created) == 1
+    assert created[0].group_code == ""  # код группы не материализуется
+    assert created[0].price_cents == 4900
+
+
+def test_book_many_creates_group_and_is_all_or_nothing():
+    """HF-6b: N периодов — одна группа; занятый период откатывает ВСЮ бронь.
+
+    Гость не должен получать половину заказа: либо все выбранные периоды, либо
+    честный отказ."""
+    day = _future_day()
+    r = _resource(type="staff", capacity=1)
+    _rule(r, day, end="18:00")  # длинный день: хватает и на группу, и на конкурента
+    svc = _service(price_cents=4900)
+    slots = [_slot_tuple(svc, day, 0), _slot_tuple(svc, day, 1)]
+    created = services.book_many(slots, name="Gast", email="g@test.de")
+    assert len(created) == 2
+    assert created[0].group_code and created[0].group_code == created[1].group_code
+    before = Booking.objects.count()
+
+    # Тот же первый период вторым гостем — занят, вся его группа откатывается.
+    day2_slots = [_slot_tuple(svc, day, 2), slots[0]]  # свободный + уже занятый
+    with pytest.raises(services.SlotTaken):
+        services.book_many(day2_slots, name="Zweiter", email="z@test.de")
+    assert Booking.objects.count() == before  # ни одной новой брони
+
+
+def test_book_many_rejects_empty_and_oversized_selection():
+    """HF-6b: кап на число периодов — защита от «забронировать весь день»."""
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+    svc = _service(price_cents=1000)
+    with pytest.raises(ValueError):
+        services.book_many([], name="Gast", email="g@test.de")
+    one = _slot_tuple(svc, day)
+    with pytest.raises(ValueError):
+        services.book_many([one] * (services.MAX_GROUP_SLOTS + 1), name="G", email="g@test.de")
+
+
+def test_storefront_shows_the_price_it_will_charge(settings):
+    """HF-5 (доводка по ревью): показанная цена = списываемая цена.
+
+    Дефект, найденный адверсариальным ревью: страница услуги печатала базовую
+    цену, а бронь списывала сезонную. Для §1 PAngV и просто доверия это
+    недопустимо — замок держит равенство."""
+    from apps.booking.models import ServiceSeasonRate
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource(type="staff")
+    _rule(r, day)
+    svc = _service(price_cents=4900)
+    ServiceSeasonRate.objects.create(
+        service=svc, label="Feiertage", start_date=day, end_date=day, price_cents=7900
+    )
+    request = RequestFactory().get(f"/termin/leistung/{svc.pk}/?tag={day:%Y-%m-%d}")
+    SessionMiddleware(lambda rq: None).process_request(request)
+    MessageMiddleware(lambda rq: None).process_request(request)
+    request.tenant = TenantFactory.build(name="Salon")
+    body = views_module_service_slots(request, svc)
+    assert ">79,00 €<" in body or ">79.00 €<" in body  # ВИДИМАЯ цена = цена дня
+    assert "Feiertage" in body  # и причина, чтобы разница не выглядела ошибкой
+    # Базовая цена остаётся в data-price инлайн-редактора канвы (он правит именно
+    # базовое поле услуги) — но НЕ печатается гостю как цена визита.
+    assert ">49,00 €<" not in body and ">49.00 €<" not in body
+
+
+def views_module_service_slots(request, svc):
+    return public_views.service_slots(request, pk=svc.pk).content.decode()
