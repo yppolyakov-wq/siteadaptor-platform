@@ -962,6 +962,22 @@ Python 3.12, менеджер uv.
   заведений, имена, ключи фото и тексты отзывов. Остаток (~478 строк — описания
   отдельных позиций) — по спросу. Также снят дрейф состояния миграций после
   I18N-1 (`aggregator/0015`, choices-only, DDL не порождает).
+- **Самое свежее (2026-07-31, вечер): I18N-7b «документы» ЦЕЛИКОМ (решение владельца
+  «полный»).** Пять генераторов (Rechnung/Angebot/Lieferschein/Teilnehmer-Infoblatt/
+  QR-Poster) переведены полностью; общий слой `apps/core/documents.py` — язык
+  документа (`?lang=` → язык поверхности → LANGUAGE_CODE, валидация по локалям
+  тенанта), регистрация TTF, локале-зависимые деньги/кол-во/даты. **Шрифт:**
+  встроенный Helvetica = WinAnsi, кириллицы нет вовсе, турецкие ı/ş рвут слово
+  («Açıklama» → «A ç n klama») → в образ добавлен `fonts-dejavu-core`, а без шрифта
+  язык честно понижается до английского. Кабинет: пилюли языков рядом с кнопкой
+  скачивания (`{% doc_langs %}`); памятка гостя — на языке витрины. **НЕ переводим:**
+  DATEV-экспорт (машинный формат) и `USt-IdNr.`/`Steuernummer`/§ 19 UStG.
+  **Стенд нашёл 3 дефекта, невидимых тестам:** (1) `gettext` внутри f-строки
+  xgettext НЕ извлекает — строка молча не переводилась И не попадала в гейт I18N-9
+  (правило: `title = _("…")`, потом f-строка); (2) омонимы DeepL в счёте — «Net» →
+  «Nicht»/«Değil»/«Нет»/«Ні» (отрицание!), «Quote» → «Zitat»/«Цитата», «Ticket» →
+  «Fahrkarte», «Draft» → «Проект»; (3) жёсткое «Entwurf» в `number_display`.
+  19 msgid × 5 локалей, 8 замков. ⚠️ ops: пересобрать образ (новый пакет шрифтов).
 - Миграции: последний полный деплой — **2026-07-08 (владелец)** — применены ВСЕ миграции по состоянию на тот момент, включая `catalog/0014` (T5 склад: cost_price/reorder_point/reorder_target на Product+ProductVariant) + `inventory/0001` (U-D3 StockMovement) + всю ранее ожидавшую пачку (partners/0001, tenants/0023, aggregator/0014, promotions/0021, loyalty/0004, orders/0014, booking/0016, stays/0022, events/0022, reviews/0003, orders/0013 и ранее — B1/E-7/U-A/U-B/L3). **2026-07-09 (владелец):** задеплоен `tenants/0024_alter_tenant_business_type` (S6a — новые choices business_type). **⚠️ ОЖИДАЕТ ДЕПЛОЯ:** `catalog/0015` (Ф2 overlay) + `tenants/0025` (online_shop) + `catalog/0016_category_images` (FB-6, AddField) + `inventory/0002` (Склад-2 E1 — модель `Lot` Chargen/MHD) + `inventory/0003` (Склад-2 E3 — Lieferant/Bestellung/BestellPosition) + `inventory/0004` (Склад-2 E2 — StockLocation + location в леджере) + `tenants/0026` (AB5.1 — SignupRequest, double-opt-in регистрации) + `orders/0015` (LS-3 — Offer/OfferLine, Sofort-Angebot) + `booking/0017` (LS-1 — Service.is_video) + `tenants/0027` (LS-1 — Tenant.whatsapp_number). **Новое 2026-07-27/28:** `stays/0024` (G12 Verkaufsregeln) + `stays/0025` (Room) + `stays/0026` (StayBooking.room) + `stays/0027` (Room.housekeeping) + `crm/0002` (CO-1 Company) + `promotions/0022` (Customer.company FK) + `stays/0028` (PMS-D occupancy_rules) + `promotions/0023` (PMS-B2 Customer.birthday) + `stays/0029` (Lücken-Deal gap-поля) — все аддитивные. **Новое 2026-07-30:** `catalog/0017` (M1 material/care) + `catalog/0018` (M2 ProductWaitlist) + `catalog/0019` (M2 Category.size_table) + `orders/0016` (M3 Anprobe) + `stays/0030` (Lücken-Deal per-Zimmer) + `catalog/0020` (M4-B Product.collections) + `collections/0002` (M4-B Collection.images) — все аддитивные. **Новое 2026-07-31:** `catalog/0021` (M4-A ProductVariant.size/color/images) — аддитив. Плюс пересборка образа (rosetta + msgfmt .mo) и `seed_demo_tenants --recreate` (фото демо + демо-партии еда-китов). Полный список — в build-log.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
