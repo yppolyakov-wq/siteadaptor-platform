@@ -1,0 +1,46 @@
+{% comment %}Один делегированный обработчик переключателей вида сетки на витрине
+(_grid_view.html). Подключён в `_base.html`, поэтому работает на главной, листингах
+и страницах акций разом; гард от повторного включения. Выбор запоминается на ключ
+сетки, поэтому «список» на акциях не переключает каталог.{% endcomment %}
+<script>
+(function () {
+  if (window.__sfGridViewBound) return;
+  window.__sfGridViewBound = true;
+  var PREFIX = "sf_grid_view:";
+
+  function apply(key, view) {
+    document.querySelectorAll('[data-grid="' + key + '"]').forEach(function (g) {
+      g.classList.toggle("is-list", view === "list");
+    });
+    document.querySelectorAll('[data-grid-view][data-grid-key="' + key + '"]').forEach(function (b) {
+      var on = b.getAttribute("data-grid-view") === view;
+      b.classList.toggle("bg-gray-900", on);
+      b.classList.toggle("text-white", on);
+      b.classList.toggle("text-gray-600", !on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    try { localStorage.setItem(PREFIX + key, view); } catch (e) {}
+  }
+
+  function init() {
+    var seen = {};
+    document.querySelectorAll("[data-grid-view][data-grid-key]").forEach(function (b) {
+      var key = b.getAttribute("data-grid-key");
+      if (seen[key]) return;
+      seen[key] = 1;
+      var saved = "grid";
+      try { saved = localStorage.getItem(PREFIX + key) || "grid"; } catch (e) {}
+      apply(key, saved === "list" ? "list" : "grid");
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-grid-view][data-grid-key]");
+    if (!b) return;
+    e.preventDefault();
+    apply(b.getAttribute("data-grid-key"), b.getAttribute("data-grid-view"));
+  });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>

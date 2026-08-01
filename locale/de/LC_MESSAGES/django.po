@@ -16759,3 +16759,9 @@ msgstr "Karte eingelöst — %(n)d Besuche abgebucht."
 
 msgid "How long?"
 msgstr "Wie lange?"
+
+msgid "List view"
+msgstr "Listenansicht"
+
+msgid "Grid view"
+msgstr "Kachelansicht"

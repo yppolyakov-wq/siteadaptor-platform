@@ -16800,3 +16800,9 @@ msgstr "Карта применена — списано визитов: %(n)d."
 
 msgid "How long?"
 msgstr "На сколько времени?"
+
+msgid "List view"
+msgstr "Списком"
+
+msgid "Grid view"
+msgstr "Плиткой"

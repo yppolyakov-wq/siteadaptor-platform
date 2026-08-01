@@ -16720,3 +16720,9 @@ msgstr "Kart uygulandı — %(n)d ziyaret düşüldü."
 
 msgid "How long?"
 msgstr "Ne kadar süre?"
+
+msgid "List view"
+msgstr "Liste görünümü"
+
+msgid "Grid view"
+msgstr "Kutu görünümü"

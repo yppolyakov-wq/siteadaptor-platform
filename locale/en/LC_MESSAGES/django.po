@@ -16608,3 +16608,9 @@ msgstr "Pass applied — %(n)d visits redeemed."
 
 msgid "How long?"
 msgstr "How long?"
+
+msgid "List view"
+msgstr "List view"
+
+msgid "Grid view"
+msgstr "Grid view"

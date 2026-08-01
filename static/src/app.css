@@ -156,3 +156,10 @@ input[type="datetime-local"] {
   -webkit-appearance: none;
   appearance: none;
 }
+
+/* Переключатель вида «список ↔ плитка» (фидбэк владельца 2026-08-01): один класс
+   поверх ЛЮБОЙ сетки витрины — layout-движок задаёт grid-cols-* per-секция, а
+   режим списка перебивает их одной колонкой независимо от раскладки. */
+[data-grid].is-list {
+  grid-template-columns: 1fr !important;
+}

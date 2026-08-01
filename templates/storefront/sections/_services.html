@@ -10,13 +10,14 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
     {% section_title site 'services' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.services">{% if st %}{{ st }}{% else %}{% trans "Services & prices" %}{% endif %}</h2>
     {% section_show_all site 'services' as sa %}{% if sa %}<a href="{% url 'storefront-termin' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+    {% include "storefront/_grid_view.html" with grid_key="services" %}
   </div>
   {% section_intro site 'services' as si %}
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.services">{{ si }}</p>{% endif %}
   {% comment %}UB1-2: карточка — единый партиал _sellable_card.html (горизонтальный
   вариант; ссылка на слот-пикер, CTA-пилюля, Festpreis-бейдж при активном jobs —
   A9/A7 сигнал доверия «прозрачные фикс-цены»).{% endcomment %}
-  <div class="{% grid_classes site 'services' %}">
+  <div data-grid="services" class="{% grid_classes site 'services' %}">
     {% trans "Fixed price" as festpreis_label %}
     {% for s in services_preview %}
       {% url 'storefront-service-slots' s.pk as slots_url %}

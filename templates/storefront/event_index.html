@@ -76,6 +76,8 @@
   {% endif %}
 {% endblock %}
 
+{% block listing_view %}<div class="flex justify-end mb-3">{% include "storefront/_grid_view.html" with grid_key="events" %}</div>{% endblock %}
+
 {% block listing_grid %}
   {% if events %}
     {% if events_is_list %}
@@ -107,7 +109,7 @@
     {% else %}
     {% comment %}RV3: грид крупных обложек (как BookRetreats) — фото сверху, бейджи
     оверлеем (категория + countdown/sold-out), мета снизу.{% endcomment %}
-    <div data-sf-section="events" class="{{ events_grid }}">
+    <div data-grid="events" data-sf-section="events" class="{{ events_grid }}">
       {% for e in events %}
         <a href="{% url 'storefront-event' e.pk %}" class="sf-card group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
           <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">

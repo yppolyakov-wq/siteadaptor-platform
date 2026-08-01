@@ -461,5 +461,7 @@
     <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="hidden sm:inline text-sm font-medium">{% trans "Ask us" %}</span>
   </a>
   {% endif %}
+  {# Переключатель вида сетки «список ↔ плитка» — общий обработчик для всех страниц. #}
+  {% include "storefront/_grid_view_script.html" %}
 </body>
 </html>

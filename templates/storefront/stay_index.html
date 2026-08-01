@@ -63,6 +63,8 @@
 </form>
 {% endblock %}
 
+{% block listing_view %}<div class="flex justify-end mb-3">{% include "storefront/_grid_view.html" with grid_key="stay_rooms" %}</div>{% endblock %}
+
 {% block listing_grid %}
 {% if searched %}
   {# --- результаты поиска с ценой за диапазон --------------------------------- #}
@@ -76,7 +78,7 @@
     <span aria-hidden="true">→</span>
   </a>
   {% endif %}
-  <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
+  <div data-grid="stay_rooms" data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for r in results %}
       {% if r.available %}
         {% comment %}UB1-2: доступный результат — единая карточка (даты/гости в query,
@@ -103,7 +105,7 @@
 {% elif units %}
   {# --- без поиска: обзор номеров (как было) ---------------------------------- #}
   {% comment %}UB1-2: карточка — единый партиал _sellable_card.html.{% endcomment %}
-  <div data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
+  <div data-grid="stay_rooms" data-sf-section="stay_rooms" class="{{ rooms_grid|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
     {% for u in units %}
       {% comment %}HF-2 (п. 6): кнопка брони прямо в карточке категории — раньше
       карточка вела «куда-то», и гостю приходилось догадываться, что она кликабельна.{% endcomment %}

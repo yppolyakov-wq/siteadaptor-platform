@@ -28,9 +28,11 @@
 {% endif %}
 {% endblock %}
 
+{% block listing_view %}<div class="flex justify-end mb-3">{% include "storefront/_grid_view.html" with grid_key="services" %}</div>{% endblock %}
+
 {% block listing_grid %}
 {# UB1-1: грид из layout-движка (service_index_layout); ключ не задан → легаси-классы. #}
-<div data-sf-section="services" class="{{ services_grid|default:'grid sm:grid-cols-2 lg:grid-cols-3 gap-4' }}">
+<div data-grid="services" data-sf-section="services" class="{{ services_grid|default:'grid sm:grid-cols-2 lg:grid-cols-3 gap-4' }}">
   {% for s in services %}
     {% if embed %}{% url 'storefront-service-slots' s.pk as slots_url %}{% sellable_card 'service' s h2=True href=slots_url query='?embed=1' %}
     {% else %}{% sellable_card 'service' s h2=True %}{% endif %}

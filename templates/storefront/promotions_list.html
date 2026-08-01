@@ -2,7 +2,12 @@
 {% load i18n %}
 {% block content %}
 <section class="mb-10">
-  <h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Current offers" %}</h1>
+  {% comment %}Фидбэк владельца 2026-08-01: переключатель вида — и на странице
+  акций; ключ общий на все группы, чтобы выбор не «прыгал» между секциями.{% endcomment %}
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <h1 class="text-2xl md:text-3xl font-bold">{% trans "Current offers" %}</h1>
+    {% include "storefront/_grid_view.html" with grid_key="promo_list" %}
+  </div>
 
   {% if groups %}
     <div class="flex flex-wrap gap-2 mb-6">
@@ -22,7 +27,7 @@
       <section class="mb-8">
         <h2 class="text-lg font-bold mb-3">{% if group %}{{ group }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
-        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {% for p in items %}
             {% include "storefront/_promo_card.html" %}
           {% endfor %}
@@ -30,7 +35,7 @@
       </section>
     {% endfor %}
   {% elif promotions %}
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
       {% for p in promotions %}
         {% include "storefront/_promo_card.html" %}
       {% endfor %}

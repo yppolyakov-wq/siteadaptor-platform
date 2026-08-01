@@ -176,10 +176,12 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 {# UB2-2: сортировка (и поиск ?q=) переехали в единый тулбар каркаса listing_toolbar. #}
 {% endblock %}
 
+{% block listing_view %}<div class="flex justify-end mb-3">{% include "storefront/_grid_view.html" with grid_key="catalog" %}</div>{% endblock %}
+
 {% block listing_grid %}
 {% if page.items %}
 {# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}
-<div data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
+<div data-grid="catalog" data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}">
   {% for p in page.items %}
     {% include "storefront/_product_card.html" %}
   {% endfor %}

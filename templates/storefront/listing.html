@@ -9,6 +9,7 @@ UB1-1: единый каркас страницы-листинга (по обр�
                        реализация НИЖЕ рендерится при show_listing_toolbar; вьюха
                        кладёт q/sort/sort_options/toolbar_hidden (carry активных
                        параметров, чтобы поиск их не сбрасывал);
+  listing_view       — переключатель вида сетки (_grid_view.html) над листингом;
   listing_grid       — сетка/список карточек; обёртку data-sf-section="<key>" и
                        грид-классы layout-движка даёт наследник;
   listing_pagination — пагинация (cursor у каталога);
@@ -40,6 +41,9 @@ UB1-1: единый каркас страницы-листинга (по обр�
 <script>document.querySelectorAll(".js-sort-select").forEach(function (s) { s.addEventListener("change", function () { s.form.submit(); }); });</script>
 {% endif %}
 {% endblock %}
+{% comment %}Фидбэк владельца 2026-08-01: переключатель вида «список ↔ плитка»
+над сеткой листинга; наследник передаёт ключ своей сетки.{% endcomment %}
+{% block listing_view %}{% endblock %}
 {% block listing_grid %}{% endblock %}
 {% block listing_pagination %}{% endblock %}
 {% block listing_empty %}{% endblock %}

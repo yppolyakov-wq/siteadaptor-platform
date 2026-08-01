@@ -1,0 +1,21 @@
+{% load i18n %}{% comment %}Переключатель вида сетки «список ↔ плитка» (фидбэк владельца
+2026-08-01: «добавь этот переключатель везде, где есть плитки»).
+
+Был только у секции акций на главной — инлайн-разметкой со своим скриптом и только
+на мобиле. Теперь это общий партиал: кнопки ищут свою сетку по `data-grid="<ключ>"`,
+выбор запоминается в localStorage на ключ, обработчик — один делегированный
+(`_grid_view_script.html`, подключён в `_base.html`).
+
+Параметр include: grid_key — совпадает с `data-grid` у сетки.{% endcomment %}
+<div class="flex items-center gap-1 shrink-0" role="group" aria-label="{% trans 'View' %}">
+  <button type="button" data-grid-view="list" data-grid-key="{{ grid_key }}" aria-pressed="false"
+          aria-label="{% trans 'List view' %}" title="{% trans 'List view' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="16" height="6" rx="1"/><rect x="4" y="13" width="16" height="6" rx="1"/></svg>
+  </button>
+  <button type="button" data-grid-view="grid" data-grid-key="{{ grid_key }}" aria-pressed="false"
+          aria-label="{% trans 'Grid view' %}" title="{% trans 'Grid view' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+  </button>
+</div>
