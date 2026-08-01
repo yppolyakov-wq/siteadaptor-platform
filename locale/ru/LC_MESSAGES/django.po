@@ -16863,3 +16863,27 @@ msgstr "Подбор товара"
 
 msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
 msgstr "Два-три вопроса гостю — и подходящая рекомендация."
+
+msgid "Details & FAQ on the service page"
+msgstr "Детали и FAQ на странице услуги"
+
+msgid "Details — one bullet per line"
+msgstr "Детали — по пункту в строке"
+
+msgid "e.g. Towels included"
+msgstr "например, полотенца включены"
+
+msgid "Up to 12 bullets are shown."
+msgstr "Показываются до 12 пунктов."
+
+msgid "line by line, same order"
+msgstr "строка к строке, тот же порядок"
+
+msgid "Question"
+msgstr "Вопрос"
+
+msgid "Answer"
+msgstr "Ответ"
+
+msgid "Clearing a question removes it. A new empty pair appears after saving."
+msgstr "Пустой вопрос удаляется. После сохранения появится новая пустая пара."

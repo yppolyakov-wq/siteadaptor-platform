@@ -72,6 +72,33 @@ def i18n_inputs_for(obj, tenant, fields=("name", "description")) -> list[dict]:
     return out
 
 
+def apply_seq_overlay(obj, overlay_field: str, per_locale: dict, tenant) -> bool:
+    """Оверлей СПИСОЧНОГО поля (`attributes_i18n`/`faq_i18n`) из уже разобранного
+    `{locale: [...]}`.
+
+    Разбор POST оставляем вьюхе: у списка строк и у списка пар разная разметка,
+    а семантика оверлея одна — здесь она и живёт. Пустой список локали удаляет
+    ключ (фолбэк на базу целиком); локали, которой нет в `per_locale`, не
+    трогаем (presence-guard: старый клиент формы не стирает перевод). Возвращает
+    True, если поле изменилось — для `update_fields`.
+    """
+    current = getattr(obj, overlay_field, None)
+    overlay = dict(current) if isinstance(current, dict) else {}
+    before = dict(overlay)
+    for loc in extra_locales(tenant):
+        if loc not in per_locale:
+            continue
+        items = per_locale[loc]
+        if items:
+            overlay[loc] = items
+        else:
+            overlay.pop(loc, None)
+    if overlay == before:
+        return False
+    setattr(obj, overlay_field, overlay)
+    return True
+
+
 def form_locales(tenant) -> list[str]:
     """L3d.5: локали для форм ПОЛНОГО i18n-словаря (Category/Product/Promotion:
     JSON {locale: str}, база хранится в самом словаре). Базовая локаль всегда

@@ -16848,3 +16848,27 @@ msgstr "Підбір товару"
 
 msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
 msgstr "Два-три питання гостю — і влучна рекомендація."
+
+msgid "Details & FAQ on the service page"
+msgstr "Деталі та FAQ на сторінці послуги"
+
+msgid "Details — one bullet per line"
+msgstr "Деталі — по пункту в рядку"
+
+msgid "e.g. Towels included"
+msgstr "наприклад, рушники включені"
+
+msgid "Up to 12 bullets are shown."
+msgstr "Показуються до 12 пунктів."
+
+msgid "line by line, same order"
+msgstr "рядок до рядка, той самий порядок"
+
+msgid "Question"
+msgstr "Питання"
+
+msgid "Answer"
+msgstr "Відповідь"
+
+msgid "Clearing a question removes it. A new empty pair appears after saving."
+msgstr "Порожнє питання видаляється. Після збереження з'явиться нова порожня пара."

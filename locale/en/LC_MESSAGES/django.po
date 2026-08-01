@@ -16671,3 +16671,27 @@ msgstr "Product finder"
 
 msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
 msgstr "Two or three questions for the guest — and the right recommendation."
+
+msgid "Details & FAQ on the service page"
+msgstr "Details & FAQ on the service page"
+
+msgid "Details — one bullet per line"
+msgstr "Details — one bullet per line"
+
+msgid "e.g. Towels included"
+msgstr "e.g. Towels included"
+
+msgid "Up to 12 bullets are shown."
+msgstr "Up to 12 bullets are shown."
+
+msgid "line by line, same order"
+msgstr "line by line, same order"
+
+msgid "Question"
+msgstr "Question"
+
+msgid "Answer"
+msgstr "Answer"
+
+msgid "Clearing a question removes it. A new empty pair appears after saving."
+msgstr "Clearing a question removes it. A new empty pair appears after saving."

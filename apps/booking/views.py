@@ -20,7 +20,12 @@ from django.views.decorators.http import require_POST
 
 from apps.billing import connect
 from apps.core.fsm import IllegalTransition
-from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.core.i18n_input import (
+    apply_i18n_overlay,
+    apply_seq_overlay,
+    extra_locales,
+    i18n_inputs_for,
+)
 
 from . import services
 from .models import AvailabilityRule, Booking, ClosedDate, Resource, ServiceSeasonRate
@@ -377,6 +382,106 @@ def resources(request):
     )
 
 
+def _rich_lines(raw) -> list[str]:
+    """Textarea «пункт на строку» → список строк (пустые выброшены).
+
+    Нормализатор модели (`attributes_list`) всё равно режет длину и количество —
+    здесь только разбор разметки формы."""
+    return [line.strip() for line in (raw or "").splitlines() if line.strip()]
+
+
+def _rich_lines_aligned(base_raw, tr_raw) -> list[str]:
+    """Перевод-textarea → список, выровненный по ВЫЖИВШИМ строкам базовой.
+
+    Пустые строки базы выбрасываются, поэтому перевод нельзя брать «как есть»:
+    удалив пункт из середины, владелец сдвинул бы все переводы ниже него на
+    чужие пункты. Берём перевод по НОМЕРУ ИСХОДНОЙ строки."""
+    base_lines = (base_raw or "").splitlines()
+    tr_lines = (tr_raw or "").splitlines()
+    out = [
+        tr_lines[i].strip() if i < len(tr_lines) else ""
+        for i, line in enumerate(base_lines)
+        if line.strip()
+    ]
+    while out and not out[-1]:
+        out.pop()
+    return out
+
+
+def _rich_faq(post, locales) -> tuple[list[dict], dict]:
+    """Пары `faq_q_<i>`/`faq_a_<i>` (+ `_<loc>` для переводов) → база и оверлеи.
+
+    База и переводы разбираются ОДНИМ проходом: пара без вопроса отбрасывается
+    (очистка вопроса = удаление пункта), и вместе с ней должен исчезнуть её
+    перевод — иначе после удаления пункта из середины оставшиеся переводы
+    съехали бы на соседние вопросы. Переводы пустых ключей не пишем: `overlay_seq`
+    возьмёт на их месте базу.
+    """
+    base, per_locale = [], {loc: [] for loc in locales}
+    i = 0
+    while True:
+        q = post.get(f"faq_q_{i}")
+        a = post.get(f"faq_a_{i}")
+        if q is None and a is None:
+            break
+        q, a = (q or "").strip(), (a or "").strip()
+        if q:
+            base.append({"q": q, "a": a})
+            for loc in locales:
+                tq = (post.get(f"faq_q_{i}_{loc}") or "").strip()
+                ta = (post.get(f"faq_a_{i}_{loc}") or "").strip()
+                per_locale[loc].append({k: v for k, v in (("q", tq), ("a", ta)) if v})
+        i += 1
+    for loc in locales:  # хвост пустых переводов не несёт информации
+        while per_locale[loc] and not per_locale[loc][-1]:
+            per_locale[loc].pop()
+    return base, per_locale
+
+
+def _rich_seq_lines(overlay, locale: str, length: int) -> list[str]:
+    """Перевод списка строк на локаль, дополненный до длины базового списка.
+
+    Ввод обязан быть выровнен по строкам базовой textarea — иначе после Save
+    перевод «съедет» на соседний пункт."""
+    items = (overlay or {}).get(locale) if isinstance(overlay, dict) else None
+    items = list(items) if isinstance(items, (list, tuple)) else []
+    items = [i if isinstance(i, str) else "" for i in items[:length]]
+    return items + [""] * (length - len(items))
+
+
+def _faq_rows(service, locales) -> list[dict]:
+    """Строки редактора FAQ: существующие пары + одна пустая (слоты дорастают
+    после Save — тот же приём, что в редакторе Finder, без JS)."""
+    base = service.faq_list
+    overlay = service.faq_i18n if isinstance(service.faq_i18n, dict) else {}
+    rows = []
+    for i, item in enumerate(base + [{"q": "", "a": ""}]):
+        tr = []
+        for loc in locales:
+            items = overlay.get(loc)
+            src = items[i] if isinstance(items, (list, tuple)) and i < len(items) else {}
+            src = src if isinstance(src, dict) else {}
+            tr.append(
+                {
+                    "locale": loc,
+                    "q_name": f"faq_q_{i}_{loc}",
+                    "a_name": f"faq_a_{i}_{loc}",
+                    "q": src.get("q", ""),
+                    "a": src.get("a", ""),
+                }
+            )
+        rows.append(
+            {
+                "q_name": f"faq_q_{i}",
+                "a_name": f"faq_a_{i}",
+                "q": item.get("q", ""),
+                "a": item.get("a", ""),
+                "i18n": tr,
+            }
+        )
+    return rows
+
+
 @login_required
 def services_view(request, pk=None):
     """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами.
@@ -384,6 +489,31 @@ def services_view(request, pk=None):
     Фидбэк 2026-07-30: с `pk` — страница ОДНОЙ услуги (как stays:unit-edit),
     без pk — список; POST со страницы услуги возвращает на неё же."""
     from .models import Service
+
+    def _apply_rich(service, tenant) -> list[str]:
+        """Богатая карточка (UA4-3): пункты «Details» + FAQ и их переводы.
+
+        Оба блока — под сентинелами: `action=update` шлётся и из компактной
+        строки списка, где этих полей нет, а без guard'а такой Save стирал бы
+        наполнение (инвариант W0)."""
+        changed = []
+        if request.POST.get("attributes_present"):
+            base_raw = request.POST.get("attributes")
+            service.attributes = _rich_lines(base_raw)
+            changed.append("attributes")
+            per_locale = {
+                loc: _rich_lines_aligned(base_raw, request.POST[f"attributes_{loc}"])
+                for loc in extra_locales(tenant)
+                if f"attributes_{loc}" in request.POST
+            }
+            if apply_seq_overlay(service, "attributes_i18n", per_locale, tenant):
+                changed.append("attributes_i18n")
+        if request.POST.get("faq_present"):
+            service.faq, per_locale = _rich_faq(request.POST, extra_locales(tenant))
+            changed.append("faq")
+            if apply_seq_overlay(service, "faq_i18n", per_locale, tenant):
+                changed.append("faq_i18n")
+        return changed
 
     def _int(raw, default, lo, hi):
         try:
@@ -408,6 +538,7 @@ def services_view(request, pk=None):
                 )
                 # L3d: переводы неосновных локалей (name_<loc>/description_<loc>)
                 apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
+                _apply_rich(service, getattr(request, "tenant", None))
                 service.save()
                 messages.success(request, _("Service created."))
         elif action == "update":  # инлайн: длительность + цена + описание (депозит — при создании)
@@ -428,6 +559,7 @@ def services_view(request, pk=None):
                 service.is_video = bool(request.POST.get("is_video"))
                 fields.append("is_video")
             fields += apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
+            fields += _apply_rich(service, getattr(request, "tenant", None))
             # A3: новое фото заменяет старое; чекбокс «удалить» очищает.
             new_image = _uploaded_image_ref(request, "image", "services")
             if new_image or request.POST.get("remove_image"):
@@ -473,9 +605,27 @@ def services_view(request, pk=None):
     else:
         service_page = None
         services = list(Service.objects.order_by("-is_active", "name"))
+    locales = extra_locales(getattr(request, "tenant", None))
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
         svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))
         svc.seasons = list(svc.season_rates.all())  # HF-5: цены на диапазоны дат
+        # UA4-3-ввод: пункты «Details» — textarea (строка = пункт), переводы —
+        # textarea на локаль, выровненная по строкам базовой.
+        attrs = svc.attributes_list
+        svc.attributes_text = "\n".join(attrs)
+        svc.attributes_i18n_inputs = [
+            {
+                "locale": loc,
+                "input_name": f"attributes_{loc}",
+                "value": "\n".join(
+                    _rich_seq_lines(svc.attributes_i18n, loc, len(attrs)),
+                ),
+            }
+            for loc in locales
+        ]
+        # FAQ — пары полей: разделитель внутри свободного текста ломался бы на
+        # первом же ответе с переносом строки. Одна пустая пара — чтобы добавить.
+        svc.faq_rows = _faq_rows(svc, locales)
     return render(
         request,
         "booking/services.html",

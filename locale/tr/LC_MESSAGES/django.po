@@ -16783,3 +16783,27 @@ msgstr "Ürün bulucu"
 
 msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
 msgstr "Misafire iki üç soru — ve doğru öneri."
+
+msgid "Details & FAQ on the service page"
+msgstr "Hizmet sayfasındaki detaylar ve SSS"
+
+msgid "Details — one bullet per line"
+msgstr "Detaylar — her satıra bir madde"
+
+msgid "e.g. Towels included"
+msgstr "örn. havlular dâhil"
+
+msgid "Up to 12 bullets are shown."
+msgstr "En fazla 12 madde gösterilir."
+
+msgid "line by line, same order"
+msgstr "satır satır, aynı sırayla"
+
+msgid "Question"
+msgstr "Soru"
+
+msgid "Answer"
+msgstr "Cevap"
+
+msgid "Clearing a question removes it. A new empty pair appears after saving."
+msgstr "Boş bırakılan soru silinir. Kaydettikten sonra yeni bir boş çift belirir."

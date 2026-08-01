@@ -71,6 +71,41 @@
         </div>
       </details>
       {% endif %}
+      {% comment %}UA4-3-ввод (2026-08-01): секции «Details» и FAQ детальной страницы
+      услуги. Раньше их заполняли только демо-киты — владелец видел богатую карточку
+      на демо и не мог повторить её у себя. Оба блока пишутся только при сентинелах
+      *_present: `action=update` шлётся и из компактной строки списка, где этих полей
+      нет, и без guard'а такой Save стирал бы наполнение (инвариант W0).{% endcomment %}
+      <details class="sm:col-span-5 order-last">
+        <summary class="cursor-pointer text-xs text-indigo-600">✨ {% trans "Details & FAQ on the service page" %}{% if s.attributes_list or s.faq_list %} <span class="text-gray-400">· {{ s.attributes_list|length }}/{{ s.faq_list|length }}</span>{% endif %}</summary>
+        <input type="hidden" name="attributes_present" value="1">
+        <input type="hidden" name="faq_present" value="1">
+        <div class="mt-2 space-y-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">{% trans "Details — one bullet per line" %}</label>
+            <textarea name="attributes" rows="3" placeholder="{% trans 'e.g. Towels included' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ s.attributes_text }}</textarea>
+            <p class="text-xs text-gray-400 mt-1">{% trans "Up to 12 bullets are shown." %}</p>
+            {% for inp in s.attributes_i18n_inputs %}
+              <label class="block text-xs text-gray-500 mt-2 mb-1">{% trans "Details" %} ({{ inp.locale|upper }}) — {% trans "line by line, same order" %}</label>
+              <textarea name="{{ inp.input_name }}" rows="3" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ inp.value }}</textarea>
+            {% endfor %}
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">{% trans "Frequently asked questions" %}</label>
+            {% for row in s.faq_rows %}
+              <div class="border-t border-gray-100 pt-2 mt-2 space-y-1">
+                <input name="{{ row.q_name }}" type="text" value="{{ row.q }}" placeholder="{% trans 'Question' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+                <textarea name="{{ row.a_name }}" rows="2" placeholder="{% trans 'Answer' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ row.a }}</textarea>
+                {% for tr in row.i18n %}
+                  <input name="{{ tr.q_name }}" type="text" value="{{ tr.q }}" placeholder="{% trans 'Question' %} ({{ tr.locale|upper }})" class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm">
+                  <textarea name="{{ tr.a_name }}" rows="2" placeholder="{% trans 'Answer' %} ({{ tr.locale|upper }})" class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm">{{ tr.a }}</textarea>
+                {% endfor %}
+              </div>
+            {% endfor %}
+            <p class="text-xs text-gray-400 mt-1">{% trans "Clearing a question removes it. A new empty pair appears after saving." %}</p>
+          </div>
+        </div>
+      </details>
       <div>
         <label class="block text-xs text-gray-500 mb-1">{% trans "Duration (min)" %}</label>
         <input name="duration" type="number" min="5" value="{{ s.duration_minutes }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">

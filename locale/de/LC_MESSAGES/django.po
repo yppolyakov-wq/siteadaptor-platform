@@ -16822,3 +16822,27 @@ msgstr "Produktfinder"
 
 msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
 msgstr "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
+
+msgid "Details & FAQ on the service page"
+msgstr "Details & FAQ auf der Leistungsseite"
+
+msgid "Details — one bullet per line"
+msgstr "Details — ein Punkt pro Zeile"
+
+msgid "e.g. Towels included"
+msgstr "z. B. Handtücher inklusive"
+
+msgid "Up to 12 bullets are shown."
+msgstr "Es werden bis zu 12 Punkte angezeigt."
+
+msgid "line by line, same order"
+msgstr "Zeile für Zeile, gleiche Reihenfolge"
+
+msgid "Question"
+msgstr "Frage"
+
+msgid "Answer"
+msgstr "Antwort"
+
+msgid "Clearing a question removes it. A new empty pair appears after saving."
+msgstr "Eine leere Frage wird entfernt. Nach dem Speichern erscheint ein neues leeres Paar."
