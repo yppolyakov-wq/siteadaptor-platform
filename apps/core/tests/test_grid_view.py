@@ -50,3 +50,30 @@ def test_list_mode_class_is_defined_in_css():
     """Режим списка держится на одном CSS-классе поверх любых grid-cols-*."""
     css = (TEMPLATES.parents[1] / "static" / "src" / "app.css").read_text(encoding="utf-8")
     assert "[data-grid].is-list" in css
+
+
+# --- фидбэк 2026-08-01: кнопка «Фильтры» и наплывание контента на карточке -------
+def test_catalog_filter_panel_is_collapsible():
+    """Панель фасетов каталога занимала на телефоне весь первый экран — у неё
+    должна быть кнопка сворачивания, связанная с панелью по ключу."""
+    body = (TEMPLATES / "products.html").read_text(encoding="utf-8")
+    assert '_filter_toggle.html" with filter_key="catalog"' in body
+    assert 'data-filter-panel="catalog"' in body
+    assert (TEMPLATES / "_filter_toggle.html").exists()
+
+
+def test_product_card_reserves_room_for_the_floating_button():
+    """Overlay-карточка: круглая кнопка добавления не должна срезать название и
+    цену — под неё зарезервировано место справа."""
+    body = (TEMPLATES / "_product_card.html").read_text(encoding="utf-8")
+    overlay = body[body.index('storefront_card_style == "overlay"') : body.rindex("{% else %}")]
+    assert "bottom-3 right-3" in overlay  # кнопка на месте
+    assert "pr-16" in overlay  # и текст её обходит
+
+
+def test_product_card_badge_clears_the_wishlist_heart():
+    """Сердечко «отложить» и бейдж оба в левом верхнем углу — бейдж сдвигается,
+    иначе читалось «♡опулярные»."""
+    body = (TEMPLATES / "_product_card.html").read_text(encoding="utf-8")
+    assert body.count('{% if storefront_wishlist_enabled %}{% firstof "left-12"') == 2
+    assert "top-3 left-3 bg-amber-400" not in body  # жёсткой позиции не осталось

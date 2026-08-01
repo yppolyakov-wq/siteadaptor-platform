@@ -1,5 +1,5 @@
-{% comment %}Один делегированный обработчик переключателей вида сетки на витрине
-(_grid_view.html). Подключён в `_base.html`, поэтому работает на главной, листингах
+{% comment %}Делегированные обработчики витрины: переключатель вида сетки
+(_grid_view.html) и сворачивание панели фильтров (_filter_toggle.html). Подключён в `_base.html`, поэтому работает на главной, листингах
 и страницах акций разом; гард от повторного включения. Выбор запоминается на ключ
 сетки, поэтому «список» на акциях не переключает каталог.{% endcomment %}
 <script>
@@ -39,6 +39,70 @@
     if (!b) return;
     e.preventDefault();
     apply(b.getAttribute("data-grid-key"), b.getAttribute("data-grid-view"));
+  });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+/* Кнопка «Фильтры»: сворачивает панель фасетов. На узком экране панель закрыта по
+   умолчанию (фидбэк: занимала весь первый экран), на широком — открыта; выбор
+   гостя запоминается. Счётчик активных фильтров виден и при закрытой панели. */
+(function () {
+  if (window.__sfFilterToggleBound) return;
+  window.__sfFilterToggleBound = true;
+  var PREFIX = "sf_filters_open:";
+
+  function panel(key) { return document.querySelector('[data-filter-panel="' + key + '"]'); }
+
+  function activeCount(box) {
+    if (!box) return 0;
+    var n = 0;
+    box.querySelectorAll("input, select").forEach(function (f) {
+      if (f.type === "hidden" || f.type === "submit" || f.disabled) return;
+      if (f.type === "checkbox" || f.type === "radio") { if (f.checked) n++; return; }
+      if ((f.value || "").trim()) n++;
+    });
+    return n;
+  }
+
+  function apply(key, open) {
+    var box = panel(key);
+    if (box) box.classList.toggle("hidden", !open);
+    var count = activeCount(box);
+    document.querySelectorAll('[data-filter-toggle="' + key + '"]').forEach(function (b) {
+      b.setAttribute("aria-expanded", open ? "true" : "false");
+      var caret = b.querySelector("[data-filter-caret]");
+      if (caret) caret.textContent = open ? "▴" : "▾";
+      var badge = b.querySelector("[data-filter-count]");
+      if (badge) {
+        badge.textContent = count ? String(count) : "";
+        badge.classList.toggle("hidden", !count);
+      }
+    });
+    try { localStorage.setItem(PREFIX + key, open ? "1" : "0"); } catch (e) {}
+  }
+
+  function init() {
+    var seen = {};
+    document.querySelectorAll("[data-filter-toggle]").forEach(function (b) {
+      var key = b.getAttribute("data-filter-toggle");
+      if (seen[key]) return;
+      seen[key] = 1;
+      var wide = window.matchMedia && window.matchMedia("(min-width: 640px)").matches;
+      var saved = null;
+      try { saved = localStorage.getItem(PREFIX + key); } catch (e) {}
+      // Применённый фильтр не прячем — иначе выдача «сузилась без причины».
+      var open = saved === null ? (wide || activeCount(panel(key)) > 0) : saved === "1";
+      apply(key, open);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-filter-toggle]");
+    if (!b) return;
+    e.preventDefault();
+    var key = b.getAttribute("data-filter-toggle");
+    apply(key, b.getAttribute("aria-expanded") !== "true");
   });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

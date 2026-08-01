@@ -63,10 +63,16 @@
         {% if img %}<img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-[1.02] transition">
         {% else %}<div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>{% endif %}
       {% endwith %}
-      {% if p.badge_label %}<span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
-      {% elif p.is_featured %}<span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>{% endif %}
+      {% comment %}Тот же фидбэк: сердечко «отложить» стоит в левом верхнем углу, и
+      бейдж читался как «♡опулярные». Когда сердечко включено — сдвигаем бейдж.{% endcomment %}
+      {% if storefront_wishlist_enabled %}{% firstof "left-12" as badge_x %}{% else %}{% firstof "left-3" as badge_x %}{% endif %}
+      {% if p.badge_label %}<span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
+      {% elif p.is_featured %}<span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>{% endif %}
       {% if not p.in_stock %}<span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>{% endif %}
-      <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-3 pt-10">
+      {% comment %}Фидбэк владельца 2026-08-01 («контент наплывает один на один»):
+      круглая кнопка добавления живёт в правом нижнем углу поверх этого текста и
+      срезала название с ценой. Резервируем под неё место справа.{% endcomment %}
+      <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-3 pt-10{% if storefront_quick_add and p.in_stock %} pr-16{% endif %}">
         <h3 class="text-white font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
         <p class="text-white/90 font-bold leading-tight">{% if p.has_variants %}<span class="text-xs font-normal text-white/70">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</p>
       </div>
@@ -119,10 +125,13 @@
           </div>
         {% endif %}
       {% endwith %}
+      {% comment %}Фидбэк 2026-08-01: бейдж не должен уезжать под сердечко «отложить»
+      (оба в левом верхнем углу) — при включённом Merkzettel сдвигаем.{% endcomment %}
+      {% if storefront_wishlist_enabled %}{% firstof "left-12" as badge_x %}{% else %}{% firstof "left-3" as badge_x %}{% endif %}
       {% if p.badge_label %}
-        <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
+        <span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
       {% elif p.is_featured %}
-        <span class="absolute top-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>
+        <span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>
       {% endif %}
       {% if not p.in_stock %}
         <span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>

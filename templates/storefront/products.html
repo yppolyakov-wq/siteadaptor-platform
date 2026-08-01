@@ -98,7 +98,8 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 Гейтятся тумблером catalog_show_filters И наличием данных: разброс цен / присутствующие
 бейджи / есть распроданное. Нерелевантные фильтры само-скрываются.{% endcomment %}
 {% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips %}
-<form method="get" data-catalog-filters class="mb-6 flex flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
+{% include "storefront/_filter_toggle.html" with filter_key="catalog" %}
+<form method="get" data-catalog-filters data-filter-panel="catalog" class="mb-6 flex flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
   {% for name, value in filter_form_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% if show_price_filter %}
   <div>
