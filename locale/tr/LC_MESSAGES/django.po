@@ -16882,3 +16882,12 @@ msgstr "Seçimin sitede nasıl görüneceği «Pazarlama» sekmesinde ayarlanır
 
 msgid "Colour"
 msgstr "Renk"
+
+msgid "Größe × Farbe"
+msgstr "Beden × renk"
+
+msgid "Nur die gefilterten Artikel werden gezählt."
+msgstr "Yalnızca filtrelenen ürünler sayılır."
+
+msgid "alle"
+msgstr "tümü"

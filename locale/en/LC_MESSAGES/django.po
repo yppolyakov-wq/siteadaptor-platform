@@ -16770,3 +16770,12 @@ msgstr "How the options look on your storefront is set in the Marketing tab."
 
 msgid "Colour"
 msgstr "Colour"
+
+msgid "Größe × Farbe"
+msgstr "Size × colour"
+
+msgid "Nur die gefilterten Artikel werden gezählt."
+msgstr "Only the filtered items are counted."
+
+msgid "alle"
+msgstr "all"

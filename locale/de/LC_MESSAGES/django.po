@@ -16921,3 +16921,12 @@ msgstr "Wie die Auswahl auf der Website aussieht, stellen Sie im Reiter „Marke
 
 msgid "Colour"
 msgstr "Farbe"
+
+msgid "Größe × Farbe"
+msgstr "Größe × Farbe"
+
+msgid "Nur die gefilterten Artikel werden gezählt."
+msgstr "Nur die gefilterten Artikel werden gezählt."
+
+msgid "alle"
+msgstr "alle"

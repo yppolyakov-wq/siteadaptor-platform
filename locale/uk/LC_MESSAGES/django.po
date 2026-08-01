@@ -16947,3 +16947,12 @@ msgstr "Як вибір виглядає на вітрині — задаєть�
 
 msgid "Colour"
 msgstr "Колір"
+
+msgid "Größe × Farbe"
+msgstr "Розмір × колір"
+
+msgid "Nur die gefilterten Artikel werden gezählt."
+msgstr "Перераховуються лише відфільтровані позиції."
+
+msgid "alle"
+msgstr "усі"

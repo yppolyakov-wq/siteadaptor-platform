@@ -203,6 +203,10 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="stocktake_bulk">
     <p class="text-xs text-gray-400 mb-2">{% trans "Gezählten Bestand eintragen; leere Felder bleiben unverändert. Differenzen werden als Inventur gebucht." %}</p>
+    {% comment %}Список следует активному фильтру осей — это законная ЧАСТИЧНАЯ
+    инвентаризация (посчитать только размер M), но владелец должен видеть, что
+    считает не весь склад.{% endcomment %}
+    {% if f_size or f_color %}<p class="text-xs text-amber-700 mb-2">⚠️ {% trans "Nur die gefilterten Artikel werden gezählt." %}</p>{% endif %}
     <div class="space-y-1.5 max-h-96 overflow-y-auto">
       {% for e in rows %}
         <div class="flex items-center justify-between gap-3 text-sm">
@@ -268,6 +272,70 @@
       <button class="rounded border border-gray-300 px-2 py-1 hover:border-indigo-400">{% trans "OK" %}</button>
     </form>
   </div>
+  {% comment %}Матрица «размер × цвет» (2026-08-01): главный рабочий экран одежды.
+  Итог строки = «сколько всего этого размера», итог колонки = «сколько всего этого
+  цвета». Пустая ячейка = такой комбинации НЕТ (это не ноль на складе — при
+  инвентаризации разница принципиальна).{% endcomment %}
+  {% for m in matrices %}
+    <details class="mx-4 mb-3 rounded-xl border border-gray-100 p-3" {% if forloop.first %}open{% endif %}>
+      <summary class="cursor-pointer text-sm font-medium text-gray-700">🧮 {{ m.product }} — {% trans "Größe × Farbe" %}{% if m.total != None %} <span class="text-xs text-gray-400">· {{ m.total }}</span>{% endif %}</summary>
+      <div class="mt-2 overflow-x-auto">
+        <table class="text-sm">
+          <thead class="text-xs text-gray-400 uppercase tracking-wide">
+            <tr>
+              <th class="text-left px-2 py-1 font-medium">{% trans "Größe" %}</th>
+              {% for c in m.colors %}<th class="px-2 py-1 font-medium text-right">{{ c }}</th>{% endfor %}
+              <th class="px-2 py-1 font-medium text-right">{% trans "Summe" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in m.rows %}
+              <tr class="border-t border-gray-50">
+                <td class="px-2 py-1 font-medium">{{ row.size }}</td>
+                {% for cell in row.cells %}
+                  <td class="px-2 py-1 text-right{% if cell.qty == 0 %} text-red-600 font-semibold{% endif %}">
+                    {% if cell.variant %}<a href="?history={{ cell.value }}" class="hover:text-indigo-700" title="{% trans 'Verlauf anzeigen' %}">{% if cell.qty == None %}∞{% else %}{{ cell.qty }}{% endif %}</a>
+                    {% else %}<span class="text-gray-300">·</span>{% endif %}
+                  </td>
+                {% endfor %}
+                <td class="px-2 py-1 text-right font-semibold">{% if row.total == None %}—{% else %}{{ row.total }}{% endif %}</td>
+              </tr>
+            {% endfor %}
+            <tr class="border-t border-gray-200">
+              <td class="px-2 py-1 text-xs text-gray-400 uppercase">{% trans "Summe" %}</td>
+              {% for t in m.col_totals %}<td class="px-2 py-1 text-right font-semibold">{% if t == None %}—{% else %}{{ t }}{% endif %}</td>{% endfor %}
+              <td class="px-2 py-1 text-right font-bold">{% if m.total == None %}—{% else %}{{ m.total }}{% endif %}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  {% endfor %}
+  {% comment %}2026-08-01: фильтр плоской таблицы по осям варианта. Учёт всегда шёл
+  по варианту, но посмотреть выдачу «только размер M» или «только синие» было
+  негде — везде показывался склеенный label.{% endcomment %}
+  {% if axis_sizes or axis_colors %}
+    <form method="get" class="flex flex-wrap items-end gap-2 px-4 pb-3 text-sm">
+      {% if axis_sizes %}
+        <label class="text-xs text-gray-500">{% trans "Größe" %}
+          <select name="groesse" class="ml-1 rounded border border-gray-300 px-2 py-1 text-sm">
+            <option value="">{% trans "alle" %}</option>
+            {% for s in axis_sizes %}<option value="{{ s }}" {% if f_size == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+        </label>
+      {% endif %}
+      {% if axis_colors %}
+        <label class="text-xs text-gray-500">{% trans "Farbe" %}
+          <select name="farbe" class="ml-1 rounded border border-gray-300 px-2 py-1 text-sm">
+            <option value="">{% trans "alle" %}</option>
+            {% for c in axis_colors %}<option value="{{ c }}" {% if f_color == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+          </select>
+        </label>
+      {% endif %}
+      <button class="rounded border border-gray-300 px-3 py-1 text-xs hover:border-indigo-400">{% trans "Filter" %}</button>
+      {% if f_size or f_color %}<a href="{% url 'stock' %}" class="text-xs text-gray-400 hover:underline">{% trans "Reset" %}</a>{% endif %}
+    </form>
+  {% endif %}
   {% if rows %}
     <div class="overflow-x-auto">
       <table class="w-full text-sm">

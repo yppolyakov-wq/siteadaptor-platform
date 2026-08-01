@@ -16962,3 +16962,12 @@ msgstr "Как выбор выглядит на витрине — задаёт�
 
 msgid "Colour"
 msgstr "Цвет"
+
+msgid "Größe × Farbe"
+msgstr "Размер × цвет"
+
+msgid "Nur die gefilterten Artikel werden gezählt."
+msgstr "Пересчитываются только отфильтрованные позиции."
+
+msgid "alle"
+msgstr "все"

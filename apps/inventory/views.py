@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.models import Product
 
-from . import locations, services
+from . import locations, matrix, services
 from .models import StockMovement
 
 DEFAULT_THRESHOLD = 5
@@ -83,13 +83,19 @@ def _export_csv():
     resp = HttpResponse(content_type="text/csv; charset=utf-8")
     resp["Content-Disposition"] = "attachment; filename=lagerbewegungen.csv"
     w = csv.writer(resp)
-    w.writerow(["Datum", "Produkt", "Variante", "Art", "Menge", "Quelle", "Notiz"])
+    # 2026-08-01: оси отдельными колонками — в Excel по ним фильтруют и сводят,
+    # склеенный label («S · Blau») для этого бесполезен.
+    w.writerow(
+        ["Datum", "Produkt", "Variante", "Größe", "Farbe", "Art", "Menge", "Quelle", "Notiz"]
+    )
     for mv in StockMovement.objects.select_related("product", "variant").all()[:5000]:
         w.writerow(
             [
                 mv.created_at.strftime("%Y-%m-%d %H:%M"),
                 csv_safe(str(mv.product)),
                 csv_safe(mv.variant.label if mv.variant else ""),
+                csv_safe(mv.variant.size if mv.variant else ""),
+                csv_safe(mv.variant.color if mv.variant else ""),
                 mv.get_kind_display(),
                 mv.delta,
                 csv_safe(mv.source),
@@ -108,6 +114,13 @@ def stock(request):
 
     threshold = _threshold(request.tenant)
     rows = services.reconciliation_rows()  # T2: товары БЕЗ вариантов + варианты
+    # 2026-08-01: разрез по осям варианта. Матрица «размер × цвет» + фильтры
+    # плоской таблицы — учёт уже вёлся по варианту, не хватало ЭКРАНА в разрезе.
+    axis_sizes, axis_colors = matrix.axis_values(rows)
+    f_size = (request.GET.get("groesse") or "").strip()
+    f_color = (request.GET.get("farbe") or "").strip()
+    rows = matrix.filter_rows(rows, f_size, f_color)
+    matrices = matrix.matrices()
     low = [r for r in rows if r["counter"] <= threshold]
     diverging = [r for r in rows if not r["ok"]]
     warenwert = services.inventory_value()  # T5: Bestandswert (Σ Bestand × EK)
@@ -157,6 +170,12 @@ def stock(request):
         {
             "nav": "stock",
             "rows": rows,
+            # Разрез по осям варианта (2026-08-01).
+            "matrices": matrices,
+            "axis_sizes": axis_sizes,
+            "axis_colors": axis_colors,
+            "f_size": f_size,
+            "f_color": f_color,
             "low": low,
             "diverging": diverging,
             "movements": movements,
