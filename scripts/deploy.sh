@@ -69,6 +69,10 @@ $COMPOSE up -d
 
 echo "==> [8/8] Deploy checks"
 $COMPOSE exec -T web python manage.py check --deploy || true
+# Сверка миграций ПО ВСЕМ СХЕМАМ: обычный showmigrations видит только public, из-за
+# чего очередь миграций в памяти проекта разъезжалась с реальностью (аудит 01.08).
+# Печатает только отставание — «Всё применено» и есть ожидаемый вывод.
+$COMPOSE exec -T web python manage.py migration_state || true
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
 	echo "OK: readiness passed"
