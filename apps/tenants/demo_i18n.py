@@ -188,6 +188,42 @@ def _fill_overlay(obj, base_field: str, overlay_field: str, locales) -> bool:
     return changed
 
 
+def _fill_seq_overlay(obj, base_list, overlay_field, locales, keys=None) -> bool:
+    """Списочный overlay (`Service.attributes`/`faq`): перевод ЭЛЕМЕНТОВ базового
+    списка с выравниванием по индексу. `base_list` — уже нормализованный список
+    (тот же, что уходит в рендер), иначе строки разъедутся; `keys` — переводимые
+    ключи для списка словарей (FAQ: q/a), None — список строк."""
+    if not base_list:
+        return False
+    ov = getattr(obj, overlay_field, None)
+    ov = dict(ov) if isinstance(ov, dict) else {}
+    changed = False
+    for loc in locales:
+        if ov.get(loc):
+            continue  # перевод локали уже есть — идемпотентность
+        items = []
+        got = False
+        for item in base_list:
+            if keys is None:
+                tr = t(item, loc) if isinstance(item, str) else ""
+                items.append(tr)
+                got = got or bool(tr)
+                continue
+            row = {}
+            for k in keys:
+                tr = t(str(item.get(k, "") or ""), loc) if isinstance(item, dict) else ""
+                if tr:
+                    row[k] = tr
+                    got = True
+            items.append(row)
+        if got:
+            ov[loc] = items
+            changed = True
+    if changed:
+        setattr(obj, overlay_field, ov)
+    return changed
+
+
 def translate_tenant_content(tenant, locales) -> None:
     """Проставить переводы (для всех ``locales``) на весь демо-контент тенанта
     (вызывать В СХЕМЕ тенанта, после сидинга). Идемпотентно: существующий перевод
@@ -215,8 +251,19 @@ def translate_tenant_content(tenant, locales) -> None:
         changed = _fill_overlay(svc, "name", "name_i18n", locales) | _fill_overlay(
             svc, "description", "description_i18n", locales
         )
+        # Богатая карточка услуги (UA4-3): пункты «Details» и FAQ — списки, поэтому
+        # переводятся поэлементно (иначе на не-немецкой витрине оставались немецкими).
+        changed |= _fill_seq_overlay(svc, svc.attributes_list, "attributes_i18n", locales)
+        changed |= _fill_seq_overlay(svc, svc.faq_list, "faq_i18n", locales, keys=("q", "a"))
         if changed:
-            svc.save(update_fields=["name_i18n", "description_i18n"])
+            svc.save(
+                update_fields=[
+                    "name_i18n",
+                    "description_i18n",
+                    "attributes_i18n",
+                    "faq_i18n",
+                ]
+            )
 
     # Фидбэк владельца 2026-07-31: акции демо оставались немецкими на любой
     # локали — их просто не было в этом обходе. Поля те же full-JSON, что у товара.
@@ -224,8 +271,11 @@ def translate_tenant_content(tenant, locales) -> None:
 
     for promo in Promotion.objects.all():
         changed = _fill_full(promo, "title", locales) | _fill_full(promo, "description", locales)
+        # Метка группы («Wochenangebote», «Räumung») — заголовок секции на /aktionen/;
+        # ключ фасета остаётся плоским, переводится только показ.
+        changed |= _fill_overlay(promo, "group", "group_i18n", locales)
         if changed:
-            promo.save(update_fields=["title", "description"])
+            promo.save(update_fields=["title", "description", "group_i18n"])
 
     for unit in StayUnit.objects.all():
         changed = _fill_overlay(unit, "name", "name_i18n", locales) | _fill_overlay(

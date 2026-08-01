@@ -115,3 +115,70 @@ def test_localize_unknown_locale_falls_back_to_base():
     cfg = siteconfig.normalize({"hero_title": "Hallo", "i18n": {"en": {"hero_title": "Hello"}}})
     assert siteconfig.localize(cfg, "fr")["hero_title"] == "Hallo"
     assert siteconfig.localize(cfg, None)["hero_title"] == "Hallo"
+
+
+# --- 2026-08-01: списочные оверлеи услуг + метки групп акций в засеве демо ----
+
+
+def test_fill_seq_overlay_aligns_with_normalized_base(monkeypatch):
+    """Перевод элементов идёт по индексу нормализованного списка; уже заданная
+    локаль не перезаписывается (идемпотентность засева)."""
+    from apps.tenants import demo_i18n
+
+    monkeypatch.setattr(demo_i18n, "t", lambda de, loc: {"A": "a", "B": "b"}.get(de))
+
+    class Obj:
+        attributes_i18n = {}
+
+    obj = Obj()
+    assert demo_i18n._fill_seq_overlay(obj, ["A", "B"], "attributes_i18n", ["en"])
+    assert obj.attributes_i18n == {"en": ["a", "b"]}
+    # повторный проход ничего не меняет
+    assert not demo_i18n._fill_seq_overlay(obj, ["A", "B"], "attributes_i18n", ["en"])
+
+
+def test_fill_seq_overlay_handles_dict_items_and_missing_translations(monkeypatch):
+    from apps.tenants import demo_i18n
+
+    monkeypatch.setattr(demo_i18n, "t", lambda de, loc: {"Q?": "q?"}.get(de))
+
+    class Obj:
+        faq_i18n = {}
+
+    obj = Obj()
+    assert demo_i18n._fill_seq_overlay(
+        obj, [{"q": "Q?", "a": "Ohne Übersetzung"}], "faq_i18n", ["en"], keys=("q", "a")
+    )
+    # ответа в словаре нет → ключа в оверлее нет → рендер возьмёт базу
+    assert obj.faq_i18n == {"en": [{"q": "q?"}]}
+
+
+def test_fill_seq_overlay_skips_locale_without_any_translation(monkeypatch):
+    """Ни одна строка не переведена → оверлей локали не создаём (пустой список
+    выглядел бы как «переведено на пустоту»)."""
+    from apps.tenants import demo_i18n
+
+    monkeypatch.setattr(demo_i18n, "t", lambda de, loc: None)
+
+    class Obj:
+        attributes_i18n = {}
+
+    obj = Obj()
+    assert not demo_i18n._fill_seq_overlay(obj, ["A"], "attributes_i18n", ["en"])
+    assert obj.attributes_i18n == {}
+
+
+def test_demo_dictionaries_cover_service_rich_text_and_promo_groups():
+    """Замок содержания: строки богатой карточки услуг и метки групп акций из
+    демо-китов должны быть в словарях (иначе демо снова уедет в немецкий)."""
+    from apps.tenants import demo_i18n
+
+    samples = [
+        "Handtücher und Bademantel inklusive",  # attributes
+        "Wie schnell bekomme ich einen Termin?",  # faq.q
+        "In der Regel innerhalb von 2–3 Werktagen.",  # faq.a
+        "Wochenangebote",  # Promotion.group
+    ]
+    for loc in demo_i18n.DEMO_LOCALES:
+        for de in samples:
+            assert demo_i18n.t(de, loc), f"{loc}: нет перевода «{de}»"
