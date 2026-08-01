@@ -241,6 +241,9 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # подразделов витрины (/aktionen/?gruppe=…) и целей меню (promo_group).
     # Свободный текст: набор групп определяет владелец, фильтр — по точному значению.
     group = models.CharField(max_length=50, blank=True, default="", db_index=True)
+    # Переводим только МЕТКУ группы; ключ фасета (?gruppe=) остаётся плоским
+    # значением, иначе ссылки на подраздел разъехались бы между локалями.
+    group_i18n = models.JSONField(default=dict, blank=True)
 
     status = models.CharField(max_length=20, default="draft", db_index=True)
     starts_at = models.DateTimeField(null=True, blank=True)
@@ -269,6 +272,11 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     @property
     def description_text(self) -> str:
         return self.get_i18n("description")
+
+    @property
+    def group_localized(self) -> str:
+        """Метка группы на текущей локали (ключ фильтра — плоский `group`)."""
+        return self.get_overlay("group", "group_i18n")
 
     # --- цена и скидка --------------------------------------------------
 

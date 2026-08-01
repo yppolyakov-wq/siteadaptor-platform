@@ -109,6 +109,17 @@
     <div data-pf-panel="grund" class="space-y-4 pt-2">
       {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
       {% for field in form %}{% if field.name == 'product' or field.name == 'group' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% comment %}Переводы МЕТКИ группы: ключ фасета остаётся плоским значением поля
+      выше, поэтому переводы живут отдельным свёрнутым блоком (как у услуг/номеров),
+      а не во вкладках языка (там full-JSON title/description).{% endcomment %}
+      {% if group_i18n_fields %}
+        <details class="rounded-lg border border-gray-100 p-3">
+          <summary class="cursor-pointer text-xs text-indigo-600">🌐 {% trans "Translations" %}</summary>
+          <div class="mt-2 space-y-2">
+            {% for field in group_i18n_fields %}{% include "catalog/_pf_field.html" %}{% endfor %}
+          </div>
+        </details>
+      {% endif %}
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
         <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">

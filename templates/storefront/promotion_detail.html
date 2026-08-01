@@ -109,7 +109,7 @@
       {% comment %}Промо-баннер с сегментным отсчётом (референс владельца): группа
       акции как заголовок + крупные Tage|Std|Min|Sek на белой вложенной карточке.{% endcomment %}
       <div class="mt-4 rounded-xl p-3.5 text-white" style="background: var(--accent, #dc2626);">
-        <p class="font-semibold leading-snug">🏷️ {% if promotion.group %}{{ promotion.group }}{% else %}{% trans "Limited-time offer" %}{% endif %}</p>
+        <p class="font-semibold leading-snug">🏷️ {% if promotion.group %}{{ promotion.group_localized }}{% else %}{% trans "Limited-time offer" %}{% endif %}</p>
         <div class="mt-2.5 bg-white text-gray-900 rounded-lg px-3 py-2.5 flex items-stretch" data-cd="{{ promotion.ends_at|date:'c' }}">
           <p class="text-xs text-gray-500 self-center pr-3 leading-tight">{% trans "Offer ends in:" %}</p>
           <div class="flex-1 grid grid-cols-4 divide-x divide-gray-200 text-center">

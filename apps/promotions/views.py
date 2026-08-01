@@ -242,7 +242,15 @@ def _promo_i18n_groups(form, request):
     """Ф1: группы i18n-полей акции (title/description) для переключателя языка формы."""
     from apps.core.i18n_input import i18n_form_groups
 
-    return i18n_form_groups(form, getattr(request, "tenant", None), fields=("title", "description"))
+    ctx = i18n_form_groups(form, getattr(request, "tenant", None), fields=("title", "description"))
+    # Метка группы — flat+overlay, поэтому её переводы идут отдельным списком
+    # (свёрнутый блок под полем `group`), а не во вкладках языка.
+    ctx["group_i18n_fields"] = [
+        form[f"group_{loc}"]
+        for loc in getattr(form, "_group_locales", [])
+        if f"group_{loc}" in form.fields
+    ]
+    return ctx
 
 
 @login_required

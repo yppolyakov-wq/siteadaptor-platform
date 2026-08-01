@@ -13,9 +13,9 @@
     <div class="flex flex-wrap gap-2 mb-6">
       <a href="{% url 'storefront-aktionen' %}"
          class="px-3 py-1.5 rounded-full text-sm border {% if not selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{% trans "All" %}</a>
-      {% for g in groups %}
+      {% for g, g_label in groups %}
         <a href="{% url 'storefront-aktionen' %}?gruppe={{ g|urlencode }}"
-           class="px-3 py-1.5 rounded-full text-sm border {% if g == selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ g }}</a>
+           class="px-3 py-1.5 rounded-full text-sm border {% if g == selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ g_label }}</a>
       {% endfor %}
     </div>
   {% endif %}
@@ -23,9 +23,9 @@
   {% if grouped_promotions %}
     {% comment %}Фидбэк 2026-07-29: группы акций — секциями с заголовками (Prospekt-
     логика: Wochenangebote / Räumung / Anti-Food-Waste читаются с первого взгляда).{% endcomment %}
-    {% for group, items in grouped_promotions %}
+    {% for group, group_label, items in grouped_promotions %}
       <section class="mb-8">
-        <h2 class="text-lg font-bold mb-3">{% if group %}{{ group }}{% else %}{% trans "More offers" %}{% endif %}
+        <h2 class="text-lg font-bold mb-3">{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
         <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {% for p in items %}

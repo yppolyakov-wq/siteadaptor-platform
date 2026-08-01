@@ -9,7 +9,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Product
-from apps.core.i18n_input import DynamicI18nFormMixin
+from apps.core.i18n_input import DynamicI18nFormMixin, extra_locales
 from apps.loyalty.models import LoyaltyProgram
 
 from .models import Promotion
@@ -96,6 +96,18 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         self.fields["product"].queryset = Product.objects.all()
         self.fields["product"].required = False
         self.init_i18n_fields(tenant)  # L3d.5
+        # `group` — flat+overlay (плоское значение = ключ фасета `?gruppe=`,
+        # переводы = только метка), поэтому НЕ через DynamicI18nFormMixin:
+        # базовая локаль остаётся полем `group`, прочие приезжают динамически.
+        self._group_locales = extra_locales(tenant)
+        overlay = getattr(self.instance, "group_i18n", None) or {}
+        for loc in self._group_locales:
+            self.fields[f"group_{loc}"] = forms.CharField(
+                label=f"{_('Section / group')} ({loc.upper()})",
+                max_length=50,
+                required=False,
+                initial=overlay.get(loc, "") if isinstance(overlay, dict) else "",
+            )
 
     def clean(self):
         cleaned = super().clean()
@@ -108,6 +120,14 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         promo = super().save(commit=False)
         promo.title = self.collect_i18n("title")
         promo.description = self.collect_i18n("description")
+        overlay = dict(promo.group_i18n or {})
+        for loc in getattr(self, "_group_locales", []):
+            val = (self.cleaned_data.get(f"group_{loc}") or "").strip()
+            if val:
+                overlay[loc] = val
+            else:
+                overlay.pop(loc, None)  # пустой перевод → фолбэк на базовую метку
+        promo.group_i18n = overlay
         if commit:
             promo.save()
         return promo

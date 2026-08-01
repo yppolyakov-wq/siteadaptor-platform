@@ -21,6 +21,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.core import ratelimit
+from apps.core.models import resolve_overlay
 from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
@@ -243,7 +244,13 @@ def promotion_list(request):
     if not modules.is_module_active(request.tenant, "promotions"):
         raise Http404
     qs = Promotion.objects.filter(status="active").order_by("-created_at")
-    groups = sorted({g for g in qs.values_list("group", flat=True) if g})
+    # Ключ группы — плоское значение (по нему фильтр `?gruppe=`), метка — с
+    # оверлеем локали. Карту строим по НЕотфильтрованной выдаче, иначе при
+    # выбранной группе остальные чипы остались бы без перевода.
+    group_labels = {
+        g: resolve_overlay(g, ov) for g, ov in qs.values_list("group", "group_i18n") if g
+    }
+    groups = sorted(group_labels)
     selected = (request.GET.get("gruppe") or "").strip()
     if selected:
         qs = qs.filter(group=selected)
@@ -263,13 +270,13 @@ def promotion_list(request):
                 order.append(key)
             by_group[key].append(promo)
         order.sort(key=lambda g: g == "")  # безгрупповые в конец
-        grouped = [(g, by_group[g]) for g in order]
+        grouped = [(g, group_labels.get(g, g), by_group[g]) for g in order]
     return render(
         request,
         "storefront/promotions_list.html",
         {
             "promotions": qs,
-            "groups": groups,
+            "groups": [(g, group_labels[g]) for g in groups],
             "selected_group": selected,
             "grouped_promotions": grouped,
         },

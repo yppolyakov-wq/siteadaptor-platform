@@ -65,3 +65,48 @@ def test_menu_promo_group_resolves_only_with_active_promo():
     Promotion.objects.create(title={"de": "x"}, status="active", group="Fastfood")
     items = menu.resolve_menu(tenant, "top")
     assert items and items[0]["url"].startswith("/aktionen/?gruppe=Fastfood")
+
+
+# --- i18n метки группы (2026-08-01) -----------------------------------------
+# Ключ фасета `?gruppe=` остаётся ПЛОСКИМ немецким значением (ссылки не должны
+# разъезжаться между локалями), переводится только показ.
+
+
+def test_group_localized_falls_back_to_plain():
+    p = Promotion(title={"de": "x"}, group="Wochenangebote")
+    assert p.group_localized == "Wochenangebote"
+
+
+def test_promotion_list_shows_localized_group_label_but_keeps_key():
+    from django.utils import translation
+
+    tenant = _tenant(slug="pgi", enabled_locales=["de", "en"])
+    Promotion.objects.create(
+        title={"de": "Deal", "en": "Deal"},
+        status="active",
+        group="Wochenangebote",
+        group_i18n={"en": "Weekly offers"},
+    )
+    with translation.override("en"):
+        body = public_views.promotion_list(_get("/aktionen/", tenant=tenant)).content.decode()
+    assert "Weekly offers" in body  # заголовок секции и чип — на локали
+    assert "?gruppe=Wochenangebote" in body  # ключ фильтра остался немецким
+
+
+def test_group_chips_keep_labels_of_other_groups_when_filtered():
+    """Карта меток строится по НЕотфильтрованной выдаче — иначе чип невыбранной
+    группы остался бы без перевода."""
+    from django.utils import translation
+
+    tenant = _tenant(slug="pgi2", enabled_locales=["de", "en"])
+    Promotion.objects.create(
+        title={"de": "A"}, status="active", group="Wochenangebote", group_i18n={"en": "Weekly"}
+    )
+    Promotion.objects.create(
+        title={"de": "B"}, status="active", group="Räumung", group_i18n={"en": "Clearance"}
+    )
+    with translation.override("en"):
+        body = public_views.promotion_list(
+            _get("/aktionen/", {"gruppe": "Wochenangebote"}, tenant)
+        ).content.decode()
+    assert "Clearance" in body and "Weekly" in body
