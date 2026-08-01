@@ -29,6 +29,20 @@ class TimestampedModel(models.Model):
         abstract = True
 
 
+def resolve_overlay(base: str, overlay, locale: str | None = None) -> str:
+    """Значение «база + оверлей» БЕЗ объекта модели.
+
+    Та же семантика, что у `I18nMixin.get_overlay` (который сюда и делегирует):
+    базовая локаль всегда из плоского значения, прочие — из `overlay[locale]`
+    с фолбэком на базу. Нужна отдельно там, где строки читаются пачкой через
+    `values_list` (напр. метки групп акций) и объектов модели просто нет.
+    """
+    locale = locale or get_language() or settings.LANGUAGE_CODE
+    if locale != settings.LANGUAGE_CODE and isinstance(overlay, dict) and overlay.get(locale):
+        return overlay[locale]
+    return base or ""
+
+
 class I18nMixin:
     """Утилиты для переводимых JSONField вида {"de": "...", "en": "..."}.
 
@@ -59,12 +73,9 @@ class I18nMixin:
         (`settings.LANGUAGE_CODE`) ВСЕГДА берётся из плоского поля (source of truth,
         без дрейфа); прочие — из оверлея, с фолбэком на базу. Так модель несёт i18n,
         не ломая существующий доступ к плоскому полю."""
-        locale = locale or get_language() or settings.LANGUAGE_CODE
-        if locale != settings.LANGUAGE_CODE:
-            overlay = getattr(self, overlay_field, None)
-            if isinstance(overlay, dict) and overlay.get(locale):
-                return overlay[locale]
-        return getattr(self, base_field, "") or ""
+        return resolve_overlay(
+            getattr(self, base_field, ""), getattr(self, overlay_field, None), locale
+        )
 
     def i18n_full(
         self, base_field: str, overlay_field: str, base_locale: str | None = None

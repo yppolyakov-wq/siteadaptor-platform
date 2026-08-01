@@ -11,6 +11,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.i18n_seq import overlay_seq
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
@@ -90,6 +91,10 @@ class Service(I18nMixin, TimestampedModel):
     # override основного действия детали (реш.2, читает archetypes.primary_service_action).
     attributes = models.JSONField(default=list, blank=True)
     faq = models.JSONField(default=list, blank=True)
+    # Оверлеи переводов списочных полей: {locale: [...]} с выравниванием по
+    # индексу НОРМАЛИЗОВАННОГО базового списка (см. apps/core/i18n_seq.py).
+    attributes_i18n = models.JSONField(default=dict, blank=True)
+    faq_i18n = models.JSONField(default=dict, blank=True)
     primary_action = models.CharField(
         max_length=10,
         blank=True,
@@ -158,6 +163,14 @@ class Service(I18nMixin, TimestampedModel):
     def faq_list(self) -> list:
         """UA4-3: нормализованный FAQ услуги [{q,a}] (garbage→[], без краша)."""
         return normalize_service_faq(self.faq)
+
+    def attributes_localized(self, locale: str | None = None) -> list:
+        """Атрибуты на локали: база + оверлей `attributes_i18n` поэлементно."""
+        return overlay_seq(self.attributes_list, self.attributes_i18n, locale)
+
+    def faq_localized(self, locale: str | None = None) -> list:
+        """FAQ на локали: перевод q/a из `faq_i18n`, фолбэк на базу поэлементно."""
+        return overlay_seq(self.faq_list, self.faq_i18n, locale, keys=("q", "a"))
 
 
 # --- UA4-3: нормализаторы богатой карточки услуги (по образцу events/details) -----

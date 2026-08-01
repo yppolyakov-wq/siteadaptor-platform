@@ -59,3 +59,53 @@ def test_empty_overlay_values_ignored_in_full():
     s = Service(name="Ölwechsel", name_i18n={"en": ""})
     assert s.name_localized("en") == "Ölwechsel"  # пустой перевод → база
     assert s.name_i18n_full == {"de": "Ölwechsel"}  # пустое не попадает в full
+
+
+# --- Списочные поля богатой карточки (attributes/faq) ------------------------
+# Оверлей выравнивается по индексу НОРМАЛИЗОВАННОГО базового списка; база задаёт
+# длину, пустой перевод элемента = фолбэк на базу.
+
+
+def test_attributes_localized_falls_back_without_overlay():
+    s = Service(name="Ölwechsel", attributes=["Dauer 60 Min", "Inkl. Beratung"])
+    assert s.attributes_localized() == ["Dauer 60 Min", "Inkl. Beratung"]
+    assert s.attributes_localized("en") == ["Dauer 60 Min", "Inkl. Beratung"]
+
+
+def test_attributes_localized_merges_per_item():
+    s = Service(
+        name="Ölwechsel",
+        attributes=["Dauer 60 Min", "Inkl. Beratung"],
+        attributes_i18n={"en": ["60 min", ""]},  # второй пункт не переведён
+    )
+    assert s.attributes_localized("en") == ["60 min", "Inkl. Beratung"]
+    assert s.attributes_localized("de") == ["Dauer 60 Min", "Inkl. Beratung"]
+
+
+def test_attributes_overlay_cannot_add_items():
+    """База задаёт длину: перевод не «дорисовывает» пункт, которого нет."""
+    s = Service(name="X", attributes=["A"], attributes_i18n={"en": ["a", "erfunden"]})
+    assert s.attributes_localized("en") == ["a"]
+
+
+def test_faq_localized_merges_q_and_a_separately():
+    s = Service(
+        name="X",
+        faq=[{"q": "Wie lange?", "a": "60 Minuten"}],
+        faq_i18n={"en": [{"q": "How long?"}]},  # ответ не переведён
+    )
+    assert s.faq_localized("en") == [{"q": "How long?", "a": "60 Minuten"}]
+
+
+def test_garbage_overlay_never_breaks_rendering():
+    s = Service(name="X", attributes=["A"], attributes_i18n={"en": "не список"})
+    assert s.attributes_localized("en") == ["A"]
+    s2 = Service(name="X", faq=[{"q": "Q", "a": "A"}], faq_i18n="мусор")
+    assert s2.faq_localized("en") == [{"q": "Q", "a": "A"}]
+
+
+def test_localized_lists_are_normalized_like_base():
+    """Мусор из сырого поля выброшен и в локализованном списке — индексы совпадают."""
+    s = Service(name="X", attributes=["  A  ", "", 42, "B"], attributes_i18n={"en": ["a", "b"]})
+    assert s.attributes_list == ["A", "B"]
+    assert s.attributes_localized("en") == ["a", "b"]
