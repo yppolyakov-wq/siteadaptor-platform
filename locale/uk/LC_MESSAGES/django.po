@@ -16791,3 +16791,60 @@ msgstr "Списком"
 
 msgid "Grid view"
 msgstr "Плиткою"
+
+msgid "Beispiele nach Funktion"
+msgstr "Приклади за функціями"
+
+msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
+msgstr "Кожна плитка відкриває потрібну сторінку живого демо-сайту — не відео і не скриншот."
+
+msgid "Live ansehen"
+msgstr "Подивитися наживо"
+
+msgid "Aktionen & Rabatte"
+msgstr "Акції та знижки"
+
+msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
+msgstr "Відсоток, фікс-ціна, mystery-deal, зворотний відлік, обмежена кількість — усі типи акцій на одній сторінці."
+
+msgid "Termine online buchen"
+msgstr "Запис на час онлайн"
+
+msgid "Mitarbeiter wählen, Kalender, freie Zeiten — Buchung ohne Anruf."
+msgstr "Вибір майстра, календар, вільні часи — запис без дзвінка."
+
+msgid "Übernachtungen buchen"
+msgstr "Бронювання за датами"
+
+msgid "Verfügbarkeit im Kalender, Tarife mit Frühstück, Preis pro Nacht."
+msgstr "Наявність у календарі, тарифи зі сніданком, ціна за ніч."
+
+msgid "Bestellen & abholen"
+msgstr "Замовлення й самовивіз"
+
+msgid "Warenkorb, Abholzeit, Bezahlung — Click & Collect für den Laden."
+msgstr "Кошик, час самовивозу, оплата — Click & Collect для магазину."
+
+msgid "Größen & Farben"
+msgstr "Розміри та кольори"
+
+msgid "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
+msgstr "Варіанти з власним фото, таблиця розмірів, лист очікування при розпродажі."
+
+msgid "Veranstaltungen & Tickets"
+msgstr "Події та квитки"
+
+msgid "Termine, Ticketkategorien, Teilnehmerzahl — Anmeldung online."
+msgstr "Дати, категорії квитків, кількість учасників — запис онлайн."
+
+msgid "Anfragen & Angebote"
+msgstr "Заявки та кошториси"
+
+msgid "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
+msgstr "Заявка від клієнта, кошторис із фікс-ціною у відповідь, прийняття одним кліком."
+
+msgid "Produktfinder"
+msgstr "Підбір товару"
+
+msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
+msgstr "Два-три питання гостю — і влучна рекомендація."

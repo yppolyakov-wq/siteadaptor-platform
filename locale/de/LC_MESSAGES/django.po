@@ -16765,3 +16765,60 @@ msgstr "Listenansicht"
 
 msgid "Grid view"
 msgstr "Kachelansicht"
+
+msgid "Beispiele nach Funktion"
+msgstr "Beispiele nach Funktion"
+
+msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
+msgstr "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
+
+msgid "Live ansehen"
+msgstr "Live ansehen"
+
+msgid "Aktionen & Rabatte"
+msgstr "Aktionen & Rabatte"
+
+msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
+msgstr "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
+
+msgid "Termine online buchen"
+msgstr "Termine online buchen"
+
+msgid "Mitarbeiter wählen, Kalender, freie Zeiten — Buchung ohne Anruf."
+msgstr "Mitarbeiter wählen, Kalender, freie Zeiten — Buchung ohne Anruf."
+
+msgid "Übernachtungen buchen"
+msgstr "Übernachtungen buchen"
+
+msgid "Verfügbarkeit im Kalender, Tarife mit Frühstück, Preis pro Nacht."
+msgstr "Verfügbarkeit im Kalender, Tarife mit Frühstück, Preis pro Nacht."
+
+msgid "Bestellen & abholen"
+msgstr "Bestellen & abholen"
+
+msgid "Warenkorb, Abholzeit, Bezahlung — Click & Collect für den Laden."
+msgstr "Warenkorb, Abholzeit, Bezahlung — Click & Collect für den Laden."
+
+msgid "Größen & Farben"
+msgstr "Größen & Farben"
+
+msgid "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
+msgstr "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
+
+msgid "Veranstaltungen & Tickets"
+msgstr "Veranstaltungen & Tickets"
+
+msgid "Termine, Ticketkategorien, Teilnehmerzahl — Anmeldung online."
+msgstr "Termine, Ticketkategorien, Teilnehmerzahl — Anmeldung online."
+
+msgid "Anfragen & Angebote"
+msgstr "Anfragen & Angebote"
+
+msgid "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
+msgstr "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
+
+msgid "Produktfinder"
+msgstr "Produktfinder"
+
+msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
+msgstr "Zwei, drei Fragen an den Gast — und die passende Empfehlung."

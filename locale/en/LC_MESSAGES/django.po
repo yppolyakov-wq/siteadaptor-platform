@@ -16614,3 +16614,60 @@ msgstr "List view"
 
 msgid "Grid view"
 msgstr "Grid view"
+
+msgid "Beispiele nach Funktion"
+msgstr "Examples by feature"
+
+msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
+msgstr "Each tile opens the matching page of a real demo website — no video, no screenshot."
+
+msgid "Live ansehen"
+msgstr "View live"
+
+msgid "Aktionen & Rabatte"
+msgstr "Offers & discounts"
+
+msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
+msgstr "Percentage, fixed price, mystery deal, countdown, limited stock — every offer type on one page."
+
+msgid "Termine online buchen"
+msgstr "Book appointments online"
+
+msgid "Mitarbeiter wählen, Kalender, freie Zeiten — Buchung ohne Anruf."
+msgstr "Pick a specialist, calendar, free times — booking without a phone call."
+
+msgid "Übernachtungen buchen"
+msgstr "Book overnight stays"
+
+msgid "Verfügbarkeit im Kalender, Tarife mit Frühstück, Preis pro Nacht."
+msgstr "Availability calendar, rates with breakfast, price per night."
+
+msgid "Bestellen & abholen"
+msgstr "Order & collect"
+
+msgid "Warenkorb, Abholzeit, Bezahlung — Click & Collect für den Laden."
+msgstr "Cart, pickup time, payment — Click & Collect for the shop."
+
+msgid "Größen & Farben"
+msgstr "Sizes & colours"
+
+msgid "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
+msgstr "Variants with their own photo, size chart, waiting list when sold out."
+
+msgid "Veranstaltungen & Tickets"
+msgstr "Events & tickets"
+
+msgid "Termine, Ticketkategorien, Teilnehmerzahl — Anmeldung online."
+msgstr "Dates, ticket tiers, number of participants — sign-up online."
+
+msgid "Anfragen & Angebote"
+msgstr "Requests & quotes"
+
+msgid "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
+msgstr "Request from the customer, fixed-price quote back, accepted in one click."
+
+msgid "Produktfinder"
+msgstr "Product finder"
+
+msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
+msgstr "Two or three questions for the guest — and the right recommendation."

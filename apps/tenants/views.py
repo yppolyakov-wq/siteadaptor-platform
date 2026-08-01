@@ -152,10 +152,19 @@ def industries_index(request):
     Корень исторически принимал партнёрский `?ref=` (ссылки в проде) — захват
     сохранён и здесь."""
     _capture_partner_ref(request)
+    from . import feature_demos
+
     return render(
         request,
         "tenants/industries.html",
-        {"cards": archetype_pages.index_cards(request), "ui_languages": ui_languages()},
+        {
+            "cards": archetype_pages.index_cards(request),
+            # Решение владельца 2026-08-01: второй разрез — живые примеры ПО
+            # ФУНКЦИЯМ (демо подписаны видами бизнеса, и «сайт с акциями» по
+            # названию было не найти). Пусто, если демо не засеяны.
+            "feature_demos": feature_demos.feature_demo_cards(request),
+            "ui_languages": ui_languages(),
+        },
     )
 
 

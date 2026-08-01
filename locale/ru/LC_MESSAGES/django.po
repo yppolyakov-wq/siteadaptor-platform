@@ -16806,3 +16806,60 @@ msgstr "Списком"
 
 msgid "Grid view"
 msgstr "Плиткой"
+
+msgid "Beispiele nach Funktion"
+msgstr "Примеры по функциям"
+
+msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
+msgstr "Каждая плитка открывает нужную страницу живого демо-сайта — не видео и не скриншот."
+
+msgid "Live ansehen"
+msgstr "Посмотреть вживую"
+
+msgid "Aktionen & Rabatte"
+msgstr "Акции и скидки"
+
+msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
+msgstr "Процент, фикс-цена, mystery-deal, обратный отсчёт, ограниченное количество — все типы акций на одной странице."
+
+msgid "Termine online buchen"
+msgstr "Запись на время онлайн"
+
+msgid "Mitarbeiter wählen, Kalender, freie Zeiten — Buchung ohne Anruf."
+msgstr "Выбор мастера, календарь, свободные времена — запись без звонка."
+
+msgid "Übernachtungen buchen"
+msgstr "Бронь по датам"
+
+msgid "Verfügbarkeit im Kalender, Tarife mit Frühstück, Preis pro Nacht."
+msgstr "Наличие в календаре, тарифы с завтраком, цена за ночь."
+
+msgid "Bestellen & abholen"
+msgstr "Заказ и самовывоз"
+
+msgid "Warenkorb, Abholzeit, Bezahlung — Click & Collect für den Laden."
+msgstr "Корзина, время самовывоза, оплата — Click & Collect для магазина."
+
+msgid "Größen & Farben"
+msgstr "Размеры и цвета"
+
+msgid "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
+msgstr "Варианты со своим фото, таблица размеров, лист ожидания при распродаже."
+
+msgid "Veranstaltungen & Tickets"
+msgstr "События и билеты"
+
+msgid "Termine, Ticketkategorien, Teilnehmerzahl — Anmeldung online."
+msgstr "Даты, категории билетов, число участников — запись онлайн."
+
+msgid "Anfragen & Angebote"
+msgstr "Заявки и сметы"
+
+msgid "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
+msgstr "Заявка от клиента, смета с фикс-ценой в ответ, принятие одним кликом."
+
+msgid "Produktfinder"
+msgstr "Подбор товара"
+
+msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
+msgstr "Два-три вопроса гостю — и подходящая рекомендация."

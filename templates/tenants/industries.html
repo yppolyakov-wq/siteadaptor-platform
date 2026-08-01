@@ -25,5 +25,25 @@
     {% endfor %}
   </div>
 </section>
+{% if feature_demos %}
+{% comment %}Решение владельца 2026-08-01: демо подписаны видами бизнеса, поэтому
+пример конкретной ВОЗМОЖНОСТИ по названию не найти. Второй разрез — функция →
+страница живого демо. Пункты без засеянного демо сюда не попадают.{% endcomment %}
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+  <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">{% trans "Beispiele nach Funktion" %}</h2>
+  <p class="mt-2 mb-6 text-gray-500 max-w-2xl">{% trans "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot." %}</p>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    {% for f in feature_demos %}
+      <a href="{{ f.url }}" target="_blank" rel="noopener"
+         class="group flex flex-col bg-white border border-gray-200 rounded-2xl p-5 hover:border-indigo-300 hover:shadow-sm transition">
+        <div class="text-3xl leading-none mb-2" aria-hidden="true">{{ f.icon }}</div>
+        <h3 class="font-semibold text-gray-900 group-hover:text-indigo-700">{{ f.title }}</h3>
+        <p class="mt-1 text-sm text-gray-500 leading-relaxed flex-1">{{ f.blurb }}</p>
+        <span class="mt-3 text-xs font-medium text-indigo-600">{% trans "Live ansehen" %} →</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% include "tenants/_public_footer.html" %}
 {% endblock %}

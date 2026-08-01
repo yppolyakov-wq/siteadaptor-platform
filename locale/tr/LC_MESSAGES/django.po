@@ -16726,3 +16726,60 @@ msgstr "Liste görünümü"
 
 msgid "Grid view"
 msgstr "Kutu görünümü"
+
+msgid "Beispiele nach Funktion"
+msgstr "Özelliğe göre örnekler"
+
+msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
+msgstr "Her kutu gerçek bir demo sitesinin ilgili sayfasını açar — video yok, ekran görüntüsü yok."
+
+msgid "Live ansehen"
+msgstr "Canlı gör"
+
+msgid "Aktionen & Rabatte"
+msgstr "Kampanyalar ve indirimler"
+
+msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
+msgstr "Yüzde, sabit fiyat, gizemli fırsat, geri sayım, sınırlı adet — tüm kampanya türleri tek sayfada."
+
+msgid "Termine online buchen"
+msgstr "Randevuları çevrimiçi al"
+
+msgid "Mitarbeiter wählen, Kalender, freie Zeiten — Buchung ohne Anruf."
+msgstr "Uzman seçimi, takvim, boş saatler — telefon etmeden rezervasyon."
+
+msgid "Übernachtungen buchen"
+msgstr "Konaklama rezervasyonu"
+
+msgid "Verfügbarkeit im Kalender, Tarife mit Frühstück, Preis pro Nacht."
+msgstr "Takvimde müsaitlik, kahvaltılı tarifeler, gecelik fiyat."
+
+msgid "Bestellen & abholen"
+msgstr "Sipariş ver ve teslim al"
+
+msgid "Warenkorb, Abholzeit, Bezahlung — Click & Collect für den Laden."
+msgstr "Sepet, teslim saati, ödeme — mağaza için Click & Collect."
+
+msgid "Größen & Farben"
+msgstr "Bedenler ve renkler"
+
+msgid "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
+msgstr "Kendi fotoğrafı olan varyantlar, beden tablosu, tükendiğinde bekleme listesi."
+
+msgid "Veranstaltungen & Tickets"
+msgstr "Etkinlikler ve biletler"
+
+msgid "Termine, Ticketkategorien, Teilnehmerzahl — Anmeldung online."
+msgstr "Tarihler, bilet kategorileri, katılımcı sayısı — çevrimiçi kayıt."
+
+msgid "Anfragen & Angebote"
+msgstr "Talepler ve teklifler"
+
+msgid "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
+msgstr "Müşteriden talep, sabit fiyatlı teklif geri, tek tıkla onay."
+
+msgid "Produktfinder"
+msgstr "Ürün bulucu"
+
+msgid "Zwei, drei Fragen an den Gast — und die passende Empfehlung."
+msgstr "Misafire iki üç soru — ve doğru öneri."
