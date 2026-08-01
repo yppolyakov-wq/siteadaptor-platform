@@ -163,3 +163,47 @@ input[type="datetime-local"] {
 [data-grid].is-list {
   grid-template-columns: 1fr !important;
 }
+
+/* Свотчи вариантов и опций (O-2, 2026-08-01). Разметка выбора всегда идёт ПЕРЕД
+   своим `select` — так селект прячется соседним селектором без `:has()`. Без JS
+   класса `js-opt` нет: свотчи скрыты, работает обычный список (и набор полей
+   формы корзины не меняется — его пинит паритет-замок). */
+[data-pick-ui] {
+  display: none;
+}
+.js-opt [data-pick-ui] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.js-opt [data-pick-ui][data-pick-cols] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+}
+.js-opt [data-pick-ui][data-pick-rows] {
+  display: block;
+}
+.js-opt [data-pick-ui] + [data-pick-select] {
+  display: none;
+}
+/* Кружок цвета: сам цвет — инлайн-стилем из словаря, здесь только форма/рамка. */
+.sf-swatch {
+  border: 1px solid rgb(209 213 219);
+  border-radius: 9999px;
+  width: 1.75rem;
+  height: 1.75rem;
+  background-size: cover;
+  background-position: center;
+}
+[data-pick] {
+  cursor: pointer;
+}
+[data-pick][aria-pressed="true"] {
+  outline: 2px solid var(--sf-primary, #4f46e5);
+  outline-offset: 2px;
+}
+[data-pick][disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}

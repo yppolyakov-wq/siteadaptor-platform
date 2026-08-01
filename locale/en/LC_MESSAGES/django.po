@@ -16695,3 +16695,78 @@ msgstr "Answer"
 
 msgid "Clearing a question removes it. A new empty pair appears after saving."
 msgstr "Clearing a question removes it. A new empty pair appears after saving."
+
+msgid "How to show the options"
+msgstr "How to show the options"
+
+msgid "Leer = wie in den Website-Einstellungen eingestellt."
+msgstr "Empty = as set in the website settings."
+
+msgid "Dropdown list"
+msgstr "Dropdown list"
+
+msgid "Compact — good for many pack sizes."
+msgstr "Compact — good for many pack sizes."
+
+msgid "Buttons"
+msgstr "Buttons"
+
+msgid "Sizes and volumes at a glance."
+msgstr "Sizes and volumes at a glance."
+
+msgid "Colour dots"
+msgstr "Colour dots"
+
+msgid "For clothing: one dot per colour."
+msgstr "For clothing: one dot per colour."
+
+msgid "Photo tiles"
+msgstr "Photo tiles"
+
+msgid "Shows the variant photo — needs photos."
+msgstr "Shows the variant photo — needs photos."
+
+msgid "List with photo"
+msgstr "List with photo"
+
+msgid "Row per variant: photo, name, price, stock."
+msgstr "Row per variant: photo, name, price, stock."
+
+msgid "Colour + size"
+msgstr "Colour + size"
+
+msgid "Two rows: colour dots, then sizes."
+msgstr "Two rows: colour dots, then sizes."
+
+msgid "As before"
+msgstr "As before"
+
+msgid "Dropdown for a single choice, checkboxes for several."
+msgstr "Dropdown for a single choice, checkboxes for several."
+
+msgid "Big tappable tiles — like a food delivery app."
+msgstr "Big tappable tiles — like a food delivery app."
+
+msgid "Row with thumbnail, label and surcharge."
+msgstr "Row with thumbnail, label and surcharge."
+
+msgid "Chips"
+msgstr "Chips"
+
+msgid "Compact pills, no photos."
+msgstr "Compact pills, no photos."
+
+msgid "Option photo"
+msgstr "Option photo"
+
+msgid "Variant photo"
+msgstr "Variant photo"
+
+msgid "Auswahl der Varianten"
+msgstr "Variant picker"
+
+msgid "How the options look on your storefront is set in the Marketing tab."
+msgstr "How the options look on your storefront is set in the Marketing tab."
+
+msgid "Colour"
+msgstr "Colour"

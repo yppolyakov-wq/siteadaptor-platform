@@ -16807,3 +16807,78 @@ msgstr "Cevap"
 
 msgid "Clearing a question removes it. A new empty pair appears after saving."
 msgstr "Boş bırakılan soru silinir. Kaydettikten sonra yeni bir boş çift belirir."
+
+msgid "How to show the options"
+msgstr "Seçim nasıl gösterilsin"
+
+msgid "Leer = wie in den Website-Einstellungen eingestellt."
+msgstr "Boş = web sitesi ayarlarındaki gibi."
+
+msgid "Dropdown list"
+msgstr "Açılır liste"
+
+msgid "Compact — good for many pack sizes."
+msgstr "Kompakt — çok sayıda ambalaj boyutu için uygun."
+
+msgid "Buttons"
+msgstr "Düğmeler"
+
+msgid "Sizes and volumes at a glance."
+msgstr "Bedenler ve hacimler tek bakışta."
+
+msgid "Colour dots"
+msgstr "Renk noktaları"
+
+msgid "For clothing: one dot per colour."
+msgstr "Giyim için: her renk bir nokta."
+
+msgid "Photo tiles"
+msgstr "Fotoğraf kutucukları"
+
+msgid "Shows the variant photo — needs photos."
+msgstr "Varyant fotoğrafını gösterir — fotoğraf gerekir."
+
+msgid "List with photo"
+msgstr "Fotoğraflı liste"
+
+msgid "Row per variant: photo, name, price, stock."
+msgstr "Varyant başına satır: fotoğraf, ad, fiyat, stok."
+
+msgid "Colour + size"
+msgstr "Renk + beden"
+
+msgid "Two rows: colour dots, then sizes."
+msgstr "İki sıra: renkler, sonra bedenler."
+
+msgid "As before"
+msgstr "Öncekiyle aynı"
+
+msgid "Dropdown for a single choice, checkboxes for several."
+msgstr "Tek seçimde açılır liste, çoklu seçimde kutucuk."
+
+msgid "Big tappable tiles — like a food delivery app."
+msgstr "Parmakla dokunulacak büyük kutucuklar — yemek uygulamalarındaki gibi."
+
+msgid "Row with thumbnail, label and surcharge."
+msgstr "Küçük resim, ad ve ek ücretli satır."
+
+msgid "Chips"
+msgstr "Etiketler"
+
+msgid "Compact pills, no photos."
+msgstr "Kompakt etiketler, fotoğrafsız."
+
+msgid "Option photo"
+msgstr "Seçenek fotoğrafı"
+
+msgid "Variant photo"
+msgstr "Varyant fotoğrafı"
+
+msgid "Auswahl der Varianten"
+msgstr "Varyant seçimi"
+
+msgid "How the options look on your storefront is set in the Marketing tab."
+msgstr "Seçimin sitede nasıl görüneceği «Pazarlama» sekmesinde ayarlanır."
+
+msgid "Colour"
+msgstr "Renk"

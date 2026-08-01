@@ -1,0 +1,67 @@
+{% load i18n %}{% load siteui %}{% comment %}Группа модификаторов блюда (A4b) в виде,
+выбранном владельцем (O-2): "" как раньше, tiles/list/chips — с фото опции.
+
+Имя поля везде `mod` — набор полей формы корзины пинит паритет-замок. Отсюда две
+ветки: МНОЖЕСТВЕННЫЙ выбор рисуется чекбоксами прямо (они и есть поле, JS не
+нужен), ОДИНОЧНЫЙ оставляет `select name="mod"` в DOM и управляется свотчами —
+радиокнопки с общим именем `mod` слиплись бы в ОДНУ группу на все блоки и дали бы
+выбрать только один модификатор на весь товар.
+
+Контекст: g (ModifierGroup), product.{% endcomment %}
+{% with style=g.display_style %}
+<div>
+  <p class="text-sm font-medium text-gray-700">{{ g.name }}{% if g.is_required %} <span class="text-red-500">*</span>{% endif %}</p>
+  {% if g.is_multi %}
+    {% if style == "tiles" %}
+      <div class="mt-1 grid grid-cols-3 sm:grid-cols-4 gap-2">
+        {% for o in g.active_options %}
+          <label class="cursor-pointer rounded-xl border border-gray-200 p-2 text-center hover:border-indigo-400 has-[:checked]:border-indigo-500 has-[:checked]:ring-1 has-[:checked]:ring-indigo-500">
+            <input type="checkbox" name="mod" value="{{ o.pk }}" class="sr-only">
+            {% if o.image_url %}<img src="{{ o.image_url }}" alt="" class="w-full aspect-square rounded-lg object-cover mb-1">{% endif %}
+            <span class="block text-xs font-medium leading-tight">{{ o.label }}</span>
+            {% if o.price_delta %}<span class="block text-xs text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
+          </label>
+        {% endfor %}
+      </div>
+    {% elif style == "chips" %}
+      <div class="mt-1 flex flex-wrap gap-2">
+        {% for o in g.active_options %}
+          <label class="cursor-pointer rounded-full border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400 has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900">
+            <input type="checkbox" name="mod" value="{{ o.pk }}" class="sr-only">
+            {{ o.label }}{% if o.price_delta %} +{{ o.price_delta }} {{ product.currency|cursym }}{% endif %}
+          </label>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="mt-1 space-y-1">
+        {% for o in g.active_options %}
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" name="mod" value="{{ o.pk }}">
+            {% if style == "list" and o.image_url %}<img src="{{ o.image_url }}" alt="" class="w-8 h-8 rounded object-cover">{% endif %}
+            {{ o.label }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
+          </label>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% else %}
+    {% if style == "tiles" or style == "chips" or style == "list" %}
+      <div data-pick-ui{% if style == "tiles" %} data-pick-cols{% elif style == "list" %} data-pick-rows{% endif %} class="mt-1">
+        {% for o in g.active_options %}
+          <button type="button" data-pick data-pick-value="{{ o.pk }}"
+                  class="{% if style == 'chips' %}rounded-full border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400{% elif style == 'list' %}flex w-full items-center gap-3 py-2 text-left border-b border-gray-100{% else %}rounded-xl border border-gray-200 p-2 text-center hover:border-indigo-400{% endif %}">
+            {% if o.image_url and style != "chips" %}<img src="{{ o.image_url }}" alt="" class="{% if style == 'list' %}w-10 h-10 shrink-0{% else %}w-full aspect-square mb-1{% endif %} rounded-lg object-cover">{% endif %}
+            <span class="{% if style == 'list' %}flex-1 text-sm{% else %}block text-xs font-medium leading-tight{% endif %}">{{ o.label }}</span>
+            {% if o.price_delta %}<span class="{% if style == 'list' %}text-sm{% else %}block text-xs{% endif %} text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <select name="mod" data-pick-select {% if g.is_required %}required{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{{ g.name }}">
+      {% if g.is_required %}<option value="" disabled selected>— {% trans "please choose" %} —</option>{% else %}<option value="">— {% trans "none" %} —</option>{% endif %}
+      {% for o in g.active_options %}
+        <option value="{{ o.pk }}">{{ o.label }}{% if o.price_delta %} (+{{ o.price_delta }} {{ product.currency|cursym }}){% endif %}</option>
+      {% endfor %}
+    </select>
+  {% endif %}
+</div>
+{% endwith %}

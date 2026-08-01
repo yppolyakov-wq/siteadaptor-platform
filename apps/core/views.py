@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.catalog.option_styles import VARIANT_STYLES
 from apps.core import detail_sections, presence
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
@@ -1692,6 +1693,8 @@ def home_builder_view(request):
             "card_padding": request.POST.get("sd_card_padding", ""),
             # ST-7c: форма карточки ("" = прежняя; normalize отбрасывает мусор).
             "card_style": request.POST.get("sd_card_style", ""),
+            # O-2: дефолтный вид выбора вариантов для всего магазина ("" = список).
+            "variant_style": request.POST.get("sd_variant_style", ""),
         }
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
@@ -2115,6 +2118,9 @@ def home_builder_view(request):
             "card_bg": config["site_defaults"]["card_bg"],
             "card_padding": config["site_defaults"]["card_padding"],
             "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
+            # O-2: дефолтный вид выбора вариантов + реестр видов для селекта.
+            "variant_style": config["site_defaults"].get("variant_style", ""),
+            "variant_styles": VARIANT_STYLES,
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),

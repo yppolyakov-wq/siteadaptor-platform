@@ -30,6 +30,7 @@ from .models import (
     Product,
     ProductVariant,
 )
+from .option_styles import MODIFIER_STYLE_KEYS, MODIFIER_STYLES, VARIANT_STYLES
 
 # W2: пищевая маркировка (аллергены/добавки/диеты/происхождение) осмысленна только у
 # гастро/еды — секция формы товара показывается только этим архетипам (у прочих скрыта
@@ -142,6 +143,21 @@ def _handle_uploads(request, obj, *, folder="products") -> None:
     obj.save(update_fields=["images", "updated_at"])
 
 
+def _uploaded_variant_image(request, field="image") -> dict | None:
+    """Одно фото варианта → FileRef (или None).
+
+    Кривой файл не должен ронять сохранение варианта — цена/остаток важнее
+    картинки, поэтому ошибку показываем сообщением и идём дальше."""
+    uploaded = request.FILES.get(field)
+    if not uploaded:
+        return None
+    try:
+        return save_product_image(uploaded, is_primary=True, folder="variants")
+    except ValidationError as exc:
+        messages.error(request, "; ".join(exc.messages))
+        return None
+
+
 @login_required
 def product_list(request):
     products = _filtered_products(request)
@@ -216,6 +232,9 @@ def product_edit(request, pk):
             "product": product,
             "variants": product.variants.all(),
             "modifier_groups": product.modifier_groups.prefetch_related("options"),
+            # O-2: реестры видов отображения (витрина и кабинет читают один список).
+            "variant_styles": VARIANT_STYLES,
+            "modifier_styles": MODIFIER_STYLES,
             "nav": "catalog",
             **_product_form_flags(request),
             **_i18n_ctx(form, request),
@@ -259,6 +278,10 @@ def variant_add(request, pk):
             reorder_target=_parse_int(request.POST.get("reorder_target")),  # T5
             sort_order=_parse_int(request.POST.get("sort")) or 0,
         )
+        new_image = _uploaded_variant_image(request)
+        if new_image:
+            variant.images = [new_image]
+            variant.save(update_fields=["images", "updated_at"])
         # T1: стартовый остаток варианта → в склад-леджер.
         log_catalog_change(
             product=product,
@@ -292,6 +315,13 @@ def variant_update(request, pk, vid):
         variant.size = (request.POST.get("size") or "").strip()
         variant.color = (request.POST.get("color") or "").strip()
         fields += ["size", "color"]
+    # M4-A довод (2026-08-01): фото варианта. Поле завели в M4-A и витрина
+    # подменяет им главное фото, но загрузить его было НЕЧЕМ — заполнял только
+    # демо-кит. Одно фото на вариант: галерея товара остаётся у товара.
+    new_image = _uploaded_variant_image(request)
+    if new_image or request.POST.get("remove_image"):
+        variant.images = [new_image] if new_image else []
+        fields.append("images")
     variant.save(
         update_fields=fields
         + [
@@ -360,9 +390,13 @@ def modifier_group_update(request, pk, gid):
     group.max_select = _parse_int(request.POST.get("max")) or 0
     group.sort_order = _parse_int(request.POST.get("sort")) or 0
     group.is_active = bool(request.POST.get("is_active"))
-    group.save(
-        update_fields=["name", "min_select", "max_select", "sort_order", "is_active", "updated_at"]
-    )
+    fields = ["name", "min_select", "max_select", "sort_order", "is_active", "updated_at"]
+    # O-2: вид выбора — под сентинелом (частичная форма не должна его сбрасывать).
+    if request.POST.get("style_present"):
+        style = (request.POST.get("display_style") or "").strip()
+        group.display_style = style if style in MODIFIER_STYLE_KEYS else ""
+        fields.append("display_style")
+    group.save(update_fields=fields)
     messages.success(request, _("Modifier group updated."))
     return redirect("catalog:product-edit", pk=pk)
 
@@ -388,6 +422,8 @@ def modifier_option_add(request, pk, gid):
             label=label,
             price_delta=_parse_price(request.POST.get("delta")) or Decimal("0"),
             sort_order=_parse_int(request.POST.get("sort")) or 0,
+            # O-2: фото опции (для видов «плитки»/«список с фото»).
+            image=_uploaded_variant_image(request) or {},
         )
         messages.success(request, _("Option added."))
     return redirect("catalog:product-edit", pk=pk)
@@ -401,7 +437,12 @@ def modifier_option_update(request, pk, gid, oid):
     option.price_delta = _parse_price(request.POST.get("delta")) or Decimal("0")
     option.sort_order = _parse_int(request.POST.get("sort")) or 0
     option.is_active = bool(request.POST.get("is_active"))
-    option.save(update_fields=["label", "price_delta", "sort_order", "is_active", "updated_at"])
+    opt_fields = ["label", "price_delta", "sort_order", "is_active", "updated_at"]
+    new_image = _uploaded_variant_image(request)
+    if new_image or request.POST.get("remove_image"):
+        option.image = new_image or {}
+        opt_fields.append("image")
+    option.save(update_fields=opt_fields)
     messages.success(request, _("Option updated."))
     return redirect("catalog:product-edit", pk=pk)
 

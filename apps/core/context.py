@@ -340,6 +340,9 @@ def modules_nav(request):
         "storefront_card_padding": cfg["site_defaults"]["card_padding"],
         # ST-7c: глобальная ФОРМА карточки ("" | overlay | compact; draft-aware).
         "storefront_card_style": cfg["site_defaults"].get("card_style", ""),
+        # O-2: дефолтный вид выбора вариантов ("" = выпадающий список). Товар
+        # может переопределить своим `variant_style`.
+        "storefront_variant_style": cfg["site_defaults"].get("variant_style", ""),
         # HF-2: какие удобства показывать пиктограммами на карточке номера (выбор
         # владельца; пусто = первые несколько удобств самого номера).
         "storefront_card_amenities": cfg.get("stay_card_amenities", []),

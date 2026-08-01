@@ -10,6 +10,7 @@ from apps.core.i18n_input import DynamicI18nFormMixin
 
 from .food import ADDITIVES, ALLERGENS, DIETS
 from .models import Category, Product
+from .option_styles import VARIANT_STYLES
 
 
 class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
@@ -160,6 +161,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "is_active",
             "is_featured",
             "badge",
+            "variant_style",
         ]
         labels = {
             # M1 Boutique: Textilkennzeichnung (EU 1007/2011) + Pflegehinweise.
@@ -167,6 +169,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "care": _("Pflegehinweise"),
             "gtin": _("EAN / GTIN (barcode)"),
             "badge": _("Badge"),
+            "variant_style": _("How to show the options"),
             "cost_price": _("Einkaufspreis (netto)"),
             "reorder_point": _("Meldebestand"),
             "reorder_target": _("Sollbestand"),
@@ -181,6 +184,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "stock_quantity": _("Leer = unbegrenzt (kein Bestandslimit)."),
             "gtin": _("Barcode für Preisportale/Feeds — optional."),
             "badge": _("Kleiner Aufkleber auf der Karte (z. B. „Neu“, „Beliebt“)."),
+            "variant_style": _("Leer = wie in den Website-Einstellungen eingestellt."),
             "material": _(
                 "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, "
                 "5 % Elasthan“ — Pflichtangabe bei Kleidung."
@@ -194,6 +198,14 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         self.fields["category"].queryset = Category.objects.all()
         self.fields["category"].required = False
         self.init_i18n_fields(tenant)  # L3d.5
+        # O-2: вид выбора вариантов — из реестра, с подсказками «когда уместно».
+        # Пустой пункт = «как в настройках сайта» (дефолт магазина).
+        self.fields["variant_style"] = forms.ChoiceField(
+            label=_("How to show the options"),
+            required=False,
+            choices=[(key, label) for key, label, _hint in VARIANT_STYLES],
+            help_text=_("Leer = wie in den Website-Einstellungen eingestellt."),
+        )
         if self.instance and self.instance.pk:
             self.fields["allergens"].initial = list(self.instance.allergens or [])
             self.fields["additives"].initial = list(self.instance.additives or [])

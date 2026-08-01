@@ -16887,3 +16887,78 @@ msgstr "Ответ"
 
 msgid "Clearing a question removes it. A new empty pair appears after saving."
 msgstr "Пустой вопрос удаляется. После сохранения появится новая пустая пара."
+
+msgid "How to show the options"
+msgstr "Как показывать выбор"
+
+msgid "Leer = wie in den Website-Einstellungen eingestellt."
+msgstr "Пусто = как задано в настройках сайта."
+
+msgid "Dropdown list"
+msgstr "Выпадающий список"
+
+msgid "Compact — good for many pack sizes."
+msgstr "Компактно — когда фасовок много."
+
+msgid "Buttons"
+msgstr "Кнопки"
+
+msgid "Sizes and volumes at a glance."
+msgstr "Размеры и объёмы видно сразу."
+
+msgid "Colour dots"
+msgstr "Цветные кружки"
+
+msgid "For clothing: one dot per colour."
+msgstr "Для одежды: по кружку на цвет."
+
+msgid "Photo tiles"
+msgstr "Фото-плитки"
+
+msgid "Shows the variant photo — needs photos."
+msgstr "Показывает фото варианта — нужны фото."
+
+msgid "List with photo"
+msgstr "Список с фото"
+
+msgid "Row per variant: photo, name, price, stock."
+msgstr "Строка на вариант: фото, название, цена, остаток."
+
+msgid "Colour + size"
+msgstr "Цвет + размер"
+
+msgid "Two rows: colour dots, then sizes."
+msgstr "Два ряда: цвета, затем размеры."
+
+msgid "As before"
+msgstr "Как раньше"
+
+msgid "Dropdown for a single choice, checkboxes for several."
+msgstr "Список при одном выборе, флажки при нескольких."
+
+msgid "Big tappable tiles — like a food delivery app."
+msgstr "Крупные плитки под палец — как в приложениях доставки."
+
+msgid "Row with thumbnail, label and surcharge."
+msgstr "Строка с миниатюрой, названием и надбавкой."
+
+msgid "Chips"
+msgstr "Пилюли"
+
+msgid "Compact pills, no photos."
+msgstr "Компактные пилюли, без фото."
+
+msgid "Option photo"
+msgstr "Фото опции"
+
+msgid "Variant photo"
+msgstr "Фото варианта"
+
+msgid "Auswahl der Varianten"
+msgstr "Выбор вариантов"
+
+msgid "How the options look on your storefront is set in the Marketing tab."
+msgstr "Как выбор выглядит на витрине — задаётся во вкладке «Маркетинг»."
+
+msgid "Colour"
+msgstr "Цвет"

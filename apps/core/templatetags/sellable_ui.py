@@ -73,3 +73,38 @@ def sellable_card(
         "show_description": show_description,
         "h2": h2,
     }
+
+
+@register.inclusion_tag("storefront/_variant_picker.html", takes_context=True)
+def variant_picker(context, product):
+    """O-2: свотчи выбора варианта в выбранном владельцем виде.
+
+    Вид: `product.variant_style` → дефолт магазина (`site_defaults.variant_style`)
+    → "" (обычный список; тогда партиал ничего не рисует, и форма остаётся
+    байт-в-байт прежней). Оси считаем ЗДЕСЬ, чтобы шаблон не тянул логику:
+    уникальные цвета/размеры в порядке вариантов, цвет → HEX по словарю.
+    """
+    from apps.catalog import option_styles
+
+    style = option_styles.variant_style(product, context.get("storefront_variant_style", ""))
+    variants = list(product.active_variants) if style else []
+    for v in variants:
+        v.color_hex = option_styles.color_hex(v.color)
+    colors, sizes = [], []
+    for v in variants:
+        if v.color and all(c["name"] != v.color for c in colors):
+            colors.append(
+                {"name": v.color, "hex": option_styles.color_hex(v.color), "image": v.image_url}
+            )
+        if v.size and v.size not in sizes:
+            sizes.append(v.size)
+    # Вид «две оси» без обеих осей выродился бы в один ряд — честно падаем в кнопки.
+    if style == "axes" and not (colors and sizes):
+        style = "buttons"
+    return {
+        "product": product,
+        "variant_style": style,
+        "variants": variants,
+        "variant_colors": colors,
+        "variant_sizes": sizes,
+    }

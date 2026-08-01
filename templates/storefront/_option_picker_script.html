@@ -1,0 +1,115 @@
+{% comment %}Общий обработчик свотчей вариантов и опций (O-2). Подключён в
+`_base.html`, поэтому работает и на детали товара, и в модалке быстрого заказа
+(скрипт ВНУТРИ свапаемой зоны не выполнился бы — innerHTML не запускает <script>,
+это уже ловили на HF-6).
+
+Контракт разметки: контейнер `[data-pick-ui]` идёт ПЕРЕД своим `select`
+(`[data-pick-select]`); кнопки `[data-pick]` несут `data-pick-value`. Для двух
+осей контейнеры помечены `data-pick-axis="color|size"` — доступные комбинации
+считаются по опциям селекта (второго источника правды нет).
+
+Выбор ВСЕГДА пишется в селект и сопровождается событием change — иначе не
+сработала бы подмена главного фото, которая слушает именно его.{% endcomment %}
+<script>
+(function () {
+  if (window.__sfOptionPickBound) return;
+  window.__sfOptionPickBound = true;
+
+  function selectFor(ui) {
+    var el = ui;
+    while (el && el.nextElementSibling) {
+      el = el.nextElementSibling;
+      if (el.matches("[data-pick-select]")) return el;
+    }
+    var scope = ui.closest("form") || document;
+    return scope.querySelector("[data-pick-select]");
+  }
+
+  function setValue(sel, value) {
+    if (!sel || sel.value === value) return;
+    sel.value = value;
+    sel.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function mark(ui, value) {
+    ui.querySelectorAll("[data-pick]").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-pick-value") === value ? "true" : "false");
+    });
+  }
+
+  /* Две оси: по выбранному цвету гасим невозможные размеры и наоборот. Опция
+     селекта несёт data-size/data-color (M4-A) и disabled при нулевом остатке. */
+  function axisSync(form) {
+    var sel = form.querySelector("[data-pick-select]");
+    if (!sel) return;
+    var boxes = {};
+    form.querySelectorAll("[data-pick-axis]").forEach(function (ui) {
+      boxes[ui.getAttribute("data-pick-axis")] = ui;
+    });
+    var picked = {};
+    Object.keys(boxes).forEach(function (axis) {
+      var on = boxes[axis].querySelector('[data-pick][aria-pressed="true"]');
+      picked[axis] = on ? on.getAttribute("data-pick-value") : "";
+    });
+    var opts = Array.prototype.slice.call(sel.options);
+    Object.keys(boxes).forEach(function (axis) {
+      var other = axis === "color" ? "size" : "color";
+      boxes[axis].querySelectorAll("[data-pick]").forEach(function (b) {
+        var value = b.getAttribute("data-pick-value");
+        var ok = opts.some(function (o) {
+          if (o.disabled) return false;
+          if ((o.dataset[axis] || "") !== value) return false;
+          return !picked[other] || (o.dataset[other] || "") === picked[other];
+        });
+        b.disabled = !ok;
+      });
+    });
+    // Обе оси выбраны → находим сам вариант.
+    if (picked.color !== undefined && picked.size !== undefined && picked.color && picked.size) {
+      var hit = opts.filter(function (o) {
+        return !o.disabled && o.dataset.color === picked.color && o.dataset.size === picked.size;
+      })[0];
+      if (hit) setValue(sel, hit.value);
+    }
+  }
+
+  function init(root) {
+    (root || document).querySelectorAll("[data-pick-ui]").forEach(function (ui) {
+      if (ui.dataset.pinit) return;
+      ui.dataset.pinit = "1";
+      var sel = selectFor(ui);
+      if (!sel) return;
+      var axis = ui.getAttribute("data-pick-axis");
+      if (axis) {
+        var opt = sel.options[sel.selectedIndex];
+        mark(ui, (opt && opt.dataset[axis]) || "");
+      } else {
+        mark(ui, sel.value);
+      }
+    });
+    (root || document).querySelectorAll("form").forEach(function (f) {
+      if (f.querySelector("[data-pick-axis]")) axisSync(f);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-pick]");
+    if (!btn || btn.disabled) return;
+    var ui = btn.closest("[data-pick-ui]");
+    if (!ui) return;
+    e.preventDefault();
+    var value = btn.getAttribute("data-pick-value");
+    mark(ui, value);
+    if (ui.getAttribute("data-pick-axis")) {
+      axisSync(btn.closest("form") || document);
+    } else {
+      setValue(selectFor(ui), value);
+    }
+  });
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { init(); });
+  else init();
+  // Модалка быстрого заказа вставляет форму позже — доинициализируем по клику.
+  document.addEventListener("click", function () { setTimeout(init, 0); });
+})();
+</script>

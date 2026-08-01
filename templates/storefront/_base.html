@@ -75,6 +75,10 @@
     if (window.matchMedia && matchMedia("(prefers-reduced-motion: no-preference)").matches) {
       document.documentElement.classList.add("js-reveal");
     }
+    // O-2: свотчи вариантов/опций живут ТОЛЬКО при работающем JS — без него
+    // остаётся обычный select (он всегда в DOM). Класс ставим до отрисовки,
+    // иначе на миг видны оба контрола.
+    document.documentElement.classList.add("js-opt");
   </script>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
@@ -463,5 +467,6 @@
   {% endif %}
   {# Переключатель вида сетки «список ↔ плитка» — общий обработчик для всех страниц. #}
   {% include "storefront/_grid_view_script.html" %}
+  {% include "storefront/_option_picker_script.html" %}
 </body>
 </html>

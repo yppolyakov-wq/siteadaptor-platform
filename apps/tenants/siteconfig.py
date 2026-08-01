@@ -18,6 +18,7 @@ import uuid
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
 from apps.core import detail_sections
 from apps.core.hero_tiles import HERO_TILE_WIDGETS
 
@@ -32,6 +33,12 @@ HERO_WIDGETS = (
     "butcher",
     "mode",
 ) + HERO_TILE_WIDGETS
+
+# O-2: допустимые значения дефолтного вида выбора вариантов. Берём ИЗ реестра
+# каталога (option_styles тянет только gettext — моделей не грузит), чтобы
+# список не разъехался с витриной и кабинетом. "" отбрасываем: это дефолт,
+# в конфиге он не материализуется (golden целы).
+_VARIANT_STYLE_KEYS = tuple(k for k in _CATALOG_VARIANT_STYLE_KEYS if k)
 
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
@@ -915,6 +922,11 @@ def normalize_site_defaults(raw) -> dict:
     # текущая форма → golden целы).
     if sd.get("card_style") in ("overlay", "compact"):
         out["card_style"] = sd["card_style"]
+    # O-2 (2026-08-01): дефолтный вид выбора вариантов для всего магазина; товар
+    # может его переопределить. Ключ ТОЛЬКО при валидном не-пустом значении
+    # ("" = выпадающий список, как раньше → golden целы).
+    if sd.get("variant_style") in _VARIANT_STYLE_KEYS:
+        out["variant_style"] = sd["variant_style"]
     # E4 «задача-первым»: интерактивный hero — primary-виджет ВНУТРИ баннера
     # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
     # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →

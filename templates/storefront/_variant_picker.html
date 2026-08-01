@@ -1,0 +1,80 @@
+{% load i18n %}{% load siteui %}{% comment %}Свотчи вариантов (O-2, план
+option-display-styles-plan-2026-08-01). Вид выбирает владелец: buttons / color /
+photo / list / axes; "" = обычный список (этот партиал тогда не подключается).
+
+Разметка идёт ПЕРЕД `select name="variant"` — селект прячется соседним CSS-правилом
+без `:has()`. Кнопки БЕЗ атрибута `name`: набор полей формы корзины пинит замок
+test_cart_form_variants_and_modifiers_fields (regex по name= во всём HTML формы),
+поэтому свотчи только выставляют значение существующего селекта.
+
+Контекст: product, variant_style, variants (product.active_variants).{% endcomment %}
+{% if not variant_style %}{% comment %}Пустой вид — форма остаётся байт-в-байт
+прежней: ни разметки выбора, ни лишних узлов.{% endcomment %}
+{% elif variant_style == "axes" %}
+  {% comment %}Две оси: цвет кружками, затем размеры. Доступность комбинации считает
+  скрипт по опциям селекта — данные уже в DOM, второго источника правды нет.{% endcomment %}
+  {% if variant_colors %}
+    <p class="text-xs text-gray-500 mb-1">{% trans "Colour" %}</p>
+    <div data-pick-ui data-pick-axis="color" class="mb-3">
+      {% for c in variant_colors %}
+        <button type="button" data-pick data-pick-value="{{ c.name }}" title="{{ c.name }}"
+                class="sf-swatch"{% if c.hex %} style="background:{{ c.hex }}"{% elif c.image %} style="background-image:url('{{ c.image }}')"{% endif %}>
+          {% if not c.hex and not c.image %}<span class="text-[10px]">{{ c.name|slice:":1" }}</span>{% endif %}
+        </button>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if variant_sizes %}
+    <p class="text-xs text-gray-500 mb-1">{% trans "Size" %}</p>
+    <div data-pick-ui data-pick-axis="size" class="mb-2">
+      {% for s in variant_sizes %}
+        <button type="button" data-pick data-pick-value="{{ s }}"
+                class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400">{{ s }}</button>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% elif variant_style == "color" %}
+  <div data-pick-ui class="mb-2">
+    {% for v in variants %}
+      <button type="button" data-pick data-pick-value="{{ v.pk }}" title="{{ v.label }}"
+              {% if not v.in_stock %}disabled{% endif %}
+              class="sf-swatch"{% if v.color_hex %} style="background:{{ v.color_hex }}"{% elif v.image_url %} style="background-image:url('{{ v.image_url }}')"{% endif %}>
+        {% if not v.color_hex and not v.image_url %}<span class="text-[10px]">{{ v.label|slice:":1" }}</span>{% endif %}
+      </button>
+    {% endfor %}
+  </div>
+{% elif variant_style == "photo" %}
+  <div data-pick-ui data-pick-cols class="mb-2">
+    {% for v in variants %}
+      <button type="button" data-pick data-pick-value="{{ v.pk }}"
+              {% if not v.in_stock %}disabled{% endif %}
+              class="rounded-xl border border-gray-200 p-1 text-left hover:border-indigo-400">
+        {% if v.image_url %}<img src="{{ v.image_url }}" alt="{{ v.label }}" class="w-full aspect-square rounded-lg object-cover mb-1">
+        {% else %}<span class="block w-full aspect-square rounded-lg bg-gray-100 mb-1"></span>{% endif %}
+        <span class="block text-xs font-medium truncate">{{ v.label }}</span>
+        <span class="block text-xs text-gray-500">{{ v.price_value }} {{ product.currency|cursym }}</span>
+      </button>
+    {% endfor %}
+  </div>
+{% elif variant_style == "list" %}
+  <div data-pick-ui data-pick-rows class="mb-2 divide-y divide-gray-100">
+    {% for v in variants %}
+      <button type="button" data-pick data-pick-value="{{ v.pk }}"
+              {% if not v.in_stock %}disabled{% endif %}
+              class="flex w-full items-center gap-3 py-2 text-left">
+        {% if v.image_url %}<img src="{{ v.image_url }}" alt="" class="w-10 h-10 rounded object-cover shrink-0">{% endif %}
+        <span class="flex-1 text-sm">{{ v.label }}</span>
+        <span class="text-sm font-medium whitespace-nowrap">{{ v.price_value }} {{ product.currency|cursym }}</span>
+        {% if not v.in_stock %}<span class="text-xs text-gray-400">{% trans "sold out" %}</span>{% endif %}
+      </button>
+    {% endfor %}
+  </div>
+{% else %}
+  <div data-pick-ui class="mb-2">
+    {% for v in variants %}
+      <button type="button" data-pick data-pick-value="{{ v.pk }}"
+              {% if not v.in_stock %}disabled{% endif %}
+              class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400">{{ v.label }}</button>
+    {% endfor %}
+  </div>
+{% endif %}

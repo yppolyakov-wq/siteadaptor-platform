@@ -297,6 +297,14 @@
                 <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="sd_card_bg_on" {% if card_bg %}checked{% endif %} class="rounded border-gray-300">{% trans "use" %}</label>
               </span>
             </label>
+            {% comment %}O-2: дефолтный вид выбора вариантов для всего магазина.
+            Товар может переопределить своим полем в форме товара.{% endcomment %}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Auswahl der Varianten" %}</span>
+              <select name="sd_variant_style" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                {% for key, label, hint in variant_styles %}<option value="{{ key }}" {% if variant_style == key %}selected{% endif %} title="{{ hint }}">{{ label }}</option>{% endfor %}
+              </select>
+            </label>
             {# ST-7c: ФОРМА карточки — вертикальная / текст поверх фото / строка-прайс. #}
             <label class="text-sm">
               <span class="block font-medium mb-1">{% trans "Kartenform" %}</span>

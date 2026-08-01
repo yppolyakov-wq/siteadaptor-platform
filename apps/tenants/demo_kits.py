@@ -229,6 +229,8 @@ class DemoKit:
     look: str = ""
     # ST-7c: форма карточек витрины ("" | overlay | compact) → site_defaults.
     card_style: str = ""
+    # O-2: дефолтный вид выбора вариантов магазина ("" = выпадающий список).
+    variant_style: str = ""
     # E4 «задача-первым»: primary-виджет ВНУТРИ hero ("" | stays | services |
     # gastro) → site_defaults.hero_widget. При "stays" секция stay_search гасится
     # (hero несёт); "gastro" = плитки Reservieren/Speisekarte/Angebot des Tages.
@@ -306,8 +308,9 @@ def _p(
 
 # Конструктор блюда (A4): группа модификаторов.
 #   min/max — правило выбора (min>=1 обязательная; max==1 radio; max>1/0 checkbox).
-def _mg(name, options, *, min=0, max=1):
-    return {"name": name, "min": min, "max": max, "options": options}
+def _mg(name, options, *, min=0, max=1, style=""):
+    """O-2: `style` — вид выбора группы на витрине ("" = как раньше)."""
+    return {"name": name, "min": min, "max": max, "options": options, "style": style}
 
 
 # Готовые наборы модификаторов для пиццы (Teigdicke / Extra Käse / Beläge / Ohne).
@@ -330,6 +333,7 @@ PIZZA_MODIFIERS = [
         ],
         min=0,
         max=0,  # без верхнего предела
+        style="chips",  # O-2: их много — компактные пилюли читаются лучше списка
     ),
     _mg(
         "Ohne",
@@ -732,6 +736,7 @@ RESTAURANT = DemoKit(
                                 ("Beilagensalat", "1.50"),
                             ],
                             min=1,
+                            style="list",  # O-2: строка с местом под фото
                             max=1,
                         ),
                         _mg(
@@ -3298,6 +3303,7 @@ CAFE_MENUS = {
 CAFE = DemoKit(
     key="cafe",
     card_style="compact",  # ST-7c: строка-прайс (меню)
+    variant_style="buttons",  # O-2: размеры/объёмы кнопками
     winback={"inactive_days": 60, "percent": 10},  # B4/LS-5
     section_styles={"cta": "cards", "usp_bar": "cards"},  # ST-7b
     label="Café Morgenrot",
@@ -3601,6 +3607,7 @@ CLOTHING = DemoKit(
     key="clothing",
     look="nacht",  # ST-1: тёмный Look (мода)
     card_style="overlay",  # ST-7c: текст поверх фото
+    variant_style="axes",  # O-2: цвет кружками + размеры кнопками
     label="Studio Nordwind",
     business_type="clothing",
     subdomain="mode",
@@ -5948,6 +5955,8 @@ def apply_kit(tenant, key: str) -> bool:
                 name=group["name"],
                 min_select=group.get("min", 0),
                 max_select=group.get("max", 1),
+                # O-2: вид выбора группы («tiles»/«list»/«chips»); "" = как раньше.
+                display_style=group.get("style", ""),
                 sort_order=gsort,
                 is_active=True,
             )
@@ -6233,6 +6242,10 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.card_style in ("overlay", "compact"):  # ST-7c: форма карточек
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
+        cfg["site_defaults"] = sd
+    if kit.variant_style:  # O-2: вид выбора вариантов (normalize отбросит мусор)
+        sd = dict(cfg.get("site_defaults") or {})
+        sd["variant_style"] = kit.variant_style
         cfg["site_defaults"] = sd
     if kit.hero_widget in siteconfig.HERO_WIDGETS:  # 07-30: кастомные + реестр плиток
         sd = dict(cfg.get("site_defaults") or {})

@@ -141,6 +141,11 @@ class Product(SoftDeleteMixin, I18nMixin):
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
 
+    # Вид выбора вариантов на витрине (реестр option_styles.VARIANT_STYLES):
+    # список / кнопки / цветные кружки / фото-плитки / строки / две оси.
+    # Пусто = дефолт магазина (site_defaults.variant_style), а он пуст = список.
+    variant_style = models.CharField(max_length=12, blank=True, default="")
+
     # Маркетинговый бейдж на витрине (T1): «Tagesgericht», «Neu», «Beliebt».
     # Пусто = без бейджа. is_featured (популярные на главной) — отдельно.
     BADGE_CHOICES = [
@@ -431,6 +436,9 @@ class ModifierGroup(TimestampedModel):
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="modifier_groups")
     name = models.CharField(max_length=100)  # «Größe», «Extras»
+    # Вид выбора на витрине (реестр option_styles.MODIFIER_STYLES). Per-группа,
+    # потому что «Größe» и «Beilage» просят разного; "" = как раньше.
+    display_style = models.CharField(max_length=12, blank=True, default="")
     min_select = models.PositiveIntegerField(default=0)
     max_select = models.PositiveIntegerField(default=1)  # 0 = без предела
     sort_order = models.IntegerField(default=0)
@@ -465,6 +473,9 @@ class ModifierOption(TimestampedModel):
 
     group = models.ForeignKey(ModifierGroup, on_delete=models.CASCADE, related_name="options")
     label = models.CharField(max_length=100)
+    # Фото опции (FileRef-конверт, как у core.Extra.image). Пусто = без фото —
+    # прежний текстовый вид. Нужно для видов «плитки»/«список с фото».
+    image = models.JSONField(default=dict, blank=True)
     price_delta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     sort_order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -474,6 +485,12 @@ class ModifierOption(TimestampedModel):
 
     def __str__(self):
         return f"{self.label} (+{self.price_delta})"
+
+    @property
+    def image_url(self) -> str:
+        """URL фото опции ('' если нет) — как у core.Extra."""
+        img = self.image if isinstance(self.image, dict) else {}
+        return img.get("url", "")
 
 
 class Combo(I18nMixin, SoftDeleteMixin):

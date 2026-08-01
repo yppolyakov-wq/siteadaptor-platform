@@ -1,4 +1,4 @@
-{% load i18n %}{% load siteui %}{# Форма «в корзину» (Click&Collect): варианты + модификаторы + qty. Ожидает product. Используется на странице товара и в модалке быстрого заказа (T2c). #}
+{% load i18n %}{% load siteui %}{% load sellable_ui %}{# Форма «в корзину» (Click&Collect): варианты + модификаторы + qty. Ожидает product. Используется на странице товара и в модалке быстрого заказа (T2c). #}
 <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form mt-4 flex flex-wrap items-center gap-3">
   {% csrf_token %}
   <input type="hidden" name="product" value="{{ product.pk }}">
@@ -7,7 +7,11 @@
     единственного select name="variant". Набор полей формы пинится замком
     test_cart_form_variants_and_modifiers_fields, поэтому свои имена оси не шлют;
     без JS остаётся ровно прежний селект (полный список вариантов).{% endcomment %}
-    <select name="variant" required data-variant-select class="rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Option' %}">
+    {% comment %}O-2: свотчи выбранного владельцем вида — ПЕРЕД селектом (так CSS
+    прячет селект соседним правилом, без `:has()`), кнопки без `name=` → набор
+    полей формы не меняется. Стиль "" → тег ничего не рисует.{% endcomment %}
+    {% variant_picker product %}
+    <select name="variant" required data-variant-select data-pick-select class="rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Option' %}">
       {% for v in product.active_variants %}
         <option value="{{ v.pk }}"{% if not v.in_stock %} disabled{% endif %} data-size="{{ v.size }}" data-color="{{ v.color }}" data-image="{{ v.image_url }}">{{ v.label }} — {{ v.price_value }} {{ product.currency|cursym }}{% with gp=v.grundpreis %}{% if gp %} ({{ gp.0 }} {{ product.currency|cursym }}/{{ gp.1 }}){% endif %}{% endwith %}{% if not v.in_stock %} — {% trans "sold out" %}{% endif %}</option>
       {% endfor %}
@@ -17,26 +21,7 @@
     {# A4b: модификаторы/Extras. single (max 1) — select; multi — checkbox; оба шлют «mod». #}
     <div class="w-full space-y-3">
       {% for g in product.modifier_groups_active %}
-        <div>
-          <p class="text-sm font-medium text-gray-700">{{ g.name }}{% if g.is_required %} <span class="text-red-500">*</span>{% endif %}</p>
-          {% if g.is_multi %}
-            <div class="mt-1 space-y-1">
-              {% for o in g.active_options %}
-                <label class="flex items-center gap-2 text-sm text-gray-700">
-                  <input type="checkbox" name="mod" value="{{ o.pk }}">
-                  {{ o.label }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
-                </label>
-              {% endfor %}
-            </div>
-          {% else %}
-            <select name="mod" {% if g.is_required %}required{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{{ g.name }}">
-              {% if g.is_required %}<option value="" disabled selected>— {% trans "please choose" %} —</option>{% else %}<option value="">— {% trans "none" %} —</option>{% endif %}
-              {% for o in g.active_options %}
-                <option value="{{ o.pk }}">{{ o.label }}{% if o.price_delta %} (+{{ o.price_delta }} {{ product.currency|cursym }}){% endif %}</option>
-              {% endfor %}
-            </select>
-          {% endif %}
-        </div>
+        {% include "storefront/_modifier_group.html" with g=g %}
       {% endfor %}
     </div>
   {% endif %}

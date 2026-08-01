@@ -16872,3 +16872,78 @@ msgstr "Відповідь"
 
 msgid "Clearing a question removes it. A new empty pair appears after saving."
 msgstr "Порожнє питання видаляється. Після збереження з'явиться нова порожня пара."
+
+msgid "How to show the options"
+msgstr "Як показувати вибір"
+
+msgid "Leer = wie in den Website-Einstellungen eingestellt."
+msgstr "Порожньо = як задано в налаштуваннях сайта."
+
+msgid "Dropdown list"
+msgstr "Випадний список"
+
+msgid "Compact — good for many pack sizes."
+msgstr "Компактно — коли фасувань багато."
+
+msgid "Buttons"
+msgstr "Кнопки"
+
+msgid "Sizes and volumes at a glance."
+msgstr "Розміри й об'єми видно одразу."
+
+msgid "Colour dots"
+msgstr "Кольорові кружечки"
+
+msgid "For clothing: one dot per colour."
+msgstr "Для одягу: по кружечку на колір."
+
+msgid "Photo tiles"
+msgstr "Фото-плитки"
+
+msgid "Shows the variant photo — needs photos."
+msgstr "Показує фото варіанта — потрібні фото."
+
+msgid "List with photo"
+msgstr "Список із фото"
+
+msgid "Row per variant: photo, name, price, stock."
+msgstr "Рядок на варіант: фото, назва, ціна, залишок."
+
+msgid "Colour + size"
+msgstr "Колір + розмір"
+
+msgid "Two rows: colour dots, then sizes."
+msgstr "Два ряди: кольори, потім розміри."
+
+msgid "As before"
+msgstr "Як раніше"
+
+msgid "Dropdown for a single choice, checkboxes for several."
+msgstr "Список за одного вибору, прапорці за кількох."
+
+msgid "Big tappable tiles — like a food delivery app."
+msgstr "Великі плитки під палець — як у застосунках доставки."
+
+msgid "Row with thumbnail, label and surcharge."
+msgstr "Рядок із мініатюрою, назвою та надбавкою."
+
+msgid "Chips"
+msgstr "Пігулки"
+
+msgid "Compact pills, no photos."
+msgstr "Компактні пігулки, без фото."
+
+msgid "Option photo"
+msgstr "Фото опції"
+
+msgid "Variant photo"
+msgstr "Фото варіанта"
+
+msgid "Auswahl der Varianten"
+msgstr "Вибір варіантів"
+
+msgid "How the options look on your storefront is set in the Marketing tab."
+msgstr "Як вибір виглядає на вітрині — задається у вкладці «Маркетинг»."
+
+msgid "Colour"
+msgstr "Колір"

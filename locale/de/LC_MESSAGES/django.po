@@ -16846,3 +16846,78 @@ msgstr "Antwort"
 
 msgid "Clearing a question removes it. A new empty pair appears after saving."
 msgstr "Eine leere Frage wird entfernt. Nach dem Speichern erscheint ein neues leeres Paar."
+
+msgid "How to show the options"
+msgstr "Auswahl-Darstellung"
+
+msgid "Leer = wie in den Website-Einstellungen eingestellt."
+msgstr "Leer = wie in den Website-Einstellungen eingestellt."
+
+msgid "Dropdown list"
+msgstr "Auswahlliste"
+
+msgid "Compact — good for many pack sizes."
+msgstr "Kompakt — gut bei vielen Packungsgrößen."
+
+msgid "Buttons"
+msgstr "Schaltflächen"
+
+msgid "Sizes and volumes at a glance."
+msgstr "Größen und Mengen auf einen Blick."
+
+msgid "Colour dots"
+msgstr "Farbpunkte"
+
+msgid "For clothing: one dot per colour."
+msgstr "Für Kleidung: ein Punkt je Farbe."
+
+msgid "Photo tiles"
+msgstr "Foto-Kacheln"
+
+msgid "Shows the variant photo — needs photos."
+msgstr "Zeigt das Variantenfoto — Fotos nötig."
+
+msgid "List with photo"
+msgstr "Liste mit Foto"
+
+msgid "Row per variant: photo, name, price, stock."
+msgstr "Eine Zeile je Variante: Foto, Name, Preis, Bestand."
+
+msgid "Colour + size"
+msgstr "Farbe + Größe"
+
+msgid "Two rows: colour dots, then sizes."
+msgstr "Zwei Reihen: Farbpunkte, dann Größen."
+
+msgid "As before"
+msgstr "Wie bisher"
+
+msgid "Dropdown for a single choice, checkboxes for several."
+msgstr "Auswahlliste bei einer Option, Kästchen bei mehreren."
+
+msgid "Big tappable tiles — like a food delivery app."
+msgstr "Große Kacheln zum Antippen — wie in Liefer-Apps."
+
+msgid "Row with thumbnail, label and surcharge."
+msgstr "Zeile mit Vorschaubild, Bezeichnung und Aufpreis."
+
+msgid "Chips"
+msgstr "Pillen"
+
+msgid "Compact pills, no photos."
+msgstr "Kompakte Pillen, ohne Fotos."
+
+msgid "Option photo"
+msgstr "Foto der Option"
+
+msgid "Variant photo"
+msgstr "Foto der Variante"
+
+msgid "Auswahl der Varianten"
+msgstr "Auswahl der Varianten"
+
+msgid "How the options look on your storefront is set in the Marketing tab."
+msgstr "Wie die Auswahl auf der Website aussieht, stellen Sie im Reiter „Marketing“ ein."
+
+msgid "Colour"
+msgstr "Farbe"
