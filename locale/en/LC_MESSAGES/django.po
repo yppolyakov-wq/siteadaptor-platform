@@ -16779,3 +16779,18 @@ msgstr "Only the filtered items are counted."
 
 msgid "alle"
 msgstr "all"
+
+msgid "Typing…"
+msgstr "Typing…"
+
+msgid "Customer is typing…"
+msgstr "Customer is typing…"
+
+msgid "Available now — until %(t)s"
+msgstr "Available now — until %(t)s"
+
+msgid "Currently closed — back %(d)s %(t)s"
+msgstr "Currently closed — back %(d)s %(t)s"
+
+msgid "Currently closed"
+msgstr "Currently closed"

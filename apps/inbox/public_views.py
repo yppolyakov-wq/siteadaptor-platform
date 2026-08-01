@@ -6,6 +6,7 @@
 """
 
 from django.contrib import messages
+from django.core.cache import cache
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.formats import date_format
@@ -18,6 +19,32 @@ from .models import Conversation, Message
 
 RL_LIMIT = 5
 RL_WINDOW = 600
+# M22b: «печатает» живёт ТОЛЬКО в кэше и обязано протухать само — модель тут была
+# бы вредна (мусор в БД + запись на каждое нажатие). TTL чуть больше интервала
+# пинга, иначе индикатор мигает между нажатиями.
+TYPING_TTL = 6
+
+
+def _typing_key(conv_pk, role) -> str:
+    """Ключ флага «печатает». `conv_pk` — UUID треда, поэтому ключи разных схем
+    не пересекаются даже в общем Redis."""
+    return f"inbox_typing:{conv_pk}:{role}"
+
+
+def is_typing(conv_pk, role) -> bool:
+    """Печатает ли сейчас сторона `role`. Кэш недоступен → False: индикатор
+    просто не показывается, тред продолжает работать."""
+    try:
+        return bool(cache.get(_typing_key(conv_pk, role)))
+    except Exception:  # noqa: BLE001 — упавший Redis не должен ронять тред
+        return False
+
+
+def mark_typing(conv_pk, role) -> None:
+    try:
+        cache.set(_typing_key(conv_pk, role), True, TYPING_TTL)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _require_inbox(request):
@@ -106,6 +133,10 @@ def thread(request, token):
             )
             messages.success(request, _("Your message was sent."))
         return redirect("storefront-message-thread", token=token)
+    # M22b: «бизнес на связи» по часам работы — серверный рендер, без поллинга
+    # (статус меняется раз в день, гонять его в JSON незачем).
+    tenant = getattr(request, "tenant", None)
+    open_status = tenant.open_status() if tenant is not None else None
     return render(
         request,
         "storefront/message_thread.html",
@@ -114,6 +145,7 @@ def thread(request, token):
             "messages_list": conversation.messages.all(),
             # LS-3: карточки персональных предложений (reverse-FK orders.Offer).
             "offers_list": conversation.offers.prefetch_related("lines"),
+            "open_status": open_status,
         },
     )
 
@@ -136,6 +168,20 @@ def thread_poll(request, token):
                     "created": date_format(m.created_at, "d.m. H:i"),
                 }
                 for m in msgs
-            ]
+            ],
+            # M22b: печатает ли СЕЙЧАС бизнес. Едет в уже существующем поллинге —
+            # отдельного запроса на чтение флага не появляется.
+            "typing": is_typing(conversation.pk, "staff"),
         }
     )
+
+
+def thread_typing(request, token):
+    """M22b: пинг «клиент печатает» — флаг в кэше на несколько секунд.
+
+    Тред и так гейтится `public_token`, а ключ содержит его pk, так что чужой
+    индикатор не поставить и не прочитать, не зная треда."""
+    _require_inbox(request)
+    conversation = get_object_or_404(Conversation, public_token=token)
+    mark_typing(conversation.pk, "customer")
+    return HttpResponse(status=204)

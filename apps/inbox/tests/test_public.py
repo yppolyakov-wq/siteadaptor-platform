@@ -102,3 +102,87 @@ def test_staff_reply_enqueues_customer_email():
     conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
     msg = services.post_message(conv, body="Hallo!", author_role=Message.AUTHOR_STAFF)
     assert Notification.objects.filter(dedupe_key=f"inbox:msg:{msg.id}:customer").exists()
+
+
+# --- M22b (оживлено 2026-08-01 из потерянной работы 25.06) -------------------
+
+
+def test_thread_shows_open_status():
+    """«Бизнес на связи» по часам работы (открыто 24/7 → статус open)."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    req = _pub("get", f"/nachricht/{conv.public_token}/")
+    req.tenant.opening_hours_structured = {str(d): ["00:00", "23:59"] for d in range(7)}
+    body = public_views.thread(req, token=conv.public_token).content.decode()
+    assert 'data-chat-status="open"' in body
+
+
+def test_thread_no_status_without_hours():
+    """Часы не заданы — плашки нет вовсе: врать «закрыто» нельзя."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    req = _pub("get", f"/nachricht/{conv.public_token}/")
+    req.tenant.opening_hours_structured = {}
+    body = public_views.thread(req, token=conv.public_token).content.decode()
+    assert "data-chat-status" not in body
+
+
+def test_thread_closed_status_names_the_next_opening():
+    """Закрыто — говорим, КОГДА откроемся. Статус подставляем напрямую: часы,
+    попадающие «мимо сейчас», сделали бы тест зависимым от времени прогона."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    req = _pub("get", f"/nachricht/{conv.public_token}/")
+    req.tenant.open_status = lambda: {"open": False, "until": None, "next": ("Mo", "09:00")}
+    body = public_views.thread(req, token=conv.public_token).content.decode()
+    assert 'data-chat-status="closed"' in body
+    assert "Mo" in body and "09:00" in body  # кортеж next распакован в разметке
+
+
+def test_thread_typing_ping_and_poll_flag():
+    """Клиент пингует «печатает» → флаг customer; печать бизнеса видна в его поллинге."""
+    import json
+
+    from django.core.cache import cache
+
+    from apps.inbox.public_views import _typing_key
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    public_views.thread_typing(
+        _pub("post", f"/nachricht/{conv.public_token}/typing/"), token=conv.public_token
+    )
+    assert cache.get(_typing_key(conv.pk, "customer")) is True
+
+    cache.set(_typing_key(conv.pk, "staff"), True, 6)
+    resp = public_views.thread_poll(
+        _pub("get", f"/nachricht/{conv.public_token}/poll/"), token=conv.public_token
+    )
+    assert json.loads(resp.content)["typing"] is True
+    # Флаг протух (эмулируем истечение TTL) → индикатор гаснет сам.
+    cache.delete(_typing_key(conv.pk, "staff"))
+    resp2 = public_views.thread_poll(
+        _pub("get", f"/nachricht/{conv.public_token}/poll/"), token=conv.public_token
+    )
+    assert json.loads(resp2.content)["typing"] is False
+
+
+def test_typing_survives_broken_cache():
+    """Redis лёг — тред обязан работать, индикатор просто не показывается."""
+    from unittest.mock import patch
+
+    from apps.inbox import public_views as pv
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    with patch.object(pv.cache, "get", side_effect=RuntimeError("redis down")):
+        assert pv.is_typing(conv.pk, "staff") is False
+    with patch.object(pv.cache, "set", side_effect=RuntimeError("redis down")):
+        pv.mark_typing(conv.pk, "customer")  # не должно бросить
+
+
+def test_typing_ping_gated_when_module_off():
+    """Гейт модуля — как у соседних публичных вьюх треда."""
+    import pytest as _pytest
+    from django.http import Http404
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    req = _pub("post", f"/nachricht/{conv.public_token}/typing/")
+    req.tenant.disabled_modules = ["inbox"]
+    with _pytest.raises(Http404):
+        public_views.thread_typing(req, token=conv.public_token)

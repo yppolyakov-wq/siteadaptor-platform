@@ -16956,3 +16956,18 @@ msgstr "Перераховуються лише відфільтровані п�
 
 msgid "alle"
 msgstr "усі"
+
+msgid "Typing…"
+msgstr "Пише…"
+
+msgid "Customer is typing…"
+msgstr "Клієнт пише…"
+
+msgid "Available now — until %(t)s"
+msgstr "На зв'язку — до %(t)s"
+
+msgid "Currently closed — back %(d)s %(t)s"
+msgstr "Зараз зачинено — знову %(d)s %(t)s"
+
+msgid "Currently closed"
+msgstr "Зараз зачинено"

@@ -16891,3 +16891,18 @@ msgstr "Yalnızca filtrelenen ürünler sayılır."
 
 msgid "alle"
 msgstr "tümü"
+
+msgid "Typing…"
+msgstr "Yazıyor…"
+
+msgid "Customer is typing…"
+msgstr "Müşteri yazıyor…"
+
+msgid "Available now — until %(t)s"
+msgstr "Şu anda ulaşılabilir — %(t)s saatine kadar"
+
+msgid "Currently closed — back %(d)s %(t)s"
+msgstr "Şu anda kapalı — %(d)s %(t)s tekrar açık"
+
+msgid "Currently closed"
+msgstr "Şu anda kapalı"

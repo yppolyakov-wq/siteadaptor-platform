@@ -13,6 +13,7 @@ from apps.core.fsm import IllegalTransition
 
 from . import services
 from .models import Conversation, Message
+from .public_views import is_typing, mark_typing
 from .state_machine import ConversationSM
 
 
@@ -240,9 +241,21 @@ def thread_poll(request, pk):
                     "created": date_format(m.created_at, "d.m. H:i"),
                 }
                 for m in msgs
-            ]
+            ],
+            # M22b: печатает ли СЕЙЧАС клиент (другая сторона треда).
+            "typing": is_typing(conversation.pk, "customer"),
         }
     )
+
+
+@login_required
+def thread_typing(request, pk):
+    """M22b: пинг «сотрудник печатает» — клиент увидит его своим поллингом."""
+    from django.http import HttpResponse
+
+    conversation = get_object_or_404(Conversation, pk=pk)
+    mark_typing(conversation.pk, "staff")
+    return HttpResponse(status=204)
 
 
 def _thread_reaction(conversation):

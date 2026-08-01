@@ -127,3 +127,21 @@ def test_thread_poll_returns_messages_and_clears_unread():
     assert data["messages"][-1]["role"] == "customer" and data["messages"][-1]["body"] == "hi"
     conv.refresh_from_db()
     assert not conv.unread_for_staff  # тред «просмотрен» поллингом
+
+
+def test_cabinet_typing_ping_and_poll_flag():
+    """M22b (оживлено 2026-08-01): staff пингует «печатает» → флаг staff; печать
+    клиента видна в кабинетном поллинге."""
+    import json
+
+    from django.core.cache import cache
+
+    from apps.inbox.public_views import _typing_key
+
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    views.thread_typing(_req("post", f"/dashboard/inbox/{conv.pk}/typing/"), pk=conv.pk)
+    assert cache.get(_typing_key(conv.pk, "staff")) is True
+
+    cache.set(_typing_key(conv.pk, "customer"), True, 6)
+    resp = views.thread_poll(_req("get", f"/dashboard/inbox/{conv.pk}/poll/"), pk=conv.pk)
+    assert json.loads(resp.content)["typing"] is True

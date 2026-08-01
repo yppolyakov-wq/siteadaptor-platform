@@ -16930,3 +16930,18 @@ msgstr "Nur die gefilterten Artikel werden gezählt."
 
 msgid "alle"
 msgstr "alle"
+
+msgid "Typing…"
+msgstr "Schreibt gerade…"
+
+msgid "Customer is typing…"
+msgstr "Kunde schreibt gerade…"
+
+msgid "Available now — until %(t)s"
+msgstr "Jetzt erreichbar — bis %(t)s"
+
+msgid "Currently closed — back %(d)s %(t)s"
+msgstr "Gerade geschlossen — wieder %(d)s %(t)s"
+
+msgid "Currently closed"
+msgstr "Gerade geschlossen"

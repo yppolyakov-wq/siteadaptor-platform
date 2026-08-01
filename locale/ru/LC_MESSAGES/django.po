@@ -16971,3 +16971,18 @@ msgstr "Пересчитываются только отфильтрованны
 
 msgid "alle"
 msgstr "все"
+
+msgid "Typing…"
+msgstr "Печатает…"
+
+msgid "Customer is typing…"
+msgstr "Клиент печатает…"
+
+msgid "Available now — until %(t)s"
+msgstr "На связи — до %(t)s"
+
+msgid "Currently closed — back %(d)s %(t)s"
+msgstr "Сейчас закрыто — снова %(d)s %(t)s"
+
+msgid "Currently closed"
+msgstr "Сейчас закрыто"
