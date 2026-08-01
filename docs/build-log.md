@@ -7861,3 +7861,56 @@ M» было бы враньём. Zählliste следует фильтру — �
 label в Excel не сводится сводной таблицей.
 
 8 замков (`test_axis_matrix`), 3 msgid × 5 .po; 91 тест inventory зелёный.
+
+## 2026-08-01 — аудит месяца: мержи, миграции, деплои (+ сверка с продом)
+
+Запрос владельца «проверь за последний месяц все деплои и мержи и миграции».
+
+**Грабля инструмента:** локальный клон был **shallow** — история начиналась с
+13.07, поэтому первый прогон (и фоновые агенты) видел вдвое меньше коммитов.
+`git fetch origin --shallow-since=2026-06-25` вернул 967 коммитов; все цифры ниже
+— на полной истории. Правило: перед любым историческим аудитом проверять
+`.git/shallow`, иначе «за месяц» молча означает «за две недели».
+
+**Мержи 01.07–01.08:** 669 коммитов в main; настоящих merge-коммитов 2
+(`04b4fd76`, `c3ec1acc`) — остальное FF-push по конвенции. Авторы: Claude 661,
+владелец 7 + adaptor2024 1 (все 8 — DeepL-сессия T1-b 10–11.07). Невлитых веток с
+июльской активностью 5, все по 1–2 коммита; содержимое проверено — в main через
+cherry-pick (демо-фото 268 файлов, `ui_mode` S5, `listing.html` UB1-1, редактор
+SE-2b). Потерянной работы нет.
+
+**Миграции:** 70 добавлено в main за месяц (31 из них 02–03.07). Граф здоров:
+`makemigrations --check` → No changes detected, дубликатов номеров нет.
+Единственная за месяц data-миграция — `core/0006` (backfill_owner_membership,
+16.07), остальные 69 схемные.
+
+**Сверка с продом (владелец прогнал `showmigrations`):** очередь «⚠️ ОЖИДАЕТ
+ДЕПЛОЯ» в CLAUDE.md оказалась устаревшей примерно на три недели — числила ~30
+миграций ожидающими, тогда как на проде применено ВСЁ: catalog [X] 0022, stays
+[X] 0030, booking [X] 0020, inventory [X] 0004, tenants [X] 0027 (включая
+смерженное сегодня). Кажущееся противоречие записей («деплой очереди сделан
+владельцем» 19.07 против списка ожидающих) разрешилось в пользу записей: деплои
+шли, не обновлялся список.
+
+**Нюанс django-tenants, который аудит обязан учитывать:** `manage.py
+showmigrations` без tenant-контекста читает `django_migrations` схемы **public**,
+а у TENANT-апп (catalog/stays/booking/inventory/promotions/orders/…) своя таблица
+в КАЖДОЙ схеме тенанта — их и гоняет `migrate_schemas` в `deploy.sh`. Строгая
+per-schema сверка:
+
+```
+docker compose -f docker-compose.prod.yml exec web python manage.py shell -c "
+from django_tenants.utils import get_tenant_model, schema_context
+from django.db.migrations.executor import MigrationExecutor
+from django.db import connection
+for t in get_tenant_model().objects.all():
+    with schema_context(t.schema_name):
+        ex = MigrationExecutor(connection)
+        print(t.schema_name, len(ex.migration_plan(ex.loader.graph.leaf_nodes())))
+"
+```
+(0 у каждой схемы = применено всё; ненулевое число = столько миграций ждёт).
+
+**Правило впредь:** очередь миграций в CLAUDE.md — гипотеза до сверки с
+`showmigrations`, а не факт; не держать миграции «ожидающими» дольше одного
+деплой-цикла.
