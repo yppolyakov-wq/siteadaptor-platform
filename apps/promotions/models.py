@@ -181,6 +181,34 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         on_delete=models.SET_NULL,
         related_name="promotions",
     )
+    # P1 «ценовой слой» (план promo-price-layer-plan-2026-08-03): цель акции —
+    # ровно ОДНА из сущностей (product выше — исторический первый FK). Акция без
+    # цели остаётся законной («свободная», чекаут custom_lines-заказом).
+    service = models.ForeignKey(
+        "booking.Service",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="promotions",
+    )
+    stay_unit = models.ForeignKey(
+        "stays.StayUnit",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="promotions",
+    )
+    combo = models.ForeignKey(
+        "catalog.Combo",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="promotions",
+    )
+    # Условия применения к услуге (паттерн StaySettings.auto_discount_rules):
+    # {"weekdays": [0..6], "hour_from": 10, "hour_to": 14, "resource_id": "..."}
+    # — «счастливые часы»/конкретный мастер. Пусто = без ограничений.
+    target_rules = models.JSONField(default=dict, blank=True)
 
     promo_type = models.CharField(max_length=20, choices=PROMO_TYPES, default=RESERVATION)
     # Скидку владелец задаёт ЛИБО в %, ЛИБО новой ценой (price_override) —
@@ -343,6 +371,25 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         if self.product_id and self.product:
             return self.product.primary_image
         return None
+
+    @property
+    def target(self):
+        """P1: базовая сущность акции (product/service/stay_unit/combo) или None
+        («свободная» акция). Ровно одна — гарантирует clean()/форма."""
+        return self.product or self.service or self.stay_unit or self.combo
+
+    @property
+    def target_kind(self) -> str:
+        """Kind цели в терминах SellableEntity ('' у свободной акции)."""
+        if self.product_id:
+            return "product"
+        if self.service_id:
+            return "service"
+        if self.stay_unit_id:
+            return "stay"
+        if self.combo_id:
+            return "combo"
+        return ""
 
     @property
     def gallery_images(self) -> list:
