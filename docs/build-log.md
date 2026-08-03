@@ -8127,3 +8127,31 @@ classic не затронут). Счётчики колонок доски ст�
 
 Тесты: 9 test_verkaeufe + обновлённые test_orders_view/test_sidebar_st4b;
 5 msgid × 5 .po. Без миграций.
+
+## 2026-08-03 — батч: календарь услуг + демо фото-опций + promo P1/P2
+
+**Календарь услуг** (фидбэк «не работает»): листание дней шло голым `?tag=` — на
+/dashboard/verkaeufe/ терялась вкладка и выбрасывало на Belegungsplan. Все
+внутренние ссылки календарей несут вкладку при встраивании (замок держит оба
+режима: встроенный и отдельный). Страница переименована в «Kalender»; настройки
+(embed-виджет, Status-Namen, Statusübergänge) уехали в booking:resources —
+«⚙️ Einstellungen» (решение владельца «настройки — в настройки»).
+
+**Демо фото-опций** (фидбэк «негде попробовать»): mode += «Seidentuch Aurora»
+(variant_style="photo", три дессина фото-плитками), cafe «Frühstücksteller» +=
+группа «Extras» видом tiles с фото опций. Движок демо: per-товарный
+variant_style в _p, опция модификатора 3-м элементом кортежа несёт image_kw.
+Проверено Playwright'ом (клик по плитке синкает селект). ⚠️ ops: пересев
+clothing/cafe.
+
+**Promo P1+P2 (волна «ценовой слой», план promo-price-layer-plan-2026-08-03):**
+P1 — FK-цели service/stay_unit/combo + target_rules (⚠️ `promotions/0025`,
+аддитив) + резолвер target/target_kind. P2 — `services.purchase()`: лимит
+кампании (conditional UPDATE как reserve) + стандартный `create_order` с
+custom-строкой (замороженная промо-цена, склад ШТАТНО) в одной atomic; пустой
+склад откатывает и лимит (фантомного списания нет — замок). custom_lines вырос
+6-м элементом (modifiers-снимок; LS-3 не тронут); маркер {"promo": id} →
+`_restore_promo_limits` в `_restore_stock`-пути — единая точка возврата для
+встроенного FSM и зеркала кастом-статусов. «Свободная» акция продаётся
+строкой без склада. Старый reserve-флоу жив до P5 (паритет-замок).
+7 замков test_price_layer; promotions+orders 415 зелёных.
