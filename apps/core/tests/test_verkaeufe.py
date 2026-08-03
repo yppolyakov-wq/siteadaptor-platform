@@ -165,3 +165,32 @@ def test_auftragsbuch_groups_orders_by_pickup_day():
     assert "Anna" in body
     assert "Ohne Termin" in body and "Bernd" in body
     assert with_slot.reference_code in body and без.reference_code in body
+
+
+def test_calendar_day_nav_keeps_the_tab():
+    """Фидбэк 2026-08-03 «не работает календарь у услуги»: листание дней в
+    Tagesplan шло голым ?tag= — на /verkaeufe/ клик сбрасывал вкладку и
+    выбрасывал на Belegungsplan. Ссылки обязаны нести tab."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.booking.models import Booking, Customer, Resource
+
+    start = timezone.now() + timedelta(days=1)
+    Booking.objects.create(
+        resource=Resource.objects.create(name="Spa2"),
+        start=start,
+        end=start + timedelta(hours=1),
+        customer=Customer.objects.create(name="Gast", email="g2@t.de"),
+    )
+    body = views.verkaeufe(
+        _req(data={"tab": "booking", "view": "kalender"}, **_hotel())
+    ).content.decode()
+    assert "?tab=booking&amp;tag=" in body  # листание не теряет вкладку
+    # На отдельной странице booking:calendar ссылки остаются голыми ?tag=
+    from apps.booking.views import calendar as booking_calendar
+    from apps.booking.tests.test_cabinet import _req as booking_req
+
+    solo = booking_calendar(booking_req("get", "/dashboard/booking/")).content.decode()
+    assert "?tag=" in solo and "tab=booking" not in solo

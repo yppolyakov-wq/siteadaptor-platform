@@ -107,4 +107,16 @@
     </form>
   </div>
 </div>
+
+{% comment %}Фидбэк 2026-08-03: настройки уехали С календаря сюда («настройки — в
+настройки»): embed-виджет + имена статусов + правила переходов.{% endcomment %}
+<div class="mt-6 space-y-4 max-w-3xl">
+  <details class="bg-white rounded-2xl shadow-sm p-4">
+    <summary class="cursor-pointer text-sm font-medium">🔗 {% trans "Embed booking widget on your website" %}</summary>
+    <p class="text-xs text-gray-500 mt-2 mb-2">{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}</p>
+    <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>
+  </details>
+  {% include "tenant/_status_labels_panel.html" with rows=status_label_rows kind="booking" next_path=request.path %}
+  {% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="booking" next_path=request.path %}
+</div>
 {% endblock %}

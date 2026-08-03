@@ -27,6 +27,7 @@ walk-in+JS) — извлечено из calendar.html 1:1 для переисп�
 
 {# Фидбэк 2026-07-28: поиск по гостю/почте/номеру брони — любая дата и статус. #}
 <form method="get" class="mb-3 flex items-center gap-2 max-w-md">
+  {% if active_kind %}<input type="hidden" name="tab" value="{{ active_kind }}">{% endif %}
   <input type="search" name="q" value="{{ search_q }}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
   {% if search_q %}<a href="{% url 'stays:calendar' %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
@@ -34,7 +35,7 @@ walk-in+JS) — извлечено из calendar.html 1:1 для переисп�
 {% if search_q %}
 <div class="mb-4 bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">
   {% for b in search_results %}
-    <a href="{% url 'stays:calendar' %}?von={{ b.arrival|date:'Y-m-d' }}&amp;buchung={{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+    <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ b.arrival|date:'Y-m-d' }}&amp;buchung={{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
       <span class="min-w-0 truncate"><span class="font-medium">{{ b.customer.name|default:b.customer }}</span> · {{ b.reference_code }}{% if b.customer.email %} · <span class="text-gray-400">{{ b.customer.email }}</span>{% endif %}</span>
       <span class="shrink-0 text-gray-500">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %} · {{ b.arrival|date:"d.m.y" }}–{{ b.departure|date:"d.m.y" }} · {% status_label b "stay" %}</span>
     </a>
@@ -65,9 +66,9 @@ walk-in+JS) — извлечено из calendar.html 1:1 для переисп�
 
 {# --- Belegungskalender: юниты × ночи --------------------------------------- #}
 <div class="flex items-center justify-between mb-3 max-w-md">
-  <a href="?von={{ prev|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {% trans "Previous" %}</a>
+  <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ prev|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {% trans "Previous" %}</a>
   <span class="font-semibold text-sm">{{ start|date:"d.m.Y" }} – {{ days|last|date:"d.m.Y" }}</span>
-  <a href="?von={{ next|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{% trans "Next" %} →</a>
+  <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ next|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{% trans "Next" %} →</a>
 </div>
 
 {% if rows %}

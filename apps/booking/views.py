@@ -371,6 +371,8 @@ def resources(request):
             messages.success(request, _("Profile saved."))
         return redirect("booking:resources")
 
+    from apps.core import status_labels, transition_rules
+
     return render(
         request,
         "booking/resources.html",
@@ -380,6 +382,15 @@ def resources(request):
             "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()),
             "types": Resource.TYPES,
             "weekdays": AvailabilityRule.WEEKDAYS,
+            # Фидбэк 2026-08-03: настройки уехали С календаря СЮДА («настройки —
+            # в настройки»): embed-виджет + имена статусов + правила переходов.
+            "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
+            "status_label_rows": status_labels.label_rows(
+                getattr(request, "tenant", None), "booking", Booking.STATUSES
+            ),
+            "transition_rows": transition_rules.editor_rows(
+                getattr(request, "tenant", None), "booking"
+            ),
         },
     )
 

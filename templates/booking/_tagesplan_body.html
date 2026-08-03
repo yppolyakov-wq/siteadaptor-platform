@@ -3,21 +3,15 @@
 walk-in #neu) — извлечено из booking/calendar.html 1:1 для единой страницы продаж
 /dashboard/verkaeufe/ (план 2026-08-03). Action-URL форм явные.{% endcomment %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Booking" %}</h1>
+  <h1 class="text-2xl font-bold">{% trans "Kalender" %}</h1>
   <div class="flex flex-wrap gap-x-4 gap-y-2">
     <a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Services" %} →</a>
     <a href="{% url 'booking:passes' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Passes" %} →</a>
     <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Availability" %} →</a>
-    <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Resources & hours" %} →</a>
+    <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">⚙️ {% trans "Einstellungen" %} →</a>
   </div>
 </div>
 
-{# A4: виджет записи (iframe) для своего сайта — встраивается без шапки/футера. #}
-<details class="bg-white rounded-2xl shadow-sm p-4 mb-4">
-  <summary class="cursor-pointer text-sm font-medium">🔗 {% trans "Embed booking widget on your website" %}</summary>
-  <p class="text-xs text-gray-500 mt-2 mb-2">{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}</p>
-  <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>
-</details>
 
 {% if messages %}
   {% for m in messages %}
@@ -25,15 +19,10 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   {% endfor %}
 {% endif %}
 
-{# FB-4b: свои имена статусов брони (кабинет-отображение) #}
-{% include "tenant/_status_labels_panel.html" with rows=status_label_rows kind="booking" next_path=request.path %}
-{# FB-3: правила переходов статусов брони #}
-{% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="booking" next_path=request.path %}
-
 <div class="flex items-center justify-between mb-4 max-w-md">
-  <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>
+  <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>
   <span class="font-semibold">{{ day|date:"l, d.m.Y" }}</span>
-  <a href="?tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
+  <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
 </div>
 
 {% if bookings %}
