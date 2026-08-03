@@ -1,0 +1,30 @@
+{% load i18n %}
+{% comment %}Generic-«Liste» вкладки Verkäufe: плоские строки нормализованных
+транзакций kind (Transaction из manage_sections_for). Закрывает пробел «списка
+нет» у stay/booking/job/ticket. Строка ведёт на manage_url; действия — на
+Board/календаре/детали (список = обзор, как в рыночных référence). Контекст:
+section (может быть None).{% endcomment %}
+{% if section and section.transactions %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+  {% for tx in section.transactions %}
+    <a href="{{ tx.manage_url|default:'#' }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+      <div class="min-w-0">
+        <p class="font-medium truncate">{{ tx.title }}
+          {% if tx.has_problem %}<span class="text-xs font-medium text-red-600">· ⚠️ {% trans "Problem — Kunde wartet" %}</span>{% endif %}
+        </p>
+        <p class="text-xs text-gray-400 truncate">#{{ tx.reference_code }}{% if tx.customer %} · {{ tx.customer }}{% endif %} · {{ tx.created_at|date:"d.m.Y H:i" }}</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        {% if tx.subtotal_display %}<span class="text-sm font-medium">{{ tx.subtotal_display }}</span>{% endif %}
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full
+          {% if tx.pipeline_stage == 'done' %}bg-green-100 text-green-800
+          {% elif tx.pipeline_stage == 'in_progress' %}bg-indigo-100 text-indigo-800
+          {% elif tx.pipeline_stage == 'intake' %}bg-amber-100 text-amber-800
+          {% else %}bg-gray-100 text-gray-500{% endif %}">{{ tx.status_label }}</span>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">{% trans "Noch keine Einträge." %}</p>
+{% endif %}

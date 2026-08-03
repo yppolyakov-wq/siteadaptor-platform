@@ -16906,3 +16906,9 @@ msgstr "Şu anda kapalı — %(d)s %(t)s tekrar açık"
 
 msgid "Currently closed"
 msgstr "Şu anda kapalı"
+
+msgid "Alte Ansicht"
+msgstr "Eski görünüm"
+
+msgid "Noch keine Einträge."
+msgstr "Henüz kayıt yok."

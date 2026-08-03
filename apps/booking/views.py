@@ -71,6 +71,12 @@ def _refund_deposit(request, booking):
 
 @login_required
 def calendar(request):
+    """Tagesplan-страница. Контекст собирает `calendar_context` — оно же питает
+    вкладку booking единой страницы продаж /dashboard/verkaeufe/ (план 2026-08-03)."""
+    return render(request, "booking/calendar.html", calendar_context(request))
+
+
+def calendar_context(request):
     day = _parse_day_any(request.GET.get("tag"))
     tz = timezone.get_current_timezone()
     day_start = datetime.combine(day, time.min, tzinfo=tz)
@@ -84,28 +90,24 @@ def calendar(request):
 
     from apps.core import status_labels, transition_rules
 
-    return render(
-        request,
-        "booking/calendar.html",
-        {
-            "nav": "booking",
-            "day": day,
-            "prev_day": day - timedelta(days=1),
-            "next_day": day + timedelta(days=1),
-            "bookings": bookings,
-            "resources": Resource.objects.filter(is_active=True),
-            # A4: iframe-виджет записи для своего сайта.
-            "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
-            # FB-4b: строки панели «Status-Namen» (status, дефолт, своё имя).
-            "status_label_rows": status_labels.label_rows(
-                getattr(request, "tenant", None), "booking", Booking.STATUSES
-            ),
-            # FB-3: строки панели «Statusübergänge» (правила переходов).
-            "transition_rows": transition_rules.editor_rows(
-                getattr(request, "tenant", None), "booking"
-            ),
-        },
-    )
+    return {
+        "nav": "booking",
+        "day": day,
+        "prev_day": day - timedelta(days=1),
+        "next_day": day + timedelta(days=1),
+        "bookings": bookings,
+        "resources": Resource.objects.filter(is_active=True),
+        # A4: iframe-виджет записи для своего сайта.
+        "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
+        # FB-4b: строки панели «Status-Namen» (status, дефолт, своё имя).
+        "status_label_rows": status_labels.label_rows(
+            getattr(request, "tenant", None), "booking", Booking.STATUSES
+        ),
+        # FB-3: строки панели «Statusübergänge» (правила переходов).
+        "transition_rows": transition_rules.editor_rows(
+            getattr(request, "tenant", None), "booking"
+        ),
+    }
 
 
 def _parse_day_any(raw):

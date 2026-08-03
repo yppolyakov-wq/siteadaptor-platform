@@ -3108,6 +3108,77 @@ def media_library(request):
 
 
 @login_required
+def verkaeufe(request):
+    """Единая страница продаж (2026-08-03): вкладки по kind (primary всегда,
+    прочие — при наличии продаж), в каждой — переключатель видов
+    Kalender/Board/Liste. Переключение вкладки = обычная навигация `?tab=`
+    (неактивные вкладки не запрашиваются вовсе). classic_ui живёт на прежних
+    страницах — страховка редизайна (правило трека ST)."""
+    from apps.core import modules, orders_view, sales_page, transactions
+
+    tenant = request.tenant
+    if modules.classic_ui(tenant):
+        return redirect(orders_view.entry_url(tenant))
+    kinds = sales_page.visible_kinds(tenant) or ["order"]
+    active = request.GET.get("tab", "")
+    if active not in kinds:
+        active = kinds[0]
+    view = sales_page.resolve_view(tenant, active, request.GET.get("view", ""))
+    ctx = {
+        "nav": "board",
+        "sales_tabs": sales_page.tab_descriptors(tenant, active),
+        "sales_views": sales_page.view_descriptors(tenant, active, view),
+        "active_kind": active,
+        "active_view": view,
+    }
+    if view == "kalender" and active == "stay":
+        from apps.stays.views import calendar_context as stays_calendar_context
+
+        sub = stays_calendar_context(request)
+        if not isinstance(sub, dict):  # ?box=1 — fetch-фрагмент карточки брони
+            return sub
+        ctx = {**sub, **ctx}
+    elif view == "kalender" and active == "booking":
+        from apps.booking.views import calendar_context as booking_calendar_context
+
+        ctx = {**booking_calendar_context(request), **ctx}
+    elif view == "board":
+        ctx["sections"] = transactions.manage_sections_for(tenant, only=active)
+    elif active == "order":  # Liste заказов — богатые строки списка orders
+        from apps.orders.models import Order
+
+        ctx["orders"] = Order.objects.select_related("customer").prefetch_related("items")[:200]
+    else:  # generic Liste по нормализованным транзакциям kind
+        sections = transactions.manage_sections_for(tenant, limit=200, only=active)
+        ctx["section"] = sections[0] if sections else None
+    return render(request, "core/verkaeufe.html", ctx)
+
+
+@login_required
+def verkaeufe_view_set(request):
+    """Persist выбранного вида вкладки (targeted-write `sales_views[kind]`)."""
+    from django.http import HttpResponseNotAllowed
+
+    from apps.core.sales_page import KIND_VIEWS
+
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    kind = request.POST.get("kind", "")
+    view = request.POST.get("view", "")
+    if view in KIND_VIEWS.get(kind, ()):
+        tenant = request.tenant
+        cfg = dict(tenant.site_config or {})
+        sv = dict(cfg.get("sales_views") or {})
+        sv[kind] = view
+        cfg["sales_views"] = sv
+        tenant.site_config = cfg
+        tenant.save(update_fields=["site_config"])
+    from django.urls import reverse
+
+    return redirect(reverse("verkaeufe") + f"?tab={kind}")
+
+
+@login_required
 def board(request):
     """UD2-3: единая доска входящих транзакций (заказы/брони/проживание/билеты/
     заявки/резервы). Вкладки — активные транзакционные модули, колонки — стадии

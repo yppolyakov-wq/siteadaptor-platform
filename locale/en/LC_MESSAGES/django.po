@@ -16794,3 +16794,9 @@ msgstr "Currently closed — back %(d)s %(t)s"
 
 msgid "Currently closed"
 msgstr "Currently closed"
+
+msgid "Alte Ansicht"
+msgstr "Old view"
+
+msgid "Noch keine Einträge."
+msgstr "No entries yet."

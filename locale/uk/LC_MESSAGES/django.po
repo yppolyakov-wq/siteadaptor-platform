@@ -16971,3 +16971,9 @@ msgstr "Зараз зачинено — знову %(d)s %(t)s"
 
 msgid "Currently closed"
 msgstr "Зараз зачинено"
+
+msgid "Alte Ansicht"
+msgstr "Старий вигляд"
+
+msgid "Noch keine Einträge."
+msgstr "Поки немає записів."

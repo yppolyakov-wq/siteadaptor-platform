@@ -55,6 +55,8 @@ from apps.core.views import (
     status_manager,
     status_manager_save,
     transitions_save,
+    verkaeufe,
+    verkaeufe_view_set,
 )
 from apps.events import public_views as events_public
 from apps.events import views as events_views
@@ -159,6 +161,9 @@ urlpatterns = [
     path("dashboard/stock/", stock_view, name="stock"),
     # Склад-2 E3: закупки (Lieferanten/Bestellungen/Wareneingang).
     path("dashboard/purchasing/", purchasing_view, name="purchasing"),
+    # Единая страница продаж (2026-08-03): вкладки по kind + виды на вкладку.
+    path("dashboard/verkaeufe/", verkaeufe, name="verkaeufe"),
+    path("dashboard/verkaeufe/view/", verkaeufe_view_set, name="verkaeufe-view"),
     # U-D2: единая Kanban-доска транзакций (заказы/брони/…) + generic FSM-action.
     path("dashboard/board/", board, name="board"),
     # W5: настройки колонок доски (переименование/порядок/скрытие).

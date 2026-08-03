@@ -54,36 +54,5 @@
   <a href="{% url 'payment-settings' %}" class="font-medium text-indigo-600 hover:underline whitespace-nowrap">💳 {% trans "Payment &amp; shipping" %} →</a>
 </div>
 
-{% if orders %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
-  {% for o in orders %}
-    <a href="{% url 'orders:order-detail' o.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-      <div class="min-w-0">
-        <p class="font-medium">{{ o.reference_code }} · {{ o.customer }}
-          {% if o.is_delivery %}<span class="text-xs text-gray-400">· 🚚 {% trans "Delivery" %}</span>{% endif %}
-          {% if o.is_anprobe %}<span class="text-xs font-medium text-purple-600">· 🛍 {% trans "Anprobe bis" %} {{ o.reserve_expires_at|date:"d.m. H:i" }}</span>{% endif %}
-        </p>
-        <p class="text-xs text-gray-400 truncate">
-          {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}
-        </p>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <span class="text-sm font-medium">{{ o.total }} {{ o.currency }}</span>
-        {# E-7: способ оплаты (пусто у легаси-заказов до введения поля) #}
-        {% if o.payment_method %}<span class="text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">{{ o.get_payment_method_display }}</span>{% endif %}
-        {% if o.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>
-        {% elif o.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{% trans "refunded" %}</span>{% endif %}
-        <span class="text-xs font-medium px-2 py-0.5 rounded-full
-          {% if o.status == 'picked_up' %}bg-gray-100 text-gray-600
-          {% elif o.status == 'ready' %}bg-indigo-100 text-indigo-800
-          {% elif o.status == 'confirmed' %}bg-green-100 text-green-800
-          {% elif o.status == 'new' %}bg-amber-100 text-amber-800
-          {% else %}bg-red-50 text-red-600{% endif %}">{% status_label o %}</span>
-      </div>
-    </a>
-  {% endfor %}
-</div>
-{% else %}
-<p class="text-gray-500">{% trans "No orders yet. Customers order from your product pages." %}</p>
-{% endif %}
+{% include "orders/_order_rows.html" %}
 {% endblock %}

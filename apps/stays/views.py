@@ -174,6 +174,16 @@ def _transition_rows(request):
 
 @login_required
 def calendar(request):
+    """Belegungsplan-страница. Тело собирает `calendar_context` — оно же питает
+    вкладку stay единой страницы продаж /dashboard/verkaeufe/ (план 2026-08-03)."""
+    ctx = calendar_context(request)
+    if isinstance(ctx, HttpResponse):  # ?box=1 — fetch-фрагмент карточки брони
+        return ctx
+    return render(request, "stays/calendar.html", ctx)
+
+
+def calendar_context(request):
+    """Контекст Belegungsplan (или HttpResponse-фрагмент при `?box=1`)."""
     start = _parse_day(request.GET.get("von"))
     units = list(StayUnit.objects.filter(is_active=True))
     days, rows = availability.occupancy_grid(units, start, HORIZON_DAYS)
@@ -277,10 +287,8 @@ def calendar(request):
         if selected is None:
             return HttpResponse(status=404)
         return render(request, "stays/_booking_card.html", panel_ctx)
-    return render(
-        request,
-        "stays/calendar.html",
-        {
+    return {
+        **{
             **panel_ctx,
             "selected_booking": selected,
             "ohne_zimmer": ohne_zimmer,
@@ -316,7 +324,7 @@ def calendar(request):
             # FB-3: строки панели «Statusübergänge» (правила переходов).
             "transition_rows": _transition_rows(request),
         },
-    )
+    }
 
 
 @login_required

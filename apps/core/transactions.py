@@ -212,6 +212,24 @@ def sm_for(kind: str):
     return getattr(import_module(module_path), cls_name)()
 
 
+def kinds_with_sales(tenant) -> set[str]:
+    """Kind'ы, по которым есть хотя бы одна сделка (модуль активен + exists()).
+
+    Для правила видимости вкладок Verkäufe: «допродажные» типы появляются с
+    первой продажей. До 6 запросов `SELECT 1 … LIMIT 1` — дешевле, чем любая
+    материализация; схема тенанта изолирует выборку сама."""
+    out = set()
+    for kind in TRANSACTION_KINDS:
+        if not tenant.is_module_active(KIND_MODULE[kind]):
+            continue
+        try:
+            if model_for(kind).objects.exists():
+                out.add(kind)
+        except Exception:  # noqa: BLE001 — сломанный kind не роняет страницу продаж
+            continue
+    return out
+
+
 def allowed_actions_for(kind: str, status: str, subset: dict | None = None) -> list[dict]:
     """Переходы FSM из `status`: ``[{target, label, stage}]`` (читает allowed_targets,
     подписи — из pipeline; логику переходов не дублирует). FB-3: `subset` (правила
@@ -335,13 +353,14 @@ def _managed_queryset(kind):
     return model_for(kind).objects.select_related(*_SELECT_RELATED[kind]).order_by("-created_at")
 
 
-def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
+def manage_sections_for(tenant, limit: int = BOARD_LIMIT, only: str | None = None) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
     Одна секция на активный kind (`is_module_active`): последние `limit`
     транзакций (нормализованных), колонки конвейера и счётчик по стадиям.
     Пустой активный модуль тоже даёт секцию (вкладка с нулём) — чтобы владелец
     видел все свои каналы продаж. Порядок kind — как TRANSACTION_KINDS.
+    `only` — собрать ровно один kind (вкладка Verkäufe грузит только себя).
     """
     out = []
     # W5: пер-тенантные настройки доски (переименование/порядок/скрытие колонок).
@@ -353,6 +372,8 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT) -> list[dict]:
     from apps.core import status_labels, transition_rules
 
     for kind in TRANSACTION_KINDS:
+        if only and kind != only:
+            continue
         module = KIND_MODULE[kind]
         if not tenant.is_module_active(module):
             continue

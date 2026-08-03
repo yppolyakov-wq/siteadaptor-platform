@@ -1,0 +1,99 @@
+{% load i18n cabinet %}
+{% comment %}Тело Tagesplan записей (день, prev/next, строки броней с FSM-кнопками,
+walk-in #neu) — извлечено из booking/calendar.html 1:1 для единой страницы продаж
+/dashboard/verkaeufe/ (план 2026-08-03). Action-URL форм явные.{% endcomment %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Booking" %}</h1>
+  <div class="flex flex-wrap gap-x-4 gap-y-2">
+    <a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Services" %} →</a>
+    <a href="{% url 'booking:passes' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Passes" %} →</a>
+    <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Availability" %} →</a>
+    <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Resources & hours" %} →</a>
+  </div>
+</div>
+
+{# A4: виджет записи (iframe) для своего сайта — встраивается без шапки/футера. #}
+<details class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+  <summary class="cursor-pointer text-sm font-medium">🔗 {% trans "Embed booking widget on your website" %}</summary>
+  <p class="text-xs text-gray-500 mt-2 mb-2">{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}</p>
+  <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>
+</details>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{# FB-4b: свои имена статусов брони (кабинет-отображение) #}
+{% include "tenant/_status_labels_panel.html" with rows=status_label_rows kind="booking" next_path=request.path %}
+{# FB-3: правила переходов статусов брони #}
+{% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="booking" next_path=request.path %}
+
+<div class="flex items-center justify-between mb-4 max-w-md">
+  <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>
+  <span class="font-semibold">{{ day|date:"l, d.m.Y" }}</span>
+  <a href="?tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
+</div>
+
+{% if bookings %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+  {% for b in bookings %}
+    <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <p class="font-medium">{{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }} · {{ b.resource.name }}
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1
+            {% if b.status == 'confirmed' %}bg-green-100 text-green-800
+            {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
+            {% elif b.status == 'fulfilled' %}bg-gray-100 text-gray-600
+            {% else %}bg-red-50 text-red-600{% endif %}">{% status_label b "booking" %}</span>
+          {% if b.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-emerald-100 text-emerald-800">💶 {% trans "Paid" %}</span>
+          {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
+          {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full ml-1 bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
+        </p>
+        {% comment %}HF-6d: гость мог записаться сразу на несколько периодов — помечаем,
+        что это часть общей брони, иначе владелец видит «двух разных» гостей подряд.{% endcomment %}
+        <p class="text-xs text-gray-400">{{ b.customer }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %} · {{ b.reference_code }}{% if b.group_code %} · 🔗 {% trans "Part of a multi-slot booking" %}{% endif %}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
+      </div>
+      <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
+        {% csrf_token %}
+        {# UD2-1: FSM-Statusaktionen generisch aus allowed_targets (statt hardcodiert) #}
+        {% include "core/_status_actions.html" with kind="booking" obj=b %}
+        {% if b.status == 'pending' or b.status == 'confirmed' %}
+          <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
+        {% endif %}
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500 mb-6">{% trans "No bookings on this day." %}</p>
+{% endif %}
+
+<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4 scroll-mt-24">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Resource" %}</label>
+      <select name="resource" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        {% for r in resources %}<option value="{{ r.pk }}">{{ r.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Start" %}</label>
+      <input type="datetime-local" name="start" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">{% trans "Minutes" %}</label>
+      <input type="number" name="minutes" value="60" min="5" max="1440" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <input name="name" type="text" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
+</form>

@@ -2034,6 +2034,23 @@ def normalize_board(raw) -> dict:
     return out
 
 
+def normalize_sales_views(raw) -> dict:
+    """Единая страница Verkäufe (2026-08-03): выбранный вид на kind.
+
+    {kind: view} только по известным парам из реестра `sales_page.KIND_VIEWS`;
+    ключ материализуется ТОЛЬКО при непустом (golden-паритет). НЕ путать с
+    удалённым легаси `orders_view` — тот дропается normalize'ом и остаётся
+    дропаемым (иная семантика: одна страница на весь хаб)."""
+    from apps.core.sales_page import KIND_VIEWS
+
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for kind, views in KIND_VIEWS.items():
+        if raw.get(kind) in views:
+            out[kind] = raw[kind]
+    return out
+
+
 # FD-1: Finder «вопросы → 3 предложения» (план fd1-finder-plan-2026-07-18).
 _MAX_FINDER_QUESTIONS = 6
 _MAX_FINDER_CHIPS = 8
@@ -2202,6 +2219,11 @@ def _normalize_impl(config) -> dict:
         normalized["board"] = board
     # ST-5b: ключ orders_view УДАЛЁН (фидбэк 2026-07-28 — маппинг фиксированный,
     # архетип-дефолт; нормализация дропает легаси-значения самоочисткой).
+    # Verkäufe-страница (2026-08-03): выбранный вид на kind; ключ ТОЛЬКО при
+    # непустом (golden-паритет).
+    sv = normalize_sales_views(config.get("sales_views"))
+    if sv:
+        normalized["sales_views"] = sv
     # FD-1: Finder («вопросы → 3 предложения»); ключ ТОЛЬКО при непустом.
     fnd = normalize_finder(config.get("finder"))
     if fnd:

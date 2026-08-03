@@ -16945,3 +16945,9 @@ msgstr "Gerade geschlossen — wieder %(d)s %(t)s"
 
 msgid "Currently closed"
 msgstr "Gerade geschlossen"
+
+msgid "Alte Ansicht"
+msgstr "Alte Ansicht"
+
+msgid "Noch keine Einträge."
+msgstr "Noch keine Einträge."

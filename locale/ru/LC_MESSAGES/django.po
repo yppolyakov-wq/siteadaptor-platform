@@ -16986,3 +16986,9 @@ msgstr "Сейчас закрыто — снова %(d)s %(t)s"
 
 msgid "Currently closed"
 msgstr "Сейчас закрыто"
+
+msgid "Alte Ansicht"
+msgstr "Старый вид"
+
+msgid "Noch keine Einträge."
+msgstr "Пока нет записей."
