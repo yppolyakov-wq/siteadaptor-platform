@@ -98,24 +98,41 @@ DACH. Это паттерны взаимодействия (стабильные
 селектор столов ресторана).
 
 ### 3.2 Состав и порядок секций
-Порядок = приоритет архетипа (реестр `_PRIORITY`), у отеля: stay → booking →
-order. Правило видимости секции:
+Kind'ов в системе шесть: order / booking / stay / ticket / job / reservation
+(`transactions.TRANSACTION_KINDS`). Порядок секций = `_PRIORITY` архетипов,
+спроецированный на kind (маппинг модуль→kind задать явно: events→ticket,
+stays→stay, booking→booking, jobs→job, **orders→order** — в `_PRIORITY` стоит
+`catalog`, а модуль продаж `orders`; promotions→reservation). У отеля:
+stay → booking → order.
+
+Правило видимости секции:
 - kind primary-модуля — ВСЕГДА (пустой — с CTA «настроить/создать»);
-- прочие kind — модуль активен И существует хотя бы одна сделка (`exists()`,
-  батч-запрос на страницу);
+- прочие kind — модуль активен И существует хотя бы одна сделка. Реализация:
+  `transactions.kinds_with_sales(tenant)` — до 6 тривиальных `exists()`
+  (`SELECT 1 … LIMIT 1`); прецедент правила «показывать только непустое» уже
+  работает в ЛК клиента (`account_data.sections_for` отсев `if s["items"]`);
 - ручной оверрайд в настройках не делаем в v1 (обсудить).
 
-### 3.3 Виды в секции (переключатель per-kind, запоминается)
-| kind | виды | дефолт (по архетипу) |
-|---|---|---|
-| stay (номера) | Kalender (Belegungsplan) ∥ Board ∥ Liste | Kalender |
-| booking (услуги) | Kalender ∥ Board ∥ Liste | Kalender (салон/отель); Board — нет на рынке, но оставляем как опцию |
-| order (товары) | Board ∥ Liste (+ Kalender по дате выдачи — опция, см. §1.3) | retail: Liste; гастро-C&C: Board |
-| job (заявки) | Board ∥ Liste (+ Kalender термИнов — v2) | Board (рыночная норма Handwerker) |
-| ticket (билеты) | Liste ∥ Kalender дат | Kalender |
+`reservation` (резервы акций) сегодня живёт в хабе Marketing — вопрос §4.6:
+включать ли его седьмой секцией или сознательно оставить маркетингу.
 
-Хранение: расширить ключ `orders_view` (ST-5b) до `{kind: view}`
-(presence-minimal в normalize; плоское старое значение = легаси-маппинг).
+### 3.3 Виды в секции (переключатель per-kind, запоминается)
+| kind | виды | чего не хватает | дефолт |
+|---|---|---|---|
+| stay (номера) | Kalender (Belegungsplan) ∥ Board ∥ Liste | **Liste новая** (Buchungsliste — самый спрошенный пробел; queryset календаря плоской таблицей) | Kalender |
+| booking (услуги) | Kalender (Tagesplan) ∥ Board ∥ Liste | **Liste новая** | Kalender |
+| order (товары) | Board ∥ Liste (+ Kalender-Auftragsbuch по дате выдачи — опция §1.3) | календарь-опция | retail: Liste; гастро-C&C: Board |
+| job (заявки) | Board ∥ Liste (+ Einsatzplan-календарь — v2) | — | Board (рыночная норма Handwerker) |
+| ticket (билеты) | Liste ∥ Board (+ календарь дат — v2) | — | Liste |
+| reservation | Board ∥ Liste | — | Liste |
+
+Канбан — единственный вид, уже покрывающий 100 % kind (вкладки board), поэтому
+«Board ∥ Liste» достижимо для всех сразу; новые работы v1 — только две Liste
+(stay/booking) и партиализация календарей.
+
+Хранение выбора: НОВЫЙ ключ `sales_views: {kind: view}` (presence-minimal).
+Легаси-ключ `orders_view` удалён нормализацией 2026-07-28 и остаётся дропаемым —
+не реанимировать его имя, чтобы не оживить старую семантику.
 
 ### 3.4 Сборка из существующего (без переписывания движков)
 - **Канбан секции** = `manage_sections_for` c фильтром по одному kind +
@@ -144,20 +161,41 @@ order. Правило видимости секции:
 - **classic_ui** → прежнее поведение: «Verkäufe» ведёт на отдельные страницы,
   новая страница не подключается (замок).
 
-### 3.5 Другие архетипы — та же страница
-Секционная модель универсальна: у салона первой стоит секция booking-календаря,
-у Handwerker — job-канбан, у магазина — order-список; «допродажные» kind
-подключаются сами при первой продаже. Это закрывает и вопрос находимости
-(«где мои продажи?» — всегда один ответ: Verkäufe).
+### 3.5 Другие архетипы — та же страница (первая секция = primary, дефолтный вид = рыночная норма)
+| Архетип | Секции по порядку (видимые всегда/при продажах) | Дефолт первой секции |
+|---|---|---|
+| hotel, retreat | **stay** → booking → order | Belegungsplan (норма PMS) |
+| friseur | **booking** → order → reservation | Tagesplan (норма Fresha/Treatwell) |
+| restaurant, cafe | **booking** → order (C&C) → reservation | Tagesplan; заказы — Board (KDS-паттерн) |
+| bakery, butcher, grocery | **order** → job (Partyservice) → reservation | Liste (+Auftragsbuch-календарь как опция — DACH-традиция книги заказов) |
+| clothing, online_shop, retail | **order** → reservation | Liste (норма Shopify); Click&Reserve — Board |
+| handwerker | **job** → order | Board-пайплайн (норма plancraft/HERO/Jobber) |
+| werkstatt | **booking** → job → order | Tagesplan термИнов; машины — Board (доска статусов СТО) |
+| events, tours | **ticket** → reservation → order | Liste (внутри события — участники) |
+| other | order → всё прочее при продажах | Liste |
+
+Это закрывает и вопрос находимости («где мои продажи?» — всегда один ответ:
+Verkäufe), и дыры навигации: сегодня со страниц Tickets/Aufträge/Reservierungen
+сегмент-контрол вообще не рендерится — в единой странице они станут секциями.
+
+### 3.6 Попутные фиксы (нашла разведка, дёшево закрыть той же волной)
+- Счётчики колонок доски считаются по загруженным 50 карточкам, не по БД —
+  при >50 врут; в секциях считать честно (`stage_counts` отдельным count).
+- `booking/calendar.html` и `stays/calendar.html` оба подсвечивают пункт
+  «Kalender» — у отеля на booking-странице подсвечен чужой пункт.
 
 ## 4. Развилки на решение владельца
 1. Стек секций со сворачиванием (предлагаю) vs вкладки?
 2. Встроенные виды: полные (тяжелее, но всё на одном экране) vs компактные
-   (limit N + «Vollansicht»)? Предлагаю: полные для primary-секции, компактные
-   для вторичных.
+   (limit N + «Vollansicht»)? Предлагаю: полный для primary-секции, компактные
+   для вторичных с ленивой `?box=`-подгрузкой.
 3. Календарь заказов по дате выдачи (Auftragsbuch, за пределами исходной спеки)
    — делать в этой волне или отложить?
-4. Канбан для номеров (stay): какие колонки владелец ждёт? (Сейчас доска умеет
-   stay через pipeline-стадии; названия колонок настраиваются W5.)
+4. Канбан для номеров (stay): колонки = стадии Neu/In Bearbeitung/Fertig/
+   Abgeschlossen (переименовываются в W5-панели) — так и ждёт владелец?
 5. Судьба существующих отдельных страниц (board, orders, календари) — остаются
    как «Vollansicht»-цели (предлагаю) или сводим всё сюда?
+6. `reservation` (резервы акций): седьмой секцией на Verkäufe или остаётся
+   в Marketing (сегодня там, сознательно)?
+7. Куда ведёт «Verkäufe» в сайдбаре после волны: на новую страницу (предлагаю)
+   — или primary-архетипам оставить прямой вход в их главный вид?
