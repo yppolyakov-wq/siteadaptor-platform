@@ -124,6 +124,67 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
     return reservation
 
 
+@transaction.atomic
+def purchase(
+    promotion,
+    *,
+    quantity=1,
+    name,
+    email="",
+    phone="",
+    note="",
+    source_channel="",
+):
+    """P2 «ценовой слой»: чекаут акции СТАНДАРТНЫМ заказом (план
+    promo-price-layer-plan-2026-08-03).
+
+    Двойное списание в ОДНОЙ транзакции: (1) лимит кампании — тот же
+    conditional UPDATE, что у reserve (rows==0 → OutOfStock, замок конкуренции
+    прежний); (2) физический склад товара — штатный anti-oversell
+    `create_order` (custom-строка с product). OutOfStock склада откатывает и
+    лимит кампании — atomic. Маркер {"promo": id} в modifiers строки — по нему
+    `_restore_promo_limits` возвращает лимит при отмене/возврате заказа.
+    Цели v1: product и «свободная» акция (без цели — строка без склада);
+    service/stay идут своими рельсами (P3/P4)."""
+    if quantity < 1:
+        raise ValueError("quantity must be >= 1")
+    # (1) лимит кампании (None = без лимита; но акция обязана быть active)
+    if promotion.available_quantity is not None:
+        rows = Promotion.objects.filter(
+            id=promotion.id,
+            status="active",
+            available_quantity__gte=quantity,
+        ).update(available_quantity=F("available_quantity") - quantity)
+        if rows == 0:
+            raise OutOfStock()
+    elif promotion.status != "active":
+        raise OutOfStock()
+
+    # (2) стандартный заказ с замороженной промо-ценой; склад — штатно.
+    from apps.orders import services as order_services
+
+    title = promotion.title.get("de") or next(iter(promotion.title.values()), "Aktion")
+    order = order_services.create_order(
+        items=[],
+        name=name,
+        email=email,
+        phone=phone,
+        note=note,
+        source_channel=source_channel or "promo",
+        custom_lines=[
+            (
+                title,
+                promotion.new_price,
+                quantity,
+                promotion.product,
+                None,
+                [{"promo": str(promotion.pk), "label": "Aktion"}],
+            )
+        ],
+    )
+    return order
+
+
 def confirm(reservation, *, actor=None):
     """pending → confirmed (ручное подтверждение владельцем)."""
     with transaction.atomic():

@@ -193,19 +193,22 @@ def create_order(
         title, unit_price, qty = line[0], line[1], line[2]
         product = line[3] if len(line) > 3 else None
         variant = line[4] if len(line) > 4 else None
-        custom_norm.append((str(title), Decimal(str(unit_price)), int(qty), product, variant))
+        # P2 «ценовой слой»: 6-й элемент — снимок modifiers (напр. маркер
+        # {"promo": id} — по нему возврат лимита кампании при отмене).
+        mods = list(line[5]) if len(line) > 5 else []
+        custom_norm.append((str(title), Decimal(str(unit_price)), int(qty), product, variant, mods))
     if not norm and not combo_norm and not custom_norm:
         raise EmptyOrder()
     if (
         any(qty < 1 for _p, _v, qty, _o in norm)
         or any(q < 1 for _c, _o, q in combo_norm)
-        or any(q < 1 for _t, _u, q, _p, _v in custom_norm)
+        or any(q < 1 for _t, _u, q, _p, _v, _m in custom_norm)
     ):
         raise ValueError("qty must be >= 1")
 
     # R3: атомарное списание; OutOfStock → откат, заказа нет. Custom-строки с
     # привязкой к товару резервируют сток тем же путём (цена всё равно из строки).
-    custom_reserve = [(p, v, q, []) for _t, _u, q, p, v in custom_norm if p is not None]
+    custom_reserve = [(p, v, q, []) for _t, _u, q, p, v, _m in custom_norm if p is not None]
     _reserve_stock(norm + custom_reserve)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     delivery = fulfillment == Order.FULFILLMENT_DELIVERY
@@ -290,7 +293,7 @@ def create_order(
             total += unit_price * qty
     # LS-3: custom-строки — цена/название заморожены (персональное предложение);
     # позиции с товаром логируют списание в леджер (как обычные), свободные — нет.
-    for title, unit_price, qty, product, variant in custom_norm:
+    for title, unit_price, qty, product, variant, mods in custom_norm:
         label = variant.label if variant is not None else ""
         item = OrderItem.objects.create(
             order=order,
@@ -300,6 +303,7 @@ def create_order(
             qty=qty,
             unit_price=unit_price,
             title_snapshot=title[:200],
+            modifiers=mods,
         )
         tracked = variant if variant is not None else product
         if tracked is not None and tracked.stock_quantity is not None:

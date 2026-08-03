@@ -128,3 +128,29 @@ def _restore_stock(instance):
                 from apps.inventory.services import restore_fefo
 
                 restore_fefo(item.product, item.variant, qty=item.qty)
+        # P2 «ценовой слой»: заказ из акции возвращает ЛИМИТ КАМПАНИИ (маркер
+        # {"promo": id} в modifiers custom-строки). Единственная точка возврата:
+        # сюда приходят и встроенный FSM, и зеркало кастом-статусов
+        # (status_effects.restore_stock_for("order") зовёт этот же _restore_stock).
+        _restore_promo_limits(instance)
+
+
+def _restore_promo_limits(instance):
+    from django.db.models import F
+
+    from apps.promotions.models import Promotion
+    from apps.promotions.services import notify_waitlist_available
+
+    per_promo = {}
+    for item in instance.items.all():
+        for mod in item.modifiers or []:
+            promo_id = isinstance(mod, dict) and mod.get("promo")
+            if promo_id:
+                per_promo[promo_id] = per_promo.get(promo_id, 0) + item.qty
+    for promo_id, qty in per_promo.items():
+        Promotion.objects.filter(id=promo_id, available_quantity__isnull=False).update(
+            available_quantity=F("available_quantity") + qty
+        )
+        promo = Promotion.objects.filter(id=promo_id).first()
+        if promo is not None:
+            notify_waitlist_available(promo)
