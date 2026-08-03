@@ -12,4 +12,7 @@ options пуст, ничего не рендерим.{% endcomment %}
   </a>
   {% endfor %}
 </div>
+{% comment %}V4 (2026-08-03): страницы хаба помечены как старое — вход теперь на
+единую страницу Verkäufe (решение владельца «пока да, но подпиши старое»).{% endcomment %}
+<span class="ml-2 text-xs text-gray-400 align-middle">{% load i18n %}{% trans "Alte Ansicht" %} · <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">🆕 {% trans "Alles auf einer Seite" %} →</a></span>
 {% endif %}

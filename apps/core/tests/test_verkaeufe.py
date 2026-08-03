@@ -138,3 +138,30 @@ def test_reservation_never_a_secondary_tab():
         business_type="bakery", disabled_modules=list(default_disabled_for("bakery"))
     )
     assert "reservation" not in sales_page.visible_kinds(tenant)
+
+
+def test_auftragsbuch_groups_orders_by_pickup_day():
+    """V3: календарь заказов по дням выдачи; активные без слота — «ohne Termin»."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.orders.models import Customer as OrderCustomer
+    from apps.orders.models import Order
+
+    slot = timezone.now() + timedelta(days=2)
+    anna = OrderCustomer.objects.create(name="Anna", email="a@t.de")
+    bernd = OrderCustomer.objects.create(name="Bernd", email="b@t.de")
+    with_slot = Order.objects.create(customer=anna, pickup_slot=slot, reference_code="O-AB0001")
+    без = Order.objects.create(customer=bernd, reference_code="O-AB0002")  # без слота
+    body = views.verkaeufe(
+        _req(
+            data={"tab": "order", "view": "kalender"},
+            business_type="bakery",
+            disabled_modules=[],
+        )
+    ).content.decode()
+    assert "data-auftragsbuch" in body
+    assert "Anna" in body
+    assert "Ohne Termin" in body and "Bernd" in body
+    assert with_slot.reference_code in body and без.reference_code in body

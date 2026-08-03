@@ -16912,3 +16912,12 @@ msgstr "Eski görünüm"
 
 msgid "Noch keine Einträge."
 msgstr "Henüz kayıt yok."
+
+msgid "Alles auf einer Seite"
+msgstr "Hepsi tek sayfada"
+
+msgid "Auftragsbuch — nach Abholtermin"
+msgstr "Sipariş defteri — teslim tarihine göre"
+
+msgid "Ohne Termin"
+msgstr "Tarihsiz"

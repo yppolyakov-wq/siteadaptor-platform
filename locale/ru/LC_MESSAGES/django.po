@@ -16992,3 +16992,12 @@ msgstr "Старый вид"
 
 msgid "Noch keine Einträge."
 msgstr "Пока нет записей."
+
+msgid "Alles auf einer Seite"
+msgstr "Всё на одной странице"
+
+msgid "Auftragsbuch — nach Abholtermin"
+msgstr "Книга заказов — по дате выдачи"
+
+msgid "Ohne Termin"
+msgstr "Без даты выдачи"

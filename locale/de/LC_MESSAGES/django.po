@@ -16951,3 +16951,12 @@ msgstr "Alte Ansicht"
 
 msgid "Noch keine Einträge."
 msgstr "Noch keine Einträge."
+
+msgid "Alles auf einer Seite"
+msgstr "Alles auf einer Seite"
+
+msgid "Auftragsbuch — nach Abholtermin"
+msgstr "Auftragsbuch — nach Abholtermin"
+
+msgid "Ohne Termin"
+msgstr "Ohne Termin"

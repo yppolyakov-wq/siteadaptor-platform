@@ -42,9 +42,10 @@ def _req(tenant, path="/dashboard/"):
 def test_sidebar_nav_composition_and_urls():
     t = TenantFactory(slug="sb1", name="Sb1", business_type="bakery")
     keys = [it["url_name"] for it in modules.sidebar_nav(t)]
+    # V4 (2026-08-03): якорь «Verkäufe» ведёт на единую страницу продаж.
     assert keys == [
         "dashboard",
-        "board",
+        "verkaeufe",
         "sellable-manage",
         "marketing-home",
         "integrations-home",
@@ -65,7 +66,7 @@ def test_sidebar_nav_gates():
     )
     keys = [it["url_name"] for it in modules.sidebar_nav(t)]
     assert "marketing-home" not in keys
-    assert "board" in keys and "settings" in keys and "sellable-manage" in keys
+    assert "verkaeufe" in keys and "settings" in keys and "sellable-manage" in keys
 
 
 def test_classic_keeps_grouped_sidebar():
@@ -98,17 +99,15 @@ def test_compact_sidebar_renders_on_dashboard():
 
 
 def test_sales_anchor_respects_orders_view_default():
-    """Запрос владельца 2026-07-27: у отеля «Verkäufe» = Belegungsplan (календарь
-    как главная доска); Board открывается дополнительно сегмент-контролом ST-5b."""
-    # Фабрика включает все модули → выключаем конкурентов primary (как в
-    # test_orders_view): у реального отеля events/booking выключены пресетом.
+    """V4 (2026-08-03): якорь «Verkäufe» сайдбара ведёт на единую страницу
+    продаж для ЛЮБОГО архетипа; легаси-маппинг (отель→Belegungsplan, магазин→
+    список) живёт под classic_ui и закреплён в test_orders_view. classic-сайдбар
+    рендерится легаси-веткой AB1 и якоря verkaeufe не несёт."""
     hotel = TenantFactory(
         slug="sbho", name="SbHo", business_type="hotel", disabled_modules=["events", "booking"]
     )
-    item = next(
-        it for it in modules.sidebar_nav(hotel) if it["url_name"] in ("board", "stays:calendar")
-    )
-    assert item["url_name"] == "stays:calendar" and item["nav_key"] == "stays"
+    item = next(it for it in modules.sidebar_nav(hotel) if it["url_name"] == "verkaeufe")
+    assert item["nav_key"] == "board"  # общий якорь «Verkäufe» единой страницы
 
     shop = TenantFactory(
         slug="sbsh",
@@ -116,7 +115,5 @@ def test_sales_anchor_respects_orders_view_default():
         business_type="shop",
         disabled_modules=["events", "booking", "stays", "jobs"],
     )
-    item = next(
-        it for it in modules.sidebar_nav(shop) if it["url_name"] in ("board", "orders:order-list")
-    )
-    assert item["url_name"] == "orders:order-list" and item["nav_key"] == "orders"
+    item = next(it for it in modules.sidebar_nav(shop) if it["url_name"] == "verkaeufe")
+    assert item["nav_key"] == "board"

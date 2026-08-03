@@ -16800,3 +16800,12 @@ msgstr "Old view"
 
 msgid "Noch keine Einträge."
 msgstr "No entries yet."
+
+msgid "Alles auf einer Seite"
+msgstr "Everything on one page"
+
+msgid "Auftragsbuch — nach Abholtermin"
+msgstr "Order book — by pickup date"
+
+msgid "Ohne Termin"
+msgstr "No pickup date"

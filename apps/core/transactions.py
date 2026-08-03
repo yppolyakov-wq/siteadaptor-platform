@@ -403,9 +403,22 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT, only: str | None = Non
                 ]
         except Exception:  # noqa: BLE001 — полоса best-effort, доска важнее
             pass
+        # V4 (2026-08-03): счётчики честные — по БД, а не по загруженным limit
+        # карточкам (при >limit шапки колонок врали). Кастом-статусы тенанта
+        # резолвятся тем же реестром, что и карточки.
         counts = {stage: 0 for stage in pipeline.STAGES}
-        for tx in txs:
-            counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1
+        try:
+            from django.db.models import Count
+
+            from apps.core import status_registry
+
+            for row in _managed_queryset(kind).values("status").annotate(n=Count("pk")):
+                d = status_registry.resolve(kind, row["status"], tenant)
+                stage = d.stage if d is not None else "intake"
+                counts[stage] = counts.get(stage, 0) + row["n"]
+        except Exception:  # noqa: BLE001 — фолбэк: как раньше, по загруженным
+            for tx in txs:
+                counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1
         columns = pipeline.resolve_columns(kind, board_cfg)
         for col in columns:  # число карточек в колонке — в шапку колонки
             col["count"] = counts.get(col["stage"], 0)
@@ -417,7 +430,7 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT, only: str | None = Non
                 "columns": columns,
                 "transactions": txs,
                 "stage_counts": counts,
-                "total": len(txs),
+                "total": sum(counts.values()),  # V4: честный итог по БД
             }
         )
     return out

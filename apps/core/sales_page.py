@@ -28,13 +28,12 @@ _MODULE_KIND = {
 }
 
 # kind → доступные виды по порядку отображения. `kalender` есть только там, где
-# существует календарный движок (stay: Belegungsplan, booking: Tagesplan;
-# order получит Auftragsbuch по дате выдачи инкрементом V3 — тогда и появится
-# в кортеже, normalize подхватит автоматически).
+# существует календарный движок (stay: Belegungsplan, booking: Tagesplan,
+# order: Auftragsbuch по дате выдачи — V3).
 KIND_VIEWS = {
     "stay": ("kalender", "board", "liste"),
     "booking": ("kalender", "board", "liste"),
-    "order": ("board", "liste"),
+    "order": ("board", "liste", "kalender"),
     "job": ("board", "liste"),
     "ticket": ("liste", "board"),
     "reservation": ("liste", "board"),

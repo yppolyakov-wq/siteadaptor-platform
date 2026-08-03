@@ -3142,6 +3142,10 @@ def verkaeufe(request):
         from apps.booking.views import calendar_context as booking_calendar_context
 
         ctx = {**booking_calendar_context(request), **ctx}
+    elif view == "kalender" and active == "order":  # V3: Auftragsbuch
+        from apps.orders.views import auftragsbuch_context
+
+        ctx = {**auftragsbuch_context(request), **ctx}
     elif view == "board":
         ctx["sections"] = transactions.manage_sections_for(tenant, only=active)
     elif active == "order":  # Liste заказов — богатые строки списка orders

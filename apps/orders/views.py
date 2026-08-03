@@ -49,6 +49,49 @@ def _transition_rows(tenant):
     return transition_rules.editor_rows(tenant, "order")
 
 
+def auftragsbuch_context(request):
+    """V3 (план unified-sales-page-plan-2026-08-03): Auftragsbuch — заказы по
+    ДНЯМ выдачи (DACH-традиция книги заказов пекарни). Ось — `Order.pickup_slot`
+    (флоу «заказ ко времени»); активные заказы без слота — блок «ohne Termin».
+    Только представление, движок заказов не трогается."""
+    from datetime import date, timedelta
+
+    from django.utils import timezone
+
+    from apps.core import status_registry
+
+    try:
+        start = date.fromisoformat(request.GET.get("von") or "")
+    except ValueError:
+        start = timezone.localdate()
+    window = 14
+    days = [start + timedelta(days=i) for i in range(window)]
+    active = status_registry.counted_statuses("order") or ("new", "confirmed", "ready")
+    qs = (
+        Order.objects.filter(
+            pickup_slot__date__gte=start,
+            pickup_slot__date__lt=start + timedelta(days=window),
+        )
+        .select_related("customer")
+        .order_by("pickup_slot")
+    )
+    by_day = {d: [] for d in days}
+    for o in qs:
+        by_day[timezone.localtime(o.pickup_slot).date()].append(o)
+    return {
+        "ab_days": [(d, by_day.get(d, [])) for d in days],
+        "ab_start": start,
+        "ab_prev": start - timedelta(days=window),
+        "ab_next": start + timedelta(days=window),
+        "ab_today": timezone.localdate(),
+        "ab_ohne": (
+            Order.objects.filter(pickup_slot__isnull=True, status__in=active)
+            .select_related("customer")
+            .order_by("-created_at")[:50]
+        ),
+    }
+
+
 @login_required
 def order_list(request):
     qs = Order.objects.select_related("customer").prefetch_related("items")

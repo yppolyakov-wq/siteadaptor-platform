@@ -33,6 +33,8 @@
   {% include "stays/_belegungsplan_body.html" %}
 {% elif active_view == "kalender" and active_kind == "booking" %}
   {% include "booking/_tagesplan_body.html" %}
+{% elif active_view == "kalender" and active_kind == "order" %}
+  {% include "orders/_auftragsbuch_body.html" %}
 {% elif active_view == "board" %}
   {% include "core/_board_body.html" %}
 {% elif active_kind == "order" %}

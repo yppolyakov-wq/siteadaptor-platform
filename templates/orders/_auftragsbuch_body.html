@@ -1,0 +1,42 @@
+{% load i18n cabinet %}
+{% comment %}V3: Auftragsbuch — заказы по дням выдачи (Order.pickup_slot), 2 недели.
+Контекст: ab_days/ab_start/ab_prev/ab_next/ab_today/ab_ohne (auftragsbuch_context).{% endcomment %}
+<div class="flex items-center justify-between gap-3 mb-3">
+  <div class="flex items-center gap-2 text-sm">
+    <a href="?tab=order&amp;von={{ ab_prev|date:'Y-m-d' }}" class="rounded-lg border border-gray-200 px-2 py-1 hover:bg-gray-50">←</a>
+    <span class="font-medium">{{ ab_start|date:"d.m." }} – {{ ab_days|last|first|date:"d.m.Y" }}</span>
+    <a href="?tab=order&amp;von={{ ab_next|date:'Y-m-d' }}" class="rounded-lg border border-gray-200 px-2 py-1 hover:bg-gray-50">→</a>
+  </div>
+  <span class="text-xs text-gray-400">{% trans "Auftragsbuch — nach Abholtermin" %}</span>
+</div>
+
+{% if ab_ohne %}
+<div class="mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-3">
+  <p class="text-xs font-medium text-amber-800 mb-2">{% trans "Ohne Termin" %} ({{ ab_ohne|length }})</p>
+  <div class="flex flex-wrap gap-2">
+    {% for o in ab_ohne %}
+      <a href="{% url 'orders:order-detail' o.pk %}" class="text-xs bg-white border border-amber-200 rounded-lg px-2 py-1 hover:bg-amber-100">{{ o.reference_code }} · {{ o.customer }} · {{ o.total }} {{ o.currency }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2" data-auftragsbuch>
+  {% for day, orders in ab_days %}
+    <div class="bg-white rounded-xl border {% if day == ab_today %}border-indigo-400 ring-1 ring-indigo-200{% else %}border-gray-200{% endif %} p-2 min-h-24">
+      <p class="text-xs font-medium {% if day == ab_today %}text-indigo-700{% else %}text-gray-500{% endif %} mb-1.5">{{ day|date:"D d.m." }}</p>
+      {% for o in orders %}
+        <a href="{% url 'orders:order-detail' o.pk %}" class="block text-xs rounded-lg px-1.5 py-1 mb-1 border
+          {% if o.status == 'ready' %}bg-indigo-50 border-indigo-200 text-indigo-800
+          {% elif o.status == 'picked_up' %}bg-gray-50 border-gray-200 text-gray-400
+          {% elif o.status == 'cancelled' %}bg-red-50 border-red-100 text-red-400 line-through
+          {% else %}bg-amber-50 border-amber-200 text-amber-900{% endif %}">
+          <span class="font-medium">{{ o.pickup_slot|date:"H:i" }}</span> {{ o.customer }}
+          <span class="block text-[10px] opacity-70">{{ o.reference_code }} · {% status_label o %}</span>
+        </a>
+      {% empty %}
+        <p class="text-[10px] text-gray-300">—</p>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>

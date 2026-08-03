@@ -79,12 +79,16 @@ def resolve_view(tenant):
 
 def entry_url(tenant):
     """URL «раздела заказов» для точек входа (хаб-плитка Bestellungen)."""
-    return _view_url(tenant, resolve_view(tenant)) or reverse("board")
+    return reverse(entry_url_name(tenant))
 
 
 def entry_url_name(tenant):
-    """То же — именем маршрута (для плиток, резолвящих {% url %}); resolve_view
-    гарантирует достижимость (calendar ⇒ booking|stays активен)."""
+    """Имя маршрута входа «Verkäufe». V4 (2026-08-03): не-classic ведёт на
+    единую страницу продаж; classic — прежний архетип-дефолт (страховка ST)."""
+    from apps.core import modules  # ленивый: modules импортирует нас же
+
+    if not modules.classic_ui(tenant):
+        return "verkaeufe"
     view = resolve_view(tenant)
     if view == "feed":
         return "orders:order-list"
