@@ -285,6 +285,7 @@ def _p(
     diets=None,
     material="",
     care="",
+    variant_style="",
 ):
     return {
         "name": name,
@@ -303,6 +304,7 @@ def _p(
         "sku": sku,
         "material": material,  # M1: Textilkennzeichnung (Boutique)
         "care": care,
+        "variant_style": variant_style,  # O-2: per-товарный вид выбора
     }
 
 
@@ -3507,6 +3509,22 @@ CAFE = DemoKit(
                     "breakfast",
                     allergens=["gluten", "milch", "eier"],
                     badge="beliebt",
+                    # O-3: допы ПЛИТКАМИ С ФОТО (носитель вида "tiles" в демо —
+                    # фидбэк владельца 2026-08-03 «негде попробовать»).
+                    modifiers=[
+                        _mg(
+                            "Extras",
+                            [
+                                ("Avocado", "2.00", "avocado"),
+                                ("Lachs", "3.50", "salmon,fish"),
+                                ("Extra Ei", "1.00", "eggs"),
+                                ("Obstsalat", "2.50", "fruit,salad"),
+                            ],
+                            min=0,
+                            max=4,
+                            style="tiles",
+                        ),
+                    ],
                 ),
                 _p(
                     "Avocado-Toast",
@@ -3826,6 +3844,37 @@ CLOTHING = DemoKit(
                     badge="beliebt",
                     material="100 % Viskose (LENZING™ ECOVERO™)",
                     care="30 °C Schonwäsche, nicht trocknergeeignet",
+                ),
+                _p(
+                    "Seidentuch Aurora",
+                    "24.90",
+                    "Seidiges Tuch, drei Dessins — Auswahl als Foto-Kacheln.",
+                    "scarf,silk",
+                    # O-2: НОСИТЕЛЬ вида "photo" — варианты фото-плитками
+                    # (фидбэк владельца 2026-08-03 «негде попробовать»).
+                    variant_style="photo",
+                    variants=[
+                        {
+                            "label": "Dessin Blüte",
+                            "price": "24.90",
+                            "stock": 6,
+                            "images": ["scarf,floral"],
+                        },
+                        {
+                            "label": "Dessin Streifen",
+                            "price": "24.90",
+                            "stock": 4,
+                            "images": ["scarf,stripes"],
+                        },
+                        {
+                            "label": "Dessin Uni",
+                            "price": "22.90",
+                            "stock": 8,
+                            "images": ["scarf"],
+                        },
+                    ],
+                    material="100 % Seide",
+                    care="Handwäsche kalt",
                 ),
                 _p(
                     "Leinenbluse Küste",
@@ -5887,6 +5936,8 @@ def apply_kit(tenant, key: str) -> bool:
             sku=item.get("sku", ""),
             material=item.get("material", ""),  # M1 Textilkennzeichnung
             care=item.get("care", ""),
+            # O-2: per-товарный вид выбора вариантов ("" = дефолт сайта/кита)
+            variant_style=item.get("variant_style", ""),
             is_active=True,
             is_featured=(len(created_products) < 3),
             metadata={"demo": True},
@@ -5960,9 +6011,17 @@ def apply_kit(tenant, key: str) -> bool:
                 sort_order=gsort,
                 is_active=True,
             )
-            for osort, (olabel, odelta) in enumerate(group["options"]):
+            for osort, opt in enumerate(group["options"]):
+                # Опция — (label, delta) ИЛИ (label, delta, image_kw) — O-3:
+                # фото опции для вида «плитки с фото».
+                olabel, odelta = opt[0], opt[1]
+                oimage = _image_ref(opt[2], 700 + osort, olabel) if len(opt) > 2 else {}
                 ModifierOption.objects.create(
-                    group=mg, label=olabel, price_delta=Decimal(odelta), sort_order=osort
+                    group=mg,
+                    label=olabel,
+                    price_delta=Decimal(odelta),
+                    image=oimage,
+                    sort_order=osort,
                 )
         created_products.append(product)
         refs["products"].append(str(product.pk))
