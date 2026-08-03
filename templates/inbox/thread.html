@@ -88,18 +88,23 @@
   var url = list.getAttribute("data-poll-url");
   var typingUrl = list.getAttribute("data-typing-url");
   var ind = document.getElementById("typing-ind");
-  var area = document.querySelector("textarea[name=body]");
-  var csrfEl = document.querySelector("[name=csrfmiddlewaretoken]");
   var lastPing = 0;
-  // Троттлинг 3 с при TTL флага 6 с: индикатор держится, пока печатают, и гаснет
-  // сам через пару секунд после паузы.
+  // Форма ответа лежит НИЖЕ этого скрипта — textarea на момент выполнения ещё нет,
+  // и querySelector вернул бы null (пинг молча не отправлялся бы никогда). Слушаем
+  // на document (делегирование), токен ищем в момент отправки.
   function ping() {
     var now = Date.now();
-    if (now - lastPing < 3000 || !typingUrl || !csrfEl) return;
+    if (now - lastPing < 3000 || !typingUrl) return;
+    var csrfEl = document.querySelector("[name=csrfmiddlewaretoken]");
+    if (!csrfEl) return;
+    // Троттлинг 3 с при TTL флага 6 с: индикатор держится, пока печатают, и гаснет
+    // сам через пару секунд после паузы.
     lastPing = now;
     fetch(typingUrl, { method: "POST", headers: { "X-CSRFToken": csrfEl.value, "X-Requested-With": "fetch" } }).catch(function () {});
   }
-  if (area) area.addEventListener("input", ping);
+  document.addEventListener("input", function (e) {
+    if (e.target && e.target.name === "body" && e.target.tagName === "TEXTAREA") ping();
+  });
   function add(m) {
     if (list.querySelector('[data-msg-id="' + m.id + '"]')) return;
     var mine = m.role === "staff";

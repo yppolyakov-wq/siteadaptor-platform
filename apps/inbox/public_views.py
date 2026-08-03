@@ -7,7 +7,7 @@
 
 from django.contrib import messages
 from django.core.cache import cache
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
@@ -180,8 +180,11 @@ def thread_typing(request, token):
     """M22b: пинг «клиент печатает» — флаг в кэше на несколько секунд.
 
     Тред и так гейтится `public_token`, а ключ содержит его pk, так что чужой
-    индикатор не поставить и не прочитать, не зная треда."""
+    индикатор не поставить и не прочитать, не зная треда. Только POST: пинг
+    мутирует состояние, GET обходил бы CSRF-защиту."""
     _require_inbox(request)
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
     conversation = get_object_or_404(Conversation, public_token=token)
     mark_typing(conversation.pk, "customer")
     return HttpResponse(status=204)

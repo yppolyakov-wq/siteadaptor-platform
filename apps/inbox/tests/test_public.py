@@ -163,6 +163,29 @@ def test_thread_typing_ping_and_poll_flag():
     assert json.loads(resp2.content)["typing"] is False
 
 
+def test_public_typing_rejects_get():
+    """Пинг мутирует состояние — GET (в обход CSRF) получает 405."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    resp = public_views.thread_typing(
+        _pub("get", f"/nachricht/{conv.public_token}/typing/"), token=conv.public_token
+    )
+    assert resp.status_code == 405
+
+
+def test_typing_ping_wired_by_delegation_not_direct_lookup():
+    """Регресс-замок дефекта, найденного браузерным стендом 2026-08-03: скрипт
+    стоит ВЫШЕ формы ответа, прямой querySelector по textarea в момент выполнения
+    возвращал null — пинг молча не отправлялся никогда. Слушатель обязан висеть
+    на document (делегирование, как в Ф1)."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    body = public_views.thread(
+        _pub("get", f"/nachricht/{conv.public_token}/"), token=conv.public_token
+    ).content.decode()
+    assert 'document.addEventListener("input"' in body
+    # Прямая привязка к textarea до формы — и есть сломанный вариант.
+    assert "area.addEventListener" not in body
+
+
 def test_typing_survives_broken_cache():
     """Redis лёг — тред обязан работать, индикатор просто не показывается."""
     from unittest.mock import patch

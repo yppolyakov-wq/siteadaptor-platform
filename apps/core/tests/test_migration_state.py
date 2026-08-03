@@ -41,6 +41,28 @@ def test_tenant_row_without_schema_is_named_missing_not_pending():
     assert "схем проверено: 1" in body
 
 
+def test_schema_created_but_never_migrated_is_loud_not_silent():
+    """Схема есть, таблиц в ней нет (провижининг умер на полпути).
+
+    Самый опасный режим команды: `search_path` тенанта включает public, где
+    `django_migrations` ЕСТЬ. Читай загрузчик её — команда отрапортовала бы «всё
+    применено» про схему вообще без таблиц, то есть соврала бы ровно там, ради
+    чего написана. Проверено и на стенде: в такой схеме применённых 0.
+    """
+    from django.db import connection
+
+    with connection.cursor() as cur:
+        cur.execute("CREATE SCHEMA probe_unmigrated")
+    TenantFactory(schema_name="probe_unmigrated")
+
+    body = _run()
+    assert "СХЕМЫ ОТСУТСТВУЮТ" not in body  # схема существует — диагноз другой
+    assert "Всё применено" not in body
+    # Имя схемы обязано быть в выводе: без него «не применена» могло бы прийти
+    # откуда угодно и тест ловил бы не то.
+    assert "probe_unmigrated" in body
+
+
 def test_all_flag_lists_healthy_schemas():
     """Без --all вывод короткий (только проблемы); с --all видно и здоровые."""
     assert "public: ок" not in _run()

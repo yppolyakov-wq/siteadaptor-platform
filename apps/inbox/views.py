@@ -211,17 +211,27 @@ def offer_compose(request, pk):
     )
 
 
+@login_required
 def unread_count(request):
-    """M22b realtime: число тредов с непрочитанным для staff — живой бейдж в нав."""
+    """M22b realtime: число тредов с непрочитанным для staff — живой бейдж в нав.
+
+    `@login_required` обязателен: без него счётчик обращений бизнеса читался
+    анонимом (Membership-гейт middleware анонима не трогает — он рассчитывает
+    на этот декоратор)."""
     from django.http import JsonResponse
 
     n = Conversation.objects.filter(unread_for_staff=True).count()
     return JsonResponse({"count": n})
 
 
+@login_required
 def thread_poll(request, pk):
     """M22b realtime: последние сообщения треда в JSON для кабинета — staff видит
-    ответ клиента без перезагрузки. Сбрасывает бейдж непрочитанного (тред открыт)."""
+    ответ клиента без перезагрузки. Сбрасывает бейдж непрочитанного (тред открыт).
+
+    `@login_required` обязателен: эндпоинт отдаёт ТЕЛА сообщений и пишет
+    `unread_for_staff` — анонима сюда пускать нельзя (найдено ревью 2026-08-03;
+    дыра была с появления поллинга)."""
     from django.http import JsonResponse
     from django.utils.formats import date_format
 
@@ -251,8 +261,10 @@ def thread_poll(request, pk):
 @login_required
 def thread_typing(request, pk):
     """M22b: пинг «сотрудник печатает» — клиент увидит его своим поллингом."""
-    from django.http import HttpResponse
+    from django.http import HttpResponse, HttpResponseNotAllowed
 
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
     conversation = get_object_or_404(Conversation, pk=pk)
     mark_typing(conversation.pk, "staff")
     return HttpResponse(status=204)

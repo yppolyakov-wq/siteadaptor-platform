@@ -129,6 +129,36 @@ def test_thread_poll_returns_messages_and_clears_unread():
     assert not conv.unread_for_staff  # тред «просмотрен» поллингом
 
 
+def test_cabinet_poll_and_unread_closed_to_anonymous():
+    """Ревью 2026-08-03: поллинг отдаёт ТЕЛА сообщений и пишет unread_for_staff,
+    unread-count — счётчик обращений бизнеса. Аноним обязан уйти на логин
+    (Membership-гейт middleware анонима не трогает — он рассчитывает на
+    `@login_required` во вьюхе; дыра существовала с появления поллинга)."""
+    from django.contrib.auth.models import AnonymousUser
+
+    conv = services.start_conversation(subject="Q", body="секретное тело", email="a@t.de")
+    for view, args in ((views.thread_poll, (conv.pk,)), (views.unread_count, ())):
+        req = _req("get", "/dashboard/inbox/x/")
+        req.user = AnonymousUser()
+        resp = view(req, *args)
+        assert resp.status_code == 302 and "login" in resp["Location"]
+
+
+def test_cabinet_typing_rejects_get():
+    """Пинг мутирует состояние — GET получает 405, а не молчаливую запись."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    assert views.thread_typing(_req("get", "/x/"), pk=conv.pk).status_code == 405
+
+
+def test_cabinet_typing_ping_wired_by_delegation():
+    """Тот же регресс-замок, что на витрине: скрипт выше формы, прямой
+    querySelector по textarea вернул бы null — пинг не отправлялся бы."""
+    conv = services.start_conversation(subject="Q", body="hi", email="a@t.de")
+    body = views.thread(_req("get", f"/dashboard/inbox/{conv.pk}/"), pk=conv.pk).content.decode()
+    assert 'document.addEventListener("input"' in body
+    assert "area.addEventListener" not in body
+
+
 def test_cabinet_typing_ping_and_poll_flag():
     """M22b (оживлено 2026-08-01): staff пингует «печатает» → флаг staff; печать
     клиента видна в кабинетном поллинге."""
