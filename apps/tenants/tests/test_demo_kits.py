@@ -432,8 +432,13 @@ def test_apply_hotel_kit_builds_stays_site():
     fruehbucher = Promotion.objects.get(stay_unit=seeblick)
     assert fruehbucher.status == "active" and fruehbucher.discount_percent == 10
     # Демо-брони сеются ПОСЛЕ акции штатным book_stay → акция сама применяется
-    # и честно списывает лимит кампании (инвариант: лимит + сделки = 10).
-    claimed = StayBooking.objects.filter(promotion=fruehbucher).count()
+    # и честно списывает лимит кампании. Инвариант: лимит = 10 − АКТИВНЫЕ сделки
+    # (отменённой демо-броне FSM вернул лимит, FK на ней остаётся — не считаем).
+    claimed = (
+        StayBooking.objects.filter(promotion=fruehbucher)
+        .exclude(status=StayBooking.STATUS_CANCELLED)
+        .count()
+    )
     assert fruehbucher.available_quantity == 10 - claimed
     # G8/#6 отзывы клиентов (SHARED) + рейтинг + секция «reviews»
     from apps.aggregator.models import BusinessRating, BusinessReview
