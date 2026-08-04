@@ -168,6 +168,9 @@ class OrderItem(TimestampedModel):
         related_name="order_items",
     )
     variant_label = models.CharField(max_length=100, blank=True)
+    # Фидбэк 2026-08-04 «везде артикул»: снимок Art.-Nr. на момент покупки
+    # (вариантный приоритетнее товарного; sku владелец может менять позже).
+    sku = models.CharField(max_length=100, blank=True)
     qty = models.PositiveIntegerField(default=1)
     # Снимки цены/названия: заказ показывает то, что видел клиент.
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -188,8 +191,17 @@ class OrderItem(TimestampedModel):
 
     @property
     def modifiers_label(self) -> str:
-        """«Pommes, Käse» — выбранные модификаторы для отображения (A4b)."""
-        return ", ".join(m.get("label", "") for m in (self.modifiers or []))
+        """«Pommes, Käse» — выбранные модификаторы для отображения (A4b).
+
+        Фидбэк 2026-08-04: у опции с артикулом печатаем его рядом с меткой
+        («Sirup [Art.-Nr. S-12]») — снимок пишет create_order."""
+        parts = []
+        for m in self.modifiers or []:
+            label = m.get("label", "")
+            if m.get("sku"):
+                label = f"{label} [Art.-Nr. {m['sku']}]"
+            parts.append(label)
+        return ", ".join(parts)
 
 
 class Offer(TimestampedModel):

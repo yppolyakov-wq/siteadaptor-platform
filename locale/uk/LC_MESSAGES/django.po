@@ -17016,3 +17016,30 @@ msgstr "До акції"
 
 msgid "Conversion = (Verkäufe + Reservierungen) / Views."
 msgstr "Конверсія = (продажі + резерви) / перегляди."
+
+msgid "Select at least two products to merge."
+msgstr "Виберіть щонайменше два товари для об'єднання."
+
+msgid "%(n)s products merged as variants."
+msgstr "Об'єднано товарів як варіанти: %(n)s."
+
+msgid "“%(name)s” already has variants or extras — skipped."
+msgstr "«%(name)s» вже має варіанти або опції — пропущено."
+
+msgid "Zusammenführen"
+msgstr "Об'єднати"
+
+msgid "Als Varianten zusammenführen"
+msgstr "Об'єднати як варіанти"
+
+msgid "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
+msgstr "Виберіть головний товар — решта стануть його варіантами (назва, ціна, залишок, артикул, EAN і фото переїдуть) і зникнуть з вітрини. Історія минулих замовлень збережеться."
+
+msgid "The selected product stays — the rest become its variants."
+msgstr "Вибраний товар залишається — решта стануть його варіантами."
+
+msgid "Art.-Nr."
+msgstr "Артикул"
+
+msgid "Tick two or more products first — they become one card with variants."
+msgstr "Позначте два чи більше товарів — вони стануть однією карткою з варіантами."

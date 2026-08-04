@@ -6,6 +6,8 @@ app_name = "catalog"
 
 urlpatterns = [
     path("products/", views.product_list, name="product-list"),
+    # Фидбэк 2026-08-04: слияние отдельных товаров в одну карточку с вариантами.
+    path("products/merge/", views.products_merge, name="products-merge"),
     path("products/new/", views.product_create, name="product-create"),
     path("products/<uuid:pk>/edit/", views.product_edit, name="product-edit"),
     path("products/<uuid:pk>/delete/", views.product_delete, name="product-delete"),

@@ -16839,3 +16839,30 @@ msgstr "View deal"
 
 msgid "Conversion = (Verkäufe + Reservierungen) / Views."
 msgstr "Conversion = (sales + reservations) / views."
+
+msgid "Select at least two products to merge."
+msgstr "Select at least two products to merge."
+
+msgid "%(n)s products merged as variants."
+msgstr "%(n)s products merged as variants."
+
+msgid "“%(name)s” already has variants or extras — skipped."
+msgstr "“%(name)s” already has variants or extras — skipped."
+
+msgid "Zusammenführen"
+msgstr "Merge"
+
+msgid "Als Varianten zusammenführen"
+msgstr "Merge as variants"
+
+msgid "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
+msgstr "Choose the main product — the others become its variants (name, price, stock, item no., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
+
+msgid "The selected product stays — the rest become its variants."
+msgstr "The selected product stays — the rest become its variants."
+
+msgid "Art.-Nr."
+msgstr "Item no."
+
+msgid "Tick two or more products first — they become one card with variants."
+msgstr "Tick two or more products first — they become one card with variants."

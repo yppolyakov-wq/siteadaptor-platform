@@ -1,0 +1,25 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Zusammenführen" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-2">🔗 {% trans "Als Varianten zusammenführen" %}</h1>
+<p class="text-sm text-gray-500 mb-4 max-w-xl">{% trans "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history." %}</p>
+<form method="post" action="{% url 'catalog:products-merge' %}" class="bg-white rounded-2xl shadow-sm p-4 space-y-2 max-w-xl">
+  {% csrf_token %}
+  {% for p in products %}
+    <label class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 hover:border-indigo-300 cursor-pointer">
+      <input type="radio" name="main" value="{{ p.pk }}" {% if forloop.first %}checked{% endif %}>
+      <input type="hidden" name="ids" value="{{ p.pk }}">
+      {% with img=p.primary_image %}{% if img %}<img src="{{ img.url }}" class="w-10 h-10 rounded object-cover" alt="">{% endif %}{% endwith %}
+      <span class="font-medium flex-1 min-w-0 truncate">{{ p }}</span>
+      <span class="text-sm text-gray-400 whitespace-nowrap">{{ p.base_price }} {{ p.currency }}{% if p.sku %} · {{ p.sku }}{% endif %}</span>
+    </label>
+  {% endfor %}
+  <p class="text-xs text-gray-400">{% trans "The selected product stays — the rest become its variants." %}</p>
+  <div class="flex gap-3 pt-1">
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-indigo-700">{% trans "Zusammenführen" %}</button>
+    <a href="{% url 'catalog:product-list' %}" class="rounded-lg px-4 py-2.5 border border-gray-300 hover:border-indigo-400">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

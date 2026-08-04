@@ -184,6 +184,8 @@
           <input name="cost" type="text" inputmode="decimal" value="{{ v.cost_price|default_if_none:'' }}" placeholder="{% trans 'EK' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Einkaufspreis' %}">
           <input name="reorder_point" type="number" value="{{ v.reorder_point|default_if_none:'' }}" placeholder="{% trans 'Meld.' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Meldebestand' %}">
           <input name="reorder_target" type="number" value="{{ v.reorder_target|default_if_none:'' }}" placeholder="{% trans 'Soll' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Sollbestand' %}">
+          {# Фидбэк 2026-08-04: артикул варианта — поле было в модели, но не в форме. #}
+          <input name="sku" type="text" value="{{ v.sku }}" placeholder="{% trans 'Art.-Nr.' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
           <input name="gtin" type="text" value="{{ v.gtin }}" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
           <input name="sort" type="number" value="{{ v.sort_order }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="is_active" {% if v.is_active %}checked{% endif %}> {% trans "Active" %}</label>
@@ -208,6 +210,7 @@
         <input name="cost" type="text" inputmode="decimal" placeholder="{% trans 'EK' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Einkaufspreis' %}">
         <input name="reorder_point" type="number" placeholder="{% trans 'Meld.' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Meldebestand' %}">
         <input name="reorder_target" type="number" placeholder="{% trans 'Soll' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Sollbestand' %}">
+        <input name="sku" type="text" placeholder="{% trans 'Art.-Nr.' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
         <input name="gtin" type="text" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
         <input name="sort" type="number" value="0" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
         <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add variant" %}</button>
@@ -250,6 +253,8 @@
                 </label>
                 {% if o.image_url %}<label class="text-xs text-gray-400" title="{% trans 'Remove photo' %}"><input type="checkbox" name="remove_image" value="1"> 🗑</label>{% endif %}
                 <input name="label" type="text" value="{{ o.label }}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Option' %}">
+                {# Фидбэк 2026-08-04: артикул опции (справочный — печатается в заказе). #}
+                <input name="sku" type="text" value="{{ o.sku }}" placeholder="{% trans 'Art.-Nr.' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
                 <span class="text-gray-400">+</span>
                 <input name="delta" type="text" inputmode="decimal" value="{{ o.price_delta }}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Surcharge' %}">
                 <input name="sort" type="number" value="{{ o.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
@@ -262,6 +267,7 @@
             <form method="post" enctype="multipart/form-data" action="{% url 'catalog:modifier-option-add' product.pk g.pk %}" class="flex flex-wrap items-center gap-2 text-sm pt-1">
               {% csrf_token %}
               <input name="label" type="text" required placeholder="{% trans 'Option (e.g. Pommes)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
+              <input name="sku" type="text" placeholder="{% trans 'Art.-Nr.' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
               <span class="text-gray-400">+</span>
               <input name="delta" type="text" inputmode="decimal" placeholder="0" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Surcharge' %}">
               <button class="bg-gray-100 text-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-200">{% trans "Add option" %}</button>

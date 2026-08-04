@@ -24,6 +24,9 @@ def _item_label(item) -> str:
     parts = [item.title_snapshot]
     if item.variant_label:
         parts.append(f"({item.variant_label})")
+    # Фидбэк 2026-08-04 «везде артикул»: снимок Art.-Nr. — в документы.
+    if getattr(item, "sku", ""):
+        parts.append(f"· Art.-Nr. {item.sku}")
     if item.modifiers_label:
         parts.append(f"+ {item.modifiers_label}")
     return " ".join(parts)

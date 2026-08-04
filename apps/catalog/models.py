@@ -473,6 +473,9 @@ class ModifierOption(TimestampedModel):
 
     group = models.ForeignKey(ModifierGroup, on_delete=models.CASCADE, related_name="options")
     label = models.CharField(max_length=100)
+    # Фидбэк 2026-08-04: артикул опции — справочный (у опций нет складского
+    # остатка); печатается в заказе/документах рядом с меткой.
+    sku = models.CharField(max_length=100, blank=True)
     # Фото опции (FileRef-конверт, как у core.Extra.image). Пусто = без фото —
     # прежний текстовый вид. Нужно для видов «плитки»/«список с фото».
     image = models.JSONField(default=dict, blank=True)

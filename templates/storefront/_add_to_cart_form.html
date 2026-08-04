@@ -13,7 +13,7 @@
     {% variant_picker product %}
     <select name="variant" required data-variant-select data-pick-select class="rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Option' %}">
       {% for v in product.active_variants %}
-        <option value="{{ v.pk }}"{% if not v.in_stock %} disabled{% endif %} data-size="{{ v.size }}" data-color="{{ v.color }}" data-image="{{ v.image_url }}">{{ v.label }} — {{ v.price_value }} {{ product.currency|cursym }}{% with gp=v.grundpreis %}{% if gp %} ({{ gp.0 }} {{ product.currency|cursym }}/{{ gp.1 }}){% endif %}{% endwith %}{% if not v.in_stock %} — {% trans "sold out" %}{% endif %}</option>
+        <option value="{{ v.pk }}"{% if not v.in_stock %} disabled{% endif %} data-size="{{ v.size }}" data-color="{{ v.color }}" data-image="{{ v.image_url }}" data-sku="{% firstof v.sku product.sku %}">{{ v.label }} — {{ v.price_value }} {{ product.currency|cursym }}{% with gp=v.grundpreis %}{% if gp %} ({{ gp.0 }} {{ product.currency|cursym }}/{{ gp.1 }}){% endif %}{% endwith %}{% if not v.in_stock %} — {% trans "sold out" %}{% endif %}</option>
       {% endfor %}
     </select>
   {% endif %}
@@ -37,12 +37,21 @@
     if (sel.dataset.vinit) return;
     sel.dataset.vinit = "1";
     var img = document.querySelector(".js-media-main");  // главное фото галереи
-    if (!img) return;
-    var original = img.getAttribute("src");
+    var original = img ? img.getAttribute("src") : "";
     sel.addEventListener("change", function () {
       var opt = sel.options[sel.selectedIndex];
-      var url = opt && opt.dataset.image;
-      img.setAttribute("src", url || original);
+      if (img) {
+        var url = opt && opt.dataset.image;
+        img.setAttribute("src", url || original);
+      }
+      // Фидбэк 2026-08-04: Art.-Nr. следует за выбранным вариантом (деталь).
+      var artEl = document.querySelector("[data-artno]");
+      if (artEl) {
+        var sku = (opt && opt.dataset.sku) || "";
+        artEl.hidden = !sku;
+        var val = artEl.querySelector("[data-artno-value]");
+        if (val) val.textContent = sku;
+      }
     });
   });
 })();

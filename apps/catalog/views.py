@@ -306,6 +306,9 @@ def variant_update(request, pk, vid):
     variant.reorder_point = _parse_int(request.POST.get("reorder_point"))  # T5
     variant.reorder_target = _parse_int(request.POST.get("reorder_target"))  # T5
     variant.sort_order = _parse_int(request.POST.get("sort")) or 0
+    # Фидбэк 2026-08-04: артикул варианта редактируется из кабинета (раньше —
+    # только CSV-импортом; поле в модели было с M4-A).
+    variant.sku = (request.POST.get("sku") or "").strip()
     variant.gtin = (request.POST.get("gtin") or "").strip()
     variant.is_active = bool(request.POST.get("is_active"))
     fields = []
@@ -332,6 +335,7 @@ def variant_update(request, pk, vid):
             "reorder_point",
             "reorder_target",
             "sort_order",
+            "sku",
             "gtin",
             "is_active",
             "updated_at",
@@ -420,6 +424,7 @@ def modifier_option_add(request, pk, gid):
         ModifierOption.objects.create(
             group=group,
             label=label,
+            sku=(request.POST.get("sku") or "").strip(),  # фидбэк 2026-08-04
             price_delta=_parse_price(request.POST.get("delta")) or Decimal("0"),
             sort_order=_parse_int(request.POST.get("sort")) or 0,
             # O-2: фото опции (для видов «плитки»/«список с фото»).
@@ -434,10 +439,11 @@ def modifier_option_add(request, pk, gid):
 def modifier_option_update(request, pk, gid, oid):
     option = get_object_or_404(ModifierOption, pk=oid, group_id=gid, group__product_id=pk)
     option.label = (request.POST.get("label") or option.label).strip()
+    option.sku = (request.POST.get("sku") or "").strip()  # фидбэк 2026-08-04
     option.price_delta = _parse_price(request.POST.get("delta")) or Decimal("0")
     option.sort_order = _parse_int(request.POST.get("sort")) or 0
     option.is_active = bool(request.POST.get("is_active"))
-    opt_fields = ["label", "price_delta", "sort_order", "is_active", "updated_at"]
+    opt_fields = ["label", "sku", "price_delta", "sort_order", "is_active", "updated_at"]
     new_image = _uploaded_variant_image(request)
     if new_image or request.POST.get("remove_image"):
         option.image = new_image or {}
@@ -932,3 +938,39 @@ def combo_option_delete(request, pk, gid, oid):
     get_object_or_404(ComboOption, pk=oid, group_id=gid, group__combo_id=pk).delete()
     messages.success(request, _("Option removed."))
     return redirect("catalog:combo-edit", pk=pk)
+
+
+@login_required
+def products_merge(request):
+    """Фидбэк 2026-08-04 «Zusammenführen»: объединить отдельные товары в ОДНУ
+    карточку с вариантами. Шаг 1 (POST ids из списка товаров) — подтверждение
+    с выбором главного; шаг 2 (POST ids+main) — merge.merge_products и редирект
+    в форму главного товара (варианты уже на вкладке)."""
+    if request.method != "POST":
+        return redirect("catalog:product-list")
+    products = list(Product.objects.filter(pk__in=request.POST.getlist("ids")))
+    if len(products) < 2:
+        messages.error(request, _("Select at least two products to merge."))
+        return redirect("catalog:product-list")
+    main_id = request.POST.get("main", "")
+    if not main_id:
+        return render(request, "catalog/merge_confirm.html", {"products": products})
+    main = next((p for p in products if str(p.pk) == main_id), None)
+    if main is None:
+        messages.error(request, _("Select at least two products to merge."))
+        return redirect("catalog:product-list")
+    from .merge import merge_products
+
+    merged, refused = merge_products(
+        main,
+        [p for p in products if p.pk != main.pk],
+        actor=getattr(request.user, "username", ""),
+    )
+    if merged:
+        messages.success(request, _("%(n)s products merged as variants.") % {"n": merged})
+    for name in refused:
+        messages.error(
+            request,
+            _("“%(name)s” already has variants or extras — skipped.") % {"name": name},
+        )
+    return redirect("catalog:product-edit", pk=main.pk)

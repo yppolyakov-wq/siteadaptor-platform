@@ -35,6 +35,15 @@
   {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>
   {% endif %}{% endwith %}{% endif %}
+  {% comment %}Фидбэк 2026-08-04 «везде артикул»: Art.-Nr. под ценой; у товара с
+  вариантами следует за выбором (JS в _add_to_cart_form по data-sku опции).{% endcomment %}
+  {% if product.has_variants %}
+    {% with v0=product.active_variants|first %}{% firstof v0.sku product.sku as artno0 %}
+    <p class="mt-0.5 text-xs text-gray-400" data-artno{% if not artno0 %} hidden{% endif %}>{% trans "Art.-Nr." %}: <span data-artno-value>{{ artno0 }}</span></p>
+    {% endwith %}
+  {% elif product.sku %}
+    <p class="mt-0.5 text-xs text-gray-400">{% trans "Art.-Nr." %}: {{ product.sku }}</p>
+  {% endif %}
   {# E-2/PAngV: Gesamtpreis-Hinweis у цены; правовая строка — немецкий msgid (паттерн §312j-кнопки). #}
   <p class="mt-1 text-xs text-gray-400">{% trans "inkl. MwSt." %}{% if request.tenant.delivery_enabled %} · {% trans "zzgl. Versand" %}{% endif %}</p>
   {% comment %}P6 «ценовой слой»: активная акция на этот товар — промо-цена со ссылкой

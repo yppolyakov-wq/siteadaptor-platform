@@ -16990,3 +16990,30 @@ msgstr "Zum Angebot"
 
 msgid "Conversion = (Verkäufe + Reservierungen) / Views."
 msgstr "Conversion = (Verkäufe + Reservierungen) / Views."
+
+msgid "Select at least two products to merge."
+msgstr "Bitte mindestens zwei Produkte auswählen."
+
+msgid "%(n)s products merged as variants."
+msgstr "%(n)s Produkte wurden als Varianten zusammengeführt."
+
+msgid "“%(name)s” already has variants or extras — skipped."
+msgstr "„%(name)s“ hat bereits Varianten oder Extras — übersprungen."
+
+msgid "Zusammenführen"
+msgstr "Zusammenführen"
+
+msgid "Als Varianten zusammenführen"
+msgstr "Als Varianten zusammenführen"
+
+msgid "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
+msgstr "Hauptprodukt wählen — die übrigen werden zu seinen Varianten (Name, Preis, Bestand, Art.-Nr., EAN und Foto ziehen mit) und verschwinden aus dem Shop. Frühere Bestellungen behalten ihre Historie."
+
+msgid "The selected product stays — the rest become its variants."
+msgstr "Das gewählte Produkt bleibt — die übrigen werden zu seinen Varianten."
+
+msgid "Art.-Nr."
+msgstr "Art.-Nr."
+
+msgid "Tick two or more products first — they become one card with variants."
+msgstr "Zuerst zwei oder mehr Produkte anhaken — sie werden zu einer Karte mit Varianten."

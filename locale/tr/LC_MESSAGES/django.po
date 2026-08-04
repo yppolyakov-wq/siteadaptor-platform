@@ -16951,3 +16951,30 @@ msgstr "Kampanyaya git"
 
 msgid "Conversion = (Verkäufe + Reservierungen) / Views."
 msgstr "Dönüşüm = (satışlar + rezervasyonlar) / görüntülenme."
+
+msgid "Select at least two products to merge."
+msgstr "Birleştirmek için en az iki ürün seçin."
+
+msgid "%(n)s products merged as variants."
+msgstr "%(n)s ürün varyant olarak birleştirildi."
+
+msgid "“%(name)s” already has variants or extras — skipped."
+msgstr "“%(name)s” zaten varyantlara veya ekstralara sahip — atlandı."
+
+msgid "Zusammenführen"
+msgstr "Birleştir"
+
+msgid "Als Varianten zusammenführen"
+msgstr "Varyant olarak birleştir"
+
+msgid "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
+msgstr "Ana ürünü seçin — diğerleri onun varyantları olur (ad, fiyat, stok, ürün no, EAN ve fotoğraf taşınır) ve mağazadan kaldırılır. Geçmiş siparişler korunur."
+
+msgid "The selected product stays — the rest become its variants."
+msgstr "Seçilen ürün kalır — diğerleri onun varyantları olur."
+
+msgid "Art.-Nr."
+msgstr "Ürün no"
+
+msgid "Tick two or more products first — they become one card with variants."
+msgstr "Önce iki veya daha fazla ürünü işaretleyin — tek bir varyantlı karta dönüşürler."

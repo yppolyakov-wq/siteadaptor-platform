@@ -247,7 +247,11 @@ def create_order(
         # A4b: надбавки модификаторов входят в unit_price; снимок — отдельно.
         deltas = sum((Decimal(str(o.price_delta)) for o in options), Decimal("0"))
         unit_price = Decimal(str(base)) + deltas
-        modifiers = [{"label": o.label, "delta": str(o.price_delta)} for o in options]
+        # Фидбэк 2026-08-04: артикул опции — в снимок (печать в заказе/PDF).
+        modifiers = [
+            {"label": o.label, "delta": str(o.price_delta), **({"sku": o.sku} if o.sku else {})}
+            for o in options
+        ]
         label = variant.label if variant is not None else ""
         title = f"{product} · {label}" if label else str(product)
         item = OrderItem.objects.create(
@@ -255,6 +259,8 @@ def create_order(
             product=product,
             variant=variant,
             variant_label=label,
+            # «везде артикул»: снимок Art.-Nr. (вариантный приоритетнее товарного).
+            sku=(variant.sku if variant is not None and variant.sku else product.sku),
             qty=qty,
             unit_price=unit_price,
             title_snapshot=title[:200],
@@ -295,11 +301,17 @@ def create_order(
     # позиции с товаром логируют списание в леджер (как обычные), свободные — нет.
     for title, unit_price, qty, product, variant, mods in custom_norm:
         label = variant.label if variant is not None else ""
+        _sku = ""
+        if variant is not None and variant.sku:
+            _sku = variant.sku
+        elif product is not None:
+            _sku = product.sku
         item = OrderItem.objects.create(
             order=order,
             product=product,
             variant=variant,
             variant_label=label,
+            sku=_sku,
             qty=qty,
             unit_price=unit_price,
             title_snapshot=title[:200],
