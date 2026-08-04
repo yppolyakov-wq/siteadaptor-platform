@@ -362,6 +362,15 @@ class Booking(TimestampedModel):
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)
+    # P3 «ценовой слой»: бронь из акции — по FK возвращается лимит кампании при
+    # отмене (строковая ссылка: promotions уже импортирует booking.Service).
+    promotion = models.ForeignKey(
+        "promotions.Promotion",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="bookings",
+    )
     # Напоминание (D3c, beat): чтобы слать ровно одно.
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     # B2.2: напоминание о незавершённой оплате депозита — дедуп «одно на бронь».
