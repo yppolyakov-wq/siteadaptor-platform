@@ -157,6 +157,10 @@ class DemoKit:
     #    percent|price|reservation|surprise, percent, new_price, compare_at,
     #    available_quantity, countdown(bool), recurrence(daily|weekly), group,
     #    ends_in_days}. Пусто → авто-скидки (как раньше).
+    # P6 «ценовой слой»: + service/stay_unit (индекс в refs["services"]/["stay_units"];
+    #   такие акции создаются после _seed_kit_modules), rules (target_rules:
+    #   weekdays/hour_from/hour_to/resource_id | stay_from/stay_to), limit
+    #   (available_quantity = лимит кампании обычной акции).
     promotions_spec: list = field(default_factory=list)
     # Ваучеры/промокоды: {code, label, percent|cents, min_order(eur), max_uses}.
     vouchers: list = field(default_factory=list)
@@ -1720,10 +1724,15 @@ HOTEL = DemoKit(
     # без привязки к товару (у отеля каталога нет).
     promotions_spec=[
         {
-            "title": "Frühbucher: 10 % auf alle Zimmer",
+            # P6 «ценовой слой»: цель = первый номер (Doppelzimmer Seeblick) —
+            # скидка сама применяется в штатной броне (auto_discount-кандидат),
+            # лимит кампании 10 броней списывается в той же транзакции.
+            "title": "Frühbucher: 10 % im Doppelzimmer Seeblick",
             "percent": 10,
+            "stay_unit": 0,
+            "limit": 10,
             "images": ["hotel,room", "lake,view"],
-            "desc": "Mindestens 30 Tage im Voraus buchen und sparen.",
+            "desc": "Direkt online buchen und 10 % sparen — solange verfügbar.",
             "group": "Zimmer-Angebote",
             "ends_in_days": 45,
             "discount_style": "badge",
@@ -4408,7 +4417,32 @@ FRISEUR = DemoKit(
             "autumn,hair",
         ),
     ],
-    enable_modules=["booking", "loyalty", "orders", "customer_account"],
+    enable_modules=["booking", "loyalty", "orders", "customer_account", "promotions"],
+    # P6 «ценовой слой»: демо «счастливых часов» — акция на УСЛУГУ с окном
+    # Mo–Mi 10–14 (промо-цена сама применяется в штатной записи + подсветка
+    # действующих времён на сетке) + обычная товарная акция каталога.
+    promotions_spec=[
+        {
+            "title": "Happy Hours: Herrenschnitt für 20 €",
+            "desc": "Montag bis Mittwoch zwischen 10 und 14 Uhr — einfach freie "
+            "Zeit wählen, der Preis gilt automatisch.",
+            "service": 1,  # Haarschnitt Herren (25 €)
+            "new_price": "20",
+            "compare_at": "25",
+            "rules": {"weekdays": [0, 1, 2], "hour_from": 10, "hour_to": 14},
+            "limit": 20,
+            "new": True,
+            "image": "man,haircut",
+        },
+        {
+            "title": "Pflege-Woche: 20 % auf Haarpflege",
+            "desc": "Unsere Lieblingsprodukte für zu Hause — nur diese Woche.",
+            "product": 0,
+            "percent": 20,
+            "group": "Produkte",
+            "image": "hair,products",
+        },
+    ],
     extras=[  # #7 доп-услуги к термину (scope booking, разово)
         ("Haarkur Intensiv", "12", "booking", False),
         ("Kopfmassage (10 Min.)", "9", "booking", False),
@@ -6059,56 +6093,71 @@ def apply_kit(tenant, key: str) -> bool:
     from apps.promotions.models import Promotion
 
     now = timezone.now()
+    # P6 «ценовой слой»: акции с целью-услугой/номером создаются ВТОРЫМ проходом
+    # после _seed_kit_modules (services/stay_units существуют только там).
+    deferred_promos = []
+
+    def _create_spec_promo(spec, *, service=None, stay_unit=None):
+        nonlocal lock
+        idx = spec.get("product")
+        product = (
+            created_products[idx] if isinstance(idx, int) and idx < len(created_products) else None
+        )
+        fields = {
+            "title": {"de": spec["title"]},
+            "description": {"de": spec.get("desc", "")},
+            "product": product,
+            "service": service,
+            "stay_unit": stay_unit,
+            # P6: правила действия (счастливые часы / окно проживания).
+            "target_rules": spec.get("rules") or {},
+            "promo_type": Promotion.RESERVATION
+            if spec.get("type") == "reservation"
+            else Promotion.DISCOUNT,
+            "status": "active",
+            # Фидбэк 2026-07-29: чип «Neu» (is_new ≤ 7 дней) — только у явно
+            # помеченных spec'ов, иначе у свежего сида все акции «новые».
+            "starts_at": now if spec.get("new") else now - timedelta(days=10),
+            "ends_at": now + timedelta(days=spec.get("ends_in_days", 14)),
+            "group": spec.get("group", ""),
+            "show_countdown": bool(spec.get("countdown")),
+            "is_surprise": bool(spec.get("surprise")),
+            "recurrence": spec.get("recurrence", ""),
+            "metadata": {"demo": True},
+        }
+        if spec.get("percent"):
+            fields["discount_percent"] = spec["percent"]
+        # UE2-2: стиль вывода скидки (showcase 7 стилей на aktionsmarkt).
+        if spec.get("discount_style"):
+            fields["discount_style"] = spec["discount_style"]
+        if spec.get("new_price"):
+            fields["price_override"] = Decimal(str(spec["new_price"]))
+        if spec.get("compare_at"):
+            fields["compare_at_price"] = Decimal(str(spec["compare_at"]))
+        if spec.get("type") == "reservation":
+            fields["available_quantity"] = spec.get("available_quantity", 10)
+        elif spec.get("limit"):  # P6: лимит кампании обычной акции (новые рельсы)
+            fields["available_quantity"] = spec["limit"]
+        if spec.get("image"):
+            lock += 1
+            fields["images"] = [_image_ref(spec["image"], lock, spec["title"])]
+        elif spec.get("images"):  # 2026-07-29: галерея детали (миниатюры)
+            refs_imgs = []
+            for kw in spec["images"]:
+                lock += 1
+                refs_imgs.append(_image_ref(kw, lock, spec["title"]))
+            refs_imgs[0]["is_primary"] = True
+            fields["images"] = refs_imgs
+        promo = Promotion.objects.create(**fields)
+        refs["promotions"].append(str(promo.pk))
+
     if kit.promotions_spec:
         # Богатая спецификация — все типы/виды акций (showcase).
         for spec in kit.promotions_spec:
-            idx = spec.get("product")
-            product = (
-                created_products[idx]
-                if isinstance(idx, int) and idx < len(created_products)
-                else None
-            )
-            fields = {
-                "title": {"de": spec["title"]},
-                "description": {"de": spec.get("desc", "")},
-                "product": product,
-                "promo_type": Promotion.RESERVATION
-                if spec.get("type") == "reservation"
-                else Promotion.DISCOUNT,
-                "status": "active",
-                # Фидбэк 2026-07-29: чип «Neu» (is_new ≤ 7 дней) — только у явно
-                # помеченных spec'ов, иначе у свежего сида все акции «новые».
-                "starts_at": now if spec.get("new") else now - timedelta(days=10),
-                "ends_at": now + timedelta(days=spec.get("ends_in_days", 14)),
-                "group": spec.get("group", ""),
-                "show_countdown": bool(spec.get("countdown")),
-                "is_surprise": bool(spec.get("surprise")),
-                "recurrence": spec.get("recurrence", ""),
-                "metadata": {"demo": True},
-            }
-            if spec.get("percent"):
-                fields["discount_percent"] = spec["percent"]
-            # UE2-2: стиль вывода скидки (showcase 7 стилей на aktionsmarkt).
-            if spec.get("discount_style"):
-                fields["discount_style"] = spec["discount_style"]
-            if spec.get("new_price"):
-                fields["price_override"] = Decimal(str(spec["new_price"]))
-            if spec.get("compare_at"):
-                fields["compare_at_price"] = Decimal(str(spec["compare_at"]))
-            if spec.get("type") == "reservation":
-                fields["available_quantity"] = spec.get("available_quantity", 10)
-            if spec.get("image"):
-                lock += 1
-                fields["images"] = [_image_ref(spec["image"], lock, spec["title"])]
-            elif spec.get("images"):  # 2026-07-29: галерея детали (миниатюры)
-                refs_imgs = []
-                for kw in spec["images"]:
-                    lock += 1
-                    refs_imgs.append(_image_ref(kw, lock, spec["title"]))
-                refs_imgs[0]["is_primary"] = True
-                fields["images"] = refs_imgs
-            promo = Promotion.objects.create(**fields)
-            refs["promotions"].append(str(promo.pk))
+            if "service" in spec or "stay_unit" in spec:
+                deferred_promos.append(spec)
+                continue
+            _create_spec_promo(spec)
     else:
         # Авто-скидки на первые товары (как раньше).
         discounts = [20, 15, 25, 30]
@@ -6161,6 +6210,24 @@ def apply_kit(tenant, key: str) -> bool:
         ]
 
     _seed_kit_modules(tenant, kit, refs)
+    # P6 «ценовой слой»: акции с целью-услугой/номером — цели созданы модулями выше;
+    # индексы — позиции в refs["services"]/["stay_units"] (как в service_reviews).
+    if deferred_promos:
+        from apps.booking.models import Service as _BookSvc
+        from apps.stays.models import StayUnit as _StayU
+
+        _svc_refs = refs.get("services") or []
+        _unit_refs = refs.get("stay_units") or []
+        for spec in deferred_promos:
+            svc = un = None
+            sidx, uidx = spec.get("service"), spec.get("stay_unit")
+            if isinstance(sidx, int) and sidx < len(_svc_refs):
+                svc = _BookSvc.objects.filter(pk=_svc_refs[sidx]).first()
+            if isinstance(uidx, int) and uidx < len(_unit_refs):
+                un = _StayU.objects.filter(pk=_unit_refs[uidx]).first()
+            if svc is None and un is None:
+                continue  # цель не досеялась (модуль выключен) — акцию не плодим
+            _create_spec_promo(spec, service=svc, stay_unit=un)
     _seed_kit_records(tenant, kit, refs, created_products)
     if kit.seed_inbox:  # LS-3/4/6: демо «Прямой линии» + Sofort-Angebot
         _seed_kit_inbox()

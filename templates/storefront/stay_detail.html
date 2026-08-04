@@ -38,6 +38,11 @@
     {% endif %}
     <p class="text-gray-500 mt-1">{{ unit.get_type_display }} · {% blocktrans with n=unit.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if unit.area_sqm %} · {{ unit.area_sqm }} m²{% endif %}{% if unit.bed_type %} · {{ unit.bed_type }}{% endif %}</p>
     <p class="mt-2 text-xl font-bold">{% trans "from" %} <span data-price-edit data-edit-model="stay" data-price-field="price_eur" data-edit-pk="{{ unit.pk }}" data-price="{{ unit.price_eur|floatformat:2 }}">{{ unit.price_eur|floatformat:2 }}</span> € / {% trans "night" %}</p>
+    {% comment %}P6 «ценовой слой»: акция на номер — бейдж ДО выбора дат (после
+    выбора скидка честно сидит в quote/тарифах через auto_discount).{% endcomment %}
+    {% if unit_promo and not quote %}
+    <p class="mt-1.5 flex items-center gap-1.5 text-sm"><span class="bg-rose-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">−{{ unit_promo.percent }} %</span> <span class="text-rose-700 font-medium">{{ unit_promo.title }}</span></p>
+    {% endif %}
     {% if unit.min_nights > 1 %}<p class="text-xs text-gray-400">{% blocktrans with n=unit.min_nights %}min. {{ n }} nights{% endblocktrans %}</p>{% endif %}
     {% if storefront_inbox_enabled %}
       <a href="{% url 'storefront-message' %}?kind=stay&id={{ unit.pk }}&label={{ unit.name|urlencode }}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question" %}</a>

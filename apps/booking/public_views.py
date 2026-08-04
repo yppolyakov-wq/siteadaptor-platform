@@ -486,6 +486,31 @@ def service_slots(request, pk):
         "day_price_differs": pricing.price_cents_for(service, day) != service.price_cents,
         **cal,
     }
+    # P6 «ценовой слой»: промо-метки на сетке — показываем ровно то, что спишет
+    # service_book (тот же матчер, промо только у одиночной брони). Выбранный
+    # мастер = его pk; «Anyone» = None → правила с resource_id честно НЕ
+    # подсвечиваются (fail-closed: сервер может дать сюрприз в плюс, не в минус).
+    from apps.promotions.price_layer import promo_for_service, service_promos
+
+    _promos = service_promos(service)
+    if _promos:
+        _rid = chosen.pk if chosen else None
+        _day_cents = pricing.price_cents_for(service, day)
+        promo_banner = None
+        for row in ctx["slot_toggles"]:
+            hit = promo_for_service(service, row["start"], _rid, promos=_promos)
+            if hit is not None and hit[1] < _day_cents:
+                row["promo_eur"] = hit[1] * units / 100
+                if promo_banner is None:
+                    promo_banner = {"title": hit[0].title_text, "eur": hit[1] * units / 100}
+        ctx["promo_banner"] = promo_banner
+        # Промо-цена ВЫБРАННОГО времени в форме брони (зеркало service_book:
+        # промо применяется только когда выбран ровно один период).
+        if len(selected_list) == 1 and not other_days:
+            hit = promo_for_service(service, selected_list[0], _rid, promos=_promos)
+            if hit is not None and hit[1] < _day_cents:
+                ctx["promo_price_eur"] = hit[1] * units / 100
+                ctx["promo_old_eur"] = _day_cents * units / 100
     embed = _is_embed(request)
     if request.GET.get("box") == "1":
         # Багфикс 2026-07-27: фрагмент #svc-box для fetch-свопа селектора

@@ -16942,3 +16942,9 @@ msgstr "Odayı gör & rezervasyon yap"
 
 msgid "Jetzt kaufen"
 msgstr "Şimdi satın al"
+
+msgid "gilt für die rosa markierten Zeiten"
+msgstr "pembe işaretli saatler için geçerlidir"
+
+msgid "Zum Angebot"
+msgstr "Kampanyaya git"

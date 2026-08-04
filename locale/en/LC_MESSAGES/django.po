@@ -16830,3 +16830,9 @@ msgstr "View room & book"
 
 msgid "Jetzt kaufen"
 msgstr "Buy now"
+
+msgid "gilt für die rosa markierten Zeiten"
+msgstr "applies to the times marked in pink"
+
+msgid "Zum Angebot"
+msgstr "View deal"

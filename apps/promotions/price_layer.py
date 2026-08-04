@@ -80,15 +80,59 @@ def rules_match(rules, start, resource_id=None) -> bool:
     return True
 
 
-def promo_for_service(service, start, resource_id=None):
+def promo_for_product(product):
+    """P6: активная акция на товар → Promotion | None (для показа на витрине;
+    чекаут по промо-цене живёт на детали АКЦИИ — /p/<uuid>/kaufen/).
+
+    При нескольких — максимальная выгода клиенту (минимальная new_price)."""
+    if product is None:
+        return None
+    best = None
+    for promo in Promotion.objects.filter(product=product, status="active"):
+        if not promo.has_discount:
+            continue
+        if best is None or promo.new_price < best.new_price:
+            best = promo
+    return best
+
+
+def product_promo_map(product_ids):
+    """P6: bulk-версия для карточек листинга — {product_id: Promotion} одним
+    запросом (без N+1 на странице каталога)."""
+    out = {}
+    for promo in Promotion.objects.filter(product_id__in=list(product_ids), status="active"):
+        if not promo.has_discount:
+            continue
+        cur = out.get(promo.product_id)
+        if cur is None or promo.new_price < cur.new_price:
+            out[promo.product_id] = promo
+    return out
+
+
+def service_promos(service):
+    """P6: активные акции услуги с ценой (материализованный список — сетка слотов
+    зовёт матчер десятки раз, запрос к БД нужен один)."""
+    if service is None:
+        return []
+    return [
+        p
+        for p in Promotion.objects.filter(service=service, status="active")
+        if p.new_price is not None
+    ]
+
+
+def promo_for_service(service, start, resource_id=None, promos=None):
     """Активная акция на услугу, действующая в момент `start` у мастера.
 
     → (promotion, price_cents) или None. При нескольких — максимальная выгода
-    клиенту (минимальная цена), как «не суммируем, берём лучшее» у stays."""
+    клиенту (минимальная цена), как «не суммируем, берём лучшее» у stays.
+    `promos` — предзагруженный `service_promos()` (сетка слотов, без N+1)."""
     if service is None:
         return None
+    if promos is None:
+        promos = Promotion.objects.filter(service=service, status="active")
     best = None
-    for promo in Promotion.objects.filter(service=service, status="active"):
+    for promo in promos:
         if not rules_match(promo.target_rules, start, resource_id):
             continue
         price = promo.new_price

@@ -16981,3 +16981,9 @@ msgstr "Zimmer ansehen & buchen"
 
 msgid "Jetzt kaufen"
 msgstr "Jetzt kaufen"
+
+msgid "gilt für die rosa markierten Zeiten"
+msgstr "gilt für die rosa markierten Zeiten"
+
+msgid "Zum Angebot"
+msgstr "Zum Angebot"

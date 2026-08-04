@@ -17022,3 +17022,9 @@ msgstr "Посмотреть номер и забронировать"
 
 msgid "Jetzt kaufen"
 msgstr "Купить сейчас"
+
+msgid "gilt für die rosa markierten Zeiten"
+msgstr "действует в отмеченное розовым время"
+
+msgid "Zum Angebot"
+msgstr "К акции"

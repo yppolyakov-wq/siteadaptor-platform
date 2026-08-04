@@ -66,7 +66,10 @@
       {% comment %}Тот же фидбэк: сердечко «отложить» стоит в левом верхнем углу, и
       бейдж читался как «♡опулярные». Когда сердечко включено — сдвигаем бейдж.{% endcomment %}
       {% if storefront_wishlist_enabled %}{% firstof "left-12" as badge_x %}{% else %}{% firstof "left-3" as badge_x %}{% endif %}
-      {% if p.badge_label %}<span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
+      {% comment %}P6: бейдж активной акции (промо-цена — на странице акции) приоритетнее
+      ручного бейджа; атрибут навешивается bulk'ом в листинге каталога.{% endcomment %}
+      {% if p.promo_badge %}<span class="absolute top-3 {{ badge_x }} bg-rose-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.promo_badge }}</span>
+      {% elif p.badge_label %}<span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
       {% elif p.is_featured %}<span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>{% endif %}
       {% if not p.in_stock %}<span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>{% endif %}
       {% comment %}Фидбэк владельца 2026-08-01 («контент наплывает один на один»):
@@ -128,7 +131,10 @@
       {% comment %}Фидбэк 2026-08-01: бейдж не должен уезжать под сердечко «отложить»
       (оба в левом верхнем углу) — при включённом Merkzettel сдвигаем.{% endcomment %}
       {% if storefront_wishlist_enabled %}{% firstof "left-12" as badge_x %}{% else %}{% firstof "left-3" as badge_x %}{% endif %}
-      {% if p.badge_label %}
+      {% comment %}P6: бейдж активной акции приоритетнее ручного (см. overlay-ветку).{% endcomment %}
+      {% if p.promo_badge %}
+        <span class="absolute top-3 {{ badge_x }} bg-rose-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.promo_badge }}</span>
+      {% elif p.badge_label %}
         <span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{{ p.badge_label }}</span>
       {% elif p.is_featured %}
         <span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>

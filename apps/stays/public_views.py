@@ -124,8 +124,18 @@ def _unit_from_price_cents(unit, von, bis, rate_plans):
         )
     else:
         room = pricing.quote_total_cents(unit, von, bis, **occ)
+    # P6 «ценовой слой»: акция на номер участвует и в «ab …» поиска/листинга —
+    # тот же кандидат, что спишет book_stay.
+    from apps.promotions.price_layer import stay_promo as _stay_promo
+
+    promo_hit = _stay_promo(unit, von)
     auto_cents, _label = pricing.auto_discount(
-        room, (bis - von).days, von, unit=unit, departure=bis
+        room,
+        (bis - von).days,
+        von,
+        unit=unit,
+        departure=bis,
+        extra=[(promo_hit[1], promo_hit[2])] if promo_hit else None,
     )
     return room - auto_cents
 
@@ -272,6 +282,12 @@ def unterkunft_unit(request, pk):
     rooms = _parse_rooms(request.GET, unit)  # G5: число номеров
 
     rate_plans = list(RatePlan.objects.filter(is_active=True))
+    # P6 «ценовой слой»: акция на номер — витрина считает ТЕМ ЖЕ кандидатом, что
+    # спишет book_stay (иначе показали бы цену дороже реальной). Без дат — бейдж.
+    from apps.promotions.price_layer import stay_promo as _stay_promo
+
+    promo_hit = _stay_promo(unit, von)
+    _promo_extra = [(promo_hit[1], promo_hit[2])] if promo_hit else None
     quote = None
     rate_options = []
     kurtaxe_eur = 0
@@ -282,7 +298,9 @@ def unterkunft_unit(request, pk):
         kurtaxe_eur = kurtaxe_cents / 100
         # G4: авто-скидка на проживание (без тарифа) — для показа итога без тарифов.
         auto_cents, auto_label = (
-            pricing.auto_discount(total_cents, nights, von, unit=unit, departure=bis)
+            pricing.auto_discount(
+                total_cents, nights, von, unit=unit, departure=bis, extra=_promo_extra
+            )
             if available
             else (0, "")
         )
@@ -307,7 +325,7 @@ def unterkunft_unit(request, pk):
             for rp in rate_plans:
                 rp_cents = pricing.quote_total_cents(unit, von, bis, rate_plan=rp, **occ) * rooms
                 rp_auto, rp_label = pricing.auto_discount(
-                    rp_cents, nights, von, unit=unit, departure=bis
+                    rp_cents, nights, von, unit=unit, departure=bis, extra=_promo_extra
                 )
                 rp_total_cents = rp_cents - rp_auto + kurtaxe_cents
                 rp_prepay = pricing.prepayment_cents(rp_total_cents, rp)  # G7
@@ -408,6 +426,10 @@ def unterkunft_unit(request, pk):
         "room_choices": range(1, unit.quantity + 1),  # G5: варианты для селектора
         "max_party": unit.max_guests * unit.quantity,  # G5: верх для гостей
         "quote": quote,
+        # P6: бейдж активной акции ДО выбора дат (с датами скидка видна в quote).
+        "unit_promo": (
+            {"percent": promo_hit[1], "title": promo_hit[0].title_text} if promo_hit else None
+        ),
         "rate_options": rate_options,  # H1 тарифы для выбранного диапазона
         "kurtaxe_eur": kurtaxe_eur,  # H9 (в total уже включена)
         "extras": extras_engine.active_for("stays"),  # #7 доп-услуги

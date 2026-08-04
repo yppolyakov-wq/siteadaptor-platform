@@ -17007,3 +17007,9 @@ msgstr "Переглянути номер і забронювати"
 
 msgid "Jetzt kaufen"
 msgstr "Купити зараз"
+
+msgid "gilt für die rosa markierten Zeiten"
+msgstr "діє на позначений рожевим час"
+
+msgid "Zum Angebot"
+msgstr "До акції"

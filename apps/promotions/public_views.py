@@ -453,6 +453,14 @@ def product_list(request):
             _row = _rating.get(_p.pk)
             _p.review_avg = _row["avg"] if _row else None
             _p.review_count = _row["count"] if _row else 0
+        # P6 «ценовой слой»: бейдж активной акции на карточке — bulk одним запросом.
+        from .price_layer import product_promo_map
+
+        _promo_map = product_promo_map([_p.pk for _p in page.items])
+        for _p in page.items:
+            _promo = _promo_map.get(_p.pk)
+            _pct = _promo.discount_percent_display if _promo else None
+            _p.promo_badge = f"−{_pct} %" if _pct else ("%" if _promo else "")
     # A4: комбо-наборы (Menü-Sets/Tagesgericht), если есть и модуль orders активен.
     # M20U/A4: показываем тизер-карточками вверху меню (до 3) — не только текст-ссылкой,
     # — чтобы Kombo/Tagesgericht были на виду (сильный апселл гастро). Только на 1-й
@@ -615,11 +623,16 @@ def product_detail(request, pk):
     from apps.catalog import reviews as product_reviews
     from apps.core.sellable import sellable_for
 
+    from .price_layer import promo_for_product
+
     return render(
         request,
         "storefront/product_detail.html",
         {
             "product": product,
+            # P6 «ценовой слой»: активная акция на ЭТОТ товар — баннер с промо-ценой
+            # и ссылкой на акцию (чекаут по промо-цене — там, /p/<uuid>/kaufen/).
+            "target_promo": promo_for_product(product),
             # UA2-1 (U-A): единый контракт продаваемой сущности в контексте детали
             # (шов для buy-box UA3 / секций UA4 / JSON-LD UA4-4b).
             "sellable": sellable_for("product", product),

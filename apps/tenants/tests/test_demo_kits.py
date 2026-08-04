@@ -1,5 +1,7 @@
 """M20 demo: киты — полноценная showcase-витрина (apply_kit)."""
 
+from decimal import Decimal
+
 import pytest
 
 from apps.catalog.models import (
@@ -424,6 +426,15 @@ def test_apply_hotel_kit_builds_stays_site():
     from apps.reviews.models import Review
 
     assert Review.objects.filter(entity_kind="stay", is_published=True).count() == 3
+    # P6 «ценовой слой»: Frühbucher-акция целится в первый номер (второй проход
+    # сидера) — скидка применяется в штатной броне, лимит кампании задан.
+    seeblick = StayUnit.objects.get(name="Doppelzimmer Seeblick")
+    fruehbucher = Promotion.objects.get(stay_unit=seeblick)
+    assert fruehbucher.status == "active" and fruehbucher.discount_percent == 10
+    # Демо-брони сеются ПОСЛЕ акции штатным book_stay → акция сама применяется
+    # и честно списывает лимит кампании (инвариант: лимит + сделки = 10).
+    claimed = StayBooking.objects.filter(promotion=fruehbucher).count()
+    assert fruehbucher.available_quantity == 10 - claimed
     # G8/#6 отзывы клиентов (SHARED) + рейтинг + секция «reviews»
     from apps.aggregator.models import BusinessRating, BusinessReview
     from apps.core.templatetags.seo import storefront_reviews
@@ -591,6 +602,15 @@ def test_apply_friseur_kit_booking_services():
     from apps.reviews.models import Review
 
     assert Review.objects.filter(entity_kind="service", is_published=True).count() == 3
+    # P6 «ценовой слой»: happy-hours-акция на услугу (второй проход сидера) +
+    # обычная товарная акция; модуль promotions включён.
+    assert tenant.is_module_active("promotions")
+    herren = Service.objects.get(name="Haarschnitt Herren")
+    happy = Promotion.objects.get(service=herren)
+    assert happy.status == "active" and happy.available_quantity == 20
+    assert happy.target_rules == {"weekdays": [0, 1, 2], "hour_from": 10, "hour_to": 14}
+    assert happy.new_price == Decimal("20.00")
+    assert Promotion.objects.filter(product__isnull=False, status="active").exists()
 
 
 def test_apply_werkstatt_kit_jobs_booking_catalog():
