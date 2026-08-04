@@ -255,9 +255,19 @@ def book_stay(
         pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan, **occ_kwargs)
         * rooms
     )
+    # P4 «ценовой слой»: акция на номер — обычный кандидат авто-скидки (max,
+    # не суммируем); победа акции списывает лимит кампании в ЭТОЙ же транзакции.
+    from apps.promotions import price_layer as promo_layer
+
+    promo_hit = promo_layer.stay_promo(unit, arrival)
+    extra = [(promo_hit[1], promo_hit[2])] if promo_hit else None
     auto_discount_cents, auto_discount_label = pricing.auto_discount(
-        room_cents, nights, arrival, unit=unit, departure=departure
+        room_cents, nights, arrival, unit=unit, departure=departure, extra=extra
     )
+    booked_promo = None
+    if promo_hit and auto_discount_label == promo_hit[2]:
+        promo_layer.claim_units(promo_hit[0], 1)  # OutOfStock → откат всей брони
+        booked_promo = promo_hit[0]
     # H4a: промокод применяется к проживанию (после авто-скидки) + услугам, не к Kurtaxe.
     lodging_cents = room_cents - auto_discount_cents + extras_engine.total_cents(extras_snap)
     discount_cents, voucher_code_snap = _apply_voucher(voucher_code, lodging_cents)
@@ -286,6 +296,7 @@ def book_stay(
         status=StayBooking.STATUS_CONFIRMED if auto_confirm else StayBooking.STATUS_PENDING,
         note=note,
         source_channel=(source_channel or "")[:50],
+        promotion=booked_promo,
     )
     # письмо «Anfrage erhalten» — Notification в этой же транзакции (E3)
     from .notifications import enqueue_stay_email

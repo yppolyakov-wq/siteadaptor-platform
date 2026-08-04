@@ -25,6 +25,13 @@ class StayBookingSM(StateMachine):
 
             enqueue_stay_email(instance, t.dst)
 
+        # P4 «ценовой слой»: бронь из акции возвращает лимит кампании (однократно
+        # — FSM не даёт второй переход в cancelled; зеркало — status_effects).
+        if t.dst == "cancelled" and getattr(instance, "promotion_id", None):
+            from apps.promotions.price_layer import return_units
+
+            return_units(instance.promotion_id, 1)
+
         # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
         # FSM не даёт второй переход в cancelled).
         if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):

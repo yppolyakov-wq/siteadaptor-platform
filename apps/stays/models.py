@@ -393,6 +393,15 @@ class StayBooking(TimestampedModel):
     # сроку до заезда и настройкам StaySettings. Отдельно от промокода (стыкуется).
     auto_discount_cents = models.PositiveIntegerField(default=0)
     auto_discount_label = models.CharField(max_length=80, blank=True)
+    # P4 «ценовой слой»: бронь из акции — по FK возвращается лимит кампании при
+    # отмене (строковая ссылка: promotions уже ссылается на stays.StayUnit).
+    promotion = models.ForeignKey(
+        "promotions.Promotion",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="stay_bookings",
+    )
 
     class Meta:
         ordering = ["arrival"]

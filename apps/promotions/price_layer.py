@@ -140,3 +140,34 @@ def purchase_service(
     booking.promotion = promotion
     booking.save(update_fields=["promotion", "updated_at"])
     return booking
+
+
+def stay_promo(unit, arrival=None):
+    """P4: активная акция на номер → (promotion, percent, label) | None.
+
+    Скидка задаётся процентом (`discount_percent`); правило окна проживания —
+    `target_rules {"stay_from","stay_to"}` (ISO-даты, проверяется ЗАЕЗД;
+    мусор = fail-closed). При нескольких — максимальный процент (норма G4)."""
+    from datetime import date
+
+    if unit is None:
+        return None
+    best = None
+    for promo in Promotion.objects.filter(stay_unit=unit, status="active"):
+        percent = promo.discount_percent or 0
+        if not percent:
+            continue
+        rules = promo.target_rules if isinstance(promo.target_rules, dict) else {}
+        frm, to = rules.get("stay_from"), rules.get("stay_to")
+        if (frm or to) and arrival is not None:
+            try:
+                if frm and arrival < date.fromisoformat(frm):
+                    continue
+                if to and arrival > date.fromisoformat(to):
+                    continue
+            except (TypeError, ValueError):
+                continue  # кривые правила = акция не действует
+        if best is None or percent > best[1]:
+            title = promo.title.get("de") or next(iter(promo.title.values()), "Aktion")
+            best = (promo, percent, f"Aktion −{percent}% · {title}"[:80])
+    return best

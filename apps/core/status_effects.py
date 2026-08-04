@@ -144,7 +144,7 @@ def restore_stock_for(kind: str, instance) -> None:
         promo = Promotion.objects.filter(id=instance.promotion_id).first()
         if promo is not None:
             notify_waitlist_available(promo)
-    elif kind == "booking" and getattr(instance, "promotion_id", None):
+    elif kind in ("booking", "stay") and getattr(instance, "promotion_id", None):
         # P3 «ценовой слой»: кастом-cancel брони из акции возвращает лимит
         # кампании — зеркало ветки BookingSM (та же семантика возврата).
         from apps.promotions.price_layer import return_units

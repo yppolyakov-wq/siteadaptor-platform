@@ -152,7 +152,15 @@ def gap_discount(unit, arrival, departure, settings, today=None) -> tuple[int, s
 
 
 def auto_discount(
-    lodging_cents, nights, arrival, today=None, settings=None, *, unit=None, departure=None
+    lodging_cents,
+    nights,
+    arrival,
+    today=None,
+    settings=None,
+    *,
+    unit=None,
+    departure=None,
+    extra=None,
 ) -> tuple[int, str]:
     """G4: авто-скидка на проживание (LOS / Frühbucher / Last-Minute), много правил.
 
@@ -188,6 +196,10 @@ def auto_discount(
         gap_percent, gap_label = gap_discount(unit, arrival, departure, settings, today=today)
         if gap_percent:
             candidates.append((gap_percent, gap_label))
+    # P4 «ценовой слой»: акция на номер — обычный кандидат (не суммируем, max).
+    for percent, label in extra or ():
+        if percent:
+            candidates.append((percent, label))
     if not candidates:
         return 0, ""
     percent, label = max(candidates, key=lambda c: c[0])
