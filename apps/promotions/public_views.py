@@ -819,6 +819,54 @@ def reservation_create(request, pk):
     return redirect("storefront-confirmation", code=res.reference_code)
 
 
+def promotion_purchase(request, pk):
+    """P5 «ценовой слой»: покупка акции СТАНДАРТНЫМ заказом (цель product/combo
+    или свободная акция). Гейты — как у reservation_create (honeypot, rate-limit,
+    идемпотентный токен); успех → штатное подтверждение заказа. Цели service/
+    stay сюда не ходят — их CTA ведёт в собственную воронку (промо-цена там
+    применяется автоматически)."""
+    promo = get_object_or_404(Promotion, pk=pk, status="active")
+    if request.method != "POST" or promo.target_kind in ("service", "stay"):
+        return redirect("storefront-promotion", pk=pk)
+    if request.POST.get("website"):  # honeypot
+        return redirect("storefront-promotion", pk=pk)
+
+    form = PublicReservationForm(request.POST)
+    ctx = _detail_ctx(request, promo, form)
+    if not form.is_valid():
+        return render(request, "storefront/promotion_detail.html", ctx)
+
+    rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
+    if ratelimit.hit("resv", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return render(request, "storefront/promotion_detail.html", ctx)
+
+    token = form.cleaned_data.get("form_token")
+    token_key = f"resv_token:{token}" if token else None
+    if token_key and not cache.add(token_key, "1", TOKEN_TTL):
+        return redirect("storefront-promotion", pk=pk)  # дубль сабмита
+
+    channel = (form.cleaned_data.get("channel") or request.session.get("src_ch") or "").strip()
+    from . import services as promo_services
+
+    try:
+        order = promo_services.purchase(
+            promo,
+            quantity=form.cleaned_data["quantity"],
+            name=form.cleaned_data["name"],
+            email=form.cleaned_data.get("email", ""),
+            phone=form.cleaned_data.get("phone", ""),
+            source_channel=channel,
+        )
+    except OutOfStock:
+        if token_key:
+            cache.delete(token_key)
+        messages.error(request, _("Leider ausverkauft."))
+        return render(request, "storefront/promotion_detail.html", ctx)
+
+    return redirect("storefront-order", code=order.reference_code)
+
+
 def waitlist_join(request, pk):
     """Записать в лист ожидания распроданной акции."""
     promo = get_object_or_404(Promotion, pk=pk, status="active")

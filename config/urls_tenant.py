@@ -437,6 +437,11 @@ urlpatterns = [
         name="storefront-message-thread-typing",
     ),
     path("p/<uuid:pk>/", public_views.promotion_detail, name="storefront-promotion"),
+    path(
+        "p/<uuid:pk>/kaufen/",
+        public_views.promotion_purchase,
+        name="storefront-promo-kaufen",
+    ),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),
     path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),

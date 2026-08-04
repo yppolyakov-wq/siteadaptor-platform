@@ -16960,3 +16960,24 @@ msgstr "Auftragsbuch — nach Abholtermin"
 
 msgid "Ohne Termin"
 msgstr "Ohne Termin"
+
+msgid "Diese Aktion ist leider ausverkauft."
+msgstr "Diese Aktion ist leider ausverkauft."
+
+msgid "Zur Aktion buchen"
+msgstr "Zur Aktion buchen"
+
+msgid "Der Aktionspreis wird bei passendem Termin automatisch angewendet."
+msgstr "Der Aktionspreis wird bei passendem Termin automatisch angewendet."
+
+msgid "Termin wählen"
+msgstr "Termin wählen"
+
+msgid "Der Aktionspreis wird bei passenden Daten automatisch angewendet."
+msgstr "Der Aktionspreis wird bei passenden Daten automatisch angewendet."
+
+msgid "Zimmer ansehen & buchen"
+msgstr "Zimmer ansehen & buchen"
+
+msgid "Jetzt kaufen"
+msgstr "Jetzt kaufen"

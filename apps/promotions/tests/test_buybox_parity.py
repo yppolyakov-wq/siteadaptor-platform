@@ -38,7 +38,8 @@ def _detail(promo):
 def test_reserve_form_exact_fields():
     promo = PromotionFactory(status="active", available_quantity=5)
     body = _detail(promo)
-    form = form_block(body, f'action="/p/{promo.pk}/reserve/"')
+    # P5: свободная/товарная акция продаётся стандартным заказом (/kaufen/).
+    form = form_block(body, f'action="/p/{promo.pk}/kaufen/"')
     assert field_names(form) == {
         "csrfmiddlewaretoken",
         "website",  # honeypot (offscreen)
@@ -57,4 +58,4 @@ def test_sold_out_swaps_reserve_for_waitlist():
     body = _detail(promo)
     form = form_block(body, f'action="/p/{promo.pk}/waitlist/"')
     assert field_names(form) == {"csrfmiddlewaretoken", "website", "name", "email"}
-    assert f"/p/{promo.pk}/reserve/" not in body  # reserve-формы нет
+    assert f"/p/{promo.pk}/kaufen/" not in body  # формы покупки нет

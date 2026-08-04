@@ -123,9 +123,8 @@ def purchase_service(
         raise ValueError("promotion has no service target")
     if not rules_match(promotion.target_rules, start, resource.pk):
         raise OutOfStock()  # вне окна акции — по промо-цене не продаём
-    claim_units(promotion, 1)
     price = promotion.new_price
-    booking = booking_services.book(
+    return booking_services.book(
         resource,
         start=start,
         end=end,
@@ -136,10 +135,8 @@ def purchase_service(
         source_channel=source_channel or "promo",
         service=promotion.service,
         price_cents=int(round(float(price) * 100)) if price is not None else 0,
+        promotion=promotion,  # лимит кампании — внутри atomic book()
     )
-    booking.promotion = promotion
-    booking.save(update_fields=["promotion", "updated_at"])
-    return booking
 
 
 def stay_promo(unit, arrival=None):

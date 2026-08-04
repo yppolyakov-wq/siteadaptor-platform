@@ -20,6 +20,7 @@ from django.utils.translation import gettext as _
 from apps.billing import connect
 from apps.core import ratelimit
 from apps.core.fsm import IllegalTransition
+from apps.promotions.services import OutOfStock as PromoSoldOut
 
 from . import availability, payments, pricing, services
 from .models import Booking, Pass, Resource, Service
@@ -773,6 +774,17 @@ def service_book(request, pk):
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
+    # P5 «ценовой слой»: акция услуги применяется АВТОМАТИЧЕСКИ в штатной записи
+    # (как авто-скидки stays) — одиночная бронь; для группы (HF-6c) v1 без промо.
+    promo = None
+    if len(slot_plan) == 1:
+        from apps.promotions.price_layer import promo_for_service
+
+        r0, s0, e0, price0 = slot_plan[0]
+        hit = promo_for_service(service, s0, getattr(r0, "pk", None))
+        if hit is not None and hit[1] * units < price0:
+            promo = hit[0]
+            slot_plan[0] = (r0, s0, e0, hit[1] * units)
     try:
         # HF-6c: один период = обычная бронь (байт-в-байт как раньше), несколько —
         # группа в одной транзакции: занятый период откатывает весь набор.
@@ -788,6 +800,7 @@ def service_book(request, pk):
             service=service,
             extras=extras_snap,
             voucher_code=request.POST.get("voucher_code", ""),
+            promotion=promo,
         )
         booking = created[0]
     except services.PromoInvalid:
@@ -796,6 +809,10 @@ def service_book(request, pk):
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+    except PromoSoldOut:
+        # P5: лимит акции исчерпан между показом и отправкой — бронь откатилась.
+        messages.error(request, _("Diese Aktion ist leider ausverkauft."))
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
 
     # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо

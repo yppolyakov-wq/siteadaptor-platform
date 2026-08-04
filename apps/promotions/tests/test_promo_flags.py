@@ -108,7 +108,7 @@ def test_promotion_detail_modal_and_gallery():
     # CTA открывает модал; сам модал скрыт (hidden), но форма брони — в DOM
     assert 'data-modal-open="promo-reserve-modal"' in body
     assert 'id="promo-reserve-modal" class="fixed inset-0 z-50 hidden"' in body
-    assert f"/p/{promo.pk}/reserve/" in body  # форма внутри модала (замок buybox)
+    assert f"/p/{promo.pk}/kaufen/" in body  # форма внутри модала (P5: стандартный заказ)
     # галерея: две миниатюры со свапом (атрибут+data-full; в JS селекторы тоже
     # содержат имя атрибута — считаем по разметке кнопки)
     assert body.count("data-gallery-thumb data-full") == 2

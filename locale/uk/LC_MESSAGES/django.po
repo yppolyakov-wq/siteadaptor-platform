@@ -16986,3 +16986,24 @@ msgstr "Книга замовлень — за датою видачі"
 
 msgid "Ohne Termin"
 msgstr "Без дати видачі"
+
+msgid "Diese Aktion ist leider ausverkauft."
+msgstr "Цю акцію розпродано."
+
+msgid "Zur Aktion buchen"
+msgstr "Забронювати за акцією"
+
+msgid "Der Aktionspreis wird bei passendem Termin automatisch angewendet."
+msgstr "Акційна ціна застосовується автоматично за відповідного часу."
+
+msgid "Termin wählen"
+msgstr "Обрати час"
+
+msgid "Der Aktionspreis wird bei passenden Daten automatisch angewendet."
+msgstr "Акційна ціна застосовується автоматично за відповідних дат."
+
+msgid "Zimmer ansehen & buchen"
+msgstr "Переглянути номер і забронювати"
+
+msgid "Jetzt kaufen"
+msgstr "Купити зараз"

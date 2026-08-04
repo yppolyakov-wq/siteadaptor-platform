@@ -17001,3 +17001,24 @@ msgstr "Книга заказов — по дате выдачи"
 
 msgid "Ohne Termin"
 msgstr "Без даты выдачи"
+
+msgid "Diese Aktion ist leider ausverkauft."
+msgstr "Эта акция распродана."
+
+msgid "Zur Aktion buchen"
+msgstr "Забронировать по акции"
+
+msgid "Der Aktionspreis wird bei passendem Termin automatisch angewendet."
+msgstr "Акционная цена применяется автоматически при подходящем времени."
+
+msgid "Termin wählen"
+msgstr "Выбрать время"
+
+msgid "Der Aktionspreis wird bei passenden Daten automatisch angewendet."
+msgstr "Акционная цена применяется автоматически при подходящих датах."
+
+msgid "Zimmer ansehen & buchen"
+msgstr "Посмотреть номер и забронировать"
+
+msgid "Jetzt kaufen"
+msgstr "Купить сейчас"

@@ -111,3 +111,52 @@ def test_reserve_flow_untouched():
     promo.refresh_from_db()
     assert promo.available_quantity == 4
     assert reservation.reference_code.startswith("R-")
+
+
+# --- P5: витрина акций на новых рельсах -------------------------------------
+
+
+def test_promotion_purchase_endpoint_creates_standard_order():
+    from django.contrib.messages.storage.fallback import FallbackStorage
+    from django.test import RequestFactory
+
+    from apps.orders.models import Order
+    from apps.promotions import public_views
+
+    promo = _promo(product=None, quantity=5, price="7.50")
+    request = RequestFactory().post(
+        f"/p/{promo.pk}/kaufen/",
+        {"name": "Anna", "email": "a@t.de", "quantity": "2", "form_token": f"kauf-{promo.pk}"},
+    )
+    request.session = {}
+    request._messages = FallbackStorage(request)
+    resp = public_views.promotion_purchase(request, pk=promo.pk)
+    assert resp.status_code == 302
+    order = Order.objects.get()
+    assert (
+        resp.url.endswith(f"/bestellung/{order.reference_code}/")
+        or order.reference_code in resp.url
+    )
+    promo.refresh_from_db()
+    assert promo.available_quantity == 3
+
+
+def test_detail_service_target_links_to_slot_funnel():
+    """Акция на услугу: CTA ведёт в штатную воронку записи (промо-цена там
+    применяется автоматически) — формы покупки на детали нет."""
+    from django.contrib.messages.storage.fallback import FallbackStorage
+    from django.test import RequestFactory
+
+    from apps.booking.models import Service
+    from apps.promotions import public_views
+    from apps.promotions.models import Promotion
+
+    service = Service.objects.create(name="Haarschnitt", price_cents=3500)
+    promo = _promo(product=None, quantity=5)
+    Promotion.objects.filter(pk=promo.pk).update(service=service)
+    request = RequestFactory().get(f"/p/{promo.pk}/")
+    request.session = {}
+    request._messages = FallbackStorage(request)
+    body = public_views.promotion_detail(request, pk=promo.pk).content.decode()
+    assert f"/termin/leistung/{service.pk}/" in body
+    assert "/kaufen/" not in body

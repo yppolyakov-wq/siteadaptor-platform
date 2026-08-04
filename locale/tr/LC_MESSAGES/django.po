@@ -16921,3 +16921,24 @@ msgstr "Sipariş defteri — teslim tarihine göre"
 
 msgid "Ohne Termin"
 msgstr "Tarihsiz"
+
+msgid "Diese Aktion ist leider ausverkauft."
+msgstr "Bu kampanya maalesef tükendi."
+
+msgid "Zur Aktion buchen"
+msgstr "Kampanyayla rezervasyon"
+
+msgid "Der Aktionspreis wird bei passendem Termin automatisch angewendet."
+msgstr "Uygun randevuda kampanya fiyatı otomatik uygulanır."
+
+msgid "Termin wählen"
+msgstr "Saat seçin"
+
+msgid "Der Aktionspreis wird bei passenden Daten automatisch angewendet."
+msgstr "Uygun tarihlerde kampanya fiyatı otomatik uygulanır."
+
+msgid "Zimmer ansehen & buchen"
+msgstr "Odayı gör & rezervasyon yap"
+
+msgid "Jetzt kaufen"
+msgstr "Şimdi satın al"

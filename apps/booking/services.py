@@ -115,6 +115,7 @@ def book(
     voucher_code="",
     group_code="",
     notify=True,
+    promotion=None,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
@@ -122,7 +123,10 @@ def book(
     [{label, price_cents}], сумма идёт в выручку. voucher_code —
     промокод/Gutschein: скидка на услугу+Extras, гасится атомарно.
     group_code/notify (HF-6) — принадлежность к мультислот-брони: письмо о такой
-    брони шлёт `book_many` ОДНО на всю группу, а не N штук клиенту."""
+    брони шлёт `book_many` ОДНО на всю группу, а не N штук клиенту.
+    promotion (P5 «ценовой слой») — бронь по акции: лимит кампании списывается
+    В ЭТОЙ ЖЕ транзакции (SlotTaken откатывает и его), FK для возврата при
+    отмене; промо-цена приходит уже готовой в price_cents."""
     if end <= start:
         raise ValueError("end must be after start")
 
@@ -144,10 +148,17 @@ def book(
     base_cents = int(price_cents or 0) + sum(int(e.get("price_cents", 0)) for e in (extras or []))
     discount_cents, voucher_snap = _apply_voucher(voucher_code, base_cents)
 
+    # P5: акция — списание лимита кампании внутри той же atomic (OutOfStock →
+    # откат брони целиком, фантомного списания нет).
+    if promotion is not None:
+        from apps.promotions.price_layer import claim_units
+
+        claim_units(promotion, 1)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = Booking.objects.create(
         resource=resource,
         service=service,
+        promotion=promotion,
         price_cents=int(price_cents or 0),
         extras=list(extras or []),
         voucher_code=voucher_snap,

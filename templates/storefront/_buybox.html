@@ -40,10 +40,26 @@ test_public (порядок CTA/точные href). Двухшаговость (
       <button type="submit" class="w-full bg-gray-900 text-white rounded-lg px-4 py-3 font-medium hover:bg-black">{% trans "Notify me" %}</button>
     </form>
   </div>
-  {% else %}
+  {% elif promotion.target_kind == "service" %}
+  {% comment %}P5 «ценовой слой»: акция на услугу — CTA в штатную воронку записи;
+  промо-цена там применяется автоматически (по правилам времени/мастера).{% endcomment %}
   <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
-    <h2 class="font-semibold mb-4">{% trans "Reserve" %}</h2>
-    <form method="post" action="{% url 'storefront-reserve' promotion.pk %}" class="space-y-4">
+    <h2 class="font-semibold mb-1">{% trans "Zur Aktion buchen" %}</h2>
+    <p class="text-sm text-gray-500 mb-4">{% trans "Der Aktionspreis wird bei passendem Termin automatisch angewendet." %}</p>
+    <a href="{% url 'storefront-service-slots' promotion.service_id %}" class="block text-center w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Termin wählen" %} →</a>
+  </div>
+  {% elif promotion.target_kind == "stay" %}
+  <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold mb-1">{% trans "Zur Aktion buchen" %}</h2>
+    <p class="text-sm text-gray-500 mb-4">{% trans "Der Aktionspreis wird bei passenden Daten automatisch angewendet." %}</p>
+    <a href="{% url 'storefront-unterkunft-unit' promotion.stay_unit_id %}" class="block text-center w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Zimmer ansehen & buchen" %} →</a>
+  </div>
+  {% else %}
+  {% comment %}P5: товар/набор/свободная акция — та же форма, но результат =
+  СТАНДАРТНЫЙ заказ (склад/канбан/письма штатные), не Reservation.{% endcomment %}
+  <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold mb-4">{% trans "Jetzt kaufen" %}</h2>
+    <form method="post" action="{% url 'storefront-promo-kaufen' promotion.pk %}" class="space-y-4">
       {% csrf_token %}
       <div style="position:absolute;left:-9999px" aria-hidden="true">{{ form.website }}</div>
       {{ form.form_token }}
@@ -58,7 +74,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
         {% endif %}
       {% endfor %}
       <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
-        {% trans "Reserve now" %}
+        {% trans "Jetzt kaufen" %}
       </button>
     </form>
   </div>

@@ -16809,3 +16809,24 @@ msgstr "Order book — by pickup date"
 
 msgid "Ohne Termin"
 msgstr "No pickup date"
+
+msgid "Diese Aktion ist leider ausverkauft."
+msgstr "This deal is sold out."
+
+msgid "Zur Aktion buchen"
+msgstr "Book this deal"
+
+msgid "Der Aktionspreis wird bei passendem Termin automatisch angewendet."
+msgstr "The deal price is applied automatically for matching appointments."
+
+msgid "Termin wählen"
+msgstr "Choose a time"
+
+msgid "Der Aktionspreis wird bei passenden Daten automatisch angewendet."
+msgstr "The deal price is applied automatically for matching dates."
+
+msgid "Zimmer ansehen & buchen"
+msgstr "View room & book"
+
+msgid "Jetzt kaufen"
+msgstr "Buy now"
