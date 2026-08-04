@@ -1,0 +1,28 @@
+{% load i18n %}
+{% comment %}Месячная сетка Tagesplan (фидбэк владельца 2026-08-04): быстрый переход
+на любую дату — клик по дню разворачивает его брони ниже (?tag=, тот же список).
+Число под датой = брони дня; листание месяцев уходит и в историю. Ссылки несут
+tab= (вкладка Verkäufe) — паттерн навигации _tagesplan_body.{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-4 max-w-md">
+  <div class="flex items-center justify-between mb-2">
+    <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ day|date:'Y-m-d' }}&amp;cal={{ bcal_prev|date:'Y-m' }}"
+       class="px-2.5 py-1 rounded-lg text-indigo-600 hover:bg-indigo-50" aria-label="{% trans 'Previous month' %}">‹</a>
+    <span class="font-semibold text-sm">{{ bcal_first|date:"F Y" }}</span>
+    <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ day|date:'Y-m-d' }}&amp;cal={{ bcal_next|date:'Y-m' }}"
+       class="px-2.5 py-1 rounded-lg text-indigo-600 hover:bg-indigo-50" aria-label="{% trans 'Next month' %}">›</a>
+  </div>
+  <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-gray-400 mb-1">
+    <div>{% trans "Mo" %}</div><div>{% trans "Tu" %}</div><div>{% trans "We" %}</div>
+    <div>{% trans "Th" %}</div><div>{% trans "Fr" %}</div><div>{% trans "Sa" %}</div><div>{% trans "Su" %}</div>
+  </div>
+  <div class="grid grid-cols-7 gap-1 text-center">
+    {% for _ in bcal_lead_blanks %}<span></span>{% endfor %}
+    {% for c in bcal_days %}
+      <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ c.day|date:'Y-m-d' }}"
+         class="rounded-lg py-1 text-sm leading-tight {% if c.is_selected %}bg-indigo-600 text-white font-semibold{% elif c.count %}bg-indigo-50 text-indigo-800 font-medium hover:bg-indigo-100{% else %}text-gray-500 hover:bg-gray-50{% endif %}{% if c.is_today and not c.is_selected %} ring-1 ring-indigo-300{% endif %}">
+        {{ c.day.day }}
+        <span class="block text-[10px] leading-none {% if not c.count %}invisible{% elif c.is_selected %}text-white/80{% else %}text-indigo-500{% endif %}">{{ c.count }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>

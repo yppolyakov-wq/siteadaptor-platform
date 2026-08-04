@@ -92,6 +92,27 @@ def test_calendar_renders_day():
     assert booking.reference_code in body and booking.resource.name in body
 
 
+def test_calendar_month_grid_counts_and_navigation():
+    """Фидбэк 2026-08-04: месячная сетка над днём — счётчик броней на дате,
+    листание месяцев (история доступна), клик по дню = ?tag= того же вида."""
+    booking = _booking()
+    local_day = timezone.localtime(booking.start).date()
+    ctx = views.calendar_context(_req(data={"tag": local_day.isoformat()}))
+    row = next(c for c in ctx["bcal_days"] if c["day"] == local_day)
+    assert row["count"] == 1 and row["is_selected"]
+    assert ctx["bcal_first"] == local_day.replace(day=1)
+    # явный месяц из ?cal= — в том числе ПРОШЛЫЙ (кабинету нужна история)
+    past = (local_day.replace(day=1) - timedelta(days=1)).replace(day=1)
+    ctx2 = views.calendar_context(
+        _req(data={"tag": local_day.isoformat(), "cal": past.strftime("%Y-%m")})
+    )
+    assert ctx2["bcal_first"] == past
+    assert all(c["count"] == 0 for c in ctx2["bcal_days"])
+    # рендер: ячейка дня — ссылка ?tag=<дата>
+    body = views.calendar(_req(data={"tag": local_day.isoformat()})).content.decode()
+    assert f'tag={local_day.isoformat()}"' in body
+
+
 def test_action_confirm_and_move_conflict():
     resource = _resource()
     slot_a = _slot(days_ahead=7, hour=12)

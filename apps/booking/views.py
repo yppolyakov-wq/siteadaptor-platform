@@ -96,6 +96,9 @@ def calendar_context(request):
         "prev_day": day - timedelta(days=1),
         "next_day": day + timedelta(days=1),
         "bookings": bookings,
+        # Фидбэк владельца 2026-08-04: месячная сетка над списком дня — быстрый
+        # переход на любую дату (клик по дню разворачивает его брони ниже).
+        **_month_grid_context(request, day),
         "resources": Resource.objects.filter(is_active=True),
         # A4: iframe-виджет записи для своего сайта.
         "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
@@ -118,6 +121,53 @@ def _parse_day_any(raw):
         return date.fromisoformat(raw or "")
     except ValueError:
         return timezone.localdate()
+
+
+def _month_grid_context(request, day):
+    """Месячная сетка Tagesplan: `?cal=YYYY-MM` (дефолт — месяц выбранного дня).
+
+    Счётчик броней по дням — ОДИН запрос на месяц, бакетирование в локальной TZ
+    (паттерн Auftragsbuch; TruncDate в SQL считал бы по TIME_ZONE базы). Клампа
+    «не в прошлое» витринного `_slot_month` здесь нет — кабинету нужна история.
+    Префикс bcal_* — verkaeufe.html мержит контексты нескольких kind'ов."""
+    import calendar as _calendar
+    from datetime import date
+
+    raw = request.GET.get("cal") or ""
+    try:
+        year, month = raw.split("-")
+        first = date(int(year), int(month), 1)
+    except ValueError:
+        first = day.replace(day=1)
+    days_in_month = _calendar.monthrange(first.year, first.month)[1]
+    tz = timezone.get_current_timezone()
+    month_start = datetime.combine(first, time.min, tzinfo=tz)
+    month_end = datetime.combine(first + timedelta(days=days_in_month), time.min, tzinfo=tz)
+    counts: dict = {}
+    for start in Booking.objects.filter(start__gte=month_start, start__lt=month_end).values_list(
+        "start", flat=True
+    ):
+        d = timezone.localtime(start).date()
+        counts[d] = counts.get(d, 0) + 1
+    today = timezone.localdate()
+    rows = []
+    for i in range(days_in_month):
+        d = first + timedelta(days=i)
+        rows.append(
+            {
+                "day": d,
+                "count": counts.get(d, 0),
+                "is_today": d == today,
+                "is_selected": d == day,
+            }
+        )
+    return {
+        "bcal_first": first,
+        "bcal_lead_blanks": range(first.weekday()),  # Mo-первый
+        "bcal_days": rows,
+        "bcal_prev": (first - timedelta(days=1)).replace(day=1),
+        "bcal_next": first + timedelta(days=days_in_month),
+    }
 
 
 @login_required
