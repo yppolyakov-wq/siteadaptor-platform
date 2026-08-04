@@ -12,6 +12,8 @@
         <th class="py-2">{% trans "Promotion" %}</th>
         <th class="py-2">{% trans "Status" %}</th>
         <th class="py-2 text-right">{% trans "Views" %}</th>
+        {# P7 «ценовой слой»: сделки стандартных рельсов (заказы/брони) отдельной колонкой. #}
+        <th class="py-2 text-right">{% trans "Verkäufe" %}</th>
         <th class="py-2 text-right">{% trans "Reservations" %}</th>
         <th class="py-2 text-right">{% trans "Fulfilled" %}</th>
         <th class="py-2 text-right">{% trans "Conversion" %}</th>
@@ -23,15 +25,16 @@
           <td class="py-2"><a href="{% url 'promotions:promotion-edit' r.promo.pk %}" class="text-indigo-600 hover:underline">{{ r.promo.title_text|default:r.promo.pk }}</a></td>
           <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ r.promo.status }}</span></td>
           <td class="py-2 text-right">{{ r.views }}</td>
+          <td class="py-2 text-right font-medium">{{ r.n_deals }}</td>
           <td class="py-2 text-right">{{ r.n_res }}</td>
           <td class="py-2 text-right">{{ r.n_fulfilled }}</td>
           <td class="py-2 text-right">{% if r.conversion is not None %}{{ r.conversion }} %{% else %}—{% endif %}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="6" class="py-6 text-center text-gray-400">{% trans "No promotions yet." %}</td></tr>
+        <tr><td colspan="7" class="py-6 text-center text-gray-400">{% trans "No promotions yet." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
-<p class="text-xs text-gray-400 mt-2">{% trans "Conversion = reservations / views." %}</p>
+<p class="text-xs text-gray-400 mt-2">{% trans "Conversion = (Verkäufe + Reservierungen) / Views." %}</p>
 {% endblock %}

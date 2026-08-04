@@ -153,8 +153,10 @@
   {% if promotion and stats %}
     <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "Statistics" %}</p>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+      {# P7 «ценовой слой»: плитка «Verkäufe» — сделки стандартных рельсов (заказы/брони). #}
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
         <div><div class="text-xl font-bold">{{ stats.views }}</div><div class="text-xs text-gray-400">{% trans "Views" %}</div></div>
+        <div><div class="text-xl font-bold">{{ stats.deals.total }}</div><div class="text-xs text-gray-400">{% trans "Verkäufe" %}</div></div>
         <div><div class="text-xl font-bold">{{ stats.total }}</div><div class="text-xs text-gray-400">{% trans "Reservations" %}</div></div>
         <div><div class="text-xl font-bold">{{ stats.fulfilled }}</div><div class="text-xs text-gray-400">{% trans "Fulfilled" %}</div></div>
         <div><div class="text-xl font-bold">{% if stats.conversion is not None %}{{ stats.conversion }} %{% else %}—{% endif %}</div><div class="text-xs text-gray-400">{% trans "Conversion" %}</div></div>

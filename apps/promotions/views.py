@@ -451,15 +451,23 @@ def _conversion(n_res, views):
 
 
 def _promo_stats(promo) -> dict:
-    """Аналитика акции: просмотры, брони по статусам, конверсия, выдачи."""
+    """Аналитика акции: просмотры, сделки, конверсия.
+
+    P7 «ценовой слой»: акция закрывается СТАНДАРТНЫМИ сделками (заказ/бронь) —
+    считаем их через `price_layer.deal_counts`; легаси-резервы остаются в
+    статистике, пока живы (история цела). Конверсия — по всем сделкам."""
+    from .price_layer import deal_counts
+
     by_status = dict(promo.reservations.values_list("status").annotate(n=Count("id")).order_by())
     total = sum(by_status.values())
+    deals = deal_counts(promo)
     return {
         "views": promo.views,
         "by_status": by_status,
         "total": total,
         "fulfilled": by_status.get("fulfilled", 0),
-        "conversion": _conversion(total, promo.views),
+        "deals": deals,
+        "conversion": _conversion(total + deals["total"], promo.views),
     }
 
 
@@ -469,13 +477,46 @@ def analytics_overview(request):
         n_res=Count("reservations"),
         n_fulfilled=Count("reservations", filter=Q(reservations__status="fulfilled")),
     ).order_by("-views")
+    # P7 «ценовой слой»: сделки новых рельсов — bulk без N+1: брони услуг/номеров
+    # двумя агрегатами по FK, заказы — один проход по строкам с promo-маркером.
+    from apps.booking.models import Booking
+    from apps.orders.models import OrderItem
+    from apps.stays.models import StayBooking
+
+    deal_map: dict = {}  # str(promo_pk) → сделок
+    for pid, n in (
+        Booking.objects.filter(promotion__isnull=False)
+        .exclude(status=Booking.STATUS_CANCELLED)
+        .values_list("promotion_id")
+        .annotate(n=Count("id"))
+    ):
+        deal_map[str(pid)] = deal_map.get(str(pid), 0) + n
+    for pid, n in (
+        StayBooking.objects.filter(promotion__isnull=False)
+        .exclude(status=StayBooking.STATUS_CANCELLED)
+        .values_list("promotion_id")
+        .annotate(n=Count("id"))
+    ):
+        deal_map[str(pid)] = deal_map.get(str(pid), 0) + n
+    order_seen = set()  # (promo_id, order_id) — заказ считаем один раз
+    for order_id, mods in (
+        OrderItem.objects.filter(modifiers__icontains='"promo"')
+        .exclude(order__status="cancelled")
+        .values_list("order_id", "modifiers")
+    ):
+        for m in mods or ():
+            pid = m.get("promo") if isinstance(m, dict) else None
+            if pid and (pid, order_id) not in order_seen:
+                order_seen.add((pid, order_id))
+                deal_map[str(pid)] = deal_map.get(str(pid), 0) + 1
     rows = [
         {
             "promo": p,
             "views": p.views,
             "n_res": p.n_res,
             "n_fulfilled": p.n_fulfilled,
-            "conversion": _conversion(p.n_res, p.views),
+            "n_deals": deal_map.get(str(p.pk), 0),
+            "conversion": _conversion(p.n_res + deal_map.get(str(p.pk), 0), p.views),
         }
         for p in promos
     ]

@@ -80,6 +80,37 @@ def rules_match(rules, start, resource_id=None) -> bool:
     return True
 
 
+def deal_counts(promotion) -> dict:
+    """P7: сделки акции на новых рельсах — заказы (маркер {"promo": id} в
+    OrderItem.modifiers), брони услуг и номеров (FK). Отменённые не считаем
+    (им возвращён лимит кампании) — конверсия честная."""
+    from apps.booking.models import Booking
+    from apps.orders.models import OrderItem
+    from apps.stays.models import StayBooking
+
+    orders = (
+        OrderItem.objects.filter(modifiers__contains=[{"promo": str(promotion.pk)}])
+        .exclude(order__status="cancelled")
+        .values("order_id")
+        .distinct()
+        .count()
+    )
+    bookings = (
+        Booking.objects.filter(promotion=promotion).exclude(status=Booking.STATUS_CANCELLED).count()
+    )
+    stays = (
+        StayBooking.objects.filter(promotion=promotion)
+        .exclude(status=StayBooking.STATUS_CANCELLED)
+        .count()
+    )
+    return {
+        "orders": orders,
+        "bookings": bookings,
+        "stays": stays,
+        "total": orders + bookings + stays,
+    }
+
+
 def promo_for_product(product):
     """P6: активная акция на товар → Promotion | None (для показа на витрине;
     чекаут по промо-цене живёт на детали АКЦИИ — /p/<uuid>/kaufen/).

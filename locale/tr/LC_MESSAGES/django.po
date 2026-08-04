@@ -16948,3 +16948,6 @@ msgstr "pembe işaretli saatler için geçerlidir"
 
 msgid "Zum Angebot"
 msgstr "Kampanyaya git"
+
+msgid "Conversion = (Verkäufe + Reservierungen) / Views."
+msgstr "Dönüşüm = (satışlar + rezervasyonlar) / görüntülenme."

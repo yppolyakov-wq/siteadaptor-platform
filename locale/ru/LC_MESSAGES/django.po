@@ -17028,3 +17028,6 @@ msgstr "действует в отмеченное розовым время"
 
 msgid "Zum Angebot"
 msgstr "К акции"
+
+msgid "Conversion = (Verkäufe + Reservierungen) / Views."
+msgstr "Конверсия = (продажи + резервы) / просмотры."

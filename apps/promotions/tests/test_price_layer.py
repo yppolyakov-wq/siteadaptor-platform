@@ -141,6 +141,41 @@ def test_promotion_purchase_endpoint_creates_standard_order():
     assert promo.available_quantity == 3
 
 
+# --- P7: аналитика по сделкам новых рельсов ---------------------------------
+
+
+def test_deal_counts_and_stats_count_standard_deals():
+    """Заказ по акции (маркер в OrderItem) попадает в аналитику; отменённый — нет."""
+    from apps.promotions.price_layer import deal_counts
+    from apps.promotions.views import _promo_stats
+
+    product = _product(stock=30)
+    promo = _promo(product=product, quantity=10)
+    services.purchase(promo, quantity=1, name="Anna", email="a@t.de")
+    cancelled = services.purchase(promo, quantity=1, name="Bernd", email="b@t.de")
+    OrderSM().apply(cancelled, "cancelled")
+    deals = deal_counts(promo)
+    assert deals["orders"] == 1 and deals["total"] == 1
+    stats = _promo_stats(promo)
+    assert stats["deals"]["total"] == 1
+    assert stats["conversion"] is None or stats["conversion"] >= 0  # не падает без views
+
+
+def test_analytics_overview_lists_deals_column():
+    from django.contrib.auth import get_user_model
+    from django.test import RequestFactory
+
+    from apps.promotions.views import analytics_overview
+
+    product = _product(stock=30)
+    promo = _promo(product=product, quantity=10)
+    services.purchase(promo, quantity=1, name="Anna", email="a@t.de")
+    request = RequestFactory().get("/promotions/analytics/")
+    request.user = get_user_model().objects.create_user(username="own-p7", password="x")
+    body = analytics_overview(request).content.decode()
+    assert "Verkäufe" in body
+
+
 def test_detail_service_target_links_to_slot_funnel():
     """Акция на услугу: CTA ведёт в штатную воронку записи (промо-цена там
     применяется автоматически) — формы покупки на детали нет."""

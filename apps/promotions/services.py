@@ -63,10 +63,13 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
 
 @transaction.atomic
 def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_channel=""):
-    """Создать бронь, атомарно списав остаток акции.
+    """ЛЕГАСИ-рельсы (P5/P7 «ценовой слой»): витрина с P5 резервы НЕ порождает —
+    новые акции закрываются стандартными сделками (`purchase`/`book`/`book_stay`).
+    Функция и /r/<code>/ живут, пока открытые резервы не иссякнут (история цела).
 
-    Бросает OutOfStock, если остатка не хватило/акция не active, и
-    ReservationLimitReached при превышении max_per_customer.
+    Создать бронь, атомарно списав остаток акции. Бросает OutOfStock, если
+    остатка не хватило/акция не active, и ReservationLimitReached при
+    превышении max_per_customer.
     """
     if quantity < 1:
         raise ValueError("quantity must be >= 1")

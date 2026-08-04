@@ -17013,3 +17013,6 @@ msgstr "діє на позначений рожевим час"
 
 msgid "Zum Angebot"
 msgstr "До акції"
+
+msgid "Conversion = (Verkäufe + Reservierungen) / Views."
+msgstr "Конверсія = (продажі + резерви) / перегляди."

@@ -16836,3 +16836,6 @@ msgstr "applies to the times marked in pink"
 
 msgid "Zum Angebot"
 msgstr "View deal"
+
+msgid "Conversion = (Verkäufe + Reservierungen) / Views."
+msgstr "Conversion = (sales + reservations) / views."

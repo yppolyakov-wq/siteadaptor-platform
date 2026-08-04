@@ -16987,3 +16987,6 @@ msgstr "gilt für die rosa markierten Zeiten"
 
 msgid "Zum Angebot"
 msgstr "Zum Angebot"
+
+msgid "Conversion = (Verkäufe + Reservierungen) / Views."
+msgstr "Conversion = (Verkäufe + Reservierungen) / Views."
