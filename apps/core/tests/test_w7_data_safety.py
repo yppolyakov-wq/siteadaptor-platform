@@ -97,6 +97,31 @@ def test_seo_save_path_preserves_notify_and_stock_keys():
     assert tenant.site_config["lots_enabled"] is True
 
 
+def test_seo_save_is_targeted_not_full_normalize():
+    # W9-3: SEO пишет ТОЛЬКО узел seo — неизвестный normalize'у ключ соседнего
+    # экрана переживает Save (раньше пересборка полного конфига его съедала бы).
+    tenant = TenantFactory(business_type="restaurant")
+    tenant.site_config = {"notify": {"owner_chat_id": "9"}, "board": {"labels": {"x": "Y"}}}
+    tenant.save(update_fields=["site_config"])
+    views.seo_settings_view(
+        _req("/dashboard/site/seo/", "post", {"title_home": "T"}, tenant=tenant)
+    )
+    tenant.refresh_from_db()
+    assert tenant.site_config["notify"] == {"owner_chat_id": "9"}
+    assert tenant.site_config["board"] == {"labels": {"x": "Y"}}
+    assert tenant.site_config["seo"]["templates"]["home"]["title"] == "T"
+
+
+def test_finder_save_is_targeted_not_full_normalize():
+    tenant = TenantFactory(business_type="restaurant")
+    tenant.site_config = {"notify": {"owner_chat_id": "9"}}
+    tenant.save(update_fields=["site_config"])
+    views.finder_settings(_req("/dashboard/finder/", "post", {"enabled": "on"}, tenant=tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config["notify"] == {"owner_chat_id": "9"}
+    assert tenant.site_config["finder"]["enabled"] is True
+
+
 # --- 2. Benachrichtigungen: мерж вместо замены --------------------------------
 def test_notifications_save_keeps_prefs_of_disabled_modules():
     tenant = TenantFactory(business_type="restaurant", disabled_modules=["events"])

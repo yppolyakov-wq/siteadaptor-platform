@@ -1,0 +1,7 @@
+{% comment %}W9-1b: единый блок flash-сообщений настроечных страниц — была копипаста
+в 9 шаблонах с расходящимися тонами (warning терялся вне modules).{% endcomment %}
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}

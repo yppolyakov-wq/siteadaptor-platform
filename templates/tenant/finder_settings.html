@@ -10,11 +10,7 @@
   <h1 class="text-2xl font-bold mb-1">Finder</h1>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt lange im Katalog zu suchen." %}</p>
 
-  {% if messages %}
-    {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
+  {% include "tenant/_settings_messages.html" %}
 
   {% if not has_kind %}
     <div class="rounded-xl bg-amber-50 text-amber-800 px-4 py-3 text-sm mb-4">{% trans "Für diese Branche gibt es noch keine Finder-Angebote (kein passendes Sortiment-Modul aktiv)." %}</div>

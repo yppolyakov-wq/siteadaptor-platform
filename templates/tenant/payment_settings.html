@@ -8,11 +8,7 @@
   <h1 class="text-2xl font-bold mb-1">{% trans "Payment & shipping" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Everything about paying and delivery in one place." %}</p>
 
-  {% if messages %}
-    {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
+  {% include "tenant/_settings_messages.html" %}
 
   {% comment %}W4-3: Stripe-Connect (OAuth) блок + секции формы — вынесены в партиалы
   `_payment_connect.html`/`_payment_fields.html` (общие со слайдом мастера «Zahlung»,

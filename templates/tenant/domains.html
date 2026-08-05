@@ -8,11 +8,7 @@
   <h1 class="text-2xl font-bold mb-1">{% trans "Custom domain" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Connect your own domain (e.g. bakery.de) to your storefront." %}</p>
 
-  {% if messages %}
-    {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
+  {% include "tenant/_settings_messages.html" %}
 
   {# --- Шаг 1: добавить домен --- #}
   <form method="post" action="{% url 'domain-add' %}" class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex gap-3 items-end">

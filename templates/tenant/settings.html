@@ -7,11 +7,7 @@
 <div class="max-w-2xl">
   <h1 class="text-2xl font-bold mb-4">{% trans "Business settings" %}</h1>
 
-  {% if messages %}
-    {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
+  {% include "tenant/_settings_messages.html" %}
 
   {% comment %}W4: секции — базовые (Kontakt/Öffnungszeiten) всегда видны; продвинутые
   (Recht/Betrieb) — аккордеоны, в Простом режиме скрыты классом hidden, но ПОЛЯ остаются

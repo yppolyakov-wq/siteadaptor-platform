@@ -662,11 +662,14 @@ def finder_settings(request):
             else:
                 fnd.pop("enabled", None)
             messages.success(request, _("Saved."))
-        if fnd:
-            cfg["finder"] = fnd
+        # W9-3: targeted-write узла finder (normalize_finder валидирует: капы,
+        # дроп мусора, presence-minimal) — без пересборки полного конфига.
+        node = siteconfig.normalize_finder(fnd)
+        if node:
+            cfg["finder"] = node
         else:
             cfg.pop("finder", None)
-        tenant.site_config = siteconfig.normalize(cfg)
+        tenant.site_config = cfg
         tenant.save(update_fields=["site_config", "updated_at"])
         return redirect("finder-settings")
     # FD-3: живые slug-опции для селектора маппинга (не свободный ввод —
@@ -2765,7 +2768,12 @@ def seo_settings_view(request):
     from apps.tenants import siteconfig
 
     if request.method == "POST":
-        cfg = siteconfig.normalize(request.tenant.site_config)
+        # W9-3: targeted-write ТОЛЬКО узла seo (normalize_seo валидирует его) —
+        # пересборка полного конфига через normalize() из save-пути настроек
+        # запрещена (класс W0/W6: терялись ключи соседних экранов).
+        cfg = (
+            dict(request.tenant.site_config) if isinstance(request.tenant.site_config, dict) else {}
+        )
         templates = {}
         for pt in seo_meta.PAGE_TYPES:
             entry = {}
@@ -2782,8 +2790,12 @@ def seo_settings_view(request):
         # AI-краулеров). Отмечен/дефолт → разрешено (ключ не пишем, golden-паритет).
         if request.POST.get("allow_ai") != "on":
             seo["allow_ai"] = False
-        cfg["seo"] = seo
-        request.tenant.site_config = siteconfig.normalize(cfg)
+        node = siteconfig.normalize_seo(seo)
+        if node:
+            cfg["seo"] = node
+        else:
+            cfg.pop("seo", None)  # presence-minimal: пусто → ключа нет
+        request.tenant.site_config = cfg
         request.tenant.save(update_fields=["site_config", "updated_at"])
         messages.success(request, _("Gespeichert."))
         return redirect("site-seo")

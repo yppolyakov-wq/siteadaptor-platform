@@ -8439,3 +8439,18 @@ label+search, Enter = первый видимый, Esc/фон = закрыть; 
 **W8-3 (осознанное отступление):** hub_tiles главной НЕ сведены в реестр (иные
 подписи/SVG-иконки/wide-плитка; гейты уже честные с W7b) — кандидат в W9/W11.
 Замки: test_w8_nav_registry (9); core-сюита 839 зелёных.
+
+
+## 2026-08-05 — W9-1..W9-3: Settings-хаб — каркас «базовые + по типам» + предохранитель SEO/Finder
+
+W9-1a: табы Einstellungen перегруппированы в целевой порядок (Mein Geschäft ·
+Sprachen · Recht & Steuern · Zahlung & Lieferung · Benachrichtigungen & Kanäle ·
+Finanzen · Auswertungen · Abo & Rechnung + Erweitert: Zusatzleistungen/Medien/
+Domains/Funktionen/Finder/Hilfe); Finder переехал из Marketing (это настройка
+витрины); 4 msgid × 5 .po; навигационные замки обновлены осознанно. W9-1b: единый
+`_settings_messages.html` вместо копипасты в 9 шаблонах (warning-тон теперь
+везде). W9-2 закрыт прежней работой (статус Connect уже в табе; billing/payments
+read-only после W7a) — только лейбл. W9-3: seo_settings_view/finder_settings —
+targeted-write СВОЕГО узла через normalize_seo/normalize_finder (пересборка
+полного конфига в save-путях настроек запрещена; класс W0/W6) + 2 замка
+«соседние ключи переживают Save». 135+10 зелёных локально.

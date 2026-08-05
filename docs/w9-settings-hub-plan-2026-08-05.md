@@ -84,4 +84,14 @@ W9-10 обязан включить per-роль-гейт минимум на bi
 - **W9-11 Erweitert:** Finder из marketing-хаба сюда; site_seo получает hub_tabs.
 
 ## §4. Статус
-- W9-1 … W9-11 — очередь; статусы вести здесь + build-log.
+- **W9-1a ✅** (2026-08-05): реестр перегруппирован «базовые + по типам»; Finder →
+  Einstellungen/Erweitert; 4 msgid × 5 .po; замки обновлены осознанно.
+- **W9-1b ✅**: единый партиал `_settings_messages.html` вместо копипасты в 9 шаблонах.
+- **W9-2 ✅ прежней работой**: статус Stripe-Connect уже в табе Zahlung & Lieferung
+  (`_payment_connect.html` включён в payment_settings); /dashboard/billing/payments/
+  уже read-only статус+OAuth+ссылка (W7a убрал форму); лейбл «Abo & Rechnung» — W9-1a.
+- **W9-3 ✅**: seo_settings_view и finder_settings — targeted-write своего узла
+  (normalize_seo/normalize_finder на узел; пересборка полного конфига из save-путей
+  настроек исключена) + 2 замка «соседние ключи целы».
+- Очередь: W9-4 (Website & Domains) → W9-5 (Recht & Steuern) → W9-6 (Mein Geschäft)
+  → W9-7 → W9-8 (Abläufe) → W9-9 (Integrationen) → W9-10 (Team) → W9-11 хвост.

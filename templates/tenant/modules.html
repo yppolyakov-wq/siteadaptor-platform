@@ -8,11 +8,7 @@
   <h1 class="text-2xl font-bold mb-1">{% trans "Modules" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Switch dashboard blocks on or off. Disabled modules disappear from the menu — your data stays." %}</p>
 
-  {% if messages %}
-    {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
+  {% include "tenant/_settings_messages.html" %}
 
   {% comment %}S5/#4: тумблер режима кабинета — Einfach прячет продвинутое из меню.
      Фидбэк владельца «непонятно, что упрощается» → показываем конкретный список
