@@ -3,7 +3,8 @@
 {% block dash_title %}{% trans "Heute" %}{% endblock %}
 
 {% block dash_content %}
-{% hub_tabs "board" %}
+{% comment %}W10-3b: hub_tabs-огрызок Verkäufe-хаба снят (реестр жив для палитры/подсветки) — мостик на единую страницу.{% endcomment %}
+<p class="mb-4 text-xs text-gray-400">{% trans "Alte Ansicht" %} · <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">🆕 {% trans "Alles auf einer Seite" %} →</a></p>
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   <h1 class="text-2xl font-bold">📋 {% trans "Heute" %} <span class="text-base font-normal text-gray-400">{{ today|date:"d.m.Y" }}</span></h1>
   <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>

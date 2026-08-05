@@ -68,4 +68,10 @@
 {% else %}
   {% include "core/_sales_liste.html" %}
 {% endif %}
+{# W10-3b: входы в полные управляющие экраны tickets/jobs (аудит: «выпали из новой навигации») #}
+{% if active_kind == "ticket" %}
+  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'events:list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
+{% elif active_kind == "job" %}
+  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'jobs:list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
+{% endif %}
 {% endblock %}

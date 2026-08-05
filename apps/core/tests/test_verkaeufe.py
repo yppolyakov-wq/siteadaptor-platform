@@ -250,3 +250,29 @@ def test_ready_widget_deep_links_to_verkaeufe():
     if ready is not None:  # виджет гейтится наличием ready-заказов
         assert ready["url_name"] == "verkaeufe"
         assert ready["url_query"] == "?tab=order&status=ready"
+
+
+def test_ticket_and_job_tabs_link_to_full_pages():
+    """W10-3b: с вкладок ticket/job достижимы полные управляющие экраны
+    (аудит: «events:list/jobs:list выпали из новой навигации продаж»)."""
+    ev = dict(business_type="events", disabled_modules=["stays", "booking"])
+    body = views.verkaeufe(_req(**ev)).content.decode()
+    assert "/dashboard/events/" in body
+
+    hw = dict(business_type="handwerker", disabled_modules=["stays", "booking", "events"])
+    body = views.verkaeufe(_req(**hw)).content.decode()
+    assert "/dashboard/auftraege/" in body
+
+
+def test_board_hub_bar_not_rendered_in_templates():
+    """W10-3b: огрызок hub_tabs "board" (Tickets/Aufträge) снят со всех страниц.
+    Реестр board-хаба жив осознанно — питает палитру Ctrl+K и якорь подсветки."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3] / "templates"
+    hits = [
+        str(p)
+        for p in root.rglob("*.html")
+        if 'hub_tabs "board"' in p.read_text(encoding="utf-8", errors="ignore")
+    ]
+    assert hits == []

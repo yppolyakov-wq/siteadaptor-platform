@@ -8598,3 +8598,19 @@ verkaeufe?tab=order&status=ready (легаси-список для этого б
 английские msgid («Kitchen Display» → «Küchенanzeige»); поймано первым же
 прогоном. 1 msgid × 5 .po. Локально: verkaeufe 12, core+orders 1013 зелёные.
 Остаток W10-3b: events/jobs-вкладочные входы + смерть hub_tabs["board"]-огрызка.
+
+
+## 2026-08-05 — W10-3b: смерть hub_tabs["board"]-огрызка + входы ticket/job
+
+Огрызок таб-бара Verkäufe-хаба (после W-CL в нём оставались только Tickets/
+Aufträge) снят со всех 6 страниц: board, список заказов, booking-календарь —
+просто снят (мостик уже был с W10-1); jobs:list, events:list, stays:today —
+заменён мостиком «Alte Ansicht · 🆕 Alles auf einer Seite →» (0 msgid). Реестр
+board-хаба в nav_registry ЖИВ осознанно: он питает палитру Ctrl+K (Tickets/
+Aufträge остаются находимы) и карту подсветки якоря «Verkäufe» для nav-литералов
+events/jobs. Вкладки ticket/job на единой странице получили вход в полные
+управляющие экраны (events:list — события/билеты/сканер; jobs:list — сметы) —
+закрыта находка аудита «events:list/jobs:list выпали из новой навигации».
+Замки: скан templates «никто не рендерит hub_tabs board» + входы с вкладок
+(test_verkaeufe 14). Локально core+events+jobs 1165, смежные шаблонные 50 —
+зелёные. W10-3 закрыт целиком (a+b).

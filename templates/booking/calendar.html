@@ -3,7 +3,6 @@
 {% block dash_title %}{% trans "Kalender" %}{% endblock %}
 
 {% block dash_content %}
-{% hub_tabs "board" %}
 {% comment %}W10-1: сегмент ST-5b удалён (двойная модель переключения видов) — остаётся мостик на единую страницу продаж.{% endcomment %}
 <p class="mb-4 text-xs text-gray-400">{% trans "Alte Ansicht" %} · <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">🆕 {% trans "Alles auf einer Seite" %} →</a></p>
 {% include "booking/_tagesplan_body.html" %}

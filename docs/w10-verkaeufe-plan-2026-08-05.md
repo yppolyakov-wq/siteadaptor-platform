@@ -85,5 +85,11 @@ CI → FF-merge. Характеризационные замки ДО перен
   `?tab=booking&view=kalender#neu`; у заказов owner-create флоу нет — кнопки
   нет); deep-link «Abholbereit» главной → `verkaeufe?tab=order&status=ready`.
   Урок: замки по URL, не по подписи — de.po переводит английские msgid
-  («Kitchen Display» → «Küchenanzeige»). 1 msgid × 5 .po. Остаток W10-3b:
-  events/jobs-вкладочные входы + смерть hub_tabs["board"]-огрызка.
+  («Kitchen Display» → «Küchenанzeige»). 1 msgid × 5 .po.
+- **W10-3b ✅** (2026-08-05): огрызок `hub_tabs "board"` (Tickets/Aufträge) снят
+  со всех 6 страниц (board/order_list/booking-календарь/jobs/events/stays-today);
+  реестр board-хаба ЖИВ осознанно — питает палитру Ctrl+K и якорь подсветки.
+  Страницы без мостика (jobs/events/today) получили «Alte Ansicht · Alles auf
+  einer Seite»; вкладки ticket/job на Verkäufe получили вход в полные
+  управляющие экраны (events:list/jobs:list). Замки: «ни один шаблон не рендерит
+  board-бар» (скан) + входы с вкладок. W10-3 закрыт целиком.
