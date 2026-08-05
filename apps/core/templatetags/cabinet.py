@@ -61,9 +61,17 @@ def hub_tabs(context, hub):
             continue
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
             continue
-        entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur}
+        entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur, "module": mod}
         (more if advanced else tabs).append(entry)
-    return {"tabs": tabs, "more_tabs": more, "more_active": any(t["active"] for t in more)}
+    more_active = any(t["active"] for t in more)
+    # W12-2: Простой режим прячет из ящика «Erweitert» продвинутые ИНСТРУМЕНТЫ
+    # (записи без module_key: Medien/Funktionen/Finder/…); advanced-функции
+    # АКТИВНЫХ модулей остаются (werkstatt в Простом держит Produkte/Lager —
+    # замок S6b). Страницы доступны по URL (S5); открытая advanced-страница
+    # по прямой ссылке показывает ящик целиком (подсветка не в никуда).
+    if tenant is not None and modules.is_simple(tenant) and not more_active:
+        more = [t for t in more if t["module"] is not None]
+    return {"tabs": tabs, "more_tabs": more, "more_active": more_active}
 
 
 @register.inclusion_tag("tenant/_nav_palette.html", takes_context=True)

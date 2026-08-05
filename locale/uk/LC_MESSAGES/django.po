@@ -17324,3 +17324,15 @@ msgstr "Акція діє на цю послугу — акційна ціна �
 
 msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
 msgstr "Акція діє на цей номер — бере участь як ціновий кандидат під час бронювання."
+
+msgid "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
+msgstr "«Просто» показує лише основне; «Експерт» — усе. Перемикач у шапці робить те саме."
+
+msgid "Was der Einfach-Modus bei Ihnen ausblendet"
+msgstr "Що приховує у вас режим «Просто»"
+
+msgid "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+msgstr "Нічого — усі ваші активні розділи видно й у режимі «Просто»."
+
+msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
+msgstr "Режим «Просто» також приховує шухляду «Erweitert» у таб-барах і профі-поля у формах. Усі сторінки залишаються доступними за прямим посиланням."

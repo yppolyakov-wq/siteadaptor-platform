@@ -8740,3 +8740,26 @@ site_home.html (3400 строк, двойная буферизация, draft-к
 UC2-4/W10-6 такое делается отдельным план-доком + Playwright-стендом свежей
 сессией; быстрого безрискового среза нет (Медиа в Studio-рейке уже есть с
 ST-3a). Волна W11 в объёме W11-1..W11-4 закрыта; W11-5 — отложенный план-док.
+
+
+## 2026-08-05 — ВОЛНА W12 «честные режимы» ЗАКРЫТА (W12-1..3) — ПРОГРАММА АУДИТА W7..W12 ИСПОЛНЕНА
+
+План `w12-modes-plan-2026-08-05.md` (classic-измерение §2.7 отпало — W-CL).
+**W12-1** экран «Ansicht» (/dashboard/ansicht/, таб settings/Erweitert, nav в
+реестре W8): Einfach/Experte тем же endpoint set-ui-mode + честный список «что
+именно скрыто у вас» (simple_hidden_labels) + принцип S5 текстом; карточка
+режима на «Funktionен» слим до статуса+ссылки (тумблер шапки остаётся).
+**W12-2** Простой режим прячет из ящика «Erweitert» продвинутые ИНСТРУМЕНТЫ
+(записи без module_key — Medien/Funktionen/Finder/…); advanced-функции активных
+модулей ОСТАЮТСЯ — первоначальное «прятать ящик целиком» поймал замок S6b
+(werkstatt в Простом обязан видеть Produkte/Lager — Teile) → правило уточнено;
+открытая по прямой ссылке advanced-страница показывает ящик (подсветка не в
+никуда). **W12-3** параллельные константы SIMPLE_HIDDEN_MODULES/
+ARCHETYPE_SIMPLE_HIDDEN удалены — ось живёт в ModuleSpec (simple_hidden:
+finance/analytics; simple_hidden_for: catalog → friseur/handwerker/events/
+hotel), производная _simple_hidden_for_type; паритет 1:1 замком по всем 15
+BUSINESS_TYPES. Честно: «автоматика из recommended_for» (§2.7) невозможна без
+нового сигнала — у core-модулей его нет (werkstatt держит catalog при primary
+booking; restaurant — Speisekarte) → знание курируется в спеке модуля, один
+источник вместо параллельной карты. 4 msgid × 5 .po. Замки test_w12_modes (6);
+test_ui_mode/hub_tabs/W8 целы. Локально core+wizard 946 зелёных, без миграций.

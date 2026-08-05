@@ -17298,3 +17298,15 @@ msgstr "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei 
 
 msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
 msgstr "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+
+msgid "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
+msgstr "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
+
+msgid "Was der Einfach-Modus bei Ihnen ausblendet"
+msgstr "Was der Einfach-Modus bei Ihnen ausblendet"
+
+msgid "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+msgstr "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+
+msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
+msgstr "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."

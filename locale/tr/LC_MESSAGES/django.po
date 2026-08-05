@@ -17259,3 +17259,15 @@ msgstr "Kampanya bu hizmet için geçerlidir — kampanya fiyatı rezervasyonda 
 
 msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
 msgstr "Kampanya bu oda için geçerlidir — rezervasyonda fiyat adayı olarak etki eder."
+
+msgid "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
+msgstr "Basit yalnızca temel olanı gösterir; Uzman her şeyi gösterir. Üstteki başlık çubuğu anahtarı aynısını yapar."
+
+msgid "Was der Einfach-Modus bei Ihnen ausblendet"
+msgstr "Basit modun sizde neleri gizlediği"
+
+msgid "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+msgstr "Hiçbir şey — tüm etkin bölümleriniz Basit modda da görünür."
+
+msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
+msgstr "Basit ayrıca sekme çubuklarındaki „Gelişmiş“ çekmecesini ve formlardaki profesyonel alanları gizler. Tüm sayfalara doğrudan bağlantıyla erişilebilir."

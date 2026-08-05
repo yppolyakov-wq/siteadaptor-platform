@@ -3503,6 +3503,26 @@ def _status_choices(kind):
     return StayBooking.STATUSES
 
 
+@login_required
+def ansicht_view(request):
+    """W12-1: «Ansicht» — режим кабинета одним экраном: выбор Einfach/Experte
+    (тот же endpoint set-ui-mode) + честный список «что именно скрыто у вас»
+    (simple_hidden_labels) + принцип S5 (страницы доступны по прямой ссылке).
+    Раньше настройка вида была размазана по шапке/Funktionen (аудит §2.7)."""
+    from apps.core import modules as _mod
+
+    tenant = request.tenant
+    return render(
+        request,
+        "tenant/ansicht.html",
+        {
+            "nav": "ansicht",
+            "mode": _mod.ui_mode(tenant),
+            "hidden_labels": _mod.simple_hidden_labels(tenant),
+        },
+    )
+
+
 # --- FB-3 Вариант B Phase 5: редактор кастом-статусов -------------------------
 
 

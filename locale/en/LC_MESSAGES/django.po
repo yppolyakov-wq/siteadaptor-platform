@@ -17147,3 +17147,15 @@ msgstr "Promotion applies to this service — the promo price is applied automat
 
 msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
 msgstr "Promotion applies to this room — acts as a price candidate at booking."
+
+msgid "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
+msgstr "Simple shows only the essentials; Expert shows everything. The switch in the header does the same."
+
+msgid "Was der Einfach-Modus bei Ihnen ausblendet"
+msgstr "What Simple mode hides for you"
+
+msgid "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+msgstr "Nothing — all your active sections are visible in Simple mode too."
+
+msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
+msgstr "Simple also hides the “Advanced” drawer of the tab bars and pro fields in forms. All pages remain reachable via direct link."

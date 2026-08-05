@@ -49,6 +49,12 @@ class ModuleSpec:
     suited_for: tuple[str, ...] = ()
     core: bool = False  # выключить нельзя, entitlement не применяется
     premium: bool = False  # требует key в Tenant.enabled_modules (тариф)
+    # --- W12-3: ось Простого режима живёт В СПЕКЕ модуля (не в параллельной карте) --
+    # simple_hidden: продвинутый модуль — в Простом прячется из меню у ВСЕХ типов.
+    # simple_hidden_for: CORE-модуль (выключить нельзя) прячется из меню в Простом
+    # у перечисленных типов (нерелевантен архетипу). Страницы доступны по URL (S5).
+    simple_hidden: bool = False
+    simple_hidden_for: tuple[str, ...] = ()
     description_de: str = ""  # «что это даёт» — пояснение на странице «Module» (D0b)
     # --- Витринный (storefront) презентационный слой (S1) ----------------------
     # «Лицо» архетипа для ПОСЕТИТЕЛЯ сайта (не кабинета). Источник правды и для
@@ -96,6 +102,9 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("catalog:product-list", _("Catalog"), "catalog"),),
         url_prefixes=("/catalog/", "/imports/", "/dashboard/stock/", "/dashboard/purchasing/"),
         core=True,
+        # W12-3 (бывш. S6b-карта): товары не primary у этих архетипов — в Простом
+        # хаб «Sortiment» прячется (werkstatt держит — Teile; restaurant — Speisekarte).
+        simple_hidden_for=("friseur", "handwerker", "events", "hotel"),
         description_de=_("Produkte und Kategorien pflegen, Import aus CSV/Excel."),
         storefront_label=_("Sortiment"),
         storefront_blurb=_("Stöbern Sie in unserem Angebot."),
@@ -304,6 +313,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("promotions:analytics", _("Analytics"), "analytics"),),
         url_prefixes=("/promotions/analytics/",),
         depends_on=("promotions",),
+        simple_hidden=True,  # W12-3 (бывш. SIMPLE_HIDDEN_MODULES)
         description_de=_("Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."),
     ),
     ModuleSpec(
@@ -431,6 +441,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         icon="💶",
         nav_items=(NavItem("finance:journal", _("Finance"), "finance"),),
         url_prefixes=("/dashboard/finance/",),
+        simple_hidden=True,  # W12-3 (бывш. SIMPLE_HIDDEN_MODULES)
         # «добавь, когда дорастёшь» (ТЗ D0b) — по умолчанию выключен у всех вертикалей
         description_de=_("Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."),
     ),
@@ -605,29 +616,28 @@ def is_simple(tenant) -> bool:
     return ui_mode(tenant) == "simple"
 
 
-# Модули, скрываемые из сайдбара в Простом режиме (продвинутые отчёты/инструменты).
-# Скрытие — только из меню; страницы остаются доступны по URL. Расширяемо по фидбэку.
-SIMPLE_HIDDEN_MODULES: frozenset[str] = frozenset({"finance", "analytics"})
+# W12-3: ось Простого режима живёт в СПЕКАХ модулей (simple_hidden /
+# simple_hidden_for) — параллельные константы SIMPLE_HIDDEN_MODULES и
+# ARCHETYPE_SIMPLE_HIDDEN (S5/S6b) удалены; паритет 1:1 держит замок.
 
-# S6b: в Простом режиме дополнительно скрыть из сайдбара хабы, нерелевантные архетипу
-# (даже core, как catalog «Sortiment»). Страницы остаются доступны по URL (принцип S5) —
-# в Эксперт-режиме всё видно. business_type → скрываемые ключи модулей. Расширяемо; типы
-# без записи ничего доп. не прячут. werkstatt держит catalog (продаёт Teile).
-ARCHETYPE_SIMPLE_HIDDEN: dict[str, frozenset[str]] = {
-    "friseur": frozenset({"catalog"}),  # салон: primary — услуги (Termin), не товары
-    "handwerker": frozenset({"catalog"}),  # ремесло: primary — Anfrage/Angebot
-    "events": frozenset({"catalog"}),  # организатор: primary — билеты
-    "hotel": frozenset({"catalog"}),  # отель: primary — номера (Übernachtung)
-}
+
+def _simple_hidden_for_type(business_type: str) -> frozenset[str]:
+    """Производная из REGISTRY: продвинутые (simple_hidden) ∪ core-нерелевантные
+    архетипу (simple_hidden_for). Скрытие — только из меню; страницы остаются
+    доступны по URL (принцип S5)."""
+    return frozenset(
+        spec.key
+        for spec in REGISTRY
+        if spec.simple_hidden or business_type in spec.simple_hidden_for
+    )
 
 
 def simple_hidden_modules(tenant) -> frozenset[str]:
-    """S5+S6b: ключи модулей, скрываемые из сайдбара в Простом режиме этого тенанта
-    (универсальные продвинутые ∪ нерелевантные архетипу). В Эксперт-режиме — пусто."""
+    """S5+S6b→W12-3: ключи модулей, скрываемые из меню в Простом режиме этого
+    тенанта. В Эксперт-режиме — пусто."""
     if not is_simple(tenant):
         return frozenset()
-    bt = getattr(tenant, "business_type", "") or ""
-    return SIMPLE_HIDDEN_MODULES | ARCHETYPE_SIMPLE_HIDDEN.get(bt, frozenset())
+    return _simple_hidden_for_type(getattr(tenant, "business_type", "") or "")
 
 
 def simple_hidden_labels(tenant) -> list[str]:
@@ -636,8 +646,7 @@ def simple_hidden_labels(tenant) -> list[str]:
     тенанта — НЕЗАВИСИМО от текущего режима (чтобы показать «что скрывается» и в
     Эксперт-режиме). Только реально активные разделы (не перечисляем то, чего нет).
     Порядок — как в реестре."""
-    bt = getattr(tenant, "business_type", "") or ""
-    hidden = SIMPLE_HIDDEN_MODULES | ARCHETYPE_SIMPLE_HIDDEN.get(bt, frozenset())
+    hidden = _simple_hidden_for_type(getattr(tenant, "business_type", "") or "")
     return [spec.label_de for spec in active_modules(tenant) if spec.key in hidden]
 
 

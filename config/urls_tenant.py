@@ -16,6 +16,7 @@ from apps.core import health
 from apps.core.team import team_join, team_view
 from apps.core.views import (
     ablaeufe_view,
+    ansicht_view,
     board,
     board_settings,
     dashboard,
@@ -104,6 +105,8 @@ urlpatterns = [
     path("dashboard/recht/", legal_docs_view, name="legal-docs"),
     # W9-8: «Abläufe» — имена статусов/переходы/колонки доски в одном месте.
     path("dashboard/ablaeufe/", ablaeufe_view, name="ablaeufe"),
+    # W12-1: «Ansicht» — режим кабинета (Einfach/Experte + что скрыто).
+    path("dashboard/ansicht/", ansicht_view, name="ansicht"),
     # W9-10: «Team & Zugriff» (owner-only через middleware) + публичное принятие инвайта.
     path("dashboard/settings/team/", team_view, name="team"),
     path("team/beitreten/<str:token>/", team_join, name="team-join"),
