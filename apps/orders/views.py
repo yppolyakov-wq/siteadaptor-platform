@@ -80,41 +80,11 @@ def auftragsbuch_context(request):
 
 @login_required
 def order_list(request):
-    qs = Order.objects.select_related("customer").prefetch_related("items")
-    status = request.GET.get("status", "")
-    if status:
-        qs = qs.filter(status=status)
-    tenant = getattr(request, "tenant", None)
-    return render(
-        request,
-        "orders/order_list.html",
-        {
-            "orders": qs[:200],
-            "statuses": Order.STATUSES,
-            "status": status,
-            # W9-8: панели статусов/переходов переехали на «Abläufe» (мостик в шаблоне).
-            "orders_prepay": getattr(tenant, "orders_prepay", False),
-            "payments_enabled": getattr(tenant, "payments_enabled", False),
-            # E-7: Vorkasse/Überweisung — тумблер + реквизиты бизнеса.
-            "vorkasse_enabled": getattr(tenant, "vorkasse_enabled", False),
-            "bank_holder": getattr(tenant, "bank_holder", ""),
-            "bank_iban": getattr(tenant, "bank_iban", ""),
-            "bank_bic": getattr(tenant, "bank_bic", ""),
-            "delivery_enabled": getattr(tenant, "delivery_enabled", False),
-            "delivery_fee_eur": f"{getattr(tenant, 'delivery_fee_cents', 0) / 100:.2f}",
-            "delivery_free_eur": f"{getattr(tenant, 'delivery_free_cents', 0) / 100:.2f}",
-            "delivery_min_eur": f"{getattr(tenant, 'delivery_min_cents', 0) / 100:.2f}",
-            "delivery_area": getattr(tenant, "delivery_area", ""),
-            "pickup_min_eur": f"{getattr(tenant, 'pickup_min_cents', 0) / 100:.2f}",
-            "delivery_restrict_to_zones": getattr(tenant, "delivery_restrict_to_zones", False),
-            "delivery_zone_rows": _zone_rows(tenant),
-            "pickup_locations_text": "\n".join(
-                f"{p['name']} | {p['address']}".rstrip(" |")
-                for p in getattr(tenant, "pickup_points", [])
-            ),
-            "nav": "orders",
-        },
-    )
+    """W10-6: легаси-список заказов — 302 на order-Liste единой страницы
+    (паритет достигнут W10-3a: фильтр статуса, поиск, KDS/QR; GET сохраняется)."""
+    from apps.core.sales_page import legacy_redirect
+
+    return legacy_redirect(request, tab="order", view="liste")
 
 
 def _active_kitchen_orders():

@@ -68,11 +68,31 @@ def test_transitions_enqueue_emails_with_dedupe():
 # --- кабинет ---------------------------------------------------------------------
 
 
-def test_order_list_renders_and_filters():
+def _verkaeufe_req(data=None):
+    """W10-6: список заказов живёт на Verkäufe — характеризация тела там."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    req = _req(path="/dashboard/verkaeufe/", data={"tab": "order", "view": "liste", **(data or {})})
+    req.tenant = TenantFactory.build(
+        business_type="shop", disabled_modules=["events", "stays", "booking", "jobs"]
+    )
+    return req
+
+
+def test_order_list_redirects_and_verkaeufe_liste_filters():
+    """W10-6: легаси-список — 302 с сохранением GET; тело фильтрует на цели."""
+    from apps.core import views as core_views
+
     order = _order()
-    body = views.order_list(_req()).content.decode()
+    resp = views.order_list(_req())
+    assert resp.status_code == 302
+    assert resp["Location"] == "/dashboard/verkaeufe/?tab=order&view=liste"
+    resp = views.order_list(_req(data={"status": "cancelled"}))
+    assert "status=cancelled" in resp["Location"]
+
+    body = core_views.verkaeufe(_verkaeufe_req()).content.decode()
     assert order.reference_code in body and "Brot" in body
-    body = views.order_list(_req(data={"status": "cancelled"})).content.decode()
+    body = core_views.verkaeufe(_verkaeufe_req({"status": "cancelled"})).content.decode()
     assert order.reference_code not in body
 
 
@@ -156,19 +176,22 @@ def test_status_labels_save_render_and_reset():
     assert tenant.site_config["status_labels"]["order"]["new"] == "Eingegangen 📥"
     assert tenant.site_config["ui_mode"] == "simple"  # прочие ключи целы (урок W0)
 
-    req = _req()
+    # W10-6: рендер списка — на Verkäufe (легаси-вьюха теперь 302).
+    from apps.core import views as core_views
+
+    req = _req(path="/dashboard/verkaeufe/", data={"tab": "order", "view": "liste"})
     req.tenant = tenant
-    assert "Eingegangen 📥" in views.order_list(req).content.decode()
+    assert "Eingegangen 📥" in core_views.verkaeufe(req).content.decode()
     req = _req(path=f"/dashboard/orders/{order.pk}/")
     req.tenant = tenant
     assert "Eingegangen 📥" in views.order_detail(req, order.pk).content.decode()
     # без кастома — дефолт (fallback тега). I18N-1 (2026-07-30): метки STATUSES
     # обёрнуты в gettext_lazy, поэтому сверяемся с ПЕРЕВЕДЁННЫМ значением реестра,
     # а не с английским литералом (раньше замок пинил непереведённость).
-    req = _req()
+    req = _req(path="/dashboard/verkaeufe/", data={"tab": "order", "view": "liste"})
     req.tenant = TenantFactory(slug="t2")
     default_label = str(dict(Order.STATUSES)[Order.STATUS_NEW])
-    assert default_label in views.order_list(req).content.decode()
+    assert default_label in core_views.verkaeufe(req).content.decode()
 
     req = _req("post", "/dashboard/status-labels/order/", {})
     req.tenant = tenant

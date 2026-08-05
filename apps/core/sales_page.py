@@ -164,6 +164,24 @@ def heute_columns(tenant) -> list[dict]:
                 ),
             }
         )
+        # W10-6: паритет со stays:today — «Im Haus» (живут сейчас) обязателен
+        # ДО редиректа легаси-страницы (аудит-урок «не схлопывать до паритета»).
+        cols.append(
+            {
+                "key": "im_haus",
+                "icon": "🏠",
+                "label": _("Im Haus"),
+                "items": _safe(
+                    lambda: _stay_items(
+                        StayBooking.objects.filter(
+                            arrival__lt=today,
+                            departure__gt=today,
+                            status=StayBooking.STATUS_CONFIRMED,
+                        )
+                    )
+                ),
+            }
+        )
     if tenant.is_module_active("booking"):
         from apps.booking.models import Booking
 
@@ -226,6 +244,20 @@ def heute_columns(tenant) -> list[dict]:
                 }
             )
     return cols
+
+
+def legacy_redirect(request, **params):
+    """W10-6: 302 с легаси-страницы продаж на Verkäufe С СОХРАНЕНИЕМ GET
+    (deep-links ?status=/?von=/?tag=/?q=/?buchung= живут на цели). params
+    задают вкладку/вид и перекрывают одноимённые GET-ключи."""
+    from django.http import HttpResponseRedirect
+    from django.urls import reverse
+
+    get = request.GET.copy()
+    for k, v in params.items():
+        get[k] = v
+    qs = get.urlencode()
+    return HttpResponseRedirect(reverse("verkaeufe") + (f"?{qs}" if qs else ""))
 
 
 def tab_descriptors(tenant, active_kind: str) -> list[dict]:

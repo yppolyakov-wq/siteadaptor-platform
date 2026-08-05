@@ -160,12 +160,12 @@ def _refund_deposit(request, booking):
 
 @login_required
 def calendar(request):
-    """Belegungsplan-страница. Тело собирает `calendar_context` — оно же питает
-    вкладку stay единой страницы продаж /dashboard/verkaeufe/ (план 2026-08-03)."""
-    ctx = calendar_context(request)
-    if isinstance(ctx, HttpResponse):  # ?box=1 — fetch-фрагмент карточки брони
-        return ctx
-    return render(request, "stays/calendar.html", ctx)
+    """W10-6: легаси-вход Belegungsplan — 302 на вкладку stay единой страницы
+    (GET сохраняется: ?von/?q/?buchung/?box живут на Verkäufe; тело по-прежнему
+    собирает `calendar_context` — его зовёт вкладка stay)."""
+    from apps.core.sales_page import legacy_redirect
+
+    return legacy_redirect(request, tab="stay", view="kalender")
 
 
 def calendar_context(request):
@@ -584,30 +584,11 @@ def stay_create(request):
 
 @login_required
 def today_view(request):
-    """PMS-A2: «Heute» — заезды/выезды/в доме одним экраном (стойка утром).
+    """W10-6: PMS-A2 «Heute» поглощён kind-агностичным видом единой страницы
+    (verkaeufe?view=heute — Anreisen/Abreisen/Im Haus там же, W10-4/W10-6)."""
+    from apps.core.sales_page import legacy_redirect
 
-    Только выборки + обычные статус-кнопки (тот же FSM-путь, что карточка);
-    «Check-out» = переход fulfilled (он же помечает комнату dirty, R4)."""
-    today = timezone.localdate()
-    base = StayBooking.objects.select_related("unit", "room", "customer")
-    return render(
-        request,
-        "stays/today.html",
-        {
-            "nav": "stays",
-            "today": today,
-            "arrivals": base.filter(arrival=today, status__in=StayBooking.ACTIVE_STATUSES).order_by(
-                "unit__name"
-            ),
-            "departures": base.filter(
-                departure=today,
-                status__in=(StayBooking.STATUS_CONFIRMED, StayBooking.STATUS_FULFILLED),
-            ).order_by("unit__name"),
-            "in_house": base.filter(
-                arrival__lt=today, departure__gt=today, status=StayBooking.STATUS_CONFIRMED
-            ).order_by("departure"),
-        },
-    )
+    return legacy_redirect(request, view="heute")
 
 
 @login_required

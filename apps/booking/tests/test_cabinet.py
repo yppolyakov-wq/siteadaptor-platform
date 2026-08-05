@@ -36,6 +36,22 @@ def _req(method="get", path="/dashboard/booking/", data=None):
     return request
 
 
+def _cal(req):
+    """W10-6: booking:calendar — 302; тело Tagesplan характеризуем через
+    вкладку booking единой страницы (тот же calendar_context)."""
+    from apps.core import views as core_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    get = req.GET.copy()
+    get["tab"], get["view"] = "booking", "kalender"
+    req.GET = get
+    if getattr(req, "tenant", None) is None:  # тест мог выставить своего
+        req.tenant = TenantFactory.build(
+            business_type="hairdresser", disabled_modules=["events", "stays"]
+        )
+    return core_views.verkaeufe(req)
+
+
 def _resource(**kwargs):
     return Resource.objects.create(name=f"Tisch {uuid.uuid4().hex[:6]}", **kwargs)
 
@@ -88,7 +104,7 @@ def test_reminder_sent_once_within_horizon():
 def test_calendar_renders_day():
     booking = _booking()
     day = booking.start.date().isoformat()
-    body = views.calendar(_req(data={"tag": day})).content.decode()
+    body = _cal(_req(data={"tag": day})).content.decode()
     assert booking.reference_code in body and booking.resource.name in body
 
 
@@ -109,7 +125,7 @@ def test_calendar_month_grid_counts_and_navigation():
     assert ctx2["bcal_first"] == past
     assert all(c["count"] == 0 for c in ctx2["bcal_days"])
     # рендер: ячейка дня — ссылка ?tag=<дата>
-    body = views.calendar(_req(data={"tag": local_day.isoformat()})).content.decode()
+    body = _cal(_req(data={"tag": local_day.isoformat()})).content.decode()
     assert f'tag={local_day.isoformat()}"' in body
 
 

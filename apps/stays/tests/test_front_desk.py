@@ -36,6 +36,23 @@ def _req(method="get", path="/dashboard/stays/", data=None):
     return request
 
 
+def _cal(req):
+    """W10-6: stays:calendar — 302; тело Belegungsplan характеризуем через
+    вкладку stay единой страницы (тот же calendar_context)."""
+    from apps.core import views as core_views
+    from apps.core.modules import default_disabled_for
+    from apps.tenants.tests.factories import TenantFactory
+
+    get = req.GET.copy()
+    get["tab"], get["view"] = "stay", "kalender"
+    req.GET = get
+    if getattr(req, "tenant", None) is None:  # тест мог выставить своего (site_config)
+        req.tenant = TenantFactory.build(
+            business_type="hotel", disabled_modules=list(default_disabled_for("hotel"))
+        )
+    return core_views.verkaeufe(req)
+
+
 def _unit(**kwargs):
     kwargs.setdefault("price_cents", 8000)
     return StayUnit.objects.create(name=f"Zimmer {uuid.uuid4().hex[:6]}", **kwargs)
@@ -121,7 +138,7 @@ def test_calendar_form_shows_rate_and_extras():
     _unit()
     RatePlan.objects.create(name="Halbpension Plus", surcharge_cents=2500)
     Extra.objects.create(label="Parkplatz", price_cents=700, scope="stays")
-    body = views.calendar(_req()).content.decode()
+    body = _cal(_req()).content.decode()
     assert "Halbpension Plus" in body and "Parkplatz" in body
     assert 'name="erw"' in body and 'name="kinder"' in body and 'name="note"' in body
 
@@ -181,7 +198,20 @@ def test_today_view_sections():
 
     StayBookingSM().apply(cancelled, "cancelled")
 
-    body = views.today_view(_req(path="/dashboard/stays/heute/")).content.decode()
+    # W10-6: stays:today — 302; секции (вкл. «Im Haus» — паритет!) живут на
+    # виде «Heute» единой страницы.
+    resp = views.today_view(_req(path="/dashboard/stays/heute/"))
+    assert resp.status_code == 302 and "view=heute" in resp["Location"]
+
+    from apps.core import views as core_views
+    from apps.core.modules import default_disabled_for
+    from apps.tenants.tests.factories import TenantFactory
+
+    req = _req(path="/dashboard/verkaeufe/", data={"view": "heute"})
+    req.tenant = TenantFactory.build(
+        business_type="hotel", disabled_modules=list(default_disabled_for("hotel"))
+    )
+    body = core_views.verkaeufe(req).content.decode()
     assert "Ankunft Heute" in body
     assert "Abreise Heute" in body
     assert "Im Haus Gast" in body

@@ -108,3 +108,17 @@ CI → FF-merge. Характеризационные замки ДО перен
   доступным shipped показывает поле трек-номера. shipped_at остаётся в FSM (W7c).
   Поведенческий нюанс: пустой tracking_code больше НЕ стирает сохранённый номер
   (раньше вьюха карточки перезаписывала пустым). 1 msgid × 5 .po; 2 замка.
+- **W10-6 ✅** (2026-08-05): легаси-редиректы. `sales_page.legacy_redirect`
+  (302 + полный GET-carry): orders:order-list → `?tab=order&view=liste` ·
+  booking:calendar → `?tab=booking&view=kalender` · stays:calendar →
+  `?tab=stay&view=kalender` · stays:today → `?view=heute`. ДО схлопывания
+  закрыт паритет-пробел: heute_columns += «Im Haus» (гости в доме — было
+  только на stays:today). НЕ редиректятся: events:list/jobs:list (полные
+  управляющие экраны), board (Full view главной), stay_new (цель «＋»).
+  calendar_context/auftragsbuch_context не тронуты (питают вкладки).
+  4 шаблона-обёртки удалены; «Alte Ansicht» на order-вкладке убрана (петля);
+  «📋 Heute →» Belegungsplan → verkaeufe?view=heute. ~30 тестовых колл-сайтов
+  переписаны на хелперы `_cal`/verkaeufe; test_w10_redirects (6 замков:
+  302+GET-carry ×4, цель рендерится 200, полные страницы не 302).
+- **ВОЛНА W10 ЗАКРЫТА ЦЕЛИКОМ (W10-1..W10-6, всё БЕЗ миграций).** Дальше по
+  плану унификации: W11 (Marketing+Kunden, Р-2) → W12 (честные режимы).

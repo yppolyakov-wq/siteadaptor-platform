@@ -8652,3 +8652,26 @@ tracking_code при shipped больше НЕ стирает ранее сох�
 вьюха перезаписывала пустым; замков на это не было). 1 msgid × 5 .po. Замки:
 письмо содержит номер + needs_tracking только у доставки с доступным shipped.
 Локально core+orders 1020 зелёные.
+
+
+## 2026-08-05 — W10-6: легаси-редиректы — ВОЛНА W10 ЗАКРЫТА ЦЕЛИКОМ
+
+`sales_page.legacy_redirect(request, **params)` — 302 на Verkäufe с ПОЛНЫМ
+сохранением GET (deep-links ?status/?q/?von/?tag/?buchung/?box живут на цели).
+Схлопнуты: orders:order-list → ?tab=order&view=liste · booking:calendar →
+?tab=booking&view=kalender · stays:calendar → ?tab=stay&view=kalender ·
+stays:today → ?view=heute. Аудит-урок «не схлопывать до паритета» отработан
+буквально: перед редиректом stays:today в heute_columns добавлена колонка
+«Im Haus» (жильцы сейчас — раньше только на легаси-странице); осознанное
+сужение: Abreisen-колонка «Heute» не показывает уже выехавших (fulfilled) —
+легаси показывала. НЕ редиректятся: events:list/jobs:list (полные управляющие
+экраны — Verkäufe на них ссылается), board (Full view главной), stays:stay-new
+(цель «＋»). Контекст-билдеры calendar_context/auftragsbuch_context НЕ тронуты —
+они питают вкладки единой страницы. Шаблоны-обёртки удалены (order_list/
+booking-calendar/stays-calendar/stays-today); «Alte Ansicht» на order-вкладке
+Verkäufe убрана (вела бы в редирект-петлю); «📋 Heute →» в шапке Belegungsplan
+→ verkaeufe?view=heute. Тесты: ~30 колл-сайтов stays/booking/orders переписаны
+на хелперы `_cal`/verkaeufe (характеризация тел без легаси-обёрток); НОВЫЙ
+test_w10_redirects (302+GET-carry ×4, «нет петли» — цель рендерится 200,
+полные страницы не 302); test_today_view_sections проверяет все секции
+(вкл. Im Haus) на виде «Heute». ВОЛНА W10 (W10-1..W10-6) ЗАКРЫТА — без миграций.

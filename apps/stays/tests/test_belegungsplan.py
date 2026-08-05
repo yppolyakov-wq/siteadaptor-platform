@@ -36,6 +36,23 @@ def _req(method="get", path="/dashboard/stays/", data=None, fetch=False):
     return request
 
 
+def _cal(req):
+    """W10-6: stays:calendar — 302; тело Belegungsplan характеризуем через
+    вкладку stay единой страницы (тот же calendar_context)."""
+    from apps.core import views as core_views
+    from apps.core.modules import default_disabled_for
+    from apps.tenants.tests.factories import TenantFactory
+
+    get = req.GET.copy()
+    get["tab"], get["view"] = "stay", "kalender"
+    req.GET = get
+    if getattr(req, "tenant", None) is None:  # тест мог выставить своего (site_config)
+        req.tenant = TenantFactory.build(
+            business_type="hotel", disabled_modules=list(default_disabled_for("hotel"))
+        )
+    return core_views.verkaeufe(req)
+
+
 def _unit(**kwargs):
     kwargs.setdefault("price_cents", 8000)
     return StayUnit.objects.create(name=f"Zimmer {uuid.uuid4().hex[:6]}", **kwargs)
@@ -239,7 +256,7 @@ def test_calendar_renders_bar_with_name_code_and_drag():
         end_date=D0 + timedelta(days=7),
         reason="Wartung",
     )
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert "Gast Meier" in body and booking.reference_code in body  # плашка с подписью
     assert 'draggable="true"' in body and f'data-bar-pk="{booking.pk}"' in body
     assert f"/dashboard/stays/buchung/{booking.pk}/" in body  # клик → FB-11
@@ -324,20 +341,18 @@ def test_stay_action_update_guest_overflow_rejected():
 def test_calendar_booking_panel_and_fragment():
     unit = _unit()
     booking = _book(unit, 1, 4)
-    body = views.calendar(
-        _req(data={"von": D0.isoformat(), "buchung": str(booking.pk)})
-    ).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat(), "buchung": str(booking.pk)})).content.decode()
     assert 'id="booking-panel"' in body and booking.reference_code in body
     assert 'value="update"' in body  # форма «Buchung bearbeiten» в панели
 
-    frag = views.calendar(
+    frag = _cal(
         _req(data={"von": D0.isoformat(), "buchung": str(booking.pk), "box": "1"})
     ).content.decode()
     assert booking.reference_code in frag and 'value="update"' in frag
     assert 'id="belegungsplan"' not in frag  # ТОЛЬКО фрагмент карточки
 
     # мусорный pk — страница живёт, панель скрыта
-    body = views.calendar(_req(data={"von": D0.isoformat(), "buchung": "junk"})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat(), "buchung": "junk"})).content.decode()
     assert 'id="booking-panel"' in body
 
 
@@ -492,7 +507,7 @@ def test_calendar_shows_ohne_zimmer_chip_and_room_on_bar():
     with_room = _book(unit, 1, 4)
     services.assign_room(with_room, r)
     _book(unit, 2, 5)  # без номера
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert "ohne zugewiesenes Zimmer" in body  # чип «ohne Zimmer»
     assert "🚪101" in body  # номер на плашке
 
@@ -527,7 +542,7 @@ def test_calendar_renders_room_rows_with_drop_targets():
     unit = _unit(quantity=1)
     room = Room.objects.create(unit=unit, number="101")
     _book(unit, 1, 4)  # без номера → безымянная дорожка + чип
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert f'data-room="{room.id}"' in body  # строка комнаты — drop-цель
     assert "🚪101" in body  # подпись строки
 
@@ -597,7 +612,7 @@ def test_checkout_marks_room_dirty_and_clean_action():
     room.refresh_from_db()
     assert room.housekeeping == Room.HK_DIRTY  # выезд пометил к уборке
 
-    body = views.calendar(_req(data={"von": (D0 - timedelta(days=5)).isoformat()})).content.decode()
+    body = _cal(_req(data={"von": (D0 - timedelta(days=5)).isoformat()})).content.decode()
     assert "🧹" in body and "Housekeeping" in body  # бейдж + панель уборки
 
     resp = views.room_clean(_req("post"), pk=room.pk)
@@ -646,15 +661,15 @@ def test_calendar_search_by_name_email_and_reference():
     b1 = _book(unit, 2, 4, name="Familie Suchbar", email="such@test.de")
     _book(unit, 6, 8, name="Andere Person")
 
-    body = views.calendar(_req(data={"q": "Suchbar", "von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"q": "Suchbar", "von": D0.isoformat()})).content.decode()
     assert "Familie Suchbar" in body and f"buchung={b1.pk}" in body
     assert "Andere Person" in body  # в сетке остаётся; в панели поиска — нет дубля
 
-    body = views.calendar(_req(data={"q": "such@test.de"})).content.decode()
+    body = _cal(_req(data={"q": "such@test.de"})).content.decode()
     assert f"buchung={b1.pk}" in body
-    body = views.calendar(_req(data={"q": b1.reference_code})).content.decode()
+    body = _cal(_req(data={"q": b1.reference_code})).content.decode()
     assert f"buchung={b1.pk}" in body
-    body = views.calendar(_req(data={"q": "gibtsnicht-xyz"})).content.decode()
+    body = _cal(_req(data={"q": "gibtsnicht-xyz"})).content.decode()
     assert "Nichts gefunden." in body
 
 
@@ -663,6 +678,6 @@ def test_bar_colors_are_solid_compiled_classes():
     без фона. Сплошные классы + safelist в tailwind.config.js."""
     unit = _unit()
     _book(unit, 2, 4, auto_confirm=True)
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert "bg-green-200 text-green-900" in body
     assert "bg-green-200/80" not in body

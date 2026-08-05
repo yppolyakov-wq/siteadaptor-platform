@@ -7,7 +7,8 @@ walk-in+JS) — извлечено из calendar.html 1:1 для переисп�
   <h1 class="text-2xl font-bold">{% trans "Stays" %}</h1>
   <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
     {# PMS-A2: стойка «Heute» (заезды/выезды/в доме). #}
-    <a href="{% url 'stays:today' %}" class="text-sm text-indigo-600 hover:underline">📋 {% trans "Heute" %} →</a>
+    {# W10-6: stays:today поглощён видом «Heute» единой страницы #}
+    <a href="{% url 'verkaeufe' %}?view=heute" class="text-sm text-indigo-600 hover:underline">📋 {% trans "Heute" %} →</a>
     <a href="{% url 'stays:channels' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Channels" %} →</a>
     <a href="{% url 'stays:checkins' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Check-ins" %} →</a>
     <a href="{% url 'stays:reports' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Reports" %} →</a>

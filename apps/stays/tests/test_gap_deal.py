@@ -47,6 +47,23 @@ def _req(method="get", data=None):
     return request
 
 
+def _cal(req):
+    """W10-6: stays:calendar — 302; тело Belegungsplan характеризуем через
+    вкладку stay единой страницы (тот же calendar_context)."""
+    from apps.core import views as core_views
+    from apps.core.modules import default_disabled_for
+    from apps.tenants.tests.factories import TenantFactory
+
+    get = req.GET.copy()
+    get["tab"], get["view"] = "stay", "kalender"
+    req.GET = get
+    if getattr(req, "tenant", None) is None:  # тест мог выставить своего (site_config)
+        req.tenant = TenantFactory.build(
+            business_type="hotel", disabled_modules=list(default_disabled_for("hotel"))
+        )
+    return core_views.verkaeufe(req)
+
+
 def test_gap_discount_detects_bounded_short_gap():
     unit = _unit()
     s = _settings(nights=3, percent=25)
@@ -150,11 +167,11 @@ def test_units_action_and_calendar_hint():
     services.book_stay(
         unit, arrival=D0 + timedelta(days=5), departure=D0 + timedelta(days=7), name="R"
     )
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert "Lücken-Rabatt aktivieren" in body
     # Включили → подсказка исчезает.
     _settings(nights=3)
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert "Lücken-Rabatt aktivieren" not in body
 
 

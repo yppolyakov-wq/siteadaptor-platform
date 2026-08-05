@@ -182,12 +182,7 @@ def test_calendar_day_nav_keeps_the_tab():
         _req(data={"tab": "booking", "view": "kalender"}, **_hotel())
     ).content.decode()
     assert "?tab=booking&amp;tag=" in body  # листание не теряет вкладку
-    # На отдельной странице booking:calendar ссылки остаются голыми ?tag=
-    from apps.booking.tests.test_cabinet import _req as booking_req
-    from apps.booking.views import calendar as booking_calendar
-
-    solo = booking_calendar(booking_req("get", "/dashboard/booking/")).content.decode()
-    assert "?tag=" in solo and "tab=booking" not in solo
+    # W10-6: отдельной страницы booking:calendar больше нет (302 на Verkäufe).
 
 
 def test_order_liste_parity_filter_search_entries():

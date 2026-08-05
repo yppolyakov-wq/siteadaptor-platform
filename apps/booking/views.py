@@ -71,9 +71,12 @@ def _refund_deposit(request, booking):
 
 @login_required
 def calendar(request):
-    """Tagesplan-страница. Контекст собирает `calendar_context` — оно же питает
-    вкладку booking единой страницы продаж /dashboard/verkaeufe/ (план 2026-08-03)."""
-    return render(request, "booking/calendar.html", calendar_context(request))
+    """W10-6: легаси-вход Tagesplan — 302 на вкладку booking единой страницы
+    (GET сохраняется: ?tag/?box живут на Verkäufe; тело по-прежнему собирает
+    `calendar_context` — его зовёт вкладка booking)."""
+    from apps.core.sales_page import legacy_redirect
+
+    return legacy_redirect(request, tab="booking", view="kalender")
 
 
 def calendar_context(request):

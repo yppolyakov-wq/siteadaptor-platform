@@ -68,7 +68,7 @@
     <a href="{% url 'orders:table-qr' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">🪑 {% trans "Table QR codes" %}</a>
   </div>
   {% include "orders/_order_rows.html" %}
-  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'orders:order-list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
+  {# W10-6: «Alte Ansicht» убрана — orders:order-list теперь 302 сюда же #}
 {% else %}
   {% include "core/_sales_liste.html" %}
 {% endif %}

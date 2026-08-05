@@ -37,6 +37,23 @@ def _req(method="get", path="/dashboard/stays/", data=None):
     return request
 
 
+def _cal(req):
+    """W10-6: stays:calendar — 302; тело Belegungsplan характеризуем через
+    вкладку stay единой страницы (тот же calendar_context)."""
+    from apps.core import views as core_views
+    from apps.core.modules import default_disabled_for
+    from apps.tenants.tests.factories import TenantFactory
+
+    get = req.GET.copy()
+    get["tab"], get["view"] = "stay", "kalender"
+    req.GET = get
+    if getattr(req, "tenant", None) is None:  # тест мог выставить своего (site_config)
+        req.tenant = TenantFactory.build(
+            business_type="hotel", disabled_modules=list(default_disabled_for("hotel"))
+        )
+    return core_views.verkaeufe(req)
+
+
 def _unit(**kwargs):
     kwargs.setdefault("price_cents", 8000)
     return StayUnit.objects.create(name=f"Zimmer {uuid.uuid4().hex[:6]}", **kwargs)
@@ -58,7 +75,7 @@ def _book(unit, arr_off, dep_off, **kwargs):
 def test_calendar_renders_grid_and_booking():
     unit = _unit()
     booking = _book(unit, 1, 4)
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert unit.name in body
     assert booking.reference_code in body
 
@@ -71,10 +88,10 @@ def test_calendar_transition_rule_hides_action_button():
     b = _book(unit, 1, 4)  # pending → есть кнопка «Bestätigen» (value=confirmed)
     req = _req(data={"von": D0.isoformat(), "buchung": str(b.pk)})
     req.tenant = TenantFactory(site_config={})
-    assert 'value="confirmed"' in views.calendar(req).content.decode()  # дефолт: кнопка есть
+    assert 'value="confirmed"' in _cal(req).content.decode()  # дефолт: кнопка есть
     req2 = _req(data={"von": D0.isoformat(), "buchung": str(b.pk)})
     req2.tenant = TenantFactory(site_config={"transitions": {"stay": {"pending": []}}})
-    body2 = views.calendar(req2).content.decode()
+    body2 = _cal(req2).content.decode()
     assert 'value="confirmed"' not in body2  # переход скрыт → кнопки нет
     # панелей статусов/списка броней на календаре больше нет (они на доске)
     assert "Statusübergänge" not in body2
@@ -87,7 +104,7 @@ def test_calendar_is_lean_but_keeps_walkin_and_booking_panel():
     hub-табов нет; «＋ Buchung» — своя страница только с формой."""
     unit = _unit()
     _book(unit, 1, 4)
-    body = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert 'id="walkin-form"' in body and 'value="block"' in body  # бронь + блокировка
     assert 'id="booking-panel"' in body
     assert "Bookings in this period" not in body
@@ -327,7 +344,7 @@ def test_booking_detail_renders_guest_dates_money_actions():
     assert 'kind="stay"' not in body  # партиал отрендерен, не сырой тег
     assert "Meldeschein" in body  # секция G6 присутствует
     # календарь линкует код брони на деталь
-    cal = views.calendar(_req(data={"von": D0.isoformat()})).content.decode()
+    cal = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert f"/dashboard/stays/buchung/{booking.pk}/" in cal
     # доска (UD1): manage_url карточки — деталь брони
     from apps.core.transactions import transaction_for

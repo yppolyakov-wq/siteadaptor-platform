@@ -32,9 +32,19 @@ def _req(path="/dashboard/", business_type="hotel"):
 
 
 def test_stays_calendar_links_to_price_settings():
-    from apps.stays.views import calendar
+    # W10-6: stays:calendar — 302; вход «Preise & Saison» живёт в теле
+    # Belegungsplan на вкладке stay единой страницы.
+    from apps.core.modules import default_disabled_for
+    from apps.core.views import verkaeufe
 
-    body = calendar(_req("/dashboard/stays/")).content.decode()
+    req = _req("/dashboard/verkaeufe/")
+    req.tenant = TenantFactory.build(
+        business_type="hotel", disabled_modules=list(default_disabled_for("hotel"))
+    )
+    get = req.GET.copy()
+    get["tab"], get["view"] = "stay", "kalender"
+    req.GET = get
+    body = verkaeufe(req).content.decode()
     assert PRICE_SETTINGS_HREF in body
     assert "Preise &amp; Saison" in body or "Preise & Saison" in body
 

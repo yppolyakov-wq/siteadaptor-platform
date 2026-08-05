@@ -92,14 +92,14 @@ def test_verkaeufe_links_to_ablaeufe():
     assert "/dashboard/ablaeufe/" in body
 
 
-def test_order_list_legacy_status_form_removed_bridge_remains():
+def test_order_list_legacy_page_is_redirect():
+    """W9-8 убрал копию формы статусов; W10-6 схлопнул страницу целиком —
+    легаси-список заказов теперь 302 на Verkäufe (вход в Abläufe — с неё)."""
     from apps.orders import views as orders_views
 
-    req = _req("/dashboard/orders/")
-    body = orders_views.order_list(req).content.decode()
-    assert "Status-Namen anpassen" not in body  # копия формы удалена (W9-8)
-    assert 'name="form" value="status_labels"' not in body
-    assert "/dashboard/ablaeufe/?kind=order" in body  # мостик
+    resp = orders_views.order_list(_req("/dashboard/orders/"))
+    assert resp.status_code == 302
+    assert resp["Location"].startswith("/dashboard/verkaeufe/")
 
 
 # --- W9-7: уведомления — пресеты + статус бота --------------------------------
