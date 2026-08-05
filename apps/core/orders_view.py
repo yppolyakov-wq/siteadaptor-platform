@@ -1,24 +1,14 @@
-"""ST-5b: представление раздела заказов — Канбан ⇄ Календарь ⇄ Лента.
+"""ST-5b → W10-1: архетип-дефолт представления продаж (для главной кабинета).
 
-Фидбэк владельца 2026-07-28: маппинг ФИКСИРОВАННЫЙ — «Verkäufe» всегда
-открывает архетип-дефолт (отель → Belegungsplan, магазин → лента, прочее →
-канбан), сегмент-контрол — чистая навигация между страницами хаба (Board /
-календарь booking|stays / список заказов) БЕЗ персиста выбора; третьим пунктом
-— «＋ Buchung/Termin» (якорь на форму создания в календаре). Прежний персист
-site_config["orders_view"] удалён (v1 ST-5b), ключ больше не нормализуется.
+Сегмент-контрол Канбан⇄Календарь⇄Лента УДАЛЁН (W10-1, аудит 2026-08-05: две
+несовместимые модели переключения видов) — легаси-страницы несут только мостик
+на единую страницу продаж; выбор вида живёт на Verkäufe (persist `sales_views`,
+sales_page). Здесь остаются: архетип-дефолт `resolve_view` (главная кабинета:
+отель → Belegungsplan-вид) и `entry_url_name` (якорь/плитка «Verkäufe»).
+Прежний персист site_config["orders_view"] удалён ещё в v1 ST-5b.
 """
 
 from django.urls import NoReverseMatch, reverse
-from django.utils.translation import gettext_lazy as _
-
-VIEWS = ("kanban", "calendar", "feed")
-
-_LABELS = {
-    "kanban": _("Board"),
-    "calendar": _("Kalender"),
-    "feed": _("Liste"),
-}
-_ICONS = {"kanban": "🧮", "calendar": "📅", "feed": "📃"}
 
 
 def _calendar_order(tenant):
@@ -86,71 +76,3 @@ def entry_url_name(tenant):
     """Имя маршрута входа «Verkäufe» — единая страница продаж (W-CL: классик-
     ветка с архетип-дефолтом снесена; вкладка/вид внутри — sales_page)."""
     return "verkaeufe"
-
-
-def create_option(tenant, active=False):
-    """Третий пункт сегмента (фидбэк 2026-07-28): «＋ Buchung» — ОТДЕЛЬНАЯ
-    страница только с формой (stays); для booking — якорь на форму календаря.
-    Нет календарного модуля → None."""
-    targets = {
-        "stays": ("stays:stay-new", "", _("New booking")),
-        "booking": ("booking:calendar", "#neu", _("New appointment")),
-    }
-    for module, _url in _calendar_order(tenant):
-        url_name, anchor, label = targets[module]
-        if tenant.is_module_active(module):
-            try:
-                return {
-                    "view": "create",
-                    "label": label,
-                    "icon": "＋",
-                    "url": reverse(url_name) + anchor,
-                    "active": active,
-                }
-            except NoReverseMatch:  # pragma: no cover — модуль без маршрута
-                continue
-    return None
-
-
-def switch_options(tenant, active=""):
-    """Опции сегмент-контрола (только достижимые представления) + «＋ Buchung»
-    третьим пунктом. Чистая навигация — выбор больше не персистится."""
-    out = []
-    for view in VIEWS:
-        url = _view_url(tenant, view)
-        if not url:
-            continue
-        out.append(
-            {
-                "view": view,
-                "label": _LABELS[view],
-                "icon": _ICONS[view],
-                "url": url,
-                "active": view == active,
-            }
-        )
-    # Фидбэк 2026-07-30 (отель): активны ОБА календарных модуля — второй
-    # календарь (Termine услуг у отеля / Belegungsplan у услуг с номерами)
-    # добавляется отдельным пунктом, иначе booking-календарь недостижим из
-    # хаба «Verkäufe» (ST-5b показывал только primary).
-    if any(o["view"] == "calendar" for o in out):
-        order = _calendar_order(tenant)
-        if len(order) > 1 and tenant.is_module_active(order[1][0]):
-            try:
-                alt_url = reverse(order[1][1])
-            except NoReverseMatch:  # pragma: no cover — модуль без маршрута
-                alt_url = ""
-            if alt_url:
-                out.append(
-                    {
-                        "view": "calendar_alt",
-                        "label": _("Termine") if order[1][0] == "booking" else _("Belegungsplan"),
-                        "icon": "📅",
-                        "url": alt_url,
-                        "active": active == "calendar_alt",
-                    }
-                )
-    create = create_option(tenant, active=(active == "create"))
-    if create:
-        out.append(create)
-    return out

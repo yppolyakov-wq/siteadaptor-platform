@@ -107,19 +107,6 @@ def icon(name, css="w-6 h-6"):
     return format_html('<svg class="{}" aria-hidden="true"><use href="#{}"></use></svg>', css, name)
 
 
-@register.inclusion_tag("core/_orders_view_switch.html", takes_context=True)
-def orders_view_switch(context, active):
-    """ST-5b: сегмент-контрол Канбан⇄Календарь⇄Лента на поверхностях хаба
-    «Verkäufe» (board/календари/список заказов)."""
-    request = context.get("request")
-    tenant = getattr(request, "tenant", None)
-    if tenant is None:
-        return {"options": []}
-    from apps.core import orders_view as ov
-
-    return {"options": ov.switch_options(tenant, active), "csrf_token": context.get("csrf_token")}
-
-
 @register.inclusion_tag("tenant/_doc_langs.html", takes_context=True)
 def doc_langs(context, url):
     """I18N-7b: языки печатного документа рядом с кнопкой скачивания.

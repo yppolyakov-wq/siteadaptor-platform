@@ -4,7 +4,8 @@
 
 {% block dash_content %}
 {% hub_tabs "board" %}
-{% orders_view_switch "feed" %}
+{% comment %}W10-1: сегмент ST-5b удалён (двойная модель переключения видов) — остаётся мостик на единую страницу продаж.{% endcomment %}
+<p class="mb-4 text-xs text-gray-400">{% trans "Alte Ansicht" %} · <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">🆕 {% trans "Alles auf einer Seite" %} →</a></p>
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
   <h1 class="text-2xl font-bold">{% trans "Orders" %}</h1>
   <div class="flex flex-wrap items-center gap-3">

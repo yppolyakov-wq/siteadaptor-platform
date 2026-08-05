@@ -1,9 +1,9 @@
-"""ST-5b (ревизия по фидбэку 2026-07-28): фиксированный маппинг раздела заказов.
+"""ST-5b → W10-1: архетип-дефолт представления продаж + смерть сегмента.
 
-Замки: «Verkäufе»/хаб-плитка всегда открывают архетип-дефолт (услуги/отель →
-календарь, магазин → лента, прочее → канбан), недостижимое → kanban-фолбэк;
-сегмент-контрол — чистая навигация ссылками (персист удалён, легаси-ключ
-orders_view дропается нормализацией) + «＋ Buchung/Termin» третьим пунктом;
+Замки: resolve_view даёт архетип-дефолт (услуги/отель → календарь, магазин →
+лента, прочее → канбан), недостижимое → kanban-фолбэк; легаси-ключ orders_view
+дропается нормализацией; W10-1 — сегмент ST-5b удалён (легаси-страницы несут
+только мостик на Verkäufe), переключение вида на Verkäufe сохраняет GET.
 """
 
 from uuid import uuid4
@@ -82,36 +82,51 @@ def test_stored_choice_is_ignored_fixed_mapping():
 
 
 def test_hotel_with_both_calendar_modules_enters_belegungsplan():
-    # Демо-отель: booking И stays активны, primary = stays → «Verkäufe» обязан
-    # открывать Belegungsplan (не booking-календарь), «＋» ведёт на walk-in.
+    # Демо-отель: booking И stays активны, primary = stays → архетип-дефолт
+    # календарь; вход «Verkäufe» — всегда единая страница (W-CL).
     t = TenantFactory(slug="ovb2", name="OvB2", disabled_modules=["events"])
     assert t.is_module_active("booking") and t.is_module_active("stays")
-    assert ov.entry_url_name(t) == "verkaeufe"  # W-CL: вход всегда единая страница
-    assert ov.create_option(t)["url"].endswith("/stays/neu/")
+    assert ov.entry_url_name(t) == "verkaeufe"
+    assert ov.resolve_view(t) == "calendar"
 
 
-def test_create_option_third_in_switch():
-    # Отель → «＋ Buchung» — отдельная страница только с формой (stays:stay-new).
-    hotel = TenantFactory(slug="ovn", name="OvN", disabled_modules=["events", "booking"])
-    opts = ov.switch_options(hotel, "calendar")
-    assert opts[-1]["view"] == "create" and opts[-1]["url"].endswith("/stays/neu/")
-    # на самой странице «＋ Buchung» вкладка подсвечена
-    assert ov.switch_options(hotel, "create")[-1]["active"] is True
-    # Услуги (booking) → «＋ Termin» с якорем #neu.
-    services = TenantFactory(slug="ovt", name="OvT", disabled_modules=["events", "stays"])
-    opts = ov.switch_options(services, "calendar")
-    assert opts[-1]["view"] == "create" and opts[-1]["url"].endswith("#neu")
-    # Чистый магазин (без календарей) — третьего пункта нет.
-    shop = TenantFactory(
-        slug="ovm", name="OvM", disabled_modules=["events", "stays", "booking", "jobs"]
-    )
-    assert all(o["view"] != "create" for o in ov.switch_options(shop, "feed"))
-
-
-def test_switch_renders_on_board():
+def test_segment_removed_bridge_remains():
+    # W10-1: сегмент ST-5b мёртв — на легаси-доске только мостик на Verkäufe.
     t = TenantFactory(slug="ovr", name="OvR", enabled_modules=["catalog", "orders"])
     body = core_views.board(_req(tenant=t)).content.decode()
-    assert "data-ov-switch" in body and "Liste" in body
+    assert "data-ov-switch" not in body
+    assert "Alles auf einer Seite" in body
+    assert not hasattr(ov, "switch_options")  # API удалён, не «забыт»
+
+
+def test_verkaeufe_view_switch_preserves_get_params():
+    # W10-1: переключение вида возвращает на ПОЛНЫЙ исходный путь (next=).
+    t = TenantFactory(slug="ovg", name="OvG", disabled_modules=["events", "booking"])
+    resp = core_views.verkaeufe_view_set(
+        _req(
+            "post",
+            {
+                "kind": "stay",
+                "view": "board",
+                "next": "/dashboard/verkaeufe/?tab=stay&von=2026-09-01",
+            },
+            tenant=t,
+            path="/dashboard/verkaeufe/view/",
+        )
+    )
+    assert resp["Location"] == "/dashboard/verkaeufe/?tab=stay&von=2026-09-01"
+    t.refresh_from_db()
+    assert t.site_config["sales_views"]["stay"] == "board"
+    # внешний/протокол-относительный next отбрасывается
+    resp = core_views.verkaeufe_view_set(
+        _req(
+            "post",
+            {"kind": "stay", "view": "kalender", "next": "//evil.example/x"},
+            tenant=t,
+            path="/dashboard/verkaeufe/view/",
+        )
+    )
+    assert resp["Location"].startswith("/dashboard/verkaeufe/")
 
 
 def test_hub_tile_orders_always_unified_page():

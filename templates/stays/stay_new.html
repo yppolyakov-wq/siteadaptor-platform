@@ -3,7 +3,8 @@
 {% block dash_title %}{% trans "Add booking" %}{% endblock %}
 
 {% block dash_content %}
-{% orders_view_switch "create" %}
+{% comment %}W10-1: сегмент ST-5b удалён (двойная модель переключения видов) — остаётся мостик на единую страницу продаж.{% endcomment %}
+<p class="mb-4 text-xs text-gray-400">{% trans "Alte Ansicht" %} · <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">🆕 {% trans "Alles auf einer Seite" %} →</a></p>
 <h1 class="text-2xl font-bold mb-1">＋ {% trans "Add booking" %}</h1>
 <p class="text-sm text-gray-500 mb-4">{% trans "e.g. phone call" %} · <a href="{% url 'stays:calendar' %}" class="text-indigo-600 hover:underline">{% trans "Kalender" %} →</a></p>
 

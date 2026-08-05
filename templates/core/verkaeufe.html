@@ -19,6 +19,7 @@
       <form method="post" action="{% url 'verkaeufe-view' %}">{% csrf_token %}
         <input type="hidden" name="kind" value="{{ active_kind }}">
         <input type="hidden" name="view" value="{{ v.view }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <button type="submit" class="px-3 py-1.5 rounded-lg text-sm font-medium {% if v.active %}bg-indigo-600 text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">{{ v.icon }} {{ v.label }}</button>
       </form>
     {% endfor %}

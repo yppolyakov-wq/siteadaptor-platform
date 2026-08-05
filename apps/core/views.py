@@ -3203,6 +3203,11 @@ def verkaeufe_view_set(request):
         tenant.save(update_fields=["site_config"])
     from django.urls import reverse
 
+    # W10-1: возврат на ПОЛНЫЙ исходный путь (next=, только внутренний) — иначе
+    # переключение вида сбрасывало ?von=/?tag=/?q=/?buchung= (аудит 2026-08-05).
+    nxt = request.POST.get("next", "")
+    if nxt.startswith("/") and not nxt.startswith("//"):
+        return redirect(nxt)
     return redirect(reverse("verkaeufe") + f"?tab={kind}")
 
 
