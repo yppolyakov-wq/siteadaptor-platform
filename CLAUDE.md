@@ -1129,8 +1129,19 @@ Python 3.12, менеджер uv.
   **`docs/cabinet-unification-plan-2026-08-05.md`** (W7 предохранители → W8 единый
   реестр NavEntry → W9 Settings-хаб «базовые+по типам в табах» → W10 Verkäufe
   единственной поверхностью → W11 Marketing+Kunden → W12 честные режимы; всё БЕЗ
-  миграций). **Ждут решений владельца: развилки Р-1..Р-8 (план §4)**; W7 стартует без
-  решений. Ветка `claude/cabinet-audit-optimization-vkcxs4`.
+  миграций). **Решения Р-1..Р-8 ✅ (2026-08-05): classic_ui УДАЛИТЬ (волна W-CL до W8) ·
+  Marketing+Kunden слить · Integrationen → вкладка Einstellungen · Reservierungen в
+  Verkäufe · Newsletter вкладкой · Ctrl+K в W8 · Team в W9 · порядок W7→W-CL→W8→…**
+  **W7 ✅ ЦЕЛИКОМ (той же датой): a** save-пути (normalize-passthrough notify/склада +
+  замки; merge матрицы уведомлений; settings_view update_fields; мёртвые POST-ветки
+  order-settings/billing-payments-methods; presence-guard мастера) · **b** навигация
+  (починен поиск меню; входы-сироты Finanzen/Auswertungen/Abrechnung/Blog/Newsletter/
+  Kollektionen; возврат «Angebote»; мёртвый nav_key care; гейты hub_tiles; 404
+  Marketing-Puls; offer_cta jobs; CTA «Belegungsplan» только отелю) · **c** продажи
+  (is_delivery-фильтр доски; shipped_at/таймстемпы резервов в FSM; next=-провод —
+  действия из встроенных календарей не выбрасывают на легаси; гейт primary-kind;
+  Liste по дате события). 30+ замков; детали — build-log 2026-08-05. Дальше: **W-CL
+  (снос classic_ui)** → W8. Ветка `claude/cabinet-audit-optimization-vkcxs4`.
 - Миграции: **ПРОВЕРЕНО 2026-08-01 по `showmigrations` на проде** — очередь в этом файле была устаревшей примерно на три недели: она числила ~30 миграций «ожидающими», тогда как владелец деплоил регулярно. Фактическое состояние прод-схемы: `catalog` [X] по `0022`, `stays` [X] по `0030`, `booking` [X] по `0020`, `inventory` [X] по `0004`, `tenants` [X] по `0027` — то есть применено ВСЁ, включая миграции, смерженные 2026-08-01. Прежние записи «последний полный деплой 08.07» + «деплой очереди сделан владельцем (19.07)» были верны; неверен был список ожидающих. **Не подтверждено этой проверкой** (не входили в запрос, все TENANT-апп): `core/0006` (data-миграция backfill_owner_membership), `promotions/0024`, `orders/0015`/`0016`, `crm/0002`, `promotions/0022`/`0023`, `collections/0002`, `finance/0006`, `jobs/0012`. **Нюанс django-tenants:** `manage.py showmigrations` без tenant-контекста читает `django_migrations` схемы **public**; у TENANT-апп (catalog/stays/booking/inventory/promotions/…) своя таблица в КАЖДОЙ схеме тенанта, поэтому строгая проверка — по схемам (`migrate_schemas` в `deploy.sh` их и гоняет). Команда полной сверки — в build-log записи 2026-08-01 «аудит месяца». **Правило впредь:** очередь в этом файле — гипотеза до сверки с `showmigrations`; не помечать миграции «ожидающими» дольше одного деплой-цикла.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

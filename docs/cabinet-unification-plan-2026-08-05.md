@@ -190,24 +190,40 @@ apply_action, потом редиректы легаси.
 владельца. Каждая волна — план-инкременты по конвенции (план-док → замки → код → CI →
 чекпоинт).
 
-## §4. Развилки владельца (нужны решения)
+## §4. Развилки владельца — РЕШЕНЫ (ответы 2026-08-05)
 
-- **Р-1 classic_ui:** (a) заморозить сейчас и удалить после W8–W10 ✅ рекомендация;
-  (b) держать бессрочно (тогда +матрица тестов и двойная стоимость каждой волны);
-  (c) удалить немедленно.
-- **Р-2 Слияние Marketing+Kunden** в один якорь/хаб (рекомендация: да, §2.5).
-- **Р-3 Якорь Integrationen:** распустить в Einstellungen-вкладку со статусами
-  (рекомендация) или оставить якорем, но со статусами подключений.
-- **Р-4 Reservierungen в Verkäufe** (рекомендация: да — это заявки клиентов, не маркетинг).
-- **Р-5 /promotions/newsletter/:** дать вход табом «Newsletter» (рекомендация — функция
-  рабочая, double-opt-in готов) или удалить.
-- **Р-6 Поиск-палитра кабинета (Ctrl+K)** по разделам+настройкам: делать в W8
-  (рекомендация: да — из реестра почти бесплатно, главная страховка «не могу найти»)
-  или отложить.
-- **Р-7 «Team & Zugriff»** (экран ролей поверх готовой Membership): включить в W9 или
-  отдельным треком позже.
-- **Р-8 Порядок волн:** W7→W8→W9→… (рекомендация) или W9 (настройки) раньше W8 —
-  быстрее видимый результат, но табы придётся перекладывать в реестр задним числом.
+- **Р-1 classic_ui: УДАЛИТЬ.** Следствие для порядка волн: снос classic_ui идёт
+  ОТДЕЛЬНОЙ волной **W-CL сразу после W7** (до W8) — реестр навигации тогда
+  строится уже без легаси-ветки, а не тащит её. Объём W-CL: classic-ветка
+  `_base_dashboard.html` (65-110) + `grouped_active_modules`/NAV_GROUPS/
+  NAV_TASK_LABELS-потребители + `nav_items` classic-роль + classic-гейты
+  sidebar_nav/hub_tabs(covered)/orders_view(entry/switch_options)/verkaeufe-
+  redirect/hub_tiles/home_widgets/dashboard/sellable_manage/site_home(Studio)/
+  мастер looks_classic + карточка «Klassische Ansicht» + тумблер + замки
+  test_classic_ui (снять осознанно). Легаси-страницы продаж НЕ удаляются в W-CL
+  (их схлопывает W10 по паритету) — умирает только ФЛАГ и вторая IA.
+- **Р-2 Marketing+Kunden слить: ДА** (§2.5, W11).
+- **Р-3 Integrationen → вкладка Einstellungen со статусами: ДА** (W9).
+- **Р-4 Reservierungen в Verkäufe: ДА** (W10).
+- **Р-5 Newsletter: отдельной вкладкой** — ✅ сделано в W7b (таб Marketing/Erweitert).
+- **Р-6 Поиск-палитра Ctrl+K: ДА** (W8, из реестра).
+- **Р-7 Team & Zugriff: в W9.**
+- **Р-8 Порядок: ДА** — W7 ✅ → W-CL → W8 → W9 → W10 → W11 → W12 (остаток режимов:
+  level=advanced единой осью, архетип-автоматика, страница «Ansicht» — уже без
+  classic-измерения).
+
+## §4b. Статус исполнения
+
+- **W7 ✅ (2026-08-05, ветка `claude/cabinet-audit-optimization-vkcxs4`):**
+  W7a save-пути (normalize-passthrough notify/склад + замки; merge матрицы
+  уведомлений; settings_view update_fields; мёртвые POST-ветки order-settings/
+  billing-payments-methods; presence-guard мастера) · W7b навигация (поиск меню,
+  сироты Finanzen/Auswertungen/Abrechnung/Blog/Newsletter/Kollektionen, возврат
+  «Angebote», мёртвый nav_key care, гейты hub_tiles, 404 Marketing-Puls,
+  offer_cta jobs, нейтральный CTA календаря, back-ссылка Studio) · W7c продажи
+  (is_delivery-фильтр доски, shipped_at/таймстемпы резервов в FSM, next=-провод
+  канбана/календарей, гейт primary-kind, Liste по дате события, лишняя
+  таб-полоса). 30+ новых замков; устаревшие замки обновлены осознанно.
 
 ## §5. Ограничения и риски
 

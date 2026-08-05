@@ -8332,3 +8332,53 @@ apply_action, редиректы легаси) → W11 (Marketing+Kunden, суд
 Telegram 3-в-1, BusinessReview в кабинет) → W12 (режимы: level=advanced единой
 осью, архетип-автоматика, страница «Ansicht», судьба classic_ui). Развилки
 владельца Р-1..Р-8 — план §4. Всё БЕЗ миграций.
+
+## 2026-08-05 — W-v3: решения владельца Р-1..Р-8 + волна W7 (предохранители) целиком
+
+Решения по развилкам плана `cabinet-unification-plan-2026-08-05.md §4`: classic_ui
+УДАЛИТЬ (волной W-CL до W8) · Marketing+Kunden слить · Integrationen → вкладка
+Einstellungen со статусами · Reservierungen в Verkäufe · Newsletter отдельной
+вкладкой (✅ в W7b) · Ctrl+K-палитра в W8 · Team & Zugriff в W9 · порядок
+W7→W-CL→W8→W9→W10→W11→W12.
+
+**W7a — save-пути настроек:** `_normalize_impl` пропускает операционные ключи
+`notify`/`low_stock_threshold`/`lots_enabled`/`wishlist`/`primary_service_cta`
+(сохранение билдера/SEO/Finder/мастера стирало уведомления, привязку Telegram
+владельца и настройки склада — ~20 мест записи, класс W0/W6; сверка «писатели ↔
+allow-list» подтвердила ровно этот список потерь); notifications_settings мержит
+узел customer (выбор выключенных модулей переживает Save); settings_view пишет
+update_fields (голый save() затирал параллельные записи site_config/stripe_* —
+черновик билдера, Telegram-вебхук, Stripe-callback); мёртвые POST-ветки
+delivery/vorkasse/prepay в order_settings и живой эндпоинт billing-payments-
+methods обезврежены (пустой POST обнулял поля); presence-guard контактов в
+мастере. Замки: test_w7_data_safety (7) + test_w7_order_settings (2) +
+test_w7_payments_methods (1); легаси-тесты снесённых веток переведены на
+save-хелперы (семантика сохранения жива — её зовёт payment_settings).
+
+**W7b — навигация:** починен поиск меню (компакт-ветка без .nav-group → фильтр
+всегда показывал «Nothing found.»); сироты получили входы: Finanzen/Auswertungen/
+Abrechnung — табы Einstellungen (гейт по модулю), Blog & News + Newsletter — табы
+Marketing/Erweitert, Kollektionen — таб Sortiment/Erweitert; hub_tabs на 6
+страницах-тупиках; обратный таб «Angebote» в каталожном баре; мёртвый nav_key
+«care» удалён (замок LS-6 обновлён осознанно); hub_tiles гейтит Marketing-плитку
+по модулю (докстринг стал правдой); Marketing-Puls/метрика лендинга не ведут в
+404 без модуля analytics; offer_cta jobs (Handwerker вёл в чужой каталог);
+CTA главной «Belegungsplan/Anreisen & Zimmer» — только primary=stays; back-ссылка
+Studio подписана «Website». Замки: test_w7_nav (10).
+
+**W7c — продажи (паритет доски и карточек):** allowed_actions_for(obj) фильтрует
+picked_up/shipped по is_delivery (доска предлагала «Abgeholt» доставочному →
+письмо о самовывозе); OrderSM ставит shipped_at (доска слала «versandt» с NULL);
+ReservationSM ставит confirmed_at/fulfilled_at/cancelled_at (сервисы ставят до
+apply → no-op, доска шла мимо); next=-провод: kanban_action non-fetch +
+stay_action/stay_create (open-redirect guard, зеркало booking_action) + hidden
+next в _kanban_card/_tagesplan_body/_walkin_form/_booking_card/_today_row + ✕
+поиска Belegungsplan — действия из встроенных календарей Verkäufe/главной больше
+не выбрасывают на легаси-страницы; visible_kinds гейтит primary-kind модулем
+(вкладка «Bestellungen» у business_type=other без модуля orders + её 404-ссылка);
+generic-Liste stay/booking сортируется по дате события; таб-полоса из одной
+кнопки в _board_body не рисуется. Замки: test_w7_sales (10).
+
+Локальная валидация: полные прогоны затронутых app-суитов до/после — наборы
+фейлов идентичны (все — пред-существующий локальный класс «.mo не скомпилированы»,
+на CI зелёные). Коммиты 195f973 / 7fc3dea / 2862224.
