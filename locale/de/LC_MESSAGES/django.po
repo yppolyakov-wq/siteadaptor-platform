@@ -17289,3 +17289,12 @@ msgstr "Über den Betrieb"
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
 msgstr "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
+
+msgid "Aktion für dieses Angebot erstellen"
+msgstr "Aktion für dieses Angebot erstellen"
+
+msgid "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
+msgstr "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
+
+msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+msgstr "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."

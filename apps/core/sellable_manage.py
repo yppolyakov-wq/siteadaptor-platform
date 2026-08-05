@@ -83,6 +83,8 @@ class ManagedSellable:
     edit_url: str
     # LS-3: машиночитаемая цена (Decimal|None) — префилл композера Sofort-Angebot.
     price_value: object = None
+    # W11-4: GET-параметр префилла цели в promotion-create ("" = kind без цели PL).
+    promo_param: str = ""
 
 
 def _model(kind):
@@ -107,6 +109,10 @@ def _is_visible(kind, obj) -> bool:
     return bool(getattr(obj, "is_active", True))
 
 
+# W11-4: kind → GET-параметр FK-цели акции (ценовой слой PL; у event цели нет).
+_PROMO_PARAM = {"product": "product", "service": "service", "stay": "stay_unit", "combo": "combo"}
+
+
 def _managed(kind, obj, locale) -> ManagedSellable:
     cfg = _MANAGE[kind]
     f = sellable.display_fields(kind, obj, locale)
@@ -122,6 +128,7 @@ def _managed(kind, obj, locale) -> ManagedSellable:
         status_label=status_label,
         edit_url=_reverse(cfg["edit"], obj.pk),
         price_value=f.get("price_value"),
+        promo_param=_PROMO_PARAM.get(kind, ""),
     )
 
 

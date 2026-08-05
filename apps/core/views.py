@@ -3657,6 +3657,8 @@ def sellable_manage(request):
             "nav": "sellables",
             "sections": sm.sellable_manage_sections_for(tenant),
             "add_options": sm.add_options(tenant),
+            # W11-4: гейт кнопки «% Aktion» на карточках (цель PL из строки).
+            "promotions_active": tenant.is_module_active("promotions"),
             # ST-5a: карточный грид.
             # Во вьюхе (не processor) — как dashboard: работает и на public-схеме.
         },

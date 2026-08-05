@@ -17250,3 +17250,12 @@ msgstr "İşletme hakkında"
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
 msgstr "Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler — yanıtlar yakında."
+
+msgid "Aktion für dieses Angebot erstellen"
+msgstr "Bu teklif için kampanya oluştur"
+
+msgid "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
+msgstr "Kampanya bu hizmet için geçerlidir — kampanya fiyatı rezervasyonda otomatik uygulanır."
+
+msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+msgstr "Kampanya bu oda için geçerlidir — rezervasyonda fiyat adayı olarak etki eder."

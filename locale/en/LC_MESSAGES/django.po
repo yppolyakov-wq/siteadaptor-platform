@@ -17138,3 +17138,12 @@ msgstr "About the business"
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
 msgstr "Reviews from the city portal (/entdecken) about your business — replies coming soon."
+
+msgid "Aktion für dieses Angebot erstellen"
+msgstr "Create a promotion for this offer"
+
+msgid "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
+msgstr "Promotion applies to this service — the promo price is applied automatically at booking."
+
+msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+msgstr "Promotion applies to this room — acts as a price candidate at booking."

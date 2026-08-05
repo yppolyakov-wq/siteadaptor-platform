@@ -8714,3 +8714,18 @@ core 877 зелёных.
 звёзды/дата/текст). 2 msgid × 5 .po. Замок: своя схема видна / чужая не
 подмешивается / email автора скрыт / дефолтный entity-список цел. Локально
 reviews 15 + aggregator-review 14 зелёные.
+
+
+## 2026-08-05 — W11-4: акция на услугу/номер/комбо создаётся из UI
+
+Закрыта дыра аудита «движок PL готов (P1–P7, 2026-08-04), UI нет»: PromotionForm
+получил FK-цели service/stay_unit/combo (лейблы Leistung/Zimmer/Kombi; селект
+исчезает при неактивном модуле — booking/stays; combo при core-catalog всегда;
+tenant=None в тестах → fail-open). Help-тексты объясняют семантику ценового
+слоя (услуга — авто-цена при записи; номер — прайс-кандидат при брони).
+promotion_create префиллит цель из GET (?product/?service/?stay_unit/?combo=) —
+вход: кнопка «% Aktion» на карточках Angebote (ManagedSellable.promo_param по
+kind; у event цели PL нет — кнопки нет; гейт promotions_active). Движок PL/
+target_rules НЕ тронуты. Шаблон формы: цели в секции Basics рядом с товаром.
+3 msgid × 5 .po. Замки test_w11_targets (4): гейт полей по модулям, GET-префилл,
+save FK, ссылка с карточки. Локально promotions+sellable 304 зелёные.

@@ -108,7 +108,8 @@
     {# Basics: заголовок/описание (per язык) + товар/раздел + фото #}
     <div data-pf-panel="grund" class="space-y-4 pt-2">
       {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
-      {% for field in form %}{% if field.name == 'product' or field.name == 'group' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {# W11-4: цели ценового слоя (service/stay_unit/combo) — рядом с товаром #}
+      {% for field in form %}{% if field.name == 'product' or field.name == 'service' or field.name == 'stay_unit' or field.name == 'combo' or field.name == 'group' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       {% comment %}Переводы МЕТКИ группы: ключ фасета остаётся плоским значением поля
       выше, поэтому переводы живут отдельным свёрнутым блоком (как у услуг/номеров),
       а не во вкладках языка (там full-JSON title/description).{% endcomment %}

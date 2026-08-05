@@ -22,6 +22,10 @@
     {% elif it.status_label %}
       <span class="text-xs font-medium px-2.5 py-1 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-500{% endif %}">{{ it.status_label }}</span>
     {% else %}<span></span>{% endif %}
-    {% if it.edit_url %}<a href="{{ it.edit_url }}" class="text-sm text-indigo-600 hover:underline">{% trans "Bearbeiten" %}</a>{% endif %}
+    <span class="flex items-center gap-2">
+      {# W11-4: акция на эту сущность (ценовой слой PL) — префилл цели в форме #}
+      {% if it.promo_param and promotions_active %}<a href="{% url 'promotions:promotion-create' %}?{{ it.promo_param }}={{ it.pk }}" class="text-sm text-amber-600 hover:underline" title="{% trans 'Aktion für dieses Angebot erstellen' %}">% {% trans "Aktion" %}</a>{% endif %}
+      {% if it.edit_url %}<a href="{{ it.edit_url }}" class="text-sm text-indigo-600 hover:underline">{% trans "Bearbeiten" %}</a>{% endif %}
+    </span>
   </div>
 </div>

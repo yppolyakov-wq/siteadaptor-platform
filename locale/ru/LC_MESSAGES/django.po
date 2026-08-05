@@ -17330,3 +17330,12 @@ msgstr "О бизнесе"
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
 msgstr "Отзывы о вашем бизнесе с городского портала (/entdecken) — ответы появятся позже."
+
+msgid "Aktion für dieses Angebot erstellen"
+msgstr "Создать акцию для этой позиции"
+
+msgid "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
+msgstr "Акция действует на эту услугу — акционная цена применяется автоматически при записи."
+
+msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+msgstr "Акция действует на этот номер — участвует как ценовой кандидат при бронировании."

@@ -262,6 +262,11 @@ def promotion_create(request):
     initial = {}
     if request.method == "GET" and request.GET.get("preset"):
         initial = preset_initial(business_type, request.GET["preset"])
+    # W11-4: префилл цели из «Aktion erstellen» строки Angebote (?service=/…).
+    if request.method == "GET":
+        for key in ("product", "service", "stay_unit", "combo"):
+            if request.GET.get(key):
+                initial[key] = request.GET[key]
     form = PromotionForm(
         request.POST or None,
         request.FILES or None,

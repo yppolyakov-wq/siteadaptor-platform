@@ -44,6 +44,11 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         model = Promotion
         fields = [
             "product",
+            # W11-4: цели ценового слоя PL (P1) — движок готов с 2026-08-04,
+            # теперь выбираются из формы (гейт по модулям в __init__).
+            "service",
+            "stay_unit",
+            "combo",
             "promo_type",
             "compare_at_price",
             "discount_percent",
@@ -95,6 +100,32 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["product"].queryset = Product.objects.all()
         self.fields["product"].required = False
+        # W11-4: цели PL — селекты только при активном модуле (tenant=None в
+        # тестах → fail-open, как у прочих гейтов формы).
+        from apps.booking.models import Service
+        from apps.catalog.models import Combo
+        from apps.stays.models import StayUnit
+
+        _targets = (
+            ("service", "booking", Service, _("Leistung")),
+            ("stay_unit", "stays", StayUnit, _("Zimmer")),
+            ("combo", "catalog", Combo, _("Kombi")),
+        )
+        for fname, module, model, label in _targets:
+            if tenant is not None and not tenant.is_module_active(module):
+                self.fields.pop(fname, None)
+                continue
+            self.fields[fname].queryset = model.objects.all()
+            self.fields[fname].required = False
+            self.fields[fname].label = label
+        if "service" in self.fields:
+            self.fields["service"].help_text = _(
+                "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
+            )
+        if "stay_unit" in self.fields:
+            self.fields["stay_unit"].help_text = _(
+                "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+            )
         self.init_i18n_fields(tenant)  # L3d.5
         # `group` — flat+overlay (плоское значение = ключ фасета `?gruppe=`,
         # переводы = только метка), поэтому НЕ через DynamicI18nFormMixin:
