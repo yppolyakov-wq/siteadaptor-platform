@@ -874,6 +874,25 @@ def legal_docs_view(request):
     tenant = request.tenant
     locales = tenant.active_locales
     if request.method == "POST":
+        # W9-5: реквизиты (USt-IdNr./Steuernummer/§19/Register/Verantwortlicher)
+        # переехали сюда из «Mein Geschäft» — свой сентинел + update_fields
+        # (единственный писатель; форма настроек их больше не содержит).
+        if request.POST.get("sec_steuer"):
+            tenant.vat_id = request.POST.get("vat_id", "").strip()[:32]
+            tenant.tax_number = request.POST.get("tax_number", "").strip()[:32]
+            tenant.small_business = bool(request.POST.get("small_business"))
+            tenant.register_entry = request.POST.get("register_entry", "").strip()[:200]
+            tenant.legal_responsible = request.POST.get("legal_responsible", "").strip()[:200]
+            tenant.save(
+                update_fields=[
+                    "vat_id",
+                    "tax_number",
+                    "small_business",
+                    "register_entry",
+                    "legal_responsible",
+                    "updated_at",
+                ]
+            )
         for kind, _label in LegalDoc.KIND_CHOICES:
             for loc in locales:
                 val = request.POST.get(f"doc_{kind}_{loc}")
@@ -905,7 +924,11 @@ def legal_docs_view(request):
         }
         for kind, label in LegalDoc.KIND_CHOICES
     ]
-    return render(request, "tenant/legal_docs.html", {"kinds": kinds, "nav": "legal-docs"})
+    return render(
+        request,
+        "tenant/legal_docs.html",
+        {"kinds": kinds, "nav": "legal-docs", "steuer": tenant},
+    )
 
 
 def _upload_gallery_images(request) -> None:

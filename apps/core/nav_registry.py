@@ -257,6 +257,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "notifications",
         search="care e-mail telegram erinnerung",
     ),
+    _e("settings", "domains", _("Website & Domains"), "domains", search="eigene domain seo theme"),
     _e(
         "settings",
         "finance:journal",
@@ -282,7 +283,6 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     _e("settings", "extras", _("Zusatzleistungen"), "extras", None, True),
     _e("settings", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
-    _e("settings", "domains", _("Domains"), "domains", None, True, "eigene domain"),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren ansicht"),
     _e("settings", "finder-settings", _("Finder"), "finder", None, True, "fragen empfehlung"),
     _e("settings", "support:help", _("Hilfe"), "support", None, True, "anleitung hilfe"),

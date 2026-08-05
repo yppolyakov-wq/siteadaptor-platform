@@ -49,27 +49,12 @@
       </div>
     </fieldset>
 
-    {% comment %}Продвинутые секции: в Простом режиме скрыты (поля в DOM — Save не затрёт).{% endcomment %}
+    {% comment %}Продвинутые секции: в Простом режиме скрыты (поля в DOM — Save не
+    затрёт). W9-5: Recht & Steuern переехали на свой таб (LegalDoc + реквизиты).{% endcomment %}
     {% if ui_simple %}
-      <p class="text-xs text-gray-400">{% trans "Legal, tax and operations settings are shown in Expert mode (toggle in the top bar)." %}</p>
+      <p class="text-xs text-gray-400">{% trans "Betriebs-Einstellungen erscheinen im Experten-Modus (Schalter oben)." %}</p>
     {% endif %}
     <div class="space-y-4{% if ui_simple %} hidden{% endif %}">
-
-      {# ③ Recht & Steuer — аккордеон (детальные правовые тексты также в «Rechtstexte») #}
-      <details class="bg-white border border-gray-200 rounded-2xl px-6 py-4">
-        <summary class="cursor-pointer font-semibold">{% trans "Legal & tax" %}</summary>
-        <div class="mt-4 space-y-4">
-          {% include "tenant/_settings_field.html" with field=form.vat_id %}
-          {% include "tenant/_settings_field.html" with field=form.tax_number %}
-          {% include "tenant/_settings_field.html" with field=form.small_business %}
-          {% include "tenant/_settings_field.html" with field=form.register_entry %}
-          {% include "tenant/_settings_field.html" with field=form.legal_responsible %}
-          {% include "tenant/_settings_field.html" with field=form.impressum %}
-          {% include "tenant/_settings_field.html" with field=form.privacy_policy %}
-          {% include "tenant/_settings_field.html" with field=form.withdrawal_policy %}
-          <p class="text-xs text-gray-400">{% trans "Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” tab above." %}</p>
-        </div>
-      </details>
 
       {# ④ Betrieb & Extras — зона обслуживания (гейт), дайджест, лояльность (гейт) #}
       <details class="bg-white border border-gray-200 rounded-2xl px-6 py-4">

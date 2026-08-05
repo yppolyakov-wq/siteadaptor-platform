@@ -17043,3 +17043,39 @@ msgstr "Abonelik ve fatura"
 # W9-1 (Settings-хаб)
 msgid "Recht & Steuern"
 msgstr "Hukuk ve vergiler"
+
+# W9-4/5 (Settings-хаб)
+msgid "Website & Domains"
+msgstr "Web sitesi ve alan adları"
+
+# W9-4/5 (Settings-хаб)
+msgid "Steuern & Unternehmensangaben"
+msgstr "Vergiler ve şirket bilgileri"
+
+# W9-4/5 (Settings-хаб)
+msgid "Betriebs-Einstellungen erscheinen im Experten-Modus (Schalter oben)."
+msgstr "İşletme ayarları Uzman modunda görünür (üstteki anahtar)."
+
+# W9-4/5 (Settings-хаб)
+msgid "Farbe & Schrift (Studio)"
+msgstr "Renk ve yazı tipi (Studio)"
+
+# W9-4/5 (Settings-хаб)
+msgid "Registereintrag (z. B. HRB, Amtsgericht)"
+msgstr "Sicil kaydı (ör. HRB, mahkeme)"
+
+# W9-4/5 (Settings-хаб)
+msgid "Inhaltlich verantwortlich (V. i. S. d. P.)"
+msgstr "İçerikten sorumlu kişi"
+
+# W9-4/5 (Settings-хаб)
+msgid "Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt."
+msgstr "Küçük işletme (§ 19 UStG) — KDV'siz faturalar."
+
+# W9-5 (термины DE-права не переводятся — правило I18N-7b)
+msgid "USt-IdNr."
+msgstr "USt-IdNr."
+
+# W9-5 (термины DE-права не переводятся — правило I18N-7b)
+msgid "Steuernummer"
+msgstr "Steuernummer"

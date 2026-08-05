@@ -93,5 +93,14 @@ W9-10 обязан включить per-роль-гейт минимум на bi
 - **W9-3 ✅**: seo_settings_view и finder_settings — targeted-write своего узла
   (normalize_seo/normalize_finder на узел; пересборка полного конфига из save-путей
   настроек исключена) + 2 замка «соседние ключи целы».
-- Очередь: W9-4 (Website & Domains) → W9-5 (Recht & Steuern) → W9-6 (Mein Geschäft)
-  → W9-7 → W9-8 (Abläufe) → W9-9 (Integrationen) → W9-10 (Team) → W9-11 хвост.
+- **W9-4 ✅**: таб «Website & Domains» (domains-экран + мостики SEO/Studio/Medien;
+  site_seo получил hub_tabs — тупик закрыт; Domains из Erweitert в прямые).
+- **W9-5 ✅**: «Recht & Steuern» — LegalDoc единственный редактор; налоговые
+  реквизиты (vat/tax/§19/Register/V.i.S.d.P.) переехали из «Mein Geschäft» на
+  правовой экран отдельной секцией со СВОИМ save (sec_steuer + update_fields);
+  из BusinessSettingsForm поля изъяты целиком (один писатель; плоские правовые
+  тексты редактируются только как LegalDoc-фолбэк). settings_view.update_fields
+  сузился автоматически (*Meta.fields).
+- Очередь: W9-6 (Mein Geschäft — уже фактически «урезанная» форма; осталась
+  склейка часов) → W9-7 (пресеты уведомлений + Telegram-блок) → W9-8 (Abläufe)
+  → W9-9 (Integrationen) → W9-10 (Team) → W9-11 хвост.

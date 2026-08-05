@@ -17123,3 +17123,39 @@ msgstr "Подписка и счета"
 # W9-1 (Settings-хаб)
 msgid "Recht & Steuern"
 msgstr "Право и налоги"
+
+# W9-4/5 (Settings-хаб)
+msgid "Website & Domains"
+msgstr "Сайт и домены"
+
+# W9-4/5 (Settings-хаб)
+msgid "Steuern & Unternehmensangaben"
+msgstr "Налоги и реквизиты компании"
+
+# W9-4/5 (Settings-хаб)
+msgid "Betriebs-Einstellungen erscheinen im Experten-Modus (Schalter oben)."
+msgstr "Операционные настройки видны в режиме «Эксперт» (тумблер сверху)."
+
+# W9-4/5 (Settings-хаб)
+msgid "Farbe & Schrift (Studio)"
+msgstr "Цвет и шрифт (Studio)"
+
+# W9-4/5 (Settings-хаб)
+msgid "Registereintrag (z. B. HRB, Amtsgericht)"
+msgstr "Запись в реестре (напр. HRB, суд)"
+
+# W9-4/5 (Settings-хаб)
+msgid "Inhaltlich verantwortlich (V. i. S. d. P.)"
+msgstr "Ответственный за содержание"
+
+# W9-4/5 (Settings-хаб)
+msgid "Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt."
+msgstr "Малый бизнес (§ 19 UStG) — счета без НДС."
+
+# W9-5 (термины DE-права не переводятся — правило I18N-7b)
+msgid "USt-IdNr."
+msgstr "USt-IdNr."
+
+# W9-5 (термины DE-права не переводятся — правило I18N-7b)
+msgid "Steuernummer"
+msgstr "Steuernummer"

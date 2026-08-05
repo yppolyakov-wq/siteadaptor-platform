@@ -5,13 +5,37 @@
 {% block dash_content %}
 {% hub_tabs "settings" %}
 <div class="max-w-3xl">
-  <h1 class="text-2xl font-bold mb-1">{% trans "Legal" %}</h1>
+  <h1 class="text-2xl font-bold mb-1">{% trans "Recht & Steuern" %}</h1>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Legal pages of your website — per language. Leave a field empty to use the automatic text from your business data." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
 
   <form method="post" class="space-y-6">
     {% csrf_token %}
+    {# W9-5: реквизиты — раньше в «Mein Geschäft»; единственный редактор теперь тут. #}
+    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+      <legend class="font-semibold mb-1">{% trans "Steuern & Unternehmensangaben" %}</legend>
+      <input type="hidden" name="sec_steuer" value="1">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="vat_id">{% trans "USt-IdNr." %}</label>
+          <input id="vat_id" name="vat_id" value="{{ steuer.vat_id }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="tax_number">{% trans "Steuernummer" %}</label>
+          <input id="tax_number" name="tax_number" value="{{ steuer.tax_number }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+      </div>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="small_business" {% if steuer.small_business %}checked{% endif %} class="rounded border-gray-300"> {% trans "Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt." %}</label>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="register_entry">{% trans "Registereintrag (z. B. HRB, Amtsgericht)" %}</label>
+        <input id="register_entry" name="register_entry" value="{{ steuer.register_entry }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="legal_responsible">{% trans "Inhaltlich verantwortlich (V. i. S. d. P.)" %}</label>
+        <input id="legal_responsible" name="legal_responsible" value="{{ steuer.legal_responsible }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+    </fieldset>
     {% for k in kinds %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
         <legend class="font-semibold mb-1">{{ k.label }}</legend>

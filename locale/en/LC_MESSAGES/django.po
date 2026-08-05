@@ -16931,3 +16931,39 @@ msgstr "Subscription & billing"
 # W9-1 (Settings-хаб)
 msgid "Recht & Steuern"
 msgstr "Legal & taxes"
+
+# W9-4/5 (Settings-хаб)
+msgid "Website & Domains"
+msgstr "Website & domains"
+
+# W9-4/5 (Settings-хаб)
+msgid "Steuern & Unternehmensangaben"
+msgstr "Taxes & company details"
+
+# W9-4/5 (Settings-хаб)
+msgid "Betriebs-Einstellungen erscheinen im Experten-Modus (Schalter oben)."
+msgstr "Operations settings appear in Expert mode (toggle in the top bar)."
+
+# W9-4/5 (Settings-хаб)
+msgid "Farbe & Schrift (Studio)"
+msgstr "Colour & font (Studio)"
+
+# W9-4/5 (Settings-хаб)
+msgid "Registereintrag (z. B. HRB, Amtsgericht)"
+msgstr "Register entry (e.g. HRB, local court)"
+
+# W9-4/5 (Settings-хаб)
+msgid "Inhaltlich verantwortlich (V. i. S. d. P.)"
+msgstr "Editorially responsible person"
+
+# W9-4/5 (Settings-хаб)
+msgid "Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt."
+msgstr "Small business (§ 19 UStG) — invoices without VAT."
+
+# W9-5 (термины DE-права не переводятся — правило I18N-7b)
+msgid "USt-IdNr."
+msgstr "USt-IdNr."
+
+# W9-5 (термины DE-права не переводятся — правило I18N-7b)
+msgid "Steuernummer"
+msgstr "Steuernummer"

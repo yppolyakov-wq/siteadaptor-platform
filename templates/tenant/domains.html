@@ -5,10 +5,17 @@
 {% block dash_content %}
 {% hub_tabs "settings" %}
 <div class="max-w-2xl">
-  <h1 class="text-2xl font-bold mb-1">{% trans "Custom domain" %}</h1>
+  <h1 class="text-2xl font-bold mb-1">{% trans "Website & Domains" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Connect your own domain (e.g. bakery.de) to your storefront." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
+
+  {# W9-4: website-настройки одним взглядом — SEO здесь же табом ниже, визуал в Studio. #}
+  <div class="grid sm:grid-cols-3 gap-3 mb-6">
+    <a href="{% url 'site-seo' %}" class="bg-white rounded-2xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🔎 SEO →</a>
+    <a href="{% url 'site-home' %}" class="bg-white rounded-2xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🎨 {% trans "Farbe & Schrift (Studio)" %} →</a>
+    <a href="{% url 'media-library' %}" class="bg-white rounded-2xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🖼 {% trans "Medien" %} →</a>
+  </div>
 
   {# --- Шаг 1: добавить домен --- #}
   <form method="post" action="{% url 'domain-add' %}" class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex gap-3 items-end">

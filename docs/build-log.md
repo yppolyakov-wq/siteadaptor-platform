@@ -8454,3 +8454,19 @@ read-only после W7a) — только лейбл. W9-3: seo_settings_view/f
 targeted-write СВОЕГО узла через normalize_seo/normalize_finder (пересборка
 полного конфига в save-путях настроек запрещена; класс W0/W6) + 2 замка
 «соседние ключи переживают Save». 135+10 зелёных локально.
+
+
+## 2026-08-05 — W9-4+W9-5: Website & Domains + Recht & Steuern
+
+W9-4: «Website & Domains» — прямой таб (был «Domains» в Erweitert): страница
+доменов получила мостики SEO/«Farbe & Schrift (Studio)»/Medien; site_seo.html
+получил hub_tabs «settings» (был тупик с единственным входом из site.html).
+Грабля: вставка в реестр по одно-строчному якорю после ruff-format молча не
+совпала (запись выпала целиком) — поймал инвариант-замок W8 «каждый nav имеет
+якорь»; правило: после формат-прогонов анкериться на многострочные блоки.
+W9-5: «Recht & Steuern» — налоговые реквизиты переехали из формы «Mein Geschäft»
+в правовой экран отдельной секцией (sec_steuer, СВОЙ update_fields; единственный
+писатель), из BusinessSettingsForm изъяты 5 реквизитов + 3 плоских правовых
+textarea (тексты — только LegalDoc; плоские поля остаются фолбэком витрины);
+секция ③ settings.html удалена, хинт Простого режима переформулирован.
+9 msgid × 5 .po (USt-IdNr./Steuernummer — identity, правило I18N-7b). 934 зелёных.

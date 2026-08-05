@@ -79,21 +79,13 @@ class BusinessSettingsForm(forms.ModelForm):
             "auto_redeem_on_scan",
             "owner_digest_enabled",
             "voucher_max_percent",
-            "vat_id",
-            "tax_number",
-            "small_business",
-            "register_entry",
-            "legal_responsible",
-            "impressum",
-            "privacy_policy",
-            "withdrawal_policy",
+            # W9-5: налоговые реквизиты и плоские правовые тексты переехали на
+            # экран «Recht & Steuern» (LegalDoc — единственный редактор текстов;
+            # реквизиты — отдельная секция с собственным save/update_fields).
         ]
         widgets = {
             "address": forms.Textarea(attrs={"rows": 2}),
             "opening_hours": forms.Textarea(attrs={"rows": 3}),
-            "impressum": forms.Textarea(attrs={"rows": 5}),
-            "privacy_policy": forms.Textarea(attrs={"rows": 6}),
-            "withdrawal_policy": forms.Textarea(attrs={"rows": 4}),
         }
         labels = {
             "whatsapp_number": _("WhatsApp-Nummer"),
