@@ -17306,3 +17306,6 @@ msgstr "Доставки сьогодні"
 
 msgid "Nichts für heute."
 msgstr "На сьогодні нічого."
+
+msgid "Sendungsnummer (optional)"
+msgstr "Трек-номер (необов'язково)"

@@ -8634,3 +8634,21 @@ verkaeufe?view=heute (stays:today остаётся легаси с мостик�
 пустым состоянием. 4 msgid × 5 .po. Замки: рендер колонок отель/магазин
 (гость в Anreisen + ready-заказ в Abholbereit), кнопка в ряду видов,
 deep-link виджета. Локально verkaeufe 17, полный core 869 — зелёные.
+
+
+## 2026-08-05 — W10-5: единый apply_action + трек-номер с канбан-карточки
+
+`transactions.apply_action(kind, obj, target, actor=None, extra=None)` — единая
+точка применения статуса со ВСЕХ поверхностей (доска/Verkäufe/главная/карточка
+заказа): спец-поля поверхности передаются в extra (обычно request.POST); сейчас
+это tracking_code у заказа при переходе shipped — пишется ДО apply, чтобы письмо
+FSM ушло уже с Sendungsnummer (закрыт HIGH аудита: «Versendet» с доски слал
+письмо без номера). kanban_action и orders.order_detail делегируют (у вьюхи
+карточки убран дубль записи tracking+shipped_at — shipped_at ставит FSM с W7c).
+Transaction += needs_tracking (kind=order + is_delivery + shipped в
+allowed_actions) → канбан-карточка рисует компактное поле «Sendungsnummer
+(optional)» прямо в форме действий. Поведенческий нюанс (осознанно): пустой
+tracking_code при shipped больше НЕ стирает ранее сохранённый номер (раньше
+вьюха перезаписывала пустым; замков на это не было). 1 msgid × 5 .po. Замки:
+письмо содержит номер + needs_tracking только у доставки с доступным shipped.
+Локально core+orders 1020 зелёные.

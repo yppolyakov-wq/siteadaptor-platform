@@ -156,3 +156,64 @@ def test_kanban_non_fetch_rejects_external_next():
     resp = views.kanban_action(req, "order", order.pk)
     assert resp.status_code == 302
     assert resp["Location"].startswith("/dashboard/board/")
+
+
+# --- W10-5: единый apply_action + трек-номер с доски ---------------------------
+def test_apply_action_writes_tracking_before_shipped_email():
+    """W10-5: «Versendet» через единую точку → письмо уходит С Sendungsnummer
+    (раньше доска слала без номера — audit-sales HIGH)."""
+    from apps.core import transactions
+    from apps.notifications.models import Notification
+
+    order = _make_delivery_order()
+    transactions.apply_action("order", order, "confirmed", extra={})
+    transactions.apply_action("order", order, "ready", extra={})
+    transactions.apply_action("order", order, "shipped", extra={"tracking_code": "  DHL-W105  "})
+    order.refresh_from_db()
+    assert order.tracking_code == "DHL-W105"
+    assert order.shipped_at is not None  # FSM (W7c)
+    shipped = Notification.objects.get(dedupe_key=f"order:{order.id}:shipped:customer")
+    assert "DHL-W105" in shipped.payload["body"]
+
+
+def test_kanban_card_shows_tracking_input_only_for_delivery_ready():
+    """Поле трек-номера — только у заказа-доставки с доступным shipped."""
+    from apps.core import transactions
+
+    order = _make_delivery_order()
+    transactions.apply_action("order", order, "confirmed", extra={})
+    transactions.apply_action("order", order, "ready", extra={})
+    order.refresh_from_db()
+    tx = transactions.transaction_for("order", order)
+    assert tx.needs_tracking is True
+    # заказ-самовывоз в том же статусе — поля нет (shipped недоступен)
+    pickup = _make_pickup_order()
+    transactions.apply_action("order", pickup, "confirmed", extra={})
+    transactions.apply_action("order", pickup, "ready", extra={})
+    pickup.refresh_from_db()
+    tx2 = transactions.transaction_for("order", pickup)
+    assert tx2.needs_tracking is False
+
+
+def _make_delivery_order():
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders import services
+
+    return services.create_order(
+        items=[(ProductFactory(name={"de": "Paketware"}), 1)],
+        name="Empfänger",
+        email="emp@t.de",
+        fulfillment="delivery",
+        shipping_address="Weg 1, Hilden",
+    )
+
+
+def _make_pickup_order():
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders import services
+
+    return services.create_order(
+        items=[(ProductFactory(name={"de": "Abholware"}), 1)],
+        name="Abholer2",
+        email="ab2@t.de",
+    )

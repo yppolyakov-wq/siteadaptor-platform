@@ -27,6 +27,10 @@ neu gerendert (Badge/Buttons frisch, Karte bleibt in der neuen Spalte).
       {% csrf_token %}
       {# W7c: non-fetch фолбэк возвращает на исходную поверхность (главная/Verkäufe/board). #}
       <input type="hidden" name="next" value="{% firstof kanban_next request.get_full_path %}">
+      {% if tx.needs_tracking %}
+        {# W10-5: «Versendet» с доски раньше слал письмо БЕЗ Sendungsnummer #}
+        <input type="text" name="tracking_code" maxlength="100" placeholder="{% trans 'Sendungsnummer (optional)' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs">
+      {% endif %}
       {% include "core/_status_actions.html" with actions=tx.allowed_actions %}
     </form>
   {% endif %}

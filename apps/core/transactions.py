@@ -118,6 +118,9 @@ class Transaction:
     allowed_actions: list = field(default_factory=list)
     # LS-6: открытый ПРИОРИТЕТНЫЙ тред inbox с ref на эту сделку («⚠️ Problem»).
     has_problem: bool = False
+    # W10-5: карточка доски показывает поле трек-номера (заказ-доставка с
+    # доступным переходом shipped) — письмо «versendet» уходит с Sendungsnummer.
+    needs_tracking: bool = False
 
 
 def _money_str(value, currency: str = "EUR") -> str:
@@ -329,6 +332,12 @@ def transaction_for(
     if kind not in _FIELDS:
         raise ValueError(f"unknown transaction kind: {kind!r} (known: {TRANSACTION_KINDS})")
     f = _FIELDS[kind](obj)
+    actions = allowed_actions_for(kind, obj.status, transitions, obj=obj)
+    needs_tracking = (
+        kind == "order"
+        and bool(getattr(obj, "is_delivery", False))
+        and any(a["target"] == "shipped" for a in actions)
+    )
     return Transaction(
         kind=kind,
         pk=obj.pk,
@@ -344,8 +353,26 @@ def transaction_for(
         created_at=obj.created_at,
         detail_url_customer=_customer_url(kind, obj),
         manage_url=_manage_url(kind, obj),
-        allowed_actions=allowed_actions_for(kind, obj.status, transitions, obj=obj),
+        allowed_actions=actions,
+        needs_tracking=needs_tracking,
     )
+
+
+def apply_action(kind: str, obj, target: str, actor=None, extra=None):
+    """W10-5: ЕДИНАЯ точка применения статуса со всех поверхностей (доска/
+    Verkäufe/карточка/per-app вьюхи) — закрывает расхождения спец-полей.
+
+    `extra` — поля поверхности (обычно request.POST): сейчас — `tracking_code`
+    у заказа при переходе shipped; пишется ДО apply, чтобы письмо FSM ушло уже
+    с Sendungsnummer (shipped_at ставит FSM сам — W7c). Прочие эффекты
+    (письма/склад/деньги/таймстемпы) остаются в FSM on_transition."""
+    extra = extra or {}
+    if kind == "order" and target == "shipped":
+        code = (extra.get("tracking_code") or "").strip()[:100]
+        if code and code != (getattr(obj, "tracking_code", "") or ""):
+            obj.tracking_code = code
+            obj.save(update_fields=["tracking_code", "updated_at"])
+    return sm_for(kind).apply(obj, target, actor=actor)
 
 
 # --- UD1-3: кабинетный резолвер транзакций (фундамент доски) ------------------

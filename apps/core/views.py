@@ -3381,7 +3381,9 @@ def kanban_action(request, kind, pk):
     if not (back.startswith("/") and not back.startswith("//")):
         back = reverse("board") + f"?kind={kind}"
     try:
-        transactions.sm_for(kind).apply(obj, target, actor=request.user)
+        # W10-5: единая точка — спец-поля поверхности (tracking_code при
+        # «Versendet» заказа-доставки) едут в extra и пишутся ДО apply.
+        transactions.apply_action(kind, obj, target, actor=request.user, extra=request.POST)
     except IllegalTransition:
         if is_fetch:
             return HttpResponse(status=409)

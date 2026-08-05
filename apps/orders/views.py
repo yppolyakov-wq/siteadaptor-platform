@@ -226,14 +226,14 @@ def order_action(request, pk):
         order.save(update_fields=["payment_state", "updated_at"])
         messages.success(request, _("Marked as paid."))
     elif action in ("confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"):
-        if action == "shipped":  # G4: трек-номер до перехода (письмо его включает)
-            from django.utils import timezone
+        # W10-5: спец-поля (tracking_code при shipped) пишет единая точка
+        # apply_action ДО apply — письмо включает номер; shipped_at ставит FSM (W7c).
+        from apps.core import transactions as core_transactions
 
-            order.tracking_code = request.POST.get("tracking_code", "").strip()[:100]
-            order.shipped_at = timezone.now()
-            order.save(update_fields=["tracking_code", "shipped_at", "updated_at"])
         try:
-            OrderSM().apply(order, action, actor=request.user)
+            core_transactions.apply_action(
+                "order", order, action, actor=request.user, extra=request.POST
+            )
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect("orders:order-detail", pk=order.pk)

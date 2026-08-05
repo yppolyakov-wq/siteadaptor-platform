@@ -100,3 +100,11 @@ CI → FF-merge. Характеризационные замки ДО перен
   или наличии) — гейты модулями, каждая колонка fail-safe, карточки ведут на
   родные детали. Виджет «Anreisen heute» главной → `verkaeufe?view=heute`
   (stays:today — легаси с мостиком W10-3b). 4 msgid × 5 .po; 3 замка.
+- **W10-5 ✅** (2026-08-05): `transactions.apply_action(kind, obj, target, actor,
+  extra)` — единая точка применения статуса со всех поверхностей; спец-поля
+  поверхности едут в extra (сейчас: tracking_code у заказа при shipped — пишется
+  ДО apply, письмо уходит с Sendungsnummer). kanban_action и order_detail
+  делегируют; Transaction += needs_tracking → карточка доски заказа-доставки с
+  доступным shipped показывает поле трек-номера. shipped_at остаётся в FSM (W7c).
+  Поведенческий нюанс: пустой tracking_code больше НЕ стирает сохранённый номер
+  (раньше вьюха карточки перезаписывала пустым). 1 msgid × 5 .po; 2 замка.

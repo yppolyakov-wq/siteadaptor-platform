@@ -17280,3 +17280,6 @@ msgstr "Lieferungen heute"
 
 msgid "Nichts für heute."
 msgstr "Nichts für heute."
+
+msgid "Sendungsnummer (optional)"
+msgstr "Sendungsnummer (optional)"
