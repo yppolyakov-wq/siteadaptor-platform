@@ -43,12 +43,12 @@ def test_sidebar_nav_composition_and_urls():
     t = TenantFactory(slug="sb1", name="Sb1", business_type="bakery")
     keys = [it["url_name"] for it in modules.sidebar_nav(t)]
     # V4 (2026-08-03): якорь «Verkäufe» ведёт на единую страницу продаж.
+    # W9-9 (Р-3): «Integrationen» ушёл из сайдбара — вкладка Einstellungen.
     assert keys == [
         "dashboard",
         "verkaeufe",
         "sellable-manage",
         "marketing-home",
-        "integrations-home",
         "site",
         "settings",
     ]

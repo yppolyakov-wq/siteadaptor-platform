@@ -17145,3 +17145,36 @@ msgstr "Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe �
 
 msgid "Status-Namen, Übergänge und Board-Spalten:"
 msgstr "Status-Namen, Übergänge und Board-Spalten:"
+
+msgid "Stripe verbunden"
+msgstr "Stripe verbunden"
+
+msgid "Vorkasse aktiv — Stripe nicht verbunden"
+msgstr "Vorkasse aktiv — Stripe nicht verbunden"
+
+msgid "Nicht verbunden"
+msgstr "Nicht verbunden"
+
+msgid "E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"
+msgstr "E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"
+
+msgid "Kein Telegram-Bot"
+msgstr "Kein Telegram-Bot"
+
+msgid "Bot aktiv"
+msgstr "Bot aktiv"
+
+msgid "Inhaber verbunden"
+msgstr "Inhaber verbunden"
+
+msgid "Prüfung ausstehend"
+msgstr "Prüfung ausstehend"
+
+msgid "Keine eigene Domain"
+msgstr "Keine eigene Domain"
+
+msgid "Verbunden:"
+msgstr "Verbunden:"
+
+msgid "Keine Kanäle verbunden"
+msgstr "Keine Kanäle verbunden"

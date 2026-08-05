@@ -117,5 +117,13 @@ W9-10 обязан включить per-роль-гейт минимум на bi
   status_labels в orders:order-settings удалена (no-op редирект), мёртвые
   status_label_rows/transition_rows из контекста stays-календаря сняты.
   Панели booking/resources оставлены (живая настройка booking; свод — W10/W11).
-- Очередь: W9-9 (Integrationen-таб) → W9-10 (Team) → W9-11 хвост (Finder
-  перенесён в W9-1a, site_seo hub_tabs в W9-4 — осталась только сверка).
+- **W9-9 ✅**: «Integrationen» — вкладка Einstellungen (Р-3): якорь снят из
+  ANCHORS сайдбара (запись в ENTRIES settings-хаба; подсветка на «Einstellungen»
+  через карту W8; плитка Integrationen на главной ОСТАЁТСЯ — вход с хоума);
+  страница получила таб-бар settings-хаба + read-only статусы на карточках
+  (fail-safe): Stripe (verbunden/Vorkasse-warn/нет), Telegram-бот (@name +
+  Inhaber-линк; console-EMAIL_BACKEND → честный warn «Mails gehen nicht raus»),
+  CustomDomain (active/pending/нет), publishing-Channels (счёт включённых),
+  OTA-Channels (счёт). 11 msgid × 5 .po.
+- Очередь: W9-10 (Team & Zugriff) → W9-11 хвост (Finder перенесён в W9-1a,
+  site_seo hub_tabs в W9-4 — осталась только сверка).

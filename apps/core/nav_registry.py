@@ -78,13 +78,7 @@ ANCHORS: tuple[Anchor, ...] = (
         badge="inbox",
         hubs=("marketing", "kunden"),
     ),
-    Anchor(
-        "integrations-home",
-        _("Integrationen"),
-        "integrations",
-        "🔌",
-        "integrationen kanäle telegram zahlung",
-    ),
+    # W9-9 (Р-3): «Integrationen» ушёл из якорей сайдбара — вкладка Einstellungen.
     Anchor("site", _("Website"), "site", "✏️", "website gestalten studio design"),
     Anchor(
         "settings",
@@ -267,6 +261,14 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="status übergänge spalten workflow prozesse",
     ),
     _e("settings", "domains", _("Website & Domains"), "domains", search="eigene domain seo theme"),
+    # W9-9 (Р-3): Integrationen — вкладка настроек (был якорь сайдбара).
+    _e(
+        "settings",
+        "integrations-home",
+        _("Integrationen"),
+        "integrations",
+        search="integrationen stripe telegram publishing ota kanäle verbindungen",
+    ),
     _e(
         "settings",
         "finance:journal",
@@ -321,9 +323,8 @@ _EXTRA_NAV_ANCHORS: dict[str, str] = {
     "orders": "board",
     "booking": "board",
     "stays": "board",
-    # якоря-лендинги
+    # якоря-лендинги (W9-9: integrations теперь запись settings-хаба — маппится сам)
     "dashboard": "dashboard",
-    "integrations": "integrations",
     "site": "site",
 }
 

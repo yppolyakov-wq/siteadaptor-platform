@@ -8496,3 +8496,21 @@ booking; свод — W10/W11). 9 msgid × 5 .po. Замки: test_w9_ablaeufe (
 next-возврат/гейт kind/фолбэк/удаление легаси-формы/пресеты/бот), test_hub_tabs
 += Abläufe; тест ветки order-settings перевёрнут в «branch removed». Локально
 56+29+480+998 зелёных; CSS без изменений (классы существующие).
+
+
+## 2026-08-05 — W9-9: «Integrationen» — вкладка Einstellungen со статусами подключений
+
+Решение Р-3 аудита: якорь «Integrationen» снят из компакт-сайдбара (ANCHORS) и
+стал записью settings-хаба в nav_registry (подсветка через карту W8 автоматически;
+_EXTRA_NAV_ANCHORS-строка снята); плитка Integrationen на главной кабинета
+осталась — вход с хоума жив. Страница integrations_home получила таб-бар
+`{% hub_tabs "settings" %}` и read-only статусы на карточках (все fail-safe,
+паттерн _safe ST-4a): Stripe (payments_enabled → «Stripe verbunden» /
+vorkasse-only → warn / «Nicht verbunden»), Telegram-бот (active_bot: «Bot aktiv
+· @name · Inhaber verbunden»; console-EMAIL_BACKEND → честный warn «E-Mail:
+Test-Modus — Mails gehen nicht raus», класс Stage-0), CustomDomain
+(active-домен/Prüfung ausstehend/нет), publishing.Channel (счёт включённых без
+LOG), stays.Channel (счёт). Урок I18N-7b соблюдён: gettext не в f-строках.
+Сайдбар 7→6 якорей; test_sidebar_st4b обновлён осознанно. 11 msgid × 5 .po.
+Замки: test_w9_integrations (4: реестр/подсветка/статусы/бот). Локально
+54 nav+W9 и полный core 853 зелёные.

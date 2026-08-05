@@ -16994,3 +16994,36 @@ msgstr "Status names, status transitions and board columns for your sales — in
 
 msgid "Status-Namen, Übergänge und Board-Spalten:"
 msgstr "Status names, transitions and board columns:"
+
+msgid "Stripe verbunden"
+msgstr "Stripe connected"
+
+msgid "Vorkasse aktiv — Stripe nicht verbunden"
+msgstr "Prepayment active — Stripe not connected"
+
+msgid "Nicht verbunden"
+msgstr "Not connected"
+
+msgid "E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"
+msgstr "E-mail: test mode (console) — mails are not sent out"
+
+msgid "Kein Telegram-Bot"
+msgstr "No Telegram bot"
+
+msgid "Bot aktiv"
+msgstr "Bot active"
+
+msgid "Inhaber verbunden"
+msgstr "Owner connected"
+
+msgid "Prüfung ausstehend"
+msgstr "Verification pending"
+
+msgid "Keine eigene Domain"
+msgstr "No custom domain"
+
+msgid "Verbunden:"
+msgstr "Connected:"
+
+msgid "Keine Kanäle verbunden"
+msgstr "No channels connected"

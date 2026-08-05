@@ -17186,3 +17186,36 @@ msgstr "Названия статусов, переходы и колонки д
 
 msgid "Status-Namen, Übergänge und Board-Spalten:"
 msgstr "Названия статусов, переходы и колонки доски:"
+
+msgid "Stripe verbunden"
+msgstr "Stripe подключён"
+
+msgid "Vorkasse aktiv — Stripe nicht verbunden"
+msgstr "Предоплата активна — Stripe не подключён"
+
+msgid "Nicht verbunden"
+msgstr "Не подключено"
+
+msgid "E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"
+msgstr "E-mail: тестовый режим (консоль) — письма не отправляются"
+
+msgid "Kein Telegram-Bot"
+msgstr "Нет Telegram-бота"
+
+msgid "Bot aktiv"
+msgstr "Бот активен"
+
+msgid "Inhaber verbunden"
+msgstr "Владелец подключён"
+
+msgid "Prüfung ausstehend"
+msgstr "Ожидает проверки"
+
+msgid "Keine eigene Domain"
+msgstr "Нет своего домена"
+
+msgid "Verbunden:"
+msgstr "Подключено:"
+
+msgid "Keine Kanäle verbunden"
+msgstr "Каналы не подключены"

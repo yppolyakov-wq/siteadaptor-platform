@@ -17106,3 +17106,36 @@ msgstr "Satışlarınız için durum adları, durum geçişleri ve pano sütunla
 
 msgid "Status-Namen, Übergänge und Board-Spalten:"
 msgstr "Durum adları, geçişler ve pano sütunları:"
+
+msgid "Stripe verbunden"
+msgstr "Stripe bağlı"
+
+msgid "Vorkasse aktiv — Stripe nicht verbunden"
+msgstr "Ön ödeme aktif — Stripe bağlı değil"
+
+msgid "Nicht verbunden"
+msgstr "Bağlı değil"
+
+msgid "E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"
+msgstr "E-posta: test modu (konsol) — postalar dışarı gitmiyor"
+
+msgid "Kein Telegram-Bot"
+msgstr "Telegram botu yok"
+
+msgid "Bot aktiv"
+msgstr "Bot aktif"
+
+msgid "Inhaber verbunden"
+msgstr "Sahip bağlı"
+
+msgid "Prüfung ausstehend"
+msgstr "Doğrulama bekliyor"
+
+msgid "Keine eigene Domain"
+msgstr "Özel alan adı yok"
+
+msgid "Verbunden:"
+msgstr "Bağlı:"
+
+msgid "Keine Kanäle verbunden"
+msgstr "Bağlı kanal yok"

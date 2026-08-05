@@ -3730,10 +3730,72 @@ def marketing_home(request):
 
 @login_required
 def integrations_home(request):
-    """ST-4a: лёгкий лендинг «Integrationen» — карточки-входы в существующие
-    интеграционные точки (свода-хаба не было — план st4-admin-home-plan §1,
-    риск 3 разведки). Показываются только доступные по модулям."""
+    """ST-4a → W9-9 (Р-3): «Integrationen» — вкладка Einstellungen-хаба с
+    read-only статусами подключений на карточках (fail-safe: сломанный блок
+    не валит экран — паттерн _safe ST-4a). Сами подключения настраиваются
+    на целевых экранах; здесь только вход + честное состояние."""
+    from django.conf import settings as dj_settings
+
+    from apps.telegram.notify import active_bot, owner_chat_id
+
+    def _safe(fn):
+        try:
+            return fn()
+        except Exception:  # noqa: BLE001 — статус одного блока не валит лендинг
+            return ("", "muted")
+
     tenant = request.tenant
+
+    def _stripe_status():
+        if getattr(tenant, "payments_enabled", False):
+            return (_("Stripe verbunden"), "ok")
+        if getattr(tenant, "vorkasse_enabled", False):
+            return (_("Vorkasse aktiv — Stripe nicht verbunden"), "warn")
+        return (_("Nicht verbunden"), "muted")
+
+    def _telegram_status():
+        # console-бэкенд = письма НЕ уходят наружу (Stage 0 честно на виду).
+        if "console" in (getattr(dj_settings, "EMAIL_BACKEND", "") or "").lower():
+            return (_("E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"), "warn")
+        bot = active_bot()
+        if bot is None:
+            return (_("Kein Telegram-Bot"), "muted")
+        # I18N-7b: gettext НЕ в f-строке (xgettext их не извлекает).
+        label = _("Bot aktiv")
+        if bot.bot_username:
+            label = f"{label} · @{bot.bot_username}"
+        if owner_chat_id(tenant):
+            linked = _("Inhaber verbunden")
+            label = f"{label} · {linked}"
+        return (label, "ok")
+
+    def _domain_status():
+        doms = list(tenant.custom_domains.all()[:5])
+        active = next((d for d in doms if d.is_active), None)
+        if active is not None:
+            return (active.domain, "ok")
+        if any(d.status == d.PENDING for d in doms):
+            return (_("Prüfung ausstehend"), "warn")
+        return (_("Keine eigene Domain"), "muted")
+
+    def _publishing_status():
+        from apps.publishing.models import Channel as PubChannel
+
+        n = PubChannel.objects.filter(is_enabled=True).exclude(type=PubChannel.LOG).count()
+        if n:
+            lbl = _("Verbunden:")
+            return (f"{lbl} {n}", "ok")
+        return (_("Keine Kanäle verbunden"), "muted")
+
+    def _ota_status():
+        from apps.stays.models import Channel as OtaChannel
+
+        n = OtaChannel.objects.count()
+        if n:
+            lbl = _("Verbunden:")
+            return (f"{lbl} {n}", "ok")
+        return (_("Keine Kanäle verbunden"), "muted")
+
     cards = [
         {
             "icon": "💳",
@@ -3741,6 +3803,7 @@ def integrations_home(request):
             "hint": _("Online-Zahlung, Vorkasse, Zahlarten"),
             "url_name": "payment-settings",
             "show": True,
+            "status": _safe(_stripe_status),
         },
         {
             "icon": "📨",
@@ -3748,6 +3811,7 @@ def integrations_home(request):
             "hint": _("E-Mail/Telegram-Kanäle, Telegram verbinden"),
             "url_name": "notifications-settings",
             "show": True,
+            "status": _safe(_telegram_status),
         },
         {
             "icon": "🌐",
@@ -3755,6 +3819,7 @@ def integrations_home(request):
             "hint": _("Custom-Domain verbinden"),
             "url_name": "domains",
             "show": True,
+            "status": _safe(_domain_status),
         },
         {
             "icon": "📣",
@@ -3762,6 +3827,7 @@ def integrations_home(request):
             "hint": _("Kanäle verbinden und Beiträge planen"),
             "url_name": "channels",
             "show": tenant.is_module_active("publishing"),
+            "status": _safe(_publishing_status),
         },
         {
             "icon": "🏨",
@@ -3769,12 +3835,12 @@ def integrations_home(request):
             "hint": _("Buchungen aus Portalen importieren"),
             "url_name": "stays:channels",
             "show": tenant.is_module_active("stays"),
+            "status": _safe(_ota_status),
         },
     ]
     return render(
         request,
         "tenant/integrations_home.html",
-        # ST-4b: свой nav-ключ — якорь «Integrationen» компактного сайдбара
-        # подсвечивается только здесь (не вместе с «Einstellungen»).
+        # nav-ключ прежний — подсветку на якорь «Einstellungen» ведёт реестр W8.
         {"nav": "integrations", "cards": [c for c in cards if c["show"]]},
     )
