@@ -2479,6 +2479,25 @@ def _normalize_impl(config) -> dict:
     # удалил ровно созданное. Тоже переживает сохранение конструктора.
     if isinstance(config.get("demo"), dict):
         normalized["demo"] = config["demo"]
+    # W7a (аудит 2026-08-05): операционные узлы, которые пишут ДРУГИЕ экраны
+    # кабинета мимо конструктора — уведомления/Telegram владельца
+    # (apps.notifications.prefs, apps.telegram.notify), настройки склада
+    # (apps.inventory) и presence-minimal read-hook'и витрины. Без passthrough
+    # сохранение любого normalize-экрана (билдер/SEO/Finder/мастер) молча
+    # стирало их (класс W0/W6). Ключи presence-minimal: отсутствуют — не
+    # материализуем (golden целы).
+    if isinstance(config.get("notify"), dict):
+        normalized["notify"] = config["notify"]
+    if isinstance(config.get("low_stock_threshold"), int) and not isinstance(
+        config.get("low_stock_threshold"), bool
+    ):
+        normalized["low_stock_threshold"] = config["low_stock_threshold"]
+    if isinstance(config.get("lots_enabled"), bool):
+        normalized["lots_enabled"] = config["lots_enabled"]
+    if isinstance(config.get("wishlist"), bool):
+        normalized["wishlist"] = config["wishlist"]
+    if config.get("primary_service_cta") in ("booking", "request"):
+        normalized["primary_service_cta"] = config["primary_service_cta"]
     # i18n-оверлеи переводов (двуязычная витрина) — переживают нормализацию;
     # `localize()` накладывает их перед рендером. Базовый рендер (DE) не трогаем.
     i18n = _clean_i18n(config.get("i18n"))

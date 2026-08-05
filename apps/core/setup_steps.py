@@ -155,9 +155,14 @@ def _post_company(request):
     name = request.POST.get("name", "").strip()
     if name:
         tenant.name = name
-    tenant.city = request.POST.get("city", "").strip()
+    # W7a: presence-guard — поле, которого нет в POST, не обнуляем (паттерн
+    # site_view/legal_docs_view; live-save шлёт FormData слайда целиком, но чужой
+    # или урезанный POST не должен стирать контакты).
+    if "city" in request.POST:
+        tenant.city = request.POST.get("city", "").strip()
     for field in ("address", "opening_hours", "contact_phone", "contact_email"):
-        setattr(tenant, field, request.POST.get(field, "").strip())
+        if field in request.POST:
+            setattr(tenant, field, request.POST.get(field, "").strip())
     tenant.save(
         update_fields=[
             "name",

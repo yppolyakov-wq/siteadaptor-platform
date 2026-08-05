@@ -110,12 +110,11 @@ def save_stripe_methods(tenant, request) -> None:
 
 
 @login_required
-@require_POST
 def payments_methods(request):
-    """E7-3: сохранить выбор способов для Stripe Checkout (чекбоксы кабинета)."""
-    save_stripe_methods(request.tenant, request)
-    messages.success(request, _("Settings saved."))
-    return redirect("billing-payments")
+    """W7a: легаси-эндпоинт. Форма выбора Stripe-методов переехала на единый экран
+    «Zahlung & Versand» (W4-3); живой приёмник без формы обнулял
+    stripe_payment_methods пустым POST — теперь ничего не пишет."""
+    return redirect("payment-settings")
 
 
 @login_required

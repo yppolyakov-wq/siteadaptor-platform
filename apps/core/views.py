@@ -507,7 +507,16 @@ def settings_view(request):
     if request.method == "POST" and form.is_valid():
         tenant = form.save(commit=False)
         tenant.opening_hours_structured = _parse_opening_hours(request)
-        tenant.save()
+        # W7a: пишем ТОЛЬКО поля формы + часы — голый save() затирал параллельные
+        # записи других колонок (site_config черновика билдера, owner_chat_id из
+        # Telegram-вебхука, Stripe-callback) снимком на момент загрузки страницы.
+        tenant.save(
+            update_fields=[
+                *BusinessSettingsForm.Meta.fields,
+                "opening_hours_structured",
+                "updated_at",
+            ]
+        )
         messages.success(request, _("Gespeichert."))
         return redirect("settings")
     from apps.core import modules as _mod
@@ -3566,7 +3575,12 @@ def notifications_settings(request):
                     "email": bool(request.POST.get(f"c-{domain}-{event}-email")),
                     "telegram": bool(request.POST.get(f"c-{domain}-{event}-telegram")),
                 }
-        node["customer"] = customer
+        # W7a: мержим, а не заменяем — строки временно выключенных модулей не были
+        # в форме, и их выбор должен пережить Save (иначе включение модуля обратно
+        # тихо вернёт письма, которые владелец отключал).
+        merged = dict(node.get("customer")) if isinstance(node.get("customer"), dict) else {}
+        merged.update(customer)
+        node["customer"] = merged
         node["owner"] = {
             "email": bool(request.POST.get("o-email")),
             "telegram": bool(request.POST.get("o-telegram")),

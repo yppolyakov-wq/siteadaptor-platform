@@ -157,7 +157,9 @@ def test_payments_methods_saves_valid_and_drops_garbage():
         tenant,
         {"methods": ["card", "klarna", "bitcoin"]},
     )
-    views.payments_methods(request)
+    # W7a: эндпоинт payments_methods стал no-op-редиректом — семантику сохранения
+    # держит helper save_stripe_methods (его зовёт core.payment_settings).
+    views.save_stripe_methods(tenant, request)
     tenant.refresh_from_db()
     assert tenant.stripe_payment_methods == ["card", "klarna"]  # мусор отброшен
 
@@ -166,7 +168,7 @@ def test_payments_methods_saves_valid_and_drops_garbage():
 def test_payments_methods_empty_resets_to_default():
     tenant = TenantFactory(stripe_payment_methods=["card"])
     request = _req_full("post", "/dashboard/billing/payments/methods/", tenant)
-    views.payments_methods(request)
+    views.save_stripe_methods(tenant, request)  # W7a: см. комментарий выше
     tenant.refresh_from_db()
     assert tenant.stripe_payment_methods == []  # пусто = дефолт Stripe Dashboard
 

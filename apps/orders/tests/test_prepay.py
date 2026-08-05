@@ -156,6 +156,8 @@ def test_order_settings_toggle():
     tenant = TenantFactory()
     request = _cab_req({"orders_prepay": "on"})
     request.tenant = tenant
-    views.order_settings(request)
+    # W7a: дефолт-ветка prepay в order_settings удалена — семантику держит helper
+    # (его зовёт единый экран «Zahlung & Versand»).
+    views.save_prepay(tenant, request)
     tenant.refresh_from_db()
     assert tenant.orders_prepay is True

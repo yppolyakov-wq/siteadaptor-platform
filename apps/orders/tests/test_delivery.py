@@ -124,7 +124,9 @@ def test_delivery_settings_save_without_clobbering_prepay():
         }
     )
     request.tenant = tenant
-    views.order_settings(request)
+    # W7a: легаси-ветка delivery в order_settings удалена — save-семантику держит
+    # helper, который зовёт единый экран «Zahlung & Versand» (core.payment_settings).
+    views.save_delivery(tenant, request)
     tenant.refresh_from_db()
     assert tenant.delivery_enabled is True
     assert tenant.delivery_fee_cents == 390
@@ -326,7 +328,7 @@ def test_delivery_settings_save_zones_and_pickup_min():
         }
     )
     request.tenant = tenant
-    views.order_settings(request)
+    views.save_delivery(tenant, request)  # W7a: см. комментарий выше
     tenant.refresh_from_db()
     assert tenant.pickup_min_cents == 1200
     assert tenant.delivery_restrict_to_zones is True

@@ -398,21 +398,15 @@ def save_prepay(tenant, request) -> None:
 @login_required
 @require_POST
 def order_settings(request):
-    """Настройки заказов: онлайн-предоплата (P2.5c) ИЛИ доставка/Versand (G4).
+    """Настройки заказов из списка заказов: сейчас — только имена статусов (FB-4a).
 
-    Две независимые формы; различаем по hidden ``form`` — чтобы сохранение одной
-    не сбрасывало другую. Логика записи вынесена в save_* (переиспользует единый
-    экран W4-3)."""
-    tenant = request.tenant
-    if request.POST.get("form") == "delivery":
-        save_delivery(tenant, request)
-    elif request.POST.get("form") == "vorkasse":
-        save_vorkasse(tenant, request)
-    elif request.POST.get("form") == "status_labels":
-        save_status_labels(tenant, request)  # FB-4a
-    else:
-        save_prepay(tenant, request)
-    messages.success(request, _("Settings saved."))
+    W7a (аудит 2026-08-05): ветки delivery/vorkasse/prepay удалены — их UI переехал
+    на единый экран «Zahlung & Versand» (core.payment_settings, W4-3), а мёртвый
+    приёмник обнулял delivery_*/bank_*/orders_prepay пустым POST. save_* остаются —
+    их зовёт payment_settings по сентинелам."""
+    if request.POST.get("form") == "status_labels":
+        save_status_labels(request.tenant, request)  # FB-4a
+        messages.success(request, _("Settings saved."))
     return redirect("orders:order-list")
 
 
